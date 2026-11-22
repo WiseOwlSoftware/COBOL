@@ -32,7 +32,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// position table, so its positions are MATERIALIZED once per resolved collator: the 65,536 native code units
 /// sorted by the collator (ties by code unit); ORD is the rank + 1, CHAR the lowest-coded member of a rank,
 /// PositionCount the number of distinct ranks (characters the locale collates equally share a position — the case
-/// §2023:15.15.4 r2 anticipates). HIGH-VALUE is the highest-coded member of the last rank (U+FFFF under every CLDR
+/// §2023:15.15.4 RV2 anticipates). HIGH-VALUE is the highest-coded member of the last rank (U+FFFF under every CLDR
 /// table — its primary is the maximum), LOW-VALUE the lowest-coded member of the first (U+0000, completely
 /// ignorable) — §2023:8.3.3.6.4 GR6/GR7 as run-time values.</para>
 /// </summary>
@@ -92,7 +92,7 @@ public sealed class LocaleCollation : CobolCollation
         return CollationEngine.ForLocale(RunUnit.Current.Locale.Current(LocaleCategory.Collate));
     }
 
-    /// <summary>§2023:14.6.6 r5 — "A locale switch during execution of a SORT or MERGE statement has no effect on the
+    /// <summary>§2023:14.6.6 GR5 — "A locale switch during execution of a SORT or MERGE statement has no effect on the
     /// processing of that SORT or MERGE statement" — and §2023:12.4.5.7.4 GR1 — "Each collating sequence is a fixed file
     /// attribute": the sequence frozen for one statement or one open file. The current-locale form is bound to the
     /// locale current NOW (a SET LOCALE in the input procedure, or between two statements on the open file, must not
@@ -232,7 +232,7 @@ public sealed class LocaleCollation : CobolCollation
     private sealed class OrderVector
     {
         public required int[] Rank { get; init; }          // code unit → 0-based position (equal-collating units share one)
-        public required int[] FirstOfRank { get; init; }   // position → the LOWEST code unit collating there (§2023:15.15.4 r2)
+        public required int[] FirstOfRank { get; init; }   // position → the LOWEST code unit collating there (§2023:15.15.4 RV2)
         public required int[] LastOfRank { get; init; }    // position → the HIGHEST code unit collating there (GR6 tie)
         public required int Distinct { get; init; }
 
@@ -246,7 +246,7 @@ public sealed class LocaleCollation : CobolCollation
             Array.Sort(order, (x, y) =>
             {
                 int k = keys[x].CompareTo(keys[y]);
-                return k != 0 ? k : x.CompareTo(y);        // ties by code unit — the deterministic §2023:15.15.4 r2 duty
+                return k != 0 ? k : x.CompareTo(y);        // ties by code unit — the deterministic §2023:15.15.4 RV2 duty
             });
             var rank = new int[N];
             var first = new List<int>(N);

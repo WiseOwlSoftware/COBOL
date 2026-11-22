@@ -21,10 +21,10 @@
       *> a basic common time format with fractional seconds representation". A period is the
       *> separator because DECIMAL-POINT IS COMMA is not specified.
       *>
-      *> §2023:15.41.3 r2 requires argument-1 of FORMATTED-TIME to BE a time format, and r3 makes
+      *> §2023:15.41.3 AR2 requires argument-1 of FORMATTED-TIME to BE a time format, and r3 makes
       *> argument-2 "a value in standard numeric time form" — seconds past midnight. 45296.5 is
       *> 12*3600 + 34*60 + 56 = 45296 seconds plus half a second, i.e. 12:34:56.5, and
-      *> §2023:15.41.4 r1 returns "a representation of the standard numeric time contained in
+      *> §2023:15.41.4 RV1 returns "a representation of the standard numeric time contained in
       *> argument-2 according to the format in argument-1" — the fraction rendered at the
       *> format's own width, zero-filled to the right, which is what makes every line below a
       *> derivation rather than an observation.

@@ -104,7 +104,7 @@ public sealed class RunUnit
     public ModuleStack    Modules    { get; }   // was [ThreadStatic] CobolModule
     public FileRegistry   Files      { get; }   // was static CobolFile registries
     public IClock         Clock      { get; set; } = SystemClock.Instance;   // was AcceptSource.Now
-    public RandomSequence Random     { get; }   // was static CobolIntrinsics._random (kb/Work PB307, §2023:15.75.3 r4)
+    public RandomSequence Random     { get; }   // was static CobolIntrinsics._random (kb/Work PB307, §2023:15.75.3 AR4)
     public SortFileTable  SortFiles  { get; }   // was static CobolSort.Files (kb/Work PB1570, §2023:14.6.1 + §2023:14.9.40.4 GR10)
 
     /// A host's run unit for the duration of `body`; the generated Main begins its own with RunUnit.Begin().
@@ -3591,13 +3591,13 @@ table — legitimately static, kept. `EcFunctions` reads `RunUnit.Current.Except
 reorg beyond: `Pow10*` → `Values/Numeric/Pow10`; `CobolDate`'s `AcceptSource.Now` dependency → `RunUnit.Current.Clock`.
 
 **The clock seam carries the offset (R21, 2026-08-08):** `IClock.Now()` returns **`DateTimeOffset`** — the local
-wall-clock reading WITH the local time differential factor CURRENT-DATE renders at positions 17–21 (§2023:15.21.3 r1)
+wall-clock reading WITH the local time differential factor CURRENT-DATE renders at positions 17–21 (§2023:15.21.3 RV1)
 and the §2023:15.3.3 offset format fields emit. EVERY now-reading in the greenfield tree goes through the seam —
 the ACCEPT temporal sources, CURRENT-DATE, FORMATTED-CURRENT-DATE, SECONDS-PAST-MIDNIGHT and the §2023:15.100
 windowing execution-time defaults — so one run unit observes one clock and `WISEOWL_COBOL_CLOCK` pins all of them
 at once (a pin may carry an explicit offset, `2026-06-10T14:30:45.67+02:30`; without one the machine-local
 offset is assumed). The only direct `DateTime[Offset].Now` reads are `SystemClock`'s unpinned fallback and
-`IntrinsicBinder.CompileClock`'s default (WHEN-COMPILED is the compilation timestamp, §2023:15.99.3 r2);
+`IntrinsicBinder.CompileClock`'s default (WHEN-COMPILED is the compilation timestamp, §2023:15.99.3 RV2);
 `ClockSeamDriftTests` is the source-form guard that keeps it that way.
 
 **THE §2023:15.3 INTEGER-ARGUMENT INTAKE IS A CONTRACT WITH THE RENDERER, AND THE BODY'S PARAMETER TYPE IS ITS ONLY
@@ -3605,7 +3605,7 @@ STATEMENT (kb/Work PB22 + PB65 + PB254).** A §15 integer argument reaches a run
 two intakes, and which one is not a property of the renderer arm — it is a property of the ARGUMENT's own rule:
 
 - **BOUNDED** — the function definition constrains the argument's VALUE (§2023:15.5.2's integer date form for
-  `INTEGER-OF-DATE`/`DAY-OF-INTEGER`/…, §2023:15.23.3 r1's "less than 1 000 000", §2023:15.36.3 r1's "greater than or
+  `INTEGER-OF-DATE`/`DAY-OF-INTEGER`/…, §2023:15.23.3 AR1's "less than 1 000 000", §2023:15.36.3 AR1's "greater than or
   equal to zero" together with a codomain `Int128` cannot hold). A value the body cannot represent then really
   "results in an incorrect value for that argument or for the returned value according to the rules specified in
   the function definition" (§2023:15.3 AR14), so the argument crosses `CobolIntrinsics.IntegerArg`, the ONE
@@ -3614,21 +3614,21 @@ two intakes, and which one is not a property of the renderer arm — it is a pro
   integer and §2023:15.3 AR14 has nothing to fire on. Putting the narrowing in front of such a body manufactures
   an exception condition the standard does not define: fatal under checking, and with checking off it
   substitutes 0 *for the argument*, which is how `TEST-DATE-YYYYMMDD(1.0E19)` once answered "the date is
-  valid" (§2023:15.90.4 r1d) and `FIND-STRING(… START AFTER 9999999999999999999)` once answered a match position
-  where §2023:15.37.4 r3 requires zero. **The body's parameter is `Int128`, and the renderer's intake is the wide
+  valid" (§2023:15.90.4 RV1d) and `FIND-STRING(… START AFTER 9999999999999999999)` once answered a match position
+  where §2023:15.37.4 RV3 requires zero. **The body's parameter is `Int128`, and the renderer's intake is the wide
   one** (`IntrinsicRenderer.IntArgWide` / `ArgIntWide` → `AsIntWide`, which has no raise point). Members today:
-  BOOLEAN-OF-INTEGER argument-1 (§2023:15.13.3 r1), TEST-DATE-YYYYMMDD and TEST-DAY-YYYYDDD argument-1 (§2023:15.90.3 r1
-  / §2023:15.91.3 r1), FIND-STRING argument-3 (§2023:15.37.3 r3) and RANDOM's seed (§2023:15.75.3 r2, PB636); the guard pairs a `…Dec` body
+  BOOLEAN-OF-INTEGER argument-1 (§2023:15.13.3 AR1), TEST-DATE-YYYYMMDD and TEST-DAY-YYYYDDD argument-1 (§2023:15.90.3 AR1
+  / §2023:15.91.3 AR1), FIND-STRING argument-3 (§2023:15.37.3 AR3) and RANDOM's seed (§2023:15.75.3 AR2, PB636); the guard pairs a `…Dec` body
   with the arm of the same name minus the suffix.
   ⛔ **A TOTAL argument whose value rides the SDIDI takes NO native carrier at all (kb/Work PB637):** ANNUITY's
-  argument-2 (§2023:15.9.3 r3 "a positive integer" — a sign rule). An SDIDI integer holds 34 significant digits at any
+  argument-2 (§2023:15.9.3 AR3 "a positive integer" — a sign rule). An SDIDI integer holds 34 significant digits at any
   exponent, so it reaches past `Int128` as well as `long`; the SDIDI arm keeps the position's unbounded SDIDI
   integer (`DecArg` over `RawArg`) and `AnnuityDec(CobolRounding, CobolDec, CobolDec)` takes it as a `CobolDec`
   (an `Int128` intake ended the run unit on `ANNUITY(0, 10 ** 40)`, branch review R1-1).
   `IntrinsicCarrierAgreementDriftTests.IntegerArgumentsThatRideTheSdidi_TakeNoNativeIntake` holds that closed set.
-  At rate 0 the equivalent expression is `1 / argument-2` (§2023:15.9.4 r1a), exact for every n; at a positive
+  At rate 0 the equivalent expression is `1 / argument-2` (§2023:15.9.4 RV1a), exact for every n; at a positive
   rate an enormous n leaves `(1 + rate) ** n` outside the decimal128 range, which is the EXPRESSION'S size condition
-  (EC-SIZE-OVERFLOW, §2023:8.8.1.5.2 r2), the same at n = 10^6 and n = 10^20 — never an EC-ARGUMENT-FUNCTION that
+  (EC-SIZE-OVERFLOW, §2023:8.8.1.5.2 GR2), the same at n = 10^6 and n = 10^20 — never an EC-ARGUMENT-FUNCTION that
   depends on whether n fits a native integer.
 
 ⚠ **The membership is not a maintained list anywhere.** Declaring the body's carrier IS the claim, and

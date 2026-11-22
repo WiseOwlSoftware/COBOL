@@ -5,12 +5,12 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:15.67.3 r4 (NUMVAL), §2023:15.68.3 r7 (NUMVAL-C) and §2023:15.69.3 r3 (NUMVAL-F) — the STANDARD-DECIMAL
+      *> ISO §2023:15.67.3 AR4 (NUMVAL), §2023:15.68.3 AR7 (NUMVAL-C) and §2023:15.69.3 AR3 (NUMVAL-F) — the STANDARD-DECIMAL
       *> half of the digit cap, measured as a MATCHED PAIR one digit apart on each of the three functions.
       *> Each rule is two sentences; this fixture is about the second of them:
-      *>   §2023:15.67.3 r4 / §2023:15.68.3 r7 "... If standard-decimal arithmetic is in effect, the total number of
+      *>   §2023:15.67.3 AR4 / §2023:15.68.3 AR7 "... If standard-decimal arithmetic is in effect, the total number of
       *>       digits in argument-1 shall not exceed 34."
-      *>   §2023:15.69.3 r3       "... If standard-decimal arithmetic is in effect, the total number of digits in
+      *>   §2023:15.69.3 AR3       "... If standard-decimal arithmetic is in effect, the total number of digits in
       *>       the significand of argument-1 shall not exceed 34."
       *> (cite.py --check 15.67.3 / 15.68.3 / 15.69.3 on those sentences -> OK at rules 4, 7 and 3.)
       *> The FIRST sentence of each rule bounds STANDARD-BINARY arithmetic at 35; that mode is declined on
@@ -26,7 +26,7 @@
       *> l1_numval_family_cap_discriminators run under, and 0 is a value no legal argument here produces.
       *>
       *> ⛔ WHY THIS EXISTS BESIDE THE TWO NATIVE-CAP FIXTURES. pb33 and l1_numval_family_cap_discriminators
-      *> pin the FIRST sentence of the sibling rules (§2023:15.67.3 r3 / §2023:15.68.3 r6 / §2023:15.69.3 r2 — 31 under
+      *> pin the FIRST sentence of the sibling rules (§2023:15.67.3 AR3 / §2023:15.68.3 AR6 / §2023:15.69.3 AR2 — 31 under
       *> native), and conformance:cases/15.4.1-Numeric-and-integer-functions/pb60_numval_standard_decimal pins the 34/35 boundary for NUMVAL
       *> alone. Nothing measured the standard-decimal boundary on NUMVAL-C or on NUMVAL-F, and a cap is a
       *> BOUNDARY: only a matched pair astride it, on the function whose own rule is being measured, can
@@ -38,7 +38,7 @@
       *> receiver-less DISPLAY channel:
       *>   NV34   "1234567890123456789012345.678901234"   25 + 9 = 34 digits  -> the value
       *>   NV35   "1234567890123456789012345.6789012345"  25 + 10 = 35        -> §2023:15.3 default 0
-      *>   NVC34  "$1234567890123456789012345.678901234"  the currency string is not a digit (§2023:15.68.4 r2),
+      *>   NVC34  "$1234567890123456789012345.678901234"  the currency string is not a digit (§2023:15.68.4 RV2),
       *>                                                  so this is 34      -> the value
       *>   NVC35  one more fraction digit = 35            -> 0
       *>   NVF34  "1234567890123456789012345.678901234"   34 significand digits, no exponent -> the value

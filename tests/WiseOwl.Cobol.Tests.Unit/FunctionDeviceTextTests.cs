@@ -104,7 +104,7 @@ public sealed class FunctionDeviceTextTests
         Assert.Equal("-014", FunctionValueField.Min(Copy("7", i), Copy("-14", si)).DeviceText(false));
     }
 
-    /// <summary>A tie keeps the FIRST argument (§2023:15.59.4 r1 / §2023:15.63.4 r1 take the leftmost of equal values), so its item is the temporary.</summary>
+    /// <summary>A tie keeps the FIRST argument (§2023:15.59.4 RV1 / §2023:15.63.4 RV1 take the leftmost of equal values), so its item is the temporary.</summary>
     [Fact]
     public void ATieKeepsTheFirstArgumentsItem()
     {
@@ -179,7 +179,7 @@ public sealed class FunctionDeviceTextTests
     }
 
     // ── The temporary's LENGTH (kb/Work PB3951): FUNCTION LENGTH / BYTE-LENGTH of a numeric function measure the item DISPLAY shows ────────
-    // ISO §2023:8.4.3.2.1 + §2023:15.4 make the function-identifier that temporary data item, §2023:15.50.4 r2 / r3 and §2023:15.14.4 r1 measure it, and §2023:15.4.1 leaves
+    // ISO §2023:8.4.3.2.1 + §2023:15.4 make the function-identifier that temporary data item, §2023:15.50.4 RV2 / r3 and §2023:15.14.4 RV1 measure it, and §2023:15.4.1 leaves
     // its representation to the implementor, so GnuCOBOL 3.2.0's sizes are the answers (the probe matrix of the PB3951 report; the rows
     // marked NOT COPIED are the same two deliberate departures as DISPLAY's).
 
@@ -204,7 +204,7 @@ public sealed class FunctionDeviceTextTests
     }
 
     /// <summary>R1-1 of the PB3951 review: a USAGE NATIONAL argument's copy is five national POSITIONS and ten BYTES (PIC S9(5) NATIONAL), a
-    /// SIGN SEPARATE one six and twelve; LENGTH reads the positions (§2023:15.50.4 r2) and BYTE-LENGTH the bytes (§2023:15.14.4 r1), through ABS too.</summary>
+    /// SIGN SEPARATE one six and twelve; LENGTH reads the positions (§2023:15.50.4 RV2) and BYTE-LENGTH the bytes (§2023:15.14.4 RV1), through ABS too.</summary>
     [Fact]
     public void ACopyOfANationalArgumentHasPositionsAndBytes()
     {

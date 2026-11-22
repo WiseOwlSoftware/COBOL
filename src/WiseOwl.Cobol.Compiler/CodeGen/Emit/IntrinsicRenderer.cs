@@ -53,8 +53,8 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         if (sig.Bind == IntrinsicBind.Deferred || sig.RuntimeMethod.Length == 0)
             return new NumX(EmitText.LoudValue("long", $"FUNCTION {sig.Name} (catalogued, not yet implemented)"), 0);
         // ⛔ LENGTH / BYTE-LENGTH OF A NUMERIC OR INTEGER FUNCTION MEASURE ITS RETURNED-VALUE TEMPORARY, BEFORE ANY CARRIER ROUTING (kb/Work PB3951).
-        // §2023:8.4.3.2.4 r1: a function-identifier references a temporary data item (§2023:15.4); §2023:15.14.4 r1 measures it in bytes (ByteLength) and
-        // §2023:15.50.4 r2 / r3 in national or alphanumeric character positions (Length). It is the item DISPLAY shows (FunctionValueField, DOC-A.1-92), so its length is read from that field
+        // §2023:8.4.3.2.4 GR1: a function-identifier references a temporary data item (§2023:15.4); §2023:15.14.4 RV1 measures it in bytes (ByteLength) and
+        // §2023:15.50.4 RV2 / r3 in national or alphanumeric character positions (Length). It is the item DISPLAY shows (FunctionValueField, DOC-A.1-92), so its length is read from that field
         // and never from a width of ours; the argument's value only fills the field, so a binary64 argument (SQRT) is no reason to
         // leave this arm for the float lane below. The binder sends every such argument here (IntrinsicBinder.FunctionResultLength).
         if (sig.RuntimeMethod is "Length" or "ByteLength" && FunctionDeviceText.IsNumericFunctionResult(ic.Args[0]))
@@ -81,11 +81,11 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // so the latitude the sentence grants is REMOVED for them and their value is the parsed value EXACTLY —
         // under NATIVE arithmetic too. Only the REPRESENTATION stays the implementor's ("When native arithmetic is
         // in effect, the characteristics and representation of the returned value are defined by the implementor"),
-        // and the SDIDI is the ONE representation that holds every conforming argument: §2023:15.67.3 r3 admits 31
+        // and the SDIDI is the ONE representation that holds every conforming argument: §2023:15.67.3 AR3 admits 31
         // total digits under native and r4 admits 34 under a standard mode, both of which the SDIDI's runtime
         // exponent carries without a working scale at all.
         // ⛔ NO COMPILE-TIME WORKING SCALE CAN DO THIS, WHICH IS WHY THE FIX IS THE CARRIER AND NOT A BIGGER FLOOR.
-        // A scaled Int128 temporary holds i + ws digits for an argument with i integer digits, and §2023:15.67.3 r3
+        // A scaled Int128 temporary holds i + ws digits for an argument with i integer digits, and §2023:15.67.3 AR3
         // permits i = 31, so the only ws safe for EVERY conforming argument is 7 — while `NUMVAL("0.123456789")`
         // needs 9. The former arms took ws = max(receiver scale, 6), which made a function's value depend on the
         // SHAPE of its receiver and truncated in every channel with no receiver scale to inherit: measured at HEAD
@@ -93,7 +93,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // no protection, because the receiver bounds the STATEMENT's result and not an OPERAND's precision —
         // `COMPUTE R = FUNCTION NUMVAL("0.1234567") * 10000000` stored 1234560 into PIC 9(9) where r1 owes
         // 1234567.
-        // ⛔ NUMVAL-F IS HERE TOO, AND FOR A DIFFERENT REASON (kb/Work PB3839). §2023:15.69.4 r2 grants native arithmetic "an
+        // ⛔ NUMVAL-F IS HERE TOO, AND FOR A DIFFERENT REASON (kb/Work PB3839). §2023:15.69.4 RV2 grants native arithmetic "an
         // approximation of the numeric value represented by argument-1" and r3 gives standard-decimal arithmetic the value
         // itself, so the native digits are the IMPLEMENTOR's (§2023:15.4.1) and the only question is which approximation. The
         // float family's (a binary64 wherever no fixed-point scale governs, an Int128 truncation at the receiver-capped
@@ -108,7 +108,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
 
         // ⛔ ROUTE ON THE ARGUMENT'S TYPE, NOT ONLY THE FUNCTION'S FAMILY (fix-queue PB2). The exact family
         // computes over scale-aligned Int128, which is right (deep-dive D1) — but a FLOATING-POINT argument is
-        // legal for all of it (§2023:15.7.3 r1 and siblings require class NUMERIC, and a COMP-2 item is class
+        // legal for all of it (§2023:15.7.3 AR1 and siblings require class NUMERIC, and a COMP-2 item is class
         // numeric), and dispatching on sig.Float alone handed a double expression to an Int128 parameter. The
         // user saw the generated C# fail: "CS1503: cannot convert from 'double' to 'System.Int128'" — an
         // internal failure escaping as a backend error on legal source. Ten of eleven functions probed did it.
@@ -119,8 +119,8 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // these method names so this one line is the whole dispatch.
         // ⛔ THE STANDARD-MODE ARM RUNS BEFORE THE FLOAT DISPATCH (kb/Work R18 — ledger F15/F19). Four float-family
         // rows have their standard-mode value FIXED by the spec, with no §2023:15.4.1 r2 latitude: FUNCTION E and
-        // FUNCTION PI are exact 34-digit constants (§2023:15.27.3 r3 / §2023:15.73.3 r3), and EXP / EXP10 carry equivalent
-        // arithmetic expressions — `FUNCTION E ** argument-1` (§2023:15.34.4 r1) and `10 ** argument-1` (§2023:15.35.4 r1) —
+        // FUNCTION PI are exact 34-digit constants (§2023:15.27.3 RV3 / §2023:15.73.3 RV3), and EXP / EXP10 carry equivalent
+        // arithmetic expressions — `FUNCTION E ** argument-1` (§2023:15.34.4 RV1) and `10 ** argument-1` (§2023:15.35.4 RV1) —
         // that §2023:15.4.1 r1 requires the returned value to EQUAL under a standard mode. Each renders through the
         // SAME CobolDec.Pow the hand-written `**` uses (§2023:8.8.1.5.4), over the SAME exact constants, so the
         // function and its spelled-out EAE agree by construction — binary64 Math.Pow is not SDIDI arithmetic, and
@@ -175,7 +175,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // PIC SV9(8) item needs 39 digits aligned, so the native arm answered EC-SIZE-OVERFLOW for RANGE = 3.4e30 —
         // a value its PIC S9(31) receiver holds. The value is representable; only the carrier's width was the
         // problem, and the SDIDI carries its exponent at run time (SumDec / RangeDec …: each argument converts
-        // exactly, §2023:8.8.1.5.2 r1, and the equivalent arithmetic expression evaluates on 34 digits — more than any
+        // exactly, §2023:8.8.1.5.2 GR1, and the equivalent arithmetic expression evaluates on 34 digits — more than any
         // receiver can store, §2023:13.18.40.3 SR14). ⚠ NOT "ALIGN TO THE RECEIVER'S SCALE", which the note proposed:
         // RANGE(0.6, −0.5) into a scale-0 receiver is 1.1 → 1, but each argument cut to scale 0 first is 0 − 0 = 0 —
         // no guard-digit count survives a carry (0.95 + 0.05), so the arguments must keep their own digits and the
@@ -197,7 +197,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             return wideAligned;
         else if (AnyDecRaw(ic) && RenderDec(ic) is { } decNative)
             return decNative;
-        // ⛔ MEAN'S VALUE IS THE SDIDI QUOTIENT UNDER NATIVE ARITHMETIC TOO (kb/Work PB3860). §2023:15.60.4 r1's equivalent arithmetic
+        // ⛔ MEAN'S VALUE IS THE SDIDI QUOTIENT UNDER NATIVE ARITHMETIC TOO (kb/Work PB3860). §2023:15.60.4 RV1's equivalent arithmetic
         // expression ends in a division; under a standard mode the value is that expression's SDIDI value (§2023:15.4.1 r1) and
         // under native arithmetic §2023:15.4.1 leaves "an implementor-defined approximation". The approximation this arm used to
         // choose came from the RECEIVER: the quotient was cut at max(receiver scale, sum scale + 1, 6) places and the
@@ -215,11 +215,11 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // operands through RawArg, where a type-6 operand is already its integer (kb/Work PB651). That is also why no
         // integer-only function needs a by-name exemption: FACTORIAL, whose result binary64 cannot carry (33! ≈ 8.7e36),
         // never reaches the lane, because its one position is type 6.)
-        // MAX / MIN / ORD-MAX / ORD-MIN — and MEDIAN over an odd count — are pure SELECTION: §2023:15.59.4 r1 /
-        // §2023:15.63.4 r1 "the returned value is the CONTENT of the argument-1 having the greatest [least] value",
-        // §2023:15.71.4 r1 / §2023:15.72.4 r1 "the ordinal number that corresponds to the position of the argument-1 having
+        // MAX / MIN / ORD-MAX / ORD-MIN — and MEDIAN over an odd count — are pure SELECTION: §2023:15.59.4 RV1 /
+        // §2023:15.63.4 RV1 "the returned value is the CONTENT of the argument-1 having the greatest [least] value",
+        // §2023:15.71.4 RV1 / §2023:15.72.4 RV1 "the ordinal number that corresponds to the position of the argument-1 having
         // the greatest [least] value", and §2023:15.61.1 MEDIAN "returns the content of the argument whose value is the
-        // middle value" (an even count is §2023:15.61.4 r2's arithmetic mean, not a selection), each compared "according
+        // middle value" (an even count is §2023:15.61.4 RV2's arithmetic mean, not a selection), each compared "according
         // to the rules for simple conditions"; no equivalent arithmetic expression, so §2023:15.4.1's native latitude over the
         // representation never reaches the VALUE. A MIXED list (a float beside a fixed-point item) must deliver
         // the selected argument from ITS OWN carrier, never re-rendered through binary64 (kb/Work PB65
@@ -250,7 +250,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // the WHOLE argument run render in binary64", because FloatBody converts EVERY argument through Dbl. For
         // a function whose §2023:15.3 argument types are all numeric (type 6 "an integer data item", type 10 "a
         // numeric data item") those are the same question. For one that MIXES them they are not, and the gap was
-        // a crash on conforming-shaped source: FIND-STRING takes two string operands (§2023:15.37.3 r1 — "class
+        // a crash on conforming-shaped source: FIND-STRING takes two string operands (§2023:15.37.3 AR1 — "class
         // alphabetic, alphanumeric, or national") and an integer argument-3 (r3), so
         // `FIND-STRING(HAY NDL START AFTER <COMP-2>)` moved the whole call to the float lane — the two strings
         // became `(double)CobolNum.FromAlphanumeric(…)`, LAST/ANYCASE were dropped, and the emitted call named
@@ -322,7 +322,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
                 // selected value at a coarser receiver scale truncated it there first and the receiver's ROUNDED
                 // phrase then rounded the truncation, so MAX(0.12345 0.1) into PIC 9V99 ROUNDED MODE
                 // AWAY-FROM-ZERO stored 0.12 where §2023:14.7.4.3 GR3 owes the one rounding of 0.12345, 0.13 - the same
-                // reference giving a different value to a different receiver, which §2023:15.59.4 r1 ("the content of the
+                // reference giving a different value to a different receiver, which §2023:15.59.4 RV1 ("the content of the
                 // argument-1 having the greatest value") does not allow. The receiver-bound result keeps the
                 // store-cap (§2023:14.9.25.4 GR6 high-order truncation semantics, the receiver's own capacity finishing
                 // the job). A selection whose common scale s EXCEEDS the receiver's headroom never reaches this arm:
@@ -371,19 +371,19 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             case "OrdMaxString" or "OrdMinString":                              // all-string form (PCS via CollatePrefix, CA23)
                 return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod, CollatePrefix(ic) + StrArgList(ic)), 0);
 
-            // (NUMVAL / NUMVAL-C have NO arm here in ANY arithmetic mode — §2023:15.67.4 r1 / §2023:15.68.4 r1 fix their
+            // (NUMVAL / NUMVAL-C have NO arm here in ANY arithmetic mode — §2023:15.67.4 RV1 / §2023:15.68.4 RV1 fix their
             // value, so RenderNum's §2023:15.4.1 arm routes both to the SDIDI projection before the mode dispatch
             // and no compile-time working scale exists for them to be wrong about; kb/Work PB251.)
 
             // The §2023:15.93/§2023:15.94 TEST validators — 0 / first-error position / LENGTH+1, scale 0. The digit-cap
-            // sub-notes are ARITHMETIC-MODE dependent (§2023:15.93.4 r1b notes 2/4): 31 native, 34 under the SDIDI
+            // sub-notes are ARITHMETIC-MODE dependent (§2023:15.93.4 RV1b notes 2/4): 31 native, 34 under the SDIDI
             // standard modes (standard-binary's 35 is in ArithmeticModes.NumvalDigitCap and unreachable — the
             // mode is declined at bind on §2023:4.2.6 processor-dependence, kb/Work PB198).
             case "TestNumval":
                 return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod,
                     $"{Str(ic.Args[0])}{CommaFlag}{DigitCapFlag}"), 0);
             case "TestNumvalC":
-                // The LOCALE arm mirrors NumvalC's (§2023:15.94.3 r1 imports §2023:15.68.3 whole; PB64 T6).
+                // The LOCALE arm mirrors NumvalC's (§2023:15.94.3 AR1 imports §2023:15.68.3 whole; PB64 T6).
                 if (ic.LocaleWritten)
                     return new NumX(RuntimeApi.Intrinsic("TestNumvalCLocale",
                         $"{Str(ic.Args[0])}, {LocaleTagArg(ic)}{AnycaseFlag(ic)}{DigitCapFlag}"), 0);
@@ -392,14 +392,14 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
 
             // The §2023:15.90/§2023:15.91 date validators — integer verdict chains (year → month → day), scale 0.
             // ⛔ THE WIDE INTAKE, because the two functions are TOTAL (kb/Work PB254 — see IntArgWide):
-            // §2023:15.90.3 r1 / §2023:15.91.3 r1 constrain nothing but integer-ness and r1a is a CATCH-ALL — which is also
+            // §2023:15.90.3 AR1 / §2023:15.91.3 AR1 constrain nothing but integer-ness and r1a is a CATCH-ALL — which is also
             // why a binary64 past the Int128 carrier may be clamped here: the verdict past the window never varies.
             case "TestDateYyyymmdd" or "TestDayYyyyddd":
                 return new NumX(RuntimeApi.DateFn(sig.RuntimeMethod, IntArgWideSaturating(ic, 0)), 0);
 
             case "FindString":                                                  // §2023:15.37 FIND-STRING (2023) — 1-based position of argument-2 in argument-1
-                // Argument-3 also takes the WIDE intake: §2023:15.37.3 r3 places no value constraint and
-                // §2023:15.37.4 r2/r3 answer for every integer — ignore that many matches, else 0 (PB254). Past every
+                // Argument-3 also takes the WIDE intake: §2023:15.37.3 AR3 places no value constraint and
+                // §2023:15.37.4 RV2/r3 answer for every integer — ignore that many matches, else 0 (PB254). Past every
                 // match the answer is 0 however large the count, so a binary64 past the carrier is clamped.
                 return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod,
                     $"{Str(ic.Args[0])}, {Str(ic.Args[1])}, {(ic.FindLast ? "true" : "false")}, "
@@ -414,7 +414,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             case "Length":                                                      // §2023:15.50 runtime shapes (kb/Work PB61)
                 // (A group with a runtime length — an OCCURS DEPENDING table, dynamic-length items or
                 // dynamic-capacity tables beneath it — never arrives here: the binder's VariableLengthGroupSum
-                // builds the §2023:15.50.4 r4b/r7 expression, whose ODO part is a BoundOdoExtent.)
+                // builds the §2023:15.50.4 RV4b/r7 expression, whose ODO part is a BoundOdoExtent.)
                 // r6 — a national DYNAMIC LENGTH item's CURRENT length in bytes (the storage image); every other
                 // runtime shape (a ref-mod view, an ANY LENGTH / dynamic-length alphanumeric item, a nested
                 // string-function result) is the character-position count over the string image.
@@ -427,7 +427,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
                 // A nested function result is not storage the renderer can slice; its string image is the value's
                 // characters, and the BYTES those occupy follow its §2023:15.2 category (kb/Work PB1398): a national
                 // result is 2 bytes per position (D-N1), a boolean result (implicit usage bit, §2023:15.2 GR2) packs 8
-                // positions per byte and rounds up (§2023:15.14.4 r4), an alphanumeric one is 1 byte per position.
+                // positions per byte and rounds up (§2023:15.14.4 RV4), an alphanumeric one is 1 byte per position.
                 return new NumX(RuntimeApi.Intrinsic(
                     IntrinsicResultType.OperandCategory(ic.Args[0]) switch
                     {
@@ -455,17 +455,17 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
 
             // SECONDS-PAST-MIDNIGHT (§2023:15.80) — type NUMERIC in standard numeric time form: the runtime
             // returns the local time-of-day TICK count = the unscaled value at SCALE 7 (the documented
-            // 100 ns WiseOwl COBOL precision, §2023:15.80.3 r3).
+            // 100 ns WiseOwl COBOL precision, §2023:15.80.3 RV3).
             case "SecondsPastMidnight":
                 return new NumX(RuntimeApi.DateFn(sig.RuntimeMethod, ""), 7);
 
             // ── The COBOL-2014 date/time + number family (§2023:15.17/48/79/92; §2023:15.69/95) ───────────────────────────
             case "CombinedDatetime":                                            // §2023:15.17 — a1 + a2/100000
             {
-                // ⛔ ARGUMENT-2 IS TAKEN EXACTLY, NEVER LANDED (kb/Work PB620). §2023:15.17.3 r2 requires only
+                // ⛔ ARGUMENT-2 IS TAKEN EXACTLY, NEVER LANDED (kb/Work PB620). §2023:15.17.3 AR2 requires only
                 // "standard numeric time form", which §2023:15.5.5 defines by MAGNITUDE — no fraction-digit limit —
                 // so a receiver-derived working scale has nothing to round to and §2023:15.4.1 r1 makes the returned
-                // value EQUAL the §2023:15.17.4 r1 expression. A Dec/float argument-2 never reaches here at all: it
+                // value EQUAL the §2023:15.17.4 RV1 expression. A Dec/float argument-2 never reaches here at all: it
                 // is claimed by RenderDec's own arm under either arithmetic mode, which is what lets this arm
                 // consume the operand at its OWN scale.
                 NumX t = RawArg(ic, 1);
@@ -491,7 +491,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
                 return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod,         //   the r1b digit-cap sub-note is MODE-dependent,
                     $"{Str(ic.Args[0])}{CommaFlag}{DigitCapFlag}"), 0);         //   exactly as its two TEST- siblings (PB60)
 
-            case "IntegerOfBoolean":                                            // §2023:15.45.4 r1 — the unsigned MSB-first value of the bit configuration
+            case "IntegerOfBoolean":                                            // §2023:15.45.4 RV1 — the unsigned MSB-first value of the bit configuration
                 return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod, Str(ic.Args[0])), 0);
 
             default:
@@ -519,17 +519,17 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     {
         // RANDOM (§2023:15.75.3): the no-argument form continues the current sequence; the seeded form restarts it.
         // ⛔ THE SEED TAKES THE WIDE INTAKE, because the argument is TOTAL (kb/Work PB636 — see IntArgWide):
-        // §2023:15.75.3 r2 constrains the SIGN alone and §2023:15.75.4 r3 makes the distinct-sequence subset a FLOOR
+        // §2023:15.75.3 AR2 constrains the SIGN alone and §2023:15.75.4 RV3 makes the distinct-sequence subset a FLOOR
         // ("from 0 through at least 32767"), not a domain, so §2023:15.3 has no incorrect value to raise on.
         "Random" when ic.Args.Count == 0 => RuntimeApi.Intrinsic(method, ""),
         "Random" => RuntimeApi.Intrinsic(method, IntArgWide(ic, 0)),
         // COMBINED-DATETIME's binary64 carrier takes the compilation group's LEAP-SECOND state, exactly as its
-        // two exact-carrier twins do (kb/Work PB620): §2023:15.17.3 r2's bound is §2023:7.3.17.4 GR4/GR5's, so a screen
+        // two exact-carrier twins do (kb/Work PB620): §2023:15.17.3 AR2's bound is §2023:7.3.17.4 GR4/GR5's, so a screen
         // that could not see the directive would admit 86 400.5 on one carrier and refuse it on another.
         "CombinedDatetimeReal" => RuntimeApi.Intrinsic(method, $"{Dbl(ic, 0)}, {Dbl(ic, 1)}{LeapSecondFlag}"),
         // A variadic body whose EAE CANCELS across its list takes an all-exact list as its EXACT values (kb/Work PB1565, PB4111 —
         // see ExactListBodies): the expression formed exactly and divided once in the native intermediate rounding mode, narrowed
-        // once. PRESENT-VALUE's rate leads unscreened, exactly as on RenderDec's arm: the exact body decides §2023:15.74.3 r2 on the
+        // once. PRESENT-VALUE's rate leads unscreened, exactly as on RenderDec's arm: the exact body decides §2023:15.74.3 AR2 on the
         // exact rate itself (PresentValueExact), so a leading table(ALL) stays one CobolExact[] enumeration.
         "PresentValue" when !AnyRealArgument(ic) =>
             LeadThenTail(ic, method, $"{num.IntermediateMode}, ", RuntimeApi.ExactType, a => ExactValueOf(ic, a)),
@@ -561,17 +561,17 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     ///         SDIDI reaches (10^±6144, §2023:8.8.1.5.2: a floating-point literal, a product past the Int128 window);
     ///         a scaled operand is inside it, where the body's bounded condition number keeps binary64's RELATIVE
     ///         error the ordinary approximation. <c>Sqrt</c> (the native arm; the standard modes are
-    ///         <c>SqrtDec</c>'s) — §2023:15.84.4 r4: the root of 10^−400 is the representable 10^−200.</item>
+    ///         <c>SqrtDec</c>'s) — §2023:15.84.4 RV4: the root of 10^−400 is the representable 10^−200.</item>
     ///   <item><see cref="ExactIntake.EveryExact"/> — the body is ILL-CONDITIONED somewhere in its domain (its
     ///         condition number |x·f′(x)/f(x)| is unbounded, or reaches hundreds), so even the RELATIVE error of a
     ///         scaled operand's binary64 is amplified into the result, and every exact operand, scaled or SDIDI, is
-    ///         taken exactly (kb/Work PB1041). <c>Sin</c> / <c>Cos</c> / <c>Tan</c> (§2023:15.82.4 r1 / §2023:15.20.4 r1 /
-    ///         §2023:15.89.4 r1) at every multiple of π/2 and at magnitude — reduced to a quadrant and residue on the
+    ///         taken exactly (kb/Work PB1041). <c>Sin</c> / <c>Cos</c> / <c>Tan</c> (§2023:15.82.4 RV1 / §2023:15.20.4 RV1 /
+    ///         §2023:15.89.4 RV1) at every multiple of π/2 and at magnitude — reduced to a quadrant and residue on the
     ///         exact carrier: SIN(3.14159265358979323) answered 1.22·10^−16 where the value is 8.46·10^−18,
     ///         sin(1.0E40) answered +0.6468 where sin(10^40) is −0.5696, and sin(10^400) computed sin(+∞) = NaN;
-    ///         <c>Log</c> / <c>Log10</c> (§2023:15.55.4 r1 / §2023:15.56.4 r1) at 1 (LOG(1 + 10^−26) answered 0) and past the
-    ///         range (log10(10^−400) is −400, not log10(+0.0) = −∞); <c>Acos</c> / <c>Asin</c> (§2023:15.8.4 r1 /
-    ///         §2023:15.10.4 r1) at ±1 (ACOS(1 − 10^−26) answered 0, not 1.414·10^−13); <c>Exp</c> / <c>Exp10</c>
+    ///         <c>Log</c> / <c>Log10</c> (§2023:15.55.4 RV1 / §2023:15.56.4 RV1) at 1 (LOG(1 + 10^−26) answered 0) and past the
+    ///         range (log10(10^−400) is −400, not log10(+0.0) = −∞); <c>Acos</c> / <c>Asin</c> (§2023:15.8.4 RV1 /
+    ///         §2023:15.10.4 RV1) at ±1 (ACOS(1 − 10^−26) answered 0, not 1.414·10^−13); <c>Exp</c> / <c>Exp10</c>
     ///         (§2023:15.34.1 / §2023:15.35.1 — condition number |x|: 150 ulps at EXP(700.12…)).</item>
     /// </list>
     /// <para>Not members, each because its condition number is bounded by a constant on the whole domain, so the
@@ -599,9 +599,9 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// </summary>
     /// <remarks>
     /// <para>Each member's EAE SUBTRACTS its arguments from one another, so narrowing each exact argument first is
-    /// not an approximation of the returned value — its low digits cancel away: <c>Variance</c> (§2023:15.98.4 r1, the
+    /// not an approximation of the returned value — its low digits cancel away: <c>Variance</c> (§2023:15.98.4 RV1, the
     /// deviations from FUNCTION MEAN: VARIANCE(100000000000000001 100000000000000002) answered 0, not 0.25),
-    /// <c>StandardDeviation</c> (§2023:15.86.4 r1, SQRT of that: 0, not 0.5), <c>PresentValue</c> (§2023:15.74.4 r1, a Σ of
+    /// <c>StandardDeviation</c> (§2023:15.86.4 RV1, SQRT of that: 0, not 0.5), <c>PresentValue</c> (§2023:15.74.4 RV1, a Σ of
     /// signed amounts: PRESENT-VALUE(0 100000000000000001 −100000000000000000) answered 0, not 1). Nor is a 34-digit
     /// evaluation of it (kb/Work PB4111): a mean off by δ adds exactly δ² to the variance, so the SDIDI body's mean made
     /// VARIANCE of the 31-digit items 10^30, 10^30 + 1, 10^30 + 1 0.2222223333 for 2/9, and 34-digit term quotients made
@@ -684,7 +684,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     }
 
     /// <summary>PRESENT-VALUE's leading value: the discount base <c>1 + argument-1</c>
-    /// (<c>CobolIntrinsics.PresentValueBase</c>), from the rate's exact carrier after the ONE §2023:15.74.3 r2 screen
+    /// (<c>CobolIntrinsics.PresentValueBase</c>), from the rate's exact carrier after the ONE §2023:15.74.3 AR2 screen
     /// (<see cref="ExactArg"/>), or from a float rate's own binary64 after <see cref="DomainArg"/>.</summary>
     /// <remarks>⛔ The base, not the rate (kb/Work PB1000): <c>1 + rate</c> cancels at the domain's bound, so a body
     /// forming it from the NARROWED rate turned the legal −0.99999999999999999999 into a base of 0 and answered ∞.
@@ -841,7 +841,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // ⛔ ONE LANDING FOR EVERY FUNCTION OF THE FAMILY, WITH NO CODOMAIN CLAMP (kb/Work PB3829, overturning PB65's
         // clamp). A §15.x.4 bound (ACOS's [0, π], ASIN's and ATAN's ±π/2, RANDOM's [0, 1)) is a rule on the RETURNED
         // value, which the binary64 already satisfies; the value the resultant identifier receives is the returned
-        // value ROUNDED per §2023:14.7.4.3 and checked per §2023:14.7.5 (§2023:14.9.8.4 r2), so ROUNDED may legitimately land past
+        // value ROUNDED per §2023:14.7.4.3 and checked per §2023:14.7.5 (§2023:14.9.8.4 GR2), so ROUNDED may legitimately land past
         // the bound (ACOS(-1) ROUNDED into 9V9999 is 3.1416) and a rounded value the receiver cannot hold is a size
         // error (RANDOM ROUNDED into V9(4)). The clamp cut those back to 3.1415 and 0.9999 for a bare reference only:
         // `FUNCTION ACOS(-1) + 0` already landed 3.1416, the nested arm above, and so did standard-decimal.
@@ -908,7 +908,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// <see cref="ReceiverContext.SdidiLandingScaleFloor"/>, capped at the receiver's <c>Int128</c> headroom by the
     /// PB13 argument. ⛔ THAT FLOOR IS NOT A NUMVAL RULE AND MUST NOT BE DESCRIBED AS ONE (kb/Work PB251): the
     /// sentence here used to read "never below the §2023:15.67 fraction floor", and §2023:15.67 prescribes no working scale
-    /// at all — the family's value is fixed by §2023:15.67.4 r1 and now renders on the SDIDI carrier in every mode.
+    /// at all — the family's value is fixed by §2023:15.67.4 RV1 and now renders on the SDIDI carrier in every mode.
     /// ⛔ THE §2023:15.4.1 r1 FAMILY NO LONGER PASSES THROUGH HERE (fix-queue PB56): under a standard mode a
     /// Dec/float-bearing exact-family call routes to <see cref="RenderDec"/> BEFORE any landing, so this
     /// truncation now serves only the residual non-EAE consumers (the integer-argument intake via
@@ -920,7 +920,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// <c>NumericRenderer.CombineCore</c>, <c>NumericRenderer.Power</c> and <c>ConditionRenderer</c> all obey —
     /// <c>RenderNum</c> was the ONE renderer that did not, so a single COMP-1/COMP-2 argument demoted the whole
     /// list to binary64 even under <c>ARITHMETIC IS STANDARD-DECIMAL</c>, where §2023:15.4.1 r1 is unconditional (the
-    /// returned value <i>shall equal</i> the equivalent arithmetic expression) and §2023:8.8.1.5.2 r1 converts every
+    /// returned value <i>shall equal</i> the equivalent arithmetic expression) and §2023:8.8.1.5.2 GR1 converts every
     /// fixed-point operand into an SDIDI EXACTLY. MEASURED before the fix, with three 18-digit items and a COMP-2
     /// pair: <c>FUNCTION MEDIAN(H1 H2 H3 F1 F1)</c> returned 100000000000000004.76 where the SDIDI-exact answer
     /// is 100000000000000001, and <c>FUNCTION MAX(H1 H2 H3 F1)</c> returned the same 100000000000000004.76
@@ -1005,7 +1005,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// 39-digit product reduces that product, not an image some 999 radians away. The consumers that still read the image, each
     /// for the reason its value cannot depend on the lost digits: EXP, EXP10 and SQRT (condition numbers of at most 709, 709 and ½,
     /// against an image error of 10^−34 relative), the bounded integer positions, COMBINED-DATETIME's argument-2, and every
-    /// STANDARD-DECIMAL body (§2023:8.8.1.5.2 r1 rounds the operand there). Under native arithmetic the SDIDI lane itself takes the exact
+    /// STANDARD-DECIMAL body (§2023:8.8.1.5.2 GR1 rounds the operand there). Under native arithmetic the SDIDI lane itself takes the exact
     /// value (<see cref="ExactValueArg"/>, kb/Work PB4111, PB4568): VARIANCE, STANDARD-DEVIATION and PRESENT-VALUE, and the exact
     /// family beside an SDIDI or binary64 argument, form their value from <c>CobolExact</c> arguments and round it once.</para>
     /// </remarks>
@@ -1082,8 +1082,8 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// <para>The clamp substitutes one integer for another, so it is correct exactly where the returned value cannot tell
     /// them apart. Members, each with its runtime witness in
     /// <c>IntrinsicCarrierAgreementDriftTests.TheTotalArguments_AnswerPastLong_AndRaiseNothingUnderChecking</c>:
-    /// TEST-DATE-YYYYMMDD / TEST-DAY-YYYYDDD argument-1 (§2023:15.90.4 r1a / §2023:15.91.4 r1a — a CATCH-ALL verdict for every
-    /// integer outside the window, however far) and FIND-STRING argument-3 (§2023:15.37.4 r2/r3 — ignoring at least as many
+    /// TEST-DATE-YYYYMMDD / TEST-DAY-YYYYDDD argument-1 (§2023:15.90.4 RV1a / §2023:15.91.4 RV1a — a CATCH-ALL verdict for every
+    /// integer outside the window, however far) and FIND-STRING argument-3 (§2023:15.37.4 RV2/r3 — ignoring at least as many
     /// matches as exist answers 0, and a negative count ignores none). Both functions are TOTAL, so a raise there would be
     /// manufactured (§2023:15.3 has no incorrect argument to key on). A function whose value DEPENDS on the integer — MOD,
     /// RANDOM's seed, ANNUITY's periods, BOOLEAN-OF-INTEGER's bit configuration — never takes it:
@@ -1093,7 +1093,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// <see cref="AsIntWide"/>, a binary64 or an SDIDI one integrality-tested (DOC-A.1-124) and clamped past the
     /// carrier. The SDIDI needs the clamp as much as binary64 does: its integer reaches far past <c>Int128</c>, and
     /// <c>TEST-DATE-YYYYMMDD(10 ** 40)</c> under STANDARD-DECIMAL was a fatal EC-SIZE-OVERFLOW through the wide landing,
-    /// where §2023:15.90.4 r1a answers 1.</para>
+    /// where §2023:15.90.4 RV1a answers 1.</para>
     /// </remarks>
     private string IntArgWideSaturating(BoundIntrinsicCall ic, int i)
     {
@@ -1109,8 +1109,8 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
 
     /// <summary>An argument lifted to a <c>CobolDec</c> expression from its RAW carrier: a Dec operand passes
     /// through, a float converts per §2023:8.8.1.5.1, a fixed-point operand lifts through <see cref="NumericRenderer.DecOperand"/>
-    /// (exactly within the SDIDI's 34 digits, rounded once past them — §2023:8.8.1.5.2 r1) — never quantized to a working scale.</summary>
-    /// <remarks>INTAKE(LIFTED) — lifted to the SDIDI from the RAW carrier — exact for a fixed-point operand within 34 digits and rounded once past them (§2023:8.8.1.5.2 r1), §2023:8.8.1.5.1 for a float; the value is preserved up to the SDIDI's own precision, the carrier is not.</remarks>
+    /// (exactly within the SDIDI's 34 digits, rounded once past them — §2023:8.8.1.5.2 GR1) — never quantized to a working scale.</summary>
+    /// <remarks>INTAKE(LIFTED) — lifted to the SDIDI from the RAW carrier — exact for a fixed-point operand within 34 digits and rounded once past them (§2023:8.8.1.5.2 GR1), §2023:8.8.1.5.1 for a float; the value is preserved up to the SDIDI's own precision, the carrier is not.</remarks>
     private string DecArg(BoundIntrinsicCall ic, int i) => num.DecOperand(RawArg(ic, i));
 
     /// <remarks>INTAKE(LIFTED) — the variadic form of <see cref="DecArg"/> — same contract, per element.</remarks>
@@ -1281,10 +1281,10 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// </summary>
     /// <remarks>
     /// <list type="bullet">
-    ///   <item><c>Sqrt</c> — §2023:15.84.4 r2 fixes the 34-digit correctly-rounded root; without this the early-out
+    ///   <item><c>Sqrt</c> — §2023:15.84.4 RV2 fixes the 34-digit correctly-rounded root; without this the early-out
     ///         returned null for a plain-operand call and SQRT fell to binary64 (kb/Work PB116). The arm's own
     ///         <c>when num.StandardDecimal</c> guard keeps a NATIVE call on the float lane.</item>
-    ///   <item><c>Factorial</c> — §2023:15.36.4 r1c on the SDIDI, where 34! is exact against the native lane's
+    ///   <item><c>Factorial</c> — §2023:15.36.4 RV1c on the SDIDI, where 34! is exact against the native lane's
     ///         documented 33 cap (kb/Work PB125); same <c>when</c> guard, same reason.</item>
     ///   <item><c>Annuity</c> / <c>PresentValue</c> / <c>Variance</c> / <c>StandardDeviation</c> — the four
     ///         INEXACT-EAE functions: their equivalent arithmetic expressions DIVIDE, so even an all-fixed-point
@@ -1300,12 +1300,12 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// <summary>
     /// ⛔ THE THIRD ROUTE TO THE SDIDI BODY, AND THE ONLY ONE DECIDED FROM THE ARGUMENT'S LIFT (kb/Work PB2965): the
     /// unary exact-family arms whose returned value has an EQUIVALENT ARITHMETIC EXPRESSION over their argument —
-    /// ABS (§2023:15.7.4 r1), SIGN (§2023:15.81.4 r1), INTEGER-PART (§2023:15.49.4 r1) and FRACTION-PART (§2023:15.42.4 r1) — and so,
+    /// ABS (§2023:15.7.4 RV1), SIGN (§2023:15.81.4 RV1), INTEGER-PART (§2023:15.49.4 RV1) and FRACTION-PART (§2023:15.42.4 RV1) — and so,
     /// under a standard arithmetic mode, equal that expression evaluated in the SDIDI (§2023:15.4.1 r1).
     /// </summary>
     /// <remarks>
     /// <para>The expression's operand <c>argument-1</c> is converted into the SDIDI and "if the operand value cannot be
-    /// expressed exactly in an SDIDI, the value is rounded according to the rules in 11.9.11" (§2023:8.8.1.5.2 r1). The
+    /// expressed exactly in an SDIDI, the value is rounded according to the rules in 11.9.11" (§2023:8.8.1.5.2 GR1). The
     /// exact Int128 body is digit-identical to that evaluation ONLY while the lift is exact (D3's documented
     /// equivalence), so these arms keep their Int128 body for an argument whose digit bound is within the SDIDI's 34
     /// digits and take <see cref="RenderDec"/> when the lift would round (<see cref="ArgumentRoundsAtLift"/>, which
@@ -1313,7 +1313,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// container holds 39 digits, and <c>FUNCTION ABS(S)</c> of S = -2^127 is the rounded
     /// 170141183460469231731687303715884100000, a value its receiver holds, where the Int128 body answered the
     /// size error of an |Int128.MinValue| the SDIDI never forms.</para>
-    /// <para>⛔ INTEGER (<c>Floor</c>) IS DELIBERATELY ABSENT. §2023:15.44.4 r1 gives it no equivalent arithmetic expression
+    /// <para>⛔ INTEGER (<c>Floor</c>) IS DELIBERATELY ABSENT. §2023:15.44.4 RV1 gives it no equivalent arithmetic expression
     /// — "the greatest integer less than or equal to the value of argument-1" — so §2023:15.4.1 r1 does not make its
     /// argument an operand of an arithmetic expression, and the value of a data item argument is the item's own
     /// (INTEGER-PART's EAE reaches INTEGER with an argument that is ALREADY an SDIDI, the ABS term). MAX / MIN /
@@ -1325,7 +1325,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         "AbsScaled", "SignOf", "Truncate", "FractionPart",
     }.ToFrozenSet(StringComparer.Ordinal);
 
-    /// <summary>Does lifting this call's argument into the SDIDI round it (§2023:8.8.1.5.2 r1) under the statement's
+    /// <summary>Does lifting this call's argument into the SDIDI round it (§2023:8.8.1.5.2 GR1) under the statement's
     /// arithmetic mode? Asked only of an <see cref="EquivalentExpressionUnaryArms"/> member under a standard mode.</summary>
     /// <remarks>INTAKE(PREDICATE) — renders only to ASK a question; the rendered text is discarded, so no value semantics apply.</remarks>
     private bool ArgumentRoundsAtLift(BoundIntrinsicCall ic) =>
@@ -1364,9 +1364,9 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // the first from this switch. The three IntrinsicCarrierRules sets are asked of the FUNCTION (its catalog
         // name, kb/Work PB4370); StandardValueFixedByRule is this renderer's own table and keys on its runtime body.
         // ⛔ THE NUMVAL FAMILY REACHES HERE IN EVERY MODE AND CHANNEL (kb/Work PB251, PB3839): RenderNum consults
-        // RenderDec for it through ReturnsExactParse BEFORE the arithmetic-mode dispatch, because §2023:15.67.4 r1 /
-        // §2023:15.68.4 r1 name the returned value with no mode qualification, §2023:15.4.1's implementor latitude reaches only
-        // a function whose definition does NOT otherwise specify it, and NUMVAL-F's §2023:15.69.4 r2 approximation is
+        // RenderDec for it through ReturnsExactParse BEFORE the arithmetic-mode dispatch, because §2023:15.67.4 RV1 /
+        // §2023:15.68.4 RV1 name the returned value with no mode qualification, §2023:15.4.1's implementor latitude reaches only
+        // a function whose definition does NOT otherwise specify it, and NUMVAL-F's §2023:15.69.4 RV2 approximation is
         // resolved to r3's exact value. Their argument is a STRING, so AnyDecOrRealRaw is false and the set is the
         // only thing that keeps this early-out from returning null under native.
         string fn = ic.Sig.Name;
@@ -1383,12 +1383,12 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         {
             // The NUMVAL family: the ONE positional scan's (sign, unscaled, frac[, exp]) lifted to the SDIDI exactly
             // at the parsed scale — no working scale, no receiver. ⛔ NUMVAL and NUMVAL-C reach these arms in EVERY
-            // arithmetic mode (kb/Work PB251 — §2023:15.67.4 r1 / §2023:15.68.4 r1 fix the value with no mode qualification,
+            // arithmetic mode (kb/Work PB251 — §2023:15.67.4 RV1 / §2023:15.68.4 RV1 fix the value with no mode qualification,
             // and §2023:15.4.1's "unless otherwise specified in the function definition" is what makes that binding
             // under native too), so the digit cap is 31 or 34 by the MODE and is passed explicitly whenever it is
             // not the family's default — exactly as the TEST- twins receive it, so the scan's r1b sub-note-4
             // verdict and the value agree on the same number. NUMVAL-F is the third member (kb/Work PB3839): its
-            // §2023:15.69.4 r2 grants native arithmetic an approximation, and the implementor's determination is r3's exact
+            // §2023:15.69.4 RV2 grants native arithmetic an approximation, and the implementor's determination is r3's exact
             // value, so it cannot depend on the receiver that lands it or on the channel that reads it.
             "Numval" => Dec(RuntimeApi.Intrinsic("NumvalDec", $"{Str(ic.Args[0])}{CommaFlag}{DigitCapFlag}")),
             // ReturnsExactParse makes this the path for EVERY NUMVAL-C in every arithmetic mode: RenderNum's
@@ -1402,19 +1402,19 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
                 $"{Str(ic.Args[0])}, {Str(ic.Args[1])}{CommaFlag}{AnycaseFlag(ic)}{DigitCapFlag}{AnycaseClassification(ic)}"
                 + (ic.CurrencyContentUnrestricted ? ", contentUnrestricted: true" : ""))),
             "NumvalF" => Dec(RuntimeApi.Intrinsic("NumvalFDec", $"{mode}, {Str(ic.Args[0])}{CommaFlag}{DigitCapFlag}")),
-            // SQRT (§2023:15.84.4 r2; kb/Work PB116): the one function whose standard-mode value is FIXED — the
+            // SQRT (§2023:15.84.4 RV2; kb/Work PB116): the one function whose standard-mode value is FIXED — the
             // 34-digit correctly-rounded root; without this arm it fell to RenderFloat's binary64 Math.Sqrt.
             // ⛔ Guarded to STANDARD-DECIMAL: RenderDec is also consulted under NATIVE when a float-typed
             // argument is present (AnyDecOrRealRaw), and an unguarded arm would flip native float SQRT onto
             // the Dec lane — a behavior change r4's approximation licence does not ask for.
             "Sqrt" when num.StandardDecimal => Dec(RuntimeApi.Intrinsic("SqrtDec", $"{arithmetic}, {DecArg(ic, 0)}")),
-            // FACTORIAL (§2023:15.36.4 r1c; kb/Work PB125): the SDIDI product loop — FACTORIAL(34) is exact where
+            // FACTORIAL (§2023:15.36.4 RV1c; kb/Work PB125): the SDIDI product loop — FACTORIAL(34) is exact where
             // the native Int128 lane's 33 cap returned the §2023:15.3 default 0 on a conforming argument.
             "Factorial" when num.StandardDecimal =>
                 Dec(RuntimeApi.Intrinsic("FactorialDec", $"{arithmetic}, {IntArg(ic, 0)}")),
-            // COMBINED-DATETIME (§2023:15.17.4 r1's EAE `argument-1 + (argument-2 / 100000)`; kb/Work PB620): the one
+            // COMBINED-DATETIME (§2023:15.17.4 RV1's EAE `argument-1 + (argument-2 / 100000)`; kb/Work PB620): the one
             // §2023:15.4.1 r1 function PB56 left on the landing intake. Argument-2 carries no fraction-digit limit
-            // (§2023:15.17.3 r2 → §2023:15.5.5's magnitude-only "standard numeric time form"), so a landing at
+            // (§2023:15.17.3 AR2 → §2023:15.5.5's magnitude-only "standard numeric time form"), so a landing at
             // max(receiver scale, 6) truncated it and the function stopped equalling its own EAE; argument-1
             // keeps the NARROW intake because §2023:15.5.2 genuinely bounds the integer date form.
             "CombinedDatetime" => Dec(RuntimeApi.DateFn("CombinedDatetimeDec",
@@ -1433,7 +1433,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             // rounds it ONCE (CobolIntrinsics.ExactValue.cs). The SDIDI bodies took each wide argument as its 34-digit image and
             // rounded every step: ORD-MAX (P - 1, P, 2.0E0) of a 39-digit P answered 1 although IF P - 1 < P is true, MOD (P, 2 ** 10)
             // answered 0 for 999, and VARIANCE (P, P - 1) 10^10 for 0.25. Under a standard mode the SDIDI evaluation IS the value
-            // (§2023:8.8.1.5.2 r1 rounds each operand, §2023:15.4.1 1) equates the expression), so those keep the Dec bodies.
+            // (§2023:8.8.1.5.2 GR1 rounds each operand, §2023:15.4.1 1) equates the expression), so those keep the Dec bodies.
             "ModScaled" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("ModExact", $"{mode}, {ExactValueArg(ic, 0)}, {ExactValueArg(ic, 1)}")),
             "RemScaled" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("RemExact", $"{mode}, {ExactValueArg(ic, 0)}, {ExactValueArg(ic, 1)}")),
             "OrdMax" when !num.StandardDecimal => new NumX(RuntimeApi.Intrinsic("OrdMaxExact", ExactValueArgList(ic)), 0),
@@ -1477,7 +1477,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             "MidrangeScaled" => Dec(RuntimeApi.Intrinsic("MidrangeDec", $"{arithmetic}, {DecArgList(ic)}")),
             "Variance" => Dec(RuntimeApi.Intrinsic("VarianceDec", $"{arithmetic}, {DecArgList(ic)}")),
             "StandardDeviation" => Dec(RuntimeApi.Intrinsic("StdDevDec", $"{arithmetic}, {DecArgList(ic)}")),
-            // ANNUITY (kb/Work PB637): §2023:15.9.3 r3's "positive integer" is a SIGN rule and says nothing about magnitude,
+            // ANNUITY (kb/Work PB637): §2023:15.9.3 AR3's "positive integer" is a SIGN rule and says nothing about magnitude,
             // so argument-2 is a TOTAL argument and rides the SDIDI as the position intake left it (RawArg: the operand's
             // integer on the SDIDI, unbounded — an SDIDI integer reaches past Int128), never on a native integer
             // carrier. At a positive rate an enormous n is the equivalent expression's own size condition, never
@@ -1592,7 +1592,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             "OrdMin" => (new NumX(RuntimeApi.Intrinsic("OrdMinWide", List()), 0), widest),
             "SumScaled" => (Wide("SumWide", List(), s, sumDigits), sumDigits),
             "RangeScaled" => (Wide("RangeWide", List(), s, widest + 1), widest + 1),
-            // MEAN (§2023:15.60.4 r1) is the one arm whose value is not wide: the exact sum divided ONCE on the SDIDI (kb/Work PB4075,
+            // MEAN (§2023:15.60.4 RV1) is the one arm whose value is not wide: the exact sum divided ONCE on the SDIDI (kb/Work PB4075,
             // PB3860), the value every other lane forms, returned as the SDIDI the receiver then rounds once.
             "MeanScaled" => (new NumX(RuntimeApi.Intrinsic("MeanWide", $"{num.IntermediateMode}, {s}, {List()}"), 0, Dec: true), sumDigits),
             "MedianScaled" => (Wide("MedianWide", List(), s + 1, widest + 2), widest + 2),
@@ -1743,21 +1743,21 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     }
 
     /// <summary>The variadic string-argument list. <paramref name="admitNumeric"/> defaults FALSE and is passed
-    /// true by exactly one caller (CONCAT — §2023:15.18.3 r1 lists class numeric): four arms with three different
+    /// true by exactly one caller (CONCAT — §2023:15.18.3 AR1 lists class numeric): four arms with three different
     /// §15.x.3 argument rules share this helper, so the admission is a parameter, never a global flip
-    /// (§2023:15.26.3 r1 / §2023:15.66.3 r1 exclude class numeric outright — PB59).</summary>
+    /// (§2023:15.26.3 AR1 / §2023:15.66.3 AR1 exclude class numeric outright — PB59).</summary>
     private string StrArgList(BoundIntrinsicCall ic, bool admitNumeric = false) =>
         ArgArray(ic, 0, "string", a => admitNumeric ? StrNum(a) : Str(a))   // a table(ALL) enumerates (kb/Work PB62)
         ?? string.Join(", ", ic.Args.Select(a => admitNumeric ? StrNum(a) : Str(a)));
 
     private string CommaFlag => ctx.Data.Configuration.DecimalPointIsComma ? ", commaMode: true" : "";
 
-    /// <summary>The ANYCASE named argument (§2023:15.68.3 r4f / §2023:15.37.4 r4 — the ONE <see cref="BoundIntrinsicCall.Anycase"/>
+    /// <summary>The ANYCASE named argument (§2023:15.68.3 AR4f / §2023:15.37.4 RV4 — the ONE <see cref="BoundIntrinsicCall.Anycase"/>
     /// flag), rendered only when present so the default-free call stays byte-stable.</summary>
     private static string AnycaseFlag(BoundIntrinsicCall ic) => ic.Anycase ? ", anycase: true" : "";
 
-    /// <summary>⛔ THE CLASSIFICATION AN ANYCASE FOLD READS (§2023:15.57.4 r3; kb/Work PB2631). ANYCASE is DEFINED as "the rules
-    /// for the LOWER-CASE function without the LOCALE argument" (§2023:15.37.4 r4, §2023:15.87.4 r5, §2023:15.68.3 r4f), and that
+    /// <summary>⛔ THE CLASSIFICATION AN ANYCASE FOLD READS (§2023:15.57.4 RV3; kb/Work PB2631). ANYCASE is DEFINED as "the rules
+    /// for the LOWER-CASE function without the LOCALE argument" (§2023:15.37.4 RV4, §2023:15.87.4 RV5, §2023:15.68.3 AR4f), and that
     /// function maps case through the module's CHARACTER CLASSIFICATION when it has one - so the matchers receive the
     /// same selector the UPPER-CASE / LOWER-CASE arms do (<see cref="ObjectComputerEmit.ClassificationExpr"/>, keyed on
     /// argument-1's class), only when the module HAS a classification and an ANYCASE comparison is in play, which keeps
@@ -1767,7 +1767,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         && (ic.Anycase || (ic.SubstituteModes?.Any(m => (m & 4) != 0) ?? false))
             ? $", classification: {ObjectComputerEmit.ClassificationExpr(ic.Args[0])}" : "";
 
-    /// <summary>The §2023:15.93.4/§2023:15.94.4 r1b digit-cap named argument, DERIVED FROM THE MODE
+    /// <summary>The §2023:15.93.4/§2023:15.94.4 RV1b digit-cap named argument, DERIVED FROM THE MODE
     /// (<see cref="ArithmeticModes.NumvalDigitCap"/> — the one table, keyed on the mode the standard keys its
     /// three sub-notes on). Omitted when the cap is the runtime's own default, so the generated call stays
     /// byte-stable for every native compilation.
@@ -1845,7 +1845,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
                 RuntimeApi.Intrinsic(sig.RuntimeMethod,                        //   or __COLLATE_NAT under a non-native ALPHABET … FOR NATIONAL)
                     $"{ArgInt(ic.Args[0])}{Collate(ic)}"),
             "CurrentDate" => RuntimeApi.DateFn(sig.RuntimeMethod, ""),         // §2023:15.21 — the runtime clock
-            // WHEN-COMPILED is the COMPILATION timestamp (§2023:15.99.3 r2) — a constant in the generated source,
+            // WHEN-COMPILED is the COMPILATION timestamp (§2023:15.99.3 RV2) — a constant in the generated source,
             // captured ONCE PER COMPILATION on ProgramEmitter (kb/Work PB120), not per process. (The legacy's
             // runtime-clock placeholder also passes IF142A's plausibility checks; the constant is the
             // spec-correct form — scout brief §4.4.)
@@ -1855,14 +1855,14 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             "Concat" =>                                                        // §2023:15.18 — concatenate all argument images (2023);
                 RuntimeApi.Intrinsic(sig.RuntimeMethod,                        //   r1 admits class NUMERIC → the admitting list (PB59)
                     StrArgList(ic, admitNumeric: true)),
-            // BOOLEAN-OF-INTEGER (§2023:15.13.4 r1) — a boolean-result function on the D-B1 '0'/'1' substrate:
+            // BOOLEAN-OF-INTEGER (§2023:15.13.4 RV1) — a boolean-result function on the D-B1 '0'/'1' substrate:
             // rightmost position = low-order digit, left zero-fill/truncate to argument-2 positions.
-            // Argument-1 crosses the WIDE bridge (Int128 — §2023:15.13.3 r1 admits any positive integer, PB65);
+            // Argument-1 crosses the WIDE bridge (Int128 — §2023:15.13.3 AR1 admits any positive integer, PB65);
             // argument-2 stays on the long bridge (§2023:15.4 caps the returned length at CobolIntrinsics.ReturnedValueMaximum).
             "BooleanOfInteger" =>
                 RuntimeApi.Intrinsic(sig.RuntimeMethod, $"{ArgIntWide(ic.Args[0])}, {ArgInt(ic.Args[1])}"),
             // DISPLAY-OF (§2023:15.26) / NATIONAL-OF (§2023:15.66) — the national↔alphanumeric repertoire pair (2002);
-            // the optional argument-2 is the one-character substitution string (§2023:15.26.3 r2 / §2023:15.66.3 r2).
+            // the optional argument-2 is the one-character substitution string (§2023:15.26.3 AR2 / §2023:15.66.3 AR2).
             "DisplayOf" or "NationalOf" =>
                 RuntimeApi.Intrinsic(sig.RuntimeMethod, StrArgList(ic)),
             "BaseConvert" =>                                                   // §2023:15.12 — unsigned-integer base conversion (2023);
@@ -1875,15 +1875,15 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
                         + string.Concat(ic.Args.Skip(1).Select(a => $", {Str(a)}"))),
             // STANDARD-COMPARE (§2023:15.85) — the cultural-ordering comparison over the derived CLDR/UCA engine
             // (kb/Work PB101 T7). The ordering TABLE travels as the bind-time-resolved literal-9 (null ⇒ §2023:15.85.3
-            // r5's default table); the ordering LEVEL travels as 0 when argument-4 is omitted, which §2023:15.85.4 r1
+            // r5's default table); the ordering LEVEL travels as 0 when argument-4 is omitted, which §2023:15.85.4 RV1
             // defines as "the highest level defined in the ordering table". Both are complete on the bound node,
             // so the backend never consults the SPECIAL-NAMES model.
             "StandardCompare" =>
                 RuntimeApi.Intrinsic(sig.RuntimeMethod, $"{Str(ic.Args[0])}, {Str(ic.Args[1])}, "
                     + $"{(ic.OrderingTable is { } ot ? EmitText.CsLiteral(ot) : "null")}, "
-                    + $"{(ic.Args.Count > 2 ? ArgInt(ic.Args[2]) : "null")}"),   // null = argument-4 unspecified (§2023:15.85.4 r1); a specified 0 is §2023:15.85.3 r6's violation
+                    + $"{(ic.Args.Count > 2 ? ArgInt(ic.Args[2]) : "null")}"),   // null = argument-4 unspecified (§2023:15.85.4 RV1); a specified 0 is §2023:15.85.3 AR6's violation
             // The LOCALE functions (§2023:15.51–§2023:15.54; kb/Work PB64 T4): the bound LocaleRef travels as the named locale's
-            // L1-normalized tag (null ⇒ the locale current for the category at use — §2023:14.6.6 r7/r8); the runtime
+            // L1-normalized tag (null ⇒ the locale current for the category at use — §2023:14.6.6 GR7/r8); the runtime
             // resolves availability (EC-LOCALE-MISSING) and content (EC-LOCALE-INVALID) at use.
             "Compare" when sig.Name == "LOCALE-COMPARE" =>
                 RuntimeApi.LocaleFn(sig.RuntimeMethod, $"{Str(ic.Args[0])}, {Str(ic.Args[1])}, {LocaleTagArg(ic)}"),
@@ -1916,11 +1916,11 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             // §2023:15.28.4 / §2023:15.29.4: the no-argument form (r1) reads the last-exception register; the 2023
             // file-connector-argument form (r2) reads the NAMED connector — the SAME FileKeyExpr the file verbs use.
             "EcFile" => ic.FileArg is { } eff
-                ? RuntimeApi.EcFn("File", EmitText.FileKeyExpr(eff))          // §2023:15.28.4 r2 — the named connector's status
-                : RuntimeApi.EcFn("File"),                                    // §2023:15.28.4 r1 — the no-argument form
+                ? RuntimeApi.EcFn("File", EmitText.FileKeyExpr(eff))          // §2023:15.28.4 RV2 — the named connector's status
+                : RuntimeApi.EcFn("File"),                                    // §2023:15.28.4 RV1 — the no-argument form
             "EcFileN" => ic.FileArg is { } effn
-                ? RuntimeApi.EcFn("FileN", EmitText.FileKeyExpr(effn))        // §2023:15.29.4 r2 — the national twin
-                : RuntimeApi.EcFn("FileN"),                                   // §2023:15.29.4 r1 — the no-argument form
+                ? RuntimeApi.EcFn("FileN", EmitText.FileKeyExpr(effn))        // §2023:15.29.4 RV2 — the national twin
+                : RuntimeApi.EcFn("FileN"),                                   // §2023:15.29.4 RV1 — the no-argument form
             _ => EmitText.LoudValue("string", $"FUNCTION {sig.Name} in a string context"),
         };
     }
@@ -1957,7 +1957,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     }
 
     /// <summary>The UTC offset in minutes of FORMATTED-TIME (argument-3) and FORMATTED-DATETIME (argument-4). An
-    /// omitted offset IS 0: §2023:15.41.3 r6 / §2023:15.40.3 r7 evaluate the function "as though 0 were specified", so the
+    /// omitted offset IS 0: §2023:15.41.3 AR6 / §2023:15.40.3 AR7 evaluate the function "as though 0 were specified", so the
     /// runtime gets one value on one path whether the program wrote it or not (kb/Work PB2629: a separate "has
     /// offset" flag skipped the UTC adjustment for the omitted form only, and the two forms disagreed on the leap
     /// second).</summary>
@@ -1971,7 +1971,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     private string LeapSecondFlag => ctx.Data.LeapSecond ? ", leapSecond: true" : "";
 
     /// <summary>The SECONDS argument of the formatted time family as an (unscaled, scale) pair, TOTAL over the
-    /// four value carriers (kb/Work R24 — ledger F44/F46/F57; §2023:15.41.4 r1 / §2023:15.40.4 make the returned value a
+    /// four value carriers (kb/Work R24 — ledger F44/F46/F57; §2023:15.41.4 RV1 / §2023:15.40.4 make the returned value a
     /// representation of the VALUE "contained in" the argument, fraction included):
     /// <list type="bullet">
     ///   <item>a FIXED-POINT operand passes through at its own scale with NO narrowing cast — the former
@@ -2057,17 +2057,17 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// <see cref="AsInt"/>'s §2023:15.3 landing in front of it manufactures an exception condition the standard
     /// does not define. Members today:</para>
     /// <list type="bullet">
-    /// <item>BOOLEAN-OF-INTEGER argument-1 — §2023:15.13.3 r1 constrains the SIGN only; §2023:15.13.4 r1's bit
+    /// <item>BOOLEAN-OF-INTEGER argument-1 — §2023:15.13.3 AR1 constrains the SIGN only; §2023:15.13.4 RV1's bit
     /// configuration is mathematical, so 2⁶³ and up are legal (fix-queue PB65 / RV-15.13.4-1 D1).</item>
-    /// <item>TEST-DATE-YYYYMMDD / TEST-DAY-YYYYDDD argument-1 — §2023:15.90.3 r1 / §2023:15.91.3 r1 say only "shall be
+    /// <item>TEST-DATE-YYYYMMDD / TEST-DAY-YYYYDDD argument-1 — §2023:15.90.3 AR1 / §2023:15.91.3 AR1 say only "shall be
     /// an integer" and r1a is a CATCH-ALL (kb/Work PB254 / RV-15.90.4-1 / RV-15.91.4-1).</item>
-    /// <item>FIND-STRING argument-3 — §2023:15.37.3 r3 places no value constraint; §2023:15.37.4 r2/r3 answer for every
+    /// <item>FIND-STRING argument-3 — §2023:15.37.3 AR3 places no value constraint; §2023:15.37.4 RV2/r3 answer for every
     /// integer (kb/Work PB254).</item>
-    /// <item>RANDOM argument-1 — §2023:15.75.3 r2 constrains the SIGN only ("it shall be zero or a positive
-    /// integer") and §2023:15.75.4 r3 makes the distinct-sequence subset a FLOOR ("shall include the values from 0
+    /// <item>RANDOM argument-1 — §2023:15.75.3 AR2 constrains the SIGN only ("it shall be zero or a positive
+    /// integer") and §2023:15.75.4 RV3 makes the distinct-sequence subset a FLOOR ("shall include the values from 0
     /// through at least 32767"), not a domain, so a wider seed is legal and its sequence is defined
     /// (kb/Work PB636 — the narrow intake aborted the run unit on a 19-digit seed).</item>
-    /// <item>ANNUITY argument-2 — §2023:15.9.3 r3 constrains the SIGN only ("a positive integer"; kb/Work PB637). It is
+    /// <item>ANNUITY argument-2 — §2023:15.9.3 AR3 constrains the SIGN only ("a positive integer"; kb/Work PB637). It is
     /// TOTAL too, but its value rides the SDIDI, whose integer reaches past <c>Int128</c>, so the SDIDI arm does NOT
     /// take this intake: it keeps the position's unbounded SDIDI integer (<see cref="DecArg"/> over
     /// <see cref="RawArg"/>), and the binary64 arm takes it as a binary64 (<see cref="Dbl"/>).
@@ -2094,7 +2094,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     private string Str(BoundOperand op) => op.Accept(_strArg ??= new StrArgVisitor(this, admitNumeric: false));
     private StrArgVisitor? _strArg;
 
-    /// <summary>CONVERT's ANY-source argument — the RAW STORAGE byte image (§2023:15.19.3 r7: any usage, contents
+    /// <summary>CONVERT's ANY-source argument — the RAW STORAGE byte image (§2023:15.19.3 AR7: any usage, contents
     /// need not be valid for it — the storage BITS, never the display image; PB59 family 5b). A FIELD renders
     /// through the ONE storage channel (<see cref="OperandText.AsStorageImage"/>); a literal renders its
     /// declared storage (an N"…" literal its UTF-16BE bytes, a B"…" literal its packed bits, an alphanumeric
@@ -2124,10 +2124,10 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
 
     /// <summary>The NUMERIC-ADMITTING string-argument entry (fix-queue PB59 / RV-15.12.4-1, RV-15.18.4-1) —
     /// for EXACTLY the functions whose §15.x.3 argument rules admit a numeric literal: BASECONVERT argument-1
-    /// (§2023:15.12.3 r1 — "a usage display or national data item or literal, and, if the base … is less than 11,
-    /// … an unsigned integer data item or literal") and CONCAT (§2023:15.18.3 r1 — class numeric is in its list).
+    /// (§2023:15.12.3 AR1 — "a usage display or national data item or literal, and, if the base … is less than 11,
+    /// … an unsigned integer data item or literal") and CONCAT (§2023:15.18.3 AR1 — class numeric is in its list).
     /// The literal renders through the ONE <c>OperandText.AsString</c> image (raw source text — correct for
-    /// §2023:15.18.4 r1; r3's value conditions are NOT the renderer's to enforce and stay recorded on the
+    /// §2023:15.18.4 RV1; r3's value conditions are NOT the renderer's to enforce and stay recorded on the
     /// DeliberatelyUnscreened rows). Never a blanket route — the drift test pins the caller set.</summary>
     private string StrNum(BoundOperand op) => op.Accept(_strArgNum ??= new StrArgVisitor(this, admitNumeric: true));
     private StrArgVisitor? _strArgNum;
@@ -2163,8 +2163,8 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             // refuses the expression's SHAPE in every mode (IntrinsicArgumentRules.IsCoercible, review R3-1), so this arm never serves them.
             : n.EnclosedOperand is { } enclosed
                 ? enclosed.Accept(this)
-            // ⛔ A NUMERIC FUNCTION'S RETURNED VALUE AT A NUMERIC-ADMITTING POSITION (kb/Work PB1420). CONCAT §2023:15.18.3 r1
-            // lists class numeric and BASECONVERT §2023:15.12.3 r1 a numeric argument-1 below base 11, and §2023:8.4.3.2.3 SR12
+            // ⛔ A NUMERIC FUNCTION'S RETURNED VALUE AT A NUMERIC-ADMITTING POSITION (kb/Work PB1420). CONCAT §2023:15.18.3 AR1
+            // lists class numeric and BASECONVERT §2023:15.12.3 AR1 a numeric argument-1 below base 11, and §2023:8.4.3.2.3 SR12
             // exempts "the integer form of the ABS function" from the bar on integer functions at an unsigned-integer
             // position — so `FUNCTION CONCAT(FUNCTION ABS(3) "A")` is LEGAL and used to compile clean and abort at run
             // time on this arm (the wrong-stage family). Its text is the ONE numeric-function image,
@@ -2175,8 +2175,8 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
                 ? OperandText.AsString(n, owner.Num)
             // ⛔ A COUNTER REGISTER AS A CHARACTER ARGUMENT (kb/Work PB4766). LINAGE-COUNTER, LINE-COUNTER and PAGE-COUNTER each a
             // "temporary unsigned integer data item" of class and category numeric (§2023:8.4.3.14.4 GR1, §2023:8.4.3.15.4 GR1), a DATA ITEM
-            // like the numeric field the field arm above images without asking which position it is at, so CONCAT (§2023:15.18.3 r1) and
-            // BASECONVERT argument-1 (§2023:15.12.3 r1) admit it bare and it compiled clean and died on the loud arm below (the
+            // like the numeric field the field arm above images without asking which position it is at, so CONCAT (§2023:15.18.3 AR1) and
+            // BASECONVERT argument-1 (§2023:15.12.3 AR1) admit it bare and it compiled clean and died on the loud arm below (the
             // wrong-stage family). Its image is the unsigned integer item's, the ONE form OperandText.AsString gives a register in a
             // string context (its digits zero-filled to the register's implicit digit count, AlgebraicRanges.CounterRegisterDigits).
             // The usage screens see the register through IntrinsicArgumentRules.StaticUsageOf (its description's usage), so CONCAT

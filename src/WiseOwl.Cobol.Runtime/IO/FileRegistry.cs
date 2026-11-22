@@ -268,7 +268,7 @@ public sealed class FileRegistry
         if (at >= 0) _retired.RemoveAt(at);
     }
 
-    /// <summary>The SELECT-spelled name of a registered connector (ISO §2023:15.28.4 r1c/r2b — kb/Work PB63); for a key
+    /// <summary>The SELECT-spelled name of a registered connector (ISO §2023:15.28.4 RV1c/r2b — kb/Work PB63); for a key
     /// that names no connector (an SD, or a not-yet-registered name) the key's own tail, so the display never
     /// shows an emit-side band.</summary>
     public string SelectNameOf(string cobolName) =>
@@ -701,7 +701,7 @@ public sealed class FileRegistry
         if (!_files.TryGetValue(name, out var c)) return true;
         if (c.Associate(assign, assignDynamic) is { } failed)
         {
-            c.SetStatus(failed);   // '31' — the status assignment is also the §2023:15.28.4 r2a access record (PB63)
+            c.SetStatus(failed);   // '31' — the status assignment is also the §2023:15.28.4 RV2a access record (PB63)
             return false;
         }
         // ⛔ WHAT THE CLOSE KEPT BELONGS TO THE PHYSICAL FILE IT WAS KEPT ON (kb/Work PB3494; §2023:9.1.15, §2023:14.9.7.4 GR4): the
@@ -746,7 +746,7 @@ public sealed class FileRegistry
         return c.IoConditionName ?? Exceptions.ExceptionCatalog.IoEcOfStatus(c.ProgramStatus);
     }
 
-    /// <summary>FUNCTION EXCEPTION-FILE(file-connector-name) (ISO §2023:15.28.4 r2): two alphanumeric spaces when the
+    /// <summary>FUNCTION EXCEPTION-FILE(file-connector-name) (ISO §2023:15.28.4 RV2): two alphanumeric spaces when the
     /// named connector was never opened, attempted to be opened, or otherwise attempted to be accessed (r2a — or is
     /// unknown); else its two-character I-O status followed by the file-name "exactly as specified in the SELECT
     /// clause" (r2b — the connector's <see cref="FileConnector.SelectName"/>, carried from the compiler at

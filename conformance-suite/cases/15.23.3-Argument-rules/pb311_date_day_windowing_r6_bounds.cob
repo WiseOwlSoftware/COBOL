@@ -5,22 +5,22 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:15.23.3 r6 / §2023:15.25.3 r6 — the SUM WINDOW of the two composite windowing functions, with an
+      *> ISO §2023:15.23.3 AR6 / §2023:15.25.3 AR6 — the SUM WINDOW of the two composite windowing functions, with an
       *> EXPLICIT argument-3 chosen FAR FROM THE EXECUTION YEAR on both bounds (kb/Work PB311).
-      *>   §2023:15.23.3 r6  "The sum of the year at the time of execution and the value of argument-2 shall be
+      *>   §2023:15.23.3 AR6  "The sum of the year at the time of execution and the value of argument-2 shall be
       *>                 less than 10000 and greater than 1699."
-      *>   §2023:15.25.3 r6  "The sum of the values of argument-2 and argument-3 shall be less than 10000 and
+      *>   §2023:15.25.3 AR6  "The sum of the values of argument-2 and argument-3 shall be less than 10000 and
       *>                 greater than 1699."
       *>   §2023:15.23.1     "Argument-3 specifies the year at the time of execution."
       *> (cite.py --check on each -> OK; the DATE sentence at rule 6 of 15.23.3, the DAY one at rule 6 of
       *> 15.25.3, the General sentence at 15.23.1.)
       *>
-      *> THE TWO WORDINGS ARE ONE RULE. §2023:15.23.3 r6 is worded on "the year at the time of execution", but the
+      *> THE TWO WORDINGS ARE ONE RULE. §2023:15.23.3 AR6 is worded on "the year at the time of execution", but the
       *> same function's §2023:15.23.1 DEFINES that year as argument-3 (when argument-3 is omitted r5 supplies the
       *> real execution year, so the two coincide). So the DATE sum is argument-2 + argument-3, exactly
-      *> §2023:15.25.3 r6's, and §2023:15.23.4 r1 delegates the arithmetic to FUNCTION YEAR-TO-YYYY (YY, argument-2,
-      *> argument-3), whose own §2023:15.100.3 r6 is the same sum. A reading that keyed the DATE window on the
-      *> machine clock instead would make an explicit argument-3 irrelevant to r6 while §2023:15.23.4 r1 still
+      *> §2023:15.25.3 AR6's, and §2023:15.23.4 RV1 delegates the arithmetic to FUNCTION YEAR-TO-YYYY (YY, argument-2,
+      *> argument-3), whose own §2023:15.100.3 AR6 is the same sum. A reading that keyed the DATE window on the
+      *> machine clock instead would make an explicit argument-3 irrelevant to r6 while §2023:15.23.4 RV1 still
       *> hands it to the core; the probes below separate the two readings by writing argument-3 where the
       *> clock year cannot reach: the legal highs use argument-3 = 1700 with argument-2 near 8300 (clock
       *> year + argument-2 would be > 10000), the legal lows use argument-3 = 2100 with argument-2 = -400
@@ -32,7 +32,7 @@
       *>
       *> Derivations (§2023:15.100.4: maximum-year = argument-2 + argument-3; r2a when MOD(max, 100) >= YY,
       *> YY + 100 * INTEGER(max / 100); r2b otherwise, YY + 100 * (INTEGER(max / 100) - 1)); YY = 85, so
-      *> mmdd = 1003 and nnn = 365 (§2023:15.23.4 r1 / §2023:15.25.4 r1):
+      *> mmdd = 1003 and nnn = 365 (§2023:15.23.4 RV1 / §2023:15.25.4 RV1):
       *>   LOW1700   (-400, 2100) max 1700 > 1699 LEGAL; MOD 0 < 85 -> r2b -> 85 + 100*16 = 1685
       *>             -> 1685*10000 + 1003 = 16851003; DAY 1685*1000 + 365 = 1685365.
       *>   LOW1699   (-401, 2100) max 1699 is NOT greater than 1699 -> EC-ARGUMENT-FUNCTION.

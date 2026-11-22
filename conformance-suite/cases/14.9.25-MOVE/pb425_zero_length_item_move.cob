@@ -21,7 +21,7 @@
       *>     non-zero length converts normally; both are shown so the runtime test is measured as a test.
       *> (3) The same route through a FUNCTION-IDENTIFIER sender (§2023:8.5.4 GR6, "an intrinsic function that
       *>     returns a zero-length value").  FUNCTION TRIM of an all-space argument is zero-length by
-      *>     §2023:15.96.4 r4 ("If argument-1 contains only characters that are argument-2, spaces if argument-2 is
+      *>     §2023:15.96.4 RV4 ("If argument-1 contains only characters that are argument-2, spaces if argument-2 is
       *>     not specified, ... the returned value is of length zero"), and GR1's other sentence, "the ...
       *>     function-identifier is evaluated only once", is what lets the length be read without a second call.
       *> Expected values are computed from the rule: the SPACE fill into PIC 9(3) is three spaces — the same

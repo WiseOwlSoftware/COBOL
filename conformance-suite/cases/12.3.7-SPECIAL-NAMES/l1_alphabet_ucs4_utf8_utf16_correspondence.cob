@@ -30,7 +30,7 @@
       *> requires that alphabet to define a NATIONAL character set, which all three phrases
       *> do. So `SYMBOLIC CHARACTERS FOR NATIONAL s IS n IN a` NAMES the character at ordinal
       *> n of a, and FUNCTION ORD then reports which NATIVE national character that is —
-      *> §2023:15.70.4 r2 reads the national program collating sequence, which is left NATIVE here,
+      *> §2023:15.70.4 RV2 reads the national program collating sequence, which is left NATIVE here,
       *> and §2023:12.3.7.4 GR6 makes the native ordinal association the implementor's ("The
       *> implementor shall define the order of characters within the native alphanumeric
       *> coded character set and the native national coded character set, associating each

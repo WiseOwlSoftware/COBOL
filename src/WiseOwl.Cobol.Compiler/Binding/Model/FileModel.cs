@@ -276,7 +276,7 @@ public sealed class FileModel
 
     /// <summary>The file-name EXACTLY as spelled in the SELECT clause (or the FD/SD when no SELECT names it) —
     /// never qualified, never case-folded: FUNCTION EXCEPTION-FILE / EXCEPTION-FILE-N return "the file-name exactly
-    /// as specified in the SELECT clause" (ISO §2023:15.28.4 r1c/r2b, §2023:15.29.4 r1c/r2b; kb/Work PB63), so the connector
+    /// as specified in the SELECT clause" (ISO §2023:15.28.4 RV1c/r2b, §2023:15.29.4 RV1c/r2b; kb/Work PB63), so the connector
     /// is registered with THIS name and the runtime never recovers a display name from the registry KEY (whose
     /// bands — <c>PROG::</c>, <c>::EXT::</c> + the uppercased external name, <c>Class::INST::</c> + a per-object
     /// <c>#N</c> — are an emit-side namespace).</summary>

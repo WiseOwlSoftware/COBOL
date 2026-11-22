@@ -7,7 +7,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// pushes a frame at every activation boundary (RunMain for the main program; CallProgram for every CALL /
 /// cross-assembly CALL / user-function reference / nested-program CALL) and pops it on return, so the top of
 /// stack is always the currently running runtime element. Each frame carries the element's own name, the
-/// outermost program-id of its compilation unit (§2023:15.65.4 r7 CURRENT), and whether it is a nested (contained)
+/// outermost program-id of its compilation unit (§2023:15.65.4 RV7 CURRENT), and whether it is a nested (contained)
 /// program (r8 NESTED). One INSTANCE per run unit on <see cref="RunUnit"/> (was the runtime's ONE
 /// <c>[ThreadStatic]</c> — the ambient run unit's AsyncLocal now carries the activation scope uniformly,
 /// DESIGN-runtime-library §2.1).
@@ -21,7 +21,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// call site: a method is reached by a typed direct call, by the universal <c>__CobolInvoke</c> switch, and by
 /// an inline invocation, and a per-site push would be three arms of one dispatch (fix-queue PB36).
 ///
-/// ⛔ THIS COMMENT USED TO SAY THE OMISSION WAS "conformant, not residue: §2023:15.65.4 r3/r4 make the returned form
+/// ⛔ THIS COMMENT USED TO SAY THE OMISSION WAS "conformant, not residue: §2023:15.65.4 RV3/r4 make the returned form
 /// for method-id elements implementor-defined". BOTH CITED RULES ARE REAL AND NEITHER GOVERNS. r3 is about a
 /// runtime element that is NOT a COBOL runtime element; a COBOL method is one. r4 is about the FORM of the name
 /// and explicitly lists "method-id" among the forms an implementor may return — which presumes the element is on
@@ -45,7 +45,7 @@ public sealed class ModuleStack
     /// reset, so no two activations, live or finished, ever share one.</summary>
     private long _lastActivation;
 
-    /// <summary>Push the run-unit main program (TOP-LEVEL, §2023:15.65.4 r10; ACTIVATING → single space, r5).
+    /// <summary>Push the run-unit main program (TOP-LEVEL, §2023:15.65.4 RV10; ACTIVATING → single space, r5).
     /// <paramref name="recursive"/>: it carries the RECURSIVE attribute (§2023:8.6.6).</summary>
     public void PushMain(string name, bool recursive)
         => Add(new(name, name, IsNested: false, IsMain: true, recursive, ++_lastActivation));
@@ -70,7 +70,7 @@ public sealed class ModuleStack
 
     // ── ACTIVATION IDENTITY (kb/Work PB892 Arm B) ─────────────────────────────────────────────────────────────
     // This stack is the run unit's ONE record of which activation is running: every activation mechanism
-    // §2023:15.65.4 r5 names pushes a frame here (ProgramTable.CallProgram / RunMain for a CALL, a function reference
+    // §2023:15.65.4 RV5 names pushes a frame here (ProgramTable.CallProgram / RunMain for a CALL, a function reference
     // and the main program; the method body itself for an INVOKE and an inline invocation). So it is also the
     // one place that can answer §2023:14.9.18.4 GR1b's question "which activation is the ACTIVATING runtime element
     // of the element that is returning with RAISING" — a question with no other runtime chokepoint, because a

@@ -325,7 +325,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         string nameTest = string.Join(" || ", ecNames.Select(n => $"__ce{id}.EcName == {CsLiteral(n)}"));
         using (w.Block($"catch (CobolCallException __ce{id}) when (!__ce{id}.ControlTransferred && ({nameTest}))"))
         {
-            // The §2023:15.32.3 r2 pair rides the CALL statement's ambient context (kb/Work R14) — the callee's own
+            // The §2023:15.32.3 RV2 pair rides the CALL statement's ambient context (kb/Work R14) — the callee's own
             // contexts were restored on unwind, so this Set attributes the CALL, not the callee's last statement.
             w.Line($"ExceptionState.Set(__ce{id}.EcName, true);   // §2023:14.6.13.1.1 — every name reachable here is fatal (Table 13)");
             if (phraseFlag is not null)
@@ -1754,7 +1754,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
                 + "   // RAISING LAST EXCEPTION (§2023:14.9.18.4 GR1b.3.a — the PD-header RAISING list is GR1b3a's operand; §2023:14.6.13.1.5 item 1 for an object)");
             return;
         }
-        // kb/Work R07: the §2023:15.32.3 r2 / §2023:15.30.3 r2 operands travel WITH the staged condition and are applied by
+        // kb/Work R07: the §2023:15.32.3 RV2 / §2023:15.30.3 RV2 operands travel WITH the staged condition and are applied by
         // the activator-side raise, when THIS name's TURN said WITH LOCATION. §2023:7.3.25.4 GR7 keys them on the
         // directive governing the SOURCE STATEMENT ("all information necessary to identify a source statement …
         // is made available to the run unit"), and that statement is this GOBACK/EXIT — so the RAISING element's

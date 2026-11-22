@@ -76,7 +76,7 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
             return BindFunctionTarget(host.Oo.OoInlineInvocationOperand(imiTarget), imiTarget.GetText());
         if (host.Intrinsic.KeywordOmittedFunction(ins.dataReference()) is { } kof)
             return BindFunctionTarget(IntrinsicBinder.OperandOf(kof, functionValue: true), WrittenSource.Of(ins.dataReference()));
-        // An INDEX-NAME as identifier-1 (kb/Work R16): INSPECT is none of §2023:13.18.38.3 r7's five index-name
+        // An INDEX-NAME as identifier-1 (kb/Work R16): INSPECT is none of §2023:13.18.38.3 SR7's five index-name
         // contexts — a compile diagnostic, not the unresolvable-item runtime stage below.
         // ⛔ Both lanes, deliberately: identifier-1 is an IDENTIFIER SLOT, so there is no occurrence-number
         // coercion to offer under --permissive (the r7 lane split is written down at

@@ -248,13 +248,13 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
     /// output). The fatal twins (EC-ARGUMENT-FUNCTION) stay in <see cref="EmitArgOrPlain"/> — they need a catch.</summary>
     internal static readonly (string Ec, string Flag)[] NonfatalAmbientGates =
     [
-        ("EC-DATA-CONVERSION", "DataConversionChecking"),   // §2023:15.19.4 r1/r3 — CONVERT / DISPLAY-OF / NATIONAL-OF
+        ("EC-DATA-CONVERSION", "DataConversionChecking"),   // §2023:15.19.4 RV1/r3 — CONVERT / DISPLAY-OF / NATIONAL-OF
         ("EC-BOUND-OVERFLOW", "BoundOverflowChecking"),     // §2023:8.5.1.9.6 GR1 — OCCURS DYNAMIC implicit growth
         ("EC-BOUND-SET", "BoundSetChecking"),               // §2023:14.9.39.4 GR30 — OCCURS DYNAMIC explicit SET (kb/Work PB460)
         // These two USED TO CARRY THEIR OWN, SECOND enablement mechanism — the ThruMember carrier was emitted
         // only under checking, and SetSize took a `checkStorage` argument — which put their raises outside the
         // engine's (flag, name) pair and therefore outside the §2023:14.6.13.1.4 #3 selection it runs (kb/Work PB367b).
-        ("EC-RANGE-INVALID", "RangeInvalidChecking"),       // §2023:14.7.8 r2 — an inverted alphanumeric/national THRU range
+        ("EC-RANGE-INVALID", "RangeInvalidChecking"),       // §2023:14.7.8 GR2 — an inverted alphanumeric/national THRU range
         ("EC-STORAGE-NOT-AVAIL", "StorageNotAvailChecking"),// §2023:14.9.39 F16 GR37/GR38 — a dynamic-length resize
         // The Report Writer's NONFATAL raise sites (kb/Work PB1247 / PB1130 / PB1188), all raised while a GENERATE or
         // TERMINATE produces the report. Each resumes where §2023:14.9.16.4 GR8 / §2023:14.9.46.4 GR5 put it — "at the next
@@ -383,8 +383,8 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         ecState.Info = ec.Info;
         bool terminated;
         // The AMBIENT statement context (kb/Work R14): when any condition enabled at this statement carries
-        // WITH LOCATION, the (Table-12 statement name, §2023:15.30.3 r2 location) pair enters the runtime's ambient
-        // slot together with the names it covers — §2023:15.32.3 r1 is PER-CONDITION (R06), so a raise of an
+        // WITH LOCATION, the (Table-12 statement name, §2023:15.30.3 RV2 location) pair enters the runtime's ambient
+        // slot together with the names it covers — §2023:15.32.3 RV1 is PER-CONDITION (R06), so a raise of an
         // uncovered name still answers spaces. Every raise site then reaches the pair through the 2-argument
         // ExceptionState.Set — SEARCH's range Sets, CONTINUE AFTER, the nonfatal gates, the runtime string /
         // storage sites — with no per-site threading. Save/restore (not set/clear), so a CALL inside the
@@ -559,12 +559,12 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         // undefined print-line content: the counter takes the value's integer part.
         ("EC-REPORT-VARYING", "ReportVaryingChecking"),         // §2023:13.18.64.4 GR5 — VARYING clause expression noninteger
         ("EC-BOUND-TABLE-LIMIT", "BoundTableLimitChecking"),    // §2023:14.9.39.4 GR30 — growth past the implementor max
-        ("EC-ORDER-NOT-SUPPORTED", "OrderNotSupportedChecking"),// §2023:15.85.4 r2 — STANDARD-COMPARE's ordering table / level unavailable
+        ("EC-ORDER-NOT-SUPPORTED", "OrderNotSupportedChecking"),// §2023:15.85.4 RV2 — STANDARD-COMPARE's ordering table / level unavailable
         ("EC-LOCALE-MISSING", "LocaleMissingChecking"),        // §2023:14.9.39.4 GR24 / §2023:8.2.1 — a locale not available (SET LOCALE; a named IS LOCALE sequence at use)
         ("EC-LOCALE-INVALID-PTR", "LocaleInvalidPtrChecking"), // §2023:14.9.39.4 GR21 — SET LOCALE through a pointer that holds no saved locale
         ("EC-LOCALE-INCOMPATIBLE", "LocaleIncompatibleChecking"),// §2023:8.8.4.2.11 / L6 — a locale comparison over an ill-formed operand
         ("EC-LOCALE-INVALID", "LocaleInvalidChecking"),        // §2023:8.2.1 — a locale operation over incomplete locale content (no culture data)
-        ("EC-LOCALE-SIZE", "LocaleSizeChecking"),              // §2023:13.18.40.5 r14 b — locale editing truncated a non-zero, non-suppressed character (PB64 T6)
+        ("EC-LOCALE-SIZE", "LocaleSizeChecking"),              // §2023:13.18.40.5 GR14 b — locale editing truncated a non-zero, non-suppressed character (PB64 T6)
         // ⛔ THE EC-SIZE FAMILY FOR NON-ARITHMETIC STATEMENTS (kb/Work PB75). §2023:14.7.5: the size error condition "may
         // occur as a result of … the evaluation of an arithmetic expression" — a condition, a function argument, a
         // subscript, an INVOKE argument — and without a SIZE ERROR phrase the level-3 EC-SIZE-* "is set to exist,
@@ -582,7 +582,7 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         // SizeUnderflowChecking and SizeTruncationChecking, one per name — EcState.SizeCheckRows), through this same
         // OpenGateFlags scope (ReportWriterEmitter.EmitPresenting, kb/Work PB4031, PB4092) — every other render and store
         // selects its kernel at compile time. These rows stay null-flagged.
-        ("EC-SIZE-TRUNCATION", null),                           // §2023:14.7.4.3 r7 / §2023:11.9.11.2 r3d — a PROHIBITED-inexact intermediate
+        ("EC-SIZE-TRUNCATION", null),                           // §2023:14.7.4.3 GR7 / §2023:11.9.11.2 GR3d — a PROHIBITED-inexact intermediate
     ];
 
     /// <summary>The FLAGGED gates whose flag is an ACTIVATING-ELEMENT HALF, not a raise-site switch: "enabled in both the
@@ -628,8 +628,8 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
             {
                 // §2023:14.6.13.1.1: "If checking for an exception condition is enabled and an exception status indicator
                 // is set … the last exception status is set to indicate that exception condition." The guard only
-                // exists where checking IS enabled, so the status is set here unconditionally. The §2023:15.32.3 r2 /
-                // §2023:15.30.3 r2 operands come from the AMBIENT statement context (kb/Work R14 — EmitChecked entered
+                // exists where checking IS enabled, so the status is set here unconditionally. The §2023:15.32.3 RV2 /
+                // §2023:15.30.3 RV2 operands come from the AMBIENT statement context (kb/Work R14 — EmitChecked entered
                 // it with exactly the WITH-LOCATION names, so an uncovered name answers r1's spaces): one channel
                 // for every raise site, in place of the per-site (stmt, loc) literals this call used to bake.
                 w.Line($"ExceptionState.Set({ecExpr}, true);");
@@ -750,7 +750,7 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         string nameTest = string.Join(" || ", enabled.Select(n => $"{ecnVar} == {CsLiteral(n)}"));
         using (w.Block($"if ({flag} && ({nameTest}))"))
         {
-            // The §2023:15.32.3 r2 pair rides the ambient statement context (kb/Work R14; EmitChecked entered it).
+            // The §2023:15.32.3 RV2 pair rides the ambient statement context (kb/Work R14; EmitChecked entered it).
             w.Line($"ExceptionState.Set({ecnVar}, true);   // §2023:14.6.13.1.1 — the last exception status");
             if (!hasPhrase)
                 // The message decoration reads the statement name back from the status Set just recorded —
@@ -779,7 +779,7 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         if (!EnabledHere(ecName)) return;
         using (ctx.Writer.Block($"if ({ovfFlag})"))
         {
-            // The §2023:15.32.3 r2 pair rides the ambient statement context (kb/Work R14). With an ON OVERFLOW phrase
+            // The §2023:15.32.3 RV2 pair rides the ambient statement context (kb/Work R14). With an ON OVERFLOW phrase
             // the phrase takes the condition (§2023:14.6.13.1.4 GR1), so only the status is set.
             const string why = "§2023:14.9.43.4 GR8b / §2023:14.9.48.4 GR16b — the overflow condition";
             if (hasPhrase) EmitConditionSet(ecName, why);
@@ -804,7 +804,7 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
     }
 
     /// <summary>The WITH-LOCATION subset of <see cref="IoMaskFor"/> — same bit positions, so the generated
-    /// <c>__IoCheckEc</c> answers §2023:15.32.3 r1 PER EC-I-O name: the status→EC mapping picks the raised name at
+    /// <c>__IoCheckEc</c> answers §2023:15.32.3 RV1 PER EC-I-O name: the status→EC mapping picks the raised name at
     /// runtime, and one file's <c>EC-I-O-AT-END … WITH LOCATION</c> must not make its <c>EC-I-O-INVALID-KEY</c>
     /// raise record location information (kb/Work R06).</summary>
     public int IoLocMaskFor(FileModel? file)
@@ -940,7 +940,7 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
             // carries the name and CobolFile.IoConditionName is the one place the two are combined.
             w.Line($"string? __ec = {RuntimeApi.FileIoConditionName("__f")};   // §2023:9.1.13.1 correspondence, or the rule-named condition");
             w.Line("bool __en = __ec is not null && (__mask & ExceptionCatalog.IoBit(__ec)) != 0;");
-            // §2023:15.32.3 r1 / §2023:15.30.3 r1 are PER-CONDITION: the location operands record only when the RAISED
+            // §2023:15.32.3 RV1 / §2023:15.30.3 RV1 are PER-CONDITION: the location operands record only when the RAISED
             // name's own TURN carried WITH LOCATION (__locMask shares __mask's bit positions — kb/Work R06).
             w.Line("bool __wl = __ec is not null && (__locMask & ExceptionCatalog.IoBit(__ec)) != 0;");
             w.Line($"if (__en) ExceptionState.SetIo(__ec!, {IoStatusClass.Fatal("__st")}, __f, __st, __wl ? __stmt : null, __wl ? __loc : null);");

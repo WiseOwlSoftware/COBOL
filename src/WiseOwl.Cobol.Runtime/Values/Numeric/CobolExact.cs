@@ -311,7 +311,7 @@ public readonly struct CobolExact
     /// dividend entered the SDIDI as its 34-digit image and <c>A * A * A / (A * A)</c> of a 15-digit A stored 999999999999998.
     /// <para><paramref name="intermediate"/> is the program's INTERMEDIATE ROUNDING mode where the statement reaches this quotient through
     /// the SDIDI lane (a floating-point literal beside the exact operand, CONFORMANCE.md DOC-A.1-82): PROHIBITED screens the quotient
-    /// as every SDIDI intermediate is, and a quotient not exact in 34 digits raises EC-SIZE-TRUNCATION (ISO §2023:11.9.11.2 r3d); any other
+    /// as every SDIDI intermediate is, and a quotient not exact in 34 digits raises EC-SIZE-TRUNCATION (ISO §2023:11.9.11.2 GR3d); any other
     /// mode leaves the round-to-odd value, which no later rounding sees as other than the exact quotient. The plain native lane passes
     /// <see cref="CobolRounding.Truncation"/>: it has no SDIDI intermediate to screen. A final transfer into a fixed-point
     /// resultant that has no such intermediate lands from <see cref="QuotientAtScale"/> instead.</para>
@@ -341,7 +341,7 @@ public readonly struct CobolExact
 
     /// <summary>⛔ THE FINAL TRANSFER OF A NATIVE QUOTIENT INTO A FIXED-POINT RESULTANT, LANDED FROM THE EXACT QUOTIENT (kb/Work PB4701):
     /// <c>a / b</c> rounded ONCE at <paramref name="toScale"/> in the receiver's <paramref name="mode"/> from the true remainder
-    /// (PROHIBITED raises on an inexact quotient, §2023:14.7.4.3 r7) and landed as <see cref="ToUnscaled"/> lands a value. A quotient the
+    /// (PROHIBITED raises on an inexact quotient, §2023:14.7.4.3 GR7) and landed as <see cref="ToUnscaled"/> lands a value. A quotient the
     /// receiver cannot hold keeps the exact quotient's own low-order digits — GnuCOBOL's <c>cob_decimal_div</c> then
     /// <c>cob_decimal_get_field</c> — and not the low-order digits of the 34-digit round-to-odd image (<c>REMD</c> stored
     /// 000003000100000000 for 000003000000000000). A zero divisor raises <see cref="CobolSizeError.ZeroDivide"/> (ISO §2023:14.7.5 case 2).</summary>
@@ -404,7 +404,7 @@ public readonly struct CobolExact
     /// fits (<see cref="CobolWide.TryPow"/>), else on the arbitrary-precision form (<see cref="CobolBig.Pow"/>) — and reduced to the
     /// SDIDI's 34 digits ONCE, by round-to-odd, wherever a consumer lowers it (<see cref="Image"/>): <c>1.01 ** 119</c> into
     /// <c>PIC 9V9(30)</c> is …851 as GnuCOBOL and the exact value give, where the chain of round-to-odd products it replaces drifted to
-    /// …852. A zero exponent is 1 and a negative one is §2023:8.8.1.5.4 r3's reciprocal <c>1 / (b ** |e|)</c>, one rounding of the exact
+    /// …852. A zero exponent is 1 and a negative one is §2023:8.8.1.5.4 GR3's reciprocal <c>1 / (b ** |e|)</c>, one rounding of the exact
     /// quotient. The §2023:8.8.1.2 rule-6 screen is <see cref="CobolIntrinsics.CheckPowRule6"/>'s, written once. The precision is the base's
     /// times a non-negative exponent (the multiple, numeric design D2), and the reciprocal's own fraction digits.</summary>
     public static CobolExact Pow(CobolExact b, Int128 e)

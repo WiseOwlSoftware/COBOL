@@ -7,7 +7,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// ACOS and ASIN of an argument expression whose exact value passes the <see cref="Int128"/> carrier (a nested product of 39 to
 /// 77 digits, <see cref="CobolWide"/>). They are the exact-intake overloads of <c>CobolIntrinsics.Float.cs</c> (kb/Work PB999,
 /// PB1041) on the wider carrier, with the same contracts and the same domain screen.
-/// <para>WHY THEY EXIST. §2023:15.82.4 r1 / §2023:15.20.4 r1 / §2023:15.89.4 r1 return an approximation of the sine / cosine / tangent OF
+/// <para>WHY THEY EXIST. §2023:15.82.4 RV1 / §2023:15.20.4 RV1 / §2023:15.89.4 RV1 return an approximation of the sine / cosine / tangent OF
 /// argument-1, and argument-1 is the exact value its expression has. The argument used to arrive as the 34-digit round-to-odd
 /// image of that value, and the image of a 39-digit product is some 999 radians from the product: <c>FUNCTION SIN (BIG * BIG *
 /// K3)</c> of 18-, 18- and 3-digit items printed the sine of the image. LOG, LOG10, ACOS and ASIN are ill-conditioned at 1 and

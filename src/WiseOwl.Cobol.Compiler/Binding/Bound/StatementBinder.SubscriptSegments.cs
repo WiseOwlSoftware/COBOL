@@ -86,7 +86,7 @@ public sealed partial class StatementBinder
     private DataItem? BindPositionTemporary(Frontend.Generated.CobolParserCore.ArithmeticExpressionContext expr,
         SegmentPosition position, int line)
     {
-        // ⛔ THE POSITION DECIDES THE CONTEXT (kb/Work PB170/PB172). ISO §2023:13.18.38.3 r7 lists five contexts in
+        // ⛔ THE POSITION DECIDES THE CONTEXT (kb/Work PB170/PB172). ISO §2023:13.18.38.3 SR7 lists five contexts in
         // which an index-name may be referenced — "as a subscript; in the VARYING phrase of a PERFORM statement;
         // in the VARYING phrase of a SEARCH statement; in the SET statement; as an operand in a relation
         // condition" — and a REFERENCE-MODIFICATION position is not among them. This site hard-coded

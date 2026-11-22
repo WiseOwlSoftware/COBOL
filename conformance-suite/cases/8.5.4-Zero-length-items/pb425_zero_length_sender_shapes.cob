@@ -29,7 +29,7 @@
       *>     frozen or re-described.  FUNCTION NUMVAL of "0.123456789012345" therefore reaches PIC 9V9(15)
       *>     whole: FN-NUM=[0123456789012345].
       *>     A CHARACTER-category function can be a zero-length item, and FUNCTION TRIM of an all-space
-      *>     argument is one by §2023:15.96.4 r4 ("If argument-1 contains only characters that are argument-2,
+      *>     argument is one by §2023:15.96.4 RV4 ("If argument-1 contains only characters that are argument-2,
       *>     spaces if argument-2 is not specified ... the returned value is of length zero"), so it takes
       *>     GR1's route to GR2's SPACE fill exactly as the ref-mod arm does.  FN-ZL=[   ].
       *>

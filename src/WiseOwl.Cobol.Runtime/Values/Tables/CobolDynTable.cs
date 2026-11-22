@@ -299,7 +299,7 @@ public sealed class CobolDynTable<T>
     /// <summary>The table's CURRENT-EXTENT character image: every occurrence up to the current capacity,
     /// rendered by <paramref name="imageOf"/> and concatenated in occurrence order (kb/Work PB164 — the
     /// §2023:14.9.11.4 GR7 documented DISPLAY format for a variable-length group renders each dynamic-capacity
-    /// table "at its current capacity", the same extent §2023:15.50.4 r7c counts for FUNCTION LENGTH).</summary>
+    /// table "at its current capacity", the same extent §2023:15.50.4 RV7c counts for FUNCTION LENGTH).</summary>
     public string CurrentImage(Func<T, string> imageOf)
     {
         var sb = new System.Text.StringBuilder();

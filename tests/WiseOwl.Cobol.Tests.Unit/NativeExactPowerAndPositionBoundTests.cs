@@ -22,7 +22,7 @@ public sealed class NativeExactPowerAndPositionBoundTests
         => Assert.Equal(Int128.Parse("126215515697488187881"),
             CobolExact.Pow(CobolExact.FromDec(CobolDec.From(11234567891, 10)), 2).Image.ToUnscaledIntermediate(20, CobolRounding.Truncation));
 
-    // 2.0 ** -2 = 0.25 — §2023:8.8.1.5.4 r3's reciprocal of the exact 4.00.
+    // 2.0 ** -2 = 0.25 — §2023:8.8.1.5.4 GR3's reciprocal of the exact 4.00.
     [Fact]
     public void FractionalBase_NegativeExponentIsTheReciprocal()
         => Assert.Equal(25000, CobolExact.Pow(CobolExact.FromDec(CobolDec.From(20, 1)), -2).Image.ToUnscaledIntermediate(5, CobolRounding.Truncation));

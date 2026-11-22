@@ -257,7 +257,7 @@ public sealed class ArithmeticOperandClassTests
         Assert.Equal(permissive, ok);   // the leniency still decides acceptance; only the COUNT changed
     }
 
-    /// <summary>⛔ §2023:13.18.38.3 r7 GETS ONE LANE POSTURE PER SLOT KIND, AND BOTH ROUTES TO THE SAME SLOT AGREE
+    /// <summary>⛔ §2023:13.18.38.3 SR7 GETS ONE LANE POSTURE PER SLOT KIND, AND BOTH ROUTES TO THE SAME SLOT AGREE
     /// (kb/Work PB219). A reference-modification bound is an ARITHMETIC position (§2023:8.4.3.3.3 SR4), so it takes
     /// R29's disposition: strict rejects with the r7 citation, <c>--permissive</c> warns and computes the
     /// occurrence number. Before this, the token renderer's fast path carried R16's IDENTIFIER-slot posture

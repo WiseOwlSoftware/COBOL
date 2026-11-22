@@ -1071,7 +1071,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             if (MethodExternalCheck(m) is { } extCheck)
                 w.Line(extCheck + "   // §2023:14.9.23.4 GR7 d) — the method activation's §2023:14.8.4 external-item check");
             // ⛔ THE METHOD IS A RUNTIME ELEMENT AND MUST APPEAR ON THE MODULE-NAME STACK (fix-queue PB36).
-            // §2023:15.65.4 r5 names the four activation mechanisms outright — "This may be by a CALL statement, an
+            // §2023:15.65.4 RV5 names the four activation mechanisms outright — "This may be by a CALL statement, an
             // INVOKE statement, a function reference, or an inline invocation" — and INVOKE was the one missing,
             // so inside a method ACTIVATING returned the SINGLE SPACE r5 reserves for a main program (claiming the
             // method WAS one), CURRENT returned the caller's name, and STACK omitted the method entirely.
@@ -1083,7 +1083,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             // universal __CobolInvoke switch, and by an inline invocation — one mechanism, not three arms.
             // Frame = (method name, declaring class as the compilation unit's outermost element, not nested), so
             // r7 CURRENT yields the class, r5 ACTIVATING the invoker, and r9 STACK the full chain.
-            w.Line($"var __ms = {RuntimeApi.ModuleStack()}; __ms.Push({__mLit}, {__cLit}, false, true);   // §2023:15.65.4 r5 — INVOKE is an activation; §2023:8.6.6: a method is always recursive");
+            w.Line($"var __ms = {RuntimeApi.ModuleStack()}; __ms.Push({__mLit}, {__cLit}, false, true);   // §2023:15.65.4 RV5 — INVOKE is an activation; §2023:8.6.6: a method is always recursive");
             // The per-ACTIVATION data-pointer members (kb/Work PB956): save the activator's, start this activation
             // fresh, and restore in the activation's finally — so a recursive INVOKE on the same object neither
             // inherits nor clobbers its caller's based address or LOCAL-STORAGE cell (§2023:8.6.4; §2023:8.6.5).
@@ -1100,7 +1100,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             w.Line("try");
             w.Line("{");
             if (Ctx.Data.Configuration.Classification is { } cls)
-                // The class's CHARACTER CLASSIFICATION, resolved at THIS method's activation (ISO §2023:12.3.6.4 GR8; §2023:14.6.6 r2 —
+                // The class's CHARACTER CLASSIFICATION, resolved at THIS method's activation (ISO §2023:12.3.6.4 GR8; §2023:14.6.6 GR2 —
                 // a method is a runtime element) into a local the method's dispatch local function captures (kb/Work PB111).
                 w.Line(ObjectComputerEmit.ClassificationLocal(cls));
             // LINKAGE roots → locals: a formal seeds from its parameter (copy-in; the copy-out below realizes

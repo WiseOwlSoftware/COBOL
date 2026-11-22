@@ -67,7 +67,7 @@
       *> counter GR6 b) 2 sets to 0 — and each RESUME returns to the
       *> DISPLAY following the interrupted statement. FUNCTION
       *> EXCEPTION-STATUS returns a 31-character alphanumeric value
-      *> (§2023:15.33.3 r1), so the name is space-padded; the trailing spaces are
+      *> (§2023:15.33.3 RV1), so the name is space-padded; the trailing spaces are
       *> part of the expected line.
        >>TURN EC-I-O-LINAGE CHECKING ON
        IDENTIFICATION DIVISION.

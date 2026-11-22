@@ -52,7 +52,7 @@ public sealed class ImpliedPictureTests : WiseOwlCobolTestBase
     }
 
     /// <summary>§2023:13.16.3 SR9a again, on the HEXADECIMAL form of an alphanumeric literal (§2023:8.3.3.2) — SR9's length is
-    /// "the length of the literal as specified in 8.3.3, Literals", and §2023:8.3.3.2.3 r6 groups the digits TWO per
+    /// "the length of the literal as specified in 8.3.3, Literals", and §2023:8.3.3.2.3 SR6 groups the digits TWO per
     /// alphanumeric character, so <c>X"414243"</c> is three characters and implies <c>X(3)</c>, not six.</summary>
     [Fact]
     public void Sr9a_HexadecimalLiteral_LengthIsItsDecodedCharacters()

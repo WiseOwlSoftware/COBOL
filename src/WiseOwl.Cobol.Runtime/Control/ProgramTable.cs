@@ -27,7 +27,7 @@ public sealed class ProgramTable
     {
         public required string Path;        // containment path id (OutermostPath / ContainedPath), unique run-unit-wide
         public required string Name;        // program-name-1 / user-function-name-1 AS WRITTEN — what FUNCTION
-                                            // MODULE-NAME reports (§2023:15.65.4 r4 determination, CONFORMANCE DOC-A.1-135)
+                                            // MODULE-NAME reports (§2023:15.65.4 RV4 determination, CONFORMANCE DOC-A.1-135)
                                             // and what a diagnostic names. NEVER the AS literal.
         public required string CallName;    // the name externalized to the operating environment (§2023:8.3.2.2 2): the
                                             // PROGRAM-ID/FUNCTION-ID `AS literal-1` when one is written, else Name.
@@ -409,7 +409,7 @@ public sealed class ProgramTable
         // leaves CalledSinceCancel alone. From 2002 a CANCEL of the main is refused as ACTIVE before GR7 is asked; at 85
         // it is GR8's "has not been called in this run unit", no action (kb/Work PB5241).
         n.MainActive = true;
-        _owner.Modules.PushMain(n.Name, n.Recursive);   // TOP-LEVEL / the run-unit main (§2023:15.65.4 r5/r10)
+        _owner.Modules.PushMain(n.Name, n.Recursive);   // TOP-LEVEL / the run-unit main (§2023:15.65.4 RV5/r10)
         // The §2023:14.6.13.1.4 #3 selector for a NONFATAL condition raised at a RUNTIME site is the ACTIVATION's
         // (kb/Work PB367b) — same scope, same boundary, as the ModuleStack frame and the §2023:14.9.28.4 PERFORM
         // depth above it. The main program's activator is the run-unit boundary, so the prior value is null.
@@ -662,7 +662,7 @@ public sealed class ProgramTable
 
         n.Active++;
         n.CalledSinceCancel = true;   // §2023:14.9.5.4 GR7 — called in this run unit (cleared again by CANCEL)
-        // §2023:15.65.4 r7/r8 frame; a RECURSIVE program or a function is a recursive runtime element (§2023:8.6.6: "Functions and
+        // §2023:15.65.4 RV7/r8 frame; a RECURSIVE program or a function is a recursive runtime element (§2023:8.6.6: "Functions and
         // methods are always recursive"), which the frame records for §2023:9.1.18.7's "under the control of" (ModuleStack.AnyRecursive).
         _owner.Modules.Push(n.Name, OutermostName(n), n.ParentPath is not null, n.Recursive || n.IsFunction);
         // Latch the activating half (§2023:14.8.4.1 / §2023:14.9.4.4 GR3e) as the activated element's ACTIVATOR mask for its
@@ -1203,7 +1203,7 @@ public sealed class ProgramTable
         n.ParentPath is not null && _byPath.TryGetValue(n.ParentPath, out var p) ? p : null;
 
     /// <summary>The outermost (top-level) program-id name of a node's compilation-unit containment chain
-    /// (ISO §2023:15.65.4 r7 — MODULE-NAME CURRENT). Equals the node's own name for a top-level program.</summary>
+    /// (ISO §2023:15.65.4 RV7 — MODULE-NAME CURRENT). Equals the node's own name for a top-level program.</summary>
     private string OutermostName(Node n)
     {
         var top = n;

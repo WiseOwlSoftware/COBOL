@@ -49,7 +49,7 @@ public static class CobolFile
         => _reg.RegisterIndexed(cobolName, assignTarget, recordWidth, optional, accessMode, primeKey,
             varyMin, varyMax, primeCollation, selectName, edition);
 
-    /// <summary>The SELECT-spelled name of a registered connector (ISO §2023:15.28.4 r1c/r2b; kb/Work PB63) — the
+    /// <summary>The SELECT-spelled name of a registered connector (ISO §2023:15.28.4 RV1c/r2b; kb/Work PB63) — the
     /// no-argument FUNCTION EXCEPTION-FILE's display of the last-exception connector.</summary>
     public static string SelectNameOf(string cobolName) => _reg.SelectNameOf(cobolName);
 
@@ -254,7 +254,7 @@ public static class CobolFile
     /// phrase, which suppresses the fixed-file-attribute match.</summary>
     public static string DeleteFile(string name, bool overridden = false) => _reg.DeleteFile(name, overridden);
 
-    /// <summary>FUNCTION EXCEPTION-FILE(file-connector-name) (ISO §2023:15.28.4 r2) — the named connector's I-O status +
+    /// <summary>FUNCTION EXCEPTION-FILE(file-connector-name) (ISO §2023:15.28.4 RV2) — the named connector's I-O status +
     /// SELECT-spelled name, or two spaces when never opened/attempted/accessed.</summary>
     public static string ExceptionFile(string name) => _reg.ExceptionFile(name);
 

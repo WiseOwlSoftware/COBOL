@@ -777,7 +777,7 @@ public sealed record FieldReferenceSource(Antlr4.Runtime.ParserRuleContext Ref, 
 public sealed record FieldComputeSource(Core.ReportValueOperandContext Ctx, string Written) : ReportFieldSource
 {
     /// <summary>The clause's ROUNDED phrase (§2023:13.18.53.2's trailing <c>[ rounded-phrase ]</c>, §2023:14.7.4), or null
-    /// — in which case GR2's implicit COMPUTE has no ROUNDED phrase and the transfer truncates (§2023:14.7.4.3 r2).</summary>
+    /// — in which case GR2's implicit COMPUTE has no ROUNDED phrase and the transfer truncates (§2023:14.7.4.3 GR2).</summary>
     public Core.RoundedPhraseContext? Rounded { get; init; }
 
     /// <summary>The bound expression (procedure phase); null when a screen rejected the operand.</summary>
@@ -1135,7 +1135,7 @@ public sealed class ReportSumModel
     /// §2023:13.18.54.4 GR4: "If the ROUNDED phrase is specified …, the content of the sum counter is computed
     /// according to the general rules for the COMPUTE statement with the ROUNDED phrase" — the phrase governs the
     /// counter's delivery to the printable item, which is why §2023:13.18.54.3 SR3 admits it only with a COLUMN
-    /// clause. Null (no phrase) ⇒ the transfer truncates (§2023:14.7.4.3 r2).</summary>
+    /// clause. Null (no phrase) ⇒ the transfer truncates (§2023:14.7.4.3 GR2).</summary>
     public Core.RoundedPhraseContext? Rounded { get; set; }
 
     /// <summary>The rounding mode <see cref="Rounded"/> selects (§2023:14.7.4.3), resolved in the procedure phase

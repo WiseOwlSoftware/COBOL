@@ -31,13 +31,13 @@ namespace WiseOwl.Cobol.Binding;
 /// <param name="Positions">Parallel to <paramref name="Codes"/>: each specified character's 0-based collating
 /// position. ALSO members share one position (§2023:12.3.7.4 GR7 k6).</param>
 /// <param name="RepByPos">Indexed by position 0..<paramref name="NextFree"/>−1: the FIRST character DEFINED at
-/// that position, in SOURCE order — literal-1 of an ALSO group (§2023:15.15.4 r2 / §2023:15.16.4 r2's "first character
+/// that position, in SOURCE order — literal-1 of an ALSO group (§2023:15.15.4 RV2 / §2023:15.16.4 RV2's "first character
 /// defined" / GR7 k6, the CHAR representative; fix-queue PB59 — <c>AlphabetBind</c> computed this into
 /// <c>specOrder</c> and discarded it, so CHAR scanned for the LOWEST-coded member instead).</param>
 /// <param name="NextFree">The first position AFTER the specified block (= the number of DISTINCT positions it
 /// occupies; ALSO groups make it smaller than <c>Codes.Length</c>). Unspecified character <c>c</c> takes position
 /// <c>NextFree + (c − |specified codes &lt; c|)</c> (GR7 k3), giving the sequence
-/// <c>NextFree + (0x10000 − Codes.Length)</c> positions — the §2023:15.15.3 r2 domain bound.</param>
+/// <c>NextFree + (0x10000 − Codes.Length)</c> positions — the §2023:15.15.3 AR2 domain bound.</param>
 /// <param name="HighValue">The runtime HIGH-VALUE character under this sequence (§2023:12.3.7.4 GR8 + §2023:8.3.3.6.4 GR6/7):
 /// the character at the HIGHEST position; a tie (an ALSO group at the top) takes the LAST character specified.
 /// Both classes compute it over the whole 65,536-unit repertoire (owner decision kb/Work R52).</param>
@@ -60,7 +60,7 @@ public sealed record CollatingTable(ushort[] Codes, ushort[] Positions, ushort[]
     /// <param name="specOrder">The specified characters in the order the definition gives them — GR8's "<i>the
     /// last character specified</i>" and GR9's "<i>the first character specified</i>" tie rules read this.</param>
     /// <param name="repByPos">Per position 0…<paramref name="nextFree"/>−1, the FIRST character DEFINED there
-    /// (§2023:12.3.7.4 GR7 k6 / §2023:15.15.4 r2 — an ALSO group's literal-1).</param>
+    /// (§2023:12.3.7.4 GR7 k6 / §2023:15.15.4 RV2 — an ALSO group's literal-1).</param>
     /// <param name="nextFree">The first position after the specified block.</param>
     /// <remarks>⛔ POSITIONS AND COUNTS ARE <see cref="int"/> HERE, AND ONLY THE STORED ARRAYS ARE 16-BIT (kb/Work
     /// PB1557). A position is 0 … <see cref="Repertoire"/> − 1, which a <see cref="ushort"/> holds; the COUNT of
@@ -282,7 +282,7 @@ public sealed record NationalAlphabetDef(CollatingTable? Table, LocaleCollatingS
 /// (GR7 k4's implementor determination — the unspecified characters follow the highest specified position in
 /// native relative order, exactly as the collating sequence places them; documented in CONFORMANCE.md).
 /// <b>Determinations:</b> the native alphanumeric set is the UTF-16 repertoire in code-unit order (ordinal n =
-/// code unit n−1 — the same correspondence FUNCTION CHAR / ORD use, §2023:15.15.4 r1 / §2023:15.70.4 r1); STANDARD-1 /
+/// code unit n−1 — the same correspondence FUNCTION CHAR / ORD use, §2023:15.15.4 RV1 / §2023:15.70.4 RV1); STANDARD-1 /
 /// STANDARD-2 are ISO/IEC 646 IRV, 128 characters, the identity correspondence on U+0000–U+007F (GR7 c);
 /// NATIVE / UTF-16 national sets are the UTF-16 code units (GR7 d2/h); UCS-4 / UTF-8 are the ISO/IEC 10646
 /// scalar values (GR7 f/g — an unpaired surrogate is not a character of these sets).

@@ -49,7 +49,7 @@ using WiseOwl.Cobol.Symbols;
 /// intermediate results ride the edition's compile-time arithmetic mode, <see cref="CompileTimeArithmetic.For"/> —
 /// standard arithmetic at 2002, standard-decimal at 2014, the documented .NET <see cref="decimal"/> mode from 2023, kb/Work PB1592);
 /// <b>AS LENGTH OF data-name-2</b> (GR6 — the value of the §2023:15.50 LENGTH function: <c>ItemLength.Positions</c>,
-/// THE §2023:15.50.4 r1/r2/r3 fold the FUNCTION LENGTH binder reads, which is maximum-allocation based so the GR6
+/// THE §2023:15.50.4 RV1/r2/r3 fold the FUNCTION LENGTH binder reads, which is maximum-allocation based so the GR6
 /// occurs-depending exception holds); <b>AS BYTE-LENGTH OF data-name-1</b> (GR5 — the value of the §2023:15.14
 /// BYTE-LENGTH function: <c>DataItem.ByteWidth</c>, the fold FUNCTION BYTE-LENGTH reads; the same binder and the same
 /// SR3/SR10/SR12 screens as LENGTH OF, kb/Work PB1227).
@@ -511,7 +511,7 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
 
     /// <summary>The two length phrases of the constant entry, ONE binder (kb/Work PB1227): <b>AS LENGTH OF
     /// data-name-2</b> (§2023:13.10.4 GR6 — the value of the §2023:15.50 LENGTH function: <see cref="ItemLength.Positions"/>, THE
-    /// §2023:15.50.4 r1/r2/r3 fold the FUNCTION LENGTH binder reads) and <b>AS BYTE-LENGTH OF data-name-1</b> (GR5 — the value
+    /// §2023:15.50.4 RV1/r2/r3 fold the FUNCTION LENGTH binder reads) and <b>AS BYTE-LENGTH OF data-name-1</b> (GR5 — the value
     /// of the §2023:15.14 BYTE-LENGTH function: <see cref="DataItem.ByteWidth"/>, the fold FUNCTION BYTE-LENGTH reads for a
     /// fixed item). Both are maximum-allocation based, so each rule's occurs-depending-group exception — "the maximum
     /// size of the data item is used" — holds by construction. Every syntax rule of §2023:13.10.3 names data-name-1 and
@@ -607,7 +607,7 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
                 + "a variable-length group (ISO §2023:13.10.3 SR12)");
             return null;
         }
-        // §2023:13.10.4 GR6 — "determined as specified in the LENGTH intrinsic function": THE §2023:15.50.4 r1/r2/r3 fold, the
+        // §2023:13.10.4 GR6 — "determined as specified in the LENGTH intrinsic function": THE §2023:15.50.4 RV1/r2/r3 fold, the
         // one FUNCTION LENGTH takes (kb/Work PB1213; it used to read DataItem.ImageWidth, a drifted second copy).
         // §2023:13.10.4 GR5 — "determined as specified in the BYTE-LENGTH intrinsic function": DataItem.ByteWidth, the one
         // FUNCTION BYTE-LENGTH folds a fixed item to (IntrinsicBinder.BindByteLengthFold).

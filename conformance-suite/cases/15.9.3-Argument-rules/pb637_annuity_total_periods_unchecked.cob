@@ -6,10 +6,10 @@
 *> portable: unverified
 *>---
       *> kb/Work PB637 — the CHECKING-OFF half of pb637_annuity_total_periods. With EC-ARGUMENT-FUNCTION checking
-      *> not enabled, §2023:15.3 r14 leaves "the result of the function reference" to the implementor ONLY when the
-      *> condition is set to exist, and §2023:15.9.3 r3 ("Argument-2 shall be a positive integer") sets it for no count
+      *> not enabled, §2023:15.3 AR14 leaves "the result of the function reference" to the implementor ONLY when the
+      *> condition is set to exist, and §2023:15.9.3 AR3 ("Argument-2 shall be a positive integer") sets it for no count
       *> past the 64-bit window. The defect replaced the ARGUMENT with 0 silently - FUNCTION ANNUITY (0 N) then
-      *> divided by nothing and returned 0 where §2023:15.9.4 r1a, "(1 / (argument-2))", is 1E-20 at n = 10^20 and
+      *> divided by nothing and returned 0 where §2023:15.9.4 RV1a, "(1 / (argument-2))", is 1E-20 at n = 10^20 and
       *> 1E-30 at n = 10^30. §2023:15.4.1 makes the standard-decimal value equal the equivalent expression's.
       *>
       *>   T1  rate 0, n = 10^20: 1E-20.        T2  rate 0, n = 10^30 (a 31-digit item): 1E-30.

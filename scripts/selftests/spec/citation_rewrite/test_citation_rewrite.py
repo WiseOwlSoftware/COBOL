@@ -29,6 +29,8 @@ def case_00_a_document_line_takes_each_designator_with_one_form(expect):
         ("the receiver (§2023:14.9.25.4 rule 6) is", "the receiver (§2023:14.9.25.4 GR6) is"),  # citation-audit: example
         ("the receiver §2023:14.9.25.4 6) b) is", "the receiver §2023:14.9.25.4 GR6b is"),  # citation-audit: example
         ("the SORT statement (§1985:XI.4.4.4 rule 7)", "the SORT statement (§1985:XI.4.4.4 GR7)"),  # citation-audit: example
+        ("PROHIBITED (§2023:11.9.11.2 r3d) is", "PROHIBITED (§2023:11.9.11.2 GR3d) is"),  # citation-audit: example
+        ("the domain (§2023:15.8.3 r2's) is", "the domain (§2023:15.8.3 AR2's) is"),  # citation-audit: example
         ("an unlimited capacity (§2023:8.5.1.9.1 item (2))", "an unlimited capacity (§2023:8.5.1.9.1 GR2)"),  # citation-audit: example
         ("status 24 (§1985:VIII.1.3.4 item (3) c)) is", "status 24 (§1985:VIII.1.3.4 GRL2.3c) is"),  # citation-audit: example
         ("the composite (§1985:VI.6.4.4 item 2) of", "the composite (§1985:VI.6.4.4 SR2) of"),  # citation-audit: example

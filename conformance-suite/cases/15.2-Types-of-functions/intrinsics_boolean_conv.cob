@@ -7,10 +7,10 @@
 *> portable: unverified
 *>---
       *> ISO §2023:15.13 BOOLEAN-OF-INTEGER / §2023:15.45 INTEGER-OF-BOOLEAN — the boolean-conversion pair (P11 Step 2).
-      *> Values hand-derived in docs/rearchitecture/PHASE-11-scout-notes.md (spec:boolean): §2023:15.13.4 r1 —
+      *> Values hand-derived in docs/rearchitecture/PHASE-11-scout-notes.md (spec:boolean): §2023:15.13.4 RV1 —
       *> rightmost boolean position = low-order binary digit, zero-filled or TRUNCATED ON THE LEFT to
       *> argument-2 positions (truncation is NORMAL: Annex D.10's 544 → low-6-bits worked example); the MOVE
-      *> into a longer PIC 1(n) receiver then right-zero-fills (§2023:14.6.8.6 — the OPPOSITE end). §2023:15.45.4 r1 —
+      *> into a longer PIC 1(n) receiver then right-zero-fills (§2023:14.6.8.6 — the OPPOSITE end). §2023:15.45.4 RV1 —
       *> the unsigned binary value of the whole bit configuration, MSB first.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. P11BOOLCONV.
@@ -22,7 +22,7 @@
        01 N-5        PIC 9(5).
        PROCEDURE DIVISION.
        MAIN.
-      *> §2023:15.13.4 r1 exact fit: 5 = 101 over 8 positions, left zero-fill.
+      *> §2023:15.13.4 RV1 exact fit: 5 = 101 over 8 positions, left zero-fill.
            MOVE FUNCTION BOOLEAN-OF-INTEGER(5, 8) TO BIT-8
            IF BIT-8 = B"00000101" DISPLAY "T1=OK"
               ELSE DISPLAY "T1=" BIT-8 END-IF
@@ -31,17 +31,17 @@
            MOVE FUNCTION BOOLEAN-OF-INTEGER(INT-ITEM, 6) TO BIT-8
            IF BIT-8 = B"10000000" DISPLAY "T2=OK"
               ELSE DISPLAY "T2=" BIT-8 END-IF
-      *> §2023:15.45.4 r1 MSB-first: B"10000000" = 128 (an LSB-first bug would yield 1).
+      *> §2023:15.45.4 RV1 MSB-first: B"10000000" = 128 (an LSB-first bug would yield 1).
            COMPUTE N-3 = FUNCTION INTEGER-OF-BOOLEAN(BIT-8)
            DISPLAY "T3=" N-3
-      *> §2023:15.45.4 r1 over a boolean literal argument (§2023:15.3 AR3).
+      *> §2023:15.45.4 RV1 over a boolean literal argument (§2023:15.3 AR3).
            COMPUTE N-3 = FUNCTION INTEGER-OF-BOOLEAN(B"00000101")
            DISPLAY "T4=" N-3
-      *> Round-trip identity for 0 <= n < 2^k (§2023:15.13.4 r1 ∘ §2023:15.45.4 r1, both unsigned MSB-first).
+      *> Round-trip identity for 0 <= n < 2^k (§2023:15.13.4 RV1 ∘ §2023:15.45.4 RV1, both unsigned MSB-first).
            COMPUTE N-5 = FUNCTION INTEGER-OF-BOOLEAN(
                FUNCTION BOOLEAN-OF-INTEGER(200, 8))
            DISPLAY "T5=" N-5
-      *> §2023:15.13.4 r1 left truncation: 256 mod 2^8 = 0 → all-zero bits.
+      *> §2023:15.13.4 RV1 left truncation: 256 mod 2^8 = 0 → all-zero bits.
            MOVE FUNCTION BOOLEAN-OF-INTEGER(256, 8) TO BIT-8
            IF BIT-8 = B"00000000" DISPLAY "T6=OK"
               ELSE DISPLAY "T6=" BIT-8 END-IF

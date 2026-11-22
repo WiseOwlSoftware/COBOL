@@ -251,7 +251,7 @@ Reserved/context words: CONTINUE (reserved since 1985), AFTER (reserved), SECOND
 ```
 Line 1: `A`  — DISPLAY "A" (§2023:14.9.13).
 Line 2: `B`  — the intervening `CONTINUE AFTER 0 SECONDS` produces NO output: §2023:14.9.9.4 GR1 value 0 is not <0, suspend 0 seconds, continue; no EC raised. Then DISPLAY "B".
-Line 3: `EC=EC-CONTINUE-LESS-THAN-ZERO     `  — `CONTINUE AFTER WS-N SECONDS` with WS-N=-3<0 → GR1a sets it to 0, GR1b (checking ON via >>TURN) sets EC-CONTINUE-LESS-THAN-ZERO to exist, nonfatal → §2023:14.6.13.1.4 continue with next statement, status retained; then DISPLAY "EC=" FUNCTION EXCEPTION-STATUS: "EC=" (3 bytes) immediately followed (DISPLAY concatenates operands with no separator) by FUNCTION EXCEPTION-STATUS = §2023:15.33.3 r1 a 31-char left-justified uppercase name "EC-CONTINUE-LESS-THAN-ZERO" (26 chars) padded with 5 alphanumeric spaces. So the line is exactly: EC=EC-CONTINUE-LESS-THAN-ZERO + 5 trailing spaces (34 bytes total).
+Line 3: `EC=EC-CONTINUE-LESS-THAN-ZERO     `  — `CONTINUE AFTER WS-N SECONDS` with WS-N=-3<0 → GR1a sets it to 0, GR1b (checking ON via >>TURN) sets EC-CONTINUE-LESS-THAN-ZERO to exist, nonfatal → §2023:14.6.13.1.4 continue with next statement, status retained; then DISPLAY "EC=" FUNCTION EXCEPTION-STATUS: "EC=" (3 bytes) immediately followed (DISPLAY concatenates operands with no separator) by FUNCTION EXCEPTION-STATUS = §2023:15.33.3 RV1 a 31-char left-justified uppercase name "EC-CONTINUE-LESS-THAN-ZERO" (26 chars) padded with 5 alphanumeric spaces. So the line is exactly: EC=EC-CONTINUE-LESS-THAN-ZERO + 5 trailing spaces (34 bytes total).
 
 Full stdout (3 lines, note the 5 trailing spaces on line 3):
 A

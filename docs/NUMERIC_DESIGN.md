@@ -129,13 +129,13 @@ NUMERIC-EDITED formatting: PORT the proven two-pass legacy `PicRuntime.FormatByE
 >   hi:lo-UInt128 scratch for products/quotients; shift-subtract 256÷128 division, clarity-first until profiled)
 >   and rounds ONCE per op to 34 significant digits with the INTERMEDIATE ROUNDING mode (§2023:11.9.11: default
 >   NEAREST-AWAY-FROM-ZERO; NEAREST-EVEN; TRUNCATION; PROHIBITED ⇒ EC-SIZE-TRUNCATION, surfaced as the size
->   error until the EC model), then range-checks at the decimal128 bounds (§2023:8.8.1.5.2 r2 — adjusted exponent
+>   error until the EC model), then range-checks at the decimal128 bounds (§2023:8.8.1.5.2 GR2 — adjusted exponent
 >   > +6144 ⇒ EC-SIZE-OVERFLOW; below the 10⁻⁶¹⁷⁶ subnormal quantum the value re-rounds onto it, and a nonzero
 >   value that rounds to zero there ⇒ EC-SIZE-UNDERFLOW; the ONE `Clamp` in the `Round34Wide` funnel).
 >   Fixed-point operands lift EXACTLY (≤31 digits ≤ 34); a FLOAT DATA ITEM converts via
 >   `CobolDec.FromBinary64(d, mode)` — the §2023:8.8.1.5.1 implementor-defined conversion, defined as the binary64's
 >   EXACT algebraic value (a double is always a terminating decimal) rounded ONCE to 34 digits under the
->   INTERMEDIATE ROUNDING mode, because §2023:8.8.1.5.2 r1 rounds "the operand value [that] cannot be expressed
+>   INTERMEDIATE ROUNDING mode, because §2023:8.8.1.5.2 GR1 rounds "the operand value [that] cannot be expressed
 >   exactly in an SDIDI" by 11.9.11 (kb/Work PB1606): a COMP-2 holding 0.1 enters as
 >   0.1000000000000000055511151231257827, not 0.1, and under PROHIBITED an inexact one raises
 >   EC-SIZE-TRUNCATION; Infinity ⇒ EC-SIZE-OVERFLOW, NaN ⇒ the invalid-operation EC-DATA-INCOMPATIBLE. The
@@ -151,7 +151,7 @@ NUMERIC-EDITED formatting: PORT the proven two-pass legacy `PicRuntime.FormatByE
 >   `CobolDec` when the mode is in effect (`NumX.Dec`; the mode branch runs BEFORE the D16 float branch);
 >   **exponentiation** is `CobolDec.Pow` (§2023:8.8.1.5.4: integer exponents by square-and-multiply over `Mul` —
 >   exactly r2a–r2d for 1–4, the r2e implementor-defined form beyond, r3's `1/(b**|e|)` for negatives, the
->   §2023:8.8.1.2 r6 / r4 EC-SIZE-EXPONENTIATION legs; a non-integer exponent is the r2e double approximation
+>   §2023:8.8.1.2 GR6 / r4 EC-SIZE-EXPONENTIATION legs; a non-integer exponent is the r2e double approximation
 >   converted through `FromApproximation`). The receiver's ROUNDED applies only at the final transfer via the
 >   `CobolNum.Store/TryStore(CobolDec, …)` overloads (§2023:14.7 NOTE 1). The final transfer has an UNCHECKED and a
 >   CHECKED form (PB74, 2026-08-17): `CobolDec.ToUnscaled` (MOVE / no-phrase store) keeps only the low-order
@@ -159,7 +159,7 @@ NUMERIC-EDITED formatting: PORT the proven two-pass legacy `PicRuntime.FormatByE
 >   while `ToUnscaledChecked` (ridden by `TryStore(CobolDec)` and the emitter's checked numeric-edited
 >   transfer) raises `CobolSizeError` EC-SIZE-TRUNCATION for it (§2023:14.7.5 case 3 / no-phrase rule 4), so
 >   `10 ** 100 ON SIZE ERROR` fires and leaves the receiver unchanged. Every PROHIBITED raise carries its
->   level-3 name — EC-SIZE-TRUNCATION per §2023:14.7.4.3 r7 (the transfer) and §2023:11.9.11.2 r3d (the intermediate) —
+>   level-3 name — EC-SIZE-TRUNCATION per §2023:14.7.4.3 GR7 (the transfer) and §2023:11.9.11.2 GR3d (the intermediate) —
 >   so an EXCEPTION-STATUS / USE / PERFORM-WHEN selection sees the right condition. An Int128 significand represents every
 >   decimal128 value's 34-digit significand exactly; only the rejection of `decimal` (96-bit/28-digit) stands.
 > - **Intrinsic functions under the standard modes (§2023:15.4.1 r1):** a function WITH an equivalent arithmetic
@@ -171,7 +171,7 @@ NUMERIC-EDITED formatting: PORT the proven two-pass legacy `PicRuntime.FormatByE
 >   SDIDI would). ⛔ **The word "satisfies" holds only while the argument's lift is EXACT (kb/Work PB2965, D27):**
 >   for ABS / SIGN / INTEGER-PART / FRACTION-PART — the unary functions with an equivalent arithmetic expression — an
 >   argument whose digit bound is past the SDIDI's 34 (a 16-byte binary container, an unknown bound) is ROUNDED by
->   §2023:8.8.1.5.2 r1, so those calls take the SDIDI body; INTEGER and the selection functions have no expression and stay exact.
+>   §2023:8.8.1.5.2 GR1, so those calls take the SDIDI body; INTEGER and the selection functions have no expression and stay exact.
 >   ⛔ **THIS PARAGRAPH READ "already satisfies it", UNQUALIFIED, AND THAT WAS FALSE IN THREE MEASURED WAYS
 >   (fix-queue PB32, 2026-08-03).** It is recorded here rather than quietly reworded because the claim is what
 >   made the family look reviewed:
@@ -212,7 +212,7 @@ NUMERIC-EDITED formatting: PORT the proven two-pass legacy `PicRuntime.FormatByE
 >   evaluating an arithmetic expression, an arithmetic statement, the SUM clause, **and certain integer and
 >   numeric functions as specified in 15.4.1**"), the binary64 approximation entering it through the §2023:8.8.1.5.1
 >   conversion. ⛔ **kb/Work PB253 (2026-09-05): this paragraph used to read "converting into expressions per
->   §2023:8.8.1.5.2 r1", which describes only the OPERAND case and is what let the container rule be read as
+>   §2023:8.8.1.5.2 GR1", which describes only the OPERAND case and is what let the container rule be read as
 >   receiver-conditional.** `IntrinsicRenderer.RenderFloat` had duly tested the receiver SHAPE first, so under
 >   `ARITHMETIC IS STANDARD-DECIMAL` (and 2002's plain `STANDARD`) the SDIDI arm was unreachable for every
 >   receiver-less or float-receiver reference and the raw binary64 escaped into the item-92 text, MOVE-source,
@@ -227,8 +227,8 @@ NUMERIC-EDITED formatting: PORT the proven two-pass legacy `PicRuntime.FormatByE
 >   (ANNUITY / PRESENT-VALUE / VARIANCE / STANDARD-DEVIATION were staged loud under the standard
 >   modes — COBOL0899 — until their SDIDI evaluations landed with PB56; the stage is gone.)
 >   **The NUMVAL family under the standard modes (PB60, RV-15.67.4-1a / RV-15.69.4-3, 2026-08-17):** NUMVAL /
->   NUMVAL-C / NUMVAL-F have no EAE, but their returned value is FIXED by their own rules — §2023:15.67.4 r1 and
->   §2023:15.68.4 r1 "the numeric value represented by argument-1", and §2023:15.69.4 r3 says it outright for NUMVAL-F
+>   NUMVAL-C / NUMVAL-F have no EAE, but their returned value is FIXED by their own rules — §2023:15.67.4 RV1 and
+>   §2023:15.68.4 RV1 "the numeric value represented by argument-1", and §2023:15.69.4 RV3 says it outright for NUMVAL-F
 >   under standard-decimal (r2 grants NATIVE and standard-binary the approximation) — and §2023:15.4.1 places it in
 >   an SDIDI temporary. So the standard-mode value is the ONE positional scan's (sign, unscaled, frac[, exp])
 >   lifted to `CobolDec` EXACTLY at the parsed scale (`CobolIntrinsics.NumvalDec` / `NumvalCDec` / `NumvalFDec`
@@ -237,9 +237,9 @@ NUMERIC-EDITED formatting: PORT the proven two-pass legacy `PicRuntime.FormatByE
 >   UNCONDITIONALLY under the standard modes (the argument is a string — no carrier question arises). No working
 >   scale, no receiver, no ≥6/≥9 floor: `NUMVAL("1.2345678")` is 1.2345678 in every channel, a 34-digit argument
 >   (legal under the standard-mode digit cap) is exact, and NUMVAL-F's E-exponent lifts through
->   `CobolDec.FromParsed` — the ONE §2023:8.8.1.5.2 r2 range check every SDIDI result gets (`1E+9999` ⇒
+>   `CobolDec.FromParsed` — the ONE §2023:8.8.1.5.2 GR2 range check every SDIDI result gets (`1E+9999` ⇒
 >   EC-SIZE-OVERFLOW). ⛔ **The NATIVE-mode value is the same SDIDI** (kb/Work PB251 for NUMVAL / NUMVAL-C; kb/Work
->   PB3839 for NUMVAL-F, whose §2023:15.69.4 r2 approximation the implementor resolves to r3's exact value so that no
+>   PB3839 for NUMVAL-F, whose §2023:15.69.4 RV2 approximation the implementor resolves to r3's exact value so that no
 >   receiver shape, channel or mode changes it; `IntrinsicCarrierRules.ReturnsExactParse` is the ONE predicate, asked by
 >   `RenderNum`'s first arm and by `FunctionValueLane`). There is no scaled-`Int128` projection of the family left.
 >   Pinned by `pb60_numval_standard_decimal`, `pb3839_numval_f_one_value` + the NUMVAL tests in
@@ -364,7 +364,7 @@ The compiler's `PictureComposition.MarkFloating` reads the same `IsSimpleInserti
 
 *Landed (V59 step 2). Load-bearing spec: §2023:13.18.60.4 GR4 (BINARY "a radix of 2 is used"), GR7 (DISPLAY, an alphanumeric coded character set aligned on a character boundary), GR11 (PACKED-DECIMAL "a radix of 10 … the minimum possible configuration", and the 2023 WITH NO SIGN phrase), GR12 (the fixed-width binary usages); §2023:4.2.16 + Annex A.1 items 205/215 (documenting BINARY's and PACKED-DECIMAL's representation is a REQUIRED implementor-documentation item).*
 
-**Rationale.** A usage decides THREE orthogonal facts — capacity (`Truncation`), byte representation (`ByteForm`), sign presentation (`SignKind`) — and the profile carried only two of them. Because the two it carried *looked* sufficient, the record-image codec derived the representation from the digit count, so a `PIC 9(4) COMP` and a `PIC 9(4) COMP-3` both reached a file as the four ASCII bytes `31 32 33 34` while `FUNCTION BYTE-LENGTH` reported 2 and 3 (V59; §2023:15.14.4 r1 vs §2023:15.50.4 r3 cannot disagree in a single-byte-character model). The forms are implementor-defined and therefore OURS to pin: `Binary` = two's complement, BIG-ENDIAN, `StorageLength` bytes; `Packed` = BCD two digits per byte, trailing sign nibble `0xC`/`0xD` (`0xF` for an unsigned item); `PackedNoSign` = digit nibbles only; `Zoned` = one byte per digit position, sign per `SignKind`. Big-endian and the `0xF` unsigned nibble follow the IBM / Micro Focus / GnuCOBOL survey — the latter deliberately diverging from our own legacy `PicRuntime.EncodeComp3`, which writes `0x0C` for any positive value. `NumericByteFormDriftTests` pins the whole `Usage` table so a new usage cannot inherit a representation nobody chose.
+**Rationale.** A usage decides THREE orthogonal facts — capacity (`Truncation`), byte representation (`ByteForm`), sign presentation (`SignKind`) — and the profile carried only two of them. Because the two it carried *looked* sufficient, the record-image codec derived the representation from the digit count, so a `PIC 9(4) COMP` and a `PIC 9(4) COMP-3` both reached a file as the four ASCII bytes `31 32 33 34` while `FUNCTION BYTE-LENGTH` reported 2 and 3 (V59; §2023:15.14.4 RV1 vs §2023:15.50.4 RV3 cannot disagree in a single-byte-character model). The forms are implementor-defined and therefore OURS to pin: `Binary` = two's complement, BIG-ENDIAN, `StorageLength` bytes; `Packed` = BCD two digits per byte, trailing sign nibble `0xC`/`0xD` (`0xF` for an unsigned item); `PackedNoSign` = digit nibbles only; `Zoned` = one byte per digit position, sign per `SignKind`. Big-endian and the `0xF` unsigned nibble follow the IBM / Micro Focus / GnuCOBOL survey — the latter deliberately diverging from our own legacy `PicRuntime.EncodeComp3`, which writes `0x0C` for any positive value. `NumericByteFormDriftTests` pins the whole `Usage` table so a new usage cannot inherit a representation nobody chose.
 
 **The codec.** `CobolNum.Image.cs` (`FormatImage`/`ParseImage`, beside `FormatDisplay`) is the ONE place a value becomes bytes and back — whole-group image, file record, SORT key window, Tier-B REDEFINES backing all go through it, and the bytes ride the SAME Latin-1 `string` carrier as a DISPLAY leaf (`RecordFraming`), so no second whole-group mechanism appears. `None` at a byte boundary THROWS (a compiler invariant break, not a COBOL condition). Decoding is tolerant in the standard's own direction: a non-decimal packed nibble contributes no digit and a foreign sign nibble reads by the universal rule (`0xB`/`0xD` negative, everything else positive), matching how the zoned decoder treats incompatible data (§2023:14.6.13.2, undefined → deterministic).
 
@@ -478,7 +478,7 @@ expression chokepoint (`CheckLiteral`, now decimal128 in every mode — one carr
 the VALUE funnel for a FLOAT-* subject, where §2023:13.18.63.3 SR2 asks for "permissible values within the range
 indicated by the PICTURE clause or the USAGE clause" (cite.py-verified verbatim) and, a FLOAT-* subject having
 no PICTURE, the bound is therefore the ITEM's binary form. The implementor-defined exponent range of
-§2023:8.3.3.3.3 r3 is published in CONFORMANCE.md §7 A.1 item 82, together with its one residual: SR2 admits a 36-digit
+§2023:8.3.3.3.3 SR3 is published in CONFORMANCE.md §7 A.1 item 82, together with its one residual: SR2 admits a 36-digit
 significand and the SDIDI carrier holds 34, so a 35th/36th significand digit rounds at `CobolDec.FromParsed`.
 ⚠ **Known exception, registered not fixed:** the CALL argument emitter renders a bare numeric-literal argument
 through `EmitText.UnscaledLit` rather than this rendering — kb/Work PB263 (BY CONTENT: a raw Roslyn CS1503) and
@@ -660,7 +660,7 @@ BOTH consumers wrote the receiver-shape test out for themselves (`Receiver.Real 
 `RenderFloatNative`, `b.Real || e.Real || _rcv.Real || _rcv.Receiverless` in `Power`), and neither private copy
 learned about the nested case when PB647 added it. That is this codebase's recurring two-arm shape, sixth
 sighting. `NUMVAL-F` does NOT consult the decision — it is not a binary64 at all: its value is the EXACT decimal parse in
-every channel (§2023:15.69.4 r2's approximation resolved to r3's value, kb/Work PB3839), landed by the SDIDI rules.
+every channel (§2023:15.69.4 RV2's approximation resolved to r3's value, kb/Work PB3839), landed by the SDIDI rules.
 
 **Rationale (kb/Work PB647).** The quantizer hard-coded `NearestAwayFromZero` at a working scale in BOTH
 positions while the MOVE channel (`CobolFloat.ToScaledUnchecked`) had always taken the receiver's mode at the
@@ -718,8 +718,8 @@ named `2023/pb65_codomain_clamp`, in two lines (`ASINH` 0.523598776 → 0.523598
 **No landing clamps to a function's codomain (kb/Work PB3829).** PB65 had put a clamp on this landing for the
 functions whose §15.x.4 rule bounds the returned value (ACOS, ASIN, ATAN, RANDOM, FRACTION-PART), cutting a ROUNDED
 landing back inside the bound. It read a rule on the RETURNED value (§2023:15.4's temporary, which the binary64 always
-satisfies) as a rule on the RESULTANT IDENTIFIER, whose value §2023:14.9.8.4 r2 gives to §2023:14.6.8, §2023:14.7.4 and §2023:14.7.5:
-`COMPUTE R ROUNDED = FUNCTION ACOS(-1)` into `9V9999` stored 3.1415 where §2023:14.7.4.3 r4 gives 3.1416, while
+satisfies) as a rule on the RESULTANT IDENTIFIER, whose value §2023:14.9.8.4 GR2 gives to §2023:14.6.8, §2023:14.7.4 and §2023:14.7.5:
+`COMPUTE R ROUNDED = FUNCTION ACOS(-1)` into `9V9999` stored 3.1415 where §2023:14.7.4.3 GR4 gives 3.1416, while
 `FUNCTION ACOS(-1) + 0` (the nested arm) and the standard-decimal arm already stored 3.1416, and RANDOM ROUNDED into a
 `V9(4)` receiver stored a silent .9999 where the rounded 1.0000 is a §2023:14.7.5 size error. The clamp is deleted: every
 function of the family lands through the one `FromDouble`. The goldens are
@@ -841,7 +841,7 @@ if (CobolNum.IsNumericClass(rawImageOrValue, P_X)) ...
 
 **The governing rule.** §2023:8.8.1.3 makes native arithmetic implementor-defined; this design defines the intermediate as unscaled `Int128` and declares its range **CHECKED**, which is precisely the precondition of §2023:14.7.5 rule 5 — *"if native arithmetic is in effect and the implementor defines that the range of values allowed for the intermediate data item is to be checked, when an arithmetic operation on the intermediate data item would cause the new value to be outside of the allowed range"*. So **any** step that leaves the carrier is the size error condition: it lands on `ON SIZE ERROR` leaving the receiver unchanged (§2023:14.7.5 rule 1), or terminates the run unit when neither the phrase nor EC-SIZE checking is present. **A wrap is never an answer** — §2023:15.4.1 asks at worst for "an implementor-defined approximation", and a sign-flipped value approximates nothing.
 
-⛔ **This section said MULTIPLY, and that omission shipped twice.** Written for products only, it left the intrinsic family's ADD and SUBTRACT unguarded: PB32 found MEDIAN/MIDRANGE wrapping, and PB252 found SUM's `s += x` and RANGE's `max - min` still wrapping eight months later — `FUNCTION SUM` stored a sign-flipped value through an `ON SIZE ERROR` phrase that was NOT taken, and `FUNCTION RANGE` returned a NEGATIVE range, a value §2023:15.76.4 r1 cannot produce. The policy is per-OPERATION and the code now says so: `CobolIntrinsics.Exact.cs#SizeEscape` is the one raise site, with `ExactAdd` / `ExactSub` / `ExactMul` beside it, and `ExactCarrierBoundaryDriftTests` closes the exact-carrier entry-point set by reflection so a new function is guarded or explicitly exempted before it can ship.
+⛔ **This section said MULTIPLY, and that omission shipped twice.** Written for products only, it left the intrinsic family's ADD and SUBTRACT unguarded: PB32 found MEDIAN/MIDRANGE wrapping, and PB252 found SUM's `s += x` and RANGE's `max - min` still wrapping eight months later — `FUNCTION SUM` stored a sign-flipped value through an `ON SIZE ERROR` phrase that was NOT taken, and `FUNCTION RANGE` returned a NEGATIVE range, a value §2023:15.76.4 RV1 cannot produce. The policy is per-OPERATION and the code now says so: `CobolIntrinsics.Exact.cs#SizeEscape` is the one raise site, with `ExactAdd` / `ExactSub` / `ExactMul` beside it, and `ExactCarrierBoundaryDriftTests` closes the exact-carrier entry-point set by reflection so a new function is guarded or explicitly exempted before it can ship.
 
 ⚠ It is per-site `checked`, deliberately NOT `<CheckForOverflowUnderflow>` on the Runtime project: binary-field stores and truncation paths wrap MODULARLY on purpose (§2023:13.18.40, §2023:14.9.25.4 GR6) and a project-wide switch would turn every one of those conforming wraps into an exception.
 
@@ -937,7 +937,7 @@ Two-phase per the spec: (a) evaluate the expression into the intermediate CobolI
 - DISPLAY of a zero value in a signed trailing-overpunch field: last digit '0' positive → '{' (e.g. PIC S9(4) value 0 → "000{"), NOT "0000" — confirmed by legacy table.
 - Numeric-edited zero with floating $ or Z across the whole field and no fixed 9 → entire field blanked to spaces (or '*' under check-protect); but if any fixed 9 exists the zeros print. BLANK WHEN ZERO overrides to all-spaces regardless. ⛔ BOTH tests ask for THE VALUE BEING STORED (§2023:13.18.8.4 GR1; §2023:13.18.40.5 GR7 b "the value of the data to be stored"), i.e. the value AFTER §2023:14.6.8.2 GR5's "further alignment, zero fill or truncation" of a numeric-edited receiver — so both live after the mask rescale in `CobolEdit.Render`, and `MOVE 0.4 TO PIC ZZZ9 BLANK WHEN ZERO` blanks exactly as `COMPUTE` of the same value does (kb/Work PB566).
 - Asterisk check-protect (*): suppressed positions AND the comma/B insertion chars inside the floating zone become '*', but the decimal point stays '.' (legacy pass-2 logic).
-- DECIMAL-POINT IS COMMA swaps the roles of '.' and ',' in both the picture interpretation and the edited output. **CURRENCY SIGN is a SET, and the currency STRING may have any length (§2023:12.3.7.3 r21–r27 / §2023:12.3.7.4 GR13 / §2023:13.18.40.4 GR14; PB60 / AR-15.68.3-3, 2026-08-17):** `SpecialNamesBinder.CurrencySigns` maps every currency PICTURE SYMBOL (uppercase-keyed, letter cases equivalent per r20) to a `CurrencyDefinition(Text, LiteralClass)` — its currency string AND the class of the literal-7 that gave it (kb/Work PB1089: SR28 confines an alphanumeric literal-7's symbol to usage-display numeric-edited items and a national one's to usage-national ones; the implied `'$'` clause is alphanumeric, so `PIC $9.99 USAGE NATIONAL` is COBOL2883) — a bare `CURRENCY SIGN "#"` binds '#'→"#" (r22), the 2002+ `CURRENCY SIGN "USD" WITH PICTURE SYMBOL "U"` binds 'U'→"USD" (r23: any length; at least one non-space; none of `0-9 + - , . *`), r21 refuses two clauses binding equivalent symbols to different strings, and r25 IMPLIES `'$'→"$"` unless a clause names '$' as literal-7 or literal-8 — so `PIC $$,$$9.99` stays legal beside a declared '#'. A PICTURE uses at most one symbol kind (§2023:13.18.40.3 r24/r28); `PictureAnalyzer` finds which, CANONICALIZES the mask's symbol to `$` (`PicInfo.EditMask`), records the string on `PicInfo.CurrencyString` (null when it is "$") and the literal-7 class on `PicInfo.CurrencyClass` (null when the picture uses no currency symbol; asked by `PictureAnalyzer.ScreenUsageAgainstPicture` for the written USAGE and the GR1-inherited one alike), and adds the string's extra length to `PicInfo.Length` for the FIRST occurrence (GR14: "The first occurrence of the currency symbol adds the number of characters in the currency string to the size of the item. Each subsequent occurrence of the currency symbol adds one"). `CobolEdit.Format/TryFormat/DeEdit` take `currencyString:` per item (`EmitContext.EditCfg(pic)` — the per-unit `currency:` symbol argument is gone): the core edits the LOGICAL one-position-per-symbol image and `CobolEdit.Materialize` / `DeEdit`'s physical cursor map it to/from the physical one at the §2023:13.18.40.4 GR14 widths (the search-based `ExpandCurrency`/`CollapseCurrency` pair that served the currency string alone was deleted by kb/Work PB491, which generalized the mechanism to the PICTURE EDITING literal as well) — fixed insertion puts the string where the symbol is (`PIC U9.99` → `USD5.25`), floating insertion lands it once before the first nonzero digit (`PIC UUU9` → ` USD12` / `USD123` / `  USD0`), an all-floating zero is all spaces at the physical width, BLANK WHEN ZERO blanks the physical width, and de-editing removes the string before the digit walk. NUMVAL-C / TEST-NUMVAL-C without argument-2 take the unit's `SoleCurrencyString` (§2023:15.68.3 r3 — "$" with no clause, the one explicitly specified string, and COBOL1644 when two or more distinct strings are specified; r25's implied '$' is the picture-symbol default, not a competing string). Pinned by `pb60_currency_sign_set` / `pb60_currency_sign_bare_implied_dollar` + `CobolEditCurrencyStringTests`; negative `numval-c-ambiguous-currency`.
+- DECIMAL-POINT IS COMMA swaps the roles of '.' and ',' in both the picture interpretation and the edited output. **CURRENCY SIGN is a SET, and the currency STRING may have any length (§2023:12.3.7.3 SR21–r27 / §2023:12.3.7.4 GR13 / §2023:13.18.40.4 GR14; PB60 / AR-15.68.3-3, 2026-08-17):** `SpecialNamesBinder.CurrencySigns` maps every currency PICTURE SYMBOL (uppercase-keyed, letter cases equivalent per r20) to a `CurrencyDefinition(Text, LiteralClass)` — its currency string AND the class of the literal-7 that gave it (kb/Work PB1089: SR28 confines an alphanumeric literal-7's symbol to usage-display numeric-edited items and a national one's to usage-national ones; the implied `'$'` clause is alphanumeric, so `PIC $9.99 USAGE NATIONAL` is COBOL2883) — a bare `CURRENCY SIGN "#"` binds '#'→"#" (r22), the 2002+ `CURRENCY SIGN "USD" WITH PICTURE SYMBOL "U"` binds 'U'→"USD" (r23: any length; at least one non-space; none of `0-9 + - , . *`), r21 refuses two clauses binding equivalent symbols to different strings, and r25 IMPLIES `'$'→"$"` unless a clause names '$' as literal-7 or literal-8 — so `PIC $$,$$9.99` stays legal beside a declared '#'. A PICTURE uses at most one symbol kind (§2023:13.18.40.3 SR24/r28); `PictureAnalyzer` finds which, CANONICALIZES the mask's symbol to `$` (`PicInfo.EditMask`), records the string on `PicInfo.CurrencyString` (null when it is "$") and the literal-7 class on `PicInfo.CurrencyClass` (null when the picture uses no currency symbol; asked by `PictureAnalyzer.ScreenUsageAgainstPicture` for the written USAGE and the GR1-inherited one alike), and adds the string's extra length to `PicInfo.Length` for the FIRST occurrence (GR14: "The first occurrence of the currency symbol adds the number of characters in the currency string to the size of the item. Each subsequent occurrence of the currency symbol adds one"). `CobolEdit.Format/TryFormat/DeEdit` take `currencyString:` per item (`EmitContext.EditCfg(pic)` — the per-unit `currency:` symbol argument is gone): the core edits the LOGICAL one-position-per-symbol image and `CobolEdit.Materialize` / `DeEdit`'s physical cursor map it to/from the physical one at the §2023:13.18.40.4 GR14 widths (the search-based `ExpandCurrency`/`CollapseCurrency` pair that served the currency string alone was deleted by kb/Work PB491, which generalized the mechanism to the PICTURE EDITING literal as well) — fixed insertion puts the string where the symbol is (`PIC U9.99` → `USD5.25`), floating insertion lands it once before the first nonzero digit (`PIC UUU9` → ` USD12` / `USD123` / `  USD0`), an all-floating zero is all spaces at the physical width, BLANK WHEN ZERO blanks the physical width, and de-editing removes the string before the digit walk. NUMVAL-C / TEST-NUMVAL-C without argument-2 take the unit's `SoleCurrencyString` (§2023:15.68.3 AR3 — "$" with no clause, the one explicitly specified string, and COBOL1644 when two or more distinct strings are specified; r25's implied '$' is the picture-symbol default, not a competing string). Pinned by `pb60_currency_sign_set` / `pb60_currency_sign_bare_implied_dollar` + `CobolEditCurrencyStringTests`; negative `numval-c-ambiguous-currency`.
 - COMP-3 unsigned (PIC 9 COMP-3) must store sign nibble 0x0C (positive) and never retain a negative — the legacy EncodeComp3 fix: unsigned packed wrongly kept 0x0D and decoded negative.
 - COMP-5 signed negative extreme (−2^(width−1), e.g. −32768 for 2 bytes) is IN range — a naive magnitude check mis-flags it; bound the signed two's-complement value, not the magnitude (legacy clean ExceedsBinaryCapacity).
 - COMP-5 unsigned 8-byte range (long.Max, ulong.Max] requires `Int128` storage — a signed-long codec cannot hold it; the monomorphic wide engine carries the full 0..2^64−1 range.
@@ -1044,7 +1044,7 @@ every edition and stays `CheckPowRule6`'s; the standard-arithmetic `CobolDec.Pow
 integer power one value on the SDIDI carrier (`PowNativeIntDec`: exact `Int128` loop while it fits, a double
 approximation past it); **PB4569 made that value exact** and deleted `PowNativeIntDec`: the power is `CobolWide.Pow` as a
 `NumX.Wide` for a literal exponent whose bound fits 77 digits, and otherwise `CobolExact.Pow` — exact on the wide form
-while the VALUE fits it (`2 ** 130`, bound 130, is 40 digits), `CobolBig` past it (the reciprocal of §2023:8.8.1.5.4 r3, the
+while the VALUE fits it (`2 ** 130`, bound 130, is 40 digits), `CobolBig` past it (the reciprocal of §2023:8.8.1.5.4 GR3, the
 rule-6 screen) — so `MOD (A ** 3, B)` is the true 980012199, not the double's residue 1012193,
 and `A ** 3 / A ** 2 * 1` is A. The consumers follow: a relation compares the exact values
 (`CobolWide.Compare`, `CobolExact.Compare`); a NATIVE arithmetic operation with an exact operand stays exact
@@ -1091,7 +1091,7 @@ switch for a floating-point edited receiver (`CobolEdit.FormatFloatStoreU` / `Tr
 (kb/Work PB77, 2026-08-18).** The CHECKED landing — an arithmetic store under ON SIZE ERROR / EC-SIZE checking, and
 every intermediate consumer with no capacity check downstream (`Align`, an argument) — SATURATES so the receiver's
 capacity check raises the size error (PB13's invariant, `ReceiverContext.WorkingScale`'s cap keeping the sentinel
-above the receiver). The UNCHECKED landing — a MOVE (§2023:14.6.8.2 r4 "truncation on either end"; there is no size
+above the receiver). The UNCHECKED landing — a MOVE (§2023:14.6.8.2 GR4 "truncation on either end"; there is no size
 error in a MOVE), the no-phrase arithmetic store (§2023:14.6.13.1.3 GR8 — CONFORMANCE.md item 70: the resultant takes
 the LOW-ORDER digits), INVOKE BY CONTENT — keeps the low-order digits, because it has no check to see a sentinel and
 truncating a sentinel stores garbage: `MOVE FUNCTION NUMVAL-F("5E+30") TO PIC V9(9)` (before NUMVAL-F became an SDIDI function) stored 884105727 and
@@ -1218,7 +1218,7 @@ digits though the value may fit, as `2 ** 130`): for an integer or exact base (`
 `CobolExact.Pow`, a `NumX.Exact` — exact on the wide form at the base's scale times the exponent while the VALUE fits,
 `CobolBig` past it — and the same `CobolExact.Pow` for a scaled or SDIDI base (`CobolIntrinsics.PowNativeDec` and its
 round-to-odd product chain are deleted, with `CobolDec.MulToOdd` and `RuntimeApi.DecMulToOdd`). `CobolExact.Pow` owns its scale at run time: the exact power (the wide lane, then
-`CobolBig.Pow`, `mpz_pow_ui` with scale × n), the reciprocal `1 / (b ** |e|)` of §2023:8.8.1.5.4 r3 for a negative exponent (one
+`CobolBig.Pow`, `mpz_pow_ui` with scale × n), the reciprocal `1 / (b ** |e|)` of §2023:8.8.1.5.4 GR3 for a negative exponent (one
 rounding of the exact quotient), and `CheckPowRule6`'s §2023:8.8.1.2 rule-6 screen. A power past 77 digits is therefore ONE rounding
 of the exact power, round-to-odd, which is what every receiver of at most 32 digit positions sees as the exact value
 (`2.5 ** 100` is …0125, not the chain's …0127; `1.01 ** 119` is …851, not …852; kb/Work PB4587). Under
@@ -1333,7 +1333,7 @@ clause text and fails if a new member is silently exempted.
    then `cob_decimal_get_field`, a NESTED one is `CobolWide.DivTruncated` or `CobolBig.DivTruncated`, D2. An exponentiation whose base is not exact or whose exponent is not an integer
    takes the SDIDI or binary64 as before; an unknown bound is the `Int128` carrier's own, 39 digits (kb/Work PB3538: the checked multiply it used to take at
    the summed scale raised the size error when the SCALE left the carrier), so a native product never wraps. The old emitter
-   multiplied unchecked and `PIC 9V9(30)` × `PIC 9V9(30)` — a legal statement, §2023:14.7.7 r2 a) caps the COMPOSITE — stored a
+   multiplied unchecked and `PIC 9V9(30)` × `PIC 9V9(30)` — a legal statement, §2023:14.7.7 SR2a caps the COMPOSITE — stored a
    wrapped product. The same bound drives `IntrinsicCarrierRules.AlignmentMayLeaveCarrier` (the one reader, in `compiler.bound`; the renderer and the bind-time lane prediction both ask it): SUM / RANGE / MEDIAN /
    MIDRANGE align every argument to the list's maximum scale, and when the SUM of the magnitudes the function adds (each
    bounded by its aligned digits: every argument for SUM, the two largest for RANGE, ×10 for MEDIAN / MIDRANGE)
@@ -1362,7 +1362,7 @@ clause text and fails if a new member is silently exempted.
    2^126; kb/Work PB2640).
 2. *Does a float operand own this lane?* D16 evaluates an expression in binary64 when an operand is "described with usage
    float-…" (§2023:14.9.2.4 GR4 and §2023:14.9.44.4 GR4 — ADD and SUBTRACT, the other statements' native rule being the implementor's,
-   §2023:8.8.1.3; §2023:14.7.7 r2 lists an intrinsic function and the float / binary usages in separate bullets). A floating-math function's returned value, a function of approximations only (ABS (FUNCTION EXP10 (-6))) and a non-integer native power are engine-produced approximations,
+   §2023:8.8.1.3; §2023:14.7.7 SR2 lists an intrinsic function and the float / binary usages in separate bullets). A floating-math function's returned value, a function of approximations only (ABS (FUNCTION EXP10 (-6))) and a non-integer native power are engine-produced approximations,
    flagged `NumX.Approximate` (a value a function derives from a float ITEM's content is not: it is `Real` and lands by the item's exact binary value, PB4622); `CombineCore` lifts such an operand to the SDIDI (its shortest-round-trip decimal — the same
    VALUE) unless a float ITEM, a float literal carrier or a float receiver is present (`FloatItemLane`). One value
    across every channel, exact decimal arithmetic beside decimal operands: `13.2 + FUNCTION SQRT(16)` is 17.2, and the
@@ -1408,12 +1408,12 @@ the scale-0 test it replaced took the binary64 approximation (kb/Work PB5891 rev
 carrier prediction `FunctionValueLane` folds through it, and the type 6 classifier bounds an intermediate's exactness by the precision
 of the same answer (`NumericLanes.SignificantDigits`; docs/INTRINSICS_DESIGN.md, the type-6 intake, rule 4). `NumericLaneDriftTests`
 compiles every operand kind beside every partner and holds the lane the generated C# shows to the classifier's prediction.
-### D27. A fixed-point operand enters the SDIDI through ONE lift, and that lift ROUNDS to the intermediate's 34 digits (§2023:8.8.1.5.2 r1). (kb/Work PB2918.)
+### D27. A fixed-point operand enters the SDIDI through ONE lift, and that lift ROUNDS to the intermediate's 34 digits (§2023:8.8.1.5.2 GR1). (kb/Work PB2918.)
 `NumericRenderer.DecOperand` is the only operand lift: an operand whose `NumX.Digits` bound is within 34 lifts exactly
 (`CobolDec.From`, no rounding needed); one that may hold more — a 16-byte binary container owns 39 digits, and an operand
 of unknown bound may be anything — goes through `CobolDec.FromParsed(unscaled, -scale, mode)`, which rounds ONCE under the
-INTERMEDIATE ROUNDING mode (§2023:8.8.1.5.2 r1: "If the operand value cannot be expressed exactly in an SDIDI, the value is
-rounded according to the rules in 11.9.11"; PROHIBITED ⇒ EC-SIZE-TRUNCATION, §2023:11.9.11.2 r3d) and is `Int128.MinValue`-safe
+INTERMEDIATE ROUNDING mode (§2023:8.8.1.5.2 GR1: "If the operand value cannot be expressed exactly in an SDIDI, the value is
+rounded according to the rules in 11.9.11"; PROHIBITED ⇒ EC-SIZE-TRUNCATION, §2023:11.9.11.2 GR3d) and is `Int128.MinValue`-safe
 (the magnitude is `CobolDec.UAbs`). An unsigned-wide operand takes `CobolDec.FromUnsigned` (its range [0, 2^128) is past the
 Int128 the arithmetic funnel admits, but a relation's operand and a function argument are VALUES). The rule holds in every
 mode, with the bound the lane can carry exactly (`NumericRenderer.ExactLiftDigits`): 34 under STANDARD-DECIMAL; 38 in a
@@ -1444,8 +1444,8 @@ pins the order (the Dec lane returns before the funnel); `CobolDecWideLiftTests`
 
 **The same question decides which function bodies a fixed-point-only call may use (kb/Work PB2965).** Whether a lift rounds
 is `NumericRenderer.LiftRounds`, the one predicate `DecOperand` acts on. Under STANDARD-DECIMAL a function whose returned
-value has an EQUIVALENT ARITHMETIC EXPRESSION — ABS (§2023:15.7.4 r1), SIGN (§2023:15.81.4 r1), INTEGER-PART (§2023:15.49.4 r1),
-FRACTION-PART (§2023:15.42.4 r1), `IntrinsicRenderer.EquivalentExpressionUnaryArms` — equals that expression evaluated in the
+value has an EQUIVALENT ARITHMETIC EXPRESSION — ABS (§2023:15.7.4 RV1), SIGN (§2023:15.81.4 RV1), INTEGER-PART (§2023:15.49.4 RV1),
+FRACTION-PART (§2023:15.42.4 RV1), `IntrinsicRenderer.EquivalentExpressionUnaryArms` — equals that expression evaluated in the
 SDIDI (§2023:15.4.1 r1), so its argument is an operand the expression lifts, and D3's "the exact Int128 body is digit-identical to
 the SDIDI evaluation" holds only while the lift is exact. `IntrinsicRenderer.RenderDec` therefore claims such a call when
 `LiftRounds` is true for its argument (a 16-byte container, an unknown bound) and leaves it on the Int128 body otherwise:
@@ -1453,8 +1453,8 @@ the SDIDI evaluation" holds only while the lift is exact. `IntrinsicRenderer.Ren
 receiver holds, where the Int128 body answered the size error of |−2^127|, and `FUNCTION FRACTION-PART` of a
 `PIC S9(22)V9(9) COMP-5` holding −2^127 is −0.8841, the SDIDI's −170141183460469231731687303715.8841 less its integer part,
 where the exact body answered −0.884105728. **INTEGER (`Floor`) and the pure-selection functions (MAX, MIN, ORD-MAX, ORD-MIN)
-stay exact:** §2023:15.44.4 r1 ("the greatest integer less than or equal to the value of argument-1") and §2023:15.59.4 r1 /
-§2023:15.63.4 r1 ("the content of the argument-1") give them no equivalent arithmetic expression, so their argument is a value and
+stay exact:** §2023:15.44.4 RV1 ("the greatest integer less than or equal to the value of argument-1") and §2023:15.59.4 RV1 /
+§2023:15.63.4 RV1 ("the content of the argument-1") give them no equivalent arithmetic expression, so their argument is a value and
 not an operand, and D3's recorded residue (an exact result past 34 digits keeps more precision) is the determination that
 covers what a temporary SDIDI would hold. `ExactCarrierBoundaryDriftTests` pins the set (every unary exact arm is routed or
 named as having no expression, the selection arms stay out, the intrinsic renderer asks `LiftRounds` and never restates 34).

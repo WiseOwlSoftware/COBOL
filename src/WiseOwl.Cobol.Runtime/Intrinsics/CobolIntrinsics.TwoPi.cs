@@ -7,7 +7,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// COS / TAN (kb/Work PB999, PB1041; the periodic arm of the exact-intake bodies in <c>CobolIntrinsics.Float.cs</c>).
 /// </summary>
 /// <remarks>
-/// <para>ISO §2023:15.82.4 r1 / §2023:15.20.4 r1 / §2023:15.89.4 r1 return "the approximation of the sine [cosine / tangent] of
+/// <para>ISO §2023:15.82.4 RV1 / §2023:15.20.4 RV1 / §2023:15.89.4 RV1 return "the approximation of the sine [cosine / tangent] of
 /// argument-1", and argument-1 is an exact decimal: a scaled item, or an SDIDI whose range reaches 9.999…E+6144
 /// (§2023:8.8.1.5.2). Narrowing it to binary64 FIRST answers for a different argument in two ways. (1) Past binary64's
 /// range it answers for +∞, and even inside it the narrowing is an ABSOLUTE error of about |x|·2^−53, a whole period

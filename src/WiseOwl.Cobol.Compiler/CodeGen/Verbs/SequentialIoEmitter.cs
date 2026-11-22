@@ -203,7 +203,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     /// <summary>The EC-I-O raise of one statement on one file: the <c>__IoCheckEc</c> call under the statement's mask for
     /// the file and the transfer a declarative's RESUME asks for. Returns the call's id (<c>__ior</c>id). The literals
     /// travel whenever ANY pair for the file carries WITH LOCATION; <c>__locMask</c> decides PER RAISED NAME inside
-    /// <c>__IoCheckEc</c> (§2023:15.32.3 r1 per-condition — kb/Work R06). Item 8's question is asked before the call, under
+    /// <c>__IoCheckEc</c> (§2023:15.32.3 RV1 per-condition — kb/Work R06). Item 8's question is asked before the call, under
     /// the statement's own checking for the raised name, and its ROLLBACK runs after it, before the transfer
     /// (<see cref="Item8Applies"/>; <paramref name="file"/> null is another element's file, whose commit control only
     /// the runtime knows).</summary>

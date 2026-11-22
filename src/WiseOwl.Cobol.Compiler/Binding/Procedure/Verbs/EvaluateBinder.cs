@@ -517,7 +517,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
     }
 
     /// <summary>⛔ THE ONE bare-operand classification, named on Table 15's ROW axis and mapped to the COLUMN
-    /// axis for a selection subject. A bare word that RESOLVES to a level-88 (§2023:8.8.4.2.7 r2) or a switch-status
+    /// axis for a selection subject. A bare word that RESOLVES to a level-88 (§2023:8.8.4.2.7 GR2) or a switch-status
     /// (§2023:8.8.4.6) condition-name IS a condition, not an identifier; a boolean operand (§2023:8.8.2) is a boolean
     /// expression until SR6 says otherwise; everything else is <see cref="OperandKindOf"/>'s syntactic
     /// question.</summary>
@@ -648,7 +648,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         // FALSE… If the truth value of the selection subject and selection object match, the result of the
         // analysis is true" — and §2023:14.9.13.3 SR10 Table 15 admits ONLY a condition, TRUE/FALSE or ANY against a
         // TRUE/FALSE subject, never identifier-2 or a value.
-        // ⛔ A BARE CONDITION-NAME IS condition-2 (§2023:8.8.4.2.7 r2) BUT ARRIVES THROUGH THE valueOperand ARM, because a
+        // ⛔ A BARE CONDITION-NAME IS condition-2 (§2023:8.8.4.2.7 GR2) BUT ARRIVES THROUGH THE valueOperand ARM, because a
         // bare word is equally an arithmeticExpression and the grammar cannot tell them apart — only the resolved
         // SYMBOL can. Without this arm the commonest EVALUATE idiom there is —
         //     EVALUATE TRUE  WHEN VALID-CODE …
@@ -874,7 +874,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
     /// <para>The condition is a written <c>condition</c> — bound by THE ONE condition binder, so a class test, a
     /// relation, a sign test, <c>NOT</c> over a boolean item (§2023:8.8.4.3.2) and every combined condition mean here
     /// exactly what they mean in an IF — or, through the SHARED bare-operand resolution the classifier already
-    /// made, a level-88 condition-name (§2023:8.8.4.2.7 r2), a switch-status condition-name (§2023:8.8.4.6), or SR6 b)'s
+    /// made, a level-88 condition-name (§2023:8.8.4.2.7 GR2), a switch-status condition-name (§2023:8.8.4.6), or SR6 b)'s
     /// boolean subject as a §2023:8.8.4.3 simple boolean condition (kb/Work PB400: one resolution, consulted twice).</para>
     /// <para>⛔ BOUND ONCE, NEVER PER WHEN (kb/Work PB842 / PB912). This used to run inside the pair binder, so the
     /// condition was re-bound — and re-emitted — once per WHEN arm, and a user-defined function inside it was
@@ -992,7 +992,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
     /// class test reads the operand's CHARACTER CONTENT — copying a numeric-DISPLAY item through an intermediate
     /// would normalize content that <c>IS NUMERIC</c> exists to find invalid (§2023:8.8.4.4). The TRUTH value is what
     /// is held once (<see cref="BindSubjectTruth"/>).</para>
-    /// <para>⛔ A bare CONDITION-NAME / switch-status subject has no value form at all (§2023:8.8.4.2.7 r2 /
+    /// <para>⛔ A bare CONDITION-NAME / switch-status subject has no value form at all (§2023:8.8.4.2.7 GR2 /
     /// §2023:8.8.4.6 make it condition-1), so it returns null rather than being bound as an operand.</para></summary>
     private BoundOperand? BindSubjectValue(SubjectSlot slot, out BoundOperand? inPlace)
     {

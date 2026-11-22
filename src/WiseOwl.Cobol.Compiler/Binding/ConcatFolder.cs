@@ -63,7 +63,7 @@ internal static class ConcatFolder
     public readonly record struct Folded(PicCategory Category, string Value)
     {
         /// <summary>The equivalent literal as RAW source text (re-quoted, embedded delimiters doubled per
-        /// §2023:8.3.3.2.3 r3; <c>N"…"</c>/<c>B"…"</c> prefixes per class §2023:8.3.3.5/§2023:8.3.3.4) — the currency of the
+        /// §2023:8.3.3.2.3 SR3; <c>N"…"</c>/<c>B"…"</c> prefixes per class §2023:8.3.3.5/§2023:8.3.3.4) — the currency of the
         /// text-plumbed paths (DATA-division VALUE capture, ALPHABET/CLASS operands), which store raw literal
         /// text and decode at emit time.</summary>
         public string RawText => Category switch

@@ -85,7 +85,7 @@ public sealed class DiagnosticPositionTests : IDisposable
         Assert.Contains(lines, d => d.Contains("pb4383a.cob(10,16): error COBOL1639") && d.Contains("'Q-ONE'"));
         Assert.Contains(lines, d => d.Contains("pb4383a.cob(10,22): error COBOL1639") && d.Contains("'Q-TWO'"));
         Assert.DoesNotContain(lines, d => d.Contains("pb4383a.cob(9,"));
-        // DISPLAY of an index-name operand (the §2023:13.18.38.3 r7 screen, COBOL1637) on the continuation line: the operand's position.
+        // DISPLAY of an index-name operand (the §2023:13.18.38.3 SR7 screen, COBOL1637) on the continuation line: the operand's position.
         Write("pb4383b.cob", DataHead + "           DISPLAY W\n               IX.\n           STOP RUN.\n");
         (ok, lines) = Compile("pb4383b.cob");
         Assert.False(ok);
@@ -107,17 +107,17 @@ public sealed class DiagnosticPositionTests : IDisposable
     }
 
     /// <summary>kb/Work PB4406 (the post-resolution half of PB4383): the screens that run AFTER a reference resolved — the
-    /// expression mapping's (§2023:13.18.38.3 r7 index-name, §2023:8.8.1.1 class, LINAGE-COUNTER, a keyword-omitted function), the
+    /// expression mapping's (§2023:13.18.38.3 SR7 index-name, §2023:8.8.1.1 class, LINAGE-COUNTER, a keyword-omitted function), the
     /// receiving chokepoint's bars, the arithmetic resultant's category (§2023:14.9.2.3 …) and a literal's refusal — name the
     /// OPERAND'S own line and column. The statement is on line 12 of the program below, its continuation on line 13.</summary>
     [Theory]
-    [InlineData("           COMPUTE N = 1\n               + IX.", 13, 18, "COBOL1637")]    // §2023:13.18.38.3 r7: index-name inside an arithmetic expression
+    [InlineData("           COMPUTE N = 1\n               + IX.", 13, 18, "COBOL1637")]    // §2023:13.18.38.3 SR7: index-name inside an arithmetic expression
     [InlineData("           COMPUTE N = 1\n               + W.", 13, 18, "COBOL0844")]     // §2023:8.8.1.1: alphanumeric item
     [InlineData("           COMPUTE N = 1\n               + G.", 13, 18, "COBOL0844")]     // §2023:8.8.1.1: group item
     [InlineData("           COMPUTE N = 1\n               + IDX.", 13, 18, "COBOL0844")]   // §2023:13.18.60.3 SR10: index data item
     [InlineData("           COMPUTE N = 1\n               + UPPER-CASE(\"B\").", 13, 18, "COBOL1543")]   // §2023:8.4.3.2.3: undeclared keyword-omitted function
     [InlineData("           COMPUTE N = 1\n               + LINAGE-COUNTER.", 13, 18, "COBOL5997")]      // §2023:8.4.3.14: no LINAGE clause
-    [InlineData("           COMPUTE N = 1\n               + 1.0E+9000.", 13, 18, "COBOL1661")]          // §2023:8.3.3.3.3 r3: exponent range
+    [InlineData("           COMPUTE N = 1\n               + 1.0E+9000.", 13, 18, "COBOL1661")]          // §2023:8.3.3.3.3 SR3: exponent range
     [InlineData("           ADD 1 TO N\n               W.", 13, 16, "COBOL1675")]            // §2023:14.9.2.3: resultant category
     [InlineData("           ADD 1 TO N\n               NE.", 13, 16, "COBOL1675")]           // §2023:14.9.2.3: numeric-edited barred in place
     [InlineData("           ADD 1 TO N\n               G.", 13, 16, "COBOL1675")]            // group resultant

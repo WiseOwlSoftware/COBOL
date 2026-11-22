@@ -273,7 +273,7 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
         {
             using (w.Block($"if ({nf})"))
             {
-                // The §2023:15.32.3 r2 pair rides the ambient statement context (kb/Work R14).
+                // The §2023:15.32.3 RV2 pair rides the ambient statement context (kb/Work R14).
                 // Fatal (Table 13): unresumed, the run unit terminates abnormally (§2023:14.6.13.1.3 5)/7)) — the same
                 // outcome the CALL arm (ProgramRegistry.EntryOfOperand's throw) reaches (kb/Work PB1549).
                 // The miss's message is the one the CALL-argument and operand arms give, reason included (PB2847).
@@ -337,7 +337,7 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
             if (checkInvalid)
                 using (w.Block("else"))
                 {
-                    // The §2023:15.32.3 r2 pair rides the ambient statement context (kb/Work R14).
+                    // The §2023:15.32.3 RV2 pair rides the ambient statement context (kb/Work R14).
                     ec.EmitConditionRaise("EC-FUNCTION-PTR-INVALID", "§2023:14.9.39.4 GR14 — set to exist (fatal)");
                 }
         }
@@ -373,7 +373,7 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
             {
                 using (w.Block($"if ({na})"))
                 {
-                    // The §2023:15.32.3 r2 pair rides the ambient statement context (kb/Work R14).
+                    // The §2023:15.32.3 RV2 pair rides the ambient statement context (kb/Work R14).
                     // §2023:14.6.13.1.4 3)/4): the F3 selection runs; a nonfatal condition with no handler (or
                     // RESUME NEXT / a completed declarative) simply continues (the review finding — the
                     // status set alone never consulted the declarative model).

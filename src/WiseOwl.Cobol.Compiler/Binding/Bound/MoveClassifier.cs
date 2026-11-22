@@ -274,7 +274,7 @@ public static class MoveClassifier
         // never is one — §2023:15.4 puts it in "a temporary elementary data item" of the implementor's numeric
         // description (§2023:15.4.1), which has at least one digit position — so only a function of a character
         // category, whose returned length follows its arguments, qualifies (FUNCTION TRIM of an all-space
-        // argument, §2023:15.96.4 r4: "the returned value is of length zero"). The call's RESOLVED category is read,
+        // argument, §2023:15.96.4 RV4: "the returned value is of length zero"). The call's RESOLVED category is read,
         // never the catalog column, because twenty rows are argument-typed (BoundIntrinsicCall.ResultCategory —
         // the same one fact SendingValueTemp.OfComputed reads to pick the carrier).
         BoundComputedOperand { Expr: BoundIntrinsicCall ic } => ic.ResultCategory is not PicCategory.Numeric,

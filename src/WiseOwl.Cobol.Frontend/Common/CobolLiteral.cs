@@ -43,7 +43,7 @@ public static class CobolLiteral
         string body = raw[open..];
         // ⛔ ONE literal, WELL-FORMED (kb/Work PB71): the former first/last-character test answered "a literal" for
         // `"A"&"B"` (a concatenation's source text) and Decode then produced `A"&"B`. Inside the delimiters an
-        // embedded delimiter shall be doubled (§2023:8.3.3.2.3 r3), so an undoubled one before the end is not this literal.
+        // embedded delimiter shall be doubled (§2023:8.3.3.2.3 SR3), so an undoubled one before the end is not this literal.
         if (body.Length < 2 || body[^1] != body[0]) return null;
         char d = body[0];
         for (int i = 1; i < body.Length - 1; i++)
@@ -70,7 +70,7 @@ public static class CobolLiteral
     /// literal (ISO §2023:8.3.3.2.2, §2023:8.3.3.4.2, §2023:8.3.3.5.2), and one may stay open at a line's end only when a continuation
     /// line continues it (§2023:6.3.5 SR1, §2023:6.4.2), which the reference-format stage has already joined; the lexer still makes
     /// such a literal ITS token (CobolLexer.g4 STR_BODY), and this is the question that tells the two apart. Read left to
-    /// right as the lexer reads it, a doubled delimiter being one embedded delimiter (§2023:8.3.3.2.3 r3): <c>"AB""</c> is
+    /// right as the lexer reads it, a doubled delimiter being one embedded delimiter (§2023:8.3.3.2.3 SR3): <c>"AB""</c> is
     /// open, <c>"AB"</c> is closed. Not a well-formedness test: text with an undoubled delimiter before its end
     /// (<c>"A"&amp;"B"</c>) is not one literal, closed or open, and answers false.</summary>
     public static bool IsUnterminated(string raw)
@@ -99,7 +99,7 @@ public static class CobolLiteral
     /// quoted body AFTER the prefix letters, so every spelling the four formats admit — <c>""</c>, <c>''</c>,
     /// <c>N""</c>, <c>B""</c>, <c>X""</c>, <c>NX""</c>, <c>BX""</c> — answers true and nothing else does.
     /// <para>⛔ NOT <c>Decode(raw).Length == 0</c>: <see cref="Decode"/> yields the empty string for an ILL-FORMED
-    /// hexadecimal literal too (<c>X"414"</c> — the §2023:8.3.3.2.3 r6 grouping violation <see cref="HexGroupViolation"/>
+    /// hexadecimal literal too (<c>X"414"</c> — the §2023:8.3.3.2.3 SR6 grouping violation <see cref="HexGroupViolation"/>
     /// reports), so that spelling of the question would answer "zero-length" for a literal that is not one, and the
     /// several syntax rules that forbid a zero-length literal (§2023:14.9.37.3 SR13, §2023:12.3.7.3 SR11, …) would report the
     /// wrong rule.</para></summary>
@@ -219,8 +219,8 @@ public static class CobolLiteral
         if (SplitLiteral(raw) is not { } lit || RepertoireViolation(raw) is not null) return null;
         (int per, string clause) = lit.Prefix switch
         {
-            "X" => (2, "§2023:8.3.3.2.3 r6"),
-            "NX" => (4, "§2023:8.3.3.5.3 r5"),
+            "X" => (2, "§2023:8.3.3.2.3 SR6"),
+            "NX" => (4, "§2023:8.3.3.5.3 SR5"),
             _ => (0, ""),      // BX has no grouping rule; every other prefix is not hexadecimal at all
         };
         if (per == 0) return null;

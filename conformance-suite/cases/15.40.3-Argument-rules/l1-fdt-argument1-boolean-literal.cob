@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:15.40.3 r1 - "Argument-1 shall be a NATIONAL or ALPHANUMERIC
+      *> ISO §2023:15.40.3 AR1 - "Argument-1 shall be a NATIONAL or ALPHANUMERIC
       *> literal." A boolean literal is a literal, and §2023:8.3.3.4.1 puts it
       *> outside both listed categories - "Boolean literals are of the class
       *> and category boolean". §2023:15.40.1's type

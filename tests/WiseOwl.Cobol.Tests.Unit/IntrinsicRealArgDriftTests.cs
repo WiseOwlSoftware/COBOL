@@ -14,7 +14,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </summary>
 /// <remarks>
 /// <para>
-/// A floating-point argument is legal for every exact-family intrinsic — §2023:15.7.3 r1 and its siblings require
+/// A floating-point argument is legal for every exact-family intrinsic — §2023:15.7.3 AR1 and its siblings require
 /// class NUMERIC, and a COMP-2 item is class numeric (§2023:8.5.2.1 Table 2). Before PB2 the emitter dispatched on the
 /// FUNCTION's family rather than the ARGUMENT's type and handed a <c>double</c> to an <c>Int128</c> parameter, so
 /// legal COBOL produced a raw Roslyn <c>CS1503</c> that escaped as a backend error. Ten of eleven functions

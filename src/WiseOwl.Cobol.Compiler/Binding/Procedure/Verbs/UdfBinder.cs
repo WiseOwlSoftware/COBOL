@@ -32,7 +32,7 @@ using Core = CobolParserCore;
 /// evaluated exactly once per statement execution; every conditionally- or repeatedly-evaluated CONDITION
 /// window (a PERFORM UNTIL/VARYING UNTIL condition, a SEARCH WHEN, an EVALUATE object term, a non-first
 /// AND/OR operand) instead drains its suffix into a per-evaluation <see cref="BoundUdfEvaluated"/> wrapper
-/// (<see cref="UdfAttachPerEvaluation"/> — §2023:8.8.4.13 r2 "if and when the conditions containing them are
+/// (<see cref="UdfAttachPerEvaluation"/> — §2023:8.8.4.13 GR2 "if and when the conditions containing them are
 /// evaluated"); every repeatedly-evaluated OPERAND window — a PERFORM VARYING BY operand and an AFTER level's
 /// FROM operand, §2023:14.9.28.4 GR12's "each time … is used in a setting or augmenting operation" — drains its
 /// suffix into the expression twin <see cref="BoundUdfEvaluatedExpr"/> (kb/Work PB437). No window stages
@@ -459,7 +459,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
     /// <summary>Attach the function activations registered while <paramref name="cond"/> bound (those past
     /// <paramref name="mark"/>) to the condition itself as a per-evaluation <see cref="BoundUdfEvaluated"/>
     /// wrapper — the §2023:8.4.3.2.4 GR1/GR6a "value is determined when the function is referenced at runtime" semantics for a
-    /// window the statement evaluates conditionally or repeatedly (§2023:8.8.4.13 r2). The drained suffix leaves
+    /// window the statement evaluates conditionally or repeatedly (§2023:8.8.4.13 GR2). The drained suffix leaves
     /// the pending list, so the statement-level hoist never double-activates them. No pending growth returns
     /// the condition unchanged (zero cost for the UDF-free path).</summary>
     internal BoundCondition UdfAttachPerEvaluation(BoundCondition cond, PendingMark mark) =>

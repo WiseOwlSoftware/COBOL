@@ -93,7 +93,7 @@ public sealed class OccursSpec
     public string? CapacityName { get; init; }
 
     /// <summary>The synthetic CAPACITY register item — a view over the table's Capacity, minted for EVERY dynamic
-    /// table (FUNCTION LENGTH's §2023:15.50.4 r7c reads it; kb/Work PB61) and NAMED only under CAPACITY IN; set by the post-build
+    /// table (FUNCTION LENGTH's §2023:15.50.4 RV7c reads it; kb/Work PB61) and NAMED only under CAPACITY IN; set by the post-build
     /// <c>DynamicResolvePass</c> pass (data-name-3 is implicitly defined at the OCCURS entry, SR30).</summary>
     public DataItem? CapacityRegister { get; set; }
 

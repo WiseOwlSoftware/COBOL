@@ -14,7 +14,7 @@ internal enum ProcedurePhase { None, Input, Output }
 /// and the statement's procedure phase. ⛔ It holds no record collection of its own (<c>SortWorkBoundDriftTests</c>).</summary>
 internal sealed class SortStore(SortMemory memory)
 {
-    /// <summary>The statement's records, keys and GR5 sequences (the §2023:14.6.6 r5 snapshots), from
+    /// <summary>The statement's records, keys and GR5 sequences (the §2023:14.6.6 GR5 snapshots), from
     /// <see cref="CobolSort.Init(string, CobolSort.Key[], CobolCollation?, CobolCollation?)"/> — a keyless, empty work
     /// until then.</summary>
     public SortWork Work { get; private set; } = new(memory, [], null, null);

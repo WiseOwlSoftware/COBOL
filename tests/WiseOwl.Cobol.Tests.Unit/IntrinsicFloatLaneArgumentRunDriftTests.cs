@@ -27,7 +27,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 ///
 /// <para><b>Why this test exists (kb/Work PB635).</b> <c>IntrinsicRenderer.RenderNum</c>'s float dispatch asked
 /// "is ANY argument floating" and then rendered EVERY argument through one binary64 conversion. For
-/// FIND-STRING — §2023:15.37.3 r1 "Argument-1 shall be a data item or literal of class alphabetic, alphanumeric, or
+/// FIND-STRING — §2023:15.37.3 AR1 "Argument-1 shall be a data item or literal of class alphabetic, alphanumeric, or
 /// national", r3 "argument-3 shall be an integer data item or integer literal" — a float argument-3 therefore
 /// moved the whole call: the two string operands became <c>(double)CobolNum.FromAlphanumeric(…)</c>, the
 /// LAST/ANYCASE phrases were dropped, and the emitted call named a <c>FindStringReal</c> body that does not
@@ -59,7 +59,7 @@ public sealed class IntrinsicFloatLaneArgumentRunDriftTests : WiseOwlCobolTestBa
 
     /// <summary>One legal reference per mixed-class row, with a <c>FLOAT-LONG</c> operand at a position the
     /// function's own §15.x.3 rules describe — an integer position where the row has one (FIND-STRING's
-    /// argument-3, §2023:15.37.3 r3), else the string position itself, which <c>--permissive</c> reaches through the
+    /// argument-3, §2023:15.37.3 AR3), else the string position itself, which <c>--permissive</c> reaches through the
     /// DA6 coercion. The KEY is the catalog's function name — that is what ties this table to the sweep.</summary>
     private static readonly Dictionary<string, string> Fixtures = new(StringComparer.OrdinalIgnoreCase)
     {

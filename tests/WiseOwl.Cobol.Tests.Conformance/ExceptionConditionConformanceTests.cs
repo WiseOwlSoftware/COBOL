@@ -322,7 +322,7 @@ public sealed class ExceptionConditionConformanceTests
 
     // ── The EXCEPTION-* functions + WITH LOCATION (§2023:15.28–15.33 / §2023:7.3.25.4 GR7) ─────────────────────────────
 
-    [Fact]   // §2023:15.32.3 r2 + §2023:15.30.3 r2: WITH LOCATION captures the statement name and the three-part location.
+    [Fact]   // §2023:15.32.3 RV2 + §2023:15.30.3 RV2: WITH LOCATION captures the statement name and the three-part location.
     public void WithLocation_CapturesStatementAndLocation()
     {
         var (ok, stdout, detail) = WiseOwlCobol.CompileAndRun("""
@@ -338,10 +338,10 @@ public sealed class ExceptionConditionConformanceTests
             """);
         Assert.True(ok, detail);
         Assert.Contains("STMT: RAISE", stdout);
-        Assert.Contains("LOC: ECT010; MAIN-PARA;", stdout);   // "element; paragraph; line-id" (§2023:15.30.3 r2)
+        Assert.Contains("LOC: ECT010; MAIN-PARA;", stdout);   // "element; paragraph; line-id" (§2023:15.30.3 RV2)
     }
 
-    [Fact]   // §2023:15.32.3 r3: the recorded name comes from Table 12's 'Statement name' column — "GO TO", never the
+    [Fact]   // §2023:15.32.3 RV3: the recorded name comes from Table 12's 'Statement name' column — "GO TO", never the
              // spelled leading token. A subscripted DEPENDING operand raises EC-BOUND-SUBSCRIPT INSIDE the GO TO
              // (§2023:8.4.2.3.4 GR2); the F3 declarative reads the name and RESUMEs past (kb/Work R04).
     public void ExceptionStatement_GoTo_ReturnsTheTable12Name()
@@ -364,7 +364,7 @@ public sealed class ExceptionConditionConformanceTests
                 STOP RUN.
             """), $"STMT=[{"GO TO",-63}]\nPAST");
 
-    [Fact]   // §2023:15.32.3 r3 + the optional word TO (goToStatement : GO TO? …): `GO PARA.` is the SAME statement
+    [Fact]   // §2023:15.32.3 RV3 + the optional word TO (goToStatement : GO TO? …): `GO PARA.` is the SAME statement
              // kind with no TO token anywhere — the name must still be "GO TO". This spelling is the one that
              // defeats any token-derived name (kb/Work R04: first-token gave "GO"; longest-token-match also
              // gives "GO" because the tokens never spell TO).
@@ -388,7 +388,7 @@ public sealed class ExceptionConditionConformanceTests
                 STOP RUN.
             """), $"STMT=[{"GO TO",-63}]\nPAST");
 
-    [Fact]   // §2023:15.32.3 r1 / §2023:15.30.3 r1: WITHOUT the LOCATION phrase no location information is saved —
+    [Fact]   // §2023:15.32.3 RV1 / §2023:15.30.3 RV1: WITHOUT the LOCATION phrase no location information is saved —
              // EXCEPTION-STATEMENT is all spaces, EXCEPTION-LOCATION a single space.
     public void WithoutLocation_StatementAndLocationAreSpaces()
         => AssertSpec($"""
@@ -551,7 +551,7 @@ public sealed class ExceptionConditionConformanceTests
         """;
 
     [Fact]   // §2023:9.1.13.1: I-O status 10 with enabled EC-I-O checking raises EC-I-O-AT-END (nonfatal '1x'); the
-             // F3 declarative selects it; §2023:15.28.4 r1c — EXCEPTION-FILE is the status + the SELECT file-name.
+             // F3 declarative selects it; §2023:15.28.4 RV1c — EXCEPTION-FILE is the status + the SELECT file-name.
     public void IoAtEnd_NoPhrase_RaisesEcIoAtEnd_ExceptionFile()
         => AssertSpec(IoProg("ECT018", ">>TURN EC-I-O CHECKING ON", """
             EC-H SECTION. USE AFTER EXCEPTION CONDITION EC-I-O-AT-END.
@@ -567,10 +567,10 @@ public sealed class ExceptionConditionConformanceTests
                 STOP RUN.
             """), "H: EC-I-O-AT-END\nF: 10TF\nAFTER-READS");
 
-    [Fact]   // §2023:15.29.4 r1 — EXCEPTION-FILE-N, the national twin of EXCEPTION-FILE (P10 Step-11 EC-N wave):
+    [Fact]   // §2023:15.29.4 RV1 — EXCEPTION-FILE-N, the national twin of EXCEPTION-FILE (P10 Step-11 EC-N wave):
              // r1a two national zeros before any EC-I-O condition; r1c the I-O status in national characters +
              // the SELECT file-name converted to the runtime national character set (the ONE NationalOf
-             // repertoire projection of the same File() rendering). §2023:15.31.3 r1 — EXCEPTION-LOCATION-N is one
+             // repertoire projection of the same File() rendering). §2023:15.31.3 RV1 — EXCEPTION-LOCATION-N is one
              // national space when the enabling TURN lacked WITH LOCATION. FUNCTION LENGTH (§2023:15.50) pins the
              // character-position counts of the national results.
     public void IoAtEnd_ExceptionFileN_NationalTwin()
@@ -1989,7 +1989,7 @@ public sealed class ExceptionConditionConformanceTests
     /// <summary>44 characters — legal at 2023 only (the 31-char COBOL-2002 word limit rejects it below).</summary>
     private const string LongEc = "EC-USER-ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
-    [Fact]   // §2023:15.33.3 r1 IS the width: a 44-character legal name reads back as its 31-character prefix —
+    [Fact]   // §2023:15.33.3 RV1 IS the width: a 44-character legal name reads back as its 31-character prefix —
              // the truncation is the rule's own, not an implementation choice.
     public void ExceptionStatus_LongUserName_ReturnsThe31CharPrefix()
         => AssertSpec($"""
@@ -2057,7 +2057,7 @@ public sealed class ExceptionConditionConformanceTests
         Assert.DoesNotContain(warnings, w => w.Contains("COBOL1636"));
     }
 
-    [Fact]   // §2023:15.32.3 r1 / §2023:15.30.3 r1 are PER-CONDITION (kb/Work R06): one statement checked for EC-SIZE
+    [Fact]   // §2023:15.32.3 RV1 / §2023:15.30.3 RV1 are PER-CONDITION (kb/Work R06): one statement checked for EC-SIZE
              // (WITH LOCATION) *and* EC-BOUND-SUBSCRIPT (without). The subscript raise must answer 63 spaces /
              // one space — under the old per-statement bool, the sibling's WITH LOCATION contaminated it and
              // EXCEPTION-STATEMENT returned "DIVIDE". The zero-divide raise keeps its location operands.
@@ -2098,7 +2098,7 @@ public sealed class ExceptionConditionConformanceTests
         Assert.StartsWith($"S=[{"DIVIDE",-63}] L=[ECT053; MAIN-PARA OF MAIN;", lines[1]);
     }
 
-    [Fact]   // kb/Work R07 + §2023:15.32.3 r2 / §2023:15.30.3 r2: GOBACK … RAISING under WITH LOCATION records the
+    [Fact]   // kb/Work R07 + §2023:15.32.3 RV2 / §2023:15.30.3 RV2: GOBACK … RAISING under WITH LOCATION records the
              // Table 12 name ("GOBACK") and the three-part location. SetPropagating's Set was TWO-ARG, so both
              // the returning element's status and what the activator reads answered 63 spaces / one space even
              // with LOCATION on — a silent wrong answer (BoundRaising had no location fields at all, unlike
@@ -2144,7 +2144,7 @@ public sealed class ExceptionConditionConformanceTests
              // exception status — "set to indicate the last level-3 exception condition that was RAISED in the run
              // unit" — has nothing to record and both functions answer their no-information values. Before
              // kb/Work PB408 the RETURNING element wrote the status on its way out, so an activator that had
-             // turned the condition OFF could still read it back (§2023:15.32.3 r1's spaces / §2023:15.30.3 r1's one space).
+             // turned the condition OFF could still read it back (§2023:15.32.3 RV1's spaces / §2023:15.30.3 RV1's one space).
     public void GobackRaising_IntoUncheckedActivator_LeavesNoLastExceptionStatus()
     {
         var (ok, stdout, detail) = new WiseOwlCobolCompiler(2023).CompileAndRunWith("""

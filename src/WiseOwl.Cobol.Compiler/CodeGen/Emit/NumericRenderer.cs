@@ -377,7 +377,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     public NumX Visit(BoundReportCounterRef n) =>
         new(RuntimeApi.ReportCounterRead(n.Report.CsIndex, n.Depth, n.IsPage), 0);
 
-    /// <summary>A report counter's STORAGE image (CONVERT's ANY source, §2023:15.19.3 r7): the bytes of its implicit description, the 32-bit
+    /// <summary>A report counter's STORAGE image (CONVERT's ANY source, §2023:15.19.3 AR7): the bytes of its implicit description, the 32-bit
     /// unsigned binary item <see cref="PicInfo.ReportCounterItem"/>, through the profile the report's counter item declares
     /// (<c>ReportModel.PageCounterRegister</c>, which the receiving place also reads) — the storage codec's one answer for any item of
     /// that description (kb/Work PB4766 review R1-2).</summary>
@@ -387,7 +387,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     // integer at the counter's PICTURE-derived scale (GR1), engine-sourced.
     // A report VARYING counter read (ISO §2023:13.18.64.4 GR3/GR4): the compose-local integer counter, scale 0.
     public NumX Visit(BoundReportVaryingRef n) => new(LocalNames.Of(n.Counter), 0);
-    // An OCCURS DEPENDING table's current extent (ISO §2023:13.18.38.4 GR8; the §2023:15.50.4 r4b / §2023:15.14.4 r2b channel,
+    // An OCCURS DEPENDING table's current extent (ISO §2023:13.18.38.4 GR8; the §2023:15.50.4 RV4b / §2023:15.14.4 RV2b channel,
     // kb/Work PB61): CobolTable.OdoExtent over data-name-1's current count — scale 0, EC-BOUND-ODO inside.
     public NumX Visit(BoundOdoExtent n)
     {
@@ -398,7 +398,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
             ? RuntimeApi.TableOdoExtentTrimmed(PlaceRenderer.CountRead(n.Depending), n.MinOccurs, n.MaxOccurs, n.FixedWidth, n.ElemWidth, n.TrailingWidth)
             : RuntimeApi.TableOdoExtentChars(PlaceRenderer.CountRead(n.Depending), n.MinOccurs, n.MaxOccurs,
                 n.FixedWidth, n.ElemWidth, n.TrailingWidth, n.PositionsPerCharacter);
-        // A BASED entry not associated with actual data answers GR8b's maximum (§2023:15.50.4 r4a / §2023:15.14.4 r2a —
+        // A BASED entry not associated with actual data answers GR8b's maximum (§2023:15.50.4 RV4a / §2023:15.14.4 RV2a —
         // kb/Work PB80); the null test comes FIRST, before data-name-1 (possibly inside the entry) is read.
         long maximum = (RecordLayout.Plus(n.FixedWidth, RecordLayout.Product(n.MaxOccurs, n.ElemWidth)) - n.TrailingWidth + n.PositionsPerCharacter - 1) / n.PositionsPerCharacter;
         return new(n.BasedAddress is { } addr
@@ -427,7 +427,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     // ⛔ EVERY recursion clears _outermost, not only BoundBinary's (kb/Work PB129 — GR-8.8.1.2-1): a division
     // under a unary minus, an exponent base, or a computed-operand wrapper is NOT the final transfer, so it
     // must compute at the D2 guard scale with truncation — the receiver's ROUNDED mode binds to the final
-    // transfer only (§2023:14.7.4.3 GR3–GR10; §2023:8.8.1.2 r1 "treated as a single operand"). The leak reinstated the
+    // transfer only (§2023:14.7.4.3 GR3–GR10; §2023:8.8.1.2 GR1 "treated as a single operand"). The leak reinstated the
     // exact pre-CA5 defect for `(1 / 3) ** 0` under PROHIBITED, and made `(A / B) ** 2` differ from
     // `1 * (A / B) ** 2` — multiplying by one changed the value.
     public NumX Visit(BoundNegate n)
@@ -436,7 +436,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         _outermost = false;
         var v = n.Operand.Accept(this);
         _outermost = outer;
-        // Under a standard mode an unsigned-wide operand is an SDIDI operand like any other (§2023:8.8.1.5.2 r1, kb/Work PB2966):
+        // Under a standard mode an unsigned-wide operand is an SDIDI operand like any other (§2023:8.8.1.5.2 GR1, kb/Work PB2966):
         // lifted by DecOperand's rounding twin, not narrowed through the native Widen funnel Negate applies.
         return AssertLane(n, Negate(StandardDecimal && v.U ? new NumX(DecOperand(v), 0, Dec: true) : v), outer);
     }
@@ -462,7 +462,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// of the value of its significand and the quantity derived by raising ten to the power of the exponent" and
     /// nothing more (cite.py-verified), and §2023:8.3.3.3.2's fixed-point form is likewise a value — so trailing zeros
     /// past the point are notation, not precision, and 30, 30.0 and 3.0E+1 are ONE operand.</para>
-    /// <para>Not applied under a standard arithmetic mode: there every operand is an SDIDI by §2023:8.8.1.5.2 r1 and
+    /// <para>Not applied under a standard arithmetic mode: there every operand is an SDIDI by §2023:8.8.1.5.2 GR1 and
     /// this arm does not exist. Not applied past <see cref="Int128"/>: the exact arm's carrier cannot hold it, and
     /// the Dec lane it would otherwise reach is the right home.</para></summary>
     private NumX? IntegerValuedLiteral(BoundExpr x) =>
@@ -569,7 +569,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         ? new NumX($"CobolEdit.DeEditFloat({PlaceRenderer.Read(p)}, {EmitText.CsLiteral(fem)}{ctx.EditCfg(p.Item.Pic)}{(p.Item.BlankWhenZero ? ", blankWhenZero: true" : "")})", 0, Dec: true)
         : p.DescribedItem is { StoreAsImage: false }
             // A format-2 (LOCALE) sender DE-EDITS through CobolLocaleEdit under the locale current NOW
-            // (§2023:13.18.40.5 r11; §2023:14.6.13.2 r4 — impossible content is EC-DATA-INCOMPATIBLE); the scale is the
+            // (§2023:13.18.40.5 GR11; §2023:14.6.13.2 GR4 — impossible content is EC-DATA-INCOMPATIBLE); the scale is the
             // PICTURE's (PB64 T6). The second of the two dispatch sites PicInfo.LocaleEdit's doc names.
             && p.Item.Pic is { LocaleEdit: not null } lpic
         ? new NumX(RuntimeApi.LocaleDeEdit(lpic, PlaceRenderer.Read(p), p.Item.BlankWhenZero), lpic.Scale)
@@ -780,7 +780,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         // RECEIVER — the operands §2023:14.9.2.4 GR4 and §2023:14.9.44.4 GR4 (ADD and SUBTRACT; the other statements' native
         // rule is the implementor's, §2023:8.8.1.3) except from "enough places shall be carried so as not to lose
         // significant digits": those with usage binary-char, binary-short, binary-long, binary-double, float-short,
-        // float-long or float-extended (§2023:14.7.7 r2 lists them, a floating-point literal and an intrinsic function as
+        // float-long or float-extended (§2023:14.7.7 SR2 lists them, a floating-point literal and an intrinsic function as
         // separate bullets). A function's returned value is described with no usage at all — §2023:15.4.1 leaves "the
         // characteristics and representation of the returned value" to the implementor — and a non-integer native
         // power is an engine-computed approximation too (§2023:8.8.1.3: under native arithmetic the method of
@@ -807,7 +807,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         }
         // STANDARD / STANDARD-DECIMAL arithmetic (§2023:8.8.1.5): every operation of an arithmetic expression
         // evaluates in SDIDI form (decimal128 semantics), rounded per-op to 34 significant digits with the
-        // INTERMEDIATE ROUNDING mode (§2023:11.9.11) and range-checked at the decimal128 bounds (§2023:8.8.1.5.2 r2);
+        // INTERMEDIATE ROUNDING mode (§2023:11.9.11) and range-checked at the decimal128 bounds (§2023:8.8.1.5.2 GR2);
         // the receiver's ROUNDED applies only at the final transfer (§2023:14.7 NOTE 1). This branch runs BEFORE
         // the D16 float branch: under a standard mode a FLOATING-POINT operand converts into SDIDI form via
         // the §2023:8.8.1.5.1 implementor-defined conversion (CobolDec.FromBinary64 — the exact value of the IEEE value
@@ -1075,13 +1075,13 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// <summary>Render an operand in SDIDI form: an already-decimal intermediate passes through; a fixed-point
     /// value within <see cref="ExactLiftDigits"/> lifts EXACTLY via <c>CobolDec.From</c>, and one that may hold more (a 16-byte binary
     /// container, an operand of unknown bound) ROUNDS via <c>CobolDec.FromParsed</c> / <c>FromUnsigned</c> under the
-    /// INTERMEDIATE ROUNDING mode (§2023:8.8.1.5.2 r1; kb/Work PB2918); a FLOAT
+    /// INTERMEDIATE ROUNDING mode (§2023:8.8.1.5.2 GR1; kb/Work PB2918); a FLOAT
     /// (Real) operand converts via <c>CobolDec.FromBinary64</c> — the §2023:8.8.1.5.1 implementor-defined float→SDIDI
     /// conversion: the binary64's exact value rounded once to 34 digits under the INTERMEDIATE ROUNDING mode
-    /// (§2023:8.8.1.5.2 r1; kb/Work PB1606), except an engine-produced approximation (<see cref="NumX.Approximate"/>), which
+    /// (§2023:8.8.1.5.2 GR1; kb/Work PB1606), except an engine-produced approximation (<see cref="NumX.Approximate"/>), which
     /// is its shortest round-trip decimal (<c>CobolDec.FromApproximation</c>).</summary>
     // ⛔ THE LIFT OF AN OPERAND THAT MAY OUTGROW THE LANE IS THE ROUNDING ONE, IN EVERY MODE (kb/Work PB2918).
-    // §2023:8.8.1.5.2 r1: "If the operand value cannot be expressed exactly in an SDIDI, the value is rounded according to
+    // §2023:8.8.1.5.2 GR1: "If the operand value cannot be expressed exactly in an SDIDI, the value is rounded according to
     // the rules in 11.9.11" — and a 16-byte binary container (a COMP-5 of 19 or more digits; BINARY-DOUBLE is 8 bytes and lifts exactly) owns 39 digits, so its
     // NumX.Digits bound is past the SDIDI's 34 (and an operand of unknown bound, Digits 0, may be anything). The exact
     // `CobolDec.From` put such a significand INTO the intermediate unrounded, past the 34-digit invariant every
@@ -1117,7 +1117,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         StandardIntermediate && !x.Dec && !x.Real && !(x.Digits >= 1 && x.Digits <= CobolDec.SidiDigits)
             ? RuntimeApi.DecToSidi(dec, IntermediateMode) : dec;
 
-    /// <summary>Does lifting <paramref name="x"/> into the SDIDI ROUND it (§2023:8.8.1.5.2 r1)? The ONE answer to that
+    /// <summary>Does lifting <paramref name="x"/> into the SDIDI ROUND it (§2023:8.8.1.5.2 GR1)? The ONE answer to that
     /// question: <see cref="DecOperand"/> acts on it and the intrinsic renderer asks it of a function's argument
     /// (<c>IntrinsicRenderer.ArgumentRoundsAtLift</c>, kb/Work PB2965), so a function whose equivalent arithmetic
     /// expression lifts its argument is routed to the SDIDI exactly when the lift would change the value. A Dec, a
@@ -1128,7 +1128,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         !x.Dec && !x.Real && !x.Wide && !x.Exact && !(x.Digits >= 1 && x.Digits <= ExactLiftDigits);
 
     /// <summary>The widest digit bound <see cref="DecOperand"/> lifts EXACTLY. Under STANDARD-DECIMAL it is the SDIDI's
-    /// own 34 (§2023:8.8.1.5.2 r1 rounds every wider operand). Under NATIVE arithmetic the Dec lane (DOC-A.1-82) carries an
+    /// own 34 (§2023:8.8.1.5.2 GR1 rounds every wider operand). Under NATIVE arithmetic the Dec lane (DOC-A.1-82) carries an
     /// exact operand of up to 38 digits — <c>CobolDec.AddSigned</c>'s wide scratch, kb/Work PB1510 — and reduces it ONCE
     /// at the result, and a native relation compares such a value exactly (DOC-A.1-179 (3)); pre-rounding a 35- to
     /// 38-digit product to 34 there rounded it twice and turned `A18 * B18 + 0.0E+0 = A18 * B18` true (pb156's LANE
@@ -1167,7 +1167,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// Scales add, so the product of an N-digit and an M-digit UNSCALED value is below 10^(N+M) — and that, not the
     /// operands' values, is what leaves the <see cref="Int128"/> carrier: <c>PIC 9V9(30)</c> times <c>PIC 9V9(30)</c>
     /// is the product 3.375 of 1.5 and 2.25, and the product of their 31-digit unscaled values is 61 digits. The
-    /// emitter multiplied them unchecked, so a legal statement (§2023:14.7.7 r2a limits the COMPOSITE of operands to 31
+    /// emitter multiplied them unchecked, so a legal statement (§2023:14.7.7 SR2a limits the COMPOSITE of operands to 31
     /// digits, not the unscaled product) wrapped modulo 2^128 and stored a wrong product with no condition —
     /// §2023:14.9.26.4 GR1/GR2: "The product of the multiplier and the multiplicand is stored".
     /// <list type="bullet">
@@ -1369,7 +1369,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// answers 999999999999999 (CLAUDE.md rule 1 for §2023:8.8.1.3's latitude). Operands past 77 digits are divided exactly too: the
     /// third form of <c>CobolExact</c> holds them (kb/Work PB4592, DOC-A.1-123's determination of 2026-11-04).
     /// <para><paramref name="intermediate"/> is the INTERMEDIATE ROUNDING mode of the statements that carry an SDIDI operand beside the
-    /// exact one (<see cref="CombineCore"/>): PROHIBITED screens their quotient as every SDIDI intermediate is (ISO §2023:11.9.11.2 r3d, the
+    /// exact one (<see cref="CombineCore"/>): PROHIBITED screens their quotient as every SDIDI intermediate is (ISO §2023:11.9.11.2 GR3d, the
     /// lane determination of DOC-A.1-82 — before PB4599 that arm was <see cref="DecBinary"/>, which screened it), and the plain quotient
     /// of <see cref="Divide"/> passes TRUNCATION: it has no SDIDI intermediate.</para></summary>
     private NumX ExactFinalQuotient(NumX a, NumX b, CobolRounding intermediate)
@@ -1670,7 +1670,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         // STANDARD / STANDARD-DECIMAL: exponentiation follows §2023:8.8.1.5.4 — an integer exponent evaluates by
         // repeated SDIDI multiplication (r2a–r2d exactly; r2e's implementor-defined form for larger integers,
         // every step per §2023:8.8.1.5.3), r3's reciprocal for a negative exponent, and the EC-SIZE-EXPONENTIATION
-        // legs of §2023:8.8.1.2 r6 / §2023:8.8.1.5.4 r4; a float operand converts in per §2023:8.8.1.5.1 (DecOperand). The ONE
+        // legs of §2023:8.8.1.2 GR6 / §2023:8.8.1.5.4 GR4; a float operand converts in per §2023:8.8.1.5.1 (DecOperand). The ONE
         // runtime implementation is CobolDec.Pow. An UNSIGNED-WIDE operand is lifted by DecOperand's rounding twin and
         // does not take the Widen funnel below (kb/Work PB2966, as CombineCore's SDIDI lane).
         if (StandardDecimal)
@@ -1701,7 +1701,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         //     integer (`2 ** -2` at scale 0 would be 0, not 0.25) and a data item's sign is a run-time fact. The carrier that owns
         //     its scale AT RUN TIME takes it. An integer or exact base is CobolExact.Pow (exact on the wide form while the VALUE
         //     fits 77 digits; past it the arbitrary-precision form, kb/Work PB4587), and so is a scaled / SDIDI base: the same
-        //     exact power at run time, reduced once to 34 digits by round-to-odd where lowered, the §2023:8.8.1.5.4 r3 reciprocal for a
+        //     exact power at run time, reduced once to 34 digits by round-to-odd where lowered, the §2023:8.8.1.5.4 GR3 reciprocal for a
         //     negative exponent and the §2023:8.8.1.2 rule-6 screen, written once.
         // The power's precision (the base's times a non-negative exponent, a reciprocal's own places) is carried by the value.
         if (NumericLanes.Power(LaneOf(b), LaneOf(e), IsIntegerByValue(e), literalOne: false, decimalEngine: false)
@@ -1911,7 +1911,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// flag in, yet whose statement HAS EC-SIZE checking enabled: the §2023:14.2.3 GR9/GR10 argument crossing of an
     /// INVOKE, where "if the formal parameter is numeric" the transfer IS "a COMPUTE statement without the
     /// ROUNDED phrase" and §2023:14.7.5's no-phrase rule 4 therefore sets EC-SIZE-TRUNCATION to exist (kb/Work
-    /// PB640). A MOVE never passes it: §2023:14.6.8.2 r4's alignment truncates by rule, and the MOVE statement is
+    /// PB640). A MOVE never passes it: §2023:14.6.8.2 GR4's alignment truncates by rule, and the MOVE statement is
     /// not in §2023:14.7.5's list of statements the size error condition may occur as a result of.</para></summary>
     public static string StoreExpr(NumX value, int recvScale, string profile,
         CobolRounding mode = CobolRounding.Truncation, bool raiseOnSizeError = false)
@@ -1941,7 +1941,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     // one scaled-value→double conversion (ISO §2023:15.4.1 native-arithmetic family; singular-pattern rule).
     // ⛔ A scaled operand routes through the runtime's CORRECTLY-ROUNDED CobolFloat.ScaledToDouble (kb/Work
     // PB115): the former `(double)(x) / <10^scale literal>` built its divisor by repeated multiplication —
-    // exact only through 1e22 — so at scale ≥ 23 a LEGAL ASIN(|x| ≤ 1) argument (§2023:15.10.3 r2) arrived one ulp
+    // exact only through 1e22 — so at scale ≥ 23 a LEGAL ASIN(|x| ≤ 1) argument (§2023:15.10.3 AR2) arrived one ulp
     // above 1.0 and evaluated NaN; and even a correct literal divisor rounds twice (the Int128 cast, then the
     // divide), which a boundary-sitting argument cannot afford.
     /// <summary>A NON-float sender's algebraic value converted to binary32 in ONE rounding (kb/Work PB1110):

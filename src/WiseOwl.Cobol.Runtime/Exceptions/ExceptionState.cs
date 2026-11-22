@@ -33,18 +33,18 @@ public sealed class ExceptionEngine
     public bool LastFatal { get; private set; }
 
     /// <summary>The file-connector key associated with the last EC-I-O exception (null for non-I-O conditions
-    /// and for an EC-I-O raised by RAISE / EXIT RAISING / GOBACK RAISING — §2023:15.28.4 r1b).</summary>
+    /// and for an EC-I-O raised by RAISE / EXIT RAISING / GOBACK RAISING — §2023:15.28.4 RV1b).</summary>
     public string? LastFile { get; private set; }
 
-    /// <summary>The two-character I-O status associated with the last EC-I-O exception (§2023:15.28.4 r1c).</summary>
+    /// <summary>The two-character I-O status associated with the last EC-I-O exception (§2023:15.28.4 RV1c).</summary>
     public string? LastIoStatus { get; private set; }
 
-    /// <summary>The §2023:15.30.3 r2 location string ("element; paragraph[ OF section]; line-id"), captured ONLY when
-    /// the enabling TURN directive carried WITH LOCATION (§2023:7.3.25.4 GR7; the implementor choice of §2023:15.30.3 r1 is
+    /// <summary>The §2023:15.30.3 RV2 location string ("element; paragraph[ OF section]; line-id"), captured ONLY when
+    /// the enabling TURN directive carried WITH LOCATION (§2023:7.3.25.4 GR7; the implementor choice of §2023:15.30.3 RV1 is
     /// NO information without LOCATION — recorded in the deep-dive).</summary>
     public string? LastLocation { get; private set; }
 
-    /// <summary>The uppercase statement name that raised the last exception (§2023:15.32.3 r2), captured only WITH
+    /// <summary>The uppercase statement name that raised the last exception (§2023:15.32.3 RV2), captured only WITH
     /// LOCATION (r1 otherwise).</summary>
     public string? LastStatement { get; private set; }
 
@@ -71,10 +71,10 @@ public sealed class ExceptionEngine
         ExceptionObject = obj;
     }
 
-    // ── The AMBIENT statement context (kb/Work R14 — §2023:15.32.3 r2 / §2023:15.30.3 r2). The (Table-12 statement
+    // ── The AMBIENT statement context (kb/Work R14 — §2023:15.32.3 RV2 / §2023:15.30.3 RV2). The (Table-12 statement
     // name, location) pair is a property of the RAISING STATEMENT, so it travels ambiently: the emitted
     // checked-statement wrapper enters it (with the set of names whose enabling TURN carried WITH LOCATION —
-    // the pair is per-CONDITION, §2023:15.32.3 r1 / kb/Work R06) and restores the prior context on exit, and
+    // the pair is per-CONDITION, §2023:15.32.3 RV1 / kb/Work R06) and restores the prior context on exit, and
     // every raise site that calls the 2-argument Set — SEARCH's range conditions, CONTINUE AFTER, the
     // nonfatal ambient gates, the runtime string/storage sites — picks the pair up WITHOUT threading it.
     // Before this channel, only the sites an emitter could hand literals to answered r2; every other site
@@ -98,7 +98,7 @@ public sealed class ExceptionEngine
     public void ExitStatement((string? Stmt, string? Loc, string[]? Names) prior) => _checking.Statement = prior;
 
     /// <summary>Record a raised non-I-O exception condition (§2023:14.6.13.1.1: sets the last exception status;
-    /// EXCEPTION-OBJECT is set to null — §2023:14.9.29.4 GR1). With no explicit pair, the §2023:15.32.3 r2 / §2023:15.30.3 r2
+    /// EXCEPTION-OBJECT is set to null — §2023:14.9.29.4 GR1). With no explicit pair, the §2023:15.32.3 RV2 / §2023:15.30.3 RV2
     /// operands come from the AMBIENT statement context — and only when the raised NAME is one the enabling
     /// TURN covered WITH LOCATION at this statement (r1 answers spaces for the rest).</summary>
     public void Set(string name, bool fatal, string? statement = null, string? location = null)
@@ -222,7 +222,7 @@ public sealed class ExceptionEngine
     ///
     /// <para>⛔ THIS USED TO CALL <see cref="Set"/> (kb/Work PB408). That made the returning element update the
     /// run unit's last exception status for a condition §2023:14.6.13.1.1 raises only "if checking for [it] is
-    /// enabled" — in the OTHER element. The §2023:15.32.3 r2 / §2023:15.30.3 r2 operands the RAISING statement contributes
+    /// enabled" — in the OTHER element. The §2023:15.32.3 RV2 / §2023:15.30.3 RV2 operands the RAISING statement contributes
     /// (kb/Work R07) now travel WITH the staged condition and are applied by the raise, so they still reach the
     /// activator's declarative; they simply no longer pre-empt the enablement question.</para></summary>
     public void SetPropagating(string name, bool fatal, string? statement = null, string? location = null)
@@ -280,7 +280,7 @@ public sealed class ExceptionEngine
     /// level-3 exception-names it specifies, or null when the header has no RAISING phrase. It crosses as the
     /// NAMES, with no encoding: an encode/decode pair would be one membership rule written in two places, and
     /// the site executes once per activation return.</param>
-    /// <param name="statement">§2023:15.32.3 r2 / §2023:15.30.3 r2 operands for the SUBSTITUTED condition, which the
+    /// <param name="statement">§2023:15.32.3 RV2 / §2023:15.30.3 RV2 operands for the SUBSTITUTED condition, which the
     /// RAISING statement itself causes; null unless its TURN carried WITH LOCATION (§2023:7.3.25.4 GR7). The
     /// unsubstituted condition keeps the operands of the raise that actually set the status.</param>
     /// <param name="location">See <paramref name="statement"/>.</param>
@@ -482,7 +482,7 @@ public sealed class ExceptionEngine
     /// RULES FOR NORMAL EXECUTION", and every condition reaching this method has a rule that names that
     /// continuation outright — §2023:14.7.8 GR2 ("upon completion of any exception processing, execution proceeds
     /// as if the range of values were empty"), §2023:8.5.1.9.6 GR1 (the capacity change happens), §2023:14.9.39 Format 16
-    /// GR37/GR38 (the length is 0 / clamped), §2023:15.19.4 r3 (the substitution character is used). So the raise site
+    /// GR37/GR38 (the length is 0 / clamped), §2023:15.19.4 RV3 (the substitution character is used). So the raise site
     /// returns and the statement finishes. ⚠ §2023:14.9.49.4 GR13a — "control is returned to an implicit CONTINUE
     /// statement following the statement whose execution caused the exception" — reads as the alternative for a
     /// condition whose statement rules name NO continuation (a RAISE, a size error: there the raise is at the end
@@ -663,8 +663,8 @@ public sealed class ExceptionEngine
         set => _checking.DataConversion = value;
     }
 
-    /// <summary>Record EC-DATA-CONVERSION for an untranslatable repertoire value — CONVERT (§2023:15.19.4 r1/r3)
-    /// and the argument-2-unspecified DISPLAY-OF/NATIONAL-OF forms (§2023:15.26.4 r3 / §2023:15.66.4 r3). Nonfatal
+    /// <summary>Record EC-DATA-CONVERSION for an untranslatable repertoire value — CONVERT (§2023:15.19.4 RV1/r3)
+    /// and the argument-2-unspecified DISPLAY-OF/NATIONAL-OF forms (§2023:15.26.4 RV3 / §2023:15.66.4 RV3). Nonfatal
     /// (Table 13), so it never throws on its own account — the <see cref="NonfatalIfEnabled"/> contract
     /// <see cref="BoundSetError"/> shares: only while checking for the condition is enabled (§2023:14.6.13.1.1) it sets
     /// the last exception status and runs the activation's declarative selection (<see cref="NonfatalDispatcher"/>),
@@ -1437,12 +1437,12 @@ public sealed class ExceptionEngine
     public void BoundTableLimitError(string detail)
         => FatalIfEnabled(BoundTableLimitChecking, "EC-BOUND-TABLE-LIMIT", detail);
 
-    // ── EC-ORDER-NOT-SUPPORTED ambient statement gate (FUNCTION STANDARD-COMPARE, §2023:15.85.4 r2) ────────────────
+    // ── EC-ORDER-NOT-SUPPORTED ambient statement gate (FUNCTION STANDARD-COMPARE, §2023:15.85.4 RV2) ────────────────
     //
     // Ambient for the reason EC-ARGUMENT-FUNCTION is: an intrinsic renders INLINE inside an arbitrary expression,
     // so the guard wraps the STATEMENT and the raise site consults the flag. Checking-OFF is LENIENT, and here
     // the implementor supplies the outcome §2023:14.6.13.1.3 #8 asks for: the comparison answers "=", the value
-    // §2023:15.85.4 r6 gives for equal arguments — a defined, deterministic result rather than an undefined one.
+    // §2023:15.85.4 RV6 gives for equal arguments — a defined, deterministic result rather than an undefined one.
 
     /// <summary>True while the currently-executing statement has EC-ORDER-NOT-SUPPORTED checking enabled (fatal).</summary>
     public bool OrderNotSupportedChecking
@@ -1451,7 +1451,7 @@ public sealed class ExceptionEngine
         set => _checking.OrderNotSupported = value;
     }
 
-    /// <summary>Raise EC-ORDER-NOT-SUPPORTED (§2023:15.85.4 r2: "If the cultural ordering table is not available on
+    /// <summary>Raise EC-ORDER-NOT-SUPPORTED (§2023:15.85.4 RV2: "If the cultural ordering table is not available on
     /// the processor, or the specified ordering level is not available, or the level number specified by
     /// argument-4 is not defined in the ordering table, the EC-ORDER-NOT-SUPPORTED exception condition is set to
     /// exist"; Table 13 Fatal) when checking is enabled; otherwise return, and the caller's documented "="
@@ -1527,7 +1527,7 @@ public sealed class ExceptionEngine
         set => _checking.LocaleSize = value;
     }
 
-    /// <summary>Raise EC-LOCALE-SIZE (§2023:13.18.40.5 r14 b — locale editing's move of the hypothetical data item into
+    /// <summary>Raise EC-LOCALE-SIZE (§2023:13.18.40.5 GR14 b — locale editing's move of the hypothetical data item into
     /// the SIZE-declared item truncated a character that is "neither a zero nor a space caused by a suppressed
     /// zero"; Table 13 Fatal; the ONE raise site is <c>CobolLocaleEdit.Format</c>, kb/Work PB64 T6) when checking
     /// is enabled; otherwise return — the item holds the truncated content, exactly as r14 b's own text stores it,

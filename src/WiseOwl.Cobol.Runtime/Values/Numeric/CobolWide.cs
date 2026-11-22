@@ -97,7 +97,7 @@ public readonly struct CobolWide
 
     /// <summary>The quotient of <paramref name="a"/> by <paramref name="b"/> TRUNCATED toward zero, with the remainder, which has
     /// the dividend's sign (<c>a = b × quotient + remainder</c>, |remainder| &lt; |b|) — both unscaled values at one scale. A zero
-    /// divisor is the caller's own rule (§2023:15.64.3 r2, §2023:15.77.3 r2), so it is refused here as a defect.</summary>
+    /// divisor is the caller's own rule (§2023:15.64.3 AR2, §2023:15.77.3 AR2), so it is refused here as a defect.</summary>
     internal static CobolWide DivRem(CobolWide a, CobolWide b, out CobolWide remainder)
     {
         if (b.IsZero) throw new DivideByZeroException("CobolWide.DivRem with a zero divisor: the caller owns the zero-divisor rule");
@@ -156,7 +156,7 @@ public readonly struct CobolWide
     }
 
     /// <summary>⛔ THE EXACT QUOTIENT OF THIS VALUE (at <paramref name="scale"/>) BY A COUNT, ROUNDED ONCE TO THE SDIDI
-    /// (kb/Work PB4075): the single division of FUNCTION MEAN's <c>Σ / n</c> (ISO §2023:15.60.4 r1, kb/Work PB3860) over an exact
+    /// (kb/Work PB4075): the single division of FUNCTION MEAN's <c>Σ / n</c> (ISO §2023:15.60.4 RV1, kb/Work PB3860) over an exact
     /// wide sum, where <see cref="ToDec"/> then <see cref="CobolDec.Div"/> would round twice —
     /// <see cref="QuotientDec(int, CobolWide, int, CobolRounding, bool)"/>.</summary>
     internal CobolDec QuotientDec(int scale, int count, CobolRounding mode) =>

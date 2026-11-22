@@ -287,7 +287,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
                     EmitText.UnscaledAtScale(raw.StartsWith('"') ? CobolLiteral.Decode(raw) : raw, pic.Scale),
                     item.ProfileName);
             // A NUMERIC literal VALUE on a numeric-edited member contributes its EDITED image (§2023:13.18.63.3 SR6) —
-            // for a format-2 (LOCALE) member a RUNTIME image (no compile-time image exists, §2023:13.18.40.5 r11;
+            // for a format-2 (LOCALE) member a RUNTIME image (no compile-time image exists, §2023:13.18.40.5 GR11;
             // the ONE producer, RuntimeApi.LocaleEditCompose — PB64 T6; the EditCompose arm's mask deref would NRE).
             if (pic.LocaleEdit is not null && !raw.StartsWith('"')
                 && ValueInitializer.TryParseNumeric(raw, out var luv, out int lsc))
@@ -372,7 +372,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     /// table every occurrence at its CURRENT capacity, each nested SCALAR variable-length group its own
     /// <c>CurrentImage()</c>, each FIXED-OCCURS table of variable-length group elements the concatenation of its
     /// occurrences' (kb/Work PB244), and the group's OCCURS DEPENDING table the prefix of its maximum image that its
-    /// CURRENT count names (the <c>__odo</c> parameter, §2023:13.18.38.4 GR8). The geometry follows the §2023:15.50.4 r7 LENGTH sum in CHARACTER POSITIONS —
+    /// CURRENT count names (the <c>__odo</c> parameter, §2023:13.18.38.4 GR8). The geometry follows the §2023:15.50.4 RV7 LENGTH sum in CHARACTER POSITIONS —
     /// <c>FUNCTION LENGTH(G)</c> equals <c>CurrentImage().Length</c> (a NATIONAL member contributes the two bytes
     /// it occupies, A.1 item 57), and a table of variable-length ELEMENTS under OCCURS DEPENDING or dynamic
     /// capacity contributes each occurrence's own current image (<see cref="VarPartKind.OdoTable"/> and the
@@ -486,7 +486,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     /// (<c>ReadsForeignDynamicLength</c>); <c>"__agree"</c>: the same, decided at run time by the caller.</param>
     private string CurrentMemberImage(DataItem d, string? agree = null) =>
         d.IsDynamicTable ? $"{d.ClrName}.CurrentImage({DynElementImage(d)})"
-        // §2023:15.50.4 r7b — a dynamic-length leaf's current content at its current length, as the image it occupies: a
+        // §2023:15.50.4 RV7b — a dynamic-length leaf's current content at its current length, as the image it occupies: a
         // NATIONAL leaf's characters are its UTF-16BE byte pairs (D-N1), exactly as a fixed national member's are
         // (AsImageOf; kb/Work PB3441), so the group's image is its storage and DISPLAY, LENGTH and CONVERT ANY agree.
         : d.ImageUnit > 1 ? RuntimeApi.NatBytes(DynLeafContent(d, agree))

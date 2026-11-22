@@ -49,7 +49,7 @@ public sealed class ConfigurationSlice
     /// <summary>The OBJECT-COMPUTER <c>CHARACTER CLASSIFICATION</c> clause (ISO §2023:12.3.6.2; §2023:12.3.6.4 GR5–GR8; kb/Work PB64
     /// T5), or null when none is specified and no containing unit specifies one (GR6 — the coded character set's
     /// classification). Inherited per §2023:12.3.6.4 GR1; consumed by the emitter (resolved at each activation —
-    /// <c>__CLASSIFY</c>), by UPPER-CASE / LOWER-CASE without a LOCALE phrase (§2023:15.97.4 r3 / §2023:15.57.4 r3) and by the
+    /// <c>__CLASSIFY</c>), by UPPER-CASE / LOWER-CASE without a LOCALE phrase (§2023:15.97.4 RV3 / §2023:15.57.4 RV3) and by the
     /// ALPHABETIC class tests (§2023:8.8.4.4.4 GR3).</summary>
     public ClassificationSpec? Classification { get; internal set; }
 
@@ -62,7 +62,7 @@ public sealed class ConfigurationSlice
     /// <summary>The resolved NATIONAL PROGRAM COLLATING SEQUENCE (ISO §2023:12.3.6.4 GR9 — alphabet-name-2 / the FOR
     /// NATIONAL form), or null when none is specified / the named alphabet is an identity sequence (NATIVE, UCS-4 —
     /// the native UTF-16 code-unit order, D-N3). Drives NATIONAL relation and condition-name comparisons (GR11 /
-    /// §2023:8.8.4.2.9), CHAR-NATIONAL/ORD-over-national (§2023:15.16.4 / §2023:15.70.4 r2), and the national HIGH-/LOW-VALUE
+    /// §2023:8.8.4.2.9), CHAR-NATIONAL/ORD-over-national (§2023:15.16.4 / §2023:15.70.4 RV2), and the national HIGH-/LOW-VALUE
     /// characters (§2023:12.3.7.4 GR8/GR9). National SORT/MERGE keys (GR13 / §2023:14.9.40.4 GR5b) cannot yet EXIST — D-N2
     /// refuses national leaves in FD/SD records and the table-sort national key is staged loud — so no key
     /// consumer reads this yet.</summary>
@@ -98,7 +98,7 @@ public sealed class ConfigurationSlice
     /// was COBOL0808), and a multi-character string was refused outright (COBOL0896, "not yet supported" —
     /// deferral debt). Every PICTURE consumer now asks this set which symbol a mask uses (<c>PictureAnalyzer</c>
     /// records it on <c>PicInfo.CurrencyString</c> after canonicalizing the mask's symbol to '$'), and NUMVAL-C's
-    /// §2023:15.68.3 r3 default is <see cref="SoleCurrencyString"/>.
+    /// §2023:15.68.3 AR3 default is <see cref="SoleCurrencyString"/>.
     /// </summary>
     public IReadOnlyDictionary<char, CurrencyDefinition> CurrencySigns => DeclaredCurrencySigns;
 
@@ -114,7 +114,7 @@ public sealed class ConfigurationSlice
     internal bool DollarSpecified { get; set; }
 
     /// <summary>The ONE currency string NUMVAL-C / TEST-NUMVAL-C use when argument-2 (and LOCALE) is absent
-    /// (§2023:15.68.3 r3): the single explicitly specified string, or the default "$" when the unit has no CURRENCY
+    /// (§2023:15.68.3 AR3): the single explicitly specified string, or the default "$" when the unit has no CURRENCY
     /// SIGN clause; NULL when the unit specifies two or more distinct strings — r3's "there shall be only one" is
     /// then violated and the reference is diagnosed at bind (COBOL1644).</summary>
     public string? SoleCurrencyString => ExplicitCurrencyStrings.Count switch

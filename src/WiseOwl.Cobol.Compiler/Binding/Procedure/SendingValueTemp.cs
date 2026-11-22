@@ -544,7 +544,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     /// store (they registered while the condition bound), so the statement hoist runs each of them once, before
     /// the truth value is computed from their temps — the exact §2023:8.4.3.2.4 GR1 cardinality for a window evaluated
     /// once per statement. A non-first AND/OR operand's activations were already attached per evaluation by
-    /// <c>ConditionBinder.BindFlatSequence</c> and travel INSIDE the stored condition (§2023:8.8.4.13 r2).</para>
+    /// <c>ConditionBinder.BindFlatSequence</c> and travel INSIDE the stored condition (§2023:8.8.4.13 GR2).</para>
     /// <para>An already-diagnosed <see cref="BoundConditionError"/> is returned as it stands.</para>
     /// </summary>
     internal BoundCondition MaterializeTruth(BoundCondition truth, string tag)
@@ -796,7 +796,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     {
         // §2023:15.2 classifies every function; the bound node carries the call's RESOLVED category
         // (BoundIntrinsicCall.ResultCategory — never the declared column, for the twenty argument-typed rows).
-        // A folded arithmetic sum (FUNCTION LENGTH of a variable-length group, §2023:15.50.4 r7) and every other
+        // A folded arithmetic sum (FUNCTION LENGTH of a variable-length group, §2023:15.50.4 RV7) and every other
         // arithmetic-expression operand are numeric by §2023:8.8.1.
         PicCategory cat = c.Expr is BoundIntrinsicCall ic ? ic.ResultCategory : PicCategory.Numeric;
         // ⛔ THE TEMPORARY IS THE RETURNED VALUE, SO IT MUST MOVE AS THE FUNCTION MOVES (kb/Work PB1007). §2023:14.9.25.4

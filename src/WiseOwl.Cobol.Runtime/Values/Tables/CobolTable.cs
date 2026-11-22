@@ -263,7 +263,7 @@ public static class CobolTable
     /// <paramref name="positionsPerChar"/> units (1 for a character subtree, 8 for one holding USAGE BIT leaves —
     /// ISO/IEC 1989:2023 §2023:8.5.1.6.3, kb/Work PB173): <see cref="OdoExtentTrimmed"/> rounded UP to whole characters.
     /// The ceiling is where §2023:8.5.1.6.3's trailing-filler rule puts the group's own partial byte, and it is the same
-    /// rounding §2023:15.50.4 r9 requires of every other bit width. With <paramref name="positionsPerChar"/> = 1 it is
+    /// rounding §2023:15.50.4 RV9 requires of every other bit width. With <paramref name="positionsPerChar"/> = 1 it is
     /// the identity, so the character channel has ONE arm, never a units branch.
     /// <para>⛔ The LAST occurrence's <paramref name="trailingUnits"/> are given back BEFORE the ceiling, exactly as the
     /// position channel gives them back (kb/Work PB3167): a bit table whose occurrences stride whole bytes can begin in

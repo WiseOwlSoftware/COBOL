@@ -165,7 +165,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementFormatShape, $"MOVE '{WrittenSource.Of(move)}': Format 1 prints one sending operand and "
                 + "TO identifier-2 … (ISO §2023:14.9.25.2)");
         BoundOperand source = SendingOperand(send, "MOVE source");
-        // An INDEX-NAME sending operand (kb/Work R16): MOVE is not among §2023:13.18.38.3 r7's five index-name
+        // An INDEX-NAME sending operand (kb/Work R16): MOVE is not among §2023:13.18.38.3 SR7's five index-name
         // contexts — the same judgment the SR1 arm below applies to class-index DATA ITEMS (COBOL0809).
         // Before this, a string-category receiver aborted at RUN time and a numeric one silently computed.
         if (send.dataReference() is { } sdref)

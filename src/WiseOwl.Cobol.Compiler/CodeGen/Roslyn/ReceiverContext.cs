@@ -126,9 +126,9 @@ internal readonly record struct ReceiverContext(
     /// no formal can see crosses at its SDIDI's own exponent, <c>CobolArgAdapt.SdidiValue</c>, kb/Work PB3677.) It is the ONLY consumer of the constant.
     /// <para>⛔ IT IS NOT A NUMVAL RULE, AND CALLING IT ONE HELD A WRONG ANSWER OPEN (kb/Work PB251). Named
     /// <c>NumvalScaleFloor</c>, it read as though §2023:15.67/§2023:15.68/§2023:15.69 prescribed a 6-digit working scale. They
-    /// prescribe no working scale at all: §2023:15.67.4 r1 / §2023:15.68.4 r1 fix the returned value as "the numeric value
+    /// prescribe no working scale at all: §2023:15.67.4 RV1 / §2023:15.68.4 RV1 fix the returned value as "the numeric value
     /// represented by argument-1" with no arithmetic-mode qualification, so NUMVAL and NUMVAL-C render on the
-    /// SDIDI carrier in every mode and never consult this constant, and neither does NUMVAL-F, whose §2023:15.69.4 r2
+    /// SDIDI carrier in every mode and never consult this constant, and neither does NUMVAL-F, whose §2023:15.69.4 RV2
     /// approximation licence is resolved to r3's exact value (kb/Work PB3839). What remains is an IMPLEMENTOR
     /// choice for the one landing with no receiver to derive a scale from — the <see cref="WorkingScale"/> CAP
     /// above it is a correctness requirement, this floor is not.</para>
@@ -259,7 +259,7 @@ internal readonly record struct ReceiverContext(
     /// </para>
     /// <para>
     /// ⚠ <c>NUMVAL-F</c> DOES NOT CONSULT THIS DECISION, AND THAT IS NOT DRIFT (kb/Work PB3839). Its value is not a
-    /// binary64: §2023:15.69.4 r2 grants native arithmetic "an approximation" and the implementor's determination is r3's
+    /// binary64: §2023:15.69.4 RV2 grants native arithmetic "an approximation" and the implementor's determination is r3's
     /// exact value in every mode and channel (<c>IntrinsicCarrierRules.ReturnsExactParse</c>), so a fixed-point
     /// receiver rounds it ONCE at its own scale and a floating-point receiver converts it once, through the SDIDI landing.
     /// </para>

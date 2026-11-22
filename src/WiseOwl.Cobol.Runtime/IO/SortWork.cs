@@ -73,7 +73,7 @@ internal sealed class SortWork : IDisposable
     private SortMergeCursor? _output;
     private bool _sequenced;
 
-    /// <summary>A new, empty store for a statement with these keys and GR5 sequences (the §2023:14.6.6 r5 snapshots).</summary>
+    /// <summary>A new, empty store for a statement with these keys and GR5 sequences (the §2023:14.6.6 GR5 snapshots).</summary>
     public SortWork(SortMemory memory, CobolSort.Key[] keys, CobolCollation? collation, CobolCollation? national)
     {
         _memory = memory;

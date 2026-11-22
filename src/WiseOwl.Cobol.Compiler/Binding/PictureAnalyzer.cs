@@ -69,7 +69,7 @@ public static class PictureAnalyzer
     /// entry's own SIGN clause (<see langword="null"/> when the entry has none — a group-level SIGN may still apply,
     /// via the binder's post-build inheritance pass, ISO §2023:13.18.52.4 GR1–3). <paramref name="currencies"/> is the
     /// unit's CURRENCY SIGN SET (ISO §2023:12.3.7 — symbol → currency string; <c>SpecialNamesBinder.CurrencySigns</c>, the
-    /// r25-implied <c>'$' → "$"</c> included), of which a PICTURE uses at most ONE symbol (§2023:13.18.40.3 r24/r28):
+    /// r25-implied <c>'$' → "$"</c> included), of which a PICTURE uses at most ONE symbol (§2023:13.18.40.3 SR24/r28):
     /// a non-default symbol (e.g. NC107A's <c>W</c>, NC108M's <c>&lt;</c>) classifies exactly like <c>$</c> — its
     /// mask positions are fixed/floating currency insertion, making the item NUMERIC-EDITED (§2023:13.18.40.4) — and
     /// the emitted <see cref="PicInfo.EditMask"/> carries it CANONICALIZED to <c>$</c> with the string it stands
@@ -178,7 +178,7 @@ public static class PictureAnalyzer
             if (cs == up) continue;
             edition.Error(DiagnosticCatalog.PictureStringInvalid, $"invalid PICTURE character-string {picture} — {where}: it uses two "
                 + $"different currency symbols ('{cs}' and '{up}'); a PICTURE character-string may contain one "
-                + "currency symbol kind (ISO §2023:13.18.40.3 r24 / r28)");
+                + "currency symbol kind (ISO §2023:13.18.40.3 SR24 / r28)");
             return PicInfo.Recovery();
         }
         string currencyString = cs == '\0' ? "$" : currencySet[cs].Text;
@@ -240,7 +240,7 @@ public static class PictureAnalyzer
             switch (c)
             {
                 // '$' is a currency picture symbol iff it is a member of the unit's CURRENCY SIGN SET —
-                // §2023:12.3.7.3 r25 IMPLIES `CURRENCY SIGN '$' PICTURE SYMBOL '$'` unless a clause names '$' as
+                // §2023:12.3.7.3 SR25 IMPLIES `CURRENCY SIGN '$' PICTURE SYMBOL '$'` unless a clause names '$' as
                 // literal-7 or literal-8, so `PIC $$,$$9.99` stays legal beside a declared '#' (kb/Work PB60 /
                 // AR-15.68.3-3 measured it as COBOL0808 under the former single-symbol model — a legal-source
                 // rejection); only a clause that TAKES '$' for another string retires it as a symbol.
@@ -1467,7 +1467,7 @@ public static class PictureAnalyzer
     /// written for the decimal separator "is always the period"); SR13's swap is printed under FORMAT 1. ',' is not
     /// a format-2 symbol under any setting. ⛔ NO compile-time relation between integer-1 and the digit count is
     /// checked — the hypothetical item's width is a RUNTIME quantity (the currency string's length is the locale's,
-    /// §2023:13.18.40.5 r9) and §2023:13.18.40.5 r14 reconciles the two at each edit. Violations are COBOL1673 with the
+    /// §2023:13.18.40.5 GR9) and §2023:13.18.40.5 GR14 reconciles the two at each edit. Violations are COBOL1673 with the
     /// sub-rule named; the item recovers at the SIZE length (the compile has failed). The returned PicInfo: category
     /// numeric-edited (GR16), Length = integer-1 (GR17 — never the mask width), Digits/Scale/DigitPositions from
     /// character-string-1, EditMask NULL, <see cref="PicInfo.LocaleEdit"/> carrying the canonical picture.</summary>

@@ -115,7 +115,7 @@ public sealed partial class DataBinder
     /// <see cref="CobolLiteral.ClassOf"/> is the §2023:8.3.3.2 / §2023:8.3.3.4 / §2023:8.3.3.5 class table (both the plain and the
     /// hexadecimal format of each), and <see cref="CobolLiteral.Decode"/> yields the literal's CHARACTERS, which is
     /// SR9's "length … as specified in 8.3.3, Literals" — two hexadecimal digits per alphanumeric character
-    /// (§2023:8.3.3.2.3 r6), four per national character (§2023:8.3.3.5.3 r5), four boolean characters per hexadecimal digit
+    /// (§2023:8.3.3.2.3 SR6), four per national character (§2023:8.3.3.5.3 SR5), four boolean characters per hexadecimal digit
     /// (§2023:8.3.3.4.4 GR5). A ZERO-LENGTH literal is excluded by §2023:13.16.3 SR9 itself — its grant is worded for a
     /// literal "that is not a zero-length literal" — so <c>01 A VALUE "".</c> falls to SR8.</para>
     /// <para>A NUMERIC literal selects no arm — SR9 names the three character categories only — so

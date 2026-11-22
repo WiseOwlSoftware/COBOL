@@ -118,7 +118,7 @@ public abstract class FileConnector
     /// <summary>The latest I-O status (ISO §2023:9.1.13). "00" until the first operation. ⛔ THE SETTER IS THE ONE
     /// I-O-STATUS ASSIGNMENT PATH, and it records that the connector was accessed (kb/Work PB63 / RV-15.28.4-2):
     /// §2023:9.1.13.1 names CLOSE, DELETE, OPEN, READ, REWRITE, START, UNLOCK and WRITE as the statements that set the
-    /// I-O status, and §2023:15.28.4 r2a's "never been opened, attempted to be opened, or otherwise attempted to be
+    /// I-O status, and §2023:15.28.4 RV2a's "never been opened, attempted to be opened, or otherwise attempted to be
     /// accessed" is exactly "no statement has set it" — so a CLOSE or READ on a never-opened connector (status 42 /
     /// 47) IS an attempted access. <see cref="EverAccessed"/> used to be a flag written at two hand-picked sites
     /// (OPEN and DELETE FILE), which made every other verb wrong by default.</summary>
@@ -247,12 +247,12 @@ public abstract class FileConnector
     }
 
     /// <summary>The connector has been opened, attempted to be opened, or otherwise attempted to be accessed (ISO
-    /// §2023:15.28.4 r2a / §2023:15.29.4 r2a) — FUNCTION EXCEPTION-FILE(connector) returns two spaces until this is true.
+    /// §2023:15.28.4 RV2a / §2023:15.29.4 RV2a) — FUNCTION EXCEPTION-FILE(connector) returns two spaces until this is true.
     /// Set by the <see cref="Status"/> setter, i.e. by EVERY statement that assigns an I-O status; a never-touched
     /// SELECTed connector stays false.</summary>
     public bool EverAccessed { get; private set; }
 
-    /// <summary>The file-name exactly as spelled in the SELECT clause (ISO §2023:15.28.4 r1c/r2b, §2023:15.29.4 r1c/r2b —
+    /// <summary>The file-name exactly as spelled in the SELECT clause (ISO §2023:15.28.4 RV1c/r2b, §2023:15.29.4 RV1c/r2b —
     /// "the file-name exactly as specified in the SELECT clause"), carried from the compiler's FileModel at
     /// registration (kb/Work PB63); the registry KEY is an emit-side namespace and is never displayed.</summary>
     public string SelectName { get; set; } = "";

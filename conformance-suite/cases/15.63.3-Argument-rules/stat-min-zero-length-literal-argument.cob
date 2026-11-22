@@ -10,7 +10,7 @@
       *> "argument-1" NAMES THE WHOLE VARIADIC LIST and the prohibition covers every
       *> written position, not merely the first. This fixture puts the zero-length
       *> literal at POSITION 3 OF 3 — the axis pb35-zero-length-literal-max-argument
-      *> (position 1, and MAX's §2023:15.59.3 r3) does not vary.
+      *> (position 1, and MAX's §2023:15.59.3 AR3) does not vary.
       *>
       *> WHY THE DIAGNOSTIC IS EVIDENCE FOR RULE 3 AND NOT MERELY FOR A REJECTION.
       *> §2023:15.63.3 has exactly three argument rules and the other two cannot fire on

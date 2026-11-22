@@ -168,7 +168,7 @@ public sealed class NationalBooleanDataTests
         Assert.True(ok, detail);
         // The record is 4 national positions (8 bytes) + 4 alphanumeric (4 bytes) = 12 bytes; F-X therefore
         // starts at byte 8, and reading "pqrs" back proves it. HEX is the UTF-16BE serialization of N"WXYZ":
-        // U+0057 U+0058 U+0059 U+005A → 00570058 0059005A (§2023:15.19.4 r4 hexes the source's own bits).
+        // U+0057 U+0058 U+0059 U+005A → 00570058 0059005A (§2023:15.19.4 RV4 hexes the source's own bits).
         Assert.Equal("N=[WXYZ] X=[pqrs]\nHEX=00570058", stdout);
     }
 

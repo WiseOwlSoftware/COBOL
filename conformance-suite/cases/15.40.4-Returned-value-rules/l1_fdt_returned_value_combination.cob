@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:15.40.4 r1 - "The returned value is a representation of the
+      *> ISO §2023:15.40.4 RV1 - "The returned value is a representation of the
       *> date contained in argument-2 combined with the time contained in
       *> argument-3 according to the format in argument-1."
       *>

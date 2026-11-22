@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ THE DRIFT TEST kb/Work R10 (F74) DEMANDED: the HIGHEST/LOWEST-ALGEBRAIC fold and the runtime's
 /// BinaryCapacity discipline are ONE rule — "the item owns its full container range" (§2023:13.18.60.4 GR12 / DOC-A.1-208;
-/// §2023:15.43.4 r2 / §2023:15.58.4 r2 make the fold exactly that range's ends). The fold used to carry its own
+/// §2023:15.43.4 RV2 / §2023:15.58.4 RV2 make the fold exactly that range's ends). The fold used to carry its own
 /// hand-maintained usage list while <c>PicInfo.Truncation</c> carried the same list again, and the two runtime
 /// halves (<c>WrapBinary</c>/<c>InBinaryRange</c>) disagreed with both at the 16-byte tier (the shift-mask bug:
 /// modulus 2^128 computed as 1). The fold now READS <c>PicInfo.Truncation</c>; this suite pins the residual

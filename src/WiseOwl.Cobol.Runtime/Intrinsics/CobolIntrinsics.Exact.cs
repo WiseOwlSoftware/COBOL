@@ -12,7 +12,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// the unscaled longs IS comparison/arithmetic on the algebraic values.
 /// <para>
 /// ⚠ <b>"Never double" scopes the ARGUMENT REPRESENTATION these bodies accept, not the family's whole surface.</b>
-/// A floating-point argument is legal for every one of these functions (§2023:15.7.3 r1 and siblings require class
+/// A floating-point argument is legal for every one of these functions (§2023:15.7.3 AR1 and siblings require class
 /// NUMERIC; §2023:8.5.2.12 GR2 makes COMP-1/COMP-2 category numeric, hence class numeric by §2023:8.5.2.1 Table 2), and
 /// it is served by the <c>…Real</c> twins in <c>CobolIntrinsics.RealArgs.cs</c> — reached by routing on the
 /// ARGUMENT's type rather than the function's family. Nothing exact is surrendered: once the operand arrives as
@@ -48,10 +48,10 @@ public static partial class CobolIntrinsics
 
     /// <summary>FACTORIAL (§2023:15.36.4) on the NATIVE lane: 0 ⇒ 1; n ⇒ n × (n−1)!. Computed in
     /// <see cref="Int128"/>: 33! ≈ 8.68e36 fits (Int128.Max ≈ 1.70e38); 34! is the first overflow. A NEGATIVE
-    /// argument violates §2023:15.36.3 r1 — EC-ARGUMENT-FUNCTION, the §2023:15.3 default 0 with checking disabled. A
+    /// argument violates §2023:15.36.3 AR1 — EC-ARGUMENT-FUNCTION, the §2023:15.3 default 0 with checking disabled. A
     /// 34+ argument CONFORMS (r1 admits every nonnegative integer), so it is NOT an argument error (kb/Work
     /// PB125 — the old arm returned the default 0 there, and zero is no §2023:15.4.1 "approximation" of 2.95e38):
-    /// it is the size error condition — the §2023:15.36.4 r1c equivalent arithmetic expression's value exceeds the
+    /// it is the size error condition — the §2023:15.36.4 RV1c equivalent arithmetic expression's value exceeds the
     /// native Int128 intermediate (CONFORMANCE.md item 179's class: ON SIZE ERROR / EC-SIZE checking take it;
     /// without either, item 70's an-intermediate-that-cannot-be-formed fatal termination). Under a STANDARD
     /// mode the renderer routes to <see cref="FactorialDec"/> instead, where 34! is exact.</summary>
@@ -127,7 +127,7 @@ public static partial class CobolIntrinsics
     // ── MOD / REM (ISO §2023:15.64 / §2023:15.77) — over scale-ALIGNED unscaled values ──────────────────────────────────
 
     /// <summary>
-    /// ⛔ THE §2023:15.64.3 r2 ZERO-DIVISOR RULE — ONE RAISE SITE PER RULE, NOT ONE PER CARRIER (fix-queue PB32).
+    /// ⛔ THE §2023:15.64.3 AR2 ZERO-DIVISOR RULE — ONE RAISE SITE PER RULE, NOT ONE PER CARRIER (fix-queue PB32).
     /// </summary>
     /// <remarks>
     /// MOD is implemented on two carriers — the exact <see cref="ModScaled"/> and the SDIDI <c>ModDec</c>; REM on those
@@ -148,7 +148,7 @@ public static partial class CobolIntrinsics
     internal static long ModZeroDivisor() =>
         Exceptions.ExceptionState.ArgumentError($"MOD with a zero divisor ({Exceptions.ExceptionState.EditionRule("§1989:A.2.28.3 AR2", "ISO §2023:15.64.3 rule 2")})");
 
-    /// <summary>The §2023:15.77.3 r2 zero-divisor rule — one raise site for REM, whichever carrier evaluates it
+    /// <summary>The §2023:15.77.3 AR2 zero-divisor rule — one raise site for REM, whichever carrier evaluates it
     /// (see <see cref="ModZeroDivisor"/> for why this is not written per body).</summary>
     internal static long RemZeroDivisor() =>
         Exceptions.ExceptionState.ArgumentError($"REM with a zero divisor ({Exceptions.ExceptionState.EditionRule("§1989:A.2.37.3 AR2", "ISO §2023:15.77.3 rule 2")})");
@@ -158,10 +158,10 @@ public static partial class CobolIntrinsics
     /// integer arguments). A zero divisor violates rule 2 → <see cref="ModZeroDivisor"/>.</summary>
     public static Int128 ModScaled(Int128 a, Int128 b)
     {
-        if (b == 0) return ModZeroDivisor();                 // the ONE §2023:15.64.3 r2 raise site (both carriers)
+        if (b == 0) return ModZeroDivisor();                 // the ONE §2023:15.64.3 AR2 raise site (both carriers)
         Int128 q = a / b;                                    // truncating quotient of the ALIGNED values
         if (a % b != 0 && (a < 0) != (b < 0)) q -= 1;        // → floor (FUNCTION INTEGER of the true ratio)
-        // §2023:15.64.3 r1 makes both arguments INTEGERS, so on conforming source the common scale is 0, no alignment
+        // §2023:15.64.3 AR1 makes both arguments INTEGERS, so on conforming source the common scale is 0, no alignment
         // happens and |b×q| ≤ |a| ≤ 10³¹ — the D1 boundary is unreachable. It IS reachable under --permissive,
         // whose coercion extension admits a scaled operand and so a nonzero common scale: the floor adjustment
         // then lets |b×q| reach |a|+|b|, and with two aligned near-carrier operands that product wraps. Loud, by
@@ -173,7 +173,7 @@ public static partial class CobolIntrinsics
     /// <summary>REM (§2023:15.77.4): <c>a − b × FUNCTION INTEGER-PART(a / b)</c> — the truncated remainder (sign follows
     /// the dividend). Operands aligned to one scale, result at that scale. Zero divisor → <see cref="RemZeroDivisor"/>.</summary>
     public static Int128 RemScaled(Int128 a, Int128 b) => b == 0
-        ? RemZeroDivisor()                                   // the ONE §2023:15.77.3 r2 raise site (both carriers)
+        ? RemZeroDivisor()                                   // the ONE §2023:15.77.3 AR2 raise site (both carriers)
         : a % b;   // C# % truncates toward zero — exactly INTEGER-PART
 
     // ── Variadic statistics over scale-ALIGNED unscaled values (ISO §2023:15.59–§2023:15.63, §2023:15.71–72, §2023:15.76, §2023:15.88) ──
@@ -199,7 +199,7 @@ public static partial class CobolIntrinsics
     /// <summary>SUM (§2023:15.88.4): Σ arguments, at the common scale, EXACT in Int128 or not at all. (MEAN's numerator is
     /// not this body's: MEAN is the SDIDI quotient in every mode, kb/Work PB3860 - <see cref="MeanDec"/>.)</summary>
     /// <remarks>The accumulator is <c>checked</c> under ONE try for the whole loop (entering a try region is free;
-    /// a per-iteration guard would not be). §2023:15.88.3 r1 admits any class-numeric argument list, so the aligned
+    /// a per-iteration guard would not be). §2023:15.88.3 AR1 admits any class-numeric argument list, so the aligned
     /// values are bounded only by <see cref="NumericRenderer"/>'s PER-ARGUMENT escape — which says nothing about
     /// their SUM: three aligned 38-digit arguments exceed the carrier while each one passes. See
     /// <see cref="SizeEscape"/> for why a wrap is never the answer (kb/Work PB252).</remarks>
@@ -215,10 +215,10 @@ public static partial class CobolIntrinsics
         catch (OverflowException) { return SizeEscape("SUM"); }
     }
 
-    /// <summary>RANGE (§2023:15.76.4 r1): <c>FUNCTION MAX − FUNCTION MIN</c>, at the common scale. The SUBTRACTION is
+    /// <summary>RANGE (§2023:15.76.4 RV1): <c>FUNCTION MAX − FUNCTION MIN</c>, at the common scale. The SUBTRACTION is
     /// the escape: both operands are argument CONTENTS that individually passed the per-argument escape, and their
     /// difference is up to twice the larger — a positive maximum less a negative minimum wrapped to a NEGATIVE
-    /// range, a value §2023:15.76.4 r1 cannot produce (kb/Work PB252).</summary>
+    /// range, a value §2023:15.76.4 RV1 cannot produce (kb/Work PB252).</summary>
     public static Int128 RangeScaled(params Int128[] xs)
     {
         RequireArguments(xs.Length, "RANGE");
@@ -348,8 +348,8 @@ public static partial class CobolIntrinsics
     }
 
     // ── MAX/MIN/ORD-MAX/ORD-MIN over all-alphanumeric/national arguments (category-polymorphic; §2023:15.59/§2023:15.63/§2023:15.71/§2023:15.72) ──
-    // §2023:15.59.4 r1 etc.: the greatest/least is determined by §2023:8.8.4.2 simple-condition rules — the alphanumeric PROGRAM
-    // COLLATING SEQUENCE (§2023:8.8.4.2.7) or national PCS (§2023:8.8.4.2.9), WITH §2023:8.8.4.2.7 r2 space-padding of unequal-length
+    // §2023:15.59.4 RV1 etc.: the greatest/least is determined by §2023:8.8.4.2 simple-condition rules — the alphanumeric PROGRAM
+    // COLLATING SEQUENCE (§2023:8.8.4.2.7) or national PCS (§2023:8.8.4.2.9), WITH §2023:8.8.4.2.7 GR2 space-padding of unequal-length
     // operands. All realized by CobolString.Compare, NEVER string.CompareOrdinal (which ignores the PCS and does not
     // space-pad). Three collation variants funnel through ONE selection helper (singular pattern): the native sequence
     // (the parameterless pad-compare body), a non-identity alphanumeric PCS (weights table — the emitter passes
@@ -388,7 +388,7 @@ public static partial class CobolIntrinsics
     /// ⛔ THE NUMVAL-FAMILY DIGIT CAP — ONE RAISE SITE FOR THE VALUE-PRODUCING HALF (fix-queue PB33 + PB34).
     /// </summary>
     /// <remarks>
-    /// §2023:15.67.3 r3/r4 (NUMVAL), §2023:15.68.3 r6/r7 (NUMVAL-C) and §2023:15.69.3 r2/r3 (NUMVAL-F) all cap argument-1 at
+    /// §2023:15.67.3 AR3/r4 (NUMVAL), §2023:15.68.3 AR6/r7 (NUMVAL-C) and §2023:15.69.3 AR2/r3 (NUMVAL-F) all cap argument-1 at
     /// <b>31 digits under native arithmetic, 34 under standard-decimal</b> (35 standard-binary, unreachable —
     /// that mode is loudly refused). ⚠ NUMVAL-F counts the digits of the <b>significand</b>, not of the whole
     /// literal, which is why the check sits on each body's own count rather than on a shared scan.
@@ -419,8 +419,8 @@ public static partial class CobolIntrinsics
     // ── The SDIDI projections of the same scans (fix-queue PB60, RV-15.67.4-1a; kb/Work PB251) ────────────────
     // §2023:15.4.1: under a standard arithmetic mode "the returned value for numeric and integer functions is
     // contained in a temporary standard data item in the intermediate form defined for the arithmetic mode in
-    // effect" — the SDIDI (§2023:8.8.1.5.2, 34 digits). §2023:15.67.4 r1 / §2023:15.68.4 r1 fix that value with no latitude
-    // ("the numeric value represented by argument-1"), and §2023:15.69.4 r3 says it outright for NUMVAL-F ("If
+    // effect" — the SDIDI (§2023:8.8.1.5.2, 34 digits). §2023:15.67.4 RV1 / §2023:15.68.4 RV1 fix that value with no latitude
+    // ("the numeric value represented by argument-1"), and §2023:15.69.4 RV3 says it outright for NUMVAL-F ("If
     // standard-decimal arithmetic is in effect, the returned value is the numeric value represented by
     // argument-1" — where r2 grants native arithmetic only an approximation, which the implementor resolves to the
     // same exact value: kb/Work PB3839). So the value is the scan's (sign, unscaled, frac[, exp]) lifted to
@@ -429,24 +429,24 @@ public static partial class CobolIntrinsics
     // argument (legal under the r4 cap) rescaled past the Int128 carrier and rendered a SATURATION artifact
     // (170141183460469231731687303715884.105727) as if it were the value. The digit cap keeps the significand
     // ≤34 digits, which Int128 carries exactly, so the lift itself never rounds; NUMVAL-F's E-exponent can reach
-    // past decimal128's range and passes through the ONE §2023:8.8.1.5.2 r2 range check (CobolDec.FromParsed).
+    // past decimal128's range and passes through the ONE §2023:8.8.1.5.2 GR2 range check (CobolDec.FromParsed).
     //
     // ⛔ THE WHOLE FAMILY REACHES HERE UNDER **NATIVE** ARITHMETIC TOO (kb/Work PB251, PB3839). §2023:15.4.1's closing
     // sentence withdraws the implementor latitude "unless otherwise specified in the function definition", and
-    // §2023:15.67.4 r1 / §2023:15.68.4 r1 specify it — with no arithmetic-mode qualification — so the native value of NUMVAL
+    // §2023:15.67.4 RV1 / §2023:15.68.4 RV1 specify it — with no arithmetic-mode qualification — so the native value of NUMVAL
     // and NUMVAL-C is the parsed value exactly, and only the REPRESENTATION is the implementor's. NUMVAL-F is the
-    // one whose definition leaves the native value an approximation (§2023:15.69.4 r2, which is why r3 states the
+    // one whose definition leaves the native value an approximation (§2023:15.69.4 RV2, which is why r3 states the
     // standard-decimal value separately); the implementor's determination is the SAME exact value, because every
     // other approximation made the value depend on the receiver (an Int128 truncation at a receiver-capped working
     // scale for a fixed-point receiver, a binary64 for the rest) and rounded a fixed-point receiver's value twice.
     //
-    // ⛔ ONE digitCap CONVENTION FOR THE WHOLE FAMILY: the omitted default is the NATIVE cap 31 (§2023:15.67.3 r3), and
+    // ⛔ ONE digitCap CONVENTION FOR THE WHOLE FAMILY: the omitted default is the NATIVE cap 31 (§2023:15.67.3 AR3), and
     // the emitter NAMES the cap exactly when the mode's cap differs (IntrinsicRenderer.DigitCapFlag, keyed on
     // ArithmeticModes.NumvalDigitCap against its DefaultDigitCap = 31). These four bodies defaulted to 34 while
     // every Int128 body and every TEST- validator defaulted to 31 — harmless only while they were standard-only,
     // and a silent 34-digit native admission the moment PB251 routed native NUMVAL here.
 
-    /// <summary>NUMVAL's §2023:15.67.4 r1 value as an SDIDI, exact at the parsed scale — the projection EVERY
+    /// <summary>NUMVAL's §2023:15.67.4 RV1 value as an SDIDI, exact at the parsed scale — the projection EVERY
     /// arithmetic mode uses (see the family comment above). Same <see cref="NvScan"/>, same reject projection as
     /// the TEST- validator, so the value can never accept what the validator rejects.</summary>
     public static CobolDec NumvalDec(string text, bool commaMode = false, int digitCap = 31)
@@ -456,7 +456,7 @@ public static partial class CobolIntrinsics
         return CobolDec.From(p.Neg ? -p.Unscaled : p.Unscaled, p.Frac);
     }
 
-    /// <summary>NUMVAL-C's §2023:15.68.4 r1 value as an SDIDI, exact at the parsed scale — the projection EVERY
+    /// <summary>NUMVAL-C's §2023:15.68.4 RV1 value as an SDIDI, exact at the parsed scale — the projection EVERY
     /// arithmetic mode uses; the currency and grouping rules are the one scan's. <paramref name="contentUnrestricted"/> is
     /// the COBOL-85 rule (kb/Work PB5161, <c>DialectBehavior.NumvalCCurrencyContentRules</c> inactive): the 1989 module
     /// puts no rule on argument-2's characters (§1989:A.2.30.3 AR1, AR4), so §2023:15.68.3 AR2's content screen is not
@@ -471,10 +471,10 @@ public static partial class CobolIntrinsics
         return CobolDec.From(p.Neg ? -p.Unscaled : p.Unscaled, p.Frac);
     }
 
-    /// <summary>NUMVAL-F's value in EVERY arithmetic mode (§2023:15.69.4 r3's exact value as an SDIDI; native and
+    /// <summary>NUMVAL-F's value in EVERY arithmetic mode (§2023:15.69.4 RV3's exact value as an SDIDI; native and
     /// standard-binary arithmetic are granted "an approximation" by r2, which the implementor resolves to the same value so
     /// the function has one value in every channel, kb/Work PB3839):
-    /// significand × 10^(exponent − fraction digits), through the §2023:8.8.1.5.2 r2 range check (a 4-digit
+    /// significand × 10^(exponent − fraction digits), through the §2023:8.8.1.5.2 GR2 range check (a 4-digit
     /// E-exponent can exceed decimal128's ±6144 adjusted exponent — EC-SIZE-OVERFLOW / UNDERFLOW, the same
     /// disposition every SDIDI operation result gets). <paramref name="mode"/> is the INTERMEDIATE ROUNDING
     /// mode (§2023:11.9.11) the range check's subnormal re-round uses.</summary>
@@ -535,18 +535,18 @@ public static partial class CobolIntrinsics
     /// a standard-decimal magnitude past the SDIDI's ±6144 range ⇒ the exponent's first digit, r b.6 —
     /// kb/Work PB121); else (all spaces, empty, or a valid-but-incomplete string like <c>" +."</c>) LENGTH+1
     /// (r c). A projection of the ONE <see cref="NvfScan"/> the NUMVAL-F value path also rides (PB60).</summary>
-    /// <param name="digitCap">The §2023:15.95.4 r1b sub-note cap — 31 native, 34 standard-decimal; the emitter's
+    /// <param name="digitCap">The §2023:15.95.4 RV1b sub-note cap — 31 native, 34 standard-decimal; the emitter's
     /// <c>DigitCapFlag</c>, exactly as TEST-NUMVAL/TEST-NUMVAL-C already receive it (the hardcoded 31 this
     /// replaces was the PB60 probe fleet's sibling find).</param>
     public static long TestNumvalF(string text, bool commaMode = false, int digitCap = 31)
     {
-        // §2023:15.95.4 r1b.6 (kb/Work PB121): a conforming scan can still carry the standard-decimal capacity
+        // §2023:15.95.4 RV1b.6 (kb/Work PB121): a conforming scan can still carry the standard-decimal capacity
         // flag — TEST-NUMVAL-F reports it; the value twins do not (their own range check disposes).
         NvfParse p = NvfScan(text, commaMode, digitCap);
         return p.ErrPos != 0 ? p.ErrPos : p.CapPos;
     }
 
-    /// <summary>The §2023:15.68.3 r2 runtime reject of an invalid argument-2 of <see cref="NumvalCDec"/> (TEST-NUMVAL-C
+    /// <summary>The §2023:15.68.3 AR2 runtime reject of an invalid argument-2 of <see cref="NumvalCDec"/> (TEST-NUMVAL-C
     /// carries its own r1c LENGTH+1 leg beside its own raise).</summary>
     private static Int128 NumvalCInvalidCurrency(string currency) =>
         Exceptions.ExceptionState.ArgumentError(
@@ -562,12 +562,12 @@ public static partial class CobolIntrinsics
                 $"NUMVAL-C argument-1 \"{text}\" does not conform to either {Exceptions.ExceptionState.EditionRule("§1989:A.2.30.3 AR1", "§2023:15.68.3 r4a")} format "
                 + $"(first character in error at position {p.ErrPos}{Exceptions.ExceptionState.EditionRule("", "; §2023:15.94 TEST-NUMVAL-C reports the same position")})");
 
-    /// <summary>§2023:15.68.3 r2's content bans on the currency string (after the rule's own edge-space trim):
+    /// <summary>§2023:15.68.3 AR2's content bans on the currency string (after the rule's own edge-space trim):
     /// empty/all-space, any digit 0-9, any of <c>* + - , .</c> (the characters are named outright — the
     /// comma/period ban does not flex with DECIMAL-POINT IS COMMA), or a CR/DB letter pair in any case.
     /// ⛔ THE ONE COPY OF THE RULE (kb/Work PB5161): the binder asks it of a LITERAL argument-2 at compile time
     /// (<c>IntrinsicBinder.BindNumvalCFamily</c>, COBOL1627) and NUMVAL-C and TEST-NUMVAL-C of a data item's content at run time
-    /// (§2023:15.94.3 r1 mirrors the argument rules), each only where the edition has the rule (from 2002,
+    /// (§2023:15.94.3 AR1 mirrors the argument rules), each only where the edition has the rule (from 2002,
     /// <c>DialectBehavior.NumvalCCurrencyContentRules</c>; TEST-NUMVAL-C is itself a 2002 function).</summary>
     public static bool CurrencyStringViolatesContentRules(string currency)
     {
@@ -596,7 +596,7 @@ public static partial class CobolIntrinsics
     /// <summary>TEST-NUMVAL-C (§2023:15.94.4): the §2023:15.93.4-shaped verdict over the §2023:15.68.3 NUMVAL-C formats —
     /// <c>[sp] [sign] [sp] [currency] [sp] digits[,digits]… [dec [digits]] [sp]</c> (format A, sign BEFORE the
     /// currency) or <c>[sp] [currency] [sp] digits… [sp] [sign|CR|DB] [sp]</c> (format B, trailing sign). The
-    /// currency (argument-2, or the binder-injected compilation-unit currency, §2023:15.68.3 r3) matches character
+    /// currency (argument-2, or the binder-injected compilation-unit currency, §2023:15.68.3 AR3) matches character
     /// for character (r4a) — case-folded under ANYCASE (r4f); it appears at most once, BEFORE the digits (no
     /// trailing-currency or currency-then-sign form). Grouping separators are ARBITRARY-length digit groups
     /// (r4a's <c>digit [, digit]…</c> — no 3-digit constraint; <c>"1,23,4.5"</c> conforms) and are illegal
@@ -605,7 +605,7 @@ public static partial class CobolIntrinsics
     public static long TestNumvalC(string text, string currency, bool commaMode = false, bool anycase = false,
         int digitCap = 31, LocaleFacts? classification = null)
     {
-        // §2023:15.68.3 r2 via §2023:15.94.3 r1 — an invalid runtime currency raises EC-ARGUMENT-FUNCTION; the
+        // §2023:15.68.3 AR2 via §2023:15.94.3 AR1 — an invalid runtime currency raises EC-ARGUMENT-FUNCTION; the
         // checking-off verdict is the r1c "no specific character in error" LENGTH+1 leg (no character OF
         // ARGUMENT-1 is in error — the argument-2 is — and 0 would falsely certify conformance).
         if (CurrencyStringViolatesContentRules(currency))
@@ -620,7 +620,7 @@ public static partial class CobolIntrinsics
     }
 
     // ── The ONE positional format scan per family (fix-queue PB60) ─────────────────────────────────────────────
-    // §2023:15.67.3 (NUMVAL) and §2023:15.68.3 r4a (NUMVAL-C) share one grammar shape — [sp] [sign] [sp] [currency] [sp]
+    // §2023:15.67.3 (NUMVAL) and §2023:15.68.3 AR4a (NUMVAL-C) share one grammar shape — [sp] [sign] [sp] [currency] [sp]
     // digit-groups [dec [digits]] [sp] [trailing sign|CR|DB] [sp] — differing only in whether a currency and
     // grouping separators are admitted. §2023:15.69.3 (NUMVAL-F) is the E-form. Each scan VALIDATES positionally
     // (the §2023:15.93/94/95 error-position contract, r1b/r1c) and ACCUMULATES the value in the same pass, so the
@@ -629,11 +629,11 @@ public static partial class CobolIntrinsics
     // measured costs were a TAB-led argument valuing clean, "-12-" valuing positive, an embedded significand
     // space valuing clean, and a conforming "R123.45CR" valuing 0 because the currency Replace consumed the R
     // of CR. The digit cap is tested BEFORE accumulating, so the cap+1-th digit reports its own position
-    // (§2023:15.93.4 r1b sub-notes 2/4) and the accumulator can never saturate into a plausible value.
+    // (§2023:15.93.4 RV1b sub-notes 2/4) and the accumulator can never saturate into a plausible value.
 
     /// <summary>One scan's result: <c>ErrPos</c> 0 = conforming (the TEST- verdict), else the 1-based first
     /// error position (LENGTH+1 for the no-specific-character legs); <c>CapHit</c> distinguishes the digit-cap
-    /// error so value projections raise the dedicated §2023:15.67.3 r3/r4-family message; the value fields are
+    /// error so value projections raise the dedicated §2023:15.67.3 AR3/r4-family message; the value fields are
     /// meaningful only when <c>ErrPos</c> is 0.</summary>
     private readonly record struct NvParse(long ErrPos, bool CapHit, bool Neg, Int128 Unscaled, int Frac);
 
@@ -643,10 +643,10 @@ public static partial class CobolIntrinsics
         char dec = commaMode ? ',' : '.';
         char group = commaMode ? '.' : ',';
         string cur = currency.Trim();                                 // r2 — argument-2's edge spaces are ignored
-        // §2023:15.68.3 r4f: ANYCASE matches the currency "as if all uppercase letters in argument-1 and in the currency
+        // §2023:15.68.3 AR4f: ANYCASE matches the currency "as if all uppercase letters in argument-1 and in the currency
         // string were replaced by their corresponding lowercase letters as specified in the rules for the LOWER-CASE
         // function without the LOCALE argument" - the ONE fold (CobolLocale.FoldLower, the module's CHARACTER
-        // CLASSIFICATION per §2023:15.57.4 r3 when it has one), applied to the comparison images only: it is
+        // CLASSIFICATION per §2023:15.57.4 RV3 when it has one), applied to the comparison images only: it is
         // length-preserving, so every error position stays ordinal in the ORIGINAL text (kb/Work PB2631 - this
         // site compared through OrdinalIgnoreCase, the UPPERCASE fold, and disagreed with FIND-STRING and SUBSTITUTE).
         string matchText = anycase ? CobolLocale.FoldLower(text, classification) : text;
@@ -656,7 +656,7 @@ public static partial class CobolIntrinsics
         bool anyDigit = false, sawDot = false, leadSign = false, sawCur = false, neg = false, pendingGroup = false;
         bool AtCurrency() => cur.Length > 0 && !sawCur
             && i + cur.Length <= n && string.CompareOrdinal(matchText, i, matchCur, 0, cur.Length) == 0;
-        while (i < n && text[i] == ' ') i++;                          // leading space-string (§2023:15.67.3 r2 — SPACE only)
+        while (i < n && text[i] == ' ') i++;                          // leading space-string (§2023:15.67.3 AR2 — SPACE only)
         if (i < n && text[i] is '+' or '-') { leadSign = true; neg = text[i] == '-'; i++; }   // format-A sign, BEFORE the currency
         while (i < n && text[i] == ' ') i++;
         if (AtCurrency()) { sawCur = true; i += cur.Length; }         // the at-most-once currency, AT ITS r4a POSITION
@@ -673,16 +673,16 @@ public static partial class CobolIntrinsics
                 if (frac >= 0) frac++;
                 continue;
             }
-            // §2023:15.68.3 r4a: a grouping separator is `digit [ , digit ] ...` - admitted only as ", digit", never
+            // §2023:15.68.3 AR4a: a grouping separator is `digit [ , digit ] ...` - admitted only as ", digit", never
             // doubled and never ahead of the decimal separator, a space, a sign or the end of the text
-            // (kb/Work PB2631). Grouping only BEFORE the decimal separator (§2023:15.68.4 r2).
+            // (kb/Work PB2631). Grouping only BEFORE the decimal separator (§2023:15.68.4 RV2).
             if (allowGroup && c == group && !sawDot && anyDigit && !pendingGroup) { pendingGroup = true; continue; }
             if (pendingGroup) break;
             if (c == dec && !sawDot) { sawDot = true; frac = 0; continue; }
             break;
         }
         // A grouping separator no digit followed: the character that is not a digit is the first one in error
-        // (§2023:15.94.4 r1b); text that ends right after the separator is valid-but-incomplete (r1c, LENGTH+1).
+        // (§2023:15.94.4 RV1b); text that ends right after the separator is valid-but-incomplete (r1c, LENGTH+1).
         if (pendingGroup) return new(i < n ? i + 1 : n + 1, false, false, 0, 0);
         // No digit anywhere: a scan that BROKE on a real character reports that character (r1b — e.g. a
         // misplaced sign); a scan that ran off the end with only valid-but-incomplete content (" +.",
@@ -692,9 +692,9 @@ public static partial class CobolIntrinsics
         if (i < n)
         {
             char c = text[i];
-            // Format-B trailing sign / CR / DB (any case, §2023:15.67.3 r1) — only when no leading sign was taken
+            // Format-B trailing sign / CR / DB (any case, §2023:15.67.3 AR1) — only when no leading sign was taken
             // (the two formats are ALTERNATIVES, so a second sign is an ERROR POSITION, never a toggle).
-            // §2023:15.67.4 r2's "contains CR, DB, or the minus sign, the returned value is negative" holds by construction: the one
+            // §2023:15.67.4 RV2's "contains CR, DB, or the minus sign, the returned value is negative" holds by construction: the one
             // sign the format admits decides.
             if (!leadSign && c is '+' or '-') { neg = c == '-'; i++; }
             else if (!leadSign && i + 1 < n
@@ -718,7 +718,7 @@ public static partial class CobolIntrinsics
     /// first digit, and around the exponent parts — and a space may not SPLIT either digit run, the significand's
     /// (r5's except-clause) or the exponent's <c>n</c> (the determination at the exponent loop below); §2023:15.95.4
     /// r1 b) 1 reports the first non-space character following such a space in both.</summary>
-    /// <param name="CapPos">§2023:15.95.4 r1b sub-note 6 (kb/Work PB121): when the scan CONFORMS but the magnitude
+    /// <param name="CapPos">§2023:15.95.4 RV1b sub-note 6 (kb/Work PB121): when the scan CONFORMS but the magnitude
     /// exceeds the standard intermediate data item's capacity for the mode the <c>digitCap</c> encodes
     /// (34 ⇒ standard-decimal, the SDIDI's ±6144 adjusted-exponent range, §2023:8.8.1.5.2 NOTE 2), the 1-based
     /// position of the FIRST DIGIT of the exponent; else 0. A separate field, not an <c>ErrPos</c>, because the
@@ -745,8 +745,8 @@ public static partial class CobolIntrinsics
             char c = text[i];
             if (char.IsAsciiDigit(c))
             {
-                // §2023:15.95.4 r1 b) 1 — the first non-space character following a space embedded in a digit run.
-                // The significand is where §2023:15.69.3 r5's EXCEPT-clause puts it beyond argument; the exponent's
+                // §2023:15.95.4 RV1b 1 — the first non-space character following a space embedded in a digit run.
+                // The significand is where §2023:15.69.3 AR5's EXCEPT-clause puts it beyond argument; the exponent's
                 // run answers the same way, by the determination at the exponent loop below.
                 if (pendingSpace) return new(Pos(), false, false, 0, 0, 0);
                 anyDigit = true;
@@ -779,14 +779,14 @@ public static partial class CobolIntrinsics
             int ed = 0, ev = 0;
             // ⛔ DETERMINATION — A SPACE DOES NOT SPLIT THE EXPONENT'S `n` (kb/Work PB256; the loop is
             // CONTIGUOUS by construction, and that is the recorded reading of a normative tension, not an
-            // oversight). §2023:15.69.3 r5 makes embedded spaces "ignored except between the first numeric digit and
+            // oversight). §2023:15.69.3 AR5 makes embedded spaces "ignored except between the first numeric digit and
             // the last digit that precedes a letter 'E'" — the significand — which read as "elide the space and
-            // JOIN the runs on either side" would make "1E+1 2345" a FIVE-digit exponent, and §2023:15.95.4 r1 b) 5
+            // JOIN the runs on either side" would make "1E+1 2345" a FIVE-digit exponent, and §2023:15.95.4 RV1b 5
             // would then want the position of its fifth digit (9). It does not, on two grounds that agree:
-            //   (a) §2023:15.69.3 r1's figure (printed page 898, rendered — the transcription is faithful) draws `n`
+            //   (a) §2023:15.69.3 AR1's figure (printed page 898, rendered — the transcription is faithful) draws `n`
             //       as ONE contiguous metavariable, "one, two, three, or four digits representing the exponent",
             //       with [ space-string ] only BEFORE and AFTER it. Nothing admits a space inside it.
-            //   (b) §2023:15.95.4 r1 b) 1 governs the case directly and is UNQUALIFIED as to which run: "if one or
+            //   (b) §2023:15.95.4 RV1b 1 governs the case directly and is UNQUALIFIED as to which run: "if one or
             //       more spaces are embedded within a string of numeric characters, the returned value is the
             //       position of the first non-space character following the spaces" — where sub-notes 2, 3 and 4
             //       each say "of the significand" explicitly. The drafters distinguished inside one list, so
@@ -798,13 +798,13 @@ public static partial class CobolIntrinsics
             // and recorded in docs/CONFORMANCE.md §3.
             while (i < n && char.IsAsciiDigit(text[i]))               // n = 1..4 exponent digits
             {
-                if (++ed > 4) return new(Pos(), false, false, 0, 0, 0);   // §2023:15.95.4 r1 b) 5 — the FIFTH digit
+                if (++ed > 4) return new(Pos(), false, false, 0, 0, 0);   // §2023:15.95.4 RV1b 5 — the FIFTH digit
                 if (ed == 1) expDig1 = Pos();
                 ev = ev * 10 + (text[i] - '0');
                 i++;
             }
             // No exponent digit. The spaces after the sign are already consumed, so a remaining character IS a
-            // character in error (§2023:15.95.4 r1 b): "12.34E+AB" → 8, "1E++2" → 4, "1E+ A" → 5 — only text that ENDS
+            // character in error (§2023:15.95.4 RV1b): "12.34E+AB" → 8, "1E++2" → 4, "1E+ A" → 5 — only text that ENDS
             // here is valid-but-incomplete (r1 c: "1E+" → 4, "1E+ " → 5), the same discrimination the significand
             // arm and NvScan make (kb/Work PB121, PB4096).
             if (ed == 0) return new(i < n ? Pos() : n + 1, false, false, 0, 0, 0);
@@ -812,7 +812,7 @@ public static partial class CobolIntrinsics
         }
         while (i < n && text[i] == ' ') i++;                          // trailing spaces (r5)
         if (i != n) return new(Pos(), false, false, 0, 0, 0);         // any leftover char is in error
-        // §2023:15.95.4 r1b.6 (kb/Work PB121): under standard-decimal arithmetic (digitCap 34 — see CapPos) a
+        // §2023:15.95.4 RV1b.6 (kb/Work PB121): under standard-decimal arithmetic (digitCap 34 — see CapPos) a
         // conforming argument whose magnitude exceeds the SDIDI's range flags the exponent's first digit.
         // The most-significant digit's exponent is (digits₁₀(unscaled) − 1) + exp − frac; with ≤34 significand
         // digits the value is representable exactly iff that is ≤ 6144 (§2023:8.8.1.5.2 NOTE 2). Underflow is NOT

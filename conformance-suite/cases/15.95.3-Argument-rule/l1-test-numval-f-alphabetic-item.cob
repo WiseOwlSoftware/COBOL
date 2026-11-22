@@ -5,15 +5,15 @@
 *> portable: unverified
 *>---
 *> kb/Work PB5615: at --std 2002 §2002:8.5.2.1 lets an alphabetic item stand wherever an elementary alphanumeric one is permitted as an operand, so this source is refused at 2014 and 2023 only (the 2002 twins are the pb5615-* cases).
-      *> ISO §2023:15.95.3 r1 — "Argument-1 shall be an alphanumeric or national literal or a data item of class
+      *> ISO §2023:15.95.3 AR1 — "Argument-1 shall be an alphanumeric or national literal or a data item of class
       *> alphanumeric or national."
       *> (cite.py --check 15.95.3 "Argument-1 shall be an alphanumeric or national literal or a data item of
       *> class alphanumeric or national" -> OK, §2023:15.95.3 rule 1.)
       *>
       *> CLASS ALPHABETIC IS A CLASS r1 DOES NOT NAME, and the standard treats it as distinct rather than as
       *> a shade of alphanumeric: §2023:8.5.2.1 Table 2 carries its own "Alphabetic | Alphabetic" row, and
-      *> §2023:15.96.3 r1 (TRIM) shows the drafters writing "class alphabetic, alphanumeric, or national" when
-      *> they mean to include it — §2023:15.95.3 r1 does not. A PIC A(n) item is category alphabetic and
+      *> §2023:15.96.3 AR1 (TRIM) shows the drafters writing "class alphabetic, alphanumeric, or national" when
+      *> they mean to include it — §2023:15.95.3 AR1 does not. A PIC A(n) item is category alphabetic and
       *> therefore class alphabetic, so it is not "a data item of class alphanumeric or national".
       *>
       *> ⛔ THIS WAS AN UNENFORCEABLE EXCLUSION, NOT A FORGOTTEN ONE, AND THAT IS WHY THE FIXTURE MATTERS.

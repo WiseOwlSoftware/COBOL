@@ -36,7 +36,7 @@ internal sealed class ProgramEmitter
     private readonly CallUnitState _callState = new();
     private OoEmitter _oo = null!;
 
-    /// <summary>The WHEN-COMPILED stamp for THIS compilation (§2023:15.99.3 r2 — "the date and time of compilation
+    /// <summary>The WHEN-COMPILED stamp for THIS compilation (§2023:15.99.3 RV2 — "the date and time of compilation
     /// of the compilation unit that contains this function"), captured once per <c>EmitBound</c> through the
     /// injectable <see cref="Binding.Procedure.IntrinsicBinder.CompileClock"/> seam (deep-dive D6) and shared
     /// by every unit of the run unit — contained source units bake the CONTAINING compilation's stamp (r2's
@@ -876,7 +876,7 @@ internal sealed class ProgramEmitter
                 // FUNCTION reference must not see a program). Program lines stay byte-identical.
                 string fnFlag = u.IsFunction ? ", isFunction: true" : "";
                 // PROGRAM-ID/FUNCTION-ID … AS literal (§2023:11.10.4 GR1 / §2023:11.5.4 GR1): the unit registers under BOTH
-                // names — Name for what MODULE-NAME reports (§2023:15.65.4 r4), the externalized one for what
+                // names — Name for what MODULE-NAME reports (§2023:15.65.4 RV4), the externalized one for what
                 // CALL/CANCEL/ENTRY resolve (§2023:14.9.4.4 GR3b → §2023:8.3.2.2). OMITTED when they coincide, so every
                 // AS-less unit's Register line stays byte-identical (kb/Work PB303).
                 string extName = string.Equals(u.ExternalizedName, u.Name, StringComparison.Ordinal)

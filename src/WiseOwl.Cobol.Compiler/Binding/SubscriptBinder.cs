@@ -82,7 +82,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
     /// <remarks>⛔ THE POSITION RIDES THE HOOK (kb/Work PB170/PB172). It used to be <c>Func&lt;string, int,
     /// DataItem?&gt;</c>, so ONE hook served BOTH <see cref="SegmentPosition.Subscript"/> and
     /// <see cref="SegmentPosition.RefMod"/> and the binder hard-coded the index-name window context for both —
-    /// but §2023:13.18.38.3 r7's five contexts list "as a subscript" and do NOT list a reference-modification
+    /// but §2023:13.18.38.3 SR7's five contexts list "as a subscript" and do NOT list a reference-modification
     /// position, so an index-name in a ref-mod bound was wrongly admitted. One hook, two positions, one context
     /// was the defect; the position is now part of the hook's question.</remarks>
     internal Func<Core.ArithmeticExpressionContext, SegmentPosition, int, DataItem?>? MaterializeSegment { get; set; }
@@ -795,7 +795,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
         : new PositionConstant(value);
 
     /// <summary>A screen the fast path OWES once it commits to rendering the segment — either the §2023:8.8.1.1 class
-    /// screen over a resolved item (<see cref="ScreenPositionOperandClass"/>) or the §2023:13.18.38.3 r7 index-name
+    /// screen over a resolved item (<see cref="ScreenPositionOperandClass"/>) or the §2023:13.18.38.3 SR7 index-name
     /// screen (<see cref="IndexNameInPositionError"/>, <c>Item</c> null). Queued rather than emitted so an exit
     /// to D18 later in the token loop cannot leave a diagnostic behind for the D18 route to duplicate — see
     /// <see cref="BindPosition"/>. The third kind (<paramref name="AllZero"/>, <c>Name</c> the operand as written) is the
@@ -964,7 +964,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
         var qualifiers = written.QualifierWords;
         // An index-name is an occurrence number by construction (§2023:13.18.38) and a constant-name substitutes an
         // INTEGER literal — neither can be scaled, so both keep the fast path.
-        // ⛔ BUT ONLY IN THE POSITION r7 LISTS (kb/Work PB170). §2023:13.18.38.3 r7's five contexts include "as a
+        // ⛔ BUT ONLY IN THE POSITION r7 LISTS (kb/Work PB170). §2023:13.18.38.3 SR7's five contexts include "as a
         // subscript" and do NOT include a reference-modification position, and this line returned the index
         // field regardless of `position` — so `W(IX:2)` compiled clean. The R16 screen for exactly this rule
         // already existed (ExpressionBinder.ScreenIndexNameOperand); it simply was not applied here.
@@ -1013,7 +1013,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
         return PositionRead(item, position);
     }
 
-    /// <summary>⛔ §2023:13.18.38.3 r7 AT THE TOKEN RENDERER'S REF-MOD BOUND — <b>ONE RULE, ONE LANE POSTURE, DECIDED
+    /// <summary>⛔ §2023:13.18.38.3 SR7 AT THE TOKEN RENDERER'S REF-MOD BOUND — <b>ONE RULE, ONE LANE POSTURE, DECIDED
     /// BY THE SLOT KIND</b> (kb/Work PB219). r7 is enforced at four sites and they were not all on the same
     /// disposition; the axis that settles each one is what the slot IS, never which route reached it:
     /// <list type="bullet">

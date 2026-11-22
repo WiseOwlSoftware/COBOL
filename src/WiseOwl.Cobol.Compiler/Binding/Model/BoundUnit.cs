@@ -14,7 +14,7 @@ internal sealed class BoundUnit
     /// <summary>program-name-1 / user-function-name-1 as WRITTEN — the declared COBOL name. This is what a
     /// reference by a user-defined WORD resolves against (§2023:10.7.3 SR2's END PROGRAM match, §2023:14.9.4.3 SR15's
     /// AS NESTED literal, <c>FUNCTION user-function-name</c>) and what FUNCTION MODULE-NAME reports
-    /// (CONFORMANCE.md DOC-A.1-135, the §2023:15.65.4 r4 determination). NEVER the AS literal.</summary>
+    /// (CONFORMANCE.md DOC-A.1-135, the §2023:15.65.4 RV4 determination). NEVER the AS literal.</summary>
     public required string Name;
     /// <summary>The name externalized to the operating environment: the <c>AS</c> phrase's literal-1 when the
     /// identification division specifies one, else <see cref="Name"/> (ISO §2023:11.10.4 GR1 "Literal-1, if

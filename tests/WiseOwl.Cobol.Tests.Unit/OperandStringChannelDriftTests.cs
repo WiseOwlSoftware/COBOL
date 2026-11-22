@@ -84,7 +84,7 @@ public sealed class OperandStringChannelDriftTests
     /// agreement. <c>BoundBoolOperand</c> — a boolean EXPRESSION argument, §2023:8.4.3.2.3 SR8 (kb/Work PB65) — images
     /// through the ONE <c>BooleanRenderer</c>, never a local re-derivation and never a loud stage (it was a stage
     /// before the grammar admitted the argument). <c>BoundNumericLiteral</c> is ADMITTED
-    /// PER-FUNCTION since PB59 (§2023:15.12.3 r1 / §2023:15.18.3 r1 admit numeric literals): the arm must stay
+    /// PER-FUNCTION since PB59 (§2023:15.12.3 AR1 / §2023:15.18.3 AR1 admit numeric literals): the arm must stay
     /// CONDITIONAL — <c>admitNumeric</c> selecting the shared OperandText image, <c>Loud</c> as the DEFAULT —
     /// because NUMVAL/NUMVAL-F carry open rows (AR-15.67.3-1 / AR-15.69.3-1) demanding a compile-time
     /// rejection; an unconditional delegation would turn their wrong-stage defect into a silently-wrong one.

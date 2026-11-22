@@ -422,7 +422,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
         : BoundOperandError.Refused(ctx.Edition, role);
 
     /// <summary>A sending data reference, screened for an INDEX-NAME (kb/Work R16): STRING/UNSTRING are none
-    /// of §2023:13.18.38.3 r7's five index-name contexts, and this funnel serves all four sending positions — the
+    /// of §2023:13.18.38.3 SR7's five index-name contexts, and this funnel serves all four sending positions — the
     /// one place, so the diagnostic cannot cover three slots and miss the fourth. Before, the reference
     /// compiled clean and aborted at run time in the string channel.</summary>
     private BoundOperand ScreenedField(Core.DataReferenceContext dref, string role)
@@ -554,7 +554,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
         BoundNumericLiteral => "numeric",
         BoundStringLiteral { Category: PicCategory.Boolean } or BoundAllLiteral { Category: PicCategory.Boolean } => "boolean",
         // ⛔ THE FUNCTION ARM OF THE ALPHABETIC FOLD (kb/Work PB2586): FUNCTION CONCAT over arguments that are all PIC A
-        // returns a value of category ALPHABETIC (§2023:15.18.4 r3), which the model carries as `ResultCategory`
+        // returns a value of category ALPHABETIC (§2023:15.18.4 RV3), which the model carries as `ResultCategory`
         // Alphanumeric plus the `ResultIsAlphabetic` rider — the alphabetic result is none of SR2's two categories.
         BoundComputedOperand { Expr: BoundIntrinsicCall { ResultIsAlphabetic: true } } => "alphabetic",
         // ⛔ A COUNTER REGISTER IS A NUMERIC DATA ITEM (§2023:8.4.3.15.4 GR1 / §2023:8.4.3.14.4 GR1: "of class and category

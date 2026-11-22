@@ -270,7 +270,7 @@ internal sealed class ValueInitializer(EmitContext ctx)
         // ONE choke point, shared with the Tier-B image arm — see InitialStateBackground.
         if (effRaw is not { } raw) return NoValueSeed(item, pic, recipe) ?? pic.DefaultInitializer;
 
-        // A FORMAT-2 (LOCALE) item's numeric VALUE has NO compile-time image — §2023:13.18.40.5 r11 + §2023:14.6.6 r6 make
+        // A FORMAT-2 (LOCALE) item's numeric VALUE has NO compile-time image — §2023:13.18.40.5 GR11 + §2023:14.6.6 GR6 make
         // the locale the one current AT THE TIME of editing — so the initializer is a RUNTIME CobolLocaleEdit
         // call (the ONE producer, RuntimeApi.LocaleEditCompose; PB64 T6). A quoted literal falls through to the
         // verbatim store below (§2023:13.18.63.3 SR7 — the programmer supplies the edited form).

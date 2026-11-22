@@ -1391,14 +1391,14 @@ internal sealed class StatementValidation(DataBinder data)
     // ── Arithmetic composite of operands (ISO §2023:14.7.7 SR2) — lifted at 10e ──────────────────────────────────
 
     /// <summary>The per-edition COMPOSITE-OF-OPERANDS check (ISO §2023:14.7.7 SR2, NATIVE arithmetic, the four
-    /// arithmetic statements ONLY — COMPUTE expressions are explicitly exempt, §2023:8.8.1.2 r7): the hypothetical item
+    /// arithmetic statements ONLY — COMPUTE expressions are explicitly exempt, §2023:8.8.1.2 GR7): the hypothetical item
     /// superimposing the statement's fixed-point operands aligned on their decimal points shall not exceed the
     /// edition's digit cap (18 at COBOL-85, §1985:VI.6.4.4 SR2; 31 from 2002). Float/binary-native operands are excluded
     /// (rule 2b — the composite is then over the remaining operands).</summary>
     public bool CheckComposite(string verb, IEnumerable<BoundExpr> operands, IEnumerable<Receiver> receivers,
         CompositeMembers members = CompositeMembers.AllOperands)
     {
-        if (data.Procedure.Options.Over(data.State.Configuration.Options).Arithmetic != ArithmeticMode.Native) return true;   // §2023:14.7.7 r2 applies to native only
+        if (data.Procedure.Options.Over(data.State.Configuration.Options).Arithmetic != ArithmeticMode.Native) return true;   // §2023:14.7.7 SR2 applies to native only
         int maxInt = 0, maxFrac = 0;
         void Shape(int digits, int scale)
         {
@@ -1415,7 +1415,7 @@ internal sealed class StatementValidation(DataBinder data)
         // §2023:14.9.26.3/§2023:14.9.12.3 SR2 admit it as numeric-edited — requiring Category Numeric silently dropped it.
         // A floating-point-FORM edited mask (IsFloatEdited) is excluded as a DOCUMENTED READING, not rule 2b's
         // text (its list names usages and float literals, never an edited form): the composite is a
-        // superimposition "aligned on their decimal points" (§2023:14.7.7 r2's own definition) and an E-form mask
+        // superimposition "aligned on their decimal points" (§2023:14.7.7 SR2's own definition) and an E-form mask
         // has no fixed decimal point to align — the same property that puts every listed exclusion outside
         // the superimposition. Its DigitPositions is 0 anyway, so inclusion would contribute nothing.
         static bool InComposite(PicInfo p) =>

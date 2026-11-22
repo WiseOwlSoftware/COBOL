@@ -86,7 +86,7 @@ internal sealed class BinderContext(DataBinder data, ReferenceResolver refs)
         Segmentation.ReportProcedures(this, paragraphs);
     }
 
-    /// <summary>The pc whose sentences are being bound (RESUME SR1/SR2 declarative context + the §2023:15.30.3 r2
+    /// <summary>The pc whose sentences are being bound (RESUME SR1/SR2 declarative context + the §2023:15.30.3 RV2
     /// location anchoring; 10r — the host's <c>_currentBindPc</c> relocated). −1 outside the bind loop.</summary>
     public int BindCursor { get; set; } = -1;
 

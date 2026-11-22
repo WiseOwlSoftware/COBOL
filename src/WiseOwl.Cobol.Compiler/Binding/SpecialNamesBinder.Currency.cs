@@ -171,7 +171,7 @@ public sealed partial class SpecialNamesBinder
             if (literal8.Length != 1)
             {
                 Edition.Error(DiagnosticCatalog.CurrencySignClauseForm, "CURRENCY SIGN: the PICTURE SYMBOL literal shall be a single "
-                    + "character (ISO §2023:12.3.7.3 r26)");
+                    + "character (ISO §2023:12.3.7.3 SR26)");
                 return;
             }
             ValidateCurrencyChar(literal8[0], "PICTURE SYMBOL literal");   // r27 — same forbidden set as r22
@@ -191,7 +191,7 @@ public sealed partial class SpecialNamesBinder
         if (bare.Text.Length != 1)
         {
             Edition.Error(DiagnosticCatalog.CurrencySignLiteralRule, $"CURRENCY SIGN \"{bare.Text}\": without PICTURE SYMBOL the literal "
-                + "shall consist of a single character (" + Edition.Edition.CiteRule("§1985:VI.4.5.4 GR11", "§2023:12.3.7.3 r22") + ")");
+                + "shall consist of a single character (" + Edition.Edition.CiteRule("§1985:VI.4.5.4 GR11", "§2023:12.3.7.3 SR22") + ")");
             return;
         }
         ValidateCurrencyChar(bare.Text[0], "CURRENCY SIGN literal");
@@ -205,7 +205,7 @@ public sealed partial class SpecialNamesBinder
         if (literal7.Text.Trim().Length == 0)
         {
             Edition.Error(DiagnosticCatalog.CurrencySignLiteralRule, "CURRENCY SIGN: the currency string shall contain at least one "
-                + "non-space character (ISO §2023:12.3.7.3 r23a)");
+                + "non-space character (ISO §2023:12.3.7.3 SR23a)");
             return false;
         }
         // SR23 b is a compile-time limitation on the characters of a currency string, which SR19's NOTE 1 says
@@ -227,7 +227,7 @@ public sealed partial class SpecialNamesBinder
 
     /// <summary>Bind <paramref name="symbol"/> into the currency set: to <paramref name="definition"/>, or — null — as
     /// the symbol of a clause refused for its currency string (<see cref="CurrencyDefinition.OfRefusedClause"/>, kb/Work
-    /// PB1920), which neither meets nor makes a §2023:12.3.7.3 SR21 conflict and adds no string to §2023:15.68.3 r3's count.</summary>
+    /// PB1920), which neither meets nor makes a §2023:12.3.7.3 SR21 conflict and adds no string to §2023:15.68.3 AR3's count.</summary>
     private void RegisterCurrency(char symbol, CurrencyDefinition? definition)
     {
         // THE KEY IS THE IMPLEMENTOR'S DETERMINATION: §2023:12.3.7.3 SR20 leaves "any equivalence between that character and any
@@ -253,7 +253,7 @@ public sealed partial class SpecialNamesBinder
         {
             Edition.Error(DiagnosticCatalog.CurrencySymbolRule, $"CURRENCY SIGN: the symbol '{symbol}' is already bound to "
                 + $"{(bound.LiteralClass is LiteralClass.National ? "national " : "")}\"{bound.Text}\" "
-                + $"(ISO §2023:12.3.7.3 r21; SR28)");
+                + $"(ISO §2023:12.3.7.3 SR21; SR28)");
             return;
         }
         Cfg.DeclaredCurrencySigns[key] = defined;
@@ -287,7 +287,7 @@ public sealed partial class SpecialNamesBinder
     {
         get
         {
-            const string y2002 = "§2002:12.2.6.2 SR20b", from2014 = "§2023:12.3.7.3 r23b";
+            const string y2002 = "§2002:12.2.6.2 SR20b", from2014 = "§2023:12.3.7.3 SR23b";
             return Edition.Edition.Cite(y2002, from2014, y2002, from2014);
         }
     }

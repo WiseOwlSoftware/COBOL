@@ -57,7 +57,7 @@ internal static class FunctionValueLane
     /// <summary>The native SDIDI bodies whose value <c>IntrinsicRenderer.RenderDec</c> returns as an EXACT scale-0 value
     /// rather than on the SDIDI: SIGN reads an SDIDI argument and returns +1, 0 or -1 (§2023:15.81.1), and ORD-MAX / ORD-MIN
     /// compare on the SDIDI and return "the ordinal number that corresponds to the position of the argument-1 having the
-    /// greatest [least] value" (§2023:15.71.4 r1 / §2023:15.72.4 r1). That value is an ordinary scaled integer, so a function above
+    /// greatest [least] value" (§2023:15.71.4 RV1 / §2023:15.72.4 RV1). That value is an ordinary scaled integer, so a function above
     /// one reads it as an exact operand (<see cref="CarrierKind.Fixed"/>). <c>FunctionValueLaneDriftTests</c> derives this set from
     /// the renderer's switch (the native arms built as <c>new NumX(...)</c>).</summary>
     internal static readonly FrozenSet<string> NativeSdidiBodiesWithExactResult = new[]
@@ -70,7 +70,7 @@ internal static class FunctionValueLane
     /// MIDRANGE, which return an exact value so that a binary64 argument a nested selection handed them can make the value a binary64's
     /// content (<c>CobolIntrinsics.TryBinary64Body</c>, kb/Work PB4923), VARIANCE, STANDARD-DEVIATION, ANNUITY and PRESENT-VALUE, which do the same
     /// for the same reason (kb/Work PB4979), and MAX / MIN / MEDIAN, which return "the content of the argument"
-    /// selected (§2023:15.59.4 r1 / §2023:15.63.4 r1 / §2023:15.61.1) as the exact value it is, whole (kb/Work PB4730). They are predicted
+    /// selected (§2023:15.59.4 RV1 / §2023:15.63.4 RV1 / §2023:15.61.1) as the exact value it is, whole (kb/Work PB4730). They are predicted
     /// as the SDIDI (<see cref="CarrierKind.Dec"/>) because that is how the function above one receives them: ANNUITY (MEDIAN (T (ALL)) 3)
     /// computes on the SDIDI and returns its exact value, and a prediction of <see cref="CarrierKind.Fixed"/> sent the same call to a
     /// COMP-2 intermediate in a multi-receiver MOVE (kb/Work PB4980; §2023:15.4.1: "the returned value is the same for all instances of
@@ -83,11 +83,11 @@ internal static class FunctionValueLane
 
     /// <summary>The pure selections, which a MIXED list takes onto the SDIDI under native arithmetic so the compared and
     /// selected argument keeps its own carrier: MAX / MIN return "the content of the argument-1 having the greatest
-    /// [least] value" (§2023:15.59.4 r1 / §2023:15.63.4 r1), ORD-MAX / ORD-MIN "the ordinal number that corresponds to the position
-    /// of the argument-1 having the greatest [least] value" (§2023:15.71.4 r1 / §2023:15.72.4 r1), and MEDIAN over an odd count the
-    /// middle argument (§2023:15.61.1 "returns the content of the argument whose value is the middle value"; §2023:15.61.4 r2 makes
+    /// [least] value" (§2023:15.59.4 RV1 / §2023:15.63.4 RV1), ORD-MAX / ORD-MIN "the ordinal number that corresponds to the position
+    /// of the argument-1 having the greatest [least] value" (§2023:15.71.4 RV1 / §2023:15.72.4 RV1), and MEDIAN over an odd count the
+    /// middle argument (§2023:15.61.1 "returns the content of the argument whose value is the middle value"; §2023:15.61.4 RV2 makes
     /// an even count the arithmetic mean of the two middle values, which is not a selection). Every comparison is made
-    /// "according to the rules for simple conditions" (§2023:15.59.4 r1 / §2023:15.63.4 r1 / §2023:15.71.4 r2 / §2023:15.72.4 r2 / §2023:15.61.4 r3).</summary>
+    /// "according to the rules for simple conditions" (§2023:15.59.4 RV1 / §2023:15.63.4 RV1 / §2023:15.71.4 RV2 / §2023:15.72.4 RV2 / §2023:15.61.4 RV3).</summary>
     private static readonly FrozenSet<string> Selections = new[]
     {
         "MaxScaled", "MinScaled", "OrdMax", "OrdMin", "MedianScaled",

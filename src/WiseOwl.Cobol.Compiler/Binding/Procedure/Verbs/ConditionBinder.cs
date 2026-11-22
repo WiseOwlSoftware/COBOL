@@ -865,7 +865,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// the abbreviation <paramref name="carry"/> through every operand in SOURCE ORDER so a later abbreviated relation
     /// sees the subject / operator an earlier one established. A lone operand returns its own condition (no wrapper).
     /// A user-function reference in a NON-FIRST operand of an AND/OR chain is CONDITIONALLY evaluated
-    /// (§2023:8.8.4.13 r1 — evaluation stops when the hierarchical level's truth value is determined; r2 — functions
+    /// (§2023:8.8.4.13 GR1 — evaluation stops when the hierarchical level's truth value is determined; r2 — functions
     /// are evaluated "if and when the conditions containing them are evaluated"), so that operand's activations
     /// attach to the operand itself (<c>UdfAttachPerEvaluation</c>) and run only when C#'s matching
     /// short-circuit reaches it. The FIRST operand always evaluates — its activations stay statement-hoisted
@@ -1641,7 +1641,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     }
 
     /// <summary>The three shapes in which a BARE operand IS itself a complete condition — a level-88
-    /// condition-name (§2023:8.8.4.2.7 r2), a switch-status condition-name (§2023:8.8.4.6), or a simple boolean condition over
+    /// condition-name (§2023:8.8.4.2.7 GR2), a switch-status condition-name (§2023:8.8.4.6), or a simple boolean condition over
     /// a length-1 boolean item/literal (§2023:8.8.4.3) — or <c>null</c> when the operand is a plain VALUE. The
     /// resolution is <see cref="AnalyzeBareOperand"/>'s; this is the arm that WRAPS a boolean expression as the
     /// §2023:8.8.4.3 condition, which is where that clause's SR1 length screen belongs.</summary>

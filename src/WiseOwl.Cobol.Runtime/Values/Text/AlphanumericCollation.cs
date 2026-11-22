@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// keeping two copies of it is what let the alphanumeric arm drift to a 256-entry Latin-1 block that masked every
 /// operand with <c>&amp; 0xFF</c> (kb/Work PB770 leg f — <c>ALPHABET A IS 305 THRU 300</c> silently reversed
 /// <c>'+'</c>…<c>'0'</c>).
-/// <para>The compiler emits one instance per program as <c>__COLLATE</c>; CHAR (§2023:15.15.4), ORD (§2023:15.70.4 r1),
+/// <para>The compiler emits one instance per program as <c>__COLLATE</c>; CHAR (§2023:15.15.4), ORD (§2023:15.70.4 RV1),
 /// relations (§2023:8.8.4.2.7), SORT/MERGE keys (§2023:14.9.40.4 GR5), indexed keys (§2023:12.4.5.7) and MAX/MIN read it
 /// through the ONE <see cref="CobolCollation"/> carrier.</para>
 /// </summary>
@@ -18,7 +18,7 @@ public sealed class AlphanumericCollation : LiteralPhraseCollation
 {
     /// <param name="codes">The specified code units, sorted ascending by code.</param>
     /// <param name="positions">Parallel to <paramref name="codes"/>: each specified code's 0-based position.</param>
-    /// <param name="repByPos">Per specified position: the FIRST character defined there (§2023:15.15.4 r2 / GR7 k6).</param>
+    /// <param name="repByPos">Per specified position: the FIRST character defined there (§2023:15.15.4 RV2 / GR7 k6).</param>
     /// <param name="nextFree">The first position after the specified block (§2023:12.3.7.4 GR7 k3).</param>
     /// <param name="highValue">The sequence's HIGH-VALUE character (§2023:12.3.7.4 GR8, binder-computed).</param>
     /// <param name="lowValue">The sequence's LOW-VALUE character (§2023:12.3.7.4 GR9).</param>

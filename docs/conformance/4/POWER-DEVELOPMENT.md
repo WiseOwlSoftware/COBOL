@@ -1,7 +1,7 @@
 ---
 order: 12
 ---
-> ⚖ **DETERMINATION — the §2023:8.8.1.5.4 r2e development of a non-integer (and past-loop-bound integer) power**
+> ⚖ **DETERMINATION — the §2023:8.8.1.5.4 GR2e development of a non-integer (and past-loop-bound integer) power**
 > (2026-08-29, REPLACED 2026-08-31 by owner decision D-C; kb/Work PB145 + PB167). r2e leaves the equivalent
 > arithmetic expression to the implementor and constrains the DEVELOPMENT: "Operands used in the development of
 > that value shall be in SDIDI form. All additions, subtractions, multiplications and divisions performed in the
@@ -12,7 +12,7 @@ order: 12
 > square roots to m^(1/8) away from 1, and ln(1+δ) over δ = m − 1 directly inside |m − 1| ≤ ¼, where the roots
 > would cancel the difference away; the exp reduction takes out `n × ln 10` so the `10^n` factor is an EXACT
 > decimal exponent shift, then runs the Taylor series). **One chosen special case: at operand-2 = ½ the
-> equivalent expression is `FUNCTION SQRT(operand-1)`**, whose standard-decimal value §2023:15.84.4 r2 fixes EXACTLY —
+> equivalent expression is `FUNCTION SQRT(operand-1)`**, whose standard-decimal value §2023:15.84.4 RV2 fixes EXACTLY —
 > so `b ** 0.5` and `FUNCTION SQRT(b)` agree digit-for-digit by construction rather than by luck. They disagreed
 > before, from the 17th significant digit.
 > ⛔ **r3 IS NOT PART OF THAT LATITUDE AND IS WRITTEN ONCE.** r2's latitude is scoped "When the value of
@@ -39,7 +39,7 @@ order: 12
 > 1.0010005. The δ arm removes it — the same three cases now measure 32.4, 29.1 and 33.2 — so the near-unit
 > driver is gone rather than reduced, and only the |operand-2 × ln operand-1| one remains.
 > The range dispositions PB145 established are unchanged: the out-of-decimal128 directions carry their own
-> §2023:8.8.1.5.2 r2 names (too large = EC-SIZE-OVERFLOW, too small = EC-SIZE-UNDERFLOW), and no SDIDI-range operand
+> §2023:8.8.1.5.2 GR2 names (too large = EC-SIZE-OVERFLOW, too small = EC-SIZE-UNDERFLOW), and no SDIDI-range operand
 > collapses to a silent zero or raises a spurious range error. The past-loop-bound INTEGER escape now enters the
 > SAME development — it used to be a SECOND, different binary64 one, which also dropped the sign of a negative
 > base raised to an odd exponent — **with the exponent OPERAND, never the loop-bound probe.** That probe clamps

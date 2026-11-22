@@ -208,7 +208,7 @@ internal static class RuntimeApi
         $"{nameof(FunctionValueField)}.{nameof(FunctionValueField.OfFloatItem)}({exactValue}, {profile}, {image}, {bytes})";
 
     /// <summary>The length of a <c>FunctionValueField</c> expression - what FUNCTION LENGTH (positions, §2023:15.50.4) or, with
-    /// <paramref name="bytes"/>, FUNCTION BYTE-LENGTH (§2023:15.14.4 r1) of a numeric or integer function call answers (kb/Work PB3951).</summary>
+    /// <paramref name="bytes"/>, FUNCTION BYTE-LENGTH (§2023:15.14.4 RV1) of a numeric or integer function call answers (kb/Work PB3951).</summary>
     public static string FunctionFieldLength(string field, bool bytes) =>
         $"({field}).{(bytes ? nameof(FunctionValueField.ByteLength) : nameof(FunctionValueField.Length))}";
 
@@ -480,10 +480,10 @@ internal static class RuntimeApi
     /// (<paramref name="alignedFixed"/> — the caller's rescale, which a floating-point form never needs).</summary>
     public static string EditFormatFor(PicInfo pic, Emit.NumX value, string alignedFixed, string alignedScale, string cfgArgs)
     {
-        // A format-2 (LOCALE) receiver edits through CobolLocaleEdit (§2023:13.18.40.5 r9–r15; PB64 T6) — the arm
+        // A format-2 (LOCALE) receiver edits through CobolLocaleEdit (§2023:13.18.40.5 GR9–r15; PB64 T6) — the arm
         // sits FIRST because a locale item has NO EditMask and the deref below is reachable-null for it. Its
         // cfgArgs carry at most the blankWhenZero: flag — EmitContext.EditCfg produces "" for a locale item
-        // (no currencyString:, no commaMode: — §2023:13.18.40.5 r9 / §2023:12.3.7.4 GR14) and EditsArg "" (no EDITING).
+        // (no currencyString:, no commaMode: — §2023:13.18.40.5 GR9 / §2023:12.3.7.4 GR14) and EditsArg "" (no EDITING).
         if (pic.LocaleEdit is { } le)
             return $"{nameof(CobolLocaleEdit)}.{nameof(CobolLocaleEdit.Format)}({alignedFixed}, {alignedScale}, "
                 + $"{Emit.EmitText.CsLiteral(le.Picture)}, {LocaleTagArg(le.Locale)}, {le.Size}{cfgArgs})";
@@ -530,13 +530,13 @@ internal static class RuntimeApi
 
     /// <summary>A locale-name reference rendered for a runtime call: the L1-normalized tag as a string literal,
     /// or <c>null</c> for the current-locale form (the runtime resolves the category's current locale at use —
-    /// §2023:13.18.40.5 r11 / §2023:14.6.6 r6). The ONE renderer of a <see cref="Binding.Model.LocaleRef"/> argument.</summary>
+    /// §2023:13.18.40.5 GR11 / §2023:14.6.6 GR6). The ONE renderer of a <see cref="Binding.Model.LocaleRef"/> argument.</summary>
     public static string LocaleTagArg(Binding.Model.LocaleRef locale) =>
         locale.Tag is { } t ? Emit.EmitText.CsLiteral(t) : "null";
 
     /// <summary>The format-2 (LOCALE) receiver's ARITHMETIC store (§2023:14.7.5 — false = the size error condition,
     /// receiver unchanged; the capacity is the picture's integer digit positions, DISTINCT from EC-LOCALE-SIZE,
-    /// which is §2023:13.18.40.5 r14 b's character-truncation condition inside the edit itself):
+    /// which is §2023:13.18.40.5 GR14 b's character-truncation condition inside the edit itself):
     /// <c>CobolLocaleEdit.TryFormat</c>. The EditTryFormatFloat shape.</summary>
     public static string EditTryFormatLocale(PicInfo pic, string alignedFixed, string alignedScale, string imgVar, string cfgArgs)
     {
@@ -545,7 +545,7 @@ internal static class RuntimeApi
             + $"{Emit.EmitText.CsLiteral(le.Picture)}, {LocaleTagArg(le.Locale)}, {le.Size}, out var {imgVar}{cfgArgs})";
     }
 
-    /// <summary>A format-2 (LOCALE) sender's DE-EDIT read (§2023:14.9.25.4 GR5/GR6 d over §2023:14.6.13.2 r4) — the
+    /// <summary>A format-2 (LOCALE) sender's DE-EDIT read (§2023:14.9.25.4 GR5/GR6 d over §2023:14.6.13.2 GR4) — the
     /// <c>CobolLocaleEdit.DeEdit</c> call under the locale current NOW; the scale is the picture's.</summary>
     public static string LocaleDeEdit(PicInfo pic, string read, bool blankWhenZero)
     {
@@ -555,7 +555,7 @@ internal static class RuntimeApi
     }
 
     /// <summary>A format-2 (LOCALE) item's VALUE-clause initializer — a RUNTIME <c>CobolLocaleEdit.Format</c>
-    /// call, never a baked image: §2023:13.18.40.5 r11 + §2023:14.6.6 r6 make the locale the one current AT THE TIME of
+    /// call, never a baked image: §2023:13.18.40.5 GR11 + §2023:14.6.6 GR6 make the locale the one current AT THE TIME of
     /// editing, so no compile-time image exists. The ONE producer for the field initializer, the group-image
     /// composer and the level-88 membership value.</summary>
     public static string LocaleEditCompose(PicInfo pic, Int128 unscaled, int scale, bool blankWhenZero)
@@ -589,7 +589,7 @@ internal static class RuntimeApi
         return $"{nameof(CobolEdit)}.{tryName}({args}, {Emit.EmitText.CsLiteral(pic.EditMask!)}, out var {imgVar}, {RoundingText(mode)}{cfgArgs})";
     }
 
-    /// <summary>A floating-point literal as the EXACT standard-decimal operand (ISO §2023:8.8.1.5.2 r1 — the literal's
+    /// <summary>A floating-point literal as the EXACT standard-decimal operand (ISO §2023:8.8.1.5.2 GR1 — the literal's
     /// value, significand × 10^exponent, lifted through the ONE range-checking funnel <c>CobolDec.FromParsed</c>; a
     /// 35/36-digit significand rounds to decimal128's 34 under the intermediate rounding mode). Under STANDARD-DECIMAL
     /// arithmetic this replaces the binary64 form a floating literal takes natively (D16), so a 20-digit significand or
@@ -1148,10 +1148,10 @@ internal static class RuntimeApi
     public static string FunctionFieldOfExact(string exact, string mode) =>
         $"{nameof(FunctionValueField)}.{nameof(FunctionValueField.OfExact)}({exact}, {mode})";
 
-    /// <summary>The exact §2023:15.27.3 r3 FUNCTION E constant under a standard mode — <c>CobolDec.E</c> (kb/Work R18).</summary>
+    /// <summary>The exact §2023:15.27.3 RV3 FUNCTION E constant under a standard mode — <c>CobolDec.E</c> (kb/Work R18).</summary>
     public static string DecE => $"{nameof(CobolDec)}.{nameof(CobolDec.E)}";
 
-    /// <summary>The exact §2023:15.73.3 r3 FUNCTION PI constant under a standard mode — <c>CobolDec.Pi</c> (kb/Work R18).</summary>
+    /// <summary>The exact §2023:15.73.3 RV3 FUNCTION PI constant under a standard mode — <c>CobolDec.Pi</c> (kb/Work R18).</summary>
     public static string DecPi => $"{nameof(CobolDec)}.{nameof(CobolDec.Pi)}";
 
     /// <summary>An exact fixed-point value lifted into SDIDI form — <c>CobolDec.From(unscaled, scale)</c>.</summary>
@@ -1160,7 +1160,7 @@ internal static class RuntimeApi
 
     /// <summary>A fixed-point value of UNBOUNDED width lifted into SDIDI form as a STANDARD-DECIMAL operand —
     /// <c>CobolDec.FromParsed(unscaled, -scale, mode)</c>, which rounds a significand past the SDIDI's 34 digits under
-    /// the INTERMEDIATE ROUNDING mode (ISO §2023:8.8.1.5.2 r1; kb/Work PB2918). <see cref="DecFrom"/> is the exact lift for
+    /// the INTERMEDIATE ROUNDING mode (ISO §2023:8.8.1.5.2 GR1; kb/Work PB2918). <see cref="DecFrom"/> is the exact lift for
     /// an operand proven to fit.</summary>
     public static string DecLiftRounded(string unscaled, int scale, string modeExpr) =>
         $"{nameof(CobolDec)}.{nameof(CobolDec.FromParsed)}({unscaled}, {-scale}, {modeExpr})";
@@ -1187,7 +1187,7 @@ internal static class RuntimeApi
 
     /// <summary>The §2023:8.8.1.5.1 implementor-defined float→SDIDI conversion of a floating-point DATA ITEM's value -
     /// <c>CobolDec.FromBinary64</c>: the binary64's exact value rounded once to 34 digits under the INTERMEDIATE
-    /// ROUNDING mode (§2023:8.8.1.5.2 r1; kb/Work PB1606).</summary>
+    /// ROUNDING mode (§2023:8.8.1.5.2 GR1; kb/Work PB1606).</summary>
     public static string DecFromBinary64(string doubleExpr, string modeExpr) =>
         $"{nameof(CobolDec)}.{nameof(CobolDec.FromBinary64)}({doubleExpr}, {modeExpr})";
 
@@ -1273,7 +1273,7 @@ internal static class RuntimeApi
     /// <summary>A floating-point intermediate landed to a scaled integer at a target fraction scale for a STORE — the
     /// CHECKED <c>CobolFloat.ToScaled</c> (RAISES the size error past the carrier — an ON SIZE ERROR / EC-SIZE
     /// store; never a saturated sentinel, kb/Work PB2967) or the UNCHECKED <c>CobolFloat.ToScaledUnchecked</c> (the
-    /// low-order digits — a MOVE, §2023:14.6.8.2 r4; the no-phrase store; INVOKE BY CONTENT). The caller names the LANDING
+    /// low-order digits — a MOVE, §2023:14.6.8.2 GR4; the no-phrase store; INVOKE BY CONTENT). The caller names the LANDING
     /// (kb/Work PB77) — there is no default, so a new site has to say which store it is. An INTERMEDIATE consumer
     /// (no store, no capacity check) takes <see cref="FloatToScaledIntermediate"/>.
     /// <para>⛔ <paramref name="approximation"/> IS THE VALUE'S KIND, AND THERE IS NO DEFAULT FOR THE SAME REASON (kb/Work
@@ -1845,7 +1845,7 @@ internal static class RuntimeApi
     public static string FileRegisterRecordSelector(string name, string lambdaHeader) =>
         $"{nameof(CobolFile)}.{nameof(CobolFile.RegisterRecordSelector)}({name}, {lambdaHeader}";
 
-    /// <summary>The SELECT-spelled file-name (ISO §2023:15.28.4 r1c/r2b — kb/Work PB63) as the registration's trailing
+    /// <summary>The SELECT-spelled file-name (ISO §2023:15.28.4 RV1c/r2b — kb/Work PB63) as the registration's trailing
     /// named argument; empty when the caller has none.</summary>
     private static string SelectNameArg(string? selectName) => selectName is null ? "" : $", selectName: {selectName}";
 
@@ -2290,7 +2290,7 @@ internal static class RuntimeApi
 
     /// <summary>Initialize the per-SD store — <c>CobolSort.Init</c> — with the statement's key descriptors (the store
     /// orders runs while the release phase fills its memory limit, kb/Work PB3339) and its two collating sequences,
-    /// snapshotted at statement start (ISO §2023:14.6.6 r5: a locale switch during the SORT/MERGE has no effect on them).</summary>
+    /// snapshotted at statement start (ISO §2023:14.6.6 GR5: a locale switch during the SORT/MERGE has no effect on them).</summary>
     public static string SortInit(string sd, string keys, string weights, string natWeights) =>
         $"{nameof(CobolSort)}.{nameof(CobolSort.Init)}({sd}, {keys}, {weights}, {natWeights})";
 
@@ -3408,7 +3408,7 @@ internal static class RuntimeApi
         + $".{nameof(Runtime.Exceptions.ExceptionState.ExceptionObject)}";
 
     /// <summary>The run unit's module stack, resolved once per activation — <c>CobolModule.Stack</c>. A METHOD
-    /// activation pushes its frame through it INSIDE the method body (ISO §2023:15.65.4 r5 — "This may be by a CALL
+    /// activation pushes its frame through it INSIDE the method body (ISO §2023:15.65.4 RV5 — "This may be by a CALL
     /// statement, an INVOKE statement, a function reference, or an inline invocation"; fix-queue PB36), never at
     /// an INVOKE site, because a method is reached by several paths — a typed direct call, the universal
     /// <c>__CobolInvoke</c> switch, an inline invocation.</summary>
@@ -3438,7 +3438,7 @@ internal static class RuntimeApi
         $"{nameof(CobolEdit)}.{nameof(CobolEdit.TruncateToFloatShape)}({quotient}, {Emit.EmitText.CsLiteral(pic.EditMask!)}{cfgArgs})";
 
     /// <summary>The COMPILE-TIME WHEN-COMPILED stamp format (a typed passthrough like <see cref="EditCompose"/>):
-    /// the §2023:15.99.3 r2 compilation timestamp is baked as a constant with the SAME runtime formatter the
+    /// the §2023:15.99.3 RV2 compilation timestamp is baked as a constant with the SAME runtime formatter the
     /// generated CURRENT-DATE call uses.</summary>
     public static string DateFormat21(DateTimeOffset t) => CobolDate.Format21(t);
 

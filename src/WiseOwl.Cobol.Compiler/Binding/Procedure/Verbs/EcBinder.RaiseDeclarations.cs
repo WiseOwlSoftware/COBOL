@@ -317,8 +317,8 @@ internal sealed partial class EcBinder
         // REFERENCE — "If the evaluation of an argument results in an incorrect value for that argument or for the
         // returned value according to the rules specified in the function definition … the EC-ARGUMENT-FUNCTION exception
         // condition is set to exist" — with no statement-kind qualification, and the families that ride the same inline
-        // intrinsic call are the same shape: EC-ORDER-NOT-SUPPORTED (fatal, §2023:15.85.4 r2 — FUNCTION STANDARD-COMPARE),
-        // EC-DATA-CONVERSION (nonfatal, §2023:15.19.4 r1/r3 — FUNCTION CONVERT's substitution character) and EC-LOCALE-INVALID
+        // intrinsic call are the same shape: EC-ORDER-NOT-SUPPORTED (fatal, §2023:15.85.4 RV2 — FUNCTION STANDARD-COMPARE),
+        // EC-DATA-CONVERSION (nonfatal, §2023:15.19.4 RV1/r3 — FUNCTION CONVERT's substitution character) and EC-LOCALE-INVALID
         // (§2023:8.2.1 — the LOCALE intrinsics over incomplete locale content). The intrinsic renders inline inside an
         // arbitrary expression, so the statement's guard wraps the STATEMENT and the raise site consults the flag; a guard
         // around a statement whose argument is valid is a no-op.
@@ -380,7 +380,7 @@ internal sealed partial class EcBinder
         // (§2023:12.3.6.4 GR7b) is not an intrinsic-bearing statement and can raise it at use (LocaleFacts.Require), as can a
         // case function without a phrase (GR7a). The intrinsic-bearing arm is an OperandRaises row.
         new("EC-LOCALE-INVALID", NeedsLocaleClassification: true),
-        // EC-LOCALE-SIZE (§2023:13.18.40.5 r14 b; PB64 T6 — the ONE raise site is CobolLocaleEdit.Format's move of the
+        // EC-LOCALE-SIZE (§2023:13.18.40.5 GR14 b; PB64 T6 — the ONE raise site is CobolLocaleEdit.Format's move of the
         // hypothetical item into the SIZE-declared item): any statement that stores into a format-2 item can raise it.
         new("EC-LOCALE-SIZE"),
         // EC-DATA-CONVERSION also rides ANY statement (nonfatal; DOC-A.1-31/-33/-46, kb/Work PB547): an alphanumeric item

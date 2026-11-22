@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:15.40.4 r2 and r3 - the two ZONE rules, run over the SAME
+      *> ISO §2023:15.40.4 RV2 and r3 - the two ZONE rules, run over the SAME
       *> three argument values so that the only variable is the format.
       *>   r2: "If the format in argument-1 indicates that the returned value
       *>       is to be expressed in UTC, the time portion of the returned
@@ -84,7 +84,7 @@
            MOVE FUNCTION FORMATTED-DATETIME("YYYYMMDDThhmmss+hhmm"
                D S -345) TO R
            DISPLAY "OFF-M345=" R
-      *> §2023:15.40.3 r5's boundary, both signs - legal, and its NOTE's 23h59m.
+      *> §2023:15.40.3 AR5's boundary, both signs - legal, and its NOTE's 23h59m.
            MOVE FUNCTION FORMATTED-DATETIME("YYYYMMDDThhmmss+hhmm"
                D S 1439) TO R
            DISPLAY "OFF-PMAX=" R

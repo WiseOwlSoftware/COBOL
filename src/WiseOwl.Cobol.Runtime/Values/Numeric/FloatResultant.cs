@@ -157,7 +157,7 @@ public static class FloatResultant
     };
 
     /// <summary>Whether a checked store commits: never on an overflow (§2023:14.7.5 case 3), and under PROHIBITED only
-    /// when the value was representable exactly (§2023:14.7.4.3 r7).</summary>
+    /// when the value was representable exactly (§2023:14.7.4.3 GR7).</summary>
     private static bool Admits(Outcome o, CobolRounding mode) =>
         o == Outcome.Exact || (o == Outcome.Rounded && mode != CobolRounding.Prohibited);
 

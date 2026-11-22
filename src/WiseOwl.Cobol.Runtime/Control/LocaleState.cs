@@ -66,7 +66,7 @@ public sealed record LocaleValue(string Collate, string Ctype, string Messages, 
     };
 
     /// <summary>This value with the categories in <paramref name="categories"/> taken from <paramref name="from"/>
-    /// (§2023:14.6.6 r3: "the current locale remains unchanged for categories that are not switched").</summary>
+    /// (§2023:14.6.6 GR3: "the current locale remains unchanged for categories that are not switched").</summary>
     public LocaleValue With(LocaleCategorySet categories, LocaleValue from) => new(
         categories.HasFlag(LocaleCategorySet.Collate) ? from.Collate : Collate,
         categories.HasFlag(LocaleCategorySet.Ctype) ? from.Ctype : Ctype,
@@ -158,7 +158,7 @@ public static class LocaleIdentification
 /// The run unit's LOCALE state (DESIGN-locale-facility §4.3; ISO §2023:8.2.1 "the current locale", §2023:14.6.6): the two
 /// implementor defaults, the locale currently in effect per category, and the saved-locale handles of SET format 12.
 /// Owned by <see cref="RunUnit"/> — one per run unit, established at activation, NEVER per activation frame:
-/// §2023:14.6.6 r9 — "Upon return of control from another COBOL runtime element, the locale in effect for each locale
+/// §2023:14.6.6 GR9 — "Upon return of control from another COBOL runtime element, the locale in effect for each locale
 /// category at the time of exit from the returning runtime element becomes the current locale for that category" —
 /// so a callee's SET is not unwound (the callee restores, per the NOTE). Nothing else may hold current-locale state
 /// (one mechanism; <c>LocaleManager</c> and the <c>IS LOCALE</c> collating sequence read THIS).
@@ -194,7 +194,7 @@ public sealed class LocaleState
     {
         UserDefault = LocaleValue.Of(Determine(UserDefaultVariable, () => CultureInfo.CurrentCulture));
         SystemDefault = LocaleValue.Of(Determine(SystemDefaultVariable, () => CultureInfo.InstalledUICulture));
-        _current = UserDefault;   // §2023:14.6.6 r1 — the user default becomes the current locale for all categories
+        _current = UserDefault;   // §2023:14.6.6 GR1 — the user default becomes the current locale for all categories
     }
 
     /// <summary>The user default locale (L2), fixed at run-unit activation unless a SET LOCALE USER-DEFAULT TO …

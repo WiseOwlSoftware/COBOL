@@ -573,7 +573,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>An INDEX-NAME among Format 10's receiving operands is a CATEGORY error, not an undefined name
     /// (kb/Work PB388): <c>ctx.Refs.Resolve</c> answers for a DATA ITEM only and would report COBOL1639 on a
-    /// name an INDEXED BY phrase legally declares. §2023:13.18.38.3 r7 closes the list of contexts that may reference
+    /// name an INDEXED BY phrase legally declares. §2023:13.18.38.3 SR7 closes the list of contexts that may reference
     /// an index-name and SET Format 1/2 is one of them — so the statement is still refused, for the real
     /// reason.</summary>
     private bool SetIndexNameOperand(Core.DataReferenceContext dref)

@@ -32,13 +32,13 @@ public abstract class CobolCollation
     /// the sequence), the locale arm truncates trailing spaces (§2023:8.8.4.2.11) — so a caller never pads or trims.</summary>
     public abstract int Compare(string? left, string? right);
 
-    /// <summary>The 0-based collating position of <paramref name="c"/> — the ORD arithmetic (§2023:15.70.4 r1).</summary>
+    /// <summary>The 0-based collating position of <paramref name="c"/> — the ORD arithmetic (§2023:15.70.4 RV1).</summary>
     public abstract int Weight(char c);
 
-    /// <summary>The number of collating positions the sequence defines (§2023:15.15.3 r2's domain bound for CHAR).</summary>
+    /// <summary>The number of collating positions the sequence defines (§2023:15.15.3 AR2's domain bound for CHAR).</summary>
     public abstract int PositionCount { get; }
 
-    /// <summary>The character at 0-based <paramref name="position"/> — the CHAR inverse (§2023:15.15.4 r2: the FIRST
+    /// <summary>The character at 0-based <paramref name="position"/> — the CHAR inverse (§2023:15.15.4 RV2: the FIRST
     /// character defined for a shared position), or −1 outside the sequence.</summary>
     public abstract int CharAt(long position);
 
@@ -92,7 +92,7 @@ public abstract class CobolCollation
     /// null when <see cref="SupportsKeys"/> is false. Keys of one sequence order exactly as <see cref="Compare"/>.</summary>
     public virtual Collation.CollationKey? KeyOf(string? value) => null;
 
-    /// <summary>This sequence frozen for one statement or one open file (ISO §2023:14.6.6 r5 — a SORT/MERGE keeps the
+    /// <summary>This sequence frozen for one statement or one open file (ISO §2023:14.6.6 GR5 — a SORT/MERGE keeps the
     /// collating sequence in effect when it began; a locale switch during its execution has no effect on it — and
     /// §2023:12.4.5.7.4 GR1, an indexed file's key sequence is a fixed file attribute): a table sequence is already immutable
     /// and returns itself; a LOCALE sequence returns itself bound to the locale current NOW and to ONE collator.</summary>

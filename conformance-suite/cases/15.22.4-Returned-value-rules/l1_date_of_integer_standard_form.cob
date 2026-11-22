@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §2023:15.22.4 r1/r2 — DATE-OF-INTEGER's returned value IS the standard
+      *> ISO §2023:15.22.4 RV1/r2 — DATE-OF-INTEGER's returned value IS the standard
       *> date equivalent of argument-1, in the form (YYYYMMDD).
       *>
       *> DERIVED FROM THE RULE TEXT ALONE, never from what the compiler prints.
@@ -36,14 +36,14 @@
       *>   143951   -> 1995-02-15, a mid value whose MM and DD are both non-zero
       *>                  and non-degenerate.
       *> r2's THREE COMPONENTS are then read back out of the mid value by INVERTING
-      *> §2023:15.46.3 r1's composition of this very form: "Argument-1 shall be an
+      *> §2023:15.46.3 AR1's composition of this very form: "Argument-1 shall be an
       *> integer of the form YYYYMMDD, whose value is obtained from the calculation
       *> (YYYY * 10,000) + (MM * 100) + DD", the three fields §2023:15.5.3 names. Its
       *> inverse is exactly YYYY = INTEGER(D8 / 10000),
       *> MM = INTEGER(MOD(D8, 10000) / 100), DD = MOD(D8, 100).
-      *> ⚠ THE ANCHOR IS NOT §2023:15.23.4 r1, though that clause writes the same two
+      *> ⚠ THE ANCHOR IS NOT §2023:15.23.4 RV1, though that clause writes the same two
       *> spellings. Its argument-1 is DATE-TO-YYYYMMDD's, which §2023:15.23.1 defines as
-      *> the SIX-digit form YYmmdd and §2023:15.23.3 r1 caps below 1000000 — there
+      *> the SIX-digit form YYmmdd and §2023:15.23.3 AR1 caps below 1000000 — there
       *> INTEGER(argument-1/10000) yields a TWO-digit YY, not a four-digit year, so
       *> it answers a different question about a different value. (A real clause
       *> that answers a different question is the citation failure this file was

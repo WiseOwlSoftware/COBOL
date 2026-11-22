@@ -485,7 +485,7 @@ internal static class BitLayout
     ///         of bits to fill an integral number of characters." §2023:13.18.29.4 GR3 makes every group without a
     ///         GROUP-USAGE clause an alphanumeric group item, so this fires for all of them.</item>
     /// </list>
-    /// <para>⚠ Every filler bit counted above is REQUIRED to be counted by <b>§2023:15.50.4 r5</b> ("the returned
+    /// <para>⚠ Every filler bit counted above is REQUIRED to be counted by <b>§2023:15.50.4 RV5</b> ("the returned
     /// length shall include the number of implicit FILLER positions"). It is counted by construction — the cursor
     /// advances through filler rather than skipping it.</para>
     /// <para>⚠ The NOTE under the trailing-filler rule excludes "the end of a record that is entirely a bit group,
@@ -504,7 +504,7 @@ internal static class BitLayout
         // Rule 4 — the trailing filler: stated for "a record that is an alphanumeric group or strongly-typed group
         // item" (§2023:13.18.29.4 GR3 makes every group WITHOUT a GROUP-USAGE clause alphanumeric), and its NOTE excludes
         // "the end of a record that is entirely a bit group" — so a GROUP-USAGE BIT group (D20/PB79) keeps its EXACT
-        // bit extent (its PICTURE 1(m) length, §2023:15.50.4 r1); its character OCCUPANCY is still Characters(extent).
+        // bit extent (its PICTURE 1(m) length, §2023:15.50.4 RV1); its character OCCUPANCY is still Characters(extent).
         return group.GroupUsage is GroupUsage.Bit ? cursor : RoundUpToByte(cursor);
     }
 
@@ -672,7 +672,7 @@ internal static class BitLayout
     }
 
     /// <summary>The character positions a bit extent occupies — the ceiling, which is also the shape
-    /// <b>§2023:15.50.4 r9</b> requires ("if argument-1 does not occupy an integral number of positions, the returned
+    /// <b>§2023:15.50.4 RV9</b> requires ("if argument-1 does not occupy an integral number of positions, the returned
     /// value is rounded to the next larger integer value"). With rule 4 above the extent is already integral for a
     /// group; the ceiling is what makes an ELEMENTARY bit item's character occupancy right.</summary>
     public static int Characters(int bits) => (int)Characters((long)bits);   // at most int.MaxValue / 8 + 1: always an int

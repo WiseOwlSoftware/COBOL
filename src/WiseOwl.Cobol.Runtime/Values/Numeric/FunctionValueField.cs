@@ -30,7 +30,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// <para>⛔ THE SAME ITEM IS WHAT <c>FUNCTION LENGTH</c> AND <c>FUNCTION BYTE-LENGTH</c> MEASURE (<see cref="Length"/>, <see cref="ByteLength"/>, kb/Work PB3951):
 /// a function-identifier "references the unique data item that results from the evaluation of a function" (§2023:8.4.3.2.1), so both
 /// functions measure the temporary by the description above and never a fixed width of the implementation's own. They measure it in
-/// different units: BYTE-LENGTH in bytes (§2023:15.14.4 r1), LENGTH in national character positions for a usage-national item (§2023:15.50.4 r2)
+/// different units: BYTE-LENGTH in bytes (§2023:15.14.4 RV1), LENGTH in national character positions for a usage-national item (§2023:15.50.4 RV2)
 /// and in alphanumeric character positions otherwise (r3). The two differ only for the copy of a USAGE NATIONAL argument.</para>
 /// <para>ONE struct carries all three so that a function nested in another function's argument list (<c>ABS(INTEGER(X))</c>,
 /// <c>MAX(ABS(X) 3)</c>) hands its CALLER its description and not only its value - the selection picks a description
@@ -73,7 +73,7 @@ public readonly struct FunctionValueField
         : this(shape, value, item, bytes, bytes, image) { }
 
     /// <summary>⛔ THE TEMPORARY'S LENGTH IN BYTES - what <c>FUNCTION BYTE-LENGTH</c> of the function call answers (ISO/IEC 1989:2023
-    /// §2023:15.14.4 r1 - "the length of argument-1 in number of bytes"; §2023:8.4.3.2.4 r1 - "A function-identifier references a temporary data
+    /// §2023:15.14.4 RV1 - "the length of argument-1 in number of bytes"; §2023:8.4.3.2.4 GR1 - "A function-identifier references a temporary data
     /// item"; docs/CONFORMANCE.md DOC-A.1-92, kb/Work PB3951). <c>FUNCTION LENGTH</c> reads <see cref="Length"/>, which is the same
     /// number for every temporary but the copy of a USAGE NATIONAL argument. It is the SAME item DISPLAY shows (<see cref="DeviceText"/>), so the two cannot
     /// disagree: a copy of an argument is the bytes of that argument's item (a packed argument's, a binary one's), an item the value
@@ -81,7 +81,7 @@ public readonly struct FunctionValueField
     /// binary64 result is the 8-byte floating-point item (the 100-digit image GnuCOBOL gives it is not copied, kb/Work PB3505).</summary>
     public long ByteLength => _bytes;
 
-    /// <summary>⛔ THE TEMPORARY'S LENGTH IN POSITIONS - what <c>FUNCTION LENGTH</c> of the function call answers (ISO/IEC 1989:2023 §2023:15.50.4 r2 - a
+    /// <summary>⛔ THE TEMPORARY'S LENGTH IN POSITIONS - what <c>FUNCTION LENGTH</c> of the function call answers (ISO/IEC 1989:2023 §2023:15.50.4 RV2 - a
     /// usage-national item is measured in national character positions; r3 - any other item that is neither national nor boolean in alphanumeric
     /// character positions; kb/Work PB3951). It differs from <see cref="ByteLength"/> for exactly one temporary, the copy of a USAGE NATIONAL
     /// argument (a position is two bytes); the two are stated by the compiler from the argument item's own facts (<see cref="OfItem"/>).</summary>

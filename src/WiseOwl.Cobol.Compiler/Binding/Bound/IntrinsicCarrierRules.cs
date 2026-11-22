@@ -32,7 +32,7 @@ internal static class IntrinsicCarrierRules
     /// <remarks>
     /// <para>Under a standard mode §2023:15.4.1 r1 makes each of these equal its equivalent arithmetic expression
     /// (§2023:15.61.4 MEDIAN, §2023:15.62.4 MIDRANGE, §2023:15.64.4 MOD, §2023:15.76.4 RANGE, §2023:15.77.4 REM, §2023:15.88.4 SUM; MEAN, §2023:15.60.4, is
-    /// the SDIDI quotient in EVERY mode, so it belongs to <see cref="SdidiQuotientFunctions"/> and not to this set), and each argument converts to the SDIDI INDIVIDUALLY (§2023:8.8.1.5.2 r1) — so no common scale is
+    /// the SDIDI quotient in EVERY mode, so it belongs to <see cref="SdidiQuotientFunctions"/> and not to this set), and each argument converts to the SDIDI INDIVIDUALLY (§2023:8.8.1.5.2 GR1) — so no common scale is
     /// ever formed. The NATIVE arms instead align first, on the Int128 carrier, and alignment MULTIPLIES: a
     /// 31-digit integer beside a scale-18 item needs 49 digits, so <c>NumericRenderer.Align</c>'s per-argument
     /// escape raises EC-SIZE-OVERFLOW where the SDIDI holds the answer exactly. That makes "does this arm
@@ -101,7 +101,7 @@ internal static class IntrinsicCarrierRules
     /// </summary>
     /// <remarks>
     /// <para>MEAN's equivalent arithmetic expression ends in a division, <c>((argument-11 + … + argument-1n) / n)</c>
-    /// (§2023:15.60.4 r1), and a quotient is the one operation whose digits are not finite: under a standard mode §2023:15.4.1 r1 makes
+    /// (§2023:15.60.4 RV1), and a quotient is the one operation whose digits are not finite: under a standard mode §2023:15.4.1 r1 makes
     /// the value that expression's SDIDI value, and under native arithmetic §2023:15.4.1 makes it "an implementor-defined
     /// approximation of the value of that expression". The native arm chose that approximation from the RECEIVER - the
     /// quotient was cut at max(receiver scale, sum scale + 1, 6) places and the receiver's own ROUNDED phrase then rounded
@@ -126,11 +126,11 @@ internal static class IntrinsicCarrierRules
     /// <c>IntrinsicRenderer.RenderNum</c> BEFORE the arithmetic-mode dispatch, and by <c>FunctionValueLane</c>.
     /// </summary>
     /// <remarks>
-    /// <para>⛔ THE SET IS THREE: TWO BY DEFINITION AND ONE BY THE IMPLEMENTOR'S DETERMINATION. NUMVAL §2023:15.67.4 r1 and
-    /// NUMVAL-C §2023:15.68.4 r1 are specifications "otherwise" in §2023:15.4.1's closing conditional ("implementor-defined unless
+    /// <para>⛔ THE SET IS THREE: TWO BY DEFINITION AND ONE BY THE IMPLEMENTOR'S DETERMINATION. NUMVAL §2023:15.67.4 RV1 and
+    /// NUMVAL-C §2023:15.68.4 RV1 are specifications "otherwise" in §2023:15.4.1's closing conditional ("implementor-defined unless
     /// otherwise specified in the function definition"): "The returned value is the numeric value represented by
     /// argument-1", with no arithmetic-mode qualification, so the latitude is withdrawn. NUMVAL-F is the opposite
-    /// case: §2023:15.69.4 r2 makes the native and standard-binary value "an approximation of the numeric value represented
+    /// case: §2023:15.69.4 RV2 makes the native and standard-binary value "an approximation of the numeric value represented
     /// by argument-1" and r3 gives standard-decimal arithmetic the value itself, so the approximation is the
     /// implementor's to choose. WiseOwl COBOL chooses the one approximation that is also r3's value, the EXACT parse
     /// (owner, 2026-10-26, kb/Work PB3839: "We should always be consistent with ourself barring an explicit requirement
@@ -190,7 +190,7 @@ internal static class IntrinsicCarrierRules
         anyBinary64 && (!allBinary64 || (!meanOfMiddlePair && anyFloatItem && anyApproximation));
 
     /// <summary>Is the value of the call of <paramref name="functionName"/> over <paramref name="arguments"/> the arithmetic MEAN of the two middle arguments and not a selected argument
-    /// (kb/Work PB4753, PB4791)? True for MEDIAN over an even count of arguments (§2023:15.61.4 r2). A table(ALL) argument stands for as many
+    /// (kb/Work PB4753, PB4791)? True for MEDIAN over an even count of arguments (§2023:15.61.4 RV2). A table(ALL) argument stands for as many
     /// arguments as its ranges hold (<see cref="TableAllPlace.StaticCount"/>, the product of a fixed OCCURS's counts), so a list of
     /// fixed tables has a bind-time count and a bind-time parity. A table(ALL) over an OCCURS DEPENDING or dynamic-capacity range has a
     /// RUN-TIME count (<see cref="MedianParityIsRunTime"/>): the parity is not a bind-time fact, so this answers false and the list is

@@ -23,7 +23,7 @@ internal sealed class AcceptDisplayEmitter(EmitContext ctx, NumericRenderer num,
         // A VARIABLE-LENGTH group operand displays in the implementor-defined format §2023:14.9.11.4 GR7 leaves to
         // us, documented as CONFORMANCE.md A.1 item 57 (kb/Work PB164): the generated CurrentImage() — fixed
         // members by the record-image member law, dynamic members at their CURRENT extent, following the
-        // §2023:15.50.4 r7 LENGTH-sum geometry, so LENGTH(G) equals the displayed width (a NATIONAL member contributes
+        // §2023:15.50.4 RV7 LENGTH-sum geometry, so LENGTH(G) equals the displayed width (a NATIONAL member contributes
         // the two bytes it occupies — D-N1; kb/Work PB327 dissolved the old one-character divergence. An ODO table
         // beside a dynamic member displays at its CURRENT count, and a table of variable-length elements - OCCURS
         // DEPENDING or dynamic-capacity, in a declared group or a CELL-BACKED one (kb/Work PB244) - shows each

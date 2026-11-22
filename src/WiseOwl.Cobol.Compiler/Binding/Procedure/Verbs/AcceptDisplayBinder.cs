@@ -49,7 +49,7 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
         bool endTerm = AcceptHasTerminator(ac);
 
         // An index-NAME receiver: not an identifier at all (ISO §2023:8.4.3.1.2 — an index-name is none of the
-        // identifier formats), and §2023:13.18.38.3 r7 closes the contexts that may reference one. The context
+        // identifier formats), and §2023:13.18.38.3 SR7 closes the contexts that may reference one. The context
         // diagnostic (COBOL1637), not the §2023:8.4.2.1 UNDEFINED report the demanding resolve would produce.
         if (ac.receivingIdentifier().dataReference() is { } dref && host.Expr.IndexFieldOf(dref) is not null)
         {
@@ -297,7 +297,7 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
             };
             if (op is null) continue;
             string text = child.GetText();
-            // DISPLAY is none of §2023:13.18.38.3 r7's five index-name contexts (kb/Work R16 — this compiled
+            // DISPLAY is none of §2023:13.18.38.3 SR7's five index-name contexts (kb/Work R16 — this compiled
             // clean and aborted at run time before).
             if (child is Core.DataReferenceContext && host.Expr.ScreenIndexNameOperand(op, text, "DISPLAY"))
             {

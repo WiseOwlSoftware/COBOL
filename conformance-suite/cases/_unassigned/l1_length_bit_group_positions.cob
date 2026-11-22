@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:15.50.4 r5 + r3 — FUNCTION LENGTH OF A BIT-BEARING GROUP THAT IS NOT A RECORD, with §2023:15.50.4 r1 as
+      *> ISO §2023:15.50.4 RV5 + r3 — FUNCTION LENGTH OF A BIT-BEARING GROUP THAT IS NOT A RECORD, with §2023:15.50.4 RV1 as
       *> the control that names which rule is speaking. A BIT-LAYOUT REGRESSION GOLDEN: it closes no inventory
       *> row, and the paragraph below records WHY, so the claim it once carried is not inherited again.
       *> r5: "The returned length shall include the number of implicit FILLER positions, if any, in argument-1."
@@ -17,7 +17,7 @@
       *>   declaration for a boolean item, the returned value is an integer equal to the length of argument-1 in
       *>   boolean positions."  ->  OK  §2023:15.50.4 RV1
       *>
-      *> ⛔ THIS FILE DOES NOT EXERCISE §2023:15.50.4 r9, AND THE FIRST DRAFT'S CLAIM THAT IT DID WAS WRONG.
+      *> ⛔ THIS FILE DOES NOT EXERCISE §2023:15.50.4 RV9, AND THE FIRST DRAFT'S CLAIM THAT IT DID WAS WRONG.
       *> That draft argued that §2023:8.5.1.6.3's boundary-advance filler — "implicitly described as a filler
       *> elementary bit data item of the necessary number of bits and of the same level number as the next item
       *> within that group", level 05 here — is a SIBLING of the 05 group and therefore outside it, leaving

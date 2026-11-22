@@ -197,23 +197,23 @@ public sealed class IntrinsicFunctionDifferentialTests
     [InlineData("\"  -123.45 \"", "-00123.45")]      // leading sign, surrounding spaces (format 1)
     [InlineData("\"   -  929.03\"", "-00929.03")]    // spaces between sign and digits — ignored before the first digit (r2)
     [InlineData("\"82.93+\"", "+00082.93")]          // trailing sign (format 2)
-    [InlineData("\"12cr\"", "-00012.00")]            // CR suffix, case-insensitive (§2023:15.67.3 r1) ⇒ negative (§2023:15.67.4 r2)
+    [InlineData("\"12cr\"", "-00012.00")]            // CR suffix, case-insensitive (§2023:15.67.3 AR1) ⇒ negative (§2023:15.67.4 RV2)
     [InlineData("\".5\"", "+00000.50")]              // the ". digit" alternative
     public void Numval_Formats_PinnedToSpec(string arg, string expected) =>
         AssertSpec(Program("01 R PIC S9(5)V9(2) SIGN LEADING SEPARATE.",
             $"    COMPUTE R = FUNCTION NUMVAL({arg}).\n    DISPLAY R."), expected);
 
     [Theory]
-    [InlineData("\"$1,234.56\"", "+01234.56")]       // default currency + grouping separators ignored (§2023:15.68.4 r2)
-    [InlineData("\"- $ 890.05\"", "-00890.05")]      // sign before currency with space-strings (§2023:15.68.3 r4a)
-    [InlineData("\"Z93,021\", \"Z\"", "+93021.00")]  // argument-2 names the currency string (§2023:15.68.3 r2)
+    [InlineData("\"$1,234.56\"", "+01234.56")]       // default currency + grouping separators ignored (§2023:15.68.4 RV2)
+    [InlineData("\"- $ 890.05\"", "-00890.05")]      // sign before currency with space-strings (§2023:15.68.3 AR4a)
+    [InlineData("\"Z93,021\", \"Z\"", "+93021.00")]  // argument-2 names the currency string (§2023:15.68.3 AR2)
     public void NumvalC_Formats_PinnedToSpec(string args, string expected) =>
         AssertSpec(Program("01 R PIC S9(5)V9(2) SIGN LEADING SEPARATE.",
             $"    COMPUTE R = FUNCTION NUMVAL-C({args}).\n    DISPLAY R."), expected);
 
     [Fact]
     public void NumvalC_DefaultCurrencyFromSpecialNames_PinnedToSpec() =>
-        // §2023:15.68.3 r3: with argument-2 omitted, the compilation unit's ONE currency string applies — the
+        // §2023:15.68.3 AR3: with argument-2 omitted, the compilation unit's ONE currency string applies — the
         // SPECIAL-NAMES CURRENCY SIGN literal, injected by the binder at bind time.
         AssertSpec("""
             IDENTIFICATION DIVISION.
@@ -297,7 +297,7 @@ public sealed class IntrinsicFunctionDifferentialTests
 
     [Fact]
     public void WhenCompiled_CompileTimeConstant_PinnedToSpec() =>
-        // §2023:15.99.3 r2: WHEN-COMPILED is the COMPILATION timestamp (baked constant) — never after CURRENT-DATE
+        // §2023:15.99.3 RV2: WHEN-COMPILED is the COMPILATION timestamp (baked constant) — never after CURRENT-DATE
         // at run time, and in the §2023:15.21.3 21-character layout (4-digit year sanity-checked via ref-mod).
         AssertSpec(Program("01 T PIC X(21).", """
                 MOVE FUNCTION WHEN-COMPILED TO T.
@@ -310,7 +310,7 @@ public sealed class IntrinsicFunctionDifferentialTests
     [Fact]
     public void Random_SeededSequence_PinnedToSpec()
     {
-        // §2023:15.75.3 r3/r5 + §2023:15.75.4 r1/r2: a seeded reference restarts the sequence (same seed ⇒ same first
+        // §2023:15.75.3 AR3/r5 + §2023:15.75.4 RV1/r2: a seeded reference restarts the sequence (same seed ⇒ same first
         // value), argument-less references continue it, and every value is in [0, 1).
         var (ok, stdout, detail) = WiseOwlCobol.CompileAndRun(Program(
             "01 R1 PIC V9(9).\n01 R2 PIC V9(9).\n01 R3 PIC V9(9).", """
@@ -370,7 +370,7 @@ public sealed class IntrinsicFunctionDifferentialTests
     [Fact]
     public void ByteLengthOfARefModArgument_IsTheWindowLength()
     {
-        // A REFERENCE-MODIFIED argument is a conforming reference (§2023:15.14.3 r1 admits "a data item of any class or
+        // A REFERENCE-MODIFIED argument is a conforming reference (§2023:15.14.3 AR1 admits "a data item of any class or
         // category", and §2023:8.4.3.3.4 GR5 makes a ref-mod "a unique data item that is a subset"): BYTE-LENGTH of the
         // two-character window is 2 (kb/Work PB61, AR-15.14.3-1). This test used to pin it as the function family's
         // staged LOUD residue (the §1.4 loud-failure doctrine), and pinning it GREEN held a gap open
@@ -417,7 +417,7 @@ public sealed class IntrinsicFunctionDifferentialTests
 
     /// <summary>kb/Work PB244 — the positive twin of <see cref="ByteLengthOfARefModArgument_IsTheWindowLength"/>: a
     /// dynamic-length item inside a FIXED-OCCURS table element is its own dynamic-length member per occurrence
-    /// (ISO §2023:8.5.1.12.1), so §2023:15.50.4 r7 sums each occurrence's current length: here 2 + 1.</summary>
+    /// (ISO §2023:8.5.1.12.1), so §2023:15.50.4 RV7 sums each occurrence's current length: here 2 + 1.</summary>
     [Fact]
     public void LengthOfAFixedTableOfVariableLengthElements_SumsEveryOccurrence()
     {
@@ -449,7 +449,7 @@ public sealed class IntrinsicFunctionDifferentialTests
             Program("01 T PIC X(8).", "    MOVE FUNCTION NUMVAL(\"1\") TO T.\n    DISPLAY T."), 2023, permissive: true);
         Assert.True(okP, detailP);
         // ⛔ "1", NOT "1.000000" (kb/Work PB251). The permissive text is the item-92 LITERAL form of the value,
-        // and NUMVAL's value is now the parsed value at its OWN scale in every arithmetic mode — §2023:15.67.4 r1
+        // and NUMVAL's value is now the parsed value at its OWN scale in every arithmetic mode — §2023:15.67.4 RV1
         // fixes it ("The returned value is the numeric value represented by argument-1") with no mode
         // qualification, and §2023:15.4.1's implementor latitude reaches only a function whose definition does NOT
         // otherwise specify the value. "1" has no fraction digits, so the value has scale 0 and the literal form
@@ -475,8 +475,8 @@ public sealed class IntrinsicFunctionDifferentialTests
     [Fact]
     public void Concat_AdmitsNumericLiterals_2023()
     {
-        // PB59 / RV-15.18.4-1 — §2023:15.18.3 r1 lists class NUMERIC: a numeric literal concatenates as its own
-        // characters (§2023:15.18.4 r1); it used to compile clean and abort at run time. A FOLDED nested LENGTH is no
+        // PB59 / RV-15.18.4-1 — §2023:15.18.3 AR1 lists class NUMERIC: a numeric literal concatenates as its own
+        // characters (§2023:15.18.4 RV1); it used to compile clean and abort at run time. A FOLDED nested LENGTH is no
         // such literal: an integer function, barred from this unsigned-integer position by §2023:8.4.3.2.3 SR12
         // (kb/Work PB4830; conformance-suite pb4830-concat-folded-length-unsigned-position).
         AssertSpec(Program(
@@ -491,7 +491,7 @@ public sealed class IntrinsicFunctionDifferentialTests
     [InlineData("\"1010\", 2, 16", "A")]      //           base 2  → base 16 (10 = A)
     [InlineData("\"0\", 10, 2", "0")]         //           zero — one digit CONSUMED (the digitless guard keys on the count, never the accumulator)
     [InlineData("\"FF  \", 16, 10", "255")]   // PB59 — the TRAILING fixed-width image pad is not content (TrimEnd(' '))
-    [InlineData("255, 10, 16", "FF")]         // PB59 / RV-15.12.4-1 — an UNQUOTED numeric literal argument-1 (§2023:15.12.3 r1
+    [InlineData("255, 10, 16", "FF")]         // PB59 / RV-15.12.4-1 — an UNQUOTED numeric literal argument-1 (§2023:15.12.3 AR1
                                               //   admits "an unsigned integer … literal" below base 11; used to abort at run time)
     public void BaseConvert_ReExpressesInTargetBase_2023(string args, string expected)
         => AssertSpec(Program("01 R PIC X(10).",
@@ -500,7 +500,7 @@ public sealed class IntrinsicFunctionDifferentialTests
     [Theory]
     [InlineData("\"     \", 16, 10")]         // PB59 / AR-15.12.3-2 — DIGITLESS: the old value-keyed guard fabricated "0"
     [InlineData("\"  FF\", 16, 10")]          // PB59 / §2023:15.12.3 r2 — a LEADING space is content, not padding
-    [InlineData("\"ff\", 16, 10")]            // PB59 / §2023:15.12.3 r2 + §2023:8.1.3.1 Table 1 — lowercase is not a basic letter
+    [InlineData("\"ff\", 16, 10")]            // PB59 / §2023:15.12.3 AR2 + §2023:8.1.3.1 Table 1 — lowercase is not a basic letter
     public void BaseConvert_InvalidDigits_EcArgumentDefault_2023(string args)
         // Checking OFF: EC-ARGUMENT-FUNCTION is set and the §2023:15.3 default (zero-length) stands — the receiver
         // keeps only its space fill, so the display line is empty after Normalize's trailing trim.
@@ -519,7 +519,7 @@ public sealed class IntrinsicFunctionDifferentialTests
 
     [Fact]
     public void BaseConvert_EqualDataItemBases_EcArgumentDefault_2023()
-        // §2023:15.12.3 r1 — the bases shall have "unequal values": DATA-ITEM bases are the runtime twin of the
+        // §2023:15.12.3 AR1 — the bases shall have "unequal values": DATA-ITEM bases are the runtime twin of the
         // compile-time equal-literals screen (PB59 / AR-15.12.3-1 leg b — two equal LITERALS are COBOL1642
         // at bind, negative pb59-baseconvert-equal-bases). Checking off: EC + the §2023:15.3 zero-length default.
         => AssertSpec(Program("01 B2 PIC 99 VALUE 16.\n           01 B3 PIC 99 VALUE 16.\n           01 R PIC X(6).",
@@ -535,7 +535,7 @@ public sealed class IntrinsicFunctionDifferentialTests
     [Fact]
     public void Convert_HexSource_LeadingSpaceIsContent_FatalWhenChecked_2023()
     {
-        // PB59 / AR-15.19.3-4 — a leading space is CONTENT (§2023:15.19.3 r4: not a hexadecimal digit), fatal
+        // PB59 / AR-15.19.3-4 — a leading space is CONTENT (§2023:15.19.3 AR4: not a hexadecimal digit), fatal
         // EC-ARGUMENT-FUNCTION under enabled checking. (Checking off keeps the documented zero-fill result.)
         var (ok, _, detail) = new WiseOwlCobolCompiler(2023).CompileAndRun(Program(
             "01 H PIC X(4) VALUE \"  41\".\n           01 R PIC X(8).",
@@ -547,7 +547,7 @@ public sealed class IntrinsicFunctionDifferentialTests
     [Fact]
     public void Convert_AllSpaceHexSource_FatalWhenChecked_2023()
     {
-        // PB59 — an all-space HEX source has NO digits (§2023:15.19.3 r4; NOT r1 — the ITEM is not zero length).
+        // PB59 — an all-space HEX source has NO digits (§2023:15.19.3 AR4; NOT r1 — the ITEM is not zero length).
         var (ok, _, detail) = new WiseOwlCobolCompiler(2023).CompileAndRun(Program(
             "01 H PIC X(4) VALUE SPACES.\n           01 R PIC X(8).",
             ">>TURN EC-ARGUMENT-FUNCTION CHECKING ON\n    MOVE FUNCTION CONVERT(H HEX ANUM) TO R.\n    DISPLAY R."));
@@ -571,7 +571,7 @@ public sealed class IntrinsicFunctionDifferentialTests
     // ── TRIM (§2023:15.96, Phase 5, DEVLOG 629): LEADING/TRAILING/both + the 2023 argument-2 char set ─────────────
 
     [Theory]
-    [InlineData("FUNCTION TRIM(S)", "HELLO")]            // §2023:15.96.4 r3 — both, default space (the 2014 form)
+    [InlineData("FUNCTION TRIM(S)", "HELLO")]            // §2023:15.96.4 RV3 — both, default space (the 2014 form)
     [InlineData("FUNCTION TRIM(S LEADING)", "HELLO")]    // r1 — leading (the trailing padding is Normalize-trimmed)
     [InlineData("FUNCTION TRIM(S TRAILING)", "  HELLO")] // r2 — trailing (leading spaces are preserved)
     public void Trim_SpaceForm_2014(string call, string expected)
@@ -604,7 +604,7 @@ public sealed class IntrinsicFunctionDifferentialTests
     // ── FIND-STRING (§2023:15.37, Phase 5, DEVLOG 630): substring position; LAST / START AFTER argument-3 / ANYCASE ─
 
     [Theory]
-    [InlineData("FUNCTION FIND-STRING(H N)", "1")]                     // §2023:15.37.4 r1 — first occurrence
+    [InlineData("FUNCTION FIND-STRING(H N)", "1")]                     // §2023:15.37.4 RV1 — first occurrence
     [InlineData("FUNCTION FIND-STRING(H N LAST)", "7")]                // r1 — last occurrence (positions 1,4,7)
     [InlineData("FUNCTION FIND-STRING(H N START AFTER 1)", "4")]       // r2 — ignore 1 match from the first
     [InlineData("FUNCTION FIND-STRING(H N LAST START AFTER 1)", "4")]  // r1+r2 — 1 before the last
@@ -622,7 +622,7 @@ public sealed class IntrinsicFunctionDifferentialTests
 
     [Fact]
     public void FindString_Anycase_FoldsCase_2023()
-        // §2023:15.37.4 r4 — ANYCASE folds case per LOWER-CASE; "WORLD" matches "World" at position 7.
+        // §2023:15.37.4 RV4 — ANYCASE folds case per LOWER-CASE; "WORLD" matches "World" at position 7.
         => AssertSpec(Program("01 T PIC X(11) VALUE \"Hello World\".\n           01 P PIC 9.",
             "    MOVE FUNCTION FIND-STRING(T \"WORLD\" ANYCASE) TO P.\n    DISPLAY P.", "IFFINDA"), "7", 2023);
 
@@ -645,7 +645,7 @@ public sealed class IntrinsicFunctionDifferentialTests
 
     [Theory]
     [InlineData("FUNCTION FIND-STRING(H2 N2)", "1")]              // first of the OVERLAPPING matches
-    [InlineData("FUNCTION FIND-STRING(H2 N2 LAST)", "3")]         // §2023:15.37.4 r1 — "aa" in "aaaa" matches at 1,2,3; LAST ⇒ 3
+    [InlineData("FUNCTION FIND-STRING(H2 N2 LAST)", "3")]         // §2023:15.37.4 RV1 — "aa" in "aaaa" matches at 1,2,3; LAST ⇒ 3
     [InlineData("FUNCTION FIND-STRING(H2 N2 START AFTER 1)", "2")]// skip 1 overlapping match ⇒ 2
     public void FindString_OverlappingOccurrences_2023(string call, string expected)
         => AssertSpec(Program("01 H2 PIC X(4) VALUE \"aaaa\".\n           01 N2 PIC X(2) VALUE \"aa\".\n           01 P PIC 9.",
@@ -654,7 +654,7 @@ public sealed class IntrinsicFunctionDifferentialTests
     // ── SUBSTITUTE (§2023:15.87, Phase 5, DEVLOG 631): per-pair replacement; ANYCASE / FIRST / LAST; multi-pair ────
 
     [Theory]
-    [InlineData("FUNCTION SUBSTITUTE(S \"A\" \"X\")", "XBXBXB")]           // §2023:15.87.4 r3 — all occurrences
+    [InlineData("FUNCTION SUBSTITUTE(S \"A\" \"X\")", "XBXBXB")]           // §2023:15.87.4 RV3 — all occurrences
     [InlineData("FUNCTION SUBSTITUTE(S FIRST \"A\" \"X\")", "XBABAB")]     // r3.a — first only
     [InlineData("FUNCTION SUBSTITUTE(S LAST \"A\" \"X\")", "ABABXB")]      // r3.b — last only
     [InlineData("FUNCTION SUBSTITUTE(S \"AB\" \"WXYZ\")", "WXYZWXYZWXYZ")] // growing replacement, all
@@ -664,13 +664,13 @@ public sealed class IntrinsicFunctionDifferentialTests
 
     [Fact]
     public void Substitute_Anycase_FoldsCase_2023()
-        // §2023:15.87.4 r5 — ANYCASE folds case; every a/A in "aAaA" becomes "-".
+        // §2023:15.87.4 RV5 — ANYCASE folds case; every a/A in "aAaA" becomes "-".
         => AssertSpec(Program("01 S PIC X(4) VALUE \"aAaA\".\n           01 R PIC X(8).",
             "    MOVE FUNCTION SUBSTITUTE(S ANYCASE \"a\" \"-\") TO R.\n    DISPLAY R.", "IFSUBA"), "----", 2023);
 
     [Fact]
     public void Substitute_MultiPair_OnePass_2023()
-        // §2023:15.87.4 r3/r4 — two pairs applied in one left-to-right pass: "CAT DOG" ⇒ "FISH BIRD".
+        // §2023:15.87.4 RV3/r4 — two pairs applied in one left-to-right pass: "CAT DOG" ⇒ "FISH BIRD".
         => AssertSpec(Program("01 S PIC X(7) VALUE \"CAT DOG\".\n           01 R PIC X(12).",
             "    MOVE FUNCTION SUBSTITUTE(S \"CAT\" \"FISH\" \"DOG\" \"BIRD\") TO R.\n    DISPLAY R.", "IFSUBM"),
             "FISH BIRD", 2023);
@@ -698,21 +698,21 @@ public sealed class IntrinsicFunctionDifferentialTests
     // walk binds slot 0 as the OPERAND unconditionally (the old order-free harvest read it as a keyword and
     // rejected the call with "0 operand + 3 format keyword(s) given").
     [InlineData("01 NAT PIC XX VALUE \"41\".\n           01 R PIC X(4).", "CONVERT(NAT HEX ANUM)", "A")]
-    // §2023:15.19.3 r5 NOTE — the ANUM-source test is on the REPRESENTATION, not the class: a numeric DISPLAY item
+    // §2023:15.19.3 AR5 NOTE — the ANUM-source test is on the REPRESENTATION, not the class: a numeric DISPLAY item
     // is a valid string of characters from the alphanumeric coded character set ("005" → its hex).
     [InlineData("01 D PIC 9(3) VALUE 5.\n           01 R PIC X(8).", "CONVERT(D ANUM ANUM HEX)", "303035")]
-    // §2023:15.19.4 r4 — the HEX legs hex THE SOURCE'S OWN BITS, padded TRAILING with zero bits to a whole
+    // §2023:15.19.4 RV4 — the HEX legs hex THE SOURCE'S OWN BITS, padded TRAILING with zero bits to a whole
     // destination character (16 for national, D-N1); the destination keyword picks only the DIGIT repertoire.
     // 8-bit "A" → 0x41 0x00 → national digits "4100" (RV-15.19.4-4 — NOT "0041", which would be a re-encoding
     // r4 never performs).
     [InlineData("01 A PIC X VALUE \"A\".\n           01 R PIC N(4).", "CONVERT(A ANUM NAT HEX)", "4100")]
-    // §2023:15.19.3 r7 + §2023:15.19.4 r2 — an ANY source is the RAW STORAGE bits: a USAGE BIT item's three bits arrive
+    // §2023:15.19.3 AR7 + §2023:15.19.4 RV2 — an ANY source is the RAW STORAGE bits: a USAGE BIT item's three bits arrive
     // packed high-order-first (CobolBits.Pack), which IS r2's pad — B"101" → 1010 0000 → "A0". NOTE 3 c's "E0"
     // is not derivable from B"101" under either rule (the NOTE is defective; the rule's arithmetic decides).
     [InlineData("01 B PIC 111 USAGE BIT VALUE B\"101\".\n           01 R PIC X(4).", "CONVERT(B ANY ANUM HEX)", "A0")]
-    // §2023:15.19.4 r4 over the same sub-byte source — pad 3 bits to a 16-bit multiple: "A000" (RV-15.19.4-2 leg b).
+    // §2023:15.19.4 RV4 over the same sub-byte source — pad 3 bits to a 16-bit multiple: "A000" (RV-15.19.4-2 leg b).
     [InlineData("01 B PIC 111 USAGE BIT VALUE B\"101\".\n           01 R PIC N(4).", "CONVERT(B ANY NAT HEX)", "A000")]
-    // §2023:15.19.3 r7 — ANY over a COMP item hexes its radix-2 STORAGE bytes (V59/§2023:14.4: 258 in a 2-byte binary
+    // §2023:15.19.3 AR7 — ANY over a COMP item hexes its radix-2 STORAGE bytes (V59/§2023:14.4: 258 in a 2-byte binary
     // carrier = 0x0102), never its display digits (which would be "30323538").
     [InlineData("01 C PIC 9(4) COMP VALUE 258.\n           01 R PIC X(4).", "CONVERT(C ANY ANUM HEX)", "0102")]
     public void Convert_Formats_2023(string ws, string call, string expected)
@@ -720,7 +720,7 @@ public sealed class IntrinsicFunctionDifferentialTests
 
     [Fact]
     public void Convert_AnumNatAnum_RoundTrip_2023()
-        // §2023:15.19.4 r1/r3 — ANUM→NAT→ANUM round-trip returns the original character. The correspondence is the
+        // §2023:15.19.4 RV1/r3 — ANUM→NAT→ANUM round-trip returns the original character. The correspondence is the
         // Annex A.1 item-33 TOTAL UTF-16 identity (PB59), so the round trip holds for EVERY character — the
         // wide leg (Š, U+0160) is the one the old Latin-1 cut substituted to '?', which is the whole point.
         => AssertSpec(Program("01 A PIC XX VALUE \"ZŠ\".\n           01 NR PIC N(2).\n           01 R PIC X(4).",
@@ -741,7 +741,7 @@ public sealed class IntrinsicFunctionDifferentialTests
         Assert.Contains(code, detail);
     }
 
-    // The §2023:15.19.2 positional format + the §2023:15.19.3 r4/r5/r6/r7 argument screens (PB59 family 5a). The format
+    // The §2023:15.19.2 positional format + the §2023:15.19.3 AR4/r5/r6/r7 argument screens (PB59 family 5a). The format
     // is ( argument-1 source-format destination-format ) BY POSITION, so an operand after the format words is
     // malformed; the source-format keys what argument-1's STORAGE must hold, and the static half of each rule
     // is its REPRESENTATION (r5's NOTE: "distinct from simply requiring the string to be of class
@@ -776,7 +776,7 @@ public sealed class IntrinsicFunctionDifferentialTests
 
     [Fact]
     public void Convert_AnyOverNational_ResolvesToNatStorage_2023()
-        // §2023:15.19.3 r7 — ANY takes the operand's RAW storage bits. A national item's storage is UTF-16BE
+        // §2023:15.19.3 AR7 — ANY takes the operand's RAW storage bits. A national item's storage is UTF-16BE
         // (D-N1), delivered by the compiler's storage channel (OperandText.AsStorageImage → CobolBits.NatBytes
         // — PB59 family 5b; the former bind-time ANY→NAT remap that used to produce this same value is
         // DELETED, so this test now pins the real channel). N"A" = U+0041 ⇒ "0041" (not "41").
@@ -819,7 +819,7 @@ public sealed class IntrinsicFunctionDifferentialTests
     {
         // The 8-bit BYTE serialization (a SEPARATE §2023:8.1.2 determination — see the CobolIntrinsics.Text char-set
         // model) substitutes '?' + EC-DATA-CONVERSION for a code unit above 0xFF. This is the DOCUMENTED
-        // item-209 disposition (RV-15.19.4-2, decided 2026-08-09): §2023:15.19.4 r2 has no substitution sentence
+        // item-209 disposition (RV-15.19.4-2, decided 2026-08-09): §2023:15.19.4 RV2 has no substitution sentence
         // because the spec's model assumes a total serialization; where ours is partial, the r1/r3-analogous
         // substitution+EC is the smallest extension of the standard's own machinery — visible, never silent.
         var src = """
@@ -847,7 +847,7 @@ public sealed class IntrinsicFunctionDifferentialTests
     // ── MODULE-NAME (§2023:15.65, Phase 5, DEVLOG 633): the runtime COBOL hierarchy; CURRENT/ACTIVATING/… keyword ──
 
     [Theory]
-    [InlineData("CURRENT", "[MODNM   ]")]        // §2023:15.65.4 r7 — the running compilation unit's outermost program
+    [InlineData("CURRENT", "[MODNM   ]")]        // §2023:15.65.4 RV7 — the running compilation unit's outermost program
     [InlineData("TOP-LEVEL", "[MODNM   ]")]      // r10 — the run-unit main
     [InlineData("ACTIVATING", "[        ]")]     // r5 — a main program's activator is a single space
     public void ModuleName_MainProgram_2023(string kw, string expected)
@@ -857,7 +857,7 @@ public sealed class IntrinsicFunctionDifferentialTests
     [Fact]
     public void ModuleName_ActivatingAcrossCall_2023()
     {
-        // §2023:15.65.4 r5 — in a CALLed program ACTIVATING is the caller's name; STACK (r9) is CURRENT;…;TOP-LEVEL;space.
+        // §2023:15.65.4 RV5 — in a CALLed program ACTIVATING is the caller's name; STACK (r9) is CURRENT;…;TOP-LEVEL;space.
         var src = """
             IDENTIFICATION DIVISION.
             PROGRAM-ID. DRVMOD.
@@ -908,7 +908,7 @@ public sealed class IntrinsicFunctionDifferentialTests
     [Fact]
     public void ModuleName_StackFromNestedProgram_2023()
     {
-        // ⛔ §2023:15.65.4 r9 — STACK LISTS RUNTIME ELEMENTS, so a CONTAINED program yields its outermost name TWICE.
+        // ⛔ §2023:15.65.4 RV9 — STACK LISTS RUNTIME ELEMENTS, so a CONTAINED program yields its outermost name TWICE.
         // This test used to assert the opposite ("STACK collapses same-unit frames to ONE runtime element …, not
         // the OUTERM;OUTERM duplicate a per-CALL-frame walk gives") and that collapse was REMOVED by owner
         // decision 2026-08-05 (fix-queue PB36), because it could not represent RECURSION: three nested
@@ -958,9 +958,9 @@ public sealed class IntrinsicFunctionDifferentialTests
         => AssertSpec(Program(ws, $"    MOVE FUNCTION {call} TO R.\n    DISPLAY R.", "ALGB"), expected, dialect);
 
     // ── kb/Work R10 (Phase-B F72): floats are LEGAL HIGHEST/LOWEST arguments under native arithmetic — the
-    //    implementor usage latitude is SMALLEST-ALGEBRAIC's alone (§2023:15.83.3 r4 / Annex A.1 item 180); §2023:15.43.3
-    //    r2 / §2023:15.58.3 r2-r3 bar only the STANDARD float usages under the OPPOSITE standard mode. The value is
-    //    §2023:15.43.4 r2's greatest finite magnitude of the carrier, negated for LOWEST (§2023:15.58.4 r2). That value IS the
+    //    implementor usage latitude is SMALLEST-ALGEBRAIC's alone (§2023:15.83.3 AR4 / Annex A.1 item 180); §2023:15.43.3
+    //    r2 / §2023:15.58.3 AR2-r3 bar only the STANDARD float usages under the OPPOSITE standard mode. The value is
+    //    §2023:15.43.4 RV2's greatest finite magnitude of the carrier, negated for LOWEST (§2023:15.58.4 RV2). That value IS the
     //    carrier's, exactly, so a COMP-2 resultant holds it under the implied TRUNCATION (kb/Work PB1196): the binary32
     //    extreme widens exactly and prints as the binary64 it is, −3.4028234663852886E+38 (−(2 − 2^−23) × 2^127). ──
 
@@ -978,7 +978,7 @@ public sealed class IntrinsicFunctionDifferentialTests
     [Fact]
     public void Algebraic_SmallestFloat_FoldsToCarrierSubnormal()
     {
-        // §2023:15.83.1/§2023:15.83.4 r2 (kb/Work PB122): the smallest algebraic difference between two values the
+        // §2023:15.83.1/§2023:15.83.4 RV2 (kb/Work PB122): the smallest algebraic difference between two values the
         // item can represent = the carrier's smallest positive subnormal — a FORMAT property, foldable like
         // 10^(−scale). binary64 → 2^−1074, binary32 → 2^−149 (each printed shortest-round-trip by the
         // COMP-2 receiver's own display). The old guard refused every float on the r4 native latitude with
@@ -994,7 +994,7 @@ public sealed class IntrinsicFunctionDifferentialTests
     [Fact]
     public void Algebraic_SmallestStandardDecimalBarsStandardBinaryFloat_1516()
     {
-        // §2023:15.83.3 r2 now reaches SMALLEST through the shared mode-aware float path (kb/Work PB122).
+        // §2023:15.83.3 AR2 now reaches SMALLEST through the shared mode-aware float path (kb/Work PB122).
         var (ok, _, detail) = new WiseOwlCobolCompiler(2023).CompileAndRun(
             "IDENTIFICATION DIVISION.\nPROGRAM-ID. ALGSB.\nOPTIONS.\n    ARITHMETIC IS STANDARD-DECIMAL.\n"
             + "DATA DIVISION.\nWORKING-STORAGE SECTION.\n"
@@ -1008,7 +1008,7 @@ public sealed class IntrinsicFunctionDifferentialTests
     [Fact]
     public void Algebraic_StandardDecimalBarsStandardBinaryFloat_1516()
     {
-        // §2023:15.43.3 r2 — mode-aware, usage-precise: FLOAT-BINARY-64 (§2023:3.166) barred under STANDARD-DECIMAL;
+        // §2023:15.43.3 AR2 — mode-aware, usage-precise: FLOAT-BINARY-64 (§2023:3.166) barred under STANDARD-DECIMAL;
         // the native COMP-2 stays legal there (the old guard's message claimed otherwise).
         var (ok, _, detail) = new WiseOwlCobolCompiler(2023).CompileAndRun(
             "IDENTIFICATION DIVISION.\nPROGRAM-ID. ALGM.\nOPTIONS.\n    ARITHMETIC IS STANDARD-DECIMAL.\n"
@@ -1052,7 +1052,7 @@ public sealed class IntrinsicFunctionDifferentialTests
     [Fact]
     public void Concat_BooleanFunctionArgument_ImplicitUsageBit()
     {
-        // §2023:15.2 GR2: "Boolean functions … have an implicit usage bit." §2023:15.18.3 r2 requires every CONCAT
+        // §2023:15.2 GR2: "Boolean functions … have an implicit usage bit." §2023:15.18.3 AR2 requires every CONCAT
         // argument to be usage display or every one usage national — usage bit satisfies neither family, and
         // §2023:15.18.1's result table enumerates only display and national boolean rows. The old StaticUsageOf
         // reported a boolean FUNCTION as usage display, so this bound clean (kb/Work PB124 wave 5c,
@@ -1068,7 +1068,7 @@ public sealed class IntrinsicFunctionDifferentialTests
     [Fact]
     public void Algebraic_LiteralArgument_1516()
     {
-        // §2023:15.83.3 r1 — argument-1 shall be a data item, not a literal.
+        // §2023:15.83.3 AR1 — argument-1 shall be a data item, not a literal.
         var (ok, _, detail) = new WiseOwlCobolCompiler(2023).CompileAndRun(
             Program("01 R PIC +999.", "    MOVE FUNCTION SMALLEST-ALGEBRAIC(5) TO R.\n    DISPLAY R."));
         Assert.False(ok, "a literal argument violates §2023:15.83.3 r1");
@@ -1095,7 +1095,7 @@ public sealed class IntrinsicFunctionDifferentialTests
 
     [Fact]
     public void IntegerOfFormattedDate_Ordinal_2014()
-        // §2023:15.48.3 r3 — argument-2 "shall be a DATA ITEM of the same type as argument-1"; a literal is not
+        // §2023:15.48.3 AR3 — argument-2 "shall be a DATA ITEM of the same type as argument-1"; a literal is not
         // admitted (kb/Work PB58), so the date travels through an item.
         => AssertSpec(Program("01 N PIC +9(9).\n01 D7 PIC X(7) VALUE \"2021167\".",
             "    MOVE FUNCTION INTEGER-OF-FORMATTED-DATE(\"YYYYDDD\", D7) TO N.\n    DISPLAY N.", "IOF"), "+000153569", 2014);
@@ -1143,7 +1143,7 @@ public sealed class IntrinsicFunctionDifferentialTests
     [Fact]
     public void FormattedDate_NonLiteralFormat_1517()
     {
-        // §2023:15.39.3 r1 — the format shall be a literal (analyzed at compile time).
+        // §2023:15.39.3 AR1 — the format shall be a literal (analyzed at compile time).
         var (ok, _, detail) = new WiseOwlCobolCompiler(2014).CompileAndRun(
             Program("01 FMT PIC X(8) VALUE \"YYYYMMDD\".\n           01 R PIC X(10).",
                 "    MOVE FUNCTION FORMATTED-DATE(FMT, 153569) TO R.\n    DISPLAY R."));
@@ -1164,7 +1164,7 @@ public sealed class IntrinsicFunctionDifferentialTests
             $"    {stmt}\n    DISPLAY R."));
 
     // SPEC-PINNED: the space-vs-adjacent sign discrimination. §2023:8.7.1 requires an arithmetic operator to be
-    // preceded AND followed by a space; §2023:8.3.3.3.2 r2 makes a literal's sign its leftmost CHARACTER — so
+    // preceded AND followed by a space; §2023:8.3.3.3.2 SR2 makes a literal's sign its leftmost CHARACTER — so
     // `MAX(A -4)` is TWO arguments (A and the literal −4) while `MAX(A - 4)` is ONE subtraction.
     [Theory]
     [InlineData("COMPUTE R = FUNCTION MAX(A -4).", "010")]      // two args: MAX(10, −4) = 10
@@ -1177,7 +1177,7 @@ public sealed class IntrinsicFunctionDifferentialTests
 
     [Fact]
     public void Exponentiation_InArgument_IsLeftAssociative() =>
-        // §2023:8.8.1.2 r3: consecutive operations of the SAME hierarchical level execute LEFT TO RIGHT — including
+        // §2023:8.8.1.2 GR3: consecutive operations of the SAME hierarchical level execute LEFT TO RIGHT — including
         // ** (the deleted hand parser folded ** right-associatively, a latent divergence; the ONE BindExpr
         // channel folds left): 2 ** 3 ** 2 = (2³)² = 64, not 2⁹ = 512.
         AssertSpec(Program("01 R PIC 9(3).", "    COMPUTE R = FUNCTION MAX(2 ** 3 ** 2, 1).\n    DISPLAY R."),
@@ -1258,9 +1258,9 @@ public sealed class IntrinsicFunctionDifferentialTests
 
     [Fact]
     public void BooleanOfInteger_MsbFirst_LeftTruncates_Spec() =>
-        // §2023:15.13.4 r1: rightmost boolean position = low-order digit; zero-filled or TRUNCATED ON THE LEFT to
+        // §2023:15.13.4 RV1: rightmost boolean position = low-order digit; zero-filled or TRUNCATED ON THE LEFT to
         // argument-2 positions (544 = 0b1000100000 → the low 6 bits B"100000" — the Annex D.10 worked example);
-        // the MOVE into PIC 1(8) then right-zero-fills (§2023:14.6.8.6) → B"10000000". §2023:15.45.4 r1: the unsigned
+        // the MOVE into PIC 1(8) then right-zero-fills (§2023:14.6.8.6) → B"10000000". §2023:15.45.4 RV1: the unsigned
         // MSB-first value — 128, where an LSB-first defect would print 1.
         AssertSpec(Program("""
             01 B-8 PIC 1(8) USAGE BIT.
@@ -1274,7 +1274,7 @@ public sealed class IntrinsicFunctionDifferentialTests
 
     [Fact]
     public void IntegerOfBoolean_RoundTrip_Spec() =>
-        // §2023:15.13.4 r1 ∘ §2023:15.45.4 r1 — round-trip identity for 0 ≤ n < 2^k (both unsigned, MSB-first); the
+        // §2023:15.13.4 RV1 ∘ §2023:15.45.4 RV1 — round-trip identity for 0 ≤ n < 2^k (both unsigned, MSB-first); the
         // boolean-literal argument leg rides §2023:15.3 AR3.
         AssertSpec(Program("01 R PIC 9(5).", """
                 COMPUTE R = FUNCTION INTEGER-OF-BOOLEAN(
@@ -1288,7 +1288,7 @@ public sealed class IntrinsicFunctionDifferentialTests
 
     [Fact]
     public void ByteLength_NationalDivergesFromLength_Spec() =>
-        // §2023:15.14.4 r1 counts BYTES (national = 2 bytes/position, D-N1), §2023:15.50.4 r2 counts national POSITIONS —
+        // §2023:15.14.4 RV1 counts BYTES (national = 2 bytes/position, D-N1), §2023:15.50.4 RV2 counts national POSITIONS —
         // the D7 distinction: BYTE-LENGTH(N(3)) = 6, LENGTH(N(3)) = 3.
         AssertSpec(Program("01 WS-N PIC N(3).", """
                 DISPLAY FUNCTION BYTE-LENGTH(WS-N).

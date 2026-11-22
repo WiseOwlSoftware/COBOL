@@ -22,12 +22,12 @@
       *>     — so MOD's arguments are integers, the common scale is always 0, and MOD is here to pin
       *>     that its SDIDI routing did not change the value, not to carry a wide witness.
       *>   cite.py --check 15.49.4 "The equivalent arithmetic expression is" -> OK §2023:15.49.4 RV1
-      *>     (INTEGER-PART, which §2023:15.77.4 r1's expression invokes)
+      *>     (INTEGER-PART, which §2023:15.77.4 RV1's expression invokes)
       *>   cite.py --check 8.8.1.5.2 "Any operand of an arithmetic expression that is not already in
       *>     SDIDI form is converted into this form" -> OK §2023:8.8.1.5.2 GR1   -- per OPERAND, so the
       *>     standard mode never forms the common scale the native arm aligns to.
       *>
-      *> HAND-DERIVED, from §2023:15.77.4 r1's expression a - (b * FUNCTION INTEGER-PART (a / b)):
+      *> HAND-DERIVED, from §2023:15.77.4 RV1's expression a - (b * FUNCTION INTEGER-PART (a / b)):
       *>   a = 9999999999999999999999999999998, b = 1.5
       *>   a / b            = 6666666666666666666666666666665.333...
       *>   INTEGER-PART     = 6666666666666666666666666666665          (§2023:15.49.4, toward zero)
@@ -80,7 +80,7 @@
            ELSE
                DISPLAY "MOD-N11-N5=BAD"
            END-IF
-      *> REM's own sign rule (§2023:15.77.4 r1 truncates toward zero, unlike MOD's floor): the same two
+      *> REM's own sign rule (§2023:15.77.4 RV1 truncates toward zero, unlike MOD's floor): the same two
       *> operand pairs give -1 and 1 where MOD gives 4 and -4.
            COMPUTE W-M = FUNCTION REM (-11 5)
            IF W-M = -1

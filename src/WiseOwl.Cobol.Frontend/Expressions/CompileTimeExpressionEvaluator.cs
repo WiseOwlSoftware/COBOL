@@ -108,7 +108,7 @@ public sealed class CompileTimeExpressionEvaluator
         // arithmetic-EXPRESSION operand, which must be fixed-point (see ParseLiteral). No arithmetic mode applies to
         // it (kb/Work PB1592): the carrier holds every valid literal exactly, so the only limits are the literal's
         // own — its fixed-point digit capacity (§2023:8.3.3.3.2) and the decimal128 exponent range this compiler gives a
-        // floating-point literal in every arithmetic mode (§2023:8.3.3.3.3 r3) — each rejected LOUDLY (never a silent
+        // floating-point literal in every arithmetic mode (§2023:8.3.3.3.3 SR3) — each rejected LOUDLY (never a silent
         // null — the boundary's "null means already reported" contract).
         if (SoleNumericLiteral(expr) is { } lit)
         {

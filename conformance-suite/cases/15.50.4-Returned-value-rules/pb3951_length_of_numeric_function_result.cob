@@ -6,7 +6,7 @@
 *> portable: unverified
 *>---
       *> kb/Work PB3951 (DOC-A.1-92). ISO §2023:8.4.3.2.1 makes a function-identifier the data item the evaluation of the function
-      *> produces, §2023:15.4 puts the returned value in a temporary elementary data item, and §2023:15.50.4 r3 / §2023:15.14.4 r1 measure a
+      *> produces, §2023:15.4 puts the returned value in a temporary elementary data item, and §2023:15.50.4 RV3 / §2023:15.14.4 RV1 measure a
       *> data item that is neither boolean nor national "in alphanumeric character positions" / "in number of bytes". §2023:15.4.1
       *> leaves the temporary's characteristics and representation to the implementor under native arithmetic, so CLAUDE.md rule 1's
       *> precedence gives them to GnuCOBOL 3.2.0, and the temporary is the ONE item DISPLAY shows (pb3514_function_result_device_form*):

@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// Per-edition enforcement of the screen/report allowlist-band reserved words through the POSITION-AWARE §2023:8.9
 /// funnel (P2.8 W2 — the RW104A adversarial review): a band context-keyword token (COLUMN, COL, SCREEN, BIT,
 /// DEFAULT, LENGTH, NATIONAL are the table-backed ones) rejects with COBOL0901 (ISO §2023:8.3.2.1 SR1 /
-/// §2023:8.3.2.1 r1: "Reserved words shall not be used as user-defined words or system-names") ONLY when it occupies a provable
+/// §2023:8.3.2.1 SR1: "Reserved words shall not be used as user-defined words or system-names") ONLY when it occupies a provable
 /// user-word position — the data entry-name slot (§2023:13.16), a paragraph/section definition (§2023:14.4.2/§2023:14.4.3),
 /// the SELECT file-name (§2023:12.4.5.1), a program-name site (§2023:11.10.2). KEYWORD occurrences that the permissive
 /// grammar binds into optional entry-name slots — the report-group COLUMN clause (§2023:13.18.14), the RW104A
@@ -229,7 +229,7 @@ public sealed class ReservedWordPositionConformanceTests
     // end-to-end with a BAND token (the unit facts used IDENTIFIER names, which the funnel checks
     // position-blind anyway). (The non-ISO linkageProcedureParameter arm is deleted, kb/Work PB1252.)
 
-    /// <summary>A program NAMED with a band word: user-definable at 85, 0901 at 2002+ strict (§2023:8.3.2.1 r1;
+    /// <summary>A program NAMED with a band word: user-definable at 85, 0901 at 2002+ strict (§2023:8.3.2.1 SR1;
     /// SCREEN reserved 2002 — the A.4.2 module word).</summary>
     [Fact]
     public void ProgramNamedScreen_At85Compiles_2002Strict0901()

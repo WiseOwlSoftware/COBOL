@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §2023:12.4.5.6.4 r4 — alternate key without/with DUPLICATES
+      *> ISO §2023:12.4.5.6.4 GR4 — alternate key without/with DUPLICATES
       *> THE RULE: "If the DUPLICATES phrase is not specified, the value
       *> of the associated alternate record key shall not be equal to
       *> the value of the same alternate record key in another record in

@@ -2875,18 +2875,18 @@ public static class DiagnosticCatalog
         "ISO §2023:8.4.3.2.3 SR1 (with §2023:14.9.22.4 GR1/GR7/GR20 for INSPECT's per-format split)",
         Rule1985: "§1985:IV.4.3.8.3.3 SR3a");
     // PB11's VALUE half. Decidable at BIND time and therefore a diagnostic rather than a run-time check:
-    // §2023:15.40.3 r1 / §2023:15.41.3 r1 make argument-1 a LITERAL, so the format's zone is known at compile time, and the
+    // §2023:15.40.3 AR1 / §2023:15.41.3 AR1 make argument-1 a LITERAL, so the format's zone is known at compile time, and the
     // offset argument's PRESENCE is syntactic. Before this the argument was accepted and silently DISCARDED.
     public static readonly DiagnosticDescriptor DateTimeOffsetArgumentNotPermitted = new(
         "COBOL1633", "datetime-offset-argument-not-permitted", EditionSeverity.Error,
         "An offset-from-UTC argument is supplied for a format whose time portion is a LOCAL time — it carries no "
-        + "place to put an offset. ISO §2023:15.41.3 r5: \"Argument-3 shall not be specified if the time portion of "
-        + "the format in argument-1 is neither a UTC format nor an offset format\"; §2023:15.40.3 r6 says the same of "
+        + "place to put an offset. ISO §2023:15.41.3 AR5: \"Argument-3 shall not be specified if the time portion of "
+        + "the format in argument-1 is neither a UTC format nor an offset format\"; §2023:15.40.3 AR6 says the same of "
         + "FORMATTED-DATETIME's argument-4. A UTC format ends in 'Z' and an offset format carries an explicit "
         + "'+hhmm' / '+hh:mm' subformat (§2023:15.3.3.4–§2023:15.3.3.6); a plain 'hhmmss' / 'hh:mm:ss' is local. ⚠ The "
         + "converse is NOT an error: omitting the argument for a UTC or offset format is explicitly legal and "
-        + "evaluates as though 0 were specified (§2023:15.40.3 r7 / §2023:15.41.3 r6).",
-        "ISO §2023:15.40.3 r6 / §2023:15.41.3 r5 (zone per §2023:15.3.3.4–§2023:15.3.3.6)",
+        + "evaluates as though 0 were specified (§2023:15.40.3 r7 / §2023:15.41.3 AR6).",
+        "ISO §2023:15.40.3 AR6 / §2023:15.41.3 AR5 (zone per §2023:15.3.3.4–§2023:15.3.3.6)",
         No1985Rule: "FORMATTED-TIME and FORMATTED-DATETIME, and the UTC and offset time formats whose argument this rule governs, "
             + "are not in ANSI X3.23-1985 or its 1989 intrinsic function amendment, whose function summary (§1989:A.2.4) "
             + "lists no formatted-date or time function, so there is no 1985 rule to cite; the intrinsic-function edition "
@@ -2919,8 +2919,8 @@ public static class DiagnosticCatalog
         Rule1985: "§1985:VI.6.13.2");
     // R03. A SYNTAX RULE violation that used to produce a SILENT WRONG ANSWER rather than any diagnostic: the hex
     // decoders answer "" for a malformed digit count and every caller took that as the literal's value, so
-    // `FUNCTION LENGTH(X"414")` said 1. Three formats state the grouping rule and they differ — §2023:8.3.3.2.3 r6
-    // (alphanumeric, pairs), §2023:8.3.3.5.3 r5 (national, four for the D-N1 UTF-16 unit) — while §2023:8.3.3.4.3 r3
+    // `FUNCTION LENGTH(X"414")` said 1. Three formats state the grouping rule and they differ — §2023:8.3.3.2.3 SR6
+    // (alphanumeric, pairs), §2023:8.3.3.5.3 SR5 (national, four for the D-N1 UTF-16 unit) — while §2023:8.3.3.4.3 SR3
     // states NO grouping rule for BX at all, because §2023:8.3.3.4.4 GR5 maps each digit on its own. The check is
     // therefore per-format, and BX is deliberately unscreened.
     public static readonly DiagnosticDescriptor HexLiteralDigitGrouping = new(
@@ -2930,12 +2930,12 @@ public static class DiagnosticCatalog
         + "of digits that map to one character — two for an alphanumeric character, four for a national one. A "
         + "hexadecimal-BOOLEAN literal (BX\"…\") has no such rule: §2023:8.3.3.4.4 GR5 maps each digit independently "
         + "to four boolean characters, so any digit count is well formed there.",
-        "ISO §2023:8.3.3.2.3 r6 / §2023:8.3.3.5.3 r5",
+        "ISO §2023:8.3.3.2.3 SR6 / §2023:8.3.3.5.3 SR5",
         No1985Rule: No1985Hex);
     // kb/Work R16 (ledger F11). A SYNTAX RULE violation that used to compile clean and abort at RUN TIME
     // ("computed expression in a string context") — DISPLAY IX, MOVE IX TO an alphanumeric, STRING IX — or,
     // worse, silently compute (MOVE IX TO a numeric item), against the SAME judgment the W2 review already
-    // landed for class-index DATA ITEMS (COBOL0809 rejects a MOVE of one at every edition). §2023:13.18.38.3 r7
+    // landed for class-index DATA ITEMS (COBOL0809 rejects a MOVE of one at every edition). §2023:13.18.38.3 SR7
     // is a closed LIST, so the diagnostic names it and the legal spelling.
     public static readonly DiagnosticDescriptor IndexNameContext = new(
         "COBOL1637", "index-name-context", EditionSeverity.Error,
@@ -2991,7 +2991,7 @@ public static class DiagnosticCatalog
     // (§2023:12.3.4 GR1), which is why ConfigurationStep.Produce copies the whole configuration-derived state
     // into every containee before it binds (kb/Work PB60 / AR-15.67.3-5 — a contained program under
     // DECIMAL-POINT IS COMMA parsed NUMVAL("123,45") as 0 and NUMVAL("123.45") as 123.45).
-    // §2023:15.68.3 r3 — NUMVAL-C / TEST-NUMVAL-C without argument-2 in a unit whose SPECIAL-NAMES paragraph specifies
+    // §2023:15.68.3 AR3 — NUMVAL-C / TEST-NUMVAL-C without argument-2 in a unit whose SPECIAL-NAMES paragraph specifies
     // two or more distinct currency strings (kb/Work PB60 / AR-15.68.3-3: the former single-symbol model
     // injected whichever clause bound last, silently).
     // (The former SubstituteAllSubscript stage — SUBSTITUTE with a table(ALL) argument — landed as the run-time
@@ -3284,7 +3284,7 @@ public static class DiagnosticCatalog
         + "integer / decimal literal zero are legal for either.",
         "ISO §2023:13.18.63.3 SR6",
         No1985Rule: "COBOL-85 requires every literal in the VALUE clause of a numeric edited item to be nonnumeric (§1985:VI.5.15.4 GR1b: \"all literals in the VALUE clause must be nonnumeric literals\") and has no floating-point literal or floating-point numeric-edited picture, so there is no form rule for a numeric literal to break; a numeric literal there is refused first by the gate value-numeric-literal-numeric-edited-2023 (COBOL0900) and a floating-point literal by floating-point-literal-2002.");
-    // kb/Work PB66: §2023:15.43.4 r1 / §2023:15.58.4 r1 — the well-formedness of a floating-point numeric-edited argument-1 of
+    // kb/Work PB66: §2023:15.43.4 RV1 / §2023:15.58.4 RV1 — the well-formedness of a floating-point numeric-edited argument-1 of
     // HIGHEST-ALGEBRAIC / LOWEST-ALGEBRAIC: its extreme shall pass an IN-ARITHMETIC-RANGE test, i.e. lie within the
     // intermediate data item's range for the arithmetic mode in effect (§2023:8.8.4.4.4 GR3l).
     public static readonly DiagnosticDescriptor AlgebraicFloatEditedRange = new(
@@ -3310,7 +3310,7 @@ public static class DiagnosticCatalog
     // kb/Work PB101 (DESIGN-locale-facility §4.9, increment T7): the SPECIAL-NAMES ORDER TABLE clause and
     // FUNCTION STANDARD-COMPARE. §2023:12.3.7.4 GR17 leaves the allowable content of literal-9 to the implementor, so a
     // literal this implementation's collation engine cannot resolve is NOT a syntax error — the program is legal
-    // and §2023:15.85.4 r2 defines its runtime outcome (EC-ORDER-NOT-SUPPORTED at every reference). A WARNING is
+    // and §2023:15.85.4 RV2 defines its runtime outcome (EC-ORDER-NOT-SUPPORTED at every reference). A WARNING is
     // therefore the only conforming severity, and saying nothing would leave a program whose every
     // STANDARD-COMPARE is inoperative looking clean at compile time.
     public static readonly DiagnosticDescriptor OrderTableUnresolved = new(
@@ -3330,7 +3330,7 @@ public static class DiagnosticCatalog
         + "argument type 12, and §2023:12.3.7.3 SR9 makes this function the only place such a name may be specified), "
         + "and argument-4 shall be a positive nonzero integer (r6). The §2023:15.85.2 general format admits at most one "
         + "of each, so a second ordering-name or a second level violates the format.",
-        "ISO §2023:15.85.3 r5 / r6 / §2023:15.85.2",
+        "ISO §2023:15.85.3 AR5 / r6 / §2023:15.85.2",
         No1985Rule: No1985OrderTable);
     // kb/Work PB64 T1 (DESIGN-locale-facility §7 rules a–e): the syntax rules of the locale facility that become
     // reachable once the SPECIAL-NAMES LOCALE clause and SET formats 11/12 are ACCEPTED rather than refused by name.

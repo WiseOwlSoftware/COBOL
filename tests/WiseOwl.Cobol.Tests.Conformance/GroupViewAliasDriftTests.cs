@@ -75,8 +75,8 @@ public sealed class GroupViewAliasDriftTests
     /// file record, a group MOVE or a raw-storage function deposits or reads — is not its VALUE: a bit group's is its m
     /// bits PACKED into ceil(m/8) bytes (§2023:13.18.60.4 GR5, "bits shall be used to represent a boolean data item";
     /// §2023:8.5.1.6.3's placement), a national group's its m positions as 2m UTF-16BE bytes. FUNCTION CONVERT with source
-    /// format ANY takes an argument "of any usage" whose "contents" need not be valid for it (§2023:15.19.3 r7) and returns
-    /// its bits in hexadecimal, "padded with zero bits" to a whole character (§2023:15.19.4 r2) — the storage, so its
+    /// format ANY takes an argument "of any usage" whose "contents" need not be valid for it (§2023:15.19.3 AR7) and returns
+    /// its bits in hexadecimal, "padded with zero bits" to a whole character (§2023:15.19.4 RV2) — the storage, so its
     /// hexadecimal form pins the channel for the view and the plain group alike. The bit view once answered its 5 boolean CHARACTERS ("3130313130") where the plain group
     /// answered its one packed byte. CONVERT is a COBOL-2023 function, hence the edition.</summary>
     [Theory]

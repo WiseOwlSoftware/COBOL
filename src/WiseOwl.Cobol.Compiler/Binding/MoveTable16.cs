@@ -166,7 +166,7 @@ public static class MoveTable16
     /// place, and a FIELD builds through <c>Table16Operand.Of(Place)</c> so a ref-mod view takes §2023:8.4.3.3.4
     /// GR2/GR6's rewrites — category via the one GR6 reader, and the finer alphabetic/edited/noninteger flags
     /// erased, because the unique data item a view creates is plain class-and-category alphanumeric). An
-    /// INTRINSIC sender reports the §2023:15.18.4 r3 ALPHABETIC rider alongside its result category — the finer row
+    /// INTRINSIC sender reports the §2023:15.18.4 RV3 ALPHABETIC rider alongside its result category — the finer row
     /// Table 16 keys on and <c>PicCategory</c> deliberately cannot express (the PIC A fold).
     /// <para>It is a NAMED reader rather than an inline switch because the FROM-phrase function-class rules
     /// (§2023:14.9.32.3 SR2 · §2023:14.9.51.3 SR4 · §2023:14.9.35.3 SR9) ask the same question of the same operand, and a

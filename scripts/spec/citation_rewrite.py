@@ -272,7 +272,7 @@ def _proposals(rel: str, text: str) -> tuple[list[Edit], list[Refusal]]:
 
 
 #: A rule named in words, the head of a tail (`rule 9 b)`: `rule 9`), and the designator that replaces it (`GR9`).
-_WORD_HEAD = re.compile(r"(?:[A-Za-z-]+ phrase )?rules? \d+|items? \(?\d+\)?")
+_WORD_HEAD = re.compile(r"(?:[A-Za-z-]+ phrase )?rules? \d+|items? \(?\d+\)?|r\d+")
 _DESIGNATOR_HEAD = re.compile(rf"(?:{'|'.join(citation.RULE_KINDS)})(?:L\d+\.)?\d+|item (?:L\d+\.)?\d+")
 
 
@@ -447,6 +447,12 @@ def _depth(node: dict) -> int:
     return 1 + max((_depth(v) for k, v in node.items() if k), default=0)
 
 
+def _quotable(fragment: str) -> bool:
+    """Whether a file no expectation reader rewrites can be taken to quote `fragment`: a citation or a designator of more
+    than one token (`SR14 e)`, `rule 9`), not one bare token (`r6`)."""
+    return fragment.startswith("§") or " " in fragment or ")" in fragment
+
+
 def _blanked(text: str, spans) -> str:
     """`text` with each of `spans` blanked (a live rewrite's own text is not an occurrence it leaves)."""
     if not spans:
@@ -478,7 +484,9 @@ def _couple(plan: Plan, texts: dict[str, str]) -> None:
                 forms[old].add(new)
                 owners[old].append(e)
         quoted = {f for t in expectations.values() for f in _occurrences(list(forms), t)}
-        loose = {f for t in others.values() for f in _occurrences(list(forms), t)}
+        # a file no reader rewrites quotes a message only by a citation or a designator of more than one token: a bare
+        # `r6` or `SR4` there is a program's output or data (`r1` in a COPY REPLACING case's .out), never a quotation
+        loose = {f for t in others.values() for f in _occurrences([f for f in forms if _quotable(f)], t)}
         spans = defaultdict(list)
         for e in live:
             spans[e.file].append((e.start, e.end))

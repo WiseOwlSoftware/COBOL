@@ -861,7 +861,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, PlaceTab
     /// receiver (ISO §2023:13.18.2.4 GR1: the item behaves as n repetitions of its picture symbol where n is the
     /// activating argument's length, so a MOVE stores at the CARRIER's current length, never Pic.Length=1);
     /// null (every other receiver) keeps the compile-time width.</summary>
-    /// <param name="rounding">The ROUNDING MODE of the transfer. A MOVE never passes it — §2023:14.6.8.2 r4's
+    /// <param name="rounding">The ROUNDING MODE of the transfer. A MOVE never passes it — §2023:14.6.8.2 GR4's
     /// alignment truncates by rule — and the default therefore preserves that. The ONE caller that does is the
     /// REPORT SECTION's implicit COMPUTE: §2023:13.18.53.4 GR2 ("If the ROUNDED phrase is specified, the implicit
     /// COMPUTE statement has the corresponding ROUNDED phrase") and §2023:13.18.54.4 GR4 ("the content of the sum
@@ -875,7 +875,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, PlaceTab
     /// numeric arm then lands through its CHECKED form and its Try store — the forms the arithmetic statement's store
     /// takes under checking (<c>ArithmeticEmitter.StoreArith</c>) — and a failed store throws the condition as a
     /// <c>CobolSizeError</c>, the expression-position shape <c>CobolNum.StoreOrRaise</c> already gives the fixed-point
-    /// arm. A MOVE never passes it (§2023:14.6.8.2 r4 truncates by rule, and MOVE is not in §2023:14.7.5's list of statements the
+    /// arm. A MOVE never passes it (§2023:14.6.8.2 GR4 truncates by rule, and MOVE is not in §2023:14.7.5's list of statements the
     /// size error condition may occur as a result of). It governs the receivers an implicit COMPUTE can have — numeric
     /// and numeric-edited (§2023:13.18.53.3 SR3) — and nothing else. It is the FINAL TRANSFER only: the operations that develop
     /// the result take the checked kernels from the render's own checking state (<c>NumericRenderer.Taken</c>, from <c>EcState.EnabledChecks</c>, which the
@@ -1166,7 +1166,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, PlaceTab
     /// scale) — but the SCALE and the Int128-headroom cap now carry the ACTUAL receiver, so an exact-family
     /// intrinsic source renders at the precision the receiver can store instead of the receiver-less floor.
     /// Measured: <c>MOVE FUNCTION NUMVAL-C("$0.123456789") TO PIC S9(4)V9(9)</c> stored 0.123456000 while
-    /// COMPUTE stored the exact value — §2023:15.68.4 r1 carries no channel qualification. The scale mirrors
+    /// COMPUTE stored the exact value — §2023:15.68.4 RV1 carries no channel qualification. The scale mirrors
     /// <c>ArithmeticEmitter.ScaleOf</c> (a numeric-edited receiver's scale is its MASK's) and the digits
     /// <c>ReceiverContext.Of</c>'s integer-digit rule (from <c>DigitPositions</c>, never the '9' count — under-counting
     /// breaks the PB13 saturation-is-visible invariant).</summary>

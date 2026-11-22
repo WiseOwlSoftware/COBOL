@@ -10,7 +10,7 @@
       *> required, which may be zero, one, or more" — so the two-argument list below names no function this
       *> standard defines, and §2023:15.49 has no second format.
       *>
-      *> ⚠ INTEGER-PART IS THE SHARPEST PLACE TO WRITE THIS, because §2023:15.49.4 r1 defines it by an equivalent
+      *> ⚠ INTEGER-PART IS THE SHARPEST PLACE TO WRITE THIS, because §2023:15.49.4 RV1 defines it by an equivalent
       *> arithmetic expression over THREE other functions — SIGN, INTEGER and ABS — each of which is itself
       *> a one-argument format. A binder that built the EAE by passing an argument list through would take
       *> its arity from whichever inner call it landed on rather than from §2023:15.49.2, and every one-argument

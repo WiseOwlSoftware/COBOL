@@ -400,7 +400,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // standard DECIMAL form, so STANDARD routes to the same CobolDec engine as STANDARD-DECIMAL
         // (NumericRenderer.StandardDecimal). Floating-point operands participate under BOTH modes through the
         // §2023:8.8.1.5.1 implementor-defined float→SDIDI conversion (CobolDec.FromBinary64 — the binary64's exact value
-        // rounded once to 34 digits under INTERMEDIATE ROUNDING, §2023:8.8.1.5.2 r1); the operations themselves are SDIDI
+        // rounded once to 34 digits under INTERMEDIATE ROUNDING, §2023:8.8.1.5.2 GR1); the operations themselves are SDIDI
         // (P10 Step 12).
         // STANDARD was DROPPED by ISO/IEC 1989:2023 (§2023:8.8.1 names only NATIVE/STANDARD-BINARY/STANDARD-DECIMAL)
         // → the pass's arithmetic-standard-2002 dual-window row rejects it at --std 2023 (0807).
@@ -1923,7 +1923,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// (DigitPositions at the analyzer's Scale — there is no mask for MaskScale to read, and 'P' does not
     /// exist in format 2). The scale is <see cref="PicInfo.ReceiverScale"/>, the ONE receiver-scale rule, never a
     /// second spelling of it here (kb/Work PB2163's sibling sweep). The ONE (digits, scale) shape the §2023:13.18.63.3
-    /// SR2/SR6 VALUE-fit check and the §2023:14.7.7 r2 composite of operands both align on (kb/Work PB155). Callers exclude floating-point forms
+    /// SR2/SR6 VALUE-fit check and the §2023:14.7.7 SR2 composite of operands both align on (kb/Work PB155). Callers exclude floating-point forms
     /// first (<see cref="PicInfo.IsFloat"/> / <see cref="PicInfo.IsFloatEdited"/> — no fixed decimal
     /// alignment exists for them).</summary>
     internal (int Digits, int Scale) StoredShapeOf(PicInfo pic)
@@ -2600,7 +2600,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // SAME AS or TYPE — so the ??= is the subject-wins discipline, not a second condition.
         to.PictureText ??= from.PictureText;
         // ⛔ GROUP-USAGE (§2023:13.18.29) — the clause that makes the item a BIT or NATIONAL group, i.e. its class,
-        // its category and the unit its LENGTH counts in (§2023:8.5.2.5 GR3 / §2023:8.5.2.10 GR3; §2023:15.50.4 r1/r2).
+        // its category and the unit its LENGTH counts in (§2023:8.5.2.5 GR3 / §2023:8.5.2.10 GR3; §2023:15.50.4 RV1/r2).
         // It is in NEITHER GR-1 exclusion list, and §2023:13.18.49.4 GR4 propagating a GROUP-USAGE from data-name-1's
         // SUPERORDINATE shows the clause is plainly meant to travel. Losing it did not merely mis-measure the
         // subject: §2023:13.16.4 GR1/GR2 imply the clause for every SUBORDINATE group, so a false antecedent here
@@ -3836,7 +3836,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                         $"data item '{cobolName ?? "FILLER"}'");
                     // PICTURE Format 2 (locale) — `LOCALE [IS locale-name-1] SIZE IS integer-1` (§2023:13.18.40.2; LIVE
                     // since kb/Work PB64 T6): capture the locale (SR37 through the ONE undeclared-locale-name path,
-                    // COBOL1664; absent ⇒ the current locale at each edit, §2023:13.18.40.5 r11) and SIZE integer-1
+                    // COBOL1664; absent ⇒ the current locale at each edit, §2023:13.18.40.5 GR11) and SIZE integer-1
                     // (§2023:13.18.40.4 GR17 — the item's length); the analysis is AnalyzeLocaleEdited's (SR33–SR36 +
                     // Table 11 → COBOL1673).
                     if (clause.Context.pictureClause()?.pictureLocalePhrase() is { } lp)
@@ -4361,7 +4361,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // (§2023:13.18.52.3 SR1/SR2 — the SIGN clause's subject — is CheckSignClauses, post-forest: the float-edited
         // special case that used to stand here is its numeric-edited arm, kb/Work PB537.)
         // §2023:13.16.3 SR19 — the SIGN clause shall not be specified with a format-2 (LOCALE) PICTURE: the sign
-        // representation is the LOCALE's (§2023:13.18.40.5 r13). The SCREEN description twin (§2023:13.17.3 SR9) rides the
+        // representation is the LOCALE's (§2023:13.18.40.5 GR13). The SCREEN description twin (§2023:13.17.3 SR9) rides the
         // screen arm; a REPORT GROUP entry carries NO such rule (§2023:13.15.3) and the pair is legal there (PB113).
         if (pic is { LocaleEdit: not null } && ownSign is not null)
             Edition.Error(DiagnosticCatalog.SignClauseWithLocalePicture, $"{entryWhere}: the SIGN clause shall not be "
@@ -5023,7 +5023,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         BareValueOperandWord(op) is { } dref ? SymbolicRaw(dref) : null;
 
     /// <summary>The raw ALL-literal text of the symbolic character named <paramref name="word"/>, or null: the
-    /// class-prefixed re-quoted one-character literal (embedded delimiters doubled per §2023:8.3.3.2.3 r3). A
+    /// class-prefixed re-quoted one-character literal (embedded delimiters doubled per §2023:8.3.3.2.3 SR3). A
     /// resolution of the written word, recorded as a use (§2023:8.3.2.2; kb/Work PB3153).</summary>
     private string? SymbolicRaw(Antlr4.Runtime.ParserRuleContext word) =>
         SpecialNames.SymbolicOf(word) is not { } sym ? null

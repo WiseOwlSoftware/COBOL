@@ -415,7 +415,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     /// carrier category, so an index-name can stand on the other side of any of them. Each position then
     /// resolved through <c>ctx.Refs.Resolve</c>, which answers for a DATA ITEM only, and the FIRST thing the
     /// user read was COBOL1639: "'IX' is not defined — no declaration in this source element gives the name
-    /// 'IX'" — false about a name INDEXED BY declared, and it sends the reader hunting a typo. §2023:13.18.38.3 r7
+    /// 'IX'" — false about a name INDEXED BY declared, and it sends the reader hunting a typo. §2023:13.18.38.3 SR7
     /// closes the list of contexts that may reference an index-name and the SET statement IS one of them, as
     /// Format 1 (§2023:14.9.39.3 SR1). So the statement is still refused — for the category, which is the real
     /// reason. ONE helper, asked FIRST at every one of the six positions.</summary>

@@ -5,14 +5,14 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §2023:15.8.3 r2 — the ACCEPT arm of ACOS's argument VALUE domain, at the EARLIEST edition
+      *> ISO §2023:15.8.3 AR2 — the ACCEPT arm of ACOS's argument VALUE domain, at the EARLIEST edition
       *> that has the function. The closed interval [-1, +1] is admitted at BOTH endpoints.
       *>
       *> THE RULE, --check validated:
       *>   cite.py --check 15.8.3 "The value of argument-1 shall be greater than or equal to"
       *>     -> OK §2023:15.8.3 AR2  "2) The value of argument-1 shall be greater than or equal to -1
       *>        and less than or equal to +1."
-      *>   (⚠ NOT r1. §2023:15.8.3 r1 is "Argument-1 shall be of class numeric" - a different rule.)
+      *>   (⚠ NOT r1. §2023:15.8.3 AR1 is "Argument-1 shall be of class numeric" - a different rule.)
       *>   cite.py --check 15.8.4 "The returned value is the approximation of the arccosine of
       *>     argument-1 and is greater than or equal to zero and less than or equal to"
       *>     -> OK §2023:15.8.4 RV1 - the codomain is [0, pi].
@@ -22,7 +22,7 @@
       *>     NATIVE phrase" -> OK §2023:11.9.5.2 GR4 - and at COBOL-85 the OPTIONS paragraph does not
       *>     exist at all, so the approximating mode is the ONLY one reachable here.
       *>
-      *> ⛔ WHY ONLY THE ACCEPT ARM AT THIS EDITION. §2023:15.8.3 r2's REJECT arm has its consequence in
+      *> ⛔ WHY ONLY THE ACCEPT ARM AT THIS EDITION. §2023:15.8.3 AR2's REJECT arm has its consequence in
       *> §2023:15.3 AR14 - "the EC-ARGUMENT-FUNCTION exception condition is set to exist" (--check
       *> OK; cite.py reports the ITEM number, recorded here rather than a bare § because an
       *> inherited clause reference that names no item is how a wrong number propagates) - and
@@ -33,7 +33,7 @@
       *> the arm that IS observable - r2's admission of the endpoints, ACOS being available from
       *> 85 - is what this file measures. 2023/l1_acos_argument_domain carries both arms.
       *>
-      *> The values are the mathematical arccosine the rule names, inside §2023:15.8.4 r1's codomain:
+      *> The values are the mathematical arccosine the rule names, inside §2023:15.8.4 RV1's codomain:
       *> arccos(+1) = 0, arccos(-1) = pi = 3.14159265358979..., arccos(0) = pi/2 =
       *> 1.57079632679489... Each is pinned by an INCLUSIVE 1E-6 window rather than by printing
       *> this implementation's own digits back at itself, because §2023:15.4.1 makes a native returned

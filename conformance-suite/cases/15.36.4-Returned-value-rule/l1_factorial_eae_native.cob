@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §2023:15.36.4 r1 — the same three lettered arms of FACTORIAL's equivalent arithmetic
+      *> ISO §2023:15.36.4 RV1 — the same three lettered arms of FACTORIAL's equivalent arithmetic
       *> expression under NATIVE arithmetic, at the EARLIEST edition that has the function.
       *>
       *> --check validated:

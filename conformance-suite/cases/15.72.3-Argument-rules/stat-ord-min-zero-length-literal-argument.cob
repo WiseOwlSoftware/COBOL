@@ -8,7 +8,7 @@
       *>
       *> THE ORDINAL IS THE FUNCTION'S OWN — §2023:15.72.3 orders its rules as ORD-MAX
       *> does (r1 negative class list, r2 this rule, r3 all-same-class), which is NOT
-      *> the MAX/MIN order (r3), so the diagnostic must cite §2023:15.72.3 r2 and nothing
+      *> the MAX/MIN order (r3), so the diagnostic must cite §2023:15.72.3 AR2 and nothing
       *> else. §2023:15.72.2's general format is `FUNCTION ORD-MIN ( { argument-1 } ... )`,
       *> so every written position is argument-1; this fixture puts the zero-length
       *> literal at POSITION 1 OF 2, the ordinal the clause names literally.

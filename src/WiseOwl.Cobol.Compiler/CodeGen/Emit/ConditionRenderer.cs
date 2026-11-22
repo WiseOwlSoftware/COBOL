@@ -16,7 +16,7 @@ namespace WiseOwl.Cobol.CodeGen.Emit;
 /// ONE deliberate exception to side-effect freedom: <see cref="BoundUdfEvaluated"/> — a per-evaluation
 /// user-function window — renders as an immediately-invoked <c>Func&lt;bool&gt;</c> whose body runs the
 /// activations then returns the inner predicate, so the activation executes exactly when (and only when) the
-/// containing condition text evaluates (ISO §2023:8.4.3.2.4 GR1/GR6a; §2023:8.8.4.13 r2 — loop headers re-evaluate it per
+/// containing condition text evaluates (ISO §2023:8.4.3.2.4 GR1/GR6a; §2023:8.8.4.13 GR2 — loop headers re-evaluate it per
 /// iteration, a short-circuited <c>&amp;&amp;</c>/<c>||</c> operand skips it entirely).
 /// </summary>
 internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : IBoundConditionVisitor<string>
@@ -212,7 +212,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         ? $"!{RuntimeApi.ClassInCodedSet(OperandText.AsString(n.Operand, num, sending: SendingRef.ClassCondition), n.Kind)}"
         : RuntimeApi.ClassInCodedSet(OperandText.AsString(n.Operand, num, sending: SendingRef.ClassCondition), n.Kind);
     public string Visit(BoundConditionError n) => EmitText.LoudValue("bool", n.Feature);
-    // A per-evaluation user-function window (ISO §2023:8.4.3.2.4 GR1/GR6a; §2023:8.8.4.13 r2): the activations run each
+    // A per-evaluation user-function window (ISO §2023:8.4.3.2.4 GR1/GR6a; §2023:8.8.4.13 GR2): the activations run each
     // time THIS condition text evaluates — an IIFE, so a while-header re-runs them per iteration and a
     // short-circuited &&/|| operand position skips them exactly when COBOL's rule 1 skips the operand.
     public string Visit(BoundUdfEvaluated n) =>
@@ -537,7 +537,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     }
 
     /// <summary>A relational comparison where one side is a figurative constant — it materializes to the other
-    /// operand's category and width (ISO §2023:8.3.3.6.4 r2 sizes it from the associated operand; §2023:8.8.4.2.1
+    /// operand's category and width (ISO §2023:8.3.3.6.4 GR2 sizes it from the associated operand; §2023:8.8.4.2.1
     /// treats a group anchor as an elementary alphanumeric item — kb/Work PB182 corrected the phantom
     /// §8.8.4.1.1 this used to cite): a numeric anchor → ZERO is 0; an alphanumeric/group anchor →
     /// the figurative is a string as long as the anchor's own value is.
@@ -1159,7 +1159,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     /// <summary>A string level-88 VALUE operand as a C# EXPRESSION, in the order the VALUE recipe reads it:
     /// <list type="bullet">
     /// <item>a format-2 (LOCALE) conditional variable's numeric VALUE composes its edited image AT RUNTIME under
-    /// the locale then current (§2023:13.18.40.5 r11 — no compile-time image exists; the ONE producer,
+    /// the locale then current (§2023:13.18.40.5 GR11 — no compile-time image exists; the ONE producer,
     /// <see cref="RuntimeApi.LocaleEditCompose"/>; comparing raw literal text is precisely the PB97 defect shape);</item>
     /// <item>a NUMERIC-EDITED conditional variable's numeric literal (or figurative ZERO at >= 2023) is its EDITED
     /// image — ISO §2023:13.18.63.3 SR6 converts a numeric-edited item's numeric VALUE literals "according to the rules

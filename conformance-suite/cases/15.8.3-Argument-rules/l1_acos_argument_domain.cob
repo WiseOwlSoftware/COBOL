@@ -5,18 +5,18 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:15.8.3 r2 — ACOS argument-1 VALUE domain: the closed interval [-1, +1] is admitted at
+      *> ISO §2023:15.8.3 AR2 — ACOS argument-1 VALUE domain: the closed interval [-1, +1] is admitted at
       *> BOTH endpoints, and a value outside it sets the EC-ARGUMENT-FUNCTION exception condition.
       *>
       *> THE RULE, --check validated:
       *>   cite.py --check 15.8.3 "The value of argument-1 shall be greater than or equal to"
       *>     -> OK §2023:15.8.3 AR2  "2) The value of argument-1 shall be greater than or equal to -1
       *>        and less than or equal to +1."
-      *>   (⚠ NOT r1. §2023:15.8.3 r1 is "Argument-1 shall be of class numeric" - a different rule,
+      *>   (⚠ NOT r1. §2023:15.8.3 AR1 is "Argument-1 shall be of class numeric" - a different rule,
       *>    already witnessed by negative/pb1-numeric-arg-trig-family. The r1/r2 confusion is live
       *>    in the corpus: 2023/pb13_domain_raise_receiver_shape cites "15.8.3 r1" for THIS value
       *>    rule at its line 17 and "15.84.3 r1" for SQRT's value rule at its line 37, where the
-      *>    standard's value rules are §2023:15.8.3 r2 and §2023:15.84.3 r2.)
+      *>    standard's value rules are §2023:15.8.3 AR2 and §2023:15.84.3 r2.)
       *>
       *> THE CONSEQUENCE, --check validated:
       *>   cite.py --check 15.3 "the EC-ARGUMENT-FUNCTION exception condition is set to exist"
@@ -50,7 +50,7 @@
       *> COBOL-85 by any test whatever.
       *>
       *> ⛔ BOTH ARMS, AND BOTH ENDPOINTS. A closed-interval rule is falsified from two directions:
-      *> by raising on -1 or +1 (over-rejecting legal source, the shape §2023:15.8.4 r1 then has no
+      *> by raising on -1 or +1 (over-rejecting legal source, the shape §2023:15.8.4 RV1 then has no
       *> value for) and by staying silent above +1 or below -1. Lines 1-3 are the ACCEPT arm and
       *> 4-7 the REJECT arm. Lines 6-7 sit one unit in the ninth decimal outside each endpoint,
       *> from a runtime data item rather than a literal, so the boundary is measured AT exactly

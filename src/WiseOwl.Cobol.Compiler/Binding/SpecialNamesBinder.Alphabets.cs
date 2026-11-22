@@ -390,7 +390,7 @@ public sealed partial class SpecialNamesBinder
         string what = rules.What;
         var pos = new Dictionary<char, int>();
         var specOrder = new List<char>();       // every specified character in source order (the GR8/GR9 tie rules)
-        var repByPos = new List<char>();        // per position: the FIRST character DEFINED there (§2023:15.15.4 r2 / GR7 k6)
+        var repByPos = new List<char>();        // per position: the FIRST character DEFINED there (§2023:15.15.4 RV2 / GR7 k6)
         // ⛔ An int, never a ushort (kb/Work PB1557): the position COUNT reaches 65,536 when the phrase specifies
         // every native character (SR14 b4/c4's bound is "shall not exceed", so equal is legal), one past what a
         // 16-bit counter holds — it wrapped to 0 and the whole table lost its specified block.

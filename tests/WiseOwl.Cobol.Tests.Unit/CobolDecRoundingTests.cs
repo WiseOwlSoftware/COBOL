@@ -6,7 +6,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// The SDIDI final transfer's rounding decision (<c>CobolDec.ToUnscaled</c>, ISO §2023:14.7.4.3) and the §2023:8.8.1.5.2 r2
+/// The SDIDI final transfer's rounding decision (<c>CobolDec.ToUnscaled</c>, ISO §2023:14.7.4.3) and the §2023:8.8.1.5.2 GR2
 /// range check (<c>CobolDec.FromParsed</c> → <c>Clamp</c>) for values FAR BELOW the target precision — the
 /// remainder-marker shape (kb/Work PB76): past the Int128 carrier the true remainder is unavailable, so
 /// <c>DivRemPow10</c> returns a marker, and that marker must read as a signed, below-half, inexact remainder —
@@ -49,7 +49,7 @@ public sealed class CobolDecRoundingTests
     public void SubPrecision_Prohibited_IsInexact() =>
         Assert.Throws<CobolSizeError>(() => TinyPos.ToUnscaled(9, CobolRounding.Prohibited));   // r7
 
-    /// <summary>The same marker feeds the decimal128 subnormal re-round (§2023:8.8.1.5.2 r2): a value far below the
+    /// <summary>The same marker feeds the decimal128 subnormal re-round (§2023:8.8.1.5.2 GR2): a value far below the
     /// 10⁻⁶¹⁷⁶ quantum rounds to zero under a NEAREST mode and is EC-SIZE-UNDERFLOW — the half-tie marker had
     /// returned it as one quantum instead.</summary>
     [Fact]

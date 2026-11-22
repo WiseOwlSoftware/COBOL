@@ -17,8 +17,8 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// EVALUATE were the two that did not implement it, each re-running the source EXPRESSION at every use.</para>
 ///
 /// <para>A value-varying sender is what MEASURES the cardinality, and <c>FUNCTION RANDOM</c> is the one the
-/// standard makes reproducible: §2023:15.75.3 r3 — "If a subsequent reference specifies argument-1, a new sequence of
-/// pseudo-random numbers is started" — and §2023:15.75.4 r2 — "For a given seed value on a given implementation, the
+/// standard makes reproducible: §2023:15.75.3 AR3 — "If a subsequent reference specifies argument-1, a new sequence of
+/// pseudo-random numbers is started" — and §2023:15.75.4 RV2 — "For a given seed value on a given implementation, the
 /// sequence of pseudo-random numbers will always be the same". So every assertion below compares a RE-SEEDED run
 /// against a control and never against a particular pseudo-random value: the tests pin the RULE, not this
 /// implementation's sequence.</para>
@@ -26,7 +26,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 public sealed class SendingValueOnceDriftTests
 {
     /// <summary>Every verb that takes ONE sending operand and MORE THAN ONE receiving operand, written so that
-    /// re-evaluating the sender gives the receivers different values. §2023:15.75.4 r1 puts every RANDOM value in
+    /// re-evaluating the sender gives the receivers different values. §2023:15.75.4 RV1 puts every RANDOM value in
     /// [0, 1), so two receivers of one evaluation are equal and two evaluations are (with probability 1 for this
     /// generator) not.</summary>
     [Theory]

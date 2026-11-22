@@ -143,7 +143,7 @@ public static class NumericLiteral
 
     /// <summary>True when the numeric literal's value (fixed-point or floating-point form) is representable in the
     /// IEEE binary64 (<paramref name="single"/>: binary32) range — finite, and not a nonzero value that rounds to
-    /// zero (below the smallest subnormal). The implementor-defined exponent range of ISO §2023:8.3.3.3.3 r3 for a
+    /// zero (below the smallest subnormal). The implementor-defined exponent range of ISO §2023:8.3.3.3.3 SR3 for a
     /// literal that evaluates in a binary floating-point form: a procedure-division floating-point literal (D16 —
     /// binary64) and a VALUE on a FLOAT-SHORT / FLOAT-LONG / FLOAT-BINARY-32/64 item (kb/Work PB99).</summary>
     public static bool FitsBinaryFloat(string text, bool single = false)

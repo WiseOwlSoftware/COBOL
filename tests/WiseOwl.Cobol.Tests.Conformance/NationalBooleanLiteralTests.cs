@@ -289,7 +289,7 @@ public sealed class NationalBooleanLiteralTests
     /// <summary>A non-Latin-1 character in an N"…" literal is LEGAL (§2023:8.3.3.5 — the content repertoire is the
     /// full national set, one UTF-16 char per position, D-N1; the P10 national wave lifted the staged
     /// Latin-1-only 0814 guard). FUNCTION DISPLAY-OF carries it UNCHANGED: the alphanumeric↔national
-    /// correspondence is the Annex A.1 item-33 TOTAL UTF-16 identity (PB59), so §2023:15.26.4 r2/r3's substitution
+    /// correspondence is the Annex A.1 item-33 TOTAL UTF-16 identity (PB59), so §2023:15.26.4 RV2/r3's substitution
     /// machinery is vacuous — argument-2 is accepted and inert, and no EC-DATA-CONVERSION is set from any
     /// character pathway. The standard display device writes UTF-8 (CONFORMANCE.md item 59), which is what
     /// makes the wide character assertable in stdout at all.

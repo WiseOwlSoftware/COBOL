@@ -66,7 +66,7 @@ internal readonly struct CobolBig
         + "A.1 item 179: EC-SIZE-OVERFLOW)", "EC-SIZE-OVERFLOW");
 
     /// <summary>A power of a base below one in magnitude whose integer would pass the working cap: far below the decimal128 range's
-    /// smallest magnitude, 10^-6176 (ISO §2023:8.8.1.5.2 r2: a nonzero value too small to be contained is EC-SIZE-UNDERFLOW).</summary>
+    /// smallest magnitude, 10^-6176 (ISO §2023:8.8.1.5.2 GR2: a nonzero value too small to be contained is EC-SIZE-UNDERFLOW).</summary>
     private static CobolSizeError Underflow() => new("a native power is too small to be contained "
         + "(|value| below 10^-6176; ISO §2023:8.8.1.5.2 r2, §2023:14.7.5 case 5: EC-SIZE-UNDERFLOW)", "EC-SIZE-UNDERFLOW");
 

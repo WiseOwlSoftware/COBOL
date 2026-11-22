@@ -13,7 +13,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ A WHOLE-RANGE float body takes an SDIDI argument UNNARROWED, and its domain is still the ONE screen's (kb/Work
 /// PB999). The SDIDI reaches 10^±6144 (ISO §2023:8.8.1.5.2) and binary64 does not, so narrowing before the body answered
-/// LOG10(10^−400) with log10(+0.0) and SIN(10^400) with sin(+∞) — the §2023:15.56.4 r1 / §2023:15.82.4 r1 returned value is the
+/// LOG10(10^−400) with log10(+0.0) and SIN(10^400) with sin(+∞) — the §2023:15.56.4 RV1 / §2023:15.82.4 RV1 returned value is the
 /// approximation of the function OF ARGUMENT-1, not of a substitute.
 /// </summary>
 /// <remarks>

@@ -81,7 +81,7 @@ A **floating-point numeric-edited item** is defined by §2023:13.18.40.4 GR13b:
 approximate below two levels and prints `13)`).
 
 Its **category is numeric-edited** (§2023:13.18.40.4 GR3 lists the eight categories a PICTURE clause may define;
-§2023:8.5.2.13 r1: "A data item described as numeric-edited by its PICTURE character-string"). Its **class is
+§2023:8.5.2.13 GR1: "A data item described as numeric-edited by its PICTURE character-string"). Its **class is
 alphanumeric** when its usage is display and **national** when its usage is national (§2023:8.5.2.1 Table 2).
 
 `E` is a real character position: "The symbol 'E' represents a character position into which the character 'E'
@@ -274,7 +274,7 @@ specified as floating-point" has a working literal channel to build the VALUE ru
 
 **Inventory fan-out this wave unblocks** (`tests/version-matrix/traceability-inventory.json`): §2023:13.18.40.3 — 37
 rows, all GAP; §2023:13.18.40.4 — 19 rows, all GAP; §2023:13.18.40.5 — 15 rows, all GAP; §2023:14.6.8.4 — 2 rows, both GAP with
-a blank verdict; §2023:15.43.4 r1 and §2023:15.58.4 r1 — the two `NOT-IMPLEMENTED` rows PB66 owns.
+a blank verdict; §2023:15.43.4 RV1 and §2023:15.58.4 RV1 — the two `NOT-IMPLEMENTED` rows PB66 owns.
 
 **Metadata defect found while writing this design.** `tests/version-matrix/constructs/`, row
 `pic-external-float-2002`, carries `"source": "… 01 W-E PIC +9V99E+99. …"`. **That picture is illegal**: Table 10
@@ -288,7 +288,7 @@ the `green_gates_arent_evidence` shape.
 
 ### D-EF1. Storage is the existing numeric-edited `string` image; no new `PicCategory`, no new CLR carrier.
 
-The item's category IS numeric-edited (§2023:8.5.2.13 r1) and its class IS alphanumeric (§2023:8.5.2.1 Table 2). Every
+The item's category IS numeric-edited (§2023:8.5.2.13 GR1) and its class IS alphanumeric (§2023:8.5.2.1 Table 2). Every
 character-position surface already in the tree — `DataItem.ByteWidth`/`ImageWidth`, `GroupImageCodec`,
 `RecordFraming`, reference modification, `INSPECT`, `STRING`, relation conditions — therefore works unchanged the
 moment `PictureAnalyzer` returns `PicCategory.NumericEdited` with the right `Length`.
@@ -647,7 +647,7 @@ The receiver store is the existing `CobolDec.ToUnscaled(receiverScale, mode)`, w
 | `VALIDATE` format validation | §2023:13.18.40.4 GR15's per-symbol checks, `E` "checked to contain the character 'E'" | the VALIDATE wave; this design supplies the per-symbol table |
 | `REDEFINES`, group image, file record, SORT key | `Length` character positions of a `string` leaf — unchanged (D-EF1) | unchanged |
 | `FUNCTION HIGHEST-ALGEBRAIC` / `LOWEST-ALGEBRAIC` | §10 | `IntrinsicBinder.BindAlgebraicFold` |
-| `FUNCTION SMALLEST-ALGEBRAIC` | **rejected** — §2023:15.83.3 r1 admits only category numeric ✔ OK; the existing arm already rejects numeric-edited | unchanged |
+| `FUNCTION SMALLEST-ALGEBRAIC` | **rejected** — §2023:15.83.3 AR1 admits only category numeric ✔ OK; the existing arm already rejects numeric-edited | unchanged |
 
 ---
 
@@ -737,16 +737,16 @@ confusing secondary error.
 
 ### 10.1 What the rules say
 
-§2023:15.43.3 r1 / §2023:15.58.3 r1: "Argument-1 shall be a data item of category numeric or numeric-edited and shall not be
+§2023:15.43.3 AR1 / §2023:15.58.3 AR1: "Argument-1 shall be a data item of category numeric or numeric-edited and shall not be
 an integer function or numeric function." ✔ OK — a floating-point edited item **is** admitted.
 
-§2023:15.43.4 r1 (**RV-15.43.4-1**): "When argument-1 is a floating-point numeric-edited item, the data description
+§2023:15.43.4 RV1 (**RV-15.43.4-1**): "When argument-1 is a floating-point numeric-edited item, the data description
 entry with which argument-1 is described shall be such that, if argument-1 contained the positive value farthest
 from zero that is permitted according to that data description entry, an IN-ARITHMETIC-RANGE test of argument-1
 would return a true value." ✔ OK.
-§2023:15.58.4 r1 (**RV-15.58.4-1**): the same for a **signed** floating-point edited item and the negative extreme.
+§2023:15.58.4 RV1 (**RV-15.58.4-1**): the same for a **signed** floating-point edited item and the negative extreme.
 ✔ OK.
-§2023:15.43.4 r2 / §2023:15.58.4 r2 give the returned value: the greatest / lowest finite magnitude representable. ✔ OK.
+§2023:15.43.4 RV2 / §2023:15.58.4 RV2 give the returned value: the greatest / lowest finite magnitude representable. ✔ OK.
 
 The test they name is defined by §2023:8.8.4.4.4 GR3l: "If IN-ARITHMETIC-RANGE Is specified, the condition is true if
 the numeric content of the data item referenced by identifier-1 is neither farther from zero nor closer to zero
@@ -770,12 +770,12 @@ For `FloatEditSpec(SigDigits d, SigScale f, SigSigned s, ExpDigits e)`, with `in
 
 ```
 HIGHEST-ALGEBRAIC = (10^d - 1) × 10^(-f) × 10^(+maxExp)            // all-nines significand, max exponent
-LOWEST-ALGEBRAIC  = -HIGHEST-ALGEBRAIC   when SigSigned            // §2023:15.58.4 r2
+LOWEST-ALGEBRAIC  = -HIGHEST-ALGEBRAIC   when SigSigned            // §2023:15.58.4 RV2
                   =  0                   when not SigSigned        // an unsigned mask cannot hold a negative
 ```
 
 (The unsigned case matches the standard's own fixed-point NOTE table, where `$**,**9.99` — no sign symbol —
-returns `0` for LOWEST-ALGEBRAIC. §2023:15.58.4 r1 is worded for a *signed* item precisely because the unsigned answer
+returns `0` for LOWEST-ALGEBRAIC. §2023:15.58.4 RV1 is worded for a *signed* item precisely because the unsigned answer
 is trivially zero.)
 
 The smallest nonzero magnitude, needed for the "closer to zero" half:
@@ -793,7 +793,7 @@ The smallest nonzero magnitude, needed for the "closer to zero" half:
 | **STANDARD-BINARY** | documented-unsupported (D3; the mode is obsolete per §2023:8.8.1.4.1's NOTE) — the existing `ArithmeticMode.StandardBinary` rejection covers it | — | — |
 
 **Rule (D-EF9):** at the function reference, if `HIGHEST-ALGEBRAIC(item) > farthest` or
-`minNonZero < closest`, emit **`COBOL1648`** naming §2023:15.43.4 r1 / §2023:15.58.4 r1, the mode in effect, and the
+`minNonZero < closest`, emit **`COBOL1648`** naming §2023:15.43.4 RV1 / §2023:15.58.4 RV1, the mode in effect, and the
 bound.
 
 **Both halves are live — worked out for `intDigits = 1`:**
@@ -832,8 +832,8 @@ covers what happens at `--std 2002`.
 | `--std` | Behaviour |
 |---|---|
 | **85** | `COBOL0900` — "a floating-point numeric-edited PICTURE (the symbol E) requires COBOL-2002 (targeting COBOL-85)". Unchanged mechanism: the `constructs/` row `pic-external-float-2002` with `introducedIn: 2002`, fired by `VersionConformancePass`'s `GateData` enumerator. **The `SkeletonGate` carrier is DELETED** — it exists only because `PicInfo.Recovery` erased the category; once the analyzer returns a real `PicCategory.NumericEdited` the enumerator keys on `Pic.IsFloatEdited`, exactly as the National/Boolean rows key on `Pic.Category`. (`PicInfo.SkeletonGate`'s doc-comment names external float as one of its two users; after this wave only `NationalEdited2002` remains, and the property's comment must say so.) |
-| **2002** | Fully live. §2023:15.43.4/§2023:15.58.4 r1 in the 2014 wording did not yet exist, so `COBOL1648` is issued citing **§2023:8.8.1.3 + Annex A.3** (the implementor-defined intermediate and the processor-dependent capability) rather than §2023:15.43.4 r1. The *test* is identical — the constraint is physical, not editorial: the compiler cannot return a value its intermediate cannot hold. |
-| **2014 / 2023** | Fully live; `COBOL1648` cites §2023:15.43.4 r1 / §2023:15.58.4 r1. |
+| **2002** | Fully live. §2023:15.43.4/§2023:15.58.4 RV1 in the 2014 wording did not yet exist, so `COBOL1648` is issued citing **§2023:8.8.1.3 + Annex A.3** (the implementor-defined intermediate and the processor-dependent capability) rather than §2023:15.43.4 r1. The *test* is identical — the constraint is physical, not editorial: the compiler cannot return a value its intermediate cannot hold. |
+| **2014 / 2023** | Fully live; `COBOL1648` cites §2023:15.43.4 RV1 / §2023:15.58.4 r1. |
 
 `constructs/` row changes: `status: pending → active`, `diagnosticCode`/`expectDiagnostic` unchanged
 (`COBOL0900`), `description` rewritten (drop "silent-misbinds"/"Phase 6"), `display` → "a floating-point
@@ -857,7 +857,7 @@ COBOL1641 · next free = COBOL1643").
 | `COBOL1645` | a symbol appears in the significand that may not precede `E`. **Separate legs**, each naming the symbol and its own rule: `V`/`P` (Table 10 row E; SR17/SR20 point exclusivity), `S` (Table 10 row E; SR18), `Z`/`*` (GR13 b "Neither floating insertion editing nor zero suppression with replacement shall be specified for the significand"), the currency symbol (GR13 b + Table 10 row E), `CR`/`DB` (Table 10 row E), an `EDITING` character-1 (SR12 a + §2023:13.18.40.6's `es`≡`cs` precedence) | §2023:13.18.40.6 Table 10 + the named rule |
 | `COBOL1646` | significand digit positions outside 1..36 | §2023:13.18.40.3 SR15 |
 | `COBOL1647` | a `VALUE` literal for a floating-point format that is a non-zero **fixed-point** numeric literal | §2023:13.18.63.3 SR6 |
-| `COBOL1648` | `HIGHEST-`/`LOWEST-ALGEBRAIC` argument-1's extreme value is outside the intermediate data item's range for the mode in effect | §2023:15.43.4 r1 / §2023:15.58.4 r1 (≥2014); §2023:8.8.1.3 + Annex A.3 (2002) |
+| `COBOL1648` | `HIGHEST-`/`LOWEST-ALGEBRAIC` argument-1's extreme value is outside the intermediate data item's range for the mode in effect | §2023:15.43.4 RV1 / §2023:15.58.4 RV1 (≥2014); §2023:8.8.1.3 + Annex A.3 (2002) |
 | existing `COBOL0900` | below COBOL-2002 | `constructs/` row |
 | existing SIGN validation | a `SIGN` clause on the entry | §2023:13.18.52.3 SR1 |
 
@@ -917,7 +917,7 @@ zeroed). Plus the `ON SIZE ERROR`-absent form asserting EC-SIZE-TRUNCATION under
 ### 13.5 De-edit
 
 Round-trip: `MOVE x TO F-ED` then `MOVE F-ED TO PIC S9(18)V9(9)` for each §13.3 row, asserting the recovered
-value. Plus: a huge exponent de-edited into a small receiver (high-order truncation per §2023:14.6.8.2 r4);
+value. Plus: a huge exponent de-edited into a small receiver (high-order truncation per §2023:14.6.8.2 GR4);
 a hand-injected malformed image via `REDEFINES`/alphanumeric MOVE (`"1.2345XE+02"`, `"1.23450F+02"`) asserting
 EC-DATA-INCOMPATIBLE (§2023:14.6.13.2 GR4) and the deterministic value.
 
@@ -930,7 +930,7 @@ EC-DATA-INCOMPATIBLE (§2023:14.6.13.2 GR4) and the deterministic value.
 `ARITHMETIC IS STANDARD-DECIMAL` (the mode-parameterised half of D-EF9 — the probe that flips the axis the
 subject holds fixed, `feedback_probe_the_shape_the_subject_hides`);
 `FUNCTION HIGHEST-ALGEBRAIC (PIC 9.9E+9999)` → `COBOL1648` under BOTH modes (both halves of the range test).
-`FUNCTION SMALLEST-ALGEBRAIC` of a float-edited item → the existing §2023:15.83.3 r1 rejection (a NEGATIVE test that
+`FUNCTION SMALLEST-ALGEBRAIC` of a float-edited item → the existing §2023:15.83.3 AR1 rejection (a NEGATIVE test that
 must keep failing).
 
 ### 13.7 Category / class goldens
@@ -1015,7 +1015,7 @@ friendlier but rejects/flags source the standard permits.
 **Q4 — INTERPRETIVE, recommendation given. Is `PIC 999E+99` (a significand with no `.`) legal?** GR13 b requires
 the significand to be "a valid character-string for either a numeric item or a numeric-edited item for a
 fixed-point result"; `999` is a valid numeric character-string, Table 10 row `E` admits `9` before `E`, and
-nothing requires a decimal point (unlike a floating-point *literal*, where §2023:8.3.3.3.3 r2 explicitly says the
+nothing requires a decimal point (unlike a floating-point *literal*, where §2023:8.3.3.3.3 SR2 explicitly says the
 significand "shall include a decimal point"). Recommendation: **legal**, `SigScale = 0`. The asymmetry with the
 literal rule is deliberate in the standard and this design follows it. Flagged because it is the kind of
 asymmetry a reader will assume is a mistake.
@@ -1069,35 +1069,35 @@ produced this draft. `OK` = the quoted text was found inside that clause's own r
 | §2023:13.18.40.5 GR8 | "If the value to be edited into a floating-point edited item is zero, then after editing all digit positions…" | OK |
 | §2023:13.18.40.6 | "character-string-1 for a numeric-edited item for a floating-point edited result is considered as two separate strings" | OK |
 | §2023:13.18.40.6 | "The symbol '+' that appears in a column and in a row by itself, represents its use in the exponent part…" | OK |
-| §2023:14.6.8.2 r1 | "If the sending operand is an intermediate data item or a data item described with a standard floating-point usage…" | OK |
+| §2023:14.6.8.2 GR1 | "If the sending operand is an intermediate data item or a data item described with a standard floating-point usage…" | OK |
 | §2023:14.6.8.3 | "A floating-point numeric data item is a data item described with the FLOAT-SHORT usage…" | OK |
-| §2023:14.6.8.4 r1 | "If the algebraic value of the sending operand is not zero, the exponent and significand of the value are adjusted…" | OK |
-| §2023:14.6.8.4 r2 | "Alignment and zero fill or truncation take place as described in the general rules and editing rules in 13.18.40" | OK |
+| §2023:14.6.8.4 GR1 | "If the algebraic value of the sending operand is not zero, the exponent and significand of the value are adjusted…" | OK |
+| §2023:14.6.8.4 GR2 | "Alignment and zero fill or truncation take place as described in the general rules and editing rules in 13.18.40" | OK |
 | §2023:14.9.25.4 GR5 | "De-editing takes place only when the sending operand is a numeric-edited data item…" | OK |
 | §2023:14.9.25.4 GR6 4 | "If the receiving data item is described with a standard floating-point usage or is a floating-point numeric-edited item" | OK |
 | §2023:14.9.25.4 GR6 4a | "…farther from zero than is permitted…the EC-DATA-OVERFLOW exception condition is set to exist" | OK |
 | §2023:14.9.25.4 GR6 4b | "…nearer to zero than is permitted…the numeric value is treated as zero" | OK |
-| §2023:14.6.13.2 r4 | "When a numeric-edited data item is the sending operand of a de-editing MOVE statement…" | OK |
+| §2023:14.6.13.2 GR4 | "When a numeric-edited data item is the sending operand of a de-editing MOVE statement…" | OK |
 | §2023:14.7.5 case 3 | "if, after radix point alignment…further from zero than permitted for the associated resultant data item" | OK |
 | §2023:14.7.5 case 4 | "if the nonzero result…is nearer to zero than permitted for the associated resultant data item" | OK |
 | §2023:14.9.2.3 SR4 | "Identifier-3 shall reference a numeric data item or a numeric-edited data item" | OK |
 | §2023:14.9.20.4 GR6 c | Table row "Numeric-edited | Figurative constant ZEROES" | OK |
-| §2023:15.43.3 r1 | "Argument-1 shall be a data item of category numeric or numeric-edited and shall not be an integer function…" | OK |
-| §2023:15.43.4 r1 | "When argument-1 is a floating-point numeric-edited item, the data description entry…shall be such that" | OK |
-| §2023:15.43.4 r2 | "The value returned is equal to the positive algebraic value of greatest finite magnitude…" | OK |
-| §2023:15.58.4 r1 | "When argument-1 is a signed floating-point numeric-edited item, the data description entry…shall be such that" | OK |
-| §2023:15.58.4 r2 | "The value returned is equal to the lowest finite algebraic value that may be represented in argument-1" | OK |
-| §2023:15.83.3 r1 | "Argument-1 shall be a data item of category numeric" | OK |
+| §2023:15.43.3 AR1 | "Argument-1 shall be a data item of category numeric or numeric-edited and shall not be an integer function…" | OK |
+| §2023:15.43.4 RV1 | "When argument-1 is a floating-point numeric-edited item, the data description entry…shall be such that" | OK |
+| §2023:15.43.4 RV2 | "The value returned is equal to the positive algebraic value of greatest finite magnitude…" | OK |
+| §2023:15.58.4 RV1 | "When argument-1 is a signed floating-point numeric-edited item, the data description entry…shall be such that" | OK |
+| §2023:15.58.4 RV2 | "The value returned is equal to the lowest finite algebraic value that may be represented in argument-1" | OK |
+| §2023:15.83.3 AR1 | "Argument-1 shall be a data item of category numeric" | OK |
 | §2023:8.8.4.4.4 GR3 l | "If IN-ARITHMETIC-RANGE Is specified, the condition is true if the numeric content…" | OK (path printed approximate) |
 | §2023:8.8.4.4.3 SR6 | "If FARTHEST-FROM-ZERO, IN-ARITHMETIC-RANGE, or NEAREST-TO-ZERO is specified, identifier-1 shall reference a data item whose category is numeric" | OK |
 | §2023:8.8.4.2.3 SR2 | "All identifiers shall be of class alphabetic, alphanumeric, index, national, or numeric…" | OK |
 | §2023:8.8.4.2.4 | "For operands whose class is numeric, a comparison is made with respect to the algebraic value…" | OK |
-| §2023:8.5.2.13 r1 | "A data item described as numeric-edited by its PICTURE character-string" | OK |
+| §2023:8.5.2.13 GR1 | "A data item described as numeric-edited by its PICTURE character-string" | OK |
 | §2023:8.5.2.1 | "The category of an elementary data item depends upon its description" (Table 2) | OK |
 | §2023:8.8.1.3 | "Native arithmetic is an implementor-defined method of evaluating an arithmetic expression" | OK |
 | §2023:8.8.1.5.2 | "with a maximum precision of 34 decimal digits" / "the smallest positive nonzero value is 1.0E-6176" | OK |
-| §2023:8.3.3.3.3 r1 | "A floating-point numeric literal is formed from two fixed-point numeric literals separated by the letter 'E'…" | OK |
-| §2023:8.3.3.3.3 r3 | "The literal to the right of the 'E' represents the exponent…a maximum of four digits and no decimal point" | OK |
+| §2023:8.3.3.3.3 SR1 | "A floating-point numeric literal is formed from two fixed-point numeric literals separated by the letter 'E'…" | OK |
+| §2023:8.3.3.3.3 SR3 | "The literal to the right of the 'E' represents the exponent…a maximum of four digits and no decimal point" | OK |
 | §2023:13.18.63.3 SR6 | "Literals for fixed-point formats shall be specified as fixed-point, while literals for floating-point formats…" | OK |
 | §2023:13.18.63.3 SR11 | "Editing characters in a picture character-string for a numeric-edited data item are used in editing of the initial value…" | OK |
 | §2023:13.18.52.3 SR1 | "The SIGN clause may be specified only for" | OK |

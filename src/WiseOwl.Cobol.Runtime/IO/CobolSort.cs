@@ -94,7 +94,7 @@ public static class CobolSort
     /// sequence phase because the store orders a run whenever the release phase fills its memory limit (kb/Work
     /// PB3339) — and by the statement's TWO GR5-resolved COLLATING SEQUENCES (the statement's own
     /// alphabet-name-1 / alphabet-name-2, else the program collating sequences, else null = native): each is
-    /// SNAPSHOTTED here, at statement start (ISO §2023:14.6.6 r5 — "A locale switch during execution of a SORT or MERGE
+    /// SNAPSHOTTED here, at statement start (ISO §2023:14.6.6 GR5 — "A locale switch during execution of a SORT or MERGE
     /// statement has no effect on the processing of that SORT or MERGE statement" — a SET LOCALE in an INPUT
     /// PROCEDURE must not move the sequence the sort phase uses), and <see cref="Sort"/> / <see cref="Merge"/> use
     /// the snapshots. §2023:14.9.40.4 GR5 determines the two SEPARATELY: <paramref name="collation"/> applies to key

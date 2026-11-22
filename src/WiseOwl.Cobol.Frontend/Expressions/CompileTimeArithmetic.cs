@@ -71,7 +71,7 @@ public abstract class CompileTimeArithmetic
     /// screen and never reaches here.</summary>
     public abstract CobolDec? Apply(char op, CobolDec left, CobolDec right);
 
-    /// <summary>The SDIDI engine's §2023:8.8.1.5.2 r2 range check raises <see cref="CobolSizeError"/> (EC-SIZE-OVERFLOW /
+    /// <summary>The SDIDI engine's §2023:8.8.1.5.2 GR2 range check raises <see cref="CobolSizeError"/> (EC-SIZE-OVERFLOW /
     /// EC-SIZE-UNDERFLOW); at compile time that is the caller's range diagnostic, never a run-time condition.</summary>
     protected static CobolDec? Guard(Func<CobolDec> operation)
     {

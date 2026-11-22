@@ -14,10 +14,10 @@
       *> H = "XYxyXYxyXYxy" (12 characters), N = "xy".
       *>   Without ANYCASE the comparison is on the operands as written: H(i:2) equals "xy" only at
       *>   i = 3, 7, 11 — the three lowercase runs. Occurrences: {3, 7, 11}.
-      *>   With ANYCASE (§2023:15.37.4 r4) the matching rules are as if every uppercase letter in BOTH
+      *>   With ANYCASE (§2023:15.37.4 RV4) the matching rules are as if every uppercase letter in BOTH
       *>   operands were replaced by its lowercase letter, i.e. as if H were "xyxyxyxyxyxy" and N "xy":
       *>   H(i:2) equals "xy" at i = 1, 3, 5, 7, 9, 11. Occurrences: {1, 3, 5, 7, 9, 11}.
-      *> §2023:15.37.4 r1 returns the FIRST occurrence, or the LAST when LAST is written; r2 makes
+      *> §2023:15.37.4 RV1 returns the FIRST occurrence, or the LAST when LAST is written; r2 makes
       *> argument-3 the number of matches to ignore before that determination is made, so argument-3 = 1
       *> drops the leading occurrence in the default direction and the trailing one under LAST.
       *> The [START AFTER] words are an optional introducer of the SAME argument-3, so S03/S05, S04/S06,
@@ -28,7 +28,7 @@
       *> overlapping-inclusive and a non-overlapping reading. That axis is pinned by its own golden,
       *> conformance:cases/15.37.4-Returned-value-rules/pb314_find_string_overlapping_matches, under the determination recorded in
       *> docs/CONFORMANCE.md (overlapping matches count; §2023:15.37.4 states no consumption rule, unlike
-      *> §2023:15.87.4 r3).
+      *> §2023:15.87.4 RV3).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1FSFMT.
        DATA DIVISION.

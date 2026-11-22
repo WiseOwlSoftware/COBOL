@@ -30,8 +30,8 @@ public static class CobolFloat
     /// either bound, the decimal-string round-trip (<see cref="double.Parse(string)"/> is IEEE correctly rounded
     /// in this runtime). It replaced <c>(double)(x) / 10^scale</c> with an emit-time repeated-multiplication
     /// divisor — exact only through 1e22, so at scale ≥ 23 the divisor sat one ulp low and a LEGAL
-    /// <c>ASIN(|x| ≤ 1)</c> argument (§2023:15.10.3 r2) arrived above 1.0, evaluated NaN and drew the §2023:15.3
-    /// EC-ARGUMENT-FUNCTION where §2023:15.10.4 r1 requires an approximation of the arcsine; <c>CobolDec.ToDouble</c>'s
+    /// <c>ASIN(|x| ≤ 1)</c> argument (§2023:15.10.3 AR2) arrived above 1.0, evaluated NaN and drew the §2023:15.3
+    /// EC-ARGUMENT-FUNCTION where §2023:15.10.4 RV1 requires an approximation of the arcsine; <c>CobolDec.ToDouble</c>'s
     /// <c>(double)Sig * Math.Pow(10, Exp)</c> failed independently at other scales. A NEGATIVE scale (a PICTURE-P
     /// trailing-scaled operand, or an SDIDI with a positive exponent) multiplies: 10^(−scale).</summary>
     public static double ScaledToDouble(Int128 unscaled, int scale)
@@ -328,7 +328,7 @@ public static class CobolFloat
     /// <c>CobolDec.ToUnscaledChecked</c> (kb/Work PB74), which has always raised here. The statement's size-error
     /// catch already maps it to the flag with the condition's name, and the receiver is left unchanged.</para>
     /// <para>The three float→fixed landings are the SDIDI lane's three, one for one: <see cref="ToScaledUnchecked"/>
-    /// (a MOVE (§2023:14.6.8.2 r4: "truncation on either end"), the no-phrase store (§2023:14.6.13.1.3 GR8, DOC-A.1-70),
+    /// (a MOVE (§2023:14.6.8.2 GR4: "truncation on either end"), the no-phrase store (§2023:14.6.13.1.3 GR8, DOC-A.1-70),
     /// INVOKE BY CONTENT — the low-order digits), this one (a final transfer that RAISES), and
     /// <see cref="ToScaledIntermediate"/> (an INTERMEDIATE consumer — <c>CobolDec.ToUnscaledIntermediate</c>'s twin).
     /// The forms differ ONLY in what they do with a value the carrier cannot hold: the VALUE itself is

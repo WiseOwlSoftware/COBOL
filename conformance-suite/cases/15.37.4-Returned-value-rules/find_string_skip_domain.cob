@@ -29,7 +29,7 @@
       *> SKIP0 and SKIP2 are the population guard: r2 with a value IN range still returns a position.
       *>
       *> The reach ABOVE 2**63 is deliberately not written here, and no claim is made about it.
-      *> §2023:15.37.3 r3 puts no ceiling on argument-3's VALUE, so such an argument-3 is a legal argument and
+      *> §2023:15.37.3 AR3 puts no ceiling on argument-3's VALUE, so such an argument-3 is a legal argument and
       *> r2/r3 would require zero for it; what this compiler does there has NOT been measured, so nothing
       *> in this file or its report asserts it. Whoever measures it adds the lines here.
        IDENTIFICATION DIVISION.

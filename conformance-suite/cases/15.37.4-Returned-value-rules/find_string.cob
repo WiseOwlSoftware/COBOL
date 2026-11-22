@@ -34,9 +34,9 @@
            DISPLAY "CASED=" WS-P.
            MOVE FUNCTION FIND-STRING(WS-HAY "ZZZ") TO WS-P.
            DISPLAY "NONE=" WS-P.
-      *> ARGUMENT-3 IS TOTAL (kb/Work PB254). ISO §2023:15.37.3 r3 is the whole argument rule —
+      *> ARGUMENT-3 IS TOTAL (kb/Work PB254). ISO §2023:15.37.3 AR3 is the whole argument rule —
       *> "argument-3 shall be an integer data item or integer literal" — and places NO
-      *> constraint on the value, while §2023:15.37.4 r2/r3 answer for every integer: ignore that
+      *> constraint on the value, while §2023:15.37.4 RV2/r3 answer for every integer: ignore that
       *> many matches, and if none is left return zero. So a value beyond the long the body
       *> once took is CONFORMING source and must reach rule 2 intact.
       *> EXHAUST3 — the in-range boundary: HAY has matches at 1, 4 and 7, so ignoring 3 of

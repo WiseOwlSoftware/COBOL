@@ -7,7 +7,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// The §2023:8.8.1.5.4 r2e DEVELOPMENT (owner decision D-C, 2026-08-30; kb/Work PB167). r2e leaves the equivalent
+/// The §2023:8.8.1.5.4 GR2e DEVELOPMENT (owner decision D-C, 2026-08-30; kb/Work PB167). r2e leaves the equivalent
 /// arithmetic expression for a non-integer exponent to the implementor but constrains how it is developed:
 /// "Operands used in the development of that value shall be in SDIDI form. All additions, subtractions,
 /// multiplications and divisions performed in the development of the result shall be performed in accordance
@@ -18,7 +18,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 ///
 /// <para>WHAT IS PINNED HERE. (1) The structural fact — no binary64 bridge is reachable from the development
 /// at all. (2) The identities the choice of equivalent expression BUYS: at |operand-2| = ½ the expression is
-/// <c>FUNCTION SQRT(operand-1)</c>, whose standard-decimal value §2023:15.84.4 r2 fixes EXACTLY, so <c>b ** 0.5</c>
+/// <c>FUNCTION SQRT(operand-1)</c>, whose standard-decimal value §2023:15.84.4 RV2 fixes EXACTLY, so <c>b ** 0.5</c>
 /// and <c>SQRT(b)</c> agree digit-for-digit by construction. (3) Agreement with the true value to the digits an
 /// SDIDI development can carry — NOT 34: §2023:8.8.1.5.2 rounds every operation to 34 digits, so a development of N
 /// operations accumulates N roundings. The published determination (CONFORMANCE.md §7) is an r2e-conforming
@@ -82,7 +82,7 @@ public sealed class CobolDecPowDevelopmentTests
     [InlineData(7)]
     public void HalfExponent_IsExactlyTheSquareRoot(int b)
     {
-        // §2023:8.8.1.5.4 r2e's chosen expression at ½ IS §2023:15.84.4 r2's SQRT — so this is equality, not closeness.
+        // §2023:8.8.1.5.4 GR2e's chosen expression at ½ IS §2023:15.84.4 RV2's SQRT — so this is equality, not closeness.
         var value = new CobolDec(b, 0);
         Assert.Equal(CobolDec.Sqrt(value, Mode), CobolDec.Pow(value, CobolDec.From(5, 1), Mode));
     }
@@ -90,13 +90,13 @@ public sealed class CobolDecPowDevelopmentTests
     [Fact]
     public void MinusHalfExponent_IsR3sReciprocalOfTheSquareRoot()
     {
-        // §2023:8.8.1.5.4 r3: operand-2 < 0 ⇒ 1 / (operand-1 ** ABS(operand-2)).
+        // §2023:8.8.1.5.4 GR3: operand-2 < 0 ⇒ 1 / (operand-1 ** ABS(operand-2)).
         var two = new CobolDec(2, 0);
         Assert.Equal(CobolDec.Div(new CobolDec(1, 0), CobolDec.Sqrt(two, Mode), Mode),
             CobolDec.Pow(two, CobolDec.From(-5, 1), Mode));
     }
 
-    /// <summary>⛔ §2023:8.8.1.5.4 r3 FOR EVERY NEGATIVE EXPONENT, NOT ONLY −½ (kb/Work PB266). r3 is not
+    /// <summary>⛔ §2023:8.8.1.5.4 GR3 FOR EVERY NEGATIVE EXPONENT, NOT ONLY −½ (kb/Work PB266). r3 is not
     /// implementor latitude — r2's latitude is scoped "When the value of operand-2 is greater than zero" —
     /// and it is an EQUIVALENCE, not a tolerance: "the result shall be equivalent to the evaluation of the
     /// arithmetic expression (1 / (operand-1 ** FUNCTION ABS (operand-2)))". Under §2023:8.8.1.5.2's per-operation
@@ -148,7 +148,7 @@ public sealed class CobolDecPowDevelopmentTests
         Assert.NotEqual(0, CobolDec.Compare(Parse("1.0000000000000092233720368547758"), got));
     }
 
-    /// <summary>The same escape's two out-of-range dispositions, by §2023:8.8.1.5.2 r2's own names. With the
+    /// <summary>The same escape's two out-of-range dispositions, by §2023:8.8.1.5.2 GR2's own names. With the
     /// clamped probe both were wrong: 1.0000000000000001 ** 10²⁵ answered a finite 3.68E+400 (out of range
     /// only for the receiver, under a different name) and 0.9999999999999999 ** 10²⁵ answered a silent
     /// 2.71E−401 where the value is below the decimal128 range entirely.</summary>

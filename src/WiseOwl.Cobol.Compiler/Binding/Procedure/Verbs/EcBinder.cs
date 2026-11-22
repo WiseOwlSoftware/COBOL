@@ -32,7 +32,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
     /// <summary>Configure the EC bind context (called per bound unit — <see cref="BinderDriver"/> for program
     /// units, the OO bind half for class rosters):
     /// the compilation group's TurnState, its position-ruled directive sites (§2023:7.3.25.3 SR5 and its PUSH/POP
-    /// siblings) and this unit's PROGRAM-ID name (the §2023:15.30.3 r2 location element).</summary>
+    /// siblings) and this unit's PROGRAM-ID name (the §2023:15.30.3 RV2 location element).</summary>
     public void ConfigureEc(TurnState turn, IReadOnlyList<Frontend.Preprocessor.DirectiveSite> sites,
         string programName)
     {
@@ -223,7 +223,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
             // RAISING LAST EXCEPTION (§2023:14.9.18.4 GR1b.3): the name is the run-unit last exception status, so the
             // whole determination is a RUN-TIME one. What the BINDER owns is GR1b3a's other operand — "the
             // RAISING phrase of the procedure division header of the source element in which this EXIT statement
-            // is contained" — and the §2023:15.32.3 r2 / §2023:15.30.3 r2 operands of the SUBSTITUTED condition, which
+            // is contained" — and the §2023:15.32.3 RV2 / §2023:15.30.3 RV2 operands of the SUBSTITUTED condition, which
             // this statement itself causes (§2023:7.3.25.4 GR7 keys them on the TURN governing THAT name HERE).
             bool rnsLoc = ctx.EcState.Turn.WithLocation(RaisingNotSpecified, null, line);
             return new BoundRaising(null, IsLast: true, Fatal: false,
@@ -468,10 +468,10 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
         if (enabled.Count == 0) return bound;
         ctx.EcState.Checked = true;
         if (enabled.Any(e => e.Ec.StartsWith("EC-I-O", StringComparison.Ordinal))) ctx.EcState.IoChecked = true;
-        // §2023:15.32.3 r3: the recorded name comes from Table 12's 'Statement name' column, resolved from the
+        // §2023:15.32.3 RV3: the recorded name comes from Table 12's 'Statement name' column, resolved from the
         // statement KIND (the parse rule) — the first TOKEN gave GO where Table 12 requires GO TO, and no token
         // can repair it because TO is an optional word (`GO PARA.` never spells one). kb/Work R04.
-        // WITH LOCATION is resolved PER (name, file) pair — §2023:15.32.3 r1 keys the answer on the TURN option of
+        // WITH LOCATION is resolved PER (name, file) pair — §2023:15.32.3 RV1 keys the answer on the TURN option of
         // the condition that was RAISED, so one WITH LOCATION directive must not contaminate the statement's
         // other enabled conditions (kb/Work R06; the former statement-level Any() did exactly that).
         var info = new EcStatementInfo(
@@ -487,13 +487,13 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
         // statement site the `-2` action falls out of, so one wrapper around the whole series would put the
         // landing past the LAST operand: measured as a silent wrong answer on INITIALIZE (kb/Work PB419).
         // Each member gets the SAME EcStatementInfo — one written statement, one >>TURN scope, one Table-12 name
-        // and one §2023:15.30.3 r2 location — because they are one statement's implicit expansion, not seven.
+        // and one §2023:15.30.3 RV2 location — because they are one statement's implicit expansion, not seven.
         return bound is BoundImplicitSeries ser
             ? new BoundImplicitSeries([.. ser.Members.Select(m => (BoundStatement)new BoundEcChecked(m, info))])
             : new BoundEcChecked(bound, info);
     }
 
-    /// <summary>The §2023:15.30.3 r2b location string (kb/Work PB63): part 1 the element name — "as specified in the
+    /// <summary>The §2023:15.30.3 RV2b location string (kb/Work PB63): part 1 the element name — "as specified in the
     /// FUNCTION-ID, METHOD-ID, or PROGRAM-ID paragraph of the function, method, or program containing the
     /// statement", so a statement inside a METHOD names the method, not its class; part 2 the procedure field —
     /// (a) no paragraph-name and no section-name: empty ("; ; "), (b) a paragraph-name, plus " OF section" when

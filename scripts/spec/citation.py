@@ -187,9 +187,10 @@ GLUED_NUMBER = re.compile(rf"(?P<base>(?:{'|'.join(RULE_KINDS)})(?:L\d+\.)?\d+)(
 _LISTED = re.compile(r"(?: (?:and|or|to|through) |\s?[/,–-]\s?| )\(?(?:[a-z]|\d{1,2})\)"
                      r"|,? (?:and|or|to|through) \d|\s?[/–-]\s?\d|, \d{1,2}(?:[,;)]| (?:and|or)\b)")
 #: A rule or list item named in words, or by a bare printed label, after a citation that names no rule: `rule 2`,
-#: `rules 3`, `<x> phrase rule 1`, `item 1`, `item (1)`, a bare `1)`.
-LOOSE_RULE = re.compile(r" (?:items? \(?(?P<item>\d+)\)?|(?:[A-Za-z-]+ phrase )?rules? (?P<word>\d+)|(?P<label>\d{1,2})\))"
-                        r"(?![\w.])")
+#: `rules 3`, `<x> phrase rule 1`, `item 1`, `item (1)`, a bare `1)`; or the abbreviation `r<n>` with its glued
+#: sub-item path (`r3d`, `r4b.2`: kb/Work PB4976's `§2023:11.9.11.2 r3d`, some 3,300 sites the audit did not read). (citation-audit: example)
+LOOSE_RULE = re.compile(r" (?:items? \(?(?P<item>\d+)\)?|(?:[A-Za-z-]+ phrase )?rules? (?P<word>\d+)|(?P<label>\d{1,2})\)"
+                        r"|r(?P<abbr>\d+)(?P<abbrpath>(?:\.?(?:[a-z]|\d+))*))(?![\w.])")
 #: An item designator (ITEM_DESIGNATOR), its parts named.
 _ITEM = re.compile(ITEM_DESIGNATOR)
 
@@ -234,10 +235,10 @@ def loose_designator(text: str, c: Citation) -> Loose | None:
         return None
     if (m := LOOSE_RULE.match(text, c.end)) is None:
         return None
-    end, path = m.end(), ()
-    if p := SPACED_PATH.match(text, end):
+    end, path = m.end(), tuple(re.findall(r"[a-z]|\d+", m["abbrpath"] or ""))
+    if not path and (p := SPACED_PATH.match(text, end)):
         end, path = p.end(), tuple(re.findall(r"[a-z]|\d+", p.group(0)))
-    ordinal = int(m["item"] or m["word"] or m["label"])
+    ordinal = int(m["item"] or m["word"] or m["label"] or m["abbr"])
     plural = re.match(r" (?:items|(?:[A-Za-z-]+ phrase )?rules) ", text[c.end:]) is not None  # `rules 3 and 5`: several
     return Loose(c, text[c.start:end], end, ordinal, path, plural or _LISTED.match(text, end) is not None,
                  m["item"] is not None)

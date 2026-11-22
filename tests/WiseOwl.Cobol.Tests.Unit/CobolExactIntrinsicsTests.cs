@@ -181,7 +181,7 @@ public sealed class CobolExactIntrinsicsTests
         ExceptionState.ArgumentFunctionChecking = false;
         try
         {
-            Assert.Equal(0, CobolIntrinsics.PresentValueExact(Away, Fixed(-1), Fixed(5)).Image.Sig);                       // §2023:15.74.3 r2: the §2023:15.3 default
+            Assert.Equal(0, CobolIntrinsics.PresentValueExact(Away, Fixed(-1), Fixed(5)).Image.Sig);                       // §2023:15.74.3 AR2: the §2023:15.3 default
             Assert.Equal(0, CobolIntrinsics.PresentValueExact(Away, Sdidi("-1000000000000000000001", -21), Fixed(5)).Image.Sig);
             Assert.NotEqual(0, CobolIntrinsics.PresentValueExact(Away, Sdidi("-999999999999999999999", -21), Fixed(5)).Image.Sig);
         }

@@ -5,13 +5,13 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:15.100.3 r3, §2023:15.100.3 r6 and §2023:15.100.4 r1 — YEAR-TO-YYYY's omitted-argument-2 default, the
+      *> ISO §2023:15.100.3 AR3, §2023:15.100.3 AR6 and §2023:15.100.4 RV1 — YEAR-TO-YYYY's omitted-argument-2 default, the
       *> window its two arguments' SUM has to fall in, and the maximum-year that sum IS.
       *>   r3  "If argument-2 is omitted, the function shall be evaluated as though 50 were specified for
       *>       argument-2."
       *>   r6  "The sum of the values of argument-2 and argument-3 shall be less than 10000 and greater
       *>       than 1699."
-      *>   §2023:15.100.4 r1  "Maximum-year is calculated as follows: (argument-2 + argument-3)"
+      *>   §2023:15.100.4 RV1  "Maximum-year is calculated as follows: (argument-2 + argument-3)"
       *> (cite.py --check 15.100.3 on r3 and r6, and --check 15.100.4 "Maximum-year is calculated as
       *> follows" -> OK at rules 3, 6 and 1.)
       *>
@@ -26,7 +26,7 @@
       *> argument-3 as FUNCTION NUMVAL (FUNCTION CURRENT-DATE (1:4)) — written out below, so the expected
       *> value is derived at run time from the rules rather than pinned to a calendar year that would flip
       *> this golden every January. maximum-year is r1's (argument-2 + argument-3) with r3's 50, and the
-      *> returned value is §2023:15.100.4 r2's two-armed equivalent arithmetic expression, transcribed verbatim:
+      *> returned value is §2023:15.100.4 RV2's two-armed equivalent arithmetic expression, transcribed verbatim:
       *>       r2a  argument-1 + 100 * (FUNCTION INTEGER (maximum-year / 100))     when MOD >= argument-1
       *>       r2b  argument-1 + 100 * (FUNCTION INTEGER (maximum-year / 100) - 1) otherwise
       *> Four argument-1 values — 0, 30, 76, 99 — straddle the r2a/r2b split whatever MOD(maximum-year, 100)

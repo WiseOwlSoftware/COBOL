@@ -1,5 +1,5 @@
-- **D-FLOAT-TO-FIXED — Floating-point value → fixed-point receiver: the conversion manner (§2023:14.6.8.2 r1/r2/r4; kb/Work PB77,
-  2026-08-18).** §2023:14.6.8.2 r2 leaves "the manner in which the value is converted to a fixed-point value" to the
+- **D-FLOAT-TO-FIXED — Floating-point value → fixed-point receiver: the conversion manner (§2023:14.6.8.2 GR1/r2/r4; kb/Work PB77,
+  2026-08-18).** §2023:14.6.8.2 GR2 leaves "the manner in which the value is converted to a fixed-point value" to the
   implementor for a FLOAT-SHORT/-LONG/-EXTENDED sending item, and r1 treats an intermediate or standard-float
   sender "as if it had been converted to a fixed-point value"; WiseOwl COBOL's FLOAT-LONG and FLOAT-BINARY-64 are the
   same `double` (item 22), and a §2023:15.4.1 float-family returned value IS a binary64 (item 92), so ONE conversion

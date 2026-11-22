@@ -9,7 +9,7 @@ using WiseOwl.Cobol.Tests.Shared;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ AN ARITHMETIC STATEMENT EVALUATES ITS RIGHT-HAND SIDE ONCE, AND §2023:14.7.4.3 r7 IS ASKED BY THE LANDING OF THAT ONE
+/// ⛔ AN ARITHMETIC STATEMENT EVALUATES ITS RIGHT-HAND SIDE ONCE, AND §2023:14.7.4.3 GR7 IS ASKED BY THE LANDING OF THAT ONE
 /// INTERMEDIATE (kb/Work PB654, PB3990). <c>ArithmeticEmitter.StoreArith</c> wrote <c>value.Expr</c> into the
 /// PROHIBITED representability test and AGAIN into the store that follows. ISO §2023:14.7.7 GR4a — "The
 /// initial evaluation of the statement is done and the result of this operation is placed in an intermediate

@@ -13,12 +13,12 @@
       *> A zero-length operand is legal here and its result is DEFINED, not diagnosed: §2023:8.3.3.1 makes
       *> `""` a zero-length literal ("If the opening and closing delimiters are contiguous, the length
       *> of the literal is zero, and it is known as a zero-length literal"), §2023:15.37.3 states no
-      *> prohibition on one — unlike §2023:15.59.3 r3, §2023:15.63.3 r3, §2023:15.66.3 r3, §2023:15.71.3 r2 and §2023:15.72.3 r2,
-      *> which each read "Argument-1 shall not be a zero-length literal.", and §2023:15.85.3 r4, which reads
+      *> prohibition on one — unlike §2023:15.59.3 AR3, §2023:15.63.3 AR3, §2023:15.66.3 AR3, §2023:15.71.3 AR2 and §2023:15.72.3 AR2,
+      *> which each read "Argument-1 shall not be a zero-length literal.", and §2023:15.85.3 AR4, which reads
       *> "Neither argument-1 nor argument-2 shall be a zero-length literal." — and r5 gives the answer.
       *> So every Z line below must COMPILE and return zero.
       *>
-      *> r5's subject is "argument-1 or argument-2", which §2023:15.37.3 r1 defines as "a data item or
+      *> r5's subject is "argument-1 or argument-2", which §2023:15.37.3 AR1 defines as "a data item or
       *> literal", and §2023:8.5.4 (Zero-length items) lists nine ways to BE one — eight of them DATA
       *> ITEMS, whose length is a RUN-TIME fact rather than a compile-time constant. A file of
       *> zero-length LITERALS alone would leave that whole half unreached, so three species are
@@ -56,7 +56,7 @@
        01 P  PIC 9(4).
        PROCEDURE DIVISION.
        MAIN.
-      *> The population guard — these are NOT zero-length, so §2023:15.37.4 r1 applies: "BC" first at 2,
+      *> The population guard — these are NOT zero-length, so §2023:15.37.4 RV1 applies: "BC" first at 2,
       *> and the national "ABC" first at 1.
            MOVE FUNCTION FIND-STRING(H "BC") TO P.
            DISPLAY "CTRL=" P.

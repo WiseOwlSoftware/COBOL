@@ -4,14 +4,14 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:15.95.3 r1 — "Argument-1 shall be an alphanumeric or national literal or a data item of class
+      *> ISO §2023:15.95.3 AR1 — "Argument-1 shall be an alphanumeric or national literal or a data item of class
       *> alphanumeric or national."
       *> (cite.py --check 15.95.3 "Argument-1 shall be an alphanumeric or national literal or a data item of
       *> class alphanumeric or national" -> OK, §2023:15.95.3 rule 1.)
       *>
       *> THE OTHER EXCLUSION: CLASS NUMERIC. §2023:8.5.2.1 Table 2 gives category numeric the class NUMERIC, so a
       *> PIC 9(n) item is neither of the two classes r1 admits. The exclusion is not decorative for THIS
-      *> function: TEST-NUMVAL-F exists to report whether a CHARACTER STRING conforms to §2023:15.69.3 r1's
+      *> function: TEST-NUMVAL-F exists to report whether a CHARACTER STRING conforms to §2023:15.69.3 AR1's
       *> content format, and a numeric item's content is a value with a usage, not a string a program can
       *> have got wrong — which is why the rule takes a literal or a string-classed item and nothing else.
       *>

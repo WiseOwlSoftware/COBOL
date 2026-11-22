@@ -13,7 +13,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// kb/Work PB77 — every carrier's landing into a fixed-point receiver has TWO forms, chosen by the LANDING and never
 /// by the value: the CHECKED landing (ON SIZE ERROR / EC-SIZE checking) RAISES the size error past the Int128
 /// carrier (EC-SIZE-TRUNCATION, PB2967 - it saturated until then, which a receiver as wide as the carrier cannot
-/// see); the UNCHECKED landing (a MOVE — ISO §2023:14.6.8.2 r4
+/// see); the UNCHECKED landing (a MOVE — ISO §2023:14.6.8.2 GR4
 /// "truncation on either end"; the no-phrase arithmetic store — §2023:14.6.13.1.3 GR8; INVOKE BY CONTENT) keeps the
 /// LOW-ORDER digits, never a sentinel. The SDIDI carrier had both since PB74 (<c>CobolDec.ToUnscaledChecked</c> /
 /// <c>ToUnscaled</c>); the native exact family (<c>CobolIntrinsics.Rescaled</c>) and the float family
@@ -134,8 +134,8 @@ public sealed class CarrierLandingFormTests
 
     /// <summary>NUMVAL-F("5E+30") at a working scale of 9 would be 5×10^39 — past the carrier, which is why the old
     /// scaled-<c>Int128</c> projection needed a checked and an unchecked landing form. There is no such projection now.
-    /// <para>⛔ THE WHOLE NUMVAL FAMILY HAS NO LANDING TO GET WRONG (kb/Work PB251, PB3839). §2023:15.67.4 r1 / §2023:15.68.4 r1 fix
-    /// the returned value of NUMVAL and NUMVAL-C with no arithmetic-mode qualification, and NUMVAL-F's §2023:15.69.4 r2
+    /// <para>⛔ THE WHOLE NUMVAL FAMILY HAS NO LANDING TO GET WRONG (kb/Work PB251, PB3839). §2023:15.67.4 RV1 / §2023:15.68.4 RV1 fix
+    /// the returned value of NUMVAL and NUMVAL-C with no arithmetic-mode qualification, and NUMVAL-F's §2023:15.69.4 RV2
     /// approximation is resolved to r3's exact value, so all three render on the SDIDI carrier, which holds every
     /// conforming argument exactly: a 31-digit significand that USED to keep only its low 29 digits × 10^9 is
     /// simply the value, and 5E+30 is 5×10^30 whatever receiver reads it.</para></summary>
@@ -350,8 +350,8 @@ public sealed class CarrierLandingFormTests
     /// <c>CheckedFlag</c> — <c>FromDouble</c> and native <c>**</c>. A site that renders <c>FromDouble(...)</c> without
     /// it lands a no-phrase store on the sentinel again.
     /// <para>⛔ THE NUMVAL FAMILY IS NOT ON THIS LIST, AND THE SECOND HALF ASSERTS IT DOES NOT COME BACK
-    /// (kb/Work PB251, PB3839). §2023:15.67.4 r1 / §2023:15.68.4 r1 fix the returned value of NUMVAL and NUMVAL-C with no
-    /// arithmetic-mode qualification, and NUMVAL-F's §2023:15.69.4 r2 approximation is resolved to r3's exact value, so
+    /// (kb/Work PB251, PB3839). §2023:15.67.4 RV1 / §2023:15.68.4 RV1 fix the returned value of NUMVAL and NUMVAL-C with no
+    /// arithmetic-mode qualification, and NUMVAL-F's §2023:15.69.4 RV2 approximation is resolved to r3's exact value, so
     /// all three render on the SDIDI carrier in every mode and have no working scale to land at, which is a
     /// STRONGER statement than carrying the flag, because there is no landing left to get wrong.</para></summary>
     [Fact]
@@ -363,7 +363,7 @@ public sealed class CarrierLandingFormTests
             Assert.True(m.Value.Contains("{CheckedFlag}", StringComparison.Ordinal),
                 $"a FromDouble render without the landing form (kb/Work PB77): {m.Value}");
         // ⛔ NUMVAL / NUMVAL-C / NUMVAL-F HAVE NO WORKING-SCALE RENDER AT ALL (kb/Work PB251, PB3839). A
-        // `case "Numval"` here would mean a compile-time scale had come back for a value §2023:15.67.4 r1 fixes, the defect
+        // `case "Numval"` here would mean a compile-time scale had come back for a value §2023:15.67.4 RV1 fixes, the defect
         // that printed 0.123456 for FUNCTION NUMVAL("0.1234567"); a `case "NumvalF"` would be the one that stored
         // 0.1234 for ROUNDED MODE AWAY-FROM-ZERO of NUMVAL-F("0.12340000000001") into 9V9(4). Asserting the ABSENCE is
         // what keeps the removal permanent; asserting the flag on a resurrected arm would only make the wrong answer
@@ -676,7 +676,7 @@ public sealed class CarrierLandingFormTests
     /// container maximum 2^128 − 1 = 340282366920938463463374607431768211455 (39 digits) widened to scale 2 keeps
     /// its low-order 38 digits at that scale, the no-phrase disposition (DOC-A.1-70) and a MOVE's truncation; the
     /// checked kernel refuses it (§2023:14.7.5 case 3: past every edited receiver's capacity) and refuses a
-    /// PROHIBITED-inexact narrowing (§2023:14.7.4.3 r7); a narrowing rounds the whole value by the mode.</summary>
+    /// PROHIBITED-inexact narrowing (§2023:14.7.4.3 GR7); a narrowing rounds the whole value by the mode.</summary>
     [Fact]
     public void UnsignedWideEditedKernels_KeepTheLowOrderDigits_OrRaise()
     {
@@ -697,7 +697,7 @@ public sealed class CarrierLandingFormTests
         Assert.Equal("+1.2345E+04", img);
         // Past Int128 the floating-point lane folds one digit round-to-odd, and that fold may neither invent nor hide
         // an inexact result: 3 × 10^38 is exact at five significant digits, while 2^128 − 1 and 3 × 10^38 + 5 (whose
-        // only nonzero discarded digit is the one the fold drops) are not (§2023:14.7.4.3 r7); AWAY-FROM-ZERO rounds up.
+        // only nonzero discarded digit is the one the fold drops) are not (§2023:14.7.4.3 GR7); AWAY-FROM-ZERO rounds up.
         UInt128 threeE38 = UInt128.Parse("300000000000000000000000000000000000000");
         Assert.True(CobolEdit.TryFormatFloatU(threeE38, 0, "+9.9999E+99", out string exact, CobolRounding.Prohibited));
         Assert.Equal("+3.0000E+38", exact);

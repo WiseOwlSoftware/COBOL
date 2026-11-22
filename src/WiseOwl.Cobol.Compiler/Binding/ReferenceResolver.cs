@@ -99,7 +99,7 @@ public sealed class ReferenceResolver(DataBinder data)
     /// after reading its Item" — but it returned a <c>Place</c>, and FOUR callers (CallBinder's BY CONTENT arm,
     /// OoBinder's INVOKE receiver and SET object-reference sender, PtrBinder's SET UP/DOWN first target) simply
     /// committed it into the bound tree. Everything <c>Probing</c> suppresses to keep a probe pure then went
-    /// missing from the committed bind: the §2023:8.8.1.1 position screen and the §2023:13.18.38.3 r7 index-name screen
+    /// missing from the committed bind: the §2023:8.8.1.1 position screen and the §2023:13.18.38.3 SR7 index-name screen
     /// never ran (<c>CALL "S" USING BY CONTENT E(XE)</c> with <c>XE PIC X(4)</c> compiled clean while the
     /// adjacent <c>BY REFERENCE</c> operand drew COBOL0844 — one statement, two verdicts), and the D18
     /// materializer's <c>return "1"</c> short-circuit made <c>E(FUNCTION INTEGER(2))</c> bind occurrence ONE — a

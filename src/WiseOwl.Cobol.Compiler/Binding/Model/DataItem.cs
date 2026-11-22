@@ -1128,7 +1128,7 @@ public sealed class DataItem
 
     /// <summary>True for a SYNTHESIZED compiler temp (a user-function result temp or an object-property temp —
     /// <c>CompilerTemps.Create</c>, THE ONE constructor, sets it). A temp wears the same bound shapes
-    /// as declared data, so a rule whose text admits "a data item" and excludes functions (§2023:15.43.3 r1's shape —
+    /// as declared data, so a rule whose text admits "a data item" and excludes functions (§2023:15.43.3 AR1's shape —
     /// §2023:8.5.2.12 items 6/7 make FUNCTIONS category numeric too, which is why the exclusion must be written)
     /// needs this positive is-a-declared-item discrimination (kb/Work R26).</summary>
     [DescriptionCopy(DescriptionCopyKind.None,
@@ -1558,7 +1558,7 @@ public sealed class DataItem
             if (Pic is not { } pic) return 0;
             // D19/PB43 — a USAGE BIT leaf OCCUPIES ceil(n/8) character positions, not n. §2023:13.18.60.4 GR5 makes
             // its representation bits; §2023:8.1.2 leaves bits-per-character to the implementor and WiseOwl COBOL pins 8.
-            // ⚠ This is its OCCUPANCY, deliberately NOT what FUNCTION LENGTH returns for it: §2023:15.50.4 r1 gives an
+            // ⚠ This is its OCCUPANCY, deliberately NOT what FUNCTION LENGTH returns for it: §2023:15.50.4 RV1 gives an
             // elementary bit item its length in BOOLEAN positions (n). The two coincided while USAGE BIT was
             // stored char-per-bit, which is precisely how the defect stayed invisible — they are read from
             // different members now (IntrinsicBinder's r1 arm reads Pic.Length).
@@ -1568,7 +1568,7 @@ public sealed class DataItem
                 // ⛔ ONE WIDTH (V59). An item with a byte form of its own occupies THOSE bytes in the image —
                 // BINARY 1-2-4-8-16, PACKED its BCD nibbles — never a byte per decimal digit. Before this, a
                 // PIC 9(4) COMP claimed 4 image positions while FUNCTION BYTE-LENGTH reported 2, and §2023:15.14.4
-                // GR1 (bytes) and §2023:15.50.4 r3 (alphanumeric character positions) cannot disagree in a
+                // GR1 (bytes) and §2023:15.50.4 RV3 (alphanumeric character positions) cannot disagree in a
                 // single-byte-character model. The zoned form's digit run IS its byte form, so it stays digits
                 // plus a SIGN SEPARATE position (§2023:13.18.52; a binary item never carries a separate sign).
                 return pic.ByteForm is NumericByteForm.Binary or NumericByteForm.Packed
@@ -1583,7 +1583,7 @@ public sealed class DataItem
     /// plus a SIGN SEPARATE position for a numeric item, else the PICTURE length. DISTINCT from
     /// <see cref="ImageWidth"/> for exactly the items V59 separated: a <c>PIC 9(4) COMP</c> occupies TWO bytes in
     /// a record and prints FOUR digits, because §2023:14.9.13 DISPLAY transfers the operand's VALUE (a numeric operand
-    /// is treated as though moved to an alphanumeric item, §2023:14.9.25.4 GR6) while §2023:15.50.4 r3 counts the
+    /// is treated as though moved to an alphanumeric item, §2023:14.9.25.4 GR6) while §2023:15.50.4 RV3 counts the
     /// character positions it OCCUPIES. Read by the text-facing surfaces only — ACCEPT's device window, DISPLAY's
     /// fit, and the Report Writer's print columns (§2023:13.18.14.4 GR9); every storage/record surface uses
     /// <see cref="ImageWidth"/>.</summary>
@@ -1618,7 +1618,7 @@ public sealed class DataItem
     /// their <see cref="Model.PicInfo.StorageWidth"/>; COMP-1/FLOAT-SHORT = 4, COMP-2/FLOAT-LONG/-EXTENDED = 8
     /// (the .NET Single/Double carriers); INDEX / POINTER / PROGRAM-POINTER / FUNCTION-POINTER / OBJECT REFERENCE
     /// = 8 (the 64-bit managed carrier). WiseOwl COBOL has no SYNCHRONIZED physical padding, so a group carries no
-    /// implicit-filler bytes (§2023:15.14.4 r3 is satisfied vacuously).</summary>
+    /// implicit-filler bytes (§2023:15.14.4 RV3 is satisfied vacuously).</summary>
     /// <remarks>The rule is <see cref="RecordLayout.ExactByteWidth"/>, the one size computation, in 64 bits, narrowed by
     /// <see cref="RecordLayout.ItemSize"/> (kb/Work PB5695): a no-THROUGH level-66 alias of a GROUP item is as wide as the group it
     /// renames (§2023:13.18.45.4 GR1), a bit-bearing subtree is LAID OUT, not summed (D19/PB43), and any other group sums its storage

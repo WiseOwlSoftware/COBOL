@@ -155,7 +155,7 @@ public sealed class FloatLandingModeDriftTests
     /// when PB647 added the nested case to <c>FloatLanding</c>, neither copy inherited it. A consumer that names
     /// those receiver flags again in its float-landing body has started a THIRD copy, and the next rule added to
     /// the decision will miss it exactly the same way. The flags are legitimate elsewhere in both files (argument
-    /// intake, NUMVAL-F's own §2023:15.69.4 r2 determination), so the scan is anchored to the landing bodies.
+    /// intake, NUMVAL-F's own §2023:15.69.4 RV2 determination), so the scan is anchored to the landing bodies.
     /// </summary>
     [Theory]
     [InlineData("IntrinsicRenderer.cs", "private NumX RenderFloatNative(")]

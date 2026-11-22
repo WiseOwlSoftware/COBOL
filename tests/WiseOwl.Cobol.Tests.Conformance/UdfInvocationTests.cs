@@ -138,12 +138,12 @@ public sealed class UdfInvocationTests
         EditionHarness.AssertHasDiagnostic(errors, "COBOL1507");
     }
 
-    /// <summary>Per-evaluation activation (P10 Step 10 — §2023:8.4.3.2.4 GR1/GR6a; §2023:8.8.4.13 r2): a function
+    /// <summary>Per-evaluation activation (P10 Step 10 — §2023:8.4.3.2.4 GR1/GR6a; §2023:8.8.4.13 GR2): a function
     /// reference in a conditionally- or repeatedly-evaluated CONDITION window now BINDS — the activations
     /// attach to the condition (<c>BoundUdfEvaluated</c>) and run once per evaluation of that window.
     /// Legs: PERFORM UNTIL (per iteration, §2023:14.9.28.4 GR6), PERFORM VARYING UNTIL (GR13), an EVALUATE
     /// selection OBJECT (per WHEN consideration, §2023:14.9.13.4 GR4), and a non-first AND/OR operand
-    /// (§2023:8.8.4.13 r1 short-circuit). Runtime cardinality is proven by the udf_per_eval golden.</summary>
+    /// (§2023:8.8.4.13 GR1 short-circuit). Runtime cardinality is proven by the udf_per_eval golden.</summary>
     [Theory]
     [InlineData("UDFT6A", "    PERFORM UNTIL FUNCTION UDFDBL(WS-A) > 9000\n        ADD 1 TO WS-A\n    END-PERFORM.")]
     [InlineData("UDFT6B", "    PERFORM VARYING WS-A FROM 1 BY 1 UNTIL WS-A > FUNCTION UDFDBL(2)\n        DISPLAY \"X\"\n    END-PERFORM.")]

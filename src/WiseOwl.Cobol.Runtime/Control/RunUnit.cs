@@ -90,7 +90,7 @@ public sealed class RunUnit
     /// buffers of the SORT/MERGE statements this run unit executes, which no other run unit can see or mutate.</summary>
     public SortFileTable SortFiles { get; } = new();
 
-    /// <summary>The run unit's ONE current FUNCTION RANDOM sequence (ISO §2023:15.75.3 r4 — the implementor seed belongs
+    /// <summary>The run unit's ONE current FUNCTION RANDOM sequence (ISO §2023:15.75.3 AR4 — the implementor seed belongs
     /// to "the first reference to this function in the run unit"; kb/Work PB307).</summary>
     public RandomSequence Random { get; } = new();
 
@@ -388,7 +388,7 @@ public sealed class RunUnit
     /// (<c>ProgramRegistry.Reset()</c>). Every member of the new run unit is fresh (program table, EXTERNAL store,
     /// MODULE-NAME stack, files, switches (§2023:12.3.7.4 GR4 — the implementor-defined scope is the run unit), locale
     /// (§2023:14.6.11 GR5), FUNCTION RANDOM sequence
-    /// (§2023:15.75.3 r4), report flow, exception status, factory objects (§2023:9.3.14.2) and the termination status),
+    /// (§2023:15.75.3 AR4), report flow, exception status, factory objects (§2023:9.3.14.2) and the termination status),
     /// because it is a new object — only the <see cref="HostConfiguration"/> carries over. The run unit it
     /// replaces is not touched: its own termination (<see cref="ProgramTable.RunMain"/>'s finally, or
     /// <see cref="Run"/>'s) closed its files, and dropping the last reference to it releases everything it owned

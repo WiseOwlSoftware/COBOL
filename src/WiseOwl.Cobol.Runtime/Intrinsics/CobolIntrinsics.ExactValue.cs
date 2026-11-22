@@ -186,7 +186,7 @@ public static partial class CobolIntrinsics
     }
 
     /// <summary>REM (§2023:15.77.4): <c>argument-1 − argument-2 × FUNCTION INTEGER-PART (argument-1 / argument-2)</c>, the truncated
-    /// remainder of the exact values (<see cref="RemWide"/>), rounded once. A zero divisor is §2023:15.77.3 r2's one raise site
+    /// remainder of the exact values (<see cref="RemWide"/>), rounded once. A zero divisor is §2023:15.77.3 AR2's one raise site
     /// (<see cref="RemZeroDivisor"/>).</summary>
     public static CobolDec RemExact(CobolRounding mode, CobolExact a, CobolExact b)
     {
@@ -269,7 +269,7 @@ public static partial class CobolIntrinsics
     /// <summary>⛔ PRESENT-VALUE (§2023:15.74.4 RV1) OF THE EXACT ARGUMENTS, DIVIDED ONCE (kb/Work PB4111): <c>Σ aₖ / (1 + rate)^k</c>, k = 1…n,
     /// with the discount base written as the reduced fraction <c>1 + rate = p / q</c> and the amounts aligned to their common scale t
     /// as integers Aₖ, is <c>Σ Aₖ·q^k·p^(n−k) / (10^t·p^n)</c>: one numerator (Horner, <c>Nₖ = Nₖ₋₁·p + Aₖ·q^k</c>) and one
-    /// denominator on the wide form, rounded once. §2023:15.74.3 r2 (rate &gt; −1, so p &gt; 0) is screened on the exact rate through the ONE
+    /// denominator on the wide form, rounded once. §2023:15.74.3 AR2 (rate &gt; −1, so p &gt; 0) is screened on the exact rate through the ONE
     /// raise site (<see cref="PresentValueDomain"/>). The 34-digit term quotients of <see cref="PresentValueDec"/> answered
     /// PRESENT-VALUE (0, P, 1 − P) = 0 for 1 and PRESENT-VALUE (3, 10^33 + 1, −4·10^33) = 0.3 for 0.25. A discount whose powers leave
     /// the wide form (many periods at a rate of many places) takes the same identity on the arbitrary-precision form (<see cref="PresentValueBig"/>).
@@ -280,7 +280,7 @@ public static partial class CobolIntrinsics
     {
         RequireArguments(amounts.Length, "PRESENT-VALUE");
         CobolExact discount = CobolExact.Add(CobolExact.From(1, 0), rate);   // 1 + rate, exact
-        if (discount.Sign <= 0) return CobolExact.From(PresentValueDomain(rate.Image.ToDouble()), 0);   // §2023:15.74.3 r2
+        if (discount.Sign <= 0) return CobolExact.From(PresentValueDomain(rate.Image.ToDouble()), 0);   // §2023:15.74.3 AR2
         if (TryBinary64Body([rate, .. amounts], list => PresentValue(discount.AsBinary64(), list[1..]), out CobolExact real, floatFamily: true)) return real;
         return CobolExact.FromDec(TryPresentValue(rate, amounts, mode, out CobolDec value) ? value : PresentValueBig(discount, amounts, mode));
     }
@@ -288,7 +288,7 @@ public static partial class CobolIntrinsics
     /// <summary>⛔ ANNUITY (§2023:15.9.4) WITH A RATE THAT MAY BE A NESTED SELECTION OF A FLOAT ITEM (kb/Work PB4979; docs/CONFORMANCE.md DOC-A.1-92b).
     /// Argument-1 is a number, so a nested <c>MAX (F M2)</c> returns F's binary64 content when F is the greatest, a run-time fact
     /// (<see cref="CobolExact.TryBinary64"/>): the value is then <c>ANNUITY (F n)</c>'s binary64 (<see cref="Annuity(double, double)"/>, the
-    /// domain screen §2023:15.9.3 r2/r3 through the same raise site as <see cref="AnnuityDec"/>), an approximation
+    /// domain screen §2023:15.9.3 AR2/r3 through the same raise site as <see cref="AnnuityDec"/>), an approximation
     /// (<see cref="CobolExact.FromApproximation"/>: the floating-math family's value). Otherwise the SDIDI evaluation of <see cref="AnnuityDec"/>, which takes
     /// <paramref name="periods"/> as the unbounded SDIDI integer the §2023:15.3 type-6 position intake left (kb/Work PB637).</summary>
     public static CobolExact AnnuityExact(CobolRounding mode, CobolExact rate, CobolDec periods)

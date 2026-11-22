@@ -571,7 +571,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
     }
 
     /// <summary>Emit ONE receiver's compute+store inside its own try when size-error checking is on (kb/Work
-    /// PB129): §2023:14.7.7 r4b makes a raised size error PER-RECEIVER — "processing proceeds to the next resulting
+    /// PB129): §2023:14.7.7 GR4b makes a raised size error PER-RECEIVER — "processing proceeds to the next resulting
     /// data item to the right" — and §2023:14.7.5 storing rule 2 requires the untouched receivers to hold the values
     /// they would have had. The old single statement-wide try let one receiver's PROHIBITED/overflow raise
     /// abandon every receiver to its right. <paramref name="mode"/> is the receiver's ROUNDED mode: a PROHIBITED
@@ -746,7 +746,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
         // statement's size error condition (ISO §2023:14.7.5 — the phrase ENABLES checking, incl. case 5 intermediate
         // overflow). >long-range overflow still needs the Int128 carrier (G3). This OUTER try now catches only
         // the INITIAL evaluation's raises (a statement with no formable initial value has no results to store);
-        // each receiver's compute+store sits in its own GuardedStore try (kb/Work PB129 — §2023:14.7.7 r4b:
+        // each receiver's compute+store sits in its own GuardedStore try (kb/Work PB129 — §2023:14.7.7 GR4b:
         // "processing proceeds to the next resulting data item to the right", §2023:14.7.5 storing rule 2).
         // An exception that escapes the receivers' own tries is the INITIAL evaluation's (a zero divisor): no receiver was stored, so no debugging
         // section for the item alone follows (§1985:XV.3.2.4 GR6; kb/Work PB5296).
@@ -779,7 +779,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
         // ⛔ A LONE FLOATING-POINT OPERAND IS AN SDIDI TOO (kb/Work PB1606). Under a standard-decimal mode every operation
         // yields the SDIDI, so a float ITEM reaches this funnel as a binary64 only when it is the whole expression
         // (`COMPUTE R = F`; ADD Format 2 always writes two addends, kb/Work PB5203): §2023:8.8.1.5.1 makes standard-decimal the method of evaluating "an arithmetic
-        // expression, an arithmetic statement", and §2023:8.8.1.5.2 r1 converts "any operand of an arithmetic expression", a
+        // expression, an arithmetic statement", and §2023:8.8.1.5.2 GR1 converts "any operand of an arithmetic expression", a
         // lone one included. It lifts through the ONE conversion (CobolDec.FromBinary64) every other float operand uses,
         // instead of landing natively where `F + 0` converted: the two statements then store one value.
         if (num.StandardDecimal && value.Real)
@@ -821,7 +821,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             return;
         }
         // A format-2 (LOCALE) numeric-edited resultant (kb/Work PB64 T6): the edit is the locale's LC_MONETARY at
-        // store time (§2023:13.18.40.5 r9–r15) and the scale the PICTURE's. Under ON SIZE ERROR / EC-SIZE the digit
+        // store time (§2023:13.18.40.5 GR9–r15) and the scale the PICTURE's. Under ON SIZE ERROR / EC-SIZE the digit
         // CAPACITY (the picture's integer positions) is the size error condition — EC-SIZE-TRUNCATION — while
         // EC-LOCALE-SIZE (r14 b's character truncation into the SIZE-declared item) is a DISTINCT condition the
         // edit itself raises; both can arise on one store. This arm sits BEFORE the mask arm: a locale item has
@@ -845,7 +845,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
         {
             // The ONE receiver-scale rule (PicInfo.ReceiverScale: the MASK's fraction scale) and the ONE edited
             // landing, NumericRenderer.EditedLanding, which the LOCALE arm above shares (kb/Work PB2163): under ON SIZE
-            // ERROR / EC-SIZE it is the CHECKED landing, so a PROHIBITED-inexact narrowing (ISO §2023:14.7.4.3 r7) and a
+            // ERROR / EC-SIZE it is the CHECKED landing, so a PROHIBITED-inexact narrowing (ISO §2023:14.7.4.3 GR7) and a
             // value past the carrier are size errors and the receiver stays UNCHANGED, as for every receiver category;
             // the no-phrase landing keeps the low-order digits, as the numeric store does.
             int ms = ScaleOf(target);

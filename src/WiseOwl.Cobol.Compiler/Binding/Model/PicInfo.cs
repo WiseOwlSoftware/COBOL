@@ -514,7 +514,7 @@ public sealed record PicInfo(
     /// <summary>PICTURE format 2 — the LOCALE phrase (ISO §2023:13.18.40.2; kb/Work PB64 T6): the item is fixed-point
     /// numeric-edited (§2023:13.18.40.4 GR16) whose length is the SIZE phrase's integer-1 (GR17 — <see cref="Length"/>
     /// carries it; the picture contributes only the digit shape), whose editing/de-editing is the named-else-current
-    /// locale's LC_MONETARY at each use (§2023:13.18.40.5 r9–r15 — <c>CobolLocaleEdit</c>), and whose
+    /// locale's LC_MONETARY at each use (§2023:13.18.40.5 GR9–r15 — <c>CobolLocaleEdit</c>), and whose
     /// <see cref="EditMask"/> is NULL (there is no fixed mask — the currency string, separators and sign are
     /// runtime locale data). ⛔ Like <see cref="IsFloatEdited"/>, every edited store / read dispatches on THIS
     /// property inside the runtime entry helpers (<c>RuntimeApi.EditFormatFor</c> / <c>EditTryFormatFor</c> /

@@ -1348,7 +1348,7 @@ fragment NAME_BODY                                                              
 // The decimal twin MUST precede the integer twin (else -15.6 orphans ".6"),
 // and the FLOAT twin precedes them both (kb/Work R17): "-1.5E3" must stay ONE token — without this twin the
 // signed-decimal rule won maximal munch at "-1.5" and orphaned "E3" as an IDENTIFIER, so the parser reported
-// two arguments (§2023:8.3.3.3.3 r2 makes the sign part of the literal; §2023:15.3 type 10 admits the literal). The
+// two arguments (§2023:8.3.3.3.3 SR2 makes the sign part of the literal; §2023:15.3 type 10 admits the literal). The
 // sign travels in the TOKEN TEXT and the type is plain FLOATLIT — one vocabulary, zero parser changes, and
 // the emitter's E-form arm renders the signed text as a C# double literal directly.
 FN_SIGNED_FLOATLIT   : [+-] FLOAT_BODY { OnSignedLiteral(FLOATLIT); } ;
@@ -1388,7 +1388,7 @@ NATLIT      : NAT_BODY { OnDelimitedLiteral(); } ;
 // of zero length", and §2023:8.3.3.2.2 Format 2 brackets the hex sequence under BOTH delimiter spellings (page
 // rendered and verified — PB59). The quotation arm's `+` was fixed by R03's sweep; the APOSTROPHE arm kept
 // its `+` until PB59, so X'' split into IDENTIFIER + a zero-length Format-1 literal — the same silent-split
-// hole, one delimiter over. The GROUPING rule (§2023:8.3.3.2.3 r6, pairs of digits) and the REPERTOIRE rule (SR5,
+// hole, one delimiter over. The GROUPING rule (§2023:8.3.3.2.3 SR6, pairs of digits) and the REPERTOIRE rule (SR5,
 // hexadecimal digits) are asked by LiteralScreen, not here: a lexer that refused an odd count or a non-hex
 // digit would put the literal back in the silent-split hole this whole item exists to close (see HEX_BODY).
 HEXLIT      : HEX_BODY { OnDelimitedLiteral(); } ;

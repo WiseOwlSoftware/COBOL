@@ -69,7 +69,7 @@ internal enum OperandContext
     CallByValue,
 
     /// <summary>An arithmetic-expression position that BOTH index clauses list — the SET statement's amounts and
-    /// values: §2023:13.18.38.3 r7 admits an INDEX-NAME here and §2023:13.18.60.3 SR10 admits an INDEX DATA ITEM here
+    /// values: §2023:13.18.38.3 SR7 admits an INDEX-NAME here and §2023:13.18.60.3 SR10 admits an INDEX DATA ITEM here
     /// (kb/Work R29, PB215). The §2023:8.8.1.1 class screening is otherwise identical to <see cref="Arithmetic"/>, so
     /// <c>SET IX UP BY N</c> and <c>SET IX TO IDN</c> stay legal while <c>COMPUTE N = IX + 1</c> does not.
     /// ⚠ A RELATION OPERAND IS NOT HERE (kb/Work PB2018). r7's "as an operand in a relation condition" and
@@ -81,7 +81,7 @@ internal enum OperandContext
     /// its golden read "inside an expression" as legal, a wider reading than r7 and §2023:8.8.4.2.13 give.</summary>
     ArithmeticIndexWindow,
 
-    /// <summary>An arithmetic-expression position that §2023:13.18.38.3 r7 lists and §2023:13.18.60.3 SR10 does NOT — a
+    /// <summary>An arithmetic-expression position that §2023:13.18.38.3 SR7 lists and §2023:13.18.60.3 SR10 does NOT — a
     /// SUBSCRIPT and the VARYING phrase of a PERFORM statement (kb/Work PB215). An index-NAME is a legal operand
     /// here (<c>T(IX + 1)</c>, <c>PERFORM … VARYING V FROM IX</c>); an index DATA ITEM is not, because SR10's
     /// closed list has no subscript and no PERFORM entry — so <c>E(IDX / 1)</c> and
@@ -91,7 +91,7 @@ internal enum OperandContext
     /// <summary>A PARENTHESIZED SOLE intrinsic-function argument, <c>(N)</c> / <c>(3)</c> / <c>(FUNCTION f(…))</c> (kb/Work PB4635).
     /// Enclosing parentheses make it an arithmetic expression (§2023:8.4.3.2.3 SR8: "Argument-1 shall be an identifier, a literal, a
     /// boolean expression, or an arithmetic expression"; §2023:8.8.1.1), so §2023:8.8.1.1's class screen governs its operand — except that the same written shape is
-    /// also "a boolean expression enclosed in parentheses" (§2023:8.8.2), which §2023:8.4.3.2.3 SR8 and §2023:15.45.3 r1 admit as an argument, so
+    /// also "a boolean expression enclosed in parentheses" (§2023:8.8.2), which §2023:8.4.3.2.3 SR8 and §2023:15.45.3 AR1 admit as an argument, so
     /// a class-BOOLEAN item or function is admitted here beside the numeric ones (<see cref="OperandContextRules.Rules"/>' fourth
     /// axis). A compound argument (an operator, a unary sign) is no boolean expression and binds under
     /// <see cref="Arithmetic"/>.</summary>
@@ -110,7 +110,7 @@ internal enum OperandContext
 ///         position have its own syntax rule? <c>CALL … BY VALUE</c> (§2023:14.9.4.3 SR22) and an intrinsic argument
 ///         (§2023:15.3) are governed by NARROWER rules of their own, so quoting §2023:8.8.1.1 at their programmer names a
 ///         rule that was not broken.</item>
-///   <item><b>IndexNameScreen</b> — is the §2023:13.18.38.3 r7 index-name screen applied HERE? r7's closed context
+///   <item><b>IndexNameScreen</b> — is the §2023:13.18.38.3 SR7 index-name screen applied HERE? r7's closed context
 ///         list is "as a subscript · PERFORM VARYING · SEARCH VARYING · SET · an operand in a relation
 ///         condition", which is exactly <see cref="OperandContext.ArithmeticIndexWindow"/> plus
 ///         <see cref="OperandContext.ArithmeticIndexNameWindow"/>; CALL BY VALUE is exempt because SR22 screens
@@ -119,7 +119,7 @@ internal enum OperandContext
 ///         ⛔ THIS IS A THIRD AXIS, NOT A CONSEQUENCE OF THE FIRST, and treating it as one was a measured
 ///         over-reach: SR10's list is "a SEARCH or SET statement, a relation condition, an intrinsic function
 ///         argument, an inline method invocation argument, the USING phrase of a procedure division header, or
-///         the USING phrase of a CALL or INVOKE statement" — which is NOT §2023:13.18.38.3 r7's list and NOT
+///         the USING phrase of a CALL or INVOKE statement" — which is NOT §2023:13.18.38.3 SR7's list and NOT
 ///         §2023:8.8.1.1's class rule. Deriving it from "class index is not class numeric" rejected
 ///         <c>SET IN1 TO IDN1</c> in EIGHT NIST programs (IC106A · IC107A · IC207A · IC208A · NC131A · NC133A ·
 ///         NC135A · NC236A), every one of them a SET statement SR10 names outright. A rule that enumerates
@@ -151,7 +151,7 @@ internal static class OperandContextRules
     internal static (bool NumericClassScreen, bool IndexNameScreen, bool IndexDataItemAdmitted, bool BooleanOperandAdmitted) Rules(
         this OperandContext c) => c switch
     {
-        //                                       §2023:8.8.1.1   §2023:13.18.38.3 r7   §2023:13.18.60.3 SR10   §2023:8.8.2
+        //                                       §2023:8.8.1.1   §2023:13.18.38.3 SR7   §2023:13.18.60.3 SR10   §2023:8.8.2
         OperandContext.Arithmetic            => (true,      true,            false,              false),
         OperandContext.FunctionArgument      => (false,     true,            true,               false),   // SR10: "an intrinsic function argument"
         OperandContext.CallByValue           => (false,     false,           true,               false),   // SR10: "the USING phrase of a CALL"
@@ -461,7 +461,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         : ctx.Refs.Resolve(dref) is var r && r.Place is { } p ? new BoundFieldOperand(p) : r.OperandError(ctx.Edition);   // kb/Work PB1030
     }
 
-    /// <summary>The §2023:13.18.38.3 r7 screen for an operand slot OUTSIDE the five contexts that may reference an
+    /// <summary>The §2023:13.18.38.3 SR7 screen for an operand slot OUTSIDE the five contexts that may reference an
     /// index-name (a subscript · PERFORM VARYING · SEARCH VARYING · SET · a relation-condition operand) — kb/Work
     /// R16. <see cref="FieldOperand"/> deliberately still BINDS the index-name (the r7-legal consumers share it),
     /// so each ILLEGAL slot screens the result: before this, DISPLAY/STRING/MOVE-to-string aborted at RUN TIME
@@ -605,7 +605,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         : r.ExprError(ctx.Edition);   // kb/Work PB1030 — the resolver's answer picks Refused or Unbuilt
     }
 
-    /// <summary>The §2023:13.18.38.3 r7 screen for an INDEX-NAME reached as an expression operand (kb/Work R29 —
+    /// <summary>The §2023:13.18.38.3 SR7 screen for an INDEX-NAME reached as an expression operand (kb/Work R29 —
     /// the arithmetic sibling of R16's statement-slot screen). r7's closed context list admits an index-name
     /// in a subscript, PERFORM/SEARCH VARYING, SET, and a relation condition — those positions bind under
     /// <see cref="OperandContext.ArithmeticIndexWindow"/> or <see cref="OperandContext.ArithmeticIndexNameWindow"/>
@@ -1189,7 +1189,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>Bind any numeric node (expression, operand wrapper, literal, or data reference) as an ISO §2023:8.8.1.1
     /// ARITHMETIC expression — numeric operands only. THE entry for COMPUTE, the arithmetic verbs and
-    /// reference-modifier offsets; the §2023:13.18.38.3 r7 index-name windows (subscripts, SET, PERFORM/SEARCH
+    /// reference-modifier offsets; the §2023:13.18.38.3 SR7 index-name windows (subscripts, SET, PERFORM/SEARCH
     /// VARYING, relation/EVALUATE operands) moved to <see cref="BindIndexWindowExpr"/> at R29 (kb/Work PB155
     /// re-unified the §2023:8.8.1.1 screening the move had silently dropped there).
     /// <para>Deliberately takes NO context parameter: an optional one would break the method-group conversions this
@@ -1212,11 +1212,11 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     }
 
     /// <summary>Bind an arithmetic expression at a position BOTH index clauses list — SET amounts/values — where an
-    /// index-name (§2023:13.18.38.3 r7) and an index data item (§2023:13.18.60.3 SR10) are legal operands (kb/Work R29,
+    /// index-name (§2023:13.18.38.3 SR7) and an index data item (§2023:13.18.60.3 SR10) are legal operands (kb/Work R29,
     /// PB215). Identical to <see cref="BindExpr"/> otherwise. A relation or EVALUATE operand is not one (PB2018).</summary>
     public BoundExpr BindIndexWindowExpr(IParseTree node) => BindExprCore(node, OperandContext.ArithmeticIndexWindow);
 
-    /// <summary>Bind an arithmetic expression at a position §2023:13.18.38.3 r7 lists and §2023:13.18.60.3 SR10 does not —
+    /// <summary>Bind an arithmetic expression at a position §2023:13.18.38.3 SR7 lists and §2023:13.18.60.3 SR10 does not —
     /// a subscript segment: an index-NAME is legal, an index DATA ITEM is not (kb/Work PB215).</summary>
     public BoundExpr BindIndexNameWindowExpr(IParseTree node) =>
         BindExprCore(node, OperandContext.ArithmeticIndexNameWindow);
@@ -1261,7 +1261,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     };
 
     /// <summary>A numeric literal expression from a <c>literal</c> node, mapping a figurative ZERO (incl. <c>ALL ZEROS</c>)
-    /// to <c>0</c> (ISO §2023:8.3.3.6.3 r1a / §2023:8.3.3.6.4 r4 — ZERO is the one figurative a numeric literal admits, and it is the numeric value 0); a non-numeric figurative (SPACE / HIGH-VALUE / …)
+    /// to <c>0</c> (ISO §2023:8.3.3.6.3 SR1a / §2023:8.3.3.6.4 GR4 — ZERO is the one figurative a numeric literal admits, and it is the numeric value 0); a non-numeric figurative (SPACE / HIGH-VALUE / …)
     /// in a numeric context is a loud error rather than the raw word rendered as an identifier. A national or
     /// boolean literal is NOT a numeric operand (§2023:8.8.1.1 — arithmetic operands shall be numeric): COBOL0844
     /// at bind, never raw literal text spliced into the generated expression.</summary>
@@ -1596,7 +1596,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>The INDEX-NAME-WINDOW twin of <see cref="BindOperandExpr"/>: the same breadth-first wrapper walk,
     /// run under <see cref="OperandContext.ArithmeticIndexNameWindow"/> so an index-name is a legal operand (ISO
-    /// §2023:13.18.38.3 r7 — "in the VARYING phrase of a PERFORM statement"; kb/Work R29) and an index DATA ITEM is
+    /// §2023:13.18.38.3 SR7 — "in the VARYING phrase of a PERFORM statement"; kb/Work R29) and an index DATA ITEM is
     /// not (§2023:13.18.60.3 SR10 has no PERFORM entry; kb/Work PB215). It exists because PERFORM VARYING's FROM/BY
     /// slots are a <c>valueOperand</c> WRAPPER (§2023:14.9.28.2's brace group, kb/Work PB432):
     /// <see cref="BindIndexNameWindowExpr"/> would reach <see cref="BindOperandExprCore"/> through

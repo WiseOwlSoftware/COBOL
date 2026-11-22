@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// The size error condition (ISO/IEC 1989:2023 §2023:14.7.5) raised <i>during expression evaluation or a store</i> — a
 /// zero divisor (case 2), an exponentiation-rule violation (case 1), a native or standard-decimal INTERMEDIATE past
 /// its range (cases 5/7 — <c>CobolDec</c>'s decimal128 range check, <c>CobolNum.RescaleEscape</c>), a
-/// PROHIBITED-inexact transfer or intermediate (§2023:14.7.4.3 r7 / §2023:11.9.11.2 r3d), a checked store past the receiver
+/// PROHIBITED-inexact transfer or intermediate (§2023:14.7.4.3 GR7 / §2023:11.9.11.2 GR3d), a checked store past the receiver
 /// (case 3). Two dispositions, decided by WHERE it surfaces (kb/Work PB75):
 /// <list type="bullet">
 ///   <item>inside an arithmetic statement's checked shape — an ON SIZE ERROR phrase or EC-SIZE checking — the

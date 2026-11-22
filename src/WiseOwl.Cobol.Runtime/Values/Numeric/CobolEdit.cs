@@ -16,7 +16,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// SPECIAL-NAMES threading (ISO §2023:12.3.7): <c>currency</c> is the mask's currency PICTURE SYMBOL (GR13; the
 /// compiler CANONICALIZES every mask's currency symbol to <c>$</c> at bind — <c>PictureAnalyzer</c> — so
 /// generated code always passes the default) and <c>currencyString</c> is the currency STRING that symbol expands
-/// to when it is not the single character <c>$</c> (§2023:12.3.7.3 r23: "Literal-7 may have any length"; §2023:13.18.40.4
+/// to when it is not the single character <c>$</c> (§2023:12.3.7.3 SR23: "Literal-7 may have any length"; §2023:13.18.40.4
 /// GR14: "The first occurrence of the currency symbol adds the number of characters in the currency string to the
 /// size of the item. Each subsequent occurrence of the currency symbol adds one" — kb/Work PB60 / AR-15.68.3-3).
 /// The core edits on the LOGICAL one-character-per-symbol image and <see cref="Materialize"/> maps that image to
@@ -174,13 +174,13 @@ public static partial class CobolEdit
         // DECIMAL-POINT IS COMMA: canonicalize the mask (dot = decimal), render, swap the rendered separators
         // back (GR14b). ⛔ The swap is applied to the LOGICAL image and only at the positions whose SYMBOL is a
         // separator, never to the physical one: a currency string or an editing literal may itself hold a '.'
-        // or a ',' (§2023:12.3.7.3 r23 lets literal-7 be any length; SR9 lets a literal be 50 characters), and
+        // or a ',' (§2023:12.3.7.3 SR23 lets literal-7 be any length; SR9 lets a literal be 50 characters), and
         // §2023:13.18.40.3 SR13 exchanges the roles of the two SYMBOLS, not the characters of a literal.
         string mask = commaMode ? SwapSeparators(picture) : picture;
         // The output pattern: V marks the implied point but holds no character position (ISO §2023:13.18.40.3).
         string pattern = mask.Replace("V", "").Replace("P", "");   // V and P hold no output position (§2023:13.18.40.3)
         // The currency STRING replaces the canonical '$' the mask carries whenever it is not that single
-        // character — a one-character '#' (§2023:12.3.7.4 GR13) as much as a multi-character "USD" (§2023:12.3.7.3 r23).
+        // character — a one-character '#' (§2023:12.3.7.4 GR13) as much as a multi-character "USD" (§2023:12.3.7.3 SR23).
         bool wideCurrency = currencyString is not null && currencyString != currency.ToString();
         var (logical, placedBy, negative) = Render(value, valueScale, mask, pattern, blankWhenZero, currency, edits, wideCurrency);
         if (commaMode)
@@ -681,7 +681,7 @@ public static partial class CobolEdit
 
     // ── THE VARIABLE-WIDTH SYMBOLS (§2023:13.18.40.4 GR14; kb/Work PB60 / AR-15.68.3-3, PB491) ─────────────────────
     // The editing rules of §2023:13.18.40.5 are written for symbols that each occupy ONE character position, and two
-    // symbols do not: the currency symbol, whose currency string "may have any length" (§2023:12.3.7.3 r23), and a
+    // symbols do not: the currency symbol, whose currency string "may have any length" (§2023:12.3.7.3 SR23), and a
     // PICTURE EDITING character-1, whose literal may be 50 characters (§2023:13.18.40.3 SR9). Both are handled the
     // same way and in one place — edit the LOGICAL image (one position per symbol, so every editing rule reads
     // as written), then let Materialize give each symbol the width GR14 gives it. DeEdit walks the same widths

@@ -419,7 +419,7 @@ internal sealed class BinderDriver
     /// <para>ISO §2023:11.10.4 GR1 keeps the two names DISTINCT — "Program-name-1 names the program declared by this
     /// program definition. Literal-1, if specified, is the name of the program that is externalized to the
     /// operating environment" — and this used to collapse them onto one field (kb/Work PB303), which would have
-    /// broken §2023:10.7.3 SR2's END PROGRAM match, §2023:14.9.4.3 SR15's AS NESTED lookup and the §2023:15.65.4 r4 MODULE-NAME
+    /// broken §2023:10.7.3 SR2's END PROGRAM match, §2023:14.9.4.3 SR15's AS NESTED lookup and the §2023:15.65.4 RV4 MODULE-NAME
     /// determination the moment the phrase parsed. They are separate fields now.</para></summary>
     private static BoundUnit MakeUnit(
         Core.ProgramUnitContext ctx, BoundUnit? parent, int index, HashSet<string> usedClassNames, EditionContext edition,
@@ -539,7 +539,7 @@ internal sealed class BinderDriver
         // what SR5 reads of a container ("a recursive program"), so an INITIAL containee of a recursive
         // container is the nonconforming source SR5 refuses above — never a legal program carrying both
         // attributes (kb/Work PB1507; this comment used to call that shape legal). This is what lets the legal
-        // R→C→R→C cycle through GR3f's re-entry check and lets a contained program call ITSELF (§2023:8.4.6.3 r1's "in
+        // R→C→R→C cycle through GR3f's re-entry check and lets a contained program call ITSELF (§2023:8.4.6.3 SR1's "in
         // the program itself") — both drew EC-PROGRAM-RECURSIVE-CALL / NOT-FOUND before.
         if (parent is { Recursive: true }) recursive = true;
 

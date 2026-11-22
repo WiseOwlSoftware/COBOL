@@ -130,7 +130,7 @@ internal sealed class DynamicResolvePass : IBindPass
             // SymbolTable.CapacityRegisterNamed reads.
             // ⛔ MINTED FOR EVERY DYNAMIC TABLE, NAMED ONLY WHEN `CAPACITY IN data-name-3` IS WRITTEN (kb/Work
             // PB61): the view over the table's current capacity is what FUNCTION LENGTH / BYTE-LENGTH read for a
-            // variable-length group (§2023:15.50.4 r7c / §2023:15.14.4 r6c — "based on their current capacity"), whether or
+            // variable-length group (§2023:15.50.4 RV7c / §2023:15.14.4 RV6c — "based on their current capacity"), whether or
             // not the program gave the register a name. An unnamed register has no CobolName and no
             // CapacityRegisters entry, so no COBOL reference can reach it.
             // ⛔ IT CARRIES A REAL POSITION IN THE HIERARCHY (kb/Work PB457): §2023:13.18.38.3 SR30 — "If qualifiers are

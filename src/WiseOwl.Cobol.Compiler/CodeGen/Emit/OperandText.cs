@@ -101,7 +101,7 @@ internal static class OperandText
         : op is BoundComputedOperand { Expr: var reg } && AlgebraicRanges.CounterRegisterDigits(reg) is { } regDigits
             ? RuntimeApi.NumFormatUnsignedDisplay(num.Render(reg, ReceiverContext.None).Expr, regDigits)
         // A function-identifier the binder FOLDED into an arithmetic sum — FUNCTION LENGTH / BYTE-LENGTH of a
-        // variable-length group is §2023:15.50.4 r7's fixed-plus-dynamic-leaves sum (kb/Work PB61): still a numeric
+        // variable-length group is §2023:15.50.4 RV7's fixed-plus-dynamic-leaves sum (kb/Work PB61): still a numeric
         // function's returned value in a string position, rendered in the same item-92 literal form. No general
         // format admits a bare arithmetic expression here, so the only other way to reach this arm is the --permissive
         // coercion of one at a character position of a string function (`TRIM (I2 + 1)`, kb/Work PB4710), whose text is
@@ -176,7 +176,7 @@ internal static class OperandText
     /// register asks it here and the Emit layer reads <c>AlgebraicRanges</c> from this class alone (kb/Work PB4766).</summary>
     public static bool IsCounterRegister(BoundComputedOperand op) => AlgebraicRanges.CounterRegisterDigits(op.Expr) is not null;
 
-    /// <summary>The STORAGE image of a counter register (CONVERT's ANY source, §2023:15.19.3 r7: the storage bits, never the display
+    /// <summary>The STORAGE image of a counter register (CONVERT's ANY source, §2023:15.19.3 AR7: the storage bits, never the display
     /// image): LINAGE-COUNTER's description is a DISPLAY integer item, whose storage IS its zoned digits (<see cref="AsString"/>), and
     /// LINE-/PAGE-COUNTER's is the 32-bit unsigned binary item <see cref="PicInfo.ReportCounterItem"/>, whose bytes are the ones the
     /// storage codec gives any declared item of that description, through the profile the report's counter item declares
@@ -490,19 +490,19 @@ internal static class OperandText
             ? function
             : AsTransferString(op, num, context);
 
-    /// <summary>The RAW-STORAGE byte image of a field — CONVERT's ANY source channel (§2023:15.19.3 r7: "argument-1
+    /// <summary>The RAW-STORAGE byte image of a field — CONVERT's ANY source channel (§2023:15.19.3 AR7: "argument-1
     /// shall be of any usage … It is not necessary for the contents to be valid according to the usage" — the
     /// item's STORAGE BITS, never its display image; fix-queue PB59 family 5b / AR-15.19.3-7 leg b). The
     /// convention is char==byte (the <c>CobolBits.Pack</c> image convention), one representation per leaf shape,
     /// each THE mechanism that already defines that shape's storage (<c>GroupImageCodec.AsImageOf</c>'s recipes —
     /// never a second codec): a group is its generated <c>AsImage()</c>; a national leaf its UTF-16BE bytes
     /// (<c>CobolBits.NatBytes</c>, D-N1); a USAGE BIT leaf its packed bits (<c>CobolBits.Pack</c> — which also
-    /// materializes §2023:15.19.4 r2's trailing zero-bit pad); a zoned/character leaf its carrier (the sign-AWARE
+    /// materializes §2023:15.19.4 RV2's trailing zero-bit pad); a zoned/character leaf its carrier (the sign-AWARE
     /// image — storage, so no GR6a de-sign); a BINARY/PACKED/COMP-5 leaf its radix-2/BCD bytes
     /// (<c>CobolNum.FormatImage</c>, V59/§2023:14.4); a float leaf its IEEE interchange bytes
     /// (<c>CobolNum.FormatImageFloat</c> — kb/Work PB164 wave 2); an INDEX leaf its 8-byte occurrence-number
     /// bytes (R40). Only a VARIABLE-LENGTH group stages LOUD rather than returning a plausible wrong image;
-    /// pointer/object shapes are unreachable — the §2023:15.19.3 r7 bind screen rejected them.</summary>
+    /// pointer/object shapes are unreachable — the §2023:15.19.3 AR7 bind screen rejected them.</summary>
     /// <param name="context">Names the operation in the Tier-C loud message — the same parameter
     /// <c>PlaceRenderer.GroupImage</c> carries, so a caller can route through THE ONE storage channel and keep
     /// its own site-specific reason (kb/Work PB178's law, PB327's second caller).</param>
@@ -514,7 +514,7 @@ internal static class OperandText
         // ⛔ A BIT-USAGE SLICE IS THE THIRD CASE, AND IT WAS MISSING (kb/Work PB173). §2023:8.4.3.3.4 GR5a gives a
         // usage-bit operand BIT positions, and GR6 preserves its class, category and usage — so the slice's
         // '0'/'1' carrier is NOT its storage, exactly as it is not for the whole item three arms below. §2023:15.19.3
-        // r7 asks for the item's storage BITS and §2023:15.19.4 r2 then pads: "If the number of bits in argument-1 is
+        // r7 asks for the item's storage BITS and §2023:15.19.4 RV2 then pads: "If the number of bits in argument-1 is
         // not a multiple of those needed for a single alphanumeric character, the trailing portion needed to make
         // up a complete multiple is padded with zero bits". Measured before the fix: `CONVERT(XM(1:3) ANY ANUM
         // HEX)` returned 313130 — the three CHARACTERS '1','1','0' — where the unsliced `CONVERT(XM ANY ANUM
@@ -583,12 +583,12 @@ internal static class OperandText
             { Category: PicCategory.Alphanumeric or PicCategory.NumericEdited or PicCategory.Boolean } =>
                 PlaceRenderer.Read(p),
             // A numeric leaf stored as its image: the carrier ALREADY HOLDS the storage bytes, whatever byte form
-            // they are — zoned digits, radix-2, BCD, or the IEEE interchange bytes of a windowed float. §2023:15.19.3 r7
+            // they are — zoned digits, radix-2, BCD, or the IEEE interchange bytes of a windowed float. §2023:15.19.3 AR7
             // asks for the item's STORAGE, and a windowed item's window IS its storage, so it passes through
             // untouched. ⛔ THIS ARM MUST PRECEDE the native byte-form arms below (the same ordering pin
             // NumericRenderer's windowed-float arm carries): with an `IsFloat: false` conjunct here a windowed
             // float fell through to FormatImageFloat(<string window>) — a backend CS1503, the ONE shape
-            // §2023:15.19.3 r7's ANY source format can reach.
+            // §2023:15.19.3 AR7's ANY source format can reach.
             { Category: PicCategory.Numeric } when p.Item.StoreAsImage => PlaceRenderer.Read(p),
             // A native numeric leaf: the bytes it occupies at a byte boundary (zoned digits, radix-2, BCD,
             // or the wave-2 IEEE forms — PicInfo.HasImageByteForm, THE ONE image predicate; kb/Work PB164) —
@@ -905,7 +905,7 @@ internal static class OperandText
         // NumericIntrinsicText (DA2), and so is every COUNTER REGISTER (an integer data item by §2023:8.4.3.14.4 GR1 /
         // §2023:8.4.3.15.4 GR1 — kb/Work PB1153/PB1199/PB1318). What reaches this arm is a computed operand that is
         // neither — an arithmetic expression in a string position, which no general format admits, or an
-        // index-name, which the §2023:13.18.38.3 r7 screen refuses in every character slot (R16) — so it stays loud.
+        // index-name, which the §2023:13.18.38.3 SR7 screen refuses in every character slot (R16) — so it stays loud.
         public string Visit(BoundComputedOperand n) =>
             EmitText.LoudValue("string", "computed expression in a string context");
         public string Visit(BoundOperandError n) => EmitText.LoudValue("string", n.Feature);

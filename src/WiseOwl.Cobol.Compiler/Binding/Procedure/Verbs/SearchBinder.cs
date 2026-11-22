@@ -158,7 +158,7 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
         // WHEN phrase is evaluated each time the conditions in that WHEN phrase are evaluated", over GR4's "The
         // process is then repeated using the new index setting" (Format 1) and per probe of GR9's
         // implementor-specified technique (Format 2) — so a user-function reference inside it activates per
-        // evaluation: the per-evaluation wrapper (§2023:8.4.3.2.4 GR1/GR6a; §2023:8.8.4.13 r2).
+        // evaluation: the per-evaluation wrapper (§2023:8.4.3.2.4 GR1/GR6a; §2023:8.8.4.13 GR2).
         // A nested table's enclosing occurrence is named by the WHEN phrases (GR1): a dynamic-capacity table's scan is bounded by that
         // occurrence's capacity, and every nested table's whole-table operand (WrittenTable) is that occurrence's.
         bool capture = table.SubscriptArity > 1;

@@ -63,7 +63,7 @@ public enum IntrinsicResultRule
     /// </para>
     /// <para>
     /// ⚠ For the four FORMATTED-* functions argument-1 is the FORMAT (a national or alphanumeric LITERAL,
-    /// §2023:15.38.3 r1 / §2023:15.39.3 r1 / §2023:15.40.3 r1 / §2023:15.41.3 r1) — so <c>FUNCTION FORMATTED-DATE(N"YYYYMMDD" D)</c>
+    /// §2023:15.38.3 AR1 / §2023:15.39.3 AR1 / §2023:15.40.3 AR1 / §2023:15.41.3 AR1) — so <c>FUNCTION FORMATTED-DATE(N"YYYYMMDD" D)</c>
     /// is a NATIONAL function even though the DATE it renders is an integer. The table keys on argument-1's type,
     /// not on what the function is "about".
     /// </para>
@@ -109,9 +109,9 @@ public enum IntrinsicResultRule
     /// Numeric usage Display → Alphanumeric · Boolean usage National → National · Numeric usage National →
     /// National · National → National</c>.
     /// <para>
-    /// §2023:15.18.4 r2 states the same rule in prose and is the authority for the last row, whose Function-type cell is
+    /// §2023:15.18.4 RV2 states the same rule in prose and is the authority for the last row, whose Function-type cell is
     /// EMPTY in the transcription: "If argument-1 is of class or usage national, the function will return a
-    /// national value." §2023:15.18.3 r2 makes the argument list uniform in usage, so argument-1 decides for all.
+    /// national value." §2023:15.18.3 AR2 makes the argument list uniform in usage, so argument-1 decides for all.
     /// </para>
     /// </summary>
     FollowsConcatArguments,
@@ -172,7 +172,7 @@ internal static class IntrinsicResultType
     {
         // The §15.x.1 "Argument type National → National" row, read through the ONE class-or-usage reader: for the
         // string functions (LOWER-CASE, TRIM, …) argument-1's class rules exclude every usage-national item that is
-        // not also class national, so only BASECONVERT's §2023:15.12.3 r1 "usage display or national data item" — which
+        // not also class national, so only BASECONVERT's §2023:15.12.3 AR1 "usage display or national data item" — which
         // admits a `PIC 9 USAGE NATIONAL` unsigned integer — can tell the two readers apart (kb/Work PB306).
         IntrinsicResultRule.FollowsArgument1 =>
             IsNationalArgument(args, 0) ? IntrinsicType.National : IntrinsicType.Alphanumeric,
@@ -188,8 +188,8 @@ internal static class IntrinsicResultType
 
         IntrinsicResultRule.FollowsUniformArguments => UniformArgumentType(sig, args, arithmetic),
 
-        // §2023:15.18.4 r2 — "If argument-1 is of class OR USAGE national, the function will return a national value";
-        // §2023:15.18.3 r2 makes the argument list uniform in usage, so argument-1 decides for the whole call. The two
+        // §2023:15.18.4 RV2 — "If argument-1 is of class OR USAGE national, the function will return a national value";
+        // §2023:15.18.3 AR2 makes the argument list uniform in usage, so argument-1 decides for the whole call. The two
         // "usage National" rows of the §2023:15.18.1 table (Numeric usage National, Boolean usage National) are the
         // USAGE limb: `PIC 9(4) USAGE NATIONAL` answers category Numeric and `PIC 1(4) USAGE NATIONAL` Boolean, so a
         // category-only test labelled their CONCAT alphanumeric and the Table-16 MOVE guard (§2023:14.9.25.3 SR10) let
@@ -233,7 +233,7 @@ internal static class IntrinsicResultType
         // straight through to the numeric row. `FUNCTION MAX(ZERO "A")` therefore typed its RESULT numeric while
         // IntrinsicBinder chose the STRING comparison body for the same call, and the two halves of one decision
         // disagreeing surfaced as "FUNCTION MAX (no numeric render recipe)" at run time.
-        // §2023:15.59.3 r2 is what makes the repair exact rather than a guess: "All arguments shall be of the same
+        // §2023:15.59.3 AR2 is what makes the repair exact rather than a guess: "All arguments shall be of the same
         // class with the exception that mixing of arguments of alphabetic and alphanumeric classes is allowed."
         // Since the list is uniform, ANY argument that has a category has the list's category — so read the
         // first one that does, and the neutral figuratives simply take it.
@@ -251,8 +251,8 @@ internal static class IntrinsicResultType
     private static bool IsIndexOperand(BoundOperand op) =>
         op is BoundFieldOperand { Place.Item.Pic.Usage: Usage.Index };
 
-    /// <summary>"Argument-<paramref name="i"/> is of class OR USAGE national" (§2023:15.18.4 r2's wording; the §15.x.1
-    /// "Argument type National" row) — THE one reader, so the result type and the §2023:15.18.3 r2 argument screen
+    /// <summary>"Argument-<paramref name="i"/> is of class OR USAGE national" (§2023:15.18.4 RV2's wording; the §15.x.1
+    /// "Argument type National" row) — THE one reader, so the result type and the §2023:15.18.3 AR2 argument screen
     /// (<c>IntrinsicBinder.CheckConcatArgs</c>, over the same <see cref="IntrinsicArgumentRules.StaticUsageOf"/>)
     /// cannot disagree about which arguments are national. The category limb covers a national literal, item,
     /// group and nested national function result; the usage limb a numeric or boolean item of usage national,
@@ -263,7 +263,7 @@ internal static class IntrinsicResultType
             || IntrinsicArgumentRules.StaticUsageOf(args[i]) is Usage.National);
 
     /// <summary>The category of the first argument that HAS one — the §2023:15.59.1 / §2023:15.63.1 uniform-argument row
-    /// read through §2023:15.59.3 r2 (all arguments are of the same class), so a leading class-neutral figurative
+    /// read through §2023:15.59.3 AR2 (all arguments are of the same class), so a leading class-neutral figurative
     /// (§2023:8.3.3.6.4 GR4) defers to the arguments that do carry a class instead of collapsing the list to numeric.
     /// Null when no argument has a static category, which keeps the numeric/integer rows exactly as before.</summary>
     private static PicCategory? FirstCategory(IReadOnlyList<BoundOperand> args)
@@ -294,7 +294,7 @@ internal static class IntrinsicResultType
     /// ⛔ A REF-MOD VIEW TAKES §2023:8.4.3.3.4 GR6's REWRITES THROUGH THE ONE READER (<see cref="RefModPlace.CategoryOf"/>).
     /// An earlier revision read the INNER item's category while its own comment cited GR6 — GR6c rewrites a
     /// numeric view to class-and-category ALPHANUMERIC, so <c>FUNCTION MAX(N9(1:1) "A")</c> is a UNIFORM
-    /// alphanumeric list (§2023:15.59.3 r2) whose answer is "A" by the §2023:8.8.4.2.7 relation — and the skipped rewrite
+    /// alphanumeric list (§2023:15.59.3 AR2) whose answer is "A" by the §2023:8.8.4.2.7 relation — and the skipped rewrite
     /// sent it down the numeric row, where it ANSWERED 0 (measured). One citation, two behaviors — the code now
     /// implements the clause it names.
     /// </para>
@@ -306,7 +306,7 @@ internal static class IntrinsicResultType
     /// <c>FUNCTION MAX(G1 G2)</c> resolved its TYPE through the numeric row (FirstCategory saw nothing) while <c>IsStringOperand</c> chose the string
     /// BODY, and the two halves of one decision disagreeing crashed at run time ("no numeric render recipe" —
     /// the exact PB48 shape both sites' comments warn about); and <c>DISPLAY-OF(group)</c> sailed past the
-    /// §2023:15.26.3 r1 class-national screen. A bit or national group never reaches the Alphanumeric fallback: it
+    /// §2023:15.26.3 AR1 class-national screen. A bit or national group never reaches the Alphanumeric fallback: it
     /// answers its as-if picture's category through <c>OperandPic</c> (§2023:13.18.29.4 GR1b/GR2b). A strongly-typed
     /// group does reach it, though its class is its type-name (§2023:8.5.2.1): Alphanumeric is §2023:15.3 AR2's reading
     /// of it as an argument ("treated as though they were of class and category alphanumeric"), and the relation

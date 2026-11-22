@@ -381,7 +381,7 @@ build; there was a predicate that stopped short.
   `v59_byte_image` golden). The spec derivation is one-directional: §2023:13.18.44.4 GR1 associates storage AT THE
   BIT ("the number of bits required by the data item"), GR2 grants EVERY entry's name unconditioned reference
   to that storage, §2023:13.18.60.4 GR2 makes representation a function of THE USAGE CLAUSE alone, §2023:13.18.44 and
-  Annex A.2 contain NO undefined-result escape, and §2023:14.6.13.2 r2 (EC-DATA-INCOMPATIBLE) presupposes the
+  Annex A.2 contain NO undefined-result escape, and §2023:14.6.13.2 GR2 (EC-DATA-INCOMPATIBLE) presupposes the
   alias wrote the item's REAL storage — so one representation per item, REDEFINES views included, exactly
   what CONFORMANCE items 205/207/208/211 already promise. **Step D is therefore a WIDENING + LANE
   COMPLETION, in this order:**
@@ -673,7 +673,7 @@ initializer. That inverts the standard's default: a clause absent from a list is
 omission, with no diagnostic and no site at which it can be read. `DataItem.GroupUsage` — the one field that
 makes an item a bit or national group — was in NEITHER, so `01 R TYPE T` over a `GROUP-USAGE NATIONAL` template
 bound as an ordinary alphanumeric group: wrong class, wrong category, `FUNCTION LENGTH` in alphanumeric instead
-of national positions (§2023:15.50.4 r2 vs r3), and — because §2023:13.16.4 GR1/GR2 imply the clause for every
+of national positions (§2023:15.50.4 RV2 vs r3), and — because §2023:13.16.4 GR1/GR2 imply the clause for every
 SUBORDINATE group — a false antecedent that silently re-categorized the whole subtree. SYNCHRONIZED (§2023:13.18.55),
 ALIGNED (§2023:13.18.1), ANY LENGTH (§2023:13.18.2) and DYNAMIC LENGTH (§2023:13.18.19) were lost the same way.
 

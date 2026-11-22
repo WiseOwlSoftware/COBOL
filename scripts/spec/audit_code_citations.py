@@ -808,6 +808,10 @@ def resolve_self_test() -> bool:
         ("no-item", "// I-O status 9x (§1985:C.2 item 99)"),  # citation-audit: example
         ("designator-not-canonical", "// status 24 (§1985:VIII.1.3.4 item (3) c)) is set"),  # citation-audit: example
         ("designator-not-canonical", "the SORT statement (§1985:XI.4.4.4 rule 7) is read"),  # citation-audit: example
+        # the abbreviation `r<n>` and a number glued after a letter are unread too (kb/Work PB4976, PB6035 (d))
+        ("designator-not-canonical", "PROHIBITED is EC-SIZE-TRUNCATION (§2023:11.9.11.2 r3d)"),  # citation-audit: example
+        ("designator-not-canonical", "class S is not O (ISO §2023:14.9.39.3 SR12a2.)"),  # citation-audit: example
+        (None, "class S is not O (ISO §2023:14.9.39.3 SR12a.2)"),
         # a rule chain (`GR6/GR99`) is every designator of it, not only the first (`citation.chain`)
         ("no-ordinal", "// the receiver rules (§2023:14.9.25.4 GR6/GR99) apply"),  # citation-audit: example
         ("no-ordinal", "// the receiver rules (§2023:14.9.25.4 GR6, GR8 and GR99) apply"),  # citation-audit: example
@@ -1498,8 +1502,8 @@ CONSTRUCT_SELF_TEST = [
      "ISO §2023:11.7.4 GR1a; the accessors are named __GET_P and __SET_P",
      "ISO §2023:11.7.4 GR1a"),
     ("a PascalCase identifier",
-     "ISO §2023:15.94.3 r1; the one BindNumvalCFamily bind",
-     "ISO §2023:15.94.3 r1"),
+     "ISO §2023:15.94.3 AR1; the one BindNumvalCFamily bind",
+     "ISO §2023:15.94.3 AR1"),
     ("a SCREAMING_SNAKE identifier",
      "ISO §2023:15.14 BYTE-LENGTH; pinned implementor widths, INTRINSICS_DESIGN",
      "ISO §2023:15.14 BYTE-LENGTH"),

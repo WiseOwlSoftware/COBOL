@@ -108,7 +108,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
                 {
                     foreach (var c in f.PresentWhenCtxs) f.PresentWhen.Add(Bind(c));
                     // §2023:13.18.64.2 writes FROM/BY as plain arithmetic-expression-1/-2, and the RW VARYING is on NEITHER
-                    // index clause's list (§2023:13.18.38.3 r7 names only PERFORM's and SEARCH's VARYING; §2023:13.18.60.3 SR10
+                    // index clause's list (§2023:13.18.38.3 SR7 names only PERFORM's and SEARCH's VARYING; §2023:13.18.60.3 SR10
                     // names no VARYING) — so both screens apply (kb/Work PB215). A counter's expressions may name the
                     // counters of the entries above it, and its BY the counters of its own entry (§2023:13.18.64.3 SR3),
                     // so each binds with exactly those in scope — once, whichever field reaches the counter first.
@@ -193,7 +193,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
                     var (operand, steps) = WithSteps(() => SourceIdentifierOperand(rs.Ref));
                     rs.Steps = steps;
                     // identifier-1 is a data item, so an index-name is no sender (§2023:13.18.53.3 SR2 — a MOVE shall be
-                    // valid, and §2023:13.18.38.3 r7 admits an index-name in no MOVE).
+                    // valid, and §2023:13.18.38.3 SR7 admits an index-name in no MOVE).
                     if (host.Expr.ScreenIndexNameOperand(operand, rs.Written, $"RD '{r.Name}': SOURCE")
                         || ScreenSourceIdentifier(r, rs, operand, printable)) rs.Rejected = true;
                     else rs.Value = operand;

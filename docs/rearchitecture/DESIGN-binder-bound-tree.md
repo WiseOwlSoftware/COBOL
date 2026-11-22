@@ -457,7 +457,7 @@ Every operand slot answers **four independent axes**, and all now live in `Opera
 | Axis | Question | Clause |
 |---|---|---|
 | **A — NumericClassScreen** | Does §2023:8.8.1.1's class-numeric screen govern this position, or does the position have its own syntax rule? | §2023:8.8.1.1 |
-| **B — IndexNameScreen** | Is the index-**name** screen applied here, or is this one of r7's five contexts? | §2023:13.18.38.3 r7 |
+| **B — IndexNameScreen** | Is the index-**name** screen applied here, or is this one of r7's five contexts? | §2023:13.18.38.3 SR7 |
 | **C — IndexDataItemAdmitted** | May a class-index **data item** be referenced here? | §2023:13.18.60.3 SR10 |
 | **D — BooleanOperandAdmitted** | Is the slot's written shape ALSO a boolean expression, so that a class-boolean operand is as legal as a numeric one? | §2023:8.8.2, §2023:8.4.3.2.3 SR8 |
 
@@ -781,7 +781,7 @@ do not CONVERT from the value: the SET address formats (§2023:14.9.39.4 GR12/GR
 referenced by identifier-N in the order specified"). The arithmetic family's `ArithmeticEmitter.Snapshot` is the
 third face of the rule, for §2023:14.7.7 GR4's one initial evaluation. Three carriers, one rule, each named for the
 clause it serves; `SendingValueOnceDriftTests` measures all of them together with a re-seeded `FUNCTION RANDOM`
-(§2023:15.75.3 r3 / §2023:15.75.4 r2) and pins the `BoundOperand` leaf set the materializer answers for.
+(§2023:15.75.3 AR3 / §2023:15.75.4 RV2) and pins the `BoundOperand` leaf set the materializer answers for.
 
 ### 3.8 The SET statement's general-format selection — one table over the WHOLE receiving list
 
@@ -1000,7 +1000,7 @@ one — what the evaluate-once identification asks before it hoists).
 - an integer literal → `PositionConstant`; a written parenthesis → `PositionGroup`; `+ - *` → `PositionBinary`;
   a unary sign → `PositionNegate`;
 - a bare (possibly qualified) name → the existing resolution: an index-name → `PositionIndexCell` (§2023:8.4.2.3.3 SR4's
-  collector, §2023:13.18.38.3 r7's ref-mod screen); an integer constant-name → `PositionConstant`; a report VARYING counter
+  collector, §2023:13.18.38.3 SR7's ref-mod screen); an integer constant-name → `PositionConstant`; a report VARYING counter
   → `PositionLocal(AsLong)`; a data item with a position overload → `PositionItemRead`, with the §2023:8.8.1.1 class screen
   queued to the commit point exactly as PB220 required;
 - anything else, at any depth, routes the WHOLE position to the D18 temporary: the `MaterializeSegment` hook

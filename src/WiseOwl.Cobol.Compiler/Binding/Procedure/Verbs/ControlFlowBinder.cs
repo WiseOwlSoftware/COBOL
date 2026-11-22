@@ -182,7 +182,7 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
         {
             using var statusAt = ctx.Edition.At(d);   // the operand's own position, not the statement's (kb/Work PB4383)
             var op = host.Expr.FieldOperand(d);
-            // §2023:13.18.38.3 r7 — the STATUS phrase is NOT one of the five contexts that may reference an
+            // §2023:13.18.38.3 SR7 — the STATUS phrase is NOT one of the five contexts that may reference an
             // index-name (a subscript, PERFORM/SEARCH VARYING, SET, a relation condition). The R16 screen for
             // exactly this already existed and simply was not applied at this site.
             if (host.Expr.ScreenIndexNameOperand(op, WrittenSource.Of(d), "the STOP RUN / GOBACK status operand"))
@@ -658,7 +658,7 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
             if (u.performUntilTarget().condition() is not { } condition) return new PerformForever();
             // The UNTIL condition is evaluated per iteration (§2023:14.9.28.4 GR6/GR13), so a user-function
             // reference inside it activates per evaluation — the drained-suffix wrapper, never the
-            // once-per-statement hoist (§2023:8.4.3.2.4 GR1/GR6a; §2023:8.8.4.13 r2).
+            // once-per-statement hoist (§2023:8.4.3.2.4 GR1/GR6a; §2023:8.8.4.13 GR2).
             var udfMark = host.Udf.Mark;
             var cond = host.Cond.BindCondition(condition);
             return new PerformUntil(host.Udf.UdfAttachPerEvaluation(cond, udfMark), u.AFTER() is not null);
