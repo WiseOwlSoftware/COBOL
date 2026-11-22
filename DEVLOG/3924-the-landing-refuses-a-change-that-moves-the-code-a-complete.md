@@ -1,4 +1,4 @@
-## The landing refuses a change that moves the code a COMPLETE edition's code reads name (PB6056)
+## Entry 3924 — 2026-11-22 13:40 PST — The landing refuses a change that moves the code a COMPLETE edition's code reads name (PB6056)
 
 Twice on 2026-11-22 a landing turned an edition that read COMPLETE NOT COMPLETE with every check green: PB2635 deleted
 `SelectMin`/`SelectMax` (five 1985 rows) and PR #1946 moved `OccScaled` and `RefModPosition` (two rows). The gate's CODE READS audit calls
@@ -27,3 +27,4 @@ one term an unrelated landing turns, so it is the one refused (recorded in kb/Wo
 Self-tests: `case_19` to `case_21` of `scripts/selftests/spec/code_reads/test_code_reads.py` (the predicate; refused; carried re-read,
 open edition, no move, a revision that is no commit), and enqueue's own self-test (six checks in order, exit 6, the worktree's own script).
 Docs: MANDATORY-PRACTICES L1, DESIGN-test-build-ci, DESIGN-spec-conformance-review 10.6.1, DOC_INDEX, enqueue.py's docstring.
+
