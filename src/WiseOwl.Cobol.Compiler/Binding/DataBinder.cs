@@ -3752,11 +3752,10 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// <summary>Bind one data-description entry (skips level-66 RENAMES and level-88 condition names for now).</summary>
     private DataItem? BindEntry(Core.DataDescriptionEntryContext entry, EntrySection section)
     {
-        DataDescriptionCst e = entry;
-        if (e.Level is not { } level) return null;
+        if (entry.Level is not { } level) return null;
         if (level is 66 or 88) return null; // RENAMES / condition-names: later slice.
 
-        string? cobolName = e.Name;
+        string? cobolName = entry.Name;
         bool isFiller = cobolName is null || CobolNames.Same(cobolName, "FILLER");
         string csName = isFiller ? $"_filler{TakeFillerOrdinal()}" : DataItem.Sanitize(cobolName!);
 
@@ -3810,31 +3809,31 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // over the WHOLE clause list, and each used to be an `||` chain over whichever local decode flags the
         // author remembered. Read from the CST rather than reconstructed from those flags, because a syntax rule
         // asks what was SPECIFIED and several of the flags below are CLEARED by their own recovery paths.
-        DataClauseKind written = e.WrittenClauses;
+        DataClauseKind written = entry.WrittenClauses;
         if ((written & (DataClauseKind.Redefines | DataClauseKind.Typedef)) != 0)
-            ScreenLeadingClausePosition(e, cobolName);   // §2023:13.18.44.3 SR1 / §2023:13.16.3 SR4
+            ScreenLeadingClausePosition(entry, cobolName);   // §2023:13.18.44.3 SR1 / §2023:13.16.3 SR4
         string entryWhere = $"data item '{cobolName ?? "FILLER"}'";
         // ⛔ THE REFERENCE-COMPOSITION SCREEN (§2023:13.16.3 SR12 / SR14; ScreenReferenceComposition in DataBinder.ClausePlacement.cs)
         // runs BEFORE the decode loop, because its recovery is to DROP the refused clauses and keep the reference (kb/Work PB4602).
         DataClauseKind compositionRefused = ScreenReferenceComposition(written, entryWhere);
 
-        // The dataDescriptionClauses presence guard folds into e.Clauses (empty when the body has no clause list).
-            foreach (var clause in e.Clauses)
+        // The dataDescriptionClauses presence guard folds into entry.Clauses (empty when the body has no clause list).
+            foreach (var clause in entry.Clauses)
             {
                 if (compositionRefused != DataClauseKind.None && (clause.Kind & compositionRefused) != 0)
                     continue;   // a clause SR12 / SR14 refused is dropped, never decoded (the placementRefused discipline)
                 if (clause.PictureText is { } picText)
                 {
                     pictureText = picText;
-                    pictureToken = clause.Context.pictureClause().PIC_STRING().Symbol;
-                    editingSpecs = BuildEditingSpecs(clause.Context.pictureClause(),   // PICTURE EDITING (§2023:13.18.40.2)
+                    pictureToken = clause.pictureClause().PIC_STRING().Symbol;
+                    editingSpecs = BuildEditingSpecs(clause.pictureClause(),   // PICTURE EDITING (§2023:13.18.40.2)
                         $"data item '{cobolName ?? "FILLER"}'");
                     // PICTURE Format 2 (locale) — `LOCALE [IS locale-name-1] SIZE IS integer-1` (§2023:13.18.40.2; LIVE
                     // since kb/Work PB64 T6): capture the locale (SR37 through the ONE undeclared-locale-name path,
                     // COBOL1664; absent ⇒ the current locale at each edit, §2023:13.18.40.5 GR11) and SIZE integer-1
                     // (§2023:13.18.40.4 GR17 — the item's length); the analysis is AnalyzeLocaleEdited's (SR33–SR36 +
                     // Table 11 → COBOL1673).
-                    if (clause.Context.pictureClause()?.pictureLocalePhrase() is { } lp)
+                    if (clause.pictureClause()?.pictureLocalePhrase() is { } lp)
                     {
                         var localeName = lp.cobolWord();   // locale-name-1 when written; LOCALE itself is the formatWord (kb/Work PB764)
                         var locale = LocaleRef.Current;
@@ -3854,18 +3853,18 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                         pictureLocale = new LocaleEditSpec(locale, Math.Max(1, size), "");
                     }
                 }
-                else if (clause.Context.basedClause() is not null)
+                else if (clause.basedClause() is not null)
                     // BASED (§2023:13.18.5) validated below (§2023:13.16.3 SR16 placement; the 0881 declaration band). The
                     // COBOL-2002 introduction gate is VersionConformancePass ParseArm.VisitBasedClause (14g.2,
                     // recognition-based — IsBased is cleared for a LINKAGE item, so a bound-arm gate would drop it).
                     isBased = true;
-                else if (clause.Context.anyLengthClause() is not null)
+                else if (clause.anyLengthClause() is not null)
                     // ANY LENGTH (§2023:13.18.2) — SR1 + the §2023:13.16.3 SR17 clause-exclusion validated below; the
                     // COBOL-2002 introduction gate is VersionConformancePass ParseArm.VisitAnyLengthClause
                     // (recognition-based — IsAnyLength is cleared on every SR violation, so a bound-arm gate
                     // would drop the 0900 on exactly those paths; the BASED pattern).
                     isAnyLength = true;
-                else if (clause.Context.dynamicLengthClause() is { } dl)
+                else if (clause.dynamicLengthClause() is { } dl)
                 {
                     // DYNAMIC LENGTH (§2023:8.5.1.10 / §2023:13.18.19) — SR1, SR2, SR4 and the §2023:13.16.3 SR18 clause-exclusion
                     // are validated below (the ANY LENGTH pattern). The COBOL-2014
@@ -3894,17 +3893,17 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                         }
                     }
                 }
-                else if (clause.Context.externalClause() is { } extc)
+                else if (clause.externalClause() is { } extc)
                 {
                     hasExternal = true;   // consumed by CallBindExternalAndGlobal; flagged here for the 0881 check
                     // §2023:13.18.22.2's `[ AS literal-1 ]` (kb/Work PB511). CAPTURED here, SCREENED below with
                     // the entry's other placement screens, once the whole clause list has been decoded.
                     externalAs = extc.externalizedNamePhrase();
                 }
-                else if (clause.Context.globalClause() is not null)
+                else if (clause.globalClause() is not null)
                     { /* §2023:13.18.27 — binds post-build in CallBindExternalAndGlobal; the §2023:13.16.3 co-clause rules
                          read it off `written`, so no decode flag is needed here (kb/Work PB487). */ }
-                else if (clause.Context.propertyClause() is { } pcx)
+                else if (clause.propertyClause() is { } pcx)
                     // §2023:13.18.42 (OO; kb/Work PB1273) — recorded ON THE ITEM, so every later rule asks the entry that
                     // carries the clause (the OO pass used to find its subject by FIRST NAME MATCH). §2023:13.18.42.3 SR1
                     // is screened below, where the entry's name is in hand for the message.
@@ -3912,7 +3911,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                         NoGet: pcx.NO() is not null && pcx.GET() is not null,
                         NoSet: pcx.NO() is not null && pcx.SET() is not null,
                         IsFinal: pcx.FINAL() is not null);
-                else if (clause.Context.typedefClause() is { } td)
+                else if (clause.typedefClause() is { } td)
                     // §2023:13.18.58; D17. The COBOL-2002 introduction gate is VersionConformancePass ParseArm.VisitTypedefClause
                     // (14g.2, recognition-based — the typedef item is discarded from ConformanceForest when it fails to
                     // register (unnamed/duplicate) or binds into method scope, so a bound-arm gate would drop it; DEVLOG 734).
@@ -3929,17 +3928,17 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                     // (recognition-based — SameAs is nulled by ExpandSameAs during bind, the TypeRefName
                     // pattern).
                     sameAs = new WrittenDataName(san, [.. clause.SameAsQualifiers]);
-                else if (clause.Context.justifiedClause() is not null)
+                else if (clause.justifiedClause() is not null)
                     justified = true;   // JUSTIFIED [RIGHT] (ISO §2023:13.18.32 — right-justify alphanumeric receives)
-                else if (clause.Context.blankWhenZeroClause() is not null)
+                else if (clause.blankWhenZeroClause() is not null)
                     blankWhenZero = true;   // BLANK [WHEN] ZERO (ISO §2023:13.18.8 — a zero value stores all spaces)
-                else if (clause.Context.syncClause() is { } sync)
+                else if (clause.syncClause() is { } sync)
                     // SYNCHRONIZED/SYNC [LEFT | RIGHT] (ISO §2023:13.18.55.2) — the phrase is kept, never collapsed: §2023:8.5.3.1
                     // compares the clause (SynchronizedPhrase, kb/Work PB538).
                     synchronized = sync.LEFT() is not null ? SynchronizedPhrase.Left
                         : sync.RIGHT() is not null ? SynchronizedPhrase.Right
                         : SynchronizedPhrase.Unqualified;
-                else if (clause.Context.constantRecordClause() is not null)
+                else if (clause.constantRecordClause() is not null)
                     // CONSTANT RECORD (§2023:13.18.15) — a structured constant; the §2023:13.16.3 SR3/SR6/SR13 same-entry
                     // shape checks run below (the IsBased discipline). The COBOL-2002 introduction gate is
                     // VersionConformancePass ParseArm.VisitConstantRecordClause (recognition-based).
@@ -3948,14 +3947,14 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                 // independently in OoDataBinder.BindPropertyClauses (which reads the propertyClause node directly),
                 // and its COBOL-2002 introduction gate is VersionConformancePass ParseArm.VisitPropertyClause (14g.2) —
                 // so the storage-clause loop needs no branch for it.
-                else if (clause.Context.selectWhenClause() is { } sw)
+                else if (clause.selectWhenClause() is { } sw)
                     // SELECT WHEN clause (ISO §2023:13.18.51; ISO/IEC 1989:2002 §13.16.49). Recorded ON THE ENTRY and screened, with the
                     // file's other records, by ResolveRecordFormatPass — SR2 - SR6 ask about the file's whole record list and its
                     // level-88 entries, which do not all exist while this entry binds. BindEntry is the ONE path every data description
                     // entry of every section reaches, so SR1's level screen is made here, once: "only at the 01 level of a record
                     // description entry in the file, linkage, local-storage, or working-storage section" (a 77 is not a record).
                     selectWhen = new SelectWhenSpec { ConditionName = sw.OTHER() is not null ? null : sw.conditionName().GetText(), At = Edition.Cursor };
-                else if (clause.Context.alignedClause() is not null)
+                else if (clause.alignedClause() is not null)
                     // ALIGNED (ISO §2023:13.18.1; kb/Work PB487). The COBOL-2002 introduction gate is
                     // VersionConformancePass ParseArm.VisitAlignedClause; §2023:13.18.1.3 SR1 (a bit group item or an
                     // elementary bit data item only) is checked below, where the usage and GROUP-USAGE of THIS
@@ -3973,13 +3972,13 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                 // The `DataClauseKind.Unrecognized` BIT is still read below: an entry whose only defect is an
                 // unrecognized word draws COBOL1941 alone, and one that ALSO violates a §2023:13.16.3 permitted-set
                 // rule draws both.
-                else if (clause.Context.groupUsageClause() is { } gu)
+                else if (clause.groupUsageClause() is { } gu)
                     // GROUP-USAGE (ISO §2023:13.18.29; D20/PB79). The COBOL-2002 introduction gate is VersionConformancePass
                     // ParseArm.VisitGroupUsageClause; SR1 (a group, not strongly typed, not variable-length) and the
                     // subordinate conformance (SR2/SR3) are adjudicated once the forest is complete (ResolveIndexItems);
                     // the no-explicit-USAGE half of SR2/SR3 is checked below, where both clauses are known.
                     groupUsage = gu.BIT() is not null ? GroupUsage.Bit : GroupUsage.National;
-                else if (clause.Context.usageClause() is { } usage)
+                else if (clause.usageClause() is { } usage)
                 {
                     // ⛔ EVERY usage clause of the entry is KEPT, not just the last one (kb/Work PB544). The
                     // §2023:13.16.2 Format 1 general format prints `[ usage-clause ]` ONCE, so a repeated USAGE
@@ -4007,7 +4006,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                     redefinesTargetName = RedefinesDataName2(redefTarget, cobolName);
                     redefinesWritten = redefTarget;
                 }
-                else if (clause.Context.valueClause() is { } value)
+                else if (clause.valueClause() is { } value)
                 {
                     valueClauseWritten = true;
                     string valueWhere = $"data item '{cobolName ?? "FILLER"}'";
@@ -4044,9 +4043,9 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                             gluedMultiLiteral = true;
                     }
                 }
-                else if (clause.Context.signClause() is { } sign)
+                else if (clause.signClause() is { } sign)
                     ownSign = new SignSpec(sign.LEADING() is not null, sign.SEPARATE() is not null);
-                else if (clause.Context.occursClause() is { } occ)
+                else if (clause.occursClause() is { } occ)
                 {
                     // The bounds are evaluated once the entry's item exists and is linked (BindTableBounds, kb/Work
                     // PB1941): a bound may be a constant-name measuring an entry subordinate to this one.

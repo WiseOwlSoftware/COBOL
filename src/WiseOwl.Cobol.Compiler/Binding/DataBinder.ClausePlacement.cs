@@ -4,6 +4,7 @@ using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Cst;
+using Core = WiseOwl.Cobol.Frontend.Generated.CobolParserCore;
 
 namespace WiseOwl.Cobol.Binding;
 
@@ -330,7 +331,7 @@ public sealed partial class DataBinder
     /// clause's ORDINAL in the entry: the entry-name and level-number are not in the list, which makes "immediately
     /// follows" exactly "is its FIRST clause". (A TYPEDEF entry without a data-name is SR15's, asked by
     /// <c>RegisterTypeDecl</c>; REDEFINES beside TYPEDEF is SR3's, so such an entry draws both.)</summary>
-    private void ScreenLeadingClausePosition(DataDescriptionCst entry, string? cobolName)
+    private void ScreenLeadingClausePosition(Core.DataDescriptionEntryContext entry, string? cobolName)
     {
         var clauses = entry.Clauses;
         for (int i = 1; i < clauses.Count; i++)

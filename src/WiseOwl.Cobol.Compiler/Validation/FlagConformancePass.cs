@@ -9,7 +9,7 @@ using WiseOwl.Cobol.Compiler.Oo;          // OoSymbolOrigin (a method symbol's o
 using WiseOwl.Cobol.Common;               // CobolLiteral (the one literal decoder)
 using WiseOwl.Cobol.Editions;             // IDiagnosticSink / EditionDiagnostic / EditionSeverity
 using WiseOwl.Cobol.Editions.Diagnostics; // DiagnosticCatalog
-using WiseOwl.Cobol.Frontend.Cst;         // DataReferenceCst / SpecialRegister
+using WiseOwl.Cobol.Frontend.Cst;         // DataReferenceCst.Register / SpecialRegister
 using WiseOwl.Cobol.Frontend.Generated;   // CobolParserCore / CobolParserCoreBaseVisitor
 using WiseOwl.Cobol.Frontend.Parsing;
 using WiseOwl.Cobol.Frontend.Preprocessor;// FlagDirective / FlagOption / FlagOptions / FlagDirectiveLine
@@ -674,10 +674,9 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
         if (_currentData is null) return;
         foreach (var recv in receivers)
         {
-            DataReferenceCst r = recv;
             // An index-name VISIBLE where the statement stands: the method's own (§2023:11.7.4 GR5) or the unit's, through
             // the one scope-aware lookup the binder resolves the same SET with (kb/Work PB1952).
-            if (r.Register != SpecialRegister.None || WrittenQualifiedName.Of(recv) is not { } written
+            if (recv.Register != SpecialRegister.None || WrittenQualifiedName.Of(recv) is not { } written
                 || _currentData.Symbols.IdentifyIndexName(written, report: false) is not { Count: > 0 }) continue;
             if (_turn.Enabled("EC-RANGE-INDEX", null, line))
                 Flag(FlagOption.Flag02RangeExceptionForIndex, line,

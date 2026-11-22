@@ -354,7 +354,6 @@ public sealed class ReferenceResolver(DataBinder data)
     /// place, or a chain) draws the caller's own operand-shape refusal, not "not defined".</para></summary>
     private Identified Identify(Core.DataReferenceContext dref, bool report, bool forAddressOf)
     {
-        DataReferenceCst r = dref;
         // The three answers (kb/Work PB1030). The written text is built only on a failure path.
         RefResolution Refused() => RefResolution.Refused(WrittenSource.Of(dref));
         RefResolution Deferred(DeferredShape shape) => RefResolution.Deferred(shape, WrittenSource.Of(dref));
@@ -364,8 +363,8 @@ public sealed class ReferenceResolver(DataBinder data)
         // Writer control system, ISO §2023:8.4.3.15) — is runtime-sourced, never a storage Place; the binder routes it
         // to BoundLinageCounterRef / BoundReportCounterRef (StatementBinder.ReportWriter.cs). The early return is
         // LOAD-BEARING for the QUALIFIED form (`LINAGE-COUNTER OF file`, `LINE-COUNTER OF report`): there
-        // r.BaseName is the FILE-/REPORT-NAME qualifier and would otherwise mis-resolve here as a base data-name.
-        if (r.Register != SpecialRegister.None) return Ends(Deferred(DeferredShape.UnroutedSpecialRegister));
+        // the leading word is the FILE-/REPORT-NAME qualifier and would otherwise mis-resolve here as a base data-name.
+        if (dref.Register != SpecialRegister.None) return Ends(Deferred(DeferredShape.UnroutedSpecialRegister));
         // No base word outside a special register is a parse-error recovery node: the parser reported it.
         if (dref.cobolWord() is null) return Ends(Refused());
         // The reference AS WRITTEN, read by the ONE decomposition (kb/Work PB443 — see WrittenReference), and its name and
@@ -581,8 +580,7 @@ public sealed class ReferenceResolver(DataBinder data)
     /// it is the statement's own operand rule, written in the one check catalog.</para></summary>
     public TableOperand? ResolveTableOperand(Core.DataReferenceContext dref)
     {
-        DataReferenceCst r = dref;
-        if (r.Register != SpecialRegister.None || dref.cobolWord() is null) return null;
+        if (dref.Register != SpecialRegister.None || dref.cobolWord() is null) return null;
         var written = ReadWritten(dref);
         var named = WrittenQualifiedName.OfRead(dref, written.Qualifiers);
         if (Names.FindReportedItem(dref, named) is not { } item) return null;
