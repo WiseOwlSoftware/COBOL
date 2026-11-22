@@ -391,6 +391,12 @@
    ],
    "why": "compile-time arithmetic: the directives of §2002:7.2 and the constant entry §2002:13.9"
   },
+  "currency-hexadecimal-literal-rules": {
+   "sections": [
+    "12.2.6"
+   ],
+   "why": "the CURRENCY SIGN clause of the SPECIAL-NAMES paragraph, §2002:12.2.6, whose literal-7 and literal-8 rules (§2002:12.2.6.2 SR18, SR22) name no hexadecimal form at 2002 (kb/Work PB5595, PB6031, VCR row 7.116)"
+  },
   "indexed-read-previous-after-open-at-end": {
    "sections": [
     "14.8.29"
