@@ -39,7 +39,7 @@ public static class PositionUse
         /// <inheritdoc/>
         public static void NotAnInteger(string shown) =>
             ExceptionState.RefModViolation(
-                $"reference-modification position {shown} is not an integer ({ExceptionState.EditionRule("§1985:IV.4.3.8.4.4 GR4", "ISO §2023:8.4.3.3.4 item 5c")})");
+                $"reference-modification position {shown} is not an integer ({ExceptionState.EditionRule("§1985:IV.4.3.8.4.4 GR4", "ISO §2023:8.4.3.3.4 GR5")})");
     }
 }
 

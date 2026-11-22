@@ -98,6 +98,8 @@ WiseOwl.Cobol.Runtime.CobolExact.Image.get -> WiseOwl.Cobol.Runtime.CobolDec
 WiseOwl.Cobol.Runtime.CobolExact.ImageWithPrecision.get -> WiseOwl.Cobol.Runtime.CobolDecWithPrecision
 WiseOwl.Cobol.Runtime.CobolExact.ToDouble() -> double
 WiseOwl.Cobol.Runtime.CobolExact.ToUnscaled(int toScale, WiseOwl.Cobol.Runtime.CobolRounding mode, bool checkedTransfer) -> System.Int128
+WiseOwl.Cobol.Runtime.CobolPosition
+WiseOwl.Cobol.Runtime.CobolPosition<TUse>
 WiseOwl.Cobol.Runtime.CobolSizeError.IsProhibitedInexact.get -> bool
 WiseOwl.Cobol.Runtime.CobolStandardData
 WiseOwl.Cobol.Runtime.CobolVarGroup.CobolVarGroup(string! Fixed, string![]! Dynamic, WiseOwl.Cobol.Runtime.CobolVarGroup![]?[]? Elements = null, System.Func<int, WiseOwl.Cobol.Runtime.CobolVarGroup!>?[]? Created = null) -> void
@@ -380,6 +382,8 @@ WiseOwl.Cobol.Runtime.IO.ReportPageRegions.Heading.get -> int
 WiseOwl.Cobol.Runtime.IO.ReportPageRegions.Paged.get -> bool
 WiseOwl.Cobol.Runtime.IO.ReportPageRegions.ReportPageRegions() -> void
 WiseOwl.Cobol.Runtime.IO.ReportPageRegions.ReportPageRegions(bool paged, int heading, int firstDetail, int footing) -> void
+WiseOwl.Cobol.Runtime.IPositionUse
+WiseOwl.Cobol.Runtime.IPositionUse.NotAnInteger(string! shown) -> void
 WiseOwl.Cobol.Runtime.ManagedPointer<T>.Watch(WiseOwl.Cobol.Runtime.ManagedPointer! area) -> void
 WiseOwl.Cobol.Runtime.MessageOutcome
 WiseOwl.Cobol.Runtime.MessageOutcome.Deconstruct(out bool Successful, out WiseOwl.Cobol.Runtime.MessageTag Tag, out string? Image, out WiseOwl.Cobol.Runtime.RecordExtents? Extents, out WiseOwl.Cobol.Runtime.MessageSlot[]? Slots, out long? Length, out string? Raised, out bool RaisedFatal, out string? Detail) -> void
@@ -503,6 +507,11 @@ WiseOwl.Cobol.Runtime.OdoTail.RecordUnit.get -> int
 WiseOwl.Cobol.Runtime.OdoTail.Trailing.get -> int
 WiseOwl.Cobol.Runtime.OdoTail.Trailing.init -> void
 WiseOwl.Cobol.Runtime.OverlappingMove
+WiseOwl.Cobol.Runtime.PositionUse
+WiseOwl.Cobol.Runtime.PositionUse.RefMod
+WiseOwl.Cobol.Runtime.PositionUse.RefMod.RefMod() -> void
+WiseOwl.Cobol.Runtime.PositionUse.Subscript
+WiseOwl.Cobol.Runtime.PositionUse.Subscript.Subscript() -> void
 WiseOwl.Cobol.Runtime.ProgramNameArm
 WiseOwl.Cobol.Runtime.ProgramNameArm.Common = 2 -> WiseOwl.Cobol.Runtime.ProgramNameArm
 WiseOwl.Cobol.Runtime.ProgramNameArm.Contained = 0 -> WiseOwl.Cobol.Runtime.ProgramNameArm
@@ -1197,6 +1206,16 @@ static WiseOwl.Cobol.Runtime.CobolNum.PositionOfWide(double value) -> System.Int
 static WiseOwl.Cobol.Runtime.CobolNum.SubChecked(System.Int128 a, System.Int128 b, WiseOwl.Cobol.Runtime.SizeChecks taken) -> System.Int128
 static WiseOwl.Cobol.Runtime.CobolObject.CheckActiveClassFormal(bool enabledInMethod, string! what, WiseOwl.Cobol.Runtime.ActivationDescription! argument, WiseOwl.Cobol.Runtime.ActivationDescription! formal) -> void
 static WiseOwl.Cobol.Runtime.CobolObject.CheckActiveClassReturning(bool enabledInMethod, string! what, WiseOwl.Cobol.Runtime.ActivationDescription! receiving, WiseOwl.Cobol.Runtime.ActivationDescription! sending) -> void
+static WiseOwl.Cobol.Runtime.CobolPosition.Digits(long value) -> long
+static WiseOwl.Cobol.Runtime.CobolPosition.Digits(string! image) -> WiseOwl.Cobol.Runtime.Occurrence
+static WiseOwl.Cobol.Runtime.CobolPosition<TUse>.Read(System.Int128 unscaled, in WiseOwl.Cobol.Runtime.NumProfile item) -> WiseOwl.Cobol.Runtime.Occurrence
+static WiseOwl.Cobol.Runtime.CobolPosition<TUse>.Read(System.UInt128 unscaled, in WiseOwl.Cobol.Runtime.NumProfile item) -> WiseOwl.Cobol.Runtime.Occurrence
+static WiseOwl.Cobol.Runtime.CobolPosition<TUse>.Read(long unscaled, in WiseOwl.Cobol.Runtime.NumProfile item) -> WiseOwl.Cobol.Runtime.Occurrence
+static WiseOwl.Cobol.Runtime.CobolPosition<TUse>.Read(string! image, in WiseOwl.Cobol.Runtime.NumProfile item) -> WiseOwl.Cobol.Runtime.Occurrence
+static WiseOwl.Cobol.Runtime.CobolPosition<TUse>.Read(ulong unscaled, in WiseOwl.Cobol.Runtime.NumProfile item) -> WiseOwl.Cobol.Runtime.Occurrence
+static WiseOwl.Cobol.Runtime.CobolPosition<TUse>.Value(System.Int128 unscaled, int scale) -> System.Int128
+static WiseOwl.Cobol.Runtime.CobolPosition<TUse>.ValueDec(WiseOwl.Cobol.Runtime.CobolDec value) -> System.Int128
+static WiseOwl.Cobol.Runtime.CobolPosition<TUse>.ValueReal(double value) -> System.Int128
 static WiseOwl.Cobol.Runtime.CobolPtr.AllocateDec(WiseOwl.Cobol.Runtime.CobolDec size, char fill, out bool notAvail) -> WiseOwl.Cobol.Runtime.ManagedPointer!
 static WiseOwl.Cobol.Runtime.CobolPtr.UpByAmountDec(WiseOwl.Cobol.Runtime.ManagedPointer? p, WiseOwl.Cobol.Runtime.CobolDec by, bool down) -> WiseOwl.Cobol.Runtime.ManagedPointer!
 static WiseOwl.Cobol.Runtime.CobolSizeError.FalseWhenRaised(System.Func<bool>! condition) -> bool
@@ -1352,6 +1371,8 @@ static WiseOwl.Cobol.Runtime.OverlappingMove.PackedToDisplay(string! sender, str
 static WiseOwl.Cobol.Runtime.PointerImage.DataPointerOf(string! image) -> WiseOwl.Cobol.Runtime.ManagedPointer!
 static WiseOwl.Cobol.Runtime.PointerImage.FunctionPointerOf(string! image) -> WiseOwl.Cobol.Runtime.FunctionPointer
 static WiseOwl.Cobol.Runtime.PointerImage.ProgramPointerOf(string! image) -> WiseOwl.Cobol.Runtime.ProgramPointer
+static WiseOwl.Cobol.Runtime.PositionUse.RefMod.NotAnInteger(string! shown) -> void
+static WiseOwl.Cobol.Runtime.PositionUse.Subscript.NotAnInteger(string! shown) -> void
 static WiseOwl.Cobol.Runtime.ProgramNameScope.FirstVisible<T>(T! caller, System.Func<T!, WiseOwl.Cobol.Runtime.ProgramNameArm, bool>! accept, System.Func<T!, System.Collections.Generic.IEnumerable<T!>!>! childrenOf, System.Func<T!, T?>! containerOf, System.Func<T!, bool>! isRecursive, System.Func<T!, bool>! isCommon) -> T?
 static WiseOwl.Cobol.Runtime.ProgramRegistry.AddressNotLocated(string! name, bool function) -> string!
 static WiseOwl.Cobol.Runtime.ProgramRegistry.Cancel(string! name, string? callerPath, bool refusesEveryActiveProgram) -> void
@@ -1405,24 +1426,3 @@ static readonly WiseOwl.Cobol.Runtime.MoveCitations.Iso2023 -> WiseOwl.Cobol.Run
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryIndexOutcome.ToString() -> string
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.Equals(object obj) -> bool
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.ToString() -> string
-WiseOwl.Cobol.Runtime.CobolPosition
-WiseOwl.Cobol.Runtime.CobolPosition<TUse>
-WiseOwl.Cobol.Runtime.IPositionUse
-WiseOwl.Cobol.Runtime.IPositionUse.NotAnInteger(string! shown) -> void
-WiseOwl.Cobol.Runtime.PositionUse
-WiseOwl.Cobol.Runtime.PositionUse.RefMod
-WiseOwl.Cobol.Runtime.PositionUse.RefMod.RefMod() -> void
-WiseOwl.Cobol.Runtime.PositionUse.Subscript
-WiseOwl.Cobol.Runtime.PositionUse.Subscript.Subscript() -> void
-static WiseOwl.Cobol.Runtime.CobolPosition.Digits(long value) -> long
-static WiseOwl.Cobol.Runtime.CobolPosition.Digits(string! image) -> WiseOwl.Cobol.Runtime.Occurrence
-static WiseOwl.Cobol.Runtime.CobolPosition<TUse>.Read(System.Int128 unscaled, in WiseOwl.Cobol.Runtime.NumProfile item) -> WiseOwl.Cobol.Runtime.Occurrence
-static WiseOwl.Cobol.Runtime.CobolPosition<TUse>.Read(System.UInt128 unscaled, in WiseOwl.Cobol.Runtime.NumProfile item) -> WiseOwl.Cobol.Runtime.Occurrence
-static WiseOwl.Cobol.Runtime.CobolPosition<TUse>.Read(long unscaled, in WiseOwl.Cobol.Runtime.NumProfile item) -> WiseOwl.Cobol.Runtime.Occurrence
-static WiseOwl.Cobol.Runtime.CobolPosition<TUse>.Read(string! image, in WiseOwl.Cobol.Runtime.NumProfile item) -> WiseOwl.Cobol.Runtime.Occurrence
-static WiseOwl.Cobol.Runtime.CobolPosition<TUse>.Read(ulong unscaled, in WiseOwl.Cobol.Runtime.NumProfile item) -> WiseOwl.Cobol.Runtime.Occurrence
-static WiseOwl.Cobol.Runtime.CobolPosition<TUse>.Value(System.Int128 unscaled, int scale) -> System.Int128
-static WiseOwl.Cobol.Runtime.CobolPosition<TUse>.ValueDec(WiseOwl.Cobol.Runtime.CobolDec value) -> System.Int128
-static WiseOwl.Cobol.Runtime.CobolPosition<TUse>.ValueReal(double value) -> System.Int128
-static WiseOwl.Cobol.Runtime.PositionUse.RefMod.NotAnInteger(string! shown) -> void
-static WiseOwl.Cobol.Runtime.PositionUse.Subscript.NotAnInteger(string! shown) -> void

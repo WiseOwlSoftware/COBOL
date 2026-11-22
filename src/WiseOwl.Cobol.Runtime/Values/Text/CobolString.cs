@@ -98,7 +98,7 @@ public static class CobolString
     private static void RefModViolation(Occurrence leftmost, Occurrence length, bool omitted, int size, string what) =>
         ExceptionState.RefModViolation(
             $"reference modification ({leftmost}:{(omitted ? "" : length.ToString())}) out of range for a "
-            + $"{size}-position {what} ({ExceptionState.EditionRule("§1985:IV.4.3.8.4.4 GR4", "ISO §2023:8.4.3.3.4 item 5c")})");
+            + $"{size}-position {what} ({ExceptionState.EditionRule("§1985:IV.4.3.8.4.4 GR4", "ISO §2023:8.4.3.3.4 GR5")})");
 
     /// <summary>
     /// Reference modification read (ISO §2023:8.4.3.3): the substring of <paramref name="s"/> beginning at 1-based
