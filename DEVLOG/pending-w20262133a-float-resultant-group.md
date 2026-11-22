@@ -51,6 +51,20 @@ exception layer has no upward type edge left but the RunUnit/CobolObject ones th
 Performance: the selection orders are structs passed by `in`, so the collation overloads no longer allocate a delegate
 per call. Duplication: `WideningFitsU` replaced three copies of the UInt128 widening test.
 
+**Review round 1 (review-a), answered by the finisher.** R1-1: `docs/NUMERIC_DESIGN.md` still named the deleted
+`CobolNum.BumpsMagnitude`, "two" rounding tables and the deleted `InPictureRange`; its three passages now describe
+`RoundingRule` (`StepOf`, `Bumps`, `BumpsOnDigit`, every lane) and `CobolNum.Fits`, and the sweep of docs/ for every name
+the branch deleted or moved also fixed the DOC-A.1-70 conformance determination (which named `BumpsMagnitude`) and the
+runtime survey's path of `EcFunctions`. R1-2: the `Round34Wide` comment said its callers pass a statement's ROUNDED MODE;
+every caller passes the INTERMEDIATE ROUNDING mode or TRUNCATION with the round-to-odd jam, so its directed-mode arms
+were latent. R1-3: the capacity banner in `CobolNum.cs` named the deleted `InPictureRange`; it names `IsNumericImage`.
+R1-4: PB2635 was not behavior-neutral for a NaN: with X a binary64 NaN and Y = 1, `MIN (Y X)` selected the NaN and now
+selects Y, and `MAX (X Y)` selected Y and now the NaN, each as ORD-MIN / ORD-MAX already named (§2023:15.63.4 RV1,
+§2023:15.72.4 RV1). The golden `15.63.4-Returned-value-rules/pb2635_nan_selection_agrees_with_ordinal` (2014, 2023) pins
+the finite selections and the ordinals, PB2635's `closes_rows_reason` says so, and the older defect the probe exposed, a
+selected NaN landing as 0 through `RealResult`'s EC-ARGUMENT-FUNCTION screen with no EC-DATA-NOT-FINITE
+(§2023:14.6.13.2 GR3), is filed as kb/Work PB6042.
+
 **Gate.** Run 000005 at 49370e1fa7: `=== BUILD-LOCAL GATE: GREEN — Conformance 28,998/28,998 ran · Unit 42,652/42,652 ran ·
 RepoDrift 217/217 ran · Characterization 37/37 ran (skipped 0) ===`, after four reds each fixed at its cause (the Unshipped
 API order, the new drift test's Sweep trait, a non-canonical designator with the cite-resolve baseline shrinking 6029 to

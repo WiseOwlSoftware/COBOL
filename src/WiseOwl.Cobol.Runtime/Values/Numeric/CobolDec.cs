@@ -1339,8 +1339,10 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
                 throw new CobolSizeError("INTERMEDIATE ROUNDING IS PROHIBITED: inexact standard-decimal intermediate "
                     + "(ISO §2023:11.9.11.2 r3d — EC-SIZE-TRUNCATION)", "EC-SIZE-TRUNCATION");
             // Every other mode is the ONE rounding decision (kb/Work PB2644): this walk was its own copy of the table and
-            // rounded every mode but TRUNCATION and NEAREST-EVEN as NEAREST-AWAY-FROM-ZERO, although the final-transfer
-            // callers (CobolWide.ToDec, CobolBig) hand it the statement's ROUNDED MODE.
+            // rounded every mode but TRUNCATION and NEAREST-EVEN as NEAREST-AWAY-FROM-ZERO. Every caller passes the
+            // INTERMEDIATE ROUNDING mode (§2023:11.9.11.1: NEAREST-AWAY-FROM-ZERO, NEAREST-EVEN, PROHIBITED or TRUNCATION,
+            // each of which the old walk already rounded right) or TRUNCATION with the round-to-odd jam, never a
+            // statement's ROUNDED MODE, so the directed-mode arms were latent and no program's output changed.
             if (RoundingRule.BumpsOnDigit(mode, negative, sig % 2 != 0, roundDigit, sticky)) sig++;
             if (sig == (Int128)Limit34) { sig /= 10; exp++; }   // 999…9 rounded up → 100…0 × 10
         }

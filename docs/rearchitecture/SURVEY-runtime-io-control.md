@@ -55,7 +55,7 @@ The typed-native invariant holds: the only `string`-image boundaries are the dis
 |---|---|---|---|
 | `ExceptionCatalog` (static) | `Exceptions/ExceptionCatalog.cs` | 307 | The ONE machine form of Table 13 + the 3-level hierarchy + the I-O-status→EC bridge. **Immutable after `Build()`** — legitimately static, thread-safe, keep as-is. NAME-keyed (not enum) for the open EC-USER-*/EC-IMP-* families — correct singular-pattern call. Model exemplar. |
 | `ExceptionState` (static) | `Exceptions/ExceptionState.cs` | 209 | **The prime shared-state smell.** ALL mutable process-global: `LastName`/`LastFatal`/`LastFile`/`LastIoStatus`/`LastLocation`/`LastStatement`/`ExceptionObject`, `_propagated`/`_propagatedObject` slots, and the ambient EC gates `ArgumentFunctionChecking (:177)` / `DataConversionChecking (:199)`. No reset owner of its own. |
-| `EcFunctions` (static) | `Exceptions/EcFunctions.cs` | 49 | EXCEPTION-STATUS/LOCATION/STATEMENT/FILE backends over `ExceptionState`. Thin, fine. |
+| `EcFunctions` (static) | `Intrinsics/EcFunctions.cs` | 49 | EXCEPTION-STATUS/LOCATION/STATEMENT/FILE backends over `ExceptionState`. Thin, fine. |
 | `CobolFatalException` / `ResumeSignal` | `Exceptions/{CobolFatalException,ResumeSignal}.cs` | 19/24 | The fatal-EC + RESUME control signals. Fine. |
 
 ### Intrinsics

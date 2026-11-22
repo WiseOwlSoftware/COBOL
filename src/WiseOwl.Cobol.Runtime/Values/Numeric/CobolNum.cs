@@ -234,7 +234,7 @@ public static partial class CobolNum
     // already ALIGNED at the receiver's scale. The capacity of a receiver is a property of its NumProfile, never of the
     // carrier the result arrived on: every Store / TryStore / StoreOrRaise lane (Int128, the SDIDI's CobolDec, the
     // unsigned-wide UInt128) does only its own alignment and ends here, and the class test's range half
-    // (CobolNum.Image's InPictureRange) asks the same Fits. Before it the discipline was written once per lane and a
+    // (CobolNum.Image's IsNumericImage, its binary and packed arms) asks the same Fits. Before it the discipline was written once per lane and a
     // fourth time for the class test, and the R10/F74 shift-mask bug had to be found and fixed in each copy. ──────────
 
     /// <summary>Whether a value ALIGNED at the receiver's scale is within the receiver's capacity — the §2023:14.7.5 GR3

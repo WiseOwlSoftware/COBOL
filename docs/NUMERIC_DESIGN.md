@@ -689,11 +689,12 @@ rounded landing now writes ROUNDED and gets it.
 in the resultant identifier, the EC-SIZE-TRUNCATION exception condition is set to exist, the size error condition
 exists, and the content of the resultant identifier is unchanged" — does not depend on checking. A final transfer
 lands AT the resultant identifier's scale, so the store's rescale is the identity and only the landing's rounding
-sees the discarded fraction; PROHIBITED is therefore never a rounding DIRECTION. The two "one rounding decision"
-tables raise `CobolSizeError.ProhibitedInexact` for it — the scaled carrier's `CobolNum.BumpsMagnitude` (so
-`RoundDiv`, `Rescale`, `Store`, `RescaleStoreCap`, `Divide`, `LandQuotient`, `CobolFloat.TryExactScaled` and
-`CobolIntrinsics.FromDouble` all raise) and the SDIDI's `CobolDec.RoundFromRemainder` (`ToUnscaled`, `MulAtScale`'s
-`TransferWide`, `CobolWide.ToUnscaled`) — and the two float resultants raise from their own outcome (`FloatResultant`'s
+sees the discarded fraction; PROHIBITED is therefore never a rounding DIRECTION. The ONE rounding decision,
+`RoundingRule` (kb/Work PB2644), raises `CobolSizeError.ProhibitedInexact` for it from `RoundingRule.StepOf`, which every
+lane asks only once it knows the value is inexact: the scaled carrier's divide kernels (`RoundDiv`, `LandQuotient`,
+through `RoundingRule.Bumps`; so `Rescale`, `Store`, `RescaleStoreCap`, `Divide`, `CobolFloat.TryExactScaled` and
+`CobolIntrinsics.FromDouble` all raise), `CobolExact`'s quotient, and the SDIDI's `CobolDec.RoundFromRemainder`
+(`ToUnscaled`, `MulAtScale`'s `TransferWide`, `CobolWide.ToUnscaled`) — and the two float resultants raise from their own outcome (`FloatResultant`'s
 unchecked entries, `CobolEdit.FormatFloatStore`). A Try form (`TryStore`, `TryStoreU`, `FloatResultant.TryFrom*`,
 `TryFormatFloat`) answers false instead. So one mechanism serves every receiver category, carrier and statement:
 under a SIZE ERROR phrase or EC-SIZE checking the statement's own catch takes the raise and sets the flag; with
@@ -1162,7 +1163,7 @@ from zero than ANY fixed-point receiver permits, because the widest decimal capa
 binary container is `Int128` itself. It is MinValue-safe by construction (the bound is written on the signed
 value, never through `Int128.Abs`, which throws on `Int128.MinValue` — reachable through the R10 bits contract).
 **The magnitude has one spelling too (kb/Work PB2639): `CobolDec.UAbs(Int128) → UInt128`**, which holds 2^127
-exactly, so an unsigned receiver's absolute value (§2023:14.9.25.4 GR6b, every digit-capacity test (`InPictureRange`,
+exactly, so an unsigned receiver's absolute value (§2023:14.9.25.4 GR6b, every digit-capacity test (`CobolNum.Fits`, which the class test `IsNumericImage` asks too,
 `CobolEdit.TryFormat`, `CobolLocaleEdit`) and `InBinaryRange`/`WrapBinary` read the same MinValue-safe form; a signed
 16-byte COMP-5 holding −2^127 stored into an unsigned one is 2^127 and no size error.
 **The UNCHECKED store then splits on the receiver's capacity discipline, because "the low-order digits" means two
@@ -1354,9 +1355,11 @@ clause text and fails if a new member is silently exempted.
    same reason: a dividend that scales up past the carrier is the exact 256-bit numerator, divided by the 128-bit divisor
    with its true remainder and rounded once at the result scale (`CobolDec.QuotientAtScale` — a 38-digit quotient reaches a
    16-byte COMP-5 receiver whole); only a divisor scaled past the carrier takes the SDIDI (`CobolDec.DivToOdd`,
-   round-to-odd); a quotient past the carrier is EC-SIZE-OVERFLOW. The rounding decision is ONE function
-   (`CobolNum.BumpsMagnitude`: sign and parity of the truncated quotient in, "move the magnitude one unit?" out), asked by the
-   generic `RoundDiv` and by `CobolNum.LandQuotient`, which rounds a quotient formed on UNSIGNED magnitudes and signs it afterwards
+   round-to-odd); a quotient past the carrier is EC-SIZE-OVERFLOW. The rounding decision is ONE type for every lane
+   (`RoundingRule`, kb/Work PB2644: `StepOf` restates the mode on the magnitude as a `MagnitudeStep`; `Bumps` takes that step,
+   the parity of the truncated magnitude and where the dropped part lies against the half-way point, and answers "move the
+   magnitude one unit?"; `BumpsOnDigit` is the same question for a dropped decimal digit run). The divide kernels ask it over
+   any integer carrier, the generic `RoundDiv` and `CobolNum.LandQuotient`, which rounds a quotient formed on UNSIGNED magnitudes and signs it afterwards
    — so a signed 16-byte minimum `Int128.MinValue` (magnitude 2^127, no signed twin) divides like any other operand. Its NEAREST arms
    compare `|rem|` with the complement `divisor − |rem|`, never `2·|rem|` with the divisor (the doubling wrapped negative past
    2^126; kb/Work PB2640).
