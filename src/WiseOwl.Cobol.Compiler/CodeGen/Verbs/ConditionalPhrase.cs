@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.CodeGen;
 /// (a READ's NOT AT END emitted inside its own success arm). <paramref name="ComplementsPhrase"/> says the success test is
 /// exactly the negation of the conditional phrase's test, so the pair renders as <c>if … else</c>. <paramref name="Gate"/> is
 /// the further test that no WHEN phrase or USE declarative handled a nonfatal condition the statement raised
-/// (§2023:14.6.13.1.4 3), "If a conditional phrase with a NOT phrase is specified in the interrupted statement, the
+/// (§2023:14.6.13.1.4 GR3, "If a conditional phrase with a NOT phrase is specified in the interrupted statement, the
 /// imperative-statement in that phrase is not executed"), null when nothing can interrupt the statement that way.
 /// <paramref name="Why"/>, when set, is the trailing comment the NOT phrase's own test carries.</summary>
 internal readonly record struct NotPhraseCondition(string? Success, bool ComplementsPhrase, string? Gate, string? Why = null)
@@ -31,7 +31,7 @@ internal readonly record struct NotPhraseCondition(string? Success, bool Complem
 /// ⛔ THE ONE RENDERING OF A STATEMENT'S CONDITIONAL PHRASE AND ITS NOT PHRASE (kb/Work PB3238; PB3237, PB1120, PB606).
 /// ON SIZE ERROR, ON OVERFLOW, INVALID KEY, AT END, ON EXCEPTION and their NOT twins all follow one rule: the conditional
 /// phrase's imperative runs when the statement's condition holds, the NOT phrase's when the statement completes
-/// successfully AND no handled nonfatal condition interrupted it (§2023:14.6.13.1.4 3)). Each verb emitter used to write the
+/// successfully AND no handled nonfatal condition interrupted it (§2023:14.6.13.1.4 GR3). Each verb emitter used to write the
 /// <c>if (on) { … } else …</c> shape itself, five times with four different ways of composing the NOT test, and the DELETE
 /// FILE copy lost its gate. A verb now says what its tests ARE (<paramref name="phraseCond"/>, a
 /// <see cref="NotPhraseCondition"/>) and this class renders them; <c>ConditionalPhraseDriftTests</c> refuses a NOT phrase's
