@@ -728,7 +728,7 @@ def piece(text, x, y):
     return {"text": text, "x0": x, "x1": x + 5.0, "y0": y, "underlined": False}
 
 
-UNIT_CHECKS = 22                      # the checks unit_failures makes, so the verdict counts every one
+UNIT_CHECKS = 23                      # the checks unit_failures makes, so the verdict counts every one
 
 
 def unit_failures():
@@ -853,7 +853,7 @@ def unit_failures():
     accepted = [r for r in rule if r.width >= R.figure_extract.MIN_RULE_W]
     if not R.figure_extract.is_underlined((67.6, 187.0, 72.6, 196.0), accepted):
         fails.append("MIN_RULE_W: the 2.85 pt underline of a one-digit word is not read as an underline")
-    fails += pb5332_failures()
+    fails += pb5332_failures() + pb3211_failures()
     return fails
 
 
@@ -911,6 +911,47 @@ def pb5332_failures():
     furniture = sweep_figures.page_furniture(2002)
     if sweep_figures.words_of("a-b c . . .\\\n&emsp;d-e", furniture) != sweep_figures.words_of("a-b c …\nd-e", furniture):
         fails.append("words_of: a line's hard-break backslash was counted as a word")
+    return fails
+
+
+class _HeadedPage:
+    """A planted page of a planted document for `find_figures`: its bold clause headings and its body text as the
+    text layer's `dict` (what `headings` and `body_size` read), and its words as the extractor returns them."""
+    def __init__(self, doc, number, heads, words):
+        self.parent, self.number, self.heads, self.words = doc, number, heads, words
+
+    def get_text(self, kind):
+        assert kind == "dict"
+        line = lambda y, text, font, size: {"bbox": (60.0, y, 400.0, y + size), "spans": [
+            {"text": text, "font": font, "size": size}]}
+        return {"blocks": [{"type": 0, "lines": [line(y, t, "Arial-Bold", 11.7) for y, t in self.heads]
+                            + [line(y, t, "Arial", 10.7) for t, _, y in self.words]}]}
+
+
+def pb3211_failures():
+    """ONE resolution of the clause that owns a figure (kb/Work PB3211): `find_figures` resolves it per figure, a
+    continuation page's through `open_region`, and the sweep's key (`figure_key`) and the review sheet's title
+    (`sheet_title`) both read that resolution. Measured before the fix on the 2023 PDF: page 166 carries two general-
+    format regions, and the sheet titled both figures 8.4.3.7.2 while the sweep keyed the second 8.4.3.8.2."""
+    fails = []
+    word = lambda text, x, y: {"text": text, "x0": x, "x1": x + 6.0 * len(text), "y0": y, "underlined": False}
+    doc = []
+    # Page 1: two general-format regions, each holding one figure, the first closed by the second's heading.
+    doc.append(_HeadedPage(doc, 0, [(100.0, "8.4.3.7.2 General format"), (300.0, "8.4.3.8.2 General format")],
+                           [("ACCEPT identifier-1", 80.0, 150.0), ("DISPLAY identifier-2", 80.0, 350.0)]))
+    # Page 2: no heading of its own; it opens inside the region page 1 left open (its LAST heading's).
+    doc.append(_HeadedPage(doc, 1, [], [("MOVE identifier-3", 80.0, 150.0)]))
+    # Page 3: a Syntax rules heading closes the region; page 4's leading rows are no figure.
+    doc.append(_HeadedPage(doc, 2, [(100.0, "8.4.3.8.3 Syntax rules")], [("Some rules apply here", 80.0, 150.0)]))
+    doc.append(_HeadedPage(doc, 3, [], [("STOP identifier-4", 80.0, 150.0)]))
+    extract = lambda page: [word(t, x, y) for t, x, y in page.words]
+    got = [[(R.figure_key(f), R.sheet_title(f, 100 + n)) for f in R.find_figures(page, extract)]
+           for n, page in enumerate(doc)]
+    want = [[(("8.4.3.7.2", None), "8.4.3.7.2 General format"), (("8.4.3.8.2", None), "8.4.3.8.2 General format")],
+            [(("8.4.3.8.2", None), "8.4.3.8.2 General format — continued on folio 101")],
+            [], []]
+    if got != want:
+        fails.append(f"find_figures/figure_key/sheet_title: the clause owning each figure is {got}, want {want}")
     return fails
 
 
