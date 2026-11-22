@@ -27,6 +27,8 @@ import sys
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import citation  # noqa: E402  (THE printed folio of the 1985 structure)
 import spec_pdf  # noqa: E402
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 #: What may open a heading or title line besides its number: a level-2 box side, bold, an underline.
 OPENERS = r"(?:║|\*\*|<u>)*"
@@ -265,4 +267,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())
