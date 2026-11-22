@@ -1,4 +1,4 @@
-## PB3201: the census refuses C# compiled outside its walk, and reads the drift tests' path locator as a symbol
+## Entry 3916 — 2026-11-22 11:57 PST — PB3201: the census refuses C# compiled outside its walk, and reads the drift tests' path locator as a symbol
 
 kb/Work PB3201 (an R2 finding of the PB1754 review) named two consumers of solution types that the member index and the
 census cannot see. The member index computes every Move or rename wave's file set from the census's Roslyn walk of
@@ -48,3 +48,4 @@ tracked MSBuild file, so census.py declares `# SELF-TEST-POPULATION: tree`. Self
 patterns read only double-quoted attributes, so a single-quoted Include would have passed; both quote characters are
 now read, with a planted arm. Run 000003-20261122T191952Z: `=== BUILD-LOCAL GATE: GREEN — ... RepoDrift 231/231 ran
 ... ===`, with `ArchCensusDriftTests.CensusHost_NamesTheLocatorTheDriftTestsCall` Passed.
+
