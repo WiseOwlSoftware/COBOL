@@ -44,7 +44,8 @@ Unit project ran 42,820 of 42,821 green before the last fix and the one red then
 no rule count increased. The arch oracle (`compare_oracle.py`, baseline 608ccf507c57) printed `DIFFERENT — 8998 of 23370
 cases differ`. Every difference is a C# difference of exactly four lines per case (35,992 lines in all), and every
 one of those lines is the runtime version string (`"32.0.0.0"` → `"33.0.0.0"` in `CobolRepositoryAttribute` and
-`RegisterModule`). That is the expected result of PB2760's major bump. No diagnostic stream differs, and no case was
+`RegisterModule`). That is the expected result of PB2760's major bump. Replayed onto a main that had meanwhile taken major 33 for
+another change, the branch re-applied its own bump with `abi_pin.py bump --runtime-major` (33 → 34, the hash measured). No diagnostic stream differs, and no case was
 added or removed. The first gate was RED in RepoDrift on three sweeps. Each failure came from code that moved out of
 a `.g4` file, which those sweeps do not read as C#, into `CobolLexerBase.cs`, which they do:
 - `ApplyEditionSpelling` wrote the Annex C edge inline as `>= 2023`. It now asks `CobolNames.HasEditionSpelling`, the
@@ -53,4 +54,5 @@ a `.g4` file, which those sweeps do not read as C#, into `CobolLexerBase.cs`, wh
   with the GAP unchanged.
 - A retirement-prose sweep treated a moved member as deleted. The sweep now reads the two recognizer superclasses.
 
-The re-gate verdict is in the branch report.
+The predecessor's re-gate at 204b037f44 was GREEN; the replay onto current main re-gates, and its verdict is in the
+branch report.
