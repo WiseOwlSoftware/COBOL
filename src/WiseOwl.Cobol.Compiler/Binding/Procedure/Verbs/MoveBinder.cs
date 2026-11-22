@@ -438,12 +438,21 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
     /// function's temporary item has the class and category of its RETURNING item (§2023:8.4.3.2.4 GR1), and an alphanumeric
     /// group item's category is alphanumeric (§2023:8.5.2.1), so <c>WRITE R FROM FUNCTION GRPF</c> over a group-returning
     /// function is "an alphanumeric function" and is admitted. A null category is an operand whose binding already reported
-    /// its own error.</para></summary>
+    /// its own error.</para>
+    /// <para>⛔ A STRONGLY-TYPED GROUP IS NOT AN ALPHANUMERIC GROUP (kb/Work PB3229 review round 1, R1-1). The operand-category
+    /// reader answers Alphanumeric for it because §2023:15.3 AR2 treats it so as a function ARGUMENT; here it is the function's
+    /// RESULT, whose class and category are its type-name (§2023:8.5.2.1), so a function returning one is no alphanumeric,
+    /// boolean or national function and every FROM-phrase function rule refuses it (§2023:14.9.51.3 SR4, §2023:14.9.32.3 SR2,
+    /// §2023:14.9.35.3 SR9). It is asked first, as kb/Work PB3355's category screens ask it.</para></summary>
     private bool ScreenFromFunctionClass(BoundOperand source, Core.FunctionCallContext? fc, FromPhraseRules rules, FileModel file)
     {
         if (fc is null || rules.FunctionCategories is not { } admitted || rules.FunctionRuleCite is not { } functionRule)
             return true;
-        if (IntrinsicResultType.OperandCategory(source) is not { } cat || admitted.Contains(cat)) return true;
+        string category;
+        if (source is BoundFieldOperand { Place.Item: var resultItem } && StrongTypeModel.StrongGroupType(resultItem).Name is { } typeName)
+            category = typeName;
+        else if (IntrinsicResultType.OperandCategory(source) is not { } cat || admitted.Contains(cat)) return true;
+        else category = ItemCategory.CategoryName(cat);
         // §2002:14.8.33.2 SR8 / SR9 restrict only "an intrinsic function"; a user-defined function (a signature the unit's
         // functions hold) is judged by the verb's MOVE-validity rule alone until COBOL-2014 widens the rule to "a function"
         // (§2014:14.9.33.2 SR7 / SR8, §2023:14.9.35.3 SR8 / SR9) — kb/Work PB5645.
@@ -451,7 +460,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
             return true;
         ctx.Edition.Error(DiagnosticCatalog.FromPhraseFunctionClass,
             $"{rules.Statement} {WrittenSource.Of(fc)}: {functionRule.At(ctx.Edition.DialectLevel, file.Organization)} — this function's result is of "
-            + $"category {ItemCategory.CategoryName(cat)}");
+            + $"category {category}");
         return false;
     }
 

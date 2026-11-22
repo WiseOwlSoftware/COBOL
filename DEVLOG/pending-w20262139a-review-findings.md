@@ -12,6 +12,13 @@ Both were wrong: §2023:8.4.3.2.4 GR1 gives the function's temporary item its RE
 admits it. The screen now asks `IntrinsicResultType.OperandCategory`, the one operand-category reader. Golden
 `14.9.51-WRITE/pb3229-write-from-group-function` (2014, 2023) writes and reads back `[ABCDE12345]`.
 
+**PB3229, second review round (a strongly-typed result).** That reader answers Alphanumeric for any picture-less group,
+the §2023:15.3 AR2 reading of a function argument, so a function returning a strongly-typed group was admitted where main
+had refused it. §2023:8.5.2.1 makes such a group's class and category its type-name, so the screen asks
+`StrongTypeModel.StrongGroupType` first and refuses with "of category T". Refusal goldens
+`14.9.51-WRITE/pb3229-write-from-strong-group-function` (2002, 2014, 2023) and
+`14.9.35-REWRITE/pb3229-rewrite-from-strong-group-function` (2014, 2023).
+
 **PB3212 R1-1 (test coverage).** Four tests pin what the external-identity change decides: a RELATIVE KEY in a
 non-external FD record (COBOL1624), the external record's key at different positions in two programs (COBOL1575), a READ
 of an unwritten relative record through the FD-record key (INVALID KEY, status 23, §2023:14.9.30.4 GR29), and a PADDING
