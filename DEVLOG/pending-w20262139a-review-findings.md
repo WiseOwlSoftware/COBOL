@@ -24,3 +24,8 @@ scanned `file.Records` for membership ask `FileModel.HoldsRecord` (the record's 
 own-record walk asks `RecordLayout.IsInRecordOfFile`.
 
 **Not done.** PB2628, PB2655, PB2637 and PB2747 are each a mechanism of their own and stay open for the planner.
+
+**Gate.** Run 000001-20261122T211818Z at b9c0051055: `BUILD-LOCAL GATE: GREEN — Conformance 29,104/29,104 ran · Unit
+42,711/42,711 ran · RepoDrift 231/231 ran · Characterization 37/37 ran`. The Linux gate's unit (42,843) and conformance
+(29,104) legs were GREEN; its self-test leg failed `scripts/hooks/test_forbidden_commands.py` on two `git push <url>`
+cases that pass on Windows, a tooling defect of the Linux clone untouched by this branch.
