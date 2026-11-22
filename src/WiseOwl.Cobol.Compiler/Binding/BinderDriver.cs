@@ -631,7 +631,6 @@ internal sealed class BinderDriver
     private static void BindUnitData(BoundUnit unit, BindSession session)
     {
         var definition = session.Sources.Of(unit);
-        var edition = session.Edition;
         // The static-WS discriminator (ISO §2023:13.5.4 GR1 + §2023:14.6.2.3.2/.3; the full derivation is on
         // DataBinder.UnitStaticWs): a RECURSIVE-and-not-INITIAL unit — including every FUNCTION-ID unit
         // (§2023:8.6.6 :8821 / §2023:9.4 :12529, the implicit attribute set in MakeUnit) — owns ONE last-used WS copy
@@ -640,25 +639,16 @@ internal sealed class BinderDriver
         // through the `__outer` chain, a STATIC one through the container's class name, which C# requires
         // (CS0176: `instance.staticField` is not a C# expression). BoundUnit.AnchorOf chooses per member, so the
         // composition is one rule in one place (kb/Work PB1133; the staged COBOL0899 refusal is gone).
-        var data = new DataBinder(edition)
-        {
-            OoClasses = session.OoClasses,
-            // The unit's own §2023:8.3.2.2 census, the one its class-name references record into too (kb/Work PB3132).
-            OwnWords = session.OoClasses.CensusOf(definition.identificationDivision()) ?? new(),
-            CopyWords = session.CopyNames.Of(unit),   // below COBOL-2002 a COPY statement's names are this program's user-defined words (kb/Work PB5482)
-            RefModZeroLength = session.RefModZeroLength,
-            CobolWords = session.CobolWords,   // >>COBOL-WORDS intrinsic-function-name synonym/removal (§2023:7.3.10)
-            Retypes = session.Retypes,         // the fragment re-parses read words as the tree does (kb/Work PB655)
-            ClaimScans = session.ClaimScans,   // the group's one storage-claim walk, sliced per element (kb/Work PB4302)
-            LeapSecond = session.LeapSecond.IsOnAt(UnitFirstLine(definition)),   // >>LEAP-SECOND ON at THIS unit — the §2023:15.3 seconds-subfield / time-form bound (§2023:7.3.17, §2023:7.3.4 GR5)
-            CompilationVariables = session.CompilationVariables,   // CONSTANT … FROM reads the >>DEFINE table at its own line (§2023:7.3.11.4 GR1)
+        // The unit's own §2023:8.3.2.2 census is its identification division's, the one its class-name references record into
+        // too (kb/Work PB3132); >>LEAP-SECOND is asked at its first line.
+        var data = session.NewDataBinder(definition.identificationDivision(), UnitFirstLine(definition), new DataBinderElement(
+            CopyWordList: session.CopyNames.Of(unit),   // below COBOL-2002 a COPY statement's names are this program's user-defined words (kb/Work PB5482)
             // The ANY LENGTH placement facts (ISO §2023:13.18.2.3 SR2–SR4 — the rules differ for a contained
             // program, a function, and an outermost program): the unit kind is known only here.
-            UnitIsContained = unit.Parent is not null,
-            UnitIsFunction = unit.IsFunction,
-            UnitIsRecursive = unit.Recursive,   // §2023:12.4.6.3.3 SR5 (kb/Work PB3338)
-            UnitStaticWs = unit.Recursive && !unit.Initial,
-        };
+            IsContained: unit.Parent is not null,
+            IsFunction: unit.IsFunction,
+            IsRecursive: unit.Recursive,   // §2023:12.4.6.3.3 SR5 (kb/Work PB3338)
+            StaticWs: unit.Recursive && !unit.Initial));
         // §2023:8.4.6.6 / §2023:8.4.6.8 — the no-specifier leg of the two prototype-name scope rules: the ONE set the prototype
         // tables read (ContainingDefinitions; kb/Work PB452/PB817, PB3121), the symbol table's (DESIGN-listing.md section 6.7.1,
         // step 6b slice 7), declared before the unit's data binds so its USAGE TO screen reads it.

@@ -230,15 +230,6 @@ internal sealed class OoDriver(BindSession session)
     /// ACTIVE-CLASS binds to — §2023:13.18.60.4 GR22 e), the class of the object that invoked the containing method
     /// (kb/Work PB389); null for an interface.</summary>
     private DataBinder ElementBinder(Antlr4.Runtime.RuleContext? element, Antlr4.Runtime.ParserRuleContext definition,
-        string? ownerClassName) => new(session.Edition)
-    {
-        OoClasses = session.OoClasses,
-        OwnWords = session.OoClasses.CensusOf(element) ?? new(),
-        OoRole = new OoUnitRole(ownerClassName),
-        RefModZeroLength = session.RefModZeroLength,
-        CobolWords = session.CobolWords,
-        Retypes = session.Retypes,
-        LeapSecond = session.LeapSecond.IsOnAt(definition.Start.Line),
-        CompilationVariables = session.CompilationVariables,
-    };
+        string? ownerClassName) =>
+        session.NewDataBinder(element, definition.Start.Line, new DataBinderElement(OoRole: new OoUnitRole(ownerClassName)));
 }
