@@ -54,3 +54,22 @@ SR-13.4.6.3-4's code location, so that row now retires the deleted member throug
 **The kill-by-name guard, round 2 (PB6034).** Train C's review left two leads, and this train fixes both. A `python -c`
 payload is now read as a command line, so a kill by name through psutil or a parsed `tasklist` is refused. A quoted
 `Get-Process` is an argument, and so is `timeout -s KILL`'s signal choice: neither counts as half of a kill.
+
+**The branch review, round 1.** The reviewer found a third round of misses in the kill-by-name rule. `python -X utf8 -c`,
+`python -W ignore -c`, `env python -c` and `timeout 60 python -c` each killed by name unrefused, because the rule still
+parsed how Python was started. The rule now parses no invocation at all. It looks for its two ingredients, a listing by
+name and a kill, in the text of every step's words and heredoc bodies, whatever program a quoted payload is handed to.
+The words of a program that only searches or prints are text, and so is a string a payload only prints. The self-test
+grew from 383 to 402 cases. The 14 new blocking cases were each allowed by the hook before this change. A refuter record
+also stood for any disposition of its unit, so a `restates` list edited after its refutation kept its old record and
+could hide a prose hole. Now a record upholds the disposition it judged: its kind, its class and its rule list. The 672
+committed records that spelled only the kind gained that disposition from the reader record each one names, and the
+import writes it from now on. Every entry already matched its record, so 1985 still has 0 prose holes.
+
+**Code reads and two reader leads.** The five 1985 code re-reads (1985-c02 and 1985-c03, all CONFORMS and UPHELD) are
+imported at the trees they read, so 1985 owes no code read. At `--std 85`, the refusal of a COMP-1 or COMP-2 item as an
+integer argument cited ISO §2023:14.6.8.3. It now says the 1985 USAGE clause (§1985:VI.5.14.2) has no floating-point
+usage, and it states what §1989:A.2.2 AR4 admits, an arithmetic expression that always results in an integer value.
+`DISPLAY FUNCTION LENGTH (FUNCTION WHEN-COMPILED)` at 85 is refused correctly. The nested function-identifier is a legal
+argument (§1985:IV.4.3.8.3.4 GR2) and compiles in `COMPUTE`. The refusal is of LENGTH itself, an integer function, as a
+DISPLAY operand, which §1985:IV.4.3.8.3.3 SR4 allows only in an arithmetic expression.
