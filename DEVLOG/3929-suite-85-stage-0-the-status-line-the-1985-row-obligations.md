@@ -1,4 +1,4 @@
-## Suite 85 Stage 0: the status line, the 1985 row obligations and the second-compiler measurement (PB6047, PB6048, PB6054)
+## Entry 3929 — 2026-11-22 15:15 PST — Suite 85 Stage 0: the status line, the 1985 row obligations and the second-compiler measurement (PB6047, PB6048, PB6054)
 
 Revision 4 of the conformance-suite design counts the 85 suite on the 1985 catalog, so Stage 0 builds the three tools that
 measure it. All three are Python in `conformance-suite/harness/`; no compiled program changed.
@@ -33,3 +33,4 @@ read; the 2002 catalog now also prints on its own rows (header-omits 451, shared
 wanted per edition anyway. Architecture: `generate.py` stays the one reader of headers, the new modules take parsed tests and
 return facts. Code: obligations follow section 6.1 row by row; an unknown row kind raises. Duplication: one witness
 classification, used by the report and the status line. Performance: one pass over the cases per call.
+
