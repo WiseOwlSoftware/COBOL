@@ -5,7 +5,7 @@ using WiseOwl.Cobol.Runtime.Exceptions;
 
 namespace WiseOwl.Cobol.Binding.Bound;
 
-/// <summary>The selection tiers of ISO §2023:14.9.49.4 GR3 a) to g), in GR3's order: a declarative is selected by the
+/// <summary>The selection tiers of ISO §2023:14.9.49.4 GR3a to GR3g, in GR3's order: a declarative is selected by the
 /// FIRST tier that has a match, and source order decides only within a tier. A USE statement and a Format-3 PERFORM's WHEN
 /// phrase are selected by the same tiers: §2023:14.9.28.4 GR17, "The rules for determining a match are specified in General
 /// rules 3a to 3g of the USE statement". The ordinal IS the priority (a sorts first).</summary>

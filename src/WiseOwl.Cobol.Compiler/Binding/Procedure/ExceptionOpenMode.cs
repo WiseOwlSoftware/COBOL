@@ -5,7 +5,7 @@ using WiseOwl.Cobol.Runtime.IO;
 
 namespace WiseOwl.Cobol.Binding.Procedure;
 
-/// <summary>The open-mode operand of the §2023:14.9.49.4 GR3 b) tier, written as USE AFTER EXCEPTION ON INPUT|OUTPUT|I-O|EXTEND
+/// <summary>The open-mode operand of the §2023:14.9.49.4 GR3b tier, written as USE AFTER EXCEPTION ON INPUT|OUTPUT|I-O|EXTEND
 /// (Format 1, <c>useOnTarget</c>) and as PERFORM ... WHEN EXCEPTION INPUT|OUTPUT|I-O|EXTEND (Format 3, <c>performWhenModeList</c>),
 /// bound to ONE representation, the runtime <see cref="FileOpenMode"/> ordinal that <c>BoundDeclarative.ModeIndex</c> and
 /// <c>BoundExceptionMatch.ModeIndex</c> carry (kb/Work PB2723: the keyword set used to map to a string at one site and to the
