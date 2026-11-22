@@ -209,7 +209,7 @@ public static class CobolLocale
     private static bool TryDate(int year, int month, int day, out DateTime date)
     {
         date = default;
-        if (year is < 1601 or > 9999 || month is < 1 or > 12 || day < 1 || day > DateTime.DaysInMonth(year, month)) return false;
+        if (!IntegerDateForm.IsStandardDate(year, month, day)) return false;
         date = new DateTime(year, month, day);
         return true;
     }
