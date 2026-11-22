@@ -1,6 +1,9 @@
       *>--- conformance-case
       *> id: pb829_assign_device_class
-      *> rules: [SR-12.4.5.2-5, FMT-12.4.5.1, DOC-A.1-71]
+      *> rules: [SR-12.4.5.2-5, FMT-12.4.5.1, DOC-A.1-71,
+      *>    1985-FMT-VII.2.4.2, 1985-SR-VIII.2.3.3-3,
+      *>    1985-GR-VIII.2.3.4-5, 1985-SR-IX.2.3.3-3,
+      *>    1985-GR-IX.2.3.4-6, 1985-FMT-IX.2.4.2, 1985-SR-XIII.2.3.3-3]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb1907_overlap_move
-      *> rules: [GR-14.6.10-1]
+      *> rules: [GR-14.6.10-1, 1985-GR-VI.6.8.4-4]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

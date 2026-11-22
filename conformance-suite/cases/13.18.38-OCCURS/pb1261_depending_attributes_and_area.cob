@@ -1,6 +1,7 @@
       *>--- conformance-case
       *> id: pb1261_depending_attributes_and_area
-      *> rules: [SR-13.18.38.3-18, SR-13.18.38.3-20, SR-13.18.38.3-21]
+      *> rules: [SR-13.18.38.3-18, SR-13.18.38.3-20, SR-13.18.38.3-21,
+      *>    1985-SR-VI.5.8.3-7, 1985-SR-VI.5.8.3-8, 1985-SR-VI.5.8.3-9]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

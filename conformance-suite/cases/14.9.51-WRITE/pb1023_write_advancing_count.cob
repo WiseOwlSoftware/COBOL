@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb1023_write_advancing_count
-      *> rules: [SR-14.9.51.3-14, SR-14.9.51.3-15]
+      *> rules: [SR-14.9.51.3-14, SR-14.9.51.3-15, 1985-SR-VII.4.7.3-4]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb1054_renames_thru_binary_packed_span
-      *> rules: [GR-13.18.45.4-2]
+      *> rules: [GR-13.18.45.4-2, 1985-GR-VI.5.11.4-1]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

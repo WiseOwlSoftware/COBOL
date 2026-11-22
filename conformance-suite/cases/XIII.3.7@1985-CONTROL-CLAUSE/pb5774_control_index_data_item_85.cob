@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb5774_control_index_data_item_85
-      *> rules: [1985-GR-XIII.3.7.4-3]
+      *> rules: [1985-GR-XIII.3.7.4-3, 1985-FMT-XIII.3.7.2]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

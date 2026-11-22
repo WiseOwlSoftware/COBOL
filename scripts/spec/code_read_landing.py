@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-"""THE LANDING CHECK OF THE CODE READS (kb/Work PB6056; DESIGN-spec-conformance-review.md section 10.6.1;
-DESIGN-test-build-ci.md section 3.17.2): a landing may not move the code a stored code read names.
+"""THE LANDING CHECK OF THE CODE READS (kb/Work PB6056, PB6090; DESIGN-spec-conformance-review.md section 10.6.1;
+DESIGN-test-build-ci.md section 3.17.2): a landing may not move the code a stored code read names, nor change the rule text
+a stored code read covers.
 
     python scripts/spec/code_read_landing.py [--rev REV] [--base BASE] [--root DIR]
 
@@ -25,6 +26,15 @@ so does a member moved that no read names. The refusal's remedy is the re-read o
 ONE REVISION FOR BOTH (kb/Work PB6056 branch review R1-2). The store, the rows and the schema the reads are judged with are
 read as committed at `--rev`, the same revision `moved_by` resolves the locations in, never from a working tree: an
 uncommitted edit of the store cannot change the verdict.
+
+THE SECOND WAY, A CHANGED RULE TEXT (kb/Work PB6090). A read covers its row only while the row's `rule-digest` is the one the
+read recorded (`code_read_store.outcome`: otherwise `stale`, owed a read). A change that corrects a rule's catalog text changes
+the digest, so the stored read goes stale and `edition_status.py` gains a code-read term, again with every check green (PR #1953
+corrected six 1985 rules; 1985 gained 6 terms). The change from `--base` to `--rev` is also refused when a stored read that
+decided its row on base (confirmed or contradicted) leaves the row owed a read at the head (`code_reads.staled_by`, reusing
+`outcome` and `owed`), naming each row with both digests; the remedy is the same re-read on the branch (`import --replace`
+at the new text), and a branch that carries it passes. One check, one rule: the moved code and the changed text are the two
+ways a landing turns a read owed that no diff line shows.
 
 THE SWEEP OF `edition_status.py`'s OTHER TERMS (kb/Work PB6056) is in the note: the inventory GAP, the open notes and the
 catalog prose holes are changes a landing makes deliberately (a verdict, a filed note, an edited transcription), visible in
@@ -53,6 +63,8 @@ Records = dict[str, dict[str, Any]]
 Reads = Callable[[pathlib.Path, str], Iterable[tuple[code_reads.Context, Records]]]
 #: (year, the repository root, the revision) -> the edition's context as committed at the revision; a self-test plants one.
 ContextAt = Callable[[int, pathlib.Path, str], code_reads.Context]
+#: What a refusal reports per edition: the rows whose read's code moved, and the rows whose read's rule text changed.
+Found = tuple[list[code_reads.ReRead], list[tuple[str, str, str]]]
 
 
 class NotRun(Exception):
@@ -80,40 +92,50 @@ def stored_reads(root: pathlib.Path, rev: str, schema: inventory_schema.Schema |
             yield context(ed.year, root, rev), records
 
 
-def refusal(year: int, rows: list[code_reads.ReRead]) -> list[str]:
-    """The refusal's lines for one edition: each row with the entries the change moved, and the remedy."""
-    out = [f"⛔ {TOOL}: this change moves the code {len(rows)} stored code read(s) of edition {year} name, so each would be "
-           "owed a re-read once landed (edition_status.py counts it), whatever the edition's status on main:"]
-    out += [f"    {r.rule_id}: " + "; ".join(r.moved) for r in rows]
+def refusal(year: int, rows: list[code_reads.ReRead], staled: list[tuple[str, str, str]]) -> list[str]:
+    """The refusal's lines for one edition: each row whose code moved, each whose rule text changed, and the remedy."""
+    out = []
+    if rows:
+        out.append(f"⛔ {TOOL}: this change moves the code {len(rows)} stored code read(s) of edition {year} name, so each "
+                   "would be owed a re-read once landed (edition_status.py counts it), whatever the edition's status on main:")
+        out += [f"    {r.rule_id}: " + "; ".join(r.moved) for r in rows]
+    if staled:
+        out.append(f"⛔ {TOOL}: this change changes the rule text {len(staled)} stored code read(s) of edition {year} cover, "
+                   "so each read goes stale and is owed a read once landed (edition_status.py counts it), whatever the "
+                   "edition's status on main:")
+        out += [f"    {rid}: the read covers rule-digest {was}, the row's text now digests to {now}" for rid, was, now in staled]
     out.append(f"  REMEDY: re-read those rows on this branch (`python scripts/spec/code_reads.py plan --edition {year}` lists "
-               "them; a reader and a refuter read the moved code, then `code_reads.py import --replace`), and re-gate; a "
-               "branch that carries the re-read passes (kb/Work PB6056).")
+               "them; a reader and a refuter read the code against the rule text now, then `code_reads.py import --replace`), "
+               "and re-gate; a branch that carries the re-read passes (kb/Work PB6056, PB6090).")
     return out
 
 
 def check(root: pathlib.Path, rev: str, base: str, say: Callable[[str], None] = print,
-          reads: Reads = stored_reads) -> int:
-    """THE CHECK: 0 passes, 1 refuses. Raises NotRun when it cannot read a tree."""
-    moved: dict[int, list[code_reads.ReRead]] = {}
+          reads: Reads = stored_reads, context: ContextAt = context_at) -> int:
+    """THE CHECK: 0 passes, 1 refuses. Raises NotRun when it cannot read a tree. `context` gives the edition as committed at
+    `base`, which decides whether a read covered its row on main."""
+    found: dict[int, Found] = {}
     with code_reads.pins_open(root) as pins:
         for ref in (rev, base):
             if not pins.is_commit(ref):
                 raise NotRun(f"{ref} is no commit of the repository at {root}")
         head, before = pins.at(rev), pins.at(base)
         for ctx, records in reads(root, rev):
-            if rows := code_reads.moved_by(ctx, records, head, before):
-                moved[ctx.ed.year] = rows
-    for year, rows in moved.items():
-        for line in refusal(year, rows):
+            moved = code_reads.moved_by(ctx, records, head, before)
+            staled = code_reads.staled_by(ctx, context(ctx.ed.year, root, base), records)
+            if moved or staled:
+                found[ctx.ed.year] = (moved, staled)
+    for year, (moved, staled) in found.items():
+        for line in refusal(year, moved, staled):
             say(line)
-    if not moved:
-        say(f"{TOOL}: no stored code read names code this change moves")
-    return 1 if moved else 0
+    if not found:
+        say(f"{TOOL}: no stored code read names code this change moves or rule text this change changes")
+    return 1 if found else 0
 
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="Refuse a landing that moves the code a stored code read names "
-                                             "(kb/Work PB6056).")
+                                             "or changes the rule text it covers (kb/Work PB6056, PB6090).")
     ap.add_argument("--rev", default="HEAD", help="the merged head (the tree the reads and their store are judged at)")
     ap.add_argument("--base", default="origin/main", help="main, what the change is measured from")
     ap.add_argument("--root", type=pathlib.Path, default=code_reads.REPO)

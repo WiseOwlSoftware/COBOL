@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using WiseOwl.Cobol.Binding;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Tests.Shared;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -982,6 +983,35 @@ public sealed class SpecTraceabilityInventoryDriftTests
         return bad;
     }
 
+    /// <summary>A row that names the screen-handling module, Annex A.4.2 (ACCEPT and DISPLAY screen handling), in its notes.
+    /// A module's rows are the rows whose adjudication says they hang off it (kb/Work PB3319).</summary>
+    private static readonly Regex ScreenModuleNote = new(@"\bA\.4\.2\b", RegexOptions.Compiled);
+
+    /// <summary>
+    /// The DOCUMENTED-NON-SUPPORT rows of the screen-handling module (Annex A.4.2) whose band STARTS before the module's
+    /// facility exists: the edition <see cref="ReservedWords"/> first reserves SCREEN at, which the standard's own text
+    /// ties to the SCREEN SECTION (§2002:F.2 item 1). No rule of the screen section, the screen description entry or the
+    /// ACCEPT/DISPLAY/SET screen statements exists at an edition without the facility, so a per-edition suite built from
+    /// such a band would include a rule no source of that edition can write (kb/Work PB3319: 161 rows started at 85).
+    /// A CONFORMS row that names A.4.2 states a rule shared with data and report items and is not the module's.
+    /// </summary>
+    /// <param name="rows">the inventory rows</param>
+    /// <param name="s">the schema, for the editions' order and separator</param>
+    /// <param name="introducedIn">the edition the screen facility exists from, in the schema's spelling</param>
+    private static List<string> EarlyScreenModuleBands(
+        IEnumerable<TraceabilityInventory.Row> rows, Schema s, string introducedIn)
+    {
+        int w = Array.IndexOf(s.Editions, introducedIn);
+        if (w < 0)
+            return [$"the screen facility is introduced at '{introducedIn}', which is not an edition of the schema"];
+        return [.. from r in rows
+                   where r.Verdict == "DOCUMENTED-NON-SUPPORT" && r.Editions.Length > 0 && ScreenModuleNote.IsMatch(r.Notes)
+                   let first = Split(r.Editions, s.EditionsSeparator)[0]
+                   where Array.IndexOf(s.Editions, first) < w
+                   select $"{r.RuleId}: editions '{r.Editions}' starts at {first}, but the screen facility (Annex A.4.2) "
+                          + $"exists from {introducedIn} — write the band from {introducedIn} (kb/Work PB3319)"];
+    }
+
     /// <summary>
     /// The CODE of a NON-C# file, for symbol resolution (<see cref="SymbolResolves"/>): a grammar file's text with
     /// its <c>//</c> and <c>/* */</c> comments removed; any other file's whole text. Parsed once per file per
@@ -1433,6 +1463,28 @@ public sealed class SpecTraceabilityInventoryDriftTests
             return sig.IntroducedIn;
         });
         Assert.True(bad.Count == 0, Report("function rule(s) whose band starts before the function", bad, scanned));
+    }
+
+    /// <summary>
+    /// Every rule of the screen-handling module (Annex A.4.2) starts no earlier than the facility: its band's first
+    /// edition is at or after the edition that first reserves SCREEN (kb/Work PB3319; the twin of
+    /// <see cref="EveryFunctionRule_StartsNoEarlierThanItsFunction"/>). The edition is read from
+    /// <see cref="ReservedWords"/>, so a moved introduction needs no list here.
+    /// </summary>
+    [Fact]
+    public void EveryScreenModuleRule_StartsNoEarlierThanTheScreenFacility()
+    {
+        var rows = LoadInventory();
+        var s = LoadSchema();
+        var screen = ReservedWords.Find("SCREEN");
+        Assert.True(screen is not null, "ReservedWords has no SCREEN row — the screen facility's edition has no source.");
+        string introducedIn = s.Editions.First(e => screen.IsReservedAt(int.Parse(e, CultureInfo.InvariantCulture)));
+        int scanned = rows.Count(r => r.Verdict == "DOCUMENTED-NON-SUPPORT" && ScreenModuleNote.IsMatch(r.Notes));
+        Assert.True(scanned >= 150,
+            $"only {scanned} DOCUMENTED-NON-SUPPORT rows name Annex A.4.2 — the module's rows are named in their notes; "
+            + "if the notes' wording changed, fix ScreenModuleNote, do not lower the floor.");
+        var bad = EarlyScreenModuleBands(rows, s, introducedIn);
+        Assert.True(bad.Count == 0, Report("screen-module rule(s) whose band starts before the screen facility", bad, scanned));
     }
 
     /// <summary>
@@ -2102,6 +2154,17 @@ public sealed class SpecTraceabilityInventoryDriftTests
         Assert.Empty(EarlyFunctionBands(
             [Base("X-5m") with { Section = "15.7.3", Editions = "2014,2023" },
              Base("X-5n") with { Section = "15.70.3", Editions = "85,2002,2014,2023" }], s, absOnly, _ => 2014));
+
+        // A screen-module rule whose band starts before the screen facility (kb/Work PB3319): refused at 85, passed from
+        // 2002; a CONFORMS row naming A.4.2 is a shared rule, and A.4.21 is not A.4.2.
+        Assert.Contains("exists from 2002", Assert.Single(EarlyScreenModuleBands(
+            [Base("X-5o") with { Verdict = "DOCUMENTED-NON-SUPPORT", Editions = "85,2002,2014,2023", Notes = "Annex A.4.2 is optional" }],
+            s, "2002")));
+        Assert.Empty(EarlyScreenModuleBands(
+            [Base("X-5p") with { Verdict = "DOCUMENTED-NON-SUPPORT", Editions = "2002,2014,2023", Notes = "Annex A.4.2 is optional" },
+             Base("X-5q") with { Verdict = "CONFORMS", Editions = "85,2002,2014,2023", Notes = "A.4.2 shared with data items" },
+             Base("X-5r") with { Verdict = "DOCUMENTED-NON-SUPPORT", Editions = "85,2002,2014,2023", Notes = "Annex A.4.21" }],
+            s, "2002"));
 
         // ⛔ DIFFERENTIAL-ONLY COVERAGE. A NIST golden alone, and a *_MatchesLegacy test alone, are both real
         // shapes — the first Phase-B batch produced seven of them before this rule existed. Neither may close a

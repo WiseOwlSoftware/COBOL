@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: l1c35_unstring_multichar_delimiter
-      *> rules: [GR-14.9.48.4-9]
+      *> rules: [GR-14.9.48.4-9, 1985-GR-VI.6.27.4-11]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

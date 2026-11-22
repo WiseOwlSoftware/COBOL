@@ -1,6 +1,10 @@
       *>--- conformance-case
       *> id: pb365_report_group_qualified_85
-      *> rules: [SR-14.9.49.3-9, GR-14.9.49.4-1, FMT-8.4.2.2.2]
+      *> rules: [SR-14.9.49.3-9, GR-14.9.49.4-1, FMT-8.4.2.2.2,
+      *>    1985-SR-IV.4.3.8.1-L2.4, 1985-SR-IV.4.3.8.1-L2.5,
+      *>    1985-SR-VII.4.6.3-2, 1985-SR-VIII.4.8.3-2,
+      *>    1985-SR-IX.4.8.3-2, 1985-SR-XIII.4.8.3-2,
+      *>    1985-SR-XIII.4.9.3-5]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb5924-seg-classification-85
-      *> rules: [1985-SR-XVI.1.4.1-p1]
+      *> rules: [1985-SR-XVI.1.4.1-p1, 1985-GR-XVI.1.4.3-p1]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: l1_acos_domain_accept
-      *> rules: [AR-15.8.3-2]
+      *> rules: [AR-15.8.3-2, 1989-AR-A.2.5.3-2]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

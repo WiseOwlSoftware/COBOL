@@ -1,6 +1,8 @@
       *>--- conformance-case
       *> id: pb358_start_no_key_phrase
-      *> rules: [GR-14.9.41.4-15, GR-14.9.41.4-16, GR-14.9.41.4-17]
+      *> rules: [GR-14.9.41.4-15, GR-14.9.41.4-16, GR-14.9.41.4-17,
+      *>    1985-GR-IX.4.7.4-2, 1985-GR-IX.4.7.4-4, 1985-GR-IX.4.7.4-10,
+      *>    1985-GR-IX.4.7.4-11, 1985-GR-IX.4.7.4-12]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb5732-copy-replacing-produces-comment-entry
-      *> rules: [1985-GR-XII.2.4-12]
+      *> rules: [1985-GR-XII.2.4-12, 1985-GR-XII.2.4-8]
       *> files: [PB5732A.cpy, PB5732Z.cpy]
       *> accept: [85]
       *> source-format: fixed

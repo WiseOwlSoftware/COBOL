@@ -1,6 +1,7 @@
       *>--- conformance-case
       *> id: l1_use_sr8_file_named_twice
-      *> rules: [SR-14.9.49.3-8]
+      *> rules: [SR-14.9.49.3-8, 1985-SR-VII.4.6.3-3,
+      *>    1985-SR-VIII.4.8.3-3, 1985-SR-XIII.4.8.3-3]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

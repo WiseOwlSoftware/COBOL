@@ -1,6 +1,7 @@
       *>--- conformance-case
       *> id: l1c38_write_key_any_order
-      *> rules: [GR-14.9.51.4-37, GR-14.9.51.4-39]
+      *> rules: [GR-14.9.51.4-37, GR-14.9.51.4-39, 1985-GR-IX.4.9.4-13,
+      *>    1985-GR-IX.4.9.4-15]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

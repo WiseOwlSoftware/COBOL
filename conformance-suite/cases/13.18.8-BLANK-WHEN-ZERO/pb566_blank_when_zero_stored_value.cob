@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb566_blank_when_zero_stored_value
-      *> rules: [GR-13.18.8.4-1]
+      *> rules: [GR-13.18.8.4-1, 1985-GR-VI.5.4.4-1]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

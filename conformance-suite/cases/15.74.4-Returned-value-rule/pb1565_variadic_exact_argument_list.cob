@@ -1,6 +1,8 @@
       *>--- conformance-case
       *> id: pb1565_variadic_exact_argument_list
-      *> rules: [RV-15.74.4-1, RV-15.86.4-1, RV-15.98.4-1]
+      *> rules: [RV-15.74.4-1, RV-15.86.4-1, RV-15.98.4-1,
+      *>    1989-RV-A.2.34.4-1, 1989-RV-A.2.41.4-1, 1989-RV-A.2.41.4-2,
+      *>    1989-RV-A.2.45.4-1, 1989-RV-A.2.45.4-2, 1989-RV-A.2.45.4-3]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

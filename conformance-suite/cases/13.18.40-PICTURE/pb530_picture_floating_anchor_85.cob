@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb530_picture_floating_anchor_85
-      *> rules: [SR-13.18.40.3-27, SR-13.18.40.3-29]
+      *> rules: [SR-13.18.40.3-27, SR-13.18.40.3-29, 1985-GR-VI.5.9.5-9]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

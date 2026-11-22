@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb1284_renames_range_fixed
-      *> rules: [SR-13.18.45.3-8]
+      *> rules: [SR-13.18.45.3-8, 1985-SR-VI.5.11.3-6]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

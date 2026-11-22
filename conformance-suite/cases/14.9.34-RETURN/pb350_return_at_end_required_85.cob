@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb350_return_at_end_required_85
-      *> rules: [FMT-14.9.34.2]
+      *> rules: [FMT-14.9.34.2, 1985-GR-XI.4.3.4-4]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

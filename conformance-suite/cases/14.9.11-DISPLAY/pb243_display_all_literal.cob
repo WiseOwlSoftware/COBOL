@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb243_display_all_literal
-      *> rules: [GR-14.9.11.4-3]
+      *> rules: [GR-14.9.11.4-3, 1985-GR-VI.6.10.4-3]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

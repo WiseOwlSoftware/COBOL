@@ -1,6 +1,7 @@
       *>--- conformance-case
       *> id: pb1470_relation_of_two_literals_runs
-      *> rules: [GR-8.8.4.2.1-13]
+      *> rules: [GR-8.8.4.2.1-13, 1985-GR-VI.6.3.1.1.2-L2.1,
+      *>    1985-GR-VI.6.3.1.1.2-L2.2]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

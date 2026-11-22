@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb396_required_imperative_85
-      *> rules: [GR-14.9.13.4-5, FMT-14.9.13.2]
+      *> rules: [GR-14.9.13.4-5, FMT-14.9.13.2, 1985-GR-VI.6.13.4-3]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

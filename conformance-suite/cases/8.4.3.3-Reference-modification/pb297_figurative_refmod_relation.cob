@@ -1,7 +1,8 @@
       *>--- conformance-case
       *> id: pb297_figurative_refmod_relation
       *> rules: [GR-8.4.3.3.4-4, GR-8.4.3.3.4-5, GR-8.8.4.2.7-1,
-      *>    GR-8.8.4.2.7-2]
+      *>    GR-8.8.4.2.7-2, 1985-GR-IV.4.3.8.4.4-1,
+      *>    1985-GR-VI.6.3.1.1.2-L2.1, 1985-GR-VI.6.3.1.1.2-L2.2]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

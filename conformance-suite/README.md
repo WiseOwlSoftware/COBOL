@@ -17,11 +17,15 @@ PB3160, PB4614); this folder is built slice by slice from its §13.
 | `harness/generate.py` | The one reader of the test headers: refuses a malformed test (and a malformed adapter, profile or baseline), writes the suites, reports completeness |
 | `harness/run.py` | The harness: runs the suites against a compiler through its adapter and reports a verdict per test |
 | `harness/reformat.py` | Converts a free-form test (and the library text it copies) to fixed form in place, in the 1985 layout, refusing what it cannot convert with certainty: a test that must witness a row before 2002 is fixed form (kb/Work PB5754; design §3.6) |
+| `harness/obligations.py` | The 1985 (and each held edition's) catalog rows by what witnesses them: a cleared test, an uncleared accepted test, a refusal only, or none; `--repair-headers` names an omitted row in its test's header |
+| `harness/measurements.py` | Records a second compiler's verdicts over the tests an edition's catalog rows name, with each failure's bucket and cause, and counts what is still unrecorded or unclassified |
+| `harness/suite_status.py` | One edition's status line: the rows, points, NIST, second-compiler and transcription terms, `COMPLETE` only when all are zero |
 | `harness/config.py` | The formats of the adapters, profiles and baselines, and their one loader |
 | `harness/normalization-fixture.json` | The output normalization's one fixture, which both runners' normalizations are held to |
 | `adapters/<compiler>.json` | How the harness drives a compiler: its compile, run and flag-mode commands, its edition map, how a diagnostic's line is read, file-name limits, crash codes |
 | `profiles/<compiler>.json` | What a compiler claims: its editions, the Annex A.4 modules and A.3 elements it supports (with the evidence), its Annex A.1 values, the words it reserves beyond the standard |
 | `baselines/<compiler>.json` | A compiler's recorded verdicts, against which a run reports its changes |
+| `measurements/<compiler>.json` | A compiler's verdicts over every test an edition's catalog rows name (cleared or not), each failure with its bucket and cause |
 | `suites/` | Build output, never committed: `suites/<edition>/manifest.json`, `suites/wiseowl/manifest.json`, `completeness.json` |
 | `results/` | Build output, never committed: `results/<compiler>/results.json` and `junit.xml` |
 
@@ -105,6 +109,12 @@ python conformance-suite/harness/generate.py            # refuse, or write suite
 python conformance-suite/harness/generate.py --out DIR  # the manifests only, written to DIR instead of suites/ (DIR new, empty or a previous run's output); --report adds the completeness report
 python conformance-suite/harness/generate.py --check    # the refusals only, writing nothing
 python conformance-suite/harness/generate.py --self-test
+```
+
+```
+python conformance-suite/harness/suite_status.py --edition 85    # how far the 85 suite is from complete, term by term
+python conformance-suite/harness/obligations.py                  # the 85 catalog's rows by witness kind
+python conformance-suite/harness/measurements.py record --compiler gnucobol --edition 85 --version "<cobc --version line>" results.json
 ```
 
 `--check` is an audit of WiseOwl COBOL's local gate and of its CI, so a malformed test, adapter, profile or baseline

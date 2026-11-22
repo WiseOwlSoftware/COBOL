@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb577_odo_value_initial_state
-      *> rules: [GR-13.18.63.4-6, GR-13.18.63.4-9]
+      *> rules: [GR-13.18.63.4-6, GR-13.18.63.4-9, 1985-GR-VI.5.15.6-6]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified
