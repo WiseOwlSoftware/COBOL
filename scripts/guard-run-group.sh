@@ -52,7 +52,36 @@ RUNS="$(mktemp -d)"
 CMP="$RUNS.cmp"
 mkdir -p "$CMP"
 trap 'rm -rf "$RUNS" "$CMP"' EXIT
-export COBOL_SWITCH_1=ON
+
+# THE RUN ENVIRONMENT is data, written once in tests/nist/run-environment.tsv (kb/Work PB3199), which NistRunner reads
+# too (NistRunEnvironment). This runner used to export COBOL_SWITCH_1 alone while the C# leg also pinned the default
+# locales and the MCS directory, so a program that depended on the host's locale got a verdict on one leg only.
+#   guard_run_environment FILE RUN_DIR — export every NAME<TAB>VALUE line of FILE, {run-directory} in a VALUE taken as
+#   RUN_DIR; returns 1, saying why, when FILE is missing, a line is malformed or a name comes twice
+#   (NistRunEnvironment.Parse's rules).
+guard_run_environment() {
+    local file="$1" dir="$2" line name value n=0 seen=""
+    if [ ! -f "$file" ]; then
+        echo "guard-run-group: the NIST run environment is missing: $file" >&2
+        return 1
+    fi
+    while IFS= read -r line || [ -n "$line" ]; do
+        n=$((n + 1)); line="${line%$'\r'}"
+        case "$line" in ''|'#'*) continue ;; esac
+        name="${line%%$'\t'*}"; value="${line#*$'\t'}"
+        if [ "$name" = "$line" ] || ! [[ "$name" =~ ^[A-Z_][A-Z0-9_]*$ ]] || [ -z "$value" ] || [[ "$value" == *$'\t'* ]]; then
+            echo "guard-run-group: $file line $n is not NAME<TAB>VALUE: $line" >&2
+            return 1
+        fi
+        case " $seen " in *" $name "*)
+            echo "guard-run-group: $file line $n declares $name a second time" >&2
+            return 1 ;;
+        esac
+        seen="$seen $name"
+        export "$name=${value//\{run-directory\}/"$dir"}"
+    done < "$file"
+}
+RUN_ENVIRONMENT="$ROOT/tests/nist/run-environment.tsv"
 
 # run_predecessor PRED CONSUMER — run PRED, ungraded, in CONSUMER's run directory ($WORK), its standard input its data
 # file as when it is graded, its stderr kept outside the run directory ($PRED_ERR). Returns 0 when PRED ran to a normal
@@ -91,6 +120,7 @@ for test in $TESTS; do
     fi
     WORK="$RUNS/$test"
     mkdir -p "$WORK"
+    guard_run_environment "$RUN_ENVIRONMENT" "$WORK" || exit 1
     cp "$RUNTIME" "$WORK/"
     preds="$(guard_chain_preds "$test")" || exit 1
     pred_failed=""

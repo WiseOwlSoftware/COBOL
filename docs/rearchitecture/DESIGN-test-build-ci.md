@@ -108,6 +108,19 @@ a change to one that the other does not make is red (kb/Work PB5460: the shell a
 the C# arm read a form feed as a line break, so SQ101M was a false red in the nightly guard while the in-process gate
 compared a page eject equal to a line advance).
 
+Both legs run a program in ONE environment, written once as data: `tests/nist/run-environment.tsv` (`NAME<TAB>VALUE`
+lines, `{run-directory}` the program's own run directory), read by `NistRunEnvironment` (C#) and by
+`scripts/guard-run-group.sh#guard_run_environment` (shell), each refusing a malformed line or a repeated name, loudly.
+It declares external SWITCH-1 ON, the default locales pinned to `INVARIANT` and the MCS directory, and
+`NistRunEnvironmentTests` holds it to every variable `CutRunner.RunExit` sets for a program, so the CLI leg, which
+has only the file, gives its programs the environment the C# leg's get; `guard-verify.sh --self-test` shows a program
+the shell runs sees each one (kb/Work PB3199: the shell exported `COBOL_SWITCH_1` alone, so a program that read the
+host's default locale was graded under two environments). And both read the exit status BEFORE the report: a run
+that did not exit zero is never a match, however its report reads (`NistRunner.Run` fails it;
+`guard-verdict.sh#guard_output_verdict` scores a matched report from such a run `RUN FAILED — REGRESSION!`, or a RUN
+NO-VERDICT when it timed out, was killed or gave no diagnostic); a row `corpus.tsv` declares TERMINATES is scored by
+its termination instead.
+
 ### 1.3 Guard scripts (bash, Linux, over the `cobol` CLI)
 ⛔ **The NIST leg drives `cobol` (`src/WiseOwl.Cobol.Cli`)** and no other compiler (kb/Work PB750, PB2109). A guard that
 drives a binary lacking `WiseOwl.Cobol.Compiler`, the Roslyn code generator that IS the product, is structurally blind to
