@@ -50,3 +50,9 @@ namespaces wherever it names these types). The public surface moved, so the runt
 exception layer has no upward type edge left but the RunUnit/CobolObject ones the note assigns to PB2349 and the §8.2 move.
 Performance: the selection orders are structs passed by `in`, so the collation overloads no longer allocate a delegate
 per call. Duplication: `WideningFitsU` replaced three copies of the UInt128 widening test.
+
+**Gate.** Run 000005 at 49370e1fa7: `=== BUILD-LOCAL GATE: GREEN — Conformance 28,998/28,998 ran · Unit 42,652/42,652 ran ·
+RepoDrift 217/217 ran · Characterization 37/37 ran (skipped 0) ===`, after four reds each fixed at its cause (the Unshipped
+API order, the new drift test's Sweep trait, a non-canonical designator with the cite-resolve baseline shrinking 6029 to
+6026, and EXCEPTION-FILE's r1b two spaces named as the rule's result once EcFunctions joined the Intrinsics folder that
+ArgumentSubstituteDriftTests reads).
