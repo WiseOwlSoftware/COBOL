@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p139",
+ "rule-digest": "f2be90c373dd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Editions/InputOutputStatements.cs#InputOutputStatementSet; src/WiseOwl.Cobol.Compiler/Binding/InputOutputStatementForms.cs#FormOf",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-III.2-p139",
+ "notes": "Derivation from the read lineage-reads-1985/g-03.json: CONFORMS on a definitional derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-III.2-p139); the code location is where the compiler meets the rule's subject. The read: \"The input-output statements are: ACCEPT (with the identifier phrase), CLOSE, ...\" classifies statements for the rules that say 'an input-output statement'; the class has no behaviour of its own a program could show apart from those rules. The code location was located after the read (locations.json): InputOutputStatementSet holds each edition's input-output statements as data, Cobol85 the fifteen of §1985:III.2 p139 (ACCEPT identifier, CLOSE, DELETE, DISABLE, DISPLAY, ENABLE, OPEN, PURGE, READ, RECEIVE, REWRITE, SEND, SET TO ON/OFF, START, WRITE); FormOf classifies a parsed statement into that vocabulary, the one classification every rule naming the term asks (InputOutputStatementForms.Of)."
+}

@@ -1683,6 +1683,10 @@ public sealed class SpecTraceabilityInventoryDriftTests
             "1985-GR-III.2-p87", "1985-GR-III.2-p88", "1985-GR-III.2-p89", "1985-GR-III.2-p113", "1985-GR-III.2-p166",
             "1985-GR-III.2-p169", "1985-GR-III.2-p178", "1985-GR-III.2-p197", "1985-GR-III.2-p218", "1985-GR-III.2-p248",
             "1985-GR-B.2.1-p1", "1985-GR-B.2.1-p2", "1985-GR-B.2.1-p3",
+            // ⚙ One more, added deliberately (kb/Work PB6032, decision PB6003, signature `claude: 2026-11-21`): Input-Output
+            // Statement, the definitional derivation of read g-03 on its UPHELD refuter record, located at the edition's own
+            // set (InputOutputStatementSet) once PB6032 made the 1985 fifteen a fact of the edition.
+            "1985-GR-III.2-p139",
             // ⚙ One more, added deliberately (kb/Work PB6001 and PB6012, the `informative` arm, signature `claude: 2026-11-21`):
             // §1985:VI.6.18.5 p1, the preamble of the INSPECT examples, read in e-01 (tests/version-matrix/lineage-reads-1985/e-01.json)
             // after its refuter OVERTURNED the definitional proposal (derivation-refutations/w20262132a-1985-p1-definitional.jsonl),
