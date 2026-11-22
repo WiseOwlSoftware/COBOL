@@ -1,0 +1,13 @@
+{
+  "claim_id": "p258-1",
+  "claim_key": "f4f771b19c6a8f07",
+  "page": 258,
+  "kind": "missing-heading",
+  "severity": "structural",
+  "claim": {"id": "p258-1", "page": 258, "kind": "missing-heading", "severity": "structural", "pdf_says": "5.8 THE OCCURS CLAUSE / 5.8.1 Function / 5.8.2 General Format / 5.8.3 Syntax Rules", "markdown_says": "# 5.8 THE OCCURS CLAUSE\n\n## 5.8.1 Function\n\n## 5.8.2 General Format\n\n## 5.8.3 Syntax Rules", "why_it_matters": "The headings sit one level too high: sibling clauses use '## 5.x' and '### 5.x.y' (pages 252-256), and the continuation on page 259 uses '### 5.8.4 General Rules', so 5.8 becomes a top-level heading and 5.8.4 is nested at a different depth from 5.8.1-5.8.3."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The printed page (VI-26) shows the headings '5.8 THE OCCURS CLAUSE', '5.8.1 Function', '5.8.2 General Format', '5.8.3 Syntax Rules'; page-258.md carries all four with the same numbers and words, so nothing is missing and the kind 'missing-heading' is wrong. The depth defect is confirmed in specs/ANSI_COBOL_1985.md: 5.5 and 5.6 are '## 5.x' with '### 5.x.y' subsections (lines 10963-11017), while 5.8 is '# 5.8' with '## 5.8.1'-'## 5.8.3' (line 11069 on), and page 259's '### 5.8.4 General Rules' is one level deeper than its siblings. By the numbering the PDF prints, 5.8 is a peer of 5.6 and 5.8.4 is a peer of 5.8.1-5.8.3. The markdown's heading tree contradicts that: 5.8 sits at chapter level and 5.8.4 nests under 5.8.3. This is structural, not just looks, because any tool that splits the transcription by heading depth would attach the General Rules to the Syntax Rules.",
+    "corrected_description": "No heading is missing. The four headings on page 258 are present with the right text but one level too shallow: '# 5.8' and '## 5.8.1/5.8.2/5.8.3' should be '## 5.8' and '### 5.8.1/5.8.2/5.8.3', matching sibling clauses 5.5 and 5.6 and the continuation '### 5.8.4 General Rules' on page 259. The kind is a heading-level (structure) defect, not missing-heading."
+  }
+}

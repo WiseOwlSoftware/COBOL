@@ -29,7 +29,7 @@ from typing import Any
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import inventory_store  # noqa: E402  (the one-file-per-rule store: its reader, its writer, its file names)
 import lineage  # noqa: E402  (which rows are KEPT, and a row's own witnesses)
-from inventory_schema import REPO, Edition, Schema  # noqa: E402
+from inventory_schema import REPO, Edition, Schema, Tree  # noqa: E402
 
 Row = dict[str, Any]
 
@@ -48,15 +48,25 @@ UPHELD = "UPHELD"
 RECORD_KEYS = ("rule-id", "rule-digest", "read", "reader", "refuter", "adjudication", "work")
 
 
+def store_rel(year: int) -> str:
+    """The store of the code reads of the older edition `year`, repository-relative."""
+    return f"tests/version-matrix/code-reads-{year}"
+
+
 def store_dir(year: int, root: pathlib.Path = REPO) -> pathlib.Path:
     """The store of the code reads of the older edition `year` in the tree at `root`."""
-    return root / "tests" / "version-matrix" / f"code-reads-{year}"
+    return root / store_rel(year)
 
 
 def load(year: int, root: pathlib.Path = REPO, directory: pathlib.Path | None = None) -> dict[str, dict[str, Any]]:
     """Every record of `year`'s store (`directory`, the tracked store by default), by rule id; an absent store holds none,
     and a stray or misnamed file is a SystemExit naming each (`inventory_store.read_store`)."""
     return inventory_store.read_store(directory or store_dir(year, root))
+
+
+def load_at(year: int, tree: Tree) -> dict[str, dict[str, Any]]:
+    """Every record of `year`'s store as committed at `tree.rev`, by rule id (`inventory_store.read_store_at`)."""
+    return inventory_store.read_store_at(tree, store_rel(year))
 
 
 def write(records: dict[str, dict[str, Any]], directory: pathlib.Path) -> int:

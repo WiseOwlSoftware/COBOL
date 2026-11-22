@@ -1,0 +1,13 @@
+{
+  "claim_id": "p552-1",
+  "claim_key": "09869cd831a13a3a",
+  "page": 552,
+  "kind": "misplaced-content",
+  "severity": "structural",
+  "claim": {"id": "p552-1", "page": 552, "kind": "misplaced-content", "severity": "structural", "pdf_says": "Page 552 is blank (no printed text apart from the licence stamp); the title \"SECTION XI: SORT-MERGE MODULE\" is printed at the top of page 553 (folio XI-1).", "markdown_says": "page-552 slice: \"<!-- This page is blank in the printed standard; it contains no text to transcribe. -->\\n\\n# SECTION XI: SORT-MERGE MODULE\" while page 553 carries the title again as \"## <u>SECTION XI: SORT-MERGE MODULE</u>\"", "why_it_matters": "The section title heading sits under page 552 (a blank page) and is duplicated on page 553; the heading belongs on page 553 only. Structural only: no normative text lost."},
+  "verdict": {
+    "real": false,
+    "reasoning": "The 300 dpi render of page 552 is blank apart from scanner specks and the licence stamp, and page 553 does print the SECTION XI title, which the markdown transcribes on page 553 as '## <u>SECTION XI: SORT-MERGE MODULE</u>'. The '# SECTION XI: SORT-MERGE MODULE' line is not a transcription of page 552. It is the transcription's document-level H1 section divider, and the file places one at every section boundary just before the next '## Page N' marker: '# SECTION II' after blank page 84, '# SECTION VII' after blank page 374, '# SECTION IX' after blank page 470 and '# SECTION X' after blank page 514. Each of those also repeats the title as printed on the next page. Because the H1 sits between page markers, it lands in the preceding page's slice. This is navigation scaffolding, it is applied the same way across the whole file, and it changes no content or meaning. Nothing printed is missing and nothing is misquoted.",
+    "corrected_description": ""
+  }
+}

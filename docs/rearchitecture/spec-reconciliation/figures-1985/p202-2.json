@@ -36,7 +36,7 @@
   "",
   "    ┌                                        ╭<u>RECORDS</u>   ╮┐",
   "    │<u>BLOCK</u> CONTAINS [integer-1 <u>TO</u>] integer-2 ┤          ├│",
-  "    └                                        ╰<u>CHARACTERS</u>╯┘",
+  "    └                                        ╰CHARACTERS╯┘",
   "",
   "    ┌       ╭CONTAINS integer-3 CHARACTERS                                   ╮ ┐",
   "    │<u>RECORD</u> ┤IS <u>VARYING</u> IN SIZE [[FROM integer-4] [<u>TO</u> integer-5] CHARACTERS] ├ │",
@@ -55,5 +55,5 @@
   "    │<u>DATA</u> ┤           ├ {data-name-3} …  │ .",
   "    └     ╰<u>RECORDS</u> ARE╯                  ┘"
  ],
- "reason": "The printed page (the composite skeleton, RELATIVE FILE) sets the file description entry as page 201's sequential one up to the DATA clause, then the period after its bracket; the batch typed one-row brace and bracket corners in the BLOCK, RECORD, VALUE OF and DATA clauses. Drawn from page 201's figure, checked against the page."
+ "reason": "The printed page (the composite skeleton, RELATIVE FILE) sets the file description entry as page 201's sequential one up to the DATA clause, then the period after its bracket; the batch typed one-row brace and bracket corners in the BLOCK, RECORD, VALUE OF and DATA clauses. Drawn from page 201's figure, checked against the page. Second pass (kb/Work PB6051, claim p202-1): CHARACTERS in the BLOCK CONTAINS braces is printed without an underline."
 }

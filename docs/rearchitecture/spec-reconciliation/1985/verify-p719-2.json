@@ -1,0 +1,13 @@
+{
+  "claim_id": "p719-2",
+  "claim_key": "d9fe8324f8466056",
+  "page": 719,
+  "kind": "missing-heading",
+  "severity": "structural",
+  "claim": {"id": "p719-2", "page": 719, "kind": "missing-heading", "severity": "structural", "pdf_says": "3.2 USA STANDARD COBOL 1968", "markdown_says": "3.2 USA STANDARD COBOL 1968", "why_it_matters": "Same as p719-1: the numbered subsection heading 3.2 is left as a plain paragraph while its siblings 3.3 and 3.4 (page 720) are markdown headings (informative History of COBOL appendix)."},
+  "verdict": {
+    "real": false,
+    "reasoning": "The rendered page 719 (folio XVII-11) prints '3.2  USA STANDARD COBOL 1968' as an unadorned line in the same typewriter face as the body text, the same style as '3.1 INITIAL STANDARDIZATION EFFORT'. The markdown carries the identical text, '3.2 USA STANDARD COBOL 1968', on its own line in the same position (specs/ANSI_COBOL_1985.md line 26824). The claim itself quotes the two sources identically. The only difference is markdown markup: 3.1 and 3.2 are plain lines, while 3.3 to 3.6 use '##'. That is a formatting inconsistency inside the transcription, not a content discrepancy against the PDF. The page is in the informative History of COBOL appendix, and no wording, numbering or meaning differs.",
+    "corrected_description": ""
+  }
+}

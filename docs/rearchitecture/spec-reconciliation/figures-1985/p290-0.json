@@ -1,0 +1,12 @@
+{
+ "page": 290,
+ "figure": 0,
+ "drawn_lines": [
+  "║ condition-name-1 ║"
+ ],
+ "decided": "drawn",
+ "figure_lines": [
+  "║ condition-name-1 ║"
+ ],
+ "reason": "The printed page encloses the condition-name condition (6.3.1.3), its format included, in the level-2 box that runs down the page; the one-row format is drawn with the box's two sides (FIGURE-STYLE.md rule 9: `║ … ║`) and the regeneration measures no box round a one-row block. The words are the batch's. Second pass (kb/Work PB6051)."
+}

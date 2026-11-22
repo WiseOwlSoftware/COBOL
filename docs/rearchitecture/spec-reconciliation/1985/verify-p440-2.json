@@ -1,0 +1,13 @@
+{
+  "claim_id": "p440-2",
+  "claim_key": "c49f33cb356a107d",
+  "page": 440,
+  "kind": "missing-heading",
+  "severity": "structural",
+  "claim": {"id": "p440-2", "page": 440, "kind": "missing-heading", "severity": "structural", "pdf_says": "2.4 THE ACCESS MODE CLAUSE (a sibling of 2.3 THE FILE CONTROL ENTRY; 2.4.1 Function, 2.4.2 General Format ... are its subordinates, siblings in level of 2.3.1 Function etc.)", "markdown_says": "## 2.4 THE ACCESS MODE CLAUSE ... ### 2.4.1 Function ... ### 2.4.2 General Format ... ### 2.4.3 Syntax Rules ... ### 2.4.4 General Rules", "why_it_matters": "Page 438 renders the sibling clause as '### 2.3 THE FILE CONTROL ENTRY' with '#### 2.3.1 Function'; 2.4 and its subclauses are promoted one level, so the document outline makes 2.4 a peer of '## 2. ENVIRONMENT DIVISION IN THE RELATIVE I-O MODULE' rather than of 2.3."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The printed page VIII-10 shows '2.4 THE ACCESS MODE CLAUSE' followed by 2.4.1-2.4.4, in the same heading style as 2.3 on page 438. In the transcription (Section VIII, Relative I-O) the outline is '## 2. ENVIRONMENT DIVISION IN THE RELATIVE I-O MODULE' > '### 2.1', '### 2.2', '### 2.3 THE FILE CONTROL ENTRY' > '#### 2.3.1..2.3.4', then '## 2.4 THE ACCESS MODE CLAUSE' > '### 2.4.1..2.4.4' (checked with grep on specs/ANSI_COBOL_1985.md lines 17360-17460). So 2.4 and its subclauses sit one level too high, making 2.4 a peer of clause 2 and ending clause 2's section early for any heading-scoped extraction. No text is missing; the heading is present with the wrong level, so 'missing-heading' misnames it.",
+    "corrected_description": "Heading-level error, not a missing heading: on page 440 the transcription renders '2.4 THE ACCESS MODE CLAUSE' as '##' and 2.4.1-2.4.4 as '###', while its sibling 2.3 (page 438) is '###' with '####' subclauses under '## 2. ENVIRONMENT DIVISION IN THE RELATIVE I-O MODULE'. 2.4 should be '###' and 2.4.1-2.4.4 '####'. The text is complete."
+  }
+}

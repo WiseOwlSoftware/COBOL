@@ -967,6 +967,12 @@ The rules (each a drift assertion, listed with the measure that shows today's di
 6. **The census computes rules 1–3** — three new per-type columns (`files`, `publicTypesInFile`, `fileNameMatches`)
    so these counts stop being text scans, and `file_census_notes.py` files their findings like the others (rules 2 and
    3 have no notes until it does); the drift assertions read the newest record, as `ArchCensusDriftTests` does.
+7. **A schema-owned vocabulary has no hand-kept copy in `scripts/`.** The inventory schema
+   (`tests/version-matrix/inventory-schema.json`) owns the verdicts and their `resolves` flags, the test-ref forms and
+   both list separators; a script reads them through `inventory_schema.load_schema()` (`Schema.resolving`,
+   `Schema.defective`, `Schema.test_ref_forms`, `Schema.test_ref_sep`, `Schema.code_location_sep`), never by retyping
+   them or by a second parse of the JSON (kb/Work PB3206, PB3210). Each reader's self-test plants a schema with a new
+   entry and shows it carried through (`scripts/selftests/spec/normalize_batch/`).
 
 **Names: what changes, what does not, and the one owner question.**
 - *Project and assembly names do not change.* `WiseOwl.Cobol.{Editions,Frontend,Compiler,Runtime,Cli}` and the

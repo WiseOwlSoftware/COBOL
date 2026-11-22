@@ -97,7 +97,7 @@ public sealed class ReservedWordsDriftTests
         foreach (string line in File.ReadLines(Path.Combine(TestRepo.Root, "specs", "ANSI_COBOL_1985.md")))
         {
             if (!inList) { inList = line.StartsWith("## 8. <u>COBOL RESERVED WORDS</u>", StringComparison.Ordinal); continue; }
-            if (line.StartsWith("# SECTION V", StringComparison.Ordinal)) break;
+            if (line.StartsWith("# <u>SECTION V:", StringComparison.Ordinal)) break;
             if (!line.StartsWith('|')) continue;
             foreach (string cell in line.Split('|'))
                 if (System.Text.RegularExpressions.Regex.IsMatch(cell.Trim(), "^[A-Z][A-Z0-9-]*$")) text.Add(cell.Trim());

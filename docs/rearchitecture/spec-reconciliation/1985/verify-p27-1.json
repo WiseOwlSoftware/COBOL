@@ -1,0 +1,13 @@
+{
+  "claim_id": "p27-1",
+  "claim_key": "c5ee356e4f159dcc",
+  "page": 27,
+  "kind": "missing-heading",
+  "severity": "structural",
+  "claim": {"id": "p27-1", "page": 27, "kind": "missing-heading", "severity": "structural", "pdf_says": "1.5.2.1 Substitute or Additional Language Elements ... 1.5.2.2 Acceptance of Standard Language Elements ... 1.5.2.3 Obsolete Language Elements ... 1.5.2.4 Externally Provided Functions (subclauses of 1.5.2, same rank as 1.5.2.5 Qualifications on page 28)", "markdown_says": "1.5.2.1 Substitute or Additional Language Elements / 1.5.2.2 Acceptance of Standard Language Elements / 1.5.2.3 Obsolete Language Elements / 1.5.2.4 Externally Provided Functions (each a plain paragraph line, while page 28 carries '### 1.5.2.5 Qualifications')", "why_it_matters": "Four numbered subclause headings of 1.5.2 are plain text, not markdown headings, while their sibling 1.5.2.5 is a heading; a heading-based section index cannot locate the obsolete-element and acceptance requirements (1.5.2.2, 1.5.2.3)."},
+  "verdict": {
+    "real": false,
+    "reasoning": "The printed page I-7 (PDF page 27, rendered at 300 dpi) shows the four subclause headings 1.5.2.1-1.5.2.4, each followed by its body text. The markdown page 27 carries all four heading lines, with exact numbers and titles, in the same order and with every word of the body text. The only difference is that they are plain lines while page 28 marks 1.5.2.5 as '###'. That is markup formatting. No text is missing or changed, and the meaning is the same. The claimed consequence does not hold either: `python scripts/spec/cite.py --check \"§1985:I.1.5.2.3\" \"Obsolete language elements have been neither enhanced nor modified\"` printed OK and resolved the clause '1.5.2.3 Obsolete Language Elements', so the repository's section index finds these plain-line headings. The heading-level inconsistency is at most a cosmetic transcription nit, not a content discrepancy.",
+    "corrected_description": ""
+  }
+}

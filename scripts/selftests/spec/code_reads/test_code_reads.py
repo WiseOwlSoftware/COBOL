@@ -4,6 +4,7 @@
 is refused; each outcome of the one outcome function; the work and adjudication writers; the plan; and the audit of a
 stored record (a hand edit, a digest's shape, a contradicted record with no note)."""
 import contextlib
+import inspect
 import io
 import json
 import sys
@@ -13,6 +14,7 @@ import selftest_cases
 from standard_streams import ensure_utf8
 
 C = selftest_cases.subject(__file__)   # scripts/spec/code_reads.py
+import code_read_landing as L  # noqa: E402  (the landing check, kb/Work PB6056; scripts/spec is on the path `subject` set)
 
 
 def case_00_a_well_formed_read_is_no_problem(expect):
@@ -524,6 +526,102 @@ def case_18_a_decline_read_is_judged_against_the_verdict_its_row_shares(expect):
     expect.equal("targets that differ, or hold none, share nothing",
                  C.store.shared_verdicts({F.GR8: {**F.rows()[0], "next": {"kind": F.KEPT, "to": ["A", "B"]}}}, F.SCHEMA,
                                          {"A": {"verdict": dns}, "B": {"verdict": "CONFORMS"}}), {})
+
+
+def _moving_change(carry_reread=False):
+    """A planted store of two confirmed reads made at the commit `base`, and the `head` of a change that renames the member
+    both name (`BindEntry` to `BindItem`); `carry_reread` makes the store the change's own re-read: records made at `head`,
+    whose entries resolve there."""
+    repo, base = F.tree()
+    ctx = F.context(repo.path)
+    first = repo.path / "reads"
+    F.plant(first, "s-01", [F.read(F.GR8), F.read(F.GR12)], [F.refute(F.GR8), F.refute(F.GR12)])
+    records = C.import_reads(ctx, first, repo.path / "store", base)[0]
+    repo.commit("the change renames the member the reads name", {F.CODE_FILE: F.CODE.replace("BindEntry", "BindItem")})
+    head = repo.git("rev-parse", "HEAD").strip()
+    if carry_reread:
+        moved = {"code-location": F.LOCATION.replace("BindEntry", "BindItem")}
+        again = repo.path / "reads-2"
+        F.plant(again, "s-01", [F.read(F.GR8, **moved), F.read(F.GR12, **moved)], [F.refute(F.GR8), F.refute(F.GR12)])
+        records = C.import_reads(ctx, again, repo.path / "store-2", head)[0]
+    return repo, ctx, records, base, head
+
+
+def case_19_moved_by_names_the_reads_a_change_moved_and_no_other(expect):
+    """kb/Work PB6056: `moved_by` is the change from a base to a head (`moved_since` is the working tree against the pin)."""
+    repo, ctx, records, base, head = _moving_change()
+    with C.pins_open(repo.path) as pins:
+        got = C.moved_by(ctx, records, pins.at(head), pins.at(base))
+        expect.equal("the change moved the member both reads name: each read, with the entry that no longer resolves",
+                     [(r.rule_id, r.fixed, len(r.moved)) for r in got], [(F.GR8, None, 1), (F.GR12, None, 1)])
+        expect("the reason names the entry and the member",
+               all(F.LOCATION in r.moved[0] and "'BindEntry'" in r.moved[0] for r in got), str(got))
+        expect.equal("a change that moved nothing (head = base) moves no read", C.moved_by(ctx, records, pins.at(base),
+                                                                                         pins.at(base)), [])
+        expect.equal("code that moved BEFORE the base is `moved_since`'s, never this change's (base = head = the moved tree)",
+                     C.moved_by(ctx, records, pins.at(head), pins.at(head)), [])
+
+
+def case_20_the_landing_check_refuses_a_move_whatever_the_editions_status_on_main(expect):
+    """kb/Work PB6056, decision 2026-11-22: an edition that does NOT read COMPLETE on main is refused too. The base of the
+    planted change holds an open note (`F.tree`'s PB1), so its edition is not COMPLETE there, and the move is refused; the
+    check has no input of main's status at all, so no status can let a move through."""
+    repo, ctx, records, base, head = _moving_change()
+    lines = []
+    rc = L.check(repo.path, head, base, lines.append, lambda root, rev: [(ctx, records)])
+    text = "\n".join(lines)
+    expect("refused (exit 1) though the edition is open on main (an open note at the base)", rc == 1, text)
+    expect("the refusal names the edition, both rows, the moved member and the remedy",
+           "edition 1985" in text and F.GR8 in text and F.GR12 in text and "'BindEntry'" in text
+           and "import --replace" in text and "re-read" in text, text)
+    expect("the check reads no status of main: no parameter of it and no reader of `edition_status.py` in the module",
+           list(inspect.signature(L.check).parameters) == ["root", "rev", "base", "say", "reads"]
+           and "edition_status.py --" not in inspect.getsource(L) and not hasattr(L, "complete_on_main"),
+           str(inspect.signature(L.check)))
+
+
+def case_21_the_landing_check_passes_a_carried_reread_and_a_change_that_moves_nothing(expect):
+    repo, ctx, records, base, head = _moving_change()
+    lines = []
+    expect.equal("a change that moves no read's code passes",
+                 L.check(repo.path, base, base, lines.append, lambda root, rev: [(ctx, records)]), 0)
+    repo, ctx, carried, base, head = _moving_change(carry_reread=True)
+    expect.equal("a change that carries the re-read passes (its records' entries resolve at the head)",
+                 L.check(repo.path, head, base, lines.append, lambda root, rev: [(ctx, carried)]), 0)
+    try:
+        L.check(repo.path, "0" * 40, base, lines.append, lambda root, rev: [(ctx, carried)])
+        raised = False
+    except L.NotRun:
+        raised = True
+    expect("a revision that is no commit is NOT RUN, never a pass", raised)
+
+
+def case_22_the_landing_check_reads_the_store_at_the_revision_it_judges(expect):
+    """kb/Work PB6056 branch review R1-2: `stored_reads` reads the store as committed at `--rev`, the revision `moved_by`
+    resolves in, so a dirty working-tree store does not change the verdict, either way."""
+    repo, ctx, stale, base, head = _moving_change()
+    _, _, carried, _, _ = _moving_change(carry_reread=True)
+    rel = C.store.store_rel(1985)
+    C.store.write(stale, repo.path / rel)
+    repo.commit("the head commits the stale store (records read at the base)")
+    committed_stale = repo.git("rev-parse", "HEAD").strip()
+
+    def reads(root, rev):
+        return L.stored_reads(root, rev, F.SCHEMA, lambda year, r, v: ctx)
+    lines = []
+    expect.equal("the committed store is read: the stale reads, refused", L.check(repo.path, committed_stale, base,
+                                                                                  lines.append, reads), 1)
+    C.store.write(carried, repo.path / rel)   # the working tree now holds the re-read, uncommitted
+    expect("the working tree's store is dirty", bool(repo.git("status", "--porcelain", "--", rel)))
+    expect.equal("an uncommitted re-read does not pass the committed stale store", L.check(repo.path, committed_stale, base,
+                                                                                           lines.append, reads), 1)
+    repo.commit("the head commits the re-read")
+    committed_carried = repo.git("rev-parse", "HEAD").strip()
+    C.store.write(stale, repo.path / rel)     # and back: the working tree holds the stale store, uncommitted
+    expect.equal("an uncommitted stale store does not refuse the committed re-read", L.check(repo.path, committed_carried,
+                                                                                             base, lines.append, reads), 0)
+    expect.equal("at a revision with no store, no edition is read", list(L.stored_reads(repo.path, base, F.SCHEMA,
+                                                                                         lambda year, r, v: ctx)), [])
 
 
 if __name__ == "__main__":

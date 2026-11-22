@@ -1,0 +1,13 @@
+{
+  "claim_id": "p520-1",
+  "claim_key": "1d2f4cd092bf730e",
+  "page": 520,
+  "kind": "missing-heading",
+  "severity": "structural",
+  "claim": {"id": "p520-1", "page": 520, "kind": "missing-heading", "severity": "structural", "pdf_says": "1.3.8.2 Conventions for Condition-Names, Data-Names, File-Names, Record-Names, and Report-Names", "markdown_says": "### 1.3.8.2 Conventions for Condition-Names, Data-Names, File-Names, Record-Names, and Report-Names", "why_it_matters": "A fifth-level subsection of 1.3.8 rendered at the same heading level (###) as 1.3.8 and 1.3, so it does not nest under its parent."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The 300-dpi render of page 520 (folio X-6) prints the bold heading '1.3.8.2 Conventions for Condition-Names, Data-Names, File-Names, Record-Names, and Report-Names' wrapped over two lines. The heading text in the markdown is complete and correct. The structural claim holds: in specs/ANSI_COBOL_1985.md, Section X carries '### 1.3 LANGUAGE CONCEPTS', '### 1.3.8 Scope of Names' and '### 1.3.8.2 ...' (line 20028) at the same level, so 1.3.8.2 does not nest under 1.3.8. Its sibling '### ║1.3.8.3 Conventions for Index-Names║' on page 521 has the same problem. The defect is in the markdown heading structure only. The normative text is unchanged.",
+    "corrected_description": "The heading text is transcribed correctly. 1.3.8.2 is a fourth-level number, a child of 1.3.8, and the claim's 'fifth-level' is wrong. It is rendered as '###', the same level as its parent '### 1.3.8 Scope of Names' and grandparent '### 1.3 LANGUAGE CONCEPTS', so it does not nest. It should be one level deeper than 1.3.8 (for example '#####' under a '####' 1.3.8). Its sibling 1.3.8.3 on page 521 has the same flattening."
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "claim_id": "p201-1",
+  "claim_key": "97c4b9ec0ae64ada",
+  "page": 201,
+  "kind": "incorrect-figure",
+  "severity": "normative",
+  "claim": {"id": "p201-1", "page": 201, "kind": "incorrect-figure", "severity": "normative", "pdf_says": "BLOCK CONTAINS [integer-1 TO] integer-2 {RECORDS / CHARACTERS} (RECORDS underlined; CHARACTERS printed without underline)", "markdown_says": "│<u>BLOCK</u> CONTAINS [integer-1 <u>TO</u>] integer-2 ┤          ├│\n    └                                        ╰<u>CHARACTERS</u>╯┘", "why_it_matters": "Underlining added: per §1985:IV.2.1.2 an uppercase word not underlined is optional. The printed BLOCK CONTAINS clause (sequential FD, V-9) leaves CHARACTERS un-underlined (the implicitly selected choice that may be omitted, e.g. BLOCK CONTAINS 80); the markdown makes it a required key word, falsely restrictive syntax. Page 203's transcription of the same clause correctly leaves it plain."},
+  "verdict": {
+    "real": true,
+    "reasoning": "Rendered page 201 (V-9) at 300 dpi and cropped the BLOCK CONTAINS choice braces: RECORDS carries an underline, CHARACTERS has none. The markdown (page-201.md line 18) writes <u>CHARACTERS</u>, which turns an optional word (the implicitly selected brace option) into a key word, so the transcription states falsely restrictive syntax. The claim quotes both sources accurately.",
+    "corrected_description": ""
+  }
+}

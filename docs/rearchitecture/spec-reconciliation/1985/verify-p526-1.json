@@ -1,0 +1,13 @@
+{
+  "claim_id": "p526-1",
+  "claim_key": "23c156d1ffc52c57",
+  "page": 526,
+  "kind": "missing-heading",
+  "severity": "structural",
+  "claim": {"id": "p526-1", "page": 526, "kind": "missing-heading", "severity": "structural", "pdf_says": "3. IDENTIFICATION DIVISION IN THE INTER-PROGRAM COMMUNICATION MODULE ... 3.1 THE PROGRAM-ID PARAGRAPH AND NESTED SOURCE PROGRAMS", "markdown_says": "# ║3. IDENTIFICATION DIVISION IN THE INTER-PROGRAM COMMUNICATION MODULE║ ... ## ║3.1 THE PROGRAM-ID PARAGRAPH AND NESTED SOURCE PROGRAMS║", "why_it_matters": "Section 3 is rendered as a level-1 heading (#), above its siblings '## 1.' and '## ║2. ...║' and at the level of the whole document, so the outline puts it outside Section X."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The printed page X-12 (PDF p526) shows '3. IDENTIFICATION DIVISION IN THE INTER-PROGRAM COMMUNICATION MODULE' as a numbered major section of Section X, a sibling of '1. INTRODUCTION...' and '2. NESTED SOURCE PROGRAMS'. In specs/ANSI_COBOL_1985.md those siblings are '##' (lines 19855, 20072) and the next sibling '4. DATA DIVISION...' is '##' (line 20326), while line 20210 renders 3. as '#', the same level as '# SECTION X: INTER-PROGRAM COMMUNICATION MODULE' (line 19847). The 3.1 and 3.1.x subheadings are likewise one level too high (## and ### where 2.x/2.x.y use ### and ####). The text itself is fully present and the general format (bracket, braces with choice-indicator bars around COMMON/INITIAL) is transcribed; only the heading level is wrong. Structural, not normative. Note the same mis-leveling recurs in the duplicated copy at line 20288 (page 528).",
+    "corrected_description": "Heading level wrong, not a missing heading: '3. IDENTIFICATION DIVISION IN THE INTER-PROGRAM COMMUNICATION MODULE' is '#' (document/Section level) instead of '##' like its siblings 1., 2. and 4.; its subheadings 3.1 and 3.1.1-3.1.4 are each one level too high as a consequence. All text present."
+  }
+}

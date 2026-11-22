@@ -17,7 +17,7 @@
  "decided": "neither",
  "figure_lines": [
   "                                     ╭ ║ WITH identifier-2 ║ ╮",
-  "<u>SEND</u> cd-name-1 [ <u>FROM</u> identifier-1 ] ┤   WITH <u>ESI</u>            ├",
+  "<u>SEND</u> cd-name-1 [ <u>FROM</u> identifier-1 ] ┤ ║ WITH <u>ESI</u>          ║ ├",
   "                                     │   WITH <u>EMI</u>            │",
   "                                     ╰   WITH <u>EGI</u>            ╯",
   "",
@@ -30,5 +30,5 @@
   "    └                      ╰ ╰ <u>PAGE</u>                ╯    ╯ ┘",
   "    ║ [ <u>REPLACING</u> LINE ] ║"
  ],
- "reason": "The printed page sets SEND Format 2 (3.6.2) with level-2 boxes round WITH identifier-2, round mnemonic-name-1 and round [REPLACING LINE] (one row each); the batch lost the boxes and underlined mnemonic-name-1, whose rule is the box's lower side. Drawn from the page by FIGURE-STYLE.md rule 9."
+ "reason": "The printed page sets SEND Format 2 (3.6.2) with level-2 boxes round WITH identifier-2, round mnemonic-name-1 and round [REPLACING LINE] (one row each); the batch lost the boxes and underlined mnemonic-name-1, whose rule is the box's lower side. Drawn from the page by FIGURE-STYLE.md rule 9. Second pass (kb/Work PB6051, claim p684-1): the printed box encloses both WITH identifier-2 and WITH ESI."
 }

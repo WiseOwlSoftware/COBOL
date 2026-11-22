@@ -1,0 +1,16 @@
+{
+  "batch": [419, 420, 421, 422, 423, 424, 425, 426, 427, 428, 429, 430],
+  "pages_checked": [419, 420, 421, 422, 423, 424, 425, 426, 427, 428, 429, 430],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p427-1",
+      "page": 427,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "4.7.4 General Rules",
+      "markdown_says": "4.7.4 General Rules",
+      "why_it_matters": "The printed clause heading 4.7.4 General Rules (WRITE statement, Sequential I-O) is transcribed as a plain paragraph instead of a '### 4.7.4 General Rules' heading, as its siblings 4.5.4 (REWRITE, page 422) and 4.6.4 (USE, page 424) are. Tools that locate a rule by its clause heading (cite.py, section slicing) cannot find the WRITE general rules under §1985:VII.4.7.4."
+    }
+  ]
+}

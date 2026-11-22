@@ -1,0 +1,13 @@
+{
+  "claim_id": "p716-1",
+  "claim_key": "baa8fc3d6c0b67fb",
+  "page": 716,
+  "kind": "missing-heading",
+  "severity": "structural",
+  "claim": {"id": "p716-1", "page": 716, "kind": "missing-heading", "severity": "structural", "pdf_says": "2.11 CODASYL COBOL JOURNAL OF DEVELOPMENT 1981", "markdown_says": "2.11 CODASYL COBOL JOURNAL OF DEVELOPMENT 1981", "why_it_matters": "Numbered subsection heading left as a plain paragraph, while siblings 2.10 (page 715) and 2.12 (page 717) are rendered '##'."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The 300 dpi render of page 716 (folio XVII-8) prints '2.11  CODASYL COBOL JOURNAL OF DEVELOPMENT 1981' as a numbered subsection heading of the History of COBOL, set flush left on its own line like its siblings. The heading words are present and identical in the markdown (specs/ANSI_COBOL_1985.md line 26686), so no text is missing; the defect is that the line carries no heading marker, while '## 2.9' (26576), '## 2.10' (26632) and '## 2.12' (26756) of the same list are headings. The claim quotes both sources correctly. It is structural only: the section does not appear in the document outline, and no normative meaning changes. Sibling sweep: 2.5 (26480), 2.6 (26506), 2.7 (26532) and 2.8 (26548), the CODASYL JOD 1968 to 1973 headings, are plain paragraphs too, so the inconsistency covers the whole 2.x list, not only 2.11.",
+    "corrected_description": "Accurate for 2.11: the heading text matches, but the markdown leaves it as a plain paragraph where the siblings 2.9, 2.10 and 2.12 are '##' headings. Structural only, with no change in meaning. The same defect affects 2.5 to 2.8 (lines 26480, 26506, 26532, 26548), which should be fixed together."
+  }
+}

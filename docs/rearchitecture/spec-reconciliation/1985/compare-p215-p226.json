@@ -1,0 +1,13 @@
+{"batch": [215,216,217,218,219,220,221,222,223,224,225,226],
+ "pages_checked": [215,216,217,218,219,220,221,222,223,224,225,226],
+ "pages_unread": [],
+ "findings": [
+  {"id": "p224-1", "page": 224, "kind": "missing-heading", "severity": "structural",
+   "pdf_says": "GENERAL FORMAT FOR COBOL VERBS",
+   "markdown_says": "**<u>GENERAL FORMAT FOR COBOL VERBS</u>**",
+   "why_it_matters": "The page heading is demoted to bold text, while every sibling verb-format page (215-223) carries it as a '## <u>GENERAL FORMAT FOR COBOL VERBS</u>' heading; a heading-based section index misses the UNSTRING-USE formats page."},
+  {"id": "p225-1", "page": 225, "kind": "missing-heading", "severity": "structural",
+   "pdf_says": "GENERAL FORMAT FOR COBOL VERBS",
+   "markdown_says": "<u>**GENERAL FORMAT FOR COBOL VERBS**</u>",
+   "why_it_matters": "The page heading is demoted to bold text, while the sibling verb-format pages carry it as a '## <u>GENERAL FORMAT FOR COBOL VERBS</u>' heading; a heading-based section index misses the WRITE formats page."}
+ ]}

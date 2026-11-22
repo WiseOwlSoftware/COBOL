@@ -1,0 +1,13 @@
+{
+  "claim_id": "p665-1",
+  "claim_key": "51645224e68a83f6",
+  "page": 665,
+  "kind": "misplaced-content",
+  "severity": "normative",
+  "claim": {"id": "p665-1", "page": 665, "kind": "misplaced-content", "severity": "normative", "pdf_says": "SYMBOLIC SUB-QUEUE-1 / SYMBOLIC SUB-QUEUE-2 / SYMBOLIC SUB-QUEUE-3 (all three COMMENT entries enclosed in one level-2 box)", "markdown_says": "| &nbsp;&nbsp;&nbsp;&nbsp;02 data-name-2 PICTURE X(12). | ║SYMBOLIC SUB-QUEUE-1║ |\n| ║&nbsp;&nbsp;&nbsp;&nbsp;02 data-name-3 PICTURE X(12). | SYMBOLIC SUB-QUEUE-║2 |\n| &nbsp;&nbsp;&nbsp;&nbsp;02 data-name-4 PICTURE X(12). | SYMBOLIC SUB-QUEUE-3 |", "why_it_matters": "In the implicit description table the printed level-2 box encloses the three SUB-QUEUE comments. The markdown boxes SUB-QUEUE-1 correctly, puts stray box markers around the data-name-3 row and inside 'SUB-QUEUE-║2', and leaves SUB-QUEUE-3 unmarked, so the level-2 marking of the sub-queue items is garbled."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The 300 dpi render of page 665 (XIV-7) shows one rectangular level-2 box in the COMMENT column enclosing exactly the three lines SYMBOLIC SUB-QUEUE-1, SYMBOLIC SUB-QUEUE-2 and SYMBOLIC SUB-QUEUE-3; the data-name-2..4 PICTURE lines carry no box. The markdown (page-665.md lines 17-19) closes the box after SUB-QUEUE-1, opens a stray marker before the data-name-3 row, places another inside 'SUB-QUEUE-║2', and leaves SUB-QUEUE-3 outside any box. Both sources are quoted accurately by the claim. The text is all present, so the defect is the level-2 marking only: SUB-QUEUE-2 and SUB-QUEUE-3 lose their level-2 marking and the data-name-3 description gains a spurious one. The box sits in the COMMENT column, which the page's NOTE says is not part of the data description, and rule (4) carries the same level-2 marking for data-name-2..4 in prose, so the practical impact is limited; but the level marking is the standard's normative module-level designation, so the claim stands as described.",
+    "corrected_description": ""
+  }
+}

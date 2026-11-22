@@ -184,6 +184,40 @@ The 19 corrections of 2026-11-08 came from a scan for rare words one edit from a
 for every accented or foreign letter (U+00C0 to U+024F, the dotless i), each read on the rendered page; the scan finds a misprint that makes a non-word, not one that makes
 another real word.
 
+**A heading's level is derived from the printed Table of Contents** (owner 2026-11-22: "Shouldn't the PDF Table of Contents
+provide the correct heading structure?", kb/Work PB6057). The printed contents (PDF pages 9-15) list every Section,
+chapter (`6.`) and clause (`6.18 The INSPECT Statement ... VI-94`) with its folio; below the clause the number fixes the
+depth. A Section is level 1 (`# <u>SECTION VI: …</u>`, once, on the page whose folio is `VI-1`: the divider copies the
+transcription once put after the previous page's folio are gone), an Appendix level 2, a chapter `n.` level 2, a clause
+`n.n` level 3, and each further number one deeper, at most 6 (Markdown's deepest: the 14 headings of six and seven parts
+share it). A numbered title line the printed page sets as a heading is a heading, bold or boxed as the page prints it
+(`### ║3.4 THE PURGE STATEMENT║`); a running header (`Sequential I-O - Input-Output Section`) is plain text; an
+underlined unnumbered title (`<u>SUMMARY OF ELEMENTS IN THE NUCLEUS MODULE</u>`, `<u>GENERAL FORMAT FOR …</u>`) keeps the
+level the page gives it. The scope is the standard (Sections I to XVIII) and Amendment 1's Section A, which the
+amendment sets out as the other modules are; Amendment 1's change list and Amendment 2 quote the standard's clause numbers
+as change instructions and print their own structure. `scripts/spec/heading_levels.py` is the one function of the rule
+(`level_of`, `canonical`, `normalize`) and the audit (`check`, run by `verify_publishable.py --edition 1985`): every numbered
+heading at its number's depth plus one, no numbered title left plain, every contents entry a heading of that number and
+title on the page its folio names (the summary tables of Section I chapters 2 and 3 are titled in print and not numbered,
+and match by title; a reconstructed page holds more than one folio), no running header promoted to a heading. Two contents
+entries differ from the heading the page prints and stay as printed (`heading_levels.PRINTED_DIFFERENTLY`, each read on its
+page): Section XI chapter 1 (`INTRODUCTION OF THE SORT-MERGE MODULE`, page 553) and Section XIII clause 4.8 (`THE USE AFTER
+STANDARD EXCEPTION PROCEDURE STATEMENT`, page 654). A level is markup: `cite.py` reads `#{1,6}` and a number, and the
+rule catalog opens and closes a block at any heading, so the normalizer changed no locator and no rule; the one catalog
+row it moved (`§1985:VII.1.3.7` paragraph 1, its box `part` to `whole`) was the running header of page 380, promoted to a
+heading, that had closed the block. The ledger records each change as a sweep `heading-levels(PB6057)`, or as an edit of the
+claim of PB6051's second pass that named it.
+
+**The second pass over the 1985 transcription** (owner 2026-11-22, kb/Work PB6051) compared all 976 pages again with agents
+that did not see the first pass's claims: 236 claims, each with its own adversarial verdict, 167 confirmed (15 normative,
+142 structural, 10 cosmetic) and 69 refuted (`1985/compare-*.json`, `1985/verify-*.json`). Every confirmed claim is in the
+ledger as a claim with `pass: 2` and the id of its compare file, decided `APPLIED` with the edit it made, `ALREADY` (the
+heading stood at its derived level and its siblings moved to it) or `KEPT` (the standard's own index body, which
+Amendment 2 replaces whole, Errata C337). The repairs were read on the rendered page: `CHARACTERS` in the BLOCK CONTAINS
+braces is not underlined (6 pages named, 2 more found by the sweep, pages 396 and 486), level-2 box sides missing or
+misplaced (prose, tables and the one-row general formats), indentation of summary-table rows (pages 32, 34, 54, 738, 741)
+and the three clipped `Z` flags of page 738, which the first pass had kept as unreadable.
+
 **The reserved-word list (Section IV, paragraph 8; PDF pages 191 and 192) is swept and held to its order** (kb/Work
 PB5060). Read against the rendered pages, the printed list has no misprint and no entry out of order, and its 350
 words are the set the compiler reserves at COBOL-85 (`tests/version-matrix/reserved-words.json`, taken from GnuCOBOL's
@@ -238,8 +272,10 @@ HANDLING</u>`, `<u>SECTION IV: …</u>`, a `GENERAL FORMAT FOR …` title, a con
 words and not its number; the ledger sweeps are `heading-underlines(PB4953)` and `heading-underlines(PB5028)`. The second pass
 found 33 more (every `N. TITLE` the first left bare, including page 21's, 14 `GENERAL FORMAT FOR ...` titles, `SECTION VII`, `VIII` and `XIV` on
 their opening pages, `CONDITION-NAME CONDITION:`, `SECTION I` on page 21, `MISCELLANEOUS FORMATS`) and read all 212 underlined lines the text-layer measure could not confirm
-against the page: all 212 are underlined in print. A `# SECTION ...` line placed after a folio or on a blank divider page is
-an editorial divider the page does not print, so it carries no underline. The OCR word boxes alone cannot measure an
+against the page: all 212 are underlined in print. A `# SECTION ...` line placed after a folio or on a blank divider page was an
+editorial divider the page does not print; the second pass (kb/Work PB6051, PB6057) removed each and made the title the page
+prints at its top the level-1 heading (Section XVIII, whose page prints only `INDEX`, keeps the line `# SECTION XVIII: INDEX`
+at the top of page 807, where the citation reader and the rule catalog open its region). The OCR word boxes alone cannot measure an
 underline (a box rule or a skewed scan fools it), so the unmarked headings are found by the heading-shape pattern and then
 read on the page.
 

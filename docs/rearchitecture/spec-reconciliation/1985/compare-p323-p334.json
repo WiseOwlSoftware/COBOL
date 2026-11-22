@@ -1,0 +1,27 @@
+{
+  "batch": [323, 324, 325, 326, 327, 328, 329, 330, 331, 332, 333, 334],
+  "pages_checked": [323, 324, 325, 326, 327, 328, 329, 330, 331, 332, 333, 334],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p326-1",
+      "page": 326,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "6.18 THE INSPECT STATEMENT ... 6.18.1 Function ... 6.18.2 General Format",
+      "markdown_says": "### 6.18 THE INSPECT STATEMENT / #### 6.18.1 Function / #### 6.18.2 General Format",
+      "why_it_matters": "The statement clause and its first two subclauses sit one level too deep: every sibling statement uses '## 6.n THE ... STATEMENT' and '### 6.n.m' (6.16 IF, 6.17 INITIALIZE on page 324, 6.19 MOVE), and the INSPECT clause's own later subclauses 6.18.4 (page 328) and 6.18.5 (page 332) are at ###. The outline makes 6.18 a child of 6.17 and splits 6.18.1/6.18.2 from 6.18.4/6.18.5.",
+      "note": "Should be '## 6.18 THE INSPECT STATEMENT', '### 6.18.1 Function', '### 6.18.2 General Format'."
+    },
+    {
+      "id": "p327-1",
+      "page": 327,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "6.18.3 Syntax Rules",
+      "markdown_says": "6.18.3 Syntax Rules",
+      "why_it_matters": "The subclause heading is transcribed as a plain paragraph, so a heading-based slicer finds no Syntax Rules subclause for INSPECT; its syntax rules (1)-(9) fall under 6.18.2 General Format.",
+      "note": "Its siblings are '### 6.18.4 General Rules' (page 328) and '### 6.18.5 Examples' (page 332); it should be '### 6.18.3 Syntax Rules'."
+    }
+  ]
+}

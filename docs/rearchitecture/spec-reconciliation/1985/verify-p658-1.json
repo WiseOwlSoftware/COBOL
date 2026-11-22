@@ -1,0 +1,13 @@
+{
+  "claim_id": "p658-1",
+  "claim_key": "a0f6bd8e4ad64cc0",
+  "page": 658,
+  "kind": "misplaced-content",
+  "severity": "structural",
+  "claim": {"id": "p658-1", "page": 658, "kind": "misplaced-content", "severity": "structural", "pdf_says": "Page 658 is blank (no text besides the licence stamp); the title \"SECTION XIV: COMMUNICATION MODULE\" is printed on page 659 (folio XIV-1).", "markdown_says": "<!-- This page is blank apart from the omitted licence stamp. -->\n\n# SECTION XIV: COMMUNICATION MODULE", "why_it_matters": "The section heading sits under the blank page 658, and page 659 carries it again as \"# <u>SECTION XIV: COMMUNICATION MODULE</u>\"; the heading is duplicated and the first copy is on the wrong page."},
+  "verdict": {
+    "real": false,
+    "reasoning": "The 300 dpi render of p658 is blank apart from scan specks and the licence stamp, and p659 prints the SECTION XIV title, so the facts in the claim are accurate. But the first heading is not misplaced content. specs/ANSI_COBOL_1985.md follows the same pattern at every section break that starts after a blank verso: a blank-page comment followed by a bare '# SECTION <n>: <title>' anchor, then the printed, underlined title on the next page. It appears for SECTION II, VII, IX, X, XI, XII, XIV, XVII and AMENDMENT 1 (grep 'This page is blank'). It is a document-structure anchor, which is scaffolding. The transcription loses or changes no printed text, and the meaning is unchanged. The printed title is transcribed faithfully on p659. If the project wants that convention removed, it should be one decision applied to all nine places, not a defect on p658 alone.",
+    "corrected_description": ""
+  }
+}

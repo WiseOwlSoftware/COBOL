@@ -1,0 +1,124 @@
+{
+  "batch": [97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108],
+  "pages_checked": [97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p97-1",
+      "page": 97,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "4.2 INITIAL VALUES OF TABLES",
+      "markdown_says": "## 4.2 INITIAL VALUES OF TABLES",
+      "why_it_matters": "Heading at the wrong level: 4.2 is a subsection of 4. TABLE HANDLING, but the markdown gives it the same level (##) as its parent '## 4. <u>TABLE HANDLING</u>' while its siblings 4.1 and 4.3 are at ###. The outline makes 4.2 a peer of clause 4 rather than its child."
+    },
+    {
+      "id": "p99-1",
+      "page": 99,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "4.4.2 Subscripting Using Index-Names",
+      "markdown_says": "### 4.4.2 Subscripting Using Index-Names",
+      "why_it_matters": "Heading at the wrong level: 4.4.2 is a child of 4.4 SUBSCRIPTING (### in the markdown) and a sibling of 4.4.1 (####), but is rendered at ###, the same level as its parent."
+    },
+    {
+      "id": "p100-1",
+      "page": 100,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "4.4.3 Subscripting Example",
+      "markdown_says": "### 4.4.3 Subscripting Example",
+      "why_it_matters": "Heading at the wrong level: 4.4.3 is a child of 4.4 SUBSCRIPTING (###) and a sibling of 4.4.1 (####), but is rendered at ###, the same level as its parent."
+    },
+    {
+      "id": "p103-1",
+      "page": 103,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "6.2 ACCESSING DATA AND FILES",
+      "markdown_says": "## 6.2 ACCESSING DATA AND FILES",
+      "why_it_matters": "Heading at the wrong level: 6.2 is a subsection of '## 6. <u>PROGRAM AND RUN UNIT ORGANIZATION AND COMMUNICATION</u>' and a sibling of '### 6.1 PROGRAM AND RUN UNIT ORGANIZATION', but is rendered at ##, the same level as its parent clause 6."
+    },
+    {
+      "id": "p104-1",
+      "page": 104,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "6.2.2.1 Object Types",
+      "markdown_says": "6.2.2.1 Object Types",
+      "why_it_matters": "A numbered section heading printed in the PDF is demoted to a plain paragraph in the markdown, so it is absent from the document outline and anchors."
+    },
+    {
+      "id": "p104-2",
+      "page": 104,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "6.2.2.1.1 Working Storage Records",
+      "markdown_says": "6.2.2.1.1 Working Storage Records",
+      "why_it_matters": "A numbered section heading printed in the PDF is demoted to a plain paragraph in the markdown."
+    },
+    {
+      "id": "p104-3",
+      "page": 104,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "6.2.2.1.2 File Connectors",
+      "markdown_says": "6.2.2.1.2 File Connectors",
+      "why_it_matters": "A numbered section heading printed in the PDF is demoted to a plain paragraph in the markdown."
+    },
+    {
+      "id": "p104-4",
+      "page": 104,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "6.2.2.1.3 Record Areas for Files",
+      "markdown_says": "6.2.2.1.3 Record Areas for Files",
+      "why_it_matters": "A numbered section heading printed in the PDF is demoted to a plain paragraph in the markdown."
+    },
+    {
+      "id": "p104-5",
+      "page": 104,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "6.2.2.1.4 Other Objects",
+      "markdown_says": "6.2.2.1.4 Other Objects",
+      "why_it_matters": "A numbered section heading printed in the PDF is demoted to a plain paragraph in the markdown."
+    },
+    {
+      "id": "p104-6",
+      "page": 104,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "6.2.2.2 Object Attributes",
+      "markdown_says": "6.2.2.2 Object Attributes",
+      "why_it_matters": "A numbered section heading printed in the PDF is demoted to a plain paragraph in the markdown; its children 6.2.2.2.1-6.2.2.2.4 on page 105 are headings (####) under a parent that is not one."
+    },
+    {
+      "id": "p106-1",
+      "page": 106,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "6.3 PROGRAM CLASSES",
+      "markdown_says": "## 6.3 PROGRAM CLASSES",
+      "why_it_matters": "Heading at the wrong level: 6.3 is a subsection of clause 6 (##) and a sibling of '### 6.1', but is rendered at ##, the same level as its parent."
+    },
+    {
+      "id": "p106-2",
+      "page": 106,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "6.4 INTER-PROGRAM COMMUNICATION",
+      "markdown_says": "## 6.4 INTER-PROGRAM COMMUNICATION",
+      "why_it_matters": "Heading at the wrong level: 6.4 is a subsection of clause 6 (##) and a sibling of '### 6.1', but is rendered at ##, the same level as its parent."
+    },
+    {
+      "id": "p108-1",
+      "page": 108,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "6.4.1.3 Scope of Names of Programs",
+      "markdown_says": "### 6.4.1.3 Scope of Names of Programs",
+      "why_it_matters": "Heading at the wrong level: 6.4.1.3 is a child of '### 6.4.1 Transfer of Control' and a sibling of '#### 6.4.1.1' and '#### 6.4.1.2' (page 107), but is rendered at ###, the same level as its parent."
+    }
+  ]
+}

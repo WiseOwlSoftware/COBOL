@@ -1,0 +1,13 @@
+{
+  "claim_id": "p180-1",
+  "claim_key": "ba128f3e01a9fb98",
+  "page": 180,
+  "kind": "missing-heading",
+  "severity": "structural",
+  "claim": {"id": "p180-1", "page": 180, "kind": "missing-heading", "severity": "structural", "pdf_says": "6.3.2.2 Data Division Structure ... 6.3.2.2.1 General Format", "markdown_says": "# 6.3.2.2 Data Division Structure ... ## 6.3.2.2.1 General Format", "note": "Wrong heading levels: 6.3.2.2 is emitted at level 1 (#) and 6.3.2.2.1 at level 2 (##), while its sibling '#### 6.3.2.1 Data Division Organization' (page 179) is level 4 under '### 6.3.2' and '## 6.3 DATA DIVISION'; the outline makes 6.3.2.2 a top-level chapter above 6.3.", "why_it_matters": "A heading at the wrong level (or none) breaks the document outline that section lookups and citation checks navigate by; the clause becomes unfindable by its number or is filed under the wrong parent."},
+  "verdict": {
+    "real": true,
+    "reasoning": "Printed page IV-34 (PDF p180) carries the numbered headings '6.3.2.2 Data Division Structure' and '6.3.2.2.1 General Format'. In specs/ANSI_COBOL_1985.md, line 7508 is '# 6.3.2.2 Data Division Structure' and line 7512 is '## 6.3.2.2.1 General Format'. The surrounding outline is '## 6.3 DATA DIVISION' (7480), '### 6.3.2 Physical and Logical Aspects of Data Description' (7486) and '#### 6.3.2.1 Data Division Organization' (7488). So 6.3.2.2 sits at level 1 and 6.3.2.2.1 at level 2, which pulls them out from under 6.3.2. Both headings are present in the markdown with the right text, so nothing is missing. The defect is only the heading depth, and the kind label 'missing-heading' is inexact for that reason. Even so, the outline really is broken.",
+    "corrected_description": "Wrong heading levels, not missing headings: 6.3.2.2 is a sibling of '#### 6.3.2.1', so it should be '#### 6.3.2.2 Data Division Structure', and 6.3.2.2.1 should be '##### 6.3.2.2.1 General Format'. The markdown has them at '#' and '##'."
+  }
+}
