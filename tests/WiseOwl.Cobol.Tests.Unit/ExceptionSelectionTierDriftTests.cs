@@ -17,6 +17,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// (<see cref="BoundExceptionSelector.Tier"/>, one type for both operand lists) and the C# test is
 /// <c>ExceptionSelectionEmitter</c>'s alone. These pins keep a third rendering from appearing.
 /// </summary>
+[Trait("Sweep", "tree")]
 public sealed class ExceptionSelectionTierDriftTests
 {
     private static string CodeGenDir =>
