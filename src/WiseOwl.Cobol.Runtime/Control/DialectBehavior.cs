@@ -393,6 +393,16 @@ public enum DialectBehavior
     /// QUOTED. The consumers are <c>ReportSectionBinder</c>'s RD binding (<c>ReportModel.PageWidth</c>, null at 85) and through it
     /// the column screens and <c>ReportWriterEmitter</c>'s report construction.</summary>
     ReportPageWidth = 34,
+    /// <summary>§2002:14.8.34.2 SR6 and SR7 (§2023:14.9.37.3 SR8 and SR9 the same) — a format 2 SEARCH ALL key data-name "shall be
+    /// subscripted by the first index-name associated with identifier-1 along with any subscripts required to uniquely identify the
+    /// data item", and "The index-name subscript shall not be followed by a '+' or a '-'"; a referenced condition-name "shall be
+    /// subscripted by the first index-name associated with identifier-1". ANSI X3.23-1985 has neither sentence: §1985:VI.6.22.3 SR4
+    /// asks only that "Each data-name-1, data-name-2 must be subscripted by the first index-name associated with identifier-1 along
+    /// with other subscripts as required", and puts no subscript rule on a condition-name. So at <c>--std 85</c> <c>WHEN K (IX + 1) = 2</c>,
+    /// <c>WHEN C1 (IX - 1)</c> and <c>WHEN C1 (JX)</c> compile, and from 2002 each is refused (COBOL1965) (kb/Work PB5193, PB5530; VCR
+    /// row 7.91). Both editions are QUOTED. The consumer is <c>SearchAllFormat2Rules</c> (<c>CheckConditionNameSide</c> and
+    /// <c>CheckKeySubscript</c>).</summary>
+    SearchAllKeySubscriptSentences = 35,
 }
 
 /// <summary>
@@ -583,6 +593,11 @@ public static class DialectBehaviors
             "every report has a page width, the PAGE clause's integer-2 or 999, that bounds its COLUMN operands and the line its items "
             + "are placed in, only from COBOL-2002; COBOL-85 gives a report no page width, so an item may stand at any column and "
             + "the line is bounded only by the report file's record"),
+        new(DialectBehavior.SearchAllKeySubscriptSentences, "search-all-key-subscript-sentences", 2002,
+            "7.91", "§2002:14.8.34.2 SR6", "§1985:VI.6.22.3 SR4",
+            "a format 2 SEARCH ALL refuses a key whose first-index-name subscript is followed by a plus or a minus sign, and a condition-name "
+            + "not subscripted by the first index-name, only from COBOL-2002; COBOL-85 asks only that each key be subscripted by the "
+            + "first index-name along with other subscripts as required"),
     ];
 
     static DialectBehaviors()
