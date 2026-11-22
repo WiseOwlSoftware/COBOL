@@ -158,7 +158,7 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
         // WHEN phrase is evaluated each time the conditions in that WHEN phrase are evaluated", over GR4's "The
         // process is then repeated using the new index setting" (Format 1) and per probe of GR9's
         // implementor-specified technique (Format 2) — so a user-function reference inside it activates per
-        // evaluation: the per-evaluation wrapper (§2023:8.4.3.2.4 GR1/GR6a; §2023:8.8.4.13 r2).
+        // evaluation: the per-evaluation wrapper (§2023:8.4.3.2.4 GR1/GR6a; §2023:8.8.4.13 GR2).
         // A nested table's enclosing occurrence is named by the WHEN phrases (GR1): a dynamic-capacity table's scan is bounded by that
         // occurrence's capacity, and every nested table's whole-table operand (WrittenTable) is that occurrence's.
         bool capture = table.SubscriptArity > 1;
@@ -180,7 +180,7 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
     }
 
     /// <summary>Bind a serial SEARCH (ISO §2023:14.9.37 Format 1). identifier-1 is resolved and screened by
-    /// <see cref="Identifier1"/>; the scan uses the table's FIRST index (§2023:14.9.37.4 GR3 a) — unless VARYING names
+    /// <see cref="Identifier1"/>; the scan uses the table's FIRST index (§2023:14.9.37.4 GR3a) — unless VARYING names
     /// another index OF THE SAME TABLE, which then IS the search index (GR3 c) 1.: "If index-name-1 is specified
     /// in the INDEXED BY phrase in the OCCURS clause associated with identifier-1, the index referenced by
     /// index-name-1 is the search index"); VARYING a different table's index (GR3 c) 2.) or a data item (GR3 b)
@@ -261,7 +261,7 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
     /// <para>⛔ THE CONFORMANCE ARGUMENT DOES NOT REST ON SYNTAX RULE 7, AND MUST NOT BE "RESTORED" TO (kb/Work
     /// PB445). SR7 requires only that the OCCURS clause CARRY a KEY phrase — a requirement on the data
     /// description entry, saying nothing about how the data is ordered at run time. The proposition a search
-    /// technique would need is §2023:14.9.37.4 GR5 a) ("The contents of each key data item referenced in the WHEN
+    /// technique would need is §2023:14.9.37.4 GR5a) ("The contents of each key data item referenced in the WHEN
     /// phrase shall be sequenced in the table according to the ASCENDING or DESCENDING phrase"), and that is a
     /// condition the PROGRAM shall satisfy, never a guarantee the compiler may rely on — GR6 exists precisely to
     /// define behaviour when it is false, and GR6 a) 2. ends "It is undefined which of these alternatives

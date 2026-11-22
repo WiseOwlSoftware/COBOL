@@ -27,7 +27,7 @@
   using the file shares — kb/Work PB1562; the form such a record takes is (vi)), integer-1 being the file's record
   size and the area's width, which §2023:13.18.43.3 SR3 keeps every description within; and SR3 / SR4 now SCREEN such a record — GR8 b)'s maximum for a dynamic-length item is its
   maximum size (§2023:8.5.1.10.1: the smallest of its LIMIT, the largest integer its prefixed usage stores and the
-  implementor maximum, A.1 item 62) and its minimum is zero (§2023:8.5.4 item 4), so `RECORD CONTAINS 20` over an
+  implementor maximum, A.1 item 62) and its minimum is zero (§2023:8.5.4 GR4), so `RECORD CONTAINS 20` over an
   unbounded dynamic member is COBOL2010 (it used to be skipped, on the ground that GR8 had nothing to sum);
   (v) **a variable-length group record is sent WITH ITS EXTENT TABLE** (kb/Work PB1053) — each
   variable-length component's fixed-run offset and current length — because with two or more such components the

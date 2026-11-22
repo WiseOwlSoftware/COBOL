@@ -45,7 +45,7 @@ public sealed class ReceivingStoreDriftTests
     /// <summary>kb/Work PB3512 (branch review R1-1) — every USAGE decision in the receiving store reads the item's
     /// OPERAND picture (<c>DataItem.OperandPic</c>), never its raw <c>Pic</c>. ISO §2023:14.9.25.4 GR4: "Bit group items
     /// and national group items are treated as elementary items in the MOVE statement", and a GROUP-USAGE NATIONAL /
-    /// BIT group's usage lives only on its as-if picture (§2023:13.18.29.4 GR1 b) / GR2 b)). The storage readers used to
+    /// BIT group's usage lives only on its as-if picture (§2023:13.18.29.4 GR1b / GR2 b)). The storage readers used to
     /// switch on raw <c>Pic</c>, which is null for such a group, so a group MOVE into a national group (whole or
     /// reference-modified) took the sending bytes as its characters. Golden:
     /// <c>pb3512_group_sender_national_bit_slice</c>.</summary>
@@ -169,7 +169,7 @@ public sealed class ReceivingStoreDriftTests
 
     /// <summary>kb/Work PB1013 — ACCEPT format 1 sizes its device transfer by the RECEIVER's size at execution
     /// (ISO §2023:14.9.1.4 GR3/GR4 "the size of the receiving data item"; an ANY LENGTH receiver's is its argument's,
-    /// §2023:13.18.2.4 GR1 b)), which is <c>ReceivingStore.CharacterPositions</c>. Every elementary arm used to spell the
+    /// §2023:13.18.2.4 GR1b), which is <c>ReceivingStore.CharacterPositions</c>. Every elementary arm used to spell the
     /// DECLARED width itself (<c>DisplayTextWidth</c>, <c>pic.Length</c>, <c>DynamicReceivingSize</c>), so an ANY
     /// LENGTH receiver took one character. This fails if any device read in <c>EmitAcceptDevice</c> other than the
     /// reference-modified slice sizes itself — the group arm included, whose size is the group's character

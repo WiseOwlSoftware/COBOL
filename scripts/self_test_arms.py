@@ -303,7 +303,7 @@ DECLARED: dict[str, tuple[str, ...]] = {
         '("a line pointer into the spec",',
         'silent on the REPAIRED', 'silent calibration',
         # the designator form (kb/Work PB4976, PB6000): an unread designator is refused, glued where it has one form
-        '("designator-not-canonical", "// the receiver (§2023:14.9.25.4 rule 6)', '--canonicalize glues a spaced path',  # citation-audit: example
+        '("designator-not-canonical", "// the receiver (§2023:14.9.25.4 rule 6)',  # citation-audit: example
         'is not read for the designator form',
     ),
     'scripts/spec/audit_doc_citations.py': (

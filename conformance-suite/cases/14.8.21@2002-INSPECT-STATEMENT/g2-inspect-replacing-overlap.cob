@@ -8,7 +8,7 @@
       *> §2002:14.8.21.3 GR17 - identifier-3, identifier-4 or
       *> identifier-5 of a REPLACING occupying the storage of
       *> identifier-1: "the result of the execution of this statement is
-      *> undefined" (also §2002:B.2 item 22 e), §2002:3.3). Every
+      *> undefined" (also §2002:B.2 item 22e, §2002:3.3). Every
       *> line pins the DOCUMENTED IMPLEMENTOR CHOICE
       *> docs/conformance/3.1/D-INS3
       *> (kb/Work PB1907): image and operand values are taken when the

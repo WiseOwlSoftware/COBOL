@@ -47,7 +47,7 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
         // containing program's GLOBAL one, may be the one that does not complete normally whatever this scope declares —
         // or another USE procedure running within any of them. So EVERY format 1 SORT registers and lands.
         string? useScope = ec.SortUseScope;
-        w.Line($"{RuntimeApi.SortInit(sd, KeysExpr(so.Keys), WeightsExpr(so.Collating), NatWeightsExpr(so.Collating))};   // SORT {so.File.CobolName} (ISO §2023:14.9.40.4; the keys, and BOTH GR5 sequences snapshotted — §2023:14.6.6 r5)");
+        w.Line($"{RuntimeApi.SortInit(sd, KeysExpr(so.Keys), WeightsExpr(so.Collating), NatWeightsExpr(so.Collating))};   // SORT {so.File.CobolName} (ISO §2023:14.9.40.4; the keys, and BOTH GR5 sequences snapshotted — §2023:14.6.6 GR5)");
         using (StatementBody(sd, TerminationLanding(sd, ownDeclaratives: useScope is not null)))
         {
             w.Line($"{RuntimeApi.SortRegisterFormat1Sort(sd, useScope ?? "null")};   // §2023:14.9.40.4 GR17 — the active format 1 SORT, terminated when a USE procedure invoked while it is active does not complete normally");
@@ -69,7 +69,7 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
             }
 
             // Phase b — sequence (GR9b).
-            w.Line($"{RuntimeApi.SortSort(sd, so.DuplicatesInOrder ? "true" : "false")};   // the keys and the GR5 sequences are Init's (§2023:14.6.6 r5)");
+            w.Line($"{RuntimeApi.SortSort(sd, so.DuplicatesInOrder ? "true" : "false")};   // the keys and the GR5 sequences are Init's (§2023:14.6.6 GR5)");
 
             // Phase c — return (GR9c). A GIVING file must not be open when THIS phase commences — the input
             // procedure may have opened it, so the test is here and not at statement start (GR9; kb/Work PB1036).
@@ -88,7 +88,7 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
             // phases after them — terminating the statement is not abandoning the run unit. Every FATAL
             // implicit-transfer status lands here (RuleFor — §2023:9.1.13.1's "control is transferred to the end of the
             // statement", kb/Work PB993), and so does an exception-checking PERFORM handler's RESUME AT NEXT STATEMENT
-            // (§2023:14.9.33.4 GR2 a) 1.); a USE procedure that does not complete normally (§2023:14.9.40.4 GR17) is landed by
+            // (§2023:14.9.33.4 GR2a.1); a USE procedure that does not complete normally (§2023:14.9.40.4 GR17) is landed by
             // TerminationLanding's catch, after the same finally. One with only procedures emits no label. The store's
             // release is StatementBody's finally.
             if (tx.Terminable) w.Line($"{tx.EndLabel}: ;");
@@ -99,7 +99,7 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
     /// <c>finally</c> (kb/Work PB1036). Every way out of an executing SORT/MERGE must end it — the phases'
     /// normal end, the GR17 / PB993 termination label, a RESUME AT procedure-name that leaves through <c>__pc</c>,
     /// and a fatal EC-SORT-MERGE-* condition the runtime raises mid-statement, which the statement guard disposes
-    /// of AFTER the stack has unwound past this point (§2023:14.6.13.1.3 2)). A store left behind would still hold its
+    /// of AFTER the stack has unwound past this point (§2023:14.6.13.1.3 GR2). A store left behind would still hold its
     /// procedure phase, and the next SORT/MERGE would read it as "a procedure of an executing statement is
     /// running" — an EC-SORT-MERGE-ACTIVE raised against a program that did nothing wrong. <c>Init</c> stays
     /// OUTSIDE the <c>try</c>: its -ACTIVE raise happens before this statement owns a store, and releasing one
@@ -120,8 +120,8 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
     /// result of the execution of statements in the range"), and terminating the SORT ends that range with it, so
     /// control does not come back to the procedure:
     /// <list type="bullet">
-    /// <item>RESUME AT NEXT STATEMENT, and a fall-off §2023:14.6.13.1.2 1) marks not normal, end at the end of the SORT
-    /// statement — the catch falls through past the <c>finally</c>. §2023:14.9.33.4 GR2 a) puts the implicit CONTINUE after
+    /// <item>RESUME AT NEXT STATEMENT, and a fall-off §2023:14.6.13.1.2 GR1 marks not normal, end at the end of the SORT
+    /// statement — the catch falls through past the <c>finally</c>. §2023:14.9.33.4 GR2a puts the implicit CONTINUE after
     /// the raising statement "unless general rules associated with the applicable statement specify otherwise", and
     /// a statement inside a terminated SORT's procedure has no "next statement" left to run: GR17 is the SORT rule
     /// that says otherwise.</item>
@@ -167,7 +167,7 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
     {
         var (assign, dynamic) = seqIo.ExecutingAssignment(sd);
         if (!dynamic) return;
-        ctx.Writer.Line($"if (!{RuntimeApi.SortAssociationMade(assign)}) goto {tx.EndLabel};   // §2023:12.4.5.3 GR3 b) — the association cannot be made: the statement is unsuccessful (DOC-A.1-73)");
+        ctx.Writer.Line($"if (!{RuntimeApi.SortAssociationMade(assign)}) goto {tx.EndLabel};   // §2023:12.4.5.3 GR3b — the association cannot be made: the statement is unsuccessful (DOC-A.1-73)");
         tx.Terminable = true;
     }
 
@@ -182,7 +182,7 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
     }
 
     /// <summary>The end-of-statement label a USE procedure that did not complete normally jumps to — SORT's
-    /// §2023:14.9.40.4 GR17 termination, and the §2023:14.9.33.4 GR2 a) 1. landing of a RESUME AT NEXT STATEMENT whose
+    /// §2023:14.9.40.4 GR17 termination, and the §2023:14.9.33.4 GR2a.1 landing of a RESUME AT NEXT STATEMENT whose
     /// "applicable statement" is the SORT/MERGE rather than an I-O statement the program wrote. The `__`
     /// prefix keeps it out of the COBOL name space exactly as the dispatcher internals do.</summary>
     private string TerminationLabel() => $"__srtEnd{ctx.Names.NextSort()}";
@@ -197,14 +197,14 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
         var w = ctx.Writer;
         string sd = FileKeyExpr(mg.File);
         var tx = new Transfer(TerminationLabel(), merge: true);
-        w.Line($"{RuntimeApi.SortInit(sd, KeysExpr(mg.Keys), WeightsExpr(mg.Collating), NatWeightsExpr(mg.Collating))};   // MERGE {mg.File.CobolName} (ISO §2023:14.9.24.4; the keys, and BOTH GR5 sequences snapshotted — §2023:14.6.6 r5)");
+        w.Line($"{RuntimeApi.SortInit(sd, KeysExpr(mg.Keys), WeightsExpr(mg.Collating), NatWeightsExpr(mg.Collating))};   // MERGE {mg.File.CobolName} (ISO §2023:14.9.24.4; the keys, and BOTH GR5 sequences snapshotted — §2023:14.6.6 GR5)");
         using (StatementBody(sd))
         {
             EmitAssociation(mg.File, tx);   // §2023:12.4.5.3 GR3 — at the time of execution, before any phase (kb/Work PB1097)
             // GR7 / GR12: "At the start of execution of the MERGE statement" no USING or GIVING file may be open —
             // one test point for both, unlike SORT's per-phase GR9 (kb/Work PB1036).
             EmitFilesNotOpen(sd, [.. mg.Using, .. mg.Giving]);
-            // §2023:14.9.24.4 GR7 c) (kb/Work PB1141): the USING file's as-if CLOSE — "If an output procedure is specified,
+            // §2023:14.9.24.4 GR7c (kb/Work PB1141): the USING file's as-if CLOSE — "If an output procedure is specified,
             // this termination is not performed until after control passes the last statement in the output
             // procedure." So with an OUTPUT PROCEDURE each file's FILE STATUS still holds the as-if READ's at end
             // '10' inside the procedure, and a CLOSE USE procedure runs after it; with GIVING (or no procedure) the
@@ -230,7 +230,7 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
                 foreach (var input in mg.Using)
                     EmitInputClose(input, tx);   // GR7 c) — after control passes the output procedure's last statement
             // MERGE has no GR17 of its own — only SORT's rule names the statement's termination — but the LANDING
-            // rule is the same one: §2023:14.9.33.4 GR2 a) 1. makes the applicable statement of a condition raised
+            // rule is the same one: §2023:14.9.33.4 GR2a.1 makes the applicable statement of a condition raised
             // inside an implicit transfer the MERGE itself, so a RESUME AT NEXT STATEMENT leaves the whole
             // statement here rather than falling into the next USING stream.
             if (tx.Terminable) w.Line($"{tx.EndLabel}: ;");
@@ -249,7 +249,7 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
         int sdWidth = sdFile.RecordWidth;
         string f = FileKeyExpr(input);
         string tmp = $"__srt{ctx.Names.NextSort()}";
-        // ISO §2023:14.9.40.4 GR12 a) / §2023:14.9.24.4 GR7 a) — the SHARING phrase of the as-if OPEN is CONDITIONAL on the
+        // ISO §2023:14.9.40.4 GR12a / §2023:14.9.24.4 GR7a — the SHARING phrase of the as-if OPEN is CONDITIONAL on the
         // file control entry: "If the file-control entry for the file has a SHARING clause with the ALL phrase,
         // the initiation is performed as if an OPEN statement with the INPUT phrase and the SHARING WITH READ
         // ONLY phrase had been executed; otherwise, the initiation is performed as if an OPEN statement with the
@@ -258,12 +258,12 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
         EmitImplicitOpen(input, BoundOpenMode.Input,
             input.Sharing == SharingMode.AllOther ? SharingMode.ReadOnly : null,
             "implicit OPEN INPUT (ISO §2023:14.9.40.4 GR12a / §2023:14.9.24.4 GR7a)", TransferIo.UsingOpen, tx);
-        // §2023:14.9.40.4 GR12 b) / §2023:14.9.24.4 GR7 b): "Each record is obtained as if a READ statement with the NEXT
+        // §2023:14.9.40.4 GR12b / §2023:14.9.24.4 GR7b: "Each record is obtained as if a READ statement with the NEXT
         // phrase, the IGNORING LOCK phrase, and the AT END phrase had been executed." An IGNORING LOCK read is a
         // GOVERNED read (§2023:14.9.30.4 GR12 is what suppresses the GR9 conflict), so it renders the ONE governed
         // Format-1 entry with `ignoringLock: true` — never an ungoverned one, which would answer '51' against
         // another connector's lock and truncate the transfer, and which could not see the sharing mode the
-        // implicit OPEN established anyway (§2023:9.1.15; kb/Work PB683). §2023:14.9.30.4 GR11 c) still sets the AUTOMATIC lock
+        // implicit OPEN established anyway (§2023:9.1.15; kb/Work PB683). §2023:14.9.30.4 GR11c still sets the AUTOMATIC lock
         // through it. The "false" is §2023:14.9.30.4 GR19's NEXT: this retrieval is the forward walk of §2023:14.9.43.4
         // ("the records … are transferred … in the order in which they are made available"), never a
         // statement-written direction — this loop renders no READ statement of the program's (kb/Work PB334).
@@ -286,7 +286,7 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
             }
             // §2023:14.9.30.4 GR25 — a sequential READ of a RELATIVE file MOVEs the relative record number of the record made
             // available into the RELATIVE KEY data item, and the as-if READ NEXT does the same (kb/Work PB994; after the
-            // statement the item is undefined, §2023:14.9.40.4 GR12 c), so the per-record store is within the rule).
+            // statement the item is undefined, §2023:14.9.40.4 GR12c, so the per-record store is within the rule).
             EmitRelativeKeyStore(input);
             // ⛔ A SUCCESSFUL as-if READ IS A READ TOO (kb/Work PB749). §2023:9.1.13.1 sets the I-O status "during the
             // execution of a CLOSE, DELETE, OPEN, READ, REWRITE, START, UNLOCK or WRITE statement", §2023:12.4.5.8.4 GR1
@@ -299,7 +299,7 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
             // against the size the record had when READ (LastReadLength: the frame length on a varying input
             // file, the record width on a fixed one); a fixed SD passes min 0 (kb/Work PB1036). Fixed SD: the
             // short record space-fills right to the fixed length — with the national space when the USING file's
-            // own record description says so (§2023:14.9.40.4 GR7 a) / §2023:14.9.24.4 GR2 a)), else the alphanumeric one
+            // own record description says so (§2023:14.9.40.4 GR7a / §2023:14.9.24.4 GR2a), else the alphanumeric one
             // (GR7 c) / GR2 c)); FileModel.ShortRecordFillNational is the one test (kb/Work PB1140); varying SD:
             // each record releases at the size it was READ (GR12b; Read pads the area). The varying arm releases
             // the CURRENT RECORD itself (FileConnector.CurrentRecord — the area image sliced to LastReadLength
@@ -324,7 +324,7 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
         }
         // ⛔ TWO as-if statements, TWO statuses, TWO hooks (kb/Work PB837). The loop above exits ONLY on an
         // unsuccessful retrieval, so the connector's status here IS that retrieval's — the as-if READ of
-        // §2023:14.9.40.4 GR12 b) / §2023:14.9.24.4 GR7 b) — and it is offered to the USE procedure BEFORE GR12 c) / GR7 c)'s
+        // §2023:14.9.40.4 GR12b / §2023:14.9.24.4 GR7b — and it is offered to the USE procedure BEFORE GR12 c) / GR7 c)'s
         // CLOSE overwrites it: "These implicit functions are performed such that any applicable USE procedures are
         // executed" (GR12's closing paragraph), and §2023:14.9.49.4 GR6 runs the procedures "upon the unsuccessful
         // execution of an input-output operation unless an AT END or INVALID KEY phrase takes precedence". The
@@ -338,7 +338,7 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
     }
 
     /// <summary>The RELATIVE KEY data item receives the relative record number the connector just read or wrote — the
-    /// store a sequential READ (§2023:14.9.30.4 GR25) and a sequential WRITE (§2023:14.9.51.4 GR29 a)) make through the MOVE rules,
+    /// store a sequential READ (§2023:14.9.30.4 GR25) and a sequential WRITE (§2023:14.9.51.4 GR29a) make through the MOVE rules,
     /// here for the as-if READ NEXT / WRITE of a USING / GIVING relative file. Nothing for any other organization or a
     /// relative file with no RELATIVE KEY clause (optional for sequential access).</summary>
     private void EmitRelativeKeyStore(FileModel file)
@@ -371,9 +371,9 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
         string f = FileKeyExpr(output);
         string tmp = $"__srt{ctx.Names.NextSort()}";
         w.Line($"{RuntimeApi.SortRewind(sdLit)};   // each GIVING file receives the FULL result (GR15 / MERGE GR12)");
-        // ISO §2023:14.9.40.4 GR15 a) / §2023:14.9.24.4 GR12 a) — UNCONDITIONAL, unlike the USING arm: "The initiation is
+        // ISO §2023:14.9.40.4 GR15a / §2023:14.9.24.4 GR12a — UNCONDITIONAL, unlike the USING arm: "The initiation is
         // performed as if an OPEN statement with the OUTPUT and SHARING WITH NO OTHER phrases had been executed."
-        // §2023:9.1.15 1) is what that buys: "The sharing with no other mode specifies exclusive access to a physical
+        // §2023:9.1.15 GR1 is what that buys: "The sharing with no other mode specifies exclusive access to a physical
         // file" (kb/Work PB714).
         // MERGE GR12 a)'s "processing for the file connector that caused the exception condition is bypassed"
         // skips THIS file's WRITE loop and CLOSE and goes on to the next file-name-4 (kb/Work PB993).
@@ -381,9 +381,9 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
         tx.Bypassed = false;
         EmitImplicitOpen(output, BoundOpenMode.Output, SharingMode.NoOther,
             "implicit OPEN OUTPUT (ISO §2023:14.9.40.4 GR15a / §2023:14.9.24.4 GR12a)", TransferIo.GivingOpen, tx);
-        // ⛔ A RELATIVE GIVING FILE'S KEY SEQUENCE IS 1..n (§2023:14.9.40.4 GR15 b) / §2023:14.9.24.4 GR12 b)): "the relative key data
+        // ⛔ A RELATIVE GIVING FILE'S KEY SEQUENCE IS 1..n (§2023:14.9.40.4 GR15b / §2023:14.9.24.4 GR12b): "the relative key data
         // item for the first record returned has the value 1; for the second record returned, the value 2; etc." Under
-        // sequential access the connector numbers the records itself (§2023:14.9.51.4 GR29 a)); under DYNAMIC access the
+        // sequential access the connector numbers the records itself (§2023:14.9.51.4 GR29a); under DYNAMIC access the
         // as-if WRITE names its slot through the RELATIVE KEY item (GR29 b)), so the running count is stored there and
         // handed to the connector. RANDOM is barred (§2023:12.4.5.5.2 SR1). (kb/Work PB994)
         string? rn = output.Organization == FileOrganization.Relative && output.AccessMode != FileAccessMode.Sequential
@@ -400,7 +400,7 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
             }
             // "Each record is written as if a WRITE statement without any optional phrases had been executed"
             // (GR15 b) / MERGE GR12 b) — through the ONE governed WRITE entry, like every other emitted WRITE
-            // (kb/Work PB683). GR15 a) opens the file SHARING WITH NO OTHER, under which §2023:9.1.15 1) ignores
+            // (kb/Work PB683). GR15 a) opens the file SHARING WITH NO OTHER, under which §2023:9.1.15 GR1 ignores
             // record locks, so the governed body's release/acquire discipline is vacuous here — but the routing
             // decision is not the emitter's to make, and the runtime is where the open mode is known.
             string ws = $"__srw{ctx.Names.NextSort()}";
@@ -426,7 +426,7 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
             seqIo.EmitStoreFileStatus(output);
             // GR15 b): "After execution of the SORT statement, the content of the relative key data item indicates the last
             // record returned to the file" — so the record number the connector assigned (or accepted) lands in the item
-            // after every successful write (§2023:14.9.51.4 GR29 a)).
+            // after every successful write (§2023:14.9.51.4 GR29a).
             if (output.Organization == FileOrganization.Relative)
                 using (w.Block($"if ({IoStatusClass.Successful(ws)})"))
                     EmitRelativeKeyStore(output);
@@ -454,8 +454,8 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
 
     /// <summary>⛔ THE ONE IMPLICIT OPEN OF SORT AND MERGE — every <i>"as if an OPEN statement …"</i> initiation
     /// the standard writes, rendered WITH the SHARING phrase that rule names.
-    /// <para>There are exactly FOUR such rules and all four reach this method: §2023:14.9.40.4 GR12 a) and
-    /// §2023:14.9.24.4 GR7 a) for the USING transfer, §2023:14.9.40.4 GR15 a) and §2023:14.9.24.4 GR12 a) for the GIVING
+    /// <para>There are exactly FOUR such rules and all four reach this method: §2023:14.9.40.4 GR12a and
+    /// §2023:14.9.24.4 GR7a for the USING transfer, §2023:14.9.40.4 GR15a and §2023:14.9.24.4 GR12a for the GIVING
     /// transfer. (SORT and MERGE share <see cref="EmitInputFile"/> / <see cref="EmitGivingFile"/>, so the verb
     /// axis needs no arm of its own; a search of the standard for <c>"as if an OPEN statement"</c> returns those
     /// four occurrences and nothing else, so a fifth one would have exactly one place to land.) The emitter used
@@ -476,7 +476,7 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
     /// §2023:12.4.5.8.4 GR1 updates the FILE STATUS item whenever the connector's I-O status is, so the USE procedure
     /// GR12 a) / GR15 a) invoke on the next line observes the status THIS open produced — a '61' among them. The
     /// value visible after the whole statement is still the implicit CLOSE's, which overwrites it.</para>
-    /// <para>No RETRY and no NO REWIND: none of the four rules names either phrase, and §2023:14.7.9.3 GR4 a) makes
+    /// <para>No RETRY and no NO REWIND: none of the four rules names either phrase, and §2023:14.7.9.3 GR4a makes
     /// the absent RETRY phrase "no further attempt" — which is what <see cref="SequentialIoEmitter.RenderRetry"/>
     /// renders for a null spec, borrowed rather than re-spelled so the two OPEN sites cannot drift.</para></summary>
     private void EmitImplicitOpen(FileModel file, BoundOpenMode mode, SharingMode? sharing, string ruleComment,
@@ -551,8 +551,8 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
     /// before this table is read, <see cref="EmitDisposition"/>; kb/Work PB2700): "control is transferred to the end
     /// of the statement that produced the fatal exception condition unless the rules for that statement define other
     /// behavior". This table is that continuation's statement half. The statement that
-    /// produced it is the SORT/MERGE — the as-if statement is not a statement of the program (§2023:14.9.33.4 GR2 a) 1.)
-    /// — so the default fatal disposition is TERMINATE. §2023:14.6.13.1.3 2) ("If the executed statement is a MERGE or
+    /// produced it is the SORT/MERGE — the as-if statement is not a statement of the program (§2023:14.9.33.4 GR2a.1)
+    /// — so the default fatal disposition is TERMINATE. §2023:14.6.13.1.3 GR2) ("If the executed statement is a MERGE or
     /// SORT statement, then the rules for those statements apply") puts these rules ahead of the run-unit
     /// termination §2023:14.6.13.1.3 5)/7) would impose under checking, so the hook passes <c>__verbRule</c>. A
     /// nonfatal status continues (§2023:14.6.13.1.4: "execution continues as if the exception did not occur unless there
@@ -562,21 +562,21 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
     /// <item>SORT GIVING OPEN — §2023:14.9.40.4 GR15: "If a fatal exception condition exists for file-name-3 as a result
     ///   of the implicit OPEN during file initiation, the SORT is terminated" (the default, stated); the nonfatal
     ///   half continues with or without a USE procedure.</item>
-    /// <item>SORT USING OPEN — §2023:14.9.40.4 GR12 a): a nonfatal status continues "if there is an applicable USE
+    /// <item>SORT USING OPEN — §2023:14.9.40.4 GR12a: a nonfatal status continues "if there is an applicable USE
     ///   procedure that completes normally or if there is no applicable USE procedure"; GR12 b)'s "If a fatal
     ///   exception condition exists for file-name-1, the SORT is terminated" is the fatal half (⚠ DETERMINATION:
     ///   file-name-1 is the sort file, which has no I-O status, so the sentence can only mean the USING file whose
     ///   processing the rule describes — GR12 b)'s own "at end condition exists for file-name-1" has the same slip;
     ///   the reading agrees with the default either way).</item>
-    /// <item>MERGE USING OPEN — §2023:14.9.24.4 GR7 a): "If a nonfatal exception condition exists as a result of the
+    /// <item>MERGE USING OPEN — §2023:14.9.24.4 GR7a: "If a nonfatal exception condition exists as a result of the
     ///   execution of the implicit OPEN statement, the MERGE statement is terminated unless there is an applicable
     ///   USE procedure that completes normally".</item>
     /// <item>MERGE USING CLOSE — GR7's closing paragraph: a nonfatal CLOSE continues with a USE that completes
     ///   normally and with none.</item>
-    /// <item>MERGE GIVING OPEN — §2023:14.9.24.4 GR12 a): "If a fatal exception condition exists as a result of this
+    /// <item>MERGE GIVING OPEN — §2023:14.9.24.4 GR12a: "If a fatal exception condition exists as a result of this
     ///   implicit OPEN statement and there is an applicable USE procedure that completes normally, processing for the
     ///   file connector that caused the exception condition is bypassed"; without one, the default.</item>
-    /// <item>MERGE GIVING WRITE — §2023:14.9.24.4 GR12 b): "If an exception condition exists as a result of this implicit
+    /// <item>MERGE GIVING WRITE — §2023:14.9.24.4 GR12b: "If an exception condition exists as a result of this implicit
     ///   WRITE statement and there is an applicable USE procedure that completes normally, the MERGE continues
     ///   execution, otherwise the MERGE statement is terminated" — fatal and nonfatal alike.</item>
     /// <item>The WRITE boundary ('24'/'34') — both verbs close the file (GR15 / MERGE GR12 closing paragraphs); it
@@ -621,7 +621,7 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
     };
 
     /// <summary>The as-if statement's USE hook: jumps to the end label when the procedure does not complete
-    /// normally (§2023:14.9.40.4 GR17; §2023:14.9.33.4 GR2 a) 1.), and, only where the rule turns on it, declares the
+    /// normally (§2023:14.9.40.4 GR17; §2023:14.9.33.4 GR2a.1), and, only where the rule turns on it, declares the
     /// "an applicable USE procedure completed normally" local.</summary>
     private TransferHook EmitTransferUse(FileModel file, TransferIo io, Transfer tx, bool atEndHandled = false,
         bool successArm = false)
@@ -702,7 +702,7 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
     /// then the record's character image goes to the sort store (GR2). A varying SD releases the leading
     /// DEPENDING-ON characters (§2023:13.18.43.4 GR13 — the current value of the data item names the released length);
     /// a fixed SD releases its ONE record size — the largest record description's (the implied Format 1,
-    /// §2023:13.18.43.4 GR5 a); kb/Work PB322 F) — so a shorter record description sends the record AREA's image
+    /// §2023:13.18.43.4 GR5a; kb/Work PB322 F) — so a shorter record description sends the record AREA's image
     /// (<see cref="SequentialIoEmitter.SentRecordImage"/>, D-WRT1): §2023:14.9.32.4 GR6 leaves the bytes past the end of
     /// record-name-1 undefined (Annex A.2 item 45), and the area's content is the determination.</summary>
     public void EmitRelease(BoundRelease rl)
@@ -718,7 +718,7 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
             ? OperandText.AsStorageImage(rl.Record, "RELEASE record image of", transfer: true)
             : seqIo.SentRecordImage(rl.File, rl.Record);   // THE ONE record-area channel (kb/Work PB327; D-WRT1 and PB322 F)
         string? slots = carriesSlots ? PlaceRenderer.GroupLeaves(rl.Record) : null;
-        // §2023:13.18.43.4 GR14 b) / GR19 b): a size outside the record range is EC-SORT-MERGE-RELEASE and the RELEASE
+        // §2023:13.18.43.4 GR14b / GR19 b): a size outside the record range is EC-SORT-MERGE-RELEASE and the RELEASE
         // is unsuccessful — the runtime's test, before the release (kb/Work PB1036); at COBOL-85 it is unsuccessful with
         // no checking to raise anything (§1985:VII.3.8.4 GR10, BoundRelease.RangeFailsStatement; kb/Work PB5124).
         var (min, max) = RecordRange(rl.Varying, rl.RecordWidth);
@@ -762,7 +762,7 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
     /// <summary>The record range the EC-SORT-MERGE-RELEASE tests use (kb/Work PB1036): a variable-length
     /// sort-merge file's smallest and largest record (§2023:13.18.43.4 GR14 / GR19 — integer-2..integer-3 or
     /// integer-4..integer-5, defaulted per GR9/GR10 by <c>FileModel.VaryMin</c>/<c>VaryMax</c>), else 0 and the
-    /// fixed record width — §2023:14.9.40.4 GR12 b)'s smaller-than-smallest test applies only "If file-name-1 is
+    /// fixed record width — §2023:14.9.40.4 GR12b's smaller-than-smallest test applies only "If file-name-1 is
     /// specified with variable-length records".</summary>
     private static (int Min, int Max) RecordRange(SortVaryingInfo? varying, int recordWidth) =>
         varying is { } v ? (v.Min, v.Max) : (0, recordWidth);
@@ -848,7 +848,7 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
         // The element's STORAGE type is final only after the post-bind whole-group analysis (StoreAsImage) —
         // read it now, at emit time, never at bind time.
         string elem = ts.Table.ElementType;
-        // The WHOLE-TABLE path, an index for each ENCLOSING table (§2023:8.4.2.3.3 SR5 e); the sort writes the table, so an
+        // The WHOLE-TABLE path, an index for each ENCLOSING table (§2023:8.4.2.3.3 SR5e); the sort writes the table, so an
         // enclosing dynamic-capacity level is reached through its receiving accessor.
         w.Line($"var __ta{id} = {PlaceRenderer.RenderPath(typed.Array, AccessDir.Receiving)};   // SORT table (ISO §2023:14.9.40.4 GR18/GR24, Format 2 — in place)");
         // Through CobolTable.SortInPlace, never a bare Enumerable.OrderBy: the framework's array sort re-throws a
@@ -1024,14 +1024,14 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
     private static string TableCompare(BoundTableSortKey key, string pa, string pb, string weightsArg, bool shared)
     {
         DataItem k = key.Key;
-        // ⛔ NO KEY IS OF CLASS BOOLEAN (§2023:14.9.40.3 SR14 c): "Key data items shall not be of class boolean, object, or
+        // ⛔ NO KEY IS OF CLASS BOOLEAN (§2023:14.9.40.3 SR14c): "Key data items shall not be of class boolean, object, or
         // pointer", and SortKeyAdmission refuses it at bind (an elementary bit item and a BIT GROUP alike — §2023:13.18.29.4
         // GR1b makes the group a boolean operand). The boolean comparison arms this method used to carry (§2023:8.8.4.2.8's
         // boolean-zero extension) answered a key no program may name; their golden sorted on one against the rule
         // (kb/Work PB1173). The invariant keeps the arm from being silently re-needed.
         if (k.OperandPic is { Category: PicCategory.Boolean })
             throw new InvalidOperationException(
-                $"table-sort key '{k.CobolName}' is of class boolean; SortKeyAdmission refuses it before emission (ISO §2023:14.9.40.3 SR14 c))");
+                $"table-sort key '{k.CobolName}' is of class boolean; SortKeyAdmission refuses it before emission (ISO §2023:14.9.40.3 SR14c)");
         // ⛔ A GROUP-USAGE GROUP IS AN ELEMENTARY OPERAND (§2023:13.18.29.4 GR2b; D20/PB79) AND MUST NOT TAKE THE
         // AsImage() ARM BELOW (kb/Work PB678, the shape kb/Work PB327 fixed one channel over): a NATIONAL group's
         // operand value is its m national POSITIONS — the generated AsNat() — never AsImage()'s 2m UTF-16BE bytes.
@@ -1044,7 +1044,7 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
         // (`cite.py`-verified) makes a key comparison IDENTICAL to a relation condition — key data items are
         // "compared according to the rules for comparison of operands in a relation condition" — and an
         // ALPHANUMERIC group operand (the GROUP-USAGE groups took the arm above) is treated as an elementary
-        // alphanumeric item (§2023:8.8.4.2.1 13)), compared over its representation, which `OperandText` already
+        // alphanumeric item (§2023:8.8.4.2.1 GR13), compared over its representation, which `OperandText` already
         // renders through `AsImage()` gated on IsImageCapable. Testing
         // the stricter predicate here therefore made SORT and `IF a > b` DISAGREE about the very same two group
         // operands: the IF compared their byte images while the SORT threw "no whole-group character image" —

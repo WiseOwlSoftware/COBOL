@@ -23,7 +23,7 @@
 *>
 *> The legal complement is 2023/pb62_standard_decimal_summing_family (its MEAN=
 *> line takes two class-numeric arguments) and must keep compiling: this screen
-*> may only ever reject what §2023:15.60.3 r1 excludes.
+*> may only ever reject what §2023:15.60.3 AR1 excludes.
 *>
 *> ⛔ THE EDITION WINDOW IS 2014 2023 AND MUST NOT BE WIDENED BACK. AR-15.60.3-1's
 *> own adjudication records the wider "85, 2002, 2014, 2023" as REFUTED, because

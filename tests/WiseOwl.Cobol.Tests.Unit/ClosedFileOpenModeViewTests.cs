@@ -18,7 +18,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// its own USE procedure included — has ended, the file is in no mode and <see cref="FileRegistry.OpenModeOf"/> answers −1. While the
 /// statement executes the file is still the one the CLOSE was issued against, so a USE procedure for the CLOSE's own '30' finds the
 /// mode it was open in (BeginClose). The '30' is the keyed store engine's refused promotion
-/// (§2023:9.1.13.6 item 1), injected by the host-refusal medium of <see cref="KeyedClosePermanentErrorWitnessTests"/>.</para>
+/// (§2023:9.1.13.6 GR1), injected by the host-refusal medium of <see cref="KeyedClosePermanentErrorWitnessTests"/>.</para>
 /// </summary>
 public sealed class ClosedFileOpenModeViewTests : WiseOwlCobolTestBase
 {

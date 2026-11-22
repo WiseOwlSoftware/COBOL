@@ -72,7 +72,7 @@ public sealed class CobolStringPadTests
 
     /// <summary>An out-of-range write is the fatal EC-BOUND-REF-MOD whether or not checking is on (kb/Work PB1707
     /// part 2, R60): it never leaves the destination untouched and never clamps. A start before position 1 and a
-    /// negative specified length are both §2023:8.4.3.3.4 5) violations.</summary>
+    /// negative specified length are both §2023:8.4.3.3.4 GR5 violations.</summary>
     [Theory]
     [InlineData("ABC", 0, 2)]
     [InlineData("ABC", 2, -1)]
@@ -126,7 +126,7 @@ public sealed class CobolStringPadTests
         => Assert.Equal(expectedSign, Math.Sign(CobolString.Compare(left, right, pad: '0')));
 
     /// <summary>The default-pad Compare is byte-identical to the pre-pad behavior (space extension, ordinal —
-    /// ISO §2023:8.8.4.2.7 r2).</summary>
+    /// ISO §2023:8.8.4.2.7 GR2).</summary>
     [Theory]
     [InlineData("AB", "AB  ", 0)]
     [InlineData("AB", "AC", -1)]

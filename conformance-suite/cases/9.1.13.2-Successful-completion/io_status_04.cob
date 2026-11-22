@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> I-O status '04' on a record-sequential READ (ISO §2023:9.1.13.2 item 3 / §2023:14.9.30
+      *> I-O status '04' on a record-sequential READ (ISO §2023:9.1.13.2 GR3 / §2023:14.9.30
       *> GR14; clarified COBOL-2023 Annex E.2 item 15, version-invariant behavior). A
       *> READ whose physical record length is outside the file's min/max record size
       *> is SUCCESSFUL but sets status '04' (the record is still delivered). A

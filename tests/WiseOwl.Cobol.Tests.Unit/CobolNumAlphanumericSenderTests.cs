@@ -7,7 +7,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// The two value-level decodes of a character image (numeric design D25): <see cref="CobolNum.FromAlphanumeric"/>
-/// carries ISO §2023:14.9.25.4 GR6 d) 3's size rule for an ALPHANUMERIC SENDING OPERAND — "the rightmost 31 character
+/// carries ISO §2023:14.9.25.4 GR6d 3's size rule for an ALPHANUMERIC SENDING OPERAND — "the rightmost 31 character
 /// positions" — and <see cref="CobolNum.DigitMagnitude"/> carries no size rule at all, for a caller whose image
 /// size its own data description already fixes. The boundary is tested HERE rather than only through COBOL
 /// programs because it is an arithmetic property of the window (31 vs 32 characters, and CHARACTER positions vs

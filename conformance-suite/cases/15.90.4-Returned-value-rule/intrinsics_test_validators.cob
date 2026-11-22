@@ -22,7 +22,7 @@
        01 W40 PIC X(40) VALUE ALL "1".
        PROCEDURE DIVISION.
        MAIN.
-      *> ── TEST-DATE-YYYYMMDD (§2023:15.90.4 r1a-d; D.31.3.8) ──
+      *> ── TEST-DATE-YYYYMMDD (§2023:15.90.4 RV1a-d; D.31.3.8) ──
            COMPUTE R2 = FUNCTION TEST-DATE-YYYYMMDD(20240229)
            DISPLAY "D1=" R2
            COMPUTE R2 = FUNCTION TEST-DATE-YYYYMMDD(16001231)
@@ -38,7 +38,7 @@
       *> Chain precedence: the year check fires before month/day (16000230 -> 1, not 2).
            COMPUTE R2 = FUNCTION TEST-DATE-YYYYMMDD(16000230)
            DISPLAY "D7=" R2
-      *> ── TEST-DAY-YYYYDDD (§2023:15.91.4 r1a-c; D.31.3.9 — no code 3) ──
+      *> ── TEST-DAY-YYYYDDD (§2023:15.91.4 RV1a-c; D.31.3.9 — no code 3) ──
            COMPUTE R2 = FUNCTION TEST-DAY-YYYYDDD(2024366)
            DISPLAY "J1=" R2
            COMPUTE R2 = FUNCTION TEST-DAY-YYYYDDD(2023366)
@@ -52,7 +52,7 @@
            DISPLAY "J5=" R2
            COMPUTE R2 = FUNCTION TEST-DAY-YYYYDDD(2024000)
            DISPLAY "J6=" R2
-      *> ── TEST-NUMVAL (§2023:15.93.4 r1a/r1b/r1c over the §2023:15.67.3 formats) ──
+      *> ── TEST-NUMVAL (§2023:15.93.4 RV1a/r1b/r1c over the §2023:15.67.3 formats) ──
            COMPUTE R2 = FUNCTION TEST-NUMVAL("123.45")
            DISPLAY "N1=" R2
       *> r2 of §2023:15.67.3: embedded spaces BEFORE the first digit are ignored.
@@ -64,7 +64,7 @@
       *> 'digit [. [digit]]' — a trailing decimal point with no fraction is VALID.
            COMPUTE R2 = FUNCTION TEST-NUMVAL("5.")
            DISPLAY "N4=" R2
-      *> The verbatim §2023:15.93.4 r1b sub-note-1 example: "0 1" -> 3 (the first NON-space after the spaces).
+      *> The verbatim §2023:15.93.4 RV1b sub-note-1 example: "0 1" -> 3 (the first NON-space after the spaces).
            COMPUTE R2 = FUNCTION TEST-NUMVAL("0 1")
            DISPLAY "N5=" R2
       *> A comma is not a NUMVAL character (no DECIMAL-POINT IS COMMA here).
@@ -106,7 +106,7 @@
       *> Grouping groups are ARBITRARY-length digit runs (r4a 'digit [, digit]…' — no 3-digit rule).
            COMPUTE R2 = FUNCTION TEST-NUMVAL-C("1,23,4.5")
            DISPLAY "C9=" R2
-      *> §2023:15.68.3 r4a: the argument-2 currency matches character for character ('usd' vs 'USD' fails at 1)…
+      *> §2023:15.68.3 AR4a: the argument-2 currency matches character for character ('usd' vs 'USD' fails at 1)…
            COMPUTE R2 = FUNCTION TEST-NUMVAL-C("usd 12", "USD")
            DISPLAY "C10=" R2
       *> …and r4f: ANYCASE folds the currency match.

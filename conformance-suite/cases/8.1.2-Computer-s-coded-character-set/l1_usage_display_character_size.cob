@@ -29,7 +29,7 @@
       *>        for any DISPLAY size above the national size.
       *> POS  - the size of a character IS one byte, stated as the identity of the two length
       *>        functions on the same item: FUNCTION LENGTH counts alphanumeric character
-      *>        POSITIONS (§2023:15.50.4 r3) and FUNCTION BYTE-LENGTH counts BYTES (§2023:15.14.1), and
+      *>        POSITIONS (§2023:15.50.4 RV3) and FUNCTION BYTE-LENGTH counts BYTES (§2023:15.14.1), and
       *>        they agree at 5 only because one position occupies one byte.
       *> ALIGN- "the data item is aligned on a character boundary": X(1) + X(3) + X(1) is
       *>        1 + 3 + 1 = 5 with no implicit FILLER anywhere — a character boundary is every

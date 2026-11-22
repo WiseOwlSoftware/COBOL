@@ -33,7 +33,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// <param name="PositionsPerCharacter">The table's unit: 1 when <paramref name="Elem"/> counts characters, 8 when it
 /// counts BITS — a table of fixed-image elements under which a USAGE BIT item lies (kb/Work PB3030): ISO §2023:8.5.1.6.3
 /// places a bit item "at the next bit position in storage", so an occurrence may share a byte and the table's
-/// characters are the CEILING of its bits (§2023:15.50.4 rule 9). The compiler's <c>OdoModel.FixedImageTail</c> is the one
+/// characters are the CEILING of its bits (§2023:15.50.4 RV9). The compiler's <c>OdoModel.FixedImageTail</c> is the one
 /// producer of a tail of this shape, from the one geometry <c>OdoModel.GeometryOf</c>.</param>
 /// <param name="Trailing">The filler, in the table's unit, that pads the LAST occurrence out to the stride
 /// <paramref name="Elem"/> — zero but for a table counted in bits whose occurrences stride whole bytes (an ALIGNED subject
@@ -85,9 +85,9 @@ public readonly record struct OdoTail(int Elem, int Max, int Comps = 0, int Lead
     /// first unused occurrence may start inside a character.
     /// <para>⛔ WHAT A BIT TABLE'S SPLICE KEEPS IS THE UNUSED OCCURRENCES AND NOTHING ELSE (kb/Work PB3598).
     /// No table of these groups is a CORRESPONDING table (§2023:8.5.1.12.2: two tables correspond only when one of them is a
-    /// dynamic-capacity table), so §2023:14.9.25.4 GR9 a) moves every character position, "the content of each character position
+    /// dynamic-capacity table), so §2023:14.9.25.4 GR9a moves every character position, "the content of each character position
     /// that is not occupied by a corresponding table", exactly as GR4 does. What the move leaves to the implementor is the
-    /// content of the occurrences past the count: §2023:13.18.38.4 7) calls it "undefined" and 8) a) leaves those occurrences out
+    /// content of the occurrences past the count: §2023:13.18.38.4 GR7 calls it "undefined" and 8) a) leaves those occurrences out
     /// of the operation. The implementor's choice (the splice's choice since kb/Work PB3030, exercised by
     /// <c>pb3030_bit_odo_run_continuation</c>; the fixed-length lane makes the other one, GR4's whole characters) is that they stay the receiver's, from the first unused occurrence to the
     /// end of the table at its maximum extent

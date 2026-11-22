@@ -14,7 +14,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// required natural boundary for the next item", and the last occurrence has no next one, so the table's extent is
 /// <c>stride × (n − 1) + width</c> for n ≥ 1 and nothing for none. That is <c>BitLayout.TableBits</c>; it had been spelled
 /// three times (the layout walk, the record-size minimum, the OCCURS DEPENDING record limit) and a fourth reader — FUNCTION
-/// LENGTH of a bit group, counted in boolean positions (§2023:15.50.4 r1) — was missing it, so the table was a named stage. These
+/// LENGTH of a bit group, counted in boolean positions (§2023:15.50.4 RV1) — was missing it, so the table was a named stage. These
 /// facts keep it one rule:
 /// <list type="bullet">
 /// <item>no source under <c>src/</c> but <c>BitLayout.cs</c> writes the extent out as <c>StrideBits(…) * (… − 1)</c>;</item>

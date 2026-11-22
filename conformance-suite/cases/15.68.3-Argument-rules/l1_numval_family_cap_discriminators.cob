@@ -20,7 +20,7 @@
       *> whose rule is being measured — never by its sibling's control.
       *>
       *> NVC-31 / NVC-34 — the NUMVAL-C pair. What rule 6 bounds is the DIGIT count, and the currency
-      *>     string is not a digit: §2023:15.68.4 r2, "The currency string, if any, and any grouping
+      *>     string is not a digit: §2023:15.68.4 RV2, "The currency string, if any, and any grouping
       *>     separators preceding the decimal separator are ignored." So "$" + 25 + 6 digits is a
       *>     31-digit argument-1, at the bound and therefore REQUIRED to be accepted, and its value is
       *>     what comes back; "$" + 25 + 9 digits is 34, over the native cap, and §2023:15.3's closing

@@ -23,7 +23,7 @@
       *>   IS COMMA, VALUE 1,5 is one and five tenths and PIC 9,9
       *>   inserts a comma: "A1 1,5".
       *>   A2: §2002:12.2.5.3 GR9 (cite.py OK) the program collating
-      *>   sequence is alphabet REV; §2002:12.2.6.3 GR7k2 (cite.py OK)
+      *>   sequence is alphabet REV; §2002:12.2.6.3 GR7k.2 (cite.py OK)
       *>   the literals give ascending order, so "B" < "A" and "A" >
       *>   "B" is true: "A2 REV".
       *>   A3: §2002:12.2.7.3 GR13/GR14 (cite.py OK): FUNCTION ALL

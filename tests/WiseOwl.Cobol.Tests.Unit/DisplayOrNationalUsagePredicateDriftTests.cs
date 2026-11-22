@@ -17,7 +17,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// identifier-4, shall be described implicitly or explicitly as usage display or national") and §2023:14.9.22.3 SR1/SR2
 /// (INSPECT: "an elementary item described implicitly or explicitly as usage display or national") state one sentence.
 /// STRING used to re-derive it from <c>Pic.Usage</c> guarded by <c>!IsGroup</c> beside a post-bind <c>StoreAsImage</c>
-/// exemption, which is why a <c>GROUP-USAGE BIT</c> group — an elementary item of usage bit by §2023:13.18.29.4 GR1 b) —
+/// exemption, which is why a <c>GROUP-USAGE BIT</c> group — an elementary item of usage bit by §2023:13.18.29.4 GR1b —
 /// compiled clean as a STRING operand while INSPECT refused it.
 /// <para><b>What this can and cannot see.</b> It pins the SHAPE: each rule's binder reaches the shared predicate, the
 /// strongly-typed leaf walk exists once, and STRING no longer reads a storage form as a usage. The behaviour (a bit

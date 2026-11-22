@@ -634,17 +634,17 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
         {
             Error(DiagnosticCatalog.DigitCapacityUnder1, $"{what} has {digits} digit positions; the number of digit "
                 + "positions of a numeric or fixed-point numeric-edited item shall range from 1 through "
-                + Edition.Cite("18 (§1985:VI.5.9.4 GR3a; §1985:VI.5.9.4 GR6a1)", "31 (ISO §2023:13.18.40.3 SR14)"));
+                + Edition.Cite("18 (§1985:VI.5.9.4 GR3a; §1985:VI.5.9.4 GR6a.1)", "31 (ISO §2023:13.18.40.3 SR14)"));
             return;
         }
         if (Edition.DigitCapacityExcess(digits) is not { } excess) return;
         if (excess == DiagnosticCatalog.DigitCapacityOver31)
             Error(excess, $"{what} has {digits} digit positions; " + Edition.Cite(
-                "ANSI X3.23-1985 limits a numeric item to 18 digit positions (§1985:VI.5.9.4 GR3a; §1985:VI.5.9.4 GR6a1)",
+                "ANSI X3.23-1985 limits a numeric item to 18 digit positions (§1985:VI.5.9.4 GR3a; §1985:VI.5.9.4 GR6a.1)",
                 "ISO/IEC 1989 limits a numeric item to 31 digit positions (ISO §2023:13.18.40.3 SR14)"));
         else
             Error(excess, $"{what} has {digits} digit positions; COBOL-85 limits fixed-point items and "
                 + $"literals to 18 digits — 19–31 digits require --std 2002 or later (targeting COBOL-{DialectLevel})"
-                + Edition.Cite("; the number of digit positions a PICTURE character-string describes must range from 1 to 18 inclusive (§1985:VI.5.9.4 GR3a; §1985:VI.5.9.4 GR6a1)", ""));
+                + Edition.Cite("; the number of digit positions a PICTURE character-string describes must range from 1 to 18 inclusive (§1985:VI.5.9.4 GR3a; §1985:VI.5.9.4 GR6a.1)", ""));
     }
 }

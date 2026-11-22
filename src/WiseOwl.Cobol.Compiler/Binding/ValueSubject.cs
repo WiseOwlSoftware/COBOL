@@ -106,14 +106,14 @@ internal readonly record struct ValueSubject(ValueSubjectKind Kind, int? SizePos
     /// are the same pair over national and boolean positions). A Format-3 entry is
     /// <c>88 condition-name-1 value-clause .</c> (§2023:13.16.2) — no PICTURE clause is writable in it, so no EXPLICIT
     /// picture indicates a size — and its subject is a condition-name (§2023:13.16.4 GR3), an entry for which there is
-    /// "no true concept of level" (§2023:8.5.1.3.2 item 3), hence neither an elementary item nor a group item
+    /// "no true concept of level" (§2023:8.5.1.3.2 GR3), hence neither an elementary item nor a group item
     /// (§2023:8.5.1.3.1 defines elementary items as a record's undivided subdivisions). §2023:13.18.63.4 GR19 gives a
     /// condition-name its conditional variable's characteristics <b>implicitly</b> — which is precisely what the
     /// word "explicit" excludes — so the CLASS half of SR4/SR5 (ALL FORMATS) and of SR10 (Format 1, carried in by
     /// SR24's "Syntax rules 10 and 17 above apply") still binds, and only the SIZE half does not.</para>
     ///
     /// <para><b>And the standard says what an oversize one MEANS</b>, which a size rule would make dead text: the
-    /// condition-name condition compares "the same as those specified for relation conditions" (§2023:8.8.4.5.3 item 2),
+    /// condition-name condition compares "the same as those specified for relation conditions" (§2023:8.8.4.5.3 GR2),
     /// so a literal longer than the conditional variable simply never compares equal — a permanently-false
     /// condition; and <c>SET condition-name TO TRUE</c> places the literal "according to the rules for the VALUE
     /// clause" (§2023:14.9.39.4 GR6) → aligned per §2023:13.18.63.4 GR7 → §2023:14.6.8.5, "aligned at the leftmost character

@@ -108,7 +108,7 @@ internal interface IFrameMedium
 /// A line sequential line and a fixed-length block have no frame and therefore carry no table.</para>
 /// <para>⛔ AN INDEXED VALUE CARRIES ITS RECORD'S RELEASE ORDINALS (kb/Work PB2693): key count × 8 bytes, the prime
 /// key's slot first, after the length word and the extent table and before the payload. §2023:14.9.30.4 GR26 orders an
-/// alternate key's duplicates by release, and §2023:14.9.35.4 GR24 b) moves a rewritten record last under each key it
+/// alternate key's duplicates by release, and §2023:14.9.35.4 GR24b moves a rewritten record last under each key it
 /// changed, independently per key — so the order is one number per record PER KEY, which no single physical order of
 /// the records can carry.</para>
 /// </summary>
@@ -152,9 +152,9 @@ internal static class RecordFraming
     }
 
     /// <summary>The record a keyed store engine's leaf value holds (<see cref="EncodeFrame"/>'s inverse), decoded by the
-    /// ONE frame decoder (<see cref="ReadFrame"/>) and returned in the NATIVE character set (§2023:13.18.13.4 GR6 a)); null
+    /// ONE frame decoder (<see cref="ReadFrame"/>) and returned in the NATIVE character set (§2023:13.18.13.4 GR6a); null
     /// when the value is not exactly one record's frame — a value this writer cannot have produced, which its reader
-    /// answers as the torn page it is ('30', §2023:9.1.13.6 item 1).</summary>
+    /// answers as the torn page it is ('30', §2023:9.1.13.6 GR1).</summary>
     public static StoredFrame? DecodeFrame(byte[] value, int ordinalSlots, CodeSetConversion? codeSet)
     {
         var medium = new ValueMedium(value);
@@ -227,8 +227,8 @@ internal static class RecordFraming
     /// physical storage medium (such as record length headers)". A first frame that the one decoder cannot read
     /// (<see cref="ReadStreamFrame"/>: a head naming more bytes than the file holds, a table this writer cannot have
     /// produced) is not a framed file at all, so a connector declaring the VARIABLE record type contradicts the medium
-    /// and the OPEN is unsuccessful with '39' (§2023:9.1.13.6 item 7). ⛔ THE BOUND IS THE FILE, NOT THE RECORD CLAUSE: a
-    /// prefix that parses but falls outside the connector's VaryMin/VaryMax is exactly §2023:9.1.13.2 item 3's '04' — "A READ
+    /// and the OPEN is unsuccessful with '39' (§2023:9.1.13.6 GR7). ⛔ THE BOUND IS THE FILE, NOT THE RECORD CLAUSE: a
+    /// prefix that parses but falls outside the connector's VaryMin/VaryMax is exactly §2023:9.1.13.2 GR3's '04' — "A READ
     /// statement is successfully executed but the physical record from the file is shorter than or longer than the
     /// minimum or maximum length of records allowed for the fixed file attributes for that file" — a SUCCESSFUL
     /// completion that a '39' at the OPEN would make unreachable.</para>

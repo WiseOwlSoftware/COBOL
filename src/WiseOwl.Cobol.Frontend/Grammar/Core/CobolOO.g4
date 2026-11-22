@@ -239,7 +239,7 @@ invokeArgument
     | addressIdentifier   // §2023:14.9.23.3 SR9 / SR19 — a sending operand whatever the mode
     // The keyword-less EXPRESSION arms (kb/Work PB1135) — the twin of `callArgument`'s. §2023:14.9.23.2 prints BY CONTENT
     // and BY VALUE as OPTIONAL over {arithmetic-expression-1 | boolean-expression-1 | identifier-5 | literal-2}, so
-    // an expression written with no BY is a legal argument (§2023:14.9.23.4 GR6 a) 2 makes it BY CONTENT).
+    // an expression written with no BY is a legal argument (§2023:14.9.23.4 GR6a 2 makes it BY CONTENT).
     // ⛔ A KEYWORD-LESS `N + 1` IS ONE ARGUMENT (decision R59, reversing PB130's list reading — see `callArgument`).
     // There is no bare `dataReference` arm: `arithmeticExpression` subsumes the identifier, which the binder recovers
     // from a sole-dataReference expression (InvocationArg.OfInvokeArgument's `Ref`, through ConditionBinder.SoleDataReference, the path BY CONTENT

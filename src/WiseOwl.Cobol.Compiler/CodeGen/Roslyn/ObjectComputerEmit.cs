@@ -15,7 +15,7 @@ namespace WiseOwl.Cobol.CodeGen;
 /// <c>__CLASSIFY</c>, and a class with either clause was a Roslyn CS0103 on emitted code.
 /// <para>The collating carriers are per-TYPE constants (<c>__COLLATE</c> / <c>__COLLATE_NAT</c>). The
 /// classification is per ACTIVATION (§2023:12.3.6.4 GR8 "effective with the initial state of the runtime modules";
-/// §2023:14.6.6 r2 "on activation of a runtime element"): a PROGRAM carries it in a field assigned by its
+/// §2023:14.6.6 GR2 "on activation of a runtime element"): a PROGRAM carries it in a field assigned by its
 /// <c>__Activate</c> prologue (a RECURSIVE program and every function get a fresh instance per activation —
 /// ProgramTable — so the field IS per activation); a METHOD, which is re-entered on the SAME object, carries it in
 /// a LOCAL declared at the top of its body (<see cref="ClassificationLocal"/>) — each invocation resolves its own,
@@ -28,13 +28,13 @@ internal static class ObjectComputerEmit
     {
         if (data.Configuration.Collating is { } collate)
             // The NON-native alphanumeric program collating sequence (ISO §2023:12.3.6) as the type's ONE CobolCollation
-            // carrier (kb/Work PB101): an AlphanumericCollation for a literal phrase (positions + the §2023:15.15.4 r2
+            // carrier (kb/Work PB101): an AlphanumericCollation for a literal phrase (positions + the §2023:15.15.4 RV2
             // representative array + NextFree + the GR8/GR9 extremes — PB59) or a LocaleCollation for the LOCALE
             // phrase; every comparison consumer, MAX/MIN, CHAR/ORD take the object.
             w.Line($"private static readonly CobolCollation __COLLATE = {CollationEmit.New(collate)};");
         if (classificationField && data.Configuration.Classification is not null)
             // The OBJECT-COMPUTER CHARACTER CLASSIFICATION in effect for this runtime module (ISO §2023:12.3.6.4 GR5–GR8;
-            // kb/Work PB64 T5): resolved at EVERY activation (GR8; §2023:14.6.6 r2), in __Activate's prologue, so the word
+            // kb/Work PB64 T5): resolved at EVERY activation (GR8; §2023:14.6.6 GR2), in __Activate's prologue, so the word
             // LOCALE binds the locale current when the program is entered. Read by UPPER-CASE / LOWER-CASE without a
             // LOCALE phrase and by the ALPHABETIC class tests.
             w.Line("private CharacterClassification __CLASSIFY = CharacterClassification.None;   // CHARACTER CLASSIFICATION (ISO §2023:12.3.6) — resolved at activation");
@@ -65,7 +65,7 @@ internal static class ObjectComputerEmit
         _ => throw new InvalidOperationException($"range collation '{id.Name}': no spelling for {id.Sequence}"),
     };
 
-    /// <summary>The activation-time resolution expression of a classification (§2023:12.3.6.4 GR5 a–j; GR8; §2023:14.6.6 r2).</summary>
+    /// <summary>The activation-time resolution expression of a classification (§2023:12.3.6.4 GR5 a–j; GR8; §2023:14.6.6 GR2).</summary>
     public static string ClassificationResolve(ClassificationSpec cls)
         => $"CharacterClassification.Resolve({Kind(cls.Alphanumeric)}, {Tag(cls.Alphanumeric)}, {Kind(cls.National)}, {Tag(cls.National)})";
 
@@ -85,7 +85,7 @@ internal static class ObjectComputerEmit
     /// GR5 a)–e) establish the initial ALPHANUMERIC classification and f)–j) the initial NATIONAL one, so the
     /// operand's class chooses between them — asked of THE ONE operand-category reader
     /// (<see cref="IntrinsicResultType.OperandCategory"/>), never a raw <c>Pic</c>: a national GROUP is category
-    /// national (§2023:13.18.29.4 GR2 b), a ref-modified national item keeps class national (§2023:8.4.3.3.4 GR6), and a
+    /// national (§2023:13.18.29.4 GR2b), a ref-modified national item keeps class national (§2023:8.4.3.3.4 GR6), and a
     /// national function result carries its own category. The two private two-case copies this replaced read
     /// <c>Place.Item.Pic</c>, null for every group, so <c>FUNCTION UPPER-CASE(NG)</c> over a GROUP-USAGE NATIONAL
     /// group mapped case through the ALPHANUMERIC locale where its elementary twin used the national one.</summary>
@@ -94,7 +94,7 @@ internal static class ObjectComputerEmit
 
     /// <summary>The selector as an expression - <c>__CLASSIFY.For(national)</c> - for a consumer that names the argument
     /// (the ANYCASE matchers, whose "LOWER-CASE function without the LOCALE argument" fold takes the classification by
-    /// §2023:15.57.4 r3; kb/Work PB2631) rather than appending it positionally.</summary>
+    /// §2023:15.57.4 RV3; kb/Work PB2631) rather than appending it positionally.</summary>
     public static string ClassificationExpr(WiseOwl.Cobol.Binding.Bound.BoundOperand op)
         => $"__CLASSIFY.For({(IntrinsicResultType.OperandCategory(op) is PicCategory.National ? "true" : "false")})";
 

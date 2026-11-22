@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:15.40.3 r6 — "Argument-4 shall not be specified if the time portion of the format in
+      *> ISO §2023:15.40.3 AR6 — "Argument-4 shall not be specified if the time portion of the format in
       *> argument-1 is neither a UTC format nor an offset format."
       *> (cite.py --check 15.40.3 "Argument-4 shall not be specified if the time portion of the format in
       *> argument-1 is neither a UTC format nor an offset format" -> OK, §2023:15.40.3 rule 6.)
@@ -25,7 +25,7 @@
       *> no report, which is the fabricated-agreement failure mode, not over-acceptance.
       *>
       *> ⚠ THE CONVERSE IS LEGAL AND MUST STAY LEGAL: omitting argument-4 for a UTC or offset format "shall
-      *> be evaluated as though 0 were specified" (§2023:15.40.3 r7), so the screen is deliberately one-sided.
+      *> be evaluated as though 0 were specified" (§2023:15.40.3 AR7), so the screen is deliberately one-sided.
       *> The legal side of THIS rule — argument-4 written against an OFFSET format — is
       *> conformance:cases/15.40.3-Argument-rules/l1_formatted_datetime_offset_magnitude, which would go red if the screen widened.
       *> Expected: COBOL1633, the datetime-offset-argument-not-permitted diagnostic.

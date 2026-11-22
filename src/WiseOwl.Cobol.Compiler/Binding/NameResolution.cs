@@ -105,7 +105,7 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
         // any ambiguity of reference") is the rule the reference breaks whether or not a report entry spells the same, and the data-name candidates are the ones the programmer
         // can write more qualifiers to single out. The report entry is the verdict only when no ambiguity among data items
         // stands in its way: the candidates (SymbolTable.IdentifyDataName) are the ones that rank with the report entries, because
-        // the lookup leaves none that a report entry of a NEARER source element hides (§2023:8.4.6.2.1 3) a), kb/Work PB4196,
+        // the lookup leaves none that a report entry of a NEARER source element hides (§2023:8.4.6.2.1 GR3a), kb/Work PB4196,
         // SymbolTable.NearestInNameSet, kb/Work PB5975), so the refusal still stands when the data items are ambiguous GLOBAL ones of
         // a farther element (review R1-1) and when there is only one.
         var dataItems = written is { } named ? data.Symbols.IdentifyDataName(named, report: false) : new NameCandidates<DataItem>([]);
@@ -313,7 +313,7 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
     /// §2023:8.4.2.2.1 — "Identical user-defined names may be specified in a source unit; however, uniqueness shall be established
     /// through qualification", so legal <c>Z IN X</c> (two Xs, exactly one holding a Z) resolves. Zero or several survivors is a
     /// resolution failure the caller reports (kb/Work R30).</para>
-    /// <para>An UNQUALIFIED reference names the nearest declaring source element's items (§2023:8.4.6.2.1 3), kb/Work PB1047 /
+    /// <para>An UNQUALIFIED reference names the nearest declaring source element's items (§2023:8.4.6.2.1 GR3), kb/Work PB1047 /
     /// PB1243), and a REPORT SECTION entry of the same spelling and element counts with them (kb/Work PB5775). Several is
     /// §2023:8.4.2.2.1's ambiguity (kb/Work R33): "Qualification of a user-defined name is required unless … 1) No other name has
     /// the identical spelling." Strict: null, and the caller's <see cref="ReportUnidentified"/> words it. <c>--permissive</c>: the
@@ -407,7 +407,7 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
         string name = reference.Name;
         var qualifiers = reference.QualifierWords;
         // Every report about this written reference — the edition gate, the SR6 "not defined", the SR1 ambiguity, the
-        // §2023:13.7.3 SR4 e) linkage refusal — stands AT the written index-name (kb/Work PB4485), not at the SET / SEARCH /
+        // §2023:13.7.3 SR4e linkage refusal — stands AT the written index-name (kb/Work PB4485), not at the SET / SEARCH /
         // PERFORM / relation statement whose operand it is: the statement can carry several references, and the user
         // edits this one (the data-name's COBOL1639 already stands at its reference, PB4383).
         using var at = data.Edition.At(WrittenStart(writtenAt));
@@ -440,7 +440,7 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
         if (data.UniqueOrReportAmbiguous(cands, "the index-name reference", written, out _, report) is not { } first)
             return new IndexRef(IndexRefOutcome.Failed, null);
         // --permissive: warned, and resolved to the first declaration, which is then screened like a unique one —
-        // ambiguity is a fault of the WRITTEN reference and does not excuse the table it resolves to (§2023:13.7.3 SR4 e):
+        // ambiguity is a fault of the WRITTEN reference and does not excuse the table it resolves to (§2023:13.7.3 SR4e):
         // an index of a linkage record outside the USING phrase is refused as it would be for a unique reference).
         ScreenLinkageIndex(first, name, qualifiers, writtenAt);
         return new IndexRef(IndexRefOutcome.Resolved, first);
@@ -463,7 +463,7 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
     /// parse context or a token: neither is a <c>dataReference</c>, whose reports <see cref="ReferenceResolver.Diagnosed"/> keeps).</summary>
     private readonly HashSet<object> _linkageLegReported = new(ReferenceEqualityComparer.Instance);
 
-    /// <summary>§2023:13.7.3 SR4 e): an index-name of a linkage table is referenceable exactly when the table is — the
+    /// <summary>§2023:13.7.3 SR4e: an index-name of a linkage table is referenceable exactly when the table is — the
     /// decision <see cref="ScreenLinkageReference"/> asks of a data-name, asked once per written reference (a probe
     /// never reports, R30).</summary>
     private void ScreenLinkageIndex(IndexDeclaration decl, string name, IReadOnlyList<string> qualifiers, object writtenAt)

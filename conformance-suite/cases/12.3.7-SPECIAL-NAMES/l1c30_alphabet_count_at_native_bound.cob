@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §2023:12.3.7.3 SR14b4 — alphabet at the native-set count
+      *> ISO §2023:12.3.7.3 SR14b.4 — alphabet at the native-set count
       *> THE RULE (SR14 b), ALPHANUMERIC specified or implied):
       *>   "4. The number of characters specified shall not exceed the
       *>   number of characters in the native alphanumeric character

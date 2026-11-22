@@ -329,12 +329,12 @@ public sealed class PagedFileCrashMatrixTests
             }
     }
 
-    // ── A REFUSED READ at every read of every path: '30', never a verdict on the page (§2023:9.1.13.6 item 1) ───────────
+    // ── A REFUSED READ at every read of every path: '30', never a verdict on the page (§2023:9.1.13.6 GR1) ───────────
 
     /// <summary>Every read the page layer makes — OPEN's three meta pages, R6 step 3's verification of a DESCENDANT's
     /// <c>fresh</c> pages, a statement's entry (page 2), the promotion's read of both slots, the retirement's ledger and
     /// FREE chains, a tree page through its stamped pointer — refused by the medium, one at a time: the path answers '30'
-    /// (§2023:9.1.13.6 item 1, <i>"A permanent error exists and no further information is available concerning the
+    /// (§2023:9.1.13.6 GR1, <i>"A permanent error exists and no further information is available concerning the
     /// input-output operation"</i>) and decides NOTHING from the unread page — no rejection of a work slot, no slot chosen
     /// for a promotion — so the file is the last completed statement for the refused run unit's next statement, for the
     /// next writer and for a fresh OPEN.</summary>

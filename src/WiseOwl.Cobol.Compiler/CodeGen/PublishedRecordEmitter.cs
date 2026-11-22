@@ -38,7 +38,7 @@ internal sealed class PublishedRecordEmitter(Func<DataItem, string> profileOf)
     /// <see cref="DataItem.CurrentExtentImageCapable"/>) — as the CALL lane's variable-length carrier (<c>CobolVarGroup</c>, <see cref="EmitVar"/>)
     /// or, when it also holds a pointer or object reference, as the CALL lane's cell AREA holding the references and the
     /// components together (<see cref="EmitArea"/>).
-    /// <para>⛔ <b>THERE IS NO GR13 RESTRICTION LEFT</b> (kb/Work PB3273; ISO §2023:14.2.3 13) obliges the implementor to STATE
+    /// <para>⛔ <b>THERE IS NO GR13 RESTRICTION LEFT</b> (kb/Work PB3273; ISO §2023:14.2.3 GR13) obliges the implementor to STATE
     /// restrictions, not to have one): a group holding BOTH a variable-length component and a pointer or object-reference
     /// member once published no entry, because the COBOL boundary had no crossing form for it (kb/Work PB3139 gave it one:
     /// <c>ActivationCrossing.LeafCarried</c>, <c>StorageCell.CopyArea</c>) and this emitter composed no such area. The record now
@@ -70,7 +70,7 @@ internal sealed class PublishedRecordEmitter(Func<DataItem, string> profileOf)
             .Aggregate(0L, (sum, c) => RecordLayout.Plus(sum, RecordLayout.Times(CellComponents.PerOccurrence(c), c))));
 
     /// <summary>The minimum capacity of a dynamic-capacity table, integer-4 of its FROM phrase ("If integer-4 is absent,
-    /// a value of zero is assumed for it", ISO §2023:13.18.38.4 16)).</summary>
+    /// a value of zero is assumed for it", ISO §2023:13.18.38.4 GR16).</summary>
     private static int MinimumCapacity(DataItem table) => table.OccursSpec?.InitialCap ?? 0;
 
     /// <summary>Whether <paramref name="item"/> is or holds a member whose value rides a managed slot of its area rather
@@ -80,7 +80,7 @@ internal sealed class PublishedRecordEmitter(Func<DataItem, string> profileOf)
         SlotWindow.CarriedBySlot(item) || DataItem.DescendantsOf(item).Any(SlotWindow.CarriedBySlot);
 
     /// <summary>The DEPENDING ON item of an OCCURS DEPENDING ON member <paramref name="table"/> whose count the record
-    /// <paramref name="root"/> itself holds — data-name-1 inside the record, which §2023:13.18.38.3 20) places before the
+    /// <paramref name="root"/> itself holds — data-name-1 inside the record, which §2023:13.18.38.3 SR20 places before the
     /// table — or null: a fixed table, or one whose data-name-1 is outside the record, whose property then holds the
     /// table's whole area, every occurrence the storage has (§2023:8.5.1.8; the image the boundary carries).</summary>
     private static DataItem? DependingInRecord(DataItem root, DataItem table) =>
@@ -238,7 +238,7 @@ internal sealed class PublishedRecordEmitter(Func<DataItem, string> profileOf)
 
     /// <summary>⛔ THE CELL AREA OF A PUBLISHED RECORD HOLDING REFERENCES (DESIGN-external-repository §4.3's last host-type
     /// row; kb/Work PB2087, PB3273): the storage the CALL lane passes a group whose pointers and object references ride
-    /// managed slots, and the one the activated program's formal is laid over (ISO §2023:14.2.3 8): "operates as if the formal
+    /// managed slots, and the one the activated program's formal is laid over (ISO §2023:14.2.3 GR8): "operates as if the formal
     /// parameter occupies the same storage area as the argument"). <c>__Area</c> builds it and <c>__TryGetArea</c> reads it
     /// back, at the published ROOT only.
     /// <para>A record with no variable-length component is the landed image with each reference in its slot
@@ -537,7 +537,7 @@ internal sealed class PublishedRecordEmitter(Func<DataItem, string> profileOf)
         using (w.Block(""))
         {
             // A table's array has its occurrences: the DEPENDING ON item's landed value for a count the record holds
-            // (ISO §2023:13.18.38.4 7)), the declared count otherwise.
+            // (ISO §2023:13.18.38.4 GR7), the declared count otherwise.
             string count = m.Depending is { } dep
                 ? $"HostLanding.LandedOccurrences({DependingImage(root, group, dep, "__b", buffer: true)}, {profileOf(dep)}, "
                     + $"{m.Minimum}, {m.Occurs}, __parameter, {path}, {CsLiteral(dep.CobolName!)})"
@@ -608,7 +608,7 @@ internal sealed class PublishedRecordEmitter(Func<DataItem, string> profileOf)
             return;
         }
         // The table's current occurrences are the DEPENDING ON item's content, decoded by the validity rule and within
-        // the table's bounds (ISO §2023:13.18.38.4 7)); the occurrences past them are undefined there and are not decoded.
+        // the table's bounds (ISO §2023:13.18.38.4 GR7); the occurrences past them are undefined there and are not decoded.
         w.Line($"{{ if (HostLanding.TryOccurrences({DependingImage(root, group, dep, "__s", buffer: false)}, {profileOf(dep)}, "
             + $"{m.Minimum}, {m.Occurs}, {name}, {CsLiteral(dep.CobolName!)}, ref __bad, out int __n)) "
             + $"{{ __r.{m.Name} = new {m.Element}[__n]; for (int __i = 0; __i < __n; __i++) {each} }} else __ok = false; }}");
@@ -638,7 +638,7 @@ internal sealed class PublishedRecordEmitter(Func<DataItem, string> profileOf)
             HostTypeKind.Integer or HostTypeKind.Decimal or HostTypeKind.Dec =>
                 HostEntryEmitter.NumericDecode(type, pic, chars, profileOf(leaf), name, target, "__bad", " else __ok = false;"),
             // An INDEX data item is of class index, of which no class condition may be asked ("Identifier-1 shall not
-            // reference a data item of class index", ISO §2023:8.8.4.4.3 1)), so the validity rule does not apply: its eight
+            // reference a data item of class index", ISO §2023:8.8.4.4.3 SR1), so the validity rule does not apply: its eight
             // bytes are the value the program stored, and the codec decodes them as the record struct's GroupImageCodec does.
             HostTypeKind.Index => $"{target} = (long){RuntimeApi.NumParseImage(chars, profileOf(leaf), sending: false)};",
             // The image codec's own decode (the record struct's GroupImageCodec decodes a float leaf the same way): the

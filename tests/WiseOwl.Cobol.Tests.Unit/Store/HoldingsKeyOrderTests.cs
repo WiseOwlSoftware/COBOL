@@ -401,7 +401,7 @@ public sealed class HoldingsKeyOrderTests
                     Assert.Equal("30", a.Status("F"));
                     Assert.Equal(k == sync2 ? "22" : "51", Write(b, "aBcDnew1"));
                 }
-                Assert.Null(a.Rollback());   // §2023:14.6.13.1.3 item 8's unconditional ROLLBACK
+                Assert.Null(a.Rollback());   // §2023:14.6.13.1.3 GR8's unconditional ROLLBACK
                 Assert.Equal(0ul, a.TransactionOf("F"));
                 a.CloseAll();
                 b.CloseAll();

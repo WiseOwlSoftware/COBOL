@@ -240,7 +240,7 @@ public sealed class FrameDecoderDriftTests
         {
             File.WriteAllBytes(host, Damaged(damage));
             // A file shorter than one length word states nothing (the torn word); every other damaged first frame is
-            // the decoder's End, which the OPEN answers '39' (§2023:9.1.13.6 item 7).
+            // the decoder's End, which the OPEN answers '39' (§2023:9.1.13.6 GR7).
             Assert.Equal(damage == Damage.TornWord, RecordFraming.StreamFramingParses(host));
             using var fs = File.OpenRead(host);
             Assert.Equal(0, RecordFraming.CountFrames(fs));
@@ -251,7 +251,7 @@ public sealed class FrameDecoderDriftTests
 
     /// <summary>A keyed store engine's leaf value is exactly one frame (<see cref="RecordFraming.DecodeFrame"/>, the one
     /// decoder): a whole frame decodes; every damaged shape, and a whole frame with a byte after it, is not a value this
-    /// writer produces — null, which the reader answers as the torn page it is ('30', §2023:9.1.13.6 item 1).</summary>
+    /// writer produces — null, which the reader answers as the torn page it is ('30', §2023:9.1.13.6 GR1).</summary>
     [Theory]
     [MemberData(nameof(Damages))]
     public void ALeafValue_IsExactlyOneFrame(Damage damage)

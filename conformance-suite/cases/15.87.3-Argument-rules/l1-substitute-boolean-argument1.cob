@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:15.87.3 r1 — a class-BOOLEAN argument-1. r1 admits "class alphabetic, alphanumeric, or national,
+      *> ISO §2023:15.87.3 AR1 — a class-BOOLEAN argument-1. r1 admits "class alphabetic, alphanumeric, or national,
       *> or an alphanumeric or national literal"; §2023:8.5.2.1's Table 2 carries "| Boolean | Boolean |" as its own
       *> row and r1 does not name it, so a bit item is refused.
       *>   python scripts/spec/cite.py --check 15.87.3 "Argument-1 shall be an identifier that references a data

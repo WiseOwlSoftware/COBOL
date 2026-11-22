@@ -6,11 +6,11 @@
 *> portable: unverified
 *>---
       *> ISO §2023:15.67 NUMVAL — the general format (§2023:15.67.2): FUNCTION NUMVAL ( argument-1 ), across the
-      *> §2023:15.67.3 r1 argument shapes: the leading-sign form and the trailing-CR form.
-      *> §2023:15.67.3 r2: "Leading and trailing spaces in argument-1 are ignored. Embedded spaces in
+      *> §2023:15.67.3 AR1 argument shapes: the leading-sign form and the trailing-CR form.
+      *> §2023:15.67.3 AR2: "Leading and trailing spaces in argument-1 are ignored. Embedded spaces in
       *> argument-1 are ignored only if they appear before the first digit" — V2's "+  12" is legal.
-      *> §2023:15.67.4 r1: the returned value is the numeric value represented by argument-1.
-      *> §2023:15.67.4 r2: "If argument-1 contains CR, DB, or the minus sign, the returned value is negative."
+      *> §2023:15.67.4 RV1: the returned value is the numeric value represented by argument-1.
+      *> §2023:15.67.4 RV2: "If argument-1 contains CR, DB, or the minus sign, the returned value is negative."
       *> Receivers are numeric-edited, so every output character derives from the PICTURE clause's §2023:13.18.40.5
       *> editing
       *> rules: 12.34 in 99.99 → "12.34"; 12 → "12.00"; -12.5 in -99.9 → "-12.5"; -0.5 → "-00.5".

@@ -33,7 +33,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 ///
 /// <para><b>What is measured.</b> Each program carries exactly ONE function reference, in one operand slot,
 /// written as a table SUBSCRIPT so it registers a §2023:15.4 temporary store as a pre-op — the same pending list a
-/// user-function activation uses, because §2023:8.8.4.13 r2 governs "functions" and not one spelling of them. The
+/// user-function activation uses, because §2023:8.8.4.13 GR2 governs "functions" and not one spelling of them. The
 /// generated C# is then asked where that store landed relative to the varying phrase's own loop header.</para>
 /// </summary>
 public sealed class PerformVaryingOperandWindowDriftTests

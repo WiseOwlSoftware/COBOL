@@ -87,7 +87,7 @@ public sealed record FixedFileAttributes(
     /// <summary>⛔ THE ONE PLACE §2023:14.9.27.4 GR10's COMPARISON IS WRITTEN: true when this RECORDED set (read back
     /// from the physical file's own format) and <paramref name="declared"/> (the connector's, from the file
     /// control paragraph and the file description entry) do not match, which GR10 makes a file attribute
-    /// conflict condition — the OPEN is unsuccessful with I-O status '39' (§2023:9.1.13.6 item 7: "The OPEN or DELETE
+    /// conflict condition — the OPEN is unsuccessful with I-O status '39' (§2023:9.1.13.6 GR7: "The OPEN or DELETE
     /// FILE statement is unsuccessful because a conflict has been detected between the fixed file attributes and
     /// the attributes specified for that file in the source unit").
     /// <para>WHAT IS COMPARED IS WHATEVER THE CALLER READ. Only <c>KeyedConnector</c> calls this, because only

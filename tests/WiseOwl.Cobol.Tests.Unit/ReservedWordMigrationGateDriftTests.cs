@@ -14,7 +14,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// it restores the pre-removal reading of a spelling ISO §2023:8.9 TOOK AWAY (<c>ConstructAvailability.Removed</c> —
 /// an existing program legitimately contains the word as a name). A spelling reserved at the compile edition AND
 /// at every OLDER edition this compiler targets was never a user-defined word anywhere, so migration mode has
-/// nothing to restore; §2023:8.3.2.1 rule 1 ("Reserved words shall not be used as user-defined words or system-names")
+/// nothing to restore; §2023:8.3.2.1 SR1 ("Reserved words shall not be used as user-defined words or system-names")
 /// held then as it holds now, and the verdict is <c>NotYetIntroduced</c> — an error on BOTH axes.</para>
 /// <para>The gate was written as <c>Edition.Permissive || !reservedHere(w)</c>, which granted the migration
 /// exemption to all 59 gated words including the ones no edition ever left free. The measured cost: at
@@ -83,7 +83,7 @@ public sealed class ReservedWordMigrationGateDriftTests
     /// that rule live, and the COLUMN-less control stopped compiling). The VALUE operand
     /// list (<c>valueItem</c>, ISO §2023:13.18.63.2 format 4 — <c>{VALUE IS|VALUES ARE} {literal-1} …</c>, one or MORE
     /// literals, so the list is deliberately greedy and must NOT be narrowed) bottoms out at <c>cobolWord</c>,
-    /// which is the user-defined-word slot §2023:8.3.2.1 rule 1 governs. When the gate admits an always-reserved word
+    /// which is the user-defined-word slot §2023:8.3.2.1 SR1 governs. When the gate admits an always-reserved word
     /// the loop swallows it and the clause it begins vanishes; when the gate holds, the word has no reading here
     /// and the entry is refused — identically on both severity axes, because the migration mode has nothing to
     /// restore for such a word.

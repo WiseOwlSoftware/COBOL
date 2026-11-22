@@ -9,7 +9,7 @@
       *> enumerates, plus the §2023:15.58.3 AR2 ADMIT side (that bar is CONDITIONAL on standard-decimal).
       *>
       *> THE RULE: "The value returned is equal to the lowest finite algebraic value that may be represented
-      *> in argument-1." (§2023:15.58.4 r2). Its NOTE tabulates seven argument shapes; the first seven DISPLAYs
+      *> in argument-1." (§2023:15.58.4 RV2). Its NOTE tabulates seven argument shapes; the first seven DISPLAYs
       *> below reproduce that table, each value re-derived from the description rather than copied:
       *>   S999                  signed, 3 digit positions, scale 0 -> the all-nines magnitude negated: -999
       *>   S9(4) USAGE BINARY    §2023:13.18.60.4 GR4 sizes USAGE BINARY to "the maximum range of values implied by

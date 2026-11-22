@@ -128,7 +128,7 @@ public sealed class ClauseOperandQualificationSpecTests
     public void RecordDependingOperand_AmbiguousUnqualified_IsRejected()
         => AssertRejects(DependingProgram("RL"), "COBOL1639");
 
-    /// <summary>…and the qualified spelling binds the qualified item: §2023:13.18.43.4 GR13 a) makes the WRITE release
+    /// <summary>…and the qualified spelling binds the qualified item: §2023:13.18.43.4 GR13a makes the WRITE release
     /// a record as long as the DEPENDING item says, so naming G-A's RL (3) and naming G-B's RL (6) must put
     /// THREE more characters on the medium in the second case.
     /// <para>⭐ THE ASSERTION IS THE DIFFERENCE, NOT EITHER LENGTH. What the standard fixes is the RECORD's

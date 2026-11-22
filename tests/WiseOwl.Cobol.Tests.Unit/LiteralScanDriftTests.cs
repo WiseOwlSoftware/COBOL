@@ -9,8 +9,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ WHERE A LITERAL BEGINS AND ENDS, AND WHAT A COMMENT INDICATOR IS, ARE <see cref="CobolSourceText"/>'S, AND NO TEXT
-/// STAGE SPELLS THEM AGAIN (kb/Work PB2621). ISO §2023:8.3.5 5) gives the opening delimiters (a quotation symbol, and the
-/// prefixed <c>B" N" X" BX" NX"</c>) and the closing one, §2023:8.3.3.2.3 3) makes a doubled quotation symbol content, and
+/// STAGE SPELLS THEM AGAIN (kb/Work PB2621). ISO §2023:8.3.5 SR5) gives the opening delimiters (a quotation symbol, and the
+/// prefixed <c>B" N" X" BX" NX"</c>) and the closing one, §2023:8.3.3.2.3 SR3 makes a doubled quotation symbol content, and
 /// §2023:6.2.3.1 makes <c>*&gt;</c> the floating comment indicator. Those facts were written five times in three types — three
 /// of which each called itself THE ONE — and the copies had begun to differ. Source-form guards over every stage that
 /// reads program text before the lexer: a stage that spells the comment indicator, the quotation-symbol pair, or a

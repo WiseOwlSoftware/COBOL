@@ -239,7 +239,7 @@ public sealed class CollatingComparisonClassDriftTests : WiseOwlCobolTestBase
     /// that answer back as the figurative's own category, so the pair rule saw one operand twice and
     /// <c>ALL N"AB" &lt; XA</c> took the ALPHANUMERIC program collating sequence — measured 0 against the
     /// national item's 1. AN is the CONTROL: an alphanumeric pair still reads the PCS, where "AB" collates AFTER
-    /// "AC" because AL lists Z first (§2023:12.3.7.4 GR7 k) 2., successive ascending positions in the order
+    /// "AC" because AL lists Z first (§2023:12.3.7.4 GR7k.2), successive ascending positions in the order
     /// written).</para></summary>
     [Fact]
     public void ANationalFigurativeAgainstAnAlphanumericOperand_TakesTheNationalRules_LikeItsItemTwin()

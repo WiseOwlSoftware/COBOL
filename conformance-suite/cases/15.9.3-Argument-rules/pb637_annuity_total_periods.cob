@@ -8,11 +8,11 @@
       *> kb/Work PB637 — ISO §2023:15.9 ANNUITY's argument-2 is a TOTAL integer argument, witnessed under
       *> ARITHMETIC IS STANDARD-DECIMAL with EC-ARGUMENT-FUNCTION CHECKING ON, for a count past the 64-bit window.
       *>
-      *> THE RULES. §2023:15.9.3 r3 is one sentence — "Argument-2 shall be a positive integer." — a SIGN and integer-ness
+      *> THE RULES. §2023:15.9.3 AR3 is one sentence — "Argument-2 shall be a positive integer." — a SIGN and integer-ness
       *> rule that places no constraint on the MAGNITUDE, so §2023:15.3's closing paragraph (EC-ARGUMENT-FUNCTION when an
       *> argument "results in an incorrect value for that argument or for the returned value according to the rules
       *> specified in the function definition") has nothing to fire on for a large n. The value is the returned-value
-      *> rule's: §2023:15.9.4 r1a, "(1 / (argument-2))" at rate zero, and r1b, "(argument-1 / (1 - (1 + argument-1) **
+      *> rule's: §2023:15.9.4 RV1a, "(1 / (argument-2))" at rate zero, and r1b, "(argument-1 / (1 - (1 + argument-1) **
       *> (- (argument-2))))" otherwise; and §2023:15.4.1 makes the standard-decimal returned value EQUAL the value of that
       *> equivalent expression, so "function-identifier = equivalent-arithmetic-expression" is true (its NOTE 2).
       *> The defect: the SDIDI body took argument-2 through the PARTIAL-function narrowing, so a count past
@@ -32,7 +32,7 @@
       *>       narrowed the count to 128 bits and a count past 1.7E38 ended the run unit): the value is 1 / 10^50 =
       *>       1E-50, the same SDIDI value the written expression 1 / (N30 * N20) has (§2023:15.4.1 NOTE 2), too fine for any
       *>       receiver here, so the relation is the witness.
-      *>   T6/T7  rate 0.05: (1 + rate) ** n leaves the decimal128 range (§2023:8.8.1.5.2 r2) at n = 10^6 and at n = 10^20
+      *>   T6/T7  rate 0.05: (1 + rate) ** n leaves the decimal128 range (§2023:8.8.1.5.2 GR2) at n = 10^6 and at n = 10^20
       *>       alike, so the equivalent expression has no value at either and the function raises ITS size condition
       *>       there - the same one on both sides of the 64-bit window, never an EC-ARGUMENT-FUNCTION that depends on
       *>       the carrier's width. The ON SIZE ERROR phrase observes it; the declarative would report any

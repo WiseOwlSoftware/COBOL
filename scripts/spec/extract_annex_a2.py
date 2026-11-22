@@ -9,7 +9,7 @@ WHY THIS EXISTS. `DESIGN-spec-conformance-review.md` §1.1 (owner decision `kb/W
 owner-signed DERIVATION in place of §1(c)'s spec-derived test for a rule that carries no observable obligation,
 and the FIRST of its three arms is mechanical: the rule is on Annex A.2's list, which the standard states is the
 list of "the COBOL language elements within this Working Draft International Standard that are explicitly
-undefined" (`cite.py --check A.2` OK), and §2023:4.4 2) then makes a run unit that reaches such a situation a
+undefined" (`cite.py --check A.2` OK), and §2023:4.4 GR2 then makes a run unit that reaches such a situation a
 CONFORMING run unit. "Mechanically checkable" means the checker must be able to answer *does A.2 item n cover
 inventory row r* without a human in the loop — which needs A.2 as DATA.
 

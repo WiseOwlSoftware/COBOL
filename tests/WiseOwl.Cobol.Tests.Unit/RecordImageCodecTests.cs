@@ -76,7 +76,7 @@ public sealed class RecordImageCodecTests
             CobolNum.FormatImage(-1, P(Usage.Binary, 18, signed: true)));
     }
 
-    /// <summary>An UNSIGNED receiver holds the absolute value (ISO §2023:14.9.25.4 GR6 d) 2. b.), so the image can never carry
+    /// <summary>An UNSIGNED receiver holds the absolute value (ISO §2023:14.9.25.4 GR6d.2.b), so the image can never carry
     /// a two's-complement negative for one — a sign that leaked into the bytes would read back as an enormous
     /// positive.</summary>
     [Fact]
@@ -179,7 +179,7 @@ public sealed class RecordImageCodecTests
     }
 
     /// <summary>THE ONE-WIDTH INVARIANT at the codec: an item's image is EXACTLY the bytes it occupies in
-    /// storage — the property <c>FUNCTION BYTE-LENGTH</c> (§2023:15.14.4 r1) and <c>FUNCTION LENGTH</c> (§2023:15.50.4
+    /// storage — the property <c>FUNCTION BYTE-LENGTH</c> (§2023:15.14.4 RV1) and <c>FUNCTION LENGTH</c> (§2023:15.50.4
     /// GR3) cannot disagree about.</summary>
     [Theory]
     [MemberData(nameof(Grid))]
@@ -213,7 +213,7 @@ public sealed class RecordImageCodecTests
         {
             Assert.Equal(v, CobolNum.ParseImage(CobolNum.FormatImage(v, p), p));
             if (signed) Assert.Equal(-v, CobolNum.ParseImage(CobolNum.FormatImage(-v, p), p));
-            else Assert.Equal(v, CobolNum.ParseImage(CobolNum.FormatImage(-v, p), p));   // magnitude (§2023:14.9.25.4 GR6 d) 2. b.)
+            else Assert.Equal(v, CobolNum.ParseImage(CobolNum.FormatImage(-v, p), p));   // magnitude (§2023:14.9.25.4 GR6d.2.b)
         }
     }
 

@@ -24,7 +24,7 @@
       *> file connector referenced by file-name-1 and the record
       *> identified for access is locked by another file connector ...
       *> If the RETRY phrase is not specified ... the record operation
-      *> conflict condition exists."  §2023:9.1.13.8 item 1 prices it '51'.
+      *> conflict condition exists."  §2023:9.1.13.8 GR1 prices it '51'.
       *> The record identified for access is the FIRST existing record:
       *> B's file position indicator was established by its own OPEN, so
       *> §2023:14.9.30.4 GR21 selects "the first existing record that is
@@ -37,7 +37,7 @@
       *> (UNLOCK, §2023:14.9.47.4 GR1), B's very next sequential READ shall
       *> deliver THAT SAME FIRST RECORD, because GR10 a) left B's file
       *> position indicator exactly where its OPEN put it.  '46' is NOT
-      *> the answer: §2023:9.1.13.7 item 6 requires BOTH that "a sequential
+      *> the answer: §2023:9.1.13.7 GR6 requires BOTH that "a sequential
       *> READ statement is attempted referencing a file connector open
       *> in the input or I-O mode AND NO VALID NEXT RECORD HAS BEEN
       *> ESTABLISHED" and one of its two causes, and GR10 a) is exactly

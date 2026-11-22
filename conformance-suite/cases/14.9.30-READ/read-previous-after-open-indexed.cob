@@ -9,7 +9,7 @@
       *> such record is found or PREVIOUS is specified and the previous
       *> operation on the file was an OPEN statement, the at end
       *> condition exists". That is the 2023 rule. At 2002 and 2014 the
-      *> rule is the ordinary comparison: §2002:14.8.29.3 GR18c2 selects
+      *> rule is the ordinary comparison: §2002:14.8.29.3 GR18c.2 selects
       *> "the first existing record in the physical file whose record
       *> number or key value is less than or equal to the file position
       *> indicator", and OPEN set the indicator to "the characters that

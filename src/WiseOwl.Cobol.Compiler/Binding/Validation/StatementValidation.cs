@@ -57,11 +57,11 @@ internal readonly record struct OpenTapePhraseRule(
 
     /// <summary>COBOL-85's REVERSED — NARROWER than its sibling on BOTH axes (VERSION_CHANGE_REFERENCE row
     /// 7.12): RECORD sequential organization only, because the phrase's whole effect is the backward retrieval
-    /// §2023:14.9.30.4 GR21 c) defines over a record number and §2023:14.9.30.3 SR7 denies to LINE SEQUENTIAL; and the
+    /// §2023:14.9.30.4 GR21c defines over a record number and §2023:14.9.30.3 SR7 denies to LINE SEQUENTIAL; and the
     /// INPUT group only, because the other three modes have no READ for a retrieval direction to govern.</summary>
     private static readonly OpenTapePhraseRule Reversed = new(
         "REVERSED", f => f.Organization is FileOrganization.Sequential, "record sequential",
-        "ISO §2023:14.9.30.4 GR21 c) — REVERSED establishes the backward retrieval only a record sequential "
+        "ISO §2023:14.9.30.4 GR21c — REVERSED establishes the backward retrieval only a record sequential "
         + "file's record number supports (§2023:14.9.30.3 SR7 denies it to LINE SEQUENTIAL); "
         + "VERSION_CHANGE_REFERENCE row 7.12",
         [BoundOpenMode.Input], "VERSION_CHANGE_REFERENCE row 7.12 — COBOL-85's OPEN general format writes "
@@ -122,7 +122,7 @@ internal readonly record struct CorrespondingOperandRule(
         new("SUBTRACT", "§2023:14.9.44.3 SR6", "§1985:VI.6.26.3 SR1", ArithmeticKinds, true);
 
     /// <summary>SR6's four admitted kinds, written ONCE because the two rules are the same sentence: a bit group
-    /// is the one kind left out, and §2023:14.7.6 rule 3 is why — "In an ADD or SUBTRACT statement, both of the data
+    /// is the one kind left out, and §2023:14.7.6 GR3 is why — "In an ADD or SUBTRACT statement, both of the data
     /// items are numeric data items", which no child of a bit group (category boolean, §2023:13.18.29.4 GR1) can be,
     /// so every implied pair would silently fail to correspond.</summary>
     private const GroupKinds ArithmeticKinds =
@@ -628,7 +628,7 @@ internal sealed class StatementValidation(DataBinder data)
     /// <para>⛔ THE ADMITTED KINDS ARE A SET, AND THE SCREEN ASKS THE SET (kb/Work PB392). This read
     /// <c>if (item.IsGroup) return true;</c> — a boolean where SR6 names FOUR of the five group kinds — so a
     /// <c>GROUP-USAGE BIT</c> group was admitted to ADD and SUBTRACT CORRESPONDING, and the statement then ran
-    /// as a SILENT NO-OP: §2023:14.7.6 rule 3 requires both items of an implied pair to be numeric and every child of
+    /// as a SILENT NO-OP: §2023:14.7.6 GR3 requires both items of an implied pair to be numeric and every child of
     /// a bit group is category boolean, which is precisely WHY SR6 leaves bit groups out. MEASURED at
     /// <c>--std 2023</c>: <c>SUBTRACT CORRESPONDING SRC FROM DST</c> over two <c>GROUP-USAGE BIT</c> groups
     /// compiled, ran and changed nothing. MOVE's SR12 admits every group kind — NOTE 5 under §2023:14.9.25.4 GR11
@@ -777,7 +777,7 @@ internal sealed class StatementValidation(DataBinder data)
     /// … referenced in a contained program" (WRITE §2023:14.9.51.3 SR21, REWRITE §2023:14.9.35.3 SR3), quoted verbatim.</param>
     /// <param name="file">The owning file when this returns true.</param>
     /// <returns>true when the reference IS a logical record of a file description entry visible here.</returns>
-    /// <remarks>⛔ A RECORD CAN BE VISIBLE WHEN ITS FILE IS NOT (kb/Work PB1193). §2023:13.18.27.3 SR1 b) lets a
+    /// <remarks>⛔ A RECORD CAN BE VISIBLE WHEN ITS FILE IS NOT (kb/Work PB1193). §2023:13.18.27.3 SR1b lets a
     /// file-section level-1 entry carry its OWN GLOBAL clause, which makes the record-name a global name
     /// (§2023:13.18.27.4 GR1) under an FD that has none — so a contained program resolves the record, but the file stays
     /// the container's alone, and SR21 / SR3 are exactly the rule for that case ("the file description entry … shall
@@ -1278,7 +1278,7 @@ internal sealed class StatementValidation(DataBinder data)
     /// Both rules' wording, and the one place they differ, ride <see cref="IntoPhraseRules"/>.</para>
     ///
     /// <para><b>Why arm b) is worded over ALL the record-names.</b> Several record descriptions share ONE record
-    /// area (§2023:13.4.2), and the phrase moves <i>the record area</i> (§2023:14.9.30.4 GR4 b). Which description the area
+    /// area (§2023:13.4.2), and the phrase moves <i>the record area</i> (§2023:14.9.30.4 GR4b). Which description the area
     /// currently holds is a run-time fact, so the only way the move's category can be known at compile time is
     /// for every description — and the receiver — to be a shape a group move copies without conversion.</para>
     ///
@@ -1388,17 +1388,17 @@ internal sealed class StatementValidation(DataBinder data)
     private static string EntryFace(FileModel file, IntoPhraseRules rules, int count) =>
         $"this {rules.EntryFace} for '{file.CobolName}' has {count}";
 
-    // ── Arithmetic composite of operands (ISO §2023:14.7.7 rule 2) — lifted at 10e ──────────────────────────────────
+    // ── Arithmetic composite of operands (ISO §2023:14.7.7 SR2) — lifted at 10e ──────────────────────────────────
 
-    /// <summary>The per-edition COMPOSITE-OF-OPERANDS check (ISO §2023:14.7.7 rule 2, NATIVE arithmetic, the four
-    /// arithmetic statements ONLY — COMPUTE expressions are explicitly exempt, §2023:8.8.1.2 r7): the hypothetical item
+    /// <summary>The per-edition COMPOSITE-OF-OPERANDS check (ISO §2023:14.7.7 SR2, NATIVE arithmetic, the four
+    /// arithmetic statements ONLY — COMPUTE expressions are explicitly exempt, §2023:8.8.1.2 GR7): the hypothetical item
     /// superimposing the statement's fixed-point operands aligned on their decimal points shall not exceed the
     /// edition's digit cap (18 at COBOL-85, §1985:VI.6.4.4 SR2; 31 from 2002). Float/binary-native operands are excluded
     /// (rule 2b — the composite is then over the remaining operands).</summary>
     public bool CheckComposite(string verb, IEnumerable<BoundExpr> operands, IEnumerable<Receiver> receivers,
         CompositeMembers members = CompositeMembers.AllOperands)
     {
-        if (data.Procedure.Options.Over(data.State.Configuration.Options).Arithmetic != ArithmeticMode.Native) return true;   // §2023:14.7.7 r2 applies to native only
+        if (data.Procedure.Options.Over(data.State.Configuration.Options).Arithmetic != ArithmeticMode.Native) return true;   // §2023:14.7.7 SR2 applies to native only
         int maxInt = 0, maxFrac = 0;
         void Shape(int digits, int scale)
         {
@@ -1415,7 +1415,7 @@ internal sealed class StatementValidation(DataBinder data)
         // §2023:14.9.26.3/§2023:14.9.12.3 SR2 admit it as numeric-edited — requiring Category Numeric silently dropped it.
         // A floating-point-FORM edited mask (IsFloatEdited) is excluded as a DOCUMENTED READING, not rule 2b's
         // text (its list names usages and float literals, never an edited form): the composite is a
-        // superimposition "aligned on their decimal points" (§2023:14.7.7 r2's own definition) and an E-form mask
+        // superimposition "aligned on their decimal points" (§2023:14.7.7 SR2's own definition) and an E-form mask
         // has no fixed decimal point to align — the same property that puts every listed exclusion outside
         // the superimposition. Its DigitPositions is 0 anyway, so inclusion would contribute nothing.
         static bool InComposite(PicInfo p) =>
@@ -1453,7 +1453,7 @@ internal sealed class StatementValidation(DataBinder data)
                 Shape(rd, rs);
             }
 
-        // The cap is the edition's digit capacity: 31 from COBOL-2002 (§2023:14.7.7 rule 2 a)) and 18 at COBOL-85
+        // The cap is the edition's digit capacity: 31 from COBOL-2002 (§2023:14.7.7 SR2a) and 18 at COBOL-85
         // (§1985:VI.6.4.4 SR2: "must not contain more than 18 decimal digits"). The earlier "31 at every edition"
         // rested on CCVS-85 NC101A (MULTIPLY 9(3)V9(3) BY 9(18)), but at 85 that composite is its one receiver, 18
         // digits (§1985:VI.6.20.3 SR3), so the program conforms to the 18-digit cap (kb/Work PB5075).
@@ -1830,7 +1830,7 @@ internal sealed class StatementValidation(DataBinder data)
         return false;
     }
 
-    /// <summary>⛔ THE ONE ENFORCEMENT OF ISO §2023:13.4.5.3 SR3 c) — "When no record description entries are specified:
+    /// <summary>⛔ THE ONE ENFORCEMENT OF ISO §2023:13.4.5.3 SR3c — "When no record description entries are specified:
     /// … c) an INTO phrase shall be specified on all READ statements associated with the file." (kb/Work PB694). The
     /// rule is about the FILE DESCRIPTION ENTRY, which every organization has, so <c>SequentialIoBinder.BindRead</c>
     /// asks it BEFORE its organization reroute and the relative arm (<c>KeyedIoBinder.BindRead</c>) is under it too
@@ -1850,7 +1850,7 @@ internal sealed class StatementValidation(DataBinder data)
             + "description entry specifies no record description entries, so an INTO phrase shall be specified on "
             + "all READ statements associated with the file ("
             + data.Edition.Edition.Cite("§1985:VII.3.1: \"Each file is defined by a file description entry and one or more record description entries\"",
-                "ISO §2023:13.4.5.3 SR3 c)")
+                "ISO §2023:13.4.5.3 SR3c")
             + ") — its record area is the implied record of "
             + data.Edition.Edition.Cite("a file without record description entries, which has no name", "§2023:14.9.30.4 GR6, which has no name")
             + ", and only READ … INTO can deliver the record. Write "
@@ -1953,7 +1953,7 @@ internal sealed class StatementValidation(DataBinder data)
     /// <para>NO REWIND's two rules are §2023:14.9.27.3 SR5 — <i>"The NO REWIND phrase may be specified only for
     /// sequential files"</i>, the EXACT twin of the CLOSE rule §2023:14.9.6.3 SR1 that <c>BindClose</c> enforces as
     /// COBOL1693, which is why the OPEN half went unchecked for so long — and SR6, <i>"The NO REWIND phrase
-    /// may be specified only when the INPUT or OUTPUT phrase is specified"</i>, which §2023:14.9.27.4 GR12 a)
+    /// may be specified only when the INPUT or OUTPUT phrase is specified"</i>, which §2023:14.9.27.4 GR12a
     /// corroborates by naming only EXTEND as the mode that suppresses the positioning the phrase talks about.
     /// SR5's predicate is ORGANIZATION, not access mode — §2023:9.1.7.2 puts record sequential and line sequential
     /// both under sequential organization — and it is what makes §2023:14.9.27.4 GR11 answerable: GR11 keys on the
@@ -1962,7 +1962,7 @@ internal sealed class StatementValidation(DataBinder data)
     /// <para>REVERSED's two rules come from the COBOL-85 general format this repository does not hold
     /// (VERSION_CHANGE_REFERENCE row 7.12): the INPUT group only, and — one step NARROWER than its sibling —
     /// record sequential organization only, because the phrase's whole effect is the backward retrieval
-    /// §2023:14.9.30.4 GR21 c) defines and §2023:14.9.30.3 SR7 denies the backward walk to LINE SEQUENTIAL
+    /// §2023:14.9.30.4 GR21c defines and §2023:14.9.30.3 SR7 denies the backward walk to LINE SEQUENTIAL
     /// organization.</para></summary>
     public bool CheckOpenTapePhrase(FileModel file, BoundOpenMode mode, BoundOpenTapePhrase phrase)
     {
@@ -2001,7 +2001,7 @@ internal sealed class StatementValidation(DataBinder data)
     /// The rules that pair the TAPE PHRASE with the mode (SR5/SR6) are <see cref="CheckOpenTapePhrase"/>'s; SR8 is
     /// <see cref="CheckOpenSharingAllOther"/>'s; SR9 (<i>"The I-O phrase shall not be specified if the FORMAT clause is specified in the file
     /// description entry for file-name-1"</i>, §2023:14.9.27.3 SR9; §2002:14.8.26.2 SR7) is the third screen below. The X3.23-1985 multiple file reel rules (§1985:VII.4.3.3 SR2,
-    /// §1985:VII.4.3.4 GR20 d) read the file's <see cref="FileModel.MultipleFileReels"/>. Pure: false when a rule was violated and reported; the
+    /// §1985:VII.4.3.4 GR20d read the file's <see cref="FileModel.MultipleFileReels"/>. Pure: false when a rule was violated and reported; the
     /// statement still binds (a screen, not a branch — the compile has already failed).</summary>
     public bool CheckOpenModeForFile(FileModel file, BoundOpenMode mode)
     {
@@ -2054,7 +2054,7 @@ internal sealed class StatementValidation(DataBinder data)
                 data.Edition.Error(DiagnosticCatalog.OpenMultipleFileReelNotSequential,
                     $"OPEN {OpenModeFace(mode)} '{file.CobolName}' — the file resides on a multiple file reel with "
                     + $"'{member.CobolName}', whose organization is {member.OrganizationFace}; each of the files of a multiple "
-                    + "file reel must be a sequential file (§1985:VII.4.3.4 GR20 d)");
+                    + "file reel must be a sequential file (§1985:VII.4.3.4 GR20d)");
                 ok = false;
             }
         }
@@ -2240,7 +2240,7 @@ internal sealed class StatementValidation(DataBinder data)
     /// PB399 — one caller of this checkpoint, not the checkpoint — so it screened `IF P &gt;= Q` and said
     /// nothing about the SAME pair under EVALUATE, SEARCH WHEN, PERFORM UNTIL or an abbreviated relation.
     /// Measured: `EVALUATE WS-P WHEN WS-Q THRU WS-R` compiled clean and ordered raw addresses, and
-    /// `EVALUATE WS-P WHEN WS-X` reached the BACKEND and failed as a raw C# CS1503. §2023:14.9.13.3 SR7 a) makes an
+    /// `EVALUATE WS-P WHEN WS-X` reached the BACKEND and failed as a raw C# CS1503. §2023:14.9.13.3 SR7a makes an
     /// EVALUATE pair's objects "valid operands for comparison … in accordance with 8.8.4.2", so every §2023:8.8.4.2
     /// rule is owed to it; the two-arm shape is fixed by moving the rule to the arm both sides share, never by
     /// copying it. It was also written TWICE there, once per class, which is why the two copies disagreed about
@@ -2260,7 +2260,7 @@ internal sealed class StatementValidation(DataBinder data)
         // BoundComputedOperand wrapping a BOOLEAN-result intrinsic, so `IF FUNCTION BOOLEAN-OF-INTEGER(544, 6) =
         // B"100000"` — exactly the §2023:8.8.4.2.8 boolean comparison — was rejected as a class mix, while the mirror
         // against an ALPHANUMERIC literal (illegal) was accepted and evaluated. §2023:15.13.1 makes the function's type
-        // boolean; §2023:15.2 item 2 its class and category; the classifier already knew.
+        // boolean; §2023:15.2 GR2 its class and category; the classifier already knew.
         static bool IsBoolOperand(BoundOperand o) => IntrinsicResultType.OperandCategory(o) is PicCategory.Boolean;
         bool lb = IsBoolOperand(left), rb = IsBoolOperand(right);
         if (lb || rb)
@@ -2386,20 +2386,20 @@ internal sealed class StatementValidation(DataBinder data)
     /// &lt;&gt;</c> — no ordering operator is written in it at all, so an ordering relation on such an operand
     /// is a format violation;</item>
     /// <item>§2023:8.8.4.2.3 SR5 — "Identifier-3 and identifier-4 shall reference data items of class message-tag,
-    /// object, or pointer, and shall be of the same category", which §2023:8.8.4.2.1 item 11 states a second way for
+    /// object, or pointer, and shall be of the same category", which §2023:8.8.4.2.1 GR11 states a second way for
     /// the pointer class ("Two operands of class pointer where each operand is of the same category").</item>
     /// </list>
     /// <para>⛔ ONE SCREEN OVER ALL THREE CLASSES, because the standard writes ONE format and ONE syntax rule
     /// over all three (kb/Work PB399). The object and pointer halves used to be two independently-written
     /// blocks, and every difference between them was a hole: only the object half existed for message-tag
     /// (which is none of it), and NEITHER asked SR5's "same CATEGORY", so a data-pointer compared to a
-    /// program-pointer — two categories §2023:8.8.4.2.1 item 11 keeps apart — was accepted. Both halves also asked
+    /// program-pointer — two categories §2023:8.8.4.2.1 GR11 keeps apart — was accepted. Both halves also asked
     /// <c>Pic?.Category == PicCategory.Pointer</c>, which is one of the THREE categories Table 2 gathers into
     /// class pointer, so a program-pointer or function-pointer operand answered "not a pointer" and left the
     /// whole band silent.</para>
     /// <para>The figurative NULL rides on either side and in either class: §2023:8.4.3.10.1 makes it "a predefined
     /// address of class pointer or a predefined content of class message-tag", §2023:8.4.3.9 makes the object
-    /// spelling "class object and category object reference", and §2023:8.4.3.10.3 SR1 a) admits it "in a
+    /// spelling "class object and category object reference", and §2023:8.4.3.10.3 SR1a admits it "in a
     /// pointer-or-object-reference relation condition" by name. It has no category of its own, so it is exempt
     /// from SR5's same-category test as well.</para></summary>
     private void CheckFormat3Relation(BoundOperand left, string op, BoundOperand right)
@@ -2426,11 +2426,11 @@ internal sealed class StatementValidation(DataBinder data)
         // associated data item's class" (a) pointer, b) message-tag) and §2023:8.4.3.9 gives the object spelling
         // class object, so in a relation it takes the OTHER operand's class. The lattice reports it as class
         // POINTER — the right answer for every class-CLOSED operand slot it is asked about, and the wrong one
-        // here, where `IF an-object-reference = NULL` is the relation §2023:8.4.3.10.3 SR1 a) admits by name.
+        // here, where `IF an-object-reference = NULL` is the relation §2023:8.4.3.10.3 SR1a admits by name.
         // ⛔ …BUT ONLY OPPOSITE A FORMAT-3 OPERAND (kb/Work PB1427). Taking the other side's class UNCONDITIONALLY
         // gave NULL class alphanumeric opposite an alphanumeric item and class numeric opposite a numeric one, so
         // `IF X = NULL` / `IF N = NULL` made neither side Format 3, left the band silent, and ran NULL as LOW-VALUE.
-        // §2023:8.4.3.10.3 SR1 a) admits NULL only "in a pointer-or-object-reference relation condition"; opposite
+        // §2023:8.4.3.10.3 SR1a admits NULL only "in a pointer-or-object-reference relation condition"; opposite
         // anything else it keeps the class the lattice gives it — pointer — and SR5 below refuses the pair.
         // NULL opposite NULL: §2023:8.4.3.10.3 SR1 — "This item may be used only in the following cases, depending upon
         // the associated data item's class" — and neither operand is a data item for NULL to be associated with, so
@@ -2476,7 +2476,7 @@ internal sealed class StatementValidation(DataBinder data)
             return;
         }
         // "… and shall be of the same category" — the three pointer CATEGORIES are ONE class (Table 2) but SR5
-        // keeps them apart, and §2023:8.8.4.2.1 item 11 says the same in the comparison-defined list ("Two operands
+        // keeps them apart, and §2023:8.8.4.2.1 GR11 says the same in the comparison-defined list ("Two operands
         // of class pointer where each operand is of the same category"). NULL is exempt: it is a predefined
         // address, not an identifier-3/identifier-4, and has no category of its own.
         if (IsNull(left) || IsNull(right)) return;

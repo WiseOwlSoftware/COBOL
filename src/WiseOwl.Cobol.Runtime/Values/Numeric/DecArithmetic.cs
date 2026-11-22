@@ -59,7 +59,7 @@ public readonly struct DecArithmetic
     public CobolDec Pow(CobolDec b, CobolDec e) =>
         StandardIntermediate ? Item(CobolDec.PowStandard(b, e, Mode)) : CobolDec.Pow(b, e, Mode);
 
-    /// <summary>The square root: the 34-digit root rounded by <see cref="Mode"/> on the SDIDI (§2023:15.84.4 r2), and under
+    /// <summary>The square root: the 34-digit root rounded by <see cref="Mode"/> on the SDIDI (§2023:15.84.4 RV2), and under
     /// ARITHMETIC IS STANDARD "the absolute value of the exact square root of argument-1 truncated to 32 digits"
     /// (§2002:15.68.3 RV2).</summary>
     public CobolDec Sqrt(CobolDec v) => Item(CobolDec.Sqrt(v, Mode));

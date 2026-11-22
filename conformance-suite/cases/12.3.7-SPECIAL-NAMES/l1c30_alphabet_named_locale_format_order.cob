@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §2023:12.3.7.4 GR7d2, e), k) 1.-2. — alphabet operands
+      *> ISO §2023:12.3.7.4 GR7d.2, e), k) 1.-2. — alphabet operands
       *> CLAUSE ORDER (kb/Work PB1558; lane misc-p30): §2023:5.2.1 - clauses
       *> "shall be written ... in the sequence given in the general
       *> format"; §2023:12.3.7.2 puts alphabet-name-clause BEFORE the

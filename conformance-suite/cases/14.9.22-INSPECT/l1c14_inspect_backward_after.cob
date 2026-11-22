@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §2023:14.9.22.4 GR9c1. — INSPECT BACKWARD with AFTER; GR8 back
+      *> ISO §2023:14.9.22.4 GR9c.1. — INSPECT BACKWARD with AFTER; GR8 back
       *> GR9c1 "from the character position immediately to the left of
       *>   the leftmost character position of the first occurrence of
       *>   literal-2" -> OK  §2023:14.9.22.4 GR9  (General rules)

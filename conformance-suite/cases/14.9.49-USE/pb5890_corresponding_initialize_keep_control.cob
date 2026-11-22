@@ -15,7 +15,7 @@
       *> §2023:14.9.25.4 GR11); SRC has no CTL. INITIALIZE GRP
       *> REPLACING NUMERIC DATA stores an item only if "the category of
       *> the elementary data item is one of the categories specified in
-      *> the REPLACING phrase" (§2023:14.9.20.4 GR5c2), and CTL is
+      *> the REPLACING phrase" (§2023:14.9.20.4 GR5c.2), and CTL is
       *> alphanumeric. A compiler that refuses lines 56 to 60 fails.
       *> Expected, per GENERATE: CNT + 1; MOVE CORR sets OTH 0005 and
       *> OTA QQQ; ADD CORR adds 5 to the numeric pair (0010); SUBTRACT

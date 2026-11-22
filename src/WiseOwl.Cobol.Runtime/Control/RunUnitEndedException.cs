@@ -11,10 +11,10 @@ namespace WiseOwl.Cobol.Runtime;
 /// the host.
 /// <para>By the time a host sees it, the §2023:14.6.11 actions have run (every open file of the run unit is closed), and the
 /// host's ambient run unit is a new one, so the next activation inherits nothing from the run unit that ended. The host
-/// process continues: a run-unit ending never exits it (ISO §2023:14.2.3 13): the implementor specifies "the restrictions and
+/// process continues: a run-unit ending never exits it (ISO §2023:14.2.3 GR13): the implementor specifies "the restrictions and
 /// mechanisms" for a non-COBOL activator, and this is the mechanism for a run-unit ending).</para>
 /// </summary>
-/// <param name="exitStatus">The run unit's termination status: the STOP RUN status (ISO §2023:14.9.42.4 5); ERROR ⇒ 1, NORMAL
+/// <param name="exitStatus">The run unit's termination status: the STOP RUN status (ISO §2023:14.9.42.4 GR5); ERROR ⇒ 1, NORMAL
 /// ⇒ 0 with no value, docs/CONFORMANCE.md item 192), or 1 for an abnormal termination.</param>
 /// <param name="abnormal">True for an abnormal run-unit termination (ISO §2023:14.6.12), false for a normal one (§2023:14.6.11, a
 /// STOP RUN, with an ERROR phrase or not).</param>

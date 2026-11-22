@@ -8,7 +8,7 @@
       *>---
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1192RB.
-      *> ISO/IEC 1989:2023 §2023:9.1.13.5 item 4 and §2023:14.9.51.4 GR29b /
+      *> ISO/IEC 1989:2023 §2023:9.1.13.5 GR4 and §2023:14.9.51.4 GR29b /
       *> GR33 b) — the externally-defined boundary of a RELATIVE file,
       *> tested AT THE WRITE (kb/Work PB1192).
       *>

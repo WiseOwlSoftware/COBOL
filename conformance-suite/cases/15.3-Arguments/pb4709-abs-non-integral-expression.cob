@@ -6,7 +6,7 @@
 *>---
       *> PB4709 (the refusal that bounds pb4709_integer_expression_argument) - ISO §2023:15.7.1 (cite.py --check 15.7.1 OK): ABS of a
       *> NUMERIC argument is a NUMERIC function. S2 + 1 over PIC 9V9 is an arithmetic expression that does NOT always result in an
-      *> integer (§2023:15.3 item 6; S2 = 2.5 gives 3.5), so ABS(S2 + 1) stays on the Numeric row, and FACTORIAL's integer argument position
+      *> integer (§2023:15.3 AR6; S2 = 2.5 gives 3.5), so ABS(S2 + 1) stays on the Numeric row, and FACTORIAL's integer argument position
       *> (§2023:15.36.3 AR1) bars a numeric function (§2023:8.4.3.2.3 SR11) whatever this reference would yield - COBOL1627.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. NEGPB4709NONINT.

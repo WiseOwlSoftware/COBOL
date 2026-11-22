@@ -236,9 +236,9 @@ public sealed class CliParserTests
         Assert.NotEmpty(Errors("a.cob", "--repository-update", "--run"));
     }
 
-    /// <summary>kb/Work PB1362 — <c>--source-format</c>: ISO §2023:7.3.24.3 2) "The default reference format of a
+    /// <summary>kb/Work PB1362 — <c>--source-format</c>: ISO §2023:7.3.24.3 GR2 "The default reference format of a
     /// compilation group is fixed form", so an ABSENT option is fixed form; <c>free</c> and <c>auto</c> are the
-    /// §2023:4.2.10 3) selection of the nonstandard behavior; anything else is a CLI argument error.</summary>
+    /// §2023:4.2.10 GR3 selection of the nonstandard behavior; anything else is a CLI argument error.</summary>
     [Fact]
     public void SourceFormat_DefaultsToFixed_SelectsFreeOrAuto_AndRejectsAnythingElse()
     {

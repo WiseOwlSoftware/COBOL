@@ -32,7 +32,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
     /// <summary>Configure the EC bind context (called per bound unit — <see cref="BinderDriver"/> for program
     /// units, the OO bind half for class rosters):
     /// the compilation group's TurnState, its position-ruled directive sites (§2023:7.3.25.3 SR5 and its PUSH/POP
-    /// siblings) and this unit's PROGRAM-ID name (the §2023:15.30.3 r2 location element).</summary>
+    /// siblings) and this unit's PROGRAM-ID name (the §2023:15.30.3 RV2 location element).</summary>
     public void ConfigureEc(TurnState turn, IReadOnlyList<Frontend.Preprocessor.DirectiveSite> sites,
         string programName)
     {
@@ -220,10 +220,10 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
             // wave)". A placement violation would then print a SECOND diagnostic about a form the program did not
             // write. The Error above already fails the compile, so the node below is never emitted.
             PlacementRules.RefusedRaisingLastHere(ctx, site);
-            // RAISING LAST EXCEPTION (§2023:14.9.18.4 GR1b3): the name is the run-unit last exception status, so the
+            // RAISING LAST EXCEPTION (§2023:14.9.18.4 GR1b.3): the name is the run-unit last exception status, so the
             // whole determination is a RUN-TIME one. What the BINDER owns is GR1b3a's other operand — "the
             // RAISING phrase of the procedure division header of the source element in which this EXIT statement
-            // is contained" — and the §2023:15.32.3 r2 / §2023:15.30.3 r2 operands of the SUBSTITUTED condition, which
+            // is contained" — and the §2023:15.32.3 RV2 / §2023:15.30.3 RV2 operands of the SUBSTITUTED condition, which
             // this statement itself causes (§2023:7.3.25.4 GR7 keys them on the TURN governing THAT name HERE).
             bool rnsLoc = ctx.EcState.Turn.WithLocation(RaisingNotSpecified, null, line);
             return new BoundRaising(null, IsLast: true, Fatal: false,
@@ -249,7 +249,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
             if (!isNull && op is null) return null;   // reported
             if (op?.Item.Pic is not { Category: PicCategory.ObjectReference } opic)
             {
-                // NULL references no object, and §2023:14.9.18.4 GR1 b) 2. makes "the object referenced by identifier-1"
+                // NULL references no object, and §2023:14.9.18.4 GR1b.2 makes "the object referenced by identifier-1"
                 // the exception object — there is nothing to propagate (kb/Work PB1425's determination).
                 ctx.Edition.Error(DiagnosticCatalog.RaisingObjectOperandRule, isNull
                     ? $"{site.Context} NULL: the predefined NULL references no object, and the object referenced by "
@@ -293,7 +293,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
         // line (§2023:7.3.25.4 GR7); the statement name is the Table 12 row (verb's first word: GOBACK, or EXIT —
         // EXIT PROGRAM / FUNCTION / METHOD are formats of the EXIT statement).
         // ⛔ NO `Enabled:` ARGUMENT (kb/Work PB408). This element's own §2023:7.3.25 fold answers "is checking
-        // enabled HERE"; §2023:14.9.18.4 GR1 b) asks whether it is enabled in the ACTIVATING runtime element, which
+        // enabled HERE"; §2023:14.9.18.4 GR1b asks whether it is enabled in the ACTIVATING runtime element, which
         // is a different element and not knowable here. Staging is unconditional; the activating statement's
         // EcCheckingProfile decides.
         return new BoundRaising(info.Name, IsLast: false,
@@ -415,7 +415,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
     // ── The per-statement TurnState fold (deep-dive D10) ─────────────────────────────────────────────────────
 
     /// <summary>Give every <see cref="IProfiledStatement"/> in <paramref name="node"/> the activating
-    /// statement's own checking profile (§2023:14.9.18.4 GR1 b)). A no-op when nothing is enabled at the line — the
+    /// statement's own checking profile (§2023:14.9.18.4 GR1b). A no-op when nothing is enabled at the line — the
     /// zero-scaffolding gate: such a site emits byte-identical text.
     /// <para>BOTH container shapes are traversed, and both must be: a bind-time desugar hoists its activation
     /// into a <see cref="BoundSequence"/>, and <see cref="BoundImplicitSeries.Rewrap"/> keeps a multi-operand
@@ -446,7 +446,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
     {
         if (!ctx.EcState.Turn.AnyEnabled) return bound;
         int line = s.Start.Line;
-        // §2023:14.9.18.4 GR1 b) — THE ACTIVATOR'S HALF, stamped here because here is the one exit every statement
+        // §2023:14.9.18.4 GR1b — THE ACTIVATOR'S HALF, stamped here because here is the one exit every statement
         // funnels through. A condition a callee's GOBACK / EXIT … RAISING stages is raised in the ACTIVATING
         // runtime element only "if checking for that exception condition is enabled in the activating runtime
         // element", and RAISING LAST EXCEPTION picks the name at RUN time — so the activating statement carries
@@ -468,10 +468,10 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
         if (enabled.Count == 0) return bound;
         ctx.EcState.Checked = true;
         if (enabled.Any(e => e.Ec.StartsWith("EC-I-O", StringComparison.Ordinal))) ctx.EcState.IoChecked = true;
-        // §2023:15.32.3 r3: the recorded name comes from Table 12's 'Statement name' column, resolved from the
+        // §2023:15.32.3 RV3: the recorded name comes from Table 12's 'Statement name' column, resolved from the
         // statement KIND (the parse rule) — the first TOKEN gave GO where Table 12 requires GO TO, and no token
         // can repair it because TO is an optional word (`GO PARA.` never spells one). kb/Work R04.
-        // WITH LOCATION is resolved PER (name, file) pair — §2023:15.32.3 r1 keys the answer on the TURN option of
+        // WITH LOCATION is resolved PER (name, file) pair — §2023:15.32.3 RV1 keys the answer on the TURN option of
         // the condition that was RAISED, so one WITH LOCATION directive must not contaminate the statement's
         // other enabled conditions (kb/Work R06; the former statement-level Any() did exactly that).
         var info = new EcStatementInfo(
@@ -482,18 +482,18 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
         // CLOSE / FREE / INITIALIZE / INITIATE / OPEN / TERMINATE / VALIDATE *is* a separate statement per operand
         // (ISO §2023:14.9.6.4 GR10, §2023:14.9.15.4 GR2, §2023:14.9.20.4 GR3, §2023:14.9.21.4 GR5, §2023:14.9.27.4 GR20, §2023:14.9.46.4 GR4,
         // §2023:14.9.50.4 GR3), and each of those seven rules names the resumption point of a declarative's RESUME …
-        // NEXT STATEMENT as "the next implicit … statement, if any" — the §2023:14.9.33.4 GR2 a) escape ("unless
+        // NEXT STATEMENT as "the next implicit … statement, if any" — the §2023:14.9.33.4 GR2a) escape ("unless
         // general rules associated with the applicable statement specify otherwise"). The checked wrapper IS the
         // statement site the `-2` action falls out of, so one wrapper around the whole series would put the
         // landing past the LAST operand: measured as a silent wrong answer on INITIALIZE (kb/Work PB419).
         // Each member gets the SAME EcStatementInfo — one written statement, one >>TURN scope, one Table-12 name
-        // and one §2023:15.30.3 r2 location — because they are one statement's implicit expansion, not seven.
+        // and one §2023:15.30.3 RV2 location — because they are one statement's implicit expansion, not seven.
         return bound is BoundImplicitSeries ser
             ? new BoundImplicitSeries([.. ser.Members.Select(m => (BoundStatement)new BoundEcChecked(m, info))])
             : new BoundEcChecked(bound, info);
     }
 
-    /// <summary>The §2023:15.30.3 r2b location string (kb/Work PB63): part 1 the element name — "as specified in the
+    /// <summary>The §2023:15.30.3 RV2b location string (kb/Work PB63): part 1 the element name — "as specified in the
     /// FUNCTION-ID, METHOD-ID, or PROGRAM-ID paragraph of the function, method, or program containing the
     /// statement", so a statement inside a METHOD names the method, not its class; part 2 the procedure field —
     /// (a) no paragraph-name and no section-name: empty ("; ; "), (b) a paragraph-name, plus " OF section" when

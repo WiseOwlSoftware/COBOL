@@ -9,7 +9,7 @@
       *> item referenced by identifier-3 shall not be described with the ONLY phrase."  SELF
       *> is the object that the containing method was invoked on (§2023:8.4.3.8), whose class may
       *> be a SUBCLASS of the class the method is written in — exactly what an ONLY receiver
-      *> may not hold (§2023:13.18.60.4 GR22d2.b.).  c)2.'s subclass leg WITHOUT ONLY is
+      *> may not hold (§2023:13.18.60.4 GR22d.2.b.).  c)2.'s subclass leg WITHOUT ONLY is
       *> exercised positively in conformance-suite/cases/9.3.6-Method-invocation/pb389_object_reference_descriptor.cob.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB389N8.

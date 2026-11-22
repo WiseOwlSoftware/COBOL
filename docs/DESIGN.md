@@ -743,8 +743,8 @@ keep long-only — silently wrong; `decimal`/`BigInteger` intermediates — owne
   BCD two digits per byte with a trailing sign nibble (`0xC` positive, `0xD` negative, `0xF` for an unsigned
   item) · `PackedNoSign` = the 2023 WITH NO SIGN form, digit nibbles only · `None` = reaches no byte image at all
   (USAGE INDEX, §2023:13.18.60.4 GR10 — a codec handed one must reject it LOUDLY, never invent bytes). The width each
-  implies IS `PicInfo.StorageWidth`, which is the same width `FUNCTION BYTE-LENGTH` reports (§2023:15.14.4 r1) and
-  the same width the item occupies in a group image (§2023:15.50.4 r3). **One width, one representation, everywhere**
+  implies IS `PicInfo.StorageWidth`, which is the same width `FUNCTION BYTE-LENGTH` reports (§2023:15.14.4 RV1) and
+  the same width the item occupies in a group image (§2023:15.50.4 RV3). **One width, one representation, everywhere**
   (§14.4). `NumericByteFormDriftTests` pins the whole table, so a new usage cannot inherit a representation
   nobody chose.
 - DISPLAY/COMP/COMP-4/BINARY → DigitCount discipline; COMP-3/PACKED → 2n−1; COMP-5/BINARY-* → native
@@ -1542,7 +1542,7 @@ value, and it bailed on fixed-OCCURS children the generated codec handles; (b) l
 only debuggability); (c) **the fixed-width ZONED DIGIT image with a trailing-overpunch sign — the form this design
 carried through P13 and V59 retired.** It was defensible on §2023:13.18.60.4 GR4's representation latitude alone, but it
 contradicted the compiler's OWN pinned widths: `BYTE-LENGTH(G) = 5` while `LENGTH(G) = 8` for one group
-(§2023:15.14.4 r1 vs §2023:15.50.4 r3, which cannot disagree in a single-byte-character model), it made a conforming
+(§2023:15.14.4 RV1 vs §2023:15.50.4 RV3, which cannot disagree in a single-byte-character model), it made a conforming
 program observe the disagreement with no file and no byte pun, and it put a `PIC 9(4) COMP` on disk as the ASCII
 bytes `31 32 33 34`. The float family (IEEE 32/64 big-endian), COMP-5 and BINARY-CHAR..DOUBLE (the binary byte form) and
 USAGE INDEX (the 8-byte big-endian occurrence number, R40) are inside the codec too (kb/Work PB164); only a
@@ -2151,7 +2151,7 @@ identical stdout; now the committed goldens, R69). The remaining items below sta
       `AlphabetBindNational` through the shared `AlphabetLiteralPhrase` (`NationalAlphabets`/`NationalCollating`),
       rendered as the generated `__COLLATE_NAT` `NationalCollation` instance, consumed by
       `CobolString.Compare(a,b,national)` at national relation/condition-name sites (§2023:8.8.4.2.9 / §2023:12.3.6.4 GR11),
-      by CHAR-NATIONAL/ORD-over-national (`CollateNat`, §2023:15.16.4/§2023:15.70.4 r2), and by the national figurative
+      by CHAR-NATIONAL/ORD-over-national (`CollateNat`, §2023:15.16.4/§2023:15.70.4 RV2), and by the national figurative
       fills (§2023:12.3.7.4 GR8/9). Code-set phrases: **UCS-4** names the ISO 10646 collating sequence — on the D-N1
       one-code-unit-per-position substrate that IS the native code-unit order (§2023:8.5.1.4 denies surrogate-pair
       recognition, so the supplementary-plane codepoint/code-unit divergence is unreachable; the correspondence is

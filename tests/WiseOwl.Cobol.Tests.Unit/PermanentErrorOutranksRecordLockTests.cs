@@ -15,7 +15,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// (docs/CONFORMANCE.md DOC-A.1-105), which also says the replayed statement <i>"does not touch the physical file, it
 /// sets the same I-O status again"</i> and that the condition outranks every other status the statement would have taken.
 /// So a REWRITE or DELETE of a record ANOTHER file connector holds locked answers the status that began the condition,
-/// not '51' (§2023:14.9.35.4 GR11, §2023:14.9.10.4 GR6, §2023:9.1.13.8 item 1), waits out no RETRY phrase, rewrites or deletes nothing
+/// not '51' (§2023:14.9.35.4 GR11, §2023:14.9.10.4 GR6, §2023:9.1.13.8 GR1), waits out no RETRY phrase, rewrites or deletes nothing
 /// and releases nobody's lock; once the CLOSE has ended the condition, the same statement is '51' again.
 /// <para>The cells are the three organizations, the holder in the same run unit and in another one (a second
 /// <see cref="FileRegistry"/>, whose record locks reach the first through the host's region locks, kb/Work PB2660, on
@@ -62,7 +62,7 @@ public sealed class PermanentErrorOutranksRecordLockTests
         return all;
     }
 
-    /// <summary>Connector A takes record 1's lock (§2023:14.9.30.4 GR11 d): in manual lock mode the lock is set only because the
+    /// <summary>Connector A takes record 1's lock (§2023:14.9.30.4 GR11d): in manual lock mode the lock is set only because the
     /// READ says WITH LOCK) and holds it.</summary>
     private static void HoldRecordOne(FileRegistry a, FileOrg org)
     {
@@ -119,7 +119,7 @@ public sealed class PermanentErrorOutranksRecordLockTests
             HoldRecordOne(a, org);
 
             // The control: with no condition in effect the statement meets A's lock — '51' (§2023:14.9.35.4 GR11 / §2023:14.9.10.4
-            // GR6 b), §2023:9.1.13.8 item 1). A RETRY phrase re-attempts its bounded number of times (§2023:14.7.9.3 GR4)
+            // GR6 b), §2023:9.1.13.8 GR1). A RETRY phrase re-attempts its bounded number of times (§2023:14.7.9.3 GR4)
             // and pauses between attempts only for a holder outside the run unit — the one case a wait
             // can change the answer (FileRegistry.Reattempt).
             AimAtRecordOne(b, org);

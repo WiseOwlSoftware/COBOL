@@ -17,17 +17,17 @@
       *>   §2023:15.40.2 - FUNCTION FORMATTED-DATETIME ( argument-1 argument-2
       *>     argument-3 [ argument-4 ] ): both arities, and the §2023:8.4.3.2.3
       *>     SR2 keyword-omitted spelling the REPOSITORY paragraph licenses.
-      *>   §2023:15.40.3 r1 - "Argument-1 shall be a national or alphanumeric
+      *>   §2023:15.40.3 AR1 - "Argument-1 shall be a national or alphanumeric
       *>     literal", with §2023:15.40.1's type table as the observable (the
       *>     national result lands in a PIC N item).
-      *>   §2023:15.40.3 r3 - both ends of §2023:15.5.2's integer-date interval.
-      *>   §2023:15.40.3 r4 - both ends of §2023:15.5.5's standard-numeric-time
+      *>   §2023:15.40.3 AR3 - both ends of §2023:15.5.2's integer-date interval.
+      *>   §2023:15.40.3 AR4 - both ends of §2023:15.5.5's standard-numeric-time
       *>     interval under the implied LEAP-SECOND OFF, and a fractional
       *>     value, which the form admits (§2023:15.3.3.2).
-      *>   §2023:15.40.3 r7 - argument-4 omitted for a UTC and for an offset
+      *>   §2023:15.40.3 AR7 - argument-4 omitted for a UTC and for an offset
       *>     format is "evaluated as though 0 were specified".
-      *>   §2023:15.40.4 r1 - the combination, across §2023:15.3.1.1's six date forms.
-      *>   §2023:15.40.4 r2/r3 - a UTC format ADJUSTS the time portion by the
+      *>   §2023:15.40.4 RV1 - the combination, across §2023:15.3.1.1's six date forms.
+      *>   §2023:15.40.4 RV2/r3 - a UTC format ADJUSTS the time portion by the
       *>     offset; an offset format shows argument-3 and argument-4 DIRECT.
       *>
       *> Derivations (all from the rule text; see the 2023 twins for the
@@ -35,7 +35,7 @@
       *> is 1995-02-15, day 046 of 1995, and - by §2023:15.3.1.7's "first week ...
       *> includes January 4" - 1995-W07-3. §2023:15.5.5: 45296 seconds past
       *> midnight is 12:34:56, 0 is 00:00:00, 86399 is 23:59:59, and
-      *> 18867.812479168304 is 05:14:27.812479168304. §2023:15.3.3.6.1 item 1
+      *> 18867.812479168304 is 05:14:27.812479168304. §2023:15.3.3.6.1 GR1
       *> makes a positive offset an adjustment DOWNWARD to reach UTC, so
       *> +300 minutes turns 12:34:56 into 07:34:56 under a 'Z' format and
       *> leaves it alone under a '+hhmm' one.
@@ -68,17 +68,17 @@
            MOVE FORMATTED-DATETIME("YYYYMMDDThhmmss+hhmm"
                D S 300) TO R
            DISPLAY "KOF-A4=" R
-      *> §2023:15.40.3 r1 / §2023:15.40.1 - the national row of the type table.
+      *> §2023:15.40.3 AR1 / §2023:15.40.1 - the national row of the type table.
            MOVE FUNCTION FORMATTED-DATETIME(N"YYYYMMDDThhmmss" D S)
                TO NR
            DISPLAY "NAT-BASIC=" NR
-      *> §2023:15.40.3 r3 - both ends of the integer date form.
+      *> §2023:15.40.3 AR3 - both ends of the integer date form.
            MOVE FUNCTION FORMATTED-DATETIME("YYYYMMDDThhmmss" 1 S) TO R
            DISPLAY "DATE-MIN=" R
            MOVE FUNCTION FORMATTED-DATETIME("YYYYMMDDThhmmss" 3067671 S)
                TO R
            DISPLAY "DATE-MAX=" R
-      *> §2023:15.40.3 r4 - both ends of standard numeric time form, and a
+      *> §2023:15.40.3 AR4 - both ends of standard numeric time form, and a
       *> fractional value.
            MOVE FUNCTION FORMATTED-DATETIME("YYYYMMDDThhmmss" D 0) TO R
            DISPLAY "SEC-MIN=" R
@@ -88,7 +88,7 @@
            MOVE FUNCTION FORMATTED-DATETIME("YYYYMMDDThhmmss.ss" D SF)
                TO R
            DISPLAY "SEC-FRAC=" R
-      *> §2023:15.40.3 r7 - omitted argument-4 equals an explicit zero, for both
+      *> §2023:15.40.3 AR7 - omitted argument-4 equals an explicit zero, for both
       *> premises of the rule.
            MOVE FUNCTION FORMATTED-DATETIME("YYYYMMDDThhmmssZ" D S) TO A
            MOVE FUNCTION FORMATTED-DATETIME("YYYYMMDDThhmmssZ" D S 0)
@@ -103,7 +103,7 @@
            DISPLAY "OFF-OMIT=" A
            IF A = B DISPLAY "OFF-OMIT-IS-ZERO=SAME"
            ELSE DISPLAY "OFF-OMIT-IS-ZERO=DIFFER" END-IF
-      *> §2023:15.40.4 r1 - the combination across the ordinal and week date
+      *> §2023:15.40.4 RV1 - the combination across the ordinal and week date
       *> forms, basic and extended.
            MOVE FUNCTION FORMATTED-DATETIME("YYYYDDDThhmmss" D S) TO R
            DISPLAY "ORD-B=" R
@@ -115,7 +115,7 @@
            MOVE FUNCTION FORMATTED-DATETIME("YYYY-Www-DThh:mm:ss" D S)
                TO R
            DISPLAY "WK-E=" R
-      *> §2023:15.40.4 r2 vs r3 - the same arguments, two zone rules.
+      *> §2023:15.40.4 RV2 vs r3 - the same arguments, two zone rules.
            MOVE FUNCTION FORMATTED-DATETIME("YYYYMMDDThhmmssZ" D S 300)
                TO R
            DISPLAY "UTC-P300=" R

@@ -46,7 +46,7 @@ public sealed partial class StatementBinder
     /// <summary>The description of the temporary that holds a materialized segment's ORDINAL POSITION — an
     /// integer, because the integrality rule has already been asked by the time anything is stored in it.
     /// <para>⛔ <b>WHY THE TEST RUNS BEFORE THE STORE, NOT AT THE POSITION READ</b> (kb/Work PB1890). GR1b says a
-    /// subscript whose expression "does not result in an integer" SETS EC-BOUND-SUBSCRIPT, and §2023:8.4.3.3.4 rule 5)c)
+    /// subscript whose expression "does not result in an integer" SETS EC-BOUND-SUBSCRIPT, and §2023:8.4.3.3.4 GR5)c)
     /// says the same for a ref-mod position. This temp used to be the §2023:15.4 function-value item (21 integer + 9
     /// fraction digits, TRUNCATION) with the test left to the position read, so a value whose fraction lay past the
     /// 9th digit was an integer by the time it was asked: <c>T(IX + 0.0000000001)</c> and <c>T(F)</c> with
@@ -86,7 +86,7 @@ public sealed partial class StatementBinder
     private DataItem? BindPositionTemporary(Frontend.Generated.CobolParserCore.ArithmeticExpressionContext expr,
         SegmentPosition position, int line)
     {
-        // ⛔ THE POSITION DECIDES THE CONTEXT (kb/Work PB170/PB172). ISO §2023:13.18.38.3 r7 lists five contexts in
+        // ⛔ THE POSITION DECIDES THE CONTEXT (kb/Work PB170/PB172). ISO §2023:13.18.38.3 SR7 lists five contexts in
         // which an index-name may be referenced — "as a subscript; in the VARYING phrase of a PERFORM statement;
         // in the VARYING phrase of a SEARCH statement; in the SET statement; as an operand in a relation
         // condition" — and a REFERENCE-MODIFICATION position is not among them. This site hard-coded

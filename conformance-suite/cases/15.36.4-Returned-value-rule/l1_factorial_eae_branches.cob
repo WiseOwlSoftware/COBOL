@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:15.36.4 r1 — FACTORIAL's equivalent arithmetic expression, ALL THREE lettered arms:
+      *> ISO §2023:15.36.4 RV1 — FACTORIAL's equivalent arithmetic expression, ALL THREE lettered arms:
       *>   a) when the value of argument-1 is 0 or 1,   (1)
       *>   b) when the value of argument-1 is 2,        (2)
       *>   c) when the value of argument-1 is n,        (n * (n - 1) * (n - 2) * ... * 1)

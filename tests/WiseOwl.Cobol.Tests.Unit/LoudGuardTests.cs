@@ -91,7 +91,7 @@ public sealed class LoudGuardTests
 
     // ── Analyze: the §2023:13.18.40.3 SR2 whitelist — N / 1 / E gate loud; anything else is invalid ─────────────
 
-    /// <summary>The floating-point numeric-edited PICTURE symbol E (ISO §2023:13.18.40.4 GR13 b) — LIVE since data-model
+    /// <summary>The floating-point numeric-edited PICTURE symbol E (ISO §2023:13.18.40.4 GR13b) — LIVE since data-model
     /// design D21 (kb/Work PB66). Its introduction gate (COBOL0900 below 2002) is the post-bind
     /// <c>VersionConformancePass</c> GateData enumerator's (<c>PictureConstructId</c> keys on <c>IsFloatEdited</c>),
     /// so <c>Analyze</c> at 85 emits NO picture-layer diagnostic — it classifies the form; the 0900 firing is verified

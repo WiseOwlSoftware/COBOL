@@ -17,14 +17,14 @@
       *>
       *> THE CONTROLS, derived from the returned-value rules so a body that never computes anything cannot
       *> pass by raising on everything:
-      *>   §2023:15.64.4 r1 — MOD = ((a) - ((b) * FUNCTION INTEGER((a)/(b)))). a = -11, b = 5: -11/5 = -2.2 and
+      *>   §2023:15.64.4 RV1 — MOD = ((a) - ((b) * FUNCTION INTEGER((a)/(b)))). a = -11, b = 5: -11/5 = -2.2 and
       *>       INTEGER returns the greatest integer not greater than it, -3, so -11 - (5 * -3) = 4. That is
       *>       also the §2023:15.64.4 NOTE's own row for argument-1 -11, argument-2 5.
-      *>   §2023:15.77.4 r1 — REM = ((a) - ((b) * FUNCTION INTEGER-PART((a)/(b)))). INTEGER-PART truncates toward
+      *>   §2023:15.77.4 RV1 — REM = ((a) - ((b) * FUNCTION INTEGER-PART((a)/(b)))). INTEGER-PART truncates toward
       *>       zero, so INTEGER-PART(-2.2) = -2 and -11 - (5 * -2) = -1. MOD and REM therefore DIFFER on this
       *>       pair, which is what makes the two controls discriminating rather than decorative.
       *>   The floating-point control is the same REM computation on a class-numeric COMP-2 argument
-      *>       (§2023:15.77.3 r1 admits class numeric; §2023:8.5.2.1 Table 2 puts every floating-point usage in class
+      *>       (§2023:15.77.3 AR1 admits class numeric; §2023:8.5.2.1 Table 2 puts every floating-point usage in class
       *>       numeric): 11 - (5 * INTEGER-PART(2.2)) = 11 - 10 = 1.
       *>
       *> ⛔ THE RULE HAS THREE CARRIERS AND ALL THREE MUST BE WITNESSED. Argument-2's zero-ness is a

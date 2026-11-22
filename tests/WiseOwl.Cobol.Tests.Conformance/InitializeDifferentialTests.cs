@@ -29,7 +29,7 @@ public sealed class InitializeDifferentialTests
             STOP RUN.
         """;
 
-    // §2023:14.9.20.4 GR5c4 + GR6c: the bare-85 form makes every non-excluded elementary a receiver; defaults are
+    // §2023:14.9.20.4 GR5c.4 + GR6c: the bare-85 form makes every non-excluded elementary a receiver; defaults are
     // ZEROES for numeric AND numeric-edited (the EDITED zero — '$$$9.99' shows '  $0.00', never spaces), and
     // alphanumeric SPACES for alphabetic / alphanumeric / alphanumeric-edited (plain spaces, NO editing).
     [Fact]
@@ -55,7 +55,7 @@ public sealed class InitializeDifferentialTests
                 IF AE1 = SPACES DISPLAY "AE1-SP" ELSE DISPLAY "AE1-NO".
             """));
 
-    // §2023:14.9.20.4 GR5c2: with REPLACING (and no DEFAULT), ONLY items of a listed category are receivers — every
+    // §2023:14.9.20.4 GR5c.2: with REPLACING (and no DEFAULT), ONLY items of a listed category are receivers — every
     // other item is left UNCHANGED (the GR5c filter; '85 and 2023 agree).
     [Fact]
     public void Initialize_Replacing_LeavesOtherCategoriesUntouched()
@@ -97,7 +97,7 @@ public sealed class InitializeDifferentialTests
                 DISPLAY R-ALP.
             """));
 
-    // §2023:14.9.20.4 GR5a2: an (explicit or implicit) FILLER elementary item is EXCLUDED from the bare form — the
+    // §2023:14.9.20.4 GR5a.2: an (explicit or implicit) FILLER elementary item is EXCLUDED from the bare form — the
     // whole-group display shows the FILLER bytes intact between the cleared neighbors.
     [Fact]
     public void Initialize_FillerExcluded()
@@ -111,7 +111,7 @@ public sealed class InitializeDifferentialTests
                 DISPLAY G0.
             """));
 
-    // §2023:14.9.20.4 GR5a3: a subordinate whose entry has REDEFINES — and its subtree — is excluded; the REDEFINED
+    // §2023:14.9.20.4 GR5a.3: a subordinate whose entry has REDEFINES — and its subtree — is excluded; the REDEFINED
     // (canonical) item still initializes, and items after the class initialize normally. (Exercises the Tier-B
     // string-canonical window store: X(4) redefined by 9(4) shares ONE backing.)
     [Fact]
@@ -127,7 +127,7 @@ public sealed class InitializeDifferentialTests
                 IF RA = SPACES DISPLAY "RA-SPACES" ELSE DISPLAY "RA-KEPT".
             """));
 
-    // §2023:14.9.20.4 GR5b2 + GR8 (NC201A PFM-F4 shape — a named group over a COMP OCCURS table): a table element makes
+    // §2023:14.9.20.4 GR5b.2 + GR8 (NC201A PFM-F4 shape — a named group over a COMP OCCURS table): a table element makes
     // EVERY occurrence a receiving operand, initialized per element (a 5 × S9(3) COMP table is five scaled
     // integers, not one byte run).
     [Fact]
@@ -172,7 +172,7 @@ public sealed class InitializeDifferentialTests
                 IF D2 = SPACES DISPLAY "D2-SP" ELSE DISPLAY "D2-NO".
             """));
 
-    // §2023:14.9.20.4 GR5a2 (the 2002+ FILLER phrase, Annex E): WITH FILLER re-includes FILLER elementary items.
+    // §2023:14.9.20.4 GR5a.2 (the 2002+ FILLER phrase, Annex E): WITH FILLER re-includes FILLER elementary items.
     // Spec-pinned at --std 2023 (the former legacy engine has no 2002 surface): the bare form leaves the FILLER bytes
     // ('  FF00' — P1 spaces, FILLER kept, P2 zeros), WITH FILLER clears them too ('    00').
     [Fact]

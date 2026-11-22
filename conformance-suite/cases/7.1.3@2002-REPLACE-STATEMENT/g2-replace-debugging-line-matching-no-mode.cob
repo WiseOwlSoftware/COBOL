@@ -13,7 +13,7 @@
       *> D line is text, not a comment.
       *> LEG 1 - §2002:7.1.3.2 SR10 "Pseudo-text-1 and pseudo-text-2
       *> may contain debugging lines": pseudo-text-1 "L1" "L2" ends on
-      *> a D line. §2002:7.1.3.3 GR8c6 "A debugging indicator shall be
+      *> a D line. §2002:7.1.3.3 GR8c.6 "A debugging indicator shall be
       *> treated as if it did not appear in the line. Text words
       *> within a debugging line participate in the matching", so
       *> pseudo-text-1 is the two words "L1" "L2" and matches the

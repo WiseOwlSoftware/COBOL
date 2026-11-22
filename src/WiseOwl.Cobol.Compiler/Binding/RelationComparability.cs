@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Binding;
 /// <summary>Which rule of the §2023:8.8.4.2 comparability table a general relation's operand pair breaks.</summary>
 internal enum RelationComparabilityBreach
 {
-    /// <summary>ISO §2023:8.8.4.2.1 item 6 with §2023:8.8.4.2.5: a numeric operand compared with an operand of class
+    /// <summary>ISO §2023:8.8.4.2.1 GR6 with §2023:8.8.4.2.5: a numeric operand compared with an operand of class
     /// alphanumeric or national is defined only when "The numeric integer operand shall be an integer literal or an
     /// integer numeric data item of usage display or national".</summary>
     NumericAgainstCharacter,
@@ -52,7 +52,7 @@ internal static class RelationComparability
         if (li || ri)
             return li && ri || IndexNameAgainstNumeric(li ? left : right, li ? right : left)
                 ? null : RelationComparabilityBreach.IndexPair;
-        // §2023:8.8.4.2.1 item 6 — the one mixed numeric/character pair the list defines. Every other numeric pair is
+        // §2023:8.8.4.2.1 GR6 — the one mixed numeric/character pair the list defines. Every other numeric pair is
         // item 1 (two class numeric) and every other character pair items 2, 3, 5 and 7; a figurative constant
         // that can be numeric (ZERO, §2023:8.3.3.6.4 GR4) takes the numeric reading opposite a numeric operand.
         // Only an operand FIXED in class numeric is item 6's numeric operand: ZERO opposite a character operand takes
@@ -134,7 +134,7 @@ internal static class RelationComparability
     /// — when <paramref name="cls"/> is among the classes its context may choose.</summary>
     private static bool IsClass(CobolClass[] set, CobolClass cls) => Array.IndexOf(set, cls) >= 0;
 
-    /// <summary>Class alphanumeric, alphabetic or national in EVERY reading (§2023:8.8.4.2.1 item 7's set; Table 2 puts
+    /// <summary>Class alphanumeric, alphabetic or national in EVERY reading (§2023:8.8.4.2.1 GR7's set; Table 2 puts
     /// numeric-edited in class alphanumeric) — so ZERO, which may also be numeric, is never "character" here.</summary>
     private static bool IsCharacter(CobolClass[] set) =>
         Array.TrueForAll(set, c => IntrinsicArgumentRules.TableTwoClass(c) is CobolClass.Alphanumeric

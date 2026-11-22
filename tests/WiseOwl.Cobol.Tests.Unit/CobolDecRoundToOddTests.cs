@@ -54,7 +54,7 @@ public sealed class CobolDecRoundToOddTests
         var two = new CobolDec(2, 0);
         var half = new CobolDec(5, -1);
         Assert.Equal(0, CobolDec.Compare(new CobolDec(1, 0), Product(two, half)));            // exactly 1, no jam
-        // 1 + 2e-30 + 1e-60 is not representable at scale 30: PROHIBITED (§2023:14.7.4.3 r7) must see that.
+        // 1 + 2e-30 + 1e-60 is not representable at scale 30: PROHIBITED (§2023:14.7.4.3 GR7) must see that.
         var ex = Assert.Throws<CobolSizeError>(() => Product(One1, One1).ToUnscaled(30, CobolRounding.Prohibited));
         Assert.Equal("EC-SIZE-TRUNCATION", ex.EcName);
         // …while the exactly-representable product 1.5 × 2.25 = 3.375 is accepted at scale 30 under PROHIBITED.

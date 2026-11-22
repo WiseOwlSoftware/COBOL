@@ -19,7 +19,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// convention (r13) — is LC_MONETARY's (<see cref="MonetaryFacts"/>). ⛔ Table 11's written order ('+' then cs
 /// then digits) is a SYNTAX constraint on character-string-1, never an output ordering: a locale with
 /// n_sign_posn 2 emits <c>$12.50-</c> and the invariant locale's n_sign_posn 0 emits <c>(¤12.50)</c>.</para>
-/// <para>The locale is resolved AT EACH edit and de-edit (r11 named-else-current; §2023:14.6.6 r6 "the locale current
+/// <para>The locale is resolved AT EACH edit and de-edit (r11 named-else-current; §2023:14.6.6 GR6 "the locale current
 /// at the time"), never cached on the item; <see cref="MonetaryFacts.Require"/> is the §2023:8.2.1 gate
 /// (EC-LOCALE-MISSING / EC-LOCALE-INVALID). The ONE EC-LOCALE-SIZE raise site in the compiler is
 /// <see cref="Format"/>'s r14 b) branch.</para>
@@ -116,7 +116,7 @@ public static class CobolLocaleEdit
 
         if (blankWhenZero && storesZero) return new string(' ', size);      // r10 — before any locale consult
 
-        var facts = MonetaryFacts.Require(localeTag, "PICTURE format 2 locale editing", "ISO §2023:13.18.40.5 r9/r11");
+        var facts = MonetaryFacts.Require(localeTag, "PICTURE format 2 locale editing", "ISO §2023:13.18.40.5 GR9/r11");
 
         if (p.AllZ && storesZero) return new string(' ', size);             // r15 b) — "all character positions
                                                                             //  of the ITEM" are spaces
@@ -180,7 +180,7 @@ public static class CobolLocaleEdit
                 ExceptionState.LocaleSizeError(
                     $"PICTURE format 2: editing produced {h.Length} character positions and the item's SIZE is "
                     + $"{size}; the truncated character '{h[i]}' is neither a zero nor a space caused by a "
-                    + "suppressed zero (ISO §2023:13.18.40.5 r14 b)");
+                    + "suppressed zero (ISO §2023:13.18.40.5 GR14b)");
                 break;                                                      // checking off: store the remainder
             }
         return new string(h, cut, size);
@@ -189,7 +189,7 @@ public static class CobolLocaleEdit
     /// <summary>The ARITHMETIC store's capacity-checked twin (§2023:14.7.5 — the size error condition): false, with the
     /// receiver's content untouched, when the aligned |value| carries more integer digits than the picture's
     /// integer digit positions; otherwise the <see cref="Format"/> result. ⛔ The size error condition (digit
-    /// CAPACITY — EC-SIZE-TRUNCATION under EC checking) is DISTINCT from EC-LOCALE-SIZE (§2023:13.18.40.5 r14 b's
+    /// CAPACITY — EC-SIZE-TRUNCATION under EC checking) is DISTINCT from EC-LOCALE-SIZE (§2023:13.18.40.5 GR14 b's
     /// CHARACTER truncation in the layout's move into the SIZE-declared item): both can arise on one store, and a
     /// capacity-clean value can still lose a currency character to a small SIZE — Format raises that one.</summary>
     public static bool TryFormat(Int128 unscaled, int valueScale, string picture, string? localeTag, int size,
@@ -209,7 +209,7 @@ public static class CobolLocaleEdit
 
     /// <summary>The integer-digit indexes (1-based, LEFT-to-right over <paramref name="digitsLeft"/> digits) after
     /// which a grouping separator sits — mon_grouping applied RIGHT-to-left from the decimal delimiter
-    /// (§2023:13.18.40.5 r12; the size list is read only through <see cref="MonetaryFacts.GroupSize"/> — the last size
+    /// (§2023:13.18.40.5 GR12; the size list is read only through <see cref="MonetaryFacts.GroupSize"/> — the last size
     /// repeats unless the list terminates).</summary>
     private static int[] GroupBoundaries(MonetaryFacts f, int digitsLeft)
     {
@@ -228,10 +228,10 @@ public static class CobolLocaleEdit
     }
 
     /// <summary>De-edit a format-2 item's content back to its numeric value (§2023:3.56; §2023:14.9.25.4 GR5/GR6 d;
-    /// §2023:14.6.13.2 r4 — the accepted language is EXACTLY the image of <see cref="Format"/> under the SAME picture
+    /// §2023:14.6.13.2 GR4 — the accepted language is EXACTLY the image of <see cref="Format"/> under the SAME picture
     /// and the locale current NOW; content that is "not a possible result for any editing operation in that data
     /// item" is EC-DATA-INCOMPATIBLE with an undefined result). Deliberately NOT the NUMVAL-C LOCALE scanner —
-    /// §2023:15.68.3 r5b is laxer (optional currency, arbitrary spaces, no fixed fraction width), and a shared scanner
+    /// §2023:15.68.3 AR5b is laxer (optional currency, arbitrary spaces, no fixed fraction width), and a shared scanner
     /// would silently swallow the r4 condition. The returned value is unscaled at the PICTURE's scale
     /// (digits right of '.'), which the caller knows statically; "which may be signed" (GR6 d 1) — negative only
     /// when the picture has a '+', since <see cref="Format"/> can never have written a negative layout otherwise.</summary>
@@ -252,7 +252,7 @@ public static class CobolLocaleEdit
             return 0;
         }
 
-        var facts = MonetaryFacts.Require(localeTag, "PICTURE format 2 locale de-editing", "ISO §2023:13.18.40.5 r11");
+        var facts = MonetaryFacts.Require(localeTag, "PICTURE format 2 locale de-editing", "ISO §2023:13.18.40.5 GR11");
         string t = s.TrimStart(' ');                                        // undo r14 a)'s left space fill
 
         // Undo the layout: try the conventions Format could have written, negative first (an empty positive

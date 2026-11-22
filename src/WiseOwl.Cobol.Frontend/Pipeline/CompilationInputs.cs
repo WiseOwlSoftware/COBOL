@@ -37,7 +37,7 @@ public sealed class CompilationInputs : IRepositoryInputs
     /// §2023:7.3.11.4 GR4: a <c>&gt;&gt;DEFINE … PARAMETER</c> value "is obtained from the operating environment".</summary>
     public IReadOnlyList<EnvironmentRead> EnvironmentReads => _environment;
 
-    /// <summary>True once the compilation read the wall clock — the WHEN-COMPILED stamp (§2023:15.99.3 r2) is baked
+    /// <summary>True once the compilation read the wall clock — the WHEN-COMPILED stamp (§2023:15.99.3 RV2) is baked
     /// into the program, so its output is a function of WHEN it was compiled, not only of its inputs.</summary>
     public bool ReadsCompilationTime { get; private set; }
 

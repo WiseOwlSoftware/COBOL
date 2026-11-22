@@ -434,7 +434,7 @@ public sealed partial class FileControlBinder
     /// (<see cref="DataBinder.InheritContainerGlobalData"/>), so "the lookup found it" no longer means "declared here". The one
     /// data-name lookup (<c>SymbolTable.IdentifyDataName</c>, qualification first, then the nearest declaring element) and the
     /// depths of the other declarations the word can name are set side by side, and the NEAREST is the referenced item
-    /// (§2023:8.4.6.2.1 3) a): "If the name is declared in source element B, the item in source element B is the referenced
+    /// (§2023:8.4.6.2.1 GR3a): "If the name is declared in source element B, the item in source element B is the referenced
     /// item"; b): otherwise the nearest containing element's):</para>
     /// <list type="bullet">
     /// <item>A data item this element declares, or another kind of name (a constant, an alphabet, an index, a
@@ -463,7 +463,7 @@ public sealed partial class FileControlBinder
         if (dataItems.Any(i => _host.State.Forest.DeclaringDepth(i) == 0)) return false;   // the nearest tier is this element's own
         DeclarationFact? global = quals.Count == 0 ? _host.Symbols.Declared.InheritedFile(name) : null;
         int fileDepth = global?.Depth ?? int.MaxValue;
-        // A constant-, index- or condition-name no farther than the GLOBAL file is the referenced item (§2023:8.4.6.2.1 3)), and
+        // A constant-, index- or condition-name no farther than the GLOBAL file is the referenced item (§2023:8.4.6.2.1 GR3), and
         // the operand resolves as written to its own refusal; a farther one does not hide the file (kb/Work PB4219: a
         // container's GLOBAL table's INDEXED BY RELF used to beat a nearer container's GLOBAL file RELF).
         if (_host.Symbols.Declared.OtherThanData(name, quals, Model.Scope.Program) is { } declared

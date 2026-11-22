@@ -12,11 +12,11 @@
 *> written position IS argument-1, so the rule governs the whole variadic list.
 *> This fixture puts the non-numeric operand at POSITION 2 OF 3 — the position a
 *> screen that stopped at the first argument would let through. pb1-numeric-arg2-
-*> alphanumeric already varies that axis for a DECLARED position (§2023:15.77.3 r1,
+*> alphanumeric already varies that axis for a DECLARED position (§2023:15.77.3 AR1,
 *> FUNCTION REM(6 A)); what is new here is the same axis on a VARIADIC TAIL,
 *> where §2023:15.61.2's `{ argument-1 } ...` makes every written position argument-1.
 *>
-*> MEDIAN is not MEAN: §2023:15.61.4 r1/r2 SELECT an argument (or average the two
+*> MEDIAN is not MEAN: §2023:15.61.4 RV1/r2 SELECT an argument (or average the two
 *> middle ones) rather than summing, so its result is the content of a chosen
 *> argument. That makes the class screen load-bearing for the RETURNED VALUE and
 *> not merely for the arithmetic — a non-numeric argument admitted here can WIN

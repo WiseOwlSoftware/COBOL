@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// is written on the device of implementor-name-1 "whenever integer-1 records of file-name-2 have been processed"; kb/Work
 /// PB5198). The conformance case <c>pb5198_rerun_records_device_85</c> holds the program-level success path; this holds
 /// what a program cannot reach: a statement that did not complete is not a record processed, the count belongs to the OPEN,
-/// and a device the host refuses is the file's own I-O status (§2023:9.1.13.6 item 1, '30'), the record the statement
+/// and a device the host refuses is the file's own I-O status (§2023:9.1.13.6 GR1, '30'), the record the statement
 /// wrote staying written.
 /// </summary>
 public sealed class RerunRecordsTests
@@ -67,7 +67,7 @@ public sealed class RerunRecordsTests
             var (reg, data, device) = Sequential(dir, every: 1);
             System.IO.File.WriteAllText(data, "ABCD");
             reg.OpenStatic(File, FileOpenMode.Input);
-            Assert.Equal("48", Write(reg, "WXYZ"));          // §2023:9.1.13.7 item 8: not open for output
+            Assert.Equal("48", Write(reg, "WXYZ"));          // §2023:9.1.13.7 GR8: not open for output
             Assert.False(System.IO.File.Exists(device));
             Assert.Equal("00", Read(reg));
             Assert.Equal("10", Read(reg));                    // the end of the file is no record
@@ -125,7 +125,7 @@ public sealed class RerunRecordsTests
     }
 
     /// <summary>An OPEN of an open file is unsuccessful ('41') and leaves the file unaffected (§2023:14.9.27.4 GR25), so the
-    /// count of records processed since its one successful OPEN goes on (§1985:VII.2.12.4 GR2 d).</summary>
+    /// count of records processed since its one successful OPEN goes on (§1985:VII.2.12.4 GR2d).</summary>
     [Fact]
     public void AnOpenRefusedAs41_DoesNotRestartTheCount()
     {

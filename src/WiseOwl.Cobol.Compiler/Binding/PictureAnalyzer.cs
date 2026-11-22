@@ -69,7 +69,7 @@ public static class PictureAnalyzer
     /// entry's own SIGN clause (<see langword="null"/> when the entry has none — a group-level SIGN may still apply,
     /// via the binder's post-build inheritance pass, ISO §2023:13.18.52.4 GR1–3). <paramref name="currencies"/> is the
     /// unit's CURRENCY SIGN SET (ISO §2023:12.3.7 — symbol → currency string; <c>SpecialNamesBinder.CurrencySigns</c>, the
-    /// r25-implied <c>'$' → "$"</c> included), of which a PICTURE uses at most ONE symbol (§2023:13.18.40.3 r24/r28):
+    /// r25-implied <c>'$' → "$"</c> included), of which a PICTURE uses at most ONE symbol (§2023:13.18.40.3 SR24/r28):
     /// a non-default symbol (e.g. NC107A's <c>W</c>, NC108M's <c>&lt;</c>) classifies exactly like <c>$</c> — its
     /// mask positions are fixed/floating currency insertion, making the item NUMERIC-EDITED (§2023:13.18.40.4) — and
     /// the emitted <see cref="PicInfo.EditMask"/> carries it CANONICALIZED to <c>$</c> with the string it stands
@@ -113,7 +113,7 @@ public static class PictureAnalyzer
         LocaleEditSpec? localeFormat2, bool decimalPointIsComma, out PictureClauseIdentity? clause)
     {
         clause = null;
-        // A TRAILING ';' is the clause SEPARATOR (ISO §2023:8.3.5 rule 2 — a semicolon immediately followed by a
+        // A TRAILING ';' is the clause SEPARATOR (ISO §2023:8.3.5 SR2 — a semicolon immediately followed by a
         // space is a separator; ';' is never a PICTURE symbol). The REAL cure is the W3 lexer-mode trim
         // (DEVLOG 596; VCR Table 7 row 7.14): PIC_STRING trims a trailing ','/';' when LA(1) is whitespace —
         // the separator shape — so a legal SR7 trailing-',' mask (NC125A's `…9,.`) keeps its comma. This
@@ -178,7 +178,7 @@ public static class PictureAnalyzer
             if (cs == up) continue;
             edition.Error(DiagnosticCatalog.PictureStringInvalid, $"invalid PICTURE character-string {picture} — {where}: it uses two "
                 + $"different currency symbols ('{cs}' and '{up}'); a PICTURE character-string may contain one "
-                + "currency symbol kind (ISO §2023:13.18.40.3 r24 / r28)");
+                + "currency symbol kind (ISO §2023:13.18.40.3 SR24 / r28)");
             return PicInfo.Recovery();
         }
         string currencyString = cs == '\0' ? "$" : currencySet[cs].Text;
@@ -203,7 +203,7 @@ public static class PictureAnalyzer
         // ── PICTURE EDITING phrases (ISO §2023:13.18.40.2 Format 1, COBOL-2023): validate SR8–SR12 and build the
         // render rules. char1Set lets the SR2 whitelist admit the declared editing characters (else char-1
         // letters like 'L'/'T'/'G' would trip COBOL0808); char1Extended is the FOR-phrase subset, which
-        // §2023:13.18.40.5 rule 6 makes FLOATING insertion symbols. The introduction gate below 2023 is fired by
+        // §2023:13.18.40.5 GR6 makes FLOATING insertion symbols. The introduction gate below 2023 is fired by
         // VersionConformancePass.ParseArm.VisitPictureClause.
         var editRules = ValidateEditing(editing, expanded, usage, edition, where, cs, decimalPointIsComma,
             out var char1Set, out var char1Extended, out var char1Declared);
@@ -240,7 +240,7 @@ public static class PictureAnalyzer
             switch (c)
             {
                 // '$' is a currency picture symbol iff it is a member of the unit's CURRENCY SIGN SET —
-                // §2023:12.3.7.3 r25 IMPLIES `CURRENCY SIGN '$' PICTURE SYMBOL '$'` unless a clause names '$' as
+                // §2023:12.3.7.3 SR25 IMPLIES `CURRENCY SIGN '$' PICTURE SYMBOL '$'` unless a clause names '$' as
                 // literal-7 or literal-8, so `PIC $$,$$9.99` stays legal beside a declared '#' (kb/Work PB60 /
                 // AR-15.68.3-3 measured it as COBOL0808 under the former single-symbol model — a legal-source
                 // rejection); only a clause that TAKES '$' for another string retires it as a symbol.
@@ -861,7 +861,7 @@ public static class PictureAnalyzer
     /// <c>ArgumentOutOfRangeException</c> and <c>PIC X(2000000000)</c> as an <c>OutOfMemoryException</c> — a
     /// compiler crash with no diagnostic and no source location, by either arm.</para>
     /// <para>A '(' can never be anything BUT a repetition factor's left parenthesis: it is not a picture symbol
-    /// (SR2), and §2023:12.3.7.3 SR27 c) excludes '(' and ')' from literal-8, so no CURRENCY SIGN clause can make one
+    /// (SR2), and §2023:12.3.7.3 SR27c excludes '(' and ')' from literal-8, so no CURRENCY SIGN clause can make one
     /// a currency symbol either. That is what lets an unclosed or unparsable factor be reported as the SR6
     /// violation it is instead of being handed on as ordinary text.</para>
     /// </summary>
@@ -1008,7 +1008,7 @@ public static class PictureAnalyzer
     /// <summary>Validate the PICTURE EDITING phrases (ISO §2023:13.18.40.3 SR8–SR12; COBOL-2023) and build the render
     /// rules. Emits the SR diagnostics (COBOL1591–1596, COBOL1955). Every legal shape produces a rule: a
     /// literal of any width (SR9 allows 50 characters) and a floating character-1 (the same character-1 appearing
-    /// ≥2 times under a FOR phrase, §2023:13.18.40.5 rule 6) are rendered by <c>CobolEdit</c>'s variable-width
+    /// ≥2 times under a FOR phrase, §2023:13.18.40.5 GR6) are rendered by <c>CobolEdit</c>'s variable-width
     /// materialization, not staged (kb/Work PB491). <paramref name="char1Set"/> (uppercased) collects every
     /// accepted character-1 so the SR2 whitelist admits them; <paramref name="char1Extended"/> is the subset
     /// declared with the FOR phrase, which SR12 makes EXTENDED editing sign control symbols and rule 6 therefore
@@ -1382,7 +1382,7 @@ public static class PictureAnalyzer
         // ⛔ §2023:13.18.40.3 SR12 bars only the FOR form here: "Extended editing sign control symbols shall not be
         // specified for a floating-point edited item" is a rule of SR12's FOR-phrase list (printed as that list's
         // SECOND 'a)', after 'c)' — the standard's own lettering, p.442; kb/Work PB866). An IS-form character-1 is
-        // a SIMPLE INSERTION symbol (§2023:13.18.40.5 rule 3), and Table 7 gives this category "Simple insertion, special
+        // a SIMPLE INSERTION symbol (§2023:13.18.40.5 GR3), and Table 7 gives this category "Simple insertion, special
         // insertion, and fixed insertion for the significand part" — so it is admitted in the significand below.
         if (char1Extended.Count > 0)
         {
@@ -1394,7 +1394,7 @@ public static class PictureAnalyzer
         bool IsChar1(char c) => editRules is not null && editRules.Any(r => r.SimpleInsertion && char.ToUpperInvariant(r.Char1) == c);
         int e = expanded.IndexOf('E');
         string sig = expanded[..e], exp = expanded[(e + 1)..];
-        // the exponent: '+' then 1..4 '9's, nothing else (§2023:13.18.40.4 GR13 b)
+        // the exponent: '+' then 1..4 '9's, nothing else (§2023:13.18.40.4 GR13b)
         if (exp.Any(IsChar1))
         {
             Bad("a PICTURE EDITING character-1 may not appear in the exponent — Table 7 gives the exponent part no "
@@ -1419,7 +1419,7 @@ public static class PictureAnalyzer
                 case var p when p == point: points++; break;
                 case 'B': case '0': case '/': break;
                 case var g when g == grouping: break;   // simple insertion (rule 3): the comma, or the period under DECIMAL-POINT IS COMMA
-                case var c1 when IsChar1(c1): break;   // an IS-form character-1: simple insertion (§2023:13.18.40.5 rule 3)
+                case var c1 when IsChar1(c1): break;   // an IS-form character-1: simple insertion (§2023:13.18.40.5 GR3)
                 case '+': case '-':
                     Bad("a second sign symbol in the significand — the significand admits one leading + or − (ISO §2023:13.18.40.6 Table 10 row E; SR25 applies per string)");
                     return PicInfo.Recovery(expanded.Length);
@@ -1467,7 +1467,7 @@ public static class PictureAnalyzer
     /// written for the decimal separator "is always the period"); SR13's swap is printed under FORMAT 1. ',' is not
     /// a format-2 symbol under any setting. ⛔ NO compile-time relation between integer-1 and the digit count is
     /// checked — the hypothetical item's width is a RUNTIME quantity (the currency string's length is the locale's,
-    /// §2023:13.18.40.5 r9) and §2023:13.18.40.5 r14 reconciles the two at each edit. Violations are COBOL1673 with the
+    /// §2023:13.18.40.5 GR9) and §2023:13.18.40.5 GR14 reconciles the two at each edit. Violations are COBOL1673 with the
     /// sub-rule named; the item recovers at the SIZE length (the compile has failed). The returned PicInfo: category
     /// numeric-edited (GR16), Length = integer-1 (GR17 — never the mask width), Digits/Scale/DigitPositions from
     /// character-string-1, EditMask NULL, <see cref="PicInfo.LocaleEdit"/> carrying the canonical picture.</summary>

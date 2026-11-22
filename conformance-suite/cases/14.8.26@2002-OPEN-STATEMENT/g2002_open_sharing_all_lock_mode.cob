@@ -31,7 +31,7 @@
       *>   D1=61    F-D (clause ALL OTHER, LOCK MODE) opens I-O while F-C
       *>            holds the file with read only: Table 20 row SHARING
       *>            WITH ALL OTHER / I-O, column read only / input is
-      *>            Unsuccessful open, and §2002:9.1.12.8 item 1 c) is '61'.
+      *>            Unsuccessful open, and §2002:9.1.12.8 item 1c is '61'.
       *>            Had F-C's phrase not overridden its clause (GR22: "The
       *>            SHARING phrase overrides any SHARING clause"), F-C would
       *>            hold all other / input and the open would be Normal (00).

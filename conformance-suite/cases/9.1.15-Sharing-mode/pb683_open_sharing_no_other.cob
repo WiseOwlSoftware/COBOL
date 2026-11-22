@@ -13,7 +13,7 @@
       *> the OTHER spelling a clause-less SELECT can acquire at OPEN time
       *> (kb/Work PB683), on all three organizations.
       *>
-      *> §2023:9.1.15 item 1 — "The sharing with no other mode specifies exclusive
+      *> §2023:9.1.15 GR1 — "The sharing with no other mode specifies exclusive
       *> access to a physical file.  Associating this file connector with the
       *> physical file will be unsuccessful if the physical file is currently
       *> open through other file connectors.  If the OPEN statement is
@@ -27,7 +27,7 @@
       *>   lock-governed path because N IS a sharing participant, still
       *>   answers '00': the governed route may not invent a conflict where
       *>   the standard says record locks are ignored.
-      *> '61' is §2023:9.1.13.9 item 1, "the sharing mode ... is incompatible" —
+      *> '61' is §2023:9.1.13.9 GR1, "the sharing mode ... is incompatible" —
       *> §2023:14.9.27.4 Table 19's Unsuccessful open cell.
       *>
       *> N's file control entry writes NO SHARING clause and NO LOCK MODE

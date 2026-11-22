@@ -17,7 +17,7 @@ OO mechanism (feedback_one_mechanism_per_job):
   a catalog name and `ExceptionCatalog.TryGet` fails on it by design), `SetObject`,
   `SetPropagatingObject`/`TakePropagatedObject` (the object propagation slot — mutually exclusive with the
   named `_propagated` slot; each staging call clears the other), and the `SetPropagatingLast` object
-  leg (GOBACK RAISING LAST with an object status re-propagates the OBJECT, §2023:14.9.18.4 GR1b3a second sentence).
+  leg (GOBACK RAISING LAST with an object status re-propagates the OBJECT, §2023:14.9.18.4 GR1b.3.a second sentence).
 - **RAISE identifier-1** → `BoundRaiseObject` (grammar takes `objectReference` so NULL/SUPER get the
   targeted 0848, and RAISE SELF parses); NOT TURN-gated (§2023:7.3.25 takes names only); NEVER fatal by itself
   (GR2 — the continue-after-RAISE path is the normal exit).
@@ -288,7 +288,7 @@ propagation slot + the EC-ARGUMENT-FUNCTION ambient gate), `EcFunctions` (§2023
   `ExceptionDispatchInfo` at the ONE place a COBOL comparer meets the framework, covering any future comparer
   raise by construction. Measured, not deduced; pinned as the sweep golden's L12; with checking OFF the flag test short-circuits before the O(digits) scan and the decode stays the
   tolerant deterministic one the standard's "undefined" permits, byte-identical to a pre-slice build.
-  **`CobolNum.IsNumericImage` is the ONE §2023:8.8.4.4.4 GR3n1 predicate** — keyed on the item's `NumericByteForm`
+  **`CobolNum.IsNumericImage` is the ONE §2023:8.8.4.4.4 GR3n.1 predicate** — keyed on the item's `NumericByteForm`
   (zoned digits + declared sign presentation for n)1.a; valid BCD nibbles + a sign nibble for packed, and the
   PICTURE-range test for binary, both n)1.c; a `BinaryCapacity` item takes its range from its container per
   §2023:13.18.60.4 GR12) — and the CLASS CONDITION calls the same predicate over the same RAW window, because the
@@ -306,7 +306,7 @@ propagation slot + the EC-ARGUMENT-FUNCTION ambient gate), `EcFunctions` (§2023
   STATEMENT (`FloatNotFiniteChecking` / `FloatOverflowChecking` in the statement's checking scope via `FatalAmbientGates` + the try/catch F3
   dispatch) and the runtime raise sites consult the flag. Both are **always-emitted** (the singular pattern —
   `CobolString.RefMod`, not an emit-time fork) so a directive-free build is byte-identical (the flag defaults OFF ⇒
-  the wrap is a pass-through). **EC-DATA-NOT-FINITE (§2023:14.6.13.2 item 3)** is wrapped at the TWO float sending-read
+  the wrap is a pass-through). **EC-DATA-NOT-FINITE (§2023:14.6.13.2 GR3)** is wrapped at the TWO float sending-read
   chokepoints — the numeric-value read (`NumericRenderer.FieldNumCore` line 140 → `RuntimeApi.FloatSending`) and the
   string-image read (`OperandText.FieldAsString` float arm → `RuntimeApi.FloatSending`) — so DISPLAY, STRING,
   MOVE-to-alphanumeric/group, arithmetic, relations, level-88, intrinsic args, and a different-usage float MOVE
@@ -316,7 +316,7 @@ propagation slot + the EC-ARGUMENT-FUNCTION ambient gate), `EcFunctions` (§2023
   the re-entrant `NumericRenderer._sending`), a **same-usage MOVE** (source and receiver share the same `Usage` —
   endianness is a separate phrase, not a Usage value) passes `SameUsageMove`, and **VALIDATE** will pass `Validate`
   once its emitter lands (documented no-op today). Note the two lists differ — `SignCondition` and `SameUsageMove`
-  suppress rule 3's wrap and NOT rule 2's. **EC-DATA-OVERFLOW (§2023:14.9.25.4 GR6d4.a)** is MOVE-only: `CobolFloat.StoreSingleChecked` at the
+  suppress rule 3's wrap and NOT rule 2's. **EC-DATA-OVERFLOW (§2023:14.9.25.4 GR6d.4.a)** is MOVE-only: `CobolFloat.StoreSingleChecked` at the
   single-precision-float MOVE receiver raises when a FINITE source casts to ±Inf (cast-based, `double.IsFinite(src)
   && float.IsInfinity((float)src)` — never a MaxValue compare, since a double in `(float.MaxValue, ~3.4028e38]`
   rounds to a finite `float.MaxValue`). An arithmetic ±Inf store (`ArithmeticEmitter.StoreArith`) stays a bare cast
@@ -325,7 +325,7 @@ propagation slot + the EC-ARGUMENT-FUNCTION ambient gate), `EcFunctions` (§2023
   usages (FLOAT-BINARY/-DECIMAL), an implementor determination for FLOAT-SHORT/-LONG/-EXTENDED and COMP-1/COMP-2 (see
   `CONFORMANCE.md §3`). Goldens `2023/ec_data_not_finite` (both chokepoints + all exemptions) and `2023/ec_data_overflow`.
 - **RAISING propagation = an UNCONDITIONAL staging slot + a pickup that owns the whole raise.** GOBACK / EXIT
-  PROGRAM / method-return RAISING stages (name, fatal, §2023:15.32.3 r2 statement, §2023:15.30.3 r2 location) via
+  PROGRAM / method-return RAISING stages (name, fatal, §2023:15.32.3 RV2 statement, §2023:15.30.3 RV2 location) via
   `ExceptionState.SetPropagating[Last]` (¶27403 SR2 — an EC-USER name must appear in the PD-header RAISING
   phrase, checked at bind as COBOL0717). **Staging raises nothing and tests nothing**, because §2023:14.9.18.4 GR1b
   names ONE element twice and it is the other one: "an exception condition is raised in the activating runtime
@@ -376,7 +376,7 @@ propagation slot + the EC-ARGUMENT-FUNCTION ambient gate), `EcFunctions` (§2023
     element — the one the returning element returns to — so the staged slots (`ExceptionEngine._propagated` /
     `_propagatedObject`) carry the ACTIVATING activation's identity, and `TakeRaisedPropagation` /
     `TakePropagatedObject` take a staging only when the pickup runs IN that activation. The identity is the run
-    unit's ONE activation record, `ModuleStack` (every mechanism §2023:15.65.4 r5 names pushes a frame there: CALL,
+    unit's ONE activation record, `ModuleStack` (every mechanism §2023:15.65.4 RV5 names pushes a frame there: CALL,
     function reference and the main program in `ProgramTable`, INVOKE and inline invocation in the method body), and
     each frame carries a unique, never-reused activation id (`CurrentActivation` / `ActivatingActivation`). The
     anonymous slot it replaced let a pickup-free activator (an EC-free group — zero scaffolding) leave a staging
@@ -458,13 +458,13 @@ propagation slot + the EC-ARGUMENT-FUNCTION ambient gate), `EcFunctions` (§2023
   `IsFatalIoStatus` arm. **⚠ The other two non-status EC-I-O names, EC-I-O-EOP and EC-I-O-EOP-OVERFLOW
   (§2023:14.9.51.4 GR27a, are still never set to exist** — they have no mask bit and no raise site; the
   channel they would use now exists.
-- **WITH LOCATION (§2023:15.30.3 r1 choice):** without the LOCATION phrase this implementation saves NO location
+- **WITH LOCATION (§2023:15.30.3 RV1 choice):** without the LOCATION phrase this implementation saves NO location
   information — EXCEPTION-LOCATION returns one space, EXCEPTION-STATEMENT 63 spaces. With it, the bind-time
   pre-rendered "element; paragraph[ OF section]; line" string and the Table-12 statement name travel on the
   **AMBIENT statement context** (kb/Work R14): `EmitChecked` emits `ExceptionState.EnterStatement(name, loc,
   withLocationNames)` around each checked statement (save/restore, so a nested activation restores its
   caller's), and the 2-argument `ExceptionState.Set` — the form every raise site uses — resolves the pair from
-  it PER-CONDITION (§2023:15.32.3 r1 keys on the RAISED name's own TURN; kb/Work R06). The context is a field of the
+  it PER-CONDITION (§2023:15.32.3 RV1 keys on the RAISED name's own TURN; kb/Work R06). The context is a field of the
   checking state itself (`CheckingFlags.Statement`), so it has the checking flags' scope: every checking BASELINE
   (`PushAllCheckingOff` — a CALL or function activation, a method body, a USE procedure, a PERFORMed range or a
   nested statement list) starts the other source text with NO context and its restore brings the activating
@@ -504,7 +504,7 @@ propagation slot + the EC-ARGUMENT-FUNCTION ambient gate), `EcFunctions` (§2023
   facts: the GR2/GR3 EC-I-O-WARNING exclusion, file-scoped events, last-event-wins, strict GR5 lines, Table 13
   fatalities, the §2023:9.1.13.1 status map). The legacy engine has NO EC model — every expected value derives from the
   cited §.
-- **The location string's three parts (§2023:15.30.3 r2b — kb/Work PB63):** part 1 is the ELEMENT name "as specified in
+- **The location string's three parts (§2023:15.30.3 RV2b — kb/Work PB63):** part 1 is the ELEMENT name "as specified in
   the FUNCTION-ID, METHOD-ID, or PROGRAM-ID paragraph of the … element containing the statement" — a statement inside
   a method names the METHOD-ID (`OoMethodScope.MethodName`; `ctx.EcState.ProgramName` is the program/class fallback);
   part 2 is the procedure field — (a) no paragraph-name and no section-name: EMPTY (`"; ; "` — the
@@ -521,7 +521,7 @@ propagation slot + the EC-ARGUMENT-FUNCTION ambient gate), `EcFunctions` (§2023
   opened, or otherwise attempted to be accessed" is recorded on the ONE I-O-status assignment path — the
   `FileConnector.Status` setter (§2023:9.1.13.1's CLOSE/DELETE/OPEN/READ/REWRITE/START/UNLOCK/WRITE all set it), so a
   CLOSE or READ on a never-opened connector (42/47) is an access. Argument-1 shall be "specified in an FD statement"
-  (§2023:15.28.3 r1 / §2023:15.29.3 r1): `BindExceptionFileArg` requires `HasFd && !IsSortMerge` and cites the function's own
+  (§2023:15.28.3 AR1 / §2023:15.29.3 AR1): `BindExceptionFileArg` requires `HasFd && !IsSortMerge` and cites the function's own
   clause (COBOL1574). Pinned by `pb63_exception_file_select_names` and the `pb63-exception-file-*` negatives.
 
 **Automatic propagation — `>>PROPAGATE` (ISO §2023:7.3.21; kb/Work PB1119).** The directive stage
@@ -588,7 +588,7 @@ repertoire translator, result category National; golden `exception_file_n`, matr
 
 **Rationale.** Table 15 (§2023:14.9.13.3 SR10) is indexed by a subject COLUMN and an object ROW naming the same six operand kinds, and SR6 changes a BOOLEAN operand's kind "for a particular WHEN phrase" according to what the OTHER side of the pair is: against TRUE/FALSE a one-boolean-character boolean expression becomes condition-1 (b) / condition-2 (a); against anything else it stays boolean-expression-1 (d) / boolean-expression-2 (c). A per-side classifier therefore cannot express the rule, and two of them cannot even express the TABLE: every difference between them is a Table-15 asymmetry. So `EvaluateBinder.ClassifyPair` classifies the pair — `SubjectKind` / `ObjectKind` handle only the forms that are grammatical on one side (TRUE/FALSE and the subject's own class test; ANY, a THRU range and an explicit condition object), and everything else goes through the ONE `BareOperandKind` over the ONE `ConditionBinder.AnalyzeBareOperand`, mapped row→column by `EvaluateOperandCombinations.AsSubjectOperand`. SR6 a)/b) then run as a joint step; c)/d) are the identity, because a boolean operand's raw kind already IS boolean-expression.
 
-A bare operand resolves ONCE. `AnalyzeBareOperand` returns which of the four §2023:8.8.4 shapes it is (a plain value, a level-88 condition-name §2023:8.8.4.2.7 r2, a switch-status condition-name §2023:8.8.4.6, or a boolean expression §2023:8.8.2) together with the bound condition or the bound boolean expression and that expression's §2023:8.8.2 rules 9/10 RESULT length. The screen and the bind path both read that one analysis: nothing is resolved twice (an ambiguous condition-name used to report §2023:8.4.2.2 twice), and a boolean operand is not wrapped as a §2023:8.8.4.3 simple boolean condition — which is where that clause's SR1 length screen lives — until the classification says it IS one.
+A bare operand resolves ONCE. `AnalyzeBareOperand` returns which of the four §2023:8.8.4 shapes it is (a plain value, a level-88 condition-name §2023:8.8.4.2.7 GR2, a switch-status condition-name §2023:8.8.4.6, or a boolean expression §2023:8.8.2) together with the bound condition or the bound boolean expression and that expression's §2023:8.8.2 rules 9/10 RESULT length. The screen and the bind path both read that one analysis: nothing is resolved twice (an ambiguous condition-name used to report §2023:8.4.2.2 twice), and a boolean operand is not wrapped as a §2023:8.8.4.3 simple boolean condition — which is where that clause's SR1 length screen lives — until the classification says it IS one.
 
 SR6's length test is `ConditionBinder.BoolResultLength`, a SIBLING of §2023:14.9.8.4 GR3's COMPUTE width rather than the same question: GR3 counts ITEMS only (a literal contributes none), while a boolean LITERAL's own length is exactly what SR6 needs. A positionless operand (figurative ZERO / `ALL B"…"`), a run-time-length boolean function and a run-time-length reference-modified slice (`B(1:N)`, `B(K:)`) report null and are answered YES — failing OPEN, the direction that cannot refuse legal source; §2023:8.8.4.3.3 SR1's length-1 screen (`BoolExprAllLengthOne`) fails open on the same two run-time shapes. Both static readers take an item's length through ONE reader, `StaticBoolRefLength`, over `RefModPlace.StaticLength` (a literal length, or an omitted length with a literal start).
 
@@ -712,7 +712,7 @@ the numeric-edited image has exactly two readers, and the recipe reads `OperandP
 **The dispatch site of a NONFATAL condition raised INSIDE THE RUNTIME is the runtime (kb/Work PB367b).** D11's
 "injected at the operation site" holds wherever the emitter can see the raise — a RAISE statement, an I-O status,
 a latched ON OVERFLOW-less STRING, ALLOCATE/FREE, CONTINUE AFTER, SEARCH's range conditions. Four conditions have
-no such site: an untranslatable code unit inside an arbitrary expression (EC-DATA-CONVERSION, §2023:15.19.4 r3), a
+no such site: an untranslatable code unit inside an arbitrary expression (EC-DATA-CONVERSION, §2023:15.19.4 RV3), a
 dynamic-capacity table grown under a receiving subscript (EC-BOUND-OVERFLOW, §2023:8.5.1.9.6 GR1), an inverted THROUGH
 range inside a condition (EC-RANGE-INVALID, §2023:14.7.8 GR2) and a dynamic-length resize (EC-STORAGE-NOT-AVAIL,
 §2023:14.9.39 Format 16 GR37/GR38). They are detected by `ExceptionEngine`'s own raise helpers, which is why the
@@ -856,7 +856,7 @@ any". The resume protocol addresses STATEMENT SITES (the `-2` action falls out o
 the boundary exists exactly where each operand owns a site. `BoundImplicitSeries` (Binding/Bound/BoundTree.cs) IS
 that and nothing more: each verb binder builds ONE bound node per operand, `EcBinder.EcWrap` DISTRIBUTES the
 `BoundEcChecked` wrapper over the members (one written statement ⇒ one `EcStatementInfo`, one >>TURN scope, one
-Table-12 name, one §2023:15.30.3 r2 location), and `StatementEmitter` renders the members consecutively. `Of` returns
+Table-12 name, one §2023:15.30.3 RV2 location), and `StatementEmitter` renders the members consecutively. `Of` returns
 the bare member for one operand — every one of the seven rules is conditioned on "more than one" — and with
 checking OFF no wrapper is built, so the emitted text is byte-identical to the pre-series flat run (the
 zero-scaffolding invariant, §18.16). A bind-time desugar (the UDF activation hoist, the OO property pre-op
@@ -907,7 +907,7 @@ homes, each read mechanically, never from a hand list:
   activation window holds. `EcRaiseSiteRegistryDriftTests` reads every bound statement that carries a `FileModel` and
   asks `IoFilesOf` for it, so an I-O verb added tomorrow cannot be missing (DELETE FILE once was, kb/Work PB141).
 - **An OPERAND** raises wherever it is written: a program-address-identifier (§2023:8.4.3.13.4 GR4) in a relation, a CALL
-  or an INVOKE argument alike; a function reference's argument check (§2023:15.3 item 14: EC-ARGUMENT-FUNCTION, and the
+  or an INVOKE argument alike; a function reference's argument check (§2023:15.3 AR14: EC-ARGUMENT-FUNCTION, and the
   families that ride the same intrinsic call — EC-ORDER-NOT-SUPPORTED, EC-DATA-CONVERSION, EC-LOCALE-INVALID).
   `EcBinder.OperandRaises` declares each over the GENERATED value parts (`BoundStatementTree.OwnValueParts`), so a
   statement kind added tomorrow is covered without an edit; `OperandRaisableNames` is the one walker, and the
@@ -998,7 +998,7 @@ bool _se=false; { var _v = new CobolInt(…, _s); if (CobolNum.TryStore(_v, _P_B
 if (_se) { <ON SIZE ERROR> } else { <NOT ON SIZE ERROR> }
 ```
 A statement written with ONLY a NOT ON SIZE ERROR phrase takes the same shape with an empty ON arm, on purpose: §2023:14.7.5
-ignores the NOT phrase on a size error and §2023:14.6.13.1.3 item 8 leaves the receivers to the implementor, and CONFORMANCE.md
+ignores the NOT phrase on a size error and §2023:14.6.13.1.3 GR8 leaves the receivers to the implementor, and CONFORMANCE.md
 DOC-A.1-70 follows GnuCOBOL there (any `[NOT] SIZE ERROR` phrase keeps an overflowing resultant unchanged, as the CCVS85
 NC programs expect, except a COMP-5, COMP-X or COMP-N receiver of a NOT-only statement, which GnuCOBOL stores as if no phrase were written (its `build_store_option` sets the flag for those usages only with ON SIZE ERROR): GnuCOBOL's error, by the owner's decision, so WiseOwl keeps those too, kb/Work PB3989; kb/Work
 PB3869, retired).
@@ -1144,9 +1144,9 @@ been recorded, so a condition error node can never reach a successful compile an
 - NEXT SENTENCE (obsolete) is NOT CONTINUE: it jumps past the next period, so it lowers via a labeled sentence block + goto, unlike a plain if-fall-through (COBOL0701).
 - ALPHABETIC is the closed set {A-Z,a-z,space} only (ISO §2023:8.8.4.4) — must NOT use char.IsLetter (rejects accented/Unicode letters); legacy comment line 2436.
 - IS NUMERIC on a signed numeric-DISPLAY item accepts the overpunch sign ({,A-I positive; },J-R negative) or separate sign (+/-) at the sign position; spaces are NOT digits so a field with embedded/trailing spaces is NOT NUMERIC.
-- IS NUMERIC on a pure native long/Int128 item folds to constant true (COBOL0706): the fold applies ONLY to a numeric item with no REDEFINES/overlay view; an aliased item routes through the runtime byte-form-keyed check (CobolNum.IsNumericImage, §2023:8.8.4.4.4 GR3n1; CobolClass.IsNumeric is n)2's non-numeric-category arm and n)1.a's zoned delegate).
+- IS NUMERIC on a pure native long/Int128 item folds to constant true (COBOL0706): the fold applies ONLY to a numeric item with no REDEFINES/overlay view; an aliased item routes through the runtime byte-form-keyed check (CobolNum.IsNumericImage, §2023:8.8.4.4.4 GR3n.1; CobolClass.IsNumeric is n)2's non-numeric-category arm and n)1.a's zoned delegate).
 - NOT POSITIVE means ≤ 0 (includes zero), which is NOT the same as NEGATIVE — the !(>0) wrap gets it right.
-- Figurative ZERO compared with a numeric value is the numeric 0 (ISO §2023:8.3.3.6.4 r4), not the character '0'.
+- Figurative ZERO compared with a numeric value is the numeric 0 (ISO §2023:8.3.3.6.4 GR4), not the character '0'.
 - Literal-vs-literal comparisons constant-fold at emit time to true/false (clean output, matches mainstream compilers).
 - SET cond TO FALSE with no WHEN SET TO FALSE phrase is a syntax error (§2023:14.9.39.3 SR7 — the FALSE phrase is required) → COBOL2049. The TRUE arm needs no twin screen: §2023:13.18.63.3 SR24 already makes a VALUE clause mandatory on a level-88 entry.
 - literal-4 shall not be a value the condition-name is TRUE for (§2023:13.18.63.3 SR27) → COBOL2048, screened where literal-4 is bound (`DataBinder.CheckFalseValueDistinct`; derivation in DATA_MODEL_DESIGN.md).
@@ -1208,7 +1208,7 @@ done).
 - §2023:8.8.4.4 — simple class condition (NUMERIC; ALPHABETIC closed set {A-Z,a-z,space}); §2023:8.8.4.7 — simple sign condition
 - §2023:8.8.4.5 — simple condition-name condition (88-level abbreviates 'conditional variable == one of its values')
 - §2023:8.8.4.9 — logical operators AND / OR / EXCLUSIVE-OR / XOR / NOT and their meanings; §2023:8.8.4.11.3 — precedence NOT > AND > XOR > OR; §2023:8.8.4.13 GR1 — left-to-right order of evaluation with short-circuit termination of each hierarchical level
-- §2023:8.3.3.6.4 r4 — figurative ZERO as numeric 0; §2023:8.4.3.6 — EXCEPTION-OBJECT predefined object reference
+- §2023:8.3.3.6.4 GR4 — figurative ZERO as numeric 0; §2023:8.4.3.6 — EXCEPTION-OBJECT predefined object reference
 - §2023:13.18.63 — VALUE clause condition-name format (THRU ranges; WHEN SET TO FALSE literal-4; GR20 SET TO FALSE)
 - §2023:14.6.13 / §2023:14.6.13.1.1 — exception condition handling; default EC-ALL OFF; last-exception status; per-element indicators cleared at start of each statement
 - §2023:14.6.13.1.3 / §2023:14.6.13.1.4 — fatal vs nonfatal exception condition handling order (phrase → PERFORM WHEN → USE declarative → continue/terminate)
@@ -1228,7 +1228,7 @@ done).
 ## Resolved questions (settled in `DESIGN.md` §18 — answers recorded inline per the keep-deep-dives-current rule)
 
 - SETTLED (kb/Work R05 — the §2023:15.33 width collision): **FUNCTION EXCEPTION-STATUS returns exactly the 31-character
-  value §2023:15.33.3 r1 prescribes, truncating a longer exception-name to its 31-character prefix.** The collision is
+  value §2023:15.33.3 RV1 prescribes, truncating a longer exception-name to its 31-character prefix.** The collision is
   the STANDARD's own: COBOL-2023 words run to 63 characters (§2023:8.3.2.1) and the §2023:14.6.13.1.1 EC-USER-/EC-IMP-
   suffixes are unbounded, so level-3 names of 32..63 characters are legal yet indistinguishable through this one
   function — while checking, declarative selection, and PERFORM-WHEN matching all use the FULL name

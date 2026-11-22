@@ -457,7 +457,7 @@ Every operand slot answers **four independent axes**, and all now live in `Opera
 | Axis | Question | Clause |
 |---|---|---|
 | **A — NumericClassScreen** | Does §2023:8.8.1.1's class-numeric screen govern this position, or does the position have its own syntax rule? | §2023:8.8.1.1 |
-| **B — IndexNameScreen** | Is the index-**name** screen applied here, or is this one of r7's five contexts? | §2023:13.18.38.3 r7 |
+| **B — IndexNameScreen** | Is the index-**name** screen applied here, or is this one of r7's five contexts? | §2023:13.18.38.3 SR7 |
 | **C — IndexDataItemAdmitted** | May a class-index **data item** be referenced here? | §2023:13.18.60.3 SR10 |
 | **D — BooleanOperandAdmitted** | Is the slot's written shape ALSO a boolean expression, so that a class-boolean operand is as legal as a numeric one? | §2023:8.8.2, §2023:8.4.3.2.3 SR8 |
 
@@ -550,7 +550,7 @@ literal, non-numeric literal, **function call**) instead of splitting the enum.
 
 **⛔ "Is this operand of class numeric?" has exactly ONE answer**, `IntrinsicArgumentRules.CandidateClasses`
 (the §2023:8.5.2.1 Table-2 classifier) via `IsArithmeticOperandClass`. It previously had four — a private category
-switch missing the index arm, a `ResultCategory` test that folded §2023:15.2 item 6 index functions into numeric, the
+switch missing the index arm, a `ResultCategory` test that folded §2023:15.2 GR6 index functions into numeric, the
 receiving-side `ScreenResultant` (which DID have the index arm), and this classifier, which nothing in the funnel
 used. The extraction is what closes the index-data-item, pointer and object holes without a new rule, and what
 preserves the 2026-08-02 numeric-edited owner decision by construction rather than by a hand-written arm.
@@ -608,7 +608,7 @@ synthesized-temp constructor) with the **operand's own description**, so the sto
 and the equivalence is exact: a data item clones its description (§2023:8.4.3.3.4 GR6's "unique data item" when
 reference-modified, carried by a run-time-length item per §2023:8.5.1.10.4), and a function-identifier takes §2023:15.4's
 "temporary elementary data item" as the item `SendingValueTemp.IntermediatePic` describes FOR THE VALUE AND ITS USE
-(kb/Work PB3268): for an INTEGER function (§2023:15.2 item 5) read as text in a character formal, the returned-value item's
+(kb/Work PB3268): for an INTEGER function (§2023:15.2 GR5) read as text in a character formal, the returned-value item's
 30-digit `IntegerFunctionValuePic`; for any numeric or integer function a `double` when the value is a binary64, and
 an item of the receivers' own binary format when every receiver is floating-point of ONE format (`SharedFloatFormatPic`:
 a `float` for an all-binary32 set, since a binary64 narrowed into a binary32 rounds an exact value twice, ISO
@@ -781,7 +781,7 @@ do not CONVERT from the value: the SET address formats (§2023:14.9.39.4 GR12/GR
 referenced by identifier-N in the order specified"). The arithmetic family's `ArithmeticEmitter.Snapshot` is the
 third face of the rule, for §2023:14.7.7 GR4's one initial evaluation. Three carriers, one rule, each named for the
 clause it serves; `SendingValueOnceDriftTests` measures all of them together with a re-seeded `FUNCTION RANDOM`
-(§2023:15.75.3 r3 / §2023:15.75.4 r2) and pins the `BoundOperand` leaf set the materializer answers for.
+(§2023:15.75.3 AR3 / §2023:15.75.4 RV2) and pins the `BoundOperand` leaf set the materializer answers for.
 
 ### 3.8 The SET statement's general-format selection — one table over the WHOLE receiving list
 
@@ -860,7 +860,7 @@ is materialized by `SendingValueTemp`; one folded to a literal is the compile-ti
 name through `PtrEmitter.NameImage`, the operand's character image, because a group's `Read` is its record struct.
 
 **A strongly-typed group's class is its type-name outside a function argument (kb/Work PB3355, sibling of PB1901).**
-`IntrinsicArgumentRules.ClassOf` answers ALPHANUMERIC for a strongly-typed group, and that is §2023:15.3 item 2's reading of a
+`IntrinsicArgumentRules.ClassOf` answers ALPHANUMERIC for a strongly-typed group, and that is §2023:15.3 AR2's reading of a
 function ARGUMENT; §2023:8.5.2.1 makes the class and the category of the group its type-name everywhere else, so a rule outside
 an argument position must not read the lattice's alphanumeric answer. Two shapes, two readers: a rule worded in a CATEGORY
 ("Identifier-1 shall be defined as an alphanumeric or national data item" — CALL §2023:14.9.4.3 SR1, CANCEL §2023:14.9.5.3 SR1, the
@@ -1000,7 +1000,7 @@ one — what the evaluate-once identification asks before it hoists).
 - an integer literal → `PositionConstant`; a written parenthesis → `PositionGroup`; `+ - *` → `PositionBinary`;
   a unary sign → `PositionNegate`;
 - a bare (possibly qualified) name → the existing resolution: an index-name → `PositionIndexCell` (§2023:8.4.2.3.3 SR4's
-  collector, §2023:13.18.38.3 r7's ref-mod screen); an integer constant-name → `PositionConstant`; a report VARYING counter
+  collector, §2023:13.18.38.3 SR7's ref-mod screen); an integer constant-name → `PositionConstant`; a report VARYING counter
   → `PositionLocal(AsLong)`; a data item with a position overload → `PositionItemRead`, with the §2023:8.8.1.1 class screen
   queued to the commit point exactly as PB220 required;
 - anything else, at any depth, routes the WHOLE position to the D18 temporary: the `MaterializeSegment` hook

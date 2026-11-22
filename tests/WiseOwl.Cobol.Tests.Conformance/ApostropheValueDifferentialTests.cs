@@ -60,7 +60,7 @@ public sealed class ApostropheValueDifferentialTests
         Assert.Contains("G=[XY007]", apos);
     }
 
-    /// <summary>The DOUBLED-OPENING-DELIMITER rule (§2023:8.3.3.2.3 r3 — one embedded delimiter character), per form: the
+    /// <summary>The DOUBLED-OPENING-DELIMITER rule (§2023:8.3.3.2.3 SR3 — one embedded delimiter character), per form: the
     /// contents legitimately DIFFER across forms (an embedded ' vs an embedded "), so each asserts its own decode
     /// — the case the '"'-only guards silently miscompiled for the apostrophe form.</summary>
     [Fact]

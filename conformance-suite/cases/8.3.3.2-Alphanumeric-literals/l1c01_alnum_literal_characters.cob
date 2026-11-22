@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §2023:8.3.3.2.3 r2 and r4 — format 1 literal content: any
+      *> ISO §2023:8.3.3.2.3 SR2 and r4 — format 1 literal content: any
       *> source character; the doubled delimiter is the opener's own
       *> THE RULES:
       *>   cite.py --check 8.3.3.2.3 "Character-1 may be any character

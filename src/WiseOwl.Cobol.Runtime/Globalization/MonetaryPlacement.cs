@@ -48,7 +48,7 @@ public static class MonetaryPlacement
 
     /// <summary>As <see cref="Render(MonetaryConvention, string, string, string)"/>, also reporting where
     /// <paramref name="val"/> starts in the result — <c>CobolLocaleEdit</c> needs the offset to carry each
-    /// hypothetical-item position's role through §2023:13.18.40.5 r15 suppression into r14 b)'s per-character
+    /// hypothetical-item position's role through §2023:13.18.40.5 GR15 suppression into r14 b)'s per-character
     /// truncation test, and computing it HERE keeps the layout written once.</summary>
     public static string Render(MonetaryConvention c, string cs, string sign, string val, out int valStart)
     {

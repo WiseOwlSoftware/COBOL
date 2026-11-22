@@ -4,8 +4,8 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> PB4764 - ISO §2023:15.50.3 r1: argument-1 is a data item of any class or category, a literal of the listed classes, a based entry or
-      *> a type-name. FUNCTION LENGTH (VG) written bare is a function-identifier (§2023:8.4.3.2.4 r1) and admitted
+      *> PB4764 - ISO §2023:15.50.3 AR1: argument-1 is a data item of any class or category, a literal of the listed classes, a based entry or
+      *> a type-name. FUNCTION LENGTH (VG) written bare is a function-identifier (§2023:8.4.3.2.4 GR1) and admitted
       *> (pb4764_length_of_variable_length_group_length); enclosed in parentheses it is "an arithmetic expression enclosed in
       *> parentheses" (§2023:8.8.1.1), as LENGTH((FUNCTION ABS(I2))) is (pb4712-length-parenthesized-numeric-function), and is refused.
        IDENTIFICATION DIVISION.

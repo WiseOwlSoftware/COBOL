@@ -365,7 +365,7 @@ public sealed class StopGobackExitCodeTests
     /// <summary>The position's OWN syntax rules, which nothing enforced while §2023:8.8.1.1 was standing in for them:
     /// SR4/SR8 (no zero-length literal), SR3/SR7 (a numeric literal-1 shall be an integer), SR2/SR6 (identifier-1
     /// shall be an integer item or a display/national item — which a BIT group is not, and which §2023:8.5.2.1 gives
-    /// an ALPHANUMERIC group, so that shape moved to the positive theory above), and §2023:13.18.38.3 r7
+    /// an ALPHANUMERIC group, so that shape moved to the positive theory above), and §2023:13.18.38.3 SR7
     /// (the STATUS phrase is not one of the five contexts admitting an index-name). Each compiled CLEAN on
     /// 02c72682 — the screen that WAS there rejected the legal shapes and admitted the illegal ones, in both
     /// directions at once. (The corpus fixtures pin the same rules at every edition; these assert the MESSAGE

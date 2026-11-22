@@ -18,7 +18,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// COMMIT clause (of a relative or indexed file, a record it changed, a deleted record's identity, a unique alternate key
 /// value it freed — docs/rearchitecture/DESIGN-runtime-library.md 2.2.1.10; of a sequential file, the end of the file, a
 /// record it rewrote or appended, and the whole file once replaced — 2.2.2.3, kb/Work PB3340); otherwise I-O status '51'
-/// (§2023:9.1.13.8 item 1, the record operation conflict) is produced ONLY for a record another file connector holds locked.
+/// (§2023:9.1.13.8 GR1, the record operation conflict) is produced ONLY for a record another file connector holds locked.
 ///
 /// <para>The determination is pinned where it lives: the set of places the runtime PRODUCES
 /// <see cref="FileStatusCode.RecordLocked"/>. Today there are four, each guarded by a lock or holding another connector

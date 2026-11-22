@@ -41,7 +41,7 @@ public enum DebugCause
     /// (§1985:XV.3.2.4 GR19 c 3).</summary>
     MergeOutput,
 
-    /// <summary>The execution of a USE procedure — DEBUG-CONTENTS "USE PROCEDURE" (§1985:XV.3.2.4 GR21 c).</summary>
+    /// <summary>The execution of a USE procedure — DEBUG-CONTENTS "USE PROCEDURE" (§1985:XV.3.2.4 GR21c).</summary>
     UseProcedure,
 }
 

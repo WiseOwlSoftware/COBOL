@@ -66,7 +66,7 @@ public sealed record LocaleValue(string Collate, string Ctype, string Messages, 
     };
 
     /// <summary>This value with the categories in <paramref name="categories"/> taken from <paramref name="from"/>
-    /// (§2023:14.6.6 r3: "the current locale remains unchanged for categories that are not switched").</summary>
+    /// (§2023:14.6.6 GR3: "the current locale remains unchanged for categories that are not switched").</summary>
     public LocaleValue With(LocaleCategorySet categories, LocaleValue from) => new(
         categories.HasFlag(LocaleCategorySet.Collate) ? from.Collate : Collate,
         categories.HasFlag(LocaleCategorySet.Ctype) ? from.Ctype : Ctype,
@@ -108,11 +108,11 @@ public static class LocaleIdentification
 {
     /// <summary>Do two LOCALE phrases carry "the same external identification, where the external identification is
     /// the external-locale-name or literal value associated with a locale-name in the LOCALE clause" (ISO §2023:8.5.3.1
-    /// "Additionally", §2023:9.3.6 match rule 3 e) 3. b., §2023:9.3.8.2.3 rule 3 "Additionally", §2023:14.8.2.3.2 "Additionally" a),
+    /// "Additionally", §2023:9.3.6 match rule 3 e) 3. b., §2023:9.3.8.2.3 GR3 "Additionally", §2023:14.8.2.3.2 "Additionally" a),
     /// §2023:14.8.3.3 "Additionally" 1))? The identification AS WRITTEN — never the locale <see cref="Normalize"/> resolves it
     /// to (kb/Work PB1166): <c>"en-US"</c> and <c>"en_US.UTF-8"</c> select one locale but are two literal values. A
     /// literal value compares character for character; an external-locale-name is a COBOL word, and COBOL basic letters
-    /// outside a literal are case-insensitive (§2023:8.1.3.2 GR3 a)), so any pair involving one compares without regard to
+    /// outside a literal are case-insensitive (§2023:8.1.3.2 GR3a), so any pair involving one compares without regard to
     /// case. The ONE copy of the rule: the compiler's <c>LocaleSymbol</c> and the run-time universal-dispatch relation
     /// (<see cref="ActivationRelations"/>, kb/Work PB480) both ask it.</summary>
     public static bool SameExternalIdentification(string a, bool aFromLiteral, string b, bool bFromLiteral) =>
@@ -158,7 +158,7 @@ public static class LocaleIdentification
 /// The run unit's LOCALE state (DESIGN-locale-facility §4.3; ISO §2023:8.2.1 "the current locale", §2023:14.6.6): the two
 /// implementor defaults, the locale currently in effect per category, and the saved-locale handles of SET format 12.
 /// Owned by <see cref="RunUnit"/> — one per run unit, established at activation, NEVER per activation frame:
-/// §2023:14.6.6 r9 — "Upon return of control from another COBOL runtime element, the locale in effect for each locale
+/// §2023:14.6.6 GR9 — "Upon return of control from another COBOL runtime element, the locale in effect for each locale
 /// category at the time of exit from the returning runtime element becomes the current locale for that category" —
 /// so a callee's SET is not unwound (the callee restores, per the NOTE). Nothing else may hold current-locale state
 /// (one mechanism; <c>LocaleManager</c> and the <c>IS LOCALE</c> collating sequence read THIS).
@@ -194,7 +194,7 @@ public sealed class LocaleState
     {
         UserDefault = LocaleValue.Of(Determine(UserDefaultVariable, () => CultureInfo.CurrentCulture));
         SystemDefault = LocaleValue.Of(Determine(SystemDefaultVariable, () => CultureInfo.InstalledUICulture));
-        _current = UserDefault;   // §2023:14.6.6 r1 — the user default becomes the current locale for all categories
+        _current = UserDefault;   // §2023:14.6.6 GR1 — the user default becomes the current locale for all categories
     }
 
     /// <summary>The user default locale (L2), fixed at run-unit activation unless a SET LOCALE USER-DEFAULT TO …

@@ -15,13 +15,13 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 /// has none, so every block is refused, once, at its EXEC (COBOL5818, <see cref="Report"/>); a block left without its
 /// END-EXEC is refused as that fault (COBOL5842).
 /// <para>A block is EXEC, a word naming the embedded language, and the text through the first END-EXEC, within one unit:
-/// no separator period between them (ISO §2023:8.3.5 rule 3, "The COBOL character period, when followed by a space, is a
+/// no separator period between them (ISO §2023:8.3.5 SR3, "The COBOL character period, when followed by a space, is a
 /// separator"), so the period of a qualified SQL name, <c>T.A</c>, is text of the block (review R1-2). <see cref="Read"/>
 /// makes each block one <c>EMBEDDED_BLOCK</c> token spanning it and moves the rest of its tokens to the
 /// <c>EMBEDDED_BLOCK_TEXT</c> channel, which the parser does not read and the screens of the COBOL text skip
 /// (<see cref="ProgramText"/>). Where a statement may begin, the parse takes the token as one
 /// (<c>embeddedBlockStatement</c>), so a block that is the only statement of an IF's or an ELSE's branch, a WHEN, or an
-/// inline PERFORM leaves that construct whole (ISO §2023:14.9.19.3 1)); elsewhere (an entry of WORKING-STORAGE)
+/// inline PERFORM leaves that construct whole (ISO §2023:14.9.19.3 SR1); elsewhere (an entry of WORKING-STORAGE)
 /// <see cref="CobolErrorStrategy"/> consumes it as nothing. Done before the parse, every prediction sees the token: a
 /// block the parse met as text was mispredicted (<c>WHEN 1 EXEC SQL …</c> read "1 IS EXEC", a class condition) or
 /// failed a decision made before it (<c>WHEN OTHER EXEC SQL …</c>), and drew false cascades.</para>
@@ -82,7 +82,7 @@ public sealed class EmbeddedBlockReading
                 var t = tokens[i];
                 // ⛔ Every token of the block that is the program's COBOL text, whatever its channel (kb/Work PB4384): a
                 // semicolon with no space after it is on the HIDDEN channel so the separator screen can judge it (ISO
-                // §2023:8.3.5 rule 2), and inside a block it is SQL text. A token already off the COBOL text (an absent
+                // §2023:8.3.5 SR2), and inside a block it is SQL text. A token already off the COBOL text (an absent
                 // debugging line) stays where it is.
                 if (!ProgramText.Holds(t)) continue;
                 tokens[i] = i == exec

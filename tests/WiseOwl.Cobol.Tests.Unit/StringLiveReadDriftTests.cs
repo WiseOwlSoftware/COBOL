@@ -176,7 +176,7 @@ public sealed class StringLiveReadDriftTests
     [Fact]
     public void FunctionOverTheReceiver_IsEvaluatedOnceUpFront_AndNeverStoresBetween()
     {
-        // §2023:14.6.4 7) identifies the function first (its range tests run before identifier-3's), and a function-identifier
+        // §2023:14.6.4 GR7 identifies the function first (its range tests run before identifier-3's), and a function-identifier
         // references a temporary data item (§2023:8.4.3.2.4 GR1) that no transfer can store into, so D-STR4 (kb/Work PB4973)
         // evaluates it ONCE, there: STRING "xy" FUNCTION UPPER-CASE(F) INTO F gives xyABCDEF. A LATER sending's
         // failure still interrupts the statement before "XY" is transferred.
@@ -190,7 +190,7 @@ public sealed class StringLiveReadDriftTests
     [Fact]
     public void RandomOverTheReceiver_IsEvaluatedOnce()
     {
-        // FUNCTION RANDOM returns the next number of its sequence each time it runs (§2023:15.75.3 5)): never twice.
+        // FUNCTION RANDOM returns the next number of its sequence each time it runs (§2023:15.75.3 AR5): never twice.
         const string data = """
             01 REC.
                05 CNT PIC 9 VALUE 2.
@@ -214,7 +214,7 @@ public sealed class StringLiveReadDriftTests
     public void AFunctionInTheFirstSending_IsEvaluatedUpFront_EvenOverTheReceiver()
     {
         // Review R1-1: no store precedes the first transfer, so §2023:14.9.43.4 GR10 cannot reach it and its function is
-        // identified in statement order (§2023:14.6.4 7), before identifier-3 is read - not inline in the transfer after that read.
+        // identified in statement order (§2023:14.6.4 GR7), before identifier-3 is read - not inline in the transfer after that read.
         string cs = EmitCSharp(Program(Disjoint, """STRING FUNCTION UPPER-CASE(R1) DELIMITED BY SIZE INTO R1 END-STRING"""));
         Assert.Equal(1, Stores(cs));
         Assert.Matches(new Regex(@"string __strSrc\d+_0 = ", RegexOptions.Multiline), cs);

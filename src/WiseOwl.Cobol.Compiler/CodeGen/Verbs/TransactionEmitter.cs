@@ -92,7 +92,7 @@ internal sealed class TransactionEmitter(EmitContext ctx, PlaceTable places, Seq
     /// (EC-I-O, file) checking), and for another element's file the condition under the checking a directive naming no
     /// file (or, for a container's GLOBAL file this element can name, a directive naming it) enabled, else DOC-A.1-103's
     /// termination when no declarative ran and no element gives it a FILE STATUS item —
-    /// with §2023:14.6.13.1.3 item 8's unconditional ROLLBACK where checking for the condition is not enabled, after the
+    /// with §2023:14.6.13.1.3 GR8's unconditional ROLLBACK where checking for the condition is not enabled, after the
     /// declarative and before any transfer (the one rule, <c>SequentialIoEmitter.Item8Applies</c>). The executing
     /// element's format 1 USE procedures apply to another element's refused file as they do to any input-output
     /// statement's file, with or without checking (§2023:14.9.49.4 GR4, GR6 a)-e)): the file-name tier when the element names

@@ -7,7 +7,7 @@
       *> ISO §2023:14.9.39.3 syntax rule 13, the LEADING requirement: "If object-class-name-1 is
       *> specified and the data item referenced by identifier-3 is described with an
       *> object-class-name, the data item shall be described with the FACTORY phrase."
-      *> §2023:14.9.39.4 GR10 sends the class's FACTORY object, and §2023:13.18.60.4 GR22d1.b. makes a
+      *> §2023:14.9.39.4 GR10 sends the class's FACTORY object, and §2023:13.18.60.4 GR22d.1.b. makes a
       *> receiver WITHOUT the FACTORY phrase a holder of INSTANCE objects — two different
       *> objects with two different method interfaces (§2023:9.3.6), so the axis is invariant.
       *> Before kb/Work PB389 this program was refused because FACTORY OF could not be

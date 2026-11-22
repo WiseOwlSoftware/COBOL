@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> EC-DATA-NOT-FINITE (ISO §2023:14.6.13.2 item 3, spec :24571; Table 13 Fatal): a standard-float SENDING operand
+      *> EC-DATA-NOT-FINITE (ISO §2023:14.6.13.2 GR3, spec :24571; Table 13 Fatal): a standard-float SENDING operand
       *> whose content is NaN or ±Infinity is referenced. Raised at BOTH float read chokepoints — the numeric-value
       *> read (relation/arithmetic) and the string-image read (DISPLAY, or a
       *> different-usage float MOVE source). The four exemptions do NOT raise: class condition, sign condition, a

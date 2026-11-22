@@ -12,9 +12,9 @@
       *> zero and less than 86,401"; §2023:15.3.3.3: the seconds subfield "shall
       *> contain a value that is greater than or equal to 00 and less than 61
       *> when the LEAP-SECOND directive with the ON phrase is in effect". So
-      *> "235960" is a valid hhmmss time and §2023:15.79.4 r1's (H*3600 + M*60 + S)
+      *> "235960" is a valid hhmmss time and §2023:15.79.4 RV1's (H*3600 + M*60 + S)
       *> is 86400; FORMATTED-TIME presents 86400 as 23:59:60; COMBINED-DATETIME
-      *> accepts 86400 (§2023:15.17.3 r2). Before this the directive was consumed
+      *> accepts 86400 (§2023:15.17.3 AR2). Before this the directive was consumed
       *> and discarded: SECONDS-FROM-FORMATTED-TIME("hhmmss", "235960") answered
       *> 0 (the EC-ARGUMENT-FUNCTION default) and killed the run unit under
       *> checking. The reported side (a 60 from CURRENT-DATE etc.) is the

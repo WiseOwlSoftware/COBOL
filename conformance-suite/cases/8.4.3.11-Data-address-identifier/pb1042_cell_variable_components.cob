@@ -13,7 +13,7 @@
       *> number of levels as a fixed-capacity table"). §2023:8.5.1.9.5: an occurrence a statement
       *> creates is INITIALIZEd TO VALUE (the INITIALIZED phrase). §2023:8.5.1.12.1: every occurrence
       *> of E holds its own dynamic-length item, truncated at its LIMIT (§2023:8.5.1.10.4), and
-      *> FUNCTION LENGTH counts each at its current length (§2023:15.50.4 r7).
+      *> FUNCTION LENGTH counts each at its current length (§2023:15.50.4 RV7).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1042CV.
        DATA DIVISION.

@@ -12,10 +12,10 @@
   (`cob_move_display_to_edited` guards every `-`, CR and DB with `neg && !is_zero`, `is_zero` taken from the digits that
   land in the picture). The editing sign follows the stored value at every edition: the 1985 PICTURE clause's editing sign
   table heads the same first column `DATA ITEM POSITIVE OR ZERO`, and a negative zero's value is zero. A signed NUMERIC receiver is the adjacent case. From
-  COBOL-2014 it agrees with the same choice: §2014:14.9.24.3 GR6d2a and §2023:14.9.25.4 GR6d.2.a represent "the sign
+  COBOL-2014 it agrees with the same choice: §2014:14.9.24.3 GR6d.2.a and §2023:14.9.25.4 GR6d.2.a represent "the sign
   of the numeric value", so `MOVE -100 TO PIC S9(2)` stores `+00` (GnuCOBOL stores a negative-signed zero there and
   DISPLAYs `+00`, the representation difference documented with the sign-encoding determinations at Annex A.1 items
-  177 and 178). At COBOL-85 and COBOL-2002 it does not: §1985:VI.6.19.4 GR4b1 and §2002:14.8.24.3 GR4b1 place "the
+  177 and 178). At COBOL-85 and COBOL-2002 it does not: §1985:VI.6.19.4 GR4b.1 and §2002:14.8.24.3 GR4b.1 place "the
   sign of the sending operand", so the same MOVE stores a NEGATIVE zero (`-00`; the edition arm of VCR row 7.85, kb/Work
   PB5852, DESIGN-data-model §2.1.1) in a signed USAGE DISPLAY (or NATIONAL) receiver, whose sign is a character apart
   from its digits. A signed BINARY or PACKED-DECIMAL receiver stores the value's sign at every edition: this

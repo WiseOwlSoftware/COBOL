@@ -60,7 +60,7 @@ public enum CobolPassMode
 /// <param name="Description">⛔ The item's §2023:14.8.2 / §2023:14.8.3 DESCRIPTION (<see cref="ActivationDescription"/>, kb/Work
 /// PB165) — the same description a universal INVOKE carries, built by the compiler's one builder — stated only at a CALL
 /// site that checks EC-PROGRAM-ARG-MISMATCH and whose activated program it cannot know at compile time, so that
-/// §2023:14.9.4.4 GR3 d) can compare it with the activated program's registered formal or RETURNING item
+/// §2023:14.9.4.4 GR3d can compare it with the activated program's registered formal or RETURNING item
 /// (<see cref="BoundaryItem.ArgumentViolation"/>, <see cref="BoundaryItem.ReturningViolation"/>). Null otherwise.</param>
 /// <remarks>⛔ A RETURNING ITEM CROSSES AS A <see cref="CobolArg"/> TOO (kb/Work PB962 + PB965). Its storage is
 /// the activating element's (§2023:14.2.3 GR6 NOTE 1), so the delivery performed at the activated element's return
@@ -106,7 +106,7 @@ public readonly record struct CobolArg(CobolPassMode Mode, ManagedPointer Carrie
 /// facts <see cref="CobolArg"/> carries for the activating element's storage (<see cref="CobolArg.Num"/> — a numeric item's
 /// whole PICTURE, SIGN and USAGE —, <see cref="CobolArg.Length"/> — its storage length — and
 /// <see cref="CobolArg.Description"/> — its whole §2023:14.8.2 description) and the same facts an activated unit REGISTERS for
-/// its own RETURNING item and for each of its FORMALS (<see cref="ProgramTable.Register"/>), so §2023:14.9.4.4 GR3 d) has
+/// its own RETURNING item and for each of its FORMALS (<see cref="ProgramTable.Register"/>), so §2023:14.9.4.4 GR3d has
 /// something to compare at call initiation when the callee is located by name at run time. ONE description, and TWO
 /// rules over it that live beside it and nowhere else: <see cref="ReturningViolation"/> for a RETURNING pair and
 /// <see cref="ArgumentViolation"/> for an argument and its formal. Each asks <see cref="ActivationRelations"/> — the
@@ -307,7 +307,7 @@ public readonly record struct MoveSending(string Characters, bool Group = false,
     /// <summary>⛔ The sender's EXACT value, for a floating-point edited receiver (kb/Work PB1606): a floating-point sender's
     /// binary value as the round-to-odd significand <see cref="CobolDec.FromBinary64ToOdd"/> reads it by (the manner of
     /// <c>CobolEdit.FormatFloatStore(double, ...)</c>), and a FIXED-POINT sender's own decimal digits at its own scale
-    /// (§2023:14.6.8.4 rule 1: "the algebraic value of the sending operand"). It is never routed through binary64: the fixed
+    /// (§2023:14.6.8.4 GR1: "the algebraic value of the sending operand"). It is never routed through binary64: the fixed
     /// value 0.3 as a double is 0.299999999999999988897769753748..., and the receiver's mask would show that noise.</summary>
     public CobolDec ExactValue => Real is not { } r ? CobolDec.From(Unscaled, Scale)
         : Approximate ? CobolDec.FromApproximation(r) : CobolDec.FromBinary64ToOdd(r);
@@ -316,10 +316,10 @@ public readonly record struct MoveSending(string Characters, bool Group = false,
 /// <summary>
 /// ⛔ THE PREDEFINED NULL WRITTEN AS AN ARGUMENT (kb/Work PB1630) — the carrier of <c>USING [BY CONTENT | BY VALUE]
 /// NULL</c> on a CALL or a user-defined function activation. NULL is an IDENTIFIER, not a literal (§2023:8.4.3.1.2
-/// Format 8, predefined-address; Format 6's NULL object reference), and §2023:8.4.3.10.3 SR1 a) admits it "as an argument
+/// Format 8, predefined-address; Format 6's NULL object reference), and §2023:8.4.3.10.3 SR1a admits it "as an argument
 /// in a program-prototype format CALL statement, a function-prototype format function activation, or a method
 /// invocation". Its category is decided by "the associated data item's class" — the FORMAL's — which the activating
-/// element does not know when §2023:12.3.8.4 GR10 c) takes the details from an external repository. So the carrier holds
+/// element does not know when §2023:12.3.8.4 GR10c takes the details from an external repository. So the carrier holds
 /// no storage of any type: the formal's slot adapter (<see cref="CobolArgAdapt.Slot{T}"/> /
 /// <see cref="CobolArgAdapt.SlotValue{T}"/>) supplies a fresh cell holding the null of its own carrier, and every
 /// other adapter's type switch refuses it as EC-PROGRAM-ARG-MISMATCH (§2023:14.8.2.3.3: only a formal of class pointer or
@@ -401,9 +401,9 @@ public interface ICobolProgram : INonfatalSelector
 /// <summary>The §2023:14.6.13.1.4 #3 selection of ONE runtime element, seen from a RUNTIME raise site: the activation
 /// now executing installs its selector in <see cref="Exceptions.ExceptionState.NonfatalDispatcher"/> and restores
 /// its activator's on return, so a nonfatal condition detected inside the runtime selects over the declaratives of
-/// the source element containing the raising statement (§2023:14.9.49.4 GR4 a)) and never its activator's. A PROGRAM
+/// the source element containing the raising statement (§2023:14.9.49.4 GR4a) and never its activator's. A PROGRAM
 /// is its own selector (<see cref="ICobolProgram"/>, installed by <c>ProgramTable</c>); an OO METHOD is a runtime
-/// element too (§2023:15.65.4 r5 — "an INVOKE statement" activates one) and installs a <see cref="NonfatalSelectorFn"/>
+/// element too (§2023:15.65.4 RV5 — "an INVOKE statement" activates one) and installs a <see cref="NonfatalSelectorFn"/>
 /// over its own selection — or <see cref="NonfatalSelectorFn.None"/> when it declares none (kb/Work PB1010).</summary>
 public interface INonfatalSelector
 {
@@ -433,7 +433,7 @@ public sealed class NonfatalSelectorFn(Func<string, int> select) : INonfatalSele
 /// omitted carrier (<see cref="Omitted{T}"/>): §2023:14.9.4.4 GR11 makes the omitted-argument condition true, and a
 /// reference reads the type's benign empty value — the GR12 raise is the REFERENCE's, through
 /// <see cref="OmittedFormal"/> (kb/Work PB971), never the carrier's. A SUPPLIED argument whose carrier the formal's adapter cannot read is NOT omitted — it is a
-/// violation of the §2023:14.8.2 conformance rules, and §2023:14.9.4.4 GR3 d) answers it with "the program call is not successful"
+/// violation of the §2023:14.8.2 conformance rules, and §2023:14.9.4.4 GR3d answers it with "the program call is not successful"
 /// (EC-PROGRAM-ARG-MISMATCH): <see cref="Unreadable{T}"/> fails the activation LOUD, never a silent zero
 /// indistinguishable from an omitted argument.</para>
 /// </summary>
@@ -491,7 +491,7 @@ public static class CobolArgAdapt
     /// (<see cref="CobolArg.Area"/>, the activating element's storage: §2023:14.2.3 GR6 NOTE 1) as the characters and the
     /// references of the <paramref name="width"/> positions of the returning item's own area <paramref name="source"/>. The
     /// two are of the same type (§2023:14.8.3.2), so the positions correspond one to one. No receiver, no delivery; a
-    /// receiver that states no area cannot hold the references, and §2023:14.9.4.4 GR3 d) answers the non-conforming pair
+    /// receiver that states no area cannot hold the references, and §2023:14.9.4.4 GR3d answers the non-conforming pair
     /// with EC-PROGRAM-ARG-MISMATCH — never a silent character image without them. A variable-length group's
     /// <paramref name="components"/> components travel with its positions (kb/Work PB3139), from the returning item's
     /// <see cref="CellPointer.DynBase"/> to the receiver area's.</summary>
@@ -731,7 +731,7 @@ public static class CobolArgAdapt
     /// <summary>⛔ THE ONE FLOAT LANDING OF THIS ABI — §2023:14.2.3 GR9/GR10's "COMPUTE statement without the ROUNDED
     /// phrase" when the receiving record is FLOATING-POINT (kb/Work PB1114), the float twin of
     /// <see cref="LandScalar"/>. The sending operand is landed by <see cref="FloatResultant"/>, THE one transfer of
-    /// an arithmetic value into a float resultant identifier: implied TRUNCATION (§2023:14.7.4.3 rule 10 — the value
+    /// an arithmetic value into a float resultant identifier: implied TRUNCATION (§2023:14.7.4.3 GR10 — the value
     /// nearer to zero), a fixed-point sender converted EXACTLY in one rounding (never through a binary64 first, so a
     /// binary32 formal takes no double rounding — kb/Work PB1110), and a value past the format's range the §2023:14.7.5
     /// case-3 size error. <paramref name="checking"/> selects the disposition as <see cref="LandScalar"/>'s does:
@@ -781,7 +781,7 @@ public static class CobolArgAdapt
     /// <para>WHEN THE CALLER CANNOT (kb/Work PB2549). GR9's FIRST branch — a program with no program-specifier in
     /// the activating element's REPOSITORY paragraph and no NESTED phrase — allocates a record "of the same length
     /// as the argument" and moves it "without conversion", so there is no COMPUTE. A COMPUTE crossing whose formal
-    /// the call site cannot know — a program-prototype whose details §2023:12.3.8.4 GR10 c) takes from the external
+    /// the call site cannot know — a program-prototype whose details §2023:12.3.8.4 GR10c takes from the external
     /// repository, a CALL by data-name or through a program-pointer that reaches a program the element has a
     /// program-specifier for — is landed by this same method at the activation boundary, through the formal's
     /// registered carrier (<see cref="BoundaryItem.Land"/>, <see cref="CarrierLanding{T}"/>). <see cref="NumValue"/>
@@ -826,10 +826,10 @@ public static class CobolArgAdapt
     }
 
     /// <summary>⛔ AN EVALUATED ARGUMENT AS GR9's MOVE SENDS IT (kb/Work PB2587): <paramref name="arg"/> — the cell an
-    /// arithmetic expression or a function-identifier was evaluated into ONCE, at call initiation (§2023:14.9.4.4 GR3 a)) — with
+    /// arithmetic expression or a function-identifier was evaluated into ONCE, at call initiation (§2023:14.9.4.4 GR3a) — with
     /// its <see cref="CobolArg.Sending"/> read back from that cell, so the expression is never evaluated a second time. A
     /// fixed-point value sends the characters a MOVE of an intrinsic function's value sends (<see cref="CobolNum.FormatFunctionText"/>
-    /// without its sign, §2023:14.9.25.4 GR6 a)) and its algebraic value; a binary64 one its display form
+    /// without its sign, §2023:14.9.25.4 GR6a) and its algebraic value; a binary64 one its display form
     /// (<see cref="CobolFloat.Display"/>) and its value; a character value its characters, and - when the value is of usage
     /// national or bit - its representation too, by <paramref name="storageImage"/> (<see cref="MoveSending.StorageImage"/>).
     /// <paramref name="approximate"/> states that a binary64 cell is an engine's approximation (a function's returned value),
@@ -929,10 +929,10 @@ public static class CobolArgAdapt
     /// <para>Only BY CONTENT: BY REFERENCE §2023:14.8.2.3.2 requires a pointer formal for a pointer argument, and BY
     /// VALUE GR10 allocates the formal's own description filled by COMPUTE or SET, neither of which a pointer can
     /// send to a non-pointer — both stay the loud <see cref="Unreadable{T}"/> they are. A GROUP formal is not
-    /// routed here either: §2023:14.8.2.2 2) makes that pairing a MOVE, which a pointer cannot send. Nor is a formal of
+    /// routed here either: §2023:14.8.2.2 SR2 makes that pairing a MOVE, which a pointer cannot send. Nor is a formal of
     /// any length but the pointer's 8 (<paramref name="formalWidth"/>; negative = ANY LENGTH, whose length rule
     /// 2c "considered to match"): rule 1's same-length requirement is the pairing's whole conformance, and its
-    /// violation is §2023:14.9.4.4 GR3 d)'s EC-PROGRAM-ARG-MISMATCH (conformance:cases/_unassigned/pb615_unreadable_argument_carrier).
+    /// violation is §2023:14.9.4.4 GR3d's EC-PROGRAM-ARG-MISMATCH (conformance:cases/_unassigned/pb615_unreadable_argument_carrier).
     /// Returns <paramref name="args"/> itself (no allocation) whenever the argument is anything else.</para></summary>
     private static CobolArg[] WithPointerContent(CobolArg[] args, int i, int formalWidth)
     {
@@ -1198,7 +1198,7 @@ public static class CobolArgAdapt
     /// <summary>Adapt argument <paramref name="i"/> to a VARIABLE-LENGTH GROUP formal (ISO §2023:14.8.2.2's
     /// compatibility sentence via §2023:14.9.4.3 SR25; kb/Work PB204). A variable-length argument OF THE FORMAL'S SHAPE
     /// is the <see cref="CobolVarGroup"/> the caller built, aliased whole.
-    /// <para>⛔ ONE OF ANOTHER SHAPE IS SEEN IN THE FORMAL'S (kb/Work PB2280). §2023:14.8.2.2 2) requires the pair to be
+    /// <para>⛔ ONE OF ANOTHER SHAPE IS SEEN IN THE FORMAL'S (kb/Work PB2280). §2023:14.8.2.2 SR2 requires the pair to be
     /// "compatible, as described in 8.5.1.12", and §2023:8.5.1.12.1 constrains only where their variable-length items lie,
     /// so the argument's fixed material, its tables and its tail may differ from the formal's. The formal sees the
     /// argument's carrier rebuilt in its own shape (<see cref="CobolVarGroup.Reshape"/>, a fixed table opposite a
@@ -1223,7 +1223,7 @@ public static class CobolArgAdapt
     /// dynamic sending table into a non-dynamic receiving one: superfluous occurrences are not moved, missing
     /// ones are space filled, and the argument's material the formal does not describe survives.</para>
     /// <para>Any other carrier, or a layout pair that does not correspond, means the two sides do not conform
-    /// (§2023:14.8.2.2 via §2023:14.9.4.4 GR3 d)) — loud, never a silent reinterpretation.</para></summary>
+    /// (§2023:14.8.2.2 via §2023:14.9.4.4 GR3d) — loud, never a silent reinterpretation.</para></summary>
     public static ManagedPointer<CobolVarGroup> VarGroup(CobolArg[] args, int i, GroupAtom[] formalAtoms)
     {
         if (!Present(args, i)) return Omitted<CobolVarGroup>();
@@ -1357,7 +1357,7 @@ public static class CobolArgAdapt
     internal static T PredefinedNull<T>() =>
         typeof(T) == typeof(ManagedPointer) ? (T)(object)ManagedPointer.Null : default!;
 
-    /// <summary>⛔ THE INITIAL IMAGE OF AN ANY LENGTH RETURNING ITEM (kb/Work PB1167) — ISO §2023:13.18.2.4 GR1 b): the item is
+    /// <summary>⛔ THE INITIAL IMAGE OF AN ANY LENGTH RETURNING ITEM (kb/Work PB1167) — ISO §2023:13.18.2.4 GR1b: the item is
     /// "treated as though there were n repetitions of the picture symbol in the character-string in its PICTURE clause,
     /// where n is the length of the corresponding argument or returning item of the activating runtime element", and
     /// §2023:14.8.3.3 rule 5 makes the sending returning item's length "considered to match" the receiver's. n is therefore
@@ -1366,7 +1366,7 @@ public static class CobolArgAdapt
     /// <list type="number">
     /// <item>the receiver states a fixed character length (<see cref="CobolArg.Length"/>) — that length;</item>
     /// <item>the receiver is itself ANY LENGTH or DYNAMIC LENGTH (an unstated length over a string carrier) — its
-    ///   carrier's current length, which may be zero (§2023:13.18.2.4 GR1 a));</item>
+    ///   carrier's current length, which may be zero (§2023:13.18.2.4 GR1a);</item>
     /// <item>the activation has no receiver (a CALL without a RETURNING phrase) — GR1 is silent, so the declared
     ///   PICTURE's length (<paramref name="declared"/>; docs/CONFORMANCE.md records the determination).</item>
     /// </list>
@@ -1433,7 +1433,7 @@ public static class CobolArgAdapt
     /// over the carriers" except this one: a <c>USAGE FLOAT-LONG</c> returning item's <c>double</c> matched no
     /// overload and the generated C# did not compile, CS0315). §2023:14.8.3.3 gives a conforming receiver the same
     /// USAGE, so the value lands in the receiver's float cell as it stands; any other receiver is a pair
-    /// §2023:14.8.3.3 does not admit (§2023:14.9.4.4 GR3 d)), loud rather than a guessed conversion.</summary>
+    /// §2023:14.8.3.3 does not admit (§2023:14.9.4.4 GR3d), loud rather than a guessed conversion.</summary>
     public static void StoreReturn(CobolArg? ret, double value)
     {
         if (ret is not { Carrier: var c }) return;
@@ -1553,7 +1553,7 @@ public static class CobolArgAdapt
 
     /// <summary>The fixed-length ARGUMENT's shape when it meets the variable-length group formal of
     /// <paramref name="formalAtoms"/> and the pair is compatible (<see cref="GroupCompatibility.Walk"/>, ISO §2023:8.5.1.12);
-    /// null otherwise — the pair does not conform (§2023:14.8.2.2 via §2023:14.9.4.4 GR3 d)) and the caller takes the loud arm.</summary>
+    /// null otherwise — the pair does not conform (§2023:14.8.2.2 via §2023:14.9.4.4 GR3d) and the caller takes the loud arm.</summary>
     private static GroupAtom[]? FixedToVariableShape(in CobolArg a, ManagedPointer<string> sp, GroupAtom[] formalAtoms) =>
         FixedShapeOf(a, sp) is var shape && GroupCompatibility.Walk(shape, formalAtoms) is null ? shape : null;
 
@@ -1578,7 +1578,7 @@ public static class CobolArgAdapt
     }
 
     /// <summary>⛔ THE UNCHECKED RETURNING STORE INTO A TEXT-CARRIED RECEIVER (kb/Work PB1040): <paramref name="image"/>
-    /// in the receiver's OWN width. §2023:14.9.4.4 GR3 d) makes a result whose length does not conform an
+    /// in the receiver's OWN width. §2023:14.9.4.4 GR3d makes a result whose length does not conform an
     /// EC-PROGRAM-ARG-MISMATCH "if checking for it is enabled in both the activated program and activating runtime
     /// element" (<see cref="ProgramTable.CallProgram"/> raises it before the activation); with checking off the rule
     /// leaves the content to the implementor, and the receiver's string carrier is its item's whole image, so an

@@ -30,7 +30,7 @@ public sealed partial class SymbolTable
 
     /// <summary>The GLOBAL type declarations of every containing program, the nearest container's declaration of a name kept
     /// (§2023:13.18.58.4 GR3; §2023:8.4.6.2.2; kb/Work PB1303). Kept apart from <see cref="_ownTypeNames"/>: an own declaration
-    /// must neither collide with an inherited one (§2023:8.4.6.2.1 3) a)) nor be walked, emitted or re-validated as this unit's.</summary>
+    /// must neither collide with an inherited one (§2023:8.4.6.2.1 GR3a) nor be walked, emitted or re-validated as this unit's.</summary>
     private readonly Dictionary<CobolName, DataItem> _inheritedTypeNames = [];
 
     /// <summary>The members of every type declaration of this element a TYPE clause references, by name: §2023:8.4.2.2.1 SR4's

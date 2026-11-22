@@ -10,7 +10,7 @@ public enum LocalePhraseKind
     None = 0,
     /// <summary>A SPECIAL-NAMES locale-name (GR5 a/f) — its L1-normalized tag travels.</summary>
     Named = 1,
-    /// <summary>The word LOCALE — the locale CURRENT at activation (GR5 b/g; §2023:14.6.6 r2).</summary>
+    /// <summary>The word LOCALE — the locale CURRENT at activation (GR5 b/g; §2023:14.6.6 GR2).</summary>
     Current = 2,
     /// <summary>SYSTEM-DEFAULT (GR5 c/h).</summary>
     SystemDefault = 3,
@@ -22,11 +22,11 @@ public enum LocalePhraseKind
 /// The CHARACTER CLASSIFICATION in effect for one runtime module (ISO §2023:12.3.6 OBJECT-COMPUTER; DESIGN-locale-facility
 /// §2023:4.5; kb/Work PB64 T5): the LC_CTYPE facts for alphanumeric characters and for national characters, each null
 /// when "the character classification associated with the computer's coded character set" applies (§2023:12.3.6.4 GR5
-/// e/j, GR6 — the implementor's correspondence, §2023:15.57.4 r4 / §2023:15.97.4 r4). Resolved at the module's ACTIVATION
-/// (§2023:12.3.6.4 GR8 — "effective with the initial state of the runtime modules to which they apply"; §2023:14.6.6 r2 —
+/// e/j, GR6 — the implementor's correspondence, §2023:15.57.4 RV4 / §2023:15.97.4 RV4). Resolved at the module's ACTIVATION
+/// (§2023:12.3.6.4 GR8 — "effective with the initial state of the runtime modules to which they apply"; §2023:14.6.6 GR2 —
 /// "On activation of a runtime element, if the CHARACTER CLASSIFICATION clause is specified … category LC_CTYPE in
 /// the specified locale is used"), so the word LOCALE binds the locale current WHEN THE PROGRAM IS ENTERED, not at
-/// each use. Read by UPPER-CASE / LOWER-CASE without a LOCALE phrase (§2023:15.57.4 r3 / §2023:15.97.4 r3) and by the class
+/// each use. Read by UPPER-CASE / LOWER-CASE without a LOCALE phrase (§2023:15.57.4 RV3 / §2023:15.97.4 RV3) and by the class
 /// tests ALPHABETIC / ALPHABETIC-LOWER / ALPHABETIC-UPPER (§2023:8.8.4.4.4 GR3 b/c/d) — §2023:12.3.6.4 GR7 a/b.
 /// </summary>
 public sealed class CharacterClassification

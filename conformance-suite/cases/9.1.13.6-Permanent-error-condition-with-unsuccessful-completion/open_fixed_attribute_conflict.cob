@@ -46,7 +46,7 @@
       *>   record length headers)", and WiseOwl COBOL adds none to a
       *>   fixed-length record sequential file — and the standard
       *>   answers the resulting disagreement with a SUCCESSFUL
-      *>   completion: §2023:9.1.13.2 item 3, "I-O status = 04. A READ
+      *>   completion: §2023:9.1.13.2 GR3, "I-O status = 04. A READ
       *>   statement is successfully executed but the physical record
       *>   from the file is shorter than or longer than the minimum or
       *>   maximum length of records allowed for the fixed file
@@ -286,7 +286,7 @@
       *>     which a '39' at this step would make unreachable.
            OPEN INPUT G-WIDE
            DISPLAY "S11-SEQ-WIDER=" GW-ST
-      *> 12. §2023:9.1.13.2 item 3. The file holds 40 bytes; read through a
+      *> 12. §2023:9.1.13.2 GR3. The file holds 40 bytes; read through a
       *>     30-byte description that is one full 30-byte record
       *>     ('00', the length equals the maximum) and then a 10-byte
       *>     remainder, which is SHORTER than the minimum — '04', a
@@ -315,7 +315,7 @@
       *>     bytes the 40-byte file does not hold — so the file is not
       *>     framed, the connector's declared VARIABLE record type
       *>     contradicts the medium, and GR10's comparison fails: '39'
-      *>     (§2023:9.1.13.6 item 7).
+      *>     (§2023:9.1.13.6 GR7).
            OPEN INPUT G-VARY
            DISPLAY "S14-VARY-FOREIGN=" GV-ST
       *> 15. The other direction, without which the check could pass by
@@ -341,7 +341,7 @@
       *>     (it names 5 bytes and the file holds them), so there is no
       *>     file attribute conflict and the OPEN succeeds. The
       *>     disagreement is the READ's, and the standard answers it
-      *>     with §2023:9.1.13.2 item 3's '04' — a SUCCESSFUL completion
+      *>     with §2023:9.1.13.2 GR3's '04' — a SUCCESSFUL completion
       *>     that a '39' at this OPEN would have made unreachable.
            OPEN INPUT J-VARY
            DISPLAY "S16-VARY-BOUNDS-OPEN=" JV-ST

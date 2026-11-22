@@ -155,7 +155,7 @@ public sealed class CodedCharacterSetTests
         Assert.Equal("\0", set.CharAt(CollatingTable.Repertoire));                // position 65535
         Assert.Null(set.CharAt(CollatingTable.Repertoire + 1));
 
-        // The runtime carrier reads the same count: CHAR(66) → U+FFBE and ORD of it → 66 (§2023:15.15.4 r1 / §2023:15.70.1).
+        // The runtime carrier reads the same count: CHAR(66) → U+FFBE and ORD of it → 66 (§2023:15.15.4 RV1 / §2023:15.70.1).
         var runtime = table.Collation(national: true);
         Assert.Equal(0xFFBE, runtime.CharAt(65));
         Assert.Equal(65, runtime.Weight((char)0xFFBE));

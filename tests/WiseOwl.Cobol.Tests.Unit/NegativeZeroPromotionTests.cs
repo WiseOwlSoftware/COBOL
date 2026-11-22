@@ -12,7 +12,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// The COMPUTED set of kb/Work PB5852 (DESIGN-data-model §2.1.1): at 1985 (and 2002) a MOVE places "the sign of the sending
-/// operand" (§1985:VI.6.19.4 GR4b1), so a signed zoned receiver a store can hand a NEGATIVE zero is promoted to its image by
+/// operand" (§1985:VI.6.19.4 GR4b.1), so a signed zoned receiver a store can hand a NEGATIVE zero is promoted to its image by
 /// <c>StorageFormPass</c>, and every other item keeps its native carrier. Each test binds a whole program through the full
 /// pipeline and reads the storage form the pass computed: an item in the set, items out of it, the closure, and the empty
 /// set at 2023, whose rule ties the sign to the value (§2023:14.9.25.4 GR6d.2.a).

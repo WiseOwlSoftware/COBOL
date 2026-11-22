@@ -144,7 +144,7 @@ public sealed class IntrinsicArgumentIntakeContractDriftTests
 
     /// <summary>
     /// ⛔ THE ONE INTAKE THAT CAN CHANGE A VALUE STAYS NAMED AS SUCH. <c>Arg</c> is the only intake that lands an
-    /// SDIDI operand at a compile-time working scale, and PB251's defect was a function whose §2023:15.67.4 r1 value
+    /// SDIDI operand at a compile-time working scale, and PB251's defect was a function whose §2023:15.67.4 RV1 value
     /// the definition FIXES being materialized through a receiver-derived scale. If <c>Arg</c> ever stops being
     /// LANDED, or a second member acquires that class, the reasoning above it has to be redone.
     /// </summary>
@@ -160,10 +160,10 @@ public sealed class IntrinsicArgumentIntakeContractDriftTests
     }
 
     /// <summary>
-    /// ⛔ THE NUMVAL FAMILY DOES NOT REACH THE LANDING INTAKE AT ALL. §2023:15.67.4 r1 / §2023:15.68.4 r1 fix the returned
+    /// ⛔ THE NUMVAL FAMILY DOES NOT REACH THE LANDING INTAKE AT ALL. §2023:15.67.4 RV1 / §2023:15.68.4 RV1 fix the returned
     /// value with no arithmetic-mode qualification, and §2023:15.4.1's implementor latitude reaches only a function
     /// whose definition does NOT otherwise specify it — so NUMVAL and NUMVAL-C render on the SDIDI carrier in
-    /// EVERY mode and no compile-time working scale exists for them. NUMVAL-F (§2023:15.69.4 r2's approximation licence,
+    /// EVERY mode and no compile-time working scale exists for them. NUMVAL-F (§2023:15.69.4 RV2's approximation licence,
     /// resolved to the exact parse by kb/Work PB3839) joins them. This asserts the shape that makes that true:
     /// their dispatch stands BEFORE the arithmetic-mode branch, and no <c>WorkingScale</c> call is left in the
     /// renderer at all. (A working scale in this file is what truncated

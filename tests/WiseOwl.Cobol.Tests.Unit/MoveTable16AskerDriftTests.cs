@@ -16,7 +16,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ ONE QUESTION, ONE ENTRY (kb/Work PB878). ISO §2023:14.9.25.3's MOVE-validity question — SR2, SR6/SR7/SR8, SR9 and
 /// SR10 (Table 16) — is asked by the written MOVE, by every implicit move <c>MoveBinder.BindMoveOf</c> binds, by
-/// §2023:14.9.20.3 SR4 (INITIALIZE REPLACING's hypothetical MOVE), by §2023:14.7.6 rule 2 (the CORRESPONDING pairing filter)
+/// §2023:14.9.20.3 SR4 (INITIALIZE REPLACING's hypothetical MOVE), by §2023:14.7.6 GR2 (the CORRESPONDING pairing filter)
 /// and by §2023:14.8.2.3.3 rule 2d (a BY CONTENT / BY VALUE argument). Each asker used to compose the rule readers by
 /// hand, and two of them composed a SUBSET: INITIALIZE never asked SR9 (a variable-length-group REPLACING operand
 /// compiled clean and aborted the run unit) and the INVOKE screen asked Table 16 alone (a BINARY-LONG argument at a

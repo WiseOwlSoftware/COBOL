@@ -116,7 +116,7 @@ public sealed class InlineMethodInvocationOperandDriftTests
         Assert.True(rules.TryGetValue("objectReferenceTerm", out string? term), "the objectReferenceTerm rule is gone");
         Assert.True(Mentions(atom, "objectReferenceTerm") && Mentions(term, "functionCall"),
             "objectReferenceAtom does not offer a function-identifier (ISO §2023:8.4.3.1.2 Format 1)");
-        // Format 5, the object-view (§2023:8.4.3.5), is an atom: §2023:8.4.3.1.4 GR1 c) applies it before the inline
+        // Format 5, the object-view (§2023:8.4.3.5), is an atom: §2023:8.4.3.1.4 GR1c applies it before the inline
         // invocation operator (e), so it is what an inline invocation's segments apply to (kb/Work PB1425).
         Assert.True(Mentions(atom, "objectView"),
             "objectReferenceAtom does not offer an object-view (ISO §2023:8.4.3.1.2 Format 5)");
@@ -174,7 +174,7 @@ public sealed class InlineMethodInvocationOperandDriftTests
             "the inlineMethodInvocation rule is gone — §2023:8.4.3.1.2 Format 4 has no surface");
         Assert.Contains("objectReferenceAtom", body);
         Assert.Contains("inlineInvocationSegment", body);
-        Assert.Contains("refModPart", body);        // §2023:8.4.3.1.4 GR1 g)
+        Assert.Contains("refModPart", body);        // §2023:8.4.3.1.4 GR1g
         Assert.True(rules.TryGetValue("inlineInvocationSegment", out string? seg));
         Assert.Contains("COLONCOLON", seg);
         Assert.Contains("literal", seg);

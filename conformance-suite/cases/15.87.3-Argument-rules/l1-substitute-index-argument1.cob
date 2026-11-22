@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:15.87.3 r1 — a class-INDEX DATA ITEM as argument-1. r1 admits "an identifier that references a
+      *> ISO §2023:15.87.3 AR1 — a class-INDEX DATA ITEM as argument-1. r1 admits "an identifier that references a
       *> data item or identifier that is class alphabetic, alphanumeric, or national, or an alphanumeric or
       *> national literal"; §2023:8.5.2.1's Table 2 — "Class and category relationships for elementary data items" —
       *> carries "| Index | Index |" as its own row, so a USAGE INDEX item is class index and is refused.
@@ -28,8 +28,8 @@
       *>        — in the VARYING phrase of a SEARCH statement;  — in the SET statement;
       *>        — as an operand in a relation condition."
       *> An intrinsic-function argument is none of those five, so an index-NAME there is illegal by SR7
-      *> INDEPENDENTLY of §2023:15.87.3 r1 — and WiseOwl COBOL enforces SR7 (COBOL1637), so the rejection was not
-      *> attributable to the rule under test. §2023:15.87.3 r1 screens DATA ITEMS, and Table 2 is headed "Class and
+      *> INDEPENDENTLY of §2023:15.87.3 AR1 — and WiseOwl COBOL enforces SR7 (COBOL1637), so the rejection was not
+      *> attributable to the rule under test. §2023:15.87.3 AR1 screens DATA ITEMS, and Table 2 is headed "Class and
       *> category relationships for elementary data items", so the rule under test cannot even reach an
       *> index-name. Passing a `USAGE INDEX` item instead is the shape r1 governs, and it draws COBOL1627.
       *>   python scripts/spec/cite.py --check 13.18.38.3 "Index-name-1 may be specified only in the following

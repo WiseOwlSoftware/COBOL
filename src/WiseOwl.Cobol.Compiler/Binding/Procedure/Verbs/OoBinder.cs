@@ -47,13 +47,13 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
     /// (<see cref="ProcedureBindState.ClaimInterleavedReceiver"/>) gets a <see cref="ReceiverBracket"/> under a
     /// <see cref="BoundReceiverBrackets"/>, and the statement's emitter places it where the statement's rules identify and
     /// store that receiver (<c>ReceiverBracketEmitter</c>): identified as it is stored — the arithmetic statements
-    /// (§2023:14.7.7 4) b)), every MOVE built by <c>MoveBinder.BindMoveOf</c> (the written MOVE and the implicit moves of READ /
+    /// (§2023:14.7.7 GR4b)), every MOVE built by <c>MoveBinder.BindMoveOf</c> (the written MOVE and the implicit moves of READ /
     /// RETURN … INTO, ACCEPT, UNSTRING and INITIALIZE; §2023:14.9.25.4 GR1), SET Format 1 (§2023:14.9.39.4 GR2), a PERFORM VARYING
     /// induction variable (§2023:14.9.28.4 GR12) and the SEARCH VARYING item; or identified at the statement's start and SET
-    /// with its store, before the statement's phrase bodies — STRING, UNSTRING and CALL (§2023:14.6.4 7), §2023:14.9.4.4 GR3 a)).
+    /// with its store, before the statement's phrase bodies — STRING, UNSTRING and CALL (§2023:14.6.4 GR7, §2023:14.9.4.4 GR3a).
     /// Every other reference keeps the statement-level shape, the Prelude and GET before the statement and the SET after
-    /// it, which is §2023:14.6.4 7)'s identification at the start for a statement with no phrase body that reads its own
-    /// receiver: INSPECT (§2023:14.9.22.4 GR6), ACCEPT, INVOKE RETURNING (§2023:14.9.23.4 GR7 a)), SET Format 5 (GR9 states no
+    /// it, which is §2023:14.6.4 GR7's identification at the start for a statement with no phrase body that reads its own
+    /// receiver: INSPECT (§2023:14.9.22.4 GR6), ACCEPT, INVOKE RETURNING (§2023:14.9.23.4 GR7a)), SET Format 5 (GR9 states no
     /// per-receiver identification) and the pointer formats (whose receivers cannot change an identifier-3).</para></summary>
     public BoundStatement OoWrapPropertyOps(BoundStatement core, int mark)
     {
@@ -125,7 +125,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         if (pre.Count + post.Count + brackets.Count == 0) return core;
         // §2023:8.4.3.9.4 GR1/GR2: each accessor is invoked "as though" by an INVOKE, but it is written as an OPERAND of
         // the statement, so a condition it propagates resumes after THAT statement — the operand-activation mark
-        // UdfBinder.DrainPending gives a function reference (kb/Work PB892; §2023:14.9.33.4 GR2 a) 2.). Its checking
+        // UdfBinder.DrainPending gives a function reference (kb/Work PB892; §2023:14.9.33.4 GR2a.2). Its checking
         // profile is EcBinder.EcWrap's sequence stamp, which reaches these steps (and the brackets' through
         // BoundReceiverBrackets).
         var evaluations = ctx.Data.Procedure.OperandEvaluations;
@@ -159,9 +159,9 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
     /// <summary>Drain the property references registered since <paramref name="mark"/> for a PER-EVALUATION
     /// window (<c>UdfBinder.UdfAttachPerEvaluation</c> — a PERFORM UNTIL / VARYING condition, a SEARCH WHEN, an
     /// EVALUATE object, a non-first AND/OR operand, a VARYING BY / AFTER FROM operand) and return their GETs.
-    /// ISO §2023:8.8.4.13 2): "Values are established for arithmetic expressions and functions if and when the
+    /// ISO §2023:8.8.4.13 GR2: "Values are established for arithmetic expressions and functions if and when the
     /// conditions containing them are evaluated" — an object-property reference is an inline activation of its
-    /// GET method, so it is fetched at EACH evaluation, and not at all when a short-circuit (§2023:8.8.4.13 1)) never
+    /// GET method, so it is fetched at EACH evaluation, and not at all when a short-circuit (§2023:8.8.4.13 GR1) never
     /// reaches it (kb/Work PB987: it used to be hoisted once for the whole statement). Every reference a window
     /// drains is SENDING — neither a condition nor an arithmetic expression has a receiving operand — so no
     /// store-polarity classification is needed and GR2's SET never arises here.</summary>
@@ -212,7 +212,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         // §2023:14.9.23.3 SR9 — "Identifier-3 shall be an address-identifier or shall reference a data item defined in the
         // file, working-storage, local-storage, or linkage section": BY REFERENCE NULL is neither, refused by THAT rule
         // (it drew the §2023:8.9 reserved-word diagnostic through `dataReference`) — CallBinder's SR3 arm is the twin
-        // (kb/Work PB1427). BY CONTENT / BY VALUE NULL are the §2023:8.4.3.10.3 SR1 a) method-invocation argument.
+        // (kb/Work PB1427). BY CONTENT / BY VALUE NULL are the §2023:8.4.3.10.3 SR1a method-invocation argument.
         // Every other identifier-3 BY REFERENCE is a RECEIVING operand (§2023:14.9.23.3 SR20: "If identifier-3 does not
         // reference an address-identifier, identifier-3 is a receiving operand"), so SELF, SUPER or an object-view written
         // there is refused by its own §2023:8.4.3 rule at the receiving chokepoint (kb/Work PB1551 review R1-1).
@@ -341,7 +341,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>The object-view and function-identifier half of <see cref="OoBindComputedObjectReference"/>, for the
     /// receiver an inline invocation applies its first <c>::</c> segment to (§2023:8.4.3.1.3 SR1 — identifier-1 is any
-    /// identifier). An object-view (§2023:8.4.3.1.2 Format 5) is an atom because §2023:8.4.3.1.4 GR1 c) applies it before the
+    /// identifier). An object-view (§2023:8.4.3.1.2 Format 5) is an atom because §2023:8.4.3.1.4 GR1c applies it before the
     /// invocation operator (e): it is computed like a function-identifier, to the temporary it references.</summary>
     private BoundExpr? OoBindComputedAtom(Core.ObjectReferenceAtomContext atom) =>
         atom.objectView() is { } ov ? OoBindObjectView(ov) : OoBindComputedTerm(atom.objectReferenceTerm());
@@ -412,11 +412,11 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                 {
                     (false, true) => "§2023:14.9.23.3 SR4 f) — literal-1 shall be the name of a method contained in the factory "
                                      + "interface of the class containing the INVOKE statement",
-                    (false, false) => "§2023:14.9.23.3 SR4 g) — literal-1 shall be the name of a method contained in the instance "
+                    (false, false) => "§2023:14.9.23.3 SR4g — literal-1 shall be the name of a method contained in the instance "
                                       + "interface of the class containing the INVOKE statement",
-                    (true, true) => "§2023:14.9.23.3 SR4 h) — literal-1 shall be the name of a method contained in the factory "
+                    (true, true) => "§2023:14.9.23.3 SR4h — literal-1 shall be the name of a method contained in the factory "
                                     + "interface of a class inherited by the class containing the INVOKE statement",
-                    (true, false) => "§2023:14.9.23.3 SR4 i) — literal-1 shall be the name of a method contained in the instance "
+                    (true, false) => "§2023:14.9.23.3 SR4i — literal-1 shall be the name of a method contained in the instance "
                                      + "interface of a class inherited by the class containing the INVOKE statement",
                 };
                 if (host.OoInFactory && IsStandardNew(methodName))
@@ -482,7 +482,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
     /// <item>SR6 is the universal receiver's, so BY CONTENT and BY VALUE stay legal; SR5 and SR18 compare an argument
     /// with "the corresponding formal parameter", and no method — so no formal — exists;</item>
     /// <item>every syntax rule that reads only the operand still holds and is asked here: SR9 and SR10 of an explicit
-    /// BY REFERENCE identifier-3 (a keyword-less identifier is BY REFERENCE only when it meets them, §2023:14.9.23.4 GR6 a),
+    /// BY REFERENCE identifier-3 (a keyword-less identifier is BY REFERENCE only when it meets them, §2023:14.9.23.4 GR6a),
     /// SR11 of identifier-4, SR12 of either, SR13 of identifier-3, -4 and -5, SR15 and SR16 of a BY VALUE operand,
     /// SR17 of literal-2 (<see cref="OoScreenNullReceiverArgument"/>, <see cref="OoScreenReturning"/>).</item>
     /// </list>
@@ -509,7 +509,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
     /// <summary>The §2023:14.9.23.3 syntax rules over ONE argument of an INVOKE that has no method to read (identifier-1 is
     /// NULL, <see cref="OoBindNullInvoke"/>): every rule the operand alone decides, in the order and by the reductions
     /// the typed lane uses (<see cref="OoBindInvocationArg"/>, which asks the same predicates), with the passing mode
-    /// a keyword-less operand takes from §2023:14.9.23.4 GR6 a) and SR14 — BY REFERENCE when it meets SR9 and SR10, else BY
+    /// a keyword-less operand takes from §2023:14.9.23.4 GR6a and SR14 — BY REFERENCE when it meets SR9 and SR10, else BY
     /// CONTENT. False having reported.</summary>
     private bool OoScreenNullReceiverArgument(InvocationArg arg)
     {
@@ -567,7 +567,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             return ActiveClassSubordinateAdmitted(place, subject)
                 && (!arg.ByValueWritten || ByValueClassAdmitted(new BoundFieldOperand(place), WrittenSource.Of(dref), subject));
         }
-        // An inline invocation or an object-view is an identifier referencing a temporary (§2023:8.4.3.4.4 GR1 c),
+        // An inline invocation or an object-view is an identifier referencing a temporary (§2023:8.4.3.4.4 GR1c),
         // §2023:8.4.3.5.4 GR1) — identifier-5, never SR9's section item; bound by the OO identifier door, which reports.
         if (ConditionBinder.SoleOoIdentifier(arithCtx) is { } oo)
             return OoBindOoIdentifier(oo) is not BoundExprError;
@@ -895,7 +895,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                 + "compilation group (ISO §2023:13.18.60.4)");
         }
         // §2023:9.3.6: a class has TWO separate method interfaces, and which one a receiver selects is the FACTORY
-        // axis of its own description — a FACTORY-OF reference holds the factory object (§2023:13.18.60.4 GR22 d)1.a.)
+        // axis of its own description — a FACTORY-OF reference holds the factory object (§2023:13.18.60.4 GR22d.1.a)
         // and therefore resolves the FACTORY roster (§2023:14.9.23.3 SR4b/SR4c). Both arms of ONE dispatch.
         var m = MethodRoster.Of(cls, rdesc.Factory).Find(new ExternalizedMethodName(method));
         // §2023:14.9.23.3 SR4 a)–d): the rule a typed receiver's method name answers to is chosen by its description's
@@ -905,11 +905,11 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         {
             (false, true) => "§2023:14.9.23.3 SR4 a) — literal-1 shall be the name of a method contained in the factory interface of "
                              + "that object-class-name",
-            (false, false) => "§2023:14.9.23.3 SR4 b) — literal-1 shall be the name of a method contained in the instance interface "
+            (false, false) => "§2023:14.9.23.3 SR4b — literal-1 shall be the name of a method contained in the instance interface "
                               + "of that object-class-name",
             (true, true) => "§2023:14.9.23.3 SR4 c) — literal-1 shall be the name of a method contained in the factory interface of "
                             + "the class containing the INVOKE statement",
-            (true, false) => "§2023:14.9.23.3 SR4 d) — literal-1 shall be the name of a method contained in the instance interface "
+            (true, false) => "§2023:14.9.23.3 SR4d — literal-1 shall be the name of a method contained in the instance interface "
                              + "of the class containing the INVOKE statement",
         };
         if (m is null && rdesc.Factory && IsStandardNew(method))
@@ -1156,10 +1156,10 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             return OmittedArg(formal);
         }
         // ⛔ THE PASSING MODE OF THE ARGUMENT IS THE FORMAL'S WHEN THE FORMAL IS BY VALUE (kb/Work PB1051).
-        // §2023:14.9.23.3 SR5 a): "If a BY CONTENT or BY REFERENCE phrase is specified for an argument, a BY REFERENCE phrase
+        // §2023:14.9.23.3 SR5a: "If a BY CONTENT or BY REFERENCE phrase is specified for an argument, a BY REFERENCE phrase
         // shall be specified or implied for the corresponding formal parameter"; b): "If a BY VALUE phrase is specified for
         // an argument, a BY VALUE phrase shall be specified or implied for the corresponding formal parameter"; and
-        // §2023:14.9.23.4 GR6 b): "When the BY VALUE phrase is specified or implied for the corresponding formal parameter, BY
+        // §2023:14.9.23.4 GR6b: "When the BY VALUE phrase is specified or implied for the corresponding formal parameter, BY
         // VALUE is assumed" for a keyword-less argument. A BY VALUE argument is a detached sending value — §2023:14.8.2.3.3's
         // regime ("passed by content or by value": COMPUTE / SET / MOVE rules) — so below it takes the BY CONTENT arms
         // with its own two screens: SR16 (a literal) and SR15 (an identifier's class).
@@ -1168,7 +1168,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         {
             // SR16: "If literal-2 or its corresponding formal parameter is specified with the BY VALUE phrase,
             // literal-2 shall be a numeric literal" — CALL's SR23 word for word, so it is asked of THE ONE
-            // predicate (kb/Work PB1631): a numeric literal, ZERO without ALL (§2023:8.3.3.6.3 SR1 a)), or NULL,
+            // predicate (kb/Work PB1631): a numeric literal, ZERO without ALL (§2023:8.3.3.6.3 SR1a), or NULL,
             // which is identifier-5 rather than literal-2 (§2023:8.4.3.1.3 SR7) and whose class §2023:14.9.23.3 SR15 admits.
             if (arg.Literal is { } byValueLit && !CallBinder.ByValueLiteralAdmitted(byValueLit))
             {
@@ -1178,13 +1178,13 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             if (arg.ByValueWritten && !byValue)
             {
                 Err($"BY VALUE argument for formal '{formal.CobolName}': the corresponding formal parameter is "
-                    + "BY REFERENCE (ISO §2023:14.9.23.3 SR5 b))");
+                    + "BY REFERENCE (ISO §2023:14.9.23.3 SR5b)");
                 return null;
             }
             if (byValue && (arg.ByReferenceWritten || arg.ByContentWritten))
             {
                 Err($"{(arg.ByReferenceWritten ? "BY REFERENCE" : "BY CONTENT")} argument for formal '{formal.CobolName}': "
-                    + "the corresponding formal parameter is BY VALUE (ISO §2023:14.9.23.3 SR5 a))");
+                    + "the corresponding formal parameter is BY VALUE (ISO §2023:14.9.23.3 SR5a)");
                 return null;
             }
             byValue = true;
@@ -1239,7 +1239,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                 Err($"SELF for ACTIVE-CLASS formal '{formal.CobolName}': the method is invoked with "
                     + $"{invokedWith.Spelled}, not with SELF, SUPER or an ACTIVE-CLASS reference, and the other "
                     + "alternative's receiver is described ONLY, which admits no SELF sender (ISO §2023:14.8.2.3.3; "
-                    + "§2023:14.9.39.3 SR12 c)1.)");
+                    + "§2023:14.9.39.3 SR12c.1)");
                 selfConforms = false;
             }
             foreach (string why in SelfSenderRefusals(formal.Pic.ObjectRef ?? ObjectRefDescriptor.Universal, selfClass))
@@ -1332,7 +1332,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         // §2023:14.8.2.3.3 rule 2a ("the same as for a COMPUTE statement") — category-numeric formals only — so
         // `O :: "ECHO" (O :: "GETNAME")` into a PIC X formal was REFUSED as legal source. Recovered here it
         // takes rule 2d's MOVE lane like any other identifier.
-        // ⚠ IT IS STILL BY CONTENT, and that is GR6 a)2 rather than a convenience: §2023:8.4.3.4.4 GR1 c) makes
+        // ⚠ IT IS STILL BY CONTENT, and that is GR6 a)2 rather than a convenience: §2023:8.4.3.4.4 GR1c makes
         // the referenced item "a temporary item that exists for the purpose of effecting the inline
         // invocation in this way and for no other purpose", which is NOT "a data item defined in the file,
         // working-storage, local-storage, or linkage section" — so §2023:14.9.23.3 SR9 is not met and GR6 a)2
@@ -1375,7 +1375,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             // temporary moved as its 30-digit implementor description rather than as the function. The temporary now
             // IS the function for every MOVE (SendingValueTemp.OfComputed: an INTEGER function at scale 0, the text
             // image DOC-A.1-92's literal form), so rule 2 d)'s MOVE question is asked of it by the ONE chain
-            // (ParameterConformance.ContentConformanceReason → the relation's Table 16): an INTEGER function (§2023:15.2 item 5) conforms to an
+            // (ParameterConformance.ContentConformanceReason → the relation's Table 16): an INTEGER function (§2023:15.2 GR5) conforms to an
             // alphanumeric formal and a NUMERIC one (item 4, the Noninteger row) does not — the answer
             // `MOVE FUNCTION f TO x` gets for the same pair.
             // A USER function's result IS a temporary data item (§2023:8.4.3.2.4 GR1) -- an object reference, a pointer, an
@@ -1401,7 +1401,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             // ⛔ THE MODE IS DECIDED BEFORE THE OPERAND IS RESOLVED, BECAUSE THE MODE DECIDES ITS ROLE (kb/Work PB881,
             // PB1137). An explicit BY REFERENCE argument is identifier-3, "a receiving operand" (§2023:14.9.23.3 SR20); an
             // explicit BY CONTENT one is identifier-5, "a sending operand" (SR21). A KEYWORD-LESS identifier is either,
-            // and §2023:14.9.23.4 GR6 a) chooses: BY REFERENCE "if the argument meets the requirements of Syntax rules 9
+            // and §2023:14.9.23.4 GR6a chooses: BY REFERENCE "if the argument meets the requirements of Syntax rules 9
             // and 10", BY CONTENT otherwise. That test is the ONE storage-section question CALL's GR9 a) asks too
             // (ParameterConformance.MeetsByReferenceRules): a data item of the file, working-storage, local-storage
             // or linkage section that is not factory/instance object data. It used to be answered AFTER a receiving
@@ -1467,14 +1467,14 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                 return new BoundInvokeArg(formal, place, null, null, WriteBack: true);
             }
 
-            // Effective BY CONTENT (§2023:14.8.2.3.3 / §2023:14.8.2.2 rule 2): the ONE activation entry CALL and a function ask too,
+            // Effective BY CONTENT (§2023:14.8.2.3.3 / §2023:14.8.2.2 SR2): the ONE activation entry CALL and a function ask too,
             // over the run-time relation (kb/Work PB3101) — a reference-modified operand included, described as the unique
             // data item §2023:8.4.3.3.4 GR5 creates.
             if (host.Params.ContentConformanceReason(formal, new BoundCallArg(WiseOwl.Cobol.Runtime.CobolPassMode.Content, place, null),
                     invokedWith) is { } cerr)
             {
                 Err($"BY CONTENT argument '{argText}' does not conform to formal "
-                    + $"'{formal.CobolName}': {cerr} (ISO §2023:14.8.2 via §2023:14.9.23.3 SR5 c))");
+                    + $"'{formal.CobolName}': {cerr} (ISO §2023:14.8.2 via §2023:14.9.23.3 SR5c)");
                 return null;
             }
             // §2023:14.8.2.3.3 rule 2a is "the same as for a COMPUTE statement", and a COMPUTE takes any numeric sender
@@ -1529,7 +1529,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                 { ContentExpr = expr, ContentFunctionValue = functionValue };
         }
 
-        // ── literal-2 (ISO §2023:14.9.23.2) — BY CONTENT, because a literal never meets SR9 (§2023:14.9.23.4 GR6 a) 2.) ──
+        // ── literal-2 (ISO §2023:14.9.23.2) — BY CONTENT, because a literal never meets SR9 (§2023:14.9.23.4 GR6a.2) ──
         // ⛔ THE ONE LITERAL MAPPING, NOT A PRIVATE DECODE (kb/Work PB1137). This arm used to decode STRINGLIT, an
         // alphanumeric concatenation, BOOLLIT and a numeric literal by hand — a fourth copy of the §2023:8.3.3 mapping
         // ExpressionBinder.NonNumericLiteralOperand exists to be the only copy of (kb/Work DA3) — and the copy had
@@ -1540,11 +1540,11 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         // no-truncation requirements are ignored for literal arguments), so an overflow converts per the MOVE
         // rules rather than erroring. A constant-name arrived above already substituted (§2023:13.10.4 GR1).
         literal2 ??= foldedAlnum is not null ? new BoundStringLiteral(foldedAlnum)
-            : nonNumCtx is not null ? host.Expr.NullAdmittingOperand(nonNumCtx)   // §2023:8.4.3.10.3 SR1 a): a method-invocation argument
+            : nonNumCtx is not null ? host.Expr.NullAdmittingOperand(nonNumCtx)   // §2023:8.4.3.10.3 SR1a: a method-invocation argument
             : writtenLit is not null ? writtenLit
             : null;
         // Into a numeric formal §2023:14.8.2.3.3 rule 2a's COMPUTE reads the figurative constant ZERO as the numeric value
-        // zero — §2023:8.3.3.6.3 SR1 a) makes ZERO the one figurative a numeric literal's position admits, and §2023:8.8.1.1 names
+        // zero — §2023:8.3.3.6.3 SR1a makes ZERO the one figurative a numeric literal's position admits, and §2023:8.8.1.1 names
         // it among a COMPUTE's operands — so it takes the numeric-literal lane (its verdict and its carrier split), and
         // only a character-carried formal takes the fill below (kb/Work PB1617).
         literal2 = ParameterConformance.ArgumentForFormal(literal2, formal);
@@ -1560,7 +1560,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                 // A BOOLEAN literal (or a boolean concatenation expression, §2023:8.8.3.3 GR3) is a boolean VALUE with no
                 // storage, so it rides the boolean channel — Table 16's BOOLEAN row (§2023:14.8.2.3.3 rule 2d), the same
                 // receivers the boolean-expression arm takes, from the SAME rule. A LITERAL contributes no item width
-                // to §2023:8.8.2 rule 10, so the value crosses at the formal's width (BooleanRenderer.RenderAtItemWidth).
+                // to §2023:8.8.2 GR10, so the value crosses at the formal's width (BooleanRenderer.RenderAtItemWidth).
                 if (host.Params.ContentConformanceReason(formal, LiteralArg(null) with { ContentBool = new BoundBoolLiteral(boolLit.Value) })
                     is { } blErr)
                 {
@@ -1598,7 +1598,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             case BoundPredefinedNull:
                 // ⛔ NULL IS AN IDENTIFIER, identifier-5 (kb/Work PB1137 + PB1630): §2023:8.4.3.1.3 SR7 lists the
                 // predefined-object references among the identifier formats, §2023:8.4.3.7.3 SR2 describes the NULL object
-                // reference as "class object and category object reference", and §2023:8.4.3.10.3 SR1 a) admits the NULL
+                // reference as "class object and category object reference", and §2023:8.4.3.10.3 SR1a admits the NULL
                 // address of class pointer "as an argument in … a method invocation" — so `USING [BY CONTENT] NULL`
                 // passes the formal's null BY CONTENT (it is in no DATA DIVISION section, so GR6 a) 2. assumes
                 // CONTENT). Its conformance is the ONE §2023:14.8.2.3.3 verdict the CALL and function lanes ask: a formal of
@@ -1625,7 +1625,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                 // ⛔ A FIGURATIVE CONSTANT IS literal-2 TOO (kb/Work PB1617): §2023:8.3.3.6.3 SR1 — "A figurative constant
                 // may be used whenever 'literal' appears in a format" — and this switch refused every one but NULL as
                 // "not yet carried". It takes the shared §2023:14.8.2.3.3 verdict (rule 2a refuses any but ZERO into a
-                // numeric formal — ZERO arrived above as the numeric literal 0; rule 2d / §2023:14.8.2.2 rule 2 ask the
+                // numeric formal — ZERO arrived above as the numeric literal 0; rule 2d / §2023:14.8.2.2 SR2 ask the
                 // MOVE) and crosses on its own fill channel, which §2023:14.2.3 GR9 sizes at the method's formal
                 // (CallEmitter.FigurativeArgumentImage).
                 if (host.Params.ContentConformanceReason(formal, LiteralArg(literal2)) is { } fErr)
@@ -1802,13 +1802,13 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                 if (rd.Only)
                     yield return
                         $"the receiving item is described with the ONLY phrase, so SELF is not "
-                        + "a permitted sending operand (ISO §2023:14.9.39.3 SR12c1)";
+                        + "a permitted sending operand (ISO §2023:14.9.39.3 SR12c.1)";
                 // c)2. — the class containing the SET statement shall be the receiver's class or a
                 // subclass of it.
                 else if (!relationTurnsOnFormal && host.OoClasses?.Names.ClassOf(rd) is { } tcls && !cur.ConformsTo(tcls))
                     yield return
                         $"class '{cur.Name}' is not '{tcls.Name}' or a "
-                        + "subclass of it (ISO §2023:14.9.39.3 SR12c2)";
+                        + "subclass of it (ISO §2023:14.9.39.3 SR12c.2)";
                 // c)3./c)4. — the FACTORY axis of the receiver picks WHICH definition the method shall
                 // be defined in, and SELF is the object of that definition.
                 if (rd.Factory != host.OoInFactory)
@@ -2128,7 +2128,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
     /// "as if literal-1 … were written"; kb/Work PB780): an alphanumeric or national constant-name's value, written in
     /// the edition's spelling exactly as <see cref="OoMethodNameOf(Core.LiteralContext?, bool)"/> writes a written literal.
     /// Null for any other alias — a numeric or boolean constant, or a symbolic-character, which is a figurative
-    /// constant (§2023:12.3.7.4 GR11 a)) — none of them a literal "of class alphanumeric or national" (§2023:14.9.23.3 SR2).</summary>
+    /// constant (§2023:12.3.7.4 GR11a) — none of them a literal "of class alphanumeric or national" (§2023:14.9.23.3 SR2).</summary>
     private string? OoMethodNameOf(ExpressionBinder.LiteralAlias alias) =>
         alias.Constant is { Category: PicCategory.Alphanumeric or PicCategory.National } k
             ? CobolNames.EditionSpelling(k.Text, ctx.Edition.Edition.Year) : null;
@@ -2145,8 +2145,8 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
     }
 
     /// <summary>⛔ THE TYPED LANE'S VERDICT ON ONE BY REFERENCE ARGUMENT — the universal switch's relations over the
-    /// SAME descriptions (kb/Work PB2077, decision PB3098; OO_DESIGN D6 item 6). §2023:14.9.23.4 GR7 b) locates the
-    /// method for every INVOKE by §2023:9.3.6, and §2023:14.9.23.3 SR5 c) with §2023:14.8.1 asks §2023:14.8.2's conformance at compile time
+    /// SAME descriptions (kb/Work PB2077, decision PB3098; OO_DESIGN D6 item 6). §2023:14.9.23.4 GR7b locates the
+    /// method for every INVOKE by §2023:9.3.6, and §2023:14.9.23.3 SR5c with §2023:14.8.1 asks §2023:14.8.2's conformance at compile time
     /// of a typed receiver: so the MATCH (<see cref="ActivationRelations.MatchViolation"/>, §2023:9.3.6 rule 3) and then the
     /// CONFORMANCE (<see cref="ActivationRelations.ParameterViolation"/>, without GR7 c)'s universal-only ANY LENGTH
     /// ban). An ACTIVE-CLASS formal's 3 d) 4./5. is a condition on the invocation, answered statically by §2023:14.8.2.3.2

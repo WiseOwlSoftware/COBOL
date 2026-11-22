@@ -18,7 +18,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 public sealed class DirectiveLiteralScreenTests
 {
     /// <summary>The directive lines <paramref name="directives"/> in a minimal FREE-form program. A compiler directive is
-    /// one line and cannot be continued, so a literal longer than a free-form line (255 positions, §2023:6.1 3) a),
+    /// one line and cannot be continued, so a literal longer than a free-form line (255 positions, §2023:6.1 SR3a),
     /// COBOL2653) makes the line itself an error too: the length tests below read the literal's own diagnostic out of
     /// the errors and never ask whether the compile as a whole succeeded.</summary>
     private static string Program(string id, string directives) =>
@@ -54,7 +54,7 @@ public sealed class DirectiveLiteralScreenTests
         {
             var (ok, errors, _) = EditionHarness.CompileFull(
                 Program("DLS" + positions, Fill(directives, "\"" + new string('A', positions) + "\"")), 2023);
-            Assert.False(ok, $"[{position}] the {positions}-position line is over §2023:6.1 3) a)'s 255");
+            Assert.False(ok, $"[{position}] the {positions}-position line is over §2023:6.1 SR3a's 255");
             if (positions <= 8191)
                 Assert.DoesNotContain(errors, e => e.Contains("COBOL0814"));   // §2023:8.3.3.2.3 SR1 '≤ 8,191'
             else

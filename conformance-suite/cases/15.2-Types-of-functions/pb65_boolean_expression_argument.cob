@@ -7,7 +7,7 @@
 *>---
       *> kb/Work PB65 (FMT-15.45.2). ISO §2023:8.4.3.2.3 SR8: "Argument-1 shall be an
       *> identifier, a literal, a boolean expression, or an arithmetic
-      *> expression"; §2023:15.3 item 3 admits for a Boolean argument "a boolean
+      *> expression"; §2023:15.3 AR3 admits for a Boolean argument "a boolean
       *> expression or literal, or an elementary boolean data item"; §2023:8.3.3.4.4
       *> GR4: "If boolean-character-1 is not specified, the literal is a
       *> zero-length literal" — B"" is a boolean literal, and §2023:15.45.4 makes

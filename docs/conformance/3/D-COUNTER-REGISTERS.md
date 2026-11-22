@@ -14,7 +14,7 @@
   cobc 3.2.0: `DISPLAY PAGE-COUNTER` prints `0000000001` (10 digits); `MOVE PAGE-COUNTER TO` a `PIC X(4)` item stores
   `0000`; `MOVE 5000000000 TO PAGE-COUNTER` leaves `0705032704` (the 32-bit value) and `ADD 1` to 4,294,967,295 leaves
   `0000000000`; `STRING` refuses the register ("must be USAGE DISPLAY or NATIONAL"); `FUNCTION LENGTH(PAGE-COUNTER)`
-  and `PERFORM PAGE-COUNTER TIMES` are syntax errors there (WiseOwl COBOL admits both, §2023:15.50.3 r1 and
+  and `PERFORM PAGE-COUNTER TIMES` are syntax errors there (WiseOwl COBOL admits both, §2023:15.50.3 AR1 and
   §2023:8.4.3.15.3 SR1 — the standard decides what GnuCOBOL does not take); `HIGHEST-ALGEBRAIC(PAGE-COUNTER)` prints
   `294967295` and a `MOVE` of the register to `PIC X(14)` shows 9 digits (cobc's attribute digit count for
   `UNSIGNED-INT` is 9 where its DISPLAY prints 10 — a GnuCOBOL inconsistency WiseOwl COBOL does not copy: the
@@ -23,7 +23,7 @@
   past the capacity, or `MOVE 5000000000 TO PAGE-COUNTER`, wraps exactly as cobc's does;
   `ReportCounterDescriptionDriftTests` pins the runtime modulus to the compiler's description.
   (§2023:8.5.2.12 items 3/4/5 make the registers category-numeric DATA ITEMS, which is what admits them to the
-  §2023:15.43.3/§2023:15.58.3/§2023:15.83.3 r1 argument position at all.) **The same capacity answers the §2023:8.8.4.4.4 GR3 g)/m)
+  §2023:15.43.3/§2023:15.58.3/§2023:15.83.3 AR1 argument position at all.) **The same capacity answers the §2023:8.8.4.4.4 GR3 g)/m)
   class conditions** (kb/Work PB1401): `LINAGE-COUNTER OF f IS FARTHEST-FROM-ZERO` is true exactly when the
   register holds the capacity `HIGHEST-ALGEBRAIC` folds to, and `IS NEAREST-TO-ZERO` when it holds 1 — one
   statement of the description (`AlgebraicRanges.DescribeCounter`) serves every surface, so they cannot disagree. A

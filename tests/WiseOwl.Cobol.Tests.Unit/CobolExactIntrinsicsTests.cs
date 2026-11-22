@@ -12,7 +12,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ⛔ THE NATIVE SDIDI LANE OVER EXACT ARGUMENTS (kb/Work PB4111, PB4568; docs/CONFORMANCE.md DOC-A.1-123): <see cref="CobolExact"/>
 /// and the <c>CobolIntrinsics.*Exact</c> bodies. Every expected value comes from the function's returned-value rule evaluated by an
 /// oracle the runtime does not use — <see cref="BigInteger"/> for integers, Python <c>fractions.Fraction</c> divided once by
-/// <c>decimal</c> at 34 digits, ROUND_HALF_UP (NEAREST-AWAY-FROM-ZERO, §2023:11.9.11.2 3) a)) for quotients — and each body is also
+/// <c>decimal</c> at 34 digits, ROUND_HALF_UP (NEAREST-AWAY-FROM-ZERO, §2023:11.9.11.2 GR3a) for quotients — and each body is also
 /// driven past the 256-bit wide form, where it must answer exactly as the SDIDI body over the images does (DOC-A.1-123's
 /// determination past 77 digits). The last section drives <see cref="CobolExact"/> as the run-time-scaled ARITHMETIC carrier of an
 /// expression in which a wide value meets an SDIDI-carried operand (kb/Work PB4575), against the same oracle.
@@ -70,12 +70,12 @@ public sealed class CobolExactIntrinsicsTests
     [Fact]
     public void TheSelections_OrderExactly_AndTakeTheLeftmostTie()
     {
-        // §2023:15.71.4 2) / §2023:15.72.4 2): the simple-condition order; 3): the leftmost of equal values.
+        // §2023:15.71.4 RV2 / §2023:15.72.4 RV2: the simple-condition order; 3): the leftmost of equal values.
         Assert.Equal(2, CobolIntrinsics.OrdMaxExact(Wide(P - 1), Wide(P), Sdidi("20", -1)));
         Assert.Equal(2, CobolIntrinsics.OrdMinExact(Wide(P), Wide(P - 1), Sdidi("1", 50)));
         Assert.Equal(1, CobolIntrinsics.OrdMaxExact(Fixed(2), Sdidi("20", -1)));
         Assert.Equal(2, CobolIntrinsics.OrdMinExact(Fixed(3), Sdidi("-1", 6000), Sdidi("1", -6000)));
-        // MAX's content (§2023:15.59.4 1)) is the selected argument ITSELF, every digit of it (kb/Work PB4730): an SDIDI as itself, a wide
+        // MAX's content (§2023:15.59.4 RV1) is the selected argument ITSELF, every digit of it (kb/Work PB4730): an SDIDI as itself, a wide
         // value of 39 digits whole - its 34-digit rounding is a consumer's lowering (Image), never the selection's value.
         Assert.Equal(0, CobolExact.Compare(Sdidi("1", 50), CobolIntrinsics.MaxExact(Wide(P), Sdidi("1", 50))));
         Assert.Equal(0, CobolExact.Compare(Wide(P), CobolIntrinsics.MaxExact(Wide(P), Sdidi("20", -1))));
@@ -105,7 +105,7 @@ public sealed class CobolExactIntrinsicsTests
     [Fact]
     public void ModAndRem_TakeEveryDigit_WithTheirSignRules()
     {
-        // §2023:15.64.4 1) floors (the divisor's sign), §2023:15.77.4 1) truncates (the dividend's): P = 1024 × 975585937499999998048828125000000000 + 999.
+        // §2023:15.64.4 RV1 floors (the divisor's sign), §2023:15.77.4 RV1 truncates (the dividend's): P = 1024 × 975585937499999998048828125000000000 + 999.
         Assert.Equal(D("999"), CobolIntrinsics.ModExact(Away, Wide(P), Sdidi("1024")));
         Assert.Equal(D("999"), CobolIntrinsics.RemExact(Away, Wide(P), Sdidi("1024")));
         Assert.Equal(D("25"), CobolIntrinsics.ModExact(Away, Wide(-P), Sdidi("1024")));
@@ -143,14 +143,14 @@ public sealed class CobolExactIntrinsicsTests
         Assert.Equal(0, CobolDec.Compare(D("100000"), CobolIntrinsics.SumExact(Away, plus40, Sdidi("10", 4), minus40).Image));
         Assert.Equal(0, CobolDec.Compare(D("100000"), CobolIntrinsics.MeanExact(Away, plus40, Sdidi("30", 4), minus40).Image));
         Assert.Equal(0, CobolDec.Compare(D("150000"), CobolIntrinsics.MedianExact(Away, plus40, Sdidi("10", 4), Sdidi("20", 4), minus40).Image));
-        // §2023:15.64.4 1) floored, §2023:15.77.4 1) truncated: 10^40 mod 300000.
+        // §2023:15.64.4 RV1 floored, §2023:15.77.4 RV1 truncated: 10^40 mod 300000.
         int mod = (int)BigInteger.Remainder(e40, 300000);
         Assert.Equal(100000, mod);
         Assert.Equal(0, CobolDec.Compare(D("100000"), CobolIntrinsics.ModExact(Away, plus40, Sdidi("30", 4))));
         Assert.Equal(0, CobolDec.Compare(D("100000"), CobolIntrinsics.RemExact(Away, plus40, Sdidi("30", 4))));
         Assert.Equal(0, CobolDec.Compare(D("200000"), CobolIntrinsics.ModExact(Away, minus40, Sdidi("30", 4))));
         Assert.Equal(0, CobolDec.Compare(D("-100000"), CobolIntrinsics.RemExact(Away, minus40, Sdidi("30", 4))));
-        // §2023:15.98.4 1): {10^43 + 10^10, 10^43} deviate by ±5·10^9 from the exact mean, so the variance is 2.5·10^19; the 34-digit
+        // §2023:15.98.4 RV1: {10^43 + 10^10, 10^43} deviate by ±5·10^9 from the exact mean, so the variance is 2.5·10^19; the 34-digit
         // mean of the images rounds 10^43 + 5·10^9 to 10^43 + 10^10 and answered 5·10^19.
         Assert.Equal(0, CobolDec.Compare(new CobolDec(25, 18),
             CobolIntrinsics.VarianceExact(Away, Sdidi("1000000000000000000000000000000001", 10), Sdidi("1", 43)).Image));
@@ -165,7 +165,7 @@ public sealed class CobolExactIntrinsicsTests
         CobolExact e30 = Fixed(1, -30), e30p1 = CobolExact.From(Int128.Parse("1000000000000000000000000000001", CultureInfo.InvariantCulture), 0);
         Assert.Equal(D("0.2222222222222222222222222222222222"), CobolIntrinsics.VarianceExact(Away, e30, e30p1, e30p1).Image);
         Assert.Equal(D("0"), CobolIntrinsics.VarianceExact(Away, Wide(P)).Image);                 // one argument: no deviation
-        // §2023:15.74.4 1): 100 / 1.05 + 100 / 1.05²; 1 / 1.5 − 2 / 1.5² + 0.7 / 1.5³; rate 0 sums the amounts.
+        // §2023:15.74.4 RV1: 100 / 1.05 + 100 / 1.05²; 1 / 1.5 − 2 / 1.5² + 0.7 / 1.5³; rate 0 sums the amounts.
         Assert.Equal(D("185.9410430839002267573696145124717"), CobolIntrinsics.PresentValueExact(Away, Fixed(5, 2), Fixed(100), Fixed(100)).Image);
         Assert.Equal(D("-0.01481481481481481481481481481481481"),
             CobolIntrinsics.PresentValueExact(Away, Fixed(5, 1), Fixed(1), Fixed(-2), Fixed(7, 1)).Image);
@@ -181,7 +181,7 @@ public sealed class CobolExactIntrinsicsTests
         ExceptionState.ArgumentFunctionChecking = false;
         try
         {
-            Assert.Equal(0, CobolIntrinsics.PresentValueExact(Away, Fixed(-1), Fixed(5)).Image.Sig);                       // §2023:15.74.3 r2: the §2023:15.3 default
+            Assert.Equal(0, CobolIntrinsics.PresentValueExact(Away, Fixed(-1), Fixed(5)).Image.Sig);                       // §2023:15.74.3 AR2: the §2023:15.3 default
             Assert.Equal(0, CobolIntrinsics.PresentValueExact(Away, Sdidi("-1000000000000000000001", -21), Fixed(5)).Image.Sig);
             Assert.NotEqual(0, CobolIntrinsics.PresentValueExact(Away, Sdidi("-999999999999999999999", -21), Fixed(5)).Image.Sig);
         }

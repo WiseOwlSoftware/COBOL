@@ -131,7 +131,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
                 return BoundRejected.Reported(ctx.Edition);   // reported by SortAddFileKeys (PB236, PB1030)
         // ⛔ THE KEYS ARE SCREENED BEFORE THE RECORD'S IMAGE IS ASKED ABOUT (kb/Work PB1173): a record with a pointer or
         // object leaf has no image the store can hold, which is the compiler's gap, while a key of class pointer is the
-        // SOURCE's error (§2023:14.9.40.3 SR6 c)) — and the gap used to answer first, so the source's error was never told.
+        // SOURCE's error (§2023:14.9.40.3 SR6c) — and the gap used to answer first, so the source's error was never told.
         if (SortRecordOf(file) is null)
             // The MECHANISM is derived from the record itself (the R40 fleet: a fixed "VARIABLE-LENGTH"
             // string misdiagnosed a pointer-leafed record — the same wrong-cause defect twice removed).
@@ -312,15 +312,15 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             foreach (var dref in drefs)
             {
                 string kn = WrittenSource.Of(dref);
-                // §2023:14.9.40.3 SR14 b) — "Key data names shall not be subscripted" — and §2023:8.4.3.3.3's NOTE (no
+                // §2023:14.9.40.3 SR14b) — "Key data names shall not be subscripted" — and §2023:8.4.3.3.3's NOTE (no
                 // reference-modifier where the format prints data-name-n): the one data-name-n screen, ahead of
                 // KeyReference, which keeps the qualifiers and DROPS every other suffix — `SORT E ON ASCENDING
                 // KEY K(4:3)` used to sort on all of K (kb/Work PB481, measured).
                 // A table key lies UNDER the table's OCCURS by SR14 a), so the subscript sentence is SR14 b)'s own.
                 if (!DataBinder.ScreenDataNameShape(dref, "SORT table key", ctx.Edition,
-                        "\"Key data names shall not be subscripted\" (ISO §2023:14.9.40.3 SR14 b))"))
+                        "\"Key data names shall not be subscripted\" (ISO §2023:14.9.40.3 SR14b)"))
                     return BoundRejected.Reported(ctx.Edition);
-                // §2023:14.9.40.3 SR14 a)'s own walk — "The data item identified by a key data-name shall be the same
+                // §2023:14.9.40.3 SR14a's own walk — "The data item identified by a key data-name shall be the same
                 // as, or subordinate to, the data item referenced by data-name-2" — over data-name-2's subtree,
                 // narrowed by the WRITTEN qualifiers and counted (kb/Work PB1018): the same §2023:8.4.2.2 subtree
                 // resolution the OCCURS KEY phrase takes (OccursKeyResolvePass, §2023:13.18.38.3 SR3). The base
@@ -344,7 +344,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
                     return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementOperandRule, $"SORT table key '{kn}': \"If the data item identified by a key "
                         + "data-name is subordinate to data-name-2, it shall not be described with an OCCURS clause, and "
                         + "it shall not be subordinate to an entry that is also subordinate to data-name-2 and contains "
-                        + "an OCCURS clause\" (ISO §2023:14.9.40.3 SR14 e)");
+                        + "an OCCURS clause\" (ISO §2023:14.9.40.3 SR14e)");
                 if (Inadmissible(key) is { } keyRefusal) return keyRefusal;   // SR14 c), d) — the ONE predicate (kb/Work PB1173)
                 // A key of class national orders under the NATIONAL collating sequence — the GR5 lead-in
                 // ("the national collating sequence that applies to the comparison of key data items of class
@@ -522,7 +522,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
                 + "statements in any contained program\"", out var file))
             return BoundRejected.Reported(ctx.Edition);
         if (!ctx.Validation.CheckReleaseRecord(file, WrittenSource.Of(rn))) return BoundRejected.Reported(ctx.Edition);
-        // RELEASE ... FROM is an IMPLICIT MOVE and is bound as one (ISO §2023:14.9.32.4 GR4 a); kb/Work PB348), so
+        // RELEASE ... FROM is an IMPLICIT MOVE and is bound as one (ISO §2023:14.9.32.4 GR4a; kb/Work PB348), so
         // §2023:14.9.32.3 SR2 (the function-identifier class), SR3 (valid as a MOVE sending operand with
         // record-name-1 as the receiver) and SR4 (no zero-length literal-1) are applied HERE, at bind time,
         // together with the storage facts StorageFormPass consumes.
@@ -575,8 +575,8 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         if (RecordLessSd(file)) return new BoundNop();
         if (SortRecordOf(file) is null || ctx.Refs.Places.RecordArea(file) is not { } area)
             return new BoundUnsupported($"RETURN '{name}' without a usable SD record area");
-        // RETURN ... INTO is an IMPLICIT MOVE and is bound as one (ISO §2023:14.9.34.4 GR5 b); kb/Work PB348) -
-        // THE SAME call READ ... INTO makes, because GR5 b) and §2023:14.9.30.4 GR4 b) are the same sentence.
+        // RETURN ... INTO is an IMPLICIT MOVE and is bound as one (ISO §2023:14.9.34.4 GR5b; kb/Work PB348) -
+        // THE SAME call READ ... INTO makes, because GR5 b) and §2023:14.9.30.4 GR4b are the same sentence.
         BoundMove? into = null;
         if (r.INTO() is not null)
         {
@@ -657,12 +657,12 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         foreach (var dref in drefs)
         {
             // §2023:14.9.40.2 Format 1 / §2023:14.9.24.2 print `KEY { data-name-1 } …` — a qualified-data-name, never an
-            // identifier: §2023:8.4.3.3.3's NOTE forbids the reference-modifier and §2023:14.9.40.3 SR6 b) the subscript. The one
+            // identifier: §2023:8.4.3.3.3's NOTE forbids the reference-modifier and §2023:14.9.40.3 SR6b the subscript. The one
             // data-name-n screen refuses both BEFORE the resolver, which would otherwise hand back the base item
             // with the modifier dropped and key the file on the whole field (kb/Work PB481).
             if (!DataBinder.ScreenDataNameShape(dref, "SORT/MERGE key", ctx.Edition, DataBinder.NotSubjectToOccurs))
                 return false;
-            // ⛔ WHICH ITEMS MAY BE A KEY is the ONE admissibility predicate's (kb/Work PB1173, PB1052): §2023:14.9.40.3 SR6 b)
+            // ⛔ WHICH ITEMS MAY BE A KEY is the ONE admissibility predicate's (kb/Work PB1173, PB1052): §2023:14.9.40.3 SR6b
             // c) d) f) / §2023:14.9.24.3 SR4, asked of the NAMED item before any occurrence is resolved — the resolver's own
             // SR5 screen would answer a key under an OCCURS with "a table element needs a subscript", which is true
             // and is not the rule this statement breaks (SR6 b): no subscript would make it legal either).
@@ -703,7 +703,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             if (Model.RecordLayout.KeyWindowOf(root, item, len, []) is not { } win)
                 return Reject($"SORT/MERGE key '{WrittenSource.Of(dref)}' — key data-names shall not be subject to any OCCURS "
                     + $"clause ({SortKeyAdmission.Clause(rules, ctx.Edition.Edition)} {SortKeyAdmission.Occurs(ctx.Edition.Edition)})");
-            // §2023:14.9.40.3 SR6 g) / §2023:14.9.24.3 SR4 g): with variable-length records every key lies within the first
+            // §2023:14.9.40.3 SR6g / §2023:14.9.24.3 SR4g: with variable-length records every key lies within the first
             // n bytes, n the minimum record size — for ANY record, so a key that follows a variable-length member is
             // measured at its furthest reach (every preceding member at its maximum). ⛔ The minimum is the file's
             // (§2023:13.18.43.4 GR9 when the RECORD clause states none — FileModel.RecordSizeRange, which sizes a format 3 record at its maximum at 85, §1985:VII.3.8.4 GR15), and the rule applies to
@@ -1095,9 +1095,9 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         new($"SORT table key '{keyName}': the key has no stored field on the element struct and no window the place "
             + "builder can position — a key under an inner OCCURS on the table's own KEY phrase (§2023:13.18.38.3 SR6; the "
             + "declaration's refusal is kb/Work PB1263), or a view of a class this statement cannot address "
-            + "(an inner OCCURS between a written key and data-name-2 is refused before this, §2023:14.9.40.3 SR14 e)");
+            + "(an inner OCCURS between a written key and data-name-2 is refused before this, §2023:14.9.40.3 SR14e)");
 
-    /// <summary>§2023:14.9.40.3 SR14 e): the key, or an entry between it and data-name-2, carries an OCCURS clause.
+    /// <summary>§2023:14.9.40.3 SR14e: the key, or an entry between it and data-name-2, carries an OCCURS clause.
     /// A predicate over the DATA DESCRIPTION alone — the member chain below answers a storage question and returns
     /// null for a REDEFINES view too, so it cannot tell the source's error from the compiler's gap.</summary>
     private static bool KeyUnderInnerOccurs(DataItem table, DataItem key)

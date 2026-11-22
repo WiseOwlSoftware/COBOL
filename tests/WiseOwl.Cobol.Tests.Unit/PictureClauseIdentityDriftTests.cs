@@ -58,7 +58,7 @@ public sealed class PictureClauseIdentityDriftTests
         var usdDollar = Item("$$$9.99", new Dictionary<char, CurrencyDefinition> { ['$'] = Alnum("USD") });
         var usdU = Item("UUU9.99", new Dictionary<char, CurrencyDefinition> { ['U'] = Alnum("USD") });
         var eurDollar = Item("$$$9.99", new Dictionary<char, CurrencyDefinition> { ['$'] = Alnum("EUR") });
-        Assert.Null(Difference(usdDollar, usdU));        // §2023:9.3.8.2.3 rule 3 a): the same currency string
+        Assert.Null(Difference(usdDollar, usdU));        // §2023:9.3.8.2.3 GR3a: the same currency string
         Assert.NotNull(Difference(usdDollar, eurDollar));
     }
 
@@ -127,7 +127,7 @@ public sealed class PictureClauseIdentityDriftTests
         Assert.True(pairs > 300, $"only {pairs} pairs — the population no longer exercises the invariant");
     }
 
-    /// <summary>The pair-mode identity is SYMMETRIC and relaxes nothing (ISO §2023:9.3.8.2.3 rule 3 names ANY LENGTH among the
+    /// <summary>The pair-mode identity is SYMMETRIC and relaxes nothing (ISO §2023:9.3.8.2.3 GR3 names ANY LENGTH among the
     /// clauses that shall be the same, and §2023:14.8.2.3.2 "Additionally" d)'s relaxation is an activation's, never a
     /// signature's): over the population above plus ANY LENGTH items, an ANY LENGTH item is the same description only
     /// as an ANY LENGTH item of the same one-symbol picture, and the verdict does not depend on the order of the pair.</summary>

@@ -18,7 +18,7 @@ namespace WiseOwl.Cobol.Binding;
 internal static class IntrinsicCitations
 {
     /// <summary>The clause that states <paramref name="function"/>'s argument rule, as the edition in force numbers it:
-    /// <paramref name="clause2023"/> (<c>§2023:15.84.3 r1</c>) from COBOL-2002 on, and at COBOL-85 the "Arguments" subclause of the
+    /// <paramref name="clause2023"/> (<c>§2023:15.84.3 AR1</c>) from COBOL-2002 on, and at COBOL-85 the "Arguments" subclause of the
     /// function's own paragraph in the 1989 module (<c>§1989:A.2.40.3</c>).</summary>
     public static string Clause(EditionInfo edition, string function, string clause2023)
     {
