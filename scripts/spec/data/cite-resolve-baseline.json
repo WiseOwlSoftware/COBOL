@@ -8,7 +8,7 @@
   "longer fails. Repair a citation, then rewrite this file with",
   "`python scripts/spec/audit_code_citations.py --write-baseline` (it refuses to add an entry)."
  ],
- "count": 1947,
+ "count": 1946,
  "entries": [
   {
    "file": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4",
@@ -9655,13 +9655,6 @@
    "citation": "§2023:8.8.4.4.4 GR3",
    "kind": "designator-not-canonical",
    "reason": "the rewritten designator would still not be canonical in its line"
-  },
-  {
-   "file": "tests/WiseOwl.Cobol.Tests.Conformance/Cobol85EditionVocabularyTests.cs",
-   "line": 68,
-   "citation": "§2023:8.4.3.3.4 item 5c",
-   "kind": "item-is-a-rule",
-   "reason": "§2023:8.4.3.3.4 item 5c: the catalog holds that item as the numbered rule GR5 of 8.4.3.3.4: cite §2023:8.4.3.3.4 GR5c"
   },
   {
    "file": "tests/WiseOwl.Cobol.Tests.Conformance/CompilerUnderTest.cs",
