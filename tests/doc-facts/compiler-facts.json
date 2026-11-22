@@ -41,7 +41,7 @@
   "dialectBehaviors": [
     {
       "id": "block-contains-range-ordered",
-      "vcrRow": "7.107",
+      "vcrRow": "7.108",
       "changedIn": 2002
     },
     {
@@ -71,17 +71,17 @@
     },
     {
       "id": "currency-hexadecimal-literal-rules",
-      "vcrRow": "7.115",
+      "vcrRow": "7.116",
       "changedIn": 2014
     },
     {
       "id": "divide-remainder-signed-subsidiary",
-      "vcrRow": "7.109",
+      "vcrRow": "7.110",
       "changedIn": 2002
     },
     {
       "id": "entry-clause-implicit-qualifiers",
-      "vcrRow": "7.111",
+      "vcrRow": "7.112",
       "changedIn": 2002
     },
     {
@@ -101,17 +101,17 @@
     },
     {
       "id": "generate-report-name-single-detail",
-      "vcrRow": "7.105",
+      "vcrRow": "7.106",
       "changedIn": 2002
     },
     {
       "id": "group-comparison-is-elementary-alphanumeric",
-      "vcrRow": "7.113",
+      "vcrRow": "7.114",
       "changedIn": 2002
     },
     {
       "id": "group-indicate-as-present-when",
-      "vcrRow": "7.103",
+      "vcrRow": "7.104",
       "changedIn": 2002
     },
     {
@@ -121,7 +121,7 @@
     },
     {
       "id": "index-name-qualification",
-      "vcrRow": "7.106",
+      "vcrRow": "7.107",
       "changedIn": 2002
     },
     {
@@ -146,7 +146,7 @@
     },
     {
       "id": "inspect-size-rules-are-general-rules",
-      "vcrRow": "7.112",
+      "vcrRow": "7.113",
       "changedIn": 2002
     },
     {
@@ -181,7 +181,7 @@
     },
     {
       "id": "native-arithmetic-comparison",
-      "vcrRow": "7.114",
+      "vcrRow": "7.115",
       "changedIn": 2002
     },
     {
@@ -191,7 +191,7 @@
     },
     {
       "id": "next-group-needs-line-number",
-      "vcrRow": "7.96",
+      "vcrRow": "7.97",
       "changedIn": 2002
     },
     {
@@ -201,7 +201,7 @@
     },
     {
       "id": "page-footing-first-line-absolute",
-      "vcrRow": "7.99",
+      "vcrRow": "7.100",
       "changedIn": 2002
     },
     {
@@ -216,7 +216,7 @@
     },
     {
       "id": "relation-operand-not-a-literal",
-      "vcrRow": "7.108",
+      "vcrRow": "7.109",
       "changedIn": 2002
     },
     {
@@ -226,37 +226,37 @@
     },
     {
       "id": "release-outside-record-range-raises-exception",
-      "vcrRow": "7.110",
+      "vcrRow": "7.111",
       "changedIn": 2002
     },
     {
       "id": "report-code-clause-operand",
-      "vcrRow": "7.93",
-      "changedIn": 2002
-    },
-    {
-      "id": "report-control-data-references",
       "vcrRow": "7.94",
       "changedIn": 2002
     },
     {
+      "id": "report-control-data-references",
+      "vcrRow": "7.95",
+      "changedIn": 2002
+    },
+    {
       "id": "report-control-operand-uniqueness",
-      "vcrRow": "7.91",
+      "vcrRow": "7.92",
       "changedIn": 2002
     },
     {
       "id": "report-entry-clause-rules",
-      "vcrRow": "7.101",
+      "vcrRow": "7.102",
       "changedIn": 2002
     },
     {
       "id": "report-group-page-fit-at-compile-time",
-      "vcrRow": "7.97",
+      "vcrRow": "7.98",
       "changedIn": 2002
     },
     {
       "id": "report-group-vertical-limits",
-      "vcrRow": "7.98",
+      "vcrRow": "7.99",
       "changedIn": 2002
     },
     {
@@ -266,7 +266,7 @@
     },
     {
       "id": "report-vertical-integer-limit",
-      "vcrRow": "7.92",
+      "vcrRow": "7.93",
       "changedIn": 2002
     },
     {
@@ -296,7 +296,7 @@
     },
     {
       "id": "sum-counter-alphanumeric-cap",
-      "vcrRow": "7.102",
+      "vcrRow": "7.103",
       "changedIn": 2002
     },
     {
@@ -306,12 +306,12 @@
     },
     {
       "id": "sum-only-in-control-footing",
-      "vcrRow": "7.100",
+      "vcrRow": "7.101",
       "changedIn": 2002
     },
     {
       "id": "sum-reset-level-order",
-      "vcrRow": "7.95",
+      "vcrRow": "7.96",
       "changedIn": 2002
     },
     {
@@ -326,7 +326,7 @@
     },
     {
       "id": "sum-upon-same-report",
-      "vcrRow": "7.104",
+      "vcrRow": "7.105",
       "changedIn": 2002
     },
     {
