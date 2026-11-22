@@ -429,10 +429,14 @@ for _st in STEPS:   # every simple command, in the shell that runs it (`Step.she
 # program that only SEARCHES or PRINTS text (`_TEXT_ONLY`: grep, rg, Select-String, findstr, git, echo, Write-Output, ...),
 # so `git grep -n 'Get-Process'` and `git log --grep 'pgrep cobol | xargs kill'` pass, but ONLY WHILE ITS OUTPUT IS
 # TEXT (`_output_stays_text`, the branch review of train-1985-d R2-1: `echo "<kill>" | python`, `iex (Write-Output
-# '<kill>')`, `echo '<kill>' > k.sh && bash k.sh` and git's `!` alias each RUN the printed words): its step stands at the
-# command line's own level (a step inside a substitution, an expression or a payload hands its output to a command the
-# model cannot always see, `iex ( ... )` among them), redirects nothing to a file, is no git `!` alias, and pipes only
-# into text-only programs and pure filters (`_TEXT_FILTERS`); a string literal a payload only
+# '<kill>')`, `echo '<kill>' > k.sh && bash k.sh` and git's `!` alias each RUN the printed words). Its output is text
+# unless something RUNS it (R4-1: a stderr redirect, a search piped into head, sed or awk, or text written to a file
+# nothing runs, runs nothing): a program that runs its input (`_RUNS_INPUT`: an interpreter, a shell, iex, xargs of
+# any but a text-only program, a ForEach-Object block that does more than read properties) on its pipeline; a file it
+# writes (a stdout redirect, tee, Out-File, Set-Content) that another step of the line names; a git `!` alias; or, for
+# a step inside a substitution or an expression, an evaluator anywhere in the line (`_EVALUATOR`: `iex ( ... )` is no
+# step of the model). A runner (xargs, env, timeout, nice, sudo ...) of a text-only program is text-only too
+# (`_runs`: `git grep -l X | xargs grep -n Y`); a string literal a payload only
 # prints (`_PRINTED`: `print('kill tasklist')`); and a signal a runner chooses for the command it starts (`timeout -s
 # KILL 600 python ...` kills nothing). Allowed: a kill of a pid the agent started, with
 # no enumeration in the line (`$p = Start-Process ... -PassThru; Stop-Process -Id $p.Id`, `$p.Kill()`, Bash `kill $pid`,
@@ -442,12 +446,21 @@ for _st in STEPS:   # every simple command, in the shell that runs it (`Step.she
 _TEXT_ONLY = {"grep", "egrep", "fgrep", "zgrep", "rg", "ag", "ack", "findstr", "select-string", "sls", "git", "echo",
               "printf", "write-output", "write-host", "write", "write-error", "write-warning", "write-verbose",
               "write-information", "write-debug"}
-#: The programs a text-only step's output may be piped into and stay text: they print, count or reorder lines and run
-#: none (no tee or Out-File, which write a file a later step can run; no awk or sed, which can run a command).
-_TEXT_FILTERS = {"cat", "head", "tail", "sort", "uniq", "wc", "cut", "tr", "column", "nl", "less", "more", "fold",
-                 "select-object", "select", "sort-object", "measure-object", "measure", "format-table", "ft",
-                 "format-list", "fl", "out-string", "out-null", "out-host"}
-_REDIRECT = re.compile(r"^(?:\d|&)?>>?")
+#: The programs that RUN what is piped into them (a script on stdin, or arguments to a command): a text-only step piped
+#: into one is judged. awk, sed, head and the like run their own program, never their input, so they are not here.
+_RUNS_INPUT = re.compile(r"^(?:py|pythonw?(?:\d+(?:\.\d+)?)?|pwsh|powershell|sh|bash|zsh|dash|ksh|fish|node|deno|bun|perl"
+                         r"|ruby|php|lua|tclsh|cmd|iex|invoke-expression|invoke-command|icm|eval|source|\.|xargs|parallel"
+                         r"|osascript|wscript|cscript|foreach-object|%)$")
+#: The words in a line that can run a substitution's or an expression's output (`iex (Write-Output ...)`, `& (...)`).
+_EVALUATOR = re.compile(r"(?<![\w$.-])(?:iex|invoke-expression|invoke-command|icm|eval|source)(?![\w-])|(?:^|[\s;|(])[&.]\s*[($]",
+                        re.I)
+#: The commands that run another: their own options and values are skipped to find what they run (`_runs`).
+_RUNNERS = {"xargs", "env", "sudo", "doas", "nice", "ionice", "nohup", "time", "timeout", "command", "exec", "stdbuf"}
+_RUNNER_VALUED = {"-I", "-d", "-a", "-E", "-L", "-n", "-P", "-s", "-u", "-k", "--signal", "--kill-after"}
+_WRITERS = {"tee", "out-file", "set-content", "add-content", "sc", "ac"}
+_STDOUT_REDIRECT = re.compile(r"^(?:1|&)?>>?\|?(.*)$")      # `>`, `>>`, `1>`, `&>`, `>|`; never `2>`
+_NO_FILE = {"/dev/null", "$null", "nul", "null", "/dev/stdout", "/dev/stderr"}
+_PROPERTY_READ = re.compile(r"^\{\s*\$_(?:\.\w+)*\s*\}$")       # `{ $_.Line }`: reads, runs nothing
 _W = r"(?<![\w$.-])"                      # a word starts here: not inside a name, a variable or a member access
 _PS_ID_PARAM = r"\s-(?:id|pid|i(?:n(?:p(?:u(?:t(?:o(?:b(?:j(?:e(?:c(?:t)?)?)?)?)?)?)?)?)?)?)\b"   # -Id, -InputObject
 _COMMAND_POSITION = r"(?:^|[|;&({}\[,=`'\"]|\$\()\s*"
@@ -487,23 +500,65 @@ def _program(st) -> str | None:
     return None if k is None else shell_location.program(st.words[k])
 
 
+def _runs(st) -> str | None:
+    """The program a step runs in the end: its command word, or past a runner's (`_RUNNERS`) own options, their values,
+    a duration and assignments, the program the runner starts (`xargs -0 grep -n x` runs grep)."""
+    k = _command_word(st.words)
+    w = st.words
+    while k is not None and k < len(w) and shell_location.program(w[k]) in _RUNNERS:
+        k += 1
+        while k < len(w) and (w[k].startswith("-") or re.fullmatch(r"\d+(?:\.\d+)?[smhd]?|[A-Za-z_]\w*=.*", w[k])):
+            k += 2 if w[k] in _RUNNER_VALUED else 1
+    return shell_location.program(w[k]) if k is not None and k < len(w) else None
+
+
+def _written(st) -> list[str]:
+    """The files a step writes its standard output to: a stdout redirect's target (never `2>`, `>&2` or the null device)
+    and a writer's (`_WRITERS`: tee, Out-File, Set-Content) path arguments."""
+    w, out = st.words, []
+    for j, x in enumerate(w):
+        if (m := _STDOUT_REDIRECT.match(x)) is not None:
+            target = m.group(1) or (w[j + 1] if j + 1 < len(w) else "")
+            if target and not target.startswith("&"):
+                out.append(target)
+    if _program(st) in _WRITERS:
+        out += [x for x in w[(_command_word(w) or 0) + 1:] if not x.startswith("-")]
+    return [t for t in out if t.lower() not in _NO_FILE]
+
+
+def _run_later(files: list[str], writers: set[int]) -> bool:
+    """Whether another step of the line names one of `files` (by its path or its file name) and is no text-only program:
+    `echo … > k.sh && bash k.sh` runs what it wrote; `echo … >> notes.md` alone does not."""
+    names = {f.replace("\\", "/").rsplit("/", 1)[-1].lower() for f in files}
+    return any(j not in writers and _runs(st) not in _TEXT_ONLY and any(
+        x.replace("\\", "/").rsplit("/", 1)[-1].lower() in names for x in st.words) for j, st in enumerate(STEPS))
+
+
 def _output_stays_text(i: int) -> bool:
-    """Whether what step `STEPS[i]` prints reaches nothing that runs it (the branch review of train-1985-d R2-1): it stands
-    at the command line's own level, redirects nothing, is no git `!` alias, and every later side of its pipeline is a
-    text-only program or a pure filter (`_TEXT_FILTERS`)."""
+    """Whether what step `STEPS[i]` prints reaches nothing that runs it (the branch reviews of train-1985-d R2-1 and
+    R4-1): no program on its pipeline runs its input (`_RUNS_INPUT`, but xargs of a text-only program and a ForEach-Object
+    that only reads properties), no file it or a writer on its pipeline writes is named by another step, it is no git `!`
+    alias, and, inside a substitution or an expression, the line holds no evaluator (`_EVALUATOR`) and no step that runs
+    its input (`python -c "$(echo …)"`)."""
     st = STEPS[i]
-    if st.depth or any(_REDIRECT.match(w) for w in st.words):
-        return False
+    if st.depth and (_EVALUATOR.search(cmd) or any(_RUNS_INPUT.match(_runs(x) or "") for x in STEPS)):
+        return False             # a substitution's output may be the program an interpreter of the line runs
     if _program(st) == "git" and any(w.startswith("!") or "=!" in w for w in st.words):
         return False             # `git -c alias.k='!…' k`: git hands a `!` alias to the shell
+    written, writers = _written(st), {i}
     while st.sep == "|":
         i = next((j for j in range(i + 1, len(STEPS)) if STEPS[j].depth == st.depth), None)
         if i is None:
             return False
         st = STEPS[i]
-        if _program(st) not in _TEXT_ONLY | _TEXT_FILTERS:
+        name = _program(st) or ""
+        if _RUNS_INPUT.match(name) and not (
+                name == "xargs" and _runs(st) in _TEXT_ONLY
+                or name in ("foreach-object", "%") and len(st.words) == 2 and _PROPERTY_READ.match(st.words[1])):
             return False
-    return True
+        written += _written(st)
+        writers.add(i)
+    return not (written and _run_later(written, writers))
 
 
 def _code_text(i: int) -> str:
@@ -511,7 +566,7 @@ def _code_text(i: int) -> str:
     bodies of the heredocs it introduces; empty for a program that only searches or prints text (`_TEXT_ONLY`) while its
     output stays text (`_output_stays_text`)."""
     st = STEPS[i]
-    if _program(st) in _TEXT_ONLY and _output_stays_text(i):
+    if _runs(st) in _TEXT_ONLY and _output_stays_text(i):
         return ""
     return _PRINTED.sub(" ", "\n".join((" ".join(st.words), *st.heredocs)))
 
