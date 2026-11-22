@@ -334,6 +334,22 @@ not reached there, and a drift test that exempted SOURCE from the driver gate wo
 `Frontend.LeftDirectives` is a subset of the catalog, and drives the real stage to prove every recognized word is
 rejected at 85 — so "one site, complete roster" stays true rather than being remembered.
 
+#### 2.4.3 A RULE that differs by edition: the behaviour register, never an inline year (kb/Work PB6031)
+
+This pass gates a CONSTRUCT an edition lacks (a `tests/version-matrix/constructs/` row, COBOL0900). A rule that every
+edition has but words differently (a syntax screen of the 1985 Report Writer, a comparison's arithmetic, a size rule
+that 2002 made a general rule) is asked where the binder or emitter applies it, and its edge lives in the BEHAVIOUR
+register: a member of `WiseOwl.Cobol.Runtime.DialectBehavior` (its row in `DialectBehaviors`: the edition it changed in,
+the new and old edges' citations, a title) asked through the one predicate `DialectBehaviors.IsActive`, with its
+`docs/VERSION_CHANGE_REFERENCE.md` row (Table 1 for 2014 to 2023, Table 7 for earlier windows; both edges quoted,
+`cite.py --check`; the `<!-- behavior:id -->` anchor held by `DialectBehaviorRegistryDriftTests` and the DOC AUDITS). A
+site never writes `Edition.DialectLevel < 2002`, `edition.Year >= 2014`, a switch arm `< 2002 =>` or `Year is 2002`:
+the RepoDrift test `InlineEditionComparisonDriftTests` counts every such comparison in `src/` and holds the files that
+still carry them to a list that ratchets down only (155 comparisons in 61 files when PB6031 measured them; 116 in 56
+after its first slices moved the Report Writer's 26 and 13 of the data, file, statement, comparison and currency rules
+into 25 members, VCR rows 7.92 to 7.116). A move is behaviour-neutral by construction when the member's `ChangedIn` is
+the year the site compared with; a window that is not one edge (`is2023 || DialectLevel < 2002`) is two members.
+
 ### 2.5 Bind/emit phase separation (the "no codegen on errors" fix)
 `CompilerDriver` runs `bind → conformance-pass → (halt if errors) → emit`. **Binding** (producing the `BoundProgram`)
 and **emission** (rendering C# from a valid `BoundProgram`) are distinct phases and the driver gates between them.

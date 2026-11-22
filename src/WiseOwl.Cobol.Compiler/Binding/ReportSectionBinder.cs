@@ -186,7 +186,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 // distinguishes them, and SR10/SR8 could not name a level unambiguously if it were.
                 // COBOL-2002 and later only: §1985:XIII.3.7.3 SR2 asks the opposite question — "Each recurrence of data-name-1
                 // must identify a different data item" — of the RESOLVED items (ResolveReports, ScreenControlItemsDistinct).
-                for (int i = 1; Edition.DialectLevel >= 2002 && i < model.Controls.Count; i++)
+                for (int i = 1; DialectBehaviors.IsActive(DialectBehavior.ReportControlOperandUniqueness, Edition.DialectLevel) && i < model.Controls.Count; i++)
                     if (model.Controls[i].Operand is { } later)
                         for (int j = 0; j < i; j++)
                             if (model.Controls[j].Operand is { } earlier && earlier.SameOperandAs(later))
@@ -332,7 +332,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// COBOL-2002 replaced the digit count with the page limit, or 9999 (<see cref="ReportModel.VerticalLimit"/>), so the
     /// test is true only below 2002.</summary>
     private bool ExceedsThreeSignificantDigits85(int value) =>
-        Edition.DialectLevel < 2002 && value > MaxThreeSignificantDigits85;
+        !DialectBehaviors.IsActive(DialectBehavior.ReportVerticalIntegerLimit, Edition.DialectLevel) && value > MaxThreeSignificantDigits85;
 
     /// <summary>999, the largest integer of three significant digits.</summary>
     private const int MaxThreeSignificantDigits85 = 999;
@@ -398,7 +398,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             return null;
         }
         // §1985:XIII.3.6.2 prints `CODE IS literal-1` alone: the identifier-1 form is COBOL-2002's (§2023:13.18.12.2).
-        if (Edition.DialectLevel < 2002)
+        if (!DialectBehaviors.IsActive(DialectBehavior.ReportCodeClauseOperand, Edition.DialectLevel))
         {
             Edition.Error(DiagnosticCatalog.ReportCodeClauseRule, $"{where} names '{WrittenSource.Of(dref)}', an identifier; "
                 + "the CODE clause of this dialect names a literal (CODE IS literal-1), and literal-1 must be a two-character "
@@ -453,7 +453,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// USE BEFORE REPORTING procedure through the same <see cref="ControlDataReferenceOf"/> (kb/Work PB5424).</summary>
     private void ScreenSourceControlData(ReportModel model, ReportGroupModel group, FieldReferenceSource source)
     {
-        if (Edition.DialectLevel >= 2002) return;
+        if (DialectBehaviors.IsActive(DialectBehavior.ReportControlDataReferences, Edition.DialectLevel)) return;
         // A function-identifier or method invocation references a temporary, never control data (kb/Work PB5240).
         if (source.Ref is not Core.DataReferenceContext sourceRef) return;
         if (_d.Symbols.IdentifyDataName(DataBinder.KeyReference(sourceRef), Model.Scope.Program).Single is not { } item) return;
@@ -526,7 +526,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// </list></summary>
     private void ScreenResetLevel(ReportModel model, ReportSumModel sum, ReportGroupModel footing)
     {
-        bool legacy = Edition.DialectLevel < 2002;
+        bool legacy = !DialectBehaviors.IsActive(DialectBehavior.SumResetLevelOrder, Edition.DialectLevel);
         if (legacy ? sum.ResetLevel <= footing.ControlLevel : footing.ControlLevel > sum.ResetLevel) return;
         using var at = Edition.At(sum.ResetAt);
         string operand = sum.ResetFinal ? "FINAL" : sum.ResetOperand?.ToString() ?? "?";
@@ -551,7 +551,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// own, and an item that REDEFINES another has a description of its own: neither is the item it overlays.</para></summary>
     private void ScreenControlItemsDistinct(ReportModel model)
     {
-        if (Edition.DialectLevel >= 2002) return;
+        if (DialectBehaviors.IsActive(DialectBehavior.ReportControlOperandUniqueness, Edition.DialectLevel)) return;
         for (int i = 1; i < model.Controls.Count; i++)
         {
             // A reference-modified operand identifies a part of its item, not the item (§2023:8.4.3.3.4 GR5), so only
@@ -574,7 +574,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// (§2023:13.18.12.3 SR1 asks only for an alphanumeric literal). False after reporting a literal of another length.</summary>
     private bool Screen85CodeLiteral(string chars, string written, string where)
     {
-        if (Edition.DialectLevel >= 2002 || chars.Length == 2) return true;
+        if (DialectBehaviors.IsActive(DialectBehavior.ReportCodeClauseOperand, Edition.DialectLevel) || chars.Length == 2) return true;
         Edition.Error(DiagnosticCatalog.ReportCodeClauseRule, $"{where} names {written}, a literal of {chars.Length} "
             + $"character{(chars.Length == 1 ? "" : "s")}; literal-1 must be a two-character nonnumeric literal (§1985:XIII.3.6.3 SR1)");
         return false;
@@ -927,7 +927,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
 
             // §1985:XIII.3.16.3 SR1 — "A report group entry must not contain a NEXT GROUP clause unless the description of that
             // report group contains at least one LINE NUMBER clause." COBOL-2002 and later keep no such rule.
-            if (Edition.DialectLevel < 2002 && g.Lines.Count == 0)
+            if (!DialectBehaviors.IsActive(DialectBehavior.NextGroupNeedsLineNumber, Edition.DialectLevel) && g.Lines.Count == 0)
                 Violation("the description of the report group contains no LINE NUMBER clause; a report group entry must not "
                     + "contain a NEXT GROUP clause unless the description of that report group contains at least one LINE "
                     + "NUMBER clause (§1985:XIII.3.16.3 SR1)");
@@ -1053,7 +1053,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         string headingWords(string rules) => $"line {model.FirstDetail - 1}, the line before the FIRST DETAIL integer "
             + $"{model.FirstDetail}: report heading (without NEXT GROUP NEXT PAGE) and page heading report groups may not be "
             + $"presented on or beyond the line number specified by integer-3 ({EditionInfo.Designated(rules)})";
-        if (year < 2002)
+        if (!DialectBehaviors.IsActive(DialectBehavior.ReportGroupVerticalLimits, year))
             switch (g.Kind)
             {
                 case ReportGroupKindModel.ReportHeading when g.NextGroup?.Kind == ReportNextGroupKind.NextPage:
@@ -1093,7 +1093,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// EC-REPORT-PAGE-LIMIT matter (§2023:13.18.35.4 GR2).</summary>
     private static int? Cobol85FinalLineCounter(ReportGroupModel g, ReportModel model, int year)
     {
-        if (year >= 2002) return null;
+        if (DialectBehaviors.IsActive(DialectBehavior.ReportGroupVerticalLimits, year)) return null;
         var before = g.Kind switch
         {
             ReportGroupKindModel.PageHeading => model.Groups.FirstOrDefault(x => x.Kind == ReportGroupKindModel.ReportHeading),
@@ -1182,7 +1182,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 // (§1985:XIII.3.10.6 GR2a; §1985:XIII.3.8.3 SR8a, "to the line number specified by integer-3 minus 1").
                 // From COBOL-2002 a page heading's first absolute line bounds it instead (§2023:13.18.57.4 GR8b, "the line preceding the first line of the page heading").
                 var pageHeading = model.Groups.FirstOrDefault(x => x.Kind == ReportGroupKindModel.PageHeading);
-                bool absoluteFirst = year >= 2002 && pageHeading is { Lines: [{ Kind: ReportLineKindModel.Absolute } first, ..] }
+                bool absoluteFirst = DialectBehaviors.IsActive(DialectBehavior.ReportGroupVerticalLimits, year) && pageHeading is { Lines: [{ Kind: ReportLineKindModel.Absolute } first, ..] }
                     && first.PresentWhenCtxs.Count == 0;
                 return (model.Heading, absoluteFirst ? pageHeading!.Lines[0].Value - 1 : model.FirstDetail - 1);
             }
@@ -1195,7 +1195,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             {
                 if (g.Lines is [{ NextPage: true }, ..]) return (model.Heading, model.PageLimit);
                 var pageFooting = model.Groups.FirstOrDefault(x => x.Kind == ReportGroupKindModel.PageFooting);
-                int? below = year < 2002 ? Cobol85FinalLineCounter(g, model, year)
+                int? below = !DialectBehaviors.IsActive(DialectBehavior.ReportGroupVerticalLimits, year) ? Cobol85FinalLineCounter(g, model, year)
                     : pageFooting is not null ? MinimumLastLine(pageFooting, model) : null;
                 return ((below ?? model.Footing) + 1, model.PageLimit);
             }
@@ -1394,7 +1394,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             // limit, placed from FIRST DETAIL (§1985:XIII.3.10.8, the first body group on a page), fits no page. COBOL-2002
             // and later make the page-fit a run-time condition (§2023:13.18.35.4 GR2: EC-REPORT-PAGE-LIMIT), so the
             // description is not refused there. Absolute lines are SR6 c)'s and d)'s, above and below.
-            if (Edition.DialectLevel < 2002
+            if (!DialectBehaviors.IsActive(DialectBehavior.ReportGroupPageFitAtCompileTime, Edition.DialectLevel)
                 && g.Kind is ReportGroupKindModel.Detail or ReportGroupKindModel.ControlHeading or ReportGroupKindModel.ControlFooting
                 && g.Lines.Count > 0 && !g.Lines.Exists(l => l.Kind == ReportLineKindModel.Absolute)
                 && MinimumLastLine(g, model) is { } bodyEnd && bodyEnd > lower)
@@ -1501,8 +1501,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                             + " (ISO §2023:13.18.35.3 SR9" + NotInCobol85("the OR PAGE phrase") + ")");
                     // §1985:XIII.3.15.3 SR9 — "The first LINE NUMBER clause specified within a PAGE FOOTING report group must be
                     // an absolute LINE NUMBER clause." COBOL-2002 and later place a relative first line of a page footing from
-                    // the FOOTING integer instead (§2023:13.18.35.4 GR5b.4).
-                    if (k == 0 && firstLineClause && !absolute && kind == ReportGroupKindModel.PageFooting && Edition.DialectLevel < 2002)
+                    // the FOOTING integer instead (§2023:13.18.35.4 GR5 b) 4.).
+                    if (k == 0 && firstLineClause && !absolute && kind == ReportGroupKindModel.PageFooting && !DialectBehaviors.IsActive(DialectBehavior.PageFootingFirstLineAbsolute, Edition.DialectLevel))
                         Violation("the first LINE clause of a page footing report group is relative"
                             + (op.NEXT() is not null ? " (ON NEXT PAGE without an integer-1)" : $" (LINE PLUS {WrittenSource.Of(op.integerOperand(), "")})")
                             + "; the first LINE NUMBER clause specified within a PAGE FOOTING report group must be an absolute "
@@ -1687,8 +1687,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     + "group, so neither of them, nor any other clause, may be written between two SUM groups ("
                     + Edition.Edition.CiteRule("§1985:XIII.3.19.2", "§2023:13.18.54.2") + ")");
             // §1985:XIII.3.19.3 SR3 — "A SUM clause can appear only in the description of a control footing report group."
-            // COBOL-2002 lifts it (§2023:13.18.54.3 SR4f names a detail, report footing and page footing as SUM groups).
-            if (sum && Edition.DialectLevel < 2002 && groupKind != ReportGroupKindModel.ControlFooting)
+            // COBOL-2002 lifts it (§2023:13.18.54.3 SR4 f) names a detail, report footing and page footing as SUM groups).
+            if (sum && !DialectBehaviors.IsActive(DialectBehavior.SumOnlyInControlFooting, Edition.DialectLevel) && groupKind != ReportGroupKindModel.ControlFooting)
                 Edition.Error(DiagnosticCatalog.ReportSumNotInControlFooting, $"{where} writes a SUM clause in a "
                     + $"{ReportGroupTypeWords(groupKind)} report group; a SUM clause can appear only in the description of a "
                     + "control footing report group (§1985:XIII.3.19.3 SR3)");
@@ -1716,25 +1716,25 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     Edition.Error(DiagnosticCatalog.ReportEntryClausePresence, $"{where} writes {ReportEntryClauseTable.Words(several)}; "
                         + "the SOURCE, SUM and VALUE clauses are alternatives of one another, and an entry takes one of them "
                         + "(ISO §2023:13.15.2; §1985:XIII.3.9.2; §1985:XIII.3.22.4 GR1)");
-                if (Edition.DialectLevel < 2002) ScreenReportEntryClauseTable(where, written, picture || column || source || value || sum
+                if (!DialectBehaviors.IsActive(DialectBehavior.ReportEntryClauseRules, Edition.DialectLevel)) ScreenReportEntryClauseTable(where, written, picture || column || source || value || sum
                     || groupIndicate || justifiedOrBwz || sign);
                 // COBOL-2002 and later: the entry's own syntax rules. At COBOL-85 Table 1 above holds all of them (its M cells
                 // are SR10 and SR13, its blank JUSTIFIED and BLANK WHEN ZERO cells SR15's, with a COLUMN clause required only of
                 // the rows that print by VALUE or SUM).
-                if (Edition.DialectLevel >= 2002 && column && !source && !value && !sum)
+                if (DialectBehaviors.IsActive(DialectBehavior.ReportEntryClauseRules, Edition.DialectLevel) && column && !source && !value && !sum)
                     Edition.Error(DiagnosticCatalog.ReportEntryClausePresence, $"{where} has a COLUMN clause but no "
                         + "SOURCE, VALUE or SUM clause; every elementary entry with a COLUMN clause shall also "
                         + "contain either a SOURCE, VALUE or SUM clause (ISO §2023:13.15.3 SR10)");
-                if (Edition.DialectLevel >= 2002 && value && !column)
+                if (DialectBehaviors.IsActive(DialectBehavior.ReportEntryClauseRules, Edition.DialectLevel) && value && !column)
                     Edition.Error(DiagnosticCatalog.ReportEntryClausePresence, $"{where} has a VALUE clause but no "
                         + "COLUMN clause; a COLUMN clause shall be specified in each elementary entry that has a "
                         + "VALUE clause (ISO §2023:13.15.3 SR13)");
             }
-            if (Edition.DialectLevel >= 2002 && justifiedOrBwz && !column)
+            if (DialectBehaviors.IsActive(DialectBehavior.ReportEntryClauseRules, Edition.DialectLevel) && justifiedOrBwz && !column)
                 Edition.Error(DiagnosticCatalog.ReportEntryClausePresence, $"{where} specifies BLANK WHEN ZERO or "
                     + "JUSTIFIED without a COLUMN clause; if BLANK WHEN ZERO or JUSTIFIED is specified, a COLUMN "
                     + "clause shall also be specified (ISO §2023:13.15.3 SR15)");
-            if (Edition.DialectLevel < 2002)
+            if (!DialectBehaviors.IsActive(DialectBehavior.ReportEntryClauseRules, Edition.DialectLevel))
                 ScreenReportEntryFormats(entries, i, level, where, usage, line, column,
                     picture, elementary, formatThreeOnly: source || value || sum || groupIndicate || justifiedOrBwz || sign, hasName: ge.dataName().NameOrNull() is not null,
                     written);
@@ -1754,7 +1754,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 // (kb/Work PB5806, which reverses the GROUP INDICATE half of kb/Work PB5243). The SOURCE-or-VALUE half is Table 1's,
                 // asked above, so it is the 2002 and later rule's alone here.
                 if (elementary && !column) faults.Add("has no COLUMN clause");
-                if (elementary && Edition.DialectLevel >= 2002 && !source && !value) faults.Add("has neither a SOURCE nor a VALUE clause");
+                if (elementary && DialectBehaviors.IsActive(DialectBehavior.ReportEntryClauseRules, Edition.DialectLevel) && !source && !value) faults.Add("has neither a SOURCE nor a VALUE clause");
                 if (faults.Count > 0)
                     Edition.Error(DiagnosticCatalog.ReportGroupIndicatePlacement, $"{where} specifies GROUP INDICATE "
                         + $"but {string.Join(" and ", faults)}; the GROUP INDICATE clause may be specified only within "
@@ -3305,7 +3305,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     {
         PicCategory.Numeric => pic.Digits,
         PicCategory.NumericEdited => pic.DigitPositions,
-        _ when year < 2002 => Math.Min(CharacterDigits(pic), Cobol85AlphanumericSumCounterDigits),
+        _ when !DialectBehaviors.IsActive(DialectBehavior.SumCounterAlphanumericCap, year) => Math.Min(CharacterDigits(pic), Cobol85AlphanumericSumCounterDigits),
         _ => CharacterDigits(pic),
     };
 
@@ -4031,7 +4031,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     private static List<object> PresentWhenClausesOf(ReportFieldModel f, int year)
     {
         var clauses = new List<object>(f.PresentWhenCtxs);
-        if (f.GroupIndicate && year >= 2002) clauses.Add((object?)f.Entry ?? f);
+        if (f.GroupIndicate && DialectBehaviors.IsActive(DialectBehavior.GroupIndicateAsPresentWhen, year)) clauses.Add((object?)f.Entry ?? f);
         return clauses;
     }
 
@@ -4542,7 +4542,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     + "which is the event §2023:13.18.54.4 GR7 c) 2) accumulates on."));
             return;
         }
-        if (Edition.DialectLevel < 2002 && !ReferenceEquals(owner, model))
+        if (!DialectBehaviors.IsActive(DialectBehavior.SumUponSameReport, Edition.DialectLevel) && !ReferenceEquals(owner, model))
         {
             Edition.Error(DiagnosticCatalog.ReportSumUponNotDetail, $"{where} names a detail report group of report "
                 + $"'{owner?.Name}', another report than the control footing's '{model.Name}': data-name-1 must be the name of "

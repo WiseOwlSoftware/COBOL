@@ -458,7 +458,7 @@ public sealed partial class FileControlBinder
         // The rule is the 2002 text's (§2002:13.16.10.2 SR1) and every later edition's; the 1985 clause has NO syntax rules
         // (§1985:VII.3.3.1 – .3) and says only that the two integers "refer to the minimum and maximum size of the physical
         // record, respectively" (§1985:VII.3.3.3 GR4), so at --std 85 equal bounds translate (kb/Work PB5115).
-        if (Edition.DialectLevel >= 2002 && values is [{ } integer1, { } integer2] && integer2 <= integer1)
+        if (DialectBehaviors.IsActive(DialectBehavior.BlockContainsRangeOrdered, Edition.DialectLevel) && values is [{ } integer1, { } integer2] && integer2 <= integer1)
             Edition.Error(DiagnosticCatalog.FileClauseSizeRange, $"file '{fileName}': the BLOCK CONTAINS clause states "
                 + $"{integer1} TO {integer2}; integer-2 shall be greater than integer-1 (ISO §2023:13.18.10.3 SR1)");
         // §1985:VII.3.3.3 GR5: an external connector's BLOCK CONTAINS clauses "must have the same value for integer-1 and integer-2" (kb/Work PB5300).

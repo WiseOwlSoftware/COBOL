@@ -413,7 +413,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
                     + ctx.Edition.Edition.CiteRule("§1985:XIII.4.3.3 SR2", "§2023:14.9.16.3 SR2") + ")");
             // §1985:XIII.3.20.3 SR6 — the report-name form needs a report description with no more than one detail report
             // group; COBOL-2002 and later keep only the CONTROL-clause condition above.
-            if (ctx.Edition.DialectLevel < 2002 && summary.Groups.Count(g => g.Kind == ReportGroupKindModel.Detail) is > 1 and var details)
+            if (!DialectBehaviors.IsActive(DialectBehavior.GenerateReportNameSingleDetail, ctx.Edition.DialectLevel) && summary.Groups.Count(g => g.Kind == ReportGroupKindModel.Detail) is > 1 and var details)
                 ctx.Edition.Error(DiagnosticCatalog.ReportGenerateDetailCount, $"GENERATE {name}: the report description entry "
                     + $"holds {details} detail report groups; when a GENERATE report-name statement is specified, the report "
                     + "description entry must include no more than one detail report group (§1985:XIII.3.20.3 SR6)");
@@ -623,7 +623,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
     /// <returns>True HAVING REPORTED a violation (one per statement).</returns>
     public bool CheckControlDataReferences(BoundStatement core)
     {
-        if (ctx.Edition.DialectLevel >= 2002 || ctx.Enclosing.Declarative is not { ReportGroup: { } group } use) return false;
+        if (DialectBehaviors.IsActive(DialectBehavior.ReportControlDataReferences, ctx.Edition.DialectLevel) || ctx.Enclosing.Declarative is not { ReportGroup: { } group } use) return false;
         var report = ctx.Data.State.Reports.Visible.FirstOrDefault(r => r.Groups.Contains(group));
         if (report is null) return false;
         // The rule is about the data-name the statement REFERENCES, under any decoration, so it asks Place.NamedItem: Place.Item

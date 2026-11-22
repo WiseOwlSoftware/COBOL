@@ -56,7 +56,7 @@ public sealed class DocumentedNonSupportWitnessTests
     {
         foreach (int edition in editions)
         {
-            var (ok, errors, warnings) = EditionHarness.CompileFull(source, edition);
+            var (ok, errors, warnings) = EditionHarness.CompileFull(source, edition, format: TestSourceFormat.OfSuiteCase(source));
             Assert.True(ok, $"--std {edition}: an ACCEPT-INERT declined facility must still COMPILE "
                 + $"(docs/CONFORMANCE.md §1): {string.Join("\n", errors)}");
             EditionHarness.AssertHasDiagnostic(warnings, code);
@@ -96,7 +96,7 @@ public sealed class DocumentedNonSupportWitnessTests
     {
         string source = Golden("pb292_record_delimiter_witness");
         Assert.Contains("RECORD DELIMITER IS BINARY-SEQUENTIAL", source, StringComparison.Ordinal);
-        var (ok, errors, warnings) = EditionHarness.CompileFull(source, edition);
+        var (ok, errors, warnings) = EditionHarness.CompileFull(source, edition, format: TestSourceFormat.OfSuiteCase(source));
         Assert.True(ok, $"--std {edition}: {string.Join("\n", errors)}");
         Assert.DoesNotContain(warnings, w => w.Contains("on file 'F2'", StringComparison.OrdinalIgnoreCase));
     }
@@ -128,7 +128,7 @@ public sealed class DocumentedNonSupportWitnessTests
     public void RecordDelimiterAbsent_DrawsNoWarning_AndOnlyTheStandard1ClausesDo(int edition)
     {
         string source = Golden("pb292_record_delimiter_witness");
-        var (ok, errors, warnings) = EditionHarness.CompileFull(source, edition);
+        var (ok, errors, warnings) = EditionHarness.CompileFull(source, edition, format: TestSourceFormat.OfSuiteCase(source));
         Assert.True(ok, $"--std {edition}: {string.Join("\n", errors)}");
         var raised = warnings.Where(w => w.Contains(RecordDelimiterNonSupport, StringComparison.Ordinal))
             .ToList();
@@ -149,7 +149,7 @@ public sealed class DocumentedNonSupportWitnessTests
     public void McsStatements_Below2023_AnswerTheIntroductionGate_NotTheFacility(int edition)
     {
         string source = Golden("pb374-async-messaging-below-2023");
-        var (ok, errors, warnings) = EditionHarness.CompileFull(source, edition);
+        var (ok, errors, warnings) = EditionHarness.CompileFull(source, edition, format: TestSourceFormat.OfSuiteCase(source));
         Assert.False(ok, $"the asynchronous messaging formats compiled at COBOL-{edition}");
         Assert.Equal(2, errors.Count(e => e.Contains("COBOL0900", StringComparison.Ordinal)));
         Assert.Empty(warnings);
@@ -161,7 +161,7 @@ public sealed class DocumentedNonSupportWitnessTests
     [Fact]
     public void DeclinedModuleExceptionName_Permissive_ScreenStillRefused()
     {
-        var (screenOk, screenErrors, _) = EditionHarness.CompileFull(Golden("a42-ec-screen-raise"), 2023,
+        var (screenOk, screenErrors, _) = EditionHarness.CompileFull(Golden("a42-ec-screen-raise"), 2023, format: TestSourceFormat.OfSuiteCase(Golden("a42-ec-screen-raise")),
                                                                      permissive: true);
         Assert.False(screenOk, "EC-SCREEN is not PermissiveInert; --permissive must not accept its names");
         Assert.Contains(screenErrors, e => e.Contains("COBOL1707", StringComparison.Ordinal));
@@ -184,7 +184,7 @@ public sealed class DocumentedNonSupportWitnessTests
         string claimed = source.Replace("FLOAT-DECIMAL DEFAULT IS BINARY-ENCODING HIGH-ORDER-RIGHT.",
             "FLOAT-BINARY DEFAULT IS HIGH-ORDER-LEFT.", StringComparison.Ordinal);
         Assert.NotEqual(source, claimed);
-        var (ok, errors, warnings) = EditionHarness.CompileFull(claimed, edition);
+        var (ok, errors, warnings) = EditionHarness.CompileFull(claimed, edition, format: TestSourceFormat.OfSuiteCase(claimed));
         Assert.True(ok, string.Join("\n", errors));
         Assert.DoesNotContain(warnings, w => w.Contains(FloatDecimalClauseNonSupport, StringComparison.Ordinal));
     }
@@ -195,7 +195,7 @@ public sealed class DocumentedNonSupportWitnessTests
     [Fact]
     public void FloatDecimalClause_At2002_DrawsTheIntroductionGateAndNotTheDecline()
     {
-        var (ok, errors, warnings) = EditionHarness.CompileFull(Golden("w59_float_decimal_clause_witness"), 2002);
+        var (ok, errors, warnings) = EditionHarness.CompileFull(Golden("w59_float_decimal_clause_witness"), 2002, format: TestSourceFormat.OfSuiteCase(Golden("w59_float_decimal_clause_witness")));
         Assert.False(ok);
         EditionHarness.AssertHasDiagnostic(errors, "COBOL0900");
         EditionHarness.AssertHasDiagnostic(errors, "OPTIONS FLOAT-DECIMAL requires COBOL-2014");
@@ -227,7 +227,7 @@ public sealed class DocumentedNonSupportWitnessTests
     private static void AssertArmNamed(int edition, string armSpelling)
     {
         string source = Golden("pb292_record_delimiter_witness");
-        var (ok, errors, warnings) = EditionHarness.CompileFull(source, edition);
+        var (ok, errors, warnings) = EditionHarness.CompileFull(source, edition, format: TestSourceFormat.OfSuiteCase(source));
         Assert.True(ok, $"--std {edition}: an ACCEPT-INERT declined facility must still COMPILE "
             + $"(docs/CONFORMANCE.md §1): {string.Join("\n", errors)}");
         var armed = warnings.Where(w => w.Contains(RecordDelimiterNonSupport, StringComparison.Ordinal)

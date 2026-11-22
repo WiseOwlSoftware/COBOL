@@ -2237,6 +2237,21 @@ diagnostic at every edition it is placed at; a case the converter refuses leaves
 rows; 137 were converted and 1 refused (`pb485-level-number-missing`), and the 33 cases refused at 85 for free form
 alone were converted and widened (DEVLOG of kb/Work PB5754).
 
+**The same rule for a C# witness (kb/Work PB6037, decided 2026-11-21).** A `unit:` or `conformance-test:` reference of a
+1985 row witnesses it only when the program text the test compiles at `--std 85` is fixed form
+(`InitialReferenceFormat.Fixed`, or the format a suite case states in its header, `TestSourceFormat.OfSuiteCase`), or when
+the test compiles no program text at all (it drives a runtime, binder or lexer member directly, and no reference format is
+in question). `TestSourceFormat.Inline` text (free form, the default of the harness entries) compiled at 85 is the
+extension's regression test, and a test that compiles only at a later edition witnesses no 1985 row. The C# source is not
+the Python audit's to read, so the RepoDrift test `EditionWitnessFormatDriftTests` holds it: it reads every C# reference of
+`tests/version-matrix/inventory-1985/`, the test method's source and the members of its file it calls, and refuses one
+that names a free format or compiles through an `Inline`-defaulting entry without naming a fixed one. Measured on
+2026-11-21 (train-1985-d 0ffdede4cc): 38 distinct C# witnesses of 1985 rows; 21 compile no text, 2 lex text with no reference format, 10 compile fixed form,
+4 compiled free form at 85 (both `ScheduledProgramTests`, `SequentialWriteBoundaryTests`, and
+`DocumentedNonSupportWitnessTests.RecordDelimiterStandard1_...`, whose golden states `fixed`), all four laid out in fixed
+columns already and now compiled fixed, and 1 (`SendersSignOneReadTests.ImageSender_...`, a 2002 compile) taken off
+1985-GR-VI.6.19.4-4, which keeps its three suite cases.
+
 **The audit.** `python scripts/spec/lineage_reads.py --check` (the gate's LINEAGE READS, and a step of CI's audits job),
 over every older held edition, one reading of the suite shared by all: every read record interprets and still matches
 the digests it was imported with; every stored change record whose source names a read record is that read's decision

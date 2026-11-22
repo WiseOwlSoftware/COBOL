@@ -205,6 +205,32 @@ public sealed class ProcessObservationDriftTests
         Assert.True(SurvivingProcess.WaitForExitById(id, ObservationBudget.UnitMs));
     }
 
+    /// <summary>⛔ A child the host started dies with the host (kb/Work PB5057). The host's death closes every handle it held;
+    /// closing the job's last handle here is that event, so a sleeper in the job must exit, its own child (cmd's ping) with it.
+    /// It ran for ever before the job existed: NIST DB205A busy-looped five hours after its host and worktree were gone. On
+    /// a host that is not Windows the job does not exist (the decision in <see cref="HostBoundChildren"/>), and says so.</summary>
+    [Fact]
+    public void AChildInTheHostsJob_DiesWhenTheJobsLastHandleCloses()
+    {
+        if (!OperatingSystem.IsWindows())
+        {
+            Assert.Throws<PlatformNotSupportedException>(KillOnCloseJob.Create);
+            return;
+        }
+        using var sleeper = Process.Start(RunsForever())!;
+        try
+        {
+            using (var job = KillOnCloseJob.Create())
+            {
+                job.Assign(sleeper);
+                Assert.False(sleeper.WaitForExit(0), "the sleeper ended before its job closed: nothing was proven");
+            }
+            Assert.True(sleeper.WaitForExit(ObservationBudget.UnitMs),
+                "the job's last handle closed and its process is still running: a dead host would orphan its children");
+        }
+        finally { if (!sleeper.HasExited) sleeper.Kill(entireProcessTree: true); }
+    }
+
     // ── The retry of a program that WRITES (kb/Work PB3388) ────────────────────────────────────────────────
     //
     // The retry policy is exercised through ProcessObserver.ObserveWithRetry with an IN-PROCESS attempt, not a child

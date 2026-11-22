@@ -197,7 +197,7 @@ public sealed partial class SymbolTable
     /// group as the subject of the entry"), carried on by §2023:8.4.2.2.1 SR5. §1985:IV.4.3.8.1 SR3 has only the exception "in the case
     /// of redefinition": every other explicitly referenced name must be made unique by qualification, so below 2002 the whole scope's
     /// candidates are counted (§1985:VI.5.8.3 SR2 and §1985:VI.5.11.3 SR5 give these clauses the qualifier to say it with).</summary>
-    private bool ClauseOperandsTakeImplicitQualifiers => _data.Edition.DialectLevel >= 2002;
+    private bool ClauseOperandsTakeImplicitQualifiers => DialectBehaviors.IsActive(DialectBehavior.EntryClauseImplicitQualifiers, _data.Edition.DialectLevel);
 
     /// <summary>True when every qualifier names strictly-superordinate context of <paramref name="cand"/>, consumed inner -> outer with
     /// gaps allowed (ISO §2023:8.4.2.2.3 SR4: "Qualifiers shall be specified in the order of successively more inclusive levels in the

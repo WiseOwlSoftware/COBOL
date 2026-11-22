@@ -10,6 +10,8 @@ using WiseOwl.Cobol.Editions.Diagnostics;
 namespace WiseOwl.Cobol.Binding;
 
 using Core = CobolParserCore;
+using DialectBehavior = WiseOwl.Cobol.Runtime.DialectBehavior;
+using DialectBehaviors = WiseOwl.Cobol.Runtime.DialectBehaviors;
 
 /// <summary>The CURRENCY SIGN clause and the unit's currency-sign set (ISO §2023:12.3.7.2; §2023:12.3.7.3 SR18-SR28; §2023:12.3.7.4 GR13).
 /// A partial of <see cref="SpecialNamesBinder"/>.</summary>
@@ -69,7 +71,7 @@ public sealed partial class SpecialNamesBinder
         CurrencyLiteral? value = null;
         // ⛔ Literal-8's hexadecimal refusal first appears in the 2014 text (§2014:12.3.6.2 SR26); §2002:12.2.6.2 SR22 asks an
         // alphanumeric literal of one character that is no figurative constant, and names no hexadecimal form (kb/Work PB5595).
-        bool refuseHexadecimal = op.RefusesHexadecimal && Edition.DialectLevel >= 2014;
+        bool refuseHexadecimal = op.RefusesHexadecimal && DialectBehaviors.IsActive(DialectBehavior.CurrencyHexadecimalLiteralRules, Edition.DialectLevel);
         if (operand.literal() is { } lit)
         {
             var nn = lit.nonNumericLiteral();
@@ -185,7 +187,7 @@ public sealed partial class SpecialNamesBinder
         // in the 2014 text (§2014:12.3.6.2 SR19); §2002:12.2.6.2 has no rule naming a hexadecimal literal-7 (kb/Work PB5595),
         // so at COBOL-2002 a single-character X"40" is the one-character literal its SR19 asks, and below 2002 the
         // literal's own introduction gate refuses it.
-        if (bare.Hexadecimal && Edition.DialectLevel >= 2014)
+        if (bare.Hexadecimal && DialectBehaviors.IsActive(DialectBehavior.CurrencyHexadecimalLiteralRules, Edition.DialectLevel))
             Edition.Error(DiagnosticCatalog.CurrencySignLiteralRule, "CURRENCY SIGN: a hexadecimal currency literal requires the PICTURE "
                 + "SYMBOL phrase (" + EditionInfo.Designated(HexadecimalCurrencyRule) + ")");
         if (bare.Text.Length != 1)
@@ -214,7 +216,7 @@ public sealed partial class SpecialNamesBinder
         // first appears in the 2014 text (§2014:12.3.6.2 SR19); §2002:12.2.6.2 SR20b has no such exemption and refuses
         // the digits and + - , . * of a literal-7 whatever its form (kb/Work PB5595), so below 2014 a hexadecimal
         // literal's decoded characters are checked like any other's.
-        bool exempt = literal7.Hexadecimal && Edition.DialectLevel >= 2014;
+        bool exempt = literal7.Hexadecimal && DialectBehaviors.IsActive(DialectBehavior.CurrencyHexadecimalLiteralRules, Edition.DialectLevel);
         if (!exempt && literal7.Text.Any(c => char.IsAsciiDigit(c) || c is '+' or '-' or ',' or '.' or '*'))
         {
             Edition.Error(DiagnosticCatalog.CurrencySignLiteralRule, $"CURRENCY SIGN \"{literal7.Text}\": a currency string may not contain the "

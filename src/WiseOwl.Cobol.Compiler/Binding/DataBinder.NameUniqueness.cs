@@ -70,7 +70,7 @@ public sealed partial class DataBinder
     /// The second and later declaration of a spelling is reported, one entry writing it twice included.</summary>
     private void ScreenIndexNameUniqueness()
     {
-        if (Edition.DialectLevel >= 2002) return;
+        if (DialectBehaviors.IsActive(DialectBehavior.IndexNameQualification, Edition.DialectLevel)) return;
         foreach (var decl in SymbolTable.RepeatedIndexNames(State.Forest.OwnIndexes))
         {
             using var _ = Edition.At(decl.Table.DeclaredAt);
