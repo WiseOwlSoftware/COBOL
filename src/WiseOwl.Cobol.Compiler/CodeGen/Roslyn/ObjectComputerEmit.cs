@@ -74,6 +74,13 @@ internal static class ObjectComputerEmit
         _ => throw new InvalidOperationException($"range collation '{id.Name}': no spelling for {id.Sequence}"),
     };
 
+    /// <summary>Each range-collation carrier <paramref name="data"/>'s unit made, as its identity and its field's spelling
+    /// (<see cref="RangeCollationField"/>), in the order the carriers were made: what the range reader
+    /// (<c>RangeCollationFields</c>) indexes, so the reader names the identities alone and never the carrier, which only the
+    /// declaration above reads (kb/Work PB3214).</summary>
+    public static IEnumerable<(RangeCollationId Id, string? Field)> RangeCollationFieldsOf(DataBindResult data)
+        => data.RangeCollations.Select(c => (c.Id, RangeCollationField(c.Id)));
+
     /// <summary>The activation-time resolution expression of a classification (§2023:12.3.6.4 GR5 a–j; GR8; §2023:14.6.6 GR2).</summary>
     public static string ClassificationResolve(ClassificationSpec cls)
         => $"CharacterClassification.Resolve({Kind(cls.Alphanumeric)}, {Tag(cls.Alphanumeric)}, {Kind(cls.National)}, {Tag(cls.National)})";

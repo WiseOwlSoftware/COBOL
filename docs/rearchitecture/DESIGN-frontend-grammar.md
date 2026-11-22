@@ -3263,7 +3263,7 @@ regression bisects to one step.
    are read solely by the `VersionConformancePass`. Which dependency shape?
    (DESIGN-edition-framework.md needs the same answer.)
 3. **`Cst/` timing (M8) — RESOLVED (kb/Work PB2731).** M8 is paced by the binder track, and its end state is the
-   §8.1 boundary of DESIGN-architecture-review: extension members on the generated contexts, no wrapper façade.
+   DESIGN-architecture-review §8.1 boundary: extension members on the generated contexts, no wrapper façade.
 4. **Generated-namespace rename timing (M3 vs G8) — RESOLVED.** The `Generated` namespace rename was brought forward
    (PHASE 01); it renames only the front-end's generated code and was independent of the legacy assembly, which is now deleted.
 5. **SUBSCRIPT-mode elimination — D10 = FULLY REMOVE (§9 below is the design).** The owner ruled the SUBSCRIPT
