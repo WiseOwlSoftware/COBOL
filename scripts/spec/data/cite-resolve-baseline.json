@@ -8,7 +8,7 @@
   "longer fails. Repair a citation, then rewrite this file with",
   "`python scripts/spec/audit_code_citations.py --write-baseline` (it refuses to add an entry)."
  ],
- "count": 6021,
+ "count": 6026,
  "entries": [
   {
    "file": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4",
@@ -3348,19 +3348,19 @@
   },
   {
    "file": "docs/FILES_DESIGN.md",
-   "line": 3239,
+   "line": 3259,
    "citation": "§2023:9.1.13.6 item 6",
    "kind": "designator-not-canonical"
   },
   {
    "file": "docs/FILES_DESIGN.md",
-   "line": 3239,
+   "line": 3259,
    "citation": "§2023:9.1.13.6 item 6",
    "kind": "item-is-a-rule"
   },
   {
    "file": "docs/FILES_DESIGN.md",
-   "line": 3293,
+   "line": 3313,
    "citation": "§2023:9.1.13.7 item 5",
    "kind": "item-is-a-rule"
   },
@@ -5262,13 +5262,13 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs",
-   "line": 529,
+   "line": 528,
    "citation": "§2023:14.9.33.4 GR2",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs",
-   "line": 817,
+   "line": 806,
    "citation": "§2023:9.1.13.8 item 2",
    "kind": "item-is-a-rule"
   },
@@ -11418,97 +11418,97 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs",
-   "line": 1831,
+   "line": 1833,
    "citation": "§2023:13.4.5.3 SR3",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs",
-   "line": 1851,
+   "line": 1853,
    "citation": "§2023:13.4.5.3 SR3",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs",
-   "line": 1954,
+   "line": 1956,
    "citation": "§2023:14.9.27.4 GR12",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs",
-   "line": 1963,
+   "line": 1965,
    "citation": "§2023:14.9.30.4 GR21",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs",
-   "line": 2002,
+   "line": 2004,
    "citation": "§1985:VII.4.3.4 GR20",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs",
-   "line": 2055,
+   "line": 2057,
    "citation": "§1985:VII.4.3.4 GR20",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs",
-   "line": 2241,
+   "line": 2243,
    "citation": "§2023:14.9.13.3 SR7",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs",
-   "line": 2261,
+   "line": 2263,
    "citation": "§2023:15.2 item 2",
    "kind": "item-is-a-rule"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs",
-   "line": 2360,
+   "line": 2362,
    "citation": "§2023:8.8.4.2.1 item 6",
    "kind": "item-is-a-rule"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs",
-   "line": 2387,
+   "line": 2389,
    "citation": "§2023:8.8.4.2.1 item 11",
    "kind": "item-is-a-rule"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs",
-   "line": 2394,
+   "line": 2396,
    "citation": "§2023:8.8.4.2.1 item 11",
    "kind": "item-is-a-rule"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs",
-   "line": 2400,
+   "line": 2402,
    "citation": "§2023:8.4.3.10.3 SR1",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs",
-   "line": 2427,
+   "line": 2429,
    "citation": "§2023:8.4.3.10.3 SR1",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs",
-   "line": 2431,
+   "line": 2433,
    "citation": "§2023:8.4.3.10.3 SR1",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs",
-   "line": 2477,
+   "line": 2479,
    "citation": "§2023:8.8.4.2.1 item 11",
    "kind": "item-is-a-rule"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs",
-   "line": 2485,
+   "line": 2487,
    "citation": "§2023:8.8.4.2.1 item 11",
    "kind": "item-is-a-rule"
   },
@@ -35763,6 +35763,36 @@
    "line": 58,
    "citation": "§2023:8.4.3.3.4 item 5c",
    "kind": "item-is-a-rule"
+  },
+  {
+   "file": "kb/Work/PB6036.md",
+   "line": 2,
+   "citation": "§2023:13.18.38.3 SR25d",
+   "kind": "no-sub-item"
+  },
+  {
+   "file": "kb/Work/PB6036.md",
+   "line": 2,
+   "citation": "§2023:14.5.3.3 GR1c",
+   "kind": "no-sub-item"
+  },
+  {
+   "file": "kb/Work/PB6036.md",
+   "line": 34,
+   "citation": "§2023:13.18.38.3 SR25d",
+   "kind": "no-sub-item"
+  },
+  {
+   "file": "kb/Work/PB6036.md",
+   "line": 47,
+   "citation": "§2023:13.18.38.3 SR25d",
+   "kind": "no-sub-item"
+  },
+  {
+   "file": "kb/Work/PB6036.md",
+   "line": 47,
+   "citation": "§2023:14.5.3.3 GR1c",
+   "kind": "no-sub-item"
   },
   {
    "file": "kb/Work/PB623.md",

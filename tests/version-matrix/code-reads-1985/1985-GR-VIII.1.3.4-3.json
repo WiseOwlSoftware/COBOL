@@ -70,7 +70,7 @@
     "check": "OK  §1985:VIII.1.3.4 GRL2.3  (1.3.4 I-O Status)  the text is in GRL2.3"
    }
   ],
-  "notes": "The one edition arm on the path is RelativeConnector.Write's out-of-range key; at 85 it takes BoundaryViolation (24), as §1985:VIII.1.3.4 GRL2.3c reads, and the probe shows both arms. The status class tests (CodeGen/Verbs/IoStatusClass.cs), the generated __IoCheck hook (DispatchEmitter.EmitUseMachinery) and the Status setter's permanent-error record are the same code at every edition.",
+  "notes": "The one edition arm on the path is RelativeConnector.Write's out-of-range key; at 85 it takes BoundaryViolation (24), as §1985:VIII.1.3.4 item (3) c reads, and the probe shows both arms. The status class tests (CodeGen/Verbs/IoStatusClass.cs), the generated __IoCheck hook (DispatchEmitter.EmitUseMachinery) and the Status setter's permanent-error record are the same code at every edition.",
   "seeded": true,
   "harm": "",
   "cause": "",

@@ -60,7 +60,7 @@
    {
     "class": "f",
     "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-022/p1conv.cob (first run p1conv-001)",
-    "printed": "COBOL0805: ADD: the composite of operands spans 19 digits ... caps the composite of operands at 18 digits (§1985:VI.6.4.4 SR2)",
+    "printed": "COBOL0805: ADD: the composite of operands spans 19 digits ... caps the composite of operands at 18 digits (§1985:VI.6.4.4 item 2)",
     "expected": "GR2 of the same clause refuses a 19-digit composite (S9(17)V9 added to S9(18))"
    }
   ],
