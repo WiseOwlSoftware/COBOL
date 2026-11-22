@@ -23,7 +23,7 @@ first witness kind that holds:
     shared-test          no header names it, and the `test-ref` tests that accept at 85 accept another edition too: a 1985
                          row's test runs at 85 alone (§12.1, and the generator refuses a test accepted outside its rules'
                          bands), so the row needs an 85-only test, an authoring obligation (Stage 3)
-    no-85-test           no header names it and no `test-ref` test accepts at 85: an authoring obligation (Stage 3)
+    no-test           no header names it and no `test-ref` test accepts at 85: an authoring obligation (Stage 3)
 
 The module takes the parsed tests and the inventory's rows and returns facts; `generate.py` stays the one reader of
 headers. `suite_status.py` reads the rows term from `classify`.
@@ -46,17 +46,18 @@ VERDICT = "=== OBLIGATIONS 85: "
 
 #: The witness kinds in the order a row is counted under the first that holds.
 WITNESS = ("non-support", "suite", "determination", "derivation", "accepted-uncleared", "refusal-only",
-           "other-edition-only", "header-omits", "shared-test", "no-85-test")
+           "other-edition-only", "header-omits", "shared-test", "no-test")
 #: The kinds that owe no test: a row no program can observe yet, or one a derivation settles.
 UNOBSERVABLE = frozenset({"non-support", "derivation"})
 
-#: §6.1 cut to the 1985 row kinds. A kind this table lacks is refused, never given a default obligation.
+#: §6.1's row kinds (DOC rows are the later editions' only). A kind this table lacks is refused, never given a default obligation.
 OBLIGATION = {
     "GR": "accepted test whose output shows the rule's effect",
     "RV": "accepted test whose output shows the rule's effect",
     "AR": "accepted test whose output shows the rule's effect",
     "SR": "accepted test of the legal form",
     "FMT": "accepted test and every coverage point",
+    "DOC": "a test per value the row enumerates, otherwise the determination docs/CONFORMANCE.md carries",
 }
 NON_SUPPORT = "DOCUMENTED-NON-SUPPORT"
 CONFORMANCE_REF = "conformance:"
@@ -122,7 +123,7 @@ def classify(rows: Iterable[dict[str, Any]], cases: Iterable[Any], *, diagnostic
         else:
             at_85 = {tid for tid in map(_test_id_of, test_refs(row)) if tid in by_id and accepts(by_id[tid], edition)}
             repair = tuple(sorted(tid for tid in at_85 if tuple(by_id[tid].accept) == (edition,)))
-            witness = "header-omits" if repair else "shared-test" if at_85 else "no-85-test"
+            witness = "header-omits" if repair else "shared-test" if at_85 else "no-test"
         out.append(RowFacts(rule_id, kind, OBLIGATION[kind], witness, tuple(sorted(c.test_id for c in tests)), repair))
     return out
 
@@ -291,7 +292,7 @@ def self_test() -> int:
         test_refs=lambda r: [x for x in r["test-ref"].split(";") if x])}
     expect = {"R-ns": "non-support", "R-suite": "suite", "R-det": "determination", "R-der": "derivation",
               "R-unc": "accepted-uncleared", "R-ref": "refusal-only", "R-oth": "other-edition-only",
-              "R-hdr": "header-omits", "R-hdr2": "no-85-test", "R-none": "no-85-test", "R-shared": "shared-test"}
+              "R-hdr": "header-omits", "R-hdr2": "no-test", "R-none": "no-test", "R-shared": "shared-test"}
     for rid, witness in expect.items():
         check(f"arm: {rid} is {witness}", got[rid].witness == witness, got[rid].witness)
     check("arm: a header-omits row names the test to repair", got["R-hdr"].repair == ("t-acc",), got["R-hdr"].repair)
@@ -304,7 +305,7 @@ def self_test() -> int:
                     determined=lambda r: False, derived=lambda r: False, test_refs=lambda r: [])
     check("arm: a WiseOwl refusal at 85 is refusal-only", diag[0].witness == "refusal-only", diag[0].witness)
     try:
-        classify([row("R-x", "DOC")], [], diagnostics={}, determined=lambda r: False, derived=lambda r: False,
+        classify([row("R-x", "XYZ")], [], diagnostics={}, determined=lambda r: False, derived=lambda r: False,
                  test_refs=lambda r: [])
         check("arm: an unknown row kind is refused", False, "no error")
     except ValueError:
