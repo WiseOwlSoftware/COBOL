@@ -1802,10 +1802,13 @@ whose body reads edition state or calls another edition read, to a fixpoint; an 
 lexer predicate `{…}?` or action `{…}` body, any lexer override (`NextToken`, `Emit`), any parser listener, any
 retype-stage member, or any front-end DRIVER member that hands edition state to a lexer or parser or decides a
 re-lex from it, that calls one, names edition state itself (`{Edition.Has(2014)}?`, a primed lexer field) or passes
-edition state on: the pipeline's parse-again loop (`Pipeline/Frontend.cs:425-463`,
-calling `LexesDifferentlyFrom` at `:437` and `PrimeLexer` at `:463`) and the fragment parser (`FragmentParse.Parse`,
-`Parsing/FragmentParse.cs:62,72,93`, and its callers `SubscriptExpressionFragment.cs:31` and
-`DirectiveExpressionFragment.cs:45`), both added by Draft 6 after the fifth refuter (G4). Names play no part, so a read under a new name, in any of the three stages, is
+edition state on. Those drivers are ONE mechanism (kb/Work PB2735): `Parsing/CobolTokenStream.cs` is the one
+preparation of a token stream and its parser — `CobolTokenStream.Lexer` primes every lexer (`PrimeLexer`),
+`CobolTokenStream.Parser` hands every parser the edition, `CobolTokenStream.Prepare` runs the post-lex steps in their
+one order (debugging lines, ZERO, the §2023:8.9 retype) and `CobolTokenStream.UntilLexStable` is the one re-lex loop
+(`LexesDifferentlyFrom`) — and the whole group's parse (`Frontend.LexAndParse`, `Frontend.NewParser`), the fragment
+parser's three entries (`FragmentParse.Parse`, `ParseTokens`, `ParseUnit`) and the keyword probe
+(`CobolKeywordTokens.LexProbe`) each call it. Names play no part, so a read under a new name, in any of the three stages, is
 caught the day it is written. Applied to the parser at `3d44e5f22` (*text scan, provisional*: the third refuter's
 transitive scan), the rule finds these members: `is85`, `is2002`, `is2014`, `is2023` (`:59-62`);
 `setLocaleAhead` (`:190`, the `LC_` escape of SET LOCALE); `reservedHere` (`:344-345`, `IsReservedAt(Edition.Year)`);

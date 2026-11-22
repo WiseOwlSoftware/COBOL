@@ -210,25 +210,20 @@ public sealed class EditionReadDriftTests
         ["src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs | CobolErrorStrategy.GuessCobolIntent | PrintsConstantName"] = (1, Verdict.DiagnosisOnly),
         // The listener: the gate's second witness notes a syntax error's offending reservation-gated word.
         ["src/WiseOwl.Cobol.Frontend/Parsing/ReservationGateRewriter.cs | OffenderWitness.SyntaxError | NoteGatedOffender"] = (1, Verdict.WordStatus),
-        // The front end's driver decides whether a re-parse lexes differently because a word the program declared is
-        // reserved at the edition.
-        ["src/WiseOwl.Cobol.Frontend/Pipeline/Frontend.cs | Frontend.LexAndParse | LexesDifferentlyFrom"] = (1, Verdict.WordStatus),
-        // The carriers: the driver and the fragment parser prime each lexer and hand each parser the edition, and the
-        // fragment parser's callers pass one on (a directive expression parses at the newest edition's word status).
-        ["src/WiseOwl.Cobol.Frontend/Pipeline/Frontend.cs | Frontend.NewLexer | PrimeLexer"] = (1, Verdict.Carrier),
-        ["src/WiseOwl.Cobol.Frontend/Pipeline/Frontend.cs | Frontend.NewParser | Edition="] = (1, Verdict.Carrier),
-        ["src/WiseOwl.Cobol.Frontend/Parsing/FragmentParse.cs | FragmentParse.Parse | PrimeLexer"] = (1, Verdict.Carrier),
-        ["src/WiseOwl.Cobol.Frontend/Parsing/FragmentParse.cs | FragmentParse.Parse | Edition="] = (1, Verdict.Carrier),
-        ["src/WiseOwl.Cobol.Frontend/Parsing/FragmentParse.cs | FragmentParse.ParseTokens | Edition="] = (1, Verdict.Carrier),
-        ["src/WiseOwl.Cobol.Frontend/Parsing/DirectiveExpressionFragment.cs | DirectiveExpressionFragment.Parse | FragmentParse.Parse"] = (1, Verdict.Carrier),
-        ["src/WiseOwl.Cobol.Compiler/Oo/OoExpansion.cs | OoExpansion.Expand | FragmentParse.ParseTokens"] = (2, Verdict.Carrier),
-        // A parameterized definition another group published is lexed again from the text it recorded, at the edition and under the
-        // words map it recorded (kb/Work PB2104): the whole-group parse in miniature, primed and settled exactly as the front end's
-        // is, handing the recorded edition on and nothing more.
-        ["src/WiseOwl.Cobol.Frontend/Parsing/FragmentParse.cs | FragmentParse.ParseUnit | PrimeLexer"] = (1, Verdict.Carrier),
-        ["src/WiseOwl.Cobol.Frontend/Parsing/FragmentParse.cs | FragmentParse.ParseUnit | Edition="] = (1, Verdict.Carrier),
-        ["src/WiseOwl.Cobol.Frontend/Parsing/FragmentParse.cs | FragmentParse.ParseUnit | LexesDifferentlyFrom"] = (1, Verdict.WordStatus),
-        ["src/WiseOwl.Cobol.Compiler/Oo/OoExpansion.cs | OoExpansion.Expand | FragmentParse.ParseUnit"] = (1, Verdict.Carrier),
+        // The one re-lex loop (CobolTokenStream.UntilLexStable, kb/Work PB2735) decides whether a re-parse lexes differently
+        // because a word the program declared is reserved at the edition; the whole group's parse and a recorded skeleton's
+        // re-parse (FragmentParse.ParseUnit, kb/Work PB2104) both run it.
+        ["src/WiseOwl.Cobol.Frontend/Parsing/CobolTokenStream.cs | CobolTokenStream.UntilLexStable | LexesDifferentlyFrom"] = (1, Verdict.WordStatus),
+        // The carriers: the one token-stream preparation primes each lexer and hands each parser the edition
+        // (CobolTokenStream, kb/Work PB2735), and its callers pass the edition on: the driver's whole-group parser and the
+        // fragment parser's three entries (a directive expression parses at the newest edition's word status; a parameterized
+        // definition's expansion and a published skeleton at the edition they were written under).
+        ["src/WiseOwl.Cobol.Frontend/Parsing/CobolTokenStream.cs | CobolTokenStream.Lexer | PrimeLexer"] = (1, Verdict.Carrier),
+        ["src/WiseOwl.Cobol.Frontend/Parsing/CobolTokenStream.cs | CobolTokenStream.Parser | Edition="] = (1, Verdict.Carrier),
+        ["src/WiseOwl.Cobol.Frontend/Parsing/FragmentParse.cs | FragmentParse.Parse | CobolTokenStream.Parser"] = (1, Verdict.Carrier),
+        ["src/WiseOwl.Cobol.Frontend/Parsing/FragmentParse.cs | FragmentParse.ParseTokens | CobolTokenStream.Parser"] = (1, Verdict.Carrier),
+        ["src/WiseOwl.Cobol.Frontend/Parsing/FragmentParse.cs | FragmentParse.ParseUnit | CobolTokenStream.Parser"] = (1, Verdict.Carrier),
+        ["src/WiseOwl.Cobol.Frontend/Pipeline/Frontend.cs | Frontend.NewParser | CobolTokenStream.Parser"] = (1, Verdict.Carrier),
     };
 
     // ── The rule, applied ─────────────────────────────────────────────────────────────────────────────────────────
