@@ -1,0 +1,34 @@
+{
+  "batch": [431, 432, 433, 434, 435, 436, 437, 438, 439, 440, 441, 442],
+  "pages_checked": [431, 432, 433, 434, 435, 436, 437, 438, 439, 440, 441, 442],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p440-1",
+      "page": 440,
+      "kind": "incorrect-text",
+      "severity": "structural",
+      "pdf_says": "In the ACCESS MODE general format the level-2 box encloses only DYNAMIC, inside the inner braces: the inner right brace closes after the box, exactly as the same format is drawn on page 438 (VIII-8).",
+      "markdown_says": "               ╰ ╰ ║ <u>DYNAMIC</u> ╯ ║                            ╯",
+      "why_it_matters": "The level-2 box marker and the inner closing brace are misnested (box opens before DYNAMIC but closes after the inner brace), so the figure shows the inner brace inside the box; page 438's copy of the same format has it right: '║ <u>DYNAMIC</u> ║ ╯'. The choice structure is unchanged, but the delimiter nesting is wrong."
+    },
+    {
+      "id": "p440-2",
+      "page": 440,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "2.4 THE ACCESS MODE CLAUSE (a sibling of 2.3 THE FILE CONTROL ENTRY; 2.4.1 Function, 2.4.2 General Format ... are its subordinates, siblings in level of 2.3.1 Function etc.)",
+      "markdown_says": "## 2.4 THE ACCESS MODE CLAUSE ... ### 2.4.1 Function ... ### 2.4.2 General Format ... ### 2.4.3 Syntax Rules ... ### 2.4.4 General Rules",
+      "why_it_matters": "Page 438 renders the sibling clause as '### 2.3 THE FILE CONTROL ENTRY' with '#### 2.3.1 Function'; 2.4 and its subclauses are promoted one level, so the document outline makes 2.4 a peer of '## 2. ENVIRONMENT DIVISION IN THE RELATIVE I-O MODULE' rather than of 2.3."
+    },
+    {
+      "id": "p442-1",
+      "page": 442,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "2.5 THE ORGANIZATION IS RELATIVE CLAUSE (a sibling of 2.3 THE FILE CONTROL ENTRY), with subordinate 2.5.1 Function, 2.5.2 General Format, 2.5.3 General Rules",
+      "markdown_says": "## 2.5 THE ORGANIZATION IS RELATIVE CLAUSE ... ### 2.5.1 Function ... ### 2.5.2 General Format ... ### 2.5.3 General Rules",
+      "why_it_matters": "Same promotion as 2.4: '### 2.3 THE FILE CONTROL ENTRY' / '#### 2.3.1 Function' on page 438 versus '## 2.5' / '### 2.5.1' here, so 2.5 sits at the level of the '## 2.' section heading in the outline."
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{"batch": [347,348,349,350,351,352,353,354,355,356,357,358],
+ "pages_checked": [347,348,349,350,351,352,353,354,355,356,357,358],
+ "pages_unread": [],
+ "findings": [
+  {"id": "p354-1", "page": 354, "kind": "missing-heading", "severity": "structural",
+   "pdf_says": "6.22 THE SEARCH STATEMENT",
+   "markdown_says": "# ║6.22 THE SEARCH STATEMENT║",
+   "why_it_matters": "Wrong heading level. Every other statement clause in Section VI is a level-2 heading (`## 6.20 THE MULTIPLY STATEMENT`, `## 6.21 THE PERFORM STATEMENT`); 6.22 is promoted to level 1, so it sits at the same level as the document's top headings and breaks the outline. The 6.23 SET heading on a later page shows the same promotion."},
+  {"id": "p354-2", "page": 354, "kind": "missing-heading", "severity": "structural",
+   "pdf_says": "6.22.1 Function ... 6.22.2 General Format",
+   "markdown_says": "## ║6.22.1 Function║ ... ## ║6.22.2 General Format║",
+   "why_it_matters": "Wrong heading level. Sub-clauses 6.NN.N are level-3 headings elsewhere (`### 6.21.1 Function`, `### 6.21.2 General Format`), and 6.22.3 and 6.22.4 on page 355 are `###`; here 6.22.1 and 6.22.2 are `##`, which makes them siblings of 6.22 instead of its children, and puts them one level above their own siblings 6.22.3 and 6.22.4."}
+ ]}

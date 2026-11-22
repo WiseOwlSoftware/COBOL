@@ -1,0 +1,10 @@
+{"batch": [275,276,277,278,279,280,281,282,283,284,285,286],
+ "pages_checked": [275,276,277,278,279,280,281,282,283,284,285,286],
+ "pages_unread": [],
+ "findings": [
+  {"id": "p278-1", "page": 278, "kind": "missing-heading", "severity": "structural",
+   "why_it_matters": "A tool or reader that walks the heading outline places the USAGE clause (and its syntax and general rules) inside the SYNCHRONIZED clause section, so a section lookup for 5.14 or a citation anchor derived from the outline resolves wrongly.",
+   "pdf_says": "5.14 THE USAGE CLAUSE",
+   "markdown_says": "### 5.14 THE USAGE CLAUSE",
+   "note": "Heading at the wrong level: its siblings 5.13 THE SYNCHRONIZED CLAUSE (page 276) and 5.15 THE VALUE CLAUSE (page 280) are '##' with '###' subsections, but 5.14 is '###' and its subsections 5.14.1-5.14.4 are '####', so 5.14 nests under 5.13 in the document outline."}
+ ]}

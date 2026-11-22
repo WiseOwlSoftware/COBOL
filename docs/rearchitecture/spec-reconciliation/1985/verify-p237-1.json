@@ -1,0 +1,13 @@
+{
+  "claim_id": "p237-1",
+  "claim_key": "6a0f71da80843344",
+  "page": 237,
+  "kind": "missing-heading",
+  "severity": "structural",
+  "claim": {"id": "p237-1", "page": 237, "kind": "missing-heading", "severity": "structural", "pdf_says": "2.4 END PROGRAM HEADER / 2.4.1 Function / 2.4.2 General Format / 2.4.3 Syntax Rules / 2.4.4 General Rules (2.4 is a subclause of 2. A COBOL SOURCE PROGRAM, same rank as 2.1-2.3)", "markdown_says": "## ║2.4 END PROGRAM HEADER║ / ### ║2.4.1 Function║ / ### ║2.4.2 General Format║ / ### ║2.4.3 Syntax Rules║ / ### ║2.4.4 General Rules║", "why_it_matters": "Page 235 renders \"## 2. A COBOL SOURCE PROGRAM\", 2.1-2.3 as ### and 2.3.x as ####; 2.4 is at ## (the level of clause 2) and 2.4.x at ###, one level too high."},
+  "verdict": {
+    "real": false,
+    "reasoning": "The rendered page (VI-5) shows the boxed section with headings '2.4 END PROGRAM HEADER', '2.4.1 Function', '2.4.2 General Format', '2.4.3 Syntax Rules', '2.4.4 General Rules'. All five headings are in page-237 of the markdown, with the same numbers and words. The body text is complete too: the Function sentence, 'END PROGRAM program-name.' with END and PROGRAM underlined, SR(1)-(2) and GR(1)-(2). No heading is missing, so the kind 'missing-heading' is wrong. What is left is the markdown heading depth: '##' and '###' here, against '###' and '####' for 2.1-2.3 on page 235. That depth is formatting the transcription adds. The PDF prints every heading in the same plain style with no visual levels, and the explicit numbers 2.4 and 2.4.x carry the hierarchy without ambiguity. The transcription's heading depths are already inconsistent across the whole file (for example '## 2.2.3' and '#### 2.1 DEFINITION'), so this is markdown furniture and does not change the standard's content or meaning.",
+    "corrected_description": ""
+  }
+}

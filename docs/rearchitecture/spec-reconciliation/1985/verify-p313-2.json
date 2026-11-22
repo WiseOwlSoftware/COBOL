@@ -1,0 +1,13 @@
+{
+  "claim_id": "p313-2",
+  "claim_key": "d0ccfe8144b23493",
+  "page": 313,
+  "kind": "missing-heading",
+  "severity": "structural",
+  "claim": {"id": "p313-2", "page": 313, "kind": "missing-heading", "severity": "structural", "pdf_says": "6.11.4 General Rules", "markdown_says": "### 6.11.4 General Rules", "why_it_matters": "A heading nested at the wrong level breaks the section tree a clause lookup walks: 6.11.4 reads as a sibling of 6.11 instead of its child.", "note": "Heading at the wrong level: same as p313-1; parent '### 6.11' and siblings '#### 6.11.1', '#### 6.11.2' on page 312, so 6.11.4 should be '####'."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The printed page VI-81 shows the heading '6.11.4 General Rules', a subclause of 6.11 by its numbering. In specs/ANSI_COBOL_1985.md, line 12931 is '### 6.11 THE DIVIDE STATEMENT', lines 12933 and 12937 are '#### 6.11.1 Function' and '#### 6.11.2 General Format', but line 13028 is '### 6.11.4 General Rules'. That is the same level as its parent, so the markdown section tree makes 6.11.4 a sibling of 6.11. The words are the same in both sources. The defect is the heading level, not a missing heading. The neighbouring clauses are each consistent within themselves: 6.10 uses ##/### and 6.12 uses ####. The fix is '#### 6.11.4 General Rules'.",
+    "corrected_description": "Heading level is wrong; the heading is not missing. The markdown has '### 6.11.4 General Rules' under '### 6.11 THE DIVIDE STATEMENT', whose other children 6.11.1 and 6.11.2 are '####'. It should be '#### 6.11.4 General Rules' (kind: wrong-heading-level)."
+  }
+}
