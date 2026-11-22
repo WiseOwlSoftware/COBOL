@@ -44,6 +44,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import posixpath
 import re
 import shutil
 import subprocess
@@ -163,6 +164,67 @@ def scope_of(projects: list[tuple[str, str]]) -> dict[str, list[str]]:
     if missing_surface:
         raise CensusFailure(f"the emitted surface {missing_surface} is not a census project")
     return {k: sorted(v) for k, v in scope.items()} | {"emittedSurface": list(EMITTED_SURFACE)}
+
+
+# ── THE WALK BOUNDARY (kb/Work PB3201) ─────────────────────────────────────────────────────────────────────────
+# The census and the member index walk the solution's projects, and nothing else. A C# compilation outside them that
+# binds a solution type is a consumer the walk cannot see: a rename wave edits every file the index lists, every gate
+# stays green, and the consumer breaks far from the change (tools/impact/ImpactTestFramework.cs derived
+# GateTestFramework through ImpactRecording.targets until kb/Work PB4328 deleted it). C# is compiled only through an
+# MSBuild project, so the tree may hold no such compilation: every tracked C# project is a solution project, the host,
+# or frozen evidence (never built); the host references no project (it reads the solution through MSBuildWorkspace);
+# and every `<Compile Include>` of a tracked MSBuild file names sources under the walked roots. A path the rule cannot
+# resolve is a refusal, never a pass.
+WALKED_ROOTS = ("src/", "tests/")
+MSBUILD_EXTS = (".csproj", ".props", ".targets")
+COMPILE_INCLUDE = re.compile(r"<Compile\s+[^>]*?Include\s*=\s*\"([^\"]+)\"")
+PROJECT_REFERENCE = re.compile(r"<ProjectReference\s+[^>]*?Include\s*=\s*\"([^\"]+)\"")
+THIS_FILE_DIRECTORY = "$(MSBuildThisFileDirectory)"
+HOST_PROJECT = f"{HOST.as_posix()}/{HOST.name}.csproj"   # the one C# project outside the solution it builds
+
+
+def unwalked_compilations(tracked: list[str], solution_paths: list[str], read) -> list[str]:
+    """Each way the tracked tree compiles C# the walk would not see, as a line naming its file (empty: none).
+    `read(rel)` returns a tracked file's text."""
+    walked = set(solution_paths)
+    out = []
+    for rel in tracked:
+        if not rel.endswith(MSBUILD_EXTS) or rel.startswith(EVIDENCE_DIR.as_posix() + "/"):
+            continue
+        if rel.endswith(".csproj") and rel not in walked and rel != HOST_PROJECT:
+            out.append(f"{rel}: a C# project outside the solution (add it to WiseOwl.Cobol.sln, or delete it)")
+        text = read(rel)
+        if rel == HOST_PROJECT:
+            out += [f"{rel}: the host references {r} (it reads the solution, never links it)"
+                    for r in PROJECT_REFERENCE.findall(text)]
+        here = posixpath.dirname(rel)
+        for include in COMPILE_INCLUDE.findall(text):
+            for item in include.split(";"):
+                item = item.strip().replace("\\", "/")
+                if item.startswith(THIS_FILE_DIRECTORY):
+                    path = posixpath.normpath(posixpath.join(here, item[len(THIS_FILE_DIRECTORY):]))
+                elif rel.endswith(".csproj") and "$(" not in item and "@(" not in item and "%(" not in item:
+                    path = posixpath.normpath(posixpath.join(here, item))   # a project's item: its own directory
+                else:
+                    out.append(f"{rel}: `<Compile Include=\"{item}\">` names a path the walk boundary cannot resolve")
+                    continue
+                if not path.startswith(WALKED_ROOTS):
+                    out.append(f"{rel}: `<Compile Include=\"{item}\">` compiles {path}, outside the walked roots "
+                               f"{list(WALKED_ROOTS)}")
+    return out
+
+
+def walk_scope(root: Path) -> dict[str, list[str]]:
+    """THE scope of a walk of the tree at `root`: the solution's projects by THE SCOPE RULE, refused when the tree
+    compiles C# outside them (THE WALK BOUNDARY). The census and the member index both call it."""
+    projects = solution_projects((root / "WiseOwl.Cobol.sln").read_text(encoding="utf-8-sig"))
+    tracked = [f for f in git("ls-files", cwd=root).splitlines() if f]
+    outside = unwalked_compilations(tracked, [p for _, p in projects],
+                                    lambda rel: (root / rel).read_text(encoding="utf-8-sig"))
+    if outside:
+        raise CensusFailure("THE WALK BOUNDARY: the tree compiles C# the walk would not see (scripts/arch/census.py, "
+                            "kb/Work PB3201):\n  " + "\n  ".join(outside))
+    return scope_of(projects)
 
 
 # ── the population check ───────────────────────────────────────────────────────────────────────────────────────
@@ -634,8 +696,7 @@ def measure(commit: str, work: Path, out_dir: Path) -> Path:
     print(f"census: {sha[:12]} ({date}) in {wt}", flush=True)
     git("worktree", "add", "--detach", str(wt), sha)
     try:
-        sln = (wt / "WiseOwl.Cobol.sln").read_text(encoding="utf-8-sig")
-        scope = scope_of(solution_projects(sln))
+        scope = walk_scope(wt)
         print(f"census: scope census={scope['census']} readers={scope['readers']} excluded={scope['excluded']}",
               flush=True)
         t0 = time.time()
@@ -719,6 +780,40 @@ def self_test() -> int:
     arm("a project the rule does not classify REFUSES the run, naming it", "Contoso.Tool" in why, why)
     folder = 'Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{X}"\n'
     arm("a solution folder is not a project", solution_projects(folder) == [])
+
+    # THE WALK BOUNDARY (kb/Work PB3201): the real tree passes, and each way to compile C# outside the walk refuses.
+    arm("the walk boundary passes the real tree (no C# compiled outside the solution's projects)",
+        walk_scope(REPO) == scope, failure_of(lambda: walk_scope(REPO)))
+    host = HOST_PROJECT
+    sln_paths = [p for _, p in real]
+    linked = '<Compile Include="$(MSBuildThisFileDirectory)_shared\\*.cs" Link="_shared\\%(Filename)" />'
+    planted_tree = {
+        "tests/Directory.Build.props": linked,
+        "src/WiseOwl.Cobol.Frontend/WiseOwl.Cobol.Frontend.csproj": '<Compile Include="Generated/*.cs" />',
+        host: "<Project />",
+        EVIDENCE_DIR.as_posix() + "/probe/Probe.csproj": '<ProjectReference Include="..\\src\\X.csproj" />',
+    }
+
+    def boundary(extra: dict[str, str]) -> list[str]:
+        files = planted_tree | extra
+        return unwalked_compilations(sorted(files), sln_paths, files.__getitem__)
+
+    arm("a solution project's own items, a walked root's linked sources, the host and frozen evidence pass",
+        boundary({}) == [], str(boundary({})))
+    why = boundary({"tools/impact/ImpactInstrumenter.csproj": "<Project />"})
+    arm("a C# project outside the solution REFUSES the walk, naming it",
+        len(why) == 1 and "tools/impact/ImpactInstrumenter.csproj" in why[0], str(why))
+    why = boundary({"tools/impact/ImpactRecording.targets":
+                    '<Compile Include="$(MSBuildThisFileDirectory)ImpactTestFramework.cs" />'})
+    arm("a source linked into a walked project from outside the walked roots REFUSES the walk, naming it",
+        len(why) == 1 and "tools/impact/ImpactTestFramework.cs" in why[0], str(why))
+    why = boundary({"tests/Directory.Build.targets": '<Compile Include="$(Elsewhere)X.cs" />',
+                    "tests/Other.props": '<Compile Include="Shared.cs" />'})
+    arm("a Compile path the boundary cannot resolve REFUSES the walk (a property, or an imported file's relative item)",
+        len(why) == 2 and all("cannot resolve" in w for w in why), str(why))
+    why = boundary({host: '<ProjectReference Include="..\\..\\src\\WiseOwl.Cobol.Runtime\\X.csproj" />'})
+    arm("a host that references a project REFUSES the walk", len(why) == 1 and "the host references" in why[0],
+        str(why))
 
     ok = {"name": "P", "role": "census", "sourceTypes": ["A", "B"], "compiledTypes": ["A", "B"]}
     arm("equal populations pass", population_check([ok]) == [{"project": "P", "census": 2, "compiled": 2}])
