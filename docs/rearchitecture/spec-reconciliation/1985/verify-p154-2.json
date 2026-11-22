@@ -1,0 +1,13 @@
+{
+  "claim_id": "p154-2",
+  "claim_key": "5d6ac121696956cf",
+  "page": 154,
+  "kind": "missing-heading",
+  "severity": "structural",
+  "claim": {"id": "p154-2", "page": 154, "kind": "missing-heading", "severity": "structural", "pdf_says": "4.2.2.1.3 Reserved Words", "markdown_says": "4.2.2.1.3 Reserved Words", "why_it_matters": "Plain paragraph rather than a heading, while its siblings 4.2.2.1.1 and 4.2.2.1.4 are '####' headings; the outline loses the Reserved Words clause IV.4.2.2.1.3."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The rendered PDF page 154 (folio IV-8) prints '4.2.2.1.3 Reserved Words' as a stand-alone clause heading, set flush left with the title in bold, in the same style as 4.2.2.1.2 System-Names and 4.2.2.1.3.1 Required Words. In specs/ANSI_COBOL_1985.md, line 6525 holds it as plain paragraph text. Its siblings are marked as headings: line 6429 is '#### 4.2.2.1.1 User-Defined Words' and line 6587 is '#### 4.2.2.1.4 Function-Names'. The words match exactly, so no text is lost. The heading markup is missing, though, so the clause IV.4.2.2.1.3 drops out of the markdown outline. That is a genuine structural discrepancy and not just line wrapping or page furniture. The claim also understates the scope: on the same page, '4.2.2.1.2 System-Names' (line 6513) and '4.2.2.1.3.1 Required Words' are plain paragraphs too, even though the PDF prints them as headings.",
+    "corrected_description": "The markdown holds '4.2.2.1.3 Reserved Words' (line 6525) as a plain paragraph, but the PDF prints it as a clause heading, and its siblings 4.2.2.1.1 and 4.2.2.1.4 are '####' headings. The text is identical, so only the outline structure is affected. On the same page, 4.2.2.1.2 System-Names and 4.2.2.1.3.1 Required Words also lack heading markup."
+  }
+}

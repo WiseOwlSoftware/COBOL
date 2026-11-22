@@ -1,0 +1,13 @@
+{
+  "claim_id": "p178-1",
+  "claim_key": "06ad6ce65b786714",
+  "page": 178,
+  "kind": "missing-heading",
+  "severity": "structural",
+  "claim": {"id": "p178-1", "page": 178, "kind": "missing-heading", "severity": "structural", "pdf_says": "6.2.3.1 General Format", "markdown_says": "6.2.3.1 General Format", "note": "Printed as a numbered subsection heading (cf. '#### 6.1.3.1 General Format' on page 176) but transcribed as a plain paragraph with no heading marker.", "why_it_matters": "A heading at the wrong level (or none) breaks the document outline that section lookups and citation checks navigate by; the clause becomes unfindable by its number or is filed under the wrong parent."},
+  "verdict": {
+    "real": false,
+    "reasoning": "The 300-dpi render of page 178 (IV-32) prints '6.2.3.1 General Format' followed by the ENVIRONMENT DIVISION general format; page-178.md carries the identical text '6.2.3.1 General Format' on its own line followed by a faithful format (every bracket, underline and the ellipsis match the glyphs). Both sources hold the same words, so the only difference is the absence of a markdown '#' marker, which is formatting. The transcription's heading markup is not a consistent outline in any case: 'General Format' headings appear as plain lines and at ##, ###, #### and ##### levels (e.g. 4.2.2.2.1.1, 4.3.8.2.2, 5.7.2 and 5.9.2 are plain too; 6.3.2.2.1 is ##). The claimed harm is also refuted: `cite.py --check \"§1985:IV.6.2.3.1\" \"SOURCE-COMPUTER. [source-computer-entry] OBJECT-COMPUTER\"` returns OK and resolves the clause as '6.2.3.1 General Format', so the clause can be found by its number. No change of meaning, and no lookup failure.",
+    "corrected_description": ""
+  }
+}

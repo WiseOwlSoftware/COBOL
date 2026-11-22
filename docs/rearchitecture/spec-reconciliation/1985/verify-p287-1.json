@@ -1,0 +1,13 @@
+{
+  "claim_id": "p287-1",
+  "claim_key": "a2797f57a94dd2ad",
+  "page": 287,
+  "kind": "missing-heading",
+  "severity": "structural",
+  "claim": {"id": "p287-1", "page": 287, "kind": "missing-heading", "severity": "structural", "pdf_says": "6.3.1.1.1 Comparison of Numeric Operands ... 6.3.1.1.2 Comparison of Nonnumeric Operands", "markdown_says": "### 6.3.1.1.1 Comparison of Numeric Operands ... ### 6.3.1.1.2 Comparison of Nonnumeric Operands", "why_it_matters": "These are subclauses of 6.3.1.1 Relation Condition, which the transcription heads at level 4 (`#### 6.3.1.1 Relation Condition`), yet they are headed at level 3 (`###`), the same level as `### 6.3.1 Simple Conditions`. The heading tree makes them siblings of 6.3.1 rather than children of 6.3.1.1, so any tool that slices the document by heading hierarchy detaches them from the Relation Condition clause."},
+  "verdict": {
+    "real": false,
+    "reasoning": "The printed page VI-55 (PDF p287) shows the headings '6.3.1.1.1 Comparison of Numeric Operands' and '6.3.1.1.2 Comparison of Nonnumeric Operands' in the same plain bold-less type the PDF uses for every clause heading; the markdown carries both headings with identical numbers and wording, at the same positions, with all body text present. Nothing is missing, so the kind 'missing-heading' is wrong. The only difference is the markdown heading marker depth (### versus the #### given to 6.3.1.1 at line 12020), which the PDF does not express at all: it is transcription formatting, and the clause hierarchy remains fully recoverable from the decimal clause numbers. The inconsistency is also not local to this page (6.3.1.2 Class Condition at line 12103 is ### while 6.3.1.4 is ####), so it is a document-wide markdown-heading-depth hygiene issue, not a content discrepancy between the PDF and its transcription. It changes no meaning of the standard.",
+    "corrected_description": "Not a PDF-versus-markdown content discrepancy. Both headings are present verbatim. If tracked at all, it belongs to a whole-document markdown heading-depth normalization (### vs #### for 6.3.1.x.y clauses), not to the page reconciliation ledger."
+  }
+}

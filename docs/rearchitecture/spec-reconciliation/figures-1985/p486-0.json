@@ -33,7 +33,7 @@
   "",
   "    ┌                                          ╭<u>RECORDS</u>   ╮┐",
   "    │<u>BLOCK</u> CONTAINS ║[integer-1 <u>TO</u>]║ integer-2 ┤          ├│",
-  "    └                                          ╰<u>CHARACTERS</u>╯┘",
+  "    └                                          ╰CHARACTERS╯┘",
   "",
   "    ┌       ╭ CONTAINS integer-3 CHARACTERS                                    ╮ ┐",
   "    │<u>RECORD</u> ┤╔IS <u>VARYING</u> IN SIZE [[FROM integer-4] [<u>TO</u> integer-5] CHARACTERS] ╗├ │",
@@ -52,5 +52,5 @@
   "    │<u>DATA</u> ┤           ├ {data-name-3} …  │ .",
   "    └     ╰<u>RECORDS</u> ARE╯                  ┘"
  ],
- "reason": "The printed page sets the indexed FD entry exactly as the relative one (page 444), with level-2 boxes round [integer-1 TO], round the IS VARYING IN SIZE alternative with its DEPENDING ON line, and round data-name-2; the batch drew the second as a rectangle with rows of its own. Drawn from the page."
+ "reason": "The printed page sets the indexed FD entry exactly as the relative one (page 444), with level-2 boxes round [integer-1 TO], round the IS VARYING IN SIZE alternative with its DEPENDING ON line, and round data-name-2; the batch drew the second as a rectangle with rows of its own. Drawn from the page. Second pass (kb/Work PB6051, sibling sweep of p201-1): CHARACTERS in the BLOCK CONTAINS braces is printed without an underline."
 }

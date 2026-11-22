@@ -1,0 +1,13 @@
+{
+  "claim_id": "p812-1",
+  "claim_key": "829fafba9dc3b0b8",
+  "page": 812,
+  "kind": "missing-heading",
+  "severity": "cosmetic",
+  "claim": {"id": "p812-1", "page": 812, "kind": "missing-heading", "severity": "cosmetic", "why_it_matters": "The page's running header is rendered as a level-1 markdown heading, which adds a spurious top-level 'Index' section to the outline at XVIII-6; every sibling index page (807-811, 813, 814) keeps the running header as plain text.", "pdf_says": "Index", "markdown_says": "# Index", "note": "Running header 'Index' at the top left of folio XVIII-6, not a heading. The base index body on pages 807-819 is deliberately deleted by the transcription's Errata C337 (Amendment 2 replaces the index), so the empty index pages are not findings; only this header promotion is."},
+  "verdict": {
+    "real": false,
+    "reasoning": "The observation is accurate but it is not a content discrepancy. The 300 dpi render of page 812 (folio XVIII-6) shows 'Index' as the running header at top left, above two columns of index entries HEADING phrase ... I-O TERMINAL phrase. page-812.md holds '# Index' then 'XVIII-6', while pages 811 and 813 hold plain 'Index'. So the header was promoted to an H1 on this one page. That is page furniture: a running header formatted differently. Every word of the PDF text the transcription keeps is still there, and no normative text changes. The index body itself is removed on purpose under Errata C337. Under the rejection criteria (scaffolding or formatting only, meaning unchanged), the claim is rejected. A cleanup pass may still want to demote the stray '#' for outline consistency.",
+    "corrected_description": ""
+  }
+}

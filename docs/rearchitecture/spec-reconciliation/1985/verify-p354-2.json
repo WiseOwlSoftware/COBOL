@@ -1,0 +1,13 @@
+{
+  "claim_id": "p354-2",
+  "claim_key": "9a938d1b103a4a15",
+  "page": 354,
+  "kind": "missing-heading",
+  "severity": "structural",
+  "claim": {"id": "p354-2", "page": 354, "kind": "missing-heading", "severity": "structural", "pdf_says": "6.22.1 Function ... 6.22.2 General Format", "markdown_says": "## ║6.22.1 Function║ ... ## ║6.22.2 General Format║", "why_it_matters": "Wrong heading level. Sub-clauses 6.NN.N are level-3 headings elsewhere (`### 6.21.1 Function`, `### 6.21.2 General Format`), and 6.22.3 and 6.22.4 on page 355 are `###`; here 6.22.1 and 6.22.2 are `##`, which makes them siblings of 6.22 instead of its children, and puts them one level above their own siblings 6.22.3 and 6.22.4."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The printed page VI-122 sets 6.22, 6.22.1 and 6.22.2 as the same bold headings used for 6.21 and its sub-clauses; the text of every heading is present in the markdown, so nothing is missing. The defect is the outline level. specs/ANSI_COBOL_1985.md has `## 6.21 THE PERFORM STATEMENT` (line 14051) with `### 6.21.1`/`### 6.21.2`, but `# ║6.22 THE SEARCH STATEMENT║` (line 14483), `## ║6.22.1 Function║` (14485), `## ║6.22.2 General Format║` (14489), and then `### ║6.22.3 Syntax Rules║` (14537) and `### ║6.22.4 General Rules║` (14551). So 6.22.1 and 6.22.2 are one level above their siblings 6.22.3 and 6.22.4, and 6.22 is one level above its siblings 6.21 and 6.20. That is a real structural error: it breaks the document outline and any tooling that locates a clause by its heading. The claim is inaccurate on one point: because 6.22 is itself `#`, the `##` headings 6.22.1 and 6.22.2 are its children, not its siblings; the actual errors are 6.22 at `#` instead of `##` and 6.22.1/6.22.2 at `##` instead of `###`. The text and meaning of the standard are unchanged.",
+    "corrected_description": "On page 354 the heading levels are wrong, but no heading text is missing. `# ║6.22 THE SEARCH STATEMENT║` should be `##`, like `## 6.21 THE PERFORM STATEMENT`. `## ║6.22.1 Function║` and `## ║6.22.2 General Format║` should be `###`, like 6.21.1/6.21.2 and their own siblings `### 6.22.3`/`### 6.22.4` on page 355. As transcribed, 6.22.1 and 6.22.2 sit one level above 6.22.3 and 6.22.4, and 6.22 sits one level above 6.21. The next clause, `# 6.23 THE SET STATEMENT` (line 14643), shows the same mislevel, which is outside this page."
+  }
+}

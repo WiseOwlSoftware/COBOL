@@ -1,0 +1,12 @@
+{
+ "page": 703,
+ "figure": 0,
+ "drawn_lines": [
+  "║ <u>SEGMENT-LIMIT</u> IS segment-number ║"
+ ],
+ "decided": "drawn",
+ "figure_lines": [
+  "║ <u>SEGMENT-LIMIT</u> IS segment-number ║"
+ ],
+ "reason": "The printed page encloses the SEGMENT-LIMIT clause, its format included, in the level-2 box that runs down the page; the one-row format is drawn with the box's two sides (FIGURE-STYLE.md rule 9: `║ … ║`) and the regeneration measures no box round a one-row block. The words are the batch's. Second pass (kb/Work PB6051)."
+}

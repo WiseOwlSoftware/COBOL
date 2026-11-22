@@ -1,0 +1,13 @@
+{
+  "claim_id": "p505-1",
+  "claim_key": "0cde1f9de5f00c2b",
+  "page": 505,
+  "kind": "ocr-error",
+  "severity": "cosmetic",
+  "claim": {"id": "p505-1", "page": 505, "kind": "ocr-error", "severity": "cosmetic", "pdf_says": "b. When the file is open in the dynamic or random access mode, and the value of the prime record key of the record to be replaced is not equal to the value of the prime record key of any record existing in the file, or", "markdown_says": "b. When the file is open in the [║dynamic or║] random access mode, and the value of the prime record key of the record to be replaced is not equal to the value of the prime record key of any record existing in the file, or", "why_it_matters": "The printed page boxes 'dynamic or' as level-2 text with no square brackets; the markdown adds stray '[' and ']' around the level-2 markers, unlike every other level-2 box in this batch (e.g. p504 GR14 '║or dynamic║'). In a rule text square brackets can read as an optional element; the words themselves are unchanged."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The 300 dpi render of PDF page 505 (IX-35, Indexed I-O REWRITE GR16b) shows 'dynamic or' enclosed in a single thin rectangular box (the level-2 marker) and no square brackets anywhere on the line. The page markdown reads '[║dynamic or║]'. The transcription's own documented notation (specs/ANSI_COBOL_1985.md lines 68-77) says a box around words inside a sentence encloses them with ║ only, e.g. 'opened in the output ║or extend║ mode'; it defines no bracket form. The '[' and ']' are therefore stray characters not on the printed page. The words and the level-2 marking are correct, so meaning is preserved and severity cosmetic is right. Sibling note: the same '[║...║]' artifact occurs 6 times in specs/ANSI_COBOL_1985.md (e.g. lines 15290, 15294, 17862, 19562), which a fix should sweep.",
+    "corrected_description": ""
+  }
+}

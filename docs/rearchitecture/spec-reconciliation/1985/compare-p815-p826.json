@@ -1,0 +1,78 @@
+{
+ "batch": [
+  815,
+  816,
+  817,
+  818,
+  819,
+  820,
+  821,
+  822,
+  823,
+  824,
+  825,
+  826
+ ],
+ "pages_checked": [
+  815,
+  816,
+  817,
+  818,
+  819,
+  820,
+  821,
+  822,
+  823,
+  824,
+  825,
+  826
+ ],
+ "pages_unread": [],
+ "findings": [
+  {
+   "id": "p815-1",
+   "page": 815,
+   "kind": "missing-text",
+   "severity": "structural",
+   "pdf_says": "Two full columns of index entries, from \"PAGE-COUNTER, XIII-1, XIII-12\" through \"Record description entry, III-19, IV-33, IV-34\" (page XVIII-9)",
+   "markdown_says": "## Page 815\n\nIndex\n\nXVIII-9",
+   "why_it_matters": "The whole body of index page XVIII-9 is absent: the markdown keeps only the running header and folio. Every index entry (term to page references) printed on this page is lost, so the transcription's index section is empty for this page. The index is not normative, but it is content the page prints."
+  },
+  {
+   "id": "p816-1",
+   "page": 816,
+   "kind": "missing-text",
+   "severity": "structural",
+   "pdf_says": "Two full columns of index entries, from \"Record description structure, VI-19, VII-21, XI-6, XIV-2\" through \"Element summary, I-39\" (page XVIII-10)",
+   "markdown_says": "## Page 816\n\n# Index\n\nXVIII-10",
+   "why_it_matters": "The whole body of index page XVIII-10 is absent: the markdown keeps only the running header and folio. Every index entry (term to page references) printed on this page is lost, so the transcription's index section is empty for this page. The index is not normative, but it is content the page prints."
+  },
+  {
+   "id": "p817-1",
+   "page": 817,
+   "kind": "missing-text",
+   "severity": "structural",
+   "pdf_says": "Two full columns of index entries, from \"SELECT clause\" through \"SYMBOLIC SUB-QUEUE-1 clause, XIV-3\" (page XVIII-11)",
+   "markdown_says": "## Page 817\n\nIndex\n\nXVIII-11",
+   "why_it_matters": "The whole body of index page XVIII-11 is absent: the markdown keeps only the running header and folio. Every index entry (term to page references) printed on this page is lost, so the transcription's index section is empty for this page. The index is not normative, but it is content the page prints."
+  },
+  {
+   "id": "p818-1",
+   "page": 818,
+   "kind": "missing-text",
+   "severity": "structural",
+   "pdf_says": "Two full columns of index entries, from \"SYMBOLIC SUB-QUEUE-2 clause, XIV-3\" through \"Working-Storage Section, IV-33, VI-18\" (page XVIII-12)",
+   "markdown_says": "## Page 818\n\nIndex\n\nXVIII-12",
+   "why_it_matters": "The whole body of index page XVIII-12 is absent: the markdown keeps only the running header and folio. Every index entry (term to page references) printed on this page is lost, so the transcription's index section is empty for this page. The index is not normative, but it is content the page prints."
+  },
+  {
+   "id": "p819-1",
+   "page": 819,
+   "kind": "missing-text",
+   "severity": "structural",
+   "pdf_says": "Two full columns of index entries, from \"WRITE statement\" through \"== pseudo-text delimiter, III-18, IV-42\" (page XVIII-13)",
+   "markdown_says": "## Page 819\n\nIndex\n\nXVIII-13",
+   "why_it_matters": "The whole body of index page XVIII-13 is absent: the markdown keeps only the running header and folio. Every index entry (term to page references) printed on this page is lost, so the transcription's index section is empty for this page. The index is not normative, but it is content the page prints."
+  }
+ ]
+}

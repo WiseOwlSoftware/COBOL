@@ -1,0 +1,52 @@
+{
+  "batch": [707, 708, 709, 710, 711, 712, 713, 714, 715, 716, 717, 718],
+  "pages_checked": [707, 708, 709, 710, 711, 712, 713, 714, 715, 716, 717, 718],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p708-1",
+      "page": 708,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "(page 708 is blank apart from scanning specks; the heading SECTION XVII: APPENDICES is printed on page 709)",
+      "markdown_says": "# SECTION XVII: APPENDICES",
+      "why_it_matters": "The blank page 708 carries a level-1 heading that the PDF prints only on page 709, where the markdown repeats it as '## <u>SECTION XVII: APPENDICES</u>'; the section heading is duplicated and anchored on the wrong page."
+    },
+    {
+      "id": "p711-1",
+      "page": 711,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "2.1 COBOL-60 / 2.2 COBOL-61 / 2.3 COBOL-61 EXTENDED / 2.4 COBOL, EDITION 1965",
+      "markdown_says": "2.1 COBOL-60 / 2.2 COBOL-61 / 2.3 COBOL-61 EXTENDED / 2.4 COBOL, EDITION 1965",
+      "why_it_matters": "The PDF prints these as numbered subsection headings of Appendix A item 2, like 2.9, 2.10 and 2.12 which the markdown renders as '##'; here they are plain paragraphs, so the subsections are invisible to heading-based navigation."
+    },
+    {
+      "id": "p712-1",
+      "page": 712,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "2.5 CODASYL COBOL JOURNAL OF DEVELOPMENT 1968 / 2.6 CODASYL COBOL JOURNAL OF DEVELOPMENT 1969",
+      "markdown_says": "2.5 CODASYL COBOL JOURNAL OF DEVELOPMENT 1968 / 2.6 CODASYL COBOL JOURNAL OF DEVELOPMENT 1969",
+      "why_it_matters": "Numbered subsection headings left as plain paragraphs, while siblings 2.9, 2.10 and 2.12 are rendered '##'."
+    },
+    {
+      "id": "p713-1",
+      "page": 713,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "2.7 CODASYL COBOL JOURNAL OF DEVELOPMENT 1970 / 2.8 CODASYL COBOL JOURNAL OF DEVELOPMENT 1973",
+      "markdown_says": "2.7 CODASYL COBOL JOURNAL OF DEVELOPMENT 1970 / 2.8 CODASYL COBOL JOURNAL OF DEVELOPMENT 1973",
+      "why_it_matters": "Numbered subsection headings left as plain paragraphs, while siblings 2.9, 2.10 and 2.12 are rendered '##'."
+    },
+    {
+      "id": "p716-1",
+      "page": 716,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "2.11 CODASYL COBOL JOURNAL OF DEVELOPMENT 1981",
+      "markdown_says": "2.11 CODASYL COBOL JOURNAL OF DEVELOPMENT 1981",
+      "why_it_matters": "Numbered subsection heading left as a plain paragraph, while siblings 2.10 (page 715) and 2.12 (page 717) are rendered '##'."
+    }
+  ]
+}

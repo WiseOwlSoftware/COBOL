@@ -1,0 +1,13 @@
+{
+  "claim_id": "p738-1",
+  "claim_key": "d4ab6620349705da",
+  "page": 738,
+  "kind": "missing-text",
+  "severity": "structural",
+  "claim": {"id": "p738-1", "page": 738, "kind": "missing-text", "severity": "structural", "pdf_says": "Declarative procedures ... 1 DEB 1 DEB Z / DECLARATIVES ... 1 DEB 1 DEB Z / END DECLARATIVES ... 1 DEB 1 DEB Z (the obsolete-element flag Z is printed at the right margin after each 3RD STD '1 DEB' entry; the glyph is partly clipped at the page edge, exactly as the Z flags on page 734 are)", "markdown_says": "| | 1 DEB | 1 DEB |", "why_it_matters": "The Z flag marks the element as obsolete (to be deleted in the next revision) in the 3rd standard; the three DEB rows lose it, so the summary no longer records that the Debug-module uses of declaratives are obsolete. Page 734's transcription keeps the same clipped Z glyph as 'Z'."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The 300 dpi render of page 738 (XVII-30) shows a partly clipped glyph at the right page edge after the 3RD STD '1 DEB' entry in exactly three rows: under Declarative procedures, DECLARATIVES and END DECLARATIVES. No other row on the page has a glyph in that position. page-738.md transcribes all three rows as '| | 1 DEB | 1 DEB |', so the flag is gone. The glyph is consistent with the obsolete-element flag Z, and the 1985 Debug module is obsolete. Elsewhere the transcription records the same rows with the flag ('1 DEB Z', specs/ANSI_COBOL_1985.md lines 3483-3485), and other DEB entries also carry Z (for example FOR DEBUGGING phrase, '1 DEB Z'). This is a dropped content marker. It is not scaffolding or reflow.",
+    "corrected_description": ""
+  }
+}

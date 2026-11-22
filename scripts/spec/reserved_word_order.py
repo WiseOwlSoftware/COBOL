@@ -69,7 +69,7 @@ def _columns_1985(lines: list[str]) -> list[Column]:
     start = next((i for i, line in enumerate(lines) if line.startswith("## 8. <u>COBOL RESERVED WORDS</u>")), None)
     if start is None:
         raise LookupError("the heading `## 8. <u>COBOL RESERVED WORDS</u>` is missing")
-    end = next((i for i in range(start + 1, len(lines)) if lines[i].startswith("# SECTION V")), None)
+    end = next((i for i in range(start + 1, len(lines)) if re.match(r"# (?:<u>)?SECTION V\b", lines[i])), None)
     if end is None:
         raise LookupError("the heading of Section V, which closes the list, is missing")
     tables: list[list[list[str]]] = []

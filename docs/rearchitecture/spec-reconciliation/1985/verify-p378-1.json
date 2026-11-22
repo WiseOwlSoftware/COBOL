@@ -1,0 +1,13 @@
+{
+  "claim_id": "p378-1",
+  "claim_key": "32afa39295f8d1a0",
+  "page": 378,
+  "kind": "incorrect-text",
+  "severity": "structural",
+  "claim": {"id": "p378-1", "page": 378, "kind": "incorrect-text", "severity": "structural", "pdf_says": "c. I-O Status = 35. A permanent error exists because an OPEN statement with the INPUT, I-O, [box]or EXTEND[box] phrase is attempted on a [box]non-optional[box] file that is not present. ... 1) The [box]EXTEND or[box] OUTPUT phrase is specified (boxes only; no square brackets printed)", "markdown_says": "c. I-O Status = 35. A permanent error exists because an OPEN statement with the INPUT, I-O, [║or EXTEND║] phrase is attempted on a [║non-optional║] file that is not present.\n\n1\\) The [║EXTEND or║] OUTPUT phrase is specified but the file will not support write operations.", "why_it_matters": "The page prints no square brackets around these boxed words, and the transcription's convention for boxed prose is ║...║ alone (as on page 379: \"output ║or extend║ mode\"). The added brackets put optional-element notation into normative prose."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The 300 dpi render of page 378 (VII-4) shows the words 'or EXTEND', 'non-optional' (status 35, item c) and 'EXTEND or' (status 37, item 1) each enclosed in a thin rectangular box only, with no square bracket glyphs. The transcription renders all three as [║...║]. Its own header (specs/ANSI_COBOL_1985.md line 75) says a box around words in a sentence is written ║...║, and the transcription does that in about 312 places (for example line 15228, 'output ║or extend║ mode'). Only 4 occurrences of '[║' exist in the whole file, and three of them are on this page. So the brackets are added characters that the printed page does not have. In prose they read as optional-element notation, so this is a real content discrepancy and not formatting. The quotes in the claim match both sources.",
+    "corrected_description": ""
+  }
+}

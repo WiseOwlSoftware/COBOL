@@ -1,0 +1,16 @@
+{
+  "batch": [827, 828, 829, 830, 831, 832, 833, 834, 835, 836, 837, 838],
+  "pages_checked": [827, 828, 829, 830, 831, 832, 833, 834, 835, 836, 837, 838],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p833-1",
+      "page": 833,
+      "kind": "table-restructured",
+      "severity": "structural",
+      "pdf_says": "OPTIONAL MODULES (Not Required in Subsets) drawn in the same grid as the COBOL SUBSETS rows HIGH / INTERMEDIATE / MINIMUM: '1 RPW 0,1' and '1 ITR 0,1' each span all three subset rows; '2 COM 0,2', '2 DEB 0,2', '2 SEG 0,2' span HIGH and the upper half of INTERMEDIATE; '1 COM 0,2', '1 DEB 0,2', '1 SEG 0,2' span the lower half of INTERMEDIATE and MINIMUM.",
+      "markdown_says": "| **Report Writer** | **Communication** | **Debug** | **Segmentation** | **Intrinsic Function** |\n| 1 RPW 0,1 | 2 COM 0,2 | 2 DEB 0,2 | 2 SEG 0,2 | 1 ITR 0,1 |\n| | 1 COM 0,2 | 1 DEB 0,2 | 1 SEG 0,2 | |",
+      "why_it_matters": "The optional-modules half of the module diagram is split into a separate table with no subset rows, so the vertical placement of each optional module level against the HIGH / INTERMEDIATE / MINIMUM subsets (RPW and ITR spanning all three, level 2 COM/DEB/SEG upper, level 1 lower) is lost. The module levels and their 0,1 / 0,2 ranges are all preserved; only the drawn alignment is gone."
+    }
+  ]
+}

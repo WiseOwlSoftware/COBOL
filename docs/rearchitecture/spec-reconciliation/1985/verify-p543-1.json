@@ -1,0 +1,13 @@
+{
+  "claim_id": "p543-1",
+  "claim_key": "1c5af9f5c08fe15b",
+  "page": 543,
+  "kind": "missing-heading",
+  "severity": "structural",
+  "claim": {"id": "p543-1", "page": 543, "kind": "missing-heading", "severity": "structural", "pdf_says": "5.2 THE CALL STATEMENT / 5.2.1 Function / 5.2.2 General Format / 5.2.3 Syntax Rules / 5.2.4 General Rules (printed as clause headings, as 5.1, 5.3 and 5.4 are)", "markdown_says": "5.2 THE CALL STATEMENT\n\n5.2.1 Function\n\n5.2.2 General Format\n\n5.2.3 Syntax Rules\n\n5.2.4 General Rules", "why_it_matters": "The five CALL statement clause headings are plain paragraphs, not markdown headings, while the sibling clauses 5.1 (page 541), 5.3 (page 547) and 5.4 (page 549) are '##'/'###' headings; a heading-driven parser or index loses the CALL statement clause and its subclauses."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The rendered page X-27 prints '5.2 THE CALL STATEMENT', '5.2.1 Function', '5.2.2 General Format', '5.2.3 Syntax Rules' and '5.2.4 General Rules' as numbered clause headings. In specs/ANSI_COBOL_1985.md (lines 20800-20850) all five are plain paragraphs, while the siblings are markdown headings: line 20756 '### 5.1 THE PROCEDURE DIVISION HEADER', line 20942 '## ║5.3 THE CANCEL STATEMENT║', line 21000 '## 5.4 THE EXIT PROGRAM STATEMENT' with '### 5.4.1'..'### 5.4.4'. The wording is all present and the rule text is unchanged, so nothing normative is lost; the defect is the missing heading markup only, as the claim says (structural). The sibling heading levels are themselves inconsistent (5.1 at ###, 5.3/5.4 at ##), which the fix should settle.",
+    "corrected_description": ""
+  }
+}

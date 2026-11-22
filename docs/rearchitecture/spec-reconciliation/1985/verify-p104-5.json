@@ -1,0 +1,13 @@
+{
+  "claim_id": "p104-5",
+  "claim_key": "90437f4c414e2ce2",
+  "page": 104,
+  "kind": "missing-heading",
+  "severity": "structural",
+  "claim": {"id": "p104-5", "page": 104, "kind": "missing-heading", "severity": "structural", "pdf_says": "6.2.2.1.4 Other Objects", "markdown_says": "6.2.2.1.4 Other Objects", "why_it_matters": "A numbered section heading printed in the PDF is demoted to a plain paragraph in the markdown."},
+  "verdict": {
+    "real": false,
+    "reasoning": "The rendered page (II-20) prints '6.2.2.1.4 Other Objects' as a bold numbered heading between 6.2.2.1.3 and 6.2.2.2. page-104.md line 21 carries the identical text '6.2.2.1.4 Other Objects' at the same position, followed by the same body paragraph. The claim itself quotes the two sources as identical. The only difference is markup: the line has no '#' prefix. Every other numbered heading on this page (6.2.2.1, 6.2.2.1.1, 6.2.2.1.2, 6.2.2.1.3, 6.2.2.2) is transcribed the same way, so this is the transcription's general heading convention and not something specific to this heading. PB6057 already tracks that convention. Nothing is missing and the meaning does not change, so under the refutation criteria this is a formatting difference only.",
+    "corrected_description": null
+  }
+}

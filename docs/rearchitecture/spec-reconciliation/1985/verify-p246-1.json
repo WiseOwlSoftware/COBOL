@@ -1,0 +1,13 @@
+{
+  "claim_id": "p246-1",
+  "claim_key": "2322958db00d142f",
+  "page": 246,
+  "kind": "missing-heading",
+  "severity": "structural",
+  "claim": {"id": "p246-1", "page": 246, "kind": "missing-heading", "severity": "structural", "pdf_says": "4.5.4 General Rules", "markdown_says": "### 4.5.4 General Rules", "note": "Heading level inconsistent with its siblings: 4.5.1-4.5.3 on page 245 are '##', 4.5.4 here is '###'. Under '### 4.2' (page 241) the 4.5.n subclauses should all be ####.", "why_it_matters": "The heading hierarchy is wrong, so a reader or tool navigating the document outline places this clause at the wrong depth (siblings appear as parents or children of one another); no normative wording is lost."},
+  "verdict": {
+    "real": false,
+    "reasoning": "The printed page (VI-14) shows the bold heading '4.5.4 General Rules' after syntax rule (12), and the markdown carries it word for word as '### 4.5.4 General Rules', so nothing on page 246 is missing or misquoted. The level matches the document's own convention for this clause: '## 4.3 THE SOURCE-COMPUTER PARAGRAPH' with '### 4.3.1'..'### 4.3.4 General Rules' (page 242) and '## 4.4 THE OBJECT-COMPUTER PARAGRAPH' with '### 4.4.1'..'### 4.4.4 General Rules' (page 243). The claim's proposed fix ('should all be ####') contradicts that convention. The real outline anomaly is on page 245, where the transcription promotes '# 4.5 THE SPECIAL-NAMES PARAGRAPH' and '## 4.5.1'..'## 4.5.3' one level above their 4.3/4.4 siblings; that belongs to page 245, not this page. Either way it is markdown heading depth, formatting with no change to normative text.",
+    "corrected_description": "Not a defect of page 246: '### 4.5.4 General Rules' is present and at the level of 4.3.4/4.4.4. The heading-depth inconsistency lies on page 245 ('# 4.5', '## 4.5.1'-'## 4.5.3' should be '## 4.5', '### 4.5.1'-'### 4.5.3' to match 4.3 and 4.4); formatting only, no normative text lost."
+  }
+}

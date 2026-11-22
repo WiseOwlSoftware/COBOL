@@ -13147,14 +13147,14 @@
    "kind": "FMT",
    "ordinal": null,
    "sublist": 1,
-   "box": "none",
-   "level": 1,
+   "box": "whole",
+   "level": 2,
    "amended_by": [],
    "status": "normal",
    "page": 237,
    "folio": "VI-5",
    "band": "",
-   "text": "<pre style=\"line-height:1\">\n<u>END</u> <u>PROGRAM</u> program-name.\n</pre>",
+   "text": "<pre style=\"line-height:1\">\n║ <u>END</u> <u>PROGRAM</u> program-name. ║\n</pre>",
    "provisional": "none"
   },
   {
@@ -15419,7 +15419,7 @@
    "page": 257,
    "folio": "VI-25",
    "band": "",
-   "text": "Special level-numbers have been assigned to certain entries where there is no real concept of hierarchy:\na. Level-number 77 is assigned to identify noncontiguous working storage data items, noncontiguous linkage data items, and can be used only as described by format 1 of the data description entry. (See page VI-20, The Data Description Entry.)\n║b. Level-number 66 is assigned to identify RENAMES entries and can be used only as described by format 2 of the data description entry. (See page VI-20, The Data Description Entry.)║\nc. Level-number 88 is assigned to entries which define condition-names associated with a conditional variable and can be used only as described by format 3 of the data description entry. (See page VI-20, The Data Description Entry.)",
+   "text": "Special level-numbers have been assigned to certain entries where there is no real concept of hierarchy:\na. Level-number 77 is assigned to identify noncontiguous working storage data items, noncontiguous linkage data items, and can be used only as described by format 1 of the data description entry. (See page VI-20, The Data Description Entry.)\n║b. Level-number 66 is assigned to identify RENAMES entries and can be used only as described by format 2 of the data description entry. (See page VI-20, The Data Description Entry.)║\n║c. Level-number 88 is assigned to entries which define condition-names associated with a conditional variable and can be used only as described by format 3 of the data description entry. (See page VI-20, The Data Description Entry.)║",
    "provisional": "none"
   },
   {
@@ -27338,14 +27338,14 @@
    "kind": "GR",
    "ordinal": 19,
    "sublist": 1,
-   "box": "none",
-   "level": 1,
+   "box": "whole",
+   "level": 2,
    "amended_by": [],
    "status": "normal",
    "page": 371,
    "folio": "VI-139",
    "band": "",
-   "text": "The END-UNSTRING phrase delimits the scope of the UNSTRING statement. (See page IV-40, Scope of Statements.)",
+   "text": "║The END-UNSTRING phrase delimits the scope of the UNSTRING statement. (See page IV-40, Scope of Statements.)║",
    "provisional": "none"
   },
   {
@@ -27360,14 +27360,14 @@
    "kind": "GR",
    "ordinal": 20,
    "sublist": 1,
-   "box": "none",
-   "level": 1,
+   "box": "whole",
+   "level": 2,
    "amended_by": [],
    "status": "normal",
    "page": 371,
    "folio": "VI-139",
    "band": "",
-   "text": "If, at the time of execution of an UNSTRING statement, the conditions described in general rule 17 are not encountered, after completion of the transfer of data according to the other general rules, the ON OVERFLOW phrase, if specified, is ignored and control is transferred to the end of the UNSTRING statement or, if the NOT ON OVERFLOW phrase is specified, to imperative-statement-2. If control is transferred to imperative-statement-2, execution continues according to the rules for each statement specified in imperative-statement-2. If a procedure branching or conditional statement which causes explicit transfer of control is executed, control is transferred in accordance with the rules for that statement; otherwise, upon completion of the execution of imperative-statement-2, control is transferred to the end of the UNSTRING statement.",
+   "text": "║If, at the time of execution of an UNSTRING statement, the conditions described in general rule 17 are not encountered, after completion of the transfer of data according to the other general rules, the ON OVERFLOW phrase, if specified, is ignored and control is transferred to the end of the UNSTRING statement or, if the NOT ON OVERFLOW phrase is specified, to imperative-statement-2. If control is transferred to imperative-statement-2, execution continues according to the rules for each statement specified in imperative-statement-2. If a procedure branching or conditional statement which causes explicit transfer of control is executed, control is transferred in accordance with the rules for that statement; otherwise, upon completion of the execution of imperative-statement-2, control is transferred to the end of the UNSTRING statement.║",
    "provisional": "none"
   },
   {
@@ -27892,7 +27892,7 @@
    "page": 377,
    "folio": "VII-3",
    "band": "",
-   "text": "Permanent Error Condition With Unsuccessful Completion\na. I-O Status = 30. A permanent error exists and no further information is available concerning the input-output operation.\nb. I-O Status = 34. A permanent error exists because of a boundary violation; an attempt is made to write beyond the externally defined boundaries of a sequential file. The implementor specifies the manner in which these boundaries are defined.\nc. I-O Status = 35. A permanent error exists because an OPEN statement with the INPUT, I-O, [║or EXTEND║] phrase is attempted on a [║non-optional║] file that is not present.\nd. I-O Status = 37. A permanent error exists because an OPEN statement is attempted on a file and that file will not support the open mode specified in the OPEN statement. The possible violations are:\n1\\) The [║EXTEND or║] OUTPUT phrase is specified but the file will not support write operations.\n2\\) The I-O phrase is specified but the file will not support the input and output operations that are permitted for a sequential file when opened in the I-O mode.\n3\\) The INPUT phrase is specified but the file will not support read operations.\n║e. I-O Status = 38. A permanent error exists because an OPEN statement is attempted on a file previously closed with lock.║\nf. I-O Status = 39. The OPEN statement is unsuccessful because a conflict has been detected between the fixed file attributes and the attributes specified for that file in the program.",
+   "text": "Permanent Error Condition With Unsuccessful Completion\na. I-O Status = 30. A permanent error exists and no further information is available concerning the input-output operation.\nb. I-O Status = 34. A permanent error exists because of a boundary violation; an attempt is made to write beyond the externally defined boundaries of a sequential file. The implementor specifies the manner in which these boundaries are defined.\nc. I-O Status = 35. A permanent error exists because an OPEN statement with the INPUT, I-O, ║or EXTEND║ phrase is attempted on a ║non-optional║ file that is not present.\nd. I-O Status = 37. A permanent error exists because an OPEN statement is attempted on a file and that file will not support the open mode specified in the OPEN statement. The possible violations are:\n1\\) The ║EXTEND or║ OUTPUT phrase is specified but the file will not support write operations.\n2\\) The I-O phrase is specified but the file will not support the input and output operations that are permitted for a sequential file when opened in the I-O mode.\n3\\) The INPUT phrase is specified but the file will not support read operations.\n║e. I-O Status = 38. A permanent error exists because an OPEN statement is attempted on a file previously closed with lock.║\nf. I-O Status = 39. The OPEN statement is unsuccessful because a conflict has been detected between the fixed file attributes and the attributes specified for that file in the program.",
    "provisional": "none"
   },
   {
@@ -27951,8 +27951,8 @@
    "kind": "GR",
    "ordinal": 1,
    "sublist": 1,
-   "box": "part",
-   "level": 1,
+   "box": "whole",
+   "level": 2,
    "amended_by": [],
    "status": "normal",
    "page": 379,
@@ -29551,7 +29551,7 @@
    "page": 396,
    "folio": "VII-22",
    "band": "",
-   "text": "<pre style=\"line-height:1\">\n<u>FD</u>  file-name-1\n    ┌                                          ╭<u>RECORDS</u>   ╮┐\n    │<u>BLOCK</u> CONTAINS ║[integer-1 <u>TO</u>]║ integer-2 ┤          ├│\n    └                                          ╰<u>CHARACTERS</u>╯┘\n    ┌       ╭ CONTAINS integer-3 CHARACTERS                                    ╮ ┐\n    │<u>RECORD</u> ┤╔IS <u>VARYING</u> IN SIZE [[FROM integer-4] [<u>TO</u> integer-5] CHARACTERS] ╗├ │\n    │       │╚    [<u>DEPENDING</u> ON data-name-1]                                  ╝│ │\n    └       ╰ CONTAINS integer-6 <u>TO</u> integer-7 CHARACTERS                       ╯ ┘\n    ┌      ╭<u>RECORD</u> IS  ╮ ╭<u>STANDARD</u>╮┐\n    │<u>LABEL</u> ┤           ├ ┤        ├│\n    └      ╰<u>RECORDS</u> ARE╯ ╰<u>OMITTED</u> ╯┘\n    ┌         ╭                      ╭║data-name-2║╮╮    ┐\n    │<u>VALUE</u> <u>OF</u> ┤implementor-name-1 IS ┤             ├├ …  │\n    └         ╰                      ╰ literal-1   ╯╯    ┘\n    ┌     ╭<u>RECORD</u> IS  ╮                  ┐\n    │<u>DATA</u> ┤           ├ {data-name-3} …  │\n    └     ╰<u>RECORDS</u> ARE╯                  ┘\n    ╔┌          ╭data-name-4╮       ┌                ╭data-name-5╮┐    ┐ ╗\n    ║│<u>LINAGE</u> IS ┤           ├ LINES │WITH <u>FOOTING</u> AT ┤           ├│    │ ║\n    ║│          ╰integer-8  ╯       └                ╰integer-9  ╯┘    │ ║\n    ║│     ┌             ╭data-name-6╮┐ ┌                ╭data-name-7╮┐│ ║\n    ║│     │LINES AT <u>TOP</u> ┤           ├│ │LINES AT <u>BOTTOM</u> ┤           ├││ ║\n    ╚└     └             ╰integer-10 ╯┘ └                ╰integer-11 ╯┘┘ ╝\n    [<u>CODE-SET</u> IS alphabet-name-1].\n</pre>",
+   "text": "<pre style=\"line-height:1\">\n<u>FD</u>  file-name-1\n    ┌                                          ╭<u>RECORDS</u>   ╮┐\n    │<u>BLOCK</u> CONTAINS ║[integer-1 <u>TO</u>]║ integer-2 ┤          ├│\n    └                                          ╰CHARACTERS╯┘\n    ┌       ╭ CONTAINS integer-3 CHARACTERS                                    ╮ ┐\n    │<u>RECORD</u> ┤╔IS <u>VARYING</u> IN SIZE [[FROM integer-4] [<u>TO</u> integer-5] CHARACTERS] ╗├ │\n    │       │╚    [<u>DEPENDING</u> ON data-name-1]                                  ╝│ │\n    └       ╰ CONTAINS integer-6 <u>TO</u> integer-7 CHARACTERS                       ╯ ┘\n    ┌      ╭<u>RECORD</u> IS  ╮ ╭<u>STANDARD</u>╮┐\n    │<u>LABEL</u> ┤           ├ ┤        ├│\n    └      ╰<u>RECORDS</u> ARE╯ ╰<u>OMITTED</u> ╯┘\n    ┌         ╭                      ╭║data-name-2║╮╮    ┐\n    │<u>VALUE</u> <u>OF</u> ┤implementor-name-1 IS ┤             ├├ …  │\n    └         ╰                      ╰ literal-1   ╯╯    ┘\n    ┌     ╭<u>RECORD</u> IS  ╮                  ┐\n    │<u>DATA</u> ┤           ├ {data-name-3} …  │\n    └     ╰<u>RECORDS</u> ARE╯                  ┘\n    ╔┌          ╭data-name-4╮       ┌                ╭data-name-5╮┐    ┐ ╗\n    ║│<u>LINAGE</u> IS ┤           ├ LINES │WITH <u>FOOTING</u> AT ┤           ├│    │ ║\n    ║│          ╰integer-8  ╯       └                ╰integer-9  ╯┘    │ ║\n    ║│     ┌             ╭data-name-6╮┐ ┌                ╭data-name-7╮┐│ ║\n    ║│     │LINES AT <u>TOP</u> ┤           ├│ │LINES AT <u>BOTTOM</u> ┤           ├││ ║\n    ╚└     └             ╰integer-10 ╯┘ └                ╰integer-11 ╯┘┘ ╝\n    [<u>CODE-SET</u> IS alphabet-name-1].\n</pre>",
    "provisional": "none"
   },
   {
@@ -31426,7 +31426,7 @@
    "page": 413,
    "folio": "VII-39",
    "band": "",
-   "text": "<pre style=\"line-height:1\">\n       ╭ <u>INPUT</u>  ╭            ┌ <u>REVERSED</u>       ┐ ╮     ╮\n       │        ┤file-name-1 │                │ ├ …   │\n       │        ╰            └ WITH <u>NO</u> <u>REWIND</u> ┘ ╯     │\n<u>OPEN</u>   ┤ <u>OUTPUT</u> {file-name-2 [ WITH <u>NO</u> <u>REWIND</u> ] } …   ├ …\n       │ <u>I-O</u> {file-name-3} …                          │\n       ╰║<u>EXTEND</u> {file-name-4}  … ║                    ╯\n</pre>",
+   "text": "<pre style=\"line-height:1\">\n       ╭ <u>INPUT</u>  ╭           ║┌ <u>REVERSED</u>       ┐║╮     ╮\n       │        ┤file-name-1║│                │║├ …   │\n       │        ╰           ║└ WITH <u>NO</u> <u>REWIND</u> ┘║╯     │\n<u>OPEN</u>   ┤ <u>OUTPUT</u> {file-name-2║[ WITH <u>NO</u> <u>REWIND</u> ]║} …   ├ …\n       │ <u>I-O</u> {file-name-3} …                          │\n       ╰║<u>EXTEND</u> {file-name-4}  … ║                    ╯\n</pre>",
    "provisional": "none"
   },
   {
@@ -35285,7 +35285,7 @@
    "page": 444,
    "folio": "VIII-14",
    "band": "",
-   "text": "<pre style=\"line-height:1\">\n<u>FD</u>  file-name-1\n    ┌                                          ╭<u>RECORDS</u>   ╮┐\n    │<u>BLOCK</u> CONTAINS ║[integer-1 <u>TO</u>]║ integer-2 ┤          ├│\n    └                                          ╰<u>CHARACTERS</u>╯┘\n    ┌       ╭ CONTAINS integer-3 CHARACTERS                                    ╮ ┐\n    │<u>RECORD</u> ┤╔IS <u>VARYING</u> IN SIZE [[FROM integer-4] [<u>TO</u> integer-5] CHARACTERS] ╗├ │\n    │       │╚    [<u>DEPENDING</u> ON data-name-1]                                  ╝│ │\n    └       ╰ CONTAINS integer-6 <u>TO</u> integer-7 CHARACTERS                       ╯ ┘\n    ┌      ╭<u>RECORD</u> IS  ╮ ╭<u>STANDARD</u>╮┐\n    │<u>LABEL</u> ┤           ├ ┤        ├│\n    └      ╰<u>RECORDS</u> ARE╯ ╰<u>OMITTED</u> ╯┘\n    ┌         ╭                      ╭║data-name-2║╮╮    ┐\n    │<u>VALUE</u> <u>OF</u> ┤implementor-name-1 IS ┤             ├├ …  │\n    └         ╰                      ╰ literal-1   ╯╯    ┘\n    ┌     ╭<u>RECORD</u> IS  ╮                  ┐\n    │<u>DATA</u> ┤           ├ {data-name-3} …  │ .\n    └     ╰<u>RECORDS</u> ARE╯                  ┘\n</pre>",
+   "text": "<pre style=\"line-height:1\">\n<u>FD</u>  file-name-1\n    ┌                                          ╭<u>RECORDS</u>   ╮┐\n    │<u>BLOCK</u> CONTAINS ║[integer-1 <u>TO</u>]║ integer-2 ┤          ├│\n    └                                          ╰CHARACTERS╯┘\n    ┌       ╭ CONTAINS integer-3 CHARACTERS                                    ╮ ┐\n    │<u>RECORD</u> ┤╔IS <u>VARYING</u> IN SIZE [[FROM integer-4] [<u>TO</u> integer-5] CHARACTERS] ╗├ │\n    │       │╚    [<u>DEPENDING</u> ON data-name-1]                                  ╝│ │\n    └       ╰ CONTAINS integer-6 <u>TO</u> integer-7 CHARACTERS                       ╯ ┘\n    ┌      ╭<u>RECORD</u> IS  ╮ ╭<u>STANDARD</u>╮┐\n    │<u>LABEL</u> ┤           ├ ┤        ├│\n    └      ╰<u>RECORDS</u> ARE╯ ╰<u>OMITTED</u> ╯┘\n    ┌         ╭                      ╭║data-name-2║╮╮    ┐\n    │<u>VALUE</u> <u>OF</u> ┤implementor-name-1 IS ┤             ├├ …  │\n    └         ╰                      ╰ literal-1   ╯╯    ┘\n    ┌     ╭<u>RECORD</u> IS  ╮                  ┐\n    │<u>DATA</u> ┤           ├ {data-name-3} …  │ .\n    └     ╰<u>RECORDS</u> ARE╯                  ┘\n</pre>",
    "provisional": "none"
   },
   {
@@ -36190,7 +36190,7 @@
    "page": 453,
    "folio": "VIII-23",
    "band": "",
-   "text": "A file may be opened with the INPUT, OUTPUT, [║EXTEND,║] and I-O phrases in the same run unit. Following the initial execution of an OPEN statement for a file, each subsequent OPEN statement execution for that same file must be preceded by the execution of a CLOSE statement, [║without the LOCK phrase,║] for that file.",
+   "text": "A file may be opened with the INPUT, OUTPUT, ║EXTEND,║ and I-O phrases in the same run unit. Following the initial execution of an OPEN statement for a file, each subsequent OPEN statement execution for that same file must be preceded by the execution of a CLOSE statement, ║without the LOCK phrase,║ for that file.",
    "provisional": "none"
   },
   {
@@ -37413,7 +37413,7 @@
    "page": 462,
    "folio": "VIII-32",
    "band": "",
-   "text": "For a file accessed in |║either║| random |║or dynamic║| access mode, the mass storage control system (MSCS) logically replaces the record specified by the content of the relative key data of the file-name associated with record-name-1. If the file does not contain the record specified by the key, the invalid key condition exists. When the invalid key condition is recognized, the execution of the REWRITE statement is unsuccessful, the updating operation does not take place, the contents of the record area are unaffected and the I-O status of the file-name associated with record-name-1 is set to a value indicating the cause of the condition. (See page VIII-2, I-O Status.)",
+   "text": "For a file accessed in ║either║ random ║or dynamic║ access mode, the mass storage control system (MSCS) logically replaces the record specified by the content of the relative key data of the file-name associated with record-name-1. If the file does not contain the record specified by the key, the invalid key condition exists. When the invalid key condition is recognized, the execution of the REWRITE statement is unsuccessful, the updating operation does not take place, the contents of the record area are unaffected and the I-O status of the file-name associated with record-name-1 is set to a value indicating the cause of the condition. (See page VIII-2, I-O Status.)",
    "provisional": "none"
   },
   {
@@ -40294,7 +40294,7 @@
    "page": 486,
    "folio": "IX-16",
    "band": "",
-   "text": "<pre style=\"line-height:1\">\n<u>FD</u>  file-name-1\n    ┌                                          ╭<u>RECORDS</u>   ╮┐\n    │<u>BLOCK</u> CONTAINS ║[integer-1 <u>TO</u>]║ integer-2 ┤          ├│\n    └                                          ╰<u>CHARACTERS</u>╯┘\n    ┌       ╭ CONTAINS integer-3 CHARACTERS                                    ╮ ┐\n    │<u>RECORD</u> ┤╔IS <u>VARYING</u> IN SIZE [[FROM integer-4] [<u>TO</u> integer-5] CHARACTERS] ╗├ │\n    │       │╚    [<u>DEPENDING</u> ON data-name-1]                                  ╝│ │\n    └       ╰ CONTAINS integer-6 <u>TO</u> integer-7 CHARACTERS                       ╯ ┘\n    ┌      ╭<u>RECORD</u> IS  ╮ ╭<u>STANDARD</u>╮┐\n    │<u>LABEL</u> ┤           ├ ┤        ├│\n    └      ╰<u>RECORDS</u> ARE╯ ╰<u>OMITTED</u> ╯┘\n    ┌         ╭                      ╭║data-name-2║╮╮    ┐\n    │<u>VALUE</u> <u>OF</u> ┤implementor-name-1 IS ┤             ├├ …  │\n    └         ╰                      ╰ literal-1   ╯╯    ┘\n    ┌     ╭<u>RECORD</u> IS  ╮                  ┐\n    │<u>DATA</u> ┤           ├ {data-name-3} …  │ .\n    └     ╰<u>RECORDS</u> ARE╯                  ┘\n</pre>",
+   "text": "<pre style=\"line-height:1\">\n<u>FD</u>  file-name-1\n    ┌                                          ╭<u>RECORDS</u>   ╮┐\n    │<u>BLOCK</u> CONTAINS ║[integer-1 <u>TO</u>]║ integer-2 ┤          ├│\n    └                                          ╰CHARACTERS╯┘\n    ┌       ╭ CONTAINS integer-3 CHARACTERS                                    ╮ ┐\n    │<u>RECORD</u> ┤╔IS <u>VARYING</u> IN SIZE [[FROM integer-4] [<u>TO</u> integer-5] CHARACTERS] ╗├ │\n    │       │╚    [<u>DEPENDING</u> ON data-name-1]                                  ╝│ │\n    └       ╰ CONTAINS integer-6 <u>TO</u> integer-7 CHARACTERS                       ╯ ┘\n    ┌      ╭<u>RECORD</u> IS  ╮ ╭<u>STANDARD</u>╮┐\n    │<u>LABEL</u> ┤           ├ ┤        ├│\n    └      ╰<u>RECORDS</u> ARE╯ ╰<u>OMITTED</u> ╯┘\n    ┌         ╭                      ╭║data-name-2║╮╮    ┐\n    │<u>VALUE</u> <u>OF</u> ┤implementor-name-1 IS ┤             ├├ …  │\n    └         ╰                      ╰ literal-1   ╯╯    ┘\n    ┌     ╭<u>RECORD</u> IS  ╮                  ┐\n    │<u>DATA</u> ┤           ├ {data-name-3} …  │ .\n    └     ╰<u>RECORDS</u> ARE╯                  ┘\n</pre>",
    "provisional": "none"
   },
   {
@@ -42508,7 +42508,7 @@
    "page": 505,
    "folio": "IX-35",
    "band": "",
-   "text": "The invalid key condition exists under the following circumstances:\na. When the file is open in the sequential access mode, and the value of the prime record key of the record to be replaced is not equal to the value of the prime record key of the last record read from the file, or\nb. When the file is open in the [║dynamic or║] random access mode, and the value of the prime record key of the record to be replaced is not equal to the value of the prime record key of any record existing in the file, or\n║c. When the value of an alternate record key of the record to be replaced, for which duplicates are not allowed, equals the value of the corresponding data item of a record already existing in the file.║",
+   "text": "The invalid key condition exists under the following circumstances:\na. When the file is open in the sequential access mode, and the value of the prime record key of the record to be replaced is not equal to the value of the prime record key of the last record read from the file, or\nb. When the file is open in the ║dynamic or║ random access mode, and the value of the prime record key of the record to be replaced is not equal to the value of the prime record key of any record existing in the file, or\n║c. When the value of an alternate record key of the record to be replaced, for which duplicates are not allowed, equals the value of the corresponding data item of a record already existing in the file.║",
    "provisional": "none"
   },
   {
@@ -46095,7 +46095,7 @@
    "page": 531,
    "folio": "X-15",
    "band": "",
-   "text": "<u>Format 1:</u>\n<pre style=\"line-height:1\">\n<u>FD</u>  file-name-1\n    ╔ [ IS <u>EXTERNAL</u> ] ╗\n    ║                 ║\n    ╚ [ IS <u>GLOBAL</u> ]   ╝\n    ┌                                        ╭<u>RECORDS</u>   ╮┐\n    │<u>BLOCK</u> CONTAINS [integer-1 <u>TO</u>] integer-2 ┤          ├│\n    └                                        ╰<u>CHARACTERS</u>╯┘\n    ┌       ╭CONTAINS integer-3 CHARACTERS                                   ╮ ┐\n    │<u>RECORD</u> ┤IS <u>VARYING</u> IN SIZE [[FROM integer-4] [<u>TO</u> integer-5] CHARACTERS] ├ │\n    │       │    [<u>DEPENDING</u> ON data-name-1]                                  │ │\n    └       ╰CONTAINS integer-6 <u>TO</u> integer-7 CHARACTERS                      ╯ ┘\n    ┌      ╭<u>RECORD</u> IS  ╮ ╭<u>STANDARD</u>╮┐\n    │<u>LABEL</u> ┤           ├ ┤        ├│\n    └      ╰<u>RECORDS</u> ARE╯ ╰<u>OMITTED</u> ╯┘\n    ┌         ╭                      ╭data-name-2╮╮    ┐\n    │<u>VALUE</u> <u>OF</u> ┤implementor-name-1 IS ┤           ├├ …  │\n    └         ╰                      ╰literal-1  ╯╯    ┘\n    ┌     ╭<u>RECORD</u> IS  ╮                  ┐\n    │<u>DATA</u> ┤           ├ {data-name-3} …  │\n    └     ╰<u>RECORDS</u> ARE╯                  ┘\n    ┌          ╭data-name-4╮       ┌                ╭data-name-5╮┐    ┐\n    │<u>LINAGE</u> IS ┤           ├ LINES │WITH <u>FOOTING</u> AT ┤           ├│    │\n    │          ╰integer-8  ╯       └                ╰integer-9  ╯┘    │\n    │     ┌             ╭data-name-6╮┐ ┌                ╭data-name-7╮┐│\n    │     │LINES AT <u>TOP</u> ┤           ├│ │LINES AT <u>BOTTOM</u> ┤           ├││\n    └     └             ╰integer-10 ╯┘ └                ╰integer-11 ╯┘┘\n    [<u>CODE-SET</u> IS alphabet-name-1].\n</pre>\n<u>Format 2:</u>\n<pre style=\"line-height:1\">\n<u>FD</u> file-name-1\n╔ [ IS <u>EXTERNAL</u> ] ╗\n╚ [ IS <u>GLOBAL</u> ]   ╝\n┌                                           ╭ <u>RECORDS</u>    ╮ ┐\n│ <u>BLOCK</u> CONTAINS [ integer-1 <u>TO</u> ] integer-2 ┤            ├ │\n└                                           ╰ CHARACTERS ╯ ┘\n┌        ╭ CONTAINS integer-3 CHARACTERS                                         ╮ ┐\n│        │                                                                       │ │\n│        │ IS <u>VARYING</u> IN SIZE [ [ FROM integer-4 ] [ <u>TO</u> integer-5 ] CHARACTERS ] │ │\n│ <u>RECORD</u> ┤                                                                       ├ │\n│        │ [ <u>DEPENDING</u> ON data-name-1 ]                                          │ │\n│        │                                                                       │ │\n└        ╰ CONTAINS integer-6 <u>TO</u> integer-7 CHARACTERS                            ╯ ┘\n┌       ╭ <u>RECORD</u> IS   ╮ ╭ <u>STANDARD</u> ╮ ┐\n│ <u>LABEL</u> ┤             ├ ┤          ├ │\n└       ╰ <u>RECORDS</u> ARE ╯ ╰ <u>OMITTED</u>  ╯ ┘\n┌          ╭                       ╭ data-name-2 ╮ ╮   ┐\n│ <u>VALUE</u> <u>OF</u> ┤ implementor-name-1 IS ┤             ├ ├ … │\n└          ╰                       ╰ literal-1   ╯ ╯   ┘\n┌      ╭ <u>RECORD</u> IS   ╮                   ┐\n│ <u>DATA</u> ┤             ├ { data-name-3 } … │ .\n└      ╰ <u>RECORDS</u> ARE ╯                   ┘\n</pre>\n<u>Format 3</u>:\n<pre style=\"line-height:1\">\n<u>FD</u>  file-name-1\n    ╔ [ IS <u>EXTERNAL</u> ] ╗\n    ║                 ║\n    ╚ [ IS <u>GLOBAL</u> ]   ╝\n    ┌                                        ╭<u>RECORDS</u>   ╮┐\n    │<u>BLOCK</u> CONTAINS [integer-1 <u>TO</u>] integer-2 ┤          ├│\n    └                                        ╰<u>CHARACTERS</u>╯┘\n    ┌       ╭CONTAINS integer-3 CHARACTERS                                   ╮ ┐\n    │<u>RECORD</u> ┤IS <u>VARYING</u> IN SIZE [[FROM integer-4] [<u>TO</u> integer-5] CHARACTERS] ├ │\n    │       │    [<u>DEPENDING</u> ON data-name-1]                                  │ │\n    └       ╰CONTAINS integer-6 <u>TO</u> integer-7 CHARACTERS                      ╯ ┘\n    ┌      ╭<u>RECORD</u> IS  ╮ ╭<u>STANDARD</u>╮┐\n    │<u>LABEL</u> ┤           ├ ┤        ├│\n    └      ╰<u>RECORDS</u> ARE╯ ╰<u>OMITTED</u> ╯┘\n    ┌         ╭                      ╭data-name-2╮╮    ┐\n    │<u>VALUE</u> <u>OF</u> ┤implementor-name-1 IS ┤           ├├ …  │\n    └         ╰                      ╰literal-1  ╯╯    ┘\n    [<u>CODE-SET</u> IS alphabet-name-1]\n    ╭ <u>REPORT</u> IS   ╮\n    ┤             ├ { report-name-1 } …   .\n    ╰ <u>REPORTS</u> ARE ╯\n</pre>",
+   "text": "<u>Format 1:</u>\n<pre style=\"line-height:1\">\n<u>FD</u>  file-name-1\n    ╔ [ IS <u>EXTERNAL</u> ] ╗\n    ║                 ║\n    ╚ [ IS <u>GLOBAL</u> ]   ╝\n    ┌                                        ╭<u>RECORDS</u>   ╮┐\n    │<u>BLOCK</u> CONTAINS [integer-1 <u>TO</u>] integer-2 ┤          ├│\n    └                                        ╰CHARACTERS╯┘\n    ┌       ╭CONTAINS integer-3 CHARACTERS                                   ╮ ┐\n    │<u>RECORD</u> ┤IS <u>VARYING</u> IN SIZE [[FROM integer-4] [<u>TO</u> integer-5] CHARACTERS] ├ │\n    │       │    [<u>DEPENDING</u> ON data-name-1]                                  │ │\n    └       ╰CONTAINS integer-6 <u>TO</u> integer-7 CHARACTERS                      ╯ ┘\n    ┌      ╭<u>RECORD</u> IS  ╮ ╭<u>STANDARD</u>╮┐\n    │<u>LABEL</u> ┤           ├ ┤        ├│\n    └      ╰<u>RECORDS</u> ARE╯ ╰<u>OMITTED</u> ╯┘\n    ┌         ╭                      ╭data-name-2╮╮    ┐\n    │<u>VALUE</u> <u>OF</u> ┤implementor-name-1 IS ┤           ├├ …  │\n    └         ╰                      ╰literal-1  ╯╯    ┘\n    ┌     ╭<u>RECORD</u> IS  ╮                  ┐\n    │<u>DATA</u> ┤           ├ {data-name-3} …  │\n    └     ╰<u>RECORDS</u> ARE╯                  ┘\n    ┌          ╭data-name-4╮       ┌                ╭data-name-5╮┐    ┐\n    │<u>LINAGE</u> IS ┤           ├ LINES │WITH <u>FOOTING</u> AT ┤           ├│    │\n    │          ╰integer-8  ╯       └                ╰integer-9  ╯┘    │\n    │     ┌             ╭data-name-6╮┐ ┌                ╭data-name-7╮┐│\n    │     │LINES AT <u>TOP</u> ┤           ├│ │LINES AT <u>BOTTOM</u> ┤           ├││\n    └     └             ╰integer-10 ╯┘ └                ╰integer-11 ╯┘┘\n    [<u>CODE-SET</u> IS alphabet-name-1].\n</pre>\n<u>Format 2:</u>\n<pre style=\"line-height:1\">\n<u>FD</u> file-name-1\n╔ [ IS <u>EXTERNAL</u> ] ╗\n╚ [ IS <u>GLOBAL</u> ]   ╝\n┌                                           ╭ <u>RECORDS</u>    ╮ ┐\n│ <u>BLOCK</u> CONTAINS [ integer-1 <u>TO</u> ] integer-2 ┤            ├ │\n└                                           ╰ CHARACTERS ╯ ┘\n┌        ╭ CONTAINS integer-3 CHARACTERS                                         ╮ ┐\n│        │                                                                       │ │\n│        │ IS <u>VARYING</u> IN SIZE [ [ FROM integer-4 ] [ <u>TO</u> integer-5 ] CHARACTERS ] │ │\n│ <u>RECORD</u> ┤                                                                       ├ │\n│        │ [ <u>DEPENDING</u> ON data-name-1 ]                                          │ │\n│        │                                                                       │ │\n└        ╰ CONTAINS integer-6 <u>TO</u> integer-7 CHARACTERS                            ╯ ┘\n┌       ╭ <u>RECORD</u> IS   ╮ ╭ <u>STANDARD</u> ╮ ┐\n│ <u>LABEL</u> ┤             ├ ┤          ├ │\n└       ╰ <u>RECORDS</u> ARE ╯ ╰ <u>OMITTED</u>  ╯ ┘\n┌          ╭                       ╭ data-name-2 ╮ ╮   ┐\n│ <u>VALUE</u> <u>OF</u> ┤ implementor-name-1 IS ┤             ├ ├ … │\n└          ╰                       ╰ literal-1   ╯ ╯   ┘\n┌      ╭ <u>RECORD</u> IS   ╮                   ┐\n│ <u>DATA</u> ┤             ├ { data-name-3 } … │ .\n└      ╰ <u>RECORDS</u> ARE ╯                   ┘\n</pre>\n<u>Format 3</u>:\n<pre style=\"line-height:1\">\n<u>FD</u>  file-name-1\n    ╔ [ IS <u>EXTERNAL</u> ] ╗\n    ║                 ║\n    ╚ [ IS <u>GLOBAL</u> ]   ╝\n    ┌                                        ╭<u>RECORDS</u>   ╮┐\n    │<u>BLOCK</u> CONTAINS [integer-1 <u>TO</u>] integer-2 ┤          ├│\n    └                                        ╰CHARACTERS╯┘\n    ┌       ╭CONTAINS integer-3 CHARACTERS                                   ╮ ┐\n    │<u>RECORD</u> ┤IS <u>VARYING</u> IN SIZE [[FROM integer-4] [<u>TO</u> integer-5] CHARACTERS] ├ │\n    │       │    [<u>DEPENDING</u> ON data-name-1]                                  │ │\n    └       ╰CONTAINS integer-6 <u>TO</u> integer-7 CHARACTERS                      ╯ ┘\n    ┌      ╭<u>RECORD</u> IS  ╮ ╭<u>STANDARD</u>╮┐\n    │<u>LABEL</u> ┤           ├ ┤        ├│\n    └      ╰<u>RECORDS</u> ARE╯ ╰<u>OMITTED</u> ╯┘\n    ┌         ╭                      ╭data-name-2╮╮    ┐\n    │<u>VALUE</u> <u>OF</u> ┤implementor-name-1 IS ┤           ├├ …  │\n    └         ╰                      ╰literal-1  ╯╯    ┘\n    [<u>CODE-SET</u> IS alphabet-name-1]\n    ╭ <u>REPORT</u> IS   ╮\n    ┤             ├ { report-name-1 } …   .\n    ╰ <u>REPORTS</u> ARE ╯\n</pre>",
    "provisional": "none"
   },
   {
@@ -47146,7 +47146,7 @@
    "page": 543,
    "folio": "X-27",
    "band": "",
-   "text": "If, when a CALL statement is executed, the program specified by the CALL statement is made available for execution, control is transferred to the called\nprogram. After control is returned from the called program, ║the ON OVERFLOW or ON EXCEPTION phrase, if specified, is ignored and║ control is transferred to the end of the CALL statement ║or, if the NOT ON EXCEPTION phrase is specified, to imperative-statement-2. If control is transferred to imperative-statement-2, execution continues according to the rules for each statement specified in imperative-statement-2. If a procedure branching or conditional statement which causes explicit transfer of control is executed, control is transferred in accordance with the rules for that statement; otherwise, upon completion of the execution of imperative-statement-2, control is transferred to the end of the CALL statement.║",
+   "text": "If, when a CALL statement is executed, the program specified by the CALL statement is made available for execution, control is transferred to the called\nprogram. After control is returned from the called program, ║the ON OVERFLOW or ON EXCEPTION phrase, if specified, is ignored and║ ║control is transferred to the end of the CALL statement║ ║or, if the NOT ON EXCEPTION phrase is specified, to imperative-statement-2. If control is transferred to imperative-statement-2, execution continues according to the rules for each statement specified in imperative-statement-2. If a procedure branching or conditional statement which causes explicit transfer of control is executed, control is transferred in accordance with the rules for that statement; otherwise, upon completion of the execution of imperative-statement-2, control is transferred to the end of the CALL statement.║",
    "provisional": "none"
   },
   {
@@ -47183,14 +47183,14 @@
    "kind": "GR",
    "ordinal": 4,
    "sublist": 1,
-   "box": "part",
-   "level": 1,
+   "box": "whole",
+   "level": 2,
    "amended_by": [],
    "status": "normal",
    "page": 544,
    "folio": "X-28",
    "band": "",
-   "text": "║Two or more programs in the run unit may have the same program-name, and the reference in a CALL statement to such a program-name is resolved by using the scope of names conventions for program-names. (See page X-5, Conventions for Program-Names.)║\n║For example, when only two programs in the run unit have the same name as that specified in a CALL statement:║\n║a. One of those two programs must also be contained directly or indirectly either within the separately compiled program which includes that CALL statement or within the separately compiled program which itself directly or indirectly contains the program which includes that CALL statement, and║\n║b. The other of those two programs must be a different separately compiled program.║\n║The mechanism used in this example is as follows:║\n║a. If one of the two programs having the same name as that specified in the CALL statement is directly contained within the program which includes that CALL statement, that program is called.║\n║b. If one of the two programs having the same name as that specified in the CALL statement possesses the common attribute and is directly contained within another program which directly or indirectly contains║ the program which\n║includes the CALL statement, that common program is called unless the calling program is contained within that common program.║\n║c. Otherwise, the separately compiled program is called.║",
+   "text": "║Two or more programs in the run unit may have the same program-name, and the reference in a CALL statement to such a program-name is resolved by using the scope of names conventions for program-names. (See page X-5, Conventions for Program-Names.)║\n║For example, when only two programs in the run unit have the same name as that specified in a CALL statement:║\n║a. One of those two programs must also be contained directly or indirectly either within the separately compiled program which includes that CALL statement or within the separately compiled program which itself directly or indirectly contains the program which includes that CALL statement, and║\n║b. The other of those two programs must be a different separately compiled program.║\n║The mechanism used in this example is as follows:║\n║a. If one of the two programs having the same name as that specified in the CALL statement is directly contained within the program which includes that CALL statement, that program is called.║\n║b. If one of the two programs having the same name as that specified in the CALL statement possesses the common attribute and is directly contained within another program which directly or indirectly contains the program which║\n║includes the CALL statement, that common program is called unless the calling program is contained within that common program.║\n║c. Otherwise, the separately compiled program is called.║",
    "provisional": "none"
   },
   {
@@ -50788,7 +50788,7 @@
    "page": 580,
    "folio": "XII-6",
    "band": "",
-   "text": "║<u>Format 1:</u>║\n<pre style=\"line-height:1\">\n║ <u>REPLACE</u> { ==pseudo-text-1== <u>BY</u> ==pseudo-text-2== } … ║\n</pre>\n║<u>Format 2:</u>║\n<pre style=\"line-height:1\">\n<u>REPLACE</u> <u>OFF</u>\n</pre>",
+   "text": "║<u>Format 1:</u>║\n<pre style=\"line-height:1\">\n║ <u>REPLACE</u> { ==pseudo-text-1== <u>BY</u> ==pseudo-text-2== } … ║\n</pre>\n║<u>Format 2:</u>║\n<pre style=\"line-height:1\">\n║ <u>REPLACE</u> <u>OFF</u> ║\n</pre>",
    "provisional": "none"
   },
   {
@@ -59535,7 +59535,7 @@
    "page": 664,
    "folio": "XIV-6",
    "band": "",
-   "text": "For each input CD entry, a record area of 87 contiguous character positions is allocated. This record area is defined to the MCS as follows:\na. The SYMBOLIC QUEUE clause defines data-name-1 as the name of an elementary alphanumeric data item of 12 characters occupying positions 1 through 12 in the record.\n║b. The SYMBOLIC SUB-QUEUE-1 clause defines data-name-2 as the name of an elementary alphanumeric data item of 12 characters occupying positions 13 through 24 in the record.║\n║c. The SYMBOLIC SUB-QUEUE-2 clause defines data-name-3 as the name of an elementary alphanumeric data item of 12 characters occupying positions 25 through 36 in the record.║\n║d. The SYMBOLIC SUB-QUEUE-3 clause defines data-name-4 as the name of an elementary alphanumeric data item of 12 characters occupying positions 37 through 48 in the record.║\ne. The MESSAGE DATE clause defines data-name-5 as the name of a data item whose implicit description is that of an integer of 6 digits, without an operational sign, occupying character positions 49 through 54 in the record.\nf. The MESSAGE TIME clause defines data-name-6 as the name of a data item whose implicit description is that of an integer of 8 digits, without an operational sign, occupying character positions 55 through 62 in the record.\ng. The SYMBOLIC SOURCE clause defines data-name-7 as the name of an elementary alphanumeric data item of 12 characters occupying positions 63 through 74 in the record.\nh. The TEXT LENGTH clause defines data-name-8 as the name of an elementary data item whose implicit description is that of an integer of 4 digits, without an operational sign, occupying character positions 75 through 78 in the record.\ni. The END KEY clause defines data-name-9 as the name of an elementary alphanumeric data item of 1 character occupying position 79 in the record.\nj. The STATUS KEY clause defines data-name-10 as the name of an elementary alphanumeric data item of 2 characters occupying positions 80 and 81 in the record.\nk. The MESSAGE COUNT clause defines data-name-11 as the name of an elementary data item whose implicit description is that of an integer of 6 digits, without an operational sign, occupying character positions 82 through 87 in the record.\n║The second option may be used to replace the above clauses by a series of data-names which, taken in order, correspond to the data-names defined by these clauses.║\nUse of either option results in a record whose implicit description is equivalent to the following:\n| IMPLICIT DESCRIPTION | COMMENT |\n|---|---|\n| 01 data-name-0. | |\n| &nbsp;&nbsp;&nbsp;&nbsp;02 data-name-1 PICTURE X(12). | SYMBOLIC QUEUE |\n| &nbsp;&nbsp;&nbsp;&nbsp;02 data-name-2 PICTURE X(12). | ║SYMBOLIC SUB-QUEUE-1║ |\n| ║&nbsp;&nbsp;&nbsp;&nbsp;02 data-name-3 PICTURE X(12). | SYMBOLIC SUB-QUEUE-║2 |\n| &nbsp;&nbsp;&nbsp;&nbsp;02 data-name-4 PICTURE X(12). | SYMBOLIC SUB-QUEUE-3 |\n| &nbsp;&nbsp;&nbsp;&nbsp;02 data-name-5 PICTURE 9(6). | MESSAGE DATE |\n| &nbsp;&nbsp;&nbsp;&nbsp;02 data-name-6 PICTURE 9(8). | MESSAGE TIME |\n| &nbsp;&nbsp;&nbsp;&nbsp;02 data-name-7 PICTURE X(12). | SYMBOLIC SOURCE |\n| &nbsp;&nbsp;&nbsp;&nbsp;02 data-name-8 PICTURE 9(4). | TEXT LENGTH |\n| &nbsp;&nbsp;&nbsp;&nbsp;02 data-name-9 PICTURE X. | END KEY |\n| &nbsp;&nbsp;&nbsp;&nbsp;02 data-name 10 PICTURE XX. | STATUS KEY |\n| &nbsp;&nbsp;&nbsp;&nbsp;02 data-name-11 PICTURE 9(6). | MESSAGE COUNT |\nNOTE: In the above, the information under 'COMMENT' is for clarification and is not part of the data description.",
+   "text": "For each input CD entry, a record area of 87 contiguous character positions is allocated. This record area is defined to the MCS as follows:\na. The SYMBOLIC QUEUE clause defines data-name-1 as the name of an elementary alphanumeric data item of 12 characters occupying positions 1 through 12 in the record.\n║b. The SYMBOLIC SUB-QUEUE-1 clause defines data-name-2 as the name of an elementary alphanumeric data item of 12 characters occupying positions 13 through 24 in the record.║\n║c. The SYMBOLIC SUB-QUEUE-2 clause defines data-name-3 as the name of an elementary alphanumeric data item of 12 characters occupying positions 25 through 36 in the record.║\n║d. The SYMBOLIC SUB-QUEUE-3 clause defines data-name-4 as the name of an elementary alphanumeric data item of 12 characters occupying positions 37 through 48 in the record.║\ne. The MESSAGE DATE clause defines data-name-5 as the name of a data item whose implicit description is that of an integer of 6 digits, without an operational sign, occupying character positions 49 through 54 in the record.\nf. The MESSAGE TIME clause defines data-name-6 as the name of a data item whose implicit description is that of an integer of 8 digits, without an operational sign, occupying character positions 55 through 62 in the record.\ng. The SYMBOLIC SOURCE clause defines data-name-7 as the name of an elementary alphanumeric data item of 12 characters occupying positions 63 through 74 in the record.\nh. The TEXT LENGTH clause defines data-name-8 as the name of an elementary data item whose implicit description is that of an integer of 4 digits, without an operational sign, occupying character positions 75 through 78 in the record.\ni. The END KEY clause defines data-name-9 as the name of an elementary alphanumeric data item of 1 character occupying position 79 in the record.\nj. The STATUS KEY clause defines data-name-10 as the name of an elementary alphanumeric data item of 2 characters occupying positions 80 and 81 in the record.\nk. The MESSAGE COUNT clause defines data-name-11 as the name of an elementary data item whose implicit description is that of an integer of 6 digits, without an operational sign, occupying character positions 82 through 87 in the record.\n║The second option may be used to replace the above clauses by a series of data-names which, taken in order, correspond to the data-names defined by these clauses.║\nUse of either option results in a record whose implicit description is equivalent to the following:\n| IMPLICIT DESCRIPTION | COMMENT |\n|---|---|\n| 01 data-name-0. | |\n| &nbsp;&nbsp;&nbsp;&nbsp;02 data-name-1 PICTURE X(12). | SYMBOLIC QUEUE |\n| &nbsp;&nbsp;&nbsp;&nbsp;02 data-name-2 PICTURE X(12). | ║SYMBOLIC SUB-QUEUE-1║ |\n| &nbsp;&nbsp;&nbsp;&nbsp;02 data-name-3 PICTURE X(12). | ║SYMBOLIC SUB-QUEUE-2║ |\n| &nbsp;&nbsp;&nbsp;&nbsp;02 data-name-4 PICTURE X(12). | ║SYMBOLIC SUB-QUEUE-3║ |\n| &nbsp;&nbsp;&nbsp;&nbsp;02 data-name-5 PICTURE 9(6). | MESSAGE DATE |\n| &nbsp;&nbsp;&nbsp;&nbsp;02 data-name-6 PICTURE 9(8). | MESSAGE TIME |\n| &nbsp;&nbsp;&nbsp;&nbsp;02 data-name-7 PICTURE X(12). | SYMBOLIC SOURCE |\n| &nbsp;&nbsp;&nbsp;&nbsp;02 data-name-8 PICTURE 9(4). | TEXT LENGTH |\n| &nbsp;&nbsp;&nbsp;&nbsp;02 data-name-9 PICTURE X. | END KEY |\n| &nbsp;&nbsp;&nbsp;&nbsp;02 data-name 10 PICTURE XX. | STATUS KEY |\n| &nbsp;&nbsp;&nbsp;&nbsp;02 data-name-11 PICTURE 9(6). | MESSAGE COUNT |\nNOTE: In the above, the information under 'COMMENT' is for clarification and is not part of the data description.",
    "provisional": "none"
   },
   {
@@ -59755,7 +59755,7 @@
    "page": 666,
    "folio": "XIV-8",
    "band": "",
-   "text": "The content of the data item referenced by data-name-9 is set only by the MCS as part of the execution of a RECEIVE statement according to the following rules:\na. When the RECEIVE MESSAGE phrase is specified, then:\n1\\) If an end of group has been detected, the content of the data item referenced by data-name-9 is set to 3;\n2\\) If an end of message has been detected, the content of the data item referenced by data-name-9 is set to 2;\n║3\\) If less than a message is transferred, the content of the data item referenced by data-name-9 is set to 0.║\nb. When the RECEIVE SEGMENT phrase is specified, then:\n1\\) If an end of group has been detected, the content of the data item referenced by data-name-9 is set to 3;\n2\\) If an end of message has been detected, the content of the data item referenced by data-name-9 is set to 2;\n3\\) If an end of segment has been detected, the content of the data item referenced by data-name-9 is set to 1;\n4\\) If less than a message segment is transferred, the content of the data item referenced by data-name-9 is set to 0.\nc. When more than one of the above conditions is satisfied simultaneously, the rule first satisfied in the order listed determines the content of the data item referenced by data-name-9.",
+   "text": "The content of the data item referenced by data-name-9 is set only by the MCS as part of the execution of a RECEIVE statement according to the following rules:\na. When the RECEIVE MESSAGE phrase is specified, then:\n1\\) If an end of group has been detected, the content of the data item referenced by data-name-9 is set to 3;\n2\\) If an end of message has been detected, the content of the data item referenced by data-name-9 is set to 2;\n║3\\) If less than a message is transferred, the content of the data item referenced by data-name-9 is set to 0.║\n║b. When the RECEIVE SEGMENT phrase is specified, then:║\n║1\\) If an end of group has been detected, the content of the data item referenced by data-name-9 is set to 3;║\n║2\\) If an end of message has been detected, the content of the data item referenced by data-name-9 is set to 2;║\n║3\\) If an end of segment has been detected, the content of the data item referenced by data-name-9 is set to 1;║\n║4\\) If less than a message segment is transferred, the content of the data item referenced by data-name-9 is set to 0.║\nc. When more than one of the above conditions is satisfied simultaneously, the rule first satisfied in the order listed determines the content of the data item referenced by data-name-9.",
    "provisional": "none"
   },
   {
@@ -60988,14 +60988,14 @@
    "kind": "FMT",
    "ordinal": null,
    "sublist": 1,
-   "box": "none",
-   "level": 1,
+   "box": "whole",
+   "level": 2,
    "amended_by": [],
    "status": "normal",
    "page": 680,
    "folio": "XIV-22",
    "band": "",
-   "text": "<pre style=\"line-height:1\">\n<u>PURGE</u> cd-name-1\n</pre>",
+   "text": "<pre style=\"line-height:1\">\n║ <u>PURGE</u> cd-name-1 ║\n</pre>",
    "provisional": "none"
   },
   {
@@ -61391,7 +61391,7 @@
    "page": 684,
    "folio": "XIV-26",
    "band": "",
-   "text": "<u>Format 1</u>:\n<pre style=\"line-height:1\">\n║ <u>SEND</u> cd-name-1 <u>FROM</u> identifier-1 ║\n</pre>\n<u>Format 2</u>:\n<pre style=\"line-height:1\">\n                                     ╭ ║ WITH identifier-2 ║ ╮\n<u>SEND</u> cd-name-1 [ <u>FROM</u> identifier-1 ] ┤   WITH <u>ESI</u>            ├\n                                     │   WITH <u>EMI</u>            │\n                                     ╰   WITH <u>EGI</u>            ╯\n    ┌                      ╭ ╭ identifier-3 ╮ ┌ LINE  ┐ ╮ ┐\n    │                      │ ┤              ├ │       │ │ │\n    │ ╭ <u>BEFORE</u> ╮           │ ╰ integer-1    ╯ └ LINES ┘ │ │\n    │ ┤        ├ ADVANCING ┤                            ├ │\n    │ ╰ <u>AFTER</u>  ╯           │ ╭ ║ mnemonic-name-1 ║ ╮    │ │\n    │                      │ ┤                     ├    │ │\n    └                      ╰ ╰ <u>PAGE</u>                ╯    ╯ ┘\n    ║ [ <u>REPLACING</u> LINE ] ║\n</pre>",
+   "text": "<u>Format 1</u>:\n<pre style=\"line-height:1\">\n║ <u>SEND</u> cd-name-1 <u>FROM</u> identifier-1 ║\n</pre>\n<u>Format 2</u>:\n<pre style=\"line-height:1\">\n                                     ╭ ║ WITH identifier-2 ║ ╮\n<u>SEND</u> cd-name-1 [ <u>FROM</u> identifier-1 ] ┤ ║ WITH <u>ESI</u>          ║ ├\n                                     │   WITH <u>EMI</u>            │\n                                     ╰   WITH <u>EGI</u>            ╯\n    ┌                      ╭ ╭ identifier-3 ╮ ┌ LINE  ┐ ╮ ┐\n    │                      │ ┤              ├ │       │ │ │\n    │ ╭ <u>BEFORE</u> ╮           │ ╰ integer-1    ╯ └ LINES ┘ │ │\n    │ ┤        ├ ADVANCING ┤                            ├ │\n    │ ╰ <u>AFTER</u>  ╯           │ ╭ ║ mnemonic-name-1 ║ ╮    │ │\n    │                      │ ┤                     ├    │ │\n    └                      ╰ ╰ <u>PAGE</u>                ╯    ╯ ┘\n    ║ [ <u>REPLACING</u> LINE ] ║\n</pre>",
    "provisional": "none"
   },
   {
@@ -63429,14 +63429,14 @@
    "kind": "FMT",
    "ordinal": null,
    "sublist": 1,
-   "box": "none",
-   "level": 1,
+   "box": "whole",
+   "level": 2,
    "amended_by": [],
    "status": "obsolete: C.1(17)",
    "page": 703,
    "folio": "XVI-5",
    "band": "",
-   "text": "<pre style=\"line-height:1\">\n<u>SEGMENT-LIMIT</u> IS segment-number\n</pre>",
+   "text": "<pre style=\"line-height:1\">\n║ <u>SEGMENT-LIMIT</u> IS segment-number ║\n</pre>",
    "provisional": "none"
   },
   {
@@ -63495,14 +63495,14 @@
    "kind": "GR",
    "ordinal": 2,
    "sublist": 1,
-   "box": "none",
-   "level": 1,
+   "box": "whole",
+   "level": 2,
    "amended_by": [],
    "status": "obsolete: C.1(17)",
    "page": 703,
    "folio": "XVI-5",
    "band": "",
-   "text": "Those segments having segment-numbers from the segment-limit through 49 are considered as overlayable fixed segments.",
+   "text": "║Those segments having segment-numbers from the segment-limit through 49 are considered as overlayable fixed segments.║",
    "provisional": "none"
   },
   {
@@ -63517,14 +63517,14 @@
    "kind": "GR",
    "ordinal": 3,
    "sublist": 1,
-   "box": "none",
-   "level": 1,
+   "box": "whole",
+   "level": 2,
    "amended_by": [],
    "status": "obsolete: C.1(17)",
    "page": 703,
    "folio": "XVI-5",
    "band": "",
-   "text": "When the SEGMENT-LIMIT clause is omitted, all segments having segment-numbers from 0 through 49 are considered as permanent segments of the object program.",
+   "text": "║When the SEGMENT-LIMIT clause is omitted, all segments having segment-numbers from 0 through 49 are considered as permanent segments of the object program.║",
    "provisional": "none"
   },
   {

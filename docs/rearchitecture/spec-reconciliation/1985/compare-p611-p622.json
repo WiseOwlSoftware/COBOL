@@ -1,0 +1,16 @@
+{
+  "batch": [611, 612, 613, 614, 615, 616, 617, 618, 619, 620, 621, 622],
+  "pages_checked": [611, 612, 613, 614, 615, 616, 617, 618, 619, 620, 621, 622],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p622-1",
+      "page": 622,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "3.11  THE COLUMN NUMBER CLAUSE / 3.11.1  Function / 3.11.2  General Format / 3.11.3  Syntax Rules / 3.11.4  General Rules",
+      "markdown_says": "# 3.11 THE COLUMN NUMBER CLAUSE / ## 3.11.1 Function / ## 3.11.2 General Format / ## 3.11.3 Syntax Rules / ## 3.11.4 General Rules",
+      "why_it_matters": "Heading levels are one level too high for this clause: the sibling clauses are transcribed with 3.10 and 3.12 (THE DATA-NAME CLAUSE) at '##'/'###' and their numbered subsections one level deeper (3.12.1 Function at '###'), but 3.11 is an H1 and its subsections H2. 3.11 thus outranks the chapter structure it belongs to, which breaks outline/section navigation and any tool that slices clauses by heading depth."
+    }
+  ]
+}
