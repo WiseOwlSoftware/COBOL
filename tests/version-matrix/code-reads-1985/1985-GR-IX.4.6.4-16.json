@@ -1,77 +1,52 @@
 {
  "rule-id": "1985-GR-IX.4.6.4-16",
- "rule-digest": "c64b5c665bf6",
+ "rule-digest": "775b09690ca5",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-098",
+  "pin": "a012d507517aa6f1a337c1a60204f25bb9c10e5b",
+  "slice": "1985-c07",
   "sources": {
-   "reader": "788e53558b4381cf255d9c081677dac47f052321951ca850fbebdef13de861c5",
-   "refuter": "9dff07812fb3aee109baad25f5bafc9a55d5800dcadb6114d238b8a540a8d55b"
+   "reader": "57aecac6978246c4426329e186db64916e3d119f74f408c0d78f52ebd7fc56b5",
+   "refuter": "fb0ae45b7f80ed3b0c735d05dbb731791be1d07fa94c74ba95495c4ff2cba983"
   },
   "imported": {
-   "reader": "5e279c19d372b01938d821f3ecf111be19d569e4aee1a5db87aba6bccac32635",
-   "refuter": "1078085aa2bb4317281fe5274ac21d5341a9c82cacd7c3e10ba8fa540b4fd722"
+   "reader": "76c1d60a8b06c637510c2c1bb53b1e30afb5e5df7240204bde1a8d71a115702b",
+   "refuter": "3f642e6f0ad9124031ad61c76128c7b669bf1c66deb18f492b11c5eb65cf628a"
   }
  },
  "reader": {
   "rule-id": "1985-GR-IX.4.6.4-16",
   "verdict": "CONFORMS",
-  "requirement": "The REWRITE invalid key condition exists (a) in sequential access when the prime key differs from the last record read (21), (b) in random or dynamic access when no record has that prime key (23), (c) when a no-DUPLICATES alternate key of the record equals that of another existing record (22); a level-2 file may have alternate keys, with or without duplicates.",
-  "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Rewrite; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#OrderOf; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#RecordNotFound; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRewrite",
-  "edition-consulted": [
-   {
-    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRewriteStatement",
-    "switches": "refusal of 2002+ REWRITE phrases at 85",
-    "same-arm-as-latest": false
-   },
-   {
-    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SharingFacilityInEffect",
-    "switches": "sharing/lock arms of the governed REWRITE (inert with one connector)",
-    "same-arm-as-latest": false
-   }
-  ],
-  "edition-search": "as for GR13: no edition test inside IndexedConnector#Rewrite (the 21/23/22 arms); only READ arms consult DialectBehavior.",
+  "requirement": "An indexed REWRITE must raise invalid key (a) in sequential access when the prime key differs from that of the last record read, (b) in random or dynamic access when no record has that prime key, and (c) in any access mode when a no-duplicates alternate key would equal that of another existing record; the record's own unchanged alternate value and a WITH DUPLICATES key are no conflict.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Rewrite; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#RecordNotFound; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRewrite",
+  "edition-consulted": [],
+  "edition-search": "grep of IndexedConnector.cs for DialectBehaviors|Edition: Rewrite consults none (the connector's edition switches cover only READ PREVIOUS after OPEN and the READ duplicate status 02); KeyedIoEmitter passes DialectLevel only at registration",
   "behaviour-differs-by-edition": "no",
-  "witnesses-cover": "part: g85_f16_07 covers a (sequential), b in DYNAMIC mode only, c with one unique alternate key; not RANDOM mode, a record's own unchanged unique alternate value, a value freed by an earlier REWRITE, or a mix of unique and duplicates-allowed alternate keys",
+  "witnesses-cover": "part: g85_f16_07 covers one arm; the three lettered conditions in all three access modes and the duplicates-allowed and own-key non-conflicts were probed here",
   "probes": [
    {
     "class": "e",
-    "file": "work-1985-098/p2key.cob",
-    "printed": "R1 IK 23 (random, absent K009); R2 NIK 00 (own unique alt unchanged); R3 IK 22 (unique alt = K002's); R4 NIK 02 (dup alt = K003's); R7 NIK 00 (alt U02 freed by R6); Y1 NIK 00 (dynamic, key changed after READ NEXT to existing D002 rewrites D002); Y2 IK 23",
-    "expected": "b: 23 random and dynamic; c: 22 only against ANOTHER record; dynamic is not tied to the last read"
+    "file": "E:/COBOL-coord/scratch/w20262138/coderead/probes-c07/src/ix1.cob",
+    "printed": "S1 INVALID 21 (sequential, prime changed); S2 INVALID 22 (sequential, alternate collides); S3 OK 02 (duplicates-allowed alternate); R1 INVALID 23 (random, absent); R2 INVALID 22 (random, alternate collides); R3 OK 00 (own alternate); D1 INVALID 23 (dynamic, absent after READ NEXT); D2 INVALID 22; D3 OK 00; record areas unchanged",
+    "expected": "GR16 a, b and c each raise invalid key (status 21 / 23 / 22); the no-conflict forms succeed"
    },
    {
-    "class": "b",
-    "file": "work-1985-098/p1seq.cob",
-    "printed": "T2 21, T6 21",
-    "expected": "a: 21"
-   },
-   {
-    "class": "c",
-    "file": "work-1985-098/p2key23.cob",
-    "printed": "REWRITE lines identical at --std 2023 (only a READ-by-alternate status differs: 02 at 85, 00 at 2023, the READ's own dialect behaviour)",
-    "expected": "same REWRITE behaviour"
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/w20262138/coderead/probes-c07/src/fo1.cob",
+    "printed": "OPEN I-O of an absent indexed file 35, then REWRITE 49 through USE, not INVALID KEY",
+    "expected": "no invalid key condition on an unopened file"
    }
   ],
   "citations": [
    {
     "cite": "§1985:IX.4.6.4 GR16",
-    "check": "OK  §1985:IX.4.6.4 GR16  (4.6.4 General Rules)  the text is in GR16"
-   },
-   {
-    "cite": "§1985:IX.1.3.4",
-    "check": "OK  §1985:IX.1.3.4  (1.3.4 I-O Status)  the text is in the clause; it lies in GRL2.3b.2"
-   },
-   {
-    "cite": "§1985:IX.1.3.4",
-    "check": "OK  §1985:IX.1.3.4  (1.3.4 I-O Status)  the text is in the clause; it lies in GRL2.3c.1"
+    "check": "OK  §1985:IX.4.6.4 GR16  the text is in the clause or rule: \"for which duplicates are not allowed, equals the value of the corresponding data item of a record already existing in the file\""
    }
   ],
-  "notes": "All three conditions are validated before any tree changes (validate first, then change), and the alternate key uniqueness test excludes the record itself (self: prime). Random and dynamic share the non-sequential arm; the probe shows dynamic access replaces by key, not by last read.",
+  "notes": "IndexedConnector.Rewrite tests the sequential prime equality (21), the prime's presence (23) and each no-duplicates alternate against the other records (22, itself excluded), all before any change.",
   "seeded": true,
   "harm": "",
   "cause": "",
-  "at-2023": "same REWRITE output",
+  "at-2023": "",
   "repro": "",
   "expected": "",
   "observed": "",
@@ -80,11 +55,9 @@
  "refuter": {
   "rule-id": "1985-GR-IX.4.6.4-16",
   "refutation": "UPHELD",
-  "classes": "b,c,e",
-  "evidence": "Attacked the parts the reader left: c in SEQUENTIAL access, and b under a program collating sequence. q2alt.cob (q2alt-002): sequential, READ K002, unique alternate changed to U03 (K003's) -> A2 IK 22, area K002U03D0Q kept, file unchanged (CHK K002U02D02 after the later A5); duplicates-allowed alternate changed to an existing value -> A5 NIK 02 (§1985:IX.1.3.4 status 02 'created a duplicate key value'). q1col.cob: random access, key ab01 with only AB01 present under an A ALSO a program sequence -> C2 IK 23 (native order, §1985:IX.2.3.4 GR3); unique alternate changed BLF -> aLF while ALF exists -> C3 NIK 00 (natively distinct). q4mode.cob: dynamic REWRITE with no READ -> M3 NIK 00 (b is by key, not by last read). cite.py: 'OK  §1985:IX.4.6.4 GR16  (4.6.4 General Rules)  the text is in GR16'; 'OK  §1985:IX.1.3.4  (1.3.4 I-O Status)  the text is in the clause; it lies in GRL2.1b.2'.",
-  "edition-sites-missed": [
-   "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRegistration: edition and per-key collation handed to the runtime; alternate key orders chosen from it (native at 85)"
-  ],
+  "classes": "e",
+  "evidence": "Probe probes-refute-c07/src/ri2.cob at --std 85 (runs/ri2-002, EXIT 0), dynamic access: after READ of AAA, REWRITE of the existing CCC record (prime differs from the last read) succeeds 00 and replaces CCC (D1 00, D3 CCCC03NEW3), since GR16b tests existence not the last read; a rewrite of BBB whose no-duplicates alternate is changed to CCC's value is invalid 22 and BBB is unchanged (D2 INVALID 22, D4 BBBB02V002); sequential access with prime changed and alternate colliding gives 21 (E1). E2 43 after a failed REWRITE follows IX.4.6.4's successful-READ rule, not this one. cite.py: 'OK  §1985:IX.4.6.4 GR16 ... is not equal to the value of the prime record key of any record existing in the file'.",
+  "edition-sites-missed": [],
   "corrected": ""
  }
 }
