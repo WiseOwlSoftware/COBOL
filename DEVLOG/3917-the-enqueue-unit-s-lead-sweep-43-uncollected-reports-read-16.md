@@ -1,4 +1,4 @@
-## The enqueue unit's lead sweep: 43 uncollected reports read, 16 mechanisms filed as PB6060-PB6076, 3 findings
+## Entry 3917 — 2026-11-22 12:10 PST — The enqueue unit's lead sweep: 43 uncollected reports read, 16 mechanisms filed as PB6060-PB6076, 3 findings
 
 The landing lane queued 61 branches; 43 of them had a report. The enqueue unit's lead clerk read each report's "New defects" section
 and its review `LEAD` lines (the 2026-11-22 sweep), grouped them by mechanism, and checked each against kb/Work and against the code
@@ -15,3 +15,4 @@ semgrep failure (PB5977, PB5502), the Linux push self-test (PB5390), the tooling
 ArchOracle flake (PB5862), the nightly job-limits false RED (PB5841), the LINKAGE clause-operand reference (PB5876), the infix-word
 lists (PB5793), the 1985 implementor-name overlap (PB5884), the OpenedModeView comment (fixed on main), the free-form-at-85
 cases (PB6033, PB6037). Ids PB6077-PB6079 were left unused. No code changed.
+
