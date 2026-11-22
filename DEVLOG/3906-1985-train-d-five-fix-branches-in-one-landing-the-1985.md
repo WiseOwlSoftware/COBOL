@@ -1,4 +1,4 @@
-## 1985 train D: five fix branches in one landing; the 1985 inventory reaches zero GAP
+## Entry 3906 — 2026-11-21 18:26 PST — 1985 train D: five fix branches in one landing; the 1985 inventory reaches zero GAP
 
 Wave 20262132's 1985 train lands in one pull request. It carries the fix branches of groups c (`train85d-register`), e
 (`train85d-itemcite`, with group s's `train85b-g3-cite` and group c), a (`train85d-examples`), b (`train85d-witness`) and d
@@ -66,3 +66,4 @@ usage, and it states what §1989:A.2.2 AR4 admits, an arithmetic expression that
 `DISPLAY FUNCTION LENGTH (FUNCTION WHEN-COMPILED)` at 85 is refused correctly. The nested function-identifier is a legal
 argument (§1985:IV.4.3.8.3.4 GR2) and compiles in `COMPUTE`. The refusal is of LENGTH itself, an integer function, as a
 DISPLAY operand, which §1985:IV.4.3.8.3.3 SR4 allows only in an arithmetic expression.
+
