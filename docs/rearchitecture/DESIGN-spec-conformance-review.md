@@ -479,7 +479,15 @@ they close nothing.
    `item <n>` there is refused `item-is-a-rule`, naming the rule, and `audit_code_citations.py --canonicalize` rewrites it
    when one list alone prints the item (`cite.item_designator`; `§1985:III.2` prints an item 3 in several lists, so its
    Text Word's is cited `GRL4.3` by hand); an item no list prints is `no-item`; a loose spelling (`item (3) c)`, `items 9
-   and 10`) is `designator-not-canonical`. **The extent of
+   and 10`) is `designator-not-canonical`, as is a number glued straight after a letter (`SR12a2`, canonical
+   `SR12a.2`). **The canonicalizer** (`scripts/spec/citation_rewrite.py`, run as `audit_code_citations.py --canonicalize
+   <prefix>...`, kb/Work PB6035) rewrites a designator with one canonical form and is safe on the text a program prints:
+   it counts the parentheses around the citation (a label's `)` that also closes the message's `(` is kept), over a C#
+   string's whole concatenation of literals; it refuses a designator an interpolation hole, a format item or a
+   concatenation may complete, and one whose parentheses it cannot count; and a C# string under `src/` (message text)
+   changes only with every expectation that quotes it (the tests' string literals, the suite's diagnostic expectations),
+   refused where a quoted fragment means two things. Every designator it leaves is a refusal with its reason, and
+   `--write-baseline` writes that reason on its entry of RESOLVE's baseline. **The extent of
    a row is read from the units the catalog's own mint segments** (`extract_rule_catalog.units_by_locator`, read by
    `cite.rule_book`; kb/Work PB6014): a row minted from a unit holds exactly its unit's lines (`text_units.Unit.lines`),
    and a numbered rule holds the lines from its number to the next row's less every line a unit of the clause holds. An
