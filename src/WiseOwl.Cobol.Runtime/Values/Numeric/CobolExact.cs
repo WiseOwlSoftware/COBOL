@@ -359,7 +359,7 @@ public readonly struct CobolExact
     }
 
     /// <summary>The final-transfer quotient on the 256-bit form: both operands on it, the dividend's alignment to the receiver's scale
-    /// on it, and the truncated quotient and the divisor within 128 bits (so the remainder is, and <see cref="CobolNum.BumpsMagnitude{T}"/>
+    /// on it, and the truncated quotient and the divisor within 128 bits (so the remainder is, and <see cref="RoundingRule"/>
     /// rounds it once). Anything wider is the third form's, which is exact at any size.</summary>
     private static bool TryQuotientAtScale(CobolExact a, CobolExact b, int toScale, CobolRounding mode, bool checkedTransfer, out Int128 landed)
     {
@@ -374,7 +374,7 @@ public readonly struct CobolExact
         var (_, divisorHigh, divisorLow) = divisor.Parts;
         var (_, _, remainderLow) = remainder.Parts;   // |remainder| < |divisor| < 2^128, so its high half is zero
         if (quotientHigh != 0 || divisorHigh != 0) return false;
-        if (remainder.Sign != 0 && CobolNum.BumpsMagnitude(negative, !UInt128.IsEvenInteger(quotientLow), remainderLow, divisorLow, mode))
+        if (remainder.Sign != 0 && RoundingRule.Bumps(mode, negative, !UInt128.IsEvenInteger(quotientLow), remainderLow, divisorLow))
         {
             if (quotientLow == UInt128.MaxValue) return false;
             quotientLow++;

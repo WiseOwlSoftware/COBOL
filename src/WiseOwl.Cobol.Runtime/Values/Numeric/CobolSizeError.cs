@@ -67,7 +67,7 @@ public sealed class CobolSizeError(string detail, string ecName) : CobolFatalExc
     /// arithmetic value cannot be represented exactly in the resultant identifier, the EC-SIZE-TRUNCATION exception
     /// condition is set to exist, the size error condition exists, and the content of the resultant identifier is
     /// unchanged". Every final transfer that rounds raises it from its rounding decision — the scaled carrier's
-    /// <c>CobolNum.BumpsMagnitude</c>, the SDIDI's <c>CobolDec.RoundFromRemainder</c>, a floating-point resultant's
+    /// <c>RoundingRule</c> over <c>CobolNum.RoundDiv</c>, the SDIDI's <c>CobolDec.RoundFromRemainder</c>, a floating-point resultant's
     /// <see cref="FloatResultant"/> and a floating-point edited one's <c>CobolEdit</c> store — whether or not checking is
     /// enabled, because the rule does not depend on it: PROHIBITED is never a rounding direction, and no landing stores
     /// a value it cut (a Try form answers false instead).</summary>
