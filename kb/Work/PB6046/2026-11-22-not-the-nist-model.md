@@ -15,3 +15,17 @@ How revision 4 holds to it:
   the two warning mechanisms 1985 requires, judged at the site; per-test verdicts that FAIL only for a non-conformance;
   and the report lists what NIST missed (the 1985 rows and points no NIST unit exercises).
 - A design choice in a later stage that copies a NIST structure needs a reason recorded in this note's folder.
+
+## The owner, later the same day: NIST becomes unnecessary
+
+Verbatim: "When WISEOWL test suite is complete, we should not NEED to run the NIST test suite as all WiseOwl tests
+should cover all of NIST. We can optionally run NIST to assurance, but is WiseOwl passes, NIST should never fail."
+
+So Stage 4's exit is an INVARIANT, not a percentage: **a compiler that passes the WiseOwl 85 suite passes every NIST-85
+unit not excluded** (decision 11's FIPS programs aside). Held by:
+- the crosswalk: every NIST unit's checked behaviour (its expected value or report line) is checked by a named WiseOwl
+  test of the same rows, with the same or a stricter expectation; a `differs` entry (a NIST check the 1985 text
+  contradicts) is the only exception and carries its citation;
+- the gate: once Stage 4 closes, `tests/nist/` leaves the gate and the nightly guard (design §6 step 5) and runs only as
+  optional assurance; a NIST failure on a compiler that passes the WiseOwl suite is a SUITE defect (a coverage gap), filed
+  as a kb/Work note and closed by the WiseOwl test that would have caught it, never by a NIST-side exception.
