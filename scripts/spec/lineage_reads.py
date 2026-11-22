@@ -592,8 +592,8 @@ def import_records(year: int, reads: pathlib.Path, asked: pathlib.Path | None, o
         except RecordError as e:
             errs.append(str(e))
             continue
-        if rules is not None and (unknown := sorted(rid for rid in s.reads if rid not in rules)):
-            errs += [f"{name}: {rid}: no rule of the {year} catalog" for rid in unknown]
+        if rules is not None and (unknown := unknown_rule_errors(year, rules, [s])):
+            errs += unknown
             continue
         taken.append(s)
         docs[name] = doc
@@ -1847,8 +1847,8 @@ def stored_errors(ed: Edition, rows: Iterable[dict[str, Any]], slices: list[Slic
 def unknown_rule_errors(year: int, rules: set[str], slices: Iterable[Slice]) -> list[str]:
     """Why a read record of `year` reads a rule the edition's catalog `rules` does not hold, AFTER `load` has followed
     every recorded move (`follow_moves`): a row relabelled with no recorded move (kb/Work PB6022), or a read of a row the
-    catalog dropped. The one test of it, run by the gate's audit (`check`) and by `audit_batch.py import-reads` before it
-    writes anything; before PB6022 only the import ran it, after writing, so `--check` stayed GREEN over orphaned reads."""
+    catalog dropped. The one test of it, run by the gate's audit (`check`), by `audit_batch.py import-reads` over the
+    records already there before it writes anything, and by `import_records` over the slices it imports; before PB6022 only the import ran it, after writing, so `--check` stayed GREEN over orphaned reads."""
     return [f"{s.name}: {rid}: no rule of the {year} catalog and no recorded move maps it "
             f"(record the relabel with record_verdicts.py, kb/Work PB6020)"
             for s in slices for rid in sorted(s.reads) if rid not in rules]
