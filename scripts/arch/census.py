@@ -177,8 +177,9 @@ def scope_of(projects: list[tuple[str, str]]) -> dict[str, list[str]]:
 # resolve is a refusal, never a pass.
 WALKED_ROOTS = ("src/", "tests/")
 MSBUILD_EXTS = (".csproj", ".props", ".targets")
-COMPILE_INCLUDE = re.compile(r"<Compile\s+[^>]*?Include\s*=\s*\"([^\"]+)\"")
-PROJECT_REFERENCE = re.compile(r"<ProjectReference\s+[^>]*?Include\s*=\s*\"([^\"]+)\"")
+# An attribute value takes either quote character (MSBuild accepts both); group 2 is the value.
+COMPILE_INCLUDE = re.compile(r"""<Compile\s+[^>]*?\bInclude\s*=\s*(["'])(.*?)\1""", re.S)
+PROJECT_REFERENCE = re.compile(r"""<ProjectReference\s+[^>]*?\bInclude\s*=\s*(["'])(.*?)\1""", re.S)
 THIS_FILE_DIRECTORY = "$(MSBuildThisFileDirectory)"
 HOST_PROJECT = f"{HOST.as_posix()}/{HOST.name}.csproj"   # the one C# project outside the solution it builds
 
@@ -196,9 +197,9 @@ def unwalked_compilations(tracked: list[str], solution_paths: list[str], read) -
         text = read(rel)
         if rel == HOST_PROJECT:
             out += [f"{rel}: the host references {r} (it reads the solution, never links it)"
-                    for r in PROJECT_REFERENCE.findall(text)]
+                    for _, r in PROJECT_REFERENCE.findall(text)]
         here = posixpath.dirname(rel)
-        for include in COMPILE_INCLUDE.findall(text):
+        for _, include in COMPILE_INCLUDE.findall(text):
             for item in include.split(";"):
                 item = item.strip().replace("\\", "/")
                 if item.startswith(THIS_FILE_DIRECTORY):
@@ -804,9 +805,11 @@ def self_test() -> int:
     arm("a C# project outside the solution REFUSES the walk, naming it",
         len(why) == 1 and "tools/impact/ImpactInstrumenter.csproj" in why[0], str(why))
     why = boundary({"tools/impact/ImpactRecording.targets":
-                    '<Compile Include="$(MSBuildThisFileDirectory)ImpactTestFramework.cs" />'})
+                    '<Compile Include="$(MSBuildThisFileDirectory)ImpactTestFramework.cs" />',
+                    "tests/Other.targets": "<Compile Condition=\"'$(X)' == ''\"\n  Include='../tools/Probe.cs' />"})
     arm("a source linked into a walked project from outside the walked roots REFUSES the walk, naming it",
-        len(why) == 1 and "tools/impact/ImpactTestFramework.cs" in why[0], str(why))
+        len(why) == 2 and any("compiles tools/impact/ImpactTestFramework.cs" in w for w in why)
+        and any("Probe.cs" in w and "cannot resolve" in w for w in why), str(why))
     why = boundary({"tests/Directory.Build.targets": '<Compile Include="$(Elsewhere)X.cs" />',
                     "tests/Other.props": '<Compile Include="Shared.cs" />'})
     arm("a Compile path the boundary cannot resolve REFUSES the walk (a property, or an imported file's relative item)",
