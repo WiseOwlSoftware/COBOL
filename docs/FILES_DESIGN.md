@@ -2213,7 +2213,7 @@ since listing step 6b's remainder slice 3, kb/Work PB5932); the operand capture 
   then counts), ASSIGN … USING, OCCURS … DEPENDING ON, SAME AS, RENAMES, and the report CONTROL / SOURCE / SUM
   operands. `DataNameResolutionDriftTests` (Unit) pins the type's shape and forbids `[0]` off a raw candidate list
   in the data binder.
-- **`ClauseDataName(dref, clauseFace)`** — the capture, screened by `ScreenClauseOperandShape` against the three
+- **`ClauseDataName(dref, clauseFace, subscriptRule)`** — the capture, screened by `ScreenDataNameShape` (each caller passing its clause's own subscript rule, `OperandSubscriptRule`, kb/Work PB2041) against the three
   shapes a `data-name-n` position does not admit → **COBOL2024**: a SPECIAL REGISTER (LINAGE-COUNTER /
   LINE-COUNTER / PAGE-COUNTER are §2023:8.4.3.1 Format 10 / Format 11 identifiers, and §2023:8.4.3.14.3 SR1 / §2023:8.4.3.15.3
   SR1 confine them to the procedure division), a SUBSCRIPT (§2023:8.4.2.3's *with-subscripts* form is an identifier,

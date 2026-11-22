@@ -12,8 +12,9 @@
       *> zero." SR15 lifts the nonzero default only; integer-1 stays
       *> unsigned, so '+3' below is refused although its value is
       *> positive; a compiler that judges the value alone accepts it
-      *> and fails. Refused with COBOL2365 (2014: §2014:5.5 and
-      *> §2014:14.9.47.2 SR15, the same words).
+      *> and fails. Refused with COBOL7737, the one integer-n screen
+      *> (kb/Work PB6021; 2014: §2014:5.5 and §2014:14.9.47.2 SR15,
+      *> the same words).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB5805B.
        ENVIRONMENT DIVISION.

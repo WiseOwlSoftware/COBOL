@@ -679,7 +679,7 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
     private BoundOperand CountOperand(Core.PerformTimesContext t)
     {
         BoundOperand op =
-            t.integerLiteral() is { } lit ? new BoundNumericLiteral(lit.GetText())
+            t.integerLiteral() is { } lit ? new BoundNumericLiteral(lit.Digits())
             : t.functionCall() is { } fc ? host.Intrinsic.IntrinsicOperand(fc)
             // §2023:14.9.28.2 Format 2's `{identifier-1 | integer-1} TIMES`; kb/Work PB428.
             : t.inlineMethodInvocation() is { } imi ? host.Oo.OoInlineInvocationOperand(imi)

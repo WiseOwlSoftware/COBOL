@@ -6,6 +6,7 @@ using WiseOwl.Cobol.Binding;                // EditionContext
 using WiseOwl.Cobol.Editions;               // IDiagnosticSink / EditionDiagnostic / EditionSeverity
 using WiseOwl.Cobol.Editions.Diagnostics;   // DiagnosticCatalog
 using WiseOwl.Cobol.Frontend.Generated;     // CobolParserCore
+using WiseOwl.Cobol.Frontend.Parsing;       // WrittenSource — the operand as written, for a message
 
 namespace WiseOwl.Cobol.Validation;
 
@@ -73,8 +74,19 @@ internal sealed class IntegerOperandPass(EditionContext edition) : CursorFollowi
 
     public override object? VisitIntegerLiteral(Core.IntegerLiteralContext ctx)
     {
-        string text = ctx.GetText();
-        if (text.Length > 0 && text.AsSpan().Trim('0').IsEmpty
+        string text = WrittenSource.Of(ctx);   // the operand as written, '+3' (a signed one is one character-string)
+        // The sign half (kb/Work PB6021): no rule of any format permits a sign on an integer-n, so a signed one is refused
+        // here wherever it stands, ONCE: the zero question is not asked of it (a written '-0' or '+0' breaks the rule by its
+        // sign already), and every reader of its value reads its digits (IntegerLiteralParts.Digits).
+        if (ctx.Sign() is not null)
+        {
+            string where = IntegerOperandRules.ConstructName(ctx);
+            Sink.Report(new EditionDiagnostic(DiagnosticCatalog.IntegerOperandSigned.Code, EditionSeverity.Error,
+                DiagnosticCatalog.IntegerOperandSigned.Id,
+                IntegerOperandRules.SignMessage(where, $"the integer operand {text}", edition.DialectLevel), where,
+                DiagnosticCatalog.IntegerOperandSigned.IsoSection));
+        }
+        else if (ctx.Digits().AsSpan().Trim('0').IsEmpty
             && IntegerOperandRules.Classify(ctx, edition.DialectLevel).Kind == IntegerSlotKind.NonZero)
         {
             string where = IntegerOperandRules.ConstructName(ctx);
@@ -280,7 +292,8 @@ internal static class IntegerOperandRules
     /// <see cref="IntegerOperandPass"/> asks before any binder reads the value (kb/Work PB1058).</summary>
     internal static bool BeyondHostLimit(Core.IntegerLiteralContext operand) =>
         !IsFullValueSlot(operand)
-        && TryHostValue(operand.GetText(), out _, out bool saturated) && saturated;
+        && TryHostValue(operand.Digits(), out _, out bool saturated) && saturated;
+
 
     /// <summary>True when <paramref name="operand"/> sits in one of the <see cref="FullValueSlots"/> — the written
     /// literal and the integer constant-name that stands for it (ISO §2023:13.10.3 SR2) are both exempt from the host limit
@@ -305,7 +318,7 @@ internal static class IntegerOperandRules
     /// screens — rather than throwing: an <c>int.Parse</c> here used to take the whole compiler down with an
     /// unhandled <see cref="OverflowException"/> on <c>PAGE LIMIT 77777777777</c>, <c>COLUMN 77777777777</c>
     /// and <c>LINAGE 77777777777</c>.</summary>
-    internal static int HostValue(Core.IntegerLiteralContext operand) => HostValue(operand.GetText());
+    internal static int HostValue(Core.IntegerLiteralContext operand) => HostValue(operand.Digits());
 
     /// <summary>⛔ THE ONE READER of a SPECIAL-NAMES ORDINAL too (ISO §2023:12.3.7.3 SR14 b1/c1, SR16 e/f, SR17 b2/c2 — kb/Work
     /// PB1091): an unsigned integer literal naming a 1-based position in a character set is read through THIS, whether
@@ -409,11 +422,21 @@ internal static class IntegerOperandRules
     /// <summary>The refusal of a zero <c>integer-n</c>, citing the rule of the targeted edition: §2023:5.5 SR1) from 2002 (its
     /// rule is the one 2023 prints), §1985:III.2 below (kb/Work PB5196).</summary>
     internal static string ZeroMessage(string where, string subject, int dialectLevel) =>
-        EditionInfo.Of(dialectLevel).Cite(
-            $"{where}: {subject} shall be nonzero — §1985:III.2: an integer \"must be neither signed nor zero unless "
-              + "explicitly allowed by the rules for that format\", and no rule of this format permits zero here",
-            $"{where}: {subject} shall be nonzero — ISO §2023:5.5 1): an integer-n \"shall be unsigned and nonzero unless "
-              + "otherwise specified in the associated rules\", and no rule of this format permits zero here");
+        $"{where}: {subject} shall be nonzero — {IntegerRule(dialectLevel)}, and no rule of this format permits zero here";
+
+    /// <summary>The refusal of a signed <c>integer-n</c> (kb/Work PB6021), citing the same rule of the targeted edition as
+    /// <see cref="ZeroMessage"/>: no rule of any format permits the sign.</summary>
+    internal static string SignMessage(string where, string subject, int dialectLevel) =>
+        $"{where}: {subject} shall be unsigned — {IntegerRule(dialectLevel)}, and no rule of this format permits a sign";
+
+    /// <summary>The rule an <c>integer-n</c> obeys, as each edition prints it: unsigned, and nonzero unless the format's own rules
+    /// say otherwise. 1985 words it as a definition (§1985:III.2 p142), 2002 numbers it 5.4 and spells "non-zero".</summary>
+    private static string IntegerRule(int dialectLevel) =>
+        EditionInfo.Of(dialectLevel).CiteRule(
+            "§1985:III.2 p142: an integer \"must be neither signed nor zero unless explicitly allowed by the rules for that format\"",
+            "§2023:5.5 SR1: an integer-n \"shall be unsigned and nonzero unless otherwise specified in the associated rules\"",
+            y2002: "§2002:5.4 item 1: an integer-n \"shall be unsigned and non-zero unless otherwise specified in the associated rules\"",
+            y2014: "§2014:5.5 item 1: an integer-n \"shall be unsigned and nonzero unless otherwise specified in the associated rules\"");
 
     /// <summary>The construct named in the diagnostic: the source text of the clause or phrase that spells the
     /// operand (an OCCURS bound names its whole OCCURS clause).</summary>
@@ -431,6 +454,8 @@ internal static class IntegerOperandRules
     private static IEnumerable<string> Tokens(IParseTree node)
     {
         if (node is ITerminalNode t) { yield return t.GetText(); yield break; }
+        // A signed integer literal is ONE character-string (the grammar's contiguity predicate): name it as written, '+3'.
+        if (node is Core.IntegerLiteralContext literal) { yield return literal.GetText(); yield break; }
         for (int i = 0; i < node.ChildCount; i++)
             foreach (var s in Tokens(node.GetChild(i))) yield return s;
     }

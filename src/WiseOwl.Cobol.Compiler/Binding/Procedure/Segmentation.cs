@@ -33,7 +33,7 @@ internal static class Segmentation
     public static int ValueOf(CobolParserCore.IntegerLiteralContext? number)
     {
         if (number is null) return 0;
-        string digits = number.GetText().TrimStart('0');
+        string digits = number.Digits().TrimStart('0');
         return digits.Length is 0 ? 0 : digits.Length > 2 ? int.MaxValue
             : int.Parse(digits, System.Globalization.CultureInfo.InvariantCulture);
     }

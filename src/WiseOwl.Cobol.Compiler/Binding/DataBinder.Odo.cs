@@ -43,7 +43,7 @@ public sealed partial class DataBinder
             // refusal is the verdict, and a key named by its written spelling would only draw a second one.
             foreach (var k in kc.dataReference())
             {
-                var key = ClauseDataName(k, $"{where}: OCCURS KEY IS");
+                var key = ClauseDataName(k, $"{where}: OCCURS KEY IS", OperandSubscriptRule("data-name-2 \"must be specified without the subscripting normally required\" (§1985:VI.5.8.3 SR4)", "\"Data-name-1 and data-name-2 shall not be subscripted\" (ISO §2023:13.18.38.3 SR2)"));
                 if (!State.Clauses.RefusedClauseOperands.Contains(key.Name)) keys.Add(new OccursKey(key, descending));
             }
         }
@@ -99,7 +99,7 @@ public sealed partial class DataBinder
         // source rejected), and `DEPENDING ON WS-TE (2)` drew "not defined" instead of §2023:13.18.38.3 SR2.
         WrittenDataName? dependingOperand = null;
         if (depending && occ.dataReference() is { } depRef)
-            dependingOperand = ClauseDataName(depRef, $"{where}: OCCURS DEPENDING ON");
+            dependingOperand = ClauseDataName(depRef, $"{where}: OCCURS DEPENDING ON", OperandSubscriptRule("", "\"Data-name-1 and data-name-2 shall not be subscripted\" (ISO §2023:13.18.38.3 SR2)"));
         var spec = new OccursSpec
         {
             Min = min,
@@ -203,7 +203,7 @@ public sealed partial class DataBinder
     /// register spelled <c>CAP3(1)</c> (kb/Work PB885's sibling sweep).</summary>
     private string? CapacityRegisterName(Core.DataReferenceContext capRef, string where)
     {
-        var (name, quals) = ClauseDataName(capRef, $"{where}: OCCURS DYNAMIC CAPACITY IN");
+        var (name, quals) = ClauseDataName(capRef, $"{where}: OCCURS DYNAMIC CAPACITY IN", OperandSubscriptRule("", "\"Data-name-3 shall not be subscripted\" (ISO §2023:13.18.38.3 SR31)"));
         if (State.Clauses.RefusedClauseOperands.Contains(name)) return null;
         if (quals.Count == 0) return name;
         using var _ = Edition.At(capRef);

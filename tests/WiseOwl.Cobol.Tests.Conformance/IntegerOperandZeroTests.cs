@@ -59,4 +59,33 @@ public sealed class IntegerOperandZeroTests
         var (ok, errors, _) = EditionHarness.CompileFull(Prog(pid, "", fd, ws, proc), 2023);
         Assert.True(ok, $"[{pid}] must compile: {string.Join(" | ", errors)}");
     }
+
+    /// <summary>The SIGN half of the same rule (kb/Work PB6021): no rule of any format permits a sign on an integer-n —
+    /// §1985:III.2 p142 "it must be neither signed nor zero unless explicitly allowed by the rules for that format";
+    /// §2023:5.5 SR1 "shall be unsigned and nonzero unless otherwise specified in the associated rules" — so a signed one
+    /// is refused ONCE, by that rule, wherever it stands: at the positions whose rules permit ZERO too (an OCCURS lower
+    /// bound, WRITE ADVANCING, LINAGE AT TOP), since a permission of zero is none of a sign. Before, each was a parse error
+    /// that named the entry's closed clause list (COBOL0001 + COBOL1941 or COBOL1970) and quoted no rule.</summary>
+    [Theory]
+    [InlineData("PB6021R1", "", "01 T.\n    05 E PIC X OCCURS +3 TIMES.", "DISPLAY N", "OCCURS +3 TIMES: the integer operand +3 shall be unsigned")]
+    [InlineData("PB6021R2", "", "01 T.\n    05 E PIC X OCCURS -1 TO 3 DEPENDING ON N.", "DISPLAY N", "the integer operand -1 shall be unsigned")]
+    [InlineData("PB6021R3", "\n    BLOCK CONTAINS +2 RECORDS", "", "DISPLAY N", "BLOCK CONTAINS +2 RECORDS: the integer operand +2 shall be unsigned")]
+    [InlineData("PB6021R4", "\n    LINAGE IS 10 LINES LINES AT TOP -0", "", "DISPLAY N", "the integer operand -0 shall be unsigned")]
+    [InlineData("PB6021R5", "", "", "PERFORM -3 TIMES\n        DISPLAY N\n    END-PERFORM", "-3 TIMES: the integer operand -3 shall be unsigned")]
+    [InlineData("PB6021R6", "\n    LINAGE IS 10 LINES", "", "OPEN OUTPUT PRTF\n    WRITE PR AFTER ADVANCING +0 LINES\n    CLOSE PRTF", "the integer operand +0 shall be unsigned")]
+    [InlineData("PB6021R7", "\n    RECORD CONTAINS -20 CHARACTERS", "", "DISPLAY N", "RECORD CONTAINS -20 CHARACTERS: the integer operand -20 shall be unsigned")]
+    public void SignWhereNoRulePermitsIt_IsCOBOL7737_Once(string pid, string fd, string ws, string proc, string expected)
+    {
+        foreach (var (std, rule) in new[] { (85, "§1985:III.2 p142"), (2002, "ISO §2002:5.4 item 1"), (2014, "ISO §2014:5.5 item 1"), (2023, "ISO §2023:5.5 SR1") })
+        {
+            var (ok, errors, _) = EditionHarness.CompileFull(Prog(pid, "", fd, ws, "\nMAIN-P.\n    " + proc), std);
+            Assert.False(ok, $"[{pid} @ {std}] must be REJECTED");
+            // the rule broken, once: no parse error, no cascade from the value
+            Assert.True(errors.Count == 1, $"[{pid} @ {std}] expected one error: {string.Join(" | ", errors)}");
+            string only = errors[0];
+            Assert.Contains("COBOL7737", only);
+            Assert.Contains(expected, only);
+            Assert.Contains(rule, only);
+        }
+    }
 }

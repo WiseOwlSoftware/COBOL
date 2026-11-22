@@ -170,6 +170,11 @@
       "changedIn": 2002
     },
     {
+      "id": "search-all-key-subscript-sentences",
+      "vcrRow": "7.91",
+      "changedIn": 2002
+    },
+    {
       "id": "search-index-below-table-unsuccessful",
       "vcrRow": "7.56",
       "changedIn": 2002
@@ -1057,7 +1062,8 @@
     "COBOL7654",
     "COBOL7672",
     "COBOL7735",
-    "COBOL7736"
+    "COBOL7736",
+    "COBOL7737"
   ],
   "cliOptions": [
     "--copy",

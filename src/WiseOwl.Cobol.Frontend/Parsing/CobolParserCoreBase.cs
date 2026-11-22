@@ -1575,6 +1575,15 @@ public abstract class CobolParserCoreBase : Parser
     /// NEW character-string (§2023:8.3.5). A left-edge predicate, so it steers prediction (kb/Work PB1446).</summary>
     protected bool tokensAreContiguous(int count) => TokensAreContiguousFrom(1, count);
 
+    /// <summary>Is the next character-string a SIGNED integer literal — a '+' or '-' with the integer's digits directly after
+    /// it (§2023:8.3.3.3.2 SR2: a sign "shall appear as the leftmost character of the literal")? The <c>integerLiteral</c>
+    /// rule parses such a sign only so that the one integer-n screen refuses it by its rule (kb/Work PB6021). The predicate
+    /// asks for the digits too, so a position that expects an integer-n and meets anything else (<c>RESERVE AREAS</c>) admits
+    /// no sign there, and its refusal still names what it expects as before: an integer literal.</summary>
+    protected bool signedIntegerAhead() =>
+        TokenStream.LA(1) is CobolLexer.PLUS or CobolLexer.MINUS && TokenStream.LA(2) == CobolLexer.INTEGERLIT
+        && TokensAreContiguousFrom(1, 2);
+
     /// <summary><see cref="tokensAreContiguous"/> for the <paramref name="count"/> tokens starting at
     /// <c>LT(<paramref name="first"/>)</c>.</summary>
     private bool TokensAreContiguousFrom(int first, int count) => TokensAreContiguous(TokenStream, first, count);

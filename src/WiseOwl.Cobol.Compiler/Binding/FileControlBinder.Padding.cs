@@ -57,7 +57,7 @@ public sealed partial class FileControlBinder
                 ReportPaddingLiteral(dref.GetText(), "");
                 return new PaddingCharacterSpec { Literal = dref.GetText(), At = Edition.Cursor };
             }
-            return new PaddingCharacterSpec { DataName = _host.ClauseDataName(dref, "PADDING CHARACTER"), At = Edition.Cursor };
+            return new PaddingCharacterSpec { DataName = _host.ClauseDataName(dref, "PADDING CHARACTER", _host.OperandSubscriptRule("", "")), At = Edition.Cursor };
         }
         var lit = clause.literal();
         using var at = Edition.At(lit);
@@ -117,7 +117,7 @@ public sealed partial class FileControlBinder
     {
         if (pad.Item is not { } item) return;
         // A table element is not nameable here (kb/Work PB5499): "Data-name-1 may be qualified" is the clause's only reference form
-        // (§1985:VII.2.7.3 SR2), no subscript is written (CapturePadding refuses one, ScreenClauseOperandShape), and a table element
+        // (§1985:VII.2.7.3 SR2), no subscript is written (CapturePadding refuses one, DataBinder.ScreenDataNameShape), and a table element
         // reference "must be subscripted" (§1985:IV.4.3.8.2.3 SR4; §2002:8.4.1.2.2 SR5): an item under an OCCURS clause has no reading.
         bool table = RecordLayout.IsSubjectToOccurs(item);
         string? fault = table
