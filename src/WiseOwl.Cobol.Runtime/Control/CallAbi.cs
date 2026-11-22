@@ -1,5 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Globalization;
+
 namespace WiseOwl.Cobol.Runtime;
 
 /// <summary>How a CALL argument is passed (ISO §2023:14.9.4 / §2023:14.2.3 GR8–10).</summary>
@@ -1401,7 +1403,7 @@ public static class CobolArgAdapt
     /// exactly wrong for a character image.</remarks>
     public static void StoreReturn(CobolArg? ret, UInt128 value)
     {
-        if (ret is { Carrier: ManagedPointer<string> sp } r) { sp.Value = FitToReceiver(value.ToString(), r); return; }
+        if (ret is { Carrier: ManagedPointer<string> sp } r) { sp.Value = FitToReceiver(value.ToString(CultureInfo.InvariantCulture), r); return; }
         StoreReturnNum(ret, unchecked((Int128)value), null);
     }
 
@@ -1453,7 +1455,7 @@ public static class CobolArgAdapt
             // so the two are one. A non-conforming pair under unchecked GR3 d) is stored under the RECEIVER's own
             // description (the value a native-cell receiver would take), never the sender's, so the item's image
             // keeps its own width (kb/Work PB1040).
-            sp.Value = (r.Num ?? sent) is { } s ? CobolNum.FormatImage(value, s) : FitToReceiver(value.ToString(), r);
+            sp.Value = (r.Num ?? sent) is { } s ? CobolNum.FormatImage(value, s) : FitToReceiver(value.ToString(CultureInfo.InvariantCulture), r);
             return;
         }
         Undeliverable(c, $"the numeric result {value}");
@@ -1517,13 +1519,13 @@ public static class CobolArgAdapt
             return;
         }
         string t = value.Trim();
-        if (Int128.TryParse(t, out Int128 v))
+        if (Int128.TryParse(t, NumberStyles.Integer, CultureInfo.InvariantCulture, out Int128 v))
         {
             if (WriteNumericCell(c, v)) return;
             if (c is ManagedPointer<string> ns && r.Num is { } rn) { ns.Value = CobolNum.FormatImage(v, rn); return; }
         }
-        if (double.TryParse(t, System.Globalization.NumberStyles.Float,
-                System.Globalization.CultureInfo.InvariantCulture, out double d) && WriteRealCell(c, d)) return;
+        if (double.TryParse(t, NumberStyles.Float,
+                CultureInfo.InvariantCulture, out double d) && WriteRealCell(c, d)) return;
         Undeliverable(c, $"the character result \"{value}\"");
     }
 
