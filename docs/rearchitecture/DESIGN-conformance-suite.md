@@ -1,8 +1,8 @@
 # The per-edition conformance suites — design (kb/Work PB3160, PB4614)
 
 **Status: Revision 4, decided 2026-11-22 (kb/Work PB6046)** on the owner's "replan the test suite. Lots has changed", after
-1985 read COMPLETE. It keeps revision 3's tool contracts (§3-§5, the case file, the site judgment, the adapters and the
-verdicts) and the owner's decisions 1-17 (§1.1), and replaces its order of work (§8) and its slices (§13) for COBOL-85:
+1985 read COMPLETE (#1937; five code reads moved since, kb/Work PB6053). It keeps revision 3's tool contracts (§3-§5, the case file, the site judgment, the adapters and the
+verdicts) and the owner's decisions 1-17 (§1.1) except decision 15, whose order §8 replaces, and replaces its order of work (§8) and its slices (§13) for COBOL-85:
 the 85 suite's unit is the 1985 catalog's row; four denominators are measured first; one pilot runs end to end; tests clear
 mechanically where two compilers agree. Revision 3 (approved 2026-11-04) answered kb/Work PB4614; its figures, measured on
 main at 33f2c1ecc by the scripts in `E:/COBOL-coord/scratch/pb4614/`, stand in §2-§7 as that revision's measurement, and
@@ -60,7 +60,7 @@ version." And: "Fuzz generation is random and we want a comprehensive ISO spec t
 | 12 | WiseOwl implements the Communication facility at 85 and 2002 (NIST's CM module), so the suites can witness it; its current refusal gets a kb/Work note | §3.5, §6.3 |
 | 13 | Intake programs (fuzz, vetting and report repros) are committed as source material holding provenance only; their target rows and status live in their kb/Work notes | §6.2 |
 | 14 | The portable 2014 suite withholds the four unproven 2014 edges (picture-63, the float format phrase, OPTIONS FLOAT-BINARY, OPTIONS FLOAT-DECIMAL) and the rows resting on them, listed as unplaced at 2014 with their evidence | §3.5 |
-| 15 | The pilot (S3, PB3178) runs after S5-S8 and before the coverage-point catalog, and sets its scope | §8 |
+| 15 | The pilot (S3, PB3178) runs after S5-S8 and before the coverage-point catalog, and sets its scope. **Superseded by revision 4** (PB6046): the pilot runs after Stage 0's measurements, which include the 1985 point catalog | §8 |
 | 16 | The tool slices (generator, point extractor, NIST crosswalk) may start now as pilot work; the GAP rise they cause is reported as newly measured scope, not regression | §4.1, §8 |
 | 17 | Fewer files: "We should reduce the number of files in the test suites by colocating closely related COBOL features in the same source file." The unit of the tree is a case file holding the tests of closely related features | §3-§6, §9, §13 |
 
@@ -817,6 +817,13 @@ regression test.
 
 ### 6.3 Subsuming and replacing NIST-85
 
+**Revision 4 (kb/Work PB6046) changes this section's premises:** the 1985 text is held, so NIST's ANSI-REFERENCE settings
+resolve through `cite.py --edition 1985` and the map starts mechanically (PB6049); the 1985 catalog holds Segmentation,
+Debug and ALTER, so no unit takes the `unit` disposition; the suite need not follow NIST's model (NIST-85 is a coverage
+floor, never a template); and the exit is an invariant: a compiler that passes the WiseOwl 85 suite passes every NIST-85
+unit not excluded, so a NIST failure beside a WiseOwl pass is a suite defect closed by a WiseOwl test. The text below is
+revision 3's where it says otherwise.
+
 **A feature map, not a copy** (decision 3). Subsumption is a property of the suite: a rule is covered when the suite
 holds a validated 85 test of it that some compiler has passed.
 
@@ -979,7 +986,7 @@ lesson from 1985, 2026-11-22), so the point catalog (S14, S15) moves into Stage 
 **Revision 4's stage notes** (kb/Work, cluster PB3160; the notes hold status, §8 scope): Stage 0 is PB6047 (the status
 line and the 1985 completeness count), PB6048 (the 1985 row obligations and the 647 unnamed rows), PB6049 (the NIST-85
 unit list and its mechanical map, S17's first half), PB6050 (the 1985 coverage-point catalog and its credit from the
-parse, S14 and S15 cut to 85) and PB6051 (the second independent pass of `specs/ANSI_COBOL_1985.md`). Stage 1 is
+parse, S14 and S15 cut to 85), PB6054 (the second-compiler denominator: GnuCOBOL at 85, its baseline and buckets) and PB6051 (the second independent pass of `specs/ANSI_COBOL_1985.md`). Stage 1 is
 PB3178; Stage 3's authoring lane is PB4697; Stage 4 is PB4696; Stage 5 is PB4685 (S5b) and PB3179 (S4). The slices
 below that revision 4 did not name are revision 3's, planned with the editions after 85.
 
