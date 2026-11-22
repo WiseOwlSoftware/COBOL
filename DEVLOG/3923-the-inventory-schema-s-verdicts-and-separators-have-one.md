@@ -1,4 +1,4 @@
-## The inventory schema's verdicts and separators have one reader (PB3206, PB3210)
+## Entry 3923 — 2026-11-22 13:35 PST — The inventory schema's verdicts and separators have one reader (PB3206, PB3210)
 
 Two R2 duplication findings of the PB1754 review, both about scripts that kept their own copy of what
 `tests/version-matrix/inventory-schema.json` owns.
@@ -21,3 +21,4 @@ The sibling sweep found every other writer of the two lists already joining by t
 
 Self-review: architecture (one schema reader), duplication (no verdict set or separator literal outside fixtures), the
 selftest layout rule (the runner's `check_repo` passed). No inventory row changes: `closes_rows: []` on both notes.
+
