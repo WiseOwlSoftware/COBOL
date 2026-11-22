@@ -2,99 +2,85 @@
  "rule-id": "1989-RV-A.2.32.4-3",
  "rule-digest": "71fe7ccbab2e",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-183",
+  "pin": "608ccf507c5783aae0206275d65c1da914f13b08",
+  "slice": "1985-c05",
   "sources": {
-   "reader": "4f0be211b120206b4c2a37f4a219d7959c5b7b1ec6118333aa2cc287c325cc8c",
-   "refuter": "2069fc40c4ba993e90b28e81950f109a26308d8479e1d47c5a5d50585c0c6ec7"
+   "reader": "8f4ea7714c82c6b9973d031b2c946b638102129e97c03e022cff542156ea5f27",
+   "refuter": "93e3f249ee0ae60af9c5633daffaa7e71d20edab42b8e5c2ba574ab40ff7e65e"
   },
   "imported": {
-   "reader": "7cc33a95af42f86b3eb5a19c9f5a7ae51ff0da39885cc63c6a6c39093f4abd70",
-   "refuter": "e85780ac4ba7930c69b66da959b45541878629ccebd596452d94a54008b22b7a"
+   "reader": "95d988b00d7e1dec4d1b26b5861ece747cc4bf4cdc41f0d258e0e3f3f534041d",
+   "refuter": "2eef1fcbe22c2b64a2424d8cedec3a8527376aa762b865643e456f9178e48c15"
   }
  },
  "reader": {
   "rule-id": "1989-RV-A.2.32.4-3",
   "verdict": "CONFORMS",
-  "requirement": "At --std 85, when two or more argument-1 values of FUNCTION ORD-MAX are equal and greatest (judged by the 1985 simple-condition rules: numeric by algebraic value with +0 = -0 and literal length not significant, nonnumeric by the program collating sequence with space extension of the shorter operand), the function returns the ordinal of the leftmost one. This holds for every argument form the 1989 module allows: identifiers of any usage/scale, literals, arithmetic expressions, figurative constants, group and numeric-edited (class alphanumeric) items, alphabetic mixed with alphanumeric, and ALL-subscripted tables, including OCCURS DEPENDING ON and reference modification. The witness covers numeric and alphanumeric literal ties and one padding tie only.",
-  "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Select.cs#SelectMax; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Select.cs#OrdMaxAt; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#ExtremeIndex; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#OrdMaxString; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Dec.cs#OrdMaxDec; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Wide.cs#SelectWide; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.ExactValue.cs#SelectExact; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.RealArgs.cs#OrdMaxReal; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+  "requirement": "On a tie for the greatest value FUNCTION ORD-MAX returns the position of the leftmost argument-1 having that value, for numeric (any scale/sign) and alphanumeric/alphabetic arguments.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Selection.cs#ExtremeIndex; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#OrdMax; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Select.cs#OrdMaxAt; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#OrdMaxString; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.ExactValue.cs#OrdMaxExact; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.ExactValue.cs#SelectExact; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderDec",
   "edition-consulted": [
    {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
-    "switches": "D8 window: sig.IntroducedIn (85 on the ORD-MAX row) against ctx.Edition.DialectLevel; at 85 the function is admitted",
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#IsDefinedAt",
+    "switches": "the function name exists at the edition (IntroducedIn 85 for MAX/MIN/ORD-MAX/ORD-MIN)",
     "same-arm-as-latest": true
    },
    {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build",
-    "switches": "the ORD-MAX row's IntroducedIn 85, the data the window reads",
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#CrossViolation",
+    "switches": "only the cited rule in the class-agreement diagnostic (EditionInfo; §1989:A.2.x.3 at 85); the check itself is the same",
     "same-arm-as-latest": true
    },
    {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement",
-    "switches": "construct numeric-function-identifier-operand-2002: at 85 an integer function written as an identifier operand (MOVE/DISPLAY sender) is refused; never fires inside an arithmetic expression (COMPUTE, relation operand), which is where every probe used it",
-    "same-arm-as-latest": false
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderDec",
+    "switches": "native vs standard-decimal arithmetic arm (num.StandardDecimal); COBOL-85 has no ARITHMETIC clause so it always takes the native arm, the same arm a 2023 program without ARITHMETIC takes",
+    "same-arm-as-latest": true
    }
   ],
-  "edition-search": "Grepped the runtime Intrinsics folder for Edition|Dialect|CobolVersion (no hit on the selection bodies) and IntrinsicRenderer.cs for Edition|DialectLevel (none); IntrinsicBinder.cs for DialectLevel|ConstructRegistry (lines 68, 241, 338, 688, 964 and phrase-specific ones, none in CheckArgumentClasses or the string-body resolution).",
-  "behaviour-differs-by-edition": "no: the tie rule (strict > update, first index kept) is one runtime body per carrier with no edition input; ordsel.cob prints the same 32 lines at --std 85 and --std 2023",
-  "witnesses-cover": "part: g85_f38_06 covers numeric literal ties, a scale tie (7.00 vs 7) and an alphanumeric tie with space padding; not exercised there: ALL subscripts with ODO and reference modification, group and numeric-edited arguments, alphabetic/alphanumeric mixing, figurative constants, +0/-0, 18-digit extremes, COMP and SIGN SEPARATE items, scaling P, arithmetic-expression arguments, and ties under a PROGRAM COLLATING SEQUENCE (ALSO)",
+  "edition-search": "grep of IntrinsicRenderer.cs, IntrinsicBinder.cs, IntrinsicArgumentRules.cs, IntrinsicCatalog.cs and Runtime/Intrinsics for Edition|CobolVersion|DialectLevel|ConstructRegistry; the runtime selection kernel and its ISelectionOrder carriers consult no edition",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f38_06 is numeric; scale-differing ties, -0/+0, alphabetic/alphanumeric ties of unequal length and PCS are not exercised",
   "probes": [
    {
-    "class": "a",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-183/ordsel.cob",
-    "printed": "A1 01 (T(ALL) under ODO N=3 over 4 1 4 [9 9]); A3 02 (S(ALL)(1:3) ABZ tie at 2,3); A5 02 (S(ALL)(3:2) 'Z ' tie at 2,3); F10 1 (ODO object is also the receiver)",
-    "expected": "leftmost of the tie within the ODO range: 01, 02, 02, 1"
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/w20262136/coderead/probes/c05p1.cob",
+    "printed": "A1 01 (BIG NBIG BIG, 18 digits); A3 01 (1.5 vs 1.50); A6 01 (-0 vs 0)",
+    "expected": "1; 1; 1"
    },
    {
     "class": "d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-183/ordsel.cob",
-    "printed": "D1 01 (numeric-edited '-5' vs ' 3' compared as alphanumeric); D3 01 (equal groups); D5 01 (alphabetic = alphanumeric); D7 01 (COMP 7, SIGN LEADING SEPARATE 7.0, literal 7); D9 03 (SPACE 'A' HIGH-VALUE); D11 01 (ZERO vs '0'); D13 01 (9PP 700 vs 700); D15 01 (3 + 4 vs 7)",
-    "expected": "01, 01, 01, 01, 03, 01, 01, 01"
+    "file": "E:/COBOL-coord/scratch/w20262136/coderead/probes/c05p1.cob",
+    "printed": "A8 01 (A(3) 'AB ', X(5) 'AB   ', X(2) 'AB')",
+    "expected": "1 (equal after space extension)"
    },
    {
-    "class": "f",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-183/ordsel.cob",
-    "printed": "F1 01 (two S9(18) at 999999999999999999); F6 01 (-0 vs +0); F8 03 (NEG1 FR1 BIG1 FR1 BIG2)",
-    "expected": "01 (tie), 01 (zero is unique regardless of sign), 03"
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/w20262136/coderead/probes/c05p2.cob",
+    "printed": "B2 01 (E(ALL) with ODO 3 of 9 4 7)",
+    "expected": "1"
    },
    {
     "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-183/ordpcs.cob",
-    "printed": "P3 01 and P4 01 (C ALSO D tie under PROGRAM COLLATING SEQUENCE); P9 01 ('A' vs 'AB' where space is unlisted and so above B); P11 EQ (the relation agrees)",
-    "expected": "01, 01, 01, EQ"
+    "file": "E:/COBOL-coord/scratch/w20262136/coderead/probes/c05p2.cob",
+    "printed": "B6 02 (ORD-MAX('Z' 'A' 'B') under PCS Z..A)",
+    "expected": "2"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-183/ordbad.cob",
-    "printed": "COBOL1627 for ORD-MAX(1 X1); COBOL1504 and COBOL0900 for ORD-MAX(); COBOL0900 for N\"A\" at 85",
-    "expected": "refusal of mixed numeric/alphanumeric, of an empty list, and of a national literal (no such literal in 1985)"
-   },
-   {
-    "class": "c",
-    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/A.2.32@1985-ORD-MAX-FUNCTION/g85_f38_06.cob",
-    "printed": "EXPECT: MATCH (O1 2, O2 1, O3 1, O4 2, O5 2, O6 1)",
-    "expected": "the .out file"
+    "file": "E:/COBOL-coord/scratch/w20262136/coderead/probes/c05p3d.cob",
+    "printed": "COBOL1627 ORD-MAX argument-2 class numeric cannot agree (§1989:A.2.32.3)",
+    "expected": "refused: §1989:A.2.32.3 AR1"
    }
   ],
   "citations": [
    {
     "cite": "§1989:A.2.32.4 RV3",
-    "check": "OK  §1989:A.2.32.4 RV3  (2.32.4 Returned Values)  the text is in RV3"
+    "check": "OK  §1989:A.2.32.4 RV3  the text is in the rule: the number returned corresponds to the position of the leftmost argument-1 having that value"
    },
    {
-    "cite": "§1985:VI.6.3.1.1.1",
-    "check": "OK  §1985:VI.6.3.1.1.1  (6.3.1.1.1 Comparison of Numeric Operands)  the text is in the clause"
-   },
-   {
-    "cite": "§1985:VI.6.3.1.1.2",
-    "check": "OK  §1985:VI.6.3.1.1.2  (6.3.1.1.2 Comparison of Nonnumeric Operands)  the text is in the clause; it lies in GRL2.2"
-   },
-   {
-    "cite": "§1989:A.2.2",
-    "check": "OK  §1989:A.2.2  (2.2 ARGUMENTS**)  the text is in the clause; it lies in AR4"
+    "cite": "§1989:A.2.32.4 RV2",
+    "check": "OK  §1989:A.2.32.4 RV2  the text is in the rule: made according to the rules for simple conditions"
    }
   ],
-  "notes": "Every selection carrier (OrdMaxAt, OrdMaxDec, SelectWide, SelectExact, OrdMaxReal, ExtremeIndex for strings and both PCS variants) updates only on a strictly greater comparison, so the leftmost tie is kept; the 1985 citation form §1985:A.2.32.4 is refused by cite.py (Section A has no such paragraph), so the rule is cited with its catalog form §1989. Binder diagnostics for argument-class errors at 85 still cite §2023 clauses (COBOL1627), a wording matter outside this rule.",
+  "notes": "Native ORD-MAX renders to OrdMaxExact (exact values, SelectExact) or OrdMaxAt/OrdMax via ExtremeIndex; all keep the first index and replace only on strictly greater. Identical output at --std 2023. Observation (not a conformance defect): CobolIntrinsics.ExactValue.cs#SelectExact re-writes the leftmost-strict-update loop beside the unified ExtremeIndex kernel (PB2635 unified the other carriers); the exact lane is what native ORD-MAX/ORD-MIN/MAX/MIN take.",
   "seeded": true,
   "harm": "",
   "cause": "",
@@ -107,10 +93,9 @@
  "refuter": {
   "rule-id": "1989-RV-A.2.32.4-3",
   "refutation": "UPHELD",
-  "classes": "a,b,c,d,f",
-  "evidence": "Probes at --std 85 under E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-183/: ordreal.cob (a binary64 FUNCTION SQRT argument mixed with 18-digit items, to force any double-precision compare that would turn 999999999999999998 / 999999999999999999 into a false tie): M1 02, M2 02, the approximate argument is lifted to decimal, no false tie. ordall2.cob (two ALL subscripts, ODO outer, ALL mixed with a fixed subscript, ALL plus reference modification): M1 03 (1,1,9,9,0,1 leftmost 9), M2 02, M3 02, M4 02, all row-major leftmost. ordgrp.cob: IM 01 (INTEGER(7.5), 7, SQRT(49) all tie), GM/GN agree with IF G1 < G2 on groups holding COMP fields, UM 01 / VM 01 (alphanumeric function-identifier arguments tied with items). ordc1-4.cob (compile-only): ABS (2002 function) COBOL1502, 1.0E2 and X\"41\" COBOL0900, PIC N COBOL0900. cite.py: OK §1989:A.2.32.4 RV3 'the position of the leftmost argument-1 having that value'; OK §1985:IV.4.2.2.2.3 GRL2.3 'the length of the string is the length of the literal'.",
+  "classes": "c,d,f",
+  "evidence": "Code: SelectExact (ExactValue.cs:32-42) and ExtremeIndex (Selection.cs:35-45) both start at index 0 and move only on a strict order (c<0 / c>0), so the leftmost of equal values is kept; ORD-* add 1. Edition grep of IntrinsicBinder.cs/IntrinsicRenderer.cs: the only ctx.Edition sites are refusals (FUNCTION-keyword omission, REPOSITORY, ref-mod forms), none on the selection path.  Probes: E:/COBOL-coord/scratch/w20262136/coderead/probes-refute/runs/r1-001 (--std 85, PCS ALPHABET ALS IS \"B\" ALSO \"A\" \"C\" \"D\"): C1 ORD-MIN('B' 'A')=01, C2 ORD-MIN('A' 'B')=01, C3 ORD-MAX('A' 'B')=01, C4 MIN('A' 'B')='A', C5 MIN('B' 'A')='B', C6 IF 'A'='B' true; C7 ORD-MIN(X(1)'C', XX'CD')=02 agreeing with C8 IF X1>=X2 (padding space is unlisted, so after D); C9 ORD-MIN('BA' 'AB' 'AA')=01, C10 MIN=BA (all equal under ALSO) | E:/COBOL-coord/scratch/w20262136/coderead/probes-refute/runs/r2-002 (--std 85): D1 ORD-MIN(Z9 '10', 9.9 '9.5')=01 and D2 ORD-MAX(9.5,10)=01 (numeric-edited compared as nonnumeric, matches D3 IF), D4 MIN(NE2 NE1)='10' size 2, D5 ORD-MIN(ZZ9 ' 10', Z9 '10')=01; D6/D7 9PP 300 vs 999 300 tie=01 both orders; D8 VPP9 .003 vs V999 .003 tie=01; D9 MIN(9PP,999,400)=300; D10 MIN(V999,VPP9,1)=.003; D11 ORD-MIN('A', 'A'+LOW-VALUE)=02; D12-D15 C(ALL ALL)/C(2 ALL)/C(ALL 1) row-major ordinals 02,02,02,04 | E:/COBOL-coord/scratch/w20262136/coderead/probes-refute/runs/r3-002 (--std 85): E1 LENGTH(MIN(ODO group 'AA' N=2, X(5) 'AA'))=02, E2 reversed=05 (tie keeps leftmost and its size); E3-E6 ORD-MAX/ORD-MIN(0.1, NUMVAL('0.1')) and (NUMVAL('0.1'), 9V9 0.1) all 01; E7 ORD-MAX(2 SQRT(4))=01; E8 ORD-MAX(0.3 0.1+0.2)=01; E9/E10 0.3 vs NUMVAL(.1)+NUMVAL(.2) tie=01 both; E11 ORD-MAX(LOG(1) 0)=01; E12 ORD-MAX(INTEGER(2.5) 2)=01 Cite: OK  §1989:A.2.32.4 RV3  the text is in RV3 (position of the leftmost argument-1 having that value)",
   "edition-sites-missed": [],
-  "corrected": "",
-  "notes": "ORD-MAX(A1 ALL \"B\") with A1 = \"B \" returns 01 (ALL literal taken at its literal length, so the values tie) while IF A1 = ALL \"B\" is false. §1985:IV.4.2.2.2.3 rule (3) gives an ALL literal not associated with a data item the length of the literal, and a function argument is a value rather than an operand compared with one item, so the reading is defensible. Whether a figurative constant is an admissible argument at all is a §1989:A.2.2 argument-rule matter, outside this RV rule."
+  "corrected": ""
  }
 }
