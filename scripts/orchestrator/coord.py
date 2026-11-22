@@ -294,6 +294,41 @@ def stop_unit(override: str | None = None) -> pathlib.Path:
     return coord_path(override) / "STOP-UNIT"
 
 
+# THE STOP SIGNALS PRESENT, AND WHICH ARE STALE (kb/Work PB6058). A stop is a file whose mere existence halts what reads
+# it, so one nobody lifts halts that reader silently and for good: the loop's STOP, STOP-UNIT and scratch\STOP-loop of
+# 2026-11-16 were still present on 2026-11-22 ("We should have no STOP files from 6 days ago", the owner), with no line
+# anywhere showing them. A stop lives for one wind-down, so one older than STALE_STOP_S was forgotten. The session probe
+# prints this (its `stops` line), so the next session start sees every stop and the age of each.
+STALE_STOP_S = 24 * 3600
+
+
+def stop_signals(override: str | None = None, now: float | None = None) -> list[tuple[pathlib.Path, float]]:
+    """Every stop file present, with its age in seconds, oldest first: the loop's `<coord>\\STOP` and `STOP-UNIT`, the
+    owner's global `scratch\\STOP` and each `STOP-<scope>` (fleet_stop's name) in `scratch` or one directory below it,
+    where every fleet's scratch directory lives. Never creates anything."""
+    root = coord_path(override)
+    scratch = root / "scratch"
+    found = [p for p in (root / "STOP", stop_unit(override), global_stop(override)) if p.is_file()]
+    for d in [scratch] + (sorted(p for p in scratch.iterdir() if p.is_dir()) if scratch.is_dir() else []):
+        found += [p for p in sorted(d.glob("STOP-*")) if p.is_file() and p.name.startswith("STOP-")  # the glob ignores case on Windows
+                  and STOP_SCOPE.fullmatch(p.name[len("STOP-"):])]
+    now = time.time() if now is None else now
+    return sorted(((p, max(0.0, now - p.stat().st_mtime)) for p in found), key=lambda pa: -pa[1])
+
+
+def stop_report(override: str | None = None, now: float | None = None) -> tuple[int, list[str]]:
+    """The probe's `stops` lines and the number of stale stops among them (stop_signals, STALE_STOP_S)."""
+    signals = stop_signals(override, now)
+    stale = [(p, a) for p, a in signals if a > STALE_STOP_S]
+    if not signals:
+        return 0, ["stops  : none present"]
+    listed = ", ".join(f"{p} ({a / 3600:.1f} h)" for p, a in signals)
+    if not stale:
+        return 0, [f"stops  : {len(signals)} present, none stale: {listed}"]
+    return len(stale), [f"stops  : ⛔ {len(stale)} of {len(signals)} older than {STALE_STOP_S // 3600} h: {listed} — a "
+                        "stop nobody lifted halts whatever reads it: remove it, or ask the owner if it is theirs (kb/Work PB6058)"]
+
+
 #: THE paths a worktree's dirt or diff never counts as work, one list for every reader (kb/Work PB3465): the harness's
 #: local settings, modified in every agent's worktree; the checkpoint file (gitignored; excluded as well in case a tree
 #: tracks one); and the gate's results directory (an entry ending in `/` is a directory: everything under it). Six
@@ -593,6 +628,28 @@ def _self_test() -> int:
     if not runs_python(os.getpid(), "coord.py") or runs_python(os.getpid(), "not-this-script.py"):
         fails.append("runs_python: this process must run coord.py and must not run not-this-script.py")
     fails += _exited_but_listed_arm()
+    # the stop signals (kb/Work PB6058): every stop name in its place is found and aged; archives, other names and a
+    # directory deeper than one below scratch are not; a stop past STALE_STOP_S is stale
+    with tempfile.TemporaryDirectory() as d:
+        root = pathlib.Path(d)
+        (root / "scratch" / "w1" / "deep").mkdir(parents=True)
+        now = time.time()
+        for rel, age in (("STOP", 7 * 86400), ("STOP-UNIT", 60), ("scratch/STOP", 2 * 86400), ("scratch/STOP-loop", 60),
+                         ("scratch/w1/STOP-w1", 60), ("scratch/w1/STOP.cob", 9 * 86400),
+                         ("scratch/w1/STOPPED-ROWS.md", 9 * 86400), ("scratch/w1/stop-test.log", 9 * 86400), ("scratch/w1/deep/STOP-x", 9 * 86400)):
+            (root / rel).write_text("", encoding="utf-8")
+            os.utime(root / rel, (now - age, now - age))
+        got = {str(p.relative_to(root)).replace("\\", "/") for p, _ in stop_signals(str(root), now)}
+        want = {"STOP", "STOP-UNIT", "scratch/STOP", "scratch/STOP-loop", "scratch/w1/STOP-w1"}
+        if got != want:
+            fails.append(f"stop_signals: found {sorted(got)}, want {sorted(want)}")
+        n, lines = stop_report(str(root), now)
+        if n != 2 or "⛔" not in lines[0]:
+            fails.append(f"stop_report: want 2 stale with a ⛔, got {n}: {lines}")
+        for rel in want:
+            (root / rel).unlink()
+        if stop_report(str(root), now) != (0, ["stops  : none present"]):
+            fails.append(f"stop_report: an empty coord reads {stop_report(str(root), now)}")
     for f in fails:
         print(f"FAIL  {f}")
     print(f"=== COORD SELF-TEST: {'GREEN' if not fails else f'RED ({len(fails)})'} ===")
@@ -606,7 +663,11 @@ if __name__ == "__main__":
         state, why = loop_state()
         print(f"LOOP STATE: {state} ({why})")
         sys.exit(0)
+    if sys.argv[1:] == ["stops"]:   # the session probe's `stops` line (kb/Work PB6058); exit 1 when one is stale
+        stale, lines = stop_report()
+        print("\n".join(lines))
+        sys.exit(1 if stale else 0)
     if sys.argv[1:] == ["--self-test"]:
         sys.exit(_self_test())
-    print("usage: python scripts/orchestrator/coord.py loop-state | --self-test", file=sys.stderr)
+    print("usage: python scripts/orchestrator/coord.py loop-state | stops | --self-test", file=sys.stderr)
     sys.exit(2)
