@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Globalization;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Runtime;
 namespace WiseOwl.Cobol.CodeGen;
@@ -31,7 +32,7 @@ internal static class ReceivingStore
     /// ANY LENGTH receiver's runtime length); a dynamic-length receiver has no width and ignores it.</summary>
     public static string Characters(DataItem target, string sendingChars, string width) =>
         target.IsDynamicLength
-            ? RuntimeApi.DynStore(sendingChars, target.DynMaxSize.ToString())
+            ? RuntimeApi.DynStore(sendingChars, target.DynMaxSize.ToString(CultureInfo.InvariantCulture))
             // ⛔ A BOOLEAN receiver is never stored through here: the area a GR4 group move fits is decoded and converted
             // to boolean positions by StorageCharacters (D-B5, kb/Work PB3666, PB3697), and an elementary character
             // MOVE takes MoveEmitter.CharacterStore's StrStoreBoolean. The fit here pads with spaces and the

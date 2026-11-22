@@ -274,10 +274,8 @@ public static class StrongTypeModel
     /// <see cref="EssentialCharacteristicsKey"/> keys the analyzed profile by the record's own text (kb/Work PB3257).</summary>
     private static string InvariantRecordText(object record)
     {
-        var host = CultureInfo.CurrentCulture;
-        CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
-        try { return record.ToString() ?? ""; }
-        finally { CultureInfo.CurrentCulture = host; }
+        using var invariant = InvariantCultureScope.Enter();
+        return record.ToString() ?? "";
     }
 
     /// <summary>The SYNCHRONIZED clause's letter in <see cref="EssentialCharacteristicsKey"/> — one per form, because

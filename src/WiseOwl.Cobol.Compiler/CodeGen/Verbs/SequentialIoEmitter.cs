@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Globalization;
 using WiseOwl.Cobol.Common;
 using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Binding.Model;
@@ -667,7 +668,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     private string LinageOpExpr(LinageOperand? op, string absent)
     {
         if (op is null) return absent;
-        if (op.Literal is { } lit) return lit.ToString();
+        if (op.Literal is { } lit) return lit.ToString(CultureInfo.InvariantCulture);
         if (op.Item is { } item && places.Of(item) is { } p)
             // The integer landing (a P-scaled or unsigned-wide item by VALUE), then the ONE saturating narrowing
             // (kb/Work PB1033) — a bare `(int)` wrapped a 10-digit LINAGE value back into a small page.

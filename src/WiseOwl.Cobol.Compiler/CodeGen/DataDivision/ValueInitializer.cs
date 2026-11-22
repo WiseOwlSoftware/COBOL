@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Globalization;
 using WiseOwl.Cobol.Common;
 using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Binding.Model;
@@ -218,7 +219,7 @@ internal sealed class ValueInitializer(EmitContext ctx)
             // an INITIALIZE ... TO VALUE reaches its own recipe, not this initial-state reader.
             if (effRaw is not { } dv || InFileSection(item)) return "\"\"";
             if (FigurativeInitializer(dv, pic) is { } figFill) return figFill;
-            return RuntimeApi.DynStore(EmitText.CsLiteral(CobolLiteral.Decode(dv)), item.DynMaxSize.ToString());
+            return RuntimeApi.DynStore(EmitText.CsLiteral(CobolLiteral.Decode(dv)), item.DynMaxSize.ToString(CultureInfo.InvariantCulture));
         }
 
         // CCVS leniency: an ALPHANUMERIC literal VALUE on a NUMERIC item is read AS the numeric literal ISO

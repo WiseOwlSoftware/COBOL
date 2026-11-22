@@ -380,10 +380,13 @@ public static class CompilerDriver
             if (expansion.Errors.Count > 0)
                 return new Result(expansion.Failure, outputDll, expansion.GeneratedCsPath, expansion.Errors, warnings)
                     { Inputs = inputs, CompileOutput = diagnostics.CompileOutput, OutputFiles = expansion.Files, Diagnostics = Reported(expansion.Diagnostics) };
-            var artifact = backend.Emit(bound, new BackendOptions(
-                outputDll, Path.GetFileNameWithoutExtension(outputDll), edition.Edition, Inputs: inputs,
-                RepositoryReferences: [.. bound.Imported.Assemblies, .. bound.Expansions.ReferencedAssemblies],
-                DocumentRoot: SourceDocuments.RootOf(options.SourcePath)));
+            // The generated text is the same on every host whatever its culture (kb/Work PB3239; InvariantCultureScope).
+            BackendArtifact artifact;
+            using (InvariantCultureScope.Enter())
+                artifact = backend.Emit(bound, new BackendOptions(
+                    outputDll, Path.GetFileNameWithoutExtension(outputDll), edition.Edition, Inputs: inputs,
+                    RepositoryReferences: [.. bound.Imported.Assemblies, .. bound.Expansions.ReferencedAssemblies],
+                    DocumentRoot: SourceDocuments.RootOf(options.SourcePath)));
             if (!artifact.Success)
                 return new Result(Outcome.BackendError, outputDll, artifact.GeneratedSourcePath,
                     artifact.Diagnostics.Where(d => d.IsError).Select(d => d.ToString()).ToList(), warnings)
