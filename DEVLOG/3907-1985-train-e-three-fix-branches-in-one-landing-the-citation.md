@@ -1,4 +1,4 @@
-## 1985 train E: three fix branches in one landing; the citation canonicalizer is safe on message text
+## Entry 3907 — 2026-11-21 21:04 PST — 1985 train E: three fix branches in one landing; the citation canonicalizer is safe on message text
 
 Wave 20262132's train E lands in one pull request. It carries the fix branches of groups g (`train85e-e2-cite`), f
 (`train85e-e1-diag`) and i (`train85e-e4-proc`), merged into `train-1985-e` on top of train D (`train-1985-d`, 0e25c0e6c5)
@@ -38,3 +38,4 @@ the anchored VCR rows, `PublicAPI.Unshipped.txt`, the pipeline design doc and PB
 `compiler-facts.json`, `conformance-register.json` and `cite-resolve-baseline.json` were regenerated, never
 hand-merged. The canonicalizer re-ran over the merged tree and rewrote the 3 designators the merge resolution had
 re-introduced in comments.
+
