@@ -48,4 +48,9 @@ all stand on own verdicts.
 **Integration.** The citation baseline was regenerated, never hand-merged. Group e's grammar reclassified 14 of train C's
 sites as `item-is-a-rule`. Five were rewritten to the rule the tool names, and nine are history addenda or quote the 2023
 run-time message, which is PB5449's 2023 half. Group e's item rewrite had edited five sealed 1985 code-read records, and
-CODE READS turned red. They were restored to main's bytes.
+CODE READS turned red. They were restored to main's bytes. The gate's WITNESS LOSS audit refused group d's hand edit of
+SR-13.4.6.3-4's code location, so that row now retires the deleted member through `record_verdicts.py`.
+
+**The kill-by-name guard, round 2 (PB6034).** Train C's review left two leads, and this train fixes both. A `python -c`
+payload is now read as a command line, so a kill by name through psutil or a parsed `tasklist` is refused. A quoted
+`Get-Process` is an argument, and so is `timeout -s KILL`'s signal choice: neither counts as half of a kill.
