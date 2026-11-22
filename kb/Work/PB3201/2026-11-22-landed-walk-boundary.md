@@ -19,3 +19,11 @@ project added outside the solution changes the key and the next index regenerate
 semantically, and throws CensusRefusal when drift tests exist but no project compiles the locator, or when the locator
 has no method of a shape the census reads. `ArchCensusDriftTests.CensusHost_NamesTheLocatorTheDriftTestsCall` pins the
 constant to `typeof(TestRepo).FullName`, so a rename is red at the gate.
+
+## Landing
+
+- `scripts/arch/census.py#walk_scope` — THE one scope of a walk (census.measure and member_index.record call it); `unwalked_compilations` is the boundary rule, pure over (tracked, solution paths, read). Its self-test reads the real tree, so the file declares `# SELF-TEST-POPULATION: tree`.
+- `scripts/arch/member_index.py#KEY_INPUTS` — hashes every tracked `*.csproj`/`*.props`/`*.targets`; widen it whenever walk_scope reads a new kind of file.
+- `tools/ArchCensus/TestArtifacts.cs#LocatorMetadataName` — the drift tests' path locator, resolved in the project's own assembly and bound semantically; a refusal, never an empty map. The gate never builds the host: build it with `dotnet build tools/ArchCensus -c Release -o <dir>`.
+- `tests/WiseOwl.Cobol.Tests.RepoDrift/ArchCensusDriftTests.cs#CensusHost_NamesTheLocatorTheDriftTestsCall` — pins the constant to typeof(TestRepo); `scripts/lane_classification.py` CODE_READS names it as TestArtifacts.cs's reader.
+- Trap: running the census in a fresh worktree crashes (UnresolvedAnalyzerReference) unless the analyzer is built in Release first (`dotnet build src/WiseOwl.Cobol.Analyzers -c Release`); the root is PB6043's.
