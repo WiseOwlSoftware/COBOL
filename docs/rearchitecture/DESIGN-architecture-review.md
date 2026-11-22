@@ -1473,8 +1473,9 @@ PB2352–PB2361.
 **(2) `WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog`** — R0-0002: `public static readonly DiagnosticDescriptor`
 fields beside four string constants (`NotImplemented`, `StrongType`, `RecognizedNotImplemented`,
 `DeclinedOptionalElement`); the census's own data-ize rule fires (its measures are on the note). And its twin: `WiseOwl.Cobol.Frontend.Diagnostics.DiagnosticDescriptors` holds descriptors (`CBLnnnn`, `COBOLnnnn`, and twins
-whose code is another constant) of a second `DiagnosticDescriptor` record, `(Code,
-DefaultSeverity, MessageTemplate)`; and `WiseOwl.Cobol.Editions.EditionCodes` holds the four edition-band codes that
+whose code is another constant) of a second `DiagnosticDescriptor` record, `(Code, MessageTemplate)` (it has no
+severity column: every frontend descriptor is an error by its emit path, and its message is composed only by
+`DiagnosticDescriptor.Format`, kb/Work PB2624; a frontend row's `severity` is therefore `error`); and `WiseOwl.Cobol.Editions.EditionCodes` holds the four edition-band codes that
 `ConstructRegistry`, `CobolWordRule`, `VersionConformancePass` and the frontend's `CobolErrorListener` all read.
 *Target: data plus a generator, keeping every identity.* One data file,
 `src/WiseOwl.Cobol.Editions/Diagnostics/diagnostics.json`, holds every row of the three. The row schema is the union of the

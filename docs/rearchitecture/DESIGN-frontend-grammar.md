@@ -1638,7 +1638,8 @@ generated visitor. The façade is for the *binder*.
 ### 3.8 Diagnostics model — one `Diagnostic` type
 
 The frontend already has the good pieces: `Diagnostics/DiagnosticDescriptor` (a typed
-`{Code, Severity, MessageTemplate}` record) and `DiagnosticDescriptors` (a registry:
+`{Code, MessageTemplate}` record whose `Format` is the one composition of its message; every frontend descriptor is an
+error, so it declares no severity, kb/Work PB2624) and `DiagnosticDescriptors` (a registry:
 `COBOL0303`, `COBOL2072`, `CBL3620`, …) — `Diagnostics/DiagnosticDescriptors.cs`. This is exactly the
 model the *compiler* side lacks (its 163 codes are bare strings — the understandability-critique HIGH). The
 target:

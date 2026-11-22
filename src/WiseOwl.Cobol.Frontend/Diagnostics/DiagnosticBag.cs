@@ -115,14 +115,10 @@ public sealed class DiagnosticBag
     }
 
     /// <summary>
-    /// Report a diagnostic using a descriptor and format arguments.
+    /// Report a frontend descriptor's diagnostic, an error (<see cref="DiagnosticDescriptor"/> says why every one is), with its
+    /// message composed by <see cref="DiagnosticDescriptor.Format"/> from <paramref name="args"/>.
     /// </summary>
     public void Report(DiagnosticDescriptor descriptor, SourceLocation location, TextSpan span,
         params object[] args)
-    {
-        string message = args.Length > 0
-            ? string.Format(descriptor.MessageTemplate, args)
-            : descriptor.MessageTemplate;
-        _diagnostics.Add(new Diagnostic(descriptor.Code, descriptor.DefaultSeverity, message, location, span));
-    }
+        => _diagnostics.Add(new Diagnostic(descriptor.Code, DiagnosticSeverity.Error, descriptor.Format(args), location, span));
 }
