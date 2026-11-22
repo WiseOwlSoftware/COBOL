@@ -121,6 +121,7 @@ WiseOwl.Cobol.Runtime.Collation.CollationOptions.Deconstruct(out WiseOwl.Cobol.R
 WiseOwl.Cobol.Runtime.Collation.CollationOptions.NumericOrdering.get -> bool
 WiseOwl.Cobol.Runtime.Collation.CollationOptions.NumericOrdering.init -> void
 WiseOwl.Cobol.Runtime.Collation.CollationTable.HasQuaternary.get -> bool
+WiseOwl.Cobol.Runtime.Collation.CollationTable.ReorderGroups.get -> System.Collections.Immutable.ImmutableArray<WiseOwl.Cobol.Runtime.Collation.ReorderGroup>
 WiseOwl.Cobol.Runtime.Collation.CollationTable.TryGetDecimalDigit(int codePoint, out int value) -> bool
 WiseOwl.Cobol.Runtime.Collation.Collator.With(WiseOwl.Cobol.Runtime.Collation.CollationStrength? strength = null, WiseOwl.Cobol.Runtime.Collation.AlternateHandling? alternate = null, WiseOwl.Cobol.Runtime.Collation.CollationTable? table = null, WiseOwl.Cobol.Runtime.Collation.MaxVariable? maxVariable = null, WiseOwl.Cobol.Runtime.Collation.CaseFirst? caseFirst = null, bool? backwardsSecondary = null, bool? caseLevel = null, bool? numericOrdering = null) -> WiseOwl.Cobol.Runtime.Collation.Collator!
 WiseOwl.Cobol.Runtime.Collation.LocaleCollationException
@@ -128,8 +129,16 @@ WiseOwl.Cobol.Runtime.Collation.LocaleCollationException.DataSource.get -> strin
 WiseOwl.Cobol.Runtime.Collation.LocaleCollationException.Line.get -> int?
 WiseOwl.Cobol.Runtime.Collation.LocaleCollationException.LocaleCollationException(string! dataSource, int? line, string! reason, System.Exception? inner = null) -> void
 WiseOwl.Cobol.Runtime.Collation.LocaleCollationException.Reason.get -> string!
+WiseOwl.Cobol.Runtime.Collation.ReorderGroup.Codes.get -> System.Collections.Immutable.ImmutableArray<string!>
+WiseOwl.Cobol.Runtime.Collation.ReorderGroup.Deconstruct(out System.Collections.Immutable.ImmutableArray<string!> Codes, out int FirstPrimary, out int LastPrimary) -> void
+WiseOwl.Cobol.Runtime.Collation.ReorderGroup.ReorderGroup(System.Collections.Immutable.ImmutableArray<string!> Codes, int FirstPrimary, int LastPrimary) -> void
 WiseOwl.Cobol.Runtime.Collation.ResolvedLocaleCollation.Failure.get -> WiseOwl.Cobol.Runtime.Collation.LocaleCollationException?
 WiseOwl.Cobol.Runtime.Collation.ResolvedLocaleCollation.Failure.init -> void
+WiseOwl.Cobol.Runtime.Collation.TailoringRules.Entries.get -> System.Collections.Immutable.ImmutableArray<WiseOwl.Cobol.Runtime.Collation.TailoringRules.Entry!>
+WiseOwl.Cobol.Runtime.Collation.TailoringRules.Entry.CodePoints.get -> System.Collections.Immutable.ImmutableArray<int>
+WiseOwl.Cobol.Runtime.Collation.TailoringRules.Entry.Deconstruct(out System.Collections.Immutable.ImmutableArray<int> CodePoints, out System.Collections.Immutable.ImmutableArray<WiseOwl.Cobol.Runtime.Collation.CollationElement> Elements, out int Line) -> void
+WiseOwl.Cobol.Runtime.Collation.TailoringRules.Entry.Elements.get -> System.Collections.Immutable.ImmutableArray<WiseOwl.Cobol.Runtime.Collation.CollationElement>
+WiseOwl.Cobol.Runtime.Collation.TailoringRules.Entry.Entry(System.Collections.Immutable.ImmutableArray<int> CodePoints, System.Collections.Immutable.ImmutableArray<WiseOwl.Cobol.Runtime.Collation.CollationElement> Elements, int Line) -> void
 WiseOwl.Cobol.Runtime.Communication.CdActivation
 WiseOwl.Cobol.Runtime.Communication.CdActivation.CdActivation() -> void
 WiseOwl.Cobol.Runtime.Communication.CommunicationFormat
@@ -294,6 +303,7 @@ WiseOwl.Cobol.Runtime.FunctionValueField.ByteLength.get -> long
 WiseOwl.Cobol.Runtime.FunctionValueField.DeviceText(bool commaMode) -> string!
 WiseOwl.Cobol.Runtime.FunctionValueField.FunctionValueField() -> void
 WiseOwl.Cobol.Runtime.FunctionValueField.Length.get -> long
+WiseOwl.Cobol.Runtime.Globalization.MonetaryFacts.GroupSizes.get -> System.Collections.Immutable.ImmutableArray<int>
 WiseOwl.Cobol.Runtime.HostLanding
 WiseOwl.Cobol.Runtime.ICobolProgram.IsCobol85.get -> bool
 WiseOwl.Cobol.Runtime.IO.CobolReport.AddRolled(WiseOwl.Cobol.Runtime.IO.ReportGroup! source, int sumId, int presentSlot, System.Func<System.Int128, System.Int128>! apply, bool crossFoot) -> void
@@ -447,6 +457,13 @@ WiseOwl.Cobol.Runtime.Messaging.MessagingSettings.ServedName.get -> string?
 WiseOwl.Cobol.Runtime.Messaging.MessagingSettings.ServedName.init -> void
 WiseOwl.Cobol.Runtime.Messaging.MessagingSettings.Time.get -> System.TimeProvider!
 WiseOwl.Cobol.Runtime.Messaging.MessagingSettings.Time.init -> void
+WiseOwl.Cobol.Runtime.ModuleNameKeyword
+WiseOwl.Cobol.Runtime.ModuleNameKeyword.Activating = 1 -> WiseOwl.Cobol.Runtime.ModuleNameKeyword
+WiseOwl.Cobol.Runtime.ModuleNameKeyword.Current = 0 -> WiseOwl.Cobol.Runtime.ModuleNameKeyword
+WiseOwl.Cobol.Runtime.ModuleNameKeyword.Nested = 2 -> WiseOwl.Cobol.Runtime.ModuleNameKeyword
+WiseOwl.Cobol.Runtime.ModuleNameKeyword.Stack = 3 -> WiseOwl.Cobol.Runtime.ModuleNameKeyword
+WiseOwl.Cobol.Runtime.ModuleNameKeyword.TopLevel = 4 -> WiseOwl.Cobol.Runtime.ModuleNameKeyword
+WiseOwl.Cobol.Runtime.ModuleStack.Name(WiseOwl.Cobol.Runtime.ModuleNameKeyword keyword) -> string!
 WiseOwl.Cobol.Runtime.ModuleStack.RunningIsMain.get -> bool
 WiseOwl.Cobol.Runtime.MoveCitations
 WiseOwl.Cobol.Runtime.MoveCitations.<Clone>$() -> WiseOwl.Cobol.Runtime.MoveCitations!
@@ -1177,6 +1194,7 @@ static WiseOwl.Cobol.Runtime.CobolIntrinsics.TruncateWide(WiseOwl.Cobol.Runtime.
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.Variance(WiseOwl.Cobol.Runtime.CobolRounding mode, params WiseOwl.Cobol.Runtime.CobolExact[]! xs) -> double
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.VarianceDec(WiseOwl.Cobol.Runtime.DecArithmetic ar, params WiseOwl.Cobol.Runtime.CobolDec[]! xs) -> WiseOwl.Cobol.Runtime.CobolDec
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.VarianceExact(WiseOwl.Cobol.Runtime.CobolRounding mode, params WiseOwl.Cobol.Runtime.CobolExact[]! xs) -> WiseOwl.Cobol.Runtime.CobolExact
+static WiseOwl.Cobol.Runtime.CobolModule.Name(WiseOwl.Cobol.Runtime.ModuleNameKeyword keyword) -> string!
 static WiseOwl.Cobol.Runtime.CobolNames.HasEditionSpelling(int dialectLevel) -> bool
 static WiseOwl.Cobol.Runtime.CobolNum.AddChecked(System.Int128 a, System.Int128 b, WiseOwl.Cobol.Runtime.SizeChecks taken) -> System.Int128
 static WiseOwl.Cobol.Runtime.CobolNum.DeSignImage(string! image, in WiseOwl.Cobol.Runtime.NumProfile item, int digits) -> string!
@@ -1291,6 +1309,8 @@ static WiseOwl.Cobol.Runtime.FunctionValueField.OfItem(WiseOwl.Cobol.Runtime.Cob
 static WiseOwl.Cobol.Runtime.FunctionValueField.OfLiteral(WiseOwl.Cobol.Runtime.CobolDec value, int digits, int scale, bool signed) -> WiseOwl.Cobol.Runtime.FunctionValueField
 static WiseOwl.Cobol.Runtime.FunctionValueField.OfValue(WiseOwl.Cobol.Runtime.CobolDec value) -> WiseOwl.Cobol.Runtime.FunctionValueField
 static WiseOwl.Cobol.Runtime.FunctionValueField.OfWide(WiseOwl.Cobol.Runtime.CobolWide value, int scale) -> WiseOwl.Cobol.Runtime.FunctionValueField
+static WiseOwl.Cobol.Runtime.Globalization.MonetaryPlacement.NegativeByPattern.get -> System.Collections.Immutable.ImmutableArray<WiseOwl.Cobol.Runtime.Globalization.MonetaryConvention>
+static WiseOwl.Cobol.Runtime.Globalization.MonetaryPlacement.PositiveByPattern.get -> System.Collections.Immutable.ImmutableArray<WiseOwl.Cobol.Runtime.Globalization.MonetaryConvention>
 static WiseOwl.Cobol.Runtime.HostLanding.Dec(System.Int128 unscaled, int scale) -> WiseOwl.Cobol.Runtime.CobolDec
 static WiseOwl.Cobol.Runtime.HostLanding.Decimal(System.Int128 unscaled, int scale) -> decimal
 static WiseOwl.Cobol.Runtime.HostLanding.Integer(System.Int128 unscaled, int scale) -> System.Int128
@@ -1430,23 +1450,3 @@ static readonly WiseOwl.Cobol.Runtime.MoveCitations.Iso2023 -> WiseOwl.Cobol.Run
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryIndexOutcome.ToString() -> string
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.Equals(object obj) -> bool
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.ToString() -> string
-WiseOwl.Cobol.Runtime.ModuleNameKeyword
-WiseOwl.Cobol.Runtime.ModuleNameKeyword.Current = 0 -> WiseOwl.Cobol.Runtime.ModuleNameKeyword
-WiseOwl.Cobol.Runtime.ModuleNameKeyword.Activating = 1 -> WiseOwl.Cobol.Runtime.ModuleNameKeyword
-WiseOwl.Cobol.Runtime.ModuleNameKeyword.Nested = 2 -> WiseOwl.Cobol.Runtime.ModuleNameKeyword
-WiseOwl.Cobol.Runtime.ModuleNameKeyword.Stack = 3 -> WiseOwl.Cobol.Runtime.ModuleNameKeyword
-WiseOwl.Cobol.Runtime.ModuleNameKeyword.TopLevel = 4 -> WiseOwl.Cobol.Runtime.ModuleNameKeyword
-WiseOwl.Cobol.Runtime.ModuleStack.Name(WiseOwl.Cobol.Runtime.ModuleNameKeyword keyword) -> string!
-static WiseOwl.Cobol.Runtime.CobolModule.Name(WiseOwl.Cobol.Runtime.ModuleNameKeyword keyword) -> string!
-WiseOwl.Cobol.Runtime.Collation.ReorderGroup.Deconstruct(out System.Collections.Immutable.ImmutableArray<string!> Codes, out int FirstPrimary, out int LastPrimary) -> void
-WiseOwl.Cobol.Runtime.Collation.ReorderGroup.Codes.get -> System.Collections.Immutable.ImmutableArray<string!>
-WiseOwl.Cobol.Runtime.Collation.TailoringRules.Entry.CodePoints.get -> System.Collections.Immutable.ImmutableArray<int>
-WiseOwl.Cobol.Runtime.Collation.TailoringRules.Entry.Deconstruct(out System.Collections.Immutable.ImmutableArray<int> CodePoints, out System.Collections.Immutable.ImmutableArray<WiseOwl.Cobol.Runtime.Collation.CollationElement> Elements, out int Line) -> void
-WiseOwl.Cobol.Runtime.Collation.TailoringRules.Entry.Elements.get -> System.Collections.Immutable.ImmutableArray<WiseOwl.Cobol.Runtime.Collation.CollationElement>
-WiseOwl.Cobol.Runtime.Collation.TailoringRules.Entries.get -> System.Collections.Immutable.ImmutableArray<WiseOwl.Cobol.Runtime.Collation.TailoringRules.Entry!>
-WiseOwl.Cobol.Runtime.Collation.ReorderGroup.ReorderGroup(System.Collections.Immutable.ImmutableArray<string!> Codes, int FirstPrimary, int LastPrimary) -> void
-WiseOwl.Cobol.Runtime.Collation.CollationTable.ReorderGroups.get -> System.Collections.Immutable.ImmutableArray<WiseOwl.Cobol.Runtime.Collation.ReorderGroup>
-WiseOwl.Cobol.Runtime.Collation.TailoringRules.Entry.Entry(System.Collections.Immutable.ImmutableArray<int> CodePoints, System.Collections.Immutable.ImmutableArray<WiseOwl.Cobol.Runtime.Collation.CollationElement> Elements, int Line) -> void
-static WiseOwl.Cobol.Runtime.Globalization.MonetaryPlacement.NegativeByPattern.get -> System.Collections.Immutable.ImmutableArray<WiseOwl.Cobol.Runtime.Globalization.MonetaryConvention>
-static WiseOwl.Cobol.Runtime.Globalization.MonetaryPlacement.PositiveByPattern.get -> System.Collections.Immutable.ImmutableArray<WiseOwl.Cobol.Runtime.Globalization.MonetaryConvention>
-WiseOwl.Cobol.Runtime.Globalization.MonetaryFacts.GroupSizes.get -> System.Collections.Immutable.ImmutableArray<int>
