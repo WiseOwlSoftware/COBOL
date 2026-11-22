@@ -1,4 +1,4 @@
-## The screen-handling module's 161 inventory rows start at 2002, not 85
+## Entry 3934 — 2026-11-22 15:35 PST — The screen-handling module's 161 inventory rows start at 2002, not 85
 
 PB3319. The screen-section clause rows (AUTO, BACKGROUND-COLOR, BELL, BLANK, BLINK, ERASE, FOREGROUND-COLOR, FULL, HIGHLIGHT, LOWLIGHT, REQUIRED, REVERSE-VIDEO, SECURE) carried `editions` 85,2002,2014,2023, while PB3173's evidence puts screen handling at 2002 (SCREEN first reserved at 2002; §2002:F.2 item 1 extends ACCEPT to screen items).
 
@@ -7,3 +7,4 @@ Re-probe on this build: 161 DOCUMENTED-NON-SUPPORT rows naming Annex A.4.2 start
 Fix: `adjudication/pb3319-editions/decide.py` checks its evidence (reserved-words.json, `end-accept-2002`, two `cite.py --check`, five already-2002 siblings) and writes the `record_verdicts` batch; applied, 161 store files, GAP 4 to 4. Structural check `SpecTraceabilityInventoryDriftTests.EveryScreenModuleRule_StartsNoEarlierThanTheScreenFacility` reads the facility's edition from `ReservedWords`, with planted cases for a refused 85 start, a 2002 start, a CONFORMS row and A.4.21.
 
 No verdict or state changed, so no row closes (`closes_rows: []`).
+
