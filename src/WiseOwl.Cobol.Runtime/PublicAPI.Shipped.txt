@@ -1802,7 +1802,6 @@ WiseOwl.Cobol.Runtime.ModuleStack.ActivatingActivation.get -> long
 WiseOwl.Cobol.Runtime.ModuleStack.AnyRecursive.get -> bool
 WiseOwl.Cobol.Runtime.ModuleStack.CurrentActivation.get -> long
 WiseOwl.Cobol.Runtime.ModuleStack.ModuleStack() -> void
-WiseOwl.Cobol.Runtime.ModuleStack.Name(int kind) -> string!
 WiseOwl.Cobol.Runtime.ModuleStack.Pop() -> void
 WiseOwl.Cobol.Runtime.ModuleStack.Push(string! name, string! outermost, bool isNested, bool recursive) -> void
 WiseOwl.Cobol.Runtime.ModuleStack.PushMain(string! name, bool recursive) -> void
@@ -2791,7 +2790,6 @@ static WiseOwl.Cobol.Runtime.CobolLocale.UpperCase(string? s, string! localeTag)
 static WiseOwl.Cobol.Runtime.CobolLocaleEdit.DeEdit(string! content, string! picture, string? localeTag, bool blankWhenZero = false) -> System.Int128
 static WiseOwl.Cobol.Runtime.CobolLocaleEdit.Format(System.Int128 unscaled, int valueScale, string! picture, string? localeTag, int size, bool blankWhenZero = false) -> string!
 static WiseOwl.Cobol.Runtime.CobolLocaleEdit.TryFormat(System.Int128 unscaled, int valueScale, string! picture, string? localeTag, int size, out string! edited, bool blankWhenZero = false) -> bool
-static WiseOwl.Cobol.Runtime.CobolModule.Name(int kind) -> string!
 static WiseOwl.Cobol.Runtime.CobolModule.Stack.get -> WiseOwl.Cobol.Runtime.ModuleStack!
 static WiseOwl.Cobol.Runtime.CobolNames.Comparer.get -> System.StringComparer!
 static WiseOwl.Cobol.Runtime.CobolNames.Contains(System.ReadOnlySpan<char> text, System.ReadOnlySpan<char> part) -> bool

@@ -99,25 +99,24 @@ public sealed class ModuleStack : IActivationIdentity
     }
 
 
-    /// <summary>Resolve MODULE-NAME for the keyword selector (0 CURRENT · 1 ACTIVATING · 2 NESTED · 3 STACK ·
-    /// 4 TOP-LEVEL). Returns the §2023:15.65.4-defined value, trimmed (a dynamic-length result — r1, no trailing
-    /// spaces).</summary>
-    public string Name(int kind)
+    /// <summary>Resolve MODULE-NAME for its keyword argument (<see cref="ModuleNameKeyword"/>, kb/Work PB2742). Returns the
+    /// §2023:15.65.4-defined value, trimmed (a dynamic-length result — r1, no trailing spaces).</summary>
+    public string Name(ModuleNameKeyword keyword)
     {
         var s = _stack;
         if (s.Count == 0) return " ";                        // no running element — a non-COBOL context (r3)
         Frame top = s[^1];
-        switch (kind)
+        switch (keyword)
         {
-            case 0:   // CURRENT — the outermost program of the currently running compilation unit (r7)
+            case ModuleNameKeyword.Current:   // CURRENT — the outermost program of the currently running compilation unit (r7)
                 return top.Outermost;
-            case 1:   // ACTIVATING (r5/r6)
+            case ModuleNameKeyword.Activating:   // ACTIVATING (r5/r6)
                 if (top.IsMain) return " ";                  // a main program → a single space (r5)
                 return s.Count >= 2 ? s[^2].Name : " ";      // the element that activated the current one
-            case 2:   // NESTED — the most recently nested currently-running program (r8)
+            case ModuleNameKeyword.Nested:   // NESTED — the most recently nested currently-running program (r8)
                 for (int i = s.Count - 1; i >= 0; i--) if (s[i].IsNested) return s[i].Name;
                 return top.Name;                             // arg-rule-1-violating build — implementor-defined (r3/r4)
-            case 3:   // STACK (r9) — built EXACTLY as r9 defines it, in terms of the other keywords.
+            case ModuleNameKeyword.Stack:   // STACK (r9) — built EXACTLY as r9 defines it, in terms of the other keywords.
             {
                 // r9: "The first entry is the name of the runtime element that would be returned if the CURRENT
                 // keyword were specified. The penultimate entry is the runtime element name that would be returned
@@ -150,7 +149,7 @@ public sealed class ModuleStack : IActivationIdentity
                 sb.Append("; ");                             // final entry = a single space (the operating environment)
                 return sb.ToString();
             }
-            case 4:   // TOP-LEVEL — "the runtime element that was activated by the operating environment to
+            case ModuleNameKeyword.TopLevel:   // TOP-LEVEL — "the runtime element that was activated by the operating environment to
                       // initiate the run unit" (r10). Frame 0 is that element only when it was pushed as the MAIN
                       // (ProgramTable.RunMain → PushMain); a host that drives a COBOL element WITHOUT RunMain
                       // (RunUnit.Run / ProgramTable.CallProgram from .NET) leaves frame 0 an ordinary CALLed frame —
@@ -158,7 +157,8 @@ public sealed class ModuleStack : IActivationIdentity
                       // value applies (a single space, docs/CONFORMANCE.md A.1 item 134; kb/Work PB63 / RV-15.65.4-10).
                 return s[0].IsMain ? s[0].Name : " ";
             default:
-                return " ";
+                // Every keyword has its arm; a value outside the enum is a defect of the caller, never a single space.
+                throw new ArgumentOutOfRangeException(nameof(keyword), keyword, "not a MODULE-NAME keyword (ISO §2023:15.65.2)");
         }
     }
 }

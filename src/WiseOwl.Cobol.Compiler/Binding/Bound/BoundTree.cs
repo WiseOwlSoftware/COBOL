@@ -664,9 +664,9 @@ public sealed record BoundIntrinsicCall(
     /// <summary>CONVERT (§2023:15.19.2): the HEX destination modifier (§2023:15.19.4 RV2/r4). False for every other function.</summary>
     public bool ConvertDestHex { get; init; }
 
-    /// <summary>MODULE-NAME (§2023:15.65.2): the keyword selector — 0 = CURRENT (r7), 1 = ACTIVATING (r5/r6),
-    /// 2 = NESTED (r8), 3 = STACK (r9), 4 = TOP-LEVEL (r10). Zero for every other function.</summary>
-    public int ModuleNameKind { get; init; }
+    /// <summary>MODULE-NAME (§2023:15.65.2): the keyword argument, the runtime's own type (kb/Work PB2742). Null for every other
+    /// function.</summary>
+    public ModuleNameKeyword? ModuleNameKeyword { get; init; }
 }
 
 // ── General operands (DISPLAY / MOVE source / comparison) — render as string or number per context ─────────────

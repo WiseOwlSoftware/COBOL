@@ -1898,7 +1898,8 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
                     $"{(ic.ConvertSource == 0 ? StorageArg(ic.Args[0]) : Str(ic.Args[0]))}, "
                     + $"{ic.ConvertSource}, {ic.ConvertDest}, {(ic.ConvertDestHex ? "true" : "false")}"),
             "ModuleName" =>                                                    // §2023:15.65 — the runtime module call-name stack (2023)
-                RuntimeApi.ModuleNameFn(ic.ModuleNameKind),
+                RuntimeApi.ModuleNameFn(ic.ModuleNameKeyword
+                    ?? throw new InvalidOperationException("a MODULE-NAME call bound with no keyword (IntrinsicBinder.BindModuleName binds one)")),
             "FormattedDate" =>                                                 // §2023:15.39 — integer date per a date format (2014)
                 RuntimeApi.DateFn(sig.RuntimeMethod, $"{Str(ic.Args[0])}, {ArgInt(ic.Args[1])}"),
             "FormattedTime" => RenderFormattedTime(ic),                        // §2023:15.41

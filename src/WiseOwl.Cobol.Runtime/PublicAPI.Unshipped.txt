@@ -1430,3 +1430,11 @@ static readonly WiseOwl.Cobol.Runtime.MoveCitations.Iso2023 -> WiseOwl.Cobol.Run
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryIndexOutcome.ToString() -> string
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.Equals(object obj) -> bool
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.ToString() -> string
+WiseOwl.Cobol.Runtime.ModuleNameKeyword
+WiseOwl.Cobol.Runtime.ModuleNameKeyword.Current = 0 -> WiseOwl.Cobol.Runtime.ModuleNameKeyword
+WiseOwl.Cobol.Runtime.ModuleNameKeyword.Activating = 1 -> WiseOwl.Cobol.Runtime.ModuleNameKeyword
+WiseOwl.Cobol.Runtime.ModuleNameKeyword.Nested = 2 -> WiseOwl.Cobol.Runtime.ModuleNameKeyword
+WiseOwl.Cobol.Runtime.ModuleNameKeyword.Stack = 3 -> WiseOwl.Cobol.Runtime.ModuleNameKeyword
+WiseOwl.Cobol.Runtime.ModuleNameKeyword.TopLevel = 4 -> WiseOwl.Cobol.Runtime.ModuleNameKeyword
+WiseOwl.Cobol.Runtime.ModuleStack.Name(WiseOwl.Cobol.Runtime.ModuleNameKeyword keyword) -> string!
+static WiseOwl.Cobol.Runtime.CobolModule.Name(WiseOwl.Cobol.Runtime.ModuleNameKeyword keyword) -> string!
