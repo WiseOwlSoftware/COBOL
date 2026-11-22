@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:15.87.3 r1 — "Argument-1 shall be an identifier that references a data item or identifier that is
+      *> ISO §2023:15.87.3 AR1 — "Argument-1 shall be an identifier that references a data item or identifier that is
       *> class alphabetic, alphanumeric, or national, or an alphanumeric or national literal."
       *>   python scripts/spec/cite.py --check 15.87.3 "Argument-1 shall be an identifier that references a data
       *>   item or identifier that is class alphabetic, alphanumeric, or national, or an alphanumeric or national

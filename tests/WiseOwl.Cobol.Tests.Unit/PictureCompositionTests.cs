@@ -112,7 +112,7 @@ public sealed class PictureCompositionTests
 
     /// <summary>
     /// SR29 — "For floating insertion, at least one insertion symbol shall be specified to the left of the
-    /// decimal point position" (kb/Work PB530). §2023:13.18.40.5 rule 6 defines the image ONLY for a string anchored
+    /// decimal point position" (kb/Work PB530). §2023:13.18.40.5 GR6 defines the image ONLY for a string anchored
     /// left of the point (a: "any or all of the leading numeric character positions to the left of the decimal
     /// point position"; b: all of them, whose result "is the same as if the floating insertion editing were
     /// defined only to the left of the decimal point position"), so a string lying wholly to its right has no
@@ -213,7 +213,7 @@ public sealed class PictureCompositionTests
     }
 
     /// <summary>
-    /// ⛔ ONE floating-string definition (§2023:13.18.40.5 rule 6), read by the composition rules AND by
+    /// ⛔ ONE floating-string definition (§2023:13.18.40.5 GR6), read by the composition rules AND by
     /// <c>PictureAnalyzer</c>'s geometry. Floating-ness is ADJACENCY ("a string of at least two identical
     /// floating insertion editing symbols", with the simple insertion symbols and — rule 6 b — the decimal point
     /// embedded), never a bare occurrence count: the count this replaced read <c>+999+</c> and <c>$999$</c> as

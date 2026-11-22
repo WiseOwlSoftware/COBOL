@@ -18,7 +18,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 public sealed class SpecPinnedNistTests
 {
     /// <summary>NC236A: the golden marks SCH-TEST-F1-8 / F1-10 "TEST DELETED" — a legacy ARTIFACT: the legacy's
-    /// serial SEARCH with <c>VARYING index-of-ANOTHER-table</c> (ISO §2023:14.9.37.4 GR3 c) 2.) falls through to the CCVS
+    /// serial SEARCH with <c>VARYING index-of-ANOTHER-table</c> (ISO §2023:14.9.37.4 GR3c.2) falls through to the CCVS
     /// DE-LETE paragraph instead of executing the scan (verified by running the legacy directly, DEVLOG 533).
     /// Per GR3 c) 2. the scan uses the searched table's own first index and varies the other index in step — both
     /// tests then PASS: the conforming run executes 010 OF 010 with nothing deleted.</summary>
@@ -104,10 +104,10 @@ public sealed class SpecPinnedNistTests
     /// text as <c>VI-114 6.20.4 GR10(d)1</c>, executes
     /// <c>PERFORM PFM-F4-23-PROC VARYING PFM-A1 FROM 1 BY 1 UNTIL PFM-A1 &gt; 3 AFTER PFM-B1 FROM PFM-A1 BY 1
     /// UNTIL PFM-B1 &gt; 3</c> and asserts the body ran SIX times — i.e. that PFM-A1 is augmented BEFORE PFM-B1
-    /// is reset from it (3+2+1). §1985:VI.6.21.4 GR10 d) 1 orders the two that way: "the content of the data item
+    /// is reset from it (3+2+1). §1985:VI.6.21.4 GR10d 1 orders the two that way: "the content of the data item
     /// referenced by identifier-2 is augmented …" and then "the content of the data item referenced by identifier-5
     /// is set to literal-3 or the current value of the data item referenced by identifier-6", so the body runs SIX
-    /// times at <c>--std 85</c>. From 2002 §2023:14.9.28.4 GR13 e) 2 a–c reset the inner variable first and the body
+    /// times at <c>--std 85</c>. From 2002 §2023:14.9.28.4 GR13e 2 a–c reset the inner variable first and the body
     /// runs EIGHT times (witness <c>conformance:cases/14.9.28-PERFORM/pb436_varying_after_from_outer</c>); the
     /// determination is in <c>docs/CONFORMANCE.md</c> §3.</para>
     /// <para>⚠ THE ASSERTION IS THE PASS LINE AND THE FOOTER, NOT ONLY THE GOLDEN: <c>NistDifferentialTests</c> masks
@@ -122,7 +122,7 @@ public sealed class SpecPinnedNistTests
         Assert.Contains("NO  TEST(S) FAILED", output, StringComparison.Ordinal);
     }
 
-    /// <summary>NC201A PFM-TEST-F4-23 from 2002 (kb/Work PB436, PB5101): §2023:14.9.28.4 GR13 e) 2 a–c reset the inner
+    /// <summary>NC201A PFM-TEST-F4-23 from 2002 (kb/Work PB436, PB5101): §2023:14.9.28.4 GR13e 2 a–c reset the inner
     /// variable before augmenting the outer one, so the body runs EIGHT times and the CCVS check, which asserts the
     /// 1985 order, FAILs; that report is the per-edition golden <c>tests/nist/valid-editions/2002/NC201A.txt</c> the
     /// INV-1-strong run at 2023 compares against (<see cref="CorpusManifest.GoldenPath"/>). The golden masks the

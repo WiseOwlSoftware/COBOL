@@ -11,7 +11,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ §2023:14.9.18.4 GR1 b)'s ENABLEMENT QUESTION IS ASKED IN THE ACTIVATING RUNTIME ELEMENT, AND ONLY THERE
+/// ⛔ §2023:14.9.18.4 GR1b's ENABLEMENT QUESTION IS ASKED IN THE ACTIVATING RUNTIME ELEMENT, AND ONLY THERE
 /// (kb/Work PB408).
 ///
 /// <para><b>The rule.</b> "If the RAISING phrase is specified, an exception condition is raised in the activating

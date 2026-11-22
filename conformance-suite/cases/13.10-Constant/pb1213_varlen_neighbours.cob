@@ -19,9 +19,9 @@
       *>   K2 = LENGTH OF E1 (1): an elementary item inside the dynamic table, fixed = 3.
       *>   K3 = LENGTH OF H: an occurs-depending group is NOT a variable-length group; GR6's exception gives
       *>        the maximum size = 4 + 2 * 5 = 14.
-      *>   K4 = LENGTH OF GN: §2023:15.50.4 r3 — an alphanumeric group counts alphanumeric character positions:
+      *>   K4 = LENGTH OF GN: §2023:15.50.4 RV3 — an alphanumeric group counts alphanumeric character positions:
       *>        X(2) + N(2) at two positions per national character = 6 (the CONSTANT used to answer 4).
-      *>   K5 = LENGTH OF BT: §2023:15.50.4 r1 — an elementary boolean item counts BOOLEAN positions = 8 (not the one
+      *>   K5 = LENGTH OF BT: §2023:15.50.4 RV1 — an elementary boolean item counts BOOLEAN positions = 8 (not the one
       *>        byte a USAGE BIT PIC 1(8) occupies).
       *>   Each K is DISPLAYed beside FUNCTION LENGTH of the same item, which must agree (GR6).
       *>   BF, a BASED fixed-length group, allocates and holds its values (SR2 does not bite).

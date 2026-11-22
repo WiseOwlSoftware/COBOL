@@ -12,13 +12,13 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// kb/Work PB120 — WHEN-COMPILED's stamp is COMPILATION-scoped, and the PE is deterministic.
-/// <para>§2023:15.99.3 r2: "The returned value is the date and time of compilation of the compilation unit that
+/// <para>§2023:15.99.3 RV2: "The returned value is the date and time of compilation of the compilation unit that
 /// contains this function." The defect was a process-static <c>Lazy</c>: in a long-lived compiler process
 /// (this very battery) every compilation after the first inherited the FIRST one's timestamp. The stamp is
 /// now captured once per <c>ProgramEmitter</c> (one compilation) through the injectable
 /// <c>IntrinsicBinder.CompileClock</c> seam — these tests inject two different clocks into two successive
 /// in-process compilations and read the BAKED constant out of each generated source.</para>
-/// <para>§2023:15.99.3 r3's object-code half, decided explicitly (deterministic PE): the generated object code
+/// <para>§2023:15.99.3 RV3's object-code half, decided explicitly (deterministic PE): the generated object code
 /// provides no compilation date and time, so r3's "if provided" condition is not engaged — and identical
 /// source + references must produce a byte-identical assembly.</para>
 /// <para>The <c>&gt;&gt;LEAP-SECOND</c> facts (§2023:7.3.17.4 GR2 / GR3, Annex A.1 item 111): WHEN-COMPILED is the one
@@ -46,7 +46,7 @@ public sealed class WhenCompiledStampTests : WiseOwlCobolTestBase
         """;
 
     /// <summary>Compile one WHEN-COMPILED program under an injected compile clock and return the generated
-    /// C# source it produced (where the §2023:15.99.3 r2 constant is baked). A non-empty
+    /// C# source it produced (where the §2023:15.99.3 RV2 constant is baked). A non-empty
     /// <paramref name="directiveLine"/> is written as the source's first line, before the compilation unit
     /// (§2023:7.3.17.3 SR1); a caller writing one passes <see cref="InitialReferenceFormat.Free"/> so it may start in
     /// column 1 — free form is selectable at every edition.</summary>
@@ -74,7 +74,7 @@ public sealed class WhenCompiledStampTests : WiseOwlCobolTestBase
     [Fact]
     public void WhenCompiled_StampIsPerCompilation_NotPerProcess()
     {
-        // Two successive compilations in ONE process, a year apart on the injected clock. §2023:15.99.3 r2 requires
+        // Two successive compilations in ONE process, a year apart on the injected clock. §2023:15.99.3 RV2 requires
         // each to bake ITS OWN compilation time; the pre-fix process-static Lazy handed the second compile
         // whichever stamp the process captured first (this assertion pair cannot both hold on that shape,
         // whatever the Lazy holds).
@@ -92,7 +92,7 @@ public sealed class WhenCompiledStampTests : WiseOwlCobolTestBase
     [Fact]
     public void Backend_EmitsDeterministicPe_IdenticalSourceGivesIdenticalBytes()
     {
-        // §2023:15.99.3 r3's object-code half (kb/Work PB120): deterministic PE — no COFF wall-clock stamp, a
+        // §2023:15.99.3 RV3's object-code half (kb/Work PB120): deterministic PE — no COFF wall-clock stamp, a
         // content-derived MVID. Same source, same assembly name (the module name embeds the output FILE name,
         // so the two outputs must share it), different directories → byte-identical assemblies. Pre-fix the
         // random MVID made these differ on every emit.
@@ -129,7 +129,7 @@ public sealed class WhenCompiledStampTests : WiseOwlCobolTestBase
     private static readonly DateTimeOffset LastTickBeforeLeapSecond =
         DateTimeOffset.Parse("2016-12-31T23:59:59.9999999+00:00", System.Globalization.CultureInfo.InvariantCulture);
 
-    /// <summary>The §2023:15.99.3 r1 21-character value for <see cref="LastTickBeforeLeapSecond"/>, derived position by
+    /// <summary>The §2023:15.99.3 RV1 21-character value for <see cref="LastTickBeforeLeapSecond"/>, derived position by
     /// position, never read off a run: 2016 12 31 (1-8), 23 (9-10), 59 (11-12), seconds 59 (13-14 — "00 through 59"
     /// under OFF, "00 through nn" under ON with nn = 59 per DOC-A.1-111), hundredths 99 (15-16 — "hundredths of a
     /// second past the second, in the range 00 through 99": 0.9999999 s past the second is 99 COMPLETED hundredths),

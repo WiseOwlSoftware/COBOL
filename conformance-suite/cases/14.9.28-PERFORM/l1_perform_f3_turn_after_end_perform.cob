@@ -43,7 +43,7 @@
       *> The observable is FUNCTION EXCEPTION-STATUS, "a 31-character,
       *> left-justified, alphanumeric character string that is the
       *> exception-name … associated with the last exception status"
-      *> (§2023:15.33.3 r1). Immediately before each probe a MARKER PERFORM
+      *> (§2023:15.33.3 RV1). Immediately before each probe a MARKER PERFORM
       *> raises a distinct EC-USER- name, which sets the last exception
       *> status (§2023:14.6.13.1.1); the probe then either OVERWRITES it —
       *> checking was enabled, the condition was raised — or leaves it

@@ -39,7 +39,7 @@ public sealed class ClassClauseForPhraseTests
         EditionHarness.AssertHasDiagnostic(errors, expected);
     }
 
-    /// <summary>§2023:12.3.7.3 SR17 d) — "<i>Alphabet-name-4 shall not reference an alphabet specified with the LOCALE
+    /// <summary>§2023:12.3.7.3 SR17d — "<i>Alphabet-name-4 shall not reference an alphabet specified with the LOCALE
     /// phrase.</i>" Both classes (the national arm is the one SR17 c) 5. — once row SR-12.3.7.3-L7.5, folded into
     /// SR-12.3.7.3-17 by kb/Work PB55 — lumps with c5): a LOCALE alphabet defines a collating sequence and no coded
     /// character set (§2023:12.3.7.4 GR7 Table 6), so the ONE coded-set resolver refuses it by SR17 d's name.</summary>
@@ -133,7 +133,7 @@ public sealed class ClassClauseForPhraseTests
     [InlineData("PB1091C2I", "ALPHABET U4 FOR NATIONAL IS UCS-4\n    CLASS C9 FOR NATIONAL IS 99999999999 IN U4.", "the ordinal 99999999999 does not exist in the character set referenced by the IN alphabet (UCS-4, 1112064 characters) — ISO §2023:12.3.7.3 SR17 c2")]
     public void TooLongNationalOrdinal_IsSR17_c2(string pid, string clause, string expected) => Rejects(pid, clause, expected);
 
-    /// <summary>§2023:12.3.7.3 SR17 b) 5. — "The number of characters specified shall not exceed … the number of
+    /// <summary>§2023:12.3.7.3 SR17b.5 — "The number of characters specified shall not exceed … the number of
     /// characters in the character set referenced by alphabet-name-4": the 256-character Latin-1 block, named
     /// THROUGH the native set, outnumbers STANDARD-1's 128 (the positive control's 26 do not).</summary>
     [Fact]

@@ -14,7 +14,7 @@
       *> updated by references to file-name in contained programs".
       *>   cite.py --check "§2002:12.3.4.7.3 GR1" -> OK
       *> The values are the 2002 list (cite.py OK for each clause):
-      *>   00 §2002:9.1.12.1 item 1; 10 §2002:9.1.12.3 item 1 a);
+      *>   00 §2002:9.1.12.1 item 1; 10 §2002:9.1.12.3 item 1a;
       *>   38 §2002:9.1.12.5 item 6 "an OPEN statement is attempted on a
       *>   file connector previously closed with lock"; 46 §2002:9.1.12.6
       *>   item 6 b) (the preceding READ was unsuccessful); 42

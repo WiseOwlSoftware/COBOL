@@ -63,8 +63,8 @@ public sealed class RelationComparabilityTests
         // A function-identifier is NEVER item 6's numeric integer operand: §2023:15.2 states no usage for the item a numeric,
         // integer or index function returns, and §2023:8.8.4.2.5 admits only "an integer literal or an integer numeric data
         // item of usage display or national" (kb/Work PB3691, docs/CONFORMANCE.md D-FNUSE).
-        new("FI", "FUNCTION INTEGER(NF)", Cls.Numeric, NumericItemOrLiteral: true),                       // INTEGER function (§2023:15.2 item 5)
-        new("FN", "FUNCTION SQRT(ND)", Cls.Numeric, NumericItemOrLiteral: true),                           // NUMERIC function (§2023:15.2 item 4)
+        new("FI", "FUNCTION INTEGER(NF)", Cls.Numeric, NumericItemOrLiteral: true),                       // INTEGER function (§2023:15.2 GR5)
+        new("FN", "FUNCTION SQRT(ND)", Cls.Numeric, NumericItemOrLiteral: true),                           // NUMERIC function (§2023:15.2 GR4)
         new("FL", "FUNCTION LENGTH(XA)", Cls.Numeric, NumericItemOrLiteral: true),                         // an INTEGER function the binder FOLDS (kb/Work PB1662): the function it folds, not "an integer literal"
         // The function-identifiers of a CHARACTER class (§2023:15.2 1) and 3)): data items of usage display / national, so each
         // is item 2/3/5/7's character operand and item 6's "other operand" (kb/Work PB3691).
@@ -157,7 +157,7 @@ public sealed class RelationComparabilityTests
             + string.Join("\n  ", wrong));
     }
 
-    /// <summary>⛔ ONE CHECKPOINT: the same breaches at every surface that lowers to a relation (§2023:14.9.13.3 SR7 a) — the
+    /// <summary>⛔ ONE CHECKPOINT: the same breaches at every surface that lowers to a relation (§2023:14.9.13.3 SR7a) — the
     /// selection objects "shall be valid operands for comparison to the corresponding operand in the set of selection
     /// subjects in accordance with 8.8.4.2").</summary>
     [Theory]
@@ -218,7 +218,7 @@ public sealed class RelationComparabilityTests
 
     /// <summary>⛔ THE SIBLING ARM (kb/Work PB1468): a THROUGH range with an IN alphabet-name lowers to
     /// <c>BoundRangeMembership</c>, not the inclusive relation pair, and that node used to be built outside the
-    /// checkpoint — so the same breach compiled clean once the phrase was written. §2023:14.9.13.4 GR4 a) 5. makes it
+    /// checkpoint — so the same breach compiled clean once the phrase was written. §2023:14.9.13.4 GR4a.5 makes it
     /// "selection-subject &gt;= left-part AND selection-subject &lt;= right-part" either way.</summary>
     [Theory]
     [InlineData("RCMPR1", "NB", "\"0001\"", "\"0020\"", "COBOL2532")]
@@ -274,7 +274,7 @@ public sealed class RelationComparabilityTests
         EditionHarness.AssertHasDiagnostic(strictErrors, "COBOL2532");
     }
 
-    /// <summary>kb/Work PB1427 at the same checkpoint: NULL is class pointer (§2023:8.4.3.10.1) and §2023:8.4.3.10.3 SR1 a)
+    /// <summary>kb/Work PB1427 at the same checkpoint: NULL is class pointer (§2023:8.4.3.10.1) and §2023:8.4.3.10.3 SR1a
     /// admits it only "in a pointer-or-object-reference relation condition" — opposite a character or numeric operand
     /// it no longer borrows that operand's class (COBOL0869); and a boolean operand is compatible only with an
     /// operand that may BE boolean (§2023:8.3.3.6.4 GR4: ZERO may; SPACE may not — COBOL0844).</summary>

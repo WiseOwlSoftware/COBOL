@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// <summary>
 /// ⛔ THE KEYED STORE ENGINE'S '30' THROUGH A COMPILED PROGRAM (kb/Work PB3333, review finding R1-3;
 /// docs/rearchitecture/DESIGN-runtime-library.md section 2.2.1.12's tree row "a record statement whose tree read meets a
-/// torn or stale page"). The engine answers a record statement whose tree read meets a TORN page with §2023:9.1.13.6 item 1's
+/// torn or stale page"). The engine answers a record statement whose tree read meets a TORN page with §2023:9.1.13.6 GR1's
 /// '30' — <i>"A permanent error exists and no further information is available concerning the input-output operation"</i>
 /// — and the unit cases (<c>RelativeEngineTests</c>) see only the status. These run the program: a relative file is
 /// built and its record's leaf torn, then a program reads, reads next and writes through it, and each combination of a

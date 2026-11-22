@@ -314,8 +314,8 @@ public sealed class CobolPrototypeDescriptionAttribute(int prototype, int formal
 /// interface. Its formals are the <see cref="CobolFormalAttribute"/>s on the parameters that carry them and its returning
 /// item the return value's <see cref="CobolDescriptionAttribute"/>s (§2023:6.2 "Anchoring"); a CLR method without this attribute
 /// is no COBOL method (a covariant-return adapter) and a reader skips it.</summary>
-/// <param name="name">The method-name, or the implementor-defined name of a property accessor (ISO §2023:11.7.4 GR1 a)).</param>
-/// <param name="externalizedName">The method's externalized name (ISO §2023:11.7.4 GR1 b)); an accessor's is its property's
+/// <param name="name">The method-name, or the implementor-defined name of a property accessor (ISO §2023:11.7.4 GR1a).</param>
+/// <param name="externalizedName">The method's externalized name (ISO §2023:11.7.4 GR1b); an accessor's is its property's
 /// (ISO §2023:12.3.8.4 GR2: "Literal-5 is the externalized name known to the operating environment for a method that implements
 /// the named property").</param>
 [EditorBrowsable(EditorBrowsableState.Never)]

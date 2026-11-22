@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §2023:12.4.5.6.4 r4 — alternate key equality under the key's
+      *> ISO §2023:12.4.5.6.4 GR4 — alternate key equality under the key's
       *> collating sequence
       *> THE RULE: "The equality or inequality is based on the collating
       *> sequence used for the file according to the rules for a

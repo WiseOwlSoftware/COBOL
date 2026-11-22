@@ -37,7 +37,7 @@ public enum ActivationShape
     /// sender, with no character image, so a group formal's §2023:14.9.25.4 GR4 character copy has nothing to copy
     /// (kb/Work PB165, PB1946). A numeric FUNCTION's value is not one (<see cref="Literal"/>, kb/Work PB3613).</summary>
     Expression,
-    /// <summary>The predefined NULL written as an argument (§2023:8.4.3.10.3 SR1 a)): an identifier whose category is the
+    /// <summary>The predefined NULL written as an argument (§2023:8.4.3.10.3 SR1a): an identifier whose category is the
     /// formal's class, so only a formal of class pointer or object reference takes it, by a SET (§2023:14.8.2.3.3).</summary>
     PredefinedNull,
 }
@@ -128,11 +128,11 @@ public static class ActivationCategory
 /// class of the actual object referenced at runtime that is used in resolving a method invocation"), so both sides'
 /// descriptions must travel to the generated <c>__CobolInvoke</c> switch, which asks the standard's TWO relations of
 /// them — §2023:9.3.6's MATCH (resolution; a failure is EC-OO-METHOD after the INHERITS walk) and §2023:14.8.2 / §2023:14.8.3's
-/// CONFORMANCE (asked of the bound method by §2023:14.9.23.4 GR7 c); a failure is EC-OO-UNIVERSAL). Both are in
+/// CONFORMANCE (asked of the bound method by §2023:14.9.23.4 GR7c; a failure is EC-OO-UNIVERSAL). Both are in
 /// <see cref="ActivationRelations"/>.
 /// <para>⛔ THE SAME DESCRIPTION CROSSES A CALL (kb/Work PB165). A CALL whose activated program is located by name at run
 /// time has no compile-time formal to check an argument against — a dynamic Format-1 CALL, or a program-prototype whose
-/// details §2023:12.3.8.4 GR10 c) takes from the external repository — so §2023:14.9.4.4 GR3 d)'s "rules for conformance specified
+/// details §2023:12.3.8.4 GR10c takes from the external repository — so §2023:14.9.4.4 GR3d's "rules for conformance specified
 /// in 14.8.2, Parameters and 14.8.3, Returning items" are asked at call initiation: the activating element states each
 /// argument's and its RETURNING item's description on its <see cref="CobolArg"/>, the activated program registers its
 /// formals' and its RETURNING item's (<see cref="BoundaryItem.Description"/>), and <see cref="ActivationRelations.CallArgumentViolation"/> /
@@ -142,7 +142,7 @@ public static class ActivationCategory
 /// <para>It replaced a descriptor STRING compared for equality (<c>OoConformance.ConformanceDescriptor</c>), which
 /// could answer only "the two strings are equal": that is neither relation. Match rule 3 e) is an identity of a CLAUSE
 /// LIST (a group carries none of the clauses, so two groups match whatever their sizes and a group never matches a
-/// <c>PIC X(n)</c>), and conformance is not identity (§2023:14.8.2.2 rule 1 admits a SMALLER formal group, §2023:8.5.1.12.3
+/// <c>PIC X(n)</c>), and conformance is not identity (§2023:14.8.2.2 SR1 admits a SMALLER formal group, §2023:8.5.1.12.3
 /// admits a dynamic-capacity table opposite a fixed one). Every field here is read by one of the two relations
 /// (<c>ActivationDescriptionFieldDriftTests</c>).</para>
 /// <para>The compiler builds every description in ONE place (<c>ActivationDescriptions</c>) from the data
@@ -213,10 +213,10 @@ public sealed record ActivationDescription
     public string? LocaleExternal { get; init; }
 
     /// <summary>True when <see cref="LocaleExternal"/> came from a literal (compared character for character) rather
-    /// than an external-locale-name word (§2023:8.1.3.2 GR3 a), compared without regard to case).</summary>
+    /// than an external-locale-name word (§2023:8.1.3.2 GR3a, compared without regard to case).</summary>
     public bool LocaleFromLiteral { get; init; }
 
-    /// <summary>True when the item is described with the ANY LENGTH clause (§2023:13.18.2) — §2023:14.9.23.4 GR7 c) bars it from
+    /// <summary>True when the item is described with the ANY LENGTH clause (§2023:13.18.2) — §2023:14.9.23.4 GR7c bars it from
     /// a method bound through a universal receiver.</summary>
     public bool AnyLength { get; init; }
 
@@ -230,7 +230,7 @@ public sealed record ActivationDescription
     /// the literal reading that description was compiled under.</summary>
     public string? AnyLengthClauses { get; init; }
 
-    /// <summary>The item's CHARACTER positions: an alphanumeric group's image width (§2023:14.8.2.2 rule 1 / §2023:14.8.3.2 compare
+    /// <summary>The item's CHARACTER positions: an alphanumeric group's image width (§2023:14.8.2.2 SR1 / §2023:14.8.3.2 compare
     /// it), a bit / national group's boolean / national positions (§2023:14.8.2.3.2 "Additionally" b) / c)). Zero for every
     /// other shape.</summary>
     public int Positions { get; init; }
@@ -241,7 +241,7 @@ public sealed record ActivationDescription
     public string Usage { get; init; } = "";
 
     /// <summary>The item's heading in ISO §2023:14.9.25.3 Table 16 — an elementary item's, a bit / national group's as-if
-    /// PICTURE's (§2023:13.18.29.4 GR1 b) / GR2 b)) — or <see cref="Table16Category.None"/> for a group and for every class
+    /// PICTURE's (§2023:13.18.29.4 GR1b / GR2 b)) — or <see cref="Table16Category.None"/> for a group and for every class
     /// SR1 governs. §2023:9.3.6 match rule 7's "may be a sending item in a MOVE statement" reads it
     /// (<see cref="MoveValidity.Table16Refusal"/>; kb/Work PB2076). The compiler derives it through the ONE mapping its
     /// own MOVE screens use (<c>Table16Operand.Heading</c>).</summary>

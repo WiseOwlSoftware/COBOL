@@ -134,7 +134,7 @@ was the **#1 work item of the pre-PIVOT byte-engine era. Do NOT do it now:** the
   - **PROGRESS — Stage 0 character substrate `CobolString` LANDED (DEVLOG 399), guard 1184/481/364:** ☑
     `legacy-runtime/Text/CobolString.cs` — the typed-string analogue of `CobolNum`: COBOL alphanumeric
     MOVE value semantics (`Store` — width/justify/space-fill, ISO §2023:14.9.25/§2023:13.18.36) + ordinal space-extended
-    comparison (`Compare`, ISO §2023:8.8.4.2.7 r2) + the Latin-1 `IDataSlot` boundary codec (`FromWindow`/`ToWindow`, ADR
+    comparison (`Compare`, ISO §2023:8.8.4.2.7 GR2) + the Latin-1 `IDataSlot` boundary codec (`FromWindow`/`ToWindow`, ADR
     R10/§2.5). ☑ a **differential oracle** (`CobolStringDifferentialTests`, +9) proves it byte-identical to the
     legacy `StorageHelpers` path (MOVE over binary/LOW-/HIGH-VALUE × widths × left/justified; window round-trip;
     compare sign-identical). Additive/unwired (guard green by construction). Surfaced (and deliberately left for
@@ -286,7 +286,7 @@ was the **#1 work item of the pre-PIVOT byte-engine era. Do NOT do it now:** the
     **P10 national wave (2026-07-16): FUNCTION DISPLAY-OF (§2023:15.26) + NATIONAL-OF (§2023:15.66) implemented** on the
     greenfield (`CobolIntrinsics.DisplayOf/NationalOf`, riding CONVERT's ONE repertoire translator + the ambient
     EC-DATA-CONVERSION channel). Argument-2 is a one-character SUBSTITUTION character per the 2023 text
-    (§2023:15.26.3 r2 / §2023:15.66.3 r2 — the format names no CCSID/codeset facility), so BOTH argument forms are fully
+    (§2023:15.26.3 AR2 / §2023:15.66.3 AR2 — the format names no CCSID/codeset facility), so BOTH argument forms are fully
     implemented — nothing staged. The N"…" Latin-1-only literal guard was lifted (full UTF-16 repertoire,
     D-N1); binder SR checks = COBOL1546. Conformance `national_intrinsics` (greenfield-only — the legacy
     oracle's DISPLAY-OF is a pass-through approximation).

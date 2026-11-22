@@ -25,7 +25,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// reason. A new one is neither, and the build goes red.</para>
 /// <para><b>2. A standard mode never touches the carrier's boundary at all.</b> §2023:15.4.1 r1 admits no approximation
 /// under STANDARD-DECIMAL / STANDARD-BINARY: the returned value shall EQUAL the equivalent arithmetic expression,
-/// and §2023:8.8.1.5.2 r1 converts each argument to the SDIDI individually — so no common scale is ever formed. The
+/// and §2023:8.8.1.5.2 GR1 converts each argument to the SDIDI individually — so no common scale is ever formed. The
 /// NATIVE arms align first, and alignment multiplies (a 31-digit integer beside a scale-18 operand needs 49
 /// digits), so exactly the arms that CROSS-ALIGN must route to their <c>…Dec</c> bodies under a standard mode.
 /// That routing was also built one arm at a time — PB62 moved the summing family, PB252 found MOD and REM still
@@ -363,12 +363,12 @@ public sealed class ExactCarrierBoundaryDriftTests
     // ⛔ THE FOURTH INVARIANT (kb/Work PB2965). Invariant 3 asks whether an arm HAS a Dec body; this asks when a
     // fixed-point-only call may NOT use the exact Int128 body under STANDARD-DECIMAL. A function with an equivalent
     // arithmetic expression (§2023:15.4.1 r1) equals that expression evaluated in the SDIDI, whose operands are lifted
-    // with the ROUNDING §2023:8.8.1.5.2 r1 prescribes — so for an argument the lift would round (a 16-byte binary
+    // with the ROUNDING §2023:8.8.1.5.2 GR1 prescribes — so for an argument the lift would round (a 16-byte binary
     // container holds 39 digits to the SDIDI's 34) the exact body is the wrong value. EquivalentExpressionUnaryArms
     // routes those arms; a unary arm that is in NEITHER that set nor the one named exception below was never asked.
 
     /// <summary>The unary fraction-bearing arms with NO equivalent arithmetic expression, each with its reason:
-    /// INTEGER (<c>Floor</c>) — §2023:15.44.4 r1 defines it as "the greatest integer less than or equal to the value of
+    /// INTEGER (<c>Floor</c>) — §2023:15.44.4 RV1 defines it as "the greatest integer less than or equal to the value of
     /// argument-1", so its argument is a value, not an operand of an expression.</summary>
     private static readonly string[] UnaryArmsWithNoEquivalentExpression = ["Floor"];
 
@@ -409,7 +409,7 @@ public sealed class ExactCarrierBoundaryDriftTests
     }
 
     /// <summary>The selection arms stay OUT of the set for the reason MAX / MIN left the cross-aligned set: the
-    /// returned value is the CONTENT of an argument (§2023:15.59.4 r1, §2023:15.63.4 r1), not an expression over it.</summary>
+    /// returned value is the CONTENT of an argument (§2023:15.59.4 RV1, §2023:15.63.4 RV1), not an expression over it.</summary>
     [Fact]
     public void ThePureSelectionArms_AreNotRoutedByTheirArgumentLift()
     {

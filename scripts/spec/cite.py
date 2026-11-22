@@ -310,8 +310,8 @@ def label_path(lines, at, start, styles: LabelStyles = ISO_LABELS) -> list[tuple
     A paragraph INSIDE a sub-item sits deeper than its label, which is how the two are told apart.
 
     ⛔ A LABEL ABOVE IS AN ANCESTOR ONLY IF ITS LEVEL IS SHALLOWER THAN EVERYTHING ACCEPTED SO FAR (kb/Work PB55 review
-    R1-1). A nested `N.` list is transcribed at the SAME indentation as the lettered items around it (§2023:7.2.3.4 9)
-    c) 1.–6. sits at the indent of a)–f)), so the nearest `N.` above `d)` belongs to the EARLIER letter `c)`, and
+    R1-1). A nested `N.` list is transcribed at the SAME indentation as the lettered items around it (§2023:7.2.3.4 GR9c's
+    1.–6. sit at the indent of a)–f)), so the nearest `N.` above `d)` belongs to the EARLIER letter `c)`, and
     taking it reported the impossible `9) 6. d)`. A label's depth is its STYLE LEVEL (`styles.levels` order: ISO `N)`
     `x)` `N.` `x.`, 1985 `(N)` `x.` `N)`), never its indentation (kb/Work PB5317): the transcription flattens some
     nested lists onto column 0 (§2023:14.9.39.4 GR2's `a.` items under `1.`, §2023:14.9.23.4 GR7's `a)` to `d)`),
@@ -1437,8 +1437,8 @@ def self_test() -> int:
         ("2023: the general format's clause cited for a syntax rule names the sibling that has it",
          fails("§2023:13.18.40.2 SR13", None, "no-rule-list", "§2023:13.18.40.3 SR13")),  # citation-audit: example
         ("2023: a list the transcription flattened onto column 0 keeps its levels (14.9.39.4 2) a) 1. a.)",
-         v("§2023:14.9.39.4 GR2a1a", "the EC-BOUND-SUBSCRIPT exception condition is set to exist").ok
-         and fails("§2023:14.9.39.4 GR2a3b", "If index-name-2 is associated with the same table as index-name-1",
+         v("§2023:14.9.39.4 GR2a1a", "the EC-BOUND-SUBSCRIPT exception condition is set to exist").ok  # citation-audit: example
+         and fails("§2023:14.9.39.4 GR2a3b", "If index-name-2 is associated with the same table as index-name-1",  # citation-audit: example
                    "text-not-in-rule", "GR2a.3.a")),
         ("2023: a table cited under the wrong clause names the clause that captions it",
          fails("§2023:9.1.15 Table 19", None, "no-table", "§2023:14.9.27.4 Table 19")  # citation-audit: example

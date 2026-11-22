@@ -117,7 +117,7 @@ public sealed class ReservedWordSet
     /// de-reservations to the token stream: a word UNDEFINE'd or SUBSTITUTE'd away (GR3, GR4) is an <c>IDENTIFIER</c>, so
     /// the only keyword token whose spelling is in the suppression set is a SYNONYM that stands for it (EQUATE literal-2,
     /// SUBSTITUTE literal-5), carrying the original's text (kb/Work PB4573) and reserved with its original (GR2, GR4;
-    /// §2023:8.3.2.1 rule 1). Asking such a token of the suppressing set answers for the word the source no longer writes. This
+    /// §2023:8.3.2.1 SR1). Asking such a token of the suppressing set answers for the word the source no longer writes. This
     /// view keeps everything else the directive and §2023:8.9 say, RESERVE (GR5) included: a RESERVE of a word the lexer has a
     /// token for stays a keyword token and stays rejected as a user-defined word. <see cref="Default"/> is its own view.</summary>
     public ReservedWordSet KeywordToken => _keywordToken ?? this;
@@ -178,7 +178,7 @@ public sealed class ReservedWordSet
     /// <summary>⛔ THE §2023:8.9 USER-DEFINED-WORD SLOT ADMISSION RULE (kb/Work PB693, PB792) — true when a compile at
     /// <paramref name="edition"/> may read <paramref name="upperWord"/> as a user-defined word. The frontend's
     /// token-level reservation gate (<c>CobolParserCoreBase.userWordHere</c> → <c>ReservationGateRewriter</c>,
-    /// kb/Work PB655) IS this predicate, so the gate and the §2023:8.9 funnel cannot disagree about which occurrences are names (§2023:8.3.2.1 rule 1:
+    /// kb/Work PB655) IS this predicate, so the gate and the §2023:8.9 funnel cannot disagree about which occurrences are names (§2023:8.3.2.1 SR1:
     /// "Reserved words shall not be used as user-defined words or system-names").
     /// <para>⛔ THE MIGRATION MODE IS NOT A BLANKET EXEMPTION, and writing it as one (<c>Permissive || …</c> in the
     /// parser) was kb/Work PB792. <c>--permissive</c> "accepts constructs the targeted edition REMOVED", so it
@@ -211,7 +211,7 @@ public sealed class ReservedWordSet
     /// <param name="written">The word as the source writes it (<c>CobolKeywords.Spelling</c>).</param>
     /// <param name="words">The compilation group's directives. A word that is a synonym (EQUATE literal-2, SUBSTITUTE
     /// literal-5) for a reserved word is named beside that word, since the user wrote a word §2023:8.9 does not list and "reserved
-    /// in COBOL-2023" would be false of it (ISO §2023:7.3.10.4 GR2, GR4; §2023:8.3.2.1 rule 1; kb/Work PB4488). The decision is the
+    /// in COBOL-2023" would be false of it (ISO §2023:7.3.10.4 GR2, GR4; §2023:8.3.2.1 SR1; kb/Work PB4488). The decision is the
     /// map's, <see cref="CobolWordsMap.SynonymOf"/>, so a synonym the lexer retyped to its original's token (whose text
     /// is the original's) and one it left an identifier are one case (kb/Work PB4573).</param>
     public static string UserWordViolationMessage(string written, CobolWordsMap words, int edition)

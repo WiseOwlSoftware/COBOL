@@ -147,7 +147,7 @@ public sealed class CorrespondingRule2DriftTests
 
     /// <summary>⛔ THE TWO-ARM PIN on the two composite entries. The §2023:14.9.25.3 chain is asked from two entries —
     /// <c>MoveTable16.Validity</c>, over a BOUND operand, which the written MOVE, INITIALIZE and the INVOKE screen
-    /// reach, and <c>MoveTable16.DataItemRefusal</c>, over two data items, which §2023:14.7.6 rule 2 reaches (a
+    /// reach, and <c>MoveTable16.DataItemRefusal</c>, over two data items, which §2023:14.7.6 GR2 reaches (a
     /// CORRESPONDING pair has no bound operand until after the pairing decision). Fixing one and not the other is
     /// exactly the defect kb/Work PB391 landed against, so for every modeled sender x receiver the two entries
     /// must return the SAME reason. They can only do that by running one chain (kb/Work PB878 made the per-rule
@@ -203,7 +203,7 @@ public sealed class CorrespondingRule2DriftTests
     public void TheTwoRulesSr10DefersToCarryTheirOwnVerdict(string sender, string receiver, bool corresponds)
         => Assert.Equal(corresponds, CorrRule2MoveValid(At(sender), At(receiver)));
 
-    /// <summary>⛔ THE TRAP. §2023:14.7.6 rule 4 — <i>"Neither data item ... is of class index, message-tag, object, or
+    /// <summary>⛔ THE TRAP. §2023:14.7.6 GR4 — <i>"Neither data item ... is of class index, message-tag, object, or
     /// pointer"</i> — is the ONLY thing that keeps a pointer namesake pair out of the correspondence set: Table 16
     /// has no pointer row or column and <see cref="MoveValidity.Table16Refusal"/> therefore ADMITS the pair. Before
     /// kb/Work PB391 the exclusion was an ACCIDENT of the private copy's <c>_ =&gt; false</c> default, and

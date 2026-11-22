@@ -28,4 +28,16 @@ public static class TestSourceFormat
 {
     /// <summary>The format of program text written inside a C# test: free form, stated.</summary>
     public const InitialReferenceFormat Inline = InitialReferenceFormat.Free;
+
+    /// <summary>The reference format a conformance-suite case's text STATES in its header (<c>*&gt; source-format: fixed</c>),
+    /// the one <c>ConformanceSuiteRunner</c> compiles it in: a C# test that compiles a case's text compiles it in that format,
+    /// never as <see cref="Inline"/> text (kb/Work PB6037: a fixed-form case read free form at <c>--std 85</c> is no 1985
+    /// witness, kb/Work PB5754). A case whose header states no format is refused: the generator requires the line.</summary>
+    public static InitialReferenceFormat OfSuiteCase(string text)
+    {
+        var stated = System.Text.RegularExpressions.Regex.Match(text, @"^\s*\*>\s*source-format:\s*(\S+)",
+            System.Text.RegularExpressions.RegexOptions.Multiline);
+        if (stated.Success && InitialReferenceFormatOption.TryParse(stated.Groups[1].Value, out var format)) return format;
+        throw new InvalidOperationException("the conformance-suite case states no readable '*> source-format:' line in its header");
+    }
 }

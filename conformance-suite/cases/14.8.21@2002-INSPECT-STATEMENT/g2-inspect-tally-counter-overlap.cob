@@ -8,7 +8,7 @@
       *> §2002:14.8.21.3 GR12 - a TALLYING counter (identifier-2) that
       *> occupies the storage of identifier-1, identifier-3 or
       *> identifier-4: "the result of the execution of this statement is
-      *> undefined" (also §2002:B.2 item 22 d), and §2002:3.3:
+      *> undefined" (also §2002:B.2 item 22d), and §2002:3.3:
       *> "A COBOL run unit that allows these situations to happen is a
       *> conforming run unit"). The overlap lines D1-D5, RM, F3A-F3C pin
       *> the

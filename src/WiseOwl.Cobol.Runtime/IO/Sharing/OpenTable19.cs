@@ -8,7 +8,7 @@ public enum OpenSharingOutcome
 {
     /// <summary><i>"Normal open"</i> — the request is allowed against the connectors already open.</summary>
     NormalOpen,
-    /// <summary><i>"Unsuccessful open"</i> — the file sharing conflict condition of §2023:9.1.13.9 item 1 exists, so
+    /// <summary><i>"Unsuccessful open"</i> — the file sharing conflict condition of §2023:9.1.13.9 GR1 exists, so
     /// the I-O status is '61' and §2023:14.9.27.4 GR25 leaves the file <i>"not affected"</i>.</summary>
     UnsuccessfulOpen,
 }
@@ -63,7 +63,7 @@ public enum ExistingSharingColumn
 /// which did the same for CLOSE under kb/Work PB235).
 /// </summary>
 /// <remarks>
-/// <para>⛔ WHY THE TABLE AND NOT THE FIVE SUB-CASES. §2023:9.1.13.9 item 1 enumerates five <i>"possible violations"</i>
+/// <para>⛔ WHY THE TABLE AND NOT THE FIVE SUB-CASES. §2023:9.1.13.9 GR1 enumerates five <i>"possible violations"</i>
 /// (a)–(e) that give I-O status '61'. Sub-cases (c) and (d) are written over <i>"I-O or extend"</i>, but Table 19's
 /// existing-side column groups are <c>extend I-O output</c> — so a literal reading of the five sub-cases answers
 /// <i>Normal open</i> in FOUR combinations the printed table marks <i>Unsuccessful open</i> (incoming SHARING WITH
@@ -165,7 +165,7 @@ public static class Table19
         (OpenRequestRow.AllOtherInput, ExistingSharingColumn.AllOtherInput) => OpenSharingOutcome.NormalOpen,
 
         // Row "SHARING WITH ALL OTHER / OUTPUT":                  U     |  U     |  U      |  U     |  U
-        // (§2023:9.1.13.9 1) e): "An attempt is made to open a physical file in the output mode and the physical file
+        // (§2023:9.1.13.9 GR1e): "An attempt is made to open a physical file in the output mode and the physical file
         // is currently open by another file connector" — the sub-case that had no implementation at all.)
         (OpenRequestRow.AllOtherOutput, ExistingSharingColumn.NoOtherAnyMode) => OpenSharingOutcome.UnsuccessfulOpen,
         (OpenRequestRow.AllOtherOutput, ExistingSharingColumn.ReadOnlyNonInput) => OpenSharingOutcome.UnsuccessfulOpen,
@@ -187,7 +187,7 @@ public static class Table19
                                           FileSharing existingSharing, FileOpenMode existingMode) =>
         Cell(Row(requestSharing, requestMode), Column(existingSharing, existingMode));
 
-    /// <summary>⛔ THE ONE ARBITRATION QUESTION: is an OPEN request unsuccessful (§2023:9.1.13.9 item 1, I-O status
+    /// <summary>⛔ THE ONE ARBITRATION QUESTION: is an OPEN request unsuccessful (§2023:9.1.13.9 GR1, I-O status
     /// '61') against ONE connector already open on the same physical file? A plain lookup of
     /// <see cref="Cell(FileSharing, FileOpenMode, FileSharing, FileOpenMode)"/>: every connector, declared or
     /// defaulted, carries one of §2023:9.1.15's three modes (<see cref="FileRegistry.ImplementorDefaultSharing"/> gives

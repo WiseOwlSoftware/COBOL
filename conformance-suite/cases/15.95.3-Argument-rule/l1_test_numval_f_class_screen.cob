@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:15.95.3 r1 — TEST-NUMVAL-F's argument-1 class screen, the ADMIT side.
+      *> ISO §2023:15.95.3 AR1 — TEST-NUMVAL-F's argument-1 class screen, the ADMIT side.
       *> "Argument-1 shall be an alphanumeric or national literal or a data item of class alphanumeric or
       *> national."
       *> (cite.py --check 15.95.3 "Argument-1 shall be an alphanumeric or national literal or a data item of
@@ -29,8 +29,8 @@
       *> the class column would reject the EDIT line below, and a screen that dropped the group arm would
       *> reject GRP. Both would be over-rejections of conforming source, invisible from the two negatives.
       *>
-      *> Hand-derived from §2023:15.95.4: the returned value is 0 when argument-1 conforms to the §2023:15.69.3 r1
-      *> content format, and §2023:15.69.3 r5 makes leading and trailing spaces ignorable. Every probe below
+      *> Hand-derived from §2023:15.95.4: the returned value is 0 when argument-1 conforms to the §2023:15.69.3 AR1
+      *> content format, and §2023:15.69.3 AR5 makes leading and trailing spaces ignorable. Every probe below
       *> carries a conforming content, so each answers 0 — the observable that says the reference both BOUND
       *> and EVALUATED, where a rejected argument would not compile at all.
       *>   LIT   an alphanumeric literal, r1's first alternative.

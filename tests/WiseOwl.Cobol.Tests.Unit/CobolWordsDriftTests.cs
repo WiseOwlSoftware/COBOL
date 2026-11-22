@@ -46,14 +46,14 @@ public sealed class CobolWordsDriftTests
 
     /// <summary>⛔ THE DERIVED RESERVATION GATE (kb/Work PB693). The set of <c>cobolWord</c> alternatives that
     /// MUST carry <c>{userWordHere("W")}?</c>, computed here the way <c>gen-cobol-words.ps1</c> step 4b computes
-    /// it: a name-slot word that ISO §2023:8.9 reserves at ANY edition. §2023:8.3.2.1 rule 1 — "Reserved words shall not be
+    /// it: a name-slot word that ISO §2023:8.9 reserves at ANY edition. §2023:8.3.2.1 SR1 — "Reserved words shall not be
     /// used as user-defined words or system-names" — and <c>cobolWord</c> IS the user-defined-word slot, so an
     /// ungated admission lets an operand list absorb the word at the editions that reserve it.
     /// <para>Recomputed from <c>reserved-words.json</c> rather than read off a flag ON PURPOSE: the gate used to
     /// be a hand-set <c>reservationGated</c> row property and fifty-one §2023:8.9-straddling words never got one, so
     /// this test would have been asserting the mistake against itself.</para>
     /// <para>⛔ WITH NO EXCLUSION (kb/Work PB845). LENGTH, NATIONAL and BIT were exempt as "function names" and so
-    /// were names in every slot at every edition; ISO §2023:8.3.2.1 5) names LENGTH among the intrinsic function names that
+    /// were names in every slot at every edition; ISO §2023:8.3.2.1 SR5 names LENGTH among the intrinsic function names that
     /// may not be user-defined words, and NATIONAL and BIT are no §2023:8.11 names. The keyword-omitted <c>LENGTH (A)</c>
     /// parses through <c>reservedIntrinsicArgFn</c>, never through <c>cobolWord</c>.</para></summary>
     internal static HashSet<string> DerivedGateSet()
@@ -87,7 +87,7 @@ public sealed class CobolWordsDriftTests
 
     /// <summary>⛔ THE §2023:8.3.2.1 INVARIANT (kb/Work PB693) — every name-slot word that ISO §2023:8.9 reserves at ANY
     /// edition carries the reservation gate. "Reserved words shall not be used as user-defined words or
-    /// system-names" (§2023:8.3.2.1 rule 1) and <c>cobolWord</c> IS the user-defined-word slot, so an UNGATED
+    /// system-names" (§2023:8.3.2.1 SR1) and <c>cobolWord</c> IS the user-defined-word slot, so an UNGATED
     /// admission of a reserved word lets an operand list absorb it: <c>MOVE "ZZ" TO FS</c> followed by a
     /// period-less <c>UNLOCK F1</c> parsed as a three-receiver MOVE and legal COBOL-2002 source was rejected.
     /// Fifty-one further words had the same §2023:8.9 straddle and the same ungated admission.
@@ -332,7 +332,7 @@ public sealed class CobolWordsDriftTests
 
     /// <summary>⛔ NO LEXER TOKEN MAY COST THE USER A WORD ISO LEAVES FREE (kb/Work PB655). A word the lexer
     /// tokenizes never reaches <c>IDENTIFIER</c>, so unless <c>cobolWord</c> admits its token it is refused as a
-    /// user-defined word at EVERY edition — a raw COBOL0001, never a §2023:8.9 diagnostic. §2023:8.3.2.1 3) makes a §2023:8.10
+    /// user-defined word at EVERY edition — a raw COBOL0001, never a §2023:8.9 diagnostic. §2023:8.3.2.1 SR3 makes a §2023:8.10
     /// context-sensitive word a legal user-defined word outside its context, and a word §2023:8.9 does not reserve at
     /// edition E is one at E; 99 tokens once broke that (<c>01 GOBACK PIC X.</c> at COBOL-85, <c>01 PAGE PIC X.</c>
     /// at COBOL-2023, <c>01 SIGNED PIC X.</c> anywhere).

@@ -230,9 +230,9 @@ therefore **a function of the conflict's own class**, never a literal chosen at 
 **The class asymmetry is deliberate and load-bearing.** §2023:9.1.13.9 (file sharing conflict) defines exactly two
 values — `61` for OPEN and `62` for DELETE FILE — and **no deadlock value**, so a file-sharing conflict has no
 conforming landing but its own; §2023:14.9.10.4 GR15b is imperative there ("*The* value … is placed") where its
-record-conflict twin GR6b says only "*A* value". §2023:9.1.13.8 item 2's `52` is a **record**-conflict value whose
+record-conflict twin GR6b says only "*A* value". §2023:9.1.13.8 GR2's `52` is a **record**-conflict value whose
 detection conditions the implementor defines. WiseOwl COBOL detects a deadlock in exactly one circumstance: a
-`RETRY FOREVER` waiting on a record locked by another file connector (§2023:9.1.13.8 item 1). That holder is inside the
+`RETRY FOREVER` waiting on a record locked by another file connector (§2023:9.1.13.8 GR1). That holder is inside the
 executing run unit and cannot release while this statement runs, so GR3's "until the input-output operation has
 been completed" would never terminate — which is what makes it a deadlock rather than a timeout. Harmonizing the
 two classes breaks conformance in one direction (a `52` for a file conflict) or two green goldens in the other.
@@ -299,7 +299,7 @@ judging for themselves, and that is every RETRY-bearing verb: the two READ forma
 separately, they reach `ConflictOnLockedRecord`, which is the one §2023:14.9.30.4 GR9 / §2023:14.9.35.4 GR11 / §2023:14.9.10.4 GR6
 check (kb/Work PB340). WRITE has no `ConflictOnLockedRecord` leg, and the ground is NOT §2023:14.9.51.4 GR16 alone: GR16
 says only that RETRY controls WRITE "for the case where resources needed to write a record are locked by another
-run unit", which cannot arise in a single-run-unit model. What rules WRITE out of §2023:9.1.13.8 item 1 is that its '51'
+run unit", which cannot arise in a single-run-unit model. What rules WRITE out of §2023:9.1.13.8 GR1 is that its '51'
 is "an attempt to ACCESS a record" and the WRITE general rules define no '51' leg (GR33/GR42 state the invalid-key
 checks ignore record locks).
 The §2023:12.4.5.9.4 GR7 lock-CEILING statuses '53'/'54' are the one conflict a statement that REQUESTS a new lock (READ,
@@ -430,7 +430,7 @@ writes and reads **nothing beside a data file**.
 **The rule.** §2023:9.1.6: a physical file's organization, key geometry, code set, logical record sizes, record type,
 key collating sequence, physical record sizes and record delimiter "apply to the file at the time it is created
 and cannot be changed throughout the lifetime of the file". §2023:14.9.27.4 GR10 makes the OPEN statement compare the
-connector's declared attributes with the file's and set I-O status **'39'** (§2023:9.1.13.6 item 7 — "The OPEN or
+connector's declared attributes with the file's and set I-O status **'39'** (§2023:9.1.13.6 GR7 — "The OPEN or
 DELETE FILE statement is unsuccessful because a conflict has been detected between the fixed file attributes and
 the attributes specified for that file in the source unit") when they differ, and delegates WHICH attributes are
 validated to the implementor — a **required, required-to-be-documented** determination (Annex A.1 item 129).
@@ -450,7 +450,7 @@ answers, each stated in the code where that organization's format lives:
   by the number of characters between the preceding line delimiter and the following line delimiter or the end
   of file if no line delimiter is present", where the delimiters encode no attribute either. The standard then
   answers every disagreement such a re-read can produce with a SUCCESSFUL completion rather than a refused OPEN:
-  §2023:9.1.13.2 item 3's '04' ("A READ statement is successfully executed but the physical record from the file is
+  §2023:9.1.13.2 GR3's '04' ("A READ statement is successfully executed but the physical record from the file is
   shorter than or longer than the minimum or maximum length of records allowed for the fixed file attributes for
   that file"), item 5's '06' and item 7's '09'. Writing a print, report or extract file and reading it back under
   a different record description is exactly the idiom those three statuses exist for — measured on this corpus, a
@@ -465,7 +465,7 @@ answers, each stated in the code where that organization's format lives:
   (`RecordFraming.ReadFrame`, kb/Work PB2754: a head naming more bytes than the file holds, the empty-slot tag, a
   table this writer cannot produce) is not a framed file at all, so the connector's declared VARIABLE **record
   type** — a §2023:9.1.6 fixed file attribute — contradicts the medium: **'39'**. A prefix that parses but falls outside the RECORD clause's bounds is NOT a
-  conflict; that is §2023:9.1.13.2 item 3's '04' on the READ, which a '39' at the OPEN would make unreachable. A file
+  conflict; that is §2023:9.1.13.2 GR3's '04' on the READ, which a '39' at the OPEN would make unreachable. A file
   shorter than one prefix (fewer than four bytes) states nothing and is not a conflict. Past the first frame, the
   same decoder ENDS the data at a torn or damaged frame for every reader — the forward READ, the record count and
   the backward-READ index alike — so no reader sees a record another does not.
@@ -641,7 +641,7 @@ state (`PhysicalFileTable.State.ClosedWithLock`) and every OPEN that resolves th
 `'38'`. `FileRegistry.ClosedWithLock` is the OPEN's one test of both.
 
 **The placement, and why it is forced.** `SequentialConnector` is (a) Non-unit; `RelativeConnector` and
-`IndexedConnector` are (d) by organization alone. (a) is not a free choice: §2023:9.1.13.2 item 6 defines the
+`IndexedConnector` are (d) by organization alone. (a) is not a free choice: §2023:9.1.13.2 GR6 defines the
 `'07'` this compiler reports for the NO REWIND, REEL/UNIT and FOR REMOVAL phrases as the status of a CLOSE
 that “references a physical file on a non-reel/unit medium”, and Table 14 prints symbol g (which is what
 makes `CLOSE … WITH NO REWIND` answer `'07'`) only in the Non-unit column. The determination is documented
@@ -858,7 +858,7 @@ to a shared physical file is allowed through an OPEN statement, the sharing mode
 statement shall be allowed by all other file connectors that are currently associated with the physical file,
 as described in 9.1.13, I-O status; 14.9.27, OPEN statement; and Table 19"*. **Table 19** is that decision
 table: 7 *Open request* rows × 5 *Most restrictive existing sharing mode and open mode* columns = 35 cells,
-each *Normal open* or *Unsuccessful open*, and §2023:9.1.13.9 item 1 supplies the status the unsuccessful cell
+each *Normal open* or *Unsuccessful open*, and §2023:9.1.13.9 GR1 supplies the status the unsuccessful cell
 reports (`'61'`) while §2023:14.9.27.4 GR25 supplies its effect (*"the file is not affected"*).
 
 **The decision.** `OpenRequestRow` and `ExistingSharingColumn` are enums with the printed row and column groups
@@ -891,7 +891,7 @@ connector — `'41'`, which leaves the connector in its ORIGINAL mode — no lon
 request's mode.
 
 **⛔ The PRINTED TABLE is the arbiter, not §2023:9.1.13.9's five sub-cases, and the difference is four cells.**
-§2023:9.1.13.9 item 1 enumerates five *"possible violations"* (a)–(e). Sub-cases (c) and (d) are written over
+§2023:9.1.13.9 GR1 enumerates five *"possible violations"* (a)–(e). Sub-cases (c) and (d) are written over
 *"I-O or extend"*, but Table 19's existing-side column groups are `extend I-O output` — so a literal reading of
 the five sub-cases answers *Normal open* in four combinations the table marks *Unsuccessful open* (an incoming
 SHARING WITH READ ONLY request, in the EXTEND/I-O or INPUT mode, against a connector open in the OUTPUT mode).
@@ -1026,7 +1026,7 @@ used to be associated with. The field is gone and the lookups read `c.HostPath` 
 
 **The failure status is the standard's own.** GR3's closing sentence — *"If the association cannot be made because
 the content of the data item referenced by data-name-1 is not consistent with the specification for device-name-1 or
-literal-1, the OPEN, SORT, or MERGE statement is unsuccessful"* — has a dedicated I-O status, §2023:9.1.13.6 item 2's
+literal-1, the OPEN, SORT, or MERGE statement is unsuccessful"* — has a dedicated I-O status, §2023:9.1.13.6 GR2's
 **'31'**, and `Associate` returns it. The CONTENT rules it applies are the implementor's (§2023:12.4.5.3 GR4, Annex A.1
 items 10 and 73) and are stated in `docs/CONFORMANCE.md` §7 under `DOC-A.1-73`.
 
@@ -1158,7 +1158,7 @@ unconditional half.
 **What '51' does NOT arm.** §2023:14.9.30.4 GR18 — *"**Unless otherwise specified**, at the completion of any
 unsuccessful execution of a READ statement … the file position indicator is set to indicate that no valid record
 position has been established"* — is the DEFAULT, and GR10 a)/d) are its "otherwise specified". So a `'51'` does
-not arm §2023:9.1.13.7 item 6's `'46'`: that status needs BOTH *"no valid next record has been established"* and one
+not arm §2023:9.1.13.7 GR6's `'46'`: that status needs BOTH *"no valid next record has been established"* and one
 of its two causes, and GR10 a) leaves a valid next record established. Read the other way GR10 a) and GR10 d)
 would have no observable consequence anywhere, and a `'51'` on a sequential-ORGANIZATION file — which has no
 START to reposition with — would be unrecoverable.
@@ -1634,7 +1634,7 @@ every phrase a bound I-O node declares must be READ by its emitter.
 
 **The evidence.** `conformance-suite/cases/9.1.15-Sharing-mode/pb683_open_sharing_read_only` (the `READ ONLY` spelling on all three
 organizations, with the `RETRY 0 TIMES` discriminator that used to disagree),
-`pb683_open_sharing_no_other` (the `NO OTHER` spelling, both open orders, and the §2023:9.1.15 item 1 `'61'`), and
+`pb683_open_sharing_no_other` (the `NO OTHER` spelling, both open orders, and the §2023:9.1.15 GR1 `'61'`), and
 `pb683_write_advancing_governed` (the same WRITE in all three printed shapes, all `'51'`).
 ### D21. The sending operand of a `READ … INTO` / `RETURN … INTO` implicit MOVE is THE CURRENT RECORD, and it is built in ONE place for all three arms.
 
@@ -2213,7 +2213,7 @@ since listing step 6b's remainder slice 3, kb/Work PB5932); the operand capture 
   then counts), ASSIGN … USING, OCCURS … DEPENDING ON, SAME AS, RENAMES, and the report CONTROL / SOURCE / SUM
   operands. `DataNameResolutionDriftTests` (Unit) pins the type's shape and forbids `[0]` off a raw candidate list
   in the data binder.
-- **`ClauseDataName(dref, clauseFace)`** — the capture, screened by `ScreenClauseOperandShape` against the three
+- **`ClauseDataName(dref, clauseFace, subscriptRule)`** — the capture, screened by `ScreenDataNameShape` (each caller passing its clause's own subscript rule, `OperandSubscriptRule`, kb/Work PB2041) against the three
   shapes a `data-name-n` position does not admit → **COBOL2024**: a SPECIAL REGISTER (LINAGE-COUNTER /
   LINE-COUNTER / PAGE-COUNTER are §2023:8.4.3.1 Format 10 / Format 11 identifiers, and §2023:8.4.3.14.3 SR1 / §2023:8.4.3.15.3
   SR1 confine them to the procedure division), a SUBSCRIPT (§2023:8.4.2.3's *with-subscripts* form is an identifier,
@@ -2290,7 +2290,7 @@ answer that every organization's WRITE and REWRITE asks, in the connector, befor
 1. **Can the record be written in the file coded character set?** The medium's encoding is an attribute of the file (`FileConnector.MediumEncoding`, derived — never stored: CODE-SET present -> `CodeSet`; else LINE SEQUENTIAL -> `Utf8`; else `SingleByte`; D29). A `SingleByte` file (Annex A.1 item 31, owner decisions kb/Work R47 and R51) is ISO/IEC 8859-1, one byte per character position, through the storage-byte law (`FileCharacterSet.ToChannel/FromChannel`: U+FFFF, the HIGH-VALUE character, is byte 0xFF): `FileConnector.RecordHasCharacterWithoutByteImage` refuses a record holding any other character above U+00FF; a file with a CODE-SET is refused a character the alphabet does not represent (`CodeSetConversion.HasCharacterWithoutImage`, §2023:13.18.13.4 GR6 b; kb/Work PB1150, PB1542) and writes HIGH-VALUE as the set's highest code unit (`CodeSetConversion.HighUnit`). The refusal is '91' (§2023:9.1.13.11; DOC-A.1-110) on every fixed-record organization and on the report writer's line. A LINE SEQUENTIAL file with no CODE-SET is UTF-8 text: its character set (`LineSequentialCharacterSet`, item 115) is the Unicode scalar values from U+0020 in both record-area classes, so only C0 controls and an unpaired surrogate are refused, with '71'. Every record write encodes through the medium's codec — `FileCharacterSet.Medium` (a STRICT Latin-1 encoding of the channel) or `LineSequentialEncoding` — so a path that skipped the refusal fails loudly: there is no replacement fallback and no print-specific character map anywhere.
 2. **Does the file hold it?** A relative or indexed file is the keyed store engine's paged store, read and written a
    page at a time (docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.9), so its externally-defined boundary
-   (§2023:9.1.13.5 item 4; Annex A.1 item 107) is the host file system's maximum file size, capped by the format at
+   (§2023:9.1.13.5 GR4; Annex A.1 item 107) is the host file system's maximum file size, capped by the format at
    `PagedFile.FormatPages` pages: a WRITE or REWRITE whose pages would pass it is answered §2023:14.9.51.4 GR33b / GR42 d)'s
    '24' at the statement (`PagedFile.Begin`'s reservation, `StoreStatus.Boundary`), as the host's own refusal to grow
    the file is. An empty relative record number is no entry of the tree, so a record in the billions costs one leaf.
@@ -2301,7 +2301,7 @@ answer that every organization's WRITE and REWRITE asks, in the connector, befor
    `Rewrite` are the only three entry points a record reaches the medium through, and each wraps its body in
    that one catch. A keyed store meets the host only at the CLOSE, whose failure is '30'. The READ side has the
    twin catch (kb/Work PB1512): `SequentialConnector.Read` and `StartFirstLast` are the only entry points that
-   read the medium, and a host failure there is §2023:9.1.13.6 item 1's '30' with the file position invalidated
+   read the medium, and a host failure there is §2023:9.1.13.6 GR1's '30' with the file position invalidated
    (`ReadFailed`), never an escaping exception. An OPEN whose body failed releases its handles
    (`AbandonOpen`) without letting a refused final flush replace the OPEN's own status.
 4. **Does the file's recorded organization allow this connector to write?** A keyed store's header records its
@@ -2813,7 +2813,7 @@ A process-wide registry keyed by external name (with an Area discriminator for r
   page write or a sync the host refuses at the statement and at the CLOSE; the refusals a real file cannot produce on
   demand are injected under the connector's own handle through `PageMediumObserver`
   (`tests/WiseOwl.Cobol.Tests.Unit/Store/RefusingPageMedium`, `DyingPageMedium`).
-- I-O status discipline (kb/Work PB140): `FileConnector.Status`'s setter is the ONE assignment path — it records `EverAccessed` AND drops the §2023:9.1.13.7 GR3 '43' gate (READ terminals re-arm through `ReadSucceeded`); openness is the ONE base `_openMode` bit, separate from the `OptionalAbsent` file-position state a CLOSE leaves unchanged (§2023:14.9.6.4 GR6); `FileRegistry` throws on an unregistered or misrouted name (never a fail-open '00' — the SD/organization screens reject at bind time, COBOL1692/1693); `FileConnector.Close` maps OS failures to '30' (§2023:9.1.13.6 item 1) with the sequential streams nulled either way; CLOSE WITH LOCK locks only on a successful close, and locks the file connector from 2002 and the physical file at 1985 (kb/Work PB5210, the Table 14 decision above).
+- I-O status discipline (kb/Work PB140): `FileConnector.Status`'s setter is the ONE assignment path — it records `EverAccessed` AND drops the §2023:9.1.13.7 GR3 '43' gate (READ terminals re-arm through `ReadSucceeded`); openness is the ONE base `_openMode` bit, separate from the `OptionalAbsent` file-position state a CLOSE leaves unchanged (§2023:14.9.6.4 GR6); `FileRegistry` throws on an unregistered or misrouted name (never a fail-open '00' — the SD/organization screens reject at bind time, COBOL1692/1693); `FileConnector.Close` maps OS failures to '30' (§2023:9.1.13.6 GR1) with the sequential streams nulled either way; CLOSE WITH LOCK locks only on a successful close, and locks the file connector from 2002 and the physical file at 1985 (kb/Work PB5210, the Table 14 decision above).
 - Keyed-verb branch discipline (kb/Work PB325): the ACCESS MODE is the SOLE discriminator of a keyed verb's branch, and it lives in ONE place — `KeyedConnector.Access`, the abstract base `RelativeConnector` and `IndexedConnector` share. Every branch the standard draws inside a keyed verb is drawn on it (§2023:14.9.51.4 GR29 a)/b), GR38/GR39; §2023:14.9.35.4 GR5 vs. GR21/GR22/GR23; §2023:14.9.10.4 GR2 vs. GR3/GR4), and the OPEN MODE enters only as the permission test that FOLLOWS — Table 20 (§2023:14.9.27.4 GR8), whose unsuccessful cells §2023:9.1.13.7 items 8 and 9 name. ⛔ An open mode in a branch PREDICATE inverts that dependency: `_access == Sequential || Mode == Extend` made the runtime's answer depend on an unenforced bind-time screen (§2023:14.9.27.3 SR2) and turned Table 20's blank Random/Dynamic × WRITE × Extend cell into a successful append instead of item 8 b)'s '48'. The whole table is walked by conformance:cases/9.1.13.2-Successful-completion/l1_table20_seq_relative + l1_table20_indexed and, for the cell conforming source cannot reach, unit:Table20WriteOpenModeTests.
 - READ preconditions live in the BASE, once, in the standard's own order (kb/Work PB336). `FileConnector` owns
   the three of them and every organization's READ entry delegates: `ReadOpenModeGuard` (§2023:14.9.30.4 GR2 /
@@ -2888,8 +2888,8 @@ rows; derive 85↔2002 gating from the 2002 standard / the ISO2023_CONFORMANCE_P
   ⚠ **The INDEXED leg IS gated, and the `<=2014` answer is the ordinary comparison, not the first record**
   (kb/Work PB344, corrected by kb/Work PB5639). `IndexedConnector.SelectSequentialRecord` asks
   `DialectBehaviors.IsActive(IndexedReadPreviousAfterOpenAtEnd, Edition)`: at 2023 a PREVIOUS immediately after an
-  OPEN is the at end condition (rule d) 3). Below 2023 the after-OPEN PREVIOUS is §2002:14.8.29.3 GR18c2
-  (§2014:14.9.29.3 GR19c2) — "the first existing record in the physical file whose record number or key value is
+  OPEN is the at end condition (rule d) 3). Below 2023 the after-OPEN PREVIOUS is §2002:14.8.29.3 GR18c.2
+  (§2014:14.9.29.3 GR19c.2) — "the first existing record in the physical file whose record number or key value is
   less than or equal to the file position indicator" — and OPEN's indicator is "the characters that have the lowest
   ordinal position in the collating sequence" (§2002:14.8.26.3 GR12), so the connector seeks the last key at most
   that value (`IndexedConnector.LowestKey`: the key sequence's LOW-VALUE character over the key's length): at end
@@ -3310,7 +3310,7 @@ conditions compiled in order over the internal image the runtime hands it (store
 selector, FORMAT then the alphabet — §2023:13.18.13.4 GR5), `ToInternal` on a READ (the selector sees the conditional variable restored from the medium, then the alphabet, then FORMAT).
 The connector calls it at exactly the two places a record crosses the medium: the top of each write entry (`SequentialConnector.ExternalRecord`), so every size rule below it (the RECORD
 clause's bounds, the line character set, the framing) is about the record ON THE MEDIUM, and the one read (`InternalRecord`). SORT and MERGE USING and GIVING reach it through the connector.
-No selected entry is I-O status 45 (`FileStatusCode.RecordIdentificationFailure`, §2023:9.1.13.7 item 5).
+No selected entry is I-O status 45 (`FileStatusCode.RecordIdentificationFailure`, §2023:9.1.13.7 GR5).
 
 **Which statements select (kb/Work PB5578, review round 2).** §2023:13.18.51.4 GR2 (and §2014:13.18.51.3 GR2) gives the file section's SELECT WHEN clauses no effect "for statements other than READ statements, REWRITE statements with the FILE phrase, and WRITE statements with the FILE phrase", so from 2014 a WRITE or REWRITE that names record-name-1 is formatted and converted by the entry it names and answers no 45; §2002:13.16.49.3 GR1 evaluates them for every READ, REWRITE and WRITE, so at `--std 2002` it selects. The edition axis is `DialectBehavior.SelectWhenOnlyForFilePhraseStatements` (VCR row 7.78); `SequentialIoEmitter.NamedRecordEntry` renders the named entry's index when it is active and the statement has no FILE phrase (`BoundWrite.FilePhrase`, `BoundRewrite.FilePhrase`), the registry sets `FileConnector.NamedRecordEntry` around the statement, and `RecordFormat.ToExternal(namedEntry)` formats by that entry instead of evaluating the selector. READ, the FILE phrase, and SORT and MERGE always select.
 

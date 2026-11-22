@@ -13,7 +13,7 @@
       *> without the REPOSITORY entry the FUNCTION-less spelling is a data
       *> reference, and FUNCTION SQRT(…) is still the function), while a unit
       *> whose REPOSITORY identifies HIGHEST-ALGEBRAIC makes HIGHEST-ALGEBRAIC(A1)
-      *> the function reference — +999 for a PIC S999 argument (§2023:15.43.4 r2),
+      *> the function reference — +999 for a PIC S999 argument (§2023:15.43.4 RV2),
       *> −999 for LOWEST-ALGEBRAIC (§2023:15.58.4) — and may not declare that name
       *> (the negatives pb65-repository-intrinsic-name-as-data-name /
       *> pb65-repository-all-intrinsic-name-as-user-word). Before this the

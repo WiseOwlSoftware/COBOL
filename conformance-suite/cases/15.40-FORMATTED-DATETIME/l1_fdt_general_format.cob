@@ -30,10 +30,10 @@
       *>   §2023:15.3.3.7 - a basic combined format is a basic date format, an
       *>             uppercase T, and a basic time format; the T appears in
       *>             the data.
-      *>   §2023:15.40.4 r3 - for an OFFSET format argument-3 is reflected
+      *>   §2023:15.40.4 RV3 - for an OFFSET format argument-3 is reflected
       *>             DIRECTLY in the time portion and argument-4 DIRECTLY in
       *>             the offset portion: +300 minutes is 5h00m, so +0500.
-      *>   §2023:15.40.3 r7 - argument-4 omitted for an offset format evaluates as
+      *>   §2023:15.40.3 AR7 - argument-4 omitted for an offset format evaluates as
       *>             though 0 were specified, and §2023:15.3.3.6.1 requires a plus
       *>             sign when both offset subfields are zero: +0000.
        IDENTIFICATION DIVISION.

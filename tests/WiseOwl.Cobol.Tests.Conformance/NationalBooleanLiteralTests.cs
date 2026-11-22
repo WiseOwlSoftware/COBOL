@@ -219,7 +219,7 @@ public sealed class NationalBooleanLiteralTests
                 DISPLAY N"{new string('A', 8192)}".
                 STOP RUN.
             """;
-        var (ok, errors, _) = EditionHarness.CompileFull(FixedFormLayout.Source(src), 2002);   // §2023:6.1 3) a): not one free-form line
+        var (ok, errors, _) = EditionHarness.CompileFull(FixedFormLayout.Source(src), 2002);   // §2023:6.1 SR3a: not one free-form line
         Assert.False(ok, "an 8,192-position national literal must be rejected (ISO §2023:8.3.3.5.3 SR1)");
         EditionHarness.AssertHasDiagnostic(errors, "COBOL0814");
     }
@@ -237,7 +237,7 @@ public sealed class NationalBooleanLiteralTests
                 DISPLAY B"{new string('0', 8192)}".
                 STOP RUN.
             """;
-        var (ok, errors, _) = EditionHarness.CompileFull(FixedFormLayout.Source(src), 2002);   // §2023:6.1 3) a): not one free-form line
+        var (ok, errors, _) = EditionHarness.CompileFull(FixedFormLayout.Source(src), 2002);   // §2023:6.1 SR3a: not one free-form line
         Assert.False(ok, "an 8,192-position boolean literal must be rejected (ISO §2023:8.3.3.4.3 SR1)");
         EditionHarness.AssertHasDiagnostic(errors, "COBOL0814");
     }
@@ -289,7 +289,7 @@ public sealed class NationalBooleanLiteralTests
     /// <summary>A non-Latin-1 character in an N"…" literal is LEGAL (§2023:8.3.3.5 — the content repertoire is the
     /// full national set, one UTF-16 char per position, D-N1; the P10 national wave lifted the staged
     /// Latin-1-only 0814 guard). FUNCTION DISPLAY-OF carries it UNCHANGED: the alphanumeric↔national
-    /// correspondence is the Annex A.1 item-33 TOTAL UTF-16 identity (PB59), so §2023:15.26.4 r2/r3's substitution
+    /// correspondence is the Annex A.1 item-33 TOTAL UTF-16 identity (PB59), so §2023:15.26.4 RV2/r3's substitution
     /// machinery is vacuous — argument-2 is accepted and inert, and no EC-DATA-CONVERSION is set from any
     /// character pathway. The standard display device writes UTF-8 (CONFORMANCE.md item 59), which is what
     /// makes the wide character assertable in stdout at all.

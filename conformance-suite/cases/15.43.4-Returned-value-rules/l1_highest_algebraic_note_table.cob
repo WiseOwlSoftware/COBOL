@@ -5,11 +5,11 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:15.43.4 r2 — HIGHEST-ALGEBRAIC returns "the positive algebraic value of greatest finite
+      *> ISO §2023:15.43.4 RV2 — HIGHEST-ALGEBRAIC returns "the positive algebraic value of greatest finite
       *> magnitude that may be represented in argument-1", exercised on the SEVEN argument shapes the rule's
       *> own NOTE table names, in the table's order, with the table's values.
       *>
-      *> §2023:15.43.4 r2's NOTE table, transcribed (the expected values below are read from it, not observed):
+      *> §2023:15.43.4 RV2's NOTE table, transcribed (the expected values below are read from it, not observed):
       *>     | S999                 | +999                                    |
       *>     | S9(4) BINARY         | +9999                                   |
       *>     | 99V9(3)              | +99.999                                 |
@@ -36,23 +36,23 @@
       *>     docs/CONFORMANCE.md A.1 item 207 pins "BINARY-CHAR 1 byte ... two's complement, big-endian,
       *>     SIGNED and UNSIGNED the same width (GR21)", and item 206 declares the wider range "Not provided.
       *>     Each usage holds exactly the GR12 minimum range for its width: CHAR ±128 / 0–255". Given THAT
-      *>     representation, §2023:15.43.4 r2's "greatest finite magnitude that may be represented in argument-1"
+      *>     representation, §2023:15.43.4 RV2's "greatest finite magnitude that may be represented in argument-1"
       *>     is +127 and +255, and the pair is also a SIGN discrimination: the same 8 bits give 2^7-1 signed
       *>     and 2^8-1 unsigned. A conforming implementation with a 16-bit BINARY-CHAR would return
       *>     +32767 / +65535 and would not be wrong — these two lines move if item 206/207 ever move. The
       *>     five PICTURE'd rows above carry no such dependency: r2 plus the picture character-string fixes
       *>     them outright.
       *> Row 4 against row 5 is the third discrimination: adding the B and CR insertion symbols changes the
-      *> SIGN-REPRESENTABILITY of the mask but not one digit position, so §2023:15.43.4 r2 returns the same
+      *> SIGN-REPRESENTABILITY of the mask but not one digit position, so §2023:15.43.4 RV2 returns the same
       *> +99999.99 for both — a fold that let the sign symbols shift the capacity would disagree on one of them.
       *>
-      *> §2023:15.43.4 r2 states the returned value directly and HIGHEST-ALGEBRAIC has no equivalent arithmetic
+      *> §2023:15.43.4 RV2 states the returned value directly and HIGHEST-ALGEBRAIC has no equivalent arithmetic
       *> expression, so §2023:15.4.1's closing sentence ("... unless otherwise specified in the function
       *> definition") leaves the FOLD itself normative under NATIVE arithmetic, which is what this file runs
       *> in — r2 is a question about argument-1's representable range, never about an arithmetic mode. What
       *> that range IS, is fixed by the standard for the five PICTURE'd rows and left implementor-defined for
       *> the two picture-less BINARY-CHAR rows (§2023:13.18.60.4 GR21/GR12, above).
-      *> §2023:15.43.4 r1 constrains only a FLOATING-POINT numeric-edited argument-1; no argument here is one.
+      *> §2023:15.43.4 RV1 constrains only a FLOATING-POINT numeric-edited argument-1; no argument here is one.
       *>
       *> Rendering: each folded value is MOVEd to PIC +99999.999, whose leftmost '+' is a FIXED INSERTION sign
       *> that prints '+' for a positive or zero value (§2023:13.18.40.5 GR5, Table 8) — every expected line

@@ -21,7 +21,7 @@
       *>   'B' in alphanumeric-edited XE is the alphanumeric space.
       *> §2002:13.16.38.3 GR3 - one item per category: alphabetic (AAA:
       *>   INITIALIZE ... REPLACING ALPHABETIC changes AL and leaves the
-      *>   alphanumeric XA alone, §2002:14.8.19.3 GR5c2), alphanumeric
+      *>   alphanumeric XA alone, §2002:14.8.19.3 GR5c.2), alphanumeric
       *>   (X(3)), alphanumeric-edited (XBX), boolean (111: MOVE B"1"
       *>   gives 100, zero fill, §2002:14.5.8 rule 6; an alphanumeric
       *>   item would give "1  "), national (N(3)), national-edited

@@ -71,7 +71,7 @@ public sealed class CobolDecSignedTailTests
         Assert34(expected, op == "+" ? CobolDec.Add(x, y, mode) : CobolDec.Sub(x, y, mode));
     }
 
-    /// <summary>INTERMEDIATE ROUNDING IS PROHIBITED (§2023:11.9.11.2 3) d)) must see an inexact signed tail as inexact, and an
+    /// <summary>INTERMEDIATE ROUNDING IS PROHIBITED (§2023:11.9.11.2 GR3d) must see an inexact signed tail as inexact, and an
     /// exactly representable difference must not raise.</summary>
     [Fact]
     public void Prohibited_RaisesOnAnInexactSignedTail_AndNotOnAnExactDifference()

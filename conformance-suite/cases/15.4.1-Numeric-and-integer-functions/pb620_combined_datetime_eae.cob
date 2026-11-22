@@ -8,11 +8,11 @@
       *> kb/Work PB620 — ISO §2023:15.17 COMBINED-DATETIME under a STANDARD arithmetic mode: the function EQUALS
       *> its own equivalent arithmetic expression whatever CARRIER argument-2 arrives on.
       *>
-      *> THE RULE. §2023:15.17.4 r1: "The equivalent arithmetic expression is as follows:" argument-1 +
+      *> THE RULE. §2023:15.17.4 RV1: "The equivalent arithmetic expression is as follows:" argument-1 +
       *> (argument-2 / 100000). §2023:15.4.1, for a standard mode: "the returned value shall equal the value of
       *> the equivalent arithmetic expression", and its NOTE 2 states the consequence outright — the relation
       *> condition `function-identifier = equivalent-arithmetic-expression` "will evaluate to true". The
-      *> argument's own rule places NO fraction-digit limit on it: §2023:15.17.3 r2 says only "Argument-2 shall be
+      *> argument's own rule places NO fraction-digit limit on it: §2023:15.17.3 AR2 says only "Argument-2 shall be
       *> in standard numeric time form", and §2023:15.5.5 defines that form by MAGNITUDE alone — "a numeric value
       *> representing seconds past midnight", >= 0 and < 86,400 (< 86,401 under >>LEAP-SECOND ON).
       *>
@@ -29,7 +29,7 @@
       *> with no truncation at all. A and B are one value reaching one receiver over the two
       *> carriers; C is the equivalent arithmetic expression spelled out by hand.
       *>
-      *> ARMED, NOT ASSUMED. G1/G2 are the §2023:15.17.3 r2 screen, asked of both carriers: 86400 seconds is
+      *> ARMED, NOT ASSUMED. G1/G2 are the §2023:15.17.3 AR2 screen, asked of both carriers: 86400 seconds is
       *> outside standard numeric time form under the implied >>LEAP-SECOND OFF (§2023:7.3.17.4 GR5, "greater than
       *> or equal to zero and less than 86,400"), so §2023:15.3 sets EC-ARGUMENT-FUNCTION, the declarative reports
       *> it, and the abandoned COMPUTE leaves the receiver at its preset. Both carriers ask ONE screen, so a
@@ -64,7 +64,7 @@
       *> B — the SDIDI carrier: the same VALUE through a §2023:15.3 type-10 arithmetic expression.
            COMPUTE WS-B = FUNCTION COMBINED-DATETIME(1, WS-S + 0)
            DISPLAY "B=" WS-B
-      *> C — §2023:15.17.4 r1's equivalent arithmetic expression, written out.
+      *> C — §2023:15.17.4 RV1's equivalent arithmetic expression, written out.
            COMPUTE WS-C = 1 + ((WS-S + 0) / 100000)
            DISPLAY "C=" WS-C
       *> EQ — §2023:15.4.1 NOTE 2's relation condition, in a receiver-less context: the leg the landing broke.
@@ -82,7 +82,7 @@
            ELSE
                DISPLAY "AGREE=BAD"
            END-IF
-      *> G1/G2 — the §2023:15.17.3 r2 screen from each carrier in turn.
+      *> G1/G2 — the §2023:15.17.3 AR2 screen from each carrier in turn.
            MOVE 9 TO WS-A
            COMPUTE WS-A = FUNCTION COMBINED-DATETIME(1, WS-BAD)
            DISPLAY "G1=" WS-A

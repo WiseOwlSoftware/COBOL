@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ RUN-UNIT TERMINATION'S IMPLICIT CLOSE IS THE CLOSE STATEMENT WITHOUT ANY PHRASES, EXECUTED FOR EVERY OPEN FILE
-/// AND ONLY FOR THE OPEN ONES, EVEN WHEN ONE OF THEM FAILS (kb/Work PB603). ISO §2023:14.6.11 2): <i>"An implicit CLOSE
+/// AND ONLY FOR THE OPEN ONES, EVEN WHEN ONE OF THEM FAILS (kb/Work PB603). ISO §2023:14.6.11 GR2: <i>"An implicit CLOSE
 /// statement without any phrases is executed for each file that is in the open mode. These implicit close statements
 /// shall be executed for all open files in the run unit, even when an error occurs during the execution of one or
 /// more of the CLOSE statements."</i>
@@ -53,7 +53,7 @@ public sealed class RunUnitImplicitCloseDriftTests
         return all;
     }
 
-    /// <summary>§2023:14.6.11 2)'s "even when an error occurs": the FIRST open file's close fails with an exception no
+    /// <summary>§2023:14.6.11 GR2's "even when an error occurs": the FIRST open file's close fails with an exception no
     /// I-O status describes (an injected held-line drain, the report writer's hook on every close path), and every
     /// later open file is still closed — its records persisted, its file lock given back to the next run unit — while
     /// the failure itself still reaches the caller rather than being swallowed. The failing connector's own closing
@@ -99,7 +99,7 @@ public sealed class RunUnitImplicitCloseDriftTests
         finally { foreach (string h in new[] { failing, indexed, sequential }) FileHarness.TryDelete(h); }
     }
 
-    /// <summary>§2023:14.6.11 2) closes each file "that is in the open mode" — and nothing else. A connector that was never
+    /// <summary>§2023:14.6.11 GR2 closes each file "that is in the open mode" — and nothing else. A connector that was never
     /// opened, and one the program already CLOSEd, keep the I-O status they had: the implicit CLOSE of the run unit
     /// is not a CLOSE of a not-open file, which would be §2023:14.9.6.4 GR1's unsuccessful '42'.</summary>
     [Fact]

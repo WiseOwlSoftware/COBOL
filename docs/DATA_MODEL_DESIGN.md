@@ -324,7 +324,7 @@ constant-name is that constant, never an ALPHABET code-name or an external-local
 (docs/CONFORMANCE.md §7 items 181, 184). Goldens `2002/pb1942_special_names_constant_literals`,
 `negative/pb1942-currency-numeric-constant`.
 
-**⛔ A CONDITION-NAME IS A THIRD KIND OF VALUE-CLAUSE SUBJECT, and it indicates NO SIZE** (kb/Work PB598). `DataBinder.BindCondition` screens a Format-3 VALUE literal through the ONE screen the item VALUE uses (`ValidateValueCategory` — §2023:13.18.63.3 SR4/SR5 are ALL FORMATS rules and SR24, "Syntax rules 10 and 17 above apply", carries SR10 in whole), and the screen takes the subject as a `ValueSubject` descriptor (`Binding/ValueSubject.cs`) rather than a bare size, because WHICH SUBJECT it is decides which SENTENCES of those rules bind. Each of SR4/SR5/SR10 is a sentence pair: a CLASS sentence over "the item" / "the subject of the entry", which reaches a condition-name; and a SIZE sentence naming only "an elementary item" (bounded by "the size indicated by an **explicit** PICTURE clause") and a group item. A Format-3 entry is `88 condition-name-1 value-clause .` (§2023:13.16.2), which admits no PICTURE clause; SR33 makes that level-88 entry the subject of the entry; §2023:8.5.1.3.2 item 3 gives a condition-name entry "no true concept of level", so it is neither of §2023:8.5.1.3.1's record subdivisions; and §2023:13.18.63.4 GR19 gives it its conditional variable's characteristics only **implicitly** — which is what "explicit" excludes. So from COBOL-2002 on `ValueSubject.ForConditionName(pic, dialectLevel)` carries no size, and the level-88 call sites (the THROUGH-range pair, the singleton leg, WHEN SET TO FALSE and `CheckValueLiteralClassesPass`) pass it; **at COBOL-85 it carries the conditional variable's size** (kb/Work PB5190): §1985:VI.5.15.3 SR3 bounds "Nonnumeric literals in a VALUE clause of an item" by "the PICTURE clause" with neither "elementary" nor "explicit", and §1985:VI.5.15.5 GR1 gives a condition-name its conditional variable's characteristics, so `88 XC VALUE "cd"` under `PIC X` is COBOL1740 at `--std 85` (alphanumeric and numeric-edited categories; national and boolean data are 2002's); **A condition-name of an ordinary (alphanumeric) group item** has no operand PICTURE at bind time, and a group is known to be one only once its subordinates are attached, so `CheckValueLiteralClassesPass.ScreenGroupConditionName` screens its literals after composition through the same `ValidateValueCategory` funnel, with the group's own `CheckGroupValueDeclarationsPass.GroupSubjectPic` (kb/Work PB5215): `01 G. 88 G-N VALUE -1.` is COBOL1657 at every edition, as the group's own VALUE clause is, instead of storing the characters "-1"; passing the conditional variable's size instead made `01 XV PIC X. 88 XC VALUE "cd".` COBOL1740, a rejection of legal source and a GnuCOBOL differential flip. The standard defines what the oversize literal MEANS, which a size rule would make dead text: §2023:8.8.4.5.3 item 2 sends the comparison to the relation-condition rules, so it never compares equal (a permanently-false condition), and §2023:14.9.39.4 GR6 → §2023:13.18.63.4 GR7 → §2023:14.6.8.5 places it "with space fill or truncation to the right". Goldens `85/pb598_condition_name_value_size`, `2002/pb598_condition_name_value_size_national_bit`, and `ConditionNameValueSizeTests` for the edition axis and the drift proof that the two subjects the sentences DO name are still measured.
+**⛔ A CONDITION-NAME IS A THIRD KIND OF VALUE-CLAUSE SUBJECT, and it indicates NO SIZE** (kb/Work PB598). `DataBinder.BindCondition` screens a Format-3 VALUE literal through the ONE screen the item VALUE uses (`ValidateValueCategory` — §2023:13.18.63.3 SR4/SR5 are ALL FORMATS rules and SR24, "Syntax rules 10 and 17 above apply", carries SR10 in whole), and the screen takes the subject as a `ValueSubject` descriptor (`Binding/ValueSubject.cs`) rather than a bare size, because WHICH SUBJECT it is decides which SENTENCES of those rules bind. Each of SR4/SR5/SR10 is a sentence pair: a CLASS sentence over "the item" / "the subject of the entry", which reaches a condition-name; and a SIZE sentence naming only "an elementary item" (bounded by "the size indicated by an **explicit** PICTURE clause") and a group item. A Format-3 entry is `88 condition-name-1 value-clause .` (§2023:13.16.2), which admits no PICTURE clause; SR33 makes that level-88 entry the subject of the entry; §2023:8.5.1.3.2 GR3 gives a condition-name entry "no true concept of level", so it is neither of §2023:8.5.1.3.1's record subdivisions; and §2023:13.18.63.4 GR19 gives it its conditional variable's characteristics only **implicitly** — which is what "explicit" excludes. So from COBOL-2002 on `ValueSubject.ForConditionName(pic, dialectLevel)` carries no size, and the level-88 call sites (the THROUGH-range pair, the singleton leg, WHEN SET TO FALSE and `CheckValueLiteralClassesPass`) pass it; **at COBOL-85 it carries the conditional variable's size** (kb/Work PB5190): §1985:VI.5.15.3 SR3 bounds "Nonnumeric literals in a VALUE clause of an item" by "the PICTURE clause" with neither "elementary" nor "explicit", and §1985:VI.5.15.5 GR1 gives a condition-name its conditional variable's characteristics, so `88 XC VALUE "cd"` under `PIC X` is COBOL1740 at `--std 85` (alphanumeric and numeric-edited categories; national and boolean data are 2002's); **A condition-name of an ordinary (alphanumeric) group item** has no operand PICTURE at bind time, and a group is known to be one only once its subordinates are attached, so `CheckValueLiteralClassesPass.ScreenGroupConditionName` screens its literals after composition through the same `ValidateValueCategory` funnel, with the group's own `CheckGroupValueDeclarationsPass.GroupSubjectPic` (kb/Work PB5215): `01 G. 88 G-N VALUE -1.` is COBOL1657 at every edition, as the group's own VALUE clause is, instead of storing the characters "-1"; passing the conditional variable's size instead made `01 XV PIC X. 88 XC VALUE "cd".` COBOL1740, a rejection of legal source and a GnuCOBOL differential flip. The standard defines what the oversize literal MEANS, which a size rule would make dead text: §2023:8.8.4.5.3 GR2 sends the comparison to the relation-condition rules, so it never compares equal (a permanently-false condition), and §2023:14.9.39.4 GR6 → §2023:13.18.63.4 GR7 → §2023:14.6.8.5 places it "with space fill or truncation to the right". Goldens `85/pb598_condition_name_value_size`, `2002/pb598_condition_name_value_size_national_bit`, and `ConditionNameValueSizeTests` for the edition axis and the drift proof that the two subjects the sentences DO name are still measured.
 
 **⛔ WHICH VALUE FORMAT MAY APPEAR WHERE — TWO SETS, NOT TWO LISTS OF CONDITIONS** (kb/Work PB556, PB557).
 Both rules are stated by the standard over a CLASS of things, and both had been written as a couple of the
@@ -446,7 +446,7 @@ content-validation half is separately answered by the declined A.4.14 facility (
   the only place: every national-unit call in the compiler is guarded by a usage test or reached through the reader,
   never by the category alone. The alphanumeric-group reading itself (a national position is two alphanumeric
   positions in LENGTH, reference modification, a group MOVE, a BY REFERENCE group formal and DISPLAY) is spec-derived —
-  §2023:15.50.4 r3, §2023:8.4.3.3.4 GR1/GR5 a), §2023:14.9.25.4 GR4, §2023:14.8.2.2 SR1, §2023:14.9.11.4 GR1 under GR8 — and GnuCOBOL 3.2
+  §2023:15.50.4 RV3, §2023:8.4.3.3.4 GR1/GR5 a), §2023:14.9.25.4 GR4, §2023:14.8.2.2 SR1, §2023:14.9.11.4 GR1 under GR8 — and GnuCOBOL 3.2
   measures the same unit; PB3099 records it, so DOC-A.1-57 is a derivation, not an owner determination.
 - **D-N8 a group sender into a national DYNAMIC LENGTH receiver** (kb/Work PB546; PB3099). §2023:14.9.25.4 GR4 makes the
   move a byte copy and §2023:8.5.1.10.4 sets the receiver's new length to the content's; an odd byte count cannot be
@@ -454,7 +454,7 @@ content-validation half is separately answered by the declined A.4.14 facility (
   exactly as the fixed national receiver already does; the decode of a WHOLE image is `CobolBits.NatFromStorage`, asked
   through `ReceivingStore.ContentCharacters` by the GR4 group MOVE and by the READ of an elementary dynamic-length
   record. `MOVE G3 TO DN` with
-  a three-byte `G3` leaves `DN` two positions long and `LENGTH(DN)` = 4 (§2023:15.50.4 r6 counts bytes). Recorded in
+  a three-byte `G3` leaves `DN` two positions long and `LENGTH(DN)` = 4 (§2023:15.50.4 RV6 counts bytes). Recorded in
   CONFORMANCE.md §3 D-N8.
 - **D-N6 national-edited IS category National carrying an `EditMask`** (kb/Work PB492, 2026-09-12). §2023:8.5.2.11's
   category has no `PicCategory` member of its own, exactly as alphanumeric-edited has none: an item is
@@ -545,7 +545,7 @@ content-validation half is separately answered by the declined A.4.14 facility (
     (kb/Work PB1466); only `USAGE INDEX` stays out.
   - only the **CHARACTER→BYTE step differs**, and it is applied ONCE, by the one national coding, at every byte
     boundary: `NationalWindow.PositionsOf` (now a single test — `Pic.Usage is National` → `ElementaryImageWidth`,
-    the count §2023:13.18.40.4 GR1 defines and §2023:15.50.4 r2 returns) plus `CobolBits.NatBytes`/`NatReadWindow`.
+    the count §2023:13.18.40.4 GR1 defines and §2023:15.50.4 RV2 returns) plus `CobolBits.NatBytes`/`NatReadWindow`.
     `GroupImageCodec` COMPOSES it over the carrier codec (`CarrierImageOf` / `CarrierFromChars`); the two used to
     be mutually exclusive arms, sound only while the shape was staged loud and could not reach emit.
   - the **SIGN CLAUSE an item INHERITS** reaches its `SignKind` through ONE method, `DataBinder.ApplyEffectiveSign`
@@ -761,7 +761,7 @@ content-validation half is separately answered by the declined A.4.14 facility (
 - **D-N4 repertoire**: the FULL national repertoire — one UTF-16 code unit per position (the Latin-1-only
   staged guard was lifted with the DISPLAY-OF/NATIONAL-OF wave). **The alphanumeric↔national correspondence is
   the TOTAL UTF-16 IDENTITY in both directions** (Annex A.1 item 33, CONFORMANCE.md §7 — declared with the
-  PB59 landing 2026-08-09): no character lacks a correspondent, the §2023:15.26.4/§2023:15.66.4 r2/r3 substitution
+  PB59 landing 2026-08-09): no character lacks a correspondent, the §2023:15.26.4/§2023:15.66.4 RV2/r3 substitution
   machinery is vacuous by declaration, and EC-DATA-CONVERSION is unreachable from any character pathway. The
   8-bit BYTE serialization of usage DISPLAY (CONVERT's ANUM→HEX/BYTE legs) is a SEPARATE §2023:8.1.2 NOTE 2
   determination and still substitutes above 0xFF — open residue of the PB59 CONVERT rework (RV-15.19.4-2).
@@ -799,7 +799,7 @@ USAGE BIT were char-per-position.
 ⛔ **A GROUP OF BIT ITEMS IS *NOT* A BIT GROUP.** §2023:13.18.29.4 GR3 — a group with no GROUP-USAGE clause specified
 or implied "is an **alphanumeric group item**"; §2023:13.16.4 GR1 implies GROUP-USAGE BIT only for a group
 *subordinate to a bit group*. So `01 G. 05 A PIC 1(5) BIT. 05 B PIC 1(3) BIT.` is an alphanumeric group and
-`FUNCTION LENGTH(G)` is **§2023:15.50.4 r3** — character positions, = **1** — not r1's boolean positions. Misreading
+`FUNCTION LENGTH(G)` is **§2023:15.50.4 RV3** — character positions, = **1** — not r1's boolean positions. Misreading
 "bit group item" as "a group of bit items" is the same error as misreading GR14, one level up.
 
 ⛔ **EVERY STORE OF CHARACTERS INTO A BOOLEAN ITEM CONVERTS THEM, SO THE CARRIER HOLDS ONLY `'0'` AND `'1'` UNLESS ANOTHER DESCRIPTION OF
@@ -843,7 +843,7 @@ items inside one byte — which is exactly why `RecordLayout`'s `int` character 
    GROUP-USAGE-less group alphanumeric, so this fires for all of them.
    ⚠ Its NOTE excludes "a record that is entirely a bit group, a level 77 item, or a level 1 elementary item" —
    which is why an **elementary** bit item is not padded and keeps its exact bit count.
-5. **§2023:15.50.4 r5** requires every implicit FILLER position generated above to be COUNTED. It is, by construction:
+5. **§2023:15.50.4 RV5** requires every implicit FILLER position generated above to be COUNTED. It is, by construction:
    the cursor advances through filler.
 6. **Byte boundaries are the RECORD's, not the group's** (kb/Work PB3158). A bit group that follows a same-level bit
    item begins MID-byte (rule 1), and "the alignment of the start of a group item and the alignment of the first item
@@ -881,7 +881,7 @@ consistent with `ByteWidth`'s existing "DISPLAY = 1 byte per character position"
 | `DataItem.ElementaryByteWidth` for USAGE BIT | `ceil(Length / 8)` (was: `Length`) |
 | `DataItem.ElementaryImageWidth` for USAGE BIT | `ceil(Length / 8)` — the character positions it OCCUPIES |
 | group `ImageWidth` / `ByteWidth` | `ceil(BitLayout.ExtentBits / 8)` **iff the group has a USAGE BIT descendant**, else the existing sum, byte-for-byte unchanged |
-| `FUNCTION LENGTH` of an ELEMENTARY bit item or a bit group | **§2023:15.50.4 r1** — `Pic.Length` **boolean** positions, NOT `ImageWidth`. These coincided only by accident before; they must now be read from different members |
+| `FUNCTION LENGTH` of an ELEMENTARY bit item or a bit group | **§2023:15.50.4 RV1** — `Pic.Length` **boolean** positions, NOT `ImageWidth`. These coincided only by accident before; they must now be read from different members |
 | `FUNCTION BYTE-LENGTH` | `ByteWidth`, so `PIC 1(8) BIT` = 1 |
 
 ⛔ **THE GATE IS "HAS A USAGE BIT DESCENDANT", AND THAT IS A CORRECTNESS CHOICE, NOT TIMIDITY.** Without a bit
@@ -983,8 +983,8 @@ national; signed numerics SIGN IS SEPARATE; subordinate groups GROUP-USAGE NATIO
 group is a bit data item, class/category boolean, "treated as though it were an elementary data item … described
 with PICTURE 1(m), where m is the bit length of the group"; storage per §2023:8.5.1.6.3), GR2 (a national group is
 class/category national, "as though … PICTURE N(m), where m is the length of the group"), GR3 (no clause ⇒ an
-alphanumeric group item); §2023:8.5.2.10 item 3 (category national includes a national group); §2023:8.5.1.6.3 (the
-trailing-filler NOTE excludes "a record that is entirely a bit group"); §2023:15.50.4 r1/r2 (LENGTH of a bit / national
+alphanumeric group item); §2023:8.5.2.10 GR3 (category national includes a national group); §2023:8.5.1.6.3 (the
+trailing-filler NOTE excludes "a record that is entirely a bit group"); §2023:15.50.4 RV1/r2 (LENGTH of a bit / national
 group in boolean / national positions); §2023:14.9.25.3 Table 16 (a national group sends/receives as category
 national); §2023:8.4.3.3.3 SR1 last sentence (a bit/national group is treated as elementary for reference
 modification).*
@@ -1207,7 +1207,7 @@ alignment / zero fill / truncation); §2023:14.9.25.4 GR6 item 4 (MOVE: farther 
 content undefined; nearer to zero than permitted → treated as zero) vs §2023:14.7.5 cases 3/4 (arithmetic: both are the
 size error condition); §2023:14.9.25.4 GR5 + §2023:14.6.13.2 GR4 (de-editing; incompatible content → EC-DATA-INCOMPATIBLE);
 §2023:8.5.2.13 (category numeric-edited) + §2023:8.5.2.1 Table 2 (class alphanumeric); §2023:13.18.63.3 SR6 (VALUE: a
-floating-point literal, or ZERO / the zero forms); §2023:15.43.4 r1 / §2023:15.58.4 r1 + §2023:8.8.4.4.4 GR3 l
+floating-point literal, or ZERO / the zero forms); §2023:15.43.4 RV1 / §2023:15.58.4 RV1 + §2023:8.8.4.4.4 GR3 l
 (HIGHEST/LOWEST-ALGEBRAIC's well-formedness on the entry, keyed on the arithmetic mode's intermediate); Annex A.3
 item 1 c/d (the 31-digit / 3-digit latitude is available only to a processor supporting none of the standard
 float usages / arithmetics — WiseOwl COBOL supports FLOAT-BINARY-* and STANDARD-DECIMAL, so the FULL range is
@@ -1243,7 +1243,7 @@ applicable rounding specifications"; kb/Work PB2638), then render — no float o
 through `CobolDec.FromBinary64ToOdd`, its exact value). (8) the MOVE overflow "undefined" content is PINNED to the saturated extreme image
 (all-nines significand at the maximum exponent, the value's sign) — a CONFORMANCE.md determination; MOVE
 underflow is the rule-8 zero image with no exception; the arithmetic store raises the size error on BOTH
-(receiver unchanged), and names EC-SIZE-TRUNCATION like every sibling receiver arm. (9) the §2023:15.43.4 / §2023:15.58.4 r1 well-formedness rule is enforced AT THE FUNCTION REFERENCE:
+(receiver unchanged), and names EC-SIZE-TRUNCATION like every sibling receiver arm. (9) the §2023:15.43.4 / §2023:15.58.4 RV1 well-formedness rule is enforced AT THE FUNCTION REFERENCE:
 `HIGHEST-ALGEBRAIC` of a mask whose extreme exceeds the mode's intermediate (binary64 under NATIVE, decimal128
 under STANDARD-DECIMAL) is a diagnostic; the returned values are the all-nines-significand extremes (LOWEST = 0
 for an unsigned mask, as the standard's fixed-point NOTE table shows).
@@ -1270,7 +1270,7 @@ EC-DATA-INCOMPATIBLE flag / fatal ambient gate; COBOL1659 (§2023:13.18.63.3 SR6
 directions, decided once in `DataBinder.ValidateValueCategory`, which every item VALUE reaches through the ONE
 screen `DataBinder.ScreenValueLiteral` — format 1's `RawValue` and format 2's per-occurrence literals alike — and
 which the level-88 arms call directly) and COBOL1660
-(§2023:15.43.4 r1 / §2023:15.58.4 r1); `ValidateNumericValue` serves the numeric-edited subject (SR6's "no truncation of
+(§2023:15.43.4 RV1 / §2023:15.58.4 RV1); `ValidateNumericValue` serves the numeric-edited subject (SR6's "no truncation of
 digits or sign", SR3's sign representation — for the floating form the significand's own sign symbol);
 `ValueInitializer.EditedImageOfNumericValue` is the ONE compose of a numeric-edited item's numeric VALUE image,
 shared by the initializer and the level-88 membership test (`ConditionRenderer.StringMembershipValue`) so a
@@ -1374,7 +1374,7 @@ remaining question is a syntax rule reported by `CapacityPlaceOf`, never a "not 
 - **Reference-modified** goes to the ONE §2023:8.4.3.3.3 SR1 screen (`RefModExclusion` → COBOL1647): the register is a
   numeric item of an implementor-chosen binary usage, and SR1 admits only usage DISPLAY or NATIONAL.
 - **⚠ DETERMINATION — a register on a table NESTED inside another table has no writable reference form**
-  (**COBOL2126**). Defining such a table is legal (§2023:8.5.1.9.1 item 3: it "may be nested in any combination to the
+  (**COBOL2126**). Defining such a table is legal (§2023:8.5.1.9.1 SR3: it "may be nested in any combination to the
   same number of levels as a fixed-capacity table") and naming its register is legal, but SR30 places the register
   *inside* the outer table — deliberately unlike the occurs-depending item, which §2023:13.18.38.3 SR20 forces *outside*
   the table it sizes — so §2023:8.4.2.3.3 SR3/SR5 require one subscript per enclosing OCCURS clause while SR31 forbids
@@ -1639,7 +1639,7 @@ dynamic table that no WHEN phrase subscripts either is refused COBOL2075. `Searc
 instance path with `BuildTablePath(table, subscripts)` for both formats, and the emitter reads that `CobolDynTable` into one
 local (`__searchTblN`) that carries the scan bound and the EnterSearch/ExitSearch bracket. A fixed or occurs-depending table
 has ONE bound for every occurrence of its enclosing tables, a dynamic table has one per occurrence (docs/CONFORMANCE.md
-D-SRCH-DYN). OCCURS DYNAMIC in the FILE SECTION is rejected **COBOL1526** (§2023:8.5.1.9.1 item 3 — "any place
+D-SRCH-DYN). OCCURS DYNAMIC in the FILE SECTION is rejected **COBOL1526** (§2023:8.5.1.9.1 SR3 — "any place
 OTHER THAN the file section") on every route a description reaches a record by, positioned at the entry that wrote the
 TYPE or SAME AS clause (`DataItem.ReferenceSite`, kb/Work PB1629), never at the declaration the table is copied from. The SET Format 14 capacity peek uses a PURE `ReferenceResolver.CapacityRegisterFor`
 (never `refs.Resolve`, which would route an OO `prop OF obj` first target through the property hook and enqueue a
@@ -1940,7 +1940,7 @@ WRONG.** §2023:15.4.1 leaves the temporary's "characteristics and representatio
 native arithmetic is in effect, so the shape is a genuine implementor choice; the ONE constraint on it is that it
 must not destroy the fact §2023:8.4.2.3.4 GR1b tests. This design originally specified `Scale: 0` on the reasoning that
 a subscript is an occurrence number. **That is exactly wrong.** GR1b makes a subscript whose expression "does not
-result in an integer" set EC-BOUND-SUBSCRIPT, and §2023:8.4.3.3.4 item 5)c says the same for a ref-mod position — so a
+result in an integer" set EC-BOUND-SUBSCRIPT, and §2023:8.4.3.3.4 GR5)c says the same for a ref-mod position — so a
 scale-0 temp TRUNCATES the value on the way in and `W-E(FUNCTION SQRT(2))` silently indexes occurrence 1 instead
 of raising. The temp's own description would have turned legal source into a wrong answer, in the very code
 written to stop legal source from throwing. **The first repair, a `PIC S9(21)V9(9)` temp, was wrong in its turn** —
@@ -2029,7 +2029,7 @@ the integrality of **the result** of the whole expression, not of each operand: 
 the same materialization route, which evaluates it at full precision and applies the rule exactly once, where the
 standard applies it. A SINGLE scaled operand IS the result, so it needs no detour.
 
-⛔ **THE CORRECTNESS TRAP — DO NOT HOIST OUT OF A REPEATEDLY-EVALUATED CONDITION.** §2023:8.8.4.13 r2 evaluates a
+⛔ **THE CORRECTNESS TRAP — DO NOT HOIST OUT OF A REPEATEDLY-EVALUATED CONDITION.** §2023:8.8.4.13 GR2 evaluates a
 function "if and when the conditions containing them are evaluated", so a subscript inside a PERFORM UNTIL /
 SEARCH WHEN / EVALUATE object must not be lifted to a statement pre-op. `UdfBinder` already solves this
 (`UdfAttachPerEvaluation` / `BoundUdfEvaluated`) — **follow that precedent exactly.** (The loud residue stage it
@@ -2580,7 +2580,7 @@ CONCRETE COBOL→C# MAPPINGS:
 
 Port the legacy ExpressionBinder's SUB_* token interpreter verbatim (it is proven over 364 NIST tests): for each `(...)` suffix group, scan tokens — if it contains SUB_COLON it is a ref-mod (split into start/length sub-expressions at the colon), else it is a subscript list (split on SUB_WS / SUB_COMMA into N subscript expressions, each itself possibly a relative `idx ± lit`). Phase-A flatten produces a clean {qualifiers[], subscriptGroups[][], refMod?} that Phase-B resolves. Do NOT try to re-grammar this — the SUBSCRIPT-mode design is intentional and reusing the interpreter avoids re-deriving COBOL subscript edge cases.
 
-⚠ **The position walk is a reader, not an expression compiler, and the difference is where it ends (D18).** `SubscriptBinder.BindPosition` reads integer literals, data-names, index-names, `+ - *`, unary minus and parentheses off the parse node into a typed `Position` (kb/Work PB2151); **everything else binds the same node through the real pipeline into the §2023:15.4 temporary** — never grown a new hand-written arm, which is how a reader turns into a third expression compiler. **The walk is an OPTIMIZATION over that route, never the arbiter of what is legal in the position, and stating it the other way round cost a defect: PB42.** For one commit the D18 gate asked "is this segment FUNCTION-bearing?" instead of "can the renderer render it", so `W-E(W-I ** 2)` and `W-E(2.0)` — plain arithmetic under §2023:8.8.1.1 ("a numeric literal … separated by arithmetic operators") with §2023:8.3.2.4.2 listing `**` as an arithmetic operator — kept compiling clean and throwing at run time. ⛔ **Routing everything is NOT the unaudited-table mistake PB1 taught, and the reason is structural: THE GRAMMAR ADJUDICATES.** A shape §2023:8.8.1.1 does not admit — an alphanumeric literal, an `ALL` figurative constant (legal only in the §2023:8.4.2.3.3 r6 positions) — does not parse as an `arithmeticExpression`, and the D18 hook refuses it by name (COBOL2363). Admission is by parsing, not by assertion, which is why the next arithmetic form needs no edit here. ⚠ Those two remain **run-time** throws where they should be bind-time diagnostics — right position, wrong stage; that is PB42's recorded residue.
+⚠ **The position walk is a reader, not an expression compiler, and the difference is where it ends (D18).** `SubscriptBinder.BindPosition` reads integer literals, data-names, index-names, `+ - *`, unary minus and parentheses off the parse node into a typed `Position` (kb/Work PB2151); **everything else binds the same node through the real pipeline into the §2023:15.4 temporary** — never grown a new hand-written arm, which is how a reader turns into a third expression compiler. **The walk is an OPTIMIZATION over that route, never the arbiter of what is legal in the position, and stating it the other way round cost a defect: PB42.** For one commit the D18 gate asked "is this segment FUNCTION-bearing?" instead of "can the renderer render it", so `W-E(W-I ** 2)` and `W-E(2.0)` — plain arithmetic under §2023:8.8.1.1 ("a numeric literal … separated by arithmetic operators") with §2023:8.3.2.4.2 listing `**` as an arithmetic operator — kept compiling clean and throwing at run time. ⛔ **Routing everything is NOT the unaudited-table mistake PB1 taught, and the reason is structural: THE GRAMMAR ADJUDICATES.** A shape §2023:8.8.1.1 does not admit — an alphanumeric literal, an `ALL` figurative constant (legal only in the §2023:8.4.2.3.3 SR6 positions) — does not parse as an `arithmeticExpression`, and the D18 hook refuses it by name (COBOL2363). Admission is by parsing, not by assertion, which is why the next arithmetic form needs no edit here. ⚠ Those two remain **run-time** throws where they should be bind-time diagnostics — right position, wrong stage; that is PB42's recorded residue.
 
 ### REDEFINES is a byte-level storage overlay with no clean typed-native equivalent: two differently-typed C# fields cannot share memory, so a write through one view is invisible to the other.
 

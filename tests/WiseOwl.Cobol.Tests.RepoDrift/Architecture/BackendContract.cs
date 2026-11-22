@@ -161,7 +161,7 @@ internal static class BackendContract
             "Bound.EcStatementInfo.Enabled", "Bound.EcStatementInfo.Location", "Bound.EcStatementInfo.StatementName",
             // the key of the AS NESTED callee table: an externalized program-name, the run-time program table's (kb/Work PB5932)
             "Model.ExternalizedProgramName._name",
-            // the key of every method roster: a method's externalized name (ISO §2023:11.7.4 GR1 b); kb/Work PB5932)
+            // the key of every method roster: a method's externalized name (ISO §2023:11.7.4 GR1b; kb/Work PB5932)
             "Model.ExternalizedMethodName._name",
             "Bound.BoundDebugTarget.CdKey", "Model.BoundUnit.RegistryKey", "Model.CommunicationDescription.Key", "Model.FileModel.AssignTarget", "Model.FileModel.ExternalName",
             "Model.LocalePhrase.Tag", "Model.LocaleRef.Tag", "Model.LocaleSymbol.External", "Model.LocaleSymbol.Tag",

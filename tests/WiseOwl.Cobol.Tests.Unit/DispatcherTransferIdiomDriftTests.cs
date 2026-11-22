@@ -295,7 +295,7 @@ public sealed class DispatcherTransferIdiomDriftTests
 
     /// <summary>⛔ kb/Work PB3491 — AN EXPLICIT TRANSFER CLEARS <c>__atExit</c> BEFORE IT JUMPS, AND IT CANNOT BE
     /// FORGOTTEN BY ONE ARM. The dispatcher's return test (<c>__atExit &amp;&amp; __pc == __exitPc + 1</c>) is the
-    /// §2023:14.6.3 rule 1 implied return, for control that LEAVES the exit paragraph by completing it; a GO TO whose
+    /// §2023:14.6.3 GR1 implied return, for control that LEAVES the exit paragraph by completing it; a GO TO whose
     /// target is the paragraph physically after the exit paragraph is an explicit transfer out of the range
     /// (§2023:14.9.28.4 GR5) and must not be mistaken for completion. The format-1 and ALTERed GO TO did that through
     /// <c>ExplicitTransferOut</c>; GO TO … DEPENDING left through the bare jump and silently ended the PERFORM.

@@ -49,7 +49,7 @@ public static class ExceptionCatalog
     /// <summary>The level-1 name (§2023:14.6.13.1.1).</summary>
     public const string EcAll = "EC-ALL";
 
-    /// <summary>ISO §2023:13.18.34.4 GR6 b) 2's exception-name — <i>"the EC-I-O-LINAGE exception condition is set to
+    /// <summary>ISO §2023:13.18.34.4 GR6b 2's exception-name — <i>"the EC-I-O-LINAGE exception condition is set to
     /// exist"</i> (Table 13: Fatal). ⛔ It is the ONE EC-I-O level-3 name a rule NAMES OUTRIGHT rather than
     /// leaving to §2023:9.1.13.1's status→EC correspondence, which has no entry for it, so the connector that detects
     /// the violation has to say the NAME (<c>FileConnector.IoConditionName</c>) and not only the status. Spelled
@@ -57,7 +57,7 @@ public static class ExceptionCatalog
     /// (<see cref="IoMaskNames"/>) must agree on it exactly.</summary>
     public const string IoLinage = "EC-I-O-LINAGE";
 
-    /// <summary>ISO §2023:14.9.51.4 GR27 a)'s two exception-names — <i>"If the end-of-page condition was caused by the
+    /// <summary>ISO §2023:14.9.51.4 GR27a's two exception-names — <i>"If the end-of-page condition was caused by the
     /// action in General rule 26a, the EC-I-O-EOP-OVERFLOW exception condition is set to exist. If the end-of-page
     /// condition was caused by the action in General rule 26b, the EC-I-O-EOP exception condition is set to
     /// exist."</i> (Table 13: both Nonfatal.) Named outright by the rule, like <see cref="IoLinage"/>, and riding a
@@ -318,7 +318,7 @@ public static class ExceptionCatalog
     /// EC-I-O-WARNING toggles only when named explicitly (GR4).
     /// <para>It lives in the CATALOG rather than in the compiler's <c>TurnState</c> because two folds ask it:
     /// the compile-time one (a statement whose raised name is known at bind) and the run-time one
-    /// (<see cref="EcCheckingProfile"/> — §2023:14.9.18.4 GR1 b) asks the ACTIVATING element about a name a callee
+    /// (<see cref="EcCheckingProfile"/> — §2023:14.9.18.4 GR1b) asks the ACTIVATING element about a name a callee
     /// chooses at run time). Two copies of an expansion rule is how the two answers would come to disagree
     /// (kb/Work PB408).</para></summary>
     public static bool DirectiveCovers(string directiveName, string level3)
@@ -340,7 +340,7 @@ public static class ExceptionCatalog
     /// 9→IMP; '0x' with x≠'0' → EC-I-O-WARNING; '00' (clean success) → null (no exception condition).
     /// <para>⛔ THIS IS THE DEFAULT CORRESPONDENCE, NOT THE ONLY ANSWER. It is the map §2023:9.1.13.1 prints, and it
     /// covers every condition the standard reaches THROUGH a status. A rule that NAMES its condition instead —
-    /// §2023:13.18.34.4 GR6 b) 2's EC-I-O-LINAGE is the one such EC-I-O rule — wins over it for that operation
+    /// §2023:13.18.34.4 GR6b 2's EC-I-O-LINAGE is the one such EC-I-O rule — wins over it for that operation
     /// (§2023:14.6.13.1.1: <i>"Unless otherwise specified, if more than one exception is detected during the execution
     /// of a statement, the one that is set to exist is undefined"</i> — the specific rule is the "otherwise
     /// specified"). The connector carries the named one on <c>FileConnector.IoConditionName</c> and
@@ -379,9 +379,9 @@ public static class ExceptionCatalog
     /// compile-time integer baked into the generated call and decoded at run time, so a reordering would make a
     /// program's enabled names mean a different set.
     /// <para>The first nine are §2023:9.1.13.1's status-derived names (first digit → name). <c>EC-I-O-LINAGE</c> is
-    /// NOT one of them — no I-O status value corresponds to it; §2023:13.18.34.4 GR6 b) 2 names it directly — and it
+    /// NOT one of them — no I-O status value corresponds to it; §2023:13.18.34.4 GR6b 2 names it directly — and it
     /// is in the mask for the same reason the others are: a program enables checking for it by name, per file,
-    /// through <c>&gt;&gt;TURN</c>. <c>EC-I-O-EOP</c> and <c>EC-I-O-EOP-OVERFLOW</c> (§2023:14.9.51.4 GR27 a)) are the
+    /// through <c>&gt;&gt;TURN</c>. <c>EC-I-O-EOP</c> and <c>EC-I-O-EOP-OVERFLOW</c> (§2023:14.9.51.4 GR27a) are the
     /// same shape and were ABSENT until kb/Work PB854 — catalogued and never raisable, so a program enabling them
     /// got a zero mask bit and its declarative never ran. <c>TurnStateTests</c> now asserts that EVERY level-3
     /// EC-I-O row of the catalog has a bit here, so a name cannot be catalogued without one again.</para></summary>

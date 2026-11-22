@@ -252,7 +252,7 @@ public sealed class CompiledProgramCacheDriftTests : IDisposable
     }
 
     /// <summary>A hit replays the compilation's OWN output — the lines its DISPLAY directives transferred (ISO
-    /// §2023:7.3.12.4 1): "The DISPLAY directive causes the contents of each operand to be transferred to the source
+    /// §2023:7.3.12.4 GR1: "The DISPLAY directive causes the contents of each operand to be transferred to the source
     /// listing or compile-time-device-1") — exactly as the cold compile produced them. Before the entry carried them,
     /// a hit returned none, and a test reading them would have passed cold and failed warm.</summary>
     [Fact]

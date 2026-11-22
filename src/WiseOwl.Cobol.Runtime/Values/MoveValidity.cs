@@ -22,9 +22,9 @@ public enum Table16Category
     Alphanumeric,
     /// <summary>Alphanumeric-edited.</summary>
     AlphanumericEdited,
-    /// <summary>Boolean (a bit group's as-if PICTURE too, §2023:13.18.29.4 GR1 b)).</summary>
+    /// <summary>Boolean (a bit group's as-if PICTURE too, §2023:13.18.29.4 GR1b).</summary>
     Boolean,
-    /// <summary>National (a national group's as-if PICTURE too, §2023:13.18.29.4 GR2 b)).</summary>
+    /// <summary>National (a national group's as-if PICTURE too, §2023:13.18.29.4 GR2b).</summary>
     National,
     /// <summary>National-edited.</summary>
     NationalEdited,

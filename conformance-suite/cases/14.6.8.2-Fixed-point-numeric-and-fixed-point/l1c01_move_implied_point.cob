@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §2023:14.6.8.2 r3 — a receiver with no decimal point
+      *> ISO §2023:14.6.8.2 GR3 — a receiver with no decimal point
       *> specification has its point after its rightmost digit
       *> THE RULE: "If the data description of the receiving data item
       *> does not include an explicit decimal point specification, the

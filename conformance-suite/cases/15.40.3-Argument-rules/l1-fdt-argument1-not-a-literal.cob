@@ -4,11 +4,11 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:15.40.3 r1 - "Argument-1 shall be a national or alphanumeric
+      *> ISO §2023:15.40.3 AR1 - "Argument-1 shall be a national or alphanumeric
       *> LITERAL." A PIC X(15) data item holding the very same characters is
       *> of the right CATEGORY and still is not a literal, which is the half
-      *> of r1 a class screen cannot see. It matters because §2023:15.40.3 r2's
-      *> combined-format screen and §2023:15.40.3 r6's zone screen are both
+      *> of r1 a class screen cannot see. It matters because §2023:15.40.3 AR2's
+      *> combined-format screen and §2023:15.40.3 AR6's zone screen are both
       *> decided at BIND time from the literal's content - a data item defers
       *> both to run time, where §2023:15.40.2's own format offers no place to
       *> report them.

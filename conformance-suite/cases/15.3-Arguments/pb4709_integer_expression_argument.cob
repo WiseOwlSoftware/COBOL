@@ -6,7 +6,7 @@
 *> portable: unverified
 *>---
       *> PB4709 - ISO §2023:15.7.1 (cite.py --check 15.7.1 OK): "The type of this function depends on the argument type as follows: Integer
-      *> -> Integer, Numeric -> Numeric", and §2023:15.3 item 6 (cite.py --check 15.3 OK): an Integer argument is "an arithmetic expression
+      *> -> Integer, Numeric -> Numeric", and §2023:15.3 AR6 (cite.py --check 15.3 OK): an Integer argument is "an arithmetic expression
       *> that will always result in an integer value or an integer data item". So ABS, MAX and MIN over an arithmetic expression that
       *> ALWAYS results in an integer - not only a bare integer item, a literal or a parenthesized one (pb4635_parenthesized_numeric_
       *> arguments) - are INTEGER functions, and an integer position may hold them. FACTORIAL's argument-1 "shall be an integer greater

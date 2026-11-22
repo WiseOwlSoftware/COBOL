@@ -23,7 +23,7 @@
       *>   §2002:14.6.4 sets EC-SIZE-TRUNCATION, a fatal condition;
       *>   checking is on and D1 names it, so §2002:14.5.12.1.2 item 2
       *>   executes D1. CALLER-DECL - D1's EXIT PROGRAM RAISING LAST
-      *>   ends G2EXT02S (§2002:14.8.13.3 GR6); by §2002:14.8.13.3 GR3c1
+      *>   ends G2EXT02S (§2002:14.8.13.3 GR6); by §2002:14.8.13.3 GR3c.1
       *>   the raised EC-SIZE-TRUNCATION "is set to exist in the
       *>   activating runtime element", where checking is on (the TURN
       *>   before the CALL), so the caller's DC runs and its STOP RUN

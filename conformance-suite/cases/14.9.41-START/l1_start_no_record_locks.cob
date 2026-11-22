@@ -15,7 +15,7 @@
       *> any READ statement is executed."
       *>   AREAD   FA reads BBB200 -> '00', and by GR4 now holds its
       *>           lock.
-      *>   BLOCKED FB reads the same record -> '51' (§2023:9.1.13.8 item 1,
+      *>   BLOCKED FB reads the same record -> '51' (§2023:9.1.13.8 GR1,
       *>           "an attempt to access a record that is currently
       *>           locked by another file connector"). This line makes
       *>           the three that follow meaningful: without it a

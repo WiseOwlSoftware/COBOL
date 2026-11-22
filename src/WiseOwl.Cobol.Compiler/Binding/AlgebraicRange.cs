@@ -7,19 +7,19 @@ namespace WiseOwl.Cobol.Binding;
 
 /// <summary>The extreme values ONE data description permits, rendered as decimal literal TEXT.</summary>
 /// <param name="Farthest">The POSITIVE algebraic value of greatest finite magnitude the description permits —
-/// ISO §2023:15.43.4 r2 ("the positive algebraic value of greatest finite magnitude that may be represented in
-/// argument-1") and §2023:14.9.39.4 GR32 a) ("the value farthest away from zero permitted by the specifications of
+/// ISO §2023:15.43.4 RV2 ("the positive algebraic value of greatest finite magnitude that may be represented in
+/// argument-1") and §2023:14.9.39.4 GR32a ("the value farthest away from zero permitted by the specifications of
 /// identifier-14") name the same quantity.</param>
 /// <param name="FarthestNegative">The NEGATIVE value of greatest finite magnitude, or <c>null</c> when the
 /// description cannot represent a sign at all. ⚠ It is NOT always <c>-Farthest</c>: a two's-complement container
 /// reaches one further down (<c>PIC S9(4) COMP-5</c> spans −32768..32767 — DOC-A.1-208; BINARY-SHORT likewise,
-/// §2023:13.18.60.4 GR12 / DOC-A.1-206), which is exactly the asymmetry §2023:14.9.39.3 SR31 a) makes the SIGN phrase
+/// §2023:13.18.60.4 GR12 / DOC-A.1-206), which is exactly the asymmetry §2023:14.9.39.3 SR31a makes the SIGN phrase
 /// mandatory for.</param>
-/// <param name="Nearest">The nonzero value NEAREST to zero the description permits — §2023:15.83.4 r2's "smallest
+/// <param name="Nearest">The nonzero value NEAREST to zero the description permits — §2023:15.83.4 RV2's "smallest
 /// algebraic value that may represent the difference between two values represented in argument-1" and
-/// §2023:14.9.39.4 GR36 a)'s "the nonzero value nearest to zero permitted by the specifications of identifier-14".
+/// §2023:14.9.39.4 GR36a's "the nonzero value nearest to zero permitted by the specifications of identifier-14".
 /// Always a POSITIVE magnitude; a caller wanting the negative one prefixes the sign. <c>null</c> for a
-/// FLOATING-POINT numeric-edited picture, and deliberately so: no rule in the standard asks for it (§2023:15.83.3 r1
+/// FLOATING-POINT numeric-edited picture, and deliberately so: no rule in the standard asks for it (§2023:15.83.3 AR1
 /// admits category numeric ONLY, and §2023:14.9.39.3 SR31 likewise), so deriving one here would be a lookup nothing
 /// reads and therefore nothing has ever contradicted (feedback_a_dead_lookup_is_also_unverified). A future
 /// caller derives it from §2023:13.18.40.4 GR13's significand normalization, which is the part this would have to
@@ -44,7 +44,7 @@ internal readonly record struct AlgebraicRange(string Farthest, string? Farthest
 /// down twice, and the two copies would disagree the first time a usage's capacity discipline changed
 /// (feedback_one_rule_one_place).
 /// <para>⚠ WHAT THIS DOES NOT DO. The two surfaces have DIFFERENT SCREENS and each keeps its own: §2023:15.43.3 /
-/// §2023:15.58.3 / §2023:15.83.3 r1's data-item/category rules and r2/r3's arithmetic-mode usage bars, plus the §15.x.4 r1
+/// §2023:15.58.3 / §2023:15.83.3 AR1's data-item/category rules and r2/r3's arithmetic-mode usage bars, plus the §15.x.4 r1
 /// well-formedness test, belong to the intrinsics; §2023:14.9.39.3 SR31/SR32 belong to the statement. This is the
 /// VALUE only, and every caller screens before it asks. §2023:15.43.1 is explicit that the two differ — "The content
 /// of any numeric data item can be set exactly to the highest algebraic value permitted for it using the SET
@@ -66,7 +66,7 @@ internal static class AlgebraicRanges
 
         // ── Standard / native floating-point USAGES (§2023:13.18.60.4 GR13–GR18) ────────────────────────────────
         // The extremes are properties of the CARRIER this implementation maps the usage onto (PicInfo.ClrType),
-        // which is what §2023:15.43.4 r2's "represented in argument-1" and GR32 a)'s "permitted by the specifications
+        // which is what §2023:15.43.4 RV2's "represented in argument-1" and GR32 a)'s "permitted by the specifications
         // of identifier-14" both denote. Every float usage is signed, so FarthestNegative is always the mirror.
         if (pic.IsFloat)
         {
@@ -102,7 +102,7 @@ internal static class AlgebraicRanges
         if (edited && pic.LocaleEdit is not null)
         {
             // A format-2 (LOCALE) picture (§2023:13.18.40 format 2; kb/Work PB64 T6): capacity = the Z+9 digit
-            // positions at the picture's scale; signable = a '+' in character-string-1 (§2023:13.18.40.5 r13).
+            // positions at the picture's scale; signable = a '+' in character-string-1 (§2023:13.18.40.5 GR13).
             scale = pic.Scale;
             unscaled = Pow10(pic.DigitPositions) - 1;
             signable = pic.Signed;
@@ -110,7 +110,7 @@ internal static class AlgebraicRanges
         else if (edited)
         {
             // The EDITING rules travel with the mask: a FLOATING extended editing sign control symbol's
-            // repetitions are digit positions (§2023:13.18.40.5 rule 6), so the capacity is wrong without them
+            // repetitions are digit positions (§2023:13.18.40.5 GR6), so the capacity is wrong without them
             // (kb/Work PB491).
             var (cap, frac) = WiseOwl.Cobol.Runtime.CobolEdit.MaskCapacity(pic.EditMask!,
                 pic.EditingRules as WiseOwl.Cobol.Runtime.CobolEdit.EditRule[], '$', decimalPointIsComma);
@@ -122,7 +122,7 @@ internal static class AlgebraicRanges
         {
             // ⛔ Keyed on the ONE capacity-discipline datum (PicInfo.Truncation), never on a usage list: the
             // item owns its container's FULL two's-complement range (COMP-5: DOC-A.1-208; BINARY-*: §2023:13.18.60.4
-            // GR12), the shape whose |min| ≠ |max| makes §2023:14.9.39.3 SR31 a) demand the SIGN phrase.
+            // GR12), the shape whose |min| ≠ |max| makes §2023:14.9.39.3 SR31a demand the SIGN phrase.
             // AlgebraicFoldContainerAgreementTests pins this bound against the runtime capacity for every
             // BinaryCapacity profile.
             scale = pic.Scale;
@@ -147,7 +147,7 @@ internal static class AlgebraicRanges
             farthest,
             signable ? Decimalize(unscaled, scale, negative: true) : null,
             // The smallest positive increment 10^(−scale) — independent of digit count, sign and container
-            // (§2023:15.83.4 r2; §2023:14.9.39.4 GR36 a).
+            // (§2023:15.83.4 RV2; §2023:14.9.39.4 GR36a).
             Decimalize(BigInteger.One, scale, negative: false),
             Decimalize(BigInteger.Zero, scale, negative: false));
     }
@@ -190,7 +190,7 @@ internal static class AlgebraicRanges
     /// for any other expression.</summary>
     internal static int? CounterRegisterDigits(Bound.BoundExpr e) => DescribeCounter(e)?.Pic.Digits;
 
-    /// <summary>The register's size in BYTES — what FUNCTION LENGTH / BYTE-LENGTH report (§2023:15.50.4 r3 / §2023:15.14.4 r1):
+    /// <summary>The register's size in BYTES — what FUNCTION LENGTH / BYTE-LENGTH report (§2023:15.50.4 RV3 / §2023:15.14.4 RV1):
     /// one byte per digit for LINAGE-COUNTER's DISPLAY item, 4 for LINE-/PAGE-COUNTER's 32-bit binary one.
     /// <c>null</c> for any other expression.</summary>
     internal static int? CounterRegisterByteLength(Bound.BoundExpr e) => DescribeCounter(e) is { Pic: var pic }
@@ -264,7 +264,7 @@ internal static class AlgebraicRanges
     /// every function under a standard arithmetic mode): the SDIDI's own extremes, the same text
     /// <see cref="ArithmeticModes.IntermediateExtremes"/> states for that form.</item>
     /// <item>otherwise the NOMINAL returned-value item (<c>SendingValueTemp</c>): S9(30) for an INTEGER function
-    /// (§2023:15.2 item 5 — "no digits to the right of the decimal point", so its nearest nonzero value is 1), and
+    /// (§2023:15.2 GR5 — "no digits to the right of the decimal point", so its nearest nonzero value is 1), and
     /// S9(21)V9(9) for a NUMERIC function. It is nominal because the temporary DISPLAY shows and LENGTH measures
     /// (<c>FunctionValueField</c>, kb/Work PB3951) has a description that follows the function and its value, so no
     /// one item's extremes exist to read.</item>

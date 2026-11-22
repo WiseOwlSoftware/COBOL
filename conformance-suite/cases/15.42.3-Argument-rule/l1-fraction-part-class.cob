@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:15.42.3 r1 — "Argument-1 shall be of the class numeric."
+      *> ISO §2023:15.42.3 AR1 — "Argument-1 shall be of the class numeric."
       *>
       *> WS-X below is a data item described PIC X(4), which §2023:8.5.2.1 Table 2 (Class and category
       *> relationships for elementary data items) puts in class ALPHANUMERIC, and §2023:15.3's argument type 10

@@ -58,7 +58,7 @@ public sealed class DefineParameterValueTests
     [InlineData("\"abc\"", nameof(ParameterValueForm.QuotedLiteral))]
     [InlineData("'abc'", nameof(ParameterValueForm.QuotedLiteral))]
     [InlineData("\"\"", nameof(ParameterValueForm.QuotedLiteral))]
-    [InlineData("\"a\"\"b\"", nameof(ParameterValueForm.QuotedLiteral))]   // §2023:8.3.3.2.3 3): a doubled quotation symbol is content
+    [InlineData("\"a\"\"b\"", nameof(ParameterValueForm.QuotedLiteral))]   // §2023:8.3.3.2.3 SR3: a doubled quotation symbol is content
     [InlineData("\"it's\"", nameof(ParameterValueForm.QuotedLiteral))]     // the other quotation symbol is content too
     [InlineData("\"", nameof(ParameterValueForm.NoValue))]
     [InlineData("\"abc", nameof(ParameterValueForm.NoValue))]

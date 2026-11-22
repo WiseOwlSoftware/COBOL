@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// The ONE scaled-value→double conversion (kb/Work PB115): <c>CobolFloat.ScaledToDouble</c> must return the
 /// CORRECTLY-ROUNDED double of <c>unscaled × 10^(−scale)</c>. The defect it replaced: the emit lane divided by a
 /// repeated-multiplication 10^scale (one ulp low at scale ≥ 23), so a LEGAL <c>ASIN(|x| ≤ 1)</c> argument
-/// (§2023:15.10.3 r2) arrived above 1.0 and evaluated NaN; <c>CobolDec.ToDouble</c> failed independently through
+/// (§2023:15.10.3 AR2) arrived above 1.0 and evaluated NaN; <c>CobolDec.ToDouble</c> failed independently through
 /// <c>Math.Pow</c>. The oracle here is the IEEE-correct decimal parse — the conversion's own definition.
 /// </summary>
 public sealed class ScaledToDoubleTests

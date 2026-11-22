@@ -64,7 +64,7 @@ public sealed class SortMergeRecordSizeTests
         errors.Count(e => e.Contains("COBOL1757", StringComparison.Ordinal) && e.Contains(rule, StringComparison.Ordinal));
 
     // (SD, USING files, GIVING) → the rule that must refuse it, or null when the statement is legal.
-    // Sizes are in bytes; the key (two bytes) always lies inside the SD's smallest record (§2023:14.9.40.3 SR6 g).
+    // Sizes are in bytes; the key (two bytes) always lies inside the SD's smallest record (§2023:14.9.40.3 SR6g).
     [Theory]
     // SORT, USING bounded by the SD (SR5)
     [InlineData(false, null, 6, new[] { 7 }, null, 8, "§2023:14.9.40.3 SR5")]      // fixed SD 6, USING 7 > 6

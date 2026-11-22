@@ -21,7 +21,7 @@
       *>  14.9.41.4 GR17 / GR9 — START positions the indicator at the first record whose key satisfies the
       *>    comparison; a later READ NEXT makes that record available.                         (P4A, P4B)
       *>
-      *> EDITIONS.  Rule d) 3 IS THE 2023 RULE; at 2002 the text is §2002:14.8.29.3 GR18c2 and §2002:14.8.26.3 GR12: OPEN sets the file position
+      *> EDITIONS.  Rule d) 3 IS THE 2023 RULE; at 2002 the text is §2002:14.8.29.3 GR18c.2 and §2002:14.8.26.3 GR12: OPEN sets the file position
       *> indicator to "the characters that have the lowest ordinal position in the collating sequence", and a
       *> PREVIOUS selects "the first existing record ... whose record number or key value is less than or equal to
       *> the file position indicator".  No key here is that low, so P1 is the at end condition, '10' (the

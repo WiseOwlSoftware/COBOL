@@ -25,7 +25,7 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 /// (<c>NX"…"</c>) hexadecimal digits, §2023:8.3.3.4.3 SR3 (<c>BX"…"</c>) a hexadecimal digit, §2023:8.3.3.4.3 SR2
 /// (<c>B"…"</c>) '0' or '1' (<see cref="CobolLiteral.RepertoireViolation"/> → <c>COBOL2630</c>). The lexer delimits
 /// a prefixed literal whatever its content (kb/Work PB1441), so this screen is the only place the rule is asked.</item>
-/// <item>the SIGN rule — §2023:8.3.3.3.2 2), a numeric literal's sign is its leftmost character — over the two grammar
+/// <item>the SIGN rule — §2023:8.3.3.3.2 SR2, a numeric literal's sign is its leftmost character — over the two grammar
 /// rules that parse a sign as a separate token (<c>signedNumericLiteral</c>, <c>signedIntegerLiteral</c>): a sign
 /// separated from its digits is refused (<c>COBOL2155</c>; kb/Work PB1445). Not a token rule, but a rule of the
 /// literal as written, so it rides the same walk and every future signed slot is screened with no arm.</item>
@@ -33,7 +33,7 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 /// fixed-point numeric literals of 1 through 31 digits in length", the edition's <see cref="EditionInfo.MaxDigits"/>
 /// (<see cref="EditionInfo.DigitCapacityExcess"/> → <c>COBOL0801</c> / <c>COBOL0802</c>; kb/Work PB5529), asked of the
 /// literal NODE (<see cref="NumericLiteralOf"/>) because a comma-decimal literal is several tokens.</item>
-/// <item>the CLOSING DELIMITER — a literal its line ends inside, not continued (§2023:6.3.5 1), §2023:6.4.2;
+/// <item>the CLOSING DELIMITER — a literal its line ends inside, not continued (§2023:6.3.5 SR1), §2023:6.4.2;
 /// <see cref="ReportUnterminated(IEnumerable{IToken}, Action{IToken, DiagnosticDescriptor, string})"/> →
 /// <c>COBOL5563</c>, kb/Work PB3245). Asked of the TOKENS before the parse rather than by this walk, for the reason given
 /// there.</item>
@@ -162,7 +162,7 @@ public static class LiteralScreen
         return false;
     }
 
-    /// <summary>§2023:8.3.3.3.2 rule 2 over a signed literal slot (kb/Work PB1445, generalizing PB553's one screened slot):
+    /// <summary>§2023:8.3.3.3.2 SR2 over a signed literal slot (kb/Work PB1445, generalizing PB553's one screened slot):
     /// the sign is the literal's leftmost character only when it ABUTS the digits — the ONE contiguity test,
     /// <see cref="ArithmeticFormationRules.SignAbuts"/>. A separated sign makes two things of one: <c>MOVE - 5 TO A</c>
     /// is refused, where <c>-5</c> is the literal. (<c>IF A = - 5</c> never reaches here: a relation operand is an
@@ -199,7 +199,7 @@ public static class LiteralScreen
         return false;
     }
 
-    /// <summary>⛔ THE FLOATING-POINT NUMERIC LITERAL — ISO §2023:8.3.3.3.3 1), "formed from two fixed-point numeric literals
+    /// <summary>⛔ THE FLOATING-POINT NUMERIC LITERAL — ISO §2023:8.3.3.3.3 SR1, "formed from two fixed-point numeric literals
     /// separated by the letter 'E'", a COBOL-2002 introduction (<see cref="Constructs.FloatingPointLiteral2002"/>; VCR
     /// row 7.37, kb/Work PB674): asked of the TOKEN (<see cref="LiteralTokens.FloatingPointTypes"/>), position-blind, so a
     /// COMPUTE operand, a MOVE source, a VALUE, a relation operand, a FUNCTION argument, a subscript and a CALL argument
@@ -216,7 +216,7 @@ public static class LiteralScreen
 
     /// <summary>⛔ THE LITERAL ITS LINE ENDS INSIDE (kb/Work PB3245) — every token of <paramref name="tokens"/> that is a
     /// delimited literal with no closing delimiter (<see cref="CobolLiteral.IsUnterminated"/>), reported once each to
-    /// <paramref name="report"/> under COBOL5563. True when there is none. ISO §2023:6.3.5 1) and §2023:6.4.2 let a literal stay open
+    /// <paramref name="report"/> under COBOL5563. True when there is none. ISO §2023:6.3.5 SR1 and §2023:6.4.2 let a literal stay open
     /// at the end of a line only when a continuation line continues it, and the reference-format stage has joined every
     /// one that was; the lexer makes the rest the literal's own token (CobolLexer.g4 STR_BODY).
     /// <para>⚠ ASKED OF THE TOKENS, BEFORE THE PARSE, AND NOT BY <see cref="Run"/>: an unterminated literal is often why

@@ -8,7 +8,7 @@
       *> §2002:14.8.21.3 GR20 - identifier-4, identifier-6 or
       *> identifier-7 of a CONVERTING occupying the storage of
       *> identifier-1: "the result of the execution of this statement is
-      *> undefined" (also §2002:B.2 item 22 f), §2002:3.3). Every
+      *> undefined" (also §2002:B.2 item 22f, §2002:3.3). Every
       *> line pins the DOCUMENTED IMPLEMENTOR CHOICE
       *> docs/conformance/3.1/D-INS4
       *> (kb/Work PB1907): the sets and delimiter are taken when the

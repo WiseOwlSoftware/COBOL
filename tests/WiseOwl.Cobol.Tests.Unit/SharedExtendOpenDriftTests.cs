@@ -12,7 +12,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ⛔ AN <c>OPEN</c> HAS ONLY I-O STATUSES AS OUTCOMES — never an escaping exception (kb/Work PB713).
 /// ISO §2023:14.9.27.4 GR1 makes every OPEN <i>"cause the value of the I-O status associated with file-name-1 to be
 /// updated to one of the values in 9.1.13"</i>, §2023:14.9.27.4 GR25 makes an unsuccessful one leave <i>"the file … not
-/// affected"</i>, and §2023:9.1.13.6 item 1 gives the residual host failure its value ('30'). §2023:9.1.15 says which
+/// affected"</i>, and §2023:9.1.13.6 GR1 gives the residual host failure its value ('30'). §2023:9.1.15 says which
 /// opens are ALLOWED — <i>"the sharing with all other mode allows concurrent access to a physical file through
 /// other file connectors specifying input, I-O, or extend mode"</i> — and it puts the gate on the FILE
 /// CONNECTORS and §2023:14.9.27.4 Table 19, not on the operating environment's handle.
@@ -37,7 +37,7 @@ public sealed class SharedExtendOpenDriftTests
     /// <summary>How a connector comes to be opened under §2023:9.1.15 sharing. The first two carry a LOCK MODE clause,
     /// so they are record-locking participants (<c>FileRegistry.RecordLocksSetUnder</c>, which is what
     /// <c>FileConnector.SharedPhysical</c> — the gate the EXTEND write-base seeding reads — is derived from); the
-    /// third has none, sets no record locks (§2023:12.4.5.9.4 GR1 b) 1.) and is a non-participant
+    /// third has none, sets no record locks (§2023:12.4.5.9.4 GR1b.1) and is a non-participant
     /// (<c>RecordLockingParticipationDriftTests</c>, kb/Work PB3372), so only its OPEN and append are asserted.
     /// (The OS share mode is NOT derived from it: that is the §2023:9.1.15 file lock, and
     /// <c>FileLockPosture</c> takes it from the arbitrated sharing MODE and the admitted connector set —
@@ -53,7 +53,7 @@ public sealed class SharedExtendOpenDriftTests
         /// entry; the LOCK MODE clause is what §2023:14.9.27.3 SR8 requires beside an ALL phrase). The file control
         /// entry registers a null sharing mode (kb/Work PB322); on its own a LOCK MODE clause is not a sharing
         /// specification, so without the phrase the connector would be NO OTHER while open for output, I-O or
-        /// extend and its record locks would be ignored (§2023:9.1.15 1)).</summary>
+        /// extend and its record locks would be ignored (§2023:9.1.15 GR1).</summary>
         LockModeAndAllOtherPhrase,
 
         /// <summary>No file-control clause at all; the OPEN statement itself carries the SHARING phrase
@@ -185,7 +185,7 @@ public sealed class SharedExtendOpenDriftTests
     /// <para>A green here with a broken seed is impossible in the direction that matters: a base of 0 would lock
     /// ordinal 1, which the assertions below reject explicitly rather than by omission.</para>
     /// <para>⛔ ONLY THE TWO LOCK-MODE-BEARING SPELLINGS APPEAR, and the omission is a fact about the standard
-    /// rather than a convenience: §2023:12.4.5.9.4 GR1 b) 2. makes a connector with no LOCK MODE clause take the implementor
+    /// rather than a convenience: §2023:12.4.5.9.4 GR1b.2 makes a connector with no LOCK MODE clause take the implementor
     /// default, which for WiseOwl COBOL is no record locking, so a <see cref="Spelling.OpenPhrase"/> connector sets
     /// no lock and its write ordinal has no observable at all. Asserting over it would assert the absence of a
     /// lock that the standard never asked for. Its OPEN and its append are still covered, by

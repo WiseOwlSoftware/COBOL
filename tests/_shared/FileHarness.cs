@@ -222,7 +222,7 @@ public static partial class FileHarness
 
     /// <summary>Tear <paramref name="host"/>'s store: every page that carries <paramref name="record"/>'s bytes gets one
     /// byte flipped, so its checksum fails at the next read and the engine answers the record statement with the
-    /// permanent error '30' (§2023:9.1.13.6 item 1; 2.2.1.6 R3). Scans every page from the first: a record image is never in
+    /// permanent error '30' (§2023:9.1.13.6 GR1; 2.2.1.6 R3). Scans every page from the first: a record image is never in
     /// a meta page. Returns the number of pages torn, and fails the test when it is none (the record was not found).</summary>
     public static int TearPagesCarrying(string host, ReadOnlySpan<byte> record)
     {

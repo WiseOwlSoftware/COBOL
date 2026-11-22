@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:15.16.3 r2 FUNCTION CHAR-NATIONAL - "The value of argument-1 shall be greater than zero and less
+      *> ISO §2023:15.16.3 AR2 FUNCTION CHAR-NATIONAL - "The value of argument-1 shall be greater than zero and less
       *> than or equal to the number of positions in the national program collating sequence." This is the
       *> NATIVE arm; the non-native (ALPHABET ... FOR NATIONAL) arm is a SEPARATE runtime body and is pinned by
       *> l1_char_national_also_positions - one rule, two dispatch arms, both measured.
@@ -15,12 +15,12 @@
       *> collating sequence". The native national character set is the 65 536 UTF-16
       *> code units, one code unit per character position - §2023:8.5.1.4: "Each two-octet code element of UTF-16 is
       *> treated in COBOL as though it were itself a character" (the CONFORMANCE.md item 188 determination) - so
-      *> the sequence has 65 536 positions and §2023:15.16.3 r2's window is 1 .. 65 536.
-      *> §2023:15.16.4 r1 puts the character of ordinal position n at code unit n-1.
+      *> the sequence has 65 536 positions and §2023:15.16.3 AR2's window is 1 .. 65 536.
+      *> §2023:15.16.4 RV1 puts the character of ordinal position n at code unit n-1.
       *>
       *> THE ORACLE. FUNCTION DISPLAY-OF is the alphanumeric<->national character correspondence, not a
-      *> collating sequence (§2023:15.26.4 r1; CONFORMANCE.md item 33 - the total UTF-16 identity), and with no
-      *> ALPHABET the alphanumeric program collating sequence is native (§2023:12.3.6.4 GR10 again), so by §2023:15.70.4 r1
+      *> collating sequence (§2023:15.26.4 RV1; CONFORMANCE.md item 33 - the total UTF-16 identity), and with no
+      *> ALPHABET the alphanumeric program collating sequence is native (§2023:12.3.6.4 GR10 again), so by §2023:15.70.4 RV1
       *> read with §2023:15.70.1's "The lowest ordinal position is 1", FUNCTION ORD of the converted character is its
       *> code unit + 1. Nothing wide is ever DISPLAYed.
       *>

@@ -13,7 +13,7 @@ public enum BareOperandForm
     /// <summary>A plain value operand — an identifier, a literal or an arithmetic expression.</summary>
     Value = 0,
 
-    /// <summary>A level-88 condition-name, which IS a complete condition (ISO §2023:8.8.4.2.7 rule 2).</summary>
+    /// <summary>A level-88 condition-name, which IS a complete condition (ISO §2023:8.8.4.2.7 GR2).</summary>
     ConditionName = 1,
 
     /// <summary>A switch-status condition-name declared in SPECIAL-NAMES, which IS a complete condition

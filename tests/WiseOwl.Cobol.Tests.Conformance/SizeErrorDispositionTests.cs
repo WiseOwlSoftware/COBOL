@@ -132,7 +132,7 @@ public sealed class SizeErrorDispositionTests
 
     /// <summary>kb/Work PB1605 — the ZERO DIVISOR over every value lane and every divide shape. §2023:14.7.5 case 2 is the
     /// size error condition wherever a divisor is zero, and no-phrase rule 2 sets EC-SIZE-ZERO-DIVIDE; with checking
-    /// not enabled §2023:14.6.13.1.3 item 8 hands the disposition to the implementor, and CONFORMANCE.md DOC-A.1-70's is
+    /// not enabled §2023:14.6.13.1.3 GR8 hands the disposition to the implementor, and CONFORMANCE.md DOC-A.1-70's is
     /// that a quotient which cannot be formed has no value to store: the run unit terminates abnormally naming the
     /// condition, exit 1. <c>ARITHMETIC</c> is the lane switch — native (the scaled Int128 carrier, and binary64
     /// wherever a FLOAT-LONG operand or receiver is present) or STANDARD-DECIMAL (the SDIDI intermediate, which
@@ -201,7 +201,7 @@ public sealed class SizeErrorDispositionTests
 
     /// <summary>kb/Work PB3869 (retired) — a statement written with ONLY a NOT ON SIZE ERROR phrase meets a zero divisor
     /// with checking off. §2023:14.7.5 sends it to the no-phrase rules ("If a NOT SIZE ERROR phrase is specified, it is
-    /// ignored"), which end in §2023:14.6.13.1.3 item 8: the implementor defines whether execution continues and how the
+    /// ignored"), which end in §2023:14.6.13.1.3 GR8: the implementor defines whether execution continues and how the
     /// receivers are affected. CONFORMANCE.md DOC-A.1-70 follows GnuCOBOL there (CLAUDE.md rule 1): a statement carrying a
     /// SIZE ERROR or a NOT SIZE ERROR phrase leaves every resultant unchanged and continues, and the NOT imperative does
     /// not run. A (VALUE 7), R (VALUE 9) and FR (VALUE 9) are displayed as their initial values.</summary>
@@ -223,7 +223,7 @@ public sealed class SizeErrorDispositionTests
 
     /// <summary>kb/Work PB3869 (retired) — the same NOT-only statement over a RESULT past its receiver, checking off, on
     /// every receiver store (fixed-point, edited, float) and both value lanes. DOC-A.1-70's determination for a statement
-    /// carrying a NOT SIZE ERROR phrase (§2023:14.6.13.1.3 item 8, following GnuCOBOL, whose COMP-5 / COMP-X / COMP-N exemption is its own error, kb/Work PB3989): the
+    /// carrying a NOT SIZE ERROR phrase (§2023:14.6.13.1.3 GR8, following GnuCOBOL, whose COMP-5 / COMP-X / COMP-N exemption is its own error, kb/Work PB3989): the
     /// resultant keeps its value and the
     /// NOT imperative is skipped; a result that fits lands and the imperative runs (§2023:14.7.5's closing paragraph). A holds
     /// 7 and E holds 0 before each statement; the displays are the verdict.</summary>
@@ -242,10 +242,10 @@ public sealed class SizeErrorDispositionTests
     [InlineData("NATIVE", "COMPUTE A = FL * 400", "A=007 E=  0 R=0 F=-")]
     [InlineData("NATIVE", "COMPUTE A = FL * 2", "A=010 E=  0 R=0 F=N")]
     [InlineData("NATIVE", "COMPUTE FR = FL * 2", "A=007 E=  0 R=0 F=N")]
-    // §2023:14.9.12.4 6) c): the remainder is a resultant too; 59 / 30 leaves 29, past PIC 9, so R keeps 0 and NOT is skipped.
+    // §2023:14.9.12.4 GR6c: the remainder is a resultant too; 59 / 30 leaves 29, past PIC 9, so R keeps 0 and NOT is skipped.
     [InlineData("NATIVE", "DIVIDE 59 BY 30 GIVING A REMAINDER R", "A=001 E=  0 R=0 F=-")]
     [InlineData("NATIVE", "DIVIDE 66 BY 30 GIVING A REMAINDER R", "A=002 E=  0 R=6 F=N")]
-    // §2023:14.9.12.4 6) c) after a QUOTIENT size error (kb/Work PB3975): 4003 / 2 = 2001 is past PIC 9(3), so A keeps 7 and,
+    // §2023:14.9.12.4 GR6c after a QUOTIENT size error (kb/Work PB3975): 4003 / 2 = 2001 is past PIC 9(3), so A keeps 7 and,
     // the NOT-only statement keeping every receiver as the ON phrase does (PB3989), no remainder is stored (R keeps 0).
     [InlineData("NATIVE", "DIVIDE 4003 BY 2 GIVING A REMAINDER R", "A=007 E=  0 R=0 F=-")]
     [InlineData("STANDARD-DECIMAL", "DIVIDE 4003 BY 2 GIVING A REMAINDER R", "A=007 E=  0 R=0 F=-")]
@@ -276,10 +276,10 @@ public sealed class SizeErrorDispositionTests
     }
 
     /// <summary>kb/Work PB3990 — ROUNDED MODE IS PROHIBITED in a statement with NO SIZE ERROR phrase and checking off.
-    /// §2023:14.7.4.3 rule 7: "If the PROHIBITED phrase is specified, and the arithmetic value cannot be represented exactly
+    /// §2023:14.7.4.3 GR7: "If the PROHIBITED phrase is specified, and the arithmetic value cannot be represented exactly
     /// in the resultant identifier, the EC-SIZE-TRUNCATION exception condition is set to exist, the size error condition
     /// exists, and the content of the resultant identifier is unchanged" — and with checking off execution continues
-    /// (§2023:14.6.13.1.3 item 8, DOC-A.1-70; GnuCOBOL 3.2 prints the same). Every receiver usage and category, every final
+    /// (§2023:14.6.13.1.3 GR8, DOC-A.1-70; GnuCOBOL 3.2 prints the same). Every receiver usage and category, every final
     /// transfer (a lone value, an outermost quotient and product, an in-place sum, a float sender), both value lanes:
     /// the receiver holds 7 before the statement, keeps it on an inexact value, and lands an exact one; a value only
     /// TOO BIG (exact) takes the no-phrase low-order digits; the run continues to the DISPLAY. Expected values are

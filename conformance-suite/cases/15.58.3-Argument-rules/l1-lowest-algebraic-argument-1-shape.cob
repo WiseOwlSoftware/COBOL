@@ -15,7 +15,7 @@
       *>       because §2023:8.5.2.12 items 6/7 put "a numeric function" and "an integer function" in category
       *>       numeric, so the category half alone would admit exactly what the second half forbids.
       *> ⚠ TWO-ARM NOTE: conformance:cases/15.43.3-Argument-rules/algebraic-udf-argument pins (d) for the HIGHEST-ALGEBRAIC twin
-      *> (§2023:15.43.3 r1) only. The LOWEST-ALGEBRAIC arm of the same rule had no fixture of its own.
+      *> (§2023:15.43.3 AR1) only. The LOWEST-ALGEBRAIC arm of the same rule had no fixture of its own.
       *> The ADMIT side is conformance:cases/15.58.3-Argument-rules/l1_lowest_algebraic_value_rule (one numeric and two
       *> numeric-edited arguments folding), so a compiler that refused every argument would fail there while
       *> passing here.

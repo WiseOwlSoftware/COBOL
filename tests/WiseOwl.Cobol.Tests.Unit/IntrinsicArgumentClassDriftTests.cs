@@ -564,11 +564,11 @@ public sealed class IntrinsicArgumentClassDriftTests
     /// <remarks>
     /// <para>
     /// ⛔ EVERY cross clause in the catalogue is CLASS-worded, which is what makes this assertion total rather
-    /// than per-function: §2023:15.37.3 r2 makes argument-2 "a data item or literal of either class alphabetic or
-    /// alphanumeric", §2023:15.96.3 r2 makes it "a single character that is either class alphabetic or class
-    /// alphanumeric", §2023:15.87.3 r2 says it per argument-2/argument-3 pair, §2023:15.59.3 r2 / §2023:15.63.3 r2 / §2023:15.71.3 r3 /
-    /// §2023:15.72.3 r3 say "All arguments shall be of the same class", §2023:15.68.3 r2 says "of the same class as
-    /// argument-1" — even though its own r1 is category-worded — and §2023:15.48.3 r3 / §2023:15.79.3 r3 / §2023:15.92.3 r2's
+    /// than per-function: §2023:15.37.3 AR2 makes argument-2 "a data item or literal of either class alphabetic or
+    /// alphanumeric", §2023:15.96.3 AR2 makes it "a single character that is either class alphabetic or class
+    /// alphanumeric", §2023:15.87.3 AR2 says it per argument-2/argument-3 pair, §2023:15.59.3 AR2 / §2023:15.63.3 AR2 / §2023:15.71.3 AR3 /
+    /// §2023:15.72.3 AR3 say "All arguments shall be of the same class", §2023:15.68.3 AR2 says "of the same class as
+    /// argument-1" — even though its own r1 is category-worded — and §2023:15.48.3 AR3 / §2023:15.79.3 AR3 / §2023:15.92.3 AR2's
     /// "the same type as argument-1" is read as the class. So a screen may MERGE two Table-2 classes (§2023:15.59.3
     /// r2's own alphabetic/alphanumeric exception) but may never SPLIT one.
     /// </para>
@@ -629,7 +629,7 @@ public sealed class IntrinsicArgumentClassDriftTests
     /// <remarks>
     /// ⚠ THERE IS NO CATEGORY-WORDED KIND, AND NO EXEMPTION FROM THIS RULE (kb/Work PB658). The one kind that used to
     /// be exempt ('t', the NUMVAL / FORMATTED-* family) was a hand-listed CATEGORY set that admitted the edited items
-    /// its own clauses ("of category alphanumeric or national", §2023:15.68.3 r1) exclude. A category-worded position is
+    /// its own clauses ("of category alphanumeric or national", §2023:15.68.3 AR1) exclude. A category-worded position is
     /// now the derived class set plus an <c>ArgPredicateKind.CharacterCategory</c> predicate, so every kind is a
     /// class set and this closure holds for all of them; a new kind with a literal member list turns this red.
     /// </remarks>
@@ -672,7 +672,7 @@ public sealed class IntrinsicArgumentClassDriftTests
     /// is checked against the specification on every build, so a re-worded or mis-attributed row fails.
     /// </summary>
     /// <remarks>
-    /// Two mechanisms used to answer §2023:15.68.3 r1: the generic string set admitted a numeric-edited item and a bespoke
+    /// Two mechanisms used to answer §2023:15.68.3 AR1: the generic string set admitted a numeric-edited item and a bespoke
     /// IntrinsicBinder arm rejected it for NUMVAL-C alone, so which one bit was an accident of call order, and NUMVAL
     /// and NUMVAL-F (the same category wording) screened nothing finer than the class. The bespoke arm is deleted; the
     /// predicate is the one owner, and this test is what keeps the wording table and the rows in agreement.

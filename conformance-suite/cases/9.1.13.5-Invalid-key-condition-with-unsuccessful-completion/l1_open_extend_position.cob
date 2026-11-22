@@ -34,7 +34,7 @@
       *> whose value is greater than the highest prime record key value
       *> existing in the physical file when it was opened", else the
       *> WRITE "is unsuccessful, the invalid key condition exists, and
-      *> the I-O status … is set to '21'" (§2023:9.1.13.5 item 1). K008 is
+      *> the I-O status … is set to '21'" (§2023:9.1.13.5 GR1). K008 is
       *> accepted; a SECOND extend session then offers K004 as its
       *> FIRST released record and is refused with '21', which is only
       *> possible if that OPEN positioned after K008 — the highest

@@ -42,6 +42,8 @@ internal sealed class LiveProcess : IDisposable
         psi.StandardInputEncoding = new UTF8Encoding(false);
         var process = Process.Start(psi)
                       ?? throw new HarnessNonObservationException($"Process.Start returned null for '{psi.FileName} {psi.Arguments}'");
+        // Dispose's kill runs in this host; a host that dies first must not leave the child running (kb/Work PB5057).
+        HostBoundChildren.Bind(process);
         var live = new LiveProcess(process, $"{psi.FileName} {psi.Arguments}");
         process.ErrorDataReceived += (_, e) => { if (e.Data is not null) lock (live._stderr) live._stderr.AppendLine(e.Data); };
         process.BeginErrorReadLine();

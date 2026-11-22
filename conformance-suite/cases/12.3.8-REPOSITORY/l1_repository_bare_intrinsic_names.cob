@@ -20,7 +20,7 @@
       *> pin one arm of a two-arm rule and leave the permission itself unpinned.
       *>
       *> THE VALUE IS DERIVED ONCE, FROM THE RULES, NOT COPIED FROM A RUN.
-      *> §2023:15.46.4 r1 ("The returned value is in integer date form") and §2023:15.48.4 r1
+      *> §2023:15.46.4 RV1 ("The returned value is in integer date form") and §2023:15.48.4 RV1
       *> ("The returned value is the integer date form equivalent of the date
       *> represented by argument-2 when analyzed according to argument-1") both
       *> resolve through §2023:15.5.2: an integer date form value is "a positive integer

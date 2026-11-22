@@ -12,7 +12,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// of class numeric, object or pointer; §2023:14.9.23.3 SR15 an INVOKE identifier-5 "of class message-tag, numeric, object or
 /// pointer", through a typed receiver and through the predefined NULL alike, kb/Work PB1136); the reason it
 /// gave was not: each screen spelled <c>IntrinsicArgumentRules.Name</c> over <c>ClassOfItem</c> / <c>ClassOf</c>, which
-/// answer "alphanumeric" for a strongly-typed group on §2023:15.3 item 2's FUNCTION-ARGUMENT reading, so the user was told
+/// answer "alphanumeric" for a strongly-typed group on §2023:15.3 AR2's FUNCTION-ARGUMENT reading, so the user was told
 /// the formal or argument was "of class alphanumeric". Each screen now asks <c>IntrinsicArgumentRules.ClassNameOf</c>
 /// (the kb/Work PB1400 spelling). TYPEDEF STRONG is COBOL-2002, and the text is edition-invariant from there; the
 /// header half's 2002/2014/2023 refusals are also the corpus negatives <c>pb3222-by-value-formal-*</c>.

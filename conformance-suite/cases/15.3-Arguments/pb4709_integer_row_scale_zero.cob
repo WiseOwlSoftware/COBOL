@@ -5,8 +5,8 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> PB4709 review round 1 - ISO §2023:15.2 item 5 (cite.py --check 15.2 OK): "An integer function has an operational sign and no digits
-      *> to the right of the decimal point." §2023:15.3 item 6 (cite.py --check 15.3 OK) makes "an arithmetic expression that will always
+      *> PB4709 review round 1 - ISO §2023:15.2 GR5 (cite.py --check 15.2 OK): "An integer function has an operational sign and no digits
+      *> to the right of the decimal point." §2023:15.3 AR6 (cite.py --check 15.3 OK) makes "an arithmetic expression that will always
       *> result in an integer value" an Integer argument, and the §2023:15.7.1 result table (cite.py --check 15.7.1 OK) gives ABS of an
       *> Integer argument the Integer type, as the sibling tables give MAX, MIN, RANGE and SUM. So an argument integral by VALUE but
       *> WRITTEN with fraction digits (I2 + 1.0, 1.5 + 0.5, 4 / 2, I2 ** 2.0, 1.0E0 + I2) selects the Integer row, and the returned

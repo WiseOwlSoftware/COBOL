@@ -12,7 +12,7 @@ namespace WiseOwl.Cobol.Binding.Model;
 /// <c>IX</c> compiled with no §2023:8.4.2.2.3 SR1 ambiguity diagnostic, and the SR6 form that disambiguates it
 /// (<c>IX OF EA</c>) was "not defined". A TYPE referenced twice cloned one index-name onto two tables and was
 /// refused outright (the former COBOL1531 stage) for the same reason.</para></summary>
-/// <param name="Name">The index-name as declared (compared case-insensitively, §2023:8.1.3.2 GR3 a)).</param>
+/// <param name="Name">The index-name as declared (compared case-insensitively, §2023:8.1.3.2 GR3a).</param>
 /// <param name="Table">The OCCURS entry whose INDEXED BY phrase declares it — the first qualifier SR6 admits.</param>
 /// <param name="Cell">The C# <c>long</c> member holding the occurrence number (DESIGN §3.5).</param>
 public sealed record IndexDeclaration(string Name, DataItem Table, string Cell)

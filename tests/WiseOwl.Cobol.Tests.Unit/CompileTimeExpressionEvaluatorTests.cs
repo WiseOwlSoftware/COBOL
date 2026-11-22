@@ -111,7 +111,7 @@ public sealed class CompileTimeExpressionEvaluatorTests
                                            && x.Message.Contains("Table 3", StringComparison.Ordinal));
     }
 
-    /// <summary>The over-rejection guard, and the reason the rule could not be a grammar tier: §2023:8.3.3.3.2 rule 2
+    /// <summary>The over-rejection guard, and the reason the rule could not be a grammar tier: §2023:8.3.3.3.2 SR2
     /// makes a numeric literal "a character-string" whose sign is "the leftmost character of the literal", so a
     /// sign written AGAINST the digits is part of the literal and <c>- -2</c> is Table 3's PERMISSIBLE
     /// (unary, literal) pair. Its token stream is identical to <c>- - 2</c>'s in the default lexer mode, so only

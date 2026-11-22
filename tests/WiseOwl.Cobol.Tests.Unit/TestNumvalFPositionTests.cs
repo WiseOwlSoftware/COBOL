@@ -32,7 +32,7 @@ public sealed class TestNumvalFPositionTests
     [InlineData(" +.", 4)]
     [InlineData("1E", 3)]       // dangling E — incomplete, length+1
     [InlineData("1E+", 4)]      // E-sign with no digit — incomplete, length+1
-    // kb/Work PB4096 — r1b after `E{+|-}`: a character that is not a digit or a space IS in error (§2023:15.69.3 r1:
+    // kb/Work PB4096 — r1b after `E{+|-}`: a character that is not a digit or a space IS in error (§2023:15.69.3 AR1:
     // n is 1..4 digits); only text that ENDS there is r1c. The exponent arm returned LENGTH+1 for all of these.
     [InlineData("12.34E+AB", 8)]
     [InlineData("1E++2", 4)]
@@ -47,11 +47,11 @@ public sealed class TestNumvalFPositionTests
     [InlineData("1.5e2", 5)]    // the same with a lowercase e
     [InlineData("0 1E+2", 3)]   // r1b.1 — the spec's own embedded-space example
     [InlineData("1 2E+3", 3)]   // the same, one position along
-    // ⛔ THE EXPONENT-SPACE DETERMINATION (kb/Work PB256; docs/CONFORMANCE.md §3). §2023:15.69.3 r1's figure draws n
-    // as ONE contiguous 1..4-digit run with [space-string] only before and after it, and §2023:15.95.4 r1 b) 1 is
+    // ⛔ THE EXPONENT-SPACE DETERMINATION (kb/Work PB256; docs/CONFORMANCE.md §3). §2023:15.69.3 AR1's figure draws n
+    // as ONE contiguous 1..4-digit run with [space-string] only before and after it, and §2023:15.95.4 RV1b 1 is
     // unqualified as to WHICH digit run ("a string of numeric characters") where sub-notes 2/3/4 all say "of
     // the significand" — so an interior space ends n and the next non-space is the first character in error.
-    // Under the rejected reading (§2023:15.69.3 r5's "ignored" as ELIDE-AND-JOIN) the first case would be 0 and the
+    // Under the rejected reading (§2023:15.69.3 AR5's "ignored" as ELIDE-AND-JOIN) the first case would be 0 and the
     // second 9, so these two are the discriminating pair. conformance:cases/15.95.4-Returned-value-rule/pb256_test_numval_f_spaces is the
     // end-to-end witness.
     [InlineData("1E+1 234", 6)]

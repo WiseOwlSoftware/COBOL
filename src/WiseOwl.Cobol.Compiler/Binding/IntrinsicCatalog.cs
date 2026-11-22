@@ -17,7 +17,7 @@ public enum IntrinsicType { Alphanumeric, Boolean, National, Numeric, Integer, I
 public enum IntrinsicArity { Fixed, OptionalTrailing, Variadic }
 
 /// <summary>The rational VALUE domain a §15.x.3 "The value of argument-1 shall be …" rule states for a §2023:15.4.1
-/// binary64-family row (kb/Work PB952). §2023:15.3 rule 14
+/// binary64-family row (kb/Work PB952). §2023:15.3 AR14
 /// makes a value outside it EC-ARGUMENT-FUNCTION, and the renderer screens it on the EXACT operand before the
 /// binary64 conversion (<c>CobolIntrinsics.DomainScaled</c> / <c>DomainDec</c> / <c>DomainReal</c>), because a
 /// correctly-rounded conversion moves a value across the bound. <c>IntrinsicArgumentDomainDriftTests</c> derives
@@ -36,7 +36,7 @@ public enum FunctionDeviceForm
     /// <summary>The temporary is described by the returned value alone (<c>cob_alloc_field</c>): ordinary integer and
     /// numeric functions, the default.</summary>
     Value,
-    /// <summary>The returned value IS the content of an argument (§2023:15.7.1 ABS, §2023:15.59.4 1) MAX, §2023:15.63.4 1) MIN,
+    /// <summary>The returned value IS the content of an argument (§2023:15.7.1 ABS, §2023:15.59.4 RV1 MAX, §2023:15.63.4 RV1 MIN,
     /// §2023:15.61 MEDIAN, §2023:15.60 MEAN of one argument), so the temporary is a copy of that argument's item
     /// (<c>FunctionValueField</c>); a MEAN of several arguments is a computed value (<see cref="Value"/>).</summary>
     Argument,
@@ -133,7 +133,7 @@ public readonly record struct IntrinsicSig(
     /// <summary>THE §2023:15.2-type → §2023:8.4.2-category mapping, in ONE place so the declared and the argument-resolved
     /// paths cannot disagree. A NATIONAL-type function's result IS category national (§2023:15.2 type 4 — NATIONAL-OF
     /// §2023:15.66.1: "the type of the function is national"), and a BOOLEAN-type function's result IS class/category
-    /// boolean with implicit usage bit (§2023:15.2 item 2; §2023:8.5.2.5 item 4 lists "a boolean function"), so the
+    /// boolean with implicit usage bit (§2023:15.2 GR2; §2023:8.5.2.5 GR4 lists "a boolean function"), so the
     /// §2023:14.9.25.3 Table-16 legality and the string channels see the correct class — never an alphanumeric or
     /// numeric fold.
     /// <para>
@@ -151,7 +151,7 @@ public readonly record struct IntrinsicSig(
     };
 
     /// <summary>⛔ THE USAGE ISO §2023:15.2 GIVES A FUNCTION'S RESULT, in ONE place (kb/Work PB3665), asked by the category
-    /// that <see cref="CategoryOf"/> folds the §2023:15.2 type to. §2023:15.2 1) "Alphanumeric functions have an implicit usage
+    /// that <see cref="CategoryOf"/> folds the §2023:15.2 type to. §2023:15.2 GR1 "Alphanumeric functions have an implicit usage
     /// display", 2) "Boolean functions have an implicit usage bit" and 3) "National functions have an implicit usage
     /// national"; 4) numeric, 5) integer and 6) index functions state NO usage (only an operational sign and the shape
     /// of the value), so they answer <see langword="null"/> — a rule worded "described implicitly or explicitly as
@@ -287,7 +287,7 @@ public static class IntrinsicCatalog
         Add(new("FRACTION-PART", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "FractionPart", IntrinsicBind.Runtime, false, 2002)); // §2023:15.42
         // BOOLEAN-OF-INTEGER (§2023:15.13) — argument-1's binary value as a boolean item of argument-2 positions
         // (rightmost = low-order digit; zero-filled or TRUNCATED ON THE LEFT — the result is arg-1 mod
-        // 2^arg-2, Annex D.10). A boolean function result IS class/category boolean (§2023:15.2 item 2).
+        // 2^arg-2, Annex D.10). A boolean function result IS class/category boolean (§2023:15.2 GR2).
         Add(new("BOOLEAN-OF-INTEGER", IntrinsicType.Boolean, IntrinsicArity.Fixed, 2, 2, "ii", "BooleanOfInteger", IntrinsicBind.Runtime, false, 2002)); // §2023:15.13
         // BYTE-LENGTH (§2023:15.14) — a COMPILE-TIME FOLD like LENGTH (§2023:15.50), but counting BYTES, not character
         // positions (the D7 distinction). The per-usage byte widths are IMPLEMENTOR-DEFINED (§2023:13.18.60.4 GR4/6/7/
@@ -295,21 +295,21 @@ public static class IntrinsicCatalog
         // 1 byte/character-position for DISPLAY (and boolean/BIT, the §2023:13.18.40.4 R14 one-character
         // representation), 2 bytes/position for NATIONAL (UTF-16, D-N1), the binary/packed StorageWidth,
         // 4/8 for the float trio, 8 for index/pointer/object-reference carriers. Runtime-length shapes
-        // (ref-mod / ODO / ANY LENGTH) stay loud by name (§2023:15.14.4 r2/r5, the LENGTH discipline).
+        // (ref-mod / ODO / ANY LENGTH) stay loud by name (§2023:15.14.4 RV2/r5, the LENGTH discipline).
         Add(new("BYTE-LENGTH", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, "s", "ByteLength", IntrinsicBind.Fold, false, 2002, DeviceForm: FunctionDeviceForm.Literal));   // §2023:15.14 (byte size ≠ FUNCTION LENGTH, D7); the runtime body serves the runtime-length shapes (PB61)
         // CHAR-NATIONAL (§2023:15.16) — the national twin of CHAR: the character at the 1-based ordinal position of
         // the NATIONAL program collating sequence (native UTF-16 order; a non-native ALPHABET … FOR NATIONAL
         // sequence rides the CollateNat/__COLLATE_NAT channel, P10 Step 4). Result class national (§2023:15.16.1).
         Add(new("CHAR-NATIONAL", IntrinsicType.National, IntrinsicArity.Fixed, 1, 1, "i", "CharNational", IntrinsicBind.Runtime, false, 2002));  // §2023:15.16
         // The Y2K windowing trio (§2023:15.23/§2023:15.25/§2023:15.100) — ONE windowing core (CobolDate.YearToYyyy); the
-        // composite pair is defined BY REFERENCE to it (§2023:15.23.4 r1 / §2023:15.25.4 r1). The window is ALWAYS 100
+        // composite pair is defined BY REFERENCE to it (§2023:15.23.4 RV1 / §2023:15.25.4 RV1). The window is ALWAYS 100
         // years ending at maximum-year = argument-2 + argument-3 (argument-2 = a SIGNED offset, default 50 —
-        // NOT a window size; argument-3 defaults to the year at EXECUTION time, §2023:15.100.3 r5).
+        // NOT a window size; argument-3 defaults to the year at EXECUTION time, §2023:15.100.3 AR5).
         Add(new("DATE-TO-YYYYMMDD", IntrinsicType.Integer, IntrinsicArity.OptionalTrailing, 1, 3, "iii", "DateToYyyymmdd", IntrinsicBind.Runtime, false, 2002, ValueSource: IntrinsicValueSource.ArgumentsOrCurrentYear)); // §2023:15.23
         Add(new("DAY-TO-YYYYDDD", IntrinsicType.Integer, IntrinsicArity.OptionalTrailing, 1, 3, "iii", "DayToYyyyddd", IntrinsicBind.Runtime, false, 2002, ValueSource: IntrinsicValueSource.ArgumentsOrCurrentYear));   // §2023:15.25
         Add(new("YEAR-TO-YYYY", IntrinsicType.Integer, IntrinsicArity.OptionalTrailing, 1, 3, "iii", "YearToYyyy", IntrinsicBind.Runtime, false, 2002, ValueSource: IntrinsicValueSource.ArgumentsOrCurrentYear));     // §2023:15.100
         // DISPLAY-OF (§2023:15.26) / NATIONAL-OF (§2023:15.66) — the sanctioned national↔alphanumeric repertoire pair
-        // (P10 national wave). Argument-2 is a one-character SUBSTITUTION CHARACTER (§2023:15.26.3 r2 / §2023:15.66.3 r2 —
+        // (P10 national wave). Argument-2 is a one-character SUBSTITUTION CHARACTER (§2023:15.26.3 AR2 / §2023:15.66.3 AR2 —
         // the 2023 text names no codeset facility), so both argument forms are fully implemented.
         Add(new("DISPLAY-OF", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 1, 2, "ss", "DisplayOf", IntrinsicBind.Runtime, false, 2002));   // §2023:15.26
         Add(new("NATIONAL-OF", IntrinsicType.National, IntrinsicArity.OptionalTrailing, 1, 2, "ss", "NationalOf", IntrinsicBind.Runtime, false, 2002));     // §2023:15.66
@@ -336,7 +336,7 @@ public static class IntrinsicCatalog
         // TABLE, §2023:12.3.7.4 GR17) — and it is IMPLEMENTED (kb/Work PB101 T7, owner decision Q4): support IS
         // claimed under A.3 item 25 over the derived CLDR/UCA collation engine, so its row binds Runtime.
         // ⛔ LOCALE-DATE AND LOCALE-TIME BOTH READ `"is"` — ARGUMENT-1 AS AN INTEGER — AND BOTH WERE WRONG
-        // (fix-queue PB27). §2023:15.52.3 r1 and §2023:15.53.3 r1 each say "Argument-1 shall be of class ALPHANUMERIC OR
+        // (fix-queue PB27). §2023:15.52.3 AR1 and §2023:15.53.3 AR1 each say "Argument-1 shall be of class ALPHANUMERIC OR
         // NATIONAL and shall be 8 [resp. 6] CHARACTER POSITIONS in length", and the normative Table 21 agrees
         // for both: `Anum1 or Nat1, Loc2`. The queue entry named LOCALE-TIME alone; LOCALE-DATE is the line
         // ABOVE it with the identical wrong value (feedback_scan_all_similar).
@@ -351,8 +351,8 @@ public static class IntrinsicCatalog
         // LOCALE-NAME — a word resolved in the SPECIAL-NAMES locale table by IntrinsicBinder.BindLocaleFunction, never an
         // operand (IntrinsicArgumentRules.NonOperandArgumentKinds['l']). The runtime methods are CobolLocale.*.
         Add(new("LOCALE-COMPARE", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 2, 3, "ssl", "Compare", IntrinsicBind.Runtime, false, 2002)); // §2023:15.51 (A.4.9 item 2) — Table 21 `Alph1/Anum1/Nat1, Alph2/Anum2/Nat2, Loc3`
-        Add(new("LOCALE-DATE", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 1, 2, "sl", "Date", IntrinsicBind.Runtime, false, 2002));     // §2023:15.52 (A.4.9 item 3) — §2023:15.52.3 r1: alphanumeric/national, 8 character positions
-        Add(new("LOCALE-TIME", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 1, 2, "sl", "Time", IntrinsicBind.Runtime, false, 2002));     // §2023:15.53 (A.4.9 item 4) — §2023:15.53.3 r1: alphanumeric/national, 6 character positions
+        Add(new("LOCALE-DATE", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 1, 2, "sl", "Date", IntrinsicBind.Runtime, false, 2002));     // §2023:15.52 (A.4.9 item 3) — §2023:15.52.3 AR1: alphanumeric/national, 8 character positions
+        Add(new("LOCALE-TIME", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 1, 2, "sl", "Time", IntrinsicBind.Runtime, false, 2002));     // §2023:15.53 (A.4.9 item 4) — §2023:15.53.3 AR1: alphanumeric/national, 6 character positions
         // ⛔ 2014, not 2002 (kb/Work R28, decided 2026-08-08): the WG4 CD 1.2 (2009) Annex D.2 item 4 lists
         // BOTH among "the intrinsic functions ... introduced in this committee draft International Standard"
         // (the draft of ISO 1989:2014). They were previously windowed 2002, over-accepting at --std 2002.
@@ -362,7 +362,7 @@ public static class IntrinsicCatalog
         // [ argument-4 ] )`) — LIVE since kb/Work PB101 T7 (BindStandardCompare + CobolIntrinsics.StandardCompare).
         // ⛔ THE ARGKINDS COLUMN WAS `"ssis"`, WHICH IS THE FORMAT READ BACKWARDS: position 3 is the
         // ORDERING-NAME (§2023:15.3 argument type 12 — a NAME, never an operand) and position 4 is the integer
-        // ordering level (§2023:15.85.3 r6). It never contradicted anything because Bind = Unsupported made the column
+        // ordering level (§2023:15.85.3 AR6). It never contradicted anything because Bind = Unsupported made the column
         // a dead lookup (feedback_a_dead_lookup_is_also_unverified) — the exact PB1 shape, and the reason the row
         // was re-derived from §2023:15.85.2 rather than trusted. `'o'` is the ordering-name kind; it never reaches an
         // operand list (the bespoke binder consumes the word), so IntrinsicArgumentRules.NonOperandArgumentKinds
@@ -375,7 +375,7 @@ public static class IntrinsicCatalog
         // the date pair is year-before-month-before-day (D.31.3.8/9 confirm codes 0/1/2[/3]); the NUMVAL
         // pair is 0 / first-error position (the "0 1"→3 embedded-space sub-note; arithmetic-mode digit caps)
         // / LENGTH+1 (the r1c leg — zero-length, all-spaces, incomplete like " +."). TEST-NUMVAL-C rides the
-        // ONE BindNumvalCFamily bespoke bind (currency injection + ANYCASE, §2023:15.94.3 r1 → §2023:15.68.3).
+        // ONE BindNumvalCFamily bespoke bind (currency injection + ANYCASE, §2023:15.94.3 AR1 → §2023:15.68.3).
         Add(new("TEST-DATE-YYYYMMDD", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, "i", "TestDateYyyymmdd", IntrinsicBind.Runtime, false, 2002)); // §2023:15.90
         Add(new("TEST-DAY-YYYYDDD", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, "i", "TestDayYyyyddd", IntrinsicBind.Runtime, false, 2002));   // §2023:15.91
         Add(new("TEST-NUMVAL", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, "s", "TestNumval", IntrinsicBind.Runtime, false, 2002));        // §2023:15.93
@@ -400,7 +400,7 @@ public static class IntrinsicCatalog
         Add(new("COMBINED-DATETIME", IntrinsicType.Numeric, IntrinsicArity.Fixed, 2, 2, "in", "CombinedDatetime", IntrinsicBind.Runtime, false, 2014)); // §2023:15.17
         // ⚠ The FORMATTED-* family's result type follows argument-1 — the FORMAT literal (§2023:15.38.1/§2023:15.39.1/
         // §2023:15.40.1/§2023:15.41.1) — so FUNCTION FORMATTED-DATE(N"YYYYMMDD" D) is a NATIONAL function even though the
-        // date it renders is an integer. §2023:15.38.3 r1 and siblings admit "a national or alphanumeric literal".
+        // date it renders is an integer. §2023:15.38.3 AR1 and siblings admit "a national or alphanumeric literal".
         Add(new("FORMATTED-CURRENT-DATE", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 1, 1, "s", "FormattedCurrentDate", IntrinsicBind.Runtime, false, 2014, Result: IntrinsicResultRule.FollowsArgument1, ValueSource: IntrinsicValueSource.RunUnitState)); // §2023:15.38.1
         Add(new("FORMATTED-DATE", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 2, 2, "si", "FormattedDate", IntrinsicBind.Runtime, false, 2014, Result: IntrinsicResultRule.FollowsArgument1));        // §2023:15.39.1
         Add(new("FORMATTED-DATETIME", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 3, 4, "sinn", "FormattedDatetime", IntrinsicBind.Runtime, false, 2014, Result: IntrinsicResultRule.FollowsArgument1)); // §2023:15.40.1 (a4 = optional offset minutes)

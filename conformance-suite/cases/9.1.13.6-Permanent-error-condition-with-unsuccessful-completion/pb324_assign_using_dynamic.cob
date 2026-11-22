@@ -52,7 +52,7 @@
        PROCEDURE DIVISION.
        MAIN.
       *> An all-space content names no physical file, so the association cannot be made: §2023:12.4.5.3 GR3's closing
-      *> sentence makes the OPEN unsuccessful and §2023:9.1.13.6 item 2 gives that failure its own status, '31'.
+      *> sentence makes the OPEN unsuccessful and §2023:9.1.13.6 GR2 gives that failure its own status, '31'.
            OPEN OUTPUT DYNF.
            DISPLAY "BLANK=" WS-ST.
            MOVE "pb324a.dat" TO WS-NAME.

@@ -38,7 +38,7 @@ internal sealed class DynamicResolvePass : IBindPass
     /// </summary>
     public void Run(DataBinder binder)
     {
-        // §2023:8.5.1.9.1 item 3 (:8195) — the roots of every FILE SECTION record, so a dynamic table in one is rejected.
+        // §2023:8.5.1.9.1 SR3 (:8195) — the roots of every FILE SECTION record, so a dynamic table in one is rejected.
         var fileRecordRoots = new HashSet<DataItem>(binder.State.Files.Declared.SelectMany(f => f.Records));
 
         foreach (var item in binder.ClauseResolutionForest())
@@ -47,7 +47,7 @@ internal sealed class DynamicResolvePass : IBindPass
             using var _ = binder.Edition.At(item);
             string subject = item.CobolName ?? item.ClrName;
 
-            // §2023:8.5.1.9.1 item 3 (:8195) — a dynamic-capacity table "may be defined in any place, OTHER THAN the file
+            // §2023:8.5.1.9.1 SR3 (:8195) — a dynamic-capacity table "may be defined in any place, OTHER THAN the file
             // section" (its out-of-line CobolDynTable has no place in a record image). Reject a dynamic table whose
             // storage root is an FD/SD record.
             // ⛔ A fault of PLACEMENT is positioned at the entry that placed it (kb/Work PB1629): a table that reaches the
@@ -130,7 +130,7 @@ internal sealed class DynamicResolvePass : IBindPass
             // SymbolTable.CapacityRegisterNamed reads.
             // ⛔ MINTED FOR EVERY DYNAMIC TABLE, NAMED ONLY WHEN `CAPACITY IN data-name-3` IS WRITTEN (kb/Work
             // PB61): the view over the table's current capacity is what FUNCTION LENGTH / BYTE-LENGTH read for a
-            // variable-length group (§2023:15.50.4 r7c / §2023:15.14.4 r6c — "based on their current capacity"), whether or
+            // variable-length group (§2023:15.50.4 RV7c / §2023:15.14.4 RV6c — "based on their current capacity"), whether or
             // not the program gave the register a name. An unnamed register has no CobolName and no
             // CapacityRegisters entry, so no COBOL reference can reach it.
             // ⛔ IT CARRIES A REAL POSITION IN THE HIERARCHY (kb/Work PB457): §2023:13.18.38.3 SR30 — "If qualifiers are
@@ -159,7 +159,7 @@ internal sealed class DynamicResolvePass : IBindPass
             // ⛔ "ELSEWHERE IN THE SOURCE ELEMENT" IS THIS ELEMENT'S OWN NAMES (kb/Work PB3766 review R2-1): a contained
             // program inherits its containers' GLOBAL data-names and CAPACITY registers before this pass runs
             // (InheritContainerGlobalData), and those are defined in ANOTHER source element — this element's own
-            // declaration of the spelling hides them (§2023:8.4.6.2.1 3) — so only the depth-0 names and registers are the
+            // declaration of the spelling hides them (§2023:8.4.6.2.1 GR3) — so only the depth-0 names and registers are the
             // duplicates SR30 forbids (DeclaresOwnDataName; DeclaringDepth).
             // ⛔ "DEFINED ELSEWHERE" COMPARES DEFINITIONS, NOT EXPANSIONS (kb/Work PB2988): data-name-3 written once in a
             // type declaration (or under a SAME AS operand) is reproduced by every TYPE / SAME AS copy of its entry,

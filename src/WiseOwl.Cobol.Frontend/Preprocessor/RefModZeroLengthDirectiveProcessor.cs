@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.Frontend.Preprocessor;
 /// <summary>One <c>&gt;&gt;REF-MOD-ZERO-LENGTH</c> directive toggle (ISO/IEC 1989:2023 §2023:7.3.23), anchored to its
 /// 1-based line in the FINAL preprocessed text — directly comparable to an ANTLR token's <c>Start.Line</c>. The
 /// compile-time <see cref="Binding.RefModZeroLengthState"/> folds these to decide whether a reference modification
-/// on a given line ALLOWS a zero-length result (§2023:8.4.3.3.4 item 5c).</summary>
+/// on a given line ALLOWS a zero-length result (§2023:8.4.3.3.4 GR5c).</summary>
 /// <param name="Line">The directive's 1-based line in the final preprocessed text. A directive applies to the
 /// text that FOLLOWS it (the <c>&gt;&gt;TURN</c> GR5 discipline); a directive occupies its own whole line after
 /// free-form normalization, so the fold is strict <c>Line &lt; siteLine</c>.</param>

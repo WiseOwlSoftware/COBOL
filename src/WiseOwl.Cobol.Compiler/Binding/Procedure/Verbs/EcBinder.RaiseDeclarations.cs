@@ -60,7 +60,7 @@ internal sealed partial class EcBinder
         ["EC-SIZE-TRUNCATION", "EC-SIZE-OVERFLOW", "EC-SIZE-UNDERFLOW", "EC-SIZE-ZERO-DIVIDE", "EC-SIZE-EXPONENTIATION"];
 
     /// <summary>The EC-I-O family a file connector can set to exist — §2023:9.1.13.1's status-derived names plus the
-    /// ones a rule names outright (EC-I-O-LINAGE, §2023:13.18.34.4 GR6 b) 2) — in THE canonical mask order
+    /// ones a rule names outright (EC-I-O-LINAGE, §2023:13.18.34.4 GR6b.2) — in THE canonical mask order
     /// (<see cref="ExceptionCatalog.IoMaskNames"/>; the emitter's per-statement mask bits).</summary>
     private static readonly string[] IoNames = ExceptionCatalog.IoMaskNames;
 
@@ -69,7 +69,7 @@ internal sealed partial class EcBinder
     /// phase commences — §2023:14.9.40.4 GR9).</summary>
     private static readonly string[] SortProcedureNames = ["EC-SORT-MERGE-ACTIVE", "EC-SORT-MERGE-FILE-OPEN"];
 
-    /// <summary>…and one with a USING phrase, whose implicit release also raises -RELEASE (§2023:14.9.40.4 GR12 b)).</summary>
+    /// <summary>…and one with a USING phrase, whose implicit release also raises -RELEASE (§2023:14.9.40.4 GR12b).</summary>
     private static readonly string[] SortUsingNames = [.. SortProcedureNames, "EC-SORT-MERGE-RELEASE"];
 
     /// <summary>The conditions a MERGE raises itself (kb/Work PB1036): -ACTIVE (§2023:14.9.24.4 GR8), -FILE-OPEN
@@ -140,7 +140,7 @@ internal sealed partial class EcBinder
 
     /// <summary>The EC-EXTERNAL family an ACTIVATION raises when the activated element's external descriptions do not
     /// conform (ISO §2023:14.8.4): a CALL through <c>CobolCallException</c> (§2023:14.9.4.4 GR3e), an INVOKE's method activation
-    /// through <c>CobolFatalException</c> (§2023:14.9.23.4 GR7 d); kb/Work PB1138). The checkable trio — EC-EXTERNAL-IMP has
+    /// through <c>CobolFatalException</c> (§2023:14.9.23.4 GR7d; kb/Work PB1138). The checkable trio — EC-EXTERNAL-IMP has
     /// no raise site, this implementation defines no implementor-specific external checks. The site-enabled subset is
     /// ALSO §2023:14.8.4.1's activating-element half (<c>EcEmitter.FatalAmbientGates</c>).</summary>
     internal static readonly string[] ExternalNames =
@@ -224,7 +224,7 @@ internal sealed partial class EcBinder
         // The sort-merge flow conditions (kb/Work PB349, PB1036). PRECISE: the ONLY raise sites are CobolSort's
         // RELEASE / RETURN statement entries, reached from exactly these bound nodes — the implicit USING release and
         // GIVING return use the unchecked primitives, because GR1 of each verb governs the STATEMENT the program
-        // writes. RELEASE's record size is §2023:13.18.43.4 GR14 b) / GR19 b); the -ACTIVE rule for a RELEASE in an output
+        // writes. RELEASE's record size is §2023:13.18.43.4 GR14b / GR19 b); the -ACTIVE rule for a RELEASE in an output
         // procedure / a RETURN in an input procedure is §2023:14.9.40.4 GR10 / GR13, §2023:14.9.24.4 GR8.
         new(s => s is BoundRelease, ["EC-FLOW-RELEASE", "EC-SORT-MERGE-ACTIVE", "EC-SORT-MERGE-RELEASE"]),
         // COMMIT / ROLLBACK (kb/Work PB3338). PRECISE: the run unit's TransactionControl raises EC-FLOW-COMMIT /
@@ -234,11 +234,11 @@ internal sealed partial class EcBinder
         // name has no FileModel here, so its EC-I-O-PERMANENT-ERROR (the one condition a refusal raises, '30') is declared
         // with no file, and only a directive naming no file enables it (review finding w1154a R1-3).
         // VALIDATE (kb/Work PB5577). PRECISE: stage five's raise sites are ValidateEmitter's — EC-VALIDATE-FORMAT when an element's internal indicator is
-        // invalid on format (§2023:14.9.50.4 GR6 e). Stages three and four (EC-VALIDATE-CONTENT, EC-VALIDATE-RELATION) join as they are built.
+        // invalid on format (§2023:14.9.50.4 GR6e). Stages three and four (EC-VALIDATE-CONTENT, EC-VALIDATE-RELATION) join as they are built.
         new(s => s is BoundValidate, ["EC-VALIDATE-FORMAT"]),
         new(s => s is BoundCommitRollback { IsCommit: true }, ["EC-FLOW-COMMIT", "EC-I-O-PERMANENT-ERROR"]),
         new(s => s is BoundCommitRollback { IsCommit: false }, ["EC-FLOW-ROLLBACK", "EC-I-O-PERMANENT-ERROR"]),
-        // §2023:14.6.13.1.3 item 8's ROLLBACK (kb/Work PB3544): a fatal status on a file under commit control executes "a
+        // §2023:14.6.13.1.3 GR8's ROLLBACK (kb/Work PB3544): a fatal status on a file under commit control executes "a
         // ROLLBACK statement", which raises EC-FLOW-ROLLBACK under §2023:14.9.36.4 GR2 when the input-output statement runs in
         // a SORT or MERGE input or output procedure or under a recursive runtime element. The SORT and MERGE statements
         // themselves never reach item 8 (item 2: "the rules for those statements apply").
@@ -291,7 +291,7 @@ internal sealed partial class EcBinder
         new(s => s is BoundInlinePerform { Control: PerformVarying { CheckIndexRange: true } }
                   or BoundOutOfLinePerform { Control: PerformVarying { CheckIndexRange: true } },
             ["EC-RANGE-PERFORM-VARYING"]),
-        // EC-DATA-OVERFLOW (fatal, §2023:14.9.25.4 GR6 d)4.a) is MOVE-only: a MOVE whose finite algebraic value overflows a
+        // EC-DATA-OVERFLOW (fatal, §2023:14.9.25.4 GR6d.4.a) is MOVE-only: a MOVE whose finite algebraic value overflows a
         // single-precision float receiver to ±Inf; MOVE CORRESPONDING expands to BoundMove steps the sequence walk sees.
         new(s => s is BoundMove, ["EC-DATA-OVERFLOW"]),
         // EC-RANGE-INSPECT-SIZE (fatal, §2023:14.9.22.4 GR14/GR15/GR22 — kb/Work PB1126) is INSPECT's own: the three rules
@@ -313,12 +313,12 @@ internal sealed partial class EcBinder
         // condition is set to exist": the program-address-identifier is the operand, in a relation (§2023:8.8.4.2.2
         // Format 3) and an INVOKE argument (§2023:14.9.23.3 SR9) alike.
         (p => OperandsIn(p).Any(o => o is BoundAddressOperand { Program: not null }), "EC-PROGRAM-NOT-FOUND"),
-        // ⛔ THE FUNCTION REFERENCE (kb/Work PB26, PB3102). ISO §2023:15.3 item 14 attaches EC-ARGUMENT-FUNCTION to the
+        // ⛔ THE FUNCTION REFERENCE (kb/Work PB26, PB3102). ISO §2023:15.3 AR14 attaches EC-ARGUMENT-FUNCTION to the
         // REFERENCE — "If the evaluation of an argument results in an incorrect value for that argument or for the
         // returned value according to the rules specified in the function definition … the EC-ARGUMENT-FUNCTION exception
         // condition is set to exist" — with no statement-kind qualification, and the families that ride the same inline
-        // intrinsic call are the same shape: EC-ORDER-NOT-SUPPORTED (fatal, §2023:15.85.4 r2 — FUNCTION STANDARD-COMPARE),
-        // EC-DATA-CONVERSION (nonfatal, §2023:15.19.4 r1/r3 — FUNCTION CONVERT's substitution character) and EC-LOCALE-INVALID
+        // intrinsic call are the same shape: EC-ORDER-NOT-SUPPORTED (fatal, §2023:15.85.4 RV2 — FUNCTION STANDARD-COMPARE),
+        // EC-DATA-CONVERSION (nonfatal, §2023:15.19.4 RV1/r3 — FUNCTION CONVERT's substitution character) and EC-LOCALE-INVALID
         // (§2023:8.2.1 — the LOCALE intrinsics over incomplete locale content). The intrinsic renders inline inside an
         // arbitrary expression, so the statement's guard wraps the STATEMENT and the raise site consults the flag; a guard
         // around a statement whose argument is valid is a no-op.
@@ -380,7 +380,7 @@ internal sealed partial class EcBinder
         // (§2023:12.3.6.4 GR7b) is not an intrinsic-bearing statement and can raise it at use (LocaleFacts.Require), as can a
         // case function without a phrase (GR7a). The intrinsic-bearing arm is an OperandRaises row.
         new("EC-LOCALE-INVALID", NeedsLocaleClassification: true),
-        // EC-LOCALE-SIZE (§2023:13.18.40.5 r14 b; PB64 T6 — the ONE raise site is CobolLocaleEdit.Format's move of the
+        // EC-LOCALE-SIZE (§2023:13.18.40.5 GR14 b; PB64 T6 — the ONE raise site is CobolLocaleEdit.Format's move of the
         // hypothetical item into the SIZE-declared item): any statement that stores into a format-2 item can raise it.
         new("EC-LOCALE-SIZE"),
         // EC-DATA-CONVERSION also rides ANY statement (nonfatal; DOC-A.1-31/-33/-46, kb/Work PB547): an alphanumeric item
@@ -427,7 +427,7 @@ internal sealed partial class EcBinder
         // riding the tail so the 2-argument Set picks up the ambient (statement, location) pair (kb/Work R14).
         new("EC-STORAGE-NOT-AVAIL"),
         new("EC-RANGE-INVALID"),
-        // EC-DATA-NOT-FINITE (fatal, §2023:14.6.13.2 item 3): any non-exempt read of a NaN/±Inf standard-float sending
+        // EC-DATA-NOT-FINITE (fatal, §2023:14.6.13.2 GR3): any non-exempt read of a NaN/±Inf standard-float sending
         // operand raises it (the always-emitted CobolFloat.Sending wrap at the two float read chokepoints).
         new("EC-DATA-NOT-FINITE"),
         // EC-DATA-INCOMPATIBLE (fatal, §2023:14.6.13.2) — ⛔ NOT a node-kind row (kb/Work PB230). Rule 2 is not MOVE-specific:
@@ -509,7 +509,7 @@ internal sealed partial class EcBinder
 
     /// <summary>One generated value part → does it carry an intrinsic call? The four value hierarchies each have
     /// their own walker below; a part of any other shape (a <c>Place</c>, a receiver) carries no expression and
-    /// answers false. ⛔ ISO §2023:15.3 item 14 attaches the condition to the FUNCTION REFERENCE with no statement-kind
+    /// answers false. ⛔ ISO §2023:15.3 AR14 attaches the condition to the FUNCTION REFERENCE with no statement-kind
     /// qualification, so the list of parts is the GENERATED <see cref="BoundStatementTree.OwnValueParts"/> — a hand-written
     /// switch over statement kinds with a `_ => false` default was a silent wrong answer (FUNCTION LOG10(0) raised in
     /// COMPUTE, MOVE, DISPLAY and IF and was silent in STRING; kb/Work PB26). <c>EcArgumentFunctionGateDriftTests</c> pins

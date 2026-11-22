@@ -2,7 +2,7 @@
 order: 26
 ---
 > ⚖ **DETERMINATION — `FUNCTION EXCEPTION-LOCATION`'s third part, "an implementor-defined identifier of the source
-> line that contains the beginning of the statement" (§2023:15.30.3 r2b3 / §2023:15.31.3 r2b3)** (2026-08-18; kb/Work PB63,
+> line that contains the beginning of the statement" (§2023:15.30.3 RV2b.3 / §2023:15.31.3 RV2b.3)** (2026-08-18; kb/Work PB63,
 > RV-15.31.3-2 r2b3; revised 2026-08-18 by kb/Work PB82). **The identifier is the line number of the statement's
 > first token in the source file that PHYSICALLY holds it, counted from 1** — the line the user edits, recovered
 > through the preprocessing chain's origin map (§2023:7.2 text manipulation changes the resultant line count: COPY

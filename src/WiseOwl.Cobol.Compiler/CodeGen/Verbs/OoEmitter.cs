@@ -143,7 +143,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             var de = new DataEmitter(Ctx);
             string init = de.ExternalCellSeed(ext);
             // A dynamic-length item's VALUE seeds the cell's dynamic half ONCE, when the run unit creates the cell
-            // (kb/Work PB1026) — only a CONSTANT RECORD has one here (§2023:13.18.63.4 GR4 a) for the plain external item).
+            // (kb/Work PB1026) — only a CONSTANT RECORD has one here (§2023:13.18.63.4 GR4a for the plain external item).
             string dynSeeds = de.CellDynSeeds(ext.Record, useValues: ext.Record.IsConstantRecord);
             if (dynSeeds.Length > 0) init = $"static () => new StorageCell {{ Ref = {init} }}{dynSeeds}";
             // ⛔ THE CELL FIRST, THE BACKING OVER IT (kb/Work PB231): the byte image and the area's MANAGED SLOTS
@@ -312,7 +312,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             U.SeqIo.EmitFileRegistration(w);   // each file registers under FileKeyExpr(f): a factory literal, or this.__fkey_X
             // ⛔ Nothing else installs here. Dynamic file assignment (ISO §2023:12.4.5.3 GR3 b / §2023:9.1.21 — Annex
             // D.19.9.2's own worked example is an instance file, "SELECT EMPLOYEE-FILE ASSIGN USING FILE-REF")
-            // and the LINAGE operand values (§2023:13.18.34.4 GR6 b) now travel with the OPEN/WRITE statements that read
+            // and the LINAGE operand values (§2023:13.18.34.4 GR6b) now travel with the OPEN/WRITE statements that read
             // them, so this ctor and DispatchEmitter.__Activate cannot drift apart on them: the LINAGE half used
             // to be installed ONLY on the program path, leaving a class's LINAGE FD with no page model at all
             // (kb/Work PB673 — the second arm of this registration dispatch).
@@ -468,7 +468,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             // resolves its own activation LOCAL (EmitMethod).
             ObjectComputerEmit.EmitMembers(data, w, classificationField: false);
             EmitExternalBackings(data, w);       // M2-OO-1i inc 5: a class EXTERNAL FD record → the shared run-unit cell
-            // §2023:14.9.23.4 GR7 d) (kb/Work PB1138): each METHOD activation checks the external items its statements can
+            // §2023:14.9.23.4 GR7d (kb/Work PB1138): each METHOD activation checks the external items its statements can
             // reference — this factory's or object's — so the half renders their registrations once, and every method
             // prologue passes them to the activation boundary with its own §2023:14.8.4.1 mask (EmitMethod).
             if (WantsExternalDescribes(data) && roster.Count > 0)
@@ -531,7 +531,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         $"if ({cond}) {{ {OoUnivThrow(m, detailExpr)} }}";
 
     /// <summary>The unconditional form of <see cref="OoUnivStop"/> — for a violation the bound method carries whatever
-    /// the arguments (an ANY LENGTH formal or returning item, §2023:14.9.23.4 GR7 c)).</summary>
+    /// the arguments (an ANY LENGTH formal or returning item, §2023:14.9.23.4 GR7c).</summary>
     private static string OoUnivThrow(OoMethodSymbol m, string detailExpr)
     {
         string both = m.Checking.OoUniversalChecking ? "ExceptionState.OoUniversalChecking" : "false";
@@ -582,7 +582,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                         EmitCobolInvokeCase(cobolName, cases[c], c, w);
             }
             // §2023:9.3.6 2)/4): a class that declares no method of this name, or whose method does not MATCH the invocation, hands
-            // the search to the class it inherits from; the CobolObject root is step 6) — EC-OO-METHOD (§2023:14.9.23.4 GR7 b)).
+            // the search to the class it inherits from; the CobolObject root is step 6) — EC-OO-METHOD (§2023:14.9.23.4 GR7b).
             w.Line("base.__CobolInvoke(__name, __a, __ret);");
         }
     }
@@ -674,7 +674,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         {
             w.Line($"string? __viol = {string.Join(" ?? ", violations)};");
             w.Line(OoUnivStop(m, "__viol is not null",
-                $"$\"INVOKE '{cobolName}' '{m.Name}': {{__viol}} (ISO §2023:14.9.23.4 GR7 c))\""));
+                $"$\"INVOKE '{cobolName}' '{m.Name}': {{__viol}} (ISO §2023:14.9.23.4 GR7c)\""));
         }
         // ⛔ AN ACTIVE-CLASS RETURNING ITEM IS SENT AS A UNIVERSAL OBJECT REFERENCE (§2023:14.8.3.3 rule 2 b) 4.; kb/Work PB2985):
         // the invoking reference is universal, so the item conforms only to a universal receiving item. Its own check, not
@@ -701,7 +701,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             w.Line(OoUnivThrow(m, Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(
                 $"INVOKE '{cobolName}' '{m.Name}': a formal parameter or the returning item is described with the ANY "
                 + "LENGTH clause, which a method invoked through a universal object reference shall not have "
-                + "(ISO §2023:14.9.23.4 GR7 c))", quote: true)));
+                + "(ISO §2023:14.9.23.4 GR7c)", quote: true)));
             return;
         }
         // ⛔ EACH FORMAL'S CARRIER IS A VIEW OVER ITS ARGUMENT'S BOX, AND THE BOX IS THE ARGUMENT'S STORAGE (ISO §2023:14.2.3
@@ -819,7 +819,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             // argument's own storage, so the method's formal (a view over the box) is the argument, and there is no
             // copy-out. A forwarded formal that is omitted boxes as omitted and is never read (GR1c / GR10).
             : (fwd[i] is { } t ? $"{t} ? new CobolInvokeArg({RuntimeApi.ActivationDescriptionNew(a.Description)}, null, true) : " : "")
-              // A reference-modified argument's length is its EVALUATED length (§2023:8.4.3.3.4 GR5 c)): the runtime measures
+              // A reference-modified argument's length is its EVALUATED length (§2023:8.4.3.3.4 GR5c): the runtime measures
               // the slice the box reads, whatever the modifier's form (a literal one measures to its static length).
               + (src is RefModPlace
                 ? RuntimeApi.ObjReferenceModifiedArgument(RuntimeApi.ActivationDescriptionNew(a.Description),
@@ -832,7 +832,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             : $"CobolInvokeArg? __ur{id} = null;");
         string selector = u.MethodLiteral is { } lit
             ? Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(lit, quote: true)
-            // identifier-2's CHARACTER VALUE through the one operand-image reader (§2023:14.9.23.4 GR2 a): "the content
+            // identifier-2's CHARACTER VALUE through the one operand-image reader (§2023:14.9.23.4 GR2a): "the content
             // of the data item referenced by identifier-2"), so an alphanumeric or national GROUP sends its
             // positions as an elementary item does — PlaceRenderer.Read handed the group's struct to a string
             // parameter (CS1503; kb/Work PB1136).
@@ -974,7 +974,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
 
     /// <summary>The caller's copy-out / RETURNING delivery of a universal box — the twin of <see cref="OoUnivCallerRead"/>,
     /// arm for arm. The box comes back in the argument's own form (a smaller formal group's write-back is spliced over the
-    /// argument's image by the callee, §2023:14.8.2.2 rule 1), so a fixed group takes its whole image back through the boundary
+    /// argument's image by the callee, §2023:14.8.2.2 SR1), so a fixed group takes its whole image back through the boundary
     /// writer that distributes the FULL image (the elementary alphabet for a bit / national group).
     /// <para>⛔ <paramref name="argumentView"/> is true for the WRITE HALF of an argument's live box, false for the RETURNING
     /// delivery (kb/Work PB2690, branch review R1-3). The write half of a group's box is the method's whole image stored back
@@ -1023,7 +1023,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             // place renders as its name, so the ordinary accessor is unchanged.
             var subjPlace = Places.Of(subject);
             string getExpr = subjPlace is null ? subject.ClrName : PlaceRenderer.Read(subjPlace);
-            // An accessor is a method activation too (§2023:14.9.23.4 GR7 d) — its external-item check precedes its body.
+            // An accessor is a method activation too (§2023:14.9.23.4 GR7d) — its external-item check precedes its body.
             string check = MethodExternalCheck(m) is { } mx ? mx + " " : "";
             if (m.Accessor == 'G')
                 w.Line(check.Length == 0
@@ -1059,19 +1059,19 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             callState.MethodFormals = m.Binding!.Formals;
             string __mLit = Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(m.Name.ToUpperInvariant(), quote: true);
             string __cLit = Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(m.Owner.Name.ToUpperInvariant(), quote: true);
-            // §2023:14.9.23.4 GR7 b) (kb/Work PB2659): "If the method is not found or the resources necessary to execute the
+            // §2023:14.9.23.4 GR7b (kb/Work PB2659): "If the method is not found or the resources necessary to execute the
             // method are not available, the EC-OO-METHOD exception condition is set to exist, the method invocation is not
             // successful" — the resource is the stack the activation needs (ActivationStack), asked first, as GR7 b)
             // precedes d). Here, in the body, for the reason the frame push below is: a method is reached by a typed direct
             // call, by __CobolInvoke and by an inline invocation, and this is the one place all three pass through.
             w.Line(RuntimeApi.MethodActivationResources(__mLit, __cLit) + ";   // §2023:14.9.23.4 GR7 b) — the activation's stack");
-            // §2023:14.9.23.4 GR7 d) BEFORE e): the external items are checked as part of the ACTIVATION ATTEMPT, so a
+            // §2023:14.9.23.4 GR7d BEFORE e): the external items are checked as part of the ACTIVATION ATTEMPT, so a
             // violation leaves before control is transferred — no module-stack frame, no storage seeded, no statement
             // run ("the method invocation is not successful"; kb/Work PB1138).
             if (MethodExternalCheck(m) is { } extCheck)
                 w.Line(extCheck + "   // §2023:14.9.23.4 GR7 d) — the method activation's §2023:14.8.4 external-item check");
             // ⛔ THE METHOD IS A RUNTIME ELEMENT AND MUST APPEAR ON THE MODULE-NAME STACK (fix-queue PB36).
-            // §2023:15.65.4 r5 names the four activation mechanisms outright — "This may be by a CALL statement, an
+            // §2023:15.65.4 RV5 names the four activation mechanisms outright — "This may be by a CALL statement, an
             // INVOKE statement, a function reference, or an inline invocation" — and INVOKE was the one missing,
             // so inside a method ACTIVATING returned the SINGLE SPACE r5 reserves for a main program (claiming the
             // method WAS one), CURRENT returned the caller's name, and STACK omitted the method entirely.
@@ -1083,7 +1083,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             // universal __CobolInvoke switch, and by an inline invocation — one mechanism, not three arms.
             // Frame = (method name, declaring class as the compilation unit's outermost element, not nested), so
             // r7 CURRENT yields the class, r5 ACTIVATING the invoker, and r9 STACK the full chain.
-            w.Line($"var __ms = {RuntimeApi.ModuleStack()}; __ms.Push({__mLit}, {__cLit}, false, true);   // §2023:15.65.4 r5 — INVOKE is an activation; §2023:8.6.6: a method is always recursive");
+            w.Line($"var __ms = {RuntimeApi.ModuleStack()}; __ms.Push({__mLit}, {__cLit}, false, true);   // §2023:15.65.4 RV5 — INVOKE is an activation; §2023:8.6.6: a method is always recursive");
             // The per-ACTIVATION data-pointer members (kb/Work PB956): save the activator's, start this activation
             // fresh, and restore in the activation's finally — so a recursive INVOKE on the same object neither
             // inherits nor clobbers its caller's based address or LOCAL-STORAGE cell (§2023:8.6.4; §2023:8.6.5).
@@ -1092,7 +1092,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 w.Line($"{ptrSeeds[i].Type} __ptrSv{i} = {ptrSeeds[i].Member}; {ptrSeeds[i].Member} = {ptrSeeds[i].Fresh};   // per-activation data-pointer storage (ISO §2023:8.6.4)");
             // The ACTIVATION's nonfatal selector (kb/Work PB1010 — the method twin of ProgramTable's install): a
             // condition raised at a RUNTIME site while this method executes selects over THIS method's declaratives
-            // (§2023:14.9.49.4 GR4 a)), never its invoker's. Saved here, installed where the method's own selection is in
+            // (§2023:14.9.49.4 GR4a), never its invoker's. Saved here, installed where the method's own selection is in
             // scope (below), restored in the activation's finally. Only an EC-model group raises through it.
             bool nfInstall = ecState.Active && (m.Binding!.EntryPc <= m.Binding!.EndPc || boundMethod.Declaratives.Count > 0);
             if (nfInstall)
@@ -1100,7 +1100,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             w.Line("try");
             w.Line("{");
             if (Ctx.Data.Configuration.Classification is { } cls)
-                // The class's CHARACTER CLASSIFICATION, resolved at THIS method's activation (ISO §2023:12.3.6.4 GR8; §2023:14.6.6 r2 —
+                // The class's CHARACTER CLASSIFICATION, resolved at THIS method's activation (ISO §2023:12.3.6.4 GR8; §2023:14.6.6 GR2 —
                 // a method is a runtime element) into a local the method's dispatch local function captures (kb/Work PB111).
                 w.Line(ObjectComputerEmit.ClassificationLocal(cls));
             // LINKAGE roots → locals: a formal seeds from its parameter (copy-in; the copy-out below realizes
@@ -1185,7 +1185,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 var formal = m.Binding!.Formals.FirstOrDefault(f => ReferenceEquals(f.Item, root));
                 if (formal is null && root is { IsAnyLength: true, Pic: { } anyPic })
                     // An ANY LENGTH RETURNING item starts as n repetitions of its picture symbol, n being the activator's
-                    // receiver length (§2023:13.18.2.4 GR1 b)) — OoSignatureOf's trailing parameter.
+                    // receiver length (§2023:13.18.2.4 GR1b) — OoSignatureOf's trailing parameter.
                     w.Line($"{type} {local} = new string({RuntimeApi.AnyLengthFill(anyPic)}, {RetLenParam});   "
                         + $"// LINKAGE {root.CobolName} (ANY LENGTH RETURNING — n is the activator's, §2023:13.18.2.4 GR1 b))");
                 else if (formal is null)
@@ -1398,7 +1398,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         w.Line();
     }
 
-    /// <summary>The method activation's §2023:14.8.4 external-item check (§2023:14.9.23.4 GR7 d); kb/Work PB1138): the containing
+    /// <summary>The method activation's §2023:14.8.4 external-item check (§2023:14.9.23.4 GR7d; kb/Work PB1138): the containing
     /// half's registrations (<c>__DescribeExternals</c>, emitted by <see cref="EmitTypeHalf"/> under the same
     /// <see cref="WantsExternalDescribes"/> test) run by the activation boundary with THIS method's §2023:14.8.4.1 mask. Null
     /// when the half describes nothing — a group with no EC-EXTERNAL TURN, or a half with no external items.</summary>
@@ -1421,7 +1421,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         var parameters = formals.Select((f, i) =>
             $"{(record is null ? "" : RepositoryAttributeRenderer.FormalRecord(record.Formals[i]) + " ")}"
             + $"ManagedPointer<{OoFormalCrossingType(f.Item)}> {f.ParamName}, CellPointer? {f.AreaParam}, bool {f.OmittedFlag}").ToList();
-        // ⛔ AN ANY LENGTH RETURNING ITEM'S LENGTH IS THE ACTIVATOR'S (kb/Work PB1167): §2023:13.18.2.4 GR1 b) makes n "the
+        // ⛔ AN ANY LENGTH RETURNING ITEM'S LENGTH IS THE ACTIVATOR'S (kb/Work PB1167): §2023:13.18.2.4 GR1b makes n "the
         // length of the corresponding … returning item of the activating runtime element", and a C# return value
         // carries no receiver length, so the activator passes it as one trailing parameter — only for a method whose
         // returning item needs it, so every other signature is unchanged.
@@ -1440,7 +1440,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     }
 
     /// <summary>⛔ THE C# RETURN TYPE OF A METHOD (kb/Work PB1499) — <see cref="OoCrossingType"/> of its RETURNING item,
-    /// except for the one rule-5 pair C# cannot override covariantly. §2023:9.3.8.2.3 rule 5 a) admits ANY object reference
+    /// except for the one rule-5 pair C# cannot override covariantly. §2023:9.3.8.2.3 GR5a admits ANY object reference
     /// in interface-1 where interface-2's returning item is universal, and an OVERRIDE is such an interface-1 (§2023:11.7.3
     /// SR9): a method whose RETURNING item is described with an INTERFACE-name overriding a method that crosses as the
     /// universal type has no C# spelling of its own — C# covariant returns need an implicit reference conversion to the
@@ -1465,7 +1465,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         OoReturnClrType(m) is var projected && projected != OoCrossingType(ret) ? $"({projected})" : "";
 
     /// <summary>The trailing parameter that carries the INVOKE receiver's length to an ANY LENGTH RETURNING item
-    /// (<see cref="OoSignatureOf"/>; ISO §2023:13.18.2.4 GR1 b)).</summary>
+    /// (<see cref="OoSignatureOf"/>; ISO §2023:13.18.2.4 GR1b).</summary>
     private const string RetLenParam = "__retLen";
 
     /// <summary>True when the method's RETURNING item is described with ANY LENGTH — the one test that adds
@@ -1559,8 +1559,8 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         formal.Pic is { Category: PicCategory.ObjectReference, ObjectRef: { IsActiveClass: true } };
 
     /// <summary>⛔ THE C# CROSSING TYPE OF A METHOD FORMAL (kb/Work PB1497 + PB1112's override leg). An ACTIVE-CLASS
-    /// formal names "the same class as the object that was used to invoke the method" (§2023:13.18.60.4 GR22 e)) — a
-    /// property of the ACTIVATION, not of the description (§2023:9.3.8.2.3 rule 2 d) compares only the phrase and the
+    /// formal names "the same class as the object that was used to invoke the method" (§2023:13.18.60.4 GR22e) — a
+    /// property of the ACTIVATION, not of the description (§2023:9.3.8.2.3 GR2d) compares only the phrase and the
     /// FACTORY presence) — so it crosses the method ABI as the universal object type, whatever class the method is
     /// written in: one wire type for the method, for every override of it (a <c>ref</c> parameter admits no
     /// subclass) and for the interface prototype that has no class at all. The body views the formal as its
@@ -1639,7 +1639,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         var ret = inv.Returning!;
         string factory;
         if (inv.Form is InvokeForm.NewSelf)
-            factory = "this";   // SELF in a factory method: the RUNTIME factory, virtually (§2023:14.9.23.3 SR4 f) — an override runs
+            factory = "this";   // SELF in a factory method: the RUNTIME factory, virtually (§2023:14.9.23.3 SR4f) — an override runs
         else if (inv.Form is InvokeForm.NewSuper)
             factory = "base";   // SUPER: BASE's own New, non-virtually (§2023:8.4.3.8.4 GR3; SR4 h) — never the caller's override (kb/Work PB1582)
         else if (inv.Receiver is { } recv)
@@ -1717,7 +1717,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             // argument does not have.
             if (a.ContentBool is { } cb)
             {
-                // §2023:8.8.2 rule 10 — the value's length is the largest boolean ITEM referenced (literals only carry
+                // §2023:8.8.2 GR10 — the value's length is the largest boolean ITEM referenced (literals only carry
                 // no item width, so the receiver's store fits them). The same width §2023:14.9.8.4 GR3 states for a
                 // boolean COMPUTE, carried at run time by the ONE renderer EmitComputeBoolean uses (kb/Work PB589).
                 Decl("string", U.Call.BooleanArgumentRecord(cb, a.Formal));
@@ -1764,7 +1764,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             // arithmetic-expression-1 lands through FloatResultant, THE one transfer of an arithmetic value into a float
             // resultant identifier (implied TRUNCATION; the CALL lane's CobolArgAdapt.LandForFormal is the same store).
             // FIRST in the chain, before the image-carried arms, because an image-carried float formal takes the landed
-            // value in its STORAGE image. A same-usage float identifier keeps the verbatim read below (§2023:14.9.25.4 GR6 c).
+            // value in its STORAGE image. A same-usage float identifier keeps the verbatim read below (§2023:14.9.25.4 GR6c).
             else if (IsFloatLanding(a))
             {
                 var fpF = a.Formal.Pic!;
@@ -1794,7 +1794,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 Decl("object?[]", PlaceRenderer.GroupLeaves(a.Source!));
             else if (a.Formal.IsGroup || (stringCarried && a.Source?.Item.IsGroup == true))
             {
-                // The image crossing. BY REFERENCE allows a SMALLER formal (§2023:14.8.2.2 rule 1 — a PREFIX of
+                // The image crossing. BY REFERENCE allows a SMALLER formal (§2023:14.8.2.2 SR1 — a PREFIX of
                 // the argument): pass the leading formal-width characters; the write-back below splices the
                 // prefix back, preserving the argument's tail. CONTENT pads/truncates per MOVE.
                 int fw = a.Formal.IsGroup ? CallEmitter.BoundaryImageWidth(a.Formal) : CallEmitter.ElementaryFormalWindow(a.Formal);
@@ -1871,7 +1871,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 // of the formal's own usage (every other BY CONTENT shape took IsFloatLanding above): read the float
                 // value directly — never through the
                 // scaled-integer path (the review's silent-truncation finding) — and on the item's OWN carrier
-                // (NumericRenderer.FloatCarrierRead): a same-usage transfer is §2023:14.9.25.4 GR6 c)'s "without
+                // (NumericRenderer.FloatCarrierRead): a same-usage transfer is §2023:14.9.25.4 GR6c's "without
                 // change", which a windowed binary32 decoded through binary64 is not (kb/Work PB961).
                 Decl(a.Formal.ElementType, NumericRenderer.FloatCarrierRead(a.Source!, SendingRef.SameUsageMove));
             // BY CONTENT arithmetic-expression-1 (§2023:14.9.23.2; fix-queue PB46) — §2023:14.8.2.3.3 2) a): "the
@@ -1888,7 +1888,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             else if (a.ByContent && a.Source is { } cp
                      && Num.AsNum(new BoundFieldOperand(cp), ReceiverContext.None) is var cx
                      && (cp.Item.Pic?.Digits != a.Formal.Pic!.Digits || cp.Item.Pic?.Scale != a.Formal.Pic.Scale
-                         // …and the SIGN rule, which the digit/scale pair does not imply. §2023:14.9.25.4 GR6d2b:
+                         // …and the SIGN rule, which the digit/scale pair does not imply. §2023:14.9.25.4 GR6d.2.b:
                          // "When an unsigned numeric item is the receiving item, the ABSOLUTE VALUE of the
                          // sending value is used, and no operational sign is generated for the receiving
                          // item." A signed argument whose description otherwise matches an UNSIGNED formal
@@ -1910,7 +1910,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 // UnscaledLit used to hand back a binary64 `Real` NumX for the floating-point form, so
                 // `INVOKE … USING BY CONTENT 1.5E+3` emitted a C# `double` into an Int128-typed store and the
                 // generated code did not compile — a raw Roslyn CS1503 on conforming source. It now decomposes
-                // BOTH notations to the exact scaled integer of ISO §2023:8.3.3.3.3 rule 5 / §2023:8.3.3.3.2 rule 4.
+                // BOTH notations to the exact scaled integer of ISO §2023:8.3.3.3.3 GR5 / §2023:8.3.3.3.2 rule 4.
                 // (Evaluated ONCE — this used to call UnscaledLit twice to read its two halves.)
                 // ⛔ THROUGH THE SAME StoreExpr AS THE TWO IDENTIFIER/EXPRESSION ARMS (kb/Work PB640): it was
                 // the bare RuntimeApi.NumStore, so the unsigned-wide lane (StoreU) and the raising kernel the
@@ -1931,7 +1931,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             argExprs.Add(OoArgPair($"ManagedPointer<{crossing}>.Cell({tmp})", "null", fwdTest ?? "false"));
         }
 
-        // The trailing __retLen of an ANY LENGTH RETURNING item (OoSignatureOf; §2023:13.18.2.4 GR1 b)): the length of the
+        // The trailing __retLen of an ANY LENGTH RETURNING item (OoSignatureOf; §2023:13.18.2.4 GR1b): the length of the
         // item the result is delivered to — and, when the statement has no RETURNING phrase, GR1 is silent, so the
         // declared PICTURE length (docs/CONFORMANCE.md; the program ABI's CobolArgAdapt.ReturningSeed agrees).
         if (inv.ReturningSource is { IsAnyLength: true, Pic: { } anyRetPic })
@@ -2082,7 +2082,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 : PlaceRenderer.Write(src, value);
     }
 
-    /// <summary>A RETURNING receiver's length in character positions, as a C# int expression — the n of §2023:13.18.2.4 GR1 b)
+    /// <summary>A RETURNING receiver's length in character positions, as a C# int expression — the n of §2023:13.18.2.4 GR1b
     /// when the method's RETURNING item is ANY LENGTH. A varying receiver (ANY LENGTH, DYNAMIC LENGTH, a
     /// reference-modified window) is read at run time; a group is its image width; any other elementary item is its
     /// PICTURE's length.</summary>
@@ -2164,7 +2164,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         return fp.Category is PicCategory.Alphanumeric && sp.Item.Pic?.Category == PicCategory.Alphanumeric
                 && fp.EditMask is null
             // The identical-category fast path: the read itself, stored by the ONE elementary character store — which is
-            // what right-justifies a JUSTIFIED formal (§2023:14.9.25.4 GR6 a) / §2023:14.6.8; kb/Work PB2587's sweep: a plain width
+            // what right-justifies a JUSTIFIED formal (§2023:14.9.25.4 GR6a) / §2023:14.6.8; kb/Work PB2587's sweep: a plain width
             // fit here left-justified `ABCD` in a PIC X(6) JUSTIFIED RIGHT method formal).
             ? ReceivingStore.Characters(a.Formal, read, $"{Math.Max(1, fp.Length)}")
             : U.Move.ConvertSource(new BoundFieldOperand(sp), a.Formal);

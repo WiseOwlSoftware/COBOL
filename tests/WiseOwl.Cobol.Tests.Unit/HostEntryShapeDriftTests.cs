@@ -255,7 +255,7 @@ public sealed class HostEntryShapeDriftTests : WiseOwlCobolTestBase
                """;
 
     /// <summary>⛔ A GROUP HOLDING A VARIABLE-LENGTH COMPONENT AND A REFERENCE HAS ITS ENTRY, AS THE DESCRIPTION'S OWN CELL AREA
-    /// (DESIGN-external-repository §4.3; kb/Work PB3273). ISO §2023:14.2.3 13) obliges the implementor to STATE the restrictions
+    /// (DESIGN-external-repository §4.3; kb/Work PB3273). ISO §2023:14.2.3 GR13 obliges the implementor to STATE the restrictions
     /// of a non-COBOL activator, and this one once stood only because the published record composed no area: the COBOL
     /// boundary carries such a group as a cell area holding its references and its components together (kb/Work PB3139), and
     /// the activated program's formal is laid over an area only when it states the group's shape. So the record must (1)
@@ -303,7 +303,7 @@ public sealed class HostEntryShapeDriftTests : WiseOwlCobolTestBase
         Assert.Contains("L_B_Record.__TryGetArea(__hc0,", call);
     }
 
-    /// <summary>⛔ ONE RENDERER (DESIGN-external-repository §17.3): what a host entry's argument states for §2023:14.9.4.4 3) d) —
+    /// <summary>⛔ ONE RENDERER (DESIGN-external-repository §17.3): what a host entry's argument states for §2023:14.9.4.4 GR3d —
     /// its storage length and its description — is rendered by the CALL lane's <c>CallEmitter.Described</c>, the renderer a
     /// CALL statement's argument is stated by, from the builders a CALL argument's facts come from
     /// (<c>CallEmitter.ArgumentLength</c>, and <c>ActivationDescriptions.Of</c>, which the binder runs for the entry unit's formals:

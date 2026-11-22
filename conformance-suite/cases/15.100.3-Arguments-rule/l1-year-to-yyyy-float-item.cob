@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:15.100.3 r1 read through §2023:15.3's argument TYPES — YEAR-TO-YYYY's argument-1 on a FLOATING-POINT
+      *> ISO §2023:15.100.3 AR1 read through §2023:15.3's argument TYPES — YEAR-TO-YYYY's argument-1 on a FLOATING-POINT
       *> carrier, which is where three of this function's inventory rows recorded their residue.
       *> "Argument-1 shall be a nonnegative integer that is less than 100."
       *> (cite.py --check 15.100.3 "Argument-1 shall be a nonnegative integer that is less than 100" -> OK,

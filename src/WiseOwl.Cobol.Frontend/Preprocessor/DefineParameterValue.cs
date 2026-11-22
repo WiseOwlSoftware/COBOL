@@ -30,12 +30,12 @@ internal enum ParameterValueForm
 /// <list type="bullet">
 /// <item>An empty value, or one that begins with a space, is no value.</item>
 /// <item>A value that begins with a quotation symbol is a quoted literal when a closing delimiter of that quotation symbol
-/// ends it (§2023:8.3.3.2.3 3): a doubled one is content); one that is not so closed is no value. GnuCOBOL tests only the first and
+/// ends it (§2023:8.3.3.2.3 SR3: a doubled one is content); one that is not so closed is no value. GnuCOBOL tests only the first and
 /// last characters; this compiler holds the value to ONE literal, so <c>"a" &amp; "b"</c> and <c>"a"b"</c> are no value.</item>
 /// <item>A value that is the spelling of a fixed-point numeric literal (§2023:8.3.3.3.2, <see cref="NumericLiteral.IsFixedPointLiteralForm"/>)
 /// is that numeric literal, of ANY length: its digit capacity is the literal's own limit, enforced where the literal is
 /// evaluated (<c>CompileTimeExpressionEvaluator</c>), exactly as for <c>&gt;&gt;DEFINE X AS 12…</c>. GnuCOBOL's test also
-/// calls <c>5.</c> numeric; §2023:8.3.3.3.2 3) forbids the decimal point as the rightmost character, so it is alphanumeric here.</item>
+/// calls <c>5.</c> numeric; §2023:8.3.3.3.2 SR3 forbids the decimal point as the rightmost character, so it is alphanumeric here.</item>
 /// <item>Anything else — <c>1,000</c>, <c>1E5</c>, <c>7x</c>, <c>5 </c> — is alphanumeric, the text as given.</item>
 /// </list>
 /// The classification names a form; the VALUE of a numeric or quoted one is made by the same compile-time operand path as a

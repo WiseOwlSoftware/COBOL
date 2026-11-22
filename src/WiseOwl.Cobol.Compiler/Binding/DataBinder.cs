@@ -56,7 +56,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
 
     /// <summary>The group's compile-time <c>&gt;&gt;REF-MOD-ZERO-LENGTH</c> resolution (ISO §2023:7.3.23) — queried by
     /// <see cref="ReferenceResolver"/> when it builds a reference-modification Place, to set
-    /// <c>RefModPlace.AllowZeroLength</c> from the directive fold at the ref-mod's source line (§2023:8.4.3.3.4 item 5c).
+    /// <c>RefModPlace.AllowZeroLength</c> from the directive fold at the ref-mod's source line (§2023:8.4.3.3.4 GR5c).
     /// Defaults to <see cref="RefModZeroLengthState.Empty"/> (the OFF default) for direct test construction.</summary>
     public RefModZeroLengthState RefModZeroLength { get; init; } = RefModZeroLengthState.Empty;
 
@@ -170,7 +170,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
 
     /// <summary>⛔ THE ONE POINT A CONTAINER'S GLOBAL DATA NAMES BECOME VISIBLE to this unit (ISO §2023:13.18.27.4 GR1/GR2),
     /// beside <see cref="ReportSectionBinder.InheritContainerReports"/>: the end of <see cref="BindDeclarations"/> — after this unit's own
-    /// names are declared, so a name it declares hides the container's (§2023:8.4.6.2.1 3), and BEFORE
+    /// names are declared, so a name it declares hides the container's (§2023:8.4.6.2.1 GR3), and BEFORE
     /// <see cref="BindResolve"/>, so every clause of this unit's own data division that names a data item (FILE
     /// STATUS, RECORD / RELATIVE KEY, OCCURS … DEPENDING ON, ASSIGN … USING) finds the container's GLOBAL item.
     /// Inheriting after the whole <c>Bind</c> told a programmer that a name the container declares GLOBAL "is not
@@ -191,7 +191,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// containing the OCCURS clause" — subordinate to the global record, so a global name (kb/Work PB1674). ⛔ THESE
     /// ARE EVERY NAME CLASS A DATA DESCRIPTION ENTRY DECLARES, and <c>GlobalNameClassDriftTests</c> keeps the list
     /// total: a name index this binder gains is inherited here or excluded there with its reason. Each item carries its depth, so
-    /// a nearer declaration of the same spelling wins by §2023:8.4.6.2.1 3) at REFERENCE time
+    /// a nearer declaration of the same spelling wins by §2023:8.4.6.2.1 GR3 at REFERENCE time
     /// (<see cref="SymbolTable.NearestDeclaring{T}"/>), not by being left out here. Called nearest container
     /// first, after this unit's own names are declared (the end of <see cref="BindDeclarations"/>), so each
     /// ByName list stays in nearest-first order. The cells stay the container's: this unit reaches them through the GLOBAL bridge
@@ -400,7 +400,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // standard DECIMAL form, so STANDARD routes to the same CobolDec engine as STANDARD-DECIMAL
         // (NumericRenderer.StandardDecimal). Floating-point operands participate under BOTH modes through the
         // §2023:8.8.1.5.1 implementor-defined float→SDIDI conversion (CobolDec.FromBinary64 — the binary64's exact value
-        // rounded once to 34 digits under INTERMEDIATE ROUNDING, §2023:8.8.1.5.2 r1); the operations themselves are SDIDI
+        // rounded once to 34 digits under INTERMEDIATE ROUNDING, §2023:8.8.1.5.2 GR1); the operations themselves are SDIDI
         // (P10 Step 12).
         // STANDARD was DROPPED by ISO/IEC 1989:2023 (§2023:8.8.1 names only NATIVE/STANDARD-BINARY/STANDARD-DECIMAL)
         // → the pass's arithmetic-standard-2002 dual-window row rejects it at --std 2023 (0807).
@@ -604,7 +604,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// (<see cref="InheritedMemberNamesOf"/>), BEFORE this unit's data division binds, so a local root spelled like
     /// a container's global root takes a distinct field name (<c>G_2</c>) — and every member derived from it a
     /// distinct name — instead of colliding with a bridge (kb/Work PB1047 — every global root is bridged now,
-    /// including one a local declaration hides by §2023:8.4.6.2.1 3) a), because its subordinate names remain
+    /// including one a local declaration hides by §2023:8.4.6.2.1 GR3a, because its subordinate names remain
     /// visible).</summary>
     internal void ReserveInheritedMemberNames(IEnumerable<string> names) => _rootNames.Reserve(names);
 
@@ -782,7 +782,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                 // ExpandType clones it onto every item the type is applied to (CloneRenamesOnto) — the level-88 arm's
                 // twin (kb/Work PB1304).
                 // The alias IS "the entry describing the item" for a level-88 entry written after it — and
-                // ISO §2023:13.16.3 SR24 b) then excludes it. Recording it here is what replaces the silent steal.
+                // ISO §2023:13.16.3 SR24b then excludes it. Recording it here is what replaces the silent steal.
                 // The record it belongs to is the one this walk last opened (never `_lastRoot`, which outlives the walk and
                 // would hand a section's first 66 the previous section's record) — §2023:13.18.45.3 SR2 (kb/Work PB1283).
                 var renamesOwner = rootIsTemplate ? templateRoot : openRecord;
@@ -868,7 +868,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                 // entry of a record description, and ISO §2023:13.11.1 says what that is: "the first of which shall have
                 // level-number 1" (§2023:13.18.33.4 GR1: "The level-number 1 identifies the first entry in each record
                 // description, type declaration, or report group"). A 77 is the one other entry that stands alone
-                // (§2023:8.5.1.3.2 item 3, a noncontiguous item, "not subdivisions of other items, and … not themselves
+                // (§2023:8.5.1.3.2 GR3, a noncontiguous item, "not subdivisions of other items, and … not themselves
                 // subdivided", assigned the special level-number 77) — and because it is
                 // pushed on this stack with its own number, a 02-49 entry written after it pops it and arrives HERE
                 // too, which is the "77 is not subdivided" half of the same rule. Before this the arm rooted the item
@@ -1029,15 +1029,19 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
 
     /// <summary>The capture for an operand written where a general format prints <i>data-name-n</i>: the base
     /// word plus its IN/OF qualifiers (<see cref="KeyReference"/>), SCREENED first by
-    /// <see cref="ScreenClauseOperandShape"/> against the shapes §2023:8.4.2.2.2 Format 1 does not admit.
+    /// <see cref="ScreenDataNameShape"/> against the shapes §2023:8.4.2.2.2 Format 1 does not admit.
     /// <para>⚠ NOT every clause operand goes through here, and the exceptions are principled rather than
     /// historical: §2023:13.18.16.3 SR4's CONTROL operand and its §2023:13.18.57.3 SR10 / §2023:13.18.54.3 SR8 twins EXPRESSLY
     /// permit a reference-modifier, so the data-name-n screen would reject source their own rules allow. Those
     /// three capture with <see cref="KeyReference"/> and apply their own operand rules (kb/Work PB205).</para>
     /// </summary>
-    internal WrittenDataName ClauseDataName(Core.DataReferenceContext dref, string clauseFace)
+    /// <param name="subscriptRule">The clause's OWN rule about a subscript on this operand, in the edition in force
+    /// (<see cref="OperandSubscriptRule(string, string)"/>; empty where the edition's text has none beyond the data-name-n rule
+    /// the screen states itself): the operands differ in whether they may lie under an OCCURS at all, so no one sentence is
+    /// true of all of them (kb/Work PB1281, PB2041).</param>
+    internal WrittenDataName ClauseDataName(Core.DataReferenceContext dref, string clauseFace, string subscriptRule)
     {
-        if (!ScreenClauseOperandShape(dref, clauseFace)) return RefuseClauseOperand(dref);
+        if (!ScreenDataNameShape(dref, clauseFace, Edition, subscriptRule)) return RefuseClauseOperand(dref);
         return KeyReference(dref);
     }
 
@@ -1049,9 +1053,10 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// (<see cref="ScreenOperandOccurrence"/>). The other editions refuse a subscript exactly as <see cref="ClauseDataName"/>
     /// does, and the subscripts come back empty.</summary>
     internal (WrittenDataName Name, IReadOnlyList<int> Subscripts) ClauseDataNameSubscripted(
-        Core.DataReferenceContext dref, string clauseFace)
+        Core.DataReferenceContext dref, string clauseFace, string subscriptRule)
     {
-        if (!ScreenClauseOperandShape(dref, clauseFace, admitsSubscript2002: true)) return (RefuseClauseOperand(dref), []);
+        if (!ScreenDataNameShape(dref, clauseFace, Edition, subscriptRule, admitsSubscript2002: true))
+            return (RefuseClauseOperand(dref), []);
         return (KeyReference(dref),
             Edition.SubscriptedClauseOperands ? RefModBinder.ReadOperandSuffixes(dref).Subscript.Values : []);
     }
@@ -1095,20 +1100,30 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// data-name and died at OPEN naming a word the programmer never wrote as a data item, while
     /// <c>LINAGE IS T-LINES (2) LINES</c> dropped the subscript and crashed the same way (kb/Work PB489). The
     /// key clauses' own silent drop of a subscript or ref-mod (kb/Work PB205) is the same sentence and ends
-    /// here too.</para></summary>
-    private bool ScreenClauseOperandShape(Core.DataReferenceContext dref, string clauseFace, bool admitsSubscript2002 = false) =>
-        ScreenDataNameShape(dref, clauseFace, Edition, NotSubjectToOccurs, admitsSubscript2002);
+    /// here too. The screen is <see cref="ScreenDataNameShape"/>, and each caller states its own clause's rule about a subscript
+    /// (<see cref="OperandSubscriptRule(string, string)"/>, kb/Work PB2041).</para></summary>
+    internal string OperandSubscriptRule(string y1985, string y2023) => OperandSubscriptRule(Edition.Edition, y1985, y2023);
 
-    /// <summary>The subscript sentence of every caller whose own rule forbids an operand <i>"subject to any OCCURS
-    /// clauses"</i> — the file clauses (§2023:13.18.34.3 SR1, §2023:12.4.5.12.3 SR1, §2023:12.4.5.6.3 SR1, §2023:12.4.5.13.3 SR1) and the
-    /// SORT / MERGE file keys (§2023:14.9.40.3 SR6 b), §2023:14.9.24.3 SR4b). A caller whose operand MAY lie under an OCCURS
-    /// (a table SORT key, a REDEFINES data-name-2) states its own rule instead.</summary>
+    /// <summary>⛔ A CLAUSE OPERAND'S OWN SUBSCRIPT RULE, IN THE EDITION IN FORCE (kb/Work PB2041): <paramref name="y1985"/> at
+    /// COBOL-85 (empty where the 1985 text has no sentence of the clause's own, the data-name rule of §1985:III.2 p69 that the
+    /// screen states being the whole of it) and <paramref name="y2023"/>, quoted with its rule, at COBOL-2023 (empty where the
+    /// 2023 clause has none, the qualified-data-name rule the screen states being the whole of it). The operands differ in
+    /// whether they may lie under an OCCURS at all: a file clause's may not (§2023:12.4.5.8.3 SR1), an OCCURS KEY data-name-2
+    /// does by definition and is only not WRITTEN subscripted (§2023:13.18.38.3 SR2), so the one fixed sentence the screen once
+    /// closed with was false for some (kb/Work PB1281). ⚠ At COBOL-2002 and COBOL-2014 the message keeps the sentence it
+    /// printed before, <see cref="NotSubjectToOccurs"/>: those editions' own rules for each clause are owed to their reads
+    /// (kb/Work PB6038), and no 2023 rule is printed at them.</summary>
+    internal static string OperandSubscriptRule(EditionInfo edition, string y1985, string y2023) =>
+        edition.Cite(y1985, y2023, y2002: NotSubjectToOccurs, y2014: NotSubjectToOccurs);
+
+    /// <summary>The subscript sentence the 2002 and 2014 arms of <see cref="OperandSubscriptRule(EditionInfo, string, string)"/>
+    /// print; the 2023 rule of the SORT / MERGE file keys is its own words (§2023:14.9.40.3 SR6b, §2023:14.9.24.3 SR4b)).</summary>
     internal const string NotSubjectToOccurs = "the operand shall not be subject to any OCCURS clauses";
 
-    /// <summary>The body of <see cref="ScreenClauseOperandShape"/>, static over the <see cref="EditionContext"/>
+    /// <summary>The ONE data-name-n screen, static over the <see cref="EditionContext"/>
     /// so a PROCEDURE-DIVISION operand written where a general format prints <i>data-name-n</i> is refused by
     /// the SAME screen: the SORT (§2023:14.9.40.2, both formats) and MERGE (§2023:14.9.24.2) KEY phrases print
-    /// <c>KEY { data-name-1 } …</c>, and §2023:8.4.3.3.3's NOTE and §2023:14.9.40.3 SR14 b) (<i>"Key data names shall not
+    /// <c>KEY { data-name-1 } …</c>, and §2023:8.4.3.3.3's NOTE and §2023:14.9.40.3 SR14b) (<i>"Key data names shall not
     /// be subscripted"</i>) are the same obligation this screen discharges for the file clauses. Those keys used
     /// to reach the one reference resolver (Format 1) or <see cref="KeyReference"/> (Format 2), and BOTH kept
     /// the base item and dropped a reference-modifier — <c>SORT E ON ASCENDING KEY K(4:3)</c> sorted on all six
@@ -1185,15 +1200,17 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             edition.Error(DiagnosticCatalog.ClauseOperandNotADataName,
                 $"{clauseFace} '{WrittenSource.Of(dref)}' is written with a subscript; the clause's general format prints data-name-n"
                 + edition.Edition.Cite(
-                    ", not identifier, which alone is \"a syntactically correct combination of a data-name, with its qualifiers, "
-                        + "subscripts, and reference modifiers\" (§1985:III.2, Identifier), and ",
+                    // The 1985 rule is the data-name definition itself (kb/Work PB2041); the Identifier definition this arm once
+                    // quoted was the pre-Amendment wording of §1985:III.2 p124, and it defines the other term.
+                    "; a data-name in a general format \"represents a word which must not be reference-modified, subscripted, "
+                        + "or qualified unless specifically permitted by the rules of the format\" (§1985:III.2 p69)",
                     // At COBOL-2002 a data-name-n includes subscription (§2002:5.1.3); what refuses it here is the caller's own rule.
                     ", which is a qualified-data-name (ISO §2023:8.4.2.2.2 Format 1) and carries no subscript "
-                        + "— subscripting is §2023:8.4.2.3's qualified-data-name-with-subscripts, an identifier form, and ",
-                    y2002: ", and ",
+                        + "— subscripting is §2023:8.4.2.3's qualified-data-name-with-subscripts, an identifier form",
+                    y2002: "",
                     y2014: ", whose subscripting each clause's own rule restricts (ISO §2014:E.2 item 25, \"Restrictions for "
-                        + "Qualification and Subscripting of data-name-n\"), and ")
-                + subscriptRule);
+                        + "Qualification and Subscripting of data-name-n\")")
+                + (subscriptRule.Length > 0 ? ", and " + subscriptRule : ""));
         else if (refModified)
             ReportReferenceModified(dref, clauseFace, edition);
         return !subscripted && !refModified;
@@ -1322,7 +1339,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // division section other than the report section from referring to a report item, and §2023:13.15.3 SR7 bars the report
         // section's own clauses from naming an entry's data-name in any way it does not list (kb/Work PB4226: an RD's
         // OCCURS … DEPENDING ON is not one of them). A report entry of a NEARER source element is the referenced item
-        // (ISO §2023:8.4.6.2.1 3) a)): the lookup leaves it no survivor to hide (kb/Work PB4196), so the survivors here are the
+        // (ISO §2023:8.4.6.2.1 GR3a): the lookup leaves it no survivor to hide (kb/Work PB4196), so the survivors here are the
         // ambiguity (kb/Work PB3767) or nothing.
         // At COBOL-85 that section rule is not the edition's: §1985:XIII.3.9.3 SR10d lets a sum counter be referenced wherever the
         // reference is written, so it is the clause's data-name, and the clause's own rules judge it (kb/Work PB5310).
@@ -1591,7 +1608,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // funnel serves — the item VALUE (formats 1 and 2), the level-88 set (format 3) and the group-level
         // VALUE (kb/Work PB921). See ScreenNumericEditedNumericLiteral for the rule and the determination.
         ScreenNumericEditedNumericLiteral(pic, raw, where);
-        // §2023:8.3.3.6.3 SR1 a)'s ALL half (kb/Work PB1415): a numeric subject restricts its VALUE literals to numeric
+        // §2023:8.3.3.6.3 SR1a's ALL half (kb/Work PB1415): a numeric subject restricts its VALUE literals to numeric
         // ones (§2023:13.18.63.3 SR2), so ZERO is admitted only WITHOUT the ALL phrase. Classify carries the written
         // ALL (it used to strip it, so ALL ZEROS read as ZERO here). The edition edge is the gate's (VCR 7.28).
         if (pic.Category is PicCategory.Numeric && isZeroWord && figOp.BeginsWithAll)
@@ -1816,7 +1833,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         if (edited ? pic.DigitPositions <= 0 && !pic.IsFloatEdited : pic.Digits <= 0) return;   // picture-less numeric (INDEX) — no digit positions
         string t = raw.Trim();
         if (t.Length == 0) return;
-        bool signedLiteral = t[0] is '-' or '+';   // §2023:8.3.3.3.2 2): a literal written with a sign is a signed literal
+        bool signedLiteral = t[0] is '-' or '+';   // §2023:8.3.3.3.2 SR2: a literal written with a sign is a signed literal
         bool negativeLiteral = signedLiteral && t[0] == '-';
         if (signedLiteral) t = t[1..];
         // A plain numeric literal is a digit run with at most one decimal point (the floating-point form of
@@ -1840,7 +1857,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // SR3 (ISO §2023:13.18.63.3, ISO_COBOL_2023.md:22914): a signed numeric literal requires a signed numeric subject or "a
         // numeric-edited data item with a representation of a sign" (an editing sign symbol +, -, CR or DB — the
         // floating-point form's significand sign included). EVERY signed literal is refused by an unsigned subject, '+'
-        // as '-' (kb/Work PB3567): §2023:8.3.3.3.2 2) makes a literal written with a sign a signed literal whatever its value, and
+        // as '-' (kb/Work PB3567): §2023:8.3.3.3.2 SR2 makes a literal written with a sign a signed literal whatever its value, and
         // SR3 has no sign-value carve-out ("+5 == 5, no data loss" was the CA34 implementer's latitude call, not the rule).
         // (a floating-point edited mask's exponent '+' is NOT a representation of the value's sign — only the
         // significand's own sign symbol is, CobolEdit.FloatMask.SigSign.)
@@ -1923,7 +1940,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// (DigitPositions at the analyzer's Scale — there is no mask for MaskScale to read, and 'P' does not
     /// exist in format 2). The scale is <see cref="PicInfo.ReceiverScale"/>, the ONE receiver-scale rule, never a
     /// second spelling of it here (kb/Work PB2163's sibling sweep). The ONE (digits, scale) shape the §2023:13.18.63.3
-    /// SR2/SR6 VALUE-fit check and the §2023:14.7.7 r2 composite of operands both align on (kb/Work PB155). Callers exclude floating-point forms
+    /// SR2/SR6 VALUE-fit check and the §2023:14.7.7 SR2 composite of operands both align on (kb/Work PB155). Callers exclude floating-point forms
     /// first (<see cref="PicInfo.IsFloat"/> / <see cref="PicInfo.IsFloatEdited"/> — no fixed decimal
     /// alignment exists for them).</summary>
     internal (int Digits, int Scale) StoredShapeOf(PicInfo pic)
@@ -1965,7 +1982,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
 
     /// <summary>⛔ THE ONE DECLARATION FUNNEL OF A USER-DEFINED WORD (ISO §2023:8.3.2.2; kb/Work PB1083): every
     /// declaration of every §2023:8.3.2.2 type announces its word here, and the rules about a user-defined word AS
-    /// DECLARED are asked here once. Today that is §2023:8.3.2.1 rule 5 — intrinsic-function-names may be user-defined
+    /// DECLARED are asked here once. Today that is §2023:8.3.2.1 SR5 — intrinsic-function-names may be user-defined
     /// words "except for … intrinsic function names identified in a function-specifier in the REPOSITORY paragraph"
     /// — which §2023:12.3.8.3 restates for the specifier's scope (SR12 for <c>FUNCTION name INTRINSIC</c>, SR13 for
     /// <c>FUNCTION ALL INTRINSIC</c>); the membership is <see cref="IsRepositoryIntrinsic"/>. Reported once per
@@ -1988,7 +2005,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             Edition.Error(DiagnosticCatalog.RepositoryIntrinsicNameAsUserWord,
                 $"{kind.Spelling()} '{word}': the intrinsic-function-name is identified in a function-specifier of the "
                 + $"REPOSITORY paragraph (FUNCTION {specifier} INTRINSIC), so it shall not be used as a user-defined "
-                + $"word within the scope of that paragraph (ISO §2023:8.3.2.1 rule 5; §2023:12.3.8.3 SR{(named ? "12" : "13")})");
+                + $"word within the scope of that paragraph (ISO §2023:8.3.2.1 SR5; §2023:12.3.8.3 SR{(named ? "12" : "13")})");
         return true;
     }
 
@@ -2346,7 +2363,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         item.TypeName = typeName;
         item.TypeDeclaration = template;   // the declaration the one lookup resolved (DataItem.TypeDeclaration)
         item.StrongType = strong;
-        // §2023:13.18.57.4 GR2 d): a GROUP type's subject "is aligned as though it were a level 1 item" — so a bit
+        // §2023:13.18.57.4 GR2d: a GROUP type's subject "is aligned as though it were a level 1 item" — so a bit
         // group typed after a same-level bit item starts at the first bit of a byte (§2023:8.5.1.6.3), not inside the
         // predecessor's byte (kb/Work PB1569). An ELEMENTARY type has no GR2, and its subject is placed by
         // §2023:8.5.1.6.3 exactly as written in place. Read by BitLayout.SharesByteWith, the one placement predicate.
@@ -2367,7 +2384,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         }
         // §2023:13.18.22.3 SR5: "When a record description is an external item, any associated type declaration that is
         // strongly typed shall also be external." ⛔ The predicate is "the record IS an external item" — its own EXTERNAL
-        // clause, OR the record of an EXTERNAL file (§2023:13.18.22.4 GR4 b)), which carries no clause and is exactly the
+        // clause, OR the record of an EXTERNAL file (§2023:13.18.22.4 GR4b), which carries no clause and is exactly the
         // case the rule's NOTE names ("a file is declared as external and the associated record descriptions have TYPE
         // clauses") — and "any associated type declaration" reaches a TYPE clause on a subordinate entry too, so it
         // is asked of the item's RECORD, not of the item alone (kb/Work PB1212). It is asked AFTER the copy below,
@@ -2484,7 +2501,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             Edition.Error(DiagnosticCatalog.ExternalTypeRule, $"'{typed.CobolName ?? typed.ClrName}': a record that is "
                 + "an external item (its own EXTERNAL clause, or the record of an EXTERNAL file) is described with "
                 + $"STRONG type '{tn}', which requires that type declaration to be external too "
-                + "(ISO §2023:13.18.22.3 SR5, §2023:13.18.22.4 GR4 b))");
+                + "(ISO §2023:13.18.22.3 SR5, §2023:13.18.22.4 GR4b)");
         }
     }
 
@@ -2600,7 +2617,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // SAME AS or TYPE — so the ??= is the subject-wins discipline, not a second condition.
         to.PictureText ??= from.PictureText;
         // ⛔ GROUP-USAGE (§2023:13.18.29) — the clause that makes the item a BIT or NATIONAL group, i.e. its class,
-        // its category and the unit its LENGTH counts in (§2023:8.5.2.5 item 3 / §2023:8.5.2.10 item 3; §2023:15.50.4 r1/r2).
+        // its category and the unit its LENGTH counts in (§2023:8.5.2.5 GR3 / §2023:8.5.2.10 GR3; §2023:15.50.4 RV1/r2).
         // It is in NEITHER GR-1 exclusion list, and §2023:13.18.49.4 GR4 propagating a GROUP-USAGE from data-name-1's
         // SUPERORDINATE shows the clause is plainly meant to travel. Losing it did not merely mis-measure the
         // subject: §2023:13.16.4 GR1/GR2 imply the clause for every SUBORDINATE group, so a false antecedent here
@@ -3057,7 +3074,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// <summary>⛔ THE ONE TEST OF THE EXTERNAL ATTRIBUTE (kb/Work PB5427 made the three copies one): whether the RECORD an item
     /// belongs to is an external item. ISO §2023:8.6.3: a working-storage record "is given the external attribute by the presence
     /// of the EXTERNAL clause in its data description entry" (or by an EXTERNAL type, §2023:13.18.22.4 GR3), and the records of an
-    /// <c>FD … IS EXTERNAL</c> file are external though they write no clause (§2023:13.18.22.4 GR4 b)). Every item subordinate to
+    /// <c>FD … IS EXTERNAL</c> file are external though they write no clause (§2023:13.18.22.4 GR4b). Every item subordinate to
     /// an external record attains the attribute too. Read by the declaration walk, <c>OdoResolvePass</c> and
     /// <c>ExternalRecordNameRules</c>, which asks it of a frozen unit's <paramref name="files"/>.</summary>
     internal static bool IsInExternalRecord(DataItem item, FileSlice files)
@@ -3087,9 +3104,9 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // data-name-2 / data-name-3 through the ONE screened data-name-n capture: §2023:13.18.45.3 SR7 — "Data-name-2 and
         // data-name-3 shall not be subscripted" — which the bare-word capture used to satisfy by dropping the
         // subscript in silence (kb/Work PB978's sweep).
-        var fromOperand = ClauseDataName(rc.dataReference(0), $"'{name}' RENAMES");
+        var fromOperand = ClauseDataName(rc.dataReference(0), $"'{name}' RENAMES", OperandSubscriptRule("", "\"Data-name-2 and data-name-3 shall not be subscripted\" (ISO §2023:13.18.45.3 SR7)"));
         WrittenDataName? thruOperand = thru && rc.dataReference().Length > 1
-            ? ClauseDataName(rc.dataReference(1), $"'{name}' RENAMES … THRU")
+            ? ClauseDataName(rc.dataReference(1), $"'{name}' RENAMES … THRU", OperandSubscriptRule("", "\"Data-name-2 and data-name-3 shall not be subscripted\" (ISO §2023:13.18.45.3 SR7)"))
             : null;
         var item = new DataItem
         {
@@ -3304,7 +3321,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                     // literal-4 LAST, because the phrase is written last (§2023:13.18.63.2 format 3 prints
                     // `[ WHEN SET TO FALSE IS literal-4 ]` on the line after the operand list), so the
                     // diagnostics a malformed entry produces come out in source order. It is bound AFTER the
-                    // alphabet because §2023:13.18.63.3 SR27 b) weighs literal-4 against the ranges in the sequence
+                    // alphabet because §2023:13.18.63.3 SR27b weighs literal-4 against the ranges in the sequence
                     // §2023:14.7.8 GR2 gives them, which `cond.Collation` is what names.
                     BindFalsePhraseOperand(value, parent, cond);
                 }
@@ -3836,7 +3853,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                         $"data item '{cobolName ?? "FILLER"}'");
                     // PICTURE Format 2 (locale) — `LOCALE [IS locale-name-1] SIZE IS integer-1` (§2023:13.18.40.2; LIVE
                     // since kb/Work PB64 T6): capture the locale (SR37 through the ONE undeclared-locale-name path,
-                    // COBOL1664; absent ⇒ the current locale at each edit, §2023:13.18.40.5 r11) and SIZE integer-1
+                    // COBOL1664; absent ⇒ the current locale at each edit, §2023:13.18.40.5 GR11) and SIZE integer-1
                     // (§2023:13.18.40.4 GR17 — the item's length); the analysis is AnalyzeLocaleEdited's (SR33–SR36 +
                     // Table 11 → COBOL1673).
                     if (clause.Context.pictureClause()?.pictureLocalePhrase() is { } lp)
@@ -3851,7 +3868,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                             if (sym is not null) locale = new LocaleRef(sym);
                         }
                         // integer-1 is an integer-n, so a constant-name may stand for it (§2023:13.10.3 SR2) and the ONE reader
-                        // asks the value the §2023:5.5 1) questions: a ZERO or over-limit literal was reported pre-bind by
+                        // asks the value the §2023:5.5 SR1 questions: a ZERO or over-limit literal was reported pre-bind by
                         // the one integer-n screen (Validation/IntegerOperandPass, COBOL2386 — kb/Work PB859), a
                         // constant is judged here (kb/Work PB1948).
                         int size = Constants.IntegerOperandValue(lp.integerOperand(),
@@ -4361,7 +4378,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // (§2023:13.18.52.3 SR1/SR2 — the SIGN clause's subject — is CheckSignClauses, post-forest: the float-edited
         // special case that used to stand here is its numeric-edited arm, kb/Work PB537.)
         // §2023:13.16.3 SR19 — the SIGN clause shall not be specified with a format-2 (LOCALE) PICTURE: the sign
-        // representation is the LOCALE's (§2023:13.18.40.5 r13). The SCREEN description twin (§2023:13.17.3 SR9) rides the
+        // representation is the LOCALE's (§2023:13.18.40.5 GR13). The SCREEN description twin (§2023:13.17.3 SR9) rides the
         // screen arm; a REPORT GROUP entry carries NO such rule (§2023:13.15.3) and the pair is legal there (PB113).
         if (pic is { LocaleEdit: not null } && ownSign is not null)
             Edition.Error(DiagnosticCatalog.SignClauseWithLocalePicture, $"{entryWhere}: the SIGN clause shall not be "
@@ -4890,7 +4907,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             return nn.predefinedNull() is null
                 && (nn.figurativeConstant()?.cobolWord()?.GetText() is not { } symWord
                 || SpecialNames.NamesSymbolic(symWord) || Symbols.Identify(nn.figurativeConstant().cobolWord(), NameClass.Constant, report: false) is not null);
-        // §2023:8.3.3.3.2 rule 2 makes a written sign part of the numeric literal — ONE sign, as its leftmost
+        // §2023:8.3.3.3.2 SR2 makes a written sign part of the numeric literal — ONE sign, as its leftmost
         // character — so `VALUE -9999` is literal-1, while `--5`, `+-5` and `- 5` are no literal at all (kb/Work
         // PB1445: this arm used to strip ANY number of signs, and `VALUE --5` reached the C# backend as a
         // decrement operator, CS1059). THE ONE §2023:8.3.3.3.2 reading, SoleOperand.NumericLiteral, decides it. The
@@ -4978,7 +4995,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             return;
         }
         // Signs in front of a numeric literal that do not make ONE literal (`--5`, `+-5`, `- 5`, a sign at the end
-        // of a line and its digits on the next): §2023:8.3.3.3.2 rule 2 is the rule broken, so it is the rule named
+        // of a line and its digits on the next): §2023:8.3.3.3.2 SR2 is the rule broken, so it is the rule named
         // (kb/Work PB1445) — the same code LiteralScreen reports for a separated sign in every other literal slot.
         if (op.unaryExpression() is { } signedShape
             && WiseOwl.Cobol.Frontend.Expressions.ArithmeticFormationRules.SignedLiteralViolation(signedShape) is { } why)
@@ -4990,7 +5007,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             return;
         }
         // The BARE-word arm only (the SAME accessor the predicate used): a SIGNED or suffixed operand is not a
-        // word in a literal position at all — §2023:8.3.3.3.2 rule 2's sign belongs to a numeric literal — so it
+        // word in a literal position at all — §2023:8.3.3.3.2 SR2's sign belongs to a numeric literal — so it
         // falls to the general-format verdict below, which quotes the operand as written.
         if (BareValueOperandWord(op) is { } dref && dref.dataReferenceSuffix().Length == 0
             && dref.cobolWord()?.GetText() is { } word)
@@ -5023,7 +5040,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         BareValueOperandWord(op) is { } dref ? SymbolicRaw(dref) : null;
 
     /// <summary>The raw ALL-literal text of the symbolic character named <paramref name="word"/>, or null: the
-    /// class-prefixed re-quoted one-character literal (embedded delimiters doubled per §2023:8.3.3.2.3 r3). A
+    /// class-prefixed re-quoted one-character literal (embedded delimiters doubled per §2023:8.3.3.2.3 SR3). A
     /// resolution of the written word, recorded as a use (§2023:8.3.2.2; kb/Work PB3153).</summary>
     private string? SymbolicRaw(Antlr4.Runtime.ParserRuleContext word) =>
         SpecialNames.SymbolicOf(word) is not { } sym ? null
@@ -5153,7 +5170,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                 // SR20/SR21 screen still finds it, and the screen quotes the subscript AS WRITTEN (FromWritten /
                 // ToWritten) — never the saturated number, which the program does not contain.
                 // ⛔ THE SATURATION FLOOR IS int.MinValue, NOT 0 (kb/Work PB553). §2023:13.18.63.3 SR19 admits a
-                // SIGNED integer numeric literal here (§2023:5.5 2) a) → §2023:8.3.3.3.2 2)), so a negative subscript is
+                // SIGNED integer numeric literal here (§2023:5.5 SR2a → §2023:8.3.3.3.2 SR2), so a negative subscript is
                 // now a bindable value that §2023:8.4.2.3.4 GR2 ("The value of a subscript shall be a positive
                 // integer") rejects downstream. A long.TryParse here saturated a 20-to-31-digit NEGATIVE subscript
                 // to int.MaxValue, and the screen then quoted a positive number back.
@@ -5730,8 +5747,8 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     {
         string face = $"'{subject ?? "FILLER"}' REDEFINES";
         ScreenDataNameShape(dref, face, Edition, Edition.Edition.Cite(
-            // COBOL-85 has no sentence of its own: its REDEFINES format prints data-name-2, which the identifier rule above refuses.
-            "the REDEFINES clause's general format writes data-name-2 (§1985:VI.5.10.2)",
+            // COBOL-85's own sentence (kb/Work PB2041's sweep: this arm used to say the 1985 text had none).
+            "\"the reference to data-name-2 in the REDEFINES clause may not be subscripted\" (§1985:VI.5.10.3 SR5)",
             "\"the reference to data-name-2 in the REDEFINES clause shall not be subscripted\" (ISO §2023:13.18.44.3 SR5)"));
         if (dref.dataReferenceSuffix().Any(s => s.qualification() is not null))
         {
@@ -6093,7 +6110,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// spelling" (§2023:8.4.2.2.1 1). The switch condition-name has no hierarchy and takes no qualifier (§2023:8.8.4.6.2), so only
     /// a reference with NO suffix at all — no qualifier, subscript or reference modifier — can mean it, and such a
     /// reference counts it as one more candidate beside the level-88s (§2023:8.4.2.2.3 SR1).
-    /// <para>"Same source element" is a TIER comparison (§2023:8.4.6.2.1 3): <see cref="ForestSlice.DeclaringDepth"/> places the 88
+    /// <para>"Same source element" is a TIER comparison (§2023:8.4.6.2.1 GR3): <see cref="ForestSlice.DeclaringDepth"/> places the 88
     /// (this element's own, or a container's GLOBAL one n levels out) and
     /// <see cref="SymbolTable.SwitchConditionDepth"/> places the switch, so a container's switch beside a
     /// container's GLOBAL 88 is the same pair, and an 88 NEARER than the switch is the item the reference names

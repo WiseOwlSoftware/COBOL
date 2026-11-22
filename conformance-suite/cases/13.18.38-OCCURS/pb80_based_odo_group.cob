@@ -15,7 +15,7 @@
       *> (§2023:13.18.5) is a string-canonical class here, and its ODO group was
       *> never wrapped as an ODO operand: `MOVE BODO TO OUT` copied the MAXIMUM
       *> image (ABcccdddeee), a MOVE into it wrote past data-name-1's extent,
-      *> and FUNCTION LENGTH(BODO) was a run-time stage. §2023:15.50.4 r4a: LENGTH of
+      *> and FUNCTION LENGTH(BODO) was a run-time stage. §2023:15.50.4 RV4a: LENGTH of
       *> "a based entry not associated with actual data" is the receiving-item
       *> (maximum) length — 2 + 5 × 3 = 17; r4b: an associated one is
       *> data-name-1's current extent — 2 + 2 × 3 = 8. The WORKING-STORAGE twin

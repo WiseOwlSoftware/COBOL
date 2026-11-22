@@ -1,4 +1,4 @@
-- **D-IO-STATUS-39 — I-O status '39' (fixed-file-attribute conflict, §2023:9.1.13.6 item 7; E.3.3 item 35) — TWO DIFFERENT CASES, and
+- **D-IO-STATUS-39 — I-O status '39' (fixed-file-attribute conflict, §2023:9.1.13.6 GR7; E.3.3 item 35) — TWO DIFFERENT CASES, and
   only one of them is a gap.** '39' is not produced on either statement, but the reasons are not the same and
   collapsing them (as this bullet did until 2026-08-31) hid a conforming determination inside a deferral.
   - **DELETE FILE — CONFORMING, by definition.** §2023:14.9.10.4 GR19 requires the implementor to *define* which

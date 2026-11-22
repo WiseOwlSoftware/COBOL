@@ -18,7 +18,7 @@
       *>   found, the function shall return zero" -> OK  §2023:15.37.4 RV3
       *> DETERMINATION (docs/CONFORMANCE.md "DETERMINATION -- FIND-STRING
       *> counts overlapping matches"): §2023:15.37.4 states no consumption or
-      *> resumption rule, unlike SUBSTITUTE's §2023:15.87.4 r3 ("...plus the
+      *> resumption rule, unlike SUBSTITUTE's §2023:15.87.4 RV3 ("...plus the
       *> length of argument-2"), so every character POSITION at which
       *> argument-2 equals a substring of argument-1 is a match, whether
       *> or not it overlaps the one before. GnuCOBOL 3.2 lists

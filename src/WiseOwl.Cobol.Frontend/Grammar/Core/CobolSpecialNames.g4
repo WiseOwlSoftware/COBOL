@@ -83,7 +83,7 @@ localeClause
     ;
 // ⚠ Three slots, three KINDS of word (kb/Work PB764): the keyword LOCALE is a formatWord (a use OF the reserved
 // word, §2023:5.2.2); locale-name-1 is a user-defined word (§2023:8.3.2.2) and external-locale-name-1 a SYSTEM-NAME
-// (§2023:8.3.2.3.1) — §2023:8.3.2.1 rule 1 forbids a reserved word as EITHER, so both stay cobolWord for the §2023:8.9 funnel.
+// (§2023:8.3.2.3.1) — §2023:8.3.2.1 SR1 forbids a reserved word as EITHER, so both stay cobolWord for the §2023:8.9 funnel.
 
 // ORDER TABLE ordering-name-1 IS literal-9 (ISO §2023:12.3.7.2 — the LAST item of the SPECIAL-NAMES general format,
 // bracketed and therefore at most once). ORDER *is* a lexer token (kb/Work PB704 — a keyword slot may not borrow

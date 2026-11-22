@@ -85,7 +85,7 @@ public abstract partial class KeyedConnector : FileConnector
     /// a few statements later, inside <c>OpenCore</c>, where the failure becomes '37' or '30'.</para>
     /// <para>A paged store whose meta pages carry the format's magic but whose committed slots both fail
     /// (<see cref="StoreFormat.Damaged"/>) is the store's own format, damaged: not a conflict, so the OPEN goes on to
-    /// the adoption rule, which answers §2023:9.1.13.6 item 1's '30' (2.2.1.6 R6 step 1).</para></remarks>
+    /// the adoption rule, which answers §2023:9.1.13.6 GR1's '30' (2.2.1.6 R6 step 1).</para></remarks>
     protected override bool FixedAttributeConflict() =>
         MetaPage.Describes(HostPath, out var recorded) switch
         {
@@ -100,7 +100,7 @@ public abstract partial class KeyedConnector : FileConnector
     /// the ONE handle the store's pages are read and written through (kb/Work PB771).
     /// <para><i>"The successful opening of a file establishes a file lock for the applicable sharing rules,
     /// thereby preventing other run units from opening that file with incompatible sharing rules"</i>
-    /// (§2023:9.1.15 3)) — and a host share mode is the only thing a .NET process can say to another run unit, which
+    /// (§2023:9.1.15 GR3) — and a host share mode is the only thing a .NET process can say to another run unit, which
     /// means a connector that holds no handle says nothing.</para>
     /// <para>⛔ AND IT HAS TO BE THE SAME HANDLE THE STORE TRAVELS THROUGH. A second handle taken for a page read or
     /// write would ask the operating environment for access this connector's own <see cref="FileShare.None"/> forbids,
@@ -119,7 +119,7 @@ public abstract partial class KeyedConnector : FileConnector
     /// <inheritdoc/>
     /// <remarks>⛔ THE ENGINE READS THE FILE BEFORE IT WRITES IT, so every writable mode reads — <c>OPEN EXTEND</c>
     /// included, where <see cref="FileLockPosture.AccessOf"/>'s mode-derived floor says <see cref="FileAccess.Write"/>
-    /// alone: the adoption rule reads the meta pages (2.2.1.6 R6), and §2023:14.9.51.4 GR29 a)'s release number is
+    /// alone: the adoption rule reads the meta pages (2.2.1.6 R6), and §2023:14.9.51.4 GR29a's release number is
     /// <i>"one greater than the highest relative record number existing in the physical file"</i>, a fact of the
     /// records already there. Stating it here is what lets the registry widen a SIBLING's file lock by the access this
     /// handle really takes (kb/Work PB771).</remarks>
@@ -192,7 +192,7 @@ public abstract partial class KeyedConnector : FileConnector
             _regions = HostRegionLocks.Open(_handle, HostPath, writable: taken.CanWrite);
         }
         // ⛔ The engine writes at every statement, so it serializes against EVERY other run unit's connector — a
-        // SHARING WITH READ ONLY writer against the INPUT reader §2023:9.1.15 2) admits beside it (2.2.1.7, finding R2-6) —
+        // SHARING WITH READ ONLY writer against the INPUT reader §2023:9.1.15 GR2 admits beside it (2.2.1.7, finding R2-6) —
         // and only SHARING WITH NO OTHER runs without the mutex.
         _coherent = FileLockPosture.AdmitsAnotherRunUnit(HostShare);
     }
@@ -266,12 +266,12 @@ public abstract partial class KeyedConnector : FileConnector
 
     /// <summary>The keyed OPEN body (§2023:14.9.27). GR14: INPUT/I-O position the file position indicator at the start of
     /// the key of reference (the organization's <see cref="Opened"/>); GR15: EXTEND positions after the highest; GR17: an
-    /// absent OPTIONAL file on I-O/EXTEND is created ('05'); §2023:9.1.13.6 item 5: an absent NON-optional file on
+    /// absent OPTIONAL file on I-O/EXTEND is created ('05'); §2023:9.1.13.6 GR5: an absent NON-optional file on
     /// INPUT/I-O/EXTEND is '35' — the already-open '41' guard, the attempted-mode bookkeeping, the position reset, the
     /// ONE presence probe behind <paramref name="presence"/>, GR3's authority '37' and the '37'/'30' exception mapping
     /// live on <see cref="FileConnector.Open"/>.
     /// <para>The store is adopted or created under the store mutex (2.2.1.7, R6): a damaged store — both committed
-    /// slots fail — or a refused read, write or sync is §2023:9.1.13.6 item 1's '30', and the OPEN is unsuccessful
+    /// slots fail — or a refused read, write or sync is §2023:9.1.13.6 GR1's '30', and the OPEN is unsuccessful
     /// (<see cref="AbandonOpen"/> detaches what it attached).</para></summary>
     protected sealed override string OpenCore(FileOpenMode mode, FilePresence presence)
     {
@@ -616,7 +616,7 @@ public abstract partial class KeyedConnector : FileConnector
             stream = null;   // the connector's now
             // ⛔ THE HANDLE IS RETAKEN WHETHER OR NOT THE MEDIUM LETS THE STORE BE ADOPTED AGAIN (kb/Work PB3497): the giving
             // back detached the store's last handle, so Attach reads its pages anew, and a medium that refuses that read
-            // (§2023:9.1.13.6 item 1) fails the Attach before it carries the holdings across. What the CLOSE kept is a handle's —
+            // (§2023:9.1.13.6 GR1) fails the Attach before it carries the holdings across. What the CLOSE kept is a handle's —
             // the share mode that is the file lock, the transaction's liveness byte, the record locks — and none of it
             // depends on a page read, so the unsuccessful OPEN leaves it standing all the same (§2023:14.9.27.4 GR25; §2023:14.9.6.4
             // GR9): without the liveness byte another run unit's writable OPEN would roll back a transaction whose owner
@@ -840,7 +840,7 @@ public abstract partial class KeyedConnector : FileConnector
     /// guard lives on <see cref="FileConnector.Close"/>.</summary>
     protected sealed override string CloseCore()
     {
-        // A refused promotion maps to '30' on FileConnector.Close (§2023:9.1.13.6 item 1 — the ONE mapping), which ends
+        // A refused promotion maps to '30' on FileConnector.Close (§2023:9.1.13.6 GR1 — the ONE mapping), which ends
         // the open mode either way (the CLOSE statement's own USE procedure finds it through BeginClose). The records survive it:
         // page 2 already names the last completed statement's trees (2.2.1.6), so the next OPEN adopts them.
         // OptionalAbsent (the FPI's "not present" state) survives the CLOSE — §2023:14.9.6.4 GR6 says the file position
@@ -881,7 +881,7 @@ public abstract partial class KeyedConnector : FileConnector
             }
         }
         // The last writable connector's CLOSE re-adopts the store as its INPUT siblings' (KeyedStore.DetachHandle); a
-        // refused read there is this CLOSE's permanent error (§2023:9.1.13.6 item 1; 2.2.1.16's refused READ row), mapped to
+        // refused read there is this CLOSE's permanent error (§2023:9.1.13.6 GR1; 2.2.1.16's refused READ row), mapped to
         // '30' by FileConnector.Close like a refused promotion. The connector is closed either way.
         if (detached != StoreStatus.Ok)
             throw new IOException($"the medium refused the reader's re-adoption of '{HostPath}' at the CLOSE");
@@ -890,9 +890,9 @@ public abstract partial class KeyedConnector : FileConnector
     }
 
     /// <summary>The I-O status a store operation's failure answers when the statement is not a record WRITE or REWRITE —
-    /// an OPEN's adoption or creation, a DELETE — in either organization: §2023:9.1.13.6 item 1's '30' (<i>"A permanent error
+    /// an OPEN's adoption or creation, a DELETE — in either organization: §2023:9.1.13.6 GR1's '30' (<i>"A permanent error
     /// exists and no further information is available concerning the input-output operation"</i>) for every failure, the
-    /// boundary of the physical file included. The boundary's '24' is §2023:9.1.13.5 item 4's <i>"An attempt is made to write
+    /// boundary of the physical file included. The boundary's '24' is §2023:9.1.13.5 GR4's <i>"An attempt is made to write
     /// outside the externally-defined boundaries of a physical relative or indexed file"</i> — an attempt to WRITE a
     /// record — and §2023:14.9.10.4 gives DELETE no boundary condition, so a DELETE whose copy-on-write pages the host refuses
     /// to grow the file for is the permanent error and never the invalid key condition (docs/CONFORMANCE.md
@@ -901,7 +901,7 @@ public abstract partial class KeyedConnector : FileConnector
         status == StoreStatus.Ok ? null : FileStatusCode.PermanentError;
 
     /// <summary>The I-O status a record WRITE's or REWRITE's store failure answers, in either organization: '24' for the
-    /// boundary of the physical file (§2023:9.1.13.5 item 4; §2023:14.9.51.4 GR33 b) for a relative file, GR42 d) for an indexed
+    /// boundary of the physical file (§2023:9.1.13.5 GR4; §2023:14.9.51.4 GR33b for a relative file, GR42 d) for an indexed
     /// one; 2.2.1.9; DOC-A.1-107), otherwise <see cref="Failed"/>'s '30'; null on success.</summary>
     private protected static string? RecordWriteFailed(StoreStatus status) =>
         status == StoreStatus.Boundary ? FileStatusCode.BoundaryViolation : Failed(status);
@@ -918,7 +918,7 @@ public abstract partial class KeyedConnector : FileConnector
     }
 
     /// <summary>An unsuccessful START whose status is the invalid key condition's '23'
-    /// (§2023:9.1.13.5 item 3): §2023:14.9.41.4 GR7's invalidation plus that value.</summary>
+    /// (§2023:9.1.13.5 GR3): §2023:14.9.41.4 GR7's invalidation plus that value.</summary>
     private protected string StartFail() => Unsuccessful(FileStatusCode.RecordNotFound);
 
     /// <summary>⛔ THE RECORD'S OWN RULES, WRITTEN ONCE FOR EVERY KEYED WRITE AND REWRITE (kb/Work PB2751): the size
@@ -994,7 +994,7 @@ public abstract partial class KeyedConnector : FileConnector
     }
 
     /// <summary>⛔ HAND THE KEPT STATE OVER TO THE REGISTRY (kb/Work PB3494, PB3576): the connector is displaced by its element's next
-    /// activation, or its next OPEN associates it with another physical file (§2023:12.4.5.3 GR3 b), or the path of its OPEN no longer
+    /// activation, or its next OPEN associates it with another physical file (§2023:12.4.5.3 GR3b), or the path of its OPEN no longer
     /// names the file it was kept on, and what its CLOSE kept belongs to the file it was kept on, not to the connector — the
     /// COMMIT, the ROLLBACK and the run unit's end still reach it there (<c>FileRegistry.Retire</c>), and the connector holds
     /// nothing of it any more. Nothing when it kept nothing. The ONE hand-over: every path that parts a connector from its kept
@@ -1235,7 +1235,7 @@ public abstract partial class KeyedConnector : FileConnector
     /// COHERENT (<see cref="BeginStatement"/>): it runs inside the store mutex, starting from the file as it is now. The
     /// engine writes at every statement, so this is every sharing mode that admits ANY other run unit's connector
     /// (<see cref="FileLockPosture.AdmitsAnotherRunUnit"/>, docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.7 and
-    /// 2.2.1.13; kb/Work PB3333): the INPUT reader §2023:9.1.15 2) admits beside a READ ONLY writer would otherwise meet a
+    /// 2.2.1.13; kb/Work PB3333): the INPUT reader §2023:9.1.15 GR2 admits beside a READ ONLY writer would otherwise meet a
     /// half-written path.</summary>
     private bool _coherent;
 
@@ -1266,7 +1266,7 @@ public abstract partial class KeyedConnector : FileConnector
     }
 
     /// <summary>⛔ A HOST FAILURE OF A STATEMENT'S OWN ENTRY IS A PERMANENT ERROR, NOT AN EXCEPTION (kb/Work PB2842).
-    /// Taking the mutex and reading page 2 are host I/O, and §2023:9.1.13.6 1)'s <i>"A permanent error exists and no further
+    /// Taking the mutex and reading page 2 are host I/O, and §2023:9.1.13.6 GR1's <i>"A permanent error exists and no further
     /// information is available concerning the input-output operation"</i> ('30') is what the standard gives such a
     /// failure. The statement is entered all the same, holding what it took: the status is recorded
     /// (<see cref="FileConnector.SetStatus"/>, which starts the permanent error of §2023:9.1.13.1, <i>"The permanent error

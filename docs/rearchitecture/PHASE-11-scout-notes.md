@@ -45,21 +45,21 @@
 
 ## §2023:15.13 BOOLEAN-OF-INTEGER (spec file E:/COBOL/specs/ISO_COBOL_2023.md, line 34594)
 
-General (15.13.1): "The BOOLEAN-OF-INTEGER function returns a boolean item of usage bit representing the binary value of argument-1. Argument-2 specifies the length of the boolean data item that is returned. The function type is boolean." Per §2023:15.2 item 2, a boolean function is "of the class and category boolean" with "implicit usage bit".
+General (15.13.1): "The BOOLEAN-OF-INTEGER function returns a boolean item of usage bit representing the binary value of argument-1. Argument-2 specifies the length of the boolean data item that is returned. The function type is boolean." Per §2023:15.2 GR2, a boolean function is "of the class and category boolean" with "implicit usage bit".
 
 Format (15.13.2): `FUNCTION BOOLEAN-OF-INTEGER ( argument-1 argument-2 )` — no comma in the general format; the comma is an optional COBOL separator (the Annex D.10 example writes `( integer-item , 6)`).
 
-Arguments rules (15.13.3): "1) Argument-1 shall be a positive integer. 2) Argument-2 shall be a positive nonzero integer." Both are Integer-type arguments per §2023:15.3 item 6 ("An arithmetic expression that will always result in an integer value or an integer data item... The value of the arithmetic expression, including operational sign, is used"). Note argument-2 is a plain integer VALUE (the requested bit length), NOT a data item/length reference. See gotcha on whether arg-1 'positive' admits zero.
+Arguments rules (15.13.3): "1) Argument-1 shall be a positive integer. 2) Argument-2 shall be a positive nonzero integer." Both are Integer-type arguments per §2023:15.3 AR6 ("An arithmetic expression that will always result in an integer value or an integer data item... The value of the arithmetic expression, including operational sign, is used"). Note argument-2 is a plain integer VALUE (the requested bit length), NOT a data item/length reference. See gotcha on whether arg-1 'positive' admits zero.
 
 Returned value rule (15.13.4, rule 1, verbatim): "The returned value is a boolean item of usage bit that has the same bit configuration as the binary representation of the value of argument-1, where the rightmost boolean position is the low-order binary digit. The boolean value is zero-filled or truncated on the left, if necessary, in order to return a boolean item whose length is specified by argument-2 in terms of boolean positions." NOTE: "Binary representation is a mathematical concept. It is not required that this representation be the same as a COBOL representation." So the result is exactly (argument-1 mod 2^argument-2) written MSB-first in argument-2 bit positions — the plan's MSB-first/unsigned-binary assumption is VERIFIED, with the addition that left truncation (arg-1 too big for arg-2 bits) is NORMAL, not an error (Annex D.10 comment: "the function returns the low order 6 bits").
 
 ## §2023:15.45 INTEGER-OF-BOOLEAN (line 36245)
 
-General (15.45.1): "returns the numeric value of the boolean string in argument-1. The function type is integer" (§2023:15.2 item 5: integer function = class/category numeric, operational sign, no fraction digits).
+General (15.45.1): "returns the numeric value of the boolean string in argument-1. The function type is integer" (§2023:15.2 GR5: integer function = class/category numeric, operational sign, no fraction digits).
 
 Format (15.45.2): `FUNCTION INTEGER-OF-BOOLEAN ( argument-1 )`.
 
-Argument rule (15.45.3): "1) Argument-1 shall be of class boolean." Per §2023:15.3 item 3 (Boolean argument): "A bit group item, a boolean expression or literal, or an elementary boolean data item shall be specified. The size associated with the argument may be used in determining the value of the function." So literals (B"..."/BX"...") and reference-modified bit items are valid arguments.
+Argument rule (15.45.3): "1) Argument-1 shall be of class boolean." Per §2023:15.3 AR3 (Boolean argument): "A bit group item, a boolean expression or literal, or an elementary boolean data item shall be specified. The size associated with the argument may be used in determining the value of the function." So literals (B"..."/BX"...") and reference-modified bit items are valid arguments.
 
 Returned value rule (15.45.4, rule 1, verbatim): "a) Argument-1 is assigned to a temporary boolean data item of usage bit described with the same number of boolean positions as argument-1. b) The unsigned binary value represented by the same bit configuration as the bit configuration of that temporary boolean data item is determined. [NOTE: mathematical concept] c) The numeric value determined in subrule 1b is the returned value." So: unsigned, MSB-first interpretation of the whole bit string — the plan's assumption is VERIFIED. The informative summary table (line 34226) paraphrases it as "The numeric value of a BINARY-DOUBLE item whose bit configuration is the same as argument-1, right-justified" — informative only, but hints the practical result width is 64-bit unsigned.
 
@@ -88,7 +88,7 @@ Neither §2023:15.13 nor §2023:15.45 has function-local EC rules. The EC machin
 | FUNCTION BOOLEAN-OF-INTEGER(256, 8) | B"00000000" (256 mod 2^8 = 0) | §2023:15.13.4 RV1 left truncation |
 | FUNCTION BOOLEAN-OF-INTEGER(1, 1) | B"1" | §2023:15.13.4 RV1; §2023:15.13.3 AR2 minimum legal argument-2 = 1 |
 | FUNCTION INTEGER-OF-BOOLEAN(B"00000101") | 5 | §2023:15.45.4 rule 1a-c: unsigned binary value of the same bit configuration, same number of boolean positions as argument-1 |
-| FUNCTION INTEGER-OF-BOOLEAN(bit-item(1:6)) where bit-item = B"10000000" | 32 (leading 6 bits B"100000") | §2023:15.45.4 RV1 + §2023:15.3 item 3 (ref-modified boolean argument); Annex D.10: 'the numeric value of the leading 6 bits, 32' |
+| FUNCTION INTEGER-OF-BOOLEAN(bit-item(1:6)) where bit-item = B"10000000" | 32 (leading 6 bits B"100000") | §2023:15.45.4 RV1 + §2023:15.3 AR3 (ref-modified boolean argument); Annex D.10: 'the numeric value of the leading 6 bits, 32' |
 | FUNCTION INTEGER-OF-BOOLEAN(BX"5") | 5 (BX"5" == B"0101") | §2023:8.3.3.4.4 GR5 ('5' is B"0101") + GR6; §2023:15.45.4 RV1 |
 | FUNCTION INTEGER-OF-BOOLEAN(B"1111") | 15 | §2023:15.45.4 RV1 |
 | FUNCTION INTEGER-OF-BOOLEAN(FUNCTION BOOLEAN-OF-INTEGER(200, 8)) | 200 (round-trip identity for 0 <= n < 2^k) | §2023:15.13.4 RV1 composed with §2023:15.45.4 RV1 (both unsigned, MSB-first) |
@@ -99,14 +99,14 @@ Neither §2023:15.13 nor §2023:15.45 has function-local EC rules. The EC machin
 
 - AMBIGUITY ON ZERO for BOOLEAN-OF-INTEGER argument-1: rule 1 says 'a positive integer' while the ADJACENT rule 2 says 'a positive nonzero integer'. Under the sign-condition definition (§2023:8.8.4.7.4 GR1a: POSITIVE true iff value > 0) zero is NOT positive, making BOOLEAN-OF-INTEGER(0, n) an argument-rule violation -> EC-ARGUMENT-FUNCTION; but the intra-section contrast with 'positive nonzero' (which would be redundant otherwise) plus the informal 'unsigned/binary value' framing strongly suggests the drafters meant arg-1 to admit 0 and only arg-2 to exclude it. Comparable rules elsewhere use explicit 'greater than or equal to zero' (§2023:15.9.3 AR2) when zero is intended. RECOMMENDATION: accept 0 (returns all-zero bits) — with checking enabled this is the risky leg only under the strictest reading; do NOT raise EC for 0, do raise it for negatives. The plan's word 'unsigned' is not in the spec text; the spec's constraint is 'positive'.
 - The plan's phrase 'the unsigned binary representation of argument-1' is incomplete: §2023:15.13.4 RV1 explicitly ZERO-FILLS OR TRUNCATES ON THE LEFT to argument-2 positions — i.e. the result is argument-1 mod 2^argument-2, and overflow of argument-2 bits is NORMAL (no EC). Annex D.10 (544 -> low 6 bits) confirms.
-- Argument-2 is an Integer-type argument (§2023:15.3 item 6) — a plain integer VALUE giving the result length in boolean positions; it must be >= 1 ('positive nonzero'). There is no upper bound in §2023:15.13; the only cap is §2023:15.4's implementor-defined max returned-value length (exceeding it -> EC-ARGUMENT-FUNCTION). Pick and document an implementor max (the boolean-literal max of 8191 positions, §2023:8.3.3.4.3 SR1, is a natural choice).
+- Argument-2 is an Integer-type argument (§2023:15.3 AR6) — a plain integer VALUE giving the result length in boolean positions; it must be >= 1 ('positive nonzero'). There is no upper bound in §2023:15.13; the only cap is §2023:15.4's implementor-defined max returned-value length (exceeding it -> EC-ARGUMENT-FUNCTION). Pick and document an implementor max (the boolean-literal max of 8191 positions, §2023:8.3.3.4.3 SR1, is a natural choice).
 - Neither §2023:15.13 nor §2023:15.45 defines any function-specific EC rule — ALL argument-violation behavior routes through the general §2023:15.3 paragraph (line 33761): EC-ARGUMENT-FUNCTION (Fatal) only if no exception arose during item identification/expression evaluation; with checking disabled the function result is implementor-defined (implementor item 90, line 39483).
 - The §15 summary table row for INTEGER-OF-BOOLEAN (line 34226) says 'numeric value of a BINARY-DOUBLE item... right-justified' — that 64-bit framing is the informative table only; §2023:15.45.4 itself sizes the temporary item to argument-1's length with NO 64-bit cap. A boolean argument longer than 64 bits (legal: PIC 1(100) USAGE BIT, or literals up to 8191 positions) overflows uint64 — decide a policy (EC-ARGUMENT-FUNCTION via the §2023:15.4 max-returned-length hook, or wider arithmetic) and document it.
 - Zero-length boolean argument to INTEGER-OF-BOOLEAN is not addressed by §2023:15.45 (hex-boolean literals CAN be zero-length, §2023:8.3.3.4.3 NOTE after SR3). No explicit rule exists; value 0 is the natural reading of 'unsigned binary value' of an empty configuration, but flag it as an undefined edge.
 - DISPLAY of a boolean/bit item: legal (§2023:14.9.11.3 SR1 excludes only message-tag/object/pointer) but the conversion to the device is IMPLEMENTOR-DEFINED (§2023:14.9.11.4 GR1) — the spec does NOT mandate '0'/'1' character rendering; our compiler defines it. A fully spec-pinned golden alternative: IF FUNCTION BOOLEAN-OF-INTEGER(5, 8) = B"00000101" (boolean relation, §2023:8.8.4.3).
 - MOVE into a bit item fills/truncates on the RIGHT (§2023:14.6.8.6) — the OPPOSITE end from BOOLEAN-OF-INTEGER's left fill/truncate. A golden that MOVEs a shorter function result into a longer PIC 1(n) item (the Annex 544/6 -> PIC 1(8) case, giving B"10000000") catches conflation of the two.
 - General format has NO comma between argument-1 and argument-2 (`( argument-1 argument-2 )`); the comma is just an optional separator (the Annex example uses one) — the argument-list grammar must accept both.
-- Function result types: BOOLEAN-OF-INTEGER is a boolean function -> class/category boolean, IMPLICIT USAGE BIT (§2023:15.2 item 2; §2023:8.5.2.5 item 4 lists 'a boolean function' as category boolean); INTEGER-OF-BOOLEAN is an integer function -> class/category numeric with an operational sign (§2023:15.2 item 5), though its value is always >= 0 by §2023:15.45.4 ('unsigned binary value').
+- Function result types: BOOLEAN-OF-INTEGER is a boolean function -> class/category boolean, IMPLICIT USAGE BIT (§2023:15.2 GR2; §2023:8.5.2.5 GR4 lists 'a boolean function' as category boolean); INTEGER-OF-BOOLEAN is an integer function -> class/category numeric with an operational sign (§2023:15.2 GR5), though its value is always >= 0 by §2023:15.45.4 ('unsigned binary value').
 - No contradiction found with the P11 phase doc's core assumptions (MSB-first, arg-2 = bit-position count, unsigned interpretation) — the only corrections are the mod-2^k truncation semantics and the arg-1-zero ambiguity above.
 
 ## `spec:byte-length` — BYTE-LENGTH §2023:15.14 (vs LENGTH)
@@ -171,7 +171,7 @@ The spec defines the COUNTING rules but NOT the byte widths; widths come from §
 
 === CONTRAST WITH FUNCTION LENGTH (§2023:15.50, line 36454 — NOT §2023:15.49) ===
 - LENGTH counts POSITIONS, class-dependent (§2023:15.50.1): "in alphanumeric character positions, national character positions, or boolean positions, depending on the class of the argument". Returned-value rules: r1 boolean/bit → boolean positions; r2 national usage → national character positions; r3 everything else → alphanumeric character positions. BYTE-LENGTH always counts BYTES.
-- Argument rule difference (§2023:15.50.3 r1): "an alphanumeric, national, or boolean literal; a data item of any class or category; a based entry; or a type-name" — LENGTH additionally permits a BOOLEAN literal; BYTE-LENGTH does not.
+- Argument rule difference (§2023:15.50.3 AR1): "an alphanumeric, national, or boolean literal; a data item of any class or category; a based entry; or a type-name" — LENGTH additionally permits a BOOLEAN literal; BYTE-LENGTH does not.
 - Same machinery in both: [PHYSICAL] keyword; ODO sending/receiving split (LENGTH r4 = BYTE-LENGTH r2); implicit FILLER included (LENGTH r5 = B-L r3); dynamic-length elementary → "the current length of argument-1 in bytes is returned" (LENGTH r6 uses the SAME 'in bytes' wording — a quirk: LENGTH of a dynamic-length item is defined in bytes, not positions); variable-length-group sum / PHYSICAL legs (LENGTH r7/r8 = B-L r6/r7, with r8 phrased "in number of character positions"); rounding (LENGTH r9 rounds non-integral alphanumeric positions; B-L r4 rounds non-integral bytes).
 - Practical divergence: PIC N(3) → LENGTH=3 always; BYTE-LENGTH=3×national-char-size. PIC X(5) → LENGTH=5; BYTE-LENGTH=5×alphanumeric-char-size (equal when char=1 byte). USAGE BIT PIC 1(12) → LENGTH=12 boolean positions; BYTE-LENGTH=2 (12 bits rounded up).
 
@@ -204,13 +204,13 @@ The spec defines the COUNTING rules but NOT the byte widths; widths come from §
 - LOUD: the spec does NOT define byte counts for DISPLAY, NATIONAL, BINARY, COMP, or PACKED-DECIMAL — every one is implementor-specified (§2023:13.18.60.4 GR7, GR8, GR4, GR6, GR11; §2023:8.1.2 even makes bits-per-byte implementor-specified). Only FLOAT-BINARY-32/64/128 and FLOAT-DECIMAL-16/34 have spec-pinned sizes (via ISO/IEC 60559 interchange formats, GR14–18). The compiler must pin and DOCUMENT its widths (e.g., 1-byte alphanumeric chars, national=UTF-16 2 bytes vs UCS-4 4 bytes, COMP ladder, packed nibbles) — these become implementor-defined items, not spec derivations.
 - COMP-3 is NOT an ISO/IEC 1989:2023 usage — the §2023:13.18.60.2 general format lists only COMPUTATIONAL/COMP (no COMP-1/2/3); the ISO name is PACKED-DECIMAL [WITH NO SIGN]. Supporting the spelling COMP-3 is a dialect extension decision.
 - BINARY-CHAR/SHORT/LONG/DOUBLE (GR12) are specified by MINIMUM RANGES (2**7…2**64), and 'The implementor may allow a wider range' — 1/2/4/8 bytes is implied, not literally mandated.
-- Argument asymmetry vs LENGTH: BYTE-LENGTH permits only alphanumeric/national literals (§2023:15.14.3 r1); LENGTH (§2023:15.50.3 r1) additionally permits BOOLEAN literals. Neither permits numeric literals.
+- Argument asymmetry vs LENGTH: BYTE-LENGTH permits only alphanumeric/national literals (§2023:15.14.3 AR1); LENGTH (§2023:15.50.3 AR1) additionally permits BOOLEAN literals. Neither permits numeric literals.
 - Table 21 (line 34171) lists 'Num1' and §2023:15.3(10) defines Numeric arguments as 'an arithmetic expression or a numeric data item' — but §2023:15.14.3 AR1's specific text permits only data items (+ the named literals/based-entry/type-name). An arithmetic expression has no defined storage representation; the specific §2023:15.14.3 rule should govern the binder (reject bare arithmetic expressions; accept numeric DATA ITEMS of any usage). Flag as a deliberate binder decision.
 - Groups: YES (any class/category, incl. index/object/pointer/boolean items per Table 21). Variable-length groups are explicitly permitted (rules 6/7 — required by §2023:15.3's blanket restriction). BUT §2023:15.3 also says a TYPE-NAME argument shall not describe a variable-length group.
-- ODO split is subtle: a normal ODO-group data-item argument uses SENDING rules = CURRENT DEPENDING value (§2023:15.14.4 r2b + §2023:13.18.38.4 GR8b); only based-entries-not-associated-with-data and type-names use receiving rules = MAXIMUM (r2a). The CONSTANT AS BYTE-LENGTH OF variant (§2023:13.10.4 GR5) flips ODO groups to MAXIMUM — compile-time constant ≠ runtime intrinsic on the same operand.
+- ODO split is subtle: a normal ODO-group data-item argument uses SENDING rules = CURRENT DEPENDING value (§2023:15.14.4 RV2b + §2023:13.18.38.4 GR8b); only based-entries-not-associated-with-data and type-names use receiving rules = MAXIMUM (r2a). The CONSTANT AS BYTE-LENGTH OF variant (§2023:13.10.4 GR5) flips ODO groups to MAXIMUM — compile-time constant ≠ runtime intrinsic on the same operand.
 - Rule 3: implicit FILLER positions (alignment/SYNCHRONIZED padding) ARE included in the returned value — a typed-native compiler that has no physical padding must decide what its 'implicit filler' story is for BYTE-LENGTH of groups.
 - Rule 7 (PHYSICAL on a variable-length group 'not physically located where it is defined') returns only the length of the implementor-defined POINTER — and contains a spec typo: 'returns the same value same value'.
-- LENGTH quirk worth mirroring: §2023:15.50.4 r6 measures dynamic-length elementary items 'in bytes' — identical wording to BYTE-LENGTH r5 — even though LENGTH otherwise counts positions; for a national dynamic-length item the literal spec text makes LENGTH return BYTES, not characters.
+- LENGTH quirk worth mirroring: §2023:15.50.4 RV6 measures dynamic-length elementary items 'in bytes' — identical wording to BYTE-LENGTH r5 — even though LENGTH otherwise counts positions; for a national dynamic-length item the literal spec text makes LENGTH return BYTES, not characters.
 - Function references are legal arguments (§2023:8.4.3.2.4 GR1/GR2), but BYTE-LENGTH of a NUMERIC function's temp item under native arithmetic is implementor-defined (§2023:15.4.1) — avoid goldens that depend on it, or pin the compiler's temp-item representation explicitly.
 - ANY LENGTH items: §2023:15.14 says nothing about them; only the CONSTANT entry explicitly forbids ANY LENGTH data-names (§2023:13.10.3 SR10). Runtime BYTE-LENGTH of an ANY LENGTH formal is spec-silent — treat as a design decision (current length is the natural reading via the data-item leg).
 - PHYSICAL keyword parsing: it is a plain keyword INSIDE the argument parens after argument-1 (Key2), not a separate argument — grammar must accept FUNCTION BYTE-LENGTH ( arg PHYSICAL ).
@@ -683,7 +683,7 @@ SR3 (line 17215): "The REDEFINES clause shall not be specified in the same data 
 ### Enums
 - `IntrinsicType` (line 10): `{ Alphanumeric, Boolean, National, Numeric, Integer, Index }` — §2023:15.2 function-type column. **Boolean IS present** (doc comment: Boolean → bool conceptually, but see ResultCategory below).
 - `IntrinsicArity` (line 14): `{ Fixed, OptionalTrailing, Variadic }`.
-- `IntrinsicBind` (line 21): `{ Runtime, Fold, Deferred }`. Runtime = a `CobolIntrinsics`/`CobolDate` call; Fold = compile-time resolution (LENGTH §2023:15.50, WHEN-COMPILED §2023:15.99.3 r2, the *-ALGEBRAIC folds); Deferred = catalogued (D8 edition gating + arity apply) but renders a LOUD not-implemented guard. There is NO `Unsupported` case yet (P11 Step 1 adds it).
+- `IntrinsicBind` (line 21): `{ Runtime, Fold, Deferred }`. Runtime = a `CobolIntrinsics`/`CobolDate` call; Fold = compile-time resolution (LENGTH §2023:15.50, WHEN-COMPILED §2023:15.99.3 RV2, the *-ALGEBRAIC folds); Deferred = catalogued (D8 edition gating + arity apply) but renders a LOUD not-implemented guard. There is NO `Unsupported` case yet (P11 Step 1 adds it).
 
 ### Row shape — `readonly record struct IntrinsicSig` (lines 33–36), ctor params IN ORDER:
 1. `string Name` — COBOL function name (case-insensitive dictionary key).
@@ -730,7 +730,7 @@ Fold rows with empty RuntimeMethod (NOT Deferred, name-routed in the binder): HI
 6. Generic `BindIntrinsicArgs(argCtxs)` :182 (body :684–693: `TryExpandAll` table(ALL) expansion :762, then `BindArgOperand` per arg) → **arity check COBOL1504** :185.
 7. FORMATTED-*/date-format-must-be-literal check **COBOL1517** :196.
 8. **Fold dispatch:** `sig.Bind == Fold && sig.Name == "LENGTH"` → `BindLengthFold(sig, args)` :201–202; `Fold && Name is "SMALLEST-ALGEBRAIC" or "HIGHEST-ALGEBRAIC" or "LOWEST-ALGEBRAIC"` → `BindAlgebraicFold` :206–208.
-9. **NUMVAL-C default-currency injection** :213–214 (exact): `if (sig.Name == "NUMVAL-C" && args.Count == 1) args.Add(new BoundStringLiteral(ctx.Data.CurrencyString));` — §2023:15.68.3 r3, injected at bind so SPECIAL-NAMES never reaches the backend. (Step 6's TEST-NUMVAL-C must extend this condition.)
+9. **NUMVAL-C default-currency injection** :213–214 (exact): `if (sig.Name == "NUMVAL-C" && args.Count == 1) args.Add(new BoundStringLiteral(ctx.Data.CurrencyString));` — §2023:15.68.3 AR3, injected at bind so SPECIAL-NAMES never reaches the backend. (Step 6's TEST-NUMVAL-C must extend this condition.)
 10. MAX/MIN category-polymorphic resolution :219–232: `sig.ArgKinds == "p" && args.All(IsStringOperand)` → `resolved = sig with { RuntimeMethod = MaxString/MinString/OrdMaxString/OrdMinString }`; category → Alphanumeric for MAX/MIN only.
 11. Collating flags :242–245: `collate` = CHAR/ORD ∧ `ctx.Data.Collating != null` ∧ no national arg; `collateNat` = `ctx.Data.NationalCollating != null` ∧ (CHAR-NATIONAL ∨ ORD-with-national-arg).
 12. **COBOL0844 guard CURRENT state** :250–252: fires ONLY for `sig.Name is "CHAR" && nationalArg` — "FUNCTION CHAR takes an integer operand (§2023:15.15.3 AR1) — FUNCTION CHAR-NATIONAL (§2023:15.16) is the national program-collating-sequence form". The old "CHAR-NATIONAL/ORD-over-national not yet implemented" guard is GONE (both landed in P10).
@@ -775,7 +775,7 @@ OMITTED → COBOL1544 error operand; unconsumed `fnArgPhraseWord` → `BoundOper
 
 ## 5. Boolean representation in the greenfield (the P10 base)
 - **D-B1:** a boolean value IS a '0'/'1' character string; `PicCategory.Boolean` (PicInfo.cs:29 — PIC 1 [USAGE BIT], one alphanumeric char per boolean position; bit-packing is named future residue).
-- **Runtime:** `CobolBool` (E:\COBOL\src\WiseOwl.Cobol.Runtime\Values\Text\CobolBool.cs) — `And/Or/Xor(string?, string?)` (§2023:8.8.2 r9 right-zero-extension, r10 max-length result), `Not` :39, `Equal` :50 (equality-only), `IsTrue` :62 (§2023:8.8.4.3.4 GR1), `Resize(v, width)` :67 (the §2023:14.9.8.4 GR3 boolean-store discipline — left-align, right-zero-fill/truncate), `AndAll/OrAll/XorAll/EqualAll` :79–86 (figurative ALL forms). All string-in/string-out.
+- **Runtime:** `CobolBool` (E:\COBOL\src\WiseOwl.Cobol.Runtime\Values\Text\CobolBool.cs) — `And/Or/Xor(string?, string?)` (§2023:8.8.2 GR9 right-zero-extension, r10 max-length result), `Not` :39, `Equal` :50 (equality-only), `IsTrue` :62 (§2023:8.8.4.3.4 GR1), `Resize(v, width)` :67 (the §2023:14.9.8.4 GR3 boolean-store discipline — left-align, right-zero-fill/truncate), `AndAll/OrAll/XorAll/EqualAll` :79–86 (figurative ALL forms). All string-in/string-out.
 - **Bound tree:** `BoundBoolExpr` abstract (BoundTree.cs:249) → `BoundBoolLiteral(string Bits)` :252, `BoundBoolRef(Place)` :255, `BoundBoolAll(string Bits)` :260, `BoundBoolBinary(BoundBoolExpr, char Op, BoundBoolExpr)` :264, `BoundBoolNot` :267, `BoundBoolError` :270. Bridges: `BoundBoolOperand(BoundBoolExpr)` : BoundOperand :275 (relation operand); `BoundBooleanCondition(BoundBoolExpr)` : BoundCondition :294. A boolean LITERAL as an intrinsic ARG arrives as `BoundStringLiteral { Category = PicCategory.Boolean }` (ExpressionBinder.BooleanLiteralOperand, ExpressionBinder.cs:92–101, 8191-cap COBOL0814).
 - **Binder:** ConditionBinder owns §2023:8.8.2 — `MakeBoolBinary` :78–84 (rule-4 COBOL1511), `BindBoolOperandValue` :89–121 admits ONLY boolean literals / figurative ZERO / ALL B"…" / category-boolean items — **a FUNCTION call is NOT currently an admissible §2023:8.8.2 boolean operand** (it would fail the sole-data-ref arm → COBOL1511). `Gr3Width` :144 computes the COMPUTE-store width.
 - **Renderer:** `BooleanRenderer` (CodeGen\Emit\BooleanRenderer.cs, static) renders BoundBoolExpr → C# string exprs over CobolBool via the generated `IBoundBoolExprVisitor` (Render :20; a category-boolean item reads as its string via `PlaceRenderer.Read` :25).
@@ -803,7 +803,7 @@ COBOL1501 not-an-intrinsic :126 · **COBOL1502 introduced-later** :140 (also TRI
 - `src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs:112 — private BoundExpr BindIntrinsicCore(string name, IReadOnlyList<Core.FunctionArgumentContext> argCtxs)`
 - `src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs:139-144 — the D8 window gate: COBOL1502 (IntroducedIn > DialectLevel) / COBOL1503 (RemovedIn), after catalog lookup, before special binds`
 - `src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs:213-214 — NUMVAL-C injection: if (sig.Name == "NUMVAL-C" && args.Count == 1) args.Add(new BoundStringLiteral(ctx.Data.CurrencyString));`
-- `src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs:250-252 — COBOL0844 current state: fires only for CHAR with a national argument (§2023:15.15.3 r1)`
+- `src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs:250-252 — COBOL0844 current state: fires only for CHAR with a national argument (§2023:15.15.3 AR1)`
 - `src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs:260 — EC gate: if (resolved.RuntimeMethod.StartsWith("Ec", StringComparison.Ordinal)) host.Ec.EcNoteFunction();`
 - `src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs:562 — private BoundExpr BindLengthFold(IntrinsicSig sig, List<BoundOperand> args)  (folds f.Place.Item.ImageWidth = CHARACTER positions; ref-mod/ODO loud; ANY LENGTH + nested-string → runtime .Length)`
 - `src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs:594 — private BoundExpr BindAlgebraicFold(IntrinsicSig sig, List<BoundOperand> args)  (the Fold precedent for BYTE-LENGTH; uses pic.StorageWidth at :634)`
@@ -833,7 +833,7 @@ COBOL1501 not-an-intrinsic :126 · **COBOL1502 introduced-later** :140 (also TRI
 - Every catalog line reference in the P11 doc §3.1 has drifted (the doc itself warns to re-scout): BOOLEAN-OF-INTEGER is :133 (doc :124), INTEGER-OF-BOOLEAN :161 (doc :143), BYTE-LENGTH :134 (:125), DATE-TO-YYYYMMDD/DAY-TO-YYYYDDD/YEAR-TO-YYYY :139-141 (:127-129), SECONDS-PAST-MIDNIGHT :166 (:148), TEST-DATE/DAY :168-169 (:150-151), TEST-NUMVAL/-C :170-171 (:152-153), CONCATENATE :174 (:156), LOCALE rows :162-165 + STANDARD-COMPARE :167 (:144-147/:149), SMALLEST-ALGEBRAIC :196 (:178).
 - The live Deferred set is 17 rows, not the doc's '22 at time of writing' — the 5 P10-landed rows (CHAR-NATIONAL, DISPLAY-OF, NATIONAL-OF, EXCEPTION-FILE-N, EXCEPTION-LOCATION-N) are already Runtime, exactly as the doc's strike-through notes predicted. grep 'IntrinsicBind.Deferred' confirms 17.
 - IntrinsicBinder line refs in the doc are stale: the window gate is at IntrinsicBinder.cs:139-144 (doc says :122-125); the NUMVAL-C currency injection at :213-214 (doc :179); the Ec-gate StartsWith check at :260 (doc :220); BindLengthFold at :562 (doc :465); the COBOL0844 guard at :250-252 (doc :214).
-- The COBOL0844 guard is no longer 'CHAR-NATIONAL/ORD-over-national not yet implemented' — it was NARROWED in P10 to reject only FUNCTION CHAR given a national argument (§2023:15.15.3 r1 category violation, pointing the user at CHAR-NATIONAL). The doc's Step 3 'remove the 0844 guard' instruction is fully superseded (its own P10 banner already says so).
+- The COBOL0844 guard is no longer 'CHAR-NATIONAL/ORD-over-national not yet implemented' — it was NARROWED in P10 to reject only FUNCTION CHAR given a national argument (§2023:15.15.3 AR1 category violation, pointing the user at CHAR-NATIONAL). The doc's Step 3 'remove the 0844 guard' instruction is fully superseded (its own P10 banner already says so).
 - IntrinsicRenderer refs drifted: the Deferred loud guards are at :52-53 (RenderNum, doc says :45) and :272-273 (RenderString, doc :245); the NumvalC render arm is at :144-149 (doc :124-128).
 - The provisional-window comment is at IntrinsicCatalog.cs:58-61 (doc cites :50-52).
 - SMALLEST-ALGEBRAIC's value golden ALREADY EXISTS: conformance-suite/cases/15.83.4-Returned-value-rules/smallest_algebraic.cob/.out — the doc's Step 7 'add its golden' is partially satisfied; what is genuinely missing is the window-enforcement negative row (no smallest-algebraic-at-2014 file exists; tests/conformance/negative has no *algebraic* or *locale* rows).
@@ -1233,7 +1233,7 @@ Apply ONLY after the Step-1 commit lands and no battery is running.
 - Row :161 → `"IntegerOfBoolean"`, `IntrinsicBind.Runtime` (keep Type Integer, "s", 2002).
 - `ResultCategory` (:46-51): add `IntrinsicType.Boolean => PicCategory.Boolean,` and REWRITE the doc
   comment's parenthetical ("Boolean-type rows are all Deferred; they fall to Numeric unchanged" is now false —
-  a boolean function result IS category boolean, §2023:15.2 item 2 / §2023:8.5.2.5 item 4).
+  a boolean function result IS category boolean, §2023:15.2 GR2 / §2023:8.5.2.5 GR4).
 
 ## 2. The four channel seams (scout `code:renderer-runtime` §11 — Boolean flows like National)
 - `CodeGen/Emit/OperandText.cs:32` AsString entry intercept: `Alphanumeric or National` → add `or PicCategory.Boolean`.
@@ -1243,14 +1243,14 @@ Apply ONLY after the Step-1 commit lands and no battery is running.
   context is loud BY NAME, never a wrong value).
 
 ## 3. Renderer arms (`IntrinsicRenderer.cs`)
-- RenderNum: `case "IntegerOfBoolean": return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod, Str(ic.Args[0])), 0);   // §2023:15.45.4 r1 — unsigned MSB-first value, scale 0`
-- RenderString: `"BooleanOfInteger" => RuntimeApi.Intrinsic(sig.RuntimeMethod, $"{ArgInt(ic.Args[0])}, {ArgInt(ic.Args[1])}"),   // §2023:15.13.4 r1`
+- RenderNum: `case "IntegerOfBoolean": return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod, Str(ic.Args[0])), 0);   // §2023:15.45.4 RV1 — unsigned MSB-first value, scale 0`
+- RenderString: `"BooleanOfInteger" => RuntimeApi.Intrinsic(sig.RuntimeMethod, $"{ArgInt(ic.Args[0])}, {ArgInt(ic.Args[1])}"),   // §2023:15.13.4 RV1`
 
 ## 4. Runtime bodies (`src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs`, new region at the end)
 ```csharp
 // ── FUNCTION BOOLEAN-OF-INTEGER / INTEGER-OF-BOOLEAN (§2023:15.13 / §2023:15.45) — boolean conversions ─────────────
 
-/// <summary>FUNCTION BOOLEAN-OF-INTEGER (ISO §2023:15.13.4 r1): the boolean value whose bit configuration is the
+/// <summary>FUNCTION BOOLEAN-OF-INTEGER (ISO §2023:15.13.4 RV1): the boolean value whose bit configuration is the
 /// binary representation of argument-1 — rightmost boolean position = low-order binary digit — zero-filled
 /// or TRUNCATED ON THE LEFT to exactly argument-2 boolean positions (left truncation is NORMAL, not an
 /// error: the result is argument-1 mod 2^argument-2 — Annex D.10's 544→low-6-bits worked example).
@@ -1263,22 +1263,22 @@ public static string BooleanOfInteger(long value, long length)
     if (length < 1 || length > 8191)
     {
         Exceptions.ExceptionState.ArgumentError(
-            $"FUNCTION BOOLEAN-OF-INTEGER argument-2 {length} is not in 1..8191 (§2023:15.13.3 r2; §2023:15.4)");
+            $"FUNCTION BOOLEAN-OF-INTEGER argument-2 {length} is not in 1..8191 (§2023:15.13.3 AR2; §2023:15.4)");
         return "0";
     }
     if (value < 0)
     {
         Exceptions.ExceptionState.ArgumentError(
-            $"FUNCTION BOOLEAN-OF-INTEGER argument-1 {value} is negative (§2023:15.13.3 r1)");
+            $"FUNCTION BOOLEAN-OF-INTEGER argument-1 {value} is negative (§2023:15.13.3 AR1)");
         return new string('0', (int)length);
     }
     var chars = new char[length];
-    for (int i = 0; i < length; i++)   // rightmost position = the low-order digit (§2023:15.13.4 r1)
+    for (int i = 0; i < length; i++)   // rightmost position = the low-order digit (§2023:15.13.4 RV1)
         chars[length - 1 - i] = i < 63 && ((value >> i) & 1) != 0 ? '1' : '0';
     return new string(chars);
 }
 
-/// <summary>FUNCTION INTEGER-OF-BOOLEAN (ISO §2023:15.45.4 r1): the unsigned binary value of argument-1's bit
+/// <summary>FUNCTION INTEGER-OF-BOOLEAN (ISO §2023:15.45.4 RV1): the unsigned binary value of argument-1's bit
 /// configuration, MSB first, over a temporary boolean item sized to argument-1 (r1a/r1b). WiseOwl COBOL's
 /// integer channel is a signed 64-bit long, so a configuration above 63 significant bits takes
 /// EC-ARGUMENT-FUNCTION via the §2023:15.4 maximum-returned-value hook (documented). A zero-length argument
@@ -1290,7 +1290,7 @@ public static long IntegerOfBoolean(string boolean)
     {
         if (c is not ('0' or '1'))
             return Exceptions.ExceptionState.ArgumentError(
-                "FUNCTION INTEGER-OF-BOOLEAN argument-1 is not of class boolean (§2023:15.45.3 r1)");
+                "FUNCTION INTEGER-OF-BOOLEAN argument-1 is not of class boolean (§2023:15.45.3 AR1)");
         if (v > (long.MaxValue >> 1) - (c - '0'))   // the next shift would exceed 63 significant bits
             return Exceptions.ExceptionState.ArgumentError(
                 "FUNCTION INTEGER-OF-BOOLEAN value exceeds the 63-bit WiseOwl COBOL integer maximum (§2023:15.4)");
@@ -1338,10 +1338,10 @@ unit-style golden if in doubt; the corpus golden stays within 8 bits.)
 
 ```cobol
       *> ISO §2023:15.13 BOOLEAN-OF-INTEGER / §2023:15.45 INTEGER-OF-BOOLEAN — the boolean-conversion pair (P11 Step 2).
-      *> Values hand-derived in docs/rearchitecture/PHASE-11-scout-notes.md (spec:boolean): §2023:15.13.4 r1 —
+      *> Values hand-derived in docs/rearchitecture/PHASE-11-scout-notes.md (spec:boolean): §2023:15.13.4 RV1 —
       *> rightmost boolean position = low-order binary digit, zero-filled or TRUNCATED ON THE LEFT to
       *> argument-2 positions (truncation is NORMAL: Annex D.10's 544 → low-6-bits worked example); the MOVE
-      *> into a longer PIC 1(n) receiver then right-zero-fills (§2023:14.6.8.6 — the OPPOSITE end). §2023:15.45.4 r1 —
+      *> into a longer PIC 1(n) receiver then right-zero-fills (§2023:14.6.8.6 — the OPPOSITE end). §2023:15.45.4 RV1 —
       *> the unsigned binary value of the whole bit configuration, MSB first.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. P11BOOLCONV.
@@ -1353,7 +1353,7 @@ unit-style golden if in doubt; the corpus golden stays within 8 bits.)
        01 N-5        PIC 9(5).
        PROCEDURE DIVISION.
        MAIN.
-      *> §2023:15.13.4 r1 exact fit: 5 = 101 over 8 positions, left zero-fill.
+      *> §2023:15.13.4 RV1 exact fit: 5 = 101 over 8 positions, left zero-fill.
            MOVE FUNCTION BOOLEAN-OF-INTEGER(5, 8) TO BIT-8
            IF BIT-8 = B"00000101" DISPLAY "T1=OK"
               ELSE DISPLAY "T1=" BIT-8 END-IF
@@ -1362,17 +1362,17 @@ unit-style golden if in doubt; the corpus golden stays within 8 bits.)
            MOVE FUNCTION BOOLEAN-OF-INTEGER(INT-ITEM, 6) TO BIT-8
            IF BIT-8 = B"10000000" DISPLAY "T2=OK"
               ELSE DISPLAY "T2=" BIT-8 END-IF
-      *> §2023:15.45.4 r1 MSB-first: B"10000000" = 128 (an LSB-first bug would yield 1).
+      *> §2023:15.45.4 RV1 MSB-first: B"10000000" = 128 (an LSB-first bug would yield 1).
            COMPUTE N-3 = FUNCTION INTEGER-OF-BOOLEAN(BIT-8)
            DISPLAY "T3=" N-3
-      *> §2023:15.45.4 r1 over a boolean literal argument (§2023:15.3 item 3).
+      *> §2023:15.45.4 RV1 over a boolean literal argument (§2023:15.3 AR3).
            COMPUTE N-3 = FUNCTION INTEGER-OF-BOOLEAN(B"00000101")
            DISPLAY "T4=" N-3
-      *> Round-trip identity for 0 <= n < 2^k (§2023:15.13.4 r1 ∘ §2023:15.45.4 r1, both unsigned MSB-first).
+      *> Round-trip identity for 0 <= n < 2^k (§2023:15.13.4 RV1 ∘ §2023:15.45.4 RV1, both unsigned MSB-first).
            COMPUTE N-5 = FUNCTION INTEGER-OF-BOOLEAN(
                FUNCTION BOOLEAN-OF-INTEGER(200, 8))
            DISPLAY "T5=" N-5
-      *> §2023:15.13.4 r1 left truncation: 256 mod 2^8 = 0 → all-zero bits.
+      *> §2023:15.13.4 RV1 left truncation: 256 mod 2^8 = 0 → all-zero bits.
            MOVE FUNCTION BOOLEAN-OF-INTEGER(256, 8) TO BIT-8
            IF BIT-8 = B"00000000" DISPLAY "T6=OK"
               ELSE DISPLAY "T6=" BIT-8 END-IF

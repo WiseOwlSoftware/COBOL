@@ -90,14 +90,14 @@ public readonly record struct CompilerDirectiveLine(string Word, string Operand)
 
     /// <summary>
     /// Read the separator comma and semicolon of an operand as the separator space they stand for (kb/Work PB1373,
-    /// PB2003). ISO §2023:8.3.5 2): "The COBOL characters comma and semicolon, immediately followed by a space, are separators
+    /// PB2003). ISO §2023:8.3.5 SR2: "The COBOL characters comma and semicolon, immediately followed by a space, are separators
     /// that may be used anywhere the separator space is used" — so <c>&gt;&gt;COBOL-WORDS EQUATE "DISPLAY", WITH
     /// "SHOW"</c> and <c>&gt;&gt;TURN EC-SIZE; CHECKING ON</c> write the operands their space-only spellings write. That is
     /// one fact about every directive operand, so it is read ONCE, here, beside the indicator and the inline comment, and
     /// not by each operand tokenizer (every one of which split on the space alone and rejected the legal spelling).
     /// <para>Only a comma or semicolon that is followed by a space is a separator (a comma inside a numeric literal
-    /// <c>1,5</c> or glued to a word is not), the characters of a character-string are untouched (§2023:8.3.3.2.3 3): a doubled
-    /// quotation symbol stays inside), and a comma or semicolon that ends the operand stays where it is — §2023:7.3.3 3)
+    /// <c>1,5</c> or glued to a word is not), the characters of a character-string are untouched (§2023:8.3.3.2.3 SR3: a doubled
+    /// quotation symbol stays inside), and a comma or semicolon that ends the operand stays where it is — §2023:7.3.3 SR3
     /// allows "only space characters and an optional inline comment" after the directive, and the operand is
     /// trimmed, so one that ends it has nothing after it to separate from. The replacement is one character for one, so
     /// no column of the operand moves.</para>

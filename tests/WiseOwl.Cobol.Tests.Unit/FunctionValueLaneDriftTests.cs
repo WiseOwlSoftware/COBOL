@@ -170,7 +170,7 @@ public sealed class FunctionValueLaneDriftTests
     /// <summary>⛔ A FUNCTION'S BINARY64 VALUE IS AN APPROXIMATION OR A FLOAT ITEM'S CONTENT BY ONE PREDICATE, ASKED BY THE BINDER AND BY
     /// THE RENDERER (kb/Work PB4622): the floating-math family and a function of approximations only return an approximation, which
     /// lands by its shortest round-trip decimal; ABS, MAX, FRACTION-PART, SUM ... over a float ITEM return a value derived from the
-    /// item's exact binary64 (§2023:15.59.4 1) "the content of the argument"), which lands as the item does.</summary>
+    /// item's exact binary64 (§2023:15.59.4 RV1 "the content of the argument"), which lands as the item does.</summary>
     [Theory]
     [InlineData(true, true, true)]
     [InlineData(true, false, true)]

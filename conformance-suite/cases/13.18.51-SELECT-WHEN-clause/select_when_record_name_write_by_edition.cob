@@ -15,7 +15,7 @@
 *> 2014 and 2023 (.out): §2023:13.18.51.4 GR2 (cite.py --check; §2014:13.18.51.3 GR2 prints the same) "SELECT WHEN clauses of record description entries
 *> specified in the file section have no effect for statements other than READ statements, REWRITE statements with the FILE phrase, and WRITE statements
 *> with the FILE phrase", so WRITE G-A is formatted by the entry it names and is successful (00) whatever the tag holds; it is the READ of that record that
-*> evaluates the clauses (GR1) and, none being true, answers 45 (GR4, §2023:9.1.13.7 item 5), as a READ of a record written by any other means would; the next READ is 46
+*> evaluates the clauses (GR1) and, none being true, answers 45 (GR4, §2023:9.1.13.7 GR5), as a READ of a record written by any other means would; the next READ is 46
 *> (§2023:14.9.30.4 GR21, the previous READ being unsuccessful).
 *> Why it can fail: the record-name WRITE evaluating the clauses at 2014 and after (status 45, record dropped), or not evaluating them at 2002.
 IDENTIFICATION DIVISION.

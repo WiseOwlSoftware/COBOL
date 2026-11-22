@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>⛔ ONE DERIVATION OF "WHICH SYMBOLS OF AN EDITED MASK ARE DIGIT POSITIONS" (kb/Work PB2639). The render
 /// (<see cref="CobolEdit.Format"/>), the size-error bound (<see cref="CobolEdit.TryFormat"/>),
 /// <see cref="CobolEdit.MaskCapacity"/>, <see cref="CobolEdit.MaskScale"/> and <see cref="CobolEdit.DeEdit"/> must
-/// all answer it identically, because ISO §2023:13.18.40.5 rule 6 makes the repetitions of a FLOATING extended editing
+/// all answer it identically, because ISO §2023:13.18.40.5 GR6 makes the repetitions of a FLOATING extended editing
 /// sign control symbol digit positions exactly as it does a floating currency symbol's. Three of the five dropped
 /// the <see cref="CobolEdit.EditRule"/> array and counted such a symbol as an insertion character. These facts pin
 /// the AGREEMENT over every edits-bearing picture: the bound accepts exactly what the render can show, the render
@@ -67,7 +67,7 @@ public sealed class CobolEditMaskFactsTests
 
     /// <summary>The render aligns the sending value at the scale the geometry reports. <c>LLL.LL</c> with a
     /// width-1 literal: 1.5 is <c>01.50</c> with the sign on the second L, and 0.25 puts the sign immediately
-    /// before the point (§2023:13.18.40.5 rule 6 a). A scale of 0 used to render the digits of 1 at the fraction
+    /// before the point (§2023:13.18.40.5 GR6a). A scale of 0 used to render the digits of 1 at the fraction
     /// positions (<c>   .01</c>).</summary>
     [Theory]
     [InlineData(15, 1, "  1.50")]

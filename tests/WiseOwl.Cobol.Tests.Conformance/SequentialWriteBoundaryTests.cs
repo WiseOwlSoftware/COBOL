@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Frontend.Preprocessor;
 using Xunit;
 
 namespace WiseOwl.Cobol.Tests.Conformance;
@@ -61,7 +62,7 @@ public sealed class SequentialWriteBoundaryTests
             Assert.False(OperatingSystem.IsLinux(), "a Linux host provides /dev/full; the boundary was not exercised");
             return;
         }
-        var (ok, stdout, detail) = new WiseOwlCobolCompiler(85).CompileAndRun(Source);
+        var (ok, stdout, detail) = new WiseOwlCobolCompiler(85, InitialReferenceFormat.Fixed).CompileAndRun(Source);
         Assert.True(ok, $"WiseOwl COBOL failed: {detail}");
         Assert.Equal("OPEN FS=00 USE=0\nWRITE FS=34 USE=1\nRECORD AREA UNAFFECTED", stdout.ReplaceLineEndings("\n").TrimEnd('\n'));
     }

@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ AN ARGUMENT EXPRESSION PAST THE <c>Int128</c> CARRIER REACHES THE ILL-CONDITIONED BINARY64 BODIES AND MEAN AS ITS EXACT VALUE,
 /// NOT AS THE 34-DIGIT ROUND-TO-ODD IMAGE (kb/Work PB4075; ISO/IEC 1989:2023 §2023:15.82.4 / §2023:15.20.4 / §2023:15.89.4 / §2023:15.55.4 / §2023:15.56.4 /
-/// §2023:15.8.4 / §2023:15.10.4 return the approximation of the function OF argument-1, and §2023:15.60.4 r1 one quotient of the exact sum).
+/// §2023:15.8.4 / §2023:15.10.4 return the approximation of the function OF argument-1, and §2023:15.60.4 RV1 one quotient of the exact sum).
 /// <para>Every expected value is an independent oracle's: Python <c>decimal</c> at 400 digits, π by Machin, the trigonometric
 /// functions by Taylor series over the argument reduced modulo 2π, the logarithm by <c>Decimal.ln</c>, the arc functions by the
 /// half-angle arctangent; the means by <c>Decimal</c> division in a 34-digit context of the rounding named. Binary64 results are
@@ -201,7 +201,7 @@ public sealed class WideArgumentBodiesTests
         }
     }
 
-    /// <summary>INTERMEDIATE ROUNDING IS PROHIBITED (§2023:11.9.11.2 r3d): an inexact exact-sum quotient raises EC-SIZE-TRUNCATION, an
+    /// <summary>INTERMEDIATE ROUNDING IS PROHIBITED (§2023:11.9.11.2 GR3d): an inexact exact-sum quotient raises EC-SIZE-TRUNCATION, an
     /// exact one does not — the mode reaches the one rounding.</summary>
     [Fact]
     public void MeanWide_UnderProhibited_RaisesOnlyForAnInexactQuotient()

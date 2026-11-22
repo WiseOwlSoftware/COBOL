@@ -479,7 +479,15 @@ they close nothing.
    `item <n>` there is refused `item-is-a-rule`, naming the rule, and `audit_code_citations.py --canonicalize` rewrites it
    when one list alone prints the item (`cite.item_designator`; `§1985:III.2` prints an item 3 in several lists, so its
    Text Word's is cited `GRL4.3` by hand); an item no list prints is `no-item`; a loose spelling (`item (3) c)`, `items 9
-   and 10`) is `designator-not-canonical`. **The extent of
+   and 10`) is `designator-not-canonical`, as is a number glued straight after a letter (`SR12a2`, canonical
+   `SR12a.2`). **The canonicalizer** (`scripts/spec/citation_rewrite.py`, run as `audit_code_citations.py --canonicalize
+   <prefix>...`, kb/Work PB6035) rewrites a designator with one canonical form and is safe on the text a program prints:
+   it counts the parentheses around the citation (a label's `)` that also closes the message's `(` is kept), over a C#
+   string's whole concatenation of literals; it refuses a designator an interpolation hole, a format item or a
+   concatenation may complete, and one whose parentheses it cannot count; and a C# string under `src/` (message text)
+   changes only with every expectation that quotes it (the tests' string literals, the suite's diagnostic expectations),
+   refused where a quoted fragment means two things. Every designator it leaves is a refusal with its reason, and
+   `--write-baseline` writes that reason on its entry of RESOLVE's baseline. **The extent of
    a row is read from the units the catalog's own mint segments** (`extract_rule_catalog.units_by_locator`, read by
    `cite.rule_book`; kb/Work PB6014): a row minted from a unit holds exactly its unit's lines (`text_units.Unit.lines`),
    and a numbered rule holds the lines from its number to the next row's less every line a unit of the clause holds. An
@@ -2228,6 +2236,21 @@ diagnostic at every edition it is placed at; a case the converter refuses leaves
 `cases/` (182 references) and 4 free-form accepted tests of `wiseowl/` (15 references), the strongest evidence of 107
 rows; 137 were converted and 1 refused (`pb485-level-number-missing`), and the 33 cases refused at 85 for free form
 alone were converted and widened (DEVLOG of kb/Work PB5754).
+
+**The same rule for a C# witness (kb/Work PB6037, decided 2026-11-21).** A `unit:` or `conformance-test:` reference of a
+1985 row witnesses it only when the program text the test compiles at `--std 85` is fixed form
+(`InitialReferenceFormat.Fixed`, or the format a suite case states in its header, `TestSourceFormat.OfSuiteCase`), or when
+the test compiles no program text at all (it drives a runtime, binder or lexer member directly, and no reference format is
+in question). `TestSourceFormat.Inline` text (free form, the default of the harness entries) compiled at 85 is the
+extension's regression test, and a test that compiles only at a later edition witnesses no 1985 row. The C# source is not
+the Python audit's to read, so the RepoDrift test `EditionWitnessFormatDriftTests` holds it: it reads every C# reference of
+`tests/version-matrix/inventory-1985/`, the test method's source and the members of its file it calls, and refuses one
+that names a free format or compiles through an `Inline`-defaulting entry without naming a fixed one. Measured on
+2026-11-21 (train-1985-d 0ffdede4cc): 38 distinct C# witnesses of 1985 rows; 21 compile no text, 2 lex text with no reference format, 10 compile fixed form,
+4 compiled free form at 85 (both `ScheduledProgramTests`, `SequentialWriteBoundaryTests`, and
+`DocumentedNonSupportWitnessTests.RecordDelimiterStandard1_...`, whose golden states `fixed`), all four laid out in fixed
+columns already and now compiled fixed, and 1 (`SendersSignOneReadTests.ImageSender_...`, a 2002 compile) taken off
+1985-GR-VI.6.19.4-4, which keeps its three suite cases.
 
 **The audit.** `python scripts/spec/lineage_reads.py --check` (the gate's LINEAGE READS, and a step of CI's audits job),
 over every older held edition, one reading of the suite shared by all: every read record interprets and still matches

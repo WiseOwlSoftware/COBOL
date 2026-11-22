@@ -60,7 +60,7 @@ public sealed class CobolDecDivisionTests
     }
 
     // ── kb/Work PB3954: an EXACT quotient / root is held at ISO/IEC 60559:2020 5.4.1's preferred exponent ───────────────
-    // ISO §2023:8.8.1.5.3 (division) and §2023:15.84.4 r2 (SQRT) take their definitions from 60559, whose exact result is the
+    // ISO §2023:8.8.1.5.3 (division) and §2023:15.84.4 RV2 (SQRT) take their definitions from 60559, whose exact result is the
     // representation NEAREST the preferred exponent (the dividend's less the divisor's; half the operand's rounded down);
     // only an INEXACT result fills the 34 digits. Expected values are derived by hand from the exact decimal results.
 

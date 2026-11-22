@@ -181,7 +181,7 @@ the CURRENT-DATE intrinsic.
    each other's sequence (breaks §2023:15.75.4 rule-2 per-process determinism NIST IF131A relies on).
 5. **`DeleteFile` can never produce status 62.** `DeleteFileSharing = "62"` is defined (`FileSupport.cs:143`) but
    `DeleteFile (IndexedFile.cs:629-653)` only checks the *named* connector's `IsOpen` for 41; it never consults the
-   `Physical` sharing registry for *another* connector holding the file open, so §2023:9.1.13.9 item 2 (62) is unreachable.
+   `Physical` sharing registry for *another* connector holding the file open, so §2023:9.1.13.9 GR2 (62) is unreachable.
    Orthogonal to the reorg, but a real spec gap.
 6. **`ExternalSwitches` state leaks across in-process run units** (`ExternalSwitches.cs:22,47`) — `SET switch TO ON`
    persists past a run-unit boundary because the only `Reset()` is documented "test isolation only."

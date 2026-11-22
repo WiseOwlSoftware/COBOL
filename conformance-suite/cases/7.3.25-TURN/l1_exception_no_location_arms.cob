@@ -6,16 +6,16 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §2023:15.30.3 r1 / §2023:15.31.3 r1 / §2023:15.32.3 r1 - the NO-LOCATION
+      *> ISO §2023:15.30.3 RV1 / §2023:15.31.3 RV1 / §2023:15.32.3 RV1 - the NO-LOCATION
       *> arm, on BOTH of the enabling mechanisms the antecedent names:
       *> "the LOCATION option of the TURN directive or PERFORM statement
       *> that enabled checking for the exception condition associated
       *> with the last exception status is not specified and the
       *> implementor does not save the location information". One
       *> consequent per function:
-      *>   §2023:15.30.3 r1  EXCEPTION-LOCATION   -> one alphanumeric space
-      *>   §2023:15.31.3 r1  EXCEPTION-LOCATION-N -> one national space char
-      *>   §2023:15.32.3 r1  EXCEPTION-STATEMENT  -> 63 spaces
+      *>   §2023:15.30.3 RV1  EXCEPTION-LOCATION   -> one alphanumeric space
+      *>   §2023:15.31.3 RV1  EXCEPTION-LOCATION-N -> one national space char
+      *>   §2023:15.32.3 RV1  EXCEPTION-STATEMENT  -> 63 spaces
       *> WiseOwl COBOL saves no location information when LOCATION is absent
       *> - the §2023:7.3.25.4 GR7 determination ("If the LOCATION phrase is
       *> not specified, the implementor shall specify whether this
@@ -39,10 +39,10 @@
       *> GR20). §2023:14.6.13.1.1 also makes the last exception status a
       *> RUN-UNIT entity, so it is still readable after END-PERFORM.
       *>
-      *> A-S / B-S are §2023:15.33.3 r1's 31-character exception-name - the
+      *> A-S / B-S are §2023:15.33.3 RV1's 31-character exception-name - the
       *> leg markers, and the proof that a condition really was raised.
       *> A-LL / A-NL / B-LL / B-NL are FUNCTION LENGTH of the returned
-      *> value (§2023:15.50.4 r3 counts alphanumeric character positions, r2
+      *> value (§2023:15.50.4 RV3 counts alphanumeric character positions, r2
       *> counts national character positions), so 1 is exactly what "one
       *> ... space character" asserts. A-N / B-N are DISPLAY-OF of the
       *> national value and show the character itself is a space.

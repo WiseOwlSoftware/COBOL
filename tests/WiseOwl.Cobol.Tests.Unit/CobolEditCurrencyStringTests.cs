@@ -14,7 +14,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 public sealed class CobolEditCurrencyStringTests
 {
     [Theory]
-    [InlineData("$9.99", 525, 2, "USD", "USD5.25")]                 // fixed insertion (§2023:13.18.40.5 r5): the string where the symbol is
+    [InlineData("$9.99", 525, 2, "USD", "USD5.25")]                 // fixed insertion (§2023:13.18.40.5 GR5): the string where the symbol is
     [InlineData("$$$9", 12, 0, "USD", " USD12")]                     // floating (r6a): before the first nonzero digit; 6 wide (GR14)
     [InlineData("$$$9", 123, 0, "USD", "USD123")]
     [InlineData("$$$9", 0, 0, "USD", "  USD0")]                      // zero with a '9': before the first non-floating position

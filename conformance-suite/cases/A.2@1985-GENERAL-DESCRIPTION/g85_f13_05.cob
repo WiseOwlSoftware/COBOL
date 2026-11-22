@@ -14,7 +14,7 @@
       *>         move, left aligned and space filled to 8; and to an
       *>         alphanumeric edited receiver (XXBXXX).
       *>   NUM   category alphanumeric: to a numeric receiver the value
-      *>         moves as an unsigned integer (§1985:VI.6.19.4 GR4b3).
+      *>         moves as an unsigned integer (§1985:VI.6.19.4 GR4b.3).
       *>   CLS   class conditions on the function: admitted only for an
       *>         operand whose usage is DISPLAY (§1985:VI.6.3.1.2).
       *> Why each leg can fail: a refusal of the class condition denies

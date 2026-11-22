@@ -5,10 +5,10 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB65 (RV-15.59.4-1 D2). ISO §2023:15.59.4 r1 / §2023:15.63.4 r1: the
+      *> kb/Work PB65 (RV-15.59.4-1 D2). ISO §2023:15.59.4 RV1 / §2023:15.63.4 RV1: the
       *> returned value of MAX / MIN "is the CONTENT of the argument-1 having
       *> the greatest [least] value", the comparisons "made according to the
-      *> rules for simple conditions"; §2023:15.61.4 r1: MEDIAN over an odd count is
+      *> rules for simple conditions"; §2023:15.61.4 RV1: MEDIAN over an odd count is
       *> "the content of the argument-1 that is the middle value" (even: the
       *> arithmetic mean of the two middle values); §2023:15.71 / §2023:15.72 ORD-MAX /
       *> ORD-MIN return the ordinal position. None carries an equivalent

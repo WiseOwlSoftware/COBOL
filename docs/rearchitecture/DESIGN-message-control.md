@@ -180,7 +180,7 @@ of different machines do not (§5.1).
 | §2023:13.18.60.4 GR9 | "The class and category of a message-tag data item are message-tag"; the implementor specifies the alignment, representation and "the number of bytes contained in the data item" | the slot rule (§4.2); DOC-A.1-212 |
 | §2023:13.18.60.3 SR4, SR14, SR21 | not in a CONSTANT RECORD; "may be specified only for an elementary data item at level 1 or an elementary data item subordinate to a type declaration that includes the STRONG phrase"; "If MESSAGE-TAG is specified, no other usage clauses shall be specified in the data description entry" | SR4 and SR14 are screened today through `ItemCategory.Sr4PhraseOf` and `Sr14PhraseOf`, whose MESSAGE-TAG arms exist; SR21 is COBOL2158 (`MessageTagUsageExclusive`, `DataBinder`) and stays |
 | §2023:8.4.3.10.1; §2023:8.4.3.10.3 SR1b; §2023:8.4.3.10.4 GR4 | "NULL is a predefined address of class pointer or a predefined content of class message-tag"; "it may be used only as a sending operand in an INITIALIZE or a SET statement or in a message-tag relation condition"; "The null content is an implementor-defined value that is guaranteed not to represent a message server or message requestor" | `MessageTag.Null` (§4.2) |
-| §2023:8.8.4.2.1 item 9, §2023:8.8.4.2.3 SR5 | "Two operands of class message-tag"; "Identifier-3 and identifier-4 shall reference data items of class message-tag, object, or pointer, and shall be of the same category" | relation Format 3 gains the message-tag arm |
+| §2023:8.8.4.2.1 GR9, §2023:8.8.4.2.3 SR5 | "Two operands of class message-tag"; "Identifier-3 and identifier-4 shall reference data items of class message-tag, object, or pointer, and shall be of the same category" | relation Format 3 gains the message-tag arm |
 | §2023:8.8.4.2.3 SR4; §2023:8.8.4.2.12 | "Strongly-typed group items that contain elementary items of class boolean, message-tag, object, or pointer, may be compared only for equality or inequality"; "each elementary item of the first operand is compared with the corresponding elementary item of the second operand" | `StatementValidation.ContainsNonOrderableLeaf` sees `CobolClass.MessageTag` (COBOL1535); `StrongGroupComparison` lowers a message-tag leaf pair to the Format 3 relation, so two groups whose tags name different parties compare unequal |
 | §2023:8.8.4.2.14 | "The operands are equal if they reference the same message requestor or message server of the same name or one is NULL and the other is NULL" | `MessageTag.SameParty`: two server tags of one server name, two requestor tags of one requestor run unit, two NULLs. A tag's message number does not take part. |
 | §2023:14.9.39 Format 17 | SR35 "Data-name-4 and data-name-5 shall be message-tag data items"; GR40, GR41 | Q1 |
@@ -204,7 +204,7 @@ clauses are refused by name, so no message tag reaches them.
 
 ### 2.4 Run-unit end and the exception conditions
 
-§2023:14.6.11 item 7: "If the run unit has an active message or messages to which it has not replied, an implicit SEND
+§2023:14.6.11 GR7: "If the run unit has an active message or messages to which it has not replied, an implicit SEND
 statement of the form 'SEND TO data-name FROM temp RAISING EXCEPTION EC-MCS-NORMAL-TERMINATION' is executed for each such
 message", where "temp is a temporary data item that is the size of the receiving data item in the associated RECEIVE
 statement for that message-tag". §2023:14.6.12 executes the same SEND with EC-MCS-ABNORMAL-TERMINATION after the abnormal
@@ -721,10 +721,10 @@ all, and S0 decides it first. Exactly once, as programs see it, follows from `AC
 `RunUnit.Terminate` calls `Messaging?.End(EndedAbnormally)` in its `finally`, so a failed close cannot skip it. On an
 abnormal ending it runs after `Files.EndTransactions(abnormal: true)`, since after the rollback "the runtime system
 attempts to perform the operations of normal termination as specified in 14.6.11" (§2023:14.6.12); on a normal one, after
-`Files.CloseAll` and the static-storage reset (§2023:14.6.11 item 7). It writes, for each `Active` entry,
+`Files.CloseAll` and the static-storage reset (§2023:14.6.11 GR7). It writes, for each `Active` entry,
 `REPLY` with EC-MCS-NORMAL-TERMINATION or EC-MCS-ABNORMAL-TERMINATION and spaces of the recorded size, because "temp is a
 temporary data item that is the size of the receiving data item in the associated RECEIVE statement for that message-tag"
-(§2023:14.6.11 item 7) that no statement set. It then closes links and listeners, its pending bell among them, and deletes
+(§2023:14.6.11 GR7) that no statement set. It then closes links and listeners, its pending bell among them, and deletes
 their socket files, in that order. A run unit killed without `End` reaches its partners as `LinkEnded`, and the
 refusal rule of §5.4.1 deletes the files it left.
 

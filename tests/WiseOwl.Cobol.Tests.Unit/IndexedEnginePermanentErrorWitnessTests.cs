@@ -17,12 +17,12 @@ namespace WiseOwl.Cobol.Tests.Unit;
 ///
 /// <para>Two files, each built through the registry exactly as the program declares it (an 8-character record, the
 /// prime key in 1-4, an alternate key WITH DUPLICATES in 5-8). The TORN file's record leaves carry one flipped byte,
-/// so a tree read meets a failed checksum (2.2.1.6 R3): §2023:9.1.13.6 item 1's '30'. The BOUNDARY file's meta pages record
+/// so a tree read meets a failed checksum (2.2.1.6 R3): §2023:9.1.13.6 GR1's '30'. The BOUNDARY file's meta pages record
 /// every one of the format's 2^32 pages as used, and its FREE tree and LEDGER as empty
 /// (docs/rearchitecture/DESIGN-runtime-library.md 2.2.1.9: the boundary of the physical file is the format's 2^32 pages
 /// or the host's maximum size; the precondition is measured through the connector, <see cref="BoundaryFile"/>), so
-/// every changing statement needs a page past the boundary: a WRITE or REWRITE answers §2023:14.9.51.4 GR42 d)'s '24'
-/// (§2023:9.1.13.5 item 4, <i>"An
+/// every changing statement needs a page past the boundary: a WRITE or REWRITE answers §2023:14.9.51.4 GR42d's '24'
+/// (§2023:9.1.13.5 GR4, <i>"An
 /// attempt is made to write outside the externally-defined boundaries of a physical relative or indexed file"</i>) and a
 /// DELETE '30' (DOC-A.1-107: §2023:14.9.10.4 gives DELETE no boundary condition), while a READ needs no page and succeeds.</para>
 ///
@@ -347,7 +347,7 @@ public sealed class IndexedEnginePermanentErrorWitnessTests : WiseOwlCobolTestBa
             "AFTER 0001AAAA", "AFTER 0002BBBB NOTATEND", "END -- ATEND"), stdout);
     }
 
-    [Fact]   // A FILE STATUS clause alone: §2023:9.1.14 item 4 for the WRITE without the phrase; the DELETE's '30' continues (DOC-A.1-103).
+    [Fact]   // A FILE STATUS clause alone: §2023:9.1.14 GR4 for the WRITE without the phrase; the DELETE's '30' continues (DOC-A.1-103).
     public void Boundary_FileStatusWithoutUse_StoresThe24_AndContinues()
     {
         var (ok, stdout, detail) = Boundary("IXBNDC", fileStatus: true, use: false);

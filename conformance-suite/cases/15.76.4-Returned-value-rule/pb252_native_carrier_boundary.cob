@@ -56,7 +56,7 @@
        01 W-S    PIC S9(4)  VALUE 0.
        PROCEDURE DIVISION.
        MAIN.
-      *> (1) NO LATITUDE. §2023:15.88.4 r1c's expression here is 3 x 10**31 - 3, which is further from
+      *> (1) NO LATITUDE. §2023:15.88.4 RV1c's expression here is 3 x 10**31 - 3, which is further from
       *>     zero than a 31-digit receiver permits, so §2023:14.7.5 rule 3 makes the size error condition
       *>     exist whatever the intermediate carrier is, and rule 1 leaves W-R at its prior value.
       *>     The defect answered -4028236692093846346337460743179 with the phrase NOT taken.
@@ -70,7 +70,7 @@
            ELSE
                DISPLAY "SUM-R3-SIZE-ERROR=NO"
            END-IF
-      *> (2) THE VALUE (kb/Work PB621 moved this from a disjunction to the value). §2023:15.76.4 r1's
+      *> (2) THE VALUE (kb/Work PB621 moved this from a disjunction to the value). §2023:15.76.4 RV1's
       *>     expression here is 1.7e30 - (-1.7e30) = 3.4e30, which FITS a 31-digit receiver, so rule 3
       *>     does not fire and the receiver must hold it. §2023:14.7.5 rule 5 would PERMIT a size error
       *>     (the intermediate's range is the implementor's), and the aligned scale-8 intermediate
@@ -88,8 +88,8 @@
            ELSE
                DISPLAY "RANGE-CONFORMS=NO"
            END-IF
-      *> (3) A CONSEQUENCE OF THE RULES, in every arithmetic mode: §2023:15.76.4 r1 is MAX - MIN, and
-      *>     §2023:15.59.4 r1 / §2023:15.63.4 r1 select the greatest and the least of the SAME argument list,
+      *> (3) A CONSEQUENCE OF THE RULES, in every arithmetic mode: §2023:15.76.4 RV1 is MAX - MIN, and
+      *>     §2023:15.59.4 RV1 / §2023:15.63.4 RV1 select the greatest and the least of the SAME argument list,
       *>     so MAX >= MIN and RANGE can never be negative.
            IF W-R < 0
                DISPLAY "RANGE-SIGN=NEGATIVE"
@@ -97,8 +97,8 @@
                DISPLAY "RANGE-SIGN=NON-NEGATIVE"
            END-IF
       *> (4) THE CONTROL — the same two functions well inside the carrier still answer exactly, so a
-      *>     guard that simply raised everywhere would fail here. §2023:15.88.4 r1c: 1+2+3+4 = 10.
-      *>     §2023:15.76.4 r1: MAX(1 2 3 4) - MIN(1 2 3 4) = 4 - 1 = 3.
+      *>     guard that simply raised everywhere would fail here. §2023:15.88.4 RV1c: 1+2+3+4 = 10.
+      *>     §2023:15.76.4 RV1: MAX(1 2 3 4) - MIN(1 2 3 4) = 4 - 1 = 3.
            COMPUTE W-S = FUNCTION SUM (1 2 3 4)
            IF W-S = 10
                DISPLAY "SUM-SMALL=10"

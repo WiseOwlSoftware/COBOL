@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:15.40.3 r3 - "Argument-2 shall be a value in integer date
+      *> ISO §2023:15.40.3 AR3 - "Argument-2 shall be a value in integer date
       *> form." §2023:15.5.2 IS that form: "A value in integer date form is a
       *> positive integer that represents a number of days succeeding
       *> December 31, 1600, in the Gregorian calendar. It shall be greater
@@ -22,7 +22,7 @@
       *> the exception is a spec-derived expectation.
       *>
       *> A LOCAL combined format is used throughout so that r3's own screen
-      *> is what is measured: the §2023:15.40.4 r2 UTC roll can also carry a date
+      *> is what is measured: the §2023:15.40.4 RV2 UTC roll can also carry a date
       *> out of the form, and that interaction is r25_utc_roll_date_range's.
       *>
       *> Derivation of the two legal values (§2023:15.5.2's epoch, integer date

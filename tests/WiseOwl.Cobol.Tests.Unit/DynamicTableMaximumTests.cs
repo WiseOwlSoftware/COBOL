@@ -12,7 +12,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ A DYNAMIC-CAPACITY TABLE'S MAXIMUM IS THE IMPLEMENTOR'S, NEVER ZERO AND NEVER <c>TO</c> (kb/Work PB2833).
-/// ISO §2023:8.5.1.9.1 2) — a dynamic-capacity table "may have an unlimited capacity" — and §2023:13.18.38.4 GR17 — "Integer-5
+/// ISO §2023:8.5.1.9.1 GR2 — a dynamic-capacity table "may have an unlimited capacity" — and §2023:13.18.38.4 GR17 — "Integer-5
 /// is the expected capacity of the table" — a SET past it sets EC-BOUND-SET (§2023:14.9.39.4 GR30) and still grows the table.
 /// <c>OccursSpec.Max</c> is zero for such a table (it has no allocated maximum), and the two layouts that size a
 /// component by its maximum — the cell group window (<see cref="VarGroupWindow"/>, with its element shapes) and a

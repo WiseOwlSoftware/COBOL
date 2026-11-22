@@ -51,7 +51,7 @@ public sealed class Frontend
     public bool Permissive { get; init; }
 
     /// <summary>The reference format the compilation group starts in (the CLI's <c>--source-format</c>; kb/Work
-    /// PB1362) — fixed form unless selected otherwise, ISO §2023:7.3.24.3 2) "The default reference format of a compilation
+    /// PB1362) — fixed form unless selected otherwise, ISO §2023:7.3.24.3 GR2 "The default reference format of a compilation
     /// group is fixed form". See <see cref="Preprocessor.InitialReferenceFormat"/>.</summary>
     public Preprocessor.InitialReferenceFormat InitialFormat { get; init; } = Preprocessor.InitialReferenceFormat.Fixed;
 
@@ -325,7 +325,7 @@ public sealed class Frontend
     /// no-op on source that does not use it, so an ordinary program passes through essentially unchanged.
     /// </summary>
     /// <returns>The logical free-form text and the reference format each physical line was read in — which the COPY
-    /// statements of the text need (§2023:7.3.24.3 3), kb/Work PB1067).</returns>
+    /// statements of the text need (§2023:7.3.24.3 GR3, kb/Work PB1067).</returns>
     private (MappedText Text, ReferenceFormatMap Formats) Normalize(string raw, string sourcePath,
         ReferenceFormatDiagnostics referenceFormatGates, ImplicitFormatOps implicitOps, CommentEntryPins pins)
     {
@@ -617,7 +617,7 @@ public sealed class Frontend
         // entry kind (kb/Work PB569). Reported through the syntax-error listener so it is located exactly like a
         // parse error; the parse itself still runs, so every other diagnostic of the unit is reported too.
         var sr7 = new CobolErrorListener(diagnostics, sourcePath, LineMap, areas, edition);
-        // ISO §2023:6.3.5 1) / §2023:6.4.2 — a literal its line ends inside (kb/Work PB3245), FIRST: it is why whatever else its line
+        // ISO §2023:6.3.5 SR1 / §2023:6.4.2 — a literal its line ends inside (kb/Work PB3245), FIRST: it is why whatever else its line
         // and the next draw is drawn, and a parse it breaks never reaches the bind-time literal walk.
         ReportTokenScreens(text, tokens.GetTokens(), edition,
             (t, message) => sr7.SyntaxError(TextWriter.Null, null!, t, t.Line, t.Column, message, null!));
@@ -745,7 +745,7 @@ public sealed class Frontend
     }
 
     /// <summary>The syntax rules decided from the token stream and its text, before any parse: a literal its line ends inside
-    /// (§2023:6.3.5 1) / §2023:6.4.2, kb/Work PB3245) FIRST, the PICTURE separator period and the §2023:8.3.5 separator contexts
+    /// (§2023:6.3.5 SR1 / §2023:6.4.2, kb/Work PB3245) FIRST, the PICTURE separator period and the §2023:8.3.5 separator contexts
     /// (kb/Work PB1394). ONE pipeline: the main parse and the as-source reading of a hidden debugging line (kb/Work PB5990) both
     /// run it, so a refusal that applies to source applies to a debugging line taken as source.</summary>
     private static void ReportTokenScreens(string text, IList<IToken> tokens, EditionInfo edition, Action<IToken, string> report)

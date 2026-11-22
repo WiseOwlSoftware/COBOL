@@ -10,7 +10,7 @@
       *> integer literal, an integer data item and an integer arithmetic
       *> expression (§1989:A.2.2 AR4) are each accepted and each selects
       *> the ordinal position its value names (§1989:A.2.9.1).
-      *> §1985:VI.4.5.4 GR4d2: the order of the ALPHABET literals gives
+      *> §1985:VI.4.5.4 GR4d.2: the order of the ALPHABET literals gives
       *> the ordinal numbers, so under MY-ALPHA position 1 is Q, 2 is R,
       *> 3 is S. A line fails if an integer form is refused or picks the
       *> wrong position.

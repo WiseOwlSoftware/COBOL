@@ -7,7 +7,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// <summary>
 /// The OPTIONS paragraph (ISO/IEC 1989:2023 §2023:11.9), now fully parsed into a structured clause tree. The first
 /// applied consumer is DEFAULT ROUNDED (§2023:11.9.6): a <b>bare</b> <c>ROUNDED</c> phrase (no MODE) uses the program's
-/// DEFAULT ROUNDED mode rather than the NEAREST-AWAY-FROM-ZERO fallback (§2023:14.7.4.3 r1). Mode-specific results are
+/// DEFAULT ROUNDED mode rather than the NEAREST-AWAY-FROM-ZERO fallback (§2023:14.7.4.3 GR1). Mode-specific results are
 /// pinned to hand-computed spec values; the former legacy engine (which also honors DEFAULT ROUNDED) is cross-checked.
 /// </summary>
 public sealed class OptionsDifferentialTests
@@ -38,7 +38,7 @@ public sealed class OptionsDifferentialTests
             STOP RUN.
         """;
 
-    // ── DEFAULT ROUNDED feeds a bare ROUNDED phrase (§2023:11.9.6 r1 / §2023:14.7.4.3 r1). 25/10 = 2.5. ───────────────────
+    // ── DEFAULT ROUNDED feeds a bare ROUNDED phrase (§2023:11.9.6 r1 / §2023:14.7.4.3 GR1). 25/10 = 2.5. ───────────────────
     [Fact]
     public void BareRounded_HonorsDefaultRounded_NearestEven()
     {

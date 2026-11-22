@@ -128,7 +128,7 @@ public static partial class CobolIntrinsics
     }
 
     /// <summary>MOD (§2023:15.64.4): <c>a − b × FUNCTION INTEGER (a / b)</c>, the floored modulus, over aligned values. A zero divisor
-    /// is §2023:15.64.3 r2's one raise site (<see cref="ModZeroDivisor"/>), shared with every other carrier's body.</summary>
+    /// is §2023:15.64.3 AR2's one raise site (<see cref="ModZeroDivisor"/>), shared with every other carrier's body.</summary>
     public static CobolWide ModWide(CobolWide a, CobolWide b)
     {
         if (b.Sign == 0) return CobolWide.From(ModZeroDivisor());
@@ -146,7 +146,7 @@ public static partial class CobolIntrinsics
     }
 
     /// <summary>The position of the greatest (<paramref name="greatest"/>) or least aligned value; the leftmost of equal values
-    /// (§2023:15.59.4 r2, §2023:15.63.4 r2, §2023:15.71.4, §2023:15.72.4).</summary>
+    /// (§2023:15.59.4 RV2, §2023:15.63.4 RV2, §2023:15.71.4, §2023:15.72.4).</summary>
     private static int SelectWide(CobolWide[] xs, bool greatest, string function)
     {
         RequireArguments(xs.Length, function);
@@ -184,7 +184,7 @@ public static partial class CobolIntrinsics
         return CobolWide.Sub(MaxWide(xs), MinWide(xs));
     }
 
-    /// <summary>⛔ MEAN (§2023:15.60.4 r1) OVER THE EXACT WIDE SUM, ONE SDIDI QUOTIENT (kb/Work PB4075, PB3860): the arguments' exact sum
+    /// <summary>⛔ MEAN (§2023:15.60.4 RV1) OVER THE EXACT WIDE SUM, ONE SDIDI QUOTIENT (kb/Work PB4075, PB3860): the arguments' exact sum
     /// divided by their count and rounded ONCE to the SDIDI's 34 digits (<see cref="CobolWide.QuotientDec"/>) in
     /// <paramref name="mode"/> — the value <see cref="MeanDec"/> forms for an SDIDI list, and the value every receiver then
     /// rounds once (§2023:14.7.4.3). The arguments arrive ALREADY ALIGNED by the emitter to the common <paramref name="scale"/>. Lowering

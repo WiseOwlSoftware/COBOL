@@ -101,7 +101,7 @@ internal static class OperandText
         : op is BoundComputedOperand { Expr: var reg } && AlgebraicRanges.CounterRegisterDigits(reg) is { } regDigits
             ? RuntimeApi.NumFormatUnsignedDisplay(num.Render(reg, ReceiverContext.None).Expr, regDigits)
         // A function-identifier the binder FOLDED into an arithmetic sum — FUNCTION LENGTH / BYTE-LENGTH of a
-        // variable-length group is §2023:15.50.4 r7's fixed-plus-dynamic-leaves sum (kb/Work PB61): still a numeric
+        // variable-length group is §2023:15.50.4 RV7's fixed-plus-dynamic-leaves sum (kb/Work PB61): still a numeric
         // function's returned value in a string position, rendered in the same item-92 literal form. No general
         // format admits a bare arithmetic expression here, so the only other way to reach this arm is the --permissive
         // coercion of one at a character position of a string function (`TRIM (I2 + 1)`, kb/Work PB4710), whose text is
@@ -121,7 +121,7 @@ internal static class OperandText
         // A boolean EXPRESSION operand's string is its '0'/'1' image through the ONE boolean renderer (kb/Work PB65
         // — a legal intrinsic argument, §2023:8.4.3.2.3 SR8, and any other string position a boolean expression reaches);
         // intercepted at the ENTRY because the renderer needs the per-unit NumericRenderer (shift counts).
-        // …at §2023:8.8.2 rule 10's item width when it is the sending operand of a CALL / INVOKE argument's MOVE (AtItemWidth).
+        // …at §2023:8.8.2 GR10's item width when it is the sending operand of a CALL / INVOKE argument's MOVE (AtItemWidth).
         : op is BoundBoolOperand bo
             ? bo.AtItemWidth ? BooleanRenderer.RenderAtItemWidth(bo.Expr, num, sending) : BooleanRenderer.Render(bo.Expr, num, sending)
             : op.Accept(Visitor(deSign, sending));
@@ -176,7 +176,7 @@ internal static class OperandText
     /// register asks it here and the Emit layer reads <c>AlgebraicRanges</c> from this class alone (kb/Work PB4766).</summary>
     public static bool IsCounterRegister(BoundComputedOperand op) => AlgebraicRanges.CounterRegisterDigits(op.Expr) is not null;
 
-    /// <summary>The STORAGE image of a counter register (CONVERT's ANY source, §2023:15.19.3 r7: the storage bits, never the display
+    /// <summary>The STORAGE image of a counter register (CONVERT's ANY source, §2023:15.19.3 AR7: the storage bits, never the display
     /// image): LINAGE-COUNTER's description is a DISPLAY integer item, whose storage IS its zoned digits (<see cref="AsString"/>), and
     /// LINE-/PAGE-COUNTER's is the 32-bit unsigned binary item <see cref="PicInfo.ReportCounterItem"/>, whose bytes are the ones the
     /// storage codec gives any declared item of that description, through the profile the report's counter item declares
@@ -243,7 +243,7 @@ internal static class OperandText
     /// <para>⛔ AN OUT-OF-LINE RECORD (<c>FileModel.IsOutOfLineRecord</c> — determination D-FRA, kb/Work PB981)
     /// has no character window, so its record image is stated by the determination rather than read from one: a
     /// VARIABLE-LENGTH GROUP sends its contiguous image at its current extent (ISO §2023:8.5.1.11.2 — the
-    /// <c>CurrentImage()</c> composer; §2023:13.18.43.4 GR13 c) sizes it), a DYNAMIC-LENGTH record its content at its
+    /// <c>CurrentImage()</c> composer; §2023:13.18.43.4 GR13c sizes it), a DYNAMIC-LENGTH record its content at its
     /// current length (§2023:8.5.1.10.4 — a sending operand "is treated as a fixed-length data item whose length is
     /// the dynamic-length elementary item's current length"; the storage arm below already renders exactly that),
     /// and a POINTER or MESSAGE-TAG record its 8-position TOKEN (kb/Work PB4838; A.1 items 212/216 - the file carries the token and READ decodes it back);
@@ -311,7 +311,7 @@ internal static class OperandText
         record.Item.IsGroup && FileModel.IsVariableLengthRecord(record.Item);
 
     /// <summary>THE CURRENT RECORD's character image — the sending operand of a <c>READ … INTO</c> /
-    /// <c>RETURN … INTO</c> implicit MOVE (ISO §2023:14.9.30.4 GR4 b) / §2023:14.9.34.4 GR5 b): the record area's image
+    /// <c>RETURN … INTO</c> implicit MOVE (ISO §2023:14.9.30.4 GR4b / §2023:14.9.34.4 GR5b: the record area's image
     /// (through THE ONE record-area channel above) sliced to the §2023:13.18.43.4 GR16 byte count. The slice starts at
     /// position 1 because the record occupies the leading positions of the area; the area's remaining positions
     /// are padding, and sending them is what kb/Work PB339 fixes. The area is read WHOLE (<see cref="AreaUse.Whole"/>): the positions that
@@ -395,8 +395,8 @@ internal static class OperandText
         // a value of the same usage sends the same bytes. `MOVE FUNCTION BOOLEAN-OF-INTEGER(255 8) TO G` deposited the
         // '0'/'1' TEXT (00110001) where a usage-bit sender deposits 11111111, and `MOVE N"EF" TO G` the two ALPHANUMERIC
         // bytes 'E' 'F' where `MOVE NI TO G` deposits 00 45 00 46. The usage is the ONE reader of an operand's static usage,
-        // IntrinsicArgumentRules.StaticUsageOf (§2023:15.2 2) "Boolean functions have an implicit usage bit", §2023:15.2 3) national
-        // functions usage national, §2023:8.3.3.5.4 GR3 a) a national literal "usage NATIONAL"); a boolean LITERAL is DISPLAY
+        // IntrinsicArgumentRules.StaticUsageOf (§2023:15.2 GR2 "Boolean functions have an implicit usage bit", §2023:15.2 GR3 national
+        // functions usage national, §2023:8.3.3.5.4 GR3a a national literal "usage NATIONAL"); a boolean LITERAL is DISPLAY
         // there too - its characters are "boolean character[s], '0' or '1', from the computer's coded character set"
         // (§2023:8.3.3.4.3 SR2) - so it keeps its text (docs/CONFORMANCE.md D-B3). A MOVE's zero-length literal never gets here:
         // §2023:14.9.25.4 GR2/GR3 make it the figurative SPACE / ZERO (MoveClassifier.Sender); at a CALL it is an empty image
@@ -423,7 +423,7 @@ internal static class OperandText
 
     /// <summary>True when an operand place's operand carrier (<see cref="AsString"/>'s text, '0'/'1' per boolean position
     /// or one character per national position) is NOT its storage image (<see cref="AsStorageImage"/>'s packed bits or
-    /// UTF-16BE pairs): an item of USAGE BIT or USAGE NATIONAL (a bit or national group included, §2023:13.18.29.4 GR1 b) /
+    /// UTF-16BE pairs): an item of USAGE BIT or USAGE NATIONAL (a bit or national group included, §2023:13.18.29.4 GR1b /
     /// GR2 b)), or a reference-modified slice of one - the usage asked of the ONE static-usage reader. The CALL and INVOKE
     /// boundaries ask it to send such an argument to a plain-group formal as GR4's unconverted move (kb/Work PB3562).</summary>
     public static bool CarrierDiffersFromStorage(Place p) => RepresentationDiffersFromText(new BoundFieldOperand(p));
@@ -490,19 +490,19 @@ internal static class OperandText
             ? function
             : AsTransferString(op, num, context);
 
-    /// <summary>The RAW-STORAGE byte image of a field — CONVERT's ANY source channel (§2023:15.19.3 r7: "argument-1
+    /// <summary>The RAW-STORAGE byte image of a field — CONVERT's ANY source channel (§2023:15.19.3 AR7: "argument-1
     /// shall be of any usage … It is not necessary for the contents to be valid according to the usage" — the
     /// item's STORAGE BITS, never its display image; fix-queue PB59 family 5b / AR-15.19.3-7 leg b). The
     /// convention is char==byte (the <c>CobolBits.Pack</c> image convention), one representation per leaf shape,
     /// each THE mechanism that already defines that shape's storage (<c>GroupImageCodec.AsImageOf</c>'s recipes —
     /// never a second codec): a group is its generated <c>AsImage()</c>; a national leaf its UTF-16BE bytes
     /// (<c>CobolBits.NatBytes</c>, D-N1); a USAGE BIT leaf its packed bits (<c>CobolBits.Pack</c> — which also
-    /// materializes §2023:15.19.4 r2's trailing zero-bit pad); a zoned/character leaf its carrier (the sign-AWARE
+    /// materializes §2023:15.19.4 RV2's trailing zero-bit pad); a zoned/character leaf its carrier (the sign-AWARE
     /// image — storage, so no GR6a de-sign); a BINARY/PACKED/COMP-5 leaf its radix-2/BCD bytes
     /// (<c>CobolNum.FormatImage</c>, V59/§2023:14.4); a float leaf its IEEE interchange bytes
     /// (<c>CobolNum.FormatImageFloat</c> — kb/Work PB164 wave 2); an INDEX leaf its 8-byte occurrence-number
     /// bytes (R40). Only a VARIABLE-LENGTH group stages LOUD rather than returning a plausible wrong image;
-    /// pointer/object shapes are unreachable — the §2023:15.19.3 r7 bind screen rejected them.</summary>
+    /// pointer/object shapes are unreachable — the §2023:15.19.3 AR7 bind screen rejected them.</summary>
     /// <param name="context">Names the operation in the Tier-C loud message — the same parameter
     /// <c>PlaceRenderer.GroupImage</c> carries, so a caller can route through THE ONE storage channel and keep
     /// its own site-specific reason (kb/Work PB178's law, PB327's second caller).</param>
@@ -514,7 +514,7 @@ internal static class OperandText
         // ⛔ A BIT-USAGE SLICE IS THE THIRD CASE, AND IT WAS MISSING (kb/Work PB173). §2023:8.4.3.3.4 GR5a gives a
         // usage-bit operand BIT positions, and GR6 preserves its class, category and usage — so the slice's
         // '0'/'1' carrier is NOT its storage, exactly as it is not for the whole item three arms below. §2023:15.19.3
-        // r7 asks for the item's storage BITS and §2023:15.19.4 r2 then pads: "If the number of bits in argument-1 is
+        // r7 asks for the item's storage BITS and §2023:15.19.4 RV2 then pads: "If the number of bits in argument-1 is
         // not a multiple of those needed for a single alphanumeric character, the trailing portion needed to make
         // up a complete multiple is padded with zero bits". Measured before the fix: `CONVERT(XM(1:3) ANY ANUM
         // HEX)` returned 313130 — the three CHARACTERS '1','1','0' — where the unsliced `CONVERT(XM ANY ANUM
@@ -543,7 +543,7 @@ internal static class OperandText
         // used to spell itself, one line above), the capability guard, and the plain struct image.
         // ⛔ A VARIABLE-LENGTH group a ONE-WAY consumer reads is its CURRENT-extent image - the one DISPLAY shows (A.1 item
         // 57) - through the ONE reader PlaceRenderer.VarGroupOperandImage (kb/Work PB3424): CONVERT's ANY source
-        // (IntrinsicRenderer.StorageArg) under --permissive, where §2023:15.3 14) bars the group argument and COBOL1627
+        // (IntrinsicRenderer.StorageArg) under --permissive, where §2023:15.3 AR14 bars the group argument and COBOL1627
         // warns. §2023:8.5.1.11.2 makes a variable-length item behave as though contiguous with its neighbours whenever a
         // procedural operation is applied to a group containing it, so the contiguous current-extent image is the
         // group's storage as an operation sees it: a dynamic-length NATIONAL member rides as the UTF-16BE bytes it
@@ -583,12 +583,12 @@ internal static class OperandText
             { Category: PicCategory.Alphanumeric or PicCategory.NumericEdited or PicCategory.Boolean } =>
                 PlaceRenderer.Read(p),
             // A numeric leaf stored as its image: the carrier ALREADY HOLDS the storage bytes, whatever byte form
-            // they are — zoned digits, radix-2, BCD, or the IEEE interchange bytes of a windowed float. §2023:15.19.3 r7
+            // they are — zoned digits, radix-2, BCD, or the IEEE interchange bytes of a windowed float. §2023:15.19.3 AR7
             // asks for the item's STORAGE, and a windowed item's window IS its storage, so it passes through
             // untouched. ⛔ THIS ARM MUST PRECEDE the native byte-form arms below (the same ordering pin
             // NumericRenderer's windowed-float arm carries): with an `IsFloat: false` conjunct here a windowed
             // float fell through to FormatImageFloat(<string window>) — a backend CS1503, the ONE shape
-            // §2023:15.19.3 r7's ANY source format can reach.
+            // §2023:15.19.3 AR7's ANY source format can reach.
             { Category: PicCategory.Numeric } when p.Item.StoreAsImage => PlaceRenderer.Read(p),
             // A native numeric leaf: the bytes it occupies at a byte boundary (zoned digits, radix-2, BCD,
             // or the wave-2 IEEE forms — PicInfo.HasImageByteForm, THE ONE image predicate; kb/Work PB164) —
@@ -634,7 +634,7 @@ internal static class OperandText
             || pic.ByteForm is NumericByteForm.Zoned or NumericByteForm.None) return null;
         // A FLOAT window holds the item's IEEE interchange bytes (§2023:13.18.60.4 GR13–GR15, the wave-2 pin): decode
         // through the distinctly-named float lane and render through the SAME CobolFloat.Display the native float
-        // arm below uses, including the CobolFloat.Sending guard (EC-DATA-NOT-FINITE, §2023:14.6.13.2 item 3) unless
+        // arm below uses, including the CobolFloat.Sending guard (EC-DATA-NOT-FINITE, §2023:14.6.13.2 GR3) unless
         // the caller is an exempt context. deSign is a no-op: §2023:14.9.25.4 GR6a speaks of an item "described as
         // being signed numeric" — a float item has no PICTURE and no operational sign to drop.
         if (pic.IsFloat)
@@ -817,13 +817,13 @@ internal static class OperandText
             // A float item (COMP-1/2/FLOAT-*, D16): DISPLAY renders the algebraic value via CobolFloat.Display
             // (invariant-culture shortest round-trip, §2023:14.9.11.4 GR1 implementor-defined) — never a bare .ToString().
             // The sending read is wrapped in CobolFloat.Sending (raises EC-DATA-NOT-FINITE for NaN/±Inf under checking,
-            // §2023:14.6.13.2 item 3) UNLESS this is an exempt context — SendingRef.FloatChecked() false.
+            // §2023:14.6.13.2 GR3) UNLESS this is an exempt context — SendingRef.FloatChecked() false.
             { Category: PicCategory.Numeric } => sending.FloatChecked(p.Item.Pic!)
                 ? RuntimeApi.FloatDisplay(RuntimeApi.FloatSending(PlaceRenderer.Read(p)))
                 : RuntimeApi.FloatDisplay(PlaceRenderer.Read(p)),
             // ⛔ THE BOOLEAN ARM IS SPLIT OUT, and the reason is the defect this whole change is about: it used to
             // ride the alphanumeric/national arm, and a shared arm cannot carry a rule that applies to only one of
-            // its categories. §2023:14.6.13.2 rule 1 makes a boolean sending item whose content is not all '0'/'1'
+            // its categories. §2023:14.6.13.2 GR1 makes a boolean sending item whose content is not all '0'/'1'
             // EC-DATA-INCOMPATIBLE, and `DISPLAY B` references that content exactly as `COMPUTE R = B` does — this
             // is the STRING half of the boolean chokepoint pair, the twin of BooleanRenderer's numeric-channel half
             // (kb/Work PB230). Fixing one channel and not the other is the two-arm shape, again.
@@ -888,7 +888,7 @@ internal static class OperandText
         // The image is the literal AS WRITTEN: its decimal separator is the program's (BoundNumericLiteral.Image, PB1643).
         public string Visit(BoundNumericLiteral n) => EmitText.CsLiteral(deSign ? DeSign(n.Image) : n.Image);
         public string Visit(BoundFieldOperand n) => FieldAsString(n.Place, deSign, sending);
-        // THE CURRENT RECORD (ISO §2023:14.9.30.4 GR4 b) / §2023:14.9.34.4 GR5 b) — kb/Work PB339): the record area's
+        // THE CURRENT RECORD (ISO §2023:14.9.30.4 GR4b / §2023:14.9.34.4 GR5b — kb/Work PB339): the record area's
         // image sliced to the §2023:13.18.43.4 GR16 byte count. deSign is moot (the operand is alphanumeric by
         // designation, never a signed numeric item), and so is the SendingRef exempt context (a record area's
         // image is characters, never a float or windowed fixed-point READ).
@@ -905,7 +905,7 @@ internal static class OperandText
         // NumericIntrinsicText (DA2), and so is every COUNTER REGISTER (an integer data item by §2023:8.4.3.14.4 GR1 /
         // §2023:8.4.3.15.4 GR1 — kb/Work PB1153/PB1199/PB1318). What reaches this arm is a computed operand that is
         // neither — an arithmetic expression in a string position, which no general format admits, or an
-        // index-name, which the §2023:13.18.38.3 r7 screen refuses in every character slot (R16) — so it stays loud.
+        // index-name, which the §2023:13.18.38.3 SR7 screen refuses in every character slot (R16) — so it stays loud.
         public string Visit(BoundComputedOperand n) =>
             EmitText.LoudValue("string", "computed expression in a string context");
         public string Visit(BoundOperandError n) => EmitText.LoudValue("string", n.Feature);
@@ -933,7 +933,7 @@ internal static class OperandText
             : n.Place.Item.IsGroup || n.Place.Item.Pic?.Category is { } c && IsTextCategory(c);
         private static bool IsTextCategory(PicCategory c) =>
             c is PicCategory.Alphanumeric or PicCategory.NumericEdited or PicCategory.National or PicCategory.Boolean;
-        // The current record is an ALPHANUMERIC value — §2023:14.9.30.4 GR4 b) calls the implied move "an
+        // The current record is an ALPHANUMERIC value — §2023:14.9.30.4 GR4b calls the implied move "an
         // alphanumeric group move" and §2023:13.18.43.4 GR16 counts its size in BYTES.
         public bool Visit(BoundCurrentRecord n) => true;
         // An intrinsic result compares by its §2023:15.2 function type: alphanumeric functions are class/category

@@ -69,7 +69,7 @@ public sealed class Item8RollbackSiteDriftTests
             names.Order(StringComparer.Ordinal).ToArray());
     }
 
-    /// <summary>§2023:14.6.13.1.3 item 2 (<i>"If the executed statement is a MERGE or SORT statement, then the rules for those
+    /// <summary>§2023:14.6.13.1.3 GR2 (<i>"If the executed statement is a MERGE or SORT statement, then the rules for those
     /// statements apply."</i>): every hook the SORT/MERGE emitter writes for its implicit transfers says so with
     /// <c>verbDisposes: true</c>, which is how <c>Item8Applies</c> leaves item 8 out of them.</summary>
     [Fact]

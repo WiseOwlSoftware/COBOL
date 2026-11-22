@@ -17,7 +17,7 @@ public static partial class CobolNum
     /// is <c>00000012.5</c>, <c>FUNCTION NUMVAL("0.000000001")</c> is <c>.000000001</c>.
     /// </summary>
     /// <param name="value">The exact returned value (an SDIDI, which carries any scale the value has).</param>
-    /// <param name="commaMode">The unit's decimal separator (§2023:12.3.7.4 GR14 a).</param>
+    /// <param name="commaMode">The unit's decimal separator (§2023:12.3.7.4 GR14a).</param>
     public static string DeviceFunctionText(CobolDec value, bool commaMode) =>
         DeviceFunctionText(value, signedItem: value.Sig < 0, commaMode);
 
@@ -84,7 +84,7 @@ public static partial class CobolNum
     /// <param name="value">The exact returned value.</param>
     /// <param name="digits">The magnitude's digits after the trailing fraction zeros are dropped (unpadded).</param>
     /// <param name="storageBytes">The bytes the temporary occupies, which is what <c>FUNCTION LENGTH</c> and <c>FUNCTION BYTE-LENGTH</c> of the
-    /// call answer (§2023:15.50.4 r3, §2023:15.14.4 r1; kb/Work PB3951): 4 for the 4-byte binary item, 8 for the 8-byte one, otherwise the DISPLAY item's
+    /// call answer (§2023:15.50.4 RV3, §2023:15.14.4 RV1; kb/Work PB3951): 4 for the 4-byte binary item, 8 for the 8-byte one, otherwise the DISPLAY item's
     /// digit count (its sign is carried in the last digit and takes no position). The profile's <c>Digits</c> cannot say which, because it is
     /// the digit POSITIONS DISPLAY pads to (9 or 20 for a binary item).</param>
     internal static NumProfile ReturnedValueProfile(CobolDec value, out string digits, out int storageBytes)

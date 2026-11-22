@@ -139,8 +139,8 @@ internal static class ClausePlacementRules
             // BASED is not in 1985, so its half of the sentence has no 1985 counterpart; the REDEFINES half is IPC SR3.
             Rule1985: "§1985:X.4.3.3 SR3",
             Sentence1985: "The EXTERNAL clause and the REDEFINES clause must not be specified in the same data description entry."),
-        // §2023:13.16.3 SR6 with §2023:13.18.27.3 SR1 b) — kb/Work PB518.
-        new(DataClauseKind.Global, ClausePlacementKind.Residence, "§2023:13.16.3 SR6 / §2023:13.18.27.3 SR1 b)",
+        // §2023:13.16.3 SR6 with §2023:13.18.27.3 SR1b — kb/Work PB518.
+        new(DataClauseKind.Global, ClausePlacementKind.Residence, "§2023:13.16.3 SR6 / §2023:13.18.27.3 SR1b",
             "A data description entry whose level-number is 1 that is specified in the file, working-storage, "
             + "local-storage, or linkage section.",
             DiagnosticCatalog.DataClausePlacement,
@@ -182,7 +182,7 @@ internal static class ClausePlacementRules
             "The PROPERTY clause may be specified only for an elementary item whose name does not require "
             + "qualification for uniqueness of reference.",
             DiagnosticCatalog.PropertyClauseRule),
-        // §2023:13.18.38.3 SR1 a) — kb/Work PB1260. The OCCURS clause's level rule: no table at level 01 or 77 (66 and 88 are
+        // §2023:13.18.38.3 SR1a) — kb/Work PB1260. The OCCURS clause's level rule: no table at level 01 or 77 (66 and 88 are
         // the same sentence; they reach the binder as RENAMES / condition-name entries, which carry no OCCURS clause,
         // and the grammar refuses the clause there). Level 01 is the one an entry binder SEES: `01 A PIC X OCCURS 3`
         // compiled as a table. The sibling SR1 b) (an occurs-depending table subordinate to the OCCURS entry) and SR10

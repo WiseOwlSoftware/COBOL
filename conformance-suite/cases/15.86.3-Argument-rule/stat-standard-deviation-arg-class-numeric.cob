@@ -14,11 +14,11 @@
 *> the deepest position any §2023:15.3 class fixture exercises, which is what shows
 *> the rule riding a variadic TAIL rather than a fixed list of ordinals.
 *>
-*> THE RULE IS THE FUNCTION'S OWN, NOT VARIANCE'S. §2023:15.86.4 r1 defines the value
+*> THE RULE IS THE FUNCTION'S OWN, NOT VARIANCE'S. §2023:15.86.4 RV1 defines the value
 *> as (FUNCTION SQRT (FUNCTION VARIANCE (argument-list))), so it is tempting to
-*> read the argument admissibility off VARIANCE's §2023:15.98.3 r1 as well; the
+*> read the argument admissibility off VARIANCE's §2023:15.98.3 AR1 as well; the
 *> equivalent arithmetic expression states the VALUE and never the admissible
-*> arguments, and §2023:15.86.3 r1 is a rule in its own right that must be cited and
+*> arguments, and §2023:15.86.3 AR1 is a rule in its own right that must be cited and
 *> enforced on its own clause. A diagnostic citing §2023:15.98.3 here would be the
 *> inherited-citation failure.
 *>

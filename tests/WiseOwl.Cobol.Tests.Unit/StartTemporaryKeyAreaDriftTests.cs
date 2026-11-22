@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </summary>
 /// <remarks>
 /// <para>
-/// ISO §2023:14.9.41.4 GR17 a) — "The specified key is set up by moving the relevant parts of the record area into a
+/// ISO §2023:14.9.41.4 GR17a — "The specified key is set up by moving the relevant parts of the record area into a
 /// temporary data area" — names TWO things and neither is data-name-1: the SOURCE is the record area, and the
 /// key is GR16's key of reference ("The key specified in the KEY phrase, or that shares a leftmost character
 /// with the data item specified in the KEY phrase, becomes the key of reference"). data-name-1's whole role is
@@ -98,7 +98,7 @@ public sealed class StartTemporaryKeyAreaDriftTests
 
     // ── the gates ────────────────────────────────────────────────────────────────────────────────────────────
 
-    /// <summary>§2023:14.9.41.4 GR17 a) — the moved characters come from the record area.</summary>
+    /// <summary>§2023:14.9.41.4 GR17a — the moved characters come from the record area.</summary>
     [Fact]
     public void IndexedStart_BuildsTheTemporaryArea_FromTheRecordArea()
     {

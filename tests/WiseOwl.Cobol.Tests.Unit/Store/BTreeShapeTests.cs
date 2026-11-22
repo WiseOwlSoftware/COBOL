@@ -419,8 +419,8 @@ public sealed class BTreeShapeTests
         Assert.True(composite.Compare(CompositeKeyOrder.Compose("AB"u8, 9), CompositeKeyOrder.Compose("AC"u8, 1)) < 0);
         Assert.True(composite.Compare(CompositeKeyOrder.Compose("AB"u8, 1), CompositeKeyOrder.Compose("AB"u8, 2)) < 0);
         Assert.Equal(0, composite.ComparePrefix(CompositeKeyOrder.Compose("ABC"u8, 7), "AB"u8));
-        // PREFIX NARROWING: every order that compares position by position (§2023:8.8.4.2.7 1)) narrows a prefix of every
-        // length; a LOCALE-BASED sequence (§2023:8.8.4.2.11) only a prefix as long as the key, which §2023:14.9.41.4 GR17 c) then
+        // PREFIX NARROWING: every order that compares position by position (§2023:8.8.4.2.7 GR1) narrows a prefix of every
+        // length; a LOCALE-BASED sequence (§2023:8.8.4.2.11) only a prefix as long as the key, which §2023:14.9.41.4 GR17c then
         // truncates nothing of, and a composite key over one the same.
         Assert.True(KeyOrders.Ordinal.PrefixNarrows(1));
         Assert.True(reversed.PrefixNarrows(1));
@@ -495,7 +495,7 @@ public sealed class BTreeShapeTests
 
     /// <summary>⛔ A WHOLE-LENGTH START KEY UNDER A LOCALE-BASED SEQUENCE IS A BINARY SEARCH, NOT A WALK OF THE FILE (review
     /// w1122-a R2-1; kb/Work PB3330's bar: no statement reads the whole file). When the START's key is as long as the
-    /// record key (§2023:14.9.41.4 GR17 b)), GR17 c) and d) truncate nothing, so the comparison is the key order's own, the
+    /// record key (§2023:14.9.41.4 GR17b), GR17 c) and d) truncate nothing, so the comparison is the key order's own, the
     /// qualifying entries are one run of it, and the seek reads the tree's depth, a leaf or two more where it settles across
     /// a leaf boundary — never the leaves before its answer. Every relation is checked against the sequential search's
     /// answer over the sorted keys, at present keys, absent keys, below the first and above the last (the invalid key

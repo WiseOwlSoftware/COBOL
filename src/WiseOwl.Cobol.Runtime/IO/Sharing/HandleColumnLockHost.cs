@@ -160,7 +160,7 @@ internal sealed class HandleColumnLockHost : IColumnLockHost
     /// REFUSES (kb/Work PB3518): the request cannot be held (<see cref="RunUnitFileLock.Outcome.Unavailable"/>, and the OPEN
     /// goes on with the share modes alone), yet a column another run unit has already published and Table 19 refuses this
     /// request is a conflict this host CAN see, so it is <see cref="RunUnitFileLock.Outcome.Refused"/> exactly as after a
-    /// publication (§2023:9.1.13.9 1)'s '61'). The converse never holds: no request is refused for failing to publish. The
+    /// publication (§2023:9.1.13.9 GR1's '61'). The converse never holds: no request is refused for failing to publish. The
     /// same two answers as <see cref="SidecarColumnLockHost"/> gives a lock directory this user may not write.
     /// <para><paramref name="failed"/> says WHY the publication failed. <see cref="RegionLockResult.Held"/> is an exhausted
     /// publication on a handle that carries locks, so the columns are there to be seen. <see cref="RegionLockResult.Unavailable"/>

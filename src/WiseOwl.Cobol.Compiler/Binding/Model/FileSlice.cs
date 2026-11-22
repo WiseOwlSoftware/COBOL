@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Binding.Model;
 /// file, the FILE-CONTROL binder (the SELECT entry) and the FILE SECTION walk (an FD or SD that names a file no SELECT
 /// specified, §2023:13.4.5.3 SR1 / §2023:13.4.6.3 SR1). A container's GLOBAL files are NOT here: they are
 /// inherited through <c>SymbolTable.InheritFiles</c>; the file-NAMES of both are <c>SymbolTable</c>'s (its file lookup reads this
-/// unit's first, §2023:8.4.6.2.1 3)).
+/// unit's first, §2023:8.4.6.2.1 GR3).
 /// </summary>
 public sealed class FileSlice
 {

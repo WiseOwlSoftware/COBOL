@@ -21,7 +21,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 ///
 /// <para><b>What went wrong.</b> PB6019 gave every breach one answer at 85 (termination) while about fifteen of the messages still
 /// said <c>FACTORIAL argument -4 violates §2023:15.36.3 AR1</c> and a zero-length reference modification printed
-/// <c>EC-BOUND-REF-MOD (fatal): ... (ISO §2023:8.4.3.3.4 item 5c)</c>: an exception-name and a clause COBOL-85 lacks.</para>
+/// <c>EC-BOUND-REF-MOD (fatal): ... (ISO §2023:8.4.3.3.4 GR5c)</c>: an exception-name and a clause COBOL-85 lacks.</para>
 ///
 /// <para><b>The structure the test reads.</b> The functions COBOL-85 has are the catalog rows of the 1989 module
 /// (<see cref="IntrinsicCatalog.Paragraph1989"/>), their COBOL-2023 sections are read off the 2023 text, and every raise statement

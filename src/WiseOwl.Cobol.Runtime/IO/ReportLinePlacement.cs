@@ -36,7 +36,7 @@ public static class ReportLinePlacement
     /// DETAIL whatever integer-2 says (3), a page footing at FOOTING + integer-2 (4), a report footing at the page
     /// footing's final LINE-COUNTER + integer-2 when one is on the page, else FOOTING + integer-2 (5). A report footing
     /// whose first line is the bare <c>ON NEXT PAGE</c> is on a page by itself and starts at the HEADING integer, its
-    /// upper limit (§2023:13.18.57.4 GR7 f), a determination, docs/CONFORMANCE.md).
+    /// upper limit (§2023:13.18.57.4 GR7f, a determination, docs/CONFORMANCE.md).
     /// <para><paramref name="preceding"/> is the final LINE-COUNTER setting of the report group this one is placed
     /// after when GR5 places it after one: the report heading on the page of a page heading, the page footing on the
     /// page of a report footing, the previous body group on the page of a body group, the previous group of a report

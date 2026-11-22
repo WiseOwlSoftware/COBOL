@@ -266,7 +266,7 @@ public sealed record CobolVarGroup(string Fixed, string[] Dynamic, CobolVarGroup
     /// carrier of its record image in its own shape (<see cref="OfImage"/>), so it is either side of the pair:
     /// <list type="bullet">
     ///   <item>the fixed material between two corresponding items lands at the same relative position, fitted to the
-    ///     receiving shape's material there (the last run is §2023:14.8.2.2 rule 1's prefix: truncated or space-filled);</item>
+    ///     receiving shape's material there (the last run is §2023:14.8.2.2 SR1's prefix: truncated or space-filled);</item>
     ///   <item>a corresponding pair of components (dynamic-length items, dynamic-capacity tables) carries the content
     ///     whole;</item>
     ///   <item>a dynamic-capacity table opposite a fixed table: the fixed table's occurrences become the component, and a
@@ -283,7 +283,7 @@ public sealed record CobolVarGroup(string Fixed, string[] Dynamic, CobolVarGroup
     ///   "occupies the same storage area as the argument"), so a fixed table opposite its INITIALIZED dynamic-capacity table
     ///   shows each occurrence past the capacity as the table would hold it once a store there created it (§2023:8.5.1.9.3) —
     ///   §2023:8.5.1.9.5's "INITIALIZE … WITH FILLER ALL TO VALUE THEN TO DEFAULT" — where a MOVE's remaining elements are "space
-    ///   filled" (§2023:14.6.9.2 2)). The §2023:8.5.1.9.5 NOTE licenses the view ("functionally identical to one where the intermediate
+    ///   filled" (§2023:14.6.9.2 GR2)). The §2023:8.5.1.9.5 NOTE licenses the view ("functionally identical to one where the intermediate
     ///   occurrences are physically allocated and, if specified, initialized"), and <see cref="Overlay"/> recognises a store
     ///   by a difference from that same image (determination D-VGB). A table without the phrase states no creation (its
     ///   created content is "undefined") and shows the space fill, which no store of a numeric value matches.</item>
@@ -381,7 +381,7 @@ public sealed record CobolVarGroup(string Fixed, string[] Dynamic, CobolVarGroup
     /// through the formal reaches only the argument storage it overlays:
     /// <list type="bullet">
     ///   <item>each run of fixed material the formal covers replaces the argument's leading characters there, and the
-    ///     argument's material past it survives (the §2023:14.8.2.2 rule 1 prefix);</item>
+    ///     argument's material past it survives (the §2023:14.8.2.2 SR1 prefix);</item>
     ///   <item>a corresponding pair of components replaces the argument's component whole — both are variable, so the
     ///     formal's length or capacity IS the argument's;</item>
     ///   <item>a FIXED table of the formal opposite the argument's dynamic-capacity table is written OVER the argument's
@@ -787,7 +787,7 @@ public sealed record CobolVarGroup(string Fixed, string[] Dynamic, CobolVarGroup
             // a space in a fixed-size field is padding, never data. ISO's own LINE SEQUENTIAL record does the same
             // (§2023:14.9.51.4 GR21 — spaces to the right of the rightmost non-space are not transferred). Every component
             // of a FILE record is a dynamic-length ELEMENTARY item — a dynamic-capacity table "may be defined in any
-            // place, other than the file section" (§2023:8.5.1.9.1 3), COBOL1526 — so the trim never meets a table whose
+            // place, other than the file section" (§2023:8.5.1.9.1 SR3), COBOL1526 — so the trim never meets a table whose
             // blank elements are data; `fixedForm` is passed for a file record and nothing else. A STRUCTURED
             // component (§2023:12.3.7.4 GR18/GR19) is never trimmed: its length field or delimiter says where its data ends,
             // so a trailing space is data, not padding (`data` is non-null for it).

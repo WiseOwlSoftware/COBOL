@@ -9,7 +9,7 @@
       *> READ, 00, whatever the sizes of the record DESCRIPTIONS the reading program has: the record length conflict, I-O status
       *> 04, is a violation of the FIXED FILE ATTRIBUTES.
       *>
-      *> §2023:9.1.13.2 item 3 (checked with scripts/spec/cite.py --check): "I-O status = 04. A READ statement is successfully
+      *> §2023:9.1.13.2 GR3 (checked with scripts/spec/cite.py --check): "I-O status = 04. A READ statement is successfully
       *> executed but the physical record from the file is shorter than or longer than the minimum or maximum length of records
       *> allowed for the fixed file attributes for that file."  §2023:9.1.6 names "the minimum and maximum logical record size"
       *> among those attributes, and §2023:14.9.30.4 NOTE 2 (under GR14) says the condition "will occur only when the operating

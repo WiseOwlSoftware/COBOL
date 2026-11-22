@@ -27,7 +27,7 @@ public sealed class ProgramTable
     {
         public required string Path;        // containment path id (OutermostPath / ContainedPath), unique run-unit-wide
         public required string Name;        // program-name-1 / user-function-name-1 AS WRITTEN — what FUNCTION
-                                            // MODULE-NAME reports (§2023:15.65.4 r4 determination, CONFORMANCE DOC-A.1-135)
+                                            // MODULE-NAME reports (§2023:15.65.4 RV4 determination, CONFORMANCE DOC-A.1-135)
                                             // and what a diagnostic names. NEVER the AS literal.
         public required string CallName;    // the name externalized to the operating environment (§2023:8.3.2.2 2): the
                                             // PROGRAM-ID/FUNCTION-ID `AS literal-1` when one is written, else Name.
@@ -142,7 +142,7 @@ public sealed class ProgramTable
     /// §2023:11.5.4 GR1) — the name CALL, CANCEL and the program-address-identifier resolve. OMITTED (null) when the
     /// unit wrote no AS phrase, which §2023:8.3.2.2 2) makes the declared name itself.</param>
     /// <param name="returning">The unit's RETURNING item's description (<see cref="BoundaryItem"/>; kb/Work PB1040) —
-    /// what the activating CALL's receiver is checked against at §2023:14.9.4.4 GR3 d); null for a unit with no RETURNING
+    /// what the activating CALL's receiver is checked against at §2023:14.9.4.4 GR3d; null for a unit with no RETURNING
     /// item.</param>
     /// <param name="formals">Each FORMAL's registered description (<see cref="BoundaryItem"/>; kb/Work PB165), in order —
     /// what an activating element's argument is compared with at a dynamic CALL (§2023:14.8.2), and what it is LANDED through
@@ -210,7 +210,7 @@ public sealed class ProgramTable
     ///     modules, and nothing of it is registered.</item>
     /// </list>
     /// A refusal is a <see cref="CobolCallException"/> with EC-PROGRAM-NOT-FOUND and the reason: the condition the
-    /// activation that needed the module raises anyway (ISO §2023:14.9.4.4 GR3 b), so the carried names are unchanged; reached
+    /// activation that needed the module raises anyway (ISO §2023:14.9.4.4 GR3b), so the carried names are unchanged; reached
     /// from the probe it becomes the probe's failure reason.</summary>
     /// <param name="registrar">The module's registrar full name, <c>Cobol.&lt;S&gt;.__CobolModule</c>: its identity in
     /// the registration set.</param>
@@ -229,7 +229,7 @@ public sealed class ProgramTable
                 $"module {registrar} registered while module {busy.Module} is registering: a registrar registers only its own units");
         try { Commit(registrar, Stage(registrar, register)); }
         // EVERY registrar fault is the CALL's own condition (DESIGN-external-repository §11.2): "If the program cannot be
-        // located" (ISO §2023:14.9.4.4 GR3 b) sets EC-PROGRAM-NOT-FOUND, and a program is located when it is registered in the run
+        // located" (ISO §2023:14.9.4.4 GR3b) sets EC-PROGRAM-NOT-FOUND, and a program is located when it is registered in the run
         // unit (docs/CONFORMANCE.md DOC-A.1-14 / -89), which a faulting registrar never achieves: Commit registers nothing of
         // a module whose registrar failed. The classification is made HERE, once, so the probe, the emitted Main and a host
         // entry (which has no catch of its own) all see it.
@@ -356,7 +356,7 @@ public sealed class ProgramTable
         try
         {
             // The module's own registration is a statement of the run unit like any other (kb/Work PB2846): a refusal
-            // is a CobolCallException (EC-PROGRAM-NOT-FOUND, §2023:14.9.4.4 GR3 b), and the catches below end the run unit.
+            // is a CobolCallException (EC-PROGRAM-NOT-FOUND, §2023:14.9.4.4 GR3b), and the catches below end the run unit.
             RegisterEntryModule(ensureRegistered);
             ActivateMain(path);
         }
@@ -409,7 +409,7 @@ public sealed class ProgramTable
         // leaves CalledSinceCancel alone. From 2002 a CANCEL of the main is refused as ACTIVE before GR7 is asked; at 85
         // it is GR8's "has not been called in this run unit", no action (kb/Work PB5241).
         n.MainActive = true;
-        _owner.Modules.PushMain(n.Name, n.Recursive);   // TOP-LEVEL / the run-unit main (§2023:15.65.4 r5/r10)
+        _owner.Modules.PushMain(n.Name, n.Recursive);   // TOP-LEVEL / the run-unit main (§2023:15.65.4 RV5/r10)
         // The §2023:14.6.13.1.4 #3 selector for a NONFATAL condition raised at a RUNTIME site is the ACTIVATION's
         // (kb/Work PB367b) — same scope, same boundary, as the ModuleStack frame and the §2023:14.9.28.4 PERFORM
         // depth above it. The main program's activator is the run-unit boundary, so the prior value is null.
@@ -456,7 +456,7 @@ public sealed class ProgramTable
     /// outermost activation boundary, at either kind of boundary (<see cref="RunOnThisThread"/> for a COBOL main,
     /// <see cref="CallFromHost"/> for a .NET host). <see cref="CobolFatalException"/> (with its
     /// <see cref="CobolSizeError"/>) is an exception condition that terminates the run unit — a checking-enabled
-    /// unresumed fatal EC, §2023:14.6.13.1.3 7), or a runtime raise point such as a NULL BASED reference or an OO
+    /// unresumed fatal EC, §2023:14.6.13.1.3 GR7, or a runtime raise point such as a NULL BASED reference or an OO
     /// EC-OO-UNIVERSAL; <see cref="CobolImplementorFatalException"/> is an implementor-defined stop that raised NO
     /// exception condition (§2023:14.6.13.1.1 NOTE 3), which ends the run unit through the same boundary because a .NET stack
     /// trace is not a diagnostic a COBOL programmer can act on. A <see cref="CobolCallException"/> is not one of them:
@@ -515,7 +515,7 @@ public sealed class ProgramTable
     /// within the operating system" (§2023:14.6.12). Here the host is that system: the run unit performs the §2023:14.6.11 actions
     /// (<see cref="RunUnit.EndForHost"/>), the host's ambient run unit becomes a new one, and the host receives the ONE
     /// documented <see cref="RunUnitEndedException"/> with the termination status and whether the ending was abnormal —
-    /// never the internal <see cref="StopRun"/> or fatal signals, never a process exit (§2023:14.2.3 13): the implementor
+    /// never the internal <see cref="StopRun"/> or fatal signals, never a process exit (§2023:14.2.3 GR13): the implementor
     /// specifies the mechanisms for a non-COBOL activator).
     /// <para>A <see cref="CobolCallException"/> leaves as itself (the exception contract's item 2): an activation attempt
     /// that failed, or such a condition propagating out of the activated program, which the host may handle and continue in
@@ -662,7 +662,7 @@ public sealed class ProgramTable
 
         n.Active++;
         n.CalledSinceCancel = true;   // §2023:14.9.5.4 GR7 — called in this run unit (cleared again by CANCEL)
-        // §2023:15.65.4 r7/r8 frame; a RECURSIVE program or a function is a recursive runtime element (§2023:8.6.6: "Functions and
+        // §2023:15.65.4 RV7/r8 frame; a RECURSIVE program or a function is a recursive runtime element (§2023:8.6.6: "Functions and
         // methods are always recursive"), which the frame records for §2023:9.1.18.7's "under the control of" (ModuleStack.AnyRecursive).
         _owner.Modules.Push(n.Name, OutermostName(n), n.ParentPath is not null, n.Recursive || n.IsFunction);
         // Latch the activating half (§2023:14.8.4.1 / §2023:14.9.4.4 GR3e) as the activated element's ACTIVATOR mask for its
@@ -710,7 +710,7 @@ public sealed class ProgramTable
             // EXIT PROGRAM or GOBACK while a SORT whose range activated it is active terminates that SORT in the
             // ACTIVATOR (SortFileTable.AfterActivationReturn) - but only AFTER the activator has taken what the return
             // staged: a GOBACK ... RAISING condition is raised in the activating element "after the result, if any, of the
-            // activated element is returned" (§2023:14.9.18.4 GR1 b)), by the pickup the activating statement emits. Asked
+            // activated element is returned" (§2023:14.9.18.4 GR1b), by the pickup the activating statement emits. Asked
             // here, the termination left before that pickup could run, and the staged condition was raised at the
             // activator's NEXT, unrelated activation. Every emitted activating site (CallEmitter.EmitActivationReturned, the one
             // tail of the CALL and INVOKE lanes) asks it after its pickup; the host boundary asks it below.
@@ -755,7 +755,7 @@ public sealed class ProgramTable
         // ⛔ NO BOUNDARY DEFAULT HERE (kb/Work PB892 Arm B). A condition the callee staged with GOBACK / EXIT
         // PROGRAM … RAISING names THIS activation's activator (ExceptionEngine — the staged slot carries the
         // ModuleStack identity), so only a pickup emitted in the activating element can take it, and an activator
-        // that emitted none never has it raised — §2023:14.9.18.4 GR1 b) for an unchecked activator. A discard here
+        // that emitted none never has it raised — §2023:14.9.18.4 GR1b for an unchecked activator. A discard here
         // was the CALL-only half of that rule; the INVOKE half had no chokepoint to put one in.
     }
 
@@ -764,7 +764,7 @@ public sealed class ProgramTable
     /// surfaces HERE, as the CLR's own exception, however early the module's registrar ran. A program whose code cannot be loaded
     /// is not located (§2023:14.9.4.4 GR3 b; docs/CONFORMANCE.md DOC-A.1-14 / -89 take GnuCOBOL's answer for a module that cannot be
     /// loaded, and GR3 c)'s checked resources are the implementor's), so it is EC-PROGRAM-NOT-FOUND (EC-FUNCTION-NOT-FOUND for a
-    /// function, §2023:8.4.3.2.4 GR6 b) with the loader's message, the activation not successful, never an escaping fatal of another
+    /// function, §2023:8.4.3.2.4 GR6b with the loader's message, the activation not successful, never an escaping fatal of another
     /// kind and never one that depends on WHEN the CLR happened to load the assembly (DESIGN-external-repository §11.2). An
     /// exception the program's own code throws while it executes is not one of these and keeps its own meaning.</summary>
     private static ICobolProgram Create(Node n, ICobolProgram? parent, string notFoundEc)
@@ -900,7 +900,7 @@ public sealed class ProgramTable
     /// has the two bound <c>CalleeSignature</c>s: the COBOL1513 prototype-vs-definition check
     /// (<c>BinderDriver.CheckPrototypeSignaturePairs</c>, the full <c>PrototypeSignatures.Same</c> comparison since
     /// kb/Work PB894) and the §2023:14.9.39.3 SR20 compare in <c>SetBinder</c>. This site exists for the one case SR20
-    /// cannot reach — a sender resolved from a run-time NAME (§2023:8.4.3.12.4 GR1 a), the identifier-1 form).</para>
+    /// cannot reach — a sender resolved from a run-time NAME (§2023:8.4.3.12.4 GR1a, the identifier-1 form).</para>
     /// <para><c>Math.Max(FormalCount, 0)</c> is LOAD-BEARING, not defensive: <c>ProgramEmitter.EmitEntryWrapper</c>
     /// omits the <c>formalCount:</c> argument entirely when the unit has no formals, so a ZERO-formal function
     /// registers with the "not registered" sentinel −1.</para></summary>
@@ -1103,7 +1103,7 @@ public sealed class ProgramTable
     /// EC-FUNCTION-NOT-FOUND message carries: no such file is the plain miss (no reason); a file that does not load, a
     /// module with no record, another schema, no registrar, a version skew, a collision, a registrar that fails (every registrar
     /// fault is <see cref="RegisterModule"/>'s EC-PROGRAM-NOT-FOUND), or a module that does not carry the name. None escapes the
-    /// activation: "not located" is the CALL's condition (§2023:14.9.4.4 GR3 b). Probed names are cached, hit or miss: one probe per
+    /// activation: "not located" is the CALL's condition (§2023:14.9.4.4 GR3b). Probed names are cached, hit or miss: one probe per
     /// name and kind per run unit. With <see cref="RuntimeFeatures.DynamicProbe"/> off (a trimmed or native-AOT application,
     /// which composes its run unit itself, §2023:11.4) nothing is loaded and the reason says so.</para></summary>
     private bool ProbeSiblingModule(string name, bool wantFunction)
@@ -1147,7 +1147,7 @@ public sealed class ProgramTable
         }
     }
 
-    /// <summary>The reason a fault of the probe's load-and-register step is the CALL's "not located" condition (§2023:14.9.4.4 GR3 b),
+    /// <summary>The reason a fault of the probe's load-and-register step is the CALL's "not located" condition (§2023:14.9.4.4 GR3b),
     /// or null when the fault is not one the probe classifies. IOException covers FileNotFoundException (a file removed between
     /// the listing and the load) and FileLoadException; a <see cref="RegisterModule"/> refusal or a throwing registrar arrives as
     /// TargetInvocationException; ArgumentException is a registrar name Assembly.GetType cannot parse (a hand-made or damaged
@@ -1203,7 +1203,7 @@ public sealed class ProgramTable
         n.ParentPath is not null && _byPath.TryGetValue(n.ParentPath, out var p) ? p : null;
 
     /// <summary>The outermost (top-level) program-id name of a node's compilation-unit containment chain
-    /// (ISO §2023:15.65.4 r7 — MODULE-NAME CURRENT). Equals the node's own name for a top-level program.</summary>
+    /// (ISO §2023:15.65.4 RV7 — MODULE-NAME CURRENT). Equals the node's own name for a top-level program.</summary>
     private string OutermostName(Node n)
     {
         var top = n;

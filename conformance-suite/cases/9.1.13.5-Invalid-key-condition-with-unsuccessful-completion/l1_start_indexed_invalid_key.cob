@@ -33,7 +33,7 @@
       *>       has a consequence in GR7 — "the file position indicator
       *>       is set to indicate that no valid record position has
       *>       been established" — so the next sequential READ is '46'
-      *>       (§2023:9.1.13.7 item 6a, "The preceding START statement …
+      *>       (§2023:9.1.13.7 GR6a, "The preceding START statement …
       *>       was unsuccessful"), NOT the at end '10'.
       *>   S3  The other shape: an EMPTY indexed file, where no record
       *>       exists to satisfy any comparison. Same condition, '23'.

@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// The arm no corpus golden can witness, because the golden harness requires exit 0 and this arm ends in abnormal
 /// run-unit termination (the same reason <see cref="DocA1Item218WitnessTests"/> is a test class).
 ///
-/// <para><b>Every expected value is derived from the rules.</b> §2023:8.4.3.3.4 5) b): leftmost-position is a position of
+/// <para><b>Every expected value is derived from the rules.</b> §2023:8.4.3.3.4 GR5b: leftmost-position is a position of
 /// the item; 5) c): a specified length is a positive nonzero integer and "The sum of leftmost-position and length
 /// minus the value one shall be less than or equal to the number of positions in the data item referenced by
 /// identifier-1" (both cite.py OK). A violation is the fatal EC-BOUND-REF-MOD. With checking not enabled the

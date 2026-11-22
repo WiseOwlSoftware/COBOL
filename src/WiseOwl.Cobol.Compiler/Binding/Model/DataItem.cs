@@ -407,7 +407,7 @@ public sealed class DataItem
     public bool HasExternalClause { get; init; }
 
     /// <summary>True when THIS entry carries a GLOBAL clause (ISO §2023:13.18.27) that the clause-placement screen
-    /// ADMITTED (§2023:13.16.3 SR6/SR7, §2023:13.18.27.3 SR1 b) — level 1, data-name format, in the file, working-storage,
+    /// ADMITTED (§2023:13.16.3 SR6/SR7, §2023:13.18.27.3 SR1b) — level 1, data-name format, in the file, working-storage,
     /// local-storage or linkage section). The ONE input of the global-name registration
     /// (<c>CallBindExternalAndGlobal</c> → <c>LinkageBinder.GlobalRoots</c>) — kb/Work PB518: the parse-tree scan it
     /// replaces skipped a misplaced clause with a <c>continue</c> and never read the FILE SECTION at all.</summary>
@@ -484,7 +484,7 @@ public sealed class DataItem
     /// <summary>True when this level-01 entry carries a CONSTANT RECORD clause (ISO §2023:13.18.15) — a STRUCTURED
     /// CONSTANT: its content is that of an INITIALIZE … WITH FILLER ALL TO VALUE THEN TO DEFAULT (§2023:13.18.15.4 GR1),
     /// which is NOT the ordinary initial state — a VALUE-less numeric-edited item holds its edited zero, no OPTIONS
-    /// INITIALIZE background reaches it and a group-level VALUE sends nothing (§2023:14.9.20.4 GR5 c), GR6) — so the
+    /// INITIALIZE background reaches it and a group-level VALUE sends nothing (§2023:14.9.20.4 GR5c, GR6) — so the
     /// emitters seed a constant record by <c>SeedRecipe.Initialize</c> (<c>ValueInitializer.RecipeFor</c>, kb/Work
     /// PB1233), and neither it nor any subordinate may be a receiving operand
     /// (§2023:13.18.15.3 SR2 → COBOL1548 at the receiving chokepoints; <c>DataBinder.IsConstantRecordItem</c>
@@ -700,7 +700,7 @@ public sealed class DataItem
     /// <summary>The form of the SYNCHRONIZED clause that describes the item (ISO §2023:13.18.55), or null when none does.
     /// Changes no offset and no width (the one-byte natural boundary, docs/CONFORMANCE.md DOC-A.1-195/197), so it is
     /// not emitted; it is read by the rules that ask about the clause: the COBOL-2023 group-item edition gate
-    /// (§2023:E.3.2 item 6), §2023:13.16.3 SR24 d), §2023:13.18.63.3 SR14, §2023:13.16.3 SR13 (CONSTANT RECORD) and the §2023:8.5.3.1
+    /// (§2023:E.3.2 item 6), §2023:13.16.3 SR24d, §2023:13.18.63.3 SR14, §2023:13.16.3 SR13 (CONSTANT RECORD) and the §2023:8.5.3.1
     /// type-equivalence comparison, which compares the PHRASE (<see cref="SynchronizedPhrase"/>, kb/Work PB538).
     /// <para>An elementary item carries the clause its own entry wrote, else the one an enclosing group wrote: a
     /// group's clause "is treated as though it had instead been separately specified for each of the subordinate
@@ -890,7 +890,7 @@ public sealed class DataItem
         "SELECT WHEN is named in BOTH GR-1 exclusion lists (ISO §2023:13.18.57.4 GR1, §2023:13.18.49.4 GR1): the record description entry it selects is the one that WRITES it, never a copy of its description")]
     public SelectWhenSpec? SelectWhen { get; set; }
 
-    /// <summary>The subject of a TYPE clause whose type-name describes a GROUP item — ISO §2023:13.18.57.4 GR2 d): "the
+    /// <summary>The subject of a TYPE clause whose type-name describes a GROUP item — ISO §2023:13.18.57.4 GR2d: "the
     /// subject of the entry is aligned as though it were a level 1 item" (kb/Work PB1569). Set by
     /// <c>DataBinder.ExpandType</c>, the one place the TYPE clause takes effect.
     /// <para>The only placement the standard gives a level-1 item that a subordinate does not have is bit alignment:
@@ -900,14 +900,14 @@ public sealed class DataItem
     /// the flag is read at exactly ONE site — <see cref="BitLayout.SharesByteWith"/>, the placement predicate the
     /// extent walk, the offset walk, the REDEFINES class walk and the image RUNS all derive from. It aligns the
     /// SUBJECT's first bit, not each occurrence: ALIGNED's own rule for a multiple-occurrence item (§2023:13.18.1.4
-    /// GR2) has no counterpart in §2023:13.18.57.4 GR2 d), so an array-of-type keeps §2023:8.5.1.6.3's successive-bit
+    /// GR2) has no counterpart in §2023:13.18.57.4 GR2d, so an array-of-type keeps §2023:8.5.1.6.3's successive-bit
     /// stride.</para>
     /// <para>Classified <see cref="DescriptionCopyKind.Alignment"/>: it is the effect of the TYPE clause in
     /// data-name-1's description, so a SAME AS copy (§2023:13.18.49.4 GR1 — "as though the data description identified
     /// by data-name-1 had been coded in place") and a reproduced TYPEDEF member carry it; a TYPE subject does not
     /// inherit its template's (GR1 excludes alignment) and is given its own by GR2 d) instead.</para></summary>
     [DescriptionCopy(DescriptionCopyKind.Alignment,
-        "ISO §2023:13.18.57.4 GR2 d) — the TYPE clause's level-1 alignment of a group-typed subject; SAME AS (§2023:13.18.49.4 GR1) copies data-name-1's description, TYPE clause included, and GR1 of the TYPE clause excludes the template's alignment")]
+        "ISO §2023:13.18.57.4 GR2d — the TYPE clause's level-1 alignment of a group-typed subject; SAME AS (§2023:13.18.49.4 GR1) copies data-name-1's description, TYPE clause included, and GR1 of the TYPE clause excludes the template's alignment")]
     public bool AlignedAsLevelOne { get; set; }
 
     /// <summary>The PROPERTY clause as written on this entry (ISO §2023:13.18.42), or null (kb/Work PB1273). Set by
@@ -955,7 +955,7 @@ public sealed class DataItem
     /// <summary>⛔ THE MAXIMUM SIZE OF A VARIABLE-LENGTH COMPONENT (<c>CellComponents.IsComponent</c>), in the unit a
     /// layout counts it in — the ONE reader every layout asks (the cell group window, an element shape, a declared
     /// group's contiguous layout; kb/Work PB2833): a dynamic-capacity table's maximum capacity in occurrences
-    /// (<see cref="OccursSpec.MaxCapacity"/>, §2023:8.5.1.9.1 2), a dynamic-length item's maximum size in characters
+    /// (<see cref="OccursSpec.MaxCapacity"/>, §2023:8.5.1.9.1 GR2), a dynamic-length item's maximum size in characters
     /// (<see cref="DynMaxSize"/>, §2023:8.5.1.10.1). Two copies of this choice, one per layout, are how the table arm came
     /// to read the OCCURS maximum a dynamic table does not have.</summary>
     public int VariableComponentMax => OccursSpec is { IsDynamic: true } dynamic ? dynamic.MaxCapacity : DynMaxSize;
@@ -1128,7 +1128,7 @@ public sealed class DataItem
 
     /// <summary>True for a SYNTHESIZED compiler temp (a user-function result temp or an object-property temp —
     /// <c>CompilerTemps.Create</c>, THE ONE constructor, sets it). A temp wears the same bound shapes
-    /// as declared data, so a rule whose text admits "a data item" and excludes functions (§2023:15.43.3 r1's shape —
+    /// as declared data, so a rule whose text admits "a data item" and excludes functions (§2023:15.43.3 AR1's shape —
     /// §2023:8.5.2.12 items 6/7 make FUNCTIONS category numeric too, which is why the exclusion must be written)
     /// needs this positive is-a-declared-item discrimination (kb/Work R26).</summary>
     [DescriptionCopy(DescriptionCopyKind.None,
@@ -1330,7 +1330,7 @@ public sealed class DataItem
     /// the group's OCCURS DEPENDING table as its trailing storage; a dynamic-length leaf; a dynamic-capacity table;
     /// a nested scalar variable-length group; a fixed-OCCURS table of variable-length group elements; an OCCURS
     /// DEPENDING table of them). This is the §2023:14.9.11.4 GR7 documented DISPLAY format's gate (kb/Work PB164 — A.1
-    /// item 57), FUNCTION LENGTH's (§2023:15.50.4 rule 7) AND the gate of every statement that carries the group whole as a
+    /// item 57), FUNCTION LENGTH's (§2023:15.50.4 RV7) AND the gate of every statement that carries the group whole as a
     /// COMPONENT CARRIER: the §2023:14.8.2.2 / §2023:14.8.3.2 activation-boundary crossing (kb/Work PB204), the §2023:14.9.25.4 GR9
     /// MOVE and the §2023:8.8.4.2.17 comparison. ONE capability, because they need exactly the same thing — every
     /// component's extent known to the group's own struct (the OCCURS DEPENDING count arrives as the <c>__odo</c>
@@ -1529,7 +1529,7 @@ public sealed class DataItem
     /// <c>OCCURS … DEPENDING ON</c> (ISO §2023:13.18.38.3 SR16 permits zero), the MINIMUM CAPACITY of a Format-4
     /// DYNAMIC-capacity table (§2023:13.18.38.4 GR16: "Integer-4 is the minimum capacity of the table. If integer-4
     /// is absent, a value of zero is assumed for it" — the binder stores it as <see cref="OccursSpec.Min"/>), and
-    /// the fixed count otherwise. Read by <see cref="MinimumLengthIsZero"/> and by the §2023:13.18.43.4 GR8 a)
+    /// the fixed count otherwise. Read by <see cref="MinimumLengthIsZero"/> and by the §2023:13.18.43.4 GR8a
     /// minimum record size (<c>FileModel.MinRecordSize</c>): <see cref="ImageWidth"/> deliberately uses the
     /// MAXIMUM, because §2023:8.5.1.8 fixes the allocated physical capacity at compile time.</summary>
     internal int MinimumOccurrences =>
@@ -1558,7 +1558,7 @@ public sealed class DataItem
             if (Pic is not { } pic) return 0;
             // D19/PB43 — a USAGE BIT leaf OCCUPIES ceil(n/8) character positions, not n. §2023:13.18.60.4 GR5 makes
             // its representation bits; §2023:8.1.2 leaves bits-per-character to the implementor and WiseOwl COBOL pins 8.
-            // ⚠ This is its OCCUPANCY, deliberately NOT what FUNCTION LENGTH returns for it: §2023:15.50.4 r1 gives an
+            // ⚠ This is its OCCUPANCY, deliberately NOT what FUNCTION LENGTH returns for it: §2023:15.50.4 RV1 gives an
             // elementary bit item its length in BOOLEAN positions (n). The two coincided while USAGE BIT was
             // stored char-per-bit, which is precisely how the defect stayed invisible — they are read from
             // different members now (IntrinsicBinder's r1 arm reads Pic.Length).
@@ -1568,7 +1568,7 @@ public sealed class DataItem
                 // ⛔ ONE WIDTH (V59). An item with a byte form of its own occupies THOSE bytes in the image —
                 // BINARY 1-2-4-8-16, PACKED its BCD nibbles — never a byte per decimal digit. Before this, a
                 // PIC 9(4) COMP claimed 4 image positions while FUNCTION BYTE-LENGTH reported 2, and §2023:15.14.4
-                // GR1 (bytes) and §2023:15.50.4 r3 (alphanumeric character positions) cannot disagree in a
+                // GR1 (bytes) and §2023:15.50.4 RV3 (alphanumeric character positions) cannot disagree in a
                 // single-byte-character model. The zoned form's digit run IS its byte form, so it stays digits
                 // plus a SIGN SEPARATE position (§2023:13.18.52; a binary item never carries a separate sign).
                 return pic.ByteForm is NumericByteForm.Binary or NumericByteForm.Packed
@@ -1583,7 +1583,7 @@ public sealed class DataItem
     /// plus a SIGN SEPARATE position for a numeric item, else the PICTURE length. DISTINCT from
     /// <see cref="ImageWidth"/> for exactly the items V59 separated: a <c>PIC 9(4) COMP</c> occupies TWO bytes in
     /// a record and prints FOUR digits, because §2023:14.9.13 DISPLAY transfers the operand's VALUE (a numeric operand
-    /// is treated as though moved to an alphanumeric item, §2023:14.9.25.4 GR6) while §2023:15.50.4 r3 counts the
+    /// is treated as though moved to an alphanumeric item, §2023:14.9.25.4 GR6) while §2023:15.50.4 RV3 counts the
     /// character positions it OCCUPIES. Read by the text-facing surfaces only — ACCEPT's device window, DISPLAY's
     /// fit, and the Report Writer's print columns (§2023:13.18.14.4 GR9); every storage/record surface uses
     /// <see cref="ImageWidth"/>.</summary>
@@ -1618,7 +1618,7 @@ public sealed class DataItem
     /// their <see cref="Model.PicInfo.StorageWidth"/>; COMP-1/FLOAT-SHORT = 4, COMP-2/FLOAT-LONG/-EXTENDED = 8
     /// (the .NET Single/Double carriers); INDEX / POINTER / PROGRAM-POINTER / FUNCTION-POINTER / OBJECT REFERENCE
     /// = 8 (the 64-bit managed carrier). WiseOwl COBOL has no SYNCHRONIZED physical padding, so a group carries no
-    /// implicit-filler bytes (§2023:15.14.4 r3 is satisfied vacuously).</summary>
+    /// implicit-filler bytes (§2023:15.14.4 RV3 is satisfied vacuously).</summary>
     /// <remarks>The rule is <see cref="RecordLayout.ExactByteWidth"/>, the one size computation, in 64 bits, narrowed by
     /// <see cref="RecordLayout.ItemSize"/> (kb/Work PB5695): a no-THROUGH level-66 alias of a GROUP item is as wide as the group it
     /// renames (§2023:13.18.45.4 GR1), a bit-bearing subtree is LAID OUT, not summed (D19/PB43), and any other group sums its storage

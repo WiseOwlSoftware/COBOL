@@ -53,7 +53,7 @@ internal sealed class ObjectPropertyResolver(ReferenceResolver refs, DataBinder 
     internal Func<Core.PropertyObjectContext, Core.CobolWordContext?, bool, PropertyReceiver?>? BindPropertyObject { get; set; }
 
     /// <summary>The procedure binder's object-view (§2023:8.4.3.5) over an already resolved identifier-1 — for
-    /// <c>A OF G AS C</c>, a view of the qualified data item <c>A OF G</c> (§2023:8.4.3.1.4 GR1 a) before c)) that the grammar
+    /// <c>A OF G AS C</c>, a view of the qualified data item <c>A OF G</c> (§2023:8.4.3.1.4 GR1a before c)) that the grammar
     /// spells as a property chain (<see cref="ViewOfQualifiedItem"/>). Null having reported.</summary>
     internal Func<Place, Core.ObjectViewContext, string, Place?>? ApplyObjectView { get; set; }
 
@@ -62,7 +62,7 @@ internal sealed class ObjectPropertyResolver(ReferenceResolver refs, DataBinder 
     /// the two can never disagree about what a property reference is.
     /// <para>Its callers are §2023:14.9.4.3 SR20's carve-out (kb/Work PB238): "BY CONTENT shall not be omitted when
     /// identifier-4 is an identifier that is permitted as a receiving operand, EXCEPT that BY CONTENT may be omitted when
-    /// identifier-4 is an object property" — and §2023:8.4.3.2.4 GR5 a)'s "other than an object property".</para>
+    /// identifier-4 is an object property" — and §2023:8.4.3.2.4 GR5a's "other than an object property".</para>
     /// <para>⛔ PURE — it runs the resolution under <c>Probing</c>, so no temp is synthesized, no pending §2023:8.4.3.9.4 op
     /// is registered and no diagnostic is reported (the R30 probe contract). The ordinary-qualification test comes FIRST
     /// for the same reason the committing path orders it that way.</para></summary>
@@ -106,7 +106,7 @@ internal sealed class ObjectPropertyResolver(ReferenceResolver refs, DataBinder 
         finally { refs.Probing = saved; }
     }
 
-    /// <summary>§2023:8.4.3.1.4 GR1 a) before c): when the chain <c>head OF … OF subject</c> in front of a trailing object-view
+    /// <summary>§2023:8.4.3.1.4 GR1a before c): when the chain <c>head OF … OF subject</c> in front of a trailing object-view
     /// (<c>A OF G AS C</c>) is itself a qualified data name, the view applies to THAT item, not to the last word —
     /// the grammar reads the view as the property object (GR1 c) before d), the reading a property-name needs), so the
     /// data reading is decided here, by the symbols. Null when the chain is no qualified data name.</summary>
@@ -332,7 +332,7 @@ internal sealed class ObjectPropertyResolver(ReferenceResolver refs, DataBinder 
             : new MethodRoster(receiver.Class, null, receiver.Factory)).Find(new ExternalizedMethodName(accessorName));
 
     /// <summary>Identifier-3 of a property reference written as a word chain: the written reference less its head word
-    /// (the property-name) and its reference modifiers (§2023:8.4.3.1.4 GR1 g) applies them to the property's value, last),
+    /// (the property-name) and its reference modifiers (§2023:8.4.3.1.4 GR1g applies them to the property's value, last),
     /// keeping every qualifier, the subscripts and a trailing non-word object — the chain the ordinary resolver then
     /// reads (a qualified, subscripted data name, or a chained property). Null when no qualifier follows the head, so
     /// identifier-3 is the non-word object alone. The copy ADOPTS the original children (the
@@ -377,7 +377,7 @@ internal sealed class ObjectPropertyResolver(ReferenceResolver refs, DataBinder 
         }
     }
 
-    /// <summary>The reference modifiers a function object writes after its argument list (§2023:8.4.3.1.4 GR1 g) applies them
+    /// <summary>The reference modifiers a function object writes after its argument list (§2023:8.4.3.1.4 GR1g) applies them
     /// to the whole identifier, last: the function returns an object reference, which §2023:8.4.3.3.3 SR1 never lets one
     /// modify). Without an argument list a '(' after the name is the function's own business (§2023:8.4.3.2.3 SR6).</summary>
     internal static Core.RefModPartContext[] ResultRefModsOf(Core.PropertyObjectContext po) =>

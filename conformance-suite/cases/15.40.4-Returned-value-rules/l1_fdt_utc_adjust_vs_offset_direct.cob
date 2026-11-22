@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:15.40.4 r2 and r3 - the two ZONE rules, run over the SAME
+      *> ISO §2023:15.40.4 RV2 and r3 - the two ZONE rules, run over the SAME
       *> three argument values so that the only variable is the format.
       *>   r2: "If the format in argument-1 indicates that the returned value
       *>       is to be expressed in UTC, the time portion of the returned
@@ -19,7 +19,7 @@
       *> Nothing pinned r3 for FORMATTED-DATETIME before this file: every
       *> existing golden's four-argument call uses a UTC ('Z') format.
       *>
-      *> THE DIRECTION OF r2's ADJUSTMENT IS NOT IN r2. §2023:15.3.3.6.1 item 1
+      *> THE DIRECTION OF r2's ADJUSTMENT IS NOT IN r2. §2023:15.3.3.6.1 GR1
       *> supplies it - "A plus sign to indicate that the common time portion
       *> of the data is adjusted DOWNWARD by the offset values to represent
       *> UTC" - and r3 makes a positive argument-4 render with that plus
@@ -84,7 +84,7 @@
            MOVE FUNCTION FORMATTED-DATETIME("YYYYMMDDThhmmss+hhmm"
                D S -345) TO R
            DISPLAY "OFF-M345=" R
-      *> §2023:15.40.3 r5's boundary, both signs - legal, and its NOTE's 23h59m.
+      *> §2023:15.40.3 AR5's boundary, both signs - legal, and its NOTE's 23h59m.
            MOVE FUNCTION FORMATTED-DATETIME("YYYYMMDDThhmmss+hhmm"
                D S 1439) TO R
            DISPLAY "OFF-PMAX=" R

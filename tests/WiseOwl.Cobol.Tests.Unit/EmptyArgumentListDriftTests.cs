@@ -52,8 +52,8 @@ public sealed class EmptyArgumentListDriftTests
 
     /// <summary>True when <paramref name="line"/> answers an empty argument list instead of asserting the §2023:15.3
     /// invariant. <c>source.Length == 0</c> and friends inside the TEXT functions are a different question — a
-    /// zero-length ARGUMENT VALUE, which several §15 returned-value rules answer explicitly (§2023:15.87.4 r1,
-    /// §2023:15.37.4 r5) — so the predicate fires only on an identifier named like an argument LIST.</summary>
+    /// zero-length ARGUMENT VALUE, which several §15 returned-value rules answer explicitly (§2023:15.87.4 RV1,
+    /// §2023:15.37.4 RV5) — so the predicate fires only on an identifier named like an argument LIST.</summary>
     private static bool AnswersAnEmptyArgumentList(string line)
     {
         string t = line.Trim();
@@ -108,9 +108,9 @@ public sealed class EmptyArgumentListDriftTests
         string[] legal =
         [
             "        RequireArguments(xs.Length, \"VARIANCE\");",
-            "        if (source.Length == 0 || froms.Any(f => f.Length == 0))",     // §2023:15.87.4 r1 — a VALUE rule
-            "        if (hay.Length == 0 || needle.Length == 0) return 0;",         // §2023:15.37.4 r5 — a VALUE rule
-            "        if (chars.Length == 0) return TrimOne(s, mode, ' ');",         // §2023:15.96.3 r3's antecedent
+            "        if (source.Length == 0 || froms.Any(f => f.Length == 0))",     // §2023:15.87.4 RV1 — a VALUE rule
+            "        if (hay.Length == 0 || needle.Length == 0) return 0;",         // §2023:15.37.4 RV5 — a VALUE rule
+            "        if (chars.Length == 0) return TrimOne(s, mode, ' ');",         // §2023:15.96.3 AR3's antecedent
             "        for (int i = 1; i < xs.Length; i++)",
             "        return CobolDec.Div(acc, CobolDec.From(xs.Length, 0), mode);",
             "    /// carried <c>if (xs.Length == 0) return 0;</c> — a silent value",

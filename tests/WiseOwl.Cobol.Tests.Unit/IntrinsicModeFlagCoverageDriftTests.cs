@@ -13,9 +13,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </summary>
 /// <remarks>
 /// <para>
-/// Several runtime intrinsic bodies take a behaviour decision as a PARAMETER — <c>commaMode</c> (§2023:15.67.3 r5 /
-/// §2023:15.68.3 r4 d / §2023:15.69.3 r4, the DECIMAL-POINT IS COMMA separator roles), <c>digitCap</c> (§2023:15.93.4 /
-/// §2023:15.94.4 / §2023:15.95.4 r1 b)'s mode-keyed sub-notes) and <c>anycase</c> (§2023:15.68.3 r4 f). The arm that COMPUTES
+/// Several runtime intrinsic bodies take a behaviour decision as a PARAMETER — <c>commaMode</c> (§2023:15.67.3 AR5 /
+/// §2023:15.68.3 AR4 d / §2023:15.69.3 AR4, the DECIMAL-POINT IS COMMA separator roles), <c>digitCap</c> (§2023:15.93.4 /
+/// §2023:15.94.4 / §2023:15.95.4 RV1b's mode-keyed sub-notes) and <c>anycase</c> (§2023:15.68.3 AR4f. The arm that COMPUTES
 /// each of them lives in the compiler (<c>IntrinsicRenderer.CommaFlag</c> / <c>DigitCapFlag</c> /
 /// <c>AnycaseFlag</c>, reading <c>ctx.Data.DecimalPointIsComma</c>, <c>ArithmeticModes.NumvalDigitCap</c> and the
 /// bound call's ANYCASE phrase), and a unit test that passes the value as a LITERAL exercises the runtime scan

@@ -5,7 +5,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// kb/Work PB1497 + PB1112 — ISO §2023:9.3.8.2.3 rule 2 (the object-reference arms a)–d)) over the IMPLEMENTS relation, one
+/// kb/Work PB1497 + PB1112 — ISO §2023:9.3.8.2.3 GR2 (the object-reference arms a)–d)) over the IMPLEMENTS relation, one
 /// row per alternative of the USAGE OBJECT REFERENCE general format (§2023:13.18.60.2). Each rule quotes its clause; every
 /// citation was run through <c>cite.py --check 9.3.8.2.3</c> (rule 2 a) "universal object reference", b) "the same
 /// interface-name", c) "the same object-class-name, and the presence or absence of the FACTORY and ONLY phrases is the

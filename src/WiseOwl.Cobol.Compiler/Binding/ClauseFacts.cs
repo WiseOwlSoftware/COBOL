@@ -36,7 +36,7 @@ public sealed class ClauseFacts
     /// still specified, and the acquired-usage arm is asked after the forest is built.</summary>
     internal IReadOnlySet<DataItem> ValueClauseWritten => _valueClauseWritten;
 
-    /// <summary>Clause operands whose written shape <c>DataBinder.ScreenClauseOperandShape</c> already refused, keyed by their
+    /// <summary>Clause operands whose written shape <c>DataBinder.ScreenDataNameShape</c> already refused, keyed by their
     /// source text — read by the clause-operand resolvers so one fault draws one verdict. A written reference always contains a
     /// space or a parenthesis where a data-name cannot, so the key can never collide with a real one.</summary>
     internal IReadOnlySet<string> RefusedClauseOperands => _refusedClauseOperands;

@@ -38,7 +38,7 @@ public sealed class ZeroLengthItemDriftTests
     private static OccursSpec Odo(int min, int max) =>
         new() { Min = min, Max = max, DependingOperand = new WrittenDataName("N") };
 
-    /// <summary>§2023:8.5.4 item 1 — "A group data item containing only an occurs-depending table in which the number
+    /// <summary>§2023:8.5.4 GR1 — "A group data item containing only an occurs-depending table in which the number
     /// of occurrences is zero." integer-1 of the OCCURS is what makes the MINIMUM zero (§2023:13.18.38.3 SR16 permits
     /// it); the run-time half is the length test the MOVE emitter writes.</summary>
     [Fact]
@@ -51,7 +51,7 @@ public sealed class ZeroLengthItemDriftTests
     public void Item1_OccursDependingGroupWithNonZeroMinimum_DoesNot() =>
         Assert.False(Group("ZG", Elem("ZE", occurs: Odo(1, 5))).MinimumLengthIsZero);
 
-    /// <summary>§2023:8.5.4 item 2 — "A group data item containing only a subordinate zero-length item", here a
+    /// <summary>§2023:8.5.4 GR2 — "A group data item containing only a subordinate zero-length item", here a
     /// DYNAMIC LENGTH member (item 4), and NESTED, because the rule is a recurrence.</summary>
     [Fact]
     public void Item2_GroupOverAZeroLengthMember_HasZeroMinimumLength()
@@ -62,7 +62,7 @@ public sealed class ZeroLengthItemDriftTests
         Assert.True(Group("OUTER", Group("G", dyn)).MinimumLengthIsZero);
     }
 
-    /// <summary>§2023:8.5.4 item 7 — "A variable-length group containing only dynamic-capacity tables each of whose
+    /// <summary>§2023:8.5.4 GR7 — "A variable-length group containing only dynamic-capacity tables each of whose
     /// current capacity is zero": a Format-4 table's minimum occurrence count is zero (§2023:8.5.1.9).</summary>
     [Fact]
     public void Item7_DynamicCapacityTableGroup_HasZeroMinimumLength() =>

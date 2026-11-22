@@ -29,7 +29,7 @@ internal sealed class EcBindState
     /// and one warning, whichever statement's bind reaches it first.</summary>
     public HashSet<int> ReportedDirectiveBans { get; } = [];
 
-    /// <summary>This unit's PROGRAM-ID name — the §2023:15.30.3 r2 location element.</summary>
+    /// <summary>This unit's PROGRAM-ID name — the §2023:15.30.3 RV2 location element.</summary>
     public string ProgramName { get; set; } = "";
 
     /// <summary>PD-header RAISING exception-names (§2023:14.2.1; the GOBACK/EXIT SR2 check).</summary>

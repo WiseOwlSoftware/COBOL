@@ -65,7 +65,7 @@ public sealed class CorrespondingDifferentialTests
                 DISPLAY EXTRA.
             """));
 
-    // ── Rules 1/4: FILLER, an OCCURS child, and a REDEFINES child do not correspond (§2023:14.7.6 r1/r4). ────────────
+    // ── Rules 1/4: FILLER, an OCCURS child, and a REDEFINES child do not correspond (§2023:14.7.6 GR1/r4). ────────────
     [Fact]
     public void MoveCorresponding_ExcludesFillerOccursAndRedefinesChildren()
         => AssertMatchesGolden(Program("""
@@ -88,7 +88,7 @@ public sealed class CorrespondingDifferentialTests
                 DISPLAY OVR OF DST-G.
             """));
 
-    // ── Rule 2 (§2023:14.7.6 r2 + Table 16 §2023:14.9.25.3 SR10): a numeric NONINTEGER → alphanumeric move is invalid, so
+    // ── Rule 2 (§2023:14.7.6 GR2 + Table 16 §2023:14.9.25.3 SR10): a numeric NONINTEGER → alphanumeric move is invalid, so
     //    the namesake pair does NOT correspond — a silent skip, not an error. SPEC-PINNED: the legacy matcher has
     //    no rule-2 filter and would move FRAC. ─────────────────────────────────────────────────────────────────
     [Fact]
@@ -106,7 +106,7 @@ public sealed class CorrespondingDifferentialTests
                 DISPLAY WNUM OF DST-G.
             """), "AB\n42");
 
-    // ── Rule 3 (§2023:14.7.6 r3): ADD/SUBTRACT pairs require BOTH items numeric — an alphanumeric namesake silently
+    // ── Rule 3 (§2023:14.7.6 GR3): ADD/SUBTRACT pairs require BOTH items numeric — an alphanumeric namesake silently
     //    does not correspond. SPEC-PINNED: the legacy matcher has no rule-3 filter. ──────────────────────────────
     [Fact]
     public void AddCorresponding_Rule3_NonNumericNamesakeIsNotAPair()
@@ -139,7 +139,7 @@ public sealed class CorrespondingDifferentialTests
                 DISPLAY AMT1 OF DST-G.
                 DISPLAY AMT2 OF DST-G.
             """);
-        // 1.0+1.25 = 2.25 → 2.3 and 1.0+2.34 = 3.34 → 3.3, each rounded NEAREST-AWAY-FROM-ZERO (§2023:14.7.4.3 r1).
+        // 1.0+1.25 = 2.25 → 2.3 and 1.0+2.34 = 3.34 → 3.3, each rounded NEAREST-AWAY-FROM-ZERO (§2023:14.7.4.3 GR1).
         AssertOutput(src, "2.3\n3.3");
         AssertMatchesGolden(src);
     }

@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ A FLOATING-POINT DATA ITEM ENTERS THE STANDARD-DECIMAL INTERMEDIATE THROUGH ONE CONVERSION, IN EVERY POSITION (kb/Work
 /// PB1606). ISO §2023:8.8.1.5.1 leaves "the mechanisms for conversion of data items described with a usage of float-short,
-/// float-long, or float-extended into standard-decimal intermediate data items" to the implementor, and §2023:8.8.1.5.2 r1
+/// float-long, or float-extended into standard-decimal intermediate data items" to the implementor, and §2023:8.8.1.5.2 GR1
 /// converts "any operand of an arithmetic expression". WiseOwl COBOL's conversion is <c>CobolDec.FromBinary64</c> (the
 /// exact binary value, rounded once under INTERMEDIATE ROUNDING). It used to be two: an operand beside an operator went
 /// through the shortest round-trip decimal and a float item that was the WHOLE expression (<c>COMPUTE R = F</c>) landed
@@ -124,7 +124,7 @@ public sealed class FloatItemSdidiLiftDriftTests
         Assert.True(start >= 0, "StoreArith not found");
         string head = src[start..Math.Min(src.Length, start + 8000)];
         int lift = head.IndexOf("if (num.StandardDecimal && value.Real)", StringComparison.Ordinal);
-        // The first receiver-category arm (the §2023:14.7.4.3 rule 7 gate that once read the value first is gone, kb/Work PB3990).
+        // The first receiver-category arm (the §2023:14.7.4.3 GR7 gate that once read the value first is gone, kb/Work PB3990).
         int firstUse = head.IndexOf("if (target.Item.Pic is", StringComparison.Ordinal);
         Assert.True(lift >= 0 && firstUse > lift,
             "StoreArith must convert a lone float operand into the SDIDI (num.DecOperand) BEFORE any arm reads the value: under a "

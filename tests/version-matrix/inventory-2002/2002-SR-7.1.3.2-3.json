@@ -4,5 +4,5 @@
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ScreenOperandPair",
  "test-ref": "conformance:cases/7.1.3@2002-REPLACE-STATEMENT/g2-replace-debugging-line-no-mode",
- "notes": "§2002:7.1.3.2 SR3 with SR10 and §2002:7.1.3.3 GR8c6: a pseudo-text-1 whose only text-word is on a D line is legal and matches, DISPLAY CCC printing NEW2; matched at --std 2002."
+ "notes": "§2002:7.1.3.2 SR3 with SR10 and §2002:7.1.3.3 GR8c.6: a pseudo-text-1 whose only text-word is on a D line is legal and matches, DISPLAY CCC printing NEW2; matched at --std 2002."
 }

@@ -7,7 +7,7 @@ namespace WiseOwl.Cobol.Binding;
 /// <summary>
 /// The compile-time <c>&gt;&gt;REF-MOD-ZERO-LENGTH</c> resolution (ISO/IEC 1989:2023 §2023:7.3.23): the source-ordered
 /// ON/OFF directive toggles, folded per reference-modification site to decide whether a zero-length result is
-/// ALLOWED there (§2023:8.4.3.3.4 item 5c). The default is OFF (§2023:7.3.23.3 GR1 — a zero-length ref-mod raises
+/// ALLOWED there (§2023:8.4.3.3.4 GR5c). The default is OFF (§2023:7.3.23.3 GR1 — a zero-length ref-mod raises
 /// EC-BOUND-REF-MOD). The fold is over events with <c>Line &lt; siteLine</c> — strict, because a directive occupies
 /// its own line and applies to the text that FOLLOWS it (the <c>&gt;&gt;TURN</c> GR5 discipline); the LAST matching
 /// event wins ("until" the next toggle / end of compilation group).
@@ -36,7 +36,7 @@ public sealed class RefModZeroLengthState
     /// <summary>Whether the <c>&gt;&gt;REF-MOD-ZERO-LENGTH</c> directive is NOT explicitly specified (neither ON nor
     /// OFF) at <paramref name="siteLine"/> — no live toggle precedes the site (none, or every one was revoked by a POP
     /// back to the unspecified state, kb/Work PB941). This is the tri-state distinction <see cref="IsOnAt"/> cannot
-    /// make (it folds absence to OFF): the FLAG-14 REF-MOD-ZERO-LENGTH option (ISO §2023:7.3.15.4 GR4 i) flags a reference
+    /// make (it folds absence to OFF): the FLAG-14 REF-MOD-ZERO-LENGTH option (ISO §2023:7.3.15.4 GR4i) flags a reference
     /// modification ONLY when the directive is in this unspecified state (and EC-BOUND-REF-MOD checking is on).</summary>
     public bool IsUnspecifiedAt(int siteLine) => !_events.TryLastInEffectBefore(siteLine, ev => ev.Line, out _);
 }

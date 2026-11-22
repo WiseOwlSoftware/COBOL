@@ -52,7 +52,7 @@ public static class StorageByte
     /// <summary>The byte a character occupies — its low-order byte (U+00FF and U+FFFF are both <c>0xFF</c>), and for a
     /// character with NO byte image (<see cref="HasByte"/> false: a code unit above U+00FF other than HIGH-VALUE) the
     /// substitute byte <see cref="SubstituteByte"/> (<c>?</c>), never its truncated low-order byte: a character
-    /// admitted to a DISPLAY item must not turn into an unrelated one at a byte channel (ISO/IEC 1989:2023 §2023:8.1.2 1):
+    /// admitted to a DISPLAY item must not turn into an unrelated one at a byte channel (ISO/IEC 1989:2023 §2023:8.1.2 GR1):
     /// every character of the alphanumeric coded character set occupies the same number of bytes; §2023:13.18.44.4 GR1: a
     /// REDEFINES view is the same storage area; docs/CONFORMANCE.md DOC-A.1-31, -33, -46). Total and PURE, so a
     /// numeric view over any content decodes deterministically and a compile-time caller may ask it; a RUNTIME

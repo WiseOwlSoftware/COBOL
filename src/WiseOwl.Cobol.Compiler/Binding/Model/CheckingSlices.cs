@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.Binding.Model;
 /// the ACTIVATED-element half of the both-elements rule; <c>ExternalChecks</c> bits): the group TurnState folded at the
 /// unit's first post-Identification division header, emitted as the selfMask of the activation-entry
 /// <c>ExternalStore.Describe</c> registrations.</param>
-/// <param name="ArgMismatchChecking">§2023:14.9.4.4 GR3 d)'s ACTIVATED half (kb/Work PB133 wave C2b): the unit's
+/// <param name="ArgMismatchChecking">§2023:14.9.4.4 GR3d's ACTIVATED half (kb/Work PB133 wave C2b): the unit's
 /// EC-PROGRAM-ARG-MISMATCH enablement at its PROCEDURE DIVISION header (§2023:7.3.25.4 GR6 / GR8;
 /// <c>TurnState.EnabledAtHeader</c>, kb/Work PB1381), registered with the program table so a dynamic CALL's count check
 /// can apply the enabled-in-both gate.</param>
@@ -28,7 +28,7 @@ namespace WiseOwl.Cobol.Binding.Model;
 /// free of the data-name-1 read at every element reference.</param>
 /// <param name="AutomaticPropagation">Is automatic propagation of exception conditions enabled for this program or function
 /// unit (ISO §2023:7.3.21.4 GR1/GR3; kb/Work PB1119)? Folded at the unit's first line; read by <c>ProgramEmitter</c> into the
-/// emitter's per-element propagation state, which <c>EcEmitter.EmitSelection</c> applies (§2023:14.6.13.1.3 6)).</param>
+/// emitter's per-element propagation state, which <c>EcEmitter.EmitSelection</c> applies (§2023:14.6.13.1.3 GR6).</param>
 public sealed record UnitChecking(
     int ExternalCheckMask, bool ArgMismatchChecking, bool ExternalDescribe, bool OdoReferenceChecking, bool AutomaticPropagation)
 {
@@ -40,12 +40,12 @@ public sealed record UnitChecking(
 /// <summary>The checking facts of ONE method (DESIGN-architecture-review §8.3 (1)): the method twin of <see cref="UnitChecking"/>, written by
 /// <c>CheckingFold</c> once every method symbol exists (after <c>OoClassTable.ResolveOverrides</c>) and before any
 /// method body binds, and read by <c>OoEmitter</c> through <c>OoMethodSymbol.Checking</c>.</summary>
-/// <param name="OoUniversalChecking">§2023:14.9.23.4 GR7 c)'s METHOD-side half: EC-OO-UNIVERSAL enabled at the method's
+/// <param name="OoUniversalChecking">§2023:14.9.23.4 GR7c's METHOD-side half: EC-OO-UNIVERSAL enabled at the method's
 /// PROCEDURE DIVISION HEADER, the query point of the <c>__CobolInvoke</c> prologue's conformance checks (§2023:7.3.25.4 GR6 /
 /// GR8; kb/Work PB1381). A method with no procedure division answers at its METHOD-ID line.</param>
 /// <param name="ExternalCheckMask">§2023:14.8.4.1's ACTIVATED-method half (kb/Work PB1138): the EC-EXTERNAL conditions enabled
 /// "before the Environment division" of the method — its first division after METHOD-ID, the fold a program unit takes at
-/// its own — baked as the self mask of the method activation's external-item registrations (§2023:14.9.23.4 GR7 d)).</param>
+/// its own — baked as the self mask of the method activation's external-item registrations (§2023:14.9.23.4 GR7d).</param>
 /// <param name="AutomaticPropagation">Automatic propagation of exception conditions for the METHOD (§2023:7.3.21.4 GR1/GR3;
 /// kb/Work PB1119), folded at its METHOD-ID line; §2023:7.3.21.3 SR1 keeps the directive out of the class, so that is also the
 /// CLASS-ID's state.</param>

@@ -13,10 +13,10 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// pins the LEGAL single-operand statement beside each ban, because the ban exists to make the WHEN phrase's answer to
 /// "which implicit statement failed" unambiguous (§2023:14.9.6.3 SR3, §2023:14.9.10.3 SR4, §2023:14.9.27.3 SR3), and that answer is
 /// only worth having if the single-operand form delivers it for every I-O status the statement can answer.
-/// <para>Expected statuses are the standard's: OPEN INPUT on an absent non-OPTIONAL file is '35' (§2023:9.1.13.6 item 5, an
-/// EC-I-O-PERMANENT-ERROR), CLOSE of a file that is not open is '42' (§2023:14.9.6.4 GR1 and §2023:9.1.13.7 item 2, an
-/// EC-I-O-LOGIC-ERROR), OPEN or DELETE FILE of a file already in an open mode is '41' (§2023:9.1.13.7 item 1, an
-/// EC-I-O-LOGIC-ERROR), and DELETE FILE of a file that is not available is a SUCCESSFUL '05' (§2023:9.1.13.2 item 4 b —
+/// <para>Expected statuses are the standard's: OPEN INPUT on an absent non-OPTIONAL file is '35' (§2023:9.1.13.6 GR5, an
+/// EC-I-O-PERMANENT-ERROR), CLOSE of a file that is not open is '42' (§2023:14.9.6.4 GR1 and §2023:9.1.13.7 GR2, an
+/// EC-I-O-LOGIC-ERROR), OPEN or DELETE FILE of a file already in an open mode is '41' (§2023:9.1.13.7 GR1, an
+/// EC-I-O-LOGIC-ERROR), and DELETE FILE of a file that is not available is a SUCCESSFUL '05' (§2023:9.1.13.2 GR4 b —
 /// §2023:14.9.10.4 GR20: "no action takes place if the mass storage file does not exist").</para>
 /// <para>The statuses this class does not reach — lock contention '61' / '62' under RETRY, '37', '39', an OPTIONAL
 /// file's '05', AT END, INVALID KEY, and the SORT / MERGE statements around the PERFORM — are in the sibling
@@ -96,7 +96,7 @@ public sealed class PerformFormat3IoStatementTests
             DISPLAY FS
         """, fileStatus: true), "00\nDONE");
 
-    // ── OPEN INPUT of an absent file: '35', EC-I-O-PERMANENT-ERROR (§2023:9.1.13.6 item 5) ─────────────────────────
+    // ── OPEN INPUT of an absent file: '35', EC-I-O-PERMANENT-ERROR (§2023:9.1.13.6 GR5) ─────────────────────────
 
     [Fact]   // a WHEN naming the level-3 exception-name is selected, sees the status, and RESUME NEXT STATEMENT continues
     public void OpenInputAbsentFile_WhenExceptionName_RunsHandler_WithStatus35() => AssertRuns(Prog("F3IO35N", """
@@ -241,7 +241,7 @@ public sealed class PerformFormat3IoStatementTests
             END-PERFORM
         """, fileStatus: true, checking: ""), "AFTER 42\nDONE");
 
-    // ── OPEN / DELETE FILE of a file already open: '41', EC-I-O-LOGIC-ERROR (§2023:9.1.13.7 item 1) ───────────────
+    // ── OPEN / DELETE FILE of a file already open: '41', EC-I-O-LOGIC-ERROR (§2023:9.1.13.7 GR1) ───────────────
 
     [Fact]
     public void OpenAlreadyOpenFile_WhenLogicError_RunsHandler_WithStatus41() => AssertRuns(Prog("F3IO41O", """

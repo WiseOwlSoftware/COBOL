@@ -19,7 +19,7 @@
       *> L2 §2002:7.1.3.2 SR3 - "Pseudo-text-1 shall contain one or more
       *> text-words": its only text-word CCC is on a D line, which
       *> §2002:7.1.3.2 SR10 permits ("Pseudo-text-1 and pseudo-text-2
-      *> may contain debugging lines"), and §2002:7.1.3.3 GR8c6 "Text
+      *> may contain debugging lines"), and §2002:7.1.3.3 GR8c.6 "Text
       *> words within a debugging line participate in the matching":
       *> DISPLAY CCC becomes DISPLAY DDD: NEW2 (a refusal, or OLD2, if
       *> the D line is not read as part of pseudo-text-1).

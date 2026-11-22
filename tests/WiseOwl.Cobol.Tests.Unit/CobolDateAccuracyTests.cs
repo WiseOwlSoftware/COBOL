@@ -7,7 +7,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ISO §2023:15.38.4 r2 — the ACCURACY of FORMATTED-CURRENT-DATE's time portion (Annex A.1 item 87,
+/// ISO §2023:15.38.4 RV2 — the ACCURACY of FORMATTED-CURRENT-DATE's time portion (Annex A.1 item 87,
 /// docs/CONFORMANCE.md row 87), measured through the injectable <see cref="RunUnit.Clock"/> seam.
 /// <para>⛔ WHY THIS EXISTS BESIDE A GOLDEN. The conformance golden
 /// <c>2023/l1_formatted_current_date_accuracy</c> measures the ACCURACY CEILING — that a fraction field

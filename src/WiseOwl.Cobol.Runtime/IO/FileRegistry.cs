@@ -151,7 +151,7 @@ public sealed class FileRegistry
 
     /// <summary>Perform any GC-requested per-object closes on the MUTATOR thread (called at the top of Open, a safe
     /// point where no other registry mutation is in flight; <see cref="CloseAll"/> drains the queue itself, one
-    /// close at a time under its §2023:14.6.11 2) guard).</summary>
+    /// close at a time under its §2023:14.6.11 GR2 guard).</summary>
     private void DrainPendingObjectCloses()
     {
         while (_pendingObjectClose.TryDequeue(out var k)) CloseAndDrop(k);
@@ -254,7 +254,7 @@ public sealed class FileRegistry
     }
 
     /// <summary>⛔ THE ELEMENT'S NEXT ACTIVATION OPENS WHAT ITS PREVIOUS ONE'S CLOSE KEPT (review finding R1-1): the
-    /// connector a registration displaced is closed and of THIS run unit, and §2023:9.1.13.9 1) owes '61' only against a physical
+    /// connector a registration displaced is closed and of THIS run unit, and §2023:9.1.13.9 GR1 owes '61' only against a physical
     /// file <i>"currently open by another file connector"</i>; the handle it kept is what is left of its file lock (§2023:9.1.15),
     /// which prevents OTHER run units. So the OPEN of the replacement under the same name, on the same physical file and
     /// under commit control (<see cref="KeyedConnector.InheritKept"/>) takes the kept state over as a re-OPEN of the
@@ -268,7 +268,7 @@ public sealed class FileRegistry
         if (at >= 0) _retired.RemoveAt(at);
     }
 
-    /// <summary>The SELECT-spelled name of a registered connector (ISO §2023:15.28.4 r1c/r2b — kb/Work PB63); for a key
+    /// <summary>The SELECT-spelled name of a registered connector (ISO §2023:15.28.4 RV1c/r2b — kb/Work PB63); for a key
     /// that names no connector (an SD, or a not-yet-registered name) the key's own tail, so the display never
     /// shows an emit-side band.</summary>
     public string SelectNameOf(string cobolName) =>
@@ -348,7 +348,7 @@ public sealed class FileRegistry
     /// <summary>OPEN … WITH NO REWIND (ISO §2023:14.9.27) — the same arbitrated <see cref="OpenCore"/> with the
     /// phrase's flag set, so the '07' overlay is the ONE effect site whichever entry point the emitter picks.
     /// The OPEN twin of <see cref="CloseNoRewind"/>: the same phrase, the same medium model, the same '07'
-    /// (§2023:9.1.13.2 item 6). Before kb/Work PB317 the phrase was parsed and dropped, so an OPEN … WITH NO REWIND
+    /// (§2023:9.1.13.2 GR6). Before kb/Work PB317 the phrase was parsed and dropped, so an OPEN … WITH NO REWIND
     /// reported '00' while its CLOSE spelling reported '07'.</summary>
     public void OpenTape(string name, FileOpenMode mode, OpenTapePhrase tape, string assign, bool assignDynamic,
         LinagePage? page)
@@ -361,7 +361,7 @@ public sealed class FileRegistry
     ///
     /// <para>GR11: <i>"The NO REWIND phrase will be ignored if it does not apply to the storage medium on which
     /// the file resides. If the NO REWIND phrase is ignored, the OPEN statement is successful and the I-O status
-    /// associated with file-name-1 is set to '07'."</i> §2023:9.1.13.2 item 6 fixes what "does not apply to the
+    /// associated with file-name-1 is set to '07'."</i> §2023:9.1.13.2 GR6 fixes what "does not apply to the
     /// storage medium" means — '07' is <i>"An OPEN or CLOSE statement … successfully executed but … an OPEN
     /// statement with the NO REWIND phrase references a physical file on a non-reel/unit medium"</i> — so the
     /// medium the phrase does not apply to is exactly category (a) <see cref="PhysicalFileCategory.NonUnit"/>,
@@ -374,7 +374,7 @@ public sealed class FileRegistry
     /// rather than a silent plain open. Category (d) is unreachable from the other side: §2023:14.9.27.3 SR5 rejects
     /// the phrase on a non-sequential file at bind time (COBOL1802).</para>
     ///
-    /// <para>The '07' rides a SUCCESSFUL open only. §2023:14.9.27.4 GR25 a) makes an unsuccessful OPEN place "a
+    /// <para>The '07' rides a SUCCESSFUL open only. §2023:14.9.27.4 GR25a makes an unsuccessful OPEN place "a
     /// value … to indicate the condition that caused the OPEN statement to be unsuccessful", which GR11's
     /// warning must not displace — hence the '0' first-digit test, the same guard the CLOSE arm's symbol g
     /// carries. Within the successful values it DOES displace: §2023:9.1.13.2 item 4 a)'s '05' (an OPTIONAL INPUT
@@ -388,7 +388,7 @@ public sealed class FileRegistry
         if (c.Category is not PhysicalFileCategory.NonUnit)
             throw new InvalidOperationException(
                 $"OPEN WITH NO REWIND reached a {c.Category} connector '{name}' — §2023:14.9.27.4 GR11 answers only "
-                + "for a non-reel/unit medium (§2023:9.1.13.2 item 6) and §2023:14.9.27.4 GR12 b)'s suppress-the-repositioning arm is "
+                + "for a non-reel/unit medium (§2023:9.1.13.2 item 6) and §2023:14.9.27.4 GR12b's suppress-the-repositioning arm is "
                 + "unimplemented because no supported medium permits rewinding (docs/CONFORMANCE.md §7, A.1 "
                 + "item 24); a new medium must implement it here (kb/Work PB317)");
         if (c.Status[0] == '0') c.SetStatus(FileStatusCode.PhraseOnNonReelMedium);
@@ -401,7 +401,7 @@ public sealed class FileRegistry
     /// repository holds no 1985 text, so the semantics are the VCR row's plus the surveyed implementations
     /// (GnuCOBOL implements REVERSED for sequential files), per the standing latitude decision.
     ///
-    /// <para>⛔ IT IS A POSITIONING, NOT A SECOND READ PATH. §2023:14.9.30.4 GR21 c) already defines retrieval in the
+    /// <para>⛔ IT IS A POSITIONING, NOT A SECOND READ PATH. §2023:14.9.30.4 GR21c already defines retrieval in the
     /// decreasing direction — <i>"the first existing record in the physical file whose relative key number is
     /// … less than the file position indicator if PREVIOUS is specified"</i> — and
     /// <see cref="SequentialConnector"/> has implemented it since kb/Work PB334 for
@@ -414,12 +414,12 @@ public sealed class FileRegistry
     /// for RECORD sequential organization only (COBOL2210), because the backward walk §2023:14.9.30.3 SR7 denies
     /// to LINE SEQUENTIAL is exactly the walk this phrase establishes — so anything else here is a COMPILER
     /// defect and LOUD, the same posture <see cref="NoRewindPhraseEffect"/> takes for an unexpected medium.
-    /// §2023:14.9.27.4 GR25 a) owns an unsuccessful open's status and its "the file is not affected", so an
+    /// §2023:14.9.27.4 GR25a owns an unsuccessful open's status and its "the file is not affected", so an
     /// unsuccessful OPEN is left alone rather than repositioned.</para></summary>
     private void ReversedPhraseEffect(string name)
     {
         var c = Require(name);
-        if (c.Status[0] != '0') return;   // §2023:14.9.27.4 GR25 a) — the file is not affected
+        if (c.Status[0] != '0') return;   // §2023:14.9.27.4 GR25a — the file is not affected
         if (c is not SequentialConnector f)
             throw MisroutedVerb("OPEN REVERSED", name, c);
         f.PositionReversed();   // self-guarding: §1985:VII.4.3.4 GR10 — a medium that cannot be positioned ignores the phrase
@@ -514,14 +514,14 @@ public sealed class FileRegistry
         SharedClose(name, c);   // every connector: every successful OPEN registered it (kb/Work PB321)
         c.Close();
         // g) Optional phrases ignored: "The CLOSE statement is executed as if none of the optional phrases were
-        // present. The I-O status indicator for the file connector is set to '07'." — §2023:9.1.13.2 item 6's
+        // present. The I-O status indicator for the file connector is set to '07'." — §2023:9.1.13.2 GR6's
         // phrase-on-a-non-reel-medium warning, which rides a SUCCESSFUL close only (an unsuccessful '30' keeps
         // its own status) and is not owed for the GR6 absent-optional case (kb/Work PB141).
         if (cell.HasFlag(CloseSymbol.PhrasesIgnored) && !absent && c.Status[0] == '0')
             c.SetStatus(FileStatusCode.PhraseOnNonReelMedium);
     }
 
-    /// <summary>The run-unit IMPLICIT close surface (§2023:14.6.11 2)'s "each file that is in the open mode" through
+    /// <summary>The run-unit IMPLICIT close surface (§2023:14.6.11 GR2)'s "each file that is in the open mode" through
     /// <see cref="CloseAll"/>, and a displaced registration's), where no program's FILE STATUS item outlives the close: an
     /// open connector gets the plain CLOSE; a closed one is skipped — no '42' stamp, no shared-close
     /// bookkeeping — and so is a name the registry does not hold (<see cref="IsOpen"/>). A CANCEL's and an INITIAL
@@ -589,7 +589,7 @@ public sealed class FileRegistry
     /// kind; before that it bound to a plain CLOSE and reported '00').</summary>
     public void CloseNoRewind(string name) => CloseByFormat(name, CloseFormat.NoRewind);
 
-    /// <summary>⛔ RUN-UNIT TERMINATION'S IMPLICIT CLOSE, ISO §2023:14.6.11 2): <i>"An implicit CLOSE statement without any
+    /// <summary>⛔ RUN-UNIT TERMINATION'S IMPLICIT CLOSE, ISO §2023:14.6.11 GR2: <i>"An implicit CLOSE statement without any
     /// phrases is executed for each file that is in the open mode. These implicit close statements shall be executed
     /// for all open files in the run unit, even when an error occurs during the execution of one or more of the CLOSE
     /// statements."</i> (§2023:14.6.12 runs it after an abnormal termination too.) Print streams flush and keyed stores
@@ -687,7 +687,7 @@ public sealed class FileRegistry
     /// associate: §2023:12.4.5.3 GR3's list of associating statements is closed (OPEN, SORT, MERGE), so it reads the
     /// standing association and takes §2023:14.9.10.4 GR14's '05' when there is none. Returns false when the association
     /// could not be made: the connector then carries the
-    /// §2023:9.1.13.6 item 2 '31' status and the statement does NOT proceed — GR3's closing sentence, "the OPEN, SORT, or
+    /// §2023:9.1.13.6 GR2 '31' status and the statement does NOT proceed — GR3's closing sentence, "the OPEN, SORT, or
     /// MERGE statement is unsuccessful".
     /// <para>An unregistered name falls through to the caller's own <see cref="Require"/>, which reports the compiler
     /// defect loudly (kb/Work PB140); this method never invents a status for one.</para>
@@ -701,7 +701,7 @@ public sealed class FileRegistry
         if (!_files.TryGetValue(name, out var c)) return true;
         if (c.Associate(assign, assignDynamic) is { } failed)
         {
-            c.SetStatus(failed);   // '31' — the status assignment is also the §2023:15.28.4 r2a access record (PB63)
+            c.SetStatus(failed);   // '31' — the status assignment is also the §2023:15.28.4 RV2a access record (PB63)
             return false;
         }
         // ⛔ WHAT THE CLOSE KEPT BELONGS TO THE PHYSICAL FILE IT WAS KEPT ON (kb/Work PB3494; §2023:9.1.15, §2023:14.9.7.4 GR4): the
@@ -733,7 +733,7 @@ public sealed class FileRegistry
     /// <paramref name="name"/>, or null when it set none. Two sources, ONE answer:
     /// <list type="number">
     /// <item>a name the operation's own rule NAMED (<see cref="FileConnector.IoConditionName"/>) — today
-    ///   §2023:13.18.34.4 GR6 b) 2's EC-I-O-LINAGE and §2023:14.9.51.4 GR27 a)'s EC-I-O-EOP / EC-I-O-EOP-OVERFLOW, the
+    ///   §2023:13.18.34.4 GR6b 2's EC-I-O-LINAGE and §2023:14.9.51.4 GR27a's EC-I-O-EOP / EC-I-O-EOP-OVERFLOW, the
     ///   EC-I-O conditions with no I-O status of their own;</item>
     /// <item>otherwise §2023:9.1.13.1's status→EC correspondence over the connector's I-O status.</item>
     /// </list>
@@ -746,7 +746,7 @@ public sealed class FileRegistry
         return c.IoConditionName ?? Exceptions.ExceptionCatalog.IoEcOfStatus(c.ProgramStatus);
     }
 
-    /// <summary>FUNCTION EXCEPTION-FILE(file-connector-name) (ISO §2023:15.28.4 r2): two alphanumeric spaces when the
+    /// <summary>FUNCTION EXCEPTION-FILE(file-connector-name) (ISO §2023:15.28.4 RV2): two alphanumeric spaces when the
     /// named connector was never opened, attempted to be opened, or otherwise attempted to be accessed (r2a — or is
     /// unknown); else its two-character I-O status followed by the file-name "exactly as specified in the SELECT
     /// clause" (r2b — the connector's <see cref="FileConnector.SelectName"/>, carried from the compiler at
@@ -893,7 +893,7 @@ public sealed class FileRegistry
         // The governed READ already ran its record-lock actions (GR11 b)/c)/d) — they speak of the SUCCESSFUL execution)
         // before the verdict was known; an unsuccessful READ acquires none (the pre-flight denials above say the same),
         // so the record's lock goes back to what this READ FOUND — released when the READ took it, KEPT when an earlier
-        // READ WITH LOCK took it under multiple record locking (§2023:14.9.30.4 GR11 b)/GR9: another connector's READ of it
+        // READ WITH LOCK took it under multiple record locking (§2023:14.9.30.4 GR11b)/GR9: another connector's READ of it
         // must still answer '51'), and re-taken when GR11 b)'s NO LOCK release had given it up.
         if (c.RecordLockHeldBeforeRead is { } held && c.LastReadRecordId is { Length: > 0 } lockedId)
         {
@@ -962,7 +962,7 @@ public sealed class FileRegistry
     }
 
     /// <summary>DELETE FILE (§2023:14.9.10 Format 2, COBOL-2023): an OPEN connector → '41' (GR13); the physical file
-    /// currently open by ANOTHER file connector → the file sharing conflict, '62' (GR15 / §2023:9.1.13.9 item 2),
+    /// currently open by ANOTHER file connector → the file sharing conflict, '62' (GR15 / §2023:9.1.13.9 GR2),
     /// re-attempted under a RETRY phrase (GR15 → §2023:14.7.9: another connector of this run unit cannot close
     /// mid-loop, so every retry form exhausts to '62' against it — §2023:9.1.13.9 defines no deadlock value for a
     /// file-sharing conflict, see <see cref="ExhaustionStatus"/> — while another run unit's handle can be released,
@@ -995,7 +995,7 @@ public sealed class FileRegistry
             status = conflict;                                             // '39' GR18 — see the method
         else if (c.CommitControlled)
             status = DeleteCovered(name, c, retryKind, retryAmount);   // under commit control: the capture (2.2.2.9, 2.2.2.14)
-        // §2023:9.1.13.9 2) asks about EVERY other file connector: this run unit's are the registry's to see, and
+        // §2023:9.1.13.9 GR2 asks about EVERY other file connector: this run unit's are the registry's to see, and
         // another run unit's only the host's (kb/Work PB860 — asked before the delete, because a Unix unlink
         // succeeds over an open file). Inside the retry loop, because another run unit CAN close mid-loop — and
         // each attempt says which holder refused it, since only one outside the run unit can (kb/Work PB1163).
@@ -1005,7 +1005,7 @@ public sealed class FileRegistry
         // ⛔ THE ENTRY STEP RUNS AT EVERY DELETE FILE (DESIGN-runtime-library.md 2.2.2.8; kb/Work PB3492's sibling): a dead run
         // unit's transaction on the file is settled first — a creation of its removed, a capture of its restored — so the file
         // this statement deletes is the one the last COMMIT left, and no later settle brings back a file this statement deleted;
-        // a live one holds the file against a DELETE FILE ('62', §2023:9.1.13.9 2)), this run unit's own (through a connector no APPLY
+        // a live one holds the file against a DELETE FILE ('62', §2023:9.1.13.9 GR2)), this run unit's own (through a connector no APPLY
         // COMMIT names) a holder no RETRY wait releases.
         else if (RetryLoop(() =>
                      OpenByAnotherConnector(name, c) ? RetryAttempt.InRunUnit(FileStatusCode.DeleteFileSharing)
@@ -1013,7 +1013,7 @@ public sealed class FileRegistry
                      : HostFile.IsHeldByAnother(c.HostPath) ? DeleteFileHeld(name, c)
                      : RetryAttempt.InRunUnit(FileStatusCode.Success), retryKind, retryAmount) is var sharing
                  && sharing != FileStatusCode.Success)
-            status = sharing;   // '62' GR15/§2023:9.1.13.9 item 2 — the file is not deleted
+            status = sharing;   // '62' GR15/§2023:9.1.13.9 GR2 — the file is not deleted
         // GR14's '05' is only for a file that is ABSENT, and GR16's '37' is for one that is there but refused —
         // so the presence question has THREE answers, and it is asked through the ONE shared probe
         // (HostFile.Probe): File.Exists swallows every access error and answers false, classifying a
@@ -1077,7 +1077,7 @@ public sealed class FileRegistry
     /// The NOTE under §2023:14.9.10.4 GR15: <i>"Such files can still be deleted, however if they are, then in the event of a rollback
     /// they will be restored to the state they were in at the last commit or, if none, the start of the run unit"</i> — and
     /// GR15's conflict is a file <i>"locked by another file connector"</i>, which the connector's own kept handle is not. Under
-    /// the entry mutex: the entry step, then GR15's sharing conflict ('62', §2023:9.1.13.9 2), re-attempted under a RETRY phrase) —
+    /// the entry mutex: the entry step, then GR15's sharing conflict ('62', §2023:9.1.13.9 GR2, re-attempted under a RETRY phrase) —
     /// another live transaction on the file (it holds the file: a DELETE FILE needs no other transaction at all, 2.2.2.8),
     /// another connector of this run unit, or another handle than the connector's own kept one; then GR14's '05' for an
     /// absent file; then the transaction begun if none stands and the file CAPTURED in its base phase (R4), the kept file lock
@@ -1174,7 +1174,7 @@ public sealed class FileRegistry
     }
 
     /// <summary>True when a file connector OTHER than <paramref name="name"/> currently has open the physical file that
-    /// <paramref name="target"/>'s path names now (§2023:9.1.13.9 item 2 — the DELETE FILE sharing conflict is defined over "another
+    /// <paramref name="target"/>'s path names now (§2023:9.1.13.9 GR2 — the DELETE FILE sharing conflict is defined over "another
     /// file connector" plainly, so a non-sharing-registered open connector counts too). ⛔ THE PHYSICAL FILE, NOT THE PATH
     /// (kb/Work PB3576): a connector open on a file since removed or renamed away outside the run unit is open on ANOTHER
     /// file than the one the path names, and refuses nobody's DELETE FILE of it. Every successful OPEN is in its file's state
@@ -1224,7 +1224,7 @@ public sealed class FileRegistry
         !DialectBehaviors.IsActive(DialectBehavior.FileSharingFacility, edition) ? FileSharing.AllOther
         : mode == FileOpenMode.Input ? FileSharing.ReadOnly : FileSharing.NoOther;
 
-    /// <summary>⛔ THE §2023:12.4.5.9.4 GR1 b) 2. IMPLEMENTOR DEFAULT — the record-locking posture of a file
+    /// <summary>⛔ THE §2023:12.4.5.9.4 GR1b.2 IMPLEMENTOR DEFAULT — the record-locking posture of a file
     /// connector whose file control entry writes NEITHER a LOCK MODE clause NOR a SHARING clause and whose OPEN
     /// carried no SHARING phrase. The standard hands the choice to the implementor in as many words —
     /// <i>"the type of record locking for that opening of a shared file associated with that file connector is
@@ -1245,7 +1245,7 @@ public sealed class FileRegistry
         new(Sharing: null, FileLockMode.None, Multiple: false);
 
     /// <summary>⛔ THE ONE READER of the opt-in posture map, and therefore the ONE place a connector that never
-    /// opted in is given the §2023:12.4.5.9.4 GR1 b) 2. default rather than a different code path. Every governed
+    /// opted in is given the §2023:12.4.5.9.4 GR1b.2 default rather than a different code path. Every governed
     /// record verb starts here. It used to be a <c>TryGetValue</c> whose MISS returned the ungoverned body, and
     /// the effect was that a connector with no LOCK MODE clause could read, rewrite and DELETE a record another
     /// connector held locked, answering '00' where §2023:9.1.16 makes the record inaccessible — the same
@@ -1307,7 +1307,7 @@ public sealed class FileRegistry
     /// GR3, <i>"The COMMIT statement also deactivates any APPLY COMMIT clauses in exited initial programs and canceled
     /// runtime elements"</i>, and §2023:14.9.36.4 GR6 for the ROLLBACK. From then on the file is no longer "specified in" an
     /// active clause, so its changes are no longer the next ROLLBACK's (§2023:14.9.36.4 GR3: <i>"All files and data-items
-    /// referenced in active APPLY COMMIT clauses are restored"</i>), §2023:14.6.13.1.3 item 8 no longer applies to it, and
+    /// referenced in active APPLY COMMIT clauses are restored"</i>), §2023:14.6.13.1.3 GR8 no longer applies to it, and
     /// §2023:9.1.16's implicit AUTOMATIC posture gives way to the file control entry's own. The COMMIT or ROLLBACK that
     /// deactivates the clause has already ended the file's transaction and given back what its CLOSE kept; a transaction
     /// whose rollback the medium refused stays owed, found by its open transaction id and not by this flag
@@ -1321,7 +1321,7 @@ public sealed class FileRegistry
     }
 
     /// <summary>Whether <paramref name="name"/>'s connector is under commit control — "a file subject to an active APPLY
-    /// COMMIT clause" (§2023:14.6.13.1.3 item 8, <see cref="TransactionControl.RollbackOnFatal"/>).</summary>
+    /// COMMIT clause" (§2023:14.6.13.1.3 GR8, <see cref="TransactionControl.RollbackOnFatal"/>).</summary>
     internal bool IsCommitControlled(string name) =>
         _files.TryGetValue(name, out var c) && c.CommitControlled;
 
@@ -1642,7 +1642,7 @@ public sealed class FileRegistry
     /// by connectors closed under commit control (§2023:9.1.15: <i>"the file lock is removed by the COMMIT statement"</i>).
     /// <para>COMMIT has no I-O status (§2023:9.1.13.1), so a COMMIT the medium refuses is told through the refused FILE: its status
     /// '30', the permanent error of §2023:9.1.13.1 in effect, and the name returned — the caller raises EC-I-O-PERMANENT-ERROR
-    /// for it, the fatal condition for which §2023:14.6.13.1.3 item 8 executes a ROLLBACK unconditionally (the files after it
+    /// for it, the fatal condition for which §2023:14.6.13.1.3 GR8 executes a ROLLBACK unconditionally (the files after it
     /// are not committed; those before it are). Null when every file committed.</para></summary>
     public string? Commit()
     {
@@ -1658,7 +1658,7 @@ public sealed class FileRegistry
     }
 
     /// <summary>⛔ A TRANSACTION A ROLLBACK IS OWED IS NEVER COMMITTED (§2023:14.9.36.4 GR3, <i>"restored to the state they were in at
-    /// the execution of the last COMMIT statement"</i>; §2023:14.6.13.1.3 item 8; DESIGN-runtime-library.md 2.2.1.10 and 2.2.2.7;
+    /// the execution of the last COMMIT statement"</i>; §2023:14.6.13.1.3 GR8; DESIGN-runtime-library.md 2.2.1.10 and 2.2.2.7;
     /// review findings R1-4 of kb/Work PB3337 and R1-3 of PB3340), for every storage engine in this one place: once a ROLLBACK of
     /// it was refused, or its COMMIT left it UNACKNOWLEDGED or reversed and not rolled back (<see cref="_rollbackOwed"/>), the only statements the run unit executes
     /// on it are ROLLBACKs. A later COMMIT, the program's or the implicit one of a run unit that then ends normally (§2023:9.1.18.5),
@@ -1775,7 +1775,7 @@ public sealed class FileRegistry
     /// changes are permanently committed. When a run unit terminates abnormally, all file changes made since the previous
     /// commit or, if none, the beginning of the run unit are rolled back for all files for which there are active APPLY
     /// COMMIT clauses."</i>): committed, or — abnormal — the file-only ROLLBACK of §2023:14.6.12 (a COMMIT refused at the end is
-    /// rolled back too, by §2023:14.6.13.1.3 item 8's rule). What the runtime cannot reach (a kill, a power loss) is the
+    /// rolled back too, by §2023:14.6.13.1.3 GR8's rule). What the runtime cannot reach (a kill, a power loss) is the
     /// dead-owner step's.</summary>
     internal void EndTransactions(bool abnormal)
     {
@@ -1888,7 +1888,7 @@ public sealed class FileRegistry
 
     private bool _owing;
 
-    /// <summary>The registry owes an ending (§2023:14.6.11 2): a file in the open mode, or a transaction standing that
+    /// <summary>The registry owes an ending (§2023:14.6.11 GR2): a file in the open mode, or a transaction standing that
     /// §2023:9.1.18.5 commits at a normal termination.</summary>
     private bool OwesAnEnding() =>
         _files.Values.Any(c => c.IsOpen) || _retired.Count > 0 || _retiredSequential.Count > 0 || TransactionHolders().Count > 0;
@@ -1925,14 +1925,14 @@ public sealed class FileRegistry
     /// connector is a record-locking participant is derived at <see cref="SharedOpenAttempt"/> from the posture the
     /// file control entry registered and the sharing mode THIS open is arbitrated under
     /// (<see cref="RecordLocksSetUnder"/>); an OPEN phrase can change the mode but cannot write a LOCK MODE clause, and
-    /// §2023:12.4.5.9.4 GR1 b) 1. says that with a SHARING phrase and no LOCK MODE clause <i>"no record locks are set"</i>.
+    /// §2023:12.4.5.9.4 GR1b.1 says that with a SHARING phrase and no LOCK MODE clause <i>"no record locks are set"</i>.
     /// The phrase used to register a lock-less posture on the spot, which made the connector a participant (and so
     /// paid the whole-file record count of a sequential <c>OPEN EXTEND</c>) for the life of the run unit.</para>
     /// <para><paramref name="tape"/> carries the statement's WITH NO REWIND phrase, applied by
     /// <see cref="NoRewindPhraseEffect"/> AFTER the arbitrated open. It rides here rather than at either entry
     /// point because SHARING/RETRY and NO REWIND are independent phrases of one general format (§2023:14.9.27.2), so
     /// an OPEN may write both and the '07' overlay has to reach the arbitrated path as well as the plain one
-    /// (kb/Work PB317). The overlay is self-guarding: §2023:14.9.27.4 GR25 a) owns an unsuccessful open's status, so
+    /// (kb/Work PB317). The overlay is self-guarding: §2023:14.9.27.4 GR25a owns an unsuccessful open's status, so
     /// <see cref="NoRewindPhraseEffect"/> writes '07' only over a status whose first digit is '0'.</para></summary>
     private void OpenCore(string name, FileOpenMode mode, FileSharing? sharingOverride,
         FileRetryKind retryKind, long retryAmount, OpenTapePhrase tape, string assign, bool assignDynamic,
@@ -1968,7 +1968,7 @@ public sealed class FileRegistry
             sequential.HasLinageClause = page is not null;
         }
         // SharedOpenAttempt sets the connector status on the terminal attempt, and RetryLoop lands an exhausted
-        // retry on the CONFLICT'S OWN status (§2023:14.7.9.3 closing paragraph → §2023:9.1.13.9 item 1 = '61'), so there is
+        // retry on the CONFLICT'S OWN status (§2023:14.7.9.3 closing paragraph → §2023:9.1.13.9 GR1 = '61'), so there is
         // nothing left to override afterwards — the former `if (status == Deadlock) SetStatusOf(…)` line existed
         // only to re-assert the '52' RetryLoop used to manufacture (kb/Work PB142).
         _ = RetryLoop(() => SharedOpenAttempt(name, mode, sharingOverride, page), retryKind, retryAmount);
@@ -2012,12 +2012,12 @@ public sealed class FileRegistry
                 if (CobolNames.Same(other, name)) continue;
                 if (Table19.Conflicts(request: (sharing, mode), existing))
                 {
-                    c.SetStatus(FileStatusCode.FileSharingConflict);   // 61 — §2023:9.1.13.9 item 1
+                    c.SetStatus(FileStatusCode.FileSharingConflict);   // 61 — §2023:9.1.13.9 GR1
                     return RetryAttempt.InRunUnit(FileStatusCode.FileSharingConflict);   // held by this run unit
                 }
             }
         // ⛔ The registration is gated on the STATUS, not on `IsOpen`. A re-OPEN of a connector that is already
-        // open is unsuccessful with '41' (§2023:9.1.13.7 item 1) and FileConnector.Open leaves the connector in its
+        // open is unsuccessful with '41' (§2023:9.1.13.7 GR1) and FileConnector.Open leaves the connector in its
         // ORIGINAL mode — but `IsOpen` is true throughout, so gating on it re-registered the connector under the
         // mode and sharing of the FAILED request and every later arbitration used them (kb/Work PB321).
         // §2023:9.1.15 / §2023:12.4.5.9.4 participation, derived from the ONE rule that says when record locks are set
@@ -2073,13 +2073,13 @@ public sealed class FileRegistry
             // was opened"), and that base used to be measured HERE, from a second handle on a path the connector
             // had just opened for WRITE. The measurement was refused by the operating environment, and because
             // this line is OUTSIDE FileConnector.Open's try the refusal escaped the run unit as an unhandled
-            // IOException instead of as §2023:9.1.13.6 item 1's '30'. It now lives in SequentialConnector.OpenCore,
+            // IOException instead of as §2023:9.1.13.6 GR1's '30'. It now lives in SequentialConnector.OpenCore,
             // before that connector's own writer exists; the ONLY work left after a successful open is
             // arbitration bookkeeping and the LINAGE page model, neither of which reads a byte off the host.
-            // ISO §2023:13.18.34.4 GR6 b) 1 — the LINAGE operand values are read "at the completion of an OPEN statement
+            // ISO §2023:13.18.34.4 GR6b 1 — the LINAGE operand values are read "at the completion of an OPEN statement
             // with the OUTPUT phrase", so the page model is established HERE, with the page the EXECUTING element's
             // own LINAGE clause evaluated to (kb/Work PB673), and only for an open that actually succeeded.
-            // ⛔ AND THE PAGE MODEL CAN MAKE THE OPEN UNSUCCESSFUL (kb/Work PB526). §2023:13.18.34.4 GR6 b) 1 reads the
+            // ⛔ AND THE PAGE MODEL CAN MAKE THE OPEN UNSUCCESSFUL (kb/Work PB526). §2023:13.18.34.4 GR6b 1 reads the
             // operands "at the completion of" this OPEN and GR6 b) 2 applies its two value rules to them: a
             // violation sets EC-I-O-LINAGE to exist, so the statement has to report an unsuccessful I-O status
             // for §2023:9.1.12's exception processing to see it at all. The connector STAYS OPEN — GR6 b) 2's counter
@@ -2136,7 +2136,7 @@ public sealed class FileRegistry
     private bool OwnTransactionRefuses(FileConnector c, bool exclusive) =>
         !c.CommitControlled && Sequential.Of(c.HostPath) is { } own && (exclusive || own.Replaced);
 
-    /// <summary>The holder of a DELETE FILE's sharing conflict the host reported ('62', §2023:9.1.13.9 2)): this run unit's own when
+    /// <summary>The holder of a DELETE FILE's sharing conflict the host reported ('62', §2023:9.1.13.9 GR2): this run unit's own when
     /// it holds the file through what a CLOSE under commit control kept or through its own transaction — no RETRY wait releases
     /// that (DOC-A.1-109) — otherwise another run unit, which can (kb/Work PB1163).</summary>
     private RetryAttempt DeleteFileHeld(string name, FileConnector c) =>
@@ -2146,15 +2146,15 @@ public sealed class FileRegistry
 
     /// <summary>⛔ THE ONE §2023:12.4.5.9.4 GR6 SITE — <i>"Execution of any I-O statement except START releases any
     /// previously locked record in that file for that file connector"</i> — for all four governed record verbs.
-    /// The rule is tied to EXECUTION, not to success: §2023:14.9.30.4 GR11 a) restates it for READ without any
+    /// The rule is tied to EXECUTION, not to success: §2023:14.9.30.4 GR11a restates it for READ without any
     /// success qualifier, and the standard qualifies deliberately elsewhere in the very same rule (GR11 b) "at
     /// the completion of the successful execution", GR11 c)/d) "a successfully accessed record"). It was written
     /// out four times, and the READ copy alone sat on the success side of its caller's guard, so an at-end or
     /// otherwise failing READ kept a lock the standard had already released (kb/Work PB338).
     /// <para>GR7's multiple record locking releases nothing here — <i>"a file connector is permitted to have
     /// more than one record of a file locked"</i>. <paramref name="except"/> is the mutating verbs' target,
-    /// whose own lock their statement rules release at COMPLETION instead (§2023:14.9.35.4 GR12 a) 1.,
-    /// §2023:14.9.10.4 GR7 a) 1.).</para></summary>
+    /// whose own lock their statement rules release at COMPLETION instead (§2023:14.9.35.4 GR12a.1),
+    /// §2023:14.9.10.4 GR7a.1).</para></summary>
     private static void ReleasePriorRecordLocks(ConnectorShare meta, PhysicalFileTable.State st, string name,
         string? except = null)
     {
@@ -2206,7 +2206,7 @@ public sealed class FileRegistry
     /// is fixed.
     /// <para>It does NOT skip the §2023:12.4.5.9.4 GR7 ceiling, which the caller still tests after the retrieval:
     /// the RUN-UNIT limit counts locks on OTHER physical files, so an empty table here does not settle it. That
-    /// is sound because GR7's denial is not the record operation conflict condition, so §2023:14.9.30.4 GR10 a) never
+    /// is sound because GR7's denial is not the record operation conflict condition, so §2023:14.9.30.4 GR10a never
     /// governed it — GR18 does, and the caller applies GR18 by invalidating the position the retrieval
     /// advanced.</para></summary>
     /// <para>Nor while a transaction may hold a record of the file IN THE FILE (a keyed store's HOLDINGS tree is not
@@ -2218,7 +2218,7 @@ public sealed class FileRegistry
     /// <summary>⛔ Does a file connector of ANOTHER run unit hold a lock on a record of this connector's physical
     /// file (kb/Work PB2660)? Only possible when this connector publishes and tests record locks across run units
     /// (<c>RecordLocks</c>) and its own sharing mode admits another connector at all — under
-    /// <c>SHARING WITH NO OTHER</c> nobody else is there (§2023:9.1.15 1), "exclusive access"), and §2023:12.4.5.9.4 GR3 makes
+    /// <c>SHARING WITH NO OTHER</c> nobody else is there (§2023:9.1.15 GR1, "exclusive access"), and §2023:12.4.5.9.4 GR3 makes
     /// the LOCK MODE clause of no effect — and then the host's presence byte answers it in one question. When it
     /// does, the hot-path shortcuts below that read "this run unit's table is empty" as "no record is locked" no
     /// longer hold, and the governed verbs ask the host about the record itself.</summary>
@@ -2244,7 +2244,7 @@ public sealed class FileRegistry
     /// statements word one rule identically — §2023:14.9.30.4 GR9 "the record identified for access", §2023:14.9.35.4 GR11
     /// "the record identified for rewriting", §2023:14.9.10.4 GR6 "the record identified for deletion" — each
     /// continuing "the result of the operation depends on the presence or absence of the RETRY phrase" and each
-    /// ending in the record operation conflict condition (§2023:9.1.13.8). (WRITE states none: §2023:9.1.13.8 item 1 is an
+    /// ending in the record operation conflict condition (§2023:9.1.13.8). (WRITE states none: §2023:9.1.13.8 GR1 is an
     /// attempt to ACCESS a record, the §2023:14.9.51.4 general rules define no such leg, and GR33/GR42 say the
     /// invalid-key checks ignore record locks.)
     /// <para>GR9 gives the answer in two delegated halves — "If the RETRY phrase is specified, additional
@@ -2257,7 +2257,7 @@ public sealed class FileRegistry
     /// proceed. IGNORING LOCK short-circuits it, and only READ has that phrase: §2023:14.9.30.4 GR12 makes "the
     /// requested record … available, even if it is locked".</para>
     /// <para>⛔ EVERY CALLER ASKS IT BEFORE COMMITTING ANYTHING (kb/Work PB338) — that is what makes the three
-    /// statements' "unchanged" rules (§2023:14.9.30.4 GR10 a)/d), §2023:14.9.35.4 GR14, §2023:14.9.10.4 GR6 b)) true by
+    /// statements' "unchanged" rules (§2023:14.9.30.4 GR10 a)/d), §2023:14.9.35.4 GR14, §2023:14.9.10.4 GR6b) true by
     /// construction rather than by repair.</para></summary>
     private string? ConflictOnLockedRecord(string name, PhysicalFileTable.State st, string recId,
         bool ignoringLock, FileRetryKind retryKind, long retryAmount)
@@ -2305,7 +2305,7 @@ public sealed class FileRegistry
     /// <summary>⛔ THE JOURNAL HALF OF A SEQUENTIAL READ'S LOCK TEST (DESIGN-runtime-library.md 2.2.2.3, 2.2.2.8; kb/Work PB3340):
     /// a record another live transaction on the file rewrote or appended is held in its JOURNAL, not in the region, so the
     /// record-lock tables (and the peek they gate) do not see it; a READ that does not ignore locks, through a connector whose
-    /// file lock admits another run unit's writer, meets it with '51' (§2023:9.1.13.8 1); §2023:9.1.16's implementor-specified
+    /// file lock admits another run unit's writer, meets it with '51' (§2023:9.1.13.8 GR1); §2023:9.1.16's implementor-specified
     /// circumstance, DOC-A.1-152) and settles a dead owner's transaction first (<see cref="SequentialConnector.ReadHoldingsGate"/>).
     /// A READ that tests no lock (<paramref name="testsLocks"/> false: IGNORING LOCK, §2023:14.9.30.4 GR12; ADVANCING ON LOCK, GR22)
     /// still settles the dead owners, since a rollback owed by §2023:9.1.18.5 is not a lock it may ignore
@@ -2358,7 +2358,7 @@ public sealed class FileRegistry
     /// <see cref="WriteShared"/> and <see cref="RewriteShared"/> already use. A '53'/'54' READ is unsuccessful
     /// but it is NOT the record operation conflict condition GR9 defines — that one is "the record identified
     /// for access is locked by ANOTHER file connector", where these two are this connector's own lock COUNT —
-    /// so §2023:14.9.30.4 GR10 a) does not exempt it and GR18 applies in full: the file position indicator is set to
+    /// so §2023:14.9.30.4 GR10a does not exempt it and GR18 applies in full: the file position indicator is set to
     /// indicate that no valid record position has been established. Denying AFTER the physical step left a
     /// successfully-advanced position behind a failure status, and the next sequential READ silently skipped the
     /// record the denial had already consumed.</para>
@@ -2539,9 +2539,9 @@ public sealed class FileRegistry
         image = "";
         var c = Require(name);   // unregistered = compiler defect, never an invented '30' (kb/Work PB140/PB360)
         c.RecordLockHeldBeforeRead = null;   // this READ has run no lock action yet (ApplyPostReadLockActions sets it)
-        var meta = ShareOf(name);             // §2023:12.4.5.9.4 GR1 b) 2. for a clause-less connector — never an early exit
+        var meta = ShareOf(name);             // §2023:12.4.5.9.4 GR1b.2 for a clause-less connector — never an early exit
         var st = PhysicalOf(c);   // the file the connector's last OPEN arbitrated (§2023:12.4.5.3 GR3 associates at the OPEN, kb/Work PB3576)
-        // §2023:14.9.30.4 GR11 a) / §2023:12.4.5.9.4 GR6 — released by the EXECUTION of the statement, so before anything
+        // §2023:14.9.30.4 GR11a / §2023:12.4.5.9.4 GR6 — released by the EXECUTION of the statement, so before anything
         // can make it unsuccessful, exactly as the three mutating verbs do it.
         ReleasePriorRecordLocks(meta, st, name);
         bool setsLock = ReadSetsRecordLock(meta, phrase) && LocksEffective(meta, st, name);
@@ -2662,9 +2662,9 @@ public sealed class FileRegistry
         image = "";
         var c = Require(name);   // unregistered = compiler defect, never an invented '30' (kb/Work PB140/PB360)
         c.RecordLockHeldBeforeRead = null;   // this READ has run no lock action yet (ApplyPostReadLockActions sets it)
-        var meta = ShareOf(name);             // §2023:12.4.5.9.4 GR1 b) 2. for a clause-less connector — never an early exit
+        var meta = ShareOf(name);             // §2023:12.4.5.9.4 GR1b.2 for a clause-less connector — never an early exit
         var st = PhysicalOf(c);   // the file the connector's last OPEN arbitrated (§2023:12.4.5.3 GR3 associates at the OPEN, kb/Work PB3576)
-        ReleasePriorRecordLocks(meta, st, name);   // §2023:14.9.30.4 GR11 a) / §2023:12.4.5.9.4 GR6 — on EXECUTION
+        ReleasePriorRecordLocks(meta, st, name);   // §2023:14.9.30.4 GR11a / §2023:12.4.5.9.4 GR6 — on EXECUTION
         bool setsLock = ReadSetsRecordLock(meta, phrase) && LocksEffective(meta, st, name);
         string peek = NoLockQuestion(st, c, setsLock) ? "" : c.PeekRandomReadRecordId(keyIndex, keyedRecordImage, areaExtents);
         if (peek.Length > 0)
@@ -2723,7 +2723,7 @@ public sealed class FileRegistry
         RecordExtents? extents, bool nationalRecord, int namedEntry)
     {
         var c = Require(name);   // unregistered = compiler defect, never an invented '30' (kb/Work PB140/PB360)
-        var meta = ShareOf(name);             // §2023:12.4.5.9.4 GR1 b) 2. for a clause-less connector — never an early exit
+        var meta = ShareOf(name);             // §2023:12.4.5.9.4 GR1b.2 for a clause-less connector — never an early exit
         var st = PhysicalOf(c);   // the file the connector's last OPEN arbitrated (§2023:12.4.5.3 GR3 associates at the OPEN, kb/Work PB3576)
         ReleasePriorRecordLocks(meta, st, name);   // §2023:14.9.51.4 GR10 / §2023:12.4.5.9.4 GR6
         // GR11. Under commit control the WRITE's implied lock (2.2.1.10, finding R2-3) is the transaction's HOLDING of the
@@ -2784,13 +2784,13 @@ public sealed class FileRegistry
         FileRetryKind retryKind, long retryAmount, RecordExtents? extents, bool nationalRecord, int namedEntry)
     {
         var c = Require(name);   // unregistered = compiler defect, never an invented '30' (kb/Work PB140/PB360)
-        var meta = ShareOf(name);             // §2023:12.4.5.9.4 GR1 b) 2. for a clause-less connector — never an early exit
+        var meta = ShareOf(name);             // §2023:12.4.5.9.4 GR1b.2 for a clause-less connector — never an early exit
         var st = PhysicalOf(c);   // the file the connector's last OPEN arbitrated (§2023:12.4.5.3 GR3 associates at the OPEN, kb/Work PB3576)
         // The record identity costs an allocation on the keyed organizations, so it is taken only when some
         // §2023:9.1.16 question can have a non-trivial answer; with no lock on the file and none to set, every arm
         // below is a no-op whatever the target is (kb/Work PB669).
         string target = MutationTarget(meta, st, name, c, image, extents);
-        ReleasePriorRecordLocks(meta, st, name, target);   // §2023:14.9.35.4 GR12 a) 2. — released at the beginning
+        ReleasePriorRecordLocks(meta, st, name, target);   // §2023:14.9.35.4 GR12a.2 — released at the beginning
         if (target.Length > 0)
         {
             // §2023:14.9.35.4 GR11 — the ONE conflict check; GR14 then keeps the record, the record area and the file
@@ -2843,11 +2843,11 @@ public sealed class FileRegistry
         RecordExtents? areaExtents)
     {
         var c = Require(name);   // unregistered = compiler defect, never an invented '30' (kb/Work PB140/PB360)
-        var meta = ShareOf(name);             // §2023:12.4.5.9.4 GR1 b) 2. for a clause-less connector — never an early exit
+        var meta = ShareOf(name);             // §2023:12.4.5.9.4 GR1b.2 for a clause-less connector — never an early exit
         var st = PhysicalOf(c);   // the file the connector's last OPEN arbitrated (§2023:12.4.5.3 GR3 associates at the OPEN, kb/Work PB3576)
         // The record identity is taken only when a §2023:9.1.16 question can have a non-trivial answer (kb/Work PB669).
         string target = MutationTarget(meta, st, name, c, keyedRecordImage, areaExtents);
-        ReleasePriorRecordLocks(meta, st, name, target);   // §2023:14.9.10.4 GR7 a) 2. — released at the beginning
+        ReleasePriorRecordLocks(meta, st, name, target);   // §2023:14.9.10.4 GR7a.2 — released at the beginning
         if (target.Length > 0
             // §2023:14.9.10.4 GR6 — the ONE conflict check; GR6 b)/c) then leave the record present and the record
             // area unaffected, which holds because nothing has been committed yet.
@@ -2897,7 +2897,7 @@ public sealed class FileRegistry
     };
 
     /// <summary>UNLOCK file [RECORD[S]] (§2023:14.9.47.4 GR1): release every record lock this connector holds and set
-    /// status 00; UNLOCK of a file not open is status 42 (§2023:9.1.13.7 item 2). §2023:14.9.47.4 GR3 makes the I-O status
+    /// status 00; UNLOCK of a file not open is status 42 (§2023:9.1.13.7 GR2). §2023:14.9.47.4 GR3 makes the I-O status
     /// update UNCONDITIONAL, so an unregistered name is a compiler defect and goes through <see cref="Require"/>
     /// like every other entry — the old <c>TryGetValue</c>-and-return set no status and raised nothing, a clean
     /// exit 0 for a statement that did nothing (kb/Work PB360).</summary>
@@ -3026,9 +3026,9 @@ public sealed class FileRegistry
     /// direction or two green goldens in the other. §2023:9.1.13.9 (file sharing) defines exactly TWO values — '61'
     /// for OPEN and '62' for DELETE FILE — and NO deadlock value, so a file-sharing conflict has no landing but
     /// its own; §2023:14.9.10.4 GR15b is imperative there ("The value … is placed") where its record-conflict twin
-    /// GR6b says only "A value". §2023:9.1.13.8 item 2's '52' is a RECORD-conflict value whose detection conditions
+    /// GR6b says only "A value". §2023:9.1.13.8 GR2's '52' is a RECORD-conflict value whose detection conditions
     /// the implementor defines (A.1 item 109, recorded in docs/CONFORMANCE.md §7): WiseOwl COBOL detects a deadlock
-    /// exactly when a FOREVER retry waits on a record locked by another file connector (§2023:9.1.13.8 item 1), since
+    /// exactly when a FOREVER retry waits on a record locked by another file connector (§2023:9.1.13.8 GR1), since
     /// that holder is inside the executing run unit and can never release while this statement runs, so GR3's
     /// "until the operation has been completed" would never terminate.</para>
     /// <para>Answering '52' for a FILE conflict would also raise the WRONG exception-name — §2023:9.1.13.1 maps the
@@ -3036,7 +3036,7 @@ public sealed class FileRegistry
     /// silently not fire (kb/Work PB142).</para></summary>
     private static string ExhaustionStatus(string conflict, FileRetryKind kind) =>
         kind == FileRetryKind.Forever && conflict == FileStatusCode.RecordLocked
-            ? FileStatusCode.Deadlock   // §2023:9.1.13.8 item 2 — the implementor-detected deadlock
+            ? FileStatusCode.Deadlock   // §2023:9.1.13.8 GR2 — the implementor-detected deadlock
             : conflict;                 // §2023:14.7.9.3 closing paragraph → §2023:9.1.13
 
     // ── Internals ────────────────────────────────────────────────────────────────────────────────────────────
@@ -3076,7 +3076,7 @@ public sealed class FileRegistry
         st.Open.Remove(name);
         // The lock release is guarded on there being locks at all: this now runs on EVERY close of EVERY file,
         // and ReleaseAllForConnector's Where/Select/ToList would otherwise allocate a closure and an empty list
-        // per CLOSE for the overwhelming majority of connectors, which set no record locks — §2023:12.4.5.9.4 GR1 a),
+        // per CLOSE for the overwhelming majority of connectors, which set no record locks — §2023:12.4.5.9.4 GR1a,
         // "If there is a SHARING clause in that file control entry, no record locks are set by the execution of
         // I-O statements through the associated file connector" (the general rules of the LOCK MODE clause are
         // §2023:12.4.5.9.4, and every citation of a LOCK MODE rule in this file names it).

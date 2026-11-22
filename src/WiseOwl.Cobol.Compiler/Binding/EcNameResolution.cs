@@ -141,7 +141,7 @@ internal static class EcNameResolution
         return null;
     }
 
-    /// <summary>The §2023:15.33 width advisory (COBOL1636, Warning — legal source stays legal): §2023:15.33.3 r1 fixes
+    /// <summary>The §2023:15.33 width advisory (COBOL1636, Warning — legal source stays legal): §2023:15.33.3 RV1 fixes
     /// FUNCTION EXCEPTION-STATUS's value at 31 characters while COBOL-2023 words run to 63 (§2023:8.3.2.1) and the
     /// §2023:14.6.13.1.1 open-family suffixes are unbounded, so a level-3 name of 32..63 characters is LEGAL and
     /// indistinguishable from anything sharing its first 31 characters through that ONE function — checking,

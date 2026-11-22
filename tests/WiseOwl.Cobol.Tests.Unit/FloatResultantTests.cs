@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// The float arm of the arithmetic store (kb/Work PB1196) and the checked binary64 intermediate (kb/Work PB1147,
 /// PB1581). Every expected value is derived from the rule and the binary formats' grids, never from a run:
-/// §2023:14.7.4.3 r3–r10 pick between the two representable neighbors of an inexact value (TRUNCATION the one nearer
+/// §2023:14.7.4.3 GR3–r10 pick between the two representable neighbors of an inexact value (TRUNCATION the one nearer
 /// zero, TOWARD-GREATER the larger, the NEAREST-* modes the nearer with their own tie rule), r7 makes PROHIBITED an
 /// exactness test, and §2023:14.7.5 case 3 makes a value past the format's largest finite magnitude — after the mode's
 /// rounding — the size error condition.

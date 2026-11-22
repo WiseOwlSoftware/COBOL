@@ -248,7 +248,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         return new BoundSetContent(stores);
     }
 
-    /// <summary>§2023:14.9.39.4 GR32 b) / GR36 b) — the IN-ARITHMETIC-RANGE phrase: the content is set either to the
+    /// <summary>§2023:14.9.39.4 GR32b / GR36 b) — the IN-ARITHMETIC-RANGE phrase: the content is set either to the
     /// receiver's own extreme or to "the value … permitted by the specifications appropriate to the mode of
     /// arithmetic", whichever is CLOSER to zero for FARTHEST-FROM-ZERO and FARTHER from zero for NEAREST-TO-ZERO.
     /// The mode's extremes are <see cref="ArithmeticModes.IntermediateExtremes"/>; the comparison is exact
@@ -415,7 +415,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     /// carrier category, so an index-name can stand on the other side of any of them. Each position then
     /// resolved through <c>ctx.Refs.Resolve</c>, which answers for a DATA ITEM only, and the FIRST thing the
     /// user read was COBOL1639: "'IX' is not defined — no declaration in this source element gives the name
-    /// 'IX'" — false about a name INDEXED BY declared, and it sends the reader hunting a typo. §2023:13.18.38.3 r7
+    /// 'IX'" — false about a name INDEXED BY declared, and it sends the reader hunting a typo. §2023:13.18.38.3 SR7
     /// closes the list of contexts that may reference an index-name and the SET statement IS one of them, as
     /// Format 1 (§2023:14.9.39.3 SR1). So the statement is still refused — for the category, which is the real
     /// reason. ONE helper, asked FIRST at every one of the six positions.</summary>
@@ -1217,7 +1217,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     /// literal are excluded by the same sentence — none of them is an alphanumeric or national literal — and a
     /// §2023:8.8.3 concatenation expression has folded, because §2023:8.8.3.3 GR3 makes it "equivalent to a literal of
     /// the same class and value". The name is FORMED by the ONE program-name reader CALL and CANCEL use
-    /// (<see cref="ProgramNameLiteral"/>): GR1 sends literal-1 through 8.3.2.2 exactly as §2023:14.9.4.4 GR3 b) does.
+    /// (<see cref="ProgramNameLiteral"/>): GR1 sends literal-1 through 8.3.2.2 exactly as §2023:14.9.4.4 GR3b does.
     /// Returns null having reported.</summary>
     private string? ProgramAddressLiteral(ProgramNameOperand literal1, string site)
     {
@@ -1421,7 +1421,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     /// SR2's own words, rather than left to the §2023:8.8.1.1 arithmetic screen to reach incidentally.</para>
     /// <para>⛔ A SENDER IS CLASSIFIED BY ITS CLASS, NOT BY HOW IT IS WRITTEN (kb/Work PB1399). identifier-2 is "a data
     /// item of class index" (§2023:14.9.39.3 SR2) and §2023:8.4.3.1.3 SR1 lets it be any identifier format, so an INDEX
-    /// FUNCTION — §2023:15.2 item 6: "These are of the class and category index" — is identifier-2 exactly as an index data
+    /// FUNCTION — §2023:15.2 GR6: "These are of the class and category index" — is identifier-2 exactly as an index data
     /// item is. The classifier used to return <see cref="IndexAssignmentSender.ArithmeticExpression"/> for every
     /// sender that was not a bare data reference, which put an index function through §2023:14.9.39.3 SR3 / the §2023:8.8.1.1
     /// numeric screen. A function-identifier or invocation of any OTHER class stays arithmetic-expression-1, whose
@@ -1651,7 +1651,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     /// <c>SET SIZE OF D TO n</c> and <c>SET D TO n</c> are the SAME format with the same rules — and the
     /// SIZE-OF-absent arm used to be a separate peek that refused to resolve anything carrying a
     /// <c>dataReferenceSuffix</c>. That test was aimed at subscripts, but a suffix ALSO carries QUALIFICATION,
-    /// so <c>SET D OF G TO 2</c> — legal source (§2023:8.4.2.2.3 rule 2: "a name may be qualified even though it does
+    /// so <c>SET D OF G TO 2</c> — legal source (§2023:8.4.2.2.3 SR2: "a name may be qualified even though it does
     /// not need qualification"; §2023:13.16.3 SR18 leaves an OCCURS clause impossible here, so the subscript half had
     /// nothing legal to exclude) — fell into the Format-1 numeric store and died at run time. The ONE receiver
     /// resolution is <see cref="ExpressionBinder.ResolveReceiving"/>, the same one the explicit arm always used;

@@ -20,7 +20,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// </list>
 /// Before PB1664 the second arm was CR LF on every host and a LINE SEQUENTIAL report file bypassed the first
 /// (<c>FileRegistry.RegisterReport</c> registers every report file as record sequential), so it was CR LF on Linux
-/// where GnuCOBOL writes LF. ADVANCING 0's bare carriage return (§2023:14.9.51.4 GR25 c), owner decision R54) and
+/// where GnuCOBOL writes LF. ADVANCING 0's bare carriage return (§2023:14.9.51.4 GR25c, owner decision R54) and
 /// ADVANCING PAGE's form feed (GR25 h)) are line CONTROLS, not line ends, and are asserted unchanged.
 /// </summary>
 public sealed class PrintStreamLineEndConformanceTests

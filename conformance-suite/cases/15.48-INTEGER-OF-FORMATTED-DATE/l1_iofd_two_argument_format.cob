@@ -17,10 +17,10 @@
       *> whose one permission (§2023:8.4.3.2.3 SR2, the REPOSITORY paragraph) is
       *> exercised in the accepting direction by
       *> 2014/l1_repository_bare_intrinsic_names.
-      *> §2023:8.3.5 r2 makes the comma "a separator that may be used anywhere the
+      *> §2023:8.3.5 SR2 makes the comma "a separator that may be used anywhere the
       *> separator space is used", so the format's one space admits a comma too.
       *>
-      *> EXPECTED VALUES, from §2023:15.48.4 r1 — "The returned value is the integer
+      *> EXPECTED VALUES, from §2023:15.48.4 RV1 — "The returned value is the integer
       *> date form equivalent of the date represented by argument-2 when analyzed
       *> according to argument-1" — over §2023:15.5.2's integer date form ("a number of
       *> days succeeding December 31, 1600" on "a starting date of Monday,

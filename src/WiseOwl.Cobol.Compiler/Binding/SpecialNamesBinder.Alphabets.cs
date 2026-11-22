@@ -365,7 +365,7 @@ public sealed partial class SpecialNamesBinder
     /// national arm used to keep its own copy under a different name.</summary>
     private static bool IsAlphabetFigurativeWord(string word) => AlphabetFigurative(word) is not null;
 
-    /// <summary>⛔ THE ONE literal-phrase alphabet builder (ISO §2023:12.3.7.4 GR7 k), for the ALPHANUMERIC arm and the
+    /// <summary>⛔ THE ONE literal-phrase alphabet builder (ISO §2023:12.3.7.4 GR7k), for the ALPHANUMERIC arm and the
     /// <c>FOR NATIONAL</c> arm alike. GR7 k states its six sub-rules once, "<i>where the native coded character set
     /// is the type of coded character set or collating sequence being defined, either alphanumeric or national</i>",
     /// and both native sets are the 65,536 UTF-16 code units here (implementor item 188 / D-N1) — so there is ONE
@@ -390,7 +390,7 @@ public sealed partial class SpecialNamesBinder
         string what = rules.What;
         var pos = new Dictionary<char, int>();
         var specOrder = new List<char>();       // every specified character in source order (the GR8/GR9 tie rules)
-        var repByPos = new List<char>();        // per position: the FIRST character DEFINED there (§2023:15.15.4 r2 / GR7 k6)
+        var repByPos = new List<char>();        // per position: the FIRST character DEFINED there (§2023:15.15.4 RV2 / GR7 k6)
         // ⛔ An int, never a ushort (kb/Work PB1557): the position COUNT reaches 65,536 when the phrase specifies
         // every native character (SR14 b4/c4's bound is "shall not exceed", so equal is legal), one past what a
         // 16-bit counter holds — it wrapped to 0 and the whole table lost its specified block.

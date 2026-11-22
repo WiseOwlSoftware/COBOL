@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> PB4635 - ISO §2023:15.37.3 r3: argument-3 "shall be an integer data item or integer literal". (I2) is an arithmetic
+      *> PB4635 - ISO §2023:15.37.3 AR3: argument-3 "shall be an integer data item or integer literal". (I2) is an arithmetic
       *> expression enclosed in parentheses (§2023:8.8.1.1), not the data item it encloses; the expression binder drops the
       *> grouping parentheses, so the argument binder takes the WRITTEN shape (IntrinsicBinder.BindArgOperandCore).
        IDENTIFICATION DIVISION.

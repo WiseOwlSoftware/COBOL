@@ -8,9 +8,9 @@ namespace WiseOwl.Cobol.Runtime;
 /// ⛔ THE DOOR RULES OF THE .NET HOST ENTRY, WRITTEN ONCE (DESIGN-external-repository §4.3; kb/Work PB2099). A generated
 /// host entry (<c>HostEntryEmitter</c>) is the .NET counterpart of a CALL statement: it lands every host value into a
 /// detached storage of its formal's description before anything is activated, and decodes that storage back after the
-/// activation. ISO §2023:14.2.3 9) lands a BY CONTENT argument into "a data item with the same description and the same number
+/// activation. ISO §2023:14.2.3 GR9 lands a BY CONTENT argument into "a data item with the same description and the same number
 /// of bytes as the formal parameter" by "a COMPUTE statement without the ROUNDED phrase" when the formal is numeric and
-/// "otherwise, a MOVE statement"; §2023:14.2.3 10) lands BY VALUE by the same COMPUTE. §2023:14.2.3 13): "When either the activating
+/// "otherwise, a MOVE statement"; §2023:14.2.3 GR10 lands BY VALUE by the same COMPUTE. §2023:14.2.3 GR13: "When either the activating
 /// or the activated runtime element is other than a COBOL runtime element, the implementor shall specify the restrictions
 /// and mechanisms for all supported language products" — and the ONE restriction stated for .NET (owner decision
 /// 2026-10-05) is that <b>the landing loses nothing</b>. A host site has no ON SIZE ERROR, and a silently narrowed amount
@@ -21,7 +21,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// (<see cref="CobolNum.TryStore(Int128, int, in NumProfile, CobolRounding, out Int128)"/> under
 /// <see cref="CobolRounding.Prohibited"/>, which refuses an inexact transfer), so "exact" is decided by the same capacity
 /// rule every COBOL receiver of that description obeys; the text landing is the MOVE's own alignment
-/// (<see cref="CobolString.Store"/>); the validity decode is the class test NUMERIC (ISO §2023:8.8.4.4.4 3) n)) as
+/// (<see cref="CobolString.Store"/>); the validity decode is the class test NUMERIC (ISO §2023:8.8.4.4.4 GR3n) as
 /// <see cref="CobolNum.IsNumericImage"/> answers it.</para>
 /// <para>It is the generated code's ABI, called by host entries compiled into other assemblies, and carries no contract
 /// for a hand-written caller: a .NET host calls the generated entry, never this class.</para>
@@ -84,7 +84,7 @@ public static class HostLanding
             throw new InvalidOperationException($"HostLanding: '{parameter}' is a floating-point formal, which takes its own "
                 + "carrier unconverted (the host type of a floating-point item is the item's carrier)");
         // A negative value into an unsigned item: "the absolute value of the sending value is used, and no operational
-        // sign is generated for the receiving item" (ISO §2023:14.9.25.4 6)), which drops the sign — a loss.
+        // sign is generated for the receiving item" (ISO §2023:14.9.25.4 GR6), which drops the sign — a loss.
         if (value < 0 && !formal.Signed)
             throw Lossy(parameter, member, CobolNum.PlainValue(value, scale), formal, Loss.Sign);
         if (CobolNum.TryStore(value, scale, formal, CobolRounding.Prohibited, out Int128 stored))
@@ -93,11 +93,11 @@ public static class HostLanding
             CobolNum.TryStore(value, scale, formal, CobolRounding.Truncation, out _) ? Loss.LowOrder : Loss.HighOrder);
     }
 
-    // ── Text landings: a host string → the formal's character content (§2023:14.2.3 9)'s MOVE, exact) ─────────────────────
+    // ── Text landings: a host string → the formal's character content (§2023:14.2.3 GR9's MOVE, exact) ─────────────────────
 
     /// <summary>Land a host string into an elementary formal of FIXED length <paramref name="positions"/> — alphanumeric,
     /// alphabetic, national, boolean, alphanumeric-edited or numeric-edited — as the MOVE fills it: aligned on the left
-    /// and filled on the right, or on the right under JUSTIFIED (ISO §2023:13.18.32.4 2)), with spaces for a character item and
+    /// and filled on the right, or on the right under JUSTIFIED (ISO §2023:13.18.32.4 GR2), with spaces for a character item and
     /// zeros for a boolean one. An edited formal takes the string as its character content; a host that holds the number
     /// formats it. The string is refused when it is longer than the item (the MOVE would truncate it) or when a boolean
     /// formal is given a character other than <c>0</c> or <c>1</c>.</summary>
@@ -119,8 +119,8 @@ public static class HostLanding
     }
 
     /// <summary>Land a host string into a formal whose length is the argument's — a DYNAMIC LENGTH item, bounded by
-    /// <paramref name="maximum"/> (ISO §2023:13.18.19.4 2)), or an ANY LENGTH item (<paramref name="maximum"/>
-    /// <see cref="CobolArg.Unstated"/>; §2023:13.18.2.4 1): its length is the argument's). Nothing is filled.</summary>
+    /// <paramref name="maximum"/> (ISO §2023:13.18.19.4 GR2)), or an ANY LENGTH item (<paramref name="maximum"/>
+    /// <see cref="CobolArg.Unstated"/>; §2023:13.18.2.4 GR1: its length is the argument's). Nothing is filled.</summary>
     /// <exception cref="ArgumentNullException"><paramref name="value"/> is null.</exception>
     /// <exception cref="ArgumentOutOfRangeException">The string is longer than the item's maximum, or a boolean position
     /// would not hold its character.</exception>
@@ -147,7 +147,7 @@ public static class HostLanding
         if (bad >= 0)
             throw new ArgumentOutOfRangeException(parameter, Quote(text),
                 $"{Subject(parameter, member)} is a boolean item, whose content is only the boolean values 0 and 1 (the class "
-                + "test BOOLEAN, ISO §2023:8.8.4.4.4 3) e)), "
+                + "test BOOLEAN, ISO §2023:8.8.4.4.4 GR3e), "
                 + $"and position {bad + 1} of the string is '{text[bad]}'.");
     }
 
@@ -155,7 +155,7 @@ public static class HostLanding
 
     /// <summary>Refuse one variable given to two <c>ref</c> parameters whose formals have DIFFERENT descriptions. Two
     /// formals of one description that are given one variable share one storage — the generated entry gives the second
-    /// the first's cell, so <c>Call(ref a, ref a)</c> is the host's <c>CALL … USING A A</c> (ISO §2023:14.2.3 8): the
+    /// the first's cell, so <c>Call(ref a, ref a)</c> is the host's <c>CALL … USING A A</c> (ISO §2023:14.2.3 GR8): the
     /// activated element "operates as if the formal parameter occupies the same storage area as the argument"). One
     /// storage cannot be two different descriptions, so such a variable is refused before anything is activated.</summary>
     /// <exception cref="ArgumentException"><paramref name="sameVariable"/>: the two parameters refer to one variable.</exception>
@@ -169,7 +169,7 @@ public static class HostLanding
 
     /// <summary>Require a DYNAMIC-CAPACITY table member's array to be a capacity the table can have: its length is the
     /// table's current capacity, which is never below the minimum capacity ("Integer-4 is the minimum capacity of the
-    /// table", ISO §2023:13.18.38.4 16)) and never above the maximum capacity, the implementor's limit (§2023:8.5.1.9.1,
+    /// table", ISO §2023:13.18.38.4 GR16) and never above the maximum capacity, the implementor's limit (§2023:8.5.1.9.1,
     /// <see cref="CobolDynTable{T}.MaxOccurrences"/>); returns the array.</summary>
     /// <exception cref="ArgumentNullException">The array is null.</exception>
     /// <exception cref="ArgumentException">The array's length lies outside the table's capacities.</exception>
@@ -206,7 +206,7 @@ public static class HostLanding
 
     /// <summary>The current number of occurrences of an OCCURS DEPENDING ON table in a record a host is landing: "The value
     /// of the data item referenced by data-name-1 represents the current number of occurrences of the subject of the
-    /// entry" (ISO §2023:13.18.38.4 7)), so it is the DEPENDING item's content in the record image — <paramref name="image"/>,
+    /// entry" (ISO §2023:13.18.38.4 GR7), so it is the DEPENDING item's content in the record image — <paramref name="image"/>,
     /// the item's own character image, already landed — decoded by the validity rule, and it "shall fall within the
     /// bounds from integer-1 through integer-2" (the same rule). The caller then requires the table's array to have that
     /// many entries (<see cref="RequireOccurrences{T}"/>).</summary>
@@ -222,7 +222,7 @@ public static class HostLanding
     }
 
     /// <summary>The current number of occurrences of an OCCURS DEPENDING ON table in a record image being decoded (ISO
-    /// §2023:13.18.38.4 7)): the DEPENDING item's content (<paramref name="image"/>) decoded by the validity rule
+    /// §2023:13.18.38.4 GR7): the DEPENDING item's content (<paramref name="image"/>) decoded by the validity rule
     /// (<see cref="TryDecode"/>) and within the table's bounds. Otherwise the record holds no table a .NET array can
     /// present — a reference to it in COBOL would set EC-BOUND-ODO — so the method returns false, the first such
     /// refusal is kept in <paramref name="failure"/>, and the record is not decoded.</summary>
@@ -232,7 +232,7 @@ public static class HostLanding
         occurrences = 0;
         if (!TryDecode(image, depending, dependingName, ref failure, out Int128 unscaled))
             return false;
-        // Data-name-1 describes an integer (§2023:13.18.38.3 17)); its P positions, if any, scale it up, and the scaling stops
+        // Data-name-1 describes an integer (§2023:13.18.38.3 SR17); its P positions, if any, scale it up, and the scaling stops
         // once the value is past the bounds, so no product overflows.
         Int128 value = unscaled;
         for (int p = -depending.FractionScale; p > 0 && Int128.Abs(value) <= maximum; p--)
@@ -294,7 +294,7 @@ public static class HostLanding
     /// <summary>The host <see cref="CobolDec"/> of an UNSIGNED 16-byte binary item with a scale — the one storage no
     /// exact .NET type holds: its container reaches 2^128 units (DOC-A.1-208; kb/Work R10) and
     /// <see cref="CobolDec"/>'s significand 2^127. Content below 2^127 units decodes exactly; content at or above it is
-    /// the stated ISO §2023:14.2.3 13) restriction for .NET (DESIGN-external-repository §4.3): it is refused like content
+    /// the stated ISO §2023:14.2.3 GR13 restriction for .NET (DESIGN-external-repository §4.3): it is refused like content
     /// that is not numeric — false, the host variable unchanged, and the first refusal kept in
     /// <paramref name="failure"/> for the entry to throw after every other write-back.</summary>
     public static bool TryDec(UInt128 unscaled, int scale, string name, ref FormatException? failure, out CobolDec value)
@@ -313,7 +313,7 @@ public static class HostLanding
 
     /// <summary>⛔ THE VALIDITY RULE (DESIGN-external-repository §4.3 "Write-back and RETURNING — one validity rule"): decode
     /// the character <paramref name="image"/> of a numeric item of description <paramref name="item"/> only when it is a
-    /// valid representation of that description — the class test NUMERIC is true of it (ISO §2023:8.8.4.4.4 3) n)), as
+    /// valid representation of that description — the class test NUMERIC is true of it (ISO §2023:8.8.4.4.4 GR3n), as
     /// <see cref="CobolNum.IsNumericImage"/>, the runtime's one implementation of that test, answers. Content a
     /// REDEFINES alias, a reference modification or a non-conforming activator left there is refused: the method returns
     /// false, the host variable is left unchanged, and the FIRST such refusal is kept in <paramref name="failure"/> as the
@@ -329,7 +329,7 @@ public static class HostLanding
         }
         unscaled = 0;
         failure ??= new FormatException($"'{name}' holds {(image is null ? "no content" : Quote(image))}, which is not a "
-            + "valid representation of its numeric description (the class test NUMERIC, ISO §2023:8.8.4.4.4 3) n), is false), "
+            + "valid representation of its numeric description (the class test NUMERIC, ISO §2023:8.8.4.4.4 GR3n, is false), "
             + "so it was not decoded and its .NET variable is unchanged (DESIGN-external-repository §4.3).");
         return false;
     }
