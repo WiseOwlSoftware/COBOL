@@ -1170,8 +1170,13 @@ statement-order visibility is today's exactly because the binder appends and rea
 `IReads<TFacts>` answers the complete set and is legal only after the last phase that appends. The four accumulators
 are the four fact sets, each with its declared appending phases (`WholeGroupReferenced`: FilesResolved and
 UsageCollected; `ImageForcedItems`: RedefinesClassified, FilesResolved and ProcedureBound, read early by the resolver;
-`CharacterChannelItems`: UsageCollected; `ActivationSites`: ProcedureBound, read whole by the validation schedule). The
-declaration is code (PB2352): `FactSetKind` names the four, `FactSetContract` holds each one's appending phases (the last of
+`CharacterChannelItems`: UsageCollected; `ActivationSites`: ProcedureBound, read whole by the validation schedule). Two
+more joined them as code found them: `NumericStores` (UsageCollected, kb/Work PB5852) and `RangeCollations`, the THROUGH
+range carriers (kb/Work PB3214: appended in the entry walk by a level-88 `VALUE THROUGH … IN alphabet-name-1` and at
+ProcedureBound by an EVALUATE WHEN range, through `SpecialNamesBinder.TryResolveRangeAlphabet`, and read whole by code
+generation through `DataBindResult.RangeCollations`; it had sat among the SPECIAL-NAMES maps the configuration slice
+freezes before the data phases, where neither append was declared). The
+declaration is code (PB2352): `FactSetKind` names them, `FactSetContract` holds each one's appending phases (the last of
 them is the phase after which a whole read is legal), every pass states its `PassViews` (`IPassInfo.Views`: what it appends
 to, reads early, reads whole), and `BindPipeline.ValidateDag` refuses an append in a phase the set does not admit and a
 whole read that is not after the last appender. The declaration is checked against what a per-unit resolve pass does,

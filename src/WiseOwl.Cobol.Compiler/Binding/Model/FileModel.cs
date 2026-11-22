@@ -413,8 +413,44 @@ public sealed class FileModel
     public bool FileStatusRefused => FileStatusOperand is not null && FileStatusItem is null;
 
     /// <summary>The FD's record description(s), in declaration order. The first is the canonical storage area; every
-    /// other shares it (synthesized REDEFINES).</summary>
-    public List<DataItem> Records { get; } = [];
+    /// other shares it (synthesized REDEFINES). A record joins it only through <see cref="AddRecord"/>.</summary>
+    public IReadOnlyList<DataItem> Records => _records;
+
+    private readonly List<DataItem> _records = [];
+
+    /// <summary>⛔ THE ONE PLACE A RECORD DESCRIPTION JOINS A FILE: it appends <paramref name="record"/> and points the record back
+    /// at this file (<see cref="DataItem.RecordOfFile"/>), so the record answers the FD half of the external and global
+    /// attributes (§2023:13.18.22.4 GR4b, §2023:13.18.27.4 GR1) without a reader scanning the files (kb/Work PB3212).</summary>
+    public void AddRecord(DataItem record)
+    {
+        _records.Add(record);
+        record.RecordOfFile = this;
+    }
+
+    /// <summary>The prefix of the run-unit cell names of an external file's record area (<see cref="ExternalAreaName"/>), which no
+    /// externalized record name can begin with: a COBOL word has no colon.</summary>
+    public const string ExternalAreaPrefix = "FD::";
+
+    /// <summary>The run-unit cell an EXTERNAL file's <paramref name="record"/> lies in (determination D-FRA, kb/Work PB1026), or null
+    /// for a file that is not external. ISO §2023:13.18.22.4 GR4b makes "the data contained in all record description entries"
+    /// external and GR5 externalizes the FILE name, so every describer of the file computes the same cell whatever it names its
+    /// records: the character half of the area (every record with a window) is ONE cell named for the file, and each
+    /// OUT-OF-LINE record (<see cref="IsOutOfLineRecord"/>) has its own, numbered by its ordinal among the file's out-of-line
+    /// records in declaration order. Read by the re-basing (<c>LinkageBinder.CallBindExternalAndGlobal</c>) and by the
+    /// corresponding-external-item identity (<see cref="DataItem.ExternalItemIdentity(IReadOnlyList{int})"/>), so the two agree.</summary>
+    public string? ExternalAreaName(DataItem record)
+    {
+        if (!IsExternal || ExternalName is not { } file) return null;
+        if (!IsOutOfLineRecord(record)) return ExternalAreaPrefix + file;
+        int k = 0;
+        foreach (var r in _records)
+            if (IsOutOfLineRecord(r))
+            {
+                k++;
+                if (ReferenceEquals(r, record)) break;
+            }
+        return $"{ExternalAreaPrefix}{file}#{k}";
+    }
 
     /// <summary>The record <c>FileControlBinder.MaterializeImpliedRecord</c> synthesized for an FD with NO record description
     /// entries (ISO §2023:14.9.30.4 GR6, kb/Work PB345), or null when the entry wrote its own. It is in

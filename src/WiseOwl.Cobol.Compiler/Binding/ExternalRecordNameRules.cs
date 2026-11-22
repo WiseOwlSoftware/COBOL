@@ -36,7 +36,7 @@ internal static class ExternalRecordNameRules
         Dictionary<string, List<Element>>? records = null;
         foreach (var e in elements)
             foreach (var root in e.Data.Forest.Roots)
-                if (root.CobolName is { } n && e.Data.Forest.DeclaringDepth(root) == 0 && DataBinder.IsInExternalRecord(root, e.Data.Files))
+                if (root.CobolName is { } n && e.Data.Forest.DeclaringDepth(root) == 0 && root.HasExternalAttribute)
                 {
                     records ??= new Dictionary<string, List<Element>>(CobolNames.Comparer);
                     if (!records.TryGetValue(n, out var list)) records[n] = list = [];
@@ -52,7 +52,7 @@ internal static class ExternalRecordNameRules
                 foreach (var item in items)
                 {
                     // The item must be a SUBORDINATE external item this element describes (an inherited GLOBAL is its container's own).
-                    if (item.Parent is null || e.Data.Forest.DeclaringDepth(item) != 0 || !DataBinder.IsInExternalRecord(item, e.Data.Files)) continue;
+                    if (item.Parent is null || e.Data.Forest.DeclaringDepth(item) != 0 || !item.HasExternalAttribute) continue;
                     int at = owners.FindIndex(o => runUnit || Nested(e.Unit, o.Unit));
                     if (at < 0) continue;
                     var owner = owners[at];

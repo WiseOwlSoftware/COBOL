@@ -17,7 +17,7 @@
   "rule-id": "1985-GR-VIII.4.4.4-2",
   "verdict": "CONFORMS",
   "requirement": "At --std 85 a successful OPEN makes the relative file's record area available, and for an EXTERNAL file connector every program of the run unit that describes the file (contained or separately written, under any record description) shares the one record area, so a MOVE, WRITE or READ in one program is seen in the others.",
-  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#Bind; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#IsInExternalRecord; src/WiseOwl.Cobol.Compiler/Binding/ExternalFileConnectorRules.cs#Check; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RegisterRelative",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#Bind; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#HasExternalAttribute; src/WiseOwl.Cobol.Compiler/Binding/ExternalFileConnectorRules.cs#Check; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RegisterRelative",
   "edition-consulted": [
    {
     "site": "src/WiseOwl.Cobol.Compiler/Binding/ExternalFileConnectorRules.cs#Check",
@@ -25,7 +25,7 @@
     "same-arm-as-latest": false
    }
   ],
-  "edition-search": "grep of the external-file binding (BinderDriver ::EXT:: band, DataBinder.IsInExternalRecord, FileRegistry.RegisterRelative) for EditionContext|DialectLevel; only ExternalFileConnectorRules.Check consults it, for the consistency screen, not for the shared record area.",
+  "edition-search": "grep of the external-file binding (BinderDriver ::EXT:: band, DataItem.HasExternalAttribute, FileRegistry.RegisterRelative) for EditionContext|DialectLevel; only ExternalFileConnectorRules.Check consults it, for the consistency screen, not for the shared record area.",
   "behaviour-differs-by-edition": "no for the shared record area; the 85 arm adds a description-consistency screen",
   "witnesses-cover": "part: g85_bf24_02 covers a contained program with the same record description; separately written programs, a different record description of the shared area, and an OPEN made in a called program are not exercised",
   "probes": [

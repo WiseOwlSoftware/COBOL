@@ -73,10 +73,10 @@ internal sealed class CheckUsageDeclarationsPass : IBindPass
             // ── §2023:13.18.60.3 SR15 ─────────────────────────────────────────────────────────────────────────
             // The DIRECT declaration arm. Its SAME AS twin (§2023:13.18.49.3 SR6) has been enforced since the SAME
             // AS landing while this one had no screen at all — the two-arm dispatch, with the arm that needs
-            // no indirection missing. IsFileSectionItem is the twin's own root test, shared rather than
+            // no indirection missing. DataItem.IsInFileSectionRecord is the twin's own root test, shared rather than
             // re-written. Reported independently of SR14: an FD record may legally be a level-1 elementary
             // item, so `01 R USAGE OBJECT REFERENCE C.` under an FD passes SR14 and violates only SR15.
-            if (item.Pic is { Category: PicCategory.ObjectReference } && binder.IsFileSectionItem(item))
+            if (item.Pic is { Category: PicCategory.ObjectReference } && item.IsInFileSectionRecord)
             {
                 binder.Edition.Error(DiagnosticCatalog.UsageObjectReferenceFileSection, $"data item '{name}' is "
                     + "described with USAGE OBJECT REFERENCE and belongs to a file section record — the USAGE "

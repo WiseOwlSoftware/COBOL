@@ -624,7 +624,11 @@ internal sealed class LinkageBinder(DataBinder data)
         foreach (var item in data.State.Forest.WorkingStorageRoots.Concat(data.State.Forest.LocalStorageRoots).Concat(_roots)
                      .Concat(data.State.Files.Declared.SelectMany(f => f.Records)))
         {
-            if (item.HasGlobalClause && !_globalRoots.Contains(item)) _globalRoots.Add(item);
+            // A global name (§2023:8.4.6.2.2): the record's own GLOBAL clause, or its GLOBAL FD's — the record-names of a GLOBAL FD
+            // are global names (§2023:13.18.27.4 GR1), so contained programs reach the OWNER's record area through the standard
+            // containment bridges (GR2: container storage, contained visibility). The file-NAME half of the rule is the contained
+            // unit's file lookup (SymbolTable.InheritFiles).
+            if (item.IsGlobalName && !_globalRoots.Contains(item)) _globalRoots.Add(item);
             if (!item.HasExternalClause) continue;
             // §2023:13.16.3 SR5 makes this unreachable (the screen refuses EXTERNAL beside REDEFINES), and it must STAY
             // unreachable: re-basing a redefinER re-homes its whole class — the anchor included — onto the cell.
@@ -644,9 +648,8 @@ internal sealed class LinkageBinder(DataBinder data)
         // keyed by the FILE's externalized name (GR4b/GR5), so a record that is ALSO external by its type
         // (`FD F IS EXTERNAL. 01 R TYPE TG.` with `TG IS TYPEDEF STRONG EXTERNAL`) must not take a second cell and backing
         // under its own name: both declared `_scell_R` / `_redef_R` (CS0102).
-        var externalFdRecords = data.State.Files.Declared.Where(f => f.IsExternal).SelectMany(f => f.Records).ToHashSet();
         foreach (var item in data.State.Forest.Roots)
-            if (item is { ExternalFromType: true, HasExternalClause: false, CobolName: not null } && !externalFdRecords.Contains(item))
+            if (item is { ExternalFromType: true, HasExternalClause: false, CobolName: not null } && item.RecordOfFile is not { IsExternal: true })
                 CallMakeExternal(item);
 
         // EXTERNAL FDs: the record area is run-unit storage keyed by the externalized FILE name (§2023:13.18.22.4
@@ -663,24 +666,12 @@ internal sealed class LinkageBinder(DataBinder data)
         // "the data contained in all record description entries" is ONE copy per run unit. It used to be staged
         // loud as COBOL0899: the character half alone would have split the area in two.
         foreach (var file in data.State.Files.Declared)
-            if (file is { IsExternal: true, ExternalName: { } extName } && file.Records.Count > 0)
+            if (file is { IsExternal: true, ExternalName: not null } && file.Records.Count > 0)
             {
-                if (file.CharacterAnchor is { } anchor) CallMakeExternal(anchor, "FD::" + extName);
-                int k = 0;
+                if (file.CharacterAnchor is { } anchor) CallMakeExternal(anchor, file.ExternalAreaName(anchor));
                 foreach (var record in file.Records.Where(FileModel.IsOutOfLineRecord))
-                    CallMakeExternal(record, $"FD::{extName}#{++k}");
+                    CallMakeExternal(record, file.ExternalAreaName(record));
             }
-
-        // GLOBAL FDs: the record-names of a GLOBAL FD are GLOBAL names (ISO §2023:13.18.27.4 GR1 — the file-name and the
-        // record-names described subordinate to the FD are global names): the records join the GLOBAL roots so
-        // contained programs reach the OWNER's record area through the standard containment bridges
-        // (§2023:13.18.27.4 GR2 — container storage, contained visibility). The file-NAME half of the rule is the
-        // contained unit's file lookup (SymbolTable.InheritFiles).
-        foreach (var file in data.State.Files.Declared)
-            if (file.IsGlobal)
-                foreach (var rec in file.Records)
-                    if (!GlobalRoots.Contains(rec))
-                        _globalRoots.Add(rec);
 
         CheckExternalizedNameUniqueness();
     }
@@ -757,7 +748,7 @@ internal sealed class LinkageBinder(DataBinder data)
             if (file is { IsExternal: true, ExternalName: { } extName })
                 yield return new ExternalizedSubject(ExternalizedSubjectKind.File, extName, $"file '{file.CobolName}'", file.EntryAt);
         foreach (var backing in _externalBackings)
-            if (!backing.ExternalName.StartsWith("FD::", StringComparison.Ordinal))
+            if (!backing.ExternalName.StartsWith(FileModel.ExternalAreaPrefix, StringComparison.Ordinal))
                 yield return new ExternalizedSubject(ExternalizedSubjectKind.DataItem, backing.ExternalName,
                     $"data item '{backing.Record.CobolName}'", backing.Record.DeclaredAt);
     }

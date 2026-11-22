@@ -380,17 +380,6 @@
     "WiseOwl.Cobol.Binding.DataBinder::IsDescriptionOpen": [
       "WiseOwl.Cobol.Binding.ConstantEntryBinder"
     ],
-    "WiseOwl.Cobol.Binding.DataBinder::IsFileSectionItem": [
-      "WiseOwl.Cobol.Binding.Passes.CheckUsageDeclarationsPass"
-    ],
-    "WiseOwl.Cobol.Binding.DataBinder::IsGlobalRecord": [
-      "WiseOwl.Cobol.Binding.Passes.OdoResolvePass",
-      "WiseOwl.Cobol.Binding.ReportSectionBinder"
-    ],
-    "WiseOwl.Cobol.Binding.DataBinder::IsInExternalRecord": [
-      "WiseOwl.Cobol.Binding.ExternalRecordNameRules",
-      "WiseOwl.Cobol.Binding.Passes.OdoResolvePass"
-    ],
     "WiseOwl.Cobol.Binding.DataBinder::IsPictureLessLeaf": [
       "WiseOwl.Cobol.Binding.Passes.CheckPictureRequiredPass",
       "WiseOwl.Cobol.Binding.Passes.SynthesizeImpliedPicturesPass"

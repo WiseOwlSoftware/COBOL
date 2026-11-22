@@ -437,19 +437,56 @@ public sealed class DataItem
         "ExpandType / ExpandSameAs write it under ISO §2023:13.18.22.4 GR3 with the GR2 level-1 check — a derived effect, never a verbatim copy")]
     public bool ExternalFromType { get; set; }
 
+    /// <summary>The file description entry this RECORD is a record description entry of (an FD's or an SD's), or null for a
+    /// record of any other section and for every subordinate item. Set by <see cref="FileModel.AddRecord"/>, the one place a
+    /// record joins a file, so the record answers the FD half of the external and global attributes itself
+    /// (<see cref="HasExternalAttribute"/>, <see cref="IsGlobalName"/>) and no reader scans the files for it (kb/Work PB3212).</summary>
+    [DescriptionCopy(DescriptionCopyKind.None,
+        "a fact of the record's PLACEMENT under a file description entry (ISO §2023:13.18.22.4 GR4b, §2023:13.18.27.4 GR1), never of a described entry a TYPE or SAME AS clause copies")]
+    public FileModel? RecordOfFile { get; internal set; }
+
+    /// <summary>Whether this item belongs to a FILE SECTION record (its root is an FD's or an SD's record description entry):
+    /// the placement test of §2023:13.18.49.3 SR6, §2023:13.18.57.3 SR8 and §2023:13.18.60.3 SR15, and the section fact
+    /// §2023:13.4.4 GR1 keys the initial state on (kb/Work PB1241). Asked of the ROOT, so a subordinate answers its record's.</summary>
+    public bool IsInFileSectionRecord => Root.RecordOfFile is not null;
+
+    /// <summary>⛔ THE ONE TEST OF THE EXTERNAL ATTRIBUTE (kb/Work PB5427, PB3212): whether the record this item belongs to is an
+    /// external data item. ISO §2023:8.6.3: a working-storage record "is given the external attribute by the presence of the
+    /// EXTERNAL clause in its data description entry", a record that references an external type is external too
+    /// (§2023:13.18.22.4 GR3, <see cref="ExternalFromType"/>), and the records of an <c>FD … IS EXTERNAL</c> file are external
+    /// though they write no clause (§2023:13.18.22.4 GR4b: "the data contained in all record description entries" is
+    /// external). Every item subordinate to an external record attains the attribute too.</summary>
+    public bool HasExternalAttribute =>
+        Root is var root && (root.HasExternalClause || root.ExternalFromType || root.RecordOfFile is { IsExternal: true });
+
+    /// <summary>⛔ THE ONE TEST OF A GLOBAL NAME (kb/Work PB3212): whether the record this item belongs to, and so this item, is a
+    /// global name. ISO §2023:8.4.6.2.2: "A constant-name, file-name, record-name, report-name, screen-name, or type-name
+    /// described with a GLOBAL clause is a global name. All data-names and screen-names subordinate to a global name are
+    /// global names" — the record's own GLOBAL clause, or its file description's (§2023:13.18.27.4 GR1).</summary>
+    public bool IsGlobalName => Root is var root && (root.HasGlobalClause || root.RecordOfFile is { IsGlobal: true });
+
     /// <summary>The externalized name of this EXTERNAL record, ISO §2023:13.18.22.4 GR5's two sentences: literal-1 verbatim when
     /// the entry's EXTERNAL clause writes <c>AS literal-1</c>, else the record's own data-name (case-folded, a COBOL word). The
     /// one spelling of the rule, read by the cell keying (<c>LinkageBinder</c>, kb/Work PB511) and by
     /// <see cref="ExternalItemIdentity(IReadOnlyList{int})"/>, so the record two programs share is the record both ask about.</summary>
     public string ExternalizedRecordName() => ExternalizedAs ?? CobolNames.UpperFold(CobolName!);
 
+    /// <summary>The name of the run-unit storage this EXTERNAL record lies in: for a record of an <c>FD … IS EXTERNAL</c> file the
+    /// file's record-area cell (<see cref="FileModel.ExternalAreaName"/>), which every describer of the file shares whatever it
+    /// names its records (§2023:13.18.22.4 GR4b, and GR5 externalizes the FILE name); otherwise the record's own externalized
+    /// name (<see cref="ExternalizedRecordName"/>). Read by <see cref="ExternalItemIdentity(IReadOnlyList{int})"/>, so an item of
+    /// an external file's record is the same corresponding external data item (§2023:14.8.4.2) in every program describing the
+    /// file.</summary>
+    public string ExternalStorageName() => RecordOfFile?.ExternalAreaName(this) ?? ExternalizedRecordName();
+
     /// <summary>The "corresponding external data item" identity of this item (ISO §2023:14.8.4.2: the file status, linage and
     /// relative key data items "shall refer to the same corresponding storage in each runtime element"; §1985:VIII.2.4.4 GR8's
-    /// "that same external data item"): the external RECORD it lies in (its EXTERNAL root's externalized name,
-    /// <see cref="ExternalizedRecordName"/>; the root carries the EXTERNAL clause or an external TYPE), the item's OWN name, and
+    /// "that same external data item"): the external storage it lies in (<see cref="ExternalStorageName"/>), the item's OWN name, and
     /// the storage it occupies in that record, its character offset (<see cref="RecordLayout.OffsetOf(DataItem, IReadOnlyList{int})"/>,
     /// the offset the RECORD KEY identity <c>FileEntryIdentity.KeyEntry</c> carries) and its width; null when the item is NOT an
-    /// external data item. Two file-referencing items are the SAME corresponding external item iff their identities are equal,
+    /// external data item (<see cref="HasExternalAttribute"/>: an item of an <c>FD … IS EXTERNAL</c> file's record IS one,
+    /// §2023:13.18.22.4 GR4b, and was refused COBOL1624 as a RELATIVE KEY while this asked only the record's own clause and
+    /// type, kb/Work PB3212). Two file-referencing items are the SAME corresponding external item iff their identities are equal,
     /// so a same-named item at other character positions of the record is another item (kb/Work PB5857: an external record is
     /// storage the run unit's programs share, and two programs that took the relative record number from different characters
     /// shared a file connector undetected).
@@ -472,10 +509,9 @@ public sealed class DataItem
     /// is the item's own identity (<see cref="ExternalItemIdentity()"/>).</summary>
     public ExternalDataItemIdentity? ExternalItemIdentity(IReadOnlyList<int> occurrence)
     {
-        var root = this;
-        while (root.Parent is not null) root = root.Parent;
-        if (!(root.HasExternalClause || root.ExternalFromType)) return null;   // root is not an external data item
-        return new ExternalDataItemIdentity(root.ExternalizedRecordName(),
+        if (!HasExternalAttribute) return null;   // not an external data item
+        var root = Root;
+        return new ExternalDataItemIdentity(root.ExternalStorageName(),
             ReferenceEquals(root, this) ? null : CobolNames.UpperFold(CobolName ?? "?"),
             string.Join(",", occurrence.Select(o => o.ToString(System.Globalization.CultureInfo.InvariantCulture))),
             RecordLayout.OffsetOf(this, occurrence), ByteWidth);
