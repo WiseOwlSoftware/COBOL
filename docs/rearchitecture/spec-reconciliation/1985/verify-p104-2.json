@@ -1,0 +1,13 @@
+{
+  "claim_id": "p104-2",
+  "claim_key": "ba26a2802551790e",
+  "page": 104,
+  "kind": "missing-heading",
+  "severity": "structural",
+  "claim": {"id": "p104-2", "page": 104, "kind": "missing-heading", "severity": "structural", "pdf_says": "6.2.2.1.1 Working Storage Records", "markdown_says": "6.2.2.1.1 Working Storage Records", "why_it_matters": "A numbered section heading printed in the PDF is demoted to a plain paragraph in the markdown."},
+  "verdict": {
+    "real": false,
+    "reasoning": "The printed page (II-20) shows the bold heading '6.2.2.1.1 Working Storage Records'; the markdown (page-104.md line 9) carries exactly '6.2.2.1.1 Working Storage Records' as its own paragraph, in the same position, followed by the same body text. pdf_says and markdown_says are identical, so no text is missing. The only difference is that the line carries no '#' markup, and that is true of every heading on this page alike (6.2.2.1, 6.2.2.1.2, 6.2.2.1.3, 6.2.2.1.4 and 6.2.2.2 are all plain paragraphs too), so this one heading was not singled out for demotion. A heading level that applies to the whole page is a formatting convention of the transcription, not a content discrepancy. The 1985 transcription's heading convention as a whole is already tracked as PB6057. The heading's number and wording are intact and its meaning is unchanged.",
+    "corrected_description": null
+  }
+}

@@ -1,6 +1,7 @@
       *>--- conformance-case
       *> id: pb643_reserve_areas_all_organizations
-      *> rules: [GR-12.4.5.14.3-1]
+      *> rules: [GR-12.4.5.14.3-1, 1985-GR-VII.2.9.3-1,
+      *>    1985-GR-IX.2.3.4-6]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

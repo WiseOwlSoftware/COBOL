@@ -1,0 +1,17 @@
+{
+  "batch": [263, 264, 265, 266, 267, 268, 269, 270, 271, 272, 273, 274],
+  "pages_checked": [263, 264, 265, 266, 267, 268, 269, 270, 271, 272, 273, 274],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p273-1",
+      "page": 273,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "why_it_matters": "A heading at the wrong level breaks the document outline: tools that slice the transcription by heading treat 5.11.4 as a sibling of clause 5.11 rather than a subclause of it.",
+      "pdf_says": "5.11.4 General Rules",
+      "markdown_says": "## ║5.11.4 General Rules║",
+      "note": "The subclause heading 5.11.4 is transcribed at level 2 (##), the level of the clause heading 5.11 THE RENAMES CLAUSE. Its siblings are level 3: page 272 has '### ║5.11.3 Syntax Rules║', and page 271 has '### 5.10.4 General Rules'. It should be '### ║5.11.4 General Rules║'."
+    }
+  ]
+}

@@ -1315,10 +1315,13 @@ result does not feed it — decision 20.
   operand's category+width (§2023:8.3.3.6.4 GR2, whose NOTE 1 makes a comparison an association exactly as a MOVE is;
   GR3 b/c is the complementary length-unspecified branch — one character, or literal-1's length); HIGH/LOW-VALUE
   per §14.9. The sizing itself is ONE function, `CobolString.FigToWidth`: the VALUE-clause and fixed-receiver
-  sites fold it at compile time through `EmitText.RepeatToWidth`, and a RELATION CONDITION calls it at runtime
-  through `CobolString.CompareFig`, because there the associated operand may be a reference-modified item
+  sites fold it at compile time through `EmitText.RepeatToWidth`, and a RELATION CONDITION sizes at runtime
+  through `CobolString.CompareFig` / `ThruMemberFig`, because there the associated operand may be a reference-modified item
   (§2023:8.4.3.3.4 GR5 — the unique data item's own positions) or a function result, whose character-position count is
-  not a compile-time property of any PICTURE (kb/Work PB297).
+  not a compile-time property of any PICTURE (kb/Work PB297). The native-sequence arm of those two carriers does not
+  build the sized string: it walks the same rule's characters in place (`SizedOperand`, position i is
+  `seed[i % seed.Length]` for i < max(width, 1)), which `FigurativeReaderDriftTests` pins to `FigToWidth`'s answer
+  (kb/Work PB2649); the collating-sequence arms still read the materialized form.
 - **INITIALIZE** = a compile-time tree-walk to per-elementary typed stores (default/VALUE/REPLACING; FILLER skipped;
   OCCURS → a for-loop). §2023:14.9.20.4 GR4's "series of implicit MOVE or SET statements" is expanded at BIND time, and
   the lane keeps the standard's TWO rules apart: `Qualify` answers GR5c ("is this a receiving-operand, and WHY")

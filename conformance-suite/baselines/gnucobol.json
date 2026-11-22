@@ -7,10 +7,30 @@
   "compiler": "gnucobol",
   "verdicts": {
     "85": {
+      "1985-GR-VI_6_19_4-4-all-literal": "FAIL",
+      "1985-GR-VI_6_3_1_1_2-1-scaled": "PASS",
+      "1985-GR-VI_6_3_1_1_2-1-sign-separate": "FAIL",
+      "1985-SR-VI_6_18_3-2-refmod-group": "PASS",
       "compute-alphanumeric-receiver": "PASS",
       "compute-multi-receiver-size-error": "PASS",
       "compute-numeric-receiver": "PASS",
-      "copy-library-text": "PASS"
+      "copy-library-text": "PASS",
+      "pb5123_logical_not_before_relop": "FAIL",
+      "pb5182-unsigned-quotient-remainder-1985": "FAIL",
+      "pb5185_move_corresponding_subscript_per_pair": "PASS",
+      "pb5214-debugging-line-copy-mode": "PASS",
+      "pb5214-debugging-line-copy-no-mode": "PASS",
+      "pb5239_contained_without_procedure_division": "FAIL",
+      "pb5241_cancel_main_program_85": "FAIL",
+      "pb5298_collating_then_segment_limit": "PASS",
+      "pb5298_collating_then_segment_limit_is": "PASS",
+      "pb5310_nested_global_sum_counter_odo_object": "FAIL",
+      "pb5310_nested_sum_counter_hides_global": "FAIL",
+      "pb5310_sum_counter_occurs_depending_object": "FAIL",
+      "pb5587-sort-merge-assign-figurative-and-list": "FAIL",
+      "pb5767_move_corresponding_redefined_subscript_per_pair_85": "PASS",
+      "pb5814_add_corresponding_subscript_once_85": "FAIL",
+      "pb5814_subtract_corresponding_subscript_once_85": "FAIL"
     },
     "2002": {
       "compute-alphanumeric-receiver": "PASS",

@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: l1c20_occurs_clauses_per_occurrence
-      *> rules: [GR-13.18.38.4-1, GR-13.18.38.4-4]
+      *> rules: [GR-13.18.38.4-1, GR-13.18.38.4-4, 1985-GR-VI.5.8.4-1]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

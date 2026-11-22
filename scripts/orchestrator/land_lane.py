@@ -146,10 +146,8 @@ from detached import spawn_detached  # noqa: E402  (THE one way a process outliv
 import verdict_line  # noqa: E402  (scripts/: the one home of the `=== ENQUEUE: ` verdict line, kb/Work PB3714)
 from standard_streams import ensure_utf8  # noqa: E402
 
-LANE_DIR = "land-lane"
 ATTEMPTS = "attempts"
 SURVEY = "survey.json"
-HALT = "HALT"
 REARM = "rearm"
 TICK_LOCK = "tick.lock"
 EXIT_STATE = 2           # enqueue.py: usage or state, among them "main moved under every catch-up merge"
@@ -180,7 +178,7 @@ class LaneError(RuntimeError):
 
 # ── the state ──────────────────────────────────────────────────────────────────────────────────────────────────────
 def lane_dir(cdir: pathlib.Path) -> pathlib.Path:
-    return cdir / LANE_DIR
+    return cdir / coord.LAND_LANE_DIR
 
 
 def now_utc() -> dt.datetime:
@@ -1348,7 +1346,7 @@ def stop_reason(cdir: pathlib.Path) -> str | None:
     STOP), the owner's global stop, or HALT. Never `STOP-UNIT` alone (kb/Work PB3402): that is the soft context cap's
     signal to the running UNIT, and a landing is its own process, which adds nothing to the unit's context, so the
     unit's size must not hold finished work."""
-    halt = lane_dir(cdir) / HALT
+    halt = lane_dir(cdir) / coord.LAND_HALT
     return loop_stop(cdir) or (f"HALT (a run ended QUEUE NOT ACTIVE; `land_lane.py clear-halt`) ({halt})"
                                if halt.exists() else None)
 
@@ -1381,7 +1379,7 @@ def reap(cdir: pathlib.Path, atts: list[dict[str, Any]], alive: Callable[[dict[s
             say(f"land lane: {a['branch']}: the runner of attempt {a['id']} is gone with no exit code (DIED; {a['log']})")
     for a in atts:
         if finished(a) and a.get("rc") == EXIT_QUEUE_NOT_ACTIVE and not a.get("halted"):
-            halt = lane_dir(cdir) / HALT
+            halt = lane_dir(cdir) / coord.LAND_HALT
             if not halt.exists():
                 halt.write_text(f"{now_utc().isoformat(timespec='seconds')} {a['branch']} attempt {a['id']}: "
                                 f"{a.get('verdict')}\n", encoding="utf-8", newline="\n")
@@ -1567,7 +1565,7 @@ def view(cdir: pathlib.Path) -> Lane:
     at = dt.datetime.fromisoformat(s["at"]) if isinstance(s, dict) and s.get("at") else None
     unreadable: list[str] = []
     latest = [(atts[-1], effective(atts)) for atts in by_branch(attempts(cdir, unreadable)).values()]
-    halt = (d / HALT).read_text(encoding="utf-8").strip() if (d / HALT).exists() else None
+    halt = (d / coord.LAND_HALT).read_text(encoding="utf-8").strip() if (d / coord.LAND_HALT).exists() else None
     pending = rearms(cdir, unreadable)
     return Lane(at, (s or {}).get("rows", []) if isinstance(s, dict) else [], latest, halt, unreadable, pending)
 
@@ -1745,7 +1743,7 @@ def main(argv: list[str] | None = None) -> int:
     if a.verb == "rearm":
         return rearm(cdir, a.branch, a.why)
     if a.verb == "clear-halt":
-        halt = lane_dir(cdir) / HALT
+        halt = lane_dir(cdir) / coord.LAND_HALT
         if not halt.exists():
             print("land lane: not halted")
             return 0

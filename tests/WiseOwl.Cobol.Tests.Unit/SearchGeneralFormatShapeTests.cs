@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Tests.Shared;                             // TestRepo — the ONE repo-root locator
+using WiseOwl.Cobol.Editions;
 using Xunit;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Frontend.Parsing;
@@ -115,7 +116,7 @@ MAIN.
             string src = Path.Combine(dir, "pb446.cob");
             File.WriteAllText(src, source);
             var r = CompilerDriver.Compile(new CompilerDriver.Options(
-                src, Path.Combine(dir, "pb446.dll"), DialectLevel: edition, CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
+                src, EditionInfo.Of(edition), Path.Combine(dir, "pb446.dll"), CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
             return (r.Success, r.Errors);
         }
         finally { ScratchDirectory.Remove(dir); }

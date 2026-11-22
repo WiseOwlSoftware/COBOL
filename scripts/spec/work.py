@@ -30,7 +30,7 @@ discarded. The views of the register are the subcommands below (kb/Work PB3799);
     python scripts/spec/work.py stats      # counts by kind/status/harm
     python scripts/spec/work.py backfill-editions [--write]             # seed `editions:` where a non-terminal note lacks it
     python scripts/spec/work.py set-editions --from <file.json> [--write]  # a recorded judgment: the value and its reason
-    python scripts/spec/work.py --self-test   # the frontmatter reader against tests/version-matrix/work-frontmatter-cases.json
+    python scripts/self_tests.py --only scripts/selftests/spec/work/test_work.py   # this module's cases (the frontmatter reader among them)
 
 ⭐ `inventory_rows:` — THE BACK-LINK TO THE P14 TRACEABILITY INVENTORY, and the register's newest field
 (2026-08-31). A note lists the `rule-id`s it owns; that list is the SSOT for ownership, and the note's prose
@@ -69,10 +69,10 @@ the check, the seed and the narrowing are `work_editions.py`; `declared_editions
 departures from ISO and its defects, found by our differentials, are kept as notes carrying a minimal repro, the exact
 command, the observed result, a checked ISO citation and a draft report, so an issue or a patch can be filed later.
 :func:`upstream_problems` holds each to that bar and keeps it OUT of every list of our work (`process_only`, no
-cluster or tier); `--self-test` runs :func:`upstream_findings` over it.
+cluster or tier); its cases (scripts/selftests/spec/work/test_work.py) hold each way of failing that bar.
 
 ⛔ AND THE READER ITSELF IS A GATE: `parse_frontmatter` is THE reader of the register — there is no second one — and
-`--self-test` holds it to `tests/version-matrix/work-frontmatter-cases.json`, the shapes the register has contained, each
+its cases (scripts/selftests/spec/work/test_work.py) hold it to `tests/version-matrix/work-frontmatter-cases.json`, the shapes the register has contained, each
 of which broke a reader once (`kb/Work/PB875`: a list WRAPPED across two lines was truncated here and discarded by the
 C# twin that PB2878 deleted, and both called the note well-formed).
 """
@@ -109,8 +109,8 @@ STATUSES = {"open", "half", "landed", "owner", "blocked", "retired"}
 #: the R0 census and the note generator each read the status their own way, and the census's own copy held four
 #: statuses that `check` rejects). A view of open work shall exclude every one of them — `_is_open` is the
 #: ONE test, so the next one added here is excluded everywhere at once. The reader's
-#: self-test holds the fixture to it: :func:`reading_view` reports `terminal`, and :func:`self_test` refuses a fixture
-#: that leaves any status of STATUSES without a case, so a status added here reaches the reader's answers.
+#: cases (scripts/selftests/spec/work/test_work.py) hold the fixture to it: the reading view reports `terminal`, and a fixture that leaves any status
+#: of STATUSES without a case is refused, so a status added here reaches the reader's answers.
 TERMINAL_STATUSES = ("landed", "retired")
 #: THE EDITIONS of the mission (D13), the one vocabulary of a note's `editions:` field (kb/Work PB5995, `work_editions.py`
 #: holds what the field means and its check) and of every reader that measures an edition (`edition_status.py`).
@@ -329,7 +329,7 @@ def parse_frontmatter(text: str) -> dict | None:
     """One note's frontmatter as `key -> str | bool | list[str]`, or `None` when the file is not a note.
 
     ⛔ THIS IS THE ONE READER OF THE REGISTER, and `tests/version-matrix/work-frontmatter-cases.json` is its test
-    (`--self-test`). It had a C# twin (`tests/_shared/WorkRegister.cs`, deleted by PB2878) and the two disagreed:
+    (scripts/selftests/spec/work/test_work.py). It had a C# twin (`tests/_shared/WorkRegister.cs`, deleted by PB2878) and the two disagreed:
     `kb/Work/PB875` is the note recording what that cost: a list WRAPPED across two lines — the normal YAML shape, and
     the shape `kb/Work/PB205` had carried for months — was read here as a truncated list and in C# as NO list at
     all, so a note went on claiming four inventory rows in the register while the gate that enforces claims saw
@@ -778,7 +778,7 @@ def register_problems(work_dir: pathlib.Path = WORK) -> tuple[list[dict], list[s
     """`(the notes under work_dir, every problem of the register)`: the unreadable notes (read_notes), each note's own
     schema, the topology and the site blocks, duplicate ids and, for the repository's OWN register only, the audits
     that compare it with the rest of the tree (the inventory, the R3 program): a fixture directory
-    (`--work`, the self-test) has none of those to be compared with (kb/Work PB3654)."""
+    (`--work`, this module's cases) has none of those to be compared with (kb/Work PB3654)."""
     items, bad = read_notes(work_dir)
     for it in items:
         for f in ("id", "kind", "status", "area"):
@@ -1631,7 +1631,7 @@ def campaign_leads(items: list[dict]) -> set[str]:
     return {c for it in items for c in tier_entries(it)[0]}
 
 
-def sites_problems(items: list[dict]) -> list[str]:
+def sites_problems(items: list[dict], repo: pathlib.Path = REPO) -> list[str]:
     """SITES_RULE for every open note from SITES_REQUIRED_FROM on (kb/Work PB3263), and for every open note of a
     campaign cluster or that tiers a campaign, whatever its id (campaign_leads, kb/Work PB3640): a note with no site
     block gives the planner's partition nothing to hold or check (kb/Work PB3670: it is planned UNPARTITIONED). A
@@ -1643,7 +1643,8 @@ def sites_problems(items: list[dict]) -> list[str]:
     glob) beside five groups on files it rewrites. So a note held to a site block must also CLAIM something: a path
     under a campaign root, a glob matching tracked files, or `**Sites:** none (why)`; and every glob it names must
     match a tracked file. The notes before SITES_REQUIRED_FROM that sit in no campaign keep their old shape (a block
-    naming files outside the roots, 15 of them on 2026-10-25): refusing them would turn the check into a backlog."""
+    naming files outside the roots, 15 of them on 2026-10-25): refusing them would turn the check into a backlog.
+    `repo` is the committed tree the blocks are read on (this repository's; a scratch one in the cases)."""
     bad = []
     campaigns = campaign_leads(items)
     held = []   # (note, the clusters it names, whether a campaign holds it): the notes this rule applies to
@@ -1661,8 +1662,8 @@ def sites_problems(items: list[dict]) -> list[str]:
         """A note's site block and its globs that match no tracked file: each is one or more `git ls-files` processes and
         a read of every named source file, independent of every other note, so the notes are read side by side (the
         sequential loop was 5 of the 11 s `check` took, kb/Work PB5939)."""
-        sites = note_sites(it.get("_body", ""), repo=REPO)
-        return sites, [g for g in sites.globs if not expand_globs((g,), REPO)]
+        sites = note_sites(it.get("_body", ""), repo=repo)
+        return sites, [g for g in sites.globs if not expand_globs((g,), repo)]
 
     with ThreadPoolExecutor(max_workers=8) as pool:
         read = list(pool.map(read_sites, [it for it, _, _ in held]))
@@ -1798,12 +1799,14 @@ def load_member_index():
     return member_index
 
 
-def r3_program_problems(items: list[dict], unknown_names: dict[str, list[str]] | None = None) -> list[str]:
+def r3_program_problems(items: list[dict], unknown_names: dict[str, list[str]] | None = None,
+                        repo: pathlib.Path = REPO) -> list[str]:
     """The register's own checks of the R3 program (cluster PB2119): every path an open note names exists; every
     name it moves or changes is one the member index knows (so the planner can compute its callers); and every
     measured wave waits for the drift test. Whether a wave's edits meet running work's is the planner's, recomputed at
     every plan (inflight.hold; DESIGN-architecture-review §8.7). `unknown_names` is {note id: unknown names}
-    (computed here when None)."""
+    (computed here when None); `repo` is the committed tree a named path must exist in (this repository's; a scratch
+    one in the cases)."""
     by_id = {i.get("id"): i for i in items}
 
     def reaches(it: dict, target: str) -> bool:
@@ -1824,7 +1827,7 @@ def r3_program_problems(items: list[dict], unknown_names: dict[str, list[str]] |
         index = mi.load()
         unknown_names = {it["id"]: mi.resolve(index, mi.note_names(it.get("_body", ""), index)[0])[1] for it in r3}
     bad = []
-    tracked = tracked_paths(REPO) if r3 else frozenset()
+    tracked = tracked_paths(repo) if r3 else frozenset()
     for it in r3:
         body = it.get("_body", "")
         for p in named_missing_paths(body, tracked=tracked):
@@ -1932,584 +1935,6 @@ def print_cluster(view: dict, as_json: bool) -> int:
     return 0
 
 
-# ── the reader's self-test ───────────────────────────────────────────────────────────────────────────────────
-
-FIXTURE = REPO / "tests" / "version-matrix" / "work-frontmatter-cases.json"
-FIXTURE_REL = "tests/version-matrix/work-frontmatter-cases.json"
-
-
-def reading_view(file: str, text: str) -> dict:
-    """What a reader of this register SEES in the file `file` holding `text` — the normalized answer it must give.
-
-    Absent and empty are deliberately the same answer for a list (`[]`) and for a scalar (`""`): the register's checks
-    ask what a note SAYS, and a key that is missing says exactly as much as a key that is empty. What is NOT
-    normalized away is `errors` — a malformed value is a third outcome, and collapsing it into "empty" is the
-    fail-open that `kb/Work/PB875` is about.
-
-    `terminal` is what the DONE vocabulary (TERMINAL_STATUSES) makes of the status: the register's checks read DONE
-    through it, so it is compared like any field (kb/Work PB3196). `refusal` is what read_note says of a file that is
-    not a note: empty for an index or a README (skipped), the reason for a file NAMED like a note whose frontmatter
-    does not parse (kb/Work PB3654).
-    """
-    d, refusal = read_note(file, text)
-    if d is None:
-        return {"note": False, "id": "", "kind": "", "status": "", "terminal": False, "inventory_rows": [],
-                "closes_rows": [], "closes_rows_reason": "", "errors": [], "refusal": refusal}
-    scalar = lambda k: (v if isinstance(v := d.get(k, ""), str) else str(v))       # noqa: E731
-    lst = lambda k: (v if isinstance(v := d.get(k, []), list) else [])             # noqa: E731
-    return {"note": True, "id": scalar("id"), "kind": scalar("kind"), "status": scalar("status"),
-            "terminal": scalar("status") in TERMINAL_STATUSES,
-            "inventory_rows": lst("inventory_rows"), "closes_rows": lst("closes_rows"),
-            "closes_rows_reason": scalar("closes_rows_reason"), "errors": sorted(d.get("_errors", [])),
-            "refusal": ""}
-
-
-def _wrapped_list(text: str) -> bool:
-    """True when some line opens a `[` that does not close on the same line — the PB875 shape."""
-    return any("]" not in line[line.index("["):] for line in text.splitlines() if "[" in line)
-
-
-def case_findings(fixture: dict, answers: list[dict]) -> list[str]:
-    """Where the reader disagrees with the fixture's recorded expectation, field by field."""
-    bad = []
-    for case, got in zip(fixture["cases"], answers, strict=True):
-        for k, want in case["expect"].items():
-            # A fixture naming a field the view does not have is a FINDING, not a traceback.
-            if k not in got:
-                bad.append(f'case "{case["name"]}": the fixture expects a field {k!r} that the reader does not report')
-            elif got[k] != want:
-                bad.append(f'case "{case["name"]}": {k} is {got[k]!r}, fixture says {want!r}')
-    return bad
-
-
-def scalar_findings(fixture: dict) -> list[str]:
-    """The fixture's `scalars` against `_scalar` (kb/Work PB3812): the value and the error code of each, and a case for
-    every escape the reader defines (a character added to `_YAML_ESCAPES` stops this until a case states it)."""
-    cases = fixture.get("scalars", [])
-    bad = []
-    for c in cases:
-        got = _scalar(c["value"])
-        if got != (c["expect"], c["error"]):
-            bad.append(f'scalar case "{c["name"]}": {c["value"]!r} reads as {got!r}, fixture says '
-                       f'{(c["expect"], c["error"])!r}')
-    backslash = chr(92)
-    stated = {c["value"][c["value"].index(backslash) + 1] for c in cases
-              if not c["error"] and c["value"][:1] == '"' and backslash in c["value"]}
-    bad += [f"the fixture carries no scalar case for the YAML escape backslash-{e!r}, which _scalar decodes"
-            for e in (*_YAML_ESCAPES, "x", "u", "U") if e not in stated]
-    for code in ("unknown-escape", "unterminated-quote"):
-        if not any(c["error"] == code for c in cases):
-            bad.append(f"the fixture's scalars carry no case reporting {code}")
-    return bad
-
-
-def directory_findings(fixture: dict) -> list[str]:
-    """The fixture's files written into a directory and read as a register (kb/Work PB3654): `register_problems` and
-    `load` refuse each file named like a note that does not parse, `check --work` counts the DIRECTORY's notes (it once
-    checked `kb/Work` whatever `--work` said, so the seam could not witness a refusal), and an index is skipped."""
-    import contextlib  # noqa: PLC0415
-    import io  # noqa: PLC0415
-    import tempfile  # noqa: PLC0415
-
-    bad: list[str] = []
-    with tempfile.TemporaryDirectory(prefix="work-register-cases-") as tmp:
-        everything = pathlib.Path(tmp, "everything")
-        everything.mkdir()
-        refused = {}
-        for c in fixture["cases"]:
-            (everything / c["file"]).write_bytes(c["text"].encode("utf-8"))
-            if c["expect"]["refusal"]:
-                refused[c["file"]] = c["expect"]["refusal"]
-        _, problems = register_problems(everything)
-        bad += [f"register_problems over the fixture directory does not report: {why}"
-                for why in refused.values() if why not in problems]
-        bad += [f"register_problems reports a file that is no refusal of the fixture: {p}"
-                for p in problems if "unreadable as a work note" in p and p not in refused.values()]
-        try:
-            load(everything)
-            bad.append("load() answered a directory holding an unreadable note instead of stopping")
-        except SystemExit as stop:
-            bad += [f"load()'s refusal does not name {name}" for name in refused if name not in str(stop)]
-        good = pathlib.Path(tmp, "good")
-        good.mkdir()
-        (good / "PB1.md").write_bytes(("---" + chr(10) + "id: PB1" + chr(10) + "kind: defect" + chr(10)
-                                       + "status: landed" + chr(10) + "area: x" + chr(10) + "closes_rows: []"
-                                       + chr(10) + 'closes_rows_reason: "none"' + chr(10) + "---" + chr(10)
-                                       + "body" + chr(10)).encode("utf-8"))
-        (good / "README.md").write_bytes(b"not a note")
-        out = io.StringIO()
-        with contextlib.redirect_stdout(out):
-            code = check(good)
-        if code != 0 or "1 work items" not in out.getvalue():
-            bad.append(f"check --work over one good note and an index answered {code}: {out.getvalue().strip()!r}")
-        for name in refused:
-            (good / name).write_bytes(next(c["text"] for c in fixture["cases"] if c["file"] == name).encode("utf-8"))
-        out = io.StringIO()
-        with contextlib.redirect_stdout(out):
-            code = check(good)
-        if code == 0 or not all(name in out.getvalue() for name in refused):
-            bad.append(f"check --work over a directory holding unreadable notes answered {code}: {out.getvalue().strip()!r}")
-    return bad
-
-
-def _upstream_fixture(**changes: str | None) -> str:
-    """One well-formed `upstream` note as text; `changes` replaces a frontmatter line by key (a `None` drops it) or a
-    body section's text by `section_<index into UPSTREAM_SECTIONS>` (a `None` drops the whole section)."""
-    nl = chr(10)
-    fm = {"id": "PB9100", "kind": "upstream", "status": "open", "area": "tooling/upstream", "wrong_answer": "true",
-          "process_only": "true", "spec_refs": '["14.9.25"]', "upstream_project": "GnuCOBOL", "upstream_version": "3.2.0",
-          "upstream_class": "wrong-output", "upstream_status": "unreported", "upstream_edition": "2014",
-          "upstream_ref": "", "cluster": "[]", "blocked_by": "[]", "inventory_rows": "[]", "editions": "[]"}
-    fm = {k: v for k, v in {**fm, **{k: v for k, v in changes.items() if not k.startswith("section_")}}.items()
-          if v is not None}
-    lines = ["---", *(f"{k}: {v}" for k, v in fm.items()), "---", "", "# PB9100 — a record", ""]
-    fence = "`" * 3
-    for i, name in enumerate(UPSTREAM_SECTIONS):
-        default = {0: f"{fence}{nl}MOVE A TO B.{nl}{fence}", 7: f"**Title:** a title{nl}{nl}stated"}.get(i, "stated")
-        text = changes.get(f"section_{i}", default)
-        if text is not None:
-            lines += [f"## {name}", "", text, ""]
-    return nl.join(lines)
-
-
-def upstream_findings() -> list[str]:
-    """The `upstream` kind held to its own rules (kb/Work PB3838), the drift test of the kind: a well-formed record passes
-    `register_problems`; each way of failing the bar is reported by name; the record is outside `actionable` and every
-    cluster; and the views (`work.py upstream`, `unharmed`) list it where they should and nowhere else."""
-    import tempfile  # noqa: PLC0415
-
-    bad: list[str] = []
-    nl, fence = chr(10), "`" * 3
-    long_block = fence + nl + nl.join("X" for _ in range(UPSTREAM_MAX_FENCE_LINES + 1)) + nl + fence
-    cases: list[tuple[str, dict, str]] = [
-        ("a well-formed record", {}, ""),
-        ("process_only false", {"process_only": "false"}, "process_only: true"),
-        ("a cluster", {"cluster": '["PB3838"]'}, "names `cluster`"),
-        ("a claimed inventory row", {"inventory_rows": '["AR-1.1-1"]'}, "names `inventory_rows`"),
-        ("a frontier model", {"frontier_model": "mythos"}, "names `frontier_model`"),
-        ("no version", {"upstream_version": None}, "no `upstream_version`"),
-        ("an unknown class", {"upstream_class": "bug"}, "upstream_class 'bug'"),
-        ("an unknown status", {"upstream_status": "filed"}, "upstream_status 'filed'"),
-        ("a 2023-only behaviour filed as a bug", {"upstream_edition": "2023"}, "feature request"),
-        ("a 2023-only behaviour filed as a feature", {"upstream_edition": "2023", "upstream_class": "feature-missing"}, ""),
-        ("no citation", {"spec_refs": "[]"}, "has `spec_refs`"),
-        ("reported with no ticket", {"upstream_status": "reported"}, "no `upstream_ref`"),
-        ("reported with a ticket", {"upstream_status": "reported", "upstream_ref": "https://example.test/t/1"}, ""),
-        ("unreported with a ticket", {"upstream_ref": "https://example.test/t/1"}, "is `unreported` but carries"),
-        ("declined upstream but open here", {"upstream_status": "declined", "upstream_ref": "t/2"}, "terminal exactly when"),
-        ("declined upstream and retired here", {"upstream_status": "declined", "upstream_ref": "t/2", "status": "retired"}, ""),
-        ("withdrawn but open here", {"upstream_status": "withdrawn"}, "terminal exactly when"),
-        ("withdrawn and retired here", {"upstream_status": "withdrawn", "status": "retired"}, ""),
-        ("withdrawn with a ticket", {"upstream_status": "withdrawn", "upstream_ref": "t/3", "status": "retired"},
-         "is `withdrawn` but carries"),
-        ("no observed result", {"section_2": None}, "no `## Observed result` section"),
-        ("an empty fix-site section", {"section_5": ""}, "empty `## Fix site` section"),
-        ("a pasted testsuite-sized program", {"section_0": long_block}, "fenced block of"),
-        ("a filer's instruction ahead of the draft's title",
-         {"section_7": f"**Corrected before filing:** delete X.{chr(10)}{chr(10)}**Title:** t{chr(10)}{chr(10)}body"},
-         "does not open with its one-line `**Title:**"),
-        ("a draft title wrapped onto a second line", {"section_7": f"**Title:** a long{chr(10)}title{chr(10)}{chr(10)}b"},
-         "does not open with its one-line `**Title:**"),
-        ("a draft with no title", {"section_7": "body only"}, "does not open with its one-line `**Title:**"),
-        ("a correction stated beside the text it contradicts",
-         {"section_2": "Corrected: X. Where it differs, this paragraph governs."}, "apply the correction in place"),
-        # ⛔ THE FENCE SYNTAX THE GUARD MUST SEE (kb/Work PB3938): every way Markdown fences a block, so a program can
-        # hide in none of them, and the `## ` lines inside one are never read as the record's sections.
-        ("a short repro in a tilde fence", {"section_0": f"~~~{nl}MOVE A TO B.{nl}~~~"}, ""),
-        ("a testsuite-sized program in a tilde fence", {"section_0": long_block.replace("`", "~")}, "fenced block of"),
-        ("an unclosed fence", {"section_7": f"**Title:** t{nl}{nl}{fence}{nl}MOVE A TO B."}, "has an unclosed fence"),
-        ("a testsuite-sized program in an unclosed fence",
-         {"section_7": f"**Title:** t{nl}{nl}{long_block.removesuffix(fence)}"}, "fenced block of"),
-        ("a tilde block holding a section heading",
-         {"section_0": f"~~~{nl}## Observed result{nl}X{nl}~~~", "section_2": None}, "no `## Observed result` section"),
-        ("a long fence not closed by a shorter run", {"section_0": f"`{long_block}`".replace(f"{nl}X{nl}", f"{nl}{fence}{nl}", 1)},
-         "fenced block of"),
-        ("a tilde fence not closed by backticks",
-         {"section_0": f"~~~{nl}{fence}{nl}{chr(10).join('X' for _ in range(UPSTREAM_MAX_FENCE_LINES))}{nl}~~~"},
-         "fenced block of"),
-        ("a backtick run whose info string holds a backtick is no fence", {"section_1": f"{fence}a`b{fence}"}, ""),
-    ]
-    with tempfile.TemporaryDirectory(prefix="work-upstream-cases-") as tmp:
-        for n, (name, changes, expect) in enumerate(cases):
-            d = pathlib.Path(tmp, str(n))
-            d.mkdir()
-            (d / "PB9100.md").write_bytes(_upstream_fixture(**changes).encode("utf-8"))
-            items, problems = register_problems(d)
-            if expect == "" and problems:
-                bad.append(f"upstream case {name!r}: a well-formed record was refused: {problems}")
-            elif expect and not any(expect in p for p in problems):
-                bad.append(f"upstream case {name!r}: no problem names {expect!r}; got {problems}")
-        d = pathlib.Path(tmp, "good")
-        d.mkdir()
-        (d / "PB9100.md").write_bytes(_upstream_fixture().encode("utf-8"))
-        items = load(d)
-        if actionable(items):
-            bad.append("an upstream record that sets a harm flag is ACTIONABLE — it describes another project's user")
-        if cluster_order(items, "PB3838")["named"]:
-            bad.append("an upstream record is a member of a cluster")
-        (d / "PB9101.md").write_bytes(_upstream_fixture(id="PB9101", kind="defect").encode("utf-8"))
-        _, problems = register_problems(d)
-        if not any("upstream_project on a note of kind 'defect'" in p for p in problems):
-            bad.append(f"an upstream_* field on a defect note is not refused: {problems}")
-
-        # ⛔ THE VIEWS ARE PART OF THE KIND (kb/Work PB3939, PB3799): a record is listed by `upstream` and by no view of our
-        # work, whether or not it sets a harm flag (the `unharmed` complement would otherwise fill with it).
-        (d / "PB9101.md").unlink()
-        (d / "PB9102.md").write_bytes(_upstream_fixture(id="PB9102", wrong_answer=None).encode("utf-8"))
-        items = load(d)
-        for view, want in (("upstream", ["PB9100", "PB9102"]), ("unharmed", []), ("blocked", []), ("landed", [])):
-            got = [i["id"] for i in view_notes(items, view)]
-            if got != want:
-                bad.append(f"the `{view}` view of two upstream records lists {got}, not {want}")
-    return bad
-
-
-def site_member_findings() -> list[str]:
-    """R3's member rule as `check` enforces it (kb/Work PB3797): a governed note names each code file it changes WITH its
-    members or with `(whole: why)`, and a member the file does not declare is refused. Each shape is a fabricated note
-    over files of this repository, so the answers are the real readers' (source_units for .py and .ps1)."""
-    here = "scripts/spec/work.py"
-
-    def problems(sites: str) -> list[str]:
-        it = {"_file": "PB9999.md", "id": "PB9999", "kind": "defect", "status": "open", "cluster": ["PB1"],
-              "_body": "**Sites:** " + sites}
-        return sites_problems([it])
-
-    cases = (
-        ("a member the file declares", f"`{here}` (`sites_problems`)", 0),
-        ("two members, the second qualified", f"`{here}` (`sites_problems`, `NoteSites.fix_lane`)", 0),
-        ("a member after a :line suffix", f"`{here}:1400` (`sites_problems`)", 0),
-        ("the path#Member form", f"`{here}#sites_problems`", 0),
-        ("a module-level unit", "`scripts/hooks/dispatch_guard.py` (`<module>`)", 0),
-        ("a PowerShell function with a hyphen", "`scripts/orchestrator/orchestrate.ps1` (`Take-Lock`)", 0),
-        ("the whole file with a reason", f"`{here}` (whole: the register is restructured)", 0),
-        ("the whole file with an empty reason", f"`{here}` (whole: )", 1),
-        ("the whole file named bare", f"`{here}`", 1),
-        ("a prose parenthesis is no member", f"`{here}` (the register check)", 1),
-        ("a :line alone is no member", f"`{here}:1400`", 1),
-        ("a member the file does not declare", f"`{here}` (`no_such_member_anywhere`)", 1),
-        ("a file the change creates needs neither", "`scripts/spec/a_file_this_change_creates.py`", 0),
-        ("a Markdown file is named by its section number", "`docs/DOC_INDEX.md`, `docs/DESIGN.md` (§0.5)", 0),
-        ("a glob sweep is whole by its pattern", "`scripts/spec/work*.py`", 0),
-    )
-    return [f"site rule, {name}: {len(got)} problem(s), want {want}: {got}"
-            for name, sites, want in cases if len(got := problems(sites)) != want]
-
-
-def process_only_findings() -> list[str]:
-    """`process_only` on a note whose sites are all compiler code, and `next`'s order across harm classes (kb/Work PB3836)."""
-    src = "**Sites:** `src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs` (`DataBinder.Bind`)"
-    mixed = src + ", `tests/WiseOwl.Cobol.Tests.Unit/XTests.cs` (`XTests.Y`)"
-
-    def note(body: str, **fm) -> dict:
-        return {"_file": "PB9.md", "id": "PB9", "kind": "defect", "status": "open", "process_only": True, "_body": body, **fm}
-
-    cases = (
-        ("process_only on a src-only note without a reason", note(src), True),
-        ("process_only_reason states why", note(src, process_only_reason="a drift test guards the site"), False),
-        ("a blank reason is none", note(src, process_only_reason="  "), True),
-        ("a restructuring wave kind states it", note(src + chr(10) + "**Wave kind:** unify."), False),
-        ("the fix-lane wave kind does not", note(src + chr(10) + f"**Wave kind:** {FIX_LANE_WAVE}."), True),
-        ("a note that also sites a test", note(mixed), False),
-        ("a note with no site block", note("no sites"), False),
-        ("a landed note", note(src, status="landed"), False),
-        ("an upstream record", note(src, kind="upstream"), False),
-        ("a harm flag instead of process_only", note(src, process_only=False, misleads_diagnosis=True), False),
-    )
-    bad = [f"process_only_problems, {name}: {'no problem' if want else 'a problem'} was due"
-           for name, it, want in cases if bool(process_only_problems(it)) != want]
-    # next ranks within a severity by what the harm does, a misleading message last, then by id
-    ids = [i["id"] for i in actionable([
-        {"id": "PB1", "status": "open", "severity": "MINOR", "misleads_diagnosis": True},
-        {"id": "PB2", "status": "open", "severity": "MINOR", "under_rejects": True},
-        {"id": "PB3", "status": "open", "severity": "MINOR", "wrong_answer": True},
-        {"id": "PB4", "status": "open", "severity": "MAJOR", "misleads_diagnosis": True}])]
-    if ids != ["PB4", "PB3", "PB2", "PB1"]:
-        bad.append(f"next lists {ids}: severity, then the harm's rank, then the id (want PB4 PB3 PB2 PB1)")
-    return bad
-
-
-def view_findings() -> list[str]:
-    """The register's views (VIEWS, `next`) over a scratch register that holds one note of each shape (kb/Work PB3799):
-    which notes each lists is stated here, so a change to a predicate, to HARM_FLAGS or to TERMINAL_STATUSES that moves a
-    note in or out of a view fails by name. `next` and `unharmed` are measured as complements over every harm flag, so a
-    harm class added to HARM_LABELS is covered without an edit here."""
-    import tempfile  # noqa: PLC0415
-
-    def note(nid: str, **fm: str) -> str:
-        base = {"id": nid, "kind": "defect", "status": "open", "severity": "MINOR", "area": "x", "process_only": "false",
-                "title": f'"{nid} — a note"'}
-        lines = ["---", *(f"{k}: {v}" for k, v in {**base, **fm}.items()), "---", "", f"# {nid}", ""]
-        return chr(10).join(lines)
-
-    notes = {
-        "PB9001": {"wrong_answer": "true", "severity": "MAJOR"},
-        "PB9002": {"process_only": "true"},
-        "PB9003": {"crashes": "true", "blocked_by": "[PB9002]"},
-        "PB9004": {"status": "owner", "rejects_legal_source": "true"},
-        "PB9005": {"status": "landed", "closes_rows": "[]", "closes_rows_reason": '"none"'},
-        "PB9006": {"status": "retired", "wrong_answer": "true"},
-        "PB9007": {"kind": "analysis", "process_only": "true"},
-        "PB9008": {"kind": "analysis", "status": "landed", "process_only": "true"},
-        "PB9009": {"kind": "upstream", "process_only": "true", "upstream_status": "unreported"},
-        "PB9010": {"blocked_by": "[PB9005]", "under_rejects": "true"},
-        "PB9011": {"silent": "true"},
-        # a note held `blocked` passes its harm to its ready prerequisite; one held `owner` does not (PB4769)
-        "PB9012": {"status": "blocked", "wrong_answer": "true", "blocked_by": "[PB9013]"},
-        "PB9013": {"process_only": "true"},
-        "PB9014": {"status": "owner", "wrong_answer": "true", "blocked_by": "[PB9015]"},
-        "PB9015": {"process_only": "true"},
-        # an owner-held link in a chain ends the walk: PB9017 is below undecided work (review R1-3)
-        "PB9016": {"wrong_answer": "true", "blocked_by": "[PB9018]"},
-        "PB9018": {"status": "owner", "process_only": "true", "blocked_by": "[PB9017]"},
-        "PB9017": {"process_only": "true"},
-    }
-    # one open note per harm flag the register ranks, each of which `next` must list and `unharmed` must not
-    notes.update({f"PB92{n:02d}": {flag: "true"} for n, flag in enumerate(HARM_FLAGS)})
-    harmed = [f"PB92{n:02d}" for n in range(len(HARM_FLAGS))]
-    want = {
-        # PB9002 is process_only with no harm of its own, but PB9003 (a crash) waits on it: it owes that harm (PB4769)
-        "next": sorted(["PB9001", "PB9002", "PB9010", "PB9013", *harmed]),
-        "blocked": ["PB9003", "PB9004", "PB9012", "PB9014", "PB9016", "PB9018"],
-        "unharmed": ["PB9007", "PB9011", "PB9015", "PB9017", "PB9018"],
-        "analyses": ["PB9007", "PB9008"],
-        "landed": ["PB9005", "PB9006"],
-        "upstream": ["PB9009"],
-    }
-    bad = []
-    with tempfile.TemporaryDirectory(prefix="work-views-") as tmp:
-        for nid, fm in notes.items():
-            pathlib.Path(tmp, f"{nid}.md").write_bytes(note(nid, **fm).encode("utf-8"))
-        items = load(pathlib.Path(tmp))
-    got = {"next": sorted(i["id"] for i in actionable(items)),
-           **{v: sorted(i["id"] for i in view_notes(items, v)) for v in VIEWS}}
-    bad += [f"the `{v}` view lists {got[v]}, not {want[v]}" for v in want if got[v] != want[v]]
-    bad += [f"the register has a view `{v}` that the self-test states no listing for" for v in VIEWS if v not in want]
-    for flag in HARM_FLAGS:
-        if flag not in HARM_LABELS or not harm_label({flag: True}):
-            bad.append(f"HARM_FLAGS names {flag!r} that HARM_LABELS does not label")
-    return bad
-
-
-#: The repository files that restate the harm vocabulary (a flag list in a brief, an enum in a workflow template) and
-#: are the places a new harm class is forgotten: any file under these folders that names one of HARM_FLAGS or
-#: FINDING_HARMS must name them all.
-HARM_RESTATEMENT_ROOTS = (".claude/skills/workstream/templates",)
-
-
-def unflagged_kind_findings() -> list[str]:
-    """Every kind in HARM_CHECKED_KINDS is refused open with no harm flag and no `process_only` (kb/Work PB4949), a
-    harm flag or `process_only: true` answers the refusal, and a decision is not held to it."""
-    import tempfile  # noqa: PLC0415
-
-    nl = chr(10)
-
-    def note(pb: str, kind: str, extra: str = "") -> bytes:
-        return (f"---{nl}id: {pb}{nl}kind: {kind}{nl}status: open{nl}area: x{nl}closes_rows: []{nl}"
-                f'closes_rows_reason: "none"{nl}{extra}---{nl}body{nl}').encode("utf-8")
-
-    bad = []
-    cases = [("PB9201", "defect", "", True), ("PB9202", "analysis", "", True),
-             ("PB9203", "analysis", f"wrong_answer: true{nl}", False),
-             ("PB9204", "analysis", f"process_only: true{nl}", False), ("PB9205", "decision", "", False)]
-    with tempfile.TemporaryDirectory(prefix="work-unflagged-") as tmp:
-        d = pathlib.Path(tmp)
-        for pb, kind, extra, _ in cases:
-            (d / f"{pb}.md").write_bytes(note(pb, kind, extra))
-        _, problems = register_problems(d)
-        for pb, kind, extra, want in cases:
-            got = any(f"{pb}.md" in p and "with no harm flag set" in p for p in problems)
-            if got != want:
-                bad.append(f"an open {kind} {extra.strip() or 'with no flag'} is "
-                           f"{'not ' if want else ''}refused as unflagged: {[p for p in problems if pb in p]}")
-    return bad
-
-
-def harm_vocabulary_findings(repo: pathlib.Path = REPO) -> list[str]:
-    """The harm vocabulary written outside this module agrees with HARM_LABELS (kb/Work PB3836): `.agent-fleet.json`
-    weighs exactly HARM_FLAGS, in rank order, each class strictly below the one before it (the planner and the branch
-    survey rank on the weights, clusters.harm_weights); and no template that restates the vocabulary leaves a class out,
-    so a harm class added to HARM_LABELS stops this until each restatement names it."""
-    bad = []
-    fleet = json.loads((repo / ".agent-fleet.json").read_text(encoding="utf-8"))
-    weights = {k: int(v) for k, v in (p.split("=") for p in fleet["harm"].split(","))}
-    if list(weights) != list(HARM_FLAGS):
-        bad.append(f".agent-fleet.json `harm` weighs {list(weights)}, not HARM_FLAGS {list(HARM_FLAGS)} in rank order")
-    elif any(a <= b for a, b in zip(weights.values(), list(weights.values())[1:])):
-        bad.append(f".agent-fleet.json `harm` weights {list(weights.values())} do not fall strictly with the rank of "
-                   f"{list(HARM_FLAGS)}: a class must weigh less than the one ranked before it")
-    ranked = {flag.replace("_", "-"): flag for flag in HARM_FLAGS}      # `silent` qualifies a harm and may be left out
-    for root in HARM_RESTATEMENT_ROOTS:
-        for path in sorted((repo / root).rglob("*")):
-            if not path.is_file() or path.suffix not in (".md", ".js", ".json", ".txt"):
-                continue
-            text = path.read_text(encoding="utf-8", errors="replace")
-            named = [word for word, flag in ranked.items() if word in text or flag in text]
-            if len(named) >= 2 and len(named) < len(ranked):   # two classes written out is a restatement of the list
-                bad.append(f"{path.relative_to(repo).as_posix()} restates the harm vocabulary but leaves out "
-                           f"{[word for word in ranked if word not in named]}")
-    return bad
-
-
-def addendum_findings() -> list[str]:
-    """The addenda arm of the self-test (kb/Work PB5110): a note reads as its file followed by its addenda in name order; its
-    frontmatter stays its file's; a fold (`fold_text`, what compact_notes.py writes) reads back as the same note; and a
-    misnamed addendum, an addendum with frontmatter and a directory with no note are each refused, never skipped."""
-    import tempfile  # noqa: PLC0415
-
-    findings: list[str] = []
-    head = chr(10).join(["---", "id: PB9001", "kind: decision", "status: open", "area: tooling", "---", "# PB9001", "", "body", ""])
-    with tempfile.TemporaryDirectory(prefix="work-addenda-") as tmp:
-        root = pathlib.Path(tmp)
-        (root / "PB9001.md").write_text(head, encoding="utf-8", newline=chr(10))
-        (root / "PB9002.md").write_text(head.replace("PB9001", "PB9002"), encoding="utf-8", newline=chr(10))
-        (root / "PB9001").mkdir()
-        (root / "PB9001" / "2026-11-11-second.md").write_text("**Second.** two" + chr(10), encoding="utf-8", newline=chr(10))
-        (root / "PB9001" / "2026-11-10-first.md").write_text("**First.** one" + chr(10), encoding="utf-8", newline=chr(10))
-        items, refused = read_notes(root)
-        by_id = {it["id"]: it for it in items}
-        body = by_id["PB9001"]["_body"]
-        if refused or not (body.index("body") < body.index("**First.**") < body.index("**Second.**")):
-            findings.append(f"addenda are not read after the note in name order (refused {refused}, body {body!r})")
-        if by_id["PB9001"].get("status") != "open" or by_id["PB9002"]["_body"] != by_id["PB9002"]["_body"].rstrip(chr(10)) + chr(10):
-            findings.append("a note's frontmatter or its addendum-free body changed by reading addenda")
-        text9001 = note_text("PB9001", root) or ""
-        if (not text9001.startswith("---") or not (text9001.index("body") < text9001.index("**First.**") < text9001.index("**Second.**"))
-                or note_text("PB9002", root) != head.replace("PB9001", "PB9002") or note_text("PB9009", root) is not None):
-            findings.append("note_text (the body reader of the planner, the landing check and the member index) differs from the register's note")
-        folded = fold_text((root / "PB9001.md").read_text(encoding="utf-8"),
-                           [t for _, t in read_addenda(root, "PB9001.md")[0]])
-        (root / "PB9001.md").write_text(folded, encoding="utf-8", newline=chr(10))
-        for q in (root / "PB9001").iterdir():
-            q.unlink()
-        (root / "PB9001").rmdir()
-        again, refused2 = read_notes(root)
-        if refused2 or {it["id"]: it["_body"] for it in again}["PB9001"] != body or any("_addenda" in it for it in again):
-            findings.append("folding the addenda into the note changed what the reader returns for the note")
-        (root / "PB9002").mkdir()
-        for name, text, expect in (("notes.md", "x", "not an addendum"), ("2026-11-10-fm.md", "---" + chr(10) + "a: b" + chr(10) + "---", "no frontmatter")):
-            (root / "PB9002" / name).write_text(text, encoding="utf-8", newline=chr(10))
-            if not any(expect in r for r in read_notes(root)[1]):
-                findings.append(f"the addendum {name!r} is not refused ({expect})")
-            (root / "PB9002" / name).unlink()
-        (root / "PB9002").rmdir()
-        (root / "PB9003").mkdir()
-        (root / "PB9003" / "2026-11-10-x.md").write_text("x", encoding="utf-8", newline=chr(10))
-        if not any("PB9003/" in r and "does not exist" in r for r in read_notes(root)[1]):
-            findings.append("a directory of addenda with no note beside it is not refused")
-    return findings
-
-
-def self_test() -> int:
-    """Evaluate `tests/version-matrix/work-frontmatter-cases.json` against `parse_frontmatter`.
-
-    ⛔ THE FIXTURE ASSERTS ITS OWN POPULATION. A run that measured no wrapped list, no malformed value and no non-note
-    file would be green about nothing at all — precisely the state `work.py check` was in while `kb/Work/PB390`
-    claimed four rows the gate could not see (`feedback_green_gates_arent_evidence`,
-    `feedback_verdict_evidence_invariant`).
-    """
-    if not FIXTURE.exists():
-        print(f"⛔ fixture not found: {FIXTURE_REL}")
-        return 1
-    fixture = json.loads(FIXTURE.read_text(encoding="utf-8"))
-    answers = [{"name": c["name"], **reading_view(c["file"], c["text"])} for c in fixture["cases"]]
-    findings = case_findings(fixture, answers)
-
-    # POPULATION — the shapes this register actually contains, each of which broke a reader once.
-    covered = {
-        "a list wrapped across lines": any(_wrapped_list(c["text"]) for c in fixture["cases"]),
-        "a malformed value reported as an error": any(a["errors"] for a in answers),
-        "a file that is not a note": any(not a["note"] for a in answers),
-        "CRLF line endings": any("\r\n" in c["text"] for c in fixture["cases"]),
-        "a file named like a note whose frontmatter does not parse": any(a["refusal"] for a in answers),
-    }
-    findings += [f"the fixture carries no case for {what} — it cannot be measuring that shape"
-                 for what, ok in covered.items() if not ok]
-    # EVERY STATUS OF THE VOCABULARY, so the `terminal` answer is measured on each one (kb/Work PB3196): a status added
-    # to STATUSES or TERMINAL_STATUSES stops this until a case states what it is.
-    stated = {a["status"] for a in answers if a["note"]}
-    findings += [f"the fixture carries no note whose status is {s!r} — the `terminal` answer for it is not measured"
-                 for s in sorted((STATUSES | set(TERMINAL_STATUSES)) - stated)]
-    # EVERY FIELD, on every case: a field the fixture leaves unstated is a field the reader may change unseen.
-    findings += [f'case "{c["name"]}": the fixture states no {k!r} — it must state every field the view reports'
-                 for c, a in zip(fixture["cases"], answers) for k in a if k != "name" and k not in c["expect"]]
-    if len(fixture["cases"]) < 8:
-        findings.append(f'{len(fixture["cases"])} case(s) — too few to be measuring the reader')
-
-    findings += scalar_findings(fixture)
-    findings += directory_findings(fixture)
-    findings += upstream_findings()
-    findings += addendum_findings()
-    findings += view_findings()
-    findings += process_only_findings()
-    findings += site_member_findings()
-    findings += harm_vocabulary_findings()
-    findings += unflagged_kind_findings()
-    # FALSIFICATION: a repository whose weights are flat and whose brief names two classes of the vocabulary is refused
-    # on both counts, and one that is consistent is not.
-    import tempfile  # noqa: PLC0415
-
-    with tempfile.TemporaryDirectory(prefix="work-harm-") as tmp:
-        root = pathlib.Path(tmp)
-        (root / HARM_RESTATEMENT_ROOTS[0]).mkdir(parents=True)
-        (root / HARM_RESTATEMENT_ROOTS[0] / "brief.md").write_text("wrong_answer / crashes", encoding="utf-8", newline="\n")
-        weights = lambda ws: json.dumps({"harm": ",".join(f"{f}={w}" for f, w in zip(HARM_FLAGS, ws))})   # noqa: E731
-        (root / ".agent-fleet.json").write_text(weights([1] * len(HARM_FLAGS)), encoding="utf-8", newline="\n")
-        if len(harm_vocabulary_findings(root)) != 2:
-            findings.append("harm_vocabulary_findings does not refuse flat weights and a brief that leaves classes out")
-        (root / ".agent-fleet.json").write_text(weights(range(len(HARM_FLAGS), 0, -1)), encoding="utf-8", newline="\n")
-        (root / HARM_RESTATEMENT_ROOTS[0] / "brief.md").write_text(" ".join(HARM_FLAGS), encoding="utf-8", newline="\n")
-        if harm_vocabulary_findings(root):
-            findings.append(f"harm_vocabulary_findings refuses a consistent repository: {harm_vocabulary_findings(root)}")
-
-    # `frontier_model:` names a frontier family or is absent (kb/Work PB3941): every family is accepted, and a value
-    # that is none (the alias `opus`, a dated id, a LIST such as `[mythos]`, which must be refused by name rather than
-    # raise a TypeError that stops `work.py check`) is refused, so a typo can never leave a frontier note unheld.
-    findings += [f"frontier_model_shape refuses the frontier family {m!r}"
-                 for m in sorted(frontier_models()) if frontier_model_shape({"_file": "PB1.md", "frontier_model": m})]
-    findings += [f"frontier_model_shape accepts {m!r}, which is no frontier family"
-                 for m in ("opus", "claude-mythos-5-1", ["mythos"], 5)
-                 if not frontier_model_shape({"_file": "PB1.md", "frontier_model": m})]
-    if not frontier_models() or frontier_model_shape({"_file": "PB1.md"}):
-        findings.append("frontier_model_shape: no frontier family is configured, or a note with no field is refused")
-
-    # `running_limit_min:` (kb/Work PB4944): a positive whole number on a cluster's lead note, refused anywhere else, and
-    # a campaign's limit is the largest its notes' lead notes declare.
-    lead = {"_file": "PB10.md", "id": "PB10", "cluster": ["PB10"], RUNNING_LIMIT_FIELD: "150"}
-    member = {"_file": "PB11.md", "id": "PB11", "cluster": ["PB10"]}
-    if running_limit_problems([lead, member]):
-        findings.append(f"running_limit_problems refuses a lead note's limit: {running_limit_problems([lead, member])}")
-    if len(running_limit_problems([{"_file": "PB12.md", "id": "PB12", "cluster": [], RUNNING_LIMIT_FIELD: "150"}])) != 1:
-        findings.append("running_limit_problems accepts a running limit on a note that leads no cluster")
-    findings += [f"running_limit_problems accepts the limit {v!r}" for v in ("0", "-5", "ninety", "1.5", "")
-                 if len(running_limit_problems([{**lead, RUNNING_LIMIT_FIELD: v}, member])) != 1]
-    if (campaign_running_limit([lead, member], ["PB11"]) != 150 or campaign_running_limit([lead, member], ["PB99"]) is not None
-            or campaign_running_limit([{**lead, RUNNING_LIMIT_FIELD: "x"}, member], ["PB11"]) is not None):
-        findings.append("campaign_running_limit does not read the lead note's limit (or invents one)")
-    other = {"_file": "PB9.md", "id": "PB9", "cluster": ["PB10", "PB9"]}
-    if note_campaigns([lead, member, other], ["PB11", "PB9", "PB99"]) != ["PB9", "PB10"]:
-        findings.append("note_campaigns does not name each campaign of the notes once, in id order")
-
-    # FALSIFICATION — the comparison must be able to fail, or "no disagreement" is a statement about nothing.
-    corrupted = json.loads(json.dumps(fixture))
-    corrupted["cases"][0]["expect"]["id"] = corrupted["cases"][0]["expect"].get("id", "") + "-X"
-    if not case_findings(corrupted, [{"name": c["name"], **reading_view(c["file"], c["text"])}
-                                     for c in corrupted["cases"]]):
-        findings.append("a fixture whose expected id is WRONG produced no finding — the comparison is inert")
-    corrupted["scalars"][0]["expect"] += "-X"
-    if not scalar_findings(corrupted):
-        findings.append("a fixture whose expected scalar is WRONG produced no finding — the scalar comparison is inert")
-
-    print(f"cases  : {len(answers)} from {FIXTURE_REL}")
-    if findings:
-        print(f"\n⛔ {len(findings)} finding(s):")
-        for f in findings:
-            print(f"   {f}")
-        return 1
-    print("no findings.")
-    return 0
-
-
 #: The commands that write a note's `editions:` field (kb/Work PB5995; `work_editions.py`).
 EDITIONS_COMMANDS = ("backfill-editions", "set-editions")
 
@@ -2517,7 +1942,6 @@ EDITIONS_COMMANDS = ("backfill-editions", "set-editions")
 def main() -> int:
     ap =argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("cmd", nargs="?", choices=["migrate", "check", "next", "stats", *EDITIONS_COMMANDS, *VIEWS])
-    ap.add_argument("--self-test", action="store_true", help="the frontmatter reader against its cases")
     ap.add_argument("--write", action="store_true", help="backfill-editions, set-editions: write (default: print only)")
     ap.add_argument("--from", dest="source", metavar="FILE", help="set-editions: the JSON records "
                     '[{"id": "PB1", "editions": [2002], "reason": "<one sentence>"}]')
@@ -2527,10 +1951,8 @@ def main() -> int:
     ap.add_argument("--cluster", metavar="LEAD", help="next: the open notes whose `cluster` names LEAD, in blocked_by "
                     "order, whatever their harm flags (a campaign; exit 1 when no note names it)")
     a = ap.parse_args()
-    if a.self_test:
-        return self_test()
     if a.cmd is None:
-        ap.error(f"a command (migrate, check, next, stats, {', '.join(VIEWS)}) or --self-test")
+        ap.error(f"a command (migrate, check, next, stats, {', '.join(VIEWS)})")
     if a.cmd == "migrate":
         return migrate()
     if a.cmd == "check":

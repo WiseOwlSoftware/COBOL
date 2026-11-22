@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol;
+using WiseOwl.Cobol.Editions;
 using Xunit;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Tests.Shared;
@@ -1971,7 +1972,7 @@ public sealed class ExceptionConditionConformanceTests
                     STOP RUN.
                 """);
             var r = CompiledProgramCache.Compile(new CompilerDriver.Options(
-                src, Path.Combine(dir, "prog.dll"), DialectLevel: 2023, SourceFormat: TestSourceFormat.Inline));
+                src, EditionInfo.Of(2023), Path.Combine(dir, "prog.dll"), SourceFormat: TestSourceFormat.Inline));
             Assert.True(r.Success, string.Join("\n", r.Errors));
             string generated = File.ReadAllText(Path.Combine(dir, "prog.g.cs"));
             Assert.DoesNotContain("ExceptionState", generated);

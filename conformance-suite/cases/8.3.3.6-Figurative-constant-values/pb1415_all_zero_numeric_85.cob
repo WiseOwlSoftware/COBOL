@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb1415_all_zero_numeric_85
-      *> rules: [SR-8.3.3.6.3-1]
+      *> rules: [SR-8.3.3.6.3-1, 1985-SR-IV.4.2.2.2.3-p4]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

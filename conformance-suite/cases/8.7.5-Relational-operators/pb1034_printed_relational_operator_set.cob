@@ -1,6 +1,9 @@
       *>--- conformance-case
       *> id: pb1034_printed_relational_operator_set
-      *> rules: [SR-8.7.5.2-2, FMT-8.7.5.1, FMT-8.8.4.2.2]
+      *> rules: [SR-8.7.5.2-2, FMT-8.7.5.1, FMT-8.8.4.2.2,
+      *>    1985-GR-VI.6.3.1.1-T1.1, 1985-GR-VI.6.3.1.1-T1.2,
+      *>    1985-GR-VI.6.3.1.1-T1.3, 1985-GR-VI.6.3.1.1-T1.4,
+      *>    1985-GR-VI.6.3.1.1-T1.5]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

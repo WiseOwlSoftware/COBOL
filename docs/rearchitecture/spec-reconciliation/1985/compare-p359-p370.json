@@ -1,0 +1,52 @@
+{
+  "batch": [359, 360, 361, 362, 363, 364, 365, 366, 367, 368, 369, 370],
+  "pages_checked": [359, 360, 361, 362, 363, 364, 365, 366, 367, 368, 369, 370],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p359-1",
+      "page": 359,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "6.23 THE SET STATEMENT / 6.23.1 Function / 6.23.2 General Format / 6.23.3 Syntax Rules",
+      "markdown_says": "# 6.23 THE SET STATEMENT\n\n## 6.23.1 Function ... ## 6.23.2 General Format ... ## 6.23.3 Syntax Rules",
+      "why_it_matters": "The statement heading and its subclauses sit one level too high: 6.23 is an H1 and 6.23.1-6.23.3 are H2, while the same subclause 6.23.4 on page 360 is '### 6.23.4 General Rules' and sibling statements (6.24 on page 362, 6.26 on page 366) use '## 6.2x' with '### 6.2x.y'. The SET clause's outline is broken across pages 359/360."
+    },
+    {
+      "id": "p367-1",
+      "page": 367,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "6.26.3 Syntax Rules",
+      "markdown_says": "6.26.3 Syntax Rules",
+      "why_it_matters": "The subclause heading is plain paragraph text, not a markdown heading (siblings 6.26.1/6.26.2 on page 366 are '### 6.26.1 Function', '### 6.26.2 General Format'), so the SUBTRACT syntax rules are not a section in the document outline."
+    },
+    {
+      "id": "p367-2",
+      "page": 367,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "6.26.4 General Rules",
+      "markdown_says": "6.26.4 General Rules",
+      "why_it_matters": "The subclause heading is plain paragraph text, not a markdown heading, so the SUBTRACT general rules are not a section in the document outline."
+    },
+    {
+      "id": "p368-1",
+      "page": 368,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "6.27 THE UNSTRING STATEMENT / 6.27.1 Function / 6.27.2 General Format / 6.27.3 Syntax Rules",
+      "markdown_says": "║6.27 THE UNSTRING STATEMENT║\n\n║6.27.1 Function║\n\n║6.27.2 General Format║\n\n║6.27.3 Syntax Rules║",
+      "why_it_matters": "All four headings (the UNSTRING statement clause and three subclauses) are plain boxed paragraph text rather than markdown headings (compare page 363: '## ║6.25 THE STRING STATEMENT║', '### ║6.25.1 Function║'), so the UNSTRING statement is absent from the document outline."
+    },
+    {
+      "id": "p369-1",
+      "page": 369,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "6.27.4 General Rules",
+      "markdown_says": "║6.27.4 General Rules║",
+      "why_it_matters": "The subclause heading is plain boxed paragraph text, not a markdown heading, so the UNSTRING general rules are not a section in the document outline."
+    }
+  ]
+}

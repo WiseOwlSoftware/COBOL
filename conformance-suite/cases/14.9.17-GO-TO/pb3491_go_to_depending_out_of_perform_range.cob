@@ -1,6 +1,8 @@
       *>--- conformance-case
       *> id: pb3491_go_to_depending_out_of_perform_range
-      *> rules: [GR-14.9.17.4-1, GR-14.9.17.4-2, GR-14.9.28.4-1, GR-14.9.28.4-5, GR-14.6.3-1]
+      *> rules: [GR-14.9.17.4-1, GR-14.9.17.4-2, GR-14.9.28.4-1,
+      *>    GR-14.9.28.4-5, GR-14.6.3-1, 1985-GR-VI.6.21.4-12,
+      *>    1985-GR-VI.6.21.4-13]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

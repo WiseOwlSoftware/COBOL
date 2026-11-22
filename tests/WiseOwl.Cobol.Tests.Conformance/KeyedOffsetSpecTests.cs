@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Editions;
 using Xunit;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Tests.Shared;
@@ -28,7 +29,7 @@ public sealed class KeyedOffsetSpecTests
             string src = Path.Combine(dir, "prog.cob");
             src = CompiledProgramCache.StageSource(src, source);
             string dll = Path.Combine(dir, "prog.dll");
-            var r = CompiledProgramCache.Compile(new WiseOwl.Cobol.CompilerDriver.Options(src, dll, DialectLevel: 85, SourceFormat: TestSourceFormat.Inline));
+            var r = CompiledProgramCache.Compile(new WiseOwl.Cobol.CompilerDriver.Options(src, EditionInfo.Of(85), dll, SourceFormat: TestSourceFormat.Inline));
             Assert.True(r.Success, "must compile strict: " + string.Join("\n", r.Errors));
             return CutRunner.Run(dll, dir);
         }
@@ -58,7 +59,7 @@ public sealed class KeyedOffsetSpecTests
                     STOP RUN.
                 """);
             var r = CompiledProgramCache.Compile(new WiseOwl.Cobol.CompilerDriver.Options(
-                src, Path.Combine(dir, "prog.dll"), DialectLevel: 85, SourceFormat: TestSourceFormat.Inline));
+                src, EditionInfo.Of(85), Path.Combine(dir, "prog.dll"), SourceFormat: TestSourceFormat.Inline));
             Assert.False(r.Success, "an SR8-illegal wider redefinition must be rejected");
             Assert.Contains(r.Errors, e => e.Contains("COBOL1539"));
         }

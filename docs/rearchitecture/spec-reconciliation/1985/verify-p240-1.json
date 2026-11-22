@@ -1,0 +1,13 @@
+{
+  "claim_id": "p240-1",
+  "claim_key": "9d1ad178f8c51242",
+  "page": 240,
+  "kind": "missing-heading",
+  "severity": "structural",
+  "claim": {"id": "p240-1", "page": 240, "kind": "missing-heading", "severity": "structural", "pdf_says": "3.4 THE DATE-COMPILED PARAGRAPH / 3.4.1 Function / 3.4.2 General Format / 3.4.3 Syntax Rules / 3.4.4 General Rules (printed in the same style as its sibling 3.3 THE PROGRAM-ID PARAGRAPH and 3.3.1 Function on page 239)", "markdown_says": "## ║3.4 THE DATE-COMPILED PARAGRAPH║ ... ### ║3.4.1 Function║", "note": "Heading at the wrong level: the sibling 3.3 on page 239 is '### 3.3 THE PROGRAM-ID PARAGRAPH' with '#### 3.3.1 Function', so 3.4 should be ### and 3.4.1-3.4.4 ####. As transcribed 3.4 sits at the level of the chapter headings ('## 4.' on page 241).", "why_it_matters": "The heading hierarchy is wrong, so a reader or tool navigating the document outline places this clause at the wrong depth (siblings appear as parents or children of one another); no normative wording is lost."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The rendered page 240 (300 dpi) prints '3.4 THE DATE-COMPILED PARAGRAPH' and '3.4.1 Function' through '3.4.4 General Rules' inside the obsolete-element box, in the same style as 3.3 on page 239. By its numbering, 3.4 is a sibling of 3.3. The page-239 transcription uses '### 3.3' and '#### 3.3.1'-'#### 3.3.4', but page-240.md uses '## ║3.4 ...║' and '### ║3.4.1 ...║' through '### ║3.4.4 ...║'. Every heading on the page is therefore one level too shallow, and 3.4 lands at chapter level. All heading text is present and no normative wording differs, so this is a structural (outline) defect only. The kind 'missing-heading' is inaccurate because nothing is missing; the headings sit at the wrong level.",
+    "corrected_description": "Wrong heading level (not a missing heading): on page 240 the markdown renders 3.4 as '##' and 3.4.1-3.4.4 as '###', one level shallower than the sibling 3.3 ('###') and 3.3.1-3.3.4 ('####') on page 239. It should be '### 3.4' and '#### 3.4.1'-'#### 3.4.4'. All heading text and rule wording match the PDF."
+  }
+}

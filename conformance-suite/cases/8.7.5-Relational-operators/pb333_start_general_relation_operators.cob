@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb333_start_general_relation_operators
       *> rules: [SR-8.7.5.2-6, SR-8.7.5.2-9, SR-14.9.41.3-3,
-      *>    FMT-14.9.41.2]
+      *>    FMT-14.9.41.2, 1985-GR-VIII.4.7.4-9, 1985-GR-IX.4.7.4-9]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

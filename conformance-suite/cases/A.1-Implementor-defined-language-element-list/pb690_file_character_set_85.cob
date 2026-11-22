@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb690_file_character_set_85
-      *> rules: [DOC-A.1-31]
+      *> rules: [DOC-A.1-31, 1985-GR-IX.1.3.4-6]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

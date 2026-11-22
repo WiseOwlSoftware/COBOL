@@ -946,7 +946,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
 
     /// <summary>A subscript data-name → its C# read expression: an INDEXED BY index-name (a <c>long</c> field), or
     /// a (possibly OF/IN-qualified, ISO §2023:8.4.2.3.2) numeric data item read; <see langword="null"/> if unresolvable.
-    /// A data-item read is wrapped in <c>CobolTable.Occ(…)</c> — overload resolution converts a STRING-stored
+    /// A data-item read is wrapped in <c>CobolPosition&lt;use&gt;.Read(…)</c> — overload resolution converts a STRING-stored
     /// occurrence number (a leaf the post-bind whole-group analysis flags <see cref="DataItem.StoreAsImage"/>, a
     /// decision NOT yet made when this bind-time text is produced) exactly as a native <c>long</c>.</summary>
     /// <param name="scaled">Set when the resolved operand carries a nonzero PICTURE scale, so the caller can send a
@@ -1067,7 +1067,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
     /// would have been the fifth place answering "is this operand class numeric". Routing the segment to D18
     /// instead — which would reuse OperandRef's screen with no new code — was REJECTED: it materializes a §2023:15.4
     /// temp and a PendingPreOp for every permissive alphanumeric subscript, changing permissive-lane emitted text
-    /// and adding an integrality check where <c>CobolTable.Occ(string)</c> has none. Screening in place keeps the
+    /// and adding an integrality check where <c>CobolPosition.Digits(string)</c> has none. Screening in place keeps the
     /// emit floor byte-identical.</para>
     /// <para>⚠ AND THE RENDERER'S OWN INVARIANT IS RESTORED, not abandoned: <see cref="BindPosition"/> documents
     /// itself as "an optimization over that route, never the arbiter of what is legal in the position", and this
@@ -1108,7 +1108,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
             : "a reference-modification leftmost-position/length is an arithmetic expression ("
                 + edition.CiteRule("§1985:IV.4.3.8.4.3 SR2", "§2023:8.4.3.3.3 SR4") + ")";
         // The SAME dialect gate the expression-binder screen carries (dialect_two_axes — every leniency is
-        // dialect-gated): --permissive keeps the CobolTable.Occ(string) digit decode, which is the leniency
+        // dialect-gated): --permissive keeps the CobolPosition.Digits(string) digit decode, which is the leniency
         // already implemented by that overload, and the emitted text is unchanged either way.
         if (data.Edition.Permissive)
             data.Edition.Warning(DiagnosticCatalog.ArithmeticOperandNotNumeric, $"{what} is not a numeric operand — {where}, and {EditionInfo.Designated(edition.ArithmeticCitation())} "
@@ -1128,13 +1128,13 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
     /// storage instead is what made <c>W-E(W-S)</c> with <c>W-S = 2.0</c> index occurrence 20 and return the
     /// out-of-range scratch.</para>
     /// <para>⛔ A NUMERIC item reads through its OWN PROFILE, at every scale and in both positions:
-    /// <c>CobolTable.Occ(path, _P_n)</c> / <c>CobolString.RefModPosition(path, _P_n)</c>. The profile carries the
+    /// <c>CobolPosition&lt;PositionUse.Subscript&gt;.Read(path, _P_n)</c> / <c>CobolPosition&lt;PositionUse.RefMod&gt;.Read(path, _P_n)</c>. The profile carries the
     /// scale (GR1b's integrality, and a trailing-P item's multiplier), the sign, and the byte form §2023:14.6.13.2 rule
     /// 2's check needs when the post-bind whole-group analysis stores the item as its character image — a position
     /// is ITEM IDENTIFICATION, which rule 1 names as checked even inside a class condition (kb/Work PB1117). The
     /// profile-less form this replaced decoded that image through a tolerant digit scan: EC-DATA-INCOMPATIBLE was
     /// unreachable and a signed image's sign was dropped. Only a NON-numeric operand — the two <c>--permissive</c>
-    /// carriers COBOL0844 admits — keeps the bare <c>CobolTable.Occ(path)</c> digit decode.</para>
+    /// carriers COBOL0844 admits — keeps the bare <c>CobolPosition.Digits(path)</c> digit decode.</para>
     /// <para>The read is a typed <see cref="PositionItemRead"/> (kb/Work PB2151): the item, its structural path
     /// and the overload form; <c>CodeGen.PositionRenderer</c> renders it through <c>RuntimeApi</c>.</para></summary>
     private PositionItemRead? PositionRead(DataItem item, SegmentPosition position)
@@ -1149,8 +1149,8 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
         if (PlaceBuilder.BuildAccessPath(item, []) is not { } path) return null;
         return new PositionItemRead(path, item,
             !numeric ? PositionReadForm.Digits
-            : position == SegmentPosition.Subscript ? PositionReadForm.Occurrence
-            : PositionReadForm.RefModPosition);
+            : position == SegmentPosition.Subscript ? PositionReadForm.Subscript
+            : PositionReadForm.RefMod);
     }
 
     /// <summary>An index-name reference as a position: its declaration's cell, or — for a failed reference whose
@@ -1164,9 +1164,9 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
     /// carrier the post-bind whole-group analysis has not chosen yet — but that bet is good ONLY for the carrier
     /// types the emitted helper declares a parameter for.
     /// <para><b>The overload sets are the whole rule.</b> A NUMERIC operand renders the profile arity —
-    /// <c>CobolTable.Occ(x, in NumProfile)</c> / <c>CobolString.RefModPosition(x, in NumProfile)</c> — which takes
+    /// <c>CobolPosition&lt;use&gt;.Read(x, in NumProfile)</c> — which takes
     /// <c>long | string | Int128 | ulong | UInt128</c> at every scale (the profile carries the scale); a
-    /// NON-numeric <c>--permissive</c> operand renders <c>CobolTable.Occ(x)</c>, which takes <c>long | string</c>.
+    /// NON-numeric <c>--permissive</c> operand renders <c>CobolPosition.Digits(x)</c>, which takes <c>long | string</c>.
     /// The remaining carriers <see cref="DataItem.ElementType"/> can produce — <c>double</c>/<c>float</c> (a COMP-1/COMP-2
     /// leaf), <c>ManagedPointer</c>/<c>ProgramPointer</c>, an object reference, and a GROUP's <c>record struct</c>
     /// name — have none, and the emitted text was therefore not C# that compiles.
@@ -1209,10 +1209,10 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
         return false;
     }
 
-    /// <summary>The carrier types the NUMERIC position read — <c>CobolTable.Occ(<i>x</i>, in NumProfile)</c> and
-    /// <c>CobolString.RefModPosition(<i>x</i>, in NumProfile)</c> — declares a parameter for: the ONE list
+    /// <summary>The carrier types the NUMERIC position read — <c>CobolPosition&lt;use&gt;.Read(<i>x</i>, in NumProfile)</c> —
+    /// declares a parameter for: the ONE list
     /// <see cref="HasPositionOverload"/> reads for a numeric operand, exposed so
-    /// <c>PositionCarrierOverloadDriftTests</c> can compare it to both runtime methods' ACTUAL overloads by
+    /// <c>PositionCarrierOverloadDriftTests</c> can compare it to the runtime method's ACTUAL overloads by
     /// reflection. Adding an overload without widening this list leaves the fast path routing a carrier it could
     /// now render; widening this list without the overload puts the CS1503 back. The test fails on either.
     /// <c>Int128</c> must be here for a second reason: the D18 segment temp is a 19-digit integer position item —
@@ -1220,7 +1220,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
     internal static readonly string[] NumericPositionCarriers =
         ["long", "string", "Int128", "ulong", "UInt128"];
 
-    /// <summary>The carrier types <c>CobolTable.Occ(<i>x</i>)</c> declares a parameter for — a NON-numeric
+    /// <summary>The carrier types <c>CobolPosition.Digits(<i>x</i>)</c> declares a parameter for — a NON-numeric
     /// position operand, which only <c>--permissive</c> admits (COBOL0844): an index data item's <c>long</c>
     /// and a character item's <c>string</c>. Held to the runtime overloads by the same drift test.</summary>
     internal static readonly string[] NonNumericPositionCarriers = ["long", "string"];

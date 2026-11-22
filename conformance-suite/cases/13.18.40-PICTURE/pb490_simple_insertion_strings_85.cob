@@ -1,7 +1,8 @@
       *>--- conformance-case
       *> id: pb490_simple_insertion_strings_85
       *> rules: [GR-13.18.40.4-7, GR-13.18.40.5-1, GR-13.18.40.5-2,
-      *>    GR-13.18.40.5-3, GR-13.18.40.5-6, GR-13.18.40.5-7]
+      *>    GR-13.18.40.5-3, GR-13.18.40.5-6, GR-13.18.40.5-7,
+      *>    1985-GR-VI.5.9.5-1]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

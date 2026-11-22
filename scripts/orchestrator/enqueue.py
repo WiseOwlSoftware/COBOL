@@ -147,6 +147,12 @@ refusing on the landing's own range before a CI run is spent:
   rename_retired_names.py --check   (the RETIRED NAMES audit of the MERGED head, by that head's own copy, for the
                     same reason: a branch cut before the code took the product's name, WiseOwl.Cobol, that merges main
                     cleanly — a new note tagged or worded with a retired name — meets it here; kb/Work PB3837) → exit 6
+  code_read_landing.py   (the CODE READS of an older edition, by the MERGED head's own copy: a change that moves or deletes
+                    a member a stored code read names leaves that read owed a re-read, a term edition_status.py counts,
+                    with every other check green, because the gate's CODE READS audit calls a read owed a re-read
+                    information; the check refuses it naming the rows, whatever the edition's status on main, unless
+                    the branch carries their re-read (code_reads.py import --replace); kb/Work PB6056)
+                    → exit 6
 A check that cannot read its range is exit 2 (NOT RUN, never a pass). No landing check reads a record of one tree
 (kb/Work PB3107): a merge group is built on every group queued ahead of it, so a committed record of the branch's own
 tree (the arch-oracle baseline the retired landing oracle held it to, exit 7 until PB3107) cannot describe the tree that
@@ -256,13 +262,17 @@ class Check(NamedTuple):
 # the rename merges main cleanly, its own gate never ran the audit, and CI's `audits` job would be the first to see the
 # old spelling. It reads the merged head's tree with that head's own script; its refusal is exit 6 (the finisher runs
 # the rename), and its exit 2 (the tree could not be listed) is NOT RUN.
+# The code-read check is the same shape for a different reason (kb/Work PB6056): the gate's CODE READS audit calls a read
+# whose code moved information, never red, while `edition_status.py` counts it, so it needs main to be refused; it reads
+# the merged head against `--base` with that head's own script. Its refusal is exit 6 (the finisher re-reads the rows).
 CHECKS = (Check("devlog.py check", ("devlog.py", "check"), 6),
           Check("landing_check.py", ("orchestrator/landing_check.py",), 3, every_nonzero_refuses=True),
           Check("work.py check", ("spec/work.py", "check"), 6, takes_base=False, takes_range=False, in_tree=True),
           Check("rename_diagnostic_prefix.py --check", ("rename_diagnostic_prefix.py", "--check"), 6, takes_base=False,
                 takes_range=False, in_tree=True),
           Check("rename_retired_names.py --check", ("rename_retired_names.py", "--check"), 6, takes_base=False,
-                takes_range=False, in_tree=True))
+                takes_range=False, in_tree=True),
+          Check("code_read_landing.py", ("spec/code_read_landing.py",), 6, in_tree=True))
 
 Say = Callable[[str], None]
 Gh = Callable[[list[str]], tuple[int, str, str]]
@@ -1466,7 +1476,7 @@ def self_test() -> int:
                rc_nothing == 0 and any("nothing to land" in ln for ln in lines) and rc_title == 2,
                f"{rc_nothing} {rc_title}")
 
-        devlog_check, partition, register, prefix, retired = (c.command for c in CHECKS)
+        devlog_check, partition, register, prefix, retired, code_reads = (c.command for c in CHECKS)
 
         def runner(results: dict[tuple[str, ...], int], seen: list[tuple[tuple[str, ...], list[str]]]):
             def run(check: Check, args: list[str]) -> int:
@@ -1475,21 +1485,21 @@ def self_test() -> int:
             return run
         mapped = []
         for results in ({devlog_check: 1}, {partition: 1}, {devlog_check: 2}, {partition: 2}, {register: 1},
-                        {register: 2}, {prefix: 1}, {prefix: 2}, {retired: 1}, {retired: 2}, {}):
+                        {register: 2}, {prefix: 1}, {prefix: 2}, {retired: 1}, {retired: 2}, {code_reads: 1}, {code_reads: 2}, {}):
             seen: list[tuple[tuple[str, ...], list[str]]] = []
             mapped.append(run_checks("S", "B", runner(results, seen), say=lines.append))
         seen = []
         run_checks("S", "B", runner({}, seen), say=lines.append)
         missing = [c.command[0] for c in CHECKS if not (HERE.parent / c.command[0]).is_file()]
-        expect("checks runs the five landing scripts in order, the range only to the two that read one, and maps each "
+        expect("checks runs the six landing scripts in order, the range only to the three that read one, and maps each "
                "refusal to its own code: DEVLOG 6, landing check 3, register 6, diagnostic prefix 6, retired names 6, "
-               "unreadable 2",
-               mapped == [6, 3, 2, 3, 6, 2, 6, 2, 6, 2, 0] and not missing
+               "code reads 6, unreadable 2",
+               mapped == [6, 3, 2, 3, 6, 2, 6, 2, 6, 2, 6, 2, 0] and not missing
                and seen == [(devlog_check, ["--rev", "S", "--base", "B"]), (partition, ["--rev", "S", "--base", "B"]),
-                            (register, []), (prefix, []), (retired, [])],
+                            (register, []), (prefix, []), (retired, []), (code_reads, ["--rev", "S", "--base", "B"])],
                f"{mapped} {seen} missing={missing}")
 
-        # The register check and the two rename audits run the merged head's OWN scripts from the worktree's tree
+        # The register check, the two rename audits and the code-read check run the merged head's OWN scripts from the worktree's tree
         # (kb/Work PB3389 review R1-1, PB3575 review R1-1, PB3837), the other two this lane's: a worktree whose copies
         # refuse is exit 1, one whose copies pass is exit 0.
         for code in (1, 0):
@@ -1498,7 +1508,7 @@ def self_test() -> int:
             for in_tree in CHECKS[2:]:
                 (tree / "scripts" / in_tree.command[0]).write_text(f"import sys; sys.exit({code})", encoding="utf-8",
                                                                    newline=chr(10))
-            expect(f"the register check and the two rename audits run the worktree's own scripts (exit {code})",
+            expect(f"the register check, the two rename audits and the code-read check run the worktree's own scripts (exit {code})",
                    all(_script_runner(tree)(c, []) == code and c.in_tree for c in CHECKS[2:])
                    and not CHECKS[0].in_tree and not CHECKS[1].in_tree,
                    f"code {code}")

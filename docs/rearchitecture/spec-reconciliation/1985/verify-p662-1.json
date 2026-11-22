@@ -1,0 +1,5 @@
+{"claim_id": "p662-1", "claim_key": "38075978249fd486", "page": 662, "kind": "missing-heading", "severity": "structural",
+ "claim": {"id": "p662-1", "page": 662, "kind": "missing-heading", "severity": "structural", "pdf_says": "2.2.3 Syntax Rules", "markdown_says": "**2.2.3 Syntax Rules**", "why_it_matters": "The 2.2.3 Syntax Rules heading is demoted to bold text; its siblings 2.2.1 Function, 2.2.2 General Format (p661) and 2.2.4 General Rules (p664) are ### headings."},
+ "verdict": {"real": true,
+  "reasoning": "The printed page XIV-4 (PDF p662) shows '2.2.3 Syntax Rules' in the same bold paragraph-heading style as the other numbered CD-entry paragraphs. In specs/ANSI_COBOL_1985.md the siblings of this CD entry are headings ('### 2.2.1 Function' line 24802, '### 2.2.2 General Format' line 24806, '### 2.2.4 General Rules' line 24935), while 2.2.3 is plain '**2.2.3 Syntax Rules**' at line 24879. The text is present and correct; only its structural heading level is lost, so a heading-driven navigation or section parser misses 2.2.3. Claim quotes both sources accurately; structural, not normative.",
+  "corrected_description": null}}

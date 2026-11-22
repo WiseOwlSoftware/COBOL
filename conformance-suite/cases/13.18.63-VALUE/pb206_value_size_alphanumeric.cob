@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb206_value_size_alphanumeric
-      *> rules: [SR-13.18.63.3-4, SR-13.18.63.3-13]
+      *> rules: [SR-13.18.63.3-4, SR-13.18.63.3-13, 1985-SR-II.4.2-2]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

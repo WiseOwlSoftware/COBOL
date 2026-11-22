@@ -1,6 +1,8 @@
       *>--- conformance-case
       *> id: pb1246_level_hierarchy_legal
-      *> rules: [GR-13.18.33.4-1, FMT-13.18.33.2]
+      *> rules: [GR-13.18.33.4-1, FMT-13.18.33.2, 1985-FMT-VI.5.7.2,
+      *>    1985-GR-VI.5.7.4-1, 1985-FMT-XIII.3.14.2,
+      *>    1985-GR-XIII.3.14.4-1]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

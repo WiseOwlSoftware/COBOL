@@ -1,0 +1,13 @@
+{
+  "claim_id": "p680-2",
+  "claim_key": "0c2f82e5b426435b",
+  "page": 680,
+  "kind": "missing-text",
+  "severity": "normative",
+  "claim": {"id": "p680-2", "page": 680, "kind": "missing-text", "severity": "normative", "pdf_says": "PURGE cd-name-1 (the general format, drawn inside the level-2 box that encloses all of 3.4 on the page)", "markdown_says": "<pre style=\"line-height:1\">\n<u>PURGE</u> cd-name-1\n</pre>", "why_it_matters": "Every prose line of 3.4 carries the ║ level-2 marker, but the general format block carries none, unlike the DISABLE and ENABLE formats (pages 676, 678) whose pre blocks are framed with ╔ ║ ╚ markers; read alone, the format looks like a level-1 element although the PURGE statement is level 2 only."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The 300 dpi render of page 680 shows a single rectangular box from the 3.4 heading through general rule (3); the line 'PURGE cd-name-1' (PURGE underlined) under 3.4.2 lies inside that box, so it is level-2 material. In page-680.md every heading and rule paragraph is wrapped in ║...║, but the <pre> block holding the general format carries no level-2 marker at all. The transcription's own convention for a boxed format (page 676, DISABLE, specs/ANSI_COBOL_1985.md lines 25331-25337) frames the pre block with ╔ ║ ╚ ... ╗ ║ ╝. The format text itself (PURGE underlined, cd-name-1) is transcribed correctly; what is missing is the level-2 marking of the format, which is content in this edition's notation (the box designates level-2 elements). The claim quotes both sources accurately.",
+    "corrected_description": ""
+  }
+}

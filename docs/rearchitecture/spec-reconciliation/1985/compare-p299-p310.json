@@ -1,0 +1,16 @@
+{
+  "batch": [299, 300, 301, 302, 303, 304, 305, 306, 307, 308, 309, 310],
+  "pages_checked": [299, 300, 301, 302, 303, 304, 305, 306, 307, 308, 309, 310],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p307-1",
+      "page": 307,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "6.7 THE ALTER STATEMENT",
+      "markdown_says": "### 6.7 THE ALTER STATEMENT",
+      "why_it_matters": "The statement heading is one level too deep: its siblings 6.5 ACCEPT, 6.6 ADD, 6.8 COMPUTE, 6.9 CONTINUE and 6.10 DISPLAY are '##' headings with '###' subclauses, while 6.7 is '###' and its subclauses 6.7.1-6.7.4 are '####', so a heading-based section index nests ALTER under the ADD statement."
+    }
+  ]
+}

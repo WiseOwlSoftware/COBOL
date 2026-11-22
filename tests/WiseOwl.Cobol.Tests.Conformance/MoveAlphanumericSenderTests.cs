@@ -150,7 +150,7 @@ public sealed class MoveAlphanumericSenderTests
 
     // ⛔ THE SIBLING THE SPLIT PROTECTS. A numeric item's own character image (here a group-aliased
     // PIC S9(31) SIGN TRAILING SEPARATE leaf, whose image IS 32 characters) is decoded by the storage-form
-    // bridges — CobolTable.Occ, CobolString.RefModPosition, INSPECT's re-store — and its size is fixed by its
+    // bridges — CobolPosition<PositionUse.Subscript>.Read, CobolPosition<PositionUse.RefMod>.Read, INSPECT's re-store — and its size is fixed by its
     // own PICTURE, so GR6 d) 3 asks nothing of it and CobolNum.DigitMagnitude, not FromAlphanumeric, is what
     // those bridges call. This pins the whole 31-digit magnitude through the INSPECT re-store.
     [Fact]

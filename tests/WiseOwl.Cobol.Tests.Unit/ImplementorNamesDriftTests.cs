@@ -2,11 +2,11 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text.RegularExpressions;
 using WiseOwl.Cobol.Binding;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 using WiseOwl.Cobol.Frontend.Preprocessor;
-using WiseOwl.Cobol.Editions;
 
 namespace WiseOwl.Cobol.Tests.Unit;
 
@@ -42,7 +42,7 @@ public sealed class ImplementorNamesDriftTests
             string src = Path.Combine(dir, "prog.cob");
             File.WriteAllText(src, source);
             var r = CompilerDriver.Compile(new CompilerDriver.Options(
-                src, Path.Combine(dir, "prog.dll"), DialectLevel: edition, CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
+                src, EditionInfo.Of(edition), Path.Combine(dir, "prog.dll"), CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
             return (r.Success, r.Success ? [] : [.. r.Errors]);
         }
         finally { ScratchDirectory.Remove(dir); }

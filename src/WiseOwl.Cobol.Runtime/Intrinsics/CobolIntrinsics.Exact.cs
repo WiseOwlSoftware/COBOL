@@ -784,8 +784,7 @@ public static partial class CobolIntrinsics
         long capPos = 0;
         if (digitCap == 34 && unscaled != 0)
         {
-            int d10 = 0;
-            for (Int128 t = unscaled; t > 0; t /= 10) d10++;
+            int d10 = DecUnscaled.DigitCount((UInt128)unscaled);
             if (d10 - 1 + exp - (frac < 0 ? 0 : frac) > 6144) capPos = expDig1;
         }
         return new(0, false, neg, unscaled, frac < 0 ? 0 : frac, exp, capPos);

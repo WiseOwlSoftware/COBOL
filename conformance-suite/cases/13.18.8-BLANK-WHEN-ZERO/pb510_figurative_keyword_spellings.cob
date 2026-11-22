@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb510_figurative_keyword_spellings
-      *> rules: [FMT-13.18.8.2]
+      *> rules: [FMT-13.18.8.2, 1985-FMT-VI.5.4.2]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

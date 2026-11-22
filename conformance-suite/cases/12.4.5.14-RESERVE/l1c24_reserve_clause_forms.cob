@@ -1,6 +1,7 @@
       *>--- conformance-case
       *> id: l1c24_reserve_clause_forms
-      *> rules: [FMT-12.4.5.14.2]
+      *> rules: [FMT-12.4.5.14.2, 1985-FMT-VII.2.9.2,
+      *>    1985-GR-VIII.2.3.4-5, 1985-GR-IX.2.3.4-6]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

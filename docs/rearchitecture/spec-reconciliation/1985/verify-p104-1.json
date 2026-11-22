@@ -1,0 +1,13 @@
+{
+  "claim_id": "p104-1",
+  "claim_key": "8ca9e1f16ec289d3",
+  "page": 104,
+  "kind": "missing-heading",
+  "severity": "structural",
+  "claim": {"id": "p104-1", "page": 104, "kind": "missing-heading", "severity": "structural", "pdf_says": "6.2.2.1 Object Types", "markdown_says": "6.2.2.1 Object Types", "why_it_matters": "A numbered section heading printed in the PDF is demoted to a plain paragraph in the markdown, so it is absent from the document outline and anchors."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The printed page II-20 (PDF p104, rendered at 300 dpi) sets '6.2.2.1 Object Types' as a numbered section heading on its own line between the closing prose of 6.2.2 and the subheading 6.2.2.1.1 (the scan shows its leading '6' as a smudged glyph, and this heading is in lighter type than the bold subheadings below it, but it is plainly a heading). In specs/ANSI_COBOL_1985.md, line 4649 is the bare paragraph '6.2.2.1 Object Types' with no '#' markup. The transcription marks its parent '### 6.2.2 Objects' (line 4637) and its cousins '#### 6.2.2.2.1 ...' (line 4681 onward) as headings, so this is not a document-wide plain-text convention: the heading has been demoted, and it is absent from the outline. The text is present and correct; only the heading structure is lost. That is a structural defect and has no normative effect. The sibling headings 6.2.2.1.1 to 6.2.2.1.4 and 6.2.2.2 on the same page are demoted the same way and are filed separately as p104-2 to p104-6.",
+    "corrected_description": null
+  }
+}

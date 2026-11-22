@@ -1,6 +1,7 @@
       *>--- conformance-case
       *> id: pb1281_redefines_data_name_2_bare
-      *> rules: [SR-13.18.44.3-5, SR-13.18.44.3-6]
+      *> rules: [SR-13.18.44.3-5, SR-13.18.44.3-6, 1985-SR-VI.5.10.3-5,
+      *>    1985-SR-VI.5.10.3-7]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

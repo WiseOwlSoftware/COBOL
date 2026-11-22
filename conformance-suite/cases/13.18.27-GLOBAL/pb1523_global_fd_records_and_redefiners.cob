@@ -1,6 +1,7 @@
       *>--- conformance-case
       *> id: pb1523_global_fd_records_and_redefiners
-      *> rules: [GR-13.18.27.4-1, GR-13.18.27.4-3]
+      *> rules: [GR-13.18.27.4-1, GR-13.18.27.4-3, 1985-GR-X.4.4.4-2,
+      *>    1985-GR-X.4.6.4-1]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

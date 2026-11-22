@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text;
 using WiseOwl.Cobol;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using Xunit;
 using WiseOwl.Cobol.Tests.Shared;
@@ -84,7 +85,7 @@ public sealed class NestedQuotientPrecisionDriftTests
             string src = Path.Combine(dir, "p.cob");
             File.WriteAllText(src, source);
             var r = CompilerDriver.Compile(new CompilerDriver.Options(
-                src, Path.Combine(dir, "p.dll"), DialectLevel: 2023, SourceFormat: InitialReferenceFormat.Free));
+                src, EditionInfo.Of(2023), Path.Combine(dir, "p.dll"), SourceFormat: InitialReferenceFormat.Free));
             Assert.True(r.Success, "the drift program must compile: " + string.Join("; ", r.Errors));
             Assert.NotNull(r.GeneratedCsPath);
             return File.ReadAllText(r.GeneratedCsPath!);

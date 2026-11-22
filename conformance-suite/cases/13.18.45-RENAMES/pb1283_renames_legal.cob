@@ -1,6 +1,7 @@
       *>--- conformance-case
       *> id: pb1283_renames_legal
-      *> rules: [SR-13.18.45.3-2, SR-13.18.45.3-5, SR-13.18.45.3-11]
+      *> rules: [SR-13.18.45.3-2, SR-13.18.45.3-5, SR-13.18.45.3-11,
+      *>    1985-SR-VI.5.11.3-2, 1985-SR-VI.5.11.3-8]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

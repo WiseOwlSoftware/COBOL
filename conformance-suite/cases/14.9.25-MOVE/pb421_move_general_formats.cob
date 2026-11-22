@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb421_move_general_formats
-      *> rules: [FMT-14.9.25.2]
+      *> rules: [FMT-14.9.25.2, 1985-FMT-VI.6.19.2]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

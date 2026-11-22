@@ -1,0 +1,13 @@
+{
+  "claim_id": "p85-1",
+  "claim_key": "f008768939a56f07",
+  "page": 85,
+  "kind": "missing-heading",
+  "severity": "structural",
+  "claim": {"id": "p85-1", "page": 85, "kind": "missing-heading", "severity": "structural", "pdf_says": "2.1 FILE ATTRIBUTES", "markdown_says": "2.1 FILE ATTRIBUTES", "why_it_matters": "The section heading 2.1 is transcribed as a plain paragraph line, not a markdown heading, while its siblings (\"## 2.2 FILE PROCESSING\" on page 87) are headings; an outline or section lookup of clause II.2.1 will not find it."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The printed page (II-1, PDF p85) sets '2.1 FILE ATTRIBUTES' as a numbered section heading on its own line, in the same style as '1. INTRODUCTION' and '2. FILES', and '2.1.1 Sequential Organization' likewise. In page-85.md the words are present but as plain paragraph lines ('2.1 FILE ATTRIBUTES', '2.1.1 Sequential Organization'), with no '#' markup, while '## 1.', '## 2.' on this page and '### 2.1.2 Relative Organization', '## 2.2 FILE PROCESSING' later in specs/ANSI_COBOL_1985.md (lines 4134, 4174) are markdown headings. The text is not missing, but the heading structure is: a heading-based outline or section lookup of II.2.1 (and II.2.1.1) finds nothing. Structural defect only; no normative wording differs (the blocking-factor wording difference on this page is the documented Amendment 2 erratum C186, not part of this claim).",
+    "corrected_description": "On page 85 (II-1) two section headings are transcribed as plain paragraph lines rather than markdown headings: '2.1 FILE ATTRIBUTES' (should be '## 2.1 FILE ATTRIBUTES', a sibling of '## 2.2 FILE PROCESSING') and '2.1.1 Sequential Organization' (should be '### 2.1.1 Sequential Organization', a sibling of '### 2.1.2 Relative Organization'). The heading text is present; only the heading markup is missing."
+  }
+}

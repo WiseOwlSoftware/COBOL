@@ -67,7 +67,7 @@ internal sealed class _PRG_CHAR_OCCURS : ICobolProgram
                     while (!(J > 5L))
                     {
 #line (11, 16) - (11, 36) 25 "char_occurs.cob"
-                        CobolTable.At(WS_TBL.WS_ELEM, CobolTable.Occ(J, _P_2)) = (long)(CobolNum.Store(J, 0, _P_1, CobolRounding.Truncation));
+                        CobolTable.At(WS_TBL.WS_ELEM, CobolPosition<PositionUse.Subscript>.Read(J, _P_2)) = (long)(CobolNum.Store(J, 0, _P_1, CobolRounding.Truncation));
 #line hidden
                         __pcont0: ;
 #line (10, 12) - (10, 18) 25 "char_occurs.cob"

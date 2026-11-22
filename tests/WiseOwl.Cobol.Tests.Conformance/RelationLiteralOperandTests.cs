@@ -3,6 +3,7 @@
 using System.Text;
 using System.Text.RegularExpressions;
 using WiseOwl.Cobol;
+using WiseOwl.Cobol.Editions;
 using Xunit;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Tests.Shared;
@@ -208,8 +209,7 @@ public sealed class RelationLiteralOperandTests
         try
         {
             string src = CompiledProgramCache.StageSource(Path.Combine(dir, "prog.cob"), source);
-            var r = CompiledProgramCache.Compile(new CompilerDriver.Options(src, Path.Combine(dir, "prog.dll"),
-                DialectLevel: 2023, CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
+            var r = CompiledProgramCache.Compile(new CompilerDriver.Options(src, EditionInfo.Of(2023), Path.Combine(dir, "prog.dll"), CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
             return (r.Success ? [] : [.. r.Errors.DefaultIfEmpty($"status {r.Status}")], r.Warnings);
         }
         finally { ScratchDirectory.Remove(dir); }

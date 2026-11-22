@@ -222,7 +222,7 @@ internal sealed class PlaceBuilder(IPlaceFacts facts)
     /// <summary>A group whose subtree contains an occurs-depending table is an ODO operand (ISO §2023:13.18.38.4 GR8): wrap
     /// it so the sending slice / receiving direction-split applies — whatever the group's storage shape (a record
     /// struct member, or a Tier-B / BASED class-tier window; kb/Work PB80). data-name-1 is resolved post-build,
-    /// declared anywhere outside the table (SR20), and read at the operation site via CobolTable.Occ
+    /// declared anywhere outside the table (SR20), and read at the operation site via CobolPosition&lt;PositionUse.Subscript&gt;.Read
     /// (storage-form-agnostic). Any other place passes through unchanged.
     /// <para>The recursion through <see cref="ResolveItem"/> ends because <c>OdoResolvePass</c> records only an
     /// ADMITTED data-name-1 (<see cref="OccursSpec.Depending"/>: an integer, so an elementary item, kb/Work PB3510);

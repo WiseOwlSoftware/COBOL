@@ -4,6 +4,7 @@ using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using WiseOwl.Cobol;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Listing;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
@@ -137,7 +138,7 @@ public sealed class ListingExceptionRegionTests : IDisposable
     {
         string path = Path.Combine(_dir, "regions.cob");
         File.WriteAllText(path, string.Join("\n", Source));
-        var result = CompiledProgramCache.CompileCold(new CompilerDriver.Options(path, Path.Combine(_dir, "regions.dll"),
+        var result = CompiledProgramCache.CompileCold(new CompilerDriver.Options(path, EditionInfo.Latest, Path.Combine(_dir, "regions.dll"),
             Listing: new ListingRequest(Formats: ListingFormats.Text | ListingFormats.Json | ListingFormats.Html)
             { Sections = ListingSectionSet.Of(ListingSection.Source, ListingSection.ObjectCode) }));
         Assert.True(result.Success, string.Join("\n", result.Errors));

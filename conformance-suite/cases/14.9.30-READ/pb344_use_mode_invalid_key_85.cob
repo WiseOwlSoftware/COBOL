@@ -1,6 +1,7 @@
       *>--- conformance-case
       *> id: pb344_use_mode_invalid_key_85
-      *> rules: [GR-14.9.30.4-28]
+      *> rules: [GR-14.9.30.4-28, 1985-GR-VIII.4.5.4-9,
+      *>    1985-GR-IX.4.5.4-9]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

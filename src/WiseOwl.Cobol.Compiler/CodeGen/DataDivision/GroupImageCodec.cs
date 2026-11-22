@@ -753,7 +753,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         }
         // THE FILE-RECORD HALF (determination D-FRA; kb/Work PB981): a record read back as ONE contiguous image
         // (§2023:8.5.1.11.2 — what CurrentImage() wrote) is decomposed into this same carrier by the ONE split rule,
-        // CobolVarGroup.FromContiguous, over the component layout below — the flattened VarParts walk, so a
+        // CobolContiguousLayout.Decompose, over the component layout below — the flattened VarParts walk, so a
         // nested variable-length group's components are located exactly where FromVarImage's Slice expects them.
         var layout = new List<(int FixedAt, int Unit, long MaxUnits, int Structure)>();
         ContiguousLayout(group, 0, layout);
@@ -873,7 +873,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         }
     }
 
-    /// <summary>The flattened component layout <c>CobolVarGroup.FromContiguous</c> decomposes a record over:
+    /// <summary>The flattened component layout <c>CobolContiguousLayout.Decompose</c> decomposes a record over:
     /// each variable-length component's offset in the FIXED run, its unit width in image characters (the image unit of a
     /// dynamic-length item's positions - <see cref="DataItem.ImageUnit"/>, one for an alphanumeric item and two for
     /// a national one, whose image <see cref="CurrentMemberImage"/> composes as its UTF-16BE bytes, kb/Work PB3441 - the

@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
@@ -81,7 +82,7 @@ internal static class RecoverySources
             string src = Path.Combine(dir, "prrec.cob");
             File.WriteAllText(src, source);
             return CompilerDriver.Compile(new CompilerDriver.Options(
-                src, Path.Combine(dir, "prrec.dll"), DialectLevel: edition, CheckOnly: true, SourceFormat: InitialReferenceFormat.Free));
+                src, EditionInfo.Of(edition), Path.Combine(dir, "prrec.dll"), CheckOnly: true, SourceFormat: InitialReferenceFormat.Free));
         }
         finally { ScratchDirectory.Remove(dir); }
     }

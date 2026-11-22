@@ -1,6 +1,8 @@
       *>--- conformance-case
       *> id: pb5882_io_status_1985_values
-      *> rules: [1985-GR-VII.1.3.5-5, 1985-GR-VII.1.3.5-L2.1, 1985-GR-VII.1.3.5-L2.5, 1985-GR-VII.4.4.4-13]
+      *> rules: [1985-GR-VII.1.3.5-5, 1985-GR-VII.1.3.5-L2.1,
+      *>    1985-GR-VII.1.3.5-L2.5, 1985-GR-VII.4.4.4-13,
+      *>    1985-GR-VII.1.3.5-p5]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

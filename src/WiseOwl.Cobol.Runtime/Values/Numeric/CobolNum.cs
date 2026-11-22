@@ -600,7 +600,7 @@ public static partial class CobolNum
     // question are different questions — reading the storage as an occurrence number is how PB41 indexed
     // occurrence 20 for the subscript 2.0. These two helpers are the ONE place that difference is resolved; the
     // two positions differ ONLY in which Table 13 condition they name (EC-BOUND-SUBSCRIPT vs EC-BOUND-REF-MOD),
-    // which is why the wrappers live with their position (CobolTable.Occ / CobolString.RefModPosition) and the
+    // which is why the wrappers live with their position (CobolPosition<PositionUse.Subscript>.Read / CobolPosition<PositionUse.RefMod>.Read) and the
     // arithmetic lives here.
 
     /// <summary>True when <paramref name="unscaled"/> at <paramref name="scale"/> carries a nonzero fraction —
@@ -697,7 +697,7 @@ public static partial class CobolNum
     // The statement pre-operation that materializes a subscript expression stores its integer position into a
     // compiler temporary (BoundPositionValue). The temporary holds up to 38 digits, so the position it carries is
     // the EXACT integer for every value a native intermediate can form, where the 19-digit temporary it replaced
-    // held only the long-saturated one — and the subscript read (CobolTable.Occ) then names the true value in
+    // held only the long-saturated one — and the subscript read (CobolPosition<PositionUse.Subscript>.Read) then names the true value in
     // EC-BOUND-SUBSCRIPT's detail. A value past the temporary's capacity SATURATES to it by sign: it is still out of
     // every table's range (§2023:8.4.2.3.4 GR2), and a store that wrapped it modulo 10^38 could land it back inside.
 
@@ -854,7 +854,7 @@ public static partial class CobolNum
         return item.Signed ? Overpunch(mag, mag.Length - 1, unscaled < 0, item.SignEncoding) : mag;
     }
 
-    /// <summary>Storage-form bridge (the <c>CobolTable.Occ</c> pattern): a numeric-DISPLAY field whose backing the
+    /// <summary>Storage-form bridge (the <c>CobolPosition&lt;PositionUse.Subscript&gt;.Read</c> pattern): a numeric-DISPLAY field whose backing the
     /// post-bind whole-group analysis turned into its character IMAGE is already display-formatted — pass through.
     /// Lets the compiler emit ONE expression for an image view whose field's storage form is decided later.</summary>
     public static string FormatDisplay(string image, in NumProfile receiver) => image;
@@ -1050,8 +1050,8 @@ public static partial class CobolNum
     //
     // ⛔ DigitMagnitude IS NOT A SPELLING OF FromAlphanumeric. The size rule belongs to the alphanumeric SENDING
     // OPERAND and to nothing else: a caller decoding an image whose size is already fixed by its OWN data
-    // description — a numeric item's character image on the storage-form bridges (CobolTable.Occ,
-    // CobolString.RefModPosition, INSPECT's re-store of a replaced numeric image), or GR6 d) 3 b)'s figurative
+    // description — a numeric item's character image on the storage-form bridges (CobolPosition<PositionUse.Subscript>.Read,
+    // CobolPosition<PositionUse.RefMod>.Read, INSPECT's re-store of a replaced numeric image), or GR6 d) 3 b)'s figurative
     // replication across the RECEIVER's digit positions — takes DigitMagnitude, because the standard asks no size
     // question of them at all.
     //

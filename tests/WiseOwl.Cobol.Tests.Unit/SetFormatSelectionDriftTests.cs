@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding.Procedure;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 
@@ -215,7 +216,7 @@ public sealed class SetFormatSelectionDriftTests : WiseOwlCobolTestBase
             "       WORKING-STORAGE SECTION.", "       01 WS-N PIC 9(4) VALUE 1.", "       PROCEDURE DIVISION.",
             "           SET WS-N UP BY 1", "           STOP RUN.",
         ]);
-        var r = CompilerDriver.Compile(new CompilerDriver.Options(src, DialectLevel: dialect,
+        var r = CompilerDriver.Compile(new CompilerDriver.Options(src, EditionInfo.Of(dialect),
             SourceFormat: WiseOwl.Cobol.Tests.Shared.TestSourceFormat.Inline));
         string message = Assert.Single(r.Errors, e => e.Contains("COBOL2112", StringComparison.Ordinal));
         foreach (var n in named) Assert.Contains(n, message, StringComparison.Ordinal);
@@ -246,7 +247,7 @@ public sealed class SetFormatSelectionDriftTests : WiseOwlCobolTestBase
             "       WORKING-STORAGE SECTION.", $"       01 {entry}.", "       01 N PIC 9(4).",
             "       PROCEDURE DIVISION.", "       P1.", $"           {statement}.", "           STOP RUN.",
         ]);
-        var r = CompilerDriver.Compile(new CompilerDriver.Options(src, DialectLevel: dialect,
+        var r = CompilerDriver.Compile(new CompilerDriver.Options(src, EditionInfo.Of(dialect),
             SourceFormat: WiseOwl.Cobol.Tests.Shared.TestSourceFormat.Inline));
         string message = Assert.Single(r.Errors, e => e.Contains("COBOL2112", StringComparison.Ordinal));
         Assert.Contains(format, message, StringComparison.Ordinal);

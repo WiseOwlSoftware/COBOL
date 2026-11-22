@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Reflection;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Listing;
 using Xunit;
 
@@ -30,10 +31,18 @@ public sealed class OptionsSectionDriftTests
             .Where(p => p.SetMethod is { IsPublic: true } || positional.Contains(p.Name));
     }
 
+    /// <summary>The row names of <see cref="CompilerDriver.Options"/>: each settable property, except that the edition is two command-line
+    /// options, <c>--std</c> and <c>--permissive</c>, each a row named by its path (<see cref="EditionInfo.Year"/>,
+    /// <see cref="EditionInfo.Permissive"/>; kb/Work PB2619).</summary>
+    private static IEnumerable<string> OptionRowNames() =>
+        Settable(typeof(CompilerDriver.Options)).SelectMany(p => p.PropertyType == typeof(EditionInfo)
+            ? [OptionsSectionBuilder.EditionYear, OptionsSectionBuilder.EditionPermissive]
+            : new[] { p.Name });
+
     [Fact]
     public void EveryOptionProperty_HasExactlyOneRow()
     {
-        Assert.Equal(Settable(typeof(CompilerDriver.Options)).Select(p => p.Name).Order(StringComparer.Ordinal),
+        Assert.Equal(OptionRowNames().Order(StringComparer.Ordinal),
             OptionsSectionBuilder.Table.Select(r => r.Property).Order(StringComparer.Ordinal));
         Assert.Equal(Settable(typeof(ListingRequest)).Select(p => p.Name).Order(StringComparer.Ordinal),
             OptionsSectionBuilder.RequestTable.Select(r => r.Property).Order(StringComparer.Ordinal));
@@ -46,7 +55,7 @@ public sealed class OptionsSectionDriftTests
     [Fact]
     public void AtTheDefaults_EveryOptionRowIsDefault()
     {
-        var rows = OptionsSectionBuilder.Build(new CompilerDriver.Options(Source) { Listing = new ListingRequest() });
+        var rows = OptionsSectionBuilder.Build(new CompilerDriver.Options(Source, EditionInfo.Latest) { Listing = new ListingRequest() });
         int options = OptionsSectionBuilder.Table.Count + OptionsSectionBuilder.RequestTable.Count;
         Assert.Equal(options + 4, rows.Count);
         Assert.Equal(["source", "--listing"], rows.Take(options).Where(r => r.Origin != ListingOptionOrigin.Default).Select(r => r.Name));
@@ -69,8 +78,13 @@ public sealed class OptionsSectionDriftTests
     [MemberData(nameof(OptionProperties))]
     public void SettingOneOption_ChangesExactlyItsRow(string property)
     {
-        var defaults = new CompilerDriver.Options(Source);
-        var changed = With(defaults, property);
+        var defaults = new CompilerDriver.Options(Source, EditionInfo.Latest);
+        var changed = property switch
+        {
+            OptionsSectionBuilder.EditionYear => defaults with { Edition = EditionInfo.Of(85, defaults.Edition.Permissive) },
+            OptionsSectionBuilder.EditionPermissive => defaults with { Edition = defaults.Edition with { Permissive = !defaults.Edition.Permissive } },
+            _ => With(defaults, property),
+        };
         int count = OptionsSectionBuilder.Table.Count;
         var before = OptionsSectionBuilder.Build(defaults).Take(count).ToList();
         var after = OptionsSectionBuilder.Build(changed).Take(count).ToList();
@@ -87,7 +101,7 @@ public sealed class OptionsSectionDriftTests
     [MemberData(nameof(RequestProperties))]
     public void SettingOneListingProperty_ChangesExactlyItsRow(string property)
     {
-        var defaults = new CompilerDriver.Options(Source) { Listing = new ListingRequest() };
+        var defaults = new CompilerDriver.Options(Source, EditionInfo.Latest) { Listing = new ListingRequest() };
         var changed = defaults with { Listing = With(new ListingRequest(), property) };
         var before = OptionsSectionBuilder.Build(defaults);
         var after = OptionsSectionBuilder.Build(changed);
@@ -121,8 +135,7 @@ public sealed class OptionsSectionDriftTests
         var type = Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType;
         if (type == typeof(string)) return current is "elsewhere" ? "other" : "elsewhere";
         if (type == typeof(bool)) return !(bool)current!;
-        if (type == typeof(int))
-            return property.Name == nameof(CompilerDriver.Options.DialectLevel) ? ((int)current! == 85 ? 2002 : 85) : (int)current! + 1;
+        if (type == typeof(int)) return (int)current! + 1;
         if (type.IsEnum) return Enum.GetValues(type).Cast<object>().First(v => !v.Equals(current));
         if (type == typeof(IReadOnlyList<string>)) return new[] { "dir" };
         if (type == typeof(ListingRequest)) return current is null ? new ListingRequest() : null;

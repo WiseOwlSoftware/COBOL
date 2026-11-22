@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb370_use_file_beats_mode
-      *> rules: [GR-14.9.49.4-5]
+      *> rules: [GR-14.9.49.4-5, 1985-GR-VIII.4.8.4-5]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

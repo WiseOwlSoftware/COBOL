@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Editions;
 using Xunit;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Tests.Shared;
@@ -61,7 +62,7 @@ public sealed class FileControlKeyRuleSpecTests
             string src = Path.Combine(dir, "prog.cob");
             src = CompiledProgramCache.StageSource(src, source);
             var r = CompiledProgramCache.Compile(
-                new WiseOwl.Cobol.CompilerDriver.Options(src, Path.Combine(dir, "prog.dll"), DialectLevel: edition, SourceFormat: TestSourceFormat.Inline));
+                new WiseOwl.Cobol.CompilerDriver.Options(src, EditionInfo.Of(edition), Path.Combine(dir, "prog.dll"), SourceFormat: TestSourceFormat.Inline));
             return [.. r.Errors];
         }
         finally { ScratchDirectory.Remove(dir); }

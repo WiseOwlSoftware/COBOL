@@ -1,6 +1,9 @@
       *>--- conformance-case
       *> id: pb1190_varying_advancing_bounds
-      *> rules: [GR-9.1.13.7-4, GR-14.9.51.4-14, GR-14.9.51.4-15]
+      *> rules: [GR-9.1.13.7-4, GR-14.9.51.4-14, GR-14.9.51.4-15,
+      *>    1985-GR-VII.4.7.4-8, 1985-GR-VIII.4.6.4-12,
+      *>    1985-GR-VIII.4.9.4-8, 1985-GR-IX.4.6.4-12,
+      *>    1985-GR-IX.4.9.4-8]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

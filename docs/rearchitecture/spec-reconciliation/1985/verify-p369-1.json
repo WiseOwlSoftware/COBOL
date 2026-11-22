@@ -1,0 +1,13 @@
+{
+  "claim_id": "p369-1",
+  "claim_key": "d932750a55b0be10",
+  "page": 369,
+  "kind": "missing-heading",
+  "severity": "structural",
+  "claim": {"id": "p369-1", "page": 369, "kind": "missing-heading", "severity": "structural", "pdf_says": "6.27.4 General Rules", "markdown_says": "║6.27.4 General Rules║", "why_it_matters": "The subclause heading is plain boxed paragraph text, not a markdown heading, so the UNSTRING general rules are not a section in the document outline."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The 300 dpi render of p369 (VI-137) shows '6.27.4 General Rules' printed as the subclause heading at the top of the boxed (level-2) text, followed by rules (1)-(12). page-369.md and specs/ANSI_COBOL_1985.md line 15060 carry it only as the plain paragraph '║6.27.4 General Rules║', with no heading marker. The sibling subclauses of 6.25 are marked up as headings ('### ║6.25.4 General Rules║', line 14861), and so is 6.20.4 ('### 6.20.4 General Rules'), so this is a real outline defect, not a transcription convention. The text is present and the wording matches; the defect is structural: the UNSTRING general rules are missing from the outline. The same defect covers the clause title on p367 ('║6.27 THE UNSTRING STATEMENT║', line 15009, should be ##) and 6.27.1, 6.27.2 and 6.27.3 (lines 15012, 15016, 15038). The repair should sweep all of them.",
+    "corrected_description": "Accurate as stated. Sweep note: the whole 6.27 clause has no heading markup. '║6.27 THE UNSTRING STATEMENT║' (line 15009) should be '##', and 6.27.1-6.27.4 (lines 15012, 15016, 15038, 15060) should be '###', matching 6.25.x."
+  }
+}

@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: l1c30_thru_through_equivalent
-      *> rules: [SR-12.3.7.3-12]
+      *> rules: [SR-12.3.7.3-12, 1985-SR-VI.4.5.3-6]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

@@ -1,0 +1,49 @@
+{
+ "batch": [695,696,697,698,699,700,701,702,703,704,705,706],
+ "pages_checked": [695,696,697,698,699,700,701,702,703,704,705,706],
+ "pages_unread": [],
+ "findings": [
+  {
+   "id": "p698-1", "page": 698, "kind": "misplaced-content", "severity": "structural",
+   "why_it_matters": "The section heading appears twice and the first copy sits on the Debug page XV-10, so a tool locating Section XVI by heading finds it on the wrong page.",
+   "pdf_says": "(page 698 ends with) general rules 5 and 6).",
+   "markdown_says": "XV-10\n\n# SECTION XVI: SEGMENTATION MODULE",
+   "detail": "Page 698 (XV-10) prints no Section XVI heading; the heading is printed on page 699, where the markdown also carries it as `# <u>SECTION XVI: SEGMENTATION MODULE</u>`. The copy at the end of page 698 is a stray duplicate."
+  },
+  {
+   "id": "p700-1", "page": 700, "kind": "missing-heading", "severity": "structural",
+   "why_it_matters": "1.5 is a sibling of 1.1-1.4 (rendered ###) and 1.6 (###); at ## it outranks its parent `## 1.` siblings and breaks the outline.",
+   "pdf_says": "1.5 SEGMENTATION CLASSIFICATION",
+   "markdown_says": "## 1.5 SEGMENTATION CLASSIFICATION",
+   "detail": "Heading at the wrong level: should be `### 1.5 SEGMENTATION CLASSIFICATION` like `### 1.4 ORGANIZATION` and `### 1.6 SEGMENTATION CONTROL`."
+  },
+  {
+   "id": "p703-1", "page": 703, "kind": "missing-heading", "severity": "structural",
+   "why_it_matters": "2.3 is a sibling of 2.2 (rendered ### on page 702); at ## with its subclauses at ### the outline places the SEGMENT-LIMIT clause at the level of `2. ENVIRONMENT DIVISION`.",
+   "pdf_says": "2.3 THE SEGMENT-LIMIT CLAUSE",
+   "markdown_says": "## ║2.3 THE SEGMENT-LIMIT CLAUSE║",
+   "detail": "Should be `###`, and its 2.3.1-2.3.4 subheadings `####` (rendered `###`), matching 2.2 / 2.2.1-2.2.4 on page 702."
+  },
+  {
+   "id": "p703-2", "page": 703, "kind": "missing-text", "severity": "normative",
+   "why_it_matters": "The level-2 box marks the SEGMENT-LIMIT clause as a level-2 (Segmentation level 2) feature; GR 2 and 3 without the marker read as level-1 rules.",
+   "pdf_says": "(2) Those segments having segment-numbers from the segment-limit through 49 are considered as overlayable fixed segments.\n\n(3) When the SEGMENT-LIMIT clause is omitted, all segments having segment-numbers from 0 through 49 are considered as permanent segments of the object program.",
+   "markdown_says": "(2) Those segments having segment-numbers from the segment-limit through 49 are considered as overlayable fixed segments.\n\n(3) When the SEGMENT-LIMIT clause is omitted, all segments having segment-numbers from 0 through 49 are considered as permanent segments of the object program.",
+   "detail": "The printed box encloses the whole of 2.3 through the end of general rule (3). The markdown wraps every other paragraph of 2.3 in ║ level-2 markers but leaves general rules (2) and (3) unmarked."
+  },
+  {
+   "id": "p703-3", "page": 703, "kind": "missing-text", "severity": "normative",
+   "why_it_matters": "The general format of the SEGMENT-LIMIT clause is inside the printed level-2 box; unmarked, the format reads as level 1.",
+   "pdf_says": "SEGMENT-LIMIT IS segment-number",
+   "markdown_says": "<pre style=\"line-height:1\">\n<u>SEGMENT-LIMIT</u> IS segment-number\n</pre>",
+   "detail": "The general format lies inside the box that encloses all of 2.3; the markdown figure carries no level-2 box marker (page 702's boxed OBJECT-COMPUTER format uses ╔ ║ ╚ marks for the same purpose)."
+  },
+  {
+   "id": "p706-1", "page": 706, "kind": "missing-heading", "severity": "structural",
+   "why_it_matters": "3.3 is a sibling of 3.1 and 3.2 (both ###); at ## it ranks with `## 3. PROCEDURE DIVISION IN THE SEGMENTATION MODULE`.",
+   "pdf_says": "3.3 RESTRICTIONS ON PROGRAM FLOW",
+   "markdown_says": "## 3.3 RESTRICTIONS ON PROGRAM FLOW",
+   "detail": "Should be `### 3.3 ...`, with 3.3.1-3.3.3 at `####` (rendered `###`), matching 3.2 / 3.2.1-3.2.4 on page 705."
+  }
+ ]
+}

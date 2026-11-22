@@ -67,6 +67,8 @@ sys.path.insert(0, str(REPO / "scripts" / "spec"))
 import construct_store  # noqa: E402  (scripts/spec: the construct catalogue, one file per construct, kb/Work PB5110)
 import cobol_source as cobol  # noqa: E402  (this directory's: the program-text facts the refusals need)
 import config  # noqa: E402  (this directory's: the harness's adapter, profile and baseline formats)
+import obligations  # noqa: E402  (this directory's: the held editions' row obligations and witnesses, kb/Work PB6048)
+import measurements  # noqa: E402  (this directory's: the second compiler's recorded verdicts, kb/Work PB6054)
 import generated_output  # noqa: E402  (the one way a generator clears the directory it writes: never wholesale)
 import inventory_schema  # noqa: E402  (the inventory's one schema: its editions, its evidence predicates)
 import inventory_view  # noqa: E402  (the one view of the inventory, kb/Work PB4992)
@@ -1261,6 +1263,14 @@ def completeness(cases: list[Case], inputs: Inputs) -> dict[str, dict[str, int]]
     report: dict[str, dict[str, int]] = {}
     schema = inputs.schema
     for e in inputs.editions:
+        # An edition whose own text is held is counted on that text's catalog, split by what witnesses each row (§4.1,
+        # obligations.py), never on the newest edition's rows banded at it: the 85 suite is the 1985 rows' (revision 4).
+        catalog = [row for rule_id, row in inputs.rows.items() if rule_id in inputs.older and inputs.older[rule_id].spelling == e]
+        if catalog:
+            report[e] = obligations.counts(obligations.classify(
+                catalog, cases, diagnostics=inputs.diagnostics, determined=inputs.determined, derived=inputs.derived,
+                test_refs=lambda row: schema.split(row.get("test-ref", ""), schema.test_ref_sep), edition=e))
+            continue
         counts = dict.fromkeys(WITNESS_KINDS, 0)
         for rule_id, row in inputs.rows.items():
             # The newest edition's rows, banded: an older edition's rules are counted by its own view (inventory_view.py
@@ -1293,9 +1303,17 @@ def print_report(report: dict[str, dict[str, int]]) -> None:
     widths = [max(len(h), 5) for h in head]
     print("  " + "  ".join(f"{h:>{w}}" for h, w in zip(head, widths)))
     for e, c in report.items():
-        cells = [e, str(c["rows"]), *(str(c[k]) for k in WITNESS_KINDS)]
-        print("  " + "  ".join(f"{v:>{w}}" for v, w in zip(cells, widths)))
+        if "unmet" not in c:
+            cells = [e, str(c["rows"]), *(str(c[k]) for k in WITNESS_KINDS)]
+            print("  " + "  ".join(f"{v:>{w}}" for v, w in zip(cells, widths)))
     for e, c in report.items():
+        if "unmet" in c:  # a held edition's own catalog (obligations.py)
+            print(f"  {e}'s own catalog, {c['rows']} rows, by witness: " + ", ".join(f"{k} {c[k]}" for k in obligations.WITNESS))
+            print(f"  suite measure at {e}: {c['suite'] + c['determination']} of the {c['observable']} observable rows have a "
+                  f"cleared test; {c['unmet']} do not: {c['accepted-uncleared']} only an uncleared accepted test, "
+                  f"{c['refusal-only']} only a refusal test, "
+                  f"{c['header-omits'] + c['shared-test'] + c['no-test']} named by no header")
+            continue
         print(f"  suite measure at {e}: {c['suite']} of the {c['observable']} rows a program can observe are "
               f"witnessed by a suite test; documented non-support ({c['documented-non-support']}) is unwitnessed "
               f"until implemented")
@@ -1477,6 +1495,9 @@ def generate(root: Path, inputs: Inputs, problems: list[Problem], out: Path | No
     # The harness's configuration (§5): every adapter, profile and baseline, against what only the repository knows.
     for rel, message in config.check_tree(root, inputs.editions, inputs.requirable, inputs.implementor_defined,
                                           suite_ids(reader.cases, inputs.editions)):
+        reader.refuse(rel, 1, message)
+    # A second compiler's measurement of each held edition's catalog rows (§5, kb/Work PB6054).
+    for rel, message in measurements.check_tree(root, measurements.populations(reader.cases, inputs.schema)):
         reader.refuse(rel, 1, message)
     if reader.refusals:
         if echo:
@@ -1772,10 +1793,15 @@ def self_test() -> int:
                   (w2023["own"], sorted(mw["diagnostics"])))
             report = json.loads((root / "suites/completeness.json").read_text(encoding="utf-8"))
             r85 = report["85"]
+            r2002 = report["2002"]
             check("arm: completeness counts each row once under its first witness kind",
-                  {k: r85[k] for k in WITNESS_KINDS} == {"documented-non-support": 1, "suite": 3, "determination": 1,
-                                                         "derivation": 1, "wiseowl-only": 1, "none": 3}
-                  and r85["rows"] == 10 and r85["observable"] == 8, r85)
+                  {k: r2002[k] for k in WITNESS_KINDS} == {"documented-non-support": 1, "suite": 7, "determination": 1,
+                                                           "derivation": 1, "wiseowl-only": 1, "none": 2}
+                  and r2002["rows"] == 13 and r2002["observable"] == 11, r2002)
+            check("arm: an edition whose own text is held is counted on that catalog's rows, by what witnesses each "
+                  "(obligations.py), not on the newest edition's rows banded at it",
+                  {k: r85[k] for k in obligations.WITNESS if r85[k]} == {"suite": 1}
+                  and (r85["rows"], r85["observable"], r85["unmet"]) == (1, 1, 0), r85)
             check("arm: a row not in the edition's band is not counted there (GR-1.1.1-2, SR-1.1.1-2 are 2002 on)",
                   report["2002"]["rows"] == 13, report["2002"])
         remove_tree(root / "suites")
@@ -1998,6 +2024,14 @@ def self_test() -> int:
         "a baseline of no adapter": (
             "baselines/nobody.json", json.dumps({"compiler": "nobody", "verdicts": {"85": {"ok": "PASS"}}}),
             "a baseline of 'nobody', which has no adapter"),
+        "a measurement of a test no population holds": (
+            "measurements/stub.json",
+            json.dumps({"compiler": "stub", "editions": {"85": {"verdicts": {"nobody": "PASS"}, "failures": {}}}}),
+            "85 nobody: no test of the 85 population has this id"),
+        "a measurement failure with no cause": (
+            "measurements/silent.json",
+            json.dumps({"compiler": "silent", "editions": {"85": {"verdicts": {"nobody": "FAIL"}, "failures": {}}}}),
+            "nobody: a FAIL with no bucket and cause"),
         "build in a suite test": ("cases/1.1.1-Rule/bld-suite.cob",
                                   _fixed(["id: bld-suite", "rules: [GR-1.1.1-1]", "accept: [85]", "files: [CPY1.cpy]",
                                           "build: [CPY1.cpy]", "source-format: fixed"], _PROGRAM),

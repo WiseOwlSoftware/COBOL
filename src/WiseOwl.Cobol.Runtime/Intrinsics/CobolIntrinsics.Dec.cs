@@ -101,8 +101,7 @@ public static partial class CobolIntrinsics
         if (d.Exp < 0)
         {
             // A negative exponent may still be an integer value (…000 significand): reduce it.
-            Int128 sig = d.Sig; int exp = d.Exp;
-            while (exp < 0 && sig % 10 == 0) { sig /= 10; exp++; }
+            var (sig, exp) = DecUnscaled.StripTrailingZeros(d.Sig, d.Exp, 0);
             if (exp < 0) return false;
             d = new CobolDec(sig, exp);
         }

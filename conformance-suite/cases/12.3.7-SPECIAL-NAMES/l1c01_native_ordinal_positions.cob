@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: l1c01_native_ordinal_positions
-      *> rules: [GR-12.3.7.4-6, DOC-A.1-8]
+      *> rules: [GR-12.3.7.4-6, DOC-A.1-8, 1985-GR-III.2-p179]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

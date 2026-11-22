@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb1353_replacing_operands_legal
-      *> rules: [SR-7.2.3.3-7, SR-7.2.4.3-4]
+      *> rules: [SR-7.2.3.3-7, SR-7.2.4.3-4, 1985-SR-XII.2.3-4]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

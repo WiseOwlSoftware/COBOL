@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Frontend.Parsing;
 using Xunit;
@@ -144,7 +145,7 @@ public sealed class KeywordSpellingDriftTests
             string src = Path.Combine(dir, "prog.cob");
             File.WriteAllText(src, source);
             var r = CompilerDriver.Compile(new CompilerDriver.Options(
-                src, Path.Combine(dir, "prog.dll"), DialectLevel: edition, CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
+                src, EditionInfo.Of(edition), Path.Combine(dir, "prog.dll"), CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
             return (r.Success, r.Success ? [] : [.. r.Errors]);
         }
         finally { ScratchDirectory.Remove(dir); }

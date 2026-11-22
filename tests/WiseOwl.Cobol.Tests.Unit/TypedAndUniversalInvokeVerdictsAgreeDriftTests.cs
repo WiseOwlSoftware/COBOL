@@ -185,8 +185,7 @@ public sealed class TypedAndUniversalInvokeVerdictsAgreeDriftTests
         {
             string src = Path.Combine(dir, "pb2077.cob");
             File.WriteAllText(src, source);
-            var r = CompilerDriver.Compile(new CompilerDriver.Options(src, Path.Combine(dir, "pb2077.dll"),
-                DialectLevel: 2023, CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
+            var r = CompilerDriver.Compile(new CompilerDriver.Options(src, EditionInfo.Of(2023), Path.Combine(dir, "pb2077.dll"), CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
             Assert.True(r.Errors.All(e => e.Contains("COBOL0828", StringComparison.Ordinal)),
                 "the probe program drew an error other than the verdict under test:\n" + string.Join("\n", r.Errors));
             return r.Errors;
@@ -251,9 +250,8 @@ public sealed class TypedAndUniversalInvokeVerdictsAgreeDriftTests
         "the argument is described with PICTURE 9(6) where the formal parameter is described with PICTURE 9(4)")]
     public void ARefusal_SpellsItsClauses_NeverAnIdentityKey(string negative, string argument, string difference)
     {
-        var r = CompilerDriver.Compile(new CompilerDriver.Options(TestRepo.SuiteCase(Path.GetFileNameWithoutExtension(negative)),
-            Path.Combine(Path.GetTempPath(), "WiseOwlCobol_PB2077_" + Guid.NewGuid().ToString("N")[..8] + ".dll"),
-            DialectLevel: 2023, CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
+        var r = CompilerDriver.Compile(new CompilerDriver.Options(TestRepo.SuiteCase(Path.GetFileNameWithoutExtension(negative)), EditionInfo.Of(2023),
+            Path.Combine(Path.GetTempPath(), "WiseOwlCobol_PB2077_" + Guid.NewGuid().ToString("N")[..8] + ".dll"), CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
         var refusals = r.Errors.Where(e => e.Contains("COBOL0828", StringComparison.Ordinal)
             && e.Contains("BY REFERENCE", StringComparison.Ordinal)).ToArray();
         Assert.Contains(refusals, e => e.Contains(argument, StringComparison.Ordinal)

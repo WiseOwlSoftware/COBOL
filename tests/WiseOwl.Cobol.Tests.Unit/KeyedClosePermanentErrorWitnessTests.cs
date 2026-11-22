@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Runtime.Loader;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Runtime;
 using WiseOwl.Cobol.Runtime.IO;
@@ -256,7 +257,7 @@ public sealed class KeyedClosePermanentErrorWitnessTests : WiseOwlCobolTestBase
     {
         string src = Path.Combine(TempDir, $"{id}.cob"), dll = Path.Combine(TempDir, $"{id}.dll");
         File.WriteAllText(src, source);
-        var result = CompilerDriver.Compile(new CompilerDriver.Options(src, dll, DialectLevel: 2023,
+        var result = CompilerDriver.Compile(new CompilerDriver.Options(src, EditionInfo.Of(2023), dll,
             SourceFormat: TestSourceFormat.Inline));
         Assert.True(result.Success, $"{result.Status}: {string.Join("\n", result.Errors)}");
         var call = ScratchDirectory.LoadAssembly(dll).GetTypes()

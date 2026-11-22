@@ -1,0 +1,13 @@
+{
+  "claim_id": "p713-1",
+  "claim_key": "65569420292a429e",
+  "page": 713,
+  "kind": "missing-heading",
+  "severity": "structural",
+  "claim": {"id": "p713-1", "page": 713, "kind": "missing-heading", "severity": "structural", "pdf_says": "2.7 CODASYL COBOL JOURNAL OF DEVELOPMENT 1970 / 2.8 CODASYL COBOL JOURNAL OF DEVELOPMENT 1973", "markdown_says": "2.7 CODASYL COBOL JOURNAL OF DEVELOPMENT 1970 / 2.8 CODASYL COBOL JOURNAL OF DEVELOPMENT 1973", "why_it_matters": "Numbered subsection headings left as plain paragraphs, while siblings 2.9, 2.10 and 2.12 are rendered '##'."},
+  "verdict": {
+    "real": false,
+    "reasoning": "The printed page 713 (XVII-5, History of COBOL) shows '2.7 CODASYL COBOL JOURNAL OF DEVELOPMENT 1970' and '2.8 CODASYL COBOL JOURNAL OF DEVELOPMENT 1973'. The markdown has both headings with identical text, in the same position, and the body text and lists match the page. The claim's own pdf_says and markdown_says are identical. The only difference is markdown heading markup ('##'). Grepping specs/ANSI_COBOL_1985.md shows the markup is inconsistent across the whole section: 2.1-2.8 and 2.11 are plain lines, and only 2.9, 2.10 and 2.12 carry '##'. That is a formatting choice in a non-normative history appendix. It does not change content or meaning, so this is not a content discrepancy.",
+    "corrected_description": null
+  }
+}

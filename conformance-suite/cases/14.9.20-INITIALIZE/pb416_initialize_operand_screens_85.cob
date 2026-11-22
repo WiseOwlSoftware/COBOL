@@ -1,7 +1,8 @@
       *>--- conformance-case
       *> id: pb416_initialize_operand_screens_85
       *> rules: [SR-14.9.20.3-1, SR-14.9.20.3-4, SR-14.9.20.3-5,
-      *>    SR-14.9.20.3-7]
+      *>    SR-14.9.20.3-7, 1985-SR-VI.6.17.3-2, 1985-SR-VI.6.17.3-5,
+      *>    1985-SR-VI.6.17.3-6]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

@@ -107,7 +107,7 @@ function Read-Ansi85Words([string]$path) {
     $inList = $false
     foreach ($line in Get-Content -LiteralPath $path) {
         if (-not $inList) { if ($line -match '^##\s+8\.\s+<u>COBOL RESERVED WORDS</u>') { $inList = $true }; continue }
-        if ($line -match '^#\s+SECTION V') { break }
+        if ($line -match '^#\s+(?:<u>)?SECTION V:') { break }
         if ($line -notmatch '^\|(.*)\|\s*$') { continue }   # the table rows; the page headings and errata notes are prose
         foreach ($cell in $Matches[1] -split '\|') {
             $w = $cell.Trim()

@@ -1,6 +1,6 @@
 {
  "rule-id": "1985-GR-X.5.2.4-2",
- "rule-digest": "f5ccecfe52c8",
+ "rule-digest": "c05ad4e5fac8",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitCall; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitCallEcCatch; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallProgram; src/WiseOwl.Cobol.Frontend/Parsing/ConditionalPhrases.cs#Associates; src/WiseOwl.Cobol.Frontend/Parsing/ConditionalPhrases.cs#MayAssociate; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#NotOnException; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ConditionalPhrase.cs#EmitPair",
  "test-ref": "conformance:cases/X.5.2@1985-CALL-STATEMENT/1985-GR-X_5_2_4-2",

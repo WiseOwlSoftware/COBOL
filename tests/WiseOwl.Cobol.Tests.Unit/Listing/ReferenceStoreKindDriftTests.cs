@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Symbols;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
@@ -58,7 +59,7 @@ public sealed class ReferenceStoreKindDriftTests : WiseOwlCobolTestBase
     {
         string path = Path.Combine(TempDir, "stores.cob");
         File.WriteAllText(path, string.Join("\n", Source));
-        var options = new CompilerDriver.Options(path, Path.Combine(TempDir, "stores.dll"), DialectLevel: 2023);
+        var options = new CompilerDriver.Options(path, EditionInfo.Of(2023), Path.Combine(TempDir, "stores.dll"));
         var (_, occurrences, _, _, errors) = ReferenceOccurrenceDriftTests.Bind(options);
         Assert.True(errors.Count == 0, string.Join("\n", errors));
         return (occurrences, ReferenceOccurrenceDriftTests.Findings(options));

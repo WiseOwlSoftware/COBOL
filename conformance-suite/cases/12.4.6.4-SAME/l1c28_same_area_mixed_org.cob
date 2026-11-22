@@ -1,6 +1,8 @@
       *>--- conformance-case
       *> id: l1c28_same_area_mixed_org
-      *> rules: [SR-12.4.6.4.3-4, GR-12.4.6.4.4-1]
+      *> rules: [SR-12.4.6.4.3-4, GR-12.4.6.4.4-1, 1985-SR-VII.2.13.3-4,
+      *>    1985-GR-VII.2.13.4-1, 1985-GR-IX.2.8.3-2,
+      *>    1985-SR-XI.2.5.3-6, 1985-GR-XIII.2.4.4-2]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

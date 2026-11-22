@@ -1,0 +1,13 @@
+{
+  "claim_id": "p116-2",
+  "claim_key": "8c7728596ed0c607",
+  "page": 116,
+  "kind": "missing-heading",
+  "severity": "cosmetic",
+  "claim": {"id": "p116-2", "page": 116, "kind": "missing-heading", "severity": "cosmetic", "pdf_says": "7.5 THE CONCEPT OF QUEUES", "markdown_says": "## 7.5 THE CONCEPT OF QUEUES", "why_it_matters": "Wrong heading level: the PDF prints 7.5 as a second-level section under chapter 7 (same style as 7.1 and 7.2, which the markdown renders '###'), but the markdown renders it '##', the level of the chapter heading '## 7. COMMUNICATION FACILITY', so it reads as a sibling of chapter 7."},
+  "verdict": {
+    "real": false,
+    "reasoning": "The 300 dpi render of page 116 (II-32) prints the bold heading '7.5 THE CONCEPT OF QUEUES', and the markdown has exactly that text: '## 7.5 THE CONCEPT OF QUEUES'. No heading is missing, so the kind 'missing-heading' is wrong. The only difference is the markdown heading level. That level is the same as the '## 7.4' heading on this page and the '## 7.3' heading before it. The markdown is uneven across the chapter (7.1 and 7.2 use ###, while 7.3 through 7.6 use ##), but that is formatting that the section number 7.5 already resolves. The wording, number and content all match, and nothing changes meaning. Under the task's rules, a formatting-only difference is rejected.",
+    "corrected_description": ""
+  }
+}

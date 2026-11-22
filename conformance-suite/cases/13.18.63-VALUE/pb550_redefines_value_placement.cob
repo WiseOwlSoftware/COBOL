@@ -1,6 +1,7 @@
       *>--- conformance-case
       *> id: pb550_redefines_value_placement
-      *> rules: [SR-13.18.63.3-12]
+      *> rules: [SR-13.18.63.3-12, 1985-SR-II.4.2-1,
+      *>    1985-GR-VI.5.15.6-2]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

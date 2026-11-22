@@ -2902,15 +2902,7 @@ static WiseOwl.Cobol.Runtime.CobolString.CompareFig(string? left, string? right,
 static WiseOwl.Cobol.Runtime.CobolString.CompareFig(string? left, string? right, bool figIsLeft, char pad = ' ') -> int
 static WiseOwl.Cobol.Runtime.CobolString.FigToWidth(string! seed, int width) -> string!
 static WiseOwl.Cobol.Runtime.CobolString.RefMod(string? s, WiseOwl.Cobol.Runtime.Occurrence leftmost, WiseOwl.Cobol.Runtime.Occurrence length, bool allowZeroLength = false) -> string!
-static WiseOwl.Cobol.Runtime.CobolString.RefModPosition(System.Int128 unscaled, in WiseOwl.Cobol.Runtime.NumProfile item) -> WiseOwl.Cobol.Runtime.Occurrence
-static WiseOwl.Cobol.Runtime.CobolString.RefModPosition(System.UInt128 unscaled, in WiseOwl.Cobol.Runtime.NumProfile item) -> WiseOwl.Cobol.Runtime.Occurrence
-static WiseOwl.Cobol.Runtime.CobolString.RefModPosition(long unscaled, in WiseOwl.Cobol.Runtime.NumProfile item) -> WiseOwl.Cobol.Runtime.Occurrence
-static WiseOwl.Cobol.Runtime.CobolString.RefModPosition(string! image, in WiseOwl.Cobol.Runtime.NumProfile item) -> WiseOwl.Cobol.Runtime.Occurrence
-static WiseOwl.Cobol.Runtime.CobolString.RefModPosition(ulong unscaled, in WiseOwl.Cobol.Runtime.NumProfile item) -> WiseOwl.Cobol.Runtime.Occurrence
 static WiseOwl.Cobol.Runtime.CobolString.RefModStartOffset(WiseOwl.Cobol.Runtime.Occurrence leftmost, WiseOwl.Cobol.Runtime.Occurrence length, int size, bool allowZeroLength = false) -> int
-static WiseOwl.Cobol.Runtime.CobolString.RefModValue(System.Int128 unscaled, int scale) -> System.Int128
-static WiseOwl.Cobol.Runtime.CobolString.RefModValueDec(WiseOwl.Cobol.Runtime.CobolDec value) -> System.Int128
-static WiseOwl.Cobol.Runtime.CobolString.RefModValueReal(double value) -> System.Int128
 static WiseOwl.Cobol.Runtime.CobolString.Repeat(string! s, int n) -> string!
 static WiseOwl.Cobol.Runtime.CobolString.SpecifiedRefModLength(WiseOwl.Cobol.Runtime.Occurrence length) -> WiseOwl.Cobol.Runtime.Occurrence
 static WiseOwl.Cobol.Runtime.CobolString.SpliceInto(string? dst, WiseOwl.Cobol.Runtime.Occurrence leftmost, WiseOwl.Cobol.Runtime.Occurrence length, string? slice, char pad = ' ', bool allowZeroLength = false, bool repeat = false) -> string!
@@ -2932,16 +2924,6 @@ static WiseOwl.Cobol.Runtime.CobolTable.ConcatImages<T>(T[]! table, int count, S
 static WiseOwl.Cobol.Runtime.CobolTable.ConcatVarImages<T>(T[]! table, int count, System.Func<T, WiseOwl.Cobol.Runtime.CobolVarGroup!>! carrier) -> WiseOwl.Cobol.Runtime.CobolVarGroup!
 static WiseOwl.Cobol.Runtime.CobolTable.Fill<T>(int count, System.Func<int, T>! element) -> T[]!
 static WiseOwl.Cobol.Runtime.CobolTable.InSpan(long rank, long lo, long hi, int modulus, int residue) -> bool
-static WiseOwl.Cobol.Runtime.CobolTable.Occ(System.Int128 unscaled, in WiseOwl.Cobol.Runtime.NumProfile item) -> WiseOwl.Cobol.Runtime.Occurrence
-static WiseOwl.Cobol.Runtime.CobolTable.Occ(System.UInt128 unscaled, in WiseOwl.Cobol.Runtime.NumProfile item) -> WiseOwl.Cobol.Runtime.Occurrence
-static WiseOwl.Cobol.Runtime.CobolTable.Occ(long unscaled, in WiseOwl.Cobol.Runtime.NumProfile item) -> WiseOwl.Cobol.Runtime.Occurrence
-static WiseOwl.Cobol.Runtime.CobolTable.Occ(long value) -> long
-static WiseOwl.Cobol.Runtime.CobolTable.Occ(string! image) -> WiseOwl.Cobol.Runtime.Occurrence
-static WiseOwl.Cobol.Runtime.CobolTable.Occ(string! image, in WiseOwl.Cobol.Runtime.NumProfile item) -> WiseOwl.Cobol.Runtime.Occurrence
-static WiseOwl.Cobol.Runtime.CobolTable.Occ(ulong unscaled, in WiseOwl.Cobol.Runtime.NumProfile item) -> WiseOwl.Cobol.Runtime.Occurrence
-static WiseOwl.Cobol.Runtime.CobolTable.OccValue(System.Int128 unscaled, int scale) -> System.Int128
-static WiseOwl.Cobol.Runtime.CobolTable.OccValueDec(WiseOwl.Cobol.Runtime.CobolDec value) -> System.Int128
-static WiseOwl.Cobol.Runtime.CobolTable.OccValueReal(double value) -> System.Int128
 static WiseOwl.Cobol.Runtime.CobolTable.OdoExtent(WiseOwl.Cobol.Runtime.Occurrence count, int min, int max, int fixedUnits, int elemUnits) -> int
 static WiseOwl.Cobol.Runtime.CobolTable.OdoExtentChars(WiseOwl.Cobol.Runtime.Occurrence count, int min, int max, int fixedUnits, int strideUnits, int trailingUnits, int positionsPerChar) -> int
 static WiseOwl.Cobol.Runtime.CobolTable.SortInPlace<T>(System.Span<T> occurrences, System.Comparison<T>! compare) -> void
@@ -2955,7 +2937,6 @@ static WiseOwl.Cobol.Runtime.CobolValueClass.IsInArithmeticRange(WiseOwl.Cobol.R
 static WiseOwl.Cobol.Runtime.CobolValueClass.IsNumeric(WiseOwl.Cobol.Runtime.CobolDec value) -> bool
 static WiseOwl.Cobol.Runtime.CobolVarGroup.Compare(WiseOwl.Cobol.Runtime.CobolVarGroup! a, WiseOwl.Cobol.Runtime.GroupAtom![]! aShape, WiseOwl.Cobol.Runtime.CobolVarGroup! b, WiseOwl.Cobol.Runtime.GroupAtom![]! bShape, WiseOwl.Cobol.Runtime.CobolCollation? collation = null) -> int
 static WiseOwl.Cobol.Runtime.CobolVarGroup.Concat(WiseOwl.Cobol.Runtime.CobolVarGroup![]! occurrences) -> WiseOwl.Cobol.Runtime.CobolVarGroup!
-static WiseOwl.Cobol.Runtime.CobolVarGroup.FromContiguous(string! record, int fixedTotal, System.Collections.Generic.IReadOnlyList<int>! fixedAt, System.Collections.Generic.IReadOnlyList<int>! unit, System.Collections.Generic.IReadOnlyList<long>! maxUnits, System.Collections.Generic.IReadOnlyList<int>? recorded = null, bool fixedForm = false, System.Collections.Generic.IReadOnlyList<WiseOwl.Cobol.Runtime.CobolDynStructure?>? structure = null, System.Collections.Generic.IReadOnlyList<int>? spaceUnit = null) -> WiseOwl.Cobol.Runtime.CobolVarGroup!
 static WiseOwl.Cobol.Runtime.CobolVarGroup.Occurrences(string! content, int elementWidth) -> string![]!
 static WiseOwl.Cobol.Runtime.CobolVarGroup.Reshape(WiseOwl.Cobol.Runtime.CobolVarGroup! v, WiseOwl.Cobol.Runtime.GroupAtom![]! from, WiseOwl.Cobol.Runtime.GroupAtom![]! to) -> WiseOwl.Cobol.Runtime.CobolVarGroup!
 static WiseOwl.Cobol.Runtime.CobolVarGroup.operator !=(WiseOwl.Cobol.Runtime.CobolVarGroup? left, WiseOwl.Cobol.Runtime.CobolVarGroup? right) -> bool
