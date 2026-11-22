@@ -1438,3 +1438,15 @@ WiseOwl.Cobol.Runtime.ModuleNameKeyword.Stack = 3 -> WiseOwl.Cobol.Runtime.Modul
 WiseOwl.Cobol.Runtime.ModuleNameKeyword.TopLevel = 4 -> WiseOwl.Cobol.Runtime.ModuleNameKeyword
 WiseOwl.Cobol.Runtime.ModuleStack.Name(WiseOwl.Cobol.Runtime.ModuleNameKeyword keyword) -> string!
 static WiseOwl.Cobol.Runtime.CobolModule.Name(WiseOwl.Cobol.Runtime.ModuleNameKeyword keyword) -> string!
+WiseOwl.Cobol.Runtime.Collation.ReorderGroup.Deconstruct(out System.Collections.Immutable.ImmutableArray<string!> Codes, out int FirstPrimary, out int LastPrimary) -> void
+WiseOwl.Cobol.Runtime.Collation.ReorderGroup.Codes.get -> System.Collections.Immutable.ImmutableArray<string!>
+WiseOwl.Cobol.Runtime.Collation.TailoringRules.Entry.CodePoints.get -> System.Collections.Immutable.ImmutableArray<int>
+WiseOwl.Cobol.Runtime.Collation.TailoringRules.Entry.Deconstruct(out System.Collections.Immutable.ImmutableArray<int> CodePoints, out System.Collections.Immutable.ImmutableArray<WiseOwl.Cobol.Runtime.Collation.CollationElement> Elements, out int Line) -> void
+WiseOwl.Cobol.Runtime.Collation.TailoringRules.Entry.Elements.get -> System.Collections.Immutable.ImmutableArray<WiseOwl.Cobol.Runtime.Collation.CollationElement>
+WiseOwl.Cobol.Runtime.Collation.TailoringRules.Entries.get -> System.Collections.Immutable.ImmutableArray<WiseOwl.Cobol.Runtime.Collation.TailoringRules.Entry!>
+WiseOwl.Cobol.Runtime.Collation.ReorderGroup.ReorderGroup(System.Collections.Immutable.ImmutableArray<string!> Codes, int FirstPrimary, int LastPrimary) -> void
+WiseOwl.Cobol.Runtime.Collation.CollationTable.ReorderGroups.get -> System.Collections.Immutable.ImmutableArray<WiseOwl.Cobol.Runtime.Collation.ReorderGroup>
+WiseOwl.Cobol.Runtime.Collation.TailoringRules.Entry.Entry(System.Collections.Immutable.ImmutableArray<int> CodePoints, System.Collections.Immutable.ImmutableArray<WiseOwl.Cobol.Runtime.Collation.CollationElement> Elements, int Line) -> void
+static WiseOwl.Cobol.Runtime.Globalization.MonetaryPlacement.NegativeByPattern.get -> System.Collections.Immutable.ImmutableArray<WiseOwl.Cobol.Runtime.Globalization.MonetaryConvention>
+static WiseOwl.Cobol.Runtime.Globalization.MonetaryPlacement.PositiveByPattern.get -> System.Collections.Immutable.ImmutableArray<WiseOwl.Cobol.Runtime.Globalization.MonetaryConvention>
+WiseOwl.Cobol.Runtime.Globalization.MonetaryFacts.GroupSizes.get -> System.Collections.Immutable.ImmutableArray<int>

@@ -644,7 +644,6 @@ WiseOwl.Cobol.Runtime.Collation.CollationTable.MaxPrimary.get -> int
 WiseOwl.Cobol.Runtime.Collation.CollationTable.Name.get -> string!
 WiseOwl.Cobol.Runtime.Collation.CollationTable.PrimaryMap.get -> WiseOwl.Cobol.Runtime.Collation.WeightMap?
 WiseOwl.Cobol.Runtime.Collation.CollationTable.PrimaryShift.get -> int
-WiseOwl.Cobol.Runtime.Collation.CollationTable.ReorderGroups.get -> System.Collections.Generic.IReadOnlyList<WiseOwl.Cobol.Runtime.Collation.ReorderGroup>!
 WiseOwl.Cobol.Runtime.Collation.CollationTable.SecondaryMap.get -> WiseOwl.Cobol.Runtime.Collation.WeightMap?
 WiseOwl.Cobol.Runtime.Collation.CollationTable.SourceTag.get -> string!
 WiseOwl.Cobol.Runtime.Collation.CollationTable.StartsContraction(int codePoint) -> bool
@@ -694,9 +693,7 @@ WiseOwl.Cobol.Runtime.Collation.MaxVariable.Space = 0 -> WiseOwl.Cobol.Runtime.C
 WiseOwl.Cobol.Runtime.Collation.MaxVariable.Symbol = 2 -> WiseOwl.Cobol.Runtime.Collation.MaxVariable
 WiseOwl.Cobol.Runtime.Collation.ReorderGroup
 WiseOwl.Cobol.Runtime.Collation.ReorderGroup.Code.get -> string!
-WiseOwl.Cobol.Runtime.Collation.ReorderGroup.Codes.get -> string![]!
 WiseOwl.Cobol.Runtime.Collation.ReorderGroup.Codes.init -> void
-WiseOwl.Cobol.Runtime.Collation.ReorderGroup.Deconstruct(out string![]! Codes, out int FirstPrimary, out int LastPrimary) -> void
 WiseOwl.Cobol.Runtime.Collation.ReorderGroup.Equals(WiseOwl.Cobol.Runtime.Collation.ReorderGroup other) -> bool
 WiseOwl.Cobol.Runtime.Collation.ReorderGroup.FirstPrimary.get -> int
 WiseOwl.Cobol.Runtime.Collation.ReorderGroup.FirstPrimary.init -> void
@@ -704,7 +701,6 @@ WiseOwl.Cobol.Runtime.Collation.ReorderGroup.IsSpecial.get -> bool
 WiseOwl.Cobol.Runtime.Collation.ReorderGroup.LastPrimary.get -> int
 WiseOwl.Cobol.Runtime.Collation.ReorderGroup.LastPrimary.init -> void
 WiseOwl.Cobol.Runtime.Collation.ReorderGroup.ReorderGroup() -> void
-WiseOwl.Cobol.Runtime.Collation.ReorderGroup.ReorderGroup(string![]! Codes, int FirstPrimary, int LastPrimary) -> void
 WiseOwl.Cobol.Runtime.Collation.ResolvedLocaleCollation
 WiseOwl.Cobol.Runtime.Collation.ResolvedLocaleCollation.<Clone>$() -> WiseOwl.Cobol.Runtime.Collation.ResolvedLocaleCollation!
 WiseOwl.Cobol.Runtime.Collation.ResolvedLocaleCollation.Cldr.get -> WiseOwl.Cobol.Runtime.Collation.Cldr.CldrCollationSelection!
@@ -729,15 +725,10 @@ WiseOwl.Cobol.Runtime.Collation.ResolvedLocaleCollation.Unsupported.init -> void
 WiseOwl.Cobol.Runtime.Collation.TailoringRules
 WiseOwl.Cobol.Runtime.Collation.TailoringRules.Apply(WiseOwl.Cobol.Runtime.Collation.CollationTable! baseTable) -> WiseOwl.Cobol.Runtime.Collation.CollationTable!
 WiseOwl.Cobol.Runtime.Collation.TailoringRules.Defines(int[]! codePoints) -> bool
-WiseOwl.Cobol.Runtime.Collation.TailoringRules.Entries.get -> System.Collections.Generic.IReadOnlyList<WiseOwl.Cobol.Runtime.Collation.TailoringRules.Entry!>!
 WiseOwl.Cobol.Runtime.Collation.TailoringRules.Entry
 WiseOwl.Cobol.Runtime.Collation.TailoringRules.Entry.<Clone>$() -> WiseOwl.Cobol.Runtime.Collation.TailoringRules.Entry!
-WiseOwl.Cobol.Runtime.Collation.TailoringRules.Entry.CodePoints.get -> int[]!
 WiseOwl.Cobol.Runtime.Collation.TailoringRules.Entry.CodePoints.init -> void
-WiseOwl.Cobol.Runtime.Collation.TailoringRules.Entry.Deconstruct(out int[]! CodePoints, out WiseOwl.Cobol.Runtime.Collation.CollationElement[]! Elements, out int Line) -> void
-WiseOwl.Cobol.Runtime.Collation.TailoringRules.Entry.Elements.get -> WiseOwl.Cobol.Runtime.Collation.CollationElement[]!
 WiseOwl.Cobol.Runtime.Collation.TailoringRules.Entry.Elements.init -> void
-WiseOwl.Cobol.Runtime.Collation.TailoringRules.Entry.Entry(int[]! CodePoints, WiseOwl.Cobol.Runtime.Collation.CollationElement[]! Elements, int Line) -> void
 WiseOwl.Cobol.Runtime.Collation.TailoringRules.Entry.Equals(WiseOwl.Cobol.Runtime.Collation.TailoringRules.Entry? other) -> bool
 WiseOwl.Cobol.Runtime.Collation.TailoringRules.Entry.Line.get -> int
 WiseOwl.Cobol.Runtime.Collation.TailoringRules.Entry.Line.init -> void
@@ -1217,7 +1208,6 @@ WiseOwl.Cobol.Runtime.Globalization.MonetaryFacts.CurrencySymbol.get -> string!
 WiseOwl.Cobol.Runtime.Globalization.MonetaryFacts.DecimalPoint.get -> string!
 WiseOwl.Cobol.Runtime.Globalization.MonetaryFacts.FracDigits.get -> int
 WiseOwl.Cobol.Runtime.Globalization.MonetaryFacts.GroupSize(int g) -> int
-WiseOwl.Cobol.Runtime.Globalization.MonetaryFacts.GroupSizes.get -> int[]!
 WiseOwl.Cobol.Runtime.Globalization.MonetaryFacts.GroupStops.get -> bool
 WiseOwl.Cobol.Runtime.Globalization.MonetaryFacts.GroupingAdmits(System.ReadOnlySpan<int> groups, bool complete) -> bool
 WiseOwl.Cobol.Runtime.Globalization.MonetaryFacts.GroupingIsExact(System.ReadOnlySpan<int> groups) -> bool
@@ -3331,8 +3321,6 @@ static WiseOwl.Cobol.Runtime.Globalization.MonetaryConvention.operator !=(WiseOw
 static WiseOwl.Cobol.Runtime.Globalization.MonetaryConvention.operator ==(WiseOwl.Cobol.Runtime.Globalization.MonetaryConvention left, WiseOwl.Cobol.Runtime.Globalization.MonetaryConvention right) -> bool
 static WiseOwl.Cobol.Runtime.Globalization.MonetaryFacts.Of(WiseOwl.Cobol.Runtime.Globalization.LocaleFacts! facts) -> WiseOwl.Cobol.Runtime.Globalization.MonetaryFacts!
 static WiseOwl.Cobol.Runtime.Globalization.MonetaryFacts.Require(string? localeTag, string! operation, string! rule) -> WiseOwl.Cobol.Runtime.Globalization.MonetaryFacts!
-static WiseOwl.Cobol.Runtime.Globalization.MonetaryPlacement.NegativeByPattern.get -> WiseOwl.Cobol.Runtime.Globalization.MonetaryConvention[]!
-static WiseOwl.Cobol.Runtime.Globalization.MonetaryPlacement.PositiveByPattern.get -> WiseOwl.Cobol.Runtime.Globalization.MonetaryConvention[]!
 static WiseOwl.Cobol.Runtime.Globalization.MonetaryPlacement.Render(WiseOwl.Cobol.Runtime.Globalization.MonetaryConvention c, string! cs, string! sign, string! val) -> string!
 static WiseOwl.Cobol.Runtime.Globalization.MonetaryPlacement.Render(WiseOwl.Cobol.Runtime.Globalization.MonetaryConvention c, string! cs, string! sign, string! val, out int valStart) -> string!
 static WiseOwl.Cobol.Runtime.GroupAtom.operator !=(WiseOwl.Cobol.Runtime.GroupAtom? left, WiseOwl.Cobol.Runtime.GroupAtom? right) -> bool
