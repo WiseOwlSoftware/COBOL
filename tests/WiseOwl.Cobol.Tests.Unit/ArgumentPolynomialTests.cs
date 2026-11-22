@@ -146,7 +146,7 @@ public sealed class ArgumentPolynomialTests
 
     private static BoundNumRef Element(DataItem table, DataItem subscript) =>
         new(new MemberPlace(new AccessPath([new RootFieldSegment(table.ClrName),
-            new FixedTableSegment(new PositionItemRead(new AccessPath([new RootFieldSegment(subscript.ClrName)]), subscript, PositionReadForm.Occurrence))]),
+            new FixedTableSegment(new PositionItemRead(new AccessPath([new RootFieldSegment(subscript.ClrName)]), subscript, PositionReadForm.Subscript))]),
             table));
 
     /// <summary>kb/Work PB5891 review R1-1: a subscript is part of the place, compared structurally: T (I) twice is one term (each

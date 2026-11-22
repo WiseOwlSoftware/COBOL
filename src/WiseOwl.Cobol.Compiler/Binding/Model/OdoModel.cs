@@ -271,7 +271,7 @@ public static class OdoModel
 
     /// <summary>The SEARCH / SEARCH ALL depending item for an OCCURS DEPENDING table (ISO §2023:14.9.37.4 GR4/GR9 →
     /// §2023:13.18.38.4 GR7): the <see cref="Place"/> of data-name-1, whose CURRENT count bounds the scan (the backend
-    /// renders <c>CobolTable.Occ(place)</c>, storage-form agnostic). <see langword="null"/> for a fixed table (the
+    /// renders <c>CobolPosition&lt;PositionUse.Subscript&gt;.Read(place)</c>, storage-form agnostic). <see langword="null"/> for a fixed table (the
     /// caller uses the compile-time maximum) or a DYNAMIC table (a runtime <c>Capacity</c>, rendered from the table
     /// path — mutually exclusive with the Format-2 DEPENDING form). data-name-1 is resolved post-build (SR20).</summary>
     internal static Place? SearchDepending(DataItem table, PlaceBuilder places) =>

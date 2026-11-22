@@ -65,7 +65,7 @@ public sealed class Cobol85EditionVocabularyTests
         var (_, out23, detail23) = new WiseOwlCobolCompiler(2023).CompileAndRunExit(Program("Z6023F", data, proc));
         Assert.Equal("BEFORE", out23);
         Assert.Contains("EC-BOUND-REF-MOD (fatal)", detail23);
-        Assert.Contains("ISO §2023:8.4.3.3.4 item 5c", detail23);
+        Assert.Contains("ISO §2023:8.4.3.3.4 GR5", detail23);
     }
 
     private static SortedSet<string> CodesAt(int edition, string source)

@@ -98,94 +98,7 @@ public static class CobolString
     private static void RefModViolation(Occurrence leftmost, Occurrence length, bool omitted, int size, string what) =>
         ExceptionState.RefModViolation(
             $"reference modification ({leftmost}:{(omitted ? "" : length.ToString())}) out of range for a "
-            + $"{size}-position {what} ({ExceptionState.EditionRule("§1985:IV.4.3.8.4.4 GR4", "ISO §2023:8.4.3.3.4 item 5c")})");
-
-    /// <summary>A NUMERIC data item as a reference-modifier leftmost-position or length, decoded through the
-    /// item's own profile (ISO §2023:8.4.3.3.4 GR5)c); fix-queue PB41): "If the evaluation of leftmost-position or
-    /// length results in a non-integer value, a zero value, or a value that references a position outside the
-    /// area of identifier-1, the EC-BOUND-REF-MOD exception condition is set to exist." §2023:8.4.3.3.3 SR4 makes both
-    /// positions arithmetic expressions, so a scaled numeric item is legal there and its VALUE — not its unscaled
-    /// storage — is the ordinal position; the scale is the profile's <see cref="NumProfile.FractionDigits"/>.
-    /// <para>The exact twin of <c>CobolTable.Occ(…, in NumProfile)</c> for the subscript position, differing ONLY
-    /// in which Table 13 condition it names; the shared de-scale/integrality arithmetic is
-    /// <c>CobolNum.HasFraction</c>/<c>PositionOf</c>, and the character-image arm is the SAME §2023:14.6.13.2 GR2
-    /// checked read (<see cref="CobolNum.ParseImageSending"/>): a position is item identification, which rule 1
-    /// names as checked even inside a class condition (kb/Work PB1117 — the tolerant digit scan it replaced made
-    /// EC-DATA-INCOMPATIBLE unreachable here and dropped a signed image's sign). Returns <c>long</c> because the
-    /// rendered ref-mod positions are long-valued COBOL expressions, passed to <see cref="RefMod"/> as they are.
-    /// A fractional position is the same violation as an out-of-range
-    /// one and takes the same outcome (<see cref="ExceptionState.RefModViolation"/>: raised when checking is on, the
-    /// run unit's termination when it is off — kb/Work R60).</para>
-    /// <para>The result is an <see cref="Occurrence"/> — the saturated <c>long</c> the range test positions by, with the
-    /// item's exact value riding along (kb/Work PB2938) — exactly as <c>CobolTable.Occ</c> returns one for a subscript.</para>
-    /// <para>The carrier overloads mirror the subscript side's, and for the same reason: the item's storage form
-    /// is decided after the bind-time expression text is produced.</para></summary>
-    public static Occurrence RefModPosition(long unscaled, in NumProfile item) => RefModScaled(unscaled, item.FractionDigits);
-
-    /// <inheritdoc cref="RefModPosition(long, in NumProfile)"/>
-    public static Occurrence RefModPosition(Int128 unscaled, in NumProfile item) => RefModScaled(unscaled, item.FractionDigits);
-
-    /// <inheritdoc cref="RefModPosition(long, in NumProfile)"/>
-    public static Occurrence RefModPosition(string image, in NumProfile item) => item.ImageExceedsInt128
-        ? RefModPosition(CobolNum.ParseImageU128Sending(image, item), item)
-        : RefModScaled(CobolNum.ParseImageSending(image, item), item.FractionDigits);
-
-    /// <inheritdoc cref="RefModPosition(long, in NumProfile)"/>
-    public static Occurrence RefModPosition(ulong unscaled, in NumProfile item) => RefModScaled(unscaled, item.FractionDigits);
-
-    /// <inheritdoc cref="RefModPosition(long, in NumProfile)"/>
-    /// <remarks>Read as the UNSIGNED-WIDE value it is — never narrowed through <see cref="Int128"/> first, which a value
-    /// at or above 2^127 does not fit — so §2023:8.4.3.3.4 GR5)c)'s integrality and the position both see the value itself
-    /// (the twin of <c>CobolTable.Occ(UInt128, in NumProfile)</c>: a scale that divides it back inside <c>long</c>'s range
-    /// makes it a valid position, and a fraction is a violation whatever the magnitude).</remarks>
-    public static Occurrence RefModPosition(UInt128 unscaled, in NumProfile item)
-    {
-        if (CobolNum.HasFraction(unscaled, item.FractionDigits))
-            NotAnInteger(CobolNum.PlainValue(unscaled, item.FractionDigits));
-        return Occurrence.Of(unscaled, item.FractionDigits);
-    }
-
-    private static Occurrence RefModScaled(Int128 unscaled, int scale)
-    {
-        if (CobolNum.HasFraction(unscaled, scale))
-            NotAnInteger(CobolNum.PlainValue(unscaled, scale));
-        return Occurrence.Of(unscaled, scale);
-    }
-
-    private static void NotAnInteger(string shown) =>
-        ExceptionState.RefModViolation(
-            $"reference-modification position {shown} is not an integer ({ExceptionState.EditionRule("§1985:IV.4.3.8.4.4 GR4", "ISO §2023:8.4.3.3.4 item 5c")})");
-
-    /// <summary>A reference-modifier leftmost-position or length that is an arithmetic EXPRESSION (or a
-    /// floating-point item), as the position it denotes — the statement pre-operation's intake, the exact twin of
-    /// <c>CobolTable.OccValue</c> differing only in the Table 13 condition it names (kb/Work PB1890). §2023:8.4.3.3.4
-    /// rule 5)c): a leftmost-position or length whose evaluation "results in a non-integer value" sets
-    /// EC-BOUND-REF-MOD, so the test reads the EXACT intermediate on its own carrier.
-    /// <para>The result is the EXACT integer the 38-digit position temporary then holds
-    /// (<see cref="CobolNum.PositionOfWide(Int128, int)"/>), not a <c>long</c>: the position read
-    /// (<see cref="RefModPosition(Int128, in NumProfile)"/>) narrows it, and only that narrowing saturates, so
-    /// EC-BOUND-REF-MOD's detail names the value the expression computed (kb/Work PB2938; the twin of
-    /// <c>CobolTable.OccValue</c>, kb/Work PB2695).</para></summary>
-    public static Int128 RefModValue(Int128 unscaled, int scale)
-    {
-        if (CobolNum.HasFraction(unscaled, scale))
-            NotAnInteger(CobolNum.PlainValue(unscaled, scale));
-        return CobolNum.PositionOfWide(unscaled, scale);
-    }
-
-    /// <inheritdoc cref="RefModValue(Int128, int)"/>
-    public static Int128 RefModValueDec(CobolDec value)
-    {
-        if (value.HasFraction) NotAnInteger(value.ToDouble().ToString("R", System.Globalization.CultureInfo.InvariantCulture));
-        return CobolNum.PositionOfWide(value);
-    }
-
-    /// <inheritdoc cref="RefModValue(Int128, int)"/>
-    public static Int128 RefModValueReal(double value)
-    {
-        if (CobolNum.HasFraction(value)) NotAnInteger(value.ToString("R", System.Globalization.CultureInfo.InvariantCulture));
-        return CobolNum.PositionOfWide(value);
-    }
+            + $"{size}-position {what} ({ExceptionState.EditionRule("§1985:IV.4.3.8.4.4 GR4", "ISO §2023:8.4.3.3.4 GR5")})");
 
     /// <summary>
     /// Reference modification read (ISO §2023:8.4.3.3): the substring of <paramref name="s"/> beginning at 1-based
@@ -310,18 +223,8 @@ public static class CobolString
     /// (§2023:8.8.4.2.9/.10, ordinal = the D-N3 default national collating sequence), boolean zero '0' for boolean
     /// operands (§2023:8.8.4.2.8 — value comparison, usage-independent under D-B1). Returns &lt;0, 0, or &gt;0 (ordinal).
     /// </summary>
-    public static int Compare(string? left, string? right, char pad = ' ')
-    {
-        left ??= ""; right ??= "";
-        int n = Math.Max(left.Length, right.Length);
-        for (int i = 0; i < n; i++)
-        {
-            char a = i < left.Length ? left[i] : pad;
-            char b = i < right.Length ? right[i] : pad;
-            if (a != b) return a < b ? -1 : 1;
-        }
-        return 0;
-    }
+    public static int Compare(string? left, string? right, char pad = ' ') =>
+        Compare(SizedOperand.Value(left), SizedOperand.Value(right), pad);
 
     /// <summary>
     /// Compare two character values under a NON-native collating sequence — the ONE <see cref="CobolCollation"/>
@@ -348,10 +251,14 @@ public static class CobolString
     /// literal-1); the other side is the associated operand, rendered once by the caller. Both figurative and
     /// both non-figurative relations use plain <see cref="Compare(string?,string?,char)"/> instead — with two
     /// figuratives there is no associated data item and §2023:8.3.3.6.4 GR3 b/c gives each its OWN length.</para>
+    /// <para>⛔ THE NATIVE ARM MATERIALIZES NOTHING (kb/Work PB2649): it walks the sized figurative through
+    /// <see cref="SizedOperand"/>, whose character at i is <see cref="FigToWidth"/>'s, so <c>IF X = SPACES</c> allocates
+    /// no string per evaluation and cannot answer differently from the materialized form
+    /// (<c>FigurativeReaderDriftTests</c> compares the two).</para>
     /// </summary>
     public static int CompareFig(string? left, string? right, bool figIsLeft, char pad = ' ') =>
-        figIsLeft ? Compare(FigToWidth(left ?? "", (right ?? "").Length), right, pad)
-                  : Compare(left, FigToWidth(right ?? "", (left ?? "").Length), pad);
+        figIsLeft ? Compare(SizedOperand.Of(left, true, right), SizedOperand.Value(right), pad)
+                  : Compare(SizedOperand.Value(left), SizedOperand.Of(right, true, left), pad);
 
     /// <inheritdoc cref="CompareFig(string?,string?,bool,char)"/>
     /// <remarks>The NON-native collating-sequence overload (an <c>ALPHABET</c> literal phrase or a LOCALE-based
@@ -372,11 +279,8 @@ public static class CobolString
     /// VALUE THRU or an EVALUATE WHEN range). When <paramref name="lo"/> collates AFTER <paramref name="hi"/> (rule 2)
     /// the nonfatal EC-RANGE-INVALID is set and the range is treated as EMPTY (returns false); otherwise the inclusive
     /// bound test. The "empty range" behaviour was already emergent from the inclusive test — this adds only the EC.</summary>
-    public static bool ThruMember(string? read, string? lo, string? hi, char pad = ' ')
-    {
-        if (Compare(lo, hi, pad) > 0) { ExceptionState.RangeInvalidError(InvertedRange); return false; }
-        return Compare(read, lo, pad) >= 0 && Compare(read, hi, pad) <= 0;
-    }
+    public static bool ThruMember(string? read, string? lo, string? hi, char pad = ' ') =>
+        ThruMember(SizedOperand.Value(read), SizedOperand.Value(lo), SizedOperand.Value(hi), pad);
 
     /// <inheritdoc cref="ThruMember(string?,string?,string?,char)"/>
     public static bool ThruMember(string? read, string? lo, string? hi, CobolCollation collation) =>
@@ -406,7 +310,7 @@ public static class CobolString
     /// an <c>ALL literal-1</c>) rather than a value of its own.</param>
     /// <param name="hiFig">The same question for <paramref name="hi"/>.</param>
     public static bool ThruMemberFig(string? read, string? lo, string? hi, bool loFig, bool hiFig, char pad = ' ') =>
-        ThruMember(read, SizedFig(lo, loFig, read), SizedFig(hi, hiFig, read), pad);
+        ThruMember(SizedOperand.Value(read), SizedOperand.Of(lo, loFig, read), SizedOperand.Of(hi, hiFig, read), pad);
 
     /// <inheritdoc cref="ThruMemberFig(string?,string?,string?,bool,bool,char)"/>
     /// <remarks>The NON-native collating-sequence overload (an <c>ALPHABET</c> literal phrase or a LOCALE-based
@@ -417,7 +321,56 @@ public static class CobolString
         collation.ThruMember(read, SizedFig(lo, loFig, read), SizedFig(hi, hiFig, read));
 
     /// <summary>ISO §2023:8.3.3.6.4 GR2's materialization, applied only where the operand IS a figurative seed — the
-    /// ONE place the range carrier's two overloads ask it.</summary>
+    /// non-native range carrier asks it (a collating sequence weighs the sized string).</summary>
     private static string? SizedFig(string? seed, bool isFig, string? associated) =>
         isFig ? FigToWidth(seed ?? "", (associated ?? "").Length) : seed;
+
+    /// <summary>The ONE native THROUGH test (§2023:14.7.8 GR2, then the inclusive bound test) over three
+    /// <see cref="SizedOperand"/> views — the plain and the figurative-aware carriers both walk it.</summary>
+    private static bool ThruMember(in SizedOperand read, in SizedOperand lo, in SizedOperand hi, char pad)
+    {
+        if (Compare(lo, hi, pad) > 0) { ExceptionState.RangeInvalidError(InvertedRange); return false; }
+        return Compare(read, lo, pad) >= 0 && Compare(read, hi, pad) <= 0;
+    }
+
+    /// <summary>The ONE native comparison (§2023:8.8.4.2.7) over two <see cref="SizedOperand"/> views — the shorter extended on the
+    /// right with <paramref name="pad"/>, exactly as <see cref="Compare(string?,string?,char)"/> compares two strings.</summary>
+    private static int Compare(in SizedOperand left, in SizedOperand right, char pad)
+    {
+        int n = Math.Max(left.Length, right.Length);
+        for (int i = 0; i < n; i++)
+        {
+            char a = i < left.Length ? left[i] : pad;
+            char b = i < right.Length ? right[i] : pad;
+            if (a != b) return a < b ? -1 : 1;
+        }
+        return 0;
+    }
+
+    /// <summary>⛔ THE NON-MATERIALIZING READER OF §2023:8.3.3.6.4 GR2 (kb/Work PB2649): an operand of a native comparison,
+    /// either a value as it is or a figurative SEED sized against its associated operand without building the sized
+    /// string. The sized figurative has <c>max(width, 1)</c> positions and its character at i is <c>seed[i % seed.Length]</c>
+    /// (a space for an empty seed) — exactly the characters <see cref="FigToWidth"/> returns, which stays the one
+    /// materializing form (the compile-time fold and the collating-sequence arms read it).</summary>
+    private readonly ref struct SizedOperand
+    {
+        private readonly string _text;
+        private readonly bool _fig;
+
+        private SizedOperand(string text, bool fig, int length) { _text = text; _fig = fig; Length = length; }
+
+        /// <summary><paramref name="text"/> as it is (a null reads as empty).</summary>
+        public static SizedOperand Value(string? text) => new(text ?? "", false, (text ?? "").Length);
+
+        /// <summary><paramref name="text"/> as it is, or (when <paramref name="isFig"/>) the figurative seed it holds sized
+        /// to <paramref name="associated"/>'s character positions — GR2's "equal either to 1 or to … whichever is greater".</summary>
+        public static SizedOperand Of(string? text, bool isFig, string? associated) =>
+            isFig ? new(text ?? "", true, Math.Max((associated ?? "").Length, 1)) : Value(text);
+
+        /// <summary>The operand's character positions.</summary>
+        public int Length { get; }
+
+        /// <summary>The character at <paramref name="i"/> (0 ≤ i &lt; <see cref="Length"/>).</summary>
+        public char this[int i] => !_fig ? _text[i] : _text.Length == 0 ? ' ' : _text[i % _text.Length];
+    }
 }

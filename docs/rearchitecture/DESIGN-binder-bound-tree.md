@@ -939,7 +939,7 @@ public abstract record Position;                                    // an intege
 public sealed record PositionConstant(long Value) : Position;       // an integer literal, an integer constant-name
 public sealed record PositionIndexCell(string Cell) : Position;     // an index-name: its occurrence cell (IndexDeclaration.Cell)
 public sealed record PositionItemRead(AccessPath Path, DataItem Item, PositionReadForm Form) : Position;
-        // a data item read as an ordinal position through its own profile (CobolTable.Occ / CobolString.RefModPosition)
+        // a data item read as an ordinal position through its own profile (CobolPosition<PositionUse.Subscript>.Read / CobolPosition<PositionUse.RefMod>.Read)
 public sealed record PositionLocal(MethodLocal Local, bool AsLong = false) : Position;   // a statement local: a hoisted
         // identification, a report VARYING counter, an INITIALIZE loop variable, a CORRESPONDING view anchor — by its
         // identity (Binding/Model/MethodLocal.cs; the Roslyn backend spells it in LocalNames.Of, kb/Work PB4321)
@@ -1041,8 +1041,8 @@ window is built by `RedefViewPlace.For` from a byte `Position`, a runtime displa
 #### 3.9.3 The code generator renders positions; identification hoists nodes
 
 `CodeGen/Roslyn/PositionRenderer.Render(Position)` is the ONE renderer: a constant renders its value, an index cell
-its cell, an item read `CobolTable.Occ(path, profile)` / `CobolString.RefModPosition(path, profile)` /
-`CobolTable.Occ(path)` (the path through `PlaceRenderer.RenderPath`), a binary node `l op r`, a group `(x)`, a pointer
+its cell, an item read `CobolPosition<PositionUse.Subscript>.Read(path, profile)` / `CobolPosition<PositionUse.RefMod>.Read(path, profile)` /
+`CobolPosition.Digits(path)` (the path through `PlaceRenderer.RenderPath`), a binary node `l op r`, a group `(x)`, a pointer
 offset `CobolPtr.OffsetOf(p)` (`RuntimeApi.PtrOffsetOf`), an offset `origin + (i - 1) * s …` term by term. A term over a
 constant index is rendered as written, not folded, so the emitted C# of a behaviour-neutral restructuring stays
 identical. `PlaceRenderer`, `RuntimeApi.RefModStart` / `RefModLength`, `CallEmitter`'s argument area, `PtrEmitter`,

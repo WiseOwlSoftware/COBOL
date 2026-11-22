@@ -53,13 +53,13 @@ public sealed partial class StatementBinder
     /// <c>F COMP-2 2.0000000001</c> selected occurrence 2 with checking on. No fixed fraction width is exact for an
     /// arbitrary native intermediate, an SDIDI or a binary64, so <see cref="BoundPositionValue"/> asks the question
     /// of the value on its own carrier (docs/CONFORMANCE.md DOC-A.1-124) and stores only the answer.</para>
-    /// <para>38 digits, signed (kb/Work PB2695): the intake (<c>CobolTable.OccValue*</c> /
-    /// <c>CobolString.RefModValue*</c>) stores the position's EXACT integer, saturating by sign at this item's own
+    /// <para>38 digits, signed (kb/Work PB2695): the intake (<c>CobolPosition&lt;use&gt;.Value*</c> /
+    /// <c>CobolPosition&lt;use&gt;.Value*</c>) stores the position's EXACT integer, saturating by sign at this item's own
     /// capacity (10^38 − 1) — an out-of-range position must stay out of range, never wrap back into 1..n, so a
     /// saturated value is stored as the capacity and never truncated modulo it. It was 19 digits holding the
     /// <c>long</c>-saturated position, which made the subscript read name 9223372036854775807 in EC-BOUND-SUBSCRIPT's
     /// detail for <c>EL(A + 5)</c> with <c>A PIC 9(21)</c> holding 10^20: the narrowing to <c>long</c> now happens only
-    /// at the subscript read (<c>CobolTable.Occ</c>, which carries the exact value to the diagnostic). The item takes
+    /// at the subscript read (<c>CobolPosition&lt;PositionUse.Subscript&gt;.Read</c>, which carries the exact value to the diagnostic). The item takes
     /// the <c>Int128</c> wide tier (<c>PicInfo.IsWide</c>, &gt;18 digits), which the position
     /// read accepts (<see cref="SubscriptBinder.NumericPositionCarriers"/>). The temp is synthetic and never enters
     /// <c>DataBinder.ConformanceForest</c>, so the edition digit-capacity gates do not apply to it.</para></summary>

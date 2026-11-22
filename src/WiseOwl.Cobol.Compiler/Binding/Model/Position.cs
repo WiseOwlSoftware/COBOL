@@ -61,7 +61,7 @@ public abstract record Position
     /// <c>long</c> fast path; a position that answers true is bound through the ONE expression binder instead
     /// (<c>SubscriptBinder.MaterializePosition</c>), whose intermediate rule is the arithmetic statements'
     /// (§2023:8.8.1.3 native arithmetic, kb/Work PB1900) and whose result then meets the §2023:8.4.2.3.4 bound check.
-    /// <para>A bare leaf never answers true: an item read is a single <c>CobolTable.Occ</c> and does no arithmetic. Every
+    /// <para>A bare leaf never answers true: an item read is a single <c>CobolPosition&lt;PositionUse.Subscript&gt;.Read</c> and does no arithmetic. Every
     /// operator node answers for itself, and a leaf that is itself past <c>long</c> (a 19–38 digit item) makes its
     /// parent operator exceed, since a saturated read is not the value.</para></summary>
     public bool ExceedsLongArithmetic => Bound(this, out _);
@@ -135,16 +135,16 @@ public sealed record PositionIndexCell(string Cell) : Position;
 /// <summary>How a data item is read as an ordinal position — the overload of the runtime position read.</summary>
 public enum PositionReadForm
 {
-    /// <summary>A numeric item as an occurrence number, through its own profile (scale, sign and byte form):
-    /// <c>CobolTable.Occ(x, profile)</c>.</summary>
-    Occurrence,
+    /// <summary>A numeric item as a subscript, through its own profile (scale, sign and byte form):
+    /// <c>CobolPosition&lt;PositionUse.Subscript&gt;.Read(x, profile)</c>.</summary>
+    Subscript,
 
     /// <summary>A numeric item as a reference-modifier position, through its own profile:
-    /// <c>CobolString.RefModPosition(x, profile)</c>.</summary>
-    RefModPosition,
+    /// <c>CobolPosition&lt;PositionUse.RefMod&gt;.Read(x, profile)</c>.</summary>
+    RefMod,
 
     /// <summary>A NON-numeric item the <c>--permissive</c> lane admits (COBOL0844): its digit characters decoded
-    /// as an unsigned integer, <c>CobolTable.Occ(x)</c>.</summary>
+    /// as an unsigned integer, <c>CobolPosition.Digits(x)</c>.</summary>
     Digits,
 }
 

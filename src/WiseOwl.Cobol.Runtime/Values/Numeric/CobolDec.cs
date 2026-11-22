@@ -87,8 +87,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
         // An EXACT expansion is held at the fewest places that carry it (0.5 is 5 × 10^-1, 12345 is 12345 × 10^0): the
         // formatter's trailing zeros are padding, not places the value has, and the SDIDI's text image
         // (DISPLAY FUNCTION ABS (F)) and its precision (FractionDigits) read the exponent.
-        if (!sticky)
-            while (sig % 10 == 0) { sig /= 10; exp++; }
+        if (!sticky) (sig, exp) = DecUnscaled.StripTrailingZeros(sig, exp, int.MaxValue);
         return Round34(sig, exp, sticky, mode);
     }
 
@@ -234,7 +233,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
     /// <summary>The exponent of the value's LEADING digit — the normalized exponent of a standard intermediate data item
     /// (§2002:8.8.1.3.1.2: "the significand shall contain exactly one non-zero digit to the left of the decimal point"):
     /// 3 for 1234.5, -1 for 0.05. Meaningless for zero, which has no leading digit (the caller tests <see cref="Sig"/>).</summary>
-    public int AdjustedExponent => DigitCount(UAbs(Sig)) + Exp - 1;
+    public int AdjustedExponent => DecUnscaled.DigitCount(UAbs(Sig)) + Exp - 1;
 
     /// <summary>The value cut to at most <paramref name="digits"/> significant digits by TRUNCATION toward zero, AS AN SDIDI-shaped
     /// carrier value — the ONE spelling of "truncated to 32 significant digits" (§2002:8.8.1.3.2 addition, §2002:8.8.1.3.4
@@ -242,7 +241,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
     /// comes back unchanged (its exponent kept).</summary>
     public CobolDec TruncateToSignificantDigits(int digits)
     {
-        int drop = DigitCount(UAbs(Sig)) - digits;
+        int drop = DecUnscaled.DigitCount(UAbs(Sig)) - digits;
         if (Sig == 0 || drop <= 0) return this;
         return new CobolDec(DivRemPow10(Sig, drop).Q, Exp + drop);
     }
@@ -293,7 +292,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
         // PROHIBITED rounds nothing: §2014:8.8.1.3.1.3.3 lists no 31-digit rounding situation, and a 32-digit value is
         // represented exactly in a standard intermediate data item (kb/Work PB5575 review finding R2-1).
         if (mode == CobolRounding.Prohibited) return this;
-        int drop = DigitCount(UAbs(Sig)) - SidiRoundedDigits;
+        int drop = DecUnscaled.DigitCount(UAbs(Sig)) - SidiRoundedDigits;
         if (Sig == 0 || drop <= 0) return this;
         var (q, rem, den) = DivRemPow10(Sig, drop);
         var rounded = new CobolDec(RoundFromRemainder(q, rem, den, mode), Exp + drop);
@@ -459,7 +458,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
 
     /// <summary>The value's decimal ORDER — the count of digits left of the point, i.e. the unique k with
     /// 10^(k−1) ≤ |v| &lt; 10^k for v ≠ 0.</summary>
-    private static int Order(CobolDec v) => DigitCount(Int128.Abs(v.Sig)) + v.Exp;
+    private static int Order(CobolDec v) => DecUnscaled.DigitCount(UAbs(v.Sig)) + v.Exp;
 
     // ── §2023:8.8.1.5.4 GR2e — THE equivalent arithmetic expression, developed in SDIDI form ────────────────────────
     // ⛔ ONE DEVELOPMENT, TWO CALLERS (owner decision D-C, 2026-08-30; kb/Work PB167). Before this there were
@@ -588,7 +587,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
     private static CobolDec Ln(CobolDec v, CobolDec ln10, CobolRounding mode)
     {
         Int128 s = Int128.Abs(v.Sig);
-        int dc = DigitCount(s);
+        int dc = DecUnscaled.DigitCount((UInt128)s);
         var m = new CobolDec(s, -(dc - 1));            // m ∈ [1, 10) — exact, no arithmetic
         int k = v.Exp + dc - 1;                        // v = m × 10^k
         // m ≥ √10 ⇔ m² ≥ 10 — asked of the SQUARE so the band test needs no square root of its own (m ≤ 34
@@ -717,9 +716,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
     /// sign (kb/Work PB145).</para></summary>
     private static bool TryIntegerValue(CobolDec v, out long boundProbe, out bool negative, out bool even)
     {
-        Int128 sig = v.Sig;
-        int exp = v.Exp;
-        while (exp < 0 && sig % 10 == 0) { sig /= 10; exp++; }   // normalize trailing zeros into the exponent
+        var (sig, exp) = DecUnscaled.StripTrailingZeros(v.Sig, v.Exp, 0);   // normalize trailing zeros into the exponent
         negative = sig < 0;
         if (exp < 0) { boundProbe = 0; even = false; return false; }
         // |sig × 10^exp| is even iff any power of ten multiplies in (exp ≥ 1) or the significand is even.
@@ -734,9 +731,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
     /// <summary>Whether |value| = 1 (the Pow large-exponent parity shortcut).</summary>
     private static bool IsUnitMagnitude(CobolDec v)
     {
-        Int128 sig = Int128.Abs(v.Sig);
-        int exp = v.Exp;
-        while (exp < 0 && sig % 10 == 0) { sig /= 10; exp++; }
+        var (sig, exp) = DecUnscaled.StripTrailingZeros(Int128.Abs(v.Sig), v.Exp, 0);
         return sig == 1 && exp == 0;
     }
 
@@ -779,7 +774,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
             if (sig == 0) return Zero(preferred);
             // The exponent moves toward the preferred one as far as the 34-digit significand holds — exact, since only
             // zeros are appended: the representation of the exact sum nearest the preferred exponent.
-            int down = Math.Min(exp - preferred, 34 - DigitCount(Int128.Abs(sig)));
+            int down = Math.Min(exp - preferred, 34 - DecUnscaled.DigitCount(UAbs(sig)));
             if (down > 0) { sig *= Pow10.AsWide(down); exp -= down; }
             return Round34(sig, exp, sticky: false, mode);
         }
@@ -791,7 +786,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
         (Int128 hiSig, int hiExp, Int128 loSig, int loExp) =
             a.Exp >= b.Exp ? (a.Sig, a.Exp, bSig, b.Exp) : (bSig, b.Exp, a.Sig, a.Exp);
         int gap = hiExp - loExp;
-        int upRoom = 38 - DigitCount(Int128.Abs(hiSig));
+        int upRoom = 38 - DecUnscaled.DigitCount(UAbs(hiSig));
         int up = Math.Min(gap, upRoom);
         hiSig *= Pow10.AsWide(up);
         int residual = gap - up;
@@ -1065,7 +1060,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
 
     /// <summary>The pre-scale <see cref="Div"/> gives the numerator so the integer quotient has 34–36 significant
     /// digits.</summary>
-    private static int PreScale(UInt128 num, UInt128 den) => Math.Max(0, 34 + DigitCount(den) - DigitCount(num) + 1);
+    private static int PreScale(UInt128 num, UInt128 den) => Math.Max(0, 34 + DecUnscaled.DigitCount(den) - DecUnscaled.DigitCount(num) + 1);
 
     /// <summary>The integer quotient and remainder of <paramref name="num"/> × 10^<paramref name="up"/> by
     /// <paramref name="den"/>, for any <paramref name="up"/> from 0 to <see cref="PreScale"/>'s (the quotient then has at
@@ -1079,7 +1074,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
         // an Int128 significand reaches 1.7E+38, so 38 - digits(num) is -1 there, and `AsWide(-1)` multiplied by 1
         // while the second factor below still counted that -1 as an extra step, scaling the quotient 10 times too
         // far. The first step is clamped to zero; the second then carries the whole pre-scale.
-        int k = Math.Max(0, Math.Min(up, 38 - DigitCount(num)));
+        int k = Math.Max(0, Math.Min(up, 38 - DecUnscaled.DigitCount(num)));
         num *= (UInt128)Pow10.AsWide(k);                                    // exact — digits(num) + k ≤ 38 (k = 0 above it)
         var (hi, lo) = Mul128(num, (UInt128)Pow10.AsWide(up - k));         // up − k ≤ 36
         return DivRem256(hi, lo, den);
@@ -1144,8 +1139,8 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
         int sb = b.Sig == 0 ? 0 : b.Sig < 0 ? -1 : 1;
         if (sa != sb) return sa.CompareTo(sb);
         if (sa == 0) return 0;
-        int oa = DigitCount(Int128.Abs(a.Sig)) + a.Exp;   // order of magnitude (digits left of 10^0)
-        int ob = DigitCount(Int128.Abs(b.Sig)) + b.Exp;
+        int oa = DecUnscaled.DigitCount(UAbs(a.Sig)) + a.Exp;   // order of magnitude (digits left of 10^0)
+        int ob = DecUnscaled.DigitCount(UAbs(b.Sig)) + b.Exp;
         if (oa != ob) return sa > 0 ? oa.CompareTo(ob) : ob.CompareTo(oa);
         // Same order ⇒ aligning to the smaller exponent lands both within 34+|order-gap=0| ≤ 38 digits.
         int e = Math.Min(a.Exp, b.Exp);
@@ -1248,8 +1243,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
         if (v.Sig == 0) return Zero((long)Math.Floor(v.Exp / 2.0));
         if (v.Sig < 0) return new CobolDec(0, 0);
         var sig = (System.Numerics.BigInteger)v.Sig;
-        int digits = 1;
-        for (var t = sig; t >= 10; t /= 10) digits++;
+        int digits = DecUnscaled.DigitCount((UInt128)v.Sig);
         int k = 72 - digits;
         if (((v.Exp - k) & 1) != 0) k++;
         var n = sig * System.Numerics.BigInteger.Pow(10, k);
@@ -1382,7 +1376,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
     private static CobolDec Clamp(Int128 sig, int exp, CobolRounding mode)
     {
         if (sig == 0) return Zero(exp);
-        if (DigitCount(Int128.Abs(sig)) + exp - 1 > MaxAdjustedExp)
+        if (DecUnscaled.DigitCount(UAbs(sig)) + exp - 1 > MaxAdjustedExp)
             throw new CobolSizeError("standard-decimal intermediate exceeds the decimal128 range "
                 + "(ISO §2023:8.8.1.5.2 r2)", "EC-SIZE-OVERFLOW");
         if (exp < MinExp)
@@ -1503,20 +1497,6 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
     /// PB2639). ⛔ Do not write a second one: <c>CobolNum</c>, <c>CobolEdit</c>, <c>CobolLocaleEdit</c>,
     /// <c>FloatResultant</c> and the divide kernels all read this (train 1042b collapsed two copies into it).</summary>
     internal static UInt128 UAbs(Int128 v) => v < 0 ? (UInt128)(-v) : (UInt128)v;
-
-    private static int DigitCount(Int128 mag)
-    {
-        int n = 1;
-        while (mag >= 10) { mag /= 10; n++; }
-        return n;
-    }
-
-    private static int DigitCount(UInt128 mag)
-    {
-        int n = 1;
-        while (mag >= 10) { mag /= 10; n++; }
-        return n;
-    }
 
     private static (Int128 Sig, bool Sticky) ShiftDownSticky(Int128 sig, int n)
     {
