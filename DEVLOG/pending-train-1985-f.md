@@ -23,7 +23,15 @@ the same cascade in four more places: READ KEY IS and START KEY IS on a refused 
 without a KEY phrase, and the external-file rules for a refused RELATIVE KEY, FILE STATUS or LINAGE operand. `FileModel`
 now records which clause operands were refused, and every user asks it first. A START over a refused clause binds to the
 new `BoundRejected.OnRefusedClause`. Each of the 30 new cases is refused exactly once, at 85, 2002, 2014 and 2023. The code
-read 1985-c04 is imported at eafbd52fe2.
+read 1985-c04 is imported at eafbd52fe2. The branch review (R1-1) found the fix hid independent faults: any refused RECORD KEY
+or ALTERNATE RECORD KEY clause silenced READ's SR11 and START's SR6 for every operand, so `READ KEY IS WS-N` on a
+WORKING-STORAGE item drew no error. Now `FileModel.CouldBeRefusedRecordKey` silences them only for an operand in the file's own
+records, the one place a repaired key clause can name. The sweep found two more over-broad suppressions and one missed
+cascade. The external FILE STATUS and RELATIVE KEY agreement skipped the whole group when one describer was refused; it now
+compares the others. And a refused key clause of one external describer drew COBOL6847 against the next; its entry is now
+undecided (`FileEntrySegment.Entries`), while the number of keys and each decided key are still compared. Seven new cases
+(15 runs) carry it, one an in-record control; on the base binary the review's probe drew only COBOL1639 and the external pair
+drew COBOL6847 as well.
 
 **A table continued across pages is one table to `cite.py` (R2-1).** `§1989:A.2.4 Table 1` failed for the SQRT and
 STANDARD-DEVIATION rows that `standard-compare-2002` quotes. `_resolve_table` bounded the table to its first page and never
@@ -31,7 +39,10 @@ read the parts captioned "Table 1: Table of Functions (Continued)". Now `text_un
 the table is its first caption plus every continued caption of its number under the cited clause. A footnote between a
 table and the caption below it belongs to the table. The sweep took every "(Continued)" caption in the 1985/1989, 2002 and
 2014 transcriptions (2023 prints none) and quoted the first and last body row of each part. On the base 34 of the 48
-quotations failed; on the head none does. `cite.py --self-test` and `text_units` case 11b carry the cases.
+quotations failed; on the head none does. `cite.py --self-test` and `text_units` case 11b carry the cases. The review (R1-2)
+noted that the 1985 text numbers its tables per module, so a continued caption joined ANY earlier table of its number under
+the cited locator. It now continues only the table of its number printed right before it. A planted self-test case of two
+Table 1s in sibling clauses passes on the head and fails on the base resolver.
 
 **Merge seams.** In `docs/VERSION_CHANGE_REFERENCE.md`, three conflicting hunks took h's quoted text, and main's canonical
 designators inside them were applied again. RESOLVE's baseline took main's side and was rewritten (1,953 → 1,950 entries).

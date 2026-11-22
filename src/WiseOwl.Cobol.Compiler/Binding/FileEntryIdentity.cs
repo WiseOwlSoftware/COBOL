@@ -73,6 +73,7 @@ internal static class FileEntryIdentity
         // THREE operands, so the USING data-name is part of the identity, not just the TO target. Consistency rule
         // (the implementor's, GR1 b's second sentence; docs/CONFORMANCE.md §7 DOC-A.1-72): the same data-name
         // spelling, qualifiers included.
+        string? primeKey = f.RecordKeyOperand is { } rk ? ClauseKey(rk.Name, f.RecordKeySource, f.PrimeKey?.Item, f.RecordKeySubscripts) : null;
         return
         [
             new("OPT", "the OPTIONAL phrase", $"{f.Optional}"),
@@ -93,11 +94,15 @@ internal static class FileEntryIdentity
             new("ORG", "the organization", $"{f.Organization}"),
             new("ACC", "the access mode", $"{f.AccessMode}"),
             new("COLL", "the COLLATING SEQUENCE clauses", $"{fileColl};{keyColl}"),
-            new("KEY", "the RECORD KEY clause", f.RecordKeyOperand is { } rk ? ClauseKey(rk.Name, f.RecordKeySource, f.PrimeKey?.Item, f.RecordKeySubscripts) : ""),
+            // ⛔ A KEY CLAUSE REFUSED WHERE IT IS WRITTEN SPECIFIES NO KEY TO AGREE WITH (kb/Work PB6041 review R1-1): its entry is
+            // UNDECIDED (null in Entries), which agrees with any one entry of the other describer, so the refusal is not reported a
+            // second time as a disagreement, while every key the entry did specify is still compared.
+            new("KEY", "the RECORD KEY clause", primeKey ?? "", Entries: primeKey is null ? [] : [f.PrimeKeyClauseRefused ? null : primeKey]),
             new("ALT", "the ALTERNATE RECORD KEY clauses",
                 // §2023:12.4.5.3 GR1k and §1985:IX.2.3.4 GR1 name the alternate keys' number, descriptions and DUPLICATES
                 // phrases, not their order, and §1985:IX.2.3.3 SR1 lets the clauses appear in any order: sorted like COLL.
-                string.Join(",", f.AlternateKeyNames.Select(AlternateEntry).Order(StringComparer.Ordinal))),
+                string.Join(",", f.AlternateKeyNames.Select(AlternateEntry).Order(StringComparer.Ordinal)),
+                Entries: [.. f.AlternateKeyNames.Select(a => a.ClauseRefused ? null : AlternateEntry(a))]),
             new("SHARE", "the sharing mode", $"{f.Sharing}"),
             new("LOCK", "the lock mode", f.LockMode is { } lm ? $"{lm.Kind},{lm.Multiple}" : ""),
             // §1985:VII.2.7.4 GR6 / §2002:12.3.4.3 GR1h) "The same specification of the PADDING CHARACTER clause" (kb/Work
@@ -127,11 +132,28 @@ internal static class FileEntryIdentity
 /// <summary>One §2023:12.4.5.3 GR1 item of an external file control entry's identity: its key in the fingerprint, the
 /// clause it is (for a diagnostic), and its value as the entry specifies it. <paramref name="OmittedAgrees"/> marks the
 /// item whose clause, when the entry omits it (a null value), agrees with every specification of it: GR1 c), the RECORD
-/// DELIMITER clause (kb/Work PB5844). Every other item agrees by equality.</summary>
-internal readonly record struct FileEntrySegment(string Key, string Clause, string? Value, bool OmittedAgrees = false)
+/// DELIMITER clause (kb/Work PB5844). <paramref name="Entries"/>, when set, is the item as an unordered set of clause entries, one per
+/// key clause the entry writes, null for a clause refused where it is written (kb/Work PB6041 review R1-1): two sets agree when they
+/// have as many entries and every decided entry of each is matched by an equal entry of the other or by one of its undecided
+/// entries. Every other item agrees by equality.</summary>
+internal readonly record struct FileEntrySegment(string Key, string Clause, string? Value, bool OmittedAgrees = false,
+    IReadOnlyList<string?>? Entries = null)
 {
     /// <summary>Whether this entry's item and <paramref name="other"/>'s (the same item of another entry) agree.</summary>
-    public bool Agrees(FileEntrySegment other) => OmittedAgrees
-        ? WiseOwl.Cobol.Runtime.ExternalDescriptor.RecordDelimitersAgree(Value, other.Value)
+    public bool Agrees(FileEntrySegment other) =>
+        OmittedAgrees ? WiseOwl.Cobol.Runtime.ExternalDescriptor.RecordDelimitersAgree(Value, other.Value)
+        : Entries is { } mine && other.Entries is { } theirs ? EntriesAgree(mine, theirs)
         : string.Equals(Value, other.Value, StringComparison.Ordinal);
+
+    private static bool EntriesAgree(IReadOnlyList<string?> x, IReadOnlyList<string?> y)
+    {
+        if (x.Count != y.Count) return false;
+        if (!x.Contains(null) && !y.Contains(null)) return x.Order(StringComparer.Ordinal).SequenceEqual(y.Order(StringComparer.Ordinal), StringComparer.Ordinal);
+        // The decided entries each side has and the other lacks (as multisets) must each be covered by an undecided entry of the other.
+        var unmatchedX = x.OfType<string>().ToList();
+        var unmatchedY = new List<string>();
+        foreach (var e in y.OfType<string>())
+            if (!unmatchedX.Remove(e)) unmatchedY.Add(e);
+        return unmatchedX.Count <= y.Count(e => e is null) && unmatchedY.Count <= x.Count(e => e is null);
+    }
 }

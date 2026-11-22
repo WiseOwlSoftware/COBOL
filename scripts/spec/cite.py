@@ -88,6 +88,7 @@ import pathlib
 import re
 import sys
 import tempfile
+import types
 from typing import NamedTuple
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
@@ -1113,8 +1114,8 @@ def _resolve_table(book: RuleBook, cited, n: int, needle, text) -> Verdict:
     the line the segmentation reads as one (`text_units.caption_number`: a short title, never a sentence that names the
     table), and it captions the table printed right above it when that table has no caption of its own above it (the
     1985 text captions below), else the table printed right below it. A table printed across pages is ONE table: each
-    later caption of its number marked "(Continued)" (`text_units.continued_caption`) captions a further part of it,
-    and a quotation is checked against every part (kb/Work PB6022 review R2-1: the SQRT row of §1989:A.2.4 Table 1
+    caption of its number marked "(Continued)" (`text_units.continued_caption`) that follows it with no other caption of
+    that number between captions a further part of it (kb/Work PB6041 review R1-2), and a quotation is checked against every part (kb/Work PB6022 review R2-1: the SQRT row of §1989:A.2.4 Table 1
     sits in its third part, page A-32)."""
     tu = _text_units()
     loc, shown = cited.locator, citation.render(cited)
@@ -1123,7 +1124,16 @@ def _resolve_table(book: RuleBook, cited, n: int, needle, text) -> Verdict:
     if captions:
         captions.sort()
         first, k = captions[0][0], captions[0][1]
-        parts = [c for c in captions if c[0] == first or (c[0] > first and tu.continued_caption(book.lines[c[0]]))]
+        # ⛔ A "(Continued)" caption continues the table of its number printed RIGHT BEFORE it (kb/Work PB6041 review R1-2): the
+        # 1985 text numbers its tables per module, so two different tables may both be Table 1 under one cited locator, and the
+        # parts end at the first later caption of the number that is not continued, which captions another table.
+        parts = [captions[0]]
+        for c in captions[1:]:
+            if c[0] == parts[-1][0]:
+                continue
+            if not tu.continued_caption(book.lines[c[0]]):
+                break
+            parts.append(c)
         extents = [_captioned_table(book.lines, i, s, e) for i, _k, s, e in parts]
         if needle is None:
             return Verdict("ok", f"{shown}  table {n} is captioned in {k}; no quotation checked")
@@ -1306,6 +1316,22 @@ def _unparsed_suggestions(held) -> list[str]:
                             or TABLE_DESIGNATOR.fullmatch(cited.rule)) or (rule in items and not resolve(cited).ok):
                         bad.append(text)
     return bad
+
+
+def _planted_two_tables_reads() -> tuple[str, ...]:
+    """The verdicts on a planted module of two sibling clauses, each captioning its own Table 1 below it (the 1985 form), the
+    second continued on the next page: the first table's row at the module, the second's continued row at the module (not
+    the first table's), the same row at its own clause, and the second's first part at its own clause (kb/Work PB6041 R1-2)."""
+    head = "| NAME | VALUE |\n|---|---|\n"
+    lines = ("| ALPHA | one |\n\nTable 1: First Table\n\n" + head + "| BETA | two |\n\nTable 1: Second Table\n\nVII-12\n\n"
+             + head + "| GAMMA | three |\n\nTable 1: Second Table (Continued)").split("\n")
+    second = lines.index("| NAME | VALUE |")
+    book = types.SimpleNamespace(lines=lines, regions=[("VII.1.1", "First", 0, second),
+                                                       ("VII.1.2", "Second", second, len(lines))])
+
+    def kind(locator: str, text: str) -> str:
+        return _resolve_table(book, citation.parse(f"§1985:{locator} Table 1"), 1, norm(text), text).kind
+    return kind("VII.1", "ALPHA one"), kind("VII.1", "GAMMA three"), kind("VII.1.2", "GAMMA three"), kind("VII.1.2", "BETA two")
 
 
 def self_test() -> int:
@@ -1584,6 +1610,10 @@ def self_test() -> int:
         ("an ISO table continued on later pages holds every part (2002 14.5.12.1.5 Table 14, 2014 15.6 Table 22)",
          v("§2002:14.5.12.1.5 Table 14", "EC-VALIDATE-VARYING Fatal VARYING clause expression").ok
          and v("§2014:15.6 Table 22", "INTEGER Num1 Int The greatest integer not greater").ok),
+        # kb/Work PB6041 review R1-2: the 1985 text numbers tables per module, so a continued caption continues only the table
+        # of its number printed right before it, never another Table 1 under the same cited locator (planted text).
+        ("a continued caption joins only the table of its number right before it (two Table 1s in sibling clauses, planted)",
+         _planted_two_tables_reads() == ("ok", "text-not-in-rule", "ok", "ok")),
         ("a paragraph row is cited p<n>", v("§2023:9.1.16 p6", "the LOCK clause and the UNLOCK statement shall not be "
                                                              "specified").message.endswith("the text is in p6")),
         ("a pending unit and a pending table row are cited by their designators",

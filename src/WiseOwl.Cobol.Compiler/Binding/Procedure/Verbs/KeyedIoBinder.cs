@@ -156,10 +156,11 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
                     || keyPlace.ConstantOccurrence() is not { } keyOccurrence
                     || Model.RecordLayout.KeyIndexOfKeyItem(file, keyItem, keyOccurrence) is not { } ki)
                 {
-                    // A key clause of the file was refused where it is written, so the set SR11 names is not the program's: the
-                    // operand may name the very key refused, and SR11 is not asked of it (kb/Work PB6041). The bind continues with
-                    // the default key of reference, as SR10's refusal above; the clause's error fails the compile.
-                    if (file.RecordKeyClauseRefused) keyIndex = -1;
+                    // A key clause of the file was refused where it is written, so the set SR11 names is not the program's: an
+                    // operand that could be the very key refused is not asked SR11 (kb/Work PB6041), and one that cannot (outside
+                    // the file's records, review R1-1) is. The bind continues with the default key of reference, as SR10's refusal
+                    // above; the clause's error fails the compile.
+                    if (file.CouldBeRefusedRecordKey(keyPlace.DenotedItem)) keyIndex = -1;
                     else return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ReadKeyOnNonIndexedFile, $"READ KEY IS {WrittenSource.Of(keyRef)} on '{file.CobolName}': the "
                         + $"operand shall be the RECORD KEY or an ALTERNATE RECORD KEY of the file ({ctx.Edition.Edition.CiteRule("§1985:IX.4.5.3 SR2", "§2023:14.9.30.3 SR11")})");
                 }
@@ -501,9 +502,10 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
                 || (Model.RecordLayout.KeyIndexOfKeyItem(file, keyItem, keyOccurrence)
                     ?? Model.RecordLayout.GenericKeyIndex(file, keyItem, keyOccurrence)) is not { } ki)
             {
-                // The file's keys are not the program's when one of its key clauses was refused (kb/Work PB6041): the operand may
-                // name the refused key, so SR6 is not asked of it.
-                if (file.RecordKeyClauseRefused) return BoundRejected.OnRefusedClause(ctx.Edition);
+                // The file's keys are not the program's when one of its key clauses was refused (kb/Work PB6041): an operand that
+                // could be the refused key (or a generic key of it) is not asked SR6; one outside the file's records cannot, and is
+                // (review R1-1).
+                if (file.CouldBeRefusedRecordKey(operand.DenotedItem)) return BoundRejected.OnRefusedClause(ctx.Edition);
                 string written = WrittenSource.Of(kp?.dataReference(), operand.Item.CobolName ?? "data-name-1");
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.IoStatementOperandRule, $"START on '{name}': '{written}' is neither a "
                     + "record key of the file nor an item that begins at the leftmost character position of one "
@@ -521,7 +523,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
             operand = file.PrimeKey is { Item: { } pk } primeKey ? ctx.Refs.Places.ResolveOccurrence(pk, primeKey.Subscripts) : null;
             primeKeyImplied = true;
         }
-        if (operand is null && namedKey is null && file.RecordKeyClauseRefused)
+        if (operand is null && namedKey is null && file.PrimeKeyClauseRefused)
             return BoundRejected.OnRefusedClause(ctx.Edition);   // GR15's prime key was refused where it is written (kb/Work PB6041)
         if (operand is null && namedKey is null)
             return new BoundUnsupported($"START on '{name}' with no resolvable RECORD KEY item");

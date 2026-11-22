@@ -98,6 +98,10 @@ public sealed class AlternateKeyClause
     /// a subscript the rules refuse), so the key screen's rows say nothing more about it (<c>FileControlKeyRules.Screen</c>; kb/Work
     /// PB481, PB978). Set by <c>FileControlBinder.ResolveFiles</c>.</summary>
     public bool Refused { get; set; }
+
+    /// <summary>Whether the clause was refused: data-name-1 (<see cref="Refused"/>) or a data-name-2 of its SOURCE phrase, so the
+    /// clause names no key of the file (kb/Work PB6041).</summary>
+    public bool ClauseRefused => Refused || (Source?.Operands.Any(o => o.Refused) ?? false);
 }
 
 /// <summary>The SOURCE phrase of a RECORD KEY or ALTERNATE RECORD KEY clause AS WRITTEN — ISO §2023:12.4.5.12.2 /
@@ -455,15 +459,21 @@ public sealed class FileModel
     /// (<see cref="AlternateKeyClause.Refused"/>).</summary>
     public bool RecordKeyRefused { get; set; }
 
-    /// <summary>Whether a key clause that names a record key of this file (the RECORD KEY clause or an ALTERNATE RECORD KEY clause,
-    /// data-name-1 or a data-name-2 of its SOURCE phrase) was refused and reported while it was resolved, so the file's set of
-    /// record keys is not the set the program wrote. A statement whose KEY operand is judged against that set (READ's
-    /// §2023:14.9.30.3 SR11, START's SR6, the prime key GR15 substitutes) cannot be judged: its operand may name the very key
-    /// that was refused, and a second verdict about it would be a cascade of the first (kb/Work PB6041).</summary>
-    public bool RecordKeyClauseRefused =>
-        RecordKeyRefused
-        || (RecordKeySource?.Operands.Any(o => o.Refused) ?? false)
-        || AlternateKeyNames.Any(a => a.Refused || (a.Source?.Operands.Any(o => o.Refused) ?? false));
+    /// <summary>Whether the RECORD KEY clause (data-name-1, or a data-name-2 of its SOURCE phrase) was refused and reported while it
+    /// was resolved, so the file has no prime key the program wrote: GR15's substituted key of reference has no item (kb/Work
+    /// PB6041).</summary>
+    public bool PrimeKeyClauseRefused => RecordKeyRefused || (RecordKeySource?.Operands.Any(o => o.Refused) ?? false);
+
+    /// <summary>⛔ WHETHER <paramref name="operand"/> COULD BE A RECORD KEY THAT A KEY CLAUSE OF THIS FILE WROTE AND WAS REFUSED (kb/Work
+    /// PB6041 review R1-1). A refused RECORD KEY or ALTERNATE RECORD KEY clause leaves the file's set of keys short of the program's,
+    /// so a KEY operand that is no key of the remaining set may still be the refused one, and READ's SR11 or START's SR6 about it
+    /// would be a cascade of the clause's own error. But every key a repaired clause can name lies in a record description entry of
+    /// this file (§1985:IX.2.7.3 SR2, §1985:IX.2.5.3 SR2; §2023:12.4.5.12.3 SR2, §2023:12.4.5.6.3 SR2), and so do the implicit keys
+    /// of the other record descriptions (GR4) and START's generic keys (SR6 b) 1. "within a record of the file"): an operand
+    /// outside the file's records can never be the refused key, its fault is its own, and it is judged as if no clause were
+    /// refused. One predicate, <see cref="RecordLayout.IsInRecordOfFile"/>, the one those rules are stated on.</summary>
+    public bool CouldBeRefusedRecordKey(DataItem? operand) =>
+        (PrimeKeyClauseRefused || AlternateKeyNames.Any(a => a.ClauseRefused)) && RecordLayout.IsInRecordOfFile(this, operand);
 
     /// <summary>The source position of the RECORD KEY clause's data-name-1 — where §2023:12.4.5.12.3's syntax rules
     /// report, since they are screened post-build (the operand resolves only once the data forest is indexed).</summary>

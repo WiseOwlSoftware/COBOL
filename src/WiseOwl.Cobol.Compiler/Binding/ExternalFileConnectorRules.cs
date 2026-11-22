@@ -73,8 +73,8 @@ internal static class ExternalFileConnectorRules
             var conns = group.ToList();
             // ⛔ AN OPERAND REFUSED WHERE ITS CLAUSE IS WRITTEN IS NOT JUDGED AGAIN HERE (kb/Work PB6041): a FILE STATUS, RELATIVE KEY
             // or LINAGE operand that names no item was reported by its resolution, and "shall be an external data item" about it
-            // would be a second verdict about the same operand; the agreement rules below skip a group one of whose describers
-            // was refused, for the same reason.
+            // would be a second verdict about the same operand; the agreement rules below compare the describers whose operand
+            // was NOT refused, for the same reason, and only those: the others' agreement is a fault of their own (review R1-1).
             foreach (var f in conns)
             {
                 if (is2023 && f.FileStatusOperand is not null && f.FileStatusItem is { } status
@@ -109,8 +109,8 @@ internal static class ExternalFileConnectorRules
 
             // FILE STATUS (VCR 18, new in 2023): if ANY corresponding SELECT specifies FILE STATUS, ALL shall, each naming
             // the same corresponding external data item (§2023:12.4.5.3 GR1i).
-            if (is2023 && conns.Any(f => f.FileStatusOperand is not null) && !conns.Any(f => f.FileStatusRefused))
-                SameItem(edition, conns, f => f.FileStatusItem?.ExternalItemIdentity(f.FileStatusSubscripts), f => f.ClauseOrEntryAt(f.FileStatusAt),
+            if (is2023 && conns.Any(f => f.FileStatusOperand is not null))
+                SameItem(edition, [.. conns.Where(f => !f.FileStatusRefused)], f => f.FileStatusItem?.ExternalItemIdentity(f.FileStatusSubscripts), f => f.ClauseOrEntryAt(f.FileStatusAt),
                     DiagnosticCatalog.ExternalFileStatusConsistency, newIn2023,
                     $"external file '{externalName}': all corresponding SELECT statements in the run unit shall "
                     + "specify FILE STATUS naming the same corresponding external data item, the same name at the same "
@@ -122,9 +122,8 @@ internal static class ExternalFileConnectorRules
             // the same storage (§2023:14.8.4.2 "shall refer to the same corresponding storage"): ExternalItemIdentity carries the
             // item's character positions in the external record beside the record and the item's own name (kb/Work PB5857), and
             // never the names of the groups between them (kb/Work PB5888).
-            if (conns.Any(f => f.Organization == FileOrganization.Relative) && conns.Any(f => f.RelativeKeyOperand is not null)
-                && !conns.Any(f => f.RelativeKeyRefused))
-                SameItem(edition, conns, f => f.RelativeKeyItem?.ExternalItemIdentity(f.RelativeKeySubscripts), f => f.ClauseOrEntryAt(f.RelativeKeyAt),
+            if (conns.Any(f => f.Organization == FileOrganization.Relative) && conns.Any(f => f.RelativeKeyOperand is not null))
+                SameItem(edition, [.. conns.Where(f => !f.RelativeKeyRefused)], f => f.RelativeKeyItem?.ExternalItemIdentity(f.RelativeKeySubscripts), f => f.ClauseOrEntryAt(f.RelativeKeyAt),
                     DiagnosticCatalog.ExternalRelativeKeyConsistency, EditionSeverity.Error,
                     $"external relative file '{externalName}': all corresponding SELECT statements in the run unit "
                     + "shall specify RELATIVE KEY naming the same external data item, the same name at the same character "
@@ -240,6 +239,7 @@ internal static class ExternalFileConnectorRules
         string cite, string externalName)
     {
         // The identities are values compared part by part (record equality of ExternalDataItemIdentity, kb/Work PB5888 R1-1).
+        if (conns.Count == 0) return;   // every describer's operand was refused where it is written: nothing left to agree
         var ids = conns.Select(identity).ToList();
         if (!ids.Any(id => id is null) && ids.Distinct().Count() <= 1) return;
         int odd = ids.FindIndex(id => id is null);
