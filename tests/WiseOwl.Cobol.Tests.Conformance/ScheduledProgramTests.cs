@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 
@@ -59,7 +60,7 @@ public sealed class ScheduledProgramTests
         try
         {
             File.WriteAllText(Path.Combine(dir, "mcs.json"), """{"terminals":[{"name":"T1","messages":["HELLO"]},{"name":"T2"}]}""");
-            NonCobolElement.CompileCobol(dir, "PB5282M", Source, dialect: 85);
+            NonCobolElement.CompileCobol(dir, "PB5282M", Source, dialect: 85, format: InitialReferenceFormat.Fixed);
             var (ok, stdout, detail) = CutRunner.Run(Path.Combine(dir, "PB5282M.dll"), dir, null,
                 new Dictionary<string, string?> { ["WISEOWL_COBOL_MCS_SCHEDULED"] = "T1" });
             Assert.True(ok, detail);
@@ -105,7 +106,7 @@ public sealed class ScheduledProgramTests
         {
             File.WriteAllText(Path.Combine(dir, "mcs.json"),
                 """{"terminals":[{"name":"T1","messages":["ALPHA","BETA"]},{"name":"T2","messages":["OTHER"]}]}""");
-            NonCobolElement.CompileCobol(dir, "PB5373R", ReceiveSource, dialect: 85);
+            NonCobolElement.CompileCobol(dir, "PB5373R", ReceiveSource, dialect: 85, format: InitialReferenceFormat.Fixed);
             var (ok, stdout, detail) = CutRunner.Run(Path.Combine(dir, "PB5373R.dll"), dir, null,
                 new Dictionary<string, string?> { ["WISEOWL_COBOL_MCS_SCHEDULED"] = "T1" });
             Assert.True(ok, detail);
