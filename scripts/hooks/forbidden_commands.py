@@ -32,7 +32,9 @@ fires inside subagents and Workflow agents too. Each rule below was written in a
                             MANDATORY-PRACTICES P17). A probe runs through `scripts/orchestrator/run_probe.py` in a new
                             directory, so nothing needs deleting; a file that must go is removed by its literal path.
 
-  a kill by process name    `Stop-Process -Name`, `Get-Process <name> | Stop-Process`, `taskkill /IM`, `pkill`, `killall`:
+  a kill by process name    `Stop-Process -Name`, `taskkill /IM`, `pkill`, `killall`, and any command line that both
+                            lists processes by name (Get-Process, ps, pgrep, pidof, tasklist, wmic, Win32_Process) and
+                            kills (Stop-Process, `.Kill()`, kill, taskkill, `xargs kill`, Terminate), in any order or pipe:
                             a name matches every process of that image on the host, and one agent's cleanup killed
                             another agent's gate compiles (kb/Work PB6034, MANDATORY-PRACTICES P18). Stop only what you
                             started, by its pid.
@@ -406,57 +408,113 @@ for _st in STEPS:   # every simple command, in the shell that runs it (`Step.she
 # 8. a KILL BY PROCESS NAME (owner-controller 2026-11-21, kb/Work PB6034, MANDATORY-PRACTICES P18): a name matches EVERY
 # process of that image on the host, other agents' included. `Get-Process dotnet-stack,cobol | Stop-Process -Force`, run
 # by one implementer to clean up its own sampling, killed the cobol.exe compiles of another agent's gate (exit 4294967295,
-# empty streams), and that gate read them as failed cases. Refused: PowerShell `Stop-Process` (`spps`, `kill`) with
-# `-Name` / `-ProcessName` (any prefix), a `Stop-Process` fed by a `Get-Process` (`gps`, `ps`) stage that selects by name
-# or selects everything (no `-Id`), `taskkill` with `/IM` (any shell), and Bash `pkill` / `killall`. Allowed: a kill of a
-# pid the agent started (`Stop-Process -Id $p.Id`, `$p.Kill()`, Bash `kill $pid`, `taskkill /PID n`).
+# empty streams), and that gate read them as failed cases. A by-name kill has two halves, and the rule judges the WHOLE
+# command line, not a pipe's two neighbours (the branch review of train-1985-c, R1-1: a `Where-Object` stage between them,
+# `-Id (Get-Process cobol).Id`, `ForEach-Object { $_.Kill() }`, `kill $(pgrep cobol)` and `pgrep cobol | xargs kill` each
+# passed a rule that read only `Get-Process | Stop-Process`): a step that ENUMERATES processes by name or all of them
+# (`_enumerates`: Get-Process / gps / PowerShell's ps without -Id, Bash ps without -p, pgrep, pidof, tasklist and wmic or
+# a Win32_Process query not filtered to one ProcessId, .NET's GetProcesses / GetProcessesByName) and a step that KILLS
+# (`_kills`: Stop-Process / spps / kill, taskkill, pkill, killall, a kill run by xargs / find -exec / timeout, a `.Kill()` or
+# `.Terminate()` call, Invoke-CimMethod / Invoke-WmiMethod Terminate, Remove-CimInstance / Remove-WmiObject, wmic's
+# delete or call terminate) in one command line, in any order, pipe, substitution, loop or script block, is refused; so
+# is a step that is both at once (`_kills_by_name`: Stop-Process -Name, taskkill /IM or an image /FI, pkill, killall).
+# Allowed: a kill of a pid the agent started, with no enumeration in the line (`$p = Start-Process … -PassThru; Stop-Process
+# -Id $p.Id`, `$p.Kill()`, Bash `kill $pid`, `taskkill /PID n`), and every listing that kills nothing. A line that lists
+# by name AND kills its own pid is refused too: list in one call, kill in the next.
 _PS_STOP = {"stop-process", "spps", "kill"}
-_PS_STOP_SWITCHES = {"force", "passthru", "whatif", "confirm", "verbose", "debug"}
-_PS_GET_PROCESS = {"get-process", "gps", "ps"}
+_KILLERS = {"stop-process", "spps", "kill", "taskkill", "tskill", "pkill", "killall", "pskill"}
+_RUNS_A_COMMAND = {"xargs", "parallel", "find", "timeout", "nice", "nohup", "env", "watch"}  # a later word is the command
+_PS_GET_PROCESS = {"get-process", "gps"}
 _PS_BY_NAME = re.compile(r"^-(?:n(?:a(?:m(?:e)?)?)?|processname)(?::.*)?$", re.I)
 _PS_BY_ID = re.compile(r"^-(?:id|pid|inputobject|i(?:n(?:p(?:u(?:t(?:o(?:b(?:j(?:e(?:c(?:t)?)?)?)?)?)?)?)?)?)?)(?::.*)?$", re.I)
+_KILL_METHOD = re.compile(r"\.(?:kill|terminate)\s*\(", re.I)
+_DOTNET_ENUM = re.compile(r"::getprocesses(?:byname)?\s*\(", re.I)
+_CIM_GET = {"get-ciminstance", "gcim", "get-wmiobject", "gwmi"}
+_CIM_INVOKE = {"invoke-cimmethod", "invoke-wmimethod", "icim", "iwmi"}      # a kill with `Terminate`
+_CIM_REMOVE = {"remove-ciminstance", "remove-wmiobject", "rcim", "rwmi"}  # removing a Win32_Process ends it
+_ONE_PID = re.compile(r"\b(?:processid|handle)\s*=", re.I)
+_NAME_FILTER = re.compile(r"\b(?:name|caption|commandline|executablepath)\s*(?:=|like\b|-eq\b|-like\b|-match\b)", re.I)
 
 
-def _kill_by_name(st, previous) -> bool:
-    """Whether the step kills processes by their image name (`previous`: the step piped into it, or None)."""
+def _image_filter(args) -> bool:
+    """Whether tasklist / taskkill args select by image (`/IM x`, or a `/FI` filter that is not `PID …`)."""
+    for i, a in enumerate(args):
+        flag = a.lower().lstrip("/-")
+        if flag == "im":
+            return True
+        if flag == "fi" and i + 1 < len(args) and not args[i + 1].strip().lower().startswith("pid"):
+            return True
+    return False
+
+
+def _enumerates(st) -> bool:
+    """Whether the step lists processes by name or all of them: what a by-name kill reads its targets from."""
+    w = st.words
+    k = _command_word(w)
+    if any(_DOTNET_ENUM.search(x) for x in w):
+        return True
+    for j, x in enumerate(w):                              # anywhere in the step: `foreach ($p in Get-Process cobol)`
+        if st.shell == shell_location.POWERSHELL and (shell_location.program(x) in _PS_GET_PROCESS
+                                                       or (j == k and x.lower() == "ps")):
+            return not any(_PS_BY_ID.match(a) for a in w[j + 1:])
+    if k is None:
+        return False
+    name, args = shell_location.program(w[k]), w[k + 1:]
+    if st.shell == shell_location.BASH and name == "ps":
+        return not any(a in ("-p", "--pid", "-q", "--quick-pid") or re.match(r"^(?:-p\d|--pid=)", a) for a in args)
+    if name in ("pgrep", "pidof"):
+        return True
+    if name == "tasklist":
+        return not any(a.lower().lstrip("/-") == "fi" for a in args) or _image_filter(args)
+    text = " ".join(args)
+    if name == "wmic" and any(a.lower() == "process" for a in args) or (
+            name in _CIM_GET and re.search(r"win32_process\b", text, re.I)):
+        return not _ONE_PID.search(text) or bool(_NAME_FILTER.search(text))
+    return False
+
+
+def _kills(st) -> bool:
+    """Whether the step stops a process, by whatever it was handed."""
+    w = st.words
+    if any(_KILL_METHOD.search(x) for x in w):
+        return True
+    k = _command_word(w)
+    if k is None:
+        return False
+    name, args = shell_location.program(w[k]), w[k + 1:]
+    if name in _KILLERS or name in _CIM_REMOVE or name in _CIM_INVOKE and any(a.lower() == "terminate" for a in args):
+        return True
+    if name in _RUNS_A_COMMAND and any(shell_location.program(a) in _KILLERS for a in args):
+        return True
+    return name == "wmic" and any(a.lower() == "delete" or a.lower() == "terminate" for a in args)
+
+
+def _kills_by_name(st) -> bool:
+    """Whether the one step is both halves: a kill whose own arguments name the image."""
     w = st.words
     k = _command_word(w)
     if k is None:
         return False
     name, args = shell_location.program(w[k]), w[k + 1:]
     if name == "taskkill":
-        return any(a.lower() in ("/im", "//im", "-im") for a in args)    # `//IM`: Git Bash's spelling
+        return _image_filter(args)
     if st.shell == shell_location.BASH and name in ("pkill", "killall"):
         return True
-    if st.shell == shell_location.POWERSHELL and name in _PS_STOP:
-        if any(_PS_BY_NAME.match(a) for a in args):
-            return True
-        positional, i = False, 0
-        while i < len(args):                               # a parameter's value (`-ErrorAction SilentlyContinue`) is
-            a = args[i]                                    # no positional id; the switches take none
-            if a.startswith("-"):
-                if ":" not in a and a.lower().lstrip("-") not in _PS_STOP_SWITCHES:
-                    i += 1
-            else:
-                positional = True
-            i += 1
-        if any(_PS_BY_ID.match(a) for a in args) or positional:
-            return False                                   # an id, an input object, or a positional id
-        if previous is None:
-            return False
-        pw = previous.words
-        pk = _command_word(pw)
-        return (pk is not None and shell_location.program(pw[pk]) in _PS_GET_PROCESS
-                and not any(_PS_BY_ID.match(a) for a in pw[pk + 1:]))
-    return False
+    return st.shell == shell_location.POWERSHELL and name in _PS_STOP and any(_PS_BY_NAME.match(a) for a in args)
 
 
-for _i, _st in enumerate(STEPS):
-    _prev = STEPS[_i - 1] if _i > 0 and STEPS[_i - 1].sep == "|" else None
-    if _kill_by_name(_st, _prev):
-        block(f"a kill by process NAME (`{_st.text[:60]}`): a name matches every process of that image on the host, "
-              "including other agents' gates and builds (kb/Work PB6034: a `Get-Process cobol | Stop-Process` killed "
-              "another gate's compiles, MANDATORY-PRACTICES P18). Stop only what you started, by its pid: keep the "
-              "object `Start-Process -PassThru` returns and run `Stop-Process -Id $p.Id` (Bash: `kill $pid`).")
+_ENUMERATION = next((st for st in STEPS if _enumerates(st)), None)
+_KILL = next((st for st in STEPS if _kills(st)), None)
+_BY_NAME = next((st for st in STEPS if _kills_by_name(st)), None)
+if _BY_NAME is not None or (_ENUMERATION is not None and _KILL is not None):
+    _what = (f"`{_BY_NAME.text[:60]}`" if _BY_NAME is not None
+             else f"`{_KILL.text[:50]}` stops what `{_ENUMERATION.text[:50]}` lists")
+    block(f"a kill by process NAME ({_what}): a name matches every process of that image on the host, including "
+          "other agents' gates and builds (kb/Work PB6034: a `Get-Process cobol | Stop-Process` killed another gate's "
+          "compiles, MANDATORY-PRACTICES P18). A command line that lists processes by name (Get-Process, ps, pgrep, "
+          "pidof, tasklist, wmic, Win32_Process) and kills (Stop-Process, .Kill(), kill, taskkill, xargs kill, "
+          "Terminate) is refused in any order or pipe. Stop only what you started, by its pid: keep the object "
+          "`Start-Process -PassThru` returns and run `Stop-Process -Id $p.Id` (Bash: `kill $pid`); list in one call "
+          "and kill in another if you must look first.")
 
 sys.exit(0)
