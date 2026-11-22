@@ -676,7 +676,7 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
         {
             // An index-name VISIBLE where the statement stands: the method's own (§2023:11.7.4 GR5) or the unit's, through
             // the one scope-aware lookup the binder resolves the same SET with (kb/Work PB1952).
-            if (recv.Register != SpecialRegister.None || WrittenQualifiedName.Of(recv) is not { } written
+            if (recv.Register() != SpecialRegister.None || WrittenQualifiedName.Of(recv) is not { } written
                 || _currentData.Symbols.IdentifyIndexName(written, report: false) is not { Count: > 0 }) continue;
             if (_turn.Enabled("EC-RANGE-INDEX", null, line))
                 Flag(FlagOption.Flag02RangeExceptionForIndex, line,

@@ -25,13 +25,10 @@ public enum SpecialRegister { None, LinageCounter, LineCounter, PageCounter }
 /// </summary>
 public static class DataReferenceCst
 {
-    extension(Core.DataReferenceContext ctx)
-    {
-        /// <summary>The special-register kind this reference names, else <see cref="SpecialRegister.None"/>.</summary>
-        public SpecialRegister Register =>
-              ctx.LINAGE_COUNTER() is not null ? SpecialRegister.LinageCounter
-            : ctx.LINE_COUNTER()   is not null ? SpecialRegister.LineCounter
-            : ctx.PAGE_COUNTER()   is not null ? SpecialRegister.PageCounter
-            : SpecialRegister.None;
-    }
+    /// <summary>The special-register kind this reference names, else <see cref="SpecialRegister.None"/>.</summary>
+    public static SpecialRegister Register(this Core.DataReferenceContext ctx) =>
+          ctx.LINAGE_COUNTER() is not null ? SpecialRegister.LinageCounter
+        : ctx.LINE_COUNTER()   is not null ? SpecialRegister.LineCounter
+        : ctx.PAGE_COUNTER()   is not null ? SpecialRegister.PageCounter
+        : SpecialRegister.None;
 }

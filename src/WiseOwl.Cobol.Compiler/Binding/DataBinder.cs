@@ -3752,10 +3752,10 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// <summary>Bind one data-description entry (skips level-66 RENAMES and level-88 condition names for now).</summary>
     private DataItem? BindEntry(Core.DataDescriptionEntryContext entry, EntrySection section)
     {
-        if (entry.Level is not { } level) return null;
+        if (entry.Level() is not { } level) return null;
         if (level is 66 or 88) return null; // RENAMES / condition-names: later slice.
 
-        string? cobolName = entry.Name;
+        string? cobolName = entry.Name();
         bool isFiller = cobolName is null || CobolNames.Same(cobolName, "FILLER");
         string csName = isFiller ? $"_filler{TakeFillerOrdinal()}" : DataItem.Sanitize(cobolName!);
 
@@ -3809,7 +3809,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // over the WHOLE clause list, and each used to be an `||` chain over whichever local decode flags the
         // author remembered. Read from the CST rather than reconstructed from those flags, because a syntax rule
         // asks what was SPECIFIED and several of the flags below are CLEARED by their own recovery paths.
-        DataClauseKind written = entry.WrittenClauses;
+        DataClauseKind written = entry.WrittenClauses();
         if ((written & (DataClauseKind.Redefines | DataClauseKind.Typedef)) != 0)
             ScreenLeadingClausePosition(entry, cobolName);   // §2023:13.18.44.3 SR1 / §2023:13.16.3 SR4
         string entryWhere = $"data item '{cobolName ?? "FILLER"}'";
@@ -3817,12 +3817,12 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // runs BEFORE the decode loop, because its recovery is to DROP the refused clauses and keep the reference (kb/Work PB4602).
         DataClauseKind compositionRefused = ScreenReferenceComposition(written, entryWhere);
 
-        // The dataDescriptionClauses presence guard folds into entry.Clauses (empty when the body has no clause list).
-            foreach (var clause in entry.Clauses)
+        // The dataDescriptionClauses presence guard folds into entry.Clauses() (empty when the body has no clause list).
+            foreach (var clause in entry.Clauses())
             {
-                if (compositionRefused != DataClauseKind.None && (clause.Kind & compositionRefused) != 0)
+                if (compositionRefused != DataClauseKind.None && (clause.Kind() & compositionRefused) != 0)
                     continue;   // a clause SR12 / SR14 refused is dropped, never decoded (the placementRefused discipline)
-                if (clause.PictureText is { } picText)
+                if (clause.PictureText() is { } picText)
                 {
                     pictureText = picText;
                     pictureToken = clause.pictureClause().PIC_STRING().Symbol;
@@ -3840,7 +3840,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                         if (localeName is not null)
                         {
                             var sym = SpecialNames.ResolveLocaleName(localeName, localeName.GetText(),
-                                $"data item '{cobolName ?? "FILLER"}' PICTURE … LOCALE {localeName.GetText()}",
+                                $"data item '{cobolName ?? "FILLER"}' PICTURE … LOCALE {WrittenSource.Of(localeName)}",
                                 "ISO §2023:13.18.40.3 SR37 — locale-name-1 shall be specified in the LOCALE clause in the SPECIAL-NAMES paragraph");
                             if (sym is not null) locale = new LocaleRef(sym);
                         }
@@ -3916,18 +3916,18 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                     // (14g.2, recognition-based — the typedef item is discarded from ConformanceForest when it fails to
                     // register (unnamed/duplicate) or binds into method scope, so a bound-arm gate would drop it; DEVLOG 734).
                     { isTypedef = true; typedefStrong = td.STRONG() is not null; }
-                else if (clause.TypeRefName is { } trn)
+                else if (clause.TypeRefName() is { } trn)
                     // TYPE IS type-name — cloned in ExpandTypes (D17). The COBOL-2002 introduction gate is
                     // VersionConformancePass ParseArm.VisitTypeClause (14g.2, recognition-based — TypeRefName is
                     // nulled by ExpandTypes during bind, so a bound-arm gate would drop it).
                     typeRefName = trn;
-                else if (clause.SameAsTargetName is { } san)
+                else if (clause.SameAsTargetName() is { } san)
                     // SAME AS data-name-1 (ISO §2023:13.18.49; P10 Step 16) — the subject copies data-name-1's
                     // description via the ONE ExpandTypes/CloneItem machinery (ExpandSameAs, GR1/GR2). The
                     // COBOL-2002 introduction gate is VersionConformancePass ParseArm.VisitSameAsClause
                     // (recognition-based — SameAs is nulled by ExpandSameAs during bind, the TypeRefName
                     // pattern).
-                    sameAs = new WrittenDataName(san, [.. clause.SameAsQualifiers]);
+                    sameAs = new WrittenDataName(san, [.. clause.SameAsQualifiers()]);
                 else if (clause.justifiedClause() is not null)
                     justified = true;   // JUSTIFIED [RIGHT] (ISO §2023:13.18.32 — right-justify alphanumeric receives)
                 else if (clause.blankWhenZeroClause() is not null)
@@ -3999,7 +3999,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                     // every later statement mentioning it; it is implemented now (kb/Work PB389).
                     objectRefUsage = usage.usageKeyword()?.objectReferenceUsage();
                 }
-                else if (clause.RedefinesTarget is { } redefTarget)
+                else if (clause.RedefinesTarget() is { } redefTarget)
                     // Capture the target name only; resolution waits until the forest is built (the target is a
                     // prior sibling, but a chain A REDEFINES B REDEFINES C resolves in the post-build pass).
                 {
@@ -4051,7 +4051,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                     // PB1941): a bound may be a constant-name measuring an entry subordinate to this one.
                     occursClause = occ;
                     if (occ.INDEXED() is not null)
-                        foreach (var idxName in clause.IndexNames)
+                        foreach (var idxName in clause.IndexNames())
                             indexNames.Add(idxName);
                 }
             }

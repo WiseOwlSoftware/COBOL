@@ -17,116 +17,102 @@ using Core = CobolParserCore;
 /// </summary>
 public static class DataDescriptionCst
 {
-    extension(Core.DataDescriptionEntryContext ctx)
+    /// <summary>The level number as an <see cref="int"/>, or <see langword="null"/> when it does not parse
+    /// (the caller returns early on null — byte-identical to the <c>int.TryParse</c> guard).</summary>
+    public static int? Level(this Core.DataDescriptionEntryContext ctx) => int.TryParse(ctx.levelNumber().GetText(), out int n) ? n : null;
+
+    /// <summary>The data-name text, or <see langword="null"/> when the entry is FILLER (no <c>dataName</c>) —
+    /// the null vs non-null distinction drives the FILLER test, so this MUST stay nullable.</summary>
+    public static string? Name(this Core.DataDescriptionEntryContext ctx) => ctx.dataName()?.GetText();
+
+    /// <summary>The clauses of the entry body, in source order (empty when the body has no clause list).</summary>
+    public static IReadOnlyList<Core.DataDescriptionClauseContext> Clauses(this Core.DataDescriptionEntryContext ctx)
+        => ctx.dataDescriptionBody().dataDescriptionClauses()?.dataDescriptionClause() ?? [];
+
+    /// <summary>
+    /// The set of §2023:13.16.2 Format-1 clause slots this entry actually WRITES — the operand of every
+    /// "…shall not be specified in the same data description entry with…" rule of §2023:13.16.3.
+    ///
+    /// <para>⛔ <b>Why a SET and not another hand-written condition list.</b> §2023:13.16.3 SR12, SR13, SR14, SR17 and
+    /// SR18 are each a rule over the WHOLE clause list — SR17 and SR18 literally read "the only other clauses
+    /// permitted are …". Every one of them used to be spelled in the binder as an <c>||</c> chain over whichever
+    /// local decode flags the author happened to remember, and every one of them was INCOMPLETE the moment a new
+    /// clause landed: SR12 could not see GROUP-USAGE, PROPERTY, SELECT WHEN, DYNAMIC LENGTH or the validation
+    /// clauses; SR13 could not see DYNAMIC LENGTH or SELECT WHEN; SR17 could not see nine of them. The
+    /// permitted-set rules are therefore expressed as SET operations over this one classification, and
+    /// <c>DataClauseKindDriftTests</c> asserts that every alternative of the <c>dataDescriptionClause</c> grammar
+    /// rule has a <see cref="DataClauseKind"/> — so a clause added to the grammar CANNOT silently fall out of
+    /// the rules that govern its composition (kb/Work PB487; CLAUDE.md rule 5).</para>
+    ///
+    /// <para>This is the WRITTEN set, deliberately: a syntax rule asks what the programmer specified, not what
+    /// survived the binder's per-clause recovery (several decode flags are CLEARED on a violation, which would
+    /// make a second violation in the same entry invisible).</para>
+    /// </summary>
+    public static DataClauseKind WrittenClauses(this Core.DataDescriptionEntryContext ctx)
     {
-        /// <summary>The level number as an <see cref="int"/>, or <see langword="null"/> when it does not parse
-        /// (the caller returns early on null — byte-identical to the <c>int.TryParse</c> guard).</summary>
-        public int? Level => int.TryParse(ctx.levelNumber().GetText(), out int n) ? n : null;
-
-        /// <summary>The data-name text, or <see langword="null"/> when the entry is FILLER (no <c>dataName</c>) —
-        /// the null vs non-null distinction drives the FILLER test, so this MUST stay nullable.</summary>
-        public string? Name => ctx.dataName()?.GetText();
-
-        /// <summary>The clauses of the entry body, in source order (empty when the body has no clause list).</summary>
-        public IReadOnlyList<Core.DataDescriptionClauseContext> Clauses
-            => ctx.dataDescriptionBody().dataDescriptionClauses()?.dataDescriptionClause() ?? [];
-
-        /// <summary>
-        /// The set of §2023:13.16.2 Format-1 clause slots this entry actually WRITES — the operand of every
-        /// "…shall not be specified in the same data description entry with…" rule of §2023:13.16.3.
-        ///
-        /// <para>⛔ <b>Why a SET and not another hand-written condition list.</b> §2023:13.16.3 SR12, SR13, SR14, SR17 and
-        /// SR18 are each a rule over the WHOLE clause list — SR17 and SR18 literally read "the only other clauses
-        /// permitted are …". Every one of them used to be spelled in the binder as an <c>||</c> chain over whichever
-        /// local decode flags the author happened to remember, and every one of them was INCOMPLETE the moment a new
-        /// clause landed: SR12 could not see GROUP-USAGE, PROPERTY, SELECT WHEN, DYNAMIC LENGTH or the validation
-        /// clauses; SR13 could not see DYNAMIC LENGTH or SELECT WHEN; SR17 could not see nine of them. The
-        /// permitted-set rules are therefore expressed as SET operations over this one classification, and
-        /// <c>DataClauseKindDriftTests</c> asserts that every alternative of the <c>dataDescriptionClause</c> grammar
-        /// rule has a <see cref="DataClauseKind"/> — so a clause added to the grammar CANNOT silently fall out of
-        /// the rules that govern its composition (kb/Work PB487; CLAUDE.md rule 5).</para>
-        ///
-        /// <para>This is the WRITTEN set, deliberately: a syntax rule asks what the programmer specified, not what
-        /// survived the binder's per-clause recovery (several decode flags are CLEARED on a violation, which would
-        /// make a second violation in the same entry invisible).</para>
-        /// </summary>
-        public DataClauseKind WrittenClauses
-        {
-            get
-            {
-                var set = DataClauseKind.None;
-                foreach (var c in ctx.Clauses) set |= c.Kind;
-                return set;
-            }
-        }
+        var set = DataClauseKind.None;
+        foreach (var c in ctx.Clauses()) set |= c.Kind();
+        return set;
     }
 
-    /// <summary>The typed reads of one clause: each TEXT-bearing accessor replaces one <c>GetText()</c> cluster in
-    /// <c>BindEntry</c>; the presence-only predicates are the generated accessors themselves.</summary>
-    extension(Core.DataDescriptionClauseContext ctx)
+    // The typed reads of one clause: each TEXT-bearing accessor replaces one GetText() cluster in BindEntry; the
+    // presence-only predicates are the generated accessors themselves.
+
+    /// <summary>Which §2023:13.16.2 Format-1 clause slot this is (<see cref="DataClauseKind.None"/> only when the
+    /// grammar grew an alternative nobody classified — which <c>DataClauseKindDriftTests</c> makes impossible).
+    /// <para>A <c>dataDescriptionClause</c> has exactly ONE child, the chosen alternative's sub-rule, so the
+    /// classification is a single map lookup on that child's context type — no text, no re-parse.</para></summary>
+    public static DataClauseKind Kind(this Core.DataDescriptionClauseContext ctx) =>
+        ctx.ChildCount == 1 && DataClauseKinds.ByContextType.TryGetValue(ctx.GetChild(0).GetType(), out var k)
+            ? k : DataClauseKind.None;
+
+    /// <summary>The PICTURE string text, or <see langword="null"/> when this is not a picture clause.</summary>
+    public static string? PictureText(this Core.DataDescriptionClauseContext ctx) => ctx.pictureClause()?.PIC_STRING()?.GetText();
+
+    /// <summary>The <c>TYPE [TO] type-name-1</c> referenced type-name text (§2023:13.18.57.2 Format 1; D17), or null. The
+    /// slot is a <c>cobolWord</c>, the word set of the TYPEDEF entry's own <c>dataName</c> (kb/Work PB2721).</summary>
+    public static string? TypeRefName(this Core.DataDescriptionClauseContext ctx) => ctx.typeClause()?.cobolWord()?.GetText();
+
+    /// <summary>The <c>SAME AS data-name-1</c> target data-name text (ISO §2023:13.18.49), or null. The first
+    /// <c>cobolWord</c> is the target; any further ones are its OF/IN qualifiers (<see cref="SameAsQualifiers"/>).</summary>
+    public static string? SameAsTargetName(this Core.DataDescriptionClauseContext ctx) => ctx.sameAsClause()?.cobolWord(0)?.GetText();
+
+    /// <summary>The SAME AS target's OF/IN qualifier names, outermost-last as written (empty when unqualified
+    /// or when this is not a sameAsClause).</summary>
+    public static IReadOnlyList<string> SameAsQualifiers(this Core.DataDescriptionClauseContext ctx)
     {
-        /// <summary>Which §2023:13.16.2 Format-1 clause slot this is (<see cref="DataClauseKind.None"/> only when the
-        /// grammar grew an alternative nobody classified — which <c>DataClauseKindDriftTests</c> makes impossible).
-        /// <para>A <c>dataDescriptionClause</c> has exactly ONE child, the chosen alternative's sub-rule, so the
-        /// classification is a single map lookup on that child's context type — no text, no re-parse.</para></summary>
-        public DataClauseKind Kind =>
-            ctx.ChildCount == 1 && DataClauseKinds.ByContextType.TryGetValue(ctx.GetChild(0).GetType(), out var k)
-                ? k : DataClauseKind.None;
+        var words = ctx.sameAsClause()?.cobolWord();
+        if (words is null || words.Length <= 1) return [];
+        var quals = new string[words.Length - 1];
+        for (int i = 1; i < words.Length; i++) quals[i - 1] = words[i].GetText();
+        return quals;
+    }
 
-        /// <summary>The PICTURE string text, or <see langword="null"/> when this is not a picture clause.</summary>
-        public string? PictureText => ctx.pictureClause()?.PIC_STRING()?.GetText();
+    /// <summary>The REDEFINES clause's operand as WRITTEN — the whole <c>dataReference</c>, or null. ⛔ Never its
+    /// text: <c>GetText()</c> glues <c>A OF G</c> into the one word <c>AOFG</c>, which resolved to an unrelated item
+    /// of that name (kb/Work PB1281). The binder screens the shape (§2023:13.18.44.3 SR5/SR6) and resolves the base
+    /// data-name.</summary>
+    public static Core.DataReferenceContext? RedefinesTarget(this Core.DataDescriptionClauseContext ctx) => ctx.redefinesClause()?.dataReference();
 
-        /// <summary>The <c>TYPE [TO] type-name-1</c> referenced type-name text (§2023:13.18.57.2 Format 1; D17), or null. The
-        /// slot is a <c>cobolWord</c>, the word set of the TYPEDEF entry's own <c>dataName</c> (kb/Work PB2721).</summary>
-        public string? TypeRefName => ctx.typeClause()?.cobolWord()?.GetText();
+    // (The canonical USAGE keyword text and the VALUE-operand normalization stay in DataBinder's shared
+    // UsageKeyword / ExtractValue helpers — reused by BOTH BindEntry and ReportSectionBinder.cs, so the façade does
+    // NOT fork a second copy of that computation. This clause façade exposes only the leaf text reads BindEntry
+    // migrated in Group C; the report-writer partial migrates in P7.)
 
-        /// <summary>The <c>SAME AS data-name-1</c> target data-name text (ISO §2023:13.18.49), or null. The first
-        /// <c>cobolWord</c> is the target; any further ones are its OF/IN qualifiers (<see cref="SameAsQualifiers"/>).</summary>
-        public string? SameAsTargetName => ctx.sameAsClause()?.cobolWord(0)?.GetText();
+    // (The OCCURS fixed bounds are no longer a pure text read: each `integerOperand` is an integer literal OR an
+    // integer constant-name (ISO §2023:13.10.3 SR2), and resolving the latter needs the binder's compile-time
+    // constant table — so the max-occurrence read lives in DataBinder.Constants.IntegerOperandValue, not here.)
 
-        /// <summary>The SAME AS target's OF/IN qualifier names, outermost-last as written (empty when unqualified
-        /// or when this is not a sameAsClause).</summary>
-        public IReadOnlyList<string> SameAsQualifiers
-        {
-            get
-            {
-                var words = ctx.sameAsClause()?.cobolWord();
-                if (words is null || words.Length <= 1) return [];
-                var quals = new string[words.Length - 1];
-                for (int i = 1; i < words.Length; i++) quals[i - 1] = words[i].GetText();
-                return quals;
-            }
-        }
-
-        /// <summary>The REDEFINES clause's operand as WRITTEN — the whole <c>dataReference</c>, or null. ⛔ Never its
-        /// text: <c>GetText()</c> glues <c>A OF G</c> into the one word <c>AOFG</c>, which resolved to an unrelated item
-        /// of that name (kb/Work PB1281). The binder screens the shape (§2023:13.18.44.3 SR5/SR6) and resolves the base
-        /// data-name.</summary>
-        public Core.DataReferenceContext? RedefinesTarget => ctx.redefinesClause()?.dataReference();
-
-        // (The canonical USAGE keyword text and the VALUE-operand normalization stay in DataBinder's shared
-        // UsageKeyword / ExtractValue helpers — reused by BOTH BindEntry and ReportSectionBinder.cs, so the façade does
-        // NOT fork a second copy of that computation. This clause façade exposes only the leaf text reads BindEntry
-        // migrated in Group C; the report-writer partial migrates in P7.)
-
-        // (The OCCURS fixed bounds are no longer a pure text read: each `integerOperand` is an integer literal OR an
-        // integer constant-name (ISO §2023:13.10.3 SR2), and resolving the latter needs the binder's compile-time
-        // constant table — so the max-occurrence read lives in DataBinder.Constants.IntegerOperandValue, not here.)
-
-        /// <summary>The OCCURS INDEXED BY index-names, in order (empty when absent) — §2023:13.18.38.2's
-        /// <c>{ index-name-1 } …</c>, each a single word (<c>indexNameList</c>), so the text of one is exactly the name
-        /// declared. It was a <c>dataReference</c>'s glued text, and <c>IX OF G</c> declared <c>IXOFG</c> (kb/Work PB2732).
-        /// The caller keeps the <c>INDEXED()</c> presence guard raw.</summary>
-        public IReadOnlyList<string> IndexNames
-        {
-            get
-            {
-                var words = ctx.occursClause()?.indexNameList()?.cobolWord();
-                if (words is null) return [];
-                var names = new string[words.Length];
-                for (int i = 0; i < words.Length; i++) names[i] = words[i].GetText();
-                return names;
-            }
-        }
+    /// <summary>The OCCURS INDEXED BY index-names, in order (empty when absent) — §2023:13.18.38.2's
+    /// <c>{ index-name-1 } …</c>, each a single word (<c>indexNameList</c>), so the text of one is exactly the name
+    /// declared. It was a <c>dataReference</c>'s glued text, and <c>IX OF G</c> declared <c>IXOFG</c> (kb/Work PB2732).
+    /// The caller keeps the <c>INDEXED()</c> presence guard raw.</summary>
+    public static IReadOnlyList<string> IndexNames(this Core.DataDescriptionClauseContext ctx)
+    {
+        var words = ctx.occursClause()?.indexNameList()?.cobolWord();
+        if (words is null) return [];
+        var names = new string[words.Length];
+        for (int i = 0; i < words.Length; i++) names[i] = words[i].GetText();
+        return names;
     }
 }

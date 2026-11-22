@@ -29,7 +29,8 @@ mechanism, handed back as a lead.
 **PB2642 (retired).** 56312e1996 (PB2643) had already made `DeEditFloat` validate by the `FormatFloatCore` round trip.
 
 **PB2731 (landed).** DESIGN-frontend-grammar now takes DESIGN-architecture-review §8.1 as the boundary: binders read the
-generated contexts through `frontend.parse`, and a rule-bearing read is a C# 14 extension member in `Cst/`. The wrapper
+generated contexts through `frontend.parse`, and a rule-bearing read is an extension method in `Cst/` (a C# 14 `extension` block was tried and dropped: the
+inventory's two code-location resolvers disagree on its members). The wrapper
 structs `DataDescriptionCst`, `DataDescriptionClauseCst` and `DataReferenceCst`, their implicit conversions, the
 `Context` escape hatch and the unread `BaseName` are deleted; nine call sites read the contexts.
 

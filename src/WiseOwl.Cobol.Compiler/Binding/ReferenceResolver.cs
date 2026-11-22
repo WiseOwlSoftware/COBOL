@@ -364,7 +364,7 @@ public sealed class ReferenceResolver(DataBinder data)
         // to BoundLinageCounterRef / BoundReportCounterRef (StatementBinder.ReportWriter.cs). The early return is
         // LOAD-BEARING for the QUALIFIED form (`LINAGE-COUNTER OF file`, `LINE-COUNTER OF report`): there
         // the leading word is the FILE-/REPORT-NAME qualifier and would otherwise mis-resolve here as a base data-name.
-        if (dref.Register != SpecialRegister.None) return Ends(Deferred(DeferredShape.UnroutedSpecialRegister));
+        if (dref.Register() != SpecialRegister.None) return Ends(Deferred(DeferredShape.UnroutedSpecialRegister));
         // No base word outside a special register is a parse-error recovery node: the parser reported it.
         if (dref.cobolWord() is null) return Ends(Refused());
         // The reference AS WRITTEN, read by the ONE decomposition (kb/Work PB443 — see WrittenReference), and its name and
@@ -580,7 +580,7 @@ public sealed class ReferenceResolver(DataBinder data)
     /// it is the statement's own operand rule, written in the one check catalog.</para></summary>
     public TableOperand? ResolveTableOperand(Core.DataReferenceContext dref)
     {
-        if (dref.Register != SpecialRegister.None || dref.cobolWord() is null) return null;
+        if (dref.Register() != SpecialRegister.None || dref.cobolWord() is null) return null;
         var written = ReadWritten(dref);
         var named = WrittenQualifiedName.OfRead(dref, written.Qualifiers);
         if (Names.FindReportedItem(dref, named) is not { } item) return null;

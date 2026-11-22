@@ -1615,20 +1615,18 @@ classification) written at each site drifts when a grammar rule changes.
 **Target (amended, kb/Work PB2731):** the binder and the validation passes read the generated contexts directly,
 through `frontend.parse` (DESIGN-architecture-review §8.1 places `Cst` and `Generated` in that one layer and allows
 `compiler.binding` and `compiler.validation` to depend on it). A read that carries a RULE, and that more than one site
-would otherwise write, lives in `Cst/` as an extension member of the generated context it reads (C# 14 `extension`
-blocks), beside the rule tables (`DataClauseKind`, `ClosedFormats`, `ClauseCardinalities`, `ParagraphPeriods`):
+would otherwise write, lives in `Cst/` as an extension method of the generated context it reads (a classic `this` extension:
+the inventory's two code-location resolvers name a member of a static class, and a C# 14 `extension` block has no
+name they agree on, kb/Work PB2731), beside the rule tables (`DataClauseKind`, `ClosedFormats`, `ClauseCardinalities`, `ParagraphPeriods`):
 
 ```csharp
 // Cst/DataDescriptionCst.cs
 public static class DataDescriptionCst
 {
-    extension(CobolParserCore.DataDescriptionEntryContext ctx)
-    {
-        public int? Level => int.TryParse(ctx.levelNumber().GetText(), out int n) ? n : null;
-        public IReadOnlyList<CobolParserCore.DataDescriptionClauseContext> Clauses => …;
-        public DataClauseKind WrittenClauses => …;   // §2023:13.16.3's permitted-set rules read this set
-    }
-    extension(CobolParserCore.DataDescriptionClauseContext ctx) { public DataClauseKind Kind => …; … }
+    public static int? Level(this CobolParserCore.DataDescriptionEntryContext ctx) => …;
+    public static IReadOnlyList<CobolParserCore.DataDescriptionClauseContext> Clauses(this CobolParserCore.DataDescriptionEntryContext ctx) => …;
+    public static DataClauseKind WrittenClauses(this CobolParserCore.DataDescriptionEntryContext ctx) => …;   // §2023:13.16.3's permitted-set rules
+    public static DataClauseKind Kind(this CobolParserCore.DataDescriptionClauseContext ctx) => …;
 }
 ```
 
