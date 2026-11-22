@@ -114,7 +114,8 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             w.Line(invocation);
             brackets.Settle(receivers);
             string? propagatedBare = EmitActivationReturned(c, reportRaised: c.NotOnException is not null);
-            if (c.NotOnException is { } notBare) EmitNotOnException(notBare, callErr: null, propagatedBare);
+            if (c.NotOnException is { } notBare)
+                ConditionalPhrase.EmitNot(w, Statements, notBare, NotOnException(callErr: null, propagatedBare));
             return false;
         }
         int id = ctx.Names.NextCall();
@@ -159,26 +160,20 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         // CALL's staging — and NOT ON EXCEPTION runs only when the pickup raised nothing. A failed activation
         // stages nothing, so the pickup is a no-op on the ON EXCEPTION path.
         string? propagated = EmitActivationReturned(c, reportRaised: c.NotOnException is not null);
-        if (c.OnException is { } on)
-            using (w.Block($"if (__callErr{id})")) Statements.EmitStatementList(on);
-        if (c.NotOnException is { } not)
-            EmitNotOnException(not, callErr: $"__callErr{id}", propagated);
+        ConditionalPhrase.EmitPair(w, Statements, $"__callErr{id}", c.OnException, c.NotOnException,
+            NotOnException(callErr: $"__callErr{id}", propagated));
         return false;
     }
 
-    /// <summary>The CALL statement's NOT ON EXCEPTION arm — ISO §2023:14.9.4.4 GR3i: imperative-statement-2 runs only
+    /// <summary>The test of the CALL statement's NOT ON EXCEPTION arm (<see cref="ConditionalPhrase"/> renders it) — ISO §2023:14.9.4.4 GR3i: imperative-statement-2 runs only
     /// when the program was successfully called (<paramref name="callErr"/> is false, or null when nothing can
     /// fail the activation catchably) AND no exception condition was propagated from it
     /// (<paramref name="propagated"/>, the pickup's raised flag, or null when the group emits no pickup).
     /// §2023:14.6.13.1.4 3) says the same from the other side: a nonfatal condition whose declarative completes
     /// normally leaves "the imperative-statement in that phrase … not executed".</summary>
-    private void EmitNotOnException(IReadOnlyList<BoundStatement> not, string? callErr, string? propagated)
-    {
-        var guards = new[] { callErr, propagated }.OfType<string>().Select(g => "!" + g).ToList();
-        if (guards.Count == 0) { Statements.EmitStatementList(not); return; }
-        using (ctx.Writer.Block($"if ({string.Join(" && ", guards)})   // §2023:14.9.4.4 GR3i — a successful call that propagated nothing"))
-            Statements.EmitStatementList(not);
-    }
+    private static NotPhraseCondition NotOnException(string? callErr, string? propagated) =>
+        new(callErr is null ? null : $"!{callErr}", ComplementsPhrase: true, propagated is null ? null : $"!{propagated}",
+            "§2023:14.9.4.4 GR3i — a successful call that propagated nothing");
 
     /// <summary>§2023:14.9.4.4 GR3a's once-only identification (kb/Work PB133 wave B; PB1123): "item identification is done
     /// for identifier-3 at the beginning of the execution of the CALL statement" and §2023:14.2.3 GR8 fixes each BY

@@ -330,17 +330,13 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         ctx.Writer.Line($"if ({cond}) {RuntimeApi.TerminateOnUncoveredFatalStatus(key, CsLiteral(verb))};");
     }
 
-    /// <summary>A NOT phrase's body, behind <see cref="UseHookResult.NotPhraseGate"/> when the statement's hook can
+    /// <summary>A NOT phrase's body (rendered by <see cref="ConditionalPhrase.EmitNot"/>), behind <see cref="UseHookResult.NotPhraseGate"/> when the statement's hook can
     /// interrupt a successful completion (kb/Work PB1120) — else the bare list, so a build with no enabled EC-I-O
     /// name emits byte-identical text. It takes the whole <paramref name="hook"/>, never its gate string: a caller
     /// with no hook to pass cannot render a NOT phrase here, so the gate cannot be dropped on the way
     /// (kb/Work PB3237, review round 1).</summary>
-    internal void EmitNotPhrase(UseHookResult hook, IReadOnlyList<BoundStatement> body)
-    {
-        string? gate = hook.NotPhraseGate;
-        if (gate is null) { Statements.EmitStatementList(body); return; }
-        using (ctx.Writer.Block($"if ({gate})")) Statements.EmitStatementList(body);
-    }
+    internal void EmitNotPhrase(UseHookResult hook, IReadOnlyList<BoundStatement> body) =>
+        ConditionalPhrase.EmitNot(ctx.Writer, Statements, body, new NotPhraseCondition(null, ComplementsPhrase: false, hook.NotPhraseGate));
 
 
 
@@ -913,8 +909,8 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         EmitPhrasePair(IoStatusClass.InvalidKey(st), ik.Invalid, ik.NotInvalid, IoStatusClass.Successful(st), hook);
     }
 
-    /// <summary>⛔ THE ONE RENDERING OF AN I-O STATEMENT'S CONDITIONAL-PHRASE / NOT-PHRASE PAIR (kb/Work PB3237,
-    /// PB1120): the phrase runs on <paramref name="phraseCond"/> and the NOT phrase on
+    /// <summary>⛔ AN I-O STATEMENT'S CONDITIONAL-PHRASE / NOT-PHRASE PAIR, rendered by <see cref="ConditionalPhrase"/> (kb/Work PB3238,
+    /// PB3237, PB1120): the phrase runs on <paramref name="phraseCond"/> and the NOT phrase on
     /// <paramref name="successCond"/> AND the <see cref="UseHookResult.NotPhraseGate"/> of the statement's
     /// <paramref name="hook"/> (taken whole, so the gate cannot be dropped or defaulted), because "If a conditional phrase with a NOT phrase is specified in the interrupted
     /// statement, the imperative-statement in that phrase is not executed" once a WHEN phrase or a USE declarative
@@ -923,18 +919,8 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     /// both render through it, so a NOT phrase cannot have a gate in one pair and none in the other.</summary>
     internal void EmitPhrasePair(string phraseCond, IReadOnlyList<BoundStatement>? phrase,
         IReadOnlyList<BoundStatement>? notPhrase, string successCond, UseHookResult hook)
-    {
-        var w = ctx.Writer;
-        string success = hook.NotPhraseGate is { } gate ? $"{successCond} && {gate}" : successCond;
-        if (phrase is not null)
-        {
-            using (w.Block($"if ({phraseCond})")) Statements.EmitStatementList(phrase);
-            if (notPhrase is not null)
-                using (w.Block($"else if ({success})")) Statements.EmitStatementList(notPhrase);
-        }
-        else if (notPhrase is not null)
-            using (w.Block($"if ({success})")) Statements.EmitStatementList(notPhrase);
-    }
+        => ConditionalPhrase.EmitPair(ctx.Writer, Statements, phraseCond, phrase, notPhrase,
+            new NotPhraseCondition(successCond, ComplementsPhrase: false, hook.NotPhraseGate));
 
     /// <summary>WRITE record [FROM x] [ADVANCING …] (ISO §2023:14.9.51): a FROM operand first MOVEs into the record area,
     /// then the record's character image is written (plain, or with print-control advancing).</summary>

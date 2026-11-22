@@ -131,8 +131,9 @@ internal sealed class MessagingEmitter(EmitContext ctx, NumericRenderer num, EcS
         var w = ctx.Writer;
         // §2023:14.6.13.1.4 3): a nonfatal condition a USE declarative or WHEN handled on a statement that then completes does not run its NOT phrase - the statement's
         // selection result decides, as SequentialIoEmitter.EmitNotPhrase's gate does for the I-O statements.
+        // Only the selection below can handle a condition, and it runs only when the statement has no ON EXCEPTION phrase.
         string handled = $"{m}handled";
-        bool gated = ecState.Active && notOnException is not null;
+        bool gated = ecState.Active && notOnException is not null && onException is null;
         if (gated) w.Line($"bool {handled} = false;");
         if (ecState.Active)
         {
@@ -150,13 +151,7 @@ internal sealed class MessagingEmitter(EmitContext ctx, NumericRenderer num, EcS
                 else w.Line("// the statement's ON EXCEPTION phrase takes the condition (§2023:14.6.13.1.3 1); §2023:14.6.13.1.4 1))");
             }
         }
-        if (onException is not null)
-        {
-            using (w.Block($"if (!{m}.Successful)")) Statements.EmitStatementList(onException);
-            if (notOnException is not null)
-                using (w.Block("else")) Statements.EmitStatementList(notOnException);
-        }
-        else if (notOnException is not null)
-            using (w.Block($"if ({m}.Successful{(gated ? $" && !{handled}" : "")})")) Statements.EmitStatementList(notOnException);
+        ConditionalPhrase.EmitPair(w, Statements, $"!{m}.Successful", onException, notOnException,
+            new NotPhraseCondition($"{m}.Successful", ComplementsPhrase: true, gated ? $"!{handled}" : null));
     }
 }
