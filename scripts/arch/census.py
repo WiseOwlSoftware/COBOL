@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SELF-TEST-POPULATION: tree — THE WALK BOUNDARY arm reads every tracked MSBuild file (git ls-files): a C# project added anywhere is checked
 """census.py — the architecture review's R0 census (kb/Work PB2115; docs/rearchitecture/DESIGN-architecture-review.md §3 R0).
 
 Opinions come after measurements. This is the measuring instrument: it records, at one commit, what the product code
