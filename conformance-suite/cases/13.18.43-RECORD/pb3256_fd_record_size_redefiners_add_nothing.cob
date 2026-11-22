@@ -7,7 +7,7 @@
       *>---
       *> kb/Work PB3256. FD F has no RECORD clause, so its record
       *> size is that of its largest record description entry
-      *> (§2023:13.18.43.4 GR5 a)). Every record is 4 bytes: in RC,
+      *> (§2023:13.18.43.4 GR5a). Every record is 4 bytes: in RC,
       *> CR and CB REDEFINES CA, and a redefiner's storage starts at
       *> the first bit of the item it redefines (§2023:13.18.44.4
       *> GR1), so neither adds to RC's size. The compiler once
