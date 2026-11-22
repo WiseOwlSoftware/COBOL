@@ -18,7 +18,11 @@ default) became `EditionInfo.Latest`. The conformance runner's `std` build-step 
 `CompilerDriverTests.CompilerDriver_DefaultsToLatestEdition` is deleted, because the driver has no default left to pin.
 `CliParserTests` pins the CLI default. The listing's options section keeps its `--std` and `--permissive` rows, keyed by
 the property paths `Edition.Year` and `Edition.Permissive`. `OptionsSectionDriftTests` and `CompileStateDriftTests` now
-read the edition as one property with two parts. Design docs updated: VERSION_TEST_MATRIX_DESIGN (decision #2's default
+read the edition as one property with two parts. The first gate (run 000001-20261122T175058Z) was RED on 28,902
+Conformance cases, every one the same refusal: the compiled-program cache key (`CompiledProgramCache.KeyValue`, kb/Work
+PB985) renders each option by its type and throws on a type it has no rendering for, and `EditionInfo` was new to it. The
+key now renders an edition as its year and its permissive flag, and `EveryOption_ChangesTheKey` flips each of the two
+parts on its own, so dropping either from the key fails that test. Design docs updated: VERSION_TEST_MATRIX_DESIGN (decision #2's default
 now lives in the CLI), VALIDATION_DESIGN, INTRINSICS_DESIGN and DESIGN-external-repository.
 
 **Neutral.** `cobol --std 2023 --run` on a DISPLAY program prints `HELLO`, exit 0. The 85 refusal of a sentence before

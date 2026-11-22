@@ -26,7 +26,9 @@ stays true. `CompileStateDriftTests` maps `Options.Edition` to both `CompileStat
 `src/WiseOwl.Cobol.Compiler/ExpansionAssemblies.cs` (the expansion's own compilation), `src/WiseOwl.Cobol.Cli/CliOptions.cs`
 (`CliOptions.Edition`), `src/WiseOwl.Cobol.Cli/Program.cs` (`Program.BuildParser`'s `Resolve`, `Program.CheckBatchVerdict`,
 `Program.RunCompile`), `src/WiseOwl.Cobol.Compiler/Binding/Model/SkeletonRecord.cs` and
-`src/WiseOwl.Cobol.Runtime/Repository/CobolSignatureAttributes.cs` (doc comments), and every test that builds options.
+`src/WiseOwl.Cobol.Runtime/Repository/CobolSignatureAttributes.cs` (doc comments), `tests/WiseOwl.Cobol.Tests.Conformance/CompiledProgramCache.cs` (`CompiledProgramCache.KeyValue`: an
+`EditionInfo` option renders as its year and permissive flag), `CompiledProgramCacheDriftTests.EveryOption_ChangesTheKey`
+(flips each part), and every test that builds options.
 
 **Left, a sibling of the same shape (not this note's target):** `Frontend.Frontend` (`DialectLevel { get; init; } = 85`,
 `Permissive`) and `Binding.EditionContext(int dialectLevel, bool permissive)` still take the edition as two loose values,

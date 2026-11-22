@@ -284,16 +284,23 @@ public sealed class CompiledProgramCacheDriftTests : IDisposable
         foreach (var property in CompiledProgramCache.OptionProperties)
         {
             object? current = property.GetValue(baseline);
-            object? flipped = property.Name switch
+            // An edition is two keyed parts, the year and the strict/permissive axis: each is flipped on its own, so
+            // dropping either from the key's rendering fails here.
+            object?[] flips = property.Name switch
             {
-                nameof(CompilerDriver.Options.SourcePath) => twin,
-                nameof(CompilerDriver.Options.OutputPath) => Path.Combine(_dir, "run", "other.dll"),
-                _ => Flip(property.PropertyType, current),
+                nameof(CompilerDriver.Options.SourcePath) => [twin],
+                nameof(CompilerDriver.Options.OutputPath) => [Path.Combine(_dir, "run", "other.dll")],
+                _ when current is EditionInfo edition =>
+                    [edition with { Year = edition.Year == 2002 ? 2014 : 2002 }, edition with { Permissive = !edition.Permissive }],
+                _ => [Flip(property.PropertyType, current)],
             };
-            if (flipped is null && current is null) { unflipped.Add($"{property.Name} ({property.PropertyType})"); continue; }
-            var options = With(baseline, property, flipped);
-            Assert.True(CompiledProgramCache.PrimaryKey(options) != baseKey,
-                $"flipping Options.{property.Name} ({current ?? "null"} → {flipped ?? "null"}) did not change the key");
+            foreach (object? flipped in flips)
+            {
+                if (flipped is null && current is null) { unflipped.Add($"{property.Name} ({property.PropertyType})"); continue; }
+                var options = With(baseline, property, flipped);
+                Assert.True(CompiledProgramCache.PrimaryKey(options) != baseKey,
+                    $"flipping Options.{property.Name} ({current ?? "null"} → {flipped ?? "null"}) did not change the key");
+            }
         }
         Assert.True(unflipped.Count == 0, "no flip is derivable for: " + string.Join(", ", unflipped));
 
