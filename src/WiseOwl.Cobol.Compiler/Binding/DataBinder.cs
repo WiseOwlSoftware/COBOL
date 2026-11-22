@@ -2391,7 +2391,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // over every typed entry the composed subject holds: a member's own TYPE clause was expanded in its
         // declaration (ExpandTemplate) and is never re-expanded in a copy, so this site is the only one that sees
         // the record the copy lands in.
-        bool screenExternalRecord = !InTypeDeclaration(item) && IsInExternalRecord(item, State.Files);
+        bool screenExternalRecord = !InTypeDeclaration(item) && item.HasExternalAttribute;
         // VCR 16, the STRENGTH half (§2023:13.16.3 SR13 ¶2; Annex E.2 item 10; the P13 review finding C9): "If the
         // CONSTANT RECORD clause is specified with the EXTERNAL clause, there shall also be a TYPE clause that
         // specifies a STRONGLY typed definition." The declaration-site check (BindEntry) can verify only TYPE
@@ -2434,7 +2434,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // working-storage entry, so §2023:13.18.60.3 SR15's direct-USAGE screen (COBOL1725) never meets it — the
         // route is screened HERE, where it is expanded, exactly as ExpandSameAs screens its SR6 twin. The template
         // is complete (ExpandTemplate above), so an object reference one TYPE level deeper is seen too.
-        if (IsFileSectionItem(item) && HasObjectReferenceLeaf(template))
+        if (item.IsInFileSectionRecord && HasObjectReferenceLeaf(template))
             Edition.Error(DiagnosticCatalog.TypeObjectReferenceFileSection, $"'{subject}': a TYPE clause in the file "
                 + $"section shall not reference '{typeName}', whose description contains a USAGE OBJECT REFERENCE "
                 + "data item (ISO §2023:13.18.57.3 SR8)");
@@ -2954,7 +2954,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         }
         // §2023:13.18.49.3 SR6: in the FILE SECTION, data-name-1's description (subordinates included) shall not
         // contain a USAGE OBJECT REFERENCE item.
-        if (IsFileSectionItem(item) && HasObjectReferenceLeaf(target))
+        if (item.IsInFileSectionRecord && HasObjectReferenceLeaf(target))
         {
             Edition.Error(DiagnosticCatalog.SameAsReferencedEntry, $"'{subject}': a SAME AS clause in the file "
                 + $"section shall not reference '{targetName}', whose description contains a USAGE OBJECT "
@@ -3062,27 +3062,6 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         return false;
     }
 
-    /// <summary>Whether an item belongs to a FILE SECTION record (its root is some FD/SD's record) — the
-    /// placement test of §2023:13.18.49.3 SR6, §2023:13.18.57.3 SR8 and §2023:13.18.60.3 SR15.</summary>
-    internal bool IsFileSectionItem(DataItem item)
-    {
-        var root = item;
-        while (root.Parent is { } p) root = p;
-        return State.Files.Declared.Any(f => f.Records.Contains(root));
-    }
-
-    /// <summary>⛔ THE ONE TEST OF THE EXTERNAL ATTRIBUTE (kb/Work PB5427 made the three copies one): whether the RECORD an item
-    /// belongs to is an external item. ISO §2023:8.6.3: a working-storage record "is given the external attribute by the presence
-    /// of the EXTERNAL clause in its data description entry" (or by an EXTERNAL type, §2023:13.18.22.4 GR3), and the records of an
-    /// <c>FD … IS EXTERNAL</c> file are external though they write no clause (§2023:13.18.22.4 GR4b). Every item subordinate to
-    /// an external record attains the attribute too. Read by the declaration walk, <c>OdoResolvePass</c> and
-    /// <c>ExternalRecordNameRules</c>, which asks it of a frozen unit's <paramref name="files"/>.</summary>
-    internal static bool IsInExternalRecord(DataItem item, FileSlice files)
-    {
-        var root = item;
-        while (root.Parent is { } p) root = p;
-        return root.HasExternalClause || root.ExternalFromType || files.Declared.Any(f => f.IsExternal && f.Records.Contains(root));
-    }
 
     /// <summary>True when the item's description (subordinates included) contains a USAGE OBJECT REFERENCE
     /// data item (ISO §2023:13.18.49.3 SR6 / §2023:13.18.57.3 SR8).</summary>
@@ -5945,20 +5924,20 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         foreach (var file in State.Files.Declared)
             if (file.IsGlobal)
                 foreach (var item in file.ClauseOperandItems)
-                    if (item.Root is { } root && !IsGlobalRecord(root) && !roots.Contains(root))
+                    if (item.Root is { } root && !root.IsGlobalName && !roots.Contains(root))
                         roots.Add(root);
         return roots;
     }
 
     /// <summary>The items of <see cref="PlaceableItems"/> a CONTAINED program's statements can ask a place of: the ones of
-    /// a global record (<see cref="IsGlobalRecord"/>, ISO §2023:8.4.6.2.2 - a GLOBAL clause on the entry or on the file whose
+    /// a global record (<see cref="DataItem.IsGlobalName"/>, ISO §2023:8.4.6.2.2 - a GLOBAL clause on the entry or on the file whose
     /// record it is) and the ones of a root a GLOBAL file's own clauses name (<see cref="GlobalFileOperandRoots"/>, kb/Work
     /// PB4454). A contained program's <c>PlaceTable</c> takes these from each container and no others (kb/Work PB2375,
     /// review round 1 R1-3: a table over every container item built places no contained program could ask for).</summary>
     internal IEnumerable<DataItem> GlobalPlaceableItems()
     {
         var operandRoots = GlobalFileOperandRoots();
-        return PlaceableItems().Where(i => IsGlobalRecord(i.Root) || operandRoots.Contains(i.Root));
+        return PlaceableItems().Where(i => i.IsGlobalName || operandRoots.Contains(i.Root));
     }
 
     /// <summary>The SUBORDINATE items of this forest's own TYPEDEF templates (<see cref="AllTypeDecls"/>, kept

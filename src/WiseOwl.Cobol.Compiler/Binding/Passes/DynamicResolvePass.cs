@@ -38,9 +38,6 @@ internal sealed class DynamicResolvePass : IBindPass
     /// </summary>
     public void Run(DataBinder binder)
     {
-        // §2023:8.5.1.9.1 SR3 (:8195) — the roots of every FILE SECTION record, so a dynamic table in one is rejected.
-        var fileRecordRoots = new HashSet<DataItem>(binder.State.Files.Declared.SelectMany(f => f.Records));
-
         foreach (var item in binder.ClauseResolutionForest())
         {
             if (item.OccursSpec is not { IsDynamic: true } spec) continue;
@@ -54,8 +51,8 @@ internal sealed class DynamicResolvePass : IBindPass
             // record through a TYPE or SAME AS clause is legal in the declaration it is copied from, so the error is
             // at the clause's subject (DataItem.ReferenceSite) — the FD record or the group inside it — never at the
             // working-storage declaration, whose line the user would be told to change.
-            DataItem root = item; while (root.Parent is { } p) root = p;
-            if (fileRecordRoots.Contains(root))
+            // §2023:8.5.1.9.1 SR3: a dynamic-capacity table in a FILE SECTION record (its root is an FD or SD record) is refused.
+            if (item.Root.RecordOfFile is not null)
             {
                 using var __ = binder.Edition.At(item.ReferenceSite);
                 binder.Edition.Error(DiagnosticCatalog.DynamicCapacityTableInFileSection, $"OCCURS DYNAMIC on '{subject}': a dynamic-capacity table shall not be "
