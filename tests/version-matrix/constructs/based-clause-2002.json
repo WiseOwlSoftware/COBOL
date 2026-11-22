@@ -1,12 +1,12 @@
 {
  "id": "based-clause-2002",
- "description": "BASED clause (a data item addressed via SET ADDRESS/ALLOCATE), ISO §2023:13.18.5 — introduced 2002",
+ "description": "BASED clause (a data item addressed via SET ADDRESS/ALLOCATE), ISO §2023:13.18.5 - a COBOL-2002 introduction. THE EDGE IS QUOTED from the edition texts (kb/Work PB3965): the ANSI X3.23-1985 data description entry (§1985:VI.5.3.2, whose printed format runs `IS character-string BINARY COMPUTATIONAL COMP` ...) offers after the level-number and data-name-1 or FILLER only the REDEFINES, PICTURE, USAGE (BINARY, COMPUTATIONAL, DISPLAY, INDEX, PACKED-DECIMAL), SIGN, OCCURS, SYNCHRONIZED, JUSTIFIED, BLANK WHEN ZERO and VALUE clauses (the Inter-Program Communication module's level-01 entry adds IS EXTERNAL and IS GLOBAL, §1985:X.4.3.1: \"a level 01 data description entry within the Working-Storage Section or File Section determines whether the data record and its subordinate data items have local names\"), and §2002:F.1 item 6 (\"The following reserved words have been added\") lists BASED; §2002:13.16.5 adds \"The BASED clause defines a based entry\" (§2002:13.16.5.3 GR1: \"The BASED clause specifies that the subject of the entry is a based entry defining a template that is dynamically associated with storage through an implicit data-address pointer\"), with the dynamic storage of §2002:F.2 item 47 (\"ALLOCATE and FREE statements are provided for obtaining storage dynamically\") and the pointer class of §2002:F.2 item 103 (\"A new class of data is introduced, a pointer type which holds data and program addresses in a machine-specific or system-specific way\"). §2014:13.18.5 and §2023:13.18.5.1 carry the 2002 sentence unchanged.",
  "display": "BASED clause",
  "diagnosticCode": "COBOL0900",
- "citation": "ISO §2023:13.18.5",
+ "citation": "§2002:13.16.5; §2002:13.16.5.3 GR1; §2002:F.1 item 6; §2002:F.2 item 47; §2002:F.2 item 103; §2014:13.18.5; §2023:13.18.5.1",
  "introducedIn": 2002,
  "removedIn": null,
  "expectDiagnostic": "COBOL0900",
- "vcr": "2002 introduction (derive from the 2002 standard)",
+ "vcr": "2002 introduction (§2002:F.2 items 47 and 103; §2002:F.1 item 6)",
  "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. BA.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 B BASED.\n   05 F PIC X(4).\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
 }

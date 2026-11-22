@@ -1,12 +1,12 @@
 {
  "id": "read-previous-2002",
- "description": "READ ... PREVIOUS (keyed sequential read in reverse), ISO §2023:14.9.30 Format 1 — introduced 2002",
+ "description": "READ ... PREVIOUS (keyed sequential read in reverse), §2023:14.9.30 Format 1 - introduced 2002. THE EDGE IS QUOTED from the edition texts (kb/Work PB3965): the 1985 relative and indexed READ Format 1 is 'READ file-name-1 [NEXT] RECORD [INTO identifier-1]' (§1985:VIII.4.5.2, §1985:IX.4.5.2), NEXT its only direction; the 2002 Format 1 offers NEXT or PREVIOUS (§2002:14.8.29.1; 'None of the phrases ADVANCING, AT END, NEXT, NOT AT END, or PREVIOUS shall be specified if ACCESS MODE RANDOM is specified', §2002:14.8.29.2 SR6), 'If the PREVIOUS phrase is specified, the physical file associated with the file connector referenced by file-name-1 shall be a single reel/unit mass storage file' (§2002:14.8.29.3 GR17), and §2002:F.2 item 109 records 'READ PREVIOUS. The READ statement has been enhanced to allow reading the record prior to that pointed to by the file position indicator'. 2014 keeps it (§2014:14.9.29.2 SR5; §2014:14.9.29.3 GR18).",
  "display": "READ PREVIOUS",
  "diagnosticCode": "COBOL0900",
- "citation": "ISO §2023:14.9.30 Format 1; §2023:14.9.30.4 GR20",
+ "citation": "§2002:14.8.29.2 SR6; §2002:14.8.29.3 GR17; §2002:F.2 item 109; §2014:14.9.29.2 SR5; §2014:14.9.29.3 GR18; §2023:14.9.30.3 SR6; §2023:14.9.30.4 GR20",
  "introducedIn": 2002,
  "removedIn": null,
  "expectDiagnostic": "COBOL0900",
- "vcr": "2002 introduction (derive from the 2002 standard); rows 29/108 gate the after-OPEN behavior",
+ "vcr": "2002 introduction (§2002:14.8.29 / §2002:F.2 item 109); rows 29/108 gate the after-OPEN behavior",
  "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. RP.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT F ASSIGN TO \"vmrp\" ORGANIZATION IS RELATIVE\n        ACCESS MODE IS DYNAMIC RELATIVE KEY IS W-K.\nDATA DIVISION.\nFILE SECTION.\nFD F.\n01 R PIC X(10).\nWORKING-STORAGE SECTION.\n01 W-K PIC 9(4).\nPROCEDURE DIVISION.\nMAIN.\n    OPEN I-O F.\n    READ F PREVIOUS AT END DISPLAY \"E\".\n    CLOSE F.\n    STOP RUN.\n"
 }

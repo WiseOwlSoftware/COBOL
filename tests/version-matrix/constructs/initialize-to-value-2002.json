@@ -1,12 +1,12 @@
 {
  "id": "initialize-to-value-2002",
- "description": "The INITIALIZE [category] TO VALUE phrase - a 2002 introduction. Folded from the inline InitializeBinder gate (Exec Step E).",
+ "description": "The INITIALIZE [category] TO VALUE phrase - a 2002 introduction. THE EDGE IS QUOTED from the edition texts (kb/Work PB3965): COBOL-85's INITIALIZE is INITIALIZE {identifier-1}... with at most a REPLACING phrase (§1985:VI.6.17.2), 'The INITIALIZE statement provides the ability to set selected types of data fields to predetermined values' (§1985:VI.6.17.1), and its only phrase is REPLACING, 'The key word following the word REPLACING corresponds to a category of data' (§1985:VI.6.17.4 GR1); the 2002 general format adds [{ALL | category-name} TO VALUE] (§2002:14.8.19.1), 'If ALL is specified in the VALUE phrase it is as if all of the categories listed in category-name were specified.' (§2002:14.8.19.3 GR2), and §2002:F.2 states the change, its item 73: 'INITIALIZE statement, VALUE phrase. A VALUE phrase may be specified in the INITIALIZE statement'. 2014 and 2023 keep it (§2014:14.9.19.3 GR2, §2023:14.9.20.4 GR2). Folded from the inline InitializeBinder gate (Exec Step E).",
  "display": "INITIALIZE TO VALUE",
  "diagnosticCode": "COBOL0831",
- "citation": "ISO §2023:14.9.20.2 (the VALUE phrase is 2002+); §2023:14.9.20.4 GR5",
+ "citation": "§2002:14.8.19.1; §2002:14.8.19.3 GR2; §2002:F.2 item 73; §2014:14.9.19.1; §2014:14.9.19.3 GR2; §2023:14.9.20.2; §2023:14.9.20.4 GR2; §2023:14.9.20.4 GR5",
  "introducedIn": 2002,
  "removedIn": null,
  "expectDiagnostic": "COBOL0831",
- "vcr": "2002 introduction (derive from the 2002 standard)",
+ "vcr": "2002 introduction (§2002:14.8.19.1; §2002:F.2 item 73)",
  "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. RWIVAL.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 A PIC X(3) VALUE \"ABC\".\nPROCEDURE DIVISION.\nMAIN.\n    INITIALIZE A ALL TO VALUE.\n    STOP RUN.\n"
 }

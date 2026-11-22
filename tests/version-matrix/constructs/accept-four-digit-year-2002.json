@@ -1,12 +1,12 @@
 {
  "id": "accept-four-digit-year-2002",
- "description": "The four-digit-year temporal ACCEPT phrases - a 2002 introduction. Folded from the inline AcceptDisplayBinder gate (Exec Step E).",
+ "description": "The four-digit-year temporal ACCEPT phrases (ACCEPT identifier FROM DATE YYYYMMDD / DAY YYYYDDD) - a COBOL-2002 introduction. THE EDGE IS QUOTED from the edition texts (kb/Work PB3965): the ANSI X3.23-1985 ACCEPT statement has a device format (§1985:VI.6.5.2: `ACCEPT identifier-1 [ FROM mnemonic-name-1 ]`) and a temporal format `ACCEPT identifier-2 FROM {DATE | DAY | DAY-OF-WEEK | TIME}` with no phrase after the conceptual item, §1985:VI.6.5.4 GR6: \"DATE, DAY, DAY-OF-WEEK, and TIME are conceptual data items\", and it gives the year two digits only: §1985:VI.6.5.4 GR7 \"DATE is composed of the data elements year of century, month of year, and day of month\" and GR8 \"DAY is composed of the data elements year of century and day of year\". §2002:14.8.1.3 GR8 adds \"DATE with the phrase YYYYMMDD behaves as if it had been described as an unsigned elementary integer data item of usage display eight digits in length\" and §2002:14.8.1.3 GR10 \"DAY with the phrase YYYYDDD behaves as if it had been described as an unsigned elementary integer data item of usage display seven digits in length\", and §2002:F.2 item 2 states the change: \"The capability to access the four-digit year of the Gregorian calendar is added to the ACCEPT statement.\" §2014:14.9.1.3 GR8/GR10 and §2023:14.9.1.4 GR8/GR10 carry the 2002 sentences unchanged. Folded from the inline AcceptDisplayBinder gate (Exec Step E).",
  "display": "ACCEPT FROM DATE YYYYMMDD / DAY YYYYDDD",
  "diagnosticCode": "COBOL0815",
- "citation": "ISO §2023:14.9.1.2 (the YYYYMMDD and YYYYDDD phrases; the 1985 formats list only bare DATE / DAY / DAY-OF-WEEK / TIME); §2023:14.9.1.4 GR8",
+ "citation": "§2002:14.8.1.3 GR8; §2002:14.8.1.3 GR10; §2002:F.2 item 2; §2014:14.9.1.3 GR8; §2014:14.9.1.3 GR10; §2023:14.9.1.4 GR8; §2023:14.9.1.4 GR10",
  "introducedIn": 2002,
  "removedIn": null,
  "expectDiagnostic": "COBOL0815",
- "vcr": "2002 introduction (derive from the 2002 standard)",
+ "vcr": "2002 introduction (§2002:F.2 item 2)",
  "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. RWA4Y.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n77 W PIC 9(8).\nPROCEDURE DIVISION.\nMAIN.\n    ACCEPT W FROM DATE YYYYMMDD.\n    STOP RUN.\n"
 }

@@ -9132,9 +9132,8 @@ public static class DiagnosticCatalog
         "The X3.23-1985 MULTIPLE FILE clause of the I-O-CONTROL paragraph names no file. Its format is MULTIPLE FILE "
         + "[TAPE] [CONTAINS] {file-name [POSITION integer]} ..., with the file list in braces and followed by an "
         + "ellipsis, so at least one file-name is required: the clause states which files share one reel. The format "
-        + "is DERIVED, not quoted: ISO/IEC 1989:2002 Annex F.1 removes the clause and ISO/IEC 1989:2023 prints no "
-        + "format for it, and GnuCOBOL refuses the clause with no file-name under its cobol85, ibm and mf "
-        + "dialects.",
+        + "is quoted from the 1985 text: §1985:VII.2.11.2 prints MULTIPLE FILE TAPE CONTAINS { file-name-1 [ POSITION "
+        + "integer-1 ] } ..., TAPE and CONTAINS being optional words.",
         "VCR Table 7 row 7.6 (X3.23-1985 MULTIPLE FILE TAPE clause)");
 
     // kb/Work PB5086: the MULTIPLE FILE TAPE clause's membership was parsed and dropped, so the three rules that read it had

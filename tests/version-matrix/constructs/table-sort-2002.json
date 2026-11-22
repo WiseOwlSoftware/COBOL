@@ -1,12 +1,12 @@
 {
  "id": "table-sort-2002",
- "description": "The Format-2 in-place table SORT - a 2002 introduction, recognized syntactically (a SORT with neither USING/GIVING nor INPUT/OUTPUT procedures is the F2 shape). Folded from the inline SortBinder gate (Exec Step E).",
+ "description": "The Format-2 in-place table SORT - a COBOL-2002 introduction, recognized syntactically (a SORT with neither USING/GIVING nor INPUT/OUTPUT procedures is the F2 shape). Folded from the inline SortBinder gate (Exec Step E). THE EDGE IS QUOTED from the edition texts (kb/Work PB3965): the 1985 SORT sorts a sort file only ('The SORT statement creates a sort file by executing an input procedure or by transferring records from another file', §1985:XI.4.4.1; §1985:XI.4.4.3 SR2: 'File-name-1 must be described in a sort-merge file description entry in the Data Division'); §2002:14.8.36 reads 'The SORT statement causes a set of records or table elements to be arranged in a user-specified sequence', its Format 2 (table) sorting data-name-2 (§2002:14.8.36.2 SR13: 'Data-name-2 may be qualified and shall have an OCCURS clause in its data description entry'), and §2002:F.2 states the change, its item 125: 'A SORT statement may be used to sort a table.' §2014:14.9.36 and §2014:14.9.36.2 SR13 carry it, so 2014 = 2023.",
  "display": "SORT of a table (Format 2)",
  "diagnosticCode": "COBOL0900",
- "citation": "ISO §2023:14.9.40.3 SR13 (Format 2 - the in-place table sort; COBOL-85 SORT operates on sort-merge files only)",
+ "citation": "§2002:14.8.36; §2002:14.8.36.2 SR13; §2002:F.2 item 125; §2014:14.9.36; §2014:14.9.36.2 SR13; §2023:14.9.40.1; §2023:14.9.40.3 SR13",
  "introducedIn": 2002,
  "removedIn": null,
  "expectDiagnostic": "COBOL0900",
- "vcr": "2002 introduction (derive from the 2002 standard)",
+ "vcr": "2002 introduction (§2002:14.8.36 Format 2; §2002:F.2 item 125)",
  "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. RWTSRT.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 T.\n  05 E OCCURS 3 TIMES PIC 9.\nPROCEDURE DIVISION.\nMAIN.\n    MOVE \"312\" TO T.\n    SORT E ON ASCENDING KEY E.\n    STOP RUN.\n"
 }

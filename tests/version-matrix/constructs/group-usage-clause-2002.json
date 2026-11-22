@@ -1,12 +1,12 @@
 {
  "id": "group-usage-clause-2002",
- "description": "GROUP-USAGE clause (a bit group / national group: the group item is treated as an elementary item of usage bit and category boolean, or usage national and category national), ISO §2023:13.18.29 — introduced 2002 (GROUP-USAGE is a 2002 reserved word). Data-model design D20; kb/Work PB79.",
+ "description": "GROUP-USAGE clause (a bit group / national group: the group item is treated as an elementary item of usage bit and category boolean, or usage national and category national), ISO §2023:13.18.29 — introduced 2002. THE EDGE IS QUOTED from the edition texts (kb/Work PB3965): the 1985 USAGE clause is [USAGE IS] {BINARY | COMPUTATIONAL | COMP | DISPLAY | INDEX | PACKED-DECIMAL} (§1985:VI.5.14.2), 'The USAGE clause specifies the format of a data item in the computer storage.' (§1985:VI.5.14.1), and a group's usage is only the USAGE clause's: 'If the USAGE clause is written in the data description entry for a group item, it may also be written in the data description entry for any subordinate elementary item or group item, but the same usage must be specified in both entries.' (§1985:VI.5.14.3 SR2); 2002 adds the clause, 'A GROUP-USAGE clause with a NATIONAL phrase specifies that the group item defined by the subject of the entry is to be treated as an elementary item of usage national and category national, unless otherwise specified.' (§2002:13.16.27), §2002:F.1 item 6 lists GROUP-USAGE under 'Reserved words. The following reserved words have been added', and §2002:F.2 states the two facilities the clause serves, its item 8: 'Bit/boolean support. The capability of defining bit strings and setting or testing boolean values is added.' and its item 81: 'National character handling. The capability is added for using large character sets'. §2014:13.18.29 and §2023:13.18.29.1 carry the 2002 sentence. Data-model design D20; kb/Work PB79.",
  "display": "GROUP-USAGE clause",
  "diagnosticCode": "COBOL0900",
- "citation": "ISO §2023:13.18.29",
+ "citation": "§2002:13.16.27; §2002:F.1 item 6; §2002:F.2 item 8; §2002:F.2 item 81; §2014:13.18.29; §2023:13.18.29.1; §2023:13.18.29",
  "introducedIn": 2002,
  "removedIn": null,
  "expectDiagnostic": "COBOL0900",
- "vcr": "2002 introduction (derive from the 2002 standard)",
+ "vcr": "2002 introduction (§2002:13.16.27; §2002:F.1 item 6 GROUP-USAGE reserved; §2002:F.2 items 8 and 81)",
  "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. GUSG9AL.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 NG GROUP-USAGE NATIONAL.\n   05 N1 PIC N(2) VALUE N\"ab\".\n   05 N2 PIC N(1) VALUE N\"c\".\n01 NR PIC N(3).\nPROCEDURE DIVISION.\nMAIN.\n    MOVE NG TO NR.\n    IF NR = N\"abc\" DISPLAY \"OK\" ELSE DISPLAY \"BAD\" END-IF.\n    STOP RUN.\n"
 }

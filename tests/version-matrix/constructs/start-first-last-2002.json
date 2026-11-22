@@ -1,12 +1,12 @@
 {
  "id": "start-first-last-2002",
- "description": "START ... FIRST/LAST positioning, ISO §2023:14.9.41 — introduced 2002 (provisional edge, derived: VCR row 7.38). ONE construct for every organization: the general format prints one phrase, so GR11/GR12 (RELATIVE), GR18/GR19 (INDEXED) and GR20/GR21 (SEQUENTIAL) of §2023:14.9.41.4 carry one edition band (kb/Work PB870)",
+ "description": "START ... FIRST/LAST positioning, ISO §2023:14.9.41 — a COBOL-2002 introduction (VCR row 7.38). ONE construct for every organization: the general format prints one phrase, so GR11/GR12 (RELATIVE), GR18/GR19 (INDEXED) and GR20/GR21 (SEQUENTIAL) of §2023:14.9.41.4 carry one edition band (kb/Work PB870). THE EDGE IS QUOTED from the edition texts (kb/Work PB3965): ANSI X3.23-1985 defines START only for relative and indexed files ('The START statement provides a basis for logical positioning within a relative file', §1985:VIII.4.7.1; 'The START statement provides a basis for logical positioning within an indexed file, for subsequent sequential retrieval of records', §1985:IX.4.7.1) and positions only through its KEY phrase (§1985:IX.4.7.4 GR2: \"If the KEY phrase is not specified, the relational operator 'IS EQUAL TO' is implied\"); §2002:14.8.37.3 GR11 reads 'If FIRST is specified, the file position indicator is set to the relative record number of the first existing logical record in the file' (GR18 the indexed arm, GR20 the sequential arm), §2002:14.8.37.2 SR2 'If the organization of the file referenced by file-name-1 is sequential, either the FIRST or the LAST phrase shall be specified', and §2002:F.2 states the change, its items 129 ('The START statement has been enhanced to allow starting to a position before the key and to point to the first or last record in the file') and 130 ('The START statement has been enhanced to allow a sequential file if the FIRST or LAST phrase is specified'). §2014:14.9.37.2 SR2 and §2014:14.9.37.3 GR11 carry it, so 2014 = 2023.",
  "display": "START FIRST/LAST",
  "diagnosticCode": "COBOL0900",
- "citation": "ISO §2023:14.9.41.2 (the FIRST and LAST phrases of the general format); §2023:14.9.41.4 GR11",
+ "citation": "§2002:14.8.37.2 SR2; §2002:14.8.37.3 GR11; §2002:14.8.37.3 GR18; §2002:14.8.37.3 GR20; §2002:F.2 item 129; §2002:F.2 item 130; §2014:14.9.37.2 SR2; §2014:14.9.37.3 GR11; §2023:14.9.41.3 SR2; §2023:14.9.41.4 GR11; VCR row 7.38",
  "introducedIn": 2002,
  "removedIn": null,
  "expectDiagnostic": "COBOL0900",
- "vcr": "START FIRST/LAST (post-85; provisional 2002 edge); VCR row 7.38",
+ "vcr": "START FIRST/LAST: 2002 introduction (§2002:F.2 items 129, 130); VCR row 7.38",
  "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. SF.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT F ASSIGN TO \"vmsf\" ORGANIZATION IS RELATIVE\n        ACCESS MODE IS DYNAMIC RELATIVE KEY IS W-K.\nDATA DIVISION.\nFILE SECTION.\nFD F.\n01 R PIC X(10).\nWORKING-STORAGE SECTION.\n01 W-K PIC 9(4).\nPROCEDURE DIVISION.\nMAIN.\n    OPEN I-O F.\n    START F FIRST INVALID KEY DISPLAY \"E\".\n    CLOSE F.\n    STOP RUN.\n"
 }

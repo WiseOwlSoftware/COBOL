@@ -1,12 +1,12 @@
 {
  "id": "start-with-length-2002",
- "description": "START KEY ... WITH LENGTH phrase (variable-length key comparison), ISO 14.9.41.2 prints it as `[ WITH LENGTH arithmetic-expression-1 ]` - provisional 2002 edge. Gated on RECOGNITION in the VersionConformancePass parse arm (VisitStartWithLength -> 0900 below 2002); startKeyPhrase carries no version predicate, so an ill-organized or unbindable START still names the edition (kb/Work PB353).",
+ "description": "START KEY ... WITH LENGTH phrase (variable-length key comparison), ISO 14.9.41.2 prints it as `[ WITH LENGTH arithmetic-expression-1 ]` - a COBOL-2002 introduction. THE EDGE IS QUOTED from the edition texts (kb/Work PB3965): ANSI X3.23-1985's indexed START has no LENGTH phrase: a partial key is a shorter data-name-1 ('whose length is not greater than the length of that record key', §1985:IX.4.7.3 SR4b) and the comparison truncates ('If the operands are of unequal size, comparison proceeds as though the longer one was truncated on the right', §1985:IX.4.7.4 GR4); the 2002 START format prints the `[ WITH LENGTH arithmetic-expression-1 ]` bracket, §2002:14.8.37.2 SR8 reads 'If the LENGTH phrase is specified, file-name-1 shall reference a file with indexed organization' and §2002:14.8.37.3 GR13 'The value of arithmetic-expression-1 reflects the number of characters that will be used as a partial key for positioning to a record in file-name-1', and §2002:F.1 item 2 records the change through the status it adds: 'I-O status 23 has been expanded to include the case in which a START statement is attempted with an invalid key length specification'. §2014:14.9.37.2 SR8 and §2014:14.9.37.3 GR13 carry it, so 2014 = 2023. Gated on RECOGNITION in the VersionConformancePass parse arm (VisitStartWithLength -> 0900 below 2002); startKeyPhrase carries no version predicate, so an ill-organized or unbindable START still names the edition (kb/Work PB353).",
  "display": "the START KEY … WITH LENGTH phrase",
  "diagnosticCode": "COBOL0900",
- "citation": "ISO §2023:14.9.41.2 (provisional 2002 edge) — the printed [ WITH LENGTH arithmetic-expression-1 ] bracket; §2023:14.9.41.3 SR8 confines it to indexed organization",
+ "citation": "§2002:14.8.37.2 SR8; §2002:14.8.37.3 GR13; §2002:F.1 item 2; §2014:14.9.37.2 SR8; §2014:14.9.37.3 GR13; §2023:14.9.41.3 SR8; §2023:14.9.41.4 GR13",
  "introducedIn": 2002,
  "removedIn": null,
  "expectDiagnostic": "COBOL0900",
- "vcr": "provisional 2002 edge (decision-1 policy); W1.5 parse-layer mapping (DEVLOG 594)",
+ "vcr": "2002 introduction (§2002:14.8.37.2 SR8; §2002:F.1 item 2); W1.5 parse-layer mapping (DEVLOG 594)",
  "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. W15P.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT F2 ASSIGN TO \"f2.dat\"\n        ORGANIZATION INDEXED ACCESS DYNAMIC RECORD KEY RK.\nDATA DIVISION.\nFILE SECTION.\nFD F2.\n01 R2.\n   05 RK PIC X(5).\n   05 RD2 PIC X(5).\nPROCEDURE DIVISION.\nMAIN.\n    START F2 KEY = RK WITH LENGTH 3.\n    STOP RUN.\n"
 }

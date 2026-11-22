@@ -92,8 +92,8 @@ reallocated).
    > for the category an operation needs — no predefined .NET culture backs the tag, or the process runs in .NET
    > invariant globalization mode (detected once) — the invariant culture's content standing when checking is off;
    > `EC-LOCALE-MISSING` for an unavailable named locale (the root's answer standing). The construct rows
-   > `locale-functions-2002` / `locale-time-from-seconds-2014` gate the four (the 2014 edge is the catalog's
-   > provisional window, kb/Work R28).
+   > `locale-functions-2002` / `locale-time-from-seconds-2014` gate the four (both edges quoted from the
+   > edition texts: §2002:F.2 item 78 and §2014:E.3 item 35, kb/Work PB3965).
 
    > ⚖ **A.4.9 items 6, 7 and 13 — the OBJECT-COMPUTER `CHARACTER CLASSIFICATION` clause (§2023:12.3.6) and the
    > `LOCALE` phrase of `LOWER-CASE` (§2023:15.57) / `UPPER-CASE` (§2023:15.97) — ARE IMPLEMENTED** (owner decision Q1;

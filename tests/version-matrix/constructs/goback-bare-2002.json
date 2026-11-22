@@ -1,12 +1,12 @@
 {
  "id": "goback-bare-2002",
- "description": "GOBACK itself is a 2002 introduction; a GOBACK RETURNING is gated by goback-returning-2002 (its more-specific 0900 subsumes this row - the pass fires this row only for a BARE GOBACK). Folded from the inline CallBinder gate (Exec Step E).",
+ "description": "GOBACK itself is a 2002 introduction; a GOBACK RETURNING is gated by goback-returning-2002 (its more-specific 0900 subsumes this row - the pass fires this row only for a BARE GOBACK). THE EDGE IS QUOTED from the edition texts (kb/Work PB3965): COBOL-85 ends a run unit with STOP RUN, 'If the RUN phrase is specified, execution of the run unit ceases and control is transferred to the operating system.' (§1985:VI.6.24.4 GR1), and a called program with EXIT PROGRAM, 'The EXIT PROGRAM statement marks the logical end of a called program.' (§1985:X.5.4.1), and has no GOBACK; 2002 adds 'The GOBACK statement marks the logical end of a function, a method, or a program.' (§2002:14.8.17), §2002:F.1 item 6 lists GOBACK under 'Reserved words. The following reserved words have been added', and §2002:F.2 states the change, its item 62: 'GOBACK statement. A GOBACK statement has been added that always returns control, either to the operating system or to the calling runtime element.' §2014:14.9.17 and §2023:14.9.18.1 carry the 2002 sentence. Folded from the inline CallBinder gate (Exec Step E).",
  "display": "the GOBACK statement",
  "diagnosticCode": "COBOL0880",
- "citation": "ISO §2023:14.9.18.2 (§2023:14.9.16 in 2002); COBOL-85 uses STOP RUN / EXIT PROGRAM",
+ "citation": "§2002:14.8.17; §2002:F.1 item 6; §2002:F.2 item 62; §2014:14.9.17; §2023:14.9.18.1",
  "introducedIn": 2002,
  "removedIn": null,
  "expectDiagnostic": "COBOL0880",
- "vcr": "2002 introduction (derive from the 2002 standard)",
+ "vcr": "2002 introduction (§2002:14.8.17; §2002:F.2 item 62)",
  "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. RWGBK.\nPROCEDURE DIVISION.\nMAIN.\n    GOBACK.\n"
 }

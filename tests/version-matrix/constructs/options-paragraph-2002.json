@@ -1,12 +1,12 @@
 {
  "id": "options-paragraph-2002",
- "description": "The OPTIONS paragraph - a 2002 introduction (the 2002 standard added it with the ARITHMETIC clause; Annex E.2 item 21's obsolete-in-2014 Standard Arithmetic back-derives the container; the OPTIONS reserved word is 2002). Below 2002 the binder still returns OptionsModel.Default (silent routing - the pass owns the diagnostic). The 2014-only clauses (DEFAULT ROUNDED / INTERMEDIATE ROUNDING / ENTRY-CONVENTION / FLOAT-BINARY / FLOAT-DECIMAL / INITIALIZE, and the STANDARD-BINARY / STANDARD-DECIMAL keywords) carry their own per-clause 2014 rows (P10 Step 12).",
+ "description": "The OPTIONS paragraph - a 2002 introduction. THE EDGE IS QUOTED from the edition texts (kb/Work PB3965): the 1985 Identification Division's general format is 'PROGRAM-ID. program-name. [ AUTHOR. [ comment-entry ] … ]' ... '[ SECURITY. [ comment-entry ] … ]' (§1985:VI.3.2.1.1), and 'The other paragraphs are optional and may be included in this division at the user's choice, in order of presentation shown by the general format below' (§1985:VI.3.2): it prints no OPTIONS paragraph; the 2002 text prints 'OPTIONS. [ arithmetic-clause ] [ entry-convention-clause ] .' (§2002:11.8.1), 'The clauses in the OPTIONS paragraph apply to the source element in which they are specified' (§2002:11.8.3 GR1), and §2002:F.1 item 6 ('The following reserved words have been added') lists OPTIONS. 2014 (§2014:11.9.1) and 2023 (§2023:11.9.2) keep the paragraph. Below 2002 the binder still returns OptionsModel.Default (silent routing - the pass owns the diagnostic). The 2014-only clauses (DEFAULT ROUNDED / INTERMEDIATE ROUNDING / FLOAT-BINARY / FLOAT-DECIMAL / INITIALIZE, ENTRY-CONVENTION's COBOL alternative (kb/Work PB4611), and the STANDARD-BINARY / STANDARD-DECIMAL keywords) carry their own per-clause 2014 rows (P10 Step 12).",
  "display": "the OPTIONS paragraph",
  "diagnosticCode": "COBOL0804",
- "citation": "ISO §2023:11.9; Annex E.2 item 21",
+ "citation": "§2002:11.8.1; §2002:11.8.3 GR1; §2002:F.1 item 6; §2014:11.9.1; §2023:11.9.2",
  "introducedIn": 2002,
  "removedIn": null,
  "expectDiagnostic": "COBOL0804",
- "vcr": "2002 introduction (M2 catalog + Annex E.2 item 21 back-derivation)",
+ "vcr": "2002 introduction (§2002:11.8.1 / §2002:F.1 item 6; the edge quoted from the edition texts, kb/Work PB3965)",
  "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. RWOPT.\nOPTIONS.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
 }

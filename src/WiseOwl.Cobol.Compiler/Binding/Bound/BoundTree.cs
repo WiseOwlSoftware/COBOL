@@ -1256,6 +1256,21 @@ public sealed record BoundRejected : BoundStatement
         return new BoundRejected((string?)null);
     }
 
+    /// <summary>⛔ A STATEMENT WHOSE MEANING RESTS ON A CLAUSE ALREADY REFUSED WHERE IT IS WRITTEN (kb/Work PB6041): a START or READ
+    /// whose KEY operand is judged against a file control entry key clause (<see cref="FileModel.RelativeKeyRefused"/>,
+    /// <see cref="FileModel.RecordKeyClauseRefused"/>) that the entry's own resolution or syntax rules refused and reported. The
+    /// statement has no meaning and no rule of its own to report: a second verdict about the refused operand, at the statement,
+    /// would be a cascade of the first. The refusal is reported at the clause, outside this statement, so it is not put on the
+    /// per-statement ledger (the funnel would read COBOL2362 for a statement that rightly drew no error of its own); the
+    /// compile-wide backstop stands, and with no error recorded at all the compile is failed under COBOL2362.</summary>
+    public static BoundRejected OnRefusedClause(EditionContext edition)
+    {
+        if (edition.ErrorsRecorded == 0)
+            edition.Error(Editions.Diagnostics.DiagnosticCatalog.UnreportedRefusal,
+                EditionContext.UnreportedRefusalMessage("a statement over a refused file control entry clause"));
+        return new BoundRejected((string?)null);
+    }
+
     /// <summary>Report <paramref name="message"/> under <paramref name="rule"/> and return the refusal node. A
     /// warning-severity descriptor is a programming error: a refusal that does not fail the compile would reach
     /// code generation with no meaning to emit.</summary>

@@ -1,12 +1,12 @@
 {
  "id": "boolean-operators-2002",
- "description": "The boolean operators B-AND/B-OR/B-XOR/B-NOT (boolean expressions, ISO 8.7.2/8.8.2; COMPUTE Format 2 14.9.8; boolean relation 8.8.4.2.2; simple boolean condition 8.8.4.3). 2002 introduction; the operator tiers are {is2002()}?-gated, so below 2002 the W1.5 parse-layer mapping names the edition (0900) and the words are user-defined. (Depends on boolean data - the source uses PIC 1 items.)",
+ "description": "The boolean operators B-AND/B-OR/B-XOR/B-NOT (boolean expressions, ISO 8.7.2/8.8.2; COMPUTE Format 2 14.9.8; boolean relation 8.8.4.2.2; simple boolean condition 8.8.4.3). A COBOL-2002 introduction. THE EDGE IS QUOTED from the edition texts (kb/Work PB3965): ANSI X3.23-1985 has arithmetic operators only, §1985:VI.6.2.2: \"There are five binary arithmetic operators and two unary arithmetic operators that may be used in arithmetic expressions\" (+, -, *, /, ** and unary +, -), and no boolean data; §2002:F.1 item 6 (\"The following reserved words have been added\") lists B-AND, B-NOT, B-OR and B-XOR; §2002:8.7.2 adds \"A boolean operator specifies the type of boolean operation to be performed on one or two operands\", §2002:8.8.2 the boolean expression (\"an identifier referencing a boolean data item\", ...), §2002:14.8.7 \"The COMPUTE statement assigns to one or more data items the value of an arithmetic or boolean expression\", and §2002:F.2 item 8 states the change: \"Boolean operations B-XOR, B-AND, B-OR, and B-NOT are provided for use in boolean expressions.\" §2014:8.7.2 / §2014:8.8.2 and §2023:8.7.2 / §2023:8.8.2 / §2023:14.9.8.1 / §2023:8.8.4.3.1 (\"A boolean condition determines whether a boolean expression is true or false\") carry the 2002 text. The operator tiers are {is2002()}?-gated, so below 2002 the W1.5 parse-layer mapping names the edition (0900) and the words are user-defined. (Depends on boolean data - the source uses PIC 1 items.)",
  "display": "the boolean operators B-AND/B-OR/B-XOR/B-NOT (boolean expressions)",
  "diagnosticCode": "COBOL0900",
- "citation": "ISO §2023:8.7.2/§2023:8.8.2; COMPUTE F2 §2023:14.9.8; boolean relation §2023:8.8.4.2.2; simple boolean condition §2023:8.8.4.3; 2002 introduction (derive from the 2002 standard — Annex E covers 2014→2023 only)",
+ "citation": "§2002:8.7.2; §2002:8.8.2; §2002:14.8.7; §2002:F.1 item 6; §2002:F.2 item 8; §2014:8.7.2; §2014:8.8.2; §2023:8.7.2; §2023:8.8.2; §2023:14.9.8.1; §2023:8.8.4.3.1",
  "introducedIn": 2002,
  "removedIn": null,
  "expectDiagnostic": "COBOL0900",
- "vcr": "2002 introduction (derive from the 2002 standard - Annex E covers 2014->2023 only)",
+ "vcr": "2002 introduction (§2002:F.2 item 8; §2002:F.1 item 6)",
  "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. BOOLOP1.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 WS-A PIC 1(4) VALUE B\"1100\".\n01 WS-B PIC 1(4) VALUE B\"0101\".\n01 WS-R PIC 1(4).\nPROCEDURE DIVISION.\nMAIN.\n    COMPUTE WS-R = WS-A B-AND WS-B.\n    DISPLAY WS-R.\n    STOP RUN.\n"
 }

@@ -1,13 +1,13 @@
 {
  "id": "concat-operator-2002",
  "status": "active",
- "description": "Concatenation expression — the & operator joining literals (§2023:8.8.3) — mandatory 2002-era core (roadmap D6; the 2023 CONCAT function is defined by reference to this operator). ACTIVE as of P10 Step 14: a compile-time fold to the equivalent single literal (§2023:8.8.3.3 GR3) via ConcatFolder; the §2023:8.8.3.2 SRs are COBOL1540/1541/1545; the introduction gate is the VersionConformancePass parse arm (VisitConcatenationExpression).",
+ "description": "Concatenation expression - the & operator joining literals (§2023:8.8.3) - a COBOL-2002 introduction (roadmap D6; the 2023 CONCAT function is defined by reference to this operator). THE EDGE IS QUOTED from the edition texts (kb/Work PB3965): ANSI X3.23-1985 has no concatenation operator: its operators are arithmetic, §1985:VI.6.2.2: \"There are five binary arithmetic operators and two unary arithmetic operators that may be used in arithmetic expressions\", and a literal is one delimited string, §1985:IV.4.2.2.2.1: \"A nonnumeric literal is a character-string delimited at the beginning and at the end by the separator quotation mark\"; §2002:F.1 item 6 (\"The following reserved words have been added\") lists `&`. §2002:8.7.3 adds \"The concatenation operator is the COBOL character '&', which shall be immediately preceded and followed by a separator space\" and §2002:8.8.3 \"A concatenation expression consists of two operands separated by the concatenation operator\", and §2002:F.2 item 31 states the change: \"A concatenation expression operates on two literals of the same class to concatenate their values.\" §2014:8.8.3 and §2023:8.8.3 carry the 2002 sentence unchanged. ACTIVE as of P10 Step 14: a compile-time fold to the equivalent single literal (§2023:8.8.3.3 GR3) via ConcatFolder; the §2023:8.8.3.2 SRs are COBOL1540/1541/1545; the introduction gate is the VersionConformancePass parse arm (VisitConcatenationExpression).",
  "display": "concatenation expression (&)",
  "diagnosticCode": "COBOL0900",
- "citation": "ISO §2023:8.8.3",
+ "citation": "§2002:8.7.3; §2002:8.8.3; §2002:F.1 item 6; §2002:F.2 item 31; §2014:8.8.3; §2023:8.8.3",
  "introducedIn": 2002,
  "removedIn": null,
  "expectDiagnostic": "COBOL0900",
- "vcr": "ISO-validation D6 (§2023:8.8.3 concatenation expressions); provisional edge per decision 1",
+ "vcr": "2002 introduction (§2002:F.2 item 31; ISO-validation D6)",
  "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. CC.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC X(6).\nPROCEDURE DIVISION.\nMAIN.\n    MOVE \"ABC\" & \"DEF\" TO W.\n    DISPLAY W.\n    STOP RUN.\n"
 }

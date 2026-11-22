@@ -1,12 +1,12 @@
 {
  "id": "typedef-def-2002",
- "description": "A TYPEDEF clause — a type-declaration entry (a named template; no storage), ISO §2023:13.18.58 (data-model D17). LIVE (weak-TYPE spine): compiles at 2002+, COBOL0900 below.",
+ "description": "A TYPEDEF clause — a type-declaration entry (a named template; no storage), ISO §2023:13.18.58 (data-model D17). LIVE (weak-TYPE spine): compiles at 2002+, COBOL0900 below. A COBOL-2002 introduction. THE EDGE IS QUOTED from the edition texts (kb/Work PB3965): TYPEDEF is no 1985 reserved word (§1985:IV.8 runs TYPE, UNIT: its rows '| OCCURS | RECORD | SIGN | TYPE |' and '| OFF | REDEFINES | SORT | UNIT |') and the 1985 data description entry's Format 1 declares no type (§1985:VI.5.3.3 SR2: 'The remaining clauses may be written in any order'); §2002:13.16.56 reads 'The TYPEDEF clause specifies that the data description entry is a type declaration', §2002:F.1 item 6 adds TYPEDEF to the reserved words, and §2002:F.2 states the change, its item 137: 'The TYPEDEF clause identifies a type declaration which creates a user-defined type. ... No storage is allocated for the type declaration.' §2014:13.18.58 carries it, so 2014 = 2023.",
  "display": "TYPEDEF clause (a type declaration)",
  "diagnosticCode": "COBOL0900",
- "citation": "ISO §2023:13.18.58",
+ "citation": "§2002:13.16.56; §2002:F.1 item 6; §2002:F.2 item 137; §2014:13.18.58; §2023:13.18.58.1",
  "introducedIn": 2002,
  "removedIn": null,
  "expectDiagnostic": "COBOL0900",
- "vcr": "TYPEDEF definition §2023:13.18.58; provisional 2002 per decision-1",
+ "vcr": "TYPEDEF definition: 2002 introduction (§2002:13.16.56; §2002:F.2 item 137)",
  "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. TD.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 MYTYPE TYPEDEF PIC 9(3).\n01 V TYPE MYTYPE VALUE 42.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY V.\n    STOP RUN.\n"
 }

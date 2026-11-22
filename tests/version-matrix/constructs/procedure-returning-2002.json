@@ -1,12 +1,12 @@
 {
  "id": "procedure-returning-2002",
- "description": "PROCEDURE DIVISION … RETURNING, ISO §2023:14.2 — the RETURNING phrase is 2002+",
+ "description": "PROCEDURE DIVISION … RETURNING, §2023:14.2 - the RETURNING phrase is 2002+. THE EDGE IS QUOTED from the edition texts (kb/Work PB3965): the 1985 header is 'PROCEDURE DIVISION [ USING { data-name-1 } … ] .' (§1985:X.5.1), with no RETURNING phrase; the 2002 header is 'PROCEDURE DIVISION [ using-phrase ] [ RETURNING data-name-2 ]' (§2002:14.1.1) and 'The RETURNING phrase may be specified in a method definition, a program definition, or a program prototype' (§2002:14.1.2 SR4), and §2002:F.1 item 6 ('The following reserved words have been added') lists RETURNING. 2014 keeps it (§2014:14.2.1; §2014:14.2.2 SR4).",
  "display": "PROCEDURE DIVISION RETURNING",
  "diagnosticCode": "COBOL0900",
- "citation": "ISO §2023:14.2.1 (the RETURNING phrase of the general format); §2023:14.2.2 SR4",
+ "citation": "§2002:14.1.1; §2002:14.1.2 SR4; §2002:F.1 item 6; §2014:14.2.1; §2014:14.2.2 SR4; §2023:14.2.1; §2023:14.2.2 SR4",
  "introducedIn": 2002,
  "removedIn": null,
  "expectDiagnostic": "COBOL0900",
- "vcr": "2002 introduction (derive from the 2002 standard)",
+ "vcr": "2002 introduction (§2002:14.1.1 / §2002:F.1 item 6)",
  "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PR.\nDATA DIVISION.\nLINKAGE SECTION.\n77 RC PIC 99.\nPROCEDURE DIVISION RETURNING RC.\nMAIN.\n    MOVE 9 TO RC.\n    STOP RUN.\n"
 }

@@ -1616,7 +1616,7 @@ binding. Guard re-green (556 integration, the 31 all pass). As-built vs the desi
 
 - **Registry / matrix / hints (SAME commit — the drift test asserts both directions).** `ConstructDialectStatus.cs` (beside `allocate-2002` :64 / `based-clause-2002` :69), five introduction rows + one representative user-word row, all `EditionCodes.Introduction` except the last (`EditionCodes.ReservedWord`):
   ```
-  new("file-sharing-clause-2002", "the SHARING clause / OPEN SHARING phrase", 2002, null, null, EditionCodes.Introduction, "ISO §2023:12.4.5.15 / §2023:14.9.27; 2002 introduction (derive from the 2002 standard — Annex E covers 2014→2023 only)"),
+  new("file-sharing-clause-2002", "the SHARING clause / OPEN SHARING phrase", 2002, null, null, EditionCodes.Introduction, "§2002:12.3.4.15; §2002:14.8.26.3 GR22; §2002:F.2 item 52; §2014:12.4.4.14; §2014:14.9.26.3 GR22; §2023:12.4.5.15.1; §2023:14.9.27.4 GR23; VCR row 7.39"),
   new("lock-mode-clause-2002",    "the LOCK MODE clause",                     2002, null, null, EditionCodes.Introduction, "ISO §2023:12.4.5.9 (MANUAL/AUTOMATIC [WITH LOCK ON [MULTIPLE] RECORD(S)]); 2002 introduction"),
   new("retry-phrase-2002",        "the RETRY phrase",                         2002, null, null, EditionCodes.Introduction, "ISO §2023:14.7.9 (OPEN/READ/WRITE/REWRITE/DELETE); 2002 introduction"),
   new("unlock-statement-2002",    "the UNLOCK statement",                     2002, null, null, EditionCodes.Introduction, "ISO §2023:14.9.47; 2002 introduction"),

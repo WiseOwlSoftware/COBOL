@@ -1087,6 +1087,25 @@ def case_17_a_read_record_follows_a_recorded_move_of_its_rule(expect):
     expect("the readers a move records are the slices that read the old id before any second read takes one out",
            sorted(s.name for s in R.load(2002, d, [], superseded=True) if p4 in s.reads) == ["r-01", "r-02", "r-03"])
 
+
+def case_18_a_read_of_a_rule_no_catalog_holds_and_no_move_maps_is_refused(expect):
+    """kb/Work PB6022: a relabel (p5 to p4) leaves a sealed read record naming the old id. With the move recorded the
+    read follows it and nothing is refused; with no move, the gate's audit (`unknown_rule_errors`, run by `check` and by
+    `audit_batch.py import-reads` before it writes) names the slice and the id. Before PB6022 only the import tested it,
+    after writing, and `lineage_reads.py --check` stayed GREEN over the orphan."""
+    d = scratch_dir("lineage-reads-orphans")
+    p4, p5 = "2002-GR-1.1.3-p4", "2002-GR-1.1.3-p5"
+    (d / "r-01.json").write_text(json.dumps(F.record("r-01", [F.read(p5)], [F.refute(p5)])), encoding="utf-8",
+                                 newline="\n")
+    catalog = {p4}
+    mapped = R.load(2002, d, [[(p5, p4, frozenset({"r-01"}))]])
+    expect.equal("a mapped read follows its move and is no orphan", R.unknown_rule_errors(2002, catalog, mapped), [])
+    got = R.unknown_rule_errors(2002, catalog, R.load(2002, d, []))
+    expect("an unmapped read of a rule the catalog lacks is refused, naming its slice and id",
+           len(got) == 1 and got[0].startswith(f"r-01: {p5}: no rule of the 2002 catalog"))
+    expect("a move that names another slice maps nothing for this one",
+           len(R.unknown_rule_errors(2002, catalog, R.load(2002, d, [[(p5, p4, frozenset({"r-09"}))]]))) == 1)
+
 if __name__ == "__main__":
     ensure_utf8()
     sys.exit(selftest_cases.run(sys.modules[__name__]))

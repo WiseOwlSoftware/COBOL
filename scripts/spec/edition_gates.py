@@ -107,7 +107,6 @@ HELD_OPEN: dict[str, str] = {f"constructs/{c}": FORMAT_ONLY for c in (
     "computer-name-optional-2002",                           # §2023:12.3.6.2
     "relative-key-clause-alone-2002",                        # §2023:12.4.5.13.2, a clause of its own
     "file-organization-record-sequential-2023",              # the RECORD word; §2023:12.4.5.10.3 GR3 is KEPT
-    "initialize-then-replacing-2002",                        # the THEN connective of §2023:14.9.20.2
     "initialize-replacing-category-set-2002",                # the choice indicators of §2023:14.9.20.2 (kb/Work PB5180)
     "inline-perform-after-2002",                             # §2023:14.9.28.2 Format 2
     "set-condition-repeated-2002",                           # §2023:14.9.39.2

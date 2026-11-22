@@ -196,9 +196,10 @@ public static class MoveValidity
     /// <item>SR5's SPACE arm ("the move of an alphanumeric figurative constant (SPACE, …) to either a numeric item or a
     /// numeric-edited item is prohibited"), the one arm of SR5 that holds at EVERY edition (kb/Work PB3605). The 2002
     /// text states it alone, "The figurative constant SPACE shall not be moved to a numeric or numeric-edited item"
-    /// (ISO/IEC 1989:2002 clause 14.8.24.2 SR5; the same sentence in the 2009 committee draft that led to 2014), and
-    /// its Annex G.1 item 2 names "any figurative constant except SPACE" as the archaic move. The 1985 edge is derived
-    /// (VCR row 7.41). SR5's other arms (HIGH-VALUE, LOW-VALUE, QUOTE, an ALL literal) were permitted through 2014, so
+    /// (§2002:14.8.24.2 SR5; the same sentence is §2014:14.9.24.2 SR5), and its Annex G.1 item 2 names "any
+    /// figurative constant except SPACE" (§2002:G.1 item 2) as the archaic move. 1985 refuses it too: "The figurative constant SPACE,
+    /// an alphanumeric edited data item, or an alphabetic data item must not be moved to a numeric or numeric edited
+    /// data item." (§1985:VI.6.19.4 GR3a; VCR row 7.41). SR5's other arms (HIGH-VALUE, LOW-VALUE, QUOTE, an ALL literal) were permitted through 2014, so
     /// they are edition rows rather than refusals, and <c>FigurativeAssociation.GateSr5</c> (compiler side) owns them.</item>
     /// <item>SR6: "The figurative constant ZERO shall not be moved to an alphabetic data item."</item>
     /// <item>SR7: "Any figurative constant for which the associated character or characters are not boolean characters
