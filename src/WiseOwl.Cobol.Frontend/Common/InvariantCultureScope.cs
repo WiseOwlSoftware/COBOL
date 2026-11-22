@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Globalization;
 
-namespace WiseOwl.Cobol;
+namespace WiseOwl.Cobol.Common;
 
 /// <summary>
 /// ⛔ TEXT THE COMPILER GENERATES IS FORMATTED UNDER THE INVARIANT CULTURE (kb/Work PB3239). An interpolated number in emitted
@@ -12,9 +12,9 @@ namespace WiseOwl.Cobol;
 /// for the work inside it and restores the host's after; the culture is per thread and flows into the tasks the work starts,
 /// so a run unit hosted in the same process keeps its own.
 /// <para>Two users: <c>CompilerDriver.Compile</c> around the backend's emission (every emitter's interpolation at once), and
-/// <c>StrongTypeModel</c>'s record text (kb/Work PB3257).</para>
+/// <c>StrongTypeModel</c>'s record text (kb/Work PB3257). It lives in the common layer both may depend on.</para>
 /// </summary>
-internal readonly struct InvariantCultureScope : IDisposable
+public readonly struct InvariantCultureScope : IDisposable
 {
     private readonly CultureInfo _host;
 
