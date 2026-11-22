@@ -813,7 +813,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     private static IToken? HeaderAnEntryLoopReadAsAName(Parser recognizer, IToken token)
         => CobolParserCoreBase.ClosesAHeader(token.Type)
            && PreviousDefault((ITokenStream)recognizer.InputStream, token.TokenIndex) is { } opener
-           && CobolLexer.IsReservationGated(opener.Type)
+           && CobolLexerWordSet.IsReservationGated(opener.Type)
            && new OffendingPosition(recognizer, opener).FollowsALevelNumber
             ? opener
             : null;

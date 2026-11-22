@@ -270,7 +270,7 @@ public abstract class CobolParserCoreBase : Parser
     /// data-name-1 ] [ STEP integer-3 ]</c>; kb/Work PB565).
     /// <para>STEP is a §2023:8.10 CONTEXT-SENSITIVE word ("OCCURS clause"), never reserved, so — like LOCALE and
     /// ATTRIBUTE — it is read as TEXT rather than given a lexer token: a token would have to be added to the
-    /// generated <c>_dataNameTokens</c> set to keep <c>STEP (1)</c> subscripting a user item named STEP, and that
+    /// generated <c>DataNameTokens</c> set to keep <c>STEP (1)</c> subscripting a user item named STEP, and that
     /// set is derived from the §2023:8.9 RESERVED word table, which STEP is not in.</para>
     /// <para>The integer lookahead is what makes the predicate safe: nothing else in an OCCURS clause is a bare
     /// user word followed by an integer literal or by a constant-name (§2023:13.10.3 SR2 — integer-3 is an integer-n
@@ -391,13 +391,13 @@ public abstract class CobolParserCoreBase : Parser
     /// and the ROUNDED MODE words at COBOL-85); ISO §2023:8.9 has not reserved them there, §2023:8.10 has not listed them, and
     /// §2023:8.3.2.1 makes them user-defined words. A word is refused only when a table proves a LATER edition introduced it
     /// (<see cref="ReservedWords.AdmitsAsKeyword"/>: the §2023:8.9 flags, or the §2023:8.10 row's introduction edition); a word a
-    /// format spells where §2023:8.9 leaves it free (<see cref="CobolLexer.IsKeywordWhereFree"/>: METHOD in COBOL-2023's END METHOD marker)
+    /// format spells where §2023:8.9 leaves it free (<see cref="CobolLexerWordSet.IsKeywordWhereFree"/>: METHOD in COBOL-2023's END METHOD marker)
     /// is printed whatever the table says.
     /// Through the &gt;&gt;COBOL-WORDS resolution as <see cref="reservedHere"/> is: a de-reserved word is no keyword.
     /// Diagnosis only (<c>CobolErrorStrategy</c>); never called while parsing.</summary>
     internal bool PrintsKeyword(string keyword)
         => Canonical(keyword) is { } w
-           && (ReservedWords.AdmitsAsKeyword(w, Edition.Year) || CobolLexer.IsKeywordWhereFree(w));
+           && (ReservedWords.AdmitsAsKeyword(w, Edition.Year) || CobolLexerWordSet.IsKeywordWhereFree(w));
 
     /// <summary>⛔ WHETHER THIS EDITION HAS A USER-DEFINED WORD TO PRINT WHERE A FORMAT SPECIFIES A LITERAL (kb/Work PB4435).
     /// The word there is a constant-name: ISO §2023:13.10.3 SR2, "Except in a compiler directive, constant-name-1 may be used
@@ -473,7 +473,7 @@ public abstract class CobolParserCoreBase : Parser
     /// listener of the authoritative pass.</summary>
     internal void NoteGatedOffender(IToken? offending)
     {
-        if (offending is not null && CobolLexer.IsReservationGated(offending.Type)) FreeGatedWord(offending);
+        if (offending is not null && CobolLexerWordSet.IsReservationGated(offending.Type)) FreeGatedWord(offending);
     }
 
     /// <summary>⛔ THE ENTRY-NAME SLOT YIELDS TO THE CLAUSE A RESERVED WORD BEGINS (kb/Work PB845, PB2501, PB4889) — the
@@ -1281,8 +1281,8 @@ public abstract class CobolParserCoreBase : Parser
         if (token is null || token.Type == CobolLexer.IDENTIFIER) return null;
         bool inScope = scope switch
         {
-            WordScope.Gated => CobolLexer.IsReservationGated(token.Type),
-            WordScope.GatedOrVerb => CobolLexer.IsReservationGated(token.Type) || StatementOpeners(Atn).Contains(token.Type),
+            WordScope.Gated => CobolLexerWordSet.IsReservationGated(token.Type),
+            WordScope.GatedOrVerb => CobolLexerWordSet.IsReservationGated(token.Type) || StatementOpeners(Atn).Contains(token.Type),
             _ => CobolErrorStrategy.IsReservedWord(token),
         };
         if (!inScope) return null;
@@ -1512,7 +1512,7 @@ public abstract class CobolParserCoreBase : Parser
                 // #4's sibling mis-fire class returns). Below 2002 B-AND/B-OR/B-XOR are legal user words; at ≥2002 the
                 // §2023:8.9 funnel already reserves them, so a leading occurrence is a name-slot error either way — never here.
                 // The four boolean SHIFT operators (§2023:8.8.2 GR8, 2023) are NEVER legal user words (absent from
-                // _dataNameTokens), so a shift token always IS the operator — detecting it here recognizes a shift-only
+                // DataNameTokens), so a shift token always IS the operator — detecting it here recognizes a shift-only
                 // boolean expression (e.g. `A B-SHIFT-L 2`), which no binary/unary B-op precedes. The token set is
                 // BooleanOperatorTokens, the ONE list the binder's discriminator reads too (kb/Work PB1412).
                 case int when BooleanOperatorTokens.IsInfix(t):

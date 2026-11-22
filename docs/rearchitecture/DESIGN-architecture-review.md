@@ -1793,8 +1793,9 @@ parameter, or a fixed one: `DirectiveExpressionFragment.cs:45` parses every dire
 parse reads), and every lexer field the front end primes from one
 (`_caseMappingEdition` and `_reservedNonNames`, set by `TokenRetypes.PrimeLexer` from `edition.Year` and from
 `ReservedNonDataNames(edition, …)`, `TokenRetypes.cs:47-51`). An EDITION READ is a member of `CobolParserCoreBase`, of a
-committed `CobolParserCore` partial or a parser grammar's `@members`, of the lexer grammar's `@members` and its
-partials, or of the retype stage (`TokenRetypes`, which primes the lexer and decides the re-lex) — a member of a
+committed `CobolParserCore` partial or a parser grammar's `@members`, of the lexer's hand-written superclass
+`CobolLexerBase` (`Parsing/CobolLexerBase.cs`, kb/Work PB2726: the lexer has the parser's shape, `superClass` in
+`CobolLexer.g4` and no `@members`), any lexer `@members` and its partials, or of the retype stage (`TokenRetypes`, which primes the lexer and decides the re-lex) — a member of a
 type NESTED in one of these included, since a nested type reads its container's protected state through an instance,
 and a member of a type in `src/` DERIVED from one of these (transitively, from the base lists), since a subclass reads
 the protected `Edition` getter and calls the protected reads through `this` —
@@ -1871,8 +1872,8 @@ token precedence with the import order; **the lexer stays one grammar**, its mod
 
 **Kept, each with its pin:** no left-edge semantic predicate in a lexer mode (`LexerDfaCacheDriftTests`); the edition
 reads are what the rule above computes — `EditionReadDriftTests` APPLIES the rule (it computes the members' fixpoint
-from the syntax of the parser superclass, its committed partials and parser `@members`, the lexer's `@members` and
-partials and the retype stage, nested and derived types included, derives the primed lexer fields from the retype stage's setter
+from the syntax of the parser superclass, its committed partials and parser `@members`, the lexer superclass, any lexer
+`@members` and partials and the retype stage, nested and derived types included, derives the primed lexer fields from the retype stage's setter
 calls, and finds the call sites in every predicate and action body of every grammar and in every C# member of `src/`
 outside the read's own stage (a second top-level type in a stage's file included), every front-end hand-off of the edition to a parser and every
 caller that passes one on) and compares the result with the set PB2291's verdict records,

@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Parsing;
 using WiseOwl.Cobol.Tests.Shared;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -33,8 +34,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 ///     one — the fields the retype stage's edition reads set through a lexer setter (computed from
 ///     <c>TokenRetypes</c>, never named here).</item>
 ///   <item>An EDITION READ is a method or property of the parser (<c>CobolParserCoreBase</c>, every committed
-///     <c>CobolParserCore</c> partial and any parser grammar's <c>@members</c>), of the lexer (<c>CobolLexer.g4</c>'s
-///     <c>@members</c> and its committed partials) or of the retype stage (<c>TokenRetypes</c>) — a NESTED type's
+///     <c>CobolParserCore</c> partial and any parser grammar's <c>@members</c>), of the lexer (its superclass
+///     <c>CobolLexerBase</c>, <c>CobolLexer.g4</c>'s <c>@members</c> and its committed partials) or of the retype stage (<c>TokenRetypes</c>) — a NESTED type's
 ///     members included, since C# lets a nested type read its container's protected and private state through an
 ///     instance — whose syntax reaches edition state, or that calls another read — to a fixpoint. A type in
 ///     <c>src/</c> DERIVED from a stage (transitively, computed from every base list) reads the stage's protected
@@ -114,7 +115,7 @@ public sealed class EditionReadDriftTests
             "is2023", "is85", "keywordContinuesHere", "pointerOperandHere", "procedureHeaderHere", "reservedHere", "screenPositionAhead", "setLocaleAhead",
             "userWordHere",
         ],
-        ["src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4"] =
+        ["src/WiseOwl.Cobol.Frontend/Parsing/CobolLexerBase.cs"] =
             ["ApplyEditionSpelling", "NextToken", "OnDefaultLParen", "PreviousTokenCouldBeDataName"],
         ["src/WiseOwl.Cobol.Frontend/Parsing/TokenRetypes.cs"] =
             ["LexesDifferentlyFrom", "PrimeLexer", "ReservedNonDataNames"],
@@ -230,6 +231,7 @@ public sealed class EditionReadDriftTests
 
     private const string ParserBase = "src/WiseOwl.Cobol.Frontend/Parsing/CobolParserCoreBase.cs";
     private const string LexerGrammar = "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4";
+    private const string LexerBase = "src/WiseOwl.Cobol.Frontend/Parsing/CobolLexerBase.cs";
     private const string RetypeStage = "src/WiseOwl.Cobol.Frontend/Parsing/TokenRetypes.cs";
 
     [Fact]
@@ -240,7 +242,7 @@ public sealed class EditionReadDriftTests
         var computedMembers = new SortedDictionary<string, string[]>(StringComparer.Ordinal)
         {
             [ParserBase] = [.. model.ParserReads.Keys.Order(StringComparer.Ordinal)],
-            [LexerGrammar] = [.. model.LexerReads.Keys.Order(StringComparer.Ordinal)],
+            [LexerBase] = [.. model.LexerReads.Keys.Order(StringComparer.Ordinal)],
             [RetypeStage] = [.. model.RetypeReads.Keys.Order(StringComparer.Ordinal)],
         };
         foreach (var g in model.DerivedReads.GroupBy(d => d.Rel))
@@ -401,7 +403,7 @@ public sealed class EditionReadDriftTests
 
         var model = EditionReadModel.Compute();
         foreach (string field in model.PrimedLexerFields)
-            Assert.True(typeof(CobolLexer).GetField(field, BindingFlags.Instance | BindingFlags.NonPublic) is { IsPrivate: true },
+            Assert.True(typeof(CobolLexerBase).GetField(field, BindingFlags.Instance | BindingFlags.NonPublic) is { IsPrivate: true },
                 $"CobolLexer.{field} is primed from the edition and must stay private");
     }
 
@@ -423,7 +425,7 @@ public sealed class EditionReadDriftTests
         {
             var sb = new StringBuilder();
             sb.AppendLine($"  {ParserBase}: {string.Join(", ", ParserReads.Keys.Order(StringComparer.Ordinal))}");
-            sb.AppendLine($"  {LexerGrammar}: {string.Join(", ", LexerReads.Keys.Order(StringComparer.Ordinal))}");
+            sb.AppendLine($"  {LexerBase}: {string.Join(", ", LexerReads.Keys.Order(StringComparer.Ordinal))}");
             sb.AppendLine($"  {RetypeStage}: {string.Join(", ", RetypeReads.Keys.Order(StringComparer.Ordinal))}");
             foreach (var d in DerivedReads) sb.AppendLine($"  {d.Rel}: {d.Type}.{d.Member} (derived)");
             foreach (var (site, n) in Sites) sb.AppendLine($"  {site} ×{n}");
@@ -446,15 +448,15 @@ public sealed class EditionReadDriftTests
             var retypeMembers = Members(ClassBodies(File.ReadAllText(Repo(RetypeStage)), "TokenRetypes"));
             var retypeReads = Fixpoint(retypeMembers, ids => ids.Overlaps(RetypeState), exclude: []);
 
-            // The lexer: @members plus every committed partial of CobolLexer.
+            // The lexer: its superclass (kb/Work PB2726), any @members, and every committed partial of CobolLexer.
             string lexerText = File.ReadAllText(Repo(LexerGrammar));
-            var lexerBodies = new List<MemberDeclarationSyntax>();
+            var lexerBodies = new List<MemberDeclarationSyntax>(ClassBodies(File.ReadAllText(Repo(LexerBase)), LexerBaseType));
             foreach (var (_, body) in NamedActions(lexerText, "members"))
                 lexerBodies.AddRange(ClassBodies($"partial class CobolLexer {{ {body} }}", "CobolLexer"));
             foreach (var path in SourceFiles().Where(p => IsPartialOf(File.ReadAllText(p), LexerType)))
                 lexerBodies.AddRange(ClassBodies(File.ReadAllText(path), LexerType));
             var lexerMembers = Members(lexerBodies);
-            var lexerFields = lexerBodies.OfType<FieldDeclarationSyntax>().Where(f => f.Parent is TypeDeclarationSyntax { Identifier.Text: LexerType })
+            var lexerFields = lexerBodies.OfType<FieldDeclarationSyntax>().Where(f => f.Parent is TypeDeclarationSyntax { Identifier.Text: LexerType or LexerBaseType })
                 .SelectMany(f => f.Declaration.Variables.Select(v => v.Identifier.Text)).ToHashSet(StringComparer.Ordinal);
 
             // The primed fields: a retype read calls a lexer SETTER (an invocation on a CobolLexer parameter) with an
@@ -595,6 +597,7 @@ public sealed class EditionReadDriftTests
 
         private const string ParserType = "CobolParserCore";
         private const string LexerType = "CobolLexer";
+        private const string LexerBaseType = "CobolLexerBase";
         private const string ParserStage = "parser";
         private const string LexerStage = "lexer";
         private const string RetypeStageName = "retype";
@@ -607,6 +610,7 @@ public sealed class EditionReadDriftTests
             ["CobolParserCoreBase"] = ParserStage,
             [ParserType] = ParserStage,
             [LexerType] = LexerStage,
+            [LexerBaseType] = LexerStage,
             ["TokenRetypes"] = RetypeStageName,
         };
 
