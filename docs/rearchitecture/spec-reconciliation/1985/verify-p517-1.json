@@ -1,0 +1,13 @@
+{
+  "claim_id": "p517-1",
+  "claim_key": "1f4b1e82e068711c",
+  "page": 517,
+  "kind": "missing-heading",
+  "severity": "structural",
+  "claim": {"id": "p517-1", "page": 517, "kind": "missing-heading", "severity": "structural", "pdf_says": "1.3.5 Common Programs and Initial Programs", "markdown_says": "### ║1.3.5 Common Programs and Initial Programs║", "why_it_matters": "A level-4 subsection of 1.3 rendered at the same level as 1.3 itself (###), unlike its siblings 1.3.1/1.3.2 (####)."},
+  "verdict": {
+    "real": false,
+    "reasoning": "The printed page (X-3, PDF p517) shows the heading '1.3.5 Common Programs and Initial Programs' at the top of a boxed (level-2) region. The markdown has the same heading text, word for word, with the level-2 box markers. Nothing is missing, and the clause number, title and box extent all match. The only difference is the markdown heading depth (### rather than ####). That is transcription markup: the PDF gives no heading level beyond the number 1.3.5, so the depth does not change meaning. The claim also says 1.3.5 is 'unlike its siblings', which misstates the transcription. In section X, 1.3.3, 1.3.4, 1.3.6, 1.3.7 and 1.3.8 are all ### as well (specs/ANSI_COBOL_1985.md lines 19887-19961). Only 1.3.1 and 1.3.2 are ####. So this is a section-wide heading-depth inconsistency in the markup, not a content discrepancy on this page.",
+    "corrected_description": "No content discrepancy. The heading text is present and correct. Markdown heading depth for 1.3.3 to 1.3.8 in section X is ### (the same as 1.3), while 1.3.1 and 1.3.2 are ####. This is a section-wide cosmetic markup inconsistency, not something specific to 1.3.5."
+  }
+}

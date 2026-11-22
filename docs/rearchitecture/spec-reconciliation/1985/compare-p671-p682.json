@@ -1,0 +1,70 @@
+{
+  "batch": [671, 672, 673, 674, 675, 676, 677, 678, 679, 680, 681, 682],
+  "pages_checked": [671, 672, 673, 674, 675, 676, 677, 678, 679, 680, 681, 682],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p674-1",
+      "page": 674,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "2.2.6 Error Key Values",
+      "markdown_says": "## 2.2.6 Error Key Values",
+      "why_it_matters": "Its sibling 2.2.5 Communication Status Key Conditions (page 672) and 2.2.4 General Rules are '###' headings under '## 2.2 THE COMMUNICATION DESCRIPTION ENTRY'; at '##' the 2.2.6 heading becomes a peer of 2.2 instead of its child, breaking the heading outline."
+    },
+    {
+      "id": "p676-1",
+      "page": 676,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "3.2 THE DISABLE STATEMENT",
+      "markdown_says": "## ║3.2 THE DISABLE STATEMENT║",
+      "why_it_matters": "Sibling '### 3.1 THE ACCEPT MESSAGE COUNT STATEMENT' (page 675) sits under '## 3. PROCEDURE DIVISION IN THE COMMUNICATION MODULE'; 3.2 at '##' (with its 3.2.1-3.2.4 subheadings at '###' instead of '####') is placed at the level of clause 3 itself, breaking the outline."
+    },
+    {
+      "id": "p678-1",
+      "page": 678,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "3.3 THE ENABLE STATEMENT",
+      "markdown_says": "║3.3 THE ENABLE STATEMENT║",
+      "why_it_matters": "The statement heading is plain paragraph text, not a heading, so a heading-based index of the Communication module has no ENABLE statement section."
+    },
+    {
+      "id": "p678-2",
+      "page": 678,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "3.3.1 Function ... 3.3.2 General Format ... 3.3.3 Syntax Rules ... 3.3.4 General Rules",
+      "markdown_says": "║3.3.1 Function║ ... ║3.3.2 General Format║ ... ║3.3.3 Syntax Rules║ ... ║3.3.4 General Rules║",
+      "why_it_matters": "All four subheadings are plain paragraph text, whereas the sibling statements (3.1, 3.2, 3.5) carry them as headings; the ENABLE syntax and general rules cannot be located by heading."
+    },
+    {
+      "id": "p680-1",
+      "page": 680,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "3.4 THE PURGE STATEMENT ... 3.4.1 Function ... 3.4.2 General Format ... 3.4.3 Syntax Rules ... 3.4.4 General Rules",
+      "markdown_says": "║3.4 THE PURGE STATEMENT║ ... ║**3.4.1 Function**║ ... ║**3.4.2 General Format**║ ... ║**3.4.3 Syntax Rules**║ ... ║**3.4.4 General Rules**║",
+      "why_it_matters": "The statement heading is plain text and its four subheadings are demoted to bold text, so a heading-based index has no PURGE statement section."
+    },
+    {
+      "id": "p680-2",
+      "page": 680,
+      "kind": "missing-text",
+      "severity": "normative",
+      "pdf_says": "PURGE cd-name-1 (the general format, drawn inside the level-2 box that encloses all of 3.4 on the page)",
+      "markdown_says": "<pre style=\"line-height:1\">\n<u>PURGE</u> cd-name-1\n</pre>",
+      "why_it_matters": "Every prose line of 3.4 carries the ║ level-2 marker, but the general format block carries none, unlike the DISABLE and ENABLE formats (pages 676, 678) whose pre blocks are framed with ╔ ║ ╚ markers; read alone, the format looks like a level-1 element although the PURGE statement is level 2 only."
+    },
+    {
+      "id": "p681-1",
+      "page": 681,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "3.5 THE RECEIVE STATEMENT",
+      "markdown_says": "## 3.5 THE RECEIVE STATEMENT",
+      "why_it_matters": "Sibling '### 3.1 THE ACCEPT MESSAGE COUNT STATEMENT' is a child of '## 3. PROCEDURE DIVISION IN THE COMMUNICATION MODULE'; 3.5 at '##' (subheadings 3.5.1-3.5.4 at '###' instead of '####') is made a peer of clause 3."
+    }
+  ]
+}

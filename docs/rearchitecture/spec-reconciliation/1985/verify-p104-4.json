@@ -1,0 +1,13 @@
+{
+  "claim_id": "p104-4",
+  "claim_key": "6cde882484b82dca",
+  "page": 104,
+  "kind": "missing-heading",
+  "severity": "structural",
+  "claim": {"id": "p104-4", "page": 104, "kind": "missing-heading", "severity": "structural", "pdf_says": "6.2.2.1.3 Record Areas for Files", "markdown_says": "6.2.2.1.3 Record Areas for Files", "why_it_matters": "A numbered section heading printed in the PDF is demoted to a plain paragraph in the markdown."},
+  "verdict": {
+    "real": false,
+    "reasoning": "The printed page (II-20) shows '6.2.2.1.3 Record Areas for Files' as a bold numbered heading. page-104.md line 17 carries exactly '6.2.2.1.3 Record Areas for Files' on its own line, in the same position, followed by the same body paragraph. Nothing is missing; the claim's own pdf_says and markdown_says are identical. The only difference is markup: the line has no '#' prefix. That is uniform across the page: 6.2.2.1, 6.2.2.1.1, 6.2.2.1.2, 6.2.2.1.4 and 6.2.2.2 (lines 7, 9, 13, 21, 25) are all plain lines too, so this heading is not singled out or demoted relative to its siblings. A transcription-wide heading-markup convention (already tracked as PB6057, 1985 headings following no one convention) is formatting, not a content discrepancy on this page.",
+    "corrected_description": null
+  }
+}

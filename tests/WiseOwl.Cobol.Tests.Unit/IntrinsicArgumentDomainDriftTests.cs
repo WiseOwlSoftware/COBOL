@@ -82,7 +82,7 @@ public sealed class IntrinsicArgumentDomainDriftTests
                 if (sig.DomainRule1985 is not null) problems.Add($"{name}: carries DomainRule1985 but is not a function of the 1989 module");
                 continue;
             }
-            var rules1989 = Regex.Match(spec1985, @"\n### 2\." + p + @"\.3 Arguments\n(.*?)\n### 2\." + p + @"\.4 ", RegexOptions.Singleline);
+            var rules1989 = Regex.Match(spec1985, @"\n#### 2\." + p + @"\.3 Arguments\n(.*?)\n#### 2\." + p + @"\.4 ", RegexOptions.Singleline);
             var valueRule1989 = Regex.Match(rules1989.Success ? rules1989.Groups[1].Value : "", @"\n\((\d+)\) The value of argument-1 must be ");
             string cite1989 = valueRule1989.Success ? $"§1989:A.2.{p}.3 AR{valueRule1989.Groups[1].Value}" : "(none)";
             if (sig.DomainRule1985 != cite1989)

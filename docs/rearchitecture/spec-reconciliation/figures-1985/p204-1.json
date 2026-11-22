@@ -9,7 +9,7 @@
   "    [IS <u>GLOBAL</u>]",
   "",
   "    ┌<u>BLOCK</u> CONTAINS [integer-1 <u>TO</u>] integer-2 ⎧<u>RECORDS</u>   ⎫┐",
-  "    └                                        ⎩<u>CHARACTERS</u>⎭┘",
+  "    └                                        ⎩CHARACTERS⎭┘",
   "",
   "    ┌<u>RECORD</u> ⎧CONTAINS integer-3 CHARACTERS             ⎫┐",
   "    └       ⎩CONTAINS integer-4 <u>TO</u> integer-5 CHARACTERS⎭┘",
@@ -35,7 +35,7 @@
   "",
   "    ┌<u>BLOCK</u> CONTAINS [integer-1 <u>TO</u>] integer-2 ╭<u>RECORDS</u>    ╮ ┐",
   "    │                                        ┤           ├ │",
-  "    └                                        ╰<u>CHARACTERS</u> ╯ ┘",
+  "    └                                        ╰CHARACTERS ╯ ┘",
   "",
   "    ┌<u>RECORD</u> ╭CONTAINS integer-3 CHARACTERS             ╮ ┐",
   "    │       ┤                                          ├ │",
@@ -55,5 +55,5 @@
   "    ┤           ├",
   "    ╰<u>REPORTS</u> ARE╯"
  ],
- "reason": "The printed page (the composite skeleton, REPORT FILE) sets the FD entry as the batch drew it: BLOCK, RECORD (two CONTAINS alternatives), LABEL, VALUE OF, [CODE-SET IS alphabet-name-1] and the REPORT IS / REPORTS ARE brace, then the period. Drawn in the house style (figure_reading.restyle)."
+ "reason": "The printed page (the composite skeleton, REPORT FILE) sets the FD entry as the batch drew it: BLOCK, RECORD (two CONTAINS alternatives), LABEL, VALUE OF, [CODE-SET IS alphabet-name-1] and the REPORT IS / REPORTS ARE brace, then the period. Drawn in the house style (figure_reading.restyle). Second pass (kb/Work PB6051, claim p204-1): CHARACTERS in the BLOCK CONTAINS braces is printed without an underline."
 }

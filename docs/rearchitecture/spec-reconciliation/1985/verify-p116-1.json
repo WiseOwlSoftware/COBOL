@@ -1,0 +1,13 @@
+{
+  "claim_id": "p116-1",
+  "claim_key": "4ac94bc6b9c97934",
+  "page": 116,
+  "kind": "missing-heading",
+  "severity": "cosmetic",
+  "claim": {"id": "p116-1", "page": 116, "kind": "missing-heading", "severity": "cosmetic", "pdf_says": "7.4 THE CONCEPT OF MESSAGES AND MESSAGE SEGMENTS", "markdown_says": "## 7.4 THE CONCEPT OF MESSAGES AND MESSAGE SEGMENTS", "why_it_matters": "Wrong heading level: the PDF prints 7.4 as a second-level section under chapter 7 (same style as 7.1 and 7.2, which the markdown renders '###'), but the markdown renders it '##', the level of the chapter heading '## 7. COMMUNICATION FACILITY', so it reads as a sibling of chapter 7."},
+  "verdict": {
+    "real": false,
+    "reasoning": "The printed page II-32 (PDF p116, rendered at 300 dpi) shows the bold heading '7.4 THE CONCEPT OF MESSAGES AND MESSAGE SEGMENTS', and page-116.md carries it word for word as '## 7.4 THE CONCEPT OF MESSAGES AND MESSAGE SEGMENTS' in the same position. So nothing is missing, and the 'missing-heading' kind is wrong. The only difference claimed is the markdown heading depth, which is formatting and changes no content. The claim also singles out 7.4 when it is not an outlier: in specs/ANSI_COBOL_1985.md, 7.3 (line 4947), 7.5 (line 5083) and 7.6 (line 5200) all use '##' as well, and only 7.1 and 7.2 use '###'. Any heading-level inconsistency belongs to the whole chapter and is a matter of markdown structure, not a discrepancy in the transcribed text.",
+    "corrected_description": ""
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "claim_id": "p159-2",
+  "claim_key": "75cc048670f22f68",
+  "page": 159,
+  "kind": "missing-heading",
+  "severity": "structural",
+  "claim": {"id": "p159-2", "page": 159, "kind": "missing-heading", "severity": "structural", "pdf_says": "4.3.1 Logical Record Concept", "markdown_says": "4.3.1 Logical Record Concept", "why_it_matters": "Printed as a numbered section heading; the markdown has it as a plain paragraph with no heading marker. A heading missing or at the wrong level breaks the section structure that navigation and clause lookup by section number rely on; the wording itself is intact."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The rendered PDF page 159 (IV-13) prints '4.3.1 Logical Record Concept' as a numbered section heading on its own line, between the 4.3 introductory paragraph and the 'In order to separate the logical characteristics...' paragraph. The transcription (page-159.md line 9; specs/ANSI_COBOL_1985.md line 6719) carries the identical words as a plain paragraph with no '#' marker. The 1985 markdown does mark numbered headings elsewhere (1196 lines match '^#{1,6} N.N', e.g. '### 1.1 SCOPE AND PURPOSE', '## 1.3 ORGANIZATION OF DOCUMENT'), so the missing marker is a real departure from the transcription's own structure, not a convention of the file. The wording is intact; the defect is structural only, as the claim says. Note: the sibling headings on the same page (4.3, 4.3.1.1, 4.3.1.2) are also plain paragraphs, so this is one instance of a page-wide pattern.",
+    "corrected_description": "Accurate as stated. The page-wide context: every numbered heading on page 159 (4.3, 4.3.1, 4.3.1.1, 4.3.1.2) lacks a markdown heading marker, while the rest of the 1985 transcription marks numbered headings with '#'."
+  }
+}

@@ -1,0 +1,5 @@
+{"claim_id": "p104-3", "claim_key": "48cca350e00d077e", "page": 104, "kind": "missing-heading", "severity": "structural",
+ "claim": {"id": "p104-3", "page": 104, "kind": "missing-heading", "severity": "structural", "pdf_says": "6.2.2.1.2 File Connectors", "markdown_says": "6.2.2.1.2 File Connectors", "why_it_matters": "A numbered section heading printed in the PDF is demoted to a plain paragraph in the markdown."},
+ "verdict": {"real": false,
+  "reasoning": "The printed page (II-20) shows '6.2.2.1.2 File Connectors' as a bold heading line, and the markdown carries exactly that text on its own line (page-104.md line 13; specs/ANSI_COBOL_1985.md line 4655), followed by the same paragraph. The claim's own pdf_says and markdown_says are identical. The only difference is that the markdown line has no '#' prefix, which is formatting, not content; the sibling headings on the same page (6.2.2.1, 6.2.2.1.1, 6.2.2.1.3, 6.2.2.1.4, 6.2.2.2) are all plain lines too, so this is the edition-wide heading-convention question (PB6057), not a missing or altered heading. No text is missing and meaning is unchanged.",
+  "corrected_description": null}}

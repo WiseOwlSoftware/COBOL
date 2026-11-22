@@ -1,0 +1,13 @@
+{
+  "claim_id": "p156-1",
+  "claim_key": "767b0a1341ac13a1",
+  "page": 156,
+  "kind": "missing-heading",
+  "severity": "structural",
+  "claim": {"id": "p156-1", "page": 156, "kind": "missing-heading", "severity": "structural", "pdf_says": "4.2.2.2.1.1 General Format\n\n4.2.2.2.1.2 Syntax Rules\n\n4.2.2.2.1.3 General Rules", "markdown_says": "4.2.2.2.1.1 General Format\n\n4.2.2.2.1.2 Syntax Rules\n\n4.2.2.2.1.3 General Rules", "why_it_matters": "The three printed subheadings of the nonnumeric-literal clause (General Format, Syntax Rules, General Rules) are plain paragraphs, while their parent is '#### 4.2.2.2.1 Nonnumeric Literals' on page 155; a heading-based locator cannot find the syntax and general rules of the nonnumeric literal."},
+  "verdict": {
+    "real": false,
+    "reasoning": "The printed page IV-10 (PDF p156, rendered at 300 dpi) shows the numbered lines '4.2.2.2.1.1 General Format', '4.2.2.2.1.2 Syntax Rules' and '4.2.2.2.1.3 General Rules', and page-156.md carries all three character for character, in the same order and with the same rule text under each. The claim's own pdf_says and markdown_says are identical. What differs is markup only: the transcription leaves these lines as plain paragraphs rather than '####' headings (specs/ANSI_COBOL_1985.md lines 6609, 6615, 6621). The same is true of '4.2.2.2.2 Numeric Literals' and '4.2.2.2.3 Figurative Constant Values' on this page, and of 4.2.2.1.2, 4.2.2.1.3 and 4.2.2.1.3.1 earlier, so this is an inconsistent heading-markup pattern across the transcription, not a defect specific to this page. No text is missing, misquoted or altered, and the meaning is unchanged. Under the verification criteria, a difference that is only formatting and does not change meaning is rejected. The locator concern is a tooling observation about markdown heading levels; it is not a content discrepancy between the PDF and the transcription.",
+    "corrected_description": ""
+  }
+}

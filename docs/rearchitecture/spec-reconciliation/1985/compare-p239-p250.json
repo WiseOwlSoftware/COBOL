@@ -1,0 +1,83 @@
+{
+  "batch": [
+    239,
+    240,
+    241,
+    242,
+    243,
+    244,
+    245,
+    246,
+    247,
+    248,
+    249,
+    250
+  ],
+  "pages_checked": [
+    239,
+    240,
+    241,
+    242,
+    243,
+    244,
+    245,
+    246,
+    247,
+    248,
+    249,
+    250
+  ],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p240-1",
+      "page": 240,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "3.4 THE DATE-COMPILED PARAGRAPH / 3.4.1 Function / 3.4.2 General Format / 3.4.3 Syntax Rules / 3.4.4 General Rules (printed in the same style as its sibling 3.3 THE PROGRAM-ID PARAGRAPH and 3.3.1 Function on page 239)",
+      "markdown_says": "## ║3.4 THE DATE-COMPILED PARAGRAPH║ ... ### ║3.4.1 Function║",
+      "note": "Heading at the wrong level: the sibling 3.3 on page 239 is '### 3.3 THE PROGRAM-ID PARAGRAPH' with '#### 3.3.1 Function', so 3.4 should be ### and 3.4.1-3.4.4 ####. As transcribed 3.4 sits at the level of the chapter headings ('## 4.' on page 241).",
+      "why_it_matters": "The heading hierarchy is wrong, so a reader or tool navigating the document outline places this clause at the wrong depth (siblings appear as parents or children of one another); no normative wording is lost."
+    },
+    {
+      "id": "p242-1",
+      "page": 242,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "4.3 THE SOURCE-COMPUTER PARAGRAPH / 4.3.1 Function / 4.3.2 General Format / 4.3.3 Syntax Rules / 4.3.4 General Rules",
+      "markdown_says": "## 4.3 THE SOURCE-COMPUTER PARAGRAPH ... ### 4.3.1 Function",
+      "note": "Heading at the wrong level: page 241 has '## 4. ENVIRONMENT DIVISION IN THE NUCLEUS MODULE' and '### 4.2 CONFIGURATION SECTION'; 4.3 is a sibling of 4.2 and should be ###, with 4.3.1-4.3.4 at ####. As transcribed 4.3 is at the same level as its parent chapter 4.",
+      "why_it_matters": "The heading hierarchy is wrong, so a reader or tool navigating the document outline places this clause at the wrong depth (siblings appear as parents or children of one another); no normative wording is lost."
+    },
+    {
+      "id": "p243-1",
+      "page": 243,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "4.4 THE OBJECT-COMPUTER PARAGRAPH / 4.4.1 Function / 4.4.2 General Format / 4.4.3 Syntax Rules / 4.4.4 General Rules",
+      "markdown_says": "## 4.4 THE OBJECT-COMPUTER PARAGRAPH ... ### 4.4.1 Function",
+      "note": "Heading at the wrong level: 4.4 is a sibling of '### 4.2 CONFIGURATION SECTION' (page 241) and a child of '## 4.'; it should be ### with 4.4.1-4.4.4 at ####.",
+      "why_it_matters": "The heading hierarchy is wrong, so a reader or tool navigating the document outline places this clause at the wrong depth (siblings appear as parents or children of one another); no normative wording is lost."
+    },
+    {
+      "id": "p245-1",
+      "page": 245,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "4.5 THE SPECIAL-NAMES PARAGRAPH / 4.5.1 Function / 4.5.2 General Format / 4.5.3 Syntax Rules",
+      "markdown_says": "# 4.5 THE SPECIAL-NAMES PARAGRAPH ... ## 4.5.1 Function ... ## 4.5.2 General Format ... ## 4.5.3 Syntax Rules",
+      "note": "Heading at the wrong level: 4.5 is transcribed as a level-1 heading, above its own parent chapter '## 4.' (page 241), and its subclauses at ## (the chapter level). 4.5 should be ### (sibling of '### 4.2') and 4.5.1-4.5.3 ####.",
+      "why_it_matters": "The heading hierarchy is wrong, so a reader or tool navigating the document outline places this clause at the wrong depth (siblings appear as parents or children of one another); no normative wording is lost."
+    },
+    {
+      "id": "p246-1",
+      "page": 246,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "4.5.4 General Rules",
+      "markdown_says": "### 4.5.4 General Rules",
+      "note": "Heading level inconsistent with its siblings: 4.5.1-4.5.3 on page 245 are '##', 4.5.4 here is '###'. Under '### 4.2' (page 241) the 4.5.n subclauses should all be ####.",
+      "why_it_matters": "The heading hierarchy is wrong, so a reader or tool navigating the document outline places this clause at the wrong depth (siblings appear as parents or children of one another); no normative wording is lost."
+    }
+  ]
+}

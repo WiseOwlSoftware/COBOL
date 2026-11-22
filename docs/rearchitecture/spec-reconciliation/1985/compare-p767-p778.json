@@ -1,0 +1,16 @@
+{
+  "batch": [767, 768, 769, 770, 771, 772, 773, 774, 775, 776, 777, 778],
+  "pages_checked": [767, 768, 769, 770, 771, 772, 773, 774, 775, 776, 777, 778],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p772-1",
+      "page": 772,
+      "kind": "misplaced-content",
+      "severity": "cosmetic",
+      "pdf_says": "PERFORM PARA3 VARYING Y FROM X BY 1 UNTIL Y IS GREATER THAN 3.\n\nUnder second Standard COBOL, PARA3 will be executed 8 times as shown above. Under third Standard COBOL, PARA3 will be executed 6 times as shown above.\n\nThe X3J4 COBOL Technical Committee believes that few existing programs will be affected by this change.",
+      "markdown_says": "Under third Standard COBOL, PARA3 will be executed 6 times with the following values:\n\n> ⚠ **CORRECTED — see the Errata (C171).** The standard prints `Under second Standard COBOL, PARA3 will be executed 8 times as shown above. Under third Standard COBOL, PARA3 will be executed 6 times as shown above.` (page 772, folio XVII-64). ... Corrected to `(deleted)`.\n\n| | | | | | | |\n|---|---|---|---|---|---|---|\n| X: | 1 | 1 | 1 | 2 | 2 | 3 |",
+      "why_it_matters": "The erratum C171 deletion marker sits between the lead-in 'Under third Standard COBOL, PARA3 will be executed 6 times with the following values:' and its value table, splitting the sentence from the table it introduces. The deleted sentences were printed after the PARA2 example, immediately before the last paragraph (the amendment itself says 'prior to the last paragraph on the page'), so the marker belongs between the PARA2 example and 'The X3J4 COBOL Technical Committee believes...'. The text content is otherwise correct; this is placement only."
+    }
+  ]
+}

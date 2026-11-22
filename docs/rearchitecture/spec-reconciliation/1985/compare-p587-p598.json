@@ -1,0 +1,13 @@
+{"batch": [587,588,589,590,591,592,593,594,595,596,597,598],
+ "pages_checked": [587,588,589,590,591,592,593,594,595,596,597,598],
+ "pages_unread": [],
+ "findings": [
+  {"id": "p593-1", "page": 593, "kind": "missing-heading", "severity": "structural",
+   "pdf_says": "3.5 THE REPORT DESCRIPTION ENTRY ... 3.5.1 Function ... 3.5.2 General Format ... 3.5.3 Syntax Rules ... 3.5.4 General Rules",
+   "markdown_says": "3.5 THE REPORT DESCRIPTION ENTRY\n\n3.5.1 Function\n\n3.5.2 General Format\n\n3.5.3 Syntax Rules\n\n3.5.4 General Rules",
+   "why_it_matters": "All five section headings of the RD entry clause are plain paragraph text with no markdown heading marker, while every sibling clause page (3.2 on p589, 3.3 on p591, 3.4 on p592, 3.6 on p596, 3.7 on p597) carries its numbered headings as '#' headings; a heading-based section index misses section 3.5 entirely."},
+  {"id": "p594-1", "page": 594, "kind": "missing-heading", "severity": "structural",
+   "pdf_says": "3.5.5 PAGE-COUNTER Rules",
+   "markdown_says": "3.5.5 PAGE-COUNTER Rules",
+   "why_it_matters": "The section heading 3.5.5 is plain paragraph text with no markdown heading marker, while the sibling 3.5.6 LINE-COUNTER Rules on p595 is a '### 3.5.6 LINE-COUNTER Rules' heading; a heading-based section index misses the PAGE-COUNTER rules."}
+ ]}

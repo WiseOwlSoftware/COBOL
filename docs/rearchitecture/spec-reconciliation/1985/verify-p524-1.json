@@ -1,0 +1,13 @@
+{
+  "claim_id": "p524-1",
+  "claim_key": "f9979e80ec996f1e",
+  "page": 524,
+  "kind": "missing-heading",
+  "severity": "structural",
+  "claim": {"id": "p524-1", "page": 524, "kind": "missing-heading", "severity": "structural", "pdf_says": "2.4 INITIAL STATE OF A PROGRAM ... 2.4.1 Characteristics of a Program ... 2.4.2 Programs in the Initial State", "markdown_says": "## 2.4 INITIAL STATE OF A PROGRAM ... ### 2.4.1 Characteristics of a Program ... ### 2.4.2 Programs in the Initial State", "why_it_matters": "2.4 is rendered at the same level (##) as its parent section '## ║2. NESTED SOURCE PROGRAMS║' and one level above its siblings 2.1-2.3 (###), so the outline makes it a new top-level section."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The 300 dpi render of page 524 (folio X-10) prints '2.4 INITIAL STATE OF A PROGRAM' as a numbered subsection of Section X chapter 2, with 2.4.1 and 2.4.2 beneath it. specs/ANSI_COBOL_1985.md has '## ║2. NESTED SOURCE PROGRAMS║' (line 20072), its children '### ║2.1 GENERAL DESCRIPTION║', '### ║2.2 ORGANIZATION║', '### ║2.3 STRUCTURE║' and '#### 2.3.1 General Format', then '## 2.4 INITIAL STATE OF A PROGRAM' (line 20140) with '### 2.4.1' and '### 2.4.2'. So 2.4 sits at its parent's level and 2.4.1/2.4.2 one level shallower than sibling 2.3.1. All heading text is present and correct; the defect is the heading level only, which breaks the document outline but changes no normative text.",
+    "corrected_description": "Not a missing heading: a heading-level defect. On page 524 the markdown renders '2.4 INITIAL STATE OF A PROGRAM' as '##' (the level of its parent '2. NESTED SOURCE PROGRAMS') instead of '###' like its siblings 2.1-2.3, and 2.4.1/2.4.2 as '###' instead of '####' like 2.3.1. Text is complete; only the outline nesting is wrong."
+  }
+}

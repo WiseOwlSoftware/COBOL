@@ -1,0 +1,43 @@
+{
+  "batch": [371, 372, 373, 374, 375, 376, 377, 378, 379, 380, 381, 382],
+  "pages_checked": [371, 372, 373, 374, 375, 376, 377, 378, 379, 380, 381, 382],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p371-1",
+      "page": 371,
+      "kind": "missing-text",
+      "severity": "normative",
+      "pdf_says": "The level-2 box that encloses general rules (14) through (18) continues unbroken down the page and also encloses \"(19) The END-UNSTRING phrase delimits the scope of the UNSTRING statement. (See page IV-40, Scope of Statements.)\" and \"(20) If, at the time of execution of an UNSTRING statement, the conditions described in general rule 17 are not encountered, ...\"; the box closes only after \"UNSTRING statement.\" at the end of rule (20).",
+      "markdown_says": "(19) The END-UNSTRING phrase delimits the scope of the UNSTRING statement. (See page IV-40, Scope of Statements.)\n\n(20) If, at the time of execution of an UNSTRING statement, the conditions described in general rule 17 are not encountered, ...",
+      "why_it_matters": "The box marks level-2 (high level) specifications. Rules (19) and (20) carry no box markers, so the END-UNSTRING and NOT ON OVERFLOW rules read as level 1, while rules (14)-(18) beside them on the same page keep their markers."
+    },
+    {
+      "id": "p376-1",
+      "page": 376,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "1.3.3 Current Volume Pointer / 1.3.4 File Position Indicator / 1.3.5 I-O Status (printed at the same level as 1.3.1 Organization and 1.3.2 Access Mode on page 375)",
+      "markdown_says": "## 1.3.3 Current Volume Pointer\n\n## 1.3.4 File Position Indicator\n\n## 1.3.5 I-O Status",
+      "why_it_matters": "Page 375 transcribes 1.3.1 and 1.3.2 as level-4 headings (#### 1.3.1 Organization) under ### 1.3 LANGUAGE CONCEPTS; 1.3.3-1.3.5 are promoted to level 2, which takes them out from under 1.3 and puts them level with section 1 in the document outline."
+    },
+    {
+      "id": "p378-1",
+      "page": 378,
+      "kind": "incorrect-text",
+      "severity": "structural",
+      "pdf_says": "c. I-O Status = 35. A permanent error exists because an OPEN statement with the INPUT, I-O, [box]or EXTEND[box] phrase is attempted on a [box]non-optional[box] file that is not present. ... 1) The [box]EXTEND or[box] OUTPUT phrase is specified (boxes only; no square brackets printed)",
+      "markdown_says": "c. I-O Status = 35. A permanent error exists because an OPEN statement with the INPUT, I-O, [║or EXTEND║] phrase is attempted on a [║non-optional║] file that is not present.\n\n1\\) The [║EXTEND or║] OUTPUT phrase is specified but the file will not support write operations.",
+      "why_it_matters": "The page prints no square brackets around these boxed words, and the transcription's convention for boxed prose is ║...║ alone (as on page 379: \"output ║or extend║ mode\"). The added brackets put optional-element notation into normative prose."
+    },
+    {
+      "id": "p380-1",
+      "page": 380,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Sequential I-O - Input-Output Section (the running header at the top of the page, printed the same way as on every other page)",
+      "markdown_says": "# Sequential I-O - Input-Output Section",
+      "why_it_matters": "On every other page the transcription keeps the running header as plain text. Here it becomes a level-1 heading, which puts a false top-level division into the outline between SECTION VII and its subsection 2."
+    }
+  ]
+}

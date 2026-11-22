@@ -1,0 +1,13 @@
+{
+  "claim_id": "p367-2",
+  "claim_key": "b41b012abe2e9240",
+  "page": 367,
+  "kind": "missing-heading",
+  "severity": "structural",
+  "claim": {"id": "p367-2", "page": 367, "kind": "missing-heading", "severity": "structural", "pdf_says": "6.26.4 General Rules", "markdown_says": "6.26.4 General Rules", "why_it_matters": "The subclause heading is plain paragraph text, not a markdown heading, so the SUBTRACT general rules are not a section in the document outline."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The printed page (VI-135) shows '6.26.4 General Rules' as a subclause heading above GR (1)-(5). In page-367.md (line 25) and in specs/ANSI_COBOL_1985.md (line 14990) it is a plain paragraph line '6.26.4 General Rules', with no '#' markup. The neighbouring subclauses in the same transcription are headings: '### 6.24.4 General Rules' (line 14804), '### 6.26.1 Function' (14919), '### 6.26.2 General Format' (14923). So this is a real structural break in the transcription's own heading convention, and outline- or section-based lookup of SUBTRACT's General Rules misses it. The heading text and the rule text are complete, so the wording of the rules is unaffected; the defect is structural only, as the claim says. Sibling: '6.26.3 Syntax Rules' (line 14970) is also plain text.",
+    "corrected_description": ""
+  }
+}

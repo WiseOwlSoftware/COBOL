@@ -1,0 +1,13 @@
+{
+  "claim_id": "p858-2",
+  "claim_key": "21ae95e6dbf0e870",
+  "page": 858,
+  "kind": "missing-heading",
+  "severity": "structural",
+  "claim": {"id": "p858-2", "page": 858, "kind": "missing-heading", "severity": "structural", "pdf_says": "2.2 ARGUMENTS", "markdown_says": "**2.2 ARGUMENTS**", "why_it_matters": "The PDF prints 2.2 as a numbered section heading, a sibling of 2.1 (rendered '###' on page 857) and 2.3 (rendered as a heading on page 859); here it is demoted to bold text, so section 2.2 cannot be found by heading."},
+  "verdict": {
+    "real": false,
+    "reasoning": "The rendered page 858 (folio A-28) prints '2.2 ARGUMENTS' in bold as a section heading, and the markdown transcribes it with the same number and words as '**2.2 ARGUMENTS**'. Nothing in the standard's text is missing or changed. The only difference is the markdown markup level (bold paragraph instead of a '#' heading), which is formatting and does not change meaning. The claim's own markdown_says shows the heading text is present. The sibling headings are also inconsistent with each other: 2.1 is '###' on page 857, 2.3 is '##' on page 859, and 2.1.1 on this same page is also bold. So this is a heading-markup consistency issue in the transcription, not a content discrepancy against the PDF.",
+    "corrected_description": ""
+  }
+}
