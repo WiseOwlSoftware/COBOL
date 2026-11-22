@@ -1,4 +1,4 @@
-## Enqueue leads, second sweep: six notes and two findings from wave 20262135 groups B, C, F and G
+## Entry 3921 — 2026-11-22 12:40 PST — Enqueue leads, second sweep: six notes and two findings from wave 20262135 groups B, C, F and G
 
 Reports swept (E:/COBOL-coord/scratch/reports): w20262135b-PB2657, w20262135c-PB2619, w20262135f-PB3201, w20262135g-PB3202.
 Eleven leads (new-defect items and `LEAD` review findings); B's and C's unfinished notes are open notes already and were not
@@ -14,3 +14,4 @@ work.py).
 
 Already covered: PB3201's census trap (named in its landing note, root is PB6043); the DEVLOG count of re-sited rows
 (history, left as written).
+
