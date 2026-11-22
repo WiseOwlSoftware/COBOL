@@ -276,17 +276,18 @@ internal sealed class OdoResolvePass : IBindPass
     /// data-name-1, if specified, shall be a global name and shall reference a data item that is described in the
     /// same data division". The entry containing the OCCURS clause is never level 1 (SR1 a)), so it is subordinate to
     /// its record, and to the FD of a file-section record: §2023:13.18.27.3 SR1 admits GLOBAL on both.
-    /// <see cref="DataBinder.IsGlobalRecord"/> is "a global name" for data-name-1 (§2023:8.4.6.2.2).</para>
+    /// <see cref="DataItem.IsGlobalName"/> is "a global name" for data-name-1 (§2023:8.4.6.2.2).</para>
     /// <para>SR21 — "If the OCCURS clause is specified in a data description entry included in a record description
     /// entry containing the EXTERNAL clause, data-name-1 shall reference a data item possessing the external
     /// attribute that is described in the same data division". The TABLE's side is the record entry's own clause
     /// (or the EXTERNAL type it is "subject to the same rules" as, §2023:13.18.22.4 GR3); data-name-1's is the
-    /// <see cref="DataBinder.IsInExternalRecord"/> attribute.</para></summary>
+    /// <see cref="DataItem.HasExternalAttribute"/> attribute, which a record of an EXTERNAL file possesses too (§2023:13.18.22.4
+    /// GR4b), while the table's side asks the narrower "containing the EXTERNAL clause" the rule writes.</para></summary>
     private static string? DependingAttributeFault(DataBinder binder, DataItem table, DataItem dep)
     {
         // A sum counter (kb/Work PB5310) is a global name when its report is (§2023:13.18.27.4 GR1), whatever its register's root.
-        bool globalDep = binder.SumCounterReportOf(dep) is ({ } counterReport, _) ? counterReport.IsGlobal : binder.IsGlobalRecord(dep.Root);
-        bool tableGlobal = binder.IsGlobalRecord(table.Root), tableExternal = table.Root.HasExternalClause || table.Root.ExternalFromType;
+        bool globalDep = binder.SumCounterReportOf(dep) is ({ } counterReport, _) ? counterReport.IsGlobal : dep.IsGlobalName;
+        bool tableGlobal = table.IsGlobalName, tableExternal = table.Root.HasExternalClause || table.Root.ExternalFromType;
         var ed = binder.Edition.Edition;
         // "Described in the same data division" (§1985:VI.5.8.3 SR8/SR9; §2023:13.18.38.3 SR18/SR21): a counter this unit inherited
         // from a containing program (DataBinder.InheritContainerGlobalData) is described in that program's data division.
@@ -306,7 +307,7 @@ internal sealed class OdoResolvePass : IBindPass
                         + "data-name-1, if specified, must be a global name\" (§1985:VI.5.8.3 SR9)",
                     "the OCCURS clause is specified in an entry subordinate to one containing the GLOBAL clause, "
                         + "data-name-1, if specified, shall be a global name\" (ISO §2023:13.18.38.3 SR18)");
-        if (tableExternal && !DataBinder.IsInExternalRecord(dep.Root, binder.State.Files))
+        if (tableExternal && !dep.HasExternalAttribute)
             return $"the table's record '{table.Root.CobolName}' is EXTERNAL and data-name-1 does not possess the "
                 + "external attribute — \"" + ed.Cite(
                     "data-name-1, if specified, must reference a data item possessing the external attribute which is described in the "

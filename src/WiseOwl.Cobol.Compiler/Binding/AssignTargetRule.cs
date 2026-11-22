@@ -166,7 +166,7 @@ internal static class AssignTargetRule
         }
         string? fault = reading.Value.Category is not PicCategory.Alphanumeric
             ? $"shall be an alphanumeric literal; the constant-name '{spelling}' stands for a "
-                + $"{reading.Value.Category.ToString().ToLowerInvariant()} literal"
+                + $"{ItemCategory.CategoryName(reading.Value.Category)} literal"
             : reading.Value.Value.Length == 0 ? $"shall not be a zero-length literal; the constant-name '{spelling}' stands for a zero-length literal"
             : null;
         if (fault is null) return reading.Value.Value;

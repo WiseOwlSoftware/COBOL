@@ -46,7 +46,7 @@ public sealed partial class DataBinder
             {
                 var item = items[i];
                 if (State.Forest.DeclaringDepth(item) != 0) continue;
-                bool global = ReferenceEquals(item, item.Root) && IsGlobalRecord(item);
+                bool global = ReferenceEquals(item, item.Root) && item.IsGlobalName;
                 bool another = i > 0 && items.Take(i).Any(p => State.Forest.DeclaringDepth(p) == 0);
                 if (another && (global || firstGlobal is not null))
                 {

@@ -244,7 +244,7 @@ internal sealed class ResolveRecordFormatPass : IBindPass
     private static (int Offset, string Usage, int Size)? ShapeOf(DataItem record, DataItem variable)
     {
         if (RecordLayout.OffsetInRecord(Root(variable), variable) is not { } offset) return null;
-        string usage = variable.Pic is { } pic ? $"usage {pic.Usage.ToString().ToUpperInvariant()}, category {pic.Category.ToString().ToLowerInvariant()}" : "a group item";
+        string usage = variable.Pic is { } pic ? $"usage {UsageFamilies.UsageWord(pic.Usage)}, category {ItemCategory.CategoryName(pic)}" : "a group item";
         return (offset, usage, RecordLayout.PhysicalWidth(variable));
     }
 

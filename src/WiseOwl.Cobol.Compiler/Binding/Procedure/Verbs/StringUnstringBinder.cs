@@ -500,7 +500,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
     /// holds. <paramref name="outside"/> comes from <see cref="ItemCategory.UsageOutsideDisplayOrNational"/>.</summary>
     private static string UsageOffence(DataItem operand, DataItem outside, EditionInfo edition)
     {
-        string usage = ItemCategory.UsageOf(outside)?.ToString() ?? "(none)";
+        string usage = ItemCategory.UsageOf(outside) is { } u ? UsageFamilies.UsageWord(u) : "(none)";
         string requirement = "which has no character image; " + UsageRequirement(edition);
         if (!ReferenceEquals(outside, operand))
             return $"is a strongly-typed group item holding '{outside.CobolName ?? outside.ClrName}' of USAGE {usage}, "
@@ -569,7 +569,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
         // Boolean / Numeric, so the two spellings partition the same four values) and it stays right if that
         // mapping ever gains a fifth.
         BoundComputedOperand { Expr: BoundIntrinsicCall ic } when ic.ResultCategory is not
-            (PicCategory.Alphanumeric or PicCategory.National) => ic.ResultCategory.ToString(),
+            (PicCategory.Alphanumeric or PicCategory.National) => ItemCategory.CategoryName(ic.ResultCategory),
         _ => null,
     };
 

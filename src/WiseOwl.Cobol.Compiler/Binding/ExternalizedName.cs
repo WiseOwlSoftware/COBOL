@@ -94,7 +94,7 @@ internal static class ExternalizedName
             if (reading.Value.Category is not (PicCategory.Alphanumeric or PicCategory.National))
             {
                 Reject($"{tag} is the constant-name '{word.GetText()}', which stands for a "
-                       + $"{reading.Value.Category.ToString().ToLowerInvariant()} literal; {rule} admits an "
+                       + $"{ItemCategory.CategoryName(reading.Value.Category)} literal; {rule} admits an "
                        + "alphanumeric or national literal (ISO §2023:13.10.3 SR2 admits a constant-name only where a "
                        + "literal of its class and category is specified)");
                 return null;
@@ -141,7 +141,7 @@ internal static class ExternalizedName
             var folded = ConcatFolder.Fold(ce, edition, env);
             if (folded.Category is not (PicCategory.Alphanumeric or PicCategory.National))
             {
-                reject($"{tag} folds to a {folded.Category.ToString().ToLowerInvariant()} literal; {rule} "
+                reject($"{tag} folds to a {ItemCategory.CategoryName(folded.Category)} literal; {rule} "
                        + "admits an alphanumeric or national literal");
                 return null;
             }

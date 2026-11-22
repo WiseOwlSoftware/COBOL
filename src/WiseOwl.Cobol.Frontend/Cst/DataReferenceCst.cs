@@ -12,31 +12,23 @@ using Core = CobolParserCore;
 public enum SpecialRegister { None, LinageCounter, LineCounter, PageCounter }
 
 /// <summary>
-/// Typed façade over <see cref="Core.DataReferenceContext"/> (rearchitecture PHASE 04, Group C) — the narrow
-/// surface the binder's <c>ReferenceResolver</c> reads instead of raw <c>GetText()</c>/positional walks. Thin and
-/// 1:1 with the <c>dataReference</c> grammar rule: it holds the context and names the accessors, it computes NO
-/// semantic state (that belongs to the binder). A grammar-rule rename now breaks THIS file (a compile error)
-/// instead of drifting silently across the ~336 raw <c>GetText()</c> sites (P7 migrates the rest).
+/// The rule-bearing read of a <see cref="Core.DataReferenceContext"/>, as an EXTENSION MEMBER of the generated context:
+/// which special register the reference names. It computes no semantic state (that belongs to the binder), and a
+/// grammar-rule rename breaks THIS file (a compile error). No wrapper: the binder reads the generated contexts through
+/// <c>frontend.parse</c> (DESIGN-architecture-review §8.1), so the struct this once was, its implicit conversion and its
+/// unread <c>BaseName</c> are deleted (kb/Work PB2731).
 /// <para>The suffixes (qualification, the subscript list <see cref="Core.SubscriptPartContext"/> and the reference
-/// modifier <see cref="Core.RefModPartContext"/>) are not on the façade: they are parse nodes since D10 removed the
-/// SUBSCRIPT lexer mode (kb/Work PB2113), and the binder's <c>ReferenceResolver.ReadWritten</c> reads them off the
-/// raw context as the reference AS WRITTEN. The façade's former "has no suffix" test was deleted (kb/Work PB2193):
-/// <c>dataReferenceSuffix</c> carries qualification as well as subscripts, so that test could not tell a legal
-/// qualified reference from a subscripted one (kb/Work PB457).</para>
+/// modifier <see cref="Core.RefModPartContext"/>) are parse nodes since D10 removed the SUBSCRIPT lexer mode (kb/Work
+/// PB2113), and the binder's <c>ReferenceResolver.ReadWritten</c> reads them off the context as the reference AS WRITTEN.
+/// The former "has no suffix" test was deleted (kb/Work PB2193): <c>dataReferenceSuffix</c> carries qualification as well
+/// as subscripts, so that test could not tell a legal qualified reference from a subscripted one (kb/Work PB457).</para>
 /// </summary>
-public readonly struct DataReferenceCst(Core.DataReferenceContext ctx)
+public static class DataReferenceCst
 {
     /// <summary>The special-register kind this reference names, else <see cref="SpecialRegister.None"/>.</summary>
-    public SpecialRegister Register =>
+    public static SpecialRegister Register(this Core.DataReferenceContext ctx) =>
           ctx.LINAGE_COUNTER() is not null ? SpecialRegister.LinageCounter
         : ctx.LINE_COUNTER()   is not null ? SpecialRegister.LineCounter
         : ctx.PAGE_COUNTER()   is not null ? SpecialRegister.PageCounter
         : SpecialRegister.None;
-
-    /// <summary>The base data-name text (the leading <c>cobolWord</c>), or <see langword="null"/> for a bare
-    /// special register (whose <c>cobolWord</c>, if present, is a qualifier — see the register early-returns).</summary>
-    public string? BaseName => ctx.cobolWord()?.GetText();
-
-    /// <summary>Non-invasive adoption: an existing call site passes the raw context unchanged.</summary>
-    public static implicit operator DataReferenceCst(Core.DataReferenceContext c) => new(c);
 }

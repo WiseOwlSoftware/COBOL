@@ -27,10 +27,10 @@ internal sealed class RangeCollationFields
     public static RangeCollationFields Of(DataBindResult own, BoundUnit? container)
     {
         var fields = new Dictionary<RangeCollationId, string?>();
-        foreach (var id in own.RangeCollationIds) fields.Add(id, ObjectComputerEmit.RangeCollationField(id));
+        foreach (var (id, field) in ObjectComputerEmit.RangeCollationFieldsOf(own)) fields.Add(id, field);
         for (var u = container; u is not null; u = u.Parent)
-            foreach (var id in u.Data.RangeCollationIds)
-                fields.TryAdd(id, ObjectComputerEmit.RangeCollationField(id) is { } f ? $"{u.ClassName}.{f}" : null);
+            foreach (var (id, field) in ObjectComputerEmit.RangeCollationFieldsOf(u.Data))
+                fields.TryAdd(id, field is { } f ? $"{u.ClassName}.{f}" : null);
         return new(fields);
     }
 

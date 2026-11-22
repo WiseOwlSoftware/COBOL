@@ -221,13 +221,6 @@ public sealed partial class DataBinder
             ? $" — part of the description '{site.CobolName ?? "FILLER"}' copies in through its TYPE or SAME AS clause"
             : "";
 
-    /// <summary>Is <paramref name="record"/> — and so every data-name subordinate to it — a global name? ISO
-    /// §2023:8.4.6.2.2: "A constant-name, file-name, record-name, report-name, screen-name, or type-name described with a
-    /// GLOBAL clause is a global name. All data-names and screen-names subordinate to a global name are global
-    /// names" — the record's own GLOBAL clause, or its file description's (§2023:13.18.27.3 SR1 b) and d)).</summary>
-    internal bool IsGlobalRecord(DataItem record) =>
-        record.HasGlobalClause || State.Files.Declared.Any(f => f.IsGlobal && f.Records.Contains(record));
-
     /// <summary>Is <paramref name="item"/> described in the data division of a CONTAINING program rather than this unit's own
     /// (§1985:VI.5.8.3 SR8/SR9; §2023:13.18.38.3 SR18/SR21: data-name-1 "shall reference a data item that is described in the
     /// same data division")? A contained program's binder inherits its containers' GLOBAL names before the OCCURS DEPENDING

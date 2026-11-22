@@ -79,7 +79,7 @@ public sealed partial class FileControlBinder
             }
             if (DescriptionRepeated(fdName, fd.Start, name, "file description entry")) continue;
             file.HasFd = true;
-            file.Records.AddRange(records);
+            foreach (var record in records) file.AddRecord(record);
             // §2023:13.18.33.4 GR3: "Multiple level 1 entries subordinate to a FD or SD entry represent implicit
             // redefinitions of the same area" — an IMPLICIT redefinition, not a REDEFINES clause (kb/Work PB836).
             LinkImplicitRecordArea(file);
@@ -200,7 +200,7 @@ public sealed partial class FileControlBinder
                         + "nothing for the KEY phrase to name.",
                         "(ISO §2023:13.4.6.3 SR2) — a SORT or MERGE key is a data item within a "
                         + "record of this file (§2023:14.9.40.3 SR6a), so there is nothing for the KEY phrase to name."));
-            sdFile.Records.AddRange(sdRecords);
+            foreach (var record in sdRecords) sdFile.AddRecord(record);
             LinkImplicitRecordArea(sdFile);   // §2023:13.18.33.4 GR3 — the SD twin of the FD arm (kb/Work PB836)
             foreach (var clause in sd.sortMergeDescriptionClauses()?.sortMergeDescriptionClause() ?? [])
             {
@@ -383,7 +383,7 @@ public sealed partial class FileControlBinder
         // The implied record description (§2023:14.9.30.4 GR6) is the standard's, declared here: its entries are made here too.
         _host.Symbols.EnterDataItem(record);
         _host.Symbols.EnterDataItem(area);
-        file.Records.Add(record);
+        file.AddRecord(record);
         file.ImpliedRecord = record;   // real storage, but no record description entry: WrittenRecords leaves it out (kb/Work PB1219)
     }
 

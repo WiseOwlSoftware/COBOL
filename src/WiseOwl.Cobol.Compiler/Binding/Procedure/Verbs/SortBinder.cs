@@ -683,7 +683,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             if (host.Expr.ResolveSending(dref).PlaceOrReported(ctx.Edition) is not { } kp) return false;
             DataItem item = kp.Item;
             DataItem root = SortRootOf(item);
-            if (!file.Records.Contains(root))
+            if (!file.HoldsRecord(root))
                 return Reject($"SORT/MERGE key '{WrittenSource.Of(dref)}' is not described in a record of '{file.CobolName}' "
                     + $"({SortKeyAdmission.Clause(rules, ctx.Edition.Edition)} a))");
             if (Model.RecordLayout.OffsetInRecord(root, item) is null)

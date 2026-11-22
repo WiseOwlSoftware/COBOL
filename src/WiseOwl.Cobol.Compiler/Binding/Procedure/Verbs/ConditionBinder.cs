@@ -1433,7 +1433,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // the symbol table), so it used to fall to the undefined-word arm below and compile with only COBOL1756, aborting the
         // run unit, where the numeric data item `IF W` is refused. The register arm comes FIRST: its cobolWord() is the
         // QUALIFIER (`LINAGE-COUNTER OF F` gives F), which the alias, class-name and mnemonic tests below must not read.
-        if (dref is { } reg && new DataReferenceCst(reg).Register != SpecialRegister.None)
+        if (dref is { } reg && reg.Register() != SpecialRegister.None)
             what = $"the special register {WrittenSource.Of(reg)}, an unsigned integer data item of class and category numeric";
         else if (dref is { } ad && ad.dataReferenceSuffix().Length == 0 && host.Expr.LiteralAliasOf(ad) is { } alias)
             what = $"{alias.Described}, which is none of the conditions";
@@ -1451,7 +1451,8 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
                 + "the SPECIAL-NAMES paragraph associates with the switch's ON or OFF status (ISO §2023:8.8.4.6.1; the §2023:8.8.4.6.2 format is condition-name-1)";
         else if (dref is { } dd && ctx.Refs.Probe(dd) is { } probe)
             what = $"data item '{probe.Item.CobolName ?? text}'"
-                + (probe.OperandCategory is { } cat ? $" of category {cat.ToString().ToLowerInvariant()}" : "");
+                + (probe.OperandCategory is null ? ""
+                    : $" of category {(probe.Item.OperandPic is { } pic ? ItemCategory.CategoryName(pic) : ItemCategory.CategoryName(probe.OperandCategory.Value))}");
         else if (dref is { } undefined)
         {
             // A word that names nothing is the resolver's own diagnostic (COBOL1639), not a second one here —

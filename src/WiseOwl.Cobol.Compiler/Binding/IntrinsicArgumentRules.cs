@@ -2102,6 +2102,7 @@ internal static partial class IntrinsicArgumentRules
         CobolClass.Object => "object",
         CobolClass.Pointer => "pointer",
         CobolClass.Index => "index",
-        _ => c.ToString().ToLowerInvariant(),
+        // Exhaustive: a member added to CobolClass is spelled here, never by its C# name (kb/Work PB3229).
+        _ => throw new System.Diagnostics.UnreachableException($"CobolClass.{c} has no §2023:8.5.2.1 Table 2 class name"),
     };
 }

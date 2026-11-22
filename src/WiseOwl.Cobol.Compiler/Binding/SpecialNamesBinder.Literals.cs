@@ -42,7 +42,7 @@ public sealed partial class SpecialNamesBinder
             {
                 ReportClass($"{what}: {operand} shall be an alphanumeric or national literal (ISO "
                     + $"§2023:12.3.7.3 SR10); the constant-name '{word.GetText()}' stands for {constant.StandsFor}, of "
-                    + $"class {constant.Category} (§2023:13.10.4 GR1/GR2)");
+                    + $"category {ItemCategory.CategoryName(constant.Category)} (§2023:13.10.4 GR1/GR2)");
                 return false;
             }
             text = constant.Text;

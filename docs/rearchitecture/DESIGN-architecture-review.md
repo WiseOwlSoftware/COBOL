@@ -1170,8 +1170,13 @@ statement-order visibility is today's exactly because the binder appends and rea
 `IReads<TFacts>` answers the complete set and is legal only after the last phase that appends. The four accumulators
 are the four fact sets, each with its declared appending phases (`WholeGroupReferenced`: FilesResolved and
 UsageCollected; `ImageForcedItems`: RedefinesClassified, FilesResolved and ProcedureBound, read early by the resolver;
-`CharacterChannelItems`: UsageCollected; `ActivationSites`: ProcedureBound, read whole by the validation schedule). The
-declaration is code (PB2352): `FactSetKind` names the four, `FactSetContract` holds each one's appending phases (the last of
+`CharacterChannelItems`: UsageCollected; `ActivationSites`: ProcedureBound, read whole by the validation schedule). Two
+more joined them as code found them: `NumericStores` (UsageCollected, kb/Work PB5852) and `RangeCollations`, the THROUGH
+range carriers (kb/Work PB3214: appended in the entry walk by a level-88 `VALUE THROUGH … IN alphabet-name-1` and at
+ProcedureBound by an EVALUATE WHEN range, through `SpecialNamesBinder.TryResolveRangeAlphabet`, and read whole by code
+generation through `DataBindResult.RangeCollations`; it had sat among the SPECIAL-NAMES maps the configuration slice
+freezes before the data phases, where neither append was declared). The
+declaration is code (PB2352): `FactSetKind` names them, `FactSetContract` holds each one's appending phases (the last of
 them is the phase after which a whole read is legal), every pass states its `PassViews` (`IPassInfo.Views`: what it appends
 to, reads early, reads whole), and `BindPipeline.ValidateDag` refuses an append in a phase the set does not admit and a
 whole read that is not after the last appender. The declaration is checked against what a per-unit resolve pass does,
@@ -1468,8 +1473,9 @@ PB2352–PB2361.
 **(2) `WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog`** — R0-0002: `public static readonly DiagnosticDescriptor`
 fields beside four string constants (`NotImplemented`, `StrongType`, `RecognizedNotImplemented`,
 `DeclinedOptionalElement`); the census's own data-ize rule fires (its measures are on the note). And its twin: `WiseOwl.Cobol.Frontend.Diagnostics.DiagnosticDescriptors` holds descriptors (`CBLnnnn`, `COBOLnnnn`, and twins
-whose code is another constant) of a second `DiagnosticDescriptor` record, `(Code,
-DefaultSeverity, MessageTemplate)`; and `WiseOwl.Cobol.Editions.EditionCodes` holds the four edition-band codes that
+whose code is another constant) of a second `DiagnosticDescriptor` record, `(Code, MessageTemplate)` (it has no
+severity column: every frontend descriptor is an error by its emit path, and its message is composed only by
+`DiagnosticDescriptor.Format`, kb/Work PB2624; a frontend row's `severity` is therefore `error`); and `WiseOwl.Cobol.Editions.EditionCodes` holds the four edition-band codes that
 `ConstructRegistry`, `CobolWordRule`, `VersionConformancePass` and the frontend's `CobolErrorListener` all read.
 *Target: data plus a generator, keeping every identity.* One data file,
 `src/WiseOwl.Cobol.Editions/Diagnostics/diagnostics.json`, holds every row of the three. The row schema is the union of the
