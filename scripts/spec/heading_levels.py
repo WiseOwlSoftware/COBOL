@@ -13,8 +13,9 @@ the other modules are), to the part heading of Amendment 2. Amendment 1's addend
 clause numbers as change instructions and print their own structure (kb/Work PB6057 Sites).
 
 A heading's level is markup. A citation locator is the number (`citation.ISO_HEADING` reads `#{1,6}`) and the rule catalog
-types a block by its title, so a heading changed here leaves both identical; `heading_levels.py --check` is the
-`verify_publishable.py --edition 1985` audit, and `normalize` is the one function that applies the rule.
+closes a block at any heading, so a level changed here moves no locator and no rule; `check` is the audit that
+`verify_publishable.py --edition 1985` runs, and `normalize` is the one function that applies the rule (a one-time repair,
+and what the audit's cases plant against).
 
     python scripts/spec/heading_levels.py            # the audit of specs/ANSI_COBOL_1985.md (its cases: scripts/selftests/spec/heading_levels/)
 """
