@@ -1,0 +1,13 @@
+{
+  "claim_id": "p148-3",
+  "claim_key": "5c2fc098e2dc537a",
+  "page": 148,
+  "kind": "missing-heading",
+  "severity": "structural",
+  "claim": {"id": "p148-3", "page": 148, "kind": "missing-heading", "severity": "structural", "pdf_says": "2.1.5 Ellipsis", "markdown_says": "2.1.5 Ellipsis", "why_it_matters": "Plain paragraph rather than a '####' heading like its siblings 2.1.1, 2.1.2 and 2.1.7; the outline loses the Ellipsis clause (IV.2.1.5)."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The printed page (IV-2, PDF p148) sets '2.1.5 Ellipsis' as a numbered clause heading on its own line, typeset exactly like 2.1.3, 2.1.4 and 2.1.6 on the same page. In specs/ANSI_COBOL_1985.md, line 6285 '2.1.5 Ellipsis' is a plain paragraph, while its siblings at lines 6251 ('#### 2.1.1 Elements'), 6255 ('#### 2.1.2 Words') and 6307 ('#### 2.1.7 Use of Special Character Words in Formats') are '####' headings. The text is identical, so no words are lost, but the heading markup is: an outline or section lookup built from the markdown headings will not find clause IV.2.1.5. The claim quotes both sources accurately. It is incomplete, though: on the same page 2.1.3 Level-Numbers (line 6271), 2.1.4 Brackets, Braces, and Choice Indicators (line 6275) and 2.1.6 Format Punctuation (line 6295) are also plain paragraphs and have the same defect.",
+    "corrected_description": "Accurate as stated. On the same page, 2.1.3, 2.1.4 and 2.1.6 are also missing their '####' heading markup."
+  }
+}

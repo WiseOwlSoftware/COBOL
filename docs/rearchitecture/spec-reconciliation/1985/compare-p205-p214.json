@@ -1,0 +1,25 @@
+{
+  "batch": [205, 206, 207, 208, 209, 210, 211, 212, 213, 214],
+  "pages_checked": [205, 206, 207, 208, 209, 210, 211, 212, 213, 214],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p208-1",
+      "page": 208,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "GENERAL FORMAT FOR COMMUNICATION DESCRIPTION ENTRY",
+      "markdown_says": "<u>GENERAL FORMAT FOR COMMUNICATION DESCRIPTION ENTRY</u>",
+      "why_it_matters": "The PDF prints this underlined, centred format heading exactly as on pages 205-207 and 209-214, where the markdown renders it as '## <u>GENERAL FORMAT ...</u>'; on page 208 it is left as plain underlined text with no '##', so the Format 2 and Format 3 CD entries are invisible to heading-based navigation."
+    },
+    {
+      "id": "p213-1",
+      "page": 213,
+      "kind": "incorrect-text",
+      "severity": "cosmetic",
+      "pdf_says": "SW CLOSE {file-name-1 [ {REEL|UNIT} [FOR REMOVAL] / WITH {NO REWIND|LOCK} ] } ... (one outer brace enclosing file-name-1 and the bracket, ellipsis after the closing brace)",
+      "markdown_says": "         ╭             ┌╭<u>REEL</u> ╮  [FOR <u>REMOVAL</u>] ┐ ╮\n         ┤             │┤     ├                │ ├\n         │             │╰<u>UNIT</u> ╯                │ │\nSW        <u>CLOSE</u> ┤ file-name-1   │                      │ ├ …\n         │             │      ╭ <u>NO</u> <u>REWIND</u>╮     │ │\n         ┤             │      ┤          ├     │ ├\n         ╰             └WITH  ╰ <u>LOCK</u>     ╯     ┘ ╯",
+      "why_it_matters": "The drawn figure is malformed: the outer brace carries three middle points on each side (┤ on rows 2, 4 and 6; ├ likewise) and the row holding CLOSE shifts the brace and the bracket out of their columns, so the drawing can read as several stacked braces rather than one brace enclosing file-name-1 and its optional bracket. The words, underlining and ellipsis position survive, but the figure should be redrawn with one outer brace."
+    }
+  ]
+}

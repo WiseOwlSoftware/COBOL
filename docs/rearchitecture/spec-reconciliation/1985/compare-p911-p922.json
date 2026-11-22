@@ -1,0 +1,25 @@
+{
+  "batch": [911, 912, 913, 914, 915, 916, 917, 918, 919, 920, 921, 922],
+  "pages_checked": [911, 912, 913, 914, 915, 916, 917, 918, 919, 920, 921, 922],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p920-1",
+      "page": 920,
+      "kind": "missing-text",
+      "severity": "structural",
+      "pdf_says": "VI-16 Paragraph 4.5.4 of SPECIAL-NAMES paragraph, general rule 4d, subitem 4, replace the first sentence (Beginning \"If the THROUGH phrase is specified\") with the following new sentence: If the THROUGH phrase is specified, the contiguous characters in the native character set, beginning with the character specified by literal-1 and ending with the character specified by literal-2, are each assigned a successive ascending collating position in the collating sequence being specified and/or a successive ascending ordinal number in the character code set being specified.  [the quoted fragment and the whole replacement sentence are printed SHADED]",
+      "markdown_says": "replace the first sentence (Beginning \"If the THROUGH phrase is specified\") with the following new sentence:<br><br>If the THROUGH phrase is specified, the contiguous characters in the native character set, beginning with the character specified by literal-1 and ending with the character specified by literal-2, are each assigned a successive ascending collating position in the collating sequence being specified and/or a successive ascending ordinal number in the character code set being specified.",
+      "why_it_matters": "The amendment's preamble (page 913) says shading marks specifications unique to level 2; pages 919 and 922 render shading with ║...║ markers, but this entry drops the shading, so the replacement sentence reads as applying at every level."
+    },
+    {
+      "id": "p920-2",
+      "page": 920,
+      "kind": "missing-text",
+      "severity": "structural",
+      "pdf_says": "4) If a character code set is being specified, the implementor defines the ordinal number within the character code set being specified for each character within the native character set that is not specified by the literal-1 phrase.  [printed SHADED]",
+      "markdown_says": "4) If a character code set is being specified, the implementor defines the ordinal number within the character code set being specified for each character within the native character set that is not specified by the literal-1 phrase.",
+      "why_it_matters": "The new subitem 4 is printed shaded (level 2 only per the page-913 preamble); the markdown omits the ║...║ shading marker it uses elsewhere (pages 919, 922)."
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "claim_id": "p100-1",
+  "claim_key": "98ebaca1e85a31ef",
+  "page": 100,
+  "kind": "missing-heading",
+  "severity": "structural",
+  "claim": {"id": "p100-1", "page": 100, "kind": "missing-heading", "severity": "structural", "pdf_says": "4.4.3 Subscripting Example", "markdown_says": "### 4.4.3 Subscripting Example", "why_it_matters": "Heading at the wrong level: 4.4.3 is a child of 4.4 SUBSCRIPTING (###) and a sibling of 4.4.1 (####), but is rendered at ###, the same level as its parent."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The printed page II-16 (PDF p100) opens with the numbered heading '4.4.3 Subscripting Example', a third-level subsection of 4.4 SUBSCRIPTING. In specs/ANSI_COBOL_1985.md the outline is: line 4499 '### 4.4 SUBSCRIPTING', line 4513 '#### 4.4.1 Subscripting Using Integers or Data-Names', line 4523 '### 4.4.2 Subscripting Using Index-Names', line 4545 '### 4.4.3 Subscripting Example'. So 4.4.3 sits at the same heading level as its parent 4.4 and one level above its sibling 4.4.1, as the claim says. The heading text and the page body are fully present and correctly transcribed (data definition, the three paragraphs), so no words are missing; the defect is only the heading level. It is still a real structural defect: anything that slices the markdown by heading level (section extraction, citation lookup by §1985:II.4.4) ends 4.4 at the 4.4.2 heading and treats 4.4.3 as a peer of 4.4. Not normative: no rule text changes.",
+    "corrected_description": "Wrong heading level, not a missing heading: the heading text '4.4.3 Subscripting Example' is present, but at ### (the level of its parent 4.4 SUBSCRIPTING) where it should be #### like its sibling 4.4.1. The sibling 4.4.2 (page 99, line 4523) has the same wrong level, and nearby 4.2 INITIAL VALUES OF TABLES (line 4477) sits at ## where its siblings 4.1 and 4.3 are ###. Structural only; the page body text matches the PDF."
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "claim_id": "p159-3",
+  "claim_key": "e887f5c8f91eb61a",
+  "page": 159,
+  "kind": "missing-heading",
+  "severity": "structural",
+  "claim": {"id": "p159-3", "page": 159, "kind": "missing-heading", "severity": "structural", "pdf_says": "4.3.1.1 Physical Aspects of a File", "markdown_says": "4.3.1.1 Physical Aspects of a File", "why_it_matters": "Printed as a numbered section heading; the markdown has it as a plain paragraph with no heading marker. A heading missing or at the wrong level breaks the section structure that navigation and clause lookup by section number rely on; the wording itself is intact."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The 300 dpi render of PDF page 159 (IV-13) prints '4.3.1.1 Physical Aspects of a File' as a numbered section heading on its own line, set off like 4.3, 4.3.1 and 4.3.1.2. In page-159.md (line 13) it appears as a bare paragraph with no '#' marker. The wording matches exactly, so only the heading markup is missing. That markup is not optional furniture in this transcription: specs/ANSI_COBOL_1985.md marks 1196 numbered headings with '#' (for example '#### 4.2.2.1.1 User-Defined Words'), and section lookup depends on those markers, so a missing marker is a genuine structural defect. The same page also leaves 4.3, 4.3.1 and 4.3.1.2 unmarked; the claim is accurate for 4.3.1.1.",
+    "corrected_description": ""
+  }
+}

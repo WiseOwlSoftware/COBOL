@@ -1,0 +1,13 @@
+{
+  "claim_id": "p104-6",
+  "claim_key": "5c826a6f03843ab5",
+  "page": 104,
+  "kind": "missing-heading",
+  "severity": "structural",
+  "claim": {"id": "p104-6", "page": 104, "kind": "missing-heading", "severity": "structural", "pdf_says": "6.2.2.2 Object Attributes", "markdown_says": "6.2.2.2 Object Attributes", "why_it_matters": "A numbered section heading printed in the PDF is demoted to a plain paragraph in the markdown; its children 6.2.2.2.1-6.2.2.2.4 on page 105 are headings (####) under a parent that is not one."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The 300 dpi render of PDF page 104 (II-20) prints '6.2.2.2 Object Attributes' as a bold numbered heading, set off on its own line like 6.2.2.1.1-6.2.2.1.4. In page-104.md (line 25) it is a bare paragraph line '6.2.2.2 Object Attributes' with no '#' marker. On page-105.md its children appear as '#### 6.2.2.2.1 Working Storage Records' through '#### 6.2.2.2.4 Other Objects', so the parent is not a heading while its children are. The text is not lost, but the document's heading hierarchy is broken, and that is what a structural missing-heading claim means. The claim quotes both sources correctly.",
+    "corrected_description": "Accurate as stated. Sibling note: on the same page, 6.2.2.1 Object Types and 6.2.2.1.1-6.2.2.1.4 are also plain paragraph lines in the markdown, although the PDF prints them as headings. Each should be checked or filed on its own."
+  }
+}

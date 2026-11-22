@@ -1,0 +1,13 @@
+{
+  "claim_id": "p889-1",
+  "claim_key": "e75a284639f75a10",
+  "page": 889,
+  "kind": "missing-heading",
+  "severity": "structural",
+  "claim": {"id": "p889-1", "page": 889, "kind": "missing-heading", "severity": "structural", "pdf_says": "Intrinsic Function - NUMVAL-C", "markdown_says": "# Intrinsic Function - NUMVAL-C", "why_it_matters": "The page's running header is transcribed as a level-1 markdown heading, ranking above the real section heading '## 2.30 THE NUMVAL-C FUNCTION'. Every sibling page (887, 888, 890-898) keeps the running header as plain text. The spurious H1 puts a false top-level entry in the document outline; it should be plain text like its siblings (or removed as scaffolding)."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The printed page (A-59) shows 'Intrinsic Function - NUMVAL-C' top right as a running header, in the same bold style as every other appendix A function page; the real section heading is '2.30 THE NUMVAL-C FUNCTION'. page-889.md line 3 has it as '# Intrinsic Function - NUMVAL-C'. A grep of specs/ANSI_COBOL_1985.md for 'Intrinsic Function - ' finds 50 running-header lines (lines 31517-33056), and 49 are plain text. Only line 32510 (NUMVAL-C) carries '# '. The words match, so the meaning of the text does not change. The defect is in the structure: a stray level-1 heading puts a false top-level node in the outline, above the '## 2.30' section. That is a real structural transcription defect. The kind label is wrong, though: nothing is missing. A heading was added that the page does not have.",
+    "corrected_description": "Spurious heading, not a missing one: on page 889 the running header 'Intrinsic Function - NUMVAL-C' is transcribed as a level-1 markdown heading ('# Intrinsic Function - NUMVAL-C', specs/ANSI_COBOL_1985.md line 32510). It is the only one of the 50 'Intrinsic Function - ...' running headers in the file to carry heading markup. Drop the '# ' so it is plain text like its siblings. The text itself matches the PDF."
+  }
+}

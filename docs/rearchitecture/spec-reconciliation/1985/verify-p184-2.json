@@ -1,0 +1,22 @@
+{
+  "claim_id": "p184-2",
+  "claim_key": "4621b214a0575e96",
+  "page": 184,
+  "kind": "missing-heading",
+  "severity": "structural",
+  "claim": {
+    "id": "p184-2",
+    "page": 184,
+    "kind": "missing-heading",
+    "severity": "structural",
+    "why_it_matters": "A heading at the wrong level (or none) misplaces the clause in the outline that page_workunit, citation and section lookups read, so the clause is attributed to the wrong parent or not found as a section.",
+    "pdf_says": "6.4.2.2 Compiler Directing Statements and Compiler Directing Sentences",
+    "markdown_says": "### 6.4.2.2 Compiler Directing Statements and Compiler Directing Sentences",
+    "note": "Heading at the wrong level: the transcription's convention is one '#' per numbering component (7. is '#', 7.1 '##', 6.4.1 '###', 6.4.2.1 '####', 6.4.2.1.1 '#####'); its sibling 6.4.2.1 is '####' on page 183, so this should be '####' (as '###' it reads as a peer of 6.4.2)."
+  },
+  "verdict": {
+    "real": true,
+    "reasoning": "Printed page 184 (IV-38) shows the heading '6.4.2.2 Compiler Directing Statements and Compiler Directing Sentences' in the same style as its sibling 6.4.2.1.2 and children 6.4.2.2.1/6.4.2.2.2; its four-component number makes it a child of 6.4.2 and a sibling of 6.4.2.1. The transcription renders it '### 6.4.2.2' (specs/ANSI_COBOL_1985.md line 7683) while 6.4.2 is '###' (line 7623) and 6.4.2.1 is '####' (line 7629), so the markdown outline makes 6.4.2.2 a peer of 6.4.2 instead of its child. The text is quoted correctly; only the heading level is wrong, which is a genuine structural defect for outline-based section lookup. Siblings in the same run are also one level short (6.4.2.1.2 '####', 6.4.2.2.1/6.4.2.2.2 '####', 6.4.2.3 '###' and its children) and likely belong to the same sweep.",
+    "corrected_description": "Heading 6.4.2.2 is '###' in the transcription; by the transcription's one-'#'-per-component convention and its sibling 6.4.2.1 ('####'), it should be '####'. Its subsections 6.4.2.2.1 and 6.4.2.2.2 (both '####') should likewise be '#####'."
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "claim_id": "p148-4",
+  "claim_key": "283f51063be35300",
+  "page": 148,
+  "kind": "missing-heading",
+  "severity": "structural",
+  "claim": {"id": "p148-4", "page": 148, "kind": "missing-heading", "severity": "structural", "pdf_says": "2.1.6 Format Punctuation", "markdown_says": "2.1.6 Format Punctuation", "why_it_matters": "Plain paragraph rather than a '####' heading like its siblings 2.1.1, 2.1.2 and 2.1.7; the outline loses clause IV.2.1.6."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The rendered page 148 (folio IV-2) prints '2.1.6 Format Punctuation' as a numbered clause heading, set exactly like '2.1.3 Level-Numbers', '2.1.4 Brackets, Braces, and Choice Indicators' and '2.1.5 Ellipsis' above it. In specs/ANSI_COBOL_1985.md (line 6295) it is a bare paragraph line, while siblings 2.1.1 Elements, 2.1.2 Words (lines 6251, 6255) and 2.1.7 Use of Special Character Words in Formats (line 6307) are '####' headings. The text is present; what is lost is the heading structure, so a heading-based outline or citation lookup cannot find §1985:IV.2.1.6. The claim is accurate, though it understates the extent: 2.1.3, 2.1.4 and 2.1.5 on the same page are also plain paragraphs rather than '####' headings, so it is not true that all other siblings are headings.",
+    "corrected_description": "'2.1.6 Format Punctuation' (folio IV-2) is a plain paragraph in the markdown instead of a '####' heading like 2.1.1, 2.1.2 and 2.1.7. 2.1.3, 2.1.4 and 2.1.5 on the same page have the same defect, so the outline loses clauses IV.2.1.3 through IV.2.1.6."
+  }
+}

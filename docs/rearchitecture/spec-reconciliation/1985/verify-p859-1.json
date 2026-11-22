@@ -1,0 +1,13 @@
+{
+  "claim_id": "p859-1",
+  "claim_key": "0b24a1782c2b6dbe",
+  "page": 859,
+  "kind": "missing-heading",
+  "severity": "structural",
+  "claim": {"id": "p859-1", "page": 859, "kind": "missing-heading", "severity": "structural", "pdf_says": "2.3 TYPES OF FUNCTIONS", "markdown_says": "## 2.3 TYPES OF FUNCTIONS", "why_it_matters": "2.3 is a sibling of 2.1, which page 857 renders '### 2.1 FUNCTION DEFINITION AND RETURNED VALUE' under '## 2. GENERAL DESCRIPTION'; rendering 2.3 at '##' puts it at the level of the numbered clause 2, a wrong heading level that breaks the section hierarchy. The same holds for '## 2.4 DEFINITIONS OF FUNCTIONS' on this page."},
+  "verdict": {
+    "real": false,
+    "reasoning": "The printed page (A-29) shows '2.3 TYPES OF FUNCTIONS' and '2.4 DEFINITIONS OF FUNCTIONS' as bold run-in headings, and the markdown carries both headings verbatim ('## 2.3 TYPES OF FUNCTIONS', '## 2.4 DEFINITIONS OF FUNCTIONS'), so nothing is missing and the kind 'missing-heading' misdescribes it. The only difference is the markdown heading depth: in the transcription 2.1 is '###', 2.2 (page 858) is plain bold text, and 2.3/2.4 are '##', the same depth as '## 2. GENERAL DESCRIPTION'. That inconsistency is real in the markdown, but it is a formatting/heading-level choice of the transcription. It is not a PDF-vs-markdown content discrepancy: every word, number and the clause numbering itself (2.3, 2.4) is intact, so a reader or a citation of §1985 A-2.3 loses nothing. Under the verification rules (reject differences that are only formatting and do not change meaning; default to false when uncertain) the claim is refuted.",
+    "corrected_description": "Not a missing heading. The headings 2.3 and 2.4 are present verbatim. Only their markdown depth differs: '##', where their sibling 2.1 is '###' and 2.2 on page 858 is bold text. That is a cosmetic hierarchy inconsistency inside the transcription, not a content discrepancy."
+  }
+}

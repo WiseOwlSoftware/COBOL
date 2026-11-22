@@ -1,0 +1,13 @@
+{
+  "claim_id": "p148-1",
+  "claim_key": "0037593c8e4949e2",
+  "page": 148,
+  "kind": "missing-heading",
+  "severity": "structural",
+  "claim": {"id": "p148-1", "page": 148, "kind": "missing-heading", "severity": "structural", "pdf_says": "2.1.3 Level-Numbers", "markdown_says": "2.1.3 Level-Numbers", "why_it_matters": "The printed subsection heading is transcribed as a plain paragraph, while its siblings 2.1.1 and 2.1.2 on page 147 and 2.1.7 on page 149 are '####' headings. The heading is demoted, so the document outline loses 2.1.3."},
+  "verdict": {
+    "real": false,
+    "reasoning": "The printed page (IV-2, PDF page 148) shows '2.1.3 Level-Numbers' as a subsection heading line, and the markdown (specs/ANSI_COBOL_1985.md line 6271) carries exactly the same text, '2.1.3 Level-Numbers', in the same position, followed by the same body paragraph. The claim's own pdf_says and markdown_says are identical. The only difference is that the markdown has no '####' heading marker on this line. The same is true of 2.1.4, 2.1.5 and 2.1.6 on this page. That is formatting, and it does not change meaning: no word of the standard is missing, added or altered. It also has no practical effect: `python scripts/spec/cite.py --check \"§1985:IV.2.1.3\" \"those specific level-numbers are required\"` returned OK and resolved the clause as '2.1.3 Level-Numbers', so citation resolution still finds the clause without the heading marker. Under the verification rules, a formatting-only difference is rejected. The missing heading marker could be tidied for outline consistency, but it is not a content discrepancy.",
+    "corrected_description": ""
+  }
+}

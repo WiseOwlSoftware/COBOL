@@ -1,0 +1,13 @@
+{
+  "claim_id": "p170-1",
+  "claim_key": "ff3cab18da99f6d6",
+  "page": 170,
+  "kind": "missing-heading",
+  "severity": "structural",
+  "claim": {"id": "p170-1", "page": 170, "kind": "missing-heading", "severity": "structural", "pdf_says": "4.3.8.5 Condition-Name", "markdown_says": "### 4.3.8.6 Condition-Name", "note": "Heading level wrong: its siblings 4.3.8.3 Function-Identifier, 4.3.8.4 Reference Modification and 4.3.8.5 Identifier (page 169) are level-4 (####), and the parent 4.3.8 Uniqueness of Reference is level 3 (###); this subsection is emitted at the parent's level, so the outline makes Condition-Name a sibling of 4.3.8 rather than a child. (The renumbering to 4.3.8.6 is the marked Amendment 1 correction C94 and is not the finding.)", "why_it_matters": "A heading at the wrong level (or none) breaks the document outline that section lookups and citation checks navigate by; the clause becomes unfindable by its number or is filed under the wrong parent."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The printed page 170 (folio IV-24) shows the subsection heading '4.3.8.5 Condition-Name' (renumbered 4.3.8.6 by Amendment 1, C94, which the markdown marks). In the transcription it is '### 4.3.8.6 Condition-Name'. specs/ANSI_COBOL_1985.md line 6872 is '### 4.3.8 Uniqueness of Reference', and the siblings are '#### 4.3.8.3 Function-Identifier' (line 7072), '#### 4.3.8.4 Reference Modification' (line 7109) and '#### 4.3.8.5 Identifier' (page-169.md line 31). So the outline makes the fifth-level clause 4.3.8.6 a peer of its parent 4.3.8. The number and title are correct; only the heading level is wrong. The defect is real and structural. The kind 'missing-heading' is imprecise, because the heading is present at the wrong level. Sibling note outside this claim: '### 4.3.8.1 Qualification' (line 6892) has the same wrong level, and 4.3.8.2 Subscripting (line 7006) has no markdown heading marker at all.",
+    "corrected_description": "Heading level defect, not a missing heading. The clause heading is transcribed as '### 4.3.8.6 Condition-Name', level 3, the same level as its parent '### 4.3.8 Uniqueness of Reference'. It should be '#### 4.3.8.6 Condition-Name', level 4, matching its siblings 4.3.8.3, 4.3.8.4 and 4.3.8.5. The number and title are correct after the marked C94 renumbering."
+  }
+}
