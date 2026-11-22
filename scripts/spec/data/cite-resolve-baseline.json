@@ -8,7 +8,7 @@
   "longer fails. Repair a citation, then rewrite this file with",
   "`python scripts/spec/audit_code_citations.py --write-baseline` (it refuses to add an entry)."
  ],
- "count": 6026,
+ "count": 6021,
  "entries": [
   {
    "file": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4",
@@ -35763,36 +35763,6 @@
    "line": 58,
    "citation": "§2023:8.4.3.3.4 item 5c",
    "kind": "item-is-a-rule"
-  },
-  {
-   "file": "kb/Work/PB6036.md",
-   "line": 2,
-   "citation": "§2023:13.18.38.3 SR25d",
-   "kind": "no-sub-item"
-  },
-  {
-   "file": "kb/Work/PB6036.md",
-   "line": 2,
-   "citation": "§2023:14.5.3.3 GR1c",
-   "kind": "no-sub-item"
-  },
-  {
-   "file": "kb/Work/PB6036.md",
-   "line": 34,
-   "citation": "§2023:13.18.38.3 SR25d",
-   "kind": "no-sub-item"
-  },
-  {
-   "file": "kb/Work/PB6036.md",
-   "line": 47,
-   "citation": "§2023:13.18.38.3 SR25d",
-   "kind": "no-sub-item"
-  },
-  {
-   "file": "kb/Work/PB6036.md",
-   "line": 47,
-   "citation": "§2023:14.5.3.3 GR1c",
-   "kind": "no-sub-item"
   },
   {
    "file": "kb/Work/PB623.md",
