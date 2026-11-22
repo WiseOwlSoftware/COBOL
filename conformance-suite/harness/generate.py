@@ -67,6 +67,7 @@ sys.path.insert(0, str(REPO / "scripts" / "spec"))
 import construct_store  # noqa: E402  (scripts/spec: the construct catalogue, one file per construct, kb/Work PB5110)
 import cobol_source as cobol  # noqa: E402  (this directory's: the program-text facts the refusals need)
 import config  # noqa: E402  (this directory's: the harness's adapter, profile and baseline formats)
+import measurements  # noqa: E402  (this directory's: the second compiler's recorded verdicts, kb/Work PB6054)
 import generated_output  # noqa: E402  (the one way a generator clears the directory it writes: never wholesale)
 import inventory_schema  # noqa: E402  (the inventory's one schema: its editions, its evidence predicates)
 import inventory_view  # noqa: E402  (the one view of the inventory, kb/Work PB4992)
@@ -1478,6 +1479,9 @@ def generate(root: Path, inputs: Inputs, problems: list[Problem], out: Path | No
     for rel, message in config.check_tree(root, inputs.editions, inputs.requirable, inputs.implementor_defined,
                                           suite_ids(reader.cases, inputs.editions)):
         reader.refuse(rel, 1, message)
+    # A second compiler's measurement of each held edition's catalog rows (§5, kb/Work PB6054).
+    for rel, message in measurements.check_tree(root, measurements.populations(reader.cases, inputs.schema)):
+        reader.refuse(rel, 1, message)
     if reader.refusals:
         if echo:
             for r in sorted(reader.refusals, key=lambda r: (r.path, r.line, r.message)):
@@ -1998,6 +2002,14 @@ def self_test() -> int:
         "a baseline of no adapter": (
             "baselines/nobody.json", json.dumps({"compiler": "nobody", "verdicts": {"85": {"ok": "PASS"}}}),
             "a baseline of 'nobody', which has no adapter"),
+        "a measurement of a test no population holds": (
+            "measurements/stub.json",
+            json.dumps({"compiler": "stub", "editions": {"85": {"verdicts": {"nobody": "PASS"}, "failures": {}}}}),
+            "85 nobody: no test of the 85 population has this id"),
+        "a measurement failure with no cause": (
+            "measurements/silent.json",
+            json.dumps({"compiler": "silent", "editions": {"85": {"verdicts": {"nobody": "FAIL"}, "failures": {}}}}),
+            "nobody: a FAIL with no bucket and cause"),
         "build in a suite test": ("cases/1.1.1-Rule/bld-suite.cob",
                                   _fixed(["id: bld-suite", "rules: [GR-1.1.1-1]", "accept: [85]", "files: [CPY1.cpy]",
                                           "build: [CPY1.cpy]", "source-format: fixed"], _PROGRAM),
