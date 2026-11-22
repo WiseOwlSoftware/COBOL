@@ -69,7 +69,7 @@ internal static class RuntimeApi
         _ => nameof(CobolBool.And),   // '&' and the (unreachable) default — the pre-4b table's shape
     };
 
-    /// <summary>A boolean shift/rotate (ISO §2023:8.8.2 rule 8, 2023) — <c>CobolBool.Shift{Left|Right}[Circular](v, k)</c>.</summary>
+    /// <summary>A boolean shift/rotate (ISO §2023:8.8.2 GR8, 2023) — <c>CobolBool.Shift{Left|Right}[Circular](v, k)</c>.</summary>
     public static string BoolShift(WiseOwl.Cobol.Binding.Bound.BoolShiftKind kind, string operand, string count) => kind switch
     {
         WiseOwl.Cobol.Binding.Bound.BoolShiftKind.Left => $"{nameof(CobolBool)}.{nameof(CobolBool.ShiftLeft)}({operand}, {count})",
@@ -208,7 +208,7 @@ internal static class RuntimeApi
         $"{nameof(FunctionValueField)}.{nameof(FunctionValueField.OfFloatItem)}({exactValue}, {profile}, {image}, {bytes})";
 
     /// <summary>The length of a <c>FunctionValueField</c> expression - what FUNCTION LENGTH (positions, §2023:15.50.4) or, with
-    /// <paramref name="bytes"/>, FUNCTION BYTE-LENGTH (§2023:15.14.4 r1) of a numeric or integer function call answers (kb/Work PB3951).</summary>
+    /// <paramref name="bytes"/>, FUNCTION BYTE-LENGTH (§2023:15.14.4 RV1) of a numeric or integer function call answers (kb/Work PB3951).</summary>
     public static string FunctionFieldLength(string field, bool bytes) =>
         $"({field}).{(bytes ? nameof(FunctionValueField.ByteLength) : nameof(FunctionValueField.Length))}";
 
@@ -237,7 +237,7 @@ internal static class RuntimeApi
         $"{nameof(CobolNum)}.{nameof(CobolNum.FormatImage)}({value}, {profile})";
 
     /// <summary>The 1985 and 2002 image store of a sign holder: <see cref="NumFormatImage"/>, except that a zero value takes the
-    /// SENDING operand's sign <paramref name="senderNegative"/> (<c>CobolNum.FormatImageSendersSign</c>, §1985:VI.6.19.4 GR4b1;
+    /// SENDING operand's sign <paramref name="senderNegative"/> (<c>CobolNum.FormatImageSendersSign</c>, §1985:VI.6.19.4 GR4b.1;
     /// kb/Work PB5852).</summary>
     public static string NumFormatImageSendersSign(string value, string senderNegative, string profile) =>
         $"{nameof(CobolNum)}.{nameof(CobolNum.FormatImageSendersSign)}({value}, {senderNegative}, {profile})";
@@ -252,7 +252,7 @@ internal static class RuntimeApi
 
     /// <summary>The magnitude digits of a signed ZONED image that is the de-signed source of an alphanumeric MOVE or compare
     /// (<c>CobolNum.DeSignImage</c>, ISO §2023:14.9.25.4 GR6a): decoded and re-emitted when the image is valid, copied as it stands when it
-    /// is not (a numeric item still holding spaces). <paramref name="sending"/> selects the §2023:14.6.13.2 rule 2 checked lane, as for
+    /// is not (a numeric item still holding spaces). <paramref name="sending"/> selects the §2023:14.6.13.2 GR2 checked lane, as for
     /// <see cref="NumParseImage"/>.</summary>
     public static string NumDeSignImage(string image, string profile, int digits, bool sending) =>
         $"{nameof(CobolNum)}.{(sending ? nameof(CobolNum.DeSignImageSending) : nameof(CobolNum.DeSignImage))}({image}, {profile}, {digits})";
@@ -261,7 +261,7 @@ internal static class RuntimeApi
     /// inverse of <see cref="NumFormatImage"/>.
     /// <para>⛔ <paramref name="sending"/> HAS NO DEFAULT, deliberately (the "caller names the landing" shape
     /// <see cref="FloatToScaled"/> uses): a windowed decode is either a SENDING reference of the item's content,
-    /// which ISO §2023:14.6.13.2 rule 2 makes EC-DATA-INCOMPATIBLE-checkable, or it is not — and a new call site that
+    /// which ISO §2023:14.6.13.2 GR2 makes EC-DATA-INCOMPATIBLE-checkable, or it is not — and a new call site that
     /// silently inherited "not" is precisely how rule 2 came to have no raise site at all (kb/Work PB230).
     /// <c>true</c> emits <c>CobolNum.ParseImageSending</c>, which tests the content against the numeric class
     /// condition under checking and is otherwise identical.</para></summary>
@@ -294,7 +294,7 @@ internal static class RuntimeApi
     public static string NumIsNumericImage(string image, string profile) =>
         $"{nameof(CobolNum)}.{nameof(CobolNum.IsNumericImage)}({image}, {profile})";
 
-    /// <summary>⛔ THE BOOLEAN CLASS CONDITION — <c>CobolClass.IsBoolean</c> (ISO §2023:8.8.4.4.4 GR3 e): "the
+    /// <summary>⛔ THE BOOLEAN CLASS CONDITION — <c>CobolClass.IsBoolean</c> (ISO §2023:8.8.4.4.4 GR3e): "the
     /// condition is true if the content of the data item referenced by identifier-1 consists entirely of the
     /// boolean values '0' and '1'", with GR1's zero-length FALSE already on it. Anchored here rather than
     /// emitted bare because it is the class condition's NEWEST alternative (kb/Work PB590) and the ratchet in
@@ -315,19 +315,19 @@ internal static class RuntimeApi
     public static string FloatClassImage(string image, string profile, FloatClassTest test) =>
         $"{nameof(CobolFloatClass)}.{nameof(CobolFloatClass.IsImage)}({image}, {profile}, {nameof(FloatClassTest)}.{test})";
 
-    /// <summary>NUMERIC over a COMPUTED numeric operand's value (ISO §2023:8.8.4.4.4 GR3 n) 1. c.; kb/Work PB1401) —
+    /// <summary>NUMERIC over a COMPUTED numeric operand's value (ISO §2023:8.8.4.4.4 GR3n.1.c; kb/Work PB1401) —
     /// <c>CobolValueClass.IsNumeric</c>: the operand is evaluated and its content is a valid value by
     /// construction. <paramref name="dec"/> is the operand lifted to its decimal form.</summary>
     public static string ValueClassIsNumeric(string dec) =>
         $"{nameof(CobolValueClass)}.{nameof(CobolValueClass.IsNumeric)}({dec})";
 
-    /// <summary>FARTHEST-FROM-ZERO / NEAREST-TO-ZERO over a COMPUTED numeric operand's value (ISO §2023:8.8.4.4.4 GR3 g)
+    /// <summary>FARTHEST-FROM-ZERO / NEAREST-TO-ZERO over a COMPUTED numeric operand's value (ISO §2023:8.8.4.4.4 GR3g)
     /// / m)) — <c>CobolValueClass.IsExtreme</c>, which takes the value ONCE. <paramref name="negative"/> is
     /// <c>null</c> for a description that cannot hold a sign.</summary>
     public static string ValueClassIsExtreme(string dec, string positive, string? negative) =>
         $"{nameof(CobolValueClass)}.{nameof(CobolValueClass.IsExtreme)}({dec}, {positive}, {negative ?? "null"})";
 
-    /// <summary>IN-ARITHMETIC-RANGE over a COMPUTED numeric operand's value (ISO §2023:8.8.4.4.4 GR3 l)) —
+    /// <summary>IN-ARITHMETIC-RANGE over a COMPUTED numeric operand's value (ISO §2023:8.8.4.4.4 GR3l) —
     /// <c>CobolValueClass.IsInArithmeticRange</c> against the mode's intermediate extremes.</summary>
     public static string ValueClassIsInArithmeticRange(string dec, string farthest, string nearest) =>
         $"{nameof(CobolValueClass)}.{nameof(CobolValueClass.IsInArithmeticRange)}({dec}, {farthest}, {nearest})";
@@ -335,7 +335,7 @@ internal static class RuntimeApi
     /// <summary>The rule-2 checked sending read on the STRING channel — <c>CobolNum.SendingImage</c>: a ZONED
     /// window is handed on VERBATIM (its stored image is its text), having first been tested against the numeric
     /// class condition under checking. <paramref name="sending"/> false is the raw read, for an exempt context
-    /// (§2023:14.6.13.2 rule 2's class-condition and VALIDATE dashes — <see cref="Emit.SendingRef"/>).</summary>
+    /// (§2023:14.6.13.2 GR2's class-condition and VALIDATE dashes — <see cref="Emit.SendingRef"/>).</summary>
     public static string NumSendingImage(string image, string profile, bool sending) =>
         sending ? $"{nameof(CobolNum)}.{nameof(CobolNum.SendingImage)}({image}, {profile})" : image;
 
@@ -344,7 +344,7 @@ internal static class RuntimeApi
     /// <param name="binary32Carrier">NO DEFAULT, so every site states which value it wants (kb/Work PB961).
     /// <c>true</c> — the item is binary32 (<c>PicInfo.IsSingle</c>) and the read is a STORE, COPY, class test or
     /// DISPLAY of its content: <c>CobolNum.ParseImageSingle</c>, a <c>float</c> with no binary64 between, because
-    /// a binary32 → binary64 widening QUIETS a signaling NaN (§2023:14.9.25.4 GR6 c) — a same-usage transfer is
+    /// a binary32 → binary64 widening QUIETS a signaling NaN (§2023:14.9.25.4 GR6c) — a same-usage transfer is
     /// "without change"). <c>false</c> — a binary64 item, or an ARITHMETIC read of either width, where the
     /// widening is the operation: <c>CobolNum.ParseImageFloat</c>, a <c>double</c>.</param>
     public static string NumParseImageFloat(string image, string profile, bool binary32Carrier) =>
@@ -358,7 +358,7 @@ internal static class RuntimeApi
     /// generic StoreAsImage arm decodes a <c>PIC 9(10..18) COMP-5</c> window identically (kb/Work PB164, the Step D
     /// review; the unused twin was deleted by kb/Work PB2181).</summary>
     /// <param name="sending">As <see cref="NumParseImage"/> — no default, so a new site states whether it is a
-    /// §2023:14.6.13.2 rule 2 sending reference.</param>
+    /// §2023:14.6.13.2 GR2 sending reference.</param>
     public static string NumParseImageU128(string image, string profile, bool sending) =>
         $"{nameof(CobolNum)}.{(sending ? nameof(CobolNum.ParseImageU128Sending) : nameof(CobolNum.ParseImageU128))}({image}, {profile})";
 
@@ -367,7 +367,7 @@ internal static class RuntimeApi
     /// <param name="binary32">NO DEFAULT (kb/Work PB961): the RECEIVING item's width, <c>PicInfo.IsSingle</c>. A
     /// binary32 item encodes through <c>CobolNum.FormatImageSingle</c> after an explicit <c>(float)</c> — a no-op on
     /// a <c>float</c> value, the item's own narrowing on a <c>double</c> one — so a binary32 value never widens on
-    /// its way to its own bytes (a widening quiets a signaling NaN, which ISO §2023:14.9.39.4 rule 35 and §2023:14.9.25.4
+    /// its way to its own bytes (a widening quiets a signaling NaN, which ISO §2023:14.9.39.4 GR35 and §2023:14.9.25.4
     /// GR6 c) both forbid). The choice is keyed on the ITEM, never on the value's C# type, so a new site cannot
     /// pick the wrong lane by passing the right-looking expression.</param>
     public static string NumFormatImageFloat(string value, string profile, bool binary32) =>
@@ -447,7 +447,7 @@ internal static class RuntimeApi
     /// <summary>An elementary message tag's content: its positions of the received image, resolved against the message's slots (<c>AsyncMessaging.TagOf</c>, kb/Work PB4957).</summary>
     public static string AsyncTagOf(string image, string slots) => $"{nameof(AsyncMessaging)}.{nameof(AsyncMessaging.TagOf)}({image}, {slots})";
 
-    /// <summary>The size an unbounded RECEIVE's area took after its store (<c>AsyncMessaging.Received</c>; §2023:14.6.11 7)).</summary>
+    /// <summary>The size an unbounded RECEIVE's area took after its store (<c>AsyncMessaging.Received</c>; §2023:14.6.11 GR7).</summary>
     public static string AsyncReceived(string tag, string size) => $"{nameof(AsyncMessaging)}.{nameof(AsyncMessaging.Received)}({tag}, {size})";
 
     /// <summary>A RECEIVE's wait, spelled so a rename of the kinds breaks here.</summary>
@@ -480,22 +480,22 @@ internal static class RuntimeApi
     /// (<paramref name="alignedFixed"/> — the caller's rescale, which a floating-point form never needs).</summary>
     public static string EditFormatFor(PicInfo pic, Emit.NumX value, string alignedFixed, string alignedScale, string cfgArgs)
     {
-        // A format-2 (LOCALE) receiver edits through CobolLocaleEdit (§2023:13.18.40.5 r9–r15; PB64 T6) — the arm
+        // A format-2 (LOCALE) receiver edits through CobolLocaleEdit (§2023:13.18.40.5 GR9–r15; PB64 T6) — the arm
         // sits FIRST because a locale item has NO EditMask and the deref below is reachable-null for it. Its
         // cfgArgs carry at most the blankWhenZero: flag — EmitContext.EditCfg produces "" for a locale item
-        // (no currencyString:, no commaMode: — §2023:13.18.40.5 r9 / §2023:12.3.7.4 GR14) and EditsArg "" (no EDITING).
+        // (no currencyString:, no commaMode: — §2023:13.18.40.5 GR9 / §2023:12.3.7.4 GR14) and EditsArg "" (no EDITING).
         if (pic.LocaleEdit is { } le)
             return $"{nameof(CobolLocaleEdit)}.{nameof(CobolLocaleEdit.Format)}({alignedFixed}, {alignedScale}, "
                 + $"{Emit.EmitText.CsLiteral(le.Picture)}, {LocaleTagArg(le.Locale)}, {le.Size}{cfgArgs})";
         if (!pic.IsFloatEdited) return EditFormat(alignedFixed, alignedScale, Emit.EmitText.CsLiteral(pic.EditMask!), cfgArgs);
-        // MOVE semantics: the floating-point form truncates (§2023:14.6.8.4 rule 2). The arithmetic no-phrase store
+        // MOVE semantics: the floating-point form truncates (§2023:14.6.8.4 GR2). The arithmetic no-phrase store
         // names the receiver's own mode through EditFormatFloat instead (kb/Work PB2638).
         return EditFormatFloat(pic, value, CobolRounding.Truncation, cfgArgs);
     }
 
     /// <summary>The floating-point numeric-edited form's UNCHECKED store — <c>CobolEdit.FormatFloatStore</c> over the
     /// sender's exact form, the significand's dropped digits rounded by <paramref name="mode"/>. The CALLER names
-    /// the landing (kb/Work PB2638): a MOVE is TRUNCATION (§2023:14.6.8.4 rule 2, <see cref="EditFormatFor"/>), and the
+    /// the landing (kb/Work PB2638): a MOVE is TRUNCATION (§2023:14.6.8.4 GR2, <see cref="EditFormatFor"/>), and the
     /// no-phrase arithmetic store and the report's rounded implicit COMPUTE (<c>MoveEmitter.ConvertSource</c>) are the
     /// receiver's §2023:14.7.4.3 mode, where an inexact PROHIBITED raises <see cref="CobolSizeError.ProhibitedInexact"/>
     /// (rule 7, kb/Work PB3990) for the caller's keep to catch.</summary>
@@ -530,13 +530,13 @@ internal static class RuntimeApi
 
     /// <summary>A locale-name reference rendered for a runtime call: the L1-normalized tag as a string literal,
     /// or <c>null</c> for the current-locale form (the runtime resolves the category's current locale at use —
-    /// §2023:13.18.40.5 r11 / §2023:14.6.6 r6). The ONE renderer of a <see cref="Binding.Model.LocaleRef"/> argument.</summary>
+    /// §2023:13.18.40.5 GR11 / §2023:14.6.6 GR6). The ONE renderer of a <see cref="Binding.Model.LocaleRef"/> argument.</summary>
     public static string LocaleTagArg(Binding.Model.LocaleRef locale) =>
         locale.Tag is { } t ? Emit.EmitText.CsLiteral(t) : "null";
 
     /// <summary>The format-2 (LOCALE) receiver's ARITHMETIC store (§2023:14.7.5 — false = the size error condition,
     /// receiver unchanged; the capacity is the picture's integer digit positions, DISTINCT from EC-LOCALE-SIZE,
-    /// which is §2023:13.18.40.5 r14 b's character-truncation condition inside the edit itself):
+    /// which is §2023:13.18.40.5 GR14 b's character-truncation condition inside the edit itself):
     /// <c>CobolLocaleEdit.TryFormat</c>. The EditTryFormatFloat shape.</summary>
     public static string EditTryFormatLocale(PicInfo pic, string alignedFixed, string alignedScale, string imgVar, string cfgArgs)
     {
@@ -545,7 +545,7 @@ internal static class RuntimeApi
             + $"{Emit.EmitText.CsLiteral(le.Picture)}, {LocaleTagArg(le.Locale)}, {le.Size}, out var {imgVar}{cfgArgs})";
     }
 
-    /// <summary>A format-2 (LOCALE) sender's DE-EDIT read (§2023:14.9.25.4 GR5/GR6 d over §2023:14.6.13.2 r4) — the
+    /// <summary>A format-2 (LOCALE) sender's DE-EDIT read (§2023:14.9.25.4 GR5/GR6 d over §2023:14.6.13.2 GR4) — the
     /// <c>CobolLocaleEdit.DeEdit</c> call under the locale current NOW; the scale is the picture's.</summary>
     public static string LocaleDeEdit(PicInfo pic, string read, bool blankWhenZero)
     {
@@ -555,7 +555,7 @@ internal static class RuntimeApi
     }
 
     /// <summary>A format-2 (LOCALE) item's VALUE-clause initializer — a RUNTIME <c>CobolLocaleEdit.Format</c>
-    /// call, never a baked image: §2023:13.18.40.5 r11 + §2023:14.6.6 r6 make the locale the one current AT THE TIME of
+    /// call, never a baked image: §2023:13.18.40.5 GR11 + §2023:14.6.6 GR6 make the locale the one current AT THE TIME of
     /// editing, so no compile-time image exists. The ONE producer for the field initializer, the group-image
     /// composer and the level-88 membership value.</summary>
     public static string LocaleEditCompose(PicInfo pic, Int128 unscaled, int scale, bool blankWhenZero)
@@ -576,12 +576,12 @@ internal static class RuntimeApi
         $"{nameof(CobolFloat)}.{nameof(CobolFloat.ScaledToSingle)}({unscaled}, {scale})";
 
     /// <summary>The checked store of an already single-converted fixed-point MOVE sender —
-    /// <c>CobolFloat.StoreScaledSingleChecked</c> (ISO §2023:14.9.25.4 GR6 d)4.a; kb/Work PB1110).</summary>
+    /// <c>CobolFloat.StoreScaledSingleChecked</c> (ISO §2023:14.9.25.4 GR6d.4a; kb/Work PB1110).</summary>
     public static string FloatStoreScaledSingleChecked(string converted) =>
         $"{nameof(CobolFloat)}.{nameof(CobolFloat.StoreScaledSingleChecked)}({converted})";
 
     /// <summary>The floating-point form's ARITHMETIC store (§2023:14.7.5 cases 3/4 — false = the size error condition,
-    /// receiver unchanged; also §2023:14.7.4.3 rule 7's PROHIBITED-inexact): <c>CobolEdit.TryFormatFloat</c> over the
+    /// receiver unchanged; also §2023:14.7.4.3 GR7's PROHIBITED-inexact): <c>CobolEdit.TryFormatFloat</c> over the
     /// result's exact form, the significand rounded by the receiver's <paramref name="mode"/> (kb/Work PB2638).</summary>
     public static string EditTryFormatFloat(PicInfo pic, Emit.NumX value, CobolRounding mode, string imgVar, string cfgArgs)
     {
@@ -589,7 +589,7 @@ internal static class RuntimeApi
         return $"{nameof(CobolEdit)}.{tryName}({args}, {Emit.EmitText.CsLiteral(pic.EditMask!)}, out var {imgVar}, {RoundingText(mode)}{cfgArgs})";
     }
 
-    /// <summary>A floating-point literal as the EXACT standard-decimal operand (ISO §2023:8.8.1.5.2 r1 — the literal's
+    /// <summary>A floating-point literal as the EXACT standard-decimal operand (ISO §2023:8.8.1.5.2 GR1 — the literal's
     /// value, significand × 10^exponent, lifted through the ONE range-checking funnel <c>CobolDec.FromParsed</c>; a
     /// 35/36-digit significand rounds to decimal128's 34 under the intermediate rounding mode). Under STANDARD-DECIMAL
     /// arithmetic this replaces the binary64 form a floating literal takes natively (D16), so a 20-digit significand or
@@ -610,7 +610,7 @@ internal static class RuntimeApi
     /// is byte-identical. ⛔ Edited stores do NOT append it themselves: <see cref="Emit.EmitContext.EditCfg"/>
     /// carries it, so every fixed- AND floating-point edited call site gets it from the one producer (kb/Work PB866).
     /// <para>literal-2 / literal-3 / literal-1 travel as STRING literals (§2023:13.18.40.3 SR9 allows 50 characters)
-    /// and the FLOATING flag travels beside them, because §2023:13.18.40.5 rule 6 makes an extended editing sign
+    /// and the FLOATING flag travels beside them, because §2023:13.18.40.5 GR6 makes an extended editing sign
     /// control symbol a floating insertion symbol and only the binder saw the character-string that decides it
     /// (kb/Work PB491).</para></summary>
     public static string EditsArg(IReadOnlyList<CobolEdit.EditRule>? rules)
@@ -639,7 +639,7 @@ internal static class RuntimeApi
         $"{nameof(CobolEdit)}.{nameof(CobolEdit.FormatSimpleInsertion)}({value}, "
         + $"{Emit.EmitText.CsLiteral(pic.EditMask!)}{EditsArg(pic.EditingRules)})";
 
-    /// <summary>The §2023:14.9.25.4 GR6 d) 3 read of an ALPHANUMERIC or NATIONAL sending operand in a numeric context —
+    /// <summary>The §2023:14.9.25.4 GR6d 3 read of an ALPHANUMERIC or NATIONAL sending operand in a numeric context —
     /// an unsigned integer over the operand's rightmost 31 character positions. <paramref name="sending"/> selects
     /// the MOVE-rules CHECKED form (<c>CobolNum.FromAlphanumericSending</c>, GR6 d) 1's EC-DATA-INCOMPATIBLE); the
     /// answer for a given reference is <c>SendingRef.AlphanumericChecked()</c>'s, never a call-site bool literal
@@ -655,7 +655,7 @@ internal static class RuntimeApi
 
     /// <summary>Decode a digit image's magnitude with NO size rule (non-digits contribute no digit, §2023:14.6.13.2) —
     /// <c>CobolNum.DigitMagnitude</c>. For an image whose size its own data description already fixes: a numeric
-    /// item's character image, or §2023:14.9.25.4 GR6 d) 3 b)'s figurative replication across the RECEIVER's digit
+    /// item's character image, or §2023:14.9.25.4 GR6d 3 b)'s figurative replication across the RECEIVER's digit
     /// positions.</summary>
     public static string NumDigitMagnitude(string image) =>
         $"{nameof(CobolNum)}.{nameof(CobolNum.DigitMagnitude)}({image})";
@@ -737,7 +737,7 @@ internal static class RuntimeApi
 
     /// <summary>The position intake for a subscript or reference-modifier bound that is an arithmetic EXPRESSION —
     /// <c>CobolTable.OccValue*</c> / <c>CobolString.RefModValue*</c> over the value on its OWN carrier, so
-    /// §2023:8.4.2.3.4 GR1b / §2023:8.4.3.3.4 rule 5)c)'s integrality test reads the exact intermediate (kb/Work PB1890).
+    /// §2023:8.4.2.3.4 GR1b / §2023:8.4.3.3.4 GR5)c)'s integrality test reads the exact intermediate (kb/Work PB1890).
     /// Keyed by the same carrier kinds as <see cref="IntegerArgOf"/>; the result is the position's exact integer on the
     /// 38-digit segment temporary's capacity (saturated by sign past it, kb/Work PB2695) — a table subscript's is an
     /// <c>Int128</c>, narrowed to <c>long</c> only by the subscript read, so its diagnostic names the true value.</summary>
@@ -759,7 +759,7 @@ internal static class RuntimeApi
     public enum IntegerArgCarrier { Scaled, Dec, Real }
 
 
-    /// <summary>⛔ THE argument-1 domain screen (ISO §2023:15.3 rule 14; kb/Work PB952) — <c>CobolIntrinsics.DomainScaled</c>
+    /// <summary>⛔ THE argument-1 domain screen (ISO §2023:15.3 AR14; kb/Work PB952) — <c>CobolIntrinsics.DomainScaled</c>
     /// / <c>DomainDec</c> / <c>DomainReal</c> over the operand on its OWN carrier, returning the binary64 the body
     /// computes on. The carrier picks the overload by NAME (an integer expression converts to Int128 and to double
     /// alike — CS0121): the exact scaled integer at its scale, the SDIDI, or a binary64 that is already the value.
@@ -796,7 +796,7 @@ internal static class RuntimeApi
     /// says which store it is, exactly as <see cref="FloatToScaled"/> does for the float carrier (kb/Work PB77).
     /// The UNCHECKED landing is <c>CobolNum.RescaleStoreCap</c>: the LOW-ORDER digits of the result aligned at
     /// the receiver's scale, which is the determination <c>CONFORMANCE.md</c> DOC-A.1-70 documents for the
-    /// §2023:14.7.5 no-phrase rule-4 size error (§2023:14.6.13.1.3 item 8). The CHECKED landing is
+    /// §2023:14.7.5 no-phrase rule-4 size error (§2023:14.6.13.1.3 GR8). The CHECKED landing is
     /// <c>CobolNum.RescaleChecked</c>, which raises the §2023:14.7.5 case-3 size error for the statement's
     /// ON SIZE ERROR / EC-SIZE machinery so storing rule 2 leaves the receiver unchanged.</summary>
     public static string NumRescaleStore(string value, string fromScale, string toScale, CobolRounding mode, bool checkedPath) =>
@@ -809,7 +809,7 @@ internal static class RuntimeApi
         $"{nameof(CobolNum)}.{(checkedPath ? nameof(CobolNum.RescaleCheckedU) : nameof(CobolNum.RescaleStoreCapU))}({value}, {fromScale}, {toScale}, {RoundingText(mode)})";
 
     /// <summary>The scaled division at a result scale — <c>CobolNum.Divide</c>, one kernel in every context: it raises a
-    /// zero divisor (§2023:14.7.5 case 2) and a PROHIBITED-inexact quotient (§2023:14.7.4.3 rule 7) whether or not checking is
+    /// zero divisor (§2023:14.7.5 case 2) and a PROHIBITED-inexact quotient (§2023:14.7.4.3 GR7) whether or not checking is
     /// enabled (kb/Work PB1605, PB3990).</summary>
     public static string NumDivide(string a, string aScale, string b, string bScale, string resultScale, CobolRounding mode) =>
         $"{nameof(CobolNum)}.{nameof(CobolNum.Divide)}({a}, {aScale}, {b}, {bScale}, {resultScale}, {RoundingText(mode)})";
@@ -866,7 +866,7 @@ internal static class RuntimeApi
     public static string DecToUnscaledChecked(string decExpr, string scale, CobolRounding mode) =>
         $"({decExpr}).{nameof(CobolDec.ToUnscaledChecked)}({scale}, {RoundingText(mode)})";
 
-    /// <summary>⛔ The catch arm of §2023:14.7.4.3 rule 7 in an arithmetic statement with no SIZE ERROR phrase and checking off
+    /// <summary>⛔ The catch arm of §2023:14.7.4.3 GR7 in an arithmetic statement with no SIZE ERROR phrase and checking off
     /// (kb/Work PB3990; <c>ArithmeticEmitter.KeepsOnProhibitedInexact</c>): it takes <see cref="CobolSizeError.ProhibitedInexact"/>'s
     /// condition alone, filtered on <see cref="CobolSizeError.IsProhibitedInexact"/>, and does nothing, so the resultant
     /// keeps its content and execution continues (docs/CONFORMANCE.md DOC-A.1-70). <paramref name="exceptionVar"/> is the
@@ -1148,10 +1148,10 @@ internal static class RuntimeApi
     public static string FunctionFieldOfExact(string exact, string mode) =>
         $"{nameof(FunctionValueField)}.{nameof(FunctionValueField.OfExact)}({exact}, {mode})";
 
-    /// <summary>The exact §2023:15.27.3 r3 FUNCTION E constant under a standard mode — <c>CobolDec.E</c> (kb/Work R18).</summary>
+    /// <summary>The exact §2023:15.27.3 RV3 FUNCTION E constant under a standard mode — <c>CobolDec.E</c> (kb/Work R18).</summary>
     public static string DecE => $"{nameof(CobolDec)}.{nameof(CobolDec.E)}";
 
-    /// <summary>The exact §2023:15.73.3 r3 FUNCTION PI constant under a standard mode — <c>CobolDec.Pi</c> (kb/Work R18).</summary>
+    /// <summary>The exact §2023:15.73.3 RV3 FUNCTION PI constant under a standard mode — <c>CobolDec.Pi</c> (kb/Work R18).</summary>
     public static string DecPi => $"{nameof(CobolDec)}.{nameof(CobolDec.Pi)}";
 
     /// <summary>An exact fixed-point value lifted into SDIDI form — <c>CobolDec.From(unscaled, scale)</c>.</summary>
@@ -1160,7 +1160,7 @@ internal static class RuntimeApi
 
     /// <summary>A fixed-point value of UNBOUNDED width lifted into SDIDI form as a STANDARD-DECIMAL operand —
     /// <c>CobolDec.FromParsed(unscaled, -scale, mode)</c>, which rounds a significand past the SDIDI's 34 digits under
-    /// the INTERMEDIATE ROUNDING mode (ISO §2023:8.8.1.5.2 r1; kb/Work PB2918). <see cref="DecFrom"/> is the exact lift for
+    /// the INTERMEDIATE ROUNDING mode (ISO §2023:8.8.1.5.2 GR1; kb/Work PB2918). <see cref="DecFrom"/> is the exact lift for
     /// an operand proven to fit.</summary>
     public static string DecLiftRounded(string unscaled, int scale, string modeExpr) =>
         $"{nameof(CobolDec)}.{nameof(CobolDec.FromParsed)}({unscaled}, {-scale}, {modeExpr})";
@@ -1187,7 +1187,7 @@ internal static class RuntimeApi
 
     /// <summary>The §2023:8.8.1.5.1 implementor-defined float→SDIDI conversion of a floating-point DATA ITEM's value -
     /// <c>CobolDec.FromBinary64</c>: the binary64's exact value rounded once to 34 digits under the INTERMEDIATE
-    /// ROUNDING mode (§2023:8.8.1.5.2 r1; kb/Work PB1606).</summary>
+    /// ROUNDING mode (§2023:8.8.1.5.2 GR1; kb/Work PB1606).</summary>
     public static string DecFromBinary64(string doubleExpr, string modeExpr) =>
         $"{nameof(CobolDec)}.{nameof(CobolDec.FromBinary64)}({doubleExpr}, {modeExpr})";
 
@@ -1273,7 +1273,7 @@ internal static class RuntimeApi
     /// <summary>A floating-point intermediate landed to a scaled integer at a target fraction scale for a STORE — the
     /// CHECKED <c>CobolFloat.ToScaled</c> (RAISES the size error past the carrier — an ON SIZE ERROR / EC-SIZE
     /// store; never a saturated sentinel, kb/Work PB2967) or the UNCHECKED <c>CobolFloat.ToScaledUnchecked</c> (the
-    /// low-order digits — a MOVE, §2023:14.6.8.2 r4; the no-phrase store; INVOKE BY CONTENT). The caller names the LANDING
+    /// low-order digits — a MOVE, §2023:14.6.8.2 GR4; the no-phrase store; INVOKE BY CONTENT). The caller names the LANDING
     /// (kb/Work PB77) — there is no default, so a new site has to say which store it is. An INTERMEDIATE consumer
     /// (no store, no capacity check) takes <see cref="FloatToScaledIntermediate"/>.
     /// <para>⛔ <paramref name="approximation"/> IS THE VALUE'S KIND, AND THERE IS NO DEFAULT FOR THE SAME REASON (kb/Work
@@ -1333,7 +1333,7 @@ internal static class RuntimeApi
     };
 
     /// <summary>The checked read of a standard-float SENDING operand — <c>CobolFloat.Sending(value)</c>: raises the
-    /// fatal EC-DATA-NOT-FINITE for a NaN/±Infinity content under checking (ISO §2023:14.6.13.2 item 3), else returns the
+    /// fatal EC-DATA-NOT-FINITE for a NaN/±Infinity content under checking (ISO §2023:14.6.13.2 GR3), else returns the
     /// value. Wrapped at both float read chokepoints (the numeric-value read and the string-image read); the exempt
     /// sites (class/sign condition, same-usage MOVE) emit the raw read instead.</summary>
     public static string FloatSending(string value) =>
@@ -1357,7 +1357,7 @@ internal static class RuntimeApi
 
     /// <summary>The checked store of a MOVE algebraic value into a SINGLE-precision float receiver —
     /// <c>CobolFloat.StoreSingleChecked(src)</c>: raises the fatal EC-DATA-OVERFLOW when a finite source overflows to
-    /// ±Infinity under checking (ISO §2023:14.9.25.4 GR6 d)4.a), else returns the cast value.</summary>
+    /// ±Infinity under checking (ISO §2023:14.9.25.4 GR6d.4.a), else returns the cast value.</summary>
     public static string FloatStoreSingleChecked(string src) =>
         $"{nameof(CobolFloat)}.{nameof(CobolFloat.StoreSingleChecked)}({src})";
 
@@ -1520,7 +1520,7 @@ internal static class RuntimeApi
     public static string PtrFree(string ptr, string notAllocVar) =>
         $"{nameof(CobolPtr)}.{nameof(CobolPtr.Free)}({ptr}, out {notAllocVar})";
 
-    // ── Indexes (CobolIndex; ISO §2023:14.9.39.4 GR2 a) 1., GR3, GR4 a), GR29 · §2023:13.18.38.4 GR2 — kb/Work PB459) ──
+    // ── Indexes (CobolIndex; ISO §2023:14.9.39.4 GR2a.1, GR3, GR4 a), GR29 · §2023:13.18.38.4 GR2 — kb/Work PB459) ──
 
     /// <summary>THE SET-family amount landing over an EXACT scaled fixed-point amount —
     /// <c>CobolIndex.TryAmount</c>. The amount keeps its scale all the way in, so the integrality test
@@ -1541,7 +1541,7 @@ internal static class RuntimeApi
         $"{nameof(CobolIndex)}.{nameof(CobolIndex.TryAmountDec)}({dec}, "
         + $"{nameof(SetAmountRule)}.{rule}, {EmitText.CsLiteral(detail)}, out long {outVar})";
 
-    /// <summary>THE guarded index augment — <c>CobolIndex.Augment</c> (§2023:14.9.39.4 GR4 a): a result outside the
+    /// <summary>THE guarded index augment — <c>CobolIndex.Augment</c> (§2023:14.9.39.4 GR4a): a result outside the
     /// implementor index range raises EC-RANGE-INDEX and returns the index UNCHANGED.</summary>
     public static string IndexAugment(string index, string amount, bool down, string detail) =>
         $"{nameof(CobolIndex)}.{nameof(CobolIndex.Augment)}({index}, {amount}, {(down ? "true" : "false")}, "
@@ -1609,13 +1609,13 @@ internal static class RuntimeApi
     // width and a CALL / INVOKE argument's area extent), and they must agree.
 
     /// <summary>The leftmost-position argument of the runtime's range-checked reference modification, from the typed
-    /// start position (§2023:8.4.3.3.4 item 5b). A value past the carrier saturates inside the position read, so it stays
+    /// start position (§2023:8.4.3.3.4 GR5b). A value past the carrier saturates inside the position read, so it stays
     /// out of range and raises EC-BOUND-REF-MOD (item 5c) rather than wrapping onto a position inside the item
     /// (kb/Work PB1033), and its exact value reaches the detail (kb/Work PB2938).</summary>
     public static string RefModStart(Position start) => PositionRenderer.Render(start);
 
     /// <summary>The length argument from the typed length position, or the OMITTED sentinel when the "to the end" form
-    /// was written (§2023:8.4.3.3.4 item 5c). A specified length passes through <see cref="CobolString.SpecifiedRefModLength"/>,
+    /// was written (§2023:8.4.3.3.4 GR5c). A specified length passes through <see cref="CobolString.SpecifiedRefModLength"/>,
     /// which can never be the omitted sentinel and keeps the exact value for the detail.</summary>
     public static string RefModLength(Position? length) =>
         length is null ? OmittedRefModLength
@@ -1653,7 +1653,7 @@ internal static class RuntimeApi
         $"{nameof(CobolString)}.{nameof(CobolString.WindowInto)}({s}, {start}, {len}, {rhs}"
         + $"{(pad is null ? "" : $", pad: {pad}")})";
 
-    /// <summary>⛔ THE IN-PLACE OVERLAPPING MOVE (ISO §2023:14.6.10 1); kb/Work PB1910, docs/CONFORMANCE.md D-OVL2) — the
+    /// <summary>⛔ THE IN-PLACE OVERLAPPING MOVE (ISO §2023:14.6.10 GR1; kb/Work PB1910, docs/CONFORMANCE.md D-OVL2) — the
     /// receiver's storage image after a numeric DISPLAY sender is converted into it, in place:
     /// <c>OverlappingMove.DisplayToDisplay</c>. <paramref name="receiverAt"/> is the receiver's first byte minus the
     /// sender's (a compile-time constant, <c>MoveOverlap.Classify</c>'s).</summary>
@@ -1695,7 +1695,7 @@ internal static class RuntimeApi
         + $"figIsLeft: {(figIsLeft ? "true" : "false")}{weightsArg})";
 
     /// <summary>An integer count or occurrence-number read — <c>CobolTable.Occ</c>, through the item's profile when
-    /// it is numeric (the checked §2023:14.6.13.2 rule 2 read): <c>PlaceRenderer.CountRead</c>'s OCCURS DEPENDING count
+    /// it is numeric (the checked §2023:14.6.13.2 GR2 read): <c>PlaceRenderer.CountRead</c>'s OCCURS DEPENDING count
     /// and <c>PositionRenderer</c>'s subscript read.</summary>
     public static string TableOcc(string expr, string? profile) => profile is null
         ? $"{nameof(CobolTable)}.{nameof(CobolTable.Occ)}({expr})"
@@ -1768,7 +1768,7 @@ internal static class RuntimeApi
         $"{nameof(CobolTable)}.{nameof(CobolTable.AllImage)}(new Func<long[], long>[] {{ {string.Join(", ", countLambdas)} }}, {elementLambda})";
 
     /// <summary>The statement that ends the reference when a held table(ALL) argument's copy found no occurrence —
-    /// <c>CobolTable.RequireOccurrences(count)</c> (ISO §2023:15.3 14); kb/Work PB4162).</summary>
+    /// <c>CobolTable.RequireOccurrences(count)</c> (ISO §2023:15.3 AR14; kb/Work PB4162).</summary>
     public static string TableRequireOccurrences(string count) =>
         $"{nameof(CobolTable)}.{nameof(CobolTable.RequireOccurrences)}({count});";
 
@@ -1845,7 +1845,7 @@ internal static class RuntimeApi
     public static string FileRegisterRecordSelector(string name, string lambdaHeader) =>
         $"{nameof(CobolFile)}.{nameof(CobolFile.RegisterRecordSelector)}({name}, {lambdaHeader}";
 
-    /// <summary>The SELECT-spelled file-name (ISO §2023:15.28.4 r1c/r2b — kb/Work PB63) as the registration's trailing
+    /// <summary>The SELECT-spelled file-name (ISO §2023:15.28.4 RV1c/r2b — kb/Work PB63) as the registration's trailing
     /// named argument; empty when the caller has none.</summary>
     private static string SelectNameArg(string? selectName) => selectName is null ? "" : $", selectName: {selectName}";
 
@@ -1902,7 +1902,7 @@ internal static class RuntimeApi
     // sentence stood here while it was the SAME defect one layer down (kb/Work PB669): a connector with no
     // SHARING and no LOCK MODE clause never consulted the physical file's lock table, so it read, rewrote and
     // DELETED records another connector held locked. `FileRegistry.ShareOf` now gives a miss the
-    // §2023:12.4.5.9.4 GR1 b) 2. implementor default and the governed body runs for EVERY connector; only lock
+    // §2023:12.4.5.9.4 GR1b.2 implementor default and the governed body runs for EVERY connector; only lock
     // ACQUISITION is still gated, by `LocksEffective`.
     // ⛔ The same rule holds for a verb's SHAPE: the ADVANCING phrase rides INSIDE FileWriteShared as a
     // `WriteAdvance` argument. FileWriteAdvancing/FileWriteBeforeAndAfter existed as separate renderers, and
@@ -1947,7 +1947,7 @@ internal static class RuntimeApi
 
     /// <summary>⛔ THE ONE WRITE, any organization and any print-control shape (§2023:14.9.51.4 GR10/GR11) —
     /// <c>CobolFile.WriteShared</c>. <paramref name="pageArg"/> is the executing element's LINAGE page
-    /// (§2023:13.18.34.4 GR6 b) — see <see cref="LinagePageExpr"/>; <paramref name="advance"/> is the statement's
+    /// (§2023:13.18.34.4 GR6b) — see <see cref="LinagePageExpr"/>; <paramref name="advance"/> is the statement's
     /// ADVANCING phrases as a <c>WriteAdvance</c> descriptor (omitted = none), never a separate entry
     /// (kb/Work PB683). <paramref name="nationalRecord"/> — record-name-1's category (§2023:14.9.51.4 GR21 / GR22) — is
     /// rendered only when true, so every alphanumeric WRITE renders as it always did (kb/Work PB1191).</summary>
@@ -1986,7 +1986,7 @@ internal static class RuntimeApi
         $"{nameof(CobolFile)}.{nameof(CobolFile.StartRelative)}({name}, {opLiteral}, {rrn})";
 
     /// <summary>START on an indexed file (§2023:14.9.41.4 GR17 — leftmost-LENGTH key comparison) — <c>CobolFile.StartIndexed</c>.</summary>
-    /// <param name="recordAreaImage">The FD's RECORD AREA image — §2023:14.9.41.4 GR17 a) sets the search key up "by
+    /// <param name="recordAreaImage">The FD's RECORD AREA image — §2023:14.9.41.4 GR17a sets the search key up "by
     /// moving the relevant parts of the record area into a temporary data area", so the connector slices the key
     /// of reference out of the area exactly as the random READ and DELETE do (kb/Work PB355). NOT data-name-1's
     /// own rendering: that agreed with the rule only until <paramref name="len"/> reached past it.</param>
@@ -2017,7 +2017,7 @@ internal static class RuntimeApi
 
     // ⛔ NO MODE-SPECIFIC "IMPLICIT OPEN" RENDERER LIVES HERE. `FileOpenInput` / `FileOpenOutput` used to, for
     // the SORT/MERGE USING and GIVING transfers alone, and their whole defect was the parameter they did NOT
-    // take: §2023:14.9.40.4 GR12 a)/GR15 a) and §2023:14.9.24.4 GR7 a)/GR12 a) each render the initiation "as if an OPEN
+    // take: §2023:14.9.40.4 GR12a/GR15 a) and §2023:14.9.24.4 GR7a/GR12 a) each render the initiation "as if an OPEN
     // statement with the … SHARING WITH READ ONLY / SHARING WITH NO OTHER phrase had been executed", and an
     // entry point with no sharing parameter silently dropped every one of them (kb/Work PB714). The implicit
     // opens now render through the SAME two entries an explicit OPEN does — <see cref="FileOpen"/> for the
@@ -2045,9 +2045,9 @@ internal static class RuntimeApi
     /// <summary>⛔ THE PER-STATEMENT OPERANDS OF THE RUNTIME ELEMENT EXECUTING A FILE STATEMENT — the
     /// <c>assign, assignDynamic, page</c> argument triple every OPEN entry takes (kb/Work PB673). ISO
     /// §2023:12.4.5.3 GR3 a)/b) associate the connector using the specification "in the source unit that specifies" /
-    /// "in the runtime element that executes" the OPEN, SORT or MERGE, and §2023:13.18.34.4 GR6 b) 1 reads the LINAGE
+    /// "in the runtime element that executes" the OPEN, SORT or MERGE, and §2023:13.18.34.4 GR6b 1 reads the LINAGE
     /// operands at the completion of an OPEN OUTPUT — so these are the STATEMENT'S arguments, never state
-    /// installed on a connector that a whole run unit may share (§2023:13.18.22.4 GR4 a).</summary>
+    /// installed on a connector that a whole run unit may share (§2023:13.18.22.4 GR4a).</summary>
     public static string ExecutingElementArgs(string assign, bool assignDynamic, string pageArg) =>
         $"{assign}, {(assignDynamic ? "true" : "false")}, {pageArg}";
 
@@ -2233,11 +2233,11 @@ internal static class RuntimeApi
     /// <summary>The ROLLBACK statement — <c>CobolFile.Rollback</c>; the refused file's connector name or null.</summary>
     public static string Rollback() => $"{TransactionFacade}.{nameof(CobolFile.Rollback)}()";
 
-    /// <summary>§2023:14.6.13.1.3 item 8's question, asked at the raise — <c>CobolFile.RollbackDueOnFatal</c>.</summary>
+    /// <summary>§2023:14.6.13.1.3 GR8's question, asked at the raise — <c>CobolFile.RollbackDueOnFatal</c>.</summary>
     public static string RollbackDueOnFatal(string name, string checkingEnabled) =>
         $"{TransactionFacade}.{nameof(CobolFile.RollbackDueOnFatal)}({name}, {checkingEnabled})";
 
-    /// <summary>§2023:14.6.13.1.3 item 8's unconditional ROLLBACK statement — <c>CobolFile.RollbackOnFatal</c>.</summary>
+    /// <summary>§2023:14.6.13.1.3 GR8's unconditional ROLLBACK statement — <c>CobolFile.RollbackOnFatal</c>.</summary>
     public static string RollbackOnFatal() => $"{TransactionFacade}.{nameof(CobolFile.RollbackOnFatal)}()";
 
     /// <summary>A refused COMMIT/ROLLBACK on another element's file with no FILE STATUS item — <c>CobolFile.TerminateOnRefusalWithoutStatusItem</c>.</summary>
@@ -2290,7 +2290,7 @@ internal static class RuntimeApi
 
     /// <summary>Initialize the per-SD store — <c>CobolSort.Init</c> — with the statement's key descriptors (the store
     /// orders runs while the release phase fills its memory limit, kb/Work PB3339) and its two collating sequences,
-    /// snapshotted at statement start (ISO §2023:14.6.6 r5: a locale switch during the SORT/MERGE has no effect on them).</summary>
+    /// snapshotted at statement start (ISO §2023:14.6.6 GR5: a locale switch during the SORT/MERGE has no effect on them).</summary>
     public static string SortInit(string sd, string keys, string weights, string natWeights) =>
         $"{nameof(CobolSort)}.{nameof(CobolSort.Init)}({sd}, {keys}, {weights}, {natWeights})";
 
@@ -2301,13 +2301,13 @@ internal static class RuntimeApi
 
     /// <summary>The implicit USING release of one record image — <c>CobolSort.Release</c>, with the size the
     /// record had when READ and the sort-merge file's record range (the EC-SORT-MERGE-RELEASE test, §2023:14.9.40.4
-    /// GR12 b) / §2023:14.9.24.4 GR7 b)), and the record's EXTENT TABLE when a variable-length group record is released
+    /// GR12 b) / §2023:14.9.24.4 GR7b), and the record's EXTENT TABLE when a variable-length group record is released
     /// (D-FRA (v); kb/Work PB1053).</summary>
     public static string SortRelease(string sd, string image, string readSize, int min, int max, string? extents = null, string? slots = null) =>
         $"{nameof(CobolSort)}.{nameof(CobolSort.Release)}({sd}, {image}, {readSize}, {min}, {max}{(extents is null ? "" : $", extents: {extents}")}{(slots is null ? "" : $", slots: {slots}")})";
 
     /// <summary>The SORT/MERGE statement's association of its own sort-merge file — <c>CobolSort.AssociationMade</c>
-    /// (§2023:12.4.5.3 GR3 b); kb/Work PB1097). <paramref name="assign"/> is data-name-1's content.</summary>
+    /// (§2023:12.4.5.3 GR3b; kb/Work PB1097). <paramref name="assign"/> is data-name-1's content.</summary>
     public static string SortAssociationMade(string assign) =>
         $"{nameof(CobolSort)}.{nameof(CobolSort.AssociationMade)}({assign})";
 
@@ -2317,7 +2317,7 @@ internal static class RuntimeApi
         $"{nameof(CobolSort)}.{nameof(CobolSort.FileNotOpen)}({sd}, {file})";
 
     /// <summary>The RELEASE STATEMENT — <c>CobolSort.ReleaseStatement</c> (§2023:14.9.32.4 GR1's phase test, then GR2).
-    /// The implicit USING release (§2023:14.9.40.4 GR12 b) renders <see cref="SortRelease"/> instead.
+    /// The implicit USING release (§2023:14.9.40.4 GR12b) renders <see cref="SortRelease"/> instead.
     /// <paramref name="min"/>..<paramref name="max"/> is the record range §2023:13.18.43.4 GR14 / GR19 test,
     /// <paramref name="size"/> the GR13 a) DEPENDING ON value (null: the image's own length, GR13 b)/c)) and
     /// <paramref name="extents"/> the record's extent table (D-FRA (v); kb/Work PB1053) and
@@ -2877,7 +2877,7 @@ internal static class RuntimeApi
     public static string ArgAdaptStoreReturn(string ret, string value, string? description = null) =>
         $"{nameof(CobolArgAdapt)}.{nameof(CobolArgAdapt.StoreReturn)}({ret}, {value}{(description is null ? "" : $", {description}")})";
 
-    /// <summary>The initial image of an ANY LENGTH RETURNING item (§2023:13.18.2.4 GR1 b)) — <c>CobolArgAdapt.ReturningSeed</c>:
+    /// <summary>The initial image of an ANY LENGTH RETURNING item (§2023:13.18.2.4 GR1b) — <c>CobolArgAdapt.ReturningSeed</c>:
     /// The initial character is <see cref="AnyLengthFill"/>; the PICTURE length is used when the activation has no
     /// receiver (kb/Work PB1167).</summary>
     public static string ArgAdaptReturningSeed(string ret, PicInfo pic) =>
@@ -3071,7 +3071,7 @@ internal static class RuntimeApi
                  : $"{cellExpr}.{nameof(StorageCell.DynAt)}((int)({ordinal}))";
 
     /// <summary>The SENDING read of a dynamic-length item through a description that does not own its storage —
-    /// <c>CobolDynString.Agree</c>, ISO §2023:14.6.13.2 rule 5's agreement with THIS description's maximum size (kb/Work
+    /// <c>CobolDynString.Agree</c>, ISO §2023:14.6.13.2 GR5's agreement with THIS description's maximum size (kb/Work
     /// PB1118). <paramref name="valueExpr"/> is the plain read; the result is the same content.</summary>
     public static string DynAgree(string valueExpr, int maxSize) =>
         $"{nameof(CobolDynString)}.{nameof(CobolDynString.Agree)}({valueExpr}, {maxSize})";
@@ -3083,7 +3083,7 @@ internal static class RuntimeApi
         $"{cellExpr}.{nameof(StorageCell.SetDynAt)}((int)({ordinal}), {(national ? NatBytes(valueExpr) : valueExpr)})";
 
     /// <summary>A cell-backed area's dynamic-capacity table, asked to agree with the referencing description's FROM
-    /// minimum and element width (ISO §2023:14.6.13.2 rule 6) — <c>StorageCell.DynTableAt</c> (kb/Work PB1042).</summary>
+    /// minimum and element width (ISO §2023:14.6.13.2 GR6) — <c>StorageCell.DynTableAt</c> (kb/Work PB1042).</summary>
     public static string CellDynTable(string cellExpr, string ordinal, int min, int elementWidth) =>
         $"{cellExpr}.{nameof(StorageCell.DynTableAt)}((int)({ordinal}), {min}, {elementWidth})";
 
@@ -3186,7 +3186,7 @@ internal static class RuntimeApi
         + $"{Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(what, quote: true)})";
 
     /// <summary>The bound method's half of an ACTIVE-CLASS returning item's conformance for a universal invocation
-    /// (ISO §2023:14.8.3.3 rule 2 b) 4. through §2023:14.9.23.4 GR7 c); kb/Work PB2985) — see
+    /// (ISO §2023:14.8.3.3 rule 2 b) 4. through §2023:14.9.23.4 GR7c; kb/Work PB2985) — see
     /// <see cref="CobolObject.CheckActiveClassReturning"/>. <paramref name="enabledInMethod"/> is the C# text of the
     /// method's EC-OO-UNIVERSAL checking (a literal folded at bind time).</summary>
     public static string ObjCheckActiveClassReturning(string enabledInMethod, string what, string receiving, string sending) =>
@@ -3194,7 +3194,7 @@ internal static class RuntimeApi
         + $"{Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(what, quote: true)}, {receiving}, {sending})";
 
     /// <summary>The bound method's half of an ACTIVE-CLASS formal's conformance for a universal invocation (ISO §2023:14.8.2.3.2
-    /// rule 4 through §2023:14.9.23.4 GR7 c); kb/Work PB2985) — see <see cref="CobolObject.CheckActiveClassFormal"/>.</summary>
+    /// rule 4 through §2023:14.9.23.4 GR7c; kb/Work PB2985) — see <see cref="CobolObject.CheckActiveClassFormal"/>.</summary>
     public static string ObjCheckActiveClassFormal(string enabledInMethod, string what, string argument, string formal) =>
         $"{nameof(CobolObject)}.{nameof(CobolObject.CheckActiveClassFormal)}({enabledInMethod}, "
         + $"{Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(what, quote: true)}, {argument}, {formal})";
@@ -3208,8 +3208,8 @@ internal static class RuntimeApi
 
     /// <summary>An object-reference value AS AN EXCEPTION OBJECT — the <c>CobolObject?</c> the runtime's
     /// exception-object slots take (<c>ExceptionState.SetObject</c> for RAISE identifier-1, §2023:14.9.29.4;
-    /// <c>SetPropagatingObject</c> for GOBACK/EXIT RAISING identifier-1, §2023:14.9.18.4 GR1 b) 2.). An
-    /// interface-described reference (§2023:13.18.60.4 GR22 c)) is emitted as its C# INTERFACE type, which has no
+    /// <c>SetPropagatingObject</c> for GOBACK/EXIT RAISING identifier-1, §2023:14.9.18.4 GR1b.2). An
+    /// interface-described reference (§2023:13.18.60.4 GR22c) is emitted as its C# INTERFACE type, which has no
     /// implicit conversion to the class root, so the explicit reference conversion is written here once for every
     /// raise site (kb/Work PB814: `GOBACK RAISING` and `RAISE` of an interface-typed identifier were both a
     /// Roslyn CS1503 on conforming source). Every object a COBOL reference can hold is a <c>CobolObject</c>, so
@@ -3221,7 +3221,7 @@ internal static class RuntimeApi
     public static string ObjOmittedArgument => $"{nameof(CobolInvokeArg)}.{nameof(CobolInvokeArg.OmittedArgument)}()";
 
     /// <summary>A reference-modified argument through a universal receiver, described at its EVALUATED length
-    /// (ISO §2023:8.4.3.3.4 GR5 c); kb/Work PB480) and boxed LIVE over the slice (§2023:14.2.3 GR8; kb/Work PB2087) —
+    /// (ISO §2023:8.4.3.3.4 GR5c; kb/Work PB480) and boxed LIVE over the slice (§2023:14.2.3 GR8; kb/Work PB2087) —
     /// <c>CobolInvokeArg.ReferenceModified(description, get, set, area)</c>.</summary>
     public static string ObjReferenceModifiedArgument(string descriptionExpr, string getExpr, string setStatement, string areaExpr) =>
         $"{nameof(CobolInvokeArg)}.{nameof(CobolInvokeArg.ReferenceModified)}({descriptionExpr}, () => {getExpr}, __v => {{ {setStatement} }}, {areaExpr})";
@@ -3408,13 +3408,13 @@ internal static class RuntimeApi
         + $".{nameof(Runtime.Exceptions.ExceptionState.ExceptionObject)}";
 
     /// <summary>The run unit's module stack, resolved once per activation — <c>CobolModule.Stack</c>. A METHOD
-    /// activation pushes its frame through it INSIDE the method body (ISO §2023:15.65.4 r5 — "This may be by a CALL
+    /// activation pushes its frame through it INSIDE the method body (ISO §2023:15.65.4 RV5 — "This may be by a CALL
     /// statement, an INVOKE statement, a function reference, or an inline invocation"; fix-queue PB36), never at
     /// an INVOKE site, because a method is reached by several paths — a typed direct call, the universal
     /// <c>__CobolInvoke</c> switch, an inline invocation.</summary>
     public static string ModuleStack() => $"{nameof(CobolModule)}.{nameof(CobolModule.Stack)}";
 
-    /// <summary>A method activation's resource check (ISO §2023:14.9.23.4 GR7 b); kb/Work PB2659) — the head of every method
+    /// <summary>A method activation's resource check (ISO §2023:14.9.23.4 GR7b; kb/Work PB2659) — the head of every method
     /// body that executes statements: <c>ActivationStack.RequireForMethod("M", "C")</c>, EC-OO-METHOD when the stack the
     /// activation needs is not available. <paramref name="methodLiteral"/> and <paramref name="classLiteral"/> are C#
     /// string literals.</summary>
@@ -3426,19 +3426,19 @@ internal static class RuntimeApi
     public static string ModuleNameFn(int kind) =>
         $"{nameof(CobolModule)}.{nameof(CobolModule.Name)}({kind})";
 
-    /// <summary>The SDIDI lane's subsidiary quotient (§2023:14.9.12.4 6) c), kb/Work PB3017, PB3975) - the SDIDI quotient truncated
+    /// <summary>The SDIDI lane's subsidiary quotient (§2023:14.9.12.4 GR6c, kb/Work PB3017, PB3975) - the SDIDI quotient truncated
     /// at the GIVING receiver's scale.</summary>
     public static string DecSubsidiaryQuotient(string quotient, int scale) =>
         $"{nameof(CobolDec)}.{nameof(CobolDec.SubsidiaryQuotient)}({quotient}, {scale})";
 
-    /// <summary>The subsidiary quotient (§2023:14.9.12.4 6) c), kb/Work PB2923) of a FLOATING-POINT numeric-edited identifier-3: the
+    /// <summary>The subsidiary quotient (§2023:14.9.12.4 GR6c, kb/Work PB2923) of a FLOATING-POINT numeric-edited identifier-3: the
     /// SDIDI quotient as that item holds it under truncation, <c>CobolEdit.TruncateToFloatShape</c> -
     /// <paramref name="cfgArgs"/> is <c>EmitContext.EditCfg</c>, as for the item's store.</summary>
     public static string EditTruncateToFloatShape(PicInfo pic, string quotient, string cfgArgs) =>
         $"{nameof(CobolEdit)}.{nameof(CobolEdit.TruncateToFloatShape)}({quotient}, {Emit.EmitText.CsLiteral(pic.EditMask!)}{cfgArgs})";
 
     /// <summary>The COMPILE-TIME WHEN-COMPILED stamp format (a typed passthrough like <see cref="EditCompose"/>):
-    /// the §2023:15.99.3 r2 compilation timestamp is baked as a constant with the SAME runtime formatter the
+    /// the §2023:15.99.3 RV2 compilation timestamp is baked as a constant with the SAME runtime formatter the
     /// generated CURRENT-DATE call uses.</summary>
     public static string DateFormat21(DateTimeOffset t) => CobolDate.Format21(t);
 

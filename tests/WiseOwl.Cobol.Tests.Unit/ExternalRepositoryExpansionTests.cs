@@ -829,7 +829,7 @@ public sealed class ExternalRepositoryExpansionTests
         });
     }
 
-    [Fact]   // §2023:6.2.3.1, §2023:6.5 8): the free-form lines of an expansion's text read back as the text does, for a literal of any length.
+    [Fact]   // §2023:6.2.3.1, §2023:6.5 GR8: the free-form lines of an expansion's text read back as the text does, for a literal of any length.
     public void TheFreeFormLines_OfALiteralLongerThanALine_ReadBackAsTheLiteral()
     {
         string literal = string.Concat(Enumerable.Range(0, 220).Select(i => i % 7 == 0 ? "it''s " : $"w{i} ")).TrimEnd();   // doubled apostrophes straddle fill points

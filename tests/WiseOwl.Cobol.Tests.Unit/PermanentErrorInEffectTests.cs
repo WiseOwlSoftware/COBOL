@@ -19,7 +19,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </summary>
 public sealed class PermanentErrorInEffectTests
 {
-    private const string Host = "30";   // §2023:9.1.13.6 item 1 — "a permanent error exists and no further information is available"
+    private const string Host = "30";   // §2023:9.1.13.6 GR1 — "a permanent error exists and no further information is available"
 
     // ── sequential (record and line) ─────────────────────────────────────────────────────────────────────────
 
@@ -124,7 +124,7 @@ public sealed class PermanentErrorInEffectTests
             reg.OpenStatic("F", FileOpenMode.IO);
 
             reg.SetRelativeKey("F", 0);
-            Assert.Equal("34", reg.WriteKeyed("F", "BBBB", -1));   // §2023:14.9.51.4 GR29 b) — the real producer
+            Assert.Equal("34", reg.WriteKeyed("F", "BBBB", -1));   // §2023:14.9.51.4 GR29b — the real producer
             reg.SetRelativeKey("F", 2);
             Assert.Equal("34", reg.WriteKeyed("F", "CCCC", -1));   // would be '00': the condition is in effect
             Assert.Equal("34", reg.ReadKeyedNext("F", out _));

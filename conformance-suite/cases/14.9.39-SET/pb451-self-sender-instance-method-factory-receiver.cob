@@ -9,7 +9,7 @@
       *> defined in the factory definition of its containing class."  The mirror of c)3. and
       *> the reason both are ONE predicate: inside an INSTANCE method SELF is an instance
       *> object, and a FACTORY-described receiver holds the class's factory object
-      *> (§2023:13.18.60.4 GR22d1.a.) — two different objects of two different method interfaces
+      *> (§2023:13.18.60.4 GR22d.1.a.) — two different objects of two different method interfaces
       *> (§2023:9.3.6).  Until the FACTORY axis could be DECLARED (kb/Work PB389) this rule had no
       *> writable subject at all.
 

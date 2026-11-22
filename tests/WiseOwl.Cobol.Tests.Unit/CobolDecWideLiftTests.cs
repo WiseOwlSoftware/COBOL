@@ -7,7 +7,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// The standard-decimal OPERAND lift of a fixed-point value wider than the SDIDI's 34 digits (kb/Work PB2918):
-/// ISO §2023:8.8.1.5.2 r1 — "If the operand value cannot be expressed exactly in an SDIDI, the value is rounded
+/// ISO §2023:8.8.1.5.2 GR1 — "If the operand value cannot be expressed exactly in an SDIDI, the value is rounded
 /// according to the rules in 11.9.11, INTERMEDIATE ROUNDING clause" (cite.py --check, OK 8.8.1.5.2 1)). A 16-byte
 /// binary container owns 39 digits, so <c>Int128.MinValue</c> (−2^127) and the whole unsigned range [0, 2^128) arrive
 /// at the lift. Expected values are computed from the rule with decimal arithmetic outside the runtime.
@@ -33,7 +33,7 @@ public sealed class CobolDecWideLiftTests
     public void SignedMinimum_Prohibited_IsTheTruncationCondition()
     {
         var e = Assert.Throws<CobolSizeError>(() => CobolDec.FromParsed(Int128.MinValue, 0, CobolRounding.Prohibited));
-        Assert.Equal("EC-SIZE-TRUNCATION", e.EcName);   // §2023:11.9.11.2 r3d
+        Assert.Equal("EC-SIZE-TRUNCATION", e.EcName);   // §2023:11.9.11.2 GR3d
     }
 
     // 3 × 2^124 = 63802943797675961899382738893456539648: dropped digits 9648, round digit 9.
@@ -165,7 +165,7 @@ public sealed class CobolDecWideLiftTests
         Assert.Equal((UInt128)123, d.ToUnscaledMagnitude(0, CobolRounding.Truncation, checkedTransfer: true));
         Assert.Equal((UInt128)124, d.ToUnscaledMagnitude(0, CobolRounding.AwayFromZero, checkedTransfer: true));
         Assert.Equal((UInt128)123456, d.ToUnscaledMagnitude(3, CobolRounding.Prohibited, checkedTransfer: true));
-        Assert.Throws<CobolSizeError>(() => d.ToUnscaledMagnitude(0, CobolRounding.Prohibited, checkedTransfer: true));   // §2023:14.7.4.3 r7
+        Assert.Throws<CobolSizeError>(() => d.ToUnscaledMagnitude(0, CobolRounding.Prohibited, checkedTransfer: true));   // §2023:14.7.4.3 GR7
     }
 
     [Fact]

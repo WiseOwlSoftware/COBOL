@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ THE CONFORMANCE RULES A CALL ASKS AT RUN TIME OVER A BOUNDARY ITEM'S DESCRIPTION (kb/Work PB165), each stated from
 /// the clause that gives it: <see cref="BoundaryItem.ArgumentViolation"/> for an argument and its formal when the activated
-/// program is located by name at run time (ISO §2023:14.9.4.4 GR3 d) — §2023:14.8.2.3.2 / §2023:14.8.2.3.3 rule 1 "the formal parameter
+/// program is located by name at run time (ISO §2023:14.9.4.4 GR3d) — §2023:14.8.2.3.2 / §2023:14.8.2.3.3 rule 1 "the formal parameter
 /// shall be of the same length as the corresponding argument" for a program the activating element has no
 /// program-specifier for, rule 2 for one it has; §2023:14.8.2.2's group rules, the object-reference and class-pointer rules on
 /// both lanes) and <see cref="BoundaryItem.ReturningViolation"/> for a RETURNING pair (§2023:14.8.3). The corpus goldens
@@ -75,7 +75,7 @@ public sealed class BoundaryItemConformanceTests
     }
 
     [Theory]
-    [InlineData(8, 10, false)]  // §2023:14.8.2.2 1): the formal is described with MORE bytes than the argument
+    [InlineData(8, 10, false)]  // §2023:14.8.2.2 SR1: the formal is described with MORE bytes than the argument
     [InlineData(10, 8, true)]   // … a smaller number is allowed
     [InlineData(8, 8, true)]    // … and so is the same number
     public void Group_ByReference_FormalNoLongerThanArgument_OnBothLanes(int argument, int formal, bool conforms)

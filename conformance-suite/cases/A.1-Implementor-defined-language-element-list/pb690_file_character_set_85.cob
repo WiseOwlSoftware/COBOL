@@ -8,7 +8,7 @@
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB690FCS.
       *> ISO/IEC 1989:2023 §2023:8.1.2 (the computer's coded character
-      *> set, Annex A.1 item 31) and §2023:9.1.13.11 item 1 (I-O status 9x)
+      *> set, Annex A.1 item 31) and §2023:9.1.13.11 GR1 (I-O status 9x)
       *> — a record character with no byte image in the FILE coded
       *> character set is REFUSED, never written as '?' (kb/Work PB690).
       *>

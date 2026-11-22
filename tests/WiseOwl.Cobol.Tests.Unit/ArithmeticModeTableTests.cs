@@ -13,7 +13,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 ///
 /// <para><b>What this replaces.</b> The NUMVAL digit cap was a two-state ternary
 /// (<c>num.StandardDecimal ? 34 : ""</c>), so STANDARD-BINARY fell through the else-branch and would have taken
-/// the NATIVE cap of 31 where §2023:15.93.4 r1b sub-note 3 says 35. Unreachable — the mode is declined at bind — but
+/// the NATIVE cap of 31 where §2023:15.93.4 RV1b sub-note 3 says 35. Unreachable — the mode is declined at bind — but
 /// that is precisely the kind of entry that is never contradicted and so is never found wrong
 /// (<c>feedback_a_dead_lookup_is_also_unverified</c>). The table now states all four modes and this test walks
 /// the enum, so a fifth mode cannot be added and silently inherit somebody's else-branch.</para>
@@ -31,7 +31,7 @@ public sealed class ArithmeticModeTableTests
     }
 
     [Theory]
-    // §2023:15.93.4 r1b (and its §2023:15.94.4 twin) states the cap in three sub-notes, one per mode:
+    // §2023:15.93.4 RV1b (and its §2023:15.94.4 twin) states the cap in three sub-notes, one per mode:
     [InlineData(ArithmeticMode.Native, 31)]           //  2) "…greater than 31 digits is the 32nd digit…"
     [InlineData(ArithmeticMode.StandardBinary, 35)]   //  3) "…the argument has more than 35 digits…"
     [InlineData(ArithmeticMode.StandardDecimal, 34)]  //  4) "…the argument has more than 34 digits…"

@@ -131,7 +131,7 @@ public sealed class OpenTable19Tests
     }
 
     /// <summary>⛔ THE OTHER READING OF THE SAME RULE, pinned against the table. §2023:9.1.15's three sharing-mode
-    /// paragraphs plus §2023:9.1.13.9 1) e) are the PROSE form of Table 19, and they reproduce all 144 cells exactly.
+    /// paragraphs plus §2023:9.1.13.9 GR1e are the PROSE form of Table 19, and they reproduce all 144 cells exactly.
     /// The five §2023:9.1.13.9 sub-cases read literally do NOT: (c) and (d) say <i>"I-O or extend"</i> where the
     /// table's existing-side column groups are <c>extend I-O output</c>, so they under-enumerate the table by
     /// four combinations. This test is what keeps the code on the reading that agrees with the printed table,
@@ -145,13 +145,13 @@ public sealed class OpenTable19Tests
             {
                 bool table = Table19.Cell(incS, incM, exS, exM) == U;
 
-                // §2023:9.1.15 1) "Associating this file connector with the physical file will be unsuccessful if the
+                // §2023:9.1.15 GR1 "Associating this file connector with the physical file will be unsuccessful if the
                 //             physical file is currently open through other file connectors." / "… subsequent
                 //             requests to open the physical file through other file connectors … unsuccessful."
-                // §2023:9.1.15 2) "… unsuccessful if the physical file is associated with another file connector
+                // §2023:9.1.15 GR2 "… unsuccessful if the physical file is associated with another file connector
                 //             whose open mode is other than input." / "… subsequent requests … in a mode other
                 //             than input … will be unsuccessful."
-                // §2023:9.1.13.9 1) e) "An attempt is made to open a physical file in the output mode and the
+                // §2023:9.1.13.9 GR1e "An attempt is made to open a physical file in the output mode and the
                 //             physical file is currently open by another file connector."
                 bool prose = exS == FileSharing.NoOther
                           || incS == FileSharing.NoOther

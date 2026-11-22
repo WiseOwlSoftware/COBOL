@@ -17,7 +17,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <c>IntrinsicRenderer.RenderNum</c> routes on <c>AnyRealArgument</c>, so every exact-family function with a §2023:15.3
 /// type-10 (numeric) position has an exact <see cref="Int128"/> body AND a binary64 one (a type-6 position takes its
 /// integer before the lane is chosen, kb/Work PB651). Its sibling <c>IntrinsicRealArgDriftTests</c> asserts the
-/// second body EXISTS; nothing asserted that the two AGREE, and they did not. MOD's §2023:15.64.3 r2 zero-divisor rule
+/// second body EXISTS; nothing asserted that the two AGREE, and they did not. MOD's §2023:15.64.3 AR2 zero-divisor rule
 /// was written into both bodies and then corrected in only one: <c>ModReal</c> read <c>b == 0 ? 0 : …</c>, a
 /// second independent guard that returned the §2023:15.3 default without ever SETTING EC-ARGUMENT-FUNCTION. Under
 /// <c>&gt;&gt;TURN EC-ARGUMENT-FUNCTION CHECKING ON</c> the run unit sailed past a condition Table 13
@@ -43,7 +43,7 @@ public sealed class IntrinsicCarrierAgreementDriftTests
     }
 
     /// <summary>
-    /// §2023:15.64.3 r2 / §2023:15.77.3 r2: a zero divisor sets EC-ARGUMENT-FUNCTION — from EVERY carrier the function has:
+    /// §2023:15.64.3 AR2 / §2023:15.77.3 AR2: a zero divisor sets EC-ARGUMENT-FUNCTION — from EVERY carrier the function has:
     /// the exact <see cref="Int128"/> lane, the SDIDI decimal carrier (an arithmetic-expression argument under
     /// ARITHMETIC IS STANDARD-DECIMAL) and, for REM, binary64. MOD has no binary64 carrier: both its positions are
     /// §2023:15.3 type 6, so the renderer takes their integers before any lane is chosen (kb/Work PB651). The binary64 arm
@@ -113,7 +113,7 @@ public sealed class IntrinsicCarrierAgreementDriftTests
     /// <see cref="Int128"/> lane, the SDIDI, and binary64. The third had NO argument rule at all — measured,
     /// <c>FUNCTION COMBINED-DATETIME(1, F)</c> with a COMP-2 F holding 86400 computed 1.8639999999999 and set no
     /// exception condition, while the identical value in a <c>PIC 9(5)V9(8)</c> item terminated the run unit in
-    /// the same program. §2023:15.17.3 r2 constrains the argument's VALUE ("in standard numeric time form", which
+    /// the same program. §2023:15.17.3 AR2 constrains the argument's VALUE ("in standard numeric time form", which
     /// §2023:15.5.5 defines by magnitude), so the USAGE of the item holding it cannot decide whether §2023:15.3's
     /// "incorrect value for that argument" applies. One rule ⇒ one raise site ⇒ one message, asserted.
     /// </summary>
@@ -122,7 +122,7 @@ public sealed class IntrinsicCarrierAgreementDriftTests
     {
         UnderChecking(() =>
         {
-            // §2023:15.17.3 r2 — 86 400 seconds is outside standard numeric time form (§2023:7.3.17.4 GR5, the implied OFF).
+            // §2023:15.17.3 AR2 — 86 400 seconds is outside standard numeric time form (§2023:7.3.17.4 GR5, the implied OFF).
             var exact = Assert.Throws<CobolFatalException>(() => CobolDate.CombinedDatetime(1, 86400, 0));
             var dec = Assert.Throws<CobolFatalException>(() => CobolDate.CombinedDatetimeDec(
                 CobolRounding.NearestAwayFromZero, 1, CobolDec.From(86400, 0)));
@@ -132,7 +132,7 @@ public sealed class IntrinsicCarrierAgreementDriftTests
                 Assert.Equal("EC-ARGUMENT-FUNCTION", e.EcName);
                 Assert.Equal(exact.Message, e.Message);
             }
-            // §2023:15.17.3 r1 — and the §2023:15.5.2 integer date form's ceiling, from each carrier, with its own message.
+            // §2023:15.17.3 AR1 — and the §2023:15.5.2 integer date form's ceiling, from each carrier, with its own message.
             var d1 = Assert.Throws<CobolFatalException>(() => CobolDate.CombinedDatetime(3067672, 0, 0));
             var d2 = Assert.Throws<CobolFatalException>(() => CobolDate.CombinedDatetimeDec(
                 CobolRounding.NearestAwayFromZero, 3067672, CobolDec.From(0, 0)));
@@ -142,8 +142,8 @@ public sealed class IntrinsicCarrierAgreementDriftTests
             Assert.Contains("15.5.2", d1.Message);
         });
         // ⛔ AND THE FAILURE BRANCH MUST BE REACHABLE ONLY AT THE BOUND. One step inside it every carrier answers
-        // §2023:15.17.4 r1's expression — a guard that raised early would be as wrong as one that never raised.
-        // Each expected value is §2023:15.17.4 r1's expression evaluated by hand at the argument's OWN scale,
+        // §2023:15.17.4 RV1's expression — a guard that raised early would be as wrong as one that never raised.
+        // Each expected value is §2023:15.17.4 RV1's expression evaluated by hand at the argument's OWN scale,
         // never a measurement: argument-1 + (argument-2 / 100000).
         //   exact   86 399.999 99       / 100000 = 0.863 999 999 9       + 1 = 1.863 999 999 9
         //                                             read at scale 5+5 = 10 -> the unscaled 18 639 999 999
@@ -190,7 +190,7 @@ public sealed class IntrinsicCarrierAgreementDriftTests
 
     /// <summary>
     /// ⛔ EACH ZERO-DIVISOR RAISE SITE NAMES ITS OWN FUNCTION'S RULE, IN EVERY CARRIER FILE (kb/Work PB304).
-    /// §2023:15.64.3 r2 and §2023:15.77.3 r2 are word-for-word identical ("The value of argument-2 shall not be zero.") and
+    /// §2023:15.64.3 AR2 and §2023:15.77.3 AR2 are word-for-word identical ("The value of argument-2 shall not be zero.") and
     /// belong to different functions, so a copy-pasted body that calls the other function's raise site reads as
     /// correct. This scans every <c>CobolIntrinsics*.cs</c> for a <c>Mod…</c>/<c>Rem…</c> body and fails when one
     /// calls the other's <c>…ZeroDivisor()</c> — a rule over ALL carriers, so a fourth carrier cannot repeat it
@@ -269,9 +269,9 @@ public sealed class IntrinsicCarrierAgreementDriftTests
     // right for a PARTIAL function: §2023:15.5.2's date forms and FACTORIAL's unrepresentable results genuinely make
     // an out-of-range argument "an incorrect value … according to the rules specified in the function
     // definition" (§2023:15.3), so raising EC-ARGUMENT-FUNCTION there is the standard's own answer. It swept up the
-    // TOTAL functions too. §2023:15.90.3 r1 / §2023:15.91.3 r1 say only "Argument-1 shall be an integer" and §2023:15.90.4 r1a
-    // / §2023:15.91.4 r1a are CATCH-ALLS; §2023:15.37.3 r3 says only "argument-3 shall be an integer data item or integer
-    // literal" and §2023:15.37.4 r2/r3 answer for every integer. For those three the landing MANUFACTURED an
+    // TOTAL functions too. §2023:15.90.3 AR1 / §2023:15.91.3 AR1 say only "Argument-1 shall be an integer" and §2023:15.90.4 RV1a
+    // / §2023:15.91.4 RV1a are CATCH-ALLS; §2023:15.37.3 AR3 says only "argument-3 shall be an integer data item or integer
+    // literal" and §2023:15.37.4 RV2/r3 answer for every integer. For those three the landing MANUFACTURED an
     // exception condition — fatal under checking, and with checking off it substituted 0, which reported
     // TEST-DATE-YYYYMMDD(1.0E19) as a VALID DATE and FIND-STRING(… START AFTER 9999999999999999999) as a match
     // at position 1 where rule 3 requires zero.
@@ -393,7 +393,7 @@ public sealed class IntrinsicCarrierAgreementDriftTests
         Assert.True(wide.GetValueOrDefault("TestDateYyyymmdd"), "TestDateYyyymmdd is not paired as a wide body");
         Assert.True(wide.GetValueOrDefault("TestDayYyyyddd"), "TestDayYyyyddd is not paired as a wide body");
         Assert.True(wide.GetValueOrDefault("FindString"), "FindString is not paired as a wide body");
-        // kb/Work PB636 — RANDOM's seed joined the set: §2023:15.75.3 r2 constrains the sign alone and §2023:15.75.4 r3
+        // kb/Work PB636 — RANDOM's seed joined the set: §2023:15.75.3 AR2 constrains the sign alone and §2023:15.75.4 RV3
         // makes the distinct-sequence subset a floor, so the body declares Int128 and the arm must go wide.
         Assert.True(wide.GetValueOrDefault("Random"), "Random is not paired as a wide body");
         Assert.False(wide.GetValueOrDefault("Factorial", true), "Factorial is not paired as a narrow body");
@@ -416,7 +416,7 @@ public sealed class IntrinsicCarrierAgreementDriftTests
 
     /// <summary>A TOTAL integer argument whose value rides the SDIDI — kb/Work PB637. An SDIDI integer holds 34 significant
     /// digits at ANY exponent, so it reaches past <c>Int128</c> as well as past <c>long</c>: ANNUITY's argument-2
-    /// (§2023:15.9.3 r3 "a positive integer", no magnitude) is an SDIDI integer the equivalent expression evaluates, and a
+    /// (§2023:15.9.3 AR3 "a positive integer", no magnitude) is an SDIDI integer the equivalent expression evaluates, and a
     /// native integer carrier ANYWHERE between the position intake and the body (<c>IntArg</c>, <c>IntArgWide</c>, an
     /// <c>Int128</c> / <c>long</c> parameter) lands it on a width that ends the run unit
     /// (<c>ANNUITY(0, 10 ** 40)</c> through <c>IntegerArgWideDec</c> was a fatal EC-SIZE-OVERFLOW). The arm keeps the
@@ -597,8 +597,8 @@ public sealed class IntrinsicCarrierAgreementDriftTests
         Int128 past = Int128.Parse("12345678901234567890");                 // 20 digits — beyond long.MaxValue
         UnderChecking(() =>
         {
-            Assert.Equal(1, CobolDate.TestDateYyyymmdd(past));               // §2023:15.90.4 r1a — > 99 999 999
-            Assert.Equal(1, CobolDate.TestDayYyyyddd(past));                 // §2023:15.91.4 r1a — > 9 999 999
+            Assert.Equal(1, CobolDate.TestDateYyyymmdd(past));               // §2023:15.90.4 RV1a — > 99 999 999
+            Assert.Equal(1, CobolDate.TestDayYyyyddd(past));                 // §2023:15.91.4 RV1a — > 9 999 999
             Assert.Equal(1, CobolDate.TestDateYyyymmdd(-past));              // r1a's LOWER half
             Assert.Equal(1, CobolDate.TestDayYyyyddd(-past));
             // A binary64 argument reaches the ONE body through the clamping intake (IntrinsicRenderer.IntArgWideSaturating,
@@ -615,7 +615,7 @@ public sealed class IntrinsicCarrierAgreementDriftTests
             Assert.Equal(20240229, CobolIntrinsics.IntegerArgSaturatingDec(new CobolDec(20240229, 0)));
             Assert.Equal(0, CobolIntrinsics.FindString("abcabc", "abc", false, CobolIntrinsics.IntegerArgSaturatingDec(new CobolDec(1, 40)), false));
             Assert.Equal(1, CobolIntrinsics.FindString("abcabc", "abc", false, CobolIntrinsics.IntegerArgSaturatingDec(new CobolDec(-1, 40)), false));
-            // §2023:15.37.4 r3 — argument-3 ignores every match, so none is left and the answer is 0, not a position.
+            // §2023:15.37.4 RV3 — argument-3 ignores every match, so none is left and the answer is 0, not a position.
             Assert.Equal(0, CobolIntrinsics.FindString("abcabc", "abc", false, past, false));
             Assert.Equal(0, CobolIntrinsics.FindString("abcabc", "abc", true, past, false));
             // ... and the clamped extremes answer as every count past the matches (0) and every negative count (the

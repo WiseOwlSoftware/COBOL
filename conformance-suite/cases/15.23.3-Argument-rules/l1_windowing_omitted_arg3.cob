@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:15.23.3 r5 / §2023:15.25.3 r5 — an OMITTED argument-3 evaluates as though
+      *> ISO §2023:15.23.3 AR5 / §2023:15.25.3 AR5 — an OMITTED argument-3 evaluates as though
       *> "(FUNCTION NUMVAL (FUNCTION CURRENT-DATE (1:4)))" had been written there.
       *>
       *> BOTH RULES ARE THE SAME SENTENCE, verbatim, one for DATE-TO-YYYYMMDD and
@@ -22,7 +22,7 @@
       *> shall not be specified where an integer operand is required, even though a
       *> particular reference of the numeric function might yield an integer value."
       *> §2023:15.67.1 makes NUMVAL a NUMERIC function ("The type of this function is
-      *> numeric"); §2023:15.23.3 r4 and §2023:15.25.3 r4 make argument-3 "an integer greater
+      *> numeric"); §2023:15.23.3 AR4 and §2023:15.25.3 AR4 make argument-3 "an integer greater
       *> than 1600 and less than 10000", which §2023:15.3 type 6 admits only as "an
       *> arithmetic expression that will always result in an integer value or an
       *> integer data item". r5 says the omitted form is EVALUATED AS THOUGH that
@@ -49,16 +49,16 @@
       *>   argument-2 = -1 -> maximum-year = CY-1, which takes r2b. A year one HIGH
       *>     makes maximum-year = CY, takes r2a, and gains a century.
       *> The two together break on a ONE-YEAR skew in either direction. Both stay
-      *> legal: §2023:15.23.3 r6 / §2023:15.25.3 r6 need CY and CY-1 inside 1699..10000, and
-      *> §2023:15.23.3 r1 / §2023:15.25.3 r1 cap argument-1 at 991003 < 1000000 and
+      *> legal: §2023:15.23.3 AR6 / §2023:15.25.3 AR6 need CY and CY-1 inside 1699..10000, and
+      *> §2023:15.23.3 AR1 / §2023:15.25.3 AR1 cap argument-1 at 991003 < 1000000 and
       *> 99365 < 100000 (both positive, since 1003 and 365 survive YY = 0).
       *>
       *> TWO CLOCK-FREE WITNESSES stand beside the equality so it cannot pass on
       *> pairs of equal zeros:
-      *>  · THE VALUE IS REAL. §2023:15.23.4 r1 makes the result
+      *>  · THE VALUE IS REAL. §2023:15.23.4 RV1 makes the result
       *>    "(FUNCTION YEAR-TO-YYYY (YY, argument-2, argument-3) * 10000 + mmdd)"
       *>    with "mmdd = FUNCTION MOD (argument-1, 10000)", so the low four digits
-      *>    are 1003 whatever the year is; §2023:15.25.4 r1's "nnn = FUNCTION MOD
+      *>    are 1003 whatever the year is; §2023:15.25.4 RV1's "nnn = FUNCTION MOD
       *>    (argument-1, 1000)" gives 365 the same way.
       *>  · ARGUMENT-3 IS LOAD-BEARING. Two EXPLICIT argument-3 values must give
       *>    DIFFERENT answers, or the equality would also hold for a compiler that
@@ -71,7 +71,7 @@
       *>      = 1985, giving 19851003.
       *>      (85365, 10, 1900) -> 1885 * 1000 + 365 = 1885365; (…, 2000) -> 1985365.
       *>
-      *> THE COMMA SEPARATORS ON THE PROBE LINES ARE LOAD-BEARING TOO. §2023:8.3.5 r2
+      *> THE COMMA SEPARATORS ON THE PROBE LINES ARE LOAD-BEARING TOO. §2023:8.3.5 SR2
       *> makes them legal anywhere a space separator is ("the COBOL characters comma
       *> and semicolon, immediately followed by a space, are separators that may be
       *> used anywhere the separator space is used") — and here they are REQUIRED:
@@ -105,7 +105,7 @@
            COMPUTE YY = FUNCTION MOD(CY, 100)
            COMPUTE A1 = YY * 10000 + 1003
            COMPUTE B1 = YY * 1000 + 365
-      *> ── §2023:15.23.3 r5, DATE-TO-YYYYMMDD ──────────────────────────────────────
+      *> ── §2023:15.23.3 AR5, DATE-TO-YYYYMMDD ──────────────────────────────────────
       *> argument-2 = 0 puts the window's last year AT the execution year, so an
       *> argument-3 one year LOW changes the answer by a century.
            COMPUTE A-OM-0 = FUNCTION DATE-TO-YYYYMMDD(A1, 0)
@@ -131,7 +131,7 @@
            DISPLAY "DATE-A3-1900=" CTL8
            COMPUTE CTL8 = FUNCTION DATE-TO-YYYYMMDD(851003 10 2000)
            DISPLAY "DATE-A3-2000=" CTL8
-      *> ── §2023:15.25.3 r5, DAY-TO-YYYYDDD ────────────────────────────────────────
+      *> ── §2023:15.25.3 AR5, DAY-TO-YYYYDDD ────────────────────────────────────────
            COMPUTE J-OM-0 = FUNCTION DAY-TO-YYYYDDD(B1, 0)
            COMPUTE J-EX-0 = FUNCTION DAY-TO-YYYYDDD(B1, 0, CY)
            COMPUTE J-OM-M1 = FUNCTION DAY-TO-YYYYDDD(B1, -1)

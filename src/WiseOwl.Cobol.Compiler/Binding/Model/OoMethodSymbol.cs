@@ -18,7 +18,7 @@ public sealed record OoMethodSymbol
         (Name, HasUsing, HasReturning, Origin) = (name, hasUsing, hasReturning, origin);
     }
 
-    /// <summary>The COBOL method name (an accessor's is its pinned GET/SET family name, ISO §2023:11.7.4 GR1 a).</summary>
+    /// <summary>The COBOL method name (an accessor's is its pinned GET/SET family name, ISO §2023:11.7.4 GR1a).</summary>
     public string Name { get; }
 
     /// <summary>Whether the PROCEDURE DIVISION header has a USING phrase (an accessor's formal for a SET).</summary>
@@ -33,7 +33,7 @@ public sealed record OoMethodSymbol
     /// and an imported method have no body to bind and no position of their own, so asking for one is a loud internal error.</summary>
     public OoSymbolOrigin Origin { get; }
 
-    /// <summary>The name this method is externalized under (ISO §2023:11.7.4 GR1 b): "the name is
+    /// <summary>The name this method is externalized under (ISO §2023:11.7.4 GR1b): "the name is
     /// method-name-1. However, literal-1, if specified, is the name of method that is externalized to the
     /// operating environment"). It defaults to <see cref="Name"/>, and it is the ROSTER KEY: §2023:14.9.23.2
     /// gives INVOKE no word form for the method at all — only literal-1 or identifier-2 — and §2023:14.9.23.4
@@ -67,7 +67,7 @@ public sealed record OoMethodSymbol
     /// formal's class-level statics (numeric profiles) at CONTENT-conversion call sites.</summary>
     public OoClassSymbol Owner { get; set; } = null!;
 
-    /// <summary>The method's checking slice (<see cref="MethodChecking"/>): §2023:14.9.23.4 GR7 c)'s EC-OO-UNIVERSAL half
+    /// <summary>The method's checking slice (<see cref="MethodChecking"/>): §2023:14.9.23.4 GR7c's EC-OO-UNIVERSAL half
     /// at the method's PROCEDURE DIVISION HEADER, §2023:14.8.4.1's activated-method EC-EXTERNAL mask and automatic propagation
     /// (§2023:7.3.21.4 GR1/GR3), written by <c>CheckingFold</c> once every method symbol exists and before any
     /// method body binds, and read by <c>OoEmitter</c>.
@@ -99,7 +99,7 @@ public sealed record OoMethodSymbol
     public string? PropertyName { get; init; }
 
     /// <summary>The method as the SOURCE names it, for a diagnostic: <c>GET PROPERTY p</c> / <c>SET PROPERTY p</c>
-    /// for an accessor (whose <see cref="Name"/> is the implementor-defined roster name of §2023:11.7.4 GR1 a), never
+    /// for an accessor (whose <see cref="Name"/> is the implementor-defined roster name of §2023:11.7.4 GR1a), never
     /// written by the user), else the method-name.</summary>
     public string SourceName => Accessor switch
     {

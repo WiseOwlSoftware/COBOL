@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ NO INTRINSIC GUARD SPELLS ITS OWN SUBSTITUTED TEXT RESULT (kb/Work PB383, PB470).
 ///
-/// <para><b>The rule.</b> ISO <b>§2023:15.3 rule 14</b> — "If the EC-ARGUMENT-FUNCTION exception condition is set to
+/// <para><b>The rule.</b> ISO <b>§2023:15.3 AR14</b> — "If the EC-ARGUMENT-FUNCTION exception condition is set to
 /// exist and checking for EC-ARGUMENT-FUNCTION is not enabled, the implementor defines the result of the function
 /// reference" — hands the substituted result to the implementor, and <c>docs/CONFORMANCE.md</c> row
 /// <c>DOC-A.1-90</c> writes the determination down ONCE. Its numeric half is
@@ -111,7 +111,7 @@ public sealed class ArgumentSubstituteDriftTests
         [
             "        if (acc == 0) return \"0\";",                          // BASECONVERT's zero — a RESULT
             "            return \"=\";   // §2023:14.6.13.1.3 #8, a different determination",
-            "        return c < 0 ? \"<\" : c > 0 ? \">\" : \"=\";",        // §2023:15.51.4 r5 / §2023:15.86.4
+            "        return c < 0 ? \"<\" : c > 0 ? \">\" : \"=\";",        // §2023:15.51.4 RV5 / §2023:15.86.4
             "            \"LOCALE-DATE\" => \"ISO §2023:15.52.4 r1\",",          // a switch arm carrying a citation
             "                    sb.Append(run >= 2 ? des : des.Length > 0 ? des[..1] : \"\");",
             "            return ExceptionState.ArgumentErrorSpaces(detail, LocaleSubstitutePositions);",

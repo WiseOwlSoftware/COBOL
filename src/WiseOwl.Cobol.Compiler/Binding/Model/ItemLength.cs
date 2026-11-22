@@ -3,7 +3,7 @@
 namespace WiseOwl.Cobol.Binding.Model;
 
 /// <summary>
-/// ⛔ THE ONE ISO §2023:15.50.4 r1/r2/r3 LENGTH OF A FIXED ITEM — the value <c>FUNCTION LENGTH</c> folds to and the value
+/// ⛔ THE ONE ISO §2023:15.50.4 RV1/r2/r3 LENGTH OF A FIXED ITEM — the value <c>FUNCTION LENGTH</c> folds to and the value
 /// §2023:13.10.4 GR6 gives a <c>CONSTANT AS LENGTH OF data-name-2</c> ("determined as specified in the LENGTH intrinsic
 /// function with the exception that when data-name-2 is an occurs-depending group item, the maximum size of the data
 /// item is used"). It lived inside <c>IntrinsicBinder</c> while the CONSTANT entry read <see cref="DataItem.ImageWidth"/>
@@ -13,7 +13,7 @@ namespace WiseOwl.Cobol.Binding.Model;
 /// </summary>
 internal static class ItemLength
 {
-    /// <summary>§2023:15.50.4 r1/r2/r3 for a FIXED item (kb/Work PB61): an elementary boolean item's BOOLEAN positions
+    /// <summary>§2023:15.50.4 RV1/r2/r3 for a FIXED item (kb/Work PB61): an elementary boolean item's BOOLEAN positions
     /// (r1), an elementary usage-national item's NATIONAL positions (r2), and for everything else — an
     /// alphanumeric group, a DISPLAY leaf, a COMP/PACKED leaf, an INDEX/POINTER/PROGRAM-POINTER/COMP-1/COMP-2
     /// carrier — the length "in alphanumeric character positions" (r3), which is the byte width under WiseOwl COBOL's

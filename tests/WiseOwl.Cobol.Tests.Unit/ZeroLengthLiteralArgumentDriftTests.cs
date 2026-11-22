@@ -40,7 +40,7 @@ public sealed class ZeroLengthLiteralArgumentDriftTests
         // "documented non-support, Bind = Unsupported, so COBOL1518 fires before any argument screen and the
         // row would be a dead lookup" — TRUE while support was declined under A.3 item 25, and FALSE the moment
         // it was claimed. An adjudication is a fact about the compiler, not a permanent exemption: leaving it
-        // would have kept this guard green while `FUNCTION STANDARD-COMPARE("" "AB")` — which §2023:15.85.3 r4
+        // would have kept this guard green while `FUNCTION STANDARD-COMPARE("" "AB")` — which §2023:15.85.3 AR4
         // forbids — compiled clean. The schema now declares the rule on positions 1 and 2.
     };
 
@@ -68,7 +68,7 @@ public sealed class ZeroLengthLiteralArgumentDriftTests
                 RegexOptions.Singleline);
             if (!argRules.Success) continue;
             // ⛔ MATCH THE PHRASE, NOT ONE OF ITS SENTENCE SHAPES. The first cut of this scan looked for
-            // "shall not be a zero-length literal" and found FIVE of the six, because §2023:15.85.3 r4 states the
+            // "shall not be a zero-length literal" and found FIVE of the six, because §2023:15.85.3 AR4 states the
             // identical rule as "NEITHER argument-1 NOR argument-2 shall be a zero-length literal". A drift test
             // whose own pattern has a blind spot is worse than none — it reports coverage it does not have.
             // Inside an ARGUMENT-RULES subclause every mention of the term is a prohibition; the returned-value
@@ -128,7 +128,7 @@ public sealed class ZeroLengthLiteralArgumentDriftTests
     }
 
     /// <summary>⛔ THE CITED ORDINAL MUST BE THE ZERO-LENGTH RULE'S OWN, NOT THE CLASS RULE'S. MAX's class rule is
-    /// §2023:15.59.3 r1 and its zero-length rule is r3; a diagnostic citing r1 for an r3 violation would pass
+    /// §2023:15.59.3 AR1 and its zero-length rule is r3; a diagnostic citing r1 for an r3 violation would pass
     /// <c>cite.py --check</c> — the text is really in the standard — while pointing the reader at the wrong rule.
     /// That is why the schema carries a clause STRING here rather than a bool.</summary>
     [Fact]

@@ -55,11 +55,11 @@ public sealed class BoundaryGroupCorrespondenceTests
     [Fact]
     public void ThePairFails_WhereSection8_5_1_12Fails()
     {
-        // No table where the dynamic table stands (§2023:8.5.1.12.1 rule 1).
+        // No table where the dynamic table stands (§2023:8.5.1.12.1 GR1).
         Assert.NotNull(GroupCompatibility.Walk([Fx(3), new(GroupAtomKind.Table, 3, 3, 1, 1), Fx(2)], VarLGAtoms));
         // Element byte lengths differ (§2023:8.5.1.12.3 — "the byte length of their elements is equal").
         Assert.NotNull(GroupCompatibility.Walk([Fx(2), new(GroupAtomKind.Table, 6, 6, 2, 2), Fx(2)], VarLGAtoms));
-        // A dynamic-length item has no counterpart in a fixed group (§2023:8.5.1.12.1 rule 3).
+        // A dynamic-length item has no counterpart in a fixed group (§2023:8.5.1.12.1 GR3).
         Assert.NotNull(GroupCompatibility.Walk(FixedSGAtoms, [Fx(2), new(GroupAtomKind.DynamicLength, 0, 0)]));
         // A group with no table at all is one fixed run: long enough to reach the dynamic table's position, it
         // has no table there.
@@ -366,7 +366,7 @@ public sealed class BoundaryGroupCorrespondenceTests
         Assert.Contains("EC-PROGRAM-ARG-MISMATCH", ex.Message);
     }
 
-    /// <summary>kb/Work PB2280 — two VARIABLE-length groups of different shapes (§2023:14.8.2.2 2): "compatible, as described
+    /// <summary>kb/Work PB2280 — two VARIABLE-length groups of different shapes (§2023:14.8.2.2 SR2): "compatible, as described
     /// in 8.5.1.12", which constrains only where their variable-length items lie). The argument 05 H X(2) · 05 D X
     /// DYNAMIC LENGTH · 05 T X(5) meets the formal 05 H X(2) · 05 D X DYNAMIC LENGTH · 05 T X(2): the formal sees its own
     /// shape, and BY REFERENCE (§2023:14.2.3 GR8) its store reaches only the argument storage it overlays, so the argument's
@@ -393,7 +393,7 @@ public sealed class BoundaryGroupCorrespondenceTests
     [Fact]
     public void AnIncompatibleVariableLengthArgument_FailsTheActivation_Loud()
     {
-        // A dynamic-length item opposite plain material (§2023:8.5.1.12.1 rule 3) — EC-PROGRAM-ARG-MISMATCH, never an
+        // A dynamic-length item opposite plain material (§2023:8.5.1.12.1 GR3) — EC-PROGRAM-ARG-MISMATCH, never an
         // internal error from the reshape.
         var args = new[] { new CobolArg(CobolPassMode.Reference,
             ManagedPointer<CobolVarGroup>.Cell(new CobolVarGroup("HHH", ["d"])), null,
@@ -450,7 +450,7 @@ public sealed class BoundaryGroupCorrespondenceTests
     [Fact]
     public void ATableLessPrefixFormal_SeesOnlyItsOwnCharacters_AndTheRestSurvives()
     {
-        // §2023:14.8.2.2 rule 1's prefix: a 2-character group formal; VT lies past its last character (§2023:8.5.1.12.2's
+        // §2023:14.8.2.2 SR1's prefix: a 2-character group formal; VT lies past its last character (§2023:8.5.1.12.2's
         // last sentence), so it is no component of the pair and must come back unchanged.
         var vg = ManagedPointer<CobolVarGroup>.Cell(new CobolVarGroup("ghij", ["kl"]));
         var formal = CobolArgAdapt.Text([new CobolArg(CobolPassMode.Reference, vg, null, VarLGAtoms)], 0, 2, [], static () => "");

@@ -52,7 +52,7 @@ internal sealed record SetSender(string Text, Core.DataReferenceContext? Ref, Bo
     public Place? TemporaryItem => Bound is { } b ? IntrinsicBinder.TemporaryItemOf(b) : null;
 
     /// <summary>The §2023:8.5.2.1 CLASS of a function-identifier / invocation sender (null when not statically decidable,
-    /// and for a <see cref="Ref"/>, whose class the resolved item answers). An INDEX function (§2023:15.2 item 6) is class
+    /// and for a <see cref="Ref"/>, whose class the resolved item answers). An INDEX function (§2023:15.2 GR6) is class
     /// index here — the storage model folds it into category numeric, which is why the class, never the category,
     /// answers (<see cref="IntrinsicArgumentRules.ClassOf"/>).</summary>
     public CobolClass? IdentifierClass => Operand is { } o ? IntrinsicArgumentRules.ClassOf(o) : null;

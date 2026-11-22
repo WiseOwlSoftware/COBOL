@@ -56,7 +56,7 @@ public sealed class CobolLiteralTests
 
     /// <summary>kb/Work PB3245 — a literal token its line ended inside: an opening delimiter (after any of the five prefixes,
     /// §2023:8.3.3.2.2 / §2023:8.3.3.4.2 / §2023:8.3.3.5.2) that the text never closes, read left to right with a doubled delimiter as one
-    /// embedded delimiter (§2023:8.3.3.2.3 r3). The closed literal, the zero-length one, text that is no single literal and text
+    /// embedded delimiter (§2023:8.3.3.2.3 SR3). The closed literal, the zero-length one, text that is no single literal and text
     /// with no opening delimiter are not unterminated.</summary>
     [Theory]
     [InlineData("\"HELLO", true)]

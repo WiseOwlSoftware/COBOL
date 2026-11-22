@@ -161,7 +161,7 @@ public sealed class PrintedFormatAlternativeDriftTests
     /// canonical PDF page 653), §2023:14.9.18.2 (GOBACK, page 661) and §2023:14.9.38.2 Format 2 (SEND, page 756) — and on
     /// all three, rendered and measured, RAISING and LAST carry underline rectangles while the EXCEPTION after
     /// LAST does not. §2023:5.2.3 makes a non-underlined uppercase word an OPTIONAL word, so <c>RAISING LAST</c> is
-    /// legal at every one of those sites, and §2023:7.3.21.4 rule 2 is the standard citing itself — the PROPAGATE
+    /// legal at every one of those sites, and §2023:7.3.21.4 GR2 is the standard citing itself — the PROPAGATE
     /// rule writes the phrase back as "as though a GOBACK RAISING LAST statement were executed".
     /// <para>This is stated over the GRAMMAR TEXT rather than over one rule because the defect recurred by
     /// COPY: PB407 relaxed the shared <c>raisingPhrase</c>, and <c>messagingSendStatement</c>'s inline spelling of the

@@ -14,27 +14,27 @@ public static class FileStatusCode
     /// <summary>00 — successful completion.</summary>
     public const string Success = "00";
     /// <summary>04 — a READ was successful but the physical record is shorter or longer than the min/max record
-    /// length for the file's fixed attributes (ISO §2023:9.1.13.2 item 3 / §2023:14.9.30.4 GR14 — record-sequential only; the
+    /// length for the file's fixed attributes (ISO §2023:9.1.13.2 GR3 / §2023:14.9.30.4 GR14 — record-sequential only; the
     /// record is still delivered). Clarified in COBOL-2023 (Annex E.2 item 15), version-invariant behavior.</summary>
     public const string RecordLengthShortLong = "04";
     /// <summary>06 — a LINE-SEQUENTIAL READ found a record longer than the maximum record size; it is truncated on the
     /// right, the READ is SUCCESSFUL, and the file position indicator references the next unread character in the
-    /// record so the following READ continues the remainder (ISO §2023:14.9.30.4 GR15 + NOTE 3; §2023:9.1.13.2 item 5).</summary>
+    /// record so the following READ continues the remainder (ISO §2023:14.9.30.4 GR15 + NOTE 3; §2023:9.1.13.2 GR5).</summary>
     public const string LineRecordTooLong = "06";
     /// <summary>09 — a LINE SEQUENTIAL READ completed SUCCESSFULLY but the record area it delivered holds one or
     /// more characters outside the implementor-defined line sequential character set (ISO §2023:14.9.30.4 GR16;
-    /// §2023:9.1.13.2 item 7). The record IS delivered — the first digit '0' makes this a successful completion, so
+    /// §2023:9.1.13.2 GR7). The record IS delivered — the first digit '0' makes this a successful completion, so
     /// the only exception condition it raises is the continuable EC-I-O-WARNING. The set is
     /// <see cref="LineSequentialCharacterSet"/> (Annex A.1 item 115; docs/CONFORMANCE.md DOC-A.1-115), the SAME
     /// set the '71' WRITE/REWRITE rules below use. ⛔ GR16 is stated AFTER GR15 and its only condition is "the
     /// execution of the READ statement is successful", so it also lands on a truncated ('06') read: '09' is the
     /// status a bad character produces whether or not the line was over-length (kb/Work PB329).</summary>
     public const string LineRecordInvalidCharRead = "09";
-    /// <summary>05 — successful completion, §2023:9.1.13.2 item 4: an OPEN of an OPTIONAL file whose physical file is not
+    /// <summary>05 — successful completion, §2023:9.1.13.2 GR4: an OPEN of an OPTIONAL file whose physical file is not
     /// present (created on OUTPUT/EXTEND/I-O, EOF on INPUT) (a), or a DELETE FILE whose referenced file is not
     /// available (b; §2023:14.9.10.4 GR14).</summary>
     public const string OptionalFileNotFound = "05";
-    /// <summary>07 — ISO §2023:9.1.13.2 item 6: <i>"An OPEN or CLOSE statement is successfully executed but a CLOSE
+    /// <summary>07 — ISO §2023:9.1.13.2 GR6: <i>"An OPEN or CLOSE statement is successfully executed but a CLOSE
     /// statement with the NO REWIND, REEL/UNIT, or FOR REMOVAL phrase or an OPEN statement with the NO REWIND
     /// phrase references a physical file on a non-reel/unit medium."</i> ⛔ THIS STATUS IS THE MEDIUM
     /// DETERMINATION MADE OBSERVABLE: it exists only for a non-reel/unit medium, so every connector that can
@@ -45,7 +45,7 @@ public static class FileStatusCode
     public const string AtEnd = "10";
     /// <summary>30 — permanent I/O error with no more specific code.</summary>
     public const string PermanentError = "30";
-    /// <summary>31 — ISO §2023:9.1.13.6 item 2: "A permanent error exists during execution of an OPEN statement because
+    /// <summary>31 — ISO §2023:9.1.13.6 GR2: "A permanent error exists during execution of an OPEN statement because
     /// the content of the data item referenced by the data-name specified in the USING phrase of the file control
     /// entry is not consistent with the specification for the device-name or literal in the ASSIGN clause of that
     /// file control entry." The status of §2023:12.4.5.3 GR3's closing sentence — the OPEN/SORT/MERGE whose dynamic
@@ -54,11 +54,11 @@ public static class FileStatusCode
     public const string AssignNotConsistent = "31";
     /// <summary>35 — OPEN INPUT/I-O/EXTEND on a non-optional file that is not present.</summary>
     public const string FileNotFound = "35";
-    /// <summary>37 — a permanent error from insufficient access permission (§2023:9.1.13.6 item 6): an OPEN of a file the
+    /// <summary>37 — a permanent error from insufficient access permission (§2023:9.1.13.6 GR6): an OPEN of a file the
     /// process cannot open in the requested mode (a), or a DELETE FILE of a present file whose deletion the process
     /// has no authority for or whose storage medium does not allow (§2023:14.9.10.4 GR16, GR17).</summary>
     public const string PermissionDenied = "37";
-    /// <summary>Classify a DELETE FILE IOException (ISO §2023:14.9.10.4 GR17 vs §2023:9.1.13.6 item 1): a storage medium
+    /// <summary>Classify a DELETE FILE IOException (ISO §2023:14.9.10.4 GR17 vs §2023:9.1.13.6 GR1): a storage medium
     /// that does not allow deletion — a write-protected volume (Windows ERROR_WRITE_PROTECT, HResult
     /// 0x80070013) or a read-only mount (Unix EROFS = errno 30, which .NET surfaces as the IOException's
     /// HResult) — is the '37' GR17 states; anything else is the generic permanent error '30'. Annex E.3.3
@@ -66,7 +66,7 @@ public static class FileStatusCode
     /// the mapping is directly unit-testable (kb/Work PB140).</summary>
     public static string ForDeleteFileFailure(IOException ex) =>
         ex.HResult is unchecked((int)0x80070013) or 30 ? PermissionDenied
-        // §2023:9.1.13.9 2) — "a DELETE FILE statement is attempted on a physical file and that physical file is
+        // §2023:9.1.13.9 GR2 — "a DELETE FILE statement is attempted on a physical file and that physical file is
         // currently open by another file connector": the host's sharing refusal, when the other connector is
         // not this run unit's (kb/Work PB860).
         : HostFile.IsSharingRefusal(ex) ? DeleteFileSharing
@@ -76,7 +76,7 @@ public static class FileStatusCode
     /// 2002 5x/6x file-sharing family — that construct is COBOL0902-rejected at 2023 via the
     /// close-with-lock-removed-2023 gate, so 38 stays only for the still-legal ≤2014 path).</summary>
     public const string FileLocked = "38";
-    /// <summary>39 — the file attribute conflict condition (ISO §2023:9.1.13.6 item 7): an OPEN or DELETE FILE is
+    /// <summary>39 — the file attribute conflict condition (ISO §2023:9.1.13.6 GR7): an OPEN or DELETE FILE is
     /// unsuccessful because a conflict was detected between the physical file's fixed file attributes (§2023:9.1.6)
     /// and the attributes specified for the file in the source unit. Produced by <c>FileConnector.Open</c> from
     /// §2023:14.9.27.4 GR10's comparison, which asks each organization what ITS OWN FORMAT records
@@ -84,14 +84,14 @@ public static class FileStatusCode
     /// and compares it through <see cref="FixedFileAttributes.Conflicts"/>. DELETE FILE's own §2023:14.9.10.4
     /// GR18 leg is separately (and emptily) defined at <c>FileRegistry.ValidateFixedFileAttributes</c>.</summary>
     public const string FixedAttributeConflict = "39";
-    /// <summary>41 — a logic error, §2023:9.1.13.7 item 1: an OPEN or a DELETE FILE attempted for a file connector in an
+    /// <summary>41 — a logic error, §2023:9.1.13.7 GR1: an OPEN or a DELETE FILE attempted for a file connector in an
     /// open mode (§2023:14.9.10.4 GR13 for DELETE FILE).</summary>
     public const string FileAlreadyOpen = "41";
-    /// <summary>42 — a logic error, §2023:9.1.13.7 item 2: a CLOSE or an UNLOCK attempted for a file connector that is not
+    /// <summary>42 — a logic error, §2023:9.1.13.7 GR2: a CLOSE or an UNLOCK attempted for a file connector that is not
     /// in an open mode.</summary>
     public const string FileNotOpen = "42";
     /// <summary>43 — a DELETE RECORD or REWRITE on a mass storage file in the sequential access mode whose immediately
-    /// preceding operation on the file connector was not a successfully executed READ (§2023:9.1.13.7 item 3), on every
+    /// preceding operation on the file connector was not a successfully executed READ (§2023:9.1.13.7 GR3), on every
     /// organization.</summary>
     public const string NoSuccessfulReadBeforeDeleteRewrite = "43";
     /// <summary>46 — no valid next record for a sequential READ (a prior READ was unsuccessful, no reposition).</summary>
@@ -102,19 +102,19 @@ public static class FileStatusCode
     public const string WriteNotOpenForOutput = "48";
     /// <summary>49 — DELETE/REWRITE on a file not open for I-O.</summary>
     public const string DeleteRewriteNotOpenForIO = "49";
-    /// <summary>44 — record-size boundary violation (§2023:9.1.13.7 item 4, a logic error): a WRITE/REWRITE outside the RECORD IS
+    /// <summary>44 — record-size boundary violation (§2023:9.1.13.7 GR4, a logic error): a WRITE/REWRITE outside the RECORD IS
     /// VARYING bounds (§2023:13.18.43.4 GR14 / §2023:14.9.35.4 GR20), or a record-sequential REWRITE whose size differs from
     /// the record being replaced (§2023:14.9.35.4 GR16).</summary>
     public const string RecordSizeViolation = "44";
 
-    /// <summary>45 — record identification failure (§2023:9.1.13.7 item 5, a logic error): no record description entry was selected
+    /// <summary>45 — record identification failure (§2023:9.1.13.7 GR5, a logic error): no record description entry was selected
     /// for processing with the FORMAT clause or the CODE-SET clause, because the condition of no SELECT WHEN clause was true
     /// (§2023:13.18.51.4 GR4). The statement is unsuccessful and the medium is unchanged.</summary>
     public const string RecordIdentificationFailure = "45";
 
-    /// <summary>71 — a line-sequential WRITE (ISO §2023:14.9.51.4 GR23) or REWRITE (§2023:14.9.35.4 GR17 d) whose record area
+    /// <summary>71 — a line-sequential WRITE (ISO §2023:14.9.51.4 GR23) or REWRITE (§2023:14.9.35.4 GR17d) whose record area
     /// contains a character outside the implementor-defined line sequential character set. The statement is
-    /// UNSUCCESSFUL and, per §2023:9.1.13.10 item 1, "the record area remains unchanged" — nothing reaches the medium.
+    /// UNSUCCESSFUL and, per §2023:9.1.13.10 GR1, "the record area remains unchanged" — nothing reaches the medium.
     /// The set is <see cref="LineSequentialCharacterSet"/> (Annex A.1 item 115; docs/CONFORMANCE.md DOC-A.1-115),
     /// the SAME set <see cref="LineRecordInvalidCharRead"/> ('09') applies on the READ side. ⛔ '7' is a FATAL
     /// first digit (§2023:9.1.13.1 — EC-I-O-RECORD-CONTENT), so nothing corrupt is written. With EC-I-O checking
@@ -123,34 +123,34 @@ public static class FileStatusCode
     /// latitude, terminates.</summary>
     public const string LineRecordInvalidChar = "71";
 
-    /// <summary>02 — successful completion; a duplicate alternate record key was detected (ISO §2023:9.1.13.2 item 2).</summary>
+    /// <summary>02 — successful completion; a duplicate alternate record key was detected (ISO §2023:9.1.13.2 GR2).</summary>
     public const string DuplicateAlternateKey = "02";
-    /// <summary>14 — relative sequential READ: the RRN's significant digits exceed the RELATIVE KEY item (§2023:9.1.13.4 item 2).</summary>
+    /// <summary>14 — relative sequential READ: the RRN's significant digits exceed the RELATIVE KEY item (§2023:9.1.13.4 GR2).</summary>
     public const string RelativeKeyOverflow = "14";
-    /// <summary>21 — key sequence error on a sequentially-accessed indexed file (§2023:9.1.13.5 item 1).</summary>
+    /// <summary>21 — key sequence error on a sequentially-accessed indexed file (§2023:9.1.13.5 GR1).</summary>
     public const string SequenceError = "21";
-    /// <summary>22 — duplicate key: relative slot, prime key, or a no-DUPLICATES alternate (§2023:9.1.13.5 item 2).</summary>
+    /// <summary>22 — duplicate key: relative slot, prime key, or a no-DUPLICATES alternate (§2023:9.1.13.5 GR2).</summary>
     public const string DuplicateKey = "22";
-    /// <summary>23 — record not found on keyed access / keyed access to an absent optional file (§2023:9.1.13.5 item 3).</summary>
+    /// <summary>23 — record not found on keyed access / keyed access to an absent optional file (§2023:9.1.13.5 GR3).</summary>
     public const string RecordNotFound = "23";
-    /// <summary>24 — invalid-key boundary violation (§2023:9.1.13.5 item 4): a relative or indexed WRITE or REWRITE whose
+    /// <summary>24 — invalid-key boundary violation (§2023:9.1.13.5 GR4): a relative or indexed WRITE or REWRITE whose
     /// record would take the file past the boundary WiseOwl COBOL defines for those organizations, the host's maximum
     /// file size capped by the format at <see cref="Store.PagedFile.FormatPages"/> (2^32) pages (Annex A.1 item 107,
-    /// docs/CONFORMANCE.md DOC-A.1-107; §2023:14.9.51.4 GR33 b) / GR42 d); <c>KeyedConnector.RecordWriteFailed</c>) — or a
+    /// docs/CONFORMANCE.md DOC-A.1-107; §2023:14.9.51.4 GR33b / GR42 d); <c>KeyedConnector.RecordWriteFailed</c>) — or a
     /// sequential-access relative WRITE whose relative record number has more significant digits than the relative key
-    /// item (§2023:14.9.51.4 GR33 c)).</summary>
+    /// item (§2023:14.9.51.4 GR33c).</summary>
     public const string BoundaryViolation = "24";
     /// <summary>34 — permanent-error boundary violation: a sequential WRITE or REWRITE the host medium cannot
-    /// store (§2023:9.1.13.6 item 3, §2023:14.9.51.4 GR20 — the boundary is the medium's capacity, Annex A.1 item 108,
+    /// store (§2023:9.1.13.6 GR3, §2023:14.9.51.4 GR20 — the boundary is the medium's capacity, Annex A.1 item 108,
     /// DOC-A.1-108, classified by <see cref="HostFile.IsMediumBoundary"/>), or a random/dynamic relative WRITE
     /// whose relative key is less than 1 or greater than <see cref="RelativeConnector.HighestRelativeRecordNumber"/>
-    /// (§2023:14.9.51.4 GR29 b), first in §2014:14.9.47.3 GR26 b); below 2014 that WRITE answers <see cref="BoundaryViolation"/>,
+    /// (§2023:14.9.51.4 GR29b, first in §2014:14.9.47.3 GR26b; below 2014 that WRITE answers <see cref="BoundaryViolation"/>,
     /// <see cref="DialectBehavior.RelativeWriteKeyOutOfRangeIsPermanentError"/>).</summary>
     public const string PermanentBoundary = "34";
 
     /// <summary>The I-O status of a WRITE or REWRITE whose bytes the host refused to store (kb/Work PB1192): the
-    /// medium's boundary ('34', §2023:9.1.13.6 item 3 — <see cref="HostFile.IsMediumBoundary"/>) or, for any other
-    /// host failure, §2023:9.1.13.6 item 1's '30' — never an escaping .NET exception.</summary>
+    /// medium's boundary ('34', §2023:9.1.13.6 GR3 — <see cref="HostFile.IsMediumBoundary"/>) or, for any other
+    /// host failure, §2023:9.1.13.6 GR1's '30' — never an escaping .NET exception.</summary>
     public static string ForWriteFailure(IOException ex) =>
         HostFile.IsMediumBoundary(ex) ? PermanentBoundary : PermanentError;
 
@@ -158,9 +158,9 @@ public static class FileStatusCode
     //    '5' first digit maps to EC-I-O-RECORD-OPERATION, '6' to EC-I-O-FILE-SHARING (§2023:9.1.13.1) — both
     //    continuable; the EC bridge (ExceptionCatalog) already routes them, so producing the code is the whole job.
     /// <summary>51 — a record READ/REWRITE/DELETE could not lock the record because another file connector holds
-    /// its lock (§2023:9.1.13.8 item 1).</summary>
+    /// its lock (§2023:9.1.13.8 GR1).</summary>
     public const string RecordLocked = "51";
-    /// <summary>52 — the implementor-detected deadlock (§2023:9.1.13.8 item 2; the detection conditions are the
+    /// <summary>52 — the implementor-detected deadlock (§2023:9.1.13.8 GR2; the detection conditions are the
     /// Annex A.1 item 109 determination recorded in docs/CONFORMANCE.md §7). WiseOwl COBOL detects one exactly when
     /// a RETRY FOREVER waits on a record locked by another file connector: that holder is inside the executing
     /// run unit and cannot release while this statement runs, so §2023:14.7.9.3 GR3's "until the operation has been
@@ -171,16 +171,16 @@ public static class FileStatusCode
     /// <c>FileRegistry.ExhaustionStatus</c>, the ONE place the landing is decided.</para></summary>
     public const string Deadlock = "52";
     /// <summary>53 — a READ, WRITE or REWRITE that requests a record lock was refused because the run unit holds the
-    /// maximum number of locks (§2023:9.1.13.8 item 3; §2023:12.4.5.9.4 GR7).</summary>
+    /// maximum number of locks (§2023:9.1.13.8 GR3; §2023:12.4.5.9.4 GR7).</summary>
     public const string RunUnitLockLimit = "53";
     /// <summary>54 — a READ, WRITE or REWRITE that requests a record lock was refused because this file connector holds
-    /// the maximum number of locks (§2023:9.1.13.8 item 4; §2023:12.4.5.9.4 GR7).</summary>
+    /// the maximum number of locks (§2023:9.1.13.8 GR4; §2023:12.4.5.9.4 GR7).</summary>
     public const string ConnectorLockLimit = "54";
     /// <summary>'90' — ⛔ THE FIRST OF THE TWO IMPLEMENTOR-DEFINED I-O STATUSES THIS COMPILER DEFINES (the other is
-    /// <see cref="CharacterWithoutByteImage"/>'s '91'; ISO §2023:9.1.13.11 item 1:
+    /// <see cref="CharacterWithoutByteImage"/>'s '91'; ISO §2023:9.1.13.11 GR1:
     /// <i>"I-O status = 9x. An implementor-defined condition exists. This condition shall not duplicate any other
     /// condition specified by another I-O status value. The value of x is defined by the implementor."</i>) — the
-    /// LINAGE value-rule violation of §2023:13.18.34.4 GR6 b): the page size is not greater than zero, or a specified
+    /// LINAGE value-rule violation of §2023:13.18.34.4 GR6b: the page size is not greater than zero, or a specified
     /// footing start is not greater than zero or greater than the page size. Annex A.1 item 110 is the
     /// documentation obligation it carries; the determination is docs/CONFORMANCE.md §7 DOC-A.1-110.
     /// <para><b>Why 9x and not a value in another class.</b> §2023:9.1.13.2–§2023:9.1.13.10 enumerate every other class's
@@ -192,12 +192,12 @@ public static class FileStatusCode
     /// (<c>ExceptionCatalog.IsFatalIoStatus</c> — §2023:9.1.13.1's <i>"any that begin with the digit 9 that the
     /// implementor defines as fatal"</i>), which is what Table 13's <b>Fatal</b> for EC-I-O-LINAGE requires.</para>
     /// <para>⛔ IT TRAVELS WITH AN EXCEPTION-NAME. §2023:9.1.13.1's status→EC correspondence would read a '9x' as
-    /// EC-I-O-IMP, and §2023:13.18.34.4 GR6 b) 2 names EC-I-O-LINAGE, so the connector records the name beside the
+    /// EC-I-O-IMP, and §2023:13.18.34.4 GR6b 2 names EC-I-O-LINAGE, so the connector records the name beside the
     /// status (<see cref="FileConnector.IoConditionName"/>) and the generated hook reads the pair. A status
     /// alone cannot carry a condition the status table does not list.</para></summary>
     public const string LinageValueViolation = "90";
 
-    /// <summary>'91' — the SECOND implementor-defined I-O status (§2023:9.1.13.11 item 1; Annex A.1 item 110,
+    /// <summary>'91' — the SECOND implementor-defined I-O status (§2023:9.1.13.11 GR1; Annex A.1 item 110,
     /// docs/CONFORMANCE.md DOC-A.1-110): a WRITE or REWRITE whose record holds a character with no byte image in
     /// the file's coded character set — a character with no byte image (above U+00FF and not HIGH-VALUE, <see cref="StorageByte.HasByte"/>) written to a
     /// record sequential, report, relative or indexed file with no CODE-SET conversion (owner decision
@@ -207,7 +207,7 @@ public static class FileStatusCode
     /// one status: the file's coded character set is whichever the file is in. The statement is unsuccessful, nothing reaches
     /// the medium and the record area is unchanged — never the silent <c>?</c> Latin-1's replacement fallback
     /// used to write. A LINE SEQUENTIAL file answers the standard's own '71' instead
-    /// (<see cref="LineRecordInvalidChar"/>): §2023:9.1.13.10 item 1 is that organization's value for a record-area
+    /// (<see cref="LineRecordInvalidChar"/>): §2023:9.1.13.10 GR1 is that organization's value for a record-area
     /// character outside its character set, and §2023:9.1.13.11 forbids duplicating it.
     /// <para>Why 9x: §2023:9.1.13.10 confines '71' to line sequential files; a '3x' permanent error would stay in
     /// effect on the connector (Annex A.1 item 105) although the next record may well be writable; every other
@@ -216,8 +216,8 @@ public static class FileStatusCode
     public const string CharacterWithoutByteImage = "91";
 
     /// <summary>61 — OPEN failed: a sharing conflict, based on the sharing mode of a previously-opened file
-    /// connector or this OPEN's SHARING phrase, prevents the open (§2023:9.1.13.9 item 1, sub-cases a–e).</summary>
+    /// connector or this OPEN's SHARING phrase, prevents the open (§2023:9.1.13.9 GR1, sub-cases a–e).</summary>
     public const string FileSharingConflict = "61";
-    /// <summary>62 — DELETE FILE failed: the file is currently open by another file connector (§2023:9.1.13.9 item 2).</summary>
+    /// <summary>62 — DELETE FILE failed: the file is currently open by another file connector (§2023:9.1.13.9 GR2).</summary>
     public const string DeleteFileSharing = "62";
 }

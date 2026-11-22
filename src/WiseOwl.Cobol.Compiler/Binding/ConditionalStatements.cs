@@ -59,7 +59,7 @@ internal static class ConditionalStatements
     }
 
     /// <summary>Walk the statement's OWN syntax: a <c>statementBlock</c> is a conditional phrase's operand and is not
-    /// descended into (the statements inside it are other statements, whose terminators are theirs — §2023:14.5.3.2 1)).</summary>
+    /// descended into (the statements inside it are other statements, whose terminators are theirs — §2023:14.5.3.2 GR1).</summary>
     private static void Scan(IParseTree node, int? terminator, ref bool phrase, ref bool terminated)
     {
         for (int i = 0; i < node.ChildCount; i++)

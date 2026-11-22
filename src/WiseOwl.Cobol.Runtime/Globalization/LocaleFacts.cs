@@ -18,7 +18,7 @@ namespace WiseOwl.Cobol.Runtime.Globalization;
 /// <see cref="TextInfo"/> (DETERMINATION L9 — simple 1:1 case mapping), LC_MONETARY the <see cref="NumberFormatInfo"/>
 /// currency fields + <see cref="RegionInfo"/>, LC_TIME the <see cref="DateTimeFormatInfo"/> with DETERMINATION L10:
 /// ISO 9945's <c>d_fmt</c> is the culture's <see cref="DateTimeFormatInfo.ShortDatePattern"/> and <c>t_fmt</c> its
-/// <see cref="DateTimeFormatInfo.LongTimePattern"/> (the pattern that carries seconds — §2023:15.53.4 r2 requires "hours,
+/// <see cref="DateTimeFormatInfo.LongTimePattern"/> (the pattern that carries seconds — §2023:15.53.4 RV2 requires "hours,
 /// minutes, and seconds").
 /// <para><b>Availability vs content.</b> §2023:8.2.1: "If the locale is not found during an operation requiring a locale,
 /// the EC-LOCALE-MISSING exception condition is set to exist … If the locale content is invalid or incomplete during
@@ -92,7 +92,7 @@ public sealed class LocaleFacts
     /// §2023:14.6.13.1.3 #8); an available locale WITHOUT culture data for the category raises EC-LOCALE-INVALID (gated)
     /// and returns itself — the invariant stand-in fields are what the caller then reads. <paramref name="operation"/>
     /// names the operation for the message ("FUNCTION LOCALE-DATE", "class condition ALPHABETIC"), <paramref
-    /// name="rule"/> the rule that makes the locale required there ("ISO §2023:15.52.4 r1").</summary>
+    /// name="rule"/> the rule that makes the locale required there ("ISO §2023:15.52.4 RV1").</summary>
     public LocaleFacts? Require(LocaleCategory category, string operation, string rule)
     {
         if (!IsAvailable)
@@ -141,7 +141,7 @@ public sealed class LocaleFacts
     /// <para>Grounds (L10's own): the host ICU version varies BY HOST (Windows' bundled ICU lags the Linux runners';
     /// ICU 72 moved en-US's day-period separator from ' ' to U+202F and fr-FR's mon_thousands_sep from U+00A0 to
     /// U+202F), and locale text occupies CHARACTER POSITIONS of a fixed-width result — a LOCALE-TIME field, a PICTURE
-    /// format-2 item whose §2023:13.18.40.5 r14 b) truncation arithmetic and EC-LOCALE-SIZE would otherwise move with the
+    /// format-2 item whose §2023:13.18.40.5 GR14b truncation arithmetic and EC-LOCALE-SIZE would otherwise move with the
     /// host — so the bytes must not depend on where the program runs (owner decision Q4's principle); and the plain
     /// forms are what ISO 9945's locale data and GnuCOBOL's C-library rendition use. Mapping only U+202F would be
     /// insufficient: the fr-FR byte would still differ between an old-ICU host (U+00A0) and a new one.</para>
@@ -168,9 +168,9 @@ public sealed class LocaleFacts
     internal static string NormalizeLocaleText(string text) => Fold(text, trackOrigins: false, out _);
 
     /// <summary>The same L12 normalization over a text that is MATCHED AGAINST locale data rather than taken from it
-    /// (NUMVAL-C / TEST-NUMVAL-C LOCALE's argument-1, ISO §2023:15.68.3 r5 b): <paramref name="origins"/>[k] is the
+    /// (NUMVAL-C / TEST-NUMVAL-C LOCALE's argument-1, ISO §2023:15.68.3 AR5b): <paramref name="origins"/>[k] is the
     /// 0-based ordinal in <paramref name="text"/> of the normalized text's character k, so a position the scan
-    /// reports is the argument's own (§2023:15.94.4 r1); it is null when nothing was folded or removed (the identity).</summary>
+    /// reports is the argument's own (§2023:15.94.4 RV1); it is null when nothing was folded or removed (the identity).</summary>
     internal static string NormalizeLocaleText(string text, out int[]? origins) => Fold(text, trackOrigins: true, out origins);
 
     private static string Fold(string text, bool trackOrigins, out int[]? origins)

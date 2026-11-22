@@ -1,8 +1,8 @@
 - **D-UTC-OFFSET — CURRENT-DATE / WHEN-COMPILED UTC-offset positions 17–21 — the TRUE offset is reported, out of the rule's
-  stated range when the host is (§2023:15.21.3 r1 / §2023:15.99.3 r1; documented per §2023:4.2.6 / §2023:4.2.7).** One determination
+  stated range when the host is (§2023:15.21.3 RV1 / §2023:15.99.3 RV1; documented per §2023:4.2.6 / §2023:4.2.7).** One determination
   covers both functions because one formatter serves both (`CobolDate.Format21`; the compile-time bake and the
-  run-time read are separate seams onto it). §2023:15.21.3 r1 fixes positions 18–19 at "00 through 13" when position 17
-  is `+` and "00 through 12" when it is `–`, and §2023:15.99.3 r1 carries that table character for character. **Real
+  run-time read are separate seams onto it). §2023:15.21.3 RV1 fixes positions 18–19 at "00 through 13" when position 17
+  is `+` and "00 through 12" when it is `–`, and §2023:15.99.3 RV1 carries that table character for character. **Real
   offsets exceed both bounds.** UTC+14:00 is a shipping zone on both platforms WiseOwl COBOL targets — IANA
   `Pacific/Kiritimati`, Windows `Line Islands Standard Time` ("(UTC+14:00) Kiritimati Island", verified against the
   host zone table, not assumed) — and the `WISEOWL_COBOL_CLOCK` pin reaches **−14:00** as well, because it parses a
@@ -16,7 +16,7 @@
   untrue, and it keeps the value usable as an offset. The departure is confined to positions 18–19 and to
   |offset| > 13 (`+`) / > 12 (`–`); positions 1–16, 17 and 20–21 conform outright at every offset, which is what
   makes this one bounded determination rather than an open-ended divergence — `CurrentDateOffsetDeterminationTests`
-  asserts exactly that scope (the full §2023:15.21.3 r1 position table re-derived from the rule text, with the violation
+  asserts exactly that scope (the full §2023:15.21.3 RV1 position table re-derived from the rule text, with the violation
   set required to be **precisely** `{18-19}` across the whole fixture range and empty for every in-range offset).
   End to end through the clock seam: `CurrentDateOffsetPinTests` (a COBOL program under `WISEOWL_COBOL_CLOCK` at
   ±14:00, +13:00, +05:45, +00:00 and −09:30). Inventory rows `RV-15.21.3-1` and `RV-15.99.3-1` carry this one

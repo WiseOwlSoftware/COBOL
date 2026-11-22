@@ -18,7 +18,7 @@
       *> value, and a print line holding a character above U+00FF is
       *> NOT written — the write the report writer performs is
       *> unsuccessful with I-O status '91' in the report file's
-      *> connector (§2023:9.1.13.11 item 1). GENERATE is not among the
+      *> connector (§2023:9.1.13.11 GR1). GENERATE is not among the
       *> statements §2023:9.1.13.1 lists as setting an I-O status, so the
       *> FILE STATUS item is not stored by it; what the program can
       *> observe is the report file itself. §2023:14.9.51.4 GR15: an

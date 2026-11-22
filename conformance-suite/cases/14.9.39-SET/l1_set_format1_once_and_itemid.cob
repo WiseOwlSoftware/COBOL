@@ -25,7 +25,7 @@
       *> DISCRIMINATOR: a per-receiver re-evaluation of the sender
       *> would read T(IX) again AFTER IX had become 4, and T(4) is
       *> seeded to 8 for exactly that reason — it would print M=9.
-      *> Every value stays inside OCCURS 9, so §2023:14.9.39.4 GR2a1.b's
+      *> Every value stays inside OCCURS 9, so §2023:14.9.39.4 GR2a.1.b's
       *> EC-RANGE-INDEX leg is not reached on either reading and the
       *> two readings differ only in the printed number.
       *>

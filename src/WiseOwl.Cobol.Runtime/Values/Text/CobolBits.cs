@@ -21,7 +21,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// <para>⛔ <b>THE BIT ORDER IS HIGH-ORDER-FIRST, AND IT IS NOT ARBITRARY.</b> §2023:8.5.1.6.3 speaks throughout of
 /// "the first bit position of the first available byte" and lays successive items at "the next bit position", so
 /// boolean position 1 is the most significant bit of the first byte and the run fills toward the low-order end.
-/// A trailing partial byte is zero-filled — those are §2023:8.5.1.6.3's implicit filler bits, which §2023:15.50.4 r5
+/// A trailing partial byte is zero-filled — those are §2023:8.5.1.6.3's implicit filler bits, which §2023:15.50.4 RV5
 /// requires be counted in the length (and they are: the width is the ceiling).</para>
 ///
 /// <para>⚠ <b>A run may span several ITEMS.</b> Two bit items of the SAME LEVEL share a byte (§2023:8.5.1.6.3's
@@ -169,7 +169,7 @@ public static class CobolBits
     /// <summary>The UTF-16BE byte serialization of a NATIONAL string — one char per BYTE, two bytes (high-order
     /// first) per national position (D-N1: national is UTF-16, one code unit per character position). ⛔ THE ONE
     /// national→bytes reduction: <c>CobolIntrinsics.Convert</c>'s NAT source arm and the compiler-emitted CONVERT
-    /// ANY raw-storage channel (a national leaf's storage bits, §2023:15.19.3 r7) both ride it — never a second
+    /// ANY raw-storage channel (a national leaf's storage bits, §2023:15.19.3 AR7) both ride it — never a second
     /// serializer (fix-queue PB59 family 5b). Not a BIT codec, but it lives here because this class is where the
     /// storage-byte reductions are: the char==byte string convention is <see cref="Pack"/>'s.</summary>
     public static string NatBytes(string s)

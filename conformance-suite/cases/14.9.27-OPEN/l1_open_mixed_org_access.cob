@@ -21,7 +21,7 @@
       *>  - Table 18 (§2023:14.9.27.4 GR4): OUTPUT on an unavailable file =
       *>    "Open causes the file to be created"; INPUT on an available
       *>    file = "Normal open". Successful, no further information ⇒
-      *>    §2023:9.1.13.2 item 1, '00', on every leg.
+      *>    §2023:9.1.13.2 GR1, '00', on every leg.
       *>  - The three records read back prove each connector really was
       *>    associated with its OWN file, not with a shared one.
        IDENTIFICATION DIVISION.

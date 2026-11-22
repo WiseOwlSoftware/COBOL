@@ -90,7 +90,7 @@ public sealed record InitializeStore(BoundMove Move) : InitializeAction
     public BoundOperand Source => Move.Source;
 }
 
-/// <summary>⛔ THE VALUE-PHRASE STORE OF A RECEIVER A MOVE WOULD TRANSFORM (kb/Work PB4512): ISO §2023:14.9.20.4 GR6 a) 3.
+/// <summary>⛔ THE VALUE-PHRASE STORE OF A RECEIVER A MOVE WOULD TRANSFORM (kb/Work PB4512): ISO §2023:14.9.20.4 GR6a.3
 /// asks for a sending-operand that, "when moved to the receiving-operand with a MOVE statement, produces the same
 /// result as the initial value of the data item as produced by the application of the VALUE clause" — and for a
 /// receiver whose MOVE edits, justifies or blanks, the raw VALUE literal is not that operand, because the VALUE
@@ -105,7 +105,7 @@ public sealed record InitializeStore(BoundMove Move) : InitializeAction
 /// <para><see cref="Raw"/> is the VALUE literal of the occurrence being initialized (<c>DataItem.ValueAt</c>).</para></summary>
 public sealed record InitializeStoreValue(Place Target, string Raw) : InitializeAction;
 
-/// <summary>The per-occurrence expansion of ONE OCCURS dimension (ISO §2023:14.9.20.4 GR5b2 — "if the elementary data
+/// <summary>The per-occurrence expansion of ONE OCCURS dimension (ISO §2023:14.9.20.4 GR5b.2 — "if the elementary data
 /// item is a table element, each occurrence of the elementary data item is a possible receiving-operand"): the body
 /// repeats for <paramref name="Var"/> = 1‥<paramref name="Count"/>; nested dimensions nest loops, outermost first
 /// (the loop variable is spliced into each body place's subscript position).
@@ -122,7 +122,7 @@ public sealed record InitializeStoreValue(Place Target, string Raw) : Initialize
 public sealed record InitializeLoop(MethodLocal Var, AllCount Count, IReadOnlyList<InitializeAction> Body) : InitializeAction;
 
 /// <summary>⛔ THE PER-OCCURRENCE ARM SELECTOR — the ONE place a receiver's sending-operand is allowed to differ
-/// between occurrences of the same table element (ISO §2023:14.9.20.4 GR5c1c: an item is a receiving-operand when "a
+/// between occurrences of the same table element (ISO §2023:14.9.20.4 GR5c.1.c: an item is a receiving-operand when "a
 /// table format VALUE clause is specified in the data description entry of the elementary item and that VALUE
 /// clause specifies a value for the particular occurrence of the elementary data item"; GR6a3: "if the data item
 /// is a table element, the literal in the VALUE clause that corresponds to the occurrence being initialized
@@ -210,7 +210,7 @@ public enum InitializeCategory
 /// figure encloses the thirteen category names in a brace carrying CHOICE INDICATORS, and §2023:5.2.6.4 reads them
 /// "one or more of the alternatives contained within the choice indicators shall be specified, but any single
 /// alternative shall be specified only once" — so `REPLACING NUMERIC ALPHANUMERIC DATA BY SPACE` names ONE
-/// category-name of two categories, and every rule that consumes a category-name (§2023:14.9.20.4 GR5c1's "one of the
+/// category-name of two categories, and every rule that consumes a category-name (§2023:14.9.20.4 GR5c.1's "one of the
 /// categories specified or implied in the VALUE phrase", GR5c2's "one of the categories specified in the
 /// REPLACING phrase", GR6b's "associated with the category specified in the REPLACING phrase") is a MEMBERSHIP
 /// test. Modelling it as a scalar rejected every multi-category spelling at every edition (kb/Work PB415).

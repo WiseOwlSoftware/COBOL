@@ -27,7 +27,7 @@
       *> EXPECTED, derived from the rule:
       *>   OPEN=00  the association succeeds and the file is created (§2023:14.9.27.4 Table 18, OUTPUT).
       *>   CHKB=05  "pb673b.dat" - the name in the LAST ACTIVATOR's data item - was never associated, so the
-      *>            OPTIONAL connector finds it absent (§2023:14.9.27.4 GR14 / §2023:9.1.13.2 item 5).
+      *>            OPTIONAL connector finds it absent (§2023:14.9.27.4 GR14 / §2023:9.1.13.2 GR5).
       *>   CHKA=00  "pb673a.dat" - the name in the EXECUTOR's data item - exists and holds the record.
       *>   READA=AAAAA  read back through the same EXTERNAL connector.
       *> Before kb/Work PB673 the connector held ONE installed source closure, re-installed unguarded at every

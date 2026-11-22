@@ -14,10 +14,10 @@
       *> g2002-page-phrase-without-limit.)
       *> DERIVATION, every group's first LINE relative (PLUS 1):
       *> - PH prints on (HEADING integer + integer-2 - 1) = 2
-      *>   (§2002:13.16.33.3 GR5b2); without HEADING it would be 1
+      *>   (§2002:13.16.33.3 GR5b.2); without HEADING it would be 1
       *>   (§2002:13.16.37.3 GR3a).
       *> - The first body group on a page prints on the FIRST DETAIL
-      *>   integer = 3 (§2002:13.16.33.3 GR5b3); later lines add integer-2
+      *>   integer = 3 (§2002:13.16.33.3 GR5b.3); later lines add integer-2
       *>   to LINE-COUNTER (GR7b). Without FIRST DETAIL it would be 2
       *>   (GR3b).
       *> - PF prints on (FOOTING integer + integer-2) = 10 (GR5b4); without

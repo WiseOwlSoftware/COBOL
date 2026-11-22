@@ -1,10 +1,13 @@
       *>--- conformance-case
       *> id: g85_f05_02
-      *> rules: [1985-GR-X.2.5.4-1]
+      *> rules: [1985-GR-X.2.5.4-1, 1985-FMT-X.2.5.2]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified
       *>---
+      *> Also the accepted witness of §1985:X.2.5.2, the general format
+      *> END PROGRAM program-name.: each program below ends with one
+      *> (kb/Work PB5740).
       *> §1985:X.2.5.4 GR1 - three levels of nesting, each program with
       *> its end program header: G85F0502 contains, G85F05M2 both is
       *> contained and contains, G85F05N2 is contained. Each program CALLs

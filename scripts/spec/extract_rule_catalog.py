@@ -171,7 +171,7 @@ ORDINAL = re.compile(r"^(?P<n>\d+)\\?(?P<form>[.)])\s+(?P<text>.*)$")
 # referent both live in the item above it. That is the same silent-false-confidence class as PB689's
 # contamination, in the other direction.
 #
-# The transcription flattened the TAIL of some nested lists onto column 0 at a PAGE BREAK (§2023:14.9.41.3 SR6 b) 2.
+# The transcription flattened the TAIL of some nested lists onto column 0 at a PAGE BREAK (§2023:14.9.41.3 SR6b.2)
 # and 3. are printed indented under b) on PDF page 785 / folio 755 — the ordinal glyph measured at x0 115.05 on
 # a page whose body margin is 80.04 — and were transcribed at column 0). All 23 such items, in 14 clauses, were
 # measured on the PDF and REPAIRED in the transcription by PB698, so this arm catches nothing today and is a
@@ -1658,6 +1658,25 @@ def units_1985(lines: list[str], root: pathlib.Path = REPO):
     cat.margin_tally = measure_margin_levels.tally(list(levels.values()))
     margin = measure_margin_levels.at_margin(after, levels)
     return cat, rule_catalog_1985.units(lines, cat.rules, cat.declared, margin), after, margin
+
+
+def units_by_locator(edition: int, lines: list[str], rows: list[dict], root: pathlib.Path = REPO) -> dict[str, list]:
+    """THE UNITS OF UNNUMBERED TEXT of `edition`, by bare locator, as its catalog's mint reads them: 1985 (and Amendment
+    1's `§1989:` clauses) through `units_1985`, an ISO edition through `iso_units` over `rows`, the committed catalog's
+    rows (its numbered rule rows are the ones the extraction segments around: no unit row, no general format). A
+    citation's extent is read from them (cite.rule_book, kb/Work PB6014): a row minted from a unit holds exactly its
+    unit's lines, and no row holds a line another unit holds."""
+    source = citation.SOURCE_EDITION.get(edition, edition)
+    if source == 1985:
+        out: dict[str, list] = {}
+        for key, units in units_1985(lines, root)[1].items():
+            cited = citation.parse(key)
+            if cited.edition == edition:
+                out[cited.locator] = units
+        return out
+    ed = ISO[source]
+    declared, _blocks = manifest_of(ed)
+    return iso_units(ed, lines, [r for r in rows if "shape" not in r and r["kind"] != "FMT"], declared)
 
 
 def main_1985(args: argparse.Namespace) -> int:

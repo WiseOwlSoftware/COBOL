@@ -93,7 +93,7 @@ internal static class ConfigurationStep
     /// one of them. The container itself inherited from ITS container first (units bind container-first), so one level carries
     /// the whole ancestry. ONE method, the WHOLE configuration-derived state (feedback_model_the_rule_shape_not_one_case):
     /// before kb/Work PB60 only the REPOSITORY sets were inherited, and inside a contained program of a DECIMAL-POINT IS COMMA
-    /// unit NUMVAL("123,45") valued 0 while NUMVAL("123.45") valued 123.45 — the exact inversion of §2023:15.67.3 r5, with no
+    /// unit NUMVAL("123,45") valued 0 while NUMVAL("123.45") valued 123.45 — the exact inversion of §2023:15.67.3 AR5, with no
     /// diagnostic (AR-15.67.3-5). The SYMBOLIC CHARACTERS figurative constants (§2023:12.3.7.4 GR11 a; §2023:8.4.6.1 lists
     /// symbolic-character among the names a configuration section declares for "any source element contained within that
     /// source element") carry their containment distance (<see cref="SymbolTable.InheritedSymbolicDepths"/>), so a nearer

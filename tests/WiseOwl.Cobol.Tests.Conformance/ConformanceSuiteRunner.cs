@@ -284,7 +284,7 @@ internal static class ConformanceSuiteRunner
     }
 
     /// <summary>A WiseOwl test's WiseOwl compile options (<c>wiseowl/options/</c>, which the generator validates),
-    /// applied as the <c>cobol</c> command's <c>--sign-encoding</c>, <c>--numeric-display</c>, <c>--flag-extensions</c>, <c>--repository-update</c> and (a build step's alone) <c>--std</c>
+    /// applied as the <c>cobol</c> command's <c>--sign-encoding</c>, <c>--numeric-display</c>, <c>--flag-extensions</c>, <c>--repository-update</c>, <c>--listing</c> and (a build step's alone) <c>--std</c>
     /// apply them.</summary>
     private static CompilerDriver.Options WithWiseOwlOptions(CompilerDriver.Options options,
         IReadOnlyDictionary<string, string> wiseOwlOptions)
@@ -303,6 +303,9 @@ internal static class ConformanceSuiteRunner
                         + string.Join(", ", WiseOwl.Cobol.Binding.NumericDisplayFormOption.OptionSpellings)),
                 "flag-extensions" => options with { FlagExtensions = options.FlagExtensions || value == "on" },
                 "repository-update" => options with { RepositoryUpdate = value == "on" },
+                // the text listing at its default destination, the assembly's path without its extension: <id>.lst in the run
+                // directory, where the program may read it (kb/Work PB5926)
+                "listing" => options with { Listing = value == "on" ? new WiseOwl.Cobol.Listing.ListingRequest() : null },
                 "std" => options with { DialectLevel = int.Parse(value, CultureInfo.InvariantCulture) },   // a build step's own edition (generate.py STEP_EDITION_OPTION)
                 _ => throw new SuiteHarnessException($"'{key}' is not a WiseOwl compile option"),
             };

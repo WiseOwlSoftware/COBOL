@@ -6,7 +6,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ EVERY RESERVED WORD WRITTEN AS AN ENTRY'S NAME IS NAMED AS ONE (kb/Work PB382). ISO §2023:8.3.2.1 1) ("Reserved words shall not
+/// ⛔ EVERY RESERVED WORD WRITTEN AS AN ENTRY'S NAME IS NAMED AS ONE (kb/Work PB382). ISO §2023:8.3.2.1 SR1) ("Reserved words shall not
 /// be used as user-defined words or system-names") and §1985:IV.4.2.2.1.3 make <c>01 CLASS PIC X.</c> one fault, the word, and the
 /// one answer is COBOL0901 naming it. The population is the generated reserved-word table, every word reserved at the edition, so
 /// a word the table gains is asked the day it is added. The entry-name slot is optional (§1985:VI.5.3.2 Format 1, §2023:13.16.3

@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:15.66.3 r1 — "Argument-1 shall be of class alphabetic or class alphanumeric." A class-NUMERIC data
+      *> ISO §2023:15.66.3 AR1 — "Argument-1 shall be of class alphabetic or class alphanumeric." A class-NUMERIC data
       *> item is neither: §2023:8.5.2.1's Table 2 carries "| Numeric | Numeric |" as its own row, distinct from the
       *> Alphabetic and Alphanumeric rows r1 names.
       *>   python scripts/spec/cite.py --check 15.66.3 "Argument-1 shall be of class alphabetic or class

@@ -199,7 +199,7 @@ public sealed partial class FileControlBinder
                         "(§1985:XI.3.2.3 SR3) — a SORT or MERGE key is a data item within a record of this file, so there is "
                         + "nothing for the KEY phrase to name.",
                         "(ISO §2023:13.4.6.3 SR2) — a SORT or MERGE key is a data item within a "
-                        + "record of this file (§2023:14.9.40.3 SR6 a), so there is nothing for the KEY phrase to name."));
+                        + "record of this file (§2023:14.9.40.3 SR6a), so there is nothing for the KEY phrase to name."));
             sdFile.Records.AddRange(sdRecords);
             LinkImplicitRecordArea(sdFile);   // §2023:13.18.33.4 GR3 — the SD twin of the FD arm (kb/Work PB836)
             foreach (var clause in sd.sortMergeDescriptionClauses()?.sortMergeDescriptionClause() ?? [])
@@ -346,7 +346,7 @@ public sealed partial class FileControlBinder
         // "the maximum size established by the RECORD clause" (§2023:14.9.30.4 GR6): format 1's integer-1, format 3's
         // integer-5, or format 2's integer-3. A format-2 clause with no TO phrase establishes none — §2023:13.18.43.4
         // GR10 defers to "the greatest number of bytes described for a record in that file" and this file
-        // describes none — and neither does an absent clause, which §2023:13.4.5.3 SR3 a) / §2023:13.18.43.3 SR1 forbid.
+        // describes none — and neither does an absent clause, which §2023:13.4.5.3 SR3a / §2023:13.18.43.3 SR1 forbid.
         int? max = file.RecordClause?.Upper;   // the one reading of the clause's upper operand, in all three formats (PB2519)
         if (max is not > 0)
         {
@@ -422,13 +422,13 @@ public sealed partial class FileControlBinder
         Editions.DiagnosticCursor depAt = default;
         if (rc.dataReference() is { } d)
         {
-            dep = _host.ClauseDataName(d, "RECORD DEPENDING ON");
+            dep = _host.ClauseDataName(d, "RECORD DEPENDING ON", _host.OperandSubscriptRule("", ""));
             // The OPERAND's own position, inside the clause cursor kb/Work PB721 pushed at the method top.
             using var _dep = Edition.At(d);
             depAt = Edition.Cursor;
         }
         // FORMAT 2 vs FORMAT 3: the WORD VARYING is the discriminator, and it is load-bearing — §2023:13.18.43.4 GR16
-        // (the READ/RETURN INTO sending size) sits under the FORMAT 2 heading and §2023:14.9.30.4 GR4 b) designates
+        // (the READ/RETURN INTO sending size) sits under the FORMAT 2 heading and §2023:14.9.30.4 GR4b designates
         // the implied move an alphanumeric group move only for a RECORD IS VARYING clause (kb/Work PB339).
         bool varyingClause = rc.VARYING() is not null;
         file.Varying = new VaryingRecordInfo(lo, hi, dep, VaryingClause: varyingClause)
@@ -458,7 +458,7 @@ public sealed partial class FileControlBinder
         // The rule is the 2002 text's (§2002:13.16.10.2 SR1) and every later edition's; the 1985 clause has NO syntax rules
         // (§1985:VII.3.3.1 – .3) and says only that the two integers "refer to the minimum and maximum size of the physical
         // record, respectively" (§1985:VII.3.3.3 GR4), so at --std 85 equal bounds translate (kb/Work PB5115).
-        if (Edition.DialectLevel >= 2002 && values is [{ } integer1, { } integer2] && integer2 <= integer1)
+        if (DialectBehaviors.IsActive(DialectBehavior.BlockContainsRangeOrdered, Edition.DialectLevel) && values is [{ } integer1, { } integer2] && integer2 <= integer1)
             Edition.Error(DiagnosticCatalog.FileClauseSizeRange, $"file '{fileName}': the BLOCK CONTAINS clause states "
                 + $"{integer1} TO {integer2}; integer-2 shall be greater than integer-1 (ISO §2023:13.18.10.3 SR1)");
         // §1985:VII.3.3.3 GR5: an external connector's BLOCK CONTAINS clauses "must have the same value for integer-1 and integer-2" (kb/Work PB5300).
@@ -503,7 +503,7 @@ public sealed partial class FileControlBinder
                 return new LinageOperand(
                     _host.Constants.ConstantOperandValue(d!, "LINAGE clause operand") ?? ConstantEntryBinder.RecoveredIntegerOperand, null) { At = Edition.Cursor };
             }
-            var name = _host.ClauseDataName(d!, "LINAGE clause operand");
+            var name = _host.ClauseDataName(d!, "LINAGE clause operand", _host.OperandSubscriptRule("", "\"Data-name-1, data-name-2, data-name-3, and data-name-4 shall not be subject to any OCCURS clauses\" (ISO §2023:13.18.34.3 SR1)"));
             using var _ = Edition.At(d!);
             return new LinageOperand(null, name) { At = Edition.Cursor };
         }

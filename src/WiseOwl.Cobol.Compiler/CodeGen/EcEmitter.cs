@@ -83,7 +83,7 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
     /// </summary>
     /// <param name="ecNameExpr">The C# expression naming the raised level-3 exception-name.</param>
     /// <returns>The name of the C# <c>int</c> local holding the selection's <c>DispatchResult</c>, for a site whose NOT phrase must
-    /// ask whether a handler ran (<c>DispatchResult.RanAHandler</c>; §2023:14.6.13.1.4 3)).</returns>
+    /// ask whether a handler ran (<c>DispatchResult.RanAHandler</c>; §2023:14.6.13.1.4 GR3).</returns>
     /// <param name="terminate">The C# statement that terminates the run unit (normally <see cref="FatalTermination"/>),
     /// or <c>null</c> for a NONFATAL condition. Prefer <see cref="EmitConditionRaise"/>, which takes the fatality
     /// from Table 13 instead of from the caller, whenever the name is known at compile time.</param>
@@ -99,7 +99,7 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         if (terminate is null)
             return r;   // nonfatal: declarative completed / RESUME NEXT / no handler all continue (§2023:14.6.13.1.4 3)/4))
         string when = fatalWhen is null ? "" : $" && {fatalWhen}";
-        // §2023:14.6.13.1.3 6) sits between 5) (a declarative ran: Normal terminates below) and 7): with NO handler (NoHandler) and
+        // §2023:14.6.13.1.3 GR6 sits between 5) (a declarative ran: Normal terminates below) and 7): with NO handler (NoHandler) and
         // the element under >>PROPAGATE ON, the condition propagates as if GOBACK RAISING LAST EXCEPTION.
         if (PropagationReturn(ecNameExpr) is { } propagate)
             w.Line($"if ({r} == DispatchResult.NoHandler{when}) {propagate}   // no handler: automatic propagation (§2023:14.6.13.1.3 6); §2023:7.3.21.4 GR2)");
@@ -108,7 +108,7 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         return r;
     }
 
-    /// <summary>⛔ THE ONE RENDERING OF AUTOMATIC PROPAGATION of an unhandled fatal condition (ISO §2023:14.6.13.1.3 6); the
+    /// <summary>⛔ THE ONE RENDERING OF AUTOMATIC PROPAGATION of an unhandled fatal condition (ISO §2023:14.6.13.1.3 GR6); the
     /// §2023:7.3.21.4 GR2 effect of <c>&gt;&gt;PROPAGATE ON</c>; kb/Work PB1119): stage the condition as the LAST exception for
     /// the activator (<c>ExceptionState.StageAutomaticPropagation</c>, which excludes EC-FLOW-GLOBAL-EXIT and
     /// EC-FLOW-GLOBAL-GOBACK) and return as a GOBACK does — <c>ProgramReturn</c> from a called program or function,
@@ -159,7 +159,7 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
     /// <summary>Set the compile-time-named level-3 condition <paramref name="ecName"/> to exist (§2023:14.6.13.1.1),
     /// with its fatality taken from Table 13 (<see cref="ExceptionCatalog"/>) — never from the caller. The status
     /// half of <see cref="EmitConditionRaise"/>, alone for a site whose own conditional phrase takes the condition
-    /// (§2023:14.6.13.1.3 1) / §2023:14.6.13.1.4 1)).</summary>
+    /// (§2023:14.6.13.1.3 GR1 / §2023:14.6.13.1.4 GR1).</summary>
     public void EmitConditionSet(string ecName, string why)
     {
         var info = CataloguedLevel3(ecName);
@@ -191,7 +191,7 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
                 $"'{ecName}' is not a catalogued level-3 exception-name (§2023:14.6.13.1.6 Table 13) — an emitter bug");
 
     /// <summary>Emit the statement an OPERAND-EVALUATION step was specified in (kb/Work PB892, PB1432) — the landing
-    /// <see cref="DispatchState.ResumeTransfer"/> unwinds to from inside such a step. ISO §2023:14.9.33.4 GR2 a) 2. makes
+    /// <see cref="DispatchState.ResumeTransfer"/> unwinds to from inside such a step. ISO §2023:14.9.33.4 GR2a.2 makes
     /// that statement the applicable one for a condition a function reference or an inline invocation propagates,
     /// GR2 a) 1. for one a §2023:15.4 subscript temporary store raises, and GR2 a) 3. makes it the LOWEST such
     /// statement, which is why every statement that drained a step carries its own
@@ -248,13 +248,13 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
     /// output). The fatal twins (EC-ARGUMENT-FUNCTION) stay in <see cref="EmitArgOrPlain"/> — they need a catch.</summary>
     internal static readonly (string Ec, string Flag)[] NonfatalAmbientGates =
     [
-        ("EC-DATA-CONVERSION", "DataConversionChecking"),   // §2023:15.19.4 r1/r3 — CONVERT / DISPLAY-OF / NATIONAL-OF
+        ("EC-DATA-CONVERSION", "DataConversionChecking"),   // §2023:15.19.4 RV1/r3 — CONVERT / DISPLAY-OF / NATIONAL-OF
         ("EC-BOUND-OVERFLOW", "BoundOverflowChecking"),     // §2023:8.5.1.9.6 GR1 — OCCURS DYNAMIC implicit growth
         ("EC-BOUND-SET", "BoundSetChecking"),               // §2023:14.9.39.4 GR30 — OCCURS DYNAMIC explicit SET (kb/Work PB460)
         // These two USED TO CARRY THEIR OWN, SECOND enablement mechanism — the ThruMember carrier was emitted
         // only under checking, and SetSize took a `checkStorage` argument — which put their raises outside the
         // engine's (flag, name) pair and therefore outside the §2023:14.6.13.1.4 #3 selection it runs (kb/Work PB367b).
-        ("EC-RANGE-INVALID", "RangeInvalidChecking"),       // §2023:14.7.8 r2 — an inverted alphanumeric/national THRU range
+        ("EC-RANGE-INVALID", "RangeInvalidChecking"),       // §2023:14.7.8 GR2 — an inverted alphanumeric/national THRU range
         ("EC-STORAGE-NOT-AVAIL", "StorageNotAvailChecking"),// §2023:14.9.39 F16 GR37/GR38 — a dynamic-length resize
         // The Report Writer's NONFATAL raise sites (kb/Work PB1247 / PB1130 / PB1188), all raised while a GENERATE or
         // TERMINATE produces the report. Each resumes where §2023:14.9.16.4 GR8 / §2023:14.9.46.4 GR5 put it — "at the next
@@ -383,8 +383,8 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         ecState.Info = ec.Info;
         bool terminated;
         // The AMBIENT statement context (kb/Work R14): when any condition enabled at this statement carries
-        // WITH LOCATION, the (Table-12 statement name, §2023:15.30.3 r2 location) pair enters the runtime's ambient
-        // slot together with the names it covers — §2023:15.32.3 r1 is PER-CONDITION (R06), so a raise of an
+        // WITH LOCATION, the (Table-12 statement name, §2023:15.30.3 RV2 location) pair enters the runtime's ambient
+        // slot together with the names it covers — §2023:15.32.3 RV1 is PER-CONDITION (R06), so a raise of an
         // uncovered name still answers spaces. Every raise site then reaches the pair through the 2-argument
         // ExceptionState.Set — SEARCH's range Sets, CONTINUE AFTER, the nonfatal gates, the runtime string /
         // storage sites — with no per-site threading. Save/restore (not set/clear), so a CALL inside the
@@ -464,9 +464,9 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
     [
         ("EC-ARGUMENT-FUNCTION", "ArgumentFunctionChecking"),   // §2023:15.3 — intrinsic argument/domain error
         ("EC-BOUND-REF-MOD", "BoundRefModChecking"),            // §2023:8.4.3.3.4 — ref-mod out of range / zero-length
-        ("EC-DATA-NOT-FINITE", "FloatNotFiniteChecking"),       // §2023:14.6.13.2 item 3 — NaN/±Inf float sending operand
-        ("EC-DATA-OVERFLOW", "FloatOverflowChecking"),          // §2023:14.9.25.4 GR6 d)4.a — MOVE overflows a float receiver / a floating-point edited one (D21/PB66)
-        ("EC-DATA-INCOMPATIBLE", "DataIncompatibleChecking"),   // §2023:14.6.13.2 rule 2 — a fixed-point numeric sending item whose content fails its numeric class condition (PB230); rule 4 — a de-editing MOVE from impossible edited content (D21/PB66)
+        ("EC-DATA-NOT-FINITE", "FloatNotFiniteChecking"),       // §2023:14.6.13.2 GR3 — NaN/±Inf float sending operand
+        ("EC-DATA-OVERFLOW", "FloatOverflowChecking"),          // §2023:14.9.25.4 GR6d.4a — MOVE overflows a float receiver / a floating-point edited one (D21/PB66)
+        ("EC-DATA-INCOMPATIBLE", "DataIncompatibleChecking"),   // §2023:14.6.13.2 GR2 — a fixed-point numeric sending item whose content fails its numeric class condition (PB230); rule 4 — a de-editing MOVE from impossible edited content (D21/PB66)
         ("EC-RANGE-PERFORM-VARYING", "PerformVaryingChecking"), // §2023:14.9.28.4 GR3 — index-name varied from a non-positive item
         ("EC-DATA-PTR-NULL", "DataPtrNullChecking"),            // §2023:13.18.5.4 GR3 / §2023:14.9.39 F10 GR18 — NULL data-address
         ("EC-BOUND-PTR", "BoundPtrChecking"),                   // §2023:13.18.5.4 GR4 — address neither NULL nor valid
@@ -475,7 +475,7 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         ("EC-BOUND-SUBSCRIPT", "BoundSubscriptChecking"),       // §2023:8.4.2.3.4 GR2 — subscript outside 1..highest
         ("EC-BOUND-ODO", "BoundOdoChecking"),                   // §2023:13.18.38.4 GR7 — DEPENDING value outside int-1..int-2
         ("EC-RANGE-INSPECT-SIZE", "RangeInspectSizeChecking"),  // §2023:14.9.22.4 GR14/GR15/GR22 — an INSPECT operand pair of unequal size (kb/Work PB1126)
-        ("EC-RANGE-INDEX", "RangeIndexChecking"),               // §2023:13.18.38.4 GR2 / §2023:14.9.39.4 GR2 a) 1. b + GR4 a) — an index driven outside the implementor range (kb/Work PB459)
+        ("EC-RANGE-INDEX", "RangeIndexChecking"),               // §2023:13.18.38.4 GR2 / §2023:14.9.39.4 GR2a.1 b + GR4 a) — an index driven outside the implementor range (kb/Work PB459)
         // The *-ARG-OMITTED trio — one rule per activated-element kind, raised at the formal's guarded reference
         // by OmittedFormal (kb/Work PB971); the binder queries exactly the current element's name.
         ("EC-PROGRAM-ARG-OMITTED", "ProgramArgOmittedChecking"),// §2023:14.9.4.4 GR12 — reference in a called program to an omitted formal (kb/Work PB133 wave C)
@@ -505,7 +505,7 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         // The EC-EXTERNAL trio (kb/Work PB1138): FLAGGED for the same reason as EC-OO-UNIVERSAL — the flag IS
         // §2023:14.8.4.1's ACTIVATING-element half, read by every activation boundary before the activated element's
         // checking scope opens (ProgramTable.CallProgram for a CALL or function activation; the method prologue's
-        // ExternalStore.DescribeAtMethodActivation for an INVOKE, §2023:14.9.23.4 GR7 d)). The catch arm takes the
+        // ExternalStore.DescribeAtMethodActivation for an INVOKE, §2023:14.9.23.4 GR7d). The catch arm takes the
         // method arm's CobolFatalException; a CALL's failure is a CobolCallException its own partition handles.
         ("EC-EXTERNAL-FORMAT-CONFLICT", "ExternalFormatConflictChecking"),   // §2023:14.8.4.3
         ("EC-EXTERNAL-DATA-MISMATCH", "ExternalDataMismatchChecking"),       // §2023:14.8.4.2
@@ -540,7 +540,7 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         // point its rule names; when the SORT/MERGE itself raised it, VerbDisposes hands the disposition to the verb.
         ("EC-SORT-MERGE-ACTIVE", "SortMergeActiveChecking"),    // §2023:14.9.40.4 GR10/GR13, §2023:14.9.24.4 GR8 — a SORT/MERGE/RELEASE/RETURN a running procedure may not execute
         ("EC-SORT-MERGE-FILE-OPEN", "SortMergeFileOpenChecking"),// §2023:14.9.40.4 GR9, §2023:14.9.24.4 GR7/GR12 — a USING/GIVING file already open
-        ("EC-SORT-MERGE-RELEASE", "SortMergeReleaseChecking"),  // §2023:13.18.43.4 GR14/GR19, §2023:14.9.40.4 GR12 b), §2023:14.9.24.4 GR7 b) — record size outside the SD's range
+        ("EC-SORT-MERGE-RELEASE", "SortMergeReleaseChecking"),  // §2023:13.18.43.4 GR14/GR19, §2023:14.9.40.4 GR12b, §2023:14.9.24.4 GR7b — record size outside the SD's range
         ("EC-SORT-MERGE-SEQUENCE", "SortMergeSequenceChecking"),// §2023:14.9.24.4 GR6 — a MERGE USING file out of KEY order
         // The Report Writer's four statement-precondition conditions (kb/Work PB326). Each rides a flag its
         // runtime raise site in CobolReport consults; each is Table 13 Fatal, and each leaves the verb
@@ -559,12 +559,12 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         // undefined print-line content: the counter takes the value's integer part.
         ("EC-REPORT-VARYING", "ReportVaryingChecking"),         // §2023:13.18.64.4 GR5 — VARYING clause expression noninteger
         ("EC-BOUND-TABLE-LIMIT", "BoundTableLimitChecking"),    // §2023:14.9.39.4 GR30 — growth past the implementor max
-        ("EC-ORDER-NOT-SUPPORTED", "OrderNotSupportedChecking"),// §2023:15.85.4 r2 — STANDARD-COMPARE's ordering table / level unavailable
+        ("EC-ORDER-NOT-SUPPORTED", "OrderNotSupportedChecking"),// §2023:15.85.4 RV2 — STANDARD-COMPARE's ordering table / level unavailable
         ("EC-LOCALE-MISSING", "LocaleMissingChecking"),        // §2023:14.9.39.4 GR24 / §2023:8.2.1 — a locale not available (SET LOCALE; a named IS LOCALE sequence at use)
         ("EC-LOCALE-INVALID-PTR", "LocaleInvalidPtrChecking"), // §2023:14.9.39.4 GR21 — SET LOCALE through a pointer that holds no saved locale
         ("EC-LOCALE-INCOMPATIBLE", "LocaleIncompatibleChecking"),// §2023:8.8.4.2.11 / L6 — a locale comparison over an ill-formed operand
         ("EC-LOCALE-INVALID", "LocaleInvalidChecking"),        // §2023:8.2.1 — a locale operation over incomplete locale content (no culture data)
-        ("EC-LOCALE-SIZE", "LocaleSizeChecking"),              // §2023:13.18.40.5 r14 b — locale editing truncated a non-zero, non-suppressed character (PB64 T6)
+        ("EC-LOCALE-SIZE", "LocaleSizeChecking"),              // §2023:13.18.40.5 GR14 b — locale editing truncated a non-zero, non-suppressed character (PB64 T6)
         // ⛔ THE EC-SIZE FAMILY FOR NON-ARITHMETIC STATEMENTS (kb/Work PB75). §2023:14.7.5: the size error condition "may
         // occur as a result of … the evaluation of an arithmetic expression" — a condition, a function argument, a
         // subscript, an INVOKE argument — and without a SIZE ERROR phrase the level-3 EC-SIZE-* "is set to exist,
@@ -582,11 +582,11 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         // SizeUnderflowChecking and SizeTruncationChecking, one per name — EcState.SizeCheckRows), through this same
         // OpenGateFlags scope (ReportWriterEmitter.EmitPresenting, kb/Work PB4031, PB4092) — every other render and store
         // selects its kernel at compile time. These rows stay null-flagged.
-        ("EC-SIZE-TRUNCATION", null),                           // §2023:14.7.4.3 r7 / §2023:11.9.11.2 r3d — a PROHIBITED-inexact intermediate
+        ("EC-SIZE-TRUNCATION", null),                           // §2023:14.7.4.3 GR7 / §2023:11.9.11.2 GR3d — a PROHIBITED-inexact intermediate
     ];
 
     /// <summary>The FLAGGED gates whose flag is an ACTIVATING-ELEMENT HALF, not a raise-site switch: "enabled in both the
-    /// activating and activated" (§2023:14.8.4.1 for the EC-EXTERNAL trio, §2023:14.9.23.4 GR7 c) for EC-OO-UNIVERSAL), so the
+    /// activating and activated" (§2023:14.8.4.1 for the EC-EXTERNAL trio, §2023:14.9.23.4 GR7c for EC-OO-UNIVERSAL), so the
     /// flag is read by an ACTIVATION BOUNDARY — <c>ExceptionEngine.ExternalActivatingMask</c> at the CALL boundary and
     /// a method prologue, a generated <c>__CobolInvoke</c> — and never by an <c>ExceptionEngine …Error</c> helper.
     /// Derived from <see cref="Binding.Procedure.EcBinder.ExternalNames"/> so a fourth checkable EC-EXTERNAL name
@@ -628,13 +628,13 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
             {
                 // §2023:14.6.13.1.1: "If checking for an exception condition is enabled and an exception status indicator
                 // is set … the last exception status is set to indicate that exception condition." The guard only
-                // exists where checking IS enabled, so the status is set here unconditionally. The §2023:15.32.3 r2 /
-                // §2023:15.30.3 r2 operands come from the AMBIENT statement context (kb/Work R14 — EmitChecked entered
+                // exists where checking IS enabled, so the status is set here unconditionally. The §2023:15.32.3 RV2 /
+                // §2023:15.30.3 RV2 operands come from the AMBIENT statement context (kb/Work R14 — EmitChecked entered
                 // it with exactly the WITH-LOCATION names, so an uncovered name answers r1's spaces): one channel
                 // for every raise site, in place of the per-site (stmt, loc) literals this call used to bake.
                 w.Line($"ExceptionState.Set({ecExpr}, true);");
                 // Terminate by RETHROWING the caught condition (its runtime subtype and message intact), marked
-                // dispatched so the enclosing guards let it pass. §2023:14.6.13.1.3 2): a condition the SORT/MERGE
+                // dispatched so the enclosing guards let it pass. §2023:14.6.13.1.3 GR2: a condition the SORT/MERGE
                 // statement raised itself is the verb's to dispose of — the statement is terminated and execution
                 // continues after it (VerbDisposes; kb/Work PB1036), so on that guard the fatal default applies only
                 // to an unmarked condition.
@@ -645,7 +645,7 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         return false;   // conservative: the catch can resume past an inner transfer
     }
 
-    /// <summary>⛔ §2023:14.6.13.1.3 2) — "If the executed statement is a MERGE or SORT statement, then the rules for
+    /// <summary>⛔ §2023:14.6.13.1.3 GR2 — "If the executed statement is a MERGE or SORT statement, then the rules for
     /// those statements apply" — precedes the declarative-then-terminate of 5) and the run-unit termination of 7).
     /// True for a SORT or MERGE statement's guard, whose catch then disposes of every condition the runtime marked
     /// <c>RaisedBySortMerge</c> by the verb: the applicable declarative runs, the statement is terminated and
@@ -667,7 +667,7 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
             if (!r.Fatal)
             {
                 // §2023:14.6.13.1.1: a condition a statement's general rules say exists "is raised only if checking for
-                // that exception condition is enabled" — RAISE's §2023:14.9.29.4 1) included (kb/Work PB867). A raise
+                // that exception condition is enabled" — RAISE's §2023:14.9.29.4 GR1 included (kb/Work PB867). A raise
                 // is ONE event (status set + EXCEPTION-OBJECT nulled), so neither happens here, and with checking
                 // off "execution continues as if the exception did not occur" (§2023:14.6.13.1.4).
                 w.Line($"// RAISE {r.EcName}: checking not enabled — nonfatal, continues as if not raised (ISO §2023:14.6.13.1.4)");
@@ -750,7 +750,7 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         string nameTest = string.Join(" || ", enabled.Select(n => $"{ecnVar} == {CsLiteral(n)}"));
         using (w.Block($"if ({flag} && ({nameTest}))"))
         {
-            // The §2023:15.32.3 r2 pair rides the ambient statement context (kb/Work R14; EmitChecked entered it).
+            // The §2023:15.32.3 RV2 pair rides the ambient statement context (kb/Work R14; EmitChecked entered it).
             w.Line($"ExceptionState.Set({ecnVar}, true);   // §2023:14.6.13.1.1 — the last exception status");
             if (!hasPhrase)
                 // The message decoration reads the statement name back from the status Set just recorded —
@@ -779,8 +779,8 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         if (!EnabledHere(ecName)) return;
         using (ctx.Writer.Block($"if ({ovfFlag})"))
         {
-            // The §2023:15.32.3 r2 pair rides the ambient statement context (kb/Work R14). With an ON OVERFLOW phrase
-            // the phrase takes the condition (§2023:14.6.13.1.4 1)), so only the status is set.
+            // The §2023:15.32.3 RV2 pair rides the ambient statement context (kb/Work R14). With an ON OVERFLOW phrase
+            // the phrase takes the condition (§2023:14.6.13.1.4 GR1), so only the status is set.
             const string why = "§2023:14.9.43.4 GR8b / §2023:14.9.48.4 GR16b — the overflow condition";
             if (hasPhrase) EmitConditionSet(ecName, why);
             else EmitConditionRaise(ecName, why);
@@ -804,7 +804,7 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
     }
 
     /// <summary>The WITH-LOCATION subset of <see cref="IoMaskFor"/> — same bit positions, so the generated
-    /// <c>__IoCheckEc</c> answers §2023:15.32.3 r1 PER EC-I-O name: the status→EC mapping picks the raised name at
+    /// <c>__IoCheckEc</c> answers §2023:15.32.3 RV1 PER EC-I-O name: the status→EC mapping picks the raised name at
     /// runtime, and one file's <c>EC-I-O-AT-END … WITH LOCATION</c> must not make its <c>EC-I-O-INVALID-KEY</c>
     /// raise record location information (kb/Work R06).</summary>
     public int IoLocMaskFor(FileModel? file)
@@ -927,7 +927,7 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
     /// behind the F1 tiers, and the fatal-status default (status 3x/4x/7x/9x + enabled checking → abnormal
     /// termination unless a RESUME redirected — §2023:9.1.13.1 / §2023:14.9.49.4 GR12c; checking off keeps today's
     /// continue-on-error behavior, scout hazard H6), which a SORT/MERGE implicit transfer suppresses with
-    /// <c>__verbRule</c> (§2023:14.6.13.1.3 2) — kb/Work PB993). Returns the resume action, -1 when a procedure completed
+    /// <c>__verbRule</c> (§2023:14.6.13.1.3 GR2 — kb/Work PB993). Returns the resume action, -1 when a procedure completed
     /// normally, or -3 when none applied.</summary>
     public void EmitIoCheckEc(IReadOnlyList<BoundDeclarative> decls, CodeWriter w, bool asLocal)
     {
@@ -936,11 +936,11 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
             w.Line($"string __st = {RuntimeApi.FileStatus("__f")};");
             // ⛔ THE RAISED NAME COMES FROM THE RUNTIME, NOT FROM THE STATUS ALONE (kb/Work PB526). §2023:9.1.13.1's
             // status→EC correspondence is the DEFAULT and covers every EC-I-O condition reached through a status;
-            // §2023:13.18.34.4 GR6 b) 2 NAMES EC-I-O-LINAGE, for which no status value exists, so the connector
+            // §2023:13.18.34.4 GR6b 2 NAMES EC-I-O-LINAGE, for which no status value exists, so the connector
             // carries the name and CobolFile.IoConditionName is the one place the two are combined.
             w.Line($"string? __ec = {RuntimeApi.FileIoConditionName("__f")};   // §2023:9.1.13.1 correspondence, or the rule-named condition");
             w.Line("bool __en = __ec is not null && (__mask & ExceptionCatalog.IoBit(__ec)) != 0;");
-            // §2023:15.32.3 r1 / §2023:15.30.3 r1 are PER-CONDITION: the location operands record only when the RAISED
+            // §2023:15.32.3 RV1 / §2023:15.30.3 RV1 are PER-CONDITION: the location operands record only when the RAISED
             // name's own TURN carried WITH LOCATION (__locMask shares __mask's bit positions — kb/Work R06).
             w.Line("bool __wl = __ec is not null && (__locMask & ExceptionCatalog.IoBit(__ec)) != 0;");
             w.Line($"if (__en) ExceptionState.SetIo(__ec!, {IoStatusClass.Fatal("__st")}, __f, __st, __wl ? __stmt : null, __wl ? __loc : null);");
@@ -1002,12 +1002,12 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
             }
             else EmitUseTiers();
             w.Line("if (DispatchResult.SuppressesFatal(__sel)) return __sel;   // RESUME redirected/suppressed (§2023:14.9.33)");
-            // §2023:14.6.13.1.3 3) sends a fatal EC-I-O condition on to "the following rules", so 6)'s automatic propagation
+            // §2023:14.6.13.1.3 GR3 sends a fatal EC-I-O condition on to "the following rules", so 6)'s automatic propagation
             // applies here exactly as at EmitSelection: no procedure qualified (NoHandler) under >>PROPAGATE ON (kb/Work PB1119).
             if (PropagationReturn("__ec!") is { } propagate)
                 w.Line($"if (__sel == DispatchResult.NoHandler && __en && !__verbRule && {IoStatusClass.Fatal("__st")}) {propagate}"
                     + "   // automatic propagation (§2023:14.6.13.1.3 6))");
-            // ⛔ §2023:14.6.13.1.3 2) PRECEDES 5) and 7): "If the executed statement is a MERGE or SORT statement, then
+            // ⛔ §2023:14.6.13.1.3 GR2 PRECEDES 5) and 7): "If the executed statement is a MERGE or SORT statement, then
             // the rules for those statements apply." A SORT/MERGE implicit transfer passes __verbRule, and the fatal
             // disposition is then the verb's own (SortEmitter.EmitTransferDisposition — terminate the statement,
             // bypass the file, or continue), never the run-unit termination below (kb/Work PB993).

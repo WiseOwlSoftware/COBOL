@@ -237,11 +237,17 @@ def _records(path: pathlib.Path, by_id: dict[str, dict]) -> tuple[list[dict], li
 
 
 def addendum_path(work_dir: pathlib.Path, nid: str, day: str) -> pathlib.Path:
-    """`<work_dir>/<id>/<day>-editions.md`, or `-editions-2.md` and on when that day already holds one."""
+    """`<work_dir>/<id>/<day>-editions.md`, or `<day>-editions02.md` and on when that day already holds one.
+
+    THE NAME ORDERS THE JUDGMENTS: a note's addenda fold in name order (`work.read_addenda`), and `recorded` takes the
+    last judgment the folded body holds, so a later judgment of the same day must sort after every earlier one. A
+    `-editions-2.md` sorted BEFORE `-editions.md` (`-` is below `.`), so a second narrowing read as the first one's value
+    and the register refused the note it had just narrowed (wave 20262132 group c); a digit sorts after `.`, and two
+    digits keep the suffixed ones in order."""
     d = work_dir / nid
     p, n = d / f"{day}-editions.md", 2
     while p.exists():
-        p, n = d / f"{day}-editions-{n}.md", n + 1
+        p, n = d / f"{day}-editions{n:02d}.md", n + 1
     return p
 
 

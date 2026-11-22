@@ -25,7 +25,7 @@
       *>   I1/J1 DP 2,5 / 3,5 - inherited DECIMAL-POINT IS COMMA
       *>   (§2002:12.2.6.3 GR14a/b).
       *>   I1/J1 PCS REV - inherited collating sequence REV, "B" before
-      *>   "A" (§2002:12.2.5.3 GR9; §2002:12.2.6.3 GR7k2).
+      *>   "A" (§2002:12.2.5.3 GR9; §2002:12.2.6.3 GR7k.2).
       *>   I1/J1 FN IN / JN - inherited FUNCTION ALL INTRINSIC
       *>   (§2002:12.2.7.3 GR13).
       *>   I1 DEBUG, J1 DEBUG, J1 FLOAT DEBUG - the inherited DEBUGGING

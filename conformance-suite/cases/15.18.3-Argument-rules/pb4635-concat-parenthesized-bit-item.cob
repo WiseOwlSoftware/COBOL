@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> PB4635 review R1-1 - ISO §2023:15.18.3 r2: "If any argument is usage national, all arguments shall be usage national, otherwise all
+      *> PB4635 review R1-1 - ISO §2023:15.18.3 AR2: "If any argument is usage national, all arguments shall be usage national, otherwise all
       *> arguments shall be usage display." (cite.py --check OK). BT is an item of usage bit, which is neither, and the grouping
       *> parentheses of (BT) (a boolean expression enclosed in parentheses, §2023:8.8.2) do not change the representation of the value it
       *> names: CONCAT(BT "A") is refused and so is CONCAT((BT) "A"). The parenthesized item bound to a boolean operand, which the

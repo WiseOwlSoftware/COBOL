@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:15.40.3 r7 - "If argument-4 is omitted and the time portion of
+      *> ISO §2023:15.40.3 AR7 - "If argument-4 is omitted and the time portion of
       *> the format in argument-1 is a UTC format or an offset format, the
       *> function shall be evaluated as though 0 were specified for
       *> argument-4."
@@ -18,16 +18,16 @@
       *> DIFFER on any line is the failure, and printing both values keeps a
       *> pair that agreed by both being blank from reading as a pass.
       *>
-      *> This is the CONVERSE of §2023:15.40.3 r6, whose rejection is pinned by
+      *> This is the CONVERSE of §2023:15.40.3 AR6, whose rejection is pinned by
       *> negative/pb11-offset-arg-local-format-datetime (COBOL1633): an
       *> offset argument is barred only for a LOCAL time portion, and
       *> omitting it for a UTC or offset portion is expressly legal.
       *>
       *> Derivations. §2023:15.5.2: 143951 = 1995-02-15. §2023:15.5.5: 45296 seconds
-      *> past midnight = 12:34:56. §2023:15.40.4 r2: a UTC format shows
+      *> past midnight = 12:34:56. §2023:15.40.4 RV2: a UTC format shows
       *> argument-3 adjusted by argument-4, and an adjustment by zero is the
       *> value itself, so the time portion stays 12:34:56 and §2023:15.3.3.5
-      *> appends the Z. §2023:15.40.4 r3: an offset format shows argument-4
+      *> appends the Z. §2023:15.40.4 RV3: an offset format shows argument-4
       *> directly in the offset portion, and §2023:15.3.3.6.1 requires that when
       *> the offset-hours and offset-minutes subfields are both zero "the
       *> position corresponding to the plus sign in the format shall contain

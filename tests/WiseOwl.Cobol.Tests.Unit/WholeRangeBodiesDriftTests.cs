@@ -13,7 +13,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ A WHOLE-RANGE float body takes an SDIDI argument UNNARROWED, and its domain is still the ONE screen's (kb/Work
 /// PB999). The SDIDI reaches 10^±6144 (ISO §2023:8.8.1.5.2) and binary64 does not, so narrowing before the body answered
-/// LOG10(10^−400) with log10(+0.0) and SIN(10^400) with sin(+∞) — the §2023:15.56.4 r1 / §2023:15.82.4 r1 returned value is the
+/// LOG10(10^−400) with log10(+0.0) and SIN(10^400) with sin(+∞) — the §2023:15.56.4 RV1 / §2023:15.82.4 RV1 returned value is the
 /// approximation of the function OF ARGUMENT-1, not of a substitute.
 /// </summary>
 /// <remarks>
@@ -178,7 +178,7 @@ public sealed class WholeRangeBodiesDriftTests
             $"{method}({sig}E{exp}) = {actual:R}, oracle {expected:R} ({Math.Abs(actual - expected) / ulp:F1} ulps)");
     }
 
-    /// <summary>⛔ ANNUITY's §2023:15.9.4 1) b) denominator 1 − (1 + rate)^−n, evaluated without forming 1 + rate in
+    /// <summary>⛔ ANNUITY's §2023:15.9.4 RV1b denominator 1 − (1 + rate)^−n, evaluated without forming 1 + rate in
     /// binary64 (kb/Work PB1310): a rate below 2^−53 made it 1 − 1 = 0 and the value 0 where it is about 1/n.
     /// Oracle: Python <c>decimal</c> at 80 digits, to within two ulps.</summary>
     [Theory]

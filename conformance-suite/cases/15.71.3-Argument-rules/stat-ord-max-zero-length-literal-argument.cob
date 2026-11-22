@@ -7,9 +7,9 @@
       *> ISO §2023:15.71.3 AR2 (ORD-MAX): "Argument-1 shall not be a zero-length literal."
       *>
       *> THE ORDINAL IS THE FUNCTION'S OWN. MAX states the identical prohibition at
-      *> §2023:15.59.3 r3 and MIN at §2023:15.63.3 r3, but ORD-MAX orders its argument rules
+      *> §2023:15.59.3 AR3 and MIN at §2023:15.63.3 AR3, but ORD-MAX orders its argument rules
       *> differently — r1 is the negative class list, r2 is THIS rule, r3 is the
-      *> all-same-class rule — so a diagnostic citing "§2023:15.59.3 r3" here would be the
+      *> all-same-class rule — so a diagnostic citing "§2023:15.59.3 AR3" here would be the
       *> inherited-citation failure, not a citation.
       *>
       *> §2023:15.71.2's general format is `FUNCTION ORD-MAX ( { argument-1 } ... )`, so

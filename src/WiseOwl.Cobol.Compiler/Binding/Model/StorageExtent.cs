@@ -5,7 +5,7 @@ namespace WiseOwl.Cobol.Binding.Model;
 /// <summary>⛔ THE COMPILE-TIME STORAGE EXTENT OF AN OPERAND — which storage area it lies in, where it starts and how
 /// many bytes it spans — and the ONE answer to "do these two operands STATICALLY overlap?" (kb/Work PB1907;
 /// docs/CONFORMANCE.md §3 D-OVL1).
-/// <para>ISO §2023:14.6.10 1): "if the operands … are not described by the same data description entry … and the
+/// <para>ISO §2023:14.6.10 GR1: "if the operands … are not described by the same data description entry … and the
 /// storage areas overlap, the result of the statement is undefined" (Annex A.2 item 36). The standard leaves the
 /// result open, so WiseOwl COBOL documents what it does, and a rule that depends on overlap needs the overlap
 /// to be a FACT the binder can read, not a guess the emitter makes. This is that fact. It is known only where the
@@ -129,7 +129,7 @@ public readonly record struct StorageExtent(DataItem Area, int Start, int Length
     /// <summary>The storage of EVERY occurrence of <paramref name="item"/>: <see cref="OfItem"/> for an item no OCCURS clause
     /// governs, and for a table element (the item or an ancestor carries OCCURS) its occurrence with every subscript 1 and
     /// the stride and count of each OCCURS level, so a rule that asks whether ANY occurrence shares storage with another
-    /// extent (a redefinition "of any part" of an item, §1985:XIII.3.20.3 SR5 c) has an exact answer. Null when not
+    /// extent (a redefinition "of any part" of an item, §1985:XIII.3.20.3 SR5c) has an exact answer. Null when not
     /// provable (see the type's summary).</summary>
     public static OccurrenceExtents? OfEveryOccurrence(DataItem item)
     {

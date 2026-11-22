@@ -24,7 +24,7 @@ namespace WiseOwl.Cobol.Tests.Unit.Store;
 /// <para>Expected values are the standard's and the design's: §2023:9.1.18.5 (<i>"When a run unit terminates abnormally, all
 /// file changes made since the previous commit or, if none, the beginning of the run unit are rolled back for all files
 /// for which there are active APPLY COMMIT clauses."</i>); §2023:14.9.7.4 GR3 and §2023:14.9.36.4 GR3 (a COMMIT applies, a
-/// ROLLBACK restores to the last COMMIT); §2023:9.1.13.6 item 1 (<i>"A permanent error exists and no further information is
+/// ROLLBACK restores to the last COMMIT); §2023:9.1.13.6 GR1 (<i>"A permanent error exists and no further information is
 /// available concerning the input-output operation"</i>: '30' for every refusal); §2023:9.1.16's locked-record circumstance
 /// ('51', DOC-A.1-152); and 2.2.1.10's three regions of a COMMIT — decided by its slot write, answered by the sync after it.</para>
 /// </summary>
@@ -331,7 +331,7 @@ public sealed class TransactionFaultMatrixTests
                 Assert.Equal(k == sync2 ? "22" : "51", b.Write(5, "B005"));
                 expected = Seed();
             }
-            Assert.Null(a.Reg.Rollback());   // §2023:14.6.13.1.3 item 8's unconditional ROLLBACK
+            Assert.Null(a.Reg.Rollback());   // §2023:14.6.13.1.3 GR8's unconditional ROLLBACK
             Assert.Equal(0ul, a.Transaction());
             Assert.Equal(expected, b.Contents());
             AssertNoTransactionLeft(b.Reg);

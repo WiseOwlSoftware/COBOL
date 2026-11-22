@@ -577,9 +577,9 @@ MISUSED_RESERVED_WORDS = ("SCREEN", "NULL", "ADDRESS", "DESTINATION", "OBJECT", 
 #: "unexpected 'WORKING-STORAGE'" 34), the general format as the whole of a statement's or clause's syntax (COBOL0307, an
 #: invented phrase, 315; COBOL1941, an invented data-description clause, 133), the naming rule and the misused reserved
 #: words (COBOL0901, 294), TRUE and FALSE as values (COBOL0001 at 'TRUE' 57, 'FALSE' 11), a table at level 01 (GnuCOBOL
-#: "01/77 OCCURS does not conform" 52, WiseOwl COBOL2404 33: §2023:13.18.38.3 rule 1, "The OCCURS clause shall not be
+#: "01/77 OCCURS does not conform" 52, WiseOwl COBOL2404 33: §2023:13.18.38.3 SR1, "The OCCURS clause shall not be
 #: specified in a data description entry that" has a level-number of 01, 66, 77 or 88), the SEARCH of a group rather than
-#: of its OCCURS entry (GnuCOBOL "not indexed": §2023:14.9.37.3 rule 2, "The data description of identifier-1 shall contain an
+#: of its OCCURS entry (GnuCOBOL "not indexed": §2023:14.9.37.3 SR2, "The data description of identifier-1 shall contain an
 #: OCCURS clause with an INDEXED phrase"), and B in a PICTURE taken for a bit (COBOL1934 on PIC B(8), GnuCOBOL's
 #: "PICTURE string must contain at least one of" 71).
 SYSTEM_PROMPT = """You write small, standalone COBOL test programs for a compiler differential. Rules:

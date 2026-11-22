@@ -28,7 +28,7 @@ namespace WiseOwl.Cobol.Binding.Model;
 /// <c>PIC Z9,99</c> under DECIMAL-POINT IS COMMA into a non-DPC <c>PIC Z9,99</c> receiver compiled clean, and the
 /// receiver read 1234 for the 12.34 the sender meant.</para>
 /// <para>The <see cref="CharacterString"/> is the EXPANDED character-string (repetition factors unrolled, letters
-/// uppercased — §2023:8.1.3.2 GR3 a) makes a picture symbol case-insensitive), so <c>PIC X(3)</c> and <c>PIC XXX</c> are
+/// uppercased — §2023:8.1.3.2 GR3a makes a picture symbol case-insensitive), so <c>PIC X(3)</c> and <c>PIC XXX</c> are
 /// one clause while <c>PIC A(5)</c> and <c>PIC X(5)</c> — equal in length and in storage — are two.
 /// <see cref="Editing"/> is the resolved PICTURE EDITING phrase set (§2023:13.18.40.2 Format 1), part of the clause.</para>
 /// <para>Computed ONCE, by <c>PictureAnalyzer.Analyze</c> — the one place the character-string, the unit's

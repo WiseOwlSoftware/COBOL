@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
       *> ISO §2023:8.8.4.2.3 SR5 (FORMAT 3): "Identifier-3 and identifier-4 shall reference data items of class
-      *> message-tag, object, or pointer, and shall be of the same category."  §2023:8.8.4.2.1 item 11 states the
+      *> message-tag, object, or pointer, and shall be of the same category."  §2023:8.8.4.2.1 GR11 states the
       *> same restriction from the other side — a comparison is defined for "Two operands of class pointer
       *> where each operand is of the same category."  A data-pointer and a program-pointer are ONE class
       *> (§2023:8.5.2.1 Table 2 gathers data-pointer, function-pointer and program-pointer into class pointer)

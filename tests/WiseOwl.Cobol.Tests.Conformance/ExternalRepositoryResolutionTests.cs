@@ -8,13 +8,13 @@ using WiseOwl.Cobol.Tests.Shared;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// ⛔ THE EXTERNAL REPOSITORY'S PROVIDER AND ITS FINDINGS, end to end through the compiler (ISO §2023:12.3.8.4 GR10 c) / GR11 c),
+/// ⛔ THE EXTERNAL REPOSITORY'S PROVIDER AND ITS FINDINGS, end to end through the compiler (ISO §2023:12.3.8.4 GR10c / GR11 c),
 /// §2023:8.13; DESIGN-external-repository §8.2, §8.6, §9.2, §9.3, §14, §17.6; kb/Work PB2103). Each Fact compiles a library into a
 /// directory and a caller against it, as two separate compilations, and asserts what the caller's compilation says: these are
 /// the cases that need a directory layout, an option or a damaged file no manifest case states (the multi-unit goldens of
 /// §17.1 cover the default layout, <c>conformance-suite/wiseowl/cases/</c>).
 /// <para>The rules, checked: §2023:12.3.8.3 SR14 "the name of a program for which information exists in the external repository"
-/// and §2023:12.3.8.4 GR10 c) "the details are taken from the external repository for the program with the same name as the
+/// and §2023:12.3.8.4 GR10c "the details are taken from the external repository for the program with the same name as the
 /// externalized name of the program prototype"; §2023:8.13 "The implementor shall provide a mechanism that allows the user to
 /// specify whether to update the external repository when a compilation unit is compiled" and "… whether to flag differences
 /// in prototypes and definitions in the compilation group from the information in the external repository".</para>
@@ -510,7 +510,7 @@ public sealed class ExternalRepositoryResolutionTests
         });
     }
 
-    // ISO §2023:12.3.8.4 GR11 b): a function prototype definition of the group supplies the details and "the details in the
+    // ISO §2023:12.3.8.4 GR11b: a function prototype definition of the group supplies the details and "the details in the
     // external repository are ignored" (cite.py --check 12.3.8.4 "the details in the external repository are ignored").
     // So an entry the group's prototype makes irrelevant is never a fault of the compilation, whatever is wrong with it.
 

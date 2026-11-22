@@ -69,7 +69,7 @@ internal enum OperandContext
     CallByValue,
 
     /// <summary>An arithmetic-expression position that BOTH index clauses list — the SET statement's amounts and
-    /// values: §2023:13.18.38.3 r7 admits an INDEX-NAME here and §2023:13.18.60.3 SR10 admits an INDEX DATA ITEM here
+    /// values: §2023:13.18.38.3 SR7 admits an INDEX-NAME here and §2023:13.18.60.3 SR10 admits an INDEX DATA ITEM here
     /// (kb/Work R29, PB215). The §2023:8.8.1.1 class screening is otherwise identical to <see cref="Arithmetic"/>, so
     /// <c>SET IX UP BY N</c> and <c>SET IX TO IDN</c> stay legal while <c>COMPUTE N = IX + 1</c> does not.
     /// ⚠ A RELATION OPERAND IS NOT HERE (kb/Work PB2018). r7's "as an operand in a relation condition" and
@@ -81,7 +81,7 @@ internal enum OperandContext
     /// its golden read "inside an expression" as legal, a wider reading than r7 and §2023:8.8.4.2.13 give.</summary>
     ArithmeticIndexWindow,
 
-    /// <summary>An arithmetic-expression position that §2023:13.18.38.3 r7 lists and §2023:13.18.60.3 SR10 does NOT — a
+    /// <summary>An arithmetic-expression position that §2023:13.18.38.3 SR7 lists and §2023:13.18.60.3 SR10 does NOT — a
     /// SUBSCRIPT and the VARYING phrase of a PERFORM statement (kb/Work PB215). An index-NAME is a legal operand
     /// here (<c>T(IX + 1)</c>, <c>PERFORM … VARYING V FROM IX</c>); an index DATA ITEM is not, because SR10's
     /// closed list has no subscript and no PERFORM entry — so <c>E(IDX / 1)</c> and
@@ -91,7 +91,7 @@ internal enum OperandContext
     /// <summary>A PARENTHESIZED SOLE intrinsic-function argument, <c>(N)</c> / <c>(3)</c> / <c>(FUNCTION f(…))</c> (kb/Work PB4635).
     /// Enclosing parentheses make it an arithmetic expression (§2023:8.4.3.2.3 SR8: "Argument-1 shall be an identifier, a literal, a
     /// boolean expression, or an arithmetic expression"; §2023:8.8.1.1), so §2023:8.8.1.1's class screen governs its operand — except that the same written shape is
-    /// also "a boolean expression enclosed in parentheses" (§2023:8.8.2), which §2023:8.4.3.2.3 SR8 and §2023:15.45.3 r1 admit as an argument, so
+    /// also "a boolean expression enclosed in parentheses" (§2023:8.8.2), which §2023:8.4.3.2.3 SR8 and §2023:15.45.3 AR1 admit as an argument, so
     /// a class-BOOLEAN item or function is admitted here beside the numeric ones (<see cref="OperandContextRules.Rules"/>' fourth
     /// axis). A compound argument (an operator, a unary sign) is no boolean expression and binds under
     /// <see cref="Arithmetic"/>.</summary>
@@ -110,7 +110,7 @@ internal enum OperandContext
 ///         position have its own syntax rule? <c>CALL … BY VALUE</c> (§2023:14.9.4.3 SR22) and an intrinsic argument
 ///         (§2023:15.3) are governed by NARROWER rules of their own, so quoting §2023:8.8.1.1 at their programmer names a
 ///         rule that was not broken.</item>
-///   <item><b>IndexNameScreen</b> — is the §2023:13.18.38.3 r7 index-name screen applied HERE? r7's closed context
+///   <item><b>IndexNameScreen</b> — is the §2023:13.18.38.3 SR7 index-name screen applied HERE? r7's closed context
 ///         list is "as a subscript · PERFORM VARYING · SEARCH VARYING · SET · an operand in a relation
 ///         condition", which is exactly <see cref="OperandContext.ArithmeticIndexWindow"/> plus
 ///         <see cref="OperandContext.ArithmeticIndexNameWindow"/>; CALL BY VALUE is exempt because SR22 screens
@@ -119,7 +119,7 @@ internal enum OperandContext
 ///         ⛔ THIS IS A THIRD AXIS, NOT A CONSEQUENCE OF THE FIRST, and treating it as one was a measured
 ///         over-reach: SR10's list is "a SEARCH or SET statement, a relation condition, an intrinsic function
 ///         argument, an inline method invocation argument, the USING phrase of a procedure division header, or
-///         the USING phrase of a CALL or INVOKE statement" — which is NOT §2023:13.18.38.3 r7's list and NOT
+///         the USING phrase of a CALL or INVOKE statement" — which is NOT §2023:13.18.38.3 SR7's list and NOT
 ///         §2023:8.8.1.1's class rule. Deriving it from "class index is not class numeric" rejected
 ///         <c>SET IN1 TO IDN1</c> in EIGHT NIST programs (IC106A · IC107A · IC207A · IC208A · NC131A · NC133A ·
 ///         NC135A · NC236A), every one of them a SET statement SR10 names outright. A rule that enumerates
@@ -151,7 +151,7 @@ internal static class OperandContextRules
     internal static (bool NumericClassScreen, bool IndexNameScreen, bool IndexDataItemAdmitted, bool BooleanOperandAdmitted) Rules(
         this OperandContext c) => c switch
     {
-        //                                       §2023:8.8.1.1   §2023:13.18.38.3 r7   §2023:13.18.60.3 SR10   §2023:8.8.2
+        //                                       §2023:8.8.1.1   §2023:13.18.38.3 SR7   §2023:13.18.60.3 SR10   §2023:8.8.2
         OperandContext.Arithmetic            => (true,      true,            false,              false),
         OperandContext.FunctionArgument      => (false,     true,            true,               false),   // SR10: "an intrinsic function argument"
         OperandContext.CallByValue           => (false,     false,           true,               false),   // SR10: "the USING phrase of a CALL"
@@ -298,7 +298,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// <summary>⛔ THE ONE PRODUCER OF A NUMERIC LITERAL OPERAND THE PROGRAM WROTE (a literal, or the constant-name that
     /// substitutes one): the value is <see cref="CheckLiteral"/>'s canonical dot-decimal text, and the literal keeps
     /// the program's decimal separator for its character image. ISO §2023:14.9.11.4 GR1 leaves the conversion of a literal
-    /// to the device to the implementor, and §2023:12.3.7.4 GR14 a) makes the comma the character "written in numeric
+    /// to the device to the implementor, and §2023:12.3.7.4 GR14a makes the comma the character "written in numeric
     /// literals to represent the decimal separator", so `DISPLAY 1,5` under DECIMAL-POINT IS COMMA shows `1,5`
     /// (DOC-A.1-56; kb/Work PB1643 — it showed `1.5`, because one text field was both the value and the image).</summary>
     public BoundNumericLiteral NumericLiteralOperand(string asWritten) =>
@@ -421,7 +421,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         return BoundOperandError.Refused(ctx.Edition, $"figurative constant '{ConcatFolder.Spelling(fig)}'");
     }
 
-    /// <summary>⛔ THE ONE §2023:8.3.3.6.3 SR1 a) test: "If the literal is restricted to a numeric literal, the only
+    /// <summary>⛔ THE ONE §2023:8.3.3.6.3 SR1a test: "If the literal is restricted to a numeric literal, the only
     /// figurative constant permitted is ZERO (ZEROS, ZEROES) without the ALL phrase." The grammar has a distinct
     /// <c>ALL zeroWord</c> alternative, so <c>zeroWord()</c> alone also answers true for <c>ALL ZERO</c>. The ALL
     /// test is part of the rule (kb/Work PB218), and the numeric-restricted literal positions of CALL §2023:14.9.4.3 SR23
@@ -461,7 +461,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         : ctx.Refs.Resolve(dref) is var r && r.Place is { } p ? new BoundFieldOperand(p) : r.OperandError(ctx.Edition);   // kb/Work PB1030
     }
 
-    /// <summary>The §2023:13.18.38.3 r7 screen for an operand slot OUTSIDE the five contexts that may reference an
+    /// <summary>The §2023:13.18.38.3 SR7 screen for an operand slot OUTSIDE the five contexts that may reference an
     /// index-name (a subscript · PERFORM VARYING · SEARCH VARYING · SET · a relation-condition operand) — kb/Work
     /// R16. <see cref="FieldOperand"/> deliberately still BINDS the index-name (the r7-legal consumers share it),
     /// so each ILLEGAL slot screens the result: before this, DISPLAY/STRING/MOVE-to-string aborted at RUN TIME
@@ -509,20 +509,20 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// <summary>A word that stands for a LITERAL where the program wrote a data reference (kb/Work PB1544): a
     /// constant-name, whose effect "is as if literal-1 … were written where constant-name-1 is written" (ISO §2023:13.10.4
     /// GR1; §2023:13.10.3 SR2: it "may be used anywhere that a format specifies a literal"), or a symbolic-character, which
-    /// "defines a figurative constant" (§2023:12.3.7.4 GR11 a); §2023:8.3.2.2.29), and a figurative constant "may be used
+    /// "defines a figurative constant" (§2023:12.3.7.4 GR11a; §2023:8.3.2.2.29), and a figurative constant "may be used
     /// whenever 'literal' appears in a format" (§2023:8.3.3.6.3 SR1). Exactly one of <paramref name="Constant"/> and
     /// <paramref name="Symbolic"/> is set.</summary>
     /// <param name="Word">The word as written, for diagnostics.</param>
     internal sealed record LiteralAlias(string Word, ConstantDef? Constant, (string Value, bool National)? Symbolic)
     {
         /// <summary>A numeric constant-name: the one alias a numeric-literal position admits (a symbolic-character is
-        /// never numeric — §2023:8.3.3.6.3 SR1 a) admits only ZERO where a literal is restricted to numeric).</summary>
+        /// never numeric — §2023:8.3.3.6.3 SR1a admits only ZERO where a literal is restricted to numeric).</summary>
         public bool IsNumeric => Constant is { Category: PicCategory.Numeric };
 
         /// <summary>The alias named for a diagnostic, with the rule that makes it a literal.</summary>
         public string Described => Constant is not null
             ? $"constant-name '{Word}', which substitutes the literal {Constant.RawText} (ISO §2023:13.10.4 GR1)"
-            : $"symbolic-character '{Word}', a figurative constant (ISO §2023:12.3.7.4 GR11 a))";
+            : $"symbolic-character '{Word}', a figurative constant (ISO §2023:12.3.7.4 GR11a)";
     }
 
     /// <summary>⛔ THE ONE LITERAL-ALIAS RESOLUTION (kb/Work PB1544): the constant-name table, then the SPECIAL-NAMES
@@ -605,7 +605,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         : r.ExprError(ctx.Edition);   // kb/Work PB1030 — the resolver's answer picks Refused or Unbuilt
     }
 
-    /// <summary>The §2023:13.18.38.3 r7 screen for an INDEX-NAME reached as an expression operand (kb/Work R29 —
+    /// <summary>The §2023:13.18.38.3 SR7 screen for an INDEX-NAME reached as an expression operand (kb/Work R29 —
     /// the arithmetic sibling of R16's statement-slot screen). r7's closed context list admits an index-name
     /// in a subscript, PERFORM/SEARCH VARYING, SET, and a relation condition — those positions bind under
     /// <see cref="OperandContext.ArithmeticIndexWindow"/> or <see cref="OperandContext.ArithmeticIndexNameWindow"/>
@@ -736,7 +736,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     ///         item "is referred to as a <b>numeric-edited data item</b>" — a DISTINCT defined term. Table 2
     ///         (§2023:8.5.2.1) puts category numeric-edited in class ALPHANUMERIC (usage display) or NATIONAL, never
     ///         class numeric. It is neither the class nor the category §2023:8.8.1.1 names.</item>
-    ///   <item>Every de-editing rule in the standard is a MOVE/editing rule — §2023:14.9.25.4 GR6d1 ("de-editing
+    ///   <item>Every de-editing rule in the standard is a MOVE/editing rule — §2023:14.9.25.4 GR6d.1 ("de-editing
     ///         establishes the operand's numeric value"), the CURRENCY SIGN and LOCALE clauses. GR6d1 has to
     ///         GRANT de-editing for the MOVE, which it would not need to do if de-editing were generally
     ///         available to any numeric context.</item>
@@ -752,8 +752,8 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     private static string NonNumericOperandKind(Place p, EditionInfo edition) => p switch
     {
         // ⛔ NEITHER ARM SPELLS A CLASS OF ITS OWN (kb/Work PB1400). Both said "class alphanumeric" outright, which
-        // told the user a GROUP-USAGE BIT group (class boolean, §2023:8.5.2.5 3)), a GROUP-USAGE NATIONAL group (class
-        // national, §2023:8.5.2.10 3)) and a reference-modified national item (§2023:8.4.3.3.4 GR6) were alphanumeric: one
+        // told the user a GROUP-USAGE BIT group (class boolean, §2023:8.5.2.5 GR3)), a GROUP-USAGE NATIONAL group (class
+        // national, §2023:8.5.2.10 GR3) and a reference-modified national item (§2023:8.4.3.3.4 GR6) were alphanumeric: one
         // rule written in two places. The class is ClassNameOf's, over the ONE §2023:8.5.2.1 classifier.
         RefModPlace =>
             $"a reference-modified operand of class {IntrinsicArgumentRules.ClassNameOf(p)} ("
@@ -772,7 +772,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         _ when p.Item.Pic is { Category: PicCategory.NumericEdited } =>
             $"item '{p.Item.CobolName}' of category numeric-edited (a numeric-edited data item is not a NUMERIC "
             + edition.Cite("data item — §1985:IV.4.3.3, whose numeric edited category is of the alphanumeric class)",
-                "data item — ISO §2023:8.5.2.13 + §2023:8.5.2.1 Table 2; de-editing is a MOVE rule, §2023:14.9.25.4 GR6d1)"),
+                "data item — ISO §2023:8.5.2.13 + §2023:8.5.2.1 Table 2; de-editing is a MOVE rule, §2023:14.9.25.4 GR6d.1)"),
         // NO EditMask condition (kb/Work PB155): an alphanumeric-edited/national-edited picture is modeled as
         // Category Alphanumeric/National WITH an EditMask (there is no *Edited enum member for them), and the
         // old `EditMask: null` pattern let `ADD <PIC XXBXX> TO N` slip past the screen and digit-decode under
@@ -782,7 +782,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
             $"item '{p.Item.CobolName}' of category {ItemCategory.CategoryName(pic)}"
             + (pic.EditMask is not null ? edition.Cite(
                 " (an edited item is not a NUMERIC data item — §1985:IV.4.3.3)",
-                " (an edited item is not a NUMERIC data item — ISO §2023:8.5.2.1 Table 2; the de-editing grant is MOVE's alone, §2023:14.9.25.4 GR6d1)") : ""),
+                " (an edited item is not a NUMERIC data item — ISO §2023:8.5.2.1 Table 2; the de-editing grant is MOVE's alone, §2023:14.9.25.4 GR6d.1)") : ""),
         // ⛔ TOTAL BY CONSTRUCTION. The classifier has already said "not class numeric", so there is no
         // admissible shape left to fall through to — a pointer, a program-pointer, an object reference and an
         // elementary boolean item all land here and are NAMED rather than silently admitted (which is what the
@@ -792,7 +792,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>Reject a non-numeric literal alias in a numeric-expression position (ISO §2023:8.8.1.1 — arithmetic
     /// operands shall be numeric): a constant-name stands for its literal (§2023:13.10.3 SR2), and a symbolic-character is a
-    /// figurative constant other than ZERO, the only one §2023:8.3.3.6.3 SR1 a) admits where a literal is restricted to
+    /// figurative constant other than ZERO, the only one §2023:8.3.3.6.3 SR1a admits where a literal is restricted to
     /// numeric (kb/Work PB1544: it used to fall to name resolution and be reported "not defined"). Mirrors the written
     /// national/boolean-literal rejection above (COBOL0844).</summary>
     private BoundExprError NonNumericAliasExpr(LiteralAlias alias)
@@ -852,7 +852,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// <para>⛔ A REPORT'S PAGE-COUNTER RESOLVES HERE AS IT DOES ON THE RECEIVING SIDE (kb/Work PB1137, the sending twin
     /// of PB429). §2023:8.4.3.15.3 SR1 admits it "in any context where an integer data item may appear", and the ordinary
     /// resolver builds no place for a special register, so a position that needs the SENDING operand's Place — an
-    /// INVOKE argument passed BY CONTENT, which §2023:14.9.23.4 GR6 a) 2. makes of a keyword-less PAGE-COUNTER — was
+    /// INVOKE argument passed BY CONTENT, which §2023:14.9.23.4 GR6a.2 makes of a keyword-less PAGE-COUNTER — was
     /// deferred as "a special register in a position that does not yet read it". The place is the one
     /// <see cref="ResolveReceiving"/> builds, through the ONE counter-to-report resolution (a null there has already
     /// reported the qualification rule, so it is a refusal, never a deferral).</para>
@@ -946,9 +946,9 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     ///   <item>MOVE: "Any length evaluation or subscripting associated with identifier-2 is evaluated immediately before the
     ///     data is moved to the respective data item" (§1985:VI.6.19.4 GR2; §2023:14.9.25.4 GR1);</item>
     ///   <item>the arithmetic statements: "Item identification for the receiving data items is done as each data item is
-    ///     accessed" (§2023:14.7.7 4) b); §1985:VI.6.4.6, the left-to-right sequence of statements);</item>
+    ///     accessed" (§2023:14.7.7 GR4b; §1985:VI.6.4.6, the left-to-right sequence of statements);</item>
     ///   <item>READ and RETURN … INTO: "Any subscripting associated with identifier-1 is evaluated after the record has been read
-    ///     and immediately before it is moved to the data item" (§1985:XI.4.3.4 GR6b; §2023:14.9.34.4 GR5 b) "Item
+    ///     and immediately before it is moved to the data item" (§1985:XI.4.3.4 GR6b; §2023:14.9.34.4 GR5b) "Item
     ///     identification of the data item referenced by identifier-1 is done after the record has been read").</item>
     /// </list>
     /// A subscript the resolver reads in place (an integer data item of a typed record, a literal) registers nothing and is read
@@ -1059,14 +1059,14 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         // a property and receivable (§2023:8.4.3.9.3 SR6), and a view of a plain name parses as a `nonReceivableIdentifier`.
         if (ctx.Refs.ObjectProperties.IsObjectViewOfQualifiedItem(dref)) return Bar(NonReceivableForm.ObjectView, dref);
         // A constant-name substitutes a LITERAL (ISO §2023:13.10.3 SR2 / §2023:13.10.4 GR1) and a symbolic-character IS one, a
-        // figurative constant (§2023:12.3.7.4 GR11 a)) — a literal can never be a receiving operand; without this the name
+        // figurative constant (§2023:12.3.7.4 GR11a) — a literal can never be a receiving operand; without this the name
         // would fall to Refs.Resolve and fail as merely "unresolved" (a symbolic-character did, kb/Work PB1544).
         if (LiteralAliasOf(dref) is { } alias)
             return new(DiagnosticCatalog.ConstantAsReceiver.Code, alias.Constant is not null
                 ? $"constant-name '{alias.Word}' shall not be specified as a receiving operand — it substitutes a literal "
                     + "(ISO §2023:13.10.4 GR1)"
                 : $"symbolic-character '{alias.Word}' shall not be specified as a receiving operand — it is a figurative "
-                    + $"constant ({ctx.Edition.Edition.CiteRule("§1985:IV.4.2.2.2.3", "§2023:12.3.7.4 GR11 a)")}), and a literal is never a receiving operand");
+                    + $"constant ({ctx.Edition.Edition.CiteRule("§1985:IV.4.2.2.2.3", "§2023:12.3.7.4 GR11a")}), and a literal is never a receiving operand");
         return null;
     }
 
@@ -1150,7 +1150,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>⛔ THE ONE CONSTRUCTION OF AN ARITHMETIC <see cref="Receiver"/> (kb/Work PB2078). Every arithmetic
     /// emitter stores its receivers one at a time through <c>ReceiverBracketEmitter.Receive</c>, so a receiver that is an
-    /// object property has its accessors placed around ITS store (ISO §2023:14.7.7 4) b): "Item identification for the
+    /// object property has its accessors placed around ITS store (ISO §2023:14.7.7 GR4b): "Item identification for the
     /// receiving data items is done as each data item is accessed") — the CLAIM that says so is made here, where the
     /// receiver list is built, and nowhere else.</summary>
     private Receiver ReceiverOf(Place resolved, Core.RoundedPhraseContext? rounded)
@@ -1189,7 +1189,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>Bind any numeric node (expression, operand wrapper, literal, or data reference) as an ISO §2023:8.8.1.1
     /// ARITHMETIC expression — numeric operands only. THE entry for COMPUTE, the arithmetic verbs and
-    /// reference-modifier offsets; the §2023:13.18.38.3 r7 index-name windows (subscripts, SET, PERFORM/SEARCH
+    /// reference-modifier offsets; the §2023:13.18.38.3 SR7 index-name windows (subscripts, SET, PERFORM/SEARCH
     /// VARYING, relation/EVALUATE operands) moved to <see cref="BindIndexWindowExpr"/> at R29 (kb/Work PB155
     /// re-unified the §2023:8.8.1.1 screening the move had silently dropped there).
     /// <para>Deliberately takes NO context parameter: an optional one would break the method-group conversions this
@@ -1212,11 +1212,11 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     }
 
     /// <summary>Bind an arithmetic expression at a position BOTH index clauses list — SET amounts/values — where an
-    /// index-name (§2023:13.18.38.3 r7) and an index data item (§2023:13.18.60.3 SR10) are legal operands (kb/Work R29,
+    /// index-name (§2023:13.18.38.3 SR7) and an index data item (§2023:13.18.60.3 SR10) are legal operands (kb/Work R29,
     /// PB215). Identical to <see cref="BindExpr"/> otherwise. A relation or EVALUATE operand is not one (PB2018).</summary>
     public BoundExpr BindIndexWindowExpr(IParseTree node) => BindExprCore(node, OperandContext.ArithmeticIndexWindow);
 
-    /// <summary>Bind an arithmetic expression at a position §2023:13.18.38.3 r7 lists and §2023:13.18.60.3 SR10 does not —
+    /// <summary>Bind an arithmetic expression at a position §2023:13.18.38.3 SR7 lists and §2023:13.18.60.3 SR10 does not —
     /// a subscript segment: an index-NAME is legal, an index DATA ITEM is not (kb/Work PB215).</summary>
     public BoundExpr BindIndexNameWindowExpr(IParseTree node) =>
         BindExprCore(node, OperandContext.ArithmeticIndexNameWindow);
@@ -1261,7 +1261,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     };
 
     /// <summary>A numeric literal expression from a <c>literal</c> node, mapping a figurative ZERO (incl. <c>ALL ZEROS</c>)
-    /// to <c>0</c> (ISO §2023:8.3.3.6.3 r1a / §2023:8.3.3.6.4 r4 — ZERO is the one figurative a numeric literal admits, and it is the numeric value 0); a non-numeric figurative (SPACE / HIGH-VALUE / …)
+    /// to <c>0</c> (ISO §2023:8.3.3.6.3 SR1a / §2023:8.3.3.6.4 GR4 — ZERO is the one figurative a numeric literal admits, and it is the numeric value 0); a non-numeric figurative (SPACE / HIGH-VALUE / …)
     /// in a numeric context is a loud error rather than the raw word rendered as an identifier. A national or
     /// boolean literal is NOT a numeric operand (§2023:8.8.1.1 — arithmetic operands shall be numeric): COBOL0844
     /// at bind, never raw literal text spliced into the generated expression.</summary>
@@ -1281,7 +1281,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// <summary>A COMPUTE right side that parsed as a boolean-expression but is a sole figurative ZERO
     /// (<see cref="ComputeFormats.SoleFigurativeZero"/>), read as the Format 1 arithmetic expression §2023:8.8.1.1 makes it:
     /// through the ONE numeric-context reading every arithmetic operand takes, so <c>ALL ZERO</c> meets the same
-    /// §2023:8.3.3.6.3 SR1 a) edition gate as in <c>ADD ALL ZERO TO X</c> (kb/Work PB1415; PB3830 review R2-1).</summary>
+    /// §2023:8.3.3.6.3 SR1a edition gate as in <c>ADD ALL ZERO TO X</c> (kb/Work PB1415; PB3830 review R2-1).</summary>
     internal BoundExpr ComputeZeroOperand(Core.NonNumericLiteralContext zero) =>
         NonNumericInNumericContext(zero, zero.GetText(), positionRule: null)
         ?? throw new InvalidOperationException("a sole figurative ZERO right side has no nonnumeric-literal node");
@@ -1291,7 +1291,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// sole operand (<c>ADD ZERO TO X</c>, <c>COMPUTE X = ALL ZERO</c>, through <see cref="NonNumericInNumericContext"/>)
     /// and the <c>[ALL] ZERO_ARITH</c> primary that an operator or a parenthesis beside it makes (<c>1 + ALL ZERO</c>,
     /// through <see cref="BindPrimary"/>; kb/Work PB3846). The value is 0 either way (§2023:8.3.3.6.4 GR4). ALL is
-    /// §2023:8.3.3.6.2 Format 1's optional word, and §2023:8.3.3.6.3 SR1 a) ("If the literal is restricted to a numeric literal,
+    /// §2023:8.3.3.6.2 Format 1's optional word, and §2023:8.3.3.6.3 SR1a) ("If the literal is restricted to a numeric literal,
     /// the only figurative constant permitted is ZERO (ZEROS, ZEROES) without the ALL phrase") gives it an EDITION
     /// edge (kb/Work PB1415, VCR Table 7 row 7.28: redundant at 85, COBOL0902 from 2002), asked here through the ONE
     /// gate the VALUE clause asks, so the two forms cannot disagree.</summary>
@@ -1398,7 +1398,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         return BoundExprError.Refused(ctx.Edition, $"literal '{text}' in a numeric context");
     }
 
-    /// <summary>Normalize the decimal separator (DECIMAL-POINT IS COMMA, ISO §2023:12.3.7.4 GR14 a) — the comma form
+    /// <summary>Normalize the decimal separator (DECIMAL-POINT IS COMMA, ISO §2023:12.3.7.4 GR14a) — the comma form
     /// canonicalizes to dot-decimal so every emit-side decoder sees one shape) and bound a floating-point literal's
     /// exponent. The ONE literal chokepoint for the expression paths. The digit count (ISO §2023:8.3.3.3.2 — 1..18 at
     /// COBOL-85, 1..31 at 2002+) is not asked here: it is a property of the literal as written, asked once for every
@@ -1511,7 +1511,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// before the spine — <c>ConditionBinder.SoleFunctionCall</c> / <c>SoleInlineInvocation</c> in
     /// <c>ConditionBinder.ComparisonOperandOf</c>, which EVALUATE's operands also bind through — and this screen keys on the RULE
     /// (<c>Rules().NumericClassScreen</c>). ⛔ THE VERDICT READS THE CLASS, NOT ResultCategory (PB124 wave 5b):
-    /// the storage model folds §2023:15.2 item 6's INDEX functions into category numeric.
+    /// the storage model folds §2023:15.2 GR6's INDEX functions into category numeric.
     /// </para></summary>
     private BoundExpr BindIdentifierOperand(Antlr4.Runtime.ParserRuleContext id, OperandContext context)
     {
@@ -1596,7 +1596,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>The INDEX-NAME-WINDOW twin of <see cref="BindOperandExpr"/>: the same breadth-first wrapper walk,
     /// run under <see cref="OperandContext.ArithmeticIndexNameWindow"/> so an index-name is a legal operand (ISO
-    /// §2023:13.18.38.3 r7 — "in the VARYING phrase of a PERFORM statement"; kb/Work R29) and an index DATA ITEM is
+    /// §2023:13.18.38.3 SR7 — "in the VARYING phrase of a PERFORM statement"; kb/Work R29) and an index DATA ITEM is
     /// not (§2023:13.18.60.3 SR10 has no PERFORM entry; kb/Work PB215). It exists because PERFORM VARYING's FROM/BY
     /// slots are a <c>valueOperand</c> WRAPPER (§2023:14.9.28.2's brace group, kb/Work PB432):
     /// <see cref="BindIndexNameWindowExpr"/> would reach <see cref="BindOperandExprCore"/> through

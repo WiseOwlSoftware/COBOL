@@ -18,7 +18,7 @@
       *>    statement, any applicable at end exception processing
       *>    statements are executed."
       *> A USE AFTER STANDARD ERROR declarative per file stands in for
-      *> "exception processing statements" (§2023:9.1.12 item 2); its DISPLAY
+      *> "exception processing statements" (§2023:9.1.12 GR2); its DISPLAY
       *> is the observable for whether they ran.
       *>
       *> LEG A (file F, AT END written).  A2 is the at end read: the

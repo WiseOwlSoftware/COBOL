@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:15.43.3 r2 — "If standard-decimal arithmetic is in effect, argument-1 shall not be a data item
+      *> ISO §2023:15.43.3 AR2 — "If standard-decimal arithmetic is in effect, argument-1 shall not be a data item
       *> whose data description entry specifies a standard binary floating-point usage."
       *> (cite.py --check 15.43.3 "If standard-decimal arithmetic is in effect, argument-1 shall not be a
       *> data item whose data description entry specifies a standard binary floating-point usage" -> OK,

@@ -124,7 +124,7 @@ internal sealed class OdoResolvePass : IBindPass
             // section other than the report section, from referring to a report item. Asked for a reference that reaches no
             // data item or several (a declaration's is asked by each clone, below), before the ambiguity, which it leaves
             // standing unless a report entry of a NEARER source element hides the data items (kb/Work PB3767's order, kept by the lookup itself since PB4196,
-            // ISO §2023:8.4.6.2.1 3) a)).
+            // ISO §2023:8.4.6.2.1 GR3a).
             // At COBOL-85 that rule is not the edition's: §1985:XIII.3.9.3 SR10d lets a sum counter be referenced, wherever the
             // reference is written, so a counter is data-name-1 (kb/Work PB5310).
             DataItem? counter = null;
@@ -176,7 +176,7 @@ internal sealed class OdoResolvePass : IBindPass
             var (notInteger, subscripted, inTableRange) = admission;
             if (admission.Admitted) spec.Depending = dep;
 
-            // SR17: data-name-1 shall describe an integer — §2023:5.5 2) b) 2., so a trailing-P PIC 99P is one (an index
+            // SR17: data-name-1 shall describe an integer — §2023:5.5 SR2b.2), so a trailing-P PIC 99P is one (an index
             // item is NOT an integer data item).
             if (notInteger && !DeclarationFact(dep))
                 binder.Edition.Error(DiagnosticCatalog.OccursDependingObjectNotInteger, $"OCCURS DEPENDING ON '{depName}' on '{subject}': data-name-1 "

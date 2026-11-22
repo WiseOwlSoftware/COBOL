@@ -69,7 +69,7 @@ internal static class ReceivingStore
     /// an item's STORAGE bytes into an elementary receiving area without converting the representation asks it:
     /// a GROUP MOVE into an elementary receiver (ISO §2023:14.9.25.4 GR4 — "there is no conversion of data from one
     /// form of internal representation to another") and a READ / RETURN that makes the record available in an
-    /// ELEMENTARY record area (§2023:14.9.30.4 GR13 c); §2023:14.9.34.4 GR3). <paramref name="area"/> is the receiving
+    /// ELEMENTARY record area (§2023:14.9.30.4 GR13c; §2023:14.9.34.4 GR3). <paramref name="area"/> is the receiving
     /// area's bytes, already fitted by the caller's own rule (a MOVE's alphanumeric fill, a READ's GR15 record
     /// fill); <paramref name="positions"/> is the receiver's position count in its own units. The receiver's
     /// representation is DECODED FROM the bytes: a NATIONAL item's UTF-16BE pairs through the ONE inverse
@@ -95,7 +95,7 @@ internal static class ReceivingStore
     /// converting the widest record's characters would overwrite what the others read; an APPLY COMMIT restore
     /// (§2023:14.9.36.4 GR3) returns the item to the image saved at the last COMMIT, which a REDEFINES view may hold as
     /// any characters. Such content reaches the boolean item through another description of its storage and is
-    /// undefined (§2023:14.6.13.2 1)). A USAGE BIT or numeric item decodes exactly as <see cref="StorageArea"/> does: only the
+    /// undefined (§2023:14.6.13.2 GR1). A USAGE BIT or numeric item decodes exactly as <see cref="StorageArea"/> does: only the
     /// boolean conversion differs.</summary>
     public static string VerbatimStorageArea(Place target, string area, string positions) =>
         WriteDecoded(target, DecodedStorage(target.Item, area, positions));
@@ -150,7 +150,7 @@ internal static class ReceivingStore
     /// <summary>The receiver's position count in its OWN units for <see cref="StorageArea"/> — national character
     /// positions (<see cref="NationalWindow.WindowPositionsOf"/>, a national group's as-if N(m) included), boolean BIT
     /// positions (the operand PICTURE length, a bit group's as-if 1(m) included), else its
-    /// character positions; an ANY LENGTH receiver's comes from its carrier at run time (§2023:13.18.2.4 GR1 b).</summary>
+    /// character positions; an ANY LENGTH receiver's comes from its carrier at run time (§2023:13.18.2.4 GR1b).</summary>
     public static string StoragePositions(Place target) =>
         target.Item.IsAnyLength ? AnyLengthWidth(target) : $"{StoragePositions(target.Item)}";
 
@@ -165,14 +165,14 @@ internal static class ReceivingStore
     /// positions ('1' to one, every other character to zero — determination D-B5, kb/Work PB3666, PB3697). Asked by
     /// <see cref="StorageArea"/> and by <c>MoveEmitter.GroupRecord</c>, whose receiving record exists only as a value
     /// (kb/Work PB2587), so a group move decodes its receiver one way whether the receiver is a place or a record, and a
-    /// READ or RETURN into an elementary record area that no other description shares (§2023:14.9.30.4 GR13 c); §2023:14.9.34.4
+    /// READ or RETURN into an elementary record area that no other description shares (§2023:14.9.30.4 GR13c); §2023:14.9.34.4
     /// GR3; <see cref="FileModel.AreaHasOneDescription"/>) rides the same store. A shared area (an EXTERNAL file's
-    /// run-unit area too, §2023:13.18.22.4 GR4 b)) and an APPLY COMMIT restore
+    /// run-unit area too, §2023:13.18.22.4 GR4b) and an APPLY COMMIT restore
     /// take <see cref="VerbatimStorageArea"/> instead.
     /// <para>⛔ THE CONVERSION IS OF THE DECODED CHARACTERS, never of the bytes. §2023:14.9.25.4 GR4 has "no conversion of data
     /// from one form of internal representation to another", so the receiving AREA takes the sender's bytes unchanged (a
     /// national item's UTF-16BE pairs, a display item's characters); what the item then HOLDS is characters, and a
-    /// boolean item holding a character other than '0' or '1' is content §2023:14.6.13.2 1) leaves undefined. D-B5 normalizes
+    /// boolean item holding a character other than '0' or '1' is content §2023:14.6.13.2 GR1 leaves undefined. D-B5 normalizes
     /// that content at every store, so a group move into <c>PIC 1(4) USAGE NATIONAL</c> agrees with the same move into
     /// its reference-modified slice and with a display boolean (kb/Work PB3697). Converting the raw bytes before
     /// decoding was the PB3666 review R1-1 defect (<c>N"101"</c> became three CJK characters). A USAGE BIT item is
@@ -211,7 +211,7 @@ internal static class ReceivingStore
     };
 
     /// <summary>The SIZE of a receiving operand in CHARACTER POSITIONS at execution — a C# int expression, because an
-    /// ANY LENGTH receiver's size is its carrier's (ISO §2023:13.18.2.4 GR1 b), "n is the length of the corresponding
+    /// ANY LENGTH receiver's size is its carrier's (ISO §2023:13.18.2.4 GR1b), "n is the length of the corresponding
     /// argument or returning item of the activating runtime element") and so is not known to the binder. It is the
     /// ONE answer to "how big is the receiver" for every statement whose rules are written over the receiver's size
     /// rather than over a MOVE — ACCEPT format 1 (§2023:14.9.1.4 GR3/GR4: "the same size as the receiving data item"),
@@ -244,7 +244,7 @@ internal static class ReceivingStore
         _ => $"{(target.Item.Pic is { } pic ? DataItem.DisplayTextWidthOf(pic) : 0)}",
     };
 
-    /// <summary>ISO §2023:14.9.48.4 GR11 b) — UNSTRING without a governing delimiter: "the number of characters examined
+    /// <summary>ISO §2023:14.9.48.4 GR11b — UNSTRING without a governing delimiter: "the number of characters examined
     /// is equal to the size of the current receiving area. However, if the sign of the receiving item is defined
     /// as occupying a separate character position, the number of characters examined is one less than the size of
     /// the current receiving area. Size is defined as number of character positions." A C# int expression, because

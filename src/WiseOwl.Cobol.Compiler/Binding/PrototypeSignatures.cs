@@ -42,7 +42,7 @@ namespace WiseOwl.Cobol.Binding;
 /// is a comparison of TEXT, with no fixed point to find: two prototypes that name each
 /// other have two signatures (their formals name two prototypes), and a pointer restricted to one does not take the
 /// address of a program of the other (§2023:14.9.39.3 SR22) — which is what keeps a call through it conforming.</para>
-/// <para><b>Every prototype has a signature.</b> A prototype that took ISO §2023:12.3.8.4 GR10 c) — "the details are taken
+/// <para><b>Every prototype has a signature.</b> A prototype that took ISO §2023:12.3.8.4 GR10c — "the details are taken
 /// from the external repository" — has the signature the repository entry records, decoded from the assembly that
 /// publishes it (<c>MetadataRepositoryProvider</c>, DESIGN-external-repository §8.2), and a specifier no provider answers is
 /// refused (REPO-1) and registers no prototype. So this comparison has no "unknown" arm: a caller that holds a NAME looks
@@ -86,7 +86,7 @@ internal static class PrototypeSignatures
     /// <item>the item's OWN description — <see cref="OoConformance.SignatureDifference"/>, the ONE pair-mode relation
     /// (class and category, the clause identity, ANY LENGTH and the LOCALE identification, the object-reference phrases,
     /// the strong type, a variable-length group's matching information; a bit / national group is the elementary
-    /// <c>PIC 1(m)</c> / <c>N(m)</c> item §2023:13.18.29.4 GR1 b) / GR2 b) treat it as, and an alphanumeric group is never
+    /// <c>PIC 1(m)</c> / <c>N(m)</c> item §2023:13.18.29.4 GR1b / GR2 b) treat it as, and an alphanumeric group is never
     /// an elementary item; a restricted program- or function-pointer is asked its USAGE clause, the TO phrase by the
     /// prototype it names, kb/Work PB4491);</item>
     /// <item>for a TYPED restricted pointer, the type declaration its TYPE clause references (<see cref="PointerTypeOf"/>):
@@ -102,7 +102,7 @@ internal static class PrototypeSignatures
     /// (<see cref="StrongTypeModel.SameElementaryLayout"/>: each elementary item at the same relative position,
     /// of the same length, with the same eight clauses), the standard's own statement of when two group
     /// descriptions describe the same data. A bit or national group is never asked it, opposite an elementary item OR
-    /// another bit / national group: §2023:13.18.29.4 GR1 b) / GR2 b) make it the elementary <c>PIC 1(m)</c> /
+    /// another bit / national group: §2023:13.18.29.4 GR1b / GR2 b) make it the elementary <c>PIC 1(m)</c> /
     /// <c>N(m)</c> item and §2023:13.7.3 states nothing otherwise, so the first half's elementary pair is its whole
     /// description. ⛔ That is also what keeps this relation an EQUIVALENCE, which "the same signature" is (§2023:13.18.60.4
     /// GR25 bounds a restricted pointer's contents by it) and which its key, <see cref="SignatureKey"/>, relies on: were
@@ -169,7 +169,7 @@ internal static class PrototypeSignatures
     /// and §2023:8.5.3.1's equivalence the same of two type declarations' items: the standard lists the clause texts that match
     /// on meaning (currency strings, DECIMAL-POINT IS COMMA, the LOCALE phrase) and none for the TO phrase, so
     /// <c>TO P1</c> and <c>TO P2</c> are two USAGE clauses whatever the two prototypes' signatures, and a prototype whose
-    /// details come from the external repository (§2023:12.3.8.4 GR10 c)) is a name as a group one is (docs/CONFORMANCE.md D-RP1). Null for an
+    /// details come from the external repository (§2023:12.3.8.4 GR10c) is a name as a group one is (docs/CONFORMANCE.md D-RP1). Null for an
     /// unrestricted pointer and for any other item. The phrase as the entry spells it is the description's reader text
     /// (<c>ActivationDescriptions.ElementaryClauses</c>).</summary>
     public static string? NamedRestriction(DataItem pointer) =>
@@ -222,7 +222,7 @@ internal static class PrototypeSignatures
     /// (<see cref="StrongTypeModel.ElementaryLayoutKey"/>):
     /// <list type="bullet">
     /// <item>an object reference — the kind, the folded class-name or interface-name, and the FACTORY and ONLY phrases
-    /// (§2023:9.3.8.2.3 rule 2; an ACTIVE-CLASS description its FACTORY phrase alone);</item>
+    /// (§2023:9.3.8.2.3 GR2; an ACTIVE-CLASS description its FACTORY phrase alone);</item>
     /// <item>a strongly-typed group — its §2023:8.5.3.1 type identity;</item>
     /// <item>a variable-length or an alphanumeric group — its shape and length (with the layout, which settles §2023:8.5.1.12's
     /// compatibility: two identical layouts are compatible);</item>

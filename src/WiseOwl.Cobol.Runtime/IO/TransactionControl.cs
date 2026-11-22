@@ -105,7 +105,7 @@ internal sealed class TransactionControl(FileRegistry files, ModuleStack modules
     /// GR1: with no active clause the statement is CONTINUE — the registry has no transaction and there is nothing to
     /// save. GR3: the files' changes are made permanent and their record locks released (the registry's half), and the
     /// clauses of exited initial programs and canceled elements are deactivated; GR5: the remaining clauses' data items
-    /// are saved. A refused COMMIT saves nothing and deactivates nothing: §2023:14.6.13.1.3 item 8's ROLLBACK follows it.</summary>
+    /// are saved. A refused COMMIT saves nothing and deactivates nothing: §2023:14.6.13.1.3 GR8's ROLLBACK follows it.</summary>
     public string? Commit()
     {
         if (!AnyActive) return null;   // GR1 — CONTINUE, before GR2 is asked
@@ -130,7 +130,7 @@ internal sealed class TransactionControl(FileRegistry files, ModuleStack modules
     public string? Rollback() => Execute() is { } refused ? Refused(refused) : null;
 
     /// <summary>The ROLLBACK statement's general rules (§2023:14.9.36.4 GR1-GR6), shared by the program's ROLLBACK
-    /// (<see cref="Rollback"/>) and §2023:14.6.13.1.3 item 8's (<see cref="RollbackOnFatal"/>): returns the connector name of
+    /// (<see cref="Rollback"/>) and §2023:14.6.13.1.3 GR8's (<see cref="RollbackOnFatal"/>): returns the connector name of
     /// the file whose ROLLBACK the medium refused, not yet told to the program, or null.</summary>
     private string? Execute()
     {
@@ -178,7 +178,7 @@ internal sealed class TransactionControl(FileRegistry files, ModuleStack modules
 
     /// <summary>Whether the refusal <see cref="Refused"/> last told of <paramref name="name"/> reached an element's FILE
     /// STATUS item — false when no element describing the file writes a FILE STATUS clause for it, which is DOC-A.1-103's
-    /// "nothing covers this status". A QUESTION, so it stores nothing: asked after §2023:14.6.13.1.3 item 8's ROLLBACK has
+    /// "nothing covers this status". A QUESTION, so it stores nothing: asked after §2023:14.6.13.1.3 GR8's ROLLBACK has
     /// restored the FILE STATUS items (kb/Work PB3542), a second store would put the refusal's '30' back over the
     /// restored value, and a participant the ROLLBACK deactivated would no longer be asked.</summary>
     public bool HasStatusItem(string name) => _toldByStatusItem.GetValueOrDefault(name);
@@ -194,7 +194,7 @@ internal sealed class TransactionControl(FileRegistry files, ModuleStack modules
     /// clauses in exited initial programs and canceled runtime elements"</i>, and §2023:14.9.36.4 GR6 for the ROLLBACK — and take
     /// out of commit control every file connector a deactivated clause named that no remaining active clause names
     /// (<see cref="FileRegistry.ReleaseCommitControl"/>; kb/Work PB3541): §2023:12.4.6.3.4 GR5 makes a clause active only
-    /// until that deactivation, so the file's later changes are no ROLLBACK's and §2023:14.6.13.1.3 item 8 no longer applies to
+    /// until that deactivation, so the file's later changes are no ROLLBACK's and §2023:14.6.13.1.3 GR8 no longer applies to
     /// it. An EXTERNAL file connector another active clause still names stays under commit control through that clause.</summary>
     private void DeactivateRetired()
     {

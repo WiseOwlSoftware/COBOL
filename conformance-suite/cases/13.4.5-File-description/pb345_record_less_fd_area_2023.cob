@@ -21,7 +21,7 @@
       *> such an entry and the first I-O verb aborted the run unit.
       *>
       *> DERIVATION of every line of the .out --
-      *>   OPEN=00  §2023:9.1.13.2 item 1: "The input-output statement is successfully executed
+      *>   OPEN=00  §2023:9.1.13.2 GR1: "The input-output statement is successfully executed
       *>            and no further information is available concerning the input-output
       *>            operation."
       *>   R1       the implied 20-byte area moved to a PIC X(20) receiver: same bytes.
@@ -42,14 +42,14 @@
       *>            reference a file connector in the open mode." -- is unmet, GR3 --
       *>            "The execution of the UNLOCK statement causes the value of the I-O
       *>            status of the file connector referenced by file-name-1 to be updated."
-      *>            -- still applies, and §2023:9.1.13.7 item 2 names the value: "I-O status =
+      *>            -- still applies, and §2023:9.1.13.7 GR2 names the value: "I-O status =
       *>            42. A CLOSE or UNLOCK statement is attempted for a file connector that
       *>            is not in an open mode." RS is seeded "ZZ" first, so 42 is measured
       *>            and not left over.
-      *>   RD1=47   READ on a CLOSED connector: §2023:9.1.13.7 item 7, "The execution of a READ
+      *>   RD1=47   READ on a CLOSED connector: §2023:9.1.13.7 GR7, "The execution of a READ
       *>            or START statement is attempted referencing a file connector that is
       *>            not open in the input or I-O mode."
-      *>   OO=00 / CL=00   successful OPEN OUTPUT and CLOSE (§2023:9.1.13.2 item 1).
+      *>   OO=00 / CL=00   successful OPEN OUTPUT and CLOSE (§2023:9.1.13.2 GR1).
       *>   U2=00    UNLOCK on an OPEN connector: §2023:14.9.47.4 GR1 -- "The presence or
       *>            absence of any record locks does not affect the success of the
       *>            execution of the UNLOCK statement."

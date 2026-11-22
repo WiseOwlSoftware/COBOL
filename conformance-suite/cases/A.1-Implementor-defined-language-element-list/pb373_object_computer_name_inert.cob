@@ -108,7 +108,7 @@
       *> deliberately perturbed copy, so a green run cannot be a
       *> comparison that never reports a difference.  SIG-NONZERO
       *> guards a signature that is vacuously equal because nothing
-      *> was computed; ALPHA-LOWER is pinned by §2023:8.8.4.4.4 GR3c2
+      *> was computed; ALPHA-LOWER is pinned by §2023:8.8.4.4.4 GR3c.2
       *> ("a" is a lowercase letter and no locale is in effect).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1OCW01.

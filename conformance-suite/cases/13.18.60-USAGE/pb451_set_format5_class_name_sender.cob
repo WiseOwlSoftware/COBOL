@@ -39,7 +39,7 @@
       *>    identifier-3 is described with the ONLY phrase, object-class-name-1 shall be the
       *>    object-class-name specified in the description of the data item referenced by
       *>    identifier-3."  FO is described FACTORY OF PB451B ONLY and the sender names
-      *>    PB451B exactly, so it holds what §2023:13.18.60.4 GR22d2.a. allows an ONLY factory
+      *>    PB451B exactly, so it holds what §2023:13.18.60.4 GR22d.2.a. allows an ONLY factory
       *>    reference to hold — "the factory object of the specified class", that class and no
       *>    subclass.  INVOKE FO "TAG" is therefore:                                  FTAG-B
       *>    DISCRIMINATOR: the same receiver with PB451D as the sender is refused — fixture
@@ -47,7 +47,7 @@
       *>
       *> 4. SET F1 F2 TO PB451D — GR10's multi-receiver form, "placed into EACH data item
       *>    referenced by identifier-3 in the order specified", over receivers described
-      *>    FACTORY OF PB451B WITHOUT the ONLY phrase, which §2023:13.18.60.4 GR22d1.a. lets hold
+      *>    FACTORY OF PB451B WITHOUT the ONLY phrase, which §2023:13.18.60.4 GR22d.1.a. lets hold
       *>    "the factory object of the specified class OR OF A SUBCLASS".  SR13 b) permits the
       *>    subclass name.  Both receivers answer TAG with PB451D's override:
       *>                                                                       FTAG-D  FTAG-D

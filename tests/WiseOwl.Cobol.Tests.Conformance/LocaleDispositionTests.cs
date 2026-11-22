@@ -12,7 +12,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// T7), and the LOCALE keyword of NUMVAL-C §2023:15.68 / TEST-NUMVAL-C §2023:15.94 (T6 — the LAST increment; the by-name
 /// COBOL1518 refusal and its diagnostic are GONE with the claim). Every phrase resolves its locale-name
 /// through the ONE SPECIAL-NAMES path: a declared name binds, an undeclared one is COBOL1664, a bare LOCALE
-/// is the current-locale form (§2023:15.68.3 r5a). The same functions WITHOUT a LOCALE phrase stay fully supported
+/// is the current-locale form (§2023:15.68.3 AR5a). The same functions WITHOUT a LOCALE phrase stay fully supported
 /// (the zero-regression proof).
 /// <para>⚠ STANDARD-COMPARE §2023:15.85 is A.4.9 item 11 but travels on §2023:A.3 item 25 (an ISO/IEC 14651:2020
 /// dependency), claimed at PB101 T7 — see its own fact.</para>
@@ -35,7 +35,7 @@ public sealed class LocaleDispositionTests
 
     // ── The four locale functions (§2023:15.51/52/53/54) are LIVE since kb/Work PB64 T4: each COMPILES CLEAN at 2023, with
     //    and without its locale-name-1 (a SPECIAL-NAMES LOCALE clause's name). ⚠ The former probes wrote INTEGER
-    //    literals for LOCALE-DATE/-TIME (`LOCALE-TIME(120000)`), which §2023:15.52.3 r1 / §2023:15.53.3 r1 forbid (class
+    //    literals for LOCALE-DATE/-TIME (`LOCALE-TIME(120000)`), which §2023:15.52.3 AR1 / §2023:15.53.3 AR1 forbid (class
     //    alphanumeric or national, 8 / 6 positions) — they were refused by name before any argument was screened,
     //    so the mistake never showed; they are STRING arguments now, and the integer form is a class error.
     [Theory]
@@ -68,7 +68,7 @@ public sealed class LocaleDispositionTests
         Assert.True(ok, string.Join("\n", errors));
     }
 
-    /// <summary>The integer-literal shape the pre-T4 probes used is a §2023:15.52.3 r1 / §2023:15.53.3 r1 CLASS violation now that
+    /// <summary>The integer-literal shape the pre-T4 probes used is a §2023:15.52.3 AR1 / §2023:15.53.3 AR1 CLASS violation now that
     /// the functions bind — the §2023:15.3 screen names it (COBOL1627), never a by-name refusal.</summary>
     [Theory]
     [InlineData("FUNCTION LOCALE-DATE(20240229)")]
@@ -95,7 +95,7 @@ public sealed class LocaleDispositionTests
     {
         foreach (string program in new[]
         {
-            Move("FUNCTION STANDARD-COMPARE(\"A\" \"B\")"),                       // §2023:15.85.3 r5's default table
+            Move("FUNCTION STANDARD-COMPARE(\"A\" \"B\")"),                       // §2023:15.85.3 AR5's default table
             Move("FUNCTION STANDARD-COMPARE(\"A\" \"B\" 2)"),                     // argument-4, no ordering-name
             """
             IDENTIFICATION DIVISION.
@@ -154,9 +154,9 @@ public sealed class LocaleDispositionTests
         EditionHarness.AssertHasDiagnostic(errors2, "COBOL1664");
         Assert.DoesNotContain(errors2, e => e.Contains("COBOL1518"));
     }
-    // The LOCALE keyword of NUMVAL-C / TEST-NUMVAL-C is LIVE since kb/Work PB64 T6 (item 12; §2023:15.94.3 r1 imports
+    // The LOCALE keyword of NUMVAL-C / TEST-NUMVAL-C is LIVE since kb/Work PB64 T6 (item 12; §2023:15.94.3 AR1 imports
     // §2023:15.68.3 whole): a DECLARED locale-name binds and compiles clean; an UNDECLARED one is the ONE
-    // undeclared-locale-name diagnostic (COBOL1664, §2023:15.68.3 r5a), never the by-name refusal any more.
+    // undeclared-locale-name diagnostic (COBOL1664, §2023:15.68.3 AR5a), never the by-name refusal any more.
     [Theory]
     [InlineData("NUMVAL-C", "\"12.34\"", "01 WS-R PIC 9(4)V99.")]
     [InlineData("TEST-NUMVAL-C", "\"12\"", "01 WS-R PIC 9(2).")]
@@ -190,7 +190,7 @@ public sealed class LocaleDispositionTests
     [Fact]
     public void NumvalCLocale_BareKeyword_IsTheCurrentLocaleForm()
     {
-        // §2023:15.68.3 r5a: "If locale-name-1 is not specified, category LC_MONETARY in the current locale is used"
+        // §2023:15.68.3 AR5a: "If locale-name-1 is not specified, category LC_MONETARY in the current locale is used"
         // — the ONLY test of the bare-LOCALE arm, and the highest-value inversion of the former non-support
         // fixture: bare LOCALE and NO phrase are DIFFERENT accepted languages (r5 vs r3/r4).
         var (ok, errors, _) = EditionHarness.CompileFull(
@@ -214,7 +214,7 @@ public sealed class LocaleDispositionTests
     [Fact]
     public void SupportedFunctions_WithoutLocale_StillWork()
     {
-        // The non-LOCALE forms are NOT optional (§2023:15.57.4 rule 4 gives an implementor correspondence when no
+        // The non-LOCALE forms are NOT optional (§2023:15.57.4 RV4 gives an implementor correspondence when no
         // locale is in effect; NUMVAL-C without LOCALE uses the compilation-unit currency) — they must not
         // regress to a 1518.
         foreach (var (call, recv, tgt) in new[]

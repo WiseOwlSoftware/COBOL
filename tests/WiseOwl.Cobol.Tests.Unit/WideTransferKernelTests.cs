@@ -70,7 +70,7 @@ public sealed class WideTransferKernelTests
     [Fact]
     public void Prohibited_RaisesWhetherOrNotChecked_AndAnExactProductLands()
     {
-        // §2023:14.7.4.3 rule 7 keeps the resultant whether or not checking is enabled (kb/Work PB3990): the .25 is a real tail,
+        // §2023:14.7.4.3 GR7 keeps the resultant whether or not checking is enabled (kb/Work PB3990): the .25 is a real tail,
         // so both transfer forms raise the one rule-7 condition rather than land ...190824.
         foreach (bool checkedTransfer in new[] { true, false })
         {

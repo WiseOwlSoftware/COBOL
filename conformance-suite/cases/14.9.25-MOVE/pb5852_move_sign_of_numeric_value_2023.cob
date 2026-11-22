@@ -6,7 +6,7 @@
       *> portable: unverified
       *>---
       *> kb/Work PB5852 - the sign of a MOVE whose result truncates to
-      *> zero. §1985:VI.6.19.4 GR4b1 (cite.py: OK): "When a signed
+      *> zero. §1985:VI.6.19.4 GR4b.1 (cite.py: OK): "When a signed
       *> numeric item is the receiving item, the sign of the sending
       *> operand is placed in the receiving item", so at 85 a negative
       *> sender whose digits all truncate away stores a NEGATIVE zero.

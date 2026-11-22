@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:15.20.3 r1 — "Argument-1 shall be of class numeric." COS's OWN argument rule, which
+      *> ISO §2023:15.20.3 AR1 — "Argument-1 shall be of class numeric." COS's OWN argument rule, which
       *> the corpus had never asserted for COS.
       *>
       *> --check validated:

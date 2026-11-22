@@ -4,5 +4,5 @@
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs#EcBindRaising; src/WiseOwl.Cobol.Compiler/Binding/Procedure/EnclosingContext.cs#RefusedRaisingLastHere",
  "test-ref": "conformance:cases/14.8.13@2002-EXIT-STATEMENT/g2_exit_raising_last_in_declarative; conformance:cases/14.8.13@2002-EXIT-STATEMENT/g2_exit_method_ends_method; conformance:cases/14.8.13@2002-EXIT-STATEMENT/g2-exit-raising-last-program-outside-decl; conformance:cases/14.8.13@2002-EXIT-STATEMENT/g2-exit-raising-last-method-outside-decl; conformance:cases/14.8.13@2002-EXIT-STATEMENT/g2-exit-raising-last-function-outside-decl",
- "notes": "§2002:14.8.13.2 SR6: RAISING LAST of EXIT PROGRAM, METHOD and FUNCTION is accepted in a declarative (the program form runs: F=GOOD/IN-DECL/CALLER-DECL, per §2002:14.8.13.3 GR3c1 and GR6) and refused outside one (COBOL2103, all three forms). Matched at --std 2002 with the pinned build of dc1f2dcce8."
+ "notes": "§2002:14.8.13.2 SR6: RAISING LAST of EXIT PROGRAM, METHOD and FUNCTION is accepted in a declarative (the program form runs: F=GOOD/IN-DECL/CALLER-DECL, per §2002:14.8.13.3 GR3c.1 and GR6) and refused outside one (COBOL2103, all three forms). Matched at --std 2002 with the pinned build of dc1f2dcce8."
 }

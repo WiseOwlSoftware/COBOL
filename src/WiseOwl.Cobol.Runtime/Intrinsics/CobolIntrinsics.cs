@@ -186,7 +186,7 @@ public static partial class CobolIntrinsics
     public static long IntegerArgDec(CobolDec v) => IntegerArg(IntegerValue(v));
 
     /// <summary>The scaled-operand intake for a TOTAL (<c>Int128</c>) integer argument — no narrowing, therefore no
-    /// range raise point, but the same integrality test (§2023:15.90.3 r1 / §2023:15.91.3 r1 / §2023:15.37.3 r3 / §2023:15.75.3 r2 all
+    /// range raise point, but the same integrality test (§2023:15.90.3 AR1 / §2023:15.91.3 AR1 / §2023:15.37.3 AR3 / §2023:15.75.3 AR2 all
     /// still require an INTEGER; they place no constraint on its magnitude).</summary>
     public static Int128 IntegerArgWideScaled(Int128 unscaled, int scale) => IntegerValue(unscaled, scale);
 
@@ -220,7 +220,7 @@ public static partial class CobolIntrinsics
     }
 
     /// <summary>The WIDE floating-point twin of <see cref="IntegerArgReal"/> — the Int128-carrier intake for the
-    /// §15 integer arguments whose domain exceeds <c>long</c>: BOOLEAN-OF-INTEGER's argument-1 (§2023:15.13.3 r1
+    /// §15 integer arguments whose domain exceeds <c>long</c>: BOOLEAN-OF-INTEGER's argument-1 (§2023:15.13.3 AR1
     /// admits any positive integer, and the bit configuration of a value at or above 2⁶³ is legal and
     /// representable, fix-queue PB65 / RV-15.13.4-1 D1). The range guard follows <see cref="FromDouble"/>'s
     /// saturation constant: 1.7e38 is BELOW <c>Int128.MaxValue</c>, so the boundary value cannot slip through
@@ -237,8 +237,8 @@ public static partial class CobolIntrinsics
     /// <summary>
     /// ⛔ THE CLAMPING BINARY64 INTAKE OF A TOTAL INTEGER ARGUMENT WHOSE FUNCTION ANSWERS THE SAME PAST A BOUND — the
     /// integer the operand holds, on the <c>Int128</c> carrier, CLAMPED past it instead of raised (kb/Work PB254,
-    /// PB651). Its members are TEST-DATE-YYYYMMDD / TEST-DAY-YYYYDDD argument-1 (§2023:15.90.4 r1a / §2023:15.91.4 r1a, a
-    /// CATCH-ALL verdict) and FIND-STRING argument-3 (§2023:15.37.4 r2/r3, 0 once every match is ignored); the renderer
+    /// PB651). Its members are TEST-DATE-YYYYMMDD / TEST-DAY-YYYYDDD argument-1 (§2023:15.90.4 RV1a / §2023:15.91.4 RV1a, a
+    /// CATCH-ALL verdict) and FIND-STRING argument-3 (§2023:15.37.4 RV2/r3, 0 once every match is ignored); the renderer
     /// emits it from <c>IntrinsicRenderer.IntArgWideSaturating</c> alone.
     /// </summary>
     /// <remarks>
@@ -265,7 +265,7 @@ public static partial class CobolIntrinsics
     /// <summary>The SDIDI twin of <see cref="IntegerArgSaturatingReal"/>, for the same members only. An SDIDI integer
     /// reaches far past <c>Int128</c> (34 significant digits at any exponent), and landing it there through
     /// <see cref="IntegerArgWideDec"/> made the TOTAL <c>FUNCTION TEST-DATE-YYYYMMDD(10 ** 40)</c> a fatal
-    /// EC-SIZE-OVERFLOW under ARITHMETIC IS STANDARD-DECIMAL, where §2023:15.90.4 r1a answers 1 (kb/Work PB651 finisher).
+    /// EC-SIZE-OVERFLOW under ARITHMETIC IS STANDARD-DECIMAL, where §2023:15.90.4 RV1a answers 1 (kb/Work PB651 finisher).
     /// The integrality test is the one every carrier shares. A magnitude inside ±1.7e38 is the exact integer, and a larger
     /// one SATURATES to the extreme of its sign. That is verdict-preserving here, and only here.</summary>
     public static Int128 IntegerArgSaturatingDec(CobolDec v)
@@ -289,7 +289,7 @@ public static partial class CobolIntrinsics
     /// </para>
     /// <para>Found by the Phase-B refute stage on §2023:15.55 (LOG), against code landed the same day. The domain
     /// violation itself is still caught at the FUNCTION BODY where the body can name its own rule (see
-    /// <see cref="Float.Log"/>, §2023:15.55.3 r2); this is the catch-all for the families whose out-of-domain result
+    /// <see cref="Float.Log"/>, §2023:15.55.3 AR2); this is the catch-all for the families whose out-of-domain result
     /// is simply NaN — ACOS/ASIN of |x|&gt;1 (§2023:15.8.3/§2023:15.10.3), SQRT of a negative (§2023:15.84.3).</para>
     /// <para>±∞ is deliberately NOT screened here, exactly as <see cref="FromDouble"/> does not screen it: an
     /// overflowing EXP is a legal huge result, not a domain error (CA24).</para>
@@ -334,7 +334,7 @@ public static partial class CobolIntrinsics
     /// LOG10(1000) = 2.9999999999999996 into 2.999999999). THAT RATIONALE IS RETIRED (kb/Work PB647). It is a
     /// statement about the returned VALUE, which §2023:15.4.1's last paragraph does leave to the implementor; the
     /// rounding of the TRANSFER into a resultant identifier is not left to the implementor — §2023:14.7.4.1 puts it
-    /// "relative to the size provided for the resultant identifier" and §2023:14.7.4.3 rule 2 makes a no-phrase store
+    /// "relative to the size provided for the resultant identifier" and §2023:14.7.4.3 GR2 makes a no-phrase store
     /// TRUNCATION. Preferring the better approximation here meant `MOVE FUNCTION LOG10(1000) TO R` and
     /// `COMPUTE R = FUNCTION LOG10(1000)` disagreed about ONE returned value, which §2023:15.4.1's identity sentence
     /// forbids; when the two readings collide, the identity outranks the approximation, and a program that wants
@@ -364,7 +364,7 @@ public static partial class CobolIntrinsics
     /// that magnitude was silently replaced by 9223372036.85:
     /// <code>
     ///   01 R PIC 9(12)V99.
-    ///       COMPUTE R = FUNCTION ANNUITY(10000000000 1)   *> §2023:15.9.4 r1b gives exactly 10000000001.00
+    ///       COMPUTE R = FUNCTION ANNUITY(10000000000 1)   *> §2023:15.9.4 RV1b gives exactly 10000000001.00
     ///         ON SIZE ERROR ... NOT ON SIZE ERROR ...     *> prints NO SIZE ERROR
     ///   R = 00922337203685
     /// </code>
@@ -383,7 +383,7 @@ public static partial class CobolIntrinsics
     ///   01 R PIC 9(31).
     ///       COMPUTE R = FUNCTION EXP(70) ON SIZE ERROR … NOT ON SIZE ERROR …
     ///   -> prints NO SIZE ERROR;  R = 0170141183460469231731687303715
-    ///      where §2023:15.34.4 r1 + §2023:15.4.1 require ≈2.5154386709191670×10³⁰ — wrong by a factor of ~15, silently.
+    ///      where §2023:15.34.4 RV1 + §2023:15.4.1 require ≈2.5154386709191670×10³⁰ — wrong by a factor of ~15, silently.
     ///
     ///   IF FUNCTION EXP10(30) = FUNCTION EXP10(31)   -> TRUE
     ///   -> two values a FACTOR OF TEN apart compare equal, with no receiver in the statement: a relation
@@ -419,12 +419,12 @@ public static partial class CobolIntrinsics
     /// </para>
     /// <para>⛔ THE LANDING ROUNDS ONCE AND NOTHING CUTS IT AFTERWARDS, WHATEVER THE FUNCTION'S CODOMAIN (kb/Work
     /// PB3829, overturning PB65's codomain clamp). A §15.x.4 returned-value rule bounds the RETURNED VALUE, the §2023:15.4
-    /// "temporary elementary data item" (§2023:15.8.4 r1: ACOS's "is greater than or equal to zero and less than or equal
-    /// to π"; §2023:15.75.4 r1: RANDOM's "is greater than or equal to zero and less than one"), and the binary64 this
+    /// "temporary elementary data item" (§2023:15.8.4 RV1: ACOS's "is greater than or equal to zero and less than or equal
+    /// to π"; §2023:15.75.4 RV1: RANDOM's "is greater than or equal to zero and less than one"), and the binary64 this
     /// family returns is always inside it. What the RESULTANT IDENTIFIER receives is a different value, governed by
-    /// §2023:14.9.8.4 r2 ("stored, in conformance with the specifications in 14.6.8, Alignment and transfer of data into
+    /// §2023:14.9.8.4 GR2 ("stored, in conformance with the specifications in 14.6.8, Alignment and transfer of data into
     /// data items, 14.7.4, ROUNDED phrase, and 14.7.5, SIZE ERROR phrase and size error condition"): ROUNDED rounds the
-    /// returned value to the nearest value the receiver can represent (§2023:14.7.4.3 r4), which for ACOS(-1) at four places
+    /// returned value to the nearest value the receiver can represent (§2023:14.7.4.3 GR4), which for ACOS(-1) at four places
     /// is 3.1416 > π, and a rounded value the receiver cannot hold is a size error (§2023:14.7.5 3)), never a value cut back
     /// inside the codomain. The clamp PB65 put here returned 3.1415 for <c>COMPUTE R ROUNDED = FUNCTION ACOS(-1)</c>
     /// while <c>FUNCTION ACOS(-1) + 0</c> stored 3.1416, and turned RANDOM's size error into a silent 0.9999.</para>
@@ -433,10 +433,10 @@ public static partial class CobolIntrinsics
     /// <c>CobolFloat.ToScaled</c> / <c>ToScaledUnchecked</c> and <c>CobolDec.ToUnscaledChecked</c> / <c>ToUnscaled</c>):
     /// <c>true</c> under ON SIZE ERROR / EC-SIZE checking, where a value past the carrier RAISES the size error
     /// (<see cref="CobolFloat.BeyondCarrier"/>, EC-SIZE-TRUNCATION — kb/Work PB2967; it used to saturate and leave
-    /// the receiver's capacity check to notice, which a receiver as wide as the carrier cannot); <c>false</c> for the no-phrase store (§2023:14.6.13.1.3 item 8 — the receiver takes the
+    /// the receiver's capacity check to notice, which a receiver as wide as the carrier cannot); <c>false</c> for the no-phrase store (§2023:14.6.13.1.3 GR8 — the receiver takes the
     /// LOW-ORDER digits of the result, the documented disposition), where the sentinel had no check to expose it and
     /// its low digits were stored as the answer (<c>COMPUTE X = FUNCTION EXP10(40)</c> stored 03715 in PIC 9(5)). An
-    /// unchecked ±∞ lands as zero (no digits), exactly as the MOVE landing does. The §2023:14.7.4.3 rule 7 PROHIBITED
+    /// unchecked ±∞ lands as zero (no digits), exactly as the MOVE landing does. The §2023:14.7.4.3 GR7 PROHIBITED
     /// raise does not depend on it (kb/Work PB3990).</param>
     /// <param name="mode">⛔ THE STATEMENT'S ROUNDING DECISION, AND IT HAS NO DEFAULT ON PURPOSE (kb/Work PB647).
     /// This quantizer is the ARITHMETIC channel's float→fixed landing; <c>CobolFloat.ToScaledUnchecked</c> is the
@@ -448,7 +448,7 @@ public static partial class CobolIntrinsics
     /// value and order of the arguments, the collating sequence, and the locale are unchanged", cite.py-verified),
     /// and the ROUNDED phrase was a no-op on the whole family. <c>ReceiverContext.FloatLanding</c> is the ONE
     /// emitter-side rule that chooses it: the resultant identifier's own mode for a final transfer
-    /// (§2023:14.7.4.3 rule 2 — "If the ROUNDED phrase is not specified, execution is as if ROUNDED MODE IS TRUNCATION
+    /// (§2023:14.7.4.3 GR2 — "If the ROUNDED phrase is not specified, execution is as if ROUNDED MODE IS TRUNCATION
     /// had been specified"), TRUNCATION for a nested intermediate. A new call site must decide, not inherit.</param>
     public static Int128 FromDouble(double d, int scale, CobolRounding mode, bool checkedLanding = false)
     {
@@ -470,7 +470,7 @@ public static partial class CobolIntrinsics
         // sentinel, kb/Work PB2967), unchecked keeps the low-order digits. An infinity has no decimal and keeps the binary64
         // disposition (unchecked zero, checked the EC-SIZE-TRUNCATION raise).
         //
-        // ⛔ ROUNDING MODE IS PROHIBITED is answered by the landing's own rounding decision (§2023:14.7.4.3 rule 7: "If the
+        // ⛔ ROUNDING MODE IS PROHIBITED is answered by the landing's own rounding decision (§2023:14.7.4.3 GR7: "If the
         // PROHIBITED phrase is specified, and the arithmetic value cannot be represented exactly in the resultant
         // identifier, the EC-SIZE-TRUNCATION exception condition is set to exist, the size error condition exists, and
         // the content of the resultant identifier is unchanged", cite.py-verified): a final transfer lands AT the

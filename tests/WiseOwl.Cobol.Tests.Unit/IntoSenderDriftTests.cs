@@ -13,7 +13,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ THE SENDING OPERAND OF AN <c>INTO</c> PHRASE IS ONE RULE, AND IT HAS TO STAY IN ONE PLACE. ISO §2023:14.9.30.4
-/// GR4 b) and §2023:14.9.34.4 GR5 b) say the same sentence about READ and RETURN — the sender is THE CURRENT RECORD,
+/// GR4 b) and §2023:14.9.34.4 GR5b say the same sentence about READ and RETURN — the sender is THE CURRENT RECORD,
 /// sized by the RECORD clause (§2023:13.18.43.4 GR16), and designated an alphanumeric group move when the file
 /// description entry carries a RECORD IS VARYING clause — and the compiler builds that phrase from THREE arms:
 /// the sequential READ, the keyed READ, and the sort/merge RETURN.

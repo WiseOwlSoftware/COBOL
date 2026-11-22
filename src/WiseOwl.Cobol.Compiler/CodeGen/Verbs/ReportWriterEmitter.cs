@@ -491,7 +491,7 @@ internal sealed class ReportWriterEmitter(
     private string KeptOnProhibitedInexact(ReportFieldModel f, string image, string? raising, CodeWriter w)
     {
         string kept = $"__rimg{ctx.Names.NextEc()}";
-        w.Line($"string {kept} = {CsLiteral(new string(' ', f.PrintItem.DisplayTextWidth))};   // the unchanged printable item (§2023:14.7.4.3 rule 7)");
+        w.Line($"string {kept} = {CsLiteral(new string(' ', f.PrintItem.DisplayTextWidth))};   // the unchanged printable item (§2023:14.7.4.3 GR7)");
         if (raising is null)
         {
             ArithmeticEmitter.EmitProhibitedInexactKeep(w, ctx.Names, () => w.Line($"{kept} = {image};"));
@@ -634,7 +634,7 @@ internal sealed class ReportWriterEmitter(
                 if (plan.Tests.Count > 0)
                     w.Line($"__rg{r.CsIndex}_{gi}.SetPresence({plan.Tests.Count}, __RPT_P_{r.CsIndex}_{gi});");
                 // The OR PAGE phrase of a control heading (§2023:13.18.57.2; kb/Work PB1298) — the engine reprints the
-                // heading after each page advance (§2023:13.18.57.4 GR6 c)).
+                // heading after each page advance (§2023:13.18.57.4 GR6c).
                 if (group.OrPage)
                     w.Line($"__rg{r.CsIndex}_{gi}.OrPage = true;");
                 // The NEXT GROUP clause (§2023:13.18.37; kb/Work PB957) — the bound runtime record, written verbatim; the
@@ -715,17 +715,17 @@ internal sealed class ReportWriterEmitter(
                 string set = CallEmitter.CallPlaceIsString(place)
                     ? CallEmitter.CallStringWrite(place, "__v")
                     : PlaceRenderer.Write(place, RuntimeApi.NumStoreDisplay("__v", place.Item.ProfileName, PlaceRenderer.Read(place)));
-                // ⛔ THE BREAK TEST IS THE PROGRAM'S COMPARISON (kb/Work PB1131). §2023:12.3.6.4 GR11 c): the program
+                // ⛔ THE BREAK TEST IS THE PROGRAM'S COMPARISON (kb/Work PB1131). §2023:12.3.6.4 GR11c: the program
                 // collating sequences "are used to determine the truth value of any alphanumeric comparisons and
                 // national comparisons … Implicitly specified by the presence of a CONTROL clause", and §2023:13.18.16.4
                 // GR3's test is one "for equality with the corresponding prior control" — an operand of the SAME
                 // data description, so the comparison class is the item's own against itself, asked of the ONE
                 // class rule a relation condition asks (CollateArgFor over the operand's category — a reference-
-                // modified operand answers the slice's category, §2023:8.4.3.3.4 GR6 c)). No sequence ⇒ no argument:
+                // modified operand answers the slice's category, §2023:8.4.3.3.4 GR6c). No sequence ⇒ no argument:
                 // the engine's code-unit compare of two equal-length images IS that comparison.
                 var cat = CollatingSelection.OperandCategory(new BoundFieldOperand(place));
                 string collate = ctx.CollateArgFor(cat, cat);
-                // ⛔ A NUMERIC CONTROL IS COMPARED AS TWO NUMERIC OPERANDS (kb/Work PB5782). §1985:XIII.3.7.4 GR3 a): "If
+                // ⛔ A NUMERIC CONTROL IS COMPARED AS TWO NUMERIC OPERANDS (kb/Work PB5782). §1985:XIII.3.7.4 GR3a: "If
                 // the control data item is a numeric data item, the relation test is for the comparison of two numeric
                 // operands", and zero is "a unique value regardless of the sign" (§1985:VI.6.3.1.1.1; §2023:8.8.4.2.4).
                 // An image-carried numeric item (zoned, packed or a REDEFINES view) can hold -0 and +0 as two different
@@ -864,7 +864,7 @@ internal sealed class ReportWriterEmitter(
     /// once EVERY report's engine and groups exist (kb/Work PB1294) — a registration names the OTHER engine's object, so
     /// it cannot be written while that engine is still unconstructed:
     /// <list type="bullet">
-    /// <item><b>UPON on a detail of another report</b> (§2023:13.18.54.4 GR7 c) 2), SR7's report-name qualifier): the event is
+    /// <item><b>UPON on a detail of another report</b> (§2023:13.18.54.4 GR7c.2, SR7's report-name qualifier): the event is
     /// that detail's GENERATE, executed against ITS report's engine, so the addition registers there
     /// (<c>AddGenerateTrigger</c>), once per appearance of the detail in the phrase.</item>
     /// <item><b>A rolled total</b> (GR6/GR7 a)/b)): the addition registers with the report GROUP that contains data-name-1
@@ -889,7 +889,7 @@ internal sealed class ReportWriterEmitter(
                         $"report {target.Name}: SUM addend was rejected at bind (ISO §2023:13.18.54.3 SR5)");
                     foreach (var d in remote)
                         w.Line($"__RPT_{d.Owner!.CsIndex}.AddGenerateTrigger({CsLiteral(d.Detail!.Name!)}, "
-                            + $"__RPT_{target.CsIndex}, {sum.Id}, {addend});   // UPON a detail of report {d.Owner.Name} (ISO §2023:13.18.54.4 GR7 c) 2))");
+                            + $"__RPT_{target.CsIndex}, {sum.Id}, {addend});   // UPON a detail of report {d.Owner.Name} (ISO §2023:13.18.54.4 GR7c.2)");
                 }
 
         // Written order: report by report, each report's counters in counter-id order (the order their entries are

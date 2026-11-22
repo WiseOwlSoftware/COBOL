@@ -295,7 +295,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
         ?? BoundOperandError.Refused(ctx.Edition, $"address-identifier '{WrittenSource.Of(ai)}'");
 
     /// <summary>§2023:14.8.2's verdict for ONE address-identifier ARGUMENT against its formal parameter — the CALL
-    /// argument (kb/Work PB239) and the INVOKE argument (kb/Work PB1021) alike, because §2023:14.9.23.3 SR5 c) sends
+    /// argument (kb/Work PB239) and the INVOKE argument (kb/Work PB1021) alike, because §2023:14.9.23.3 SR5c sends
     /// INVOKE to the same "14.8.2, Parameters" CALL reads. Both passing regimes reach the same law: BY REFERENCE is
     /// §2023:14.8.2.3.2's class-pointer paragraph — "If either the argument or the formal parameter is of class
     /// pointer, the corresponding formal parameter or argument shall be of class pointer and the corresponding
@@ -574,7 +574,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>An INDEX-NAME among Format 10's receiving operands is a CATEGORY error, not an undefined name
     /// (kb/Work PB388): <c>ctx.Refs.Resolve</c> answers for a DATA ITEM only and would report COBOL1639 on a
-    /// name an INDEXED BY phrase legally declares. §2023:13.18.38.3 r7 closes the list of contexts that may reference
+    /// name an INDEXED BY phrase legally declares. §2023:13.18.38.3 SR7 closes the list of contexts that may reference
     /// an index-name and SET Format 1/2 is one of them — so the statement is still refused, for the real
     /// reason.</summary>
     private bool SetIndexNameOperand(Core.DataReferenceContext dref)

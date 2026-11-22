@@ -8,7 +8,7 @@
       *> ( argument-1 argument-2 argument-3 [ argument-4 ] ): THREE arguments
       *> are required and only the fourth is bracketed. Two arguments is not
       *> a form the function has. The rules confirm it position by position -
-      *> §2023:15.40.3 r1 the format, r3 the date, r4 the time - and §2023:15.40.4 r1
+      *> §2023:15.40.3 AR1 the format, r3 the date, r4 the time - and §2023:15.40.4 RV1
       *> makes the returned value a combination of BOTH values, so there is
       *> nothing for a two-argument reference to return.
       *> This is the reject side of 2023/l1_fdt_general_format, which pins

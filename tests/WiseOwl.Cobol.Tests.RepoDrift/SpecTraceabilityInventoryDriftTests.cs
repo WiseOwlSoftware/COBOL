@@ -1535,12 +1535,12 @@ public sealed class SpecTraceabilityInventoryDriftTests
             // transcription had flattened into a row of its own. Indented at its printed level it is the body of
             // GR-14.9.6.4-3, which closes on its own spec-derived test, and a derivation stands in place of a
             // WHOLE row's test, never beside one; the owner-signed determination (unit media unreachable, forced by
-            // §2023:9.1.13.2 item 6) moved verbatim into that row's notes, and CloseTable14Tests still reds if the
+            // §2023:9.1.13.2 GR6) moved verbatim into that row's notes, and CloseTable14Tests still reds if the
             // medium placement ever changes.
             // ⚙ The TENTH, ELEVENTH and TWELFTH, added deliberately (owner decisions Q25–Q27, 2026-09-09, after a
             // plain-language brief; DEVLOG 1577). GR-14.9.27.4-12: OPEN's rewindable-medium rule, arm
-            // unpopulatable-antecedent over the SAME closed medium set as §2023:14.9.6.4 GR3 e) 1. (§2023:14.9.27.4 GR11 and GR12
-            // partition the media; every connector answers non-unit, forced by §2023:9.1.13.2 item 6; kb/Work PB317).
+            // unpopulatable-antecedent over the SAME closed medium set as §2023:14.9.6.4 GR3e.1) (§2023:14.9.27.4 GR11 and GR12
+            // partition the media; every connector answers non-unit, forced by §2023:9.1.13.2 GR6; kb/Work PB317).
             // GR-14.9.20.4-9 and GR-14.9.28.4-2: the MECHANICAL undefined-A.2 arm — Annex A.2 items 20
             // (INITIALIZE onto overlapping storage) and 37 (overlapping PERFORM ranges) resolve to exactly these
             // rule-ids, so no expected value exists to test for (kb/Work PB370).
@@ -1579,7 +1579,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
             // indistinguishable-consequent (each names the rule whose consequent it cannot be told from):
             "GR-14.9.35.4-8", "GR-8.5.1.11.3-3", "DOC-A.1-220",
             // definitional, R43's arm EXTENDED by this signing to a user-program constraint no rule gives a
-            // consequence (§2023:4.4 2) leaves a violation undefined) and to a term definition no other rule reads:
+            // consequence (§2023:4.4 GR2 leaves a violation undefined) and to a term definition no other rule reads:
             "GR-13.18.16.4-6", "GR-14.9.24.4-10", "GR-14.9.24.4-11", "GR-12.3.5.4-2", "GR-12.3.5.4-3",
             // (The seven listing-only rows under §2023:7.3.18.3 GR1's "Otherwise", GR-7.2.3.4-4 and -5, GR-7.3.18.3-2 to -5
             // and GR-7.3.19.4-2, LEFT this list with kb/Work PB5925 step 4a: a listing is produced on request, so their
@@ -1614,9 +1614,11 @@ public sealed class SpecTraceabilityInventoryDriftTests
             // ⚙ Twelve more, added deliberately (kb/Work PB5822, signature `claude: 2026-11-16`): the first derivations on
             // chained rows, each argued one standing on the UPHELD record of an independent cobol-refuter pass,
             // tests/version-matrix/derivation-refutations/pb5822-1985-kept.jsonl (§8 DRV-1985-… and DRV-1989-RV-…).
+            // Eleven remain: 1989-RV-A.2.46.3-3 left the list when the listing populated its antecedent and the
+            // row took its own witness (kb/Work PB5926, ruling D-B).
             "1985-GR-VI.6.17.4-7", "1985-GR-XI.4.4.4-4", "1985-GR-VI.6.25.4-12", "1985-GR-VI.6.27.4-21",
             "1985-GR-VI.6.10.4-10", "1989-RV-A.2.11.3-2", "1989-RV-A.2.11.3-3", "1989-RV-A.2.22.4-3",
-            "1989-RV-A.2.46.3-3", "1985-GR-XI.4.1.4-10", "1985-GR-XIII.3.21.4-1", "1989-RV-A.2.19.4-3",
+            "1985-GR-XI.4.1.4-10", "1985-GR-XIII.3.21.4-1", "1989-RV-A.2.19.4-3",
             // ⚙ Five more, added deliberately (kb/Work PB5822 and PB5831, signature `claude: 2026-11-16`): two on
             // `unpopulatable-antecedent` over one physical extent, one on D-MEDIUM-85, and two on the sixth arm
             // `unfalsifiable-under-determination` (DOC-A.1-197), each on the UPHELD record of the second and third refuter passes,
@@ -1681,6 +1683,16 @@ public sealed class SpecTraceabilityInventoryDriftTests
             "1985-GR-III.2-p87", "1985-GR-III.2-p88", "1985-GR-III.2-p89", "1985-GR-III.2-p113", "1985-GR-III.2-p166",
             "1985-GR-III.2-p169", "1985-GR-III.2-p178", "1985-GR-III.2-p197", "1985-GR-III.2-p218", "1985-GR-III.2-p248",
             "1985-GR-B.2.1-p1", "1985-GR-B.2.1-p2", "1985-GR-B.2.1-p3",
+            // ⚙ One more, added deliberately (kb/Work PB6032, decision PB6003, signature `claude: 2026-11-21`): Input-Output
+            // Statement, the definitional derivation of read g-03 on its UPHELD refuter record, located at the edition's own
+            // set (InputOutputStatementSet) once PB6032 made the 1985 fifteen a fact of the edition.
+            "1985-GR-III.2-p139",
+            // ⚙ One more, added deliberately (kb/Work PB6001 and PB6012, the `informative` arm, signature `claude: 2026-11-21`):
+            // §1985:VI.6.18.5 p1, the preamble of the INSPECT examples, read in e-01 (tests/version-matrix/lineage-reads-1985/e-01.json)
+            // after its refuter OVERTURNED the definitional proposal (derivation-refutations/w20262132a-1985-p1-definitional.jsonl),
+            // written by `audit_batch.py derivation-batch` on the UPHELD record of
+            // tests/version-matrix/derivation-refutations/lineage-reads-1985-e-01.jsonl.
+            "1985-GR-VI.6.18.5-p1",
         ];
 
         var s = LoadSchema();

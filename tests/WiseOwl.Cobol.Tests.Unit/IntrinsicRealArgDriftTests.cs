@@ -14,7 +14,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </summary>
 /// <remarks>
 /// <para>
-/// A floating-point argument is legal for every exact-family intrinsic — §2023:15.7.3 r1 and its siblings require
+/// A floating-point argument is legal for every exact-family intrinsic — §2023:15.7.3 AR1 and its siblings require
 /// class NUMERIC, and a COMP-2 item is class numeric (§2023:8.5.2.1 Table 2). Before PB2 the emitter dispatched on the
 /// FUNCTION's family rather than the ARGUMENT's type and handed a <c>double</c> to an <c>Int128</c> parameter, so
 /// legal COBOL produced a raw Roslyn <c>CS1503</c> that escaped as a backend error. Ten of eleven functions
@@ -87,7 +87,7 @@ public sealed class IntrinsicRealArgDriftTests
     /// ⛔ <b>'i' IS INCLUDED, AND ITS EXEMPTION WAS THE BUG (fix-queue PB21).</b> This used to scope on <c>'n'</c>
     /// alone, reasoning that "an integer-argument function ('i' — DATE-OF-INTEGER, FACTORIAL) … cannot receive a
     /// float without violating their own argument rule first". <b>That premise is false.</b> §2023:15.3's INTEGER type
-    /// resolves through CLASS NUMERIC — and a COMP-2 item is category numeric (§2023:8.5.2.12 item 2) hence class
+    /// resolves through CLASS NUMERIC — and a COMP-2 item is category numeric (§2023:8.5.2.12 GR2) hence class
     /// numeric (§2023:8.5.2.1 Table 2) — so <c>IntrinsicArgumentRules.Admissible('i')</c> is <c>[Numeric]</c> and
     /// ADMITS a float. The integer-ness is a VALUE property, checked at run time, not a class the screen can
     /// reject on. So an 'i' row can absolutely reach the renderer with a float, and did:

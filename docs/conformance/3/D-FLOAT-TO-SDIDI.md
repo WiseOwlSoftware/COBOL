@@ -1,14 +1,14 @@
 - **D-FLOAT-TO-SDIDI — Floating-point data item → standard-decimal intermediate data item: the conversion mechanism (§2023:8.8.1.5.1;
   kb/Work PB1606, 2026-10-23).** §2023:8.8.1.5.1 leaves "the mechanisms for conversion of data items described with a usage
   of float-short, float-long, or float-extended into standard-decimal intermediate data items" to the implementor, and
-  §2023:8.8.1.5.2 r1 says an operand that "cannot be expressed exactly in an SDIDI" is "rounded according to the rules in
+  §2023:8.8.1.5.2 GR1 says an operand that "cannot be expressed exactly in an SDIDI" is "rounded according to the rules in
   11.9.11"; NOTE 3 of that clause names the binary value as the case. WiseOwl COBOL, under ARITHMETIC IS
   STANDARD-DECIMAL (and STANDARD, which shares the engine): **a floating-point data item enters the SDIDI as its
   binary64's EXACT algebraic value — a double is always a terminating decimal, so "the operand value" is never in doubt —
   rounded ONCE to the SDIDI's 34 significant digits under the program's INTERMEDIATE ROUNDING mode**
   (`CobolDec.FromBinary64`; default NEAREST-AWAY-FROM-ZERO): a COMP-2 holding 0.1 enters as
   0.1000000000000000055511151231257827, a value of 34 digits or fewer (0.5, every integer below 10^34) enters
-  unchanged, and under INTERMEDIATE ROUNDING IS PROHIBITED an inexact one is EC-SIZE-TRUNCATION (§2023:11.9.11.2 r3 d).
+  unchanged, and under INTERMEDIATE ROUNDING IS PROHIBITED an inexact one is EC-SIZE-TRUNCATION (§2023:11.9.11.2 GR3d).
   The same ONE conversion serves every position: an operand beside an operator, a **float item that is the whole
   expression** (`COMPUTE R = F`, `ADD F GIVING R` — before, these landed natively while `F + 0` converted through
   the shortest round-trip decimal, so one statement mode held two float conversions and `COMPUTE D = F` stored
@@ -21,7 +21,7 @@
   agreement with the PB623 float-landing determination above. **Consequences, stated so they are not found by surprise:** (a) a
   float item holding a decimal fraction is not equal to that decimal under standard-decimal arithmetic — `IF F = 0.1`
   with F = 0.1 (COMP-2) is false and `IF F > 0.1` true (native arithmetic compares both as binary64 and says equal);
-  (b) landing into a binary float receiver follows the implied TRUNCATION (§2023:14.7.4.3 r2 and r10): the SDIDI
+  (b) landing into a binary float receiver follows the implied TRUNCATION (§2023:14.7.4.3 GR2 and r10): the SDIDI
   0.1000000000000000055511151231257827 is below the double 0.1, so `COMPUTE F2 = F1` and `COMPUTE F2 = F1 + 0` both
   store the double below it, 0.09999999999999999 (the same with ROUNDED, where the nearest double is chosen and
   F2 is 0.1); (c) a COMP-2 holding 1.0E+30 is 1000000000000000019884624838656, and that is what standard-decimal

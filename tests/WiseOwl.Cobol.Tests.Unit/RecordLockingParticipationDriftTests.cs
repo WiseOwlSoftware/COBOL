@@ -209,7 +209,7 @@ public sealed class RecordLockingParticipationDriftTests
 
     /// <summary>The unsuccessful OPENs, each through the phrase spellings that used to register a posture before the
     /// open was admitted: an absent non-optional file is '35' (§2023:9.1.13.6), a sibling's NO OTHER open is '61'
-    /// (§2023:9.1.13.9 item 1) — also after a RETRY phrase exhausts (§2023:14.7.9.3) — and a second OPEN of an open connector
+    /// (§2023:9.1.13.9 GR1) — also after a RETRY phrase exhausts (§2023:14.7.9.3) — and a second OPEN of an open connector
     /// is '41' (§2023:14.9.27.4 GR2) that leaves the participation of the OPEN in force. None of them leaves the
     /// connector a participant it was not.</summary>
     [Theory]

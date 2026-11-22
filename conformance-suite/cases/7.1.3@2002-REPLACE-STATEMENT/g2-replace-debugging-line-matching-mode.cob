@@ -16,7 +16,7 @@
       *> a D line; §2002:7.1.3.3 GR8f "the corresponding pseudo-text-2
       *> replaces the matched text in the source text": AR1R2Z. A
       *> pseudo-text-2 that dropped its D line prints AR1Z.
-      *> LEG 2 - §2002:7.1.3.3 GR8c6 "Text words within a debugging
+      *> LEG 2 - §2002:7.1.3.3 GR8c.6 "Text words within a debugging
       *> line participate in the matching": source "L3" on a D line
       *> matches: BR3Z (no match: BL3Z).
       *> LEG 3 - GR8c6 "A debugging indicator shall be treated as if

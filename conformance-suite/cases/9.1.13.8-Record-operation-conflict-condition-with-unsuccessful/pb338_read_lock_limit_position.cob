@@ -13,7 +13,7 @@
       *> exceed either limit is unsuccessful and receives an I-O status
       *> that indicates that condition."  WiseOwl COBOL's per-connector
       *> maximum IS 15 (PhysicalFileTable.ConnectorLockMax, the
-      *> standard's floor); §2023:9.1.13.8 item 4 prices the denial '54'.
+      *> standard's floor); §2023:9.1.13.8 GR4 prices the denial '54'.
       *>
       *> THE SUBJECT.  Three legs.  Each opens ONE connector under
       *> LOCK MODE IS MANUAL WITH LOCK ON MULTIPLE RECORDS — the only
@@ -44,7 +44,7 @@
       *> READ statement, the content of the associated record area is
       *> undefined, the key of reference is undefined for indexed files,
       *> and the file position indicator is set to indicate that no
-      *> valid record position has been established."  §2023:9.1.13.7 item 6
+      *> valid record position has been established."  §2023:9.1.13.7 GR6
       *> then reads that state back: "I-O status = 46.  A sequential
       *> READ statement is attempted referencing a file connector open
       *> in the input or I-O mode and no valid next record has been

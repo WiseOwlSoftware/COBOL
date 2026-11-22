@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:15.67.3 r1: "Argument-1 shall be an alphanumeric or national literal or an alphanumeric or
+      *> ISO §2023:15.67.3 AR1: "Argument-1 shall be an alphanumeric or national literal or an alphanumeric or
       *> national data item whose content has one of the following two formats" (cite.py --check 15.67.3
       *> "Argument-1 shall be an alphanumeric or national literal or an alphanumeric or national data item"
       *> -> OK, §2023:15.67.3 AR1).
@@ -14,7 +14,7 @@
       *> (cite.py --check 8.5.2.1 OK), and §2023:8.5.2.3 GR4 names the item it lists - an elementary item described as
       *> alphanumeric by its PICTURE - "an alphanumeric data item" (cite.py --check 8.5.2.3 "Such an item is
       *> referred to as an alphanumeric data item" -> OK). A PIC ZZ9 item is category NUMERIC-EDITED: Table 2 puts
-      *> it in class alphanumeric, but r1 does not say class (TEST-NUMVAL's §2023:15.93.3 r1 does: "a data item of
+      *> it in class alphanumeric, but r1 does not say class (TEST-NUMVAL's §2023:15.93.3 AR1 does: "a data item of
       *> class alphanumeric or national", and l1_test_numval_f_class_screen pins the admission there).
       *>
       *> kb/Work PB658: the generic string screen ADMITTED a numeric-edited item while a bespoke binder arm

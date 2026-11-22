@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:15.43.3 r1 — "Argument-1 shall be a data item of category numeric or numeric-edited and shall
+      *> ISO §2023:15.43.3 AR1 — "Argument-1 shall be a data item of category numeric or numeric-edited and shall
       *> not be an integer function or numeric function."
       *>
       *> THE CATEGORY CONJUNCT, which no fixture in the corpus held. WS-X IS a data item, so it satisfies the

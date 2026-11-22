@@ -7,7 +7,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// <summary>
 /// The ON SIZE ERROR phrase and the size error condition (ISO/IEC 1989:2023 §2023:14.7.5), two-phase: a per-receiver
 /// capacity overflow leaves only that receiver unchanged and the others stored (rule 2), a zero divisor (case 2) or
-/// a ROUNDED MODE IS PROHIBITED inexact result (§2023:14.7.4.3 r7) raises the condition with no receiver changed, and the
+/// a ROUNDED MODE IS PROHIBITED inexact result (§2023:14.7.4.3 GR7) raises the condition with no receiver changed, and the
 /// ON / NOT ON SIZE ERROR imperative runs once afterward. Pinned to hand-computed spec values; the former legacy engine
 /// (NIST-exercised for ON SIZE ERROR) is cross-checked. The "receiver unchanged" cases are the silent-corruption
 /// class — each asserts the receiver's post-value, not just the imperative output.
@@ -71,7 +71,7 @@ public sealed class OnSizeErrorDifferentialTests
             "    ADD 1 2 GIVING R ON SIZE ERROR DISPLAY \"E\" NOT ON SIZE ERROR DISPLAY \"N\".\n    DISPLAY R."),
             "N\n03");
 
-    // ── ROUNDED MODE IS PROHIBITED: an inexact result is a size error (§2023:14.7.4.3 r7); an exact result is not. ────
+    // ── ROUNDED MODE IS PROHIBITED: an inexact result is a size error (§2023:14.7.4.3 GR7); an exact result is not. ────
     [Fact]
     public void ProhibitedInexact_FiresOnSizeError_ReceiverUnchanged()
     {
@@ -125,7 +125,7 @@ public sealed class OnSizeErrorDifferentialTests
         => AssertMatchesGolden(Program("01 R PIC 9(2).", "    ADD 1 2 GIVING R.\n    DISPLAY R."));
 
     // ── ROUNDED MODE IS PROHIBITED into a numeric-EDITED receiver: an inexact transfer is a size error
-    //    (§2023:14.7.4.3 r7 → EC-SIZE-TRUNCATION), receiver UNCHANGED. The DEVLOG-610-audited leak: the edited-store
+    //    (§2023:14.7.4.3 GR7 → EC-SIZE-TRUNCATION), receiver UNCHANGED. The DEVLOG-610-audited leak: the edited-store
     //    path used plain CobolNum.Rescale (silent truncation) while the numeric path's TryStore checked it; the
     //    RescaleChecked cure makes all three receiver categories agree. 2014-only (ROUNDED MODE is 2014+). The
     //    fix lives in the ONE shared StoreArith edited branch, so it holds across COMPUTE / ADD-GIVING / DIVIDE. ──

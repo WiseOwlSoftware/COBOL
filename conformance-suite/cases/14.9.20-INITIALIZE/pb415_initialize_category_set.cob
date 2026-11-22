@@ -22,7 +22,7 @@
       *> T2  REPLACING NATIONAL DATA BY N"ab" — one of the eight words PB415 landed. Only NA is category
       *>     national (§2023:8.5.2.10); the implicit MOVE pads with the national space → "ab ". → ZZ/ZZ/123/ab /0000
       *> T3  REPLACING NATIONAL-EDITED DATA BY N"zz" — conforming source that matches NO receiving operand:
-      *>     national-edited (§2023:8.5.2.11) is a DIFFERENT category from national (§2023:8.5.2.10), so §2023:14.9.20.4 GR5c2 selects
+      *>     national-edited (§2023:8.5.2.11) is a DIFFERENT category from national (§2023:8.5.2.10), so §2023:14.9.20.4 GR5c.2 selects
       *>     nothing and every item is left unchanged. Nothing changes.
       *> T4  REPLACING BOOLEAN DATA BY B"11" — only BO is category boolean (§2023:8.5.2.5); the boolean MOVE
       *>     left-justifies and zero-fills right (§2023:14.9.25.3) → "1100".

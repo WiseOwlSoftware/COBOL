@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 namespace WiseOwl.Cobol.Runtime.IO.Store;
 
-/// <summary>What a page-layer operation answered: success, or §2023:9.1.13.6 item 1's '30' (<i>"A permanent error exists and
+/// <summary>What a page-layer operation answered: success, or §2023:9.1.13.6 GR1's '30' (<i>"A permanent error exists and
 /// no further information is available concerning the input-output operation"</i>).</summary>
 internal enum StoreStatus
 {
@@ -16,8 +16,8 @@ internal enum StoreStatus
     /// <summary>A changing statement would take the store past its BOUNDARY (2.2.1.9): its reservation would grow the
     /// file past the format's 2^32 pages, or the host refused one of its writes because the file cannot grow further
     /// (<see cref="MediumSizeLimitException"/>). Nothing the statement did is reachable (R1) and the file is unchanged.
-    /// The page layer does not know the statement; the connector answers by it: a WRITE or REWRITE as §2023:9.1.13.5 item 4's
-    /// '24' with the invalid key condition (§2023:9.1.14), a DELETE as §2023:9.1.13.6 item 1's '30' with NO invalid key condition
+    /// The page layer does not know the statement; the connector answers by it: a WRITE or REWRITE as §2023:9.1.13.5 GR4's
+    /// '24' with the invalid key condition (§2023:9.1.14), a DELETE as §2023:9.1.13.6 GR1's '30' with NO invalid key condition
     /// (item 4 is an attempt to write; §2023:14.9.10.4 GR3/GR4 give a DELETE that condition only for a record the file does
     /// not contain). Only
     /// <see cref="PagedFile.Begin"/> and a statement's completion answer it: an OPEN, a CLOSE and a promotion have no

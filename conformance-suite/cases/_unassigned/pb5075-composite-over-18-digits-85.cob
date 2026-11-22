@@ -4,7 +4,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> kb/Work PB5075 - §1985:VI.6.4.4 item 2: "The composite of
+      *> kb/Work PB5075 - §1985:VI.6.4.4 SR2: "The composite of
       *> operands, which is a hypothetical data item resulting from the
       *> superimposition of specified operands in a statement aligned
       *> on their decimal points ... must not contain more than 18

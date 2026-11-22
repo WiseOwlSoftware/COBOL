@@ -77,7 +77,7 @@ public sealed class RecordPlan
     public int Width { get; }
 
     /// <summary>Whether the entry is described as national — "a national data item or … an elementary data item of usage national and of category
-    /// numeric, numeric-edited, or boolean" (§2023:14.9.40.4 GR7 a): the record a SORT or MERGE transfer fills with national spaces, not
+    /// numeric, numeric-edited, or boolean" (§2023:14.9.40.4 GR7a): the record a SORT or MERGE transfer fills with national spaces, not
     /// alphanumeric ones, when it is shorter than a fixed-length file's records.</summary>
     public bool National { get; init; }
 
@@ -97,7 +97,7 @@ public sealed class RecordPlan
 /// <para><b>Selection.</b> A file with several record description entries has one <see cref="RecordPlan"/> for each and a
 /// selector (<see cref="Select"/>, compiled from the SELECT WHEN clauses) that evaluates their conditions in the order the
 /// entries are written until one is true (SELECT WHEN GR3); none true is I-O status 45, a record identification failure
-/// (GR4, §2023:9.1.13.7 GR5). A file with one entry uses it (§2023:13.18.24.4 GR2 a).</para>
+/// (GR4, §2023:9.1.13.7 GR5). A file with one entry uses it (§2023:13.18.24.4 GR2a).</para>
 /// <para><b>The representation the FORMAT clause produces</b> (GR10 — Annex A.1 item 84, REQUIRED user documentation,
 /// docs/conformance/7/DOC-A.1-84.md): a selected item becomes TEXT, and the text of every item is as wide as its item
 /// needs for any value it can hold, so a record's external length is fixed by its record description entry and the
@@ -160,7 +160,7 @@ public sealed class RecordFormat
         /// <summary>No record description entry is selected — I-O status 45 (SELECT WHEN GR4).</summary>
         NoRecordSelected,
 
-        /// <summary>An alphanumeric character the CODE-SET alphabet does not represent (§2023:13.18.13.4 GR6 b).</summary>
+        /// <summary>An alphanumeric character the CODE-SET alphabet does not represent (§2023:13.18.13.4 GR6b).</summary>
         CharacterWithoutImage,
 
         /// <summary>The external text of an item is not the representation of a value of the item (a record this
@@ -180,7 +180,7 @@ public sealed class RecordFormat
 
     /// <summary>The record on the medium, padded on the right to <paramref name="width"/> as a FIXED-length file's record is
     /// (§2023:13.18.43.4 GR6): with the space of the medium's coded character set when the record is alphanumeric — the CODE-SET alphabet
-    /// replaces the native space like every other character of the record (§2023:13.18.13.4 GR6 b) — and the national space when it is national
+    /// replaces the native space like every other character of the record (§2023:13.18.13.4 GR6b) — and the national space when it is national
     /// (§2023:14.9.51.4 GR22).</summary>
     public string PadToWidth(string external, int width, bool national)
     {
@@ -267,7 +267,7 @@ public sealed class RecordFormat
     }
 
     /// <summary>The alphanumeric CODE-SET alphabet's replacement of the native characters of <paramref name="text"/>
-    /// (§2023:13.18.13.4 GR6 b); the text itself when the file has none.</summary>
+    /// (§2023:13.18.13.4 GR6b); the text itself when the file has none.</summary>
     private bool Converted(string text, out string converted)
     {
         if (_codeSet is null) { converted = text; return true; }
@@ -369,7 +369,7 @@ public sealed class RecordFormat
         }
     }
 
-    /// <summary>The native characters of an alphanumeric CODE-SET alphabet's coded characters (§2023:13.18.13.4 GR6 a).</summary>
+    /// <summary>The native characters of an alphanumeric CODE-SET alphabet's coded characters (§2023:13.18.13.4 GR6a).</summary>
     private string Restored(string text) => _codeSet is null ? text : _codeSet.ToNative(text);
 
     /// <summary>How many characters of the external image a step occupies (the width of the text it is formatted to, else its own bytes).</summary>

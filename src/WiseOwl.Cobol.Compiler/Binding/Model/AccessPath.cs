@@ -135,7 +135,7 @@ public sealed record DynTableSegment(Position OneBasedIndex) : AccessSegment;
 /// occurrences are element cells. <paramref name="Ordinal"/> is the typed component ordinal (a
 /// <see cref="PositionOffset"/> carrying a subscript term for each enclosing fixed table level). <paramref name="Min"/> and <paramref name="ElementWidth"/>
 /// are the REFERENCING description's OCCURS facts — its FROM minimum and its element's storage width — which the
-/// runtime asks the shared table to agree with (ISO §2023:14.6.13.2 rule 6).</summary>
+/// runtime asks the shared table to agree with (ISO §2023:14.6.13.2 GR6).</summary>
 public sealed record CellTableSegment(Position Ordinal, int Min, int ElementWidth) : AccessSegment
 {
     /// <summary>The step to <paramref name="table"/>'s component at <paramref name="ordinal"/>, carrying the table's

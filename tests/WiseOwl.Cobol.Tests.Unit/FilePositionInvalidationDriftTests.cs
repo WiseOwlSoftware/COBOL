@@ -18,7 +18,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// set to indicate that no valid record position has been established" — and §2023:14.9.30.4 GR18, its READ twin ("Unless
 /// otherwise specified, at the completion of any unsuccessful execution of a READ statement, … the file position
 /// indicator is set to indicate that no valid record position has been established"), are unconditional on the KIND
-/// of failure. On the connector base that state is the <c>LastReadUnsuccessful</c> flag §2023:9.1.13.7 item 6 reads back
+/// of failure. On the connector base that state is the <c>LastReadUnsuccessful</c> flag §2023:9.1.13.7 GR6 reads back
 /// as '46'; a keyed connector's indicator is a key value PLUS a validity bit (<c>_fpiValid</c>), which only its
 /// override of the <c>InvalidateFilePosition</c> virtual clears.
 /// </para>

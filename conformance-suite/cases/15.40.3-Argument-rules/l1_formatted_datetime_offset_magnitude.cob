@@ -5,14 +5,14 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:15.40.3 r5 — FORMATTED-DATETIME's argument-4 MAGNITUDE bound, both arms.
+      *> ISO §2023:15.40.3 AR5 — FORMATTED-DATETIME's argument-4 MAGNITUDE bound, both arms.
       *> "Argument-4 is an integer specifying the offset from UTC expressed in minutes. If argument-4 is
       *> specified, the magnitude of the value shall be less than or equal to 1439."
       *> (cite.py --check 15.40.3 "the magnitude of the value shall be less than or equal to 1439" -> OK,
       *> §2023:15.40.3 rule 5.) The clause's own NOTE explains the number: "The offset value 1439 represents
       *> 23 hours 59 minutes, which is one minute less than a day."
       *>
-      *> ⛔ THE RULE'S OBLIGATION IS THE EXCEPTION, NOT A VALUE. §2023:15.3 item 14: an argument that "results in
+      *> ⛔ THE RULE'S OBLIGATION IS THE EXCEPTION, NOT A VALUE. §2023:15.3 AR14: an argument that "results in
       *> an incorrect value for that argument ... according to the rules specified in the function
       *> definition" sets EC-ARGUMENT-FUNCTION; the RESULT is implementor-defined and only when checking is
       *> not enabled. So this program turns checking ON and asserts the exception. Enforced NOWHERE before
@@ -21,7 +21,7 @@
       *> 00 to 23 inclusive") and the second one overflowing the width the format describes — a fabricated
       *> value with no exception condition, never mere over-acceptance.
       *>
-      *> THE FORMAT IS AN OFFSET FORMAT, which is what §2023:15.40.3 r6 requires before argument-4 may be written
+      *> THE FORMAT IS AN OFFSET FORMAT, which is what §2023:15.40.3 AR6 requires before argument-4 may be written
       *> at all (its violation is conformance:cases/15.40.3-Argument-rules/l1-formatted-datetime-offset-local-format). §2023:15.40.4
       *> r3 then fixes the expectation without any arithmetic: "the value in argument-3 is reflected DIRECTLY
       *> in the time portion of the returned value, and the offset in argument-4 is reflected DIRECTLY in the

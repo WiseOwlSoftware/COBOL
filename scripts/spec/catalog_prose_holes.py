@@ -27,7 +27,8 @@ folded), is a substring of no row AT OR UNDER the paragraph's locator (a section
 Any verb or none: the verb criterion finds about a third of the unnumbered obligations (PB479's sample), so it is never
 the count. Skipped, as the segmentation skips them (text_units.segment): headings and the printed section title a page
 repeats under the walk's heading (`SECTION_TITLE`), tables in either markup (`|`, an HTML `<table>`), a caption or label
-of a table, figure or format (rule_catalog_1985.RULE_LABEL), `<pre>` blocks, HTML comments, tag-only lines and a line
+of a table, figure or format (rule_catalog_1985.RULE_LABEL), displays (`<pre>` blocks and ``` fences, the ONE reading
+text_units.display_mask: code the segmentation makes no unit of is no hole), HTML comments, tag-only lines and a line
 with no sentence longer than `MIN_SENTENCE` (a fragment). A leading rule ordinal `(n)`, `a.`, `1)` or bullet is dropped.
 
 NO PARAGRAPH IS DISCOUNTED WITHOUT A DISPOSITION AND ITS RECORD (kb/Work PB6001). The dispositions are the ONE store,
@@ -183,16 +184,12 @@ def sentences(line: str) -> list[str]:
 
 def prose(para: rule_catalog_1985.Paragraph) -> list[tuple[str, int, str, int]]:
     """The prose lines of a walked paragraph, each (text, page, folio, line): headings and a repeated section title,
-    tables in either markup, captions and labels, `<pre>` blocks, HTML comments and tag-only lines dropped."""
-    out, display = [], None
-    for text, page, folio, line in para.lines:
-        if display is not None:
-            if display.search(text):
-                display = None
-            continue
-        if text.startswith("<pre") or text_units.HTML_TABLE_OPEN.match(text):
-            closes = text_units.PRE_CLOSE if text.startswith("<pre") else text_units.HTML_TABLE_CLOSE
-            display = None if closes.search(text) else closes
+    tables in either markup, captions and labels, displays (`<pre>` blocks and ``` fences: code is no unit text,
+    text_units.display_mask), HTML comments and tag-only lines dropped."""
+    out = []
+    shown = text_units.display_mask([text for text, *_ in para.lines])
+    for (text, page, folio, line), display in zip(para.lines, shown):
+        if display:
             continue
         if text.startswith(("#", "|", "<!--")) or re.fullmatch(r"<[^>]+>", text) or SECTION_TITLE.match(text) \
                 or rule_catalog_1985.RULE_LABEL.match(rule_catalog_1985.unboxed(text)):

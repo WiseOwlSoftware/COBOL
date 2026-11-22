@@ -20,7 +20,7 @@ namespace WiseOwl.Cobol.Runtime.IO;
 /// specified with the ADVANCING PAGE phrase. 3. During the execution of a WRITE statement that causes a page
 /// overflow condition."</i> — and every one of those times is a STATEMENT, executed by one runtime element in
 /// one activation. A file connector is not: an EXTERNAL one is a single object shared by every describing
-/// runtime element in the run unit (§2023:13.18.22.4 GR4 a), and a RECURSIVE unit's internal one is unit-scoped
+/// runtime element in the run unit (§2023:13.18.22.4 GR4a), and a RECURSIVE unit's internal one is unit-scoped
 /// across activations (§2023:8.6.4 / §2023:14.6.2.3.3). A connector-held evaluator closure therefore answered with
 /// whichever element/activation installed it LAST rather than the one executing the statement (kb/Work PB673;
 /// the shape it replaced is kb/Work PB168's unguarded install).</para>

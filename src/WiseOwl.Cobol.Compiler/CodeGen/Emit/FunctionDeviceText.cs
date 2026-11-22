@@ -186,7 +186,7 @@ internal sealed class FunctionDeviceText(NumericRenderer num)
             case BoundFieldOperand { Place: { DescribedItem: { IsGroup: false, Pic: { Category: PicCategory.Numeric } pic } } place }:
                 NumX read = num.AsNum(a, ReceiverContext.None);
                 // The copy's length is the item's own, by the one reading the binder gives FUNCTION LENGTH(field) and BYTE-LENGTH(field):
-                // positions (§2023:15.50.4 r2/r3) and bytes (§2023:15.14.4 r1) differ for a usage-national item.
+                // positions (§2023:15.50.4 RV2/r3) and bytes (§2023:15.14.4 RV1) differ for a usage-national item.
                 return pic.IsFloat
                     ? RuntimeApi.FunctionFieldOfFloatItem(num.DecOperand(read), place.Item.ProfileName, OperandText.AsTransferString(a, num, "DISPLAY of"), place.Item.ByteWidth)
                     : RuntimeApi.FunctionFieldOfItem(num.DecOperand(read), place.Item.ProfileName, ItemLength.Positions(place.Item), place.Item.ByteWidth);

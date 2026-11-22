@@ -49,7 +49,7 @@ using WiseOwl.Cobol.Symbols;
 /// intermediate results ride the edition's compile-time arithmetic mode, <see cref="CompileTimeArithmetic.For"/> —
 /// standard arithmetic at 2002, standard-decimal at 2014, the documented .NET <see cref="decimal"/> mode from 2023, kb/Work PB1592);
 /// <b>AS LENGTH OF data-name-2</b> (GR6 — the value of the §2023:15.50 LENGTH function: <c>ItemLength.Positions</c>,
-/// THE §2023:15.50.4 r1/r2/r3 fold the FUNCTION LENGTH binder reads, which is maximum-allocation based so the GR6
+/// THE §2023:15.50.4 RV1/r2/r3 fold the FUNCTION LENGTH binder reads, which is maximum-allocation based so the GR6
 /// occurs-depending exception holds); <b>AS BYTE-LENGTH OF data-name-1</b> (GR5 — the value of the §2023:15.14
 /// BYTE-LENGTH function: <c>DataItem.ByteWidth</c>, the fold FUNCTION BYTE-LENGTH reads; the same binder and the same
 /// SR3/SR10/SR12 screens as LENGTH OF, kb/Work PB1227).
@@ -214,7 +214,7 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
         // same as specified in the other constant-name" — the SPECIFICATIONS, as written, not the values they fold to
         // (kb/Work PB1230: `AS 5` then `AS 2 + 3`, and `AS LENGTH OF W` then `AS 7`, compared equal by value and
         // compiled). ⚠ DETERMINATION: "the same" is text-word equality under the ONE matcher the standard itself
-        // defines for comparing written text (§2023:7.2.3.4 9) c), COPY REPLACING — separators collapse to a space, COBOL
+        // defines for comparing written text (§2023:7.2.3.4 GR9c), COPY REPLACING — separators collapse to a space, COBOL
         // words compare without regard to case), so `AS 5` / `AS 05` / `AS +5` are three specifications. The two
         // entries are compared whichever binds first (an entry may now be bound on demand, out of source order).
         // ⚠ DETERMINATION (kb/Work PB1009): SR9's "duplicates another constant-name" is read within one source element
@@ -511,7 +511,7 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
 
     /// <summary>The two length phrases of the constant entry, ONE binder (kb/Work PB1227): <b>AS LENGTH OF
     /// data-name-2</b> (§2023:13.10.4 GR6 — the value of the §2023:15.50 LENGTH function: <see cref="ItemLength.Positions"/>, THE
-    /// §2023:15.50.4 r1/r2/r3 fold the FUNCTION LENGTH binder reads) and <b>AS BYTE-LENGTH OF data-name-1</b> (GR5 — the value
+    /// §2023:15.50.4 RV1/r2/r3 fold the FUNCTION LENGTH binder reads) and <b>AS BYTE-LENGTH OF data-name-1</b> (GR5 — the value
     /// of the §2023:15.14 BYTE-LENGTH function: <see cref="DataItem.ByteWidth"/>, the fold FUNCTION BYTE-LENGTH reads for a
     /// fixed item). Both are maximum-allocation based, so each rule's occurs-depending-group exception — "the maximum
     /// size of the data item is used" — holds by construction. Every syntax rule of §2023:13.10.3 names data-name-1 and
@@ -607,7 +607,7 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
                 + "a variable-length group (ISO §2023:13.10.3 SR12)");
             return null;
         }
-        // §2023:13.10.4 GR6 — "determined as specified in the LENGTH intrinsic function": THE §2023:15.50.4 r1/r2/r3 fold, the
+        // §2023:13.10.4 GR6 — "determined as specified in the LENGTH intrinsic function": THE §2023:15.50.4 RV1/r2/r3 fold, the
         // one FUNCTION LENGTH takes (kb/Work PB1213; it used to read DataItem.ImageWidth, a drifted second copy).
         // §2023:13.10.4 GR5 — "determined as specified in the BYTE-LENGTH intrinsic function": DataItem.ByteWidth, the one
         // FUNCTION BYTE-LENGTH folds a fixed item to (IntrinsicBinder.BindByteLengthFold).
@@ -775,7 +775,7 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
     /// written, or an INTEGER constant-name substituting it (ISO §2023:13.10.3 SR2 — "constant-name-1 may be used anywhere
     /// that a format specifies a literal of the class and category of constant-name-1"; §2023:13.10.4 GR1/GR3 — "as if
     /// literal-1 … were written where constant-name-1 is written"). Because the constant stands for the literal, the
-    /// substituted value meets what the WRITTEN literal meets: §2023:5.5 1)'s "unsigned and nonzero unless otherwise
+    /// substituted value meets what the WRITTEN literal meets: §2023:5.5 SR1's "unsigned and nonzero unless otherwise
     /// specified in the associated rules" (the clause's own exception, <see cref="WiseOwl.Cobol.Validation.IntegerOperandRules.Classify"/>)
     /// and the host limit (COBOL2427, which <c>IntegerOperandPass</c> raises for a literal pre-bind and which a
     /// constant can only meet here, where its value is known). Null (reported) for a non-integer, a negative or zero-
@@ -790,7 +790,7 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
     /// the operand's integer as digits, the literal as written or the constant's canonical integer, with every refusal
     /// of <see cref="IntegerOperandValue"/> except the host limit, which a full-width slot does not have.</summary>
     internal string? IntegerOperandText(Core.IntegerOperandContext operand, string where) =>
-        operand.integerLiteral() is { } il ? il.GetText() : ConstantIntegerText(operand, operand.cobolWord(), where);
+        operand.integerLiteral() is { } il ? il.Digits() : ConstantIntegerText(operand, operand.cobolWord(), where);
 
     /// <summary>The value of a BARE <c>dataReference</c> that names a constant (<see cref="ConstantOf"/>) where the
     /// format prints "data-name-1 or integer-1" (LINAGE, ISO §2023:13.18.34.2) — the grammar cannot tell the constant-name
@@ -839,7 +839,7 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
                         WiseOwl.Cobol.Validation.IntegerOperandRules.BeyondLimitMessage(where, $"{what} '{word}', the integer {it},", owner.Edition.DialectLevel));
                     return null;
                 }
-                // §2023:5.5 1) — "unsigned": a negative literal is not an integer-n, so a constant that is one is not the
+                // §2023:5.5 SR1 — "unsigned": a negative literal is not an integer-n, so a constant that is one is not the
                 // literal this position names; "nonzero unless otherwise specified in the associated rules" — the
                 // clause's own exception is the ONE table IntegerOperandPass asks of a written literal.
                 if (kv < 0)

@@ -21,12 +21,15 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 internal static class NonCobolElement
 {
     /// <summary>Compile COBOL <paramref name="source"/> to <c>&lt;dir&gt;/&lt;name&gt;.dll</c> at
-    /// <paramref name="dialect"/>, asserting success — a module a host loads by its file name.</summary>
-    public static void CompileCobol(string dir, string name, string source, int dialect = 2023)
+    /// <paramref name="dialect"/>, asserting success — a module a host loads by its file name. <paramref name="format"/> is the
+    /// reference format the text is written in (<see cref="TestSourceFormat"/>; a witness of a 1985 row passes
+    /// <see cref="InitialReferenceFormat.Fixed"/>, kb/Work PB6037).</summary>
+    public static void CompileCobol(string dir, string name, string source, int dialect = 2023,
+        InitialReferenceFormat format = TestSourceFormat.Inline)
     {
         string src = CompiledProgramCache.StageSource(Path.Combine(dir, name + ".cob"), source);
         var r = CompiledProgramCache.Compile(new CompilerDriver.Options(src, Path.Combine(dir, name + ".dll"),
-            DialectLevel: dialect, SourceFormat: TestSourceFormat.Inline));
+            DialectLevel: dialect, SourceFormat: format));
         Assert.True(r.Success, $"compile {name}: {string.Join("; ", r.Errors)}");
     }
 

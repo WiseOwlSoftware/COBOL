@@ -42,7 +42,7 @@ columns: ["A.1 item", "Element", "Our determination", "Pinned by"]
 > so the next declined module is handled with no edit here — and, more to the point, this counter and the
 > inventory can never give two answers about one item, which is what they did before 2026-09-02.
 > ⚠ The MODULE-NAME row was filed under item **213** (which is USAGE NATIONAL) from 2026-08-05 until
-> 2026-08-08 — the audit's number/element cross-check caught it; its true item is **135** (§2023:15.65.4 r4).
+> 2026-08-08 — the audit's number/element cross-check caught it; its true item is **135** (§2023:15.65.4 RV4).
 > ⚠ **The two item-92 rows are VOLUNTARY**, and each has its OWN key: the row keyed by the item's bare id is the
 > returned value's characteristics, representation and text image, and the row keyed with the suffix `b` is the evaluation
 > of an exact-family function whose argument is floating-point. A row key is unique (`audit_annex_a1.py` refuses a repeat, and a lettered key whose item

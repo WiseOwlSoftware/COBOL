@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ⛔ A FLOAT AT A §2023:15.3 TYPE-6 (INTEGER) POSITION MOVES NO CALL ONTO THE FLOAT LANE (kb/Work PB3268, review R2-2).
 /// <c>IntrinsicRenderer.RawArg</c> converts a binary64 or fractional operand at an integer position to its integer on the
 /// exact carrier BEFORE the lane predicates ask their question, so <c>COMBINED-DATETIME(F1 12345.678901)</c> with
-/// <c>F1</c> a COMP-2 stays an exact value (§2023:15.17.4 r1: "argument-1 + (argument-2 / 100000)"). The
+/// <c>F1</c> a COMP-2 stays an exact value (§2023:15.17.4 RV1: "argument-1 + (argument-2 / 100000)"). The
 /// bind-time prediction of the §2023:14.9.25.4 GR1 intermediate result item (<c>FunctionValueLane</c>) has to read the
 /// arguments the same way: reading the COMP-2 as a float argument gave the intermediate a COMP-2 that rounded the exact
 /// value, so a MOVE to two receivers stored a different digit than the MOVE to one (§2023:15.4.1: "the returned value is the
@@ -48,7 +48,7 @@ public sealed class FunctionValueLanePermissiveTests : WiseOwlCobolTestBase
 
         var (ran, stdout, detail) = RunAssembly(dllPath);
         Assert.True(ran, detail);
-        // 150000 + 12345.678901 / 100000 = 150000.12345678901 (§2023:15.17.4 r1), exactly, per receiver and whatever the
+        // 150000 + 12345.678901 / 100000 = 150000.12345678901 (§2023:15.17.4 RV1), exactly, per receiver and whatever the
         // receiver set; a binary64 intermediate rounds the trailing digits away.
         string[] fields = stdout.Trim().Split(' ');
         Assert.Equal(4, fields.Length);

@@ -14,11 +14,11 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// hands the host ONE documented exception, <c>RunUnitEndedException</c>, carrying the exit status and whether the
 /// termination was abnormal. The host process continues, and its next activation is in a new run unit that inherits
 /// nothing.
-/// <para>ISO/IEC 1989:2023 §2023:14.2.3 13) (cite.py OK): "When either the activating or the activated runtime element is
+/// <para>ISO/IEC 1989:2023 §2023:14.2.3 GR13 (cite.py OK): "When either the activating or the activated runtime element is
 /// other than a COBOL runtime element, the implementor shall specify the restrictions and mechanisms for all supported
 /// language products". §2023:14.9.42.4 1) and 6) (cite.py OK): STOP performs "The operations described in 14.6.11, Normal run
 /// unit termination" and "Execution of the run unit terminates and control is transferred to the operating system"; a
-/// host is that system's counterpart here. §2023:14.6.11 2) (cite.py OK): "An implicit CLOSE statement without any phrases is
+/// host is that system's counterpart here. §2023:14.6.11 GR2 (cite.py OK): "An implicit CLOSE statement without any phrases is
 /// executed for each file that is in the open mode". §2023:14.6.12 (cite.py OK): "The operating system shall indicate an
 /// abnormal termination of the run unit if such a capability exists within the operating system".</para>
 /// <para>The non-COBOL element is real: a C# host compiled here with Roslyn and run as its own process beside the COBOL
@@ -42,7 +42,7 @@ public sealed class HostRunUnitEndingTests
         END PROGRAM R48CNT.
         """;
 
-    /// <summary>Opens a file, writes a record and never closes it, then STOP RUN with a status: the §2023:14.6.11 2) implicit
+    /// <summary>Opens a file, writes a record and never closes it, then STOP RUN with a status: the §2023:14.6.11 GR2 implicit
     /// CLOSE is what puts the record on disk, and the status is what the host receives.</summary>
     private const string Stopper = """
         IDENTIFICATION DIVISION.
@@ -138,8 +138,8 @@ public sealed class HostRunUnitEndingTests
                 "COUNT 1\n" +
                 "COUNT 2\n" +                                   // the same run unit: last-used state
                 "IN STOP SUB\n" +
-                "ENDED STATUS=7 ABNORMAL=False\n" +             // §2023:14.9.42.4 5): the status reaches the host
-                "FILE HELLO\n" +                                // §2023:14.6.11 2): the implicit CLOSE ran
+                "ENDED STATUS=7 ABNORMAL=False\n" +             // §2023:14.9.42.4 GR5: the status reaches the host
+                "FILE HELLO\n" +                                // §2023:14.6.11 GR2: the implicit CLOSE ran
                 "COUNT 1\n" +                                   // a new run unit: initial state
                 "IN FATAL SUB\n" +
                 "ENDED STATUS=1 ABNORMAL=True\n" +              // §2023:14.6.12: the abnormal termination is indicated
@@ -190,7 +190,7 @@ public sealed class HostRunUnitEndingTests
         }
         """;
 
-    /// <summary>kb/Work PB4946: the ambient run unit ends at process exit. §2023:14.6.11 2) (cite.py OK): "These implicit
+    /// <summary>kb/Work PB4946: the ambient run unit ends at process exit. §2023:14.6.11 GR2 (cite.py OK): "These implicit
     /// close statements shall be executed for all open files in the run unit" -- the file the program left open is
     /// closed, its record written, when the host process that never ended the run unit exits.</summary>
     [Fact]

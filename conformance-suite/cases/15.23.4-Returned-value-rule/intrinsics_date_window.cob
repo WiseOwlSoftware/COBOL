@@ -11,7 +11,7 @@
       *> the function is a 2014 introduction per the WG4 CD's D.2 new-function list — kb/Work R28.)
       *> Values hand-derived in
       *> docs/rearchitecture/PHASE-11-scout-notes.md (spec:date-window): the window is ALWAYS 100 years
-      *> ending at maximum-year = argument-2 + argument-3 (§2023:15.100.4 r1 — argument-2 is a SIGNED offset,
+      *> ending at maximum-year = argument-2 + argument-3 (§2023:15.100.4 RV1 — argument-2 is a SIGNED offset,
       *> NOT a window size); r2a when MOD(maximum-year,100) >= argument-1, else r2b. Every probe PINS
       *> argument-3 (a defaults-only golden would flip every calendar year — the scout's boundary note).
       *> T1/T2 are the spec's own §2023:15.100.4 NOTE-1 examples; T7/T8 the §2023:15.23.4 NOTE-1 pair; T10/T11 the
@@ -37,7 +37,7 @@
       *> ...but 49 < 50 -> r2b wraps to the window START: 1950.
            COMPUTE Y4 = FUNCTION YEAR-TO-YYYY(50, 50, 1999)
            DISPLAY "T4=" Y4
-      *> §2023:15.100.3 r1: argument-1 = 0 is LEGAL (nonnegative) -> max 2076, MOD 76 >= 0 -> 2000.
+      *> §2023:15.100.3 AR1: argument-1 = 0 is LEGAL (nonnegative) -> max 2076, MOD 76 >= 0 -> 2000.
            COMPUTE Y4 = FUNCTION YEAR-TO-YYYY(0, 50, 2026)
            DISPLAY "T5=" Y4
       *> §2023:15.23.4 NOTE 1: (851003, 10, 2002) -> YY 85, max 2012, MOD 12 < 85 -> 1985 -> 19851003.
@@ -46,7 +46,7 @@
       *> §2023:15.23.4 NOTE 1: (981002, -10, 1994) -> YY 98, max 1984, MOD 84 < 98 -> 1898 -> 18981002.
            COMPUTE D8 = FUNCTION DATE-TO-YYYYMMDD(981002, -10, 1994)
            DISPLAY "T7=" D8
-      *> The boundary pair through the composite (§2023:15.23.4 r1 delegation): 2049 vs 1950.
+      *> The boundary pair through the composite (§2023:15.23.4 RV1 delegation): 2049 vs 1950.
            COMPUTE D8 = FUNCTION DATE-TO-YYYYMMDD(490101, 50, 1999)
            DISPLAY "T8=" D8
            COMPUTE D8 = FUNCTION DATE-TO-YYYYMMDD(500101, 50, 1999)

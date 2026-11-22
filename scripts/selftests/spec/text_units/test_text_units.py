@@ -54,10 +54,11 @@ def _decided(units: dict, disposition: str, **fields) -> dict:
     return {clause: {"units": [dict(e, disposition=disposition, **fields) for e in entries]}}
 
 
-def _upheld(units: dict, outcome: str = "UPHELD") -> list:
-    """A refuter record of each unit of `units` at its digest."""
+def _upheld(units: dict, outcome: str = "UPHELD", **judged) -> list:
+    """A refuter record of each unit of `units` at its digest, upholding the disposition `judged` states (its
+    `disposition` and its `rules` or `class`, as the import commits them)."""
     return [{"unit": u.label, "clause": clause, "digest": u.digest, "outcome": outcome, "attempt": "planted",
-             "refuter": "planted"} for clause, us in units.items() for u in us]
+             "refuter": "planted", **judged} for clause, us in units.items() for u in us]
 
 
 def case_00_a_sentence_ends_in_closing_brackets(expect):
@@ -179,7 +180,7 @@ def case_08_a_not_a_rule_passes_its_class_test_its_guards_and_its_refuter(expect
 
     def refused(text: str, cls: str, records: object = "upheld", clause: str = "9.9") -> list:
         units = {clause: _seg(text)}
-        recs = _upheld(units) if records == "upheld" else records
+        recs = _upheld(units, disposition=U.NOT_A_RULE, **{"class": cls}) if records == "upheld" else records
         return U.audit(units, _decided(units, U.NOT_A_RULE, **{"class": cls, "refuted": RECORDS}), label, kinds,
                        _context(recs))
 
@@ -221,7 +222,7 @@ def case_08_a_not_a_rule_passes_its_class_test_its_guards_and_its_refuter(expect
 def case_09_a_restates_names_existing_rules_and_a_block_its_record(expect):
     label, kinds = str, (lambda clause: {"SR", "GR"})
     units = {"9.9": _seg("The lock is held until the file is closed, as the rule says.")}
-    ctx = _context(_upheld(units))
+    ctx = _context(_upheld(units, disposition=U.RESTATES, rules=["GR-9.9.4-1"]))
     expect.equal("a restates of an existing rule on an UPHELD record stands",
                  U.audit(units, _decided(units, U.RESTATES, rules=["GR-9.9.4-1"], refuted=RECORDS), label, kinds, ctx), [])
     expect("a restates of a rule the catalog lacks is refused",
@@ -239,7 +240,7 @@ def case_09_a_restates_names_existing_rules_and_a_block_its_record(expect):
                                                                       refuted=RECORDS), label, kinds)))
     lead = {"9.9": _seg("The following apply:")}
     counted = U.class_counts(_decided(lead, U.NOT_A_RULE, **{"class": "lead-in", "refuted": RECORDS}),
-                             _context(_upheld(lead)))
+                             _context(_upheld(lead, disposition="not-a-rule lead-in")))
     expect.equal("the per-class count holds dispositions and their UPHELD records equal", counted["lead-in"], (1, 1))
     blocks = {"§2023:15.1": {"disposition": "not-rules", "why": "a prose enumeration"}}
     expect.equal("a not-rules block with no record passes while its edition is not refuted yet",
@@ -253,6 +254,41 @@ def case_09_a_restates_names_existing_rules_and_a_block_its_record(expect):
     expect("a block record already given is held to its form before the edition is refuted",
            any("not UPHELD" in f for f in U.block_refusals(recorded, _context(
                [{"unit": "§2023:15.1", "digest": "abc", "outcome": "OVERTURNED"}]), required=False)))
+
+
+def case_09b_an_upheld_record_upholds_one_disposition(expect):
+    # The branch review of train-1985-d: an UPHELD record stood for its unit whatever the entry said, so a `restates` list
+    # edited after its refutation (or another class, another kind) stood on the old record and its unit left the prose
+    # holes uncounted. The record now upholds the disposition it judged (`text_units.disposition_refusal`).
+    label, kinds = str, (lambda clause: {"SR", "GR"})
+    units = {"9.9": _seg("The lock is held until the file is closed, as the rule says.")}
+
+    def audit(entry_rules: list, **judged) -> list:
+        return U.audit(units, _decided(units, U.RESTATES, rules=entry_rules, refuted=RECORDS), label, kinds,
+                       _context(_upheld(units, **judged)))
+
+    expect("a restates whose rule list was edited after its record is refused",
+           any("refute the edited rule list" in f for f in audit(["GR-9.9.4-1", "GR-9.9.4-2"], disposition=U.RESTATES,
+                                                                rules=["GR-9.9.4-1"])))
+    expect("and so is one that dropped a rule its record upheld",
+           any("refute the edited rule list" in f for f in audit(["GR-9.9.4-1"], disposition=U.RESTATES,
+                                                                rules=["GR-9.9.4-1", "GR-9.9.4-2"])))
+    expect.equal("the rule list a record spells in its disposition stands, in any order",
+                 audit(["GR-9.9.4-2", "GR-9.9.4-1"], disposition="restates GR-9.9.4-1,GR-9.9.4-2"), [])
+    expect("a record that states no rule upholds no restates",
+           any("states no rule it upheld" in f for f in audit(["GR-9.9.4-1"], disposition=U.RESTATES)))
+    expect("a record of another kind upholds no restates",
+           any("upheld 'GR', not restates" in f for f in audit(["GR-9.9.4-1"], disposition="GR")))
+    via = U.audit(units, _decided(units, U.RESTATES, rules=["GR-9.9.4-1", "GR-9.9.4-2"], restated_via=["GR-9.9.5-p1"],
+                                  refuted=RECORDS), label, kinds,
+                  _context(_upheld(units, disposition=U.RESTATES, rules=["GR-9.9.4-1", "GR-9.9.5-p1"])))
+    expect("a chain the import resolved keeps the record's ids but the replaced one",
+           not any("refute the edited rule list" in f for f in via), via)
+    lead = {"9.9": _seg("The following apply:")}
+    found = U.audit(lead, _decided(lead, U.NOT_A_RULE, **{"class": "lead-in", "refuted": RECORDS}), label, kinds,
+                    _context(_upheld(lead, disposition="not-a-rule/data")))
+    expect("a not-a-rule whose class was edited after its record is refused",
+           any("refute the new class" in f for f in found), found)
 
 
 def case_10_a_numbered_list_printed_one_item_per_line(expect):
@@ -311,7 +347,7 @@ def case_12_a_1985_folio_pointer_is_a_cross_reference(expect):
     def refused(text: str) -> list:
         units = {"9.9": _seg(text)}
         return U.audit(units, _decided(units, U.NOT_A_RULE, **{"class": "cross-reference", "refuted": RECORDS}), label,
-                       kinds, _context(_upheld(units)))
+                       kinds, _context(_upheld(units, disposition="not-a-rule cross-reference")))
 
     expect.equal("(See page VI-13, <title>.) stands", refused("(See page VI-13, The SPECIAL-NAMES Paragraph.)"), [])
     expect.equal("and its lowercase form with the stop outside", refused("(see page VI-13, The SPECIAL-NAMES Paragraph)."),
@@ -407,7 +443,7 @@ def case_16_a_record_is_keyed_by_clause_digest_and_order_never_by_label(expect):
     # kb/Work PB6001: a repair before a unit (an HTML table that becomes a table unit) moves its label, not its words.
     label, kinds = str, (lambda clause: {"SR", "GR"})
     before = {"9.9": _seg("A first paragraph.\n\nSee 8.4.6, Scope of names.")}
-    records = [dict(r, unit="p2") for r in _upheld(before) if r["unit"] == "p2"]
+    records = [dict(r, unit="p2") for r in _upheld(before, disposition="not-a-rule/cross-reference") if r["unit"] == "p2"]
     after = {"9.9": _seg("See 8.4.6, Scope of names.")}
     blocks = _decided(after, U.NOT_A_RULE, **{"class": "cross-reference", "refuted": RECORDS})
     expect.equal("the record read as p2 stands for the same words now p1", U.audit(after, blocks, label, kinds,
@@ -418,6 +454,17 @@ def case_16_a_record_is_keyed_by_clause_digest_and_order_never_by_label(expect):
     second = [dict(r, order=1) for r in records]
     expect("a record of the second unit of those words does not stand for the first",
            any("holds no record" in f for f in U.audit(after, blocks, label, kinds, _context(second))))
+
+
+def case_17_one_reading_of_the_displays(expect):
+    # kb/Work PB6001 (wave 20262132 group a): the measure and the 1985 spans read a display as `segment` does, so a
+    # fenced code line is no unit text anywhere; a <pre> or a fence closes on </pre> or a bare fence, a table on </table>.
+    text = ["Prose one.", "```", "CODE LINE", "```", "After two.", '<pre style="x">', "FORMAT", "</pre>", "<pre>one</pre>",
+            "<table>", "<tr><td>c</td></tr>", "</table>", "End three."]
+    expect.equal("every display line, its fences and tags included, and nothing else", U.display_mask(text),
+                 [False, True, True, True, False, True, True, True, True, True, True, True, False])
+    expect.equal("segment makes no unit of code; the HTML table is read as a table (its unit)",
+                 [x.text for x in _seg("\n".join(text))], ["Prose one.", "After two.", "c", "End three."])
 
 
 if __name__ == "__main__":

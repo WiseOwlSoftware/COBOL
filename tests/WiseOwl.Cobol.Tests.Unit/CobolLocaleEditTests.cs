@@ -7,7 +7,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// PICTURE format 2 locale editing / de-editing (ISO §2023:13.18.40.4 GR16–18, §2023:13.18.40.5 r9–r15; kb/Work PB64 T6),
+/// PICTURE format 2 locale editing / de-editing (ISO §2023:13.18.40.4 GR16–18, §2023:13.18.40.5 GR9–r15; kb/Work PB64 T6),
 /// pinned against the INVARIANT locale (tag "") whose LC_MONETARY is stable by definition: currency string ¤
 /// (U+00A4), decimal '.', grouping ',' by threes, CurrencyPositivePattern 0 (<c>¤n</c>) and
 /// CurrencyNegativePattern 0 (<c>(¤n)</c> — the PARENTHESES are the negative convention; negative_sign unused).
@@ -15,7 +15,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </summary>
 public sealed class CobolLocaleEditTests
 {
-    // ── Format — §2023:13.18.40.5 r14/r15 over the invariant conventions ────────────────────────────────────────────
+    // ── Format — §2023:13.18.40.5 GR14/r15 over the invariant conventions ────────────────────────────────────────────
 
     [Theory]
     // r14 a) — larger item: right-justified, space fill left. Suppressed zeros sit BETWEEN the currency
@@ -46,14 +46,14 @@ public sealed class CobolLocaleEditTests
     public void Format_Negative_UsesTheParenthesesConvention()
     {
         // The invariant CurrencyNegativePattern is 0: the DEFAULT rendering of a negative is PARENTHESIZED,
-        // negative_sign unused (§2023:13.18.40.5 r13 + the derived n_sign_posn 0). A leading '-' would be wrong.
+        // negative_sign unused (§2023:13.18.40.5 GR13 + the derived n_sign_posn 0). A leading '-' would be wrong.
         Assert.Equal("     (¤    1,234.50)", CobolLocaleEdit.Format(-123450, 2, "+$ZZZZZZ9.99", "", 20));
     }
 
     [Fact]
     public void Format_BlankWhenZero_TakesPrecedenceOverLocaleEditing()
     {
-        // §2023:13.18.40.5 r10 — no locale is even consulted, so this holds for an unavailable locale too.
+        // §2023:13.18.40.5 GR10 — no locale is even consulted, so this holds for an unavailable locale too.
         Assert.Equal(new string(' ', 8), CobolLocaleEdit.Format(0, 0, "+$ZZZ9", "", 8, blankWhenZero: true));
         Assert.Equal(new string(' ', 8), CobolLocaleEdit.Format(0, 0, "+$ZZZ9", "zz-ZZ-nowhere", 8, blankWhenZero: true));
     }
@@ -74,7 +74,7 @@ public sealed class CobolLocaleEditTests
     [Fact]
     public void Format_StageOneAlignment_TruncatesSilently_NeverRaises()
     {
-        // §2023:13.18.40.5 r14 sentence 1: alignment truncation on either end is ORDINARY MOVE alignment — the
+        // §2023:13.18.40.5 GR14 sentence 1: alignment truncation on either end is ORDINARY MOVE alignment — the
         // exception belongs only to the hypothetical→item move. 12345.678 into 9.99: high-order digits and the
         // low-order fraction digit go silently.
         ExceptionState.LocaleSizeChecking = true;
@@ -85,7 +85,7 @@ public sealed class CobolLocaleEditTests
         finally { ExceptionState.LocaleSizeChecking = false; }
     }
 
-    // ── EC-LOCALE-SIZE — §2023:13.18.40.5 r14 b), the condition's FIRST raise site ──────────────────────────────────
+    // ── EC-LOCALE-SIZE — §2023:13.18.40.5 GR14b, the condition's FIRST raise site ──────────────────────────────────
 
     [Fact]
     public void LocaleSize_SilentArm_TruncatingOnlySuppressedSpacesAndZeros()
@@ -129,7 +129,7 @@ public sealed class CobolLocaleEditTests
         Assert.Equal("234.50", CobolLocaleEdit.Format(123450, 2, "ZZZZZZ9.99", "", 6));
     }
 
-    // ── DeEdit — §2023:14.9.25.4 GR5/GR6 d, §2023:14.6.13.2 r4 ───────────────────────────────────────────────────────────
+    // ── DeEdit — §2023:14.9.25.4 GR5/GR6 d, §2023:14.6.13.2 GR4 ───────────────────────────────────────────────────────────
 
     [Theory]
     [InlineData(123450, 2, "+$ZZZZZZ9.99", 20)]

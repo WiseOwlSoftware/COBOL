@@ -6,25 +6,25 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:15.44.4 r1 / §2023:15.49.4 r1 / §2023:15.42.4 r1 — INTEGER (the floor), INTEGER-PART (the split at zero)
+      *> ISO §2023:15.44.4 RV1 / §2023:15.49.4 RV1 / §2023:15.42.4 RV1 — INTEGER (the floor), INTEGER-PART (the split at zero)
       *> and FRACTION-PART (the remainder of THAT split) read off ONE argument ladder, so the three rules are
       *> forced to disagree line-by-line on exactly the arguments where the standard says they must.
       *>
-      *> ⛔ `ARITHMETIC IS STANDARD-DECIMAL` IS LOAD-BEARING, NOT DECORATION. §2023:15.49.4 r1 and §2023:15.42.4 r1
+      *> ⛔ `ARITHMETIC IS STANDARD-DECIMAL` IS LOAD-BEARING, NOT DECORATION. §2023:15.49.4 RV1 and §2023:15.42.4 RV1
       *> define their functions by an EQUIVALENT ARITHMETIC EXPRESSION, and §2023:15.4.1 says that under NATIVE
       *> arithmetic "the value returned is an implementor-defined approximation of the value of that
       *> expression" — which is nothing a conformance golden is entitled to assert. Under a standard mode
       *> §2023:15.4.1 rule 1 is "the returned value shall equal the value of the equivalent arithmetic expression",
-      *> so every P-* and F-* line below is NORMATIVE rather than merely expected. §2023:15.44.4 r1 states
+      *> so every P-* and F-* line below is NORMATIVE rather than merely expected. §2023:15.44.4 RV1 states
       *> INTEGER's value DIRECTLY (that function has no equivalent arithmetic expression), so its I-* lines
       *> are normative in every mode — pinned again under native arithmetic by conformance:cases/15.44.3-Argument-rule/l1_integer_floor_85.
       *>
       *> THE DERIVATION, per argument a (every argument is an exact terminating decimal, so no rounding of the
       *> ARGUMENT is in play and only the three rules decide):
-      *>   INTEGER(a)       §2023:15.44.4 r1 — the greatest integer less than or equal to a.
-      *>   INTEGER-PART(a)  §2023:15.49.4 r1 — (FUNCTION SIGN(a) * FUNCTION INTEGER(FUNCTION ABS(a))), where SIGN
+      *>   INTEGER(a)       §2023:15.44.4 RV1 — the greatest integer less than or equal to a.
+      *>   INTEGER-PART(a)  §2023:15.49.4 RV1 — (FUNCTION SIGN(a) * FUNCTION INTEGER(FUNCTION ABS(a))), where SIGN
       *>                    is +1 / 0 / -1 by §2023:15.81.4 r1 a) b) c) and ABS is the absolute value (§2023:15.7.1).
-      *>   FRACTION-PART(a) §2023:15.42.4 r1 — (a - FUNCTION INTEGER-PART(a)).
+      *>   FRACTION-PART(a) §2023:15.42.4 RV1 — (a - FUNCTION INTEGER-PART(a)).
       *>
       *>   a = -1.5   INTEGER  = -2      (-2 <= -1.5, and -1 is not)
       *>              IPART    = (-1) * INTEGER(1.5) = (-1) * 1 = -1   [§2023:15.49.4 NOTE: -1.5 returns -1]
@@ -46,11 +46,11 @@
       *>              FRACTION = -0.25 - 0 = -0.25
       *>
       *> ⚠ THE LAST TWO ARGUMENTS REACH THE |a| < 1 REGION, AND THEY ARE WHY THIS FILE EXISTS. A FRACTION-PART
-      *> written as (a - INTEGER(a)) — the FLOOR split instead of §2023:15.42.4 r1's INTEGER-PART split — agrees
+      *> written as (a - INTEGER(a)) — the FLOOR split instead of §2023:15.42.4 RV1's INTEGER-PART split — agrees
       *> with every line here on every POSITIVE argument and returns +0.5 / +0.75 where the rule requires
       *> -0.5 / -0.25. Likewise an INTEGER-PART written as a floor returns -1 where r1 requires 0.
       *> A fixture built from the §2023:15.42.4 NOTE's ±1.5 pair ALONE already separates the two bodies at -1.5:
-      *> §2023:15.44.4 r1 makes INTEGER(-1.5) = -2 — this file asserts exactly that on its own I-M15 line — so the
+      *> §2023:15.44.4 RV1 makes INTEGER(-1.5) = -2 — this file asserts exactly that on its own I-M15 line — so the
       *> floor split returns -1.5 - (-2) = +0.5 where r1 requires -0.5, and a floor-bodied INTEGER-PART returns
       *> -2 where r1 requires -1 — the two INTEGER-PART bodies differ at -1.5 too. What the ±1.5 pair
       *> cannot reach is |a| < 1: the region where the INTEGER-PART subtrahend is ZERO and the argument passes

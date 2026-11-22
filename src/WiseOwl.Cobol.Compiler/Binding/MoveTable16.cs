@@ -129,7 +129,7 @@ public readonly record struct MoveRefusal(MoveRule Rule, string Reason);
 /// </para>
 /// <para>
 /// ⛔ AND A THIRD STATEMENT ASKS THE WHOLE QUESTION, WHICH IS WHY SR9 IS HERE TOO AND WHY THERE IS A COMPOSITE
-/// ENTRY (kb/Work PB391). §2023:14.7.6 rule 2 — "In a MOVE statement, at least one of the data items is an elementary
+/// ENTRY (kb/Work PB391). §2023:14.7.6 GR2 — "In a MOVE statement, at least one of the data items is an elementary
 /// data item and the resulting move is valid according to the rules for the MOVE statement" — makes MOVE / ADD /
 /// SUBTRACT CORRESPONDING's pairing decision the MOVE statement's own validity question, over two DATA ITEMS and
 /// no bound operands. <see cref="DataItemRefusal"/> is that question in SR order; <see cref="VariableLengthRefusal"/>
@@ -166,7 +166,7 @@ public static class MoveTable16
     /// place, and a FIELD builds through <c>Table16Operand.Of(Place)</c> so a ref-mod view takes §2023:8.4.3.3.4
     /// GR2/GR6's rewrites — category via the one GR6 reader, and the finer alphabetic/edited/noninteger flags
     /// erased, because the unique data item a view creates is plain class-and-category alphanumeric). An
-    /// INTRINSIC sender reports the §2023:15.18.4 r3 ALPHABETIC rider alongside its result category — the finer row
+    /// INTRINSIC sender reports the §2023:15.18.4 RV3 ALPHABETIC rider alongside its result category — the finer row
     /// Table 16 keys on and <c>PicCategory</c> deliberately cannot express (the PIC A fold).
     /// <para>It is a NAMED reader rather than an inline switch because the FROM-phrase function-class rules
     /// (§2023:14.9.32.3 SR2 · §2023:14.9.51.3 SR4 · §2023:14.9.35.3 SR9) ask the same question of the same operand, and a
@@ -183,7 +183,7 @@ public static class MoveTable16
         BoundFieldOperand f => Table16Operand.Of(f.Place),
         BoundNumericLiteral nl => new Table16Operand(PicCategory.Numeric, IsNonInteger: nl.Text.Contains('.')),
         // An INTRINSIC sender's Table-16 row is its §2023:15.2 TYPE (kb/Work PB73, adjudicated 2026-08-18): an
-        // INTEGER function ("no digits to the right of the decimal point", §2023:15.2 item 5 — resolved per call by
+        // INTEGER function ("no digits to the right of the decimal point", §2023:15.2 GR5 — resolved per call by
         // the ONE IntrinsicResultType reader, so MAX over integers is integer) is the Integer row; a NUMERIC
         // function (item 4) is the NONINTEGER row whatever a particular reference's value — §2023:8.4.3.2.3 SR11's
         // principle for the integer-operand positions applies to the table's split too. The former admission
@@ -211,7 +211,7 @@ public static class MoveTable16
     /// precisely to cover what the table cannot.</para>
     /// <para>⛔ THE ITEM-KEYED HALF IS THE <see cref="ShapeRefusal(DataItem, Table16Operand)"/> OVERLOAD AND THIS
     /// ENTRY DELEGATES TO IT (kb/Work PB391). Every rule here whose antecedent reads "if identifier-1 references
-    /// a DATA ITEM described with …" needs nothing but the sending ITEM, and §2023:14.7.6 rule 2's CORRESPONDING
+    /// a DATA ITEM described with …" needs nothing but the sending ITEM, and §2023:14.7.6 GR2's CORRESPONDING
     /// filter has only an item — no bound operand exists for a pair until after the pairing decision is made.
     /// Writing SR8's test a second time over there is precisely the duplication kb/Work PB391 deleted, so the
     /// two entries are ONE body: the item-keyed rules live in the overload, this one adds only the arms a data
@@ -285,7 +285,7 @@ public static class MoveTable16
 
     /// <summary>⛔ THE CITATIONS OF §2023:14.9.25.3's RULES IN THE EDITION IN FORCE (kb/Work PB4950), which every asker of the chain hands
     /// to <see cref="MoveValidity"/>: the 2023 numbers from COBOL-2002 on, and at COBOL-85 the three general rules of
-    /// §1985:VI.6.19.4 rule 3 that state what Table 16 prints — a) SPACE, an alphabetic, alphanumeric-edited item to a numeric one,
+    /// §1985:VI.6.19.4 GR3 that state what Table 16 prints — a) SPACE, an alphabetic, alphanumeric-edited item to a numeric one,
     /// b) a numeric item (ZERO included) to an alphabetic one, c) a noninteger one to an alphanumeric one. A rule 85 lacks (the boolean
     /// and national cells, SR7's boolean characters, SR8's binary usages: categories and usages COBOL-2002 introduced) stays at its 2023
     /// number and says so with the edition gate's own phrase, "(targeting COBOL-85)".</summary>
@@ -329,7 +329,7 @@ public static class MoveTable16
     /// <para>⛔ IT IS A READER RATHER THAN A CHECK because its two askers frame it differently (kb/Work PB391),
     /// the same shape <see cref="SenderClassRefusal"/> already has: <c>MoveBinder</c>
     /// <c>.MoveCategoryLegality</c> reports it as COBOL1931 about the MOVE the programmer wrote, and
-    /// <see cref="DataItemRefusal"/> reads it SILENTLY, because §2023:14.7.6 rule 2 makes an invalid move a pair that
+    /// <see cref="DataItemRefusal"/> reads it SILENTLY, because §2023:14.7.6 GR2 makes an invalid move a pair that
     /// does not correspond rather than a diagnostic. Before this, CORRESPONDING did not ask it at all and a
     /// variable-length-group namesake paired with an elementary one, reaching the run time as a
     /// <c>NotImplementedCobolFeatureException</c> for the whole-group image the pair can never have.</para>
@@ -342,13 +342,13 @@ public static class MoveTable16
 
     /// <summary>
     /// ⭐ <b>THE WHOLE OF ISO §2023:14.9.25.3's VALIDITY QUESTION FOR A DATA-ITEM SENDER AND A DATA-ITEM RECEIVER</b>,
-    /// in SR order — the form §2023:14.7.6 rule 2 asks. Null when the move is valid.
+    /// in SR order — the form §2023:14.7.6 GR2 asks. Null when the move is valid.
     /// <para>Rule 2 reads <i>"In a MOVE statement, at least one of the data items is an elementary data item and
     /// the resulting move is valid according to the rules for the MOVE statement"</i>, so the CORRESPONDING
     /// pairing decision IS this question, and asking it as three or four separate calls at the call site is how
     /// the next rule gets added to one asker and not the other. One entry, asked once (kb/Work PB391).</para>
     /// <para>⚠ SR1's class half (<see cref="SenderClassRefusal"/>) is deliberately NOT in the chain. Its only
-    /// other asker excludes those operands EARLIER and more broadly: §2023:14.7.6 rule 4 — <i>"Neither data item …
+    /// other asker excludes those operands EARLIER and more broadly: §2023:14.7.6 GR4 — <i>"Neither data item …
     /// is of class index, message-tag, object, or pointer"</i> — drops such a child on BOTH sides before any
     /// pair is formed (<c>CorrespondingBinder.CorrEligible</c>), where SR1 as written reaches only the sender.
     /// Adding it here would put two mechanisms on one question, which is what this class exists to prevent.</para>
@@ -411,7 +411,7 @@ public static class MoveTable16
     /// keyed on the RECEIVING side, as the former <c>StatementValidation.CheckStrongMove</c> read it (§2023:8.5.3.3 — a
     /// strong record accepts only a same-type whole-record source; a strong-type SENDER to a non-strong receiver
     /// is admitted by Table 16), and it is now asked by every asker of the chain: a CORRESPONDING
-    /// pair whose receiver is a strongly-typed group (§2023:14.7.6 rule 2 needs only ONE side elementary) was admitted
+    /// pair whose receiver is a strongly-typed group (§2023:14.7.6 GR2 needs only ONE side elementary) was admitted
     /// because the pairing filter never asked SR2 (kb/Work PB878's sibling sweep).</summary>
     private static string? StrongGroupRefusal(DataItem? sender, DataItem? receiver) =>
         receiver is not null && StrongTypeModel.IsStrongGroup(receiver)
@@ -445,7 +445,7 @@ public static class MoveTable16
     /// (<c>IntrinsicArgumentRules.ClassOf</c> — the ONE §2023:8.5.2.1 Table-2 reader), two framings.</para>
     /// <para>⛔ THE CLASS COMES FROM <c>IntrinsicArgumentRules.ClassOf</c>, NEVER FROM A RE-DERIVED USAGE TEST.
     /// The two arms this replaced each pattern-matched ONE operand shape — a field whose usage is index, and an
-    /// intrinsic call whose §2023:15.2 item 6 type is index — so the THIRD shape, an index-NAME operand
+    /// intrinsic call whose §2023:15.2 GR6 type is index — so the THIRD shape, an index-NAME operand
     /// (<c>BoundIndexRef</c>, which the same classifier has reported as class index since kb/Work R27), was
     /// class index to every other screen in the compiler and numeric to this one.</para></summary>
     public static string? SenderClassRefusal(BoundOperand sender, EditionInfo edition) =>
@@ -516,7 +516,7 @@ public static class MoveTable16
             + "argument in a function-identifier, in the RETURNING phrase of an ALLOCATE statement, or in a "
             + "FREE statement\", and SR8 says the same of a program-pointer). Use SET to assign a pointer",
         CobolClass.MessageTag => "a MOVE operand shall not be of class message-tag — §2023:8.5.2.1 Table 2 gives usage "
-            + "MESSAGE-TAG the message-tag category of class message-tag (ISO §2023:14.9.25.3 SR1; §2023:8.4.3.10.3 SR1 b) admits NULL "
+            + "MESSAGE-TAG the message-tag category of class message-tag (ISO §2023:14.9.25.3 SR1; §2023:8.4.3.10.3 SR1b admits NULL "
             + "only as a sending operand of an INITIALIZE or a SET statement or in a message-tag relation condition). "
             + "Use SET to assign a message tag",
         CobolClass.Object => "a MOVE operand shall not be of class object — §2023:8.5.2.1 Table 2 gives usage "

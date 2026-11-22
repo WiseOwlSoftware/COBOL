@@ -13,7 +13,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// file when it was opened, but are otherwise in an undefined order."</i> Only the relative ORDER of the two
 /// connectors' records is undefined; that both are IN the file is not. GR12 makes the '00' a promise —
 /// <i>"The successful execution of a WRITE statement releases a logical record to the operating
-/// environment"</i> — and §2023:9.1.15 item 3 with §2023:14.9.27.4 Table 19 make the whole shape a Normal open.
+/// environment"</i> — and §2023:9.1.15 GR3 with §2023:14.9.27.4 Table 19 make the whole shape a Normal open.
 ///
 /// <para><b>What PB739 was.</b> The sequential connector's EXTEND writer was a .NET <c>FileMode.Append</c>
 /// handle, which seeks to the end ONCE, at open. Two connectors therefore anchored at the same offset, each
@@ -227,7 +227,7 @@ public sealed class SharedExtendWriteDriftTests
 
     // ── RELATIVE: the same defect one layer up ───────────────────────────────────────────────────────────────
 
-    /// <summary>§2023:14.9.51.4 GR29 a) — <i>"If the open mode is extend, the first record released after the OPEN is
+    /// <summary>§2023:14.9.51.4 GR29a — <i>"If the open mode is extend, the first record released after the OPEN is
     /// assigned a record number that is one greater than the highest relative record number existing in the
     /// physical file … If the physical file is shared and the open mode is extend, the record numbers are not
     /// necessarily consecutive"</i>, and GR31: <i>"the relative key values returned are ascending, but not
@@ -279,7 +279,7 @@ public sealed class SharedExtendWriteDriftTests
 
     /// <summary>The release number is read from the file at the release, after ANY change — the removal of the
     /// maximum included (§2023:14.9.10.4 GR5: a DELETE through a sibling connector genuinely lowers the highest record
-    /// number). §2023:14.9.51.4 GR29 a): the first extend release is <i>"one greater than the highest relative record number
+    /// number). §2023:14.9.51.4 GR29a: the first extend release is <i>"one greater than the highest relative record number
     /// existing in the physical file"</i>. The highest number is the tree's last key (kb/Work PB3333), so there is no
     /// high-water mark to leave stale — the defect PB739 fixed, in a new place.</summary>
     [Fact]

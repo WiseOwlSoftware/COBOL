@@ -12,7 +12,7 @@ entries name (`refuted`, JSON lines in the tree), and that refutes the manifest'
 
 THE DISPOSITION OF A UNIT is its reader record's, the record of the LATEST slice in `--slices` holding its key winning
 (a re-keyed or re-decided slice after the first), corrected by that slice's refuter: an OVERTURNED record's `corrected`
-disposition wins ("SR", "GR (definitional)", "restates <ids>", "not-a-rule <class>", "repair", "hold"). Refused, each a
+disposition wins ("SR", "GR", "restates <ids>", "not-a-rule <class>", "repair", "hold"). Refused, each a
 failure of the run (nothing is written):
   - a record whose key is no unit of the tree, unless `--skip` lists it (a key a re-segmentation retired);
   - a `--skip` key that IS a unit of the tree (skipping it would hide a unit), or that no record holds;
@@ -50,7 +50,6 @@ import argparse
 import dataclasses
 import json
 import pathlib
-import re
 import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
@@ -61,8 +60,6 @@ from standard_streams import ensure_utf8  # noqa: E402
 REPO = pathlib.Path(__file__).resolve().parents[2]
 #: Where an edition's committed refuter records live: beside its content-keyed manifest (kb/Work PB5452).
 INTO = {1985: "docs/rearchitecture/spec-dispositions-1985"}
-#: A row id a `restates` correction names.
-ROW_ID = re.compile(r"\b(?:\d{4}-)?(?:SR|GR|AR|RV|DOC|FMT)-[\w.]+(?:-[\w.]+)?")
 
 Key = tuple[str, str, int]   # (clause, digest, order): a unit's key on the tree (decision PB5448 point 3)
 
@@ -90,17 +87,35 @@ def load(path: pathlib.Path) -> list[dict]:
 def corrected(rec: dict) -> dict:
     """The disposition an OVERTURNED refuter record's `corrected` field names, as entry fields."""
     c = str(rec.get("corrected", "")).strip()
-    head = c.split()[0] if c else ""
+    head, cls, _rules = text_units.spelled(c)
     if head in text_units.ROW_KINDS:
-        return {"disposition": head, **({"definitional": True} if "definitional" in c else {})}
+        return {"disposition": head}
     if head == text_units.RESTATES:
-        return {"disposition": text_units.RESTATES, "rules": ROW_ID.findall(c)}
-    if c.startswith(text_units.NOT_A_RULE):
-        cls = c[len(text_units.NOT_A_RULE):].strip(" /")
+        return {"disposition": text_units.RESTATES, "rules": text_units.ROW_ID.findall(c)}
+    if head == text_units.NOT_A_RULE:
         return {"disposition": text_units.NOT_A_RULE, "class": cls}
     if head in ("repair", "hold"):
         return {"disposition": text_units.PENDING, head: True}
     raise ValueError(f"an OVERTURNED record's correction {c!r} names no disposition")
+
+
+def judged_fields(rec: dict, reader: dict | None) -> dict:
+    """What an UPHELD refuter record of a `restates` or `not-a-rule` reading is committed with beside its own fields: the
+    rule list or the class it upheld, the reader record's, when the record spells only the kind or none (kb/Work PB6036),
+    so the dispositions audit can tell an entry edited after its refutation (`text_units.disposition_refusal`). A record
+    whose kind is not its reader's judged something else and gains nothing."""
+    read = (reader or {}).get("disposition")
+    if rec.get("outcome") != text_units.UPHELD or read not in (text_units.RESTATES, text_units.NOT_A_RULE):
+        return {}
+    kind, cls, rules = text_units.judged(rec)
+    if kind and kind != read:
+        return {}
+    out = {} if kind else {"disposition": read}
+    if read == text_units.RESTATES and not rules:
+        out["rules"] = list(reader.get("rules") or [])
+    elif read == text_units.NOT_A_RULE and not cls:
+        out["class"] = reader.get("class", "")
+    return out
 
 
 def decide(units: dict[str, list[tuple[str, str, int]]], slices: list[tuple[str, list[dict], list[dict]]],
@@ -119,10 +134,12 @@ def decide(units: dict[str, list[tuple[str, str, int]]], slices: list[tuple[str,
     skipped = {(s["clause"], s["unit"], s["digest"], s["order"], s.get("file")) for s in skip}
     final: dict[Key, tuple[str, dict]] = {}
     refuted: dict[tuple[str, str, str], dict] = {}   # (slice, clause, digest) -> its last refuter record
+    read: dict[tuple[str, str, str], dict] = {}      # (slice, clause, digest) -> the reader record its refuter judged
     held = set()
     for name, readers, refuters in slices:
         for r in readers:
             k = (r["clause"], r["digest"], r.get("order", 0))
+            read[name, r["clause"], r["digest"]] = r
             if (r["clause"], r["unit"], r["digest"], r.get("order", 0), f"{name}.json") in skipped:
                 # A skip hides no unit: one no other record decides is refused below as a unit with no record.
                 held.add((r["clause"], r["unit"], r["digest"], r.get("order", 0), f"{name}.json"))
@@ -166,8 +183,6 @@ def decide(units: dict[str, list[tuple[str, str, int]]], slices: list[tuple[str,
                     e["rules"] = list(r.get("rules") or [])
                 elif r["disposition"] == text_units.NOT_A_RULE:
                     e["class"] = r.get("class", "")
-                elif r.get("definitional"):
-                    e["definitional"] = True
             if e["disposition"] in (text_units.RESTATES, text_units.NOT_A_RULE) and (
                     rec is None or rec.get("outcome") != text_units.UPHELD):
                 out.refusals.append(f"{clause} {label} ({name}): {e['disposition']} with no UPHELD refuter record of "
@@ -185,7 +200,7 @@ def decide(units: dict[str, list[tuple[str, str, int]]], slices: list[tuple[str,
         label = next((lab for (c, d, _o), lab in label_of.items() if c == clause and d == dg), None)
         if label is None:
             continue   # a record of a retired key: the slice file is committed whole only for live units
-        row = {**rec, "unit": label}
+        row = {**rec, "unit": label, **judged_fields(rec, read.get((name, clause, dg)))}
         if label != rec["unit"]:
             row["unit_read"] = rec["unit"]
         out.records.setdefault(name, []).append(row)

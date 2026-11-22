@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:15.40.3 r1 - "Argument-1 shall be a national or alphanumeric
+      *> ISO §2023:15.40.3 AR1 - "Argument-1 shall be a national or alphanumeric
       *> literal." BOTH admitted spellings, and the OBSERVABLE that tells
       *> them apart: §2023:15.40.1's type table makes the FUNCTION's type follow
       *> argument-1's ("Alphanumeric | Alphanumeric", "National | National"),

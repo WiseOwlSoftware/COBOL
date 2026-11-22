@@ -39,7 +39,7 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
         // that exact), from the bit of the first byte at which identifier-1 itself starts.
         if (a.RefMod is { } rm)
         {
-            // The size the position is tested against is identifier-1's CURRENT one (§2023:8.4.3.3.4 5)): for an
+            // The size the position is tested against is identifier-1's CURRENT one (§2023:8.4.3.3.4 GR5): for an
             // occurs-depending group that is the run-time extent a read of the reference measures (kb/Work PB1969).
             string size = rm.CurrentExtent is { } odo ? PlaceRenderer.CurrentPositionsExpr(odo)
                 : rm.Positions is { } n ? n.ToString(System.Globalization.CultureInfo.InvariantCulture)
@@ -252,7 +252,7 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
     /// EC-PROGRAM-NOT-FOUND is set to exist. The condition is FATAL (Table 13): with checking enabled it is raised
     /// through <see cref="EcEmitter.EmitConditionRaise"/>, and unless a declarative or WHEN phrase RESUMEs, the run
     /// unit terminates abnormally (§2023:14.6.13.1.3 5)/7); kb/Work PB1549 — the outcome the CALL arm reaches). With
-    /// checking off, §2023:14.6.13.1.3 8) leaves continuation to the implementor; this one continues with the NULL
+    /// checking off, §2023:14.6.13.1.3 GR8 leaves continuation to the implementor; this one continues with the NULL
     /// value.</summary>
     public void EmitSetEntry(BoundSetEntry s)
     {
@@ -273,7 +273,7 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
         {
             using (w.Block($"if ({nf})"))
             {
-                // The §2023:15.32.3 r2 pair rides the ambient statement context (kb/Work R14).
+                // The §2023:15.32.3 RV2 pair rides the ambient statement context (kb/Work R14).
                 // Fatal (Table 13): unresumed, the run unit terminates abnormally (§2023:14.6.13.1.3 5)/7)) — the same
                 // outcome the CALL arm (ProgramRegistry.EntryOfOperand's throw) reaches (kb/Work PB1549).
                 // The miss's message is the one the CALL-argument and operand arms give, reason included (PB2847).
@@ -316,7 +316,7 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
         w.Line($"var __fpA{id} = ProgramRegistry.FunctionAddressOf({nm}, out {nf});   // ADDRESS OF FUNCTION (ISO §2023:8.4.3.12.4 GR1/GR2)");
 
         // GR14's signature screen. ExpectedFormals < 0 means the receivers' prototype has no compile-time
-        // signature (a §2023:12.3.8.4 GR11 c) external-repository prototype): there is nothing for "the same
+        // signature (a §2023:12.3.8.4 GR11c external-repository prototype): there is nothing for "the same
         // signature" to name, so the screen is not emitted rather than run against a guessed arity.
         bool screenSignature = s.ExpectedFormals >= 0;
         string bad = $"__fpBad{id}";
@@ -337,7 +337,7 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
             if (checkInvalid)
                 using (w.Block("else"))
                 {
-                    // The §2023:15.32.3 r2 pair rides the ambient statement context (kb/Work R14).
+                    // The §2023:15.32.3 RV2 pair rides the ambient statement context (kb/Work R14).
                     ec.EmitConditionRaise("EC-FUNCTION-PTR-INVALID", "§2023:14.9.39.4 GR14 — set to exist (fatal)");
                 }
         }
@@ -373,7 +373,7 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
             {
                 using (w.Block($"if ({na})"))
                 {
-                    // The §2023:15.32.3 r2 pair rides the ambient statement context (kb/Work R14).
+                    // The §2023:15.32.3 RV2 pair rides the ambient statement context (kb/Work R14).
                     // §2023:14.6.13.1.4 3)/4): the F3 selection runs; a nonfatal condition with no handler (or
                     // RESUME NEXT / a completed declarative) simply continues (the review finding — the
                     // status set alone never consulted the declarative model).

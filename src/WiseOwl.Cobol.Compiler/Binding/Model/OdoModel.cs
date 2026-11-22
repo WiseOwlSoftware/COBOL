@@ -44,7 +44,7 @@ public sealed class OccursSpec
     /// component by its maximum (<c>VarGroupWindow</c>, <c>CellGroupShape</c>, a declared group's contiguous layout):
     /// <see cref="Max"/> for a fixed or OCCURS DEPENDING table (§2023:8.5.1.7, §2023:8.5.1.8), and for a DYNAMIC-capacity table
     /// the IMPLEMENTOR'S maximum (<c>CobolDynTable.MaxOccurrences</c>, docs/CONFORMANCE.md DOC-A.1-60), because
-    /// §2023:8.5.1.9.1 2) says "it may have an unlimited capacity". ⚠ NOT <see cref="ExpectedMax"/> (<c>TO integer-5</c>):
+    /// §2023:8.5.1.9.1 GR2 says "it may have an unlimited capacity". ⚠ NOT <see cref="ExpectedMax"/> (<c>TO integer-5</c>):
     /// §2023:13.18.38.4 GR17 makes that only "the expected capacity of the table", and a SET past it sets EC-BOUND-SET and
     /// still grows the table (§2023:14.9.39.4 GR30), so it bounds nothing. Reading <see cref="Max"/> here gave every dynamic
     /// table a maximum of zero (kb/Work PB2833).</summary>
@@ -93,7 +93,7 @@ public sealed class OccursSpec
     public string? CapacityName { get; init; }
 
     /// <summary>The synthetic CAPACITY register item — a view over the table's Capacity, minted for EVERY dynamic
-    /// table (FUNCTION LENGTH's §2023:15.50.4 r7c reads it; kb/Work PB61) and NAMED only under CAPACITY IN; set by the post-build
+    /// table (FUNCTION LENGTH's §2023:15.50.4 RV7c reads it; kb/Work PB61) and NAMED only under CAPACITY IN; set by the post-build
     /// <c>DynamicResolvePass</c> pass (data-name-3 is implicitly defined at the OCCURS entry, SR30).</summary>
     public DataItem? CapacityRegister { get; set; }
 

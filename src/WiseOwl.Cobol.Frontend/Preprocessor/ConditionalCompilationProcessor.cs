@@ -292,7 +292,7 @@ public static partial class ConditionalCompilationProcessor
             var outputOrigins = new List<LineOrigin>(lines.Length);
             var block = new List<string>();
             var blockOrigins = new List<LineOrigin>();
-            string openStatementText = "";   // the text of a COPY / REPLACE statement still open at a directive line (§2023:7.3.3 SR8 b)
+            string openStatementText = "";   // the text of a COPY / REPLACE statement still open at a directive line (§2023:7.3.3 SR8b)
 
             // The text of the COPY / REPLACE statement a directive line would interrupt: what was carried from the last
             // directive line plus the block accumulated since.
@@ -322,18 +322,18 @@ public static partial class ConditionalCompilationProcessor
                 var at = origin.Locate(CompilerDirectiveLine.IndicatorIndex(line));
                 _diag.At = at;
 
-                // §2023:7.3.3 SR8 b) for the one directive this stage never sees: logical conversion DISCARDED a
-                // >>SOURCE FORMAT line (§2023:6.5 1)) and left this blank one, so the line is asked of the map of the text it
+                // §2023:7.3.3 SR8b for the one directive this stage never sees: logical conversion DISCARDED a
+                // >>SOURCE FORMAT line (§2023:6.5 GR1) and left this blank one, so the line is asked of the map of the text it
                 // was read from (kb/Work PB1353). The block is not flushed — the discarded line takes nothing from the text —
                 // so the question is asked of the statement text WITHOUT consuming it; the next directive line asks it again.
                 if (trimmed.Length == 0 && _copy is not null && _copy.IsDiscardedFormatDirective(origin.Origin)
                     && CopyProcessor.OpenStatementAt(PendingStatementText(), _edition) is { } within)
                     _diag.WithinStatement(within.Keyword, within.InPseudoText);
 
-                // ⛔ COBOL-85 HAS NO COMPILER DIRECTIVE LINES (kb/Work PB5803; §1985:III.2 item 3): a line there that begins `>>`
+                // ⛔ COBOL-85 HAS NO COMPILER DIRECTIVE LINES (kb/Work PB5803; §1985:III.2 GRL4.3): a line there that begins `>>`
                 // and lies inside the pseudo-text of a COPY or REPLACE statement is text — "Any other sequence of contiguous
                 // COBOL characters ... bounded by separators" — which pseudo-text-1 and pseudo-text-2 may hold
-                // (§1985:XII.3.3 SR3, SR4), not a directive for §2023:7.3.3 SR8 b) / §2023:7.2.4.3 SR10 to refuse. Outside
+                // (§1985:XII.3.3 SR3, SR4), not a directive for §2023:7.3.3 SR8b / §2023:7.2.4.3 SR10 to refuse. Outside
                 // pseudo-text the line stays the one this loop gates (kb/Work PB725): COBOL0900 names the directive.
                 if (!_edition.HasCompilerDirectives && trimmed.StartsWith(">>", StringComparison.Ordinal)
                     && CopyProcessor.OpenStatementAt(PendingStatementText(), _edition) is { InPseudoText: true })
@@ -360,7 +360,7 @@ public static partial class ConditionalCompilationProcessor
                     continue;
                 }
 
-                // §2023:7.3.3 SR8 b) (kb/Work PB1384): a compiler directive is not specified "within a source text manipulation
+                // §2023:7.3.3 SR8b (kb/Work PB1384): a compiler directive is not specified "within a source text manipulation
                 // statement". The block flushed below ends at this line, so a COPY or REPLACE statement still open at the
                 // end of it (no separator period yet) has this directive inside it. The question is asked of the text
                 // since the statement began — carried across directive lines, so a statement split by several is
@@ -450,7 +450,7 @@ public static partial class ConditionalCompilationProcessor
                         bool parentActive = _stack.Count == 0 || _stack.Peek().Emitting;
                         var f = new Frame { Kind = FrameKind.Evaluate, Phase = FramePhase.EvaluateBeforeWhen, TextId = _currentText,
                             ParentActive = parentActive, Emitting = false, BranchTaken = false,
-                            Start = at, EvaluateFlagOn = _flagScan.IsOn(FlagOption.Flag14Evaluate) };   // c anchor (§2023:7.3.15.4 GR4 c)
+                            Start = at, EvaluateFlagOn = _flagScan.IsOn(FlagOption.Flag14Evaluate) };   // c anchor (§2023:7.3.15.4 GR4c)
                         string subj = rest.TrimSpaces();
                         if (CobolKeywords.Same(subj, "TRUE")) f.TruthForm = true;
                         else if (parentActive) f.Subject = EvaluateOperandText(subj, _evaluator, _diag, ">>EVALUATE");
@@ -708,7 +708,7 @@ public static partial class ConditionalCompilationProcessor
         public bool BranchTaken;    // IF: the IF arm was taken (drives ELSE); EVALUATE: some WHEN already matched (drives later WHEN/OTHER)
         public bool TruthForm;      // EVALUATE: true for Format 2 (>>EVALUATE TRUE), where each WHEN carries a constant-conditional-expression
         public CtValue? Subject;    // EVALUATE Format 1: the selection-subject value
-        // FLAG-14 c EVALUATE (§2023:7.3.15.4 GR4 c): flag a >>EVALUATE directive that carries BOTH a >>WHEN and a
+        // FLAG-14 c EVALUATE (§2023:7.3.15.4 GR4c): flag a >>EVALUATE directive that carries BOTH a >>WHEN and a
         // >>WHEN OTHER — syntactic presence (independent of which branch emits). Captured at the >>EVALUATE line.
         public bool SawWhen;
         public bool SawWhenOther;
@@ -917,7 +917,7 @@ public static partial class ConditionalCompilationProcessor
     {
         if (ParseOperandFragment(text, diag, where, compiled: true) is not { } frag) return null;
         var operand = frag.compileTimeOperand();
-        diag.FlagArithmetic(operand);   // b COMPILE-TIME-ARITHMETIC-EXPRESSIONS (§2023:7.3.15.4 GR4 b) — evaluated context
+        diag.FlagArithmetic(operand);   // b COMPILE-TIME-ARITHMETIC-EXPRESSIONS (§2023:7.3.15.4 GR4b) — evaluated context
         diag.GateBooleanOperators(operand);
         // A refusal of the DEFINE format still evaluates the operand, so every violation of it is reported, not the first
         // (as the operator gates above report and continue); the directive then defines nothing.
@@ -976,7 +976,7 @@ public static partial class ConditionalCompilationProcessor
     {
         if (ParseCceFragment(text, diag, where, compiled: true) is not { } frag) return false;
         var cce = frag.constantConditionalExpression();
-        diag.FlagArithmetic(cce);   // b COMPILE-TIME-ARITHMETIC-EXPRESSIONS (§2023:7.3.15.4 GR4 b) — evaluated context
+        diag.FlagArithmetic(cce);   // b COMPILE-TIME-ARITHMETIC-EXPRESSIONS (§2023:7.3.15.4 GR4b) — evaluated context
         diag.GateBooleanOperators(cce);
         diag.GateLogicalOperators(cce);
         diag.GateRelationalOperators(cce);
@@ -1127,7 +1127,7 @@ public static partial class ConditionalCompilationProcessor
         }
 
         /// <summary>The relational-operator introduction gate over an evaluated constant-conditional-expression fragment
-        /// (kb/Work PB3604): a >>IF operand is "formed according to the rules in 8.8.4.2" (ISO §2023:7.3.8.2 SR1 a)) of the
+        /// (kb/Work PB3604): a >>IF operand is "formed according to the rules in 8.8.4.2" (ISO §2023:7.3.8.2 SR1a) of the
         /// targeted edition, so the symbol <c>&lt;&gt;</c> below COBOL-2014 is the same COBOL0900 its runtime twin draws
         /// — asked through the ONE body the compilation-unit walk uses (<see cref="RelationalOperatorGate"/>), once per
         /// fragment.</summary>

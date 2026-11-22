@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Runtime.IO.Store;
 /// is an in-memory page array that logs every write and sync and can lose, keep, tear or age them, so every crash point
 /// of 2.2.1.16 runs deterministically on every host.
 /// <para>⛔ A HOST REFUSAL IS AN <see cref="IOException"/> (or <see cref="UnauthorizedAccessException"/>): a full medium,
-/// a quota, a revoked handle, a failed read or sync. <see cref="PagedFile"/> answers it as §2023:9.1.13.6 item 1's '30' at the
+/// a quota, a revoked handle, a failed read or sync. <see cref="PagedFile"/> answers it as §2023:9.1.13.6 GR1's '30' at the
 /// statement it refused; nothing else is caught, so a fault no medium can report is never mistaken for one. The one
 /// refusal with another answer is a write the host refuses because the FILE cannot grow further: the medium reports it
 /// as <see cref="MediumSizeLimitException"/>, and a changing statement it refuses answers the boundary ('24', 2.2.1.9).</para></summary>

@@ -12,7 +12,7 @@
       *> first record, the first READ after it would deliver REC002.
       *> It delivers REC001, and the second READ delivers REC002, so
       *> the OPEN consumed nothing. The third READ is the at end
-      *> condition, '10' (§2023:9.1.13.4 item 1a) — the file really held two
+      *> condition, '10' (§2023:9.1.13.4 GR1a) — the file really held two
       *> records, not three.
       *> RELEASE, on an EMPTY file. FB is opened OUTPUT and closed with
       *> no WRITE between. §2023:14.9.27.4 GR18: "After the creation of the
@@ -24,7 +24,7 @@
       *> would now hold three; it still holds exactly REC001, REC002
       *> and then at end.
       *> Every OPEN below is on an available file or creates one, so
-      *> each reports '00' (Table 18 + §2023:9.1.13.2 item 1).
+      *> each reports '00' (Table 18 + §2023:9.1.13.2 GR1).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1OPN09.
        ENVIRONMENT DIVISION.

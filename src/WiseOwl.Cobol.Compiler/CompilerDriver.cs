@@ -40,8 +40,8 @@ public static class CompilerDriver
     /// <see cref="Runtime.SignEncoding.Ibm"/> (IBM / Micro Focus compatibility). Orthogonal to
     /// <paramref name="DialectLevel"/>: every edition grants the same latitude.</param>
     /// <param name="SourceFormat">The reference format the compilation group starts in (CLI <c>--source-format</c>;
-    /// kb/Work PB1362): fixed form, ISO §2023:7.3.24.3 2)'s default, unless free form or the documented auto-detection
-    /// extension is selected (§2023:4.2.10 3) — docs/CONFORMANCE.md DOC-A.1-158).</param>
+    /// kb/Work PB1362): fixed form, ISO §2023:7.3.24.3 GR2's default, unless free form or the documented auto-detection
+    /// extension is selected (§2023:4.2.10 GR3 — docs/CONFORMANCE.md DOC-A.1-158).</param>
     /// <param name="FlagExtensions">The §2023:4.2.10 warning mechanism (CLI <c>--flag-extensions</c>; kb/Work PB1525):
     /// "An implementation shall provide a warning mechanism that optionally may be invoked by the user at compile time
     /// to indicate use of a nonstandard extension in a compilation group". When set, every use of a syntactically
@@ -61,7 +61,7 @@ public static class CompilerDriver
     /// against it (§2023:7.1).</param>
     /// <param name="RepositoryPaths">The external repository's directories, in search order (CLI <c>--repository DIR</c>,
     /// repeatable; DESIGN-external-repository §9.3): where a REPOSITORY specifier the compilation group cannot answer is
-    /// looked for (ISO §2023:12.3.8.4 GR10 c) / GR11 c)). Null means the output directory. Annex A.1 item 66
+    /// looked for (ISO §2023:12.3.8.4 GR10c / GR11 c)). Null means the output directory. Annex A.1 item 66
     /// (docs/CONFORMANCE.md DOC-A.1-66).</param>
     /// <param name="ReferencePaths">Assemblies searched after the directories, in order (CLI <c>--reference FILE.dll</c>,
     /// repeatable).</param>
@@ -227,7 +227,7 @@ public static class CompilerDriver
             DialectLevel = options.DialectLevel,
             // The preprocessor-level removal gates (VCR 2/4, W3 — DEVLOG 598) honor the same severity axis.
             Permissive = options.Permissive,
-            InitialFormat = options.SourceFormat,   // kb/Work PB1362 — §2023:7.3.24.3 2) fixed by default
+            InitialFormat = options.SourceFormat,   // kb/Work PB1362 — §2023:7.3.24.3 GR2 fixed by default
             RecordsListing = recordsListing,   // DESIGN-listing.md section 9: no listing, no listing work
         };
         foreach (string dir in options.CopyPaths ?? [])

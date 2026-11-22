@@ -383,7 +383,7 @@ internal static class UsageCollectionPass
                 // a dynamic table's capacity register), which P() ignores by construction.
                 case InitializeLoop x: foreach (var b in x.Body) InitAct(b); break;
                 // Every arm of a Format-2 (table) VALUE select is a store into the SAME receiver at a different
-                // occurrence (ISO §2023:14.9.20.4 GR5c1c), so all of them are visited — the occurrence tests read only
+                // occurrence (ISO §2023:14.9.20.4 GR5c.1.c), so all of them are visited — the occurrence tests read only
                 // the enclosing loop variables, which are not data references at all.
                 case InitializeOccurrenceSelect x:
                     foreach (var arm in x.Arms) InitAct(arm.Do);
@@ -395,7 +395,7 @@ internal static class UsageCollectionPass
 
         /// <summary>Record each elementary numeric store of <paramref name="move"/> whose receiver is a SIGN HOLDER and whose
         /// sender may be negative (<see cref="SendersSignStore"/>; kb/Work PB5852): the stores through the rules of the MOVE
-        /// statement that can place a negative sign over a zero result at 1985 and 2002 (§1985:VI.6.19.4 GR4b1), the input
+        /// statement that can place a negative sign over a zero result at 1985 and 2002 (§1985:VI.6.19.4 GR4b.1), the input
         /// of <c>StorageFormPass</c>'s computed promotion. Every statement whose text stores by those rules is bound to a
         /// <see cref="BoundMove"/> (the explicit MOVE, MOVE CORRESPONDING's pairs, READ and RETURN INTO, WRITE, REWRITE and
         /// RELEASE FROM, INITIALIZE's REPLACING moves), so this one visit sees them all.</summary>

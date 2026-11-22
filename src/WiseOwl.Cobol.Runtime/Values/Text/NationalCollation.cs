@@ -11,13 +11,13 @@ namespace WiseOwl.Cobol.Runtime;
 /// §2023:12.3.7.3 SR14 differ only in which literal class each operand shall be).
 /// <para>The compiler emits one instance per program as <c>__COLLATE_NAT</c> (the national twin of the
 /// alphanumeric <c>__COLLATE</c> weights); it drives national relation/condition-name comparisons
-/// (§2023:12.3.6.4 GR11 / §2023:8.8.4.2.9), CHAR-NATIONAL (§2023:15.16.4), and ORD over a national argument (§2023:15.70.4 r2).</para>
+/// (§2023:12.3.6.4 GR11 / §2023:8.8.4.2.9), CHAR-NATIONAL (§2023:15.16.4), and ORD over a national argument (§2023:15.70.4 RV2).</para>
 /// </summary>
 public sealed class NationalCollation : LiteralPhraseCollation
 {
     /// <param name="codes">The specified code units, sorted ascending by code.</param>
     /// <param name="positions">Parallel to <paramref name="codes"/>: each specified code's 0-based position.</param>
-    /// <param name="repByPos">Per specified position: the FIRST character defined there (§2023:15.16.4 r2 / GR7 k6).</param>
+    /// <param name="repByPos">Per specified position: the FIRST character defined there (§2023:15.16.4 RV2 / GR7 k6).</param>
     /// <param name="nextFree">The first position after the specified block (§2023:12.3.7.4 GR7 k3).</param>
     /// <param name="highValue">The sequence's national HIGH-VALUE character (§2023:12.3.7.4 GR8, binder-computed).</param>
     /// <param name="lowValue">The sequence's national LOW-VALUE character (§2023:12.3.7.4 GR9).</param>

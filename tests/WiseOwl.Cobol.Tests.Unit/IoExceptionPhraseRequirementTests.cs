@@ -15,7 +15,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <para>The one-verb-per-file goldens in <c>conformance-suite/cases</c> pin the refusal of each statement; THIS class pins the
 /// rule's SCOPE, the questions a golden cannot ask cheaply: which USE declarative is "applicable" to which verb
 /// (§1985:VII.4.6.4 GR5: the named file, or any open mode), a containing program's
-/// GLOBAL declarative (§1985:X.5.5.4 GR1 b), the access-mode qualification of DELETE and REWRITE, and which operands are "the
+/// GLOBAL declarative (§1985:X.5.5.4 GR1b), the access-mode qualification of DELETE and REWRITE, and which operands are "the
 /// same storage area" as the record area.</para>
 /// </summary>
 public sealed class IoExceptionPhraseRequirementTests

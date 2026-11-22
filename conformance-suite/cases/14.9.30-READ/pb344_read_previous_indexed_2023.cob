@@ -23,7 +23,7 @@
       *>
       *> EDITIONS.  Rule d) 3 IS THE 2023 RULE and 2023 amended it (Annex E.2 item 22): a READ PREVIOUS whose
       *> previous operation was an OPEN is the at end condition, whatever the file holds, so P1 and P5 are both
-      *> at end here.  Before 2023 the same READ is the ordinary comparison of §2002:14.8.29.3 GR18c2 against the
+      *> at end here.  Before 2023 the same READ is the ordinary comparison of §2002:14.8.29.3 GR18c.2 against the
       *> lowest-ordinal position OPEN sets (§2002:14.8.26.3 GR12): at end unless a key IS that lowest value (the
       *> 2002 and 2014 copies of this program, where P5 makes it available).  VERSION_CHANGE_REFERENCE row 29;
       *> WiseOwl.Cobol.Runtime.DialectBehavior.IndexedReadPreviousAfterOpenAtEnd.

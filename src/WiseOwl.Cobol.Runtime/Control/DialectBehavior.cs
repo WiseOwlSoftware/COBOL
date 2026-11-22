@@ -38,8 +38,8 @@ public enum DialectBehavior
     /// <summary>ISO/IEC 1989:2023 §2023:14.9.30.4 GR21 indexed rule d) 3 — "If no such record is found or PREVIOUS
     /// is specified and the previous operation on the file was an OPEN statement, the at end condition exists".
     /// 2023 CHANGED IT (Annex E.2 item 22, "READ PREVIOUS statement following an OPEN statement. Ensure that an
-    /// at end condition occurs"): before 2023 the READ was the ordinary comparison of §2002:14.8.29.3 GR18c2
-    /// (§2014:14.9.29.3 GR19c2) — "the first existing record in the physical file whose record number or key value
+    /// at end condition occurs"): before 2023 the READ was the ordinary comparison of §2002:14.8.29.3 GR18c.2
+    /// (§2014:14.9.29.3 GR19c.2) — "the first existing record in the physical file whose record number or key value
     /// is less than or equal to the file position indicator" — against the position OPEN set, "the characters that
     /// have the lowest ordinal position in the collating sequence" (§2002:14.8.26.3 GR12), so only a record whose
     /// key IS that lowest value is made available and the usual outcome is at end (the standard's own NOTE:
@@ -62,7 +62,7 @@ public enum DialectBehavior
     /// <summary>ISO/IEC 1989:2023 §2023:9.1.15 / §2023:14.9.27.4 Table 19 — the FILE SHARING facility (Annex A.4.7, an OPTIONAL
     /// module): the sharing mode, the file lock "thereby preventing other run units from opening that file with
     /// incompatible sharing rules", the OPEN arbitration of Table 19 and the file sharing conflict condition whose I-O
-    /// status is '61' (§2023:9.1.13.9 item 1). It passes the admission test above the other way round: not by an Annex E
+    /// status is '61' (§2023:9.1.13.9 GR1). It passes the admission test above the other way round: not by an Annex E
     /// item (Annex E is the 2014 to 2023 window) but by §2023:A.4.1, <i>"Any associated syntax rules, general rules, other
     /// rules, exception conditions, and I-O status values are also optional"</i> — the facility is a 2002 module (the
     /// SHARING and LOCK MODE clauses are COBOL-2002 introductions, <c>COBOL0900</c> below 2002), so a COBOL-85
@@ -77,16 +77,16 @@ public enum DialectBehavior
     /// host refusal's status), both through <c>FileConnector.SharingFacilityInEffect</c>.</summary>
     FileSharingFacility = 2,
 
-    /// <summary>ISO/IEC 1989:2023 §2023:14.9.28.4 GR13 e) 2 a-c, TEST BEFORE: when an AFTER level's condition is
+    /// <summary>ISO/IEC 1989:2023 §2023:14.9.28.4 GR13e 2 a-c, TEST BEFORE: when an AFTER level's condition is
     /// satisfied the inner variable is set to its initialization value FIRST and the outer variable is augmented
-    /// SECOND. §1985:VI.6.21.4 GR10 d) 1 (Figure 2 draws the same) has the opposite order: it augments the outer
+    /// SECOND. §1985:VI.6.21.4 GR10d 1 (Figure 2 draws the same) has the opposite order: it augments the outer
     /// variable and THEN sets the inner one, so at <c>--std 85</c> an AFTER level whose FROM reads the level to its
     /// left starts from the augmented value (kb/Work PB5101, PB436). Both editions are QUOTED (VCR row 7.53), the
     /// 2002 text being worded as 2023 is. The consumer is <c>ControlFlowBinder.BindVarying</c>, which sets
     /// <c>PerformVarying.AugmentOuterFirst</c> for the emitter.</summary>
     PerformVaryingInitInnerBeforeAugmentOuter = 3,
 
-    /// <summary>ISO/IEC 1989:2023 §2023:13.18.16.4 GR4 a) — while a control break's footings print, the control data items
+    /// <summary>ISO/IEC 1989:2023 §2023:13.18.16.4 GR4a — while a control break's footings print, the control data items
     /// hold their PRIOR values, and "If the printing of the control footing causes a page advance and the page heading
     /// or page footing refers to a control data item, the value produced is similarly the prior value" (the 2002 text,
     /// 13.16.15.3 GR4 a, says the same, and 2023 keeps it). §1985:XIII.3.20.4 GR13 gives the prior values only to a
@@ -113,7 +113,7 @@ public enum DialectBehavior
     /// an index "not greater" starts the serial search by "evaluating the conditions in the order that they are written";
     /// §1985:VI.6.23.4 GR2 lets a PERFORM or SEARCH leave an index "outside the range of its associated table", which is how a
     /// program arrives at occurrence 0. So at <c>--std 85</c> an index below 1 starts the scan (kb/Work PB5121; VCR row 7.56), and
-    /// the incremented index is judged against both bounds (§1985:VI.6.22.4 GR2 b), "outside the permissible range of occurrence
+    /// the incremented index is judged against both bounds (§1985:VI.6.22.4 GR2b), "outside the permissible range of occurrence
     /// values"): an index of 0 advances to occurrence 1, one below 0 ends the search after its first pass (kb/Work PB5302). Both editions are QUOTED. The consumer is <c>SearchBinder.BindSearch</c>, which sets
     /// <c>BoundSearch.IndexBelowTableIsUnsuccessful</c> for <c>ControlFlowEmitter.EmitSerialScan</c>.</summary>
     SearchIndexBelowTableUnsuccessful = 6,
@@ -140,7 +140,7 @@ public enum DialectBehavior
     /// <c>CobolReport.SumPresentable</c>, over the edition the compilation baked into the report.</summary>
     SumSizeErrorBlanksPrintableItem = 8,
 
-    /// <summary>ISO/IEC 1989:2023 §2023:13.18.37.4 GR4 a) — the save location filled by an absolute NEXT GROUP "will have no
+    /// <summary>ISO/IEC 1989:2023 §2023:13.18.37.4 GR4a — the save location filled by an absolute NEXT GROUP "will have no
     /// effect at all if a TERMINATE is next executed for the report" (the 2002 text, 13.16.35.3 GR4 a), words it the same).
     /// §1985:XIII.3.10.8 GR3 gives every body group the saved-integer arm of the fit test, and §1985:XIII.4.7.4 GR1 has TERMINATE
     /// produce the control footings as body groups, so at <c>--std 85</c> the saved integer is still there for the first
@@ -159,7 +159,7 @@ public enum DialectBehavior
 
     /// <summary>ISO/IEC 1989:2023 §2023:15.5.2 — a value in integer date form "shall be less than or equal to the value of
     /// FUNCTION INTEGER-OF-DATE (99991231), which is 3,067,671", and the YYYY of INTEGER-OF-DATE and INTEGER-OF-DAY "shall be an
-    /// integer greater than 1600 and less than 10000" (§2023:15.46.3 AR1 a, §2023:15.47.3 AR1 a); the 2002 text words all three
+    /// integer greater than 1600 and less than 10000" (§2023:15.46.3 AR1 a, §2023:15.47.3 AR1a); the 2002 text words all three
     /// the same. The 1989 intrinsic function module bounds the year below only: §1989:A.2.16.3 AR1 a. "It must be an integer
     /// greater than 1600" (§1989:A.2.17.3 AR1 the same), and DATE-OF-INTEGER and DAY-OF-INTEGER take "a positive integer that
     /// represents a number of days succeeding December 31, 1600" (§1989:A.2.12.3 AR1, §1989:A.2.13.3 AR1). So at
@@ -188,12 +188,12 @@ public enum DialectBehavior
     /// sizes and no WRITE is refused for it (kb/Work PB5197). The consumer is <c>FileControlBinder.BindRecordClause</c>.</summary>
     RecordContainsRangeBindsRecordSize = 13,
 
-    /// <summary>ISO/IEC 1989:2023 §2023:14.9.51.4 GR29 b) — a random or dynamic WRITE of a relative file whose key item holds
+    /// <summary>ISO/IEC 1989:2023 §2023:14.9.51.4 GR29b — a random or dynamic WRITE of a relative file whose key item holds
     /// "a value that is less than 1 or greater than the highest relative record number permitted for the file" is
-    /// unsuccessful with I-O status '34'; the 2014 text carries the same sentence (§2014:14.9.47.3 GR26 b). The 2002 text
-    /// (§2002:14.8.47.3 GR25 b) ends that rule after the '22' sentence and knows only the invalid key condition of a write
-    /// "beyond the externally defined boundaries of the file", status '24' (§2002:14.8.47.3 GR29 b); the 1985 relative-file
-    /// status list has no '34' at all and gives '24' for the same attempt (§1985:VIII.1.3.4 item (3) c) with the invalid key
+    /// unsuccessful with I-O status '34'; the 2014 text carries the same sentence (§2014:14.9.47.3 GR26b). The 2002 text
+    /// (§2002:14.8.47.3 GR25b) ends that rule after the '22' sentence and knows only the invalid key condition of a write
+    /// "beyond the externally defined boundaries of the file", status '24' (§2002:14.8.47.3 GR29b); the 1985 relative-file
+    /// status list has no '34' at all and gives '24' for the same attempt (§1985:VIII.1.3.4 GRL2.3c with the invalid key
     /// condition of §1985:VIII.1.3.5 (kb/Work PB5125). So below 2014 the same test answers '24' and the INVALID KEY phrase
     /// (or the USE procedure) runs; from 2014 it answers '34', the permanent error, and the phrase is skipped. The consumer
     /// is <c>RelativeConnector.Write</c>.</summary>
@@ -231,7 +231,7 @@ public enum DialectBehavior
     /// <c>BoundPower.NegativeBaseRealRoots</c> for <c>NumericRenderer.Power</c> and so for
     /// <c>CobolIntrinsics.PowNativeReal(double, CobolExact)</c> and <c>CobolExact.PowReal</c>.</summary>
     NegativeBaseRequiresIntegerExponent = 17,
-    /// <summary>ISO/IEC 1989:2023 §2023:14.9.13.4 GR4 c) — "If the result of the analysis is false for any pair in a WHEN phrase,
+    /// <summary>ISO/IEC 1989:2023 §2023:14.9.13.4 GR4c — "If the result of the analysis is false for any pair in a WHEN phrase,
     /// no more pairs in that WHEN phrase are evaluated"; the 2002 text words it the same (§2002:14.8.12.3 GR4c), and the
     /// selection objects of a WHEN phrase are evaluated only when the phrase is analyzed. §1985:VI.6.13.4 GR1 says instead
     /// that the statement "operates as if each selection subject and selection object were evaluated" and assigned a value
@@ -300,7 +300,7 @@ public enum DialectBehavior
     /// <c>--std 2002</c> FUNCTION INTEGER (1 - 1 / 10 ** 32) is 0 and from 2014 it is 1 (kb/Work PB5575; VCR row 7.81). Both editions
     /// are QUOTED. The consumer is <c>IntrinsicRenderer</c>'s argument intake.</summary>
     IntegerArgumentRoundedUnderStandardArithmetic = 25,
-    /// <summary>§2023:13.18.37.4 GR4 a) — the integer placed in the save location by an absolute NEXT GROUP lets LINE-COUNTER
+    /// <summary>§2023:13.18.37.4 GR4a — the integer placed in the save location by an absolute NEXT GROUP lets LINE-COUNTER
     /// be set to FOOTING, "causing a page advance to take place just before any other non-dummy body group is printed for
     /// the report"; the 2002 text (13.16.35.3 GR4 a) words it the same. §1985:XIII.3.10.8 GR3 consults the saved integer
     /// only after a page advance the fit test took: rule 3b's first paragraph applies the trial sum while "a body group has
@@ -324,9 +324,9 @@ public enum DialectBehavior
     /// successful OPEN put the file in an open mode. So at <c>--std 85</c> the OPEN is refused, the file is not open, and a WRITE answers
     /// '48', a CLOSE '42' (kb/Work PB5845; VCR row 7.84). Both editions are QUOTED. The consumer is <c>FileRegistry.SharedOpenAttempt</c>.</summary>
     LinageViolatingOpenLeavesFileOpen = 28,
-    /// <summary>§2014:14.9.24.3 GR6d2a and §2023:14.9.25.4 GR6d.2.a — "When a signed numeric item is the receiving item, the sign of
+    /// <summary>§2014:14.9.24.3 GR6d.2.a and §2023:14.9.25.4 GR6d.2.a — "When a signed numeric item is the receiving item, the sign of
     /// the numeric value shall be represented in the receiving operand": the value after alignment and truncation, so a sender
-    /// whose digits all truncate away stores a positive zero. §1985:VI.6.19.4 GR4b1 and §2002:14.8.24.3 GR4b1 say instead that "the
+    /// whose digits all truncate away stores a positive zero. §1985:VI.6.19.4 GR4b.1 and §2002:14.8.24.3 GR4b.1 say instead that "the
     /// sign of the sending operand is placed in the receiving item", so at <c>--std 85</c> and <c>--std 2002</c> <c>MOVE -100 TO
     /// S99</c> stores a NEGATIVE zero (kb/Work PB5852; VCR row 7.85; DESIGN-data-model §2.1.1). Both editions are QUOTED. The
     /// consumers are <c>SendersSignStore.Applies</c>, which <c>StorageFormPass</c>'s promotion of the receivers that can be handed a
@@ -362,7 +362,7 @@ public enum DialectBehavior
     /// record is truncated on the right to the maximum size" with the I-O status '04' and no remainder (§2002:14.8.29.3 GR13
     /// and §2014:14.9.29.3 GR14 the same; kb/Work PB5903; VCR row 7.88). The same frame decides two more arms before 2023: a
     /// REWRITE is the sequential size rule, '44' unless the record has the character positions of the record being replaced
-    /// (§1985:VII.4.5.4 GR10, kb/Work PB5915; 2023's §2023:14.9.35.4 GR17 c) pads a shorter one), and the vertical positioning
+    /// (§1985:VII.4.5.4 GR10, kb/Work PB5915; 2023's §2023:14.9.35.4 GR17c pads a shorter one), and the vertical positioning
     /// of an ADVANCING phrase or a LINAGE page has no image on the medium, so each WRITE releases exactly one line in WRITE
     /// order (§1985:VII.4.7.4 GR12, kb/Work PB5984). Both editions are QUOTED. The consumers are
     /// <c>SequentialConnector.ReadRecord</c>, <c>SequentialConnector.WriteRecord</c>, <c>SequentialConnector.WriteAdvancingRecord</c>
@@ -393,6 +393,188 @@ public enum DialectBehavior
     /// QUOTED. The consumers are <c>ReportSectionBinder</c>'s RD binding (<c>ReportModel.PageWidth</c>, null at 85) and through it
     /// the column screens and <c>ReportWriterEmitter</c>'s report construction.</summary>
     ReportPageWidth = 34,
+    /// <summary>§2002:14.8.34.2 SR6 and SR7 (§2023:14.9.37.3 SR8 and SR9 the same) — a format 2 SEARCH ALL key data-name "shall be
+    /// subscripted by the first index-name associated with identifier-1 along with any subscripts required to uniquely identify the
+    /// data item", and "The index-name subscript shall not be followed by a '+' or a '-'"; a referenced condition-name "shall be
+    /// subscripted by the first index-name associated with identifier-1". ANSI X3.23-1985 has neither sentence: §1985:VI.6.22.3 SR4
+    /// asks only that "Each data-name-1, data-name-2 must be subscripted by the first index-name associated with identifier-1 along
+    /// with other subscripts as required", and puts no subscript rule on a condition-name. So at <c>--std 85</c> <c>WHEN K (IX + 1) = 2</c>,
+    /// <c>WHEN C1 (IX - 1)</c> and <c>WHEN C1 (JX)</c> compile, and from 2002 each is refused (COBOL1965) (kb/Work PB5193, PB5530; VCR
+    /// row 7.91). Both editions are QUOTED. The consumer is <c>SearchAllFormat2Rules</c> (<c>CheckConditionNameSide</c> and
+    /// <c>CheckKeySubscript</c>).</summary>
+    SearchAllKeySubscriptSentences = 35,
+    /// <summary>§2002:13.16.15.2 SR6 — "Data-name-1 shall be unique in any given CONTROL clause", a rule of the WRITTEN
+    /// reference, since its second sentence lets two operands "refer to the same physical data item or to overlapping data
+    /// items" (§2023:13.18.16.3 SR6 the same). §1985:XIII.3.7.3 SR2 asks the resolved items instead: "Each recurrence of
+    /// data-name-1 must identify a different data item". So at <c>--std 85</c> <c>CONTROLS WS-A WS-A OF WS-G</c> is refused
+    /// and two spellings of one name are told apart only by the item; from 2002 the written references are compared. The
+    /// consumers are <c>ReportSectionBinder.BindReportDescriptionClauses</c> (the 2002 arm) and
+    /// <c>ReportSectionBinder.ScreenControlItemsDistinct</c> (the 1985 arm).</summary>
+    ReportControlOperandUniqueness = 36,
+    /// <summary>§2002:13.16.37.2 SR5 — "Integer-1 shall not exceed 9999", and the LINE and NEXT GROUP integers by the page
+    /// limit (§2002:13.16.35.2 SR1). COBOL-85 bounds each by its digits: the PAGE clause's integer-1 (§1985:XIII.3.8.3
+    /// SR2), the LINE NUMBER clause's (§1985:XIII.3.15.3 SR1) and the NEXT GROUP clause's (§1985:XIII.3.16.3 SR2) "must not
+    /// exceed three significant digits in length", so the bound is 999 (kb/Work PB5252). The consumer is
+    /// <c>ReportSectionBinder.ExceedsThreeSignificantDigits85</c>.</summary>
+    ReportVerticalIntegerLimit = 37,
+    /// <summary>§2002:13.16.12.1 prints <c>CODE IS { literal-1 | identifier-1 }</c>: "Literal-1 shall be a alphanumeric
+    /// literal" (§2002:13.16.12.2 SR1) and "Identifier-1 shall represent an alphanumeric data item" (SR2). §1985:XIII.3.6.2
+    /// prints <c>CODE literal-1</c> alone, and "Literal-1 must be a two-character nonnumeric literal" (§1985:XIII.3.6.3
+    /// SR1). So at <c>--std 85</c> an identifier, or a literal of another length, is refused. The consumers are
+    /// <c>ReportSectionBinder</c>'s CODE clause binding (the identifier arm) and
+    /// <c>ReportSectionBinder.Screen85CodeLiteral</c>.</summary>
+    ReportCodeClauseOperand = 38,
+    /// <summary>§2002:13.16.51.2 SR4 — "Identifier-1 specifies a data item defined in any section of the data division",
+    /// with no restriction on control data. §1985:XIII.3.20.3 SR5: "In control footing, page heading, page footing, and
+    /// report footing report groups, SOURCE clauses and associated USE statements must not reference any of the following":
+    /// a group containing a control data item, an item subordinate to one, a redefinition or renaming of part of one, and
+    /// in page heading and page footing groups the control data-names (kb/Work PB5079, PB5424). The consumers are
+    /// <c>ReportSectionBinder.ScreenSourceControlData</c> (the SOURCE half) and
+    /// <c>ReportWriterBinder.CheckControlDataReferences</c> (the USE half).</summary>
+    ReportControlDataReferences = 39,
+    /// <summary>§2002:13.16.52.2 SR7 — "If the current report group is a control footing, its level of control shall be a
+    /// lower level than that of data-name-3" (§2023:13.18.54.3 SR8 the same): the footing's index in the CONTROL clause is
+    /// greater than the operand's. §1985:XIII.3.19.3 SR4: "Data-name-2 must not be a lower level control than the
+    /// associated control for the report group in which the RESET phrase appears": the operand's index is not greater than
+    /// the footing's, so the footing's own control is admitted. The consumer is
+    /// <c>ReportSectionBinder.ScreenResetLevel</c>.</summary>
+    SumResetLevelOrder = 40,
+    /// <summary>§2002:13.16.35.2 restricts the NEXT GROUP clause by group type alone (SR4: "The NEXT GROUP clause shall not
+    /// be specified in a page heading or report footing"). §1985:XIII.3.16.3 SR1: "A report group entry must not contain a
+    /// NEXT GROUP clause unless the description of that report group contains at least one LINE NUMBER clause". The
+    /// consumer is <c>ReportSectionBinder</c>'s NEXT GROUP binding.</summary>
+    NextGroupNeedsLineNumber = 41,
+    /// <summary>§2002:13.16.33.3 GR2 — "each report group shall be described such that it may be printed on one page", a
+    /// GENERAL rule whose violation is the run-time EC-REPORT-PAGE-LIMIT condition (§2023:13.18.35.4 GR2 the same).
+    /// §1985:XIII.3.8.3 SR9 makes it a SYNTAX rule: "All report groups must be described such that they can be presented on
+    /// one page", so a control heading, detail or control footing of relative lines whose unconditional lines already pass
+    /// its limit from FIRST DETAIL fits no page and is refused. The consumer is <c>ReportSectionBinder</c>'s group-limit
+    /// screen.</summary>
+    ReportGroupPageFitAtCompileTime = 42,
+    /// <summary>§2002:13.16.55.3 GR8 states each group type's limits; for a report heading not on a page by itself, GR8 b)
+    /// "The lower limit for a report heading that does not appear on a page by itself is the line preceding the first line
+    /// of the page heading" (§2023:13.18.57.4 GR8 the same), and a report footing is placed below the page footing's last
+    /// line. COBOL-85 gives each group type its own printed rule: "The last line number on which the report heading report
+    /// group can be presented is the line number that is obtained by subtracting 1 from the value of integer-3" of FIRST
+    /// DETAIL (§1985:XIII.3.10.6 GR2a); a page heading the same (§1985:XIII.3.8.4 GR1c); a page footing and a report
+    /// footing the page limit (§1985:XIII.3.10.9 GR2, §1985:XIII.3.10.10 GR2), and a relative report footing or page
+    /// heading is placed from the final LINE-COUNTER setting the preceding group's NEXT GROUP leaves (§1985:XIII.3.10.10
+    /// GR3b, §1985:XIII.3.10.6 GR5) (kb/Work PB5981). The consumers are <c>ReportSectionBinder.RelativeGroupLowerLimit</c>,
+    /// <c>ReportSectionBinder.Cobol85FinalLineCounter</c> and <c>ReportSectionBinder.GroupLimits</c>.</summary>
+    ReportGroupVerticalLimits = 43,
+    /// <summary>§2002:13.16.33.3 GR5 places a relative first line of a page footing: "If the report group is a page
+    /// footing, the line number is given by (FOOTING integer + integer-2)" (§2023:13.18.35.4 GR5b.4 the same).
+    /// §1985:XIII.3.15.3 SR9: "The first LINE NUMBER clause specified within a PAGE FOOTING report group must be an
+    /// absolute LINE NUMBER clause". The consumer is <c>ReportSectionBinder</c>'s LINE clause screen.</summary>
+    PageFootingFirstLineAbsolute = 44,
+    /// <summary>§2002:13.16.52.2 SR3f lists the report groups a SUM may stand in: a control footing, a detail ("The
+    /// current report group may be a detail and data-name-1 may be defined in a different detail") and a report footing
+    /// (§2023:13.18.54.3 SR4f the same). §1985:XIII.3.19.3 SR3: "A SUM clause can appear only in the description of a
+    /// control footing report group". The consumer is <c>ReportSectionBinder</c>'s report group entry screen.</summary>
+    SumOnlyInControlFooting = 45,
+    /// <summary>§2002:13.13.2 holds an elementary report entry to SR10 ("Every elementary entry with a COLUMN clause shall
+    /// also contain either a SOURCE, VALUE or SUM clause"), SR13 ("A COLUMN clause shall be specified in each elementary
+    /// entry that has a VALUE clause") and SR15 ("If BLANK WHEN ZERO or JUSTIFIED is specified, a COLUMN clause shall also
+    /// be specified"), and a GROUP INDICATE entry to §2002:13.16.26.2 SR1's "a COLUMN clause and a SOURCE or VALUE clause"
+    /// (§2023:13.15.3 and §2023:13.18.28.3 the same). COBOL-85 holds it to the report group description entry's three
+    /// formats (§1985:XIII.3.9.2) and to SR11's table: "Table 1 below shows all permissible clause combinations for a
+    /// format 3 entry" (§1985:XIII.3.9.3 SR11), whose cells carry the COLUMN, SOURCE, VALUE, JUSTIFIED and BLANK WHEN ZERO
+    /// conditions. The consumers are <c>ReportSectionBinder</c>'s report group entry screen
+    /// (<c>ScreenReportEntryClauseTable</c>, <c>ScreenReportEntryFormats</c> and the 2002 arms) and its GROUP INDICATE
+    /// placement screen.</summary>
+    ReportEntryClauseRules = 46,
+    /// <summary>§2002:13.16.52.3 GR1 derives the sum counter's digits from "the corresponding number of digits, excluding
+    /// insertion editing characters, in the PICTURE clause" for every category. §1985:XIII.3.19.4 GR1 c. gives the
+    /// alphanumeric and alphanumeric edited counter "the size of that data item, excluding any editing characters, or 18
+    /// characters, whichever is smaller", so an X(20) entry has an 18-digit counter (kb/Work PB5247). The consumer is
+    /// <c>ReportSectionBinder.SumCounterDigits</c>.</summary>
+    SumCounterAlphanumericCap = 47,
+    /// <summary>§2002:13.16.26.3 GR1 — "The GROUP INDICATE clause has the same effect as a PRESENT WHEN clause"
+    /// (§2023:13.18.28.4 GR1 the same), and items subject to different PRESENT WHEN clauses may overlap. COBOL-85 has no
+    /// PRESENT WHEN clause, and "Within a given print line, the printable items must be defined in ascending column number
+    /// order such that each printable item defined occupies a unique sequence of contiguous character positions"
+    /// (§1985:XIII.3.11.3 SR2; kb/Work PB5251). The consumer is <c>ReportSectionBinder.PresentWhenClausesOf</c>.</summary>
+    GroupIndicateAsPresentWhen = 48,
+    /// <summary>§2002:13.16.52.2 SR6 — "Data-name-2 shall be the name of a detail. It may be qualified by a report-name",
+    /// with no restriction to the current report. §1985:XIII.3.19.3 SR2 requires a detail "described in the same report as
+    /// the control footing report group in which the SUM clause appears". The consumer is <c>ReportSectionBinder</c>'s UPON
+    /// phrase resolution.</summary>
+    SumUponSameReport = 49,
+    /// <summary>§2002:14.8.15.2 SR2 — "Report-name-1 may be used only if the referenced report description entry contains a
+    /// CONTROL clause", the one condition (§2023:14.9.16.3 SR2 the same). §1985:XIII.3.20.3 SR6 adds that when a GENERATE
+    /// report-name statement is specified the report description entry must include "no more than one detail report group".
+    /// The consumer is <c>ReportWriterBinder</c>'s GENERATE binding.</summary>
+    GenerateReportNameSingleDetail = 50,
+    /// <summary>§2002:F.2 item 108 — "Index-names may be qualified in the same manner as data and condition-names, even in
+    /// cases where uniqueness of reference may already be established", so from 2002 two tables may each declare one
+    /// spelling and a reference that does not tell them apart is the ambiguity of §2023:8.4.2.2.3 SR1. §1985:VI.5.8.3 SR14:
+    /// "Index-name-1 must be a unique word within the program", a rule of the declaration. The consumer is
+    /// <c>DataBinder.ScreenIndexNameUniqueness</c>.</summary>
+    IndexNameQualification = 51,
+    /// <summary>§2002:13.16.10.2 SR1 — "If integer-1 is specified, integer-2 shall be greater than integer-1"
+    /// (§2023:13.18.10.3 SR1 the same). The 1985 BLOCK CONTAINS clause has no syntax rules (§1985:VII.3.3) and says only
+    /// that the two integers "refer to the minimum and maximum size of the physical record, respectively" (§1985:VII.3.3.3
+    /// GR4), so at <c>--std 85</c> equal bounds translate (kb/Work PB5115). The consumer is <c>FileControlBinder</c>'s
+    /// BLOCK CONTAINS binding.</summary>
+    BlockContainsRangeOrdered = 52,
+    /// <summary>§2002:8.8.4.1.1 — "A relation condition shall contain at least one reference to an operand that is not a
+    /// literal", and the 2002 sign condition (§2002:8.8.4.1.6) states no such sentence. COBOL-85 asks a variable of both:
+    /// "The relation condition must contain at least one reference to a variable" (§1985:VI.6.3.1.1) and
+    /// "Arithmetic-expression-1 must contain at least one reference to a variable" (§1985:VI.6.3.1.5), so <c>IF 2 * 2 =
+    /// 4</c> and <c>IF 1 + 1 IS POSITIVE</c> are outside the 1985 text (kb/Work PB5826; the warning severity is
+    /// D-RELLITERAL's). The consumers are <c>StatementValidation.CheckRelationHasNonLiteralOperand</c> and
+    /// <c>StatementValidation.CheckSignConditionHasVariable</c>.</summary>
+    RelationOperandNotALiteral = 53,
+    /// <summary>§2002:F.1 item 17 records the change: "In the previous COBOL standard, the value obtained for the remainder
+    /// when the dividend and divisor have different signs differs depending on whether the receiving operand for the
+    /// quotient is" signed; from 2002 the subsidiary quotient is signed (§2002:14.8.11.3 GR6, §2023:14.9.12.4 GR6c).
+    /// §1985:VI.6.11.4 GR6 forms the remainder from "an intermediate field ... which contains the same number of digits,
+    /// the same decimal point location, and the same presence or absence of a sign as the quotient", so <c>DIVIDE -11 BY 3
+    /// GIVING Q REMAINDER R</c> with an unsigned Q gives -20 at <c>--std 85</c> (kb/Work PB5182). The consumer is
+    /// <c>ArithmeticEmitter.UnsignedSubsidiary</c>.</summary>
+    DivideRemainderSignedSubsidiary = 54,
+    /// <summary>§2002:13.16.41.3 GR14b — "If a RELEASE statement is being executed, the EC-SORT-MERGE-RELEASE exception
+    /// condition is set to exist and the execution of the RELEASE statement is unsuccessful" (§2023:13.18.43.4 GR14b the
+    /// same); with the checking off the result is undefined (§2023:14.6.13.1.1) and the record is released (D-SMA (c)).
+    /// COBOL-85 has no exception checking and states the outcome: "the output statement is unsuccessful and, except during
+    /// execution of a RELEASE statement, the associated I-O status is set" (§1985:VII.3.8.4 GR10; kb/Work PB5124). The
+    /// consumer is <c>SortBinder</c>'s RELEASE binding (<c>BoundRelease.RangeFailsStatement</c>).</summary>
+    ReleaseOutsideRecordRangeRaisesException = 55,
+    /// <summary>§2002:F.2 item 67 — "Data-names referenced in a data description entry need not be qualified when they are
+    /// defined in the same group as the subject of the entry" (§2023:8.4.2.2.1 SR5 the rule). §1985:IV.4.3.8.1 SR3 excepts
+    /// only "the case of redefinition": every other explicitly referenced name must be unique by qualification, so below
+    /// 2002 the whole scope's candidates of an OCCURS DEPENDING ON, KEY or RENAMES operand are counted (kb/Work PB5165).
+    /// The consumer is <c>SymbolTable.ClauseOperandsTakeImplicitQualifiers</c>.</summary>
+    EntryClauseImplicitQualifiers = 56,
+    /// <summary>From 2002 the INSPECT size rules are general rules whose violation is the run-time EC-RANGE-INSPECT-SIZE
+    /// condition (§2002:14.5.12.1.5, "Size of replace items in INSPECT differs"; §2023:14.9.22.4 GR14, GR15 and GR22), so
+    /// only literals are asked at compile time. §1985:VI.6.18.3 SR7, SR8 and SR9 state them as syntax rules: the size of
+    /// the replacing operand "must be equal to the size of literal-1 or the data item referenced by identifier-3", so at
+    /// <c>--std 85</c> a mis-sized identifier is refused (kb/Work PB5103). The consumer is
+    /// <c>StatementValidation.InspectSizeRulesCoverDataItems</c>.</summary>
+    InspectSizeRulesAreGeneralRules = 57,
+    /// <summary>§2002:8.8.4.1.1 — a group in a relation "shall be treated as an elementary alphanumeric data item", so the
+    /// elementary rule applies and a signed numeric operand is compared without its operational sign (§2023:8.8.4.2.5).
+    /// §1985:VI.6.3.1.1.2 GR2 moves the numeric operand "to a group item of the same size", a move "exactly as if it were
+    /// an alphanumeric to alphanumeric elementary move, except that there is no conversion of data" (§1985:VI.6.19.4 GR3),
+    /// so its own character image, a SEPARATE sign included, is compared (kb/Work PB5106). The consumer is
+    /// <c>ConditionRenderer.DropsOperationalSign</c>.</summary>
+    GroupComparisonIsElementaryAlphanumeric = 58,
+    /// <summary>§2002:8.8.4.1.1.3 — when native arithmetic is in effect "the comparison proceeds by the rules of native
+    /// arithmetic" (§2023:8.8.4.2.4 the same). §1985:VI.6.3.1.1.1 knows only that "a comparison is made with respect to the
+    /// algebraic value of the operands", so at <c>--std 85</c> a float operand lifts to its exact value and compares
+    /// decimally (kb/Work PB5835). The consumer is <c>ConditionRenderer</c>'s numeric relation.</summary>
+    NativeArithmeticComparison = 59,
+    /// <summary>§2014:12.3.6.2 SR19 — "If literal-7 is an alphanumeric or national literal in hexadecimal format, the
+    /// PICTURE SYMBOL phrase shall be present in the CURRENCY SIGN clause", and its NOTE exempts such a literal from the
+    /// character limits ("Literals in hexadecimal format specified as literal-7 represent characters from the computer's
+    /// runtime coded character set"); SR26 says of literal-8: "It shall be neither a figurative constant nor a hexadecimal
+    /// literal". COBOL-2002 names no hexadecimal form: "Literal-7 shall be an alphanumeric or national literal that is not
+    /// a figurative constant" (§2002:12.2.6.2 SR18), and "Literal-8 shall be an alphanumeric literal consisting of a single
+    /// character. It shall not be a figurative constant" (§2002:12.2.6.2 SR22), so below 2014 a hexadecimal literal's
+    /// decoded characters are checked like any other's (kb/Work PB5595). The consumers are <c>SpecialNamesBinder</c>'s
+    /// CURRENCY SIGN binding (the literal-8 screen, the PICTURE SYMBOL requirement and the character exemption).</summary>
+    CurrencyHexadecimalLiteralRules = 60,
 }
 
 /// <summary>
@@ -434,7 +616,7 @@ public static class DialectBehaviors
             "a file connector's sharing mode restricts other connectors, and Table 19 arbitrates every OPEN with '61', "
             + "only from COBOL-2002; at COBOL-85 the facility is not in effect and no connector restricts another"),
         new(DialectBehavior.PerformVaryingInitInnerBeforeAugmentOuter, "perform-varying-after-init-inner-first", 2002,
-            "7.53", "14.9.28.4 GR13 e) 2", "§1985:VI.6.21.4 GR10 d) 1",
+            "7.53", "14.9.28.4 GR13 e) 2", "§1985:VI.6.21.4 GR10d 1",
             "a TEST BEFORE PERFORM VARYING ... AFTER step sets the inner variable to its initialization value before "
             + "augmenting the outer one only from COBOL-2002; COBOL-85 augments the outer variable first"),
         new(DialectBehavior.ControlFootingPageGroupsSeePriorControlValues, "control-footing-page-groups-see-prior-values", 2002,
@@ -479,7 +661,7 @@ public static class DialectBehaviors
             + "only from COBOL-2002; COBOL-85 bounds only the RECORD IS VARYING clause and the range only documents the "
             + "record sizes"),
         new(DialectBehavior.RelativeWriteKeyOutOfRangeIsPermanentError, "relative-write-key-out-of-range-permanent-error", 2014,
-            "7.64", "14.9.51.4 GR29 b)", "§2002:14.8.47.3 GR25 b)",
+            "7.64", "14.9.51.4 GR29 b)", "§2002:14.8.47.3 GR25b",
             "a random or dynamic WRITE of a relative file whose key is less than 1 or above the highest permitted record number "
             + "is a permanent error, I-O status 34, only from COBOL-2014; before it the same attempt is the invalid key "
             + "condition of a write beyond the file's boundaries, status 24"),
@@ -551,7 +733,7 @@ public static class DialectBehaviors
             + "at 0 until the CLOSE, only from COBOL-2002; at COBOL-85 the '90' is an unsuccessful statement, the file is not "
             + "open afterwards, and a WRITE answers '48' and a CLOSE '42'"),
         new(DialectBehavior.MoveSignIsTheValuesSign, "move-sign-is-the-values-sign", 2014,
-            "7.85", "§2014:14.9.24.3 GR6d2a", "§2002:14.8.24.3 GR4b1",
+            "7.85", "§2014:14.9.24.3 GR6d.2.a", "§2002:14.8.24.3 GR4b.1",
             "a signed numeric receiving item of a MOVE takes the sign of the value it stores, so a sender truncated to zero stores a "
             + "positive zero, only from COBOL-2014; COBOL-85 and COBOL-2002 place the sign of the sending operand, so MOVE -100 TO S99 "
             + "stores a negative zero"),
@@ -583,6 +765,118 @@ public static class DialectBehaviors
             "every report has a page width, the PAGE clause's integer-2 or 999, that bounds its COLUMN operands and the line its items "
             + "are placed in, only from COBOL-2002; COBOL-85 gives a report no page width, so an item may stand at any column and "
             + "the line is bounded only by the report file's record"),
+        new(DialectBehavior.SearchAllKeySubscriptSentences, "search-all-key-subscript-sentences", 2002,
+            "7.91", "§2002:14.8.34.2 SR6", "§1985:VI.6.22.3 SR4",
+            "a format 2 SEARCH ALL refuses a key whose first-index-name subscript is followed by a plus or a minus sign, and a condition-name "
+            + "not subscripted by the first index-name, only from COBOL-2002; COBOL-85 asks only that each key be subscripted by the "
+            + "first index-name along with other subscripts as required"),
+        new(DialectBehavior.ReportControlOperandUniqueness, "report-control-operand-uniqueness", 2002,
+            "7.92", "§2002:13.16.15.2 SR6", "§1985:XIII.3.7.3 SR2",
+            "the operands of a CONTROL clause are told apart by their written references only from COBOL-2002, which "
+            + "lets two operands refer to the same item; COBOL-85 requires each recurrence to identify a different data "
+            + "item"),
+        new(DialectBehavior.ReportVerticalIntegerLimit, "report-vertical-integer-limit", 2002,
+            "7.93", "§2002:13.16.37.2 SR5", "§1985:XIII.3.8.3 SR2",
+            "the PAGE, LINE and NEXT GROUP integers are bounded by the page limit or 9999 only from COBOL-2002; "
+            + "COBOL-85 bounds each to three significant digits"),
+        new(DialectBehavior.ReportCodeClauseOperand, "report-code-clause-operand", 2002,
+            "7.94", "§2002:13.16.12.2 SR1", "§1985:XIII.3.6.3 SR1",
+            "the CODE clause takes an alphanumeric literal of any length or an identifier only from COBOL-2002; "
+            + "COBOL-85 takes a two-character nonnumeric literal alone"),
+        new(DialectBehavior.ReportControlDataReferences, "report-control-data-references", 2002,
+            "7.95", "§2002:13.16.51.2 SR4", "§1985:XIII.3.20.3 SR5",
+            "a SOURCE clause or USE procedure of a footing, page heading or page footing may reference control data "
+            + "only from COBOL-2002; COBOL-85 forbids the groups, parts and names of control data items there"),
+        new(DialectBehavior.SumResetLevelOrder, "sum-reset-level-order", 2002,
+            "7.96", "§2002:13.16.52.2 SR7", "§1985:XIII.3.19.3 SR4",
+            "a control footing's RESET operand must be a higher level control than the footing's own only from "
+            + "COBOL-2002; COBOL-85 also admits the footing's own level"),
+        new(DialectBehavior.NextGroupNeedsLineNumber, "next-group-needs-line-number", 2002,
+            "7.97", "§2002:13.16.35.2 SR4", "§1985:XIII.3.16.3 SR1",
+            "a report group with no LINE clause may carry a NEXT GROUP clause only from COBOL-2002; COBOL-85 requires "
+            + "at least one LINE NUMBER clause in its description"),
+        new(DialectBehavior.ReportGroupPageFitAtCompileTime, "report-group-page-fit-at-compile-time", 2002,
+            "7.98", "§2002:13.16.33.3 GR2", "§1985:XIII.3.8.3 SR9",
+            "a body group whose relative lines cannot fit between FIRST DETAIL and its limit is a run-time condition "
+            + "only from COBOL-2002; COBOL-85 refuses its description"),
+        new(DialectBehavior.ReportGroupVerticalLimits, "report-group-vertical-limits", 2002,
+            "7.99", "§2002:13.16.55.3 GR8", "§1985:XIII.3.10.6 GR2a",
+            "a heading or footing group's vertical limits are TYPE clause GR8's only from COBOL-2002 (a report "
+            + "heading ends before the page heading's first line); COBOL-85 gives each group type its printed limit (a "
+            + "report heading ends before FIRST DETAIL)"),
+        new(DialectBehavior.PageFootingFirstLineAbsolute, "page-footing-first-line-absolute", 2002,
+            "7.100", "§2002:13.16.33.3 GR5", "§1985:XIII.3.15.3 SR9",
+            "a page footing's first LINE clause may be relative, placed from the FOOTING integer, only from "
+            + "COBOL-2002; COBOL-85 requires it to be absolute"),
+        new(DialectBehavior.SumOnlyInControlFooting, "sum-only-in-control-footing", 2002,
+            "7.101", "§2002:13.16.52.2 SR3", "§1985:XIII.3.19.3 SR3",
+            "a SUM clause may stand in a detail, a control footing or a report footing only from COBOL-2002; COBOL-85 "
+            + "admits it in a control footing alone"),
+        new(DialectBehavior.ReportEntryClauseRules, "report-entry-clause-rules", 2002,
+            "7.102", "§2002:13.13.2 SR10", "§1985:XIII.3.9.3 SR11",
+            "a report group description entry is screened by its own syntax rules (a COLUMN clause with SOURCE, VALUE "
+            + "or SUM; VALUE, JUSTIFIED and BLANK WHEN ZERO with COLUMN) only from COBOL-2002; COBOL-85 screens it by "
+            + "the three entry formats and Table 1's permissible clause combinations"),
+        new(DialectBehavior.SumCounterAlphanumericCap, "sum-counter-alphanumeric-cap", 2002,
+            "7.103", "§2002:13.16.52.3 GR1", "§1985:XIII.3.19.4 GR1c",
+            "the sum counter of an alphanumeric SUM entry has a digit per character position, uncapped, only from "
+            + "COBOL-2002; COBOL-85 caps it at 18 characters"),
+        new(DialectBehavior.GroupIndicateAsPresentWhen, "group-indicate-as-present-when", 2002,
+            "7.104", "§2002:13.16.26.3 GR1", "§1985:XIII.3.11.3 SR2",
+            "a GROUP INDICATE entry stands as a PRESENT WHEN clause, so it may share columns with another item of its "
+            + "line, only from COBOL-2002; COBOL-85 has no PRESENT WHEN and every printable item of a line occupies its "
+            + "own positions"),
+        new(DialectBehavior.SumUponSameReport, "sum-upon-same-report", 2002,
+            "7.105", "§2002:13.16.52.2 SR6", "§1985:XIII.3.19.3 SR2",
+            "the UPON phrase may name a detail of another report only from COBOL-2002, where data-name-2 may be "
+            + "qualified by a report-name; COBOL-85 requires a detail of the control footing's own report"),
+        new(DialectBehavior.GenerateReportNameSingleDetail, "generate-report-name-single-detail", 2002,
+            "7.106", "§2002:14.8.15.2 SR2", "§1985:XIII.3.20.3 SR6",
+            "GENERATE report-name needs only a CONTROL clause from COBOL-2002; COBOL-85 also requires the report to "
+            + "hold no more than one detail report group"),
+        new(DialectBehavior.IndexNameQualification, "index-name-qualification", 2002,
+            "7.107", "§2002:F.2 item 108", "§1985:VI.5.8.3 SR14",
+            "an index-name may be qualified, so two tables may declare one spelling, only from COBOL-2002; COBOL-85 "
+            + "requires each index-name to be a unique word within the program"),
+        new(DialectBehavior.BlockContainsRangeOrdered, "block-contains-range-ordered", 2002,
+            "7.108", "§2002:13.16.10.2 SR1", "§1985:VII.3.3.3 GR4",
+            "a BLOCK CONTAINS integer-1 TO integer-2 whose integer-2 is not greater than integer-1 is refused only "
+            + "from COBOL-2002; the COBOL-85 clause has no syntax rules and equal bounds are legal"),
+        new(DialectBehavior.RelationOperandNotALiteral, "relation-operand-not-a-literal", 2002,
+            "7.109", "§2002:8.8.4.1.1", "§1985:VI.6.3.1.1",
+            "a relation condition needs an operand that is not a literal, and a sign condition needs nothing, only "
+            + "from COBOL-2002; COBOL-85 requires a reference to a variable in each, so an expression of literals alone "
+            + "draws the warning"),
+        new(DialectBehavior.DivideRemainderSignedSubsidiary, "divide-remainder-signed-subsidiary", 2002,
+            "7.110", "§2002:F.1 item 17", "§1985:VI.6.11.4 GR6",
+            "the remainder of a DIVIDE is formed from a signed subsidiary quotient only from COBOL-2002; COBOL-85 "
+            + "gives the subsidiary quotient identifier-3's presence or absence of a sign"),
+        new(DialectBehavior.ReleaseOutsideRecordRangeRaisesException, "release-outside-record-range-raises-exception", 2002,
+            "7.111", "§2002:13.16.41.3 GR14b", "§1985:VII.3.8.4 GR10",
+            "a RELEASE of a record outside the RECORD clause's range raises EC-SORT-MERGE-RELEASE, the record "
+            + "released when checking is off, only from COBOL-2002; COBOL-85 makes the statement unsuccessful"),
+        new(DialectBehavior.EntryClauseImplicitQualifiers, "entry-clause-implicit-qualifiers", 2002,
+            "7.112", "§2002:F.2 item 67", "§1985:IV.4.3.8.1 SR3",
+            "a name referenced in a data description entry clause takes the groups above the entry's subject as "
+            + "implicit qualifiers only from COBOL-2002; COBOL-85 counts every candidate of the scope"),
+        new(DialectBehavior.InspectSizeRulesAreGeneralRules, "inspect-size-rules-are-general-rules", 2002,
+            "7.113", "§2023:14.9.22.4 GR14", "§1985:VI.6.18.3 SR7",
+            "INSPECT's equal-size rules over identifiers are general rules raising EC-RANGE-INSPECT-SIZE only from "
+            + "COBOL-2002; COBOL-85 states them as syntax rules over data items"),
+        new(DialectBehavior.GroupComparisonIsElementaryAlphanumeric, "group-comparison-is-elementary-alphanumeric", 2002,
+            "7.114", "§2002:8.8.4.1.1", "§1985:VI.6.3.1.1.2 GR2",
+            "a numeric operand compared with a group is compared by the elementary rule, without its operational "
+            + "sign, only from COBOL-2002; COBOL-85 moves it to a group item of the same size, its sign character "
+            + "included"),
+        new(DialectBehavior.NativeArithmeticComparison, "native-arithmetic-comparison", 2002,
+            "7.115", "§2002:8.8.4.1.1.3", "§1985:VI.6.3.1.1.1",
+            "a floating-point operand under native arithmetic is compared by the rules of native arithmetic only from "
+            + "COBOL-2002; COBOL-85 compares the algebraic values"),
+        new(DialectBehavior.CurrencyHexadecimalLiteralRules, "currency-hexadecimal-literal-rules", 2014,
+            "7.116", "§2014:12.3.6.2 SR19", "§2002:12.2.6.2 SR18",
+            "a hexadecimal currency literal-7 requires the PICTURE SYMBOL phrase and is exempt from the currency "
+            + "string's character limits, and literal-8 may not be hexadecimal, only from COBOL-2014; COBOL-2002 asks "
+            + "an alphanumeric literal that is no figurative constant and checks its characters whatever its form"),
     ];
 
     static DialectBehaviors()

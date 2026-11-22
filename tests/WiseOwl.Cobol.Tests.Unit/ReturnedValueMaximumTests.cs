@@ -35,7 +35,7 @@ public sealed class ReturnedValueMaximumTests
     }
 
     /// <summary>One position past the maximum is §2023:15.4's EC-ARGUMENT-FUNCTION and row DOC-A.1-93's zero-length value,
-    /// answered before the value is allocated (a boolean item of argument-2 positions, §2023:15.13.4 r1).</summary>
+    /// answered before the value is allocated (a boolean item of argument-2 positions, §2023:15.13.4 RV1).</summary>
     [Fact]
     public void OnePastTheMaximum_IsTheZeroLengthValue()
     {

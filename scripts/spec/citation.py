@@ -22,7 +22,9 @@ THE FORMAT (owner 2026-11-06; the edition is MANDATORY):
 | `1989`  | ANSI X3.23a-1989 (the amendment) | Section A's paragraph `A.2.2`, or a printed page `p.A-20`              | its Amendment 1 in `specs/ANSI_COBOL_1985.md` |
 | `1993`  | ANSI X3.23b-1993 (the amendment) | a printed page `p.B-16` (a table of changes: no paragraph of its own)  | its Amendment 2 in `specs/ANSI_COBOL_1985.md` |
 
-- **Rule** (optional, after ONE space): `SR n` | `GR n` | `AR n` | `RV n` | `Format n` | `Table n` (`RULE_KINDS`). A syntax or general rule is written
+- **Rule** (optional, after ONE space): `SR n` | `GR n` | `AR n` | `RV n` | `Format n` | `Table n` (`RULE_KINDS`), a unit
+  of unnumbered text `p<n>` | `Table <t> row <r>`, or a numbered list item no rule designator names `item <n>` |
+  `item L<m>.<n>` (`ITEM_DESIGNATOR`, its sub-item path glued: `item 3c`). A syntax or general rule is written
   glued (`GR1`, `SR17`), and its sub-item path is glued after the number as the repository has always written it
   (`GR6d.2`, `SR3b`). `render` writes the glued form; `parse` also reads `GR 1`. A rule of a numbered list that restarts
   inside its block names its list: `GRL2.1` is rule 1 of the block's second list (`rule_designator`; the catalog's id
@@ -129,10 +131,16 @@ NUMBERED_RULE = re.compile(rf"({'|'.join(RULE_KINDS)}) ?(\d+)")
 SUBLIST_RULE = re.compile(rf"({'|'.join(RULE_KINDS)}) ?L(\d+)\.(\d+)")
 #: A UNIT OF UNNUMBERED TEXT (kb/Work PB5449, decision PB5448 point 5) is cited by its own designator: a margin paragraph
 #: `p<n>` (`§2023:8.4.2.1 p3`), a body row of a table `Table <t> row <r>` (`§2023:14.5.1 Table 12 row 2`, written before
-#: `Table <t>`, the whole table, so a scan takes the longer form). A numbered item of a prose clause has no designator
-#: yet: the tree writes `item <n>` for it and for other lists alike (`§2023:5.4 item 2` names no printed item), so the
-#: form waits until those citations are re-pointed (kb/Work PB5449's report).
+#: `Table <t>`, the whole table, so a scan takes the longer form).
 UNIT_RULE = r"p\d+|Table \d+ row \d+"
+#: A NUMBERED ITEM OF A LIST THE CLAUSE PRINTS that no rule designator names (kb/Work PB5449 item 4): `item <n>`, the
+#: item of a later list `item L<m>.<n>` (as `GRL2.1` names a restarted rule list; decision PB5448's `L<m>.<n>` labels),
+#: then the glued sub-item path of the numbered rule's grammar (`item 3c`, `item L2.3c`, `item 4d.2`). It names an
+#: item the catalog holds as no rule: an appendix's list's (`§1985:C.2 item 48`), an item unit with no row (the
+#: glossary's `§1985:III.2 item 3`, disposed `restates`), a list on a printed page's (`§1985:p.XVII-94 item 14`). An item the
+#: catalog holds as a numbered rule (a rule block's, or an item row minted as one, `§1985:VI.6.4.4 SR2`) is cited by
+#: that rule's designator, ONE spelling per printed thing: `cite.resolve` refuses `item <n>` there and names the rule.
+ITEM_DESIGNATOR = r"item (?:L(?P<ilist>\d+)\.)?(?P<item>\d+)(?P<ipath>(?:\.?(?:[a-z]|\d+))*)"
 #: ⛔ THE ONE GRAMMAR OF A NUMBERED RULE DESIGNATOR (kb/Work PB5446): its kind, then the restarted list it names
 #: (`GRL2.4`) or its ordinal (`GR6`), then its glued SUB-ITEM PATH, letters and numbers, each optionally after a `.`
 #: (`GR6c`, `GR6d.2`, `GR3a1`, `GRL2.4d.1`). A path that opens with a number takes its `.` (`GR6.1`, never `GR61`;
@@ -150,7 +158,7 @@ def _unnamed(pattern: str) -> str:
     return re.sub(r"\(\?P<\w+>", "(?:", pattern)
 
 
-RULE = rf"(?:{_unnamed(NUMBERED_DESIGNATOR)}|Format \d+|{UNIT_RULE}|Table \d+)"
+RULE = rf"(?:{_unnamed(NUMBERED_DESIGNATOR)}|Format \d+|{UNIT_RULE}|{_unnamed(ITEM_DESIGNATOR)}|Table \d+)"
 _RULE = re.compile(RULE + r"\Z")
 
 #: THE ONE CITATION PATTERN. `edition`/`locator` are the edition form (the locator read loosely here, and per edition
@@ -167,16 +175,24 @@ _SCAN = re.compile(PATTERN + r"(?: (?P<rule>" + RULE + r"))?")
 #: A sub-item path written spaced after a numbered rule, the way the standard PRINTS its labels. The levels ALTERNATE:
 #: a rule's items are lettered (`b)`), theirs numbered (`2.`, the tree also writes `2)`), theirs lettered (`b.`); so a
 #: path opens with a letter, and a label of the same kind as the one before it is a SIBLING (`a) b)`: items a and b),
-#: never a level, as a number right after a rule (`37) 39)`) is another rule.
-SPACED_PATH = re.compile(r" [a-z]\)(?: \d{1,2}(?:\)|\.(?=[\s)]))(?: [a-z](?:\)|\.(?=[\s)])))?)?")
+#: never a level, as a number right after a rule (`37) 39)`) is another rule. A level after the first is read with or
+#: without its space (`SR12 a)2.`, `GR22 d)2.a.`, kb/Work PB6035): read only with the space, the canonicalizer glued
+#: `SR12 a)` and left the `2.` attached, writing `SR12a2.`.
+SPACED_PATH = re.compile(r" [a-z]\)(?: ?\d{1,2}(?:\)|\.(?=[\s),;:a-z]|$))(?: ?[a-z](?:\)|\.(?=[\s),;:]|$)))?)?")
+#: A designator whose sub-item path glues a number straight after a letter (`SR12a2`, `GR22d2.a`): `cite.render_path`
+#: writes a `.` before every level after the first (`SR12a.2`), so this spelling is not canonical (kb/Work PB6035 (d)).
+GLUED_NUMBER = re.compile(rf"(?P<base>(?:{'|'.join(RULE_KINDS)})(?:L\d+\.)?\d+)(?P<path>[a-z]\d.*)\Z")
 #: What, right after a spaced path or a bare rule label, makes the spelling a LIST rather than one designator: another
 #: label of the same shape (`a) b)`, `37) 39)`) or a range or conjunction of them (`a)/c)`, `a)-c)`, `3) and 5)`).
 _LISTED = re.compile(r"(?: (?:and|or|to|through) |\s?[/,–-]\s?| )\(?(?:[a-z]|\d{1,2})\)"
                      r"|,? (?:and|or|to|through) \d|\s?[/–-]\s?\d|, \d{1,2}(?:[,;)]| (?:and|or)\b)")
 #: A rule or list item named in words, or by a bare printed label, after a citation that names no rule: `rule 2`,
-#: `rules 3`, `<x> phrase rule 1`, `item 1`, `item (1)`, a bare `1)`.
-LOOSE_RULE = re.compile(r" (?:(?P<item>items? \(?\d+\)?)|(?:[A-Za-z-]+ phrase )?rules? (?P<word>\d+)|(?P<label>\d{1,2})\))"
-                        r"(?![\w.])")
+#: `rules 3`, `<x> phrase rule 1`, `item 1`, `item (1)`, a bare `1)`; or the abbreviation `r<n>` with its glued
+#: sub-item path (`r3d`, `r4b.2`: kb/Work PB4976's `§2023:11.9.11.2 r3d`, some 3,300 sites the audit did not read). (citation-audit: example)
+LOOSE_RULE = re.compile(r" (?:items? \(?(?P<item>\d+)\)?|(?:[A-Za-z-]+ phrase )?rules? (?P<word>\d+)|(?P<label>\d{1,2})\)"
+                        r"|r(?P<abbr>\d+)(?P<abbrpath>(?:\.?(?:[a-z]|\d+))*))(?![\w.])")
+#: An item designator (ITEM_DESIGNATOR), its parts named.
+_ITEM = re.compile(ITEM_DESIGNATOR)
 
 
 @dataclasses.dataclass(frozen=True)
@@ -191,6 +207,9 @@ class Loose:
     path: tuple[str, ...]
     #: A list of designators follows (`a) b)`, `a)/c)`, `37) 39)`): one canonical form cannot say it (`_LISTED`).
     listed: bool = False
+    #: The ordinal names a list ITEM (`item (3)`, `items 9`), never a rule (`rule 3`): `cite.item_designator` says
+    #: what designates it.
+    item: bool = False
 
     def glued(self, designator: str) -> str:
         """The canonical citation: `designator` (the citation's own rule, or the one the ordinal names) with the path glued."""
@@ -200,24 +219,29 @@ class Loose:
 
 def loose_designator(text: str, c: Citation) -> Loose | None:
     """The designator in no form `scan` reads that follows the citation `c` found in `text`, else None: a spaced sub-item
-    path after a numbered rule (`GR3 c) 2)`, glued `GR3c.2`), or, after a citation that names no rule, a rule named in
-    words or by its bare printed label (`rule 2`, `2)`, then any spaced path) or a list item (`item 1`, whose designator
-    waits on kb/Work PB5449 item 4). Which kind of rule an ordinal is, is the rule catalog's to say (`cite.designator_of`)."""
+    path after a numbered rule or an item (`GR3 c) 2)`, glued `GR3c.2`; `item 3 c)`, glued `item 3c`), or, after a
+    citation that names no rule, a rule named in words or by its bare printed label (`rule 2`, `2)`, then any spaced
+    path) or a list item in a spelling the grammar does not read (`item (3)`, `items 9 and 10`). Which kind of rule an
+    ordinal is, is the rule catalog's to say (`cite.designator_of`), and what designates an item `cite.item_designator`."""
     if c.error or c.bare or c.edition is None:
         return None
     if c.rule:
-        if NUMBERED_RULE.match(c.rule) and (m := SPACED_PATH.match(text, c.end)):
+        if (g := GLUED_NUMBER.match(c.rule)) is not None:
+            return Loose(dataclasses.replace(c, rule=g["base"]), text[c.start:c.end], c.end, None,
+                         tuple(re.findall(r"[a-z]|\d+", g["path"])))
+        if (NUMBERED_RULE.match(c.rule) or _ITEM.match(c.rule)) and (m := SPACED_PATH.match(text, c.end)):
             return Loose(c, text[c.start:m.end()], m.end(), None, tuple(re.findall(r"[a-z]|\d+", m.group(0))),
                          _LISTED.match(text, m.end()) is not None)
         return None
     if (m := LOOSE_RULE.match(text, c.end)) is None:
         return None
-    end, path = m.end(), ()
-    if m["item"] is None and (p := SPACED_PATH.match(text, end)):
+    end, path = m.end(), tuple(re.findall(r"[a-z]|\d+", m["abbrpath"] or ""))
+    if not path and (p := SPACED_PATH.match(text, end)):
         end, path = p.end(), tuple(re.findall(r"[a-z]|\d+", p.group(0)))
-    ordinal = None if m["item"] is not None else int(m["word"] or m["label"])
-    plural = re.match(r" (?:[A-Za-z-]+ phrase )?rules ", text[c.end:]) is not None   # `rules 3 and 5` names several
-    return Loose(c, text[c.start:end], end, ordinal, path, plural or _LISTED.match(text, end) is not None)
+    ordinal = int(m["item"] or m["word"] or m["label"] or m["abbr"])
+    plural = re.match(r" (?:items|(?:[A-Za-z-]+ phrase )?rules) ", text[c.end:]) is not None  # `rules 3 and 5`: several
+    return Loose(c, text[c.start:end], end, ordinal, path, plural or _LISTED.match(text, end) is not None,
+                 m["item"] is not None)
 
 
 #: A WHOLE citation, as `cite.py --check` takes it.
@@ -258,7 +282,8 @@ def _rule(raw: str | None) -> str | None:
     raw = raw.strip()
     if not _RULE.match(raw):
         raise CitationError(f"{raw!r} is not a rule designator: write SR n, GR n, AR n or RV n (its sub-item path "
-                            "glued: GR6d.2), Format n, Table n, or a unit of unnumbered text: p<n>, Table <t> row <r>")
+                            "glued: GR6d.2), Format n, Table n, a unit of unnumbered text: p<n>, Table <t> row <r>, or a list "
+                            "item: item <n>, item L<m>.<n> (its sub-item path glued: item 3c)")
     return (SUBLIST_RULE.sub(r"\1L\2.\3", raw, count=1) if SUBLIST_RULE.match(raw)
             else NUMBERED_RULE.sub(r"\1\2", raw, count=1))
 
@@ -774,6 +799,30 @@ def self_test() -> int:
         ("parses a glued rule path", parse("§2023:14.9.25.4 GR6d.2").rule == "GR6d.2"),
         ("parses Format n and Table n", parse("§2023:14.9.39 Format 4").rule == "Format 4"
          and parse("§2023:14.5.1 Table 12").rule == "Table 12"),
+        # kb/Work PB5449 item 4: a list item, of a later list, with its glued sub-item path; scanned in prose, its
+        # path stops at a word, and a spelling outside the grammar is a loose designator naming the item.
+        ("parses the item designator, its later list and its glued path",
+         parse("§1985:C.2 item 48").rule == "item 48" and parse("§1985:III.2 item L4.3").rule == "item L4.3"  # citation-audit: example
+         and parse("§1985:VIII.1.3.4 item L2.3c").rule == "item L2.3c" and parse("§2023:8.8 item 4d.2").rule == "item 4d.2"  # citation-audit: example
+         and raises("§1985:C.2 item", "not a rule designator") and raises("§1985:C.2 item (48)", "not a rule designator")),  # citation-audit: example
+        ("scans an item designator and stops at the next word",
+         [(c.locator, c.rule) for c in scan("see §1985:C.2 item 48 says, and §1985:B.2.2 item 45).")]
+         == [("C.2", "item 48"), ("B.2.2", "item 45")]),
+        ("an item in a spelling the grammar does not read is loose, naming the item (and a list of them is listed)",
+         (lz := loose_designator(t := "under §1985:VIII.1.3.4 item (3) c) here", next(scan(t)))) is not None  # citation-audit: example
+         and lz.item and lz.ordinal == 3 and lz.path == ("c",) and not lz.listed
+         and (lp := loose_designator(t2 := "§1985:C.2 items 60 and 61", next(scan(t2)))) is not None and lp.listed  # citation-audit: example
+         and (ls := loose_designator(t3 := "§1985:C.2 item 48 b) x", next(scan(t3)))) is not None and ls.path == ("b",)),  # citation-audit: example
+        # kb/Work PB6035 (a), (d): a spaced path's later level written without its space is still read, and a glued
+        # number straight after a letter is loose, its path the levels it names
+        ("a path level written without its space is read whole, and a number glued to a letter is loose",
+         (la := loose_designator(t4 := "(ISO §2023:14.9.39.3 SR12 a)2.)", next(scan(t4)))) is not None  # citation-audit: example
+         and la.path == ("a", "2") and la.glued("SR12") == "§2023:14.9.39.3 SR12a.2"
+         and (lb := loose_designator(t5 := "§2023:13.18.60.4 GR22 d)2.a. x", next(scan(t5)))) is not None  # citation-audit: example
+         and lb.path == ("d", "2", "a")
+         and (lg := loose_designator(t6 := "(§2023:14.9.39.3 SR12a2.)", next(scan(t6)))) is not None  # citation-audit: example
+         and lg.path == ("a", "2") and lg.glued(lg.cited.rule) == "§2023:14.9.39.3 SR12a.2"
+         and loose_designator(t7 := "(§2023:14.9.39.3 SR12a.2)", next(scan(t7))) is None),
         ("a restarted list's rule names its list, and GR L2.1 canonicalizes to GRL2.1 (kb/Work PB4969)",
          parse("§1985:IV.4.4.2 GRL2.1").rule == "GRL2.1" and render(parse("§1985:IV.4.4.2 GR L2.1")) == "§1985:IV.4.4.2 GRL2.1"
          and rule_designator("GR", 1) == "GR1" and rule_designator("SR", 3, 2) == "SRL2.3"

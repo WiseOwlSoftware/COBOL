@@ -21,9 +21,9 @@ namespace WiseOwl.Cobol.Runtime.IO;
 /// re-stamps only the keys it changed, each moved to the end of its duplicate set by a fresh ordinal; the ordinal is the
 /// trailing part of the alternate tree's entry key, so a tree's order IS its duplicate order and nothing is ever
 /// renumbered.</para>
-/// <para>⛔ THE FILE POSITION INDICATOR IS A KEY VALUE AND NOTHING ELSE (kb/Work PB342). §2023:14.9.41.4 GR17 e) 1. —
+/// <para>⛔ THE FILE POSITION INDICATOR IS A KEY VALUE AND NOTHING ELSE (kb/Work PB342). §2023:14.9.41.4 GR17e.1 —
 /// "The file position indicator is set to the value of the key of reference in the first logical record whose key
-/// satisfies the comparison" — and §2023:14.9.30.4 GR21 g)/GR32 say the same of a READ. The standard never puts a
+/// satisfies the comparison" — and §2023:14.9.30.4 GR21g/GR32 say the same of a READ. The standard never puts a
 /// duplicate POSITION in it, which is why §2023:14.9.30.4 GR21 rules e) and f) have to name "the record that was made
 /// available by that prior READ statement" instead of consulting it. This connector models exactly that: the FPI
 /// (<c>_fpiKey</c>) is the key value, and the prior READ's position within its set of duplicates
@@ -67,7 +67,7 @@ public sealed class IndexedConnector : KeyedConnector
     private const int PrimeKey = TreeChange.PrimeRoot;
 
     private int _refKey = PrimeKey;      // key of reference: PrimeKey, or i = i-th alternate (§2023:14.9.30.4 GR30/GR31)
-    private byte[] _fpiKey = [];         // THE file position indicator — a KEY VALUE (§2023:14.9.41.4 GR17e1; §2023:9.1.11)
+    private byte[] _fpiKey = [];         // THE file position indicator — a KEY VALUE (§2023:14.9.41.4 GR17e.1; §2023:9.1.11)
     private ulong _readOrdinal;          // NOT the FPI: the prior READ's record's release ordinal under the key of
                                          // reference — §2023:14.9.30.4 GR21 e)/f)'s "the record that was made available
                                          // by that prior READ statement" and its "logical position within the set
@@ -145,7 +145,7 @@ public sealed class IndexedConnector : KeyedConnector
     /// <inheritdoc/>
     protected override string DeclaredOrganization => FixedFileAttributes.Indexed;
 
-    /// <summary>§2023:14.9.6.4 GR2 d) — <i>"A file with organization other than sequential, that resides on a mass
+    /// <summary>§2023:14.9.6.4 GR2d — <i>"A file with organization other than sequential, that resides on a mass
     /// storage device."</i> The category is settled by the ORGANIZATION alone, so it needs no medium
     /// determination (kb/Work PB235).</summary>
     public override PhysicalFileCategory Category => PhysicalFileCategory.NonSequential;
@@ -423,18 +423,18 @@ public sealed class IndexedConnector : KeyedConnector
         duplicateFollows = false;
         // ⛔ WHICH RULE GOVERNS THIS WALK IS DECIDED BY THE PREVIOUS OPERATION, NOT BY A STORED POSITION
         // (kb/Work PB342). §2023:14.9.30.4 GR21 rule d) applies when the previous operation was an OPEN or a START:
-        // the FPI then holds a KEY VALUE and nothing else (§2023:14.9.41.4 GR17 e) 1.), so the comparison is on the
+        // the FPI then holds a KEY VALUE and nothing else (§2023:14.9.41.4 GR17e.1), so the comparison is on the
         // key ALONE and a duplicate set is entered at the end §2023:14.9.30.4 GR26 names for the direction —
         // first-released going forward, last-released going backward: a seek on the KEY PART of the entries. Rules
         // e)/f) apply when it was a READ: only then is there a "record that was made available by that prior READ
         // statement" whose "logical position within the set of duplicates" the walk resumes strictly after (or
         // before): a seek on the whole entry, the key and its ordinal.
-        // ⛔ §2023:14.9.30.4 GR21 d) 3 — "If no such record is found or PREVIOUS is specified and the previous
+        // ⛔ §2023:14.9.30.4 GR21d 3 — "If no such record is found or PREVIOUS is specified and the previous
         // operation on the file was an OPEN statement, the at end condition exists". THAT SENTENCE IS THE 2023
         // RULE, and Annex E.2 item 22 is the informative record that 2023 AMENDED it ("READ PREVIOUS statement
         // following an OPEN statement. Ensure that an at end condition occurs"). The prior text is held now
         // (kb/Work PB5639, which overturned kb/Work PB344's derivation from the annex alone): at 2002 and 2014 the
-        // after-OPEN PREVIOUS is the ordinary comparison — §2002:14.8.29.3 GR18c2 / §2014:14.9.29.3 GR19c2 —
+        // after-OPEN PREVIOUS is the ordinary comparison — §2002:14.8.29.3 GR18c.2 / §2014:14.9.29.3 GR19c.2 —
         // "the first existing record in the physical file whose record number or key value is less than or equal to
         // the file position indicator", and OPEN set that indicator to "the characters that have the lowest ordinal
         // position in the collating sequence associated with the file" (§2002:14.8.26.3 GR12, §2014:14.9.26.3 GR12). Only a record whose
@@ -455,7 +455,7 @@ public sealed class IndexedConnector : KeyedConnector
             status = _st.Edge(_refKey, _orders, last: false, out cursor);
         else if (afterOpenPrevious)
         {
-            // §2002:14.8.29.3 GR18c2 with §2002:14.8.26.3 GR12: the FPI is the lowest-ordinal key, and PREVIOUS
+            // §2002:14.8.29.3 GR18c.2 with §2002:14.8.26.3 GR12: the FPI is the lowest-ordinal key, and PREVIOUS
             // selects the last record whose key is less than or equal to it. A value holding a character with no byte
             // image has no stored key to equal, so no record qualifies.
             if (LowestKey() is not { } lowest) return StoreStatus.Ok;
@@ -544,7 +544,7 @@ public sealed class IndexedConnector : KeyedConnector
         if (SequentialReadGuard() is { } pre) return Unsuccessful(pre);   // '47'/'46'/'10' — FileConnector
         if (!FpiValid) return Unsuccessful(FileStatusCode.NoValidNextRecord);   // '46' §2023:9.1.13.7 6a (failed START)
         if (SelectSequentialRecord(previous, lookAhead: true, out var selected, out bool duplicate) != StoreStatus.Ok)
-            return Unsuccessful(FileStatusCode.PermanentError);              // a torn page: '30' §2023:9.1.13.6 item 1
+            return Unsuccessful(FileStatusCode.PermanentError);              // a torn page: '30' §2023:9.1.13.6 GR1
         if (selected is not { } found) return Unsuccessful(FileStatusCode.AtEnd);   // §2023:14.9.30.4 GR24b
         _fpiKey = found.KeyPart;                                           // GR21 rule g — a KEY VALUE
         _readOrdinal = found.Ordinal;                                      // GR21 e)/f) — where in its set of duplicates
@@ -569,7 +569,7 @@ public sealed class IndexedConnector : KeyedConnector
         if (RandomReadAbsentOptionalGuard() is { } absent) return Unsuccessful(absent);  // '23' §2023:9.1.13.5 3 b)
         byte[]? value = KeyBytes(AreaKey(keyedRecordImage, areaExtents, keyIndex));
         if (FindRandom(keyIndex, value, out var selected) != StoreStatus.Ok)   // §2023:14.9.30.4 GR32 + §2023:12.4.5.6.4 GR6 — the ONE copy
-            return Unsuccessful(FileStatusCode.PermanentError);            // a torn page: '30' §2023:9.1.13.6 item 1
+            return Unsuccessful(FileStatusCode.PermanentError);            // a torn page: '30' §2023:9.1.13.6 GR1
         if (selected is not { } found) return Unsuccessful(FileStatusCode.RecordNotFound);   // '23' GR32
         // §1985:IX.1.3.4 GRL2.1 — '02' for ANY READ whose key of reference equals the same key in the next record, so a random
         // READ of an alternate key's duplicate set answers it at COBOL-85; from 2002 only the sequential READ does
@@ -579,7 +579,7 @@ public sealed class IndexedConnector : KeyedConnector
         bool duplicateFollows = false;
         if (keyIndex >= 0 && !DialectBehaviors.IsActive(DialectBehavior.IndexedDuplicateKeyStatusSequentialOnly, Edition)
             && NextRecordDuplicatesKey(keyIndex, found, out duplicateFollows) != StoreStatus.Ok)
-            return Unsuccessful(FileStatusCode.PermanentError);            // a torn page: '30' §2023:9.1.13.6 item 1
+            return Unsuccessful(FileStatusCode.PermanentError);            // a torn page: '30' §2023:9.1.13.6 GR1
         // GR32 sets the FPI "to the value in the key of reference" — the key VALUE the program supplied; the
         // duplicate-set position of the record made available is separate state (GR21 e)/f), kb/Work PB342).
         _fpiKey = value!; _readOrdinal = found.Ordinal; FpiValid = true; _positioner = 'R';
@@ -618,7 +618,7 @@ public sealed class IndexedConnector : KeyedConnector
 
     /// <summary>Whether a record other than the one whose prime key is <paramref name="self"/> (null: any record) has
     /// <paramref name="value"/> under alternate key <paramref name="keyIndex"/> — the uniqueness test of §2023:14.9.51.4
-    /// GR40/GR42 c) and §2023:14.9.35.4 GR25 c), a seek on the key part (§2023:12.4.5.12.4 GR1: equality under the key's
+    /// GR40/GR42 c) and §2023:14.9.35.4 GR25c, a seek on the key part (§2023:12.4.5.12.4 GR1: equality under the key's
     /// collating sequence). A key the file has no tree for has no access path to test.</summary>
     private StoreStatus Duplicates(int keyIndex, byte[] value, byte[]? self, out bool exists)
     {
@@ -640,7 +640,7 @@ public sealed class IndexedConnector : KeyedConnector
     /// the key's SUPPRESS WHEN value — §2023:12.4.5.6.4 GR6: <i>"an alternate record key access path to a particular record
     /// shall not be provided when the value of data-name-1 or record-key-name-1 in that record is equal to literal-1"</i>,
     /// so the record has no entry in the key's tree and, under that key of reference, <i>"is not considered to exist"</i>
-    /// (§2023:14.9.30.4 GR21 c)) for READ and START. The comparison is the §2023:14.9.51.4 GR35
+    /// (§2023:14.9.30.4 GR21c) for READ and START. The comparison is the §2023:14.9.51.4 GR35
     /// relation condition under this key's collating sequence; the registered value is already the key's own image (a
     /// figurative or ALL literal repeated to the key's size, a shorter literal space-extended, a national value in national
     /// spaces — <c>FileControlBinder.KeySuppressionOf</c>, kb/Work PB1072), because only the compiler knows the literal's form
@@ -661,8 +661,8 @@ public sealed class IndexedConnector : KeyedConnector
     /// (GR40/GR42c); a permitted duplicate alternate succeeds with '02' (§2023:9.1.13.2 2c). The released record takes
     /// the next release ordinal under EVERY key at once, so sequential retrieval order is the actual write order
     /// (GR40). A record whose pages would take the store past the boundary of the physical file → '24' (GR42 d),
-    /// 2.2.1.9); a medium that refuses the statement's pages → '30' (§2023:9.1.13.6 item 1), the file as the previous statement
-    /// left it. Open-mode legality per §2023:9.1.13.7 item 8.</summary>
+    /// 2.2.1.9); a medium that refuses the statement's pages → '30' (§2023:9.1.13.6 GR1), the file as the previous statement
+    /// left it. Open-mode legality per §2023:9.1.13.7 GR8.</summary>
     /// <param name="extents">The record's EXTENT TABLE when a variable-length group record is written
     /// (determination D-FRA (v); kb/Work PB1053): stored with it, and what locates a key the record's
     /// variable-length members precede.</param>
@@ -724,7 +724,7 @@ public sealed class IndexedConnector : KeyedConnector
         var released = _st.Release(Entered, _orders, prime,
             ordinal => FrameOf(framed, ReleaseOrdinals(ordinal)), alternates, out bool done,
             TransactionFor(prime, beforeImage: null));
-        if (RecordWriteFailed(released) is { } refused) return Status = refused;   // '24' §2023:14.9.51.4 GR42 d) / '30' §2023:9.1.13.6 1)
+        if (RecordWriteFailed(released) is { } refused) return Status = refused;   // '24' §2023:14.9.51.4 GR42d / '30' §2023:9.1.13.6 GR1
         if (!done) return Status = FileStatusCode.DuplicateKey;            // '22' — the tree declined (GR42 b))
         if (sequentialRelease) _lastWrittenPrime = prime;   // GR38's running "highest … written" — sequential access only
         _lastWrittenPrimeId = prime;   // §2023:9.1.16 lock identity of the record just released (§2023:14.9.51.4 GR11)
@@ -746,7 +746,7 @@ public sealed class IndexedConnector : KeyedConnector
     /// record → '22' (GR25c); a CHANGED alternate key — and ONLY a changed one, GR24 a) — repositions the record
     /// LAST in that key's duplicate set (GR24 b: it takes a fresh release ordinal under that key alone); a
     /// duplicate key value CREATED under a permitted-duplicates alternate → '02' (§2023:9.1.13.2 2 c). A replacing record whose
-    /// pages would take the store past the boundary of the physical file → '24' (§2023:9.1.13.5 item 4); a medium that refuses
+    /// pages would take the store past the boundary of the physical file → '24' (§2023:9.1.13.5 GR4); a medium that refuses
     /// them → '30'.</summary>
     /// <param name="extents">The replacing record's EXTENT TABLE (D-FRA (v); kb/Work PB1053), replaced with it.</param>
     public string Rewrite(string image, int length = -1, RecordExtents? extents = null)
@@ -804,7 +804,7 @@ public sealed class IndexedConnector : KeyedConnector
             return Status = locked;   // '51
         if (reevaluate) return Rewrite(originalImage, length, originalExtents);   // against the file a rollback restored
         if (RefusedAtCommit() is { } lockRefused) return Status = lockRefused;   // '54' / '53': the lock request is the last check (kb/Work PB2848)
-        // §2023:14.9.35.4 GR24 a) — "When the value of a specific alternate record key is not changed, the order of
+        // §2023:14.9.35.4 GR24a — "When the value of a specific alternate record key is not changed, the order of
         // retrieval when that key is the key of reference remains unchanged" — so ONLY the keys this REWRITE
         // actually changed are re-stamped and moved; b) puts the record "last within the set of duplicate records" of
         // each of those, which one ordinal off the monotone mint does for all of them at once.
@@ -817,7 +817,7 @@ public sealed class IndexedConnector : KeyedConnector
         }, ordinals: moves.Count > 0 ? 1 : 0, moves, out bool done, TransactionFor(prime, frame,
             () => [.. moves.Select(m => UniqueValueHolding(m.Key, m.Old is null ? null : IndexedStore.Split(m.Old).KeyPart))
                 .OfType<byte[]>()]));
-        if (RecordWriteFailed(replaced) is { } refused) return Status = refused;   // '24' (§2023:9.1.13.5 4) / '30' (§2023:9.1.13.6 1)
+        if (RecordWriteFailed(replaced) is { } refused) return Status = refused;   // '24' (§2023:9.1.13.5 GR4) / '30' (§2023:9.1.13.6 GR1)
         if (!done) return Status = FileStatusCode.RecordNotFound;
         return RecordProcessed(Status = duplicateAlt ? FileStatusCode.DuplicateAlternateKey : FileStatusCode.Success);
     }
@@ -851,7 +851,7 @@ public sealed class IndexedConnector : KeyedConnector
         if (reevaluate) return Delete(keyedRecordImage, areaExtents);   // against the file a rollback restored
         var removed = _st.Remove(Entered, _orders, prime, entries, out bool done, TransactionFor(prime, frame,
             () => [.. entries.Select(e => UniqueValueHolding(e.Key, IndexedStore.Split(e.Entry).KeyPart)).OfType<byte[]>()]));
-        if (Failed(removed) is { } refused) return Status = refused;       // '30' §2023:9.1.13.6 item 1, the boundary too
+        if (Failed(removed) is { } refused) return Status = refused;       // '30' §2023:9.1.13.6 GR1, the boundary too
         return RecordProcessed(Status = done ? FileStatusCode.Success : FileStatusCode.RecordNotFound);
     }
 
@@ -865,7 +865,7 @@ public sealed class IndexedConnector : KeyedConnector
     /// reverse order (GR17 d)). Success establishes <paramref name="keyIndex"/> as the key of reference for subsequent
     /// sequential READs (GR16); failure invalidates the FPI and leaves the key of reference undefined (GR7).</summary>
     /// <param name="keyedRecordImage">⛔ THE RECORD AREA, NOT data-name-1's own content (kb/Work PB355).
-    /// §2023:14.9.41.4 GR17 a) — "The specified key is set up by moving the relevant parts of the record area into a
+    /// §2023:14.9.41.4 GR17a — "The specified key is set up by moving the relevant parts of the record area into a
     /// temporary data area" — names the record area as the SOURCE and GR16's key of reference as the key, so the
     /// first temporary area is <see cref="KeyOf"/> the area under <paramref name="keyIndex"/>, truncated to the
     /// GR17 b) length the caller passes as <paramref name="length"/>. That is the SAME extraction the
@@ -894,10 +894,10 @@ public sealed class IndexedConnector : KeyedConnector
             "<=" => SeekRelation.LessOrEqual,
             _ => throw new ArgumentException($"'{op}' is not a START relational operator", nameof(op)),
         };
-        // §2023:14.9.41.4 GR17 e) — the comparison is the file's collating sequence over operands of equal length: the key's
+        // §2023:14.9.41.4 GR17e — the comparison is the file's collating sequence over operands of equal length: the key's
         // order over the leading compareLength positions of each entry's key part.
         if (_st.Seek(keyIndex, _orders, value, relation, prefix: true, out var cursor) != StoreStatus.Ok)
-            return Unsuccessful(FileStatusCode.PermanentError);           // a torn page: '30' §2023:9.1.13.6 item 1
+            return Unsuccessful(FileStatusCode.PermanentError);           // a torn page: '30' §2023:9.1.13.6 GR1
         if (cursor is null) return StartFail();                           // '23' — no tree, no record satisfies it
         bool forward = relation is SeekRelation.Equal or SeekRelation.GreaterThan or SeekRelation.GreaterOrEqual;
         var order = OrderOf(keyIndex);
@@ -918,7 +918,7 @@ public sealed class IndexedConnector : KeyedConnector
     /// <remarks>⛔ THE PRIME KEY IS BOTH THE ORDERING AND THE OUTCOME (kb/Work PB356). GR18/GR19 name the primary
     /// key twice over: the record selected is the first/last one under the PRIME ordering — the prime tree's first or
     /// last entry — and the key of reference the statement leaves behind for every subsequent sequential READ (GR16's
-    /// last sentence, §2023:14.9.30.4 GR21 b)'s "otherwise") is the prime key too. Walking the INHERITED key of reference
+    /// last sentence, §2023:14.9.30.4 GR21b's "otherwise") is the prime key too. Walking the INHERITED key of reference
     /// instead — which this method used to do, justified by §2023:14.9.27.4 GR14, a real clause about what OPEN establishes
     /// and not about what START FIRST/LAST does — answered LAST with the alternate ordering's last record and left
     /// every following READ NEXT walking that alternate; and where the alternate carries SUPPRESS WHEN (§2023:12.4.5.6.4
@@ -929,7 +929,7 @@ public sealed class IndexedConnector : KeyedConnector
         if (OptionalAbsent) return StartFail();
         // GR18/GR19 — "in the physical file": the PRIME tree, not the inherited key of reference's
         if (_st.Edge(PrimeKey, _orders, last, out var cursor) != StoreStatus.Ok)
-            return Unsuccessful(FileStatusCode.PermanentError);           // a torn page: '30' §2023:9.1.13.6 item 1
+            return Unsuccessful(FileStatusCode.PermanentError);           // a torn page: '30' §2023:9.1.13.6 GR1
         return cursor is { HasCurrent: true } ? StartSucceeded(PrimeKey, cursor.Key) : StartFail();
     }
 
@@ -940,7 +940,7 @@ public sealed class IndexedConnector : KeyedConnector
     /// previous one standing (kb/Work PB356). Each format decides it and the standard says so separately — GR16
     /// for the KEY phrase, GR18/GR19's "the key of reference is set to the primary key" for FIRST/LAST — so an
     /// epilogue that read <c>_refKey</c> instead would silently inherit whatever the last START or random READ
-    /// established. The file position indicator is a KEY VALUE and nothing else (§2023:14.9.41.4 GR17 e) 1.,
+    /// established. The file position indicator is a KEY VALUE and nothing else (§2023:14.9.41.4 GR17e.1),
     /// kb/Work PB342): which record of a duplicate set the search stopped on is NOT recorded, so the following
     /// READ enters the set at the end §2023:14.9.30.4 GR26 names for ITS direction — which is why
     /// <c>_readOrdinal</c> is deliberately untouched here and <c>_positioner</c> becomes 'S'.</remarks>
@@ -992,7 +992,7 @@ public sealed class IndexedConnector : KeyedConnector
     }
 
     /// <summary>The key value in the RECORD AREA image a statement supplies (§2023:14.9.30.4 GR32, §2023:14.9.10.4 GR3,
-    /// §2023:14.9.41.4 GR17 a)): fitted to the area width, as the record area is — except on a connector whose key
+    /// §2023:14.9.41.4 GR17a): fitted to the area width, as the record area is — except on a connector whose key
     /// positions vary with the record, where the image is taken as composed, because truncating it would move
     /// the key (<see cref="_layoutKeys"/>).</summary>
     private string AreaKey(string areaImage, RecordExtents? areaExtents, int keyIndex)

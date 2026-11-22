@@ -9,9 +9,9 @@
       *> integers, and this program pins the half that had no coverage: r1a's UPPER bound, on every
       *> carrier an integer argument can arrive on, WITH EC-ARGUMENT-FUNCTION CHECKING ON.
       *>
-      *> THE RULE. §2023:15.90.3 r1 and §2023:15.91.3 r1 are each one sentence — "Argument-1 shall be an
-      *> integer" — and place NO constraint on the value. §2023:15.90.4 r1a returns 1 "if the value of
-      *> argument-1 is less than 16 010 000 or greater than 99 999 999" and §2023:15.91.4 r1a returns 1
+      *> THE RULE. §2023:15.90.3 AR1 and §2023:15.91.3 AR1 are each one sentence — "Argument-1 shall be an
+      *> integer" — and place NO constraint on the value. §2023:15.90.4 RV1a returns 1 "if the value of
+      *> argument-1 is less than 16 010 000 or greater than 99 999 999" and §2023:15.91.4 RV1a returns 1
       *> outside 1 601 000..9 999 999; both are CATCH-ALLS, so every integer has a defined verdict.
       *> §2023:15.3's closing paragraph sets EC-ARGUMENT-FUNCTION only when evaluating an argument
       *> "results in an incorrect value for that argument or for the returned value according to the
@@ -60,7 +60,7 @@
            MOVE 99 TO R2
            COMPUTE R2 = FUNCTION INTEGER-OF-DAY(BIG19)
            DISPLAY "A0=" R2
-      *> ── §2023:15.90.4 r1a, the UPPER half ──────────────────────────────────────────────
+      *> ── §2023:15.90.4 RV1a, the UPPER half ──────────────────────────────────────────────
       *> T1: 100 000 000 is greater than 99 999 999 → 1.
            COMPUTE R2 = FUNCTION TEST-DATE-YYYYMMDD(100000000)
            DISPLAY "T1=" R2
@@ -80,7 +80,7 @@
       *> 18 446 744 073 711 546 662 = 2**64 + 1 995 046, PB22's own documented shape → 1.
            COMPUTE R2 = FUNCTION TEST-DATE-YYYYMMDD(P18 * 100 + 62)
            DISPLAY "T6=" R2
-      *> ── §2023:15.91.4 r1a, the UPPER half ──────────────────────────────────────────────
+      *> ── §2023:15.91.4 RV1a, the UPPER half ──────────────────────────────────────────────
       *> U1: 10 000 000 is greater than 9 999 999 → 1.
            COMPUTE R2 = FUNCTION TEST-DAY-YYYYDDD(10000000)
            DISPLAY "U1=" R2

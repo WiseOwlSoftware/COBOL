@@ -20,7 +20,7 @@
   (fatal) under checking with the receiver unchanged; with checking off the image is read digit-for-digit
   (a non-digit position contributes zero, a missing exponent sign reads positive). Pinned by
   `2023/pb66_float_edited_picture` and `2023/pb66_float_edited_algebraic_and_checking`. The value of
-  `HIGHEST-ALGEBRAIC` / `LOWEST-ALGEBRAIC` of such an item is that same saturated extreme (§2023:15.43.4 / §2023:15.58.4 r2 —
+  `HIGHEST-ALGEBRAIC` / `LOWEST-ALGEBRAIC` of such an item is that same saturated extreme (§2023:15.43.4 / §2023:15.58.4 RV2 —
   zero for LOWEST of an unsigned picture); an entry whose extreme would fail IN-ARITHMETIC-RANGE for the arithmetic
   mode in effect (binary64 natively — an exponent of three or four digits — or decimal128 under STANDARD-DECIMAL)
-  is COBOL1660 at the function reference (§2023:15.43.4 r1 / §2023:15.58.4 r1).
+  is COBOL1660 at the function reference (§2023:15.43.4 RV1 / §2023:15.58.4 RV1).

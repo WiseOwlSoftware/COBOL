@@ -7,7 +7,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// kb/Work PB2630 - the SDIDI INTEGER (ISO §2023:15.44.4 r1), INTEGER-PART (§2023:15.49.4 r1) and FRACTION-PART (§2023:15.42.4 r1)
+/// kb/Work PB2630 - the SDIDI INTEGER (ISO §2023:15.44.4 RV1), INTEGER-PART (§2023:15.49.4 RV1) and FRACTION-PART (§2023:15.42.4 RV1)
 /// are computed ON THE DECIMAL: <c>CobolDec.FloorToInteger</c> / <c>TruncateToInteger</c> never land the value on the
 /// Int128 carrier, so a magnitude of 10^38 or more keeps every digit. The unchecked final-transfer arm they used
 /// kept only the low-order digits (INTEGER(10^40) answered 0, INTEGER(-10^40) answered -1).

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VI.6.18.5-p1",
+ "rule-digest": "94ecafb691ed",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Verbs/CobolInspect.cs#Tally",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-VI.6.18.5-p1",
+ "notes": "Derivation from the read lineage-reads-1985/e-01.json: CONFORMS on a informative derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-VI.6.18.5-p1); the code location is where the compiler meets the rule's subject. The read: S1 ('In each of the following examples of the INSPECT statement, COUNT-n is assumed to be zero immediately prior to execution of the statement') sets a premise of the standard's own examples; the behaviour behind it, that INSPECT does not initialize identifier-2, is 1985-GR-VI.6.18.4-11 ('is not initialized by the execution of the INSPECT statement'). S2 ('The results shown for each example, except the last, are the result of executing the two successive INSPECT statements shown above them') says where the table values come from; the tallying and replacement behind them are rows -12, -15 and -17, and each result row restates those rules (85e-01 to 85e-04). No sentence says anything of a user's program or obliges a compiler."
+}

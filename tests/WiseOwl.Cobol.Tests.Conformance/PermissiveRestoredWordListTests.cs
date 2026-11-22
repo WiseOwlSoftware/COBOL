@@ -5,7 +5,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// kb/Work PB805 — <c>--permissive</c> must accept at least what the strict compiler accepts. §2023:13.16.3 4) ("The
+/// kb/Work PB805 — <c>--permissive</c> must accept at least what the strict compiler accepts. §2023:13.16.3 SR4) ("The
 /// remaining clauses may be written in any order") makes <c>01 G VALUE N"AB" GROUP-USAGE NATIONAL.</c> a legal
 /// COBOL-2002 national group; §2023:8.9 reserves GROUP-USAGE from 2002, so the only reading is the §2023:13.18.29 clause.
 /// The migration mode restores GROUP-USAGE as a user word (it was free at 85), and before the derived list-end

@@ -10,8 +10,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// PB59: <c>IntrinsicBinder.KnownWidth</c> must stay TOTAL over the <c>BoundOperand</c> hierarchy — every
 /// concrete leaf either has a switch arm or is in the adjudicated runtime-only list below. The defect this
 /// guards against: the pre-PB59 three-arm partial returned null for a GROUP, a REF-MOD view, an ALL literal
-/// and a figurative, and the one call site's <c>is { }</c> guard read every null as "skip the §2023:15.26.3 r2 /
-/// §2023:15.66.3 r2 one-position screen" — a partial function silently disabling a rule for exactly the shapes
+/// and a figurative, and the one call site's <c>is { }</c> guard read every null as "skip the §2023:15.26.3 AR2 /
+/// §2023:15.66.3 AR2 one-position screen" — a partial function silently disabling a rule for exactly the shapes
 /// nobody wrote a fixture for. A NEW BoundOperand leaf added without deciding its width story lands here.
 /// </summary>
 public sealed class KnownWidthTotalityDriftTests

@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>The dynamic-capacity table runtime (ISO §2023:8.5.1.9; <c>CobolDynTable&lt;T&gt;</c>) at the seams the wave-67
 /// group O notes measured wrong: the §2023:14.6.9.2 recreation (kb/Work PB1144), the §2023:8.5.1.9.5 INITIALIZED seed of a
-/// created element (PB1267) and the §2023:8.5.1.9.6 2) resource-bounded maximum capacity (PB1410). Checking is off in
+/// created element (PB1267) and the §2023:8.5.1.9.6 GR2 resource-bounded maximum capacity (PB1410). Checking is off in
 /// these tests, so the nonfatal and fatal conditions take their "no exception" outcomes; the goldens under
 /// <c>pb1*_dyn_*</c> of <c>conformance-suite/cases/</c> cover them with checking on.</summary>
 public sealed class CobolDynTableTests
@@ -25,7 +25,7 @@ public sealed class CobolDynTableTests
     private static CobolDynTable<string> Strings(int min, Func<string>? created = null) =>
         new(() => "SEED", min, null, created);
 
-    /// <summary>§2023:8.5.1.9.6 2): "The fatal EC-BOUND-TABLE-LIMIT exception condition shall exist when an operation
+    /// <summary>§2023:8.5.1.9.6 GR2: "The fatal EC-BOUND-TABLE-LIMIT exception condition shall exist when an operation
     /// attempts to increase the capacity of a dynamic-capacity table to a value higher than the maximum capacity of
     /// the table based on the resources available at runtime" — with checking off the explicit SET leaves the
     /// capacity unchanged (§2023:14.9.39.4 GR30) instead of an OutOfMemoryException escaping (kb/Work PB1410).</summary>

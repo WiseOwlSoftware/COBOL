@@ -24,7 +24,7 @@ public enum SetAmountLanding
 }
 
 /// <summary>
-/// ⛔ THE ONE PLACE the SET-family integrality rule is written (ISO §2023:14.9.39.4 GR2 a) 1. a · GR3 · GR19 · GR29).
+/// ⛔ THE ONE PLACE the SET-family integrality rule is written (ISO §2023:14.9.39.4 GR2a.1 a · GR3 · GR19 · GR29).
 ///
 /// <para><b>Why this type exists.</b> §2023:14.9.39.4 states the SAME test four times, once per amount-taking format,
 /// with the same three consequents (the condition is set to exist · the SET is unsuccessful · the receiving

@@ -402,13 +402,13 @@ Lay declarative paragraphs at the LOW PC indices [0..declEnd); set EntryParagrap
 - Inverted THRU: PERFORM proc-2 THRU proc-1 where proc-1 physically follows proc-2 in source but is the named exit — handled by following pc, exit on the NAMED exit paragraph's fall-through, never by [min,max] block iteration (NIST NC102A).
 - A paragraph that is BOTH fallen into sequentially AND a PERFORM target: identical case body serves both; PERFORM uses Dispatch(idx,idx) (exit-bounded return), fall-through uses pc=idx (continues).
 - Last paragraph falls off the end: pc becomes LAST+1 (LAST = the source element's last paragraph, below any
-  appended Format-3 handler pcs, which only `__RunUse` enters). Two cases (§2023:14.6.3 item 3, kb/Work PB3511):
+  appended Format-3 handler pcs, which only `__RunUse` enters). Two cases (§2023:14.6.3 GR3, kb/Work PB3511):
   - The activation's own call (bounded at LAST, D10) returns through the at-exit test = the element's normal end
     (no STOP RUN needed; at the run-unit end ISO §2023:14.6.11 then does the implicit CLOSE of open files).
   - A NESTED call (out-of-line PERFORM, SORT/MERGE procedure, `__RunUse`, `__RunDebug`) arrives there only when its
     own return mechanism was never reached (a GO TO left its range, or `PERFORM P2 THRU P1` with P1 before P2, whose
     exit is never reached: docs/CONFORMANCE.md D-PTHRU). The procedure is then not executing under the control of
-    another statement, so §2023:14.6.3 item 3's implicit GOBACK executes: the dispatcher emits
+    another statement, so §2023:14.6.3 GR3's implicit GOBACK executes: the dispatcher emits
     `if (__pc == LAST + 1) throw new ProgramReturn();` after the at-exit return (`MethodReturn` in a method's
     `__MDispatch`), the same signal an explicit GOBACK throws, unwinding every nested frame to the activation entry
     (§2023:14.9.18.4 GR2–GR5: return to the CALL / INVOKE / function reference, or STOP in a main program). Returning `pc`

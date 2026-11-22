@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// The LINE-ENTRY stage of the reference-format pipeline (kb/Work PB1800, PB1586, PB1496, PB1803): where a text
 /// becomes lines. Every expectation is read off the rule it cites — docs/CONFORMANCE.md DOC-A.1-156 (terminators;
-/// ISO §2023:6.1 3) b)) and DOC-A.1-157 (a tab advances to the next tab stop — positions 1, 9, 17, …; §2023:6.1 1) c)) — never
+/// ISO §2023:6.1 SR3b) and DOC-A.1-157 (a tab advances to the next tab stop — positions 1, 9, 17, …; §2023:6.1 GR1c) — never
 /// off a run.
 /// </summary>
 public sealed class PhysicalLinesTests
@@ -56,7 +56,7 @@ public sealed class PhysicalLinesTests
         Assert.Equal(2, set[1].Number);
     }
 
-    [Fact] // DOC-A.1-157 / §2023:6.1 1) c): over every line of up to four characters drawn from {X, TAB, space, a
+    [Fact] // DOC-A.1-157 / §2023:6.1 GR1c: over every line of up to four characters drawn from {X, TAB, space, a
     // supplementary-plane character}, no U+0009 survives, and the expanded text and the column map agree with the
     // DEFINITION — a tab fills the positions up to the next stop of 8 and counts ONE physical column, a
     // supplementary-plane character is two UTF-16 units and ONE physical column, and an index past the end of the
@@ -172,7 +172,7 @@ public sealed class PhysicalLinesTests
         Assert.True(ReferenceFormatProcessor.IsFixedForm(PhysicalLines.Read(src).Lines));
     }
 
-    [Theory] // §2023:6.1 3) a): "ranging from a minimum of 0 to a maximum of 255" — a free-form line of more than 255
+    [Theory] // §2023:6.1 SR3a: "ranging from a minimum of 0 to a maximum of 255" — a free-form line of more than 255
     // positions is COBOL2653, at every edition the free-form reading exists in (kb/Work PB1496).
     [InlineData(255, 0)]
     [InlineData(256, 1)]
@@ -195,7 +195,7 @@ public sealed class PhysicalLinesTests
         Assert.Contains(Normalize(tooLong + "\n", InitialReferenceFormat.Free).Bag.Diagnostics, d => d.Code == "COBOL2653");
     }
 
-    [Fact] // §2023:6.1 2) b): a fixed-form line may be longer than a free-form one — only its program-text area counts.
+    [Fact] // §2023:6.1 GR2b: a fixed-form line may be longer than a free-form one — only its program-text area counts.
     public void FixedForm_IsNotSubjectToThe255PositionLimit()
     {
         var (_, bag) = Normalize("       DISPLAY \"A\"." + new string(' ', 240) + "TAG\n", InitialReferenceFormat.Fixed);

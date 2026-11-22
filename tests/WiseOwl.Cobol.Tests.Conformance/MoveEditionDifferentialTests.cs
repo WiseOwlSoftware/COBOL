@@ -17,7 +17,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// error strict / warning permissive, silent below 2023) for every member of the list EXCEPT SPACE, which was
 /// already prohibited (ISO/IEC 1989:2002 clause 14.8.24.2 SR5: "The figurative constant SPACE shall not be moved to a
 /// numeric or numeric-edited item"; VCR row 7.41) and is refused COBOL0819 at every edition (kb/Work PB3605). Value semantics: §2023:8.3.3.6.4 GR2 (character-by-character
-/// repetition to the associated size) + §2023:14.9.25.4 GR6d3b (a figurative sending operand takes the RECEIVER's
+/// repetition to the associated size) + §2023:14.9.25.4 GR6d.3.b (a figurative sending operand takes the RECEIVER's
 /// digit count, fraction digits included). Pre-removal semantics of the prohibited shapes are a provisional
 /// adjudication (ratified owner decision 1): the fill characters become the receiver's character
 /// image, so IS NUMERIC is false and numeric reads decode deterministically (§2023:14.6.13.2).
@@ -66,10 +66,10 @@ public sealed class MoveEditionDifferentialTests
         finally { ScratchDirectory.Remove(dir); }
     }
 
-    // ═══ Item 1 — the ALL-digit value semantics (§2023:8.3.3.6.4 GR2 + §2023:14.9.25.4 GR6d3b) ══════════════════════════
+    // ═══ Item 1 — the ALL-digit value semantics (§2023:8.3.3.6.4 GR2 + §2023:14.9.25.4 GR6d.3.b) ══════════════════════════
 
     [Fact]
-    // §2023:14.9.25.4 GR6d3b: the figurative takes the receiver's digit count and is "replicated in this item, from
+    // §2023:14.9.25.4 GR6d.3.b: the figurative takes the receiver's digit count and is "replicated in this item, from
     // left to right" — ALL "5" → PIC 9(3) stores 555 (was the BoundAllLiteral runtime-loud latent bug).
     public void AllDigitToInteger_FillsEveryDigitPosition_Sr5_Gr6d3b()
         => AssertSpec(Program("MVEDA1", "01 W-INT PIC 9(3).",

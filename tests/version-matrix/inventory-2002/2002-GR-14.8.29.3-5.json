@@ -16,7 +16,7 @@
    },
    "behaviour-switch": {
     "flag": "indexed-read-previous-after-open-at-end",
-    "answer": "The switch (DialectBehavior.IndexedReadPreviousAfterOpenAtEnd, src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#SelectSequentialRecord) decides only which record §2002:14.8.29.3 GR18 selects for a READ PREVIOUS that is the first operation after OPEN on an indexed file. GR5 fixes the shape of the implied record area for READ INTO with no record description; which record fills it is GR18's. pb345 reads no PREVIOUS (grep). No change. Lead, not this row: at --std 2002 the switch returns the lowest record (probe prev-open-ix.cob: P1=K002|00) where §2002:14.8.26.3 GR12 (FPI = lowest-ordinal characters) with §2002:14.8.29.3 GR18c2 (key less than or equal to the FPI) find no record, so '10' and at end; that is a GR18 defect."
+    "answer": "The switch (DialectBehavior.IndexedReadPreviousAfterOpenAtEnd, src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#SelectSequentialRecord) decides only which record §2002:14.8.29.3 GR18 selects for a READ PREVIOUS that is the first operation after OPEN on an indexed file. GR5 fixes the shape of the implied record area for READ INTO with no record description; which record fills it is GR18's. pb345 reads no PREVIOUS (grep). No change. Lead, not this row: at --std 2002 the switch returns the lowest record (probe prev-open-ix.cob: P1=K002|00) where §2002:14.8.26.3 GR12 (FPI = lowest-ordinal characters) with §2002:14.8.29.3 GR18c.2 (key less than or equal to the FPI) find no record, so '10' and at end; that is a GR18 defect."
    }
   },
   "source": "lineage-reads-2002/q-30.json",

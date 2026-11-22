@@ -22,7 +22,7 @@
       *> The read-back shows the opens took effect: §2002:14.8.26.3 GR16
       *> (OUTPUT creates the file), GR12 (INPUT sets the file position
       *> indicator to 1), so the two records read back in order, and the
-      *> third READ is '10' (§2002:9.1.12.3 item 1 a). A compiler that
+      *> third READ is '10' (§2002:9.1.12.3 item 1a). A compiler that
       *> accepted the phrase but dropped the OPEN, or opened in another
       *> mode, fails the W/R lines.
        IDENTIFICATION DIVISION.

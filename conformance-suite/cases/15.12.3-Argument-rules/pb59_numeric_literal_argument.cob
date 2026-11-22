@@ -7,8 +7,8 @@
 *>---
       *> PB59 / RV-15.12.4-1, RV-15.18.4-1 — a numeric literal is a LEGAL string-channel argument for
       *> exactly the functions whose §15.x.3 rules admit one, and it renders as its own characters.
-      *> §2023:15.18.3 r1 lists class NUMERIC among CONCAT's argument classes and §2023:15.18.4 r1 concatenates
-      *> "all of the characters"; §2023:15.12.3 r1 admits "an unsigned integer ... literal" as BASECONVERT
+      *> §2023:15.18.3 AR1 lists class NUMERIC among CONCAT's argument classes and §2023:15.18.4 RV1 concatenates
+      *> "all of the characters"; §2023:15.12.3 AR1 admits "an unsigned integer ... literal" as BASECONVERT
       *> argument-1 below base 11. Both shapes used to compile CLEAN and abort at RUN TIME with
       *> NotImplementedCobolFeatureException (the wrong-stage family): the renderer's string channel
       *> had no numeric-literal arm, pinned as designed by a drift test — the pin moved WITH the fix.

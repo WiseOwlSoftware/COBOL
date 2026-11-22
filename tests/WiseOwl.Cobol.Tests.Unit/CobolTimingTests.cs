@@ -32,7 +32,7 @@ public sealed class CobolTimingTests
     }
 
     /// <summary>⛔ kb/Work PB2841 — a NON-FINITE interval takes the rule of its kind, and never the fatal
-    /// EC-DATA-NOT-FINITE: §2023:14.6.13.2 item 3 limits that condition to a sending operand described with a STANDARD
+    /// EC-DATA-NOT-FINITE: §2023:14.6.13.2 GR3 limits that condition to a sending operand described with a STANDARD
     /// floating-point usage and the emitter raises it where such an operand is READ (CobolFloat.Sending), so a
     /// non-finite double that reaches <see cref="CobolTiming.ContinueAfter(double, bool)"/> is a non-standard usage's
     /// content (or a standard one read with its checking off). The checking is ON here, which is what makes the

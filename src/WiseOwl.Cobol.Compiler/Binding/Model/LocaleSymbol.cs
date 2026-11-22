@@ -24,7 +24,7 @@ public sealed record LocaleSymbol(string Name, string External, bool FromLiteral
     /// <c>INVARIANT</c> → "") — what the generated code carries and the runtime resolves at use.</summary>
     public string Tag { get; } = LocaleIdentification.Normalize(External);
 
-    /// <summary>Do two symbols carry "the same external identification" (ISO §2023:8.5.3.1 "Additionally", §2023:9.3.8.2.3 rule 3
+    /// <summary>Do two symbols carry "the same external identification" (ISO §2023:8.5.3.1 "Additionally", §2023:9.3.8.2.3 GR3
     /// "Additionally", §2023:14.8.2.3.2 "Additionally" a), §2023:14.8.3.3 "Additionally" 1))? The identification AS WRITTEN,
     /// through the ONE rule <see cref="LocaleIdentification.SameExternalIdentification"/>, which the run-time
     /// universal-dispatch relation asks too (kb/Work PB480). The locale-NAME never enters: two locale-names bound to the
@@ -38,7 +38,7 @@ public sealed record LocaleSymbol(string Name, string External, bool FromLiteral
 /// <summary>One locale-phrase of the OBJECT-COMPUTER CHARACTER CLASSIFICATION clause (ISO §2023:12.3.6.2 —
 /// <c>locale-name-n | LOCALE | SYSTEM-DEFAULT | USER-DEFAULT</c>; §2023:12.3.6.4 GR5; kb/Work PB64 T5): which locale's LC_CTYPE
 /// classifies the class's characters. <see cref="Kind"/> <see cref="LocalePhraseKind.Named"/> carries the SPECIAL-NAMES
-/// symbol (§2023:12.3.6.3 SR3); the other kinds resolve at the module's activation (GR8; §2023:14.6.6 r2).</summary>
+/// symbol (§2023:12.3.6.3 SR3); the other kinds resolve at the module's activation (GR8; §2023:14.6.6 GR2).</summary>
 public sealed record LocalePhrase(WiseOwl.Cobol.Runtime.Globalization.LocalePhraseKind Kind, LocaleSymbol? Symbol)
 {
     /// <summary>The named locale's L1 tag, or null.</summary>
@@ -57,7 +57,7 @@ public sealed record LocalePhrase(WiseOwl.Cobol.Runtime.Globalization.LocalePhra
 /// <summary>The CHARACTER CLASSIFICATION clause of a source unit (ISO §2023:12.3.6.2; kb/Work PB64 T5): the alphanumeric
 /// and national locale-phrases — either may be absent (§2023:12.3.6.4 GR5 e/j: the coded character set's classification);
 /// inherited by contained units (§2023:12.3.6.4 GR1). The emitter resolves it at each activation of the module
-/// (<c>CharacterClassification.Resolve</c> — GR8 / §2023:14.6.6 r2).</summary>
+/// (<c>CharacterClassification.Resolve</c> — GR8 / §2023:14.6.6 GR2).</summary>
 public sealed record ClassificationSpec(LocalePhrase? Alphanumeric, LocalePhrase? National)
 {
     public override string ToString() => $"CHARACTER CLASSIFICATION alphanumeric: {Alphanumeric?.ToString() ?? "-"}; national: {National?.ToString() ?? "-"}";
@@ -67,7 +67,7 @@ public sealed record ClassificationSpec(LocalePhrase? Alphanumeric, LocalePhrase
 /// The ONE "which locale" operand of every locale consumer (DESIGN-locale-facility seam S2 / §2023:4.2): a NAMED locale
 /// (a <see cref="LocaleSymbol"/> — the <c>IS LOCALE locale-name-2</c> alphabet, the LOCALE phrase of an intrinsic or
 /// PICTURE) or the locale CURRENT at use (<see cref="Current"/> — the phrase without a name: §2023:12.3.7.4 GR7e "otherwise
-/// by the locale that is current at the time the collating sequence is used at runtime", and §2023:14.6.6 r4–r8's
+/// by the locale that is current at the time the collating sequence is used at runtime", and §2023:14.6.6 GR4–r8's
 /// "if a locale-name is specified … otherwise the current locale", stated once).
 /// </summary>
 public readonly record struct LocaleRef(LocaleSymbol? Named)
@@ -83,7 +83,7 @@ public readonly record struct LocaleRef(LocaleSymbol? Named)
 
     /// <summary>The LOCALE-phrase half of the "same PICTURE clause" rules: "both specify the LOCALE phrase without
     /// a locale-name or both specify the LOCALE phrase with the same external identification" (ISO §2023:8.5.3.1,
-    /// §2023:9.3.8.2.3 rule 3, §2023:14.8.2.3.2, §2023:14.8.3.3 — each clause's "Additionally" sentence) — <see cref="LocaleSymbol.SameExternalIdentificationAs"/>.</summary>
+    /// §2023:9.3.8.2.3 GR3, §2023:14.8.2.3.2, §2023:14.8.3.3 — each clause's "Additionally" sentence) — <see cref="LocaleSymbol.SameExternalIdentificationAs"/>.</summary>
     public bool SameIdentificationAs(LocaleRef other) =>
         IsCurrent ? other.IsCurrent : !other.IsCurrent && Named!.SameExternalIdentificationAs(other.Named!);
 
@@ -91,7 +91,7 @@ public readonly record struct LocaleRef(LocaleSymbol? Named)
 }
 
 /// <summary>A PICTURE format 2 item's locale-edit identity (ISO §2023:13.18.40.2; kb/Work PB64 T6): the LOCALE
-/// phrase's named-else-current locale (§2023:13.18.40.5 r11 — resolved at each edit/de-edit, never at bind), the SIZE
+/// phrase's named-else-current locale (§2023:13.18.40.5 GR11 — resolved at each edit/de-edit, never at bind), the SIZE
 /// phrase's integer-1 (§2023:13.18.40.4 GR17 — the item's ONLY size input), and the canonical expanded
 /// character-string-1 (uppercased, repeats unrolled, the currency symbol canonicalized to <c>$</c> — the shape
 /// <c>CobolLocaleEdit</c> parses: symbols <c>+ $ Z 9 .</c> only). Type equivalence for two such items is the SAME

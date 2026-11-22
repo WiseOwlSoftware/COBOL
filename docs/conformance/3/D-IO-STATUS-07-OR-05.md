@@ -1,4 +1,4 @@
-- **D-IO-STATUS-07-OR-05 — I-O status '07' vs '05' on one OPEN (§2023:14.9.27.4 GR11 against §2023:9.1.13.2 item 4 a; kb/Work PB317)**: an
+- **D-IO-STATUS-07-OR-05 — I-O status '07' vs '05' on one OPEN (§2023:14.9.27.4 GR11 against §2023:9.1.13.2 GR4 a; kb/Work PB317)**: an
   `OPEN INPUT` of an OPTIONAL file that is not present, written `WITH NO REWIND`, reports **'07'**. Both values
   describe a successful open and the standard does not rank them, so this is a determination: GR11 is an explicit
   ASSIGNMENT in the statement's own general rules (*"the I-O status associated with file-name-1 is set to

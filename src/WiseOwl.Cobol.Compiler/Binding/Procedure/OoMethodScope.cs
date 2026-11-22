@@ -14,7 +14,7 @@ internal sealed class OoMethodScope
     /// <summary>The method's DATA name scope (§2023:11.7.4 GR5) — activated on <c>ProcedureBindState.ActiveMethodScope</c>
     /// while this method's statements bind (slice 2).</summary>
     public OoMethodDataScope? Data;
-    /// <summary>The METHOD-ID name — the §2023:15.30.3 r2b1 element name of a statement inside this method ("the name of
+    /// <summary>The METHOD-ID name — the §2023:15.30.3 RV2b.1 element name of a statement inside this method ("the name of
     /// the runtime element as specified in the FUNCTION-ID, METHOD-ID, or PROGRAM-ID paragraph of the function,
     /// method, or program containing the statement"; kb/Work PB63 — EcLocation read the CLASS-ID before).</summary>
     public string? MethodName;

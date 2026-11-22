@@ -136,14 +136,14 @@ internal static class StorageFormPass
     }
 
     /// <summary>⛔ (7) THE RECEIVERS THAT CAN BE HANDED A NEGATIVE ZERO, AT 1985 AND 2002 (kb/Work PB5852; DESIGN-data-model
-    /// §2.1.1). §1985:VI.6.19.4 GR4b1 and §2002:14.8.24.3 GR4b1 place "the sign of the sending operand" in a signed numeric
+    /// §2.1.1). §1985:VI.6.19.4 GR4b.1 and §2002:14.8.24.3 GR4b.1 place "the sign of the sending operand" in a signed numeric
     /// receiving item, so a negative sender whose digits all truncate away stores a NEGATIVE zero, and a native carrier holds a
     /// VALUE, which has none. Each native sign holder some store can hand one (<see cref="SendersSignStore.MayHandNegativeZero"/>
     /// over <see cref="DataBindState.NumericStores"/>) is promoted to its image by the ONE promotion (<see cref="IsImagePromotable"/>,
     /// <see cref="Classify"/>), and nothing else changes form. The membership reads the senders' storage forms (an image-carried
     /// sign holder can hold a negative zero and pass it on), so the arm follows the classification, re-classifies after each
     /// round, and runs to the fixed point: a promoted receiver can make another store's sender a holder. A Tier-A REDEFINES
-    /// alias forwards to its canonical (arm 6's reason). From 2014 the sign is the value's (§2014:14.9.24.3 GR6d2a) and the
+    /// alias forwards to its canonical (arm 6's reason). From 2014 the sign is the value's (§2014:14.9.24.3 GR6d.2.a) and the
     /// arm promotes nothing.</summary>
     private static void PromoteNegativeZeroReceivers(GroupBindContext ctx, HashSet<DataItem> promoted)
     {
@@ -209,7 +209,7 @@ internal static class StorageFormPass
     /// <para>⛔ BINARY AND PACKED ARE PROMOTED, NOT DISPLAY ALONE (kb/Work PB1466). Content reaches such a leaf
     /// through a character channel — a group MOVE, a READ into its record, a BY REFERENCE crossing — "without
     /// consideration for the individual elementary or group items" (§2023:14.9.25.4 GR4), so it can be anything, and
-    /// ISO §2023:8.8.4.4.4 GR3 n) 1. c. exists to ask about exactly that content: "the content … consists entirely of a
+    /// ISO §2023:8.8.4.4.4 GR3n.1.c exists to ask about exactly that content: "the content … consists entirely of a
     /// valid representation for the usage and, if a PICTURE clause is specified, the numeric value is within the
     /// range of values implied by the PICTURE clause". A native carrier holds a DECODED value — a packed nibble
     /// A–F or a binary value past the PICTURE's range is normalized away on the way in — so the class condition
@@ -313,7 +313,7 @@ internal static class StorageFormPass
         // identifier-1": a character it receives is IN the counter, a non-digit included, as in any stored item. The
         // engine's integer register cannot hold one, so the procedure division sees the counter as its character
         // image (CobolReport.SumImage / SetSumImage) and every consumer reads it as any image-carried numeric item —
-        // §2023:14.6.13.2 rule 2's checked decode, the class condition's image test, a figurative fill's plain store.
+        // §2023:14.6.13.2 GR2's checked decode, the class condition's image test, a figurative fill's plain store.
         foreach (var report in data.State.Reports.Declared)
             foreach (var family in report.SumFamilies)
                 family.Register.Storage = new StorageForm.CharImage(family.Register.ImageWidth, PicCategory.Numeric);
@@ -333,7 +333,7 @@ internal static class StorageFormPass
         // ⛔ THE ELEMENT IS PROMOTED BY THE SAME RULE AS ANY LEAF (kb/Work PB1939, PB2004). An occurrence receives
         // characters exactly as a fixed-table occurrence does — §2023:14.6.9.4's space fill ("each element of the
         // dynamic table is space-filled"), a group MOVE's characters (§2023:14.9.25.4 GR4), INSPECT's retained sign
-        // over a zero magnitude (§2023:14.9.22.4 GR4 d), a negative zero) — and a native carrier holds a VALUE, so
+        // over a zero magnitude (§2023:14.9.22.4 GR4d, a negative zero) — and a native carrier holds a VALUE, so
         // the element whose item a channel writes stores its image: CobolDynTable<string>, not <long>.
         if (item.IsDynamicTable) return new StorageForm.DynamicTable(Promoted(item, BaseElementary(item), promoted));
 

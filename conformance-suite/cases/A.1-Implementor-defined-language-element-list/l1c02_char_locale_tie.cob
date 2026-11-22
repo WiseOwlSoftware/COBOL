@@ -5,10 +5,10 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §2023:A.1 item 21 (§2023:15.15.4 r2) — CHAR under an alphanumeric
+      *> ISO §2023:A.1 item 21 (§2023:15.15.4 RV2) — CHAR under an alphanumeric
       *> LOCALE sequence returns the documented member of a tied rank.
       *> The alphanumeric twin of 2002/l1_char_national_locale_tie.
-      *> Rule (§2023:15.15.4 r2): "If more than one character has the same
+      *> Rule (§2023:15.15.4 RV2): "If more than one character has the same
       *> position in the alphanumeric program collating sequence, the
       *> character returned is the first character defined for that
       *> character position. If the order of multiple characters

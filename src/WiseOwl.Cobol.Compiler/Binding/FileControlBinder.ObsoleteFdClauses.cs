@@ -52,7 +52,7 @@ public sealed partial class FileControlBinder
         foreach (var entry in clause.valueOfEntry())
             if (entry.dataReference() is { } dref)
             {
-                var operand = _host.ClauseDataName(dref, "VALUE OF");   // §1985:VII.3.9.3 SR1 "cannot be subscripted"
+                var operand = _host.ClauseDataName(dref, "VALUE OF", _host.OperandSubscriptRule("data-name-1 \"should be qualified when necessary, but cannot be subscripted\" (§1985:VII.3.9.3 SR1)", ""));
                 using var _ = Edition.At(dref);
                 _valueOfDataNames.Add((operand, Edition.Cursor));
             }

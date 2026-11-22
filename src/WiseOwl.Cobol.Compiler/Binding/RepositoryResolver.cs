@@ -41,7 +41,7 @@ internal interface IRepositoryProvider
 internal abstract record RepositoryOrigin
 {
     /// <summary>True when the element the answer names is a DEFINITION this compilation group compiles, so the program
-    /// or function a CALL through it activates is the one whose formals the bind checked (§2023:14.9.4.4 GR3 d) can find no
+    /// or function a CALL through it activates is the one whose formals the bind checked (§2023:14.9.4.4 GR3d) can find no
     /// difference at run time; §2023:4.2's <c>CalleeCompiledHere</c>). False for a prototype definition (its program is
     /// compiled elsewhere, GR10 b) / GR11 b)) and for a repository entry (c)).</summary>
     public abstract bool IsDefinitionCompiledHere { get; }

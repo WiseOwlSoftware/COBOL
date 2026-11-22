@@ -9,7 +9,7 @@ public static partial class CobolEdit
     /// size-error bound), <see cref="MaskCapacity"/>, <see cref="MaskScale"/> and <see cref="DeEdit"/> must all
     /// answer identically, and each used to re-derive it from the mask text: three of the five dropped the
     /// <see cref="EditRule"/> array, so a FLOATING extended editing sign control symbol — a digit position by
-    /// §2023:13.18.40.5 rule 6 — was a digit in the render and not in the bound or the scale.
+    /// §2023:13.18.40.5 GR6 — was a digit in the render and not in the bound or the scale.
     /// <para>The rule: 9, Z and * always; the currency symbol and the editing sign control symbols '+' and '-'
     /// when used as FLOATING insertion symbols (a string of at least two, rule 6); and a PICTURE EDITING
     /// character-1 whose <see cref="EditRule.Floating"/> bind decided. Rule 6's fourth paragraph — "The second
@@ -22,7 +22,7 @@ public static partial class CobolEdit
         int DigitSymbols = 0, bool FloatingChar1 = false)
     {
         /// <summary>A single '+' with no '-' (and the reverse) is FIXED insertion; two or more are a floating
-        /// string (§2023:13.18.40.5 rule 6: "a string of at least two identical floating insertion editing symbols").
+        /// string (§2023:13.18.40.5 GR6: "a string of at least two identical floating insertion editing symbols").
         /// The pair of counts is the classification the pre-scan has always used, moved here unchanged.</summary>
         public bool FixedPlus => Plus == 1 && Minus == 0;
 

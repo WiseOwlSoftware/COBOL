@@ -9,7 +9,7 @@
       *>   either one or more imperative statements or a conditional
       *>   statement optionally preceded by one or more imperative
       *>   statements." The 2002 sets include CALL ... ON OVERFLOW
-      *>   (conditional; §2002:14.8.4.3 GR3g1 transfers to its
+      *>   (conditional; §2002:14.8.4.3 GR3g.1 transfers to its
       *>   imperative statement when the program cannot be made
       *>   available), RECEIVE ... NO DATA (conditional) and ENABLE,
       *>   SEND, DISABLE, PURGE (imperative) of the communication

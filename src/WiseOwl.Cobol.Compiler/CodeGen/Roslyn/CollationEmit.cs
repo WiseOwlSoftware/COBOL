@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.CodeGen;
 /// THE renderer of a runtime <see cref="CobolCollation"/> carrier from its bound description (kb/Work PB101;
 /// DESIGN-locale-facility §4.4): the ONE place that knows which runtime arm an <see cref="AlphabetDef"/> /
 /// <see cref="NationalAlphabetDef"/> becomes — an <see cref="AlphanumericCollation"/> / <see cref="NationalCollation"/>
-/// for a literal-phrase table (positions + the §2023:15.15.4 r2 representative array + NextFree + the §2023:12.3.7.4 GR8/GR9
+/// for a literal-phrase table (positions + the §2023:15.15.4 RV2 representative array + NextFree + the §2023:12.3.7.4 GR8/GR9
 /// extremes), a <see cref="LocaleCollation"/> for the LOCALE phrase. The program emitter renders the PROGRAM COLLATING
 /// SEQUENCE once as <c>__COLLATE</c> / <c>__COLLATE_NAT</c>; the SORT/MERGE and indexed-file emitters render a
 /// statement or file alphabet that is NOT the PCS inline. Nothing else spells a carrier's constructor.

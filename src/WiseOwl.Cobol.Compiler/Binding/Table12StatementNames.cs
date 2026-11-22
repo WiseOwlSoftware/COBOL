@@ -10,7 +10,7 @@ using Core = CobolParserCore;
 
 /// <summary>
 /// ISO Table 12 statement names (§2023:14.5.1: "Statement names are identified in Table 12, Procedural statements"),
-/// resolved from the statement KIND — the parse rule — never from the source's leading tokens. §2023:15.32.3 r3 makes
+/// resolved from the statement KIND — the parse rule — never from the source's leading tokens. §2023:15.32.3 RV3 makes
 /// this the answer FUNCTION EXCEPTION-STATEMENT must give: "The names of the statements are given in Table 12,
 /// Procedural statements, in the column labeled 'Statement name'."
 ///
@@ -35,7 +35,7 @@ using Core = CobolParserCore;
 /// </summary>
 internal static class Table12StatementNames
 {
-    /// <summary>The §2023:15.32.3 r3 statement name for a parsed statement. Every <c>statement</c> alternative is a
+    /// <summary>The §2023:15.32.3 RV3 statement name for a parsed statement. Every <c>statement</c> alternative is a
     /// single rule reference, so the kind is child 0's rule — asserted loudly, because a grammar restructure
     /// that breaks the shape must fail here, never record a wrong name into the last-exception state.</summary>
     public static string NameOf(Core.StatementContext s) =>

@@ -105,7 +105,7 @@ public sealed partial class SymbolTable
     /// §2023:13.18.64.3 SR2 for a report VARYING counter) and behind the report section's "also declared in ordinary storage"
     /// screens (§2023:8.4.2.1). A container's GLOBAL data-name is inherited into the table before the resolve passes run
     /// (<see cref="InheritGlobalItem"/>), but it is defined in ANOTHER source element: this element's own declaration of the
-    /// spelling hides it (§2023:8.4.6.2.1 3), so it can neither duplicate nor be duplicated by it. Asking whether the table holds
+    /// spelling hides it (§2023:8.4.6.2.1 GR3), so it can neither duplicate nor be duplicated by it. Asking whether the table holds
     /// the spelling at all refuses a legal program (kb/Work PB3766, review finding R2-1).</summary>
     internal bool DeclaresOwnDataName(string name) =>
         _dataNames.TryGetValue(Key(name), out var items) && items.Any(i => _data.State.Forest.DeclaringDepth(i) == 0);
@@ -134,7 +134,7 @@ public sealed partial class SymbolTable
     /// remainder slice 1"): its §2023:8.4.2.2 candidate set in the active scope, whose count is the caller's uniqueness verdict
     /// (<c>NameResolution.DataItemNamed</c>, the procedure division's; the data division's clause operands meet
     /// <see cref="DataBinder.UniqueOrReportAmbiguous{T}"/>). Every written qualifier is applied over the whole visible set, then the
-    /// nearest declaring source element's survivors are kept (§2023:8.4.6.2.1 3)), counted with the REPORT SECTION entries of that
+    /// nearest declaring source element's survivors are kept (§2023:8.4.6.2.1 GR3), counted with the REPORT SECTION entries of that
     /// element (kb/Work PB5775); an unqualified name is the same walk with no qualifier to apply (<see cref="DataNameCandidates"/>,
     /// one rule for both arms since remainder slice 3). A qualifiable name's identification IS its candidate set, typed and unboxed
     /// (the index-name's <see cref="IdentifyIndexName"/>, the condition-name's <see cref="IdentifyConditionName"/>).
@@ -148,7 +148,7 @@ public sealed partial class SymbolTable
     /// ⭐ THE LOOKUP OF A DATA DIVISION CLAUSE'S WRITTEN DATA-NAME (§2023:8.4.2.2.2 Format 1; docs/rearchitecture/DESIGN-listing.md
     /// section 6.7.1, "Step 6b, remainder slice 2"): the §2023:8.4.2.2 candidate set of <paramref name="operand"/>, the clause's
     /// data-name-n as the model keeps it (<see cref="WrittenDataName"/>), in <paramref name="scope"/>. Every written qualifier is
-    /// applied over the whole visible set, then the nearest declaring source element's survivors are kept (§2023:8.4.6.2.1 3)),
+    /// applied over the whole visible set, then the nearest declaring source element's survivors are kept (§2023:8.4.6.2.1 GR3),
     /// counted with the REPORT SECTION entries of that element (kb/Work PB5775), so the count is the caller's uniqueness verdict
     /// (<see cref="DataBinder.UniqueOrReportAmbiguous{T}"/>, <c>DataBinder.ResolveClauseOperand</c>). A clause operand is resolved
     /// after the data division is declared, from the model, which holds no parse tree: the written words are the operand's.
