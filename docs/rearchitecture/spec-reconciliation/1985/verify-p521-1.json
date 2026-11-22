@@ -1,0 +1,13 @@
+{
+  "claim_id": "p521-1",
+  "claim_key": "1302a116448096e8",
+  "page": 521,
+  "kind": "missing-heading",
+  "severity": "structural",
+  "claim": {"id": "p521-1", "page": 521, "kind": "missing-heading", "severity": "structural", "pdf_says": "1.3.8.3 Conventions for Index-Names", "markdown_says": "### ║1.3.8.3 Conventions for Index-Names║", "why_it_matters": "A fifth-level subsection of 1.3.8 rendered at the same level (###) as 1.3.8, so it does not nest under its parent."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The 300 dpi render of page 521 (folio X-7) prints '1.3.8.3 Conventions for Index-Names' at the top of a level-2 box, numbered as a child of 1.3.8. In specs/ANSI_COBOL_1985.md, line 20060 is '### ║1.3.8.3 Conventions for Index-Names║', and line 19961, its parent, is '### 1.3.8 Scope of Names'. Section X's own '1.3 LANGUAGE CONCEPTS' is also ###, while 1.3.1 and 1.3.2 are ####. So the heading's text and its box markers are correct, but its markdown level does not nest it under its parent. Nothing normative changes. This is a heading-hierarchy defect of the same class as the structural heading-level claims confirmed in chunk 2. Its root is wider than this one heading: Section X 1.3.x headings switch between #### and ###, and 1.3.8.1 (page 520) has no heading markup at all.",
+    "corrected_description": "1.3.8.3 (four numeric components, a child of 1.3.8) is transcribed as ### which is the same level as its parent '### 1.3.8 Scope of Names' and as '### 1.3 LANGUAGE CONCEPTS', so it does not nest under its parent. The heading text and box markers are correct. The levels are inconsistent across all of Section X 1.3: 1.3.1/1.3.2 are #### but 1.3.3-1.3.8 are ###, and 1.3.8.1 has no heading markup."
+  }
+}

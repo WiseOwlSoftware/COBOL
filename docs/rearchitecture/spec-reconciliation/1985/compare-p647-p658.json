@@ -1,0 +1,25 @@
+{
+  "batch": [647, 648, 649, 650, 651, 652, 653, 654, 655, 656, 657, 658],
+  "pages_checked": [647, 648, 649, 650, 651, 652, 653, 654, 655, 656, 657, 658],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p648-1",
+      "page": 648,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "4.5 THE OPEN STATEMENT / 4.5.1 Function / 4.5.2 General Format / 4.5.3 Syntax Rules / 4.5.4 General Rules (printed as clause headings, same style as 4.4 on page 647 and 4.6 on page 652)",
+      "markdown_says": "4.5 THE OPEN STATEMENT\n\n4.5.1 Function\n\n4.5.2 General Format\n\n4.5.3 Syntax Rules\n\n4.5.4 General Rules (plain paragraphs, no # markers)",
+      "why_it_matters": "Every sibling clause (4.4 on page 647, 4.6 on page 652, 4.7, 4.8, 4.9) is a markdown heading; clause 4.5 and its four subclauses are plain text, so 4.5 THE OPEN STATEMENT is absent from the document outline and its rules read as part of 4.4 INITIATE."
+    },
+    {
+      "id": "p658-1",
+      "page": 658,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Page 658 is blank (no text besides the licence stamp); the title \"SECTION XIV: COMMUNICATION MODULE\" is printed on page 659 (folio XIV-1).",
+      "markdown_says": "<!-- This page is blank apart from the omitted licence stamp. -->\n\n# SECTION XIV: COMMUNICATION MODULE",
+      "why_it_matters": "The section heading sits under the blank page 658, and page 659 carries it again as \"# <u>SECTION XIV: COMMUNICATION MODULE</u>\"; the heading is duplicated and the first copy is on the wrong page."
+    }
+  ]
+}

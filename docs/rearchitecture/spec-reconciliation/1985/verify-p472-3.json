@@ -1,0 +1,13 @@
+{
+  "claim_id": "p472-3",
+  "claim_key": "1376c318510e01d6",
+  "page": 472,
+  "kind": "missing-heading",
+  "severity": "structural",
+  "claim": {"id": "p472-3", "page": 472, "kind": "missing-heading", "severity": "structural", "why_it_matters": "The heading is invisible to the outline and to any tool that locates clauses by heading, so citations to §1985:IX.1.3.x cannot be resolved to this text by structure.", "pdf_says": "1.3.4 I-O Status", "markdown_says": "1.3.4 I-O Status", "detail": "Numbered subsection heading demoted to a plain paragraph line (no heading marker)."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The 300 dpi render of PDF page 472 (IX-2, Indexed I-O - Introduction) prints '1.3.4 I-O Status' as a numbered subsection heading, styled like '1.3.2 Access Modes' and '1.3.3 File Position Indicator' above it. In specs/ANSI_COBOL_1985.md, line 18464 holds '1.3.4 I-O Status' as a bare line with no '#' marker. The wording matches, but the heading is lost as structure. This is not a whole-file convention: the parallel Relative I-O section marks the same heading as '### 1.3.4 I-O Status' (line 17194), and on page 471 of this same Indexed I-O section, '1.3.1 Organization' is marked '####' (line 18438). Siblings 1.3.2 and 1.3.3 on this page are also unmarked (lines 18452 and 18460), so the claim correctly applies to 1.3.4. The text is unchanged, so this is structural only, not normative.",
+    "corrected_description": null
+  }
+}

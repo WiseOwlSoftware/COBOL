@@ -1,0 +1,16 @@
+{
+  "batch": [491, 492, 493, 494, 495, 496, 497, 498, 499, 500, 501, 502],
+  "pages_checked": [491, 492, 493, 494, 495, 496, 497, 498, 499, 500, 501, 502],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p499-1",
+      "page": 499,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "4.5.4 General Rules",
+      "markdown_says": "4.5.4 General Rules",
+      "why_it_matters": "The clause heading 4.5.4 is transcribed as a plain paragraph line with no heading marker, while its siblings 4.5.1-4.5.3 (page 498) and 4.3.4/4.4.4 (pages 491, 493) are '### ' headings; a heading-based section index or citation lookup for §1985:IX.4.5.4 (Indexed I-O READ general rules) misses it."
+    }
+  ]
+}
