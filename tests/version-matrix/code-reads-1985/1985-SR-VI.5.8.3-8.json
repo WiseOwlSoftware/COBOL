@@ -17,7 +17,7 @@
   "rule-id": "1985-SR-VI.5.8.3-8",
   "verdict": "CONFORMS",
   "requirement": "At 1985, when an OCCURS ... DEPENDING ON data-name-1 is written in a record description entry that contains the EXTERNAL clause, data-name-1 must be an item with the external attribute (in an EXTERNAL working-storage record, the same or another, or in a record of an EXTERNAL file, §1985:II.6.2.2.2.3) described in the same program's Data Division; an internal object (working-storage, linkage, a non-external file's record) or an external item described in a containing program is refused, and a fixed OCCURS needs no object. The witness covers part of the refusal half.",
-  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/OdoResolvePass.cs#Run; src/WiseOwl.Cobol.Compiler/Binding/Passes/OdoResolvePass.cs#DependingAttributeFault; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#HasExternalAttribute; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Odo.cs#IsDescribedInContainer",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/OdoResolvePass.cs#Run; src/WiseOwl.Cobol.Compiler/Binding/Passes/OdoResolvePass.cs#DependingAttributeFault; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#IsInExternalRecord; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Odo.cs#IsDescribedInContainer",
   "edition-consulted": [],
   "edition-search": "grep for Year, DialectLevel, SubscriptedClauseOperands, CobolVersion in OdoResolvePass.cs and DataBinder.Odo.cs: DependingAttributeFault and IsDescribedInContainer switch on nothing edition-specific; binder.Edition.Error is the diagnostic sink only. The rule is one edition-invariant check (the 2023 SR21 and the 1985 SR8 read alike).",
   "behaviour-differs-by-edition": "no",
@@ -76,7 +76,7 @@
     "check": "OK  §1985:II.6.2.2.2.3  (6.2.2.2.3 Record Areas for Files)  the text is in the clause"
    }
   ],
-  "notes": "OdoResolvePass.Run asks DependingAttributeFault for every ODO object: the table record's own EXTERNAL clause is the trigger, DataItem.HasExternalAttribute (EXTERNAL working-storage records and records of EXTERNAL files) the object's attribute, and IsDescribedInContainer the 'same Data Division' half. A table in an EXTERNAL file's record with an internal object is accepted, reading SR8's 'record description entry containing the EXTERNAL clause' literally; that is the one interpretive point. Diagnostics cite §2023:13.18.38.3 SR21 (wording only).",
+  "notes": "OdoResolvePass.Run asks DependingAttributeFault for every ODO object: the table record's own EXTERNAL clause is the trigger, IsInExternalRecord (EXTERNAL working-storage records and records of EXTERNAL files) the object's attribute, and IsDescribedInContainer the 'same Data Division' half. A table in an EXTERNAL file's record with an internal object is accepted, reading SR8's 'record description entry containing the EXTERNAL clause' literally; that is the one interpretive point. Diagnostics cite §2023:13.18.38.3 SR21 (wording only).",
   "seeded": true,
   "harm": "",
   "cause": "",
