@@ -1,4 +1,4 @@
-## PB2619: CompilerDriver.Options and CliOptions carry a validated EditionInfo; the driver has no default edition
+## Entry 3919 — 2026-11-22 12:13 PST — PB2619: CompilerDriver.Options and CliOptions carry a validated EditionInfo; the driver has no default edition
 
 Wave 20262135, group C (kb/Work PB1754 cluster). The group's eleven notes proved to be eleven mechanisms. This branch
 finishes the first, kb/Work PB2619, and returns the rest for later agents (SPLIT at the note boundary).
@@ -34,3 +34,4 @@ CliParserTests, CompilerDriverTests, ExternalRepositoryExpansionTests, Reference
 
 **Left.** `Frontend.Frontend` (`DialectLevel = 85` by default) and `EditionContext(int, bool)` still take the edition as two
 loose values. They are siblings of the same shape and appear in the report as a lead.
+
