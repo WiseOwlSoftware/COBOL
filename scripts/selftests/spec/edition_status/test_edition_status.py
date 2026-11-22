@@ -169,10 +169,13 @@ def case_07b_a_paragraph_leaves_the_count_only_on_a_disposition_and_its_record(e
                                   "§1985:VI.2.5": ("not-a-rule", "UPHELD", None),
                                   "§1985:VI.2.6": ("pending", None, None)}.items():
         u = unit[c]
+        # each record upholds the disposition its entry states (text_units.disposition_refusal)
+        judged = {"restates": {"rules": ["1985-GR-VI.2.1-1"]}, "not-a-rule": {"class": "lead-in"}}.get(d, {})
         entries[c] = {"units": [{"unit": u.label, "digest": u.digest, "order": 0, "disposition": d,
-                                 "refuted": records_at}]}
+                                 "refuted": records_at, **judged}]}
         if outcome:
-            records.append({"unit": u.label, "clause": c, "digest": read or u.digest, "outcome": outcome})
+            records.append({"unit": u.label, "clause": c, "digest": read or u.digest, "outcome": outcome,
+                            "disposition": d, **judged})
     manifest.write_text(json.dumps({"blocks": blocks, "paragraph-blocks": entries}), encoding="utf-8", newline="\n")
     (root / records_at).write_text("".join(json.dumps(r) + "\n" for r in records), encoding="utf-8", newline="\n")
     expect.equal("the planted units are the clauses' paragraphs, the held lists none of them",
@@ -212,7 +215,8 @@ def case_07c_an_examples_clause_is_units_and_its_code_is_no_prose(expect):
         {"unit": "p1", "digest": p1.digest, "order": 0, "disposition": "restates", "rules": ["1985-GR-VI.3.1-1"],
          "refuted": records_at}]}}}), encoding="utf-8", newline="\n")
     (root / records_at).write_text(json.dumps({"unit": "p1", "clause": "§1985:VI.3.1", "digest": p1.digest,
-                                               "outcome": "UPHELD"}) + "\n", encoding="utf-8", newline="\n")
+                                               "outcome": "UPHELD", "disposition": "restates",
+                                               "rules": ["1985-GR-VI.3.1-1"]}) + "\n", encoding="utf-8", newline="\n")
     h = H.holes(1985, root)
     expect.equal("disposed on its UPHELD record, the preamble leaves the count", (h.count, h.discounted["restates"]),
                  (0, 1))

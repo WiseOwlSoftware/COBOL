@@ -157,6 +157,28 @@ def case_07_a_restates_is_verified_against_the_catalog_and_this_import(expect):
         "restates 1985-GR-IV.1-p7, which is no row of the catalog" in f for f in out.refusals), out.refusals)
 
 
+def case_08_a_committed_record_states_the_disposition_it_upheld(expect):
+    # The branch review of train-1985-d: an UPHELD record that spells only the kind (or none) is committed with the rules
+    # or the class of the reader record it judged, so the audit refuses an entry edited after it (text_units).
+    out = _decide()
+    recs = {(r["clause"], r["digest"]): r for rs in out.records.values() for r in rs}
+    expect.equal("a restates record gains its reader's rules and kind",
+                 (recs["§1985:IV.1", "bbb"]["disposition"], recs["§1985:IV.1", "bbb"]["rules"]),
+                 ("restates", ["1985-GR-IV.1-p1"]))
+    expect.equal("an OVERTURNED record gains nothing",
+                 M.judged_fields({"outcome": "OVERTURNED", "corrected": "SR"}, {"disposition": "restates", "rules": ["x"]}),
+                 {})
+    expect.equal("a not-a-rule record gains its reader's class",
+                 M.judged_fields({"outcome": "UPHELD", "disposition": "not-a-rule"},
+                                 {"disposition": "not-a-rule", "class": "data"}), {"class": "data"})
+    expect.equal("a record that spells its own rules keeps them",
+                 M.judged_fields({"outcome": "UPHELD", "disposition": "restates 1985-GR-IV.1-p1"},
+                                 {"disposition": "restates", "rules": ["1985-GR-IV.1-p9"]}), {})
+    expect.equal("a record of another kind than its reader's gains nothing",
+                 M.judged_fields({"outcome": "UPHELD", "disposition": "GR"}, {"disposition": "restates", "rules": ["x"]}),
+                 {})
+
+
 if __name__ == "__main__":
     ensure_utf8()
     sys.exit(selftest_cases.run(sys.modules[__name__]))

@@ -55,6 +55,7 @@ REWRITE = same_origin("fc-rewrite-", (f"url.{ELSEWHERE}.pushInsteadOf", THIS_ORI
 # developer's or the gate's checkout is on (kb/Work PB5227: the hook asked the real checkout `git symbolic-ref HEAD`).
 SESSION = same_origin("fc-session-", branch="unit-work")
 BS = chr(92)  # a backslash, spelled without one
+PSUTIL_KILL = "\"import psutil; [p.kill() for p in psutil.process_iter() if p.name()=='cobol.exe']\""  # rule 8's payload
 NL = chr(10)
 # kb/Work PB3198: every rule reads the ONE model of the command line (shell_location.steps), so each rule is checked
 # AFTER a heredoc (the rules that scanned only the text before the first `<<` passed these) and after a QUOTED `<<`
@@ -304,6 +305,21 @@ CASES = [
     ("timeout -s KILL 600 python scripts/gate.py && ps aux | grep testhost", False),
     ("timeout --signal=KILL 600 python scripts/gate.py && pgrep testhost", False),
     ("timeout -k 5 600 kill $(pgrep cobol)", True),                        # the command timeout runs IS a kill
+    # the branch review of train-1985-d R1-1: the TEXT is judged, whatever starts a payload and whatever options precede it
+    ("python -X utf8 -c " + PSUTIL_KILL, True),
+    ("python -W ignore -c " + PSUTIL_KILL, True),
+    ("env python -c " + PSUTIL_KILL, True),
+    ("timeout 60 python -c " + PSUTIL_KILL, True),
+    ("nice -n 10 python3 -c " + PSUTIL_KILL, True),
+    ("sudo -u builder python3 -X dev -c " + PSUTIL_KILL, True),
+    ("node -e \"require('child_process').execSync('taskkill /F /IM cobol.exe')\"", True),
+    ("perl -e 'kill 9, map { (split)[1] } grep { /cobol/ } `ps aux`'", True),
+    ("python - <<'EOF'\nimport psutil\nfor p in psutil.process_iter():\n    if p.name() == 'cobol.exe':\n"
+     "        p.kill()\nEOF", True),                                       # a heredoc body is a payload too
+    ("python -c \"print('kill tasklist')\"", False),                       # a string it only prints is text
+    ("python -X utf8 -c 'import os; os.kill(1234, 9)'", False),            # one pid, no enumeration
+    ("node -e \"process.kill(1234)\"", False),
+    ("git commit -m 'rule 8: pgrep cobol | xargs kill is refused'", False),  # a message is text
 ]
 
 
@@ -406,6 +422,13 @@ PS_CASES = [
     ("Select-String -Path x.ps1 -Pattern 'Get-Process'; $p.Kill()", False),
     ("rg '\\.Kill\\(' src", False),
     ("$all = Get-Process cobol; $all.Kill()", True),                    # an assignment's value is in command position
+    # the branch review of train-1985-d R1-1: the TEXT is judged
+    ("python -X utf8 -c " + PSUTIL_KILL, True),
+    ("Get-Process cobol | ForEach-Object Kill", True),                   # a member name, no parentheses
+    ("@'\nimport psutil\n[p.kill() for p in psutil.process_iter() if p.name() == 'cobol.exe']\n'@ | python -", True),
+    ("pwsh -NoProfile -c \"& { gps cobol } | % Kill\"", True),
+    ("Start-Process python -ArgumentList '-c', 'import psutil; [p.kill() for p in psutil.process_iter()]'", True),
+    ("Write-Host 'gps cobol | Stop-Process is refused'", False),
 ]
 
 

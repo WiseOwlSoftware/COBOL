@@ -37,7 +37,7 @@ public enum IoStatementForms
 
 /// <summary>⛔ THE ONE HOME OF "WHICH STATEMENTS ARE INPUT-OUTPUT STATEMENTS" AT EACH EDITION (kb/Work PB6032), as data: one value
 /// per edition, each derived from that edition's own text, so a rule that names the term asks <see cref="Of"/> and never spells a
-/// list of its own. <c>InputOutputStatementSetDriftTests</c> re-reads each sentence below from the transcriptions on every run.
+/// list of its own. <c>InputOutputStatementSetTests</c> re-reads each sentence below from the transcriptions on every run.
 /// <list type="bullet">
 /// <item>COBOL-85 DEFINES the term: "The input-output statements are: ACCEPT (with the identifier phrase), CLOSE, DELETE,
 /// DISABLE, DISPLAY, ENABLE, OPEN, PURGE, READ, RECEIVE, REWRITE, SEND, SET (with the TO ON or TO OFF phrase), START, and WRITE"
