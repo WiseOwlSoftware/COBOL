@@ -1,4 +1,4 @@
-## PB3207 discharged: page_workunit.py lost its anchor slicer in PB5255
+## Entry 3931 — 2026-11-22 15:25 PST — PB3207 discharged: page_workunit.py lost its anchor slicer in PB5255
 
 PB3207 (an R2 architecture finding of the PB1754 review) said `scripts/spec/page_workunit.py` sliced the 2023
 transcription on the `<a id="page-N">` anchors de-paging removed, so every work unit of spec-reconcile,
@@ -15,3 +15,4 @@ The note's Target (a 2023 page slice built from `clause_page.index`) is not take
 retired with no inventory row, its evidence in `kb/Work/PB3207/2026-11-22-discharged-by-pb5255.md`. The one stale line
 found on the way, the `FRONT_MATTER` comment in `clause_page.py` that quoted the plan's sentence about the deleted
 anchors, now states the measured fact (clause 14.2.1 on PDF page 557, folio 527).
+
