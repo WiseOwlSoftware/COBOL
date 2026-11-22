@@ -61,11 +61,12 @@ adjudication whose `ref` is no file of the tree; a contradicted record whose `wo
 already `landed` at the record's own pin (`landed_at_pin_problem`). Stale, undecided and owed are counted, never red, and so
 are the reads owed a RE-READ (`reread`: fixed since, kb/Work PB5854, or moved since, kb/Work PB5863).
 
-THE LANDING, NOT THE AUDIT, REFUSES A MOVE OF A READ'S CODE (kb/Work PB6056). The audit holds one tree, so a read owed a re-read
+THE LANDING, NOT THE AUDIT, REFUSES A MOVE OF A READ'S CODE OR A CHANGE OF ITS RULE TEXT (kb/Work PB6056, PB6090). The audit holds one tree, so a read owed a re-read
 is information to it; `edition_status.py` counts the same row, so a landing that moves a member a read names re-opens the edition with
 every check green. `moved_by` (the change from a base to a head: the entries that resolve in the base and not in the head) is the
 predicate, and `code_read_landing.py` the landing check that asks it (the merged head's own copy, run by `enqueue.py checks`), for every
-edition whatever its status on main, with the store read at the head it judges.
+edition whatever its status on main, with the store read at the head it judges. `staled_by` is the second predicate (a change that
+corrects a rule's catalog text changes its `rule-digest`, the read goes `stale` and is owed a read): the same check asks it.
 """
 from __future__ import annotations
 
@@ -775,6 +776,20 @@ def moved_by(ctx: Context, records: dict[str, dict[str, Any]], head: code_locati
             if gone:
                 out.append(ReRead(rid, None, gone))
     return out
+
+
+def staled_by(ctx: Context, base: Context, records: dict[str, dict[str, Any]]) -> list[tuple[str, str, str]]:
+    """THE SECOND PREDICATE of kb/Work PB6090 (PB6056's sibling): the rows whose stored read the change from `base` (main's
+    context of the edition) to `ctx` (the head's) made STALE: `records` (the head's store) decides the row at `base`
+    (`outcome` confirmed or contradicted: the read covered the row on main) and no longer decides it at `ctx`, where the row
+    is `owed` a read (`owed` is the audit's and `edition_status.py`'s own predicate: a stale record is owed, a row the change
+    deleted or that closes without a read is not). Each is `(rule-id, the digest the read covers, the row's digest now)`, in
+    the catalog's order. A change that carries the re-read (`import --replace`) holds a record whose digest is the row's now,
+    so it is none; a row already stale on main is `owed` there, never this change's."""
+    owing = set(owed(ctx, records))
+    return [(rid, records[rid]["rule-digest"], ctx.rows[rid]["rule-digest"]) for rid in ctx.rows
+            if rid in owing and (record := records.get(rid)) is not None
+            and outcome(record, base) in (CONFIRMED, CONTRADICTED)]
 
 
 @dataclasses.dataclass(frozen=True)
