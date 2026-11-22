@@ -348,10 +348,17 @@ public static class CobolString
     /// literal-1); the other side is the associated operand, rendered once by the caller. Both figurative and
     /// both non-figurative relations use plain <see cref="Compare(string?,string?,char)"/> instead — with two
     /// figuratives there is no associated data item and §2023:8.3.3.6.4 GR3 b/c gives each its OWN length.</para>
+    /// <para>⛔ THE NATIVE ARM MATERIALIZES NOTHING (kb/Work PB2649): it walks the sized figurative through
+    /// <see cref="SizedOperand"/>, whose character at i is <see cref="FigToWidth"/>'s, so <c>IF X = SPACES</c> allocates
+    /// no string per evaluation and cannot answer differently from the materialized form
+    /// (<c>FigurativeReaderDriftTests</c> compares the two).</para>
     /// </summary>
-    public static int CompareFig(string? left, string? right, bool figIsLeft, char pad = ' ') =>
-        figIsLeft ? Compare(FigToWidth(left ?? "", (right ?? "").Length), right, pad)
-                  : Compare(left, FigToWidth(right ?? "", (left ?? "").Length), pad);
+    public static int CompareFig(string? left, string? right, bool figIsLeft, char pad = ' ')
+    {
+        left ??= ""; right ??= "";
+        return figIsLeft ? Compare(SizedOperand.Of(left, true, right), SizedOperand.Of(right, false, right), pad)
+                         : Compare(SizedOperand.Of(left, false, left), SizedOperand.Of(right, true, left), pad);
+    }
 
     /// <inheritdoc cref="CompareFig(string?,string?,bool,char)"/>
     /// <remarks>The NON-native collating-sequence overload (an <c>ALPHABET</c> literal phrase or a LOCALE-based
@@ -405,8 +412,15 @@ public static class CobolString
     /// <param name="loFig">Whether <paramref name="lo"/> is a figurative SEED (one fill character, or literal-1 of
     /// an <c>ALL literal-1</c>) rather than a value of its own.</param>
     /// <param name="hiFig">The same question for <paramref name="hi"/>.</param>
-    public static bool ThruMemberFig(string? read, string? lo, string? hi, bool loFig, bool hiFig, char pad = ' ') =>
-        ThruMember(read, SizedFig(lo, loFig, read), SizedFig(hi, hiFig, read), pad);
+    public static bool ThruMemberFig(string? read, string? lo, string? hi, bool loFig, bool hiFig, char pad = ' ')
+    {
+        read ??= "";
+        var r = SizedOperand.Of(read, false, read);
+        var l = SizedOperand.Of(lo ?? "", loFig, read);
+        var h = SizedOperand.Of(hi ?? "", hiFig, read);
+        if (Compare(l, h, pad) > 0) { ExceptionState.RangeInvalidError(InvertedRange); return false; }
+        return Compare(r, l, pad) >= 0 && Compare(r, h, pad) <= 0;
+    }
 
     /// <inheritdoc cref="ThruMemberFig(string?,string?,string?,bool,bool,char)"/>
     /// <remarks>The NON-native collating-sequence overload (an <c>ALPHABET</c> literal phrase or a LOCALE-based
@@ -417,7 +431,45 @@ public static class CobolString
         collation.ThruMember(read, SizedFig(lo, loFig, read), SizedFig(hi, hiFig, read));
 
     /// <summary>ISO §2023:8.3.3.6.4 GR2's materialization, applied only where the operand IS a figurative seed — the
-    /// ONE place the range carrier's two overloads ask it.</summary>
+    /// non-native range carrier asks it (a collating sequence weighs the sized string).</summary>
     private static string? SizedFig(string? seed, bool isFig, string? associated) =>
         isFig ? FigToWidth(seed ?? "", (associated ?? "").Length) : seed;
+
+    /// <summary>§2023:8.8.4.2.7's native comparison over two <see cref="SizedOperand"/> views — the shorter extended on the
+    /// right with <paramref name="pad"/>, exactly as <see cref="Compare(string?,string?,char)"/> compares two strings.</summary>
+    private static int Compare(in SizedOperand left, in SizedOperand right, char pad)
+    {
+        int n = Math.Max(left.Length, right.Length);
+        for (int i = 0; i < n; i++)
+        {
+            char a = i < left.Length ? left[i] : pad;
+            char b = i < right.Length ? right[i] : pad;
+            if (a != b) return a < b ? -1 : 1;
+        }
+        return 0;
+    }
+
+    /// <summary>⛔ THE NON-MATERIALIZING READER OF §2023:8.3.3.6.4 GR2 (kb/Work PB2649): an operand of a native comparison,
+    /// either a value as it is or a figurative SEED sized against its associated operand without building the sized
+    /// string. The sized figurative has <c>max(width, 1)</c> positions and its character at i is <c>seed[i % seed.Length]</c>
+    /// (a space for an empty seed) — exactly the characters <see cref="FigToWidth"/> returns, which stays the one
+    /// materializing form (the compile-time fold and the collating-sequence arms read it).</summary>
+    private readonly ref struct SizedOperand
+    {
+        private readonly string _text;
+        private readonly bool _fig;
+
+        private SizedOperand(string text, bool fig, int length) { _text = text; _fig = fig; Length = length; }
+
+        /// <summary><paramref name="text"/> as it is, or (when <paramref name="isFig"/>) the figurative seed it holds sized
+        /// to <paramref name="associated"/>'s character positions — GR2's "equal either to 1 or to … whichever is greater".</summary>
+        public static SizedOperand Of(string text, bool isFig, string associated) =>
+            new(text, isFig, isFig ? Math.Max(associated.Length, 1) : text.Length);
+
+        /// <summary>The operand's character positions.</summary>
+        public int Length { get; }
+
+        /// <summary>The character at <paramref name="i"/> (0 ≤ i &lt; <see cref="Length"/>).</summary>
+        public char this[int i] => !_fig ? _text[i] : _text.Length == 0 ? ' ' : _text[i % _text.Length];
+    }
 }

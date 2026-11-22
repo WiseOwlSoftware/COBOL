@@ -102,8 +102,8 @@ operation is applied to a group containing it"* (§2023:8.5.1.11.2).
   elementary receiver also rides, kb/Work PB1556); each out-of-line record takes the CURRENT RECORD at its own length
   (`FileConnector.CurrentRecord`, written only through `NoteRecordRead` beside `LastReadLength`; a RETURN's
   returned image is already that). A variable-length group decomposes it through its generated
-  `FromContiguousImage(record, extents)` → `CobolContiguousLayout.Decompose` → the ONE split rule
-  `CobolVarGroup.FromContiguous` — by the record's own EXTENT TABLE (below) when it describes the record, otherwise
+  `FromContiguousImage(record, extents)` → `CobolContiguousLayout.Decompose`, the ONE split rule
+  (its private `Split` walk) — by the record's own EXTENT TABLE (below) when it describes the record, otherwise
   by the take step (each dynamic component, left to right,
   takes as many whole units as the record holds beyond the fixed material still to come, up to its maximum; in a
   file record the components are dynamic-length items only, since a dynamic-capacity table "may be defined in any
@@ -159,7 +159,7 @@ operation is applied to a group containing it"* (§2023:8.5.1.11.2).
   characters below U+0020 are outside its character set, and the length field's first byte and the delimiter are
   such characters), so a WRITE of a structured record to a LINE SEQUENTIAL file is the '71' of §2023:14.9.51.4 GR23.
   Reading with NO table (a file another program wrote, or a Format 1 file) takes the structured members apart by their
-  own structure (`CobolVarGroup.ComponentTake` is the one step of the walk, read by `FromContiguous` and `Position`);
+  own structure (`CobolContiguousLayout.ComponentTake` is the one step of the walk, read by `Decompose` and `Position`);
   an UNSTRUCTURED member then takes what is left beyond the fixed material and the later structured members' minimum.
 - **The implied RECORD clause** (§2023:13.18.43.4 GR5, implementor-defined) is Format 2 exactly when a record is
   variable-length (`FileModel.ImpliesVariableFormat`; `RecordSizeVaries` is the one question every registration
@@ -177,7 +177,7 @@ operation is applied to a group containing it"* (§2023:8.5.1.11.2).
   (COBOL0863) and `KeyedIoEmitter.KeyWindow`. At run time the record type's ONE `CobolContiguousLayout`
   (emitted beside `FromContiguousImage` as the static `__contiguous`, exposed through `__Contiguous`) serves both
   the decomposition and `Position` — the record's extent table, else the same take step
-  (`CobolVarGroup.ContiguousTake`) — so `CobolSort.Key` and
+  (`CobolContiguousLayout.ContiguousTake`) — so `CobolSort.Key` and
   `IndexedConnector.KeyOf` find a key exactly where a READ / RETURN puts it. An indexed connector with such a key
   (`_layoutKeys`) takes every key from the record AS WRITTEN (`AreaKey`; the WRITE / REWRITE frame), never from an
   image fitted to the area width, because truncation would move the key.

@@ -3496,7 +3496,7 @@ clause: the cost of the feature is one null test per terminal.
 ### 2.3 Values — the value library (numeric + text + tables), role-grouped
 ```
 Values/                         namespace WiseOwl.Cobol.Runtime.Values
-  Numeric/  CobolNum, CobolDec, CobolFloat, CobolEdit, CobolRounding, CobolSizeError, NumProfile, Pow10 (NEW)
+  Numeric/  CobolNum, CobolDec, CobolFloat, CobolEdit, CobolRounding, CobolSizeError, NumProfile, Pow10, DecUnscaled
   Text/     CobolString, CobolBool, CobolClass
   Tables/   CobolTable, CobolDynTable
 ```
@@ -3511,6 +3511,13 @@ internal static class Pow10 {
 ```
 `CobolNum.Pow10/Pow10Wide`, `CobolDec.Pow10`, `CobolDate.Pow10`, `CobolIntrinsics.Pow10I/Pow10D` all delegate to it,
 then are deleted. Pure win, no behavior change (identical values, table-driven).
+
+`DecUnscaled` (`Values/Numeric/DecUnscaled.cs`, kb/Work PB2657) — the ONE home of the unscaled-decimal reductions over an
+`Int128` significand, beside `Pow10`: `DigitCount(UInt128)` reads the digit count off the `Pow10` table by comparison
+(never a divide-by-ten loop) and `StripTrailingZeros(sig, exp, ceiling)` moves trailing zero digits into the exponent up to
+a ceiling (0 normalizes the fraction places; a zero rises straight to the ceiling). `CobolDec` (its order, ln reduction,
+SQRT, SIDI and quotient prescales, binary64 lift, integer tests) and `CobolIntrinsics` (`NvfScan`'s capacity test,
+`TryExactInteger`) read it; a second spelling is a defect.
 
 ⛔ **There is deliberately NO `double` view (kb/Work PB623, 2026-09-05).** The 10^n-as-double table existed for
 exactly one purpose — scaling a binary64 before landing it in a fixed-point receiver — and that multiply was the
