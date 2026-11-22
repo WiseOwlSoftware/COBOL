@@ -51,18 +51,11 @@ run-time message, which is PB5449's 2023 half. Group e's item rewrite had edited
 CODE READS turned red. They were restored to main's bytes. The gate's WITNESS LOSS audit refused group d's hand edit of
 SR-13.4.6.3-4's code location, so that row now retires the deleted member through `record_verdicts.py`.
 
-**The kill-by-name guard, round 2 (PB6034).** Train C's review left two leads, and this train fixes both. A `python -c`
-payload is now read as a command line, so a kill by name through psutil or a parsed `tasklist` is refused. A quoted
-`Get-Process` is an argument, and so is `timeout -s KILL`'s signal choice: neither counts as half of a kill.
+**The kill-by-name guard (PB6034).** This train carries main's hook unchanged; the hook rounds continue on branch
+`hook-pb6034-r4`.
 
-**The branch review, round 1.** The reviewer found a third round of misses in the kill-by-name rule. `python -X utf8 -c`,
-`python -W ignore -c`, `env python -c` and `timeout 60 python -c` each killed by name unrefused, because the rule still
-parsed how Python was started. The rule now parses no invocation at all. It looks for its two ingredients, a listing by
-name and a kill, in the text of every step's words and heredoc bodies, whatever program a quoted payload is handed to.
-The words of a program that only searches or prints are text, and so is a string a payload only prints. Round 2 found that this exemption also covered printed text another step runs (`echo "<kill>" | python`, `iex (Write-Output ...)`, a git `!` alias). The words now count as text only while the output stays text: no pipe into anything but a text filter, no redirect to a file, no git `!` alias, and not inside a substitution. The self-test
-grew from 383 to 402 cases. The 14 new blocking cases were each allowed by the hook before this change. A refuter record
-also stood for any disposition of its unit, so a `restates` list edited after its refutation kept its old record and
-could hide a prose hole. Now a record upholds the disposition it judged: its kind, its class and its rule list. The 672
+**The branch review, round 1.** A refuter record also stood for any disposition of its unit, so a `restates` list
+edited after its refutation kept its old record and could hide a prose hole. Now a record upholds the disposition it judged: its kind, its class and its rule list. The 672
 committed records that spelled only the kind gained that disposition from the reader record each one names, and the
 import writes it from now on. Every entry already matched its record, so 1985 still has 0 prose holes.
 

@@ -34,8 +34,7 @@ fires inside subagents and Workflow agents too. Each rule below was written in a
 
   a kill by process name    `Stop-Process -Name`, `taskkill /IM`, `pkill`, `killall`, and any command line that both
                             lists processes by name (Get-Process, ps, pgrep, pidof, tasklist, wmic, Win32_Process) and
-                            kills (Stop-Process, `.Kill()`, kill, taskkill, `xargs kill`, Terminate), in any order, pipe
-                            or payload (the TEXT is judged, `python -X utf8 -c "…"` and `env python -c` included):
+                            kills (Stop-Process, `.Kill()`, kill, taskkill, `xargs kill`, Terminate), in any order or pipe:
                             a name matches every process of that image on the host, and one agent's cleanup killed
                             another agent's gate compiles (kb/Work PB6034, MANDATORY-PRACTICES P18). Stop only what you
                             started, by its pid.
@@ -409,199 +408,113 @@ for _st in STEPS:   # every simple command, in the shell that runs it (`Step.she
 # 8. a KILL BY PROCESS NAME (owner-controller 2026-11-21, kb/Work PB6034, MANDATORY-PRACTICES P18): a name matches EVERY
 # process of that image on the host, other agents' included. `Get-Process dotnet-stack,cobol | Stop-Process -Force`, run
 # by one implementer to clean up its own sampling, killed the cobol.exe compiles of another agent's gate (exit 4294967295,
-# empty streams), and that gate read them as failed cases. A by-name kill has two INGREDIENTS, and the rule looks for
-# them in the TEXT of the whole command line, never in a parse of how a program was started (the branch reviews of
-# train-1985-c R1-1 and R2-1 and of train-1985-d R1-1 each found a form that parse missed: a `Where-Object` stage between
-# the halves, a `python -c` payload, then `python -X utf8 -c`, `env python -c` and `timeout 60 python -c`; a list of
-# invocations is never complete, so the rule reads no invocation at all):
-#   ENUMERATION (`_ENUMERATES`) - a listing by name or of every process: Get-Process / gps / PowerShell's ps without -Id,
-#     Bash ps without -p, pgrep, pidof, tasklist not filtered to one PID, wmic process or a Win32_Process query not
-#     filtered to one ProcessId alone, .NET's GetProcesses / GetProcessesByName, psutil's process_iter / pids;
-#   KILL (`_KILLS`) - Stop-Process / spps / kill, taskkill, tskill, pkill, killall, pskill, a `.Kill()`, `.kill()`,
-#     `.terminate()` or `.send_signal()` call, os.kill, TerminateProcess, `ForEach-Object Kill`, Invoke-CimMethod /
-#     Invoke-WmiMethod Terminate, Remove-CimInstance / Remove-WmiObject, wmic's delete or call terminate;
-#   and a step that is both at once (`_BY_NAME`: Stop-Process -Name, PowerShell's kill -Name, taskkill /IM or an image
-#     /FI, pkill, killall).
-# The text judged (`_code_text`) is every word of every step, quoted payloads whole (whatever program they are handed to:
-# python, node, perl, bash -c, pwsh -c, a here-string, a runner such as env, timeout, nice, xargs or sudo, with any
-# options before them), plus the heredoc bodies a step introduces; an ENUMERATION and a KILL anywhere in it, in any order,
-# pipe, substitution, loop, script block or payload, is refused. Three things are text and never judged: the arguments of a
-# program that only SEARCHES or PRINTS text (`_TEXT_ONLY`: grep, rg, Select-String, findstr, git, echo, Write-Output, ...),
-# so `git grep -n 'Get-Process'` and `git log --grep 'pgrep cobol | xargs kill'` pass, but ONLY WHILE ITS OUTPUT IS
-# TEXT (`_output_stays_text`, the branch review of train-1985-d R2-1: `echo "<kill>" | python`, `iex (Write-Output
-# '<kill>')`, `echo '<kill>' > k.sh && bash k.sh` and git's `!` alias each RUN the printed words). Its output is text
-# unless something RUNS it (R4-1: a stderr redirect, a search piped into head, sed or awk, or text written to a file
-# nothing runs, runs nothing): a program that runs its input (`_RUNS_INPUT`: an interpreter, a shell, iex, xargs of
-# any but a text-only program, a ForEach-Object block that does more than read properties) on its pipeline; a file it
-# writes (a stdout redirect, tee, Out-File, Set-Content) that another step of the line names; a git `!` alias; or, for
-# a step inside a substitution or an expression, an evaluator anywhere in the line (`_EVALUATOR`: `iex ( ... )` is no
-# step of the model). A runner (xargs, env, timeout, nice, sudo ...) of a text-only program is text-only too
-# (`_runs`: `git grep -l X | xargs grep -n Y`); a string literal a payload only
-# prints (`_PRINTED`: `print('kill tasklist')`); and a signal a runner chooses for the command it starts (`timeout -s
-# KILL 600 python ...` kills nothing). Allowed: a kill of a pid the agent started, with
-# no enumeration in the line (`$p = Start-Process ... -PassThru; Stop-Process -Id $p.Id`, `$p.Kill()`, Bash `kill $pid`,
-# `taskkill /PID n`), and every listing that kills nothing. A line that lists by name AND kills its own pid is refused
-# too: list in one call, kill in the next. A script FILE an agent writes is outside the hook (it reads the command line,
-# not files): P18 binds it.
-_TEXT_ONLY = {"grep", "egrep", "fgrep", "zgrep", "rg", "ag", "ack", "findstr", "select-string", "sls", "git", "echo",
-              "printf", "write-output", "write-host", "write", "write-error", "write-warning", "write-verbose",
-              "write-information", "write-debug"}
-#: The programs that RUN what is piped into them (a script on stdin, or arguments to a command): a text-only step piped
-#: into one is judged. awk, sed, head and the like run their own program, never their input, so they are not here.
-_RUNS_INPUT = re.compile(r"^(?:py|pythonw?(?:\d+(?:\.\d+)?)?|pwsh|powershell|sh|bash|zsh|dash|ksh|fish|node|deno|bun|perl"
-                         r"|ruby|php|lua|tclsh|cmd|iex|invoke-expression|invoke-command|icm|eval|source|\.|xargs|parallel"
-                         r"|osascript|wscript|cscript|foreach-object|%)$")
-#: The words in a line that can run a substitution's or an expression's output (`iex (Write-Output ...)`, `& (...)`).
-_EVALUATOR = re.compile(r"(?<![\w$.-])(?:iex|invoke-expression|invoke-command|icm|eval|source)(?![\w-])|(?:^|[\s;|(])[&.]\s*[($]",
-                        re.I)
-#: The commands that run another: their own options and values are skipped to find what they run (`_runs`).
-_RUNNERS = {"xargs", "env", "sudo", "doas", "nice", "ionice", "nohup", "time", "timeout", "command", "exec", "stdbuf"}
-_RUNNER_VALUED = {"-I", "-d", "-a", "-E", "-L", "-n", "-P", "-s", "-u", "-k", "--signal", "--kill-after"}
-_WRITERS = {"tee", "out-file", "set-content", "add-content", "sc", "ac"}
-_STDOUT_REDIRECT = re.compile(r"^(?:1|&)?>>?\|?(.*)$")      # `>`, `>>`, `1>`, `&>`, `>|`; never `2>`
-_NO_FILE = {"/dev/null", "$null", "nul", "null", "/dev/stdout", "/dev/stderr"}
-_PROPERTY_READ = re.compile(r"^\{\s*\$_(?:\.\w+)*\s*\}$")       # `{ $_.Line }`: reads, runs nothing
-_W = r"(?<![\w$.-])"                      # a word starts here: not inside a name, a variable or a member access
-_PS_ID_PARAM = r"\s-(?:id|pid|i(?:n(?:p(?:u(?:t(?:o(?:b(?:j(?:e(?:c(?:t)?)?)?)?)?)?)?)?)?)?)\b"   # -Id, -InputObject
-_COMMAND_POSITION = r"(?:^|[|;&({}\[,=`'\"]|\$\()\s*"
-_ENUMERATES = [
-    re.compile(_W + r"(?:get-process|gps)\b(?![^|;)}\n]*" + _PS_ID_PARAM + ")", re.I),
-    re.compile(_COMMAND_POSITION + r"ps\b(?![^|;)}\n]*(?:" + _PS_ID_PARAM + r"|\s(?:-p|--pid|-q|--quick-pid)\b|\s-p\d|\s--pid=))",
-               re.I),
-    re.compile(_W + r"(?:pgrep|pidof)\b", re.I),
-    re.compile(_W + r"tasklist\b(?![^|;&\n]*[/-]+fi\s+['\"]?pid\b)", re.I),
-    re.compile(r"::getprocesses(?:byname)?\s*\(|\bprocess_iter\b|\bpsutil\.pids\b", re.I),
-]
-_PROCESS_QUERY = re.compile(r"\bwmic\b[^|;&\n]*\bprocess\b[^|;&\n]*|\bwin32_process\b[^|;\n]*", re.I)
+# empty streams), and that gate read them as failed cases. A by-name kill has two halves, and the rule judges the WHOLE
+# command line, not a pipe's two neighbours (the branch review of train-1985-c, R1-1: a `Where-Object` stage between them,
+# `-Id (Get-Process cobol).Id`, `ForEach-Object { $_.Kill() }`, `kill $(pgrep cobol)` and `pgrep cobol | xargs kill` each
+# passed a rule that read only `Get-Process | Stop-Process`): a step that ENUMERATES processes by name or all of them
+# (`_enumerates`: Get-Process / gps / PowerShell's ps without -Id, Bash ps without -p, pgrep, pidof, tasklist and wmic or
+# a Win32_Process query not filtered to one ProcessId, .NET's GetProcesses / GetProcessesByName) and a step that KILLS
+# (`_kills`: Stop-Process / spps / kill, taskkill, pkill, killall, a kill run by xargs / find -exec / timeout, a `.Kill()` or
+# `.Terminate()` call, Invoke-CimMethod / Invoke-WmiMethod Terminate, Remove-CimInstance / Remove-WmiObject, wmic's
+# delete or call terminate) in one command line, in any order, pipe, substitution, loop or script block, is refused; so
+# is a step that is both at once (`_kills_by_name`: Stop-Process -Name, taskkill /IM or an image /FI, pkill, killall).
+# Allowed: a kill of a pid the agent started, with no enumeration in the line (`$p = Start-Process … -PassThru; Stop-Process
+# -Id $p.Id`, `$p.Kill()`, Bash `kill $pid`, `taskkill /PID n`), and every listing that kills nothing. A line that lists
+# by name AND kills its own pid is refused too: list in one call, kill in the next.
+_PS_STOP = {"stop-process", "spps", "kill"}
+_KILLERS = {"stop-process", "spps", "kill", "taskkill", "tskill", "pkill", "killall", "pskill"}
+_RUNS_A_COMMAND = {"xargs", "parallel", "find", "timeout", "nice", "nohup", "env", "watch"}  # a later word is the command
+_PS_GET_PROCESS = {"get-process", "gps"}
+_PS_BY_NAME = re.compile(r"^-(?:n(?:a(?:m(?:e)?)?)?|processname)(?::.*)?$", re.I)
+_PS_BY_ID = re.compile(r"^-(?:id|pid|inputobject|i(?:n(?:p(?:u(?:t(?:o(?:b(?:j(?:e(?:c(?:t)?)?)?)?)?)?)?)?)?)?)(?::.*)?$", re.I)
+_KILL_METHOD = re.compile(r"\.(?:kill|terminate)\s*\(", re.I)
+_DOTNET_ENUM = re.compile(r"::getprocesses(?:byname)?\s*\(", re.I)
+_CIM_GET = {"get-ciminstance", "gcim", "get-wmiobject", "gwmi"}
+_CIM_INVOKE = {"invoke-cimmethod", "invoke-wmimethod", "icim", "iwmi"}      # a kill with `Terminate`
+_CIM_REMOVE = {"remove-ciminstance", "remove-wmiobject", "rcim", "rwmi"}  # removing a Win32_Process ends it
 _ONE_PID = re.compile(r"\b(?:processid|handle)\s*=", re.I)
 _NAME_FILTER = re.compile(r"\b(?:name|caption|commandline|executablepath)\s*(?:=|like\b|-eq\b|-like\b|-match\b)", re.I)
-_KILLS = [
-    re.compile(_W + r"(?:stop-process|spps|taskkill|tskill|pkill|killall|pskill|remove-ciminstance|remove-wmiobject"
-               r"|rcim|rwmi)\b", re.I),
-    re.compile(_W + r"(?<!-s )(?<!--signal )(?<!--signal=)kill\b", re.I),   # `-s KILL` is a runner's signal choice
-    re.compile(r"\.(?:kill|terminate|send_signal)\s*\(|\bterminateprocess\b", re.I),
-    re.compile(_W + r"(?:foreach-object|%)\s+(?:-m\w*\s+)?terminate\b", re.I),
-    re.compile(_W + r"(?:invoke-cimmethod|invoke-wmimethod|icim|iwmi)\b[^|;\n]*\bterminate\b", re.I),
-    re.compile(r"\bwmic\b[^|;&\n]*\b(?:delete|terminate)\b", re.I),
-]
-_BY_NAME = [
-    re.compile(_W + r"(?:pkill|killall)\b", re.I),
-    re.compile(_W + r"taskkill\b[^|;&\n]*?(?<!\w)[/-]+(?:im\b|fi\s+['\"]?(?!pid\b))", re.I),
-    re.compile(_W + r"(?:stop-process|spps)\b[^|;)}\n]*\s-(?:n|na|nam|name|processname)(?![\w-])", re.I),
-]
-# A string literal a payload only prints is text too (`python -c "print('kill tasklist')"`), like a `_TEXT_ONLY` step's words.
-_PRINTED = re.compile(r"\b(?:print|echo|printf|puts|say|console\.log|write-output|write-host)\b\s*\(?\s*[rbfu]?"
-                      r"(['\"])(?:\\.|(?!\1).)*?\1", re.I | re.S)
-_PS_KILL_BY_NAME = re.compile(_W + r"kill\b[^|;)}\n]*\s-(?:n|na|nam|name|processname)(?![\w-])", re.I)  # Bash's kill -n is a signal
 
 
-def _program(st) -> str | None:
-    k = _command_word(st.words)
-    return None if k is None else shell_location.program(st.words[k])
+def _image_filter(args) -> bool:
+    """Whether tasklist / taskkill args select by image (`/IM x`, or a `/FI` filter that is not `PID …`)."""
+    for i, a in enumerate(args):
+        flag = a.lower().lstrip("/-")
+        if flag == "im":
+            return True
+        if flag == "fi" and i + 1 < len(args) and not args[i + 1].strip().lower().startswith("pid"):
+            return True
+    return False
 
 
-def _runs(st) -> str | None:
-    """The program a step runs in the end: its command word, or past a runner's (`_RUNNERS`) own options, their values,
-    a duration and assignments, the program the runner starts (`xargs -0 grep -n x` runs grep)."""
-    k = _command_word(st.words)
+def _enumerates(st) -> bool:
+    """Whether the step lists processes by name or all of them: what a by-name kill reads its targets from."""
     w = st.words
-    while k is not None and k < len(w) and shell_location.program(w[k]) in _RUNNERS:
-        k += 1
-        while k < len(w) and (w[k].startswith("-") or re.fullmatch(r"\d+(?:\.\d+)?[smhd]?|[A-Za-z_]\w*=.*", w[k])):
-            k += 2 if w[k] in _RUNNER_VALUED else 1
-    return shell_location.program(w[k]) if k is not None and k < len(w) else None
+    k = _command_word(w)
+    if any(_DOTNET_ENUM.search(x) for x in w):
+        return True
+    for j, x in enumerate(w):                              # anywhere in the step: `foreach ($p in Get-Process cobol)`
+        if st.shell == shell_location.POWERSHELL and (shell_location.program(x) in _PS_GET_PROCESS
+                                                       or (j == k and x.lower() == "ps")):
+            return not any(_PS_BY_ID.match(a) for a in w[j + 1:])
+    if k is None:
+        return False
+    name, args = shell_location.program(w[k]), w[k + 1:]
+    if st.shell == shell_location.BASH and name == "ps":
+        return not any(a in ("-p", "--pid", "-q", "--quick-pid") or re.match(r"^(?:-p\d|--pid=)", a) for a in args)
+    if name in ("pgrep", "pidof"):
+        return True
+    if name == "tasklist":
+        return not any(a.lower().lstrip("/-") == "fi" for a in args) or _image_filter(args)
+    text = " ".join(args)
+    if name == "wmic" and any(a.lower() == "process" for a in args) or (
+            name in _CIM_GET and re.search(r"win32_process\b", text, re.I)):
+        return not _ONE_PID.search(text) or bool(_NAME_FILTER.search(text))
+    return False
 
 
-def _written(st) -> list[str]:
-    """The files a step writes its standard output to: a stdout redirect's target (never `2>`, `>&2` or the null device)
-    and a writer's (`_WRITERS`: tee, Out-File, Set-Content) path arguments."""
-    w, out = st.words, []
-    for j, x in enumerate(w):
-        if (m := _STDOUT_REDIRECT.match(x)) is not None:
-            target = m.group(1) or (w[j + 1] if j + 1 < len(w) else "")
-            if target and not target.startswith("&"):
-                out.append(target)
-    if _program(st) in _WRITERS:
-        out += [x for x in w[(_command_word(w) or 0) + 1:] if not x.startswith("-")]
-    return [t for t in out if t.lower() not in _NO_FILE]
+def _kills(st) -> bool:
+    """Whether the step stops a process, by whatever it was handed."""
+    w = st.words
+    if any(_KILL_METHOD.search(x) for x in w):
+        return True
+    k = _command_word(w)
+    if k is None:
+        return False
+    name, args = shell_location.program(w[k]), w[k + 1:]
+    if name in _KILLERS or name in _CIM_REMOVE or name in _CIM_INVOKE and any(a.lower() == "terminate" for a in args):
+        return True
+    if name in _RUNS_A_COMMAND and any(shell_location.program(a) in _KILLERS for a in args):
+        return True
+    return name == "wmic" and any(a.lower() == "delete" or a.lower() == "terminate" for a in args)
 
 
-def _run_later(files: list[str], writers: set[int]) -> bool:
-    """Whether another step of the line names one of `files` (by its path or its file name) and is no text-only program:
-    `echo … > k.sh && bash k.sh` runs what it wrote; `echo … >> notes.md` alone does not."""
-    names = {f.replace("\\", "/").rsplit("/", 1)[-1].lower() for f in files}
-    return any(j not in writers and _runs(st) not in _TEXT_ONLY and any(
-        x.replace("\\", "/").rsplit("/", 1)[-1].lower() in names for x in st.words) for j, st in enumerate(STEPS))
+def _kills_by_name(st) -> bool:
+    """Whether the one step is both halves: a kill whose own arguments name the image."""
+    w = st.words
+    k = _command_word(w)
+    if k is None:
+        return False
+    name, args = shell_location.program(w[k]), w[k + 1:]
+    if name == "taskkill":
+        return _image_filter(args)
+    if st.shell == shell_location.BASH and name in ("pkill", "killall"):
+        return True
+    return st.shell == shell_location.POWERSHELL and name in _PS_STOP and any(_PS_BY_NAME.match(a) for a in args)
 
 
-def _output_stays_text(i: int) -> bool:
-    """Whether what step `STEPS[i]` prints reaches nothing that runs it (the branch reviews of train-1985-d R2-1 and
-    R4-1): no program on its pipeline runs its input (`_RUNS_INPUT`, but xargs of a text-only program and a ForEach-Object
-    that only reads properties), no file it or a writer on its pipeline writes is named by another step, it is no git `!`
-    alias, and, inside a substitution or an expression, the line holds no evaluator (`_EVALUATOR`) and no step that runs
-    its input (`python -c "$(echo …)"`)."""
-    st = STEPS[i]
-    if st.depth and (_EVALUATOR.search(cmd) or any(_RUNS_INPUT.match(_runs(x) or "") for x in STEPS)):
-        return False             # a substitution's output may be the program an interpreter of the line runs
-    if _program(st) == "git" and any(w.startswith("!") or "=!" in w for w in st.words):
-        return False             # `git -c alias.k='!…' k`: git hands a `!` alias to the shell
-    written, writers = _written(st), {i}
-    while st.sep == "|":
-        i = next((j for j in range(i + 1, len(STEPS)) if STEPS[j].depth == st.depth), None)
-        if i is None:
-            return False
-        st = STEPS[i]
-        name = _program(st) or ""
-        if _RUNS_INPUT.match(name) and not (
-                name == "xargs" and _runs(st) in _TEXT_ONLY
-                or name in ("foreach-object", "%") and len(st.words) == 2 and _PROPERTY_READ.match(st.words[1])):
-            return False
-        written += _written(st)
-        writers.add(i)
-    return not (written and _run_later(written, writers))
-
-
-def _code_text(i: int) -> str:
-    """The text of step `STEPS[i]` that a shell or an interpreter may run: every word (a quoted payload whole) and the
-    bodies of the heredocs it introduces; empty for a program that only searches or prints text (`_TEXT_ONLY`) while its
-    output stays text (`_output_stays_text`)."""
-    st = STEPS[i]
-    if _runs(st) in _TEXT_ONLY and _output_stays_text(i):
-        return ""
-    return _PRINTED.sub(" ", "\n".join((" ".join(st.words), *st.heredocs)))
-
-
-def _enumerates(text: str) -> bool:
-    """Whether the text lists processes by name or all of them: what a by-name kill reads its targets from."""
-    return any(p.search(text) for p in _ENUMERATES) or any(
-        not _ONE_PID.search(m.group(0)) or _NAME_FILTER.search(m.group(0)) for m in _PROCESS_QUERY.finditer(text))
-
-
-def _kills(text: str) -> bool:
-    """Whether the text stops a process, by whatever it was handed."""
-    return any(p.search(text) for p in _KILLS)
-
-
-def _kills_by_name(st, text: str) -> bool:
-    """Whether one step is both ingredients: a kill whose own arguments name the image."""
-    return any(p.search(text) for p in _BY_NAME) or (
-        st.shell == shell_location.POWERSHELL and bool(_PS_KILL_BY_NAME.search(text)))
-
-
-_TEXTS = [(st, _code_text(i)) for i, st in enumerate(STEPS)]
-_BY_NAME_STEP = next((st for st, t in _TEXTS if _kills_by_name(st, t)), None)
-_ENUMERATION = next((st for st, t in _TEXTS if _enumerates(t)), None)
-_KILL = next((st for st, t in _TEXTS if _kills(t)), None)
-if _BY_NAME_STEP is not None or (_ENUMERATION is not None and _KILL is not None):
-    _what = (f"`{_BY_NAME_STEP.text[:60]}`" if _BY_NAME_STEP is not None
+_ENUMERATION = next((st for st in STEPS if _enumerates(st)), None)
+_KILL = next((st for st in STEPS if _kills(st)), None)
+_BY_NAME = next((st for st in STEPS if _kills_by_name(st)), None)
+if _BY_NAME is not None or (_ENUMERATION is not None and _KILL is not None):
+    _what = (f"`{_BY_NAME.text[:60]}`" if _BY_NAME is not None
              else f"`{_KILL.text[:50]}` stops what `{_ENUMERATION.text[:50]}` lists")
     block(f"a kill by process NAME ({_what}): a name matches every process of that image on the host, including "
           "other agents' gates and builds (kb/Work PB6034: a `Get-Process cobol | Stop-Process` killed another gate's "
           "compiles, MANDATORY-PRACTICES P18). A command line that lists processes by name (Get-Process, ps, pgrep, "
-          "pidof, tasklist, wmic, Win32_Process, psutil.process_iter) and kills (Stop-Process, .Kill(), kill, taskkill, "
-          "xargs kill, Terminate, os.kill) is refused in any order, pipe or payload. Stop only what you started, by its "
-          "pid: keep the object `Start-Process -PassThru` returns and run `Stop-Process -Id $p.Id` (Bash: `kill $pid`); "
-          "list in one call and kill in another if you must look first.")
-
+          "pidof, tasklist, wmic, Win32_Process) and kills (Stop-Process, .Kill(), kill, taskkill, xargs kill, "
+          "Terminate) is refused in any order or pipe. Stop only what you started, by its pid: keep the object "
+          "`Start-Process -PassThru` returns and run `Stop-Process -Id $p.Id` (Bash: `kill $pid`); list in one call "
+          "and kill in another if you must look first.")
 
 sys.exit(0)
