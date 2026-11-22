@@ -8,7 +8,7 @@
   "longer fails. Repair a citation, then rewrite this file with",
   "`python scripts/spec/audit_code_citations.py --write-baseline` (it refuses to add an entry)."
  ],
- "count": 1946,
+ "count": 1945,
  "entries": [
   {
    "file": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4",
@@ -2588,14 +2588,14 @@
   },
   {
    "file": "docs/rearchitecture/DESIGN-frontend-grammar.md",
-   "line": 1890,
+   "line": 1888,
    "citation": "§2023:8.3.2.2",
    "kind": "designator-not-canonical",
    "reason": "the catalog gives that ordinal no one rule of the clause"
   },
   {
    "file": "docs/rearchitecture/DESIGN-frontend-grammar.md",
-   "line": 2980,
+   "line": 2978,
    "citation": "§2023:14.5.3.3",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
@@ -2714,14 +2714,14 @@
   },
   {
    "file": "docs/REARCHITECTURE_PLAN.md",
-   "line": 1394,
+   "line": 1400,
    "citation": "§2023:15.4.1",
    "kind": "designator-not-canonical",
    "reason": "the catalog gives that ordinal no one rule of the clause"
   },
   {
    "file": "docs/REARCHITECTURE_PLAN.md",
-   "line": 4116,
+   "line": 4122,
    "citation": "§2023:8.3.5",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
@@ -3673,21 +3673,21 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs",
-   "line": 1557,
+   "line": 1558,
    "citation": "§2023:8.8.2",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs",
-   "line": 1563,
+   "line": 1564,
    "citation": "§2023:8.8.2",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs",
-   "line": 1659,
+   "line": 1660,
    "citation": "§2023:8.8.2",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
@@ -9651,7 +9651,7 @@
   },
   {
    "file": "tests/WiseOwl.Cobol.Tests.Conformance/CompilerUnderTest.cs",
-   "line": 164,
+   "line": 165,
    "citation": "§2023:8.4.6.3",
    "kind": "designator-not-canonical",
    "reason": "the catalog gives that ordinal no one rule of the clause"
@@ -9686,14 +9686,14 @@
   },
   {
    "file": "tests/WiseOwl.Cobol.Tests.Conformance/ExceptionConditionConformanceTests.cs",
-   "line": 1678,
+   "line": 1679,
    "citation": "§2023:14.9.49.4 GR3",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
   },
   {
    "file": "tests/WiseOwl.Cobol.Tests.Conformance/FileControlKeyRuleSpecTests.cs",
-   "line": 776,
+   "line": 777,
    "citation": "§2023:8.3.2.2",
    "kind": "designator-not-canonical",
    "reason": "the catalog gives that ordinal no one rule of the clause"
@@ -9707,7 +9707,7 @@
   },
   {
    "file": "tests/WiseOwl.Cobol.Tests.Conformance/FunctionCompiledElsewhereTests.cs",
-   "line": 20,
+   "line": 21,
    "citation": "§2023:14.8.2.3.2",
    "kind": "designator-not-canonical",
    "reason": "the catalog gives that ordinal no one rule of the clause"
@@ -9882,7 +9882,7 @@
   },
   {
    "file": "tests/WiseOwl.Cobol.Tests.Conformance/ObjectRefDescriptorDriftTests.cs",
-   "line": 76,
+   "line": 77,
    "citation": "§2023:13.18.60.4 GR22",
    "kind": "designator-not-canonical",
    "reason": "a test's string literal: an expectation changes only with the message it quotes"
@@ -9924,35 +9924,35 @@
   },
   {
    "file": "tests/WiseOwl.Cobol.Tests.Conformance/OoSpineTests.cs",
-   "line": 1354,
+   "line": 1355,
    "citation": "§2023:14.8.3.3",
    "kind": "designator-not-canonical",
    "reason": "the catalog gives that ordinal no one rule of the clause"
   },
   {
    "file": "tests/WiseOwl.Cobol.Tests.Conformance/OoSpineTests.cs",
-   "line": 1444,
+   "line": 1445,
    "citation": "§2023:14.8.2.3.2",
    "kind": "designator-not-canonical",
    "reason": "the catalog gives that ordinal no one rule of the clause"
   },
   {
    "file": "tests/WiseOwl.Cobol.Tests.Conformance/OoSpineTests.cs",
-   "line": 1567,
+   "line": 1568,
    "citation": "§2023:9.3.6",
    "kind": "designator-not-canonical",
    "reason": "the catalog gives that ordinal no one rule of the clause"
   },
   {
    "file": "tests/WiseOwl.Cobol.Tests.Conformance/OoSpineTests.cs",
-   "line": 2089,
+   "line": 2090,
    "citation": "§2023:9.3.8.2.3",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
   },
   {
    "file": "tests/WiseOwl.Cobol.Tests.Conformance/OoSpineTests.cs",
-   "line": 2774,
+   "line": 2775,
    "citation": "§2023:14.6.13.1.5",
    "kind": "designator-not-canonical",
    "reason": "the catalog gives that ordinal no one rule of the clause"
@@ -10022,21 +10022,21 @@
   },
   {
    "file": "tests/WiseOwl.Cobol.Tests.Conformance/RelationComparabilityTests.cs",
-   "line": 62,
+   "line": 63,
    "citation": "§2023:15.2",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
   },
   {
    "file": "tests/WiseOwl.Cobol.Tests.Conformance/RelationComparabilityTests.cs",
-   "line": 69,
+   "line": 70,
    "citation": "§2023:15.2",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
   },
   {
    "file": "tests/WiseOwl.Cobol.Tests.Conformance/RelationComparabilityTests.cs",
-   "line": 201,
+   "line": 202,
    "citation": "§2023:15.2",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
@@ -10078,21 +10078,21 @@
   },
   {
    "file": "tests/WiseOwl.Cobol.Tests.Conformance/SequentialFileIoSpecTests.cs",
-   "line": 291,
+   "line": 292,
    "citation": "§2023:9.1.14 item 2",
    "kind": "item-is-a-rule",
    "reason": "§2023:9.1.14 item 2: the catalog holds that item as the numbered rule GR2 of 9.1.14: cite §2023:9.1.14 GR2"
   },
   {
    "file": "tests/WiseOwl.Cobol.Tests.Conformance/StandardClassBaseTests.cs",
-   "line": 262,
+   "line": 263,
    "citation": "§2023:9.3.6",
    "kind": "designator-not-canonical",
    "reason": "the catalog gives that ordinal no one rule of the clause"
   },
   {
    "file": "tests/WiseOwl.Cobol.Tests.Conformance/StandardClassBaseTests.cs",
-   "line": 323,
+   "line": 324,
    "citation": "§2023:9.3.6",
    "kind": "designator-not-canonical",
    "reason": "the catalog gives that ordinal no one rule of the clause"
@@ -10106,7 +10106,7 @@
   },
   {
    "file": "tests/WiseOwl.Cobol.Tests.Conformance/StopGobackExitCodeTests.cs",
-   "line": 376,
+   "line": 377,
    "citation": "§2023:13.18.38.3",
    "kind": "designator-not-canonical",
    "reason": "a test's string literal: an expectation changes only with the message it quotes"
@@ -10400,7 +10400,7 @@
   },
   {
    "file": "tests/WiseOwl.Cobol.Tests.Unit/CurrentDateOffsetDeterminationTests.cs",
-   "line": 140,
+   "line": 141,
    "citation": "§2023:15.21.3",
    "kind": "designator-not-canonical",
    "reason": "a test's string literal: an expectation changes only with the message it quotes"
@@ -10792,7 +10792,7 @@
   },
   {
    "file": "tests/WiseOwl.Cobol.Tests.Unit/FlagDirectiveTests.cs",
-   "line": 655,
+   "line": 656,
    "citation": "§2023:7.3.14.4 GR4",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
@@ -10820,7 +10820,7 @@
   },
   {
    "file": "tests/WiseOwl.Cobol.Tests.Unit/FunctionValueIntermediateDriftTests.cs",
-   "line": 133,
+   "line": 134,
    "citation": "§2023:14.6.8.3",
    "kind": "designator-not-canonical",
    "reason": "a test's string literal: an expectation changes only with the message it quotes"
@@ -11219,7 +11219,7 @@
   },
   {
    "file": "tests/WiseOwl.Cobol.Tests.Unit/KeyedClosePermanentErrorWitnessTests.cs",
-   "line": 295,
+   "line": 296,
    "citation": "§2023:14.6.13.1.3",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
@@ -11583,7 +11583,7 @@
   },
   {
    "file": "tests/WiseOwl.Cobol.Tests.Unit/RepositoryReaderTests.cs",
-   "line": 129,
+   "line": 130,
    "citation": "§2023:6.2",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
@@ -11625,14 +11625,14 @@
   },
   {
    "file": "tests/WiseOwl.Cobol.Tests.Unit/RunUnitProcessBoundaryTests.cs",
-   "line": 337,
+   "line": 338,
    "citation": "§2023:9.1.13.9",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
   },
   {
    "file": "tests/WiseOwl.Cobol.Tests.Unit/RunUnitProcessBoundaryTests.cs",
-   "line": 533,
+   "line": 534,
    "citation": "§2023:14.7.9.3",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
@@ -11863,7 +11863,7 @@
   },
   {
    "file": "tests/WiseOwl.Cobol.Tests.Unit/TypedAndUniversalInvokeVerdictsAgreeDriftTests.cs",
-   "line": 241,
+   "line": 240,
    "citation": "§2023:14.8.2.3.2",
    "kind": "designator-not-canonical",
    "reason": "the catalog gives that ordinal no one rule of the clause"
@@ -11975,7 +11975,7 @@
   },
   {
    "file": "tests/WiseOwl.Cobol.Tests.Unit/WrittenKindRefusalTests.cs",
-   "line": 182,
+   "line": 183,
    "citation": "§2023:8.3.2.2",
    "kind": "designator-not-canonical",
    "reason": "the catalog gives that ordinal no one rule of the clause"

@@ -430,15 +430,20 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
     /// alphanumeric or national function"; REWRITE §2023:14.9.35.3 SR9 admits "an alphanumeric, boolean, or national function"
     /// when the FILE phrase is not specified, and the FILE phrase's rows (<see cref="FromPhraseRules.WriteFile"/>,
     /// <see cref="FromPhraseRules.RewriteFile"/>) are the narrower set. A scalar "must be alphanumeric" column would reject legal
-    /// source on the REWRITE arm. The class is read off the BOUND operand through the same Table-16 sender position the category
-    /// screen uses, so a folded integer function (FUNCTION LENGTH constant-folds to a numeric literal, which is how it escaped
-    /// every earlier reading of this position) still answers "numeric", not "unknown".</summary>
+    /// source on the REWRITE arm. The category is read off the BOUND operand through the one operand-category reader
+    /// (<see cref="IntrinsicResultType.OperandCategory"/>), so a folded integer function (FUNCTION LENGTH constant-folds to a
+    /// numeric literal, which is how it escaped every earlier reading of this position) still answers "numeric", not "unknown".
+    /// <para>⛔ NOT TABLE 16's SENDER POSITION (kb/Work PB3229 review R1-1): that position answers <see cref="PicCategory.Group"/>
+    /// for an alphanumeric group, which is §2023:14.9.25.4 GR4's conversion-free copy and no category at all. A user-defined
+    /// function's temporary item has the class and category of its RETURNING item (§2023:8.4.3.2.4 GR1), and an alphanumeric
+    /// group item's category is alphanumeric (§2023:8.5.2.1), so <c>WRITE R FROM FUNCTION GRPF</c> over a group-returning
+    /// function is "an alphanumeric function" and is admitted. A null category is an operand whose binding already reported
+    /// its own error.</para></summary>
     private bool ScreenFromFunctionClass(BoundOperand source, Core.FunctionCallContext? fc, FromPhraseRules rules, FileModel file)
     {
         if (fc is null || rules.FunctionCategories is not { } admitted || rules.FunctionRuleCite is not { } functionRule)
             return true;
-        var cat = MoveTable16.SenderPosition(source).Category;
-        if (admitted.Contains(cat)) return true;
+        if (IntrinsicResultType.OperandCategory(source) is not { } cat || admitted.Contains(cat)) return true;
         // §2002:14.8.33.2 SR8 / SR9 restrict only "an intrinsic function"; a user-defined function (a signature the unit's
         // functions hold) is judged by the verb's MOVE-validity rule alone until COBOL-2014 widens the rule to "a function"
         // (§2014:14.9.33.2 SR7 / SR8, §2023:14.9.35.3 SR8 / SR9) — kb/Work PB5645.

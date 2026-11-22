@@ -447,8 +447,11 @@ public sealed class DataItem
 
     /// <summary>Whether this item belongs to a FILE SECTION record (its root is an FD's or an SD's record description entry):
     /// the placement test of §2023:13.18.49.3 SR6, §2023:13.18.57.3 SR8 and §2023:13.18.60.3 SR15, and the section fact
-    /// §2023:13.4.4 GR1 keys the initial state on (kb/Work PB1241). Asked of the ROOT, so a subordinate answers its record's.</summary>
-    public bool IsInFileSectionRecord => Root.RecordOfFile is not null;
+    /// §2023:13.4.4 GR1 keys the initial state on (kb/Work PB1241). It is the one section fact, <see cref="Section"/> (the
+    /// root's, so a subordinate answers its record's), which the I-O-CONTROL placement rules read too, never a second
+    /// answer off <see cref="RecordOfFile"/>: a record of a repeated file description entry is in the file section though
+    /// it joins no file (kb/Work PB3212 review R1-2).</summary>
+    public bool IsInFileSectionRecord => Section is EntrySection.File;
 
     /// <summary>⛔ THE ONE TEST OF THE EXTERNAL ATTRIBUTE (kb/Work PB5427, PB3212): whether the record this item belongs to is an
     /// external data item. ISO §2023:8.6.3: a working-storage record "is given the external attribute by the presence of the

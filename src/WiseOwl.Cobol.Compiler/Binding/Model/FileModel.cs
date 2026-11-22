@@ -427,6 +427,12 @@ public sealed class FileModel
         record.RecordOfFile = this;
     }
 
+    /// <summary>Whether <paramref name="record"/> is one of this file's record description entries (<see cref="Records"/>), by
+    /// reference identity. Read off the record's own <see cref="DataItem.RecordOfFile"/>, which <see cref="AddRecord"/> writes
+    /// beside the list, so every record-to-file question asks one fact rather than scanning the list (kb/Work PB3212 review
+    /// R1-3). A subordinate item is no record and answers false; <see cref="RecordLayout.IsInRecordOfFile"/> asks it of the root.</summary>
+    public bool HoldsRecord(DataItem record) => ReferenceEquals(record.RecordOfFile, this);
+
     /// <summary>The prefix of the run-unit cell names of an external file's record area (<see cref="ExternalAreaName"/>), which no
     /// externalized record name can begin with: a COBOL word has no colon.</summary>
     public const string ExternalAreaPrefix = "FD::";
@@ -1290,7 +1296,7 @@ public sealed class FileModel
     /// overlays nothing in the area, so there is no area content to send past it: the statement sends that item's image and
     /// the runtime pads it as it pads any short record.</para></summary>
     public bool TransfersPastRecord(DataItem record) =>
-        Records.Contains(record) && Organization != FileOrganization.LineSequential && !IsOutOfLineRecord(record)
+        HoldsRecord(record) && Organization != FileOrganization.LineSequential && !IsOutOfLineRecord(record)
         && AreaRecord is { } area
         && (Model.RecordLayout.PhysicalWidth(area) > Model.RecordLayout.PhysicalWidth(record) || HasVaryingTableBeneath(record))
         && (Varying?.DependingOperand is not null || !RecordSizeVaries);
