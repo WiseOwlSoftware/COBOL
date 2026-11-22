@@ -1,4 +1,4 @@
-## The 1985 transcription's second pass is repaired, and its headings are derived from the printed contents (PB6051, PB6057)
+## Entry 3925 — 2026-11-22 13:45 PST — The 1985 transcription's second pass is repaired, and its headings are derived from the printed contents (PB6051, PB6057)
 
 The second independent pass over `specs/ANSI_COBOL_1985.md` (kb/Work PB6051, the owner's yes of 2026-11-22) had compared all
 976 pages and left 236 claims, 167 of them confirmed, unrepaired on the branch `md85-pass2` with no report. This change
@@ -34,3 +34,4 @@ rows are box and level readings the repairs corrected (rule text changed by a `�
 re-recorded unchanged through `record_verdicts.py` (GAP 0 to 0).
 
 PB6051 stays open: it closes when a full pass finds nothing, and the next pass reads the repaired text. PB6057 is landed.
+
