@@ -1,4 +1,4 @@
-## work.py's tests move to their own case file and stop reading the live register (PB3202)
+## Entry 3915 — 2026-11-22 11:57 PST — work.py's tests move to their own case file and stop reading the live register (PB3202)
 
 kb/Work PB3202, an R2 finding of the PB1754 review, says scripts/spec/work.py's register rules were tested only inside
 the wave planner's test file, against the live register and tree. The filed scenario had two halves. Re-probed on
@@ -28,3 +28,4 @@ Two mutations confirmed that the new cases can fail. Reading the live tree in `r
 drift-test wait rule, each turned the R3 case red. PB3838's site block named the moved members, and `check` refused
 it until the block named the case file's members instead. PB5406, the conversion of `scripts/spec/m*.py` to `w*.py`,
 now leaves work.py out of its file set.
+
