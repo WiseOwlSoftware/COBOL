@@ -24,6 +24,16 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
 
 ### Where we are
 
+- **▶ 1985: TRAIN E (2026-11-21, branch train-1985-e, wave 20262132).** Three fix branches in one landing, on train D.
+  The citation canonicalizer is safe on message text, and its run over the tree closes PB4976 and PB6000 (PB6035; RESOLVE's
+  baseline 6,021 → 1,953 entries, each with its reason). A signed integer-n is refused once by its own rule, COBOL7737
+  (PB6021). The SEARCH ALL messages cite through `EditionInfo.CiteRule` (PB5530), and each data-name-n operand states its
+  own clause's subscript rule at 85 and 2023 (PB2041; 2002/2014 are PB6038). A test's program child dies with its host
+  (PB5057), and a C# witness of a 1985 row compiles fixed form (PB6037). 39 inline edition comparisons moved into 25
+  `DialectBehavior` members, ordinals 36-60 and VCR rows 7.92-7.116, and a ratchet holds the 116 left (PB6031, open,
+  editions `[]`). Group h (PB6022, PB3965, PB5683, PB5924) joins the next train. `python scripts/spec/edition_status.py
+  --edition 1985`: `=== EDITION 1985: NOT COMPLETE — 1 code reads · 4 open work notes ===` (0 inventory GAP, 0 catalog
+  prose holes; the re-read is of 1985-SR-VIII.2.4.3-1, whose member PB2041 folded).
 - **▶ 1985: TRAIN D (2026-11-21, branch train-1985-d, wave 20262132).** Five fix branches in one landing, on train C.
   They carry the register catching up for 1985, under rulings D-A and D-C (PB5924, PB4995, PB4886, PB5596; eleven notes
   narrowed), and extent and caption reading in `cite.py` (PB6014, PB6015). They add the `item <n>` citation designator
