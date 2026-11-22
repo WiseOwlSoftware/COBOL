@@ -13,7 +13,7 @@ is now in `LEDGER-1985.json` (claims with `pass: 2` and the id of their compare 
   and the square brackets and pipes the first pass left around a box in prose (pages 378, 453, 462, 505). The ledger's `boxes`
   follow (`blocks` of boxes 32, 193, 507, 544, 602, 609 and 703 raised; box 733 on page 920 added).
 - **`CHARACTERS` in the BLOCK CONTAINS braces is not underlined** (pages 201, 202, 204, 444, 531, 533): the sweep found two more
-  pages with the same defect (396 and 486), read on page 396. The figure verdicts of those figures carry the change.
+  pages with the same defect (396 and 486), read on page 396. The figure verdicts of those figures carry the change; the five one-row formats a level-2 box now encloses (pages 237, 290, 580, 680, 703) have verdicts of their own, so `sweep_figures.py --edition 1985 --check` stays clean for them (it still reports page 634 3.20.2, a block the PDF page does not locate, as it did before this change).
 - **Summary-table indentation** (pages 32, 34, 54, 738, 741) read on the rendered pages; page 738's three clipped `Z` flags
   (Debug, obsolete) replace the first pass's `KEPT` (the glyph is clipped at the scan's edge exactly as on page 734).
 - **Section dividers** (pages 20, 232, 688, 698 and the other fourteen): a `# SECTION` line after the previous page's folio is gone

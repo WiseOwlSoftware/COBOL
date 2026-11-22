@@ -1,0 +1,12 @@
+{
+ "page": 237,
+ "figure": 0,
+ "drawn_lines": [
+  "║ <u>END</u> <u>PROGRAM</u> program-name. ║"
+ ],
+ "decided": "drawn",
+ "figure_lines": [
+  "║ <u>END</u> <u>PROGRAM</u> program-name. ║"
+ ],
+ "reason": "The printed page encloses the END PROGRAM header (2.4.2), its format included, in the level-2 box that runs down the page; the one-row format is drawn with the box's two sides (FIGURE-STYLE.md rule 9: `║ … ║`) and the regeneration measures no box round a one-row block. The words are the batch's. Second pass (kb/Work PB6051)."
+}
