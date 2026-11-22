@@ -835,11 +835,11 @@ def case_14_a_read_speaks_of_its_own_edition_and_no_other(expect):
     rid = "1985-GR-IV.4.1-p2"
     s = R.normal_slice("s-01", F.record("s-01", [
         {**F.read(rid, "DIFFERENT", citations="§1985:IV.4.1 p2"), "to": [],
-         "compiler-at-1985": "correct: E:/probes/s-01/p.cob", "licence-1985": "§1985:I.1.5.2.5 item 1"}],
+         "compiler-at-1985": "correct: E:/probes/s-01/p.cob", "licence-1985": "§1985:I.1.5.2.5.1"}],
         edition=1985))
     r = s.reads[rid]
     expect("a 1985 read's compiler-at-1985 and licence-1985 are read",
-           r.compiler == R.Judgment("correct", "correct: E:/probes/s-01/p.cob") and r.licence == "§1985:I.1.5.2.5 item 1")
+           r.compiler == R.Judgment("correct", "correct: E:/probes/s-01/p.cob") and r.licence == "§1985:I.1.5.2.5.1")
     d = R.decide(ed85, [s], None, None, F.lineage([rid]))[0]
     expect.equal("so the row it proved correct is the work item needs-own-witness, never undecided", d.work,
                  R.NEEDS_OWN_WITNESS)

@@ -49,7 +49,7 @@
    {
     "class": "b,c,f",
     "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-110/mul1d.cob",
-    "printed": "COBOL0805 composite spans 20 digits over the 18-digit 1985 cap (§1985:VI.6.4.4 item 2); COBOL0802 19-digit literal refused at 85",
+    "printed": "COBOL0805 composite spans 20 digits over the 18-digit 1985 cap (§1985:VI.6.4.4 SR2); COBOL0802 19-digit literal refused at 85",
     "expected": "receiving-item composite of 9(10) and V9(10) is 20 > 18 (SR3); an operand over 18 digits refused (§1985:VI.6.4.4 SR2)"
    }
   ],

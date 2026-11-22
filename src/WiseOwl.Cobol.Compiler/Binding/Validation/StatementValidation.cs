@@ -130,7 +130,7 @@ internal readonly record struct CorrespondingOperandRule(
 }
 
 /// <summary>Which of an arithmetic statement's items the COBOL-85 composite of operands superimposes
-/// (§1985:VI.6.4.4 item 2: "the superimposition of specified operands in a statement"; each statement names its
+/// (§1985:VI.6.4.4 SR2: "the superimposition of specified operands in a statement"; each statement names its
 /// own). ADD and SUBTRACT use every operand (§1985:VI.6.6.3 SR3 a, §1985:VI.6.26.3 SR3 a; format 2 less the items
 /// after GIVING, which the caller leaves out of the receivers), MULTIPLY and DIVIDE the RECEIVING items only
 /// (§1985:VI.6.20.3 SR3; DIVIDE except the REMAINDER item, §1985:VI.6.11.3 SR3). From COBOL-2002 on the compiler counts
@@ -1393,7 +1393,7 @@ internal sealed class StatementValidation(DataBinder data)
     /// <summary>The per-edition COMPOSITE-OF-OPERANDS check (ISO §2023:14.7.7 rule 2, NATIVE arithmetic, the four
     /// arithmetic statements ONLY — COMPUTE expressions are explicitly exempt, §2023:8.8.1.2 r7): the hypothetical item
     /// superimposing the statement's fixed-point operands aligned on their decimal points shall not exceed the
-    /// edition's digit cap (18 at COBOL-85, §1985:VI.6.4.4 item 2; 31 from 2002). Float/binary-native operands are excluded
+    /// edition's digit cap (18 at COBOL-85, §1985:VI.6.4.4 SR2; 31 from 2002). Float/binary-native operands are excluded
     /// (rule 2b — the composite is then over the remaining operands).</summary>
     public bool CheckComposite(string verb, IEnumerable<BoundExpr> operands, IEnumerable<Receiver> receivers,
         CompositeMembers members = CompositeMembers.AllOperands)
@@ -1454,7 +1454,7 @@ internal sealed class StatementValidation(DataBinder data)
             }
 
         // The cap is the edition's digit capacity: 31 from COBOL-2002 (§2023:14.7.7 rule 2 a)) and 18 at COBOL-85
-        // (§1985:VI.6.4.4 item 2: "must not contain more than 18 decimal digits"). The earlier "31 at every edition"
+        // (§1985:VI.6.4.4 SR2: "must not contain more than 18 decimal digits"). The earlier "31 at every edition"
         // rested on CCVS-85 NC101A (MULTIPLY 9(3)V9(3) BY 9(18)), but at 85 that composite is its one receiver, 18
         // digits (§1985:VI.6.20.3 SR3), so the program conforms to the 18-digit cap (kb/Work PB5075).
         int composite = maxInt + maxFrac;
@@ -1463,7 +1463,7 @@ internal sealed class StatementValidation(DataBinder data)
         data.Edition.Error(DiagnosticCatalog.ArithmeticCompositeTooWide,
             $"{verb}: the composite of operands spans {composite} digits ({maxInt} integer + {maxFrac} fraction); "
             + data.Edition.Edition.Cite(
-                "ISO/IEC 1989:1985 caps the composite of operands at 18 digits (§1985:VI.6.4.4 item 2)",
+                "ISO/IEC 1989:1985 caps the composite of operands at 18 digits (§1985:VI.6.4.4 SR2)",
                 "ISO/IEC 1989 caps the composite of operands at 31 digits (§2023:14.7.7 rule 2 a))"));
         return false;
     }

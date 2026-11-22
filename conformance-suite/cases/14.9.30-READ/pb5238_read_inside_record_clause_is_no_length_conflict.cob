@@ -19,7 +19,7 @@
       *> §2023:13.18.43.4 GR9 and GR10 take from the descriptions only when the RECORD clause omits integer-2 or integer-3.
       *> Measured against the descriptions instead, a 7-byte record under a 10-byte description would answer 04, and so would
       *> every short record of the idiom RECORD VARYING 1 TO 80 over one PIC X(80).  The 1985 text defines 04 the same way
-      *> (§1985:VIII.1.3.4 item 1 b: "does not conform to the fixed file attributes for that file").
+      *> (§1985:VIII.1.3.4 GRL2.1b: "does not conform to the fixed file attributes for that file").
       *>
       *> The reading FDs have descriptions of 10 and 15 bytes under a clause of 6 to 30; the relative and indexed records are
       *> 7, 12 and 25 bytes, all inside the clause, written through an FD of 30 bytes.  Every READ is therefore 00, on both

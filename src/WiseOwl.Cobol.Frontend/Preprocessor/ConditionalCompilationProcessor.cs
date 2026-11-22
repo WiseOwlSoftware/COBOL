@@ -330,7 +330,7 @@ public static partial class ConditionalCompilationProcessor
                     && CopyProcessor.OpenStatementAt(PendingStatementText(), _edition) is { } within)
                     _diag.WithinStatement(within.Keyword, within.InPseudoText);
 
-                // ⛔ COBOL-85 HAS NO COMPILER DIRECTIVE LINES (kb/Work PB5803; §1985:III.2 item 3): a line there that begins `>>`
+                // ⛔ COBOL-85 HAS NO COMPILER DIRECTIVE LINES (kb/Work PB5803; §1985:III.2 GRL4.3): a line there that begins `>>`
                 // and lies inside the pseudo-text of a COPY or REPLACE statement is text — "Any other sequence of contiguous
                 // COBOL characters ... bounded by separators" — which pseudo-text-1 and pseudo-text-2 may hold
                 // (§1985:XII.3.3 SR3, SR4), not a directive for §2023:7.3.3 SR8 b) / §2023:7.2.4.3 SR10 to refuse. Outside

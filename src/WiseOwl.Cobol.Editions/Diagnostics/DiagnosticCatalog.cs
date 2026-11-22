@@ -3124,7 +3124,7 @@ public static class DiagnosticCatalog
         "The literal-1 of the figurative constant ALL literal-1 is a constant-name that stands for a numeric literal. "
         + "ISO §2023:8.3.3.6.3 SR2: \"Literal-1 shall be an alphanumeric, boolean, or national literal, any of which may be "
         + "a concatenation expression.\"", "ISO §2023:8.3.3.6.3 SR2",
-        No1985Rule: "The refusal fires only for ALL constant-name, and constant-names are a COBOL-2002 construct refused at 85 by constant-entry-2002 (COBOL0900); the 1985 rule on ALL literal is in §1985:IV.4.2.2.2.3 item 6 ('The literal must be a nonnumeric literal'), which a written literal, never a constant-name, can violate.");
+        No1985Rule: "The refusal fires only for ALL constant-name, and constant-names are a COBOL-2002 construct refused at 85 by constant-entry-2002 (COBOL0900); the 1985 rule on ALL literal is in §1985:IV.4.2.2.2.3 GR6 ('The literal must be a nonnumeric literal'), which a written literal, never a constant-name, can violate.");
     // §2023:8.3.2.1 rule 5 — an intrinsic-function-name "identified in a function-specifier in the REPOSITORY paragraph"
     // shall not be used as a user-defined word (kb/Work PB65 FMT-15.43.2 / FMT-15.58.2): under `REPOSITORY. FUNCTION
     // HIGHEST-ALGEBRAIC INTRINSIC.` a table named HIGHEST-ALGEBRAIC compiled clean and `HIGHEST-ALGEBRAIC(A1)`
@@ -9584,9 +9584,9 @@ public static class DiagnosticCatalog
     public static readonly DiagnosticDescriptor ArithmeticCompositeTooWide = new(
         "COBOL0805", "arithmetic-composite-too-wide", EditionSeverity.Error,
         "The composite of the operands of an arithmetic statement spans more than 31 digits (18 at COBOL-85). §2023:14.7.7 rule 2 a): \"the "
-        + "composite of operands shall not contain more than 31 digits.\" §1985:VI.6.4.4 item 2: \"must not contain more than 18 "
+        + "composite of operands shall not contain more than 31 digits.\" §1985:VI.6.4.4 SR2: \"must not contain more than 18 "
         + "decimal digits\"; the 1985 MULTIPLY and DIVIDE composite superimposes the receiving data items only.",
-        "ISO §2023:14.7.7 rule 2 a); §1985:VI.6.4.4 item 2");
+        "ISO §2023:14.7.7 rule 2 a); §1985:VI.6.4.4 SR2");
 
     /// <summary>COBOL0806 — arithmetic standard binary unsupported (kb/Work PB4463).</summary>
     public static readonly DiagnosticDescriptor ArithmeticStandardBinaryUnsupported = new(

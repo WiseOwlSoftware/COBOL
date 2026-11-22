@@ -600,8 +600,24 @@ def canonical_of(loose: "citation.Loose") -> str | None:
         return None
     if loose.ordinal is None:
         return loose.glued(c.rule) if c.rule else None
+    if loose.item:
+        # A list item (`item (3) c`): the designator of the one printed item with that number and sub-item (kb/Work
+        # PB5449 item 4), its path already glued.
+        designator = _item_designator(c.edition, c.locator, loose.ordinal, loose.path)
+        return render_designated(c, designator) if designator else None
     designator = _designator_of(c.edition, c.locator, loose.ordinal)
     return loose.glued(designator) if designator else None
+
+
+def render_designated(c: "citation.Citation", designator: str) -> str:
+    return citation.render(citation.Citation(c.edition, c.locator, designator))
+
+
+@functools.lru_cache(maxsize=None)
+def _item_designator(edition: int, locator: str, n: int, path: tuple[str, ...]) -> str | None:
+    if citation.transcription(edition) is None:
+        return None
+    return cite_mod.item_designator(edition, locator, n, path)
 
 
 @functools.lru_cache(maxsize=None)
@@ -639,7 +655,8 @@ def resolve_scan(paths) -> list[Resolved]:
 def canonicalize_line(line: str, prev: str = "") -> str:
     """`line` with every non-canonical designator that has exactly one canonical form (`canonical_of`) rewritten to it,
     and nothing else changed: the same citations `resolve_line` refuses as `designator-not-canonical`, read the same way
-    (a marked example line and a line that reports a wrong citation stay as written)."""
+    (a marked example line and a line that reports a wrong citation stay as written), and every `item <n>` the catalog
+    holds as a numbered rule (`item-is-a-rule`) that one list alone prints, rewritten to that rule (kb/Work PB5449)."""
     if "§" not in line or citation.example(line) or NAMED_AS_WRONG.search(line) or NAMED_AS_WRONG.search(prev):
         return line
     spans = []
@@ -648,6 +665,15 @@ def canonicalize_line(line: str, prev: str = "") -> str:
             continue
         if (loose := citation.loose_designator(line, c)) is not None and (canonical := canonical_of(loose)):
             spans.append((c.start, loose.end, canonical))
+        elif c.rule and cite_mod.ITEM.fullmatch(c.rule) and citation.transcription(c.edition) is not None:
+            # An item the catalog holds as a numbered rule is cited by that rule (kb/Work PB5449 item 4), when only one
+            # list of the clause prints that item: `item 3` of a clause whose lists each have a third item may mean
+            # any of them (§1985:III.2's Text Word is its fourth list), which the citer's context decides, not this.
+            m = cite_mod.ITEM.fullmatch(c.rule)
+            path = tuple(re.findall(r"[a-z]|\d+", m["ipath"] or ""))
+            if ((v := _resolved(c.edition, c.locator, c.rule, None)).kind == "item-is-a-rule"
+                    and _item_designator(c.edition, c.locator, int(m["item"]), path) == v.suggestion.split(" ", 1)[1]):
+                spans.append((c.start, c.end, v.suggestion))
     for start, end, canonical in reversed(spans):
         line = line[:start] + canonical + line[end:]
     return line
@@ -802,7 +828,15 @@ def resolve_self_test() -> bool:
         # a rule or a list item named in words or by its bare label is unread (kb/Work PB4976)
         ("designator-not-canonical", "// the receiver (§2023:14.9.25.4 rule 6) is stored"),  # citation-audit: example
         ("designator-not-canonical", "// the receiver (§2023:14.9.25.4 6)) is stored"),  # citation-audit: example
-        ("designator-not-canonical", "// an unlimited capacity (§2023:8.5.1.9.1 item 2)"),  # citation-audit: example
+        ("designator-not-canonical", "// an unlimited capacity (§2023:8.5.1.9.1 item (2))"),  # citation-audit: example
+        # a list item (kb/Work PB5449 item 4): read as a designator, the item a rule holds is that rule's, an appendix's
+        # list item is checked against the printed list (a quotation of it: cite.py's self-test, the pairing floor
+        # being three locator segments)
+        ("item-is-a-rule", "// the composite (§1985:VI.6.4.4 item 2) of operands"),  # citation-audit: example
+        (None, "// the composite (§1985:VI.6.4.4 SR2) of operands"),
+        (None, "// I-O status 9x (§1985:C.2 item 48) is the implementor's"),
+        ("no-item", "// I-O status 9x (§1985:C.2 item 99)"),  # citation-audit: example
+        ("designator-not-canonical", "// status 24 (§1985:VIII.1.3.4 item (3) c)) is set"),  # citation-audit: example
         ("designator-not-canonical", "the SORT statement (§1985:XI.4.4.4 rule 7) is read"),  # citation-audit: example
         # a rule chain (`GR6/GR99`) is every designator of it, not only the first (`citation.chain`)
         ("no-ordinal", "// the receiver rules (§2023:14.9.25.4 GR6/GR99) apply"),  # citation-audit: example
@@ -858,7 +892,12 @@ def resolve_self_test() -> bool:
         ("the receiver (§2023:14.9.25.4 rule 6) is", "the receiver (§2023:14.9.25.4 GR6) is"),  # citation-audit: example
         ("the receiver §2023:14.9.25.4 6) b) is", "the receiver §2023:14.9.25.4 GR6b is"),  # citation-audit: example
         ("the SORT statement (§1985:XI.4.4.4 rule 7)", "the SORT statement (§1985:XI.4.4.4 GR7)"),  # citation-audit: example
-        ("an unlimited capacity (§2023:8.5.1.9.1 item 2)", None),  # citation-audit: example
+        ("an unlimited capacity (§2023:8.5.1.9.1 item (2))", "an unlimited capacity (§2023:8.5.1.9.1 GR2)"),  # citation-audit: example
+        ("status 24 (§1985:VIII.1.3.4 item (3) c)) is", "status 24 (§1985:VIII.1.3.4 GRL2.3c) is"),  # citation-audit: example
+        ("the composite (§1985:VI.6.4.4 item 2) of", "the composite (§1985:VI.6.4.4 SR2) of"),  # citation-audit: example
+        ("the list (§1985:C.2 item (48)) of", "the list (§1985:C.2 item 48) of"),  # citation-audit: example
+        ("a text word (§1985:III.2 item 3) of", None),  # citation-audit: example
+        ("I-O status (§1985:VIII.1.3.4 item (3)) of", None),  # citation-audit: example
         ("the regions (§2023:14.9.22.4 GR9 a) b)) of", None),  # citation-audit: example
         ("the keys (§2023:14.9.51.4 37) 39)) of", None),  # citation-audit: example
         ("the operands (§2023:14.9.18.3 SR4 a)/c)) of", None),  # citation-audit: example
@@ -872,7 +911,8 @@ def resolve_self_test() -> bool:
     print(f"  {'ok  ' if history else 'FAIL'} a work-register note's body is not read for the designator form")
     ok &= history
     print(f"  {'ok  ' if rewrote else 'FAIL'} --canonicalize glues a spaced path, names a numbered rule by its catalog "
-          "designator, and leaves a list item and a line that reports a wrong citation as written")
+          "designator, names a list item by its one designator (the numbered rule that holds it, kb/Work PB5449), and leaves "
+          "an item several lists print, a list of designators and a line that reports a wrong citation as written")
     ok &= rewrote
     rows = ["| a | names a wrong citation: phantom |", "| b | §2023:14.9.8 GR1 |", "a phantom sentence", "wrapped here"]
     context = [context_of(rows, i) for i in range(4)] == ["", "", "| b | §2023:14.9.8 GR1 |", "a phantom sentence"]

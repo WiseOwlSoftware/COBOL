@@ -28,7 +28,8 @@ the text really sits under:
      suggestion names the subclause: `§2023:14.9.39 SR17` is `§2023:14.9.39.3 SR17`), that list has a rule with the (citation-audit: example)
      ordinal (`no-ordinal`, with the count), and the rule has the sub-item the designator names (`no-sub-item`, with
      the sub-items it has); a `Format n` names a general format the clause or its general-format subclause prints
-     (`no-format`), a `Table n` a table captioned in the clause or under it (`no-table`);
+     (`no-format`), a `Table n` a table captioned in the clause or under it (`no-table`), an `item n` an item the
+     clause prints that no numbered rule holds (`no-item`; `item-is-a-rule`, naming the rule that holds it);
   5. the quotation lies INSIDE the cited unit: the sub-item when one is named, else the rule, else the format or the
      table, else the clause (`text-not-in-rule`, naming the rule or sub-item it IS in; `text-not-in-clause`, naming the
      clause; `text-not-found`).
@@ -37,7 +38,9 @@ THE DESIGNATOR FORMS IT UNDERSTANDS (`DESIGNATOR`), and any other FAILS by name 
 `SRn` `GRn` `ARn` `RVn` (a rule of the block's first numbered list); `GRLm.n` (rule n of the block's m-th list, a list
 that restarts its numbering: citation.rule_designator); either followed by a glued SUB-ITEM PATH of single letters and
 numbers, each optionally after a `.` (`GR6c`, `GR6d.2`, `GR3a1`, `GR6d.2.b`), read level by level against the printed
-labels of the rule (`LABELS`: ISO `6)` `d)` `2.` `b.`; 1985 `(6)` `a.` `1)`); `Format n`; `Table n`.
+labels of the rule (`LABELS`: ISO `6)` `d)` `2.` `b.`; 1985 `(6)` `a.` `1)`); `Format n`; `Table n`; a unit of
+unnumbered text `p<n>`, `Table <t> row <r>`; a list item `item n`, `item Lm.n`, its sub-item path glued as a rule's
+(`ITEM`, `RuleBook.printed_items`, kb/Work PB5449 item 4).
 
 ⛔ WHERE A RULE STARTS AND ENDS IS THE RULE CATALOG'S READING, NOT A SECOND PARSER (`rule_book`). For an edition whose
 inventory schema names a rule catalog (`inventory_schema.EDITIONS`, `catalog`: 2023 and 1985 today), each catalog row
@@ -209,13 +212,15 @@ FAILURE_KINDS = {
     "no-clause": "the locator names no region of the edition's transcription",
     "designator-not-understood": "the rule designator is in no form the checker reads (DESIGNATOR)",
     "designator-not-canonical": "a designator in no form the citation parser reads follows the citation, unread "
-                                "(`GR1 b)`, `rule 2`, `item 1`, `1)`; citation.loose_designator, kb/Work PB4976)",
+                                "(`GR1 b)`, `rule 2`, `item (1)`, `1)`; citation.loose_designator, kb/Work PB4976)",
     "no-rule-list": "the clause has no rule list of the cited kind",
     "no-ordinal": "the cited list has no rule with that ordinal",
     "no-sub-item": "the rule has no sub-item with that path",
     "no-format": "the clause prints no general format with that number",
     "no-table": "no table with that number is captioned in the clause or under it",
     "no-unit": "the clause has no unit of unnumbered text with that designator (p<n>, Table <t> row <r>)",
+    "no-item": "the clause prints no numbered list item with that designator (item <n>, item L<m>.<n>)",
+    "item-is-a-rule": "the cited item is a numbered rule of the catalog, cited by that rule's designator (GR2, SRL2.1)",
     "unanchored": "the catalog row the citation names was not found in the transcription (a drift of the catalog)",
     "quote-too-short": f"the quotation has fewer than {MIN_WORDS} real words",
     "text-not-in-rule": "the quotation is in the clause, but not inside the cited rule, sub-item, format or table",
@@ -378,13 +383,36 @@ class Rule:
 
     @property
     def designator(self) -> str:
-        return unit_designator(self.unit) if self.unit else citation.rule_designator(self.kind, self.ordinal, self.sublist)
+        """The rule's citation designator: a numbered rule's (`GR2`, `GRL2.1`), which is also an item ROW's (its id is a
+        numbered rule's: `§1985:IV.4.2.2.1.1 GR1`, `cited_by_number`), a paragraph's or table row's unit designator
+        (`p3`, `Table 1 row 2`), and for an item no row holds (a `printed_items` entry, kind "") `item <n>`."""
+        if self.unit and (self.kind == "" or not ITEM_LABEL.fullmatch(self.unit)):
+            return unit_designator(self.unit)
+        return citation.rule_designator(self.kind, self.ordinal, self.sublist)
+
+
+#: The label of a numbered list item (kb/Work PB5998): `25`, or `L2.3` for an item of a clause's second list.
+ITEM_LABEL = re.compile(r"\d+|L(\d+)\.(\d+)")
+#: The item designator (citation.ITEM_DESIGNATOR, kb/Work PB5449 item 4): `item 25`, `item L2.3c`.
+ITEM = re.compile(citation.ITEM_DESIGNATOR)
+
+
+def item_key(label: str) -> tuple[int, int]:
+    """(list, ordinal) of an item label: `25` -> (1, 25), `L2.3` -> (2, 3)."""
+    m = ITEM_LABEL.fullmatch(label)
+    return (int(m[1]), int(m[2])) if m[1] else (1, int(label))
+
+
+def item_label(sublist: int, n: int) -> str:
+    """The label of item `n` of a clause's `sublist`-th list: `item_key`'s inverse."""
+    return str(n) if sublist == 1 else f"L{sublist}.{n}"
 
 
 def unit_designator(label: str) -> str:
     """The citation designator of a unit of unnumbered text from its label (decision PB5448 point 5): `p3` is `p3`, a
     table row `T12.2` is `Table 12 row 2`, a whole table `T1` is `Table 1`, a numbered prose item `25` is `item 25` and
-    an item of a clause's second list `L2.3` is `item L2.3` (kb/Work PB5998)."""
+    an item of a clause's second list `L2.3` is `item L2.3` (kb/Work PB5998; the item form names an item no row holds:
+    a row is cited by its numbered designator, `Rule.designator`)."""
     if m := re.fullmatch(r"T(\d+)\.(\d+)", label):
         return f"Table {m[1]} row {m[2]}"
     if m := re.fullmatch(r"T(\d+)", label):
@@ -415,6 +443,7 @@ class RuleBook:
     units: dict[str, dict[str, tuple[int, ...]]] = dataclasses.field(default_factory=dict)
     _items: dict = dataclasses.field(default_factory=dict)
     _by_locator: dict = dataclasses.field(default_factory=dict)
+    _printed: dict = dataclasses.field(default_factory=dict)
 
     def regions_of(self, locator: str) -> list[tuple[str, str, int, int]]:
         """Every region `locator` names (a 1985 section the transcription heads twice owns two), indexed once."""
@@ -469,13 +498,61 @@ class RuleBook:
 
     def unit_holding(self, locator: str, needle: str) -> str | None:
         """The designator of the unit of `locator` with no row whose own lines hold `needle` (kb/Work PB6014), or None.
-        Only a designator a citation can carry is named (`p3`, `Table 2`, `Table 2 row 1`): a numbered prose item with
-        no row has none yet (`item <n>` is kb/Work PB5449 item 4), so its text answers as the clause's."""
+        Only a designator a citation can carry is named (`p3`, `Table 2`, `Table 2 row 1`, `item 3`, `item L2.1`); in a
+        clause whose lists the segmentation numbers no item of, the printed item that holds it (`printed_items`, kb/Work
+        PB5449 item 4: `item 48` of §1985:C.2)."""
         rowed = {r.unit for r in self.rules.get(locator, ()) if r.unit}
-        return next((d for label, extent in self.units.get(locator, {}).items()
+        held = next((d for label, extent in self.units.get(locator, {}).items()
                      if label not in rowed and (UNIT_DESIGNATOR.fullmatch(d := unit_designator(label))
-                                                or TABLE_DESIGNATOR.fullmatch(d))
+                                                or TABLE_DESIGNATOR.fullmatch(d) or ITEM.fullmatch(d))
                      and needle in norm(" ".join(self.lines[i] for i in extent))), None)
+        if held is not None:
+            return held
+        # A clause whose list the segmentation numbers no item of (an appendix's list, a printed page): the item.
+        return next((item.designator + render_path(path) for item in self.printed_items(locator)
+                     if not item.kind and any(needle in t for t in self.text_of(item))
+                     for path in [next((p for p in sorted(self.item_paths(item), key=len, reverse=True)
+                                        if needle in self.text_of(item, p)[0]), ())]), None)
+
+    def printed_items(self, locator: str) -> list[Rule]:
+        """EVERY NUMBERED ITEM `locator` PRINTS, the one reading an item designator resolves against (kb/Work PB5449
+        item 4), each with its list and ordinal: the clause's rows cited by number (a rule block's rules, an item row,
+        a numbered rule of an admitted prose paragraph), then its numbered-item units with no row (their extent the
+        segmentation's), each list numbered as the segmentation numbers it (decision PB5448's `L<m>.<n>`). A clause with
+        neither (no list there is a row or an item unit: an appendix's list, a printed page, 2023's Annex A.1, whose list
+        the segmentation holds as no unit) is read from its printed labels:
+        each item runs from its top-level label (`labels_of`: 1985 `(n)`, ISO `n)`) to the next, a label that does not
+        continue the run opening the next list, as LABEL MODE reads a rule block. An entry no row holds has kind ""."""
+        if locator not in self._printed:
+            rows = [r for r in self.rules.get(locator, ()) if cited_by_number(r)]
+            rowed = {(r.sublist, r.ordinal) for r in rows}
+            units = [Rule(self.edition, locator, "", n, m, extent, " ".join(self.lines[i] for i in extent), False, label)
+                     for label, extent in self.units.get(locator, {}).items()
+                     if ITEM_LABEL.fullmatch(label) and (m_n := item_key(label)) not in rowed
+                     for m, n in [m_n]]
+            self._printed[locator] = rows + units if rows or units else self._label_items(locator)
+        return self._printed[locator]
+
+    def _label_items(self, locator: str) -> list[Rule]:
+        top = self.styles.levels[0][0]
+        out: list[Rule] = []
+        for _loc, _t, s, e in self.regions_of(locator):
+            labels = [(i, int(m.groups()[-1])) for i in range(s + 1, e)
+                      if (m := top.match(self.lines[i])) and not _furniture(self.lines, i, self.edition)]
+            sublist, last = (out[-1].sublist if out else 1), (out[-1].ordinal if out else 0)
+            for k, (i, n) in enumerate(labels):
+                if n != last + 1 and (k or out):
+                    sublist += 1
+                last = n
+                ids = tuple(range(i, labels[k + 1][0] if k + 1 < len(labels) else e))
+                text = " ".join(self.lines[j] for j in ids if not _furniture(self.lines, j, self.edition))
+                out.append(Rule(self.edition, locator, "", n, sublist, ids, text,
+                                any(in_reconstruction(self.lines, j) for j in ids[:1]), item_label(sublist, n)))
+        return out
+
+    def item_of(self, locator: str, sublist: int, n: int) -> Rule | None:
+        """Item `n` of `locator`'s `sublist`-th list (`printed_items`), or None."""
+        return next((r for r in self.printed_items(locator) if (r.sublist, r.ordinal) == (sublist, n)), None)
 
 
 def _text_units():
@@ -786,6 +863,8 @@ def resolve(cited: citation.Citation, text: str | None = None, repo: pathlib.Pat
                   else book.unit_holding(cited.locator, needle))
         under = f"; it lies in {holder}{mode}" if holder else ""
         return Verdict("ok", f"{shown}  ({title})  the text is in the clause{under}{mark}", excerpt=book.lines[at].strip()[:220])
+    if m := ITEM.fullmatch(cited.rule):
+        return _resolve_item(book, cited, m, needle, text, title, regions, mode)
     if UNIT_DESIGNATOR.fullmatch(cited.rule) or any(r.unit and r.designator == cited.rule
                                                     for r in book.rules.get(cited.locator, ())):
         # (a whole data table's row is cited `Table <t>` too, numbered by its place when the clause captions none)
@@ -797,7 +876,44 @@ def resolve(cited: citation.Citation, text: str | None = None, repo: pathlib.Pat
     if m := TABLE_DESIGNATOR.fullmatch(cited.rule):
         return _resolve_table(book, cited, int(m[1]), needle, text)
     return Verdict("designator-not-understood", f"{shown}: {cited.rule!r} is no designator form the checker reads "
-                                                "(SRn GRn ARn RVn, GRLm.n, a glued sub-item path GR6d.2, Format n, Table n)")
+                                                "(SRn GRn ARn RVn, GRLm.n, a glued sub-item path GR6d.2, Format n, Table n, "
+                                                "p<n>, Table <t> row <r>, item <n>, item L<m>.<n>)")
+
+
+def _resolve_item(book: RuleBook, cited, m: re.Match, needle, text, title, regions, mode) -> Verdict:
+    """A numbered list item (kb/Work PB5449 item 4), resolved against `RuleBook.printed_items`: an item the catalog holds
+    as a numbered rule is that rule's to cite (`item-is-a-rule`, naming it: one spelling per printed thing); else the
+    item exists (`no-item`, naming the items the clause prints), its sub-item path is one it prints (`no-sub-item`) and
+    the quotation lies inside it (or the sub-item), as a rule's does."""
+    shown, loc = citation.render(cited), cited.locator
+    clause_shown = citation.render(dataclasses.replace(cited, rule=None))
+    sub, n = int(m["ilist"] or 1), int(m["item"])
+    path = tuple(re.findall(r"[a-z]|\d+", m["ipath"] or ""))
+    item = book.item_of(loc, sub, n)
+    if item is None:
+        have = book.printed_items(loc)
+        named = _lists(have) if have else "none"
+        return Verdict("no-item", f"{clause_shown} prints no {unit_designator(item_label(sub, n))} (its numbered items: "
+                                  f"{named}){mode}")
+    if item.kind:
+        canonical = f"{clause_shown} {item.designator}{render_path(path)}"
+        return Verdict("item-is-a-rule", f"{shown}: the catalog holds that item as the numbered rule {item.designator} "
+                                         f"of {loc}: cite {canonical}{mode}", canonical)
+    if path:
+        have = book.item_paths(item)
+        if path not in have:
+            peers = [p for p in have if len(p) == len(path) and p[:-1] == path[:-1]]
+            said = (f"its sub-items there are {', '.join(item.designator + render_path(p) for p in peers)}" if peers
+                    else "it has no sub-item at that level" if have else "it has no sub-items")
+            return Verdict("no-sub-item", f"{clause_shown} {item.designator} has no sub-item {render_path(path)}: "
+                                          f"{said}{mode}")
+    mark = f" {RECONSTRUCTED_MARK}" if item.provisional else ""
+    unit = item.designator + render_path(path)
+    if needle is None:
+        return Verdict("ok", f"{shown}  ({title})  {unit} exists; no quotation checked{mode}{mark}")
+    if any(needle in t for t in book.text_of(item, path)):
+        return Verdict("ok", f"{shown}  ({title})  the text is in {unit}{mode}{mark}", excerpt=item.text[:220])
+    return _not_in_unit(book, cited, needle, text, regions, mode)
 
 
 def _lists(rules: list[Rule]) -> str:
@@ -830,6 +946,19 @@ def designator_of(edition: int, locator: str, ordinal: int, repo: pathlib.Path =
         return None   # a block whose list restarts: "rule 1" may be GRL2.1's (§2023:8.3.2.2, §2023:15.4.1)
     hits = [r for r in numbered if r.ordinal == ordinal]
     return hits[0].designator if len(hits) == 1 else None
+
+
+def item_designator(edition: int, locator: str, n: int, path: tuple[str, ...] = (),
+                    repo: pathlib.Path = spec_pdf.REPO) -> str | None:
+    """The canonical designator (its sub-item path glued) of the printed item `n` of `locator` with sub-item `path`, when
+    exactly one list of the clause prints such an item (`RuleBook.printed_items`): the numbered rule's designator when
+    the catalog holds the item as one (`§1985:VI.6.4.4` item 2 is SR2), else `item <n>` or `item L<m>.<n>`; None when
+    no list or several do (`§1985:VIII.1.3.4` prints an item 3 in each of its two lists; its item 3 with a sub-item c is
+    only the second list's, GRL2.3c). It turns an item named in a spelling the grammar does not read (`item (3) c`;
+    citation.loose_designator, kb/Work PB5449 item 4) into the designator `resolve` then checks like any other."""
+    book = rule_book(edition, repo)
+    hits = [i for i in book.printed_items(locator) if i.ordinal == n and (not path or path in book.item_paths(i))]
+    return hits[0].designator + render_path(path) if len(hits) == 1 else None
 
 
 def cited_by_number(rule: Rule) -> bool:
@@ -1149,15 +1278,13 @@ def _refused(text: str) -> bool:
 def _unparsed_suggestions(held) -> list[str]:
     """Every designator `RuleBook.where` can print (each rule's designator, and with each sub-item path it prints) that
     the citation parser refuses or the checker reads as no designator form: empty when the writer and the reader share
-    one grammar (kb/Work PB5446). A prose item's unit designator (`item 25`, `item L2.3`) is not read: the parser takes the
-    form only once the tree's loose `item <n>` citations are re-pointed (kb/Work PB5449 item 4; measured 2026-11-21: read
-    as designators, 1,456 of them name no unit), so until then it is that note's, named here and nowhere else."""
+    one grammar (kb/Work PB5446), an item no row holds (`item 25`, `item L2.3`; kb/Work PB5449 item 4) included, which
+    must also resolve: the reading the suggester names it from is the one the checker resolves it against."""
     bad = []
     for edition, book in held:
         for locator, rules in book.rules.items():
-            for rule in rules:
-                if rule.unit and rule.designator.startswith("item "):
-                    continue
+            items = [i for i in book.printed_items(locator) if not i.kind]
+            for rule in [*rules, *items]:
                 for path in [(), *book.item_paths(rule)]:
                     text = f"§{edition}:{locator} {rule.designator + render_path(path)}"
                     try:
@@ -1166,7 +1293,7 @@ def _unparsed_suggestions(held) -> list[str]:
                         bad.append(text)
                         continue
                     if not (rule.unit or DESIGNATOR.fullmatch(cited.rule) or FORMAT_DESIGNATOR.fullmatch(cited.rule)
-                            or TABLE_DESIGNATOR.fullmatch(cited.rule)):
+                            or TABLE_DESIGNATOR.fullmatch(cited.rule)) or (rule in items and not resolve(cited).ok):
                         bad.append(text)
     return bad
 
@@ -1400,6 +1527,33 @@ def self_test() -> int:
          fails("§1985:IV.4.3.6 GR3", "If the JUSTIFIED clause is specified for the receiving item", "text-not-in-rule",
                "§1985:IV.4.3.6 p2")
          and v("§1985:IV.4.3.6 p2", "If the JUSTIFIED clause is specified for the receiving item").ok),
+        # kb/Work PB5449 item 4: a numbered list item is cited `item <n>` where no numbered rule holds it, read from the
+        # printed list in a clause the catalog segments no unit of (an appendix's list, a printed page), from its unit
+        # where one has no row; where a rule holds it, the rule is its one designator.
+        ("an appendix's list item: its quotation is held to the item, the item that holds it is named",
+         v("§1985:C.2 item 48", "An I-O status value of 9x indicates an implementor-defined condition exists").ok
+         and fails("§1985:C.2 item 47", "An I-O status value of 9x indicates an implementor-defined condition exists",
+                   "text-not-in-rule", "§1985:C.2 item 48")
+         and fails("§1985:C.2 item 88", None, "no-item", "item 1-item 87")),  # citation-audit: example
+        ("an item on a printed page is that page's printed item (p.XVII-94 item 14, the REVERSED phrase)",
+         v("§1985:p.XVII-94 item 14", "The REVERSED phrase of the OPEN statement is dependent upon").ok
+         and fails("§1985:p.XVII-94 item 13", "The REVERSED phrase of the OPEN statement is dependent upon",  # citation-audit: example
+                   "text-not-in-rule", "item 14")),
+        ("an item unit with no row is held to its unit's lines (III.2 item 3, a restated glossary item)",
+         (got := v("§1985:III.2 item 3", None)).ok and "item 3 exists" in got.message
+         and fails("§1985:III.2 item 3", "Any other sequence of contiguous COBOL characters except comment lines",  # citation-audit: example
+                   "text-not-in-rule", "§1985:III.2 GRL4.3")),
+        ("an item a numbered rule holds is that rule's to cite, its path carried (one spelling per printed thing)",
+         fails("§1985:VI.6.4.4 item 2", None, "item-is-a-rule", "§1985:VI.6.4.4 SR2")  # citation-audit: example
+         and fails("§1985:VIII.1.3.4 item L2.3c", None, "item-is-a-rule", "§1985:VIII.1.3.4 GRL2.3c")  # citation-audit: example
+         and v("§1985:VIII.1.3.4 GRL2.3c", "An attempt is made to write beyond the externally defined boundaries").ok),
+        ("the canonical designator of an item named loosely, only when one list prints it with that sub-item",
+         item_designator(1985, "VIII.1.3.4", 3, ("c",)) == "GRL2.3c" and item_designator(1985, "VIII.1.3.4", 3) is None
+         and item_designator(1985, "C.2", 38) == "item 38" and item_designator(1985, "III.2", 3) is None
+         and item_designator(1985, "VI.6.4.4", 2) == "SR2"),
+        ("an item's sub-item path is checked: one the item prints passes, one it lacks fails naming its peers",
+         v("§1985:IX.1.3.4 GRL2.1b", None).ok
+         and fails("§1985:C.2 item 48b", None, "no-sub-item", "it has no sub-items")),  # citation-audit: example
         # kb/Work PB6015: `Table <n>` is held to the printed caption (text_units.caption_number), never to a sentence that
         # names the table, and a caption below its table (1985) or above it (2023) holds that table.
         ("a table's prose is not its table; a caption below its table holds it (1985 XIII.3.10.7 Table 2)",

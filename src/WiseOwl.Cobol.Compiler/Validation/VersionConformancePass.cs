@@ -150,7 +150,7 @@ internal sealed class VersionConformancePass
     }
 
     /// <summary>⛔ A TEXT-NAME OR LIBRARY-NAME THAT IS A RESERVED WORD IS REFUSED (kb/Work PB5848; COBOL0901, the code of every other reserved
-    /// word written as a user-defined word). Below COBOL-2002 both are user-defined words (§1985:IV.4.2.2.1.1 items 9 and 19), and "Reserved
+    /// word written as a user-defined word). Below COBOL-2002 both are user-defined words (§1985:IV.4.2.2.1.1 GR9 and §1985:IV.4.2.2.1.1 GR19), and "Reserved
     /// words form disjoint sets with user-defined words" (§1985:IV.4.2.2.1 SR1); the COBOL words LENGTH, RANDOM and SUM "may not be used as
     /// a system-name or as a user-defined word regardless of context" (SR2). From 2002 both are system-names (§2023:8.3.2.3.1) and
     /// "Reserved words shall not be used as system-names or user-defined words" (§2023:8.3.2.4.1). The verdict is the ONE reserved-word

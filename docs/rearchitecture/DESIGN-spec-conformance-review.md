@@ -468,9 +468,18 @@ they close nothing.
    a record moving only when its `rule-digest` matches (the renumbering rule of section 10.2 of this document), and the
    audit refuses a catalog whose moves are not applied.
 5. **Citation.** `cite.py --check` takes the designators `p<n>` (`§2023:8.4.2.1 p3`) and `Table <t> row <r>`
-   (`§2023:14.5.1 Table 12 row 2`); the existing `Table <t>` is the whole table. A prose clause's item number has no
-   designator yet: the tree writes `item <n>` both for it and for lists that are no unit (`§2023:5.4 item 2`, `§1985:VIII.1.3.4
-   item 1 b`, six such citations when PB5449 landed), so the form is added when those are re-pointed. **The extent of
+   (`§2023:14.5.1 Table 12 row 2`); the existing `Table <t>` is the whole table. **A numbered list item no rule
+   designator names is cited `item <n>`** (`item L<m>.<n>` for an item of a clause's later list, its sub-item path glued
+   as a rule's: `item 3c`; `citation.ITEM_DESIGNATOR`, kb/Work PB5449 item 4), resolved against ONE reading of the items
+   a clause prints (`cite.RuleBook.printed_items`): its rows cited by number, then its item units with no row, and, in a
+   clause where neither exists, its printed top-level labels (`(n)` at 1985, `n)` in the ISO editions, a label that does
+   not continue the run opening the next list): an appendix's list (`§1985:C.2 item 48`), a printed page's
+   (`§1985:p.XVII-94 item 14`), 2023's Annex A.1 (`§2023:A.1 item 218`). An item the catalog holds as a numbered rule is
+   cited by that rule (`§1985:VI.6.4.4 SR2`, an item row `§1985:IV.4.2.2.1.1 GR9`), ONE spelling per printed thing:
+   `item <n>` there is refused `item-is-a-rule`, naming the rule, and `audit_code_citations.py --canonicalize` rewrites it
+   when one list alone prints the item (`cite.item_designator`; `§1985:III.2` prints an item 3 in several lists, so its
+   Text Word's is cited `GRL4.3` by hand); an item no list prints is `no-item`; a loose spelling (`item (3) c)`, `items 9
+   and 10`) is `designator-not-canonical`. **The extent of
    a row is read from the units the catalog's own mint segments** (`extract_rule_catalog.units_by_locator`, read by
    `cite.rule_book`; kb/Work PB6014): a row minted from a unit holds exactly its unit's lines (`text_units.Unit.lines`),
    and a numbered rule holds the lines from its number to the next row's less every line a unit of the clause holds. An
@@ -480,8 +489,8 @@ they close nothing.
    the unit that holds the text; a clause citation of text in such a unit answers "it lies in p3" when the clause has
    no pending unit. In a clause with a pending unit a quotation in no row's text
    answers `OK §<clause> (unnumbered prose, pending)` and never names the rule above it: that is kb/Work PB222's
-   repair. A numbered prose item with no row has no designator a citation can carry yet (`item <n>`, above), so its
-   text answers as the clause's. **`Table <t>` is held to the printed caption** (kb/Work PB6015): the caption is the
+   repair. A numbered prose item with no row is named by its `item <n>` designator (above), and a quotation of it in a
+   clause citation answers "it lies in item <n>". **`Table <t>` is held to the printed caption** (kb/Work PB6015): the caption is the
    line the segmentation reads as one (`text_units.caption_number`: a short title, a level-2 box `║` stripped, never
    a sentence that names the table), and it captions the table right above it when that table has no caption of its
    own (the 1985 style), else the table right below it; "Table 2 shown below points to ..." is no part of Table 2. A glued paragraph stays inside its rule's extent until the 2023 mint carves it (point 7), so the "it lies in
@@ -601,8 +610,8 @@ unit numbered after its clause's lead-ins, while it stays in its rule's text, an
 after a rule the data does not hold; the 1985 pending units went from 911 to 956, every `rules` array byte-identical.
 NOT YET BUILT, each a later landing of PB5449: 2023's reader of the paragraphs after a rule and its data (the mechanism
 takes it as a reader, not a parameter: `READERS`), a decided level-0 paragraph leaving its rule's text and the 1985
-rows minted from decided units (PB5452's mint), a prose clause's `item <n>` designator (point 5), a 1985 unit's `box`,
-and a 2002 unit's `candidate` (point 6).
+rows minted from decided units (PB5452's mint), a prose clause's `item <n>` designator (point 5; built 2026-11-21,
+kb/Work PB5449 item 4), a 1985 unit's `box`, and a 2002 unit's `candidate` (point 6).
 
 **Step 1, corrected (kb/Work PB5998, found by PB5452's pilot).** Three defects of the first two landings, fixed in the
 one segmentation and the one class test: a numbered item started only after a blank line, so the 1985 lists printed
@@ -638,8 +647,8 @@ unit disposed a row kind is a row (`rule_catalog_1985.mint`) placed among its cl
 anchors a clause's rows in that order), with `shape`, `box` read on its printed lines, `level`, `definitional` and, on
 every row of a list a colon unit leads, numbered rules included, the `lead` of point 1. A paragraph or table row is cited
 by its unit designator and never by the rule number its `ordinal` shares (`cite.cited_by_number`); an ITEM's row is cited
-by the numbered rule's designator its id already is (`§1985:IV.4.2.2.1.1 GR1`), since `item <n>` cannot become a
-designator while the tree writes it for lists that are no unit. A paragraph headed "Examples" and a format band on a line
+by the numbered rule's designator its id already is (`§1985:IV.4.2.2.1.1 GR1`); `item <n>` names only an item no row
+holds (point 5). A paragraph headed "Examples" and a format band on a line
 of its own are no unit (point 1's "an example and a general format are never units"). The 1985 pointer grammar reads the
 text's own phrasings (`text_units.POINTER`: "is located on page", "the glossary beginning on page", a footnote's marker
 and purpose, "See paragraph <n>, <title>, page <folio>", "explained elsewhere in these specifications"). A `not-rules`
