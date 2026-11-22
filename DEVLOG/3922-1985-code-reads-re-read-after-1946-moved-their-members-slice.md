@@ -1,4 +1,4 @@
-## 1985 code reads re-read after #1946 moved their members (slice 1985-c06); PB6088 filed
+## Entry 3922 — 2026-11-22 13:20 PST — 1985 code reads re-read after #1946 moved their members (slice 1985-c06); PB6088 filed
 
 PR #1946, a behavior-neutral PB1754 restructuring, removed `CobolTable.cs#OccScaled` and `CobolString.cs#RefModPosition`.
 Two stored 1985 code reads named them, so `edition_status.py --edition 1985` read NOT COMPLETE on main at 9bfe9e1c44
@@ -9,3 +9,4 @@ re-pins them to `SubscriptBinder.cs` and `CobolPosition.cs`. After the import, `
 the code-read term is 0. Both readers found that at `--std 85`, COBOL1637 in a reference-modification bound cites
 §1985:VI.5.8.3 SR13 instead of the bounds rule. That is filed as PB6088 (misleads_diagnosis, editions [1985]). The root
 of the regression, a landing allowed to un-pin a COMPLETE edition's reads, is PB6056 (wave 20262138 group B).
+
