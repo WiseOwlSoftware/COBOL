@@ -80,6 +80,16 @@
       "changedIn": 2002
     },
     {
+      "id": "generate-report-name-single-detail",
+      "vcrRow": "7.105",
+      "changedIn": 2002
+    },
+    {
+      "id": "group-indicate-as-present-when",
+      "vcrRow": "7.103",
+      "changedIn": 2002
+    },
+    {
       "id": "group-indicate-consumed-by-issued-generate",
       "vcrRow": "7.60",
       "changedIn": 2002
@@ -140,8 +150,18 @@
       "changedIn": 2002
     },
     {
+      "id": "next-group-needs-line-number",
+      "vcrRow": "7.96",
+      "changedIn": 2002
+    },
+    {
       "id": "numval-c-currency-content-rules",
       "vcrRow": "7.62",
+      "changedIn": 2002
+    },
+    {
+      "id": "page-footing-first-line-absolute",
+      "vcrRow": "7.99",
       "changedIn": 2002
     },
     {
@@ -160,8 +180,43 @@
       "changedIn": 2014
     },
     {
+      "id": "report-code-clause-operand",
+      "vcrRow": "7.93",
+      "changedIn": 2002
+    },
+    {
+      "id": "report-control-data-references",
+      "vcrRow": "7.94",
+      "changedIn": 2002
+    },
+    {
+      "id": "report-control-operand-uniqueness",
+      "vcrRow": "7.91",
+      "changedIn": 2002
+    },
+    {
+      "id": "report-entry-clause-rules",
+      "vcrRow": "7.101",
+      "changedIn": 2002
+    },
+    {
+      "id": "report-group-page-fit-at-compile-time",
+      "vcrRow": "7.97",
+      "changedIn": 2002
+    },
+    {
+      "id": "report-group-vertical-limits",
+      "vcrRow": "7.98",
+      "changedIn": 2002
+    },
+    {
       "id": "report-page-width",
       "vcrRow": "7.90",
+      "changedIn": 2002
+    },
+    {
+      "id": "report-vertical-integer-limit",
+      "vcrRow": "7.92",
       "changedIn": 2002
     },
     {
@@ -185,8 +240,23 @@
       "changedIn": 2002
     },
     {
+      "id": "sum-counter-alphanumeric-cap",
+      "vcrRow": "7.102",
+      "changedIn": 2002
+    },
+    {
       "id": "sum-data-name-rules",
       "vcrRow": "7.89",
+      "changedIn": 2002
+    },
+    {
+      "id": "sum-only-in-control-footing",
+      "vcrRow": "7.100",
+      "changedIn": 2002
+    },
+    {
+      "id": "sum-reset-level-order",
+      "vcrRow": "7.95",
       "changedIn": 2002
     },
     {
@@ -198,6 +268,11 @@
       "id": "sum-size-error-raised-at-addition",
       "vcrRow": "7.83",
       "changedIn": 2014
+    },
+    {
+      "id": "sum-upon-same-report",
+      "vcrRow": "7.104",
+      "changedIn": 2002
     },
     {
       "id": "terminate-discards-saved-next-group",

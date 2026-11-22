@@ -393,6 +393,108 @@ public enum DialectBehavior
     /// QUOTED. The consumers are <c>ReportSectionBinder</c>'s RD binding (<c>ReportModel.PageWidth</c>, null at 85) and through it
     /// the column screens and <c>ReportWriterEmitter</c>'s report construction.</summary>
     ReportPageWidth = 34,
+    /// <summary>§2002:13.16.15.2 SR6 — "Data-name-1 shall be unique in any given CONTROL clause", a rule of the WRITTEN
+    /// reference, since its second sentence lets two operands "refer to the same physical data item or to overlapping data
+    /// items" (§2023:13.18.16.3 SR6 the same). §1985:XIII.3.7.3 SR2 asks the resolved items instead: "Each recurrence of
+    /// data-name-1 must identify a different data item". So at <c>--std 85</c> <c>CONTROLS WS-A WS-A OF WS-G</c> is refused
+    /// and two spellings of one name are told apart only by the item; from 2002 the written references are compared. The
+    /// consumers are <c>ReportSectionBinder.BindReportDescriptionClauses</c> (the 2002 arm) and
+    /// <c>ReportSectionBinder.ScreenControlItemsDistinct</c> (the 1985 arm).</summary>
+    ReportControlOperandUniqueness = 35,
+    /// <summary>§2002:13.16.37.2 SR5 — "Integer-1 shall not exceed 9999", and the LINE and NEXT GROUP integers by the page
+    /// limit (§2002:13.16.35.2 SR1). COBOL-85 bounds each by its digits: the PAGE clause's integer-1 (§1985:XIII.3.8.3
+    /// SR2), the LINE NUMBER clause's (§1985:XIII.3.15.3 SR1) and the NEXT GROUP clause's (§1985:XIII.3.16.3 SR2) "must not
+    /// exceed three significant digits in length", so the bound is 999 (kb/Work PB5252). The consumer is
+    /// <c>ReportSectionBinder.ExceedsThreeSignificantDigits85</c>.</summary>
+    ReportVerticalIntegerLimit = 36,
+    /// <summary>§2002:13.16.12.1 prints <c>CODE IS { literal-1 | identifier-1 }</c>: "Literal-1 shall be a alphanumeric
+    /// literal" (§2002:13.16.12.2 SR1) and "Identifier-1 shall represent an alphanumeric data item" (SR2). §1985:XIII.3.6.2
+    /// prints <c>CODE literal-1</c> alone, and "Literal-1 must be a two-character nonnumeric literal" (§1985:XIII.3.6.3
+    /// SR1). So at <c>--std 85</c> an identifier, or a literal of another length, is refused. The consumers are
+    /// <c>ReportSectionBinder</c>'s CODE clause binding (the identifier arm) and
+    /// <c>ReportSectionBinder.Screen85CodeLiteral</c>.</summary>
+    ReportCodeClauseOperand = 37,
+    /// <summary>§2002:13.16.51.2 SR4 — "Identifier-1 specifies a data item defined in any section of the data division",
+    /// with no restriction on control data. §1985:XIII.3.20.3 SR5: "In control footing, page heading, page footing, and
+    /// report footing report groups, SOURCE clauses and associated USE statements must not reference any of the following":
+    /// a group containing a control data item, an item subordinate to one, a redefinition or renaming of part of one, and
+    /// in page heading and page footing groups the control data-names (kb/Work PB5079, PB5424). The consumers are
+    /// <c>ReportSectionBinder.ScreenSourceControlData</c> (the SOURCE half) and
+    /// <c>ReportWriterBinder.CheckControlDataReferences</c> (the USE half).</summary>
+    ReportControlDataReferences = 38,
+    /// <summary>§2002:13.16.52.2 SR7 — "If the current report group is a control footing, its level of control shall be a
+    /// lower level than that of data-name-3" (§2023:13.18.54.3 SR8 the same): the footing's index in the CONTROL clause is
+    /// greater than the operand's. §1985:XIII.3.19.3 SR4: "Data-name-2 must not be a lower level control than the
+    /// associated control for the report group in which the RESET phrase appears": the operand's index is not greater than
+    /// the footing's, so the footing's own control is admitted. The consumer is
+    /// <c>ReportSectionBinder.ScreenResetLevel</c>.</summary>
+    SumResetLevelOrder = 39,
+    /// <summary>§2002:13.16.35.2 restricts the NEXT GROUP clause by group type alone (SR4: "The NEXT GROUP clause shall not
+    /// be specified in a page heading or report footing"). §1985:XIII.3.16.3 SR1: "A report group entry must not contain a
+    /// NEXT GROUP clause unless the description of that report group contains at least one LINE NUMBER clause". The
+    /// consumer is <c>ReportSectionBinder</c>'s NEXT GROUP binding.</summary>
+    NextGroupNeedsLineNumber = 40,
+    /// <summary>§2002:13.16.33.3 GR2 — "each report group shall be described such that it may be printed on one page", a
+    /// GENERAL rule whose violation is the run-time EC-REPORT-PAGE-LIMIT condition (§2023:13.18.35.4 GR2 the same).
+    /// §1985:XIII.3.8.3 SR9 makes it a SYNTAX rule: "All report groups must be described such that they can be presented on
+    /// one page", so a control heading, detail or control footing of relative lines whose unconditional lines already pass
+    /// its limit from FIRST DETAIL fits no page and is refused. The consumer is <c>ReportSectionBinder</c>'s group-limit
+    /// screen.</summary>
+    ReportGroupPageFitAtCompileTime = 41,
+    /// <summary>§2002:13.16.55.3 GR8 states each group type's limits; for a report heading not on a page by itself, GR8 b)
+    /// "The lower limit for a report heading that does not appear on a page by itself is the line preceding the first line
+    /// of the page heading" (§2023:13.18.57.4 GR8 the same), and a report footing is placed below the page footing's last
+    /// line. COBOL-85 gives each group type its own printed rule: "The last line number on which the report heading report
+    /// group can be presented is the line number that is obtained by subtracting 1 from the value of integer-3" of FIRST
+    /// DETAIL (§1985:XIII.3.10.6 GR2a); a page heading the same (§1985:XIII.3.8.4 GR1c); a page footing and a report
+    /// footing the page limit (§1985:XIII.3.10.9 GR2, §1985:XIII.3.10.10 GR2), and a relative report footing or page
+    /// heading is placed from the final LINE-COUNTER setting the preceding group's NEXT GROUP leaves (§1985:XIII.3.10.10
+    /// GR3b, §1985:XIII.3.10.6 GR5) (kb/Work PB5981). The consumers are <c>ReportSectionBinder.RelativeGroupLowerLimit</c>,
+    /// <c>ReportSectionBinder.Cobol85FinalLineCounter</c> and <c>ReportSectionBinder.GroupLimits</c>.</summary>
+    ReportGroupVerticalLimits = 42,
+    /// <summary>§2002:13.16.33.3 GR5 places a relative first line of a page footing: "If the report group is a page
+    /// footing, the line number is given by (FOOTING integer + integer-2)" (§2023:13.18.35.4 GR5 b) 4. the same).
+    /// §1985:XIII.3.15.3 SR9: "The first LINE NUMBER clause specified within a PAGE FOOTING report group must be an
+    /// absolute LINE NUMBER clause". The consumer is <c>ReportSectionBinder</c>'s LINE clause screen.</summary>
+    PageFootingFirstLineAbsolute = 43,
+    /// <summary>§2002:13.16.52.2 SR3 f) lists the report groups a SUM may stand in: a control footing, a detail ("The
+    /// current report group may be a detail and data-name-1 may be defined in a different detail") and a report footing
+    /// (§2023:13.18.54.3 SR4 f) the same). §1985:XIII.3.19.3 SR3: "A SUM clause can appear only in the description of a
+    /// control footing report group". The consumer is <c>ReportSectionBinder</c>'s report group entry screen.</summary>
+    SumOnlyInControlFooting = 44,
+    /// <summary>§2002:13.13.2 holds an elementary report entry to SR10 ("Every elementary entry with a COLUMN clause shall
+    /// also contain either a SOURCE, VALUE or SUM clause"), SR13 ("A COLUMN clause shall be specified in each elementary
+    /// entry that has a VALUE clause") and SR15 ("If BLANK WHEN ZERO or JUSTIFIED is specified, a COLUMN clause shall also
+    /// be specified"), and a GROUP INDICATE entry to §2002:13.16.26.2 SR1's "a COLUMN clause and a SOURCE or VALUE clause"
+    /// (§2023:13.15.3 and §2023:13.18.28.3 the same). COBOL-85 holds it to the report group description entry's three
+    /// formats (§1985:XIII.3.9.2) and to SR11's table: "Table 1 below shows all permissible clause combinations for a
+    /// format 3 entry" (§1985:XIII.3.9.3 SR11), whose cells carry the COLUMN, SOURCE, VALUE, JUSTIFIED and BLANK WHEN ZERO
+    /// conditions. The consumers are <c>ReportSectionBinder</c>'s report group entry screen
+    /// (<c>ScreenReportEntryClauseTable</c>, <c>ScreenReportEntryFormats</c> and the 2002 arms) and its GROUP INDICATE
+    /// placement screen.</summary>
+    ReportEntryClauseRules = 45,
+    /// <summary>§2002:13.16.52.3 GR1 derives the sum counter's digits from "the corresponding number of digits, excluding
+    /// insertion editing characters, in the PICTURE clause" for every category. §1985:XIII.3.19.4 GR1 c. gives the
+    /// alphanumeric and alphanumeric edited counter "the size of that data item, excluding any editing characters, or 18
+    /// characters, whichever is smaller", so an X(20) entry has an 18-digit counter (kb/Work PB5247). The consumer is
+    /// <c>ReportSectionBinder.SumCounterDigits</c>.</summary>
+    SumCounterAlphanumericCap = 46,
+    /// <summary>§2002:13.16.26.3 GR1 — "The GROUP INDICATE clause has the same effect as a PRESENT WHEN clause"
+    /// (§2023:13.18.28.4 GR1 the same), and items subject to different PRESENT WHEN clauses may overlap. COBOL-85 has no
+    /// PRESENT WHEN clause, and "Within a given print line, the printable items must be defined in ascending column number
+    /// order such that each printable item defined occupies a unique sequence of contiguous character positions"
+    /// (§1985:XIII.3.11.3 SR2; kb/Work PB5251). The consumer is <c>ReportSectionBinder.PresentWhenClausesOf</c>.</summary>
+    GroupIndicateAsPresentWhen = 47,
+    /// <summary>§2002:13.16.52.2 SR6 — "Data-name-2 shall be the name of a detail. It may be qualified by a report-name",
+    /// with no restriction to the current report. §1985:XIII.3.19.3 SR2 requires a detail "described in the same report as
+    /// the control footing report group in which the SUM clause appears". The consumer is <c>ReportSectionBinder</c>'s UPON
+    /// phrase resolution.</summary>
+    SumUponSameReport = 48,
+    /// <summary>§2002:14.8.15.2 SR2 — "Report-name-1 may be used only if the referenced report description entry contains a
+    /// CONTROL clause", the one condition (§2023:14.9.16.3 SR2 the same). §1985:XIII.3.20.3 SR6 adds that when a GENERATE
+    /// report-name statement is specified the report description entry must include "no more than one detail report group".
+    /// The consumer is <c>ReportWriterBinder</c>'s GENERATE binding.</summary>
+    GenerateReportNameSingleDetail = 49,
 }
 
 /// <summary>
@@ -583,6 +685,70 @@ public static class DialectBehaviors
             "every report has a page width, the PAGE clause's integer-2 or 999, that bounds its COLUMN operands and the line its items "
             + "are placed in, only from COBOL-2002; COBOL-85 gives a report no page width, so an item may stand at any column and "
             + "the line is bounded only by the report file's record"),
+        new(DialectBehavior.ReportControlOperandUniqueness, "report-control-operand-uniqueness", 2002,
+            "7.91", "§2002:13.16.15.2 SR6", "§1985:XIII.3.7.3 SR2",
+            "the operands of a CONTROL clause are told apart by their written references only from COBOL-2002, which "
+            + "lets two operands refer to the same item; COBOL-85 requires each recurrence to identify a different data "
+            + "item"),
+        new(DialectBehavior.ReportVerticalIntegerLimit, "report-vertical-integer-limit", 2002,
+            "7.92", "§2002:13.16.37.2 SR5", "§1985:XIII.3.8.3 SR2",
+            "the PAGE, LINE and NEXT GROUP integers are bounded by the page limit or 9999 only from COBOL-2002; "
+            + "COBOL-85 bounds each to three significant digits"),
+        new(DialectBehavior.ReportCodeClauseOperand, "report-code-clause-operand", 2002,
+            "7.93", "§2002:13.16.12.2 SR1", "§1985:XIII.3.6.3 SR1",
+            "the CODE clause takes an alphanumeric literal of any length or an identifier only from COBOL-2002; "
+            + "COBOL-85 takes a two-character nonnumeric literal alone"),
+        new(DialectBehavior.ReportControlDataReferences, "report-control-data-references", 2002,
+            "7.94", "§2002:13.16.51.2 SR4", "§1985:XIII.3.20.3 SR5",
+            "a SOURCE clause or USE procedure of a footing, page heading or page footing may reference control data "
+            + "only from COBOL-2002; COBOL-85 forbids the groups, parts and names of control data items there"),
+        new(DialectBehavior.SumResetLevelOrder, "sum-reset-level-order", 2002,
+            "7.95", "§2002:13.16.52.2 SR7", "§1985:XIII.3.19.3 SR4",
+            "a control footing's RESET operand must be a higher level control than the footing's own only from "
+            + "COBOL-2002; COBOL-85 also admits the footing's own level"),
+        new(DialectBehavior.NextGroupNeedsLineNumber, "next-group-needs-line-number", 2002,
+            "7.96", "§2002:13.16.35.2 SR4", "§1985:XIII.3.16.3 SR1",
+            "a report group with no LINE clause may carry a NEXT GROUP clause only from COBOL-2002; COBOL-85 requires "
+            + "at least one LINE NUMBER clause in its description"),
+        new(DialectBehavior.ReportGroupPageFitAtCompileTime, "report-group-page-fit-at-compile-time", 2002,
+            "7.97", "§2002:13.16.33.3 GR2", "§1985:XIII.3.8.3 SR9",
+            "a body group whose relative lines cannot fit between FIRST DETAIL and its limit is a run-time condition "
+            + "only from COBOL-2002; COBOL-85 refuses its description"),
+        new(DialectBehavior.ReportGroupVerticalLimits, "report-group-vertical-limits", 2002,
+            "7.98", "§2002:13.16.55.3 GR8", "§1985:XIII.3.10.6 GR2a",
+            "a heading or footing group's vertical limits are TYPE clause GR8's only from COBOL-2002 (a report "
+            + "heading ends before the page heading's first line); COBOL-85 gives each group type its printed limit (a "
+            + "report heading ends before FIRST DETAIL)"),
+        new(DialectBehavior.PageFootingFirstLineAbsolute, "page-footing-first-line-absolute", 2002,
+            "7.99", "§2002:13.16.33.3 GR5", "§1985:XIII.3.15.3 SR9",
+            "a page footing's first LINE clause may be relative, placed from the FOOTING integer, only from "
+            + "COBOL-2002; COBOL-85 requires it to be absolute"),
+        new(DialectBehavior.SumOnlyInControlFooting, "sum-only-in-control-footing", 2002,
+            "7.100", "§2002:13.16.52.2 SR3", "§1985:XIII.3.19.3 SR3",
+            "a SUM clause may stand in a detail, a control footing or a report footing only from COBOL-2002; COBOL-85 "
+            + "admits it in a control footing alone"),
+        new(DialectBehavior.ReportEntryClauseRules, "report-entry-clause-rules", 2002,
+            "7.101", "§2002:13.13.2 SR10", "§1985:XIII.3.9.3 SR11",
+            "a report group description entry is screened by its own syntax rules (a COLUMN clause with SOURCE, VALUE "
+            + "or SUM; VALUE, JUSTIFIED and BLANK WHEN ZERO with COLUMN) only from COBOL-2002; COBOL-85 screens it by "
+            + "the three entry formats and Table 1's permissible clause combinations"),
+        new(DialectBehavior.SumCounterAlphanumericCap, "sum-counter-alphanumeric-cap", 2002,
+            "7.102", "§2002:13.16.52.3 GR1", "§1985:XIII.3.19.4 GR1c",
+            "the sum counter of an alphanumeric SUM entry has a digit per character position, uncapped, only from "
+            + "COBOL-2002; COBOL-85 caps it at 18 characters"),
+        new(DialectBehavior.GroupIndicateAsPresentWhen, "group-indicate-as-present-when", 2002,
+            "7.103", "§2002:13.16.26.3 GR1", "§1985:XIII.3.11.3 SR2",
+            "a GROUP INDICATE entry stands as a PRESENT WHEN clause, so it may share columns with another item of its "
+            + "line, only from COBOL-2002; COBOL-85 has no PRESENT WHEN and every printable item of a line occupies its "
+            + "own positions"),
+        new(DialectBehavior.SumUponSameReport, "sum-upon-same-report", 2002,
+            "7.104", "§2002:13.16.52.2 SR6", "§1985:XIII.3.19.3 SR2",
+            "the UPON phrase may name a detail of another report only from COBOL-2002, where data-name-2 may be "
+            + "qualified by a report-name; COBOL-85 requires a detail of the control footing's own report"),
+        new(DialectBehavior.GenerateReportNameSingleDetail, "generate-report-name-single-detail", 2002,
+            "7.105", "§2002:14.8.15.2 SR2", "§1985:XIII.3.20.3 SR6",
+            "GENERATE report-name needs only a CONTROL clause from COBOL-2002; COBOL-85 also requires the report to "
+            + "hold no more than one detail report group"),
     ];
 
     static DialectBehaviors()
