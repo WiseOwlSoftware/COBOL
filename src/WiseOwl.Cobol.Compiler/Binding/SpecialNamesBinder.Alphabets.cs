@@ -32,9 +32,9 @@ public sealed partial class SpecialNamesBinder
     /// rendering <c>new AlphanumericCollation(new ushort[256]{…}, …)</c> there would allocate a fresh 256-entry
     /// table per evaluation. SORT / MERGE / the indexed-file key registrations render their alphabet inline because
     /// each of those runs once per statement; a WHEN does not. The carriers are made at BIND, so the field exists
-    /// before any body that names it is rendered.</para></summary>
+    /// before any body that names it is rendered.</para>
     /// <para>The carriers are the unit's fact set <see cref="DataBindState.RangeCollations"/> (kb/Work PB3214): this binder
-    /// appends to it and keeps only the two indexes below, which answer whether it already made an alphabet's carrier.</para>
+    /// appends to it and keeps only the two indexes below, which answer whether it already made an alphabet's carrier.</para></summary>
     private IAppends<RangeCollationCarrier> RangeCollations => _host.State.RangeCollations;
 
     /// <summary>Each carrier by the alphabet's DEFINITION (the symbol the name identified), never by its name.</summary>

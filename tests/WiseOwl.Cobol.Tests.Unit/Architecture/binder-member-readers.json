@@ -672,7 +672,6 @@
       "WiseOwl.Cobol.Binding.Passes.CheckSignClausesPass",
       "WiseOwl.Cobol.Binding.Passes.CheckStorageLimitsPass",
       "WiseOwl.Cobol.Binding.Passes.ClassifyRedefinesClassesPass",
-      "WiseOwl.Cobol.Binding.Passes.DynamicResolvePass",
       "WiseOwl.Cobol.Binding.Passes.ExpandTypesPass",
       "WiseOwl.Cobol.Binding.Passes.GateFileRecordByteSurfacePass",
       "WiseOwl.Cobol.Binding.Passes.InheritSignClausesPass",
@@ -1109,12 +1108,6 @@
       "WiseOwl.Cobol.Binding.ReportSectionBinder"
     ],
     "WiseOwl.Cobol.Binding.SpecialNamesBinder::RangeCollation": [
-      "WiseOwl.Cobol.Binding.DataBinder"
-    ],
-    "WiseOwl.Cobol.Binding.SpecialNamesBinder::RangeCollationIds": [
-      "WiseOwl.Cobol.Binding.DataBinder"
-    ],
-    "WiseOwl.Cobol.Binding.SpecialNamesBinder::RangeCollations": [
       "WiseOwl.Cobol.Binding.DataBinder"
     ],
     "WiseOwl.Cobol.Binding.SpecialNamesBinder::ResolveLocaleName": [
