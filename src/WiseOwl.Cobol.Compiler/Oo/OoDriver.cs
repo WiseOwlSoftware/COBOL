@@ -231,5 +231,5 @@ internal sealed class OoDriver(BindSession session)
     /// (kb/Work PB389); null for an interface.</summary>
     private DataBinder ElementBinder(Antlr4.Runtime.RuleContext? element, Antlr4.Runtime.ParserRuleContext definition,
         string? ownerClassName) =>
-        session.NewDataBinder(element, definition.Start.Line, new DataBinderElement(OoRole: new OoUnitRole(ownerClassName)));
+        session.NewDataBinder(element, definition.Start.Line, new SourceElementFacts(OoRole: new OoUnitRole(ownerClassName)));
 }

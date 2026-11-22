@@ -100,7 +100,7 @@ internal sealed class BindSession
     /// theirs as <paramref name="element"/>. The four initializers this replaced were kept in step by hand, and one missed
     /// &gt;&gt;LEAP-SECOND (kb/Work PB1820): a method under it computed SECONDS-FROM-FORMATTED-TIME("hhmmss", "235960") as 0.
     /// A new session fact is added here once, and <c>DataBinderSeedDriftTests</c> refuses a construction anywhere else.</summary>
-    internal DataBinder NewDataBinder(Antlr4.Runtime.RuleContext? censusElement, int firstLine, DataBinderElement element) => new(Edition)
+    internal DataBinder NewDataBinder(Antlr4.Runtime.RuleContext? censusElement, int firstLine, SourceElementFacts element) => new(Edition)
     {
         OoClasses = OoClasses,
         OwnWords = OoClasses.CensusOf(censusElement) ?? new(),

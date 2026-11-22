@@ -641,7 +641,7 @@ internal sealed class BinderDriver
         // composition is one rule in one place (kb/Work PB1133; the staged COBOL0899 refusal is gone).
         // The unit's own §2023:8.3.2.2 census is its identification division's, the one its class-name references record into
         // too (kb/Work PB3132); >>LEAP-SECOND is asked at its first line.
-        var data = session.NewDataBinder(definition.identificationDivision(), UnitFirstLine(definition), new DataBinderElement(
+        var data = session.NewDataBinder(definition.identificationDivision(), UnitFirstLine(definition), new SourceElementFacts(
             CopyWordList: session.CopyNames.Of(unit),   // below COBOL-2002 a COPY statement's names are this program's user-defined words (kb/Work PB5482)
             // The ANY LENGTH placement facts (ISO §2023:13.18.2.3 SR2–SR4 — the rules differ for a contained
             // program, a function, and an outermost program): the unit kind is known only here.

@@ -34,7 +34,7 @@ record text uses the same scope. The four culture-sensitive `ToString()` calls n
 the verdict matrix against both wordings of the rule.
 
 **PB2626: one DataBinder seed.** `BindSession.NewDataBinder` seeds every source element's binder with the session's facts.
-`DataBinderElement` carries the element's own facts. The OO copy had dropped the shared storage-claim scan, so each OO
+`SourceElementFacts` carries the element's own facts. The OO copy had dropped the shared storage-claim scan, so each OO
 element repeated the walk. `DataBinderSeedDriftTests` refuses any other `new DataBinder(`.
 
 **Oracle.** `compare_oracle.py` against base 07bcf2586899: 69 of 23351 cases differ at 8cf07421b2b6 (the PB3238 text

@@ -6,7 +6,7 @@ namespace WiseOwl.Cobol.Binding;
 /// <see cref="BindSession.NewDataBinder"/> seeds (kb/Work PB2626): a program unit's kind (the ANY LENGTH placement facts of
 /// §2023:13.18.2.3 SR2–SR4, §2023:12.4.6.3.3 SR5's RECURSIVE, the static working-storage discriminator) and the COPY names below
 /// COBOL-2002 (kb/Work PB5482), or an OO element's role (§2023:13.18.60.4 GR22e, kb/Work PB389).</summary>
-internal sealed record DataBinderElement(
+internal sealed record SourceElementFacts(
     OoUnitRole? OoRole = null,
     IReadOnlyList<CopyWord>? CopyWordList = null,
     bool IsContained = false,
