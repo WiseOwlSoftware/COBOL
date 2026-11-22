@@ -2268,7 +2268,7 @@ joined the table the same way, which is the table doing its job: a tenth format 
   EARLIER edition printed differently carries that figure as well (`ClauseList.Earlier`, kb/Work PB2532), and the pass
   screens the figure of the targeted edition (`ClauseList.At`): below 2002 the identification division is the COBOL-85
   figure, which ranks AUTHOR, INSTALLATION, DATE-WRITTEN, DATE-COMPILED and SECURITY once each in that sequence
-  (derived, not quoted: the repository holds no ANSI X3.23-1985 text, `docs/VERSION_CHANGE_REFERENCE.md` row 7.10)
+  (the X3.23-1985 Identification Division format, §1985:VI.3.2.1.1; `docs/VERSION_CHANGE_REFERENCE.md` row 7.10)
   and leaves OPTIONS (a 2002 introduction) and REMARKS (the COBOL-74 carryover) uncounted; from 2002 the §2023:11.2.1
   figure ranks OPTIONS alone and the removed comment paragraphs are the removal gate's. A diagnostic names the
   figure's authority (`ClauseList.Format`: "ISO §2023:11.2.1" or "ANSI X3.23-1985"), and the drift test holds every
@@ -2278,9 +2278,8 @@ joined the table the same way, which is the table doing its job: a tenth format 
   1985 figure's cardinality and order had no reader at all. From 2002 the §2023:12.3.6.2 figure encloses the two clauses in
   choice indicators within brackets (rendered from the printed page): §2023:5.2.6.4 admits each alternative at most once, in
   any order (`Sequence` null), and a repeat is COBOL2104 (`ClauseList.ChoiceIndicators`: ClosedFormatPass reports it through `ChoiceIndicators.AtMostOnce`, the one reader of §2023:5.2.6.4, never as a bracket without an ellipsis). Below 2002 the COBOL-85 figure ranks MEMORY SIZE,
-  PROGRAM COLLATING SEQUENCE and SEGMENT-LIMIT once each in that sequence (derived, not quoted — no 1985 text is
-  in the repository; IBM Enterprise COBOL's language reference prints the same figure and GnuCOBOL's parser takes the
-  clauses in any order and number, so it is no arm of the precedence); CHARACTER CLASSIFICATION (a 2002 introduction) and
+  PROGRAM COLLATING SEQUENCE and SEGMENT-LIMIT once each in that sequence (quoted: §1985:VI.4.4.2 and the composite
+  language skeleton of Section V print each clause in its own bracket with no ellipsis, VCR row 7.7); CHARACTER CLASSIFICATION (a 2002 introduction) and
   the 1985 clauses at 2002+ are the removal and introduction gates', so each figure leaves them uncounted. The OPTIONS
   paragraph's independent `[.]` is its own grammar alternative: `OPTIONS DOT (optionsClause+ DOT | DOT)?` is §2023:11.9.2's
   bracket plus §2023:11.9.3 SR1 (a period is required once a clause is written), so `OPTIONS. .` is accepted.

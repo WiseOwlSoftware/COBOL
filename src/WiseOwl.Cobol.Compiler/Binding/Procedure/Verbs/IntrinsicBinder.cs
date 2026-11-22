@@ -731,9 +731,9 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // at which point IntroducedIn would have to be verified anyway, which is the right forcing function.
         // ⚙ AND IT HAS NOW LIFTED ONCE, exactly as designed: STANDARD-COMPARE's Bind became Runtime at kb/Work
         // PB101 T7, so its 2002 window is enforced again (`standard-compare-2002` in the construct catalogue asserts the
-        // 1502 at 85). The year was re-derived rather than inherited — ORDER is a 2002 reservation
-        // (reserved-words.json r85 false / r2002 true) and the clause the function depends on cannot be written
-        // below it; VERSION_CHANGE_REFERENCE records the derivation AND that Annex E cannot confirm it.
+        // 1502 at 85). The year is quoted from the edition texts (kb/Work PB3965): §2002:15.69 and §2002:F.2 item 78
+        // introduce the function and §2002:12.2.6.1 the ORDER TABLE clause it depends on, while the 1985 function table
+        // (§1989:A.2.4) has no STANDARD-COMPARE; VERSION_CHANGE_REFERENCE row 7.19 carries the quotations.
         // ⚙ AND LIFTED AGAIN AT kb/Work PB64 T4: the four LOCALE functions bind Runtime, so no catalog row is
         // Unsupported any more — the window below is enforced for every function.
         if (sig.IntroducedIn > ctx.Edition.DialectLevel)

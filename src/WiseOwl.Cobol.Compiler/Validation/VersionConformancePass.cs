@@ -605,8 +605,8 @@ internal sealed class VersionConformancePass
     // version-invariant) and the pre-removal StoreAsImage marking.
     // ⛔ SPACE IS NOT AN EDITION ROW (kb/Work PB3605). The move of SPACE to a numeric or numeric-edited item was
     // prohibited before 2023 as well ("The figurative constant SPACE shall not be moved to a numeric or numeric-edited
-    // item", ISO/IEC 1989:2002 clause 14.8.24.2 SR5 and the 2009 committee draft; VCR row 7.41 derives the 1985
-    // edge), so it is a flat refusal at every edition, MoveValidity.FigurativeRefusal's SR5 arm, asked by the
+    // item", §2002:14.8.24.2 SR5 and §2014:14.9.24.2 SR5; §1985:VI.6.19.4 GR3a refuses it too, VCR row 7.41),
+    // so it is a flat refusal at every edition, MoveValidity.FigurativeRefusal's SR5 arm, asked by the
     // binder's MOVE chain (MoveTable16.Validity → COBOL0819). Sr5FigurativeText therefore does not list it.
     // ⛔ IT READS m.Source — THE WRITTEN SENDING OPERAND — NEVER m.Stores[i].Sender. SR5 is a SYNTAX rule over a
     // closed list of figurative constants SPELLED IN THE SOURCE ("SPACE, QUOTE, HIGH-VALUE, LOW-VALUE, ALL
@@ -3107,9 +3107,9 @@ internal sealed class VersionConformancePass
             return false;
         }
 
-        /// <summary>The OPTIONS paragraph (ISO §2023:11.9) — a 2002 introduction (the 2002 standard added it with the
-        /// ARITHMETIC clause; Annex E.2 item 21 back-derives the container from obsolete-in-2014 Standard
-        /// Arithmetic). The binder still returns <c>OptionsModel.Default</c> below 2002 (silent routing — this
+        /// <summary>The OPTIONS paragraph (ISO §2023:11.9) — a 2002 introduction (§2002:11.8.1 prints
+        /// `OPTIONS. [ arithmetic-clause ] [ entry-convention-clause ] .` and §2002:F.1 item 6 adds the reserved
+        /// word OPTIONS; kb/Work PB3965). The binder still returns <c>OptionsModel.Default</c> below 2002 (silent routing — this
         /// arm owns the diagnostic). The 2014-only clauses carry their own arms below (P10 Step 12).</summary>
         public override object? VisitOptionsParagraph(CobolParserCore.OptionsParagraphContext ctx)
         { _p.Check(Constructs.OptionsParagraph2002, "the OPTIONS paragraph"); return base.VisitChildren(ctx); }
@@ -3683,8 +3683,8 @@ internal sealed class VersionConformancePass
         /// <summary>The relational operator <c>&lt;&gt;</c> — "an abbreviation for NOT EQUAL" (ISO §2023:8.7.5.2 SR11), a special
         /// character word of §2023:8.3.2.4.2 2) — is a COBOL-2014 introduction (not-equal-operator-2014, kb/Work PB1459,
         /// PB3604): the COBOL-85 operators are the GREATER / LESS / EQUAL forms, their symbols and NOT, the 2002 text's
-        /// clause 8.7.5.2 ends its abbreviation rules at <c>&lt;=</c>, and Annex D.3 (2002→2014 changes) item 16 of the 2009
-        /// committee draft adds "The symbol &lt;&gt; … as an extended relational operator". The one arm that answers for
+        /// clause 8.7.5.2 ends its abbreviation rules at <c>&lt;=</c> (§2002:8.7.5.2 SR8), and §2014:E.3 item 23 adds
+        /// "The symbol &lt;&gt; … as an extended relational operator" (kb/Work PB3965). The one arm that answers for
         /// every relation condition, because <c>comparisonOperator</c> is the only rule that spells the NOTEQUAL token.
         /// One Check per operator written; the word forms (<c>NOT EQUAL TO</c>, <c>NOT =</c>) are COBOL-85 and never reach it.
         /// The body is <see cref="RelationalOperatorGate"/>, shared with the directive stage: a <c>&gt;&gt;IF</c> relation is

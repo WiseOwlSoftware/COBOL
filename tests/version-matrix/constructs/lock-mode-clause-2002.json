@@ -1,12 +1,12 @@
 {
  "id": "lock-mode-clause-2002",
- "description": "The LOCK MODE clause (ISO 12.4.5.9; LOCK MODE IS MANUAL/AUTOMATIC [WITH LOCK ON [MULTIPLE] RECORD(S)]) - MANUAL locks only on WITH LOCK, AUTOMATIC on every READ. 2002 introduction; 0900 below 2002.",
+ "description": "The LOCK MODE clause (ISO 12.4.5.9; LOCK MODE IS MANUAL/AUTOMATIC [WITH LOCK ON [MULTIPLE] RECORD(S)]) - MANUAL locks only on WITH LOCK, AUTOMATIC on every READ. 2002 introduction; 0900 below 2002. THE EDGE IS QUOTED from the edition texts (kb/Work PB3965): 'The file control entry declares the relevant physical attributes of a sequential file.' (§1985:VII.2.3.1), and the 1985 entry ends '[ ACCESS MODE IS SEQUENTIAL ] [ FILE STATUS IS data-name-2 ] .' (§1985:VII.2.3.2), with no LOCK MODE clause (the relative and indexed entries are alike); 2002 adds 'The LOCK MODE clause indicates the type of record locking for a shared file.' (§2002:12.3.4.8; §2002:12.3.4.8.2 SR1: 'The MULTIPLE phrase shall not be specified for a file described with sequential organization'), and states the change twice, §2002:F.1 item 2: 'File processing capabilities have been expanded to include file sharing, record locking', and §2002:F.2 item 111: 'Record locking. Record locking allows control of record access for shared files.' 2014 keeps the clause (§2014:12.4.4.8) and makes the facility optional, a feature 'required in the previous COBOL standard' (§2014:E.2 item 23, its list naming 'A.4.6, File sharing and record locking'); §2023:12.4.5.9.1 carries the 2002 sentence and §2023:12.4.5.9.3 SR2 the MULTIPLE rule.",
  "display": "the LOCK MODE clause",
  "diagnosticCode": "COBOL0900",
- "citation": "ISO §2023:12.4.5.9 (LOCK MODE IS MANUAL/AUTOMATIC [WITH LOCK ON [MULTIPLE] RECORD(S)]); 2002 introduction",
+ "citation": "§2002:12.3.4.8; §2002:12.3.4.8.2 SR1; §2002:F.1 item 2; §2002:F.2 item 111; §2014:12.4.4.8; §2014:12.4.4.8.2 SR1; §2014:E.2 item 23; §2023:12.4.5.9.1; §2023:12.4.5.9.3 SR2",
  "introducedIn": 2002,
  "removedIn": null,
  "expectDiagnostic": "COBOL0900",
- "vcr": "2002 introduction (derive from the 2002 standard - Annex E covers 2014->2023 only)",
+ "vcr": "2002 introduction (§2002:12.3.4.8; §2002:F.2 item 111)",
  "source": "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. ROWLM.\n       ENVIRONMENT DIVISION.\n       INPUT-OUTPUT SECTION.\n       FILE-CONTROL.\n           SELECT F ASSIGN TO \"f.dat\" ORGANIZATION IS SEQUENTIAL\n               LOCK MODE IS MANUAL.\n       DATA DIVISION.\n       FILE SECTION.\n       FD F.\n       01 R PIC X(8).\n       PROCEDURE DIVISION.\n       MAIN. STOP RUN.\n"
 }

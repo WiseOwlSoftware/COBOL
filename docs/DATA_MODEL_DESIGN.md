@@ -2719,11 +2719,12 @@ standard / the ISO2023_CONFORMANCE_PLAN M2 catalog) + `docs/VERSION_TEST_MATRIX_
     `--std 85` ⇒ diagnostic; dims are stored as a list with no engine cap.
   • Numeric size: COBOL-85 caps fixed-point at 18 digits; 2002+ raises the cap to 31. PIC 9(19+) at `--std 85`
     ⇒ diagnostic; >31 digits ⇒ diagnostic at every edition (Int128's 38-digit headroom is substrate, not surface).
-  • Boolean data (PICTURE symbol `1`, USAGE BIT): 2002 introduction (derive from the 2002 standard) — diagnose
+  • Boolean data (PICTURE symbol `1`, USAGE BIT): 2002 introduction (§2002:F.2 item 8: "The capability of defining
+    bit strings and setting or testing boolean values is added"; kb/Work PB3965) — diagnose
     at `--std 85`.
   • Format 2 (table) VALUE — literals keyed to occurrence ranges via a mandatory `FROM (subscript)` phrase
-    (§2023:13.18.63.2): 2002 introduction (derived — the 2023 Annex E VALUE rows are numeric-edited only, the A1
-    authority gap) — diagnose at `--std 85` (COBOL0900); construct `value-table-format-2002`. Its SYNTAX
+    (§2023:13.18.63.2): 2002 introduction (quoted, kb/Work PB3965: §1985:VI.5.15.5 GR2 "Format 2 can be used only in
+    connection with condition-names"; §2002:F.2 item 71) — diagnose at `--std 85` (COBOL0900); construct `value-table-format-2002`. Its SYNTAX
     RULES carry no version proviso: SR18/SR20/SR21/SR22/SR23 are reported at all four editions, ALONGSIDE the
     introduction gate (and, for the SR22/SR23 shapes, alongside OCCURS DYNAMIC's 2014 gate), never instead
     of it.

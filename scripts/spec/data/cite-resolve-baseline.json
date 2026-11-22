@@ -8,7 +8,7 @@
   "longer fails. Repair a citation, then rewrite this file with",
   "`python scripts/spec/audit_code_citations.py --write-baseline` (it refuses to add an entry)."
  ],
- "count": 6021,
+ "count": 6019,
  "entries": [
   {
    "file": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4",
@@ -4398,19 +4398,19 @@
   },
   {
    "file": "docs/REARCHITECTURE_PLAN.md",
-   "line": 437,
+   "line": 445,
    "citation": "§2023:14.6.13.1.3 item 8",
    "kind": "item-is-a-rule"
   },
   {
    "file": "docs/REARCHITECTURE_PLAN.md",
-   "line": 1287,
+   "line": 1295,
    "citation": "§2023:8.5.2.10 item 3",
    "kind": "item-is-a-rule"
   },
   {
    "file": "docs/REARCHITECTURE_PLAN.md",
-   "line": 4090,
+   "line": 4098,
    "citation": "§2023:8.3.5",
    "kind": "designator-not-canonical"
   },
@@ -5814,13 +5814,13 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/FigurativeAssociation.cs",
-   "line": 95,
+   "line": 94,
    "citation": "§2023:14.8.2.3.3",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/FigurativeAssociation.cs",
-   "line": 120,
+   "line": 119,
    "citation": "§2023:8.3.3.6.3 SR1",
    "kind": "designator-not-canonical"
   },
@@ -6126,13 +6126,13 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs",
-   "line": 1797,
+   "line": 1799,
    "citation": "§2023:15.3",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs",
-   "line": 1824,
+   "line": 1826,
    "citation": "§2023:15.2",
    "kind": "designator-not-canonical"
   },
@@ -15558,49 +15558,49 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs",
-   "line": 2296,
+   "line": 2297,
    "citation": "§2023:12.4.5.3 GR3",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs",
-   "line": 3050,
+   "line": 3052,
    "citation": "§2023:8.3.2.2",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs",
-   "line": 3516,
+   "line": 3515,
    "citation": "§2023:8.8.2",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs",
-   "line": 3631,
+   "line": 3630,
    "citation": "§2023:8.4.3.4.4 GR1",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs",
-   "line": 3685,
+   "line": 3684,
    "citation": "§2023:8.3.2.4.2",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs",
-   "line": 3792,
+   "line": 3791,
    "citation": "§2023:8.3.2.1",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs",
-   "line": 3798,
+   "line": 3797,
    "citation": "§2023:8.3.2.1",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs",
-   "line": 3856,
+   "line": 3855,
    "citation": "§2023:8.3.2.1",
    "kind": "designator-not-canonical"
   },
@@ -15738,12 +15738,6 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/ConstructRegistry.g.cs",
-   "line": 38,
-   "citation": "§2023:15.2 item 2",
-   "kind": "item-is-a-rule"
-  },
-  {
-   "file": "src/WiseOwl.Cobol.Editions/ConstructRegistry.g.cs",
    "line": 102,
    "citation": "§2023:8.3.2.2",
    "kind": "designator-not-canonical"
@@ -15752,12 +15746,6 @@
    "file": "src/WiseOwl.Cobol.Editions/ConstructRegistry.g.cs",
    "line": 223,
    "citation": "§2023:8.4.3.3.4 item 5c",
-   "kind": "item-is-a-rule"
-  },
-  {
-   "file": "src/WiseOwl.Cobol.Editions/ConstructRegistry.g.cs",
-   "line": 258,
-   "citation": "§2023:9.1.13.8 item 2",
    "kind": "item-is-a-rule"
   },
   {
@@ -17472,13 +17460,13 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Frontend/Parsing/LiteralScreen.cs",
-   "line": 219,
+   "line": 220,
    "citation": "§2023:6.3.5",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Frontend/Parsing/LiteralScreen.cs",
-   "line": 273,
+   "line": 274,
    "citation": "§2023:6.3.5",
    "kind": "designator-not-canonical"
   },
@@ -24576,7 +24564,7 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/Values/MoveValidity.cs",
-   "line": 209,
+   "line": 210,
    "citation": "§2023:14.8.2.3.3",
    "kind": "designator-not-canonical"
   },
@@ -26706,7 +26694,7 @@
   },
   {
    "file": "tests/WiseOwl.Cobol.Tests.Conformance/FloatIntegerArgumentPermissiveTests.cs",
-   "line": 304,
+   "line": 320,
    "citation": "§2023:15.9.4",
    "kind": "designator-not-canonical"
   },

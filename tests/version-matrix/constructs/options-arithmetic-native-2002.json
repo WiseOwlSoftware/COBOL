@@ -1,11 +1,11 @@
 {
  "id": "options-arithmetic-native-2002",
- "description": "The OPTIONS paragraph with ARITHMETIC IS NATIVE — the OPTIONS paragraph and its ARITHMETIC clause are 2002 introductions (the 2002 standard introduced OPTIONS with ARITHMETIC IS NATIVE|STANDARD; Annex E.2 item 21 places plain Standard Arithmetic as obsolete-in-2014/removed-2023, so it and its container predate 2014; the OPTIONS reserved word is 2002 per the §2023:8.9 reserved-word table)",
+ "description": "The OPTIONS paragraph with ARITHMETIC IS NATIVE - the OPTIONS paragraph and its ARITHMETIC clause are 2002 introductions (§2023:11.9.5.2 GR1: 'If the NATIVE phrase is specified, the techniques used in handling arithmetic expressions and intrinsic functions shall be those specified by the implementor'). THE EDGE IS QUOTED from the edition texts (kb/Work PB3965): the 1985 Identification Division's general format is 'PROGRAM-ID. program-name. [ AUTHOR. [ comment-entry ] … ]' ... '[ SECURITY. [ comment-entry ] … ]' (§1985:VI.3.2.1.1), and 'The other paragraphs are optional and may be included in this division at the user's choice, in order of presentation shown by the general format below' (§1985:VI.3.2): it prints no OPTIONS paragraph and no ARITHMETIC clause; the 2002 text prints 'OPTIONS. [ arithmetic-clause ] [ entry-convention-clause ] .' (§2002:11.8.1) with ARITHMETIC IS { NATIVE | STANDARD } (§2002:11.8.4.1) and 'If the NATIVE phrase is specified, the techniques used in handling arithmetic expressions and intrinsic functions shall be those specified by the implementor' (§2002:11.8.4.2 GR1); §2002:F.2 item 4 records the clause ('ARITHMETIC clause. The STANDARD phrase specifies that certain arithmetic will be performed in a well-defined manner') and §2002:F.1 item 6 ('The following reserved words have been added') lists OPTIONS. 2014 keeps NATIVE (§2014:11.9.4.2 GR1), and so does 2023, which drops only STANDARD (row arithmetic-standard-2002).",
  "display": "OPTIONS paragraph / ARITHMETIC IS NATIVE",
  "diagnosticCode": "COBOL0900",
- "citation": "ISO §2023:11.9 / §2023:11.9.5; Annex E.2 item 21",
+ "citation": "§2002:11.8.1; §2002:11.8.4.2 GR1; §2002:F.2 item 4; §2002:F.1 item 6; §2014:11.9.4.2 GR1; §2023:11.9.2; §2023:11.9.5.2 GR1",
  "introducedIn": 2002,
  "removedIn": null,
- "vcr": "2002 introduction (M2 catalog + Annex E.2 item 21 back-derivation; the 85→2002 delta is under-documented in the 2023 text)",
+ "vcr": "2002 introduction (§2002:11.8.4 / §2002:F.2 item 4; the edge quoted from the edition texts, kb/Work PB3965)",
  "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. OA.\nOPTIONS.\n    ARITHMETIC IS NATIVE.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC 9(3) VALUE 5.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY W.\n    STOP RUN.\n"
 }

@@ -1,12 +1,12 @@
 {
  "id": "locale-time-from-seconds-2014",
- "description": "FUNCTION LOCALE-TIME-FROM-SECONDS (ISO 15.54) - seconds past midnight in standard numeric time form (15.54.3 r1; the 7.3.17 range) formatted per the named locale's (else the current LC_TIME's) t_fmt (15.54.4 r2), a scaled argument carrying its fraction (Annex D.31.4.5's nanosecond note). LIVE (kb/Work PB64 T4): CobolLocale.TimeFromSeconds. Introduced 2014 per the catalog's provisional window (kb/Work R28 - WG4 CD 1.2 Annex D.2); below 2014 the D8 window rejects by name+edition (COBOL1502).",
+ "description": "FUNCTION LOCALE-TIME-FROM-SECONDS (ISO 15.54) - seconds past midnight in standard numeric time form (15.54.3 r1; the 7.3.17 range) formatted per the named locale's (else the current LC_TIME's) t_fmt (15.54.4 r2), a scaled argument carrying its fraction (Annex D.31.4.5's nanosecond note). LIVE (kb/Work PB64 T4): CobolLocale.TimeFromSeconds. Introduced 2014; below 2014 the D8 window rejects by name+edition (COBOL1502). THE EDGE IS QUOTED from the edition texts (kb/Work PB3965): the 2002 locale functions are three, LOCALE-COMPARE, LOCALE-DATE and LOCALE-TIME (§2002:15.40, §2002:15.41 and §2002:15.42; the next clause is §2002:15.43, the LOG function), whose LOCALE-TIME takes the CURRENT-DATE time form, 'Argument-1 shall be of class alphanumeric or national and shall be 6 character positions in length.' (§2002:15.42.2), and §2002:F.2 item 78's 'New intrinsic functions are' table lists only those three; 2014 adds 'The LOCALE-TIME-FROM-SECONDS function accepts a value in standard numeric time form' (§2014:15.50) and states the change twice, §2014:E.3 item 35: 'Support for industry standard date and time formats. New intrinsic functions are introduced', its list naming LOCALE-TIME-FROM-SECONDS, and §2014:E.2 item 13, which reserves it under FUNCTION ALL INTRINSIC as one of 'the following new intrinsic function names are prohibited within the scope of that REPOSITORY paragraph'; §2014:A.4.8 lists 'LOCALE-TIME-FROM-SECONDS function (15.50)'. §2023:15.54.1 carries the 2014 sentence and §2023:A.4.9 lists 'LOCALE-TIME-FROM-SECONDS function (15.54)' (kb/Work R28).",
  "display": "FUNCTION LOCALE-TIME-FROM-SECONDS",
  "diagnosticCode": "COBOL1502",
- "citation": "ISO §2023:15.54 LOCALE-TIME-FROM-SECONDS; Annex A.4.9 item 5; provisional 2014 edge",
+ "citation": "§2002:15.42; §2002:15.42.2; §2002:F.2 item 78; §2014:15.50; §2014:E.3 item 35; §2014:E.2 item 13; §2014:A.4.8; §2023:15.54.1; §2023:A.4.9",
  "introducedIn": 2014,
  "removedIn": null,
  "expectDiagnostic": "COBOL1502",
- "vcr": "2014 introduction (kb/Work R28 - WG4 CD 1.2 Annex D.2; provisional under ratified decision #1)",
+ "vcr": "2014 introduction (§2014:15.50; §2014:E.3 item 35; §2014:E.2 item 13)",
  "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PB64T4TS.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 S PIC X(20).\nPROCEDURE DIVISION.\nMAIN.\n    MOVE FUNCTION LOCALE-TIME-FROM-SECONDS(47109) TO S.\n    STOP RUN.\n"
 }

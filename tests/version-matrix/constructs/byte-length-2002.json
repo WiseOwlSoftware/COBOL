@@ -1,13 +1,13 @@
 {
  "id": "byte-length-2002",
  "status": "active",
- "description": "FUNCTION BYTE-LENGTH (ISO 15.14) - the byte-counting twin of FUNCTION LENGTH (15.50); the D7 byte-vs-position distinction. LIVE (P11 Step 7): a COMPILE-TIME FOLD (BindByteLengthFold) over DataItem.ByteWidth, which pins WiseOwl COBOL's implementor-defined per-usage byte widths (13.18.60 leaves them to the implementor): DISPLAY/BIT 1 byte per position, NATIONAL 2 bytes per position (UTF-16), BINARY/PACKED/BINARY-CHAR..DOUBLE the StorageWidth, float 4/8, index/pointer/object-reference 8. Runtime-length shapes (ref-mod/ODO/ANY LENGTH) stay loud by name. 2002 introduction; below 2002 the D8 catalog window rejects by name+edition (COBOL1502).",
+ "description": "FUNCTION BYTE-LENGTH (ISO 15.14) - the byte-counting twin of FUNCTION LENGTH (15.50); the D7 byte-vs-position distinction. LIVE (P11 Step 7): a COMPILE-TIME FOLD (BindByteLengthFold) over DataItem.ByteWidth, which pins WiseOwl COBOL's implementor-defined per-usage byte widths (13.18.60 leaves them to the implementor): DISPLAY/BIT 1 byte per position, NATIONAL 2 bytes per position (UTF-16), BINARY/PACKED/BINARY-CHAR..DOUBLE the StorageWidth, float 4/8, index/pointer/object-reference 8. Runtime-length shapes (ref-mod/ODO/ANY LENGTH) stay loud by name. A COBOL-2002 introduction. THE EDGE IS QUOTED from the edition texts (kb/Work PB3965): the ANSI X3.23-1985 text with its Intrinsic Function amendment (X3.23a-1989) has functions of three types only, §1989:A.2.3: \"Data item functions are elementary data items and return alphanumeric, numeric, or integer values\", and its Table 1 (§1989:A.2.4: \"Table 1 on pages A-30 through A-32 summarizes the functions that are available\") lists ACOS through UPPER-CASE, LENGTH among them and no BYTE-LENGTH; §2002:15.12 adds \"The BYTE-LENGTH function returns an integer equal to the length of the argument in bytes\", and §2002:F.2 item 78 (\"New intrinsic functions are\") lists BYTE-LENGTH (item 77: \"Previously, the intrinsic function facility was a separate module and its implementation was optional\"). §2014:15.13 and §2023:15.14.1 carry the 2002 sentence unchanged (vs §2023:15.50.1: \"The LENGTH function returns an integer equal to the length of the argument in alphanumeric character positions\" ...). Below 2002 the D8 catalog window rejects by name+edition (COBOL1502).",
  "display": "FUNCTION BYTE-LENGTH (byte count, != FUNCTION LENGTH)",
  "diagnosticCode": "COBOL1502",
- "citation": "ISO §2023:15.14 BYTE-LENGTH (vs §2023:15.50 LENGTH)",
+ "citation": "§2002:15.12; §2002:F.2 item 77; §2002:F.2 item 78; §2014:15.13; §2023:15.14.1; §2023:15.50.1",
  "introducedIn": 2002,
  "removedIn": null,
  "expectDiagnostic": "COBOL1502",
- "vcr": "M2 catalog BYTE-LENGTH; 2002 introduction (the byte-length function - derive from the 2002 standard; absent from the 1989 Intrinsic Function Module set)",
+ "vcr": "2002 introduction (§2002:F.2 item 78; the M2 catalog BYTE-LENGTH)",
  "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMBYTELEN.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 WS-N PIC N(3).\n01 R2 PIC 9(2).\nPROCEDURE DIVISION.\nMAIN.\n    COMPUTE R2 = FUNCTION BYTE-LENGTH(WS-N)\n    DISPLAY R2\n    STOP RUN.\n"
 }

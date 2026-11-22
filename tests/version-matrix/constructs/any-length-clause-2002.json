@@ -1,12 +1,12 @@
 {
  "id": "any-length-clause-2002",
- "description": "ANY LENGTH clause (a LINKAGE item whose length tracks the argument at runtime), ISO §2023:13.18.2 — introduced 2002",
+ "description": "ANY LENGTH clause (a LINKAGE item whose length tracks the argument at runtime), ISO §2023:13.18.2 - a COBOL-2002 introduction. THE EDGE IS QUOTED from the edition texts (kb/Work PB3965): the ANSI X3.23-1985 data description entry (§1985:VI.5.3.2, whose printed format runs `IS character-string BINARY COMPUTATIONAL COMP` ...) offers after the level-number and data-name-1 or FILLER only the REDEFINES, PICTURE, USAGE (BINARY, COMPUTATIONAL, DISPLAY, INDEX, PACKED-DECIMAL), SIGN, OCCURS, SYNCHRONIZED, JUSTIFIED, BLANK WHEN ZERO and VALUE clauses (the Inter-Program Communication module's level-01 entry adds IS EXTERNAL and IS GLOBAL, §1985:X.4.3.1: \"a level 01 data description entry within the Working-Storage Section or File Section determines whether the data record and its subordinate data items have local names\"), and a 1985 formal parameter's length is fixed by its own description: §1985:X.5.1 GR2 \"The description of the data item in the called program must describe the same number of character positions as described by the description of the corresponding data item in the calling program\" (BY CONTENT likewise, §1985:X.5.1 GR1: \"The data description of each parameter in the BY CONTENT phrase of the CALL statement must be the same, meaning no conversion or extension or truncation\"). §2002:13.16.2 adds \"The ANY LENGTH clause specifies that the length of a linkage section item may vary at runtime\" (§2002:13.16.2.2 SR1: \"The ANY LENGTH clause may be specified only in an elementary level 1 entry in the linkage section\"), with the program prototypes of §2002:F.2 item 106 (\"This permits passing parameters by value, omission of parameters, type checking and coercion of arguments\"). §2014:13.18.2 and §2023:13.18.2.1 carry the 2002 sentence.",
  "display": "ANY LENGTH clause",
  "diagnosticCode": "COBOL0900",
- "citation": "ISO §2023:13.18.2",
+ "citation": "§2002:13.16.2; §2002:13.16.2.2 SR1; §2002:F.2 item 106; §2014:13.18.2; §2023:13.18.2.1",
  "introducedIn": 2002,
  "removedIn": null,
  "expectDiagnostic": "COBOL0900",
- "vcr": "2002 introduction (derive from the 2002 standard)",
+ "vcr": "2002 introduction (§2002:13.16.2; §2002:F.2 item 106)",
  "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. ALOP9AL.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\nIDENTIFICATION DIVISION.\nPROGRAM-ID. ALCP9AL.\nDATA DIVISION.\nLINKAGE SECTION.\n01 L PIC X ANY LENGTH.\nPROCEDURE DIVISION USING L.\nM.\n    EXIT PROGRAM.\nEND PROGRAM ALCP9AL.\nEND PROGRAM ALOP9AL.\n"
 }
