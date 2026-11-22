@@ -14,7 +14,6 @@ namespace WiseOwl.Cobol.Tests.Unit.Architecture;
 /// predicate, <c>StrongTypeModel.DataPointerStore</c>. The matrix pins it to both wordings of the rule at once, and the
 /// structural test holds both binders to it, so a refinement of the relation cannot reach one route and not the other.
 /// </summary>
-[Trait("Sweep", "tree")]
 public sealed class DataPointerStoreDriftTests
 {
     private static readonly Restriction None = default;
