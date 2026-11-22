@@ -16,7 +16,7 @@ here: every rule was established by rendering candidates and looking at them, an
 
 WHERE A FIGURE IS is read from the clause structure — the bold `14.9.N.2 General format` heading that opens the
 region, the heading that closes it, and the `Format N (label):` lines that separate one format from the next.
-See `find_bands`. An explicit `--band` overrides it for a page the structure cannot describe.
+See `find_figures`. An explicit `--band` overrides it for a page the structure cannot describe.
 
     python scripts/spec/render_figure.py 784                     # START, printed page 754 — every figure
     python scripts/spec/render_figure.py 632 --bands-only        # COMPUTE — just report what it located
@@ -975,32 +975,49 @@ def page_rows(page, extract):
     return [(min(w["y0"] for w in g), classify_row(g), g) for _, g in sorted(grouped.items())]
 
 
-def continues_from_previous(page) -> bool:
-    """True when the previous page ends INSIDE a general-format region, so this page opens still in one.
+CONTINUATION_REACH = 6                  # how many pages back a general-format region may have opened
+
+
+def open_region(page) -> str | None:
+    """The heading of the general-format region the previous page leaves OPEN, so this page opens still inside it;
+    None when the page opens outside one. THE one walk-back that decides which clause owns a figure no heading on its
+    own page names (`find_figures` resolves every band's clause with it; kb/Work PB3211).
 
     A region that runs over a page break leaves the continuation page with no heading of its own. The standard
     usually re-labels it (`Format 3 (screen):` opens page 607), but relying on the label alone would miss a
-    format long enough to break mid-figure.
+    format long enough to break mid-figure. The region is the one the LAST heading of the nearest earlier page that
+    carries any heading opened: a later heading on that page closed every region above it.
     """
     doc, n = page.parent, page.number
     if doc is None or n <= 0:
-        return False
+        return None
     # Walk back to the last page that HAS a heading. Stopping at the immediately preceding page loses any
     # region that spans a heading-less page: the screen description entry's `where screen-attribute-clauses
     # is:` figures sit two pages on from `13.17.2 General formats`, with a page carrying no heading between,
     # so the region read as closed and those figures were never found.
-    for k in range(n, max(n - 6, 0), -1):
+    for k in range(n, max(n - CONTINUATION_REACH, 0), -1):
         prev = headings(doc[k - 1])
         if prev:
-            return bool(GENERAL_FORMAT_TITLE.search(prev[-1][1]))
-    return False
+            return prev[-1][1] if GENERAL_FORMAT_TITLE.search(prev[-1][1]) else None
+    return None
 
 
-def find_figures(page, extract):
-    """Every general-format figure on the page, located from the clause structure.
+class Figure(NamedTuple):
+    """One general-format figure `find_figures` located: the band it is built from (`y0` to `y1`), the heading of the
+    clause that owns it (`title`; None only for a leading `Format N` region whose page opens outside every region),
+    the `Format N` label above it, and whether that clause opened on an earlier page (`continued`)."""
+    y0: float
+    y1: float
+    title: str | None
+    label: str | None
+    continued: bool
 
-    Returns [[y0, y1, clause-heading, format-label], ...] top to bottom. A page carrying no general-format
-    region returns [] — the correct answer for prose, tables and the reserved-word lists, not a failure.
+
+def find_figures(page, extract) -> list[Figure]:
+    """Every general-format figure on the page, located from the clause structure, top to bottom, each with the
+    clause that owns it resolved: the heading above it on this page, or for the page's leading region the region
+    the previous page left open (`open_region`). A page carrying no general-format region returns [] — the
+    correct answer for prose, tables and the reserved-word lists, not a failure.
     """
     rows = page_rows(page, extract)
     if not rows:
@@ -1015,8 +1032,12 @@ def find_figures(page, extract):
         inside = [r for r in rows if top < r[0] < bot]
         if not inside:
             continue
+        if i == 0:                                     # the leading region: still inside one the previous page opened?
+            title = open_region(page)
+            if title is None and inside[0][1] != "label":
+                continue                               # a leading region that is not a figure continuation
         introduced = False
-        if title is not None and not GENERAL_FORMAT_TITLE.search(title):
+        if i > 0 and not GENERAL_FORMAT_TITLE.search(title):
             # A SENTENCE CAN INTRODUCE A FORMAT. 2002's communication section is a clause of Annex A headed by its
             # name (§2002:A.1.1 "Communication section"), and its general format follows the sentence "The general
             # format of the communication section is shown below:". No clause there is titled General format, so the
@@ -1026,8 +1047,6 @@ def find_figures(page, extract):
             if not any(k == "prose" and introduces_format(ws) for _, k, ws in inside):
                 continue
             introduced = True
-        elif title is None and inside[0][1] != "label" and not continues_from_previous(page):
-            continue                                   # a leading region that is not a figure continuation
 
         # Split at each `Format N` label, then take the maximal runs of figure rows within each segment. Prose
         # inside the region — the "where rounded-phrase is described in …" note that follows COMPUTE — closes
@@ -1041,7 +1060,7 @@ def find_figures(page, extract):
                 has_figure = has_figure or kind == "figure"
             else:                                      # a label or a prose row closes whatever is open
                 if run and has_figure and (lead or not introduced):
-                    runs.append((run[0], run[-1], above, y, title, label))
+                    runs.append((run[0], run[-1], above, y, title, label, i == 0 and title is not None))
                 if kind == "label":
                     label = " ".join(w["text"] for w in sorted(ws, key=lambda w: w["x0"]))
                 lead = kind == "prose" and introduces_format(ws)
@@ -1062,13 +1081,14 @@ def find_figures(page, extract):
     # Pad to reach the bracket feet, then clip to the MIDPOINT between the figure and whatever row delimits
     # it — the label or prose above, the next label or the closing heading below. A midpoint is the bound that
     # cannot clip a delimiter off the figure while still refusing to reach into its neighbour.
-    bands = [[*pad_band(lo, hi, above, below), title, label] for lo, hi, above, below, title, label in runs]
+    bands = [[*pad_band(lo, hi, above, below), title, label, continued]
+             for lo, hi, above, below, title, label, continued in runs]
     bands.sort(key=lambda b: b[0])
     for a, b in zip(bands, bands[1:]):
         if a[1] >= b[0]:
             mid = (a[1] + b[0]) / 2
             a[1], b[0] = mid, mid
-    return bands
+    return [Figure(*b) for b in bands]
 
 
 def pad_band(lo: float, hi: float, above: float, below: float) -> tuple[float, float]:
@@ -1095,31 +1115,20 @@ def draw(page, extract, classify_page, lo: float, hi: float) -> list[str] | None
     return None if grid is None else [PRE_OPEN, *render(grid, marks, False), "</pre>"]
 
 
-def find_bands(page, extract):
-    """The y-bands only — `find_figures` additionally reports which clause and Format each belongs to."""
-    return [(b[0], b[1]) for b in find_figures(page, extract)]
-
-
 CLAUSE_NUMBER = re.compile(r"^((?:\d+|[A-Z])(?:\.\d+)+)")
 FORMAT_NUMBER = re.compile(r"^Formats?\s+(\d+)")
 
 
-def figure_key(doc, pno, band):
+def figure_key(figure: Figure) -> tuple[str | None, int | None]:
     """The IDENTITY of a figure: its clause number and Format number — never its page.
 
     A page number is a layout artifact; the same figure moves when the standard is re-typeset, and one clause's
     figures routinely straddle a page break. The clause hierarchy is what the transcription and the printed
-    page agree on, so it is what the sweep keys on.
+    page agree on, so it is what the sweep keys on. The clause is the one `find_figures` resolved, a continuation
+    page's included.
     """
-    _, _, title, label = band
-    if title is None:                                  # a continuation page inherits its clause
-        for n in range(pno - 1, max(pno - 7, 0), -1):
-            heads = [t for _, t in headings(doc[n - 1]) if GENERAL_FORMAT_TITLE.search(t)]
-            if heads:
-                title = heads[-1]
-                break
-    clause = CLAUSE_NUMBER.match(title or "")
-    fmt = FORMAT_NUMBER.match(label or "")
+    clause = CLAUSE_NUMBER.match(figure.title or "")
+    fmt = FORMAT_NUMBER.match(figure.label or "")
     return (clause.group(1) if clause else None, int(fmt.group(1)) if fmt else None)
 
 
@@ -1176,18 +1185,17 @@ p.lbl { font-size:.72rem; text-transform:uppercase; letter-spacing:.06em; color:
 """
 
 
-def clause_title(doc, pno, folio_offset, back=6):
-    """The clause this page's figures belong to, walking back through continuation pages.
+def sheet_title(figure: Figure, folio: int) -> str:
+    """The heading the sheet shows over a figure on printed `folio`: the clause `find_figures` resolved for THIS
+    figure, so the sheet and the sweep (`figure_key`) name one clause. A page can carry two general-format regions,
+    so a title per page put a figure under its neighbour's clause (kb/Work PB3211).
 
-    A figure region that runs over a page break leaves the continuation page with no heading of its own, and
-    labelling those "(continued)" made them unfindable — the ASSIGN clause of the file-control entry could not
-    be located in a sheet that contained it twice.
+    A continuation figure names the clause it continues: labelling those "(continued)" alone made them unfindable —
+    the ASSIGN clause of the file-control entry could not be located in a sheet that contained it twice.
     """
-    for n in range(pno, max(pno - back, 0), -1):
-        heads = [t for _, t in headings(doc[n - 1]) if GENERAL_FORMAT_TITLE.search(t)]
-        if heads:
-            return heads[0] + (f" — continued on folio {pno - folio_offset}" if n < pno else "")
-    return "(continued from the previous page)"
+    if figure.title is None:
+        return "(no general-format region is open here)"
+    return figure.title + (f" — continued on folio {folio}" if figure.continued else "")
 
 
 def printed_crop(page, lo, hi, dpi=170):
@@ -1208,16 +1216,16 @@ def sheet(doc, pages, out_path, extract, classify_page, folio_offset):
              'hand. Bands are located from the clause structure, not from spacing.</p>']
     for pno in pages:
         page = doc[pno - 1]
-        title = clause_title(doc, pno, folio_offset)
-        bands = find_bands(page, extract)
-        for n, (lo, hi) in enumerate(bands, 1):
+        figures = find_figures(page, extract)
+        for n, figure in enumerate(figures, 1):
+            lo, hi = figure.y0, figure.y1
             grid, marks = build(page, lo, hi, extract, classify_page)
             if grid is None:
                 continue
             body = "\n".join(render(grid, marks, False))
-            parts.append(f"<h2>{title}</h2>")
+            parts.append(f"<h2>{sheet_title(figure, pno - folio_offset)}</h2>")
             parts.append(f'<p class="meta">printed folio {pno - folio_offset} &middot; PDF page {pno} &middot; '
-                         f'figure {n} of {len(bands)}</p>')
+                         f'figure {n} of {len(figures)}</p>')
             parts.append('<div class="pair">')
             parts.append(f'<div><p class="lbl">printed</p>'
                          f'<img src="{printed_crop(page, lo, hi)}" alt="printed figure"></div>')
@@ -1284,18 +1292,18 @@ def main() -> int:
         return 0
 
     if not args.band:
-        bands = find_bands(page, extract)
+        figures = find_figures(page, extract)
         if args.bands_only:
-            for lo, hi in bands:
-                print(f"{lo:.1f} {hi:.1f}")
+            for figure in figures:
+                print(f"{figure.y0:.1f} {figure.y1:.1f}")
             return 0
-        if not bands:
+        if not figures:
             sys.exit("no general-format figure on this page — no clause region here is headed 'General format'")
-        for n, (lo, hi) in enumerate(bands, 1):
-            g, m = build(page, lo, hi, extract, classify_page)
+        for n, figure in enumerate(figures, 1):
+            g, m = build(page, figure.y0, figure.y1, extract, classify_page)
             if g is None:
                 continue
-            print(f"<!-- figure {n} of {len(bands)}, y {lo:.0f}–{hi:.0f} -->")
+            print(f"<!-- figure {n} of {len(figures)}, y {figure.y0:.0f}–{figure.y1:.0f} -->")
             emit(g, m, args.plain)
         return 0
 

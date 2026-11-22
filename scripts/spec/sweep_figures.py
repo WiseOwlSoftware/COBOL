@@ -381,11 +381,11 @@ def generated(doc, extract, classify_page, R):
     out, failed = collections.OrderedDict(), []
     for pno in range(1, doc.page_count + 1):
         page = doc[pno - 1]
-        for band in R.find_figures(page, extract):
-            clause, fmt = R.figure_key(doc, pno, band)
+        for figure in R.find_figures(page, extract):
+            clause, fmt = R.figure_key(figure)
             try:
                 with contextlib.redirect_stdout(io.StringIO()):
-                    grid, marks = R.build(page, band[0], band[1], extract, classify_page)
+                    grid, marks = R.build(page, figure.y0, figure.y1, extract, classify_page)
             except SystemExit as exc:
                 failed.append((clause, pno, str(exc)))
                 continue
