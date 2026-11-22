@@ -1,4 +1,4 @@
-## Wave 20262133 group A: one rounding table, one capacity discipline, one selection kernel, one date-form type, and the runtime's exception layer cleaned of upward names
+## Entry 3910 — 2026-11-22 00:23 PST — Wave 20262133 group A: one rounding table, one capacity discipline, one selection kernel, one date-form type, and the runtime's exception layer cleaned of upward names
 
 Seven R2 restructuring notes of the PB1754 cluster, each fixed at its root in its own checkpoint; four notes of the group
 (PB2636, PB2637, PB2747, PB2723) and the driver half of PB2619 are left for a successor.
@@ -74,3 +74,4 @@ Unit 42,652/42,652 ran · RepoDrift 217/217 ran · Characterization 37/37 ran (s
 2014 and 2023 runs of the NaN-selection golden).
 
 **Merging main (18fa71b14b: #1936 PB1754 group B, #1935 train-1985-e).** Nine conflicts, one mechanism: main's PB4976/PB6000 canonicalizer rewrote citation designators on lines this branch rewrote; the branch's code was kept and the canonicalizer re-run (`audit_code_citations.py --canonicalize`), the cite-resolve baseline regenerated (1953 to 1952 entries). The merged gate (run 000009) was RED in RepoDrift only: main's new PB6031 ratchet (`InlineEditionComparisonDriftTests`) counted the CLI's source-listing edge where this branch moved it, from `Program.cs` (`std == 85`) into `EditionInfo.RequiresSourceListing` beside the record's other nineteen compiler-side edition facts; the ratchet's two entries follow the move (Program.cs 1 to none, EditionInfo.cs 19 to 20), the total unchanged.
+
