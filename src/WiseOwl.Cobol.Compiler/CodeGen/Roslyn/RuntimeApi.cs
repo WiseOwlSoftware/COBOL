@@ -1110,7 +1110,7 @@ internal static class RuntimeApi
         + $"{(negativeBaseRealRoots ? ", negativeBaseRealRoots: true" : "")})";
 
     /// <summary>The arithmetic operator <c>**</c> on the binary64 carrier (<c>CobolPower.Binary64</c>, kb/Work PB2628), screened by
-    /// §2023:8.8.1.2 rule 6; <paramref name="taken"/> is the enabled range conditions' spelling (<c>CobolPower.Binary64Checked</c>), or
+    /// §2023:8.8.1.2 GR6; <paramref name="taken"/> is the enabled range conditions' spelling (<c>CobolPower.Binary64Checked</c>), or
     /// null for the unchecked power.</summary>
     public static string Binary64Pow(string b, string exponent, string? taken) => taken is null
         ? $"{nameof(CobolPower)}.{nameof(CobolPower.Binary64)}({b}, {exponent})"
