@@ -1709,8 +1709,9 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     {
         var w = ctx.Writer;
         // §2002:14.8.13.3 GR2 / §2014:14.9.13.3 GR2 (kb/Work PB5715): FIRST, like GOBACK's GR6 — the condition exists when the statement
-        // is executed, before GR5's CONTINUE or GR6's return.
-        EmitFlowGlobalExit("an EXIT PROGRAM statement", calledOnly: false);
+        // is executed, before GR6's return. __asCalled-gated: in a program not under a calling runtime element GR5 treats the statement as
+        // CONTINUE and "No exception condition is raised" (§2002:14.8.13.3 GR5, §2014:14.9.13.3 GR5), the more specific rule.
+        EmitFlowGlobalExit("an EXIT PROGRAM statement", calledOnly: true);
         if (ep.Raising is null)
         {
             using (w.Block("if (__asCalled)   // ISO §2023:14.9.14.4 GR2: CONTINUE in a non-called program; GR3: return in a called one"))
