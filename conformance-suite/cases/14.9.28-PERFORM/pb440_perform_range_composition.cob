@@ -2,7 +2,7 @@
       *> id: pb440_perform_range_composition
       *> rules: [GR-14.9.28.4-4, GR-14.9.28.4-5, GR-14.9.28.4-6,
       *>    GR-14.9.28.4-8, GR-14.9.28.4-9]
-      *> accept: [85, 2023]
+      *> accept: [85, 2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---

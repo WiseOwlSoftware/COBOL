@@ -101,9 +101,8 @@ public sealed partial class FileControlBinder
         }
         // NULL is an identifier, not a literal (§2023:8.4.3.10.3 SR1): the one refusal, not the literal-shape verdict.
         if (nn.predefinedNull() is not null) return null;
-        if (nn.STRINGLIT() is null && nn.HEXLIT() is null) return null;   // a concatenation, national or boolean literal
-        string token = nn.GetText();
-        return CobolLiteral.ClassOf(token) == LiteralClass.Alphanumeric && CobolLiteral.Decode(token) is { Length: 1 } v ? v : null;
+        // A concatenation, national or boolean literal is none.
+        return QuotedLiteral.In(nn) is { Class: LiteralClass.Alphanumeric, Value: { Length: 1 } v } ? v : null;
     }
 
     /// <summary>The one character the written <paramref name="word"/> stands for when it names an alphanumeric symbolic-character,

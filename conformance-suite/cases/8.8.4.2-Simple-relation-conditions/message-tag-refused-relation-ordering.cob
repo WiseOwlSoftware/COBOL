@@ -1,6 +1,6 @@
 *>--- conformance-case
 *> id: message-tag-refused-relation-ordering
-*> rules: [GR-8.8.4.2.1-9]
+*> rules: [GR-8.8.4.2.1-9, SR-8.8.4.2.3-5]
 *> source-format: free
 *> portable: unverified
 *>---

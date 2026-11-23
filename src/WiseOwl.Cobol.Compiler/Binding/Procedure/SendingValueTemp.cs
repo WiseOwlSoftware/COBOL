@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Editions;
 
 namespace WiseOwl.Cobol.Binding.Procedure;
 
@@ -262,8 +263,16 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     /// (<see cref="ShapedPic"/>: a <c>PIC 9(31)</c> beside a <c>PIC V9(28)</c>, where capping the scale cut the
     /// fraction receiver).</summary>
     private PicInfo WidestFloatEditedPic() =>
-        PictureAnalyzer.Analyze(WidestFloatEditedPicture, Usage.Display, ctx.Edition,
+        PictureAnalyzer.Analyze(WidestFloatEditedPicture, Usage.Display, ImplementorItemEdition(),
             "the intermediate a MOVE freezes a function's value into");
+
+    /// <summary>⛔ THE EDITION AN IMPLEMENTOR-PROVIDED INTERMEDIATE IS ANALYZED AT: the newest, whatever the program's. Its PICTURE is
+    /// the implementor's, not the program's (§2023:14.9.25.4 GR1: "an intermediate result item provided by the implementor"), so the
+    /// bounds a PICTURE written in the source answers to — COBOL-2002's 31 significand digits and three exponent digits
+    /// (§2002:13.16.38.2 SR6, §2002:13.16.38.3 GR12; kb/Work PB5712) — do not bind it, and its 36 digits and four exponent digits
+    /// are held by every edition. The context is fresh, the way <c>FlagConformancePass</c>'s discarding context is: the analysis of
+    /// a fixed picture records no diagnostic.</summary>
+    private static EditionContext ImplementorItemEdition() => new(EditionInfo.Latest.Year);
 
     /// <summary>A floating-point item (<see cref="PicInfo.IsFloat"/>) or a floating-point numeric-edited item
     /// (<see cref="PicInfo.IsFloatEdited"/>, design D21): a receiver with no fixed fraction scale.</summary>

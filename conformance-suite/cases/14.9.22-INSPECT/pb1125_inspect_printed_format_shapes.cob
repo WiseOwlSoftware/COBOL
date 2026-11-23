@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb1125_inspect_printed_format_shapes
       *> rules: [FMT-14.9.22.2]
-      *> accept: [85, 2023]
+      *> accept: [85, 2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---

@@ -367,12 +367,13 @@ public sealed class CompileTimeExpressionEvaluator
         if (nn.figurativeConstant() is not null)
         { ReportDirective(where, "a figurative constant shall not appear in a compiler directive (ISO §2023:7.3.3 SR10)"); return null; }
         // Each keeps the literal as written (CtValue.WrittenLiteral): a constant entry FROM the variable asks its form.
-        if (nn.STRINGLIT() is { } s) return CtValue.Alphanumeric(CobolLiteral.Decode(s.GetText())) with { WrittenLiteral = s.GetText() };
-        if (nn.HEXLIT() is { } h)   // X"…" — category alphanumeric
-            return CtValue.Alphanumeric(CobolLiteral.Decode(h.GetText())) with { WrittenLiteral = h.GetText() };
-        if (nn.NATLIT() is { } nat) return CtValue.National(CobolLiteral.Decode(nat.GetText())) with { WrittenLiteral = nat.GetText() };
-        if (nn.BOOLLIT() is { } bl)
-            return CtValue.Boolean(BitString.Of(CobolLiteral.Decode(bl.GetText()))) with { WrittenLiteral = bl.GetText() };
+        if (QuotedLiteral.In(nn) is { } literal)
+            return (literal.Class switch
+            {
+                LiteralClass.National => CtValue.National(literal.Value),
+                LiteralClass.Boolean => CtValue.Boolean(BitString.Of(literal.Value)),
+                _ => CtValue.Alphanumeric(literal.Value),   // X"…" too — the alphanumeric literal's hexadecimal format
+            }) with { WrittenLiteral = literal.Written };
         ReportDirective(where, $"'{WrittenSource.Of(nn)}' is not a supported compile-time literal operand");
         return null;
     }
@@ -404,7 +405,7 @@ public sealed class CompileTimeExpressionEvaluator
     {
         if (vo.nonNumericLiteral() is { } nn)
         {
-            if (nn.BOOLLIT() is { } bl) return BitString.Of(CobolLiteral.Decode(bl.GetText()));
+            if (QuotedLiteral.In(nn) is { Class: LiteralClass.Boolean } bl) return BitString.Of(bl.Value);
             if (nn.concatenationExpression() is not null)
             { ReportDirective(where, "a concatenation expression shall not appear in a compiler directive (ISO §2023:7.3.3 SR10)"); return null; }
             if (nn.figurativeConstant() is not null)

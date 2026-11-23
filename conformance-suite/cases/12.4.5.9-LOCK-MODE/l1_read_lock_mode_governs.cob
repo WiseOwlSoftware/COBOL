@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: l1_read_lock_mode_governs
-      *> rules: [GR-12.4.5.9.4-4, GR-14.9.30.4-7, GR-14.9.30.4-11]
+      *> rules: [GR-12.4.5.9.4-4, GR-14.9.30.4-7, GR-14.9.30.4-11, GR-9.1.16-p1, GR-9.1.16-p2]
       *> accept: [2023]
       *> source-format: fixed
       *> portable: unverified

@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb128_resultant_categories
       *> rules: [SR-14.9.2.3-2, SR-14.9.8.3-1, SR-14.9.12.3-2]
-      *> accept: [85, 2023]
+      *> accept: [85, 2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---

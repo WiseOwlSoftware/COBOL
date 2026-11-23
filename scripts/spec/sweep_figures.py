@@ -451,6 +451,15 @@ def drawn_figures(lines: list[str], furniture: re.Pattern) -> list[Drawn]:
     return [d for d in out if d.page is not None and inside[d.start] is None]
 
 
+def unprinted_here(lines: list[str], blocks: list[Drawn]) -> set[int]:
+    """The `start` lines of the blocks that stand inside a SOURCE span (cite.sourced, kb/Work PB6100): the printed page
+    is transcribed from another scan, and the PDF page its `## Page N` heading names holds a different folio, so the
+    scan tool can never locate the block's ink in OUR PDF. They stay drawn figures (a catalog reads them), and the
+    raster scan alone leaves them out."""
+    inside = cite.sourced(lines)
+    return {d.start for d in blocks if inside[d.start] is not None}
+
+
 def general_format_pages(lines: list[str], edition: int) -> set[int]:
     """The PDF pages of a transcription that keeps its pages on which a GENERAL FORMAT is drawn (`drawn_figures`'
     `general_format`): the one reading of "a figure page" the reconciliation's work unit (page_workunit.py) and its
@@ -508,7 +517,9 @@ def cross_check(edition: int, doc, lines: list[str], R, pages: tuple | None, lim
     import json
     import figure_reading
     every = drawn_figures(lines, page_furniture(edition))
-    keyed = [(d, k) for d, k in zip(every, figure_ordinals(every)) if pages is None or pages[0] <= d.page <= pages[1]]
+    other_scan = unprinted_here(lines, every)
+    keyed = [(d, k) for d, k in zip(every, figure_ordinals(every))
+             if (pages is None or pages[0] <= d.page <= pages[1]) and d.start not in other_scan]
     drawn = [d for d, _ in keyed]
     results, stats = [], collections.Counter()
     for (d, k), (_, body, bad, boxes) in zip(keyed, regenerated(edition, doc, drawn, R)):
@@ -686,8 +697,9 @@ def raster_sweep(edition: int, doc, lines: list[str], R, pages: tuple | None, cl
     every verdict names a block of the file."""
     import figure_reading
     every = drawn_figures(lines, page_furniture(edition))
+    other_scan = unprinted_here(lines, every)
     keyed = [(d, k) for d, k in zip(every, figure_ordinals(every))
-             if (pages is None or pages[0] <= d.page <= pages[1])
+             if (pages is None or pages[0] <= d.page <= pages[1]) and d.start not in other_scan
              and (clause is None or (d.clause or "").split(" ")[0] == clause)]
     verdicts = load_verdicts(verdicts_dir(edition))
     whole = pages is None and clause is None
@@ -781,6 +793,15 @@ def self_test() -> int:
                              "### 3.20.2 General Format", "", "<pre>", "<u>TYPE</u> IS DETAIL", "</pre>", "",
                              "> ⚠ **END RECONSTRUCTED (folio XIII-55).** Planted."]
     check("a <pre> block inside a reconstruction is no drawn block", drawn_figures(reconstructed_md, furniture) == got)
+    # kb/Work PB6100: a format on a page transcribed from another scan (a SOURCE span) stays a drawn block, but the
+    # raster scan leaves it out; the block after the span's last folio is still scanned.
+    sourced_md = md + ["## Page 308", "> ⚠ **SOURCE — folio XIII-55, not in our copy.** Planted.", "",
+                       "### 3.20.2 General Format", "", "<pre>", "<u>TYPE</u> IS DETAIL", "</pre>", "", "XIII-55", "",
+                       "### 3.21.2 General Format", "", "<pre>", "<u>USE</u> x", "</pre>"]
+    blocks = drawn_figures(sourced_md, furniture)
+    check("a <pre> block inside a SOURCE span is left out of the scan, the one after it is not",
+          [b.rows for b in blocks if b.start not in unprinted_here(sourced_md, blocks)][-2:]
+          == [["<u>ACCEPT</u> x"], ["<u>USE</u> x"]] and len(unprinted_here(sourced_md, blocks)) == 1)
     want = [Drawn(304, 6, 8, ["<u>ADD</u> x"], "6.6.2 General Format", "Format 1:", True),
             Drawn(305, 14, 18, ["ADD y", "", "    GIVING z"], "6.6.2 General Format", "Format 2:", True),
             Drawn(305, 22, 24, ["ALTER"], "6.7.2 General Format", None, True),

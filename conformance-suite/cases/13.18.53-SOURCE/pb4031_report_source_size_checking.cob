@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb4031_report_source_size_checking
-      *> rules: [GR-13.18.53.4-2, GR-7.3.25.4-6, GR-14.7.5-4, GR-14.7.5-3]
+      *> rules: [GR-13.18.53.4-2, GR-7.3.25.4-6, GR-14.7.5-4, GR-14.7.5-3, DOC-A.1-70]
       *> accept: [2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified

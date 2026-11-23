@@ -2,7 +2,7 @@
  "rule-id": "2002-GR-8.3.1.2.3.3-2",
  "rule-digest": "da2f62b6cdf2",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#ClassOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#BooleanLiteralOperand; src/WiseOwl.Cobol.Compiler/Binding/ConstantEntryBinder.cs",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#ClassOf; src/WiseOwl.Cobol.Compiler/Binding/ConstantEntryBinder.cs; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#QuotedLiteralOperand",
  "test-ref": "conformance:cases/8.3.1.2.3@2002-BOOLEAN-LITERALS/g2002_boolean_literal_class",
- "notes": "§2002:8.3.1.2.3.3 GR2 makes boolean literals class boolean, so B\"1010\" item = B\"101\" and = B\"10100\" are true by §2002:8.8.4.1.1.7 zero extension, and LENGTH(BX\"F\") is 4 boolean positions by §2002:15.39.3 RV1. The --std 2002 run of g2002_boolean_literal_class matched the derived output exactly."
+ "notes": "§2002:8.3.1.2.3.3 GR2 makes boolean literals class boolean, so B\"1010\" item = B\"101\" and = B\"10100\" are true by §2002:8.8.4.1.1.7 zero extension, and LENGTH(BX\"F\") is 4 boolean positions by §2002:15.39.3 RV1. The --std 2002 run of g2002_boolean_literal_class matched the derived output exactly. retired-witness: src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#BooleanLiteralOperand (kb/Work PB2725 merged BooleanLiteralOperand into QuotedLiteralOperand, the one quoted-literal operand binder)"
 }

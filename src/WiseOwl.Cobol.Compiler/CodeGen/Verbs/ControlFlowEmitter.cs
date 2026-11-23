@@ -139,44 +139,36 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
     }
 
     /// <summary>Emit the F3 matcher body: one <c>if (test) return __RunF3(...)</c> per WHEN operand, SORTED into the
-    /// §2023:14.9.49.4 GR3c-g tiers (file+L3 → file+L2 / bare-file → L3 → L2 → L1/EC-ALL; source order only within a
-    /// tier, GR17), then WHEN OTHER (imp-3, GR18) as the unconditional fallback, else <c>NoMatch</c> (fall to the USE
-    /// declaratives). A tier-4 EC-ALL operand is the catch-all (its <c>true</c> test makes a following OTHER/NoMatch
-    /// unreachable, so it terminates the body). Every handler runs with its WHEN COMMON (imp-4) via <c>__RunF3</c>.</summary>
+    /// §2023:14.9.49.4 GR3 a-g tiers (bare file → open mode → file+L3 → file+L2 → L3 → L2 → L1/EC-ALL; source order only
+    /// within a tier, §2023:14.9.28.4 GR17), then WHEN OTHER (imp-3, GR18) as the unconditional fallback, else <c>NoHandler</c>
+    /// (fall to the USE declaratives). The tier is the bound operand's and the test is <see cref="ExceptionSelectionEmitter"/>'s,
+    /// the one renderer the USE <c>__EcDispatch</c> selector shares (kb/Work PB2723). An EC-ALL operand is the catch-all (its
+    /// <c>true</c> test makes a following OTHER/NoHandler unreachable, so it terminates the body). Every handler runs with its
+    /// WHEN COMMON (imp-4) via <c>__RunF3</c>.</summary>
     private void EmitMatcherArms(BoundExceptionPerform p, CodeWriter w)
     {
-        var arms = new List<(int Tier, int W, int O, string Test, int Imp2Pc)>();
+        var arms = new List<(ExceptionSelectionTier Tier, int W, int O, string Test, int Imp2Pc)>();
         for (int wi = 0; wi < p.Whens.Count; wi++)
         {
             var m = p.Whens[wi];
-            if (m.OpenMode is { } mode)
+            if (m.ModeIndex is { } mode)
             {
-                // WHEN EXCEPTION INPUT | OUTPUT | I-O | EXTEND — GR3b open-mode scope (tier 1): an EC-I-O whose file
-                // is CURRENTLY OPEN in that mode or is being opened in it by the OPEN statement executing
-                // (the being-opened mode, FileConnector.OpenModeView, or the mode it is open in, FileConnector.OpenedModeView; kb/Work PB5200, PB5825). __f is null for a non-I-O condition or a file-less EC-I-O RAISE.
-                arms.Add((1, wi, 0,
-                    $"ExceptionCatalog.IsIoName(__ec) && __f is not null && ({RuntimeApi.FileOpenModeOf("__f")} == {ModeOrdinal(mode)} || {RuntimeApi.FileOpenedModeOf("__f")} == {ModeOrdinal(mode)})",
-                    m.Imp2Pc));
+                arms.Add((ExceptionSelectionTier.OpenMode, wi, 0, ExceptionSelectionEmitter.OpenModeTest(mode), m.Imp2Pc));
                 continue;
             }
             for (int oi = 0; oi < m.Operands.Count; oi++)
-            {
-                var (tier, test) = ClassifyOperand(m.Operands[oi]);
-                arms.Add((tier, wi, oi, test, m.Imp2Pc));
-            }
+                arms.Add((m.Operands[oi].Tier, wi, oi, ExceptionSelectionEmitter.Test(m.Operands[oi]), m.Imp2Pc));
         }
         arms.Sort((a, b) => a.Tier != b.Tier ? a.Tier.CompareTo(b.Tier)
             : a.W != b.W ? a.W.CompareTo(b.W) : a.O.CompareTo(b.O));
 
         (int cu, int cpc) = p.CommonPc is int cp ? (HandlerUseId(cp), cp) : (-1, -1);
-        bool catchAll = false;
         foreach (var arm in arms)
         {
             string call = $"__RunF3({HandlerUseId(arm.Imp2Pc)}, {arm.Imp2Pc}, {cu}, {cpc})";
-            if (arm.Test == "true") { w.Line($"return {call};   // WHEN EC-ALL (§2023:14.9.49.4 GR3g)"); catchAll = true; break; }
+            if (arm.Tier == ExceptionSelectionTier.EcAll) { w.Line($"return {call};   // WHEN EC-ALL (§2023:14.9.49.4 GR3g)"); return; }
             w.Line($"if ({arm.Test}) return {call};");
         }
-        if (catchAll) return;
         // WHEN OTHER (imp-3) rides the SAME __RunF3 return path as a named WHEN. GR18 prints two sentences naming
         // different destinations after imp-3; GR20 ("the processing in General rules 17, 18, and 19") settles it - a
         // nonfatal condition resumes in place, a fatal one terminates - so there is one destination rule, not one per
@@ -184,40 +176,8 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
         if (p.OtherPc is int opc)
             w.Line($"return __RunF3({HandlerUseId(opc)}, {opc}, {cu}, {cpc});   // WHEN OTHER (imp-3, §2023:14.9.28.4 GR18, then GR20)");
         else
-            w.Line("return PerformFrame.NoMatch;   // no WHEN/OTHER selects → fall to __EcDispatch (USE), GR17 tail");
+            w.Line("return DispatchResult.NoHandler;   // no WHEN/OTHER selects → fall to __EcDispatch (USE), GR17 tail");
     }
-
-    /// <summary>Classify one WHEN operand into its §2023:14.9.49.4 GR3a-g tier + the runtime match test (the EC-name
-    /// tiers mirror <c>__EcDispatch</c>'s per-tier tests so the two never drift). GR17 selects across the WHEN
-    /// operands by GR3's a→g priority: bare file-name (GR3a) > open-mode (GR3b, in the caller) > file+L3 (GR3c) >
-    /// file+L2 (GR3d) > L3 (GR3e) > L2 (GR3f) > L1/EC-ALL (GR3g); source order only WITHIN a tier.</summary>
-    private static (int Tier, string Test) ClassifyOperand(BoundWhenOperand op)
-    {
-        if (op.Ec is null)   // bare file-name — GR3a (any EC-I-O associated with the file), the HIGHEST tier
-            return (0, $"ExceptionCatalog.IsIoName(__ec) && __f == {FileKeyExpr(op.File!)}");
-        int level = ExceptionCatalog.TryGet(op.Ec, out var info) ? info.Level : 3;
-        if (op.File is not null)
-            return level == 3
-                ? (2, $"__f == {FileKeyExpr(op.File)} && __ec == {CsLiteral(op.Ec)}")                             // GR3c
-                : (3, $"__f == {FileKeyExpr(op.File)} && ExceptionCatalog.UnderLevel2(__ec, {CsLiteral(op.Ec)})"); // GR3d
-        return level switch
-        {
-            3 => (4, $"__ec == {CsLiteral(op.Ec)}"),                                                              // GR3e
-            2 => (5, $"ExceptionCatalog.UnderLevel2(__ec, {CsLiteral(op.Ec)})"),                                  // GR3f
-            _ => (6, "true"),   // level 1 = EC-ALL                                                               // GR3g
-        };
-    }
-
-    /// <summary>The <c>FileOpenMode</c> ordinal of a WHEN EXCEPTION open-mode keyword (INPUT/OUTPUT/I-O/EXTEND) —
-    /// matches the binder's `useOnTarget` mode mapping and the runtime enum.</summary>
-    private static int ModeOrdinal(string mode) => mode switch
-    {
-        "INPUT" => (int)WiseOwl.Cobol.Runtime.IO.FileOpenMode.Input,
-        "OUTPUT" => (int)WiseOwl.Cobol.Runtime.IO.FileOpenMode.Output,
-        "EXTEND" => (int)WiseOwl.Cobol.Runtime.IO.FileOpenMode.Extend,
-        "I-O" => (int)WiseOwl.Cobol.Runtime.IO.FileOpenMode.IO,
-        _ => -1,
-    };
 
     /// <summary>The <c>__useActive</c> re-entrancy-array id of an appended handler pc — its slot sits above the
     /// declarative slots (§2023:9.1): <c>DeclCount + (pc − F3HandlerBasePc)</c>.</summary>

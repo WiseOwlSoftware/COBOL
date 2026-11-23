@@ -55,12 +55,14 @@ public sealed class DispatchResultProtocolDriftTests
     }
 
     /// <summary>The protocol has exactly one definition: no other type redefines a dispatch-result constant, and the
-    /// two names the protocol used to be spread over (<c>ResumeSignal.NextStatement</c>/<c>HandledNonfatal</c>,
-    /// <c>ExceptionState.DeclarativeCompleted</c>/<c>NoDeclarative</c>) are gone from every source.</summary>
+    /// names the protocol used to be spread over (<c>ResumeSignal.NextStatement</c>/<c>HandledNonfatal</c>,
+    /// <c>ExceptionState.DeclarativeCompleted</c>/<c>NoDeclarative</c>, and the exception-checking PERFORM's second and
+    /// third "nothing selected" encodings, <c>PerformFrame.NoMatch</c> and <c>RunTopFrame</c>'s <c>out bool handled</c>,
+    /// kb/Work PB2723) are gone from every source.</summary>
     [Fact]
     public void TheProtocolHasOneDefinition()
     {
-        var stale = new Regex(@"ResumeSignal\.(NextStatement|HandledNonfatal)|\b(DeclarativeCompleted|NoDeclarative)\b");
+        var stale = new Regex(@"ResumeSignal\.(NextStatement|HandledNonfatal)|\b(DeclarativeCompleted|NoDeclarative)\b|PerformFrame\.NoMatch|RunTopFrame\([^)]*\bout\b");
         var offenders = Directory.EnumerateFiles(TestRepo.Src("WiseOwl.Cobol.Compiler"), "*.cs", SearchOption.AllDirectories)
             .Concat(Directory.EnumerateFiles(TestRepo.Src("WiseOwl.Cobol.Runtime"), "*.cs", SearchOption.AllDirectories))
             .Where(f => stale.IsMatch(File.ReadAllText(f)))

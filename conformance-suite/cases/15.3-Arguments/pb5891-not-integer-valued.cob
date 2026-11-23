@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb5891-not-integer-valued
-      *> rules: [AR-15.3-6]
+      *> rules: [AR-15.3-6, AR-15.36.3-1]
       *> source-format: fixed
       *> portable: unverified
       *>---

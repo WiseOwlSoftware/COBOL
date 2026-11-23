@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb5785_relative_read_return_into_larger
-      *> rules: [GR-13.18.43.4-6, GR-14.9.30.4-14]
+      *> rules: [GR-13.18.43.4-6, GR-14.9.30.4-14, GR-9.1.13.2-3]
       *> accept: [85, 2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified

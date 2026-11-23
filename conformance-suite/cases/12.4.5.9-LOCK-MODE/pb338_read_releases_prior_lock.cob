@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb338_read_releases_prior_lock
-      *> rules: [GR-12.4.5.9.4-6, GR-14.9.30.4-11]
+      *> rules: [GR-12.4.5.9.4-6, GR-14.9.30.4-11, GR-9.1.16-p2]
       *> accept: [2002, 2023]
       *> source-format: fixed
       *> portable: unverified

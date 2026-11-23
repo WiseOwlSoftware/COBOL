@@ -2140,7 +2140,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             return ConcatFolder.ClassOf(concat, ctx.Data.LiteralEnv) is PicCategory.Boolean ? null
                 : probe ? ConcatFolder.Peek(concat, ctx.Data.LiteralEnv).Value
                 : ConcatFolder.Fold(concat, ctx.Edition, ctx.Data.LiteralEnv).Value;
-        return (nn.STRINGLIT() ?? nn.NATLIT() ?? nn.HEXLIT()) is { } token ? CobolLiteral.Decode(token.GetText()) : null;
+        return QuotedLiteral.In(nn) is { Class: not LiteralClass.Boolean } literal ? literal.Value : null;
     }
 
     /// <summary>⛔ THE TYPED LANE'S VERDICT ON ONE BY REFERENCE ARGUMENT — the universal switch's relations over the

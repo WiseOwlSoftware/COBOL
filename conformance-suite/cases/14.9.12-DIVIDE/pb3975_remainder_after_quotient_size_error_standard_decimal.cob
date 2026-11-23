@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb3975_remainder_after_quotient_size_error_standard_decimal
-      *> rules: [GR-14.9.12.4-6, GR-14.9.12.4-7]
+      *> rules: [GR-14.9.12.4-6, GR-14.9.12.4-7, DOC-A.1-70]
       *> accept: [2014, 2023]
       *> source-format: fixed
       *> portable: unverified

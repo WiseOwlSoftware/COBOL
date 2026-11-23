@@ -1,8 +1,8 @@
 {
  "rule-id": "1985-GR-XIII.3.10.7-3",
  "rule-digest": "6e68346aca7f",
- "test-ref": "conformance:cases/XIII.3.10@1985-PRESENTATION-RULES-TABLES/g85_bf36_01; conformance:cases/XIII.3.20@1985-TYPE-CLAUSE/g85_bf35_05; conformance:cases/XIII.3.10@1985-PRESENTATION-RULES-TABLES/pb5789_page_heading_relative_after_rh_85; conformance:cases/XIII.3.10@1985-PRESENTATION-RULES-TABLES/pb5789_page_heading_nonprintable_85",
- "notes": "Ruled 2026-11-17 (kb/Work/PB5683/2026-11-17-rulings-pb5789-folios.md) against the printed folios transcribed from the GovInfo scan (kb/Work PB5789). 3a absolute line and 3b both arms (after a report heading, and HEADING - 1 on a later page) in g85_bf36_01 and g85_bf35_05; 3b after an absolute NEXT GROUP in new pb5789_page_heading_relative_after_rh_85; 3c in new pb5789_page_heading_nonprintable_85. The PB5830 ruling against the placeholder holds on the printed text (the wording change does not change the placement).",
+ "test-ref": "conformance:cases/XIII.3.10@1985-PRESENTATION-RULES-TABLES/g85_bf36_01; conformance:cases/XIII.3.10@1985-PRESENTATION-RULES-TABLES/pb5789_page_heading_relative_after_rh_85; conformance:cases/XIII.3.10@1985-PRESENTATION-RULES-TABLES/pb5789_page_heading_nonprintable_85",
+ "notes": "Ruled 2026-11-17 (kb/Work/PB5683/2026-11-17-rulings-pb5789-folios.md) against the printed folios transcribed from the GovInfo scan (kb/Work PB5789). 3a absolute line and 3b both arms (after a report heading, and HEADING - 1 on a later page) in g85_bf36_01 and g85_bf35_05; 3b after an absolute NEXT GROUP in new pb5789_page_heading_relative_after_rh_85; 3c in new pb5789_page_heading_nonprintable_85. The PB5830 ruling against the placeholder holds on the printed text (the wording change does not change the placement). retired-witness: conformance:cases/XIII.3.20@1985-TYPE-CLAUSE/g85_bf35_05 (the case cites the TYPE clause rules 1985-GR-XIII.3.20.4-2, -3 and -7, not this rule; the row keeps its three witnesses (kb/Work PB6067: a witness cites the row it witnesses))",
  "next": {
   "kind": "KEPT",
   "edition": 2023,
