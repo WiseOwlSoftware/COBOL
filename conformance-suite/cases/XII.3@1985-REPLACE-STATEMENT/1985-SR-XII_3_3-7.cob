@@ -8,8 +8,7 @@
       *> a separator comma or a separator semicolon." The legal form:
       *> pseudo-text-1 holds a separator comma between two words.
       *> Matching treats each separator comma and each space as one
-      *> space (§1985:XII.2.4 GR5b, which REPLACE's text words follow
-      *> in §1985:XII.3.4 GR1), so ==ALPHA, BETA== matches the source
+      *> space (§1985:XII.3.4 GR6b), so ==ALPHA, BETA== matches the source
       *> text ALPHA, BETA and the statement ends up
       *> DISPLAY "REPLACED". A leg fails if the pair is refused or
       *> left unreplaced.

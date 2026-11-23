@@ -331,7 +331,7 @@ conforming compilers print one signed numeric item as `01E` and `+01.5`.
   reference-modified display numeric item is alphanumeric (§2023:8.4.3.3.4 GR6c and allowed unless signed without SIGN
   SEPARATE: "Neither the representation nor the position of that operational sign is specified" (§2023:13.18.52.4 GR 4).
 - **The lint reads the text the compiler reads.** Text manipulation comes first: a `COPY ... REPLACING` phrase is applied to the
-  library text it copies and each `REPLACE` statement to the text after it, by the comparison cycle of §1985:XII.2.4 GR5
+  library text it copies and each `REPLACE` statement to the text after it, by the comparison cycle of §1985:XII.2.4 GR5 (a REPLACE statement's: §1985:XII.3.4 GR6)
   (`cobol_source.replace_text`, `apply_replace_statements`), so pseudo-text holding the word DISPLAY is no DISPLAY statement
   and an operand a replacement introduces is judged (kb/Work PB3178: nine REPLACE tests and two COPY tests were refused
   for text no compiler reads).

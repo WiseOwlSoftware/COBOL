@@ -42,3 +42,5 @@ subscripted table item; a `DISPLAY =` line): the gate-side lint is the check, so
 
 The cost per row, per test cleared, per test written and per NIST unit, and what the pilot did not exercise, are in
 `kb/Work/PB3178/2026-11-23-pilot-measurement.md`. Gate: see the landing record.
+
+Review round 1: a separator period inside pseudo-text no longer ends a COPY or REPLACE statement for the lint (`cobol_source._statement_end` steps over each `==` span), so a REPLACING or REPLACE pair after such a period is applied; selftest `selftests/cobol_source`. The REPLACE comparison rule is cited as §1985:XII.3.4 GR6b.
