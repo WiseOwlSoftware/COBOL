@@ -40,7 +40,7 @@ namespace WiseOwl.Cobol.CodeGen;
 /// <param name="dataEmitterFor">A unit's data-division emitter, which states the DESCRIPTION'S fresh cell of a formal
 /// (<see cref="DataEmitter.FreshArea"/>) for a record the host builds an area of.</param>
 /// <param name="editionYear">The ISO edition the compilation targets, which names the condition a function's locate miss raises
-/// (<see cref="Runtime.Exceptions.ExceptionCatalog.NameInEdition"/>; kb/Work PB6107).</param>
+/// (<see cref="Editions.ExceptionNameRule.NameInEdition"/>; kb/Work PB6107).</param>
 internal sealed class HostEntryEmitter(SignEncoding signEncoding, GroupAtomTable atoms,
     Func<DataBindResult, DataEmitter> dataEmitterFor, int editionYear)
 {
@@ -239,7 +239,7 @@ internal sealed class HostEntryEmitter(SignEncoding signEncoding, GroupAtomTable
             : $"new CobolArg[] {{ {string.Join(", ", formals.Select(Arg))} }}";
         string ret = returning is null ? "null" : ArgOver(returning, CobolPassMode.Reference);
         string notFound = unit.IsFunction
-            ? $", notFoundEc: \"{Runtime.Exceptions.ExceptionCatalog.NameInEdition("EC-FUNCTION-NOT-FOUND", editionYear)}\", asFunction: true"
+            ? $", notFoundEc: \"{Editions.ExceptionNameRule.NameInEdition("EC-FUNCTION-NOT-FOUND", editionYear)}\", asFunction: true"
             : "";
         bool decodes = formals.Any(f => !f.ByValue) || returning is not null;
         if (decodes) w.Line("global::System.FormatException? __hbad = null;");

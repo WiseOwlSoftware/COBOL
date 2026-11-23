@@ -55,28 +55,6 @@ public static class OmittedFormal
         _ => throw new System.ArgumentOutOfRangeException(nameof(kind)),
     };
 
-    /// <summary>The exception-name the reference raises for a formal of an element of <paramref name="element"/> in the edition
-    /// <paramref name="editionYear"/>: <see cref="ConditionName(ActivatedElementKind)"/> through
-    /// <see cref="ExceptionCatalog.NameInEdition"/>, because the 2002 text names one condition, EC-PROGRAM-ARG-OMITTED, for a
-    /// called program, an activated function and an invoked method alike (§2002:14.8.4.3 GR12, §2002:8.4.2.2.3 GR7,
-    /// §2002:14.8.22.3 GR10; kb/Work PB6107). What the compiler enables (<c>&gt;&gt;TURN</c>) and declares per statement.</summary>
-    public static string ConditionNameInEdition(ActivatedElementKind element, int editionYear) =>
-        ExceptionCatalog.NameInEdition(ConditionName(element), editionYear);
-
-    /// <summary>The kind whose raise a reference to a formal of <paramref name="element"/> makes in the edition
-    /// <paramref name="editionYear"/> — the kind whose <see cref="ConditionName(ActivatedElementKind)"/> is
-    /// <see cref="ConditionNameInEdition"/>: the element's own from 2014, <see cref="ActivatedElementKind.Program"/> at 2002, whose
-    /// one condition the function and the method share. The compiler emits THIS kind into every guard, so
-    /// <see cref="Raise"/> reaches the helper and the checking flag of the condition the edition defines.</summary>
-    public static ActivatedElementKind RaisedKind(ActivatedElementKind element, int editionYear)
-    {
-        string name = ConditionNameInEdition(element, editionYear);
-        foreach (var kind in Enum.GetValues<ActivatedElementKind>())
-            if (ConditionName(kind) == name)
-                return kind;
-        throw new System.ArgumentOutOfRangeException(nameof(element), element, $"no kind raises {name}");
-    }
-
     /// <summary>A reference to a formal whose storage is a FIELD or LOCAL of the activated element (a program's
     /// group / redefined formal, every method formal): raise when the argument was omitted, then hand back the
     /// storage BY REFERENCE, so the one guard serves a read, a store and a member access alike.</summary>

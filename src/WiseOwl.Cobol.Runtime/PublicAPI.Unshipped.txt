@@ -1362,8 +1362,6 @@ static WiseOwl.Cobol.Runtime.DecArithmetic.Standard(WiseOwl.Cobol.Runtime.CobolR
 static WiseOwl.Cobol.Runtime.EcFunctions.Statement(int length) -> string!
 static WiseOwl.Cobol.Runtime.EcFunctions.StatementLength(int editionYear) -> int
 static WiseOwl.Cobol.Runtime.Exceptions.DispatchResult.CompletedNotNormally(int result) -> bool
-static WiseOwl.Cobol.Runtime.Exceptions.ExceptionCatalog.EditionRenames.get -> System.Collections.Generic.IEnumerable<(string! Later, string! Earlier)>!
-static WiseOwl.Cobol.Runtime.Exceptions.ExceptionCatalog.NameInEdition(string! name, int editionYear) -> string!
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.EditionRule(string! rule1985, string! later) -> string!
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.FlowApplyCommitChecking.get -> bool
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.FlowApplyCommitChecking.set -> void
@@ -1484,8 +1482,6 @@ static WiseOwl.Cobol.Runtime.Occurrence.OfLiteral(string! integer) -> WiseOwl.Co
 static WiseOwl.Cobol.Runtime.Occurrence.implicit operator System.Int128(WiseOwl.Cobol.Runtime.Occurrence occurrence) -> System.Int128
 static WiseOwl.Cobol.Runtime.Occurrence.implicit operator WiseOwl.Cobol.Runtime.Occurrence(long value) -> WiseOwl.Cobol.Runtime.Occurrence
 static WiseOwl.Cobol.Runtime.Occurrence.implicit operator long(WiseOwl.Cobol.Runtime.Occurrence occurrence) -> long
-static WiseOwl.Cobol.Runtime.OmittedFormal.ConditionNameInEdition(WiseOwl.Cobol.Runtime.ActivatedElementKind element, int editionYear) -> string!
-static WiseOwl.Cobol.Runtime.OmittedFormal.RaisedKind(WiseOwl.Cobol.Runtime.ActivatedElementKind element, int editionYear) -> WiseOwl.Cobol.Runtime.ActivatedElementKind
 static WiseOwl.Cobol.Runtime.OverlappingMove.AlphanumericToDisplay(string! sender, string! receiver, int receiverAt, in WiseOwl.Cobol.Runtime.NumProfile to, bool decimalPointIsComma) -> string!
 static WiseOwl.Cobol.Runtime.OverlappingMove.DisplayToDisplay(string! sender, string! receiver, int receiverAt, in WiseOwl.Cobol.Runtime.NumProfile from, in WiseOwl.Cobol.Runtime.NumProfile to) -> string!
 static WiseOwl.Cobol.Runtime.OverlappingMove.DisplayToPacked(string! sender, string! receiver, int receiverAt, in WiseOwl.Cobol.Runtime.NumProfile from, in WiseOwl.Cobol.Runtime.NumProfile to) -> string!

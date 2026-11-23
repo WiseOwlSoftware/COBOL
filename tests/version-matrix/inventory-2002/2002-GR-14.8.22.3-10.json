@@ -2,7 +2,7 @@
  "rule-id": "2002-GR-14.8.22.3-10",
  "rule-digest": "93fee445ab18",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Runtime/Control/OmittedFormal.cs#RaisedKind; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.ArgOmitted.cs#MarkFormals",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.ArgOmitted.cs#MarkFormals; src/WiseOwl.Cobol.Editions/ExceptionNameRule.cs#OmittedArgumentRaisedKind",
  "test-ref": "conformance-test:ArgOmittedConditionTests.ElementaryReference_At2002_RaisesEcProgramArgOmitted",
- "notes": "§2002:14.8.22.3 GR10: a reference in an invoked method to an omitted parameter sets EC-PROGRAM-ARG-OMITTED (EC-OO-ARG-OMITTED is the §2014 name). A method may carry no declaratives yet (COBOL0899), so the observable is the abnormal run-unit termination naming EC-PROGRAM-ARG-OMITTED at --std 2002."
+ "notes": "§2002:14.8.22.3 GR10: a reference in an invoked method to an omitted parameter sets EC-PROGRAM-ARG-OMITTED (EC-OO-ARG-OMITTED is the §2014 name). A method may carry no declaratives yet (COBOL0899), so the observable is the abnormal run-unit termination naming EC-PROGRAM-ARG-OMITTED at --std 2002. retired-witness: src/WiseOwl.Cobol.Runtime/Control/OmittedFormal.cs#RaisedKind (the edition-name table moved from the runtime to ExceptionNameRule, the one home of the edition's exception-name rules (the Runtime may not read an edition window))"
 }

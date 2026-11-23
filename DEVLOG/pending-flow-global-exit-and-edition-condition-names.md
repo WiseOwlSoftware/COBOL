@@ -17,8 +17,8 @@ Goldens: `pb5715_exit_program_global_declarative_range` and `pb5715_goback_in_fu
 **PB6107 — the 2002 names.** §2002 states one omitted-argument condition, EC-PROGRAM-ARG-OMITTED, for a program, a function and a method (§2002:14.8.4.3 GR12, §2002:8.4.2.2.3 GR7,
 §2002:14.8.22.3 GR10) and the function locate miss as EC-PROGRAM-NOT-FOUND (§2002:8.4.2.2.3 GR5); §2014 (E.2 item 18) split them. The compiler raised the 2014 names at every
 edition, and `>>TURN EC-FUNCTION-ARG-OMITTED` is refused at 2002 (COBOL0878), so no 2002 program could enable or handle what was raised. Fix: one table,
-`ExceptionCatalog.NameInEdition`; `EcBinder.EcWrap` maps each declared name through it, `EcBinder.MarkFormals` queries `>>TURN` for the edition's name and stamps the guard with
-`OmittedFormal.RaisedKind` (the program kind at 2002), and the activation emitters pass the edition's miss name with a new `asFunction: true`, which replaces the runtime's reading of
+`ExceptionNameRule.NameInEdition`; `EcBinder.EcWrap` maps each declared name through it, `EcBinder.MarkFormals` queries `>>TURN` for the edition's name and stamps the guard with
+`ExceptionNameRule.OmittedArgumentRaisedKind` (the program kind at 2002), and the activation emitters pass the edition's miss name with a new `asFunction: true`, which replaces the runtime's reading of
 function-ness off the spelling of `notFoundEc`. `SET ... TO ADDRESS OF FUNCTION` needs `USAGE FUNCTION-POINTER`, refused below 2014, so that arm keeps its 2014 names. At 2002 the
 function probe (`fn_omit_2002.cob`, from the 2014 golden with the program name) prints `F-CAUGHT 01=EC-PROGRAM-ARG-OMITTED`. Tests: golden `pb6107_function_arg_omitted_2002` with its
 refused twin, `ArgOmittedConditionTests.ElementaryReference_At2002_RaisesEcProgramArgOmitted`, `InterProgramFileDifferentialTests.Udf_AbsentFunctionDefinition_RaisesTheEditionsLocateMissCondition`

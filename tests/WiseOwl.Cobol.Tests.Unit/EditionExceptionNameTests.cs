@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.CodeGen;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Diagnostics;
 using WiseOwl.Cobol.Runtime;
 using WiseOwl.Cobol.Runtime.Exceptions;
@@ -15,7 +16,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ⛔ kb/Work PB6107 — A CONDITION THAT HAS ONE NAME IN 2002 AND ANOTHER FROM 2014 IS NAMED THROUGH ONE TABLE. §2002 states the
 /// omitted-argument condition once, EC-PROGRAM-ARG-OMITTED, for a called program, an activated function and an invoked method
 /// (§2002:14.8.4.3 GR12, §2002:8.4.2.2.3 GR7, §2002:14.8.22.3 GR10) and the locate miss of a function as EC-PROGRAM-NOT-FOUND
-/// (§2002:8.4.2.2.3 GR5); §2014 and §2023 split each by element kind. <see cref="ExceptionCatalog.NameInEdition"/> is the one
+/// (§2002:8.4.2.2.3 GR5); §2014 and §2023 split each by element kind. <see cref="ExceptionNameRule.NameInEdition"/> is the one
 /// table, and every consumer — the binder's per-statement declaration (<c>EcBinder.EcWrap</c>), the formal's guard
 /// (<c>EcBinder.MarkFormals</c>) and the activation emitters — asks it, so the next edition-dependent name is one row.
 /// </summary>
@@ -27,15 +28,15 @@ public sealed class EditionExceptionNameTests
     public void EveryRename_PointsAtACataloguedEarlierName_AndFlipsAtTheLaterNamesEdition()
     {
         int rows = 0;
-        foreach (var (later, earlier) in ExceptionCatalog.EditionRenames)
+        foreach (var (later, earlier) in ExceptionNameRule.EditionRenames)
         {
             rows++;
             Assert.True(ExceptionCatalog.TryGet(later, out var laterInfo), later);
             Assert.True(ExceptionCatalog.TryGet(earlier, out var earlierInfo), earlier);
             Assert.True(earlierInfo.IntroducedIn < laterInfo.IntroducedIn, $"{earlier} must predate {later}");
-            Assert.Equal(earlier, ExceptionCatalog.NameInEdition(later, laterInfo.IntroducedIn - 1));
-            Assert.Equal(later, ExceptionCatalog.NameInEdition(later, laterInfo.IntroducedIn));
-            Assert.Equal(later, ExceptionCatalog.NameInEdition(later, 2023));
+            Assert.Equal(earlier, ExceptionNameRule.NameInEdition(later, laterInfo.IntroducedIn - 1));
+            Assert.Equal(later, ExceptionNameRule.NameInEdition(later, laterInfo.IntroducedIn));
+            Assert.Equal(later, ExceptionNameRule.NameInEdition(later, 2023));
         }
         Assert.True(rows >= 3, "the table lost a row");
     }
@@ -47,7 +48,7 @@ public sealed class EditionExceptionNameTests
     [InlineData("EC-SIZE-TRUNCATION", 2002)]
     [InlineData("EC-FUNCTION-PTR-NULL", 2014)]
     public void AnUnrenamedName_IsItsOwnAnswer(string name, int edition) =>
-        Assert.Equal(name, ExceptionCatalog.NameInEdition(name, edition));
+        Assert.Equal(name, ExceptionNameRule.NameInEdition(name, edition));
 
     /// <summary>The kind a guard raises through: the element's own from 2014, the program's at 2002, whose one condition covers all
     /// three (so <c>OmittedFormal.Raise</c> reaches the helper and the flag of the condition the edition defines).</summary>
@@ -60,8 +61,8 @@ public sealed class EditionExceptionNameTests
     [InlineData(ActivatedElementKind.Function, 2023, ActivatedElementKind.Function)]
     public void RaisedKind_FollowsTheEditionsConditionName(ActivatedElementKind element, int edition, ActivatedElementKind expected)
     {
-        Assert.Equal(expected, OmittedFormal.RaisedKind(element, edition));
-        Assert.Equal(OmittedFormal.ConditionName(expected), OmittedFormal.ConditionNameInEdition(element, edition));
+        Assert.Equal(expected, ExceptionNameRule.OmittedArgumentRaisedKind(element, edition));
+        Assert.Equal(OmittedFormal.ConditionName(expected), ExceptionNameRule.OmittedArgumentConditionName(element, edition));
     }
 
     private const string FunctionAndCaller = """
