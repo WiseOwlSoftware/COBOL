@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-7.2.9.2-1",
+ "rule-digest": "b17877e88fc6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#ApplyDefine; src/WiseOwl.Cobol.Frontend/Common/CompilerDirectiveWords.cs#IsReserved",
+ "test-ref": "conformance:cases/7.3.11-DEFINE/pb5599_define_name_flag_85; conformance:cases/7.3.11-DEFINE/pb5599_define_name_push; conformance:cases/7.3.11-DEFINE/pb5703_define_name_2014_exception_name",
+ "notes": "§2002:7.2.9.2 SR1 'Compilation-variable-name-1 shall not be the same as a compiler-directive reserved word' with the word list of §2002:8.12 (kb/Work PB5599, PB5703). Run at --std 2002 with this build: '>>DEFINE FLAG-85 AS 1' is refused COBOL2650 citing §2002:8.12 and §2002:7.2.9.2 SR1; '>>DEFINE PUSH AS 1' and '>>DEFINE EC-FLOW-SEARCH AS 1' are accepted (neither is on the 2002 list)."
+}

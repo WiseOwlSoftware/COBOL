@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: pb971_function_arg_omitted
 *> rules: [GR-8.4.3.2.4-8]
-*> accept: [2002]
+*> accept: [2014]
 *> source-format: free
 *> portable: unverified
 *>---

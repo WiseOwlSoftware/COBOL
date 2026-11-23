@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-7.2.7.3.2-1",
+ "rule-digest": "b17877e88fc6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Common/CompilerDirectiveWords.cs#IsReserved; src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#EvalDefined",
+ "test-ref": "conformance:cases/7.3.8.4-Defined-condition/pb5703_defined_condition_flag_85",
+ "notes": "§2002:7.2.7.3.2 SR1 'Compilation-variable-name-1 shall not be the same as a compiler-directive reserved word' with the word list of §2002:8.12 (kb/Work PB5599). Run at --std 2002 with this build: '>>IF FLAG-85 DEFINED' is refused COBOL2650 citing §2002:8.12 and §2002:7.2.7.3.2 SR1 (FLAG-85 is on the 2002 list); at --std 2023, where FLAG-85 is not listed, it is an undefined name and the false branch runs. retired-witness: src/WiseOwl.Cobol.Frontend/Preprocessor/CompileTimeExpressionEvaluator.cs#EvalDefined (the path was mistyped; the evaluator lives in Frontend/Expressions)"
+}
