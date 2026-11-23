@@ -4,7 +4,6 @@ using System.Collections.Concurrent;
 using System.Globalization;
 using System.Text;
 using WiseOwl.Cobol.Runtime.Collation;
-using WiseOwl.Cobol.Runtime.Collation.Cldr;
 using WiseOwl.Cobol.Runtime.Exceptions;
 
 namespace WiseOwl.Cobol.Runtime.Globalization;
@@ -36,7 +35,8 @@ namespace WiseOwl.Cobol.Runtime.Globalization;
 /// </summary>
 public sealed class LocaleFacts
 {
-    private static readonly ConcurrentDictionary<string, LocaleFacts> s_cache = new(StringComparer.OrdinalIgnoreCase);   // not a COBOL word: a locale tag
+    /// <summary>Each locale's facts, keyed by its canonical tag (<see cref="LocaleTag.Canonical"/>), compared ordinally.</summary>
+    private static readonly ConcurrentDictionary<string, LocaleFacts> s_cache = new(StringComparer.Ordinal);
 
     /// <summary>True when the process runs in .NET invariant globalization mode (every culture is the invariant
     /// one — probed once through the runtime switch and a culture-data probe).</summary>
@@ -55,12 +55,11 @@ public sealed class LocaleFacts
         catch (ArgumentException) { Region = null; }
     }
 
-    /// <summary>The facts for a locale tag (L1-normalized or not — normalized here). Cached.</summary>
-    public static LocaleFacts For(string? tag)
-    {
-        string t = LocaleIdentification.Normalize(tag);
-        return s_cache.GetOrAdd(t, static k => Resolve(k));
-    }
+    /// <summary>The facts for a locale tag (L1-normalized or not — normalized here). Cached by the canonical tag, so a
+    /// caller holding it (a run unit's current locale) pays one lookup and no normalization.</summary>
+    public static LocaleFacts For(string? tag) =>
+        tag is not null && s_cache.TryGetValue(tag, out var facts) ? facts
+            : s_cache.GetOrAdd(LocaleIdentification.Normalize(tag), static k => Resolve(k));
 
     /// <summary>The root / invariant locale's facts.</summary>
     public static LocaleFacts Root => For("");
@@ -215,16 +214,9 @@ public sealed class LocaleFacts
         if (tag.Length == 0) return new LocaleFacts("", CultureInfo.InvariantCulture, hasCultureData: true);
         if (InvariantMode) return new LocaleFacts(tag, CultureInfo.InvariantCulture, hasCultureData: false);
         // The .NET culture: the tag's base (no -u- extension), then its ancestors by truncation.
-        string baseTag = CldrLocaleTag.Parse(tag).BaseTag;
-        for (string t = baseTag; t.Length > 0; t = ParentTag(t))
+        for (string t = LocaleTag.Parse(tag).Base; t.Length > 0; t = ParentTag(t))
         {
-            try
-            {
-                var ci = CultureInfo.GetCultureInfo(t, predefinedOnly: true);
-                return new LocaleFacts(tag, ci, hasCultureData: true);
-            }
-            catch (CultureNotFoundException) { }
-            catch (ArgumentException) { }
+            if (LocaleTag.PredefinedCulture(t) is { } ci) return new LocaleFacts(tag, ci, hasCultureData: true);
         }
         return new LocaleFacts(tag, CultureInfo.InvariantCulture, hasCultureData: false);
     }

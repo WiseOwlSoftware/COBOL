@@ -178,6 +178,9 @@ WiseOwl.Cobol.Runtime.Collation.ReorderGroup.Deconstruct(out System.Collections.
 WiseOwl.Cobol.Runtime.Collation.ReorderGroup.ReorderGroup(System.Collections.Immutable.ImmutableArray<string!> Codes, int FirstPrimary, int LastPrimary) -> void
 WiseOwl.Cobol.Runtime.Collation.ResolvedLocaleCollation.Failure.get -> WiseOwl.Cobol.Runtime.Collation.LocaleCollationException?
 WiseOwl.Cobol.Runtime.Collation.ResolvedLocaleCollation.Failure.init -> void
+WiseOwl.Cobol.Runtime.Collation.ResolvedLocaleCollation.IsAvailable.get -> bool
+WiseOwl.Cobol.Runtime.Collation.ResolvedLocaleCollation.IsAvailable.init -> void
+WiseOwl.Cobol.Runtime.Collation.ResolvedLocaleCollation.IsRecognizedCulture.get -> bool
 WiseOwl.Cobol.Runtime.Collation.TailoringRules.Entries.get -> System.Collections.Immutable.ImmutableArray<WiseOwl.Cobol.Runtime.Collation.TailoringRules.Entry!>
 WiseOwl.Cobol.Runtime.Collation.TailoringRules.Entry.CodePoints.get -> System.Collections.Immutable.ImmutableArray<int>
 WiseOwl.Cobol.Runtime.Collation.TailoringRules.Entry.Deconstruct(out System.Collections.Immutable.ImmutableArray<int> CodePoints, out System.Collections.Immutable.ImmutableArray<WiseOwl.Cobol.Runtime.Collation.CollationElement> Elements, out int Line) -> void
@@ -355,6 +358,13 @@ WiseOwl.Cobol.Runtime.FunctionValueField.ByteLength.get -> long
 WiseOwl.Cobol.Runtime.FunctionValueField.DeviceText(bool commaMode) -> string!
 WiseOwl.Cobol.Runtime.FunctionValueField.FunctionValueField() -> void
 WiseOwl.Cobol.Runtime.FunctionValueField.Length.get -> long
+WiseOwl.Cobol.Runtime.Globalization.LocaleTag
+WiseOwl.Cobol.Runtime.Globalization.LocaleTag.Base.get -> string!
+WiseOwl.Cobol.Runtime.Globalization.LocaleTag.Canonical.get -> string!
+WiseOwl.Cobol.Runtime.Globalization.LocaleTag.Extension.get -> string!
+WiseOwl.Cobol.Runtime.Globalization.LocaleTag.IsRoot.get -> bool
+WiseOwl.Cobol.Runtime.Globalization.LocaleTag.IsWellFormed.get -> bool
+WiseOwl.Cobol.Runtime.Globalization.LocaleTag.Language.get -> string!
 WiseOwl.Cobol.Runtime.Globalization.MonetaryFacts.GroupSizes.get -> System.Collections.Immutable.ImmutableArray<int>
 WiseOwl.Cobol.Runtime.HostLanding
 WiseOwl.Cobol.Runtime.ICobolProgram.IsCobol85.get -> bool
@@ -1075,6 +1085,7 @@ const WiseOwl.Cobol.Runtime.Repository.RepositoryLocator.MaxFileBytes = 26843545
 const WiseOwl.Cobol.Runtime.RunUnit.DebugSwitchVariable = "WISEOWL_COBOL_DEBUG" -> string!
 override WiseOwl.Cobol.Runtime.CobolDecWithPrecision.GetHashCode() -> int
 override WiseOwl.Cobol.Runtime.Communication.CommunicationReceipt.GetHashCode() -> int
+override WiseOwl.Cobol.Runtime.Globalization.LocaleTag.ToString() -> string!
 override WiseOwl.Cobol.Runtime.IO.KeySegment.GetHashCode() -> int
 override WiseOwl.Cobol.Runtime.IO.RecordStep.GetHashCode() -> int
 override WiseOwl.Cobol.Runtime.MessageOutcome.GetHashCode() -> int
@@ -1353,7 +1364,13 @@ static WiseOwl.Cobol.Runtime.CobolVarGroup.ToImage(WiseOwl.Cobol.Runtime.CobolVa
 static WiseOwl.Cobol.Runtime.CobolVarGroup.WindowOf(string! run, string! window, System.ReadOnlySpan<int> dynFixedAt, System.ReadOnlySpan<int> dynTable) -> string!
 static WiseOwl.Cobol.Runtime.CobolWide.DivTruncated(WiseOwl.Cobol.Runtime.CobolWide a, int aScale, WiseOwl.Cobol.Runtime.CobolWide b, int bScale, int resultScale) -> WiseOwl.Cobol.Runtime.CobolWide
 static WiseOwl.Cobol.Runtime.CobolWide.FromUnsigned(System.UInt128 value) -> WiseOwl.Cobol.Runtime.CobolWide
+static WiseOwl.Cobol.Runtime.Collation.CollationEngine.LocaleGeneration.get -> int
 static WiseOwl.Cobol.Runtime.Collation.CollationEngine.OrderingAtLevel(WiseOwl.Cobol.Runtime.Collation.CollationTable! table, int level) -> WiseOwl.Cobol.Runtime.Collation.Collator!
+static WiseOwl.Cobol.Runtime.Collation.Locale.LocaleManager.CldrLocales.get -> System.Collections.Generic.IReadOnlyList<string!>!
+static WiseOwl.Cobol.Runtime.Collation.Locale.LocaleManager.CurrentLocale.get -> WiseOwl.Cobol.Runtime.Collation.ResolvedLocaleCollation!
+static WiseOwl.Cobol.Runtime.Collation.Locale.LocaleManager.GetLocale(string? localeName) -> WiseOwl.Cobol.Runtime.Collation.ResolvedLocaleCollation!
+static WiseOwl.Cobol.Runtime.Collation.Locale.LocaleManager.TailoredLocales.get -> System.Collections.Generic.IReadOnlyList<string!>!
+static WiseOwl.Cobol.Runtime.Collation.Locale.LocaleManager.TryGetLocale(string? localeName, out WiseOwl.Cobol.Runtime.Collation.ResolvedLocaleCollation? info) -> bool
 static WiseOwl.Cobol.Runtime.Communication.CommunicationReceipt.operator !=(WiseOwl.Cobol.Runtime.Communication.CommunicationReceipt left, WiseOwl.Cobol.Runtime.Communication.CommunicationReceipt right) -> bool
 static WiseOwl.Cobol.Runtime.Communication.CommunicationReceipt.operator ==(WiseOwl.Cobol.Runtime.Communication.CommunicationReceipt left, WiseOwl.Cobol.Runtime.Communication.CommunicationReceipt right) -> bool
 static WiseOwl.Cobol.Runtime.Communication.MessageControl.AcceptMessageCount(string! area) -> string!
@@ -1408,6 +1425,9 @@ static WiseOwl.Cobol.Runtime.FunctionValueField.OfItem(WiseOwl.Cobol.Runtime.Cob
 static WiseOwl.Cobol.Runtime.FunctionValueField.OfLiteral(WiseOwl.Cobol.Runtime.CobolDec value, int digits, int scale, bool signed) -> WiseOwl.Cobol.Runtime.FunctionValueField
 static WiseOwl.Cobol.Runtime.FunctionValueField.OfValue(WiseOwl.Cobol.Runtime.CobolDec value) -> WiseOwl.Cobol.Runtime.FunctionValueField
 static WiseOwl.Cobol.Runtime.FunctionValueField.OfWide(WiseOwl.Cobol.Runtime.CobolWide value, int scale) -> WiseOwl.Cobol.Runtime.FunctionValueField
+static WiseOwl.Cobol.Runtime.Globalization.LocaleTag.Parse(string? text) -> WiseOwl.Cobol.Runtime.Globalization.LocaleTag!
+static WiseOwl.Cobol.Runtime.Globalization.LocaleTag.PredefinedCulture(string! baseTag) -> System.Globalization.CultureInfo?
+static WiseOwl.Cobol.Runtime.Globalization.LocaleTag.Root.get -> WiseOwl.Cobol.Runtime.Globalization.LocaleTag!
 static WiseOwl.Cobol.Runtime.Globalization.MonetaryPlacement.ForPicture(WiseOwl.Cobol.Runtime.Globalization.MonetaryConvention c, bool pictureHasCurrencySymbol) -> WiseOwl.Cobol.Runtime.Globalization.MonetaryConvention
 static WiseOwl.Cobol.Runtime.Globalization.MonetaryPlacement.NegativeByPattern.get -> System.Collections.Immutable.ImmutableArray<WiseOwl.Cobol.Runtime.Globalization.MonetaryConvention>
 static WiseOwl.Cobol.Runtime.Globalization.MonetaryPlacement.PositiveByPattern.get -> System.Collections.Immutable.ImmutableArray<WiseOwl.Cobol.Runtime.Globalization.MonetaryConvention>
@@ -1468,6 +1488,7 @@ static WiseOwl.Cobol.Runtime.IO.ReportLinePlacement.FirstLine(WiseOwl.Cobol.Runt
 static WiseOwl.Cobol.Runtime.IO.ReportLinePlacement.RelativeOperand(WiseOwl.Cobol.Runtime.IO.ReportLineKind kind, int value, int relativeBase) -> int
 static WiseOwl.Cobol.Runtime.IO.ReportLinePlacement.SubsequentLine(WiseOwl.Cobol.Runtime.IO.ReportLineKind kind, int value, int relativeBase, long previous, long anchor) -> long
 static WiseOwl.Cobol.Runtime.IO.StartKeyLength.OfDec(WiseOwl.Cobol.Runtime.CobolDec value, int unitWidth) -> WiseOwl.Cobol.Runtime.IO.StartKeyLength
+static WiseOwl.Cobol.Runtime.LocaleState.UserDefaultNow.get -> string!
 static WiseOwl.Cobol.Runtime.ManagedPointer<T>.OverStorage(System.Func<T>! get, System.Action<T, WiseOwl.Cobol.Runtime.ReceivingReferences?>! store) -> WiseOwl.Cobol.Runtime.ManagedPointer<T>!
 static WiseOwl.Cobol.Runtime.MessageOutcome.operator !=(WiseOwl.Cobol.Runtime.MessageOutcome left, WiseOwl.Cobol.Runtime.MessageOutcome right) -> bool
 static WiseOwl.Cobol.Runtime.MessageOutcome.operator ==(WiseOwl.Cobol.Runtime.MessageOutcome left, WiseOwl.Cobol.Runtime.MessageOutcome right) -> bool

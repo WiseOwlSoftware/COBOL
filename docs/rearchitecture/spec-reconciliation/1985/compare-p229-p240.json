@@ -1,1 +1,9 @@
-{"batch": [229,230,231,232,233,234,235,236,237,238,239,240], "pages_checked": [229,230,231,232,233,234,235,236,237,238,239,240], "pages_unread": [], "findings": []}
+{"batch": [229,230,231,232,233,234,235,236,237,238,239,240],
+ "pages_checked": [229,230,231,232,233,234,235,236,237,238,239,240],
+ "pages_unread": [],
+ "findings": [
+  {"id": "p240-1", "page": 240, "kind": "incorrect-text", "severity": "structural",
+   "pdf_says": "The whole of section 3.4 (heading through \"DATE-COMPILED. current date.\") is printed inside one level-2 box, including the general format \"DATE-COMPILED. [comment-entry] ...\" and the replacement form \"DATE-COMPILED. current date.\"",
+   "markdown_says": "<u>DATE-COMPILED</u>. [ comment-entry ] …  /  DATE-COMPILED. current date.  (both <pre> blocks carry no ║ level-2 box markers, while every other paragraph of 3.4 does)",
+   "why_it_matters": "The level-2 box markers are dropped from the two <pre> blocks inside the boxed 3.4; page 237 keeps ║ on its boxed general format, so the transcription's own convention marks them. Low impact: the surrounding heading and prose carry the markers."}
+ ]}

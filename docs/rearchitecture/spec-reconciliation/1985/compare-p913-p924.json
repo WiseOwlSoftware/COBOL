@@ -1,16 +1,1 @@
-{
-  "batch": [913, 914, 915, 916, 917, 918, 919, 920, 921, 922, 923, 924],
-  "pages_checked": [913, 914, 915, 916, 917, 918, 919, 920, 921, 922, 923, 924],
-  "pages_unread": [],
-  "findings": [
-    {
-      "id": "p924-1",
-      "page": 924,
-      "kind": "missing-text",
-      "severity": "normative",
-      "pdf_says": "Four replacement passages on this page are printed shaded (the amendment's level-2 marker, per page B-1: \"Shading is used in this amendment to indicate specifications unique to level 2\"): the VI-113 PERFORM text \"If index-name-1 is specified, the value of identifier-3, index-name-2, or literal-1 ... associated with index-name-3.\", both VI-124 SEARCH sentences \"When control is passed to the next executable sentence, the effect is a transfer of control to an implicit CONTINUE statement immediately preceding the next separator period.\", and the VII-32 RECORD text \"If the number of character positions in the logical record to be written is less than integer-2 or greater than integer-3, ... (See page VII-2, I-O Status.)\"",
-      "markdown_says": "<br><br>If index-name-1 is specified, the value of identifier-3, index-name-2, or literal-1 at the beginning of the execution of the PERFORM statement ... | ... <br><br>When control is passed to the next executable sentence, the effect is a transfer of control to an implicit CONTINUE statement immediately preceding the next separator period. | ... <br><br>If the number of character positions in the logical record to be written is less than integer-2 or greater than integer-3, ... (See page VII-2, I-O Status.) |",
-      "why_it_matters": "The transcription marks shaded (level-2-only) text with ║...║ on the neighbouring pages 919, 920 and 922, but drops the marker on all four shaded passages of page 924, so these rules read as applying at every level instead of only to level 2 of the PERFORM, SEARCH and RECORD-clause facilities."
-    }
-  ]
-}
+{"batch": [913,914,915,916,917,918,919,920,921,922,923,924], "pages_checked": [913,914,915,916,917,918,919,920,921,922,923,924], "pages_unread": [], "findings": []}

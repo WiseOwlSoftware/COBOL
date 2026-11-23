@@ -2,8 +2,8 @@
  "page": 240,
  "figure": 1,
  "drawn_lines": [
-  "          DATE-COMPILED. current date."
+  "║          DATE-COMPILED. current date. ║"
  ],
  "decided": "not-a-format",
- "reason": "The printed page gives this line in the General Rules as an example of what the DATE-COMPILED paragraph is replaced by, in plain type, not a general format."
+ "reason": "The printed page gives this line in the General Rules as an example of what the DATE-COMPILED paragraph is replaced by, in plain type, not a general format. Pass 5 (kb/Work PB6051 p240-1): the line stands inside the level-2 box that encloses all of 3.4, so it carries its box sides as page 237's boxed format does."
 }

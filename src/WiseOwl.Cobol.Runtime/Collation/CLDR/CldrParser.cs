@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Json;
 using System.Xml;
 using System.Xml.Linq;
+using WiseOwl.Cobol.Runtime.Globalization;
 
 namespace WiseOwl.Cobol.Runtime.Collation.Cldr;
 
@@ -85,9 +86,9 @@ public static class CldrParser
 
         string? language = Str(root, "language"), script = Str(root, "script"), territory = Str(root, "territory"), variant = Str(root, "variant");
         string? locale = Str(root, "locale");
-        if (language is null && locale is not null)
+        if (language is null && LocaleTag.Parse(locale) is { IsRoot: false } localeTag)
         {
-            var parts = locale.Replace('_', '-').Split('-');
+            var parts = localeTag.Base.Split('-');
             language = parts[0];
             foreach (var p in parts.Skip(1))
             {
@@ -420,12 +421,10 @@ public static class CldrParser
             {
                 case "import":
                 {
-                    string v = value.Trim();
-                    string locale = v, type = "standard";
-                    int k = v.IndexOf("-u-co-", StringComparison.OrdinalIgnoreCase);
-                    if (k >= 0) { locale = v[..k]; type = CldrCollation.CanonicalType(v[(k + 6)..]); }
-                    if (locale.Equals("und", StringComparison.OrdinalIgnoreCase)) locale = "root";
-                    var import = new CldrImport(locale.Replace('_', '-'), type);
+                    // The imported locale's tag (LDML: a BCP 47 locale ID; "und" is the root) and its -u-co- type.
+                    var tag = LocaleTag.Parse(value);
+                    string type = tag.Extension.StartsWith("co-", StringComparison.Ordinal) ? CldrCollation.CanonicalType(tag.Extension[3..]) : "standard";
+                    var import = new CldrImport(tag.IsRoot ? "root" : tag.Base, type);
                     Imports.Add(import);
                     Rules.Add(new CldrImportRule(import) { Line = line });
                     break;

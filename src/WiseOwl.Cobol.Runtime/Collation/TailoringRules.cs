@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Collections.Immutable;
 using System.Globalization;
+using WiseOwl.Cobol.Runtime.Globalization;
 
 namespace WiseOwl.Cobol.Runtime.Collation;
 
@@ -150,13 +151,14 @@ public sealed class TailoringRules
             .Select(n => n[ResourcePrefix.Length..^FileExtension.Length])
             .OrderBy(n => n, StringComparer.Ordinal);
 
-    /// <summary>The lookup chain for a tag: the normalized tag, then its language subtag ("es-MX" → "es").</summary>
+    /// <summary>The lookup chain for a tag: its canonical base tag (<see cref="LocaleTag.Base"/>, no <c>-u-</c>
+    /// extension), then its language subtag ("es-MX" → "es"); none for the root, whose order no tailoring changes.</summary>
     internal static IEnumerable<string> Candidates(string localeTag)
     {
-        string tag = localeTag.Trim().Replace('_', '-');
-        yield return tag;
-        int dash = tag.IndexOf('-');
-        if (dash > 0) yield return tag[..dash];
+        var tag = LocaleTag.Parse(localeTag);
+        if (tag.IsRoot) yield break;
+        yield return tag.Base;
+        if (tag.Language.Length < tag.Base.Length) yield return tag.Language;
     }
 
     private static TailoringRules? FromDirectory(string? directory, string tag)
