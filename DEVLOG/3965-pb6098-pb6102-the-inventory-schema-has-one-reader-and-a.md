@@ -1,4 +1,4 @@
-## PB6098, PB6102: the inventory schema has one reader and a drift assertion; the docs say what the landing check stops
+## Entry 3965 — 2026-11-23 03:08 PST — PB6098, PB6102: the inventory schema has one reader and a drift assertion; the docs say what the landing check stops
 
 **PB6098, the inventory schema's one reader.** DESIGN-architecture-review §8.2 rule 7 says a script reads the inventory
 schema's vocabulary through `inventory_schema.py` and never parses the JSON a second time or splits a list field by hand.
@@ -37,3 +37,4 @@ record. PB6102 records that decision.
 Self-review: the four lenses found one mechanism per job (one parse, one splitter, one assertion), no second copy of a
 rule, and a scan that parses only the files that contain one of the words a finding needs (0.8 s instead of 5 s). Gate: see
 the report.
+
