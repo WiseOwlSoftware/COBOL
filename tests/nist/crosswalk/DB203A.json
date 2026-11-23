@@ -7,7 +7,7 @@
    "lines": [
     407
    ],
-   "feature": "",
+   "feature": "DEBUG OPEN OUTPUT",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -18,7 +18,7 @@
    "lines": [
     423
    ],
-   "feature": "DEBUG OPEN OUTPUT",
+   "feature": "DEBUG WRITE RECORD",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -29,7 +29,7 @@
    "lines": [
     458
    ],
-   "feature": "DEBUG WRITE RECORD",
+   "feature": "DEBUG CLOSE FILE",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -40,7 +40,7 @@
    "lines": [
     474
    ],
-   "feature": "DEBUG CLOSE FILE",
+   "feature": "DEBUG OPEN I-O",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -51,7 +51,7 @@
    "lines": [
     491
    ],
-   "feature": "DEBUG OPEN I-O",
+   "feature": "DEBUG READ RANDOM",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -98,7 +98,7 @@
    "lines": [
     566
    ],
-   "feature": "DEBUG READ RANDOM",
+   "feature": "DEBUG READ INV KEY",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -109,7 +109,7 @@
    "lines": [
     586
    ],
-   "feature": "DEBUG READ INV KEY",
+   "feature": "DEBUG REWRITE RECORD",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -156,7 +156,7 @@
    "lines": [
     664
    ],
-   "feature": "DEBUG REWRITE RECORD",
+   "feature": "DEBUG REWRITE INVLID",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -167,7 +167,7 @@
    "lines": [
     686
    ],
-   "feature": "DEBUG REWRITE INVLID",
+   "feature": "DEBUG START FILENAME",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -190,7 +190,7 @@
    "lines": [
     722
    ],
-   "feature": "DEBUG START FILENAME",
+   "feature": "DEBUG START INV KEY",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -201,7 +201,7 @@
    "lines": [
     742
    ],
-   "feature": "DEBUG START INV KEY",
+   "feature": "DEBUG DELETE FILE",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -224,7 +224,7 @@
    "lines": [
     776
    ],
-   "feature": "DEBUG DELETE FILE",
+   "feature": "DEBUG DELETE INV KEY",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",

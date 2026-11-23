@@ -40,7 +40,7 @@
    "lines": [
     752
    ],
-   "feature": "CREATE FILE SQ-FS2",
+   "feature": "NATIVE COLL.SEQUENCE",
    "ansi": "XI-11 4.1.4 GR (11)",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -130,7 +130,7 @@
    "lines": [
     889
    ],
-   "feature": "NATIVE COLL.SEQUENCE",
+   "feature": "EOF CHECK SQ-FS3",
    "ansi": "XI-11 4.1.4 GR (11)",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -160,7 +160,7 @@
    "lines": [
     945
    ],
-   "feature": "NUMER. SEQ. CHECK",
+   "feature": "NATIVE COLL.SEQUENCE",
    "ansi": "XI-11 4.1.4 GR (11)",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -250,7 +250,7 @@
    "lines": [
     1082
    ],
-   "feature": "NATIVE COLL.SEQUENCE",
+   "feature": "EOF CHECK SQ-FS4",
    "ansi": "XI-11 4.1.4 GR (11)",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -280,7 +280,7 @@
    "lines": [
     1138
    ],
-   "feature": "NUMER. SEQ. CHECK",
+   "feature": "NATIVE COLL.SEQUENCE",
    "ansi": "XI-11 4.1.4 GR (11)",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -370,7 +370,7 @@
    "lines": [
     1275
    ],
-   "feature": "NATIVE COLL.SEQUENCE",
+   "feature": "EOF CHECK SQ-FS5",
    "ansi": "XI-11 4.1.4 GR (11)",
    "disposition": "open",
    "resolution": "ambiguous",

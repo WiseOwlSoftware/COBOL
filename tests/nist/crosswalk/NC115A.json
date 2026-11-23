@@ -7,7 +7,7 @@
    "lines": [
     377
    ],
-   "feature": "",
+   "feature": "TALLY FOR CHARACTERS",
    "ansi": "VI-95 6.17.4",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -49,7 +49,7 @@
    "lines": [
     398
    ],
-   "feature": "TALLY FOR CHARACTERS",
+   "feature": "TALLY ALL LITERAL",
    "ansi": "VI-95 6.17.4",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -91,7 +91,7 @@
    "lines": [
     419
    ],
-   "feature": "TALLY ALL LITERAL",
+   "feature": "TALLY FOR ALL SPACE",
    "ansi": "VI-95 6.17.4",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -133,7 +133,7 @@
    "lines": [
     440
    ],
-   "feature": "TALLY FOR ALL SPACE",
+   "feature": "TALLY LEADING LIT",
    "ansi": "VI-95 6.17.4",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -175,7 +175,7 @@
    "lines": [
     462
    ],
-   "feature": "TALLY LEADING LIT",
+   "feature": "FOR CHARS AFTER LIT",
    "ansi": "VI-95 6.17.4",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -217,7 +217,7 @@
    "lines": [
     484
    ],
-   "feature": "FOR CHARS AFTER LIT",
+   "feature": "ALL BEFORE INITIAL",
    "ansi": "VI-95 6.17.4",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -230,28 +230,7 @@
     "1985-GR-VI.6.17.4-6",
     "1985-GR-VI.6.17.4-7"
    ],
-   "literal-agrees": false,
-   "by-name": [
-    "1985-GR-VI.6.18.4-1",
-    "1985-GR-VI.6.18.4-2",
-    "1985-GR-VI.6.18.4-3",
-    "1985-GR-VI.6.18.4-4",
-    "1985-GR-VI.6.18.4-5",
-    "1985-GR-VI.6.18.4-6",
-    "1985-GR-VI.6.18.4-7",
-    "1985-GR-VI.6.18.4-8",
-    "1985-GR-VI.6.18.4-9",
-    "1985-GR-VI.6.18.4-10",
-    "1985-GR-VI.6.18.4-11",
-    "1985-GR-VI.6.18.4-12",
-    "1985-GR-VI.6.18.4-13",
-    "1985-GR-VI.6.18.4-14",
-    "1985-GR-VI.6.18.4-15",
-    "1985-GR-VI.6.18.4-16",
-    "1985-GR-VI.6.18.4-17",
-    "1985-GR-VI.6.18.4-18",
-    "1985-GR-VI.6.18.4-19"
-   ],
+   "literal-agrees": true,
    "basis": "mechanical"
   },
   {
@@ -259,7 +238,7 @@
    "lines": [
     506
    ],
-   "feature": "ALL BEFORE INITIAL",
+   "feature": "LEAD LIT INITIAL FIG",
    "ansi": "VI-95 6.17.4",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -279,27 +258,6 @@
    "unit": "INSP-TEST-F2-1",
    "lines": [
     512
-   ],
-   "feature": "LEAD LIT INITIAL FIG",
-   "ansi": "VI-95 6.17.4",
-   "disposition": "open",
-   "resolution": "ambiguous",
-   "literal": [
-    "1985-GR-VI.6.17.4-1",
-    "1985-GR-VI.6.17.4-2",
-    "1985-GR-VI.6.17.4-3",
-    "1985-GR-VI.6.17.4-4",
-    "1985-GR-VI.6.17.4-5",
-    "1985-GR-VI.6.17.4-6",
-    "1985-GR-VI.6.17.4-7"
-   ],
-   "literal-agrees": true,
-   "basis": "mechanical"
-  },
-  {
-   "unit": "INSP-TEST-F2-2",
-   "lines": [
-    548
    ],
    "feature": "REP CHARS BY SPACE",
    "ansi": "VI-95 6.17.4",
@@ -339,9 +297,9 @@
    "basis": "mechanical"
   },
   {
-   "unit": "INSP-TEST-F2-3",
+   "unit": "INSP-TEST-F2-2",
    "lines": [
-    585
+    548
    ],
    "feature": "CHARS BEFORE INITIAL",
    "ansi": "VI-95 6.17.4",
@@ -360,11 +318,53 @@
    "basis": "mechanical"
   },
   {
+   "unit": "INSP-TEST-F2-3",
+   "lines": [
+    585
+   ],
+   "feature": "LEAD AFTER INIT ID",
+   "ansi": "VI-95 6.17.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.17.4-1",
+    "1985-GR-VI.6.17.4-2",
+    "1985-GR-VI.6.17.4-3",
+    "1985-GR-VI.6.17.4-4",
+    "1985-GR-VI.6.17.4-5",
+    "1985-GR-VI.6.17.4-6",
+    "1985-GR-VI.6.17.4-7"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-GR-VI.6.18.4-1",
+    "1985-GR-VI.6.18.4-2",
+    "1985-GR-VI.6.18.4-3",
+    "1985-GR-VI.6.18.4-4",
+    "1985-GR-VI.6.18.4-5",
+    "1985-GR-VI.6.18.4-6",
+    "1985-GR-VI.6.18.4-7",
+    "1985-GR-VI.6.18.4-8",
+    "1985-GR-VI.6.18.4-9",
+    "1985-GR-VI.6.18.4-10",
+    "1985-GR-VI.6.18.4-11",
+    "1985-GR-VI.6.18.4-12",
+    "1985-GR-VI.6.18.4-13",
+    "1985-GR-VI.6.18.4-14",
+    "1985-GR-VI.6.18.4-15",
+    "1985-GR-VI.6.18.4-16",
+    "1985-GR-VI.6.18.4-17",
+    "1985-GR-VI.6.18.4-18",
+    "1985-GR-VI.6.18.4-19"
+   ],
+   "basis": "mechanical"
+  },
+  {
    "unit": "INSP-TEST-F2-4",
    "lines": [
     622
    ],
-   "feature": "LEAD AFTER INIT ID",
+   "feature": "FIRST BY ID BEFORE",
    "ansi": "VI-95 6.17.4",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -406,7 +406,7 @@
    "lines": [
     659
    ],
-   "feature": "FIRST BY ID BEFORE",
+   "feature": "ALL ID BY LIT AFTER",
    "ansi": "VI-95 6.17.4",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -448,7 +448,7 @@
    "lines": [
     695
    ],
-   "feature": "ALL ID BY LIT AFTER",
+   "feature": "TALLY-REPLACE CHARS",
    "ansi": "VI-95 6.17.4",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -490,7 +490,7 @@
    "lines": [
     743
    ],
-   "feature": "TALLY-REPLACE CHARS",
+   "feature": "LIT BY BEFORE INIT",
    "ansi": "VI-95 6.17.4",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -532,7 +532,7 @@
    "lines": [
     792
    ],
-   "feature": "LIT BY BEFORE INIT",
+   "feature": "REPL FIRST AFTER",
    "ansi": "VI-95 6.17.4",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -574,7 +574,7 @@
    "lines": [
     841
    ],
-   "feature": "REPL FIRST AFTER",
+   "feature": "FOR LEADING",
    "ansi": "VI-95 6.17.4",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -616,7 +616,7 @@
    "lines": [
     889
    ],
-   "feature": "FOR LEADING",
+   "feature": "LIT BY AFTER INIT",
    "ansi": "VI-95 6.17.4",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -658,7 +658,7 @@
    "lines": [
     937
    ],
-   "feature": "LIT BY AFTER INIT",
+   "feature": "CHAR AFTER ALL BEF",
    "ansi": "VI-95 6.17.4",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -700,7 +700,7 @@
    "lines": [
     988
    ],
-   "feature": "CHAR AFTER ALL BEF",
+   "feature": "TALLY SERIES",
    "ansi": "VI-95 6.17.4",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -742,7 +742,7 @@
    "lines": [
     1051
    ],
-   "feature": "TALLY SERIES",
+   "feature": "REPLACE SERIES",
    "ansi": "VI-95 6.17.4",
    "disposition": "open",
    "resolution": "ambiguous",

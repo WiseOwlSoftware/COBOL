@@ -7,10 +7,14 @@
    "lines": [
     355
    ],
-   "feature": "",
-   "ansi": null,
+   "feature": "F < U",
+   "ansi": "VI-16 4.5.4 GR5/7",
    "disposition": "open",
-   "resolution": "unmapped",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.4.5.4-5"
+   ],
+   "literal-agrees": false,
    "basis": "mechanical"
   },
   {
@@ -18,7 +22,7 @@
    "lines": [
     383
    ],
-   "feature": "F < U",
+   "feature": "U < N",
    "ansi": "VI-16 4.5.4 GR5/7",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -33,7 +37,7 @@
    "lines": [
     410
    ],
-   "feature": "U < N",
+   "feature": "N = HIGH-VALUE",
    "ansi": "VI-16 4.5.4 GR5/7",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -41,6 +45,9 @@
     "1985-GR-VI.4.5.4-5"
    ],
    "literal-agrees": false,
+   "by-name": [
+    "1985-GR-VI.5.15.4-1"
+   ],
    "basis": "mechanical"
   },
   {
@@ -48,7 +55,7 @@
    "lines": [
     437
    ],
-   "feature": "N = HIGH-VALUE",
+   "feature": "F = LOW-VALUE",
    "ansi": "VI-16 4.5.4 GR5/7",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -66,7 +73,7 @@
    "lines": [
     465
    ],
-   "feature": "F = LOW-VALUE",
+   "feature": "H-VALUE > L-VALUE",
    "ansi": "VI-16 4.5.4 GR5/7",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -84,7 +91,7 @@
    "lines": [
     489
    ],
-   "feature": "H-VALUE > L-VALUE",
+   "feature": "L-VALUE < H-VALUE",
    "ansi": "VI-16 4.5.4 GR5/7",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -102,7 +109,7 @@
    "lines": [
     513
    ],
-   "feature": "L-VALUE < H-VALUE",
+   "feature": "H-VALUE = L-VALUE",
    "ansi": "VI-16 4.5.4 GR5/7",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -120,7 +127,7 @@
    "lines": [
     539
    ],
-   "feature": "H-VALUE = L-VALUE",
+   "feature": "Y = LOW-VALUE",
    "ansi": "VI-16 4.5.4 GR5/7",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -138,7 +145,7 @@
    "lines": [
     569
    ],
-   "feature": "Y = LOW-VALUE",
+   "feature": "Q = LOW-VALUE",
    "ansi": "VI-16 4.5.4 GR5/7",
    "disposition": "open",
    "resolution": "ambiguous",

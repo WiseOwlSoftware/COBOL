@@ -573,6 +573,21 @@
     1002
    ],
    "feature": "DIVIDE BY GIVING",
+   "ansi": "V1-82 6.11.4 GR3",
+   "format": 3,
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-VI.6.11.4-3",
+    "1985-FMT-VI.6.11.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "DIV-TEST-F3-20",
+   "lines": [
+    1091
+   ],
+   "feature": "DIVIDE BY GIVING",
    "ansi": "V1-67 6.4.2",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -587,21 +602,6 @@
    ],
    "literal-agrees": false,
    "by-name": [
-    "1985-FMT-VI.6.11.2"
-   ],
-   "basis": "mechanical"
-  },
-  {
-   "unit": "DIV-TEST-F3-20",
-   "lines": [
-    1091
-   ],
-   "feature": "DIVIDE BY GIVING",
-   "ansi": "V1-82 6.11.4 GR3",
-   "format": 3,
-   "disposition": "rows",
-   "rows": [
-    "1985-GR-VI.6.11.4-3",
     "1985-FMT-VI.6.11.2"
    ],
    "basis": "mechanical"
@@ -852,22 +852,14 @@
     1740
    ],
    "feature": "DIVIDE BY GIVING",
-   "ansi": "V1-67 6.4.2",
+   "ansi": "1V-41 6.4.3",
    "disposition": "open",
    "resolution": "ambiguous",
    "literal": [
-    "1985-GR-VI.6.4.2-1",
-    "1985-GR-VI.6.4.2-2",
-    "1985-GR-VI.6.4.2-p2",
-    "1985-GR-VI.6.4.2-3",
-    "1985-GR-VI.6.4.2-p3",
-    "1985-GR-VI.6.4.2-p4",
-    "1985-GR-VI.6.4.2-p5"
+    "1985-GR-IV.6.4.3-p4",
+    "1985-GR-IV.6.4.3-p5"
    ],
    "literal-agrees": false,
-   "by-name": [
-    "1985-FMT-VI.6.11.2"
-   ],
    "basis": "mechanical"
   },
   {

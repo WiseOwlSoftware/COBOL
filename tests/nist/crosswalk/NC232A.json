@@ -19,9 +19,41 @@
     413
    ],
    "feature": "SEARCH VARYING LEV 1",
-   "ansi": null,
+   "ansi": "VI-122 6.21",
    "disposition": "open",
-   "resolution": "unmapped",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.6.21.2",
+    "1985-SR-VI.6.21.3-1",
+    "1985-SR-VI.6.21.3-2",
+    "1985-SR-VI.6.21.3-3",
+    "1985-SR-VI.6.21.3-4",
+    "1985-SR-VI.6.21.3-5",
+    "1985-SR-VI.6.21.3-6",
+    "1985-SR-VI.6.21.3-7",
+    "1985-SR-VI.6.21.3-8",
+    "1985-SR-VI.6.21.3-9",
+    "1985-SR-VI.6.21.3-10",
+    "1985-SR-VI.6.21.3-11",
+    "1985-SR-VI.6.21.3-12",
+    "1985-GR-VI.6.21.4-1",
+    "1985-GR-VI.6.21.4-2",
+    "1985-GR-VI.6.21.4-3",
+    "1985-GR-VI.6.21.4-4",
+    "1985-GR-VI.6.21.4-5",
+    "1985-GR-VI.6.21.4-6",
+    "1985-GR-VI.6.21.4-7",
+    "1985-GR-VI.6.21.4-8",
+    "1985-GR-VI.6.21.4-9",
+    "1985-GR-VI.6.21.4-10",
+    "1985-GR-VI.6.21.4-11",
+    "1985-GR-VI.6.21.4-12",
+    "1985-GR-VI.6.21.4-13",
+    "1985-GR-VI.6.21.4-14",
+    "1985-GR-VI.6.21.4-15",
+    "1985-GR-VI.6.21.4-16"
+   ],
+   "literal-agrees": false,
    "basis": "mechanical"
   },
   {
@@ -115,7 +147,7 @@
    "lines": [
     478
    ],
-   "feature": "SEARCH VARYING LEV 1",
+   "feature": "SEARCH VARYING LEV 2",
    "ansi": "VI-122 6.21",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -287,7 +319,7 @@
    "lines": [
     586
    ],
-   "feature": "SEARCH VARYING LEV 2",
+   "feature": "SEARCH VARYING LEV 3",
    "ansi": "VI-122 6.21",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -459,7 +491,7 @@
    "lines": [
     700
    ],
-   "feature": "SEARCH VARYING LEV 3",
+   "feature": "MULTIPLE SEARCH STMT",
    "ansi": "VI-122 6.21",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -545,7 +577,7 @@
    "lines": [
     811
    ],
-   "feature": "MULTIPLE SEARCH STMT",
+   "feature": "SEARCH WITH HI INDEX",
    "ansi": "VI-122 6.21",
    "disposition": "open",
    "resolution": "ambiguous",

@@ -7,7 +7,7 @@
    "lines": [
     316
    ],
-   "feature": "",
+   "feature": "INITIAL STATE",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -18,7 +18,7 @@
    "lines": [
     364
    ],
-   "feature": "INITIAL STATE",
+   "feature": "STATE UNCHANGED",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -29,7 +29,7 @@
    "lines": [
     417
    ],
-   "feature": "STATE UNCHANGED",
+   "feature": "SET TO INITIAL STATE",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -51,7 +51,7 @@
    "lines": [
     524
    ],
-   "feature": "SET TO INITIAL STATE",
+   "feature": "PREVIOUSLY CANCELED",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -62,7 +62,7 @@
    "lines": [
     576
    ],
-   "feature": "PREVIOUSLY CANCELED",
+   "feature": "CANCEL UNCALLED PROG",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -73,7 +73,7 @@
    "lines": [
     593
    ],
-   "feature": "CANCEL UNCALLED PROG",
+   "feature": "CANCEL IN SUBPROGRAM",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -84,7 +84,7 @@
    "lines": [
     616
    ],
-   "feature": "CANCEL IN SUBPROGRAM",
+   "feature": "CALL CANCELED PROG",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -95,7 +95,7 @@
    "lines": [
     670
    ],
-   "feature": "CALL CANCELED PROG",
+   "feature": "CANCEL 3 PROGS",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",

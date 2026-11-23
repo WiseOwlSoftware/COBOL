@@ -79,6 +79,8 @@ _FEATURE = re.compile(r'MOVE\s+"(?P<text>[^"]*)"\s+TO\s+FEATURE\b', re.I)
 _REFERENCE = re.compile(r'MOVE\s+"(?P<text>[^"]*)"\s+TO\s+ANSI-REFERENCE\b', re.I)
 #: CCVS's own reset of the name (`IF REC-CT EQUAL TO ZERO MOVE SPACE TO PAR-NAME`): no unit
 _RESETS = frozenset({"SPACE", "SPACES"})
+#: a paragraph header (columns 8-72, the name alone on its line): the unit's own test paragraph ends the init paragraph
+_PARAGRAPH = re.compile(r"^[A-Z0-9][A-Z0-9-]*\.[ ]*$", re.I | re.M)
 _FORMAT_KEYED = re.compile(r"-F(?P<format>\d+)(?:-|$)")
 
 
@@ -122,13 +124,20 @@ def parse_program(name: str, text: str) -> Program:
         return code[bisect.bisect_right(starts, offset) - 1].number
 
     events = []
-    for kind, pattern in (("feature", _FEATURE), ("reference", _REFERENCE), ("unit", _PAR_LITERAL), ("other", _PAR_OTHER)):
+    for kind, pattern in (("feature", _FEATURE), ("reference", _REFERENCE), ("unit", _PAR_LITERAL), ("other", _PAR_OTHER),
+                          ("paragraph", _PARAGRAPH)):
         events += [(m.start(), kind, m) for m in pattern.finditer(body)]
     events.sort(key=lambda e: e[0])
     prog = Program(name)
     feature, reference = "", None
+    #: the unit named in the init paragraph now being read: a CCVS init paragraph moves PAR-NAME, ANSI-REFERENCE and
+    #: FEATURE in either order, so a unit's own FEATURE and ANSI-REFERENCE are those set before its test paragraph
+    #: header, not only those before its PAR-NAME move
+    pending: str | None = None
     for offset, kind, m in events:
-        if kind == "feature":
+        if kind == "paragraph":
+            pending = None
+        elif kind == "feature":
             feature = m.group("text").strip()
         elif kind == "reference":
             reference = m.group("text").strip() or None
@@ -138,7 +147,10 @@ def parse_program(name: str, text: str) -> Program:
                 prog.units[unit][0].append(line_at(offset))
             else:
                 prog.units[unit] = ([line_at(offset)], feature, reference)
-        elif m.group("src").upper() not in _RESETS:
+                pending = unit
+        if pending and kind in ("feature", "reference"):
+            prog.units[pending] = (prog.units[pending][0], feature, reference)
+        elif kind == "other" and m.group("src").upper() not in _RESETS:
             prog.unenumerated.append((line_at(offset), re.sub(r"\s+", " ", m.group(0))))
     statement: list[str] = []
     for ln in lines:

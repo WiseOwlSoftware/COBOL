@@ -2469,7 +2469,7 @@
    "lines": [
     1737
    ],
-   "feature": "SIGN --- ZERO",
+   "feature": "ABBREV CONDITIONS",
    "ansi": "VI-89 6.15",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -2745,7 +2745,7 @@
    "lines": [
     1923
    ],
-   "feature": "SIGN TEST ON ZERO",
+   "feature": "ABR. COM. REL. CONDT",
    "ansi": "VI-89 6.15",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -2768,7 +2768,7 @@
    "lines": [
     1942
    ],
-   "feature": "ABR. COM. REL. CONDT",
+   "feature": "LOGICAL CONNECTIVES",
    "ansi": "VI-89 6.15",
    "disposition": "open",
    "resolution": "ambiguous",

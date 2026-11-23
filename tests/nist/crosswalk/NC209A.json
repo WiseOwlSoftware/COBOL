@@ -7,10 +7,14 @@
    "lines": [
     399
    ],
-   "feature": "",
-   "ansi": null,
+   "feature": "DIFFERENT LEVELS",
+   "ansi": "VI-102 6.18.4 GR1",
    "disposition": "open",
-   "resolution": "unmapped",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.18.4-1"
+   ],
+   "literal-agrees": false,
    "basis": "mechanical"
   },
   {
@@ -63,21 +67,6 @@
    "lines": [
     698
    ],
-   "feature": "DIFFERENT LEVELS",
-   "ansi": "VI-102 6.18.4 GR1",
-   "disposition": "open",
-   "resolution": "ambiguous",
-   "literal": [
-    "1985-GR-VI.6.18.4-1"
-   ],
-   "literal-agrees": false,
-   "basis": "mechanical"
-  },
-  {
-   "unit": "MOV-TEST-F2-6",
-   "lines": [
-    801
-   ],
    "feature": "WITH RENAMES",
    "ansi": "VI-102 6.18.4 GR1",
    "disposition": "open",
@@ -89,6 +78,21 @@
    "by-name": [
     "1985-GR-VI.5.11.4-1"
    ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MOV-TEST-F2-6",
+   "lines": [
+    801
+   ],
+   "feature": "WITH REDEF, OCCURS",
+   "ansi": "VI-102 6.18.4 GR1",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.18.4-1"
+   ],
+   "literal-agrees": false,
    "basis": "mechanical"
   },
   {

@@ -7,10 +7,25 @@
    "lines": [
     384
    ],
-   "feature": "",
-   "ansi": null,
+   "feature": "DISPLAY UPON",
+   "ansi": "IV-21 4.3.8.2",
    "disposition": "open",
-   "resolution": "unmapped",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-IV.4.3.8.2.2",
+    "1985-SR-IV.4.3.8.2.3-1",
+    "1985-SR-IV.4.3.8.2.3-2",
+    "1985-SR-IV.4.3.8.2.3-3",
+    "1985-SR-IV.4.3.8.2.3-4",
+    "1985-SR-IV.4.3.8.2.3-5",
+    "1985-SR-IV.4.3.8.2.3-6",
+    "1985-SR-IV.4.3.8.2.3-7",
+    "1985-GR-IV.4.3.8.2.4-1",
+    "1985-GR-IV.4.3.8.2.4-2",
+    "1985-GR-IV.4.3.8.2.4-3",
+    "1985-GR-IV.4.3.8.2.4-4"
+   ],
+   "literal-agrees": false,
    "basis": "mechanical"
   },
   {
@@ -44,7 +59,7 @@
    "lines": [
     420
    ],
-   "feature": "DISPLAY UPON",
+   "feature": "MULTIPLY BY",
    "ansi": "IV-21 4.3.8.2",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -122,7 +137,7 @@
    "lines": [
     495
    ],
-   "feature": "MULTIPLY BY",
+   "feature": "DIVIDE BY REMAINDER",
    "ansi": "IV-21 4.3.8.2",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -200,7 +215,7 @@
    "lines": [
     656
    ],
-   "feature": "DIVIDE BY REMAINDER",
+   "feature": "DIVIDE INTO REMNDER",
    "ansi": "IV-21 4.3.8.2",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -278,7 +293,7 @@
    "lines": [
     815
    ],
-   "feature": "DIVIDE INTO REMNDER",
+   "feature": "DIVIDE INTO",
    "ansi": "IV-21 4.3.8.2",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -330,7 +345,7 @@
    "lines": [
     867
    ],
-   "feature": "DIVIDE INTO",
+   "feature": "DIVIDE BY GIVING",
    "ansi": "IV-21 4.3.8.2",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -382,7 +397,7 @@
    "lines": [
     921
    ],
-   "feature": "DIVIDE BY GIVING",
+   "feature": "PERFORM UNTIL",
    "ansi": "IV-21 4.3.8.2",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -434,7 +449,7 @@
    "lines": [
     973
    ],
-   "feature": "PERFORM UNTIL",
+   "feature": "PERFORM VARYING",
    "ansi": "IV-21 4.3.8.2",
    "disposition": "open",
    "resolution": "ambiguous",

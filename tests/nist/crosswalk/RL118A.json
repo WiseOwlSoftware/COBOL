@@ -7,7 +7,7 @@
    "lines": [
     426
    ],
-   "feature": "",
+   "feature": "CREATE RL-FD2",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -19,9 +19,13 @@
     445
    ],
    "feature": "CREATE RL-FD2",
-   "ansi": null,
+   "ansi": "VII-3 1.3.4 3C",
    "disposition": "open",
-   "resolution": "unmapped",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VII.1.3.4-p1"
+   ],
+   "literal-agrees": false,
    "basis": "mechanical"
   },
   {
@@ -30,7 +34,7 @@
     476
    ],
    "feature": "CREATE RL-FD2",
-   "ansi": "VII-3 1.3.4 3C",
+   "ansi": "VII-3 1.3.4 3A",
    "disposition": "open",
    "resolution": "ambiguous",
    "literal": [
@@ -45,7 +49,7 @@
     503
    ],
    "feature": "CREATE RL-FD2",
-   "ansi": "VII-3 1.3.4 3A",
+   "ansi": "VII-3 1.3.4 3B",
    "disposition": "open",
    "resolution": "ambiguous",
    "literal": [
@@ -60,7 +64,7 @@
     526
    ],
    "feature": "CREATE RL-FD2",
-   "ansi": "VII-3 1.3.4 3B",
+   "ansi": "VII-3 1.3.4 3C",
    "disposition": "open",
    "resolution": "ambiguous",
    "literal": [

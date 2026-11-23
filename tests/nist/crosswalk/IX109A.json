@@ -88,7 +88,7 @@
    "lines": [
     855
    ],
-   "feature": "OPEN INPUT:  00 EXP.",
+   "feature": "READ (USE):  00 EXP.",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -99,7 +99,7 @@
    "lines": [
     896
    ],
-   "feature": "READ (USE):  00 EXP.",
+   "feature": "VERIFY FILE IX-FS3",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -143,7 +143,7 @@
    "lines": [
     1007
    ],
-   "feature": "OPEN  INPUT: 00 EXP.",
+   "feature": "READ...END:  00 EXP.",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",

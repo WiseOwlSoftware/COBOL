@@ -87,6 +87,8 @@ AUDITS = (
     ("ARCH SUBSYSTEMS", ["scripts/arch/r2_subsystems.py", "--check"]),
     ("ANNEX A.1 REGISTER", ["scripts/spec/audit_annex_a1.py", "--check"]),
     ("DERIVATION REGISTER", ["scripts/spec/audit_derivations.py", "--check"]),
+    # kb/Work PB6049: the committed NIST-85 crosswalk files agree with the NIST programs, the catalog and the mechanical map.
+    ("NIST-85 CROSSWALK", ["conformance-suite/harness/crosswalk.py", "--check"]),
     # kb/Work PB5052: every 1985 figure verdict names the block of the transcription its page and ordinal say; it reads no
     # PDF, so the gate runs it where `sweep_figures.py --edition 1985 --check` (which measures the scan) cannot.
     ("FIGURE VERDICTS 1985", ["scripts/spec/sweep_figures.py", "--edition", "1985", "--identity"]),

@@ -18,7 +18,7 @@
    "lines": [
     484
    ],
-   "feature": "WRITE  FILE SQ-FS1",
+   "feature": "READ TO VERIFY",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",

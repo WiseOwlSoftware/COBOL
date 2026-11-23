@@ -8,9 +8,16 @@
     342
    ],
    "feature": "USE GLOBAL INPUT",
-   "ansi": null,
+   "ansi": "X-34 5.5.4 GR(1)C",
    "disposition": "open",
-   "resolution": "unmapped",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-X.5.5.4-1"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-GR-X.4.6.4-1"
+   ],
    "basis": "mechanical"
   }
  ]

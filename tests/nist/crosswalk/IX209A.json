@@ -19,7 +19,7 @@
    "lines": [
     856
    ],
-   "feature": "CREATE-FILE-FS1",
+   "feature": "READ FILE IX-FS1",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -174,7 +174,7 @@
    "lines": [
     1433
    ],
-   "feature": "FILE STATUS START:23",
+   "feature": "FILE STATUS START:00",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -196,7 +196,7 @@
    "lines": [
     1471
    ],
-   "feature": "FILE STATUS START:00",
+   "feature": "FILE STATUS START:23",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",

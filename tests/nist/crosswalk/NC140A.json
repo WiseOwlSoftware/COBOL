@@ -31,7 +31,7 @@
    "lines": [
     416
    ],
-   "feature": "SET IN UP BY INTEGER",
+   "feature": "SET IN DOWN BY INTEG",
    "ansi": "VI-127 6.22.4",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -55,7 +55,7 @@
    "lines": [
     476
    ],
-   "feature": "SET IN DOWN BY INTEG",
+   "feature": "SET IN UP BY DATA-NM",
    "ansi": "VI-127 6.22.4",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -79,7 +79,7 @@
    "lines": [
     603
    ],
-   "feature": "SET IN UP BY DATA-NM",
+   "feature": "SET IN DOWN BY DNAME",
    "ansi": "VI-127 6.22.4",
    "disposition": "open",
    "resolution": "ambiguous",

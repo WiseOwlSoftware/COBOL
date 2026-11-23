@@ -29,7 +29,7 @@
    "lines": [
     649
    ],
-   "feature": "CREATE IX-FS2",
+   "feature": "READ NOT AT END",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -40,7 +40,7 @@
    "lines": [
     676
    ],
-   "feature": "READ NOT AT END",
+   "feature": "READ . NOT INV. . END-",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -51,7 +51,7 @@
    "lines": [
     700
    ],
-   "feature": "READ . NOT INV. . END-",
+   "feature": "END-READ.",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -62,7 +62,7 @@
    "lines": [
     719
    ],
-   "feature": "END-READ.",
+   "feature": "IF . READ . NOT INV. . END-",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -95,7 +95,7 @@
    "lines": [
     794
    ],
-   "feature": "IF . READ . NOT INV. . END-",
+   "feature": "READ NOT INVALID.",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -106,7 +106,7 @@
    "lines": [
     823
    ],
-   "feature": "READ NOT INVALID.",
+   "feature": "READ . NOT INV. . END-",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -117,7 +117,7 @@
    "lines": [
     849
    ],
-   "feature": "READ . NOT INV. . END-",
+   "feature": "END-READ.",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -128,7 +128,7 @@
    "lines": [
     868
    ],
-   "feature": "END-READ.",
+   "feature": "IF . READ . NOT INV. . END-",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -161,7 +161,7 @@
    "lines": [
     950
    ],
-   "feature": "IF . READ . NOT INV. . END-",
+   "feature": "DELETE NOT INVALID.",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -172,7 +172,7 @@
    "lines": [
     985
    ],
-   "feature": "DELETE NOT INVALID.",
+   "feature": "DELETE NOT INV. . END-",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -183,7 +183,7 @@
    "lines": [
     1017
    ],
-   "feature": "DELETE NOT INV. . END-",
+   "feature": "END-DELETE.",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -194,7 +194,7 @@
    "lines": [
     1036
    ],
-   "feature": "END-DELETE.",
+   "feature": "IF .DELETE. NOT INV. . END-",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -227,7 +227,7 @@
    "lines": [
     1125
    ],
-   "feature": "END-DELETE",
+   "feature": "REWRITE NOT INVALID.",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -238,7 +238,7 @@
    "lines": [
     1161
    ],
-   "feature": "REWRITE NOT INVALID.",
+   "feature": "REWRITE NOT INV. . END-",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -249,7 +249,7 @@
    "lines": [
     1194
    ],
-   "feature": "REWRITE NOT INV. . END-",
+   "feature": "END-REWRITE.",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -260,7 +260,7 @@
    "lines": [
     1213
    ],
-   "feature": "END-REWRITE.",
+   "feature": "IF .REWRITE. NOT INV. . END-",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -293,7 +293,7 @@
    "lines": [
     1304
    ],
-   "feature": "END-REWRITE",
+   "feature": "REWRITE NOT INVALID.",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -304,7 +304,7 @@
    "lines": [
     1343
    ],
-   "feature": "REWRITE NOT INVALID.",
+   "feature": "REWRITE NOT INV. . END-",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -315,7 +315,7 @@
    "lines": [
     1374
    ],
-   "feature": "REWRITE NOT INV. . END-",
+   "feature": "END-REWRITE.",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -326,7 +326,7 @@
    "lines": [
     1393
    ],
-   "feature": "END-REWRITE.",
+   "feature": "IF .REWRITE. NOT INV. . END-",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",

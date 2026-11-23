@@ -7,10 +7,19 @@
    "lines": [
     603
    ],
-   "feature": "",
-   "ansi": null,
+   "feature": "PERFORM UNTIL",
+   "ansi": "VI-112 6.20.4 GR10(d)",
    "disposition": "open",
-   "resolution": "unmapped",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.20.4-1",
+    "1985-GR-VI.6.20.4-2",
+    "1985-GR-VI.6.20.4-3"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-GR-VI.6.21.4-10"
+   ],
    "basis": "mechanical"
   },
   {
@@ -38,7 +47,7 @@
    "lines": [
     646
    ],
-   "feature": "PERFORM UNTIL",
+   "feature": "PERFORM VARYING",
    "ansi": "VI-112 6.20.4 GR10(d)",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -145,7 +154,7 @@
     924
    ],
    "feature": "PERFORM VARYING",
-   "ansi": "VI-112 6.20.4 GR10(d)",
+   "ansi": "VI-122 6.20.4 GR10(C)",
    "disposition": "open",
    "resolution": "ambiguous",
    "literal": [
@@ -576,28 +585,17 @@
     1675
    ],
    "feature": "PERFORM VARYING",
-   "ansi": "VI-110 6.20.3 SR12",
+   "ansi": "VI-114 6.20.4 GR10(d)2",
    "disposition": "open",
    "resolution": "ambiguous",
    "literal": [
-    "1985-SR-VI.6.20.3-1",
-    "1985-SR-VI.6.20.3-2",
-    "1985-SR-VI.6.20.3-3"
+    "1985-GR-VI.6.20.4-1",
+    "1985-GR-VI.6.20.4-2",
+    "1985-GR-VI.6.20.4-3"
    ],
    "literal-agrees": false,
    "by-name": [
-    "1985-SR-VI.6.21.3-1",
-    "1985-SR-VI.6.21.3-2",
-    "1985-SR-VI.6.21.3-3",
-    "1985-SR-VI.6.21.3-4",
-    "1985-SR-VI.6.21.3-5",
-    "1985-SR-VI.6.21.3-6",
-    "1985-SR-VI.6.21.3-7",
-    "1985-SR-VI.6.21.3-8",
-    "1985-SR-VI.6.21.3-9",
-    "1985-SR-VI.6.21.3-10",
-    "1985-SR-VI.6.21.3-11",
-    "1985-SR-VI.6.21.3-12"
+    "1985-GR-VI.6.21.4-10"
    ],
    "basis": "mechanical"
   },
@@ -607,7 +605,7 @@
     1800
    ],
    "feature": "PERFORM VARYING",
-   "ansi": "VI-114 6.20.4 GR10(d)2",
+   "ansi": "VI-119 6.20.4 GR10(d)2",
    "disposition": "open",
    "resolution": "ambiguous",
    "literal": [
@@ -646,7 +644,7 @@
    "lines": [
     1927
    ],
-   "feature": "PERFORM VARYING",
+   "feature": "VARYING BY FRAC.",
    "ansi": "VI-112 6.20.4 GR10(d)",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -656,9 +654,6 @@
     "1985-GR-VI.6.20.4-3"
    ],
    "literal-agrees": false,
-   "by-name": [
-    "1985-GR-VI.6.21.4-10"
-   ],
    "basis": "mechanical"
   },
   {
@@ -666,7 +661,7 @@
    "lines": [
     1959
    ],
-   "feature": "VARYING BY FRAC.",
+   "feature": "CHANGE BY INCR.",
    "ansi": "VI-112 6.20.4 GR10(d)",
    "disposition": "open",
    "resolution": "ambiguous",

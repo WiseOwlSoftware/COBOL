@@ -8,7 +8,7 @@
     481,
     496
    ],
-   "feature": "",
+   "feature": "READ SEQUENTIAL",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -74,7 +74,7 @@
    "lines": [
     593
    ],
-   "feature": "READ SEQUENTIAL",
+   "feature": "DELETE",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",

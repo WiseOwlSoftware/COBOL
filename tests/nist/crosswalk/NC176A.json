@@ -958,7 +958,7 @@
    "lines": [
     1398
    ],
-   "feature": "ADD LIMIT TESTS",
+   "feature": "ADD-TO-SERIES",
    "ansi": "VI-74 6.6.4 GR1",
    "disposition": "open",
    "resolution": "ambiguous",

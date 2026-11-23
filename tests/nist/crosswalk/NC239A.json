@@ -8,9 +8,21 @@
     356
    ],
    "feature": "LEVEL 1 INT INDEXING",
-   "ansi": null,
+   "ansi": "IV-21 & II-15 4.4.2",
    "disposition": "open",
-   "resolution": "unmapped",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-IV.4.3.8.2.2",
+    "1985-SR-IV.4.3.8.2.3-1",
+    "1985-SR-IV.4.3.8.2.3-2",
+    "1985-SR-IV.4.3.8.2.3-3",
+    "1985-SR-IV.4.3.8.2.3-4",
+    "1985-SR-IV.4.3.8.2.3-5",
+    "1985-SR-IV.4.3.8.2.3-6",
+    "1985-SR-IV.4.3.8.2.3-7",
+    "1985-GR-IV.4.3.8.2.4-1"
+   ],
+   "literal-agrees": false,
    "basis": "mechanical"
   },
   {
@@ -110,7 +122,7 @@
    "lines": [
     458
    ],
-   "feature": "LEVEL 2 INT INDEXING",
+   "feature": "LEVEL 3 INT INDEXING",
    "ansi": "IV-21 & II-15 4.4.2",
    "disposition": "open",
    "resolution": "ambiguous",

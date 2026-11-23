@@ -40,7 +40,7 @@
    "lines": [
     562
    ],
-   "feature": "READ 1000 RECORD",
+   "feature": "VERIFY FILE SQ-VS7",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",

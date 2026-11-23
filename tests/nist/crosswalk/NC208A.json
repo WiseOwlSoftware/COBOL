@@ -8,9 +8,28 @@
     556
    ],
    "feature": "",
-   "ansi": null,
+   "ansi": "IV-20 4.3.8.1 RULE 6",
    "disposition": "open",
-   "resolution": "unmapped",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-SR-IV.4.3.8.1-1",
+    "1985-SR-IV.4.3.8.1-L2.1",
+    "1985-SR-IV.4.3.8.1-2",
+    "1985-SR-IV.4.3.8.1-L2.2",
+    "1985-SR-IV.4.3.8.1-p2",
+    "1985-SR-IV.4.3.8.1-3",
+    "1985-SR-IV.4.3.8.1-L2.3",
+    "1985-SR-IV.4.3.8.1-p3",
+    "1985-SR-IV.4.3.8.1-4",
+    "1985-SR-IV.4.3.8.1-L2.4",
+    "1985-SR-IV.4.3.8.1-L2.5",
+    "1985-SR-IV.4.3.8.1-L2.6",
+    "1985-SR-IV.4.3.8.1-L2.7",
+    "1985-SR-IV.4.3.8.1-L2.8",
+    "1985-SR-IV.4.3.8.1-L2.9",
+    "1985-SR-IV.4.3.8.1-L2.10"
+   ],
+   "literal-agrees": false,
    "basis": "mechanical"
   },
   {
@@ -109,8 +128,8 @@
     682,
     712
    ],
-   "feature": "",
-   "ansi": "IV-20 4.3.8.1 RULE 6",
+   "feature": "DATA-NAME QUAL",
+   "ansi": "IV-18 4.3.8.1",
    "disposition": "open",
    "resolution": "ambiguous",
    "literal": [
@@ -132,6 +151,9 @@
     "1985-SR-IV.4.3.8.1-L2.10"
    ],
    "literal-agrees": false,
+   "by-name": [
+    "1985-GR-IV.6.3.1-p1"
+   ],
    "basis": "mechanical"
   },
   {

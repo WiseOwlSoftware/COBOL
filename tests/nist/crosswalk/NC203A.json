@@ -7,10 +7,14 @@
    "lines": [
     411
    ],
-   "feature": "",
-   "ansi": null,
-   "disposition": "open",
-   "resolution": "unmapped",
+   "feature": "DIVIDE",
+   "ansi": "VI-82 6.11.4 GR4",
+   "format": 4,
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-VI.6.11.4-4",
+    "1985-FMT-VI.6.11.2"
+   ],
    "basis": "mechanical"
   },
   {

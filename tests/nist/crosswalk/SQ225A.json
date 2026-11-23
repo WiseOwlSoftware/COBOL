@@ -30,7 +30,7 @@
     629
    ],
    "feature": "OPEN ABSENT FILE EXTEND",
-   "ansi": null,
+   "ansi": "VII-4, 1.5.3(3)C",
    "disposition": "open",
    "resolution": "unmapped",
    "basis": "mechanical"

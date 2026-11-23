@@ -29,7 +29,7 @@
    "lines": [
     982
    ],
-   "feature": "FILE CREATE IX-FS1",
+   "feature": "READ ... INVALID",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -73,7 +73,7 @@
    "lines": [
     1059
    ],
-   "feature": "READ ... INVALID",
+   "feature": "REWRITE ... INVALID",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -106,7 +106,7 @@
    "lines": [
     1129
    ],
-   "feature": "REWRITE ... INVALID",
+   "feature": "READ  ... INVALID",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -117,7 +117,7 @@
    "lines": [
     1163
    ],
-   "feature": "READ  ... INVALID",
+   "feature": "READ ... INVALID",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -151,7 +151,7 @@
     1691,
     1706
    ],
-   "feature": "READ ... INVALID",
+   "feature": "READ SEQUENTIAL",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -217,7 +217,7 @@
    "lines": [
     1803
    ],
-   "feature": "READ SEQUENTIAL",
+   "feature": "DELETE",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",

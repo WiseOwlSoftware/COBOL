@@ -7,7 +7,7 @@
    "lines": [
     513
    ],
-   "feature": "",
+   "feature": "CREATE RL-FD2",
    "ansi": "VIII-36 4.8.4 GR4",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -22,7 +22,7 @@
    "lines": [
     604
    ],
-   "feature": "CREATE RL-FD2",
+   "feature": "USE/FILE STATUS",
    "ansi": "VIII-36 4.8.4 GR4",
    "disposition": "open",
    "resolution": "ambiguous",

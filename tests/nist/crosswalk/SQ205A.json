@@ -18,7 +18,7 @@
    "lines": [
     500
    ],
-   "feature": "CREATE FILE SQ-FS1,2",
+   "feature": "VERIFY SQ-FS1;F-S:10",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -29,7 +29,7 @@
    "lines": [
     559
    ],
-   "feature": "VERIFY SQ-FS1;F-S:10",
+   "feature": "VERIFY SQ-FS2;F-S:10",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",

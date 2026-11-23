@@ -7,14 +7,14 @@
    "lines": [
     374
    ],
-   "feature": "",
+   "feature": "PICTURE + AND -",
    "ansi": "VI-31",
    "disposition": "open",
    "resolution": "ambiguous",
    "literal": [
     "1985-GR-VI.5.9.4-8"
    ],
-   "literal-agrees": false,
+   "literal-agrees": true,
    "basis": "mechanical"
   },
   {
@@ -142,7 +142,7 @@
    "lines": [
     1148
    ],
-   "feature": "PICTURE + AND -",
+   "feature": "PICTURE CHARACTER l",
    "ansi": "VI-31",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -232,7 +232,7 @@
    "lines": [
     1442
    ],
-   "feature": "PICTURE CHARACTER l",
+   "feature": "PICTURE CHARACTER *",
    "ansi": "VI-31",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -322,7 +322,7 @@
    "lines": [
     1790
    ],
-   "feature": "PICTURE CHARACTER *",
+   "feature": "PICTURE CHARACTER Z",
    "ansi": "VI-31",
    "disposition": "open",
    "resolution": "ambiguous",

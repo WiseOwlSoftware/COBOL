@@ -7,7 +7,7 @@
    "lines": [
     366
    ],
-   "feature": "",
+   "feature": "INITIATE REPORT",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -29,7 +29,7 @@
    "lines": [
     418
    ],
-   "feature": "INITIATE REPORT",
+   "feature": "FIRST GENERATE",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -51,7 +51,7 @@
    "lines": [
     462
    ],
-   "feature": "FIRST GENERATE",
+   "feature": "GENERATE 18 LINES",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -73,7 +73,7 @@
    "lines": [
     520
    ],
-   "feature": "GENERATE 18 LINES",
+   "feature": "LAST GENERATE",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",

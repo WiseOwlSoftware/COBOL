@@ -7,7 +7,7 @@
    "lines": [
     463
    ],
-   "feature": "",
+   "feature": "READ RANDOM",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -51,7 +51,7 @@
    "lines": [
     535
    ],
-   "feature": "READ RANDOM",
+   "feature": "REWRITE",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -62,7 +62,7 @@
    "lines": [
     561
    ],
-   "feature": "REWRITE",
+   "feature": "READ INVALID",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -84,7 +84,7 @@
    "lines": [
     585
    ],
-   "feature": "READ INVALID",
+   "feature": "REWRITE",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -95,7 +95,7 @@
    "lines": [
     597
    ],
-   "feature": "REWRITE",
+   "feature": "READ",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",

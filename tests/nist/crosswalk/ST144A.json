@@ -51,7 +51,7 @@
    "lines": [
     763
    ],
-   "feature": "CREATE FILE SQ-FS3",
+   "feature": "NATIVE COLL.SEQUENCE",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",

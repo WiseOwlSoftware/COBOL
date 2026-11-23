@@ -7,10 +7,25 @@
    "lines": [
     382
    ],
-   "feature": "",
-   "ansi": null,
+   "feature": "TALLY FOR LEADING",
+   "ansi": "IV-21 4.3.8.2",
    "disposition": "open",
-   "resolution": "unmapped",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-IV.4.3.8.2.2",
+    "1985-SR-IV.4.3.8.2.3-1",
+    "1985-SR-IV.4.3.8.2.3-2",
+    "1985-SR-IV.4.3.8.2.3-3",
+    "1985-SR-IV.4.3.8.2.3-4",
+    "1985-SR-IV.4.3.8.2.3-5",
+    "1985-SR-IV.4.3.8.2.3-6",
+    "1985-SR-IV.4.3.8.2.3-7",
+    "1985-GR-IV.4.3.8.2.4-1",
+    "1985-GR-IV.4.3.8.2.4-2",
+    "1985-GR-IV.4.3.8.2.4-3",
+    "1985-GR-IV.4.3.8.2.4-4"
+   ],
+   "literal-agrees": false,
    "basis": "mechanical"
   },
   {
@@ -18,7 +33,7 @@
    "lines": [
     406
    ],
-   "feature": "TALLY FOR LEADING",
+   "feature": "TALLY FOR CHAR AFTER",
    "ansi": "IV-21 4.3.8.2",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -44,7 +59,7 @@
    "lines": [
     431
    ],
-   "feature": "TALLY FOR CHAR AFTER",
+   "feature": "TALLY FOR ALL BEFORE",
    "ansi": "IV-21 4.3.8.2",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -70,7 +85,7 @@
    "lines": [
     456
    ],
-   "feature": "TALLY FOR ALL BEFORE",
+   "feature": "REPLACE BEFORE FIRST",
    "ansi": "IV-21 4.3.8.2",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -96,7 +111,7 @@
    "lines": [
     497
    ],
-   "feature": "REPLACE BEFORE FIRST",
+   "feature": "REPLACE LEAD AFTER",
    "ansi": "IV-21 4.3.8.2",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -122,7 +137,7 @@
    "lines": [
     541
    ],
-   "feature": "REPLACE LEAD AFTER",
+   "feature": "REPLACE FIRST BEFORE",
    "ansi": "IV-21 4.3.8.2",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -148,7 +163,7 @@
    "lines": [
     583
    ],
-   "feature": "REPLACE FIRST BEFORE",
+   "feature": "REPLACE ALL AFTER",
    "ansi": "IV-21 4.3.8.2",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -174,7 +189,7 @@
    "lines": [
     627
    ],
-   "feature": "REPLACE ALL AFTER",
+   "feature": "TALLY REPLACE CHARS",
    "ansi": "IV-21 4.3.8.2",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -200,7 +215,7 @@
    "lines": [
     694
    ],
-   "feature": "TALLY REPLACE CHARS",
+   "feature": "TALLY BEFORE REPLACE",
    "ansi": "IV-21 4.3.8.2",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -226,7 +241,7 @@
    "lines": [
     761
    ],
-   "feature": "TALLY BEFORE REPLACE",
+   "feature": "TALLY LEAD REPL LEAD",
    "ansi": "IV-21 4.3.8.2",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -252,7 +267,7 @@
    "lines": [
     828
    ],
-   "feature": "TALLY LEAD REPL LEAD",
+   "feature": "TALLY REPL FIRST AFT",
    "ansi": "IV-21 4.3.8.2",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -278,7 +293,7 @@
    "lines": [
     893
    ],
-   "feature": "TALLY REPL FIRST AFT",
+   "feature": "TALLY CHARS REPL BEF",
    "ansi": "IV-21 4.3.8.2",
    "disposition": "open",
    "resolution": "ambiguous",

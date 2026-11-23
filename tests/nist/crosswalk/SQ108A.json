@@ -18,7 +18,7 @@
    "lines": [
     482
    ],
-   "feature": "CREATE FILE SQ-FS8",
+   "feature": "VERIFY FILE SQ-FS8",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -95,7 +95,7 @@
    "lines": [
     790
    ],
-   "feature": "READ 141 INTO 141",
+   "feature": "READ SQ-FS8 INTO END",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",

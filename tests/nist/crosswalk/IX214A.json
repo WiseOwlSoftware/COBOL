@@ -18,7 +18,7 @@
    "lines": [
     869
    ],
-   "feature": "CREATE-FILE-FS1",
+   "feature": "READ FILE IX-FS1",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",

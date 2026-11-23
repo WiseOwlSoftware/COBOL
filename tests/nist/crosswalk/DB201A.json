@@ -507,7 +507,7 @@
    "lines": [
     1126
    ],
-   "feature": "SRC-RCV OPR/NOT ALL",
+   "feature": "ONE-DIM SUBSCRIPT",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -590,7 +590,7 @@
    "lines": [
     1216
    ],
-   "feature": "ONE-DIM SUBSCRIPT",
+   "feature": "THR-DIM SUBSCRIPT",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -649,7 +649,7 @@
    "lines": [
     1291
    ],
-   "feature": "THR-DIM SUBSCRIPT",
+   "feature": "1-LEVEL QUALIFICATN",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -718,7 +718,7 @@
    "lines": [
     1389
    ],
-   "feature": "1-LEVEL QUALIFICATN",
+   "feature": "2-LEVEL QUALIFICATN",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -753,7 +753,7 @@
    "lines": [
     1437
    ],
-   "feature": "2-LEVEL QUALIFICATN",
+   "feature": "QUALIFIED SUBSC ITEM",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",

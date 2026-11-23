@@ -19,9 +19,13 @@
     387
    ],
    "feature": "PERFORM VARYING LEV1",
-   "ansi": null,
+   "ansi": "VI-109",
    "disposition": "open",
-   "resolution": "unmapped",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.6.21.2"
+   ],
+   "literal-agrees": true,
    "basis": "mechanical"
   },
   {
@@ -59,7 +63,7 @@
    "lines": [
     465
    ],
-   "feature": "PERFORM VARYING LEV1",
+   "feature": "PERFORM VARYING LEV2",
    "ansi": "VI-109",
    "disposition": "open",
    "resolution": "ambiguous",

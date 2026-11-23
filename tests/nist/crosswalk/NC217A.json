@@ -7,7 +7,7 @@
    "lines": [
     344
    ],
-   "feature": "",
+   "feature": "LIT DEL BY SIZE",
    "ansi": "VI-130 6.24.3+4",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -28,7 +28,7 @@
    "lines": [
     391
    ],
-   "feature": "LIT DEL BY SIZE",
+   "feature": "LIT DEL BY LIT",
    "ansi": "VI-130 6.24.3+4",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -49,7 +49,7 @@
    "lines": [
     453
    ],
-   "feature": "LIT DEL BY LIT",
+   "feature": "ID DEL BY QUAL ID",
    "ansi": "VI-130 6.24.3+4",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -70,7 +70,7 @@
    "lines": [
     504
    ],
-   "feature": "ID DEL BY QUAL ID",
+   "feature": "SUBSCRIPTED IDS",
    "ansi": "VI-130 6.24.3+4",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -91,7 +91,7 @@
    "lines": [
     547
    ],
-   "feature": "SUBSCRIPTED IDS",
+   "feature": "IMMEDIATE OVERFLOW",
    "ansi": "VI-130 6.24.3+4",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -112,7 +112,7 @@
    "lines": [
     608
    ],
-   "feature": "IMMEDIATE OVERFLOW",
+   "feature": "SPACE LIT OVERFLOWS",
    "ansi": "VI-130 6.24.3+4",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -133,7 +133,7 @@
    "lines": [
     648
    ],
-   "feature": "SPACE LIT OVERFLOWS",
+   "feature": "LITERAL SERIES",
    "ansi": "VI-130 6.24.3+4",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -154,7 +154,7 @@
    "lines": [
     705
    ],
-   "feature": "LITERAL SERIES",
+   "feature": "LOW-VALUE OVERFLOW",
    "ansi": "VI-130 6.24.3+4",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -168,6 +168,13 @@
     "1985-GR-VI.6.24.4-4"
    ],
    "literal-agrees": false,
+   "by-name": [
+    "1985-SR-VI.5.15.3-1",
+    "1985-SR-VI.5.15.3-2",
+    "1985-SR-VI.5.15.3-3",
+    "1985-SR-VI.5.15.3-4",
+    "1985-GR-VI.5.15.4-1"
+   ],
    "basis": "mechanical"
   },
   {
@@ -175,7 +182,7 @@
    "lines": [
     763
    ],
-   "feature": "LOW-VALUE OVERFLOW",
+   "feature": "HIGH-VALUE DEL SIZE",
    "ansi": "VI-130 6.24.3+4",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -203,34 +210,6 @@
    "lines": [
     821
    ],
-   "feature": "HIGH-VALUE DEL SIZE",
-   "ansi": "VI-130 6.24.3+4",
-   "disposition": "open",
-   "resolution": "ambiguous",
-   "literal": [
-    "1985-SR-VI.6.24.3-1",
-    "1985-SR-VI.6.24.3-2",
-    "1985-SR-VI.6.24.3-3",
-    "1985-GR-VI.6.24.4-1",
-    "1985-GR-VI.6.24.4-2",
-    "1985-GR-VI.6.24.4-3",
-    "1985-GR-VI.6.24.4-4"
-   ],
-   "literal-agrees": false,
-   "by-name": [
-    "1985-SR-VI.5.15.3-1",
-    "1985-SR-VI.5.15.3-2",
-    "1985-SR-VI.5.15.3-3",
-    "1985-SR-VI.5.15.3-4",
-    "1985-GR-VI.5.15.4-1"
-   ],
-   "basis": "mechanical"
-  },
-  {
-   "unit": "STR-TEST-GF-11",
-   "lines": [
-    871
-   ],
    "feature": "LIT DEL ZERO",
    "ansi": "VI-130 6.24.3+4",
    "disposition": "open",
@@ -254,9 +233,9 @@
    "basis": "mechanical"
   },
   {
-   "unit": "STR-TEST-GF-12",
+   "unit": "STR-TEST-GF-11",
    "lines": [
-    922
+    871
    ],
    "feature": "LIT DEL BY QUOTE",
    "ansi": "VI-130 6.24.3+4",
@@ -275,9 +254,9 @@
    "basis": "mechanical"
   },
   {
-   "unit": "STR-TEST-GF-13",
+   "unit": "STR-TEST-GF-12",
    "lines": [
-    947
+    922
    ],
    "feature": "ZERO ID DEL SIZE",
    "ansi": "VI-130 6.24.3+4",
@@ -302,11 +281,32 @@
    "basis": "mechanical"
   },
   {
+   "unit": "STR-TEST-GF-13",
+   "lines": [
+    947
+   ],
+   "feature": "LITERAL SERIES",
+   "ansi": "VI-130 6.24.3+4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-SR-VI.6.24.3-1",
+    "1985-SR-VI.6.24.3-2",
+    "1985-SR-VI.6.24.3-3",
+    "1985-GR-VI.6.24.4-1",
+    "1985-GR-VI.6.24.4-2",
+    "1985-GR-VI.6.24.4-3",
+    "1985-GR-VI.6.24.4-4"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
    "unit": "STR-TEST-GF-14",
    "lines": [
     971
    ],
-   "feature": "LITERAL SERIES",
+   "feature": "IDENTIFIER SERIES",
    "ansi": "VI-130 6.24.3+4",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -327,7 +327,7 @@
    "lines": [
     995
    ],
-   "feature": "IDENTIFIER SERIES",
+   "feature": "SIGN LEADING",
    "ansi": "VI-130 6.24.3+4",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -341,6 +341,18 @@
     "1985-GR-VI.6.24.4-4"
    ],
    "literal-agrees": false,
+   "by-name": [
+    "1985-SR-VI.5.12.3-1",
+    "1985-SR-VI.5.12.3-2",
+    "1985-SR-VI.5.12.3-3",
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
    "basis": "mechanical"
   },
   {
@@ -381,7 +393,7 @@
    "lines": [
     1101
    ],
-   "feature": "SIGN LEADING",
+   "feature": "SIGN TRAILING",
    "ansi": "VI-130 6.24.3+4",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -414,39 +426,6 @@
    "lines": [
     1153
    ],
-   "feature": "SIGN TRAILING",
-   "ansi": "VI-130 6.24.3+4",
-   "disposition": "open",
-   "resolution": "ambiguous",
-   "literal": [
-    "1985-SR-VI.6.24.3-1",
-    "1985-SR-VI.6.24.3-2",
-    "1985-SR-VI.6.24.3-3",
-    "1985-GR-VI.6.24.4-1",
-    "1985-GR-VI.6.24.4-2",
-    "1985-GR-VI.6.24.4-3",
-    "1985-GR-VI.6.24.4-4"
-   ],
-   "literal-agrees": false,
-   "by-name": [
-    "1985-SR-VI.5.12.3-1",
-    "1985-SR-VI.5.12.3-2",
-    "1985-SR-VI.5.12.3-3",
-    "1985-GR-VI.5.12.4-1",
-    "1985-GR-VI.5.12.4-2",
-    "1985-GR-VI.5.12.4-3",
-    "1985-GR-VI.5.12.4-4",
-    "1985-GR-VI.5.12.4-5",
-    "1985-GR-VI.5.12.4-6",
-    "1985-GR-VI.5.12.4-7"
-   ],
-   "basis": "mechanical"
-  },
-  {
-   "unit": "STR-TEST-GF-19",
-   "lines": [
-    1206
-   ],
    "feature": "NEG LEADING SEPARATE",
    "ansi": "VI-130 6.24.3+4",
    "disposition": "open",
@@ -464,10 +443,9 @@
    "basis": "mechanical"
   },
   {
-   "unit": "STR-TEST-GF-20",
+   "unit": "STR-TEST-GF-19",
    "lines": [
-    1258,
-    1285
+    1206
    ],
    "feature": "NEGATIVE SIGN TRAIL",
    "ansi": "VI-130 6.24.3+4",
@@ -498,11 +476,33 @@
    "basis": "mechanical"
   },
   {
+   "unit": "STR-TEST-GF-20",
+   "lines": [
+    1258,
+    1285
+   ],
+   "feature": "LITERAL SERIES",
+   "ansi": "VI-130 6.24.3+4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-SR-VI.6.24.3-1",
+    "1985-SR-VI.6.24.3-2",
+    "1985-SR-VI.6.24.3-3",
+    "1985-GR-VI.6.24.4-1",
+    "1985-GR-VI.6.24.4-2",
+    "1985-GR-VI.6.24.4-3",
+    "1985-GR-VI.6.24.4-4"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
    "unit": "STR-TEST-GF-21",
    "lines": [
     1323
    ],
-   "feature": "LITERAL SERIES",
+   "feature": "LIT DEL BY SIZE",
    "ansi": "VI-130 6.24.3 GR4",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -519,7 +519,7 @@
    "lines": [
     1374
    ],
-   "feature": "LIT DEL BY SIZE",
+   "feature": "LIT DEL BY LIT",
    "ansi": "VI-132 6.24.4 GR9, 10",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -537,7 +537,7 @@
    "lines": [
     1433
    ],
-   "feature": "LIT DEL BY LIT",
+   "feature": "LITERAL SERIES",
    "ansi": "VI-132 6.24.4 GR9, 10",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -555,7 +555,7 @@
    "lines": [
     1492
    ],
-   "feature": "LITERAL SERIES",
+   "feature": "LIT DEL BY LIT",
    "ansi": "VI-132 6.24.4 GR9, 10",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -573,7 +573,7 @@
    "lines": [
     1551
    ],
-   "feature": "LIT DEL BY LIT",
+   "feature": "LITERAL SERIES",
    "ansi": "VI-132 6.24.4 GR9, 10",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -609,7 +609,7 @@
    "lines": [
     1611
    ],
-   "feature": "LITERAL SERIES",
+   "feature": "LIT DEL BY LIT",
    "ansi": "VI-132 6.24.4 GR11",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -663,7 +663,7 @@
    "lines": [
     1842
    ],
-   "feature": "LIT DEL BY LIT",
+   "feature": "LITERAL SERIES",
    "ansi": "VI-132 6.24.4 GR9, 10",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -681,7 +681,7 @@
    "lines": [
     1956
    ],
-   "feature": "LITERAL SERIES",
+   "feature": "LIT DEL BY LIT",
    "ansi": "VI-132 6.24.4 GR9, 10",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -699,7 +699,7 @@
    "lines": [
     2072
    ],
-   "feature": "LIT DEL BY LIT",
+   "feature": "LITERAL SERIES",
    "ansi": "VI-132 6.24.4 GR9, 10",
    "disposition": "open",
    "resolution": "ambiguous",

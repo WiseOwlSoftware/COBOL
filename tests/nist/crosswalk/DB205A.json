@@ -7,7 +7,7 @@
    "lines": [
     308
    ],
-   "feature": "",
+   "feature": "DISABLE CD-NAME",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -31,7 +31,7 @@
    "lines": [
     351
    ],
-   "feature": "DISABLE CD-NAME",
+   "feature": "ENABLE CD-NAME",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -54,7 +54,7 @@
    "lines": [
     393
    ],
-   "feature": "ENABLE CD-NAME",
+   "feature": "ACCEPT CD-NAME",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -87,7 +87,7 @@
    "lines": [
     434
    ],
-   "feature": "ACCEPT CD-NAME",
+   "feature": "RECEIVE W/ NO DATA",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -98,7 +98,7 @@
    "lines": [
     456
    ],
-   "feature": "RECEIVE W/ NO DATA",
+   "feature": "SEND CD-NAME",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -145,7 +145,7 @@
    "lines": [
     526
    ],
-   "feature": "SEND CD-NAME",
+   "feature": "RECEIVE W/O NO DATA",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",

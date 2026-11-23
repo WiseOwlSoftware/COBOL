@@ -7,7 +7,7 @@
    "lines": [
     533
    ],
-   "feature": "",
+   "feature": "WRITE  SEQUENTIAL",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -18,7 +18,7 @@
    "lines": [
     593
    ],
-   "feature": "WRITE  SEQUENTIAL",
+   "feature": "READ  TO VERIFY",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -73,7 +73,7 @@
    "lines": [
     731
    ],
-   "feature": "READ...RECORD END...",
+   "feature": "READ IX-FS1 750R",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -84,7 +84,7 @@
    "lines": [
     752
    ],
-   "feature": "READ IX-FS1 750R",
+   "feature": "WRITE RANDOM MODE",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -95,7 +95,7 @@
    "lines": [
     815
    ],
-   "feature": "WRITE RANDOM MODE",
+   "feature": "VERIFY FILE IX-FD2",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -150,7 +150,7 @@
    "lines": [
     973
    ],
-   "feature": "READ...INVALID...",
+   "feature": "READ IX-FS2 VERIFY",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",

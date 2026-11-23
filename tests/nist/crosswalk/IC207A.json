@@ -7,7 +7,7 @@
    "lines": [
     323
    ],
-   "feature": "",
+   "feature": "INDEX DATA ITEM",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -18,7 +18,7 @@
    "lines": [
     339
    ],
-   "feature": "INDEX DATA ITEM",
+   "feature": "VAR. LENGTH TABLE",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -29,7 +29,7 @@
    "lines": [
     392
    ],
-   "feature": "VAR. LENGTH TABLE",
+   "feature": "CONDITION NAME",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -40,7 +40,7 @@
    "lines": [
     431
    ],
-   "feature": "CONDITION NAME",
+   "feature": "CALL PARAMETERS",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",

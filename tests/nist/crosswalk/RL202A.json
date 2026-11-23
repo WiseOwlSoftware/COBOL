@@ -7,7 +7,7 @@
    "lines": [
     396
    ],
-   "feature": "",
+   "feature": "READ RANDOM",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -18,7 +18,7 @@
    "lines": [
     469
    ],
-   "feature": "READ RANDOM",
+   "feature": "REWRITE",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -29,7 +29,7 @@
    "lines": [
     539
    ],
-   "feature": "REWRITE",
+   "feature": "READ RANDOM",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",

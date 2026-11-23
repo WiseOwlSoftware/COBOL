@@ -18,7 +18,7 @@
    "lines": [
     461
    ],
-   "feature": "CREATE FILE SQ-FS1",
+   "feature": "VERIFY FILE SQ-FS1",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -73,7 +73,7 @@
    "lines": [
     599
    ],
-   "feature": "LEV 2 PADDING CHARS",
+   "feature": "READ FILE SQ-FS1",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",

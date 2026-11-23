@@ -7,7 +7,7 @@
    "lines": [
     437
    ],
-   "feature": "",
+   "feature": "CREATE RL-FS2",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -18,7 +18,7 @@
    "lines": [
     526
    ],
-   "feature": "CREATE RL-FS2",
+   "feature": "USE/FILE STATUE",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",

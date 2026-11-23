@@ -7,7 +7,7 @@
    "lines": [
     559
    ],
-   "feature": "",
+   "feature": "STORE TABLE VALUES",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -18,7 +18,7 @@
    "lines": [
     608
    ],
-   "feature": "STORE TABLE VALUES",
+   "feature": "QUALIFIED TABLE ITEM",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -51,7 +51,7 @@
    "lines": [
     804
    ],
-   "feature": "QUALIFIED TABLE ITEM",
+   "feature": "QUALIFIED SUBSCRIPT",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -95,7 +95,7 @@
    "lines": [
     975
    ],
-   "feature": "QUALIFIED SUBSCRIPT",
+   "feature": "QUAL. CONDITION NAME",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -128,7 +128,7 @@
    "lines": [
     1160
    ],
-   "feature": "QUAL. CONDITION NAME",
+   "feature": "QUALIFICATION",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",

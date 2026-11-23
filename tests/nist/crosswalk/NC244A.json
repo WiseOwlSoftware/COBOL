@@ -7,10 +7,14 @@
    "lines": [
     355
    ],
-   "feature": "",
-   "ansi": null,
+   "feature": "RELATIVE INDEXING",
+   "ansi": "VI-126 6.22.2",
    "disposition": "open",
-   "resolution": "unmapped",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.6.22.2"
+   ],
+   "literal-agrees": false,
    "basis": "mechanical"
   },
   {
@@ -18,7 +22,7 @@
    "lines": [
     376
    ],
-   "feature": "RELATIVE INDEXING",
+   "feature": "SET DN BY COMP ITEM",
    "ansi": "VI-126 6.22.2",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -33,7 +37,7 @@
    "lines": [
     398
    ],
-   "feature": "SET DN BY COMP ITEM",
+   "feature": "SET UP BY COMP ITEM",
    "ansi": "VI-126 6.22.2",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -48,22 +52,6 @@
    "lines": [
     420
    ],
-   "feature": "SET UP BY COMP ITEM",
-   "ansi": "VI-126 6.22.2",
-   "disposition": "open",
-   "resolution": "ambiguous",
-   "literal": [
-    "1985-FMT-VI.6.22.2"
-   ],
-   "literal-agrees": false,
-   "basis": "mechanical"
-  },
-  {
-   "unit": "IDX-TEST-F2-5",
-   "lines": [
-    449,
-    473
-   ],
    "feature": "MULT OPERND SET STMT",
    "ansi": "VI-126 6.22.2",
    "disposition": "open",
@@ -75,6 +63,22 @@
    "by-name": [
     "1985-FMT-VI.6.20.2"
    ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "IDX-TEST-F2-5",
+   "lines": [
+    449,
+    473
+   ],
+   "feature": "PFM VARYNG COMP ITEM",
+   "ansi": "VI-126 6.22.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.6.22.2"
+   ],
+   "literal-agrees": false,
    "basis": "mechanical"
   },
   {

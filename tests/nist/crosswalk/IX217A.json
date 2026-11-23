@@ -18,7 +18,7 @@
    "lines": [
     487
    ],
-   "feature": "OPEN I-O:    05 EXP.",
+   "feature": "WRITE (OPT)F 00 EXP.",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -52,7 +52,7 @@
    "lines": [
     598
    ],
-   "feature": "OPEN EXTEND: 05 EXP.",
+   "feature": "WRITE (OPT)S 00 EXP.",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",

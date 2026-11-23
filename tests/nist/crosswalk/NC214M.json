@@ -7,17 +7,6 @@
    "lines": [
     346
    ],
-   "feature": "",
-   "ansi": null,
-   "disposition": "open",
-   "resolution": "unmapped",
-   "basis": "mechanical"
-  },
-  {
-   "unit": "ACC-TEST-F2-2",
-   "lines": [
-    362
-   ],
    "feature": "ACCEPT DATE",
    "ansi": "VI-72 6.5.4 GR7",
    "format": 2,
@@ -29,9 +18,9 @@
    "basis": "mechanical"
   },
   {
-   "unit": "ACC-TEST-F2-3",
+   "unit": "ACC-TEST-F2-2",
    "lines": [
-    378
+    362
    ],
    "feature": "ACCEPT DAY",
    "ansi": "VI-72 6.5.4 GR8",
@@ -44,9 +33,9 @@
    "basis": "mechanical"
   },
   {
-   "unit": "ACC-TEST-F2-4",
+   "unit": "ACC-TEST-F2-3",
    "lines": [
-    394
+    378
    ],
    "feature": "ACCEPT TIME",
    "ansi": "VI-72 6.5.4 GR9",
@@ -54,6 +43,21 @@
    "disposition": "rows",
    "rows": [
     "1985-GR-VI.6.5.4-9",
+    "1985-FMT-VI.6.5.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "ACC-TEST-F2-4",
+   "lines": [
+    394
+   ],
+   "feature": "ACCEPT DAY-OF-WEEK",
+   "ansi": "VI-72 6.5.4 GR10",
+   "format": 2,
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-VI.6.5.4-10",
     "1985-FMT-VI.6.5.2"
    ],
    "basis": "mechanical"

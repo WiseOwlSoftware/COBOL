@@ -18,7 +18,7 @@
    "lines": [
     802
    ],
-   "feature": "CREATE-FILE-FD1",
+   "feature": "READ FILE IX-FD1",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",

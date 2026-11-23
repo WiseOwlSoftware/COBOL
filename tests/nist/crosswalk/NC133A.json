@@ -62,7 +62,7 @@
    "lines": [
     412
    ],
-   "feature": "INDEXING",
+   "feature": "SET STATEMENT",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",

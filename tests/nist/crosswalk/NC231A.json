@@ -223,7 +223,7 @@
    "lines": [
     548
    ],
-   "feature": "SEARCH VARYING LEV 2",
+   "feature": "SEARCH VARYING LEV 3",
    "ansi": "VI-2 1.3.4",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -331,7 +331,7 @@
    "lines": [
     626
    ],
-   "feature": "SEARCH VARYING LEV 3",
+   "feature": "MULTIPLE SEARCH STMT",
    "ansi": "VI-2 1.3.4",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -362,11 +362,39 @@
     723
    ],
    "feature": "MULTIPLE SEARCH STMT",
-   "ansi": "VI-2 1.3.4",
+   "ansi": "VI-122 6.21",
    "disposition": "open",
    "resolution": "ambiguous",
    "literal": [
-    "1985-SR-VI.1.3.4-p1"
+    "1985-FMT-VI.6.21.2",
+    "1985-SR-VI.6.21.3-1",
+    "1985-SR-VI.6.21.3-2",
+    "1985-SR-VI.6.21.3-3",
+    "1985-SR-VI.6.21.3-4",
+    "1985-SR-VI.6.21.3-5",
+    "1985-SR-VI.6.21.3-6",
+    "1985-SR-VI.6.21.3-7",
+    "1985-SR-VI.6.21.3-8",
+    "1985-SR-VI.6.21.3-9",
+    "1985-SR-VI.6.21.3-10",
+    "1985-SR-VI.6.21.3-11",
+    "1985-SR-VI.6.21.3-12",
+    "1985-GR-VI.6.21.4-1",
+    "1985-GR-VI.6.21.4-2",
+    "1985-GR-VI.6.21.4-3",
+    "1985-GR-VI.6.21.4-4",
+    "1985-GR-VI.6.21.4-5",
+    "1985-GR-VI.6.21.4-6",
+    "1985-GR-VI.6.21.4-7",
+    "1985-GR-VI.6.21.4-8",
+    "1985-GR-VI.6.21.4-9",
+    "1985-GR-VI.6.21.4-10",
+    "1985-GR-VI.6.21.4-11",
+    "1985-GR-VI.6.21.4-12",
+    "1985-GR-VI.6.21.4-13",
+    "1985-GR-VI.6.21.4-14",
+    "1985-GR-VI.6.21.4-15",
+    "1985-GR-VI.6.21.4-16"
    ],
    "literal-agrees": false,
    "basis": "mechanical"
@@ -376,7 +404,7 @@
    "lines": [
     871
    ],
-   "feature": "MULTIPLE SEARCH STMT",
+   "feature": "IDX SET HI TO ENTRY",
    "ansi": "VI-122 6.21",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -505,40 +533,13 @@
    "lines": [
     979
    ],
-   "feature": "IDX SET HI TO ENTRY",
-   "ansi": "VI-122 6.21",
+   "feature": "EXP.SCOPE TERMINATOR",
+   "ansi": "IV-41 6.4.3",
    "disposition": "open",
    "resolution": "ambiguous",
    "literal": [
-    "1985-FMT-VI.6.21.2",
-    "1985-SR-VI.6.21.3-1",
-    "1985-SR-VI.6.21.3-2",
-    "1985-SR-VI.6.21.3-3",
-    "1985-SR-VI.6.21.3-4",
-    "1985-SR-VI.6.21.3-5",
-    "1985-SR-VI.6.21.3-6",
-    "1985-SR-VI.6.21.3-7",
-    "1985-SR-VI.6.21.3-8",
-    "1985-SR-VI.6.21.3-9",
-    "1985-SR-VI.6.21.3-10",
-    "1985-SR-VI.6.21.3-11",
-    "1985-SR-VI.6.21.3-12",
-    "1985-GR-VI.6.21.4-1",
-    "1985-GR-VI.6.21.4-2",
-    "1985-GR-VI.6.21.4-3",
-    "1985-GR-VI.6.21.4-4",
-    "1985-GR-VI.6.21.4-5",
-    "1985-GR-VI.6.21.4-6",
-    "1985-GR-VI.6.21.4-7",
-    "1985-GR-VI.6.21.4-8",
-    "1985-GR-VI.6.21.4-9",
-    "1985-GR-VI.6.21.4-10",
-    "1985-GR-VI.6.21.4-11",
-    "1985-GR-VI.6.21.4-12",
-    "1985-GR-VI.6.21.4-13",
-    "1985-GR-VI.6.21.4-14",
-    "1985-GR-VI.6.21.4-15",
-    "1985-GR-VI.6.21.4-16"
+    "1985-GR-IV.6.4.3-p4",
+    "1985-GR-IV.6.4.3-p5"
    ],
    "literal-agrees": false,
    "basis": "mechanical"

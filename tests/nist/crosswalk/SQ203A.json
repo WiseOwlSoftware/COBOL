@@ -7,7 +7,7 @@
    "lines": [
     427
    ],
-   "feature": "",
+   "feature": "SELECT OPTIONAL F-N",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -40,7 +40,7 @@
    "lines": [
     515
    ],
-   "feature": "SELECT OPTIONAL F-N",
+   "feature": "RESERVE INTEGER AREA",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",

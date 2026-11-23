@@ -7,10 +7,14 @@
    "lines": [
     343
    ],
-   "feature": "",
-   "ansi": null,
+   "feature": "SET ... TO",
+   "ansi": "VI-126 6.22.2",
    "disposition": "open",
-   "resolution": "unmapped",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.6.22.2"
+   ],
+   "literal-agrees": false,
    "basis": "mechanical"
   },
   {
@@ -18,7 +22,7 @@
    "lines": [
     367
    ],
-   "feature": "SET ... TO",
+   "feature": "SET ... UP BY",
    "ansi": "VI-126 6.22.2",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -33,7 +37,7 @@
    "lines": [
     392
    ],
-   "feature": "SET ... UP BY",
+   "feature": "SET ... DOWN BY",
    "ansi": "VI-126 6.22.2",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -48,7 +52,7 @@
    "lines": [
     417
    ],
-   "feature": "SET ... DOWN BY",
+   "feature": "SET ... TO",
    "ansi": "VI-126 6.22.2",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -63,7 +67,7 @@
    "lines": [
     442
    ],
-   "feature": "SET ... TO",
+   "feature": "SET ... UP BY",
    "ansi": "VI-126 6.22.2",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -78,7 +82,7 @@
    "lines": [
     467
    ],
-   "feature": "SET ... UP BY",
+   "feature": "SET ... DOWN BY",
    "ansi": "VI-126 6.22.2",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -94,11 +98,11 @@
     492
    ],
    "feature": "SET ... DOWN BY",
-   "ansi": "VI-126 6.22.2",
+   "ansi": "VI-128 6.22.4 GR7",
    "disposition": "open",
    "resolution": "ambiguous",
    "literal": [
-    "1985-FMT-VI.6.22.2"
+    "1985-GR-VI.6.22.4-7"
    ],
    "literal-agrees": false,
    "basis": "mechanical"

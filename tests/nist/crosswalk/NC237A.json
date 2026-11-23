@@ -7,10 +7,17 @@
    "lines": [
     365
    ],
-   "feature": "PERFORM VARYING",
-   "ansi": null,
+   "feature": "SET AND SEARCH-ALL",
+   "ansi": "VI-121 6.21.2",
    "disposition": "open",
-   "resolution": "unmapped",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.6.21.2"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-FMT-VI.6.22.2"
+   ],
    "basis": "mechanical"
   },
   {

@@ -18,7 +18,7 @@
    "lines": [
     563
    ],
-   "feature": "CREATE FILE SQ-FS1",
+   "feature": "VERIFY FILE SQ-FS1",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -51,7 +51,7 @@
    "lines": [
     633
    ],
-   "feature": "NOT END",
+   "feature": "NOT AT END;END-READ",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",

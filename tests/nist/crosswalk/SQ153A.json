@@ -7,7 +7,7 @@
    "lines": [
     584
    ],
-   "feature": "",
+   "feature": "WRITE TO I-O FILE",
    "ansi": "VII-5, 1.3.5(4)G",
    "disposition": "open",
    "resolution": "ambiguous",

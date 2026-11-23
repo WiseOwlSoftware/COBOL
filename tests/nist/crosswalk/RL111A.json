@@ -7,7 +7,7 @@
    "lines": [
     584
    ],
-   "feature": "",
+   "feature": "CREATE RL-FS2",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -18,7 +18,7 @@
    "lines": [
     672
    ],
-   "feature": "CREATE RL-FS2",
+   "feature": "USE/FILE STATUS",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -30,9 +30,13 @@
     690
    ],
    "feature": "USE/FILE STATUS",
-   "ansi": null,
+   "ansi": "VIII-26 4.5.2",
    "disposition": "open",
-   "resolution": "unmapped",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VIII.4.5.2"
+   ],
+   "literal-agrees": false,
    "basis": "mechanical"
   },
   {

@@ -7,7 +7,7 @@
    "lines": [
     541
    ],
-   "feature": "",
+   "feature": "OPEN OUTPUT, TAPE FILE",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -19,7 +19,7 @@
     580,
     588
    ],
-   "feature": "OPEN OUTPUT, TAPE FILE",
+   "feature": "WRITE 500 RECORDS",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -30,7 +30,7 @@
    "lines": [
     618
    ],
-   "feature": "WRITE 500 RECORDS",
+   "feature": "CLOSE FILE FROM OUTPUT",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -41,7 +41,7 @@
    "lines": [
     656
    ],
-   "feature": "CLOSE FILE FROM OUTPUT",
+   "feature": "OPEN NEWLY-WRITTEN FILE",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -63,7 +63,7 @@
    "lines": [
     779
    ],
-   "feature": "READ 500 RECORD FILE",
+   "feature": "CLOSE FILE FROM INPUT",
    "ansi": "VII-46, 4.4.4(10)A, VII-3",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -76,7 +76,7 @@
     "1985-GR-VII.1.3.5-5",
     "1985-GR-VII.1.3.5-p5"
    ],
-   "literal-agrees": true,
+   "literal-agrees": false,
    "basis": "mechanical"
   },
   {
@@ -84,7 +84,7 @@
    "lines": [
     818
    ],
-   "feature": "CLOSE FILE FROM INPUT",
+   "feature": "OPEN FILE FOR INPUT",
    "ansi": "VII-46, 4.4.4(10)A, VII-3",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -150,7 +150,7 @@
    "lines": [
     988
    ],
-   "feature": "READ ...",
+   "feature": "READ ... RAISING AT END",
    "ansi": "VII-46, 4.4.4(10)A, VII-3",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -174,12 +174,14 @@
    "lines": [
     1019
    ],
-   "feature": "READ ... RAISING AT END",
+   "feature": "CLOSE FILE FROM INPUT",
    "ansi": "VII-46, 4.4.4(10)C",
-   "disposition": "rows",
-   "rows": [
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
     "1985-GR-VII.4.4.4-10"
    ],
+   "literal-agrees": false,
    "basis": "mechanical"
   }
  ]

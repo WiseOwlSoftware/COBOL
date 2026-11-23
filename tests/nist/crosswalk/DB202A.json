@@ -7,7 +7,7 @@
    "lines": [
     386
    ],
-   "feature": "",
+   "feature": "DEBUG OPEN FILENAME",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -55,7 +55,7 @@
    "lines": [
     447
    ],
-   "feature": "DEBUG OPEN FILENAME",
+   "feature": "DEBUG WRITE/ALL REF",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -114,7 +114,7 @@
    "lines": [
     551
    ],
-   "feature": "DEBUG WRITE/ALL REF",
+   "feature": "DEBUG WRITE/NOT ALL",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -172,7 +172,7 @@
    "lines": [
     659
    ],
-   "feature": "WRITE/NO DEBUG PROC",
+   "feature": "DEBUG CLOSE FILENAME",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -218,7 +218,7 @@
    "lines": [
     722
    ],
-   "feature": "DEBUG CLOSE FILENAME",
+   "feature": "DEBUG OPEN FILENAME",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -229,7 +229,7 @@
    "lines": [
     739
    ],
-   "feature": "DEBUG OPEN FILENAME",
+   "feature": "DEBUG READ FILENAME",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",

@@ -42,7 +42,7 @@ def _program(*lines):
 def case_01_a_program_holds_one_unit_per_distinct_paragraph_name_with_the_references_in_effect(expect):
     text = _program(
         'MOVE "MULTIPLY BY" TO FEATURE.', 'MOVE "VI-106 6.19.4 GR1" TO ANSI-REFERENCE.',
-        'MPY-TEST-F1-1. MOVE "MPY-TEST-F1-1 " TO PAR-NAME.',
+        'MPY-TEST-F1-1.', 'MOVE "MPY-TEST-F1-1 " TO PAR-NAME.', 'MPY-TEST-F1-1-0.',
         '*MOVE "NOT-A-UNIT" TO PAR-NAME.',
         'MOVE "VI-42 5.12.4" TO ANSI-REFERENCE.', 'MOVE "SIGN" TO FEATURE.',
         'MOVE "MPY-TEST-F1-1" TO PAR-NAME.', 'MOVE "TWO" TO FEATURE, PAR-NAME.',
@@ -50,9 +50,9 @@ def case_01_a_program_holds_one_unit_per_distinct_paragraph_name_with_the_refere
     prog = T.parse_program("X", text)
     expect.equal("a name once, the trailing blank trimmed, a commented move no unit and a SPACE reset no unit",
                  list(prog.units), ["MPY-TEST-F1-1", "TWO"])
-    expect.equal("the first move's lines, feature and reference", prog.units["MPY-TEST-F1-1"], ([3, 7], "MULTIPLY BY", "VI-106 6.19.4 GR1"))
-    expect.equal("the reference and feature in effect at a later unit", prog.units["TWO"], ([8], "TWO", "VI-42 5.12.4"))
-    expect.equal("a PAR-NAME move naming no literal is listed, not dropped", prog.unenumerated, [(10, "MOVE TAB-LOC TO PAR-NAME")])
+    expect.equal("the first move's lines, feature and reference", prog.units["MPY-TEST-F1-1"], ([4, 9], "MULTIPLY BY", "VI-106 6.19.4 GR1"))
+    expect.equal("the reference and feature in effect at a later unit", prog.units["TWO"], ([10], "TWO", "VI-42 5.12.4"))
+    expect.equal("a PAR-NAME move naming no literal is listed, not dropped", prog.unenumerated, [(12, "MOVE TAB-LOC TO PAR-NAME")])
 
 
 def case_02_a_unit_before_any_reference_has_none(expect):
@@ -229,6 +229,20 @@ def case_15_the_element_table_is_held_to_appendix_c1_of_the_transcription(expect
     got = "\n".join(T.audit_elements(bad))
     expect("a heading that names another element", "item 10 is 'PERFORM clause (1 NUC)'" in got, got)
     expect("a transcription with no Appendix C.1", "is not in the 1985 transcription" in "\n".join(T.audit_elements("x")))
+
+
+def case_16_a_reference_moved_after_the_name_in_the_same_init_paragraph_is_the_units_own(expect):
+    text = _program(
+        'MOVE "VI-72 6.5.4 GR7" TO ANSI-REFERENCE.', 'MOVE "ACCEPT DATE" TO FEATURE.',
+        'ACC-TEST-F2-1.', 'ACCEPT X FROM DATE.',
+        'ACC-INIT-F2-2.', 'MOVE "ACC-TEST-F2-2" TO PAR-NAME.', 'MOVE "VI-72 6.5.4 GR8" TO ANSI-REFERENCE.',
+        'MOVE "ACCEPT DAY" TO FEATURE.', 'ACC-TEST-F2-2.', 'ACCEPT X FROM DAY.',
+        'ACC-INIT-F2-3.', 'MOVE "ACC-TEST-F2-3" TO PAR-NAME.', 'ACC-TEST-F2-3.')
+    prog = T.parse_program("X", text)
+    expect.equal("the reference and feature set after the name and before its test paragraph", prog.units["ACC-TEST-F2-2"],
+                 ([6], "ACCEPT DAY", "VI-72 6.5.4 GR8"))
+    expect.equal("a unit with none of its own keeps the one in effect", prog.units["ACC-TEST-F2-3"],
+                 ([12], "ACCEPT DAY", "VI-72 6.5.4 GR8"))
 
 
 if __name__ == "__main__":

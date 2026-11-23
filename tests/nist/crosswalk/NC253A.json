@@ -7,10 +7,17 @@
    "lines": [
     544
    ],
-   "feature": "",
-   "ansi": null,
+   "feature": "SUBTRACT SERIES",
+   "ansi": "VI-134 6.25.4 GR3",
    "disposition": "open",
-   "resolution": "unmapped",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.25.4-3"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-GR-VI.6.26.4-3"
+   ],
    "basis": "mechanical"
   },
   {

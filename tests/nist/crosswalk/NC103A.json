@@ -1426,7 +1426,7 @@
    "lines": [
     1995
    ],
-   "feature": "COMPARE--EQUAL",
+   "feature": "COMPARE GROUP-LEVEL",
    "ansi": "V1-89 6.15.4 GR2",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -1471,7 +1471,7 @@
    "lines": [
     2058
    ],
-   "feature": "COMPARE NUM VS ALPH",
+   "feature": "EQUAL - NO TO",
    "ansi": "V1-89 6.15.4 GR2",
    "disposition": "open",
    "resolution": "ambiguous",

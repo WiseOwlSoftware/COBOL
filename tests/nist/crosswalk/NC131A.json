@@ -7,7 +7,7 @@
    "lines": [
     327
    ],
-   "feature": "",
+   "feature": "SET  OPT 1",
    "ansi": "VI-127 6.23.4",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -29,7 +29,7 @@
    "lines": [
     338
    ],
-   "feature": "SET  OPT 1",
+   "feature": "SET  OPT 2",
    "ansi": "VI-127 6.23.4",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -51,7 +51,7 @@
    "lines": [
     350
    ],
-   "feature": "SET  OPT 2",
+   "feature": "SET  OPT 3",
    "ansi": "VI-127 6.23.4",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -73,7 +73,7 @@
    "lines": [
     362
    ],
-   "feature": "SET  OPT 3",
+   "feature": "SET  OPT 4",
    "ansi": "VI-127 6.23.4",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -95,7 +95,7 @@
    "lines": [
     375
    ],
-   "feature": "SET  OPT 4",
+   "feature": "SET  OPT 5",
    "ansi": "VI-127 6.23.4",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -117,7 +117,7 @@
    "lines": [
     387
    ],
-   "feature": "SET  OPT 5",
+   "feature": "SET  OPT 6",
    "ansi": "VI-127 6.23.4",
    "disposition": "open",
    "resolution": "ambiguous",

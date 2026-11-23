@@ -29,7 +29,7 @@
    "lines": [
     517
    ],
-   "feature": "OPEN O SQ-FS1 EXTEND",
+   "feature": "VERIFY FILE SQ-FS1",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -51,7 +51,7 @@
    "lines": [
     585
    ],
-   "feature": "CREATE FILE SQ-FS2",
+   "feature": "VERIFY FILE SQ-FS2",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",

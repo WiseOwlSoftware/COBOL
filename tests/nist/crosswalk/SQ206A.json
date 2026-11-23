@@ -29,7 +29,7 @@
    "lines": [
     510
    ],
-   "feature": "CREATE FILE SQ-FS4",
+   "feature": "VERIFY FILE SQ-FS1",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -40,7 +40,7 @@
    "lines": [
     555
    ],
-   "feature": "VERIFY FILE SQ-FS1",
+   "feature": "VERIFY FILE SQ-FS3",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -62,7 +62,7 @@
    "lines": [
     632
    ],
-   "feature": "CREATE FILE SQ-FS2",
+   "feature": "VERIFY FILE SQ-FS4",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -73,7 +73,7 @@
    "lines": [
     677
    ],
-   "feature": "VERIFY FILE SQ-FS4",
+   "feature": "VERIFY FILE SQ-FS2",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",

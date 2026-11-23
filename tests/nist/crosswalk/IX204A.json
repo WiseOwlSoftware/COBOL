@@ -84,7 +84,7 @@
    "lines": [
     658
    ],
-   "feature": "CLOSE: STATUS: 00",
+   "feature": "REWRITE IX-FD2",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -95,7 +95,7 @@
    "lines": [
     669
    ],
-   "feature": "REWRITE IX-FD2",
+   "feature": "UPDATE  IX-FD2",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -106,7 +106,7 @@
    "lines": [
     680
    ],
-   "feature": "UPDATE  IX-FD2",
+   "feature": "OPEN I-O STATUS: 00",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -117,7 +117,7 @@
    "lines": [
     691
    ],
-   "feature": "OPEN I-O STATUS: 00",
+   "feature": "READ I-O STATUS 10",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -128,7 +128,7 @@
    "lines": [
     702
    ],
-   "feature": "READ I-O STATUS 10",
+   "feature": "UPDATE  IX-FD2",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -139,7 +139,7 @@
    "lines": [
     713
    ],
-   "feature": "UPDATE  IX-FD2",
+   "feature": "STATUS: 10",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -150,7 +150,7 @@
    "lines": [
     724
    ],
-   "feature": "STATUS: 10",
+   "feature": "CLOSE . LOCK: 00",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",

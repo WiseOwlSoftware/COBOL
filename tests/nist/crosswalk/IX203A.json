@@ -18,7 +18,7 @@
    "lines": [
     485
    ],
-   "feature": "RECORD KEY ON OPEN",
+   "feature": "READ  NEXT RECORD",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",

@@ -18,7 +18,7 @@
    "lines": [
     911
    ],
-   "feature": "CREATE-FILE-FD1",
+   "feature": "READ FILE IX-FD1",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -29,7 +29,7 @@
    "lines": [
     953
    ],
-   "feature": "READ FILE IX-FD1",
+   "feature": "START REDF REC-KEY",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -140,7 +140,7 @@
    "lines": [
     1547
    ],
-   "feature": "CREATE-FILE-FD2",
+   "feature": "READ FILE IX-FD2",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -151,7 +151,7 @@
    "lines": [
     1591
    ],
-   "feature": "READ FILE IX-FD2",
+   "feature": "START REDF REC-KEY",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -261,7 +261,7 @@
    "lines": [
     2164
    ],
-   "feature": "CREATE-FILE-FD3",
+   "feature": "READ FILE IX-FD3",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -272,7 +272,7 @@
    "lines": [
     2209
    ],
-   "feature": "READ FILE IX-FD3",
+   "feature": "START QUAL REC-KEY",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",

@@ -7,7 +7,7 @@
    "lines": [
     540
    ],
-   "feature": "",
+   "feature": "WRITE  IX-FD1",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -18,7 +18,7 @@
    "lines": [
     580
    ],
-   "feature": "WRITE  IX-FD1",
+   "feature": "READ SEQUENTIAL",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -29,7 +29,7 @@
    "lines": [
     619
    ],
-   "feature": "READ SEQUENTIAL",
+   "feature": "READ RANDOM",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -40,7 +40,7 @@
    "lines": [
     670
    ],
-   "feature": "READ RANDOM",
+   "feature": "READ ALTERNATE KEY",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -62,7 +62,7 @@
    "lines": [
     752
    ],
-   "feature": "SEQUENTIAL MODE",
+   "feature": "READ SEQUENTIAL",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -73,7 +73,7 @@
    "lines": [
     805
    ],
-   "feature": "READ SEQUENTIAL",
+   "feature": "READ ALTERNATE KEY",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -84,7 +84,7 @@
    "lines": [
     827
    ],
-   "feature": "READ ALTERNATE KEY",
+   "feature": "SAME AREA",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",

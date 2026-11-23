@@ -96,9 +96,13 @@
     509
    ],
    "feature": "LEVEL 3 TBL SUBSCRPT",
-   "ansi": null,
+   "ansi": "VI-2 1.3.4",
    "disposition": "open",
-   "resolution": "unmapped",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-SR-VI.1.3.4-p1"
+   ],
+   "literal-agrees": false,
    "basis": "mechanical"
   },
   {

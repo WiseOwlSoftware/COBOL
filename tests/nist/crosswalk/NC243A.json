@@ -51,7 +51,7 @@
    "lines": [
     457
    ],
-   "feature": "PERFORM VARYING LEV1",
+   "feature": "PERFORM VARYING LEV2",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -140,9 +140,31 @@
     593
    ],
    "feature": "PERFORM VARYING LEV3",
-   "ansi": null,
+   "ansi": "VI-2 1.3.4",
    "disposition": "open",
-   "resolution": "unmapped",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-SR-VI.1.3.4-p1"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-GR-VI.6.21.4-1",
+    "1985-GR-VI.6.21.4-2",
+    "1985-GR-VI.6.21.4-3",
+    "1985-GR-VI.6.21.4-4",
+    "1985-GR-VI.6.21.4-5",
+    "1985-GR-VI.6.21.4-6",
+    "1985-GR-VI.6.21.4-7",
+    "1985-GR-VI.6.21.4-8",
+    "1985-GR-VI.6.21.4-9",
+    "1985-GR-VI.6.21.4-10",
+    "1985-GR-VI.6.21.4-11",
+    "1985-GR-VI.6.21.4-12",
+    "1985-GR-VI.6.21.4-13",
+    "1985-GR-VI.6.21.4-14",
+    "1985-GR-VI.6.21.4-15",
+    "1985-GR-VI.6.21.4-16"
+   ],
    "basis": "mechanical"
   }
  ]

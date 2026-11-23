@@ -51,7 +51,7 @@
    "lines": [
     733
    ],
-   "feature": "READ 1001 RECORDS",
+   "feature": "AT END",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -62,7 +62,7 @@
    "lines": [
     748
    ],
-   "feature": "AT END",
+   "feature": "RWRT SMALLER RECORD",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -73,7 +73,7 @@
    "lines": [
     759
    ],
-   "feature": "RWRT SMALLER RECORD",
+   "feature": "RWRT LARGER RECORD",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",

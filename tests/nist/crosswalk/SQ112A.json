@@ -18,7 +18,7 @@
    "lines": [
     467
    ],
-   "feature": "WRITE 150 RECORDS",
+   "feature": "VERIFY FILE SQ-FS1",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -40,7 +40,7 @@
    "lines": [
     538
    ],
-   "feature": "WRITE 150 RECS 2ND",
+   "feature": "VERIFY FILE SQ-FS1",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -95,7 +95,7 @@
    "lines": [
     677
    ],
-   "feature": "READ...END...",
+   "feature": "READ FILE SQ-FS1",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",

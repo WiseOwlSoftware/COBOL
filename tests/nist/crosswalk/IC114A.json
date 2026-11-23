@@ -7,7 +7,7 @@
    "lines": [
     350
    ],
-   "feature": "",
+   "feature": "CREATE FILE SQ-FS3",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -18,7 +18,7 @@
    "lines": [
     375
    ],
-   "feature": "CREATE FILE SQ-FS3",
+   "feature": "VERIFY FILE SQ-FS3",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -29,7 +29,7 @@
    "lines": [
     435
    ],
-   "feature": "VERIFY FILE SQ-FS3",
+   "feature": "READ IN SUBPRGM",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",

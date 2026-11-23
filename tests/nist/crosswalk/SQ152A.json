@@ -7,7 +7,7 @@
    "lines": [
     595
    ],
-   "feature": "",
+   "feature": "WRITE TO INPUT FILE",
    "ansi": "VII-3, FILE STATUS",
    "disposition": "open",
    "resolution": "ambiguous",

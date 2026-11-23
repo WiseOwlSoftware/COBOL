@@ -18,7 +18,7 @@
    "lines": [
     491
    ],
-   "feature": "CREATE FILE SQ-FS5",
+   "feature": "VERIFY FILE SQ-FS5",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -29,7 +29,7 @@
    "lines": [
     534
    ],
-   "feature": "VERIFY FILE SQ-FS5",
+   "feature": "REWRITE FILE SQ-FS5",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -40,7 +40,7 @@
    "lines": [
     599
    ],
-   "feature": "REWRITE FILE SQ-FS5",
+   "feature": "VERIFY FILE SQ-FS5",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",

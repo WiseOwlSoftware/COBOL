@@ -7,7 +7,7 @@
    "lines": [
     360
    ],
-   "feature": "",
+   "feature": "INITIATE REPORT",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -18,7 +18,7 @@
    "lines": [
     399
    ],
-   "feature": "INITIATE REPORT",
+   "feature": "GENERATE 20 LINES",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",

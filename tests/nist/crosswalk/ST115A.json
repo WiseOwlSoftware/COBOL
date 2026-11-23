@@ -18,7 +18,7 @@
    "lines": [
     1164
    ],
-   "feature": "CREATE FILE SQ-FS1",
+   "feature": "NATIVE COLL.SEQUENCE",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",

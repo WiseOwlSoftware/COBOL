@@ -7,7 +7,7 @@
    "lines": [
     389
    ],
-   "feature": "",
+   "feature": "TALLY FOR CHARACTERS",
    "ansi": "IV-21 4.3.8.2.3/4",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -32,7 +32,7 @@
    "lines": [
     414
    ],
-   "feature": "TALLY FOR CHARACTERS",
+   "feature": "TALLY FOR LITERAL",
    "ansi": "IV-21 4.3.8.2.3/4",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -57,7 +57,7 @@
    "lines": [
     439
    ],
-   "feature": "TALLY FOR LITERAL",
+   "feature": "TALLY FOR ALL SPACE",
    "ansi": "IV-21 4.3.8.2.3/4",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -82,7 +82,7 @@
    "lines": [
     464
    ],
-   "feature": "TALLY FOR ALL SPACE",
+   "feature": "TALLY LEADING LIT.",
    "ansi": "IV-21 4.3.8.2.3/4",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -107,7 +107,7 @@
    "lines": [
     490
    ],
-   "feature": "TALLY LEADING LIT.",
+   "feature": "FOR CHARS AFTER LIT.",
    "ansi": "IV-21 4.3.8.2.3/4",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -132,7 +132,7 @@
    "lines": [
     516
    ],
-   "feature": "FOR CHARS AFTER LIT.",
+   "feature": "ALL BEFORE INITIAL",
    "ansi": "IV-21 4.3.8.2.3/4",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -157,7 +157,7 @@
    "lines": [
     541
    ],
-   "feature": "ALL BEFORE INITIAL",
+   "feature": "LEAD. LIT. INITIAL",
    "ansi": "IV-21 4.3.8.2.3/4",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -182,7 +182,7 @@
    "lines": [
     563
    ],
-   "feature": "LEAD. LIT. INITIAL",
+   "feature": "REP. CHARS BY SPACE",
    "ansi": "IV-21 4.3.8.2.3/4",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -207,7 +207,7 @@
    "lines": [
     601
    ],
-   "feature": "REP. CHARS BY SPACE",
+   "feature": "CHARS BEFORE INITIAL",
    "ansi": "IV-21 4.3.8.2.3/4",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -232,7 +232,7 @@
    "lines": [
     642
    ],
-   "feature": "CHARS BEFORE INITIAL",
+   "feature": "LEAD. AFTER INIT. ID",
    "ansi": "IV-21 4.3.8.2.3/4",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -257,7 +257,7 @@
    "lines": [
     681
    ],
-   "feature": "LEAD. AFTER INIT. ID",
+   "feature": "FIRST BY ID BEFORE",
    "ansi": "IV-21 4.3.8.2.3/4",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -282,7 +282,7 @@
    "lines": [
     721
    ],
-   "feature": "FIRST BY ID BEFORE",
+   "feature": "ALL ID BY LIT. AFTER",
    "ansi": "IV-21 4.3.8.2.3/4",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -307,7 +307,7 @@
    "lines": [
     726
    ],
-   "feature": "ALL ID BY LIT. AFTER",
+   "feature": "TALLY REPLACE CHARS",
    "ansi": "IV-21 4.3.8.2.3/4",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -332,7 +332,7 @@
    "lines": [
     776
    ],
-   "feature": "TALLY REPLACE CHARS",
+   "feature": "LIT. BY BEFORE INIT.",
    "ansi": "IV-21 4.3.8.2.3/4",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -357,7 +357,7 @@
    "lines": [
     828
    ],
-   "feature": "LIT. BY BEFORE INIT.",
+   "feature": "REPL. FIRST AFTER",
    "ansi": "IV-21 4.3.8.2.3/4",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -382,7 +382,7 @@
    "lines": [
     881
    ],
-   "feature": "REPL. FIRST AFTER",
+   "feature": "FOR LEADING",
    "ansi": "IV-21 4.3.8.2.3/4",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -407,7 +407,7 @@
    "lines": [
     933
    ],
-   "feature": "FOR LEADING",
+   "feature": "LIT. BY AFTER INIT.",
    "ansi": "IV-21 4.3.8.2.3/4",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -432,7 +432,7 @@
    "lines": [
     985
    ],
-   "feature": "LIT. BY AFTER INIT.",
+   "feature": "CHARS AFTER ALL BEF.",
    "ansi": "IV-21 4.3.8.2.3/4",
    "disposition": "open",
    "resolution": "ambiguous",

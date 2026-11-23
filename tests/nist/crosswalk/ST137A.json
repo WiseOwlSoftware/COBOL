@@ -40,7 +40,7 @@
    "lines": [
     660
    ],
-   "feature": "CREATE FILE SQ-FS2",
+   "feature": "NATIVE COLL.SEQUENCE",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",

@@ -18,7 +18,7 @@
    "lines": [
     539
    ],
-   "feature": "CREATE 649 RECORD FILE",
+   "feature": "VERIFY NEW FILE",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",

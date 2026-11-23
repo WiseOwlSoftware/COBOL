@@ -7,17 +7,6 @@
    "lines": [
     392
    ],
-   "feature": "",
-   "ansi": null,
-   "disposition": "open",
-   "resolution": "unmapped",
-   "basis": "mechanical"
-  },
-  {
-   "unit": "SCH-TEST-F1-2",
-   "lines": [
-    416
-   ],
    "feature": "SEARCH",
    "ansi": "VI-121 6.21.2",
    "disposition": "open",
@@ -29,6 +18,21 @@
    "by-name": [
     "1985-FMT-VI.6.22.2"
    ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SCH-TEST-F1-2",
+   "lines": [
+    416
+   ],
+   "feature": "SEARCH WHEN SERIES",
+   "ansi": "VI-121 6.21.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.6.21.2"
+   ],
+   "literal-agrees": false,
    "basis": "mechanical"
   },
   {
@@ -51,21 +55,6 @@
    "lines": [
     473
    ],
-   "feature": "SEARCH WHEN SERIES",
-   "ansi": "VI-121 6.21.2",
-   "disposition": "open",
-   "resolution": "ambiguous",
-   "literal": [
-    "1985-FMT-VI.6.21.2"
-   ],
-   "literal-agrees": false,
-   "basis": "mechanical"
-  },
-  {
-   "unit": "SCH-TEST-F1-5",
-   "lines": [
-    499
-   ],
    "feature": "SEARCH VARYING",
    "ansi": "VI-121 6.21.2",
    "disposition": "open",
@@ -80,9 +69,9 @@
    "basis": "mechanical"
   },
   {
-   "unit": "SCH-TEST-F2-6",
+   "unit": "SCH-TEST-F1-5",
    "lines": [
-    530
+    499
    ],
    "feature": "SEARCH WHEN SERIES",
    "ansi": "VI-121 6.21.2",
@@ -92,6 +81,24 @@
     "1985-FMT-VI.6.21.2"
    ],
    "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SCH-TEST-F2-6",
+   "lines": [
+    530
+   ],
+   "feature": "SEARCH ALL",
+   "ansi": "VI-121 6.21.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.6.21.2"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-FMT-VI.6.22.2"
+   ],
    "basis": "mechanical"
   },
   {
@@ -154,16 +161,28 @@
     633
    ],
    "feature": "SEARCH ALL",
-   "ansi": "VI-121 6.21.2",
+   "ansi": "VI-51 6.2",
    "disposition": "open",
    "resolution": "ambiguous",
    "literal": [
-    "1985-FMT-VI.6.21.2"
+    "1985-SR-VI.6.2.1-p1",
+    "1985-SR-VI.6.2.1-p2",
+    "1985-GR-VI.6.2.2-T1.1",
+    "1985-GR-VI.6.2.2-T2.1",
+    "1985-SR-VI.6.2.2-p1",
+    "1985-GR-VI.6.2.2-T1.2",
+    "1985-GR-VI.6.2.2-T2.2",
+    "1985-GR-VI.6.2.2-T1.3",
+    "1985-GR-VI.6.2.2-T1.4",
+    "1985-GR-VI.6.2.2-T1.5",
+    "1985-GR-VI.6.2.3-1",
+    "1985-GR-VI.6.2.3-2",
+    "1985-SR-VI.6.2.3-3",
+    "1985-SR-VI.6.2.3-4",
+    "1985-GR-VI.6.2.3-5",
+    "1985-GR-VI.6.2.3-6"
    ],
    "literal-agrees": false,
-   "by-name": [
-    "1985-FMT-VI.6.22.2"
-   ],
    "basis": "mechanical"
   }
  ]

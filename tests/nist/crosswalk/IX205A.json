@@ -7,7 +7,7 @@
    "lines": [
     526
    ],
-   "feature": "",
+   "feature": "WRITE DYNAMIC MODE",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -18,7 +18,7 @@
    "lines": [
     558
    ],
-   "feature": "WRITE DYNAMIC MODE",
+   "feature": "READ NEXT RECORD",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -29,7 +29,7 @@
    "lines": [
     592
    ],
-   "feature": "READ NEXT RECORD",
+   "feature": "READ . RECORD INVALID",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -40,7 +40,7 @@
    "lines": [
     630
    ],
-   "feature": "READ . RECORD INVALID",
+   "feature": "START = READ  ALTERN.",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -51,7 +51,7 @@
    "lines": [
     679
    ],
-   "feature": "START = READ  ALTERN.",
+   "feature": "START >= READ  ALTERN.",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -62,7 +62,7 @@
    "lines": [
     744
    ],
-   "feature": "START >= READ  ALTERN.",
+   "feature": "DYNAMIC MODE",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",

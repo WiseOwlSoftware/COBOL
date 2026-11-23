@@ -7,7 +7,7 @@
    "lines": [
     447
    ],
-   "feature": "",
+   "feature": "VERIFY FILE SQ-FS3",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -18,7 +18,7 @@
    "lines": [
     489
    ],
-   "feature": "VERIFY FILE SQ-FS3",
+   "feature": "VERIFY FILE SQ-FS5",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -29,7 +29,7 @@
    "lines": [
     531
    ],
-   "feature": "VERIFY FILE SQ-FS5",
+   "feature": "VERIFY FILE SQ-FS6",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -40,7 +40,7 @@
    "lines": [
     573
    ],
-   "feature": "VERIFY FILE SQ-FS6",
+   "feature": "VERIFY FILE SQ-FS7",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -51,7 +51,7 @@
    "lines": [
     615
    ],
-   "feature": "VERIFY FILE SQ-FS7",
+   "feature": "VERIFY FILE SQ-FS8",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",

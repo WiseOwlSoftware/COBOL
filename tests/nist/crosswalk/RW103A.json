@@ -7,7 +7,7 @@
    "lines": [
     390
    ],
-   "feature": "",
+   "feature": "INITIATE REPORT",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -18,7 +18,7 @@
    "lines": [
     443
    ],
-   "feature": "INITIATE REPORT",
+   "feature": "FIRST GENERATE",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -29,7 +29,7 @@
    "lines": [
     509
    ],
-   "feature": "FIRST GENERATE",
+   "feature": "GENERATE 19 LINES",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -40,7 +40,7 @@
    "lines": [
     554
    ],
-   "feature": "GENERATE 19 LINES",
+   "feature": "PAGE ADVANCE",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -51,7 +51,7 @@
    "lines": [
     596
    ],
-   "feature": "PAGE ADVANCE",
+   "feature": "GENERATE 19 LINES",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -62,7 +62,7 @@
    "lines": [
     640
    ],
-   "feature": "GENERATE 19 LINES",
+   "feature": "PAGE ADVANCE",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -73,7 +73,7 @@
    "lines": [
     681
    ],
-   "feature": "PAGE ADVANCE",
+   "feature": "GENERATE 19 LINES",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",

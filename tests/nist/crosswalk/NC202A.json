@@ -398,11 +398,15 @@
     1098
    ],
    "feature": "ADD CORRESPONDING",
-   "ansi": "VI-74 6.6.4 GR3",
+   "ansi": "VI-74 6.6.4",
    "disposition": "open",
    "resolution": "ambiguous",
    "literal": [
-    "1985-GR-VI.6.6.4-3"
+    "1985-GR-VI.6.6.4-1",
+    "1985-GR-VI.6.6.4-2",
+    "1985-GR-VI.6.6.4-3",
+    "1985-GR-VI.6.6.4-4",
+    "1985-GR-VI.6.6.4-5"
    ],
    "literal-agrees": false,
    "basis": "mechanical"

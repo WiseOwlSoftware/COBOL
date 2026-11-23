@@ -73,7 +73,7 @@
    "lines": [
     817
    ],
-   "feature": "OPEN INPUT:  00 EXP.",
+   "feature": "READ (USE):  00 EXP.",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",

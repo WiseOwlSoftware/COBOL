@@ -29,7 +29,7 @@
    "lines": [
     854
    ],
-   "feature": "FILE CREATE RL-FS2",
+   "feature": "READ RANDOM",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -40,7 +40,7 @@
    "lines": [
     927
    ],
-   "feature": "READ RANDOM",
+   "feature": "REWRITE",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -51,7 +51,7 @@
    "lines": [
     997
    ],
-   "feature": "REWRITE",
+   "feature": "READ RANDOM",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -62,7 +62,7 @@
    "lines": [
     1475
    ],
-   "feature": "READ RANDOM",
+   "feature": "READ SEQUENTIAL",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -73,7 +73,7 @@
    "lines": [
     1564
    ],
-   "feature": "READ SEQUENTIAL",
+   "feature": "DELETE",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -84,7 +84,7 @@
    "lines": [
     1619
    ],
-   "feature": "DELETE",
+   "feature": "READ UPDATED FILE",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",

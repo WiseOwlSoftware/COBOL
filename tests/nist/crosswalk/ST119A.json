@@ -7,7 +7,7 @@
    "lines": [
     357
    ],
-   "feature": "",
+   "feature": "INTNL CODE PERFORMED",
    "ansi": "XI-19 4.4.4 GR(10)",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -23,7 +23,7 @@
     381,
     406
    ],
-   "feature": "INTNL CODE PERFORMED",
+   "feature": "GO TO INTERNAL CODE",
    "ansi": "XI-19 4.4.4 GR(10)",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -38,7 +38,7 @@
    "lines": [
     424
    ],
-   "feature": "GO TO INTERNAL CODE",
+   "feature": "INTNL CODE PERFORMED",
    "ansi": "XI-19 4.4.4 GR(7)",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -53,7 +53,7 @@
    "lines": [
     448
    ],
-   "feature": "INTNL CODE PERFORMED",
+   "feature": "GO TO INTERNAL CODE",
    "ansi": "XI-19 4.4.4 GR(7)",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -83,7 +83,7 @@
    "lines": [
     493
    ],
-   "feature": "GO TO INTERNAL CODE",
+   "feature": "PERFORM EXTNL CODE",
    "ansi": "XI-19 4.4.4 GR(7)",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -99,7 +99,7 @@
     516,
     541
    ],
-   "feature": "PERFORM EXTNL CODE",
+   "feature": "GO TO EXTERNAL CODE",
    "ansi": "XI-19 4.4.4 GR(7)",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -240,7 +240,7 @@
    "lines": [
     770
    ],
-   "feature": "SORT --- FIVE KEYS",
+   "feature": "PERFORM EXTNL CODE",
    "ansi": "XI-19 4.4.4 GR(10)",
    "disposition": "rows",
    "rows": [
@@ -253,7 +253,7 @@
    "lines": [
     793
    ],
-   "feature": "PERFORM EXTNL CODE",
+   "feature": "GO TO EXTERNAL CODE",
    "ansi": "XI-19 4.4.4 GR(10)",
    "disposition": "rows",
    "rows": [

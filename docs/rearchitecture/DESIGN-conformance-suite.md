@@ -896,10 +896,10 @@ tokens (`VI-106 6.19.4 GR1`; `V1`, `1V` are typing for `VI`, `IV`; `GR1-5`, `(5)
 section's locator (`§1985:VI.6.19.4`) to the catalog's rows. **NIST's numbering is not the held text's after the ENTER
 statement** (NC's MULTIPLY units cite 6.19.4, which the held text gives to MOVE; its MULTIPLY is 6.20.4), so a literal
 resolution is believed only when it also names every rule it cites and the cited section's subject begins or continues a word
-of the unit's FEATURE or paragraph name. A unit that passes is `rows` (347 at landing; a format-keyed name adds the
+of the unit's FEATURE or paragraph name. A unit that passes is `rows` (350 at landing; a format-keyed name adds the
 statement's FMT row); any other is `open`, `ambiguous` when the literal reference or the one section of the cited chapter
-whose subject names the unit (`by-name`: NIST's rule numbers applied to it) offers candidate rows (4,095), `unmapped`
-otherwise (2,482, 2,422 of them units whose program sets no reference at all: Segmentation, Debug, Communication and the
+whose subject names the unit (`by-name`: NIST's rule numbers applied to it) offers candidate rows (4,126), `unmapped`
+otherwise (2,448, 2,385 of them units whose program sets no reference at all: Segmentation, Debug, Communication and the
 file-I/O programs). A flag unit maps through Appendix C.1: the catalog marks each obsolete row `obsolete: C.1(n)` and the
 flagged statement names the element n; an element with one row maps to it, one with several is `ambiguous`; the 177 FIPS
 flags are `excluded` (`fips-pub-21-1`). An entry's `basis: "mechanical"` marks what the tool reproduces and `--check`
@@ -910,7 +910,7 @@ of 6,931 at landing). The coverage points are PB6050's: a `rows` unit is subsume
 exists.
 
 **One NIST map**: S17 moves the 16 `nist:` test-refs into the crosswalk, and the ref grammar stops accepting them.
-**The audit** (`harness/crosswalk.py`) refuses an unknown row, point, construct or case; a row whose band
+**The audit** (`harness/crosswalk.py --check`, a gate audit `NIST-85 CROSSWALK` and a CI step, so a committed file never goes stale) refuses an unknown row, point, construct or case; a row whose band
 excludes 85; a case not accepted (or not flagged) at 85; a `unit` case not naming its construct; a divergent golden
 without `differs`; an exclusion without a known reason; a unit with no disposition.
 

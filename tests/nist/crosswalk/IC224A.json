@@ -7,7 +7,7 @@
    "lines": [
     330
    ],
-   "feature": "",
+   "feature": "LEV 2 CALL STATEMENT",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -52,7 +52,7 @@
    "lines": [
     382
    ],
-   "feature": "LEV 2 CALL STATEMENT",
+   "feature": "DATA-NAME USED TWICE",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",

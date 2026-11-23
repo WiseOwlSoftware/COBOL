@@ -7,7 +7,7 @@
    "lines": [
     470
    ],
-   "feature": "",
+   "feature": "OPEN OUTPUT FIL1 FIL2",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -29,7 +29,7 @@
    "lines": [
     525
    ],
-   "feature": "WRITE  FILE SQ-FS1",
+   "feature": "VERIFY FILE SQ-FS1",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -84,7 +84,7 @@
    "lines": [
     663
    ],
-   "feature": "READ...END...",
+   "feature": "READ FILE SQ-FS1",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -95,7 +95,7 @@
    "lines": [
     684
    ],
-   "feature": "READ FILE SQ-FS1",
+   "feature": "OPEN OUTPUT FIL3",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -117,7 +117,7 @@
    "lines": [
     750
    ],
-   "feature": "WRITE SQ-FS3 649RE",
+   "feature": "VERIFY FILE SQ-FS3",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -172,7 +172,7 @@
    "lines": [
     890
    ],
-   "feature": "READ...END...",
+   "feature": "READ FILE SQ-FS3",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -183,7 +183,7 @@
    "lines": [
     923
    ],
-   "feature": "READ FILE SQ-FS3",
+   "feature": "OPEN INPUT FILE1, FILE2",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",

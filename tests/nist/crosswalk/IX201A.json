@@ -19,7 +19,7 @@
     498,
     1657
    ],
-   "feature": "WRITE       IX-FS1",
+   "feature": "READ TO VERIFY",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -30,7 +30,7 @@
    "lines": [
     970
    ],
-   "feature": "READ TO VERIFY",
+   "feature": "READ RANDOM",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -74,7 +74,7 @@
    "lines": [
     1042
    ],
-   "feature": "READ RANDOM",
+   "feature": "REWRITE",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -85,7 +85,7 @@
    "lines": [
     1068
    ],
-   "feature": "REWRITE",
+   "feature": "READ INVALID",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -107,7 +107,7 @@
    "lines": [
     1092
    ],
-   "feature": "READ INVALID",
+   "feature": "REWRITE",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -118,7 +118,7 @@
    "lines": [
     1104
    ],
-   "feature": "REWRITE",
+   "feature": "READ",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",

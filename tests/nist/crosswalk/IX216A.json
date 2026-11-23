@@ -7,7 +7,7 @@
    "lines": [
     557
    ],
-   "feature": "CREATE IX-FS2",
+   "feature": "OPEN EXTEND: EXP: 05",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -18,7 +18,7 @@
    "lines": [
     593
    ],
-   "feature": "OPEN EXTEND: EXP: 05",
+   "feature": "OPEN EXTEND EXISTING",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -96,7 +96,7 @@
     678,
     712
    ],
-   "feature": "CLOSE STATUS EXP: 00",
+   "feature": "UPDATE  IX-FS2",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",

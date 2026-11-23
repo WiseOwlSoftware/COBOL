@@ -7,7 +7,7 @@
    "lines": [
     393
    ],
-   "feature": "",
+   "feature": "l EDIT MOVE",
    "ansi": "VI-34 5.9.5 (7), (8)",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -23,7 +23,7 @@
    "lines": [
     418
    ],
-   "feature": "l EDIT MOVE",
+   "feature": "+ EDIT MOVE",
    "ansi": "VI-34 5.9.5 (7), (8)",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -39,7 +39,7 @@
    "lines": [
     443
    ],
-   "feature": "+ EDIT MOVE",
+   "feature": "- EDIT MOVE",
    "ansi": "VI-34 5.9.5 (7), (8)",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -55,7 +55,7 @@
    "lines": [
     468
    ],
-   "feature": "- EDIT MOVE",
+   "feature": "* EDIT MOVE",
    "ansi": "VI-34 5.9.5 (7), (8)",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -71,7 +71,7 @@
    "lines": [
     493
    ],
-   "feature": "* EDIT MOVE",
+   "feature": "l EDIT ADD",
    "ansi": "VI-34 5.9.5 (7), (8)",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -87,7 +87,7 @@
    "lines": [
     519
    ],
-   "feature": "l EDIT ADD",
+   "feature": "+ EDIT ADD",
    "ansi": "VI-34 5.9.5 (7), (8)",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -103,7 +103,7 @@
    "lines": [
     545
    ],
-   "feature": "+ EDIT ADD",
+   "feature": "- EDIT ADD",
    "ansi": "VI-34 5.9.5 (7), (8)",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -119,7 +119,7 @@
    "lines": [
     571
    ],
-   "feature": "- EDIT ADD",
+   "feature": "* EDIT ADD",
    "ansi": "VI-34 5.9.5 (7), (8)",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -135,7 +135,7 @@
    "lines": [
     597
    ],
-   "feature": "* EDIT ADD",
+   "feature": "l EDIT SUB",
    "ansi": "VI-34 5.9.5 (7), (8)",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -151,7 +151,7 @@
    "lines": [
     623
    ],
-   "feature": "l EDIT SUB",
+   "feature": "+ EDIT SUB",
    "ansi": "VI-34 5.9.5 (7), (8)",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -167,7 +167,7 @@
    "lines": [
     650
    ],
-   "feature": "+ EDIT SUB",
+   "feature": "- EDIT SUB",
    "ansi": "VI-34 5.9.5 (7), (8)",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -183,7 +183,7 @@
    "lines": [
     677
    ],
-   "feature": "- EDIT SUB",
+   "feature": "* EDIT SUB",
    "ansi": "VI-34 5.9.5 (7), (8)",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -199,7 +199,7 @@
    "lines": [
     704
    ],
-   "feature": "* EDIT SUB",
+   "feature": "COMMA AS LAST SYMBOL",
    "ansi": "VI-33 5.9.5 (4), (5)",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -215,7 +215,7 @@
    "lines": [
     727
    ],
-   "feature": "COMMA AS LAST SYMBOL",
+   "feature": "PERIOD LAST SYMBOL",
    "ansi": "VI-34 5.9.5 (4), (5)",
    "disposition": "open",
    "resolution": "ambiguous",

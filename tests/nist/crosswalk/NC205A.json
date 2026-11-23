@@ -7,7 +7,7 @@
    "lines": [
     404
    ],
-   "feature": "CONTINUATION ---",
+   "feature": "NUMERIC INTEGER",
    "ansi": "IV-44 7.2.2",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -25,7 +25,7 @@
    "lines": [
     427
    ],
-   "feature": "NUMERIC INTEGER",
+   "feature": "NUM NON-INTEGER",
    "ansi": "IV-44 7.2.2",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -105,7 +105,7 @@
    "lines": [
     630
    ],
-   "feature": "DATA-NAMES",
+   "feature": "PARAGRAPH-NAMES",
    "ansi": "IV-44 7.2.2",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -116,14 +116,6 @@
     "1985-SR-IV.7.2.2-p4"
    ],
    "literal-agrees": false,
-   "by-name": [
-    "1985-SR-IV.6.3.2.1-p2",
-    "1985-GR-IV.6.3.2.1-p3",
-    "1985-GR-IV.6.3.2.1-p4",
-    "1985-GR-IV.6.3.2.1-p5",
-    "1985-GR-IV.6.3.2.1-p6",
-    "1985-FMT-IV.6.3.2.2.1"
-   ],
    "basis": "mechanical"
   },
   {

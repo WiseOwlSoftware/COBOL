@@ -7,7 +7,7 @@
    "lines": [
     330
    ],
-   "feature": "",
+   "feature": "LEVEL 3 TBL HANDLING",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -19,9 +19,13 @@
     335
    ],
    "feature": "LEVEL 3 TBL HANDLING",
-   "ansi": null,
+   "ansi": "VI-121 6.21.2",
    "disposition": "open",
-   "resolution": "unmapped",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.6.21.2"
+   ],
+   "literal-agrees": false,
    "basis": "mechanical"
   },
   {

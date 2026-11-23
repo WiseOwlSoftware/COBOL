@@ -18,7 +18,7 @@
    "lines": [
     436
    ],
-   "feature": "CREATE FILE SQ-FS1",
+   "feature": "VERIFY FILE SQ-FS1",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -29,7 +29,7 @@
    "lines": [
     876
    ],
-   "feature": "VERIFY FILE SQ-FS1",
+   "feature": "SELECT OPTIONAL F-N",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -62,7 +62,7 @@
    "lines": [
     964
    ],
-   "feature": "SELECT OPTIONAL F-N",
+   "feature": "RESERVE INTEGER AREA",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",

@@ -18,7 +18,7 @@
    "lines": [
     468
    ],
-   "feature": "CREATE FILE SQ-FS3",
+   "feature": "VERIFY FILE SQ-FS3",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -73,7 +73,7 @@
    "lines": [
     606
    ],
-   "feature": "READ...END...",
+   "feature": "READ FILE SQ-FS3",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",

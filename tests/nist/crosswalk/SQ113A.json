@@ -18,7 +18,7 @@
    "lines": [
     569
    ],
-   "feature": "CREATE 750 RECORD FILE",
+   "feature": "VERIFY NEW FILE",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -29,7 +29,7 @@
    "lines": [
     671
    ],
-   "feature": "VERIFY NEW FILE",
+   "feature": "OPEN FILE FOR INPUT",
    "ansi": "VII-3, VII-44",
    "disposition": "open",
    "resolution": "ambiguous",

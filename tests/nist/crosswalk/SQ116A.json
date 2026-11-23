@@ -18,7 +18,7 @@
    "lines": [
     486
    ],
-   "feature": "CREATE FILE SQ-FS6",
+   "feature": "VERIFY FILE SQ-FS6",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -29,7 +29,7 @@
    "lines": [
     545
    ],
-   "feature": "VERIFY FILE SQ-FS6",
+   "feature": "REWRITE...FROM 01 L",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -106,7 +106,7 @@
    "lines": [
     919
    ],
-   "feature": "RWRT FROM 05 LEVEL",
+   "feature": "RECORD NOT REWRITTEN",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -117,7 +117,7 @@
    "lines": [
     948
    ],
-   "feature": "RECORD NOT REWRITTEN",
+   "feature": "READ LAST RECORD",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
