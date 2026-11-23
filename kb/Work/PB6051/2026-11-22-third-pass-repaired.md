@@ -20,8 +20,9 @@ It cost 10.5M subagent tokens, against pass 2's 23.7M. All 7 confirmed claims ar
 - **p833-1** the OPTIONAL MODULES table (page 833) is one HTML table with the row spans the print shows (RPW and ITR over the
   whole subset axis; COM, DEB, SEG split in the middle of INTERMEDIATE), as page 25 already holds the same diagram.
 
-The other 18 claims are refuted and recorded (the 13 index and summary-table formatting claims, p440-1's closing brace, p934-1,
-p835-1, p32-1, p34-1). Not settled by the title rule, left as printed: p34 and p37 head the summary-table title as `##` and `#`
+The other 18 claims are refuted and recorded (the 8 index claims p963-1 to p970-1; the 5 title claims p197-1, p200-1,
+p202-1, p208-1, p225-1, refuted as the verifiers judged them and repaired under PB6095's title rule; p440-1's closing
+brace; p934-1; p835-1; and the 2 summary-table claims p32-1 and p34-1). Not settled by the title rule, left as printed: p34 and p37 head the summary-table title as `##` and `#`
 while pages 31 to 38 print it plain; the heading audit allows any level for an unnumbered underlined title.
 
 The catalog's 11 changed rows are box markers only; their inventory records were re-recorded unchanged through
