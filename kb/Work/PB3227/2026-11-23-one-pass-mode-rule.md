@@ -31,3 +31,11 @@ reduction, `ConditionBinder.ReduceArgument`; the scan's own text-matching `Opera
 `conformance-suite/cases/14.9.4-CALL/pb3227_format2_keywordless_shares_storage` (accept 2002, 2023; four legs: after BY
 VALUE, after BY CONTENT, in the boolean node, the bare prototype name) and its refusal at 85,
 `pb3227_format2_keywordless_85` (the CALL AS phrase requires COBOL-2002).
+
+## Landing
+
+- `src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallArgumentModes.cs#CallArgumentModes`: the one GR5/GR9 CALL pass-mode rule; REUSE `KeywordLessIdentifier` / `KeywordLessValue` / `FormalIsByValue` / `CarriedAfter`, never re-derive a mode from the phrases.
+- `src/WiseOwl.Cobol.Compiler/Binding/StorageClaimScan.cs#RecordCallArguments`: the scan's CALL arm; a Format-2 keyword-less identifier is claimed as a BY REFERENCE formal takes it (formals bind after the claim). Trap: GR5 is printed under FORMAT 1 only.
+- `src/WiseOwl.Cobol.Compiler/Binding/StorageClaimScan.cs#ByReferenceOperands`: two asker predicates (user function, program prototype); an `Entry` holds both formats' claims when the bare target word decides the format.
+- `src/WiseOwl.Cobol.Compiler/Binding/Passes/PtrBindBasedAndAddressablesPass.cs#IsProgramPrototype`: `SymbolTable.DeclaresPrototypeName(word, function: false)` (§2023:8.4.6.8).
+- `src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BarePrototypeWord`: internal; the one shape test of a program-prototype-name operand. Trap: renaming a member an inventory row cites needs a `record_verdicts` retirement (SpecTraceabilityInventoryDriftTests).
