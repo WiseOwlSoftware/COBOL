@@ -1493,10 +1493,10 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
-        /// <summary>NEXT SENTENCE — ARCHAIC in 2023 (0903 warning; VCR 90; P2.6).</summary>
+        /// <summary>NEXT SENTENCE — ARCHAIC from 2002 (§2002:G.1 item 3; 0903 warning; VCR 90; P2.6).</summary>
         public override object? VisitNextSentenceStatement(CobolParserCore.NextSentenceStatementContext ctx)
         {
-            _p.Check(Constructs.NextSentenceArchaic2023, "the NEXT SENTENCE phrase");
+            _p.Check(Constructs.NextSentenceArchaic2002, "the NEXT SENTENCE phrase");
             return base.VisitChildren(ctx);
         }
 
