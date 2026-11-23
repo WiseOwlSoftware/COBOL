@@ -44,7 +44,7 @@ internal static class ExternalRecordDescriptionRules
         foreach (var e in elements)
             foreach (var backing in e.Data.Linkage.ExternalBackings)
             {
-                bool fileArea = backing.ExternalName.StartsWith("FD::", StringComparison.Ordinal);
+                bool fileArea = backing.ExternalName.StartsWith(Model.FileModel.ExternalAreaPrefix, StringComparison.Ordinal);
                 if (fileArea && edition.DialectLevel < 2002) continue;   // §1985:VII.3.8.4 GR2's, above
                 string describer = e.Unit is { } u ? $"program '{u.Name}'" : "a class";
                 first ??= new Dictionary<string, (string, CallExternalBacking)>(ExternalizedNames.Comparer);
@@ -57,7 +57,7 @@ internal static class ExternalRecordDescriptionRules
                 if (differs is null) continue;
                 using var _ = edition.At(backing.Record.DeclaredAt);
                 edition.Error(DiagnosticCatalog.ExternalRecordDescriptionDisagreement,
-                    (fileArea ? $"the records of external file '{backing.ExternalName["FD::".Length..]}'" : $"external record '{backing.Record.CobolName}'")
+                    (fileArea ? $"the records of external file '{backing.ExternalName[Model.FileModel.ExternalAreaPrefix.Length..]}'" : $"external record '{backing.Record.CobolName}'")
                     + $": this description and the one in {earlier.Describer} describe the same "
                     + $"external data record and differ in {differs} — "
                     + edition.Edition.Cite(

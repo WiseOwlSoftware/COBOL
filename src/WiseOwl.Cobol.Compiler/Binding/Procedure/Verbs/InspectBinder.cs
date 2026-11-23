@@ -123,7 +123,7 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
                 $"INSPECT identifier-1 '{target.Item.CobolName}' is "
                 + (ItemCategory.IsGroupItem(target.Item)
                     ? $"one of the {ItemCategory.Spell(ItemCategory.GroupKindsOf(target.Item))}"
-                    : $"an elementary item of USAGE {ItemCategory.UsageOf(target.Item)?.ToString() ?? "(none)"}")
+                    : $"an elementary item of USAGE {(ItemCategory.UsageOf(target.Item) is { } usage ? UsageFamilies.UsageWord(usage) : "(none)")}")
                 + "; SR1 admits " + ctx.Edition.Edition.Cite(
                     "a group item or an elementary item described implicitly or explicitly as USAGE IS DISPLAY (§1985:VI.6.18.3 SR1)",
                     InspectIdentifier1Rule));

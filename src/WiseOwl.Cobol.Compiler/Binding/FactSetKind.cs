@@ -20,6 +20,8 @@ public enum FactSetKind
     ActivationSites,
     /// <summary><see cref="DataBindState.NumericStores"/>.</summary>
     NumericStores,
+    /// <summary><see cref="DataBindState.RangeCollations"/>.</summary>
+    RangeCollations,
 }
 
 /// <summary>When each fact set may be appended to, and when it is complete: the contract a pass's declared
@@ -42,6 +44,10 @@ public static class FactSetContract
         FactSetKind.CharacterChannelItems => [PassPhase.UsageCollected],
         FactSetKind.ActivationSites => [PassPhase.ProcedureBound],
         FactSetKind.NumericStores => [PassPhase.UsageCollected],
+        // The THROUGH range carriers (kb/Work PB3214): a level-88 VALUE THROUGH ... IN alphabet-name-1 makes one in the ENTRY
+        // WALK, before the first resolve pass (PassPhase.None: no pass runs there, so the walk declares no view), and an
+        // EVALUATE WHEN range in procedure binding; code generation reads the set whole, after binding.
+        FactSetKind.RangeCollations => [PassPhase.None, PassPhase.ProcedureBound],
         _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "a fact set kind has no contract row"),
     };
 
