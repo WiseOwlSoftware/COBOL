@@ -28,4 +28,9 @@ recorded implementor choice of DOC-A.1-56 (a binary-capacity item shows its cont
 Lead 4: the COMP-5 container golden now cites DOC-A.1-208 instead of §2023:13.18.60.4 GR12. Lead 5: `pb6073-testnumvalf-alphabetic-2002`
 witnesses `2002-AR-15.77.2-1`.
 
+**A cache flake found by the gate.** `WarningSuppressionTests.TheTurnWarning_IsReportedWithoutTheOption` failed the second gate of a worktree: the
+compiled-program cache (`CompiledProgramCache.StoredDiagnostic`) stored no catalog descriptor, so a cache hit returned a record with
+`Descriptor == null` while a cold compile returned it. The entry now stores the descriptor's id and a hit resolves it from `DiagnosticCatalog.All`
+(`FormatVersion` 6).
+
 **Left open (named in the report).** The 2002 rows of `FileControlKeyRules` still print the 2023 clause in their messages.
