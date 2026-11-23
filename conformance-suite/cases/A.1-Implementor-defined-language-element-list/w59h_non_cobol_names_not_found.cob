@@ -1,14 +1,15 @@
 *>--- conformance-case
 *> id: w59h_non_cobol_names_not_found
-*> rules: [DOC-A.1-13, DOC-A.1-15, DOC-A.1-88, DOC-A.1-142, DOC-A.1-143,
+*> rules: [DOC-A.1-13, DOC-A.1-15, DOC-A.1-142, DOC-A.1-143,
 *>    DOC-A.1-217]
-*> accept: [2014]
+*> accept: [2002]
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB1536 Q1 / R43 item 3 - Annex A.1 items 13, 15, 88 and 142
+      *> kb/Work PB1536 Q1 / R43 item 3 - Annex A.1 items 13, 15 and 142
       *> (and the optional item 143) are CONDITIONALLY REQUIRED on support for
-      *> non-COBOL programs and functions, and WiseOwl COBOL provides none:
+      *> non-COBOL programs, and WiseOwl COBOL provides none (item 88, the
+      *> function twin, is w59h_non_cobol_function_not_found from 2014):
       *> docs/CONFORMANCE.md section 7 records each as "Condition absent.".
       *>   cite.py --check A.1 "Conditionally required: If the associated
       *>     feature or language element is implemented then this element
@@ -29,48 +30,20 @@
       *>     the program, the EC-PROGRAM-NOT-FOUND exception condition is
       *>     set to exist and the value of the address-identifier is the
       *>     predefined address NULL." -> OK 8.4.3.13.4 4)
-      *>   cite.py --check 8.4.3.2.4 "If the function is not found, the
-      *>     EC-FUNCTION-NOT-FOUND exception condition is set to exist"
-      *>     -> OK 8.4.3.2.4 6)
       *> DERIVATION of every .out line:
       *>   CALL-NOT-FOUND  items 13/15: the program cannot be located, so
       *>                   EC-PROGRAM-NOT-FOUND exists and the ON EXCEPTION
       *>                   phrase runs (14.9.4.4 GR3 b), h)).
       *>   PP-NULL         item 142: ADDRESS OF PROGRAM cannot locate it,
       *>                   so the program-pointer is NULL (8.4.3.13.4 GR4).
-      *>   FN-NOT-FOUND    item 88: the prototype's externalized name spells
-      *>                   the same non-COBOL module; the function is not
-      *>                   found, EC-FUNCTION-NOT-FOUND (enabled by the
-      *>                   TURN) runs its declarative, which resumes at the
-      *>                   statement after the MOVE.
-      *>   Y=7             so the MOVE never stores: Y keeps VALUE 7.
-      *> 2002 dir: prototypes, >>TURN, RESUME and ADDRESS OF PROGRAM are 2002.
-       IDENTIFICATION DIVISION.
-       FUNCTION-ID. W59HFN AS "WiseOwl.Cobol.Runtime" IS PROTOTYPE.
-       DATA DIVISION.
-       LINKAGE SECTION.
-       01 R PIC 9.
-       PROCEDURE DIVISION RETURNING R.
-       END FUNCTION W59HFN.
-       >>TURN EC-FUNCTION-NOT-FOUND CHECKING ON
+      *> 2002 dir: ADDRESS OF PROGRAM is 2002.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. W59HNCOB.
        ENVIRONMENT DIVISION.
-       CONFIGURATION SECTION.
-       REPOSITORY.
-           FUNCTION W59HFN.
        DATA DIVISION.
        WORKING-STORAGE SECTION.
        01 PP USAGE PROGRAM-POINTER.
-       01 Y  PIC 9 VALUE 7.
        PROCEDURE DIVISION.
-       DECLARATIVES.
-       HF SECTION.
-           USE AFTER EXCEPTION CONDITION EC-FUNCTION-NOT-FOUND.
-       HF-P.
-           DISPLAY "FN-NOT-FOUND".
-           RESUME AT NEXT STATEMENT.
-       END DECLARATIVES.
        MAIN SECTION.
        M-P.
            CALL "WiseOwl.Cobol.Runtime"
@@ -83,7 +56,5 @@
            ELSE
                DISPLAY "PP-SET"
            END-IF
-           MOVE FUNCTION W59HFN TO Y
-           DISPLAY "Y=" Y
            STOP RUN.
        END PROGRAM W59HNCOB.
