@@ -1,0 +1,13 @@
+{
+  "claim_id": "p419-1",
+  "claim_key": "34186cdb5d9f9655",
+  "page": 419,
+  "kind": "incorrect-text",
+  "severity": "cosmetic",
+  "claim": {"id": "p419-1", "page": 419, "kind": "incorrect-text", "severity": "cosmetic", "location": "4.4.4 General Rules (8) b", "pdf_says": "The size of the current record is determined by rules specified in the RECORD clause. If the file description entry contains a RECORD IS VARYING clause, the implied move is a group move. The implied MOVE statement", "markdown_says": "<u>The size of the current record is determined by rules specified in the RECORD clause. ║If the file description entry contains a RECORD IS VARYING clause, the implied move is a group move.</u>║ The implied MOVE statement", "explanation": "The printed page has no underlining in this rule. The lines the transcription read as underlining are the staircase border of the change box, which starts mid-line at 'If the file description entry...' (its top edge runs over the end of the line 'The size of the current record is determined by rules', and its lower-left step runs under 'specified in the RECORD clause.'). The ║ box markers are placed correctly. The <u>...</u> markup is spurious and should be removed, which also fixes the bad nesting of </u> inside the box span.", "why_it_matters": "Spurious underlining in prose adds emphasis the standard does not print and mis-nests with the change-box markers; it does not alter the rule text."},
+  "verdict": {
+    "real": true,
+    "reasoning": "Checked the 300 dpi render of page 419 (VII-45), rule (8) b. A staircase change box encloses 'If the file description entry contains a RECORD IS VARYING clause, the implied move is a group move.' Its top edge runs over the second half of the line 'The size of the current record is determined by rules'. A short vertical tick sits just before 'If', and the lower-left step runs under 'specified in the RECORD clause.' then turns down to enclose 'IS VARYING clause, ... group move.' and closes with a vertical bar before 'The implied MOVE'. Nothing outside that border is underlined: the strokes are box edges, not underscores. In the markdown (page-419.md line 25), <u> opens before 'The size of the current record', which is outside the box, and </u> closes inside the ║ span, so the nesting is wrong too. The words match exactly. The only defect is the spurious <u> markup, so cosmetic is the right severity and the claim's description is accurate.",
+    "corrected_description": ""
+  }
+}
