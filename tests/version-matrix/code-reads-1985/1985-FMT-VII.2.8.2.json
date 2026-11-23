@@ -1,109 +1,91 @@
 {
  "rule-id": "1985-FMT-VII.2.8.2",
- "rule-digest": "bc1ebf10066c",
+ "rule-digest": "98577947ea10",
  "read": {
-  "pin": "946daf5a4d16ed4c6a2370978e1249457c072b90",
-  "slice": "1985-237",
+  "pin": "ee6815f0e920cae98eaebf59fdec02b58ab7ce17",
+  "slice": "slice",
   "sources": {
-   "reader": "10c46923cc936bd474f98b0987fa57e51be9d7397412d2b1ff469c6396ce500a",
-   "refuter": "e49db95ee4b953357c139c91667ace20327d46fd8a6d68769553324f37de35b7"
+   "reader": "3409715c4351c446ffa5179b36e4718b6d6fbbc9453e40281054f9763adc3b80",
+   "refuter": "1898d112fb567415885c57be5901100356e3ef014f0505666692f7af2ed7f59a"
   },
   "imported": {
-   "reader": "0584b529959b56dd63ffb33e89b49a32bc95d69b8060b386a0be2ee8426c9118",
-   "refuter": "07187636e8f12357aad19d9d8e61ad445612f78c162031aba0edb2a416a547cf"
+   "reader": "71e256aee0ccc395d5d3586ae3de26ed393e9899132edf6583292c35ce532237",
+   "refuter": "7992ed7e8867d48d29bd0d3e00ed7d5b72cad624eb5e6d891f2c38c4dc1d6a55"
   }
  },
  "reader": {
   "rule-id": "1985-FMT-VII.2.8.2",
   "verdict": "CONFORMS",
-  "requirement": "At 1985 the file control entry of a sequential file accepts RECORD DELIMITER [IS] followed by exactly one of STANDARD-1 or an implementor-name, and refuses any other shape (no operand, two operands, a literal, the clause without RECORD, a word that is no implementor-name).",
-  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#recordDelimiterClause; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#BindFileControl; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#ApplyRecordDelimiter; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#ScreenRecordDelimiter; src/WiseOwl.Cobol.Compiler/Binding/RecordDelimiterNames.cs#IsName; src/WiseOwl.Cobol.Compiler/Binding/RecordDelimiterNames.cs#TryMethod; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#RecordDelimiterUnsupported",
+  "requirement": "The file control entry of a sequential file accepts RECORD DELIMITER IS {STANDARD-1 | implementor-name-1} (RECORD, DELIMITER, STANDARD-1 required words, IS optional, the clause at most once, only in the sequential entry), and refuses a word that is no implementor-name.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#recordDelimiterClause; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#BindFileControl; src/WiseOwl.Cobol.Compiler/Binding/RecordDelimiterNames.cs#IsName; src/WiseOwl.Cobol.Compiler/Binding/RecordDelimiterNames.cs#TryMethod",
   "edition-consulted": [
    {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/EditionContext.cs#Cite",
-    "switches": "only the citation text inside the COBOL7598 and COBOL7599 messages (1985 locator at --std 85)",
-    "same-arm-as-latest": true
-   },
-   {
-    "site": "src/WiseOwl.Cobol.Editions/ReservedWords.Table.cs#Entries",
-    "switches": "DELIMITER and STANDARD-1 reserved at every edition (all four columns true)",
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#BindFileControl",
+    "switches": "only the citation text printed in the diagnostics (§1985 or §2023) through Edition.Declined/Error; STANDARD-1 accepted-inert at every edition",
     "same-arm-as-latest": true
    }
   ],
-  "edition-search": "grep of src/WiseOwl.Cobol.Editions and constructs/ for record.?delimiter, STANDARD-1, DELIMITER: no ConstructRegistry row, no version predicate in the grammar rule; the binder arm is edition-invariant except EditionContext.Cite text.",
+  "edition-search": "read the grammar rule, BindFileControl arm, RecordDelimiterNames; the clause code branches on no edition, only diagnostic text varies.",
   "behaviour-differs-by-edition": "no",
-  "witnesses-cover": "part: the witnesses exercise both arms with and without IS and a non-name word; the parse refusals of degenerate forms (no operand, two operands, a literal, DELIMITER without RECORD) are not exercised",
+  "witnesses-cover": "part: the witnesses cover names and STANDARD-1; the probes below add IS omitted, DELIMITER omitted, duplicate clause and indexed organization",
   "probes": [
    {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/md85-coderead/probes-c09/rd1.cob rd2.cob rd5.cob",
+    "printed": "IS LINE-SEQUENTIAL, no IS, IS BINARY-SEQUENTIAL: all compile and run, OK",
+    "expected": "IS optional, implementor-name accepted"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/md85-coderead/probes-c09/rd3.cob",
+    "printed": "COBOL7598 FOO-BAR names no method (§1985:VII.2.8.4 GR3)",
+    "expected": "a word that is no implementor-name is refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/md85-coderead/probes-c09/rd4.cob",
+    "printed": "COBOL1778 warning, STANDARD-1 accepted with no effect",
+    "expected": "STANDARD-1 is a format alternative, so accepted (hardware-dependent, declared in Annex A.3 item 26)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/md85-coderead/probes-c09/rd7.cob",
+    "printed": "clause without DELIMITER refused (COBOL0863 parsed as RECORD KEY)",
+    "expected": "DELIMITER is underlined, required"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/md85-coderead/probes-c09/rd6.cob",
+    "printed": "COBOL2423 clause written 2 times",
+    "expected": "bracket with no ellipsis allows it once"
+   },
+   {
     "class": "e",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-237/src/rd1b.cob",
-    "printed": "warning COBOL1778 on STANDARD-1 (accepted inert); run prints '03 ABC 03 ABC'",
-    "expected": "both arms accepted; the method is not reflected in the record area or size (VII.2.8.4 GR1), so 3-char records read back as 3"
+    "file": "E:/COBOL-coord/scratch/md85-coderead/probes-c09/rd8.cob",
+    "printed": "COBOL2912 INDEXED file with RECORD DELIMITER refused",
+    "expected": "clause printed only in the sequential entry (§1985:VII.2.3.2)"
    },
    {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-237/src/rd2.cob",
-    "printed": "COBOL0312 unexpected '.' for RECORD DELIMITER IS. ; COBOL5506 literal not expected for RECORD DELIMITER IS \"X\"",
-    "expected": "refused: the brace requires exactly one of STANDARD-1 or implementor-name-1"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-237/src/rd3.cob",
-    "printed": "COBOL1970 'BINARY-SEQUENTIAL' is not a clause of the file control entry (after STANDARD-1)",
-    "expected": "refused: only one alternative of the brace"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-237/src/rd4.cob",
-    "printed": "COBOL7598 RECORD DELIMITER IS FOO names no method (§1985:VII.2.8.4 GR3)",
-    "expected": "refused: FOO is no implementor-name"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-237/src/rd5.cob",
-    "printed": "COBOL1970 unexpected 'DELIMITER'",
-    "expected": "refused: RECORD is a required key word"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-237/src/rd6.cob",
-    "printed": "COBOL1778 warning plus COBOL7599 fixed-length records (§1985:VII.3.8.4 GR3)",
-    "expected": "refused by VII.2.8.3 SR1 (fixed-length records)"
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/md85-coderead/probes-c09/rd1.cob at --std 2023",
+    "printed": "OK",
+    "expected": "same arm"
    }
   ],
   "citations": [
    {
-    "cite": "§1985:VII.2.8.1",
-    "check": "OK  §1985:VII.2.8.1  (║2.8.1 Function║)  the text is in the clause"
-   },
-   {
-    "cite": "§1985:VII.2.8.4 GR3",
-    "check": "OK  §1985:VII.2.8.4 GR3  (║2.8.4 General Rules║)  the text is in GR3"
-   },
-   {
-    "cite": "§1985:VII.2.8.3 SR2",
-    "check": "OK  §1985:VII.2.8.3 SR2  (║2.8.3 Syntax Rules║)  the text is in SR2"
-   },
-   {
-    "cite": "§1985:VII.2.8.3 SR1",
-    "check": "OK  §1985:VII.2.8.3 SR1  (║2.8.3 Syntax Rules║)  the text is in SR1"
+    "cite": "§1985:VII.2.8.2",
+    "check": "cite.py cannot check the quoted text: the rule is a boxed diagram and every quotation fails (quote-too-short or text-not-found); the locator is the catalog's own (page 387, folio VII-13)"
    }
   ],
-  "notes": "The grammar rule is the format verbatim (RECORD DELIMITER IS? (STANDARD_1 | cobolWord)) and the binder narrows cobolWord to the implementor-name table (BINARY-SEQUENTIAL, LINE-SEQUENTIAL). The general-format diagram itself is not quotable by cite.py (box-drawn), so the clause's function and rules are cited. Minor: the COBOL1778 and COBOL1970 messages cite §2023 even at --std 85; not part of this rule.",
-  "seeded": true,
-  "harm": "",
-  "cause": "",
-  "at-2023": "",
-  "repro": "",
-  "expected": "",
-  "observed": "",
-  "known_note": ""
+  "notes": "Format row fully honoured: required words, optional IS, once only, sequential only, undefined names refused. The edition has no arm of its own; STANDARD-1 is accepted and inert with a warning.",
+  "seeded": true
  },
  "refuter": {
   "rule-id": "1985-FMT-VII.2.8.2",
   "refutation": "UPHELD",
   "classes": "b,c,e",
-  "evidence": "Read §1985:VII.2.8 whole and the grammar rule recordDelimiterClause (RECORD DELIMITER IS? (STANDARD_1 | cobolWord)) with FileControlBinder.BindFileControl/ApplyRecordDelimiter/ScreenRecordDelimiter. Attacked the format's placement (the clause belongs to the Sequential I-O file control entry only) and degenerate shapes the reader did not try, at --std 85: rdA RELATIVE + RECORD DELIMITER -> COBOL2912 refused; rdB INDEXED + RECORD DELIMITER -> COBOL2912 refused; rdC sort file (SD) + RECORD DELIMITER -> COBOL1900 citing §1985:XI.2.3.3 SR2; rdD the clause written twice -> COBOL2423; rdF RECORD DELIMITER IS STANDARD-2 (a reserved word that is no implementor-name) -> COBOL5506; rdE lower-case 'record delimiter line-sequential' (IS omitted) on RECORD CONTAINS 1 TO 8 -> compiles and runs, records read back [ABC     ] [ABCDEFGH]. Every shape the format refuses is refused and every shape it admits is accepted. cite.py: 'OK  §1985:VII.2.8.3 SR1  the text is in SR1'; 'OK  §1985:XI.2.3.3 SR2  the text is in SR2'; 'OK  §1985:VII.2.8.4 GR3  the text is in GR3'. Wording only: COBOL2912/COBOL2423/COBOL5506 cite §2023 at --std 85.",
+  "evidence": "Read VII.2.8.2-VII.2.8.4 (diagram: RECORD DELIMITER IS {STANDARD-1 | implementor-name-1}, only IS not underlined). Probes under E:/COBOL-coord/scratch/md85-coderead/probes-refute-c09: k5 (fixed-length RECORD CONTAINS 4 with the clause) refused COBOL7599 citing VII.2.8.3 SR1 (also warns COBOL1778 STANDARD-1 inert); k6 (RELATIVE file with clause) refused COBOL2912; k7 (clause before ORGANIZATION, RECORD VARYING FROM 1 TO 4, FILE STATUS) compiles and runs, so clause order is free. cite.py --check '§1985:VII.2.8.3 SR1' 'The RECORD DELIMITER clause may be specified only for variable length records' returned OK (SR1 is the clause the reader's record could name, the compiler enforces it). The format row itself still cannot be text-checked: cite.py --check '§1985:VII.2.8.2' 'RECORD DELIMITER IS' returned FAIL quote-too-short (boxed diagram); the locator is the catalog's. No edition-specific arm found missed: the clause code branches on no edition.",
   "edition-sites-missed": [],
   "corrected": ""
  }
