@@ -39,8 +39,10 @@ namespace WiseOwl.Cobol.CodeGen;
 /// shape a variable-length record's area states, so the activated program's formal is laid over it.</param>
 /// <param name="dataEmitterFor">A unit's data-division emitter, which states the DESCRIPTION'S fresh cell of a formal
 /// (<see cref="DataEmitter.FreshArea"/>) for a record the host builds an area of.</param>
+/// <param name="editionYear">The ISO edition the compilation targets, which names the condition a function's locate miss raises
+/// (<see cref="Editions.ExceptionNameRule.NameInEdition"/>; kb/Work PB6107).</param>
 internal sealed class HostEntryEmitter(SignEncoding signEncoding, GroupAtomTable atoms,
-    Func<DataBindResult, DataEmitter> dataEmitterFor)
+    Func<DataBindResult, DataEmitter> dataEmitterFor, int editionYear)
 {
     /// <summary>Emit the host-entry class of every unit the compilation publishes (<paramref name="entryUnits"/>,
     /// <see cref="BoundCompilation.EntryUnits"/>: DESIGN-external-repository §7.2), each named by the one allocator in the module
@@ -236,7 +238,9 @@ internal sealed class HostEntryEmitter(SignEncoding signEncoding, GroupAtomTable
         string args = formals.Count == 0 ? "global::System.Array.Empty<CobolArg>()"
             : $"new CobolArg[] {{ {string.Join(", ", formals.Select(Arg))} }}";
         string ret = returning is null ? "null" : ArgOver(returning, CobolPassMode.Reference);
-        string notFound = unit.IsFunction ? ", notFoundEc: \"EC-FUNCTION-NOT-FOUND\"" : "";
+        string notFound = unit.IsFunction
+            ? $", notFoundEc: \"{Editions.ExceptionNameRule.NameInEdition("EC-FUNCTION-NOT-FOUND", editionYear)}\", asFunction: true"
+            : "";
         bool decodes = formals.Any(f => !f.ByValue) || returning is not null;
         if (decodes) w.Line("global::System.FormatException? __hbad = null;");
         // 3. The one activation boundary — the outermost one (callerPath null), with the activating half of GR3 d) on.

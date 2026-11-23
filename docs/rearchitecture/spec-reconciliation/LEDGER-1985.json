@@ -9169,97 +9169,97 @@
    "page": 34,
    "sweep": "summary-titles(p31-1)",
    "was": "## SUMMARY OF ELEMENTS IN THE NUCLEUS MODULE",
-   "now": "## <u>SUMMARY OF ELEMENTS IN THE NUCLEUS MODULE</u>"
+   "now": "<u>SUMMARY OF ELEMENTS IN THE NUCLEUS MODULE</u>"
   },
   {
    "page": 37,
    "sweep": "summary-titles(p31-1)",
    "was": "# SUMMARY OF ELEMENTS IN THE NUCLEUS MODULE",
-   "now": "# <u>SUMMARY OF ELEMENTS IN THE NUCLEUS MODULE</u>"
+   "now": "<u>SUMMARY OF ELEMENTS IN THE NUCLEUS MODULE</u>"
   },
   {
    "page": 42,
    "sweep": "summary-titles(p31-1)",
    "was": "## SUMMARY OF ELEMENTS IN THE RELATIVE I-O MODULE",
-   "now": "## <u>SUMMARY OF ELEMENTS IN THE RELATIVE I-O MODULE</u>"
+   "now": "<u>SUMMARY OF ELEMENTS IN THE RELATIVE I-O MODULE</u>"
   },
   {
    "page": 43,
    "sweep": "summary-titles(p31-1)",
    "was": "# SUMMARY OF ELEMENTS IN THE RELATIVE I-O MODULE",
-   "now": "# <u>SUMMARY OF ELEMENTS IN THE RELATIVE I-O MODULE</u>"
+   "now": "<u>SUMMARY OF ELEMENTS IN THE RELATIVE I-O MODULE</u>"
   },
   {
    "page": 45,
    "sweep": "summary-titles(p31-1)",
    "was": "# SUMMARY OF ELEMENTS IN THE INDEXED I-O MODULE",
-   "now": "# <u>SUMMARY OF ELEMENTS IN THE INDEXED I-O MODULE</u>"
+   "now": "<u>SUMMARY OF ELEMENTS IN THE INDEXED I-O MODULE</u>"
   },
   {
    "page": 47,
    "sweep": "summary-titles(p31-1)",
    "was": "# SUMMARY OF ELEMENTS IN THE INDEXED I-O MODULE",
-   "now": "# <u>SUMMARY OF ELEMENTS IN THE INDEXED I-O MODULE</u>"
+   "now": "<u>SUMMARY OF ELEMENTS IN THE INDEXED I-O MODULE</u>"
   },
   {
    "page": 49,
    "sweep": "summary-titles(p31-1)",
    "was": "## SUMMARY OF ELEMENTS IN THE INTER-PROGRAM COMMUNICATION MODULE",
-   "now": "## <u>SUMMARY OF ELEMENTS IN THE INTER-PROGRAM COMMUNICATION MODULE</u>"
+   "now": "<u>SUMMARY OF ELEMENTS IN THE INTER-PROGRAM COMMUNICATION MODULE</u>"
   },
   {
    "page": 52,
    "sweep": "summary-titles(p31-1)",
    "was": "## SUMMARY OF ELEMENTS IN THE SOURCE TEXT MANIPULATION MODULE",
-   "now": "## <u>SUMMARY OF ELEMENTS IN THE SOURCE TEXT MANIPULATION MODULE</u>"
+   "now": "<u>SUMMARY OF ELEMENTS IN THE SOURCE TEXT MANIPULATION MODULE</u>"
   },
   {
    "page": 63,
    "sweep": "summary-titles(p31-1)",
    "was": "# SUMMARY OF ELEMENTS IN LANGUAGE CONCEPTS",
-   "now": "# <u>SUMMARY OF ELEMENTS IN LANGUAGE CONCEPTS</u>"
+   "now": "<u>SUMMARY OF ELEMENTS IN LANGUAGE CONCEPTS</u>"
   },
   {
    "page": 64,
    "sweep": "summary-titles(p31-1)",
    "was": "## SUMMARY OF ELEMENTS IN IDENTIFICATION DIVISION",
-   "now": "## <u>SUMMARY OF ELEMENTS IN IDENTIFICATION DIVISION</u>"
+   "now": "<u>SUMMARY OF ELEMENTS IN IDENTIFICATION DIVISION</u>"
   },
   {
    "page": 65,
    "sweep": "summary-titles(p31-1)",
    "was": "## SUMMARY OF ELEMENTS IN ENVIRONMENT DIVISION",
-   "now": "## <u>SUMMARY OF ELEMENTS IN ENVIRONMENT DIVISION</u>"
+   "now": "<u>SUMMARY OF ELEMENTS IN ENVIRONMENT DIVISION</u>"
   },
   {
    "page": 66,
    "sweep": "summary-titles(p31-1)",
    "was": "## SUMMARY OF ELEMENTS IN ENVIRONMENT DIVISION",
-   "now": "## <u>SUMMARY OF ELEMENTS IN ENVIRONMENT DIVISION</u>"
+   "now": "<u>SUMMARY OF ELEMENTS IN ENVIRONMENT DIVISION</u>"
   },
   {
    "page": 71,
    "sweep": "summary-titles(p31-1)",
    "was": "# SUMMARY OF ELEMENTS IN DATA DIVISION",
-   "now": "# <u>SUMMARY OF ELEMENTS IN DATA DIVISION</u>"
+   "now": "<u>SUMMARY OF ELEMENTS IN DATA DIVISION</u>"
   },
   {
    "page": 73,
    "sweep": "summary-titles(p31-1)",
    "was": "# SUMMARY OF ELEMENTS IN PROCEDURE DIVISION",
-   "now": "# <u>SUMMARY OF ELEMENTS IN PROCEDURE DIVISION</u>"
+   "now": "<u>SUMMARY OF ELEMENTS IN PROCEDURE DIVISION</u>"
   },
   {
    "page": 74,
    "sweep": "summary-titles(p31-1)",
    "was": "## SUMMARY OF ELEMENTS IN PROCEDURE DIVISION",
-   "now": "## <u>SUMMARY OF ELEMENTS IN PROCEDURE DIVISION</u>"
+   "now": "<u>SUMMARY OF ELEMENTS IN PROCEDURE DIVISION</u>"
   },
   {
    "page": 75,
    "sweep": "summary-titles(p31-1)",
    "was": "## SUMMARY OF ELEMENTS IN PROCEDURE DIVISION",
-   "now": "## <u>SUMMARY OF ELEMENTS IN PROCEDURE DIVISION</u>"
+   "now": "<u>SUMMARY OF ELEMENTS IN PROCEDURE DIVISION</u>"
   },
   {
    "page": 76,
@@ -9271,31 +9271,31 @@
    "page": 78,
    "sweep": "summary-titles(p31-1)",
    "was": "## SUMMARY OF ELEMENTS IN PROCEDURE DIVISION",
-   "now": "## <u>SUMMARY OF ELEMENTS IN PROCEDURE DIVISION</u>"
+   "now": "<u>SUMMARY OF ELEMENTS IN PROCEDURE DIVISION</u>"
   },
   {
    "page": 79,
    "sweep": "summary-titles(p31-1)",
    "was": "# SUMMARY OF ELEMENTS IN PROCEDURE DIVISION",
-   "now": "# <u>SUMMARY OF ELEMENTS IN PROCEDURE DIVISION</u>"
+   "now": "<u>SUMMARY OF ELEMENTS IN PROCEDURE DIVISION</u>"
   },
   {
    "page": 80,
    "sweep": "summary-titles(p31-1)",
    "was": "## SUMMARY OF ELEMENTS IN PROCEDURE DIVISION",
-   "now": "## <u>SUMMARY OF ELEMENTS IN PROCEDURE DIVISION</u>"
+   "now": "<u>SUMMARY OF ELEMENTS IN PROCEDURE DIVISION</u>"
   },
   {
    "page": 81,
    "sweep": "summary-titles(p31-1)",
    "was": "## SUMMARY OF ELEMENTS IN PROCEDURE DIVISION",
-   "now": "## <u>SUMMARY OF ELEMENTS IN PROCEDURE DIVISION</u>"
+   "now": "<u>SUMMARY OF ELEMENTS IN PROCEDURE DIVISION</u>"
   },
   {
    "page": 83,
    "sweep": "summary-titles(p31-1)",
    "was": "# SUMMARY OF ELEMENTS IN PROCEDURE DIVISION",
-   "now": "# <u>SUMMARY OF ELEMENTS IN PROCEDURE DIVISION</u>"
+   "now": "<u>SUMMARY OF ELEMENTS IN PROCEDURE DIVISION</u>"
   },
   {
    "page": 728,
@@ -18980,6 +18980,144 @@
    "sweep": "brace-column(PB6051 p213-1)",
    "was": "identifier-1 IS [<u>NOT</u>]   ┤ <u>ALPHABETIC-LOWER</u> ├",
    "now": "identifier-1 IS [<u>NOT</u>]    ┤ <u>ALPHABETIC-LOWER</u> ├"
+  },
+  {
+   "page": 34,
+   "sweep": "summary-title-form(PB6051)",
+   "was": "## <u>SUMMARY OF ELEMENTS IN THE NUCLEUS MODULE</u>",
+   "now": "<u>SUMMARY OF ELEMENTS IN THE NUCLEUS MODULE</u>"
+  },
+  {
+   "page": 37,
+   "sweep": "summary-title-form(PB6051)",
+   "was": "# <u>SUMMARY OF ELEMENTS IN THE NUCLEUS MODULE</u>",
+   "now": "<u>SUMMARY OF ELEMENTS IN THE NUCLEUS MODULE</u>"
+  },
+  {
+   "page": 42,
+   "sweep": "summary-title-form(PB6051)",
+   "was": "## <u>SUMMARY OF ELEMENTS IN THE RELATIVE I-O MODULE</u>",
+   "now": "<u>SUMMARY OF ELEMENTS IN THE RELATIVE I-O MODULE</u>"
+  },
+  {
+   "page": 43,
+   "sweep": "summary-title-form(PB6051)",
+   "was": "# <u>SUMMARY OF ELEMENTS IN THE RELATIVE I-O MODULE</u>",
+   "now": "<u>SUMMARY OF ELEMENTS IN THE RELATIVE I-O MODULE</u>"
+  },
+  {
+   "page": 45,
+   "sweep": "summary-title-form(PB6051)",
+   "was": "# <u>SUMMARY OF ELEMENTS IN THE INDEXED I-O MODULE</u>",
+   "now": "<u>SUMMARY OF ELEMENTS IN THE INDEXED I-O MODULE</u>"
+  },
+  {
+   "page": 47,
+   "sweep": "summary-title-form(PB6051)",
+   "was": "# <u>SUMMARY OF ELEMENTS IN THE INDEXED I-O MODULE</u>",
+   "now": "<u>SUMMARY OF ELEMENTS IN THE INDEXED I-O MODULE</u>"
+  },
+  {
+   "page": 49,
+   "sweep": "summary-title-form(PB6051)",
+   "was": "## <u>SUMMARY OF ELEMENTS IN THE INTER-PROGRAM COMMUNICATION MODULE</u>",
+   "now": "<u>SUMMARY OF ELEMENTS IN THE INTER-PROGRAM COMMUNICATION MODULE</u>"
+  },
+  {
+   "page": 52,
+   "sweep": "summary-title-form(PB6051)",
+   "was": "## <u>SUMMARY OF ELEMENTS IN THE SOURCE TEXT MANIPULATION MODULE</u>",
+   "now": "<u>SUMMARY OF ELEMENTS IN THE SOURCE TEXT MANIPULATION MODULE</u>"
+  },
+  {
+   "page": 63,
+   "sweep": "summary-title-form(PB6051)",
+   "was": "# <u>SUMMARY OF ELEMENTS IN LANGUAGE CONCEPTS</u>",
+   "now": "<u>SUMMARY OF ELEMENTS IN LANGUAGE CONCEPTS</u>"
+  },
+  {
+   "page": 64,
+   "sweep": "summary-title-form(PB6051)",
+   "was": "## <u>SUMMARY OF ELEMENTS IN IDENTIFICATION DIVISION</u>",
+   "now": "<u>SUMMARY OF ELEMENTS IN IDENTIFICATION DIVISION</u>"
+  },
+  {
+   "page": 65,
+   "sweep": "summary-title-form(PB6051)",
+   "was": "## <u>SUMMARY OF ELEMENTS IN ENVIRONMENT DIVISION</u>",
+   "now": "<u>SUMMARY OF ELEMENTS IN ENVIRONMENT DIVISION</u>"
+  },
+  {
+   "page": 66,
+   "sweep": "summary-title-form(PB6051)",
+   "was": "## <u>SUMMARY OF ELEMENTS IN ENVIRONMENT DIVISION</u>",
+   "now": "<u>SUMMARY OF ELEMENTS IN ENVIRONMENT DIVISION</u>"
+  },
+  {
+   "page": 71,
+   "sweep": "summary-title-form(PB6051)",
+   "was": "# <u>SUMMARY OF ELEMENTS IN DATA DIVISION</u>",
+   "now": "<u>SUMMARY OF ELEMENTS IN DATA DIVISION</u>"
+  },
+  {
+   "page": 73,
+   "sweep": "summary-title-form(PB6051)",
+   "was": "# <u>SUMMARY OF ELEMENTS IN PROCEDURE DIVISION</u>",
+   "now": "<u>SUMMARY OF ELEMENTS IN PROCEDURE DIVISION</u>"
+  },
+  {
+   "page": 74,
+   "sweep": "summary-title-form(PB6051)",
+   "was": "## <u>SUMMARY OF ELEMENTS IN PROCEDURE DIVISION</u>",
+   "now": "<u>SUMMARY OF ELEMENTS IN PROCEDURE DIVISION</u>"
+  },
+  {
+   "page": 75,
+   "sweep": "summary-title-form(PB6051)",
+   "was": "## <u>SUMMARY OF ELEMENTS IN PROCEDURE DIVISION</u>",
+   "now": "<u>SUMMARY OF ELEMENTS IN PROCEDURE DIVISION</u>"
+  },
+  {
+   "page": 78,
+   "sweep": "summary-title-form(PB6051)",
+   "was": "## <u>SUMMARY OF ELEMENTS IN PROCEDURE DIVISION</u>",
+   "now": "<u>SUMMARY OF ELEMENTS IN PROCEDURE DIVISION</u>"
+  },
+  {
+   "page": 79,
+   "sweep": "summary-title-form(PB6051)",
+   "was": "# <u>SUMMARY OF ELEMENTS IN PROCEDURE DIVISION</u>",
+   "now": "<u>SUMMARY OF ELEMENTS IN PROCEDURE DIVISION</u>"
+  },
+  {
+   "page": 80,
+   "sweep": "summary-title-form(PB6051)",
+   "was": "## <u>SUMMARY OF ELEMENTS IN PROCEDURE DIVISION</u>",
+   "now": "<u>SUMMARY OF ELEMENTS IN PROCEDURE DIVISION</u>"
+  },
+  {
+   "page": 81,
+   "sweep": "summary-title-form(PB6051)",
+   "was": "## <u>SUMMARY OF ELEMENTS IN PROCEDURE DIVISION</u>",
+   "now": "<u>SUMMARY OF ELEMENTS IN PROCEDURE DIVISION</u>"
+  },
+  {
+   "page": 83,
+   "sweep": "summary-title-form(PB6051)",
+   "was": "# <u>SUMMARY OF ELEMENTS IN PROCEDURE DIVISION</u>",
+   "now": "<u>SUMMARY OF ELEMENTS IN PROCEDURE DIVISION</u>"
+  },
+  {
+   "page": 58,
+   "sweep": "summary-title-form(PB6051)",
+   "was": "## <u>SUMMARY OF ELEMENTS IN THE DEBUG MODULE</u>",
+   "now": "<u>SUMMARY OF ELEMENTS IN THE DEBUG MODULE</u>"
+  },
+  {
+   "page": 62,
+   "sweep": "summary-title-form(PB6051)",
+   "was": "## <u>SUMMARY OF ELEMENTS IN LANGUAGE CONCEPTS</u>",
+   "now": "<u>SUMMARY OF ELEMENTS IN LANGUAGE CONCEPTS</u>"
   }
  ],
  "boxes": [

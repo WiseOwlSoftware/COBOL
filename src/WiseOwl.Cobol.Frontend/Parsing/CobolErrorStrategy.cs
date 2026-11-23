@@ -1914,7 +1914,8 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
             && at.Admitted() is { } admitted
             && AdmittedKinds.Refusal(token, admitted.Tokens, admitted.Words, admitted.WordChangesNothing, StatementBlockStart(recognizer),
                    at.APeriodLetsTheSentenceFollow, theEditionPrints, constantNamesPrinted || !admitted.WordsStandForLiterals,
-                   at.ClosedConstructCouldTake, EditionOf(recognizer), out bool anOperandIsDue) is { } kindMsg)
+                   at.ClosedConstructCouldTake, EditionOf(recognizer),
+                   token.Type == CobolLexer.DOT ? OpenStatementName(recognizer.Context) : null, out bool anOperandIsDue) is { } kindMsg)
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL5506, 0, [kindMsg], LeavesNoTail: anOperandIsDue));
         // ⛔ A LITERAL WHERE THE NEXT SENTENCE WOULD BEGIN (kb/Work PB4425): the parser's own position has left the
         // procedure division (OffendingPosition.SentenceMayBeginAt), so the position the refusal names is the sentence
@@ -1922,7 +1923,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // word there may be a paragraph-name whose period is missing, which hint 14 says; it is not asked.
         else if (!HasStructuralHint(hints) && token.Type != CobolLexer.IDENTIFIER && at.SentenceMayBeginAt()
                  && AdmittedKinds.Refusal(token, StatementBlockStart(recognizer), [], _ => false, StatementBlockStart(recognizer),
-                        () => false, theEditionPrints, aUserWordIsPrinted: true, () => null, EditionOf(recognizer), out _) is { } sentenceMsg)
+                        () => false, theEditionPrints, aUserWordIsPrinted: true, () => null, EditionOf(recognizer), null, out _) is { } sentenceMsg)
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL5506, 0, [sentenceMsg]));
 
         // ⛔ NO "MISSING SPACE BEFORE / AFTER STRING LITERAL" GUESS HERE (kb/Work PB1394). A literal delimiter that is not
@@ -2045,10 +2046,16 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// <summary>The name of the statement <paramref name="context"/> is, or of the innermost one around it, for a message
     /// (<c>EVALUATE</c>, <c>PERFORM</c>; <see cref="StatementName"/>).</summary>
     private static string StatementOwning(ParserRuleContext context)
+        => OpenStatementName(context)
+           ?? SplitCamelCase(CobolParserCore.ruleNames[context.RuleIndex]).ToUpperInvariant();
+
+    /// <summary>The name of the innermost statement open around <paramref name="context"/>, or null where none is
+    /// (a period ending a data entry or a header names no statement).</summary>
+    private static string? OpenStatementName(ParserRuleContext? context)
     {
         for (var c = context; c is not null; c = c.Parent as ParserRuleContext)
             if (IsStatementRule(c.RuleIndex)) return StatementName(c);
-        return SplitCamelCase(CobolParserCore.ruleNames[context.RuleIndex]).ToUpperInvariant();
+        return null;
     }
 
     /// <summary>The statement's name as the standard names it: from its rule (<c>ifStatement</c> → IF), and where

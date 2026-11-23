@@ -583,6 +583,15 @@ public enum DialectBehavior
     /// <c>EcFunctions.StatementLength</c>.</summary>
     ExceptionStatementIs63Characters = 61,
 
+    /// <summary>§2002:14.8.13.3 GR2 (and §2014:14.9.13.3 GR2) — "If an EXIT statement is executed within the range of a declarative
+    /// procedure whose USE statement contains the GLOBAL phrase and that USE statement is specified in the same function, method, or
+    /// program as the function format, method format, or program format EXIT statement respectively, the EC-FLOW-GLOBAL-EXIT exception
+    /// condition is set to exist" (a GOBACK in a function or method operates as that EXIT, §2002:14.8.17.3 GR3 and GR4). §2023:14.9.14.4
+    /// states no such rule — GR3 imports only GOBACK's GR3 and GR4, not GR6 — so from 2023 the condition is never set
+    /// (docs/conformance/3/D-GLOBAL-EXIT.md). Both editions are QUOTED. The consumer is <c>EcBinder.NodeKindRaises</c>, which
+    /// declares the raise only while this behaviour is inactive, so <c>CallEmitter.EmitExitProgram</c> and <c>EmitGoback</c>
+    /// write the check only at 2002 and 2014 (kb/Work PB5715; VCR row 7.118).</summary>
+    FlowGlobalExitIsNeverSet = 62,
     /// <summary>ISO/IEC 1989:2014 §2014:14.9.35.3 GR2a.1 and GR4a — SET of an index-name to an occurrence number, or UP / DOWN BY,
     /// outside the table. From 2014 the only range is the implementor index range of §2014:13.18.38.3 GR2 (EC-RANGE-INDEX), and
     /// the index "is set to a value causing it to refer to the table element that would correspond in occurrence number …, even
@@ -590,10 +599,10 @@ public enum DialectBehavior
     /// such a value an invalid subscript: "otherwise the execution of the SET statement is unsuccessful and the content of the
     /// receiving operand is unchanged" (§2002:14.8.35.3 GR2a.1; GR3b for UP / DOWN BY), the EC-BOUND-SUBSCRIPT condition of
     /// §2002:8.4.1.2.3 GR2. At <c>--std 2002</c> with checking for that condition enabled the SET raises it and leaves the index
-    /// unchanged (kb/Work PB5674; VCR row 7.118); with checking not enabled the 2002 outcome is implementor-defined and the value
+    /// unchanged (kb/Work PB5674; VCR row 7.119); with checking not enabled the 2002 outcome is implementor-defined and the value
     /// is stored (D-SET-INDEX-UNCHECKED). The consumer is <c>SetEmitter</c>, which emits <c>CobolIndex.WithinTable</c> /
     /// <c>AugmentWithinTable</c> only while this is not active.</summary>
-    SetIndexOutsideTableStored = 62,
+    SetIndexOutsideTableStored = 63,
 }
 
 /// <summary>
@@ -900,8 +909,12 @@ public static class DialectBehaviors
             "7.117", "§2023:15.32.3 RV1", "§2014:15.29.2 RV1",
             "FUNCTION EXCEPTION-STATEMENT returns 63 characters (63 spaces when no location was saved) only from COBOL-2023; "
             + "COBOL-2002 and COBOL-2014 return 31 characters (31 spaces when no location was saved)"),
+        new(DialectBehavior.FlowGlobalExitIsNeverSet, "flow-global-exit-is-never-set", 2023,
+            "7.118", "§2023:14.9.14.4 GR3", "§2002:14.8.13.3 GR2",
+            "an EXIT PROGRAM, EXIT METHOD or EXIT FUNCTION executed within the range of a USE ... GLOBAL declarative of the same "
+            + "element sets EC-FLOW-GLOBAL-EXIT only at COBOL-2002 and COBOL-2014; COBOL-2023 states no rule that sets it"),
         new(DialectBehavior.SetIndexOutsideTableStored, "set-index-outside-table-stored", 2014,
-            "7.118", "§2014:14.9.35.3 GR2a.1", "§2002:14.8.35.3 GR2a.1",
+            "7.119", "§2014:14.9.35.3 GR2a.1", "§2002:14.8.35.3 GR2a.1",
             "SET index-name TO / UP BY / DOWN BY an occurrence number outside the table stores it (the only range being the "
             + "implementor index range) only from COBOL-2014; COBOL-2002 makes it the EC-BOUND-SUBSCRIPT condition, the SET "
             + "unsuccessful and the index unchanged"),
