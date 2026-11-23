@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.38.3-12",
+ "rule-digest": "739bd95b8104",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#AnalyzeFloatEdited; src/WiseOwl.Cobol.Runtime/Control/DialectBehavior.cs#FloatEditedPictureWideBounds",
+ "test-ref": "conformance:cases/13.16.38@2002-PICTURE-CLAUSE/g2002-pic-float-edited-bounds-accepted; conformance:cases/13.16.38@2002-PICTURE-CLAUSE/g2002-pic-float-edited-exponent-4-refused",
+ "notes": "§2002:13.16.38.3 GR12: the exponent of a floating-point edited PICTURE is +9, +99, +999 or +9(n), n = 1 to 3. AnalyzeFloatEdited asks DialectBehavior.FloatEditedPictureWideBounds (VCR row 7.119: three exponent digits at COBOL-2002, four from 2014); +9.9E+9999 is refused COBOL1658 at --std 2002 and accepted from 2014; +9.9E+999 is accepted (PB5712). retired-witness: src/WiseOwl.Cobol.Editions/EditionInfo.cs#MaxFloatEditedExponentDigits (the bound moved from an EditionInfo property into the DialectBehavior register row FloatEditedPictureWideBounds (the inline-edition-comparison ratchet, PB6031))"
+}

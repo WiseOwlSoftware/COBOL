@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb4975_float_edited_wide_significand_quotient
       *> rules: [DOC-A.1-123, GR-8.8.1.2-1]
-      *> accept: [2002, 2014, 2023]
+      *> accept: [2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---

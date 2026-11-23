@@ -1,0 +1,69 @@
+{
+  "batch": [
+    733,
+    734,
+    735,
+    736,
+    737,
+    738,
+    739,
+    740,
+    741,
+    742,
+    743,
+    744
+  ],
+  "pages_checked": [
+    733,
+    734,
+    735,
+    736,
+    737,
+    738,
+    739,
+    740,
+    741,
+    742,
+    743,
+    744
+  ],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p733-1",
+      "page": 733,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Rows are printed indented under their parent: \"FD level indicator\", \"BLOCK CONTAINS clause\", \"CODE-SET clause\", \"LINAGE clause\" ... indented one step under \"File description entry\"; \"Integer RECORDS/CHARACTERS\" and \"Integer-1 TO integer-2 RECORDS/CHARACTERS\" under \"BLOCK CONTAINS clause\"; \"FOOTING phrase\", \"TOP phrase\", \"BOTTOM phrase\" under \"LINAGE clause\"; \"Integer-1 CHARACTERS\" and \"VARYING IN SIZE phrase\" under \"RECORD clause\"; \"Data Division is required/optional\" under \"DATA DIVISION\".",
+      "markdown_says": "| FD level indicator ............................................ | 1 SEQ | 1 SEQ |\n| BLOCK CONTAINS clause | | |\n| Integer RECORDS/CHARACTERS .................................. | 1 SEQ | 1 SEQ |\n| LINAGE clause ............................................... | 2 SEQ | 2 SEQ |\n| FOOTING phrase .............................................. | 2 SEQ | 2 SEQ |",
+      "why_it_matters": "The element hierarchy the table expresses by indentation is flattened: every row sits at the same level, so a sub-phrase (FOOTING phrase, VARYING IN SIZE phrase) reads as an independent element rather than part of its parent clause. The neighboring pages (734-742) keep the indentation with &nbsp;; this page does not. Values are all correct."
+    },
+    {
+      "id": "p737-1",
+      "page": 737,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "SUMMARY OF DIFFERENCES IN DATA DIVISION (the same underlined running table title printed on every page of the summary, pages 733-737)",
+      "markdown_says": "# <u>SUMMARY OF DIFFERENCES IN DATA DIVISION</u>",
+      "why_it_matters": "The repeated table title is promoted to a level-1 Markdown heading on this page only, while pages 733-735 carry it as plain underlined text (page 736 as '##'). A spurious top-level heading in the middle of Section XVII breaks the document outline; the title is not a new section."
+    },
+    {
+      "id": "p743-1",
+      "page": 743,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Rows printed indented under their statements: \"TO identifier\", \"CORRESPONDING phrase\", \"De-editing of numeric edited items\" under \"MOVE statement\"; \"File-name\", \"INPUT phrase\", \"OUTPUT phrase\", \"I-O phrase\", \"EXTEND phrase\" under \"OPEN statement\"; \"WITH NO REWIND phrase\" and \"REVERSED phrase\" further indented under \"INPUT phrase\"; the second \"WITH NO REWIND phrase\" further indented under \"OUTPUT phrase\".",
+      "markdown_says": "| INPUT phrase | 1 SEQ | 1 SEQ |\n...\n| WITH NO REWIND phrase | 2 SEQ | 2 SEQ |\n| REVERSED phrase | 2 SEQ | 2 SEQ Z |\n| OUTPUT phrase | 1 SEQ | 1 SEQ |\n...\n| WITH NO REWIND phrase | 2 SEQ | 2 SEQ |",
+      "why_it_matters": "All indentation is lost, so every phrase reads as a top-level element at the level of MOVE/MULTIPLY/OPEN statement, and the two 'WITH NO REWIND phrase' rows lose which phrase (INPUT vs OUTPUT) each belongs to. The surrounding pages keep the hierarchy with &nbsp;. Values are correct."
+    },
+    {
+      "id": "p744-1",
+      "page": 744,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Rows printed indented under their parents: phrases under \"PERFORM statement\"; \"TEST BEFORE/AFTER phrase\" further indented under \"UNTIL phrase\" and again under \"VARYING phrase\"; \"AFTER phrase\" under \"VARYING phrase\"; \"Maximum of two AFTER phrases\" and \"At least 6 AFTER phrases permitted\" under \"AFTER phrase\"; READ, RECEIVE and RELEASE phrases under their statements.",
+      "markdown_says": "| UNTIL phrase ....................................................... | 2 NUC | 1 NUC |\n| TEST BEFORE/AFTER phrase ......................................... | N | 2 NUC |\n| VARYING phrase ..................................................... | 2 NUC | 2 NUC |\n| TEST BEFORE/AFTER phrase ......................................... | N | 2 NUC |\n| AFTER phrase ..................................................... | 2 NUC | 2 NUC |\n| Maximum of two AFTER phrases ................................... | 2 NUC | N |",
+      "why_it_matters": "The hierarchy is flattened: the two 'TEST BEFORE/AFTER phrase' rows lose their parents (UNTIL vs VARYING), and 'Maximum of two AFTER phrases' reads as a PERFORM-level element rather than a limit on the AFTER phrase. Adjacent pages preserve indentation with &nbsp;. Values are correct."
+    }
+  ]
+}
