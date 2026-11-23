@@ -397,6 +397,13 @@
    ],
    "why": "the CURRENCY SIGN clause of the SPECIAL-NAMES paragraph, §2002:12.2.6, whose literal-7 and literal-8 rules (§2002:12.2.6.2 SR18, SR22) name no hexadecimal form at 2002 (kb/Work PB5595, PB6031, VCR row 7.116)"
   },
+  "set-index-outside-table-stored": {
+   "sections": [
+    "14.8.35",
+    "8.4.1.2"
+   ],
+   "why": "the SET statement, §2002:14.8.35, whose index-name Format 1 and Format 2 (GR2a.1, GR3b) make a value outside the table the EC-BOUND-SUBSCRIPT condition (§2002:8.4.1.2.3 GR2) at 2002 (kb/Work PB5674, VCR row 7.118)"
+  },
   "exception-statement-is-63-characters": {
    "sections": [
     "15.27"

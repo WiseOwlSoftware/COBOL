@@ -99,7 +99,7 @@
  ],
  "counts": {
   "pairs": 1770,
-  "marked": 1254,
+  "marked": 1270,
   "ambiguous": 2,
   "normalized": 38,
   "absent-from-2014": 29,
@@ -107,7 +107,7 @@
   "definition-dropped": 359,
   "cross-reference": 28,
   "pending-clause": 621,
-  "behaviour-switch": 263,
+  "behaviour-switch": 309,
   "held": 6,
   "band-formats": 84,
   "clause-identity": 1767,
@@ -3885,7 +3885,9 @@
    "2002-GR-14.8.33.3-11",
    "2002-GR-14.8.33.3-17",
    "2002-GR-14.8.33.3-3",
+   "2002-GR-14.8.35.3-12",
    "2002-GR-14.8.35.3-24",
+   "2002-GR-14.8.35.3-8",
    "2002-GR-8.3.1.2.1.3-2",
    "2002-SR-11.2.2-9",
    "2002-SR-11.5.2-4",
@@ -3908,6 +3910,9 @@
    "2002-SR-14.8.33.2-5",
    "2002-SR-14.8.35.2-22",
    "2002-SR-14.8.35.2-25",
+   "2002-SR-14.8.35.2-4",
+   "2002-SR-14.8.35.2-5",
+   "2002-SR-14.8.35.2-6",
    "2002-SR-14.8.35.2-8",
    "2002-SR-7.1.2.2-16",
    "2002-SR-7.1.2.2-3",
@@ -3953,7 +3958,7 @@
    "behaviour-switch": {
     "DIFFERENT": 0,
     "DOUBTFUL": 0,
-    "SAME": 16
+    "SAME": 25
    },
    "held": {
     "DIFFERENT": 0,
@@ -5768,53 +5773,84 @@
   "2002-GR-14.8.34.3-8": {
    "definition-changed": "index"
   },
+  "2002-GR-14.8.35.3-1": {
+   "behaviour-switch": "set-index-outside-table-stored"
+  },
+  "2002-GR-14.8.35.3-10": {
+   "behaviour-switch": "set-index-outside-table-stored"
+  },
+  "2002-GR-14.8.35.3-11": {
+   "behaviour-switch": "set-index-outside-table-stored"
+  },
+  "2002-GR-14.8.35.3-12": {
+   "behaviour-switch": "set-index-outside-table-stored"
+  },
   "2002-GR-14.8.35.3-13": {
+   "behaviour-switch": "set-index-outside-table-stored",
    "band-formats": "band-formats [8] against [[9]]"
   },
   "2002-GR-14.8.35.3-14": {
+   "behaviour-switch": "set-index-outside-table-stored",
    "band-formats": "band-formats [8] against [[9]]"
   },
   "2002-GR-14.8.35.3-15": {
    "definition-dropped": "null (newer: 8.4.3.7.1)",
    "pending-clause": "§2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)",
+   "behaviour-switch": "set-index-outside-table-stored",
    "band-formats": "band-formats [9] against [[10]]"
   },
   "2002-GR-14.8.35.3-16": {
    "pending-clause": "§2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed), §2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)",
+   "behaviour-switch": "set-index-outside-table-stored",
    "band-formats": "band-formats [9] against [[10]]"
   },
   "2002-GR-14.8.35.3-17": {
    "pending-clause": "§2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed), §2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)",
+   "behaviour-switch": "set-index-outside-table-stored",
    "band-formats": "band-formats [9] against [[10]]"
   },
   "2002-GR-14.8.35.3-18": {
    "pending-clause": "§2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)",
+   "behaviour-switch": "set-index-outside-table-stored",
    "band-formats": "band-formats [10] against [[11]]"
   },
   "2002-GR-14.8.35.3-19": {
+   "behaviour-switch": "set-index-outside-table-stored",
    "band-formats": "band-formats [10] against [[11]]"
   },
   "2002-GR-14.8.35.3-20": {
+   "behaviour-switch": "set-index-outside-table-stored",
    "band-formats": "band-formats [10] against [[11]]"
   },
   "2002-GR-14.8.35.3-21": {
    "pending-clause": "§2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)",
+   "behaviour-switch": "set-index-outside-table-stored",
    "band-formats": "band-formats [10] against [[11]]"
   },
   "2002-GR-14.8.35.3-22": {
    "definition-changed": "run unit",
    "pending-clause": "§2002:14.5.2.1.2.1 (changed), §2002:14.5.3 (changed), §2002:14.5.10 (changed)",
+   "behaviour-switch": "set-index-outside-table-stored",
    "band-formats": "band-formats [10] against [[11]]"
   },
   "2002-GR-14.8.35.3-23": {
+   "behaviour-switch": "set-index-outside-table-stored",
    "band-formats": "band-formats [11] against [[12]]"
   },
   "2002-GR-14.8.35.3-24": {
+   "behaviour-switch": "set-index-outside-table-stored",
    "band-formats": "band-formats [11] against [[12]]"
   },
   "2002-GR-14.8.35.3-25": {
    "definition-dropped": "null (newer: 8.4.3.7.1); object reference (newer: 9.3.2)",
+   "behaviour-switch": "set-index-outside-table-stored",
    "band-formats": "band-formats [12] against [[13]]"
+  },
+  "2002-GR-14.8.35.3-7": {
+   "behaviour-switch": "set-index-outside-table-stored"
+  },
+  "2002-GR-14.8.35.3-8": {
+   "behaviour-switch": "set-index-outside-table-stored"
   },
   "2002-GR-14.8.36.3-10": {
    "definition-changed": "procedure"
@@ -6387,6 +6423,7 @@
    "normalized": "normalized",
    "definition-changed": "index; subscript",
    "pending-clause": "§2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed), §2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)",
+   "behaviour-switch": "set-index-outside-table-stored",
    "held": "S1 (adopt-2002): its witness was refused at 2002 for ALL subscripts, which the rule names",
    "deferral": "the rules for "
   },
@@ -7934,51 +7971,89 @@
    "pending-clause": "§2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed)"
   },
   "2002-SR-14.8.35.2-1": {
-   "definition-changed": "class | of a data item; index"
+   "definition-changed": "class | of a data item; index",
+   "behaviour-switch": "set-index-outside-table-stored"
+  },
+  "2002-SR-14.8.35.2-15": {
+   "behaviour-switch": "set-index-outside-table-stored"
+  },
+  "2002-SR-14.8.35.2-16": {
+   "behaviour-switch": "set-index-outside-table-stored"
+  },
+  "2002-SR-14.8.35.2-17": {
+   "behaviour-switch": "set-index-outside-table-stored"
+  },
+  "2002-SR-14.8.35.2-18": {
+   "behaviour-switch": "set-index-outside-table-stored"
   },
   "2002-SR-14.8.35.2-19": {
    "definition-dropped": "null (newer: 8.4.3.7.1); restricted pointer (newer: undefined); type | for type declaration (newer: 8.5.3)",
-   "pending-clause": "§2002:8.5.3 (near), §2002:8.5.4 (changed), §2002:14.5.8 (removed)"
+   "pending-clause": "§2002:8.5.3 (near), §2002:8.5.4 (changed), §2002:14.5.8 (removed)",
+   "behaviour-switch": "set-index-outside-table-stored"
   },
   "2002-SR-14.8.35.2-2": {
-   "definition-changed": "class | of a data item; index"
+   "definition-changed": "class | of a data item; index",
+   "behaviour-switch": "set-index-outside-table-stored"
   },
   "2002-SR-14.8.35.2-20": {
+   "behaviour-switch": "set-index-outside-table-stored",
    "band-formats": "band-formats [8] against [[9]]"
   },
   "2002-SR-14.8.35.2-21": {
    "definition-dropped": "null (newer: 8.4.3.7.1)",
+   "behaviour-switch": "set-index-outside-table-stored",
    "band-formats": "band-formats [8] against [[9]]"
   },
   "2002-SR-14.8.35.2-22": {
+   "behaviour-switch": "set-index-outside-table-stored",
    "band-formats": "band-formats [9] against [[10]]"
   },
   "2002-SR-14.8.35.2-23": {
    "definition-dropped": "type | for type declaration (newer: 8.5.3)",
    "pending-clause": "§2002:8.5.3 (near), §2002:8.5.4 (changed), §2002:14.5.8 (removed)",
+   "behaviour-switch": "set-index-outside-table-stored",
    "band-formats": "band-formats [9] against [[10]]"
   },
   "2002-SR-14.8.35.2-24": {
+   "behaviour-switch": "set-index-outside-table-stored",
    "band-formats": "band-formats [10] against [[11]]"
   },
   "2002-SR-14.8.35.2-25": {
+   "behaviour-switch": "set-index-outside-table-stored",
    "band-formats": "band-formats [10] against [[11]]"
   },
   "2002-SR-14.8.35.2-26": {
+   "behaviour-switch": "set-index-outside-table-stored",
    "band-formats": "band-formats [10] against [[11]]"
   },
   "2002-SR-14.8.35.2-27": {
+   "behaviour-switch": "set-index-outside-table-stored",
    "band-formats": "band-formats [11] against [[12]]"
   },
   "2002-SR-14.8.35.2-3": {
    "definition-changed": "class | of a data item; index",
-   "pending-clause": "§2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed)"
+   "pending-clause": "§2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed)",
+   "behaviour-switch": "set-index-outside-table-stored"
+  },
+  "2002-SR-14.8.35.2-4": {
+   "behaviour-switch": "set-index-outside-table-stored"
+  },
+  "2002-SR-14.8.35.2-5": {
+   "behaviour-switch": "set-index-outside-table-stored"
+  },
+  "2002-SR-14.8.35.2-6": {
+   "behaviour-switch": "set-index-outside-table-stored"
+  },
+  "2002-SR-14.8.35.2-7": {
+   "behaviour-switch": "set-index-outside-table-stored"
   },
   "2002-SR-14.8.35.2-8": {
-   "definition-changed": "class | of a data item"
+   "definition-changed": "class | of a data item",
+   "behaviour-switch": "set-index-outside-table-stored"
   },
   "2002-SR-14.8.35.2-9": {
-   "definition-dropped": "object reference (newer: 9.3.2)"
+   "definition-dropped": "object reference (newer: 9.3.2)",
+   "behaviour-switch": "set-index-outside-table-stored"
   },
   "2002-SR-14.8.36.2-8": {
    "definition-dropped": "report (newer: 13.18.46.2)"
@@ -8378,11 +8453,19 @@
    "pending-clause": "§2002:8.4.1.1 (changed, undecided)"
   },
   "2002-SR-8.4.1.2.2-2": {
-   "definition-changed": "subscript"
+   "definition-changed": "subscript",
+   "behaviour-switch": "set-index-outside-table-stored"
+  },
+  "2002-SR-8.4.1.2.2-4": {
+   "behaviour-switch": "set-index-outside-table-stored"
+  },
+  "2002-SR-8.4.1.2.2-7": {
+   "behaviour-switch": "set-index-outside-table-stored"
   },
   "2002-SR-8.4.1.2.2-8": {
    "definition-changed": "subscript",
-   "definition-dropped": "report (newer: 13.18.46.2)"
+   "definition-dropped": "report (newer: 13.18.46.2)",
+   "behaviour-switch": "set-index-outside-table-stored"
   },
   "2002-SR-8.4.2.1.2-1": {
    "deferral": "the rules for "
