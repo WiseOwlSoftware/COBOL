@@ -24,7 +24,7 @@ The note also asked for each resolution's effects to come back as data, applied 
 readings in `OoBinder.OoBindPropertyObject` deleted. That part was not built, and §8.3 (4) now says why. The D18
 materializer binds a whole expression through the statement binder: its diagnostics, its pre-ops and compiler temps
 named in allocation order. A probe that ran it and then dropped the effects would renumber every later temporary and
-reorder the diagnostic stream the §4.1 oracle compares in order. So the probe keeps its effect-free readings.
+reorder the diagnostic stream the DESIGN-architecture-review §4.1 oracle compares in order. So the probe keeps its effect-free readings.
 
 Behavior neutrality: `compare_oracle.py` reported `IDENTICAL — 23549 cases`. No inventory row changed
 (`closes_rows: []`, behavior-neutral restructuring).
