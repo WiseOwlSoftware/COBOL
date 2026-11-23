@@ -56,7 +56,7 @@ leads, the records and the ledger.
      the PR has merged (`gh pr view <n> --json state,mergedAt`); until then it reads ENQUEUED (in the queue) or NOT
      QUEUED (not yet in it). The lane's QUEUE WATCH (kb/Work PB3527) follows it in: its line says the watch's state;
      past the grace it re-runs a stuck check, then closes, reopens and re-queues the pull request, then sends the
-     operator a mailbox question and stops (`ALERTED`) — never a finisher's, and nothing to do here but name an
+     running account's lane a mailbox question (kb/Work PB6094) and stops (`ALERTED`) — never a finisher's, and nothing to do here but name an
      ALERTED one in the handoff. Its leads go to step 5 and its record to step 6b.
    - `STOPPED`: `CONFLICT` (exit 4, bringing main in: the review lane already started its finisher and collected the
      attempt, kb/Work PB3608; read it in `review_lane.py status`, step 2), `UNTESTED` (exit 14: no recorded GREEN local gate covers the tip, kb/Work PB3612; a finisher gates it), `MERGE NOT COMPLETED, BRANCH-CARRIED` (exit 5:
@@ -81,7 +81,7 @@ leads, the records and the ledger.
      open pull request owns a DEVLOG entry the branch carries).
      Nothing to do here.
    - `HALT` (exit 8, `QUEUE NOT ACTIVE`): the lane starts no landing until the operator runs `land_lane.py clear-halt`
-     once `ruleset.py check` reports ACTIVE; it already named it in the operator's mailbox. Land nothing another way:
+     once `ruleset.py check` reports ACTIVE; it already named it in the running account's mailbox (kb/Work PB6094). Land nothing another way:
      name it in the handoff.
    When steps 4 and 5 have handled them, `python scripts/orchestrator/land_lane.py collect <branch> ...` for every
    STOPPED and DONE branch this unit handled, so the next choice of unit does not count them again (next_unit.py rule
