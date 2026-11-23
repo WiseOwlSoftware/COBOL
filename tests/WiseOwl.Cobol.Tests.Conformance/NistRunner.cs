@@ -33,9 +33,10 @@ internal static partial class NistRunner
             if (!File.Exists(src)) return Failed($"source not found: {src}");
             string dll = Path.Combine(dir, testName + ".dll");
 
-            // Guard parity (scripts/guard-run-group.sh, COBOL_SWITCH_1): the CCVS-85 switch programs (NC174A/NC254A)
-            // run with external SWITCH-1 ON, SWITCH-2 unset — their goldens assume exactly that.
-            var env = new Dictionary<string, string?> { ["COBOL_SWITCH_1"] = "ON" };
+            // The NIST run environment, tests/nist/run-environment.tsv, which scripts/guard-run-group.sh reads too
+            // (kb/Work PB3199): external SWITCH-1 ON for the CCVS-85 switch programs, the pinned default locales and
+            // this run directory as the MCS directory, for every predecessor and the program alike.
+            var env = NistRunEnvironment.For(dir);
 
             // Chain predecessors: each producer compiles from its OWN .cob and runs in THIS directory so the
             // consumer's shared TF### input files exist. Chains are self-sufficient in an isolated dir — every
@@ -63,6 +64,8 @@ internal static partial class NistRunner
             var before = NistOutputs.Snapshot(dir);
             string dat = TestRepo.Nist("data", testName + ".dat");
             var (runOk, stdout, runDetail) = CutRunner.Run(dll, dir, File.Exists(dat) ? dat : null, env);
+            // ⛔ THE EXIT STATUS DECIDES BEFORE THE REPORT DOES: a run that did not exit zero is no match, however its
+            // report reads; scripts/guard-verdict.sh#guard_output_verdict scores it the same way (kb/Work PB3199).
             if (!runOk)
             {
                 // ⛔ A RUN THAT ENDED ABNORMALLY STILL LEFT FILES (kb/Work PB804; the owner's PB3353 requirement that the

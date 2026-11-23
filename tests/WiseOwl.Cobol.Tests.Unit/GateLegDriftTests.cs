@@ -4,7 +4,7 @@
 // THE ARMS OF THIS CLASS are numbered as docs/rearchitecture/DESIGN-test-build-ci.md §3.14.4 numbers them, and each
 // is ONE self-contained test method whose name starts with its arm:
 //   (2) the orderer runs the named classes first, then longest first, and its output is a permutation of its input
-//   (4) every test project under tests/ that the gate runs links GateLegs.cs
+//   (4) every test project under tests/ that the gate runs links tests/_shared/Gate/
 //   (5) no discovered display name in a gated assembly contains the repository root
 // Arms (3) and (6), and the ONE SHAPE sweep, check the pipeline's SCRIPTS, so they are the scripts' own (kb/Work PB4395):
 // scripts/self_test_arms.py holds the arms gate.py's and test_population.py's self-tests declare, test_population.py's runs its caller, trx-writer
@@ -13,7 +13,7 @@
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
-using WiseOwl.Cobol.Gate;
+using WiseOwl.Cobol.Tests.Shared.Gate;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 using Xunit.Abstractions;
@@ -23,7 +23,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ THE GATE'S TEST-ASSEMBLY HALF (kb/Work PB1708, PB4328, PB4329; DESIGN-test-build-ci.md §3.14.3–3.14.4): the test
-/// orderer (tests/_shared/GateLegs.cs <c>GateOrderer</c>) only orders, its output checked to be a permutation; CI's shard
+/// orderer (tests/_shared/Gate/GateOrderer.cs <c>GateOrderer</c>) only orders, its output checked to be a permutation; CI's shard
 /// variable, weights file and deal; this assembly names GateTestFramework; and no discovered case carries the repository
 /// root. What the gate's SCRIPTS must hold (the population check's arms, the scrubbed <c>dotnet test</c> callers, the trx
 /// writers and readers, the one shape) is their own self-tests' and audits' (kb/Work PB4395: a compiler test reading a
@@ -34,7 +34,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// The arms are numbered as in section 3.14.4: (2) the orderer, (4) the links, (5) no repository root in a name. Arm
 /// (4)'s and (5)'s per-assembly halves also run in the Conformance, RepoDrift and Characterization assemblies (their own
 /// GateLegDriftTests), because each audits the assembly it runs in. Arm (4) over the tree (every test project links
-/// GateLegs.cs) reads every test project, so it is the RepoDrift assembly's (kb/Work PB5230).
+/// tests/_shared/Gate/) reads every test project, so it is the RepoDrift assembly's (kb/Work PB5230).
 /// </para>
 /// </remarks>
 public sealed class GateLegDriftTests

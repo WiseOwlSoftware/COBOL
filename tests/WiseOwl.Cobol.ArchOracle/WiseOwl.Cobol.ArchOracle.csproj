@@ -27,11 +27,11 @@
 
   <ItemGroup>
     <!--
-      tests/Directory.Build.props links tests/_shared/*.cs into every project under tests/. The oracle's code reaches
+      tests/Directory.Build.props links tests/_shared/**/*.cs into every project under tests/. The oracle's code reaches
       them through the Conformance assembly, which compiles its own copy; a second copy here would only be one more
       thing that can fail to compile for reasons unrelated to the oracle (the WiseOwl.Cobol.Benchmarks precedent).
     -->
-    <Compile Remove="$(MSBuildThisFileDirectory)../_shared/*.cs" />
+    <Compile Remove="$(MSBuildThisFileDirectory)../_shared/**/*.cs" />
   </ItemGroup>
 
 </Project>

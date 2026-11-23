@@ -38,7 +38,7 @@ run's shard walls and deletes the directory before the next, and it reads at mos
 window. The verdict line says when the cap applied.
 
 WHAT IS MEASURED, AND WHAT IS NOT. The spread is measured only over the population the weights deal (kb/Work PB5468).
-GateLegs.cs `TestWeights.Deal` balances the SUM over every assembly the weights file names, in one pass, not each
+tests/_shared/Gate/TestWeights.cs `TestWeights.Deal` balances the SUM over every assembly the weights file names, in one pass, not each
 assembly alone. Since PB5235 a Windows leg runs only the target assemblies with no published pass at the merged tree's
 key, so its shards may run one assembly's share of a deal balanced over three, and that spread is the deal's design,
 which no regeneration changes (the weights of 2026-11-04 deal Windows' Unit share alone at 1.50x, every weight exact).
@@ -61,7 +61,7 @@ costs a merge-group run: per (run, OS), the sum over every trx of that run's art
 results (INV-1's re-run of the NIST classes on Linux included: it runs in the same shard as its class), and per class the
 MEDIAN of those observations. A class's assembly is its trx definition's `codeBase`, keyed as the test framework keys it
 (`WiseOwl.Cobol.Tests.<key>.dll` -> `<key>`). `default_seconds`, the median class weight, is the weight of a class the
-file does not name (one added since). GateTestFramework (tests/_shared/GateLegs.cs, `GateShard`) reads the file, embedded
+file does not name (one added since). GateTestFramework (tests/_shared/Gate/GateShard.cs) reads the file, embedded
 in every test assembly, and deals the classes to the shards of `WISEOWL_COBOL_SHARD=k/N` longest first; a stale weight
 costs balance, never coverage, because every discovered class gets exactly one shard and `ci-gate` checks the names
 (test_population.py check). The file changes only when someone regenerates it, which the nightly's OVER asks for:
@@ -115,7 +115,7 @@ WEIGHTS_FILE = "tests/_shared/test-weights.json"
 WORKFLOW_FILE = ".github/workflows/" + WORKFLOW
 SHARD_ENV = "WISEOWL_COBOL_SHARD"
 
-#: The weights file's schema (GateLegs.cs `TestWeights.Schema` reads exactly this one).
+#: The weights file's schema (tests/_shared/Gate/TestWeights.cs `TestWeights.Schema` reads exactly this one).
 WEIGHTS_SCHEMA = 1
 #: How many successful merge-group runs `generate` reads (the newest that ran the matrix), and the window it looks in:
 #: the artifacts' whole life (.github/actions/upload-results keeps them 14 days).
@@ -123,7 +123,7 @@ GENERATE_RUNS = 3
 GENERATE_HOURS = 336
 
 #: The test assemblies are `WiseOwl.Cobol.Tests.<key>.dll`; the weights file and the shard hook name each by its key
-#: (GateLegs.cs `TestWeights.AssemblyKey` strips the same prefix).
+#: (tests/_shared/Gate/TestWeights.cs `TestWeights.AssemblyKey` strips the same prefix).
 TEST_ASSEMBLY = re.compile(r"(?:^|[/\\])WiseOwl\.Cobol\.Tests\.(?P<key>[^/\\]+)\.dll$", re.IGNORECASE)
 #: A trx duration, `[d.]hh:mm:ss[.fffffff]`.
 _DURATION = re.compile(r"^(?:(?P<d>\d+)\.)?(?P<h>\d+):(?P<m>\d+):(?P<s>\d+(?:\.\d+)?)$")

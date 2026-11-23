@@ -105,7 +105,7 @@ RC_EXACT, RC_RED, RC_ERROR = 0, 1, 2
 GATED_ASSEMBLIES = {t["assembly"]: t["project"].rstrip("/") for t in json.loads(
     (REPO / "scripts" / "build_targets.json").read_text(encoding="utf-8"))["targets"].values() if t.get("kind") == "test"}
 
-#: CI's weighted shards (kb/Work PB4329; tests/_shared/GateLegs.cs `GateShard`): the one narrowing a WORKFLOW may set,
+#: CI's weighted shards (kb/Work PB4329; tests/_shared/Gate/GateShard.cs `GateShard`): the one narrowing a WORKFLOW may set,
 #: because the workflow that sets it checks its shards' union with `check` (`audit_callers` holds it to that).
 SHARD = "WISEOWL_COBOL_SHARD"
 _SCRUBBED_PREFIXES = ("WISEOWL_COBOL_GATE_", "VSTEST")
@@ -194,7 +194,7 @@ def parse_listing(text: str, source: str) -> Counter:
 
     ⛔ ONE LINE RULE WITH THE RETRY FILE (kb/Work PB5872 review, follow-up B): a listed name is written whole as one line
     of a retry file (`gate_legs.Legs.plan`, ONLY_CASES), which the host reads with .NET's `File.ReadAllLines` and
-    matches by its exact display name (tests/_shared/GateLegs.cs `GateOnly`). That reader breaks a line at `\\n`, `\\r`
+    matches by its exact display name (tests/_shared/Gate/GateOnly.cs `GateOnly`). That reader breaks a line at `\\n`, `\\r`
     and `\\r\\n` only, so a listing line is too: never `str.splitlines`, which also breaks at U+0085, U+2028, U+2029,
     `\\v`, `\\f` and U+001C-U+001E and would turn one display name holding one of them into two names that never run. A
     name holding a carriage return of its own could not survive a retry file's line, so it is refused, named."""
@@ -293,7 +293,7 @@ def _red_definitions(paths: list[str | Path]):
 def red_classes(paths: list[str | Path]) -> set[str]:
     """THE CLASSES WITH A RED CASE in these trx files (kb/Work PB4328): the `className` of the test method of every
     definition one of whose results Failed — the spelling the weights file, the shards and the gate's orderer use
-    (tests/_shared/GateLegs.cs `GateShard.ClassOf`). A file that cannot be read raises `UnreadableTrx` naming it."""
+    (tests/_shared/Gate/GateShard.cs `GateShard.ClassOf`). A file that cannot be read raises `UnreadableTrx` naming it."""
     classes: set[str] = set()
     for u in _red_definitions(paths):
         method = u.find(TRX_NS + "TestMethod")

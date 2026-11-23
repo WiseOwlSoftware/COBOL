@@ -607,7 +607,7 @@ jobs:
 
   # ── ⛔ THE TEST MATRIX IS WEIGHTED SHARDS (kb/Work PB4329, step 6 of PB4323; DESIGN-test-build-ci.md §1.4). Every shard job
   # builds the solution and runs EVERY test assembly (Unit, RepoDrift, Characterization, Conformance; and on Linux INV-1-strong) with
-  # WISEOWL_COBOL_SHARD=k/N, and the test framework of each host (tests/_shared/GateLegs.cs, GateShard) runs the cases of
+  # WISEOWL_COBOL_SHARD=k/N, and the test framework of each host (tests/_shared/Gate/GateShard.cs) runs the cases of
   # the test classes the weights file (tests/_shared/test-weights.json, scripts/shard_weights.py generate) deals to shard k:
   # every class the file names, longest first, to the lightest shard so far, then a class it does not name at the file's
   # default weight. No shard filters by NAME, so a new class can never fall between filters, and a stale weight costs the
