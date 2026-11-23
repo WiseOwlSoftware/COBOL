@@ -330,6 +330,22 @@ public sealed class DiagnosticPositionTests : IDisposable
             $"expected '{position}: error {code}'; got:\n" + string.Join("\n", lines));
     }
 
+    /// <summary>⛔ kb/Work PB6113 (review R1-1) — the period-where-an-operand-is-due sentence cites the rule it states: only a
+    /// bracketed portion of a general format may be omitted (§2023:5.2.6.2), true of every format whether or not its
+    /// operand is in braces (`MOVE CORRESPONDING G1 TO.` has identifier-4 unbraced); it quotes no brace rule.</summary>
+    [Theory]
+    [InlineData("MOVE 1 TO.")]
+    [InlineData("MOVE CORRESPONDING G1 TO.")]
+    public void PeriodWhereAnOperandIsDue_CitesTheBracketRule_NotABraceRule(string statement)
+    {
+        Write("cite.cob", Head + "       PROCEDURE DIVISION.\n           " + statement + "\n           STOP RUN.\n");
+        var (ok, lines) = Compile("cite.cob", format: InitialReferenceFormat.Fixed);
+        Assert.False(ok);
+        var line = Assert.Single(lines, d => d.Contains("error COBOL5506"));
+        Assert.Contains("§2023:5.2.6.2", line.Replace("ISO ", ""));
+        Assert.DoesNotContain("within braces", line);
+    }
+
     [Fact] // kb/Work PB1688 / PB1801 — the copybook arm and the REPLACE arm keep the physical column
     public void FixedForm_CopybookAndReplacedText_NameThePhysicalColumn()
     {

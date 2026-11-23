@@ -185,7 +185,7 @@ internal static class AdmittedKinds
             if (aPeriodEndsAnOperandList)
                 return $"{written} ends the {statementOpenAtAPeriod} statement where an operand is still due: expected "
                        + $"{Join([.. takesAWord && aUserWordIsPrinted ? (string[])["a user-defined word"] : [], .. operand.Words, .. operand.Literals])} "
-                       + $"({edition.CiteRule("§1985:IV.2.1.4", "§2023:5.2.6.3")}: the syntax element within braces shall be explicitly specified).";
+                       + $"({edition.CiteRule("§1985:IV.2.1.4", "§2023:5.2.6.2")}: only a portion enclosed in brackets may be omitted).";
             return $"{written} is not expected here: expected "
                    + $"{Join([.. takesAWord && aUserWordIsPrinted ? (string[])["a user-defined word"] : [], .. operand.Words, .. operand.Literals])} "
                    + $"({EditionInfo.Designated(sequence)}).";

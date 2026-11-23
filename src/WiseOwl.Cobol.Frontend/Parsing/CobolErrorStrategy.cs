@@ -2046,11 +2046,8 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// <summary>The name of the statement <paramref name="context"/> is, or of the innermost one around it, for a message
     /// (<c>EVALUATE</c>, <c>PERFORM</c>; <see cref="StatementName"/>).</summary>
     private static string StatementOwning(ParserRuleContext context)
-    {
-        for (var c = context; c is not null; c = c.Parent as ParserRuleContext)
-            if (IsStatementRule(c.RuleIndex)) return StatementName(c);
-        return SplitCamelCase(CobolParserCore.ruleNames[context.RuleIndex]).ToUpperInvariant();
-    }
+        => OpenStatementName(context)
+           ?? SplitCamelCase(CobolParserCore.ruleNames[context.RuleIndex]).ToUpperInvariant();
 
     /// <summary>The name of the innermost statement open around <paramref name="context"/>, or null where none is
     /// (a period ending a data entry or a header names no statement).</summary>
