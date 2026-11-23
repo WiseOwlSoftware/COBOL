@@ -1,4 +1,4 @@
-## PB6101: PB3322's 2002 citations are edition-named and checked
+## Entry 3976 — 2026-11-23 04:49 PST — PB6101: PB3322's 2002 citations are edition-named and checked
 
 PB3322's refuter pass wrote its 2002 and 2014 locators as prose ("11.8.5 ... general rule 2", "Annex A item 44", "2002 8.1.1"). Re-probed each with
 `cite.py --check` on this tree:
@@ -11,3 +11,4 @@ PB3322's refuter pass wrote its 2002 and 2014 locators as prose ("11.8.5 ... gen
 Fix: DOC-A.1-64's notes re-recorded through `record_verdicts.py` (batch `pb6101-cite-2002`; 1 row changed, GAP 2 -> 2, verdict and editions unchanged);
 `kb/Work/PB3322.md` and `adjudication/pb3322-refute-pb3173/overturn-batch.json` carry the corrected forms. No compiled program changes; no golden applies
 (process-only citation text). `work.py check` and `audit_annex_a1.py --check` are clean; PB6101 is landed with `closes_rows: []` (no row's verdict moved).
+
