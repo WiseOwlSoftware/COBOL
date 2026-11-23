@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb369_global_report_use_selection
       *> rules: [SR-13.18.27.3-1, GR-14.9.49.4-4,
-      *>    GR-14.9.49.4-8]
+      *>    GR-14.9.49.4-8, FMT-14.9.49.2]
       *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified

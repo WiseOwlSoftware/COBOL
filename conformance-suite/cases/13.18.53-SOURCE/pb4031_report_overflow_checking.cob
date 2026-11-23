@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb4031_report_overflow_checking
-      *> rules: [GR-14.7.5-3, GR-7.3.25.4-6, GR-13.18.53.4-2, GR-13.18.41.4-2, GR-13.18.64.4-3]
+      *> rules: [GR-14.7.5-3, GR-7.3.25.4-6, GR-13.18.53.4-2, GR-13.18.41.4-2, GR-13.18.64.4-3, DOC-A.1-70]
       *> accept: [2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified

@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb5891_polynomial_integer_arguments
-      *> rules: [AR-15.3-6]
+      *> rules: [AR-15.3-6, AR-15.36.3-1, AR-15.64.3-1, AR-15.75.3-2, AR-15.15.3-1]
       *> accept: [85, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified

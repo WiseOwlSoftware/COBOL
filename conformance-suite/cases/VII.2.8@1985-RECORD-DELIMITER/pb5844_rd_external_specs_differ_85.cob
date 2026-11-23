@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb5844_rd_external_specs_differ_85
-      *> rules: [1985-GR-VII.2.8.4-6]
+      *> rules: [1985-GR-VII.2.8.4-6, DOC-A.1-149]
       *> source-format: fixed
       *> portable: unverified
       *>---

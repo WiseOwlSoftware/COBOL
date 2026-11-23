@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb5889_run_time_check_85
-      *> rules: [AR-15.3-6]
+      *> rules: [AR-15.3-6, AR-15.64.3-1]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

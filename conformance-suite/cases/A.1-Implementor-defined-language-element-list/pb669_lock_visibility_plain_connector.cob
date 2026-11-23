@@ -1,6 +1,6 @@
 *>--- conformance-case
 *> id: pb669_lock_visibility_plain_connector
-*> rules: [DOC-A.1-152, DOC-A.1-153]
+*> rules: [DOC-A.1-152, DOC-A.1-153, GR-9.1.16-p9]
 *> accept: [2002]
 *> source-format: free
 *> portable: unverified

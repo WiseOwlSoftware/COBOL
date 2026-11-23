@@ -1,6 +1,6 @@
 *>--- conformance-case
 *> id: pb3682_set_restricted_pointer_to_typedef_group_clauses
-*> rules: [SR-14.9.39.3-19]
+*> rules: [SR-14.9.39.3-19, GR-13.18.52.4-1]
 *> accept: [2002, 2014, 2023]
 *> source-format: free
 *> portable: unverified
