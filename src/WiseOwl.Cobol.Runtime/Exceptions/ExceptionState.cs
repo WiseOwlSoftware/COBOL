@@ -1264,12 +1264,10 @@ public sealed class ExceptionEngine
     // CONTAINED program (§2023:14.9.49.4 GR4b) runs in the CONTAINER's instance, so a contained program's GOBACK
     // sees its own array and correctly raises nothing.
     //
-    // ⚠ Table 13's neighbour EC-FLOW-GLOBAL-EXIT has NO helper here, and that is a DETERMINATION, not an
-    // omission: §2023:14.9.14.4 gives the Format-2 EXIT statement no general rule that sets it (GR3 imports
-    // "14.9.18, GOBACK statement, General rules 3 and 4" — NOT GR6), and Table 13's third column is a
-    // description, not a setting rule. The only normative statement about EXIT PROGRAM in a global declarative
-    // is §2023:14.9.14.3 SR2, which this compiler enforces at compile time. Inventing a raise site for a condition
-    // the standard never sets would be behaviour with no rule behind it.
+    // ⚠ Table 13's neighbour EC-FLOW-GLOBAL-EXIT has its helper below, but ONLY the 2002 and 2014 texts set it
+    // (§2002:14.8.13.3 GR2, §2014:14.9.13.3 GR2). §2023:14.9.14.4 gives the Format-2 EXIT statement no rule that sets it
+    // (GR3 imports "14.9.18, GOBACK statement, General rules 3 and 4" — NOT GR6), so from 2023 the compiler declares
+    // no raise and emits no call (DialectBehavior.FlowGlobalExitIsNeverSet; docs/conformance/3/D-GLOBAL-EXIT.md).
 
     /// <summary>True while the currently-executing statement has EC-FLOW-GLOBAL-GOBACK checking enabled
     /// (fatal).</summary>
@@ -1287,6 +1285,21 @@ public sealed class ExceptionEngine
     /// implementor answer.</summary>
     public void FlowGlobalGobackError(string detail) =>
         FatalIfEnabled(FlowGlobalGobackChecking, "EC-FLOW-GLOBAL-GOBACK", detail);
+
+    /// <summary>True while the currently-executing statement has EC-FLOW-GLOBAL-EXIT checking enabled
+    /// (fatal).</summary>
+    public bool FlowGlobalExitChecking
+    {
+        get => _checking.FlowGlobalExit;
+        set => _checking.FlowGlobalExit = value;
+    }
+
+    /// <summary>Raise EC-FLOW-GLOBAL-EXIT (§2002:14.8.13.3 GR2, §2014:14.9.13.3 GR2; Table 13 Fatal) when checking is
+    /// enabled; otherwise return, and the EXIT statement proceeds. The lenient outcome is the same recorded
+    /// determination as <see cref="FlowGlobalGobackError"/>: GR2 states only that the condition "is set to exist", and
+    /// with checking off (§2002:14.5.12.1 — the condition is not raised at all) there is nothing to leave unexecuted.</summary>
+    public void FlowGlobalExitError(string detail) =>
+        FatalIfEnabled(FlowGlobalExitChecking, "EC-FLOW-GLOBAL-EXIT", detail);
 
     /// <summary>True while the currently-executing statement has EC-REPORT-ACTIVE checking enabled (fatal).</summary>
     public bool ReportActiveChecking
@@ -2171,6 +2184,16 @@ public static class ExceptionState
 
     /// <inheritdoc cref="ExceptionEngine.FlowGlobalGobackError"/>
     public static void FlowGlobalGobackError(string detail) => E.FlowGlobalGobackError(detail);
+
+    /// <inheritdoc cref="ExceptionEngine.FlowGlobalExitChecking"/>
+    public static bool FlowGlobalExitChecking
+    {
+        get => E.FlowGlobalExitChecking;
+        set => E.FlowGlobalExitChecking = value;
+    }
+
+    /// <inheritdoc cref="ExceptionEngine.FlowGlobalExitError"/>
+    public static void FlowGlobalExitError(string detail) => E.FlowGlobalExitError(detail);
 
     /// <inheritdoc cref="ExceptionEngine.ReportActiveChecking"/>
     public static bool ReportActiveChecking

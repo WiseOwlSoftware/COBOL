@@ -582,22 +582,32 @@ public enum DialectBehavior
     /// VCR row 7.117). Both editions are QUOTED. The consumers are <c>IntrinsicRenderer</c> (which passes the width) and
     /// <c>EcFunctions.StatementLength</c>.</summary>
     ExceptionStatementIs63Characters = 61,
+    /// <summary>§2002:14.8.13.3 GR2 (and §2014:14.9.13.3 GR2) — "If an EXIT statement is executed within the range of a declarative
+    /// procedure whose USE statement contains the GLOBAL phrase and that USE statement is specified in the same function, method, or
+    /// program as the function format, method format, or program format EXIT statement respectively, the EC-FLOW-GLOBAL-EXIT exception
+    /// condition is set to exist" (a GOBACK in a function or method operates as that EXIT, §2002:14.8.17.3 GR3 and GR4). §2023:14.9.14.4
+    /// states no such rule — GR3 imports only GOBACK's GR3 and GR4, not GR6 — so from 2023 the condition is never set
+    /// (docs/conformance/3/D-GLOBAL-EXIT.md). Both editions are QUOTED. The consumer is <c>EcBinder.NodeKindRaises</c>, which
+    /// declares the raise only while this behaviour is inactive, so <c>CallEmitter.EmitExitProgram</c> and <c>EmitGoback</c>
+    /// write the check only at 2002 and 2014 (kb/Work PB5715; VCR row 7.118).</summary>
+    FlowGlobalExitIsNeverSet = 62,
     /// <summary>§2014:13.18.40.3 GR12 — a floating-point numeric-edited PICTURE's exponent "shall be '+9', '+99', '+999', '+9999',
     /// or '+9(n)' where n = 1, 2, 3, or 4", and its significand carries 1 through 36 digit positions (§2014:13.18.40.2 SR12;
     /// §2023:13.18.40.3 SR15, GR13 b). COBOL-2002 allows "'+9', '+99', '+999', or '+9(n)' where n = 1, 2, or 3"
-    /// (§2002:13.16.38.3 GR12) and 1 through 31 digit positions for any numeric-edited item (§2002:13.16.38.2 SR6), so at
-    /// <c>--std 2002</c> <c>PIC +9.9E+9999</c> and <c>PIC +9(32)E+99</c> are refused (kb/Work PB5712; VCR row 7.118). Both editions
+    /// (§2002:13.16.38.3 GR12) and 1 through 31 digit positions for any numeric-edited item, counted over the significand and the
+    /// exponent together (§2002:13.16.38.2 SR6; character-string-1 is both, §2002:13.16.38.3 GR12b), so at
+    /// <c>--std 2002</c> <c>PIC +9.9E+9999</c> and <c>PIC +9(32)E+99</c> are refused (kb/Work PB5712; VCR row 7.119). Both editions
     /// are QUOTED. The consumer is <c>PictureAnalyzer.AnalyzeFloatEdited</c>; the implementor's own widest intermediate
     /// (<c>SendingValueTemp.WidestFloatEditedPic</c>) is analyzed at the newest edition and is not the program's PICTURE.</summary>
-    FloatEditedPictureWideBounds = 62,
+    FloatEditedPictureWideBounds = 63,
     /// <summary>§2014:12.3.6.2 SR25 — "If a source unit does not contain a CURRENCY SIGN clause that specifies '$' as the currency
     /// symbol (either as literal-7 or literal-8), the clause CURRENCY SIGN '$' PICTURE SYMBOL '$' is implied for that source
     /// unit", so SR28 confines that symbol, whose literal-7 is alphanumeric, to a numeric-edited item with usage display
     /// (§2023:12.3.7.3 SR25 and SR28 the same). COBOL-2002 has no such rule: its SR24 asks only a literal-7 that is written
     /// (§2002:12.2.6.2 SR24), so at <c>--std 2002</c> the default '$' is the COBOL currency sign and a national numeric-edited item
-    /// may use it (§2002:13.16.38.3 GR2; kb/Work PB5614; VCR row 7.119). Both editions are QUOTED. The consumer is
+    /// may use it (§2002:13.16.38.3 GR2; kb/Work PB5614; VCR row 7.120). Both editions are QUOTED. The consumer is
     /// <c>ConfigurationSlice.FinalizeCurrencySigns</c>.</summary>
-    ImpliedDollarCurrencyClause = 63,
+    ImpliedDollarCurrencyClause = 64,
 }
 
 /// <summary>
@@ -904,12 +914,16 @@ public static class DialectBehaviors
             "7.117", "§2023:15.32.3 RV1", "§2014:15.29.2 RV1",
             "FUNCTION EXCEPTION-STATEMENT returns 63 characters (63 spaces when no location was saved) only from COBOL-2023; "
             + "COBOL-2002 and COBOL-2014 return 31 characters (31 spaces when no location was saved)"),
+        new(DialectBehavior.FlowGlobalExitIsNeverSet, "flow-global-exit-is-never-set", 2023,
+            "7.118", "§2023:14.9.14.4 GR3", "§2002:14.8.13.3 GR2",
+            "an EXIT PROGRAM, EXIT METHOD or EXIT FUNCTION executed within the range of a USE ... GLOBAL declarative of the same "
+            + "element sets EC-FLOW-GLOBAL-EXIT only at COBOL-2002 and COBOL-2014; COBOL-2023 states no rule that sets it"),
         new(DialectBehavior.FloatEditedPictureWideBounds, "float-edited-picture-wide-bounds", 2014,
-            "7.118", "§2014:13.18.40.3 GR12", "§2002:13.16.38.3 GR12",
+            "7.119", "§2014:13.18.40.3 GR12", "§2002:13.16.38.3 GR12",
             "a floating-point numeric-edited PICTURE may carry a four-digit exponent and a 36-digit significand only from COBOL-2014; "
-            + "COBOL-2002 allows an exponent of three digits and 31 digit positions"),
+            + "COBOL-2002 allows an exponent of three digits and 31 digit positions, significand and exponent counted together"),
         new(DialectBehavior.ImpliedDollarCurrencyClause, "implied-dollar-currency-clause", 2014,
-            "7.119", "§2014:12.3.6.2 SR25", "§2002:12.2.6.2 SR24",
+            "7.120", "§2014:12.3.6.2 SR25", "§2002:12.2.6.2 SR24",
             "a unit with no CURRENCY SIGN clause for '$' is taken to have written one, whose alphanumeric literal-7 confines '$' to usage display, "
             + "only from COBOL-2014; at COBOL-2002 the default '$' has no literal-7 and a national item may use it"),
     ];

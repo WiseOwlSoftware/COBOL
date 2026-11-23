@@ -5,7 +5,7 @@ Wave 20262150 group D, the picture analyzer's three notes. Each was re-probed on
 **PB5712 (landed).** At `--std 2002` `PIC +9.9E+9999` and `PIC +9(32)E+99` compiled, because `PictureAnalyzer.AnalyzeFloatEdited` applied the later
 editions' bounds (four exponent digits, 36 significand digits) at every edition. COBOL-2002 allows the exponent `+9`, `+99`, `+999` or `+9(n)`, n = 1 to 3
 (§2002:13.16.38.3 GR12) and 1 to 31 digit positions (§2002:13.16.38.2 SR6); 2014 adds `+9999` and 36 (§2014:13.18.40.3 GR12, §2014:13.18.40.2 SR12).
-The edge is one register row, `DialectBehavior.FloatEditedPictureWideBounds` (from 2014, VCR row 7.118), which the analyzer asks; the refusal (COBOL1658)
+The edge is one register row, `DialectBehavior.FloatEditedPictureWideBounds` (from 2014, VCR row 7.119), which the analyzer asks; the refusal (COBOL1658)
 cites the running edition's rule. The fixed-point arms already refused 32 digit positions at 2002 (COBOL0801), so there was no sibling. First gate: the
 implementor's own widest intermediate (`SendingValueTemp.WidestFloatEditedPic`, `+9.9(35)E+9999`) went through the same analyzer at the program's edition
 and was refused at 2002 (`pb370_move_function_value_digits`); it is the implementor's item (§2023:14.9.25.4 GR1, "an intermediate result item provided by
@@ -17,7 +17,7 @@ Goldens: `g2002-pic-float-edited-bounds-accepted` (31 digits and `+999`, sizes 3
 **PB5614 (landed).** `ConfigurationSlice.FinalizeCurrencySigns` added 2023 SR25's implied `CURRENCY SIGN '$' PICTURE SYMBOL '$'` at every edition, and the
 class screen then refused `PIC $9.99 USAGE NATIONAL` (COBOL2883). The implied clause starts at COBOL-2014 (§2014:12.3.6.2 SR25); COBOL-2002's SR24 speaks
 only of a written literal-7 (§2002:12.2.6.2 SR24) and a national item edits its insertion characters as national ones (§2002:13.16.38.3 GR2). The edge is
-`DialectBehavior.ImpliedDollarCurrencyClause` (from 2014, VCR row 7.119): below it `FinalizeCurrencySigns` joins `CurrencyDefinition.DefaultDollar`
+`DialectBehavior.ImpliedDollarCurrencyClause` (from 2014, VCR row 7.120): below it `FinalizeCurrencySigns` joins `CurrencyDefinition.DefaultDollar`
 (`IsDefaultSign`) and `PictureAnalyzer` asks no class of a default sign. The change made the default `$` differ from an explicit `"$"` under another
 symbol in `StrongTypeModel.SameAnalyzedProfile` (`l1c34_strong_type_currency_string_match`, COBOL1688): exception 1 of §2023:8.5.3.1 compares currency
 STRINGS, which `PicInfo.Clause` carries, and SR28 ties the class to the usage, so the class leaves that record compare. An explicit alphanumeric CURRENCY SIGN
