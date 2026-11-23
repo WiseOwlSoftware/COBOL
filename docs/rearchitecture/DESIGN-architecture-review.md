@@ -1633,7 +1633,8 @@ family of (3) (`DateTimeIntrinsicBinder`, `NumericIntrinsicBinder`, `TextIntrins
 `LocaleIntrinsicBinder`, `ExceptionIntrinsicBinder`); the catalog becomes data (`intrinsics.json` →
 `IntrinsicCatalog.g.cs`, the pattern of (2)) carrying arity and domain, the edition windows
 (`IntroducedIn`/`RemovedIn`) and the argument-schema rows `IntrinsicArgumentRules` screens — so a new function is a
-row plus one family-binder arm. *Seams:* `IntrinsicSig` (the catalog row) and `IIntrinsicFamilyBinder.Bind(IntrinsicSig,
+row plus one family-binder arm. The row carries no runtime member name: the function's name is the key the carrier rules and
+the backend's arms read, and the backend names each body it emits through `nameof` (kb/Work PB2627). *Seams:* `IntrinsicSig` (the catalog row) and `IIntrinsicFamilyBinder.Bind(IntrinsicSig,
 arguments) → BoundIntrinsicCall`. *Steps:* PB2300, PB2376–PB2381.
 
 **(6) `WiseOwl.Cobol.Validation.VersionConformancePass`** — R0-0006 (the bound arm and the word checks) with its nested

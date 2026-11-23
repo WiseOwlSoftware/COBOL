@@ -178,11 +178,12 @@ public static partial class CobolIntrinsics
 
     // ── Variadic statistics over scale-ALIGNED unscaled values (ISO §2023:15.59–§2023:15.63, §2023:15.71–72, §2023:15.76, §2023:15.88) ──
 
-    /// <summary>MAX (§2023:15.59.4): the greatest argument value, at the common scale.</summary>
-    public static Int128 MaxScaled(params ReadOnlySpan<Int128> xs) => xs[ExtremeIndex(new ValueOrder<Int128>(xs), true, "MAX")];
+    /// <summary>The greatest of scale-ALIGNED values: RANGE's and MIDRANGE's operand (§2023:15.76.4 RV1, §2023:15.62.4 RV1). FUNCTION MAX
+    /// itself is a selection that compares each argument at its own scale (<see cref="MaxAt"/>; kb/Work PB2627).</summary>
+    private static Int128 MaxScaled(ReadOnlySpan<Int128> xs) => xs[ExtremeIndex(new ValueOrder<Int128>(xs), true, "MAX")];
 
-    /// <summary>MIN (§2023:15.63.4): the least argument value, at the common scale.</summary>
-    public static Int128 MinScaled(params ReadOnlySpan<Int128> xs) => xs[ExtremeIndex(new ValueOrder<Int128>(xs), false, "MIN")];
+    /// <summary>The least of scale-ALIGNED values: RANGE's and MIDRANGE's operand. FUNCTION MIN itself is <see cref="MinAt"/>.</summary>
+    private static Int128 MinScaled(ReadOnlySpan<Int128> xs) => xs[ExtremeIndex(new ValueOrder<Int128>(xs), false, "MIN")];
 
     /// <summary>SUM (§2023:15.88.4): Σ arguments, at the common scale, EXACT in Int128 or not at all. (MEAN's numerator is
     /// not this body's: MEAN is the SDIDI quotient in every mode, kb/Work PB3860 - <see cref="MeanDec"/>.)</summary>
@@ -313,13 +314,6 @@ public static partial class CobolIntrinsics
         RequireArguments(xs.Length, "MIDRANGE");
         return ExactMul(ExactAdd(MaxScaled(xs), MinScaled(xs), "MIDRANGE"), 5, "MIDRANGE");
     }
-
-    /// <summary>ORD-MAX (§2023:15.71.4): the 1-based ordinal position of the greatest argument; ties take the FIRST
-    /// occurrence (strictly-greater update — the legacy-proven rule the NIST goldens encode).</summary>
-    public static long OrdMax(params ReadOnlySpan<Int128> xs) => ExtremeIndex(new ValueOrder<Int128>(xs), true, "ORD-MAX") + 1;
-
-    /// <summary>ORD-MIN (§2023:15.72.4): the 1-based ordinal position of the least argument; ties take the FIRST.</summary>
-    public static long OrdMin(params ReadOnlySpan<Int128> xs) => ExtremeIndex(new ValueOrder<Int128>(xs), false, "ORD-MIN") + 1;
 
     // ── MAX/MIN/ORD-MAX/ORD-MIN over all-alphanumeric/national arguments (category-polymorphic; §2023:15.59/§2023:15.63/§2023:15.71/§2023:15.72) ──
     // §2023:15.59.4 RV1 etc.: the greatest/least is determined by §2023:8.8.4.2 simple-condition rules — the alphanumeric PROGRAM

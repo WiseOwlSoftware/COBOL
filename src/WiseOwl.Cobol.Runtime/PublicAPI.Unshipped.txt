@@ -1225,7 +1225,6 @@ static WiseOwl.Cobol.Runtime.CobolIntrinsics.MaxAt(int toScale, bool store, Syst
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.MaxDec(params System.ReadOnlySpan<WiseOwl.Cobol.Runtime.CobolDec> xs) -> WiseOwl.Cobol.Runtime.CobolDec
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.MaxExact(params System.ReadOnlySpan<WiseOwl.Cobol.Runtime.CobolExact> xs) -> WiseOwl.Cobol.Runtime.CobolExact
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.MaxReal(params System.ReadOnlySpan<double> xs) -> double
-static WiseOwl.Cobol.Runtime.CobolIntrinsics.MaxScaled(params System.ReadOnlySpan<System.Int128> xs) -> System.Int128
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.MaxString(WiseOwl.Cobol.Runtime.CobolCollation! collation, params System.ReadOnlySpan<string!> xs) -> string!
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.MaxString(params System.ReadOnlySpan<string!> xs) -> string!
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.MaxWide(params System.ReadOnlySpan<WiseOwl.Cobol.Runtime.CobolWide> xs) -> WiseOwl.Cobol.Runtime.CobolWide
@@ -1249,7 +1248,6 @@ static WiseOwl.Cobol.Runtime.CobolIntrinsics.MinAt(int toScale, bool store, Syst
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.MinDec(params System.ReadOnlySpan<WiseOwl.Cobol.Runtime.CobolDec> xs) -> WiseOwl.Cobol.Runtime.CobolDec
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.MinExact(params System.ReadOnlySpan<WiseOwl.Cobol.Runtime.CobolExact> xs) -> WiseOwl.Cobol.Runtime.CobolExact
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.MinReal(params System.ReadOnlySpan<double> xs) -> double
-static WiseOwl.Cobol.Runtime.CobolIntrinsics.MinScaled(params System.ReadOnlySpan<System.Int128> xs) -> System.Int128
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.MinString(WiseOwl.Cobol.Runtime.CobolCollation! collation, params System.ReadOnlySpan<string!> xs) -> string!
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.MinString(params System.ReadOnlySpan<string!> xs) -> string!
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.MinWide(params System.ReadOnlySpan<WiseOwl.Cobol.Runtime.CobolWide> xs) -> WiseOwl.Cobol.Runtime.CobolWide
@@ -1257,7 +1255,6 @@ static WiseOwl.Cobol.Runtime.CobolIntrinsics.ModDec(WiseOwl.Cobol.Runtime.DecAri
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.ModExact(WiseOwl.Cobol.Runtime.CobolRounding mode, WiseOwl.Cobol.Runtime.CobolExact a, WiseOwl.Cobol.Runtime.CobolExact b) -> WiseOwl.Cobol.Runtime.CobolDec
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.ModWide(WiseOwl.Cobol.Runtime.CobolWide a, WiseOwl.Cobol.Runtime.CobolWide b) -> WiseOwl.Cobol.Runtime.CobolWide
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.NumvalCDec(string! text, string! currency, bool commaMode = false, bool anycase = false, int digitCap = 31, WiseOwl.Cobol.Runtime.Globalization.LocaleFacts? classification = null, bool contentUnrestricted = false) -> WiseOwl.Cobol.Runtime.CobolDec
-static WiseOwl.Cobol.Runtime.CobolIntrinsics.OrdMax(params System.ReadOnlySpan<System.Int128> xs) -> long
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.OrdMaxAt(System.ReadOnlySpan<System.Int128> v, System.ReadOnlySpan<int> s) -> long
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.OrdMaxDec(params System.ReadOnlySpan<WiseOwl.Cobol.Runtime.CobolDec> xs) -> long
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.OrdMaxExact(params System.ReadOnlySpan<WiseOwl.Cobol.Runtime.CobolExact> xs) -> long
@@ -1265,7 +1262,6 @@ static WiseOwl.Cobol.Runtime.CobolIntrinsics.OrdMaxReal(params System.ReadOnlySp
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.OrdMaxString(WiseOwl.Cobol.Runtime.CobolCollation! collation, params System.ReadOnlySpan<string!> xs) -> long
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.OrdMaxString(params System.ReadOnlySpan<string!> xs) -> long
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.OrdMaxWide(params System.ReadOnlySpan<WiseOwl.Cobol.Runtime.CobolWide> xs) -> long
-static WiseOwl.Cobol.Runtime.CobolIntrinsics.OrdMin(params System.ReadOnlySpan<System.Int128> xs) -> long
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.OrdMinAt(System.ReadOnlySpan<System.Int128> v, System.ReadOnlySpan<int> s) -> long
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.OrdMinDec(params System.ReadOnlySpan<WiseOwl.Cobol.Runtime.CobolDec> xs) -> long
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.OrdMinExact(params System.ReadOnlySpan<WiseOwl.Cobol.Runtime.CobolExact> xs) -> long

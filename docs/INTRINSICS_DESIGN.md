@@ -123,9 +123,11 @@ THE CATALOG (declarative, in WiseOwl.Cobol.Binding):
   enum ArgArity     { Fixed, OptionalTrailing, Variadic }                          // §2023:15.3
   enum IntrinsicBind { Fold, Runtime }                                             // compile-time vs runtime call
   readonly record struct IntrinsicSig(string Name, IntrinsicType Type, PicCategory ResultCategory,
-      ArgArity Arity, int MinArgs, int? MaxArgs, string RuntimeMethod, IntrinsicBind Bind,
+      ArgArity Arity, int MinArgs, int? MaxArgs, IntrinsicBind Bind,
       int IntroducedIn, int? RemovedIn);  // edition window (85/2002/2014/2023) from docs/VERSION_CHANGE_REFERENCE.md;
       // the binder rejects a FUNCTION outside its window for the year of Options.Edition with a per-edition diagnostic (D8)
+      // ⛔ The row names NO runtime member (kb/Work PB2627): Name is the function's identity and every consumer keys on it —
+      // the bound layer's carrier rules and the backend's arms, which name each body they emit through nameof.
   static class IntrinsicCatalog {
       static readonly Dictionary<string,IntrinsicSig> _t = new(StringComparer.OrdinalIgnoreCase){ ... ~95 rows ... };
       public static bool TryGet(string name, out IntrinsicSig sig) => _t.TryGetValue(name, out sig);
@@ -150,12 +152,11 @@ direct call to the same `WiseOwl.Cobol.Runtime` method):
      if (name.Equals("LENGTH",IC)) return new NumX($"{FoldLength(arg0)}L", 0);     // §2023:15.50 compile-time fold
      var sig = IntrinsicCatalog.Get(name);
      var args = BindIntrinsicArgs(fc, sig);                                         // table(ALL) expanded, typed per sig
-     return sig.Type switch {
-        IntrinsicType.Integer  => new NumX($"CobolIntrinsics.{sig.RuntimeMethod}({IntArgs(args)})", 0),
-        IntrinsicType.Numeric when IsFloatFn(sig) =>
-            new NumX($"(long)(CobolIntrinsics.{sig.RuntimeMethod}({DblArgs(args)}) * {Pow10(_targetScale)})", _targetScale),
-        IntrinsicType.Numeric  => /* exact: emit a CobolIntrinsics.*Scaled returning unscaled long at a known scale */,
-        _ => throw ... };
+     return sig.Name switch {                        // the arm is the FUNCTION's; the body it emits is a nameof
+        "FACTORIAL" => new NumX(RuntimeApi.Intrinsic(nameof(CobolIntrinsics.Factorial), IntArgs(args)), 0),
+        _ when sig.Float => RenderFloat(ic, Binary64Body(sig)),   // the one function → binary64-body table
+        ...                                          /* exact: a CobolIntrinsics body at a known scale */
+        _ => Loud(...) };
   }
 
 SPECIAL REGISTERS — synthesized DataItems (in DataBinder bootstrap), reusing the normal read/store paths:
@@ -240,7 +241,7 @@ The seven shapes, and the functions each covers:
 
 **MAX/MIN in full** (§2023:15.59.1/§2023:15.63.1, over the uniform §2023:15.59.3/§2023:15.63.3 AR2 argument list): alphabetic or alphanumeric → an ALPHANUMERIC result (the selected string); NATIONAL → a NATIONAL result (the selected national string — NOT alphanumeric); INDEX → an INDEX result; all-integer → an INTEGER result; otherwise → NUMERIC. The size of an alphanumeric or national result is the size of the selected argument-1 (§2023:15.59.4/§2023:15.63.4 RV3). ⚠ The INDEX row is **not** a `PicCategory` — an index item is PICTURE-less and this model carries it as `PicInfo.IndexItem`, category Numeric with usage Index, so a category-keyed test would route it to the numeric arm and, since its scale is 0, answer INTEGER: a plausible wrong type rather than a visible failure.
 
-**ORD-MAX §2023:15.71 / ORD-MIN §2023:15.72 are `Fixed` and share none of this.** They always return an integer ordinal — their §2023:15.71.1/§2023:15.72.1 clauses carry no result-type table at all — but they DO dispatch their comparison to the string body by the same argument category. That `RuntimeMethod` choice is deliberately kept separate from the result-type resolution in the binder: folding the two together is what made the old code read as if MAX's type and MAX's comparison body were one decision.
+**ORD-MAX §2023:15.71 / ORD-MIN §2023:15.72 are `Fixed` and share none of this.** They always return an integer ordinal — their §2023:15.71.1/§2023:15.72.1 clauses carry no result-type table at all — but they DO dispatch their comparison to the string body by the same argument category. That choice is a fact the binder records on the call, `BoundIntrinsicCall.ComparesStrings` (kb/Work PB2627), deliberately kept separate from the result-type resolution: folding the two together is what made the old code read as if MAX's type and MAX's comparison body were one decision.
 
 **The FORMATTED-\* family is the row most easily read backwards.** Their type follows argument-1 — the FORMAT literal (§2023:15.38.3 AR1 and siblings admit "a national or alphanumeric literal") — so `FUNCTION FORMATTED-DATE(N"YYYYMMDD" D)` is a NATIONAL function even though what it renders is an integer date.
 

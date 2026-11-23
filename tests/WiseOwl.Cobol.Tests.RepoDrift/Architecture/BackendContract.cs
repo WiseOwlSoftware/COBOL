@@ -218,10 +218,10 @@ internal static class BackendContract
         new(NeutralKind.IdentityKey,
         [
             "Model.DataItem.PointerRestrictionIdentity", "Model.PictureClauseIdentity.Key",
-            // runtime-body names the bound layer's carrier prediction keys its sets on, never emitted (kb/Work PB5891 review R5-2)
+            // the function names the bound layer's carrier prediction keys its sets on, never emitted (kb/Work PB5891 review R5-2;
+            // catalog names since kb/Work PB2627)
             "Bound.FunctionValueLane.NativeSdidiBodies", "Bound.FunctionValueLane.NativeSdidiBodiesWithExactResult",
             "Bound.FunctionValueLane.NativeSdidiBodiesWithWholeResult", "Bound.FunctionValueLane.Selections",
-            "Model.IntrinsicCarrierFacts.RuntimeMethod",
             // the corresponding external data item an external file's clauses name, compared across describers (kb/Work PB2418)
             // a value whose parts stay apart (kb/Work PB5888 review R1-1): the external record's externalized name, the item's own
             // name, the selected occurrence, and the length-prefixed Key the run-time descriptor carries

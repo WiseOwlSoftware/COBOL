@@ -35,17 +35,16 @@ namespace WiseOwl.Cobol.Runtime;
 /// </para>
 /// <para>
 /// ⛔ <b>THESE ARE NOT OVERLOADS, AND THE FIRST ATTEMPT PROVED WHY.</b> Sharing the F2 names looked ideal: the
-/// emitter's float path already renders each argument through <c>Dbl()</c> and calls <c>sig.RuntimeMethod</c> by
-/// name, so one dispatch line would have routed everything with no second naming scheme. It does not compile.
+/// emitter's float path already renders each argument through <c>Dbl()</c> and calls the exact body by name, so one
+/// dispatch line would have routed everything with no second naming scheme. It does not compile.
 /// <c>Int128</c> has no implicit conversion from <see cref="double"/>, but an integer LITERAL converts implicitly
 /// to BOTH — so <c>FUNCTION MAX(5 7)</c> emitted <c>MaxScaled(5, 7)</c> and C# reported
 /// <c>CS0121: The call is ambiguous between 'MaxScaled(params Int128[])' and 'MaxScaled(params double[])'</c>,
 /// breaking six previously-green corpus programs that had nothing to do with floats.
 /// <para>
-/// So the real bodies carry a <c>…Real</c> name — but by a CONVENTION, not a table: <c>XxxScaled</c> becomes
-/// <c>XxxReal</c>, and any other name gains a <c>Real</c> suffix. One string transform in
-/// <c>IntrinsicRenderer.RealMethod</c>, and <c>IntrinsicRealArgDriftTests</c> asserts every exact method
-/// reachable with a real argument has its counterpart — so the convention is enforced rather than remembered.
+/// So the real bodies carry a <c>…Real</c> name, and the renderer names each through <c>nameof</c> in ONE table keyed on
+/// the function, <c>IntrinsicRenderer.Binary64Bodies</c> (kb/Work PB2627): a missing or renamed body fails the build, and
+/// <c>IntrinsicRealArgDriftTests</c> holds the table to every function whose argument run can carry a binary64.
 /// </para>
 /// <para>
 /// ⛔ <b>NO BODY HERE TAKES A §2023:15.3 TYPE-6 (INTEGER) ARGUMENT AS A DOUBLE</b> (kb/Work PB651). An integer has no

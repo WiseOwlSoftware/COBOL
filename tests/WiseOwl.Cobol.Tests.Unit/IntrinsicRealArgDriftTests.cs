@@ -21,11 +21,11 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// probed did it.
 /// </para>
 /// <para>
-/// The fix routes real-argument calls to a <c>…Real</c> body by CONVENTION rather than by a lookup table, and a
-/// convention that is not asserted is a convention that is remembered — which is how the argument-class table
-/// this file's sibling guards went dead in the first place. Adding an exact-family arm to the renderer without
-/// its real counterpart would restore the CS1503 for that one function only, which is exactly the kind of hole
-/// nothing else notices.
+/// The fix routes real-argument calls to a <c>…Real</c> body through ONE table keyed on the function,
+/// <c>IntrinsicRenderer.Binary64Bodies</c>, whose values are <c>nameof</c>s (kb/Work PB2627): a body the table names exists by
+/// construction, so what is asserted here is the table's POPULATION. Adding an exact-family arm to the renderer without its
+/// row would make a binary64 argument fail the compile for that one function only, which is exactly the kind of hole nothing
+/// else notices; and a <c>…Real</c> body no row names is a body no program reaches.
 /// </para>
 /// </remarks>
 public sealed class IntrinsicRealArgDriftTests
@@ -39,12 +39,13 @@ public sealed class IntrinsicRealArgDriftTests
     private static string ExactSource() =>
         File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Runtime", "Intrinsics", "CobolIntrinsics.Exact.cs"));
 
-    /// <summary>The runtime methods the renderer's EXACT switch can reach, from its <c>case "…"</c> labels.</summary>
+    /// <summary>The functions the renderer's EXACT switch has an arm for, from its <c>case "…"</c> labels (kb/Work PB2627: the
+    /// arms are keyed on the function's catalog name).</summary>
     private static HashSet<string> ExactArms()
     {
         string src = RendererSource();
-        int from = src.IndexOf("switch (sig.RuntimeMethod)", StringComparison.Ordinal);
-        Assert.True(from > 0, "IntrinsicRenderer no longer switches on sig.RuntimeMethod — this guard is blind");
+        int from = src.IndexOf("switch (sig.Name)", StringComparison.Ordinal);
+        Assert.True(from > 0, "IntrinsicRenderer no longer switches on sig.Name — this guard is blind");
         string body = src[from..];
         // ⛔ EVERY LABEL OF AN or-CHAIN, NOT JUST THE FIRST (fix-queue PB21 — the guard's SECOND blind spot).
         // This read `case "(?<m>[A-Za-z]+)"`, which anchors on the word `case`, so
@@ -53,16 +54,15 @@ public sealed class IntrinsicRealArgDriftTests
         // green: `FUNCTION INTEGER-OF-DAY(<COMP-2>)` bound clean and failed Roslyn with CS0117. The renderer
         // uses or-chained labels throughout, so the under-count was systematic rather than incidental.
         // A label list runs from `case` to `:` or to a `when` guard; each quoted name inside it is an arm.
-        // ⛔ The name class includes DIGITS (kb/Work R18): `[A-Za-z]+` could not see a method like `Exp10`,
-        // so any digit-bearing arm was structurally invisible to this guard — the PB21 under-count shape again.
+        // ⛔ The name class includes DIGITS and the HYPHEN (kb/Work R18): a class that cannot see `EXP10` or `ORD-MAX` makes
+        // any such arm structurally invisible to this guard — the PB21 under-count shape again.
         // ⛔ PLUS THE SDIDI-QUOTIENT FUNCTIONS (kb/Work PB3860): MEAN has no arm in the switch (its native value is the SDIDI
-        // quotient, RenderDec's MeanDec), but a binary64 operand still routes it to MeanReal through RealMethod, so its
-        // counterpart is owed exactly as an arm's is. The set names the FUNCTION (kb/Work PB4370), so its runtime body is
-        // read off the catalog row.
-        return [.. Regex.Matches(body, @"case\s+(?<lbl>""[A-Za-z0-9]+""(?:\s+or\s+""[A-Za-z0-9]+"")*)\s*(?::|when\b)")
-            .SelectMany(m => Regex.Matches(m.Groups["lbl"].Value, @"""(?<n>[A-Za-z0-9]+)""")
+        // quotient, RenderDec's MeanDec), but a binary64 operand still routes it to MeanReal through Binary64Bodies, so its
+        // counterpart is owed exactly as an arm's is.
+        return [.. Regex.Matches(body, @"case\s+(?<lbl>""[A-Z0-9-]+""(?:\s+or\s+""[A-Z0-9-]+"")*)\s*(?::|when\b)")
+            .SelectMany(m => Regex.Matches(m.Groups["lbl"].Value, @"""(?<n>[A-Z0-9-]+)""")
                                   .Select(x => x.Groups["n"].Value))
-            .Concat(IntrinsicCarrierRules.SdidiQuotientFunctions.Select(IntrinsicCarrierRuleKeyDriftTests.RuntimeMethodOf))];
+            .Concat(IntrinsicCarrierRules.SdidiQuotientFunctions.Select(IntrinsicCarrierRuleKeyDriftTests.KeyOf))];
     }
 
     private static HashSet<string> RealBodies() =>
@@ -71,13 +71,7 @@ public sealed class IntrinsicRealArgDriftTests
         [.. Regex.Matches(RealArgsSource(), @"public static (?:double|long|Int128) (?<m>\w+)\(")
             .Select(m => m.Groups["m"].Value)];
 
-    /// <summary>The documented transform, mirrored here so a change to it has to be deliberate.</summary>
-    private static string RealName(string exact) =>
-        exact.EndsWith("Scaled", StringComparison.Ordinal)
-            ? string.Concat(exact.AsSpan(0, exact.Length - "Scaled".Length), "Real")
-            : exact + "Real";
-
-    /// <summary>The runtime methods of catalog rows declaring a general NUMERIC ('n') argument.</summary>
+    /// <summary>The functions of catalog rows declaring a general NUMERIC ('n') argument.</summary>
     /// <remarks>
     /// ⚠ This reads the catalog's <c>ArgKinds</c> hint column, which PB1 established is UNAUDITED — and that is
     /// acceptable HERE for a reason worth stating, because it would not be acceptable in the compiler. This use
@@ -118,8 +112,8 @@ public sealed class IntrinsicRealArgDriftTests
     /// schemas (<c>IntrinsicArgumentRules.IsIntegerPosition</c>), the same fact the renderer keys on.
     /// </para>
     /// </remarks>
-    private static HashSet<string> NumericArgumentMethods() =>
-        [.. NumericArgumentRows().Where(r => !EveryPositionIsType6(r.Name, r.Max)).Select(r => r.Rm)];
+    private static HashSet<string> NumericArgumentFunctions() =>
+        [.. NumericArgumentRows().Where(r => !EveryPositionIsType6(r.Name, r.Max)).Select(r => r.Name)];
 
     /// <summary>Does a float reach this function only through §2023:15.3 type-6 positions — every operand position up to
     /// its maximum argument count (or <see cref="IntrinsicFloatLaneArgumentRunDriftTests.PastEveryDeclaredPosition"/>
@@ -132,13 +126,12 @@ public sealed class IntrinsicRealArgDriftTests
         return Enumerable.Range(0, positions).All(p => IntrinsicArgumentRules.IsIntegerPosition(name, p));
     }
 
-    /// <summary>The catalog rows that can receive a float at a numeric position: (function, max argument count,
-    /// runtime method).</summary>
-    private static List<(string Name, string Max, string Rm)> NumericArgumentRows()
+    /// <summary>The catalog rows that can receive a float at a numeric position: (function, max argument count).</summary>
+    private static List<(string Name, string Max)> NumericArgumentRows()
     {
         string catalog = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "IntrinsicCatalog.cs"));
         var rx = new Regex("Add\\(new\\(\"(?<n>[A-Z0-9-]+)\",\\s*IntrinsicType\\.\\w+,\\s*IntrinsicArity\\.\\w+,"
-                           + "\\s*[-\\w]+,\\s*(?<max>[-\\w]+),\\s*\"(?<k>[a-z ]*)\",\\s*\"(?<rm>\\w*)\"");
+                           + "\\s*[-\\w]+,\\s*(?<max>[-\\w]+),\\s*\"(?<k>[a-z ]*)\",\\s*IntrinsicBind\\.(?<bind>\\w+)");
         return [.. rx.Matches(catalog)
             // A zero-argument function can never receive a float — SECONDS-PAST-MIDNIGHT is 0/0 and its empty
             // ArgKinds would otherwise read as "numeric" through the empty-means-'n' default.
@@ -153,8 +146,10 @@ public sealed class IntrinsicRealArgDriftTests
             // ("String")` filter that stood here with no reason attached.
             .Where(m => IntrinsicArgumentRules.ArgumentRunIsAllNumeric(m.Groups["n"].Value,
                         IntrinsicFloatLaneArgumentRunDriftTests.PastEveryDeclaredPosition))
-            .Where(m => m.Groups["rm"].Value.Length > 0)
-            .Select(m => (m.Groups["n"].Value, m.Groups["max"].Value, m.Groups["rm"].Value))];
+            // A row the binder always folds (the ALGEBRAIC family) never reaches the renderer; LENGTH and BYTE-LENGTH fold too,
+            // but a run-time length does reach it.
+            .Where(m => m.Groups["bind"].Value == nameof(IntrinsicBind.Runtime) || m.Groups["n"].Value is "LENGTH" or "BYTE-LENGTH")
+            .Select(m => (m.Groups["n"].Value, m.Groups["max"].Value))];
     }
 
     /// <summary>
@@ -166,17 +161,23 @@ public sealed class IntrinsicRealArgDriftTests
     [Fact]
     public void NoRealBody_ServesAFunctionWhoseEveryPositionIsType6()
     {
-        var real = RealBodies();
         var dead = NumericArgumentRows()
             .Where(r => EveryPositionIsType6(r.Name, r.Max))
-            .Select(r => RealName(r.Rm))
-            .Where(real.Contains)
+            // A §2023:15.4.1 floating-math row computes in binary64 whatever its operands (RANDOM's seed is type 6).
+            .Where(r => IntrinsicCatalog.TryGet(r.Name, out var sig) && !sig.Float)
+            .Where(r => IntrinsicRenderer.Binary64Bodies.ContainsKey(r.Name))
+            .Select(r => $"{r.Name} → {IntrinsicRenderer.Binary64Bodies[r.Name]}")
             .Distinct()
             .Order()
             .ToList();
         Assert.True(dead.Count == 0,
-            $"…Real body/bodies [{string.Join(", ", dead)}] serve a function whose every position is §2023:15.3 type 6; the "
+            $"binary64 body/bodies [{string.Join(", ", dead)}] serve a function whose every position is §2023:15.3 type 6; the "
             + "renderer takes those operands' integers before any lane is chosen, so no call can reach them. Delete them.");
+        // ⛔ AND NO …Real BODY IS OUTSIDE THE TABLE (kb/Work PB2627): the table is the one way the renderer names one, so a body no
+        // row names is a body no program reaches, kept alive only by a census that cannot see it is dead.
+        var unnamed = RealBodies().Where(b => b.EndsWith("Real", StringComparison.Ordinal) && !IntrinsicRenderer.Binary64Bodies.Values.Contains(b)).Order().ToList();
+        Assert.True(unnamed.Count == 0,
+            $"…Real body/bodies [{string.Join(", ", unnamed)}] are named by no IntrinsicRenderer.Binary64Bodies row, so no call can reach them. Delete them.");
     }
 
     /// <summary>
@@ -186,20 +187,18 @@ public sealed class IntrinsicRealArgDriftTests
     [Fact]
     public void EveryExactArm_HasItsRealCounterpart()
     {
-        var real = RealBodies();
-        var numericArg = NumericArgumentMethods();
+        var numericArg = NumericArgumentFunctions();
 
         var missing = ExactArms()
             .Where(numericArg.Contains)
-            .Where(m => !real.Contains(RealName(m)))
+            .Where(fn => !IntrinsicRenderer.Binary64Bodies.ContainsKey(fn))
             .Order()
             .ToList();
 
         Assert.True(missing.Count == 0,
             $"exact-family arm(s) with no floating-point counterpart: [{string.Join(", ", missing)}] — a real "
-            + "argument to any of these emits a double into an Int128 parameter and the user sees a raw CS1503 "
-            + "from the generated C# (fix-queue PB2). Add the body to CobolIntrinsics.RealArgs.cs, named "
-            + $"[{string.Join(", ", missing.Select(RealName))}].");
+            + "argument to any of these reaches the binary64 lane with no body to call (fix-queue PB2). Add the body to "
+            + "CobolIntrinsics.RealArgs.cs, named …Real, and its row to IntrinsicRenderer.Binary64Bodies.");
     }
 
     /// <summary>
@@ -230,7 +229,7 @@ public sealed class IntrinsicRealArgDriftTests
         Assert.True(src.Contains("AnyRealArgument", StringComparison.Ordinal),
             "IntrinsicRenderer no longer asks whether any ARGUMENT is real — dispatching on sig.Float alone is "
             + "precisely the PB2 defect, and it returns as a raw CS1503 on legal COBOL.");
-        Assert.True(src.Contains("RealMethod", StringComparison.Ordinal),
-            "the exact→real method-name transform is gone from IntrinsicRenderer (fix-queue PB2).");
+        Assert.True(src.Contains("Binary64Body(", StringComparison.Ordinal),
+            "the function→binary64-body table is no longer asked by IntrinsicRenderer (fix-queue PB2, kb/Work PB2627).");
     }
 }

@@ -52,7 +52,7 @@ public sealed class StandardModeReturnedValueContainerDriftTests : WiseOwlCobolT
     /// away from the table. The ninth positional argument of <c>Add(new(...))</c> is <c>Float</c>.</summary>
     private static readonly Regex FloatRow = new(
         "Add\\(new\\(\"(?<n>[A-Z0-9-]+)\",\\s*IntrinsicType\\.\\w+,\\s*IntrinsicArity\\.\\w+,\\s*[-\\w]+,\\s*[-\\w]+,"
-        + "\\s*\"[^\"]*\",\\s*\"\\w+\",\\s*IntrinsicBind\\.\\w+,\\s*(?<float>true|false),",
+        + "\\s*\"[^\"]*\",\\s*IntrinsicBind\\.\\w+,\\s*(?<float>true|false),",
         RegexOptions.Compiled);
 
     /// <summary>One legal, domain-valid function reference per <c>Float: true</c> catalog row — the argument

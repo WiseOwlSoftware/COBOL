@@ -39,7 +39,7 @@ public sealed class ExactWideSettlementDriftTests
     {
         // §2023:15.17.3 AR2: argument-2 is in standard numeric time form (§2023:15.5.5, a magnitude below 86 401), so its image keeps 29
         // fraction digits, and the returned value is formed on the SDIDI (CombinedDatetimeDec) whatever carried the argument.
-        ["CombinedDatetime"] = "argument-2 is bounded below 86401 and the value is formed on the SDIDI",
+        ["COMBINED-DATETIME"] = "argument-2 is bounded below 86401 and the value is formed on the SDIDI",
     };
 
     private static string Renderer() =>
@@ -135,12 +135,12 @@ public sealed class ExactWideSettlementDriftTests
         Assert.Contains(": x.Wide ? RuntimeApi.WideFunctionText(x.Expr, x.Scale, deSign, comma)", text);
     }
 
-    /// <summary>The exact-switch arms of <c>IntrinsicRenderer.RenderNum</c> (the first <c>switch (sig.RuntimeMethod)</c>), each label
+    /// <summary>The exact-switch arms of <c>IntrinsicRenderer.RenderNum</c> (the first <c>switch (sig.Name)</c>), each label
     /// with the text of its arm, read up to the switch's <c>default:</c>.</summary>
     private static List<(string Label, string Body)> ExactArms(string src)
     {
-        int from = src.IndexOf("switch (sig.RuntimeMethod)", StringComparison.Ordinal);
-        Assert.True(from > 0, "IntrinsicRenderer.RenderNum no longer switches on sig.RuntimeMethod — this guard is blind");
+        int from = src.IndexOf("switch (sig.Name)", StringComparison.Ordinal);
+        Assert.True(from > 0, "IntrinsicRenderer.RenderNum no longer switches on sig.Name — this guard is blind");
         int end = src.IndexOf("default:", from, StringComparison.Ordinal);
         string body = Regex.Replace(src[from..end], @"//[^\n]*", "");
         var arms = new List<(string, string)>();
@@ -149,7 +149,7 @@ public sealed class ExactWideSettlementDriftTests
         {
             int start = labels[i].Index + labels[i].Length;
             int stop = i + 1 < labels.Count ? labels[i + 1].Index : body.Length;
-            foreach (Match name in Regex.Matches(labels[i].Groups["l"].Value, @"""(?<n>\w+)"""))
+            foreach (Match name in Regex.Matches(labels[i].Groups["l"].Value, @"""(?<n>[\w-]+)"""))
                 arms.Add((name.Groups["n"].Value, body[start..stop]));
         }
         return arms;
@@ -171,10 +171,10 @@ public sealed class ExactWideSettlementDriftTests
             if (fractionBearing.IsMatch(body)) numeric.Add(arms[i].Label);
         }
         Assert.True(numeric.Count >= 15, "only " + numeric.Count + " numeric exact arms found (" + string.Join(", ", numeric) + ") — the scan is blind");
-        Assert.Contains("AbsScaled", numeric);
+        Assert.Contains("ABS", numeric);
 
         string wide = BodyOf(src, "private NumX? RenderWide(");
-        var wideLabels = Regex.Matches(wide, @"""(?<n>\w+)""\s*=>").Select(m => m.Groups["n"].Value).ToHashSet(StringComparer.Ordinal);
+        var wideLabels = Regex.Matches(wide, @"""(?<n>[\w-]+)""\s*=>").Select(m => m.Groups["n"].Value).ToHashSet(StringComparer.Ordinal);
         var missing = numeric.Distinct().Where(n => !wideLabels.Contains(n) && !ImageTakers.ContainsKey(n)).ToList();
         Assert.True(missing.Count == 0,
             "these exact-switch arms take a numeric argument but have no wide body in IntrinsicRenderer.RenderWide, so an argument "
@@ -196,14 +196,14 @@ public sealed class ExactWideSettlementDriftTests
     {
         string src = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "CodeGen", "Emit", "IntrinsicRenderer.cs"));
         string wide = BodyOf(src, "private NumX? RenderWide(");
-        var wideLabels = Regex.Matches(wide, @"""(?<n>\w+)""\s*=>").Select(m => m.Groups["n"].Value).Distinct().ToList();
+        var wideLabels = Regex.Matches(wide, @"""(?<n>[\w-]+)""\s*=>").Select(m => m.Groups["n"].Value).Distinct().ToList();
         Assert.True(wideLabels.Count >= 15, "only " + wideLabels.Count + " RenderWide arms found — the scan is blind");
-        Assert.Contains("if (xs.Count == 1 && xs[0].Exact) return RenderExactUnary(ic.Sig.RuntimeMethod, xs[0]);", wide);
+        Assert.Contains("if (xs.Count == 1 && xs[0].Exact) return RenderExactUnary(ic.Sig.Name, xs[0]);", wide);
 
         int unaryAt = src.IndexOf("private NumX? RenderExactUnary(", StringComparison.Ordinal);
         Assert.True(unaryAt >= 0, "IntrinsicRenderer no longer declares RenderExactUnary");
         string unary = src[unaryAt..src.IndexOf("};", unaryAt, StringComparison.Ordinal)];
-        var unaryLabels = Regex.Matches(unary, @"""(?<n>\w+)""\s*=>").Select(m => m.Groups["n"].Value).ToHashSet(StringComparer.Ordinal);
+        var unaryLabels = Regex.Matches(unary, @"""(?<n>[\w-]+)""\s*=>").Select(m => m.Groups["n"].Value).ToHashSet(StringComparer.Ordinal);
         string dec = BodyOf(src, "private NumX? RenderDec(");
         var missing = wideLabels.Where(n => !unaryLabels.Contains(n)
             && !Regex.IsMatch(dec, $@"""{n}""\s+when\s+!num\.StandardDecimal\s*=>[^\n]*\bExactValueArg(?:List)?\(")).ToList();

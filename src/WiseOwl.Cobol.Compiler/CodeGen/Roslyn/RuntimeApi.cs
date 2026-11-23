@@ -3395,9 +3395,8 @@ internal static class RuntimeApi
 
     // ── Intrinsic functions (CobolIntrinsics / CobolDate / EcFunctions / CobolModule; ISO §15 — P7 Step 12) ──
 
-    /// <summary>A <c>CobolIntrinsics</c> call. <paramref name="method"/> is normally the catalog row's
-    /// <c>RuntimeMethod</c> name — <c>IntrinsicCatalog</c> is the single name source, exercised end-to-end by
-    /// the intrinsic conformance suite; the TYPE anchor breaks here on a rename.</summary>
+    /// <summary>A <c>CobolIntrinsics</c> call. <paramref name="method"/> is the member's <c>nameof</c> at the caller
+    /// (<c>IntrinsicRenderer</c>'s arms; kb/Work PB2627), so a rename breaks the build at the arm and the TYPE anchor breaks here.</summary>
     public static string Intrinsic(string method, string args) =>
         $"{nameof(CobolIntrinsics)}.{method}({args})";
 
