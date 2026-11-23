@@ -1035,9 +1035,8 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
     private void IndexNameInPositionError(string name, SegmentPosition position)
     {
         var ed = data.Edition.Edition;
-        string what = $"the index-name '{name}' is not an identifier ({EditionInfo.Designated(ed.NotAnIdentifier())}) and a "
-            + $"reference-modification leftmost-position/length is not one of {ed.Contexts()}'s five contexts (a "
-            + $"subscript, PERFORM/SEARCH VARYING, SET, a relation condition) — {ed.Cite("§1985:VI.5.8.3 SR13", "§2023:8.4.3.3.3 SR4")} makes both bounds "
+        string what = $"the index-name '{name}' is not an identifier ({EditionInfo.Designated(ed.NotAnIdentifier())}) and "
+            + $"{ed.ReferenceModificationContext()} — {EditionInfo.Designated(ed.ReferenceModificationBounds())} makes both bounds "
             + "arithmetic expressions";
         if (data.Edition.Permissive)
             data.Edition.Warning(DiagnosticCatalog.IndexNameContext,
