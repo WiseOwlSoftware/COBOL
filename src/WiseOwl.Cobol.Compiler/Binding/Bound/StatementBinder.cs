@@ -212,7 +212,7 @@ public sealed partial class StatementBinder(DataBinder data) : IStatementSite
     /// <summary>The view of a qualified data item written as one chain (<c>A OF G AS C</c>, §2023:8.4.3.1.4 GR1a before c)),
     /// bound by the OO binder like every object view.</summary>
     Place? IStatementSite.ApplyObjectView(Place subject, Core.ObjectViewContext view, Core.DataReferenceContext written) =>
-        Oo.OoApplyObjectView(subject, view, WrittenSource.Of(written));
+        Oo.OoApplyObjectView(subject, view, written);
 
     /// <summary>The ONE guard in front of <see cref="ReportWriterBinder.BindReportGroupClauses"/>: bind the report-section
     /// clause expressions of the reports THIS unit declares, when it declares any. A program unit and a class's method
