@@ -584,7 +584,7 @@ public enum DialectBehavior
     ExceptionStatementIs63Characters = 61,
 
     /// <summary>ISO/IEC 1989:2014 §2014:14.9.35.3 GR2a.1 and GR4a — SET of an index-name to an occurrence number, or UP / DOWN BY,
-    /// outside the table. From 2014 the only range is the implementor index range of §2014:13.18.38.4 GR2 (EC-RANGE-INDEX), and
+    /// outside the table. From 2014 the only range is the implementor index range of §2014:13.18.38.3 GR2 (EC-RANGE-INDEX), and
     /// the index "is set to a value causing it to refer to the table element that would correspond in occurrence number …, even
     /// if that occurrence is not a valid occurrence within this table" (GR2a.1c, GR4b), so the value is stored. COBOL-2002 makes
     /// such a value an invalid subscript: "otherwise the execution of the SET statement is unsuccessful and the content of the
