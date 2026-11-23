@@ -249,6 +249,8 @@ public sealed class RunUnitStateDriftTests
             "memo of monetary facts, keyed by the (immutable) LocaleFacts object",
         ["WiseOwl.Cobol.Runtime.Globalization.TimeFacts::s_cache"] =
             "memo of LC_TIME facts, keyed by the (immutable) LocaleFacts object",
+        ["WiseOwl.Cobol.Runtime.CobolDate::Formats"] =
+            "memo of parsed §2023:15.3 date/time formats, keyed by the format literal (§2023:15.40.3 AR1): derived from the string alone, bounded (kb/Work PB2637)",
         ["WiseOwl.Cobol.Runtime.CobolIntrinsics::s_orderingCollators"] =
             "memo of collators for FUNCTION ORDERING, keyed by (table, level): derived from immutable inputs",
         ["WiseOwl.Cobol.Runtime.Exceptions.EcCheckingProfile::Cache"] =
