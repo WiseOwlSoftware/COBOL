@@ -13,6 +13,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// allocated a string per field. This class refuses a call of the tokenizer from anywhere but <c>FormatOf</c>, and a per-field
 /// string in the emitter.
 /// </summary>
+[Trait("Sweep", "tree")]
 public sealed class DateFormatParseOnceDriftTests
 {
     private const string Home = "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs";

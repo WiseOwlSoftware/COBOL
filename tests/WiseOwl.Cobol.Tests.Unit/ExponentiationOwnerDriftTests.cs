@@ -14,6 +14,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// EC-SIZE-EXPONENTIATION with two texts depending on whether an ARITHMETIC clause was present. This class refuses a second raise of
 /// the condition anywhere in the runtime and a power entry back on the intrinsic class.
 /// </summary>
+[Trait("Sweep", "tree")]
 public sealed class ExponentiationOwnerDriftTests
 {
     private static readonly TreeScope RuntimeSources = new(Under: ["src/WiseOwl.Cobol.Runtime/"], Kinds: [".cs"]);
