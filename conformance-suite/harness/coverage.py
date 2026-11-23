@@ -567,7 +567,7 @@ def read_parses(dll: Path, tests: list, frames: list[str], edition: str):
     import tempfile
     with tempfile.TemporaryDirectory(prefix="points-") as tmp:
         manifest, out = Path(tmp) / "manifest.tsv", Path(tmp) / "out.jsonl"
-        manifest.write_text("".join(f"{SUITE / c.path}\t{edition}\t{c.source_format}\n" for c in tests), encoding="utf-8")
+        manifest.write_text("".join(f"{SUITE / c.path}\t{edition}\t{c.source_format}\n" for c in tests), encoding="utf-8", newline="\n")
         with out.open("wb") as fh:
             run = subprocess.run(["dotnet", str(dll), "points-batch", str(manifest), "--frames", ",".join(frames),
                                   "--operands", ",".join(OPERAND_RULES), "--flat", ",".join(FLAT_FRAMES)], stdout=fh, stderr=subprocess.PIPE)
