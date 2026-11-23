@@ -33,7 +33,7 @@ public sealed class VariableLengthCarrierStoreDriftTests
     public void OnlyTheCarrier_DecidesBetweenRecreatingAndSpaceFillingATable()
     {
         var rx = new Regex(@"\.(FromCurrentImage|SpaceFillElements)\(|nameof\([^)]*\.(FromCurrentImage|SpaceFillElements)\)");
-        var offenders = Scan(rx, TableCallers);
+        var offenders = Scan(rx, TrackedTree.Files(TableCallers));
         // Make the scan able to FAIL: the carrier's store must still spell both arms.
         string carrier = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Runtime", "Values", "CobolVarGroup.cs"));
         Assert.Contains("table.FromCurrentImage(", carrier, StringComparison.Ordinal);
@@ -48,7 +48,7 @@ public sealed class VariableLengthCarrierStoreDriftTests
     public void OnlyTheLayoutBuilder_ConstructsAContiguousLayout()
     {
         var rx = new Regex(@"new CobolContiguousLayout\(|new \{nameof\(CobolContiguousLayout\)\}\(");
-        var offenders = Scan(rx, LayoutBuilders);
+        var offenders = Scan(rx, TrackedTree.Files(LayoutBuilders));
         string layout = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Runtime", "Values", "CobolContiguousLayout.cs"));
         Assert.Contains("return new CobolContiguousLayout(", layout, StringComparison.Ordinal);
         Assert.True(offenders.Count == 0,
@@ -56,12 +56,12 @@ public sealed class VariableLengthCarrierStoreDriftTests
             + "builder of each component's unit and maximum (kb/Work PB2746):\n" + string.Join("\n", offenders));
     }
 
-    /// <summary>Every line of the tracked files <paramref name="scope"/> holds that matches <paramref name="rx"/>, comments
+    /// <summary>Every line of the tracked <paramref name="files"/> that matches <paramref name="rx"/>, comments
     /// aside.</summary>
-    private static List<string> Scan(Regex rx, TreeScope scope)
+    private static List<string> Scan(Regex rx, IReadOnlyList<string> files)
     {
         var offenders = new List<string>();
-        foreach (string path in TrackedTree.Files(scope))
+        foreach (string path in files)
         {
             string[] lines = File.ReadAllLines(TestRepo.Within("src/", path));
             for (int i = 0; i < lines.Length; i++)
