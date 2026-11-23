@@ -1533,3 +1533,4 @@ static readonly WiseOwl.Cobol.Runtime.MoveCitations.Iso2023 -> WiseOwl.Cobol.Run
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryIndexOutcome.ToString() -> string
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.Equals(object obj) -> bool
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.ToString() -> string
+static WiseOwl.Cobol.Runtime.Globalization.MonetaryPlacement.ForPicture(WiseOwl.Cobol.Runtime.Globalization.MonetaryConvention c, bool pictureHasCurrencySymbol) -> WiseOwl.Cobol.Runtime.Globalization.MonetaryConvention

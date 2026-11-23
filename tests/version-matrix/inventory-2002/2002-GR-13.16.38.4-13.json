@@ -3,6 +3,6 @@
  "rule-digest": "0fc30f67cb09",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Runtime/Globalization/MonetaryPlacement.cs#Render",
- "test-ref": "conformance:cases/13.16.38@2002-PICTURE-CLAUSE/pb5650-locale-no-currency-symbol-no-space; unit:MonetaryFactsTests.Render_NoCurrencyString_AddsNoSeparatorSpace_PB5650",
- "notes": "kb/Work PB5650 fixed: MonetaryPlacement.Render emits no sep_by_space slot when the picture has no currency symbol (empty currency string). nl-NL +1234.5 in +ZZZ9.99 SIZE 14 now prints [     +1.234,50] and pt-BR -1234.5 prints [     -1.234,50], as the 2002 text derives (§2002:13.16.38.3 GR17; §2002:13.16.38.4 GR13); run at --std 2002 on this branch's build."
+ "test-ref": "conformance:cases/13.16.38@2002-PICTURE-CLAUSE/pb5650-locale-no-currency-symbol-no-space; unit:MonetaryFactsTests.ForPicture_NoCurrencySymbol_AddsNoSeparatorSpace_PB5650",
+ "notes": "kb/Work PB5650 fixed: MonetaryPlacement.ForPicture drops the sep_by_space slot when the picture has no currency symbol. nl-NL +1234.5 in +ZZZ9.99 SIZE 14 now prints [     +1.234,50] and pt-BR -1234.5 prints [     -1.234,50], as the 2002 text derives (§2002:13.16.38.3 GR17; §2002:13.16.38.4 GR13); run at --std 2002 on this branch's build."
 }

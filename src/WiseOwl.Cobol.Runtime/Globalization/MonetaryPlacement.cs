@@ -38,6 +38,14 @@ public readonly record struct MonetaryConvention(bool CsPrecedes, int SepBySpace
 /// </summary>
 public static class MonetaryPlacement
 {
+    /// <summary>The convention a picture is rendered with: a picture with no currency symbol includes no currency
+    /// string (§2002:13.16.38.3 GR17, the same in 2023), so there is nothing for <c>sep_by_space</c> to separate and
+    /// the space slots are dropped (kb/Work PB5650) — which keeps the edited data right justified
+    /// (§2002:13.16.38.4 GR14). A picture WITH the currency symbol keeps the locale's convention even when the
+    /// locale's currency string is empty.</summary>
+    public static MonetaryConvention ForPicture(MonetaryConvention c, bool pictureHasCurrencySymbol)
+        => pictureHasCurrencySymbol ? c : c with { SepBySpace = 0 };
+
     /// <summary>Lay out one monetary rendering per the POSIX convention — the B.1 shape of the T6 derivation.
     /// When <c>SignPosn</c> is 0 the parentheses ARE the sign and <paramref name="sign"/> is not used; when 3 or 4
     /// the sign is GLUED to the currency string and travels with it, which is what separates
@@ -56,10 +64,6 @@ public static class MonetaryPlacement
         // A space slot next to an ABSENT sign string is not emitted: POSIX's sep_by_space 2 separates "the
         // currency symbol and the sign string" / "the sign string from the value" — no sign string, no space.
         // (The derivation's probes always carry a one-char sign, so the tables are unaffected.)
-        // Likewise every space slot is a separation FROM the currency string (POSIX sep_by_space), so a picture with
-        // no currency symbol (cs empty) has no currency string to separate: no space anywhere (§2002:13.16.38.3 GR17,
-        // the same in 2023; kb/Work PB5650). Right justification (§2002:13.16.38.4 GR14) then holds.
-        if (cs.Length == 0) c = c with { SepBySpace = 0 };
         if (c.SignPosn == 0)
         {
             string gap = c.SepBySpace == 1 ? " " : "";
