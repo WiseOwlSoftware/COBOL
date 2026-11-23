@@ -1,4 +1,4 @@
-## The inventory's witnesses and the suite's case headers agree, and generate.py refuses them differing (PB6067)
+## Entry 3998 — 2026-11-23 11:11 PST — The inventory's witnesses and the suite's case headers agree, and generate.py refuses them differing (PB6067)
 
 PB6067 named three gaps the 1985 widening left. Re-probed on main ccb23d13e4:
 
@@ -22,3 +22,4 @@ PB6067 named three gaps the 1985 widening left. Re-probed on main ccb23d13e4:
 
 Rows closed: none (`closes_rows: []`, with its reason). Leads: the 2002 rows whose only witness is a case that cannot cite a
 2023-only band (for example 2002-SR-13.16.33.2-2 against `pb1221_report_keyword_prefixes`) wait for the 2002 band widening.
+
