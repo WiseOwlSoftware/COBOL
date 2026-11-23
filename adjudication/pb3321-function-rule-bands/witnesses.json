@@ -1,0 +1,15 @@
+{
+ "batch": "pb3321-witnesses",
+ "records": [
+  {
+   "rule-id": "RV-15.14.4-2",
+   "verdict": "CONFORMS",
+   "test-ref": "conformance:cases/13.18.29-GROUP-USAGE/pb61_length_byte_length_rule_branches; conformance:cases/13.18.38-OCCURS/pb80_based_odo_group; conformance:cases/15.14.4-Returned-value-rules/pb3321-byte-length-depending-2002"
+  },
+  {
+   "rule-id": "RV-15.84.4-1",
+   "verdict": "CONFORMS",
+   "test-ref": "conformance:cases/11.9.5-ARITHMETIC/pb116_sqrt_standard_decimal; unit:CobolDecSqrtTests.Sqrt2_Is34DigitsCorrect; conformance:cases/15.84.4-Returned-value-rules/pb3321-sqrt-standard-arithmetic-2002"
+  }
+ ]
+}
