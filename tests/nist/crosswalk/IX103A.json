@@ -8,7 +8,7 @@
     481,
     496
    ],
-   "feature": "READ SEQUENTIAL",
+   "feature": "RECORD KEY ON OPEN",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",

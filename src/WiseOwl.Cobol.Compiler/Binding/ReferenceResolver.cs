@@ -681,7 +681,7 @@ public sealed class ReferenceResolver(DataBinder data)
         occursLevels.Reverse();
         if (occursLevels.Count != exprs.Count) return null;   // wrong subscript count → loud
         // The ONE displacement term of a fixed level (FixedLevelTerm), the one the Tier-B view window takes.
-        var disp = occursLevels.Select((lv, k) => PlaceBuilder.FixedLevelTerm(lv, exprs[k])).ToList();
+        var disp = occursLevels.Select((lv, k) => PlaceBuilder.FixedLevelTerm(lv, exprs[k], Places.OdoReferenceCheckFor)).ToList();
         return new AddressOfOperand(item, disp, refMod, bitPlace, extent, operandPlace);
     }
 
