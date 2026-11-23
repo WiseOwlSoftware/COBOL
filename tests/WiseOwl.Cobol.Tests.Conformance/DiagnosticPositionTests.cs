@@ -312,13 +312,13 @@ public sealed class DiagnosticPositionTests : IDisposable
     /// report `(5,9)` for a word written at column 16.</summary>
     [Theory]
     // a plain fixed-form line: the parse error at the '.' written in column 21
-    [InlineData("plain", "       PROCEDURE DIVISION.\n           MOVE 1 TO.\n           STOP RUN.\n", "plain.cob(7,21)", "COBOL0001")]
+    [InlineData("plain", "       PROCEDURE DIVISION.\n           MOVE 1 TO.\n           STOP RUN.\n", "plain.cob(7,21)", "COBOL5506")]
     // the binder's operand cursor on a plain fixed-form line: the undefined UNDEF at column 20 (DISPLAY is at 12; kb/Work PB4383)
     [InlineData("cursor", "       PROCEDURE DIVISION.\n           DISPLAY UNDEF.\n           STOP RUN.\n", "cursor.cob(7,20)", "COBOL1639")]
     // a fixed continuation FRAGMENT: the '.' is on the continuation line, at its own line and column
-    [InlineData("contin", "       PROCEDURE DIVISION.\n           MOVE \"ABC\n      -    \"DEF\" TO.\n           STOP RUN.\n", "contin.cob(8,20)", "COBOL0001")]
+    [InlineData("contin", "       PROCEDURE DIVISION.\n           MOVE \"ABC\n      -    \"DEF\" TO.\n           STOP RUN.\n", "contin.cob(8,20)", "COBOL5506")]
     // a TAB in the program text counts ONE column, as in the editor (the tab expanded to positions 18-24)
-    [InlineData("tabbed", "       PROCEDURE DIVISION.\n           MOVE 1\tTO.\n           STOP RUN.\n", "tabbed.cob(7,21)", "COBOL0001")]
+    [InlineData("tabbed", "       PROCEDURE DIVISION.\n           MOVE 1\tTO.\n           STOP RUN.\n", "tabbed.cob(7,21)", "COBOL5506")]
     // after a >>SOURCE FORMAT FREE switch the line is read whole: UNDEF at column 12 (DISPLAY is at 4)
     [InlineData("switch", "       >>SOURCE FORMAT FREE\nPROCEDURE DIVISION.\n   DISPLAY UNDEF.\n   STOP RUN.\n", "switch.cob(8,12)", "COBOL1639")]
     public void FixedForm_DiagnosticNamesThePhysicalColumn(string name, string tail, string position, string code)
@@ -330,6 +330,22 @@ public sealed class DiagnosticPositionTests : IDisposable
             $"expected '{position}: error {code}'; got:\n" + string.Join("\n", lines));
     }
 
+    /// <summary>⛔ kb/Work PB6113 (review R1-1) — the period-where-an-operand-is-due sentence cites the rule it states: only a
+    /// bracketed portion of a general format may be omitted (§2023:5.2.6.2), true of every format whether or not its
+    /// operand is in braces (`MOVE CORRESPONDING G1 TO.` has identifier-4 unbraced); it quotes no brace rule.</summary>
+    [Theory]
+    [InlineData("MOVE 1 TO.")]
+    [InlineData("MOVE CORRESPONDING G1 TO.")]
+    public void PeriodWhereAnOperandIsDue_CitesTheBracketRule_NotABraceRule(string statement)
+    {
+        Write("cite.cob", Head + "       PROCEDURE DIVISION.\n           " + statement + "\n           STOP RUN.\n");
+        var (ok, lines) = Compile("cite.cob", format: InitialReferenceFormat.Fixed);
+        Assert.False(ok);
+        var line = Assert.Single(lines, d => d.Contains("error COBOL5506"));
+        Assert.Contains("§2023:5.2.6.2", line.Replace("ISO ", ""));
+        Assert.DoesNotContain("within braces", line);
+    }
+
     [Fact] // kb/Work PB1688 / PB1801 — the copybook arm and the REPLACE arm keep the physical column
     public void FixedForm_CopybookAndReplacedText_NameThePhysicalColumn()
     {
@@ -337,13 +353,13 @@ public sealed class DiagnosticPositionTests : IDisposable
         Write("k7.cob", Head + "       PROCEDURE DIVISION.\n           COPY \"cols.cpy\".\n           STOP RUN.\n");
         var (ok, lines) = Compile("k7.cob", format: InitialReferenceFormat.Fixed);
         Assert.False(ok);
-        Assert.Contains(lines, d => d.Contains("cols.cpy(2,25): error COBOL0001"));
+        Assert.Contains(lines, d => d.Contains("cols.cpy(2,25): error COBOL5506"));
         // REPLACE substitutes a SHORTER text before the error on the same line: the '.' keeps the column it was written in
         Write("r7.cob", Head + "       REPLACE ==LONG-REPLACED-OPERAND== BY ==1==.\n       PROCEDURE DIVISION.\n"
             + "           MOVE LONG-REPLACED-OPERAND TO.\n           STOP RUN.\n");
         (ok, lines) = Compile("r7.cob", format: InitialReferenceFormat.Fixed);
         Assert.False(ok);
-        Assert.Contains(lines, d => d.Contains("r7.cob(8,41): error COBOL0001"));
+        Assert.Contains(lines, d => d.Contains("r7.cob(8,41): error COBOL5506"));
     }
 
     /// <summary>⛔ kb/Work PB2986 — the --nist CCVS placeholder substitution is a MAPPED stage: a placeholder and its
@@ -431,7 +447,7 @@ public sealed class DiagnosticPositionTests : IDisposable
         Write("scont.cob", Head + $"       PROCEDURE DIVISION.\n           MOVE \"A\n      -    \"{Wide}B\" TO.\n           STOP RUN.\n");
         var (ok, lines) = Compile("scont.cob", format: InitialReferenceFormat.Fixed);
         Assert.False(ok);
-        Assert.Contains(lines, d => d.Contains("scont.cob(8,20): error COBOL0001"));
+        Assert.Contains(lines, d => d.Contains("scont.cob(8,20): error COBOL5506"));
     }
 
     [Fact] // free form reads the whole line: the '.' is at position 18 after the two letters
@@ -440,7 +456,7 @@ public sealed class DiagnosticPositionTests : IDisposable
         Write("sfree.cob", $"IDENTIFICATION DIVISION.\nPROGRAM-ID. PB2983F.\nPROCEDURE DIVISION.\n    MOVE \"{Wide}B\" TO.\n    STOP RUN.\n");
         var (ok, lines) = Compile("sfree.cob", format: InitialReferenceFormat.Free);
         Assert.False(ok);
-        Assert.Contains(lines, d => d.Contains("sfree.cob(4,18): error COBOL0001"));
+        Assert.Contains(lines, d => d.Contains("sfree.cob(4,18): error COBOL5506"));
     }
 
     [Fact] // a copybook's text is read by the same walker: ZZZ stands in position 24 of the copybook's line
