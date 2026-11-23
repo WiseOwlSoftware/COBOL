@@ -1,3 +1,4 @@
-## The leads of twelve landed branches filed: PB6097-PB6110 and four findings
+## Entry 3952 — 2026-11-22 21:19 PST — The leads of twelve landed branches filed: PB6097-PB6110 and four findings
 
 The enqueue clerk filed the leads of the PB6090, PB3206, PB6051, PB3322, PB3199, PB2628, PB6047, PB3319, PB5599, PB3321, PB6049 and PB6054 branches. New notes: PB6097 (code-read staled_by wording), PB6098 (inventory-schema second readers, rule 7 unenforced), PB6099 (stale Chapter IV comment), PB6100 (1985 figure sweep, page 634), PB6101 (unchecked 2002 citations), PB6102 (landing check doc drift; landing_check.py exists), PB6103 (hook self-test origin assumption), PB6104 and PB6105 (completeness witness classification and its docstring), PB6106 (decide.py docstring), PB6107 (2002 run-time raise names), PB6108 (exception catalog drift test coverage), PB6109 (RV-15.84.4-1 notes), PB6110 (crosswalk last-write-wins). Findings beside PB3320, PB3321, PB4696 and PB6054.
+
