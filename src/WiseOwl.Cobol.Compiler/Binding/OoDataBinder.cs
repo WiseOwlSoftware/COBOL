@@ -382,7 +382,7 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
         var pd = definition.procedureDivision();
         var header = pd is null ? ProcedureHeader.None
             : ProcedureHeaderBinder.Bind(data, pd, m.Binding!.LinkageRoots,
-                () => SymbolTable.AddressedBy(data.ClaimScans.AddressTargets(pd)), where, method: true);
+                () => SymbolTable.AddressedBy(data.ClaimScans.AddressTargets(pd)), new ProcedureHeaderScreen(Edition, where), method: true);
         foreach (var f in header.Formals)
         {
             // ⛔ A RESIDENT formal's every reference reads and writes its argument's storage through the method-local

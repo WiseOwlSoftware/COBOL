@@ -1020,7 +1020,7 @@
     {
       "from": "WiseOwl.Cobol.Binding.Bound",
       "to": "WiseOwl.Cobol.Binding.Procedure",
-      "uses": 44,
+      "uses": 43,
       "walkUses": 41,
       "removedBy": [
         "PB2347"

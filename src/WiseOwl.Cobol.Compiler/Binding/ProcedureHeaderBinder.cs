@@ -61,14 +61,14 @@ internal static class ProcedureHeaderBinder
 {
     /// <summary>Bind the USING and RETURNING phrases of <paramref name="pd"/> against the element's
     /// <paramref name="linkageRoots"/>. <paramref name="addressedNames"/> is asked only when the header has formals (kb/Work
-    /// PB4302: the scan of every ADDRESS OF is wasted on a header with none). <paramref name="where"/> names the element in the
-    /// screen's messages; <paramref name="method"/> selects the method arm's spelling of the SR1 messages.</summary>
+    /// PB4302: the scan of every ADDRESS OF is wasted on a header with none). <paramref name="header"/> is the ONE screen of the
+    /// header (§2023:14.2.2 SR1/SR2/SR5/SR6; kb/Work PB1145), which names the element; <paramref name="method"/> selects the
+    /// method arm's spelling of the SR1 messages.</summary>
     internal static ProcedureHeader Bind(DataBinder data, Core.ProcedureDivisionContext pd, IReadOnlyList<DataItem> linkageRoots,
-        Func<SymbolTable.AddressedNames> addressedNames, string where, bool method)
+        Func<SymbolTable.AddressedNames> addressedNames, ProcedureHeaderScreen header, bool method)
     {
         var edition = data.Edition;
-        var header = new ProcedureHeaderScreen(edition, where);   // §2023:14.2.2 SR1/SR2/SR5/SR6 — the ONE screen (kb/Work PB1145)
-        string prefix = method ? where + ": " : "";
+        string prefix = method ? header.Where + ": " : "";
         string owner = method ? " of the method" : "";
         var parameters = pd.usingClause()?.usingParameter() ?? [];
         var addressed = parameters.Length == 0 ? SymbolTable.AddressedNames.None : addressedNames();

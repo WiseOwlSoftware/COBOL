@@ -52,11 +52,6 @@
       "reason": "compares two symbols already resolved (type equivalence, conformance, control identity): no written name is resolved"
     },
     {
-      "site": "NAMEEQ Binding/Model/OoFormal.cs WiseOwl.Cobol.Binding.Model.OoFormal.IsArea Item.Class?.BasedPointerField == AreaPointerClrName",
-      "class": "SAMESYMBOL",
-      "reason": "compares two symbols already resolved (type equivalence, conformance, control identity): no written name is resolved"
-    },
-    {
       "site": "NAMEEQ Binding/Model/OoMethodBinding.cs WiseOwl.Cobol.Binding.Model.OoMethodBinding.FormalName f.ParamName == name",
       "class": "SAMESYMBOL",
       "reason": "compares two symbols already resolved (type equivalence, conformance, control identity): no written name is resolved"

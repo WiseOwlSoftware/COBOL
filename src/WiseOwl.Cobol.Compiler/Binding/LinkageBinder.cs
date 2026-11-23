@@ -371,7 +371,7 @@ internal sealed class LinkageBinder(DataBinder data)
             ? ProcedureHeaderBinder.Bind(data, pd, _roots,
                 () => SymbolTable.AddressedBy(data.ClaimScans.AddressTargets(pd)
                     .Concat(program.nestedProgram().SelectMany(data.ClaimScans.AddressTargets))),
-                "PROCEDURE DIVISION", method: false)
+                new ProcedureHeaderScreen(data.Edition, "PROCEDURE DIVISION"), method: false)
             : ProcedureHeader.None;
         foreach (var f in header.Formals)
         {
