@@ -26,7 +26,7 @@ dropped ref. A bare `#Method` lost its remark the same way, and a bare `#` after
 stops a landing for only two reasons: a path no landing carries, or a public-API baseline that lists a symbol twice. Since
 PB4452 (first ready lands), a branch whose edits meet another branch's is only named in a warning. Several documents still
 described the older rule. The architecture-review skill, MANDATORY-PRACTICES L12, `references/landing.md` (exit 3 "retried
-once landing_check.py passes") and §8.7 of the design (its heading and two sentences) all needed correcting. So did the
+once landing_check.py passes") and the design's section 8.7 (its heading and two sentences) all needed correcting. So did the
 paragraph `file_census_notes.py` generates ("stops a landing that changed a file outside it"). The sweep found three more
 stale statements: `plan_wave.py`'s docstring, `dispatch_ledger.py`'s two descriptions of `at` (it is `best_group`'s last
 tie-break, not an order that makes a later branch re-plan) and a plan §0 bullet. All now state the script's rule. The
