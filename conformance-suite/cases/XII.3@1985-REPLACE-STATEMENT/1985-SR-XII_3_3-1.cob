@@ -3,7 +3,6 @@
       *> rules: [1985-SR-XII.3.3-1]
       *> accept: [85]
       *> source-format: fixed
-      *> portable: unverified
       *>---
       *> §1985:XII.3.3 SR1 (cite.py --check: OK): "A REPLACE statement may occur
       *> anywhere in the source program where a character-string may occur. It
