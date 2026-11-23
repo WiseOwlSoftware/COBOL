@@ -701,7 +701,9 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, PlaceTab
         int width = level1985
             ? edited ? pic.Length : pic.Digits + (pic.SignKind is "LeadingSeparate" or "TrailingSeparate" && pic.Signed ? 1 : 0)
             : edited ? pic.DigitPositions : pic.Digits;
-        int scale = level1985 ? 0 : edited ? pic.ReceiverScale() : pic.Scale;
+        // The ONE receiver-scale rule (PicInfo.ReceiverScale, kb/Work PB2653): a masked edited receiver's is its mask's, a
+        // LOCALE or numeric receiver's its PIC scale. At 1985 the digits are an integer (scale 0, see above).
+        int scale = level1985 ? 0 : pic.ReceiverScale();
         string digits = EmitText.RepeatToWidth(literal, Math.Max(width, 1));
         return digits.Length <= 18
             ? new NumX($"{long.Parse(digits, System.Globalization.CultureInfo.InvariantCulture)}L", scale)
@@ -1082,7 +1084,8 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, PlaceTab
                 // A float SOURCE lands into the fixed receiver via the runtime's ToScaled at the receiver scale (MOVE
                 // truncates toward zero — §2023:14.6.8.2 GR2/GR4 implementor-defined) then the ordinary store funnel
                 // (rescale identity ⇒ no double-rounding; the digit-capacity + SIZE ERROR check still applies).
-                int recvScaleM = target.OperandPic!.Scale;
+                // The ONE receiver-scale rule (PicInfo.ReceiverScale, kb/Work PB2653), as every receiver of this emitter asks it.
+                int recvScaleM = target.OperandPic!.ReceiverScale();
                 // A function whose value is on the exact wide form (kb/Work PB3953: INTEGER (BIG * BIG * K3)) is TRANSFERRED at
                 // the receiver's scale, unchecked as a MOVE is, so the store keeps the value's own low-order digits (§2023:14.6.8.2 4:
                 // "transferred to the receiving digits with zero fill or truncation on either end as required") and never its
