@@ -1198,6 +1198,8 @@
   "cliOptions": [
     "--copy",
     "--flag-extensions",
+    "--flat",
+    "--frames",
     "--help",
     "--listing",
     "--listing-format",
@@ -1207,6 +1209,7 @@
     "--listing-sections",
     "--nist",
     "--numeric-display",
+    "--operands",
     "--output",
     "--permissive",
     "--reference",

@@ -1,0 +1,226 @@
+## 2026-11-22 - the cause of the last 211 GnuCOBOL 85 failures (wave 20262143, group D)
+
+**The 211 failures the first slice left `unclassified` are adjudicated**: 176 `gnucobol-nonconformance` and 35 `non-portable-test`, none `wiseowl-expectation-defect`. `conformance-suite/measurements/gnucobol.json` now carries 284 gnucobol-nonconformance and 200 non-portable-test of 484, and `suite_status.py --edition 85` prints `second compiler 0`.
+
+**How it was decided.** Each test was re-run on cobc 3.2.0 under WSL at `-std=cobol85` through `harness/run.py --keep` (all 211 still FAIL), its kept binary re-run in a fresh directory to capture the whole standard output, and that output diffed against the test's `.out`. Each diff was read against the 1985 rule the test names (its header's derivation and the rule text of `docs/rearchitecture/spec-rule-catalog-1985.json`), and where a leg turned on the program the source was read. A cause is per test: a test with one non-portable leg is `non-portable-test` even when another leg shows a cobc defect (the row names that leg). A `gnucobol-nonconformance` cites the rule cobc's output breaks on a line whose expected value the rule fixes, checked with `cite.py --check` and a quotation of that rule; it is not a derivation of every expected line. For the Report Writer tests the decisive lines are mostly cobc's: LINE-COUNTER read by the program is 0 in unpaged reports, sum counters read by data-name are NUL (never zeroed by INITIATE), SUPPRESS PRINTING fails at run time, GROUP INDICATE is ignored, no page advance at PAGE LIMIT, and entries without COLUMN NUMBER are printed. Where a test's only differing lines were positional, its LINE/NEXT GROUP arithmetic was re-derived from the RD (for example 1985-GR-XIII_3_10_8-1, -8-6, 3_16_4-4, 3_10_2-p8, g85_bf36_02).
+
+**Non-portable, and why.** A leg the 1985 text leaves to the implementor: the operator device of STOP literal (cobc writes it to standard output), the Debug module's object-time switch (the adapter passes no `-debug`), the Communication module (optional, cobc lacks it), an undefined initial value (no VALUE clause), the set of fixed file attributes OPEN validates (status 39 or not), two connectors on one physical file, the native character set's size, the default sign representation, the print-file and report-record representation read back as data, the ACCEPT transfer size, and the truth value of a relation whose expression has a size error.
+
+**Evidence** (outside the tree): `E:/COBOL-coord/scratch/pb3160c/w20262143d/` holds the run (`results/`, `run.log`), the kept working directories (`kept/`), one digest per test with the diff and the source (`digests/`), and the adjudication table (`adj.tsv`) this addendum is written from.
+
+### gnucobol-nonconformance (176)
+
+- `l1c21_common_program_visibility` (11.10-PROGRAM-ID) §1985:X.1.3.8.1 SR1: a CALL from a sibling reaches a non-common contained program
+- `pb339_into_current_record_85` (13.18.32-JUSTIFIED) §1985:VII.4.4.4 GR8: READ INTO from a RECORD IS VARYING file edits into the receiver instead of the group move of the current record, and RETURN leaves the DEPENDING ON item 0
+- `pb1270_report_page_region_boundaries` (13.18.35-LINE) §1985:XIII.3.10.10 GR2: the page footing prints twice and the report footing on line 34 of a PAGE LIMIT 12 page
+- `pb957_next_group_control_85` (13.18.37-NEXT-GROUP) §1985:XIII.3.10.6 GR4: a report heading NEXT GROUP NEXT PAGE is followed on page 1 by the page heading and details
+- `pb490_simple_insertion_strings_85` (13.18.40-PICTURE) §1985:VI.5.9.5 GR8: a / or 0 insertion character inside a zero-suppression or floating string is printed instead of replaced, and a leading comma insertion is dropped
+- `pb1284_renames_range_fixed` (13.18.45-RENAMES) §1985:VI.5.11.4 GR1: 66-level items renaming a range of a record that ends in an ODO table show NUL instead of the renamed items' values
+- `pb1299_report_summary_control_footing_only` (13.18.57-TYPE) §1985:XIII.3.15.4 GR3: the FINAL control footing LINE 3 prints on line 4
+- `pb229_corresponding_filler_group_rule4` (14.7.6-CORRESPONDING) §1985:VI.6.4.3 GR1: CORRESPONDING skips items subordinate to a FILLER group, which the 1985 rule does not exclude (GR4 excludes only REDEFINES, RENAMES, OCCURS and USAGE INDEX subordinates)
+- `l1c04_arith_multiple_receivers` (14.7.7-Arithmetic-statements) §1985:VI.6.4.6 GR2: a multiple-receiver arithmetic statement whose receivers overlap its operands or subscripts is not one temporary stored left to right
+- `pb994_sort_merge_keyed_using_giving` (14.9.24-MERGE) §1985:XI.4.4.4 GR12: SORT GIVING a dynamic-access relative file leaves its RELATIVE KEY item unset and the records are not read back as relative records 1 to 3
+- `pb344_use_mode_invalid_key_85` (14.9.30-READ) §1985:VIII.4.5.4 GR9: a random READ of an absent OPTIONAL file returns 10, not 23, so the INVALID KEY phrase does not run and the declarative does
+- `l1c25_rewrite_length_differs` (14.9.35-REWRITE) §1985:VIII.4.6.4 GR3: a relative REWRITE of a different length keeps the replaced record's length
+- `l1c26_rewrite_indexed_prime_key` (14.9.35-REWRITE) §1985:IX.4.6.4 GR16: a sequential REWRITE with a changed prime key returns 22, not 21, and a dynamic REWRITE of an absent key 21, not 23; the file position after it differs
+- `l1c26_rewrite_relative_invalid_key` (14.9.35-REWRITE) §1985:VIII.4.6.4 GR3: a relative REWRITE of a different length (12 for 10) keeps the replaced record's length
+- `l1m8_rewrite_format_85` (14.9.35-REWRITE) §1985:IX.4.6.4 GR16: a dynamic-access REWRITE of an absent prime key returns 21, not 23
+- `l1c37_write_keeps_fpi` (14.9.51-WRITE) §1985:VIII.4.9.4 GR5: after a dynamic-access WRITE, READ NEXT returns end of file instead of the records after the file position indicator
+- `pb1350_text_words_85` (7.2.2.5-Text-words) §1985:XII.3.4 GR1: REPLACE matches parts of a text word: ZZ9 inside the PICTURE string Z,ZZ9, ZZ inside ZZ.ZZ, "Q" inside the literal "P""Q", and "abc" against "ABC"
+- `pb1456_other_report_counters_85` (8.4.2.2-Qualification) §1985:XIII.3.5.5 GR1: SOURCE PAGE-COUNTER OF R1 in R2 reads 01 after MOVE 40 TO PAGE-COUNTER OF R1
+- `pb336_optional_absent_read_46_85` (9.1.13.4-At-end-condition-with-unsuccessful-completion) §1985:VIII.4.5.4 GR9: a random READ of an absent OPTIONAL relative or indexed file returns 10, not the invalid key 23
+- `pb1190_varying_advancing_bounds` (9.1.13.7-Logic-error-condition-with-unsuccessful-completion) §1985:VII.4.7.4 GR8: a WRITE ... ADVANCING longer than the RECORD IS VARYING maximum is written (00, not 44)
+- `pb140_close_status` (9.1.13.7-Logic-error-condition-with-unsuccessful-completion) §1985:VII.4.2.4 GR7: CLOSE UNIT of an absent OPTIONAL file removes it from the open mode, so the next CLOSE returns 42
+- `1985-SR-II_6_4_1_2-4` (II.6.4.1@1985-Transfer-of-Control) §1985:II.6.4.1.2 SR4: a CALL reaches a contained program that is neither common nor directly contained in the caller
+- `1985-GR-III_2-p159` (III@1985-section-preamble) §1985:XIII.3.20.4 GR3: the second page heading prints on page 1 (lines 6 to 11) without a page advance
+- `1985-GR-III_2-p239` (III@1985-section-preamble) §1985:VII.3.8.4 GR12: READ INTO of a RECORD IS VARYING file moves the whole record area, not the DEPENDING ON length
+- `pb5867_picture_separator_85` (IV.4.2@1985-LANGUAGE-STRUCTURE) §1985:IV.4.2.1 SR2: PIC ,999 edits the leading comma insertion character as a space
+- `g85_bf04_03` (IV.4.3.8.3@1985-Function-Identifier) §1985:IV.4.3.8.3.4 GR2: function arguments with side effects are not evaluated left to right
+- `1985-SR-IV_4_3_8_1-p3` (IV.4.3.8@1985-Uniqueness-of-Reference) §1985:VII.1.3.7 p1: DISPLAY LINAGE-COUNTER prints 10 digits, not the LINAGE integer's size
+- `pb5166-linage-counter-own-entries-1985` (IV.4.3.8@1985-Uniqueness-of-Reference) §1985:VII.1.3.7 p1: DISPLAY LINAGE-COUNTER prints 10 digits, not the LINAGE integer's size
+- `1985-GR-IV_6_4_2_1_1_1-7` (IV.6.4.2.1.1@1985-Definition-of-Conditional-Statement) §1985:X.5.2.4 GR2: after a contained program returns, the NOT ON EXCEPTION phrase is not executed
+- `1985-GR-IX_1_1-p1` (IX.1@1985-INTRODUCTION-TO-THE-INDEXED-I-O) §1985:IX.1.3.4 GRL2.1: a WRITE or READ that creates or meets a duplicate alternate key WITH DUPLICATES returns 00, not 02; a random REWRITE of an absent key returns 21, not 23
+- `g85_f17_06` (IX.2.3@1985-FILE-CONTROL-ENTRY) §1985:IX.1.3.4 GRL2.1: a WRITE creating a duplicate alternate key WITH DUPLICATES returns 00, not 02
+- `pb5567-external-and-plain-describers-share-a-key-table` (IX.2.3@1985-FILE-CONTROL-ENTRY) §1985:IX.2.5.4 GR2: an entry listing the same alternate keys in the other order (§1985:IX.2.3.3 SR1 lets clauses be in any order) cannot open the file: status 30 (BDB: DB_DUP not set)
+- `g85_bf21_06` (IX.4.4@1985-OPEN-STATEMENT) §1985:IX.4.4.4 GR11: OPEN EXTEND accepts a key below the last existing record (15 after 20): no 21
+- `g85_f16_06` (IX.4.5@1985-READ-STATEMENT) §1985:IX.4.5.4 GR8: READ INTO from a RECORD IS VARYING indexed file edits into the receiver (an elementary move), not the group move of the current record
+- `1985-GR-IX_4_6_4-5` (IX.4.6@1985-REWRITE-STATEMENT) §1985:IX.4.6.4 GR16: a random-access REWRITE of an absent prime key returns 21 (the sequential-mode status), not 23
+- `g85_bf26_07` (IX.4.6@1985-REWRITE-STATEMENT) §1985:IX.4.6.4 GR16: a random-access REWRITE of an absent key returns 21, not 23
+- `g85_f16_07` (IX.4.6@1985-REWRITE-STATEMENT) §1985:IX.4.6.4 GR16: a sequential REWRITE with a changed prime key succeeds and replaces a record (no 21); a dynamic REWRITE of an absent key returns 21, not 23
+- `g85_f16_08` (IX.4.9@1985-WRITE-STATEMENT) §1985:IX.4.9.4 GR17: a WRITE in the extend mode whose key is below the previous record's is accepted
+- `g85_f25_05` (IX.4.9@1985-WRITE-STATEMENT) §1985:IX.4.9.4 GR14: the first WRITE in the extend mode with a key below the file's highest is accepted
+- `g85_bf07_02` (VI.4.4@1985-OBJECT-COMPUTER-PARAGRAPH) §1985:VI.4.4.4 GR8: MERGE without COLLATING SEQUENCE ignores the program collating sequence (SORT honours it)
+- `g85_f06_01` (VI.4.4@1985-OBJECT-COMPUTER-PARAGRAPH) §1985:VI.4.4.4 GR2: the PROGRAM COLLATING SEQUENCE is not applied to a contained program's relation and condition-name conditions
+- `g85_bf11_05` (VI.5.11@1985-RENAMES-CLAUSE) §1985:VI.5.11.4 GR2: a 66 renaming one JUSTIFIED RIGHT item drops JUSTIFIED
+- `pb5776_string_odo_group_receiver_maximum_length` (VI.5.8@1985-OCCURS-CLAUSE) §1985:VI.5.8.4 GR3: a STRING receiver group holding its own ODO object uses the current, not the maximum, length
+- `1985-GR-VI_5_9_5-7` (VI.5.9@1985-PICTURE-CLAUSE) §1985:VI.5.9.5 GR7: floating $ string with a trailing sign: cobc prints " $1$3" for "$123-", a floating string edited as if each $ were fixed
+- `g85_f08_04` (VI.5.9@1985-PICTURE-CLAUSE) §1985:VI.5.9.5 GR8: a / insertion character inside a Z or * string is printed instead of replaced
+- `g85_bf14_04` (VI.6.11@1985-DIVIDE-STATEMENT) §1985:VI.6.11.4 GR1: DIVIDE A INTO A B C re-reads A after it receives its quotient
+- `g85_f04_04` (VI.6.11@1985-DIVIDE-STATEMENT) §1985:VI.6.11.4 GR8: a size error on the remainder zeroes identifier-4
+- `pb5182-unsigned-quotient-remainder-1985` (VI.6.11@1985-DIVIDE-STATEMENT) §1985:VI.6.11.4 GR6: an unsigned identifier-3's remainder is computed from the signed quotient
+- `pb5183_every_object_evaluated_85` (VI.6.13@1985-EVALUATE-STATEMENT) §1985:VI.6.13.4 GR1: a selection object no WHEN comparison needs is not evaluated (its FUNCTION RANDOM does not advance the sequence)
+- `1985-GR-VI_6_17_4-3` (VI.6.17@1985-INITIALIZE-STATEMENT) §1985:VI.6.17.4 GR3: INITIALIZE of a group zeroes its USAGE INDEX item (WS-K shows 0 where 2 was kept)
+- `pb5813_initialize_refmod_alphabetic` (VI.6.17@1985-INITIALIZE-STATEMENT) §1985:VI.6.17.4 GR2: a reference-modified PIC A item is treated as alphanumeric by INITIALIZE REPLACING (its category stays alphabetic, §1985:IV.4.3.8.4.4)
+- `1985-GR-VI_6_18_4-17` (VI.6.18@1985-INSPECT-STATEMENT) §1985:VI.6.18.4 GR17: the REPLACING half of a format 3 INSPECT re-evaluates T (SUB1) after TALLYING changed SUB1, so T (1) is not replaced
+- `1985-GR-VI_6_18_4-5` (VI.6.18@1985-INSPECT-STATEMENT) §1985:VI.6.18.4 GR5: subscripts of INSPECT operands are re-evaluated during the statement
+- `1985-GR-VI_6_18_4-7` (VI.6.18@1985-INSPECT-STATEMENT) §1985:VI.6.18.4 GR7: TALLYING C11 FOR LEADING "A" C12 FOR ALL "A" over AABAA counts 3 for ALL "A", tallying a position LEADING already matched
+- `1985-GR-VI_6_19_4-4-all-literal` (VI.6.19@1985-MOVE-STATEMENT) §1985:VI.6.19.4 GR4: MOVE ALL "12" to 9(3)V99 stores 212.00: the repeated string is not the integer 12121 aligned by its decimal point
+- `pb5852_move_sign_of_sending_operand` (VI.6.19@1985-MOVE-STATEMENT) §1985:VI.6.19.4 GR4: a negative sender whose digits truncate to zero stores a positive zero at 85
+- `g85_bf14_05` (VI.6.20@1985-MULTIPLY-STATEMENT) §1985:VI.6.20.4 GR1: MULTIPLY A BY A B C re-reads A after it receives its product
+- `1985-GR-VI_6_22_4-10` (VI.6.22@1985-SEARCH-STATEMENT) §1985:VI.6.22.4 GR8: SEARCH VARYING K (an integer item) leaves K equal to the index (3) instead of incrementing it from 0 with the index (2)
+- `g85_bf15_07` (VI.6.22@1985-SEARCH-STATEMENT) §1985:VI.6.22.4 GR8: SEARCH VARYING another table's index, an index data item or an integer item does not increment it with the search index
+- `1985-GR-VI_6_23_4-4` (VI.6.23@1985-SET-STATEMENT) §1985:VI.6.23.4 GR4: SET IX1 IX2 UP BY ST (IX1) re-reads ST (IX1) for IX2 after IX1 moved
+- `pb5814_subtract_corresponding_subscript_once_85` (VI.6.26@1985-SUBTRACT-STATEMENT) §1985:VI.6.26.4 GR3: SUBTRACT CORRESPONDING re-evaluates a group operand's subscript per pair after an earlier pair changed it
+- `pb5816_unstring_zero_length_sender_overflow` (VI.6.27@1985-UNSTRING-STATEMENT) §1985:VI.6.27.4 GR13: UNSTRING of a zero-size ODO sender without POINTER makes no transfer: the first receiver keeps its value, COUNT and DELIMITER are not set, TALLYING not incremented
+- `1985-GR-VI_6_2_3-5` (VI.6.2@1985-ARITHMETIC-EXPRESSIONS) §1985:VI.6.4.2 p2: Z ** 0 raises the size error but cobc stores 1 into S under ON SIZE ERROR
+- `pb5186_negative_base_real_root_85` (VI.6.2@1985-ARITHMETIC-EXPRESSIONS) §1985:VI.6.2.3 GR5: a negative base to an odd-denominator fractional power (a real result exists) raises the size error
+- `1985-GR-VI_6_3_1_1_2-1-sign-separate` (VI.6.3.1.1@1985-Relation-Condition) §1985:VI.6.3.1.1.2 GR1: a SIGN SEPARATE or P-scaled numeric compared with a nonnumeric operand is not moved into a temporary of the item's size
+- `1985-GR-VI_6_3_1_1_2-2` (VI.6.3.1.1@1985-Relation-Condition) §1985:VI.6.3.1.1.2 GR2: SN (S99 SIGN LEADING SEPARATE, "-05") against group H "-05" is NOT EQUAL and against "05 " EQUAL: the group comparison drops the sign the group move keeps
+- `1985-GR-VI_6_3_1_2-5` (VI.6.3.1@1985-Simple-Conditions) §1985:VI.6.3.1.2 p3: a class test of a zero-length group (ODO at 0) is true and its NOT form false
+- `1985-GR-VI_6_3_1_2-p1` (VI.6.3.1@1985-Simple-Conditions) §1985:VI.6.3.1.2 p3: a class test of a zero-length group (ODO at 0) is true and its NOT form false
+- `pb5123_logical_not_before_relop` (VI.6.3@1985-CONDITIONAL-EXPRESSIONS) §1985:VI.6.3.3 GRL2.2: NOT before >= or IS in an abbreviated combined relation is taken as part of the operator, not as a logical NOT
+- `pb5861_not_not_relation_sweep_85` (VI.6.3@1985-CONDITIONAL-EXPRESSIONS) §1985:VI.6.3.3 GRL2.2: in A > 1 AND NOT NOT < 5 AND 4 the logical NOT is carried into the abbreviated object 4 (S9 true where (3 NOT < 4) makes it false)
+- `g85_f04_03` (VI.6.4@1985-COMMON-OPTIONS-AND-RULES-FOR-STATEMENTS) §1985:VI.6.4.2 GR1: 0 ** -2 raises no size error, and 0 ** 0 and -4 ** 0.5 change the resultant under ON SIZE ERROR
+- `pb5814_add_corresponding_subscript_once_85` (VI.6.6@1985-ADD-STATEMENT) §1985:VI.6.6.4 GR3: ADD CORRESPONDING re-evaluates a group operand's subscript per pair after an earlier pair changed it
+- `1985-GR-VII_3_2_1-p1` (VII.3.2@1985-FILE-DESCRIPTION-ENTRY) §1985:VII.1.3.7 p1: DISPLAY LINAGE-COUNTER prints 10 digits; its size is that of the LINAGE integer (2 here)
+- `1985-GR-VII_3_6_1-p1` (VII.3.6@1985-LABEL-RECORDS-CLAUSE) §1985:VII.1.3.5 GRL2.1: OPEN REVERSED reads forward (the REVERSED bucket's cause) and OPEN NO REWIND of a disk file returns 00 where 07 is required
+- `g85_bf22_05` (VII.3.7@1985-LINAGE-CLAUSE) §1985:VII.3.7.4 GR9: the LINAGE-COUNTER of an EXTERNAL file read in a separately compiled program is 0, not the shared connector's line
+- `1985-GR-VII_3_8_4-12` (VII.3.8@1985-RECORD-CLAUSE) §1985:VII.3.8.4 GR12: READ INTO moves the whole record area, not the 3 characters the DEPENDING ON item gives
+- `g85_bf23_01` (VII.3.8@1985-RECORD-CLAUSE) §1985:VII.3.8.4 GR10: a WRITE longer than the file's maximum record size succeeds (00, not 44)
+- `g85_f18_02` (VII.3.8@1985-RECORD-CLAUSE) §1985:VII.3.8.4 GR10: a WRITE longer than the maximum the record descriptions give succeeds (00, not 44)
+- `g85_f18_03` (VII.3.8@1985-RECORD-CLAUSE) §1985:VII.3.8.4 GR10: REWRITE and RELEASE ignore the DEPENDING ON item's length (REWRITE 44 for an equal size; RETURN lengths 0)
+- `pb5124_release_outside_record_range_85` (VII.3.8@1985-RECORD-CLAUSE) §1985:VII.3.8.4 GR10: RELEASE of a record outside the SD's RECORD range is released, and records are returned at the maximum length with NUL fill instead of their DEPENDING ON length
+- `g85_bf25_07` (VII.4.4@1985-READ-STATEMENT) §1985:VII.4.4.4 GR8: READ INTO from a RECORD IS VARYING file is not the group move of the current record
+- `1985-GR-VIII_1_3_1-p1` (VIII.1.3@1985-LANGUAGE-CONCEPTS) §1985:VIII.1.3.3 p1: a dynamic-access WRITE and REWRITE move the file position indicator (READ NEXT then skips record 7), and REWRITE and DELETE of an absent record 5 raise no invalid key
+- `1985-GR-VIII_1_3_4-L2_3` (VIII.1.3@1985-LANGUAGE-CONCEPTS) §1985:VIII.1.3.4 GRL2.3: a random READ of an absent OPTIONAL file returns 10, not 23; a sequential WRITE whose relative record number exceeds the RELATIVE KEY's size (9 into PIC 9) is not refused with 24
+- `g85_bf21_04` (VIII.4.4@1985-OPEN-STATEMENT) §1985:VIII.4.4.4 GR11: OPEN EXTEND after a DELETE positions after the highest number ever written
+- `1985-GR-VIII_4_9_4-12` (VIII.4.9@1985-WRITE-STATEMENT) §1985:VIII.4.9.4 GR12: OPEN EXTEND of a relative file numbers new records after the highest number ever written, not the highest existing
+- `1985-GR-VIII_4_9_4-14` (VIII.4.9@1985-WRITE-STATEMENT) §1985:VIII.4.9.4 GR14: a sequential WRITE of record 10 through RELATIVE KEY PIC 9 is accepted (00, not 24), and the random WRITE of an existing record 10 is then refused
+- `1985-SR-X_1_3_8_1-1` (X.1.3.8@1985-Scope-of-Names) §1985:X.1.3.8.1 SR1: a CALL from outside the containing program reaches a non-common contained program
+- `1985-SR-X_1_3_8_1-2` (X.1.3.8@1985-Scope-of-Names) §1985:X.1.3.8.1 SR2: a CALL from the common program itself or from a program outside the containing program reaches the common program
+- `1985-SR-X_1_3_8_1-3` (X.1.3.8@1985-Scope-of-Names) §1985:X.1.3.8.1 SR3: a contained program's CALL reaches the separately compiled program that contains it
+- `1985-GR-X_5_2_4-2` (X.5.2@1985-CALL-STATEMENT) §1985:X.5.2.4 GR2: after a called program returns, the NOT ON EXCEPTION phrase is not executed
+- `1985-GR-X_5_2_4-3` (X.5.2@1985-CALL-STATEMENT) §1985:X.5.2.4 GR3: a CALL of a program that cannot be found runs the ON EXCEPTION phrase and then the NOT ON EXCEPTION phrase as well
+- `pb5241_cancel_main_program_85` (X.5.3@1985-CANCEL-STATEMENT) §1985:X.5.3.4 GR8: CANCEL of the run unit's main program (never called) ends the run unit with "attempt to CANCEL active program"
+- `pb5847_cancel_implicit_close_status_85` (X.5.3@1985-CANCEL-STATEMENT) §1985:X.5.3.4 GR10: the implicit CLOSE of a CANCEL does not update the file's I-O status (§1985:VII.4.2.4 GR4)
+- `pb5847_initial_exit_implicit_close_status_85` (X.5.4@1985-EXIT-PROGRAM-STATEMENT) §1985:X.5.4.4 GR3: the EXIT PROGRAM of an initial program closes its files without updating their I-O status
+- `g85_bf10_13` (X.5.5@1985-USE-STATEMENT) §1985:X.5.5.4 GR1: the outer program's own statement on a GLOBAL file does not select the outer program's own declarative
+- `g85_bf07_11` (XI.3.2@1985-SORT-MERGE-FILE-DESCRIPTION-ENTRY) §1985:VII.3.8.4 GR11: RETURN from an SD with RECORD IS VARYING ... DEPENDING ON leaves the DEPENDING ON item 0
+- `1985-GR-XI_4_1_4-5` (XI.4.1@1985-MERGE-STATEMENT) §1985:XI.4.1.4 GR5: MERGE without a COLLATING SEQUENCE phrase ignores the program collating sequence
+- `g85_bf33_01` (XI.4.4@1985-SORT-STATEMENT) §1985:XI.4.4.4 GR13: a short sort record returned to a fixed-length GIVING file keeps the record area's stale characters instead of space fill
+- `1985-GR-XII_2_4-7` (XII.2@1985-COPY-STATEMENT) §1985:XII.2.4 GR7: without WITH DEBUGGING MODE a debugging line inside pseudo-text is dropped as a comment, so the REPLACING operands match other text
+- `pb5803-copy-pseudo-text-1-line-initial-gt-at-85` (XII.2@1985-COPY-STATEMENT) §1985:XII.2.3 SR3: at -std=cobol85 cobc takes a line-initial >>XYZ as a compiler directive, which 1985 does not have, so COPY REPLACING does not match the text word
+- `pb5803-replace-pseudo-text-1-line-initial-gt-at-85` (XII.3@1985-REPLACE-STATEMENT) §1985:XII.3.3 SR3: at -std=cobol85 cobc takes a line-initial >>XYZ as a compiler directive, which 1985 does not have, so REPLACE does not match the text word
+- `pb5924-line-counter-range-85` (XIII.1.2@1985-LANGUAGE-CONCEPTS) §1985:XIII.3.10.8 GR6: LINE-COUNTER reads 0 after unpaged details carried it to 999 and 999999
+- `pb5924-page-counter-range-85` (XIII.1.2@1985-LANGUAGE-CONCEPTS) §1985:XIII.3.5.5 GR5: after MOVE 999998 TO PAGE-COUNTER the page advance gives 2, not 999999
+- `1985-GR-XIII_1_1-p1` (XIII.1@1985-INTRODUCTION-TO-THE-REPORT-WRITER-MODULE) §1985:XIII.4.6.4 GR1: SUPPRESS PRINTING in the USE BEFORE REPORTING procedure fails at run time ("could not find line to SUPPRESS"), and the second report's group is placed past the first's page
+- `1985-GR-XIII_2_3_4-1` (XIII.2.3@1985-FILE-CONTROL-ENTRY) §1985:XIII.3.10.8 GR6: a contained program's report on an external file connector reads LINE-COUNTER 0 after its detail is presented on line 1
+- `g85_bf19_04` (XIII.2.3@1985-FILE-CONTROL-ENTRY) §1985:XIII.2.3.4 GR2: OPEN OUTPUT of an OPTIONAL report file not present returns 05, not 00
+- `1985-GR-XIII_3_10_10-1` (XIII.3.10@1985-PRESENTATION-RULES-TABLES) §1985:XIII.3.10.10 GR4: after TERMINATE presents the report footing, LINE-COUNTER reads 0 (and the footing's line is not the page footing's setting plus its integer)
+- `1985-GR-XIII_3_10_2-p11` (XIII.3.10@1985-PRESENTATION-RULES-TABLES) §1985:XIII.3.10.7 GR1: the page heading prints on line 3, above the report heading's NEXT GROUP 5 setting; later groups print past PAGE LIMIT
+- `1985-GR-XIII_3_10_2-p8` (XIII.3.10@1985-PRESENTATION-RULES-TABLES) §1985:XIII.3.10.6 GR3: RH LINE PLUS 2 with HEADING 3 prints on line 2, not 2 + 3 - 1 = 4, and groups print past PAGE LIMIT 20 (lines 22 to 41 on page 1)
+- `1985-GR-XIII_3_10_4-p1` (XIII.3.10@1985-PRESENTATION-RULES-TABLES) §1985:XIII.3.15.4 GR5: a detail LINE 9 ON NEXT PAGE stays on page 2 after DNP already holds it
+- `1985-GR-XIII_3_10_5-p1` (XIII.3.10@1985-PRESENTATION-RULES-TABLES) §1985:XIII.3.10.5 p1: the saved next group integer is not applied after the page advance (line 6, not 7)
+- `1985-GR-XIII_3_10_7-p4` (XIII.3.10@1985-PRESENTATION-RULES-TABLES) §1985:XIII.3.10.10 GR2: the report footing prints on line 32 of a PAGE LIMIT 30 page; a nonprintable page heading changes LINE-COUNTER
+- `1985-GR-XIII_3_10_8-1` (XIII.3.10@1985-PRESENTATION-RULES-TABLES) §1985:XIII.4.3.4 GR5: the first GENERATE does not present the CONTROL HEADING FINAL, so the details print one line early and the third stays on page 1
+- `1985-GR-XIII_3_10_8-2` (XIII.3.10@1985-PRESENTATION-RULES-TABLES) §1985:XIII.3.10.8 GR2: a body group prints on line 10 of a page whose LAST DETAIL is 3 and FOOTING 5
+- `1985-GR-XIII_3_10_8-6` (XIII.3.10@1985-PRESENTATION-RULES-TABLES) §1985:XIII.3.10.8 GR6: a detail LINE 5 NEXT GROUP PLUS 2 leaves LINE-COUNTER 5, not 7
+- `1985-GR-XIII_3_10_9-3` (XIII.3.10@1985-PRESENTATION-RULES-TABLES) §1985:XIII.4.9.4 GR1: the USE BEFORE REPORTING procedure of the page footing is not invoked, and LINE-COUNTER after it is 24, not the footing's line 22
+- `g85_bf35_06` (XIII.3.10@1985-PRESENTATION-RULES-TABLES) §1985:XIII.3.8.4 GR1: report footings print past PAGE LIMIT 10 (line 18, 21)
+- `g85_bf36_01` (XIII.3.10@1985-PRESENTATION-RULES-TABLES) §1985:XIII.3.20.4 GR3: the page heading is printed twice on page 1 (lines 4 and 20) without a page advance
+- `g85_bf36_02` (XIII.3.10@1985-PRESENTATION-RULES-TABLES) §1985:XIII.3.10.8 GR6: a detail ending on line 10 with NEXT GROUP 14 leaves LINE-COUNTER 10, not 14; groups print past PAGE LIMIT 30 without a page advance, and an unpaged report's LINE-COUNTER reads 0
+- `g85_bf36_04` (XIII.3.10@1985-PRESENTATION-RULES-TABLES) §1985:XIII.3.10.9 GR3: a page footing LINE 22 prints on line 23, and its NEXT GROUP 25 does not set LINE-COUNTER 25 (30)
+- `g85_f29_03` (XIII.3.10@1985-PRESENTATION-RULES-TABLES) §1985:XIII.3.10.10 GR4: LINE-COUNTER reads 0 after the report footing and after unpaged details, and the footing prints one line early
+- `pb1003_page_heading_after_report_heading_85` (XIII.3.10@1985-PRESENTATION-RULES-TABLES) §1985:XIII.4.9.4 GR1: the USE BEFORE REPORTING procedure of the page heading is not invoked, and the detail's LINE-COUNTER is 5, not 4
+- `pb1003_report_footing_after_page_footing_85` (XIII.3.10@1985-PRESENTATION-RULES-TABLES) §1985:XIII.3.10.9 GR5: the page footing's NEXT GROUP PLUS 1 after line 10 gives 12, not 11, and LINE-COUNTER reads 0 after TERMINATE
+- `pb5789_page_heading_nonprintable_85` (XIII.3.10@1985-PRESENTATION-RULES-TABLES) §1985:XIII.3.10.6 GR5: after RH LINE 3 NEXT GROUP 4 and a nonprintable page heading the detail's USE procedure reads 6, not 4
+- `pb5789_page_heading_relative_after_rh_85` (XIII.3.10@1985-PRESENTATION-RULES-TABLES) §1985:XIII.3.10.7 GR3: the page heading LINE PLUS 1 after RH NEXT GROUP 4 is not on line 5 (the detail's USE procedure reads 6)
+- `pb5853_unpaged_first_line_zero_85` (XIII.3.10@1985-PRESENTATION-RULES-TABLES) §1985:XIII.3.10.8 GR6: LINE-COUNTER reads 0 after unpaged details on lines 2 and 3
+- `pb5853_unpaged_report_heading_line_zero_85` (XIII.3.10@1985-PRESENTATION-RULES-TABLES) §1985:XIII.3.10.8 GR6: LINE-COUNTER reads 0 after an unpaged detail on line 1
+- `g85_bf09_05` (XIII.3.11@1985-COLUMN-NUMBER-CLAUSE) §1985:XIII.3.11.4 GR1: entries without a COLUMN NUMBER clause are printed
+- `1985-GR-XIII_3_12_1-p1` (XIII.3.12@1985-DATA-NAME-CLAUSE) §1985:XIII.4.4.4 GR1: a sum counter read by its data-name holds NUL, not zero or its sum, and LINE-COUNTER reads 0 after details are presented
+- `1985-GR-XIII_3_12_4-1` (XIII.3.12@1985-DATA-NAME-CLAUSE) §1985:XIII.4.4.4 GR1: a sum counter read by its data-name holds NUL, never zeroed or summed
+- `g85_bf09_06` (XIII.3.12@1985-DATA-NAME-CLAUSE) §1985:XIII.3.19.4 GR7: a sum counter read after the GENERATEs holds 0, not the 5 added, and the printed counters differ
+- `1985-GR-XIII_3_13_4-2` (XIII.3.13@1985-GROUP-INDICATE-CLAUSE) §1985:XIII.3.13.4 GR2: GROUP INDICATE items of a report with neither PAGE nor CONTROL are printed on every detail
+- `g85_f30_02` (XIII.3.13@1985-GROUP-INDICATE-CLAUSE) §1985:XIII.3.13.4 GR1: GROUP INDICATE items are printed on every detail, not only on the first and after a control break
+- `pb5246_group_indicate_suppressed_generate_85` (XIII.3.13@1985-GROUP-INDICATE-CLAUSE) §1985:XIII.4.6.4 GR1: SUPPRESS PRINTING fails at run time ("could not find line to SUPPRESS"), so the suppressed details are presented
+- `g85_bf36_07` (XIII.3.15@1985-LINE-NUMBER-CLAUSE) §1985:XIII.3.15.4 GR5: a detail LINE 6 ON NEXT PAGE and a report footing LINE 4 ON NEXT PAGE stay on page 1
+- `g85_f29_02` (XIII.3.15@1985-LINE-NUMBER-CLAUSE) §1985:XIII.3.15.4 GR4: LINE PLUS 0 prints on the next line
+- `g85_f30_03` (XIII.3.15@1985-LINE-NUMBER-CLAUSE) §1985:XIII.3.10.8 GR6: LINE-COUNTER reads 0 after unpaged details and PAGE-COUNTER 7 without a page advance
+- `g85_f30_05` (XIII.3.15@1985-LINE-NUMBER-CLAUSE) §1985:XIII.4.3.4 GR5: the CONTROL HEADING FINAL (LINE 3 ON NEXT PAGE) is not presented at the first GENERATE
+- `1985-GR-XIII_3_16_4-4` (XIII.3.16@1985-NEXT-GROUP-CLAUSE) §1985:XIII.3.10.8 GR6: LINE-COUNTER seen by USE BEFORE REPORTING is 1, 6, 10, not 0, 8, 12: the first detail is placed before INITIATE's 0 is seen and NEXT GROUP PLUS 3 is not applied
+- `g85_bf36_03` (XIII.3.16@1985-NEXT-GROUP-CLAUSE) §1985:XIII.3.10.7 GR3: PH LINE PLUS 1 after RH LINE 2 NEXT GROUP 4 prints on line 3, not 5; groups then print past PAGE LIMIT 30, and the control footings' USE procedures read LINE-COUNTER after positioning
+- `pb5824_terminate_break_at_final_85` (XIII.3.16@1985-NEXT-GROUP-CLAUSE) §1985:XIII.3.10.8 GR6: LINE-COUNTER reads 0 after TERMINATE presents the final footings of unpaged reports
+- `pb6025_relative_next_group_past_page_limit_85` (XIII.3.16@1985-NEXT-GROUP-CLAUSE) §1985:XIII.3.10.8 GR6: a relative NEXT GROUP PLUS 50 under PAGE LIMIT 20 (legal at 85: only three digits are bounded) stops the run ("NEXT GROUP 50 exceeds PAGE LIMIT")
+- `1985-GR-XIII_3_19_4-1` (XIII.3.19@1985-SUM-CLAUSE) §1985:XIII.4.4.4 GR1: a numeric sum counter holds NUL and an alphanumeric one 0 where 19 and 18 were summed
+- `1985-GR-XIII_3_19_4-2` (XIII.3.19@1985-SUM-CLAUSE) §1985:XIII.4.4.4 GR1: a sum counter read by its data-name holds NUL
+- `1985-GR-XIII_3_19_4-7` (XIII.3.19@1985-SUM-CLAUSE) §1985:XIII.4.4.4 GR1: a control footing is processed at the first GENERATE with a NUL sum counter
+- `1985-GR-XIII_3_19_4-9` (XIII.3.19@1985-SUM-CLAUSE) §1985:XIII.4.4.4 GR1: sum counters read in the Procedure Division hold NUL
+- `pb5247_alphanumeric_sum_counter_18_digits` (XIII.3.19@1985-SUM-CLAUSE) §1985:XIII.4.4.4 GR1: the sum counter of an alphanumeric item holds NUL
+- `pb5474_upon_own_report_detail` (XIII.3.19@1985-SUM-CLAUSE) §1985:XIII.4.4.4 GR1: sum counters moved after the GENERATEs hold NUL
+- `pb5789_generate_report_name_no_detail_85` (XIII.3.19@1985-SUM-CLAUSE) §1985:XIII.4.4.4 GR1: sum counters read in the USE procedures hold NUL and a control footing is processed at the first GENERATE
+- `pb5789_generate_report_name_one_detail_85` (XIII.3.19@1985-SUM-CLAUSE) §1985:XIII.4.4.4 GR1: sum counters read in the USE procedures hold NUL
+- `1985-GR-XIII_3_20_4-10` (XIII.3.20@1985-TYPE-CLAUSE) §1985:XIII.4.4.4 GR1: sum counters read in the USE procedure of a control footing hold NUL
+- `1985-GR-XIII_3_20_4-11` (XIII.3.20@1985-TYPE-CLAUSE) §1985:XIII.4.4.4 GR1: a sum counter read by its data-name holds NUL
+- `g85_bf35_05` (XIII.3.20@1985-TYPE-CLAUSE) §1985:XIII.3.8.4 GR1: no page advance: groups print on lines 10 to 20 of a PAGE LIMIT 10 page
+- `g85_f30_06` (XIII.3.20@1985-TYPE-CLAUSE) §1985:XIII.3.10.9 GR5: after TERMINATE presents the page footing on line 19, LINE-COUNTER reads 1
+- `g85_f07_07` (XIII.3.22@1985-VALUE-CLAUSE) §1985:XIII.3.13.4 GR2: GROUP INDICATE values of a report with neither PAGE nor CONTROL are printed on every detail
+- `g85_bf35_07` (XIII.3.5@1985-REPORT-DESCRIPTION-ENTRY) §1985:XIII.3.8.4 GR1: no page advance: groups print on lines 10 to 20 of a PAGE LIMIT 10 page
+- `g85_bf36_06` (XIII.3.5@1985-REPORT-DESCRIPTION-ENTRY) §1985:XIII.3.10.8 GR6: LINE-COUNTER after the details is 3 and 0, not the NEXT GROUP NEXT PAGE setting 18 and the unpaged line 2
+- `1985-GR-XIII_3_6_4-1` (XIII.3.6@1985-CODE-CLAUSE) §1985:XIII.3.6.4 GR1: the report file read back holds no record with the CODE characters
+- `pb5788_85_code_record_is_code_alone` (XIII.3.6@1985-CODE-CLAUSE) §1985:XIII.3.6.4 GR1: the report file holds no record with the CODE characters
+- `g85_f29_01` (XIII.3.7@1985-CONTROL-CLAUSE) §1985:XIII.4.4.4 GR1: a control footing is processed at the first GENERATE with a NUL sum counter
+- `1985-GR-XIII_3_8_4-1` (XIII.3.8@1985-PAGE-CLAUSE) §1985:XIII.3.10.6 GR3: the report heading LINE PLUS 1 under HEADING 2 is not on line 2 (the detail's USE procedure reads LINE-COUNTER 4, not 2)
+- `g85_bf37_01` (XIII.3.8@1985-PAGE-CLAUSE) §1985:XIII.3.10.6 GR3: the report heading LINE PLUS 1 under HEADING 3 is not on line 3 (the USE procedure reads 5)
+- `g85_bf09_04` (XIII.3.9@1985-REPORT-GROUP-DESCRIPTION-ENTRY) §1985:XIII.4.4.4 GR1: sum counters read in the Procedure Division hold 0 and NUL, not 7 and 27
+- `pb5243_table1_permitted_rows` (XIII.3.9@1985-REPORT-GROUP-DESCRIPTION-ENTRY) §1985:XIII.3.11.4 GR1: an entry with no COLUMN NUMBER clause (G2) is printed
+- `pb5310_sum_counter_occurs_depending_object` (XIII.3.9@1985-REPORT-GROUP-DESCRIPTION-ENTRY) §1985:XIII.3.19.4 GR7: the sum counter does not take the 2 GENERATE adds (it stays 3)
+- `1985-GR-XIII_4_3_4-6` (XIII.4.3@1985-GENERATE-STATEMENT) §1985:XIII.4.3.4 GR5: the first GENERATE processes the minor control heading before the major one, and again after it
+- `g85_bf37_02` (XIII.4.3@1985-GENERATE-STATEMENT) §1985:XIII.3.10.8 GR6: LINE-COUNTER reads 0 after each unpaged detail
+- `g85_bf36_05` (XIII.4.4@1985-INITIATE-STATEMENT) §1985:XIII.3.10.8 GR6: LINE-COUNTER reads 0 after each unpaged detail, not 2 and 3
+- `g85_bf37_03` (XIII.4.4@1985-INITIATE-STATEMENT) §1985:XIII.3.10.8 GR6: LINE-COUNTER reads 0 after each report's unpaged detail
+- `g85_f29_08` (XIII.4.4@1985-INITIATE-STATEMENT) §1985:XIII.4.4.4 GR1: INITIATE leaves the sum counter NUL, not zero, and LINE-COUNTER reads 0 after a detail
+- `1985-GR-XIII_4_5_4-18` (XIII.4.5@1985-OPEN-STATEMENT) §1985:XIII.3.10.8 GR6: LINE-COUNTER reads 0, not 1, after a detail of an unpaged report is presented
+- `1985-GR-XIII_4_5_4-7` (XIII.4.5@1985-OPEN-STATEMENT) §1985:XIII.3.10.8 GR6: LINE-COUNTER reads 0, not 1, after a detail of an unpaged report is presented
+- `g85_bf37_04` (XIII.4.5@1985-OPEN-STATEMENT) §1985:XIII.3.10.8 GR6: LINE-COUNTER reads 0 after an unpaged detail
+- `g85_bf35_08` (XIII.4.6@1985-SUPPRESS-STATEMENT) §1985:XIII.4.6.4 GR1: SUPPRESS PRINTING fails at run time ("could not find line to SUPPRESS") and LINE-COUNTER reads 0
+- `g85_f06_08` (XIII.4.9@1985-USE-BEFORE-REPORTING-STATEMENT) §1985:XIII.4.9.4 GR1: USE BEFORE REPORTING runs after the detail's positioning (LINE-COUNTER 1 and 4 where 0 and 3 are before it)
+- `g85_f06_03` (XVI.2.2@1985-OBJECT-COMPUTER-PARAGRAPH) §1985:XVI.2.2.4 GR1: the container's PROGRAM COLLATING SEQUENCE is not applied in the contained program
+
+### non-portable-test (35)
+
+- `pb1279_redefines_within_occurs` (13.18.44-REDEFINES) undefined initial value: U has no VALUE clause, so the GA positions L7 and L8 show are undefined (§1985:X.2.4.1 GR1); the .out fixes WiseOwl's spaces, cobc holds NUL
+- `pb803_sign_default_representation_85` (13.18.52-SIGN) default sign representation: the representation of an operational sign without a SIGN clause is the implementor's (§1985:VI.5.12.4 GR4); the .out fixes WiseOwl's (DOC-A.1-177)
+- `pb873_signed_argument_image_carried_formal` (14.2-Procedure-division-structure) default sign representation: the formal's character image of a signed argument shows the implementor's sign representation (§1985:VI.5.12.4 GR4); the .out fixes WiseOwl's overpunch (DOC-A.1-177), cobc's differs
+- `pb397_sequence_placement_legal` (14.9.14-EXIT) STOP literal: the operator device is the implementor's: cobc writes the STOP literal to standard output; the .out assumes the operator message does not reach the display device (§1985:VI.6.24.4 GR4)
+- `pb995_sort_merge_record_size_ranges` (14.9.24-MERGE) which fixed file attributes OPEN validates: cobc refuses OPEN INPUT of the GIVING file with 39 (fixed attribute mismatch with its FD); the validated set is the implementor's (§1985:VII.4.3.4 GR8)
+- `pb421_move_general_formats` (14.9.25-MOVE) undefined initial value: F9 OF G2 has no VALUE clause and MOVE CORRESPONDING does not reach it, so it is undefined (§1985:X.2.4.1 GR1); the .out fixes WiseOwl's spaces, cobc holds NUL
+- `pb690_file_character_set_85` (A.1-Implementor-defined-language-element-list) file character set: the characters a file can hold and the status for one it cannot are the implementor's (docs/conformance DOC-A.1-31; §1985:IX.1.3.4 GR6 "a condition that is specified by the implementor")
+- `1985-GR-III_2-p100` (III@1985-section-preamble) which fixed file attributes OPEN validates: the test expects 39 for record size conflicts WiseOwl validates (DOC-A.1-129); "The implementor defines which of the fixed file attributes are validated" (§1985:VII.4.3.4 GR8), and cobc does not validate them
+- `1985-GR-IV_4_2_2_1_3_3_1-1` (IV.4.2.2.1.3.3@1985-Special-Purpose-Words) Debug module: DEBUG-ITEM is set only when a debugging section runs, under the debugging object-time switch outside the program (§1985:XV.1.3.4 p1); the adapter does not pass cobc -debug
+- `1985-GR-IV_4_2_2_1_1-1` (IV.4.2.2.1@1985-COBOL-Words) undefined initial value: TAB-9 has no VALUE clause, so its initial content is undefined (§1985:X.2.4.1 GR1); the .out fixes WiseOwl's spaces, cobc holds NUL
+- `1985-GR-IV_4_4_4-T1_1` (IV.4.4@1985-EXPLICIT-AND-IMPLICIT-SPECIFICATIONS) undefined initial value: S1 has no VALUE clause, so the two positions STRING does not reach are undefined (§1985:X.2.4.1 GR1); the .out fixes WiseOwl's spaces, cobc holds NUL
+- `1985-GR-IV_7_4-p3` (IV.7@1985-REFERENCE-FORMAT) Communication module: the CD entry's line needs the Communication module, optional (§1985:I.1.4); cobc does not implement it and the CD's items hold NUL
+- `g85_bf03_07` (IX.2.3@1985-FILE-CONTROL-ENTRY) native character set size: HIGH-VALUE's native ordinal is the size of the native character set, the implementor's (65536 in WiseOwl's, 256 in cobc's)
+- `g85_bf25_06` (IX.2.5@1985-ALTERNATE-RECORD-KEY-CLAUSE) which fixed file attributes OPEN validates: the test expects 39 for alternate key conflicts that WiseOwl validates (DOC-A.1-129), the implementor's set (§1985:IX.4.4.4 GR8); its S2-RED leg (02 for a READ meeting a duplicate alternate key, cobc 00) is a cobc nonconformance of §1985:IX.1.3.4 GRL2.1
+- `g85_bf25_05` (IX.2.7@1985-RECORD-KEY-CLAUSE) which fixed file attributes OPEN validates: the test expects 39 for a prime key conflict that WiseOwl validates (DOC-A.1-129); the validated set is the implementor's (§1985:IX.4.4.4 GR8)
+- `g85_bf25_03` (IX.4.4@1985-OPEN-STATEMENT) which fixed file attributes OPEN validates: the test expects 39 for a record size conflict that WiseOwl validates (DOC-A.1-129); the validated set is the implementor's (§1985:IX.4.4.4 GR8)
+- `pb5480_indexed_read_record_length_conflict` (IX.4.5@1985-READ-STATEMENT) two connectors on one physical file: a reader opened INPUT on a zero-byte file (not an indexed file cobc's handler can open: status 30) then reads records a second connector writes; both the zero-byte open and the shared physical file are the implementor's
+- `1985-GR-VI_6_24_4-4` (VI.6.24@1985-STOP-STATEMENT) STOP literal: the operator device is the implementor's: cobc writes the STOP literal to standard output, where the test's .out assumes the operator console is not the program's display device (§1985:VI.6.24.4 GR4 names only "communicated to the operator")
+- `g85_z07` (VI.6.24@1985-STOP-STATEMENT) Debug module: the expected DEBUG lines come from a USE FOR DEBUGGING section, which runs only under the debugging object-time switch (§1985:XV.1.3.4 p1, outside the program); the adapter does not pass cobc -debug, as for the XV.* folders
+- `pb5809_stop_symbolic_character` (VI.6.24@1985-STOP-STATEMENT) STOP literal: the operator device is the implementor's: cobc writes the STOP literal to standard output; the .out assumes the operator message does not reach the display device (§1985:VI.6.24.4 GR4)
+- `pb5501_size_error_in_condition_continues` (VI.6.4@1985-COMMON-OPTIONS-AND-RULES-FOR-STATEMENTS) truth value of a relation whose expression has a size error: the 1985 text gives the relation no truth value; the test fixes WiseOwl's choice (docs/conformance DOC-A.1-70: false), which cobc does not make
+- `g85_z08` (VI.6.5@1985-ACCEPT-STATEMENT) ACCEPT transfer size: the size of a data transfer is the implementor's for each device (§1985:VI.6.5.4 GR2); the test fixes 80-character records, cobc transfers a line
+- `pb5210_close_lock_exception_paths_85` (VII.4.2@1985-CLOSE-STATEMENT) two file-names on one physical file: the test opens one physical file through two file connectors at once, which the 1985 standard leaves to the implementor; cobc's lock is per file connector
+- `g85_bf18_03` (VII.4.4@1985-READ-STATEMENT) which fixed file attributes OPEN validates: cobc validates the record size range at OPEN (status 39); "The implementor defines which of the fixed file attributes are validated during the execution of the OPEN statement" (§1985:VII.4.3.4 GR8), and the test needs them unvalidated to reach READ's 04
+- `pb3256_fd_record_size_redefiners_add_nothing_85` (VII.4.4@1985-READ-STATEMENT) short final record: whether a trailing 2 characters of a fixed-length file is a short record (04) is the implementor's record format (the test names WiseOwl's, docs/CONFORMANCE.md DOC-A.1-146)
+- `1985-GR-VII_4_7_4-16` (VII.4.7@1985-WRITE-STATEMENT) print-file representation: the test reads a print file back as data: how vertical positioning is represented on the medium is the implementor's; cobc does not emit a line advance for a plain WRITE
+- `1985-GR-VII_4_7_4-16-external` (VII.4.7@1985-WRITE-STATEMENT) print-file representation: the test reads a print file back as data: how vertical positioning is represented on the medium is the implementor's (the test's own header: the file's support of positioning is the implementor's determination); cobc writes a plain WRITE of a file with ADVANCING writes without a line advance
+- `1985-GR-VII_4_7_4-16-plain-first` (VII.4.7@1985-WRITE-STATEMENT) print-file representation: the test reads a print file back as data: how vertical positioning is represented on the medium is the implementor's; cobc does not emit a line advance for a plain WRITE
+- `g85_bf18_04` (VIII.1.3@1985-LANGUAGE-CONCEPTS) two connectors on one physical file: the test reads through one connector, opened on a zero-byte file so that nothing is validated, records a second connector of another record size writes; sharing a physical file between connectors and which fixed attributes are validated (§1985:VIII.4.4.4 GR8) are the implementor's
+- `g85_bf03_06` (VIII.2.3@1985-FILE-CONTROL-ENTRY) native character set size: HIGH-VALUE's native ordinal is the size of the native character set, the implementor's (65536 in WiseOwl's, 256 in cobc's)
+- `g85_bf25_02` (VIII.4.4@1985-OPEN-STATEMENT) which fixed file attributes OPEN validates: the test expects 39 for a record size conflict that WiseOwl validates (DOC-A.1-129); "The implementor defines which of the fixed file attributes are validated" (§1985:VIII.4.4.4 GR8) and cobc does not validate it
+- `1985-GR-X_2_4_1-1` (X.2.4@1985-INITIAL-STATE-OF-A-PROGRAM) Communication module: the CD lines need the Communication module, optional (§1985:I.1.4), which cobc does not implement
+- `pb5768_release_in_debugging_declarative_85` (XI.4.2@1985-RELEASE-STATEMENT) Debug module: the RELEASE is in a debugging section, which runs only under the debugging object-time switch (§1985:XV.1.3.4 p1); the adapter does not pass cobc -debug
+- `pb6024_column_past_999_accepted_85` (XIII.3.11@1985-COLUMN-NUMBER-CLAUSE) report record structure: only the report file differs; the report writer logical record structure, and so the record of a column past 999, is the implementor's (§1985:XIII.3.2.4 GR2)
+- `pb5819_record_sizes_kept_after_extend_85` (XIII.4.5@1985-OPEN-STATEMENT) report record structure: the expected 04 passes through the report writer logical record structure, the implementor's (§1985:XIII.3.2.4 GR2; the test names DOC-A.1-159 and DOC-A.1-146)

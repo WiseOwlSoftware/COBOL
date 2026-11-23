@@ -82,7 +82,8 @@ The options you will use most:
 
 `cobol --help` lists them all. `cobol check-batch manifest.tsv` parses, edition-checks and binds many sources in one
 process without emitting code; the manifest is a tab-separated file of `source`, `std`, `nist-name` and `permissive`
-fields, one entry per line. The user manual, in [docs/manual](docs/manual/index.md), covers installing the compiler,
+fields, one entry per line. `cobol points-batch` prints the parse nodes of many sources, the conformance suite's
+coverage measure. The user manual, in [docs/manual](docs/manual/index.md), covers installing the compiler,
 every option, the editions, .NET interoperability and migration from other COBOL compilers.
 
 ## Run the tests
