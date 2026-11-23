@@ -20,9 +20,10 @@ What it measures (the facts come from a Roslyn semantic model, never from grep):
 How:
   1. a DETACHED worktree at the commit (default HEAD) — a record describes exactly one tree, never a dirty one;
   2. `dotnet build WiseOwl.Cobol.sln -c Debug` there (the population check reads the BUILT assemblies);
-  3. the Roslyn host `tools/ArchCensus` (built from THIS checkout, so an older commit can be measured) loads the
-     solution through MSBuildWorkspace and writes the raw facts; it REFUSES a solution whose projects the scope does
-     not partition, a workspace load failure, and a compilation with errors;
+  3. the Roslyn host `tools/ArchCensus` (built from THIS checkout, so an older commit can be measured) first runs its
+     rule fixtures (`--self-test`: every arm of the declaration-judged reach rules on planted source; a failure FAILS
+     the run), then loads the solution through MSBuildWorkspace and writes the raw facts; it REFUSES a solution whose
+     projects the scope does not partition, a workspace load failure, and a compilation with errors;
   4. THE POPULATION CHECK: for every census project, the types the census saw must equal the type definitions of the
      built assembly (read from its metadata by a reader independent of the workspace) — a skipped project, document
      or source generator is a FAILED run, never a smaller census;
@@ -689,6 +690,23 @@ def files_on_disk(root: Path) -> set[str]:
     return out
 
 
+#: The product's analyzer ProjectReference and the configuration it pins (src/Directory.Build.props).
+ANALYZER_REFERENCE = re.compile(
+    r'<ProjectReference\s+Include="\$\(MSBuildThisFileDirectory\)(?P<project>[^"]+\.csproj)"[^>]*?'
+    r'OutputItemType="Analyzer"[^>]*?SetConfiguration="Configuration=(?P<configuration>[^"]+)"', re.DOTALL)
+
+
+def analyzer_reference(tree: Path) -> tuple[str, str]:
+    """The analyzer project src/Directory.Build.props references (tree-relative) and the configuration it pins;
+    a props file without exactly one such reference FAILS the run rather than measuring with an unresolved analyzer."""
+    props = tree / "src" / "Directory.Build.props"
+    found = ANALYZER_REFERENCE.findall(props.read_text(encoding="utf-8-sig"))
+    if len(found) != 1:
+        raise CensusFailure(f"{props}: expected one analyzer ProjectReference with SetConfiguration, found {len(found)}")
+    project, configuration = found[0]
+    return f"src/{project}", configuration
+
+
 def measure(commit: str, work: Path, out_dir: Path) -> Path:
     sha = git("rev-parse", commit)
     date = git("show", "-s", "--format=%cI", sha)
@@ -703,10 +721,18 @@ def measure(commit: str, work: Path, out_dir: Path) -> Path:
               flush=True)
         t0 = time.time()
         run_logged(["dotnet", "build", "WiseOwl.Cobol.sln", "-c", "Debug", "-v", "quiet"], wt, logs / "build.log")
+        # The product's analyzer reference pins its own configuration (src/Directory.Build.props, SetConfiguration); a
+        # solution build at Debug builds the analyzer at Debug, but the workspace resolves the reference at the pinned
+        # one, so build it there too (kb/Work PB2744: without it every run since PB4950 round 10 died in SymbolFinder).
+        analyzer, configuration = analyzer_reference(wt)
+        run_logged(["dotnet", "build", analyzer, "-c", configuration, "-v", "quiet"], wt, logs / "analyzer-build.log")
         host = work / "host"
         run_logged(["dotnet", "build", str(REPO / HOST), "-c", "Release", "-o", str(host), "-v", "quiet"], REPO,
                    logs / "host-build.log")
         print(f"census: built in {time.time() - t0:.0f}s", flush=True)
+        # The host's rule fixtures (kb/Work PB2744, tools/ArchCensus/RuleFixtures.cs): a rule that stopped matching its
+        # planted members fails the run here, before it measures anything.
+        run_logged(["dotnet", str(host / "ArchCensus.dll"), "--self-test"], REPO, logs / "host-self-test.log")
         scope_file = work / "scope.json"
         scope_file.write_text(json.dumps(scope), encoding="utf-8", newline="\n")
         raw_file = work / "raw.json"
@@ -888,6 +914,11 @@ def self_test() -> int:
         all(not note_is_open(note(s)) and not note_is_open(note(f'"{s}"')) for s in work.TERMINAL_STATUSES)
         and all(note_is_open(note(s)) for s in live) and note_is_open("# kb/Search/README\nnames hist.py\n"),
         f"terminal {work.TERMINAL_STATUSES}, live {live}")
+
+    # The analyzer reference the workspace resolves at its pinned configuration (kb/Work PB2744).
+    arm("the census builds the product's analyzer at the configuration src/Directory.Build.props pins",
+        analyzer_reference(REPO) == ("src/WiseOwl.Cobol.Analyzers/WiseOwl.Cobol.Analyzers.csproj", "Release"),
+        failure_of(lambda: analyzer_reference(REPO)))
 
     # The tracked-path prefixes are `/`-separated on every OS (a backslashed prefix matched nothing on Windows).
     record = RECORD_DIR.as_posix() + "/a02b.findings.json"
