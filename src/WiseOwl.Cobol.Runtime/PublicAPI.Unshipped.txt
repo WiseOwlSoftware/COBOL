@@ -14,6 +14,7 @@
 *REMOVED*WiseOwl.Cobol.Runtime.MoveSending.Binary64.get -> double
 *REMOVED*WiseOwl.Cobol.Runtime.MoveSending.Deconstruct(out string! Characters, out bool Group, out bool Fill, out bool Numeric, out System.Int128 Unscaled, out int Scale, out double? Real, out string? StorageImage) -> void
 *REMOVED*WiseOwl.Cobol.Runtime.MoveSending.MoveSending(string! Characters, bool Group = false, bool Fill = false, bool Numeric = false, System.Int128 Unscaled = default(System.Int128), int Scale = 0, double? Real = null, string? StorageImage = null) -> void
+*REMOVED*WiseOwl.Cobol.Runtime.ProgramTable.CallProgram(string! name, string? callerPath, WiseOwl.Cobol.Runtime.CobolArg[]! args, WiseOwl.Cobol.Runtime.CobolArg? returning, string! notFoundEc = "EC-PROGRAM-NOT-FOUND", bool siteArgMismatchChecking = false, string![]? programSpecifiers = null, bool siteSizeTruncationChecking = false) -> void
 *REMOVED*const WiseOwl.Cobol.Runtime.DebugItem.ContentsWidth = 30 -> int
 *REMOVED*const WiseOwl.Cobol.Runtime.DebugItem.GroupWidth = 86 -> int
 *REMOVED*const WiseOwl.Cobol.Runtime.Repository.CobolRepositoryAttribute.CurrentSchemaVersion = 1 -> int
@@ -97,6 +98,7 @@
 *REMOVED*static WiseOwl.Cobol.Runtime.IO.CobolFile.RewriteShared(string! name, string! image, int length, WiseOwl.Cobol.Runtime.IO.FileRecordLock phrase, WiseOwl.Cobol.Runtime.IO.FileRetryKind retryKind, long retryAmount, WiseOwl.Cobol.Runtime.RecordExtents? areaExtents = null, bool nationalRecord = false) -> string!
 *REMOVED*static WiseOwl.Cobol.Runtime.IO.CobolFile.WriteShared(string! name, string! image, int length, WiseOwl.Cobol.Runtime.IO.FileRecordLock phrase, WiseOwl.Cobol.Runtime.IO.FileRetryKind retryKind, long retryAmount, WiseOwl.Cobol.Runtime.IO.LinagePage? page, WiseOwl.Cobol.Runtime.IO.WriteAdvance advance = default(WiseOwl.Cobol.Runtime.IO.WriteAdvance), WiseOwl.Cobol.Runtime.RecordExtents? areaExtents = null, bool nationalRecord = false) -> string!
 *REMOVED*static WiseOwl.Cobol.Runtime.IO.CobolSort.Release(string! name, string! image, int readSize, int min, int max, WiseOwl.Cobol.Runtime.RecordExtents? extents = null) -> void
+*REMOVED*static WiseOwl.Cobol.Runtime.ProgramRegistry.CallProgram(string! name, string? callerPath, WiseOwl.Cobol.Runtime.CobolArg[]! args, WiseOwl.Cobol.Runtime.CobolArg? returning, string! notFoundEc = "EC-PROGRAM-NOT-FOUND", bool siteArgMismatchChecking = false, string![]? programSpecifiers = null, bool siteSizeTruncationChecking = false) -> void
 WiseOwl.Cobol.Runtime.ActivationDescription.AnyLengthClauses.get -> string?
 WiseOwl.Cobol.Runtime.ActivationDescription.AnyLengthClauses.init -> void
 WiseOwl.Cobol.Runtime.ActivationDescription.ClausePhrases.get -> string![]?
@@ -243,6 +245,7 @@ WiseOwl.Cobol.Runtime.DialectBehavior.EvaluateObjectsInWhenPhraseOrder = 18 -> W
 WiseOwl.Cobol.Runtime.DialectBehavior.EvaluateRefusesLiteralSubjectLiteralObject = 21 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.ExceptionStatementIs63Characters = 61 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.FileSharingFacility = 2 -> WiseOwl.Cobol.Runtime.DialectBehavior
+WiseOwl.Cobol.Runtime.DialectBehavior.FlowGlobalExitIsNeverSet = 62 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.GenerateReportNameSingleDetail = 50 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.GroupComparisonIsElementaryAlphanumeric = 58 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.GroupIndicateAsPresentWhen = 48 -> WiseOwl.Cobol.Runtime.DialectBehavior
@@ -295,6 +298,7 @@ WiseOwl.Cobol.Runtime.EditionDerivedAttribute
 WiseOwl.Cobol.Runtime.EditionDerivedAttribute.EditionDerivedAttribute() -> void
 WiseOwl.Cobol.Runtime.Exceptions.CheckingFlags.FlowApplyCommit -> bool
 WiseOwl.Cobol.Runtime.Exceptions.CheckingFlags.FlowCommit -> bool
+WiseOwl.Cobol.Runtime.Exceptions.CheckingFlags.FlowGlobalExit -> bool
 WiseOwl.Cobol.Runtime.Exceptions.CheckingFlags.FlowRollback -> bool
 WiseOwl.Cobol.Runtime.Exceptions.CheckingFlags.SizeOverflow -> bool
 WiseOwl.Cobol.Runtime.Exceptions.CheckingFlags.SizeTruncation -> bool
@@ -306,6 +310,9 @@ WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.FlowApplyCommitError(string! de
 WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.FlowCommitChecking.get -> bool
 WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.FlowCommitChecking.set -> void
 WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.FlowCommitError(string! detail) -> void
+WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.FlowGlobalExitChecking.get -> bool
+WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.FlowGlobalExitChecking.set -> void
+WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.FlowGlobalExitError(string! detail) -> void
 WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.FlowRollbackChecking.get -> bool
 WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.FlowRollbackChecking.set -> void
 WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.FlowRollbackError(string! detail) -> void
@@ -575,6 +582,7 @@ WiseOwl.Cobol.Runtime.ProgramNameArm
 WiseOwl.Cobol.Runtime.ProgramNameArm.Common = 2 -> WiseOwl.Cobol.Runtime.ProgramNameArm
 WiseOwl.Cobol.Runtime.ProgramNameArm.Contained = 0 -> WiseOwl.Cobol.Runtime.ProgramNameArm
 WiseOwl.Cobol.Runtime.ProgramNameArm.RecursiveSelf = 1 -> WiseOwl.Cobol.Runtime.ProgramNameArm
+WiseOwl.Cobol.Runtime.ProgramTable.CallProgram(string! name, string? callerPath, WiseOwl.Cobol.Runtime.CobolArg[]! args, WiseOwl.Cobol.Runtime.CobolArg? returning, string! notFoundEc = "EC-PROGRAM-NOT-FOUND", bool siteArgMismatchChecking = false, string![]? programSpecifiers = null, bool siteSizeTruncationChecking = false, bool asFunction = false) -> void
 WiseOwl.Cobol.Runtime.ProgramTable.Cancel(string! name, string? callerPath, bool refusesEveryActiveProgram) -> void
 WiseOwl.Cobol.Runtime.ProgramTable.RunModule(System.Action! ensureRegistered, string! mainPath) -> void
 WiseOwl.Cobol.Runtime.ReceivingReferences
@@ -1361,6 +1369,9 @@ static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.FlowApplyCommitChecking.g
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.FlowApplyCommitChecking.set -> void
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.FlowCommitChecking.get -> bool
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.FlowCommitChecking.set -> void
+static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.FlowGlobalExitChecking.get -> bool
+static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.FlowGlobalExitChecking.set -> void
+static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.FlowGlobalExitError(string! detail) -> void
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.FlowRollbackChecking.get -> bool
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.FlowRollbackChecking.set -> void
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.IsCobol85.get -> bool
@@ -1485,6 +1496,7 @@ static WiseOwl.Cobol.Runtime.PositionUse.RefMod.NotAnInteger(string! shown) -> v
 static WiseOwl.Cobol.Runtime.PositionUse.Subscript.NotAnInteger(string! shown) -> void
 static WiseOwl.Cobol.Runtime.ProgramNameScope.FirstVisible<T>(T! caller, System.Func<T!, WiseOwl.Cobol.Runtime.ProgramNameArm, bool>! accept, System.Func<T!, System.Collections.Generic.IEnumerable<T!>!>! childrenOf, System.Func<T!, T?>! containerOf, System.Func<T!, bool>! isRecursive, System.Func<T!, bool>! isCommon) -> T?
 static WiseOwl.Cobol.Runtime.ProgramRegistry.AddressNotLocated(string! name, bool function) -> string!
+static WiseOwl.Cobol.Runtime.ProgramRegistry.CallProgram(string! name, string? callerPath, WiseOwl.Cobol.Runtime.CobolArg[]! args, WiseOwl.Cobol.Runtime.CobolArg? returning, string! notFoundEc = "EC-PROGRAM-NOT-FOUND", bool siteArgMismatchChecking = false, string![]? programSpecifiers = null, bool siteSizeTruncationChecking = false, bool asFunction = false) -> void
 static WiseOwl.Cobol.Runtime.ProgramRegistry.Cancel(string! name, string? callerPath, bool refusesEveryActiveProgram) -> void
 static WiseOwl.Cobol.Runtime.ProgramRegistry.RunModule(System.Action! ensureRegistered, string! mainPath) -> void
 static WiseOwl.Cobol.Runtime.ProgramTable.ClassHalfPath(string! externalizedName, bool factory) -> string!

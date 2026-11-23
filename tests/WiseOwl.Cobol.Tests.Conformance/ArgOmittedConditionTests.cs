@@ -86,6 +86,25 @@ public sealed class ArgOmittedConditionTests
         Assert.DoesNotContain("AFTER SHOW", all);
     }
 
+    /// <summary>kb/Work PB6107 — the 2002 text has ONE omitted-argument condition: §2002:14.8.22.3 GR10 names EC-PROGRAM-ARG-OMITTED for
+    /// a reference in an invoked method, so a 2002 program enables that name (EC-OO-ARG-OMITTED is a 2014 name, refused at 2002) and
+    /// the method's guard raises it: the fatal condition ends the run unit naming EC-PROGRAM-ARG-OMITTED, and never the 2014 name.</summary>
+    [Fact]
+    public void ElementaryReference_At2002_RaisesEcProgramArgOmitted()
+    {
+        var (ok, stdout, detail) = EditionHarness.CompileAndRun(Method("6107A", "      >>TURN EC-PROGRAM-ARG-OMITTED CHECKING ON", """
+                   IF X IS OMITTED DISPLAY "X-OMITTED" END-IF
+                   DISPLAY "X=[" X "]".
+        """), 2002);
+        Assert.False(ok, "a fatal condition with checking enabled and no USE ends the run unit (§2002:14.5.12.1.2 item 3)");
+        string all = stdout + detail;
+        Assert.Contains("X-OMITTED", all);
+        Assert.Contains("EC-PROGRAM-ARG-OMITTED", all);
+        Assert.DoesNotContain("EC-OO-ARG-OMITTED", all);
+        Assert.DoesNotContain("X=[", all);
+        Assert.DoesNotContain("AFTER SHOW", all);
+    }
+
     /// <summary>A subordinate of an omitted GROUP formal names the formal's storage: the store raises too (the
     /// method's group formal is a copy-in local, which is exactly where the pre-PB971 carrier raise never reached).</summary>
     [Fact]

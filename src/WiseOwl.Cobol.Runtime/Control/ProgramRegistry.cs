@@ -147,9 +147,9 @@ public static class ProgramRegistry
     /// <inheritdoc cref="ProgramTable.CallProgram"/>
     public static void CallProgram(string name, string? callerPath, CobolArg[] args, CobolArg? returning,
         string notFoundEc = "EC-PROGRAM-NOT-FOUND", bool siteArgMismatchChecking = false, string[]? programSpecifiers = null,
-        bool siteSizeTruncationChecking = false)
+        bool siteSizeTruncationChecking = false, bool asFunction = false)
         => RunUnit.Current.Programs.CallProgram(name, callerPath, args, returning, notFoundEc, siteArgMismatchChecking,
-            programSpecifiers, siteSizeTruncationChecking);
+            programSpecifiers, siteSizeTruncationChecking, asFunction);
 
     /// <inheritdoc cref="ProgramTable.Cancel"/>
     public static void Cancel(string name, string? callerPath, bool refusesEveryActiveProgram)

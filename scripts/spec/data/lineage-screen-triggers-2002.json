@@ -403,6 +403,13 @@
    ],
    "why": "the EXCEPTION-STATEMENT function, §2002:15.27, whose returned values RV1 and RV2 are 31 characters at 2002 (kb/Work PB5698, PB5717, VCR row 7.117)"
   },
+  "flow-global-exit-is-never-set": {
+   "sections": [
+    "14.8.13",
+    "14.8.17"
+   ],
+   "why": "the EXIT statement, §2002:14.8.13 (GR2 sets EC-FLOW-GLOBAL-EXIT for an EXIT within the range of a GLOBAL declarative), and the GOBACK statement, §2002:14.8.17 (GR3 and GR4 make a GOBACK in a function or method that EXIT), where §2023 states no rule that sets it (kb/Work PB5715, VCR row 7.118)"
+  },
   "indexed-read-previous-after-open-at-end": {
    "sections": [
     "14.8.29"
