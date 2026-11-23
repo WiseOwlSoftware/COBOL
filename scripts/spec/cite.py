@@ -193,6 +193,31 @@ def reconstructed(lines: list[str]) -> list[str | None]:
     return folio
 
 
+def sourced(lines: list[str]) -> list[str | None]:
+    """For each line of `lines`, the first folio a SOURCE note names for the span it lies inside (kb/Work PB5789, PB6100),
+    or None outside every one: one pass, read by index. A span runs from its note to the line that is the last folio the
+    note names (`XIII-55`), the folio line itself included: the printed pages our scan lacks, transcribed from another
+    scan, so no page of OUR PDF carries their ink. A note whose last folio never follows is a ValueError, never a span
+    running to the end of the file."""
+    folio: list[str | None] = [None] * len(lines)
+    i = 0
+    while i < len(lines):
+        m = SOURCE.match(lines[i])
+        if m is None:
+            i += 1
+            continue
+        named = folios_of(m["folios"])
+        if not named:
+            raise ValueError(f"line {i + 1}: a SOURCE note names no folio: {lines[i][:80]!r}")
+        end = next((j for j in range(i + 1, len(lines)) if lines[j].strip() == named[-1]), None)
+        if end is None:
+            raise ValueError(f"line {i + 1}: the SOURCE note's last folio {named[-1]} never follows it")
+        for k in range(i, end + 1):
+            folio[k] = named[0]
+        i = end + 1
+    return folio
+
+
 EMPTY_NEEDLE = "quotation carries no word characters (letters, digits, underscore); nothing to match"
 #: The fewest REAL words (a word carrying a letter, after `norm`) a quotation must have to be checked at all (kb/Work
 #: PB5317): "x" was found in §1985:XI.4.4.4 and "input procedure" is in dozens of clauses, so a shorter quotation proves
@@ -1350,6 +1375,13 @@ def self_test() -> int:
         got = v(cite_, text, **kw)
         return got.kind == kind and (names is None or (got.suggestion or "").endswith(names) or names in got.message)
 
+    def refused(fn, exc) -> bool:
+        try:
+            fn()
+        except exc:
+            return True
+        return False
+
     q85 = "The input procedure may consist of any procedure needed to select, modify, or copy the records"
     q85b = "The file referenced by file-name-1 is sequenced"
     q85l = ("An attempt is made to write or rewrite a record that is larger than the largest or smaller than the smallest "
@@ -1448,6 +1480,11 @@ def self_test() -> int:
              ["(1) The first half joins", "", "X-1", "", "## Page 2", "", "Running Header", "",
               "the second half joins", "> ⚠ **END RECONSTRUCTED (folio X-2).** Printed again.", "", "Running Header Two", "",
               "the third half"])),
+        ("a SOURCE span runs from its note to the last folio it names, the folio line included",
+         sourced(["x", "> ⚠ **SOURCE — folios XIII-54 and XIII-55, not in our copy.** Planted.", "a", "XIII-55", "b"])
+         == [None, "XIII-54", "XIII-54", "XIII-54", None]),
+        ("a SOURCE note whose last folio never follows is refused", refused(
+            lambda: sourced(["> ⚠ **SOURCE — folio XIII-9, not in our copy.** Planted.", "a"]), ValueError)),
         ("reads a SOURCE note as editorial, naming its folios",
          EDITORIAL_NOTE.match(n := "> ⚠ **SOURCE — folios XIII-54 and XIII-55, not in our copy.** Planted.") is not None
          and (m := SOURCE.match(n)) is not None and folios_of(m["folios"]) == ["XIII-54", "XIII-55"]),
