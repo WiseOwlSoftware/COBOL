@@ -313,32 +313,61 @@ def note_entries(text: str) -> dict[int, list[Entry]]:
     return out
 
 
-def amendment_notes(text: str) -> dict[int, list[list[list[str]]]]:
+Amendment = tuple[list[list[str]], list[list[str]], list[int]]  # (what the note says the standard printed, the amended text
+# it quotes, the PDF pages of the Amendment it cites)
+AMENDMENT_PAGE = re.compile(r"\(page (\d+), folio [AB]-\d+\)")
+
+
+def amendment_notes(text: str) -> dict[int, list[Amendment]]:
     """page -> its amendment notes: the `> ⚠ **CORRECTED` notes that say an Amendment's text was `applied in place`
-    (kb/Work PB5045), each as the word keys of its backticked quotes (what the standard prints, what it was corrected to).
-    The markup is the whole rule: a note of another kind (`a damaged letter on the printed page`) is no amendment."""
-    out: dict[int, list[list[list[str]]]] = {}
+    (kb/Work PB5045). A note's first backticked quote is what the standard prints; its other quotes are the amended text it
+    was corrected to. The markup is the whole rule: a note of another kind (`a damaged letter on the printed page`) is no
+    amendment."""
+    out: dict[int, list[Amendment]] = {}
     page = None
     for line in text.splitlines():
         m = PAGE_HEADING.match(line)
         if m:
             page = int(m.group(1))
         elif page and line.lstrip().startswith("> ⚠ **CORRECTED") and "Amendment" in line and "applied in place" in line:
-            segs = [k for k in (_keys(q) for q in re.findall(r"`([^`]+)`", line)) if k]
-            if segs:
-                out.setdefault(page, []).append(segs)
+            quotes = [_keys(q) for q in re.findall(r"`([^`]+)`", line)]
+            printed, amended = [k for k in quotes[:1] if k], [k for k in quotes[1:] if k]
+            if printed:
+                out.setdefault(page, []).append((printed, amended, [int(n) for n in AMENDMENT_PAGE.findall(line)]))
     return out
 
 
-def amendment_accounts_for(notes: list[list[list[str]]], pdf_hunk: list[str], md_hunk: list[str],
+def with_cited_text(notes: dict[int, list[Amendment]], layer: dict[int, list[str]]) -> dict[int, list[Amendment]]:
+    """Each note's amended text, extended by the text layer of the Amendment pages it cites (most notes say `the text above`
+    and quote nothing): the Markdown's side of a difference is then checked against the Amendment's own print, not against
+    the Markdown it was written into."""
+    return {pg: [(pr, am + [[k for k in (fold(w) for w in layer.get(c, [])) if k] for c in cited], cited) for pr, am, cited in ns]
+            for pg, ns in notes.items()}
+
+
+def _adjacent_in(texts: list[list[str]], before: str | None, after: str | None) -> bool:
+    """`before` and `after` are consecutive words of one text: the words between them were dropped."""
+    return before is not None and after is not None and any(
+        t[i] == before and t[i + 1] == after for t in texts for i in range(len(t) - 1))
+
+
+def amendment_accounts_for(notes: list[Amendment], pdf_hunk: list[str], md_hunk: list[str],
                            pdf_ctx: tuple[str | None, str | None], md_ctx: tuple[str | None, str | None]) -> bool:
-    """An amendment note of this page governs the hunk: the layer's words are a run of what the note says the standard
-    printed (the Markdown differs from them because the Amendment's text was applied in place), or, where the layer has
-    no words, the Markdown's words are a run of the note's text. A run needs a neighbouring word or three words
-    (`_run_in`): no page-wide bag of words."""
-    if pdf_hunk:
-        return any(_run_in(pdf_hunk, segs, *pdf_ctx) for segs in notes)
-    return bool(md_hunk) and any(_run_in(md_hunk, segs, *md_ctx) for segs in notes)
+    """An amendment note of this page governs the hunk on BOTH sides: the layer's words are a run of what the note says the
+    standard printed, and the Markdown's words are a run of the amended text the note says it was corrected to (words the
+    Markdown dropped: the two words around the gap are consecutive in the amended text). A run needs a neighbouring word or
+    three words (`_run_in`): no page-wide bag of words, and a Markdown word the note does not give (`13` for `12`) is no
+    amendment."""
+    for printed, amended, _ in notes:
+        if pdf_hunk and not _run_in(pdf_hunk, printed, *pdf_ctx):
+            continue
+        if md_hunk and _run_in(md_hunk, amended, *md_ctx):
+            return True
+        if not md_hunk and pdf_hunk and _adjacent_in(amended, *md_ctx):
+            return True
+        if not pdf_hunk and md_hunk and _run_in(md_hunk, amended, *md_ctx):
+            return True
+    return False
 
 
 def _run_in(hunk: list[str], texts: list[list[str]], before: str | None, after: str | None) -> bool:
@@ -428,7 +457,7 @@ def _longest_run(x: list[str], y: list[str]) -> tuple[int, int, int]:
 
 
 def classify_page(pdf: list[str], md: list[tuple[str, bool, int]], entries: list[Entry], lex: Lexicon,
-                  removed: bool = False, amendments: list[list[list[str]]] | None = None) -> list[dict]:
+                  removed: bool = False, amendments: list[Amendment] | None = None) -> list[dict]:
     """The residual differences of one page, each a record {class, reason, pdf, md, line, words}.
 
     `amendments` is the page's `amendment_notes`: a hunk one of them governs is AMENDMENT-APPLIED.
@@ -585,16 +614,17 @@ def _occurs(hunk: list[str], t: list[str]) -> bool:
     return bool(hunk) and any(t[i:i + len(hunk)] == hunk for i in range(len(t) - len(hunk) + 1))
 
 
-def zero_read_as_o(pdf_hunk: list[str], md_hunk: list[str], md_before: list[str], md_after: list[str]) -> bool:
-    """The Markdown's digit-only word (`0`, `100`) against the same word with the letter O for each zero, in a digit context:
-    a digit-only word of two or more digits is one, a lone `0` is one only beside a digit-only word (`'0', ... , '9'`).
-    Typewriter faces print the zero and the letter alike; the printed context is digits."""
+def zero_read_as_o(pdf_hunk: list[str], md_hunk: list[str]) -> bool:
+    """The Markdown's number of two or more digits holding a zero (`100`) against the same word with the letter O for each
+    zero (`1OO`): a letter inside a run of digits is no word. A lone `0` against `O` is never decided here, by context or
+    otherwise: a typewriter face prints the zero and the letter alike, `'Z', '0', '9'` and `'Z', 'O', '9'` read the same, and
+    only the glyph tells them apart (the row stays LIKELY-ERROR for a reader of the page)."""
     if len(pdf_hunk) != 1 or len(md_hunk) != 1:
         return False
     pk, mk = pdf_hunk[0], md_hunk[0]
     if not mk.isdigit() or "0" not in mk or pk != mk.replace("0", "o"):
         return False
-    return len(mk) >= 2 or any(w.isdigit() for w in md_before[-1:] + md_after[:1])
+    return len(mk) >= 2
 
 
 def arbitrate_rows(rows: list[dict], tess_text: str) -> None:
@@ -621,7 +651,7 @@ def arbitrate_rows(rows: list[dict], tess_text: str) -> None:
                                      (not pdf_hunk and _occurs(md_hunk, t))):
             pdf_ok = md_ok  # a reading-order difference, not a second witness: the layer's words are absent and the Markdown's
             # are on the page elsewhere (a table read by column); it stays UNEXPLAINED
-        if pdf_ok and not md_ok and zero_read_as_o(pdf_hunk, md_hunk, md_before, md_after):
+        if pdf_ok and not md_ok and zero_read_as_o(pdf_hunk, md_hunk):
             r["class"] = "OCR-NOISE"  # both readers give the letter O for a digit zero of a digit context: the typeface's confusion
             r["reason"] = "both readings give the letter O where the Markdown has the digit zero in a digit context"
         elif md_ok != pdf_ok:
@@ -703,6 +733,8 @@ def main() -> int:
     pages = parse_pages(args.pages, total) if args.pages else list(range(1, total + 1))
     pdf = pdf_pages(pages)
     ledger, notes, amended = ledger_entries(), note_entries(text), amendment_notes(text)
+    cited = sorted({c for n in pages for _, _, cs in amended.get(n, []) for c in cs} - set(pdf))
+    amended = with_cited_text(amended, {**pdf, **pdf_pages(cited)})
     lex = Lexicon.of([w for words in md.values() for w, _, _ in words], reserved_words())
     result = {"edition": 1985, "pdf_pages": total, "inputs": inputs(), "classes": list(CLASSES), "pages": {}}
     measured = {n: classify_page(pdf[n], md[n], ledger.get(n, []) + notes.get(n, []), lex, 807 <= n <= 819,

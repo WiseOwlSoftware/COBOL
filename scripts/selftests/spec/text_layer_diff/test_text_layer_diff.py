@@ -138,18 +138,29 @@ def case_11_an_amendment_note_governs_the_words_it_quotes(expect):
     other = "the file lists 11 files of cobol"
     expect.equal("words the note does not quote are not governed", _classes(other, "the file lists 12 files of cobol", amendments=am), ["UNEXPLAINED"])
     expect.equal("a run with no neighbour in the quote is not governed", _classes("an open 11 or", "an open 12 or", amendments=am), ["UNEXPLAINED"])
+    expect.equal("the Markdown's number is not the amended one", _classes(pdf, "the standard defines 13 modules of cobol", amendments=am), ["UNEXPLAINED"])
+    expect.equal("a damaged amended word is not the amended text", _classes(pdf, "the standard defines 12 moduls of cobol", amendments=am), ["UNEXPLAINED"])
+    expect.equal("words the Markdown dropped, the note does not drop", _classes(pdf, "the standard defines of cobol", amendments=am), ["UNEXPLAINED"])
+    drop = _amendments("> ⚠ **CORRECTED — see the Errata (C9).** The standard prints `a big file is open` (page 5). Amendment 1, "
+                       "applied in place. Corrected to `a file is open`.")
+    expect.equal("words the amended text drops, the Markdown drops", _classes("a big file is open", "a file is open", amendments=drop), ["AMENDMENT-APPLIED"])
+    expect.equal("words the amended text keeps, the Markdown drops", "AMENDMENT-APPLIED" in _classes("a big file is open", "big is open", amendments=drop), False)
+    added = _amendments("> ⚠ **CORRECTED — see the Errata (C8).** The standard prints `a file is open` (page 5). Amendment 1, "
+                        "applied in place. Corrected to `a big file is open`.")
+    expect.equal("words the amended text adds, the Markdown adds", _classes("a file is open", "a big file is open", amendments=added), ["AMENDMENT-APPLIED"])
+    expect.equal("words the amended text does not add", "AMENDMENT-APPLIED" in _classes("a file is open", "a huge file is open", amendments=added), False)
 
 
-def case_12_zero_read_as_o_by_both_readers_in_a_digit_context(expect):
+def case_12_zero_read_as_o_in_a_number(expect):
     z = D.zero_read_as_o
-    expect.equal("'0' beside a digit-only word", z(["o"], ["0"], ["z"], ["9"]), True)
-    expect.equal("a number of two digits", z(["1oo"], ["100"], ["a"], ["b"]), True)
-    expect.equal("a lone 0 among words is not a digit context", z(["o"], ["0"], ["the"], ["file"]), False)
-    expect.equal("other letters differ too", z(["1ob"], ["100"], ["a"], ["9"]), False)
-    expect.equal("the reverse (the Markdown has the letter) is no noise", z(["0"], ["o"], ["z"], ["9"]), False)
-    expect.equal("both readers give O: noise", _arbitrated("the 9 O 8 file", "the 9 0 8 file", "the 9 O 8 file"), ["OCR-NOISE"])
-    expect.equal("tesseract has the zero: the layer's reading is the damage", _arbitrated("the 9 O 8 file", "the 9 0 8 file", "the 9 0 8 file"), ["OCR-ARBITRATED"])
-    expect.equal("a letter O among words stays a likely error", _arbitrated("the file O open", "the file 0 open", "the file O open"), ["LIKELY-ERROR"])
+    expect.equal("a number of two digits", z(["1oo"], ["100"]), True)
+    expect.equal("a lone 0 is never decided by context", z(["o"], ["0"]), False)
+    expect.equal("other letters differ too", z(["1ob"], ["100"]), False)
+    expect.equal("the reverse (the Markdown has the letter) is no noise", z(["0"], ["o"]), False)
+    expect.equal("both readers give 1OO: noise", _arbitrated("the 1OO file", "the 100 file", "the 1OO file"), ["OCR-NOISE"])
+    expect.equal("tesseract has the number: the layer's reading is the damage", _arbitrated("the 1OO file", "the 100 file", "the 100 file"), ["OCR-ARBITRATED"])
+    expect.equal("a quoted list O between letters and digits stays likely", _arbitrated("the Z O 9 file", "the Z 0 9 file", "the Z O 9 file"), ["LIKELY-ERROR"])
+    expect.equal("a lone O beside a digit stays likely", _arbitrated("the 1 O file", "the 1 0 file", "the 1 O file"), ["LIKELY-ERROR"])
 
 
 def case_13_the_excerpt_is_the_aligned_block(expect):
@@ -158,6 +169,19 @@ def case_13_the_excerpt_is_the_aligned_block(expect):
     expect.equal("one unexplained row", len(un), 1)
     expect.equal("its Markdown excerpt keeps the words that paired off", un[0]["md"], "corner or")
     expect.equal("its text-layer excerpt too", un[0]["pdf"], "comer of")
+
+
+def case_14_the_amended_text_is_the_cited_amendment_page(expect):
+    note = ("> ⚠ **CORRECTED — see the Errata (C7).** The standard prints `a file is open` (page 5, folio I-1). Amendment 1, its "
+            "change for page I-1 (page 831, folio A-1), applied in place. Corrected to the text above.")
+    notes = _amendments(note)
+    expect.equal("the cited Amendment page is read from the note", notes[0][2], [831])
+    expect.equal("a note that quotes no amended text has none of its own", notes[0][1], [])
+    both = D.with_cited_text({5: notes}, {831: "a big file is open".split()})[5]
+    expect.equal("the Amendment page's print is the amended text", _classes("a file is open", "a big file is open", amendments=both), ["AMENDMENT-APPLIED"])
+    expect.equal("the Markdown's word the Amendment page lacks", "AMENDMENT-APPLIED" in _classes("a file is open", "a huge file is open", amendments=both), False)
+    other = D.with_cited_text({5: notes}, {832: "a big file is open".split()})[5]
+    expect.equal("another page of the PDF is no evidence", "AMENDMENT-APPLIED" in _classes("a file is open", "a big file is open", amendments=other), False)
 
 
 if __name__ == "__main__":

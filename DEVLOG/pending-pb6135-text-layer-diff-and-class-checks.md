@@ -10,15 +10,14 @@ ledger and the script. The gate's TEXT LAYER DIFF 1985 audit is RED when one cha
 pages, before the second reading: 5269 OCR-NOISE, 823 CORRECTION, 1186 FIGURE, 2322 PUNCT, 423 CASE, 823 UNCOVERED, 2092 UNEXPLAINED on 528 pages; the
 first version's 128 unexplained hid the rest behind folds that a round-1 review showed excuse real errors. A second, independent
 reading by tesseract (`--arbitrate`, positional, cached outside the tree) then settles the unexplained rows: 1344 become
-OCR-ARBITRATED, 141 LIKELY-ERROR (both readings differ from the Markdown; the full list is in the kb/Work PB6135
+OCR-ARBITRATED, 141 LIKELY-ERROR (both readings differ from the Markdown; the list is `--check --likely`, see kb/Work PB6135
 addendum), 607 stay UNEXPLAINED. The three
 reading-only classes (table indentation, brace continuation, a boxed figure ending a page) were measured and not gated: the
 layer gives no precise rule (kb/Work PB6135 addendum). The transcription is unchanged; PB6051 and PB6135 stay open.
 
 A triage of the 21 LIKELY-ERROR rows on seven pages found no transcription error: 20 sit under an Amendment's in-place
-CORRECTED note, one is the digit zero read as the letter O by both readers. So a hunk whose layer words are a run of the quote
-of a page's `applied in place` CORRECTED note is now AMENDMENT-APPLIED (derived from that markup, no page list); the digit zero
-read as the letter O by both readers in a digit context is OCR-NOISE (narrowly: a lone `0` beside a digit-only word, or a
-number of two digits or more); and a row's excerpt is the whole aligned block, not what was left after words paired off.
-Re-measured: LIKELY-ERROR 141 to 88, UNEXPLAINED 607 to 598, AMENDMENT-APPLIED 0 to 74 (kb/Work PB6135
-2026-11-23-errata-amendment-class).
+CORRECTED note. So a hunk is now AMENDMENT-APPLIED only when the layer's words are a run of the note's printed quote AND the
+Markdown's words are a run of the amended text (the note's quote, or the text layer of the Amendment page it cites); a zero
+read as the letter O is OCR-NOISE only inside a number of two digits or more; a row's excerpt is the whole aligned block.
+Re-measured: LIKELY-ERROR 141 to 114, UNEXPLAINED 607 to 599, AMENDMENT-APPLIED 0 to 88 (kb/Work PB6135
+2026-11-23-errata-amendment-class). The list of LIKELY-ERROR rows is `text_layer_diff.py --check --likely`, not copied into a note.
