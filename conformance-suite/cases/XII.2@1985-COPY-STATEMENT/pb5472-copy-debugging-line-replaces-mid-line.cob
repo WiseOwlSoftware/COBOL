@@ -4,7 +4,6 @@
       *> files: [PB5472LB.cpy]
       *> accept: [85]
       *> source-format: fixed
-      *> portable: unverified
       *>---
       *> §1985:XII.2.4 GR7 (cite.py --check: OK): "Debugging lines are permitted
       *> within library text and pseudo-text". The pseudo-text-2 of the COPY

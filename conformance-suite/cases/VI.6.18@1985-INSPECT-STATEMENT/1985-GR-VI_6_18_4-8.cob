@@ -3,7 +3,6 @@
       *> rules: [1985-GR-VI.6.18.4-8]
       *> accept: [85]
       *> source-format: fixed
-      *> portable: unverified
       *>---
       *> §1985:VI.6.18.4 GR8 (THE INSPECT STATEMENT). An output test:
       *> the program must translate and run at 85 and DISPLAY exactly
@@ -21,36 +20,46 @@
        01  W2 PIC X(7) VALUE "XAYAXAY".
        01  W3 PIC X(5).
        01  C1 PIC 99.
+       01  C1-E PIC Z9.
        PROCEDURE DIVISION.
        MAIN-PARA.
            MOVE "ABCABCABC" TO W.
            MOVE 0 TO C1.
            INSPECT W TALLYING C1 FOR ALL "A".
-           DISPLAY "T1 " C1.
+           MOVE C1 TO C1-E
+           DISPLAY "T1 " C1-E.
            MOVE 0 TO C1.
            INSPECT W TALLYING C1 FOR ALL "A" BEFORE "C".
-           DISPLAY "T2 " C1.
+           MOVE C1 TO C1-E
+           DISPLAY "T2 " C1-E.
            MOVE 0 TO C1.
            INSPECT W TALLYING C1 FOR ALL "A" AFTER "C".
-           DISPLAY "T3 " C1.
+           MOVE C1 TO C1-E
+           DISPLAY "T3 " C1-E.
            MOVE 0 TO C1.
            INSPECT W TALLYING C1 FOR ALL "A" BEFORE "Z".
-           DISPLAY "T4 " C1.
+           MOVE C1 TO C1-E
+           DISPLAY "T4 " C1-E.
            MOVE 0 TO C1.
            INSPECT W TALLYING C1 FOR ALL "A" AFTER "Z".
-           DISPLAY "T5 " C1.
+           MOVE C1 TO C1-E
+           DISPLAY "T5 " C1-E.
            MOVE 0 TO C1.
            INSPECT W TALLYING C1 FOR CHARACTERS BEFORE "B".
-           DISPLAY "T6 " C1.
+           MOVE C1 TO C1-E
+           DISPLAY "T6 " C1-E.
            MOVE 0 TO C1.
            INSPECT W TALLYING C1 FOR CHARACTERS AFTER "B".
-           DISPLAY "T7 " C1.
+           MOVE C1 TO C1-E
+           DISPLAY "T7 " C1-E.
            MOVE 0 TO C1.
            INSPECT W2 TALLYING C1 FOR ALL "A" AFTER "X" BEFORE "Y".
-           DISPLAY "T8 " C1.
+           MOVE C1 TO C1-E
+           DISPLAY "T8 " C1-E.
            MOVE 0 TO C1.
            INSPECT W TALLYING C1 FOR ALL "A" BEFORE "CA".
-           DISPLAY "T9 " C1.
+           MOVE C1 TO C1-E
+           DISPLAY "T9 " C1-E.
            INSPECT W REPLACING ALL "A" BY "Z" AFTER "C".
            DISPLAY "R1 " W.
            MOVE "ABCABCABC" TO W.

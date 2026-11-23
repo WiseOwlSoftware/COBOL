@@ -3,7 +3,6 @@
       *> rules: [1985-GR-XII.3.4-3]
       *> accept: [85]
       *> source-format: fixed
-      *> portable: unverified
       *>---
       *> §1985:XII.3.4 GR3 (THE REPLACE STATEMENT). An output test: the
       *> program must translate and run at 85 and DISPLAY exactly the

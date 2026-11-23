@@ -3,7 +3,6 @@
       *> rules: [1985-GR-VI.6.18.4-9]
       *> accept: [85]
       *> source-format: fixed
-      *> portable: unverified
       *>---
       *> §1985:VI.6.18.4 GR9 - in Format 1 (TALLYING) identifier-1 is a
       *> sending data item. Two consequences are observable:
@@ -25,20 +24,25 @@
        01  W2  PIC X(6) VALUE "banana".
        01  S1  PIC S9(4) VALUE -1201.
        01  CNT PIC 9(4).
+       01  CNT-E PIC ZZZ9.
        PROCEDURE DIVISION.
        P1.
            MOVE 0 TO CNT.
            INSPECT W1 TALLYING CNT FOR ALL "A".
-           DISPLAY "T1=" CNT " W1=" W1.
+           MOVE CNT TO CNT-E
+           DISPLAY "T1=" CNT-E " W1=" W1.
            MOVE 0 TO CNT.
            INSPECT FUNCTION UPPER-CASE (W2) TALLYING CNT FOR ALL "A".
-           DISPLAY "T2=" CNT " W2=" W2.
+           MOVE CNT TO CNT-E
+           DISPLAY "T2=" CNT-E " W2=" W2.
            MOVE 0 TO CNT.
            INSPECT FUNCTION REVERSE (W1) TALLYING CNT FOR LEADING "A".
-           DISPLAY "T3=" CNT " W1=" W1.
+           MOVE CNT TO CNT-E
+           DISPLAY "T3=" CNT-E " W1=" W1.
            MOVE 0 TO CNT.
            INSPECT S1 TALLYING CNT FOR ALL "1".
-           DISPLAY "T4=" CNT.
+           MOVE CNT TO CNT-E
+           DISPLAY "T4=" CNT-E.
            IF S1 = -1201
                DISPLAY "S1=UNCHANGED"
            ELSE

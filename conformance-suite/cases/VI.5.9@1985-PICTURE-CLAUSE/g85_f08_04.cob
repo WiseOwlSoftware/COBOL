@@ -3,7 +3,6 @@
       *> rules: [1985-GR-VI.5.9.5-8]
       *> accept: [85]
       *> source-format: fixed
-      *> portable: unverified
       *>---
       *> §1985:VI.5.9.5 GR8 - zero suppression editing with 'Z' (space)
       *> and '*' (asterisk), each symbol counted in the size; simple

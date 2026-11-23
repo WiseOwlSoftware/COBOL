@@ -3,7 +3,6 @@
       *> rules: [1985-SR-XII.3.3-4]
       *> accept: [85]
       *> source-format: fixed
-      *> portable: unverified
       *>---
       *> kb/Work PB5803. §1985:XII.3.3 SR4: "Pseudo-text-2 may contain zero,
       *> one, or more text words" (cite.py --check: OK). COBOL-85 has no

@@ -3,7 +3,6 @@
       *> rules: [1985-SR-VI.6.18.3-3]
       *> accept: [85]
       *> source-format: fixed
-      *> portable: unverified
       *>---
       *> §1985:VI.6.18.3 SR3 (THE INSPECT STATEMENT). An output test:
       *> the program must translate and run at 85 and DISPLAY exactly
@@ -17,8 +16,10 @@
        WORKING-STORAGE SECTION.
        01  WS-X    PIC X(6) VALUE "A B C ".
        01  WS-N    PIC 99   VALUE 0.
+       01  WS-N-E PIC Z9.
        PROCEDURE DIVISION.
        MAIN-PARA.
            INSPECT WS-X TALLYING WS-N FOR ALL SPACE.
-           DISPLAY WS-N.
+           MOVE WS-N TO WS-N-E
+           DISPLAY WS-N-E.
            STOP RUN.

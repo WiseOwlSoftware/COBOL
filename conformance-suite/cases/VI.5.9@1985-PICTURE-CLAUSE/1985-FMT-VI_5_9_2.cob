@@ -3,7 +3,6 @@
       *> rules: [1985-FMT-VI.5.9.2]
       *> accept: [85]
       *> source-format: fixed
-      *> portable: unverified
       *>---
       *> §1985:VI.5.9.2 (THE PICTURE CLAUSE). An output test: the
       *> program must translate and run at 85 and DISPLAY exactly the
@@ -18,10 +17,14 @@
        01  ITEM-B PIC 9(2) VALUE 42.
        01  ITEM-C PICTURE 9(3) VALUE 7.
        01  ITEM-D PIC IS XX VALUE "ZZ".
+       01  ITEM-B-E PIC Z9.
+       01  ITEM-C-E PIC ZZ9.
        PROCEDURE DIVISION.
        MAIN-PARA.
            DISPLAY ITEM-A.
-           DISPLAY ITEM-B.
-           DISPLAY ITEM-C.
+           MOVE ITEM-B TO ITEM-B-E
+           DISPLAY ITEM-B-E.
+           MOVE ITEM-C TO ITEM-C-E
+           DISPLAY ITEM-C-E.
            DISPLAY ITEM-D.
            STOP RUN.
