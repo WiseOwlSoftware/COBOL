@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-7.2.2-7",
+ "rule-digest": "cdc29c0afff0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Common/CompilerDirectiveWords.cs#IsReserved; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#ApplyDefine; src/WiseOwl.Cobol.Frontend/Preprocessor/TurnDirectiveProcessor.cs#ParseTurn",
+ "test-ref": "conformance:cases/7.3-Compiler-directives/pb5599_directive_word_as_data_name",
+ "notes": "§2002:7.2.2 SR7 'A compiler-directive word is reserved within the context of the compiler directive in which it is specified'. The reservation is asked only by the three sites that read a directive's operand (DEFINE name, defined condition, TURN file-name); no word table reaches the reserved-word screen of the program text. Run at --std 2002 and --std 2023 with this build: a program that declares data items SOURCE-FORMAT and LISTING (words of every edition's §8.12) outside any directive compiles and prints 12 (kb/Work PB5599)."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-7.2.19.2-2",
+ "rule-digest": "e446ef63d865",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionCatalog.cs#Build; src/WiseOwl.Cobol.Editions/ExceptionNameRule.cs#Window; src/WiseOwl.Cobol.Frontend/Preprocessor/TurnDirectiveProcessor.cs#ParseTurn",
+ "test-ref": "conformance:cases/7.3.25-TURN/pb5703_turn_exception_name_2014_set; unit:ExceptionCatalogEditionDriftTests.EveryCatalogName_IsIntroducedByTheFirstEditionThatNamesIt",
+ "notes": "§2002:7.2.19.2 SR2 'Exception-name-1 shall be one of the exception names listed in 14.5.12.1, Exception conditions'. EcInfo.IntroducedIn is now the first edition whose own list names the exception-name (kb/Work PB5703): EC-FUNCTION and its children, EC-BOUND-SET, EC-BOUND-TABLE-LIMIT, EC-DATA-NOT-FINITE, EC-DATA-OVERFLOW, EC-FLOW-SEARCH and EC-OO-ARG-OMITTED are 2014, EC-BOUND-FUNC-RET-VALUE and EC-FUNCTION-IMP are 2023; ExceptionCatalogEditionDriftTests reads the three transcriptions and holds every catalog name to it. Run at --std 2002 with this build: '>>TURN EC-FUNCTION CHECKING ON' and '>>TURN EC-BOUND-SET CHECKING ON' are refused COBOL0878 (introduced by 2014), where before they compiled."
+}
