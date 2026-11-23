@@ -1758,7 +1758,7 @@ internal static class RuntimeApi
 
     /// <summary>A table(ALL) intrinsic argument's enumeration (ISO §2023:15.3; kb/Work PB62) — <c>CobolTable.AllArgs&lt;T&gt;</c>
     /// over one range lambda per ALL level (each <c>Func&lt;long[], long&gt;</c>, the index vector in) and the element
-    /// lambda; yields the <c>T[]</c> a <c>params T[]</c> body binds to.</summary>
+    /// lambda; yields the <c>T[]</c> a <c>params ReadOnlySpan&lt;T&gt;</c> body takes (kb/Work PB2636).</summary>
     public static string TableAllArgs(string csType, IEnumerable<string> countLambdas, string elementLambda, string? leadLambda = null) =>
         $"{nameof(CobolTable)}.{nameof(CobolTable.AllArgs)}<{csType}>(new Func<long[], long>[] {{ {string.Join(", ", countLambdas)} }}, {elementLambda}"
         + (leadLambda is null ? ")" : $", {leadLambda})");

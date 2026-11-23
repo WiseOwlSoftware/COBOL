@@ -62,7 +62,7 @@ internal sealed class _PRG_CHAR_INTRINSICS : ICobolProgram
                         try
                         {
 #line (13, 12) - (13, 49) 29 "char_intrinsics.cob"
-                            WS_R = (long)(CobolNum.Store(CobolIntrinsics.MaxAt(0, true, new Int128[] { WS_A, WS_B }, new int[] { 0, 0 }), 0, _P_2, CobolRounding.Truncation));
+                            WS_R = (long)(CobolNum.Store(CobolIntrinsics.MaxAt(0, true, [WS_A, WS_B], [0, 0]), 0, _P_2, CobolRounding.Truncation));
 #line hidden
                         }
                         catch (CobolSizeError) { __sizeErr0 = true; }

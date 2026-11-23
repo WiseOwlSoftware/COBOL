@@ -27,7 +27,7 @@ public static partial class CobolIntrinsics
     /// store-cap (§2023:14.9.25.4 GR6 high-order truncation semantics — the receiver's own capacity mod finishes
     /// the job); a receiverless result stays LOUD on the escape check, because a comparison consuming a
     /// capped value would silently compare the wrong number.</summary>
-    public static Int128 MaxAt(int toScale, bool store, Int128[] v, int[] s)
+    public static Int128 MaxAt(int toScale, bool store, ReadOnlySpan<Int128> v, ReadOnlySpan<int> s)
     {
         int i = ExtremeIndex(new ScaledOrder(v, s), true, "MAX");
         return store ? CobolNum.RescaleStoreCap(v[i], s[i], toScale, CobolRounding.Truncation)
@@ -36,7 +36,7 @@ public static partial class CobolIntrinsics
 
     /// <summary>§2023:15.63 MIN by value selection — the leftmost least argument (rescale semantics as
     /// <see cref="MaxAt"/>).</summary>
-    public static Int128 MinAt(int toScale, bool store, Int128[] v, int[] s)
+    public static Int128 MinAt(int toScale, bool store, ReadOnlySpan<Int128> v, ReadOnlySpan<int> s)
     {
         int i = ExtremeIndex(new ScaledOrder(v, s), false, "MIN");
         return store ? CobolNum.RescaleStoreCap(v[i], s[i], toScale, CobolRounding.Truncation)
@@ -45,8 +45,8 @@ public static partial class CobolIntrinsics
 
     /// <summary>§2023:15.71 ORD-MAX — the 1-based ordinal of the first greatest argument. Pure selection: no
     /// rescale ever, so every legal argument list has its defined answer.</summary>
-    public static long OrdMaxAt(Int128[] v, int[] s) => ExtremeIndex(new ScaledOrder(v, s), true, "ORD-MAX") + 1;
+    public static long OrdMaxAt(ReadOnlySpan<Int128> v, ReadOnlySpan<int> s) => ExtremeIndex(new ScaledOrder(v, s), true, "ORD-MAX") + 1;
 
     /// <summary>§2023:15.72 ORD-MIN — the 1-based ordinal of the first least argument.</summary>
-    public static long OrdMinAt(Int128[] v, int[] s) => ExtremeIndex(new ScaledOrder(v, s), false, "ORD-MIN") + 1;
+    public static long OrdMinAt(ReadOnlySpan<Int128> v, ReadOnlySpan<int> s) => ExtremeIndex(new ScaledOrder(v, s), false, "ORD-MIN") + 1;
 }

@@ -216,8 +216,8 @@ public sealed class WholeRangeBodiesDriftTests
         foreach (string method in IntrinsicRenderer.ExactListBodies)
         {
             Type[] want = method == "PresentValue"
-                ? [typeof(CobolRounding), typeof(CobolExact), typeof(CobolExact[])]
-                : [typeof(CobolRounding), typeof(CobolExact[])];
+                ? [typeof(CobolRounding), typeof(CobolExact), typeof(ReadOnlySpan<CobolExact>)]
+                : [typeof(CobolRounding), typeof(ReadOnlySpan<CobolExact>)];
             var overload = typeof(CobolIntrinsics).GetMethod(method, BindingFlags.Public | BindingFlags.Static, want);
             Assert.True(overload is not null && overload.ReturnType == typeof(double),
                 $"{method}: no public static double {method}({string.Join(", ", want.Select(t => t.Name))})");

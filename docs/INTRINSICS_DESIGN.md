@@ -504,13 +504,21 @@ decorator, every static classifier (class, category, usage, width, the §2023:15
 sees the element as it would a single subscripted reference; only the intrinsic ARGUMENT-LIST renderers expand it
 — `IntrinsicRenderer.ArgArray` turns any list holding an ALL into ONE `T[]` expression (runs of written operands as
 array literals, each ALL a `CobolTable.AllArgs<T>(counts, __allN => element)` enumeration, joined by
-`CobolTable.ArgConcat`), which every `params T[]` body binds to; `AlignedArgs`/`RawArgPairs`/`DecArgList`/
+`CobolTable.ArgConcat`), which every `params ReadOnlySpan<T>` body takes by the array's implicit conversion; `AlignedArgs`/`RawArgPairs`/`DecArgList`/
 `StrArgList` and `RenderFloat`'s list ride it, PRESENT-VALUE's leading rate goes through `LeadThenTail` (a leading
 argument with its OWN intake — PRESENT-VALUE's screened discount base — is rendered, when that argument is itself an
 ALL, by `AllArgs`'s optional `lead` lambda for the FIRST element the walk enumerates, which is argument-1 by §2023:15.3
 rule 14's left-to-right order and which only the walk can name, since an inner ALL level may range over nothing
 for the first outer occurrence; kb/Work PB1000 — it used to screen the enumerated binary64 `[0]`), and MEAN's
 divisor becomes the enumerated list's `.Length` under a `CobolTable.With` binding when a range is a runtime value.
+
+**No argument list is a heap array (kb/Work PB2636).** Every variadic runtime body takes `params ReadOnlySpan<T>` (the selection
+bodies `MaxAt`/`MinAt`/`OrdMaxAt`/`OrdMinAt` their parallel values and scales as two `ReadOnlySpan`s), and the selection
+orders (`ValueOrder`, `ScaledOrder`, `DecOrder`, `StringOrder`, `ExactOrder`, `WideOrder`) are `ref struct`s over the span. A written
+list renders as the expanded argument list or a collection expression (`MaxAt(0, true, [WS_A, WS_B], [0, 0])`), which Roslyn
+lowers to a stack inline array, and a constant scale list to static data; only a list holding a table(ALL) is a run-time
+array (the enumeration), and `LeadThenTail` passes its tail as `xs.AsSpan(1)`, never a copied `xs[1..]`. MEDIAN sorts one copy
+of the span.
 A single-value read of a `TableAllPlace` (`PlaceRenderer.Read`) is an internal error by construction. **The
 capacity register is minted for every dynamic table** (named only under `CAPACITY IN`) so an unnamed table's
 range is readable (PB61 first needed this for LENGTH r7c). **Admissibility is decided FIRST, from the
@@ -532,7 +540,7 @@ unreachable does NOT hold it (`TableAllPlace.StaticCount` is null for an ODO or 
 UNIFORM with no exemption list — a forwarding exemption is a list, and the assertion is one integer compare —
 and `EmptyArgumentListDriftTests` holds all three halves: the banned SHAPE (a body testing its argument array
 for emptiness and answering anyway), the watchdog biting on the verbatim pre-PB257 lines, and the positive
-sweep over every `params double[]` / `CobolDec[]` / `Int128[]` declaration in the folder, asserting its own
+sweep over every `params ReadOnlySpan<double>` / `<CobolDec>` / `<Int128>` declaration in the folder, asserting its own
 population. A variadic STRING list is deliberately out of scope: §2023:15.18 CONCAT and §2023:15.96 TRIM have
 returned-value rules defining their own empty cases, and the string extremes reach the invariant through their
 one selection helper `ExtremeIndex`. TRIM's repeated argument-2 binds through
@@ -573,7 +581,7 @@ the rules for simple conditions" (§2023:15.59.4 RV1, §2023:15.63.4 RV1, §2023
 ARITHMETIC expression is involved,
 so §2023:15.4.1's native latitude over the representation of the returned value never reaches the VALUE. A MIXED
 argument list — a float beside a fixed-point item, conforming under §2023:8.5.2.1 Table 2 (both class numeric) — used to
-route the WHOLE call through binary64 (`AnyRealArgument` → `RenderFloat` → `MaxReal(params double[])` →
+route the WHOLE call through binary64 (`AnyRealArgument` → `RenderFloat` → `MaxReal(params ReadOnlySpan<double>)` →
 `FromDouble`): `MAX(F1 N1)` with N1 = 999999999999999999 returned **13** (1e18 → FromDouble at scale 9 → the
 modular store), `MAX(D9 F1)` corrupted the last digit of a 9(9)V9(9), `MEDIAN(F1 N1 N2)` returned 0. **The rule
 now:** a mixed selection list evaluates on the SDIDI carrier under NATIVE arithmetic too (`RenderNum` routes it to

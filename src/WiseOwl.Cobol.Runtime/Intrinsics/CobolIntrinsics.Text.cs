@@ -204,7 +204,7 @@ public static partial class CobolIntrinsics
     /// included — §2023:15.18.4 RV1 "all of the characters"), so the result length is the sum of the argument
     /// widths. That sum is the one CONCAT length that can pass the §2023:15.4 maximum (<see cref="ReturnedValueMaximum"/>),
     /// so it is measured before the value is built.</summary>
-    public static string Concat(params string[] parts)
+    public static string Concat(params ReadOnlySpan<string> parts)
     {
         long length = 0;
         foreach (var part in parts) length += part.Length;
@@ -607,7 +607,7 @@ public static partial class CobolIntrinsics
     /// (0) characters that match the delete set removed. The delete set is each argument-2's single character
     /// (§2023:15.96.3 AR2); with no argument-2 it is a space (rule 3.a). An argument consisting only of delete-set
     /// characters (or of zero length) returns a zero-length string (rule 4).</summary>
-    public static string Trim(string s, long mode, params string[] chars)
+    public static string Trim(string s, long mode, params ReadOnlySpan<string> chars)
     {
         // ⛔ SEQUENTIAL folds, never a set union (§2023:15.96.4 RV5 — "each argument-2 is processed completely in the
         // order that they are specified"; its NOTE: TRIM(a b c) ≡ TRIM(TRIM(a b) c), and TRIM("aabbcc" "c" "b")
