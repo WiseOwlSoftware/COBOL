@@ -608,6 +608,16 @@ public enum DialectBehavior
     /// may use it (§2002:13.16.38.3 GR2; kb/Work PB5614; VCR row 7.120). Both editions are QUOTED. The consumer is
     /// <c>ConfigurationSlice.FinalizeCurrencySigns</c>.</summary>
     ImpliedDollarCurrencyClause = 64,
+    /// <summary>§2002:14.8.29.3 GR18c2 (and §2014:14.9.29.3 GR19c2) — for a file position indicator "established by a prior OPEN or
+    /// START statement", PREVIOUS selects "the first existing record in the physical file whose record number or key value is less
+    /// than or equal to the file position indicator", and OPEN sets a relative file's indicator to 1 (§2002:14.8.26.3 GR12), so a
+    /// relative file whose lowest record is above RRN 1 is at end, status '10', for a READ PREVIOUS that follows the OPEN (a START
+    /// names an existing record, so its READ PREVIOUS still returns that record). §2023:14.9.30.4 GR21 relative rule b) is
+    /// direction-blind — "the first existing record that is selected is made available, regardless of whether NEXT or PREVIOUS is
+    /// specified" — so from 2023 PREVIOUS after OPEN returns the lowest record (kb/Work PB5742, the relative twin of
+    /// <see cref="IndexedReadPreviousAfterOpenAtEnd"/>; VCR row 7.121). Both editions are QUOTED. The consumer is
+    /// <c>RelativeConnector.SelectSequentialSlot</c>.</summary>
+    RelativeReadPreviousAfterOpenComparesFpi = 65,
 }
 
 /// <summary>
@@ -926,6 +936,11 @@ public static class DialectBehaviors
             "7.120", "§2014:12.3.6.2 SR25", "§2002:12.2.6.2 SR24",
             "a unit with no CURRENCY SIGN clause for '$' is taken to have written one, whose alphanumeric literal-7 confines '$' to usage display, "
             + "only from COBOL-2014; at COBOL-2002 the default '$' has no literal-7 and a national item may use it"),
+        new(DialectBehavior.RelativeReadPreviousAfterOpenComparesFpi, "relative-read-previous-after-open-compares-fpi", 2023,
+            "7.121", "§2023:14.9.30.4 GR21 b)", "§2002:14.8.29.3 GR18c2",
+            "READ ... PREVIOUS on a relative file immediately after OPEN returns the lowest existing record, the direction-blind rule b), "
+            + "only from COBOL-2023; COBOL-2002 and COBOL-2014 compare 'less than or equal to' the indicator OPEN set to 1, so a file "
+            + "whose lowest record is above RRN 1 is at end"),
     ];
 
     static DialectBehaviors()

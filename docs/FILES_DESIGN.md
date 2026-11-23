@@ -2874,19 +2874,23 @@ rows; derive 85↔2002 gating from the 2002 standard / the ISO2023_CONFORMANCE_P
 - **READ PREVIOUS is not COBOL-85** (a 2002 introduction — §2002:F.2 item 109, kb/Work PB3965): rejected at 85 on
   EVERY organization (the gate is one parse arm, `VisitReadDirection`, in the VersionConformancePass; it used to be two arms and
   the sequential one did not carry it — kb/Work PB334). FLAG-14 flags every READ PREVIOUS (row 108).
-  ⚠ **The 2014→2023 after-OPEN change (row 29) is the INDEXED leg only.** Annex E.2 item 22 ("READ PREVIOUS
-  statement following an OPEN statement. Ensure that an at end condition occurs.") is INFORMATIVE and names the
-  rule it amended: §2023:14.9.30.4 GR21's indexed sub-rule d.3, which in the 2023 text reads "If no such record is
-  found or PREVIOUS is specified and the previous operation on the file was an OPEN statement, the at end
-  condition exists." The RELATIVE and SEQUENTIAL sub-rule blocks print rule b) unamended — "the first existing
-  record that is selected is made available, regardless of whether NEXT or PREVIOUS is specified" — so on those
-  two organizations the after-OPEN behaviour is **identical at 2002, 2014 and 2023** and the connector takes no
-  edition parameter for it. Both legs are now asserted at all three editions —
-  `conformance:{2002,2014,2023}/pb334_read_previous_sequential` (sequential) and
-  `conformance:{2002,2014,2023}/pb343_read_previous_relative` (relative, kb/Work PB343, which also removed the
-  carve-out from the legacy engine's `RelativeFileHandler`). The relative golden's SPARSE-file phase is what
-  makes rule b) falsifiable: with the lowest record at RRN 5, OPEN's indicator of 1 names an empty slot, so
-  PREVIOUS and NEXT can only name the same record if the rule ignores the direction.
+  ⚠ **The 2014→2023 after-OPEN change (row 29) reaches INDEXED and RELATIVE; SEQUENTIAL is unchanged.** Annex E.2 item 22
+  ("READ PREVIOUS statement following an OPEN statement. Ensure that an at end condition occurs.") is INFORMATIVE; the
+  INDEXED sub-rule d.3 of §2023:14.9.30.4 GR21 carries the at end sentence, "If no such record is found or PREVIOUS is
+  specified and the previous operation on the file was an OPEN statement, the at end condition exists." The RELATIVE
+  and SEQUENTIAL blocks print rule b) — "the first existing record that is selected is made available, regardless of
+  whether NEXT or PREVIOUS is specified" — so at 2023 PREVIOUS and NEXT after an OPEN name the same record on those two
+  organizations. Below 2023 the after-OPEN PREVIOUS is §2002:14.8.29.3 GR18c.2 (§2014:14.9.29.3 GR19c.2), "the first
+  existing record in the physical file whose record number or key value is less than or equal to the file position
+  indicator", and OPEN sets a sequential or relative file's indicator to 1 (§2002:14.8.26.3 GR12). SEQUENTIAL records
+  are numbered densely from 1, so record 1 answers at every edition (`pb334_read_previous_sequential`). A RELATIVE file
+  can be sparse: `RelativeConnector.SelectSequentialSlot` asks `DialectBehaviors.IsActive(
+  RelativeReadPreviousAfterOpenComparesFpi, Edition)` (VCR row 7.121, kb/Work PB5742) and below 2023 seeks the last
+  record at most the indicator, so a file whose lowest record is RRN 5 is at end ('10') for the PREVIOUS that follows
+  the OPEN, while a START's indicator names an existing record and PREVIOUS still returns it. Both legs are asserted —
+  `conformance:{2002,2014,2023}/pb334_read_previous_sequential` and
+  `conformance:{2002,2014,2023}/pb343_read_previous_relative` (kb/Work PB343, PB5742); the relative golden's SPARSE-file
+  phase (S1) is where the editions differ.
   ⚠ **The INDEXED leg IS gated, and the `<=2014` answer is the ordinary comparison, not the first record**
   (kb/Work PB344, corrected by kb/Work PB5639). `IndexedConnector.SelectSequentialRecord` asks
   `DialectBehaviors.IsActive(IndexedReadPreviousAfterOpenAtEnd, Edition)`: at 2023 a PREVIOUS immediately after an

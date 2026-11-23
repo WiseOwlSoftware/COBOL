@@ -261,6 +261,7 @@ WiseOwl.Cobol.Runtime.DialectBehavior.GroupComparisonIsElementaryAlphanumeric = 
 WiseOwl.Cobol.Runtime.DialectBehavior.GroupIndicateAsPresentWhen = 48 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.GroupIndicateConsumedByIssuedGenerate = 10 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.ImpliedDollarCurrencyClause = 64 -> WiseOwl.Cobol.Runtime.DialectBehavior
+WiseOwl.Cobol.Runtime.DialectBehavior.RelativeReadPreviousAfterOpenComparesFpi = 65 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.IndexNameQualification = 51 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.IndexedDuplicateKeyStatusSequentialOnly = 5 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.InspectBeforeFromFirstEligiblePosition = 15 -> WiseOwl.Cobol.Runtime.DialectBehavior
