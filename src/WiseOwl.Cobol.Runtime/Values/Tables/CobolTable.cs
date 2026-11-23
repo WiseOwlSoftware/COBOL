@@ -128,6 +128,26 @@ public static class CobolTable
         return ref At(table, occurrence);
     }
 
+    /// <summary>⛔ THE SUBSCRIPT OF A TABLE REFERENCE THAT LOCATES ITS ELEMENT BY ARITHMETIC, not through <see cref="At{T}(T[], Occurrence)"/>
+    /// — a Tier-B view's window over its class's one backing (kb/Work PB5762): the §2023:8.4.2.3.4 GR2 range test
+    /// (<see cref="Permissible"/> / <see cref="SubscriptOutOfRange"/>, the same ONE test and raise) against
+    /// <paramref name="highest"/>, the table's highest permissible occurrence number. Returns the subscript's value; with
+    /// checking off the reference continues, as every out-of-range reference does.</summary>
+    public static long Subscript(Occurrence occurrence, long highest)
+    {
+        if (!Permissible(occurrence.Value, highest)) SubscriptOutOfRange(occurrence, highest);
+        return occurrence.Value;
+    }
+
+    /// <summary>The <see cref="Subscript(Occurrence, long)"/> of an element of an occurs-depending table: the same bound test of
+    /// data-name-1 (§2023:13.18.38.4 GR7, kb/Work PB5605) the <see cref="At{T}(T[], Occurrence, Occurrence, int, int)"/> of an
+    /// element path makes, before the subscript's own range (§2023:8.4.2.3.4 GR2 against integer-2).</summary>
+    public static long Subscript(Occurrence occurrence, long highest, Occurrence depending, int min, int max)
+    {
+        TestOdoBounds(depending, min, max, "at a reference to the table");
+        return Subscript(occurrence, highest);
+    }
+
     /// <summary>The out-of-range reference's scratch cell (checking off: the reference reads the empty value and a
     /// store into it is discarded). <b>One per THREAD</b> (kb/Work PB1069): it is returned by <c>ref</c>, so a
     /// process-wide cell let two run units on two threads that both took an out-of-range subscript write one

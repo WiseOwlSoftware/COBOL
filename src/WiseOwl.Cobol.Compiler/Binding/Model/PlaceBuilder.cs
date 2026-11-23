@@ -84,7 +84,7 @@ internal sealed class PlaceBuilder(IPlaceFacts facts)
             if (indexExprs.Count != outerCount + levels.Count) { gap = new(DeferredShape.UnbuiltAccessPath, item); return null; }   // an item-path caller's count
             if (BuildBackingPath(sc, [.. indexExprs.Take(outerCount)]) is not { } classBacking) { gap = new(DeferredShape.NestedClassBacking, item); return null; }
             indexExprs = [.. indexExprs.Skip(outerCount)];
-            if (WindowScopeOf(classBacking, BuildCellPath(sc), levels, indexExprs, CellOrdinalBase(sc)) is not { } scope) { gap = new(DeferredShape.UnbuiltAccessPath, item); return null; }
+            if (WindowScopeOf(classBacking, BuildCellPath(sc), levels, indexExprs, CellOrdinalBase(sc), OdoReferenceCheckFor) is not { } scope) { gap = new(DeferredShape.UnbuiltAccessPath, item); return null; }
             // A dynamic-capacity table referenced by its subscript IS its element, at offset zero of the element cell.
             Position origin = new PositionConstant(item.IsDynamicTable ? 0 : item.ClassOffset);
             // A BASED class's window is displaced by the data-address pointer's runtime offset (ISO §2023:13.18.5
@@ -385,7 +385,17 @@ internal sealed class PlaceBuilder(IPlaceFacts facts)
     /// GR8 / D-N1). A Tier-B view window (<see cref="WindowScopeOf"/>) and the address of an occurrence
     /// (<see cref="ResolveForAddressOf"/>) lay a table's occurrences end-to-end in the one cell image and take their
     /// displacement from here, so a stride fix cannot be made in one of them only.</summary>
-    internal static OffsetTerm FixedLevelTerm(DataItem level, Position index) => new(index, level.ByteWidth);
+    internal static OffsetTerm FixedLevelTerm(DataItem level, Position index, Func<DataItem, OdoReferenceCheck?>? odo) =>
+        new(index, level.ByteWidth, BoundOf(level, odo));
+
+    /// <summary>⛔ THE RANGE A WINDOW'S SUBSCRIPT IS TESTED AGAINST (kb/Work PB5762, PB5605): a Tier-B view locates its element by
+    /// arithmetic, not through <c>CobolTable.At</c>, so the checks the table step of an <see cref="AccessPath"/> carries ride the
+    /// <see cref="OffsetTerm"/> instead — ISO §2023:8.4.2.3.4 GR2 (the subscript within 1 through the table's highest permissible
+    /// occurrence number, the OCCURS integer or an occurs-depending table's integer-2) and §2023:13.18.38.4 GR7 (data-name-1 within
+    /// integer-1 through integer-2, tested at a reference through the level, which <paramref name="odo"/> supplies exactly as
+    /// <see cref="BuildAccessPath"/> attaches it to a <see cref="FixedTableSegment"/>).</summary>
+    private static OccurrenceBound BoundOf(DataItem level, Func<DataItem, OdoReferenceCheck?>? odo) =>
+        new(level.Occurs ?? throw new InvalidOperationException($"{level.ClrName} is not a fixed table"), odo?.Invoke(level));
 
     /// <summary>⛔ THE ONE WALK OF A TIER-B REFERENCE'S SUBSCRIPT LEVELS (kb/Work PB1042), outermost first. A fixed
     /// level displaces the window by <c>(index − 1) ×</c> its per-occurrence STORAGE extent — never its
@@ -399,7 +409,8 @@ internal sealed class PlaceBuilder(IPlaceFacts facts)
     /// <c>Ref</c> is the backing and whose own offsets and ordinals start again at zero. Null when such a level lies in
     /// a class with no cell.</summary>
     private static WindowScope? WindowScopeOf(AccessPath backing, AccessPath? cell, IReadOnlyList<DataItem> levels,
-                                              IReadOnlyList<Position> indexExprs, Position? ordinalBase)
+                                              IReadOnlyList<Position> indexExprs, Position? ordinalBase,
+                                              Func<DataItem, OdoReferenceCheck?>? odo)
     {
         List<OffsetTerm> terms = [], bitTerms = [], ordinalTerms = [];
         bool nested = false;
@@ -415,9 +426,10 @@ internal sealed class PlaceBuilder(IPlaceFacts facts)
                 (terms, bitTerms, ordinalBase, ordinalTerms, nested) = ([], [], null, [], true);
                 continue;
             }
-            terms.Add(FixedLevelTerm(level, indexExprs[k]));
-            bitTerms.Add(new OffsetTerm(indexExprs[k], BitLayout.StrideBits(level)));
-            if (cell is not null) ordinalTerms.Add(new OffsetTerm(indexExprs[k], CellComponents.PerOccurrence(level)));
+            var bound = BoundOf(level, odo);
+            terms.Add(FixedLevelTerm(level, indexExprs[k], odo));
+            bitTerms.Add(new OffsetTerm(indexExprs[k], BitLayout.StrideBits(level), bound));
+            if (cell is not null) ordinalTerms.Add(new OffsetTerm(indexExprs[k], CellComponents.PerOccurrence(level), bound));
         }
         return new WindowScope(cell, backing, terms, bitTerms, ordinalBase, ordinalTerms, nested);
     }
@@ -534,7 +546,7 @@ internal sealed class PlaceBuilder(IPlaceFacts facts)
     /// DEPENDING level, when the compilation group can enable EC-BOUND-ODO at all; <see langword="null"/> otherwise
     /// (a fixed level, or no enabling >>TURN — the zero-scaffolding invariant). The bounds are the SAME the extent
     /// model uses (<see cref="CurrentOccurrenceCount"/>), so the superordinate and the element checks agree.</summary>
-    private OdoReferenceCheck? OdoReferenceCheckFor(DataItem level) =>
+    internal OdoReferenceCheck? OdoReferenceCheckFor(DataItem level) =>
         facts.OdoReferenceChecking && CurrentOccurrenceCount(level, []) is AllCount.Odo o
             ? new OdoReferenceCheck(o.Depending, o.MinOccurs, o.MaxOccurs) : null;
 
@@ -553,7 +565,7 @@ internal sealed class PlaceBuilder(IPlaceFacts facts)
             var outer = SubscriptLevelsWithin(table, cc);
             outer.RemoveAt(outer.Count - 1);   // the table itself
             if (outerIndexExprs.Count < outer.Count) return null;   // an enclosing table with no index — ambiguous
-            return WindowScopeOf(rootCell, rootCell, outer, outerIndexExprs, CellOrdinalBase(cc)) is { Cell: { } scopeCell } s
+            return WindowScopeOf(rootCell, rootCell, outer, outerIndexExprs, CellOrdinalBase(cc), null) is { Cell: { } scopeCell } s
                 ? scopeCell.Add(CellTableSegment.Of(table, s.OrdinalAt(table.ClassDynOrdinal)))
                 : null;
         }

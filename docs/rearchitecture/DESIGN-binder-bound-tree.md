@@ -951,8 +951,16 @@ public sealed record PositionGroup(Position Inner) : Position;     // a WRITTEN 
 public sealed record PositionPointerOffset(string PointerField) : Position;   // CobolPtr.OffsetOf(pointer), a BASED displacement
 public sealed record PositionPointerDynBase(string PointerField) : Position;   // CobolPtr.DynBaseOf(pointer), its ordinal twin
 public sealed record PositionOffset(Position Origin, IReadOnlyList<OffsetTerm> Terms) : Position;
-public readonly record struct OffsetTerm(Position Index, long Stride);   // + (Index - 1) * Stride
+public readonly record struct OffsetTerm(Position Index, long Stride, OccurrenceBound? Bound = null);   // + (Index - 1) * Stride
+public sealed record OccurrenceBound(int Highest, OdoReferenceCheck? Odo);   // the range the subscript is tested against
 ```
+
+A Tier-B window locates its element by this arithmetic, not through `CobolTable.At`, so the checks a table step carries ride
+the term as its `Bound` (kb/Work PB5762, PB5605): §2023:8.4.2.3.4 GR2's subscript range (EC-BOUND-SUBSCRIPT) against the
+level's highest permissible occurrence number, and §2023:13.18.38.4 GR7's data-name-1 bound test (EC-BOUND-ODO) at an
+occurs-depending level when the group can enable it. `PositionRenderer` renders a bounded term's index through
+`CobolTable.Subscript`, the window's twin of `CobolTable.At`; `PlaceBuilder.WindowScopeOf` and `FixedLevelTerm` are the
+only producers that set it.
 
 `PositionOffset` is the ONE structured form of every address the place model computes from subscripts: an origin plus
 Σ (index − 1) × stride, outermost level first. A Tier-B view's byte offset (`ClassOffset + Σ (index − 1) × level

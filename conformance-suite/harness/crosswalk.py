@@ -133,14 +133,29 @@ def parse_program(name: str, text: str) -> Program:
     #: the unit named in the init paragraph now being read: a CCVS init paragraph moves PAR-NAME, ANSI-REFERENCE and
     #: FEATURE in either order, so a unit's own FEATURE and ANSI-REFERENCE are those set before its test paragraph
     #: header, not only those before its PAR-NAME move
+    #: A slot a move since the last boundary (a paragraph header or the previous unit's PAR-NAME move) already filled is
+    #: that unit's own; for a slot none filled, the FIRST move after the PAR-NAME move and before the next paragraph
+    #: header is; every later move is the NEXT unit's (a second print line, a failure branch's FEATURE) and never
+    #: replaces a bound one (kb/Work PB6110)
     pending: str | None = None
+    moved = {"feature": False, "reference": False}       # a move of the slot since the last boundary
+    awaits = {"feature": False, "reference": False}      # the pending unit's slot still awaits its own move
     for offset, kind, m in events:
         if kind == "paragraph":
             pending = None
-        elif kind == "feature":
-            feature = m.group("text").strip()
-        elif kind == "reference":
-            reference = m.group("text").strip() or None
+            moved = dict.fromkeys(moved, False)
+        elif kind in ("feature", "reference"):
+            text = m.group("text").strip()
+            if kind == "feature":
+                feature = text
+            else:
+                reference = text or None
+            if pending and awaits[kind]:
+                awaits[kind] = False
+                at, f, r = prog.units[pending]
+                prog.units[pending] = (at, feature, r) if kind == "feature" else (at, f, reference)
+            else:
+                moved[kind] = True
         elif kind == "unit":
             unit = m.group("name").strip()
             if unit in prog.units:
@@ -148,8 +163,8 @@ def parse_program(name: str, text: str) -> Program:
             else:
                 prog.units[unit] = ([line_at(offset)], feature, reference)
                 pending = unit
-        if pending and kind in ("feature", "reference"):
-            prog.units[pending] = (prog.units[pending][0], feature, reference)
+                awaits = {k: not v for k, v in moved.items()}
+            moved = dict.fromkeys(moved, False)
         elif kind == "other" and m.group("src").upper() not in _RESETS:
             prog.unenumerated.append((line_at(offset), re.sub(r"\s+", " ", m.group(0))))
     statement: list[str] = []
