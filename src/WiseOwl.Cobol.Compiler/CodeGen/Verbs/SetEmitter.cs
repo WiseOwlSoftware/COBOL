@@ -6,6 +6,7 @@ using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.CodeGen.Emit;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.CodeGen;
@@ -64,9 +65,13 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
             }
     }
 
-    /// <summary>Whether this edition's SET of an index-name tests the table range: COBOL-2002 and earlier, before
-    /// <see cref="DialectBehavior.SetIndexOutsideTableStored"/> (kb/Work PB5674).</summary>
-    private bool SetIndexTableRange => !DialectBehaviors.IsActive(DialectBehavior.SetIndexOutsideTableStored, ctx.Data.DialectLevel);
+    /// <summary>Whether this edition's SET of an index-name tests the table range: where checking for EC-BOUND-SUBSCRIPT can be
+    /// enabled at all (the TURN directive, so from COBOL-2002, <see cref="EditionInfo.HasCompilerDirectives"/>) and before
+    /// <see cref="DialectBehavior.SetIndexOutsideTableStored"/> (kb/Work PB5674). COBOL-85 has no exception checking, so its
+    /// emitted code is untouched.</summary>
+    private bool SetIndexTableRange =>
+        EditionInfo.Of(ctx.Data.DialectLevel).HasCompilerDirectives
+        && !DialectBehaviors.IsActive(DialectBehavior.SetIndexOutsideTableStored, ctx.Data.DialectLevel);
 
     /// <summary>The receiver <paramref name="t"/> as its store identifies it (<see cref="DebugTriggerEmitter.IdentifiedAtStore"/>); an index-name is no data item.</summary>
     private BoundSetTarget IdentifiedAtStore(BoundSetTarget t) =>
