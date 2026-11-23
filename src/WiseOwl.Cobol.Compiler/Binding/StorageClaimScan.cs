@@ -188,7 +188,7 @@ internal sealed class StorageClaimScan
             bool asPhrase = call.callAsPhrase() is not null;
             AskedWord? prototypeWord = !asPhrase && call.callTarget()?.sendingOperand()?.dataReference() is { } target
                 && CallBinder.BarePrototypeWord(target) is { } word
-                    ? new AskedWord(word.GetText(), Function: false, NamesContainingProgram: NamesContainedProgramAbove(call, word.GetText()))
+                    ? new AskedWord(word.GetText(), Function: false, NamesContainingProgram: SymbolTable.NamesContainedProgramHolding(call, word.GetText()))
                     : null;
             var carried = CobolPassMode.Reference;   // GR5: "the BY REFERENCE phrase is assumed" before the first phrase
             foreach (var arg in phrase.callArgument())
@@ -217,19 +217,6 @@ internal sealed class StorageClaimScan
                     : prototypeWord is null || format1 == format2 ? new Entry(format1)
                     : new Entry(format2, format1, prototypeWord));
             }
-        }
-
-        /// <summary>Whether <paramref name="word"/> is the program-name of a contained program whose subtree holds
-        /// <paramref name="node"/>: the CALL's own program and every contained program between it and the outermost one, each a
-        /// containing program definition of the CALL's source element (§2023:8.4.6.8; <see cref="AskedWord.NamesContainingProgram"/>).</summary>
-        private static bool NamesContainedProgramAbove(IParseTree node, string word)
-        {
-            for (var up = node.Parent; up is not null; up = up.Parent)
-                if (up is Core.NestedProgramContext nested
-                    && nested.identificationDivision()?.identificationBody()?.programIdParagraph()?.programName()?.GetText() is { } name
-                    && CobolNames.Comparer.Equals(name, word))
-                    return true;
-            return false;
         }
 
         /// <summary>The claim a CALL operand passed in <paramref name="mode"/> makes: BY REFERENCE claims its cell, BY CONTENT only when
