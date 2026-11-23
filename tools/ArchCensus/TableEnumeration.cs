@@ -22,7 +22,7 @@ namespace WiseOwl.Cobol.Tools.ArchCensus;
 /// </list>
 /// An instance collection (<c>PagedFile.FreePages</c>), a counter field read back (<c>FrameIndex.WindowCount</c>), a
 /// count computed by a loop (<c>CollationKey.LevelCount</c>) and a method with arguments are not a table's enumeration:
-/// they stay <c>test-only</c> for §8.7's items (b) and (c) to judge. <see cref="RuleFixtures"/> pins each arm.
+/// they stay <c>test-only</c> for DESIGN-architecture-review section 8.7's items (b) and (c) to judge. <see cref="RuleFixtures"/> pins each arm.
 /// </summary>
 internal static class TableEnumeration
 {
