@@ -1,0 +1,7 @@
+## A report VARYING counter in a PRESENT WHEN condition (PB5624)
+
+A PRESENT WHEN condition naming a VARYING counter of its own entry or of an enclosing entry was bound with no counter scope and refused COBOL1639 ("not defined"), at 2002, 2014 and 2023. Re-probe on the base build reproduced it (the note's `rv-pw.cob`).
+
+The fix has two halves. The binder (`ReportWriterBinder.BindPresentWhen`) binds each condition with the counters of the entry it is written on and of the entries enclosing that one (§2023:13.18.64.3 SR2), so an ancestor's condition naming a subordinate entry's counter stays refused. The model records the counters a chain names (`PresentCounters` on the line, item, SUM counter and unprintable item), and the group's presence probe (`ReportWriterEmitter.PresencePlan`/`EmitPresenceProbe`) declares them at the occurrence each slot stands for before reading the condition, so presence is evaluated per repetition (§2023:13.18.38.4 GR11). An item whose own multiple COLUMN entry declares the counter takes one slot per placement.
+
+Goldens: `pb5624-present-when-varying-counter` (the filed program, a LINE entry's own PRESENT WHEN, a SUM counter's, STEP 2 placements; output derived from the rules), its 85 refusal, and `pb5624-present-when-ancestor-names-subordinate-counter` (COBOL1639 at 2002/2014/2023). Row `2002-GR-13.16.62.3-4` closed (GAP 1147 to 1146). Sibling sweep: GROUP INDICATE, CODE and SUM UPON name no counter.
