@@ -1149,7 +1149,9 @@ static WiseOwl.Cobol.Runtime.CobolFloat.ToScaledApproximation(double v, int scal
 static WiseOwl.Cobol.Runtime.CobolFloat.ToScaledApproximationIntermediate(double v, int scale, WiseOwl.Cobol.Runtime.CobolRounding mode) -> System.Int128
 static WiseOwl.Cobol.Runtime.CobolFloat.ToScaledApproximationUnchecked(double v, int scale, WiseOwl.Cobol.Runtime.CobolRounding mode) -> System.Int128
 static WiseOwl.Cobol.Runtime.CobolFloat.ToScaledIntermediate(double v, int scale, WiseOwl.Cobol.Runtime.CobolRounding mode) -> System.Int128
+static WiseOwl.Cobol.Runtime.CobolIndex.AugmentWithinTable(long index, System.Int128 amount, bool down, long highest, string! detail) -> long
 static WiseOwl.Cobol.Runtime.CobolIndex.TryAmountDec(WiseOwl.Cobol.Runtime.CobolDec v, WiseOwl.Cobol.Runtime.SetAmountRule rule, string! detail, out long value) -> bool
+static WiseOwl.Cobol.Runtime.CobolIndex.WithinTable(long occurrence, long highest, string! detail) -> bool
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.AbsExact(WiseOwl.Cobol.Runtime.CobolExact v) -> WiseOwl.Cobol.Runtime.CobolExact
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.AbsWide(WiseOwl.Cobol.Runtime.CobolWide v) -> WiseOwl.Cobol.Runtime.CobolWide
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.AcosWide(WiseOwl.Cobol.Runtime.CobolWide? x, int scale) -> double
@@ -1535,5 +1537,3 @@ static readonly WiseOwl.Cobol.Runtime.MoveCitations.Iso2023 -> WiseOwl.Cobol.Run
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryIndexOutcome.ToString() -> string
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.Equals(object obj) -> bool
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.ToString() -> string
-static WiseOwl.Cobol.Runtime.CobolIndex.AugmentWithinTable(long index, System.Int128 amount, bool down, long highest, string! detail) -> long
-static WiseOwl.Cobol.Runtime.CobolIndex.WithinTable(long occurrence, long highest, string! detail) -> bool
