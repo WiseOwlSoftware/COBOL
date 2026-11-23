@@ -1,4 +1,4 @@
-## CALL at 2002: the restricted-pointer signature rule and the ANY LENGTH screen take their 2014 edges; a method's CALL literal reaches the group's outermost program
+## Entry 4011 — 2026-11-23 15:16 PST — CALL at 2002: the restricted-pointer signature rule and the ANY LENGTH screen take their 2014 edges; a method's CALL literal reaches the group's outermost program
 
 Wave 20262158 group B, one root in the CALL binder: kb/Work PB5714, PB5611 and PB5963.
 
@@ -34,3 +34,4 @@ rules of the three ISO editions differ only at CALL.
 
 **Self-review.** No inline edition comparison: both edges are register members with VCR rows and doc facts. Each message chooses its
 citation through `EditionInfo.Cite`/`CiteRule`. The program-name scope still has one producer.
+
