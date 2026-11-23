@@ -115,7 +115,7 @@
    "longest": 3,
    "disposition": "not-rules",
    "why": "NOT-RULES 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Lead-ins: 'There are two such interfaces', 'The COBOL source program uses three statements to control the interface with the message control system', 'uses two statements to control the interface between the message control system and the communication devices'. The three lists name the interfaces and the statements (RECEIVE, SEND, ACCEPT MESSAGE COUNT, ENABLE, DISABLE), each specified by its own rules in Section XIV: an index.",
-   "digest": "4becb116f962",
+   "digest": "dbc168d63b0f",
    "refuted": "docs/rearchitecture/spec-dispositions-1985/85b-01-refute.jsonl"
   },
   "§1985:II.7.3.1.1": {

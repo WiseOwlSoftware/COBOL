@@ -1,6 +1,6 @@
 {
  "rule-id": "1985-FMT-VI.6.5.2",
- "rule-digest": "d12f2304bb00",
+ "rule-digest": "7381458be146",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#acceptStatement; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#acceptSource; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#BindAccept; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#BindAcceptFromMnemonic; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#MnemonicDevice; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#ScreenFormatOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#DeviceFormatPhrase; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitAcceptStatement",
  "test-ref": "conformance:cases/VI.6.5@1985-ACCEPT-STATEMENT/1985-FMT-VI_6_5_2",

@@ -218,6 +218,8 @@ braces is not underlined (6 pages named, 2 more found by the sweep, pages 396 an
 misplaced (prose, tables and the one-row general formats), indentation of summary-table rows (pages 32, 34, 54, 738, 741)
 and the three clipped `Z` flags of page 738, which the first pass had kept as unreadable.
 
+**The third pass over the 1985 transcription** (kb/Work PB6051, decision PB6091) compared all 976 pages again: 25 claims, 7 confirmed and applied (a drawn figure, a brace, a title, three level-2 box markings, a table with row spans), 18 refuted; the ledger holds them with `pass: 3`. Its title claims fixed one form for every general-format page title, `## <u>GENERAL FORMAT FOR ...</u>`, which `heading_levels.check_format_titles` holds (kb/Work PB6095). A fourth pass is owed: PB6051 closes only on a pass that confirms nothing.
+
 **The reserved-word list (Section IV, paragraph 8; PDF pages 191 and 192) is swept and held to its order** (kb/Work
 PB5060). Read against the rendered pages, the printed list has no misprint and no entry out of order, and its 350
 words are the set the compiler reserves at COBOL-85 (`tests/version-matrix/reserved-words.json`, taken from GnuCOBOL's

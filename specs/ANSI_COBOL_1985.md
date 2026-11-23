@@ -4980,20 +4980,20 @@ COBOL Program                 Message Control System                 Communicati
 │          │   │  │            ┌──────────┬──────────┐          │  │        ┌─┐
 │ RECEIVE &lt;────│  │────────────│          │          │&lt;─────────│  │────────│ │
 │          │   │  │            │          │          │          │  │        └─┘
-│ RECEIVE &lt;────│  │────────────│          │          │&lt;─────────│  │        ┌─┐
-│          │   │C │            └──────────┴──────────┘          │E │────────│ │
-│ SEND     │───│o │                 ^                           │N │        └─┘
-│          │   │m │                 │                           │A │        ┌─┐
-│          │   │m │                 └───────────────────────────│B │───────&gt;│ │
-│          │   │u │               Output  Queues                │L │        └─┘
-│          │   │n │            ┌──────────┬──────────┐          │E │
-│ SEND     │───│i │───────────&gt;│          │          │──────────│/ │        ┌─┐
-│          │   │c │───────────&gt;│          │          │          │D │───────&gt;│ │
-│          │   │a │            └──────────┴──────────┘          │I │        └─┘
-│          │   │t │                                             │S │
-│          │   │i │                                             │A │
-│          │   │o │                                             │B │
-│          │   │n │                                             │L │
+│ RECEIVE &lt;────│  │────────────│          │          │&lt;─┐       │  │        ┌─┐
+│          │   │C │            └──────────┴──────────┘  └───────│E │────────│ │
+│ SEND     │───│o │──┐           ^    ^                     ┌───│N │────────│ │
+│          │   │m │  │           │    └─────────────────────┘   │A │        └─┘
+│          │   │m │  │           │                              │B │        ┌─┐
+│          │   │u │  │           └──────────────────────────────│L │────────│ │
+│          │   │n │  │              ┌───────────────────────────│E │───────&gt;│ │
+│          │   │i │  │              │  Output  Queues           │/ │        └─┘
+│          │   │c │  │         ┌────┴─────┬──────────┐          │D │        ┌─┐
+│          │   │a │  │         │          │          │──────────│I │───────&gt;│ │
+│          │   │t │  └────────&gt;│          │          │          │S │        └─┘
+│          │   │i │            └──────────┴──────────┘          │A │
+│          │   │o │                            ^                │B │
+│ SEND     │───│n │────────────────────────────┘                │L │
 │          │   │  │                                             │E │
 │          │   │D │                                             │  │
 │          │   │e │                                             │  │
@@ -8178,7 +8178,7 @@ V-4
                                        Environment Division - File Control Entry
 </pre>
 
-<u>GENERAL FORMAT FOR FILE CONTROL ENTRY</u>
+## <u>GENERAL FORMAT FOR FILE CONTROL ENTRY</u>
 
 <u>SEQUENTIAL FILE</u>:
 
@@ -8317,9 +8317,9 @@ V-7
 
 <pre style="line-height:1">
 Data Division
-
-                         <u>GENERAL FORMAT FOR DATA DIVISION</u>
 </pre>
+
+## <u>GENERAL FORMAT FOR DATA DIVISION</u>
 
 <pre style="line-height:1">
 [ <u>DATA</u> <u>DIVISION</u>.
@@ -8407,9 +8407,7 @@ V-9
 Data Division - File Description Entry
 </pre>
 
-<pre style="line-height:1">
-                         <u>GENERAL FORMAT FOR FILE DESCRIPTION ENTRY</u>
-</pre>
+## <u>GENERAL FORMAT FOR FILE DESCRIPTION ENTRY</u>
 
 <u>RELATIVE FILE</u>:
 
@@ -8666,7 +8664,7 @@ V-15
 
 Data Division - Communication Description Entry
 
-<u>GENERAL FORMAT FOR COMMUNICATION DESCRIPTION ENTRY</u>
+## <u>GENERAL FORMAT FOR COMMUNICATION DESCRIPTION ENTRY</u>
 
 <u>FORMAT 2</u>:
 
@@ -8972,11 +8970,11 @@ Verb Formats (CALL - DISABLE)
 
 <pre style="line-height:1">
          ╭             ┌╭<u>REEL</u> ╮  [FOR <u>REMOVAL</u>] ┐ ╮
-         ┤             │┤     ├                │ ├
+         │             │┤     ├                │ │
          │             │╰<u>UNIT</u> ╯                │ │
-SW        <u>CLOSE</u> ┤ file-name-1   │                      │ ├ …
+SW <u>CLOSE</u> ┤ file-name-1 │                       │ ├ …
          │             │      ╭ <u>NO</u> <u>REWIND</u>╮     │ │
-         ┤             │      ┤          ├     │ ├
+         │             │      ┤          ├     │ │
          ╰             └WITH  ╰ <u>LOCK</u>     ╯     ┘ ╯
 </pre>
 
@@ -9682,7 +9680,7 @@ V-31
 Verb Formats (UNSTRING - USE)
 </pre>
 
-**<u>GENERAL FORMAT FOR COBOL VERBS</u>**
+## <u>GENERAL FORMAT FOR COBOL VERBS</u>
 
 <pre style="line-height:1">
 <u>UNSTRING</u> identifier-1
@@ -9738,7 +9736,7 @@ V-32
                                                             Verb Formats (WRITE)
 </pre>
 
-<u>**GENERAL FORMAT FOR COBOL VERBS**</u>
+## <u>GENERAL FORMAT FOR COBOL VERBS</u>
 
 <pre style="line-height:1">
 S        <u>WRITE</u> record-name-1 [ <u>FROM</u> identifier-1 ]
@@ -9805,7 +9803,7 @@ V-34
 
 Condition Formats
 
-**<u>GENERAL FORMAT FOR CONDITIONS</u>**
+## <u>GENERAL FORMAT FOR CONDITIONS</u>
 
 <u>RELATION CONDITION</u>:
 
@@ -9888,7 +9886,7 @@ V-36
 
 Qualification
 
-<u>GENERAL FORMAT FOR QUALIFICATION</u>
+## <u>GENERAL FORMAT FOR QUALIFICATION</u>
 
 <u>FORMAT 1</u>:
 
@@ -10107,7 +10105,7 @@ V-38
 
 Nested Source Programs
 
-**<u>GENERAL FORMAT FOR NESTED SOURCE PROGRAMS</u>**
+## <u>GENERAL FORMAT FOR NESTED SOURCE PROGRAMS</u>
 
 <pre style="line-height:1">
  <u>IDENTIFICATION</u> <u>DIVISION</u>.
@@ -10125,7 +10123,7 @@ Nested Source Programs
  <u>END</u> <u>PROGRAM</u> program-name-1.]
 </pre>
 
-**<u>GENERAL FORMAT FOR NESTED-SOURCE-PROGRAM</u>**
+## <u>GENERAL FORMAT FOR NESTED-SOURCE-PROGRAM</u>
 
 <pre style="line-height:1">
  <u>IDENTIFICATION</u> <u>DIVISION</u>.
@@ -10151,7 +10149,7 @@ V-39
 
 Sequence of Source Programs
 
-**<u>GENERAL FORMAT FOR A SEQUENCE OF SOURCE PROGRAMS</u>**
+## <u>GENERAL FORMAT FOR A SEQUENCE OF SOURCE PROGRAMS</u>
 
 <pre style="line-height:1">
 {<u>IDENTIFICATION</u> <u>DIVISION</u>.
@@ -11074,7 +11072,7 @@ The OCCURS clause eliminates the need for separate entries for repeated data ite
 [ <u>INDEXED</u> BY { index-name-1 } … ]
 </pre>
 
-<u>Format 2:</u>
+║<u>Format 2:</u>║
 
 <pre style="line-height:1">
 ╔ <u>OCCURS</u> integer-1 <u>TO</u> integer-2 TIMES <u>DEPENDING</u> ON data-name-1 ╗
@@ -11791,7 +11789,7 @@ The VALUE clause defines the initial value of Communication Section and Working-
 <u>VALUE</u> IS literal-1
 </pre>
 
-<u>Format 2</u>:
+║<u>Format 2</u>:║
 
 <pre style="line-height:1">
 ╔╭ <u>VALUE</u> IS   ╮ ╭             ┌ ╭ <u>THROUGH</u> ╮           ┐ ╮      ╗
@@ -12114,7 +12112,7 @@ The general format of the class condition is:
                          ╭ <u>NUMERIC</u>          ╮
                          ┤                  ├
                          │ <u>ALPHABETIC</u>       │
-identifier-1 IS [<u>NOT</u>]   ┤ <u>ALPHABETIC-LOWER</u> ├
+identifier-1 IS [<u>NOT</u>]    ┤ <u>ALPHABETIC-LOWER</u> ├
                          │ <u>ALPHABETIC-UPPER</u> │
                          ┤                  ├
                          ╰ class-name-1     ╯
@@ -12615,7 +12613,7 @@ The ACCEPT statement causes low volume data to be made available to the specifie
 <u>ACCEPT</u> identifier-1 ║ [ <u>FROM</u> mnemonic-name-1 ] ║
 </pre>
 
-<u>Format 2</u>:
+║<u>Format 2</u>:║
 
 <pre style="line-height:1">
 ╔                          ╭ <u>DATE</u>        ╮ ╗
@@ -12706,7 +12704,7 @@ The ADD statement causes two or more numeric operands to be summed and the resul
 [ <u>END-ADD</u> ]
 </pre>
 
-<u>Format 3</u>:
+║<u>Format 3</u>:║
 
 <pre style="line-height:1">
 ╔     ╭ <u>CORRESPONDING</u> ╮                                          ╗
@@ -13854,7 +13852,7 @@ The MOVE statement transfers data, in accordance with the rules of editing, to o
      ╰ literal-1    ╯
 </pre>
 
-<u>Format 2</u>:
+║<u>Format 2</u>:║
 
 <pre style="line-height:1">
 ╔      ╭ <u>CORRESPONDING</u> ╮                              ╗
@@ -14389,7 +14387,7 @@ flowchart TD
     H --> B
 ```
 
-Figure 4: The VARYING option of a PERFORM statement with the TEST AFTER phrase having two conditions
+║Figure 4: The VARYING option of a PERFORM statement with the TEST AFTER phrase having two conditions║
 
 VI-119
 
@@ -14492,7 +14490,7 @@ Nucleus - SEARCH
 ╚    [<u>END-SEARCH</u>]                                    ╝
 </pre>
 
-<u>Format 2</u>:
+║<u>Format 2</u>:║
 
 <pre style="line-height:1">
 ╔<u>SEARCH</u> <u>ALL</u> identifier-1  [AT <u>END</u> imperative-statement-1]                ╗
@@ -14616,11 +14614,11 @@ flowchart TD
     I3 --> X
 ```
 
-Figure 1: Format 1 SEARCH statement having two WHEN phrases
+║Figure 1: Format 1 SEARCH statement having two WHEN phrases║
 
-\* These operations are options included only when specified in the SEARCH statement.
+║\* These operations are options included only when specified in the SEARCH statement.║
 
-\*\* Each of these control transfers is to the end of the SEARCH statement unless the imperative-statement ends with a GO TO statement.
+║\*\* Each of these control transfers is to the end of the SEARCH statement unless the imperative-statement ends with a GO TO statement.║
 
 VI-126
 
@@ -14666,7 +14664,7 @@ Nucleus - SET
     ╰                          ╰ <u>OFF</u> ╯ ╯
 </pre>
 
-<u>Format 4</u>:
+║<u>Format 4</u>:║
 
 <pre style="line-height:1">
 ║ <u>SET</u> { condition-name-1 } … <u>TO</u> <u>TRUE</u> ║
@@ -16162,7 +16160,7 @@ The RECORD clause specifies the number of character positions in a fixed length 
 <u>RECORD</u> CONTAINS integer-1 CHARACTERS
 </pre>
 
-<u>Format 2</u>:
+║<u>Format 2</u>:║
 
 <pre style="line-height:1">
 ╔ <u>RECORD</u> IS <u>VARYING</u> IN SIZE [ [ FROM integer-2 ] [ <u>TO</u> integer-3 ] CHARACTERS ] ╗
@@ -25527,7 +25525,7 @@ The SEND statement causes a message, ║a message segment, or a portion of a mes
 
 #### 3.6.2 General Format
 
-<u>Format 1</u>:
+║<u>Format 1</u>:║
 
 <pre style="line-height:1">
 ║ <u>SEND</u> cd-name-1 <u>FROM</u> identifier-1 ║
@@ -30628,18 +30626,68 @@ A-2
 
 A-3
 
-| | | REQUIRED MODULES<br>(Required in Subsets) | | | | | | |
-|---|---|---|---|---|---|---|---|---|
-| | | **Nucleus** | **Sequential I-O** | **Relative I-O** | **Indexed I-O** | **Inter-Program Communication** | **Sort-Merge** | **Source Text Manipulation** |
-| **COBOL SUBSETS** | **HIGH** | 2 NUC 1,2 | 2 SEQ 1,2 | 2 REL 0,2 | 2 INX 0,2 | 2 IPC 1,2 | 1 SRT 0,1 | 2 STM 0,2 |
-| | **INTERMEDIATE** | 1 NUC 1,2 | 1 SEQ 1,2 | 1 REL 0,2 | 1 INX 0,2 | 1 IPC 1,2 | 1 SRT 0,1 | 1 STM 0,2 |
-| | **MINIMUM** | 1 NUC 1,2 | 1 SEQ 1,2 | NULL | NULL | 1 IPC 1,2 | NULL | NULL |
-
-| OPTIONAL MODULES<br>(Not Required in Subsets) | | | | |
-|---|---|---|---|---|
-| **Report Writer** | **Communication** | **Debug** | **Segmentation** | **Intrinsic Function** |
-| 1 RPW 0,1 | 2 COM 0,2 | 2 DEB 0,2 | 2 SEG 0,2 | 1 ITR 0,1 |
-| | 1 COM 0,2 | 1 DEB 0,2 | 1 SEG 0,2 | |
+<table>
+<tr>
+<th rowspan="2" colspan="2"></th>
+<th colspan="7">REQUIRED MODULES<br>(Required in Subsets)</th>
+<th colspan="5">OPTIONAL MODULES<br>(Not Required in Subsets)</th>
+</tr>
+<tr>
+<th>Nucleus</th>
+<th>Sequential<br>I-O</th>
+<th>Relative<br>I-O</th>
+<th>Indexed<br>I-O</th>
+<th>Inter-Program<br>Communication</th>
+<th>Sort-Merge</th>
+<th>Source Text<br>Manipulation</th>
+<th>Report<br>Writer</th>
+<th>Communication</th>
+<th>Debug</th>
+<th>Segmentation</th>
+<th>Intrinsic<br>Function</th>
+</tr>
+<tr>
+<td rowspan="4">COBOL SUBSETS</td>
+<td>HIGH</td>
+<td>2 NUC 1,2</td>
+<td>2 SEQ 1,2</td>
+<td>2 REL 0,2</td>
+<td>2 INX 0,2</td>
+<td>2 IPC 1,2</td>
+<td>1 SRT 0,1</td>
+<td>2 STM 0,2</td>
+<td rowspan="4">1 RPW 0,1</td>
+<td rowspan="2">2 COM 0,2</td>
+<td rowspan="2">2 DEB 0,2</td>
+<td rowspan="2">2 SEG 0,2</td>
+<td rowspan="4">1 ITR 0,1</td>
+</tr>
+<tr>
+<td rowspan="2">INTERMEDIATE</td>
+<td rowspan="2">1 NUC 1,2</td>
+<td rowspan="2">1 SEQ 1,2</td>
+<td rowspan="2">1 REL 0,2</td>
+<td rowspan="2">1 INX 0,2</td>
+<td rowspan="2">1 IPC 1,2</td>
+<td rowspan="2">1 SRT 0,1</td>
+<td rowspan="2">1 STM 0,2</td>
+</tr>
+<tr>
+<td rowspan="2">1 COM 0,2</td>
+<td rowspan="2">1 DEB 0,2</td>
+<td rowspan="2">1 SEG 0,2</td>
+</tr>
+<tr>
+<td>MINIMUM</td>
+<td>1 NUC 1,2</td>
+<td>1 SEQ 1,2</td>
+<td>NULL</td>
+<td>NULL</td>
+<td>1 IPC 1,2</td>
+<td>NULL</td>
+<td>NULL</td>
+</tr>
+</table>
 
 ## Page 834
 
