@@ -78,10 +78,6 @@ public sealed class RuntimeConfigTests
         Assert.Same(byName["COBOL_USER_LOCALE"], RuntimeConfig.Find("COBOL_USER_LOCALE"));   // exact before family
         Assert.Null(RuntimeConfig.Find("PATH"));
         Assert.Equal(RuntimeConfig.All.Count, RuntimeConfig.All.Select(e => e.Name).Distinct(StringComparer.Ordinal).Count());
-        // LocaleConfig's aliases are the SAME constants (one rule, one place), never second literals.
-        Assert.Equal(TailoringRules.EnvDirectory, WiseOwl.Cobol.Runtime.Collation.Locale.LocaleConfig.TailoringDirectoryVariable);
-        Assert.Equal(CldrLocaleLoader.EnvDirectory, WiseOwl.Cobol.Runtime.Collation.Locale.LocaleConfig.CldrDirectoryVariable);
-        Assert.Equal(LocaleState.UserDefaultVariable, WiseOwl.Cobol.Runtime.Collation.Locale.LocaleConfig.DefaultLocaleVariable);
     }
 
     [Fact]

@@ -787,7 +787,7 @@ grapheme table and the run unit's default locale) lives in `Control/` in `WiseOw
 one product caller, and its `RuntimeConfig` row (kb/Work PB2760). `WiseOwl.Cobol.Runtime.Collation` therefore names no
 type of the root namespace, of `.Unicode`, `.Unicode.Segmentation` or `.Collation.Locale`, and sits below values in the
 runtime's layer table. One edge remains to place: `.Collation.Locale` reads the run unit's locale state
-(`LocaleManager` → `RunUnit.Current.Locale`, `LocaleConfig` → `LocaleState`), and the control layer's warm-up resolves
+(`LocaleManager` → `RunUnit.Current.Locale`), and the control layer's warm-up resolves
 the default locale through `LocaleManager`, so `Runtime ↔ Runtime.Collation.Locale` is one layer, control, by
 placement, as `Runtime ↔ Runtime.IO` is until the Move waves give `Control/` its namespace and the locale selector its
 place in it.
