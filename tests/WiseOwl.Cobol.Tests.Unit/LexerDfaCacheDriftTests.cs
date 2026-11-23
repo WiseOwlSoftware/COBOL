@@ -107,8 +107,9 @@ public sealed class LexerDfaCacheDriftTests(ITestOutputHelper output)
     {
         var input = new ProbedCharStream(text, dfa, tally);
         var lexer = new IsolatedLexer(input, dfa);
-        var listener = errors is null ? null : LexerErrorListener.AttachTo(lexer);
-        if (listener is null) lexer.RemoveErrorListeners();
+        var listener = errors is null ? null : new LexerErrorListener();
+        lexer.RemoveErrorListeners();
+        if (listener is not null) lexer.AddErrorListener(listener);
         input.Lexer = lexer;
         while (lexer.NextToken().Type != TokenConstants.EOF) { }
         listener?.ReportInto(errors!, path, SourceLineMap.Identity(path, lexer.Line));

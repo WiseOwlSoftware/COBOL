@@ -742,17 +742,17 @@ public sealed record CobolVarGroup(string Fixed, string[] Dynamic, CobolVarGroup
     /// twice (that pair is U+2020), so a national member is padded and trimmed in WHOLE POSITIONS exactly as an
     /// alphanumeric one is in characters.</summary>
     internal static string SpacesFor(long chars, int unit) =>
-        unit == CobolBits.BytesPerNational
-            ? CobolBits.NatBytes(new string(' ', (int)Math.Min(int.MaxValue / unit, chars / unit)))
+        unit == NationalImage.BytesPerNational
+            ? NationalImage.Bytes(new string(' ', (int)Math.Min(int.MaxValue / unit, chars / unit)))
             : new string(' ', (int)Math.Min(int.MaxValue, chars));
 
     /// <summary>The inverse of <see cref="SpacesFor"/>: <paramref name="data"/> without the trailing spaces of its own
     /// unit, whole positions at a time (a national position is a space only as the whole pair).</summary>
     internal static string TrimTrailingSpaces(string data, int unit)
     {
-        if (unit != CobolBits.BytesPerNational) return data.TrimEnd(' ');
+        if (unit != NationalImage.BytesPerNational) return data.TrimEnd(' ');
         if (data.Length % unit != 0) return data;   // not whole positions: no position of it is padding
-        string space = CobolBits.NatBytes(" ");
+        string space = NationalImage.Bytes(" ");
         int end = data.Length;
         while (end >= unit && string.CompareOrdinal(data, end - unit, space, 0, unit) == 0) end -= unit;
         return data[..end];

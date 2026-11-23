@@ -65,9 +65,9 @@ public sealed class ObsoleteElementsDriftTests
         // §1985:I.1.5.2.3: "required to support obsolete language elements": obsolete is IN FORCE, removed is not.
         foreach (var row in ObsoleteIn1985())
         {
-            Assert.Equal(ConstructAvailability.Obsolete, row.StatusAt(FirstEdition));
-            Assert.True(row.IsInForceAt(FirstEdition), $"{row.Id} must remain supported at COBOL-{FirstEdition}");
-            Assert.True(row.RemovedIn is { } removed && !row.IsInForceAt(removed), $"{row.Id} must be gone from its removal edition");
+            Assert.Equal(ConstructAvailability.Obsolete, row.Window.StatusAt(FirstEdition));
+            Assert.True(row.Window.IsInForceAt(FirstEdition), $"{row.Id} must remain supported at COBOL-{FirstEdition}");
+            Assert.True(row.RemovedIn is { } removed && !row.Window.IsInForceAt(removed), $"{row.Id} must be gone from its removal edition");
         }
     }
 }

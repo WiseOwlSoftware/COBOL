@@ -5,6 +5,7 @@ using Antlr4.Runtime.Atn;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Cst;
 using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Parsing;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
@@ -111,9 +112,9 @@ public sealed class DeclaredFreeWordKeywordTests
         foreach (int rule in lists)
             foreach (int type in atn.NextTokens(atn.ruleToStartState[rule]).ToList())
             {
-                if (!CobolLexer.IsReservationGated(type) || CobolLexer.DefaultVocabulary.GetSymbolicName(type) is not { } name) continue;
+                if (!CobolLexerWordSet.IsReservationGated(type) || CobolLexer.DefaultVocabulary.GetSymbolicName(type) is not { } name) continue;
                 string word = CobolWordsDriftTests.ToWord(name);
-                if (!CobolLexer.IsKeywordWhereFree(word) && Editions.Any(e => IsFree(word, e))) words.Add(word);
+                if (!CobolLexerWordSet.IsKeywordWhereFree(word) && Editions.Any(e => IsFree(word, e))) words.Add(word);
             }
         return words;
     }

@@ -379,7 +379,7 @@ public sealed class RecordFormat
         return step.Kind switch
         {
             RecordStepKind.Zoned or RecordStepKind.Numeric => NumberWidth(step.Profile),
-            RecordStepKind.NationalNumeric => NumberWidth(step.Profile) * CobolBits.BytesPerNational,
+            RecordStepKind.NationalNumeric => NumberWidth(step.Profile) * NationalImage.BytesPerNational,
             RecordStepKind.Float => FloatWidth(step.Profile),
             RecordStepKind.BitRun => BitCount(step),
             _ => step.Length,
@@ -486,8 +486,8 @@ public sealed class RecordFormat
     }
 
     /// <summary>The narrow characters of a national window's UTF-16BE byte pairs (a digit or a sign).</summary>
-    private static string NationalDigits(string window) => CobolBits.NatReadWindow(window, 0, window.Length / CobolBits.BytesPerNational);
+    private static string NationalDigits(string window) => NationalImage.ReadWindow(window, 0, window.Length / NationalImage.BytesPerNational);
 
     /// <summary>The UTF-16BE byte pairs of a run of national positions.</summary>
-    private static string NationalText(string text) => CobolBits.NatBytes(text);
+    private static string NationalText(string text) => NationalImage.Bytes(text);
 }

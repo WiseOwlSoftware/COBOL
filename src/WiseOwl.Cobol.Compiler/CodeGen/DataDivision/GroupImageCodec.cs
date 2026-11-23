@@ -1016,12 +1016,12 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     /// <para>⛔ DERIVED FROM THE IMAGE, never a second walk over the children: §2023:13.18.29.3 SR3 requires that "all
     /// elementary items subordinate to the subject of the entry shall be explicitly or implicitly described as
     /// usage national", so every byte pair of a national group's image IS a national character position and the
-    /// two faces are exactly <c>CobolBits.NatBytes</c> and its inverse. That is why this needs no <c>BitAreaOf</c>
+    /// two faces are exactly <c>NationalImage.Bytes</c> and its inverse. That is why this needs no <c>BitAreaOf</c>
     /// analogue: the bit face exists because §2023:8.5.1.6.3 lets same-level bit items SHARE a byte, and national
     /// positions never share one.</para>
     /// <para>The receiving side fits in POSITIONS before serializing (<c>CobolString.Store</c> then
     /// <c>NatBytes</c>): padding the BYTES with 0x20 would manufacture U+2020 characters instead of the national
-    /// spaces §2023:14.9.25.4's national move requires — the identical trap <c>CobolBits.NatWriteWindow</c> documents.</para></summary>
+    /// spaces §2023:14.9.25.4's national move requires — the identical trap <c>NationalImage.WriteWindow</c> documents.</para></summary>
     private static void EmitNatMethods(DataItem group, CodeWriter w)
     {
         // m — the as-if PICTURE N(m) length, THE ONE reader of it (DataItem.AsIfPic reads the same ImageWidth,
@@ -1278,7 +1278,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         : f.SlotLeaf is { } slot ? SlotImageOf(f, slot)
         // ⛔ A NATIONAL LEAF IMAGES AS ITS BYTES (kb/Work PB327): two per character position, high-order first
         // (ISO §2023:13.18.60.4 GR8 leaves the size to the implementor — D-N1 pins two, UTF-16BE), through the ONE
-        // serializer CobolBits.NatBytes that the Tier-B window, the EXTERNAL/BASED cell seed and CONVERT's
+        // serializer NationalImage.Bytes that the Tier-B window, the EXTERNAL/BASED cell seed and CONVERT's
         // raw-storage channel already ride. Concatenating the occurrences BEFORE serializing is the same string
         // as serializing each and concatenating, so the OCCURS arm needs no separate spelling.
         // ⛔ IT IS A TRANSFORM OVER THE CARRIER'S OWN CHARACTER IMAGE, NOT AN ALTERNATIVE TO IT (design D-N7,
@@ -1365,7 +1365,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
             return;
         }
         // ⛔ THE INVERSE OF AsImageOf's national arm (kb/Work PB327): decode the UTF-16BE byte pairs back to the
-        // leaf's character positions through CobolBits.NatReadWindow — the inverse CobolBits.NatBytes names, never
+        // leaf's character positions through NationalImage.ReadWindow — the inverse NationalImage.Bytes names, never
         // a second decoder. A pair the image is too short to hold decodes as the NATIONAL space, which is exactly
         // §2023:14.9.30.4 GR15's fill for a national record area ("a trailing space is defined to be the national space
         // character") — the connector's byte-level pad and this decode agree on it by construction.

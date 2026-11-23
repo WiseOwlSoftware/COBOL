@@ -5838,7 +5838,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // and D-N1 pins two), and that is now the window's own geometry: the class walk advances by the
         // member's STORAGE extent (BitLayout.RunBits → WidthBits → ElementaryByteWidth, already 2n for
         // national), the class width is the members' maximum ByteWidth, and Place.NationalWindow transcodes the
-        // pair through CobolBits.NatReadWindow/NatWriteWindow — the same UTF-16BE serialization CONVERT's
+        // pair through NationalImage.ReadWindow/NatWriteWindow — the same UTF-16BE serialization CONVERT's
         // raw-storage channel and FUNCTION BYTE-LENGTH already answer with.
         // ⛔ ONE PREDICATE, because the gate and the geometry must not be able to disagree about WHICH leaves
         // are national. The two spellings are the CATEGORY (PIC N / USAGE NATIONAL) and the national-form

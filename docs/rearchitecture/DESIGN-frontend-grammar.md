@@ -386,10 +386,11 @@ context-sensitive word with the facts all three consumers need:
 
 `scripts/gen-cobol-words.ps1` (extends the proven `gen-reserved-words.ps1` pattern) generates THREE outputs
 from it:
-1. `Parsing/CobolLexerWordSet.g.cs` — a committed `partial class CobolLexer` (NOT under `Generated/`, so
-   `dotnet clean` keeps it) carrying the subscript-trigger set; a partial `.cs` is the minimal buildable form
-   because ANTLR has no portable `@members` text-include and the set references token-type `int` constants on
-   the generated lexer.
+1. `Parsing/CobolLexerWordSet.g.cs` — a committed generated DATA class, `CobolLexerWordSet` (NOT under
+   `Generated/`, so `dotnet clean` keeps it), carrying the subscript-trigger set (`DataNameTokens`), the
+   reservation-gated set (`IsReservationGated`) and the keyword-where-free words (`IsKeywordWhereFree`); it names the
+   generated lexer's token-type `int` constants through a `using static`, and the lexer's hand-written superclass
+   (`Parsing/CobolLexerBase.cs`, kb/Work PB2726) and the parser read it.
 2. `Grammar/Core/CobolWords.g4` — a generated parser fragment holding TWO rules, `cobolWord` and
    `reservedGatedWord`, imported by `CobolParserCore.g4`.
 3. It cross-checks against `reserved-words.json` (RW-1: a subscript-trigger-only word must be 2023-reserved,
@@ -763,7 +764,7 @@ predicate-led keyword, the tokenless-keyword alternatives it names with their re
 **A REFERENCE to a gated word is answered by the parse-error path.** The gate leaves no name-slot alternative for
 `DISPLAY CONSTANT.` at `--std 2002`, and a source that fails to parse never reaches the bound-tree funnel. So the
 error strategy's one report path (`CobolErrorStrategy.Report`, through `ReservedWordUse`) asks the parser whether the
-offending token is reservation-gated (the generated `CobolLexer.IsReservationGated` set) and still rejects at this
+offending token is reservation-gated (the generated `CobolLexerWordSet.IsReservationGated` set) and still rejects at this
 edition (`CobolParserCoreBase.ReservedUserWordViolation`), and reports COBOL0901 with the ONE message
 `ReservedWordSet.UserWordViolationMessage` owns, in place of its own diagnosis of the token. The cause is named in
 reference slots too, which the funnel deliberately never screened. It is named ONCE per occurrence of the word: ANTLR
@@ -938,7 +939,7 @@ COBOL's grammar), but the *duplicated* literal/operator token bodies are factore
 fragment `fragment` rule set (`NUM_BODY`, `STR_BODY`, `NAT_BODY`, `BOOL_BODY`, `NAME_BODY`) referenced by
 both the DEFAULT tokens and the `SUB_*` tokens, so `"-15.6"` / `N"AB"` tokenization rules exist once. This
 removes the "keep SUB_* in sync with DEFAULT" hazard without touching the mode-switch strategy.
-**The trigger is narrowed per compile (kb/Work PB1465).** `_dataNameTokens` is edition-blind — every word that
+**The trigger is narrowed per compile (kb/Work PB1465).** `CobolLexerWordSet.DataNameTokens` is edition-blind — every word that
 is a user-defined word in SOME edition — so `TokenRetypes.PrimeLexer(lexer, edition)` hands the lexer the
 trigger tokens whose word the edition RESERVES (§2023:8.9 at the edition's year, `--permissive` off) and the program
 has not DECLARED (`ReservedWordSet.AdmitsAsUserWord` for the strict edition, §2023:8.3.2.1 SR1), minus the parser's
@@ -2242,7 +2243,7 @@ joined the table the same way, which is the table doing its job: a tenth format 
   says whether the edition has one (constant-entry-2002): `OCCURS 0 TO TIMES` expects "an integer literal" at 85 and "a
   user-defined word or an integer literal" from 2002. The binder's refusal of a word there (COBOL1547,
   `ConstantEntryBinder.ConstantIntegerOperand`, the PICTURE repetition count) says the same by edition. An
-  older edition's dropped word and a `keywordWhereFree` word (generated into `CobolLexer.IsKeywordWhereFree` by
+  older edition's dropped word and a `keywordWhereFree` word (generated into `CobolLexerWordSet.IsKeywordWhereFree` by
   `gen-cobol-words.ps1`) are named whatever the table says. A §2023:8.10 word's `Introduced` edition is generated
   (`gen-reserved-words.ps1` step 7c) from the 2002 list (`tests/version-matrix/context-sensitive-words-2002.json`) and
   Annex E.3.3 item 13, and held to that derivation by `ContextSensitiveWordsDriftTests` (CONFORMANCE.md D-EXPECT). The
@@ -3306,7 +3307,7 @@ paths (`subscriptPart` vs `inlineMethodInvocationStatement`'s `argumentList`) in
 The mode is not gratuitous; it solves two problems a naïve DEFAULT-mode rule reintroduces:
 - **The LPAREN ambiguity.** `(` after a data-name is a subscript / ref-mod / function-argument opener; `(`
   elsewhere is arithmetic grouping. The mode disambiguates by the *preceding* token
-  (`PreviousTokenCouldBeDataName` over the generated `_dataNameTokens` set). A grammar-level rule must recover this
+  (`PreviousTokenCouldBeDataName` over the generated `CobolLexerWordSet.DataNameTokens` set). A grammar-level rule must recover this
   another way (the same ambiguity the `{is2023()}? inlineMethodInvocationStatement` predicate already fights).
 - **⚠ Separator loss (the blocker).** DEFAULT mode `-> skip`s `WS`, and outside a function-argument region
   `FNARG_SEPARATOR`'s action skips the comma/semicolon-space separator. But ISO/IEC 1989:2023 §2023:8.3.5

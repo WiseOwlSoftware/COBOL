@@ -84,9 +84,16 @@ public sealed class CobolDynTable<T>
     public ref T RefSending(Occurrence occurrence)
     {
         long occ = occurrence.Value;
-        if (occ >= 1 && occ <= _count) return ref _store[(int)(occ - 1)];
-        ExceptionState.SubscriptError(
-            $"subscript {occurrence} is outside 1..{_count}, the current capacity (ISO 8.5.1.9.2, 8.4.2.3.4 GR2)");
+        if (CobolTable.Permissible(occ, _count)) return ref _store[(int)(occ - 1)];
+        CobolTable.SubscriptOutOfRange(occurrence, _count, range: "the current capacity", clause: "8.5.1.9.2");
+        return ref OutOfRange(occ);
+    }
+
+    /// <summary>The checking-off continuation of this table's out-of-range reference, reached only after
+    /// <see cref="CobolTable.SubscriptOutOfRange"/> returned (or after a growth the table declined): a scratch cell
+    /// freshly seeded as the occurrence's seed composes it, and a store into it is discarded.</summary>
+    private ref T OutOfRange(long occ)
+    {
         _scratch = _seedAt((int)occ);
         return ref _scratch;
     }
@@ -103,11 +110,10 @@ public sealed class CobolDynTable<T>
     public ref T RefReceiving(Occurrence occurrence)
     {
         long occ = occurrence.Value;
-        if (occ < 1)
+        if (!CobolTable.Permissible(occ, long.MaxValue))
         {
-            ExceptionState.SubscriptError($"subscript {occurrence} is not a positive integer (ISO 8.4.2.3.4 GR2)");
-            _scratch = _seedAt((int)occ);
-            return ref _scratch;
+            CobolTable.SubscriptOutOfRange(occurrence, highest: null);
+            return ref OutOfRange(occ);
         }
         if (occ > _count)
         {
@@ -123,7 +129,7 @@ public sealed class CobolDynTable<T>
             // occurrence it was asked for can still not exist. Falling through to `_store[occ-1]` here would be
             // an IndexOutOfRangeException — a raw .NET failure on user source, from the one path where a benign
             // scratch slot is exactly what the model already provides for an unreachable occurrence.
-            if (occ > _count) { _scratch = _seedAt((int)occ); return ref _scratch; }
+            if (occ > _count) return ref OutOfRange(occ);
         }
         return ref _store[(int)(occ - 1)];
     }

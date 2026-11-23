@@ -1,13 +1,14 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Diagnostics;
+using WiseOwl.Cobol.Runtime.Collation;
 using WiseOwl.Cobol.Runtime.Collation.Cache;
 using WiseOwl.Cobol.Runtime.Collation.Cldr;
 using WiseOwl.Cobol.Runtime.Collation.Locale;
 using WiseOwl.Cobol.Runtime.Unicode;
 using WiseOwl.Cobol.Runtime.Unicode.Segmentation;
 
-namespace WiseOwl.Cobol.Runtime.Collation;
+namespace WiseOwl.Cobol.Runtime;
 
 /// <summary>What <see cref="CollationRuntime.Status"/> / <see cref="CollationRuntime.Warmup"/> report.</summary>
 /// <param name="Initialized">Whether <see cref="CollationRuntime.Initialize"/> has run.</param>

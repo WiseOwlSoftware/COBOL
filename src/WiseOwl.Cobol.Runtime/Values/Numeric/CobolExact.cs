@@ -405,13 +405,13 @@ public readonly struct CobolExact
     /// SDIDI's 34 digits ONCE, by round-to-odd, wherever a consumer lowers it (<see cref="Image"/>): <c>1.01 ** 119</c> into
     /// <c>PIC 9V9(30)</c> is …851 as GnuCOBOL and the exact value give, where the chain of round-to-odd products it replaces drifted to
     /// …852. A zero exponent is 1 and a negative one is §2023:8.8.1.5.4 GR3's reciprocal <c>1 / (b ** |e|)</c>, one rounding of the exact
-    /// quotient. The §2023:8.8.1.2 rule-6 screen is <see cref="CobolIntrinsics.CheckPowRule6"/>'s, written once. The precision is the base's
+    /// quotient. The §2023:8.8.1.2 rule-6 screen is <see cref="CobolPower.ScreenRule6(double, double)"/>, written once. The precision is the base's
     /// times a non-negative exponent (the multiple, numeric design D2), and the reciprocal's own fraction digits.</summary>
     public static CobolExact Pow(CobolExact b, Int128 e)
     {
-        CobolIntrinsics.CheckPowRule6(b.Sign, (double)e);
+        CobolPower.ScreenRule6(b.Sign, (double)e);
         if (e == 0) return From(1, 0);
-        if (b._isFloatContent) return FromBinary64(CobolIntrinsics.PowNativeReal(b._binary64, (double)e));
+        if (b._isFloatContent) return FromBinary64(CobolPower.Binary64(b._binary64, (double)e));
         Int128 n = Int128.Abs(e);
         int precision = (int)Int128.Clamp(b._precision * Int128.Clamp(e, 0, int.MaxValue), int.MinValue, int.MaxValue);
         // An exponent past 2^40 is one of its own parity: every base but 0 and ±1 is out of the range at it, and those three
@@ -428,21 +428,21 @@ public readonly struct CobolExact
     /// (<see cref="TryBinary64Operands"/>), so <c>M ** FUNCTION MAX (F M2)</c> is <c>M ** F</c> when MAX selected F, a run-time fact the
     /// compiler cannot see: the result is then a float item's content (<see cref="FromBinary64"/>) and lands by its exact binary value;
     /// otherwise an approximation (<see cref="FromApproximation"/>) and lands by its shortest round-trip decimal. The
-    /// §2023:8.8.1.2 rule-6 screen is <see cref="CobolIntrinsics.PowNativeReal(double, double)"/>'s, written once; <paramref name="taken"/> is the
-    /// range conditions whose checking is enabled (<see cref="CobolIntrinsics.PowNativeRealChecked(double, double, SizeChecks)"/>).
+    /// §2023:8.8.1.2 rule-6 screen is <see cref="CobolPower.Binary64(double, double)"/>'s, written once; <paramref name="taken"/> is the
+    /// range conditions whose checking is enabled (<see cref="CobolPower.Binary64Checked(double, double, SizeChecks)"/>).
     /// <paramref name="negativeBaseRealRoots"/> is the COBOL-85 form of the negative-base rule (kb/Work PB5186,
     /// <c>DialectBehavior.NegativeBaseRequiresIntegerExponent</c>): the exponent's EXACT value decides whether a real result exists
-    /// (<see cref="CobolIntrinsics.PowNativeReal(double, CobolExact)"/>).</summary>
+    /// (<see cref="CobolPower.Binary64(double, CobolExact)"/>).</summary>
     public static CobolExact PowReal(CobolExact b, CobolExact e, SizeChecks taken = SizeChecks.None, bool negativeBaseRealRoots = false)
     {
         bool floatItem = b._isFloatContent || e._isFloatContent;
         double x = b._isFloatContent ? b._binary64 : b.ToDouble(), y = e._isFloatContent ? e._binary64 : e.ToDouble();
         double r = (negativeBaseRealRoots, taken) switch
         {
-            (true, SizeChecks.None) => CobolIntrinsics.PowNativeReal(x, e),
-            (true, _) => CobolIntrinsics.PowNativeRealChecked(x, e, taken),
-            (false, SizeChecks.None) => CobolIntrinsics.PowNativeReal(x, y),
-            (false, _) => CobolIntrinsics.PowNativeRealChecked(x, y, taken),
+            (true, SizeChecks.None) => CobolPower.Binary64(x, e),
+            (true, _) => CobolPower.Binary64Checked(x, e, taken),
+            (false, SizeChecks.None) => CobolPower.Binary64(x, y),
+            (false, _) => CobolPower.Binary64Checked(x, y, taken),
         };
         return OfBinary64Result(r, floatItem);
     }

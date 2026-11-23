@@ -48,8 +48,10 @@ public static class ExceptionNameRule
     /// <summary>The per-name edition window: the 2023-only families (VERSION_CHANGE_REFERENCE rows 40/61) are not
     /// exception-names at <paramref name="dialectLevel"/> 2002/2014. Null when the name exists there, else
     /// <see cref="DiagnosticCatalog.EcNameIntroducedLater"/> (COBOL0878).</summary>
+    /// <remarks>The availability is the name's <see cref="EditionWindow"/>'s (kb/Work PB2620): the catalog carries an
+    /// introduction edition only, so the one verdict it can give is not-yet-introduced, an error at every severity axis.</remarks>
     public static ExceptionNameViolation? Window(EcInfo info, int dialectLevel, string where) =>
-        info.IntroducedIn > dialectLevel
+        new EditionWindow(info.IntroducedIn).StatusAt(dialectLevel) == ConstructAvailability.NotYetIntroduced
             ? new ExceptionNameViolation(DiagnosticCatalog.EcNameIntroducedLater,
                 $"{where}: exception-name {info.Name} was introduced by ISO/IEC 1989:{info.IntroducedIn} — it "
                 + $"requires --std {info.IntroducedIn} or later (targeting COBOL-{dialectLevel})")
