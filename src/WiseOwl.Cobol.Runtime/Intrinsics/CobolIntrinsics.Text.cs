@@ -657,12 +657,6 @@ public static partial class CobolIntrinsics
 
     // ── FUNCTION STANDARD-COMPARE (§2023:15.85) — the cultural-ordering comparison ────────────────────────────────
 
-    /// <summary>The per-(table, level) collators STANDARD-COMPARE has already configured. The engine caches its
-    /// own root-table collators, but a TAILORED ordering table (a locale-tagged literal-9) is a distinct
-    /// <c>CollationTable</c> instance per name, so the (table, level) pair is what this function repeats.</summary>
-    private static readonly System.Collections.Concurrent.ConcurrentDictionary<(CollationTable Table, int Level), Collator>
-        s_orderingCollators = new();
-
     /// <summary>
     /// STANDARD-COMPARE (ISO §2023:15.85.4): compare <paramref name="a"/> and <paramref name="b"/> "in accordance with
     /// the ordering table and ordering level being used" (r5) and return <c>"&lt;"</c>, <c>"="</c> or <c>"&gt;"</c>
@@ -723,11 +717,10 @@ public static partial class CobolIntrinsics
                 + $"'{orderingTable ?? CollationEngine.DefaultOrderingTableName}', which defines levels 1..4 "
                 + "(ISO §2023:15.85.4 r2)");
 
-        var collator = ReferenceEquals(table, CollationTable.Root)
-            ? CollationEngine.StandardAtLevel((int)lvl)        // the engine already caches the root-table lane
-            : s_orderingCollators.GetOrAdd((table, (int)lvl),
-                static k => new Collator(k.Table, (CollationStrength)k.Level, AlternateHandling.Shifted));
-        int c = collator.Compare(LocaleCollation.TrimForLocale(a), LocaleCollation.TrimForLocale(b));
+        // The table and level are resolved and cached once per program (kb/Work PB2763); the operands are trimmed as spans,
+        // so a space-padded PIC X(n) argument costs no substring per call.
+        int c = CollationEngine.OrderingAtLevel(table, (int)lvl)
+            .Compare(LocaleCollation.TrimForLocale(a.AsSpan()), LocaleCollation.TrimForLocale(b.AsSpan()));
         return c < 0 ? "<" : c > 0 ? ">" : "=";                // r6, one character (r7)
 
         static string OrderNotSupported(string detail)

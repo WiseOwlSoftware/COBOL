@@ -3003,7 +3003,6 @@ static WiseOwl.Cobol.Runtime.Collation.CollationEngine.IsWellFormed(System.ReadO
 static WiseOwl.Cobol.Runtime.Collation.CollationEngine.ResolveLocale(string? localeTag) -> WiseOwl.Cobol.Runtime.Collation.ResolvedLocaleCollation!
 static WiseOwl.Cobol.Runtime.Collation.CollationEngine.Root.get -> WiseOwl.Cobol.Runtime.Collation.Collator!
 static WiseOwl.Cobol.Runtime.Collation.CollationEngine.Standard.get -> WiseOwl.Cobol.Runtime.Collation.Collator!
-static WiseOwl.Cobol.Runtime.Collation.CollationEngine.StandardAtLevel(int level) -> WiseOwl.Cobol.Runtime.Collation.Collator!
 static WiseOwl.Cobol.Runtime.Collation.CollationEngine.TableForLocale(string? localeTag) -> WiseOwl.Cobol.Runtime.Collation.CollationTable!
 static WiseOwl.Cobol.Runtime.Collation.CollationEngine.TryGetOrderingTable(string? name, out WiseOwl.Cobol.Runtime.Collation.CollationTable! table) -> bool
 static WiseOwl.Cobol.Runtime.Collation.CollationKey.Build(string? text) -> WiseOwl.Cobol.Runtime.Collation.CollationKey!
