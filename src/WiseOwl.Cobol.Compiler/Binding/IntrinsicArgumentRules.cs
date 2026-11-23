@@ -557,7 +557,8 @@ internal static partial class IntrinsicArgumentRules
     /// skips its same-class test on an abstention lets <c>SPACE THRU 9</c> through though no class SPACE can present is
     /// numeric: SPACE, QUOTE, HIGH-VALUE and LOW-VALUE represent character values, alphanumeric (national in a national
     /// context), never numeric (§2023:8.3.3.6.4 GR1; §1985:IV.4.2.2.2.3 and IV.4.2.2.2.1.3 GR3 make them nonnumeric
-    /// literals, of category alphanumeric), while ZERO alone also stands for the numeric value 0 and so pairs with any class (§2023:8.3.3.6.4 GR1).
+    /// literals, of category alphanumeric), while ZERO alone also stands for the numeric value 0 and so pairs with any class (§2023:8.3.3.6.4 GR4: "The zero format represents the
+    /// numeric value '0'"; GR1 governs only the character-value representation).
     /// Two operands can be of the same class exactly when their <see cref="CandidateClasses"/>, projected through
     /// <see cref="TableTwoClass"/>, intersect; an empty set is "not statically decidable" and fails open, like every
     /// screen here. For two single-class operands this IS <see cref="SameClass"/>'s equality.</summary>

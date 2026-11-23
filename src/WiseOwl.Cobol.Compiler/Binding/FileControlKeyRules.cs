@@ -880,38 +880,23 @@ internal static class FileControlKeyRules
         // when such reference appears" in four contexts that are none of these clauses, and the clauses' formats write no subscript. One
         // rule, so one designation (ClauseOperandRules1985.TableElementSubscripted) and three rows, each REPLACING its 2023 row below
         // COBOL-2002.
-        Of1985(ClauseOperandRules1985.TableElementSubscripted, FileKinds.Indexed, FileKeyRole.PrimeRecordKey,
-            _ => true,
-            (_, op) => op.Item is { } i && RecordLayout.IsSubjectToOccurs(i),
+        Of1985(ClauseOperandRules1985.TableElementSubscripted, "SR-12.4.5.12.3-1",
             (_, op) => $"{op.ClauseFace} {op.Written} is subject to an OCCURS clause, so naming it is a table element reference, which must be "
-                + $"subscripted, and {op.OperandFace} is written without a subscript ({ClauseOperandRules1985.TableElementSubscripted.Citation})",
-            "SR-12.4.5.12.3-1"),
-        Of1985(ClauseOperandRules1985.TableElementSubscripted, FileKinds.Indexed, FileKeyRole.AlternateRecordKey,
-            _ => true,
-            (_, op) => op.Item is { } i && RecordLayout.IsSubjectToOccurs(i),
+                + $"subscripted, and {op.OperandFace} is written without a subscript ({ClauseOperandRules1985.TableElementSubscripted.Citation})"),
+        Of1985(ClauseOperandRules1985.TableElementSubscripted, "SR-12.4.5.6.3-1",
             (_, op) => $"{op.ClauseFace} {op.Written} is subject to an OCCURS clause, so naming it is a table element reference, which must be "
-                + $"subscripted, and {op.OperandFace} is written without a subscript ({ClauseOperandRules1985.TableElementSubscripted.Citation})",
-            "SR-12.4.5.6.3-1"),
-        Of1985(ClauseOperandRules1985.TableElementSubscripted, FileKinds.Relative, FileKeyRole.RelativeKey,
-            _ => true,
-            (_, op) => op.Item is { } i && RecordLayout.IsSubjectToOccurs(i),
+                + $"subscripted, and {op.OperandFace} is written without a subscript ({ClauseOperandRules1985.TableElementSubscripted.Citation})"),
+        Of1985(ClauseOperandRules1985.TableElementSubscripted, "SR-12.4.5.13.3-1",
             (_, op) => $"{op.ClauseFace} '{op.Name}' is subject to an OCCURS clause, so naming it is a table element reference, which must be "
-                + $"subscripted, and data-name-1 is written without a subscript ({ClauseOperandRules1985.TableElementSubscripted.Citation})",
-            "SR-12.4.5.13.3-1"),
+                + $"subscripted, and data-name-1 is written without a subscript ({ClauseOperandRules1985.TableElementSubscripted.Citation})"),
 
         // The RELATIVE KEY item's own rules (§1985:VIII.2.4.3 SR2 and SR3), which §2023:12.4.5.13.3 SR2 and SR3 re-number.
-        Of1985(ClauseOperandRules1985.RelativeKeyUnsignedInteger, FileKinds.Relative, FileKeyRole.RelativeKey,
-            _ => true,
-            (_, op) => op.Item is { } i && i.Pic is not { Category: PicCategory.Numeric, Scale: 0, Signed: false },
+        Of1985(ClauseOperandRules1985.RelativeKeyUnsignedInteger, "SR-12.4.5.13.3-2",
             (_, op) => $"{op.ClauseFace} '{op.Name}' must reference an unsigned integer data item whose description does not contain the "
-                + $"PICTURE symbol 'P' ({ClauseOperandRules1985.RelativeKeyUnsignedInteger.Citation})",
-            "SR-12.4.5.13.3-2"),
-        Of1985(ClauseOperandRules1985.RelativeKeyNotInRecord, FileKinds.Relative, FileKeyRole.RelativeKey,
-            _ => true,
-            (f, op) => op.Item is { } i && RecordLayout.IsInRecordOfFile(f, i),
+                + $"PICTURE symbol 'P' ({ClauseOperandRules1985.RelativeKeyUnsignedInteger.Citation})"),
+        Of1985(ClauseOperandRules1985.RelativeKeyNotInRecord, "SR-12.4.5.13.3-3",
             (f, op) => $"{op.ClauseFace} '{op.Name}' must not be defined within a record description of file '{f.CobolName}' "
-                + $"({ClauseOperandRules1985.RelativeKeyNotInRecord.Citation})",
-            "SR-12.4.5.13.3-3"),
+                + $"({ClauseOperandRules1985.RelativeKeyNotInRecord.Citation})"),
 
         // ⛔ THE KEY RULES COBOL-85 PRINTS WITH ITS OWN NUMBERS (kb/Work PB4950): the same obligations as §2023:12.4.5.6.3 SR4 and
         // SR5 and §2023:12.4.5.12.3 SR4, in the indexed module's wording ("character position"), each REPLACING its 2023 row below
@@ -999,11 +984,36 @@ internal static class FileControlKeyRules
     /// <summary>One <see cref="Rules1985"/> row from its <see cref="Rule1985"/> designation: the id, clause, citation and quoted text are
     /// the designation's, so a row cannot cite a clause its text is not in, and it REPLACES the 2023 row
     /// <paramref name="supersedes"/> below COBOL-2002.</summary>
-    private static FileControlKeyRule Of1985(
-        Rule1985 rule, FileKinds screenedOn, FileKeyRole role, Func<FileModel, bool> applies,
-        Func<FileModel, FileKeyOperand, bool> violated, Func<FileModel, FileKeyOperand, string> message, string supersedes) =>
-        new($"1985-SR-{rule.Clause}-{rule.Ordinal}", rule.Clause, rule.Citation, rule.RuleText, screenedOn, role, applies, violated, message)
+    private static FileControlKeyRule Of1985(Rule1985 rule, string supersedes, Func<FileModel, FileKeyOperand, string> message) =>
+        Restating(supersedes, $"1985-SR-{rule.Clause}-{rule.Ordinal}", rule.Clause, rule.Citation, rule.RuleText, message);
+
+    /// <summary>⛔ A ROW THAT RESTATES A 2023 ROW IN ANOTHER EDITION'S WORDS TAKES ITS SUBJECT FROM THAT ROW (kb/Work PB6072): the file
+    /// kinds it is screened on, the clause it is stated about, its precondition and its violated predicate are the
+    /// <paramref name="supersedes"/> row's, which is what "the same obligation under the other edition's numbering and wording"
+    /// means, so the two cannot drift; only the id, the citation, the quoted rule and the message are the edition's own.</summary>
+    private static FileControlKeyRule Restating(
+        string supersedes, string ruleId, string clause, string citation, string ruleText, Func<FileModel, FileKeyOperand, string> message)
+    {
+        var from2023 = Rules.Single(r => r.RuleId == supersedes);
+        return new(ruleId, clause, citation, ruleText, from2023.ScreenedOn, from2023.Role, from2023.Applies, from2023.Violated, message,
+            from2023.Code)
         { Supersedes = supersedes };
+    }
+
+    /// <summary>⛔ THE OCCURS BANS AT COBOL-2014 (kb/Work PB6072). The 2014 text prints "Data-name-1 shall not be subscripted" for the
+    /// RECORD KEY, ALTERNATE RECORD KEY and RELATIVE KEY clauses (§2014:12.4.4.11.2 SR1, §2014:12.4.4.5.2 SR1, §2014:12.4.4.12.2 SR1), which
+    /// the capture refuses where it is written; the 2023 words "shall not be subject to any OCCURS clauses" are not in it. A key that
+    /// names a table element is then an unsubscripted table element reference, which §2014:8.4.1.2.2 SR5 refuses, so each 2023 OCCURS
+    /// row is replaced at 2014 by that rule, the one the other editions below 2023 cite for the same refusal.</summary>
+    private static readonly FileControlKeyRule[] Rules2014 =
+    [
+        .. new[] { "SR-12.4.5.12.3-1", "SR-12.4.5.6.3-1", "SR-12.4.5.13.3-1" }.Select(id => Restating(
+            id, "2014-SR-8.4.1.2.2-5", "8.4.1.2.2", "ISO §2014:8.4.1.2.2 SR5",
+            "Each table element reference shall be subscripted except when such reference appears",
+            (_, op) => $"{op.ClauseFace} {(op.Role is FileKeyRole.RelativeKey ? $"'{op.Name}'" : op.Written)} is subject to an OCCURS clause, so naming it "
+                + $"is a table element reference, which shall be subscripted, and {(op.Role is FileKeyRole.RelativeKey ? "data-name-1" : op.OperandFace)} "
+                + "is written without a subscript (ISO §2014:8.4.1.2.2 SR5)")),
+    ];
 
     /// <summary>⛔ THE 2002 READING OF THE SAME RULE (kb/Work PB5445, review R1-1). COBOL-2002 words the rule as the 2023 text does
     /// — "Data-name-1 and data-name-2 shall not reference a variable-length data item" (§2002:12.3.4.12.2 SR3 for the RECORD KEY,
@@ -1045,8 +1055,15 @@ internal static class FileControlKeyRules
     {
         < 2002 => Rules85,
         2002 => Rules02,
+        2014 => Rules14,
         _ => Rules,
     };
+
+    private static readonly FileControlKeyRule[] Rules14 =
+        [.. Rules.Where(r => Rules2014.All(n => !n.Replaces(r))), .. Rules2014];
+
+    /// <summary>The COBOL-2014 rows, for <c>FileControlKeyRuleDriftTests</c> — the only reason it is not private.</summary>
+    internal static IReadOnlyList<FileControlKeyRule> Catalog2014 => Rules2014;
 
     private static readonly FileControlKeyRule[] Rules85 =
         [.. Rules.Where(r => Rules1985.All(n => !n.Replaces(r))), .. Rules1985];

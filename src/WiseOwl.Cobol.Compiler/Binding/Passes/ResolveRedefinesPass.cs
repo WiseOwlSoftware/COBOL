@@ -121,7 +121,8 @@ internal sealed class ResolveRedefinesPass : IBindPass
                     string missing = info.From is null ? info.FromOperand.Name : info.ThruOperand?.Name!;
                     binder.Edition.Error(DiagnosticCatalog.RenamesOperandUnresolved,
                         $"'{ren.CobolName ?? "FILLER"}' RENAMES {info.FromOperand.Name}{(info.ThruOperand?.Name is { } tn ? " THRU " + tn : "")}: "
-                        + $"'{missing}' does not name an item of the record ({binder.Edition.Edition.CiteRule("§1985:VI.5.11.3 SR4", "§2023:13.18.45.3 SR4")}; "
+                        + $"'{missing}' does not name an item of the record ({binder.Edition.Edition.CiteRule("§1985:VI.5.11.3 SR4", "§2023:13.18.45.3 SR4",
+                            y2002: "§2002:13.16.43.2 SR4", y2014: "§2014:13.18.45.2 SR4")}; "
                         + $"{binder.Edition.Edition.Citation()})");
                     continue;
                 }
@@ -140,9 +141,14 @@ internal sealed class ResolveRedefinesPass : IBindPass
                         $"'{ren.CobolName ?? "FILLER"}' RENAMES {info.FromOperand.Name}{(info.ThruOperand?.Name is { } tn8 ? " THRU " + tn8 : "")}: "
                         + $"{rangeFault}; none of the items within the range, including data-name-2 and data-name-3, "
                         + binder.Edition.Edition.Cite("if specified, can be variable occurrence data items",
-                            "shall be of class object, message-tag, or pointer, a variable-length data item, or an "
-                            + "occurs-depending table")
-                        + $" ({binder.Edition.Edition.CiteRule("§1985:VI.5.11.3 SR6", "§2023:13.18.45.3 SR8")})");
+                            "shall be of class object, message-tag, or pointer, a strongly-typed group item, an item subordinate to a "
+                            + "strongly-typed group item, a variable-length data item, or an occurs-depending table",
+                            y2002: "shall be of class object or pointer, a strongly-typed group item, an item subordinate to a "
+                            + "strongly-typed group item, or a variable-occurrence data item",
+                            y2014: "shall be of class object or pointer, a strongly-typed group item, an item subordinate to a "
+                            + "strongly-typed group item, a variable-length data item, or an occurs-depending table")
+                        + $" ({binder.Edition.Edition.CiteRule("§1985:VI.5.11.3 SR6", "§2023:13.18.45.3 SR8",
+                            y2002: "§2002:13.16.43.2 SR7", y2014: "§2014:13.18.45.2 SR8")})");
                     continue;
                 }
                 // The no-THRU alias inherits the renamed item's description (§2023:13.18.45.4 GR1) — the resolver
@@ -197,7 +203,11 @@ internal sealed class ResolveRedefinesPass : IBindPass
                     binder.Edition.Error(DiagnosticCatalog.RenamesAreaNotWholeBytes,
                         $"'{ren.CobolName ?? "FILLER"}' RENAMES {info.FromOperand.Name} THRU {info.ThruOperand?.Name}: the area is "
                         + $"{areaBits} bits, which is not a whole number of bytes; the area described by data-name-2 "
-                        + "THROUGH data-name-3 shall define an integral number of bytes (ISO §2023:13.18.45.3 SR10)");
+                        + "THROUGH data-name-3 shall define an integral number of bytes ("
+                        // A fractional byte count needs a bit item, which begins at COBOL-2002; the COBOL-85 text has no such
+                        // rule and no bit item reaches this arm there, so its slot names the first edition that states it.
+                        + binder.Edition.Edition.CiteRule("§2002:13.16.43.2 SR9", "§2023:13.18.45.3 SR10",
+                            y2002: "§2002:13.16.43.2 SR9", y2014: "§2014:13.18.45.2 SR10") + ")");
                     continue;
                 }
                 // Every leaf of the record with its storage extent — REDEFINES views INCLUDED: a view reads the
@@ -489,7 +499,9 @@ internal sealed class ResolveRedefinesPass : IBindPass
                 + $"{(operand.Level is 77 ? "77" : operand.Level is 66 ? "66" : "1")} "
                 + binder.Edition.Edition.Cite(
                     "(§1985:VI.5.11.3 SR4: \"A 66 level entry cannot rename another 66 level entry nor can it rename a 77, 88, or 01 level entry.\")",
-                    "(ISO §2023:13.18.45.3 SR5: \"Neither data-name-2 nor data-name-3 shall refer to an entry that is described with level-number 1, 66, 77, or 88.\")"));
+                    "(ISO §2023:13.18.45.3 SR5: \"Neither data-name-2 nor data-name-3 shall refer to an entry that is described with level-number 1, 66, 77, or 88.\")",
+                    y2002: "(ISO §2002:13.16.43.2 SR5: \"Neither data-name-2 nor data-name-3 shall refer to an entry that is described with level-number 1, 66, 77, or 88.\")",
+                    y2014: "(ISO §2014:13.18.45.2 SR5: \"Neither data-name-2 nor data-name-3 shall refer to an entry that is described with level-number 1, 66, 77, or 88.\")"));
             ok = false;
         }
 
@@ -503,7 +515,11 @@ internal sealed class ResolveRedefinesPass : IBindPass
                     + (ReferenceEquals(n, operand) ? "" : $" (of '{n.CobolName ?? "FILLER"}')")
                     + " " + binder.Edition.Edition.Cite(
                         "(§1985:VI.5.11.3 SR3: \"Neither data-name-2 nor data-name-3 may have an OCCURS clause in its data description entry nor be subordinate to an item that has an OCCURS clause in its data description entry.\")",
-                        "(ISO §2023:13.18.45.3 SR3: \"Data-name-1, data-name-2 and data-name-3 shall not be subject to any OCCURS clauses.\")"));
+                        "(ISO §2023:13.18.45.3 SR3: \"Data-name-1, data-name-2 and data-name-3 shall not be subject to any OCCURS clauses.\")",
+                        y2002: "(ISO §2002:13.16.43.2 SR3: \"Neither data-name-2 nor data-name-3 may have an OCCURS clause in its data description entry "
+                        + "nor be subordinate to an item that has an OCCURS clause in its data description entry.\")",
+                        y2014: "(ISO §2014:13.18.45.2 SR3: \"Neither data-name-2 nor data-name-3 may have an OCCURS clause in its data description entry "
+                        + "nor be subordinate to an item that has an OCCURS clause in its data description entry.\")"));
                 ok = false;
                 break;
             }
@@ -513,7 +529,10 @@ internal sealed class ResolveRedefinesPass : IBindPass
         {
             binder.Edition.Error(DiagnosticCatalog.RenamesEntryRule,
                 $"'{alias}' RENAMES: {role} '{op}' is an entry within a record whose data description entry includes "
-                + "the CONSTANT RECORD clause (ISO §2023:13.18.45.3 SR6)");
+                + "the CONSTANT RECORD clause ("
+                // The CONSTANT RECORD clause begins at COBOL-2014 (§2002 has neither it nor the rule), so the earlier slots name that rule.
+                + binder.Edition.Edition.CiteRule("§2014:13.18.45.2 SR6", "§2023:13.18.45.3 SR6",
+                    y2002: "§2014:13.18.45.2 SR6", y2014: "§2014:13.18.45.2 SR6") + ")");
             ok = false;
         }
         return ok;
@@ -541,6 +560,12 @@ internal sealed class ResolveRedefinesPass : IBindPass
                 + "beginning of the area described by data-name-2. The end of the area described by data-name-3 must be to the right "
                 + "of the end of the area described by data-name-2.\")",
                 "(ISO §2023:13.18.45.3 SR11: \"The beginning of the storage area described by data-name-3 shall not precede the "
+                + "beginning of the storage area described by data-name-2. The end of the storage area described by "
+                + "data-name-3 shall follow the end of the storage area described by data-name-2.\")",
+                y2002: "(ISO §2002:13.16.43.2 SR10: \"The beginning of the storage area described by data-name-3 shall not precede the "
+                + "beginning of the storage area described by data-name-2. The end of the storage area described by "
+                + "data-name-3 shall follow the end of the storage area described by data-name-2.\")",
+                y2014: "(ISO §2014:13.18.45.2 SR11: \"The beginning of the storage area described by data-name-3 shall not precede the "
                 + "beginning of the storage area described by data-name-2. The end of the storage area described by "
                 + "data-name-3 shall follow the end of the storage area described by data-name-2.\")"));
         return false;

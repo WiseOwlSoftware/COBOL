@@ -406,7 +406,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         // ⛔ A FIGURATIVE END ABSTAINS FROM TableTwoClassOf BUT IS NOT CLASS-FREE (kb/Work PB5796): SPACE, QUOTE,
         // HIGH-VALUE and LOW-VALUE are character values (§2023:8.3.3.6.4 GR1; §1985:IV.4.2.2.2.3 — nonnumeric literals,
         // category alphanumeric by §1985:IV.4.2.2.2.1.3 GR3), so `SPACE THRU 9` and `1 THRU HIGH-VALUE` join two
-        // classes exactly as `"A" THRU 9` does. Only ZERO also stands for the numeric value 0 and so pairs with any class (§2023:8.3.3.6.4 GR1).
+        // classes exactly as `"A" THRU 9` does. Only ZERO also stands for the numeric value 0 and so pairs with any class (§2023:8.3.3.6.4 GR4: "The zero format represents the numeric value '0'").
         else if (!excluded && (loClass is null || hiClass is null) && !IntrinsicArgumentRules.CanShareClass(lo, hi))
         {
             ok = false;
