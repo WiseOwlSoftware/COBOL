@@ -2269,8 +2269,15 @@ the period rules it transfers did not exist — regresses the moment the rules l
 
 **ONE floating-string definition.** §2023:13.18.40.5 GR6 makes floating insertion an ADJACENCY property ("a string
 of at least two identical floating insertion editing symbols", with the simple insertion symbols and, by rule
-6 b, the decimal point embedded), never a count. `PictureComposition.FloatingString` is that definition and both
-readers use it — the composition rules and `PictureAnalyzer`'s geometry — so the two can no longer disagree.
+6 b, the decimal point embedded), never a count. `PictureComposition.MarkFloating` is that definition, asked once by
+`PictureComposition.Validate`, which returns what it resolved as a `PictureShape`: the floating runs, the floating
+string's occurrences and the split of the 'P' string between the leftmost and the rightmost digit positions. The
+analyzer's geometry and its EDITING rules (`EditRule.Floating`) read that one value and derive none of it again
+(kb/Work PB3221). The digit positions the split is counted against are one list too — 9, Z, *, every 'P' and each
+occurrence of a floating string of ANY of rule 6's floating insertion symbols, the extended editing sign control
+symbols included: the composition's own copy once left those out while the analyzer's counted them, so
+`PIC LLLPPV EDITING L FOR NEGATIVE IS "-"` was refused and `PIC LLPP99` bound at scale 0 (goldens
+`2023/pb3221_picture_p_beside_extended_float_2023`, `negative/pb3221-picture-p-between-extended-float`).
 
 **ONE decimal-point-position derivation, and SR29 is the rule that needed it (kb/Work PB530).** SR29 — "For
 floating insertion, at least one insertion symbol shall be specified to the left of the decimal point position" —
@@ -2430,8 +2437,8 @@ preceded by character-1" taken as unbounded) and `PIC 9L9F` legal against the wo
 same fact seen from the currency symbol: with SR25 an `es` before the currency symbol is the string's leftmost symbol.
 An IS-form character-1 beside the currency symbol (`PIC T$999 EDITING T IS ":"`) stays unconstrained — rule 3 makes it
 simple insertion and no rule counts it against SR26.
-**The floating test is the same adjacency for an extended character-1** (`PictureComposition.HasFloatingString`, read
-by `ValidateEditing` for `EditRule.Floating`): the flag was a bare count of the letter's occurrences, so `PIC L999L` —
+**The floating test is the same adjacency for an extended character-1** (`PictureShape.IsFloating`, read by
+`PictureAnalyzer.ResolveFloating` for `EditRule.Floating` once the composition has resolved the string): the flag was a bare count of the letter's occurrences, so `PIC L999L` —
 two FIXED occurrences — rendered as one floating string (`(0012`); it renders `(012(`.
 Goldens: `2023/pb530_picture_editing_order_2023` (the conforming placements, including D.24's own example, a single
 trailing symbol, a currency symbol between a pair and the two-fixed-occurrences case),

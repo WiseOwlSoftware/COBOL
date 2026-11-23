@@ -188,7 +188,7 @@ internal static class PictureComposition
     /// ordinal of a run's first or last symbol, adjacency the order of runs, and Table 10 is asked once per run, plus once
     /// more where a run repeats a role whose own row may refuse it. One symbol per element cost 30 s for a 64 M-position
     /// PICTURE (a string allocated per character, and each rule a pass over 64 M elements).</para></summary>
-    private readonly record struct Sym(string Text, char Kind, int At, int Count)
+    internal readonly record struct Sym(string Text, char Kind, int At, int Count)
     {
         /// <summary>The ordinal of the run's last symbol.</summary>
         public int Last => At + Count - 1;
@@ -210,14 +210,14 @@ internal static class PictureComposition
     internal static char GroupingSeparator(bool decimalPointIsComma) => decimalPointIsComma ? '.' : ',';
 
     /// <summary>
-    /// Validate the composition of one Format-1 character-string. Returns <see langword="true"/> when it is an
-    /// allowable combination; otherwise emits ONE diagnostic naming the exact rule and returns
-    /// <see langword="false"/>. <paramref name="expanded"/> is the repeat-expanded, uppercased symbol string;
+    /// Validate the composition of one Format-1 character-string. Returns its resolved <see cref="PictureShape"/> when
+    /// it is an allowable combination; otherwise emits ONE diagnostic naming the exact rule and returns
+    /// <see langword="null"/>. <paramref name="expanded"/> is the repeat-expanded, uppercased symbol string;
     /// <paramref name="cs"/> the picture's currency symbol; <paramref name="char1"/> the declared PICTURE EDITING
     /// character-1 letters; <paramref name="decimalPointIsComma"/> the SPECIAL-NAMES switch that interchanges the
     /// comma and period ROLES (SR13).
     /// </summary>
-    public static bool Validate(string picture, string expanded, char cs, IReadOnlySet<char> char1,
+    public static PictureShape? Validate(string picture, string expanded, char cs, IReadOnlySet<char> char1,
         IReadOnlySet<char> char1Extended, bool blankWhenZero, bool decimalPointIsComma, EditionContext edition,
         string where)
     {
@@ -225,15 +225,15 @@ internal static class PictureComposition
         char grouping = GroupingSeparator(decimalPointIsComma);
         var syms = Tokenize(expanded);
         int runs = syms.Count;
-        if (runs == 0) return true;   // the empty string is already COBOL0808 at the caller
+        if (runs == 0) return PictureShape.Empty;   // the empty string is already COBOL0808 at the caller
         int n = syms[^1].Last + 1;    // the SYMBOL count, which the decimal point position counts in
 
-        bool Fail(DiagnosticDescriptor code, string why)
+        PictureShape? Fail(DiagnosticDescriptor code, string why)
         {
             string shown = expanded.Equals(picture.ToUpperInvariant().Replace(" ", ""), StringComparison.Ordinal)
                 ? $"PICTURE {picture}" : $"PICTURE {picture} (expanded: {expanded})";
             edition.Error(code, $"invalid {shown} — {where}: {why}");
-            return false;
+            return null;
         }
 
         // ⛔ THE CITATION OF EACH COMPOSITION RULE BY EDITION (kb/Work PB4950): the 2002/2014/2023 text names §2023:13.18.40.3's
@@ -253,13 +253,19 @@ internal static class PictureComposition
         var floating = MarkFloating(syms, cs, char1, char1Extended, decimalSep, grouping);
         bool IsFloating(int r) => floating[r];
 
-        // The DIGIT POSITIONS (§2023:13.18.40.4 GR14): 9, the zero-suppression symbols, every 'P' ("not counted in
-        // the size of the item, but each symbol 'P' is counted in the maximum number of digit positions") and
-        // each occurrence of a floating string's symbol. SR16 asks only for the leftmost and the rightmost.
+        // ⛔ THE ONE DEFINITION OF THE DIGIT POSITIONS (§2023:13.18.40.4 GR14; kb/Work PB3221): 9, the zero-suppression
+        // symbols, every 'P' ("not counted in the size of the item, but each symbol 'P' is counted in the maximum number
+        // of digit positions") and each occurrence of a floating insertion string, of EVERY floating insertion symbol
+        // §2023:13.18.40.5 rule 6 names: "The currency symbol, the extended editing sign control symbols, if specified,
+        // and the fixed editing sign control symbols '+' and '-' are used as the floating insertion symbols", each
+        // string's second symbol "the leftmost limit of the numeric data". SR16 asks only for the leftmost and the
+        // rightmost, and the P split below (which the analyzer's scale reads from the shape) is decided from them. This
+        // list once left out the extended symbols while the analyzer's own copy counted them, so `PIC LLLPPV EDITING L
+        // FOR NEGATIVE IS "-"` was refused (the 'P's read as LEADING) and `PIC LLPP99` bound with the 'P's between two
+        // digit positions.
         int firstDigit = -1, lastDigit = -1;
         for (int r = 0; r < runs; r++)
-            if (syms[r].Kind is '9' or 'Z' or '*' or 'P'
-                || ((syms[r].Kind == '+' || syms[r].Kind == '-' || syms[r].Kind == cs) && IsFloating(r)))
+            if (syms[r].Kind is '9' or 'Z' or '*' or 'P' || IsFloating(r))
             {
                 if (firstDigit < 0) firstDigit = syms[r].At;
                 lastDigit = syms[r].Last;
@@ -484,8 +490,14 @@ internal static class PictureComposition
         // a PICTURE clause are specified in 13.18.40.6, Precedence rules"). Assign every occurrence its role,
         // then require an 'x' for EVERY ordered pair: an 'x' means the column symbol "may precede (BUT NOT
         // NECESSARILY IMMEDIATELY)" the row symbol, so the relation binds non-adjacent pairs too.
-        return Precedence(syms, cs, char1, char1Extended, dp, decimalSep, grouping, IsFloating, leadingP,
-            edition.DialectLevel, Fail);
+        if (!Precedence(syms, cs, char1, char1Extended, dp, decimalSep, grouping, IsFloating, leadingP,
+                edition.DialectLevel, (code, why) => Fail(code, why)))
+            return null;
+        int pCount = pRun >= 0 ? syms[pRun].Count : 0;
+        // GR14's two places of the assumed point: a 'P' string at BOTH ends of the digit positions (it is all of them)
+        // is the leading one, the reading DecimalPointPosition and the role map above already take.
+        return new PictureShape(syms, floating, leadingP: leadingP ? pCount : 0,
+            trailingP: !leadingP && trailingP ? pCount : 0);
     }
 
     /// <summary>The index of the run that holds the symbol at <paramref name="ordinal"/> (a binary search: the runs are
@@ -521,75 +533,18 @@ internal static class PictureComposition
     }
 
     /// <summary>
-    /// ⛔ THE ONE DEFINITION OF A FLOATING INSERTION STRING (ISO §2023:13.18.40.5 GR6), read by the composition
-    /// rules here AND by <see cref="PictureAnalyzer"/>'s geometry derivation, so the two can never disagree.
+    /// ⛔ THE ONE DEFINITION OF A FLOATING INSERTION STRING (ISO §2023:13.18.40.5 GR6): which RUN belongs to one. The
+    /// composition rules read it here and <see cref="PictureAnalyzer"/>'s geometry and EDITING rules read it from the
+    /// <see cref="PictureShape"/> <see cref="Validate"/> returns, so the two can never disagree (kb/Work PB3221).
     /// "Floating insertion editing is indicated by specifying a string of at least two IDENTICAL floating
     /// insertion editing symbols. Any of the simple insertion editing symbols embedded in this string or to the
     /// immediate right of this string are part of the string" — and rule 6 b) lets the string span the decimal
     /// point ("The second way is to represent ALL of the numeric character positions by the same insertion
     /// symbol"), so the decimal separator continues a run as well. Floating-ness is therefore an ADJACENCY
-    /// property. An occurrence outside such a run is FIXED insertion (rule 5) and SR24 bounds it to one.
+    /// property, never a bare occurrence count: <c>PIC +999+</c>, <c>PIC $999$</c> and <c>PIC L999L</c> hold two
+    /// FIXED occurrences each (rule 5), which SR24 bounds to one for '+', '-' and the currency symbol (kb/Work PB528,
+    /// PB855).
     /// </summary>
-    /// <returns>The floating string's symbol and how many times it occurs, or <c>('\0', 0)</c> when the
-    /// character-string has none. §2023:13.18.40.3 SR27 admits at most one such string, and the Table-10 walk rejects
-    /// a second, so the first one found is the only one.</returns>
-    internal static (char Symbol, int Occurrences) FloatingString(string expanded, char cs,
-        IReadOnlySet<char> char1, IReadOnlySet<char> char1Extended, bool decimalPointIsComma)
-    {
-        var syms = Tokenize(expanded);
-        var floating = MarkFloating(syms, cs, char1, char1Extended, DecimalSeparator(decimalPointIsComma),
-            GroupingSeparator(decimalPointIsComma));
-        for (int r = 0; r < syms.Count; r++)
-        {
-            if (!floating[r]) continue;
-            char sym = syms[r].Kind;
-            int occ = 0;
-            foreach (var s in syms) if (s.Kind == sym) occ += s.Count;
-            return (sym, occ);
-        }
-        return ('\0', 0);
-    }
-
-    /// <summary>Is any occurrence of the extended character-1 <paramref name="letter"/> part of a floating insertion
-    /// string? — rule 6's own test (an ADJACENCY property, <see cref="FloatingString"/>) applied to ONE letter, which
-    /// is what <c>CobolEdit.EditRule.Floating</c> records. A bare occurrence count is NOT that test: `PIC L999L`
-    /// holds two fixed occurrences, each rendering its own sign literal, and no floating string (kb/Work PB855 —
-    /// the same count-for-adjacency error kb/Work PB528 removed for the currency symbol).</summary>
-    internal static bool HasFloatingString(string expanded, char cs, IReadOnlySet<char> char1,
-        IReadOnlySet<char> char1Extended, bool decimalPointIsComma, char letter)
-    {
-        var syms = Tokenize(expanded);
-        var floating = MarkFloating(syms, cs, char1, char1Extended, DecimalSeparator(decimalPointIsComma),
-            GroupingSeparator(decimalPointIsComma));
-        for (int i = 0; i < syms.Count; i++)
-            if (floating[i] && syms[i].Kind == letter) return true;
-        return false;
-    }
-
-    /// <summary>Which CHARACTER of the repeat-expanded string belongs to a floating insertion string — rule 6's own
-    /// test (<see cref="FloatingString"/>) answered per occurrence, which is what tells the FIXED occurrences of an
-    /// extended character-1 from its floating string when it has both (<c>PIC LL9L</c>: SR24 counts the floating
-    /// string as one symbol and the trailing occurrence as another; kb/Work PB3220). One entry per character of
-    /// <paramref name="expanded"/> (the two characters of <c>CR</c> / <c>DB</c> carry their symbol's answer).</summary>
-    internal static bool[] FloatingMarks(string expanded, char cs, IReadOnlySet<char> char1,
-        IReadOnlySet<char> char1Extended, bool decimalPointIsComma)
-    {
-        var syms = Tokenize(expanded);
-        var floating = MarkFloating(syms, cs, char1, char1Extended, DecimalSeparator(decimalPointIsComma),
-            GroupingSeparator(decimalPointIsComma));
-        var marks = new bool[expanded.Length];
-        int at = 0;
-        for (int r = 0; r < syms.Count; r++)
-        {
-            int chars = syms[r].Text.Length * syms[r].Count;
-            if (floating[r]) Array.Fill(marks, true, at, chars);
-            at += chars;
-        }
-        return marks;
-    }
-
-    /// <summary>Mark every symbol occurrence that belongs to a floating insertion string — see
-    /// <see cref="FloatingString"/> for the rule this implements.</summary>
     private static bool[] MarkFloating(List<Sym> syms, char cs, IReadOnlySet<char> char1,
         IReadOnlySet<char> char1Extended, char decimalSep, char grouping)
     {
@@ -651,7 +606,7 @@ internal static class PictureComposition
     private static bool Precedence(List<Sym> syms, char cs, IReadOnlySet<char> char1,
         IReadOnlySet<char> char1Extended, int dp, char decimalSep, char grouping, Func<int, bool> isFloating,
         bool leadingP, int dialectLevel,
-        Func<DiagnosticDescriptor, string, bool> fail)
+        Action<DiagnosticDescriptor, string> fail)
     {
         // One entry per RUN (kb/Work PB5913). A run never straddles the decimal point position: 'V' and the decimal
         // separator are runs of their own, and a leading 'P' string puts the point at its own first symbol, so every
@@ -795,7 +750,7 @@ internal static class PictureComposition
         // closing sentence), which is not obvious from the picture, so the message says it.
         int firstRun = RunOf(syms, worst.First), secondRun = RunOf(syms, worst.Second);
         bool esInPair = IsFixedExtended(syms[firstRun], firstRun) || IsFixedExtended(syms[secondRun], secondRun);
-        return fail(DiagnosticCatalog.PicturePrecedence,
+        fail(DiagnosticCatalog.PicturePrecedence,
             $"the symbol '{syms[secondRun].Text}' at symbol position {worst.Second + 1} may not follow the symbol "
             + $"'{syms[firstRun].Text}' at symbol position {worst.First + 1}. Character-string-1 shall consist of "
             + "an allowable COMBINATION of characters used as picture symbols (ISO §2023:13.18.40.3 SR2), and the "
@@ -813,6 +768,7 @@ internal static class PictureComposition
                 " (at COBOL-85 the chart of §1985:VI.5.9.6, whose fixed currency symbol is leftmost, preceded at most by "
                   + "'+' or '-', §1985:VI.5.9.5 GR6)",
                 "")));
+        return false;
 
         bool IsFixedExtended(Sym s, int at) => char1Extended.Contains(s.Kind) && !isFloating(at);
     }
@@ -850,5 +806,85 @@ internal static class PictureComposition
             ordinal += count;
         }
         return syms;
+    }
+}
+
+/// <summary>
+/// The RESOLVED SHAPE of a legal Format-1 character-string: what <see cref="PictureComposition.Validate"/> derived to
+/// decide the composition, handed to <see cref="PictureAnalyzer"/>'s geometry and EDITING rules so neither derives it
+/// a second time (kb/Work PB3221; the PictureParser seam of DESIGN-architecture-review §8.3). It holds the symbol runs,
+/// which of them belong to a floating insertion string (§2023:13.18.40.5 rule 6, <see cref="PictureComposition"/>'s
+/// one definition), and the split of the 'P' string between the leftmost and the rightmost digit positions
+/// (§2023:13.18.40.4 GR14), all counted from the ONE list of digit positions the composition rules read.
+/// </summary>
+internal sealed class PictureShape
+{
+    /// <summary>The shape of the empty character-string (refused by the caller's SR2 screen before it is read).</summary>
+    internal static readonly PictureShape Empty = new([], [], leadingP: 0, trailingP: 0);
+
+    private readonly List<PictureComposition.Sym> runs;
+    private readonly bool[] floating;   // one entry per run
+
+    internal PictureShape(List<PictureComposition.Sym> runs, bool[] floating, int leadingP, int trailingP)
+    {
+        this.runs = runs;
+        this.floating = floating;
+        LeadingP = leadingP;
+        TrailingP = trailingP;
+        // §2023:13.18.40.3 SR27 admits one floating string per character-string (the Table-10 walk refuses a second
+        // of '+', '-' or the currency symbol), so the first floating run names it.
+        for (int r = 0; r < runs.Count; r++)
+        {
+            if (!floating[r]) continue;
+            char symbol = runs[r].Kind;
+            int occurrences = 0;
+            for (int k = r; k < runs.Count; k++)
+                if (floating[k] && runs[k].Kind == symbol) occurrences += runs[k].Count;
+            FloatingString = (symbol, occurrences);
+            break;
+        }
+    }
+
+    /// <summary>How many 'P's stand in the LEFTMOST digit positions — the assumed point "to the left of the string of
+    /// 'P's" (§2023:13.18.40.4 GR14); 0 when there is no such string. A 'P' string that is every digit position counts
+    /// here.</summary>
+    public int LeadingP { get; }
+
+    /// <summary>How many 'P's stand in the RIGHTMOST digit positions — the assumed point "to the right of the string of
+    /// 'P's" (§2023:13.18.40.4 GR14); 0 when there is no such string.</summary>
+    public int TrailingP { get; }
+
+    /// <summary>The floating insertion string's symbol and how many times it occurs in it, or <c>('\0', 0)</c> when
+    /// the character-string has none.</summary>
+    public (char Symbol, int Occurrences) FloatingString { get; }
+
+    /// <summary>Is any occurrence of <paramref name="letter"/> part of a floating insertion string? — rule 6's own
+    /// ADJACENCY test, which is what <c>CobolEdit.EditRule.Floating</c> records for an extended character-1: a bare
+    /// occurrence count is not that test, since <c>PIC L999L</c> holds two FIXED occurrences, each rendering its own
+    /// sign literal (kb/Work PB855).</summary>
+    public bool IsFloating(char letter)
+    {
+        for (int r = 0; r < runs.Count; r++)
+            if (floating[r] && runs[r].Kind == letter) return true;
+        return false;
+    }
+
+    /// <summary>Which CHARACTER of the repeat-expanded string belongs to a floating insertion string: one entry per
+    /// character (the two characters of <c>CR</c> / <c>DB</c> carry their symbol's answer). It tells the FIXED
+    /// occurrences of an extended character-1 from its floating string when it has both (<c>PIC LL9L</c>: SR24 counts
+    /// the floating string as one symbol and the trailing occurrence as another; kb/Work PB3220).</summary>
+    public bool[] FloatingMarks()
+    {
+        int length = 0;
+        foreach (var run in runs) length += run.Text.Length * run.Count;
+        var marks = new bool[length];
+        int at = 0;
+        for (int r = 0; r < runs.Count; r++)
+        {
+            int chars = runs[r].Text.Length * runs[r].Count;
+            if (floating[r]) Array.Fill(marks, true, at, chars);
+            at += chars;
+        }
+        return marks;
     }
 }
