@@ -13,7 +13,8 @@ namespace WiseOwl.Cobol.Tools.ArchCensus;
 /// through MSBuildWorkspace, measures it, and writes the facts as one JSON document for <c>scripts/arch/census.py</c>.
 /// <para>Usage: <c>ArchCensus --solution &lt;sln&gt; --scope &lt;scope.json&gt; --out &lt;raw.json&gt;
 /// [--min-tokens N]</c>, or <c>ArchCensus --solution &lt;sln&gt; --scope &lt;scope.json&gt; --member-index &lt;out.json&gt;</c>
-/// for the member index alone (<see cref="MemberIndex"/>; the same load and walk, no reachability or clones). Exit 0
+/// for the member index alone (<see cref="MemberIndex"/>; the same load and walk, no reachability or clones), or
+/// <c>ArchCensus --self-test</c> for the rule fixtures (<see cref="RuleFixtures"/>, exit 1 when an arm fails). Exit 0
 /// with the file written, 2 with a refusal on stderr (a partial solution is never measured).</para>
 /// </summary>
 internal static class Program
@@ -25,6 +26,11 @@ internal static class Program
         MSBuildLocator.RegisterDefaults();
         try
         {
+            if (args is ["--self-test"])
+            {
+                return RuleFixtures.Run(Console.Out);
+            }
+
             Options options = Options.Parse(args);
             if (options.MemberIndex is { } indexPath)
             {

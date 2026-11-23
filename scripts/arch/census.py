@@ -20,9 +20,10 @@ What it measures (the facts come from a Roslyn semantic model, never from grep):
 How:
   1. a DETACHED worktree at the commit (default HEAD) — a record describes exactly one tree, never a dirty one;
   2. `dotnet build WiseOwl.Cobol.sln -c Debug` there (the population check reads the BUILT assemblies);
-  3. the Roslyn host `tools/ArchCensus` (built from THIS checkout, so an older commit can be measured) loads the
-     solution through MSBuildWorkspace and writes the raw facts; it REFUSES a solution whose projects the scope does
-     not partition, a workspace load failure, and a compilation with errors;
+  3. the Roslyn host `tools/ArchCensus` (built from THIS checkout, so an older commit can be measured) first runs its
+     rule fixtures (`--self-test`: every arm of the declaration-judged reach rules on planted source; a failure FAILS
+     the run), then loads the solution through MSBuildWorkspace and writes the raw facts; it REFUSES a solution whose
+     projects the scope does not partition, a workspace load failure, and a compilation with errors;
   4. THE POPULATION CHECK: for every census project, the types the census saw must equal the type definitions of the
      built assembly (read from its metadata by a reader independent of the workspace) — a skipped project, document
      or source generator is a FAILED run, never a smaller census;
@@ -707,6 +708,9 @@ def measure(commit: str, work: Path, out_dir: Path) -> Path:
         run_logged(["dotnet", "build", str(REPO / HOST), "-c", "Release", "-o", str(host), "-v", "quiet"], REPO,
                    logs / "host-build.log")
         print(f"census: built in {time.time() - t0:.0f}s", flush=True)
+        # The host's rule fixtures (kb/Work PB2744, tools/ArchCensus/RuleFixtures.cs): a rule that stopped matching its
+        # planted members fails the run here, before it measures anything.
+        run_logged(["dotnet", str(host / "ArchCensus.dll"), "--self-test"], REPO, logs / "host-self-test.log")
         scope_file = work / "scope.json"
         scope_file.write_text(json.dumps(scope), encoding="utf-8", newline="\n")
         raw_file = work / "raw.json"

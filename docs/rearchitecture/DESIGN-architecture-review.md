@@ -2212,7 +2212,12 @@ code and pass this one. A grammar wave needs §4 item 3 built
 use is one of three things, and the Delete program decides each family by this rule: (a) **a table's enumeration**
 (`All`, `Rows`, `Catalog`, `Owners`, `Level3Rows`, `StandardModes`, `LiteralOnlySlots`, `MixedRules`, `TableCount`,
 `RangeCount`, `MappingCount`, about twenty of the 67 by name) is the drift tests' observation surface over data and
-KEEPS — the census's `test-only` rule gains that exclusion so it stops reporting them; (b) **a seam that exists for
+KEEPS — the census reports such a member `table-enumeration`, never `test-only` (kb/Work PB2744:
+`tools/ArchCensus/TableEnumeration.cs`, judged only once a test is confirmed its one user: a STATIC read-only collection
+field or property, never a string, is a table's rows; a get-only `*Count` whose whole getter is the `Count`, `Length` or
+`*Count` of its own type's field or property is its size; an instance collection, a counter field and a computed count
+stay `test-only` for (b) and (c); `ArchCensus --self-test` pins each arm on planted source, and the census runs it
+before it measures); (b) **a seam that exists for
 observation** (`ResetForTests`, `ClearCache`, `HostConfiguration`) moves to the test project as a helper over product
 state where the product allows it, and is otherwise renamed to say it is a seam; (c) **the rest is dead product code a
 test keeps alive** and is deleted with the tests that test only it, as the findings' own target says. R2's Opus

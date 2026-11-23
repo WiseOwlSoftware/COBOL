@@ -14,7 +14,8 @@ namespace WiseOwl.Cobol.Tools.ArchCensus;
 /// <list type="bullet">
 /// <item>a STATED exclusion rule (<see cref="Rules"/>) when something the reference query cannot see reaches it — a
 /// runtime dispatch, an implicit call, reflection, emitted program text, a synthesized record or enum member;</item>
-/// <item><c>test-only</c> when only a test project uses it;</item>
+/// <item><c>test-only</c> when only a test project uses it, unless it is a table's rows or size
+/// (<see cref="TableEnumeration"/>), which is <c>table-enumeration</c>;</item>
 /// <item><c>unreferenced</c> otherwise.</item>
 /// </list>
 /// Every <c>test-only</c> and <c>unreferenced</c> answer is CONFIRMED by an independent query
@@ -46,6 +47,10 @@ internal sealed class Reachability(LoadedSolution solution, TypeInventory invent
                                 + "Deconstruct read it",
         ["enum-member"] = "an enum member: its NAME is reachable through ToString, Parse and interpolation, which no "
                           + "reference query sees",
+        ["table-enumeration"] = "a member only tests use that exposes a data table's rows (a static read-only collection "
+                                + "field or property) or its size (a *Count getter that is the Count, Length or *Count of "
+                                + "its own type's member): the drift tests' observation surface over the table, which "
+                                + "keeps (DESIGN-architecture-review section 8.7, the test-only judgment, item (a))",
     };
 
     private static readonly string[] ReflectionAttributes =
@@ -107,7 +112,10 @@ internal sealed class Reachability(LoadedSolution solution, TypeInventory invent
                     return;
                 }
 
-                reach = found is Origin.Test ? "test-only" : "unreferenced";
+                // ⛔ A table's enumeration is judged only once a test is CONFIRMED its one user (kb/Work PB2744): a table
+                // nothing reads at all is dead, and stays unreferenced.
+                reach = found is not Origin.Test ? "unreferenced"
+                    : TableEnumeration.Is(p.Member) ? "table-enumeration" : "test-only";
             }
 
             (string file, int line, int lines) = Where(p.Member.DeclaringSyntaxReferences);
