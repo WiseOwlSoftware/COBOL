@@ -48,7 +48,7 @@ internal sealed record FromPhraseRules(
     EditionCite MoveRule,
     PicCategory[]? FunctionCategories,
     EditionCite? FunctionRuleCite,
-    string? ZeroLengthLiteralRuleCite,
+    EditionCite? ZeroLengthLiteralRuleCite,
     RecordAreaVerb AreaVerb,
     bool IntrinsicOnlyBefore2014 = false)
 {
@@ -66,12 +66,18 @@ internal sealed record FromPhraseRules(
     /// <summary>RELEASE (ISO §2023:14.9.32) — the only FROM phrase carrying the zero-length-literal rule.</summary>
     public static readonly FromPhraseRules Release = new(
         "RELEASE FROM",
-        new("ISO §2023:14.9.32.4 GR4 a); §2023:14.9.32.3 SR3", "§1985:XI.4.2.4 GR3"),
+        new("ISO §2023:14.9.32.4 GR4 a); §2023:14.9.32.3 SR3", "§1985:XI.4.2.4 GR3",
+            Iso2002: "ISO §2002:14.8.30.3 GR4 a); §2002:14.8.30.2 SR3", Iso2014: "ISO §2014:14.9.30.3 GR4 a); §2014:14.9.30.2 SR3"),
         [PicCategory.Alphanumeric, PicCategory.National],
         new("ISO §2023:14.9.32.3 SR2 — \"If identifier-1 is a function-identifier, it shall reference an alphanumeric or "
             + "national function.\"",
-            "§1985:XI.4.2.3 SR3 — " + Alphanumeric1985),
-        "ISO §2023:14.9.32.3 SR4 — \"Literal-1 shall not be a zero-length literal.\"",
+            "§1985:XI.4.2.3 SR3 — " + Alphanumeric1985,
+            Iso2002: "ISO §2002:14.8.30.2 SR2 — \"If identifier-1 is a function-identifier, it shall reference an alphanumeric or "
+            + "national function.\"",
+            Iso2014: "ISO §2014:14.9.30.2 SR2 — \"If identifier-1 is a function-identifier, it shall reference an alphanumeric or "
+            + "national function.\""),
+        new("ISO §2023:14.9.32.3 SR4 — \"Literal-1 shall not be a zero-length literal.\"",
+            Iso2014: "ISO §2014:14.9.30.2 SR4 — \"Literal-1 shall not be a zero-length literal.\""),
         RecordAreaVerb.Release);
 
     /// <summary>WRITE (ISO §2023:14.9.51). §2023:14.9.51.3 SR4 is UNCONDITIONAL and stricter than the FILE-less SR11
@@ -79,12 +85,17 @@ internal sealed record FromPhraseRules(
     /// which is what is enforced. The FILE phrase has its own row, <see cref="WriteFile"/>.</summary>
     public static readonly FromPhraseRules Write = new(
         "WRITE FROM",
-        new("ISO §2023:14.9.51.4 GR5a; §2023:14.9.51.3 SR6", "§1985:VII.4.7.4 GR3", "§1985:VIII.4.9.4 GR3", "§1985:IX.4.9.4 GR3"),
+        new("ISO §2023:14.9.51.4 GR5a; §2023:14.9.51.3 SR6", "§1985:VII.4.7.4 GR3", "§1985:VIII.4.9.4 GR3", "§1985:IX.4.9.4 GR3",
+            Iso2002: "ISO §2002:14.8.47.3 GR3 a); §2002:14.8.47.2 SR6", Iso2014: "ISO §2014:14.9.47.3 GR3 a); §2014:14.9.47.2 SR6"),
         [PicCategory.Alphanumeric, PicCategory.National],
         new("ISO §2023:14.9.51.3 SR4 — \"If identifier-1 is a function-identifier, it shall reference an alphanumeric or "
             + "national function.\"",
             "§1985:VII.4.7.3 SR1 — " + Alphanumeric1985, "§1985:VIII.4.9.3 SR1 — " + Alphanumeric1985,
-            "§1985:IX.4.9.3 SR1 — " + Alphanumeric1985),
+            "§1985:IX.4.9.3 SR1 — " + Alphanumeric1985,
+            Iso2002: "ISO §2002:14.8.47.2 SR4 — \"If identifier-1 is a function-identifier, it shall reference an alphanumeric, "
+            + "or national function.\"",
+            Iso2014: "ISO §2014:14.9.47.2 SR4 — \"If identifier-1 is a function-identifier, it shall reference an alphanumeric or "
+            + "national function.\""),
         null,
         RecordAreaVerb.Write);
 
@@ -93,9 +104,13 @@ internal sealed record FromPhraseRules(
     /// the FILE phrase, is the same (kb/Work PB5579).</summary>
     public static readonly FromPhraseRules WriteFile = new(
         "WRITE FILE FROM",
-        new("ISO §2023:14.9.51.4 GR8 (§2002:14.8.47.3 GR5)"),
+        new("ISO §2023:14.9.51.4 GR8", Iso2002: "ISO §2002:14.8.47.3 GR5", Iso2014: "ISO §2014:14.9.47.3 GR6"),
         [PicCategory.Alphanumeric, PicCategory.National],
-        new("ISO §2023:14.9.51.3 SR10 (§2002:14.8.47.2 SR10) — \"If identifier-1 references a function and the FILE phrase is "
+        new("ISO §2023:14.9.51.3 SR10 — \"If identifier-1 references a function and the FILE phrase is "
+            + "specified, identifier-1 shall reference an alphanumeric or national function.\"",
+            Iso2002: "ISO §2002:14.8.47.2 SR10 — \"If identifier-1 references an intrinsic function and the FILE phrase is "
+            + "specified, identifier-1 shall reference an alphanumeric or national function.\"",
+            Iso2014: "ISO §2014:14.9.47.2 SR10 — \"If identifier-1 references a function and the FILE phrase is "
             + "specified, identifier-1 shall reference an alphanumeric or national function.\""),
         null,
         RecordAreaVerb.Write);
@@ -104,9 +119,13 @@ internal sealed record FromPhraseRules(
     /// SR9's (which admits a boolean function) because the FILE phrase is written (kb/Work PB5579).</summary>
     public static readonly FromPhraseRules RewriteFile = new(
         "REWRITE FILE FROM",
-        new("ISO §2023:14.9.35.4 GR9 (§2002:14.8.33.3 GR8)"),
+        new("ISO §2023:14.9.35.4 GR9", Iso2002: "ISO §2002:14.8.33.3 GR8", Iso2014: "ISO §2014:14.9.33.3 GR8"),
         [PicCategory.Alphanumeric, PicCategory.National],
-        new("ISO §2023:14.9.35.3 SR8 (§2002:14.8.33.2 SR8) — \"If identifier-1 references a function and the FILE phrase is "
+        new("ISO §2023:14.9.35.3 SR8 — \"If identifier-1 references a function and the FILE phrase is "
+            + "specified, identifier-1 shall reference an alphanumeric or national function.\"",
+            Iso2002: "ISO §2002:14.8.33.2 SR8 — \"If identifier-1 references an intrinsic function and the FILE phrase is "
+            + "specified, identifier-1 shall reference an alphanumeric or national function.\"",
+            Iso2014: "ISO §2014:14.9.33.2 SR7 — \"If identifier-1 references a function and the FILE phrase is "
             + "specified, identifier-1 shall reference an alphanumeric or national function.\""),
         null,
         RecordAreaVerb.Rewrite,
@@ -117,12 +136,17 @@ internal sealed record FromPhraseRules(
     /// <see cref="RewriteFile"/>.</summary>
     public static readonly FromPhraseRules Rewrite = new(
         "REWRITE FROM",
-        new("ISO §2023:14.9.35.4 GR7a; §2023:14.9.35.3 SR6", "§1985:VII.4.5.4 GR4", "§1985:VIII.4.6.4 GR5", "§1985:IX.4.6.4 GR5"),
+        new("ISO §2023:14.9.35.4 GR7a; §2023:14.9.35.3 SR6", "§1985:VII.4.5.4 GR4", "§1985:VIII.4.6.4 GR5", "§1985:IX.4.6.4 GR5",
+            Iso2002: "ISO §2002:14.8.33.3 GR6 a); §2002:14.8.33.2 SR6", Iso2014: "ISO §2014:14.9.33.3 GR6 a); §2014:14.9.33.2 SR5"),
         [PicCategory.Alphanumeric, PicCategory.Boolean, PicCategory.National],
-        new("ISO §2023:14.9.35.3 SR9 (§2002:14.8.33.2 SR9) — \"If identifier-1 references a function and the FILE phrase is not specified, "
+        new("ISO §2023:14.9.35.3 SR9 — \"If identifier-1 references a function and the FILE phrase is not specified, "
             + "identifier-1 shall reference an alphanumeric, boolean, or national function.\"",
             "§1985:VII.4.5.3 SR1 — " + Alphanumeric1985, "§1985:VIII.4.6.3 SR1 — " + Alphanumeric1985,
-            "§1985:IX.4.6.3 SR1 — " + Alphanumeric1985),
+            "§1985:IX.4.6.3 SR1 — " + Alphanumeric1985,
+            Iso2002: "ISO §2002:14.8.33.2 SR9 — \"If identifier-1 references an intrinsic function and the FILE phrase is not "
+            + "specified, identifier-1 shall reference an alphanumeric, boolean, or national function.\"",
+            Iso2014: "ISO §2014:14.9.33.2 SR8 — \"If identifier-1 references a function and the FILE phrase is not specified, "
+            + "identifier-1 shall reference an alphanumeric, boolean, or national function.\""),
         null,
         RecordAreaVerb.Rewrite,
         IntrinsicOnlyBefore2014: true);
@@ -499,7 +523,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
         // BoundStringLiteral test ControlFlowBinder applies to the STOP RUN / GOBACK status literal. ──
         if (rules.ZeroLengthLiteralRuleCite is { } zlCite && source is BoundStringLiteral { Value.Length: 0 })
             ctx.Edition.Error(DiagnosticCatalog.FromPhraseZeroLengthLiteral,
-                $"{rules.Statement}: {zlCite}");
+                $"{rules.Statement}: {zlCite.At(ctx.Edition.DialectLevel, file.Organization)}");
 
         return BindMoveOf(source, [record], rules.PhraseAt(ctx.Edition.DialectLevel, file.Organization));
     }

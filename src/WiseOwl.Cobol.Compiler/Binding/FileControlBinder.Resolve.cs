@@ -207,7 +207,9 @@ public sealed partial class FileControlBinder
             + "is a table element reference, which "
             + (Edition.Edition.Cite(
                 $"must be subscripted, and data-name-1 is written without a subscript ({ClauseOperandRules1985.TableElementSubscripted.Citation})",
-                "shall be subscripted, and data-name-1 is written without a subscript (ISO §2023:8.4.2.3.3 SR5)")));
+                "shall be subscripted, and data-name-1 is written without a subscript (ISO §2023:8.4.2.3.3 SR5)",
+                y2002: "shall be subscripted, and data-name-1 is written without a subscript (ISO §2002:8.4.1.2.2 SR5)",
+                y2014: "shall be subscripted, and data-name-1 is written without a subscript (ISO §2014:8.4.1.2.2 SR5)")));
         return false;
     }
 

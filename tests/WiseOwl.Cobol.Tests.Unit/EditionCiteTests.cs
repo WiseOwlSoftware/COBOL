@@ -60,6 +60,31 @@ public sealed class EditionCiteTests
         Assert.DoesNotContain("§1985", rules.FunctionRuleCite.At(2002, organization));
     }
 
+    /// <summary>⛔ kb/Work PB6072: from 2002 the FROM function-class rule and the MOVE rule of each verb are cited by the number and
+    /// words of the edition compiled, not the 2023 locator with a 2002 number beside it. The 2002 REWRITE and WRITE FILE texts restrict an
+    /// INTRINSIC function and the 2002 WRITE text writes "alphanumeric, or national", so the quotation must be each edition's own.</summary>
+    [Theory]
+    [InlineData("WRITE", 2002, "ISO §2002:14.8.47.2 SR4 — \"If identifier-1 is a function-identifier, it shall reference an alphanumeric, or national function.\"")]
+    [InlineData("WRITE", 2014, "ISO §2014:14.9.47.2 SR4 — \"If identifier-1 is a function-identifier, it shall reference an alphanumeric or national function.\"")]
+    [InlineData("WRITE", 2023, "ISO §2023:14.9.51.3 SR4 — \"If identifier-1 is a function-identifier, it shall reference an alphanumeric or national function.\"")]
+    [InlineData("REWRITE", 2002, "ISO §2002:14.8.33.2 SR9 — \"If identifier-1 references an intrinsic function and the FILE phrase is not specified, identifier-1 shall reference an alphanumeric, boolean, or national function.\"")]
+    [InlineData("REWRITE", 2014, "ISO §2014:14.9.33.2 SR8 — \"If identifier-1 references a function and the FILE phrase is not specified, identifier-1 shall reference an alphanumeric, boolean, or national function.\"")]
+    [InlineData("REWRITE", 2023, "ISO §2023:14.9.35.3 SR9 — \"If identifier-1 references a function and the FILE phrase is not specified, identifier-1 shall reference an alphanumeric, boolean, or national function.\"")]
+    [InlineData("RELEASE", 2002, "ISO §2002:14.8.30.2 SR2 — \"If identifier-1 is a function-identifier, it shall reference an alphanumeric or national function.\"")]
+    [InlineData("RELEASE", 2014, "ISO §2014:14.9.30.2 SR2 — \"If identifier-1 is a function-identifier, it shall reference an alphanumeric or national function.\"")]
+    public void FromFunctionRule_From2002_IsTheEditionsOwnRule(string verb, int dialectLevel, string expected) =>
+        Assert.Equal(expected, FromRules(verb).FunctionRuleCite!.At(dialectLevel, FileOrganization.Sequential));
+
+    [Theory]
+    [InlineData("WRITE", 2002, "ISO §2002:14.8.47.3 GR3 a); §2002:14.8.47.2 SR6")]
+    [InlineData("WRITE", 2014, "ISO §2014:14.9.47.3 GR3 a); §2014:14.9.47.2 SR6")]
+    [InlineData("REWRITE", 2002, "ISO §2002:14.8.33.3 GR6 a); §2002:14.8.33.2 SR6")]
+    [InlineData("REWRITE", 2014, "ISO §2014:14.9.33.3 GR6 a); §2014:14.9.33.2 SR5")]
+    [InlineData("RELEASE", 2002, "ISO §2002:14.8.30.3 GR4 a); §2002:14.8.30.2 SR3")]
+    [InlineData("RELEASE", 2014, "ISO §2014:14.9.30.3 GR4 a); §2014:14.9.30.2 SR3")]
+    public void FromMoveRule_From2002_IsTheEditionsOwnRule(string verb, int dialectLevel, string expected) =>
+        Assert.Equal(expected, FromRules(verb).MoveRule.At(dialectLevel, FileOrganization.Sequential));
+
     private static WiseOwl.Cobol.Binding.Procedure.FromPhraseRules FromRules(string verb) => verb switch
     {
         "WRITE" => WiseOwl.Cobol.Binding.Procedure.FromPhraseRules.Write,
