@@ -1,6 +1,9 @@
       *>--- conformance-case
       *> id: qualified_unique_match
-      *> rules: [SR-8.4.2.2.3-2, SR-8.4.2.2.3-3, FMT-8.4.2.2.2]
+      *> rules: [SR-8.4.2.2.3-2, SR-8.4.2.2.3-3, FMT-8.4.2.2.2,
+      *>    1985-SR-IV.4.3.8.1-L2.2, 1985-SR-IV.4.3.8.1-L2.3,
+      *>    1985-SR-IV.4.3.8.1-L2.4, 1985-SR-IV.4.3.8.1-L2.5,
+      *>    1985-SR-IV.4.3.8.5.3-1]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

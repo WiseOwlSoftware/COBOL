@@ -1,6 +1,7 @@
       *>--- conformance-case
       *> id: pb1557_full_alphabet_ordinals_85
-      *> rules: [SR-12.3.7.3-14, GR-12.3.7.4-7]
+      *> rules: [SR-12.3.7.3-14, GR-12.3.7.4-7, 1985-SR-VI.4.5.3-3,
+      *>    1985-SR-VI.4.5.3-4]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

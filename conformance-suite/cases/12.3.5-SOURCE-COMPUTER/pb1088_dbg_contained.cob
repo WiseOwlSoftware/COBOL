@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb1088_dbg_contained
-      *> rules: [GR-12.3.5.4-1]
+      *> rules: [GR-12.3.5.4-1, 1985-GR-VI.4.3.4-1]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

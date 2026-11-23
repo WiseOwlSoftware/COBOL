@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb732_value_symbolic_character
-      *> rules: [GR-8.3.3.6.4-10]
+      *> rules: [GR-8.3.3.6.4-10, 1985-GR-IV.4.2.2.2.3-7]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

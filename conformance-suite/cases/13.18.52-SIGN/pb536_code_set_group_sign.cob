@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb536_code_set_group_sign
-      *> rules: [SR-13.18.52.3-3, GR-13.18.52.4-1]
+      *> rules: [SR-13.18.52.3-3, GR-13.18.52.4-1, 1985-SR-VI.5.12.3-3]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

@@ -1,6 +1,7 @@
       *>--- conformance-case
       *> id: pb5789_page_heading_relative_after_rh_85
-      *> rules: [1985-GR-XIII.3.10.7-1, 1985-GR-XIII.3.10.7-3, 1985-GR-XIII.3.10.7-4]
+      *> rules: [1985-GR-XIII.3.10.7-1, 1985-GR-XIII.3.10.7-3,
+      *>    1985-GR-XIII.3.10.7-4, 1985-GR-XIII.3.10.7-p1]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

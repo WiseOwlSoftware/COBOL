@@ -1,6 +1,7 @@
       *>--- conformance-case
       *> id: pb5473-copy-every-text-qualified
-      *> rules: [1985-SR-XII.2.3-1]
+      *> rules: [1985-SR-XII.2.3-1, 1985-GR-IV.4.2.2.1.1-9,
+      *>    1985-SR-IV.4.3.8.1-L2.7]
       *> accept: [85]
       *> files: [PB5473TX.cpy, PB5473LA/PB5473TX.cpy, PB5473LB/PB5473TY.cpy]
       *> source-format: fixed

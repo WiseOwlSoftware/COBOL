@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb1263_occurs_key_items_admitted
-      *> rules: [SR-13.18.38.3-4, SR-13.18.38.3-6]
+      *> rules: [SR-13.18.38.3-4, SR-13.18.38.3-6, 1985-SR-VI.5.8.3-11]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

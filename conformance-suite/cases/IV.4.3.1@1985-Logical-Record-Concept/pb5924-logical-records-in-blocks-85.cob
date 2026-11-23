@@ -1,6 +1,8 @@
       *>--- conformance-case
       *> id: pb5924-logical-records-in-blocks-85
-      *> rules: [1985-GR-IV.4.3.1.2-p4]
+      *> rules: [1985-GR-IV.4.3.1.2-p4, 1985-GR-IV.4.3.1-p1,
+      *>    1985-GR-IV.4.3.1.1-p1, 1985-GR-IV.4.3.1.2-p1,
+      *>    1985-GR-IV.4.3.1.2-p2, 1985-GR-IV.4.3.1.2-p3]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

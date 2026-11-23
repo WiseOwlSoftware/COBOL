@@ -1,86 +1,66 @@
 {
  "rule-id": "1985-GR-VI.6.27.4-19",
- "rule-digest": "986d0e2eef1e",
+ "rule-digest": "37de7943a4a3",
  "read": {
-  "pin": "d6154060822ed60ab891c9200bb97d2d2915558c",
-  "slice": "1985-02",
+  "pin": "a012d507517aa6f1a337c1a60204f25bb9c10e5b",
+  "slice": "1985-c07",
   "sources": {
-   "reader": "947391f858415b91571413850b8dfa4d67aafeca9bcd46000d5d84a7f2418a24",
-   "refuter": "907717b7e6c40c57a172ea394fbfbec32a5c3910046b2600f5383a0707419c6d"
+   "reader": "57aecac6978246c4426329e186db64916e3d119f74f408c0d78f52ebd7fc56b5",
+   "refuter": "fb0ae45b7f80ed3b0c735d05dbb731791be1d07fa94c74ba95495c4ff2cba983"
   },
   "imported": {
-   "reader": "639f3c5a9b63cbc71c50a2dcedaa16662e926e50652acef4115d1e5a07371476",
-   "refuter": "d48eb1b02c3c13a30ee0600a9cba998957bc86e961c94f26fbc47933fa8c6a4f"
+   "reader": "247ec7765f9a848eeeb25cca56d498cce835ed26517036a9cea12226f9088fc8",
+   "refuter": "e7e27c04f827533a70740cf50c96579bbfc130b200acda35657522e4bbbd6e38"
   }
  },
  "reader": {
   "rule-id": "1985-GR-VI.6.27.4-19",
   "verdict": "CONFORMS",
-  "requirement": "At --std 85, END-UNSTRING must end the UNSTRING statement it follows (per §1985:IV.6.4.3: the most recently preceding unterminated UNSTRING when they nest), so that the ON OVERFLOW / NOT ON OVERFLOW imperative statements stop at it, the statements after it run whatever the overflow outcome and belong to the enclosing statement (IF branch, SIZE ERROR phrase, in-line PERFORM, an outer UNSTRING's phrase), a later conditional phrase cannot attach to the terminated UNSTRING, and an END-UNSTRING with no unterminated UNSTRING is refused.",
-  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#unstringStatement; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#conditionalPhrases; src/WiseOwl.Cobol.Frontend/Parsing/CobolParserCoreBase.cs#conditionalPhraseAssociates; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring",
+  "requirement": "END-UNSTRING must close the UNSTRING statement it pairs with, whatever conditional phrases (none, ON OVERFLOW, NOT ON OVERFLOW, both) it carries, so statements after it belong to the enclosing scope, a nested UNSTRING inside an overflow phrase is closed by its own END-UNSTRING, and an END-UNSTRING with no open UNSTRING is refused.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#unstringStatement; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#conditionalPhrases; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitUnstring",
   "edition-consulted": [
    {
-    "site": "src/WiseOwl.Cobol.Editions/ReservedWords.Table.cs#Entries",
-    "switches": "END-UNSTRING is reserved at all four editions (row 'continuous since 1985')",
-    "same-arm-as-latest": true
-   },
-   {
     "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitConditionalPhrases",
-    "switches": "Constructs.ConditionalPhrasesAnyOrder2002: at 85 NOT ON OVERFLOW written before ON OVERFLOW is refused (COBOL0900); the scope the terminator closes is not switched",
-    "same-arm-as-latest": false
-   },
-   {
-    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitUnstringStatement",
-    "switches": "Constructs.UnstringSenderReferenceModified2002 (a reference-modified sender), unrelated to the scope terminator",
+    "switches": "conditional-phrases-any-order-2002: ON OVERFLOW written after NOT ON OVERFLOW is refused at 85 (COBOL0900); not the scope terminator",
     "same-arm-as-latest": false
    }
   ],
-  "edition-search": "grep -rn 'END-UNSTRING|END_UNSTRING|EndUnstring' over src (excluding Generated, bin, obj): the lexer token, the grammar's optional END_UNSTRING in unstringStatement, the reserved-word row, and binder comments; grep -n UNSTRING in VersionConformancePass.cs: the ref-mod sender gate and the conditional-phrase order gate. The parse of the terminator itself is edition-blind; 85 takes the latest edition's grammar arm.",
-  "behaviour-differs-by-edition": "no (for the scope END-UNSTRING closes; only the order of the two OVERFLOW phrases inside the scope differs: 85 requires ON OVERFLOW first)",
-  "witnesses-cover": "part: l1c35 and pb1183 use END-UNSTRING only as a plain terminator; not exercised: statements after END-UNSTRING running in both overflow outcomes, a nested UNSTRING inside ON OVERFLOW whose END-UNSTRING closes only the inner, the delimited-scope UNSTRING as the imperative of IF and ON SIZE ERROR, inside an in-line PERFORM, and the refusals of a stray or doubled END-UNSTRING and a phrase after it.",
+  "edition-search": "grep of the unstringStatement / conditionalPhrases grammar and StringEmitter.EmitUnstring for Edition|Dialect|ConstructRegistry: END_UNSTRING is parsed and scoped by the grammar with no edition switch",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: l1c35_unstring_receiving_operands covers END-UNSTRING on a plain statement; nesting inside an overflow phrase, use inside IF and PERFORM, and the orphan END-UNSTRING are not exercised",
   "probes": [
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-02/r6/p6.cob",
-    "printed": "T1-OVF / T1-AFTER AABB; T2-NOT / T2-AFTER DD; T3-OUTER-OVF-TAIL / T3-AFTER (inner END-UNSTRING closed the inner only; the NOT ON OVERFLOW went to the outer); T4-OVF / T4-IN-IF; T5-OVF / T5-SIZE-TAIL / T5-AFTER; T6-1 CC / T6-2 CC; T7-OVF / T7-A",
-    "expected": "§1985:VI.6.27.4 GR19 and §1985:IV.6.4.3: each END-UNSTRING ends the most recent unterminated UNSTRING; what follows belongs to the containing statement and runs in both outcomes"
+    "file": "E:/COBOL-coord/scratch/w20262138/coderead/probes-c07/src/us1.cob",
+    "printed": "S1 OVF / S1 AFTER IN IF; S2 NOOVF / S2 INNER OVF / S2 STILL IN NOT ON / S2 AFTER OUTER; S3 OVF P0 / S3 AFTER; S4 AAABBBCCC; S5 OVF / S5 AAA (inside an inline PERFORM)",
+    "expected": "each END-UNSTRING closes only its own UNSTRING; the statements after it run in the enclosing IF or PERFORM"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-02/r6/p6a.cob",
-    "printed": "error COBOL0306: unexpected 'END-UNSTRING'. END-UNSTRING appears without a matching UNSTRING statement.",
-    "expected": "a stray END-UNSTRING is refused"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-02/r6/p6b.cob",
-    "printed": "error COBOL0306 at the second END-UNSTRING; exit=65",
-    "expected": "the second terminator has no unterminated UNSTRING"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-02/r6/p6c.cob",
-    "printed": "error COBOL2269: unexpected 'ON'. The UNSTRING statement ends before this token; exit=65",
-    "expected": "after END-UNSTRING no conditional phrase can attach to the terminated statement"
+    "file": "E:/COBOL-coord/scratch/w20262138/coderead/probes-c07/src/us2.cob",
+    "printed": "COBOL0306: END-UNSTRING appears without a matching UNSTRING statement",
+    "expected": "refused"
    },
    {
     "class": "c",
-    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-02/r6/p6d.cob",
-    "printed": "--std 85: error COBOL0900 (ON OVERFLOW after NOT ON OVERFLOW requires COBOL-2002); --std 2002: OVF / AFTER",
-    "expected": "the 1985 format prints ON OVERFLOW before NOT ON OVERFLOW; the later any-order rule is refused at 85"
+    "file": "E:/COBOL-coord/scratch/w20262138/coderead/probes-c07/src/us3.cob",
+    "printed": "COBOL0900: ON OVERFLOW after NOT ON OVERFLOW requires COBOL-2002 (§1985:IV.2.1)",
+    "expected": "refused at 85: the 1985 format prints ON OVERFLOW first"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/w20262138/coderead/probes-c07/src/us4.cob",
+    "printed": "OV / AFTER INNER STILL IN OUTER OV (an inner UNSTRING in the outer ON OVERFLOW closed by the one END-UNSTRING)",
+    "expected": "END-UNSTRING pairs with the innermost UNSTRING; the DISPLAY stays in the outer ON OVERFLOW phrase"
    }
   ],
   "citations": [
    {
     "cite": "§1985:VI.6.27.4 GR19",
-    "check": "OK  §1985:VI.6.27.4 GR19  (║6.27.4 General Rules║)  the text is in GR19"
-   },
-   {
-    "cite": "§1985:IV.6.4.3",
-    "check": "OK  §1985:IV.6.4.3  (6.4.3 Scope of Statements)  the text is in the clause"
+    "check": "OK  §1985:VI.6.27.4 GR19  the text is in the clause or rule: \"The END-UNSTRING phrase delimits the scope of the UNSTRING statement\""
    }
   ],
-  "notes": "The grammar's unstringStatement ends with an optional END_UNSTRING after the shared conditionalPhrases loop, whose association predicate gives each phrase to the nearest unterminated statement; nesting, the IF/SIZE ERROR/PERFORM containers and the refusals all matched the 1985 scope rules. The only 85-specific arm on the path is the phrase-order gate, which also behaved as the 1985 format requires.",
+  "notes": "The grammar makes END_UNSTRING the optional last element of unstringStatement after conditionalPhrases, so the parser pairs it with the innermost open UNSTRING; the probes confirm nesting in IF, PERFORM and an overflow phrase.",
   "seeded": true,
   "harm": "",
   "cause": "",
@@ -93,8 +73,8 @@
  "refuter": {
   "rule-id": "1985-GR-VI.6.27.4-19",
   "refutation": "UPHELD",
-  "classes": "b,d",
-  "evidence": "Read §1985:VI.6.27.4 GR19 and §1985:IV.6.4.3 Scope of Statements (the most-recent-unterminated-verb rule and the nearest-unterminated-statement rule for conditional phrases). Probe s6/u1.cob at --std 85, aimed at containers the reader did not try: an UNSTRING ... ON OVERFLOW ... END-UNSTRING inside a STRING's ON OVERFLOW phrase followed by the STRING's NOT ON OVERFLOW (same phrase keyword, different verb: the NOT ON OVERFLOW must go to the STRING); a delimited-scope UNSTRING in an IF's THEN followed by ELSE, and in an ELSE followed by END-IF; an UNSTRING whose pointer starts beyond the sender (overflow at once) with an IF/ELSE/END-IF inside ON OVERFLOW and a NOT ON OVERFLOW after it. Printed V1-U-OVF / V1-S-OVF-TAIL / V1-AFTER / V2-OVF / V2-THEN-TAIL / V3-NOT / V3-ELSE-TAIL / V4-PTR-OVF / V4-AFTER, exit=0: every terminator closed exactly its UNSTRING and each following statement ran in the enclosing phrase. No 1985-only form of the terminator exists; the reader's phrase-order gate (COBOL0900) covers the later edition's any-order form. cite.py: OK §1985:VI.6.27.4 GR19 (the text is in GR19); OK §1985:IV.6.4.3 (6.4.3 Scope of Statements) the text is in the clause.",
+  "classes": "b,c",
+  "evidence": "Probe probes-refute-c07/src/ru1.cob at --std 85 (runs/ru1-002, EXIT 0): UNSTRING ... END-UNSTRING used as the imperative of ADD ON SIZE ERROR, followed by a DISPLAY still in that phrase (U1 IN SIZE ERROR AAA); an UNSTRING with ON OVERFLOW and no END-UNSTRING inside IF ... ELSE, closed by ELSE (U2 OVF / U2 AFTER); an inner UNSTRING ... END-UNSTRING in an outer ON OVERFLOW followed by a statement in that phrase, with the outer NOT ON OVERFLOW after it (U3 STILL IN OUTER). The reversed phrase order is refused COBOL0900 at 85 (ru1-001). cite.py: 'OK  §1985:VI.6.27.4 GR19 ... The END-UNSTRING phrase delimits the scope of the UNSTRING statement.'",
   "edition-sites-missed": [],
   "corrected": ""
  }

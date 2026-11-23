@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: l1c15_initial_container_resets_nested
-      *> rules: [GR-14.6.2.3.2-2]
+      *> rules: [GR-14.6.2.3.2-2, 1985-GR-X.2.4.2-4, 1985-GR-X.3.1.4-3]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

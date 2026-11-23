@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: l1c29_sort_through_thru_equivalent
-      *> rules: [SR-14.9.40.3-7]
+      *> rules: [SR-14.9.40.3-7, 1985-SR-XI.4.4.3-5]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

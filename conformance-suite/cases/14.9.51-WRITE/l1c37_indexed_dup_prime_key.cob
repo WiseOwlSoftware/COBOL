@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: l1c37_indexed_dup_prime_key
-      *> rules: [GR-14.9.51.4-36]
+      *> rules: [GR-14.9.51.4-36, 1985-GR-IX.4.9.4-12]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

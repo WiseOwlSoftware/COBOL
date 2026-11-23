@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: l1c32_index_name_relation
-      *> rules: [GR-8.8.4.2.13-1]
+      *> rules: [GR-8.8.4.2.13-1, 1985-GR-VI.6.3.1.1.3-1]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

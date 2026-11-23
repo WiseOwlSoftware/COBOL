@@ -1,6 +1,7 @@
       *>--- conformance-case
       *> id: pb444_search_next_sentence
-      *> rules: [SR-14.9.37.3-4, FMT-14.9.37.2]
+      *> rules: [SR-14.9.37.3-4, FMT-14.9.37.2, 1985-FMT-VI.6.22.2,
+      *>    1985-SR-VI.6.22.3-5]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

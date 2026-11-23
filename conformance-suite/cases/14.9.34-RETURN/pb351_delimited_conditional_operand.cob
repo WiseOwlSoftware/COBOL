@@ -1,6 +1,7 @@
       *>--- conformance-case
       *> id: pb351_delimited_conditional_operand
-      *> rules: [FMT-14.9.34.2, FMT-14.9.37.2]
+      *> rules: [FMT-14.9.34.2, FMT-14.9.37.2, 1985-FMT-VI.6.22.2,
+      *>    1985-GR-XI.4.3.4-4]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

@@ -2,7 +2,7 @@
       *> id: pb957_next_group_control_85
       *> rules: [GR-13.18.37.4-1, GR-13.18.37.4-2, GR-13.18.37.4-3,
       *>    GR-13.18.37.4-4, GR-13.18.37.4-6, GR-14.9.16.4-4,
-      *>    FMT-13.18.37.2]
+      *>    FMT-13.18.37.2, 1985-GR-XIII.3.10.2-p10]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

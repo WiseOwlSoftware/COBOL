@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb1279_redefines_within_occurs
-      *> rules: [GR-13.18.44.4-1, GR-13.18.44.4-2]
+      *> rules: [GR-13.18.44.4-1, GR-13.18.44.4-2, 1985-GR-VI.5.10.4-2]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

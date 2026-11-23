@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: l1c17_colon_separator
-      *> rules: [SR-8.3.5-7]
+      *> rules: [SR-8.3.5-7, 1985-SR-IV.4.2.1-7]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

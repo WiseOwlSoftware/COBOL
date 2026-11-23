@@ -39,8 +39,8 @@ sys.path.insert(0, str(HERE))
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
-#: Printed folio = PDF page − FRONT_MATTER (plan §0: "the `#page-N` anchors remain PDF sequence, which runs
-#: folio + 30"). Kept as a named constant because it is a fact about this document, not a magic number.
+#: Printed folio = PDF page − FRONT_MATTER: the 2023 PDF prints 30 pages of front matter before folio 1 (clause
+#: 14.2.1 heads PDF page 557, printed folio 527). A named constant because it is a fact about this document.
 FRONT_MATTER = 30
 
 

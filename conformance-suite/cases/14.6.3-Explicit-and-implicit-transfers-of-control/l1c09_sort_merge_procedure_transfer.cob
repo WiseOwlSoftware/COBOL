@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: l1c09_sort_merge_procedure_transfer
-      *> rules: [GR-14.6.3-2]
+      *> rules: [GR-14.6.3-2, 1985-GR-II.6.5.1-3, 1985-GR-IV.4.4.2-2]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

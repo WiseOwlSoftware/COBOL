@@ -1,6 +1,8 @@
       *>--- conformance-case
       *> id: pb485_level_number_legal_forms
-      *> rules: [GR-8.5.1.3.2-1, SR-13.18.33.3-3, SR-13.18.33.3-5]
+      *> rules: [GR-8.5.1.3.2-1, SR-13.18.33.3-3, SR-13.18.33.3-5,
+      *>    1985-GR-IV.4.3.2.1-1, 1985-SR-VI.5.7.3-3,
+      *>    1985-GR-VI.5.7.4-1]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

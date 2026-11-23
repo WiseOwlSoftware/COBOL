@@ -584,6 +584,7 @@ conformance-suite/
   profiles/<compiler>.json      per edition: claims with evidence, A.1 values, DISPLAY conversion, extra reserved words
   adapters/<compiler>.json      compile, run, flag and conformance commands, the driver as entry, edition map (§5)
   baselines/<compiler>.json     the compiler's recorded verdicts, per test (§5)
+  measurements/<compiler>.json  the compiler's verdicts over every test an edition's catalog rows name, and each failure's bucket and cause (§5)
   harness/                      the generator, its sibling modules, the runner
   wiseowl/diagnostics/<file>.jsonl  WiseOwl's diagnoses, one line per test (§3.2)
   wiseowl/points/<file>.json    points WiseOwl's parse credits, per test and accepted edition (§3.4); generated
@@ -607,7 +608,8 @@ tests/nist/crosswalk/<program>.json    each NIST-85 program's units and disposit
   text) is the ONE reader of blocks and `.flagged.jsonl` lines, the one writer of manifests and the one place
   refusals are raised. At 1,936 lines it is already large, so revision 3's derivations go to sibling modules that take
   the parsed tests and return facts or refusals, each with a `--self-test` and one owning slice: `casefile.py` (S5b),
-  `derive.py` (S6), `obligations.py` and `completeness.py` (S9), `placement.py` (S10-S12), `coverage.py` (S15),
+  `derive.py` (S6), `completeness.py` (S9), `obligations.py` (landed at Stage 0, cut to the held editions' catalogs: §6.1),
+  `measurements.py` (§5) and `suite_status.py` (§8; both landed at Stage 0), `placement.py` (S10-S12), `coverage.py` (S15),
   `crosswalk.py` (S17), and two tools, `reformat.py` (S8) and `group.py` (S5b's one-time migration).
 - **The refusals.** Every "refuses" in §3 and §6.3 is a generator refusal. Besides them it refuses: a syntax flag on a
   row neither FMT- nor identified-as a syntax rule; a conformance flag outside 14.8.2, 14.8.3 and 9.3.8.2.3; a test
@@ -638,7 +640,20 @@ tests/nist/crosswalk/<program>.json    each NIST-85 program's units and disposit
 
 For each edition, each row in band is counted once, under the first witness kind that holds: documented non-support,
 suite test, determination (a DOC row `docs/CONFORMANCE.md` §7 carries), derivation, WiseOwl-only, none. The old count
-read "none 0" at 85, so the report adds these axes:
+read "none 0" at 85, so the report adds these axes.
+
+**An edition whose own text is held** (1985 and 2002 today: `inputs.older`) is counted on that edition's catalog, never on
+the newest edition's rows banded at it (revision 4, kb/Work PB6047): `harness/obligations.py` counts each row once under the
+first witness kind that holds, non-support, suite (a cleared test that accepts the edition names it), determination,
+derivation, accepted-uncleared (only tests not yet cleared), refusal-only (only a test WiseOwl refuses or the suite flags),
+other-edition-only, then, for a row no header names, header-omits (its inventory `test-ref` names a test that accepts the
+edition ALONE, whose header only lacks the row: `obligations.py --repair-headers` writes it, no agent), shared-test (the
+`test-ref` tests accept another edition too, and the generator refuses a test accepted outside the band of a rule it names,
+so the row needs an edition-only test: authoring, Stage 3) and no-test (authoring). Measured at the 1985 catalog (2026-11-22, after the
+header repair): 3,109 rows, of which 9 are documented non-support and 115 derivations; of the 2,985 observable rows 24 have a
+cleared test, 2,276 only an uncleared accepted test, 340 only a refusal test, and 345 are named by no header (224
+shared-test, 121 no-test; the 302 header-omits rows were repaired, 178 headers). The 85 figures in the axes below were
+measured on the 2023 rows banded at 85 and are the 2023 suite's cut, not the 85 suite's.
 
 - **WiseOwl-only, split** into a `cases/` test at this edition not yet cleared, one at another edition only, and an xUnit
   test only. At 85 the 2,017 rows divide as 427 positive case only, 305 positive and negative, 350 negative only, 457
@@ -711,6 +726,19 @@ kb/Conformance burn-down, whose ledger page is the owner's (PB2912), so a new se
   context" (§2023:8.10) used in that context is a keyword use. So each test's `words` are its words that are none of the
   standard's, plus the names it defines that its edition does not reserve; the generator intersects them with a
   profile to build its group, and a runner does so for a solo test, reading no program.
+- **A second compiler's measurement** (kb/Work PB6054) is not its baseline. A baseline names only tests the edition's suite
+  holds (`config.check_tree` refuses any other), and Stage 2 has yet to clear most tests, so
+  `measurements/<compiler>.json` records, per held edition, the verdict of every test of `cases/` that accepts the edition
+  and whose header names a row of that edition's own text (GnuCOBOL at 85: 1,762 tests, cobc 3.2.0, PASS 1,271, FAIL 470,
+  NOT APPLICABLE 7, NO VERDICT 14) and, for each FAIL and NO VERDICT, a bucket and a cause. The bucket is mechanical (a
+  compile failure's first diagnostic, an output difference's clause folder, a hang, a crash); the cause is the adjudication,
+  one of `gnucobol-nonconformance` (with its `§1985:` citation), `non-portable-test`, `wiseowl-expectation-defect`, or
+  `unclassified` until Stage 2 decides it (211 of the 484 are, at this writing: 108 are gnucobol-nonconformance and 165 non-portable-test, kb/Work PB6054). `harness/measurements.py record` writes the file
+  from `run.py`'s `results.json` (keeping a cause already adjudicated for the same bucket) and the cleared tests' verdicts
+  into the baseline; `generate.py --check` refuses a measurement naming a test of no population, a failure with no bucket
+  or cause, a cause outside the three and a citation off the held text. The 85 run took 1,624 tests from the 2026-11-22
+  measurement (no conformance-suite file had changed since) and the 138 tests PB6048's header repair added to the
+  population from a run of their own; a changed test's record is stale until `record` is run again.
 - **Results** are JUnit XML and JSON, one result per test naming its file, totalled per edition, clause and placement
   class, INTERFERENCE apart, with CHANGES against the compiler's baseline, so a second compiler is a regression net, not
   a permanently red leg. A run is RED when a verdict differs from its record and is FAIL or NO VERDICT or was a recorded
@@ -769,7 +797,8 @@ kb/Conformance burn-down, whose ledger page is the owner's (PB2912), so a new se
 ### 6.1 Obligations: every case derived from the text
 
 `harness/obligations.py` derives each row's obligations at each edition in its band from the inventory's fields and the
-point catalog:
+point catalog (landed at Stage 0 for the held editions' catalogs: the kind's obligation and the row's witness, §4.1; the
+points are PB6050's, so its FMT obligation reads the accepted-test half until `coverage.py` exists):
 - GR or RV: an accepted test whose output shows the rule's effect;
 - AR: an accepted test, and from 2002 one observing the exception condition where the rule sets one;
 - SR: an accepted test of the legal form, plus a flagged test where `restricts` is `yes` and it is `identified-as` a
@@ -881,11 +910,17 @@ with the excluded units listed. Only then does §6 step 5 retire `tests/nist/` f
 ## 8. Order of work
 
 Revision 4 (kb/Work PB6046) orders the work in stages, COBOL-85 first (decision 4), each with a measured exit:
-0. **Measure.** `harness/suite_status.py --edition 85` and the four denominators: rows (each observable 1985 row has a
+0. **Measure.** `harness/suite_status.py --edition 85` (landed, kb/Work PB6047) and the four denominators: rows (each observable 1985 row has a
    cleared accepted test WiseOwl passes at 85), points (every alternative of every 1985 general format, decisions 1 and
    7), NIST (every unit dispositioned and subsumed, §6.3), second compiler (every cleared test has a recorded GnuCOBOL
    verdict, each FAIL classified with a citation). The line prints `=== SUITE 85: COMPLETE ===` only when all are zero
    and the 1985 transcription's second independent pass has found nothing (owner 2026-11-22).
+   The line names each term, read from its own tool: rows from `obligations.py` (the observable rows no cleared test
+   witnesses), second compiler from `measurements.py` (tests with no recorded verdict plus failures with no cause),
+   points from `coverage.py` `unmet(edition)` (PB6050), NIST from `crosswalk.py` `unmet(edition)` (PB6049) and the
+   transcription from the ledger's `second_pass` `{pages_swept, findings}` (PB6051). A term whose tool does not exist
+   yet prints `UNMEASURED`, never 0, and keeps the line `INCOMPLETE`; a tool that exists and cannot answer fails the line
+   loudly (exit 2). Today: rows 2,961 · points UNMEASURED · NIST UNMEASURED · second compiler 211 · transcription UNMEASURED.
 1. **The pilot** (PB3178, re-scoped): one slice of about 100 rows end to end with the real tools; its cost per row, per
    test cleared, per test written and per NIST unit sets the stop rule of every later stage (above twice: redesign).
 2. **Clear the existing tests.** A test clears when the portability lint passes, WiseOwl passes it at 85, its expected
@@ -993,7 +1028,8 @@ below that revision 4 did not name are revision 3's, planned with the editions a
 **Landed:** S0a-S2 (PB3172-PB3177). **Held:** S4 (PB3179), the release archives, until the owner chooses the license
 (PB3159).
 
-**Filed from revision 3** (2026-11-04), in this order, each blocked by the one before; each owns one module or register.
+**Filed from revision 3** (2026-11-04), in this order; each owns one module or register. Each is blocked by the one before it except where revision 4 moved it: S8
+(PB4684) waits on the pilot (PB3178) and S5 (PB4683) on Stage 4 (PB4696).
 - **S5 — the edition schema (§3.5).** (PB4683) Band start and optional end in schema, validator and C# twin; per-edition clause
   locators; `@<edition>` ids and folders; `{from: <edition>}`.
 - **S8 — the free-to-fixed converter (§6).** (PB4684) `reformat.py`, ahead of S5b, which uses it. The converter exists

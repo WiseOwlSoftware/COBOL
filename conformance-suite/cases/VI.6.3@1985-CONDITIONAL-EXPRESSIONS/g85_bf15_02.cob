@@ -1,6 +1,7 @@
       *>--- conformance-case
       *> id: g85_bf15_02
-      *> rules: [1985-GR-VI.6.3.4-1, 1985-GR-VI.6.3.4-2]
+      *> rules: [1985-GR-VI.6.3.4-1, 1985-GR-VI.6.3.4-2,
+      *>    1985-GR-VI.6.3.4-p1]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

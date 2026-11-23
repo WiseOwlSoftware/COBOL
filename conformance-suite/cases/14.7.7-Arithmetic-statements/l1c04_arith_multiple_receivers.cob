@@ -1,6 +1,7 @@
       *>--- conformance-case
       *> id: l1c04_arith_multiple_receivers
-      *> rules: [GR-14.7.7-4]
+      *> rules: [GR-14.7.7-4, 1985-GR-VI.6.4.6-1, 1985-GR-VI.6.4.6-2,
+      *>    1985-GR-VI.6.8.4-4, 1985-GR-VI.6.26.4-1]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: l1c17_separator_spaces
-      *> rules: [SR-8.3.5-1, SR-8.3.5-9]
+      *> rules: [SR-8.3.5-1, SR-8.3.5-9, 1985-SR-IV.4.2.1-1]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

@@ -1,6 +1,7 @@
       *>--- conformance-case
       *> id: l1c35_unstring_receiving_operands
-      *> rules: [SR-14.9.48.3-9, FMT-14.9.48.2]
+      *> rules: [SR-14.9.48.3-9, FMT-14.9.48.2, 1985-GR-VI.6.27.4-3,
+      *>    1985-GR-VI.6.27.4-19]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

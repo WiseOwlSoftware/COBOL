@@ -1,6 +1,8 @@
       *>--- conformance-case
       *> id: pb336_optional_absent_read_46_85
-      *> rules: [GR-9.1.13.4-1, GR-14.9.30.4-1]
+      *> rules: [GR-9.1.13.4-1, GR-14.9.30.4-1, 1985-GR-VII.1.3.5-2,
+      *>    1985-GR-VII.4.4.4-3, 1985-GR-VII.4.4.4-4,
+      *>    1985-GR-VIII.4.5.4-3, 1985-GR-IX.4.5.4-3]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

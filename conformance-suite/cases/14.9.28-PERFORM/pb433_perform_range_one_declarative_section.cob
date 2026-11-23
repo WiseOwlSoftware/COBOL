@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb433_perform_range_one_declarative_section
-      *> rules: [SR-14.9.28.3-11]
+      *> rules: [SR-14.9.28.3-11, 1985-SR-VI.6.21.3-11]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

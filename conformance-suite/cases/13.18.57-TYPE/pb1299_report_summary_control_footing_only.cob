@@ -1,6 +1,7 @@
       *>--- conformance-case
       *> id: pb1299_report_summary_control_footing_only
-      *> rules: [SR-13.18.57.3-15]
+      *> rules: [SR-13.18.57.3-15, 1985-GR-III.2-p18,
+      *>    1985-SR-XIII.3.20.3-7]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

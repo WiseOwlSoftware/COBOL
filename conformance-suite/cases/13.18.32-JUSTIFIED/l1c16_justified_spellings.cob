@@ -1,6 +1,7 @@
       *>--- conformance-case
       *> id: l1c16_justified_spellings
-      *> rules: [SR-13.18.32.3-2, GR-13.18.32.4-3, FMT-13.18.32.2]
+      *> rules: [SR-13.18.32.3-2, GR-13.18.32.4-3, FMT-13.18.32.2,
+      *>    1985-FMT-VI.5.6.2, 1985-SR-VI.5.6.3-2, 1985-GR-VI.5.6.4-2]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb5466-debugging-line-no-mode-parses-both-ways
-      *> rules: [1985-GR-VI.4.3.4-4]
+      *> rules: [1985-GR-VI.4.3.4-4, 1985-SR-VI.7.3-p5]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

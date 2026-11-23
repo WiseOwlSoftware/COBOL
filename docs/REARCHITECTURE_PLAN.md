@@ -1812,7 +1812,7 @@ of work counted twice**, and unifying them before the SR mass starts avoids audi
    - `render_figure.py` generates a figure entirely from measurement — ACCEPT Format 3 comes out at its true
      SEVEN rows, which every hand-built version got wrong. It asserts that stripping the `<u>` tags reproduces
      the laid-out text, which is what makes a whole-standard sweep safe.
-   - **BAND DETECTION IS FIXED and no longer needs `--band`.** `find_bands` reads the CLAUSE STRUCTURE — the
+   - **BAND DETECTION IS FIXED and no longer needs `--band`.** `find_figures` reads the CLAUSE STRUCTURE — the
      bold `14.9.N.2 General format` heading opens the region, the next heading closes it, `Format N (…)` labels
      split it. Geometry cannot do this (row spacing *within* one format varies more than *between* formats).
      Whole standard: **475 figures on 339 pages, zero layout collisions.**
@@ -1843,7 +1843,10 @@ of work counted twice**, and unifying them before the SR mass starts avoids audi
    - **THE SWEEP IS BUILT AND KEYED ON THE CLAUSE HIERARCHY** — `scripts/spec/sweep_figures.py`
      (`--report` · `--apply` · `--check`). ⛔ **Never key on the page** (owner directive 2026-07-27: page
      numbering is to be REMOVED from the Markdown; references become intra-document links). A figure's identity
-     is its clause + Format number, which is what `render_figure.figure_key` returns.
+     is its clause + Format number, which is what `render_figure.figure_key` returns. The clause is resolved
+     ONCE, per figure, by `find_figures` (a continuation page's through the one walk-back, `open_region`), and
+     the review sheet titles each figure from that same resolution, so the sheet and the sweep never name two
+     different clauses for one figure (kb/Work PB3211).
      - **The gate that makes it safe: WORDS unchanged, notation replaced.** A figure is rewritten only where
        the generated form carries the same words as the text it replaces; anything else is reported, never
        written. `--check` is the post-sweep regression gate and supersedes `audit_figure_structure.py`

@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb207_group_value_area_85
-      *> rules: [GR-13.18.63.4-5]
+      *> rules: [GR-13.18.63.4-5, 1985-SR-II.4.2-2]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified
