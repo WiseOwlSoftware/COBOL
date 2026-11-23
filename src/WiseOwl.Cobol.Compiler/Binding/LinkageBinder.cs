@@ -6,7 +6,6 @@ using WiseOwl.Cobol.Runtime;
 using WiseOwl.Cobol.Frontend.Generated;
 
 using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.Frontend.Parsing;
 
 namespace WiseOwl.Cobol.Binding;
 
@@ -42,7 +41,7 @@ public sealed record LinkageFormal(DataItem Item, int Position, string CarrierFi
     /// parameter occupies the same storage area as the argument". Derived from the class the binder claimed
     /// (<c>PtrBindBasedAndAddressablesPass</c>), so the emitter and the binder cannot disagree about which
     /// formals are areas.</summary>
-    public bool IsArea => !CarrierResident && Item.Class?.BasedPointerField == CarrierField;
+    public bool IsArea => FormalCarrier.IsAreaFormal(Item, CarrierResident);
 
     /// <summary>⛔ The member holding a BY REFERENCE carrier-resident formal's ARGUMENT AREA (kb/Work PB2089) — the
     /// <c>CobolArg.Area</c> it arrived with, or null when its argument's storage is not a cell. The formal's storage IS
@@ -365,183 +364,47 @@ internal sealed class LinkageBinder(DataBinder data)
         if (program.dataDivision()?.linkageSection() is { } ls)
             _roots.AddRange(data.BindEntries(ls.dataDescriptionEntry(), rootNames, EntrySection.Linkage));
 
-        if (program.procedureDivision() is not { } pd)
+        // The header's USING and RETURNING phrases: the ONE header binding every arm calls (ProcedureHeaderBinder, kb/Work
+        // PB3213). The names any ADDRESS OF in this unit or a contained one takes are the SAME scan the pointer pass forces
+        // cells from (a GLOBAL formal can be addressed from a contained program, kb/Work PB1009/PB1019).
+        var header = program.procedureDivision() is { } pd
+            ? ProcedureHeaderBinder.Bind(data, pd, _roots,
+                () => SymbolTable.AddressedBy(data.ClaimScans.AddressTargets(pd)
+                    .Concat(program.nestedProgram().SelectMany(data.ClaimScans.AddressTargets))),
+                "PROCEDURE DIVISION", method: false)
+            : ProcedureHeader.None;
+        foreach (var f in header.Formals)
         {
-            SealLinkageRules(_roots, [], null, data.UnitIsFunction);
-            AnyLengthValidateUnit();
-            return;
-        }
-
-        // The using-phrase modes (ISO §2023:14.2.2 :23636 — { [BY REFERENCE] {[OPTIONAL] d}… | BY VALUE {d}… }…):
-        // BY REFERENCE / BY VALUE are TRANSITIVE across the parameters that follow until the other phrase
-        // appears; BY REFERENCE is assumed before the first phrase (§2023:14.2.3 GR4). Threaded flat over the
-        // grammar's one-parameter-per-node shape (the CALL callArgument precedent).
-        int pos = 0;
-        bool byValue = false;
-        var header = new ProcedureHeaderScreen(data.Edition, "PROCEDURE DIVISION");   // §2023:14.2.2 SR1/SR5/SR6 — the ONE screen (kb/Work PB1145)
-        // The names any ADDRESS OF in this unit or a contained one takes (the SAME scan the pointer pass forces
-        // cells from — a GLOBAL formal can be addressed from a contained program, kb/Work PB1009/PB1019).
-        // Asked only of a unit that has formals to classify (kb/Work PB4302): the set is read per formal, and a procedure
-        // division with no USING phrase would otherwise collect every contained program's names to read none of them.
-        var formals = pd.usingClause()?.usingParameter() ?? [];
-        var addressed = formals.Length == 0
-            ? SymbolTable.AddressedNames.None
-            : SymbolTable.AddressedBy(data.ClaimScans.AddressTargets(pd)
-                .Concat(program.nestedProgram().SelectMany(data.ClaimScans.AddressTargets)));
-        foreach (var prm in formals)
-        {
-            using var _ = data.Edition.At(prm);
-            Core.DataReferenceContext dref;
-            bool optional = false;
-            if (prm.usingByValue() is { } vb) { byValue = true; dref = vb.dataReference(); }
-            else if (prm.usingByReference() is { } rb)
-            {
-                byValue = false;
-                dref = rb.dataReference();
-                optional = rb.OPTIONAL() is not null;
-            }
-            else { dref = prm.dataReference(); optional = prm.OPTIONAL() is not null; }
-            // §2023:14.2.2's OPTIONAL phrase now CARRIES (kb/Work PB133 wave C): the formal records the flag,
-            // the SR24/count checks read it at the AS NESTED bind, and the §2023:8.8.4.8 omitted-argument
-            // condition tests the carrier's presence — the staged OptionalFormal rejection is lifted.
-
-            string pname = dref.GetText();
-            string pnameWritten = WrittenSource.Of(dref);
-            var item = data.Symbols.IdentifyHeaderOperand(_roots, dref);
-            if (item is null)
-            {
-                // §2023:14.2.2 SR1: each formal parameter shall be a level-01/77 entry in the LINKAGE SECTION.
-                data.Edition.Error(DiagnosticCatalog.ProcedureHeaderItemNotLinkageRoot,
-                    $"PROCEDURE DIVISION USING parameter '{pnameWritten}' is not a level-01/77 LINKAGE SECTION item "
-                    + $"({data.Edition.Edition.CiteRule("§1985:X.5.1", "§2023:14.2.2 SR1")})");
-                pos++;
-                continue;
-            }
-            // SR1: uniqueness, and no REDEFINES / BASED clause — the ONE header screen. A BASED formal's flag clears
-            // there: a carrier-resident formal's ClrName rewrite would poison the based class's BackingClrName into
-            // invalid C#, so the entry binds as an ordinary (already-diagnosed) formal. A REPEATED formal is not
-            // admitted a second time (`USING A A` reached the backend as a duplicate carrier member).
-            if (!header.AdmitFormal(pname, item)) { pos++; continue; }
-            if (optional && byValue) header.OptionalNeedsByReference(pname);   // §2023:14.2.1: OPTIONAL is a BY REFERENCE word
-
-            if (byValue)
-            {
-                // §2023:14.2.2 SR2 (:23664): "Each data-name-1 specified in a BY VALUE phrase shall be defined as a
-                // data item of class numeric, message-tag, object, or pointer." Class message-tag is the MCS
-                // module (not modeled — undeclarable here, so unreachable). Class numeric (fixed-point or floating-
-                // point) and the MANAGED classes (object / the three pointer categories) are the CARRIED legs of the
-                // §2023:14.2.3 GR10 detached-cell value copy — GR10 names both: "a COMPUTE statement without the ROUNDED
-                // phrase" for the numeric one, "a SET statement" for class object or pointer, which is the
-                // reference copy CobolArgAdapt.SlotValue performs (kb/Work PB663). The FLOATING-POINT usage is the
-                // same COMPUTE on the float lane — landed by FloatResultant into a detached float cell
-                // (CobolArgAdapt.NumValue; kb/Work PB1114).
-                data.CompleteDescriptionAhead(item);   // a TYPE-typed formal has no class until its subject is composed (kb/Work PB3222)
-                header.ByValueClass(pname, item);   // the class set is the header screen's, shared with the method arm (PB1051)
-            }
-
-            // ⛔ THE CARRIER NAME IS Uid-KEYED, NOT POSITIONAL (kb/Work PB1009). A carrier-resident formal's
-            // "field" IS `carrier.Value`, and a GLOBAL formal (§2023:13.18.27.3 SR1b) admits GLOBAL in the linkage
-            // section) is referenced from every contained program by that same text through a ref-bridge — so
-            // a positional `__lnkp0` collided with the contained program's OWN first formal: its references to
-            // either item read one carrier, and the bridge declared a second member of the same name. The
-            // Uid-keyed name (the `__omit{Uid}` presence member's rule) cannot collide within a group.
-            string carrier = $"__lnk{item.Uid}";
-            // Carrier-resident = per-access aliasing of the caller's storage (design D1: "refs to LK-CTR
-            // read/write LK_CTR.Value — the one unavoidable indirection"). Available for an elementary
-            // fixed-point/character formal NOT overlaid by another linkage entry; a group formal (a different
-            // C# struct type than the caller's — every cross-program group IS a category reinterpretation) and
-            // a redefined formal are AREA formals instead, laid over the argument's own storage cell
-            // (LinkageFormal.IsArea; PtrBindBasedAndAddressables claims the class — kb/Work PB2087). A BY VALUE
-            // formal is carrier-resident over its DETACHED value-copy cell (§2023:14.2.3 GR10 — same per-access
-            // mechanism, different carrier: CobolArgAdapt.NumValue instead of the aliasing Num view).
-            bool resident = FormalIsCarrierResident(item, _roots, addressed);
-            if (resident)
+            // ⛔ THE CARRIER NAME IS Uid-KEYED, NOT POSITIONAL (kb/Work PB1009): a GLOBAL formal (§2023:13.18.27.3 SR1b) is
+            // referenced from every contained program by its carrier's text through a ref-bridge, so a positional name
+            // collided with the contained program's OWN first formal (FormalCarrier.AreaPointerName).
+            string carrier = FormalCarrier.AreaPointerName(f.Item);
+            // Carrier-resident = per-access aliasing of the caller's storage (design D1). A group formal and a redefined or
+            // addressed one are AREA formals instead, laid over the argument's own storage cell (LinkageFormal.IsArea;
+            // PtrBindBasedAndAddressables claims the class, kb/Work PB2087). A BY VALUE formal is carrier-resident over its
+            // DETACHED value-copy cell (§2023:14.2.3 GR10).
+            if (f.CarrierResident)
             {
                 // Every place built over the item starts at the carrier and steps to the caller's storage
                 // (PlaceBuilder.AddRoot, a CarrierValueSegment) — the item keeps its own name, which no member
                 // declares (kb/Work PB4320).
-                item.ResidentCarrier = new FormalCarrier.Member(carrier);
-                _suppressedRootFields.Add(item.ClrName);
+                f.Item.ResidentCarrier = new FormalCarrier.Member(carrier);
+                _suppressedRootFields.Add(f.Item.ClrName);
             }
-            _formals.Add(new LinkageFormal(item, pos, carrier, resident, byValue, optional));
-            pos++;
+            _formals.Add(new LinkageFormal(f.Item, f.Position, carrier, f.CarrierResident, f.ByValue, f.Optional));
         }
-
-        // PROCEDURE DIVISION RETURNING (§2023:14.2) + RAISING (§2023:14.2.2) — the COBOL-2002 introduction gates are now
-        // VersionConformancePass ParseArm.VisitReturning/RaisingClause (14g.4, recognition, InMethodDefinition-guarded
-        // so only PROGRAM-unit PDs gate — this CallBindLinkage runs for program units only, matching that scope). The
-        // RETURNING §2023:14.2.3 GR6/SR1 resolution + the RAISING EC semantics (StatementBinder.Exceptions) stay bind-time.
-        if (pd.returningClause()?.dataReference() is { } rref)
-        {
-            using var returningAt = data.Edition.At(rref);   // the RETURNING item's own position, as each USING parameter's (kb/Work PB2034)
-            // §2023:14.2.3 GR6: the returning item's storage is allocated IN THE ACTIVATED element — it stays an
-            // ordinary callee-local field; its value transfers out at termination (GR7, the Call copy-out).
-            Returning = data.Symbols.IdentifyHeaderOperand(_roots, rref);
-            if (Returning is null)
-                data.Edition.Error(DiagnosticCatalog.ProcedureHeaderItemNotLinkageRoot,
-                    $"PROCEDURE DIVISION RETURNING item '{WrittenSource.Of(rref)}' is not a level-01/77 LINKAGE SECTION "
-                    + "item (ISO §2023:14.2.2 SR1)");
-            else
-                header.CheckReturning(rref.GetText(), Returning);
-        }
+        Returning = header.Returning;
 
         SealLinkageRules(_roots, _formals.ConvertAll(f => f.Item), Returning, data.UnitIsFunction);
-        AnyLengthValidateUnit();
-    }
-
-    /// <summary>The ANY LENGTH placement sweep of this unit's forest (ISO §2023:13.18.2.3 SR2/SR3/SR4) — runs at the
-    /// end of <see cref="CallBindLinkage"/>, when the unit's sections AND its PD-header formals are bound but no
-    /// method data has (methods sweep in <c>OoDataBinder.BindMethodData</c>). SR2: an elementary level-1 LINKAGE entry of a
-    /// FUNCTION or a CONTAINED program — never an outermost program (the §2023:13.18.2.3 NOTE: a prototype-less CALL
-    /// cannot associate arguments with an ANY LENGTH formal) and never the object/factory paragraph of a class.
-    /// SR3 (contained program): referenced in the PD header as a formal WITH THE BY REFERENCE PHRASE (stated
-    /// or implied — a BY VALUE formal does not qualify, SR3a) or as the RETURNING item. SR4 (function): as a
-    /// BY REFERENCE formal only — a function's ANY LENGTH RETURNING is illegal.
-    /// A violation clears <see cref="DataItem.IsAnyLength"/> (the IsBased discipline: the item binds as its
-    /// ordinary one-character shape under an already-failed compile — never a half-varying state).</summary>
-    private void AnyLengthValidateUnit()
-    {
-        foreach (var root in data.State.Forest.Roots)
-        {
-            if (!root.IsAnyLength) continue;
-            using var _ = data.Edition.At(root);
-            string where = $"data item '{root.CobolName ?? "FILLER"}'";
-            if (!_roots.Contains(root))
-                data.Edition.Error(DiagnosticCatalog.AnyLengthPlacement, $"{where}: the ANY LENGTH clause may be specified only in an "
-                    + "elementary level 1 entry in the LINKAGE SECTION (ISO §2023:13.18.2.3 SR2)");
-            else if (root.IsGroup)
-                data.Edition.Error(DiagnosticCatalog.AnyLengthPlacement, $"{where}: the subject of an ANY LENGTH clause shall be "
-                    + "ELEMENTARY — this entry has subordinate items (ISO §2023:13.18.2.3 SR2)");
-            else if (data.Oo.IsClassUnit)
-                // This binder's own LINKAGE is the OBJECT/FACTORY paragraph's, never a method's (method
-                // linkage binds via OoDataBinder.BindMethodData into OoMethodBinding.LinkageRoots, swept there).
-                data.Edition.Error(DiagnosticCatalog.AnyLengthPlacement, $"{where}: the ANY LENGTH clause may be specified only in the "
-                    + "linkage section of a function, a contained program, or a method that is not a property "
-                    + "method — not in a factory or instance definition (ISO §2023:13.18.2.3 SR2)");
-            else if (!data.UnitIsContained && !data.UnitIsFunction)
-                data.Edition.Error(DiagnosticCatalog.AnyLengthPlacement, $"{where}: the ANY LENGTH clause may not be specified in an "
-                    + "OUTERMOST program — only in a function, a contained program, or a method "
-                    + "(ISO §2023:13.18.2.3 SR2 and its NOTE)");
-            else
-            {
-                // SR3a/SR4 require the BY REFERENCE phrase (stated or implied) — a BY VALUE formal never
-                // qualifies (its length is fixed by the value copy, not the caller's argument).
-                bool formal = Formals.Any(f => ReferenceEquals(f.Item, root) && !f.ByValue);
-                bool returning = ReferenceEquals(Returning, root);
-                if (data.UnitIsFunction ? !formal : !(formal || returning))
-                    data.Edition.Error(DiagnosticCatalog.AnyLengthSubjectNotInHeader, data.UnitIsFunction
-                        ? $"{where}: in a FUNCTION the subject of an ANY LENGTH clause shall be referenced in "
-                          + "the procedure division header as a formal parameter with the BY REFERENCE phrase "
-                          + "(ISO §2023:13.18.2.3 SR4)"
-                        : $"{where}: in a contained program the subject of an ANY LENGTH clause shall be "
-                          + "referenced in the procedure division header as a BY REFERENCE formal parameter or "
-                          + "as the RETURNING item (ISO §2023:13.18.2.3 SR3)");
-                else
-                    continue;   // conformant — keep the flag. A RETURNING item (SR3b) is seeded with the
-                                // ACTIVATOR's receiver length at activation entry (§2023:13.18.2.4 GR1b; ProgramEmitter.EmitCallMethod).
-            }
-            root.IsAnyLength = false;
-        }
+        // The ANY LENGTH placement sweep of this unit's forest, once its sections AND its header are bound but no method data
+        // has (methods sweep in OoDataBinder.BindMethodData). This binder's own LINKAGE is a class's OBJECT/FACTORY
+        // paragraph's, never a method's.
+        ProcedureHeaderBinder.SweepAnyLength(data.Edition, data.State.Forest.Roots, _roots,
+            data.Oo.IsClassUnit ? ProcedureHeaderOwner.ClassData
+                : data.UnitIsFunction ? ProcedureHeaderOwner.Function
+                : data.UnitIsContained ? ProcedureHeaderOwner.ContainedProgram
+                : ProcedureHeaderOwner.OutermostProgram,
+            header, prefix: "");
     }
 
     /// <summary>The LINKAGE records the procedure division may NOT reference (ISO §2023:13.7.3 SR4), keyed by identity — the

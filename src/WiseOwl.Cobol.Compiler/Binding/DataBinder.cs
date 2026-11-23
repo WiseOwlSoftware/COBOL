@@ -4518,7 +4518,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // band is exhausted, the 1521 precedent). Violations clear the flag so the item binds as ordinary storage
         // under an already-failed compile (the IsBased discipline). The SR2/SR3/SR4 PLACEMENT rules (linkage-only,
         // elementary, unit kind, formal/RETURNING reference) need unit-level facts and live in the post-bind
-        // sweeps: AnyLengthValidateUnit (program/function/object paths) and Oo.BindMethodData (methods).
+        // sweep: ProcedureHeaderBinder.SweepAnyLength, called by Linkage.CallBindLinkage (program/function/object paths) and Oo.BindMethodData (methods).
         if (isAnyLength)
         {
             // §2023:13.18.2.3 SR1: a PICTURE clause shall be specified, and its character-string shall be ONE
