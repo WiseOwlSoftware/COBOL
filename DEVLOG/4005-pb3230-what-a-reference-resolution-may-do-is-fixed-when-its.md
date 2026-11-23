@@ -1,4 +1,4 @@
-## PB3230: what a reference resolution may do is fixed when its resolver is constructed
+## Entry 4005 — 2026-11-23 13:13 PST — PB3230: what a reference resolution may do is fixed when its resolver is constructed
 
 kb/Work PB3230 (an R2 finding of the PB1754 architecture review) named three pieces of ambient mutable state in the
 reference-resolution subsystem that §8.3 (4) of DESIGN-architecture-review gave no owner. Re-probed at 27faa4c114, all three
@@ -28,3 +28,4 @@ reorder the diagnostic stream the DESIGN-architecture-review §4.1 oracle compar
 
 Behavior neutrality: `compare_oracle.py` reported `IDENTICAL — 23549 cases`. No inventory row changed
 (`closes_rows: []`, behavior-neutral restructuring).
+
