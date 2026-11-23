@@ -94,6 +94,30 @@ def case_09_the_result_is_bound_to_its_inputs(expect):
     expect.equal("a changed Markdown is named", D.stale({"inputs": changed}), ["markdown"])
 
 
+def _arbitrated(pdf: str, md: str, tess: str):
+    rows = _rows(pdf, md)
+    D.arbitrate_rows(rows, tess)
+    return sorted(r["class"] for r in rows)
+
+
+def case_10_a_second_reading_arbitrates_by_place(expect):
+    pdf, md = "the file is open of the name", "the file is open or the name"
+    expect.equal("tesseract reads the Markdown's word", _arbitrated(pdf, md, "the file is open or the name"), ["OCR-ARBITRATED"])
+    expect.equal("tesseract reads the layer's word", _arbitrated(pdf, md, "the file is open of the name"), ["LIKELY-ERROR"])
+    expect.equal("neither reading", _arbitrated(pdf, md, "the file is open for the name"), ["UNEXPLAINED"])
+    expect.equal("both readings (two places)", _arbitrated(pdf, md, "the file is open or the name the file is open of the name"), ["UNEXPLAINED"])
+    expect.equal("the words elsewhere on the page are no support", _arbitrated(pdf, md, "or file is open for of name"), ["UNEXPLAINED"])
+    expect.equal("a dropped not, tesseract has none", _arbitrated("the file is not open", "the file is open", "the file is open"), ["OCR-ARBITRATED"])
+    expect.equal("a dropped not, tesseract has it", _arbitrated("the file is not open", "the file is open", "the file is not open"), ["LIKELY-ERROR"])
+    rows = _rows(pdf, md)
+    D.arbitrate_rows(rows, "the file is open or the name")
+    expect.equal("the evidence is kept", "open or the" in rows[0]["tesseract"], True)
+    expect.equal("no private field is left", "_src" in rows[0], False)
+    stamped = _rows(pdf, md)
+    D.arbitrate_rows(stamped, "Licensed to X Downloaded 1 the file is open or the name Single user license")
+    expect.equal("the purchaser's stamp is never kept as evidence", "icens" in stamped[0].get("tesseract", ""), False)
+
+
 if __name__ == "__main__":
     ensure_utf8()
     sys.exit(selftest_cases.run(sys.modules[__name__]))

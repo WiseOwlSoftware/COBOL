@@ -35,6 +35,11 @@ never noise: they are UNEXPLAINED.
               away, both are counted and named in the verdict line, and neither is explained, only unchecked here;
   UNCOVERED   Markdown words with no text-layer counterpart (the layer omits a table, a figure's labels, a block of prose,
               or the Markdown adds them): unchecked by this tool, counted and named in the verdict line;
+  OCR-ARBITRATED, LIKELY-ERROR  the second reading (`--arbitrate`, tesseract 5 on the 300 dpi render, `--psm 4`) of each
+              UNEXPLAINED row. It must hold the hunk's words in order beside the neighbouring word (positional, never a page
+              bag): the Markdown's words and not the layer's make OCR-ARBITRATED; the layer's and not the Markdown's make
+              LIKELY-ERROR (two independent readings against the transcription: the strongest signal, counted with the
+              unexplained by `--require-zero`); both or neither stay UNEXPLAINED;
   UNEXPLAINED anything else, including a word the PDF has and the Markdown dropped, a moved single word, and a different
               word. The verdict line counts these, and `--require-zero` exits non-zero on them.
 
@@ -43,6 +48,7 @@ inputs it was measured from (the Markdown, the ledger, this script). `--check` n
 TEXT LAYER DIFF 1985 audit) when one of them changed since the JSON was written, and names the command that re-measures.
 
     python scripts/spec/text_layer_diff.py                  # measure all pages, write the JSON, print the verdict
+    python scripts/spec/text_layer_diff.py --arbitrate      # the committed result: measure, then the second reading
     python scripts/spec/text_layer_diff.py --pages 30-40    # a range, printed only
     python scripts/spec/text_layer_diff.py --check          # the gate: the JSON is current; prints the verdict
     python scripts/spec/text_layer_diff.py --check --require-zero   # PB6051's closing condition: nothing unexplained
@@ -54,10 +60,14 @@ import collections
 import dataclasses
 import hashlib
 import json
+import os
 import pathlib
 import re
+import shutil
+import subprocess
 import sys
 import unicodedata
+from concurrent.futures import ThreadPoolExecutor
 
 HERE = pathlib.Path(__file__).resolve().parent
 REPO = HERE.parents[1]
@@ -71,7 +81,7 @@ PDF = spec_pdf.path(1985)  # None when the private submodule is not checked out
 LEDGER = REPO / "docs" / "rearchitecture" / "spec-reconciliation" / "LEDGER-1985.json"
 RESULT = REPO / "docs" / "rearchitecture" / "spec-reconciliation" / "TEXT-LAYER-DIFF-1985.json"
 RESERVED = REPO / "tests" / "version-matrix" / "reserved-words.json"
-CLASSES = ("OCR-NOISE", "CORRECTION", "FIGURE", "PUNCT", "CASE", "UNCOVERED", "UNEXPLAINED")
+CLASSES = ("OCR-NOISE", "OCR-ARBITRATED", "CORRECTION", "FIGURE", "PUNCT", "CASE", "UNCOVERED", "LIKELY-ERROR", "UNEXPLAINED")
 RERUN = "python scripts/spec/text_layer_diff.py"
 
 PAGE_HEADING = re.compile(r"^## Page (\d+)\s*$")
@@ -169,6 +179,9 @@ def pdf_pages(pages: list[int]) -> dict[int, list[str]]:
 
 
 STAMP = re.compile(r"Copyright by INCITS\..*?Copying and networking prohibited\.")
+
+
+LICENCE_WORDS = re.compile(r"licen[cs]ed|downloaded|copyright by|networking|single.user|ANSI order|X_\d", re.I)
 
 
 def drop_licence_stamp(words: list[str]) -> list[str]:
@@ -403,10 +416,13 @@ def classify_page(pdf: list[str], md: list[tuple[str, bool, int]], entries: list
     sm = difflib.SequenceMatcher(None, [k for _, k in a], [k for _, k in b], autojunk=False)
     rows: list[dict] = []
 
-    def emit(cls: str, reason: str, pw: list[tuple[str, str]], mw: list[tuple[str, str]], j: int) -> None:
+    def emit(cls: str, reason: str, pw: list[tuple[str, str]], mw: list[tuple[str, str]], j: int, src=None) -> None:
         ln = line[min(j, len(line) - 1)] if line else 0
-        rows.append({"class": cls, "reason": reason, "pdf": clip(" ".join(w for w, _ in pw)),
-                     "md": clip(" ".join(w for w, _ in mw)), "line": ln, "words": [len(pw), len(mw)]})
+        row = {"class": cls, "reason": reason, "pdf": clip(" ".join(w for w, _ in pw)),
+               "md": clip(" ".join(w for w, _ in mw)), "line": ln, "words": [len(pw), len(mw)]}
+        if src is not None:
+            row["_src"] = src  # the whole differing block with its neighbours, for the second reading (arbitrate_rows)
+        rows.append(row)
 
     blocks: list[list] = []  # [left_p, left_m, figure, j]: what a differing block still owes after the tolerated readings
     for tag, i1, i2, j1, j2 in sm.get_opcodes():
@@ -414,6 +430,8 @@ def classify_page(pdf: list[str], md: list[tuple[str, bool, int]], entries: list
             rows.extend(exact_differences([w for w, _ in a[i1:i2]], [w for w, _ in b[j1:j2]], line[j1:j2]))
             continue
         pa, mb = list(a[i1:i2]), list(b[j1:j2])
+        src = ([k for _, k in pa], [k for _, k in mb], [k for _, k in a[max(0, i1 - 2):i1]], [k for _, k in a[i2:i2 + 2]],
+               [k for _, k in b[max(0, j1 - 2):j1]], [k for _, k in b[j2:j2 + 2]])
         fig = any(figure[j1:j2]) or (j2 == j1 and j1 < len(figure) and figure[j1])
         if removed and pa and not mb:
             emit("CORRECTION", "printed content held elsewhere by a recorded correction", pa, mb, j1)
@@ -442,7 +460,7 @@ def classify_page(pdf: list[str], md: list[tuple[str, bool, int]], entries: list
             emit("OCR-NOISE", "joined or split by the layer's spacing", left_p, left_m, j1)
             continue
         if left_p or left_m:
-            blocks.append([left_p, left_m, fig, j1])
+            blocks.append([left_p, left_m, fig, j1, src])
 
     # words that moved as a matched block: a run of two or more words left over on both sides, in another place (two
     # columns, a table read by column). A single word that is gone in one place and appears in another is not a move:
@@ -462,21 +480,110 @@ def classify_page(pdf: list[str], md: list[tuple[str, bool, int]], entries: list
         blocks[y][1] = blocks[y][1][:j] + blocks[y][1][j + n:]
         emit("OCR-NOISE", "a run the layer reads in another order", moved_p, moved_m, blocks[y][3])
 
-    pdf_only = collections.Counter(k for left_p, _, _, _ in blocks for _, k in left_p)
-    for left_p, left_m, fig, j in blocks:
+    pdf_only = collections.Counter(k for left_p, _, _, _, _ in blocks for _, k in left_p)
+    for left_p, left_m, fig, j, src in blocks:
         if not left_p and not left_m:
             continue
         if fig:
             emit("FIGURE", "inside a drawn figure", left_p, left_m, j)
         elif not left_p and all(pdf_only[k] for _, k in left_m):
-            emit("UNEXPLAINED", "a single word moved: gone at one place, present at another", left_p, left_m, j)
+            emit("UNEXPLAINED", "a single word moved: gone at one place, present at another", left_p, left_m, j, src)
         elif not left_p:
             emit("UNCOVERED", "Markdown words the text layer lacks", left_p, left_m, j)
         elif not left_m:
-            emit("UNEXPLAINED", "text layer has words the Markdown lacks", left_p, left_m, j)
+            emit("UNEXPLAINED", "text layer has words the Markdown lacks", left_p, left_m, j, src)
         else:
-            emit("UNEXPLAINED", "a different word", left_p, left_m, j)
+            emit("UNEXPLAINED", "a different word", left_p, left_m, j, src)
     return rows
+
+
+# ---------------------------------------------------------------- the second reading (tesseract)
+
+TESSERACT_DEFAULT = "C:/Program Files/Tesseract-OCR/tesseract.exe"
+OCR_DPI = 300
+OCR_CACHE = REPO / "TestResults" / "text-layer-ocr-1985"  # gitignored, per worktree
+
+
+def tesseract_exe() -> str:
+    found = os.environ.get("WISEOWL_COBOL_TESSERACT") or shutil.which("tesseract") or TESSERACT_DEFAULT
+    if not pathlib.Path(found).is_file():
+        sys.exit(f"FATAL: tesseract not found ({found}): install Tesseract 5 or set WISEOWL_COBOL_TESSERACT")
+    return found
+
+
+def tesseract_version(exe: str) -> str:
+    out = subprocess.run([exe, "--version"], capture_output=True, text=True, encoding="utf-8")
+    return (out.stdout or out.stderr).splitlines()[0].strip()
+
+
+def tesseract_text(page: int, cache: pathlib.Path, exe: str) -> str:
+    """Tesseract's reading of the rendered PDF page (300 dpi, --psm 4), cached per page in `cache` (never committed)."""
+    import pymupdf  # noqa: PLC0415
+    txt = cache / f"p{page}.txt"
+    if txt.is_file():
+        return txt.read_text(encoding="utf-8")
+    cache.mkdir(parents=True, exist_ok=True)
+    png = cache / f"p{page}.png"
+    with pymupdf.open(PDF) as doc:
+        doc[page - 1].get_pixmap(dpi=OCR_DPI).save(png)
+    low = getattr(subprocess, "BELOW_NORMAL_PRIORITY_CLASS", 0)
+    out = subprocess.run([exe, str(png), "-", "--psm", "4"], capture_output=True, text=True, encoding="utf-8", creationflags=low)
+    if out.returncode != 0:
+        sys.exit(f"FATAL: tesseract failed on page {page}: {out.stderr.strip()[:300]}")
+    png.unlink()
+    txt.write_text(out.stdout, encoding="utf-8", newline="\n")
+    return out.stdout
+
+
+def _supports(hunk: list[str], before: list[str], after: list[str], t: list[str]) -> bool:
+    """The second reading holds this reading AT THIS PLACE: the hunk's words in order, with the word before or after it
+    beside them (a side with no words holds when its two neighbours touch). Positional, never a bag of the page's words."""
+    n = len(hunk)
+    if n == 0:
+        return bool(before and after) and any(t[i] == before[-1] and t[i + 1] == after[0] for i in range(len(t) - 1))
+    for i in range(len(t) - n + 1):
+        if t[i:i + n] == hunk and ((before and i > 0 and t[i - 1] == before[-1]) or
+                                   (after and i + n < len(t) and t[i + n] == after[0])):
+            return True
+    return False
+
+
+def _occurs(hunk: list[str], t: list[str]) -> bool:
+    return bool(hunk) and any(t[i:i + len(hunk)] == hunk for i in range(len(t) - len(hunk) + 1))
+
+
+def arbitrate_rows(rows: list[dict], tess_text: str) -> None:
+    """Reclassify the page's UNEXPLAINED rows by a second, independent reading (tesseract) of the same page:
+      the second reading holds the Markdown's words at that place and not the layer's  -> OCR-ARBITRATED;
+      it holds the layer's words and not the Markdown's                                  -> LIKELY-ERROR (the strongest signal);
+      both or neither                                                                    -> stays UNEXPLAINED.
+    A reading-order difference is no witness for the layer (a moved single word; Markdown words the layer lacks that the
+    second reading has elsewhere on the page): it stays UNEXPLAINED.
+    The row carries the second reading's words around the place as `tesseract`."""
+    raw = [w for w in drop_licence_stamp(tess_text.split()) if lite(w)]
+    t = [lite(w) for w in raw]
+    for r in rows:
+        src = r.pop("_src", None)
+        if r["class"] != "UNEXPLAINED" or src is None:
+            continue
+        pdf_hunk, md_hunk, pdf_before, pdf_after, md_before, md_after = src
+        md_ok = _supports(md_hunk, md_before, md_after, t)
+        pdf_ok = _supports(pdf_hunk, pdf_before, pdf_after, t)
+        anchor = next((i for i, k in enumerate(t) if md_before and k == md_before[-1]), None)
+        if anchor is None:
+            anchor = next((i for i, k in enumerate(t) if md_after and k == md_after[0]), None)
+        if pdf_ok and not md_ok and (r["reason"].startswith("a single word moved") or
+                                     (not pdf_hunk and _occurs(md_hunk, t))):
+            pdf_ok = md_ok  # a reading-order difference, not a second witness: the layer's words are absent and the Markdown's
+            # are on the page elsewhere (a table read by column); it stays UNEXPLAINED
+        if md_ok != pdf_ok:
+            r["class"] = "OCR-ARBITRATED" if md_ok else "LIKELY-ERROR"
+            r["reason"] = ("a second OCR (tesseract) reads the Markdown's words at this place, not the text layer's" if md_ok else
+                           "a second OCR (tesseract) reads the text layer's words at this place, not the Markdown's")
+        if anchor is not None:
+            evidence = " ".join(raw[max(0, anchor - 1):anchor + max(len(md_hunk), len(pdf_hunk)) + 3])
+            if not LICENCE_WORDS.search(evidence):  # the purchaser's stamp, however the OCR spelled it, is never kept
+                r["tesseract"] = clip(evidence)
 
 
 def parse_pages(spec: str, total: int) -> list[int]:
@@ -506,12 +613,12 @@ def stale(result: dict) -> list[str]:
 def verdict(result: dict) -> int:
     pages = result["pages"]
     totals = {c: sum(p["counts"].get(c, 0) for p in pages.values()) for c in CLASSES}
-    on = sum(1 for p in pages.values() if p["counts"].get("UNEXPLAINED", 0))
+    on = sum(1 for p in pages.values() if p["counts"].get("UNEXPLAINED", 0) or p["counts"].get("LIKELY-ERROR", 0))
     print("  " + "  ".join(f"{c}={totals[c]}" for c in CLASSES))
     unchecked = totals["PUNCT"] + totals["CASE"]
-    print(f"=== TEXT LAYER DIFF 1985: {totals['UNEXPLAINED']} unexplained difference(s) on {on} page(s) · "
+    print(f"=== TEXT LAYER DIFF 1985: {totals['LIKELY-ERROR']} likely error(s) · {totals['UNEXPLAINED']} unexplained on {on} page(s) · "
           f"{totals['UNCOVERED']} uncovered · {unchecked} punctuation/case (unchecked) ===")
-    return totals["UNEXPLAINED"]
+    return totals["UNEXPLAINED"] + totals["LIKELY-ERROR"]
 
 
 def main() -> int:
@@ -519,6 +626,10 @@ def main() -> int:
     ap.add_argument("--pages", help="a range such as 30-40,200: measure these only and print, write nothing")
     ap.add_argument("--check", action="store_true", help="the gate: the committed result is current for its inputs (no PDF needed)")
     ap.add_argument("--require-zero", action="store_true", help="also exit non-zero when anything is UNEXPLAINED (PB6051's close)")
+    ap.add_argument("--arbitrate", action="store_true",
+                    help="second reading of every UNEXPLAINED row by tesseract (needs the PDF and tesseract); the committed result is arbitrated")
+    ap.add_argument("--ocr-cache", type=pathlib.Path, default=OCR_CACHE, help="where tesseract's per-page text is cached (never committed)")
+    ap.add_argument("--likely", action="store_true", help="with --check: print each LIKELY-ERROR row (page: pdf / md / tesseract)")
     ap.add_argument("--verbose", action="store_true", help="print each UNEXPLAINED record")
     ap.add_argument("--all", action="store_true", help="print every record, not only UNEXPLAINED")
     args = ap.parse_args()
@@ -526,6 +637,11 @@ def main() -> int:
         result = json.loads(RESULT.read_text(encoding="utf-8"))
         changed = stale(result)
         unexplained = verdict(result)
+        if args.likely:
+            for pg, page in result["pages"].items():
+                for r in page["differences"]:
+                    if r["class"] == "LIKELY-ERROR":
+                        print(f"p{pg} L{r['line']}: pdf=[{r['pdf']}] md=[{r['md']}] tesseract=[{r.get('tesseract', '')}]")
         if changed:
             print(f"=== TEXT LAYER DIFF 1985 STALE: {', '.join(changed)} changed since {RESULT.name} was measured; "
                   f"re-run: {RERUN} ===")
@@ -541,16 +657,26 @@ def main() -> int:
     ledger, notes = ledger_entries(), note_entries(text)
     lex = Lexicon.of([w for words in md.values() for w, _, _ in words], reserved_words())
     result = {"edition": 1985, "pdf_pages": total, "inputs": inputs(), "classes": list(CLASSES), "pages": {}}
-    for n in pages:
-        rows = classify_page(pdf[n], md[n], ledger.get(n, []) + notes.get(n, []), lex, 807 <= n <= 819)
+    measured = {n: classify_page(pdf[n], md[n], ledger.get(n, []) + notes.get(n, []), lex, 807 <= n <= 819) for n in pages}
+    if args.arbitrate:
+        exe = tesseract_exe()
+        result["inputs"]["tesseract"] = tesseract_version(exe)
+        todo = [n for n, rows in measured.items() if any(r["class"] == "UNEXPLAINED" for r in rows)]
+        with ThreadPoolExecutor(max_workers=6) as pool:
+            texts = dict(zip(todo, pool.map(lambda n: tesseract_text(n, args.ocr_cache, exe), todo)))
+        for n in todo:
+            arbitrate_rows(measured[n], texts[n])
+    for n, rows in measured.items():
+        for r in rows:
+            r.pop("_src", None)
         counts: dict[str, int] = {}
         for r in rows:
             counts[r["class"]] = counts.get(r["class"], 0) + 1
         if rows:
             result["pages"][str(n)] = {"counts": counts, "differences": rows}
         for r in rows:
-            if args.all or (r["class"] == "UNEXPLAINED" and (args.verbose or args.pages)):
-                print(f"p{n} L{r['line']} {r['class']}/{r['reason']}: pdf=[{r['pdf']}] md=[{r['md']}]")
+            if args.all or (r["class"] in ("UNEXPLAINED", "LIKELY-ERROR") and (args.verbose or args.pages)):
+                print(f"p{n} L{r['line']} {r['class']}/{r['reason']}: pdf=[{r['pdf']}] md=[{r['md']}] tesseract=[{r.get('tesseract', '')}]")
     if not args.pages:
         RESULT.write_text(json.dumps(result, ensure_ascii=False, indent=1) + "\n", encoding="utf-8", newline="\n")
         print(f"wrote {RESULT.relative_to(REPO)}")
