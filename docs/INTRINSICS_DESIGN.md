@@ -244,6 +244,15 @@ The seven shapes, and the functions each covers:
 
 **The FORMATTED-\* family is the row most easily read backwards.** Their type follows argument-1 — the FORMAT literal (§2023:15.38.3 AR1 and siblings admit "a national or alphanumeric literal") — so `FUNCTION FORMATTED-DATE(N"YYYYMMDD" D)` is a NATIONAL function even though what it renders is an integer date.
 
+**A FORMAT literal is parsed once per run unit (kb/Work PB2637).** §2023:15.38.3 AR1, §2023:15.39.3 AR1, §2023:15.40.3 AR1,
+§2023:15.41.3 AR1, §2023:15.48.3 AR1, §2023:15.79.3 AR1 and §2023:15.92.3 AR1 make argument-1 a literal, so its segments are a
+compile-time constant. `CobolDate.FormatOf` holds each format's `DateTimeFormat` (the segment array of the one tokenizer,
+`CobolDate.Tokenize`, and the facts read off it: UTC, date, time, week, ordinal and calendar fields, the fraction's digit count,
+the image's length), parsed on the first call that names the literal; `EmitFormatted` writes the image into one
+`string.Create` buffer, `Analyze` reads the same segments, and the compile-time `FormatFractionDigits` reads the same parse.
+The binder's `DateTimeFormatGrammar` is still a separate recognizer; one parse for both waits on the DateTimeFunctions
+extraction (DESIGN-architecture-review §8.3 (3), PB2370).
+
 ### FUNCTION argument shapes: table(ALL) expansion, optional trailing args (e.g. RANDOM seed), and variadic statistical functions — REAL argument parse trees (P7 Step 12).
 
 FUNCTION arguments parse through the grammar (`functionArgList` — the lexer suppresses the SUBSCRIPT push after
