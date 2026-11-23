@@ -1,4 +1,4 @@
-## PB2653: every MOVE receiver scale asks PicInfo.ReceiverScale
+## Entry 3970 — 2026-11-23 03:53 PST — PB2653: every MOVE receiver scale asks PicInfo.ReceiverScale
 
 PB2653 (an R2 duplication finding of the PB1754 review, pinned at `cd85e4901`) asked to widen PB2163's scale-alignment
 unify to the copy in `MoveEmitter.ConvertSource` and make `PicInfo.ReceiverScale` the one scale. Re-probed at
@@ -9,3 +9,4 @@ hand: `AllLiteralNumber` (`edited ? pic.ReceiverScale() : pic.Scale`) and `Conve
 LOCALE picture is always numeric-edited), so the change is behavior-neutral:
 `=== ARCH-ORACLE: IDENTICAL — 23455 cases ===`. No golden (no behavior change), no inventory row
 (`closes_rows: []`, behavior-neutral restructuring).
+
