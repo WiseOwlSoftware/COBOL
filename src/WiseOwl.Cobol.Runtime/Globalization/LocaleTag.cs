@@ -80,7 +80,7 @@ public sealed class LocaleTag
         string t = (text ?? "").Trim().Replace('_', '-');
         if (t.Length == 0) return Root;
         string baseText = t, extension = "";
-        int u = t.IndexOf("-u-", StringComparison.OrdinalIgnoreCase);
+        int u = t.IndexOf("-u-", StringComparison.OrdinalIgnoreCase);   // not a COBOL word: a locale identification (BCP 47 text)
         if (u >= 0)
         {
             baseText = t[..u];
@@ -108,7 +108,7 @@ public sealed class LocaleTag
     {
         var parts = tag.Split('-', StringSplitOptions.RemoveEmptyEntries);
         if (parts.Length == 0) return "";
-        if (parts[0].Equals("root", StringComparison.OrdinalIgnoreCase) || parts[0].Equals("und", StringComparison.OrdinalIgnoreCase)) return "";
+        if (parts[0].Equals("root", StringComparison.OrdinalIgnoreCase) || parts[0].Equals("und", StringComparison.OrdinalIgnoreCase)) return "";   // not a COBOL word: a locale identification (BCP 47 text)
         var outParts = new string[parts.Length];
         outParts[0] = parts[0].ToLowerInvariant();
         for (int i = 1; i < parts.Length; i++)
