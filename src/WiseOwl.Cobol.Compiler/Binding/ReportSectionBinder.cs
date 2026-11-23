@@ -622,7 +622,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         // "refers to the category unless class is specifically indicated"), so it asks the ONE category reader every
         // rule so worded asks (ASSIGN USING, FILE STATUS, the record keys) — never the class lattice, whose
         // alphanumeric answer for a strongly-typed group is §2023:15.3 AR2's reading of a function ARGUMENT (kb/Work PB3355).
-        string? why = !codeRefMod && !ItemCategory.IsAlphanumeric(item)
+        string? why = !codeRefMod && !ItemCategory.IsAlphanumeric(item, Edition.Edition)
                 ? $"is not an alphanumeric data item (it is {ItemCategory.Face(item)})"
             : codeRefMod && (codeSfx.RefMods > 1 || codeSfx.NonLiteral || codeSfx.BeyondHostLimit || codeSfx.Start is null)
                 ? "is reference-modified with a leftmost-position or length that is not a single integer literal, so the "

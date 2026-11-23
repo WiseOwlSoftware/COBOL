@@ -1394,7 +1394,7 @@ description entry and its remedy is a different edit.
 **A rule with two obligations gets a row per arm, sharing one rule-id** (kb/Work PB743). §2023:12.4.5.12.3 SR2 and
 §2023:12.4.5.6.3 SR2 each join a CATEGORY and a LOCATION with the word "within"; PB699 screened the location half
 alone, so a `PIC 9(5)` prime key built an index on an operand the standard forbids, silently. The category arm
-reads `ItemCategory.IsAlphanumericOrNational` — the ONE §2023:8.5.2 category reader, shared with §2023:12.4.5.2 SR7's
+reads `ItemCategory.IsAlphanumericOrNational(item, edition)` — the ONE §2023:8.5.2 category reader (its edition axis admits a PIC A item at COBOL-2002 alone, §2002:8.5.2.1; kb/Work PB5871), shared with §2023:12.4.5.2 SR7's
 ASSIGN … USING screen — which admits an alphanumeric group item (§2023:13.18.29.4 GR3) and a national group and
 refuses alphabetic, numeric, edited, boolean and the PICTURE-less usages. The inventory row earns CONFORMS only
 when both rows are live, which is why PB699 recorded no verdict for either.

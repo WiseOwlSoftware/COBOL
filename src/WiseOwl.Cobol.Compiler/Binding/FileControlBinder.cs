@@ -532,7 +532,7 @@ public sealed partial class FileControlBinder
                 continue;
             }
             foreach (var k in keys.Where(k => k.Key is not null).DistinctBy(k => k.Key!, ReferenceEqualityComparer.Instance))
-                if (k.Key is { } key && ItemCategory.IsAlphanumericOrNational(key.CategorySource)
+                if (k.Key is { } key && ItemCategory.IsAlphanumericOrNational(key.CategorySource, Edition.Edition)
                     && SpecialNamesBinder.CollatingAlphabetFault(alphabet3, IsNationalKey(key)) is { } fault)
                     Edition.Error(DiagnosticCatalog.FileCollatingAlphabet, $"file '{file.CobolName}': COLLATING "
                         + $"SEQUENCE OF '{k.Operand.Written}' IS '{alphabet3.Name}' — "
@@ -564,7 +564,7 @@ public sealed partial class FileControlBinder
     /// <summary>A record key's CLASS for §2023:12.4.5.7 — national when the key is category national (a PIC N item or a
     /// GROUP-USAGE NATIONAL group), alphanumeric otherwise. Only keys §2023:12.4.5.12.3 SR2 / §2023:12.4.5.6.3 SR2 admit
     /// (alphanumeric or national) reach a caller.</summary>
-    private static bool IsNationalKey(RecordKey key) => !ItemCategory.IsAlphanumeric(key.CategorySource);
+    private bool IsNationalKey(RecordKey key) => !ItemCategory.IsAlphanumeric(key.CategorySource, Edition.Edition);
 
     /// <summary>The RECORD KEY or ALTERNATE RECORD KEY one key-level COLLATING SEQUENCE operand names — ISO
     /// §2023:12.4.5.7.3 SR4: "shall be a name specified as the data-name in an ALTERNATE RECORD KEY clause or in a
@@ -618,7 +618,7 @@ public sealed partial class FileControlBinder
     /// than the one written (docs/CONFORMANCE.md §2 rows 41–42).</para></summary>
     private AlphabetDef? ResolveKeyCollating(FileModel file, RecordKey? key)
     {
-        if (key is null || !ItemCategory.IsAlphanumericOrNational(key.CategorySource)) return null;   // SR2 has refused it
+        if (key is null || !ItemCategory.IsAlphanumericOrNational(key.CategorySource, Edition.Edition)) return null;   // SR2 has refused it
         bool national = IsNationalKey(key);
         CollatingAlphabet? alphabet = null;
         var where = file.FileLevelCollatingAt;

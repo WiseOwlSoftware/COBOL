@@ -11,6 +11,8 @@
 *> alphanumeric" and SR2 refuses it. This case exists because the storage model folds PIC A into
 *> PicCategory.Alphanumeric: without it, a screen written as a bare category comparison would pass
 *> and nothing would say so (kb/Work PB743; the model carries PicInfo.IsAlphabetic for exactly this).
+*> Refused at 85, 2014 and 2023; COBOL-2002 admits the key (§2002:8.5.2.1: an alphabetic item is treated as an alphanumeric
+*> one where no rule expressly permits it; kb/Work PB5871, golden pb5871-keys-status-alphabetic-2002).
 IDENTIFICATION DIVISION.
 PROGRAM-ID. PB743RKALPHA.
 ENVIRONMENT DIVISION.
