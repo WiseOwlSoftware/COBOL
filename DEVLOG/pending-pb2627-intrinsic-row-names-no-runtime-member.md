@@ -1,4 +1,4 @@
-## PB2627: an intrinsic catalog row names no runtime member; the renderer keys on the function and names each body through nameof
+## PB2627: an intrinsic catalog row names no runtime member; the renderer keys on the function and names each body through RuntimeApi
 
 **What was wrong.** `IntrinsicSig.RuntimeMethod` looked like the runtime body a function runs, but the renderer used it as
 a dispatch key. The MAX row said `"MaxScaled"`, yet a MAX call emits `MaxAt`, `MaxDec`, `MaxExact`, `MaxWide` or `MaxReal`,
@@ -15,7 +15,8 @@ and `MidrangeScaled`.
 **Fix.** The catalog row has no member-name column. The function's catalog name is the one key, as kb/Work PB4370 already made
 it for `IntrinsicCarrierRules`. That covers every renderer switch (`RenderNum`, `RenderDec`, `RenderExactUnary`, `RenderWide`,
 `RenderWholeAligned`, the string channel), `FunctionDeviceText`, `FunctionValueLane`'s sets, `StandardValueFixedByRule` and
-`EquivalentExpressionUnaryArms`. Each body an arm emits is a `nameof`. The `XxxScaled → XxxReal` name convention
+`EquivalentExpressionUnaryArms`. Each body an arm emits is a `nameof`-anchored constant in `RuntimeApi` (`IntrinsicBody`,
+`DateBody`, `LocaleBody`, `EcBody`: 184 names), the façade `RuntimeApiGuardTests` holds every runtime name to. The `XxxScaled → XxxReal` name convention
 (`RealMethod`) is now one function-keyed table, `IntrinsicRenderer.Binary64Bodies`. The binder records its string-comparison
 choice as a fact on the call, `BoundIntrinsicCall.ComparesStrings`. Each arm that used to exclude the string body by its key
 now asks that fact, at the same point in the flow. `OrdMax` and `OrdMin` are deleted. `MaxScaled` and `MinScaled` are private

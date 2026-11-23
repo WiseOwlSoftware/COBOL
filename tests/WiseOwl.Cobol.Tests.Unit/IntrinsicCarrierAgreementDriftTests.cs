@@ -319,17 +319,17 @@ public sealed class IntrinsicCarrierAgreementDriftTests
     /// follows it was attributed to <c>true</c> and the FIND-STRING arm was never examined at all (found by the PB651
     /// review finisher; <see cref="EveryTotalIntegerArgument_TakesTheWideIntake"/> now asserts which arms it examined).
     /// <para>⛔ AN ARM IS NAMED BY THE BODIES IT EMITS (kb/Work PB2627). The renderer's arms are labelled with the FUNCTION
-    /// (<c>case "TEST-DATE-YYYYMMDD" or "TEST-DAY-YYYYDDD":</c>) and name each runtime body through <c>nameof</c>, so the body an
+    /// (<c>case "TEST-DATE-YYYYMMDD" or "TEST-DAY-YYYYDDD":</c>) and name each runtime body through a <c>RuntimeApi</c> constant (<c>RuntimeApi.IntrinsicBody.TestNumval</c>), so the body an
     /// arm pairs with is read off the arm itself (<see cref="BodyName"/>), never guessed from its label; a label may itself be a
-    /// body's <c>nameof</c> (the binary64 lane's <c>nameof(CobolIntrinsics.Random) =&gt;</c>).</para></remarks>
+    /// body's constant (the binary64 lane's <c>RuntimeApi.IntrinsicBody.Random =&gt;</c>).</para></remarks>
     private static readonly Regex ArmHead = new(
-        """^[ \t]*(?:case\s+)?(?:"[A-Z][A-Z0-9-]*"|nameof\(\w+\.\w+\))(?:\s+or\s+(?:"[A-Z][A-Z0-9-]*"|nameof\(\w+\.\w+\)))*\s*(?:when\b[^\n]*?)?(?::|=>)""",
+        """^[ \t]*(?:case\s+)?(?:"[A-Z][A-Z0-9-]*"|RuntimeApi\.\w+Body\.\w+)(?:\s+or\s+(?:"[A-Z][A-Z0-9-]*"|RuntimeApi\.\w+Body\.\w+))*\s*(?:when\b[^\n]*?)?(?::|=>)""",
         RegexOptions.Compiled | RegexOptions.Multiline);
 
     /// <summary>A runtime body an arm names, its <c>Dec</c> or <c>Exact</c> carrier suffix dropped so the SDIDI and exact twins of a
     /// body join its entry (<c>AnnuityDec</c> and <c>AnnuityExact</c> are ANNUITY's, as <see cref="SingleCarrierIntrinsicBodies"/> pairs them).</summary>
     private static readonly Regex BodyName = new(
-        @"nameof\((?:CobolIntrinsics|CobolDate|CobolLocale)\.(?<b>\w+?)(?:Dec|Exact)?\)", RegexOptions.Compiled);
+        @"RuntimeApi\.(?:IntrinsicBody|DateBody|LocaleBody)\.(?<b>\w+?)(?:Dec|Exact)?\b", RegexOptions.Compiled);
 
     /// <summary>The start of a class member (four-space indent), where the arm before it ends.</summary>
     private static readonly Regex MemberStart = new(@"^    (?:private|internal|public|protected)\b", RegexOptions.Compiled | RegexOptions.Multiline);
@@ -388,14 +388,14 @@ public sealed class IntrinsicCarrierAgreementDriftTests
         {
             ["TestDateYyyymmdd"] = true, ["TestDayYyyyddd"] = true, ["Factorial"] = false,
         };
-        const string both = """sig.Name is "TEST-DATE-YYYYMMDD" ? nameof(CobolDate.TestDateYyyymmdd) : nameof(CobolDate.TestDayYyyyddd)""";
+        const string both = """sig.Name is "TEST-DATE-YYYYMMDD" ? RuntimeApi.DateBody.TestDateYyyymmdd : RuntimeApi.DateBody.TestDayYyyyddd""";
         Assert.Equal(2, IntakeWidthOffenders(
             $$"""case "TEST-DATE-YYYYMMDD" or "TEST-DAY-YYYYDDD": return DateFn({{both}}, IntArg(ic, 0));""", wide).Count);
         Assert.Empty(IntakeWidthOffenders(
             $$"""case "TEST-DATE-YYYYMMDD" or "TEST-DAY-YYYYDDD": return DateFn({{both}}, IntArgWide(ic, 0));""", wide));
-        Assert.Single(IntakeWidthOffenders("""case "FACTORIAL": return Intrinsic(nameof(CobolIntrinsics.Factorial), IntArgWide(ic, 0));""", wide));
+        Assert.Single(IntakeWidthOffenders("""case "FACTORIAL": return Intrinsic(RuntimeApi.IntrinsicBody.Factorial, IntArgWide(ic, 0));""", wide));
         Assert.Empty(IntakeWidthOffenders(
-            """/// this arm used to read case "TEST-DATE-YYYYMMDD": nameof(CobolDate.TestDateYyyymmdd) … IntArg(ic, 0)""", wide));
+            """/// this arm used to read case "TEST-DATE-YYYYMMDD": RuntimeApi.DateBody.TestDateYyyymmdd … IntArg(ic, 0)""", wide));
     }
 
     /// <summary>The guard proper, over the shipped renderer and the shipped runtime signatures.</summary>
@@ -458,17 +458,17 @@ public sealed class IntrinsicCarrierAgreementDriftTests
         // kb/Work PB637 — ANNUITY's SDIDI arm as it was written (long), as the first fix wrote it (Int128), and as it stands.
         Assert.Single(SdidiIntegerOffenders(
             """"
-            "ANNUITY" => Dec(RuntimeApi.Intrinsic(nameof(CobolIntrinsics.AnnuityDec), $"{mode}, {DecArg(ic, 0)}, {IntArg(ic, 1)}")),
+            "ANNUITY" => Dec(RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.AnnuityDec, $"{mode}, {DecArg(ic, 0)}, {IntArg(ic, 1)}")),
             """"));
         Assert.Single(SdidiIntegerOffenders(
             """"
-            "ANNUITY" => Dec(RuntimeApi.Intrinsic(nameof(CobolIntrinsics.AnnuityDec), $"{mode}, {DecArg(ic, 0)}, {IntArgWide(ic, 1)}")),
+            "ANNUITY" => Dec(RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.AnnuityDec, $"{mode}, {DecArg(ic, 0)}, {IntArgWide(ic, 1)}")),
             """"));
         Assert.Empty(SdidiIntegerOffenders(
             """"
-            "ANNUITY" => Dec(RuntimeApi.Intrinsic(nameof(CobolIntrinsics.AnnuityDec), $"{arithmetic}, {DecArg(ic, 0)}, {DecArg(ic, 1)}")),
+            "ANNUITY" => Dec(RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.AnnuityDec, $"{arithmetic}, {DecArg(ic, 0)}, {DecArg(ic, 1)}")),
             """"));
-        Assert.Empty(SdidiIntegerOffenders("""// the Annuity arm once read "ANNUITY" => nameof(CobolIntrinsics.AnnuityDec) … IntArg(ic, 1)"""));
+        Assert.Empty(SdidiIntegerOffenders("""// the Annuity arm once read "ANNUITY" => RuntimeApi.IntrinsicBody.AnnuityDec … IntArg(ic, 1)"""));
     }
 
     [Fact]

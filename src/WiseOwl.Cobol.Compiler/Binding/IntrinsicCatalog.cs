@@ -92,7 +92,7 @@ public readonly record struct IntrinsicResultLength(int? Positions, bool OfArgum
 /// (<see cref="IntrinsicValueSource"/>; kb/Work PB5891).
 /// <para>⛔ THE ROW NAMES NO RUNTIME MEMBER (kb/Work PB2627). The function's identity is <paramref name="Name"/>, and every
 /// consumer keys on it: the bound layer's carrier rules (<c>IntrinsicCarrierRules</c>, <c>FunctionValueLane</c>) and the backend's
-/// arms (<c>IntrinsicRenderer</c>, <c>FunctionDeviceText</c>), which name each body they emit through <c>nameof</c>. A column spelled
+/// arms (<c>IntrinsicRenderer</c>, <c>FunctionDeviceText</c>), which name each body they emit through the <c>nameof</c>-anchored <c>RuntimeApi.IntrinsicBody</c> constants. A column spelled
 /// like a member name was a dispatch key that read as the body a function runs (MAX "ran MaxScaled" and emitted <c>MaxAt</c>) and
 /// kept two bodies no program reached alive in the reachability census.</para>
 /// </summary>

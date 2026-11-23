@@ -42,7 +42,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// <c>CS0121: The call is ambiguous between 'MaxScaled(params Int128[])' and 'MaxScaled(params double[])'</c>,
 /// breaking six previously-green corpus programs that had nothing to do with floats.
 /// <para>
-/// So the real bodies carry a <c>…Real</c> name, and the renderer names each through <c>nameof</c> in ONE table keyed on
+/// So the real bodies carry a <c>…Real</c> name, and the renderer names each through its <c>nameof</c>-anchored <c>RuntimeApi.IntrinsicBody</c> constant in ONE table keyed on
 /// the function, <c>IntrinsicRenderer.Binary64Bodies</c> (kb/Work PB2627): a missing or renamed body fails the build, and
 /// <c>IntrinsicRealArgDriftTests</c> holds the table to every function whose argument run can carry a binary64.
 /// </para>

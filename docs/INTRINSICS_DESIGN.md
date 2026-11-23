@@ -127,7 +127,8 @@ THE CATALOG (declarative, in WiseOwl.Cobol.Binding):
       int IntroducedIn, int? RemovedIn);  // edition window (85/2002/2014/2023) from docs/VERSION_CHANGE_REFERENCE.md;
       // the binder rejects a FUNCTION outside its window for the year of Options.Edition with a per-edition diagnostic (D8)
       // ⛔ The row names NO runtime member (kb/Work PB2627): Name is the function's identity and every consumer keys on it —
-      // the bound layer's carrier rules and the backend's arms, which name each body they emit through nameof.
+      // the bound layer's carrier rules and the backend's arms, which name each body they emit through a nameof-anchored
+      // RuntimeApi constant (RuntimeApi.IntrinsicBody.Factorial).
   static class IntrinsicCatalog {
       static readonly Dictionary<string,IntrinsicSig> _t = new(StringComparer.OrdinalIgnoreCase){ ... ~95 rows ... };
       public static bool TryGet(string name, out IntrinsicSig sig) => _t.TryGetValue(name, out sig);
@@ -152,8 +153,8 @@ direct call to the same `WiseOwl.Cobol.Runtime` method):
      if (name.Equals("LENGTH",IC)) return new NumX($"{FoldLength(arg0)}L", 0);     // §2023:15.50 compile-time fold
      var sig = IntrinsicCatalog.Get(name);
      var args = BindIntrinsicArgs(fc, sig);                                         // table(ALL) expanded, typed per sig
-     return sig.Name switch {                        // the arm is the FUNCTION's; the body it emits is a nameof
-        "FACTORIAL" => new NumX(RuntimeApi.Intrinsic(nameof(CobolIntrinsics.Factorial), IntArgs(args)), 0),
+     return sig.Name switch {                        // the arm is the FUNCTION's; the body it emits is a RuntimeApi constant
+        "FACTORIAL" => new NumX(RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.Factorial, IntArgs(args)), 0),
         _ when sig.Float => RenderFloat(ic, Binary64Body(sig)),   // the one function → binary64-body table
         ...                                          /* exact: a CobolIntrinsics body at a known scale */
         _ => Loud(...) };

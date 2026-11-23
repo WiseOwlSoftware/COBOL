@@ -22,7 +22,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </para>
 /// <para>
 /// The fix routes real-argument calls to a <c>…Real</c> body through ONE table keyed on the function,
-/// <c>IntrinsicRenderer.Binary64Bodies</c>, whose values are <c>nameof</c>s (kb/Work PB2627): a body the table names exists by
+/// <c>IntrinsicRenderer.Binary64Bodies</c>, whose values are <c>nameof</c>-anchored <c>RuntimeApi.IntrinsicBody</c> constants (kb/Work PB2627): a body the table names exists by
 /// construction, so what is asserted here is the table's POPULATION. Adding an exact-family arm to the renderer without its
 /// row would make a binary64 argument fail the compile for that one function only, which is exactly the kind of hole nothing
 /// else notices; and a <c>…Real</c> body no row names is a body no program reaches.
