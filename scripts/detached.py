@@ -182,8 +182,12 @@ def self_test() -> int:
         # 1. a detached process OUTLIVES a tree kill of its caller (the agent harness's kill, kb/Work PB3536): a caller
         #    process starts it, the caller's whole tree is killed, and the target still runs and still writes its log.
         mark, log, go = root / "target.pid", root / "target.log", root / "go"
+        # The pid is written atomically (a temp file beside the name, then os.replace onto it), so a reader that sees the
+        # name sees the whole pid (kb/Work PB5131: a read between the name's creation and its write found an empty file).
         target = ("import os, pathlib, time\n"
-                  f"pathlib.Path({str(mark)!r}).write_text(str(os.getpid()), encoding='utf-8')\n"
+                  f"tmp = pathlib.Path({str(mark)!r} + '.tmp')\n"
+                  "tmp.write_text(str(os.getpid()), encoding='utf-8')\n"
+                  f"os.replace(tmp, {str(mark)!r})\n"
                   f"g = pathlib.Path({str(go)!r})\n"
                   "while not g.exists(): time.sleep(0.05)\n"
                   "print('outlived its caller', flush=True)\n")

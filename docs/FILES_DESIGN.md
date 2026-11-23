@@ -2885,7 +2885,7 @@ rows; derive 85↔2002 gating from the 2002 standard / the ISO2023_CONFORMANCE_P
   indicator", and OPEN sets a sequential or relative file's indicator to 1 (§2002:14.8.26.3 GR12). SEQUENTIAL records
   are numbered densely from 1, so record 1 answers at every edition (`pb334_read_previous_sequential`). A RELATIVE file
   can be sparse: `RelativeConnector.SelectSequentialSlot` asks `DialectBehaviors.IsActive(
-  RelativeReadPreviousAfterOpenComparesFpi, Edition)` (VCR row 7.121, kb/Work PB5742) and below 2023 seeks the last
+  RelativeReadPreviousAfterOpenComparesFpi, Edition)` (VCR row 7.123, kb/Work PB5742) and below 2023 seeks the last
   record at most the indicator, so a file whose lowest record is RRN 5 is at end ('10') for the PREVIOUS that follows
   the OPEN, while a START's indicator names an existing record and PREVIOUS still returns it. Both legs are asserted —
   `conformance:{2002,2014,2023}/pb334_read_previous_sequential` and

@@ -140,6 +140,24 @@ def tree_shapes() -> list[tuple[str, str]]:
     return list(dict.fromkeys(shape for edition in sorted(TREE_FORBIDDEN) for shape in TREE_FORBIDDEN[edition]))
 
 
+_TREE_PATTERNS: list[tuple[re.Pattern[str], str]] = []
+
+
+def text_stamp_hits(text: str) -> list[tuple[str, int]]:
+    """THE tree matcher (kb/Work PB6136): for each tree shape `text` holds, (what it is, the line of its first match).
+    The text is searched WHOLE, never line by line, because a shape's whitespace run crosses a line break (`order #` on one line,
+    its number on the next). The gate's tree check (`check_tree`) and the push-time scan (scripts/hooks/git_pre_push.py)
+    both read a file through this function, so what the push passes, the gate passes."""
+    if not _TREE_PATTERNS:
+        _TREE_PATTERNS.extend((re.compile(p), what) for p, what in tree_shapes())
+    return [(what, text.count("\n", 0, m.start()) + 1) for rx, what in _TREE_PATTERNS if (m := rx.search(text))]
+
+
+def stamp_hits(body: bytes) -> list[tuple[str, int]]:
+    """`text_stamp_hits` of a file's content; [] for a binary file (a NUL in its first 8000 bytes)."""
+    return [] if b"\0" in body[:8000] else text_stamp_hits(body.decode("utf-8", "replace"))
+
+
 def check_tree(repo: pathlib.Path = REPO) -> list[str]:
     """Every tracked file, as the index holds it, carries none of the tree shapes."""
     import subprocess
@@ -150,15 +168,8 @@ def check_tree(repo: pathlib.Path = REPO) -> list[str]:
     import coord  # noqa: E402  (the ONE list of the files no landing carries)
     blobs = {meta.split()[1]: path for meta, path in entries if not meta.startswith("160000") and coord.is_work(path)}
     failures = []
-    pats = [(re.compile(p), what) for p, what in tree_shapes()]
     for sha, body in git_batch.blobs(repo, blobs):
-        if b"\0" in body[:8000]:
-            continue
-        text = body.decode("utf-8", "replace")
-        for rx, what in pats:
-            if m := rx.search(text):
-                line = text.count("\n", 0, m.start()) + 1
-                failures.append(f"{what}: {blobs[sha]}:{line}")
+        failures += [f"{what}: {blobs[sha]}:{line}" for what, line in stamp_hits(body)]
     if failures:
         for f in failures[:20]:
             print(f"  ✗ {f}")
@@ -819,6 +830,13 @@ def self_test() -> int:
     check("the tree shapes of every edition are searched on every run",
           (r"\border\s*#\s*[A-Za-z_]*\d{4,}", "reseller order number") in tree_shapes()
           and (r"\bX_\d{6}\b", "reseller order number") in tree_shapes())
+    # kb/Work PB6136 review R1-2: THE tree matcher reads a file whole, so an order number broken across a line is found
+    # (on the line it starts), a binary file is skipped, and a clean text has no hit.
+    split_order = "x\norder " + "#\n" + "1234" + "56\n"
+    check("the tree matcher finds a shape that crosses a line break, on its first line, and skips a binary file",
+          text_stamp_hits(split_order) == [("reseller order number", 2)]
+          and stamp_hits(split_order.encode()) == [("reseller order number", 2)]
+          and stamp_hits(b"\0" + split_order.encode()) == [] and text_stamp_hits("order #\nnone\n") == [])
     check("a shape names no licensee and no order number",
           not any(re.search(r"\d{6}", p) for table in (FORBIDDEN, TREE_FORBIDDEN)
                   for rows in table.values() for p, _ in rows))

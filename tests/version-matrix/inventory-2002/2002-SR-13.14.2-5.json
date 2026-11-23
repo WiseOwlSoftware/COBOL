@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.14.2-5",
+ "rule-digest": "3dcb046e8f20",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitExternalClause",
+ "test-ref": "conformance:wiseowl/diagnostics/pb5710-typedef-external-weak-below-2023",
+ "notes": "EXTERNAL with REDEFINES or BASED is the clause-placement table's NotWith row (ClausePlacementRules, SR5 REDEFINES/BASED half, written the same at 2002 and 2023); the TYPEDEF half is a COBOL-2023 introduction (2023 drops TYPEDEF from its list and admits type declarations as EXTERNAL residents), so VersionConformancePass.VisitExternalClause refuses EXTERNAL and TYPEDEF in one entry below 2023, strong or weak, COBOL0900 (kb/Work PB5710)."
+}

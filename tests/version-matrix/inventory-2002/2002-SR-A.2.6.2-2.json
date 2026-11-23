@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-A.2.6.2-2",
+ "rule-digest": "6a4e45e14ff1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#BindSend",
+ "test-ref": "conformance:cases/A.2.6@2002-SEND-STATEMENT/pb5722-send-from-numeric-edited-2002; conformance:cases/A.2.6@2002-SEND-STATEMENT/pb5615-send-from-alphabetic-2002",
+ "notes": "§2002:A.2.6.2 SR2 'Identifier-1 shall reference a data item of class alphanumeric' is a CLASS rule: §2002:8.5.2 puts 'Numeric-edited (if usage is display)' in class alphanumeric, so SEND FROM a PIC ZZ9 item is admitted at --std 2002 (before the fix COBOL6171 refused it, rc 65; now the looped-back probe prints SEND 00 / GOT 0003 [ 42***]); BindSend reads the class through TableTwoClass, so a national numeric-edited item stays class national and is refused."
+}

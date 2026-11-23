@@ -96,4 +96,54 @@ public sealed class RefusedSortMergeReleaseReturnTests : IDisposable
         Assert.Single(lines, d => d.Contains("COBOL7081"));
         Assert.Contains(lines, d => d.Contains("'SW2'") && d.Contains("COBOL7081"));
     }
+
+    [Fact] // kb/Work PB6068: the guard is per statement, not per file - a RELEASE of the refused SORT's own file written in a plain paragraph is still COBOL7081
+    public void RefusedSort_StillReportsAReleaseOutsideItsRange()
+    {
+        var lines = Compile(
+            "           SORT SW ASCENDING KEY SK INPUT PROCEDURE IS IP GIVING SW2.\n" +
+            "           STOP RUN.\n" +
+            "       IP.\n" +
+            "           RELEASE SR.\n" +
+            "       STRAY.\n" +
+            "           RELEASE SR.\n");
+        Assert.Single(lines, d => d.Contains("COBOL7081"));
+    }
+
+    [Fact] // kb/Work PB6068: a refused MERGE whose output procedure range holds the RETURN, with a second RETURN of the same file elsewhere
+    public void RefusedMerge_StillReportsAReturnOutsideItsRange()
+    {
+        var lines = Compile(
+            "           MERGE SW ASCENDING KEY SK USING F1 F1 OUTPUT PROCEDURE IS OP.\n" +
+            "           STOP RUN.\n" +
+            "       OP.\n" +
+            "           RETURN SW AT END DISPLAY \"E\".\n" +
+            "       STRAY.\n" +
+            "           RETURN SW AT END DISPLAY \"E\".\n");
+        Assert.Single(lines, d => d.Contains("COBOL7081"));
+    }
+
+    [Fact] // kb/Work PB6068: a SORT refused before its procedure names are read (no KEY phrase) still has its range, so the legal RELEASE stays quiet
+    public void RefusedSortBeforeItsProcedures_KeepsItsInputRange()
+    {
+        var lines = Compile(
+            "           SORT SW INPUT PROCEDURE IS IP GIVING F1.\n" +
+            "           STOP RUN.\n" +
+            "       IP.\n" +
+            "           RELEASE SR.\n");
+        Assert.DoesNotContain(lines, d => d.Contains("COBOL7081"));
+        Assert.NotEmpty(lines);
+    }
+
+    [Fact] // a phrase naming no procedure leaves the range unknown, so the file's uses of that direction are not judged (the one case that stays file-wide)
+    public void RefusedSortWithAnUnknownProcedure_JudgesNoReleaseOfItsFile()
+    {
+        var lines = Compile(
+            "           SORT SW ASCENDING KEY SK INPUT PROCEDURE IS NOPE GIVING F1.\n" +
+            "           STOP RUN.\n" +
+            "       STRAY.\n" +
+            "           RELEASE SR.\n");
+        Assert.DoesNotContain(lines, d => d.Contains("COBOL7081"));
+        Assert.NotEmpty(lines);
+    }
 }
