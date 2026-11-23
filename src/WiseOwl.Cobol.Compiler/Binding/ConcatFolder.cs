@@ -72,7 +72,19 @@ internal static class ConcatFolder
             PicCategory.Boolean => "B\"" + Value + "\"",
             _ => "\"" + Value.Replace("\"", "\"\"") + "\"",
         };
+
+        /// <summary>The quoted literal <paramref name="literal"/> as itself folded: its class and its value.</summary>
+        public static Folded Of(QuotedLiteral literal) => new(CategoryOf(literal.Class), literal.Value);
     }
+
+    /// <summary>The category a literal of class <paramref name="cls"/> has: a literal's class and category are one
+    /// (§2023:8.3.3.2.1, §2023:8.3.3.4.1, §2023:8.3.3.5.1).</summary>
+    public static PicCategory CategoryOf(LiteralClass cls) => cls switch
+    {
+        LiteralClass.National => PicCategory.National,
+        LiteralClass.Boolean => PicCategory.Boolean,
+        _ => PicCategory.Alphanumeric,
+    };
 
     /// <summary>The class of the concatenation expression (§2023:8.8.3.3 GR1, folded pairwise) — DIAGNOSTIC-FREE, for
     /// routing predicates that must classify without double-reporting (e.g. the boolean-channel discriminator
@@ -121,14 +133,9 @@ internal static class ConcatFolder
                     ReportZeroLength(Spelling(fig), report);
                 return folded;
             }
-            string token = al.GetText();
-            if (CobolLiteral.IsZeroLength(token)) ReportZeroLength(Spelling(fig), report);
-            return new Folded(CobolLiteral.ClassOf(token) switch
-            {
-                LiteralClass.National => PicCategory.National,
-                LiteralClass.Boolean => PicCategory.Boolean,
-                _ => PicCategory.Alphanumeric,   // X"…" is the alphanumeric literal's Format 2 (hexadecimal-alphanumeric, §2023:8.3.3.2.2)
-            }, CobolLiteral.Decode(token));
+            var literal1 = QuotedLiteral.Of(al.quotedLiteral());
+            if (CobolLiteral.IsZeroLength(literal1.Written)) ReportZeroLength(Spelling(fig), report);
+            return Folded.Of(literal1);
         }
         if (fig.ALL() is null || fig.cobolWord() is not { } written || env.Constant(written) is not { } k) return null;
         string word = written.GetText();
@@ -287,11 +294,15 @@ internal static class ConcatFolder
     /// that is no literal, a numeric constant-name, a symbolic-character SR11 forbids here).</summary>
     private static Term Classify(Core.ConcatOperandContext op, LiteralEnvironment env, EditionContext? report)
     {
-        if (op.STRINGLIT() is { } s) return Term.Literal(PicCategory.Alphanumeric, CobolLiteral.Decode(s.GetText()), $"alphanumeric literal {s.GetText()}");
-        // X"…" is the hexadecimal FORMAT of the alphanumeric literal (§2023:8.3.3.2) — class alphanumeric.
-        if (op.HEXLIT() is { } x) return Term.Literal(PicCategory.Alphanumeric, CobolLiteral.DecodeHex(x.GetText()), $"alphanumeric (hexadecimal) literal {x.GetText()}");
-        if (op.NATLIT() is { } n) return Term.Literal(PicCategory.National, CobolLiteral.Decode(n.GetText()), $"national literal {n.GetText()}");
-        if (op.BOOLLIT() is { } b) return Term.Literal(PicCategory.Boolean, CobolLiteral.Decode(b.GetText()), $"boolean literal {b.GetText()}");
+        if (op.quotedLiteral() is { } q)
+        {
+            // X"…" is the hexadecimal FORMAT of the alphanumeric literal (§2023:8.3.3.2.1) — class alphanumeric; the message
+            // names that format apart.
+            var literal = QuotedLiteral.Of(q);
+            var cls = CategoryOf(literal.Class);
+            string format = cls is PicCategory.Alphanumeric && literal.Hexadecimal ? " (hexadecimal)" : "";
+            return Term.Literal(cls, literal.Value, $"{Name(cls)}{format} literal {literal.Written}");
+        }
         if (op.figurativeConstant() is { } fig)
         {
             // §2023:8.8.3.2 SR1 second sentence: neither operand shall be a figurative constant that begins with the

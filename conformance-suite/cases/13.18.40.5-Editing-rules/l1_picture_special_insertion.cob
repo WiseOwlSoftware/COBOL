@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: l1_picture_special_insertion
       *> rules: [GR-13.18.40.5-4]
-      *> accept: [85, 2023]
+      *> accept: [85, 2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---

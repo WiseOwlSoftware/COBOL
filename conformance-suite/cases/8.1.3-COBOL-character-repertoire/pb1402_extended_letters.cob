@@ -1,6 +1,6 @@
 *>--- conformance-case
 *> id: pb1402_extended_letters
-*> rules: [GR-8.1.3.2-3, GR-8.1.3.2-4, SR-8.3.2.2-3, DOC-A.1-219]
+*> rules: [GR-8.1.3.2-3, GR-8.1.3.2-4, SR-8.3.2.2-3, DOC-A.1-219, GR-8.1.3.2-1]
 *> accept: [2002]
 *> source-format: free
 *> portable: unverified

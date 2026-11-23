@@ -1001,8 +1001,8 @@ ASCII character of a re-lex leaves the cached DFA and every mode has a cached st
 has no DFA edge in ANTLR (`MAX_DFA_EDGE`) and the EOF transition is never cached; both are reported, never asserted.
 
 **3.3d The ALL figurative's literal-1 (kb/Work PB71, 2026-08-18; PB1627, 2026-09-26).** `figurativeConstant`'s
-Format-6 arm is `ALL allLiteral`, where `allLiteral : concatenationExpression | STRINGLIT | HEXLIT | NATLIT |
-BOOLLIT` — ONE arm for the four literal kinds §2023:8.3.3.6.3 SR2 admits (alphanumeric plain or hexadecimal, national
+Format-6 arm is `ALL allLiteral`, where `allLiteral : concatenationExpression | quotedLiteral` — ONE arm for the four
+literal kinds §2023:8.3.3.6.3 SR2 admits (alphanumeric plain or hexadecimal, national
 N/NX, boolean B/BX), and literal-1 "may be a concatenation expression", which is THE `concatenationExpression`
 rule below, operands and all. Two load-bearing decisions: (1) `nonNumericLiteral` lists `figurativeConstant` BEFORE
 `concatenationExpression`, because `ALL "A" & "B"` is genuinely ambiguous between "ALL over the concatenated
@@ -1026,8 +1026,16 @@ boolean literal-1 is the literal token's, `LiteralScreen.GateFormat`, position-b
 moved to the binder because they need the program's constant-names, which the parse walk has not got (the version
 pass used to ask them over a quoted-only operand list — kb/Work PB1393's arm, PB1627).
 
-**The `&` operand and its class (kb/Work PB1406, 2026-09-26).** `concatOperand : STRINGLIT | NATLIT | BOOLLIT |
-HEXLIT | figurativeConstant | cobolWord`. The `cobolWord` arm is how §2023:8.8.3.1's literal-1 / literal-2 admit the two
+**The quoted literal (kb/Work PB2725, 2026-11-23).** `quotedLiteral : STRINGLIT | HEXLIT | NATLIT | BOOLLIT` is the ONE
+rule that admits a delimited literal: `nonNumericLiteral`, `concatOperand`, `allLiteral` and `residueLiteral` name it,
+never the four tokens. Its one reader is `Parsing.QuotedLiteral` (`Of` a `quotedLiteral` node, `In` a
+`nonNumericLiteral`), which takes the class and format from the written prefix (`CobolLiteral.FormOfToken`, the same
+prefix-to-class map `CobolLiteral.ClassOf` reads) and the value from `CobolLiteral.Decode`; the compiler's
+`ConcatFolder.Folded.Of` and `ConcatFolder.CategoryOf` turn it into a category. No consumer asks the token kind, so a
+new literal token or prefix is one edit to the rule or to `CobolLiteral`.
+
+**The `&` operand and its class (kb/Work PB1406, 2026-09-26).** `concatOperand : quotedLiteral | figurativeConstant |
+predefinedNull | cobolWord`. The `cobolWord` arm is how §2023:8.8.3.1's literal-1 / literal-2 admit the two
 WORDS that stand for a literal — a constant-name (§2023:13.10.3 SR2) and a symbolic-character, a figurative constant by
 §2023:12.3.7.4 GR11a — which the parse cannot tell from a data-name, so the arm admits any word and
 `ConcatFolder` resolves it through its `LiteralEnvironment` (COBOL2473 for a word that stands for no literal;
@@ -2142,7 +2150,7 @@ joined the table the same way, which is the table doing its job: a tenth format 
   {tokensAreContiguous(2)}? COMMA INTEGERLIT | (PLUS | MINUS) numericLiteralCore`; an item is `residueOpening |
   AMPERSAND concatOperand`; `residueInteger` is the integer and the integer-led comma decimal.
   `residueLiteral` is every one-token literal except the unsigned integer (`ClosedFormatDriftTests` derives that set
-  from `nonNumericLiteral` and `numericLiteralCore` in the generated parser), and `ClosedFormatPass` quotes the
+  from `quotedLiteral` and `numericLiteralCore` in the generated parser), and `ClosedFormatPass` quotes the
   opening (the first item of either form) as written, word or whole literal. Opening at a word only, the run left `SOURCE-COMPUTER. XYZ "LIT".` ONE viable parse, the name-less
   paragraph followed by the configuration paragraph `XYZ "LIT"`, so XYZ was the refused word; with the literal
   admitted the name's reading is viable too and the ambiguity resolves to it (the lower alternative). No closed

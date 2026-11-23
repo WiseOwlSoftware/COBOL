@@ -114,25 +114,17 @@ residueInteger
     | {!nextEntryOpensHere()}? INTEGERLIT
     ;
 
-// Every literal that is ONE token by itself except the unsigned integer: the single-token alternatives of
-// nonNumericLiteral and numericLiteralCore. ClosedFormatDriftTests derives that set from the generated parser, so a
-// literal token added to either rule fails the build until it is decided here. CobolErrorStrategy reads this rule
+// Every literal that is ONE token by itself except the unsigned integer: the quoted literals (quotedLiteral) and the
+// single-token alternatives of numericLiteralCore. ClosedFormatDriftTests derives that set from the generated parser, so
+// a literal token added to either rule fails the build until it is decided here. CobolErrorStrategy reads this rule
 // (plus INTEGERLIT) as its one set of literal tokens.
 residueLiteral
-    : residueNonNumericLiteral
+    : quotedLiteral
     | DECIMALLIT
     | FLOATLIT
     | COMMA_FLOATLIT
     | SIGNED_DECIMALLIT
     | SIGNED_INTEGERLIT
-    ;
-
-// The single-token alternatives of nonNumericLiteral.
-residueNonNumericLiteral
-    : STRINGLIT
-    | NATLIT
-    | BOOLLIT
-    | HEXLIT
     ;
 
 // =========================
@@ -906,11 +898,21 @@ numericLiteral
 nonNumericLiteral
     : figurativeConstant
     | concatenationExpression
-    | STRINGLIT
+    | quotedLiteral
+    | predefinedNull
+    ;
+
+// ⛔ THE ONE QUOTED LITERAL (kb/Work PB2725): a delimited literal of class alphanumeric (§2023:8.3.3.2, its X"…"
+// hexadecimal format included), boolean (§2023:8.3.3.4) or national (§2023:8.3.3.5), each one token the lexer makes by
+// its prefix. Every rule that admits one names THIS rule (nonNumericLiteral, concatOperand, allLiteral, residueLiteral),
+// never the four tokens, so a literal token added tomorrow is one edit here; every reader asks the one QuotedLiteral
+// reader (Frontend/Parsing/QuotedLiteral.cs) for its class and value, never the token kind. kb/Work PB1627 is the cost
+// of the other shape: allLiteral carried its own token list and missed the operands concatOperand had gained.
+quotedLiteral
+    : STRINGLIT
+    | HEXLIT
     | NATLIT
     | BOOLLIT
-    | HEXLIT
-    | predefinedNull
     ;
 
 // ISO §2023:8.4.3.1.2 identifier FORMAT 8 (predefined-address) and the NULL arm of FORMAT 6 (predefined-object): NULL is
@@ -943,10 +945,7 @@ concatenationExpression
     ;
 
 concatOperand
-    : nnStringlit1=STRINGLIT
-    | nnNatlit1=NATLIT
-    | nnBoollit1=BOOLLIT
-    | nnHexlit1=HEXLIT
+    : quotedLiteral
     | figurativeConstant
     | predefinedNull     // NO operand (§2023:8.8.3.2 SR1) — admitted so ConcatFolder refuses it by name (kb/Work PB1427)
     | refCobolWord1=cobolWord          // a constant-name or a symbolic-character (kb/Work PB1406); LAST, after the keyword figuratives
@@ -1034,10 +1033,7 @@ signedIntegerLiteral
 // parse cannot tell it from a symbolic-character); ConcatFolder.FoldAllLiteral is the one reader of both shapes.
 allLiteral
     : concatenationExpression
-    | STRINGLIT
-    | HEXLIT
-    | NATLIT
-    | BOOLLIT
+    | quotedLiteral
     ;
 
 // §2023:8.3.3.6.2 formats 1–5: the figurative spellings a format's braces make INTERCHANGEABLE — and only here

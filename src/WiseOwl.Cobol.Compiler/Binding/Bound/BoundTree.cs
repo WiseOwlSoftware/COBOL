@@ -230,7 +230,7 @@ public sealed record BoundDeclarative(
     int? ModeIndex,
     bool Global,
     ReportGroupModel? ReportGroup = null,
-    IReadOnlyList<(string Ec, FileModel? File)>? EcEntries = null,
+    IReadOnlyList<BoundExceptionSelector>? EcEntries = null,
     BoundEoOperand? Eo = null)
 {
     /// <summary>Is <paramref name="pc"/> a paragraph of THIS declarative section — the "am I binding inside this
@@ -242,8 +242,8 @@ public sealed record BoundDeclarative(
     public bool Contains(int pc) => !Range.IsEmpty && pc >= Range.Start && pc <= Range.End;
 }
 // EcEntries: the Format-3 scope (ISO §2023:14.9.49.2 — USE AFTER {EXCEPTION CONDITION | EC} {ec-name [FILE f]…}…):
-// each pair is one (exception-name, optional file) selection entry, consumed by the generated __EcDispatch
-// selector's GR3c–g tiers. Null for Format 1/2 declaratives; an F3 declarative has empty Files / null ModeIndex,
+// each entry is one (exception-name, optional file) selector carrying its GR3 tier (BoundExceptionSelector, the shape a
+// Format-3 PERFORM WHEN operand shares), consumed by the generated __EcDispatch selector's GR3c–g tiers. Null for Format 1/2 declaratives; an F3 declarative has empty Files / null ModeIndex,
 // so the F1 __IoCheck switches naturally exclude it.
 // Eo: Format 4's ONE operand (USE AFTER {EXCEPTION OBJECT | EO} {object-class-name-1 | interface-name-1},
 // §2023:14.9.49.2 — the EC-OO wave). See BoundEoOperand: the two alternatives are ONE discriminated value, never
@@ -886,12 +886,8 @@ public sealed record BoundAllLiteral(string Literal) : BoundOperand
     public static BoundAllLiteral Of(string rawLiteral) =>
         new(WiseOwl.Cobol.Common.CobolLiteral.Decode(rawLiteral))
         {
-            Category = WiseOwl.Cobol.Common.CobolLiteral.ClassOf(rawLiteral) switch
-            {
-                WiseOwl.Cobol.Common.LiteralClass.National => PicCategory.National,
-                WiseOwl.Cobol.Common.LiteralClass.Boolean => PicCategory.Boolean,
-                _ => PicCategory.Alphanumeric,
-            },
+            Category = WiseOwl.Cobol.Common.CobolLiteral.ClassOf(rawLiteral) is { } cls
+                ? WiseOwl.Cobol.Binding.ConcatFolder.CategoryOf(cls) : PicCategory.Alphanumeric,
         };
 
     /// <summary>The ALL figurative over a literal-1 already folded by <see cref="WiseOwl.Cobol.Binding.ConcatFolder.FoldAllLiteral"/>

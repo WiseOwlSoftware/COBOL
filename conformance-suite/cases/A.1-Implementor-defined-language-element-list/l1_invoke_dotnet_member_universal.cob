@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: l1_invoke_dotnet_member_universal
-      *> rules: [DOC-A.1-101]
+      *> rules: [DOC-A.1-101, GR-14.9.23.4-2]
       *> accept: [2002]
       *> source-format: fixed
       *> portable: unverified

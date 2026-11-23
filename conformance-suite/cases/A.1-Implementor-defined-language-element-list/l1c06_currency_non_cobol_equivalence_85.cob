@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: l1c06_currency_non_cobol_equivalence_85
-      *> rules: [DOC-A.1-43]
+      *> rules: [DOC-A.1-43, SR-13.18.40.3-3]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

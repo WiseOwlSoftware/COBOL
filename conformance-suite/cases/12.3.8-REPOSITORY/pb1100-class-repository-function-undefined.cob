@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb1100-class-repository-function-undefined
-      *> rules: [GR-12.3.8.4-12]
+      *> rules: [GR-12.3.8.4-12, SR-12.3.8.3-10]
       *> source-format: fixed
       *> portable: unverified
       *>---

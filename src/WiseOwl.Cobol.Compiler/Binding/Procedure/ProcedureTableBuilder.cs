@@ -929,7 +929,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     /// group, Format 3's (exception-name, file) entries, or Format 4's single operand (ISO §2023:14.9.49).</summary>
     private readonly record struct DeclScope(
         IReadOnlyList<FileModel> Files, int? ModeIndex, bool Global, ReportGroupModel? Report,
-        IReadOnlyList<(string Ec, FileModel? File)>? EcEntries = null, BoundEoOperand? Eo = null);
+        IReadOnlyList<BoundExceptionSelector>? EcEntries = null, BoundEoOperand? Eo = null);
 
     /// <summary>Bind the USE statement's trigger scope (ISO §2023:14.9.49): Format 1's file list or open mode; the
     /// GLOBAL phrase drives the cross-program GR4b dispatch (the emitter's <c>__RunGlobalUse</c> containment
@@ -999,13 +999,9 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         var target = use.useOnTarget();
         if (target is null) return null;
 
-        // Mode scope (GR3b/GR6b–e) — the index IS the runtime FileOpenMode ordinal (the compiler references
-        // the runtime enum; both sides stay aligned by construction).
-        int? mode = target.INPUT() is not null ? (int)Runtime.IO.FileOpenMode.Input
-            : target.OUTPUT() is not null ? (int)Runtime.IO.FileOpenMode.Output
-            : target.EXTEND() is not null ? (int)Runtime.IO.FileOpenMode.Extend
-            : target.I_O() is not null ? (int)Runtime.IO.FileOpenMode.IO
-            : null;
+        // Mode scope (GR3b/GR6b–e) — the index IS the runtime FileOpenMode ordinal, mapped by the one mapping the
+        // PERFORM Format-3 WHEN EXCEPTION mode operand shares.
+        int? mode = ExceptionOpenMode.IndexOf(target.INPUT(), target.OUTPUT(), target.I_O(), target.EXTEND());
         if (mode is { } m)
         {
             // SR7: the INPUT, OUTPUT, I-O and EXTEND phrases may each be specified only once in the
@@ -1066,7 +1062,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     {
         // use-after-exception-condition-2002: the pass owns the edition gate (Exec Step E).
         ctx.EcState.F3 = true;
-        var pairs = new List<(string Ec, FileModel? File)>();
+        var pairs = new List<BoundExceptionSelector>();
         foreach (var entry in entries)
         {
             string raw = entry.cobolWord().GetText();
@@ -1090,7 +1086,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
                 // screens a repeated exception-name-1 — GR3 gives it its OUTCOME instead: "The first
                 // declarative that satisfies the selection criteria is executed and no other declaratives are
                 // executed." It therefore never enters the SR14 register.
-                pairs.Add((info.Name, null));
+                pairs.Add(BoundExceptionSelector.ForName(info, null));
                 continue;
             }
             foreach (var fn in fileNames)
@@ -1107,12 +1103,12 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
                     ReportUseNamesSortMergeFile(sectionName, fname);
                     continue;
                 }
-                AddPair(info.Name, file);
+                AddPair(info, file);
             }
         }
         return new DeclScope([], null, Global: false, null, pairs);
 
-        void AddPair(string ec, FileModel file)
+        void AddPair(Runtime.Exceptions.EcInfo ec, FileModel file)
         {
             // SR14: "The same pair of exception-name-2 and file-name-2 shall not be specified in more than one
             // USE statement within the same procedure division." The pair is the key (a bare exception-name-1
@@ -1120,17 +1116,17 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             // and outer `…` both let ONE statement write a pair twice, which is not more than one statement.
             // The pair is the exception-name (the catalog's own spelling) and the FILE the file-name identified: two
             // file-names are one when they identify one file, so the comparison of written names stays the symbol table's.
-            switch (_useEcPairs.Register((ec, file)))
+            switch (_useEcPairs.Register((ec.Name, file)))
             {
                 case ConstructOperand.Repeated:
                     return;   // written twice in this one statement — legal, and bound once
                 case ConstructOperand.Duplicate:
                     ctx.Edition.Error(DiagnosticCatalog.UseExceptionFilePairRepeated, $"declarative section '{sectionName}': the exception-name/"
-                        + $"file pair '{ec} FILE {file.CobolName}' is already specified in another USE statement "
+                        + $"file pair '{ec.Name} FILE {file.CobolName}' is already specified in another USE statement "
                         + "of this procedure division (ISO §2023:14.9.49.3 SR14)");
                     return;   // §2023:14.9.49.4 GR3 recovery — the FIRST declarative keeps the pair
             }
-            pairs.Add((ec, file));
+            pairs.Add(BoundExceptionSelector.ForName(ec, file));
         }
     }
 

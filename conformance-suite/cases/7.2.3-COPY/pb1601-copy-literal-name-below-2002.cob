@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb1601-copy-literal-name-below-2002
-      *> rules: [FMT-7.2.3.2]
+      *> rules: [FMT-7.2.3.2, SR-7.2.3.3-4, SR-7.2.3.3-5]
       *> files: [PB1601LN.cpy]
       *> source-format: fixed
       *> portable: unverified

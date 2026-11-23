@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb2103_function_word_in_repository
-      *> rules: [GR-12.3.8.4-11]
+      *> rules: [GR-12.3.8.4-11, DOC-A.1-67, GR-8.3.2.2-L2.1]
       *> accept: [2002, 2014, 2023]
       *> files: [pb2103_word_lib.cbl]
       *> build: ["pb2103_word_lib.cbl > P2103WG", "{self}"]

@@ -1748,15 +1748,15 @@ public sealed class ExceptionEngine
     /// innermost→outermost and STOPS at the first frame another activation pushed (the rule above: an activation's
     /// frames are always the top of the stack, since a deeper activation's frames are popped before it returns),
     /// skipping frames already <see cref="PerformFrame.Handling"/>; the first frame whose
-    /// matcher does not return <see cref="PerformFrame.NoMatch"/> handled it (<paramref name="handled"/> = true),
-    /// and its returned dispatch action (a <see cref="DispatchResult"/> or a pc) is passed back to the raise site. Every frame
+    /// matcher does not return <see cref="DispatchResult.NoHandler"/> handled it, and its returned dispatch action (a
+    /// <see cref="DispatchResult"/> or a pc) is passed back to the raise site. Every frame
     /// visited in THIS resolution stays marked <c>Handling</c> until it completes (deferred clear), so an
     /// exception raised inside a selected (outer) handler is not re-caught by a skipped inner frame whose imp-1 is
-    /// suspended. When no frame matches, returns <see cref="PerformFrame.NoMatch"/> and the caller falls to the
-    /// USE dispatch (<c>__EcDispatch</c>) — GR17's "otherwise" tail.</summary>
-    public int RunTopFrame(string ec, string? file, out bool handled)
+    /// suspended. When no frame matches, returns <see cref="DispatchResult.NoHandler"/> — the protocol's one "nothing
+    /// selected" value (kb/Work PB2723) — and the caller falls to the USE dispatch (<c>__EcDispatch</c>), GR17's
+    /// "otherwise" tail.</summary>
+    public int RunTopFrame(string ec, string? file)
     {
-        handled = false;
         var marked = new List<PerformFrame>(4);   // per-raise (the EC path is rare); re-entrancy-safe
         long running = _activations?.CurrentActivation ?? 0;
         try
@@ -1769,9 +1769,9 @@ public sealed class ExceptionEngine
                 f.Handling = true;
                 marked.Add(f);                              // deferred clear ⇒ stays Handling for the whole walk
                 int a = f.Matcher(ec, file);                // runs imp-2 (+COMMON) synchronously iff it matches
-                if (a != PerformFrame.NoMatch) { handled = true; return a; }
+                if (DispatchResult.RanAHandler(a)) return a;
             }
-            return PerformFrame.NoMatch;                    // → caller falls to __EcDispatch (USE) / NoHandler
+            return DispatchResult.NoHandler;                // → caller falls to __EcDispatch (USE)
         }
         finally { foreach (var f in marked) f.Handling = false; }
     }
@@ -2535,5 +2535,5 @@ public static class ExceptionState
     public static void PopPerformFrame() => E.PopPerformFrame();
 
     /// <inheritdoc cref="ExceptionEngine.RunTopFrame"/>
-    public static int RunTopFrame(string ec, string? file, out bool handled) => E.RunTopFrame(ec, file, out handled);
+    public static int RunTopFrame(string ec, string? file) => E.RunTopFrame(ec, file);
 }

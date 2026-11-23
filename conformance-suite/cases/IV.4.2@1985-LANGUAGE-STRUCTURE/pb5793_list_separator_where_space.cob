@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb5793_list_separator_where_space
-      *> rules: [1985-SR-IV.4.2.1-2, 1985-SR-IV.2.1.6-p1]
+      *> rules: [1985-SR-IV.4.2.1-2, 1985-SR-IV.2.1.6-p1, SR-8.3.5-2]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

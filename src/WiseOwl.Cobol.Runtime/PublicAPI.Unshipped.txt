@@ -5,6 +5,7 @@
 *REMOVED*WiseOwl.Cobol.Runtime.Collation.CollationOptions.Deconstruct(out WiseOwl.Cobol.Runtime.Collation.CollationStrength Strength, out WiseOwl.Cobol.Runtime.Collation.AlternateHandling Alternate, out WiseOwl.Cobol.Runtime.Collation.MaxVariable MaxVariable, out WiseOwl.Cobol.Runtime.Collation.CaseFirst CaseFirst, out bool BackwardsSecondary) -> void
 *REMOVED*WiseOwl.Cobol.Runtime.Collation.Collator.With(WiseOwl.Cobol.Runtime.Collation.CollationStrength? strength = null, WiseOwl.Cobol.Runtime.Collation.AlternateHandling? alternate = null, WiseOwl.Cobol.Runtime.Collation.CollationTable? table = null, WiseOwl.Cobol.Runtime.Collation.MaxVariable? maxVariable = null, WiseOwl.Cobol.Runtime.Collation.CaseFirst? caseFirst = null, bool? backwardsSecondary = null) -> WiseOwl.Cobol.Runtime.Collation.Collator!
 *REMOVED*WiseOwl.Cobol.Runtime.DebugItem.DebugItem() -> void
+*REMOVED*WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.RunTopFrame(string! ec, string? file, out bool handled) -> int
 *REMOVED*WiseOwl.Cobol.Runtime.ExternalDescriptor.Deconstruct(out string! Kind, out int ByteCount, out string? ValueImage, out string? StrongTypeKey, out bool ConstantRecord, out string? FileStatusRef, out string? RelativeKeyRef, out string? LinageRef, out string? SelectFingerprint) -> void
 *REMOVED*WiseOwl.Cobol.Runtime.ExternalDescriptor.ExternalDescriptor(string! Kind, int ByteCount = 0, string? ValueImage = null, string? StrongTypeKey = null, bool ConstantRecord = false, string? FileStatusRef = null, string? RelativeKeyRef = null, string? LinageRef = null, string? SelectFingerprint = null) -> void
 *REMOVED*WiseOwl.Cobol.Runtime.IO.CobolReport.AddRolled(WiseOwl.Cobol.Runtime.IO.ReportGroup! source, int sumId, int presentSlot, System.Func<System.Int128, System.Int128>! apply) -> void
@@ -17,6 +18,7 @@
 *REMOVED*WiseOwl.Cobol.Runtime.ProgramTable.CallProgram(string! name, string? callerPath, WiseOwl.Cobol.Runtime.CobolArg[]! args, WiseOwl.Cobol.Runtime.CobolArg? returning, string! notFoundEc = "EC-PROGRAM-NOT-FOUND", bool siteArgMismatchChecking = false, string![]? programSpecifiers = null, bool siteSizeTruncationChecking = false) -> void
 *REMOVED*const WiseOwl.Cobol.Runtime.DebugItem.ContentsWidth = 30 -> int
 *REMOVED*const WiseOwl.Cobol.Runtime.DebugItem.GroupWidth = 86 -> int
+*REMOVED*const WiseOwl.Cobol.Runtime.Exceptions.PerformFrame.NoMatch = -2147483648 -> int
 *REMOVED*const WiseOwl.Cobol.Runtime.Repository.CobolRepositoryAttribute.CurrentSchemaVersion = 1 -> int
 *REMOVED*static WiseOwl.Cobol.Runtime.CobolArgAdapt.WithValueSending(WiseOwl.Cobol.Runtime.CobolArg arg, System.Func<string!, string!>? storageImage = null) -> WiseOwl.Cobol.Runtime.CobolArg
 *REMOVED*static WiseOwl.Cobol.Runtime.CobolDate.DateOfInteger(long integerDate) -> long
@@ -93,6 +95,7 @@
 *REMOVED*static WiseOwl.Cobol.Runtime.CobolNum.AddChecked(System.Int128 a, System.Int128 b) -> System.Int128
 *REMOVED*static WiseOwl.Cobol.Runtime.CobolNum.SubChecked(System.Int128 a, System.Int128 b) -> System.Int128
 *REMOVED*static WiseOwl.Cobol.Runtime.EcFunctions.Statement() -> string!
+*REMOVED*static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.RunTopFrame(string! ec, string? file, out bool handled) -> int
 *REMOVED*static WiseOwl.Cobol.Runtime.IO.CobolFile.CloseIfOpen(string! name) -> void
 *REMOVED*static WiseOwl.Cobol.Runtime.IO.CobolFile.Register(string! cobolName, string! assignTarget, int recordWidth, bool lineSequential, bool optional, int varyMin = -1, int varyMax = -1, string? selectName = null, int edition = 2023, int recordMax = 0) -> void
 *REMOVED*static WiseOwl.Cobol.Runtime.IO.CobolFile.RewriteShared(string! name, string! image, int length, WiseOwl.Cobol.Runtime.IO.FileRecordLock phrase, WiseOwl.Cobol.Runtime.IO.FileRetryKind retryKind, long retryAmount, WiseOwl.Cobol.Runtime.RecordExtents? areaExtents = null, bool nationalRecord = false) -> string!
@@ -323,6 +326,7 @@ WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.FlowRollbackChecking.set -> voi
 WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.FlowRollbackError(string! detail) -> void
 WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.IsCobol85.get -> bool
 WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.IsCobol85.set -> void
+WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.RunTopFrame(string! ec, string? file) -> int
 WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.SizeChecksEnabled.get -> WiseOwl.Cobol.Runtime.SizeChecks
 WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.SizeOverflowChecking.get -> bool
 WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.SizeOverflowChecking.set -> void
@@ -1394,6 +1398,7 @@ static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.FlowGlobalExitError(strin
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.FlowRollbackChecking.get -> bool
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.FlowRollbackChecking.set -> void
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.IsCobol85.get -> bool
+static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.RunTopFrame(string! ec, string? file) -> int
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.SizeChecksEnabled.get -> WiseOwl.Cobol.Runtime.SizeChecks
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.SizeOverflowChecking.get -> bool
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.SizeOverflowChecking.set -> void

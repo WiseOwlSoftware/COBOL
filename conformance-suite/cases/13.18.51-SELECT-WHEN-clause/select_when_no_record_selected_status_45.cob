@@ -1,6 +1,6 @@
 *>--- conformance-case
 *> id: select_when_no_record_selected_status_45
-*> rules: [GR-13.18.51.4-4, GR-9.1.13.7-5]
+*> rules: [GR-13.18.51.4-4, GR-9.1.13.7-5, GR-13.18.51.4-1]
 *> accept: [2002, 2014, 2023]
 *> constructs: [format-clause-2002, select-when-clause-2002]
 *> source-format: free

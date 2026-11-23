@@ -782,10 +782,9 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
 
     /// <summary>The source text of an alphanumeric (<c>"…"</c> or hexadecimal <c>X"…"</c>, §2023:8.3.3.2) or national
     /// (§2023:8.3.3.5) literal operand — the three tokens whose VALUE is a character string a detector reads — else null.
-    /// The ONE place those three token kinds are listed for this pass (a hexadecimal literal is a token of its own,
-    /// <c>HEXLIT</c>, though §2023:8.3.3.2 makes it one FORM of the alphanumeric literal).</summary>
+    /// The class is the one <see cref="QuotedLiteral"/> reader's (kb/Work PB2725): every quoted literal but a boolean one.</summary>
     private static string? CharacterLiteralText(CobolParserCore.NonNumericLiteralContext literal)
-        => (literal.STRINGLIT() ?? literal.NATLIT() ?? literal.HEXLIT())?.GetText();
+        => QuotedLiteral.In(literal) is { Class: not LiteralClass.Boolean } quoted ? quoted.Written : null;
 
     // The unambiguous numeric-editing INSERTION characters as they appear in an edited value literal (§2023:13.18.40.3).
     // '0' (zero insertion) and 'B' (space insertion) are omitted — indistinguishable from a digit / a letter in the

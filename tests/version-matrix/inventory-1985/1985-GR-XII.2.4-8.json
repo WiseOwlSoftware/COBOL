@@ -1,7 +1,8 @@
 {
  "rule-id": "1985-GR-XII.2.4-8",
  "rule-digest": "0b2e58f8a250",
- "test-ref": "conformance:cases/7.2.2.5-Text-words/pb1350_text_words_85; conformance:cases/XII.2@1985-COPY-STATEMENT/pb5732-copy-replacing-produces-comment-entry; conformance:cases/XII.2@1985-COPY-STATEMENT/pb5732-copy-replacing-leaves-nested-copy-refused",
+ "test-ref": "conformance:cases/7.2.2.5-Text-words/pb1350_text_words_85; conformance:cases/XII.2@1985-COPY-STATEMENT/pb5732-copy-replacing-produces-comment-entry",
+ "notes": "retired-witness: conformance:cases/XII.2@1985-COPY-STATEMENT/pb5732-copy-replacing-leaves-nested-copy-refused (the case cites 1985-GR-XII.2.4-12 (a nested COPY left by REPLACING), not this rule; the row keeps its two witnesses (kb/Work PB6067: a witness cites the row it witnesses))",
  "next": {
   "kind": "KEPT",
   "edition": 2023,
