@@ -257,7 +257,7 @@ public sealed partial class SpecialNamesBinder
             using var _ = Edition.At(cur);
             SwitchBindCurrency(cur);
         }
-        Cfg.FinalizeCurrencySigns();   // §2023:12.3.7.3 SR25 — the implied '$' clause, once every explicit clause is in
+        Cfg.FinalizeCurrencySigns(Edition.DialectLevel);   // §2023:12.3.7.3 SR25 / §2014:12.3.6.2 SR25 — the implied '$' clause (the default sign at 2002), once every explicit clause is in
     }
 
     /// <summary>One switch-name / feature-name / device-name entry (ISO §2023:12.3.7.2). §2023:12.3.7.3 SR8 — "<i>The implementor

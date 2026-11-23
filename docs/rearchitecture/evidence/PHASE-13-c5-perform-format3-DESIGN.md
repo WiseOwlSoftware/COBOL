@@ -846,11 +846,11 @@ public sealed class PerformFrame
 {
     /// Tier-ordered WHEN selector the emitted PERFORM installs. Returns the per-statement dispatch action
     /// (-1 handled-continue / -2 RESUME NEXT / >=0 pc [unreachable from a WHEN body — bind-rejected COBOLNET1610])
-    /// or NoMatch when no WHEN/OTHER selects (ec,file). file==null for a non-I-O condition. (ISO §14.9.28.4 GR17-19.)
+    /// or DispatchResult.NoHandler when no WHEN/OTHER selects (ec,file) — the protocol's one "nothing selected" value
+    /// (kb/Work PB2723). file==null for a non-I-O condition. (ISO §14.9.28.4 GR17-19.)
     public required Func<string /*ec*/, string? /*file*/, int> Matcher { get; init; }
     public bool Handling { get; set; }                   // GR21 transparency
     internal long Activation { get; set; }               // stamped by PushPerformFrame — the activation boundary
-    public const int NoMatch = int.MinValue;             // distinct from every DispatchResult action and any pc
 }
 ```
 
@@ -869,9 +869,8 @@ public void PopPerformFrame() => _perform.RemoveAt(_perform.Count - 1);
 /// whose imperative-statement-1 is executing in THIS activation; GR21 — a frame is transparent to ECs raised while
 /// it is handling). Frames tried in THIS resolution stay marked Handling until it completes, so an EC raised inside
 /// a selected (outer) handler is not re-caught by a skipped inner frame whose imp-1 is suspended.
-public int RunTopFrame(string ec, string? file, out bool handled)
+public int RunTopFrame(string ec, string? file)
 {
-    handled = false;
     var marked = new List<PerformFrame>(4);              // per-raise (EC path is rare); re-entrancy-safe
     long running = _activations?.CurrentActivation ?? 0;
     try
@@ -883,9 +882,9 @@ public int RunTopFrame(string ec, string? file, out bool handled)
             if (f.Handling) continue;                    // GR21 — its own imp-1/handler is transparent
             f.Handling = true; marked.Add(f);            // deferred clear ⇒ stays Handling for the whole walk
             int a = f.Matcher(ec, file);                 // runs imp-2 (+COMMON) synchronously iff it matches
-            if (a != PerformFrame.NoMatch) { handled = true; return a; }
+            if (DispatchResult.RanAHandler(a)) return a;
         }
-        return PerformFrame.NoMatch;                      // → caller falls to __EcDispatch (USE) / NoHandler
+        return DispatchResult.NoHandler;                  // → caller falls to __EcDispatch (USE)
     }
     finally { foreach (var f in marked) f.Handling = false; }
 }
@@ -922,8 +921,9 @@ public string EcDispatchExpr(string ecNameExpr, string fileExpr) =>
 ```csharp
 private int __EcPerform(string __ec, string __f)
 {
-    int __a = ExceptionState.RunTopFrame(__ec, __f.Length == 0 ? null : __f, out bool __h);
-    return __h ? __a : {UnitHasF3 ? "__EcDispatch(__ec, __f)" : "-3"};   // GR17/18 win over USE; else USE/-3
+    int __a = ExceptionState.RunTopFrame(__ec, __f.Length == 0 ? null : __f);
+    return __a != DispatchResult.NoHandler ? __a : __EcDispatch(__ec, __f);   // GR17/18 win over USE; else USE
+    // (a unit with no USE Format 3: the body is `return ExceptionState.RunTopFrame(...)`, NoHandler included)
 }
 ```
 The `__EcDispatch`/`-3` fallback is gated on `UnitHasF3` so a **no-declarative** F3 unit never references the
@@ -944,7 +944,7 @@ ExceptionState.PushPerformFrame(new PerformFrame { Matcher = (__ec, __f) =>
         return __RunF3(12, 41, 13, 42);
     if (ExceptionCatalog.UnderLevel2(__ec, "EC-BOUND"))                      // tier 3 (L2)
         return __RunF3(12, 41, 13, 42);
-    return __RunF3(/*WHEN OTHER imp-3*/ 14, 43, 13, 42);                     // GR18; else: return PerformFrame.NoMatch;
+    return __RunF3(/*WHEN OTHER imp-3*/ 14, 43, 13, 42);                     // GR18; else: return DispatchResult.NoHandler;
 }});
 ```
 Per-operand test emit (mirrors `__EcDispatch`, `EcEmitter.cs:274-283`, so the two never drift):
@@ -972,7 +972,7 @@ private int __RunF3(int __u, int __pc, int __cu, int __cpc)
 **Action composition** `matcher → RunTopFrame → __EcPerform → raise site` (the raise-site consumption idiom is
 UNCHANGED): `-1` at a nonfatal site (no throw) → next inline imp-1 statement = GR20 resume-in-place; `-1` at a fatal
 site → `if (__r != -2) throw` fires = GR20 fatal abnormal-termination; `-2` anywhere → suppresses the throw, falls
-past the raiser = §14.9.33.4 GR2; `NoMatch` → `handled=false` → `__EcDispatch`/`-3` = USE runs as today.
+past the raiser = §14.9.33.4 GR2; `NoHandler` (no WHEN selected) → `__EcDispatch`/`NoHandler` = USE runs as today.
 
 **§9.3.3 Host `EmitExceptionPerform`** (replaces the `ControlFlowEmitter.cs:64` stub):
 ```csharp
@@ -1073,9 +1073,9 @@ return __wp == -3 ? -1 : __wp;                 // (non-F3 unit: emits the curren
 ```
 **Unsuccessful path** (restructure `EcEmitter.cs:333-356`): the F1 switch runs ONLY when no WHEN matched:
 ```csharp
-int __sel = -3; bool __wh = false;
-{ if UnitHasF3Perform: }  __sel = ExceptionState.RunTopFrame(__ec!, __f, out __wh); if (!__wh) __sel = -3;
-{ if not __wh: }
+int __sel = DispatchResult.NoHandler;
+{ if UnitHasF3Perform: }  __sel = ExceptionState.RunTopFrame(__ec!, __f);
+{ if __sel == DispatchResult.NoHandler: }
     // ... existing F1 file switch (GR3a/GR5), F1 open-mode switch (GR3b/GR6), F3 __EcDispatch (GR3c-g),
     //     outer GLOBAL walk (GR4b) — byte-identical to today ...
 if (__sel >= 0 || __sel == -2) return __sel;   // RESUME redirected/suppressed
@@ -1125,7 +1125,7 @@ walled; every bounded `__RunUse`/PERFORM passes its own `__exitPc`, so PERFORM o
 - **GR21 transparency + nesting** — realized by `RunTopFrame`'s top-down walk with deferred `Handling`-clear (§9.2):
   the selected frame is `Handling` during its own imp-2..5 (transparent to its own re-raises), skipped inner frames
   stay `Handling` for the whole resolution (an EC in a selected outer handler is not re-caught by a suspended inner
-  frame), and an inner NoMatch falls to the outer frame (GR17 for the outer PERFORM).
+  frame), and an inner frame that selects nothing (NoHandler) falls to the outer frame (GR17 for the outer PERFORM).
 - **Q5 — FINALLY: inline, normal/EXIT paths only, NOT on fatal abnormal-termination (STANDARD DEFECT, record D12).**
   A fatal, unresumed EC throws `CobolFatalException` from the raise site; the host `catch` is `catch(ExitPerformSignal)`
   only, so it unwinds PAST the inline FINALLY. §14.9.28.4 **NOTE 8** ("the end of the PERFORM statement includes the
@@ -1220,7 +1220,7 @@ pc-range path already gives us). Exactly which generated artifact lives at which
 | the frame `Matcher` closure (`EmitExceptionPerform`) | inline in `__Dispatch` case | inline in `__MDispatch` case | emitted where the F3 PERFORM statement is — captures the enclosing local functions |
 | `__RunUse`, `__RunF3` | class members | **method-LOCAL functions** | they call `__MDispatch` and their sole caller (the Matcher / `__RunF3`) is method-local |
 | `__useActive` | instance field `bool[]` | **method-LOCAL `bool[]`** | per-activation re-entrancy guard (a recursive method needs its own; a local is per-activation by construction) |
-| `__EcPerform` | class member | class member | body is `RunTopFrame(ec,f,out h) ? a : (UnitHasF3 ? __EcDispatch : −3)` — reaches the handler ONLY through `RunTopFrame`→the Matcher, never `__RunF3` directly, so it is class-callable; a method has no F3 USE ⇒ its fallback is `−3`. **Emitted ONCE per class when `bound.Ec.HasF3Perform` (see §9.10.1-C1 — the class-level gate, NOT the per-method flag).** |
+| `__EcPerform` | class member | class member | body is `a = RunTopFrame(ec,f); a != NoHandler ? a : (UnitHasF3 ? __EcDispatch : NoHandler)` — reaches the handler ONLY through `RunTopFrame`→the Matcher, never `__RunF3` directly, so it is class-callable; a method has no F3 USE ⇒ its fallback is `−3`. **Emitted ONCE per class when `bound.Ec.HasF3Perform` (see §9.10.1-C1 — the class-level gate, NOT the per-method flag).** |
 | `__IoCheckEc` | class member | class member — **frame-first branch present when `bound.Ec.HasF3Perform`** | its F3 branch routes through `ExceptionState.RunTopFrame` (`EcEmitter.cs:375`) + the class-member `__EcPerform` (`:336`); a class has no F1/F3 declaratives so its `EmitUseTiers` is empty. **The branch is gated on `ecState.UnitHasF3Perform` AT EMIT TIME — §9.10.1-C1 sets it from the class-level `bound.Ec.HasF3Perform` around the `:219` emission (the per-method flag is false there ⇒ WITHOUT this fix the branch is silently absent — the blocker).** |
 
 The whole chain a raise resolves through: raise site in the method → `__EcPerform` (class) → `ExceptionState.RunTopFrame`

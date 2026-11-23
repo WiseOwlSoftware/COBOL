@@ -192,10 +192,12 @@ transcription once put after the previous page's folio are gone), an Appendix le
 `n.n` level 3, and each further number one deeper, at most 6 (Markdown's deepest: the 14 headings of six and seven parts
 share it). A numbered title line the printed page sets as a heading is a heading, bold or boxed as the page prints it
 (`### ║3.4 THE PURGE STATEMENT║`); a running header (`Sequential I-O - Input-Output Section`) is plain text; an
-underlined unnumbered title keeps the level the page gives it, except the two repeated page titles, which each take one
-form (`heading_levels.TITLE_FORMS`): a general-format title is `## <u>GENERAL FORMAT FOR …</u>` (kb/Work PB6095), and a
-summary-of-elements table title, the table's own title repeated on each of pages 31 to 38, is the plain line
-`<u>SUMMARY OF ELEMENTS IN THE NUCLEUS MODULE</u>` and no heading (kb/Work PB6051). The scope is the standard (Sections I to XVIII) and Amendment 1's Section A, which the
+underlined unnumbered title keeps the level the page gives it, except the three repeated page titles, which each take one
+form (`heading_levels.TITLE_FORMS`): a general-format title is `## <u>GENERAL FORMAT FOR …</u>` (kb/Work PB6095), a
+summary-of-elements table title, the table's own title repeated on the pages of Section I's summary tables (53 titles,
+pages 31 to 83), is the plain line `<u>SUMMARY OF ELEMENTS IN THE NUCLEUS MODULE</u>` and no heading, and a
+summary-of-differences table title, repeated the same way on Section XVII's tables (pages 725 to 748), is the plain line
+`<u>SUMMARY OF DIFFERENCES IN DATA DIVISION</u>` and no heading (kb/Work PB6051). The scope is the standard (Sections I to XVIII) and Amendment 1's Section A, which the
 amendment sets out as the other modules are; Amendment 1's change list and Amendment 2 quote the standard's clause numbers
 as change instructions and print their own structure. `scripts/spec/heading_levels.py` is the one function of the rule
 (`level_of`, `canonical`, `normalize`) and the audit (`check`, run by `verify_publishable.py --edition 1985`): every numbered
@@ -221,6 +223,8 @@ misplaced (prose, tables and the one-row general formats), indentation of summar
 and the three clipped `Z` flags of page 738, which the first pass had kept as unreadable.
 
 **The third pass over the 1985 transcription** (kb/Work PB6051, decision PB6091) compared all 976 pages again: 25 claims, 7 confirmed and applied (a drawn figure, a brace, a title, three level-2 box markings, a table with row spans), 18 refuted; the ledger holds them with `pass: 3`. Its title claims fixed one form for every general-format page title, `## <u>GENERAL FORMAT FOR ...</u>`, which `heading_levels.check_format_titles` holds (kb/Work PB6095). A fourth pass is owed: PB6051 closes only on a pass that confirms nothing.
+
+**The fourth pass over the 1985 transcription** (kb/Work PB6051, run wf_e5491422-f0a) compared all 976 pages again: 19 claims, 5 confirmed and applied (the ELEMENT-column indentation of four Section XVII summary-of-differences pages, and four shaded Amendment 2 passages on page 924 without their level-2 box sides), 14 refuted; the ledger holds them with `pass: 4`. The sibling sweeps read every page of the Section XVII tables (pages 725 to 749) and every Amendment 2 page (907 to 960) on the rendered page: fourteen table pages set the ELEMENT column flat and now carry the printed hierarchy, one `&nbsp;` per printed column of indent (sweeps `summary-indent(PB6051 p729-1)`), and no other Amendment 2 page has shading without its marker. The refuted title claim p737-1 fixed one form for the summary-of-differences titles as well, held by `heading_levels.TITLE_FORMS`. A fifth pass is owed.
 
 **The reserved-word list (Section IV, paragraph 8; PDF pages 191 and 192) is swept and held to its order** (kb/Work
 PB5060). Read against the rendered pages, the printed list has no misprint and no entry out of order, and its 350

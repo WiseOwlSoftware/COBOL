@@ -38,11 +38,11 @@ public sealed class EcNameResolutionDriftTests
         [Path.Combine("Binding", "RaisingPhrase.cs")] =
             (1, "the ONE procedure-division-header RAISING partition (§2023:14.2.2 SR7–SR9); an unresolved word may "
                 + "be a class-name or an interface-name", true),
+        // The GR3 selection tier of a USE or WHEN operand is the bound operand's (BoundExceptionSelector, kb/Work PB2723),
+        // so neither selector looks a level up at emit time any more.
         [Path.Combine("CodeGen", "EcEmitter.cs")] =
-            (3, "emit-side level tests on names already bound and validated, plus EmitConditionSet's Table 13 "
-                + "fatality lookup of a level-3 name the EMITTER spells (never a written name; kb/Work PB1549)", false),
-        [Path.Combine("CodeGen", "Verbs", "ControlFlowEmitter.cs")] =
-            (1, "emit-side level test on a bound RAISING name", false),
+            (1, "EmitConditionSet's Table 13 fatality lookup of a level-3 name the EMITTER spells (never a written "
+                + "name; kb/Work PB1549)", false),
     };
 
     private static IEnumerable<(string Rel, string Text)> CompilerSources()

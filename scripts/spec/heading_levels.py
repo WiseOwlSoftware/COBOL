@@ -212,20 +212,28 @@ def heads_as(heading: str, number: str, title: str) -> bool:
 FORMAT_TITLE = re.compile(r"^\s*(?:#+\s+)?(?:║|\*\*|<u>)*GENERAL FORMAT FOR\b")
 #: THE form a general-format page title takes (kb/Work PB6095): a level-2 heading, underlined, nothing else on the line.
 FORMAT_TITLE_FORM = re.compile(r"^## <u>GENERAL FORMAT FOR [^<*║]+</u>$")
-#: A line that is a summary-of-elements table title (pages 31 to 38), whatever markup it carries.
+#: A line that is a summary-of-elements table title (pages 31 to 83), whatever markup it carries.
 SUMMARY_TITLE = re.compile(r"^\s*(?:#+\s+)?(?:║|\*\*|<u>)*SUMMARY OF ELEMENTS IN\b")
 #: THE form a summary-of-elements table title takes (kb/Work PB6051): the page prints it as the table's own title, repeated
 #: on every page of the table and never a node of the document's tree, so it is one underlined line and no heading.
 SUMMARY_TITLE_FORM = re.compile(r"^<u>SUMMARY OF ELEMENTS IN [^<*║#]+</u>$")
+#: A line that is a summary-of-differences table title (Section XVII, pages 725 to 748), whatever markup it carries.
+DIFFERENCES_TITLE = re.compile(r"^\s*(?:#+\s+)?(?:║|\*\*|<u>)*SUMMARY OF DIFFERENCES IN\b")
+#: THE form a summary-of-differences table title takes (kb/Work PB6051, fourth pass p737-1): like the summary-of-elements
+#: titles, the page prints it as the table's own title repeated on every page of the table, so one underlined line and no
+#: heading.
+DIFFERENCES_TITLE_FORM = re.compile(r"^<u>SUMMARY OF DIFFERENCES IN [^<*║#]+</u>$")
 #: Each repeated page title of the standard and its one form: (detector, form, what it is, the form as a failure names it).
 TITLE_FORMS = ((FORMAT_TITLE, FORMAT_TITLE_FORM, "a general-format page title", "`## <u>GENERAL FORMAT FOR ...</u>`"),
                (SUMMARY_TITLE, SUMMARY_TITLE_FORM, "a summary-of-elements table title",
-                "`<u>SUMMARY OF ELEMENTS IN ...</u>` (no heading)"))
+                "`<u>SUMMARY OF ELEMENTS IN ...</u>` (no heading)"),
+               (DIFFERENCES_TITLE, DIFFERENCES_TITLE_FORM, "a summary-of-differences table title",
+                "`<u>SUMMARY OF DIFFERENCES IN ...</u>` (no heading)"))
 
 
 def check_format_titles(lines: list[str], first: int, last: int) -> list[str]:
     """Every repeated page title of the standard (`TITLE_FORMS`: the general-format titles, kb/Work PB6095, and the
-    summary-of-elements table titles, kb/Work PB6051) stands in its one form on a line of its own: found anywhere, a `<pre>`
+    summary-of-elements and summary-of-differences table titles, kb/Work PB6051) stands in its one form on a line of its own: found anywhere, a `<pre>`
     figure included (Amendment 1's addendum, and the quoting notes and tables, out of scope)."""
     failures: list[str] = []
     page = 0

@@ -322,11 +322,6 @@
       "reason": "compares a written word with a fixed word of the standard or the implementor (FILLER, ZERO, NEW, an intrinsic function, exception or implementor-name, a register keyword): no user-defined name is resolved"
     },
     {
-      "site": "SAME CodeGen/EcEmitter.cs WiseOwl.Cobol.CodeGen.EcEmitter.EmitDispatchSelector CobolNames.Same(ec, ExceptionCatalog.EcAll)",
-      "class": "KEYWORD",
-      "reason": "compares a written word with a fixed word of the standard or the implementor (FILLER, ZERO, NEW, an intrinsic function, exception or implementor-name, a register keyword): no user-defined name is resolved"
-    },
-    {
       "site": "SAME Oo/OoClassTable.cs WiseOwl.Cobol.Compiler.Oo.OoClassTable.ScreenInheritedPropertyNames CobolNames.Same(bm.PropertyName, accessor.PropertyName)",
       "class": "SAMESYMBOL",
       "reason": "compares two symbols already resolved (type equivalence, conformance, control identity): no written name is resolved"

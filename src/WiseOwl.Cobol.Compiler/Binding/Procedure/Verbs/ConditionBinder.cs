@@ -110,10 +110,10 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // and the folded result IS one. A non-boolean concat is not a boolean operand (1511, below).
         if (nn?.concatenationExpression() is { } ce && ConcatFolder.ClassOf(ce, ctx.Data.LiteralEnv) is PicCategory.Boolean)
             return new BoundBoolLiteral(ConcatFolder.Fold(ce, ctx.Edition, ctx.Data.LiteralEnv).Value);
-        if (nn?.BOOLLIT() is { } bl)
+        if (QuotedLiteral.In(nn) is { Class: LiteralClass.Boolean } bl)
             // BooleanLiteral2002 (the B"…" literal introduction) is the literal token's format gate, position-blind
             // (LiteralScreen.GateFormat, kb/Work PB5416).
-            return new BoundBoolLiteral(CobolLiteral.Decode(bl.GetText()));
+            return new BoundBoolLiteral(bl.Value);
         // The predefined NULL is no boolean operand and a boolean expression is no §2023:8.4.3.10.3 SR1 context: the ONE
         // SR1 refusal (COBOL2576), through the literal mapping that owns it (kb/Work PB1427).
         if (nn?.predefinedNull() is not null && host.Expr.NonNumericLiteralOperand(nn) is BoundOperandError nullErr)
@@ -214,7 +214,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     public bool IsBooleanValueOperand(Core.ValueOperandContext vo)
     {
         var nn = vo.nonNumericLiteral();
-        if (nn?.BOOLLIT() is not null) return true;
+        if (QuotedLiteral.In(nn) is { Class: LiteralClass.Boolean }) return true;
         if (nn?.figurativeConstant() is { } fig
             && ConcatFolder.FoldAllLiteral(fig, ctx.Data.LiteralEnv, report: null) is { Category: PicCategory.Boolean }) return true;   // ALL B"…" (kb/Work PB71, PB1627)
         // A concatenation expression whose class is boolean (§2023:8.8.3.3 GR1) routes through the boolean channel
