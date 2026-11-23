@@ -65,6 +65,11 @@
       "changedIn": 2023
     },
     {
+      "id": "constant-length-subscripts-are-literals",
+      "vcrRow": "7.121",
+      "changedIn": 2014
+    },
+    {
       "id": "control-footing-page-groups-see-prior-values",
       "vcrRow": "7.54",
       "changedIn": 2002
