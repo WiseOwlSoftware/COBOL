@@ -22,7 +22,7 @@ in `refs`; `operator-session.json` was invalid JSON with unescaped backslashes):
   (relative paths from the repository root); no field carries a control character;
 - `task` (Mythos work) and a `dispatch` to the Mythos session carry the owner's approval (`--owner-quote`) or
   `--needs-owner` (MANDATORY-PRACTICES P1: a Mythos dispatch needs the owner's approval each time);
-- `from` is `mythos`, `operator`, or `loop` (the unattended supervisor, which posts `publish` to the operator when the
+- `from` is `mythos`, `operator`, or `loop` (the unattended supervisor, which posts `publish` to its own account's lane, `--to account`, when the
   ledger publish is owed, design section 14);
 - the recipient finishes a message with `done`: the `result` {status, at, report} is added and the file MOVES to `done/`,
   so an inbox always equals the open set. This is a transport of pointers, never a work register (CLAUDE.md rule 8).
@@ -291,6 +291,18 @@ def lane(cdir: pathlib.Path, env: dict[str, str] | None = None) -> str | None:
     return None if env.get(coord.LOOP_UNIT_ENV) else account_lane(cdir, env)
 
 
+#: `send --to account`: the lane of the account the sending process runs under (account_lane). The supervisor's
+#: `publish` message names it, because the ledger artifact it asks for belongs to the account that runs the loop
+#: (PB2481), whichever lane that is (kb/Work PB6094: account 1's loop posted to `operator`, account 2's inbox, which
+#: cannot publish account 1's artifact).
+TO_ACCOUNT = "account"
+
+
+def recipient(cdir: pathlib.Path, to: str, env: dict[str, str] | None = None) -> str:
+    """The party a `send --to <to>` reaches: `to` itself, or the running account's lane for TO_ACCOUNT."""
+    return account_lane(cdir, env) if to == TO_ACCOUNT else to
+
+
 def _ancestors(table: list[dict[str, Any]], pid: int | None) -> list[int]:
     parent = {p["pid"]: p["ppid"] for p in table}
     chain: list[int] = []
@@ -488,7 +500,12 @@ def _self_test() -> int:
               (account_lane(cdir, dict(op_env, **{coord.LOOP_UNIT_ENV: "wave"})),
                account_lane(cdir, {account.ENV: str(cdir / "acct1"), coord.LOOP_UNIT_ENV: "wave"})),
               ("operator", "mythos"))
-        arm = "python scripts/orchestrator/mailbox.py watch --inbox operator --timeout 0"
+        check("send --to account reaches the running account's lane, a loop's included (PB6094)",
+              (recipient(cdir, TO_ACCOUNT, dict(op_env, **{coord.LOOP_UNIT_ENV: "wave"})),
+               recipient(cdir, TO_ACCOUNT, {account.ENV: str(cdir / "acct1")}),
+               recipient(cdir, "operator", {account.ENV: str(cdir / "acct1")})),
+              ("operator", "mythos", "operator"))
+        arm ="python scripts/orchestrator/mailbox.py watch --inbox operator --timeout 0"
         table = [{"pid": 10, "ppid": 1, "name": "claude.exe", "cmd": "claude --resume s"},          # the operator
                  {"pid": 11, "ppid": 10, "name": "bash.exe", "cmd": f"bash -c eval '{arm}'"},
                  {"pid": 12, "ppid": 11, "name": "python.exe", "cmd": arm},
@@ -530,7 +547,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--self-test", action="store_true")
     sub = ap.add_subparsers(dest="cmd")
     s = sub.add_parser("send")
-    s.add_argument("--to", required=True, choices=PARTIES)
+    s.add_argument("--to", required=True, choices=PARTIES + (TO_ACCOUNT,),
+                   help=f"a party, or `{TO_ACCOUNT}`: the lane of the account this process runs under (PB6094)")
     s.add_argument("--from", dest="sender", choices=SENDERS, help="default: the other party")
     s.add_argument("--kind", required=True, choices=KINDS)
     s.add_argument("--subject", required=True)
@@ -566,6 +584,7 @@ def main(argv: list[str] | None = None) -> int:
     cdir = coord.coord_path(a.coord)
     try:
         if a.cmd == "send":
+            a.to = recipient(cdir, a.to)
             p = send(cdir, to=a.to, kind=a.kind, subject=a.subject, body=a.body, refs=a.ref, sender=a.sender,
                      needs_owner=a.needs_owner, owner_quote=a.owner_quote, session=a.session,
                      unless_pending=a.unless_pending)

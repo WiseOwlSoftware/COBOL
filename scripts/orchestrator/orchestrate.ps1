@@ -873,14 +873,14 @@ try {
                 # $ls is read on origin/main, fetched (kb/Work PB2987); when it says the checkout is behind, the
                 # publisher fast-forwards it before rendering, and mark-published refuses until then.
                 Say "LEDGER PUBLISH OWED ($ls): render with gen_ledger.py (it writes $CoordDir\ledger.html and prints this account's artifact URL), publish it there, then ledger_state.py mark-published (--url the first time an account publishes)"
-                # The attended operator session is woken by its mailbox, not by this log (kb/Work PB2482): one open
+                # The attended session of the account running the loop is woken by its mailbox (send --to account, kb/Work PB6094), not by this log (kb/Work PB2482): one open
                 # `publish` message per stamp (--unless-pending), pointing at this unit's log.
                 $stampOwed = ($ls -split ' ')[1]
-                try { [void](Invoke-Py @((Join-Path $Here 'mailbox.py'), '--coord', $CoordDir, 'send', '--to', 'operator', '--from', 'loop',
+                try { [void](Invoke-Py @((Join-Path $Here 'mailbox.py'), '--coord', $CoordDir, 'send', '--to', 'account', '--from', 'loop',
                     '--kind', 'publish', '--subject', "Ledger publish owed at $stampOwed ($($Account.name))",
                     '--body', "The supervisor found the ledger publish owed after unit '$($choice.unit)': $ls. Render with gen_ledger.py, publish to this account's artifact, then ledger_state.py mark-published.",
                     '--ref', "$logBase.jsonl", '--session', "orchestrate.ps1 pid $PID", '--unless-pending')) }
-                catch { Say "publish message not posted to the operator's mailbox (the loop continues): $_" }
+                catch { Say "publish message not posted to this account's mailbox (the loop continues): $_" }
             }
         } catch { Say "ledger state not read (the loop continues): $_" }
 

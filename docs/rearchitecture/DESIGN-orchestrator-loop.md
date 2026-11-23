@@ -562,7 +562,7 @@ creates STOP: the wait ends and no further tick starts), and `landing_rules.py -
 from `Invoke-Unit`, `Wait-Until` (after its STOP check) and the loop. A tick:
 
 1. REAPS: an attempt whose detached runner is gone without an exit code is DIED; a run that ended QUEUE NOT ACTIVE
-   (exit 8) writes `land-lane\HALT` and names it in the operator's mailbox.
+   (exit 8) writes `land-lane\HALT` and names it in the mailbox of the account running the loop (kb/Work PB6094).
 2. SURVEYS: `git fetch`, then `prune_worktrees.live_survey` (the one production survey, open pull requests included;
    `prune_worktrees.py` and the planner's partition call the same function) and its landing order (imported, never re-parsed from text),
    written to `land-lane\survey.json`. The survey decides a finished branch by ONE rule of three coverages, never by
@@ -2072,7 +2072,7 @@ command), `.claude/skills/workstream/references/landing.md` and `units/enqueue.m
 | `conflict_brief.py` | The conflict brief a finisher starts from (PB3640) | `CONFLICTS`, `NOTE_ID`, `MAIN`, `BRIEF_NOTES`, `_note_line`, `conflict_brief`, `brief_path`, `main_of`, `write_conflict_brief`, `show_conflict_brief` |
 | `lane_bounce.py` | THE class of a merge-queue red (the `gate` skill's THE RULE; PB4271, PB4331): its facts, the one pure decision, the watch's step on a classified bounce | `REQUEUE_BOUNCE`, `CLASSIFY`, `NAMED`, `RedFacts`, `classify_red`, `red_facts`, `bounce_step`, `classify_bounce` |
 | `lane_decide.py` | What the lane does with one branch: the decision from its attempts, the waits, the candidates | `WAITS`, `RETRYABLE`, `QUEUE_OWNED`, `SURVEY_MAX_AGE_MIN`, `Decision`, `decide`, `tip_of`, `runner_alive`, `survey_rows`, `row_dicts`, `gate_lock_free`, `land_lock_free`, `lock_free`, `predecessor_free`, `wait_free`, `candidates` |
-| `lane_watch.py` | The queue watch of a queued pull request and its remedies | `QUEUE_GRACE_MIN`, `WATCH_DONE`, `WatchStep`, `_iso`, `watch_step`, `WatchEffects`, `real_effects`, `watch_text`, `watch_queue`, `notify_operator` |
+| `lane_watch.py` | The queue watch of a queued pull request and its remedies | `QUEUE_GRACE_MIN`, `WATCH_DONE`, `WatchStep`, `_iso`, `watch_step`, `WatchEffects`, `real_effects`, `watch_text`, `watch_queue`, `notify_account` |
 | `lane_status.py` | The read side: the view `next_unit.py` and the probe print, the agent work, status lines | `ACTION`, `Lane`, `view`, `AgentWork`, `agent_work`, `outcome`, `brief_text`, `status_lines`, `collect` |
 | `land_lane.py` (stays, the lane) | The tick: survey, decide, launch, reap; the runner; `main` | `HERE`, `tick`, `launch`, `reap`, `run_attempt`, `LaneError`, `main` |
 
@@ -2081,7 +2081,7 @@ unchanged), `session_probe.py` and `enqueue.py` (`view` → `lane_status`), `pro
 `DECLARED` and `WIRING` entries for the lane (case names after PB5434; the supervisor's `'land_lane.py'` start it reads is
 unchanged), `landing_rules.py` (`merge_conflicts(`, `outcome_files(` → `conflict_brief.py`), and `review_lane.py`
 (section 4.9.1), which uses `update`, `attempt_order`, `attempts`, `by_branch`, `view`, `finished`, `loop_stop`,
-`runner_alive`, `tip_of`, `notify_operator`, `show_conflict_brief` and the survey's rows: each import is re-pointed to its
+`runner_alive`, `tip_of`, `notify_account`, `show_conflict_brief` and the survey's rows: each import is re-pointed to its
 new module, and `review_lane.py` is declared in `scripts/script_layering.py` beside them.
 
 ### 16.8 `docs/CONFORMANCE.md`: one file per entry, one reader, a rendered whole
