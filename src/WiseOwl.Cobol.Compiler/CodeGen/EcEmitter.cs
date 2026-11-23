@@ -985,10 +985,8 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
             }
             if (ecState.UnitHasF3Perform)
             {
-                w.Line("bool __wh = false;");
-                w.Line("__sel = ExceptionState.RunTopFrame(__ec!, __f, out __wh);   // GR17 — a matching WHEN preempts the USE declaratives");
-                w.Line("if (!__wh) __sel = DispatchResult.NoHandler;   // no WHEN matched → fall to the USE tiers below");
-                using (w.Block("if (!__wh)")) EmitUseTiers();
+                w.Line("__sel = ExceptionState.RunTopFrame(__ec!, __f);   // GR17 — a matching WHEN preempts the USE declaratives");
+                using (w.Block("if (__sel == DispatchResult.NoHandler)   // no WHEN matched → the USE tiers")) EmitUseTiers();
             }
             else EmitUseTiers();
             w.Line("if (DispatchResult.SuppressesFatal(__sel)) return __sel;   // RESUME redirected/suppressed (§2023:14.9.33)");
@@ -1044,9 +1042,13 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
     {
         using (w.Block($"{MemberMod(asLocal)}int __EcPerform(string __ec, string __f)"))
         {
-            w.Line("int __a = ExceptionState.RunTopFrame(__ec, __f.Length == 0 ? null : __f, out bool __h);");
-            w.Line($"return __h ? __a : {(ecState.UnitHasF3 ? "__EcDispatch(__ec, __f)" : "DispatchResult.NoHandler")};   "
-                + "// GR17/18 win over USE; else the USE tiers / NoHandler");
+            if (ecState.UnitHasF3)
+            {
+                w.Line("int __a = ExceptionState.RunTopFrame(__ec, __f.Length == 0 ? null : __f);");
+                w.Line("return __a != DispatchResult.NoHandler ? __a : __EcDispatch(__ec, __f);   // GR17/18 win over USE; else the USE tiers");
+            }
+            else
+                w.Line("return ExceptionState.RunTopFrame(__ec, __f.Length == 0 ? null : __f);   // GR17/18; no USE Format 3: NoHandler is the answer");
         }
         w.Line();
     }

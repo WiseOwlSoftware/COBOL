@@ -1548,3 +1548,8 @@ static readonly WiseOwl.Cobol.Runtime.MoveCitations.Iso2023 -> WiseOwl.Cobol.Run
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryIndexOutcome.ToString() -> string
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.Equals(object obj) -> bool
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.ToString() -> string
+*REMOVED*const WiseOwl.Cobol.Runtime.Exceptions.PerformFrame.NoMatch = -2147483648 -> int
+*REMOVED*WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.RunTopFrame(string! ec, string? file, out bool handled) -> int
+*REMOVED*static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.RunTopFrame(string! ec, string? file, out bool handled) -> int
+WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.RunTopFrame(string! ec, string? file) -> int
+static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.RunTopFrame(string! ec, string? file) -> int

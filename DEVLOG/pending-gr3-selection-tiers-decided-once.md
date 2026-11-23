@@ -62,3 +62,25 @@ The fix:
 
 Behaviour-neutral: `=== ARCH-ORACLE: IDENTICAL — 23447 cases (baseline c3eb4a6a0597, new 09c8fea4aea6-dirty) ===`.
 No golden was added and no inventory row changed. PB2725 is landed with `closes_rows: []`.
+
+kb/Work PB2723, the merged finding `runtime-control-2--architecture--f1#2` (wave 20262154, group B; this branch carries
+the PB2723 and PB2725 commits above, cherry-picked onto ccb23d13e4). "Nothing selected" had three encodings: the
+protocol's `DispatchResult.NoHandler`, the frame matcher's `PerformFrame.NoMatch` (`int.MinValue`, outside the protocol
+type), and `RunTopFrame`'s `out bool handled`. The emitted code translated between them by hand in `__IoCheckEc`
+(`bool __wh`, then `if (!__wh) __sel = NoHandler`) and in `__EcPerform` (`__h ? __a : ...`). Re-probe at 8e304114aa
+found all three.
+
+The fix: `NoHandler` is now the one value. A WHEN handler runs through `__RunF3` and `__RunUse`, and those answer
+`Normal`, `NotNormal`, `ResumeNext` or a RESUME pc, never `NoHandler`. That is already what `DispatchResult.RanAHandler`
+says. `PerformFrame.NoMatch` is deleted. The matcher emits `return DispatchResult.NoHandler`, and
+`RunTopFrame(ec, file)` loses its `out` parameter and returns the first action for which `RanAHandler` is true.
+`__IoCheckEc` runs the USE tiers under `if (__sel == DispatchResult.NoHandler)`. `__EcPerform` returns
+`__a != NoHandler ? __a : __EcDispatch(...)`, or `RunTopFrame(...)` alone in a unit with no USE Format 3.
+`DispatchResultProtocolDriftTests.TheProtocolHasOneDefinition` refuses the two retired encodings. `DispatchResult`, the
+superbatch design and the as-built §9 of the PERFORM Format-3 design are updated.
+
+The emitted C# changes, and only in units that contain a Format-3 PERFORM:
+`=== ARCH-ORACLE: DIFFERENT — 35 of 23499 cases differ (baseline 8e304114aa11, new 8e304114aa11-dirty) ===`. All 35
+cases are CSHARP text, they are exactly the three shapes above, and no run output or diagnostic differs. No golden
+was added and no inventory row changed. PB2723 stays open for the grammar rule pairs, the GOBACK exception cost and
+the Tier-A REDEFINES alias rule.

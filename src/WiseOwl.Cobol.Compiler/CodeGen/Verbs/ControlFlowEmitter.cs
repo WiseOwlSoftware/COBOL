@@ -140,10 +140,10 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
 
     /// <summary>Emit the F3 matcher body: one <c>if (test) return __RunF3(...)</c> per WHEN operand, SORTED into the
     /// §2023:14.9.49.4 GR3 a-g tiers (bare file → open mode → file+L3 → file+L2 → L3 → L2 → L1/EC-ALL; source order only
-    /// within a tier, §2023:14.9.28.4 GR17), then WHEN OTHER (imp-3, GR18) as the unconditional fallback, else <c>NoMatch</c>
+    /// within a tier, §2023:14.9.28.4 GR17), then WHEN OTHER (imp-3, GR18) as the unconditional fallback, else <c>NoHandler</c>
     /// (fall to the USE declaratives). The tier is the bound operand's and the test is <see cref="ExceptionSelectionEmitter"/>'s,
     /// the one renderer the USE <c>__EcDispatch</c> selector shares (kb/Work PB2723). An EC-ALL operand is the catch-all (its
-    /// <c>true</c> test makes a following OTHER/NoMatch unreachable, so it terminates the body). Every handler runs with its
+    /// <c>true</c> test makes a following OTHER/NoHandler unreachable, so it terminates the body). Every handler runs with its
     /// WHEN COMMON (imp-4) via <c>__RunF3</c>.</summary>
     private void EmitMatcherArms(BoundExceptionPerform p, CodeWriter w)
     {
@@ -176,7 +176,7 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
         if (p.OtherPc is int opc)
             w.Line($"return __RunF3({HandlerUseId(opc)}, {opc}, {cu}, {cpc});   // WHEN OTHER (imp-3, §2023:14.9.28.4 GR18, then GR20)");
         else
-            w.Line("return PerformFrame.NoMatch;   // no WHEN/OTHER selects → fall to __EcDispatch (USE), GR17 tail");
+            w.Line("return DispatchResult.NoHandler;   // no WHEN/OTHER selects → fall to __EcDispatch (USE), GR17 tail");
     }
 
     /// <summary>The <c>__useActive</c> re-entrancy-array id of an appended handler pc — its slot sits above the
