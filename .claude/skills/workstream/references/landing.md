@@ -56,8 +56,9 @@
   `cobol-finisher` with `templates/finisher-brief.md` fixes it at the root, gates and returns DONE; its commits are reviewed on the branch (I10) before `enqueue.py land` takes the new tip (an unreviewed tip is exit 11).
   A conflict's finisher (exit 4, or a DIRTY bounce) gets `land_lane.py conflict-brief <branch>` verbatim in its prompt
   (kb/Work PB3640): the conflicted files, main's commits on them since the merge base, both sides' notes and reports.
-  Exit 3 (the landing check's STOP) is never retried as is: the landing lane retries it at the same head only once
-  `landing_check.py` passes on the branch; exit 12 (GATE BUSY: another gate held the worktree's gate lock, the
+  Exit 3 (the landing check's STOP: a path no landing carries, such as the harness's tracked
+  `.claude/settings.local.json`, or a public-API baseline that lists a symbol twice; an edit meeting another branch's
+  only warns, kb/Work PB4452) is never retried as is: only a new commit clears it, so the branch goes to the finisher; exit 12 (GATE BUSY: another gate held the worktree's gate lock, the
   branch's own gate is still running and has not written its verdict; nothing ran, nothing is red) is no stop either:
   the lane retries it once the lock is free (kb/Work PB3527, PB3662); exit 15 (PREDECESSOR
   QUEUED: the branch merged a predecessor whose pull request is still open, so it carries that pull request's stamped
