@@ -1,4 +1,4 @@
-## An Annex A.1 item's band no longer starts before the rule it documents
+## Entry 3980 — 2026-11-23 05:55 PST — An Annex A.1 item's band no longer starts before the rule it documents
 
 kb/Work PB3320 (with the BASE85 addendum, PB3322 finding). No mechanical check tied a DOC-A.1 item's `editions` band to the rules
 its A.1 text names. Re-probe: a port of the note's `docsweep2.py` to the per-rule store printed 26 of 222 items whose start differs
@@ -17,3 +17,4 @@ first gate refused it (their 85 goldens witness recorded determinations) and rev
 
 `DocItemBandDriftTests` holds the early direction, with a self-test of the reference reader and a test that fails when an exemption
 stops being needed.
+
