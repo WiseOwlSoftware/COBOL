@@ -1,4 +1,4 @@
-## The exception selection tiers and a quoted literal's class are each decided once
+## Entry 3997 — 2026-11-23 10:39 PST — The exception selection tiers and a quoted literal's class are each decided once
 
 kb/Work PB2723 (wave 20262139, group E, the PB1754 R2 lane). §2023:14.9.28.4 GR17 makes a Format-3 PERFORM's WHEN match
 the USE rule: "The rules for determining a match are specified in General rules 3a to 3g of the USE statement". The code
@@ -84,3 +84,4 @@ The emitted C# changes, and only in units that contain a Format-3 PERFORM:
 cases are CSHARP text, they are exactly the three shapes above, and no run output or diagnostic differs. No golden
 was added and no inventory row changed. PB2723 stays open for the grammar rule pairs, the GOBACK exception cost and
 the Tier-A REDEFINES alias rule.
+
