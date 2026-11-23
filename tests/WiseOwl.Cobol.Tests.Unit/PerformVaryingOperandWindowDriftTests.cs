@@ -100,7 +100,7 @@ public sealed class PerformVaryingOperandWindowDriftTests
     /// so is the honest statement of what it measures. Measured: flipping <c>IsPerEvaluationWindow</c> to true
     /// for this slot leaves the generated source UNCHANGED — the statement hoist and the site carrier coincide
     /// here, which is precisely what "the hoist is EXACT for the first-level FROM"
-    /// (<c>UdfBinder.UdfWrapCalls</c>) means. What this arm does catch is the failure that matters: a SECOND
+    /// (<c>OperandEvaluationWindow.Hoist</c>) means. What this arm does catch is the failure that matters: a SECOND
     /// activation (double-evaluation), or one that drifted INSIDE the loop. The two arms below are the
     /// discriminating ones — flipping the table to statement-scope makes both fail.</para></summary>
     [Fact]

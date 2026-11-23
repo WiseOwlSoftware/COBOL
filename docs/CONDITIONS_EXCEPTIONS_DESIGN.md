@@ -348,7 +348,7 @@ propagation slot + the EC-ARGUMENT-FUNCTION ambient gate), `EcFunctions` (§2023
     statement for a condition an activation propagates "the statement in which the inline invocation or function
     invocation was specified", GR2 a) 1. makes it "the one in which the exception condition was raised" for a
     condition a store raises (NOTE 1: "If an exception condition was raised during the evaluation of 'a', transfer
-    would be after the END-IF"), and GR2 a) 3. the LOWEST such statement. `UdfBinder.DrainPending` (the one drain
+    would be after the END-IF"), and GR2 a) 3. the LOWEST such statement. `OperandEvaluationWindow.DrainPending` (the one drain
     of the pending pre-op list) and `OoBinder.OoWrapPropertyOps` mark every step they hand to a carrier
     `BoundStatement.OperandEvaluation`, and `DrainPending` stamps an activation's profile there — a per-evaluation
     window's steps live inside a CONDITION or an OPERAND, where `EcWrap`'s statement-shaped stamp never reaches.

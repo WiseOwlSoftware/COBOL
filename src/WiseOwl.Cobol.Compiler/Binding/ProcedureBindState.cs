@@ -47,7 +47,7 @@ internal sealed class ProcedureBindState
     /// puts the store before the activation that consumes it.</para>
     /// <para>Both kinds are UNCONDITIONAL pre-ops with identical hoist rules, because §2023:8.4.3.2.3 SR1 makes a
     /// function-identifier a non-receiving operand — so unlike <see cref="PropertyOps"/> there is no store-polarity
-    /// classification and there are no post-ops. <c>UdfBinder.Mark</c> is the mark of the mark-on-entry /
+    /// classification and there are no post-ops. <c>OperandEvaluationWindow.Mark</c> is the mark of the mark-on-entry /
     /// drain-own-suffix protocol at the <c>BindStatement</c> chokepoint, and it covers both queues.</para></summary>
     public DrainQueue<Bound.BoundStatement> PendingPreOps { get; } = new();
 

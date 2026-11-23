@@ -1154,7 +1154,7 @@ public abstract record BoundStatement
     /// falls back into that statement and never writes a <c>goto</c> (which a lambda cannot hold): the statement
     /// emitter opens <c>DispatchState.OperandEvaluation</c> around it, and the ONE landing
     /// (<c>DispatchState.ResumeTransfer</c>) unwinds to the carrying statement's <see cref="BoundActivationSite"/>.
-    /// Set at exactly two places — <c>UdfBinder.DrainPending</c> and <c>OoBinder.OoWrapPropertyOps</c> — never by a
+    /// Set at exactly two places — <c>OperandEvaluationWindow.DrainPending</c> and <c>OoBinder.OoWrapPropertyOps</c> — never by a
     /// construction site remembering to.</summary>
     public bool OperandEvaluation { get; init; }
 

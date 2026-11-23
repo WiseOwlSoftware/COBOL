@@ -588,7 +588,7 @@ store through a window once for every whole-receiver arm). The GET's PLACEMENT f
 window exactly as a function activation's does (kb/Work PB987; §2023:8.8.4.13 GR2): a reference evaluated once per
 statement is a statement-level pre-op, but one written in a per-evaluation window — a PERFORM UNTIL / VARYING
 condition, a SEARCH WHEN, an EVALUATE object, a non-first AND/OR operand, a VARYING BY / AFTER FROM operand — is
-drained by that window (`UdfBinder.Mark` marks BOTH pending lists; `OoBinder.OoDrainPropertyGets`) and fetched at
+drained by that window (`OperandEvaluationWindow.Mark` marks BOTH pending lists; `OoBinder.OoDrainPropertyGets`) and fetched at
 each evaluation, and not at all when a short-circuit never reaches it. Every such reference is sending, so the
 window never needs the GR2 SET. A RECEIVING reference identifies ONE object (kb/Work PB2078; §2023:14.6.4 "Item identification is the process of identifying
 a specific data item referenced by an identifier by evaluating all of that identifier's references", §2023:8.4.3.9.4 GR3): `OoBinder.OoWrapPropertyOps`
@@ -1219,7 +1219,7 @@ typed/interface/universal identifier-1, class-name-1), `OoBindInstanceInvoke`, `
 `CompilerTemps.ForInvocation` (the GR1 b) clone of the method's own RETURNING item, so the delivery is an IDENTITY
 crossing and §2023:14.8.3.3 has nothing to check) and registration of the activation on `ProcedureBindState.PendingPreOps`, the ONE
 statement-scoped pre-op list the user-function activation and the function-bearing subscript already use. It hoists
-through `UdfBinder.UdfWrapCalls` / `UdfAttachPerEvaluation` unchanged, because §2023:8.4.3.4.3 SR1 gives the construct the
+through `OperandEvaluationWindow.Hoist` / `AttachPerEvaluation` unchanged, because §2023:8.4.3.4.3 SR1 gives the construct the
 same non-receiving property §2023:8.4.3.2.3 SR1 gives a function-identifier: no store polarity, no post-ops. The expression
 the site yields is a `BoundNumRef` over the temp — the SAME carrier a user-defined function result takes, so every
 general-operand chokepoint (`IntrinsicBinder.OperandOf` → `BoundFieldOperand`) serves it with no new code. SR2 (no NULL,
