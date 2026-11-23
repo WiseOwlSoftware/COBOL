@@ -1536,7 +1536,7 @@ public sealed class DataItem
     /// occupies no extra position. (This is the per-occurrence width of THIS item; a parent multiplies by THIS item's
     /// own OCCURS count.)
     /// <para>⛔ A group's unit is its class's: an ALPHANUMERIC group counts a national position as the
-    /// <c>CobolBits.BytesPerNational</c> storage characters it occupies, a <c>GROUP-USAGE NATIONAL</c> group counts
+    /// <c>NationalImage.BytesPerNational</c> storage characters it occupies, a <c>GROUP-USAGE NATIONAL</c> group counts
     /// national positions (§2023:13.18.29.4 GR2b). The rule — redefining children, the bit walk, the national unit — is
     /// written ONCE, in <see cref="RecordLayout.ImageWidth"/> (kb/Work PB1665); this member is that answer.</para></summary>
     public int ImageWidth => RecordLayout.ImageWidth(this);

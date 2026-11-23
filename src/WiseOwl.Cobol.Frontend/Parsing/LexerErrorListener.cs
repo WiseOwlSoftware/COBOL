@@ -16,20 +16,12 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 /// <para>The errors are COLLECTED, not reported as they occur, because the main lex runs more than once: a fixed-form
 /// debugging line that is source inside an open picture or subscript region is blanked and the text lexed again
 /// (<c>Frontend.LexAndParseOnce</c>, kb/Work PB1913), and only the last lexer read the text the parse sees. The caller
-/// reports that lexer's errors (<see cref="ReportInto"/>).</para>
+/// reports that lexer's errors (<see cref="ReportInto"/>). The lexer reports to it alone: <see cref="CobolTokenStream.Lexer"/>,
+/// the one construction of a lexer, removes every other listener.</para>
 /// </summary>
 internal sealed class LexerErrorListener : IAntlrErrorListener<int>
 {
     private readonly List<(int Line, int Column, string Message)> _errors = [];
-
-    /// <summary>Attach a new listener to <paramref name="lexer"/> in place of every listener it carries.</summary>
-    public static LexerErrorListener AttachTo(Lexer lexer)
-    {
-        var listener = new LexerErrorListener();
-        lexer.RemoveErrorListeners();
-        lexer.AddErrorListener(listener);
-        return listener;
-    }
 
     public void SyntaxError(TextWriter output, IRecognizer recognizer, int offendingSymbol, int line,
         int charPositionInLine, string msg, RecognitionException e)

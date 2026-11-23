@@ -149,15 +149,15 @@ internal sealed class SortKeyColumns
 
     /// <summary>The key's COMPARISON OPERAND out of a record image — the window for every class but national, and for a
     /// NATIONAL key the window's UTF-16BE byte pairs decoded back to national character positions through the ONE
-    /// decoder <see cref="CobolBits.NatReadWindow"/>. §2023:8.8.4.2.9 states the comparison over national character positions
+    /// decoder <see cref="NationalImage.ReadWindow"/>. §2023:8.8.4.2.9 states the comparison over national character positions
     /// ("the length of an operand is the number of national character positions in the operand") while the record
     /// image stores two bytes per position (§2023:13.18.60.4 GR8; D-N1), so comparing the raw window would weigh BYTES — and
     /// the high byte of every Latin national character is U+0000, which is how a national key silently compared EQUAL
     /// across whole records before kb/Work PB678.</summary>
     private static string Operand(in StoredFrame record, in CobolSort.Key k) =>
         k.Class is CobolSort.KeyClass.National
-            ? CobolBits.NatReadWindow(record.Image ?? "", k.At(record.Image ?? "", record.Extents),
-                k.Length / CobolBits.BytesPerNational)
+            ? NationalImage.ReadWindow(record.Image ?? "", k.At(record.Image ?? "", record.Extents),
+                k.Length / NationalImage.BytesPerNational)
             : Slice(record, k);
 
     /// <summary>The key's character window of a record image. A record shorter than the window (a varying record —

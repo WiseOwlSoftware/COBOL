@@ -229,7 +229,7 @@ public enum DialectBehavior
     /// evaluation", so at <c>--std 85</c> <c>(-32) ** 0.2</c> is −2, the real fifth root of −32, and <c>(-4) ** 0.5</c> is still a size
     /// error (kb/Work PB5186; VCR row 7.67). Both editions are QUOTED. The consumer is <c>ExpressionBinder.BindPower</c>, which sets
     /// <c>BoundPower.NegativeBaseRealRoots</c> for <c>NumericRenderer.Power</c> and so for
-    /// <c>CobolIntrinsics.PowNativeReal(double, CobolExact)</c> and <c>CobolExact.PowReal</c>.</summary>
+    /// <c>CobolPower.Binary64(double, CobolExact)</c> and <c>CobolExact.PowReal</c>.</summary>
     NegativeBaseRequiresIntegerExponent = 17,
     /// <summary>ISO/IEC 1989:2023 §2023:14.9.13.4 GR4c — "If the result of the analysis is false for any pair in a WHEN phrase,
     /// no more pairs in that WHEN phrase are evaluated"; the 2002 text words it the same (§2002:14.8.12.3 GR4c), and the

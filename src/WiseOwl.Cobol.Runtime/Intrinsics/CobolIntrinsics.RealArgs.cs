@@ -58,94 +58,6 @@ namespace WiseOwl.Cobol.Runtime;
 /// </remarks>
 public static partial class CobolIntrinsics
 {
-    // ── NATIVE EXPONENTIATION (ISO §2023:8.8.1.2 GR6; fix-queue PB18 + PB28) ──────────────────────────────────────
-
-    /// <summary>
-    /// ⛔ THE §2023:8.8.1.2 RULE-6 SCREEN, WRITTEN ONCE FOR EVERY NATIVE ARM (fix-queue PB28).
-    /// </summary>
-    /// <remarks>
-    /// Rule 6 is a GENERAL rule of arithmetic-expression evaluation — its own title is "Native, standard-binary,
-    /// and standard-decimal arithmetic" — so it binds native `**` exactly as it binds the SDIDI one, and two of
-    /// its three parts are mandatory <c>shall</c> requirements with a named exception condition:
-    /// <list type="bullet">
-    ///   <item><b>r6a</b> — a zero base shall have an exponent greater than zero, else EC-SIZE-EXPONENTIATION;</item>
-    ///   <item><b>r6c</b> — a negative base shall have an integer exponent, else EC-SIZE-EXPONENTIATION.</item>
-    /// </list>
-    /// <c>CobolDec.Pow</c> has enforced both since it was written; every NATIVE arm went straight to
-    /// <c>System.Math.Pow</c> with no rule-6 check at all, so the same program answered differently depending only
-    /// on whether an ARITHMETIC clause was present. MEASURED at <c>--std 2023</c> with an <c>ON SIZE ERROR</c>
-    /// phrase that did NOT fire: <c>0 ** 0</c> returned <b>1</b> (IEEE's convention, not COBOL's) and
-    /// <c>-2 ** 0.5</c> returned <b>0</b> (<c>Math.Pow</c> yields NaN and <c>FromDouble(NaN, ws)</c> quantizes it
-    /// to zero). Both are wrong ANSWERS delivered silently. EC-SIZE-EXPONENTIATION is Fatal in Table 14.
-    /// <para>⚠ r6b — "if the evaluation yields both a positive and a negative real number, the value returned is
-    /// the positive number" — is NOT a screen: it is a selection rule, and it cannot arise here because
-    /// <c>Math.Pow</c> and the exact wide power each yield a single value. Checked in this pass rather than left
-    /// to be discovered as a fourth leg.</para>
-    /// <para>⛔ r6c IS THE RULE FROM COBOL-2002 (kb/Work PB5186): §1985:VI.6.2.3 GR5c refuses a negative base only when no real
-    /// number is the result, and that edition's power is <see cref="PowNativeReal(double, CobolExact)"/>, which asks this screen
-    /// for a non-negative base only.</para>
-    /// </remarks>
-    internal static void CheckPowRule6(double b, double e)
-    {
-        if (b == 0 && e <= 0)
-            throw new CobolSizeError(
-                $"exponentiation: a zero base requires an exponent greater than zero, not {e} "
-                + "(ISO §2023:8.8.1.2 rule 6a)", "EC-SIZE-EXPONENTIATION");
-        if (b < 0 && e != Math.Floor(e))
-            throw new CobolSizeError(
-                $"exponentiation: a negative base ({b}) requires an integer exponent, not {e} "
-                + "(ISO §2023:8.8.1.2 rule 6c)", "EC-SIZE-EXPONENTIATION");
-    }
-
-    /// <summary>Native <c>**</c> on the FLOATING arm — the §2023:8.8.1.3 implementor-defined approximation, screened by
-    /// <see cref="CheckPowRule6"/> first so the two mandatory legs of rule 6 hold on this arm too (PB28). From COBOL-2002; the COBOL-85
-    /// rule for a negative base is <see cref="PowNativeReal(double, CobolExact)"/>'s.</summary>
-    public static double PowNativeReal(double b, double e)
-    {
-        CheckPowRule6(b, e);
-        return Math.Pow(b, e);
-    }
-
-    /// <summary><see cref="PowNativeReal(double, double)"/> where a range condition's checking is ENABLED — the power is an operation on
-    /// the binary64 intermediate, so its result's range is §2023:14.7.5 case 5 through the ONE check the other checked native
-    /// operators use (<see cref="CobolFloat.InBinary64Range"/>, kb/Work PB1581): <c>C ** 2</c> over a COMP-2 holding
-    /// 1.0E+300 is EC-SIZE-OVERFLOW, not +Infinity. A nonzero base's power is never zero. <paramref name="taken"/>: the
-    /// conditions whose checking is enabled (kb/Work PB4092).</summary>
-    public static double PowNativeRealChecked(double b, double e, SizeChecks taken) =>
-        InExponentiationRange(PowNativeReal(b, e), b, e, taken);
-
-    /// <summary>⛔ NATIVE <c>**</c> AT COBOL-85, WHERE A NEGATIVE BASE IS REFUSED ONLY WHEN NO REAL RESULT EXISTS (kb/Work PB5186;
-    /// <c>DialectBehavior.NegativeBaseRequiresIntegerExponent</c>). §1985:VI.6.2.3 GR5c: "If no real number exists as the result of
-    /// the evaluation, the size error condition exists"; §2002:8.8.1.1 replaced it with the integer-exponent rule <see cref="CheckPowRule6"/>
-    /// screens (§2002:F.1 item 14 records the change). So at 85 <c>(-32) ** 0.2</c> is the real number −2, the fifth root of −32, and
-    /// <c>(-32) ** 0.4</c> is 4, while <c>(-4) ** 0.5</c> has no real result and is the size error. Whether a real result exists is a
-    /// property of the exponent's EXACT value, which a binary64 cannot carry (0.2 is not 1/5 in binary), so the exponent arrives as the
-    /// <see cref="CobolExact"/> the program wrote (<see cref="CobolExact.HasOddDenominator"/>). The zero-base rule (§1985:VI.6.2.3 GR5a)
-    /// is the one <see cref="CheckPowRule6"/> states, and a non-negative base is <see cref="PowNativeReal(double, double)"/> unchanged.
-    /// GR5b (the positive of two real results) needs no step: for an odd denominator the real root is unique, and <c>Math.Pow</c> of a
-    /// positive base returns the positive one.</summary>
-    public static double PowNativeReal(double b, CobolExact exponent)
-    {
-        double e = exponent.AsBinary64();
-        if (!(b < 0)) return PowNativeReal(b, e);
-        if (!exponent.HasOddDenominator(out bool oddNumerator))
-            throw new CobolSizeError(
-                $"exponentiation: no real number is the result of the negative base ({b}) raised to {e} "
-                + "(§1985:VI.6.2.3 GR5c)", "EC-SIZE-EXPONENTIATION");
-        double magnitude = Math.Pow(-b, e);
-        return oddNumerator ? -magnitude : magnitude;
-    }
-
-    /// <summary><see cref="PowNativeReal(double, CobolExact)"/> where a range condition's checking is ENABLED, through the one range
-    /// check <see cref="PowNativeRealChecked(double, double, SizeChecks)"/> applies.</summary>
-    public static double PowNativeRealChecked(double b, CobolExact exponent, SizeChecks taken) =>
-        InExponentiationRange(PowNativeReal(b, exponent), b, exponent.AsBinary64(), taken);
-
-    /// <summary>The §2023:14.7.5 case 5 range of a binary64 power <paramref name="r"/> of <paramref name="b"/> and <paramref name="e"/>
-    /// (kb/Work PB1581), for both checked entries.</summary>
-    private static double InExponentiationRange(double r, double b, double e, SizeChecks taken) =>
-        double.IsFinite(b) && double.IsFinite(e) ? CobolFloat.InBinary64Range(r, nonzero: b != 0, "exponentiation", taken) : r;
-
     /// <summary>§2023:15.7 ABS — the absolute value of a floating-point argument.</summary>
     public static double AbsReal(double v) => Math.Abs(v);
 
@@ -173,10 +85,10 @@ public static partial class CobolIntrinsics
     public static double RemReal(double a, double b) => b == 0 ? RemZeroDivisor() : a % b;
 
     /// <summary>§2023:15.59 MAX — the leftmost argument with the greatest value (the one selection rule, kb/Work PB2635).</summary>
-    public static double MaxReal(params double[] xs) => xs[ExtremeIndex(new ValueOrder<double>(xs), true, "MAX")];
+    public static double MaxReal(params ReadOnlySpan<double> xs) => xs[ExtremeIndex(new ValueOrder<double>(xs), true, "MAX")];
 
     /// <summary>§2023:15.63 MIN — the leftmost argument with the least value.</summary>
-    public static double MinReal(params double[] xs) => xs[ExtremeIndex(new ValueOrder<double>(xs), false, "MIN")];
+    public static double MinReal(params ReadOnlySpan<double> xs) => xs[ExtremeIndex(new ValueOrder<double>(xs), false, "MIN")];
 
     // ⛔ THE binary64 LIST BODIES FORM THEIR EQUIVALENT ARITHMETIC EXPRESSION IN THE binary64 INTERMEDIATE (kb/Work
     // PB1581), so a sum or a half-sum that leaves binary64's range is §2023:14.7.5 case 5 — EC-SIZE-OVERFLOW, or
@@ -186,7 +98,7 @@ public static partial class CobolIntrinsics
     // (ListInRange), exactly as a non-finite operand does.
 
     /// <summary>A list body's binary64 value, range-checked when every argument is finite.</summary>
-    private static double ListInRange(double r, double[] xs, bool nonzero, string function)
+    private static double ListInRange(double r, ReadOnlySpan<double> xs, bool nonzero, string function)
     {
         foreach (double x in xs) if (!double.IsFinite(x)) return r;
         return InBinary64Range(r, nonzero, function);
@@ -194,14 +106,14 @@ public static partial class CobolIntrinsics
 
     /// <summary>The half-sum <c>(a + b) / 2</c> a list body forms (MIDRANGE's EAE, MEDIAN's even-count middle), each
     /// operation range-checked.</summary>
-    private static double HalfSumInRange(double a, double b, double[] xs, string function)
+    private static double HalfSumInRange(double a, double b, ReadOnlySpan<double> xs, string function)
     {
         double s = ListInRange(a + b, xs, nonzero: false, function);
         return ListInRange(s / 2.0, xs, nonzero: s != 0, function);
     }
 
     /// <summary>§2023:15.88 SUM.</summary>
-    public static double SumReal(params double[] xs)
+    public static double SumReal(params ReadOnlySpan<double> xs)
     {
         RequireArguments(xs.Length, "SUM");
         double t = 0;
@@ -210,7 +122,7 @@ public static partial class CobolIntrinsics
     }
 
     /// <summary>§2023:15.76 RANGE — MAX minus MIN.</summary>
-    public static double RangeReal(params double[] xs)
+    public static double RangeReal(params ReadOnlySpan<double> xs)
     {
         RequireArguments(xs.Length, "RANGE");
         return ListInRange(MaxReal(xs) - MinReal(xs), xs, nonzero: false, "RANGE");
@@ -218,7 +130,7 @@ public static partial class CobolIntrinsics
 
     /// <summary>§2023:15.61 MEDIAN — the middle value of the sorted arguments; the mean of the two middle values when
     /// the count is even (§2023:15.61.4).</summary>
-    public static double MedianReal(params double[] xs)
+    public static double MedianReal(params ReadOnlySpan<double> xs)
     {
         RequireArguments(xs.Length, "MEDIAN");
         double[] s = [.. xs];
@@ -228,14 +140,14 @@ public static partial class CobolIntrinsics
     }
 
     /// <summary>§2023:15.62 MIDRANGE — the mean of the greatest and least arguments.</summary>
-    public static double MidrangeReal(params double[] xs)
+    public static double MidrangeReal(params ReadOnlySpan<double> xs)
     {
         RequireArguments(xs.Length, "MIDRANGE");
         return HalfSumInRange(MaxReal(xs), MinReal(xs), xs, "MIDRANGE");
     }
 
     /// <summary>§2023:15.60 MEAN — the arithmetic mean of the arguments.</summary>
-    public static double MeanReal(params double[] xs)
+    public static double MeanReal(params ReadOnlySpan<double> xs)
     {
         RequireArguments(xs.Length, "MEAN");
         double t = 0;
@@ -246,7 +158,7 @@ public static partial class CobolIntrinsics
 
     /// <summary>§2023:15.71 ORD-MAX — the 1-based ORDINAL POSITION of the greatest argument, leftmost on a tie
     /// (§2023:15.71.4 RV3). Returns a position, never a value, so the count — not the arguments — bounds the result.</summary>
-    public static double OrdMaxReal(params double[] xs) => ExtremeIndex(new ValueOrder<double>(xs), true, "ORD-MAX") + 1;
+    public static double OrdMaxReal(params ReadOnlySpan<double> xs) => ExtremeIndex(new ValueOrder<double>(xs), true, "ORD-MAX") + 1;
 
     /// <summary>
     /// §2023:15.17 COMBINED-DATETIME — <c>argument-1 + (argument-2 / 100000)</c> exactly as §2023:15.17.4 RV1 writes it.
@@ -270,5 +182,5 @@ public static partial class CobolIntrinsics
             : integerDate + (seconds / 100000.0);
 
     /// <summary>§2023:15.72 ORD-MIN — the 1-based ordinal position of the least argument, leftmost on a tie.</summary>
-    public static double OrdMinReal(params double[] xs) => ExtremeIndex(new ValueOrder<double>(xs), false, "ORD-MIN") + 1;
+    public static double OrdMinReal(params ReadOnlySpan<double> xs) => ExtremeIndex(new ValueOrder<double>(xs), false, "ORD-MIN") + 1;
 }

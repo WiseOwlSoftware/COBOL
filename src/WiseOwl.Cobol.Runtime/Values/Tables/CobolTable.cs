@@ -56,20 +56,60 @@ public static class CobolTable
         // A NULL table is itself an out-of-range chain: a multi-dimension reference whose OUTER subscript was
         // out of range continues through the zeroed scratch struct, whose nested OCCURS arrays are null
         // (NC401M's 5-deep FAIL-path read) — every further level resolves benignly too.
-        if (table is not null && position >= 1 && position <= table.Length) return ref table[(int)(position - 1)];
-        return ref OutOfRange<T>(table, occurrence);
+        int highest = table?.Length ?? 0;
+        if (Permissible(position, highest)) return ref table![(int)(position - 1)];
+        SubscriptOutOfRange(occurrence, highest);
+        return ref OutOfRange<T>();
     }
 
-    /// <summary>⛔ THE ONE OUT-OF-RANGE OUTCOME of a fixed-table reference. §2023:8.4.2.3.4 GR2 — "If the value of the
-    /// subscript is not a positive integer or is less than one or is greater than the highest permissible occurrence
-    /// number, the EC-BOUND-SUBSCRIPT exception condition is set to exist." Raised BEFORE the scratch fallback so a
-    /// CHECKING-ON reference reports the condition; with checking off the helper returns and the scratch read stands
-    /// unchanged. The detail names the subscript's value as the program holds it (<see cref="Occurrence.ToString"/>).</summary>
-    private static ref T OutOfRange<T>(T[]? table, Occurrence occurrence)
+    /// <summary>⛔ THE ONE §2023:8.4.2.3.4 GR2 RANGE TEST of a subscript, for every kind of table the runtime holds: a
+    /// fixed or occurs-depending table here, a dynamic-capacity table's <see cref="CobolDynTable{T}"/> accessors and a
+    /// report writer's repeating sum counter (kb/Work PB2648: each kind used to write the test itself). GR2: "If the
+    /// value of the subscript is not a positive integer or is less than one or is greater than the highest permissible
+    /// occurrence number, the EC-BOUND-SUBSCRIPT exception condition is set to exist." <paramref name="highest"/> is
+    /// the highest permissible occurrence number of the table kind asking.</summary>
+    internal static bool Permissible(long position, long highest) => position >= 1 && position <= highest;
+
+    /// <summary>⛔ THE ONE §2023:8.4.2.3.4 GR2 RAISE (kb/Work PB2648): sets EC-BOUND-SUBSCRIPT with the one detail text,
+    /// which names the subscript's value as the program holds it (<see cref="Occurrence.ToString"/>, even past
+    /// <c>long</c>) and the range it left. Raised BEFORE any continuation, so a CHECKING-ON reference reports the
+    /// condition; with checking off it returns and the caller continues with its own table kind's continuation (the
+    /// fixed table's <see cref="OutOfRange{T}"/>, the dynamic table's seeded scratch, the sum counter's zero).</summary>
+    /// <param name="occurrence">The subscript's value.</param>
+    /// <param name="highest">The highest permissible occurrence number, or <see langword="null"/> when the reference
+    /// has no upper bound (a dynamic table's RECEIVING reference grows to any positive occurrence, §2023:8.5.1.9.3);
+    /// the detail then says the value "is not a positive integer".</param>
+    /// <param name="subject">What the subscript selects, when it is not a data item's table (a report's sum counter).</param>
+    /// <param name="range">What the range is, when it is not the table's size (a dynamic table's current capacity).</param>
+    /// <param name="clause">The clause that defines the range, cited before GR2 (a dynamic table's 8.5.1.9.2).</param>
+    internal static void SubscriptOutOfRange(Occurrence occurrence, long? highest, string? subject = null,
+                                             string? range = null, string? clause = null)
     {
-        ExceptionState.SubscriptError($"subscript {occurrence} is outside 1..{(table?.Length ?? 0)} (ISO 8.4.2.3.4 GR2)");
+        string outside = highest is { } h ? $"is outside 1..{h}{(range is null ? "" : ", " + range)}" : "is not a positive integer";
+        ExceptionState.SubscriptError(
+            $"{(subject is null ? "" : subject + " ")}subscript {occurrence} {outside} (ISO {(clause is null ? "" : clause + ", ")}8.4.2.3.4 GR2)");
+    }
+
+    /// <summary>The checking-off continuation of a fixed or occurs-depending table's out-of-range reference, reached
+    /// only after <see cref="SubscriptOutOfRange"/> returned (the policy <see cref="At{T}(T[], Occurrence)"/> states):
+    /// the per-thread scratch cell, re-defaulted on every out-of-range access to the empty value
+    /// (<c>string.Empty</c> for a string element, the zeroed value otherwise).</summary>
+    private static ref T OutOfRange<T>()
+    {
         Scratch<T>.Slot = typeof(T) == typeof(string) ? (T)(object)string.Empty : default!;
         return ref Scratch<T>.Slot;
+    }
+
+    /// <summary>⛔ THE ONE §2023:13.18.38.4 GR7 BOUND TEST of an OCCURS DEPENDING value (kb/Work PB2648: the element
+    /// reference and the extent channel each wrote it): "the value of the data item referenced by data-name-1 shall
+    /// fall within the bounds from integer-1 through integer-2. If the value of the data item does not fall within
+    /// the specified bounds, the EC-BOUND-ODO exception condition is set to exist." <paramref name="where"/> names the
+    /// use the value was tested at, when that is a reference to the table.</summary>
+    private static void TestOdoBounds(Occurrence depending, int min, int max, string? where = null)
+    {
+        if (depending.Value < min || depending.Value > max)
+            ExceptionState.OdoError(
+                $"OCCURS DEPENDING value {depending} is outside {min}..{max}{(where is null ? "" : " " + where)} (ISO 13.18.38.4 GR7)");
     }
 
     /// <summary>An element of an OCCURS DEPENDING table, referenced where EC-BOUND-ODO checking can be enabled:
@@ -84,9 +124,7 @@ public static class CobolTable
     /// permissible occurrence number … of an occurs-depending table is the maximum number of occurrences").</summary>
     public static ref T At<T>(T[] table, Occurrence occurrence, Occurrence depending, int min, int max)
     {
-        if (depending.Value < min || depending.Value > max)
-            ExceptionState.OdoError(
-                $"OCCURS DEPENDING value {depending} is outside {min}..{max} at a reference to the table (ISO 13.18.38.4 GR7)");
+        TestOdoBounds(depending, min, max, "at a reference to the table");
         return ref At(table, occurrence);
     }
 
@@ -140,14 +178,10 @@ public static class CobolTable
     /// integer-1..integer-2 and clamped to 0..integer-2.</summary>
     private static long CurrentCount(Occurrence count, int min, int max)
     {
-        // §2023:13.18.38.4 GR7 — the value "shall fall within the bounds from integer-1 through integer-2. If the
-        // value of the data item does not fall within the specified bounds, the EC-BOUND-ODO exception condition
-        // is set to exist." Both ends matter; checking off keeps the clamp, whose result GR7's closing sentence
-        // makes undefined content and therefore a conforming implementor choice.
+        // §2023:13.18.38.4 GR7: both ends matter (TestOdoBounds); checking off keeps the clamp, whose result GR7's
+        // closing sentence makes undefined content and therefore a conforming implementor choice.
+        TestOdoBounds(count, min, max);
         long n = count.Value;
-        if (n < min || n > max)
-            ExceptionState.OdoError(
-                $"OCCURS DEPENDING value {count} is outside {min}..{max} (ISO 13.18.38.4 GR7)");
         return n < 0 ? 0 : n > max ? max : n;
     }
 

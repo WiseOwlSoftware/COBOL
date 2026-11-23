@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Runtime.Exceptions;
 using WiseOwl.Cobol.Runtime;
 
@@ -101,7 +102,7 @@ public static class CompilerDirectiveWords
     public static bool IsReserved(string word, int edition) =>
         (ByWord.TryGetValue(word, out var e) && e.From <= edition && edition <= e.Through)
         || (edition >= 2002
-            && ((ExceptionCatalog.TryGet(word, out var ec) && ec.IntroducedIn <= edition)
+            && ((ExceptionCatalog.TryGet(word, out var ec) && new EditionWindow(ec.IntroducedIn).IsInForceAt(edition))
                 || ExceptionCatalog.IsImplementorSuffixForm(word)));
 
     /// <summary>The directive whose syntax rule forbids a compiler-directive word at a site (<see cref="Citation"/>).</summary>

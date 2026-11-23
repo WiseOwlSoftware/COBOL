@@ -142,7 +142,7 @@ public sealed class ImageWidthIsStorageWidthTests
         var item = Leaf(pic);
         Assert.Equal(4, item.ImageWidth);
         Assert.Equal(pic.BytesPerPosition * item.ImageWidth, item.ByteWidth);
-        Assert.Equal(WiseOwl.Cobol.Runtime.CobolBits.BytesPerNational, pic.BytesPerPosition);
+        Assert.Equal(WiseOwl.Cobol.Runtime.NationalImage.BytesPerNational, pic.BytesPerPosition);
     }
 
     /// <summary>

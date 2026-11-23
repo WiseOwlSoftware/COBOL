@@ -29,7 +29,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// without a hand-maintained list of bodies (CLAUDE.md rule 5). <see cref="NoIntrinsicBody_InventsAValueForAnEmptyArgumentList"/>
 /// bans the SHAPE — a variadic body testing its array for emptiness and answering anyway — structurally and
 /// with no exemption list. <see cref="EveryVariadicIntrinsicBody_AssertsTheInvariantOrForwardsTheWholeArray"/>
-/// is the positive half: every <c>params</c> array declaration in <c>src/WiseOwl.Cobol.Runtime/Intrinsics</c> either
+/// is the positive half: every <c>params</c> span declaration (kb/Work PB2636) in <c>src/WiseOwl.Cobol.Runtime/Intrinsics</c> either
 /// calls <c>RequireArguments</c> itself or hands the WHOLE array to a body that does, which is what makes the
 /// delegating bodies (STANDARD-DEVIATION over VARIANCE, MEAN over SUM, RANGE over MAX/MIN) correct by
 /// construction rather than by exemption. Both read only lines that are not wholly comments, so this file's own
@@ -132,8 +132,8 @@ public sealed class EmptyArgumentListDriftTests
     [Fact]
     public void EveryVariadicNumericIntrinsicBody_AssertsTheAtLeastOneArgumentInvariant()
     {
-        var decl = new Regex(@"\bparams\s+(?:double|CobolDec|Int128)\[\]\s+(\w+)\s*\)", RegexOptions.Compiled);
-        var anyDecl = new Regex(@"\bparams\s+[\w.<>]+\[\]\s+\w+\s*\)", RegexOptions.Compiled);
+        var decl = new Regex(@"\bparams\s+ReadOnlySpan<(?:double|CobolDec|Int128)>\s+(\w+)\s*\)", RegexOptions.Compiled);
+        var anyDecl = new Regex(@"\bparams\s+(?:ReadOnlySpan<[\w.]+>|[\w.<>]+\[\])\s+\w+\s*\)", RegexOptions.Compiled);
         var offenders = new List<string>();
         int measured = 0;
         foreach (string file in IntrinsicSources())

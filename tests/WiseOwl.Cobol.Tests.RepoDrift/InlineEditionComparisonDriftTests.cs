@@ -66,7 +66,6 @@ public sealed class InlineEditionComparisonDriftTests
         ["src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs"] = 2,
         ["src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs"] = 3,
         ["src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs"] = 2,
-        ["src/WiseOwl.Cobol.Compiler/Binding/FileDescriptionFormats.cs"] = 2,
         ["src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs"] = 1,
         ["src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCitations.cs"] = 1,
         ["src/WiseOwl.Cobol.Compiler/Binding/OptionsBinder.cs"] = 1,

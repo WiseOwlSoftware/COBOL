@@ -43,7 +43,7 @@ internal static class RecordLayout
     /// in them. Any other group is an alphanumeric group (§2023:8.5.2.1: "an alphanumeric group item has class and
     /// category alphanumeric"), moved "exactly as if it were an alphanumeric to alphanumeric elementary move"
     /// (§2023:14.9.25.4 GR4) — a string of STORAGE characters, in which a national position occupies
-    /// <c>CobolBits.BytesPerNational</c> of them (§2023:13.18.60.4 GR8, pinned by D-N1). Counting the national leaf once
+    /// <c>NationalImage.BytesPerNational</c> of them (§2023:13.18.60.4 GR8, pinned by D-N1). Counting the national leaf once
     /// there made a group MOVE copy fewer characters than the sending group's image holds, so the trailing
     /// members were lost (kb/Work PB1665: <c>MOVE G5 TO G6</c> left <c>B</c> as spaces). Every consumer of a group's
     /// character-image width — MOVE, the receiving store, the boundary windows, ref-mod positions, LENGTH folds,

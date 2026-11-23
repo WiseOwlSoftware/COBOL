@@ -449,7 +449,7 @@ public static partial class CobolIntrinsics
     /// base from a NARROWED rate divided by 0 and answered ±∞ (then EC-ARGUMENT-FUNCTION) for a rate §2023:15.74.3 AR2
     /// admits, where the base is 10^−20 and the value 100 · 10^20. Formed on the exact carrier and only then
     /// narrowed, the base keeps binary64's RELATIVE error, which is the §2023:15.4.1 native approximation.</remarks>
-    public static double PresentValue(double discountBase, params double[] amounts)
+    public static double PresentValue(double discountBase, params ReadOnlySpan<double> amounts)
     {
         RequireArguments(amounts.Length, "PRESENT-VALUE");
         // §2023:15.74.3 AR2 (rate > −1) is the argument-domain screen's (DomainScaled / DomainDecAdmitted, kb/Work
@@ -473,7 +473,7 @@ public static partial class CobolIntrinsics
     // ── Statistics over doubles (ISO §2023:15.86 / §2023:15.98) ─────────────────────────────────────────────────────────
 
     /// <summary>VARIANCE (§2023:15.98.4): the mean of the squared deviations from the arguments' arithmetic mean.</summary>
-    public static double Variance(params double[] xs)
+    public static double Variance(params ReadOnlySpan<double> xs)
     {
         RequireArguments(xs.Length, "VARIANCE");            // §2023:15.3 — at least one argument (kb/Work PB257)
         double mean = 0;
@@ -488,7 +488,7 @@ public static partial class CobolIntrinsics
     }
 
     /// <summary>True when every argument has the first one's value — the only lists whose variance is exactly zero.</summary>
-    private static bool AllEqual(double[] xs)
+    private static bool AllEqual(ReadOnlySpan<double> xs)
     {
         foreach (double x in xs) if (x != xs[0]) return false;
         return true;
@@ -499,7 +499,7 @@ public static partial class CobolIntrinsics
     /// bodies composed — <see cref="Sqrt"/>, not a bare <c>Math.Sqrt</c>, so §2023:15.84.3 AR2's domain guard and
     /// §2023:15.84.4 RV4's absolute value are inherited from the ONE SQRT body rather than re-decided (kb/Work
     /// PB246/PB257).</summary>
-    public static double StandardDeviation(params double[] xs)
+    public static double StandardDeviation(params ReadOnlySpan<double> xs)
     {
         RequireArguments(xs.Length, "STANDARD-DEVIATION");
         return Sqrt(Variance(xs));
@@ -522,7 +522,7 @@ public static partial class CobolIntrinsics
     // whose EAE is evaluated in binary64 (CONFORMANCE.md DOC-A.1-92b, the exact family's determination for the same case).
 
     /// <summary>§2023:15.98 VARIANCE of an all-exact argument list: §2023:15.98.4's EAE on the exact values, then narrowed.</summary>
-    public static double Variance(CobolRounding mode, params CobolExact[] xs)
+    public static double Variance(CobolRounding mode, params ReadOnlySpan<CobolExact> xs)
     {
         RequireArguments(xs.Length, "VARIANCE");            // §2023:15.3 — at least one argument (kb/Work PB257)
         return NarrowResult(VarianceExact(mode, xs), "VARIANCE");
@@ -531,7 +531,7 @@ public static partial class CobolIntrinsics
     /// <summary>§2023:15.86 STANDARD-DEVIATION of an all-exact argument list: §2023:15.86.4 RV1's
     /// <c>(FUNCTION SQRT (FUNCTION VARIANCE (argument-list)))</c> on the exact values (<see cref="StdDevExact"/>), then
     /// narrowed.</summary>
-    public static double StandardDeviation(CobolRounding mode, params CobolExact[] xs)
+    public static double StandardDeviation(CobolRounding mode, params ReadOnlySpan<CobolExact> xs)
     {
         RequireArguments(xs.Length, "STANDARD-DEVIATION");
         return NarrowResult(StdDevExact(mode, xs), "STANDARD-DEVIATION");
@@ -542,7 +542,7 @@ public static partial class CobolIntrinsics
     /// on exact arguments decides it — <see cref="PresentValueExact"/>'s exact test of the discount base, through the ONE
     /// <see cref="PresentValueDomain"/> raise site, whose §2023:15.3 default 0 comes back unchanged — so a leading
     /// table(ALL) rate needs no nullable element inside the enumerated <c>CobolExact[]</c>.</summary>
-    public static double PresentValue(CobolRounding mode, CobolExact rate, params CobolExact[] amounts)
+    public static double PresentValue(CobolRounding mode, CobolExact rate, params ReadOnlySpan<CobolExact> amounts)
     {
         RequireArguments(amounts.Length, "PRESENT-VALUE");
         return NarrowResult(PresentValueExact(mode, rate, amounts), "PRESENT-VALUE");

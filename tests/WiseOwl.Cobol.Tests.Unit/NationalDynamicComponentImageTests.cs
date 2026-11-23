@@ -7,7 +7,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// kb/Work PB3441 — a NATIONAL variable-length component rides a group's image as the UTF-16BE bytes it occupies (two image
-/// characters a position, <c>CobolBits.NatBytes</c>), so the runtime's two image-side rules that were stated in characters
+/// characters a position, <c>NationalImage.Bytes</c>), so the runtime's two image-side rules that were stated in characters
 /// are stated in positions of the component's own unit: the layout code that carries the unit
 /// (<see cref="CobolDynStructure.PlainCode"/>), the space a fixed-length file pads a member with and trims from it
 /// (<see cref="CobolVarGroup.SpacesFor"/>, ISO §2023:13.18.43.4 GR6 fixed-length records; the national space is the pair 00 20,
@@ -15,7 +15,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </summary>
 public sealed class NationalDynamicComponentImageTests
 {
-    private static string Nat(string characters) => CobolBits.NatBytes(characters);
+    private static string Nat(string characters) => NationalImage.Bytes(characters);
 
     [Fact]
     public void ALayoutCodeThatNamesOnlyAUnit_NamesNoStructure_AndSaysTheUnit()
