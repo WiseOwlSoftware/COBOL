@@ -1,7 +1,7 @@
-## PB2726, PB2735, PB2760, PB2648, PB2646: the lexer gets a C# superclass, every reading of COBOL text shares one token-stream preparation, the collation start-up hook moves to the control layer, the subscript rule is raised in one place, and the national codec leaves the BIT codec
+## PB2726, PB2735, PB2760, PB2648, PB2646, PB2620, PB2636: the lexer gets a C# superclass, every reading of COBOL text shares one token-stream preparation, the collation start-up hook moves to the control layer, the subscript rule is raised in one place, the national codec leaves the BIT codec, every catalog shares one edition window, and no variadic intrinsic allocates its argument list
 
-Wave 20262135, group E, replayed onto main and continued by wave 20262139, group C (the PB1754 campaign, five
-behaviour-neutral R2 restructurings).
+Wave 20262135, group E, replayed onto main and continued by wave 20262139, group C, then replayed again and continued by
+wave 20262143, group B (the PB1754 campaign, seven behaviour-neutral R2 restructurings).
 
 **PB2760: `CollationRuntime` moves from `Collation/` to `Control/`.** The run unit's text-subsystem start-up hook
 (`Initialize`, `Warmup`, `Status`) sat in `WiseOwl.Cobol.Runtime.Collation`. It was the only reason that namespace
@@ -81,3 +81,37 @@ stream differs, and no case was added or removed. In every differing case, the b
 equals the new C#: the runtime version string `"33.0.0.0"` → `"34.0.0.0"`, and `CobolBits.Nat*` → `NationalImage.*`.
 
 The gate verdict for PB2648 and PB2646 is in the branch report.
+
+**Second replay (wave 20262143, group B).** The ten commits were cherry-picked onto main a23ed881c2. Three conflicts:
+`FragmentParse.Parse` keeps main's PB5736 trailing-semicolon check on the shared `CobolTokenStream` stream; main's PB5652
+change to the lexer's report-SUM rule (`ReportOperandFollows`, the narrowed `IsReportSumClauseKeyword`) moved into
+`CobolLexerBase.cs` with the rest of the `@members`; and main's SR-13.18.54.3-9 row was re-sited there. The first gate was RED
+in RepoDrift (two 2002 rows cited `CobolLexer.g4#IsReportSumClauseKeyword` and `#ReportOperandFollows`); a `record_verdicts`
+batch re-sited them (2002 GAP 1161 → 1161). `code_read_landing.py` then refused the branch: the stored 1985 read of
+1985-SR-IV.4.2.1-2 named `CobolLexer.g4#ListItemBoundary`. Its probes (sep1-sep5 and the refuter's s1-s5) were re-run at the
+pin and printed what they printed at the read, and the re-read was imported (`code_reads.py import --replace`, 1 confirmed).
+
+**PB2620: one edition window.** The availability rule was written in `ConstructDialectStatus.StatusAt`, in
+`IntrinsicSig.IsDefinedAt` with the intrinsic binder's COBOL1502/COBOL1503 arms, and in `ExceptionNameRule.Window`. The sweep
+found two more: `CompilerDirectiveWords.IsReserved`'s exception-name test and `FileDescriptionFormats.Admitted`'s 85/2002
+filter. The intrinsic arm also chose its own severity, so a removed function would have been an error under `--permissive`.
+`EditionWindow` (Editions) now holds `StatusAt`, `IsInForceAt` and `VerdictAt`, whose severity is
+`EditionSeverityPolicy.For`'s; each catalog keeps its codes as data (`EditionGateCodes`). `EditionFlag.Of(ConstructDialectStatus, …)`
+is deleted, the window is the flag's one funnel, and `EditionWindowDriftTests` refuses a window-column comparison anywhere
+else in `src/`. No row carries an intrinsic `RemovedIn`, so no output changes (COBOL1502 at `--std 85` re-probed identical).
+
+**PB2636: no variadic intrinsic allocates its argument list.** 71 runtime bodies took `params T[]`, and the MAX/MIN/ORD-MAX/
+ORD-MIN arm emitted `new Int128[] { … }, new int[] { … }` per evaluation. Every body now takes `params ReadOnlySpan<T>`, the
+selection orders are `ref struct`s over the span, `RawArgPairs` emits collection expressions (`MaxAt(0, true, [WS_A, WS_B],
+[0, 0])`), and `LeadThenTail` passes `xs.AsSpan(1)` instead of copying `xs[1..]`. `PublicAPI.Unshipped.txt` records the 74
+signatures; `VariadicIntrinsicSpanDriftTests` pins the shape, and three reflection drift tests read the span types.
+
+**Oracle and gates (wave 20262143).** `compare_oracle.py --base a23ed881c2` printed `DIFFERENT — 9024 of 23455 cases differ`,
+every one a C# difference: no diagnostic stream or run output differs and no case was added or removed. A script showed 9,007
+of the differing files equal the base with the version string (`"33.0.0.0"` → `"34.0.0.0"`), the `CobolBits.Nat*` →
+`NationalImage.*` rename and the selection arm's collection expressions applied; the other 17 were read and differ only by the
+same collection expressions around a nested selection call. Gates: run 000001 RED (the 2002 rows), run 000002 GREEN at
+550a6c4380, run 000003 RED (`RENDERED VIEWS`: a one-folder drift test carried the tree-sweep trait), run 000004-20261123T090634Z
+GREEN at a4133fbd3b (Conformance 29,183/29,183 · Unit 42,803/42,803 · RepoDrift 241/241 · Characterization 37/37). Linux
+`--legs unit,conformance`: unit 42,935 and conformance 29,183 GREEN; the one red leg is selftests'
+`test_forbidden_commands.py`, which reads the Linux clone's local `origin` as not this repository, on any branch.
