@@ -654,16 +654,16 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, PlaceTab
     }
 
     /// <summary>⛔ THE NUMERIC VALUE A FILL SENDS to a numeric or numeric-edited receiver — a digit-only <c>ALL "literal"</c> at every
-    /// edition, and at COBOL-85 a HIGH-VALUE, LOW-VALUE or QUOTE whose character is a digit (kb/Work PB5677: a PROGRAM COLLATING
+    /// edition, and at every edition a HIGH-VALUE, LOW-VALUE or QUOTE whose character is a digit (kb/Work PB5677: a PROGRAM COLLATING
     /// SEQUENCE can make LOW-VALUE "5") — the one place the repeated string becomes a number, so the receiver's category and the
     /// edition's rule are decided once (kb/Work PB5176; it keeps the name of its first sender, the figurative being the same
     /// repeated string of one character); <see langword="null"/> for any other source, which
     /// <see cref="FigurativeToNumericImageStore"/> then fills. §1985:VI.6.19.4 GR3 puts every figurative constant but ZERO and
     /// SPACE in category alphanumeric, so the 1985 arm below is the same for the figurative as for the ALL literal; a fill
     /// of a character that is no digit sends no number, and the value of a numeric item holding it is the implementor's.
-    /// The figurative arm is the 1985 one only: §2002:14.8.24.3 GR4 and §2014:14.9.24.3 GR6d.3.b replicate a figurative constant
-    /// in an integer of the receiver's DIGIT count, a question kb/Work PB5677 keeps open beside the ALL literal's (kb/Work
-    /// PB5351), so from 2002 such a figurative keeps the image fill. The string is repeated to a length by
+    /// From 2002 a figurative constant is replicated in an unsigned integer of the receiver's DIGIT count (§2002:14.8.24.3
+    /// GR4b, §2014:14.9.24.3 GR6d.3.b; kb/Work PB5677), so into <c>PIC 9(3)V99</c> LOW-VALUE "5" is 55555, stored 555.00; the
+    /// ALL literal's 2002 question is kb/Work PB5351's. The string is repeated to a length by
     /// §2023:8.3.3.6.4 GR2 and the digit string it makes is a number by the move's own rule, and the two editions' texts differ in
     /// both lengths and what the number is:
     /// <list type="bullet">
@@ -690,7 +690,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, PlaceTab
         string? literal = source switch
         {
             BoundAllLiteral { IsDigitOnly: true } all => all.Literal,
-            BoundFigurative { Kind: 'H' or 'L' or 'Q' } f when level1985 && !pic.IsFloat && !pic.IsFloatEdited
+            BoundFigurative { Kind: 'H' or 'L' or 'Q' } f when !pic.IsFloat && !pic.IsFloatEdited
                 && FigurativeConstants.FillChar(f.Kind, ctx.Data.Configuration.Collating,
                     IntrinsicArgumentRules.CharacterContext(IntrinsicArgumentRules.ClassOfItem(target)),
                     ctx.Data.Configuration.NationalCollating) is var c and >= '0' and <= '9' => c.ToString(),
@@ -698,12 +698,16 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, PlaceTab
         };
         if (literal is null) return null;
         bool edited = pic.Category is PicCategory.NumericEdited;
+        // A figurative constant is an unsigned INTEGER at every edition (the 1985 character-position width, the 2002+ digit
+        // count: §2002:14.8.24.3 GR4b, §2014:14.9.24.3 GR6d.3.b, kb/Work PB5677), aligned by decimal point; the ALL literal
+        // of 2002+ spreads its digits over the receiver's scale (kb/Work PB426, PB5351).
+        bool integerSender = level1985 || source is BoundFigurative;
         int width = level1985
             ? edited ? pic.Length : pic.Digits + (pic.SignKind is "LeadingSeparate" or "TrailingSeparate" && pic.Signed ? 1 : 0)
             : edited ? pic.DigitPositions : pic.Digits;
         // The ONE receiver-scale rule (PicInfo.ReceiverScale, kb/Work PB2653): a masked edited receiver's is its mask's, a
-        // LOCALE or numeric receiver's its PIC scale. At 1985 the digits are an integer (scale 0, see above).
-        int scale = level1985 ? 0 : pic.ReceiverScale();
+        // LOCALE or numeric receiver's its PIC scale. An integer sender has scale 0.
+        int scale = integerSender ? 0 : pic.ReceiverScale();
         string digits = EmitText.RepeatToWidth(literal, Math.Max(width, 1));
         return digits.Length <= 18
             ? new NumX($"{long.Parse(digits, System.Globalization.CultureInfo.InvariantCulture)}L", scale)
