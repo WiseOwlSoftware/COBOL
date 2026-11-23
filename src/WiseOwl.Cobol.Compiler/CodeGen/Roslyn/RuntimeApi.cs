@@ -3395,11 +3395,12 @@ internal static class RuntimeApi
 
     // ── Intrinsic functions (CobolIntrinsics / CobolDate / EcFunctions / CobolModule; ISO §15 — P7 Step 12) ──
 
-    /// <summary>⛔ THE RUNTIME BODIES THE INTRINSIC RENDERER EMITS ARE NAMED HERE, THROUGH <c>nameof</c> (kb/Work PB2627). The catalog row
-    /// names no runtime member: <c>IntrinsicRenderer</c>'s arms are keyed on the function (its catalog name) and pass one of these
-    /// constants to <see cref="Intrinsic"/>, <see cref="DateFn"/>, <see cref="LocaleFn"/> or <see cref="EcFn"/>, so a renamed or deleted
-    /// body breaks the build in this file, and the reachability census sees exactly the bodies a program can reach. These are the
-    /// intrinsic entries of the one runtime-member catalogue DESIGN-architecture-review §8.3 (9) names <c>RuntimeMembers</c>.</summary>
+    // ⛔ THE RUNTIME BODIES THE INTRINSIC RENDERER EMITS ARE NAMED HERE, THROUGH nameof (kb/Work PB2627). The catalog row names no
+    // runtime member: IntrinsicRenderer's arms are keyed on the function (its catalog name) and pass one of these constants to
+    // Intrinsic, DateFn, LocaleFn or EcFn, so a renamed or deleted body breaks the build in this file, and the reachability census
+    // sees exactly the bodies a program can reach. These are the intrinsic entries of the one runtime-member catalogue
+    // DESIGN-architecture-review §8.3 (9) names RuntimeMembers.
+
     /// <summary>The names of the <c>CobolIntrinsics</c> bodies <c>IntrinsicRenderer</c> emits, each anchored here (kb/Work PB2627).</summary>
     internal static class IntrinsicBody
     {

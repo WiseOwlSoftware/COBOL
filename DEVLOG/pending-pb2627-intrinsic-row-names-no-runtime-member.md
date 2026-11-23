@@ -43,9 +43,19 @@ asks `ComparesStrings` at the point where the old key fell through.
 and the `RenderDec` guard `=== ARCH-ORACLE: DIFFERENT — 1 of 23500 cases differ ===`, the one line being
 `ADDED suite/2002/g2-ord-max-strings-arithmetic-standard` (no CSHARP, DIAGNOSTICS or REMOVED line).
 
-**Rows.** Five inventory rows cited a deleted or retired member. They were re-sited by `record_verdicts` batches:
-`RV-15.22.4-1`, `RV-15.47.4-1`, `RV-15.59.4-2` and `RV-15.71.4-3` at 2023 (GAP 1 → 1), and `1989-GR-A.2.32.1-p1` at 1985
-(GAP 0 → 0). The landing closes no row (`closes_rows: []`, a behaviour-neutral R2 wave).
+**Rows.** Eleven inventory rows cited a deleted or retired member (`RealMethod`, `OrdMax`, `OrdMin`, `MaxScaled`, `MinScaled`).
+They were re-sited by `record_verdicts` batches: `RV-15.22.4-1`, `RV-15.47.4-1`, `RV-15.59.4-2`, `RV-15.63.4-1`, `RV-15.71.4-3` and
+`RV-15.72.4-3` at 2023 (GAP 1 → 1); `1989-GR-A.2.32.1-p1` and `1989-GR-A.2.33.1-p1` at 1985 (GAP 0 → 0); `2002-RV-15.37.3-1`,
+`2002-RV-15.58.3-3` and `2002-RV-15.59.3-3` at 2002 (GAP 1150 → 1150). The first batches missed six of them: the grep looked for
+`OrdMax` but not `OrdMin`, and not in the 2002 store. Gate 3's `EveryCodeLocation_ResolvesInTheTree` named five, and the sweep
+that followed found the sixth. The landing closes no row (`closes_rows: []`, a behaviour-neutral R2 wave).
+
+**Gate reds on the way.** Run 1: CITATIONS, two stale baseline entries for the deleted `CannotLeaveTheCarrier` lines
+(`--write-baseline`). Run 2: `RuntimeApiGuardTests` counted the renderer's `nameof(CobolIntrinsics.X)` operands as bare
+runtime names. The ratchet is right: names are anchored in the `RuntimeApi` façade, so they moved there. Run 3:
+`DocCommentShapeDriftTests` (a doc summary above the first anchor class), the six inventory rows, `NameTableOwnershipDriftTests`
+(five new function-name comparisons classified KEYWORD like their siblings, three stale entries deleted, the renamed CONCAT site
+re-keyed) and `OperandStringChannelDriftTests` (its arm labels are function names now).
 
 **Docs.** `docs/INTRINSICS_DESIGN.md` (the catalog sketch, the ORD-MAX paragraph) and `DESIGN-architecture-review.md` §8.3 (5),
 which says the `intrinsics.json` row carries no member name.
