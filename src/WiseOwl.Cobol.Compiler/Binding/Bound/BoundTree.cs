@@ -1233,12 +1233,13 @@ public sealed record BoundRejected : BoundStatement
 
     private BoundRejected(string? code) => Code = code;
 
-    /// <summary>For a refused SORT or MERGE whose sort-merge file was resolved: that file. The statement's INPUT/OUTPUT PROCEDURE ranges are
-    /// unknown once it is refused, so the placement of a RELEASE or RETURN of the file cannot be judged (kb/Work PB5496).</summary>
-    public FileModel? RefusedSortMergeFile { get; private init; }
+    /// <summary>For a refused SORT or MERGE whose sort-merge file was resolved: the file and the INPUT/OUTPUT PROCEDURE ranges the refusal
+    /// left (kb/Work PB5496, PB6068). The refused statement is never a <see cref="BoundSort"/>/<see cref="BoundMerge"/>, so the placement of
+    /// a RELEASE or RETURN written in those ranges cannot be judged against it; one written elsewhere still can.</summary>
+    public RefusedSortMerge? RefusedSortMerge { get; private init; }
 
-    /// <summary>This refusal, marked as the refusal of a SORT or MERGE statement for <paramref name="file"/>.</summary>
-    public BoundRejected RefusingSortMergeFile(FileModel file) => this with { RefusedSortMergeFile = file };
+    /// <summary>This refusal, marked as the refusal of a SORT or MERGE statement.</summary>
+    public BoundRejected RefusingSortMerge(RefusedSortMerge refused) => this with { RefusedSortMerge = refused };
 
     /// <summary>A refusal whose diagnostic a CALLEE already reported — a file-name or procedure-name resolution, an
     /// operand screen, a placement rule (kb/Work PB1029: ~100 sites wrote <c>return new BoundNop();</c> after such a
@@ -1280,6 +1281,14 @@ public sealed record BoundRejected : BoundStatement
         return new BoundRejected(rule.Code);
     }
 }
+
+/// <summary>⛔ WHAT A REFUSED SORT OR MERGE KEEPS OF ITS PROCEDURE PHRASES (kb/Work PB5496, PB6068): the sort-merge <paramref name="File"/>,
+/// and for each of its INPUT and OUTPUT PROCEDURE phrases the pc range its names resolve to when they resolve
+/// (<paramref name="Input"/>, <paramref name="Output"/>), else that the phrase was written and could not be resolved
+/// (<paramref name="InputUnresolved"/>, <paramref name="OutputUnresolved"/>). A RELEASE or RETURN in a resolved range is judged as the
+/// statement's own procedure would be (§1985:XI.4.2.3 SR2, §1985:XI.4.3.3 SR3); only a phrase that names no procedure leaves the
+/// file's uses of that direction unjudgeable, since the range they would stand in is unknown.</summary>
+public sealed record RefusedSortMerge(FileModel File, PcRange? Input, PcRange? Output, bool InputUnresolved, bool OutputUnresolved);
 
 /// <summary>The STOP RUN / GOBACK termination status phrase (ISO §2023:14.9.42 / §2023:14.9.18.2 — COBOL-2002 on STOP,
 /// COBOL-2023 on GOBACK): <c>WITH {ERROR | NORMAL} STATUS [value]</c>. <paramref name="Error"/> selects the OS

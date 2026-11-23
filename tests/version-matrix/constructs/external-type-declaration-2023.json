@@ -1,12 +1,12 @@
 {
  "id": "external-type-declaration-2023",
- "description": "A strongly-typed EXTERNAL type declaration (ISO §2023:13.18.22.3 SR1/SR5; §2023:8.5.3; Annex E.3 item 10) — a COBOL-2023 addition. E.3 item 10 states external items 'could not be strongly typed' before 2023, so it is specifically the STRONG+EXTERNAL combination on a level-1 TYPEDEF that is new; SR5 forces a strongly-typed external record's type to itself be a strong external type declaration. A WEAK 'TYPEDEF IS EXTERNAL' (no STRONG) was already valid in COBOL-2002 (§2023:13.18.58.3 SR3) and is NOT gated. Gated on the co-occurrence of the EXTERNAL clause with a STRONG TYPEDEF clause on one level-1 data description entry. Below 2023 the strong external type declaration is rejected.",
- "display": "a strongly-typed EXTERNAL type declaration",
+ "description": "An EXTERNAL type declaration, strong or weak (ISO §2023:13.18.22.3 SR1 'in level 1 type declarations'; §2023:13.18.58.3 SR3; §2023:8.5.3; Annex E.3.3 item 20) — a COBOL-2023 addition. §2002:13.14.2 SR5 and §2014:13.16.2 SR5 forbid the EXTERNAL clause in the same data description entry as the REDEFINES, TYPEDEF, or BASED clause, so EXTERNAL with TYPEDEF is refused below 2023 whether or not the TYPEDEF is STRONG; 2023's §2023:13.16.3 SR5 drops TYPEDEF from the list. The strong form is also a 2023 novelty by Annex E.3.3 item 20 ('external items could not be strongly typed'), and SR5 forces a strongly-typed external record's type to itself be an external type declaration. Gated on the co-occurrence of the EXTERNAL clause with a TYPEDEF clause on one data description entry. Below 2023 the external type declaration is rejected.",
+ "display": "an EXTERNAL type declaration",
  "diagnosticCode": "COBOL0900",
- "citation": "ISO §2023:13.18.22.3 SR1/SR5; §2023:8.5.3; Annex E.3.3 item 20",
+ "citation": "ISO §2023:13.18.22.3 SR1; §2002:13.14.2 SR5; §2014:13.16.2 SR5; Annex E.3.3 item 20",
  "introducedIn": 2023,
  "removedIn": null,
  "expectDiagnostic": "COBOL0900",
- "vcr": "VCR row 63 (strongly-typed EXTERNAL type declaration — 2023 introduction; weak external TYPEDEF stays COBOL-2002)",
+ "vcr": "VCR row 63 (EXTERNAL type declaration, strong or weak - 2023 introduction; kb/Work PB5710)",
  "source": "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. XTD.\n       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 T TYPEDEF STRONG IS EXTERNAL.\n          05 A PIC X(4).\n       01 R TYPE T IS EXTERNAL.\n       PROCEDURE DIVISION.\n       MAIN.\n           STOP RUN.\n"
 }
