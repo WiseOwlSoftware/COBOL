@@ -271,13 +271,16 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         {
             ctx.Edition.Error(DiagnosticCatalog.ReportSourceOperandRule, $"{where}: identifier-1 references the "
                 + $"variable-length group '{item.CobolName ?? item.ClrName}', which a SOURCE clause shall not name "
-                + "(ISO §2023:13.18.53.3 SR8)");
+                + $"({ctx.Edition.Edition.CiteRule("§2023:13.18.53.3 SR8", "§2023:13.18.53.3 SR8", y2014: "§2014:13.18.53.2 SR8")})");
             return true;
         }
         // §2023:14.9.25.3 SR1's sending half is part of "a MOVE statement is valid": an index, message-tag, object or
-        // pointer identifier-1 is refused, printable entry or not — no edition's list of the contexts an index data item
-        // may be referenced in names a SOURCE clause (§2023:13.18.60.3 SR10; §1985:VI.5.14.3 SR5; kb/Work PB5188).
-        if (MoveTable16.SenderClassRefusal(operand, ctx.Edition.Edition) is { } classRefusal)
+        // pointer identifier-1 is refused, printable entry or not. At COBOL-85 the authority is the MOVE's own SR4 that SOURCE SR2
+        // imports ("conforms to the rules for sending items in the MOVE statements", §1985:XIII.3.18.3 SR2 → §1985:VI.6.19.3 SR4),
+        // not §1985:VI.5.14.3 SR5, which limits Procedure Division statements and so does not reach a Report Section clause
+        // (kb/Work PB5774, PB6075); from 2002 the data-division clause is an explicit reference no list of contexts names
+        // (§2023:13.18.60.3 SR10 with §2023:8.4.5; kb/Work PB5188).
+        if (MoveTable16.SenderClassRefusal(operand, ctx.Edition.Edition, procedureDivisionStatement: false) is { } classRefusal)
         {
             ctx.Edition.Error(DiagnosticCatalog.ReportSourceOperandRule, $"{where}: the implicit MOVE of {ImplicitMoveRule()} "
                 + $"from identifier-1 is invalid — {classRefusal} ({EditionInfo.Designated(SourceMoveRule())})");
@@ -292,10 +295,12 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
 
     /// <summary>The rule that makes a SOURCE clause an implicit MOVE, in the edition in force (kb/Work PB4950): §2023:13.18.53.4 GR1, or at
     /// COBOL-85 the SOURCE clause's own §1985:XIII.3.18.3 SR2.</summary>
-    private string ImplicitMoveRule() => ctx.Edition.Edition.Cite("§1985:XIII.3.18.3 SR2", "§2023:13.18.53.4 GR1");
+    private string ImplicitMoveRule() =>
+        ctx.Edition.Edition.Cite("§1985:XIII.3.18.3 SR2", "§2023:13.18.53.4 GR1", "§2002:13.16.51.3 GR1", "§2014:13.18.53.3 GR1");
 
     /// <summary>The rule that identifier-1 shall be valid as the sending operand of that MOVE, in the edition in force (kb/Work PB4950).</summary>
-    private string SourceMoveRule() => ctx.Edition.Edition.Cite("§1985:XIII.3.18.3 SR2", "§2023:13.18.53.3 SR2");
+    private string SourceMoveRule() =>
+        ctx.Edition.Edition.Cite("§1985:XIII.3.18.3 SR2", "§2023:13.18.53.3 SR2", "§2002:13.16.51.2 SR2", "§2014:13.18.53.2 SR2");
 
     /// <summary>⛔ THE VALUE EACH ROLLED ADDITION ADDS (ISO §2023:13.18.54.4 GR6; kb/Work PB1294) — bound once every
     /// report's own clauses are, because a rolled total may name an entry of ANOTHER report (§2023:13.18.54.3 SR4g).
