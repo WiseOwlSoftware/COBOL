@@ -48,7 +48,7 @@ internal sealed partial class EcBinder
 
         // Resolve each WHEN's operands (mode / exception-name / file) → the descriptor header, the GR14 overlay
         // enables, and the SR14/SR15 operand census.
-        var headers = new List<(string? Mode, List<BoundWhenOperand> Ops)>();
+        var headers = new List<(int? Mode, List<BoundExceptionSelector> Ops)>();
         var overlay = new List<(string Ec, FileModel? File)>();
         var census = new List<WhenOperandSite>();
         foreach (var w in whenPhrases)
@@ -156,16 +156,15 @@ internal sealed partial class EcBinder
     /// §2023:14.6.13.1 catalog at ANY level (the USE §2023:14.9.49.4 GR3a-3g tiers select by level — NOT the RAISE level-3-only rule),
     /// enforce SR16 (a FILE-paired name shall begin EC-I-O), and the per-name edition window. Contributes GR14
     /// overlay enables and the SR14/SR15 census.</summary>
-    private (string? Mode, List<BoundWhenOperand> Ops) ResolveWhenOperands(
+    private (int? Mode, List<BoundExceptionSelector> Ops) ResolveWhenOperands(
         Core.PerformWhenPhraseContext w, List<(string, FileModel?)> overlay, List<WhenOperandSite> census)
     {
-        var ops = new List<BoundWhenOperand>();
+        var ops = new List<BoundExceptionSelector>();
 
         // Alt 1: WHEN EXCEPTION { INPUT | OUTPUT | I-O | EXTEND | file-name-1… }
         if (w.performWhenModeList() is { } ml)
         {
-            string? mode = ml.INPUT() is not null ? "INPUT" : ml.OUTPUT() is not null ? "OUTPUT"
-                : ml.I_O() is not null ? "I-O" : ml.EXTEND() is not null ? "EXTEND" : null;
+            int? mode = ExceptionOpenMode.IndexOf(ml.INPUT(), ml.OUTPUT(), ml.I_O(), ml.EXTEND());
             if (mode is not null)
             {
                 // The open-mode operand form is IMPLEMENTED, and this comment used to say otherwise (kb/Work
@@ -175,7 +174,7 @@ internal sealed partial class EcBinder
                 // reject that used to raise it was lifted (see above). The match itself lives where §2023:14.9.28.4
                 // GR17 puts it, at the raise site, through the USE tiers ("The rules for determining a match are
                 // specified in General rules 3a to 3g of the USE statement"): ControlFlowEmitter emits this form
-                // as the GR3b tier-1 arm, `IsIoName(__ec) && __f is not null && OpenModeOf(__f) == <mode>`.
+                // as the GR3b arm whose test is ExceptionSelectionEmitter.OpenModeTest (kb/Work PB2723).
                 // Measured: a READ past end-of-file inside `PERFORM … WHEN EXCEPTION INPUT` runs the handler.
                 // What this arm contributes at BIND time is the GR14 overlay enable for EC-I-O over imp-1.
                 overlay.Add(("EC-I-O", null));   // enable EC-I-O checking over imp-1 for the eventual runtime
@@ -184,7 +183,7 @@ internal sealed partial class EcBinder
             foreach (var fn in ml.fileName())
                 if (ResolveWhenFile(fn) is { } f)
                 {
-                    ops.Add(new BoundWhenOperand(null, f));
+                    ops.Add(BoundExceptionSelector.ForFile(f));
                     overlay.Add(("EC-I-O", f));
                     census.Add(new(null, f, fn.Start));
                 }
@@ -208,7 +207,7 @@ internal sealed partial class EcBinder
             }
             if (files.Length == 0)
             {
-                ops.Add(new BoundWhenOperand(info.Name, null));
+                ops.Add(BoundExceptionSelector.ForName(info, null));
                 overlay.Add((info.Name, null));
                 census.Add(new(info.Name, null, item.Start));
                 continue;
@@ -216,7 +215,7 @@ internal sealed partial class EcBinder
             foreach (var fn in files)
                 if (ResolveWhenFile(fn) is { } f)
                 {
-                    ops.Add(new BoundWhenOperand(info.Name, f));
+                    ops.Add(BoundExceptionSelector.ForName(info, f));
                     overlay.Add((info.Name, f));
                     census.Add(new(info.Name, f, fn.Start));
                 }

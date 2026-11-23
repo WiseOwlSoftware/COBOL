@@ -129,14 +129,12 @@ internal static class AssignTargetRule
         }
         else
         {
-            string token = nn.GetText();
-            if (nn.STRINGLIT() is null && nn.HEXLIT() is null
-                || CobolLiteral.ClassOf(token) != LiteralClass.Alphanumeric)
+            if (QuotedLiteral.In(nn) is not { Class: LiteralClass.Alphanumeric } literal)
             {
                 Refuse("shall be an alphanumeric literal");
                 return "";
             }
-            value = CobolLiteral.Decode(token);
+            value = literal.Value;
         }
         if (value.Length == 0) { Refuse("shall not be a zero-length literal", zeroLength: true); return ""; }
         return value;

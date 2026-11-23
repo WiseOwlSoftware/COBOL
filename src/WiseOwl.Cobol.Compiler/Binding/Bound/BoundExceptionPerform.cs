@@ -1,6 +1,5 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Model;
 
 namespace WiseOwl.Cobol.Binding.Bound;
 
@@ -10,7 +9,7 @@ namespace WiseOwl.Cobol.Binding.Bound;
 // bodies imp-2/3/4 (WHEN / WHEN OTHER / WHEN COMMON) are NOT held here — they are appended synthetic pc-range
 // paragraphs (referenced by pc), run via the reused __RunUse (the pc-RANGE interceptor, design §9); so this node's
 // only statement-bearing children (walked by StatementChildren / UsageCollectionPass) are the INLINE parts, imp-1
-// and FINALLY (imp-5). BoundExceptionMatch / BoundWhenOperand are NOT statement-bearing (pc + operand data only).
+// and FINALLY (imp-5). BoundExceptionMatch / BoundExceptionSelector are NOT statement-bearing (pc + operand data only).
 
 /// <summary><c>PERFORM [WITH LOCATION] imp-1 {WHEN …}… [WHEN OTHER …] [WHEN COMMON …] [FINALLY …] END-PERFORM</c>
 /// (ISO §2023:14.9.28 Format 3): a per-statement exception interceptor scoped to imperative-statement-1
@@ -34,17 +33,12 @@ public sealed record BoundExceptionPerform(
 
 /// <summary>One ordinary WHEN phrase of a Format-3 PERFORM — its selector plus the pc of its bound handler body
 /// (imperative-statement-2, <paramref name="Imp2Pc"/>, a single appended synthetic paragraph). The selector is
-/// exactly ONE of: an open-<paramref name="OpenMode"/> (WHEN EXCEPTION INPUT|OUTPUT|I-O|EXTEND — a STAGED runtime
-/// match, §2023:5.4-1); or an <paramref name="Operands"/> list — each operand an exception-name (with an optional paired
-/// FILE, §2023:14.9.28.3 SR16), or a bare file-name (WHEN EXCEPTION file-name-1…, matching any EC-I-O associated with
-/// that file). The emitter sorts operands into the §2023:14.9.49.4 GR3c–g tiers (file+L3 → file+L2 → L3 → L2 → L1);
-/// first TIER match wins (GR17), source order only within a tier.</summary>
+/// exactly ONE of: an open mode, <paramref name="ModeIndex"/> (WHEN EXCEPTION INPUT|OUTPUT|I-O|EXTEND, the runtime
+/// <c>FileOpenMode</c> ordinal, the same representation as <see cref="BoundDeclarative.ModeIndex"/>); or an
+/// <paramref name="Operands"/> list of <see cref="BoundExceptionSelector"/>, each an exception-name (with an optional paired
+/// FILE, §2023:14.9.28.3 SR16) or a bare file-name. The emitter sorts operands by their §2023:14.9.49.4 GR3 tier; first
+/// TIER match wins (§2023:14.9.28.4 GR17), source order only within a tier.</summary>
 public sealed record BoundExceptionMatch(
-    string? OpenMode,
-    IReadOnlyList<BoundWhenOperand> Operands,
+    int? ModeIndex,
+    IReadOnlyList<BoundExceptionSelector> Operands,
     int Imp2Pc);
-
-/// <summary>One WHEN operand: an <paramref name="Ec"/> exception-name (level 1/2/3), an optional paired
-/// <paramref name="File"/> (SR16 requires an EC-I-O name when FILE is given), or — when <paramref name="Ec"/> is
-/// null — a bare file-name (the WHEN EXCEPTION file-name-1… form: match any EC-I-O associated with the file).</summary>
-public sealed record BoundWhenOperand(string? Ec, FileModel? File);

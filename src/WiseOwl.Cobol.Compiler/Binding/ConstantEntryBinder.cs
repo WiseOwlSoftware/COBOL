@@ -433,12 +433,9 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
     /// (<see cref="BindConstantStringLiteral"/>), the pre-bind reader (<c>SymbolTable.IdentifyConstantBeforeBind</c>) and the AS-phrase
     /// screen (<see cref="ExternalizedName"/>), whose literal and constant-name operands therefore decode alike.</summary>
     internal static ConcatFolder.Folded LiteralTokenValue(Core.NonNumericLiteralContext nn, string where) =>
-        // ⛔ EVERY alternative is named: a new nonNumericLiteral arm fails loudly here instead of being decoded as the
-        // last one listed.
-        nn.STRINGLIT() is { } s ? new(PicCategory.Alphanumeric, CobolLiteral.Decode(s.GetText()))
-        : nn.HEXLIT() is { } x ? new(PicCategory.Alphanumeric, CobolLiteral.DecodeHex(x.GetText()))
-        : nn.NATLIT() is { } nat ? new(PicCategory.National, CobolLiteral.Decode(nat.GetText()))
-        : nn.BOOLLIT() is { } b ? new ConcatFolder.Folded(PicCategory.Boolean, CobolLiteral.Decode(b.GetText()))
+        // ⛔ The quoted literal is read by the one QuotedLiteral reader (kb/Work PB2725); any other nonNumericLiteral arm
+        // fails loudly here instead of being decoded as a literal.
+        QuotedLiteral.In(nn) is { } literal ? ConcatFolder.Folded.Of(literal)
         : throw new InvalidOperationException($"{where}: nonNumericLiteral alternative '{WrittenSource.Of(nn)}' has no "
             + "decoding — the grammar rule grew an arm this decoder does not read");
 

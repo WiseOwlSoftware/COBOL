@@ -4,9 +4,10 @@ using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 using WiseOwl.Cobol.Binding;              // IntrinsicCatalog
 using WiseOwl.Cobol.Binding.Model;        // DataItem / PicInfo / Usage / OdoModel
-using WiseOwl.Cobol.Common;               // CobolLiteral
+using WiseOwl.Cobol.Common;               // LiteralClass
 using WiseOwl.Cobol.Editions;             // CobolKeywords
 using WiseOwl.Cobol.Frontend.Generated;   // CobolParserCore
+using WiseOwl.Cobol.Frontend.Parsing;     // QuotedLiteral
 using WiseOwl.Cobol.Frontend.Preprocessor;// FlagOption
 
 namespace WiseOwl.Cobol.Validation;
@@ -185,8 +186,7 @@ internal sealed partial class FlagConformancePass
     private int SendingCharacterCount(CobolParserCore.SendingOperandContext send)
     {
         if (send.literal()?.nonNumericLiteral() is { } literal)
-            return (literal.STRINGLIT() ?? literal.HEXLIT())?.GetText() is { } raw
-                && CobolLiteral.ClassOf(raw) == LiteralClass.Alphanumeric ? CobolLiteral.Decode(raw).Length : 0;
+            return QuotedLiteral.In(literal) is { Class: LiteralClass.Alphanumeric } quoted ? quoted.Value.Length : 0;
         if (send.dataReference() is { } dref && ResolveItem(dref) is { } item
             && (item.IsPlainGroup || item.OperandPic is { Category: PicCategory.Alphanumeric }))
             return item.ImageWidth;
