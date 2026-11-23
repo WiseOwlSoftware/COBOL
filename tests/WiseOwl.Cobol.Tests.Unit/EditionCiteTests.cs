@@ -76,12 +76,12 @@ public sealed class EditionCiteTests
         Assert.Equal(expected, FromRules(verb).FunctionRuleCite!.At(dialectLevel, FileOrganization.Sequential));
 
     [Theory]
-    [InlineData("WRITE", 2002, "ISO §2002:14.8.47.3 GR3 a); §2002:14.8.47.2 SR6")]
-    [InlineData("WRITE", 2014, "ISO §2014:14.9.47.3 GR3 a); §2014:14.9.47.2 SR6")]
-    [InlineData("REWRITE", 2002, "ISO §2002:14.8.33.3 GR6 a); §2002:14.8.33.2 SR6")]
-    [InlineData("REWRITE", 2014, "ISO §2014:14.9.33.3 GR6 a); §2014:14.9.33.2 SR5")]
-    [InlineData("RELEASE", 2002, "ISO §2002:14.8.30.3 GR4 a); §2002:14.8.30.2 SR3")]
-    [InlineData("RELEASE", 2014, "ISO §2014:14.9.30.3 GR4 a); §2014:14.9.30.2 SR3")]
+    [InlineData("WRITE", 2002, "ISO §2002:14.8.47.3 GR3a; §2002:14.8.47.2 SR6")]
+    [InlineData("WRITE", 2014, "ISO §2014:14.9.47.3 GR3a; §2014:14.9.47.2 SR6")]
+    [InlineData("REWRITE", 2002, "ISO §2002:14.8.33.3 GR6a; §2002:14.8.33.2 SR6")]
+    [InlineData("REWRITE", 2014, "ISO §2014:14.9.33.3 GR6a; §2014:14.9.33.2 SR5")]
+    [InlineData("RELEASE", 2002, "ISO §2002:14.8.30.3 GR4a; §2002:14.8.30.2 SR3")]
+    [InlineData("RELEASE", 2014, "ISO §2014:14.9.30.3 GR4a; §2014:14.9.30.2 SR3")]
     public void FromMoveRule_From2002_IsTheEditionsOwnRule(string verb, int dialectLevel, string expected) =>
         Assert.Equal(expected, FromRules(verb).MoveRule.At(dialectLevel, FileOrganization.Sequential));
 

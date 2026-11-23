@@ -66,8 +66,8 @@ internal sealed record FromPhraseRules(
     /// <summary>RELEASE (ISO §2023:14.9.32) — the only FROM phrase carrying the zero-length-literal rule.</summary>
     public static readonly FromPhraseRules Release = new(
         "RELEASE FROM",
-        new("ISO §2023:14.9.32.4 GR4 a); §2023:14.9.32.3 SR3", "§1985:XI.4.2.4 GR3",
-            Iso2002: "ISO §2002:14.8.30.3 GR4 a); §2002:14.8.30.2 SR3", Iso2014: "ISO §2014:14.9.30.3 GR4 a); §2014:14.9.30.2 SR3"),
+        new("ISO §2023:14.9.32.4 GR4a; §2023:14.9.32.3 SR3", "§1985:XI.4.2.4 GR3",
+            Iso2002: "ISO §2002:14.8.30.3 GR4a; §2002:14.8.30.2 SR3", Iso2014: "ISO §2014:14.9.30.3 GR4a; §2014:14.9.30.2 SR3"),
         [PicCategory.Alphanumeric, PicCategory.National],
         new("ISO §2023:14.9.32.3 SR2 — \"If identifier-1 is a function-identifier, it shall reference an alphanumeric or "
             + "national function.\"",
@@ -86,7 +86,7 @@ internal sealed record FromPhraseRules(
     public static readonly FromPhraseRules Write = new(
         "WRITE FROM",
         new("ISO §2023:14.9.51.4 GR5a; §2023:14.9.51.3 SR6", "§1985:VII.4.7.4 GR3", "§1985:VIII.4.9.4 GR3", "§1985:IX.4.9.4 GR3",
-            Iso2002: "ISO §2002:14.8.47.3 GR3 a); §2002:14.8.47.2 SR6", Iso2014: "ISO §2014:14.9.47.3 GR3 a); §2014:14.9.47.2 SR6"),
+            Iso2002: "ISO §2002:14.8.47.3 GR3a; §2002:14.8.47.2 SR6", Iso2014: "ISO §2014:14.9.47.3 GR3a; §2014:14.9.47.2 SR6"),
         [PicCategory.Alphanumeric, PicCategory.National],
         new("ISO §2023:14.9.51.3 SR4 — \"If identifier-1 is a function-identifier, it shall reference an alphanumeric or "
             + "national function.\"",
@@ -137,7 +137,7 @@ internal sealed record FromPhraseRules(
     public static readonly FromPhraseRules Rewrite = new(
         "REWRITE FROM",
         new("ISO §2023:14.9.35.4 GR7a; §2023:14.9.35.3 SR6", "§1985:VII.4.5.4 GR4", "§1985:VIII.4.6.4 GR5", "§1985:IX.4.6.4 GR5",
-            Iso2002: "ISO §2002:14.8.33.3 GR6 a); §2002:14.8.33.2 SR6", Iso2014: "ISO §2014:14.9.33.3 GR6 a); §2014:14.9.33.2 SR5"),
+            Iso2002: "ISO §2002:14.8.33.3 GR6a; §2002:14.8.33.2 SR6", Iso2014: "ISO §2014:14.9.33.3 GR6a; §2014:14.9.33.2 SR5"),
         [PicCategory.Alphanumeric, PicCategory.Boolean, PicCategory.National],
         new("ISO §2023:14.9.35.3 SR9 — \"If identifier-1 references a function and the FILE phrase is not specified, "
             + "identifier-1 shall reference an alphanumeric, boolean, or national function.\"",
