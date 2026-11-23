@@ -330,8 +330,8 @@ public sealed class DiagnosticPositionTests : IDisposable
             $"expected '{position}: error {code}'; got:\n" + string.Join("\n", lines));
     }
 
-    /// <summary>⛔ kb/Work PB6113 (review R1-1) — the period-where-an-operand-is-due sentence cites the rule it states: only a
-    /// bracketed portion of a general format may be omitted (§2023:5.2.6.2), true of every format whether or not its
+    /// <summary>⛔ kb/Work PB6113 (review R1-1) — the period-where-an-operand-is-due sentence cites the rule it states: a
+    /// bracketed portion of a general format may be omitted (§2023:5.2.6.2), and only names the clause, with no gloss, true of every format whether or not its
     /// operand is in braces (`MOVE CORRESPONDING G1 TO.` has identifier-4 unbraced); it quotes no brace rule.</summary>
     [Theory]
     [InlineData("MOVE 1 TO.")]
@@ -344,6 +344,7 @@ public sealed class DiagnosticPositionTests : IDisposable
         var line = Assert.Single(lines, d => d.Contains("error COBOL5506"));
         Assert.Contains("§2023:5.2.6.2", line.Replace("ISO ", ""));
         Assert.DoesNotContain("within braces", line);
+        Assert.DoesNotContain("only a portion", line);   // R3-1: no gloss the clause does not carry
     }
 
     [Fact] // kb/Work PB1688 / PB1801 — the copybook arm and the REPLACE arm keep the physical column
