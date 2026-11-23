@@ -240,6 +240,11 @@
       "changedIn": 2002
     },
     {
+      "id": "relative-read-previous-after-open-compares-fpi",
+      "vcrRow": "7.121",
+      "changedIn": 2023
+    },
+    {
       "id": "relative-write-key-out-of-range-permanent-error",
       "vcrRow": "7.64",
       "changedIn": 2014
