@@ -25,7 +25,12 @@ one to none, a packed image from three to one, and a binary image from two to on
 committed, because it is a second copy of the rule. It covered every digit count 0 to 38, every `NumericSign`, both
 `SignEncoding`s, signed and unsigned: 156,000 values for format, `FormatStandardData` and the decode, plus random junk
 images for `ParseDisplay` and `ImageIsNegative`. It also covered 136,800 packed and binary images, signed and unsigned
-lanes. Every case agreed. The §4 oracle result is in the report.
+lanes. Every case agreed. The §4 oracle: `=== ARCH-ORACLE: IDENTICAL — 23455 cases (baseline ac44df38d3d5, new
+1f51f6e9a295) ===`.
+
+**Gate** (at 1f51f6e9a2): `=== BUILD-LOCAL GATE: GREEN — Conformance 29,183/29,183 ran · Unit 42,805/42,805 ran ·
+RepoDrift 241/241 ran · Characterization 37/37 ran` (run 000001-20261123T114817Z); `semgrep/verify.py` PASS, every
+rule's count unchanged.
 
 **Guard.** `NumericImageAllocationTests` pins one string per image and zero bytes per decode, counted on the thread. It
 is a structural guard, not a wall-clock limit. Its image vectors are computed from the pinned sign tables.
