@@ -145,28 +145,17 @@ public static partial class CobolIntrinsics
         return remainder;
     }
 
-    /// <summary>The position of the greatest (<paramref name="greatest"/>) or least aligned value; the leftmost of equal values
-    /// (§2023:15.59.4 RV2, §2023:15.63.4 RV2, §2023:15.71.4, §2023:15.72.4).</summary>
-    private static int SelectWide(CobolWide[] xs, bool greatest, string function)
-    {
-        RequireArguments(xs.Length, function);
-        int at = 0;
-        for (int i = 1; i < xs.Length; i++)
-            if (greatest ? CompareAligned(xs[i], xs[at]) > 0 : CompareAligned(xs[i], xs[at]) < 0) at = i;
-        return at;
-    }
-
     /// <summary>MAX (§2023:15.59.4): the content of the argument having the greatest value, at the common scale.</summary>
-    public static CobolWide MaxWide(params CobolWide[] xs) => xs[SelectWide(xs, greatest: true, "MAX")];
+    public static CobolWide MaxWide(params CobolWide[] xs) => xs[ExtremeIndex(new WideOrder(xs), true, "MAX")];
 
     /// <summary>MIN (§2023:15.63.4): the content of the argument having the least value, at the common scale.</summary>
-    public static CobolWide MinWide(params CobolWide[] xs) => xs[SelectWide(xs, greatest: false, "MIN")];
+    public static CobolWide MinWide(params CobolWide[] xs) => xs[ExtremeIndex(new WideOrder(xs), false, "MIN")];
 
     /// <summary>ORD-MAX (§2023:15.71.4): the ordinal position of the argument having the greatest value.</summary>
-    public static long OrdMaxWide(params CobolWide[] xs) => SelectWide(xs, greatest: true, "ORD-MAX") + 1;
+    public static long OrdMaxWide(params CobolWide[] xs) => ExtremeIndex(new WideOrder(xs), true, "ORD-MAX") + 1;
 
     /// <summary>ORD-MIN (§2023:15.72.4): the ordinal position of the argument having the least value.</summary>
-    public static long OrdMinWide(params CobolWide[] xs) => SelectWide(xs, greatest: false, "ORD-MIN") + 1;
+    public static long OrdMinWide(params CobolWide[] xs) => ExtremeIndex(new WideOrder(xs), false, "ORD-MIN") + 1;
 
     /// <summary>SUM (§2023:15.88.4): the sum of the aligned arguments, left to right.</summary>
     public static CobolWide SumWide(params CobolWide[] xs)
