@@ -21,6 +21,10 @@
    "band-formats": {
     "flag": "band-formats [3] against [[2]]",
     "answer": "The 2002 band FORMAT 3 is the program-prototype format; 2023 merged 2002's Format 1 (on-overflow, archaic: §2002:14.8.4.1 'NOTE ON OVERFLOW is an archaic feature') and Format 2 (on-exception) into its Format 1, so the program-prototype format became Format 2. The two program-prototype diagrams are identical phrase for phrase (AS NESTED / program-prototype-name-1, BY REFERENCE identifier-2 | OMITTED, BY CONTENT and BY VALUE with arithmetic-expression-1, boolean-expression-1, identifier-4, literal-2, RETURNING, ON / NOT ON EXCEPTION), and neither band reaches the on-overflow or on-exception formats. No 2002 format is left unreached; no split."
+   },
+   "behaviour-switch": {
+    "flag": "call-any-length-operand-rule-by-format, call-restricted-pointer-signature-same",
+    "answer": "The two switches decide only whether a CALL of a restricted program-pointer AS program-prototype-name-1 requires the two prototypes' signatures to be the same (DialectBehavior.CallRestrictedPointerSignatureSame: §2014:14.9.4.2 SR14, no 2002 rule) and which CALL operands the ANY LENGTH screen covers (DialectBehavior.CallAnyLengthOperandRuleByFormat: §2002:14.8.4.2 SR10 in every format, split by format from 2014). This rule pairs the OMITTED phrase with an OPTIONAL formal parameter, which neither switch reads."
    }
   },
   "source": "lineage-reads-2002/q-25.json",

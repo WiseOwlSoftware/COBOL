@@ -120,7 +120,7 @@ construct id, a paraphrased summary, ISO § citation, `Introduced`/`Removed` edi
 | exit-perform-2002 | EXIT PERFORM [CYCLE] | §2023:14.9.14.2 Fmt 3 | 2002 | | 0900 | active |
 | perform-until-exit-2023 | PERFORM UNTIL EXIT (infinite loop) | §2023:14.9.28.4 GR11 | 2023 | | 0900 | active |
 | continue-after-2023 | CONTINUE AFTER n SECONDS (timed pause) | §2023:14.9.9 | 2023 | | 0900 | active |
-| next-sentence-archaic-2023 | NEXT SENTENCE (archaic 2023, warning) | Annex F.1 | 85 | | 0903 | active |
+| next-sentence-archaic-2002 | NEXT SENTENCE (archaic 2002, warning) | Annex F.1 | 85 | | 0903 | active |
 | stop-literal-removed-2002 | STOP literal (operator message; deleted 2002) | §2023:14.9.42 | 85 | 2002 | 0902 | active |
 | alter-removed-2002 | ALTER statement (deleted 2002) | §2023:14.9.17 | 85 | 2002 | 0810 | active |
 | bare-goto-removed-2002 | GO TO without procedure-name (deleted 2002) | §2023:14.9.17 | 85 | 2002 | 0811 | active |

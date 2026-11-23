@@ -153,6 +153,9 @@ WiseOwl.Cobol.Runtime.CobolVarGroup.Created.init -> void
 WiseOwl.Cobol.Runtime.CobolVarGroup.CreatedAt(int i) -> System.Func<int, WiseOwl.Cobol.Runtime.CobolVarGroup!>?
 WiseOwl.Cobol.Runtime.CobolVarGroup.CreatedList.get -> System.Func<int, WiseOwl.Cobol.Runtime.CobolVarGroup!>?[]!
 WiseOwl.Cobol.Runtime.CobolVarGroup.Deconstruct(out string! Fixed, out string![]! Dynamic, out WiseOwl.Cobol.Runtime.CobolVarGroup![]?[]? Elements, out System.Func<int, WiseOwl.Cobol.Runtime.CobolVarGroup!>?[]? Created) -> void
+WiseOwl.Cobol.Runtime.CobolVarGroup.ReceivedDyn(int i, int maxSize, bool storage, bool national = false) -> string!
+WiseOwl.Cobol.Runtime.CobolVarGroup.StoreGroupTableComponent<T>(int i, WiseOwl.Cobol.Runtime.CobolDynTable<T>! table, System.Func<T, WiseOwl.Cobol.Runtime.CobolVarGroup!, T>! store) -> void
+WiseOwl.Cobol.Runtime.CobolVarGroup.StoreTableComponent<T>(int i, WiseOwl.Cobol.Runtime.CobolDynTable<T>! table, int elementWidth, int unit, System.Func<T, string!, T>! store) -> void
 WiseOwl.Cobol.Runtime.Collation.CollationElement.CollationElement(int Primary, int Secondary, int Tertiary, bool IsVariable = false, WiseOwl.Cobol.Runtime.Collation.ElementCase Case = WiseOwl.Cobol.Runtime.Collation.ElementCase.Lower, int Quaternary = 0) -> void
 WiseOwl.Cobol.Runtime.Collation.CollationElement.Deconstruct(out int Primary, out int Secondary, out int Tertiary, out bool IsVariable, out WiseOwl.Cobol.Runtime.Collation.ElementCase Case, out int Quaternary) -> void
 WiseOwl.Cobol.Runtime.Collation.CollationElement.Quaternary.get -> int
@@ -240,6 +243,8 @@ WiseOwl.Cobol.Runtime.DecArithmetic.Sqrt(WiseOwl.Cobol.Runtime.CobolDec v) -> Wi
 WiseOwl.Cobol.Runtime.DecArithmetic.StandardIntermediate.get -> bool
 WiseOwl.Cobol.Runtime.DecArithmetic.Sub(WiseOwl.Cobol.Runtime.CobolDec a, WiseOwl.Cobol.Runtime.CobolDec b) -> WiseOwl.Cobol.Runtime.CobolDec
 WiseOwl.Cobol.Runtime.DialectBehavior.BlockContainsRangeOrdered = 52 -> WiseOwl.Cobol.Runtime.DialectBehavior
+WiseOwl.Cobol.Runtime.DialectBehavior.CallAnyLengthOperandRuleByFormat = 66 -> WiseOwl.Cobol.Runtime.DialectBehavior
+WiseOwl.Cobol.Runtime.DialectBehavior.CallRestrictedPointerSignatureSame = 65 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.CancelRefusesEveryActiveProgram = 16 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.CloseWithLockLocksFileConnector = 19 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.CompileTimeArithmeticIsStandardDecimal = 22 -> WiseOwl.Cobol.Runtime.DialectBehavior
@@ -1123,6 +1128,7 @@ static WiseOwl.Cobol.Runtime.CobolBits.Strided(string![]! occurrences, int strid
 static WiseOwl.Cobol.Runtime.CobolBits.WriteWindowInto(char[]! buffer, int startBit, string! bits) -> void
 static WiseOwl.Cobol.Runtime.CobolBool.FromCharacters(string? v) -> string!
 static WiseOwl.Cobol.Runtime.CobolBool.Store(string? value, int width, bool justifiedRight) -> string!
+static WiseOwl.Cobol.Runtime.CobolContiguousLayout.Of(int runWidth, System.ReadOnlySpan<int> fixedAt, System.ReadOnlySpan<int> maxSize, System.ReadOnlySpan<int> layoutCodes, System.ReadOnlySpan<int> tableWidth, WiseOwl.Cobol.Runtime.OdoTail odo) -> WiseOwl.Cobol.Runtime.CobolContiguousLayout!
 static WiseOwl.Cobol.Runtime.CobolDate.DateOfInteger(long integerDate, bool unbounded = false) -> long
 static WiseOwl.Cobol.Runtime.CobolDate.DayOfInteger(long integerDate, bool unbounded = false) -> long
 static WiseOwl.Cobol.Runtime.CobolDate.IntegerOfDate(long yyyymmdd, bool unbounded = false) -> long

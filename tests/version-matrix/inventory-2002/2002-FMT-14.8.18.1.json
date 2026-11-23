@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-14.8.18.1",
+ "rule-digest": "1b8a72b26a35",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#nextSentenceStatement; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitNextSentenceStatement; tests/version-matrix/constructs/next-sentence-archaic-2002.json",
+ "test-ref": "conformance:cases/14.8.18@2002-IF-STATEMENT/pb5723_if_next_sentence_archaic",
+ "notes": "§2002:14.8.18.1 Format 2 gives NEXT SENTENCE as an alternative statement in the IF statement, with the NOTE that it is an archaic feature; §2002:G.1 item 3 lists the phrase as archaic and §2002:3.1.10 requires an optional compile-time archaic-element warning. The construct edge next-sentence-archaic-2002 (obsoleteIn 2002, was 2023: kb/Work PB5723) gives COBOL0903 at the phrase at --std 2002, 2014 and 2023, silent at 85 (the 1985 text has no archaic designation). Run at --std 2002 the IF case compiles, warns once per phrase and prints its output."
+}

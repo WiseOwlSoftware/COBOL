@@ -107,7 +107,8 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             return BoundRejected.Reported(ctx.Edition);
         }
         if (RecordLessSd(file)) return new BoundNop();
-        return MarkRefusedSortMerge(SortBindFileOf(s, file), file);
+        return MarkRefusedSortMerge(SortBindFileOf(s, file), file,
+            s.sortInputProcedurePhrase()?.procedureName(), s.sortOutputProcedurePhrase()?.procedureName());
     }
 
     /// <summary>The rest of <see cref="SortBindFile"/>, once the SD is resolved (the refusal marking is <see cref="MarkRefusedSortMerge"/>'s).</summary>
@@ -417,15 +418,32 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             return BoundRejected.Reported(ctx.Edition);
         }
         if (RecordLessSd(file)) return new BoundNop();
-        return MarkRefusedSortMerge(BindMergeOf(m, file), file);
+        return MarkRefusedSortMerge(BindMergeOf(m, file), file, null, m.mergeOutputProcedurePhrase()?.procedureName());
     }
 
-    /// <summary>⛔ A REFUSED SORT/MERGE TAKES ITS PROCEDURE RANGES WITH IT, SO THE STATEMENT IS TOLD APART FROM ITS CASCADE (kb/Work PB5496): a
-    /// statement the binder refused after its sort-merge file was resolved is never a <see cref="BoundSort"/>/<see cref="BoundMerge"/>, so the
-    /// ranges of its INPUT/OUTPUT PROCEDURE phrases are lost, and the legal RELEASE/RETURN written in them would be reported by
-    /// <c>VersionConformancePass.GateReleaseReturnRange</c> as outside every procedure. The refusal records the file instead.</summary>
-    private static BoundStatement MarkRefusedSortMerge(BoundStatement bound, FileModel file) =>
-        bound is BoundRejected refused ? refused.RefusingSortMergeFile(file) : bound;
+    /// <summary>⛔ A REFUSED SORT/MERGE TAKES ITS PROCEDURE RANGES WITH IT, SO THE STATEMENT IS TOLD APART FROM ITS CASCADE (kb/Work PB5496,
+    /// PB6068): a statement the binder refused after its sort-merge file was resolved is never a <see cref="BoundSort"/>/<see cref="BoundMerge"/>,
+    /// so the ranges of its INPUT/OUTPUT PROCEDURE phrases are lost, and the legal RELEASE/RETURN written in them would be reported by
+    /// <c>VersionConformancePass.GateReleaseReturnRange</c> as outside every procedure. The refusal records the file and the ranges its
+    /// phrases name, resolved QUIETLY (the refusal is the statement's one error: a name that does not resolve was reported, or is the
+    /// reason for the refusal, by the bind that refused). A phrase whose names do not resolve is recorded as unresolved.</summary>
+    private BoundStatement MarkRefusedSortMerge(BoundStatement bound, FileModel file,
+        Core.ProcedureNameContext[]? inputNames, Core.ProcedureNameContext[]? outputNames)
+    {
+        if (bound is not BoundRejected refused) return bound;
+        PcRange? input = SortRangeQuiet(inputNames), output = SortRangeQuiet(outputNames);
+        return refused.RefusingSortMerge(new RefusedSortMerge(file, input, output,
+            inputNames is { Length: > 0 } && input is null, outputNames is { Length: > 0 } && output is null));
+    }
+
+    /// <summary><see cref="SortRange"/> without its reports: the range of an INPUT/OUTPUT PROCEDURE phrase's names, or null when the phrase
+    /// is not written or a name does not resolve.</summary>
+    private PcRange? SortRangeQuiet(Core.ProcedureNameContext[]? names)
+    {
+        if (names is not { Length: > 0 } || ctx.Table.ResolveProcedureQuiet(names[0]) is not { } first) return null;
+        if (names.Length < 2) return first.Range;
+        return ctx.Table.ResolveProcedureQuiet(names[1]) is { } thru ? first.Range.Through(thru.Range) : null;
+    }
 
     /// <summary>The rest of <see cref="BindMerge"/>, once the SD is resolved.</summary>
     private BoundStatement BindMergeOf(Core.MergeStatementContext m, FileModel file)

@@ -1109,14 +1109,21 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             // program-pointer pairs spend. An unrestricted pointer has no prototype to disagree with; a
             // prototype whose details are the external repository's (§2023:12.3.8.4 GR10c) has that entry's
             // signature (DESIGN-external-repository §8.2), and so is compared as any other.
+            // The rule is 2014's (§2014:14.9.4.2 SR14): COBOL-2002 says only that program-prototype-name-1 "or the program
+            // prototype specified in the definition of identifier-1 if it is defined as a restricted program-pointer, is used
+            // to determine the characteristics of the called program" (§2002:14.8.4.3 GR7), and asks no agreement of the two
+            // (kb/Work PB5714; DialectBehavior.CallRestrictedPointerSignatureSame).
             if (prototype is { } named && pointerPic.RestrictedPrototypeName is { } held
+                && DialectBehaviors.IsActive(DialectBehavior.CallRestrictedPointerSignatureSame, ctx.Edition.DialectLevel)
                 && StatementBinder.SignaturesDiffer(ctx.Symbols.ProgramSignatureOf(pointer), named.Signature))
             {
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.CallRestrictedProgramPointerSignature,
                     $"CALL {written} AS {named.Name}: '{written}' is a "
                     + $"restricted program-pointer declared with program-prototype '{held}', and the signature of "
-                    + $"'{held}' is not the same as the signature of program-prototype-name-1 '{named.Name}' "
-                    + "(ISO §2023:14.9.4.3 SR14; §2023:13.18.60.4 GR25)");
+                    + $"'{held}' is not the same as the signature of program-prototype-name-1 '{named.Name}' ("
+                    // The rule is no COBOL-2002 or COBOL-85 rule (the predicate above), so its 2023 text stands at both.
+                    + ctx.Edition.Edition.CiteRule("§2023:14.9.4.3 SR14", "§2023:14.9.4.3 SR14", y2014: "§2014:14.9.4.2 SR14") + "; "
+                    + ctx.Edition.Edition.Cite("§2023:13.18.60.4 GR25", "§2023:13.18.60.4 GR25", y2014: "§2014:13.18.60.3 GR24") + ")");
             }
             return null;
         }
@@ -1618,10 +1625,17 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         // used to fire for EVERY Format-2 operand, refusing a contained program that forwards its own ANY
         // LENGTH formal `CALL "C" AS NESTED USING BY REFERENCE L` to another ANY LENGTH formal — legal source
         // (§2023:13.18.2.3 SR2/SR3 make such a formal exist only in a contained program, function or method).
-        bool anyLengthBanned = !formatTwo || (!isReturning && mode is CobolPassMode.Content or CobolPassMode.Value);
+        // The split by format is 2014's (§2014:14.9.4.2 SR11 / SR18). COBOL-2002 states ONE rule under ALL FORMATS —
+        // "Identifier-2, identifier-3, and identifier-4 shall not be described with the ANY LENGTH clause"
+        // (§2002:14.8.4.2 SR10) — so there every USING operand and the RETURNING item of every format is screened
+        // (kb/Work PB5611; DialectBehavior.CallAnyLengthOperandRuleByFormat).
+        bool byFormat = DialectBehaviors.IsActive(DialectBehavior.CallAnyLengthOperandRuleByFormat, ctx.Edition.DialectLevel);
+        bool anyLengthBanned = !byFormat || !formatTwo || (!isReturning && mode is CobolPassMode.Content or CobolPassMode.Value);
         if (item.IsAnyLength && anyLengthBanned)
-            ctx.Edition.Error(DiagnosticCatalog.AnyLengthCallArgument, $"CALL {role} '{name}' is described with the ANY LENGTH clause "
-                + (formatTwo ? "(ISO §2023:14.9.4.3 SR18)" : "(ISO §2023:14.9.4.3 SR11)"));
+            ctx.Edition.Error(DiagnosticCatalog.AnyLengthCallArgument, $"CALL {role} '{name}' is described with the ANY LENGTH clause ("
+                // COBOL-85 has no ANY LENGTH clause; the first edition to state the rule is cited there.
+                + ctx.Edition.Edition.CiteRule("§2002:14.8.4.2 SR10", formatTwo ? "§2023:14.9.4.3 SR18" : "§2023:14.9.4.3 SR11",
+                    y2002: "§2002:14.8.4.2 SR10", y2014: formatTwo ? "§2014:14.9.4.2 SR18" : "§2014:14.9.4.2 SR11") + ")");
 
         // SR3 sentence 2: BY REFERENCE (specified or implied) shall not carry factory/instance object data.
         if (!isReturning && mode is CobolPassMode.Reference && ctx.Data.Oo.IsObjectData(item))

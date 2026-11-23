@@ -169,6 +169,34 @@ def toolchain_line(run=None) -> tuple[str, str, str]:
     return ("ASK-OWNER" if found.bad else "UNREAD"), "toolchain (toolchain.env)", " · ".join(said)
 
 
+#: The directory git runs this repository's hooks from (kb/Work PB6136): the tracked `.githooks/`, whose pre-push hook
+#: refuses a push that would publish a per-copy licence stamp. Relative, so each worktree runs its own checkout's copy.
+#: Set in the repository's own config, which overrides a global `core.hooksPath` (this host's names a directory that
+#: does not exist, so until PB6136 git ran no hook here at all).
+HOOKS_PATH = ".githooks"
+
+
+def hooks_path_line(repo: pathlib.Path = REPO) -> tuple[str, str, str]:
+    """(status, what, detail) for git's hooks directory in `repo`: OK when its local `core.hooksPath` is HOOKS_PATH,
+    REPAIRED after setting it (no permission is needed: it is this repository's own config), ASK-OWNER when git
+    cannot set it."""
+    what = f"git hooks (core.hooksPath {HOOKS_PATH}, the pre-push stamp scan)"
+
+    def git(*args: str) -> subprocess.CompletedProcess:
+        return subprocess.run(["git", "-C", str(repo), *args], capture_output=True, text=True, timeout=60)
+    try:
+        now = git("config", "--local", "--get", "core.hooksPath").stdout.strip()
+        if now == HOOKS_PATH:
+            return "OK", what, "git runs .githooks/pre-push on every push from this repository (kb/Work PB6136)"
+        r = git("config", "--local", "core.hooksPath", HOOKS_PATH)
+    except (OSError, subprocess.SubprocessError) as exc:
+        return "ASK-OWNER", what, f"git could not be run: {exc}"
+    if r.returncode != 0:
+        return "ASK-OWNER", what, f"`git config --local core.hooksPath {HOOKS_PATH}` failed: {r.stderr.strip()}"
+    return "REPAIRED", what, (f"was {now or 'unset'}, so git ran no pre-push stamp scan; set it "
+                              f"(`git config --local core.hooksPath {HOOKS_PATH}`, kb/Work PB6136)")
+
+
 def check(payload: dict | None = None):
     out = []
     add = lambda status, what, detail="": out.append(f"  {status:9} {what}" + (f" — {detail}" if detail else ""))
@@ -196,6 +224,7 @@ def check(payload: dict | None = None):
     hooks = json.dumps(proj.get("hooks", {}))
     add("OK" if "forbidden_commands.py" in hooks else "ASK-OWNER", "guard hook (forbidden_commands.py)",
         "" if "forbidden_commands.py" in hooks else "not registered in .claude/settings.json — restore from git")
+    add(*hooks_path_line())
 
     if CLOUD:
         add("N/A", "telemetry sink", "cloud session")
@@ -383,6 +412,14 @@ def self_test() -> int:
     if live:
         fails.append(f"this repository's own definitions would not load: {live}")
     fails += registered_hooks_leave_wip_commits_alone()
+    # kb/Work PB6136: an unset or other core.hooksPath is REPAIRED to .githooks, and a set one is OK
+    sys.path.insert(0, str(REPO / "scripts"))
+    from scratch_repo import ScratchRepo, scratch_dir  # noqa: PLC0415  (scripts/: the one scratch fixture)
+    hooked = ScratchRepo.init(scratch_dir("tooling-check-hookspath-") / "repo")
+    hooked.git("config", "core.hooksPath", "E:/nowhere/hooks")
+    got = [hooks_path_line(hooked.path)[0], hooks_path_line(hooked.path)[0]]
+    if got != ["REPAIRED", "OK"] or hooked.git("config", "--local", "--get", "core.hooksPath") != HOOKS_PATH:
+        fails.append(f"core.hooksPath is not repaired to {HOOKS_PATH} and then OK: {got}")
     # kb/Work PB4007: a tool reporting another version than toolchain.env's, or none, is ASK-OWNER naming it.
     import toolchain
     manifest = toolchain.load()

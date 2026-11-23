@@ -35,7 +35,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 public sealed class DynamicCapacityAgreementDriftTests
 {
     private static readonly Regex Construction = new(@"new\s+CobolDynTable\s*<", RegexOptions.Compiled);
-    private static readonly Regex Recreation = new(@"\.FromCurrentImage\s*\(", RegexOptions.Compiled);
+    private static readonly Regex Recreation = new(@"\.FromCurrentImage\s*\(|RuntimeApi\.VarGroupStoreTableComponent\s*\(", RegexOptions.Compiled);
 
     private static IEnumerable<(string Rel, string Code)> CompilerCode()
     {
@@ -61,7 +61,8 @@ public sealed class DynamicCapacityAgreementDriftTests
 
     /// <summary>The emitted recreation of a table from another description's content is the ONE group-image codec's
     /// (<c>GroupImageCodec</c> — the §2023:14.9.25.4 GR9 MOVE and the activation-boundary transfer), which recreates it
-    /// at the RECEIVING description.</summary>
+    /// at the RECEIVING description through the carrier's one component store (<c>CobolVarGroup.StoreTableComponent</c>,
+    /// kb/Work PB2746).</summary>
     [Fact]
     public void ATableIsRecreatedOnlyThroughTheReceivingDescription()
     {

@@ -1011,7 +1011,7 @@ one — what the evaluate-once identification asks before it hoists).
   collector, §2023:13.18.38.3 SR7's ref-mod screen); an integer constant-name → `PositionConstant`; a report VARYING counter
   → `PositionLocal(AsLong)`; a data item with a position overload → `PositionItemRead`, with the §2023:8.8.1.1 class screen
   queued to the commit point exactly as PB220 required;
-- anything else, at any depth, routes the WHOLE position to the D18 temporary: the `MaterializeSegment` hook
+- anything else, at any depth, routes the WHOLE position to the D18 temporary: the statement site's `IStatementSite.MaterializeSegment`
   (`StatementBinder.BindPositionTemporary`) takes the position's own `arithmeticExpression` node and binds it through
   the expression binder. A `functionArgument` that is not an `arithmeticExpression` (a nonnumeric literal, a boolean
   expression, `OMITTED`, an address identifier, a phrase word) and the word ALL outside §2023:8.4.2.3.3 SR6's two contexts

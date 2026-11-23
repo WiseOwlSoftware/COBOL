@@ -173,18 +173,22 @@ internal sealed class OoDriver(BindSession session)
     /// implicitly specified in the configuration section of a source unit that contains other source units apply to
     /// each directly or indirectly contained source unit"), so a method's function-identifier and CALL
     /// program-prototype-name resolve through the SAME two lookups a program's do (kb/Work PB1100).</summary>
-    public void BindClassBody(OoClassUnit cls)
+    public void BindClassBody(OoClassUnit cls, IReadOnlyList<BoundUnit> group)
     {
         var repository = session.Repository;
         // §2023:12.3.8.4 GR10a / GR11 a): "specified PREVIOUSLY" is relative to the class definition whose REPOSITORY
         // paragraph holds the specifier (kb/Work PB989) — an expansion's text starts where its skeleton does.
         int position = session.Sources.Of(cls.Symbol).Start.StartIndex;
-        var (data, refs) = session.Binders.ObjectOf(cls);
+        var data = session.Binders.ObjectOf(cls).Data;
         data.Symbols.ResolveFunctionPrototypes(unit: null, repository, position, session.Binders);
-        var binder = new StatementBinder(data, refs)
+        // A method contains no program and is contained in none: a CALL or CANCEL literal of its body reaches an outermost program of
+        // the compilation group (§2023:8.4.6.3 SR3), the scope both rosters' binders carry (kb/Work PB5963).
+        var programsInScope = BinderDriver.ProgramsInScopeOf(caller: null, group, session);
+        var binder = new StatementBinder(data)
         {
             OoClasses = session.OoClasses,
             OoCurrentClass = cls.Symbol,   // the SELF/SUPER resolution root (§2023:8.4.3.8; slice 3b)
+            ProgramsInScope = programsInScope,
         };
         data.Symbols.ResolveProgramPrototypes(unit: null, repository, position, session.Binders);
         binder.ConfigureEc(session.Turn, session.DirectiveSites, cls.Name);   // methods fold the same source-ordered >>TURN state (§2023:7.3.25.4 GR6)
@@ -195,13 +199,14 @@ internal sealed class OoDriver(BindSession session)
 
         // The FACTORY roster binds through a SEPARATE binder over the factory forest, with the factory
         // SELF/SUPER context (§2023:14.9.23.3 SR4f/h; §2023:16.2.1 SELF|SUPER "NEW" — OoInFactory).
-        var (fdata, frefs) = session.Binders.FactoryOf(cls);
+        var fdata = session.Binders.FactoryOf(cls).Data;
         fdata.Symbols.ResolveFunctionPrototypes(unit: null, repository, position, session.Binders);
-        var fbinder = new StatementBinder(fdata, frefs)
+        var fbinder = new StatementBinder(fdata)
         {
             OoClasses = session.OoClasses,
             OoCurrentClass = cls.Symbol,
             OoInFactory = true,
+            ProgramsInScope = programsInScope,
         };
         fdata.Symbols.ResolveProgramPrototypes(unit: null, repository, position, session.Binders);
         fbinder.ConfigureEc(session.Turn, session.DirectiveSites, cls.Name);
