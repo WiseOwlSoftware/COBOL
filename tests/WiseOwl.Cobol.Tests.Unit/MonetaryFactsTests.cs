@@ -66,6 +66,24 @@ public sealed class MonetaryFactsTests
         Assert.Equal("Q1", MonetaryPlacement.Render(new(true, 2, 1), "Q", "", "1"));
     }
 
+    [Theory]
+    [InlineData(true, 0, 1)]
+    [InlineData(true, 1, 1)]
+    [InlineData(true, 2, 1)]
+    [InlineData(false, 1, 1)]
+    [InlineData(false, 2, 2)]
+    [InlineData(true, 1, 3)]
+    [InlineData(false, 1, 4)]
+    [InlineData(true, 1, 0)]
+    [InlineData(false, 1, 0)]
+    public void Render_NoCurrencyString_AddsNoSeparatorSpace_PB5650(bool csPrecedes, int sep, int posn)
+    {
+        // §2002:13.16.38.3 GR17: with no currency symbol in the picture there is no currency string, so no
+        // sep_by_space slot is emitted, whatever the convention (kb/Work PB5650).
+        string r = MonetaryPlacement.Render(new(csPrecedes, sep, posn), "", "N", "1");
+        Assert.DoesNotContain(' ', r);
+    }
+
     [Fact]
     public void EveryDerivedConvention_RoundTripsItsPattern()
     {

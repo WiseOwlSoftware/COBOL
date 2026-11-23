@@ -56,6 +56,10 @@ public static class MonetaryPlacement
         // A space slot next to an ABSENT sign string is not emitted: POSIX's sep_by_space 2 separates "the
         // currency symbol and the sign string" / "the sign string from the value" — no sign string, no space.
         // (The derivation's probes always carry a one-char sign, so the tables are unaffected.)
+        // Likewise every space slot is a separation FROM the currency string (POSIX sep_by_space), so a picture with
+        // no currency symbol (cs empty) has no currency string to separate: no space anywhere (§2002:13.16.38.3 GR17,
+        // the same in 2023; kb/Work PB5650). Right justification (§2002:13.16.38.4 GR14) then holds.
+        if (cs.Length == 0) c = c with { SepBySpace = 0 };
         if (c.SignPosn == 0)
         {
             string gap = c.SepBySpace == 1 ? " " : "";

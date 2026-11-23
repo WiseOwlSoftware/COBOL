@@ -1,0 +1,5 @@
+## A locale-edited picture with no currency symbol no longer gets the locale's sep_by_space space
+
+PB5650. `MonetaryPlacement.Render` added the POSIX sep_by_space slot whether or not the currency string was empty, so de-DE `ZZZZZZ9.99` SIZE 14 printed `[ 1.234.567,89 ]` and pt-BR/nl-NL `+ZZZ9.99` put a space between sign and value, breaking right justification (§2002:13.16.38.4 GR14). Re-probe on this build before the fix reproduced the note's output. Fix: when `cs` is empty `Render` treats `SepBySpace` as 0, which covers every arm (sign_posn 0 to 4, sep 1 and 2, cs before or after); with no currency symbol there is no currency string to separate (§2002:13.16.38.3 GR17). The derived .NET pattern tables use "Q" and are unaffected. Siblings: the only other `Render` caller, `CobolLocaleEdit.TryUnwrap` (de-editing), shares the one renderer and now agrees with the editor.
+
+Goldens: `pb5650-locale-no-currency-symbol-no-space` (de-DE, pt-BR, nl-NL legs) and the refused-at-1985 program `pb5650-locale-picture-refused-at-1985`; unit theory `Render_NoCurrencyString_AddsNoSeparatorSpace_PB5650`. Rows 2002-GR-13.16.38.4-13 and -14 DIVERGES to CONFORMS (GAP 1159 to 1157).
