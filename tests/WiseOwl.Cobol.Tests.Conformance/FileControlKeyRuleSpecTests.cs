@@ -54,6 +54,12 @@ public sealed class FileControlKeyRuleSpecTests
     private static string CitationAt(string citation2023, int edition) =>
         edition < 2002 && Citations85.TryGetValue(citation2023, out string? c85) ? c85 : citation2023;
 
+    /// <summary>The citation of an OCCURS-ban row (§2023:12.4.5.12.3 SR1, §2023:12.4.5.6.3 SR1, §2023:12.4.5.13.3 SR1) at COBOL-2014 (kb/Work
+    /// PB6072): the 2014 key clauses say "shall not be subscripted" (§2014:12.4.4.11.2 SR1), so a key naming a table element is
+    /// §2014:8.4.1.2.2 SR5's unsubscripted table element reference; every other edition's citation is <see cref="CitationAt"/>'s.</summary>
+    private static string OccursBanCitationAt(string citation2023, int edition) =>
+        edition == 2014 ? "§2014:8.4.1.2.2 SR5" : CitationAt(citation2023, edition);
+
     private static IReadOnlyList<string> Diagnostics(string source, int edition)
     {
         string dir = ScratchDirectory.Create("WiseOwlCobol_Fckr_");
@@ -261,7 +267,8 @@ public sealed class FileControlKeyRuleSpecTests
             // names a table element by its subscripts (§2002:5.1.3), so the unsubscripted element is §2002:8.4.1.2.2 SR5's omitted
             // subscript (kb/Work PB5602).
             string citation = edition == 2002 && name is "ix-record-key-occurs" or "ix-alternate-key-occurs"
-                ? "§2002:8.4.1.2.2 SR3, SR5" : CitationAt(citation2023, edition);
+                ? "§2002:8.4.1.2.2 SR3, SR5"
+                : name is "ix-record-key-occurs" or "ix-alternate-key-occurs" ? OccursBanCitationAt(citation2023, edition) : CitationAt(citation2023, edition);
             int entryOnly = Diagnostics(Indexed(p[0], p[1], p[2], EntryOnlyBody), edition)
                 .Count(e => e.Contains(citation, StringComparison.Ordinal));
             int withVerb = Diagnostics(Indexed(p[0], p[1], p[2], WithKeyedVerbBody), edition)
@@ -318,7 +325,8 @@ public sealed class FileControlKeyRuleSpecTests
             // COBOL-2002 prints no OCCURS ban on the relative key (§2002:12.3.4.13.2 SR1 says only "may be qualified"), and its operand
             // names a table element by its subscripts (§2002:5.1.3): the unsubscripted element is §2002:8.4.1.2.2 SR5's omitted
             // subscript (kb/Work PB5602).
-            string expected = edition == 2002 && citation.EndsWith("SR1", StringComparison.Ordinal) ? "§2002:8.4.1.2.2 SR3, SR5" : CitationAt(citation, edition);
+            string expected = edition == 2002 && citation.EndsWith("SR1", StringComparison.Ordinal) ? "§2002:8.4.1.2.2 SR3, SR5"
+                : citation.EndsWith("SR1", StringComparison.Ordinal) ? OccursBanCitationAt(citation, edition) : CitationAt(citation, edition);
             Assert.Contains(entryOnly, e => e.Contains(expected, StringComparison.Ordinal));
             Assert.DoesNotContain(entryOnly, e => e.Contains("§2023:12.4.5.13 SR", StringComparison.Ordinal));
         }
@@ -653,8 +661,9 @@ public sealed class FileControlKeyRuleSpecTests
             // is not printed (kb/Work PB5602): an unsubscripted table element is §2002:8.4.1.2.2 SR5's omitted subscript (the golden
             // pb5602-record-key-source-unsubscripted-table-element), so the SR1 rows are the 2014 and later editions'.
             if (edition == 2002 && citation.EndsWith(" SR1", StringComparison.Ordinal)) continue;
-            var hits = Diagnostics(source, edition).Where(e => e.Contains(citation, StringComparison.Ordinal)).ToList();
-            Assert.True(hits.Count == 1, $"[{keyClauses.Replace('\n', ' ').Trim()}] @ {edition}: {citation} reported "
+            string cited = citation.EndsWith(" SR1", StringComparison.Ordinal) ? OccursBanCitationAt(citation, edition) : citation;
+            var hits = Diagnostics(source, edition).Where(e => e.Contains(cited, StringComparison.Ordinal)).ToList();
+            Assert.True(hits.Count == 1, $"[{keyClauses.Replace('\n', ' ').Trim()}] @ {edition}: {cited} reported "
                 + $"{hits.Count}×: {string.Join(" | ", hits)}");
             Assert.Contains(operand, hits[0], StringComparison.Ordinal);
         }
