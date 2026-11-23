@@ -690,6 +690,23 @@ def files_on_disk(root: Path) -> set[str]:
     return out
 
 
+#: The product's analyzer ProjectReference and the configuration it pins (src/Directory.Build.props).
+ANALYZER_REFERENCE = re.compile(
+    r'<ProjectReference\s+Include="\$\(MSBuildThisFileDirectory\)(?P<project>[^"]+\.csproj)"[^>]*?'
+    r'OutputItemType="Analyzer"[^>]*?SetConfiguration="Configuration=(?P<configuration>[^"]+)"', re.DOTALL)
+
+
+def analyzer_reference(tree: Path) -> tuple[str, str]:
+    """The analyzer project src/Directory.Build.props references (tree-relative) and the configuration it pins;
+    a props file without exactly one such reference FAILS the run rather than measuring with an unresolved analyzer."""
+    props = tree / "src" / "Directory.Build.props"
+    found = ANALYZER_REFERENCE.findall(props.read_text(encoding="utf-8-sig"))
+    if len(found) != 1:
+        raise CensusFailure(f"{props}: expected one analyzer ProjectReference with SetConfiguration, found {len(found)}")
+    project, configuration = found[0]
+    return f"src/{project}", configuration
+
+
 def measure(commit: str, work: Path, out_dir: Path) -> Path:
     sha = git("rev-parse", commit)
     date = git("show", "-s", "--format=%cI", sha)
@@ -704,6 +721,11 @@ def measure(commit: str, work: Path, out_dir: Path) -> Path:
               flush=True)
         t0 = time.time()
         run_logged(["dotnet", "build", "WiseOwl.Cobol.sln", "-c", "Debug", "-v", "quiet"], wt, logs / "build.log")
+        # The product's analyzer reference pins its own configuration (src/Directory.Build.props, SetConfiguration); a
+        # solution build at Debug builds the analyzer at Debug, but the workspace resolves the reference at the pinned
+        # one, so build it there too (kb/Work PB2744: without it every run since PB4950 round 10 died in SymbolFinder).
+        analyzer, configuration = analyzer_reference(wt)
+        run_logged(["dotnet", "build", analyzer, "-c", configuration, "-v", "quiet"], wt, logs / "analyzer-build.log")
         host = work / "host"
         run_logged(["dotnet", "build", str(REPO / HOST), "-c", "Release", "-o", str(host), "-v", "quiet"], REPO,
                    logs / "host-build.log")
@@ -892,6 +914,11 @@ def self_test() -> int:
         all(not note_is_open(note(s)) and not note_is_open(note(f'"{s}"')) for s in work.TERMINAL_STATUSES)
         and all(note_is_open(note(s)) for s in live) and note_is_open("# kb/Search/README\nnames hist.py\n"),
         f"terminal {work.TERMINAL_STATUSES}, live {live}")
+
+    # The analyzer reference the workspace resolves at its pinned configuration (kb/Work PB2744).
+    arm("the census builds the product's analyzer at the configuration src/Directory.Build.props pins",
+        analyzer_reference(REPO) == ("src/WiseOwl.Cobol.Analyzers/WiseOwl.Cobol.Analyzers.csproj", "Release"),
+        failure_of(lambda: analyzer_reference(REPO)))
 
     # The tracked-path prefixes are `/`-separated on every OS (a backslashed prefix matched nothing on Windows).
     record = RECORD_DIR.as_posix() + "/a02b.findings.json"
