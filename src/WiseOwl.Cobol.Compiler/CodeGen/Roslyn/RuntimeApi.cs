@@ -1109,6 +1109,13 @@ internal static class RuntimeApi
         $"{nameof(CobolExact)}.{nameof(CobolExact.PowReal)}({exact}, {exponent}{(taken is null ? "" : ", " + taken)}"
         + $"{(negativeBaseRealRoots ? ", negativeBaseRealRoots: true" : "")})";
 
+    /// <summary>The arithmetic operator <c>**</c> on the binary64 carrier (<c>CobolPower.Binary64</c>, kb/Work PB2628), screened by
+    /// §2023:8.8.1.2 rule 6; <paramref name="taken"/> is the enabled range conditions' spelling (<c>CobolPower.Binary64Checked</c>), or
+    /// null for the unchecked power.</summary>
+    public static string Binary64Pow(string b, string exponent, string? taken) => taken is null
+        ? $"{nameof(CobolPower)}.{nameof(CobolPower.Binary64)}({b}, {exponent})"
+        : $"{nameof(CobolPower)}.{nameof(CobolPower.Binary64Checked)}({b}, {exponent}, {taken})";
+
     /// <summary>A float ITEM's content as an exact value, every digit of its binary expansion (<c>CobolExact.FromBinary64</c>, kb/Work PB4730).</summary>
     public static string ExactFromBinary64(string doubleExpr) =>
         $"{nameof(CobolExact)}.{nameof(CobolExact.FromBinary64)}({doubleExpr})";

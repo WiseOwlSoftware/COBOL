@@ -69,6 +69,7 @@
 *REMOVED*static WiseOwl.Cobol.Runtime.CobolIntrinsics.OrdMinString(WiseOwl.Cobol.Runtime.CobolCollation! collation, params string![]! xs) -> long
 *REMOVED*static WiseOwl.Cobol.Runtime.CobolIntrinsics.OrdMinString(params string![]! xs) -> long
 *REMOVED*static WiseOwl.Cobol.Runtime.CobolIntrinsics.PowNativeDec(WiseOwl.Cobol.Runtime.CobolDec b, System.Int128 e) -> WiseOwl.Cobol.Runtime.CobolDec
+*REMOVED*static WiseOwl.Cobol.Runtime.CobolIntrinsics.PowNativeReal(double b, double e) -> double
 *REMOVED*static WiseOwl.Cobol.Runtime.CobolIntrinsics.PowNativeRealChecked(double b, double e) -> double
 *REMOVED*static WiseOwl.Cobol.Runtime.CobolIntrinsics.PresentValue(WiseOwl.Cobol.Runtime.CobolRounding mode, WiseOwl.Cobol.Runtime.CobolDec rate, params WiseOwl.Cobol.Runtime.CobolDec[]! amounts) -> double
 *REMOVED*static WiseOwl.Cobol.Runtime.CobolIntrinsics.PresentValue(double discountBase, params double[]! amounts) -> double
@@ -138,6 +139,7 @@ WiseOwl.Cobol.Runtime.CobolExact.ToDouble() -> double
 WiseOwl.Cobol.Runtime.CobolExact.ToUnscaled(int toScale, WiseOwl.Cobol.Runtime.CobolRounding mode, bool checkedTransfer) -> System.Int128
 WiseOwl.Cobol.Runtime.CobolPosition
 WiseOwl.Cobol.Runtime.CobolPosition<TUse>
+WiseOwl.Cobol.Runtime.CobolPower
 WiseOwl.Cobol.Runtime.CobolSizeError.IsProhibitedInexact.get -> bool
 WiseOwl.Cobol.Runtime.CobolStandardData
 WiseOwl.Cobol.Runtime.CobolVarGroup.CobolVarGroup(string! Fixed, string![]! Dynamic, WiseOwl.Cobol.Runtime.CobolVarGroup![]?[]? Elements = null, System.Func<int, WiseOwl.Cobol.Runtime.CobolVarGroup!>?[]? Created = null) -> void
@@ -1213,9 +1215,6 @@ static WiseOwl.Cobol.Runtime.CobolIntrinsics.OrdMinReal(params System.ReadOnlySp
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.OrdMinString(WiseOwl.Cobol.Runtime.CobolCollation! collation, params System.ReadOnlySpan<string!> xs) -> long
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.OrdMinString(params System.ReadOnlySpan<string!> xs) -> long
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.OrdMinWide(params System.ReadOnlySpan<WiseOwl.Cobol.Runtime.CobolWide> xs) -> long
-static WiseOwl.Cobol.Runtime.CobolIntrinsics.PowNativeReal(double b, WiseOwl.Cobol.Runtime.CobolExact exponent) -> double
-static WiseOwl.Cobol.Runtime.CobolIntrinsics.PowNativeRealChecked(double b, WiseOwl.Cobol.Runtime.CobolExact exponent, WiseOwl.Cobol.Runtime.SizeChecks taken) -> double
-static WiseOwl.Cobol.Runtime.CobolIntrinsics.PowNativeRealChecked(double b, double e, WiseOwl.Cobol.Runtime.SizeChecks taken) -> double
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.PresentValue(WiseOwl.Cobol.Runtime.CobolRounding mode, WiseOwl.Cobol.Runtime.CobolExact rate, params System.ReadOnlySpan<WiseOwl.Cobol.Runtime.CobolExact> amounts) -> double
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.PresentValue(double discountBase, params System.ReadOnlySpan<double> amounts) -> double
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.PresentValueDec(WiseOwl.Cobol.Runtime.DecArithmetic ar, WiseOwl.Cobol.Runtime.CobolDec rate, params System.ReadOnlySpan<WiseOwl.Cobol.Runtime.CobolDec> amounts) -> WiseOwl.Cobol.Runtime.CobolDec
@@ -1293,6 +1292,10 @@ static WiseOwl.Cobol.Runtime.CobolPosition<TUse>.Read(ulong unscaled, in WiseOwl
 static WiseOwl.Cobol.Runtime.CobolPosition<TUse>.Value(System.Int128 unscaled, int scale) -> System.Int128
 static WiseOwl.Cobol.Runtime.CobolPosition<TUse>.ValueDec(WiseOwl.Cobol.Runtime.CobolDec value) -> System.Int128
 static WiseOwl.Cobol.Runtime.CobolPosition<TUse>.ValueReal(double value) -> System.Int128
+static WiseOwl.Cobol.Runtime.CobolPower.Binary64(double b, WiseOwl.Cobol.Runtime.CobolExact exponent) -> double
+static WiseOwl.Cobol.Runtime.CobolPower.Binary64(double b, double e) -> double
+static WiseOwl.Cobol.Runtime.CobolPower.Binary64Checked(double b, WiseOwl.Cobol.Runtime.CobolExact exponent, WiseOwl.Cobol.Runtime.SizeChecks taken) -> double
+static WiseOwl.Cobol.Runtime.CobolPower.Binary64Checked(double b, double e, WiseOwl.Cobol.Runtime.SizeChecks taken) -> double
 static WiseOwl.Cobol.Runtime.CobolPtr.AllocateDec(WiseOwl.Cobol.Runtime.CobolDec size, char fill, out bool notAvail) -> WiseOwl.Cobol.Runtime.ManagedPointer!
 static WiseOwl.Cobol.Runtime.CobolPtr.UpByAmountDec(WiseOwl.Cobol.Runtime.ManagedPointer? p, WiseOwl.Cobol.Runtime.CobolDec by, bool down) -> WiseOwl.Cobol.Runtime.ManagedPointer!
 static WiseOwl.Cobol.Runtime.CobolSizeError.FalseWhenRaised(System.Func<bool>! condition) -> bool

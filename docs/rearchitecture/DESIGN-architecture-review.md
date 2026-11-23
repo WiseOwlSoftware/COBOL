@@ -1562,6 +1562,9 @@ arguments…, the returned value", §2023:15.1): `NumericFunctions`, `Trigonomet
 adjacent behind one entry per function; the shared argument coercions become `NumericArguments`. *Seam:* one static
 entry per function on its family type, reached by emitted code through a `RuntimeMembers` handle (9); every rename
 lands as one explained oracle difference (§4 item 1). *Steps:* PB2298, PB2365–PB2370.
+*Not an intrinsic:* the arithmetic operator `**` is no §15 function. Its binary64 arm and the one §2023:8.8.1.2 rule-6 screen
+every carrier's power asks are `CobolPower` in the value library (`Values/Numeric/`, beside `CobolDec.Pow` and
+`CobolExact.Pow`), emitted through `RuntimeApi.Binary64Pow` (kb/Work PB2628, landed before PB2298).
 
 **(4) `WiseOwl.Cobol.Binding.ReferenceResolver`** — R0-0004 (its partial and nested types). **LANDED (wave 20261827; steps
 PB2299, PB2371–PB2375 ran as one group, one checkpoint commit per step, each proven by `compare_oracle.py` IDENTICAL).**
