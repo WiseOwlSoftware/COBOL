@@ -54,8 +54,14 @@ public static class FragmentParse
     /// (<c>CompilationUnitContext.TokenRetypes</c>) — so the fragment reads every word exactly as the tree does: a
     /// §2023:8.9 word the program declared where the edition frees it (kb/Work PB655) and a <c>&gt;&gt;COBOL-WORDS</c>
     /// synonym or de-reserved word (ISO §2023:7.3.10.4) are the same tokens here as there.</param>
+    /// <param name="trailingSeparatorIsError">The fragment is a compiler-directive operand that ends its line (kb/Work
+    /// PB5736): the lexer hides a ';' with no space after it (<c>SEMICOLON</c>, so SeparatorRule can see it), and nothing
+    /// in the grammar then notices one that ends the text, so <c>&gt;&gt;IF 1 = 1;</c> parsed while the comma twin
+    /// <c>&gt;&gt;IF 1 = 1,</c> was a syntax error. §2023:7.3.3 SR3 lets a compiler directive be followed only by space
+    /// characters and an optional inline comment, and a semicolon is none: with this set a trailing one is a syntax error,
+    /// as the comma is.</param>
     public static T? Parse<T>(string text, EditionInfo edition, TokenRetypes retypes, System.Action<CobolLexer>? prime,
-        bool rewriteZero, System.Func<CobolParserCore, T> rule) where T : class
+        bool rewriteZero, System.Func<CobolParserCore, T> rule, bool trailingSeparatorIsError = false) where T : class
     {
         var flag = new SyntaxErrorFlag();
         var lexer = new CobolLexer(new AntlrInputStream(text));
@@ -73,7 +79,17 @@ public static class FragmentParse
         parser.RemoveErrorListeners();
         parser.AddErrorListener(flag);
         var tree = rule(parser);
+        if (trailingSeparatorIsError && EndsWithHiddenSemicolon(tokens)) return null;
         return flag.HasError ? null : tree;
+    }
+
+    /// <summary>The last token before the end of the text is the lexer's hidden <c>SEMICOLON</c> (see
+    /// <c>trailingSeparatorIsError</c> of <see cref="Parse{T}"/>).</summary>
+    private static bool EndsWithHiddenSemicolon(CommonTokenStream tokens)
+    {
+        tokens.Fill();
+        var all = tokens.GetTokens();
+        return all.Count >= 2 && all[^2].Type == CobolLexer.SEMICOLON;
     }
 
     /// <summary>Re-parse an already-LEXED token run through <paramref name="rule"/>, or null on any syntax error —

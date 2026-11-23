@@ -20,7 +20,8 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 /// is subtraction — and the <see cref="ZeroTokenRewriter"/> is applied so a figurative <c>ZERO</c> in an arithmetic
 /// operand becomes <c>ZERO_ARITH</c> (which the evaluator then rejects under §2023:7.3.3 SR10). The operand parses at the
 /// newest edition (<see cref="EditionInfo.Latest"/>) — the whole-<c>&gt;&gt;</c>-facility introduction gate below
-/// 2002 is tracked separately (ledger C15). Any syntax error becomes a loud <see langword="null"/> — a partial
+/// 2002 is tracked separately (ledger C15). A comma or semicolon ending the operand is a syntax error (§2023:7.3.3 SR3: only
+/// space characters and an inline comment may follow a directive; kb/Work PB5736). Any syntax error becomes a loud <see langword="null"/> — a partial
 /// parse is never evaluated.
 /// </summary>
 public static class DirectiveExpressionFragment
@@ -42,5 +43,5 @@ public static class DirectiveExpressionFragment
         Parse(text, static p => p.displayDirectiveFragment());
 
     private static T? Parse<T>(string text, System.Func<CobolParserCore, T> rule) where T : class =>
-        FragmentParse.Parse(text, EditionInfo.Latest, TokenRetypes.None, static l => l.PrimeDirectiveExpr(), rewriteZero: true, rule);
+        FragmentParse.Parse(text, EditionInfo.Latest, TokenRetypes.None, static l => l.PrimeDirectiveExpr(), rewriteZero: true, rule, trailingSeparatorIsError: true);
 }
