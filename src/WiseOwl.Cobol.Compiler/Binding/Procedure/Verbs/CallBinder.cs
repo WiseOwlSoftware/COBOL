@@ -86,7 +86,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                         $"CALL USING {WrittenSource.Of(fnArg)}");
                     refusedUpFront.Add(a);
                 }
-                carried = CarriedModeAfter(a, carried);
+                carried = CallArgumentModes.CarriedAfter(a, carried);
             }
         }
         bool asNested = false;
@@ -296,13 +296,13 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             {
                 if (refusedUpFront.Contains(a))
                 {
-                    mode = CarriedModeAfter(a, mode);
+                    mode = CallArgumentModes.CarriedAfter(a, mode);
                     continue;
                 }
             }
             else if (!formatTwo && Format2OnlySpellingOf(a, bareArg, mode) is { } format2Only && !Format1Narrowing(format2Only))
                 return BoundRejected.Reported(ctx.Edition);
-            mode = CarriedModeAfter(a, mode);
+            mode = CallArgumentModes.CarriedAfter(a, mode);
             if (a.callByReference() is { } byRef)
             {
                 // §2023:14.9.4.2 Format 2: `[BY REFERENCE] {identifier-2 | OMITTED}` (kb/Work PB130); Format 1 reaches
@@ -512,10 +512,8 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 // A keyword-less address-identifier (kb/Work PB239). Format 1: the prevailing GR5 mode.
                 // Format 2: GR9 a)1 assumes BY REFERENCE for an argument that meets SR3 — which names the
                 // address-identifier explicitly — and GR9 b) BY VALUE when the corresponding formal is BY VALUE.
-                CobolPassMode addrMode = mode;
-                if (formatTwo && calleeFormals is not null)
-                    addrMode = args.Count < calleeFormals.Count && calleeFormals[args.Count].ByValue
-                        ? CobolPassMode.Value : CobolPassMode.Reference;
+                CobolPassMode addrMode = CallArgumentModes.KeywordLessIdentifier(formatTwo, mode,
+                    CallArgumentModes.FormalIsByValue(calleeFormals, args.Count));
                 if (AddressArg(bareAddr, addrMode) is not { } ba) return BoundRejected.Reported(ctx.Edition);
                 args.Add(ba);
             }
@@ -547,19 +545,14 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 // resolution (kb/Work PB1544; it drew COBOL1639 "not defined").
                 if (formatTwo && host.Expr.LiteralAliasOf(bare) is { } bareAlias)
                 {
-                    var kMode = Gr9NonIdentifierMode(calleeFormals, args.Count);
+                    var kMode = NonIdentifierMode();
                     if (kMode is CobolPassMode.Value) Sr23AliasIsNumeric(bareAlias, "a BY VALUE formal parameter");
                     args.Add(new BoundCallArg(kMode, null, host.Expr.AliasOperand(bareAlias)));
                     continue;
                 }
-                CobolPassMode bareMode = mode;
+                CobolPassMode bareMode = CallArgumentModes.KeywordLessIdentifier(formatTwo, mode,
+                    CallArgumentModes.FormalIsByValue(calleeFormals, args.Count));
                 bool byContentAssumed = false;
-                if (formatTwo && calleeFormals is not null)
-                {
-                    int pos = args.Count;
-                    bareMode = pos < calleeFormals.Count && calleeFormals[pos].ByValue
-                        ? CobolPassMode.Value : CobolPassMode.Reference;
-                }
                 // ── §2023:14.9.4.4 GR9 a)2 + §2023:14.9.4.3 SR20 — the leg with no arm at all (kb/Work PB238) ────────
                 // GR9 a)'s test is SYNTAX RULE 3 ("an address-identifier or a data item defined in the file,
                 // working-storage, local-storage, or linkage section"), NOT "the receiving chokepoint accepted
@@ -609,7 +602,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 // MODE is the mechanism, not a side effect of the copy-out (kb/Work PB238: this arm hard-coded
                 // Content and the VALUE outcome happened only because a Content literal has no storage to copy
                 // back to — right by accident, and it would not have survived a change to the copy-out).
-                var bLitMode = Gr9NonIdentifierMode(calleeFormals, args.Count);
+                var bLitMode = NonIdentifierMode();
                 // §2023:14.9.4.3 SR23's SECOND subject — "or its corresponding formal parameter is specified with
                 // the BY VALUE phrase" — which had no reachable arm at all before the mode was derived here.
                 if (bLitMode is CobolPassMode.Value) Sr23LiteralIsNumeric(bLit, "a BY VALUE formal parameter");
@@ -628,13 +621,13 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             {
                 if (host.Expr.NullAdmittingOperand(nbl) is not { } nblOp)
                     return new BoundUnsupported($"CALL USING argument '{WrittenSource.Of(nbl)}'");
-                var nblMode = Gr9NonIdentifierMode(calleeFormals, args.Count);
+                var nblMode = NonIdentifierMode();
                 if (nblMode is CobolPassMode.Value) Sr23LiteralIsNumeric(nbl, "a BY VALUE formal parameter");
                 args.Add(new BoundCallArg(nblMode, null, nblOp));
             }
             else if (bareArg.SoleNumericLiteral is { } nNum)
             {
-                args.Add(new BoundCallArg(Gr9NonIdentifierMode(calleeFormals, args.Count), null,
+                args.Add(new BoundCallArg(NonIdentifierMode(), null,
                     host.Expr.NumericLiteralOperand(nNum)));
             }
             else if (bareArg.Arith is { } bArith)
@@ -706,7 +699,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         // §2023:14.9.4.3 SR19's mode mismatch (COBOL1687) on conforming source. SR22 then screens the value's class.
         void AddBareExpressionArg(BoundOperand operand, string written)
         {
-            var exprMode = Gr9NonIdentifierMode(calleeFormals, args.Count);
+            var exprMode = NonIdentifierMode();
             var exprArg = OperandArg(operand, exprMode);
             if (exprMode is CobolPassMode.Value && exprArg.Value is { } exprValue) ValueClassScreen(exprValue, written);
             args.Add(exprArg);
@@ -732,7 +725,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
 
         // A KEYWORD-LESS function-/method-identifier (Format 1's identifier-2, Format 2's GR9). It is never "a data item
         // defined in the file, working-storage, local-storage, or linkage section" (SR3), so GR9 a)2 assumes BY CONTENT
-        // and GR9 b) BY VALUE when the corresponding formal is BY VALUE (the literal's rule, Gr9NonIdentifierMode), whose
+        // and GR9 b) BY VALUE when the corresponding formal is BY VALUE (the literal's rule, NonIdentifierMode), whose
         // SR22 class screen then applies; Format 1's prevailing mode (GR5) must be BY CONTENT.
         BoundStatement? AddBareTemporaryArg(BoundOperand operand, string text)
         {
@@ -741,7 +734,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                     $"CALL USING {text}: a function-identifier or inline method invocation references a temporary, not a "
                     + "data item defined in the file, working-storage, local-storage, or linkage section (ISO §2023:14.9.4.3 SR3), "
                     + "so it can cross only BY CONTENT");
-            var temporaryMode = formatTwo ? Gr9NonIdentifierMode(calleeFormals, args.Count) : CobolPassMode.Content;
+            var temporaryMode = formatTwo ? NonIdentifierMode() : CobolPassMode.Content;
             if (temporaryMode is CobolPassMode.Value) ValueClassScreen(operand, text);
             args.Add(OperandArg(operand, temporaryMode));
             return null;
@@ -754,15 +747,10 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 ? new BoundCallArg(argMode, temp, null)
                 : new BoundCallArg(argMode, null, operand);
 
-        // §2023:14.9.4.4 GR9 for a keyword-less argument that is not an identifier of storage: LITERAL-2 (or a constant-name,
-        // which substitutes one), a function's or invocation's temporary, and ARITHMETIC-EXPRESSION-1 (kb/Work PB3760).
-        // None is "a data item defined in the file, working-storage, local-storage, or linkage section", so none
-        // meets Syntax rule 3 — GR9 a)2 gives BY CONTENT, and GR9 b) gives BY VALUE whenever the
-        // CORRESPONDING FORMAL is BY VALUE. Without a known formal (no AS NESTED — the program-prototype
-        // registry is P13) GR9 has nothing to read, and BY CONTENT is the format's own omitted-phrase default.
-        static CobolPassMode Gr9NonIdentifierMode(IReadOnlyList<LinkageFormal>? formals, int pos) =>
-            formals is not null && pos < formals.Count && formals[pos].ByValue
-                ? CobolPassMode.Value : CobolPassMode.Content;
+        // §2023:14.9.4.4 GR9 for the keyword-less argument at the next position that is not an identifier of storage (kb/Work
+        // PB3760): the one rule's answer (CallArgumentModes.KeywordLessValue, kb/Work PB3227) over the corresponding formal.
+        CobolPassMode NonIdentifierMode() =>
+            CallArgumentModes.KeywordLessValue(CallArgumentModes.FormalIsByValue(calleeFormals, args.Count));
 
         // §2023:14.8.2.1 + §2023:14.9.4.3 SR24 (kb/Work PB133 wave C, generalized by PB237): with the Format-2 callee's
         // formals known at BIND time — from the AS NESTED containment table or from the program prototype's
@@ -969,15 +957,6 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
     /// literal the edition lacks, in whichever order the passes run (kb/Work PB4155, PB4508).</summary>
     private bool IsUndeclaredNullWord(Core.CallArgumentContext a, ConditionBinder.ArgumentOperand bare) =>
         NullSpellingOf(a, bare) is not null && UnreservedKeywordReference.IsFreeAt("NULL", ctx.Edition);
-
-    /// <summary>§2023:14.9.4.4 GR5's TRANSITIVE pass mode after argument <paramref name="a"/>: an explicit BY REFERENCE, BY CONTENT or
-    /// BY VALUE phrase sets it, and a bare argument keeps the one carried in (<paramref name="carried"/>). The ONE writer of the
-    /// carried mode, read by the up-front judgement below 2002 and by the argument loop.</summary>
-    private static CobolPassMode CarriedModeAfter(Core.CallArgumentContext a, CobolPassMode carried) =>
-        a.callByReference() is not null ? CobolPassMode.Reference
-        : a.callByContent() is not null ? CobolPassMode.Content
-        : a.callByValue() is not null ? CobolPassMode.Value
-        : carried;
 
     /// <summary>⛔ THE ONE QUESTION "IS THIS ARGUMENT SPELLING FORMAT 2's?" (kb/Work PB130, PB162, PB3996), asked once per
     /// argument before any arm binds it. §2023:14.9.4.2 prints Format 1's USING as <c>[ BY REFERENCE ] { identifier-2 } …</c>
@@ -1263,8 +1242,9 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
     /// plain word (§2023:8.4.6.8 — it names a source unit, so it takes no qualification and no subscript), so this is
     /// the SHAPE test that decides whether an operand written like identifier-1 can be read as
     /// program-prototype-name-1 at all (kb/Work PB237). Used by both reference sites, so CALL and CANCEL cannot
-    /// disagree about what a prototype operand looks like.</summary>
-    private static Core.CobolWordContext? BarePrototypeWord(Core.DataReferenceContext dref) =>
+    /// disagree about what a prototype operand looks like, and by the storage-claim scan, which asks the same shape of a CALL
+    /// without the AS phrase to find its Format-2 spelling (StorageClaimScan, kb/Work PB3227).</summary>
+    internal static Core.CobolWordContext? BarePrototypeWord(Core.DataReferenceContext dref) =>
         dref.cobolWord() is { } w && dref.dataReferenceSuffix().Length == 0 ? w : null;
 
     /// <summary>Bind <c>CANCEL {literal|identifier}…</c> (ISO §2023:14.9.5 — targets resolved like CALL's, §2023:8.4.6.3).</summary>

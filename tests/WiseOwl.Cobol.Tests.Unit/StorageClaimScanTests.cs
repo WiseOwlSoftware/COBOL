@@ -58,10 +58,29 @@ public sealed class StorageClaimScanTests
         + "       END PROGRAM MIDP.\r\n"
         + "       END PROGRAM TOPP.\r\n";
 
-    private static CobolParserCore.ProgramUnitContext Parse()
+    // One program whose CALLs are Format 2 (AS NESTED; a bare target word the asking element may name a program prototype) and
+    // Format 1 (a literal target with no AS phrase).
+    private const string FormatsSource =
+        "       IDENTIFICATION DIVISION.\r\n"
+        + "       PROGRAM-ID. FMTP.\r\n"
+        + "       DATA DIVISION.\r\n"
+        + "       WORKING-STORAGE SECTION.\r\n"
+        + "       01 GA PIC X.\r\n"
+        + "       01 GB PIC X.\r\n"
+        + "       01 GC PIC X.\r\n"
+        + "       PROCEDURE DIVISION.\r\n"
+        + "           CALL \"CHILD\" AS NESTED USING BY VALUE GC GA BY CONTENT GC GB\r\n"
+        + "           CALL PROTO USING BY CONTENT GC GA\r\n"
+        + "           CALL \"EXT\" USING BY CONTENT GC GA\r\n"
+        + "           CALL \"CHILD\" AS NESTED USING GB BY CONTENT GB B-AND GC\r\n"
+        + "           INVOKE OBJ \"M\" USING GC BY CONTENT GB B-AND GC\r\n"
+        + "           GOBACK.\r\n"
+        + "       END PROGRAM FMTP.\r\n";
+
+    private static CobolParserCore.ProgramUnitContext Parse(string source = Source)
     {
         string path = Path.Combine(Path.GetTempPath(), "cn_claimscan_" + Guid.NewGuid().ToString("N")[..8] + ".cob");
-        File.WriteAllText(path, Source);
+        File.WriteAllText(path, source);
         try
         {
             var diags = new DiagnosticBag();
@@ -102,18 +121,38 @@ public sealed class StorageClaimScanTests
         var mid = top.nestedProgram().Single();
         var scan = new StorageClaimScan();
 
-        Assert.Equal(["GB"], scan.ByReferenceOperands(top.procedureDivision(), _ => false).Select(Show));
+        Assert.Equal(["GB"], scan.ByReferenceOperands(top.procedureDivision(), _ => false, _ => false).Select(Show));
 
         // MIDP: §2023:14.9.4.4 GR5 — a BY CONTENT operand (claimed only when its values ride managed slots), then BY REFERENCE GA;
-        // BY VALUE GC GB passes neither (the phrase is transitive); GA, then the RETURNING receiver GB (§2023:14.6.5); and — with
+        // BY VALUE GC GB passes neither (a Format 1 CALL carries the phrase); GA, then the RETURNING receiver GB (§2023:14.6.5); and — with
         // UF a user-defined function — the function argument GA. INNP's CALL (inside MIDP's subtree): GA OF GB, then TBL (the
         // subscript IDX is a sending operand, never passed), and no operand for the arithmetic expression GA + GB.
         Assert.Equal(
             ["GC[slots]", "GA", "GA", "GB[slots]", "GA OF GB", "TBL"],
-            scan.ByReferenceOperands(mid, _ => false).Select(Show));
+            scan.ByReferenceOperands(mid, _ => false, _ => false).Select(Show));
         Assert.Equal(
             ["GC[slots]", "GA", "GA", "GB[slots]", "GA", "GA OF GB", "TBL"],
-            scan.ByReferenceOperands(mid, name => name == "UF").Select(Show));
+            scan.ByReferenceOperands(mid, name => name == "UF", _ => false).Select(Show));
+    }
+
+    [Fact]
+    public void AFormat2KeywordLessIdentifierIsClaimedAsGr9PassesIt_WhateverPhraseCameBefore()
+    {
+        var program = Parse(FormatsSource);
+        var scan = new StorageClaimScan();
+
+        // §2023:14.9.4.4 GR5 is Format 1's rule; in Format 2, GR9 takes a keyword-less argument's mode from its formal, which is
+        // bound after the claim, so GA and GB are claimed as a) 1. passes them to a BY REFERENCE formal (kb/Work PB3227). The
+        // bare word PROTO makes the second CALL Format 2 only when the asking element names it a program prototype; the literal
+        // target of the third keeps Format 1, where BY CONTENT carries to GA. In the last two statements the later argument's
+        // B-AND steers the keyword-less GB and GC into the boolean node, and §2023:14.9.4.4 GR8 (§2023:14.9.23.4 GR4) still makes each
+        // the identifier it consists of; the boolean expression itself is passed by content and claims nothing.
+        Assert.Equal(
+            ["GA", "GC[slots]", "GB", "GC[slots]", "GA[slots]", "GC[slots]", "GA[slots]", "GB", "GC[invoke]"],
+            scan.ByReferenceOperands(program.procedureDivision(), _ => false, _ => false).Select(Show));
+        Assert.Equal(
+            ["GA", "GC[slots]", "GB", "GC[slots]", "GA", "GC[slots]", "GA[slots]", "GB", "GC[invoke]"],
+            scan.ByReferenceOperands(program.procedureDivision(), _ => false, word => word == "PROTO").Select(Show));
     }
 
     [Fact]
@@ -124,9 +163,9 @@ public sealed class StorageClaimScanTests
         var scan = new StorageClaimScan();
 
         // One recorded walk answers two elements that disagree about which function names are user-defined.
-        int withUf = scan.ByReferenceOperands(mid, n => n == "UF").Count();
-        int withoutUf = scan.ByReferenceOperands(mid, _ => false).Count();
-        int otherName = scan.ByReferenceOperands(mid, n => n == "OTHER").Count();
+        int withUf = scan.ByReferenceOperands(mid, n => n == "UF", _ => false).Count();
+        int withoutUf = scan.ByReferenceOperands(mid, _ => false, _ => false).Count();
+        int otherName = scan.ByReferenceOperands(mid, n => n == "OTHER", _ => false).Count();
         Assert.Equal(withoutUf + 1, withUf);
         Assert.Equal(withoutUf, otherName);
     }
@@ -142,9 +181,9 @@ public sealed class StorageClaimScanTests
         // The nested program is asked first, before the program that contains it: the root is the top of the parent chain,
         // not the element that asked, so no element's question starts a walk of its own.
         _ = scan.AddressTargets(inner).ToList();
-        _ = scan.ByReferenceOperands(mid, _ => false).ToList();
+        _ = scan.ByReferenceOperands(mid, _ => false, _ => false).ToList();
         _ = scan.AddressTargets(top.procedureDivision()).ToList();
-        _ = scan.ByReferenceOperands(mid.procedureDivision(), _ => false).ToList();
+        _ = scan.ByReferenceOperands(mid.procedureDivision(), _ => false, _ => false).ToList();
         _ = scan.AddressTargets(mid).ToList();
 
         Assert.Equal(1, scan.TreesWalked);
