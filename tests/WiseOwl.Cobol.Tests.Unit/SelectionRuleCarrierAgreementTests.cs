@@ -55,6 +55,29 @@ public sealed class SelectionRuleCarrierAgreementTests
         Assert.Equal(4, CobolIntrinsics.OrdMinString(xs));
     }
 
+    [Fact]
+    public void TheExactValueLane_SelectsByAlgebraicValue_TheLeftmostOnATie()
+    {
+        // 1.5 (15 at scale 1), 2 (an SDIDI 20E-1), 1.50 (150 at scale 2), 2 (an integer), -0 and 0: kb/Work PB6055
+        // routed this lane (native MAX / MIN / ORD-MAX / ORD-MIN over exact values) through the one kernel.
+        CobolExact[] xs = [CobolExact.From(15, 1), CobolExact.FromDec(new CobolDec(20, -1)), CobolExact.From(150, 2), CobolExact.From(2, 0)];
+        Assert.Equal(2, CobolIntrinsics.OrdMaxExact(xs));                // 2 and 2: the leftmost
+        Assert.Equal(1, CobolIntrinsics.OrdMinExact(xs));                // 1.5 and 1.50: the leftmost
+        Assert.Equal(0, CobolExact.Compare(xs[1], CobolIntrinsics.MaxExact(xs)));
+        Assert.Equal(0, CobolExact.Compare(xs[0], CobolIntrinsics.MinExact(xs)));
+        Assert.Equal(1, CobolIntrinsics.OrdMinExact(CobolExact.From(-0, 0), CobolExact.From(0, 3)));
+    }
+
+    [Fact]
+    public void TheWideLane_TheLeftmostExtreme_AndItsOrdinal()
+    {
+        CobolWide[] xs = [CobolWide.From(3), CobolWide.From(7), CobolWide.From(1), CobolWide.From(7), CobolWide.From(1)];
+        Assert.Equal(2, CobolIntrinsics.OrdMaxWide(xs));
+        Assert.Equal(3, CobolIntrinsics.OrdMinWide(xs));
+        Assert.Equal(0, CobolWide.Compare(CobolWide.From(7), 0, CobolIntrinsics.MaxWide(xs), 0));
+        Assert.Equal(0, CobolWide.Compare(CobolWide.From(1), 0, CobolIntrinsics.MinWide(xs), 0));
+    }
+
     [Theory]
     [InlineData(new[] { double.NaN, 1.0 })]
     [InlineData(new[] { 1.0, double.NaN })]

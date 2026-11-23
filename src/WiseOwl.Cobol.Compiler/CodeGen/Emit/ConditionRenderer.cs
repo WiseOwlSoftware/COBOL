@@ -506,12 +506,14 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         l = NumericRenderer.LowerWide(l);
         rr = NumericRenderer.LowerWide(rr);
         // A float operand under NATIVE arithmetic (D16): compare the algebraic values natively in IEEE double
-        // (§2023:8.8.4.2.4 — "when native arithmetic is in effect, comparison proceeds by the rules of native
-        // arithmetic"). IEEE NaN-unordered (every relation but != is false) and +0.0 == -0.0 fall out of C# —
+        // (§2023:8.8.4.2.4 — "When native arithmetic is in effect, comparison proceeds by the rules of native
+        // arithmetic."). IEEE NaN-unordered (every relation but != is false) and +0.0 == -0.0 fall out of C# —
         // spec-conformant, no epsilon. Under STANDARD-DECIMAL this branch is SKIPPED so the float lifts to SDIDI below.
-        // ⛔ NATIVE ARITHMETIC IS A 2002+ RULE (kb/Work PB5835): "the comparison proceeds by the rules of native arithmetic" is
-        // §2002:8.8.4.1.1.3 and §2023:8.8.4.2.4; §1985:VI.6.3.1.1.1 knows only "a comparison is made with respect to the
-        // algebraic value of the operands", so at --std 85 a float operand lifts to its exact value and compares decimally below.
+        // ⛔ NATIVE ARITHMETIC IS A 2002+ RULE (kb/Work PB5835): §2002:8.8.4.1.1.3 says "the comparison proceeds by the rules of native
+        // arithmetic" of an operand "for which native arithmetic applies", §2014:8.8.4.1.1.3 and §2023:8.8.4.2.4 "comparison proceeds by
+        // the rules of native arithmetic" "when native arithmetic is in effect"; §1985:VI.6.3.1.1.1 knows only "a comparison is made
+        // with respect to the algebraic value of the operands", so at --std 85 a float operand is lifted and compared decimally below:
+        // a float item to its exact value, an engine-produced approximation to its shortest round-trip decimal (NumericRenderer.DecOperand).
         if ((l.Real || rr.Real) && !num.StandardDecimal && DialectBehaviors.IsActive(DialectBehavior.NativeArithmeticComparison, ctx.Data.DialectLevel))
             return $"{NumericRenderer.Real(l)} {r.Op} {NumericRenderer.Real(rr)}";
         // Under standard-decimal, §2023:8.8.4.2.4 requires EACH operand converted to standard-decimal intermediate form

@@ -568,6 +568,23 @@ public sealed class ClosedFormatReservedWordTests
         }
     }
 
+    /// <summary>⛔ THE RESERVED-WORD SENTENCE NAMES BOTH KINDS OF WORD AND CITES THE EDITION'S OWN RULE (kb/Work PB6072). The rule bars a
+    /// reserved word from being "user-defined words or system-names" (§2023:8.3.2.1 SR1, §2002:8.3.1.1, §2014:8.3.1.1,
+    /// §1985:IV.4.2.2.1.3), and the one sentence is reported at a system-name slot as at a user-defined-word one; the 2002 and 2014
+    /// refusals cite their own clause, not the 2023 one.</summary>
+    [Theory]
+    [InlineData(85, "(§1985:IV.4.2.2.1.3)")]
+    [InlineData(2002, "(ISO §2002:8.3.1.1)")]
+    [InlineData(2014, "(ISO §2014:8.3.1.1)")]
+    [InlineData(2023, "(ISO §2023:8.3.2.1 SR1)")]
+    public void ReservedWordSentence_NamesUserDefinedWordAndSystemName_AndCitesItsOwnEdition(int edition, string citation)
+    {
+        var errors = Compile(Head + "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 MOVE PIC X.\n" + Proc, edition);
+        string first = Assert.Single(errors);
+        Assert.Contains("cannot be used as a user-defined word or system-name " + citation, first);
+        Assert.DoesNotContain(edition < 2023 ? "§2023" : "§2002", first);
+    }
+
     /// <summary>The word AFTER a name or after a clause is a clause position only, so the closed-format refusal stands
     /// there (kb/Work PB4604): the name slot is closed by what is written before the word.</summary>
     [Theory]

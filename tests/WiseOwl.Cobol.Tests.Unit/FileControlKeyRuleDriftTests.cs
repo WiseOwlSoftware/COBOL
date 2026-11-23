@@ -490,6 +490,39 @@ public sealed class FileControlKeyRuleDriftTests
         }
     }
 
+    /// <summary>⛔ THE 2014 ROWS ARE RE-DERIVED FROM <c>specs/ISO_COBOL_2014.md</c> (kb/Work PB6072): each row quotes a numbered syntax
+    /// rule inside the "Syntax rules" subsection of the clause it cites, replaces a 2023 row whose file kind, role, precondition and
+    /// predicate it takes as its own, and ships its citation in the message. The 2014 text carries no "subject to any OCCURS
+    /// clauses" ban in the key clauses (each says "shall not be subscripted"), which is why the rows are the table-element rule.</summary>
+    [Fact]
+    public void Every2014Row_QuotesItsOwnNumberedRuleOfTheClauseItCites_AndRestatesA2023Row()
+    {
+        var lines = File.ReadAllLines(TestRepo.Specs("ISO_COBOL_2014.md"));
+        Assert.NotEmpty(FileControlKeyRules.Catalog2014);
+        foreach (var rule in FileControlKeyRules.Catalog2014)
+        {
+            var m = Regex.Match(rule.RuleId, @"^2014-SR-(?<clause>[0-9.]+)-(?<n>\d+)$");
+            Assert.True(m.Success, $"rule-id '{rule.RuleId}' is not the 2014 inventory's 2014-SR-<clause>-<n> shape.");
+            Assert.Equal(rule.Clause, m.Groups["clause"].Value);
+            Assert.Equal($"ISO §2014:{rule.Clause} SR{m.Groups["n"].Value}", rule.Citation);
+            int at = Array.FindIndex(lines, l => l.Trim() == $"###### {rule.Clause} Syntax rules");
+            Assert.True(at >= 0, $"§2014:{rule.Clause} has no Syntax rules subsection.");
+            string numbered = m.Groups["n"].Value + "\\) ";
+            bool found = false;
+            for (int j = at + 1; j < lines.Length && !lines[j].StartsWith('#'); j++)
+                if (lines[j].StartsWith(numbered, StringComparison.Ordinal) && Norm(lines[j]).Contains(Norm(rule.RuleText)))
+                    found = true;
+            Assert.True(found, $"§2014:{rule.Clause} has no numbered syntax rule {m.Groups["n"].Value} containing \"{rule.RuleText}\".");
+            var from2023 = Assert.Single(FileControlKeyRules.Catalog, r => r.RuleId == rule.Supersedes);
+            Assert.Equal(from2023.ScreenedOn, rule.ScreenedOn);
+            Assert.Equal(from2023.Role, rule.Role);
+            Assert.Same(from2023.Violated, rule.Violated);
+            var file = new FileModel { CobolName = "F", SelectName = "F", AssignTarget = "F" };
+            var item = new DataItem { Level = 5, CobolName = "K", ClrName = "K" };
+            Assert.Contains(rule.Citation, rule.Message(file, new FileKeyOperand(rule.Role, "KEY", "K", item, default)));
+        }
+    }
+
     /// <summary>⛔ THE 2023 OCCURS BANS COBOL-2002 DOES NOT HAVE (kb/Work PB5602): each row <c>FileControlKeyRules.Absent2002</c> names is a
     /// 2023 row of <see cref="FileControlKeyRules.Catalog"/>, and the 2002 syntax rules of the clause it names carry neither its
     /// sentence nor any "subject to any OCCURS" ban — the 2002 clause says only that the operand "may be qualified", and §2002:5.1.3

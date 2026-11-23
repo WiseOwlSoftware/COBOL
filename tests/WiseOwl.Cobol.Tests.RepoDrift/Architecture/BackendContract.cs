@@ -197,7 +197,7 @@ internal static class BackendContract
             "Bound.PropertyReceiverKey.Face", "Bound.ReceiverBracketKey.Face", "Bound.WrittenReceiverKey.Face",
             // a rule's citation and wording as each edition numbers it, for a diagnostic (kb/Work PB5352)
             "Model.EditionCite.At()", "Model.EditionCite.AtEveryOrganization()", "Model.EditionCite.Iso2023", "Model.EditionCite.Sequential1985",
-            "Model.EditionCite.Relative1985", "Model.EditionCite.Indexed1985",
+            "Model.EditionCite.Relative1985", "Model.EditionCite.Indexed1985", "Model.EditionCite.Iso2002", "Model.EditionCite.Iso2014",
             "Model.DescriptionClauses.AlignedOrDynamicLengthMismatch()", "Model.DescriptionCopyAttribute.Reason",
             "Model.ItemCategory.Face()", "Model.RecordClauseFacts.LowerName",
             "Model.RecordClauseFacts.UpperName", "Model.SectionDataItem.NonSectionKind()", "Model.TierCIsland.Reason()",
