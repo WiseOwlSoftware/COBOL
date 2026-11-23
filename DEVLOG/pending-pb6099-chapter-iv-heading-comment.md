@@ -1,0 +1,3 @@
+## Two drift-test comments stop claiming Chapter IV headings are unmarked
+
+PB6099: FileControlKeyRuleDriftTests and RecordClauseRuleDriftTests said Chapter IV prints its subclause headings without markdown marks. PB6051's normalizer made every 1985 numbered title a heading (specs/ANSI_COBOL_1985.md:7020 reads `###### 4.3.8.2.3 Syntax Rules`; 127 such marked "Syntax Rules" headings, no unmarked one). Both comments now say every title is a heading whose marks the test trims. The code is unchanged, since the trim still reads a marked title. A grep for the old sentence finds nothing else. Comment-only change; no golden and no inventory row apply.
