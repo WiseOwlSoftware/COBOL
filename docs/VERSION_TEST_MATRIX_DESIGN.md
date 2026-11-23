@@ -611,6 +611,25 @@ facility's introduction ("core obligation") nor the first edition whose WORDING 
   reading; a rule an earlier edition states in other words (the 1989 module's, above) is the adjudicator's half, decided from the
   edition's text with `cite.py --check` and a probe of the compiler at that edition.
 
+### P2.10 The edition band of an Annex A.1 item (kb/Work PB3320)
+
+A DOC-A.1 row documents a determination the standard leaves to the implementor, and its text ends in the rules that leave it
+(`(14.9.27, OPEN statement, General rule 23)`). Its band is the editions at which the rule it documents is in force with that
+latitude, read from each edition's own text (P2.9):
+
+- **A band never starts before the earliest rule row its text names.** The obligation to document a determination cannot predate
+  the rule that leaves it to the implementor. `DocItemBandDriftTests.EveryDocItem_StartsNoEarlierThanTheRulesItNames` reads each
+  item whose every reference is a clause with rule numbers and refuses an earlier start. An item that names a whole clause, or chains
+  two clauses in one reference, names no one rule and is the adjudicator's. `DOC-A.1-64` is the one exemption (2002's ENTRY-CONVENTION
+  clause states the implementor-defined meaning and default; the rule row it cites carries the 2014 COBOL alternative), and the test
+  fails when an exemption stops being needed.
+- **A band may start later than the earliest rule it names.** The item then documents an arm or a facility the earlier text does not
+  state (national characters, the exception conditions, hexadecimal literals, line sequential files); each such row carries its
+  facility in its notes (kb/Work PB3173), and no test can read it.
+- **An 85 start means the 1985 text leaves the same latitude, not that 1985 has an A.1 item.** The 1985 standard has no Annex A, so no
+  item can be found in it; the rule the item documents is in force at 85 (its own row starts there) and 1985's module text leaves the
+  matter to the implementor. The item is the later catalogue's name for that latitude.
+
 ## 9. Reuse / do-not-duplicate map
 
 | Need | Existing (reuse / port) |
