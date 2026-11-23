@@ -1,0 +1,370 @@
+{
+ "program": "IX215A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "WRITE-TEST-GF-01",
+   "lines": [
+    859
+   ],
+   "feature": "CREATE-FILE-FD1",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F1-01",
+   "lines": [
+    911
+   ],
+   "feature": "READ FILE IX-FD1",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-01",
+   "lines": [
+    953
+   ],
+   "feature": "START REDF REC-KEY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-02",
+   "lines": [
+    988
+   ],
+   "feature": "START REDF REC-KEY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-03",
+   "lines": [
+    1022
+   ],
+   "feature": "START REDF REC-KEY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-04",
+   "lines": [
+    1057,
+    1113
+   ],
+   "feature": "START REDF ALT-KEY-1",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-05",
+   "lines": [
+    1123
+   ],
+   "feature": "START REDF ALT-KEY-1",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-06",
+   "lines": [
+    1189
+   ],
+   "feature": "START REDF ALT-KEY-1",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-07",
+   "lines": [
+    1257
+   ],
+   "feature": "START REDF ALT-KEY-2",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-08",
+   "lines": [
+    1323
+   ],
+   "feature": "START REDF ALT-KEY-2",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-09",
+   "lines": [
+    1389
+   ],
+   "feature": "START REDF ALT-KEY-2",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRITE-TEST-GF-02",
+   "lines": [
+    1493
+   ],
+   "feature": "CREATE-FILE-FD2",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F1-02",
+   "lines": [
+    1547
+   ],
+   "feature": "READ FILE IX-FD2",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-10",
+   "lines": [
+    1591
+   ],
+   "feature": "START REDF REC-KEY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-11",
+   "lines": [
+    1621
+   ],
+   "feature": "START REDF REC-KEY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-12",
+   "lines": [
+    1652
+   ],
+   "feature": "START REDF REC-KEY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-13",
+   "lines": [
+    1685
+   ],
+   "feature": "START REDF ALT-KEY-1",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-14",
+   "lines": [
+    1749
+   ],
+   "feature": "START REDF ALT-KEY-1",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-15",
+   "lines": [
+    1813
+   ],
+   "feature": "START REDF ALT-KEY-1",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-16",
+   "lines": [
+    1878
+   ],
+   "feature": "START REDF ALT-KEY-2",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-17",
+   "lines": [
+    1942
+   ],
+   "feature": "START REDF ALT-KEY-2",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-18",
+   "lines": [
+    2006
+   ],
+   "feature": "START REDF ALT-KEY-2",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRITE-TEST-GF-03",
+   "lines": [
+    2109
+   ],
+   "feature": "CREATE-FILE-FD3",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F1-O3",
+   "lines": [
+    2164
+   ],
+   "feature": "READ FILE IX-FD3",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-19",
+   "lines": [
+    2209
+   ],
+   "feature": "START QUAL REC-KEY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-20",
+   "lines": [
+    2241
+   ],
+   "feature": "START QUAL REC-KEY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-21",
+   "lines": [
+    2273
+   ],
+   "feature": "START QUAL REC-KEY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-22",
+   "lines": [
+    2307
+   ],
+   "feature": "START QUAL ALT-KEY-1",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-23",
+   "lines": [
+    2372
+   ],
+   "feature": "START QUAL ALT-KEY-1",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-24",
+   "lines": [
+    2437
+   ],
+   "feature": "START QUAL ALT-KEY-1",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-25",
+   "lines": [
+    2502
+   ],
+   "feature": "START QUAL ALT-KEY-2",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-26",
+   "lines": [
+    2568
+   ],
+   "feature": "START QUAL ALT-KEY-2",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-27",
+   "lines": [
+    2632
+   ],
+   "feature": "START QUAL ALT-KEY-2",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

@@ -1,0 +1,138 @@
+{
+ "program": "ST144A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "SRT-TEST-DEC",
+   "lines": [
+    485
+   ],
+   "feature": "ERROR ON OUTPUT DECL.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "BLD-TEST-001",
+   "lines": [
+    657
+   ],
+   "feature": "CREATE FILE SQ-FS1",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "BLD-TEST-002",
+   "lines": [
+    694
+   ],
+   "feature": "CREATE FILE SQ-FS2",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "BLD-TEST-003",
+   "lines": [
+    731
+   ],
+   "feature": "CREATE FILE SQ-FS3",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MRG-TEST-003",
+   "lines": [
+    763
+   ],
+   "feature": "NATIVE COLL.SEQUENCE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MRG-TEST-004",
+   "lines": [
+    787
+   ],
+   "feature": "NATIVE COLL.SEQUENCE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MRG-TEST-005",
+   "lines": [
+    811
+   ],
+   "feature": "NATIVE COLL.SEQUENCE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MRG-TEST-006",
+   "lines": [
+    835
+   ],
+   "feature": "NATIVE COLL.SEQUENCE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MRG-TEST-007",
+   "lines": [
+    859
+   ],
+   "feature": "NATIVE COLL.SEQUENCE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MRG-TEST-008",
+   "lines": [
+    883
+   ],
+   "feature": "NATIVE COLL.SEQUENCE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MRG-TEST-009",
+   "lines": [
+    901
+   ],
+   "feature": "EOF CHECK SQ-FS4",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MRG-TEST-010",
+   "lines": [
+    917
+   ],
+   "feature": "NUMER. SEQ. CHECK",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

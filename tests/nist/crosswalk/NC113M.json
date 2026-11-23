@@ -1,0 +1,171 @@
+{
+ "program": "NC113M",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "MAR-TEST-2",
+   "lines": [
+    132
+   ],
+   "feature": "MARGIN TESTING",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MAR-TEST-15",
+   "lines": [
+    136
+   ],
+   "feature": "MARGIN TESTING",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MAR-TEST-7",
+   "lines": [
+    139
+   ],
+   "feature": "MARGIN TESTING",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MAR-TEST-12",
+   "lines": [
+    143
+   ],
+   "feature": "MARGIN TESTING",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MAR-TEST-4",
+   "lines": [
+    147
+   ],
+   "feature": "MARGIN TESTING",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MAR-TEST-9",
+   "lines": [
+    150
+   ],
+   "feature": "MARGIN TESTING",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MAR-TEST-8",
+   "lines": [
+    153
+   ],
+   "feature": "MARGIN TESTING",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MAR-TEST-1",
+   "lines": [
+    159
+   ],
+   "feature": "MARGIN TESTING",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MAR-TEST-5",
+   "lines": [
+    163
+   ],
+   "feature": "MARGIN TESTING",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MAR-TEST-13",
+   "lines": [
+    167
+   ],
+   "feature": "MARGIN TESTING",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MAR-TEST-3",
+   "lines": [
+    172
+   ],
+   "feature": "MARGIN TESTING",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MAR-TEST-14",
+   "lines": [
+    177
+   ],
+   "feature": "MARGIN TESTING",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MAR-TEST-11",
+   "lines": [
+    182
+   ],
+   "feature": "MARGIN TESTING",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MAR-TEST-10",
+   "lines": [
+    186
+   ],
+   "feature": "MARGIN TESTING",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MAR-TEST-6",
+   "lines": [
+    190
+   ],
+   "feature": "MARGIN TESTING",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

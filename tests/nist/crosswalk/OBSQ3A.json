@@ -1,0 +1,103 @@
+{
+ "program": "OBSQ3A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "SEQ-TEST-001",
+   "lines": [
+    458,
+    1085,
+    1670
+   ],
+   "feature": "CREATE FILE SQ-FS1",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-TEST-002",
+   "lines": [
+    482,
+    1127,
+    1712
+   ],
+   "feature": "CREATE FILE SQ-FS2",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-TEST-003",
+   "lines": [
+    506,
+    1169,
+    1754
+   ],
+   "feature": "CREATE FILE SQ-FS3",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-TEST-004",
+   "lines": [
+    530,
+    1211,
+    1796
+   ],
+   "feature": "CREATE FILE SQ-FS4",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-TEST-005",
+   "lines": [
+    554,
+    1838
+   ],
+   "feature": "CREATE FILE SQ-FS5",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-TEST-006",
+   "lines": [
+    578
+   ],
+   "feature": "CREATE FILE SQ-FS6",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-TEST-007",
+   "lines": [
+    602
+   ],
+   "feature": "CREATE FILE SQ-FS7",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-TEST-008",
+   "lines": [
+    626
+   ],
+   "feature": "CREATE FILE SQ-FS8",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

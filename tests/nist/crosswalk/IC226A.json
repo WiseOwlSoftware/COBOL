@@ -1,0 +1,50 @@
+{
+ "program": "IC226A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "EXT-TEST-01-01-1",
+   "lines": [
+    337
+   ],
+   "feature": "EXTERNAL CLAUSE",
+   "ansi": "X-21 4.5.1",
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-01-01-2",
+   "lines": [
+    349
+   ],
+   "feature": "EXTERNAL CLAUSE",
+   "ansi": "X-21 4.5.1",
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-01-01-3",
+   "lines": [
+    361
+   ],
+   "feature": "EXTERNAL CLAUSE",
+   "ansi": "X-21 4.5.1",
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-01-01-4",
+   "lines": [
+    373
+   ],
+   "feature": "EXTERNAL CLAUSE",
+   "ansi": "X-21 4.5.1",
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

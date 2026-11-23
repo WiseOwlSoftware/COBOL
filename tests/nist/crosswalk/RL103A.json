@@ -1,0 +1,39 @@
+{
+ "program": "RL103A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "REL-TEST-006",
+   "lines": [
+    399
+   ],
+   "feature": "READ SEQUENTIAL",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-007",
+   "lines": [
+    488
+   ],
+   "feature": "DELETE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-008",
+   "lines": [
+    543
+   ],
+   "feature": "READ UPDATED FILE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

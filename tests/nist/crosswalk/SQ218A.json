@@ -1,0 +1,116 @@
+{
+ "program": "SQ218A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "WRITE-TEST-GF-01",
+   "lines": [
+    427
+   ],
+   "feature": "CREATE FILE SQ-VS6",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F1-01",
+   "lines": [
+    478
+   ],
+   "feature": "READ SHORT RECORD",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F1-02",
+   "lines": [
+    519
+   ],
+   "feature": "READ LONG RECORD",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F1-03",
+   "lines": [
+    561
+   ],
+   "feature": "READ SHORT RECORDS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F1-04",
+   "lines": [
+    580
+   ],
+   "feature": "READ LONG RECORDS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F1-05",
+   "lines": [
+    599
+   ],
+   "feature": "READ SHORT RECORDS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F1-06",
+   "lines": [
+    622
+   ],
+   "feature": "VERIFY FILE SQ-VS6",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "INFO-TEST-001",
+   "lines": [
+    649
+   ],
+   "feature": "READ SHORT RECORD",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "INFO-TEST-002",
+   "lines": [
+    669
+   ],
+   "feature": "READ SHORT RECORD",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "INFO-TEST-003",
+   "lines": [
+    691
+   ],
+   "feature": "READ SHORT RECORD",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

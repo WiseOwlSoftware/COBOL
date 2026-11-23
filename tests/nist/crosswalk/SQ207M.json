@@ -1,0 +1,94 @@
+{
+ "program": "SQ207M",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "WRITE-TEST-GF-01",
+   "lines": [
+    370
+   ],
+   "feature": "WRT FRM BFR ADV MNC",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRITE-TEST-GF-02",
+   "lines": [
+    378
+   ],
+   "feature": "WRT FRM BFR MNC",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRITE-TEST-GF-03",
+   "lines": [
+    385
+   ],
+   "feature": "WRT FRM AFT ADV MNC",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRITE-TEST-GF-04",
+   "lines": [
+    393
+   ],
+   "feature": "WRT FRM AFT MNC",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRITE-TEST-GF-05",
+   "lines": [
+    399
+   ],
+   "feature": "WRT BFR ADV MNC",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRITE-TEST-GF-06",
+   "lines": [
+    407
+   ],
+   "feature": "WRT BFR MNC",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRITE-TEST-GF-07",
+   "lines": [
+    415
+   ],
+   "feature": "WRT AFT ADV MNC",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRITE-TEST-GF-08",
+   "lines": [
+    424
+   ],
+   "feature": "WRT AFT MNC",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

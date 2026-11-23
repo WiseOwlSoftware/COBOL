@@ -48,7 +48,7 @@ public abstract class WiseOwlCobolTestBase : IDisposable
     /// warnings before running it.</summary>
     protected (bool ok, string stdout, string detail) RunAssembly(string dllPath)
     {
-        // The ONE child-process observer (tests/_shared/ProcessObservation.cs) — a run that does not complete
+        // The ONE child-process observer (tests/_shared/ProcessObserver.cs) — a run that does not complete
         // raises rather than returning an empty stdout for the caller to compare. See plan §11 A12.
         var psi = new ProcessStartInfo("dotnet", $"\"{dllPath}\"") { WorkingDirectory = TempDir };
         var obs = ProcessObserver.ObserveOrThrow(psi, runDirectory: TempDir);

@@ -1,0 +1,17 @@
+{
+ "program": "IC237A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "CALL-TEST-1",
+   "lines": [
+    305
+   ],
+   "feature": "",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

@@ -1,0 +1,118 @@
+{
+ "program": "NC111A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "TRU-TEST-GF-1",
+   "lines": [
+    354
+   ],
+   "feature": "TRUNCATION",
+   "ansi": "V1-67 6.4.1",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.4.1-p1",
+    "1985-GR-VI.6.4.1-p2"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "TRU-TEST-GF-2",
+   "lines": [
+    374
+   ],
+   "feature": "TRUNCATION",
+   "ansi": "V1-67 6.4.1",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.4.1-p1",
+    "1985-GR-VI.6.4.1-p2"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "TRU-TEST-GF-3",
+   "lines": [
+    394
+   ],
+   "feature": "TRUNCATION",
+   "ansi": "V1-67 6.4.1",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.4.1-p1",
+    "1985-GR-VI.6.4.1-p2"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "TRU-TEST-GF-4",
+   "lines": [
+    414
+   ],
+   "feature": "TRUNCATION",
+   "ansi": "V1-67 6.4.1",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.4.1-p1",
+    "1985-GR-VI.6.4.1-p2"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "TRU-TEST-GF-5",
+   "lines": [
+    434
+   ],
+   "feature": "TRUNCATION",
+   "ansi": "V1-67 6.4.1",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.4.1-p1",
+    "1985-GR-VI.6.4.1-p2"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "TRU-TEST-GF-6",
+   "lines": [
+    454
+   ],
+   "feature": "TRUNCATION",
+   "ansi": "V1-67 6.4.1",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.4.1-p1",
+    "1985-GR-VI.6.4.1-p2"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "TRU-TEST-GF-7",
+   "lines": [
+    474
+   ],
+   "feature": "TRUNCATION",
+   "ansi": "V1-67 6.4.1",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.4.1-p1",
+    "1985-GR-VI.6.4.1-p2"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  }
+ ]
+}

@@ -1,0 +1,83 @@
+{
+ "program": "SQ208M",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "WRITE-TEST-GF-01",
+   "lines": [
+    442
+   ],
+   "feature": "LINAGE AFTER OPEN",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRITE-TEST-GF-02",
+   "lines": [
+    466
+   ],
+   "feature": "LINAGE AFT OVERFLOW",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRITE-TEST-GF-03",
+   "lines": [
+    493
+   ],
+   "feature": "LINAGE AFT WRT PAGE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRITE-TEST-GF-04",
+   "lines": [
+    521
+   ],
+   "feature": "MIN LINAGE / 0 TOP",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRITE-TEST-GF-05",
+   "lines": [
+    539
+   ],
+   "feature": "MIN FOOTING / 0 BOTM",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRITE-TEST-GF-06",
+   "lines": [
+    559
+   ],
+   "feature": "WRITE BEFORE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRITE-TEST-GF-07",
+   "lines": [
+    587
+   ],
+   "feature": "WRITE AFTER",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

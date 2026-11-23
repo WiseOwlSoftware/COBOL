@@ -1,0 +1,310 @@
+{
+ "program": "IF138A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "F-SUM-01",
+   "lines": [
+    372
+   ],
+   "feature": "SUM Function",
+   "ansi": "See ref. A-69 2.40",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.40.1-p1",
+    "1989-FMT-A.2.40.2",
+    "1989-AR-A.2.40.3-1",
+    "1989-AR-A.2.40.3-2",
+    "1989-RV-A.2.40.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SUM-02",
+   "lines": [
+    386
+   ],
+   "feature": "SUM Function",
+   "ansi": "See ref. A-69 2.40",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.40.1-p1",
+    "1989-FMT-A.2.40.2",
+    "1989-AR-A.2.40.3-1",
+    "1989-AR-A.2.40.3-2",
+    "1989-RV-A.2.40.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SUM-03",
+   "lines": [
+    399
+   ],
+   "feature": "SUM Function",
+   "ansi": "See ref. A-69 2.40",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.40.1-p1",
+    "1989-FMT-A.2.40.2",
+    "1989-AR-A.2.40.3-1",
+    "1989-AR-A.2.40.3-2",
+    "1989-RV-A.2.40.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SUM-04",
+   "lines": [
+    418
+   ],
+   "feature": "SUM Function",
+   "ansi": "See ref. A-69 2.40",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.40.1-p1",
+    "1989-FMT-A.2.40.2",
+    "1989-AR-A.2.40.3-1",
+    "1989-AR-A.2.40.3-2",
+    "1989-RV-A.2.40.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SUM-05",
+   "lines": [
+    437
+   ],
+   "feature": "SUM Function",
+   "ansi": "See ref. A-69 2.40",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.40.1-p1",
+    "1989-FMT-A.2.40.2",
+    "1989-AR-A.2.40.3-1",
+    "1989-AR-A.2.40.3-2",
+    "1989-RV-A.2.40.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SUM-06",
+   "lines": [
+    456
+   ],
+   "feature": "SUM Function",
+   "ansi": "See ref. A-69 2.40",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.40.1-p1",
+    "1989-FMT-A.2.40.2",
+    "1989-AR-A.2.40.3-1",
+    "1989-AR-A.2.40.3-2",
+    "1989-RV-A.2.40.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SUM-07",
+   "lines": [
+    474
+   ],
+   "feature": "SUM Function",
+   "ansi": "See ref. A-69 2.40",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.40.1-p1",
+    "1989-FMT-A.2.40.2",
+    "1989-AR-A.2.40.3-1",
+    "1989-AR-A.2.40.3-2",
+    "1989-RV-A.2.40.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SUM-08",
+   "lines": [
+    492
+   ],
+   "feature": "SUM Function",
+   "ansi": "See ref. A-69 2.40",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.40.1-p1",
+    "1989-FMT-A.2.40.2",
+    "1989-AR-A.2.40.3-1",
+    "1989-AR-A.2.40.3-2",
+    "1989-RV-A.2.40.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SUM-09",
+   "lines": [
+    510
+   ],
+   "feature": "SUM Function",
+   "ansi": "See ref. A-69 2.40",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.40.1-p1",
+    "1989-FMT-A.2.40.2",
+    "1989-AR-A.2.40.3-1",
+    "1989-AR-A.2.40.3-2",
+    "1989-RV-A.2.40.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SUM-11",
+   "lines": [
+    528
+   ],
+   "feature": "SUM Function",
+   "ansi": "See ref. A-69 2.40",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.40.1-p1",
+    "1989-FMT-A.2.40.2",
+    "1989-AR-A.2.40.3-1",
+    "1989-AR-A.2.40.3-2",
+    "1989-RV-A.2.40.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SUM-12",
+   "lines": [
+    550
+   ],
+   "feature": "SUM Function",
+   "ansi": "See ref. A-69 2.40",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.40.1-p1",
+    "1989-FMT-A.2.40.2",
+    "1989-AR-A.2.40.3-1",
+    "1989-AR-A.2.40.3-2",
+    "1989-RV-A.2.40.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SUM-13",
+   "lines": [
+    572
+   ],
+   "feature": "SUM Function",
+   "ansi": "See ref. A-69 2.40",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.40.1-p1",
+    "1989-FMT-A.2.40.2",
+    "1989-AR-A.2.40.3-1",
+    "1989-AR-A.2.40.3-2",
+    "1989-RV-A.2.40.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SUM-14",
+   "lines": [
+    594
+   ],
+   "feature": "SUM Function",
+   "ansi": "See ref. A-69 2.40",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.40.1-p1",
+    "1989-FMT-A.2.40.2",
+    "1989-AR-A.2.40.3-1",
+    "1989-AR-A.2.40.3-2",
+    "1989-RV-A.2.40.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SUM-15",
+   "lines": [
+    617
+   ],
+   "feature": "SUM Function",
+   "ansi": "See ref. A-69 2.40",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.40.1-p1",
+    "1989-FMT-A.2.40.2",
+    "1989-AR-A.2.40.3-1",
+    "1989-AR-A.2.40.3-2",
+    "1989-RV-A.2.40.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SUM-16",
+   "lines": [
+    640
+   ],
+   "feature": "SUM Function",
+   "ansi": "See ref. A-69 2.40",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.40.1-p1",
+    "1989-FMT-A.2.40.2",
+    "1989-AR-A.2.40.3-1",
+    "1989-AR-A.2.40.3-2",
+    "1989-RV-A.2.40.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SUM-17",
+   "lines": [
+    654
+   ],
+   "feature": "SUM Function",
+   "ansi": "See ref. A-69 2.40",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.40.1-p1",
+    "1989-FMT-A.2.40.2",
+    "1989-AR-A.2.40.3-1",
+    "1989-AR-A.2.40.3-2",
+    "1989-RV-A.2.40.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  }
+ ]
+}

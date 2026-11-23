@@ -1,0 +1,443 @@
+{
+ "program": "IF103A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "F-ASIN-01",
+   "lines": [
+    370
+   ],
+   "feature": "ASIN Function",
+   "ansi": "See ref. A-35 2.7",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.7.1-p1",
+    "1989-FMT-A.2.7.2",
+    "1989-AR-A.2.7.3-1",
+    "1989-AR-A.2.7.3-2",
+    "1989-RV-A.2.7.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-ASIN-02",
+   "lines": [
+    384
+   ],
+   "feature": "ASIN Function",
+   "ansi": "See ref. A-35 2.7",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.7.1-p1",
+    "1989-FMT-A.2.7.2",
+    "1989-AR-A.2.7.3-1",
+    "1989-AR-A.2.7.3-2",
+    "1989-RV-A.2.7.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-ASIN-03",
+   "lines": [
+    401
+   ],
+   "feature": "ASIN Function",
+   "ansi": "See ref. A-35 2.7",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.7.1-p1",
+    "1989-FMT-A.2.7.2",
+    "1989-AR-A.2.7.3-1",
+    "1989-AR-A.2.7.3-2",
+    "1989-RV-A.2.7.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-ASIN-04",
+   "lines": [
+    423
+   ],
+   "feature": "ASIN Function",
+   "ansi": "See ref. A-35 2.7",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.7.1-p1",
+    "1989-FMT-A.2.7.2",
+    "1989-AR-A.2.7.3-1",
+    "1989-AR-A.2.7.3-2",
+    "1989-RV-A.2.7.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-ASIN-05",
+   "lines": [
+    445
+   ],
+   "feature": "ASIN Function",
+   "ansi": "See ref. A-35 2.7",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.7.1-p1",
+    "1989-FMT-A.2.7.2",
+    "1989-AR-A.2.7.3-1",
+    "1989-AR-A.2.7.3-2",
+    "1989-RV-A.2.7.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-ASIN-06",
+   "lines": [
+    467
+   ],
+   "feature": "ASIN Function",
+   "ansi": "See ref. A-35 2.7",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.7.1-p1",
+    "1989-FMT-A.2.7.2",
+    "1989-AR-A.2.7.3-1",
+    "1989-AR-A.2.7.3-2",
+    "1989-RV-A.2.7.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-ASIN-08",
+   "lines": [
+    489
+   ],
+   "feature": "ASIN Function",
+   "ansi": "See ref. A-35 2.7",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.7.1-p1",
+    "1989-FMT-A.2.7.2",
+    "1989-AR-A.2.7.3-1",
+    "1989-AR-A.2.7.3-2",
+    "1989-RV-A.2.7.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-ASIN-11",
+   "lines": [
+    511
+   ],
+   "feature": "ASIN Function",
+   "ansi": "See ref. A-35 2.7",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.7.1-p1",
+    "1989-FMT-A.2.7.2",
+    "1989-AR-A.2.7.3-1",
+    "1989-AR-A.2.7.3-2",
+    "1989-RV-A.2.7.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-ASIN-12",
+   "lines": [
+    533
+   ],
+   "feature": "ASIN Function",
+   "ansi": "See ref. A-35 2.7",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.7.1-p1",
+    "1989-FMT-A.2.7.2",
+    "1989-AR-A.2.7.3-1",
+    "1989-AR-A.2.7.3-2",
+    "1989-RV-A.2.7.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-ASIN-13",
+   "lines": [
+    555
+   ],
+   "feature": "ASIN Function",
+   "ansi": "See ref. A-35 2.7",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.7.1-p1",
+    "1989-FMT-A.2.7.2",
+    "1989-AR-A.2.7.3-1",
+    "1989-AR-A.2.7.3-2",
+    "1989-RV-A.2.7.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-ASIN-15",
+   "lines": [
+    577
+   ],
+   "feature": "ASIN Function",
+   "ansi": "See ref. A-35 2.7",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.7.1-p1",
+    "1989-FMT-A.2.7.2",
+    "1989-AR-A.2.7.3-1",
+    "1989-AR-A.2.7.3-2",
+    "1989-RV-A.2.7.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-ASIN-16",
+   "lines": [
+    599
+   ],
+   "feature": "ASIN Function",
+   "ansi": "See ref. A-35 2.7",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.7.1-p1",
+    "1989-FMT-A.2.7.2",
+    "1989-AR-A.2.7.3-1",
+    "1989-AR-A.2.7.3-2",
+    "1989-RV-A.2.7.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-ASIN-17",
+   "lines": [
+    621
+   ],
+   "feature": "ASIN Function",
+   "ansi": "See ref. A-35 2.7",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.7.1-p1",
+    "1989-FMT-A.2.7.2",
+    "1989-AR-A.2.7.3-1",
+    "1989-AR-A.2.7.3-2",
+    "1989-RV-A.2.7.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-ASIN-18",
+   "lines": [
+    643
+   ],
+   "feature": "ASIN Function",
+   "ansi": "See ref. A-35 2.7",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.7.1-p1",
+    "1989-FMT-A.2.7.2",
+    "1989-AR-A.2.7.3-1",
+    "1989-AR-A.2.7.3-2",
+    "1989-RV-A.2.7.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-ASIN-19",
+   "lines": [
+    665
+   ],
+   "feature": "ASIN Function",
+   "ansi": "See ref. A-35 2.7",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.7.1-p1",
+    "1989-FMT-A.2.7.2",
+    "1989-AR-A.2.7.3-1",
+    "1989-AR-A.2.7.3-2",
+    "1989-RV-A.2.7.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-ASIN-20",
+   "lines": [
+    687
+   ],
+   "feature": "ASIN Function",
+   "ansi": "See ref. A-35 2.7",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.7.1-p1",
+    "1989-FMT-A.2.7.2",
+    "1989-AR-A.2.7.3-1",
+    "1989-AR-A.2.7.3-2",
+    "1989-RV-A.2.7.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-ASIN-21",
+   "lines": [
+    709
+   ],
+   "feature": "ASIN Function",
+   "ansi": "See ref. A-35 2.7",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.7.1-p1",
+    "1989-FMT-A.2.7.2",
+    "1989-AR-A.2.7.3-1",
+    "1989-AR-A.2.7.3-2",
+    "1989-RV-A.2.7.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-ASIN-22",
+   "lines": [
+    731
+   ],
+   "feature": "ASIN Function",
+   "ansi": "See ref. A-35 2.7",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.7.1-p1",
+    "1989-FMT-A.2.7.2",
+    "1989-AR-A.2.7.3-1",
+    "1989-AR-A.2.7.3-2",
+    "1989-RV-A.2.7.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-ASIN-23",
+   "lines": [
+    753
+   ],
+   "feature": "ASIN Function",
+   "ansi": "See ref. A-35 2.7",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.7.1-p1",
+    "1989-FMT-A.2.7.2",
+    "1989-AR-A.2.7.3-1",
+    "1989-AR-A.2.7.3-2",
+    "1989-RV-A.2.7.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-ASIN-24",
+   "lines": [
+    775
+   ],
+   "feature": "ASIN Function",
+   "ansi": "See ref. A-35 2.7",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.7.1-p1",
+    "1989-FMT-A.2.7.2",
+    "1989-AR-A.2.7.3-1",
+    "1989-AR-A.2.7.3-2",
+    "1989-RV-A.2.7.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-ASIN-25",
+   "lines": [
+    797
+   ],
+   "feature": "ASIN Function",
+   "ansi": "See ref. A-35 2.7",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.7.1-p1",
+    "1989-FMT-A.2.7.2",
+    "1989-AR-A.2.7.3-1",
+    "1989-AR-A.2.7.3-2",
+    "1989-RV-A.2.7.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-ASIN-26",
+   "lines": [
+    820
+   ],
+   "feature": "ASIN Function",
+   "ansi": "See ref. A-35 2.7",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.7.1-p1",
+    "1989-FMT-A.2.7.2",
+    "1989-AR-A.2.7.3-1",
+    "1989-AR-A.2.7.3-2",
+    "1989-RV-A.2.7.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-ASIN-27",
+   "lines": [
+    835
+   ],
+   "feature": "ASIN Function",
+   "ansi": "See ref. A-35 2.7",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.7.1-p1",
+    "1989-FMT-A.2.7.2",
+    "1989-AR-A.2.7.3-1",
+    "1989-AR-A.2.7.3-2",
+    "1989-RV-A.2.7.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  }
+ ]
+}

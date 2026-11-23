@@ -1,0 +1,105 @@
+{
+ "program": "SQ108A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "SEQ-TEST-019",
+   "lines": [
+    434
+   ],
+   "feature": "CREATE FILE SQ-FS8",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-TEST-020",
+   "lines": [
+    482
+   ],
+   "feature": "VERIFY FILE SQ-FS8",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-GF-01",
+   "lines": [
+    494
+   ],
+   "feature": "READ 141 INTO 87",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-GF-02",
+   "lines": [
+    543
+   ],
+   "feature": "READ 141 INTO 120",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-GF-03",
+   "lines": [
+    584
+   ],
+   "feature": "READ 141 INTO 148",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-GF-04",
+   "lines": [
+    632
+   ],
+   "feature": "READ 141 INTO 141",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-GF-05",
+   "lines": [
+    678
+   ],
+   "feature": "READ 141 INTO 120",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-GF-06",
+   "lines": [
+    718
+   ],
+   "feature": "READ 141 INTO 141",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-TEST-21",
+   "lines": [
+    790
+   ],
+   "feature": "READ SQ-FS8 INTO END",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

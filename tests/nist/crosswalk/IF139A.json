@@ -1,0 +1,546 @@
+{
+ "program": "IF139A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "F-TAN-01",
+   "lines": [
+    369
+   ],
+   "feature": "TAN Function",
+   "ansi": "See ref. A-71 2.43",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.43.1-p1",
+    "1989-FMT-A.2.43.2",
+    "1989-AR-A.2.43.3-1",
+    "1989-RV-A.2.43.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-TAN-02",
+   "lines": [
+    383
+   ],
+   "feature": "TAN Function",
+   "ansi": "See ref. A-71 2.43",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.43.1-p1",
+    "1989-FMT-A.2.43.2",
+    "1989-AR-A.2.43.3-1",
+    "1989-RV-A.2.43.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-TAN-03",
+   "lines": [
+    400
+   ],
+   "feature": "TAN Function",
+   "ansi": "See ref. A-71 2.43",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.43.1-p1",
+    "1989-FMT-A.2.43.2",
+    "1989-AR-A.2.43.3-1",
+    "1989-RV-A.2.43.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-TAN-04",
+   "lines": [
+    422
+   ],
+   "feature": "TAN Function",
+   "ansi": "See ref. A-71 2.43",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.43.1-p1",
+    "1989-FMT-A.2.43.2",
+    "1989-AR-A.2.43.3-1",
+    "1989-RV-A.2.43.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-TAN-05",
+   "lines": [
+    444
+   ],
+   "feature": "TAN Function",
+   "ansi": "See ref. A-71 2.43",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.43.1-p1",
+    "1989-FMT-A.2.43.2",
+    "1989-AR-A.2.43.3-1",
+    "1989-RV-A.2.43.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-TAN-06",
+   "lines": [
+    466
+   ],
+   "feature": "TAN Function",
+   "ansi": "See ref. A-71 2.43",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.43.1-p1",
+    "1989-FMT-A.2.43.2",
+    "1989-AR-A.2.43.3-1",
+    "1989-RV-A.2.43.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-TAN-07",
+   "lines": [
+    488
+   ],
+   "feature": "TAN Function",
+   "ansi": "See ref. A-71 2.43",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.43.1-p1",
+    "1989-FMT-A.2.43.2",
+    "1989-AR-A.2.43.3-1",
+    "1989-RV-A.2.43.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-TAN-08",
+   "lines": [
+    510
+   ],
+   "feature": "TAN Function",
+   "ansi": "See ref. A-71 2.43",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.43.1-p1",
+    "1989-FMT-A.2.43.2",
+    "1989-AR-A.2.43.3-1",
+    "1989-RV-A.2.43.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-TAN-09",
+   "lines": [
+    532
+   ],
+   "feature": "TAN Function",
+   "ansi": "See ref. A-71 2.43",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.43.1-p1",
+    "1989-FMT-A.2.43.2",
+    "1989-AR-A.2.43.3-1",
+    "1989-RV-A.2.43.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-TAN-10",
+   "lines": [
+    554
+   ],
+   "feature": "TAN Function",
+   "ansi": "See ref. A-71 2.43",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.43.1-p1",
+    "1989-FMT-A.2.43.2",
+    "1989-AR-A.2.43.3-1",
+    "1989-RV-A.2.43.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-TAN-11",
+   "lines": [
+    576
+   ],
+   "feature": "TAN Function",
+   "ansi": "See ref. A-71 2.43",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.43.1-p1",
+    "1989-FMT-A.2.43.2",
+    "1989-AR-A.2.43.3-1",
+    "1989-RV-A.2.43.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-TAN-12",
+   "lines": [
+    598
+   ],
+   "feature": "TAN Function",
+   "ansi": "See ref. A-71 2.43",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.43.1-p1",
+    "1989-FMT-A.2.43.2",
+    "1989-AR-A.2.43.3-1",
+    "1989-RV-A.2.43.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-TAN-13",
+   "lines": [
+    620
+   ],
+   "feature": "TAN Function",
+   "ansi": "See ref. A-71 2.43",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.43.1-p1",
+    "1989-FMT-A.2.43.2",
+    "1989-AR-A.2.43.3-1",
+    "1989-RV-A.2.43.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-TAN-14",
+   "lines": [
+    642
+   ],
+   "feature": "TAN Function",
+   "ansi": "See ref. A-71 2.43",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.43.1-p1",
+    "1989-FMT-A.2.43.2",
+    "1989-AR-A.2.43.3-1",
+    "1989-RV-A.2.43.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-TAN-15",
+   "lines": [
+    664
+   ],
+   "feature": "TAN Function",
+   "ansi": "See ref. A-71 2.43",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.43.1-p1",
+    "1989-FMT-A.2.43.2",
+    "1989-AR-A.2.43.3-1",
+    "1989-RV-A.2.43.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-TAN-16",
+   "lines": [
+    686
+   ],
+   "feature": "TAN Function",
+   "ansi": "See ref. A-71 2.43",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.43.1-p1",
+    "1989-FMT-A.2.43.2",
+    "1989-AR-A.2.43.3-1",
+    "1989-RV-A.2.43.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-TAN-17",
+   "lines": [
+    708
+   ],
+   "feature": "TAN Function",
+   "ansi": "See ref. A-71 2.43",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.43.1-p1",
+    "1989-FMT-A.2.43.2",
+    "1989-AR-A.2.43.3-1",
+    "1989-RV-A.2.43.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-TAN-19",
+   "lines": [
+    730
+   ],
+   "feature": "TAN Function",
+   "ansi": "See ref. A-71 2.43",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.43.1-p1",
+    "1989-FMT-A.2.43.2",
+    "1989-AR-A.2.43.3-1",
+    "1989-RV-A.2.43.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-TAN-20",
+   "lines": [
+    752
+   ],
+   "feature": "TAN Function",
+   "ansi": "See ref. A-71 2.43",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.43.1-p1",
+    "1989-FMT-A.2.43.2",
+    "1989-AR-A.2.43.3-1",
+    "1989-RV-A.2.43.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-TAN-21",
+   "lines": [
+    774
+   ],
+   "feature": "TAN Function",
+   "ansi": "See ref. A-71 2.43",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.43.1-p1",
+    "1989-FMT-A.2.43.2",
+    "1989-AR-A.2.43.3-1",
+    "1989-RV-A.2.43.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-TAN-22",
+   "lines": [
+    796
+   ],
+   "feature": "TAN Function",
+   "ansi": "See ref. A-71 2.43",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.43.1-p1",
+    "1989-FMT-A.2.43.2",
+    "1989-AR-A.2.43.3-1",
+    "1989-RV-A.2.43.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-TAN-23",
+   "lines": [
+    818
+   ],
+   "feature": "TAN Function",
+   "ansi": "See ref. A-71 2.43",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.43.1-p1",
+    "1989-FMT-A.2.43.2",
+    "1989-AR-A.2.43.3-1",
+    "1989-RV-A.2.43.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-TAN-24",
+   "lines": [
+    840
+   ],
+   "feature": "TAN Function",
+   "ansi": "See ref. A-71 2.43",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.43.1-p1",
+    "1989-FMT-A.2.43.2",
+    "1989-AR-A.2.43.3-1",
+    "1989-RV-A.2.43.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-TAN-25",
+   "lines": [
+    862
+   ],
+   "feature": "TAN Function",
+   "ansi": "See ref. A-71 2.43",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.43.1-p1",
+    "1989-FMT-A.2.43.2",
+    "1989-AR-A.2.43.3-1",
+    "1989-RV-A.2.43.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-TAN-27",
+   "lines": [
+    884
+   ],
+   "feature": "TAN Function",
+   "ansi": "See ref. A-71 2.43",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.43.1-p1",
+    "1989-FMT-A.2.43.2",
+    "1989-AR-A.2.43.3-1",
+    "1989-RV-A.2.43.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-TAN-28",
+   "lines": [
+    906
+   ],
+   "feature": "TAN Function",
+   "ansi": "See ref. A-71 2.43",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.43.1-p1",
+    "1989-FMT-A.2.43.2",
+    "1989-AR-A.2.43.3-1",
+    "1989-RV-A.2.43.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-TAN-29",
+   "lines": [
+    928
+   ],
+   "feature": "TAN Function",
+   "ansi": "See ref. A-71 2.43",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.43.1-p1",
+    "1989-FMT-A.2.43.2",
+    "1989-AR-A.2.43.3-1",
+    "1989-RV-A.2.43.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-TAN-30",
+   "lines": [
+    950
+   ],
+   "feature": "TAN Function",
+   "ansi": "See ref. A-71 2.43",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.43.1-p1",
+    "1989-FMT-A.2.43.2",
+    "1989-AR-A.2.43.3-1",
+    "1989-RV-A.2.43.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-TAN-31",
+   "lines": [
+    973
+   ],
+   "feature": "TAN Function",
+   "ansi": "See ref. A-71 2.43",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.43.1-p1",
+    "1989-FMT-A.2.43.2",
+    "1989-AR-A.2.43.3-1",
+    "1989-RV-A.2.43.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-TAN-32",
+   "lines": [
+    987
+   ],
+   "feature": "TAN Function",
+   "ansi": "See ref. A-71 2.43",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.43.1-p1",
+    "1989-FMT-A.2.43.2",
+    "1989-AR-A.2.43.3-1",
+    "1989-RV-A.2.43.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  }
+ ]
+}

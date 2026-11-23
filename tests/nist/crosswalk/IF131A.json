@@ -1,0 +1,190 @@
+{
+ "program": "IF131A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "F-RANDOM-01",
+   "lines": [
+    364
+   ],
+   "feature": "RANDOM Function",
+   "ansi": "See ref. A-64 2.35",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.35.1-p1",
+    "1989-FMT-A.2.35.2",
+    "1989-AR-A.2.35.3-1",
+    "1989-AR-A.2.35.3-2",
+    "1989-AR-A.2.35.3-3",
+    "1989-AR-A.2.35.3-4",
+    "1989-RV-A.2.35.4-1",
+    "1989-RV-A.2.35.4-2",
+    "1989-RV-A.2.35.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-RANDOM-02",
+   "lines": [
+    378
+   ],
+   "feature": "RANDOM Function",
+   "ansi": "See ref. A-64 2.35",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.35.1-p1",
+    "1989-FMT-A.2.35.2",
+    "1989-AR-A.2.35.3-1",
+    "1989-AR-A.2.35.3-2",
+    "1989-AR-A.2.35.3-3",
+    "1989-AR-A.2.35.3-4",
+    "1989-RV-A.2.35.4-1",
+    "1989-RV-A.2.35.4-2",
+    "1989-RV-A.2.35.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-RANDOM-03",
+   "lines": [
+    395
+   ],
+   "feature": "RANDOM Function",
+   "ansi": "See ref. A-64 2.35",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.35.1-p1",
+    "1989-FMT-A.2.35.2",
+    "1989-AR-A.2.35.3-1",
+    "1989-AR-A.2.35.3-2",
+    "1989-AR-A.2.35.3-3",
+    "1989-AR-A.2.35.3-4",
+    "1989-RV-A.2.35.4-1",
+    "1989-RV-A.2.35.4-2",
+    "1989-RV-A.2.35.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-RANDOM-04",
+   "lines": [
+    417
+   ],
+   "feature": "RANDOM Function",
+   "ansi": "See ref. A-64 2.35",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.35.1-p1",
+    "1989-FMT-A.2.35.2",
+    "1989-AR-A.2.35.3-1",
+    "1989-AR-A.2.35.3-2",
+    "1989-AR-A.2.35.3-3",
+    "1989-AR-A.2.35.3-4",
+    "1989-RV-A.2.35.4-1",
+    "1989-RV-A.2.35.4-2",
+    "1989-RV-A.2.35.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-RANDOM-05",
+   "lines": [
+    439
+   ],
+   "feature": "RANDOM Function",
+   "ansi": "See ref. A-64 2.35",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.35.1-p1",
+    "1989-FMT-A.2.35.2",
+    "1989-AR-A.2.35.3-1",
+    "1989-AR-A.2.35.3-2",
+    "1989-AR-A.2.35.3-3",
+    "1989-AR-A.2.35.3-4",
+    "1989-RV-A.2.35.4-1",
+    "1989-RV-A.2.35.4-2",
+    "1989-RV-A.2.35.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-RANDOM-06",
+   "lines": [
+    461
+   ],
+   "feature": "RANDOM Function",
+   "ansi": "See ref. A-64 2.35",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.35.1-p1",
+    "1989-FMT-A.2.35.2",
+    "1989-AR-A.2.35.3-1",
+    "1989-AR-A.2.35.3-2",
+    "1989-AR-A.2.35.3-3",
+    "1989-AR-A.2.35.3-4",
+    "1989-RV-A.2.35.4-1",
+    "1989-RV-A.2.35.4-2",
+    "1989-RV-A.2.35.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-RANDOM-07",
+   "lines": [
+    484
+   ],
+   "feature": "RANDOM Function",
+   "ansi": "See ref. A-64 2.35",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.35.1-p1",
+    "1989-FMT-A.2.35.2",
+    "1989-AR-A.2.35.3-1",
+    "1989-AR-A.2.35.3-2",
+    "1989-AR-A.2.35.3-3",
+    "1989-AR-A.2.35.3-4",
+    "1989-RV-A.2.35.4-1",
+    "1989-RV-A.2.35.4-2",
+    "1989-RV-A.2.35.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-RANDOM-08",
+   "lines": [
+    507
+   ],
+   "feature": "RANDOM Function",
+   "ansi": "See ref. A-64 2.35",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.35.1-p1",
+    "1989-FMT-A.2.35.2",
+    "1989-AR-A.2.35.3-1",
+    "1989-AR-A.2.35.3-2",
+    "1989-AR-A.2.35.3-3",
+    "1989-AR-A.2.35.3-4",
+    "1989-RV-A.2.35.4-1",
+    "1989-RV-A.2.35.4-2",
+    "1989-RV-A.2.35.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  }
+ ]
+}

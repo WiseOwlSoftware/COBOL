@@ -1,0 +1,129 @@
+{
+ "program": "NC209A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "MOV-TEST-F2-1",
+   "lines": [
+    399
+   ],
+   "feature": "DIFFERENT LEVELS",
+   "ansi": "VI-102 6.18.4 GR1",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.18.4-1"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MOV-TEST-F2-2",
+   "lines": [
+    472
+   ],
+   "feature": "DIFFERENT LEVELS",
+   "ansi": "VI-102 6.18.4 GR1",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.18.4-1"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MOV-TEST-F2-3",
+   "lines": [
+    573
+   ],
+   "feature": "DIFFERENT LEVELS",
+   "ansi": "VI-102 6.18.4 GR1",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.18.4-1"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MOV-TEST-F2-4",
+   "lines": [
+    645
+   ],
+   "feature": "DIFFERENT LEVELS",
+   "ansi": "VI-102 6.18.4 GR1",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.18.4-1"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MOV-TEST-F2-5",
+   "lines": [
+    698
+   ],
+   "feature": "WITH RENAMES",
+   "ansi": "VI-102 6.18.4 GR1",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.18.4-1"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-GR-VI.5.11.4-1"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MOV-TEST-F2-6",
+   "lines": [
+    801
+   ],
+   "feature": "WITH REDEF, OCCURS",
+   "ansi": "VI-102 6.18.4 GR1",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.18.4-1"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MOV-TEST-F2-7",
+   "lines": [
+    875
+   ],
+   "feature": "WITH REDEF, OCCURS",
+   "ansi": "VI-102 6.18.4 GR1",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.18.4-1"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MOV-TEST-F2-8",
+   "lines": [
+    944
+   ],
+   "feature": "WITH REDEF, OCCURS",
+   "ansi": "VI-102 6.18.4 GR1",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.18.4-1"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  }
+ ]
+}

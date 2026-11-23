@@ -1,0 +1,500 @@
+{
+ "program": "IF136A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "F-SQRT-01",
+   "lines": [
+    369
+   ],
+   "feature": "SQRT Function",
+   "ansi": "See ref. A-69 2.40",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.40.1-p1",
+    "1989-FMT-A.2.40.2",
+    "1989-AR-A.2.40.3-1",
+    "1989-AR-A.2.40.3-2",
+    "1989-RV-A.2.40.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SQRT-02",
+   "lines": [
+    383
+   ],
+   "feature": "SQRT Function",
+   "ansi": "See ref. A-69 2.40",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.40.1-p1",
+    "1989-FMT-A.2.40.2",
+    "1989-AR-A.2.40.3-1",
+    "1989-AR-A.2.40.3-2",
+    "1989-RV-A.2.40.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SQRT-03",
+   "lines": [
+    400
+   ],
+   "feature": "SQRT Function",
+   "ansi": "See ref. A-69 2.40",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.40.1-p1",
+    "1989-FMT-A.2.40.2",
+    "1989-AR-A.2.40.3-1",
+    "1989-AR-A.2.40.3-2",
+    "1989-RV-A.2.40.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SQRT-04",
+   "lines": [
+    422
+   ],
+   "feature": "SQRT Function",
+   "ansi": "See ref. A-69 2.40",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.40.1-p1",
+    "1989-FMT-A.2.40.2",
+    "1989-AR-A.2.40.3-1",
+    "1989-AR-A.2.40.3-2",
+    "1989-RV-A.2.40.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SQRT-05",
+   "lines": [
+    444
+   ],
+   "feature": "SQRT Function",
+   "ansi": "See ref. A-69 2.40",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.40.1-p1",
+    "1989-FMT-A.2.40.2",
+    "1989-AR-A.2.40.3-1",
+    "1989-AR-A.2.40.3-2",
+    "1989-RV-A.2.40.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SQRT-06",
+   "lines": [
+    466
+   ],
+   "feature": "SQRT Function",
+   "ansi": "See ref. A-69 2.40",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.40.1-p1",
+    "1989-FMT-A.2.40.2",
+    "1989-AR-A.2.40.3-1",
+    "1989-AR-A.2.40.3-2",
+    "1989-RV-A.2.40.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SQRT-07",
+   "lines": [
+    488
+   ],
+   "feature": "SQRT Function",
+   "ansi": "See ref. A-69 2.40",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.40.1-p1",
+    "1989-FMT-A.2.40.2",
+    "1989-AR-A.2.40.3-1",
+    "1989-AR-A.2.40.3-2",
+    "1989-RV-A.2.40.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SQRT-08",
+   "lines": [
+    510
+   ],
+   "feature": "SQRT Function",
+   "ansi": "See ref. A-69 2.40",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.40.1-p1",
+    "1989-FMT-A.2.40.2",
+    "1989-AR-A.2.40.3-1",
+    "1989-AR-A.2.40.3-2",
+    "1989-RV-A.2.40.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SQRT-09",
+   "lines": [
+    532
+   ],
+   "feature": "SQRT Function",
+   "ansi": "See ref. A-69 2.40",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.40.1-p1",
+    "1989-FMT-A.2.40.2",
+    "1989-AR-A.2.40.3-1",
+    "1989-AR-A.2.40.3-2",
+    "1989-RV-A.2.40.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SQRT-10",
+   "lines": [
+    554
+   ],
+   "feature": "SQRT Function",
+   "ansi": "See ref. A-69 2.40",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.40.1-p1",
+    "1989-FMT-A.2.40.2",
+    "1989-AR-A.2.40.3-1",
+    "1989-AR-A.2.40.3-2",
+    "1989-RV-A.2.40.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SQRT-11",
+   "lines": [
+    576
+   ],
+   "feature": "SQRT Function",
+   "ansi": "See ref. A-69 2.40",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.40.1-p1",
+    "1989-FMT-A.2.40.2",
+    "1989-AR-A.2.40.3-1",
+    "1989-AR-A.2.40.3-2",
+    "1989-RV-A.2.40.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SQRT-12",
+   "lines": [
+    598
+   ],
+   "feature": "SQRT Function",
+   "ansi": "See ref. A-69 2.40",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.40.1-p1",
+    "1989-FMT-A.2.40.2",
+    "1989-AR-A.2.40.3-1",
+    "1989-AR-A.2.40.3-2",
+    "1989-RV-A.2.40.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SQRT-13",
+   "lines": [
+    620
+   ],
+   "feature": "SQRT Function",
+   "ansi": "See ref. A-69 2.40",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.40.1-p1",
+    "1989-FMT-A.2.40.2",
+    "1989-AR-A.2.40.3-1",
+    "1989-AR-A.2.40.3-2",
+    "1989-RV-A.2.40.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SQRT-14",
+   "lines": [
+    642
+   ],
+   "feature": "SQRT Function",
+   "ansi": "See ref. A-69 2.40",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.40.1-p1",
+    "1989-FMT-A.2.40.2",
+    "1989-AR-A.2.40.3-1",
+    "1989-AR-A.2.40.3-2",
+    "1989-RV-A.2.40.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SQRT-15",
+   "lines": [
+    664
+   ],
+   "feature": "SQRT Function",
+   "ansi": "See ref. A-69 2.40",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.40.1-p1",
+    "1989-FMT-A.2.40.2",
+    "1989-AR-A.2.40.3-1",
+    "1989-AR-A.2.40.3-2",
+    "1989-RV-A.2.40.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SQRT-16",
+   "lines": [
+    686
+   ],
+   "feature": "SQRT Function",
+   "ansi": "See ref. A-69 2.40",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.40.1-p1",
+    "1989-FMT-A.2.40.2",
+    "1989-AR-A.2.40.3-1",
+    "1989-AR-A.2.40.3-2",
+    "1989-RV-A.2.40.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SQRT-17",
+   "lines": [
+    708
+   ],
+   "feature": "SQRT Function",
+   "ansi": "See ref. A-69 2.40",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.40.1-p1",
+    "1989-FMT-A.2.40.2",
+    "1989-AR-A.2.40.3-1",
+    "1989-AR-A.2.40.3-2",
+    "1989-RV-A.2.40.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SQRT-18",
+   "lines": [
+    730
+   ],
+   "feature": "SQRT Function",
+   "ansi": "See ref. A-69 2.40",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.40.1-p1",
+    "1989-FMT-A.2.40.2",
+    "1989-AR-A.2.40.3-1",
+    "1989-AR-A.2.40.3-2",
+    "1989-RV-A.2.40.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SQRT-19",
+   "lines": [
+    752
+   ],
+   "feature": "SQRT Function",
+   "ansi": "See ref. A-69 2.40",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.40.1-p1",
+    "1989-FMT-A.2.40.2",
+    "1989-AR-A.2.40.3-1",
+    "1989-AR-A.2.40.3-2",
+    "1989-RV-A.2.40.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SQRT-20",
+   "lines": [
+    774
+   ],
+   "feature": "SQRT Function",
+   "ansi": "See ref. A-69 2.40",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.40.1-p1",
+    "1989-FMT-A.2.40.2",
+    "1989-AR-A.2.40.3-1",
+    "1989-AR-A.2.40.3-2",
+    "1989-RV-A.2.40.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SQRT-21",
+   "lines": [
+    796
+   ],
+   "feature": "SQRT Function",
+   "ansi": "See ref. A-69 2.40",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.40.1-p1",
+    "1989-FMT-A.2.40.2",
+    "1989-AR-A.2.40.3-1",
+    "1989-AR-A.2.40.3-2",
+    "1989-RV-A.2.40.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SQRT-22",
+   "lines": [
+    818
+   ],
+   "feature": "SQRT Function",
+   "ansi": "See ref. A-69 2.40",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.40.1-p1",
+    "1989-FMT-A.2.40.2",
+    "1989-AR-A.2.40.3-1",
+    "1989-AR-A.2.40.3-2",
+    "1989-RV-A.2.40.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SQRT-23",
+   "lines": [
+    840
+   ],
+   "feature": "SQRT Function",
+   "ansi": "See ref. A-69 2.40",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.40.1-p1",
+    "1989-FMT-A.2.40.2",
+    "1989-AR-A.2.40.3-1",
+    "1989-AR-A.2.40.3-2",
+    "1989-RV-A.2.40.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SQRT-24",
+   "lines": [
+    863
+   ],
+   "feature": "SQRT Function",
+   "ansi": "See ref. A-69 2.40",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.40.1-p1",
+    "1989-FMT-A.2.40.2",
+    "1989-AR-A.2.40.3-1",
+    "1989-AR-A.2.40.3-2",
+    "1989-RV-A.2.40.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SQRT-25",
+   "lines": [
+    885
+   ],
+   "feature": "SQRT Function",
+   "ansi": "See ref. A-69 2.40",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.40.1-p1",
+    "1989-FMT-A.2.40.2",
+    "1989-AR-A.2.40.3-1",
+    "1989-AR-A.2.40.3-2",
+    "1989-RV-A.2.40.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SQRT-26",
+   "lines": [
+    899
+   ],
+   "feature": "SQRT Function",
+   "ansi": "See ref. A-69 2.40",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.40.1-p1",
+    "1989-FMT-A.2.40.2",
+    "1989-AR-A.2.40.3-1",
+    "1989-AR-A.2.40.3-2",
+    "1989-RV-A.2.40.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  }
+ ]
+}

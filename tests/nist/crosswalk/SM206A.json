@@ -1,0 +1,218 @@
+{
+ "program": "SM206A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "PST-TEST-002",
+   "lines": [
+    369
+   ],
+   "feature": "PSEUDO-TEXT/IDENTIFR",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "PST-TEST-003",
+   "lines": [
+    413
+   ],
+   "feature": "PSEUDO-TEXT/LITERAL",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "PST-TEST-004",
+   "lines": [
+    479
+   ],
+   "feature": "PSEUDO-TEXT/LITERAL",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "PST-TEST-005",
+   "lines": [
+    522
+   ],
+   "feature": "CASCADED REPLACE PST",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "PST-TEST-006",
+   "lines": [
+    553
+   ],
+   "feature": "CONT LIT/PST PART RPL",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "PST-TEST-007",
+   "lines": [
+    576
+   ],
+   "feature": "PST/EMBEDDED COMMENT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "PST-TEST-008",
+   "lines": [
+    595
+   ],
+   "feature": "COPY IN DEBUG LINE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "PST-TEST-009",
+   "lines": [
+    620
+   ],
+   "feature": "DEBUG LINE IN TEXT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "PST-TEST-10",
+   "lines": [
+    626
+   ],
+   "feature": "DEBUG LINE IN TEXT",
+   "ansi": "XII-2 2.3 SR8",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-SR-XII.2.3-1",
+    "1985-SR-XII.2.3-2",
+    "1985-SR-XII.2.3-3",
+    "1985-SR-XII.2.3-4",
+    "1985-SR-XII.2.3-5",
+    "1985-SR-XII.2.3-6",
+    "1985-SR-XII.2.3-7",
+    "1985-SR-XII.2.3-8",
+    "1985-SR-XII.2.3-9",
+    "1985-SR-XII.2.3-10"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "PST-TEST-11",
+   "lines": [
+    654
+   ],
+   "feature": "DEBUG LINE IN TEXT",
+   "ansi": "XII-2 2.3 (SR8) AND XII-5 2.4(GR11)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-SR-XII.2.3-1",
+    "1985-SR-XII.2.3-2",
+    "1985-SR-XII.2.3-3",
+    "1985-SR-XII.2.3-4",
+    "1985-SR-XII.2.3-5",
+    "1985-SR-XII.2.3-6",
+    "1985-SR-XII.2.3-7",
+    "1985-SR-XII.2.3-8",
+    "1985-SR-XII.2.3-9",
+    "1985-SR-XII.2.3-10",
+    "1985-GR-XII.2.4-11"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "PST-TEST-11-1",
+   "lines": [
+    671
+   ],
+   "feature": "DEBUG LINE IN TEXT",
+   "ansi": "XII-2 2.3 (SR8) AND XII-5 2.4(GR11)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-SR-XII.2.3-1",
+    "1985-SR-XII.2.3-2",
+    "1985-SR-XII.2.3-3",
+    "1985-SR-XII.2.3-4",
+    "1985-SR-XII.2.3-5",
+    "1985-SR-XII.2.3-6",
+    "1985-SR-XII.2.3-7",
+    "1985-SR-XII.2.3-8",
+    "1985-SR-XII.2.3-9",
+    "1985-SR-XII.2.3-10",
+    "1985-GR-XII.2.4-11"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "PST-TEST-11-2",
+   "lines": [
+    684
+   ],
+   "feature": "DEBUG LINE IN TEXT",
+   "ansi": "XII-2 2.3 (SR8) AND XII-5 2.4(GR11)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-SR-XII.2.3-1",
+    "1985-SR-XII.2.3-2",
+    "1985-SR-XII.2.3-3",
+    "1985-SR-XII.2.3-4",
+    "1985-SR-XII.2.3-5",
+    "1985-SR-XII.2.3-6",
+    "1985-SR-XII.2.3-7",
+    "1985-SR-XII.2.3-8",
+    "1985-SR-XII.2.3-9",
+    "1985-SR-XII.2.3-10",
+    "1985-GR-XII.2.4-11"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "PST-TEST-11-3",
+   "lines": [
+    697
+   ],
+   "feature": "DEBUG LINE IN TEXT",
+   "ansi": "XII-2 2.3 (SR8) AND XII-5 2.4(GR11)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-SR-XII.2.3-1",
+    "1985-SR-XII.2.3-2",
+    "1985-SR-XII.2.3-3",
+    "1985-SR-XII.2.3-4",
+    "1985-SR-XII.2.3-5",
+    "1985-SR-XII.2.3-6",
+    "1985-SR-XII.2.3-7",
+    "1985-SR-XII.2.3-8",
+    "1985-SR-XII.2.3-9",
+    "1985-SR-XII.2.3-10",
+    "1985-GR-XII.2.4-11"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  }
+ ]
+}

@@ -17,7 +17,7 @@ test populations), each returning what it found and never calling back.
 
 ⛔ THE POPULATION IS THE SELECTION (owner decision 1 of PB4323, 2026-10-31; kb/Work PB4328). A change that a test can read
 runs the WHOLE population of every test target (scripts/build_targets.json, test_population.GATED_ASSEMBLIES) on this host: no plan, no tiers, no impact map, no leg
-2. The order inside each assembly is the test framework's (tests/_shared/GateLegs.cs `GateOrderer`): the test classes
+2. The order inside each assembly is the test framework's (tests/_shared/Gate/GateOrderer.cs `GateOrderer`): the test classes
 the previous run of this worktree, or the merge-group run that bounced its pull request, saw red go first, then the
 rest longest first by the committed weights file (tests/_shared/test-weights.json). Ordering changes WHEN a case runs,
 never WHETHER (owner, 2026-09-28: "order, don't skip"), and the population check proves it; the one exception is the

@@ -1,0 +1,47 @@
+{
+ "program": "RL114A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "RL-FD2-01-03",
+   "lines": [
+    390
+   ],
+   "feature": "",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-009",
+   "lines": [
+    619
+   ],
+   "feature": "CREATE RL-FD2",
+   "ansi": "VIII-36 4.8.4 GR4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VIII.4.8.4-4"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-010",
+   "lines": [
+    709
+   ],
+   "feature": "USE/FILE STATUS",
+   "ansi": "VIII-36 4.8.4 GR4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VIII.4.8.4-4"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  }
+ ]
+}

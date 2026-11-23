@@ -1511,7 +1511,7 @@ declared population**, compared against a COMMITTED MANIFEST rather than a remem
 ⭐ **Two things that generalise beyond this wave.**
 · **The same fifteen lines existed SEVEN times** (start `dotnet`, wait N s, return whatever came back) across five
   test projects, every copy handing back TRUNCATED output on a timeout for the caller to compare against a golden.
-  They are now one `tests/_shared/ProcessObservation.cs`, and `ProcessObservationDriftTests` — which found the
+  They are now one `tests/_shared/ProcessObserver.cs`, and `ProcessObservationDriftTests` — which found the
   seventh copy on its first run — keeps them collapsed.
 · **A hand-maintained list lost to the data it was approximating, twice.** `guard-fast`'s "these six suites run
   serially" grouping is replaced by the DECLARED chain graph in `corpus.tsv` (longest serial group **40 → 9**);

@@ -1,0 +1,116 @@
+{
+ "program": "SM205A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "COPY-TEST-1",
+   "lines": [
+    431
+   ],
+   "feature": "COPY SD REPLACING",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "COPY-TEST-2",
+   "lines": [
+    446
+   ],
+   "feature": "COPY SD REPLACING",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "COPY-TEST-3",
+   "lines": [
+    461
+   ],
+   "feature": "COPY SD REPLACING",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "COPY-TEST-4",
+   "lines": [
+    477
+   ],
+   "feature": "COPY SD REPLACING",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "COPY-TEST-5",
+   "lines": [
+    492
+   ],
+   "feature": "COPY SD REPLACING",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "COPY-TEST-6",
+   "lines": [
+    507
+   ],
+   "feature": "COPY SD REPLACING",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "COPY-TEST-7",
+   "lines": [
+    522
+   ],
+   "feature": "COPY SD REPLACING",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "COPY-TEST-8",
+   "lines": [
+    537
+   ],
+   "feature": "COPY SD REPLACING",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "COPY-TEST-9",
+   "lines": [
+    549
+   ],
+   "feature": "COPY SD REPLACING",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "BAD-FILE",
+   "lines": [
+    564
+   ],
+   "feature": "COPY SD REPLACING",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

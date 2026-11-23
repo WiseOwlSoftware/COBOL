@@ -1,0 +1,39 @@
+{
+ "program": "RW102A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "INIT-TEST-03",
+   "lines": [
+    360
+   ],
+   "feature": "INITIATE REPORT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "GENER-TEST-7",
+   "lines": [
+    399
+   ],
+   "feature": "GENERATE 20 LINES",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "TERM-TEST-02",
+   "lines": [
+    441
+   ],
+   "feature": "TERMINATE REPORT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

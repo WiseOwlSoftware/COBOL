@@ -1,0 +1,50 @@
+{
+ "program": "SQ121A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "SEQ-TEST-013",
+   "lines": [
+    444
+   ],
+   "feature": "CREATE FILE SQ-FS5",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-TEST-014",
+   "lines": [
+    491
+   ],
+   "feature": "VERIFY FILE SQ-FS5",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "RWRT-TEST-GF-01",
+   "lines": [
+    534
+   ],
+   "feature": "REWRITE FILE SQ-FS5",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "RWRT-TEST-GF-02",
+   "lines": [
+    599
+   ],
+   "feature": "VERIFY FILE SQ-FS5",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

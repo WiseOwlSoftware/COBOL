@@ -1,0 +1,186 @@
+{
+ "program": "IX109A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "REA-TEST-F1-06-0",
+   "lines": [
+    370,
+    1062
+   ],
+   "feature": "READ.        46 EXP.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "OPN-TEST-GF-01-0",
+   "lines": [
+    666,
+    1581,
+    2127
+   ],
+   "feature": "OPEN OUTPUT: 00 EXP.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRI-TEST-GF-01-0",
+   "lines": [
+    692,
+    1607
+   ],
+   "feature": "WRITE: 00 EXPECTED",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRI-TEST-GF-01-1",
+   "lines": [
+    723
+   ],
+   "feature": "CREATE FILE IX-FS3",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRI-TEST-GF-02-0",
+   "lines": [
+    737
+   ],
+   "feature": "WRITE:       21 EXP.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CLO-TEST-GF-01-0",
+   "lines": [
+    767
+   ],
+   "feature": "CLOSE OUTPUT:00 EXP.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "OPN-TEST-GF-02-0",
+   "lines": [
+    795
+   ],
+   "feature": "OPEN INPUT:  00 EXP.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REA-TEST-F1-01-0",
+   "lines": [
+    855
+   ],
+   "feature": "READ (USE):  00 EXP.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REA-TEST-F1-02-0",
+   "lines": [
+    896
+   ],
+   "feature": "VERIFY FILE IX-FS3",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REA-TEST-F1-03-0",
+   "lines": [
+    917
+   ],
+   "feature": "READ :       10 EXP.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CLO-TEST-GF-02-0",
+   "lines": [
+    927
+   ],
+   "feature": "CLOSE INPUT: 00 EXP.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "OPN-TEST-GF-03-0",
+   "lines": [
+    950
+   ],
+   "feature": "OPEN  INPUT: 00 EXP.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REA-TEST-F1-04-0",
+   "lines": [
+    1007
+   ],
+   "feature": "READ...END:  00 EXP.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REA-TEST-F1-05-0",
+   "lines": [
+    1040
+   ],
+   "feature": "READ...END:  10 EXP.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "RWR-TEST-GF-01-0",
+   "lines": [
+    1636
+   ],
+   "feature": "REWRITE:00 / 22 EXP.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REA-TEST-GF-01-0",
+   "lines": [
+    1667
+   ],
+   "feature": "READ:        23 EXP.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

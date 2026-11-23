@@ -1,0 +1,17 @@
+{
+ "program": "SQ154A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "WRITE-TEST-01",
+   "lines": [
+    482
+   ],
+   "feature": "WRITE TO CLOSED FILE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

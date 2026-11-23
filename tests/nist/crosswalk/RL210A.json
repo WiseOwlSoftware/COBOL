@@ -1,0 +1,72 @@
+{
+ "program": "RL210A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "REL-TEST-001",
+   "lines": [
+    422
+   ],
+   "feature": "FILE CREATE RL-VS1",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-002-1-1",
+   "lines": [
+    441
+   ],
+   "feature": "FILE CREATE RL-VS1",
+   "ansi": "VIII-31 3.8.4 GR 10B",
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-002-1-2",
+   "lines": [
+    450
+   ],
+   "feature": "FILE CREATE RL-VS1",
+   "ansi": "VIII-31 3.8.4 GR 10C",
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-002-1-3",
+   "lines": [
+    460
+   ],
+   "feature": "FILE CREATE RL-VS1",
+   "ansi": "VIII-31 3.8.4 GR 10B",
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-002-2",
+   "lines": [
+    473
+   ],
+   "feature": "FILE CREATE RL-VS1",
+   "ansi": "VIII-31 3.8.4 GR 10B",
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-002",
+   "lines": [
+    480
+   ],
+   "feature": "FILE CREATE RL-VS1",
+   "ansi": "VIII-31 3.8.4 GR 10B",
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

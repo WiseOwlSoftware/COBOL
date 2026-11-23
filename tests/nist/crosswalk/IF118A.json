@@ -1,0 +1,266 @@
+{
+ "program": "IF118A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "F-LOWCASE-01",
+   "lines": [
+    325
+   ],
+   "feature": "LOWER-CASE Function",
+   "ansi": "See ref. A-51 2.22",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.22.1-p1",
+    "1989-FMT-A.2.22.2",
+    "1989-AR-A.2.22.3-1",
+    "1989-RV-A.2.22.4-1",
+    "1989-RV-A.2.22.4-2",
+    "1989-RV-A.2.22.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-LOWCASE-02",
+   "lines": [
+    339
+   ],
+   "feature": "LOWER-CASE Function",
+   "ansi": "See ref. A-51 2.22",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.22.1-p1",
+    "1989-FMT-A.2.22.2",
+    "1989-AR-A.2.22.3-1",
+    "1989-RV-A.2.22.4-1",
+    "1989-RV-A.2.22.4-2",
+    "1989-RV-A.2.22.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-LOWCASE-03",
+   "lines": [
+    356
+   ],
+   "feature": "LOWER-CASE Function",
+   "ansi": "See ref. A-51 2.22",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.22.1-p1",
+    "1989-FMT-A.2.22.2",
+    "1989-AR-A.2.22.3-1",
+    "1989-RV-A.2.22.4-1",
+    "1989-RV-A.2.22.4-2",
+    "1989-RV-A.2.22.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-LOWCASE-04",
+   "lines": [
+    374
+   ],
+   "feature": "LOWER-CASE Function",
+   "ansi": "See ref. A-51 2.22",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.22.1-p1",
+    "1989-FMT-A.2.22.2",
+    "1989-AR-A.2.22.3-1",
+    "1989-RV-A.2.22.4-1",
+    "1989-RV-A.2.22.4-2",
+    "1989-RV-A.2.22.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-LOWCASE-05",
+   "lines": [
+    392
+   ],
+   "feature": "LOWER-CASE Function",
+   "ansi": "See ref. A-51 2.22",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.22.1-p1",
+    "1989-FMT-A.2.22.2",
+    "1989-AR-A.2.22.3-1",
+    "1989-RV-A.2.22.4-1",
+    "1989-RV-A.2.22.4-2",
+    "1989-RV-A.2.22.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-LOWCASE-06",
+   "lines": [
+    410
+   ],
+   "feature": "LOWER-CASE Function",
+   "ansi": "See ref. A-51 2.22",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.22.1-p1",
+    "1989-FMT-A.2.22.2",
+    "1989-AR-A.2.22.3-1",
+    "1989-RV-A.2.22.4-1",
+    "1989-RV-A.2.22.4-2",
+    "1989-RV-A.2.22.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-LOWCASE-07",
+   "lines": [
+    428
+   ],
+   "feature": "LOWER-CASE Function",
+   "ansi": "See ref. A-51 2.22",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.22.1-p1",
+    "1989-FMT-A.2.22.2",
+    "1989-AR-A.2.22.3-1",
+    "1989-RV-A.2.22.4-1",
+    "1989-RV-A.2.22.4-2",
+    "1989-RV-A.2.22.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-LOWCASE-08",
+   "lines": [
+    446
+   ],
+   "feature": "LOWER-CASE Function",
+   "ansi": "See ref. A-51 2.22",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.22.1-p1",
+    "1989-FMT-A.2.22.2",
+    "1989-AR-A.2.22.3-1",
+    "1989-RV-A.2.22.4-1",
+    "1989-RV-A.2.22.4-2",
+    "1989-RV-A.2.22.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-LOWCASE-09",
+   "lines": [
+    464
+   ],
+   "feature": "LOWER-CASE Function",
+   "ansi": "See ref. A-51 2.22",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.22.1-p1",
+    "1989-FMT-A.2.22.2",
+    "1989-AR-A.2.22.3-1",
+    "1989-RV-A.2.22.4-1",
+    "1989-RV-A.2.22.4-2",
+    "1989-RV-A.2.22.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-LOWCASE-10",
+   "lines": [
+    482
+   ],
+   "feature": "LOWER-CASE Function",
+   "ansi": "See ref. A-51 2.22",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.22.1-p1",
+    "1989-FMT-A.2.22.2",
+    "1989-AR-A.2.22.3-1",
+    "1989-RV-A.2.22.4-1",
+    "1989-RV-A.2.22.4-2",
+    "1989-RV-A.2.22.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-LOWCASE-11",
+   "lines": [
+    501
+   ],
+   "feature": "LOWER-CASE Function",
+   "ansi": "See ref. A-51 2.22",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.22.1-p1",
+    "1989-FMT-A.2.22.2",
+    "1989-AR-A.2.22.3-1",
+    "1989-RV-A.2.22.4-1",
+    "1989-RV-A.2.22.4-2",
+    "1989-RV-A.2.22.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-LOWCASE-12",
+   "lines": [
+    520
+   ],
+   "feature": "LOWER-CASE Function",
+   "ansi": "See ref. A-51 2.22",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.22.1-p1",
+    "1989-FMT-A.2.22.2",
+    "1989-AR-A.2.22.3-1",
+    "1989-RV-A.2.22.4-1",
+    "1989-RV-A.2.22.4-2",
+    "1989-RV-A.2.22.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-LOWCASE-13",
+   "lines": [
+    539
+   ],
+   "feature": "LOWER-CASE Function",
+   "ansi": "See ref. A-51 2.22",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.22.1-p1",
+    "1989-FMT-A.2.22.2",
+    "1989-AR-A.2.22.3-1",
+    "1989-RV-A.2.22.4-1",
+    "1989-RV-A.2.22.4-2",
+    "1989-RV-A.2.22.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  }
+ ]
+}

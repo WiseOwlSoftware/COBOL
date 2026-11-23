@@ -1,0 +1,204 @@
+{
+ "program": "ST108A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "SORT-TEST-1",
+   "lines": [
+    298
+   ],
+   "feature": "SORT - 8 ASC. KEYS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-2",
+   "lines": [
+    309
+   ],
+   "feature": "SORT - 8 ASC. KEYS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-3",
+   "lines": [
+    320
+   ],
+   "feature": "SORT - 8 ASC. KEYS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-4",
+   "lines": [
+    331
+   ],
+   "feature": "SORT - 8 ASC. KEYS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-5",
+   "lines": [
+    342
+   ],
+   "feature": "SORT - 8 ASC. KEYS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-6",
+   "lines": [
+    353
+   ],
+   "feature": "SORT - 8 ASC. KEYS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-7",
+   "lines": [
+    364
+   ],
+   "feature": "SORT - 8 ASC. KEYS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-8",
+   "lines": [
+    375
+   ],
+   "feature": "SORT - 8 ASC. KEYS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-9",
+   "lines": [
+    409
+   ],
+   "feature": "SORT - 8 ASC. KEYS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-10",
+   "lines": [
+    420
+   ],
+   "feature": "SORT - 8 ASC. KEYS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-11",
+   "lines": [
+    431
+   ],
+   "feature": "SORT - 8 ASC. KEYS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-12",
+   "lines": [
+    442
+   ],
+   "feature": "SORT - 8 ASC. KEYS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-13",
+   "lines": [
+    453
+   ],
+   "feature": "SORT - 8 ASC. KEYS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-14",
+   "lines": [
+    464
+   ],
+   "feature": "SORT - 8 ASC. KEYS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-15",
+   "lines": [
+    475
+   ],
+   "feature": "SORT - 8 ASC. KEYS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-16",
+   "lines": [
+    486
+   ],
+   "feature": "SORT - 8 ASC. KEYS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-17",
+   "lines": [
+    496
+   ],
+   "feature": "SORT - 8 ASC. KEYS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "RETURN-ERROR",
+   "lines": [
+    500
+   ],
+   "feature": "SORT - 8 ASC. KEYS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

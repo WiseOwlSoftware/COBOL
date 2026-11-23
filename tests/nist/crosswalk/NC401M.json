@@ -1,0 +1,446 @@
+{
+ "program": "NC401M",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "NON-CONFORMING@9",
+   "lines": [
+    9
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "DATE-COMPILED 22ND AUG 1988",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@21",
+   "lines": [
+    21
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "SPECIAL-NAMES XXXXX056 IS VDUNIT ALPHABET TEST-ALPHABET IS \"A\" THRU \"F\"",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@25",
+   "lines": [
+    25
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "SYMBOLIC CHARACTERS A IS 32",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@40",
+   "lines": [
+    40
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "01 FREC 03 GUBBINS PIC X(1 00)",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@58",
+   "lines": [
+    58
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "03 TEST-AR-NUMBER-INVOICES PIC S9(2) 03 TEST-AR-INVOICE-DATA OCCURS 1 TO 15 TIMES DEPENDING ON TEST-AR-NUMBER-INVOICES INDEXED BY WS-INDEX",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@74",
+   "lines": [
+    74
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "03 TEST-DESCEND-NO-INV PIC S9(2) 03 TEST-DESCEND-INVOICE OCCURS 15 TIMES ASCENDING KEY IS TEST-ASCEND-TIME DESCENDING KEY IS TEST-DESC-DATE",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@91",
+   "lines": [
+    91
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "03 CUST-CODES PIC X 88 CUST-PAID VALUE \"A\"",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@122",
+   "lines": [
+    122
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "99 03 STATE PIC X(4) VALUE ALL \"A\"",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@141",
+   "lines": [
+    141
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "04  MP-1-A  PICTURE X(5) 04  MP-1-A-1  REDEFINES MP-1-A",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@150",
+   "lines": [
+    150
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "03 VARC PIC X(4) 66 VARA",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@152",
+   "lines": [
+    152
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "RENAMES VARB THRU VARC",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@171",
+   "lines": [
+    171
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "PERFORM NC401M-COLON THRU NC401M-END 1 TIMES ALTER NC401M-GOTO TO PROCEED TO NC401M-GOTO-2, NC401M-GOTO-2 TO PROCEED TO NC401M-NESTIF",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@178",
+   "lines": [
+    178
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "NC401M-COLON DISPLAY COLONTEST(1:20)",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@183",
+   "lines": [
+    183
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "NC401M-QUALIF MOVE GUBBINS OF FREC TO GUBBINS OF FREC-2",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@189",
+   "lines": [
+    189
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "NC401M-SUBSCR MOVE ZERO TO PM-SALES (BOX-A, BOX-B, BOX-C, BOX-D, 1)",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@194",
+   "lines": [
+    194
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "NC401M-CHARBR1 MUL TIPLY BOX-A BY BOX-B GIVING BOX-C",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@200",
+   "lines": [
+    200
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "NC401M-CHARBR2 MOVE 2 0 TO BOX-A",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@205",
+   "lines": [
+    205
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "NC401M-ARITHEXP IF BOX-A + 1 IS NOT GREATER THAN BOX-B + 2 DISPLAY \"ARITHEXP-TEST\"",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@211",
+   "lines": [
+    211
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "NC401M-SIGCOND IF BOX-A IS NOT NEGATIVE DISPLAY \"SIGCOND-TEST\"",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@217",
+   "lines": [
+    217
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "NC401M-COMPCOND IF BOX-A IS GREATER THAN BOX-B AND NOT BOX-C IS GREATER THAN BOX-A THEN MOVE 7 TO BOX-B",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@222",
+   "lines": [
+    222
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "NC401M-CORRESADD ADD CORRESPONDING GROUP-1 TO GROUP-2",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@227",
+   "lines": [
+    227
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "NC401M-CORRESMOVE MOVE CORRESPONDING GROUP-1 TO GROUP-2",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@232",
+   "lines": [
+    232
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "NC401M-CORRESSUB SUBTRACT CORRESPONDING GROUP-2 FROM GROUP-1",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@237",
+   "lines": [
+    237
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "NC401M-COMPUTE COMPUTE BOX-A = 10 + 6",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@242",
+   "lines": [
+    242
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "NC401M-GETDAY ACCEPT DDAY FROM DAY-OF-WEEK",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@247",
+   "lines": [
+    247
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "NC401M-DISPUPON DISPLAY \"PFILE\" UPON VDUNIT",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@252",
+   "lines": [
+    252
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "NC401-DIVREMAINDER DIVIDE BOX-A INTO BOX-B GIVING BOX-C REMAINDER BOX-D",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@259",
+   "lines": [
+    259
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "NC401M-EVAL EVALUATE BOX-A WHEN 1 MOVE \"A\" TO VARC WHEN 2 MOVE \"B\" TO VARC",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@264",
+   "lines": [
+    264
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "NC401M-GOTO GO TO",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@268",
+   "lines": [
+    268
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "NC401M-GOTO-2 GO TO",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@279",
+   "lines": [
+    279
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "NC401M-NESTIF IF BOX-A IS GREATER THAN BOX-B THEN MOVE \"AAAA\" TO VARD ELSE IF BOX-B IS GREATER THAN BOX-C THEN MOVE \"BBBB\" TO VARD ELSE MOVE \"CCCC\" TO VARD",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@284",
+   "lines": [
+    284
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "NC401M-INIT INITIALIZE VARB",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@289",
+   "lines": [
+    289
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "NC401M-INSCT INSPECT MARYPOPPINS CONVERTING \"A\" TO \"Z\"",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@296",
+   "lines": [
+    296
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "NC401M-PWT PERFORM NC401M-NESTIF THRU NC401M-INIT WITH TEST AFTER UNTIL BOX-B IS EQUAL TO BOX-A",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@303",
+   "lines": [
+    303
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "NC401M-PWV PERFORM NC401M-NESTIF THRU NC401M-INIT VARYING BOX-A FROM BOX-B BY BOX-C UNTIL GRANDTOTAL IS EQUAL TO VARF",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@310",
+   "lines": [
+    310
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "NC401M-SEARCH SEARCH TEST-CODE WHEN BOX-A IS EQUAL TO BOX-B NEXT SENTENCE",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@315",
+   "lines": [
+    315
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "NC401M-STT SET CUST-PAID TO TRUE",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@320",
+   "lines": [
+    320
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "NC401M-ST STRING VARD DELIMITED BY VARB INTO VARC",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@325",
+   "lines": [
+    325
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "NC401M-UST UNSTRING VARD INTO VARE",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@331",
+   "lines": [
+    331
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "NC401M-END",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  }
+ ]
+}

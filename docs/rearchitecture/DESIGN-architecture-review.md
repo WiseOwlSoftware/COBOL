@@ -1026,7 +1026,18 @@ The rules (each a drift assertion, listed with the measure that shows today's di
 with it (PB1754 amended), so the re-home is a wave like any other, between fix-lane trains under the file-set
 partition (§8.7): a test file the in-flight train edits defers the wave that moves it. Measured: `WiseOwl.Cobol.Tests.Unit` holds 449 files, 435 of them in
 the one flat namespace `WiseOwl.Cobol.Tests.Unit` (12 in `.Collation`, 2 in `.Unicode`); `WiseOwl.Cobol.Tests.Conformance` holds
-200 files in one flat namespace; `tests/_shared` holds 11 (`WiseOwl.Cobol.Tests.Shared`, `WiseOwl.Cobol.Gate`). Rule 1 applies: a
+200 files in one flat namespace. **The linked shared harness (`tests/_shared/`) has its own root**, because rule 1's
+"project root plus folder" names a different namespace for each project that links one file and no declaration can
+satisfy them all: `tests/Directory.Build.props` links the whole folder into every test project under its REPOSITORY
+path (`_shared\%(RecursiveDir)`), and the folder is one namespace named for that path, `WiseOwl.Cobol.Tests.Shared`, each
+subfolder extending it (the gate's test framework, shard and retry hooks, orderer and leg audit are
+`tests/_shared/Gate/`, `WiseOwl.Cobol.Tests.Shared.Gate`; kb/Work PB3200). `SharedHarnessLayoutDriftTests` (RepoDrift)
+holds rules 1-3 there: every file's namespace is the root plus its folders, every file is named for a type it declares,
+and a file's second public type is allowed only as a member of its closed family (it names the file's type as its base,
+as the slot ladder of `ITestPartitionSlot.cs` does). The census does not measure it, since it inventories the `src/` projects alone (its `folderNamespace` reads a
+document's project-relative path, which for a linked file starts `..`); when rule 6's per-type columns extend to the
+reader projects they resolve a linked document by its repository path, and the drift test's rule becomes the census's.
+Rule 1 applies: a
 test file lives in the folder of the subsystem it tests, mirroring `src/` (`tests/WiseOwl.Cobol.Tests.Unit/Binding/…` →
 `WiseOwl.Cobol.Tests.Unit.Binding`), a drift test in the folder of the boundary it pins, and the 278 `*DriftTests.cs` are
 the first population to re-home because their `<summary>` names the files they govern (`drift_rules.py` already reads

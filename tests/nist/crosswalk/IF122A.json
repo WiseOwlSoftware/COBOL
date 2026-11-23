@@ -1,0 +1,312 @@
+{
+ "program": "IF122A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "F-MIDRANGE-01",
+   "lines": [
+    373
+   ],
+   "feature": "MIDRANGE Function",
+   "ansi": "See ref. A-55 2.26",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.26.1-p1",
+    "1989-FMT-A.2.26.2",
+    "1989-AR-A.2.26.3-1",
+    "1989-RV-A.2.26.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MIDRANGE-02",
+   "lines": [
+    387
+   ],
+   "feature": "MIDRANGE Function",
+   "ansi": "See ref. A-55 2.26",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.26.1-p1",
+    "1989-FMT-A.2.26.2",
+    "1989-AR-A.2.26.3-1",
+    "1989-RV-A.2.26.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MIDRANGE-03",
+   "lines": [
+    400
+   ],
+   "feature": "MIDRANGE Function",
+   "ansi": "See ref. A-55 2.26",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.26.1-p1",
+    "1989-FMT-A.2.26.2",
+    "1989-AR-A.2.26.3-1",
+    "1989-RV-A.2.26.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MIDRANGE-04",
+   "lines": [
+    419
+   ],
+   "feature": "MIDRANGE Function",
+   "ansi": "See ref. A-55 2.26",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.26.1-p1",
+    "1989-FMT-A.2.26.2",
+    "1989-AR-A.2.26.3-1",
+    "1989-RV-A.2.26.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MIDRANGE-05",
+   "lines": [
+    438
+   ],
+   "feature": "MIDRANGE Function",
+   "ansi": "See ref. A-55 2.26",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.26.1-p1",
+    "1989-FMT-A.2.26.2",
+    "1989-AR-A.2.26.3-1",
+    "1989-RV-A.2.26.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MIDRANGE-06",
+   "lines": [
+    457
+   ],
+   "feature": "MIDRANGE Function",
+   "ansi": "See ref. A-55 2.26",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.26.1-p1",
+    "1989-FMT-A.2.26.2",
+    "1989-AR-A.2.26.3-1",
+    "1989-RV-A.2.26.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MIDRANGE-07",
+   "lines": [
+    476
+   ],
+   "feature": "MIDRANGE Function",
+   "ansi": "See ref. A-55 2.26",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.26.1-p1",
+    "1989-FMT-A.2.26.2",
+    "1989-AR-A.2.26.3-1",
+    "1989-RV-A.2.26.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MIDRANGE-08",
+   "lines": [
+    496
+   ],
+   "feature": "MIDRANGE Function",
+   "ansi": "See ref. A-55 2.26",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.26.1-p1",
+    "1989-FMT-A.2.26.2",
+    "1989-AR-A.2.26.3-1",
+    "1989-RV-A.2.26.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MIDRANGE-09",
+   "lines": [
+    516
+   ],
+   "feature": "MIDRANGE Function",
+   "ansi": "See ref. A-55 2.26",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.26.1-p1",
+    "1989-FMT-A.2.26.2",
+    "1989-AR-A.2.26.3-1",
+    "1989-RV-A.2.26.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MIDRANGE-10",
+   "lines": [
+    535
+   ],
+   "feature": "MIDRANGE Function",
+   "ansi": "See ref. A-55 2.26",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.26.1-p1",
+    "1989-FMT-A.2.26.2",
+    "1989-AR-A.2.26.3-1",
+    "1989-RV-A.2.26.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MIDRANGE-12",
+   "lines": [
+    553
+   ],
+   "feature": "MIDRANGE Function",
+   "ansi": "See ref. A-55 2.26",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.26.1-p1",
+    "1989-FMT-A.2.26.2",
+    "1989-AR-A.2.26.3-1",
+    "1989-RV-A.2.26.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MIDRANGE-13",
+   "lines": [
+    571
+   ],
+   "feature": "MIDRANGE Function",
+   "ansi": "See ref. A-55 2.26",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.26.1-p1",
+    "1989-FMT-A.2.26.2",
+    "1989-AR-A.2.26.3-1",
+    "1989-RV-A.2.26.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MIDRANGE-14",
+   "lines": [
+    593
+   ],
+   "feature": "MIDRANGE Function",
+   "ansi": "See ref. A-55 2.26",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.26.1-p1",
+    "1989-FMT-A.2.26.2",
+    "1989-AR-A.2.26.3-1",
+    "1989-RV-A.2.26.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MIDRANGE-15",
+   "lines": [
+    615
+   ],
+   "feature": "MIDRANGE Function",
+   "ansi": "See ref. A-55 2.26",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.26.1-p1",
+    "1989-FMT-A.2.26.2",
+    "1989-AR-A.2.26.3-1",
+    "1989-RV-A.2.26.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MIDRANGE-16",
+   "lines": [
+    638
+   ],
+   "feature": "MIDRANGE Function",
+   "ansi": "See ref. A-55 2.26",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.26.1-p1",
+    "1989-FMT-A.2.26.2",
+    "1989-AR-A.2.26.3-1",
+    "1989-RV-A.2.26.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MIDRANGE-17",
+   "lines": [
+    661
+   ],
+   "feature": "MIDRANGE Function",
+   "ansi": "See ref. A-55 2.26",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.26.1-p1",
+    "1989-FMT-A.2.26.2",
+    "1989-AR-A.2.26.3-1",
+    "1989-RV-A.2.26.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MIDRANGE-18",
+   "lines": [
+    675
+   ],
+   "feature": "MIDRANGE Function",
+   "ansi": "See ref. A-55 2.26",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.26.1-p1",
+    "1989-FMT-A.2.26.2",
+    "1989-AR-A.2.26.3-1",
+    "1989-RV-A.2.26.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  }
+ ]
+}
