@@ -30,11 +30,17 @@ internal sealed partial class EcBinder
 {
     /// <summary>What a statement's ambient declarations depend on besides the statement itself: the kind of the
     /// ACTIVATED element that owns it (the *-ARG-OMITTED rule is one rule per element kind, kb/Work PB971) and whether
-    /// the module declares a CHARACTER CLASSIFICATION (T5 of DESIGN-locale-facility §4.10).</summary>
-    internal readonly record struct EcRaiseScope(ActivatedElementKind Element, bool LocaleClassification);
+    /// the module declares a CHARACTER CLASSIFICATION (T5 of DESIGN-locale-facility §4.10), and the ISO edition the
+    /// compilation targets (<see cref="EditionYear"/>) for a raise that only some editions state
+    /// (<see cref="NodeKindRaise.NeverFrom"/>).</summary>
+    internal readonly record struct EcRaiseScope(ActivatedElementKind Element, bool LocaleClassification, int EditionYear);
 
-    /// <summary>A statement SHAPE that raises <see cref="Names"/> through its own node kind (no file connector).</summary>
-    internal sealed record NodeKindRaise(Func<BoundStatement, bool> Matches, IReadOnlyList<string> Names);
+    /// <summary>A statement SHAPE that raises <see cref="Names"/> through its own node kind (no file connector).
+    /// <see cref="NeverFrom"/> names the <see cref="DialectBehavior"/> whose ACTIVE edition no longer states the raise
+    /// (§2023 states no rule that sets EC-FLOW-GLOBAL-EXIT, §2002:14.8.13.3 GR2 does): from that edition the row declares
+    /// nothing, so the edition that dropped a raise is written once, in <see cref="DialectBehaviors"/>.</summary>
+    internal sealed record NodeKindRaise(Func<BoundStatement, bool> Matches, IReadOnlyList<string> Names,
+        DialectBehavior? NeverFrom = null);
 
     /// <summary>The names raised once PER FILE CONNECTOR a statement touches (the EC-I-O family): the pair
     /// (name, file) is what §2023:7.3.25.3 SR4's <c>FILE</c> association keys on.</summary>
@@ -216,6 +222,10 @@ internal sealed partial class EcBinder
         // §2023:14.9.18.4 GR6 — PRECISE: the only statement that can set EC-FLOW-GLOBAL-GOBACK is a GOBACK, and the
         // emitter's run-time `__useActive` test is the raise site (kb/Work PB409).
         new(s => s is BoundGoback, ["EC-FLOW-GLOBAL-GOBACK"]),
+        // §2002:14.8.13.3 GR2 / §2014:14.9.13.3 GR2 — PRECISE: an EXIT PROGRAM, EXIT FUNCTION (bound as the GOBACK it is
+        // equivalent to) or a GOBACK in a function or method is the statement that sets EC-FLOW-GLOBAL-EXIT, by the same run-time
+        // `__useActive` test (kb/Work PB5715). §2023 states no rule that sets it, so the row declares nothing from 2023.
+        new(s => s is BoundExitProgram or BoundGoback, ["EC-FLOW-GLOBAL-EXIT"], DialectBehavior.FlowGlobalExitIsNeverSet),
         // The three Report Writer verbs (kb/Work PB326). PRECISE: each condition's ONLY raise site is a precondition
         // of the engine call the node emits.
         new(s => s is BoundInitiate, InitiateNames),
@@ -479,7 +489,7 @@ internal sealed partial class EcBinder
     private static IEnumerable<(string Ec, FileModel? File)> LeafRaisableNames(BoundStatement node, EcRaiseScope scope)
     {
         foreach (var row in NodeKindRaises)
-            if (row.Matches(node))
+            if (row.Matches(node) && (row.NeverFrom is not { } dropped || !DialectBehaviors.IsActive(dropped, scope.EditionYear)))
                 foreach (string n in row.Names)
                     yield return (n, null);
         foreach (var file in IoRaise.FilesOf(node))
