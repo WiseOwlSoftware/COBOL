@@ -428,6 +428,12 @@
    ],
    "why": "the READ statement, §2002:14.8.29"
   },
+  "relative-read-previous-after-open-compares-fpi": {
+   "sections": [
+    "14.8.29"
+   ],
+   "why": "the READ statement, §2002:14.8.29, whose GR18c2 compares 'less than or equal to' the file position indicator for PREVIOUS after an OPEN, where §2023 relative rule b) ignores the direction (kb/Work PB5742, VCR row 7.121)"
+  },
   "relative-write-key-out-of-range-permanent-error": {
    "sections": [
     "14.8.47"
