@@ -1,0 +1,150 @@
+{
+ "program": "IF112A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "F-DATEOFINT-01",
+   "lines": [
+    325
+   ],
+   "feature": "INTEGER-OF-DATE",
+   "ansi": "See ref. A-45 2.16",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.16.1-p1",
+    "1989-FMT-A.2.16.2",
+    "1989-AR-A.2.16.3-1",
+    "1989-RV-A.2.16.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-DATEOFINT-02",
+   "lines": [
+    339
+   ],
+   "feature": "INTEGER-OF-DATE",
+   "ansi": "See ref. A-45 2.16",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.16.1-p1",
+    "1989-FMT-A.2.16.2",
+    "1989-AR-A.2.16.3-1",
+    "1989-RV-A.2.16.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-DATEOFINT-03",
+   "lines": [
+    352
+   ],
+   "feature": "INTEGER-OF-DATE",
+   "ansi": "See ref. A-45 2.16",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.16.1-p1",
+    "1989-FMT-A.2.16.2",
+    "1989-AR-A.2.16.3-1",
+    "1989-RV-A.2.16.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-DATEOFINT-04",
+   "lines": [
+    370
+   ],
+   "feature": "INTEGER-OF-DATE",
+   "ansi": "See ref. A-45 2.16",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.16.1-p1",
+    "1989-FMT-A.2.16.2",
+    "1989-AR-A.2.16.3-1",
+    "1989-RV-A.2.16.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-DATEOFINT-05",
+   "lines": [
+    388
+   ],
+   "feature": "INTEGER-OF-DATE",
+   "ansi": "See ref. A-45 2.16",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.16.1-p1",
+    "1989-FMT-A.2.16.2",
+    "1989-AR-A.2.16.3-1",
+    "1989-RV-A.2.16.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-DATEOFINT-06",
+   "lines": [
+    406
+   ],
+   "feature": "INTEGER-OF-DATE",
+   "ansi": "See ref. A-45 2.16",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.16.1-p1",
+    "1989-FMT-A.2.16.2",
+    "1989-AR-A.2.16.3-1",
+    "1989-RV-A.2.16.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-DATEOFINT-07",
+   "lines": [
+    425
+   ],
+   "feature": "INTEGER-OF-DATE",
+   "ansi": "See ref. A-45 2.16",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.16.1-p1",
+    "1989-FMT-A.2.16.2",
+    "1989-AR-A.2.16.3-1",
+    "1989-RV-A.2.16.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-DATEOFINT-10",
+   "lines": [
+    447
+   ],
+   "feature": "INTEGER-OF-DATE",
+   "ansi": "See ref. A-45 2.16",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.16.1-p1",
+    "1989-FMT-A.2.16.2",
+    "1989-AR-A.2.16.3-1",
+    "1989-RV-A.2.16.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  }
+ ]
+}

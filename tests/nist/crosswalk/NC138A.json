@@ -1,0 +1,203 @@
+{
+ "program": "NC138A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "SEP-TEST-001",
+   "lines": [
+    373
+   ],
+   "feature": "LEFT PAREN SEPARATOR",
+   "ansi": "IV-4 4.2.1",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-SR-IV.4.2.1-1",
+    "1985-SR-IV.4.2.1-p1",
+    "1985-SR-IV.4.2.1-2",
+    "1985-SR-IV.4.2.1-p2",
+    "1985-SR-IV.4.2.1-3",
+    "1985-SR-IV.4.2.1-p3",
+    "1985-SR-IV.4.2.1-4",
+    "1985-SR-IV.4.2.1-5",
+    "1985-SR-IV.4.2.1-6",
+    "1985-SR-IV.4.2.1-7",
+    "1985-SR-IV.4.2.1-8",
+    "1985-SR-IV.4.2.1-9"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEP-TEST-002",
+   "lines": [
+    391
+   ],
+   "feature": "LEFT PAREN SEPARATOR",
+   "ansi": "IV-4 4.2.1",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-SR-IV.4.2.1-1",
+    "1985-SR-IV.4.2.1-p1",
+    "1985-SR-IV.4.2.1-2",
+    "1985-SR-IV.4.2.1-p2",
+    "1985-SR-IV.4.2.1-3",
+    "1985-SR-IV.4.2.1-p3",
+    "1985-SR-IV.4.2.1-4",
+    "1985-SR-IV.4.2.1-5",
+    "1985-SR-IV.4.2.1-6",
+    "1985-SR-IV.4.2.1-7",
+    "1985-SR-IV.4.2.1-8",
+    "1985-SR-IV.4.2.1-9"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEP-TEST-003",
+   "lines": [
+    409
+   ],
+   "feature": "LEFT PAREN SEPARATOR",
+   "ansi": "IV-4 4.2.1",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-SR-IV.4.2.1-1",
+    "1985-SR-IV.4.2.1-p1",
+    "1985-SR-IV.4.2.1-2",
+    "1985-SR-IV.4.2.1-p2",
+    "1985-SR-IV.4.2.1-3",
+    "1985-SR-IV.4.2.1-p3",
+    "1985-SR-IV.4.2.1-4",
+    "1985-SR-IV.4.2.1-5",
+    "1985-SR-IV.4.2.1-6",
+    "1985-SR-IV.4.2.1-7",
+    "1985-SR-IV.4.2.1-8",
+    "1985-SR-IV.4.2.1-9"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEP-TEST-004",
+   "lines": [
+    413
+   ],
+   "feature": "SPACES AS SEPARATOR",
+   "ansi": "IV-4 4.2.1",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-SR-IV.4.2.1-1",
+    "1985-SR-IV.4.2.1-p1",
+    "1985-SR-IV.4.2.1-2",
+    "1985-SR-IV.4.2.1-p2",
+    "1985-SR-IV.4.2.1-3",
+    "1985-SR-IV.4.2.1-p3",
+    "1985-SR-IV.4.2.1-4",
+    "1985-SR-IV.4.2.1-5",
+    "1985-SR-IV.4.2.1-6",
+    "1985-SR-IV.4.2.1-7",
+    "1985-SR-IV.4.2.1-8",
+    "1985-SR-IV.4.2.1-9"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEP-TEST-005",
+   "lines": [
+    457
+   ],
+   "feature": "SPACES AS SEPARATOR",
+   "ansi": "IV-4 4.2.1",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-SR-IV.4.2.1-1",
+    "1985-SR-IV.4.2.1-p1",
+    "1985-SR-IV.4.2.1-2",
+    "1985-SR-IV.4.2.1-p2",
+    "1985-SR-IV.4.2.1-3",
+    "1985-SR-IV.4.2.1-p3",
+    "1985-SR-IV.4.2.1-4",
+    "1985-SR-IV.4.2.1-5",
+    "1985-SR-IV.4.2.1-6",
+    "1985-SR-IV.4.2.1-7",
+    "1985-SR-IV.4.2.1-8",
+    "1985-SR-IV.4.2.1-9"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEP-TEST-006",
+   "lines": [
+    506
+   ],
+   "feature": "SPACES AS SEPARATOR",
+   "ansi": "IV-4 4.2.1",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-SR-IV.4.2.1-1",
+    "1985-SR-IV.4.2.1-p1",
+    "1985-SR-IV.4.2.1-2",
+    "1985-SR-IV.4.2.1-p2",
+    "1985-SR-IV.4.2.1-3",
+    "1985-SR-IV.4.2.1-p3",
+    "1985-SR-IV.4.2.1-4",
+    "1985-SR-IV.4.2.1-5",
+    "1985-SR-IV.4.2.1-6",
+    "1985-SR-IV.4.2.1-7",
+    "1985-SR-IV.4.2.1-8",
+    "1985-SR-IV.4.2.1-9"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEP-TEST-007",
+   "lines": [
+    551
+   ],
+   "feature": "SPACES AS SEPARATOR",
+   "ansi": "IV-4 4.2.1",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-SR-IV.4.2.1-1",
+    "1985-SR-IV.4.2.1-p1",
+    "1985-SR-IV.4.2.1-2",
+    "1985-SR-IV.4.2.1-p2",
+    "1985-SR-IV.4.2.1-3",
+    "1985-SR-IV.4.2.1-p3",
+    "1985-SR-IV.4.2.1-4",
+    "1985-SR-IV.4.2.1-5",
+    "1985-SR-IV.4.2.1-6",
+    "1985-SR-IV.4.2.1-7",
+    "1985-SR-IV.4.2.1-8",
+    "1985-SR-IV.4.2.1-9"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEP-TEST-008",
+   "lines": [
+    594
+   ],
+   "feature": "SPACES AS SEPARATOR",
+   "ansi": "IV-4 4.2.1(2)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-SR-IV.4.2.1-2"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  }
+ ]
+}

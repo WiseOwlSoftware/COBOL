@@ -1,0 +1,17 @@
+{
+ "program": "IC234A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "USE-TEST-1",
+   "lines": [
+    342
+   ],
+   "feature": "USE GLOBAL INPUT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

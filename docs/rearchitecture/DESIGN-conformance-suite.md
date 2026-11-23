@@ -610,7 +610,7 @@ tests/nist/crosswalk/<program>.json    each NIST-85 program's units and disposit
   the parsed tests and return facts or refusals, each with a `--self-test` and one owning slice: `casefile.py` (S5b),
   `derive.py` (S6), `completeness.py` (S9), `obligations.py` (landed at Stage 0, cut to the held editions' catalogs: §6.1),
   `measurements.py` (§5) and `suite_status.py` (§8; both landed at Stage 0), `placement.py` (S10-S12), `coverage.py` (S15),
-  `crosswalk.py` (S17), and two tools, `reformat.py` (S8) and `group.py` (S5b's one-time migration).
+  `crosswalk.py` (landed at Stage 0 as the mechanical map, §6.3; S17 adjudicates its residue), and two tools, `reformat.py` (S8) and `group.py` (S5b's one-time migration).
 - **The refusals.** Every "refuses" in §3 and §6.3 is a generator refusal. Besides them it refuses: a syntax flag on a
   row neither FMT- nor identified-as a syntax rule; a conformance flag outside 14.8.2, 14.8.3 and 9.3.8.2.3; a test
   accepted and flagged at one edition whose kind does not allow it; an `id` shared or equal to a file's name; a file of
@@ -886,6 +886,29 @@ its test cites that §'s row and derives its expected section from it.
 (`nist85_clause_map.json`), and confuses facilities sharing a keyword; compiling them at `--std 2023 --permissive`
 shows what 2023 removed, such as ALTER at 92 sites (`nist85_probe_2023.json`).
 
+**The mechanical map** (`harness/crosswalk.py`, landed at Stage 0, kb/Work PB6049; `tests/nist/crosswalk/<program>.json`,
+`--build` writes it, `--check` audits it). The unit is a distinct `MOVE "<name>" TO PAR-NAME` literal of a program, blanks
+trimmed (6,884 units in 389 programs, fewer than §2's 6,929, which counted spacing variants of one name apart), and each
+expected flag of the 31 flagging programs (40 OBSOLETE, 177 NON-CONFORMING STANDARD): 7,101 units. A PAR-NAME move that
+names no literal (a table-driven name: 7 sites in DB105A, NC107A, NC210A, OBIC1A, OBIC3A) is listed `unenumerated` and counted
+owed. The `ANSI-REFERENCE` in effect at a unit is the last one its program moved before the unit, read as page and section
+tokens (`VI-106 6.19.4 GR1`; `V1`, `1V` are typing for `VI`, `IV`; `GR1-5`, `(5)`, `6.15.3/4`) and resolved by the cited
+section's locator (`§1985:VI.6.19.4`) to the catalog's rows. **NIST's numbering is not the held text's after the ENTER
+statement** (NC's MULTIPLY units cite 6.19.4, which the held text gives to MOVE; its MULTIPLY is 6.20.4), so a literal
+resolution is believed only when it also names every rule it cites and the cited section's subject begins or continues a word
+of the unit's FEATURE or paragraph name. A unit that passes is `rows` (347 at landing; a format-keyed name adds the
+statement's FMT row); any other is `open`, `ambiguous` when the literal reference or the one section of the cited chapter
+whose subject names the unit (`by-name`: NIST's rule numbers applied to it) offers candidate rows (4,095), `unmapped`
+otherwise (2,482, 2,422 of them units whose program sets no reference at all: Segmentation, Debug, Communication and the
+file-I/O programs). A flag unit maps through Appendix C.1: the catalog marks each obsolete row `obsolete: C.1(n)` and the
+flagged statement names the element n; an element with one row maps to it, one with several is `ambiguous`; the 177 FIPS
+flags are `excluded` (`fips-pub-21-1`). An entry's `basis: "mechanical"` marks what the tool reproduces and `--check`
+enforces; Stage 4's adjudicated entries carry another basis and the audit holds them only to the program's facts and the
+catalog's rows. `unmet(edition)`, the status line's NIST term, counts the units still owed at row level: every `open` unit,
+every `unenumerated` site and every `rows` unit with a row that no cleared test, determination or derivation witnesses (6,931
+of 6,931 at landing). The coverage points are PB6050's: a `rows` unit is subsumed at row level only until `coverage.py`
+exists.
+
 **One NIST map**: S17 moves the 16 `nist:` test-refs into the crosswalk, and the ref grammar stops accepting them.
 **The audit** (`harness/crosswalk.py`) refuses an unknown row, point, construct or case; a row whose band
 excludes 85; a case not accepted (or not flagged) at 85; a `unit` case not naming its construct; a divergent golden
@@ -920,7 +943,7 @@ Revision 4 (kb/Work PB6046) orders the work in stages, COBOL-85 first (decision 
    points from `coverage.py` `unmet(edition)` (PB6050), NIST from `crosswalk.py` `unmet(edition)` (PB6049) and the
    transcription from the ledger's `second_pass` `{pages_swept, findings}` (PB6051). A term whose tool does not exist
    yet prints `UNMEASURED`, never 0, and keeps the line `INCOMPLETE`; a tool that exists and cannot answer fails the line
-   loudly (exit 2). Today: rows 2,961 · points UNMEASURED · NIST UNMEASURED · second compiler 211 · transcription UNMEASURED.
+   loudly (exit 2). Today: rows 2,961 · points UNMEASURED · NIST 6,931 · second compiler 211 · transcription UNMEASURED.
 1. **The pilot** (PB3178, re-scoped): one slice of about 100 rows end to end with the real tools; its cost per row, per
    test cleared, per test written and per NIST unit sets the stop rule of every later stage (above twice: redesign).
 2. **Clear the existing tests.** A test clears when the portability lint passes, WiseOwl passes it at 85, its expected
@@ -1063,7 +1086,8 @@ below that revision 4 did not name are revision 3's, planned with the editions a
 - **S16 — the A.1 verdict (§3.3, §5).** (PB4695) UNDOCUMENTED in both runners; A.1 values held to `docs/CONFORMANCE.md` §7;
   `implementor-defined.json` deleted.
 - **S17 — the NIST-85 crosswalk (§6.3), sized by S3.** (PB4696) 459 files adjudicated per program with a refuter; the 17 FIPS
-  programs `excluded`; `crosswalk.py`; the 16 `nist:` refs moved; the NIST axis.
+  programs `excluded`; `crosswalk.py`; the 16 `nist:` refs moved; the NIST axis. Landed at Stage 0 (PB6049): the unit list, the
+  FIPS exclusions and the mechanical map (§6.3); the residue adjudication stays here.
 - **S18 — the authoring lane (§6.1, §6.2).** (PB4697) The dossier, the new overturn kinds, and the validator, which runs the
   INTERFERENCE check on the case files it writes.
 - **S19 — the text-to-rows check (§9)** (PB4698), and the missing rows added through the extractor, 8.3.2.1 and 6.4.2 first.

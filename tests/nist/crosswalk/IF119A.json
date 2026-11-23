@@ -1,0 +1,558 @@
+{
+ "program": "IF119A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "F-MAX-01",
+   "lines": [
+    376
+   ],
+   "feature": "MAX Function",
+   "ansi": "See ref. A-52 2.23",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.23.1-T1.1",
+    "1989-GR-A.2.23.1-p1",
+    "1989-GR-A.2.23.1-T1.2",
+    "1989-GR-A.2.23.1-T1.3",
+    "1989-GR-A.2.23.1-T1.4",
+    "1989-FMT-A.2.23.2",
+    "1989-AR-A.2.23.3-1",
+    "1989-RV-A.2.23.4-1",
+    "1989-RV-A.2.23.4-2",
+    "1989-RV-A.2.23.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MAX-02",
+   "lines": [
+    390
+   ],
+   "feature": "MAX Function",
+   "ansi": "See ref. A-52 2.23",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.23.1-T1.1",
+    "1989-GR-A.2.23.1-p1",
+    "1989-GR-A.2.23.1-T1.2",
+    "1989-GR-A.2.23.1-T1.3",
+    "1989-GR-A.2.23.1-T1.4",
+    "1989-FMT-A.2.23.2",
+    "1989-AR-A.2.23.3-1",
+    "1989-RV-A.2.23.4-1",
+    "1989-RV-A.2.23.4-2",
+    "1989-RV-A.2.23.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MAX-03",
+   "lines": [
+    404
+   ],
+   "feature": "MAX Function",
+   "ansi": "See ref. A-52 2.23",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.23.1-T1.1",
+    "1989-GR-A.2.23.1-p1",
+    "1989-GR-A.2.23.1-T1.2",
+    "1989-GR-A.2.23.1-T1.3",
+    "1989-GR-A.2.23.1-T1.4",
+    "1989-FMT-A.2.23.2",
+    "1989-AR-A.2.23.3-1",
+    "1989-RV-A.2.23.4-1",
+    "1989-RV-A.2.23.4-2",
+    "1989-RV-A.2.23.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MAX-04",
+   "lines": [
+    423
+   ],
+   "feature": "MAX Function",
+   "ansi": "See ref. A-52 2.23",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.23.1-T1.1",
+    "1989-GR-A.2.23.1-p1",
+    "1989-GR-A.2.23.1-T1.2",
+    "1989-GR-A.2.23.1-T1.3",
+    "1989-GR-A.2.23.1-T1.4",
+    "1989-FMT-A.2.23.2",
+    "1989-AR-A.2.23.3-1",
+    "1989-RV-A.2.23.4-1",
+    "1989-RV-A.2.23.4-2",
+    "1989-RV-A.2.23.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MAX-05",
+   "lines": [
+    441
+   ],
+   "feature": "MAX Function",
+   "ansi": "See ref. A-52 2.23",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.23.1-T1.1",
+    "1989-GR-A.2.23.1-p1",
+    "1989-GR-A.2.23.1-T1.2",
+    "1989-GR-A.2.23.1-T1.3",
+    "1989-GR-A.2.23.1-T1.4",
+    "1989-FMT-A.2.23.2",
+    "1989-AR-A.2.23.3-1",
+    "1989-RV-A.2.23.4-1",
+    "1989-RV-A.2.23.4-2",
+    "1989-RV-A.2.23.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MAX-06",
+   "lines": [
+    459
+   ],
+   "feature": "MAX Function",
+   "ansi": "See ref. A-52 2.23",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.23.1-T1.1",
+    "1989-GR-A.2.23.1-p1",
+    "1989-GR-A.2.23.1-T1.2",
+    "1989-GR-A.2.23.1-T1.3",
+    "1989-GR-A.2.23.1-T1.4",
+    "1989-FMT-A.2.23.2",
+    "1989-AR-A.2.23.3-1",
+    "1989-RV-A.2.23.4-1",
+    "1989-RV-A.2.23.4-2",
+    "1989-RV-A.2.23.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MAX-07",
+   "lines": [
+    478
+   ],
+   "feature": "MAX Function",
+   "ansi": "See ref. A-52 2.23",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.23.1-T1.1",
+    "1989-GR-A.2.23.1-p1",
+    "1989-GR-A.2.23.1-T1.2",
+    "1989-GR-A.2.23.1-T1.3",
+    "1989-GR-A.2.23.1-T1.4",
+    "1989-FMT-A.2.23.2",
+    "1989-AR-A.2.23.3-1",
+    "1989-RV-A.2.23.4-1",
+    "1989-RV-A.2.23.4-2",
+    "1989-RV-A.2.23.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MAX-08",
+   "lines": [
+    497
+   ],
+   "feature": "MAX Function",
+   "ansi": "See ref. A-52 2.23",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.23.1-T1.1",
+    "1989-GR-A.2.23.1-p1",
+    "1989-GR-A.2.23.1-T1.2",
+    "1989-GR-A.2.23.1-T1.3",
+    "1989-GR-A.2.23.1-T1.4",
+    "1989-FMT-A.2.23.2",
+    "1989-AR-A.2.23.3-1",
+    "1989-RV-A.2.23.4-1",
+    "1989-RV-A.2.23.4-2",
+    "1989-RV-A.2.23.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MAX-09",
+   "lines": [
+    515
+   ],
+   "feature": "MAX Function",
+   "ansi": "See ref. A-52 2.23",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.23.1-T1.1",
+    "1989-GR-A.2.23.1-p1",
+    "1989-GR-A.2.23.1-T1.2",
+    "1989-GR-A.2.23.1-T1.3",
+    "1989-GR-A.2.23.1-T1.4",
+    "1989-FMT-A.2.23.2",
+    "1989-AR-A.2.23.3-1",
+    "1989-RV-A.2.23.4-1",
+    "1989-RV-A.2.23.4-2",
+    "1989-RV-A.2.23.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MAX-10",
+   "lines": [
+    534
+   ],
+   "feature": "MAX Function",
+   "ansi": "See ref. A-52 2.23",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.23.1-T1.1",
+    "1989-GR-A.2.23.1-p1",
+    "1989-GR-A.2.23.1-T1.2",
+    "1989-GR-A.2.23.1-T1.3",
+    "1989-GR-A.2.23.1-T1.4",
+    "1989-FMT-A.2.23.2",
+    "1989-AR-A.2.23.3-1",
+    "1989-RV-A.2.23.4-1",
+    "1989-RV-A.2.23.4-2",
+    "1989-RV-A.2.23.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MAX-11",
+   "lines": [
+    552
+   ],
+   "feature": "MAX Function",
+   "ansi": "See ref. A-52 2.23",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.23.1-T1.1",
+    "1989-GR-A.2.23.1-p1",
+    "1989-GR-A.2.23.1-T1.2",
+    "1989-GR-A.2.23.1-T1.3",
+    "1989-GR-A.2.23.1-T1.4",
+    "1989-FMT-A.2.23.2",
+    "1989-AR-A.2.23.3-1",
+    "1989-RV-A.2.23.4-1",
+    "1989-RV-A.2.23.4-2",
+    "1989-RV-A.2.23.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MAX-12",
+   "lines": [
+    570
+   ],
+   "feature": "MAX Function",
+   "ansi": "See ref. A-52 2.23",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.23.1-T1.1",
+    "1989-GR-A.2.23.1-p1",
+    "1989-GR-A.2.23.1-T1.2",
+    "1989-GR-A.2.23.1-T1.3",
+    "1989-GR-A.2.23.1-T1.4",
+    "1989-FMT-A.2.23.2",
+    "1989-AR-A.2.23.3-1",
+    "1989-RV-A.2.23.4-1",
+    "1989-RV-A.2.23.4-2",
+    "1989-RV-A.2.23.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MAX-13",
+   "lines": [
+    588
+   ],
+   "feature": "MAX Function",
+   "ansi": "See ref. A-52 2.23",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.23.1-T1.1",
+    "1989-GR-A.2.23.1-p1",
+    "1989-GR-A.2.23.1-T1.2",
+    "1989-GR-A.2.23.1-T1.3",
+    "1989-GR-A.2.23.1-T1.4",
+    "1989-FMT-A.2.23.2",
+    "1989-AR-A.2.23.3-1",
+    "1989-RV-A.2.23.4-1",
+    "1989-RV-A.2.23.4-2",
+    "1989-RV-A.2.23.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MAX-14",
+   "lines": [
+    606
+   ],
+   "feature": "MAX Function",
+   "ansi": "See ref. A-52 2.23",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.23.1-T1.1",
+    "1989-GR-A.2.23.1-p1",
+    "1989-GR-A.2.23.1-T1.2",
+    "1989-GR-A.2.23.1-T1.3",
+    "1989-GR-A.2.23.1-T1.4",
+    "1989-FMT-A.2.23.2",
+    "1989-AR-A.2.23.3-1",
+    "1989-RV-A.2.23.4-1",
+    "1989-RV-A.2.23.4-2",
+    "1989-RV-A.2.23.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MAX-15",
+   "lines": [
+    624
+   ],
+   "feature": "MAX Function",
+   "ansi": "See ref. A-52 2.23",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.23.1-T1.1",
+    "1989-GR-A.2.23.1-p1",
+    "1989-GR-A.2.23.1-T1.2",
+    "1989-GR-A.2.23.1-T1.3",
+    "1989-GR-A.2.23.1-T1.4",
+    "1989-FMT-A.2.23.2",
+    "1989-AR-A.2.23.3-1",
+    "1989-RV-A.2.23.4-1",
+    "1989-RV-A.2.23.4-2",
+    "1989-RV-A.2.23.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MAX-17",
+   "lines": [
+    643
+   ],
+   "feature": "MAX Function",
+   "ansi": "See ref. A-52 2.23",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.23.1-T1.1",
+    "1989-GR-A.2.23.1-p1",
+    "1989-GR-A.2.23.1-T1.2",
+    "1989-GR-A.2.23.1-T1.3",
+    "1989-GR-A.2.23.1-T1.4",
+    "1989-FMT-A.2.23.2",
+    "1989-AR-A.2.23.3-1",
+    "1989-RV-A.2.23.4-1",
+    "1989-RV-A.2.23.4-2",
+    "1989-RV-A.2.23.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MAX-18",
+   "lines": [
+    665
+   ],
+   "feature": "MAX Function",
+   "ansi": "See ref. A-52 2.23",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.23.1-T1.1",
+    "1989-GR-A.2.23.1-p1",
+    "1989-GR-A.2.23.1-T1.2",
+    "1989-GR-A.2.23.1-T1.3",
+    "1989-GR-A.2.23.1-T1.4",
+    "1989-FMT-A.2.23.2",
+    "1989-AR-A.2.23.3-1",
+    "1989-RV-A.2.23.4-1",
+    "1989-RV-A.2.23.4-2",
+    "1989-RV-A.2.23.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MAX-19",
+   "lines": [
+    687
+   ],
+   "feature": "MAX Function",
+   "ansi": "See ref. A-52 2.23",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.23.1-T1.1",
+    "1989-GR-A.2.23.1-p1",
+    "1989-GR-A.2.23.1-T1.2",
+    "1989-GR-A.2.23.1-T1.3",
+    "1989-GR-A.2.23.1-T1.4",
+    "1989-FMT-A.2.23.2",
+    "1989-AR-A.2.23.3-1",
+    "1989-RV-A.2.23.4-1",
+    "1989-RV-A.2.23.4-2",
+    "1989-RV-A.2.23.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MAX-20",
+   "lines": [
+    709
+   ],
+   "feature": "MAX Function",
+   "ansi": "See ref. A-52 2.23",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.23.1-T1.1",
+    "1989-GR-A.2.23.1-p1",
+    "1989-GR-A.2.23.1-T1.2",
+    "1989-GR-A.2.23.1-T1.3",
+    "1989-GR-A.2.23.1-T1.4",
+    "1989-FMT-A.2.23.2",
+    "1989-AR-A.2.23.3-1",
+    "1989-RV-A.2.23.4-1",
+    "1989-RV-A.2.23.4-2",
+    "1989-RV-A.2.23.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MAX-21",
+   "lines": [
+    733
+   ],
+   "feature": "MAX Function",
+   "ansi": "See ref. A-52 2.23",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.23.1-T1.1",
+    "1989-GR-A.2.23.1-p1",
+    "1989-GR-A.2.23.1-T1.2",
+    "1989-GR-A.2.23.1-T1.3",
+    "1989-GR-A.2.23.1-T1.4",
+    "1989-FMT-A.2.23.2",
+    "1989-AR-A.2.23.3-1",
+    "1989-RV-A.2.23.4-1",
+    "1989-RV-A.2.23.4-2",
+    "1989-RV-A.2.23.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MAX-22",
+   "lines": [
+    755
+   ],
+   "feature": "MAX Function",
+   "ansi": "See ref. A-52 2.23",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.23.1-T1.1",
+    "1989-GR-A.2.23.1-p1",
+    "1989-GR-A.2.23.1-T1.2",
+    "1989-GR-A.2.23.1-T1.3",
+    "1989-GR-A.2.23.1-T1.4",
+    "1989-FMT-A.2.23.2",
+    "1989-AR-A.2.23.3-1",
+    "1989-RV-A.2.23.4-1",
+    "1989-RV-A.2.23.4-2",
+    "1989-RV-A.2.23.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MAX-23",
+   "lines": [
+    778
+   ],
+   "feature": "MAX Function",
+   "ansi": "See ref. A-52 2.23",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.23.1-T1.1",
+    "1989-GR-A.2.23.1-p1",
+    "1989-GR-A.2.23.1-T1.2",
+    "1989-GR-A.2.23.1-T1.3",
+    "1989-GR-A.2.23.1-T1.4",
+    "1989-FMT-A.2.23.2",
+    "1989-AR-A.2.23.3-1",
+    "1989-RV-A.2.23.4-1",
+    "1989-RV-A.2.23.4-2",
+    "1989-RV-A.2.23.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MAX-24",
+   "lines": [
+    792
+   ],
+   "feature": "MAX Function",
+   "ansi": "See ref. A-52 2.23",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.23.1-T1.1",
+    "1989-GR-A.2.23.1-p1",
+    "1989-GR-A.2.23.1-T1.2",
+    "1989-GR-A.2.23.1-T1.3",
+    "1989-GR-A.2.23.1-T1.4",
+    "1989-FMT-A.2.23.2",
+    "1989-AR-A.2.23.3-1",
+    "1989-RV-A.2.23.4-1",
+    "1989-RV-A.2.23.4-2",
+    "1989-RV-A.2.23.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  }
+ ]
+}

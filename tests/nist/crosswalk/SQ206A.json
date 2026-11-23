@@ -1,0 +1,83 @@
+{
+ "program": "SQ206A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "WRITE-TEST-GF-01",
+   "lines": [
+    436
+   ],
+   "feature": "CREATE SQ-FS1,SQ-FS3",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRITE-TEST-GF-02",
+   "lines": [
+    465
+   ],
+   "feature": "CREATE FILE SQ-FS4",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-GF-01",
+   "lines": [
+    510
+   ],
+   "feature": "CREATE FILE SQ-FS4",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-GF-02",
+   "lines": [
+    555
+   ],
+   "feature": "VERIFY FILE SQ-FS1",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-GF-03",
+   "lines": [
+    587
+   ],
+   "feature": "CREATE FILE SQ-FS2",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-GF-04",
+   "lines": [
+    632
+   ],
+   "feature": "CREATE FILE SQ-FS2",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-GF-05",
+   "lines": [
+    677
+   ],
+   "feature": "VERIFY FILE SQ-FS4",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

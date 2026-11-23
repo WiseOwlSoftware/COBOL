@@ -1,0 +1,39 @@
+{
+ "program": "IC114A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "LINK-TEST-10",
+   "lines": [
+    350
+   ],
+   "feature": "",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "LINK-TEST-11",
+   "lines": [
+    375
+   ],
+   "feature": "CREATE FILE SQ-FS3",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "LINK-TEST-12",
+   "lines": [
+    435
+   ],
+   "feature": "VERIFY FILE SQ-FS3",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

@@ -1,0 +1,39 @@
+{
+ "program": "IX116A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "OPN-TEST-GF-01-0",
+   "lines": [
+    649
+   ],
+   "feature": "OPEN I-O   : 00 EXP.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CLO-TEST-GF-01-0",
+   "lines": [
+    672
+   ],
+   "feature": "CLOSE I-O   :00 EXP.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "DEL-TEST-GF-01-0",
+   "lines": [
+    701
+   ],
+   "feature": "DELETE       49 EXP.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

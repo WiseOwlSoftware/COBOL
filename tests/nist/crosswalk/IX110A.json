@@ -1,0 +1,50 @@
+{
+ "program": "IX110A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "OPN-TEST-GF-01-0",
+   "lines": [
+    509
+   ],
+   "feature": "OPEN I-O:    00 EXP.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRI-TEST-GF-01-0",
+   "lines": [
+    535
+   ],
+   "feature": "WRITE: (DUP) 22 EXP.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "RWR-TEST-GF-01-0",
+   "lines": [
+    564
+   ],
+   "feature": "REWRITE:00 / 22 EXP.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REA-TEST-GF-01-0",
+   "lines": [
+    595
+   ],
+   "feature": "READ:        23 EXP.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

@@ -1,0 +1,823 @@
+{
+ "program": "DB201A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "GO-TO-DEPENDING",
+   "lines": [
+    400
+   ],
+   "feature": "GO TO DEP/ALL REF",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "G-T-D-2",
+   "lines": [
+    418
+   ],
+   "feature": "GO TO DEP/ALL REF",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "G-T-D-2A",
+   "lines": [
+    435,
+    445
+   ],
+   "feature": "GO TO DEP/ALL REF",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "G-T-D-2B",
+   "lines": [
+    438,
+    452
+   ],
+   "feature": "GO TO DEP/ALL REF",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "G-T-D-2C",
+   "lines": [
+    441,
+    461
+   ],
+   "feature": "GO TO DEP/ALL REF",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "G-T-D-3",
+   "lines": [
+    470,
+    483
+   ],
+   "feature": "GO TO DEP/ALL REF",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "G-T-D-3A",
+   "lines": [
+    489,
+    499
+   ],
+   "feature": "GO TO DEP/ALL REF",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "G-T-D-3B",
+   "lines": [
+    492,
+    506
+   ],
+   "feature": "GO TO DEP/ALL REF",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "G-T-D-3C",
+   "lines": [
+    495,
+    515
+   ],
+   "feature": "GO TO DEP/ALL REF",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "G-T-D-4",
+   "lines": [
+    524,
+    532
+   ],
+   "feature": "GO TO DEP/ALL REF",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "G-T-D-6",
+   "lines": [
+    541
+   ],
+   "feature": "GO TO DEP/NOT ALL",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "PERFORM-VARY-1",
+   "lines": [
+    566
+   ],
+   "feature": "PERFORM VARYING",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "P-V-1A",
+   "lines": [
+    585,
+    609
+   ],
+   "feature": "PERFORM VARYING",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "P-V-1B",
+   "lines": [
+    588,
+    616
+   ],
+   "feature": "PERFORM VARYING",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "P-V-1C",
+   "lines": [
+    591,
+    625
+   ],
+   "feature": "PERFORM VARYING",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "PERFORM-VARY-2",
+   "lines": [
+    635,
+    640
+   ],
+   "feature": "PERFORM VARYING",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "PERFORM-AFTER-1",
+   "lines": [
+    658
+   ],
+   "feature": "PERFORM AFTER",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "PERFORM-AFT-1A",
+   "lines": [
+    680,
+    689
+   ],
+   "feature": "PERFORM AFTER",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "PERFORM-UNTIL-1",
+   "lines": [
+    697
+   ],
+   "feature": "PERFORM UNTIL",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "PERFORM-UNT-1A",
+   "lines": [
+    718,
+    727
+   ],
+   "feature": "PERFORM UNTIL",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "BYPASSED-CODE-1",
+   "lines": [
+    747
+   ],
+   "feature": "ALL REF OF IDENT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REDEFINED-ID-1",
+   "lines": [
+    761
+   ],
+   "feature": "ALL REF OF IDENT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MOVE-TEST-1",
+   "lines": [
+    765
+   ],
+   "feature": "ALL REF OF IDENT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MOVE-TEST-1A",
+   "lines": [
+    792,
+    802
+   ],
+   "feature": "ALL REF OF IDENT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MOVE-TEST-1B",
+   "lines": [
+    795,
+    809
+   ],
+   "feature": "ALL REF OF IDENT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MOVE-TEST-1C",
+   "lines": [
+    798,
+    818
+   ],
+   "feature": "ALL REF OF IDENT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MOVE-TEST-2",
+   "lines": [
+    828
+   ],
+   "feature": "NOT ALL REF OF IDENT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MOVE-TEST-2A",
+   "lines": [
+    843,
+    848
+   ],
+   "feature": "NOT ALL REF OF IDENT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MOVE-TEST-3",
+   "lines": [
+    858,
+    872
+   ],
+   "feature": "REPEATED NOT ALL REF",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MOVE-TEST-4",
+   "lines": [
+    880
+   ],
+   "feature": "SRC OPR/ALL REF",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MOVE-TEST-4A",
+   "lines": [
+    905,
+    915
+   ],
+   "feature": "SRC OPR/ALL REF",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MOVE-TEST-4B",
+   "lines": [
+    908,
+    922
+   ],
+   "feature": "SRC OPR/ALL REF",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MOVE-TEST-4C",
+   "lines": [
+    911,
+    931
+   ],
+   "feature": "SRC OPR/ALL REF",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MOVE-TEST-5",
+   "lines": [
+    944
+   ],
+   "feature": "SRC OPR/NOT ALL REF",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "ADD-TEST-1",
+   "lines": [
+    963
+   ],
+   "feature": "MULT SRC OPR/ALL REF",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "ADD-TEST-1A",
+   "lines": [
+    987,
+    1000
+   ],
+   "feature": "MULT SRC OPR/ALL REF",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "ADD-TEST-1B",
+   "lines": [
+    990,
+    1007
+   ],
+   "feature": "MULT SRC OPR/ALL REF",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "ADD-TEST-1C",
+   "lines": [
+    993,
+    1016
+   ],
+   "feature": "MULT SRC OPR/ALL REF",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "ADD-TEST-2",
+   "lines": [
+    1029
+   ],
+   "feature": "MULT SRC OPR/NOT ALL",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "ADD-TEST-3",
+   "lines": [
+    1049
+   ],
+   "feature": "SRC-RCV OPR/ALL REF",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "ADD-TEST-3A",
+   "lines": [
+    1072,
+    1076
+   ],
+   "feature": "SRC-RCV OPR/ALL REF",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "ADD-TEST-4",
+   "lines": [
+    1089
+   ],
+   "feature": "SRC-RCV OPR/NOT ALL",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "ADD-TEST-4A",
+   "lines": [
+    1112,
+    1116
+   ],
+   "feature": "SRC-RCV OPR/NOT ALL",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SUBSC-TEST-1",
+   "lines": [
+    1126
+   ],
+   "feature": "SRC-RCV OPR/NOT ALL",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SUBSC-TEST-1A",
+   "lines": [
+    1155,
+    1174
+   ],
+   "feature": "ONE-DIM SUBSCRIPT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SUBSC-TEST-1B",
+   "lines": [
+    1158,
+    1181
+   ],
+   "feature": "ONE-DIM SUBSCRIPT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SUBSC-TEST-1C",
+   "lines": [
+    1161,
+    1190
+   ],
+   "feature": "ONE-DIM SUBSCRIPT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SUBSC-TEST-1D",
+   "lines": [
+    1164,
+    1199
+   ],
+   "feature": "ONE-DIM SUBSCRIPT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SUBSC-TEST-1E",
+   "lines": [
+    1167,
+    1208
+   ],
+   "feature": "ONE-DIM SUBSCRIPT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SUBSC-TEST-1F",
+   "lines": [
+    1170,
+    1212
+   ],
+   "feature": "ONE-DIM SUBSCRIPT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SUBSC-TEST-2",
+   "lines": [
+    1216
+   ],
+   "feature": "ONE-DIM SUBSCRIPT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SUBSC-TEST-2A",
+   "lines": [
+    1241,
+    1254
+   ],
+   "feature": "THR-DIM SUBSCRIPT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SUBSC-TEST-2B",
+   "lines": [
+    1244,
+    1263
+   ],
+   "feature": "THR-DIM SUBSCRIPT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SUBSC-TEST-2C",
+   "lines": [
+    1247,
+    1272
+   ],
+   "feature": "THR-DIM SUBSCRIPT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SUBSC-TEST-2D",
+   "lines": [
+    1250,
+    1281
+   ],
+   "feature": "THR-DIM SUBSCRIPT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "QUAL-TEST-1",
+   "lines": [
+    1291
+   ],
+   "feature": "THR-DIM SUBSCRIPT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "QUAL-TEST-1A",
+   "lines": [
+    1319,
+    1329
+   ],
+   "feature": "1-LEVEL QUALIFICATN",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "QUAL-TEST-1B",
+   "lines": [
+    1322,
+    1336
+   ],
+   "feature": "1-LEVEL QUALIFICATN",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "QUAL-TEST-1C",
+   "lines": [
+    1325,
+    1346
+   ],
+   "feature": "1-LEVEL QUALIFICATN",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "QUAL-TEST-2",
+   "lines": [
+    1355
+   ],
+   "feature": "1-LEVEL QUALIFICATN",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "QUAL-TEST-3",
+   "lines": [
+    1372
+   ],
+   "feature": "1-LEVEL QUALIFICATN",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "QUAL-TEST-4",
+   "lines": [
+    1389
+   ],
+   "feature": "1-LEVEL QUALIFICATN",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "QUAL-TEST-4A",
+   "lines": [
+    1411,
+    1418
+   ],
+   "feature": "2-LEVEL QUALIFICATN",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "QUAL-TEST-4B",
+   "lines": [
+    1414,
+    1428
+   ],
+   "feature": "2-LEVEL QUALIFICATN",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "QUAL-TEST-5",
+   "lines": [
+    1437
+   ],
+   "feature": "2-LEVEL QUALIFICATN",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "QUAL-TEST-5A",
+   "lines": [
+    1459,
+    1475
+   ],
+   "feature": "QUALIFIED SUBSC ITEM",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "QUAL-TEST-5B",
+   "lines": [
+    1462,
+    1485
+   ],
+   "feature": "QUALIFIED SUBSC ITEM",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "QUAL-TEST-5C",
+   "lines": [
+    1465,
+    1494
+   ],
+   "feature": "QUALIFIED SUBSC ITEM",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "QUAL-TEST-5D",
+   "lines": [
+    1468,
+    1503
+   ],
+   "feature": "QUALIFIED SUBSC ITEM",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "QUAL-TEST-5E",
+   "lines": [
+    1471,
+    1507
+   ],
+   "feature": "QUALIFIED SUBSC ITEM",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

@@ -1,0 +1,105 @@
+{
+ "program": "RW101A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "INIT-TEST-01",
+   "lines": [
+    366
+   ],
+   "feature": "",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "INIT-TEST-02",
+   "lines": [
+    384
+   ],
+   "feature": "INITIATE REPORT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "GENER-TEST-1",
+   "lines": [
+    418
+   ],
+   "feature": "INITIATE REPORT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "GENER-TEST-2",
+   "lines": [
+    438
+   ],
+   "feature": "FIRST GENERATE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "GENER-TEST-3",
+   "lines": [
+    462
+   ],
+   "feature": "FIRST GENERATE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "GENER-TEST-4",
+   "lines": [
+    495
+   ],
+   "feature": "GENERATE 18 LINES",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "GENER-TEST-5",
+   "lines": [
+    520
+   ],
+   "feature": "GENERATE 18 LINES",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "GENER-TEST-6",
+   "lines": [
+    535
+   ],
+   "feature": "LAST GENERATE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "TERM-TEST-01",
+   "lines": [
+    543
+   ],
+   "feature": "TERMINATE REPORT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

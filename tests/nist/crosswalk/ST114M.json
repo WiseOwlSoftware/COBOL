@@ -1,0 +1,127 @@
+{
+ "program": "ST114M",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "SORT-TEST-1",
+   "lines": [
+    334
+   ],
+   "feature": "SORT, MULTIPLE REEL",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-2",
+   "lines": [
+    345
+   ],
+   "feature": "SORT, MULTIPLE REEL",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-3",
+   "lines": [
+    356
+   ],
+   "feature": "SORT, MULTIPLE REEL",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-4",
+   "lines": [
+    367
+   ],
+   "feature": "SORT, MULTIPLE REEL",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-5",
+   "lines": [
+    378
+   ],
+   "feature": "SORT, MULTIPLE REEL",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-6",
+   "lines": [
+    390
+   ],
+   "feature": "SORT, MULTIPLE REEL",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-7",
+   "lines": [
+    400
+   ],
+   "feature": "SORT, MULTIPLE REEL",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-8",
+   "lines": [
+    411
+   ],
+   "feature": "SORT, MULTIPLE REEL",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-9",
+   "lines": [
+    422
+   ],
+   "feature": "SORT, MULTIPLE REEL",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-10",
+   "lines": [
+    433
+   ],
+   "feature": "SORT, MULTIPLE REEL",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-SORTIN",
+   "lines": [
+    459
+   ],
+   "feature": "SORT, MULTIPLE REEL",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

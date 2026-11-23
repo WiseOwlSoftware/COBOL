@@ -1,0 +1,137 @@
+{
+ "program": "RL211A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "REL-TEST-001",
+   "lines": [
+    433
+   ],
+   "feature": "FILE CREATE RL-VS1",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-1",
+   "lines": [
+    452
+   ],
+   "feature": "FILE CREATE RL-VS1",
+   "ansi": "VII-31 3.8.4 GR 5 & 5A",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VII.3.8.4-5"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-2",
+   "lines": [
+    466
+   ],
+   "feature": "FILE CREATE RL-VS1",
+   "ansi": "VII-31 3.8.4 GR 5",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VII.3.8.4-5"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-3",
+   "lines": [
+    480
+   ],
+   "feature": "FILE CREATE RL-VS1",
+   "ansi": "VII-31 3.8.4 GR 5 & 5B",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VII.3.8.4-5"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-4",
+   "lines": [
+    494
+   ],
+   "feature": "FILE CREATE RL-VS1",
+   "ansi": "VII-31 3.8.4 GR 5",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VII.3.8.4-5"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-5",
+   "lines": [
+    508
+   ],
+   "feature": "FILE CREATE RL-VS1",
+   "ansi": "VII-31 3.8.4 GR 5",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VII.3.8.4-5"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-6",
+   "lines": [
+    522
+   ],
+   "feature": "FILE CREATE RL-VS1",
+   "ansi": "VII-31 3.8.4 GR 5 & 5B",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VII.3.8.4-5"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-002-2",
+   "lines": [
+    539
+   ],
+   "feature": "FILE CREATE RL-VS1",
+   "ansi": "VII-31 3.8.4 GR 5 & 5B",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VII.3.8.4-5"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-002",
+   "lines": [
+    546
+   ],
+   "feature": "FILE CREATE RL-VS1",
+   "ansi": "VII-31 3.8.4 GR 5 & 5B",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VII.3.8.4-5"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  }
+ ]
+}

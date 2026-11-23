@@ -1,0 +1,150 @@
+{
+ "program": "IX105A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "WRITE-TEST-GF-01",
+   "lines": [
+    449
+   ],
+   "feature": "WRITE SHORT & LONG",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F2-01",
+   "lines": [
+    497,
+    523
+   ],
+   "feature": "READ TO VERIFY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-GF-02",
+   "lines": [
+    531
+   ],
+   "feature": "READ  SHORT RECORDS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F2-03",
+   "lines": [
+    562
+   ],
+   "feature": "READ LONG   RECORDS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRITE-TEST-GF-02",
+   "lines": [
+    593
+   ],
+   "feature": "WRITE IX-FS2",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F2-05",
+   "lines": [
+    642
+   ],
+   "feature": "READ IX-FS2 VERIFY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F2-06",
+   "lines": [
+    671
+   ],
+   "feature": "READ",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F2-07",
+   "lines": [
+    698
+   ],
+   "feature": "READ",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRITE-TEST-GF-03",
+   "lines": [
+    733
+   ],
+   "feature": "WRITE IX-FS3",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F2-08",
+   "lines": [
+    783
+   ],
+   "feature": "READ IX-FS3 VERIFY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F2-09",
+   "lines": [
+    814
+   ],
+   "feature": "READ  SHORT RECORDS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F2-10",
+   "lines": [
+    841
+   ],
+   "feature": "READ LONG   RECORDS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-012",
+   "lines": [
+    869
+   ],
+   "feature": "READ LONG   RECORDS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

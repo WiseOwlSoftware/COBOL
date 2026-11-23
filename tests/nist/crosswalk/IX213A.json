@@ -1,0 +1,237 @@
+{
+ "program": "IX213A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "WRITE-TEST-GF-01",
+   "lines": [
+    459
+   ],
+   "feature": "WRITE INVALID KEY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F2-01",
+   "lines": [
+    479
+   ],
+   "feature": "READ...RECORD KEY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F2-02",
+   "lines": [
+    508
+   ],
+   "feature": "READ...RECORD KEY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "DELETE-TEST-GF-01",
+   "lines": [
+    537
+   ],
+   "feature": "DELETE...RECORD",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F2-03",
+   "lines": [
+    555
+   ],
+   "feature": "READ...RECORD KEY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REWRITE-TEST-GF-01",
+   "lines": [
+    584
+   ],
+   "feature": "REWRITE...INVALID...",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F2-04",
+   "lines": [
+    604
+   ],
+   "feature": "READ...RECORD KEY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-01",
+   "lines": [
+    625
+   ],
+   "feature": "START...KEY IS EQUAL",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-02",
+   "lines": [
+    661
+   ],
+   "feature": "START...KEY >",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-03",
+   "lines": [
+    697
+   ],
+   "feature": "START...KEY >",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F2-05",
+   "lines": [
+    733
+   ],
+   "feature": "READ...RECORD KEY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F2-06",
+   "lines": [
+    762
+   ],
+   "feature": "READ...RECORD KEY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F2-07",
+   "lines": [
+    791
+   ],
+   "feature": "READ...RECORD KEY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "DELETE-TEST-GF-02",
+   "lines": [
+    820
+   ],
+   "feature": "DELETE...RECORD",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F2-08",
+   "lines": [
+    838
+   ],
+   "feature": "READ...RECORD KEY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REWRITE-TEST-GF-02",
+   "lines": [
+    867
+   ],
+   "feature": "REWRITE...INVALID...",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F2-09",
+   "lines": [
+    884
+   ],
+   "feature": "READ...RECORD KEY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F2-10",
+   "lines": [
+    913
+   ],
+   "feature": "READ...RECORD KEY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F2-11",
+   "lines": [
+    942
+   ],
+   "feature": "READ...RECORD KEY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "DELETE-TEST-GF-03",
+   "lines": [
+    971
+   ],
+   "feature": "DELETE...RECORD",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F2-12",
+   "lines": [
+    989
+   ],
+   "feature": "READ...RECORD KEY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

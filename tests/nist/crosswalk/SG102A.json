@@ -1,0 +1,94 @@
+{
+ "program": "SG102A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "SEG-TEST-2",
+   "lines": [
+    320
+   ],
+   "feature": "",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-1",
+   "lines": [
+    366
+   ],
+   "feature": "",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-5",
+   "lines": [
+    438
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-7",
+   "lines": [
+    461
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-3",
+   "lines": [
+    505
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-4",
+   "lines": [
+    549
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-6",
+   "lines": [
+    570
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-8",
+   "lines": [
+    587
+   ],
+   "feature": "ALTER RES TO NON-RES",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

@@ -1,0 +1,47 @@
+{
+ "program": "SQ303M",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "OBSOLETE@27",
+   "lines": [
+    27
+   ],
+   "flag": "OBSOLETE",
+   "statement": "I-O-CONTROL MULTIPLE FILE TAPE CONTAINS TFIL2",
+   "element": "C.1(6)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "candidates": [
+    "1985-GR-VII.2.10.1-p1",
+    "1985-GR-VII.2.10.4-1",
+    "1985-GR-VII.2.11.1-p1",
+    "1985-FMT-VII.2.11.2",
+    "1985-GR-VII.2.11.3-1",
+    "1985-SR-XIII.2.4.3-2",
+    "1985-GR-XIII.2.4.4-1"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "OBSOLETE@43",
+   "lines": [
+    43
+   ],
+   "flag": "OBSOLETE",
+   "statement": "SQ303M-CONTROL OPEN INPUT TFIL REVERSED",
+   "element": "C.1(15)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "candidates": [
+    "1985-GR-VII.4.3.1-p1",
+    "1985-SR-VII.4.3.3-1",
+    "1985-GR-VII.4.3.4-9",
+    "1985-GR-VII.4.3.4-10",
+    "1985-GR-VII.4.3.4-11",
+    "1985-GR-VII.4.3.4-12"
+   ],
+   "basis": "mechanical"
+  }
+ ]
+}

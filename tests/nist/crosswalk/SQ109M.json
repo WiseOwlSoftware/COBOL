@@ -1,0 +1,83 @@
+{
+ "program": "SQ109M",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "SEQ-TEST-001",
+   "lines": [
+    423
+   ],
+   "feature": "CREATE FILE SQ-FS1",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-TEST-002",
+   "lines": [
+    469
+   ],
+   "feature": "CREATE FILE SQ-FS1",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-GF-01",
+   "lines": [
+    481
+   ],
+   "feature": "READ...RECORD AT END ...",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-GF-02",
+   "lines": [
+    515
+   ],
+   "feature": "READ...AT END...",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-GF-03",
+   "lines": [
+    542
+   ],
+   "feature": "READ...RECORD END...",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-GF-04",
+   "lines": [
+    569
+   ],
+   "feature": "READ...END...",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-TEST-003",
+   "lines": [
+    606
+   ],
+   "feature": "READ...END...",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

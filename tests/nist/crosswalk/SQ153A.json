@@ -1,0 +1,22 @@
+{
+ "program": "SQ153A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "WRITE-TEST-02",
+   "lines": [
+    584
+   ],
+   "feature": "",
+   "ansi": "VII-5, 1.3.5(4)G",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VII.1.3.5-4",
+    "1985-GR-VII.1.3.5-L2.4"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  }
+ ]
+}

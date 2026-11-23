@@ -1,0 +1,138 @@
+{
+ "program": "NC241A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "CHECK-ENTRIES",
+   "lines": [
+    361
+   ],
+   "feature": "PERFORM VARYING LEV1",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "TH1-TEST-GF-2",
+   "lines": [
+    376
+   ],
+   "feature": "PERFORM VARYING LEV1",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "TH1-TEST-GF-3",
+   "lines": [
+    400
+   ],
+   "feature": "PERFORM VARYING LEV1",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "TH1-TEST-GF-4",
+   "lines": [
+    423
+   ],
+   "feature": "PERFORM VARYING LEV1",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "TH2-TEST-GF-1",
+   "lines": [
+    451
+   ],
+   "feature": "PERFORM VARYING LEV1",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "TH2-TEST-GF-2",
+   "lines": [
+    477
+   ],
+   "feature": "PERFORM VARYING LEV2",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "TH2-TEST-GF-3",
+   "lines": [
+    502
+   ],
+   "feature": "PERFORM VARYING LEV2",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "TH2-TEST-GF-4",
+   "lines": [
+    527
+   ],
+   "feature": "PERFORM VARYING LEV2",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "TH3-TEST-GF-1",
+   "lines": [
+    560
+   ],
+   "feature": "PERFORM VARYING LEV3",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "TH3-TEST-GF-2",
+   "lines": [
+    585
+   ],
+   "feature": "PERFORM VARYING LEV3",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "TH3-TEST-GF-3",
+   "lines": [
+    611
+   ],
+   "feature": "PERFORM VARYING LEV3",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "TH3-TEST-GF-4",
+   "lines": [
+    637
+   ],
+   "feature": "PERFORM VARYING LEV3",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

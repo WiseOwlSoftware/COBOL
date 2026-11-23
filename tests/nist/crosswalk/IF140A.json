@@ -1,0 +1,253 @@
+{
+ "program": "IF140A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "F-UPCASE-01",
+   "lines": [
+    325
+   ],
+   "feature": "UPPER-CASE Function",
+   "ansi": "See ref. A-73 2.44",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.44.1-p1",
+    "1989-FMT-A.2.44.2",
+    "1989-AR-A.2.44.3-1",
+    "1989-RV-A.2.44.4-1",
+    "1989-RV-A.2.44.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-UPCASE-02",
+   "lines": [
+    338
+   ],
+   "feature": "UPPER-CASE Function",
+   "ansi": "See ref. A-73 2.44",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.44.1-p1",
+    "1989-FMT-A.2.44.2",
+    "1989-AR-A.2.44.3-1",
+    "1989-RV-A.2.44.4-1",
+    "1989-RV-A.2.44.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-UPCASE-03",
+   "lines": [
+    356
+   ],
+   "feature": "UPPER-CASE Function",
+   "ansi": "See ref. A-73 2.44",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.44.1-p1",
+    "1989-FMT-A.2.44.2",
+    "1989-AR-A.2.44.3-1",
+    "1989-RV-A.2.44.4-1",
+    "1989-RV-A.2.44.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-UPCASE-04",
+   "lines": [
+    374
+   ],
+   "feature": "UPPER-CASE Function",
+   "ansi": "See ref. A-73 2.44",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.44.1-p1",
+    "1989-FMT-A.2.44.2",
+    "1989-AR-A.2.44.3-1",
+    "1989-RV-A.2.44.4-1",
+    "1989-RV-A.2.44.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-UPCASE-05",
+   "lines": [
+    392
+   ],
+   "feature": "UPPER-CASE Function",
+   "ansi": "See ref. A-73 2.44",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.44.1-p1",
+    "1989-FMT-A.2.44.2",
+    "1989-AR-A.2.44.3-1",
+    "1989-RV-A.2.44.4-1",
+    "1989-RV-A.2.44.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-UPCASE-06",
+   "lines": [
+    410
+   ],
+   "feature": "UPPER-CASE Function",
+   "ansi": "See ref. A-73 2.44",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.44.1-p1",
+    "1989-FMT-A.2.44.2",
+    "1989-AR-A.2.44.3-1",
+    "1989-RV-A.2.44.4-1",
+    "1989-RV-A.2.44.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-UPCASE-07",
+   "lines": [
+    428
+   ],
+   "feature": "UPPER-CASE Function",
+   "ansi": "See ref. A-73 2.44",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.44.1-p1",
+    "1989-FMT-A.2.44.2",
+    "1989-AR-A.2.44.3-1",
+    "1989-RV-A.2.44.4-1",
+    "1989-RV-A.2.44.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-UPCASE-08",
+   "lines": [
+    446
+   ],
+   "feature": "UPPER-CASE Function",
+   "ansi": "See ref. A-73 2.44",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.44.1-p1",
+    "1989-FMT-A.2.44.2",
+    "1989-AR-A.2.44.3-1",
+    "1989-RV-A.2.44.4-1",
+    "1989-RV-A.2.44.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-UPCASE-09",
+   "lines": [
+    464
+   ],
+   "feature": "UPPER-CASE Function",
+   "ansi": "See ref. A-73 2.44",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.44.1-p1",
+    "1989-FMT-A.2.44.2",
+    "1989-AR-A.2.44.3-1",
+    "1989-RV-A.2.44.4-1",
+    "1989-RV-A.2.44.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-UPCASE-10",
+   "lines": [
+    482
+   ],
+   "feature": "UPPER-CASE Function",
+   "ansi": "See ref. A-73 2.44",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.44.1-p1",
+    "1989-FMT-A.2.44.2",
+    "1989-AR-A.2.44.3-1",
+    "1989-RV-A.2.44.4-1",
+    "1989-RV-A.2.44.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-UPCASE-11",
+   "lines": [
+    500
+   ],
+   "feature": "UPPER-CASE Function",
+   "ansi": "See ref. A-73 2.44",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.44.1-p1",
+    "1989-FMT-A.2.44.2",
+    "1989-AR-A.2.44.3-1",
+    "1989-RV-A.2.44.4-1",
+    "1989-RV-A.2.44.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-UPCASE-12",
+   "lines": [
+    519
+   ],
+   "feature": "UPPER-CASE Function",
+   "ansi": "See ref. A-73 2.44",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.44.1-p1",
+    "1989-FMT-A.2.44.2",
+    "1989-AR-A.2.44.3-1",
+    "1989-RV-A.2.44.4-1",
+    "1989-RV-A.2.44.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-UPCASE-13",
+   "lines": [
+    538
+   ],
+   "feature": "UPPER-CASE Function",
+   "ansi": "See ref. A-73 2.44",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.44.1-p1",
+    "1989-FMT-A.2.44.2",
+    "1989-AR-A.2.44.3-1",
+    "1989-RV-A.2.44.4-1",
+    "1989-RV-A.2.44.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  }
+ ]
+}

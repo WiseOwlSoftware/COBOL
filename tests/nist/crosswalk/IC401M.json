@@ -1,0 +1,127 @@
+{
+ "program": "IC401M",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "NON-CONFORMING@4",
+   "lines": [
+    4
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "PROGRAM-ID IC401M IS INITIAL",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@19",
+   "lines": [
+    19
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "WORKING-STORAGE SECTION 01 GLOB IS GLOBAL   PIC IS X(2) VALUE IS \"HI\"",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@22",
+   "lines": [
+    22
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "01 EXTE IS EXTERNAL PIC IS X(5)",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@30",
+   "lines": [
+    30
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "IC401M-USE SECTION USE GLOBAL AFTER STANDARD ERROR PROCEDURE ON I-O",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@40",
+   "lines": [
+    40
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "IC401M-CANCEL CANCEL \"NESTEDPROG\"",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@45",
+   "lines": [
+    45
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "IC401M-BYREF CALL \"NESTEDPROG\" USING BY REFERENCE GLOB",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@50",
+   "lines": [
+    50
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "IC401M-BYCONT CALL \"FIC401M\" USING BY CONTENT GLOB",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@54",
+   "lines": [
+    54
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "IDENTIFICATION DIVISION",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@58",
+   "lines": [
+    58
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "PROGRAM-ID NESTEDPROG IS COMMON",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@72",
+   "lines": [
+    72
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "END-PARA END PROGRAM NESTEDPROG",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@73",
+   "lines": [
+    73
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  }
+ ]
+}

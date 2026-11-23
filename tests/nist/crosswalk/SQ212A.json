@@ -1,0 +1,83 @@
+{
+ "program": "SQ212A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "DECL-STATUS-44-0",
+   "lines": [
+    312
+   ],
+   "feature": "",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRITE-TEST-GF-01",
+   "lines": [
+    584
+   ],
+   "feature": "CREATE FILE SQ-VS7",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F1-01",
+   "lines": [
+    647
+   ],
+   "feature": "READ 1030 RECORDS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F1-02",
+   "lines": [
+    711
+   ],
+   "feature": "READ 1001 RECORDS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F1-03",
+   "lines": [
+    733
+   ],
+   "feature": "READ 1001 RECORDS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REWRITE-44-1",
+   "lines": [
+    748
+   ],
+   "feature": "AT END",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REWRITE-44-2",
+   "lines": [
+    759
+   ],
+   "feature": "RWRT SMALLER RECORD",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

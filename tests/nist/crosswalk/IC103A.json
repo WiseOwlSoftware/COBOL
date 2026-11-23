@@ -1,0 +1,65 @@
+{
+ "program": "IC103A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "EXIT-TEST-01",
+   "lines": [
+    332,
+    390
+   ],
+   "feature": "MULTIPLE EXIT PROGRM",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "EXIT-TEST-02",
+   "lines": [
+    348,
+    393
+   ],
+   "feature": "MULTIPLE EXIT PROGRM",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "EXIT-TEST-03",
+   "lines": [
+    365,
+    396
+   ],
+   "feature": "MULTIPLE EXIT PROGRM",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "EXIT-TEST-04",
+   "lines": [
+    382,
+    399
+   ],
+   "feature": "MULTIPLE EXIT PROGRM",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-06",
+   "lines": [
+    408
+   ],
+   "feature": "MULTIPLE EXIT PROGRM",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

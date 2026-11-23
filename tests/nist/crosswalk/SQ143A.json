@@ -1,0 +1,17 @@
+{
+ "program": "SQ143A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "CLOSE-TEST-01",
+   "lines": [
+    451
+   ],
+   "feature": "CLOSE UNOPENED FILE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

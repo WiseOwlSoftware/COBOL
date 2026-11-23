@@ -1,0 +1,191 @@
+{
+ "program": "DB205A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "DISABLE-TEST-1",
+   "lines": [
+    308
+   ],
+   "feature": "",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "DISABLE-TEST-1A",
+   "lines": [
+    329,
+    333,
+    335
+   ],
+   "feature": "DISABLE CD-NAME",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "ENABLE-TEST-1",
+   "lines": [
+    351
+   ],
+   "feature": "DISABLE CD-NAME",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "ENABLE-TEST-1A",
+   "lines": [
+    372,
+    376
+   ],
+   "feature": "ENABLE CD-NAME",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "ACCEPT-TEST-1",
+   "lines": [
+    393
+   ],
+   "feature": "ENABLE CD-NAME",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "ACCEPT-TEST-1-1A",
+   "lines": [
+    413
+   ],
+   "feature": "ACCEPT CD-NAME",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "ACCEPT-TEST-1A",
+   "lines": [
+    417
+   ],
+   "feature": "ACCEPT CD-NAME",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "RECEIVE-TEST-1",
+   "lines": [
+    434
+   ],
+   "feature": "ACCEPT CD-NAME",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEND-TEST-1",
+   "lines": [
+    456
+   ],
+   "feature": "RECEIVE W/ NO DATA",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEND-TEST-1A",
+   "lines": [
+    483,
+    493
+   ],
+   "feature": "SEND CD-NAME",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEND-TEST-1B",
+   "lines": [
+    486,
+    500
+   ],
+   "feature": "SEND CD-NAME",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEND-TEST-1C",
+   "lines": [
+    489,
+    509
+   ],
+   "feature": "SEND CD-NAME",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "RECEIVE-TEST-2",
+   "lines": [
+    526
+   ],
+   "feature": "SEND CD-NAME",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "RECEIVE-TEST-2A",
+   "lines": [
+    552,
+    562
+   ],
+   "feature": "RECEIVE W/O NO DATA",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "RECEIVE-TEST-2B",
+   "lines": [
+    555,
+    569
+   ],
+   "feature": "RECEIVE W/O NO DATA",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "RECEIVE-TEST-2C",
+   "lines": [
+    558,
+    578
+   ],
+   "feature": "RECEIVE W/O NO DATA",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

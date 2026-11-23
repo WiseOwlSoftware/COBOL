@@ -1,0 +1,198 @@
+{
+ "program": "NC131A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "TEST-1",
+   "lines": [
+    327
+   ],
+   "feature": "",
+   "ansi": "VI-127 6.23.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.23.4-1",
+    "1985-GR-VI.6.23.4-2",
+    "1985-GR-VI.6.23.4-3",
+    "1985-GR-VI.6.23.4-4",
+    "1985-GR-VI.6.23.4-5",
+    "1985-GR-VI.6.23.4-6",
+    "1985-GR-VI.6.23.4-7",
+    "1985-GR-VI.6.23.4-8"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "TEST-2",
+   "lines": [
+    338
+   ],
+   "feature": "SET  OPT 1",
+   "ansi": "VI-127 6.23.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.23.4-1",
+    "1985-GR-VI.6.23.4-2",
+    "1985-GR-VI.6.23.4-3",
+    "1985-GR-VI.6.23.4-4",
+    "1985-GR-VI.6.23.4-5",
+    "1985-GR-VI.6.23.4-6",
+    "1985-GR-VI.6.23.4-7",
+    "1985-GR-VI.6.23.4-8"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "TEST-3",
+   "lines": [
+    350
+   ],
+   "feature": "SET  OPT 2",
+   "ansi": "VI-127 6.23.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.23.4-1",
+    "1985-GR-VI.6.23.4-2",
+    "1985-GR-VI.6.23.4-3",
+    "1985-GR-VI.6.23.4-4",
+    "1985-GR-VI.6.23.4-5",
+    "1985-GR-VI.6.23.4-6",
+    "1985-GR-VI.6.23.4-7",
+    "1985-GR-VI.6.23.4-8"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "TEST-4",
+   "lines": [
+    362
+   ],
+   "feature": "SET  OPT 3",
+   "ansi": "VI-127 6.23.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.23.4-1",
+    "1985-GR-VI.6.23.4-2",
+    "1985-GR-VI.6.23.4-3",
+    "1985-GR-VI.6.23.4-4",
+    "1985-GR-VI.6.23.4-5",
+    "1985-GR-VI.6.23.4-6",
+    "1985-GR-VI.6.23.4-7",
+    "1985-GR-VI.6.23.4-8"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "TEST-5",
+   "lines": [
+    375
+   ],
+   "feature": "SET  OPT 4",
+   "ansi": "VI-127 6.23.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.23.4-1",
+    "1985-GR-VI.6.23.4-2",
+    "1985-GR-VI.6.23.4-3",
+    "1985-GR-VI.6.23.4-4",
+    "1985-GR-VI.6.23.4-5",
+    "1985-GR-VI.6.23.4-6",
+    "1985-GR-VI.6.23.4-7",
+    "1985-GR-VI.6.23.4-8"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "TEST-6",
+   "lines": [
+    387
+   ],
+   "feature": "SET  OPT 5",
+   "ansi": "VI-127 6.23.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.23.4-1",
+    "1985-GR-VI.6.23.4-2",
+    "1985-GR-VI.6.23.4-3",
+    "1985-GR-VI.6.23.4-4",
+    "1985-GR-VI.6.23.4-5",
+    "1985-GR-VI.6.23.4-6",
+    "1985-GR-VI.6.23.4-7",
+    "1985-GR-VI.6.23.4-8"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "IDX-TEST-8-1",
+   "lines": [
+    430
+   ],
+   "feature": "SET  OPT 6",
+   "ansi": "VI-127 6.23.4 GR3(c)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.23.4-3"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "IDX-TEST-8-2",
+   "lines": [
+    439
+   ],
+   "feature": "SET  OPT 6",
+   "ansi": "VI-127 6.23.4 GR3(c)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.23.4-3"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "IDX-TEST-9-1",
+   "lines": [
+    454
+   ],
+   "feature": "SET  OPT 6",
+   "ansi": "VI-127 6.23.4 GR3(c)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.23.4-3"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "IDX-TEST-9-2",
+   "lines": [
+    463
+   ],
+   "feature": "SET  OPT 6",
+   "ansi": "VI-127 6.23.4 GR3(c)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.23.4-3"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  }
+ ]
+}

@@ -1,0 +1,293 @@
+{
+ "program": "IX201A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "WRITE-TEST-GF-01",
+   "lines": [
+    474
+   ],
+   "feature": "WRITE       IX-FS1",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F1-01",
+   "lines": [
+    498,
+    1657
+   ],
+   "feature": "WRITE       IX-FS1",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F2-01",
+   "lines": [
+    970
+   ],
+   "feature": "READ TO VERIFY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F2-01-1",
+   "lines": [
+    1004
+   ],
+   "feature": "READ RANDOM",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F2-01-2",
+   "lines": [
+    1015
+   ],
+   "feature": "READ RANDOM",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F2-01-3",
+   "lines": [
+    1027
+   ],
+   "feature": "READ RANDOM",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "RWRT-TEST-GF-01",
+   "lines": [
+    1042
+   ],
+   "feature": "READ RANDOM",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "RWRT-TEST-GF-01-1",
+   "lines": [
+    1068
+   ],
+   "feature": "REWRITE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "RWRT-TEST-GF-03-1",
+   "lines": [
+    1081
+   ],
+   "feature": "READ INVALID",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "RWRT-TEST-GF-02-1",
+   "lines": [
+    1092
+   ],
+   "feature": "READ INVALID",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F2-02",
+   "lines": [
+    1104
+   ],
+   "feature": "REWRITE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F2-02-1",
+   "lines": [
+    1137
+   ],
+   "feature": "READ",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F2-02-2",
+   "lines": [
+    1148
+   ],
+   "feature": "READ",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F2-02-3",
+   "lines": [
+    1159
+   ],
+   "feature": "READ",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-INIT-F1-01",
+   "lines": [
+    1651
+   ],
+   "feature": "RECORD KEY ON OPEN",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F1-02",
+   "lines": [
+    1692
+   ],
+   "feature": "READ  NEXT RECORD",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F1-03",
+   "lines": [
+    1707
+   ],
+   "feature": "READ  NEXT RECORD",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F1-04",
+   "lines": [
+    1719
+   ],
+   "feature": "READ  NEXT RECORD",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F1-05",
+   "lines": [
+    1732
+   ],
+   "feature": "READ  NEXT RECORD",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "DELETE-TEST-GF-01",
+   "lines": [
+    1758
+   ],
+   "feature": "DELETE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "DELETE-TEST-GF-02",
+   "lines": [
+    1798
+   ],
+   "feature": "DELETE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "DELETE-TEST-GF-03",
+   "lines": [
+    1812
+   ],
+   "feature": "DELETE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "DELETE-TEST-GF-04",
+   "lines": [
+    1826
+   ],
+   "feature": "DELETE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "DELETE-TEST-GF-05",
+   "lines": [
+    1869
+   ],
+   "feature": "DELETE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "DELETE-TEST-GF-06",
+   "lines": [
+    1881
+   ],
+   "feature": "DELETE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "DELETE-TEST-GF-07",
+   "lines": [
+    1893
+   ],
+   "feature": "DELETE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

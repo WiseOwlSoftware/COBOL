@@ -1,0 +1,61 @@
+{
+ "program": "SG202A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "TEST-1",
+   "lines": [
+    321
+   ],
+   "feature": "",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "TEST-2",
+   "lines": [
+    341
+   ],
+   "feature": "LAST USED STATE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "TEST-3",
+   "lines": [
+    358
+   ],
+   "feature": "ALTER NOT CALLD",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "TEST-4",
+   "lines": [
+    376
+   ],
+   "feature": "PERFORM OVER/FIX",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "TEST-5",
+   "lines": [
+    396
+   ],
+   "feature": "PERFORM FIX/OVER",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

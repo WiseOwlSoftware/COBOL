@@ -1,0 +1,61 @@
+{
+ "program": "NC245A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "SEP-TEST-008",
+   "lines": [
+    364
+   ],
+   "feature": "",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEP-TEST-009",
+   "lines": [
+    393
+   ],
+   "feature": "SEMICLN AS SEPARATOR",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEP-TEST-010",
+   "lines": [
+    427
+   ],
+   "feature": "SEMICLN AS SEPARATOR",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEP-TEST-011",
+   "lines": [
+    460
+   ],
+   "feature": "SEMICLN AS SEPARATOR",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEP-TEST-012",
+   "lines": [
+    494
+   ],
+   "feature": "SEMICLN AS SEPARATOR",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

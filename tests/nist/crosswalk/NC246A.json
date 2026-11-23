@@ -1,0 +1,161 @@
+{
+ "program": "NC246A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "INIT-TABLE",
+   "lines": [
+    559
+   ],
+   "feature": "",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "QUAL-TEST-01",
+   "lines": [
+    608
+   ],
+   "feature": "STORE TABLE VALUES",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "QUAL-TEST-02",
+   "lines": [
+    673
+   ],
+   "feature": "QUALIFIED TABLE ITEM",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "QUAL-TEST-03",
+   "lines": [
+    749
+   ],
+   "feature": "QUALIFIED TABLE ITEM",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "QUAL-TEST-04",
+   "lines": [
+    804
+   ],
+   "feature": "QUALIFIED TABLE ITEM",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "QUAL-TEST-05",
+   "lines": [
+    853
+   ],
+   "feature": "QUALIFIED SUBSCRIPT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "QUAL-TEST-06",
+   "lines": [
+    887
+   ],
+   "feature": "QUALIFIED SUBSCRIPT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "QUAL-TEST-07",
+   "lines": [
+    927
+   ],
+   "feature": "QUALIFIED SUBSCRIPT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "QUAL-TEST-08",
+   "lines": [
+    975
+   ],
+   "feature": "QUALIFIED SUBSCRIPT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "QUAL-TEST-09",
+   "lines": [
+    1037
+   ],
+   "feature": "QUAL. CONDITION NAME",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "QUAL-TEST-10",
+   "lines": [
+    1100
+   ],
+   "feature": "QUAL. CONDITION NAME",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "QUAL-TEST-11",
+   "lines": [
+    1160
+   ],
+   "feature": "QUAL. CONDITION NAME",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "QUAL-TEST-12",
+   "lines": [
+    1218
+   ],
+   "feature": "QUALIFICATION",
+   "ansi": "IV-21 4.3.8.2.3 SR5 AND VI-2 1.3.2/4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-SR-IV.4.3.8.2.3-1",
+    "1985-SR-IV.4.3.8.2.3-2",
+    "1985-SR-IV.4.3.8.2.3-3",
+    "1985-SR-IV.4.3.8.2.3-4",
+    "1985-SR-IV.4.3.8.2.3-5",
+    "1985-SR-IV.4.3.8.2.3-6",
+    "1985-SR-IV.4.3.8.2.3-7",
+    "1985-SR-VI.1.3.2-p1",
+    "1985-SR-VI.1.3.4-p1"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  }
+ ]
+}

@@ -1,0 +1,50 @@
+{
+ "program": "SQ203A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "READ-TEST-GF-01",
+   "lines": [
+    427
+   ],
+   "feature": "",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-GF-02",
+   "lines": [
+    459
+   ],
+   "feature": "SELECT OPTIONAL F-N",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-GF-03",
+   "lines": [
+    485
+   ],
+   "feature": "SELECT OPTIONAL F-N",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-GF-04",
+   "lines": [
+    515
+   ],
+   "feature": "SELECT OPTIONAL F-N",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

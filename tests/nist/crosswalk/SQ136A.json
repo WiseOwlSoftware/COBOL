@@ -1,0 +1,95 @@
+{
+ "program": "SQ136A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "DECL-EOF-READ",
+   "lines": [
+    342
+   ],
+   "feature": "READ AFTER EOF READ",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-TEST-OP-01",
+   "lines": [
+    667
+   ],
+   "feature": "OPEN, CREATE FILE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-TEST-WR-02",
+   "lines": [
+    681
+   ],
+   "feature": "WRITE ONE RECORD",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-TEST-CL-03",
+   "lines": [
+    698
+   ],
+   "feature": "CLOSE AFTER CREATE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-TEST-OP-04",
+   "lines": [
+    714
+   ],
+   "feature": "OPEN, TO READ FILE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-TEST-RD-05",
+   "lines": [
+    734
+   ],
+   "feature": "READ FIRST RECORD",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-TEST-RD-06",
+   "lines": [
+    754
+   ],
+   "feature": "READ, GIVING AT END",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-TEST-RD-07",
+   "lines": [
+    773,
+    789
+   ],
+   "feature": "READ AFTER AT END",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

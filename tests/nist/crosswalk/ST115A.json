@@ -1,0 +1,28 @@
+{
+ "program": "ST115A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "FILE-CREATE",
+   "lines": [
+    484
+   ],
+   "feature": "CREATE FILE SQ-FS1",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "BIG-SORT",
+   "lines": [
+    1164
+   ],
+   "feature": "CREATE FILE SQ-FS1",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

@@ -1,0 +1,1667 @@
+{
+ "program": "SG101A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "SEG-TEST-1",
+   "lines": [
+    299
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-2",
+   "lines": [
+    314
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-3",
+   "lines": [
+    329
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-4",
+   "lines": [
+    344
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-5",
+   "lines": [
+    359
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-6",
+   "lines": [
+    374
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-7",
+   "lines": [
+    389
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-8",
+   "lines": [
+    404
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-9",
+   "lines": [
+    419
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-10",
+   "lines": [
+    434
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-11",
+   "lines": [
+    449
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-12",
+   "lines": [
+    464
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-13",
+   "lines": [
+    479
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-14",
+   "lines": [
+    494
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-15",
+   "lines": [
+    509
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-16",
+   "lines": [
+    524
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-17",
+   "lines": [
+    539
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-18",
+   "lines": [
+    554
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-19",
+   "lines": [
+    569
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-20",
+   "lines": [
+    584
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-21",
+   "lines": [
+    599
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-22",
+   "lines": [
+    614
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-23",
+   "lines": [
+    629
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-24",
+   "lines": [
+    644
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-25",
+   "lines": [
+    659
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-26",
+   "lines": [
+    674
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-27",
+   "lines": [
+    689
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-28",
+   "lines": [
+    704
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-29",
+   "lines": [
+    719
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-30",
+   "lines": [
+    734
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-31",
+   "lines": [
+    749
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-32",
+   "lines": [
+    764
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-33",
+   "lines": [
+    779
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-34",
+   "lines": [
+    794
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-35",
+   "lines": [
+    809
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-36",
+   "lines": [
+    824
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-37",
+   "lines": [
+    839
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-38",
+   "lines": [
+    854
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-39",
+   "lines": [
+    869
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-40",
+   "lines": [
+    884
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-41",
+   "lines": [
+    899
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-42",
+   "lines": [
+    914
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-43",
+   "lines": [
+    929
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-44",
+   "lines": [
+    944
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-45",
+   "lines": [
+    959
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-46",
+   "lines": [
+    974
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-47",
+   "lines": [
+    989
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-48",
+   "lines": [
+    1004
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-49",
+   "lines": [
+    1019
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-50",
+   "lines": [
+    1034
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-51",
+   "lines": [
+    1049
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-52",
+   "lines": [
+    1064
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-53",
+   "lines": [
+    1079
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-54",
+   "lines": [
+    1094
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-55",
+   "lines": [
+    1109
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-56",
+   "lines": [
+    1124
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-57",
+   "lines": [
+    1139
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-58",
+   "lines": [
+    1154
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-59",
+   "lines": [
+    1169
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-60",
+   "lines": [
+    1184
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-61",
+   "lines": [
+    1199
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-62",
+   "lines": [
+    1214
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-63",
+   "lines": [
+    1229
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-64",
+   "lines": [
+    1244
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-65",
+   "lines": [
+    1259
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-66",
+   "lines": [
+    1274
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-67",
+   "lines": [
+    1289
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-68",
+   "lines": [
+    1304
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-69",
+   "lines": [
+    1319
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-70",
+   "lines": [
+    1334
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-71",
+   "lines": [
+    1349
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-72",
+   "lines": [
+    1364
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-73",
+   "lines": [
+    1379
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-74",
+   "lines": [
+    1394
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-75",
+   "lines": [
+    1409
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-76",
+   "lines": [
+    1424
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-77",
+   "lines": [
+    1439
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-78",
+   "lines": [
+    1454
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-79",
+   "lines": [
+    1469
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-80",
+   "lines": [
+    1484
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-81",
+   "lines": [
+    1499
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-82",
+   "lines": [
+    1514
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-83",
+   "lines": [
+    1529
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-84",
+   "lines": [
+    1544
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-85",
+   "lines": [
+    1559
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-86",
+   "lines": [
+    1574
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-87",
+   "lines": [
+    1589
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-88",
+   "lines": [
+    1604
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-89",
+   "lines": [
+    1619
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-90",
+   "lines": [
+    1634
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-91",
+   "lines": [
+    1649
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-92",
+   "lines": [
+    1664
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-93",
+   "lines": [
+    1679
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-94",
+   "lines": [
+    1694
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-95",
+   "lines": [
+    1709
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-96",
+   "lines": [
+    1724
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-97",
+   "lines": [
+    1739
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-98",
+   "lines": [
+    1754
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-99",
+   "lines": [
+    1769
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-100",
+   "lines": [
+    1784
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-101",
+   "lines": [
+    1948
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-102",
+   "lines": [
+    1963
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-103",
+   "lines": [
+    1978
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-104",
+   "lines": [
+    1993
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-105",
+   "lines": [
+    2008
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-106",
+   "lines": [
+    2023
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-107",
+   "lines": [
+    2038
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-108",
+   "lines": [
+    2053
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-109",
+   "lines": [
+    2068
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-110",
+   "lines": [
+    2083
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-111",
+   "lines": [
+    2098
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-112",
+   "lines": [
+    2113
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-113",
+   "lines": [
+    2128
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-114",
+   "lines": [
+    2143
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-115",
+   "lines": [
+    2158
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-116",
+   "lines": [
+    2173
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-117",
+   "lines": [
+    2188
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-118",
+   "lines": [
+    2203
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-119",
+   "lines": [
+    2218
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-120",
+   "lines": [
+    2233
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-121",
+   "lines": [
+    2248
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-122",
+   "lines": [
+    2263
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-123",
+   "lines": [
+    2278
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-124",
+   "lines": [
+    2293
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-125",
+   "lines": [
+    2308
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-126",
+   "lines": [
+    2323
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-127",
+   "lines": [
+    2338
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-128",
+   "lines": [
+    2353
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-129",
+   "lines": [
+    2368
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-130",
+   "lines": [
+    2383
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-131",
+   "lines": [
+    2397
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-132",
+   "lines": [
+    2412
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-133",
+   "lines": [
+    2427
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-134",
+   "lines": [
+    2442
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-135",
+   "lines": [
+    2457
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-136",
+   "lines": [
+    2472
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-137",
+   "lines": [
+    2487
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-138",
+   "lines": [
+    2502
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-139",
+   "lines": [
+    2517
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-140",
+   "lines": [
+    2532
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-141",
+   "lines": [
+    2547
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-142",
+   "lines": [
+    2562
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-143",
+   "lines": [
+    2577
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-144",
+   "lines": [
+    2592
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-145",
+   "lines": [
+    2607
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-146",
+   "lines": [
+    2622
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-147",
+   "lines": [
+    2637
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-148",
+   "lines": [
+    2652
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-149",
+   "lines": [
+    2667
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-150",
+   "lines": [
+    2682
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEG-TEST-151",
+   "lines": [
+    2697
+   ],
+   "feature": "SEGMENTATION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

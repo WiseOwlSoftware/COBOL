@@ -1,0 +1,28 @@
+{
+ "program": "IC216A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "CALL-TEST-1",
+   "lines": [
+    306
+   ],
+   "feature": "CALL...USING DATA-NM",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-2",
+   "lines": [
+    320
+   ],
+   "feature": "CALL...USING DATA-NM",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

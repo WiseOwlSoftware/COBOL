@@ -1,0 +1,81 @@
+{
+ "program": "RL110A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "REL-TEST-006",
+   "lines": [
+    398
+   ],
+   "feature": "",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-007",
+   "lines": [
+    491
+   ],
+   "feature": "READ SEQUENTIAL",
+   "ansi": "VII-26 4.5.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VII.4.5.4-1",
+    "1985-GR-VII.4.5.4-2",
+    "1985-GR-VII.4.5.4-3",
+    "1985-GR-VII.4.5.4-4",
+    "1985-GR-VII.4.5.4-5",
+    "1985-GR-VII.4.5.4-6",
+    "1985-GR-VII.4.5.4-7",
+    "1985-GR-VII.4.5.4-8",
+    "1985-GR-VII.4.5.4-9",
+    "1985-GR-VII.4.5.4-10"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-008",
+   "lines": [
+    543
+   ],
+   "feature": "DELETE",
+   "ansi": "VII-19 4.3.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VII.4.3.4-1",
+    "1985-GR-VII.4.3.4-2",
+    "1985-GR-VII.4.3.4-3",
+    "1985-GR-VII.4.3.4-4",
+    "1985-GR-VII.4.3.4-5",
+    "1985-GR-VII.4.3.4-6",
+    "1985-GR-VII.4.3.4-7",
+    "1985-GR-VII.4.3.4-8",
+    "1985-GR-VII.4.3.4-9",
+    "1985-GR-VII.4.3.4-10",
+    "1985-GR-VII.4.3.4-11",
+    "1985-GR-VII.4.3.4-12",
+    "1985-GR-VII.4.3.4-13",
+    "1985-GR-VII.4.3.4-14",
+    "1985-GR-VII.4.3.4-15",
+    "1985-GR-VII.4.3.4-16",
+    "1985-GR-VII.4.3.4-17",
+    "1985-GR-VII.4.3.4-18",
+    "1985-GR-VII.4.3.4-19",
+    "1985-GR-VII.4.3.4-20",
+    "1985-GR-VII.4.3.4-21",
+    "1985-GR-VII.4.3.4-22",
+    "1985-GR-VII.4.3.4-23",
+    "1985-GR-VII.4.3.4-24",
+    "1985-GR-VII.4.3.4-25",
+    "1985-GR-VII.4.3.4-26"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  }
+ ]
+}

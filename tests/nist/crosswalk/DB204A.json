@@ -1,0 +1,53 @@
+{
+ "program": "DB204A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "MERGE-TEST",
+   "lines": [
+    442
+   ],
+   "feature": "",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MERGE-TEST-A",
+   "lines": [
+    475,
+    485
+   ],
+   "feature": "MERGE OUTPUT PROC",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MERGE-TEST-B",
+   "lines": [
+    478,
+    492
+   ],
+   "feature": "MERGE OUTPUT PROC",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MERGE-TEST-C",
+   "lines": [
+    481,
+    501
+   ],
+   "feature": "MERGE OUTPUT PROC",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

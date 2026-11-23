@@ -1,0 +1,94 @@
+{
+ "program": "SQ211A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "WRITE-OPEN-01",
+   "lines": [
+    465
+   ],
+   "feature": "",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRITE-TEST-01",
+   "lines": [
+    485
+   ],
+   "feature": "OPEN OUTPUT - NEW FILE",
+   "ansi": "VII-3, VII-40, FILE STATUS",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VII.1.3.5-L2.1",
+    "1985-GR-VII.1.3.5-L2.2",
+    "1985-GR-VII.1.3.5-L2.3",
+    "1985-GR-VII.1.3.5-4",
+    "1985-GR-VII.1.3.5-5",
+    "1985-GR-VII.1.3.5-p5",
+    "1985-GR-VII.4.3.4-2",
+    "1985-GR-VII.4.3.4-3",
+    "1985-GR-VII.4.3.4-4"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CLOSE-TEST-01",
+   "lines": [
+    506
+   ],
+   "feature": "SEQUENTIAL WRITE",
+   "ansi": "VII-3, VII-53, FILE STATUS",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VII.1.3.5-L2.1",
+    "1985-GR-VII.1.3.5-L2.2",
+    "1985-GR-VII.1.3.5-L2.3",
+    "1985-GR-VII.1.3.5-4",
+    "1985-GR-VII.1.3.5-5",
+    "1985-GR-VII.1.3.5-p5",
+    "1985-GR-VII.4.7.4-1",
+    "1985-GR-VII.4.7.4-2",
+    "1985-GR-VII.4.7.4-3",
+    "1985-GR-VII.4.7.4-4",
+    "1985-GR-VII.4.7.4-5",
+    "1985-GR-VII.4.7.4-6",
+    "1985-GR-VII.4.7.4-7",
+    "1985-GR-VII.4.7.4-8",
+    "1985-GR-VII.4.7.4-9"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "OPEN-TEST-01",
+   "lines": [
+    537
+   ],
+   "feature": "OPEN AFTER LOCK",
+   "ansi": "VII-3, VII-38, FILE STATUS",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VII.1.3.5-L2.1",
+    "1985-GR-VII.1.3.5-L2.2",
+    "1985-GR-VII.1.3.5-L2.3",
+    "1985-GR-VII.1.3.5-4",
+    "1985-GR-VII.1.3.5-5",
+    "1985-GR-VII.1.3.5-p5",
+    "1985-GR-VII.4.2.4-4",
+    "1985-GR-VII.4.2.4-5",
+    "1985-GR-VII.4.2.4-6",
+    "1985-GR-VII.4.2.4-7",
+    "1985-GR-VII.4.2.4-8"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  }
+ ]
+}

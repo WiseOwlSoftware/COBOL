@@ -1,0 +1,171 @@
+{
+ "program": "IF132A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "F-RANGE-01",
+   "lines": [
+    372
+   ],
+   "feature": "RANGE Function",
+   "ansi": "See ref. A-65 2.65",
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-RANGE-02",
+   "lines": [
+    386
+   ],
+   "feature": "RANGE Function",
+   "ansi": "See ref. A-65 2.65",
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-RANGE-03",
+   "lines": [
+    399
+   ],
+   "feature": "RANGE Function",
+   "ansi": "See ref. A-65 2.65",
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-RANGE-04",
+   "lines": [
+    418
+   ],
+   "feature": "RANGE Function",
+   "ansi": "See ref. A-65 2.65",
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-RANGE-05",
+   "lines": [
+    437
+   ],
+   "feature": "RANGE Function",
+   "ansi": "See ref. A-65 2.65",
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-RANGE-06",
+   "lines": [
+    456
+   ],
+   "feature": "RANGE Function",
+   "ansi": "See ref. A-65 2.65",
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-RANGE-07",
+   "lines": [
+    474
+   ],
+   "feature": "RANGE Function",
+   "ansi": "See ref. A-65 2.65",
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-RANGE-08",
+   "lines": [
+    492
+   ],
+   "feature": "RANGE Function",
+   "ansi": "See ref. A-65 2.65",
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-RANGE-09",
+   "lines": [
+    510
+   ],
+   "feature": "RANGE Function",
+   "ansi": "See ref. A-65 2.65",
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-RANGE-11",
+   "lines": [
+    528
+   ],
+   "feature": "RANGE Function",
+   "ansi": "See ref. A-65 2.65",
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-RANGE-12",
+   "lines": [
+    546
+   ],
+   "feature": "RANGE Function",
+   "ansi": "See ref. A-65 2.65",
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-RANGE-13",
+   "lines": [
+    568
+   ],
+   "feature": "RANGE Function",
+   "ansi": "See ref. A-65 2.65",
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-RANGE-14",
+   "lines": [
+    591
+   ],
+   "feature": "RANGE Function",
+   "ansi": "See ref. A-65 2.65",
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-RANGE-15",
+   "lines": [
+    614
+   ],
+   "feature": "RANGE Function",
+   "ansi": "See ref. A-65 2.65",
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-RANGE-16",
+   "lines": [
+    628
+   ],
+   "feature": "RANGE Function",
+   "ansi": "See ref. A-65 2.65",
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

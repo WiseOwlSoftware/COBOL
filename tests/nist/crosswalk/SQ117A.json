@@ -1,0 +1,94 @@
+{
+ "program": "SQ117A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "WRTE-TEST-GF-01",
+   "lines": [
+    450
+   ],
+   "feature": "",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRTE-TEST-GF-02",
+   "lines": [
+    564
+   ],
+   "feature": "WRITE .. FROM LARGER",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRTE-TEST-GF-03",
+   "lines": [
+    570
+   ],
+   "feature": "WRITE .. FROM LARGER",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRTE-TEST-GF-04",
+   "lines": [
+    619
+   ],
+   "feature": "WRITE ... FROP SHORTER",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRTE-TEST-GF-05",
+   "lines": [
+    665
+   ],
+   "feature": "WRITE ... FROM 02 SHORT RECS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRTE-TEST-GF-06",
+   "lines": [
+    707
+   ],
+   "feature": "WRITE .. FROM SHORT SUBSC 02",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRTE-TEST-GF-07",
+   "lines": [
+    749
+   ],
+   "feature": "WRITE .. FROM SHORT SUBSC 05",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-TEST-022",
+   "lines": [
+    809
+   ],
+   "feature": "READ FILE SQ-FS9",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

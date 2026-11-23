@@ -1,0 +1,121 @@
+{
+ "program": "IX113A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "OPN-TEST-GF-01-0",
+   "lines": [
+    652,
+    1418,
+    2140,
+    2862,
+    3583,
+    4304,
+    5031,
+    5762
+   ],
+   "feature": "OPEN OUTPUT: 00 EXP.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRI-TEST-GF-01-0",
+   "lines": [
+    678,
+    2192
+   ],
+   "feature": "WRITE: 00 EXPECTED",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRI-TEST-GF-01-1",
+   "lines": [
+    708
+   ],
+   "feature": "CREATE FILE IX-FS3",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CLO-TEST-GF-01-0",
+   "lines": [
+    720,
+    1441,
+    2163,
+    2885,
+    3606,
+    4327
+   ],
+   "feature": "CLOSE OUTPUT:00 EXP.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CLO-TEST-GF-02-0",
+   "lines": [
+    749
+   ],
+   "feature": "CLOSE-INPUT: 42 EXP.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REA-TEST-GF-01-0",
+   "lines": [
+    1470
+   ],
+   "feature": "READ.        47 EXP.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "DEL-TEST-GF-01-0",
+   "lines": [
+    2914,
+    5089
+   ],
+   "feature": "DELETE       49 EXP.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "RWR-TEST-GF-01-0",
+   "lines": [
+    3635,
+    5055,
+    5789
+   ],
+   "feature": "REWRITE      49 EXP.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "OPN-TEST-GF-02-0",
+   "lines": [
+    4356
+   ],
+   "feature": "OPEN         41 EXP.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

@@ -1,0 +1,83 @@
+{
+ "program": "ST137A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "SRT-TEST-DEC",
+   "lines": [
+    408
+   ],
+   "feature": "ERROR ON OUTPUT DECL.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SRT-TEST-001",
+   "lines": [
+    587
+   ],
+   "feature": "CREATE FILE SQ-FS1",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SRT-TEST-002",
+   "lines": [
+    627
+   ],
+   "feature": "CREATE FILE SQ-FS2",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SRT-TEST-003",
+   "lines": [
+    660
+   ],
+   "feature": "CREATE FILE SQ-FS2",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SRT-TEST-004",
+   "lines": [
+    684
+   ],
+   "feature": "NATIVE COLL.SEQUENCE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SRT-TEST-005",
+   "lines": [
+    708
+   ],
+   "feature": "NATIVE COLL.SEQUENCE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SRT-TEST-006",
+   "lines": [
+    724
+   ],
+   "feature": "EOF CHECK SQ-FS2",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

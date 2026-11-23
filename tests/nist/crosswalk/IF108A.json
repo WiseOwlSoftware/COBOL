@@ -1,0 +1,196 @@
+{
+ "program": "IF108A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "F-DATEOFINT-01",
+   "lines": [
+    326
+   ],
+   "feature": "DATE-OF-INTEGER",
+   "ansi": "See ref. A-41 2.12",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.12.1-p1",
+    "1989-FMT-A.2.12.2",
+    "1989-AR-A.2.12.3-1",
+    "1989-RV-A.2.12.4-1",
+    "1989-RV-A.2.12.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-DATEOFINT-02",
+   "lines": [
+    340
+   ],
+   "feature": "DATE-OF-INTEGER",
+   "ansi": "See ref. A-41 2.12",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.12.1-p1",
+    "1989-FMT-A.2.12.2",
+    "1989-AR-A.2.12.3-1",
+    "1989-RV-A.2.12.4-1",
+    "1989-RV-A.2.12.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-DATEOFINT-03",
+   "lines": [
+    353
+   ],
+   "feature": "DATE-OF-INTEGER",
+   "ansi": "See ref. A-41 2.12",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.12.1-p1",
+    "1989-FMT-A.2.12.2",
+    "1989-AR-A.2.12.3-1",
+    "1989-RV-A.2.12.4-1",
+    "1989-RV-A.2.12.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-DATEOFINT-04",
+   "lines": [
+    371
+   ],
+   "feature": "DATE-OF-INTEGER",
+   "ansi": "See ref. A-41 2.12",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.12.1-p1",
+    "1989-FMT-A.2.12.2",
+    "1989-AR-A.2.12.3-1",
+    "1989-RV-A.2.12.4-1",
+    "1989-RV-A.2.12.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-DATEOFINT-05",
+   "lines": [
+    389
+   ],
+   "feature": "DATE-OF-INTEGER",
+   "ansi": "See ref. A-41 2.12",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.12.1-p1",
+    "1989-FMT-A.2.12.2",
+    "1989-AR-A.2.12.3-1",
+    "1989-RV-A.2.12.4-1",
+    "1989-RV-A.2.12.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-DATEOFINT-06",
+   "lines": [
+    407
+   ],
+   "feature": "DATE-OF-INTEGER",
+   "ansi": "See ref. A-41 2.12",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.12.1-p1",
+    "1989-FMT-A.2.12.2",
+    "1989-AR-A.2.12.3-1",
+    "1989-RV-A.2.12.4-1",
+    "1989-RV-A.2.12.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-DATEOFINT-07",
+   "lines": [
+    425
+   ],
+   "feature": "DATE-OF-INTEGER",
+   "ansi": "See ref. A-41 2.12",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.12.1-p1",
+    "1989-FMT-A.2.12.2",
+    "1989-AR-A.2.12.3-1",
+    "1989-RV-A.2.12.4-1",
+    "1989-RV-A.2.12.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-DATEOFINT-08",
+   "lines": [
+    443
+   ],
+   "feature": "DATE-OF-INTEGER",
+   "ansi": "See ref. A-41 2.12",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.12.1-p1",
+    "1989-FMT-A.2.12.2",
+    "1989-AR-A.2.12.3-1",
+    "1989-RV-A.2.12.4-1",
+    "1989-RV-A.2.12.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-DATEOFINT-09",
+   "lines": [
+    462
+   ],
+   "feature": "DATE-OF-INTEGER",
+   "ansi": "See ref. A-41 2.12",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.12.1-p1",
+    "1989-FMT-A.2.12.2",
+    "1989-AR-A.2.12.3-1",
+    "1989-RV-A.2.12.4-1",
+    "1989-RV-A.2.12.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-DATEOFINT-10",
+   "lines": [
+    484
+   ],
+   "feature": "DATE-OF-INTEGER",
+   "ansi": "See ref. A-41 2.12",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.12.1-p1",
+    "1989-FMT-A.2.12.2",
+    "1989-AR-A.2.12.3-1",
+    "1989-RV-A.2.12.4-1",
+    "1989-RV-A.2.12.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  }
+ ]
+}

@@ -1,0 +1,94 @@
+{
+ "program": "IX112A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "OPN-TEST-GF-01-0",
+   "lines": [
+    654
+   ],
+   "feature": "OPEN OUTPUT: 00 EXP.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRI-TEST-GF-01-0",
+   "lines": [
+    681
+   ],
+   "feature": "WRITE: 00 EXPECTED",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRI-TEST-GF-01-1",
+   "lines": [
+    711
+   ],
+   "feature": "CREATE FILE IX-VS2",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRI-TEST-GF-02-0",
+   "lines": [
+    726
+   ],
+   "feature": "WRITE:WRONG SEQ 21EX",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CLO-TEST-GF-01-0",
+   "lines": [
+    757
+   ],
+   "feature": "CLOSE OUTPUT:00 EXP.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "OPN-TEST-GF-02-0",
+   "lines": [
+    786
+   ],
+   "feature": "OPEN INPUT:  00 EXP.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REA-TEST-F1-01-0",
+   "lines": [
+    817
+   ],
+   "feature": "OPEN INPUT:  00 EXP.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "RWR-TEST-GF-01-0",
+   "lines": [
+    846
+   ],
+   "feature": "RWRTE SH. 00/44 EXP.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

@@ -1,0 +1,94 @@
+{
+ "program": "SM202A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "COPY-TEST-11",
+   "lines": [
+    365
+   ],
+   "feature": "COPY FD REPLACING",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "COPY-TEST-12",
+   "lines": [
+    380
+   ],
+   "feature": "COPY FD REPLACING",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "COPY-TEST-13",
+   "lines": [
+    395
+   ],
+   "feature": "COPY FD REPLACING",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "COPY-TEST-14",
+   "lines": [
+    410
+   ],
+   "feature": "COPY FD REPLACING",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "COPY-TEST-15",
+   "lines": [
+    440
+   ],
+   "feature": "PARAGRAPH-NAMES",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "COPY-TEST-16",
+   "lines": [
+    478
+   ],
+   "feature": "BY LITERALS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "COPY-TEST-17",
+   "lines": [
+    514
+   ],
+   "feature": "BY LITERALS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "BAD-FILE",
+   "lines": [
+    522
+   ],
+   "feature": "BY LITERALS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

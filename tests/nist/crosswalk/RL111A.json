@@ -1,0 +1,299 @@
+{
+ "program": "RL111A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "REL-TEST-009",
+   "lines": [
+    584
+   ],
+   "feature": "",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-010",
+   "lines": [
+    672
+   ],
+   "feature": "CREATE RL-FS2",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-010-R",
+   "lines": [
+    690
+   ],
+   "feature": "USE/FILE STATUS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-020-1",
+   "lines": [
+    805
+   ],
+   "feature": "NEW COBOL85 TESTS",
+   "ansi": "VIII-26 4.5.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VIII.4.5.2"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-020-2",
+   "lines": [
+    816
+   ],
+   "feature": "NEW COBOL85 TESTS",
+   "ansi": "VIII-26 4.5.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VIII.4.5.2"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-020-3",
+   "lines": [
+    828
+   ],
+   "feature": "NEW COBOL85 TESTS",
+   "ansi": "VIII-26 4.5.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VIII.4.5.2"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-020-4",
+   "lines": [
+    840
+   ],
+   "feature": "NEW COBOL85 TESTS",
+   "ansi": "VIII-26 4.5.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VIII.4.5.2"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-030-1",
+   "lines": [
+    858
+   ],
+   "feature": "NEW COBOL85 TESTS",
+   "ansi": "VIII-29 4.5.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VIII.4.5.4-1",
+    "1985-GR-VIII.4.5.4-2",
+    "1985-GR-VIII.4.5.4-3",
+    "1985-GR-VIII.4.5.4-4",
+    "1985-GR-VIII.4.5.4-5",
+    "1985-GR-VIII.4.5.4-6",
+    "1985-GR-VIII.4.5.4-7",
+    "1985-GR-VIII.4.5.4-8",
+    "1985-GR-VIII.4.5.4-9",
+    "1985-GR-VIII.4.5.4-10",
+    "1985-GR-VIII.4.5.4-11",
+    "1985-GR-VIII.4.5.4-12",
+    "1985-GR-VIII.4.5.4-13",
+    "1985-GR-VIII.4.5.4-14",
+    "1985-GR-VIII.4.5.4-15",
+    "1985-GR-VIII.4.5.4-16",
+    "1985-GR-VIII.4.5.4-17"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-030-2",
+   "lines": [
+    870
+   ],
+   "feature": "NEW COBOL85 TESTS",
+   "ansi": "VIII-29 4.5.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VIII.4.5.4-1",
+    "1985-GR-VIII.4.5.4-2",
+    "1985-GR-VIII.4.5.4-3",
+    "1985-GR-VIII.4.5.4-4",
+    "1985-GR-VIII.4.5.4-5",
+    "1985-GR-VIII.4.5.4-6",
+    "1985-GR-VIII.4.5.4-7",
+    "1985-GR-VIII.4.5.4-8",
+    "1985-GR-VIII.4.5.4-9",
+    "1985-GR-VIII.4.5.4-10",
+    "1985-GR-VIII.4.5.4-11",
+    "1985-GR-VIII.4.5.4-12",
+    "1985-GR-VIII.4.5.4-13",
+    "1985-GR-VIII.4.5.4-14",
+    "1985-GR-VIII.4.5.4-15",
+    "1985-GR-VIII.4.5.4-16",
+    "1985-GR-VIII.4.5.4-17"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-030-3",
+   "lines": [
+    883
+   ],
+   "feature": "NEW COBOL85 TESTS",
+   "ansi": "VIII-29 4.5.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VIII.4.5.4-1",
+    "1985-GR-VIII.4.5.4-2",
+    "1985-GR-VIII.4.5.4-3",
+    "1985-GR-VIII.4.5.4-4",
+    "1985-GR-VIII.4.5.4-5",
+    "1985-GR-VIII.4.5.4-6",
+    "1985-GR-VIII.4.5.4-7",
+    "1985-GR-VIII.4.5.4-8",
+    "1985-GR-VIII.4.5.4-9",
+    "1985-GR-VIII.4.5.4-10",
+    "1985-GR-VIII.4.5.4-11",
+    "1985-GR-VIII.4.5.4-12",
+    "1985-GR-VIII.4.5.4-13",
+    "1985-GR-VIII.4.5.4-14",
+    "1985-GR-VIII.4.5.4-15",
+    "1985-GR-VIII.4.5.4-16",
+    "1985-GR-VIII.4.5.4-17"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-040-1",
+   "lines": [
+    904
+   ],
+   "feature": "NEW COBOL85 TESTS",
+   "ansi": "VIII-29 4.5.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VIII.4.5.4-1",
+    "1985-GR-VIII.4.5.4-2",
+    "1985-GR-VIII.4.5.4-3",
+    "1985-GR-VIII.4.5.4-4",
+    "1985-GR-VIII.4.5.4-5",
+    "1985-GR-VIII.4.5.4-6",
+    "1985-GR-VIII.4.5.4-7",
+    "1985-GR-VIII.4.5.4-8",
+    "1985-GR-VIII.4.5.4-9",
+    "1985-GR-VIII.4.5.4-10",
+    "1985-GR-VIII.4.5.4-11",
+    "1985-GR-VIII.4.5.4-12",
+    "1985-GR-VIII.4.5.4-13",
+    "1985-GR-VIII.4.5.4-14",
+    "1985-GR-VIII.4.5.4-15",
+    "1985-GR-VIII.4.5.4-16",
+    "1985-GR-VIII.4.5.4-17"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-040-2",
+   "lines": [
+    917
+   ],
+   "feature": "NEW COBOL85 TESTS",
+   "ansi": "VIII-29 4.5.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VIII.4.5.4-1",
+    "1985-GR-VIII.4.5.4-2",
+    "1985-GR-VIII.4.5.4-3",
+    "1985-GR-VIII.4.5.4-4",
+    "1985-GR-VIII.4.5.4-5",
+    "1985-GR-VIII.4.5.4-6",
+    "1985-GR-VIII.4.5.4-7",
+    "1985-GR-VIII.4.5.4-8",
+    "1985-GR-VIII.4.5.4-9",
+    "1985-GR-VIII.4.5.4-10",
+    "1985-GR-VIII.4.5.4-11",
+    "1985-GR-VIII.4.5.4-12",
+    "1985-GR-VIII.4.5.4-13",
+    "1985-GR-VIII.4.5.4-14",
+    "1985-GR-VIII.4.5.4-15",
+    "1985-GR-VIII.4.5.4-16",
+    "1985-GR-VIII.4.5.4-17"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-050-1",
+   "lines": [
+    936
+   ],
+   "feature": "NEW COBOL85 TESTS",
+   "ansi": "VIII-38 4.9.4 GR9(A)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VIII.4.9.4-9"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-050-2",
+   "lines": [
+    949
+   ],
+   "feature": "NEW COBOL85 TESTS",
+   "ansi": "VIII-38 4.9.4 GR9(A)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VIII.4.9.4-9"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-060-1",
+   "lines": [
+    970
+   ],
+   "feature": "NEW COBOL85 TESTS",
+   "ansi": "VIII-38 4.5.4 GR9(B)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VIII.4.5.4-9"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  }
+ ]
+}

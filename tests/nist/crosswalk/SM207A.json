@@ -1,0 +1,28 @@
+{
+ "program": "SM207A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "QUAL-TEST-01",
+   "lines": [
+    327
+   ],
+   "feature": "",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "QUAL-TEST-02",
+   "lines": [
+    358
+   ],
+   "feature": "QUALIFIED LIBRY NAME",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

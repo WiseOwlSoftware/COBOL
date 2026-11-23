@@ -1,0 +1,40 @@
+{
+ "program": "SQ140A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "NOT-DECL-9",
+   "lines": [
+    326
+   ],
+   "feature": "",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-TEST-OP-01",
+   "lines": [
+    616
+   ],
+   "feature": "CREATE FILE, OPEN OUTPUT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-TEST-OP-02",
+   "lines": [
+    624,
+    632
+   ],
+   "feature": "OPEN OUTPUT ON OPEN FILE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

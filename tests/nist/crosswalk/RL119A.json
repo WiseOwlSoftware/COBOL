@@ -1,0 +1,17 @@
+{
+ "program": "RL119A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "REL-TEST-1",
+   "lines": [
+    520
+   ],
+   "feature": "",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

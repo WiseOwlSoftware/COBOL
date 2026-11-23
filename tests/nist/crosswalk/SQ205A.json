@@ -1,0 +1,39 @@
+{
+ "program": "SQ205A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "WRITE-TEST-GF-01",
+   "lines": [
+    442
+   ],
+   "feature": "CREATE FILE SQ-FS1,2",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-GF-01",
+   "lines": [
+    500
+   ],
+   "feature": "CREATE FILE SQ-FS1,2",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-GF-02",
+   "lines": [
+    559
+   ],
+   "feature": "VERIFY SQ-FS1;F-S:10",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

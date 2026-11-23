@@ -1,0 +1,39 @@
+{
+ "program": "SQ225A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "DECL-OPEN-TEST",
+   "lines": [
+    319
+   ],
+   "feature": "EXEC USE ON OPEN FAILURE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NOT-DECL-9",
+   "lines": [
+    338
+   ],
+   "feature": "EXEC USE ON OPEN FAILURE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "OPEN-TEST-01",
+   "lines": [
+    629
+   ],
+   "feature": "OPEN ABSENT FILE EXTEND",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

@@ -1,0 +1,65 @@
+{
+ "program": "IC235A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "EXIT-TEST-01",
+   "lines": [
+    345,
+    403
+   ],
+   "feature": "MULTIPLE EXIT PROGRM",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "EXIT-TEST-02",
+   "lines": [
+    361,
+    406
+   ],
+   "feature": "MULTIPLE EXIT PROGRM",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "EXIT-TEST-03",
+   "lines": [
+    378,
+    409
+   ],
+   "feature": "MULTIPLE EXIT PROGRM",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "EXIT-TEST-04",
+   "lines": [
+    395,
+    412
+   ],
+   "feature": "MULTIPLE EXIT PROGRM",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-06",
+   "lines": [
+    420
+   ],
+   "feature": "MULTIPLE EXIT PROGRM",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

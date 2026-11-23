@@ -1,0 +1,116 @@
+{
+ "program": "IX401M",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "NON-CONFORMING@16",
+   "lines": [
+    16
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "FILE-CONTROL SELECT OPTIONAL TFIL ASSIGN",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@20",
+   "lines": [
+    20
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "XXXXX025 RESERVE 2 AREAS",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@24",
+   "lines": [
+    24
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "ORGANIZATION IS INDEXED ACCESS MODE IS DYNAMIC",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@28",
+   "lines": [
+    28
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "RECORD KEY IS RKEY ALTERNATE RECORD KEY IS BEANO",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@40",
+   "lines": [
+    40
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "FILE SECTION FD TFIL RECORD IS VARYING IN SIZE FROM 18 TO 36 CHARACTERS",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@61",
+   "lines": [
+    61
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "IX401M-CLOSE CLOSE TFIL WITH LOCK",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@65",
+   "lines": [
+    65
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "IX401M-OPENEXT OPEN EXTEND TFIL2",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@71",
+   "lines": [
+    71
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "OPEN INPUT TFIL READ TFIL NEXT RECORD AT END DISPLAY \"AT END\"",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@77",
+   "lines": [
+    77
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "IX401M-READKEY READ TFIL RECORD KEY IS RKEY INVALID KEY DISPLAY \"INVALID\"",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@82",
+   "lines": [
+    82
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "IX401M-START START TFIL KEY IS EQUAL TO RKEY INVALID KEY DISPLAY \"INVALID\"",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  }
+ ]
+}

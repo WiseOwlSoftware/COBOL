@@ -1,0 +1,17 @@
+{
+ "program": "IC233A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "USE-TEST-1",
+   "lines": [
+    382
+   ],
+   "feature": "",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

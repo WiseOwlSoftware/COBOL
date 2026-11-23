@@ -1,0 +1,61 @@
+{
+ "program": "IC101A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "CALL-TEST-01",
+   "lines": [
+    311
+   ],
+   "feature": "CALL...USING DATA-NM",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-02",
+   "lines": [
+    335
+   ],
+   "feature": "CALL...USING DATA-NM",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-03",
+   "lines": [
+    349
+   ],
+   "feature": "CALL...USING DATA-NM",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-04",
+   "lines": [
+    362
+   ],
+   "feature": "CALL...USING DATA-NM",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-05",
+   "lines": [
+    376
+   ],
+   "feature": "CALL...USING DATA-NM",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

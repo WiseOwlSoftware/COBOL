@@ -1,0 +1,178 @@
+{
+ "program": "NC240A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "CHECK-ENTRIES",
+   "lines": [
+    372
+   ],
+   "feature": "PERFORM VARYING LEV1",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "TH1-TEST-GF-2",
+   "lines": [
+    387
+   ],
+   "feature": "PERFORM VARYING LEV1",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "TH1-TEST-GF-3",
+   "lines": [
+    412
+   ],
+   "feature": "PERFORM VARYING LEV1",
+   "ansi": "VI-109",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.6.21.2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "TH1-TEST-GF-4",
+   "lines": [
+    436
+   ],
+   "feature": "PERFORM VARYING LEV1",
+   "ansi": "VI-109",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.6.21.2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "TH2-TEST-GF-1",
+   "lines": [
+    465
+   ],
+   "feature": "PERFORM VARYING LEV1",
+   "ansi": "VI-109",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.6.21.2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "TH2-TEST-GF-2",
+   "lines": [
+    492
+   ],
+   "feature": "PERFORM VARYING LEV2",
+   "ansi": "VI-109",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.6.21.2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "TH2-TEST-GF-3",
+   "lines": [
+    518
+   ],
+   "feature": "PERFORM VARYING LEV2",
+   "ansi": "VI-109",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.6.21.2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "TH2-TEST-GF-4",
+   "lines": [
+    544
+   ],
+   "feature": "PERFORM VARYING LEV2",
+   "ansi": "VI-109",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.6.21.2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "TH3-TEST-GF-1",
+   "lines": [
+    579
+   ],
+   "feature": "PERFORM VARYING LEV3",
+   "ansi": "VI-109",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.6.21.2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "TH3-TEST-GF-2",
+   "lines": [
+    604
+   ],
+   "feature": "PERFORM VARYING LEV3",
+   "ansi": "VI-109",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.6.21.2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "TH3-TEST-GF-3",
+   "lines": [
+    631
+   ],
+   "feature": "PERFORM VARYING LEV3",
+   "ansi": "VI-109",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.6.21.2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "TH3-TEST-GF-4",
+   "lines": [
+    658
+   ],
+   "feature": "PERFORM VARYING LEV3",
+   "ansi": "VI-109",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.6.21.2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  }
+ ]
+}

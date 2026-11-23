@@ -1,0 +1,114 @@
+{
+ "program": "NC215A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "SEQ-TEST-GF-1",
+   "lines": [
+    333
+   ],
+   "feature": "",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-TEST-GF-2",
+   "lines": [
+    352
+   ],
+   "feature": "A = LOW-VALUE",
+   "ansi": "VI-15 4.5.4 GR4(D)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.4.5.4-4"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-GR-VI.5.15.4-1"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-TEST-GF-3",
+   "lines": [
+    374
+   ],
+   "feature": "H I J B SEQUENCE",
+   "ansi": "VI-15 4.5.4 GR4(D)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.4.5.4-4"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-TEST-GF-4",
+   "lines": [
+    399
+   ],
+   "feature": "I J K L M N EQUAL",
+   "ansi": "VI-15 4.5.4 GR4(D)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.4.5.4-4"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-TEST-GF-5",
+   "lines": [
+    419
+   ],
+   "feature": "O > THAN N",
+   "ansi": "VI-15 4.5.4 GR4(D)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.4.5.4-4"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-TEST-GF-6",
+   "lines": [
+    439
+   ],
+   "feature": "A < THAN ZERO",
+   "ansi": "VI-15 4.5.4 GR4(D)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.4.5.4-4"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-GR-VI.5.4.4-1",
+    "1985-GR-VI.5.4.4-2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-TEST-GF-7",
+   "lines": [
+    458
+   ],
+   "feature": "NINE < THAN SPACE",
+   "ansi": "VI-15 4.5.4 GR4(D)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.4.5.4-4"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  }
+ ]
+}

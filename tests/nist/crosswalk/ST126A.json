@@ -1,0 +1,369 @@
+{
+ "program": "ST126A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "SORT-TEST-1",
+   "lines": [
+    375,
+    431
+   ],
+   "feature": "SORT, MIXED CLASSES",
+   "ansi": "XI-20 4.4.4 GR(12)",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-12"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-2",
+   "lines": [
+    399,
+    434
+   ],
+   "feature": "SORT, MIXED CLASSES",
+   "ansi": "XI-20 4.4.4 GR(12)",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-12"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-3",
+   "lines": [
+    418,
+    439
+   ],
+   "feature": "SORT, MIXED CLASSES",
+   "ansi": "XI-20 4.4.4 GR(12)",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-12"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-4",
+   "lines": [
+    421,
+    463
+   ],
+   "feature": "SORT, MIXED CLASSES",
+   "ansi": "XI-20 4.4.4 GR(12)",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-12"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-5",
+   "lines": [
+    488
+   ],
+   "feature": "SORT, MIXED CLASSES",
+   "ansi": "XI-20 4.4.4 GR(12)",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-12"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-6",
+   "lines": [
+    512
+   ],
+   "feature": "SORT, MIXED CLASSES",
+   "ansi": "XI-20 4.4.4 GR(12)",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-12"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-7",
+   "lines": [
+    538
+   ],
+   "feature": "SORT, MIXED CLASSES",
+   "ansi": "XI-20 4.4.4 GR(12)",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-12"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-8",
+   "lines": [
+    548
+   ],
+   "feature": "SORT, MIXED CLASSES",
+   "ansi": "XI-20 4.4.4 GR(12)",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-12"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-ERROR",
+   "lines": [
+    556
+   ],
+   "feature": "SORT, MIXED CLASSES",
+   "ansi": "XI-20 4.4.4 GR(12)",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-12"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-1-2",
+   "lines": [
+    574,
+    630
+   ],
+   "feature": "SORT, MIXED CLASSES",
+   "ansi": "XI-20 4.4.4 GR(12)",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-12"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-2-2",
+   "lines": [
+    598,
+    633
+   ],
+   "feature": "SORT, MIXED CLASSES",
+   "ansi": "XI-20 4.4.4 GR(12)",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-12"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-3-2",
+   "lines": [
+    617,
+    638
+   ],
+   "feature": "SORT, MIXED CLASSES",
+   "ansi": "XI-20 4.4.4 GR(12)",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-12"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-4-2",
+   "lines": [
+    620,
+    662
+   ],
+   "feature": "SORT, MIXED CLASSES",
+   "ansi": "XI-20 4.4.4 GR(12)",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-12"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-5-2",
+   "lines": [
+    687
+   ],
+   "feature": "SORT, MIXED CLASSES",
+   "ansi": "XI-20 4.4.4 GR(12)",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-12"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-6-2",
+   "lines": [
+    711
+   ],
+   "feature": "SORT, MIXED CLASSES",
+   "ansi": "XI-20 4.4.4 GR(12)",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-12"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-7-2",
+   "lines": [
+    737
+   ],
+   "feature": "SORT, MIXED CLASSES",
+   "ansi": "XI-20 4.4.4 GR(12)",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-12"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-8-2",
+   "lines": [
+    747
+   ],
+   "feature": "SORT, MIXED CLASSES",
+   "ansi": "XI-20 4.4.4 GR(12)",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-12"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-ERROR-2",
+   "lines": [
+    755
+   ],
+   "feature": "SORT, MIXED CLASSES",
+   "ansi": "XI-20 4.4.4 GR(12)",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-12"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-1-3",
+   "lines": [
+    773,
+    829
+   ],
+   "feature": "SORT, MIXED CLASSES",
+   "ansi": "XI-20 4.4.4 GR(12)",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-12"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-2-3",
+   "lines": [
+    797,
+    832
+   ],
+   "feature": "SORT, MIXED CLASSES",
+   "ansi": "XI-20 4.4.4 GR(12)",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-12"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-3-3",
+   "lines": [
+    816,
+    837
+   ],
+   "feature": "SORT, MIXED CLASSES",
+   "ansi": "XI-20 4.4.4 GR(12)",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-12"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-4-3",
+   "lines": [
+    819,
+    861
+   ],
+   "feature": "SORT, MIXED CLASSES",
+   "ansi": "XI-20 4.4.4 GR(12)",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-12"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-5-3",
+   "lines": [
+    886
+   ],
+   "feature": "SORT, MIXED CLASSES",
+   "ansi": "XI-20 4.4.4 GR(12)",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-12"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-6-3",
+   "lines": [
+    910
+   ],
+   "feature": "SORT, MIXED CLASSES",
+   "ansi": "XI-20 4.4.4 GR(12)",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-12"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-7-3",
+   "lines": [
+    936
+   ],
+   "feature": "SORT, MIXED CLASSES",
+   "ansi": "XI-20 4.4.4 GR(12)",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-12"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-8-3",
+   "lines": [
+    946
+   ],
+   "feature": "SORT, MIXED CLASSES",
+   "ansi": "XI-20 4.4.4 GR(12)",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-12"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-ERROR-3",
+   "lines": [
+    954
+   ],
+   "feature": "SORT, MIXED CLASSES",
+   "ansi": "XI-20 4.4.4 GR(12)",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-12"
+   ],
+   "basis": "mechanical"
+  }
+ ]
+}

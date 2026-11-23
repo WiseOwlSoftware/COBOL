@@ -1,0 +1,83 @@
+{
+ "program": "OBSQ1A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "SEQ-TEST-001",
+   "lines": [
+    443
+   ],
+   "feature": "CREATE FILE SQ-FS1",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-TEST-002",
+   "lines": [
+    486
+   ],
+   "feature": "CREATE FILE SQ-FS1",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-01",
+   "lines": [
+    499
+   ],
+   "feature": "LEV 1 READ STATEMENT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-02",
+   "lines": [
+    532
+   ],
+   "feature": "LEV 1 READ STATEMENT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-03",
+   "lines": [
+    558
+   ],
+   "feature": "LEV 1 READ STATEMENT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-04",
+   "lines": [
+    584
+   ],
+   "feature": "LEV 1 READ STATEMENT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-TEST-003",
+   "lines": [
+    620
+   ],
+   "feature": "LEV 1 READ STATEMENT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

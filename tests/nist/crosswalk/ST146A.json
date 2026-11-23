@@ -1,0 +1,50 @@
+{
+ "program": "ST146A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "RELEASE-TEST-1",
+   "lines": [
+    561
+   ],
+   "feature": "OCCURS DEPENDING ON",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "RETURN-TEST-1",
+   "lines": [
+    585
+   ],
+   "feature": "OCCURS DEPENDING ON",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "RELEASE-TEST-2",
+   "lines": [
+    604
+   ],
+   "feature": "OCCURS DEPENDING ON",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "RETURN-TEST-2",
+   "lines": [
+    627
+   ],
+   "feature": "OCCURS DEPENDING ON",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

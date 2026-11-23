@@ -1,0 +1,160 @@
+{
+ "program": "CM202M",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "RECEIVE-TEST-01",
+   "lines": [
+    281
+   ],
+   "feature": "RCV MSG/SHORT AREA",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "RECEIVE-TEST-01-CONT",
+   "lines": [
+    298
+   ],
+   "feature": "RCV MSG/SHORT AREA",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "RECEIVE-TEST-02",
+   "lines": [
+    313
+   ],
+   "feature": "RCV SEG/SHORT AREA",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "RECEIVE-TEST-02-CONT",
+   "lines": [
+    324
+   ],
+   "feature": "RCV SEG/SHORT AREA",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "RECEIVE-TEST-03",
+   "lines": [
+    338
+   ],
+   "feature": "RCV SEG REPEATEDLY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "RECEIVE-TEST-03-CONT",
+   "lines": [
+    346
+   ],
+   "feature": "RCV SEG REPEATEDLY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "ENABL-STATUS-TEST-01",
+   "lines": [
+    364
+   ],
+   "feature": "ENABLE TERMINAL",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "ENABL-STATUS-TEST-02",
+   "lines": [
+    380
+   ],
+   "feature": "ENABLE TERMINAL",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "DISAB-STATUS-TEST-01",
+   "lines": [
+    398
+   ],
+   "feature": "DISABLE TERMINAL",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "DISAB-STATUS-TEST-02",
+   "lines": [
+    414
+   ],
+   "feature": "DISABLE TERMINAL",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEND-STATUS-TEST-01",
+   "lines": [
+    431
+   ],
+   "feature": "DESTINATION COUNT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEND-STATUS-TEST-02",
+   "lines": [
+    449
+   ],
+   "feature": "PARTIAL SEGMENT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEND-STATUS-TEST-03",
+   "lines": [
+    466
+   ],
+   "feature": "PARTIAL SEGMENT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEND-STATUS-TEST-04",
+   "lines": [
+    490
+   ],
+   "feature": "PARTIAL SEGMENT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

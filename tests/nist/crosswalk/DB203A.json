@@ -1,0 +1,234 @@
+{
+ "program": "DB203A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "OPEN-TEST-1",
+   "lines": [
+    407
+   ],
+   "feature": "",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRITE-TEST-1",
+   "lines": [
+    423
+   ],
+   "feature": "DEBUG OPEN OUTPUT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CLOSE-TEST-1",
+   "lines": [
+    458
+   ],
+   "feature": "DEBUG WRITE RECORD",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "OPEN-TEST-2",
+   "lines": [
+    474
+   ],
+   "feature": "DEBUG CLOSE FILE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-1",
+   "lines": [
+    491
+   ],
+   "feature": "DEBUG OPEN I-O",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-1A",
+   "lines": [
+    519,
+    529
+   ],
+   "feature": "DEBUG READ RANDOM",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-1B",
+   "lines": [
+    522,
+    536
+   ],
+   "feature": "DEBUG READ RANDOM",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-1C",
+   "lines": [
+    525,
+    545
+   ],
+   "feature": "DEBUG READ RANDOM",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-2",
+   "lines": [
+    566
+   ],
+   "feature": "DEBUG READ RANDOM",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REWRITE-TEST-1",
+   "lines": [
+    586
+   ],
+   "feature": "DEBUG READ INV KEY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REWRITE-TEST-1A",
+   "lines": [
+    617,
+    627
+   ],
+   "feature": "DEBUG REWRITE RECORD",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REWRITE-TEST-1B",
+   "lines": [
+    620,
+    634
+   ],
+   "feature": "DEBUG REWRITE RECORD",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REWRITE-TEST-1C",
+   "lines": [
+    623,
+    644
+   ],
+   "feature": "DEBUG REWRITE RECORD",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REWRITE-TEST-2",
+   "lines": [
+    664
+   ],
+   "feature": "DEBUG REWRITE RECORD",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-1",
+   "lines": [
+    686
+   ],
+   "feature": "DEBUG REWRITE INVLID",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-1A",
+   "lines": [
+    708,
+    712
+   ],
+   "feature": "DEBUG START FILENAME",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-2",
+   "lines": [
+    722
+   ],
+   "feature": "DEBUG START FILENAME",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "DELETE-TEST-1",
+   "lines": [
+    742
+   ],
+   "feature": "DEBUG START INV KEY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "DELETE-TEST-1A",
+   "lines": [
+    763,
+    767
+   ],
+   "feature": "DEBUG DELETE FILE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "DELETE-TEST-2",
+   "lines": [
+    776
+   ],
+   "feature": "DEBUG DELETE FILE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

@@ -1,0 +1,97 @@
+{
+ "program": "NC244A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "IDX-TEST-F1-1",
+   "lines": [
+    355
+   ],
+   "feature": "",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "IDX-TEST-F2-2",
+   "lines": [
+    376
+   ],
+   "feature": "RELATIVE INDEXING",
+   "ansi": "VI-126 6.22.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.6.22.2"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "IDX-TEST-F2-3",
+   "lines": [
+    398
+   ],
+   "feature": "SET DN BY COMP ITEM",
+   "ansi": "VI-126 6.22.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.6.22.2"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "IDX-TEST-F2-4",
+   "lines": [
+    420
+   ],
+   "feature": "SET UP BY COMP ITEM",
+   "ansi": "VI-126 6.22.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.6.22.2"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "IDX-TEST-F2-5",
+   "lines": [
+    449,
+    473
+   ],
+   "feature": "MULT OPERND SET STMT",
+   "ansi": "VI-126 6.22.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.6.22.2"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-FMT-VI.6.20.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "IDX-TEST-F2-6",
+   "lines": [
+    478,
+    489
+   ],
+   "feature": "PFM VARYING COMP ITEM",
+   "ansi": "VI-126 6.22.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.6.22.2"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  }
+ ]
+}

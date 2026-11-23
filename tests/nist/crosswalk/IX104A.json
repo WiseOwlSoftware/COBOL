@@ -1,0 +1,149 @@
+{
+ "program": "IX104A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "WRITE-TEST-GF-01",
+   "lines": [
+    514
+   ],
+   "feature": "CREATE IX-FS2",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRITE-TEST-GF-02",
+   "lines": [
+    552
+   ],
+   "feature": "CREATE IX-FS2",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRITE-TEST-GF-03",
+   "lines": [
+    564
+   ],
+   "feature": "OPEN: 00 EXP.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRITE-TEST-GF-04",
+   "lines": [
+    575
+   ],
+   "feature": "WRITE: 00 EXP.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRITE-TEST-GF-05",
+   "lines": [
+    586
+   ],
+   "feature": "WRITE: 00 EXP.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRITE-TEST-GF-06",
+   "lines": [
+    597
+   ],
+   "feature": "CLOSE: 00 EXP.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F1-01-3",
+   "lines": [
+    649
+   ],
+   "feature": "READ: 10 EXP.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F1-02",
+   "lines": [
+    660
+   ],
+   "feature": "READ",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F1-03",
+   "lines": [
+    671
+   ],
+   "feature": "OPEN:  00 EXP.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F1-04",
+   "lines": [
+    682
+   ],
+   "feature": "READ AT END: 10 EXP.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F1-05",
+   "lines": [
+    694
+   ],
+   "feature": "READ:   10 EXP.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F1-06",
+   "lines": [
+    705
+   ],
+   "feature": "READ NO EXCEPTION 10",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F1-07",
+   "lines": [
+    716
+   ],
+   "feature": "CLOSE:    00 EXP.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}
