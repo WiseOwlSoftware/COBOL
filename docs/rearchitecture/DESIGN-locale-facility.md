@@ -1231,7 +1231,7 @@ on the author's machine and fail in CI — a failure mode this repo has already 
 | `Runtime/Collation/Cache/*` (PB106 ✅) | NEW — `CollationKeyCache` per collator; `CobolCollation.SupportsKeys` / `KeyOf`; SORT/MERGE key columns and the indexed-file LOCALE key comparison key through it |
 | `Runtime/Control/CollationRuntime.cs` (✅) | NEW — `Initialize()` (every `RunUnit`, cheap) / `Warmup()` / `Status` |
 | `Runtime/Globalization/LocaleTag.cs` (PB2763 ✅) | NEW — the one canonical spelling of a locale tag (L1 item 5) and the one .NET culture probe (`PredefinedCulture`) |
-| `Runtime/Collation/Locale/LocaleManager.cs` (PB2763 ✅) | the host's locale selection over the engine's `ResolvedLocaleCollation` (L1-normalized names; no second cache, no `LocaleInfo` / `LocaleConfig`) |
+| `Runtime/Collation/Locale/LocaleManager.cs` (PB2763 ✅) | the host's locale selection over the engine's `ResolvedLocaleCollation` (L1-normalized names; the engine's one cache) |
 | `Runtime/Unicode/Segmentation/*` (PB104 ✅) | NEW — UAX #29 grapheme clusters from a derived table (`Data/grapheme-break.bin`, `scripts/unicode/generate-grapheme-table.py`) |
 | `Runtime/Control/LocaleState.cs` (PB101 ✅, minimal), `Runtime/Values/Text/CobolCollation.cs` (✅), `Runtime/Values/Text/LocaleCollation.cs` (✅), `Runtime/Intrinsics/CobolLocale.cs`, `Runtime/Values/Numeric/CobolLocaleEdit.cs`, `Runtime/Globalization/LocaleFacts.cs` | NEW (the last three with T4–T6) |
 | `Runtime/Values/Text/CobolString.cs` (✅) | three `Compare` + three `ThruMember` overloads → the `char pad` native form + ONE `CobolCollation` form |
