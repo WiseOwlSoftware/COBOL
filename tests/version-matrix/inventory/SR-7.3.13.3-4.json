@@ -1,9 +1,9 @@
 {
  "rule-id": "SR-7.3.13.3-4",
  "rule-digest": "6d311a146838",
- "verdict": "PARTIAL",
- "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#ParseCceFragment; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render",
- "test-ref": "conformance:cases/7.3.13-EVALUATE/pb1364-when-after-match-text-on-line",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Parsing/FragmentParse.cs#Parse; src/WiseOwl.Cobol.Frontend/Parsing/DirectiveExpressionFragment.cs#Parse",
+ "test-ref": "conformance:cases/7.3.13-EVALUATE/pb1364-when-after-match-text-on-line; conformance:cases/7.3.13-EVALUATE/pb5736-evaluate-when-trailing-semicolon",
  "editions": "2002,2014,2023",
- "notes": "PARTIAL, kb/Work PB5736 (open): text after the >>WHEN operand on its line is refused only when the cce fragment lexer sees it: a trailing semicolon is a hidden token there, so '>>WHEN 1;' compiles, while the directive-line check refuses '>>ELSE;' COBOL1911 and a comma after a cce is COBOL1619 (under-rejects on the compiler's own reading). Repro E:/COBOL-coord/scratch/sample-shared/out/refute-2002-10/r2f.cob (>>EVALUATE 1; / >>WHEN 1;) at --std 2023: prints W1. re-run 2026-11-15 on the registrar landing records-sample-pb5692's build of main 95e8e476ad (log E:/COBOL-coord/scratch/op-20261115/registrar-sample/runs.log). Prior record (CONFORMS), kept as the account of the half that still holds: kb/Work PB1364. Every >>WHEN operand is parsed whenever the EVALUATE's parent is compiled, independent of an earlier match; text on the WHEN line is COBOL1619."
+ "notes": "CONFORMS, kb/Work PB5736 landed: '>>WHEN 1;' and '>>EVALUATE 1;' are refused COBOL1619 like the comma forms (the shared fragment funnel rejects a trailing hidden SEMICOLON, §2023:7.3.3 SR3). Re-run on the PB5736 build at --std 2002 and 2023 (PEV, PEVC probes)."
 }
