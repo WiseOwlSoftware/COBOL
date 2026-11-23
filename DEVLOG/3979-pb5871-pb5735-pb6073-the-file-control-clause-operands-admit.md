@@ -1,4 +1,4 @@
-## PB5871, PB5735, PB6073: the file control clause operands admit a PIC A item at COBOL-2002; a retired INSPECT lead; five class-of-operand leads adjudicated
+## Entry 3979 — 2026-11-23 05:50 PST — PB5871, PB5735, PB6073: the file control clause operands admit a PIC A item at COBOL-2002; a retired INSPECT lead; five class-of-operand leads adjudicated
 
 **PB5871 (the defect).** At `--std 2002`, `SELECT ... ASSIGN USING WS-ALPHA` with `WS-ALPHA PIC A(8)` was refused COBOL1810, and so
 were a PIC A RECORD KEY, ALTERNATE RECORD KEY, FILE STATUS and PADDING CHARACTER item. §2002:8.5.2.1's second sentence ("Where an
@@ -34,3 +34,4 @@ compiled-program cache (`CompiledProgramCache.StoredDiagnostic`) stored no catal
 (`FormatVersion` 6).
 
 **Left open (named in the report).** The 2002 rows of `FileControlKeyRules` still print the 2023 clause in their messages.
+
