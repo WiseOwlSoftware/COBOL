@@ -4,6 +4,7 @@ using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 using WiseOwl.Cobol.Frontend.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol;
 
@@ -82,7 +83,7 @@ public static class ParseNodeReader
         switch (tree)
         {
             case ITerminalNode { Symbol: { Type: not TokenConstants.EOF } symbol }:
-                tokens.Add(new Token(symbol.Text.ToUpperInvariant(), CobolLexer.DefaultVocabulary.GetSymbolicName(symbol.Type) ?? symbol.Type.ToString()));
+                tokens.Add(new Token(CobolNames.UpperFold(symbol.Text), CobolLexer.DefaultVocabulary.GetSymbolicName(symbol.Type) ?? symbol.Type.ToString()));
                 return;
             case ParserRuleContext context:
                 string rule = RuleName(context);
