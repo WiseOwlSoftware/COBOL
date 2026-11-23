@@ -1,4 +1,4 @@
-## PB3227: a CALL argument's pass mode is one rule, and the storage claim asks it
+## Entry 4003 — 2026-11-23 12:55 PST — PB3227: a CALL argument's pass mode is one rule, and the storage claim asks it
 
 PB3227 was `half`. Its CSharp-spelling half had already landed as PB3229, so the open half was the R2 duplication finding
 `data-binding-2--duplication--f1#5`: the data pass decided each CALL argument's pass mode itself
@@ -34,3 +34,4 @@ their bare CALL targets in its own prototype scope. That scope lacks a contained
 makes a program-prototype-name for that program's CALLs, so a RECURSIVE contained program's `CALL INNERP USING BY CONTENT N
 NUM NUM` was claimed as Format 1 while its bind passed NUM BY REFERENCE (`B: 1234`). The scan now records whether the word
 names a contained program holding the CALL. Golden `pb3227_contained_own_name_shares_storage`: `B: 5678` at 2002 and 2023.
+
