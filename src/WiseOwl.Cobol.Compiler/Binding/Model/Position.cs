@@ -211,4 +211,12 @@ public sealed record PositionOffset(Position Origin, IReadOnlyList<OffsetTerm> T
 
 /// <summary>One subscript term of a <see cref="PositionOffset"/>: <c>(Index − 1) × Stride</c>, the displacement of the
 /// <paramref name="Index"/>-th occurrence of a level whose occurrences are <paramref name="Stride"/> units apart.</summary>
-public readonly record struct OffsetTerm(Position Index, long Stride);
+/// <param name="Bound">The range the subscript is tested against where the term locates a table element by arithmetic
+/// (a Tier-B view window, kb/Work PB5762); null for a term whose index is in range by construction.</param>
+public readonly record struct OffsetTerm(Position Index, long Stride, OccurrenceBound? Bound = null);
+
+/// <summary>The checks a subscript term carries: ISO §2023:8.4.2.3.4 GR2 — the subscript lies within 1 through
+/// <paramref name="Highest"/>, "the highest permissible occurrence number" (EC-BOUND-SUBSCRIPT) — and, for an
+/// occurs-depending level when the compilation group can enable it, §2023:13.18.38.4 GR7's data-name-1 bound test
+/// (<paramref name="Odo"/>, EC-BOUND-ODO).</summary>
+public sealed record OccurrenceBound(int Highest, OdoReferenceCheck? Odo);
