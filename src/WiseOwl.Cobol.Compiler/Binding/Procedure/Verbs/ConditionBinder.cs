@@ -1918,15 +1918,6 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             var e => new BoundComputedOperand(e) { ExpressionAsWritten = true },
         };
 
-    /// <summary>The condition-name references already reported as ambiguous — one report per source reference.</summary>
-    private readonly HashSet<Core.DataReferenceContext> _condDiagnosed = [];
-
-    /// <summary>The condition-name references already reported as reference-modified (kb/Work PB2468).</summary>
-    private readonly HashSet<Core.DataReferenceContext> _refModCondDiagnosed = [];
-
-    /// <summary>The condition-name references already reported as §2023:13.7.3 SR4e violations.</summary>
-    private readonly HashSet<Core.DataReferenceContext> _linkageCondDiagnosed = [];
-
     /// <summary>Resolve a condition-name reference, honoring OF/IN qualifiers (ISO §2023:8.4.2.2 Format 2: a
     /// condition-name qualifies by its conditional variable and/or the variable's containing groups, innermost
     /// first) — duplicate 88 names across tables select by the qualifier chain.</summary>
@@ -1965,7 +1956,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // (IF / EVALUATE / PERFORM UNTIL / SEARCH WHEN, SET condition-name-1 TO TRUE/FALSE) resolves through here,
         // so this one screen covers them; the reference still names its level-88, so the caller binds on and the
         // compile fails here, once per source reference (the asker count is not the fact count, as below).
-        if (RefModBinder.ReadOperandSuffixes(dref).RefMods > 0 && _refModCondDiagnosed.Add(dref))
+        if (RefModBinder.ReadOperandSuffixes(dref).RefMods > 0 && ctx.Refs.ReportOnce(dref, ReferenceReportRule.ConditionNameRefMod))
         {
             using var _ = ctx.Edition.At(dref);
             ctx.Edition.Error(DiagnosticCatalog.ConditionNameReferenceModified,
@@ -1977,7 +1968,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
                 + ctx.Edition.Edition.Cite("§1985:IV.4.3.8.4.3 SR3", "§2023:8.4.3.3.3 SR5")
                 + " allows reference modification only on an identifier referencing a data item");
         }
-        // ONE report per SOURCE reference (the ReferenceResolver.Diagnosed discipline, kb/Work PB70/PB443): a
+        // ONE report per SOURCE reference (the ReferenceReports ledger, kb/Work PB70/PB443, PB3230): a
         // reference is now resolved here more than once — the SEARCH ALL Format-2 screen asks which level-88 a
         // WHEN operand names BEFORE the condition binds it (§2023:14.9.37.3 SR9/SR11 are about that very 88) — and the
         // ambiguity is one fact about one reference, not one per asker.
@@ -1994,7 +1985,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // that reaches the level-88 alone is not. Zero at every later edition, where the pair is refused at declaration (COBOL2692).
         int dataRivals = ctx.Symbols.DataItemsRivalingCondition(written, matches);
         int candidates = matches.Count + (switchCompetes ? 1 : 0) + dataRivals;
-        if (candidates > 1 && _condDiagnosed.Add(dref))
+        if (candidates > 1 && ctx.Refs.ReportOnce(dref, ReferenceReportRule.ConditionName))
         {
             string others = (switchCompetes ? " and a SPECIAL-NAMES switch condition-name" : "")
                 + (dataRivals == 0 ? "" : $" and {dataRivals} data item{(dataRivals == 1 ? "" : "s")} (§1985:IV.4.2.2.1.1: one disjoint set)");
@@ -2013,7 +2004,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         }
         // §2023:13.7.3 SR4e: a condition-name of a linkage item is referenceable exactly when its conditional variable
         // is — the same decision the data-name arm asks (NameResolution.ScreenLinkageReference), once per reference.
-        if (ctx.Data.Linkage.UnreferenceableLinkageRecord(matches[0].Parent) is { } record && _linkageCondDiagnosed.Add(dref))
+        if (ctx.Data.Linkage.UnreferenceableLinkageRecord(matches[0].Parent) is { } record && ctx.Refs.ReportOnce(dref, ReferenceReportRule.LinkageLeg))
             ctx.Refs.Names.ReportUnreferenceableLinkage(WrittenSource.Of(dref), record);
         return matches[0];
     }
@@ -2028,7 +2019,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     public bool ReportMisqualifiedCondition(Core.DataReferenceContext dref)
     {
         if (WrittenQualifiedName.Of(dref) is not { } written || !ctx.Symbols.DeclaresConditionName(written)) return false;
-        if (!_condDiagnosed.Add(dref)) return true;
+        if (!ctx.Refs.ReportOnce(dref, ReferenceReportRule.ConditionName)) return true;
         string name = written.Name;
         var qualifiers = written.QualifierWords;
         string text = WrittenSource.Of(dref);
