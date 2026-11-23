@@ -95,6 +95,11 @@
       "changedIn": 2002
     },
     {
+      "id": "exception-statement-is-63-characters",
+      "vcrRow": "7.117",
+      "changedIn": 2023
+    },
+    {
       "id": "file-sharing-facility",
       "vcrRow": "7.39",
       "changedIn": 2002

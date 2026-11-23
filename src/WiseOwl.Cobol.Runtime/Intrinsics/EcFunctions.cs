@@ -30,12 +30,18 @@ public static class EcFunctions
     public static string Location() =>
         ExceptionState.LastName is null ? " " : ExceptionState.LastLocation ?? " ";
 
-    /// <summary>FUNCTION EXCEPTION-STATEMENT (§2023:15.32.3): 63 spaces when no location information was saved (r1);
-    /// else the 63-character uppercase statement name, left-justified space-filled (r2).</summary>
-    public static string Statement() =>
+    /// <summary>The length of FUNCTION EXCEPTION-STATEMENT at an edition: 63 from 2023 (§2023:15.32.3 RV1/RV2), 31 at 2002
+    /// and 2014 (§2002:15.27.2 RV1/RV2; §2014:15.29.2 RV1/RV2) — <see cref="DialectBehavior.ExceptionStatementIs63Characters"/>.</summary>
+    public static int StatementLength(int editionYear) =>
+        DialectBehaviors.IsActive(DialectBehavior.ExceptionStatementIs63Characters, editionYear) ? 63 : 31;
+
+    /// <summary>FUNCTION EXCEPTION-STATEMENT (§2023:15.32.3; §2002:15.27.2; §2014:15.29.2): <paramref name="length"/> spaces when
+    /// no location information was saved (RV1); else the uppercase statement name, left-justified and space-filled to
+    /// <paramref name="length"/> (RV2). The compiler passes <see cref="StatementLength"/> of the compiled edition.</summary>
+    public static string Statement(int length) =>
         ExceptionState.LastName is null || ExceptionState.LastStatement is null
-            ? new string(' ', 63)
-            : ExceptionState.LastStatement.ToUpperInvariant().PadRight(63)[..63];
+            ? new string(' ', length)
+            : ExceptionState.LastStatement.ToUpperInvariant().PadRight(length)[..length];
 
     /// <summary>FUNCTION EXCEPTION-FILE with no argument (§2023:15.28.4 RV1): <c>"00"</c> when the last exception is
     /// not an EC-I-O condition (r1a — including the no-exception state); two spaces when the EC-I-O condition
