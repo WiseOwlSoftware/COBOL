@@ -1091,6 +1091,28 @@ this step. Time rows are not shown (kb/Work PB5927).
 
 ---
 
+## The scaled→binary conversions' slow path (kb/Work PB2658)
+
+`Numeric/ScaledFloatBenchmarks.cs` measures `CobolFloat.ScaledToDouble` and `CobolFloat.ScaledToSingle` past their
+exact-operand fast path (an unscaled magnitude past 2^53 / 2^24 or a scale past 10^22 / 10^10), where the value is
+converted by one correctly rounded parse of `<unscaled>E<-scale>`. The baseline is the construction PB2658 replaced
+(two `ToString`s and a concatenation); the candidate is the runtime's stack-formatted span. Its witness: `GlobalSetup`
+converts all 64 corpus values both ways and refuses to run unless every pair has the same bits. Measured 2026-11-23,
+Release, one Windows host, net11.0, per conversion:
+
+| Method | Mean | Allocated |
+|---|---|---|
+| Double_StringConcat (baseline) | 194.3 ns | 182 B |
+| Double_StackSpan | 179.3 ns (1.08x faster) | 0 B |
+| Single_StringConcat (baseline) | 185.1 ns | 182 B |
+| Single_StackSpan | 157.1 ns (1.18x faster) | 0 B |
+
+The run used the in-process emit toolchain, applied to `BenchmarkConfig`'s job for that run only. BenchmarkDotNet
+0.15.8's out-of-process toolchain does not recognize net11.0 and stops in its SDK validator
+(`GetRuntimeVersion not implemented for NotRecognized`).
+
+---
+
 ## Not measured here
 
 **The COBOL layer beyond the carrier.** `Compare_ShortStrings_LocaleCollation` (run 2) measures the

@@ -470,17 +470,16 @@ public static partial class CobolIntrinsics
     /// IS the NUMVAL-F argument format and no function-reference lands it. ⛔ THE FUNCTION REFERENCE DOES NOT USE IT
     /// (kb/Work PB3839): <c>FUNCTION NUMVAL-F</c> returns <see cref="NumvalFDec"/>'s exact value in every channel, and a
     /// COMP-2 receiver converts that exact value once, so the binary64 here and the one the receiver stores are the
-    /// same number. The conversion is ONE <c>double.Parse</c> of the scan's canonical <c>[-]digits E exp</c> — never a
+    /// same number. The conversion is <see cref="CobolFloat.ScaledToDouble"/>, the ONE correctly rounded scaled→binary64
+    /// conversion (as <see cref="NumvalFSingle"/> is <see cref="CobolFloat.ScaledToSingle"/>; kb/Work PB2658) — never a
     /// multiply chain of two roundings; a magnitude past binary64 is ±Infinity. Same scan, same reject projection as the
     /// twins.</summary>
     public static double NumvalFDouble(string text, bool commaMode = false, int digitCap = 31)
     {
         NvfParse p = NvfScan(text, commaMode, digitCap);
         if (p.ErrPos != 0) return (double)NumvalFReject(p, text, digitCap);
-        if (p.Unscaled == 0) return 0d;
-        return double.Parse(
-            string.Create(System.Globalization.CultureInfo.InvariantCulture, $"{(p.Neg ? "-" : "")}{p.Unscaled}E{p.Exp - p.Frac}"),
-            System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture);
+        // A non-negative magnitude below 10^digitCap, so the negation is total (see NumvalFSingle; kb/Work PB2698).
+        return CobolFloat.ScaledToDouble(p.Neg ? -p.Unscaled : p.Unscaled, p.Frac - p.Exp);
     }
 
     /// <summary>The §2023:15.69 reject projection — shared by <see cref="NumvalFSingle"/>, <see cref="NumvalFDouble"/> and

@@ -33,6 +33,33 @@ public sealed class NumvalFDoubleTests
         Assert.True(double.IsPositiveInfinity(CobolIntrinsics.NumvalFDouble("1E+9999")));   // past binary64 is +Infinity
     }
 
+    /// <summary>kb/Work PB2658: the conversion is <c>CobolFloat.ScaledToDouble</c>, whose exact-operand path (a
+    /// significand within 2^53 and a scale within ±22) and whose integer cast at scale 0 must each give the SAME
+    /// correctly rounded binary64 as one parse of the text. A seeded sweep of significands of 1–31 digits at exponents
+    /// −39..+39 (0 among them) crosses all three paths, the 2^53 bound and the 10^22 bound, with both signs.</summary>
+    [Fact]
+    public void NumvalFDouble_IsTheParseOfItsText_OnEveryPathOfTheConversion()
+    {
+        var rng = new Random(2658);
+        int examined = 0;
+        for (int digits = 1; digits <= 31; digits++)
+        {
+            for (int trial = 0; trial < 8; trial++)
+            {
+                var significand = new System.Text.StringBuilder().Append((char)('1' + rng.Next(9)));
+                for (int d = 1; d < digits; d++) significand.Append((char)('0' + rng.Next(10)));
+                for (int exponent = -39; exponent <= 39; exponent += 3)
+                {
+                    string text = $"{(trial % 2 == 0 ? "" : "-")}{significand}E{(exponent < 0 ? "-" : "+")}{Math.Abs(exponent)}";
+                    double expected = double.Parse(text, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture);
+                    Assert.True(BitConverter.DoubleToInt64Bits(expected) == BitConverter.DoubleToInt64Bits(CobolIntrinsics.NumvalFDouble(text)), text);
+                    examined++;
+                }
+            }
+        }
+        Assert.Equal(31 * 8 * 27, examined);
+    }
+
     /// <summary>The binary64 carries the argument's DECIMAL IDENTITY: converted back through the shortest
     /// round-trip decimal (the <c>CobolDec.FromApproximation</c> conversion of an implementor-defined approximation) it
     /// lands at scale 9 exactly where the exact SDIDI value (<c>NumvalFDec</c>, what the function returns) is.
