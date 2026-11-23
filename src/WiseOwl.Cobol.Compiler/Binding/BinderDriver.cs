@@ -208,12 +208,12 @@ internal sealed class BinderDriver
         OoConformance.ValidateOverrideSignatures(table, sources, edition);   // §2023:9.3.8.2 — after all formals resolve (slice 3a)
         OoConformance.ValidatePropertyAccessorPairs(table, sources, edition);   // §2023:8.4.3.9.3 SR7 — get RETURNING = set USING, over the formals just resolved
         var ooAdapters = OoConformance.ValidateImplements(table, sources, edition);   // §2023:9.3.11 via §2023:9.3.8.2.3 (D-I1 — the binder is the authority; returns the covariant adapters)
-        foreach (var cls in classes) oo.BindClassBody(cls);
+        foreach (var cls in classes) oo.BindClassBody(cls, units);
         // The method BODIES of a parameterized definition nothing expands bind as themselves too, after every emitted
         // class's (kb/Work PB2937; OO deep-dive D12 determination 6): every rule of their text is asked, and a statement
         // that selects a method through a parameter-name is each expansion's (BoundDeferredToExpansion). Nothing emits
         // them; the edition pass walks them (VersionConformancePass.Run).
-        foreach (var skeleton in oo.SkeletonClasses) oo.BindClassBody(skeleton);
+        foreach (var skeleton in oo.SkeletonClasses) oo.BindClassBody(skeleton, units);
 
         // The whole-group middle-end (P6 Steps 3–4): the DECLARED manifest — ProcedureBinding →
         // UsageCollectionPass → StorageFormPass → VersionConformancePass (the NAMED terminal pass, the SOLE
@@ -787,7 +787,7 @@ internal sealed class BinderDriver
             // visibility the runtime ResolveVisible applies, computed statically so GR9's formal-mode
             // lookup and SR15's scope check both happen at BIND time.
             NestedCallables = NestedCallablesOf(unit, session.Binders),
-            ProgramsInScope = session.Edition.RecordsReferences ? ProgramsVisibleFrom(unit, group) : null,
+            ProgramsInScope = ProgramsInScopeOf(unit, group, session),
             UnitRecursive = unit.Recursive,   // §2023:14.9.7.3 SR1 / §2023:14.9.36.3 SR1 (kb/Work PB137)
         };
         // kb/Work PB237 — the unit's visible program prototypes (§2023:12.3.8.2 specifiers resolved through §2023:12.3.8.4 GR10, plus
@@ -809,8 +809,9 @@ internal sealed class BinderDriver
     /// first, (4) an OUTERMOST program of the compilation group, which any source element of the run unit may reference (SR3). The name is the
     /// externalized name (<see cref="BoundUnit.ExternalizedName"/>), which a literal names and which is the program-name for a contained program
     /// (§2023:11.10.3 SR2). A name the group does not define is absent: the call reaches a program compiled elsewhere. A function is no program
-    /// (§2023:8.4.6.3).</summary>
-    private static Dictionary<ExternalizedProgramName, BoundUnit> ProgramsVisibleFrom(BoundUnit caller, IReadOnlyList<BoundUnit> group)
+    /// (§2023:8.4.6.3). A null <paramref name="caller"/> is a method or factory method of a class definition, which contains no program and is
+    /// contained in none, so arm 4 alone reaches (kb/Work PB5963).</summary>
+    private static Dictionary<ExternalizedProgramName, BoundUnit> ProgramsVisibleFrom(BoundUnit? caller, IReadOnlyList<BoundUnit> group)
     {
         var visible = new Dictionary<ExternalizedProgramName, BoundUnit>();
         foreach (var unit in group)
@@ -822,13 +823,21 @@ internal sealed class BinderDriver
     }
 
     /// <summary>The program <paramref name="name"/> reaches from <paramref name="caller"/> (<see cref="ProgramsVisibleFrom"/>'s one question).</summary>
-    private static BoundUnit? ProgramVisibleFrom(BoundUnit caller, ExternalizedProgramName name, IReadOnlyList<BoundUnit> group)
+    private static BoundUnit? ProgramVisibleFrom(BoundUnit? caller, ExternalizedProgramName name, IReadOnlyList<BoundUnit> group)
     {
         bool Named(BoundUnit u) => !u.IsFunction && !u.IsPrototype && new ExternalizedProgramName(u.ExternalizedName).Equals(name);
-        return WiseOwl.Cobol.Runtime.ProgramNameScope.FirstVisible(caller, (u, _) => Named(u), u => u.Children, u => u.Parent,
-                u => u.Recursive, u => u.Common)
+        return (caller is null ? null : WiseOwl.Cobol.Runtime.ProgramNameScope.FirstVisible(caller, (u, _) => Named(u), u => u.Children,
+                u => u.Parent, u => u.Recursive, u => u.Common))
             ?? group.FirstOrDefault(u => u.Parent is null && Named(u));   // arm 4: an outermost program of the compilation group
     }
+
+    /// <summary>⛔ THE <see cref="StatementBinder.ProgramsInScope"/> OF EVERY STATEMENT BINDER, whatever source element it binds (kb/Work PB5963:
+    /// the class-body and factory binders were built without it, so a method's CALL of a program of the run unit was listed as an EXTERNAL
+    /// program): the programs a CALL or CANCEL literal of <paramref name="caller"/> reaches (<see cref="ProgramsVisibleFrom"/>; null
+    /// <paramref name="caller"/> for a method), and null unless the listing records references (DESIGN-listing.md section 9).</summary>
+    internal static IReadOnlyDictionary<ExternalizedProgramName, BoundUnit>? ProgramsInScopeOf(BoundUnit? caller,
+        IReadOnlyList<BoundUnit> group, BindSession session) =>
+        session.Edition.RecordsReferences ? ProgramsVisibleFrom(caller, group) : null;
 
     /// <summary>Classify a bound unit as one of ISO §2023:14.2.2 SR10's source elements (kb/Work PB403). The two unit
     /// facts the classification needs — FUNCTION-ID vs PROGRAM-ID, and the <c>IS PROTOTYPE</c> tail — are already

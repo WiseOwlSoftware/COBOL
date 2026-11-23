@@ -243,6 +243,8 @@ WiseOwl.Cobol.Runtime.DecArithmetic.Sqrt(WiseOwl.Cobol.Runtime.CobolDec v) -> Wi
 WiseOwl.Cobol.Runtime.DecArithmetic.StandardIntermediate.get -> bool
 WiseOwl.Cobol.Runtime.DecArithmetic.Sub(WiseOwl.Cobol.Runtime.CobolDec a, WiseOwl.Cobol.Runtime.CobolDec b) -> WiseOwl.Cobol.Runtime.CobolDec
 WiseOwl.Cobol.Runtime.DialectBehavior.BlockContainsRangeOrdered = 52 -> WiseOwl.Cobol.Runtime.DialectBehavior
+WiseOwl.Cobol.Runtime.DialectBehavior.CallAnyLengthOperandRuleByFormat = 66 -> WiseOwl.Cobol.Runtime.DialectBehavior
+WiseOwl.Cobol.Runtime.DialectBehavior.CallRestrictedPointerSignatureSame = 65 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.CancelRefusesEveryActiveProgram = 16 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.CloseWithLockLocksFileConnector = 19 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.CompileTimeArithmeticIsStandardDecimal = 22 -> WiseOwl.Cobol.Runtime.DialectBehavior

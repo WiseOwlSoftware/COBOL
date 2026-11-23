@@ -608,6 +608,23 @@ public enum DialectBehavior
     /// may use it (§2002:13.16.38.3 GR2; kb/Work PB5614; VCR row 7.120). Both editions are QUOTED. The consumer is
     /// <c>ConfigurationSlice.FinalizeCurrencySigns</c>.</summary>
     ImpliedDollarCurrencyClause = 64,
+    /// <summary>§2014:14.9.4.2 SR14 — "If identifier-1 references a restricted program-pointer, the signature of the
+    /// program-prototype specified in the definition of that pointer shall be the same as the signature of
+    /// program-prototype-name-1" (§2023:14.9.4.3 SR14 the same). COBOL-2002 states no such rule: its CALL says only which
+    /// prototype decides, "If the NESTED phrase is not specified, program-prototype-name-1, or the program prototype specified
+    /// in the definition of identifier-1 if it is defined as a restricted program-pointer, is used to determine the
+    /// characteristics of the called program" (§2002:14.8.4.3 GR7), so at <c>--std 2002</c> <c>CALL PA AS PRB</c> compiles
+    /// whatever the two signatures are (kb/Work PB5714; VCR row 7.121). Both editions are QUOTED. The consumer is
+    /// <c>CallBinder.Identifier1Screen</c>.</summary>
+    CallRestrictedPointerSignatureSame = 65,
+    /// <summary>§2014:14.9.4.2 SR11 (FORMATS 1 AND 2) — "Identifier-2 and identifier-3 shall not be described with the ANY
+    /// LENGTH clause" — and SR18 (FORMAT 3) — "Identifier-4 shall not be described with the ANY LENGTH clause"
+    /// (§2023:14.9.4.3 SR11 and SR18 the same), so from 2014 a program-prototype CALL's BY REFERENCE argument and its
+    /// RETURNING item may be ANY LENGTH. COBOL-2002 states the rule once, under ALL FORMATS: "Identifier-2, identifier-3, and
+    /// identifier-4 shall not be described with the ANY LENGTH clause" (§2002:14.8.4.2 SR10), so at <c>--std 2002</c> every
+    /// USING operand and the RETURNING item of every format is refused (kb/Work PB5611; VCR row 7.122). Both editions are
+    /// QUOTED. The consumer is <c>CallBinder.ScreenCallOperand</c>.</summary>
+    CallAnyLengthOperandRuleByFormat = 66,
 }
 
 /// <summary>
@@ -926,6 +943,14 @@ public static class DialectBehaviors
             "7.120", "§2014:12.3.6.2 SR25", "§2002:12.2.6.2 SR24",
             "a unit with no CURRENCY SIGN clause for '$' is taken to have written one, whose alphanumeric literal-7 confines '$' to usage display, "
             + "only from COBOL-2014; at COBOL-2002 the default '$' has no literal-7 and a national item may use it"),
+        new(DialectBehavior.CallRestrictedPointerSignatureSame, "call-restricted-pointer-signature-same", 2014,
+            "7.121", "§2014:14.9.4.2 SR14", "§2002:14.8.4.3 GR7",
+            "a CALL of a restricted program-pointer AS program-prototype-name-1 requires the two prototypes' signatures to be the "
+            + "same only from COBOL-2014; at COBOL-2002 program-prototype-name-1 decides the called program's characteristics"),
+        new(DialectBehavior.CallAnyLengthOperandRuleByFormat, "call-any-length-operand-rule-by-format", 2014,
+            "7.122", "§2014:14.9.4.2 SR11", "§2002:14.8.4.2 SR10",
+            "a program-prototype CALL's BY REFERENCE argument and RETURNING item may be described with ANY LENGTH only from "
+            + "COBOL-2014; COBOL-2002 refuses an ANY LENGTH USING operand or RETURNING item in every format of CALL"),
     ];
 
     static DialectBehaviors()
