@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 
@@ -354,7 +355,7 @@ public sealed class FileControlKeyRuleDriftTests
         {
             // An ALTERNATE RECORD KEY operand carries a SUPPRESS WHEN literal-1 too, so the §2023:12.4.5.6.3 SR7 rows
             // render the operand they actually describe (kb/Work PB1072).
-            var op = new FileKeyOperand(rule.Role, "KEY", "K", item, default,
+            var op = new FileKeyOperand(rule.Role, "KEY", "K", item, default, EditionInfo.Of(2023),
                 SuppressWhen: new SuppressWhenOperand("ALL 'AB'", SuppressWhenForm.AllLiteral,
                     WiseOwl.Cobol.Common.LiteralClass.Alphanumeric, "AB", null));
             string message = rule.Message(file, op);
@@ -434,7 +435,7 @@ public sealed class FileControlKeyRuleDriftTests
                 Assert.True(inFormat, $"§1985:{rule.Clause} has no general format containing \"{rule.RuleText}\".");
                 var fmtFile = new FileModel { CobolName = "F", SelectName = "F", AssignTarget = "F" };
                 var fmtItem = new DataItem { Level = 5, CobolName = "K", ClrName = "K" };
-                Assert.Contains(rule.Citation, rule.Message(fmtFile, new FileKeyOperand(rule.Role, "KEY", "K", fmtItem, default)));
+                Assert.Contains(rule.Citation, rule.Message(fmtFile, new FileKeyOperand(rule.Role, "KEY", "K", fmtItem, default, EditionInfo.Of(85))));
                 continue;
             }
             var m = Regex.Match(rule.RuleId, @"^1985-SR-(?<clause>[IVX]+\.[0-9.]+)-(?<n>\d+)$");
@@ -455,7 +456,7 @@ public sealed class FileControlKeyRuleDriftTests
             Assert.DoesNotContain(Norm(rule.RuleText), text2023);
             var file = new FileModel { CobolName = "F", SelectName = "F", AssignTarget = "F" };
             var item = new DataItem { Level = 5, CobolName = "K", ClrName = "K" };
-            Assert.Contains(rule.Citation, rule.Message(file, new FileKeyOperand(rule.Role, "KEY", "K", item, default)));
+            Assert.Contains(rule.Citation, rule.Message(file, new FileKeyOperand(rule.Role, "KEY", "K", item, default, EditionInfo.Of(85))));
         }
     }
 
@@ -484,7 +485,7 @@ public sealed class FileControlKeyRuleDriftTests
             Assert.True(found, $"§2002:{rule.Clause} has no numbered syntax rule {m.Groups["n"].Value} containing \"{rule.RuleText}\".");
             var file = new FileModel { CobolName = "F", SelectName = "F", AssignTarget = "F" };
             var item = new DataItem { Level = 5, CobolName = "K", ClrName = "K" };
-            string message = rule.Message(file, new FileKeyOperand(rule.Role, "KEY", "K", item, default));
+            string message = rule.Message(file, new FileKeyOperand(rule.Role, "KEY", "K", item, default, EditionInfo.Of(2002)));
             Assert.Contains(rule.Citation, message);
             Assert.Contains("§2002:13.16.36.3 GR8", message);
         }
@@ -519,7 +520,7 @@ public sealed class FileControlKeyRuleDriftTests
             Assert.Same(from2023.Violated, rule.Violated);
             var file = new FileModel { CobolName = "F", SelectName = "F", AssignTarget = "F" };
             var item = new DataItem { Level = 5, CobolName = "K", ClrName = "K" };
-            Assert.Contains(rule.Citation, rule.Message(file, new FileKeyOperand(rule.Role, "KEY", "K", item, default)));
+            Assert.Contains(rule.Citation, rule.Message(file, new FileKeyOperand(rule.Role, "KEY", "K", item, default, EditionInfo.Of(2014))));
         }
     }
 

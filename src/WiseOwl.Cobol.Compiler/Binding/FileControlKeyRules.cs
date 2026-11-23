@@ -82,10 +82,13 @@ internal enum FileKinds
 /// <para><paramref name="Ordinal"/> is an ALTERNATE RECORD KEY clause's position among the entry's alternate
 /// clauses as written — what lets §2023:12.4.5.6.3 SR4's "another alternate record key" exclude the clause itself
 /// without excluding a SECOND clause that names the same item; 0 on every other role.</para>
+/// <para><paramref name="Edition"/> is the edition the entry is compiled under: a rule worded "category alphanumeric" is asked
+/// through <see cref="ItemCategory.IsAlphanumeric(DataItem, EditionInfo)"/>, which admits an alphabetic item at COBOL-2002 alone
+/// (§2002:8.5.2.1; kb/Work PB5871).</para>
 /// <para><paramref name="Refused"/>: this operand was refused and reported while it was resolved, so no row speaks about it
 /// again (<see cref="FileControlKeyRules.Screen"/>).</para></summary>
 internal readonly record struct FileKeyOperand(
-    FileKeyRole Role, string ClauseFace, string? Name, DataItem? Item, DiagnosticCursor At,
+    FileKeyRole Role, string ClauseFace, string? Name, DataItem? Item, DiagnosticCursor At, EditionInfo Edition,
     SuppressWhenOperand? SuppressWhen = null, int Ordinal = 0, RecordKeySource? Source = null, int SourceIndex = -1,
     IReadOnlyList<int>? Subscripts = null, bool Refused = false)
 {
@@ -113,8 +116,8 @@ internal readonly record struct FileKeyOperand(
     /// category SR2 admits is compared: SR2's own category row speaks about any other.</summary>
     public bool CategoryDiffersFromFirstSource =>
         Source is not null && SourceIndex > 0 && Item is { } mine && Source.Operands[0].Item is { } first
-        && ItemCategory.IsAlphanumericOrNational(mine) && ItemCategory.IsAlphanumericOrNational(first)
-        && ItemCategory.IsAlphanumeric(mine) != ItemCategory.IsAlphanumeric(first);
+        && ItemCategory.IsAlphanumericOrNational(mine, Edition) && ItemCategory.IsAlphanumericOrNational(first, Edition)
+        && ItemCategory.IsAlphanumeric(mine, Edition) != ItemCategory.IsAlphanumeric(first, Edition);
 }
 
 /// <summary>The four general formats of ISO/IEC 1989:2023 §2023:12.4.5.1, as the set a clause is printed in.</summary>
@@ -346,7 +349,7 @@ internal static class FileControlKeyRules
             "shall reference a data item of category alphanumeric or category national",
             FileKinds.Indexed, FileKeyRole.PrimeRecordKey,
             _ => true,
-            (_, op) => op.Item is { } i && !ItemCategory.IsAlphanumericOrNational(i),
+            (_, op) => op.Item is { } i && !ItemCategory.IsAlphanumericOrNational(i, op.Edition),
             (_, op) => $"{op.ClauseFace} {op.Written} is {ItemCategory.Face(op.Item!)}; {op.OperandFace} shall reference "
                 + "a data item of category alphanumeric or category national (ISO §2023:12.4.5.12.3 SR2)"),
 
@@ -422,7 +425,7 @@ internal static class FileControlKeyRules
             "shall be defined as a data item of category alphanumeric or national",
             FileKinds.Indexed, FileKeyRole.AlternateRecordKey,
             _ => true,
-            (_, op) => op.Item is { } i && !ItemCategory.IsAlphanumericOrNational(i),
+            (_, op) => op.Item is { } i && !ItemCategory.IsAlphanumericOrNational(i, op.Edition),
             (_, op) => $"{op.ClauseFace} {op.Written} is {ItemCategory.Face(op.Item!)}; {op.OperandFace} shall be defined "
                 + "as a data item of category alphanumeric or national (ISO §2023:12.4.5.6.3 SR2)"),
 
@@ -501,8 +504,8 @@ internal static class FileControlKeyRules
             FileKinds.Indexed, FileKeyRole.AlternateRecordKey,
             _ => true,
             (_, op) => op is { SuppressWhen.Class: LiteralClass.Alphanumeric or LiteralClass.National, Item: { } i }
-                && ItemCategory.IsAlphanumericOrNational(i)   // SR2 speaks about any other key
-                && (op.SuppressWhen!.Class is LiteralClass.National) != !ItemCategory.IsAlphanumeric(i),
+                && ItemCategory.IsAlphanumericOrNational(i, op.Edition)   // SR2 speaks about any other key
+                && (op.SuppressWhen!.Class is LiteralClass.National) != !ItemCategory.IsAlphanumeric(i, op.Edition),
             (_, op) => $"{op.ClauseFace} '{op.Name}': SUPPRESS WHEN {op.SuppressWhen?.Written} is "
                 + $"{SuppressWhenFace(op.SuppressWhen)}, but '{op.Name}' is {ItemCategory.Face(op.Item!)}; literal-1 "
                 + $"shall be of the same category as {op.OperandFace} (ISO §2023:12.4.5.6.3 SR7)"),
@@ -838,7 +841,7 @@ internal static class FileControlKeyRules
             "must reference a data item of the category alphanumeric",
             FileKinds.Indexed, FileKeyRole.PrimeRecordKey,
             _ => true,
-            (_, op) => op.Item is { } i && !ItemCategory.IsAlphanumeric(i),
+            (_, op) => op.Item is { } i && !ItemCategory.IsAlphanumeric(i, op.Edition),
             (_, op) => $"{op.ClauseFace} {op.Written} is {ItemCategory.Face(op.Item!)}; {op.OperandFace} must reference "
                 + "a data item of the category alphanumeric (ANSI §1985:IX.2.7.3 SR2)")
         { Supersedes = "SR-12.4.5.12.3-2" },
@@ -855,7 +858,7 @@ internal static class FileControlKeyRules
             "must be defined as a data item of the category alphanumeric",
             FileKinds.Indexed, FileKeyRole.AlternateRecordKey,
             _ => true,
-            (_, op) => op.Item is { } i && !ItemCategory.IsAlphanumeric(i),
+            (_, op) => op.Item is { } i && !ItemCategory.IsAlphanumeric(i, op.Edition),
             (_, op) => $"{op.ClauseFace} {op.Written} is {ItemCategory.Face(op.Item!)}; {op.OperandFace} must be defined "
                 + "as a data item of the category alphanumeric (ANSI §1985:IX.2.5.3 SR2)")
         { Supersedes = "SR-12.4.5.6.3-2" },
@@ -1157,7 +1160,7 @@ internal static class FileControlKeyRules
         foreach (var role in Roles)
         {
             if (!HasApplicableRule(rules, file, kind, role)) continue;   // a relative entry never enumerates a RECORD KEY
-            foreach (var op in Operands(file, role))
+            foreach (var op in Operands(file, role, edition.Edition))
             {
                 if (op is { Item: null, Refused: true }) continue;
                 foreach (var rule in rules)
@@ -1198,12 +1201,12 @@ internal static class FileControlKeyRules
     /// <summary>One operand per data-name-2 of a SOURCE phrase (kb/Work PB1099 Q1), in the order specified; the
     /// SUPPRESS WHEN operand rides the first only, so SR7 is asked once per clause.</summary>
     private static IEnumerable<FileKeyOperand> SourceOperands(FileKeyRole role, string face, RecordKeySource source,
-                                                              SuppressWhenOperand? suppressWhen, int ordinal)
+                                                              SuppressWhenOperand? suppressWhen, int ordinal, EditionInfo edition)
     {
         for (int k = 0; k < source.Operands.Count; k++)
         {
             var op = source.Operands[k];
-            yield return new FileKeyOperand(role, face, op.Operand.Name, op.Item, op.At,
+            yield return new FileKeyOperand(role, face, op.Operand.Name, op.Item, op.At, edition,
                 SuppressWhen: k == 0 ? suppressWhen : null, Ordinal: ordinal, Source: source, SourceIndex: k, Subscripts: op.Subscripts,
                 Refused: op.Refused);
         }
@@ -1214,7 +1217,7 @@ internal static class FileControlKeyRules
     /// the CLAUSE rather than the operand tests <see cref="FileKeyOperand.IsClauseHead"/> or it reports once per
     /// data-name-2. Otherwise the prime and relative roles contribute EXACTLY ONE operand, with a null name when the
     /// clause is absent, which is what lets an absence rule and an operand rule be the same kind of row.</summary>
-    private static IEnumerable<FileKeyOperand> Operands(FileModel file, FileKeyRole role)
+    private static IEnumerable<FileKeyOperand> Operands(FileModel file, FileKeyRole role, EditionInfo edition)
     {
         switch (role)
         {
@@ -1222,10 +1225,10 @@ internal static class FileControlKeyRules
                 // A SOURCE-phrase clause contributes its data-name-2 operands; an absent clause, one operand with a
                 // null name (which every row below tests; the clause's ABSENCE is RequiredClauses' subject).
                 if (file.RecordKeySource is { } pks)
-                    foreach (var op in SourceOperands(role, "RECORD KEY", pks, null, 0)) yield return op;
+                    foreach (var op in SourceOperands(role, "RECORD KEY", pks, null, 0, edition)) yield return op;
                 else
                     yield return new FileKeyOperand(role, "RECORD KEY", file.RecordKeyOperand?.Name, file.PrimeKey?.Item,
-                        file.RecordKeyAt, Subscripts: file.RecordKeySubscripts, Refused: file.RecordKeyRefused);
+                        file.RecordKeyAt, edition, Subscripts: file.RecordKeySubscripts, Refused: file.RecordKeyRefused);
                 break;
             case FileKeyRole.AlternateRecordKey:
                 // The clauses AS WRITTEN, not FileModel.AlternateKeys: a clause whose data-name-1 resolved to
@@ -1234,21 +1237,21 @@ internal static class FileControlKeyRules
                 {
                     var alt = file.AlternateKeyNames[i];
                     if (alt.Source is { } aks)
-                        foreach (var op in SourceOperands(role, "ALTERNATE RECORD KEY", aks, alt.SuppressWhen, i)) yield return op;
+                        foreach (var op in SourceOperands(role, "ALTERNATE RECORD KEY", aks, alt.SuppressWhen, i, edition)) yield return op;
                     else
-                        yield return new FileKeyOperand(role, "ALTERNATE RECORD KEY", alt.Operand.Name, alt.Item, alt.At,
+                        yield return new FileKeyOperand(role, "ALTERNATE RECORD KEY", alt.Operand.Name, alt.Item, alt.At, edition,
                             SuppressWhen: alt.SuppressWhen, Ordinal: i, Subscripts: alt.Subscripts, Refused: alt.Refused);
                 }
                 break;
             case FileKeyRole.RelativeKey:
                 yield return new FileKeyOperand(role, "RELATIVE KEY", file.RelativeKeyOperand?.Name, file.RelativeKeyItem,
-                    file.RelativeKeyAt, Refused: file.RelativeKeyRefused);
+                    file.RelativeKeyAt, edition, Refused: file.RelativeKeyRefused);
                 break;
             case FileKeyRole.Entry:
                 // Exactly one, with no name and no item: the ENTRY is the subject, and the rows on this role
                 // read the FileModel. The cursor is the entry's own, which is where a rule about the entry's
                 // FORMAT has to report — no single clause is the violation.
-                yield return new FileKeyOperand(role, "file control entry", null, null, file.EntryAt);
+                yield return new FileKeyOperand(role, "file control entry", null, null, file.EntryAt, edition);
                 break;
         }
     }
