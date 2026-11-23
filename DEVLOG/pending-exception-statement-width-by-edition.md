@@ -18,3 +18,5 @@ Golden: `conformance-suite/cases/15.27@2002-EXCEPTION-STATEMENT-FUNCTION/g2-exce
 width is shown through FUNCTION LENGTH and a closing bracket, because the harness trims trailing spaces, PB475) and its
 refusal at 85 (`wiseowl/diagnostics/g2-exception-statement-31.json`, COBOL0900 for `>>TURN`). Rows `2002-RV-15.27.2-1`
 and `-2` close (GAP 1173 to 1171).
+
+The gate found one more case that pinned the 63-wide value at 2002 (`_unassigned/pb2745_statement_context_scope`); its expected output now carries 31 spaces.
