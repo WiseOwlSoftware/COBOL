@@ -1608,12 +1608,12 @@ public sealed record SizeErrorPhrase(IReadOnlyList<BoundStatement>? OnError, IRe
 /// — the statements that OWN their size error condition: <c>ArithmeticEmitter.EmitArith</c> wraps their evaluation
 /// and stores in the §2023:14.7.5 shape (the SIZE ERROR phrase, the EC-SIZE handling, the fatal default), so the generic
 /// EC-SIZE statement guard skips them (kb/Work PB75 — otherwise a size error dispatched by the statement would be
-/// dispatched again by the guard). A structural marker, not a name list: a new arithmetic statement declares it with
-/// its <see cref="SizeError"/> and is excluded by construction (<c>EcSizeGuardDriftTests</c> holds the two in step).</summary>
-public interface IArithmeticStatement
-{
-    SizeErrorPhrase? SizeError { get; }
-}
+/// dispatched again by the guard). A structural marker, not a name list: a new arithmetic statement declares it beside
+/// its <see cref="SizeErrorPhrase"/> member and is excluded by construction. The marker carries no member: its only
+/// reader is a type test (<c>EcEmitter</c>'s <c>ec.Inner is IArithmeticStatement</c>), every consumer of the phrase reads
+/// the concrete node's own <c>SizeError</c>, and <c>EcSizeGuardDriftTests</c> holds marker and phrase in step in both
+/// directions (kb/Work PB2130).</summary>
+public interface IArithmeticStatement;
 
 /// <summary><c>ADD addends TO targets</c> — each target ← target + Σ addends.</summary>
 public sealed record BoundAddTo(IReadOnlyList<BoundExpr> Addends, IReadOnlyList<Receiver> Targets, SizeErrorPhrase? SizeError) : BoundStatement, IArithmeticStatement;
@@ -2327,7 +2327,7 @@ public sealed record BoundWrite(FileModel File, Place Record, BoundMove? FromMov
 /// enforced on the keyed arm only) and no INVALID KEY phrase (so a <c>NOT INVALID KEY</c> block was compiled
 /// away) — kb/Work PB334. The drift test that keeps this true for the next phrase is PB340.</para></summary>
 public sealed record BoundRead(
-    FileModel File, BoundMove? IntoMove, IReadOnlyList<BoundStatement>? AtEnd, IReadOnlyList<BoundStatement>? NotAtEnd, string? Unsupported) : BoundStatement, IBoundRead, IBoundImplicitOperands, IBoundIntoPhrase
+    FileModel File, BoundMove? IntoMove, IReadOnlyList<BoundStatement>? AtEnd, IReadOnlyList<BoundStatement>? NotAtEnd, string? Unsupported) : BoundStatement, IBoundImplicitOperands, IBoundIntoPhrase
 {
     /// <summary>The record area the implicit INTO move sends is the verb's own, not an operand the program wrote (X3.23-1985 USE FOR
     /// DEBUGGING general rule 5: "explicitly references"); the INTO identifier is written.</summary>
