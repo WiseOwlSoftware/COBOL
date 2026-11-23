@@ -36,6 +36,8 @@ REPO = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO / "scripts" / "spec"))
 sys.path.append(str(REPO / "scripts"))  # scripts/, for standard_streams
 
+from standard_streams import ensure_utf8  # noqa: E402
+
 ZERO = re.compile(r"^0+$")
 #: How long one git read may take before the scan refuses: a guard against a hung git, never a time expectation.
 GIT_LIMIT_S = 300
@@ -128,8 +130,6 @@ def pre_push(repo: pathlib.Path, argv: list[str], stdin: str) -> tuple[int, str]
 
 
 def main() -> int:
-    from standard_streams import ensure_utf8  # noqa: PLC0415
-    ensure_utf8()
     code, said = pre_push(pathlib.Path.cwd(), sys.argv[1:], sys.stdin.read())
     if said:
         sys.stderr.write(said + "\n")
@@ -137,4 +137,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())
