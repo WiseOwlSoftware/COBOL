@@ -521,9 +521,12 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         // §2023:14.9.18.4 GR6 — a GOBACK executed within the RANGE of one of THIS program's GLOBAL declaratives
         // (kb/Work PB409). Before this row the name was a catalog entry with no raise site and no gate, so
         // `>>TURN EC-FLOW-GLOBAL-GOBACK CHECKING ON` was accepted and wired nothing — a green compile that read
-        // as support. Its Table 13 neighbour EC-FLOW-GLOBAL-EXIT has no row because the standard states no
-        // general rule that SETS it (see ExceptionEngine.FlowGlobalGobackError).
+        // as support.
         ("EC-FLOW-GLOBAL-GOBACK", "FlowGlobalGobackChecking"),  // §2023:14.9.18.4 GR6 — GOBACK in a global declarative's range
+        // §2002:14.8.13.3 GR2 / §2014:14.9.13.3 GR2 — an EXIT PROGRAM, EXIT FUNCTION or EXIT METHOD executed within the range
+        // of a global declarative of the same element. A row at EVERY edition is harmless: from 2023 no statement declares the
+        // name (§2023 states no rule that sets it, DialectBehavior.FlowGlobalExitIsNeverSet), so no gate ever reads it.
+        ("EC-FLOW-GLOBAL-EXIT", "FlowGlobalExitChecking"),
         // The sort-merge flow conditions (kb/Work PB349). Before these rows the three names were catalog entries
         // with no gate, no flag and no raise site, so `>>TURN EC-FLOW-RELEASE CHECKING ON` compiled clean and
         // wired nothing. Each rides a flag CobolSort's statement entry consults against the store's phase.

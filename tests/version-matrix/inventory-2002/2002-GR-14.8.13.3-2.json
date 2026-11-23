@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.13.3-2",
+ "rule-digest": "79233335d90d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitExitProgram; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitFlowGlobalExit; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.RaiseDeclarations.cs#NodeKindRaises; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#FlowGlobalExitError",
+ "test-ref": "conformance:cases/14.8.13@2002-EXIT-STATEMENT/pb5715_exit_program_global_declarative_range",
+ "notes": "§2002:14.8.13.3 GR2 (§2014:14.9.13.3 GR2 the same): an EXIT PROGRAM executed within the range of a USE GLOBAL declarative of the same program (a non-GLOBAL declarative section the GLOBAL declarative PERFORMs) sets EC-FLOW-GLOBAL-EXIT, Fatal, by the same run-time __useActive test as EC-FLOW-GLOBAL-GOBACK; with checking on its USE procedure runs (§2002:14.5.12.1.2 item 2). The EXIT FUNCTION format is bound as the GOBACK it equals and shares the arm; the EXIT METHOD arm is unreachable until a method may carry declaratives. From 2023 no rule sets the condition (docs/conformance/3/D-GLOBAL-EXIT.md, VCR row 7.118). The golden matched at --std 2002 and 2014."
+}

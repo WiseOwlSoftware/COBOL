@@ -105,6 +105,11 @@
       "changedIn": 2002
     },
     {
+      "id": "flow-global-exit-is-never-set",
+      "vcrRow": "7.118",
+      "changedIn": 2023
+    },
+    {
       "id": "generate-report-name-single-detail",
       "vcrRow": "7.106",
       "changedIn": 2002

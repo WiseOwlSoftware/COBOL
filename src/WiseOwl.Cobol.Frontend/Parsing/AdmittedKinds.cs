@@ -81,6 +81,8 @@ internal static class AdmittedKinds
     /// only where nothing of it is missing from <paramref name="admitted"/>, kb/Work PB4426). <paramref name="anOperandIsDue"/> is true when the sentence says that the element before
     /// the token is incomplete (a reserved word was written where an operand is due): the token is the next element's
     /// opening, which the structure around the fault resumes at, so the fault has no tail to discard.
+    /// <paramref name="statementOpenAtAPeriod"/> is the name of the statement the parser is inside when <paramref name="token"/> is
+    /// the separator period, or null (kb/Work PB6113): a period where such a statement's operand is due is refused by naming the statement.
     /// <para>⛔ <c>ZERO_ARITH</c> IS NAMED "the figurative constant ZERO" WHEREVER THE PARSE EXPECTS IT (kb/Work PB4120). It is
     /// a token no program writes, and a ZERO written where the parse expects it becomes it: <c>ZeroTokenRewriter</c>
     /// makes it so by the ZERO's neighbours, and where no neighbour shows the arithmetic expression the parse does
@@ -91,7 +93,7 @@ internal static class AdmittedKinds
     public static string? Refusal(IToken token, IntervalSet admitted, IReadOnlyCollection<string> words,
         Func<int, bool> aWordChangesNothing, IntervalSet statementStart, Func<bool> aPeriodLetsTheSentenceFollow,
         Func<string, bool> theEditionPrints, bool aUserWordIsPrinted, Func<IntervalSet?> whatTheConstructBeforeCouldTake,
-        EditionInfo edition, out bool anOperandIsDue)
+        EditionInfo edition, string? statementOpenAtAPeriod, out bool anOperandIsDue)
     {
         anOperandIsDue = false;
         // The rule that the elements of a general format are written in its sequence, in the edition in force (kb/Work PB4950).
@@ -157,7 +159,14 @@ internal static class AdmittedKinds
         // expected" would be false, and a list of the parser's set after a completed operand is not the set that may follow
         // it (the parser leaves its optional phrases early); such a position is left to the other readings.
         bool takesAWord = admitted.Contains(CobolLexer.IDENTIFIER);
-        if (!named.Statement && CobolErrorStrategy.IsReservedWord(token) && (takesAWord || named.Literals.Count > 0))
+        // ⛔ THE SEPARATOR PERIOD WHERE A STATEMENT'S REQUIRED OPERAND IS DUE (kb/Work PB6113). `MOVE 1 TO.` writes the
+        // period where identifier-2 (§2023:14.9.25.2) must stand: the period is no operand, the statement's own format needs
+        // one more element, and the sentence names the statement and what it lacks, as the reserved word of the same
+        // position is named above. statementOpenAtAPeriod is the statement the parser is inside when the token is the period (null
+        // for any other token, and where no statement is open), so a period ending a data entry or a header says nothing here.
+        bool aPeriodEndsAnOperandList = token.Type == CobolLexer.DOT && statementOpenAtAPeriod is not null;
+        if (!named.Statement && (CobolErrorStrategy.IsReservedWord(token) || aPeriodEndsAnOperandList)
+            && (takesAWord || named.Literals.Count > 0))
         {
             var operand = takesAWord
                 ? Name(admitted.Subtract(UserWordSpellings), [.. words.Where(w => !CobolKeywordTokens.TryTokenType(w, out int t)
@@ -173,6 +182,10 @@ internal static class AdmittedKinds
             if (whatTheConstructBeforeCouldTake() is { } more && !more.Subtract(admitted).Subtract(UserWordSpellings).IsNil)
                 return null;
             anOperandIsDue = true;
+            if (aPeriodEndsAnOperandList)
+                return $"{written} ends the {statementOpenAtAPeriod} statement where an operand is still due: expected "
+                       + $"{Join([.. takesAWord && aUserWordIsPrinted ? (string[])["a user-defined word"] : [], .. operand.Words, .. operand.Literals])} "
+                       + $"({edition.CiteRule("§1985:IV.2.1.4", "§2023:5.2.6.2")}).";
             return $"{written} is not expected here: expected "
                    + $"{Join([.. takesAWord && aUserWordIsPrinted ? (string[])["a user-defined word"] : [], .. operand.Words, .. operand.Literals])} "
                    + $"({EditionInfo.Designated(sequence)}).";

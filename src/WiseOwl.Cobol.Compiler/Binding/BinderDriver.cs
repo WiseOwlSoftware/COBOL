@@ -684,7 +684,7 @@ internal sealed class BinderDriver
         // no merge into the own file-names: every file-name lookup reads the unit's own files first and its containers' GLOBAL
         // ones after (SymbolTable's file lookup), and the child's bound verbs hold the SHARED FileModel, so the owner's
         // one-time PROG::FILE qualification keys them to the owner's connector.
-        InheritStep.Merge(unit, SourceElementKindOf(unit), session.Turn, session.Binders);
+        InheritStep.Merge(unit, SourceElementKindOf(unit), session.Turn, session.Binders, session.Edition.DialectLevel);
     }
 
     /// <summary>ALWAYS-ON (P6 Step 6): assert <paramref name="pass"/>'s declared prerequisite phase has been

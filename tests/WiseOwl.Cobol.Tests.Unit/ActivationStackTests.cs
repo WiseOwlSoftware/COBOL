@@ -18,12 +18,12 @@ public sealed class ActivationStackTests
 {
     /// <summary>A program whose every activation CALLs itself again through the run unit's program table — the shape
     /// of a RECURSIVE COBOL program that never stops, at the runtime surface.</summary>
-    private sealed class SelfCaller(ProgramTable table, string name, string notFoundEc, Action onActivation) : ICobolProgram
+    private sealed class SelfCaller(ProgramTable table, string name, string notFoundEc, bool function, Action onActivation) : ICobolProgram
     {
         public void Call(CobolArg[] args, CobolArg? returning)
         {
             onActivation();
-            table.CallProgram(name, name, [], null, notFoundEc);
+            table.CallProgram(name, name, [], null, notFoundEc, asFunction: function);
         }
         public void Activate() { }
         public void CloseFiles() { }
@@ -54,9 +54,9 @@ public sealed class ActivationStackTests
         string notFoundEc = function ? "EC-FUNCTION-NOT-FOUND" : "EC-PROGRAM-NOT-FOUND";
         ru.Programs.RegisterModule("Cobol.R.__CobolModule", RuntimeAbi.Version.ToString(), RuntimeAbi.CallAbi, () =>
             ru.Programs.Register("R", "R", null, initial: false, common: false, recursive: true,
-                _ => new SelfCaller(ru.Programs, "R", notFoundEc, () => depth++), isFunction: function));
+                _ => new SelfCaller(ru.Programs, "R", notFoundEc, function, () => depth++), isFunction: function));
 
-        var escaped = OnSmallStack(() => ru.Programs.CallProgram("R", "", [], null, notFoundEc));
+        var escaped = OnSmallStack(() => ru.Programs.CallProgram("R", "", [], null, notFoundEc, asFunction: function));
 
         var cx = Assert.IsType<CobolCallException>(escaped);
         Assert.Equal("EC-PROGRAM-RESOURCES", cx.EcName);
