@@ -397,6 +397,19 @@
    ],
    "why": "the CURRENCY SIGN clause of the SPECIAL-NAMES paragraph, §2002:12.2.6, whose literal-7 and literal-8 rules (§2002:12.2.6.2 SR18, SR22) name no hexadecimal form at 2002 (kb/Work PB5595, PB6031, VCR row 7.116)"
   },
+  "test-numval-c-imports-numval-c-argument-rules": {
+   "sections": [
+    "15.55",
+    "15.76"
+   ],
+   "why": "TEST-NUMVAL-C, §2002:15.76, states its own argument rules at 2002 (argument-1 of class alphanumeric or national, argument-2 of the same class, AR1 and AR2) where §2014:15.87.2 AR1 and §2023:15.94.3 AR1 import NUMVAL-C's, §2002:15.55.2 (kb/Work PB5721, VCR row 7.117)"
+  },
+  "floating-literal-wide-limits": {
+   "sections": [
+    "8.3.1.2.2.2"
+   ],
+   "why": "the floating-point numeric literal, §2002:8.3.1.2.2.2 rules 2 and 3, whose significand is 1 through 31 digits and whose exponent has at most three digits at 2002 where 2014 and 2023 allow 36 and four (kb/Work PB5613, PB6039, VCR row 7.118)"
+  },
   "indexed-read-previous-after-open-at-end": {
    "sections": [
     "14.8.29"
