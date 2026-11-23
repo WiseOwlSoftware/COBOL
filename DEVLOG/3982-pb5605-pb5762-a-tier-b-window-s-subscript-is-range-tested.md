@@ -1,4 +1,4 @@
-## PB5605, PB5762: a Tier-B window's subscript is range-tested and ODO-tested like every table reference
+## Entry 3982 — 2026-11-23 07:01 PST — PB5605, PB5762: a Tier-B window's subscript is range-tested and ODO-tested like every table reference
 
 Two notes, one root: `PlaceBuilder.WindowScopeOf`. A data item in a REDEFINES class (every record after the first under an
 FD, every CD record, a table whose element address is taken for a BY REFERENCE argument) is reached through a byte window
@@ -32,3 +32,4 @@ in-range CALL runs it. Refused at 85 (`>>TURN`, COBOL0900): `pb5605-fd-second-re
 **Self-review.** Architecture: the checks ride the bound-tree term as data and the backend renders them; no C# text in the
 model. Duplication: no second copy of the range or ODO test. Performance: one extra call per subscripted window reference,
 in the same position the table accessor's call sits for a canonical reference.
+
