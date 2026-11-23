@@ -80,7 +80,7 @@ public static class ExceptionNameRule
     /// write it, through this, so a program written for 2002 enables, catches and reads the name its own standard defines, and the next
     /// edition-dependent name is one row of <see cref="EarlierNames"/>.</summary>
     public static string NameInEdition(string name, int dialectLevel) =>
-        EarlierNames.TryGetValue(name, out string? earlier) && ExceptionCatalog.TryGet(name, out var info)
+        EarlierNames.TryGetValue(name, out string? earlier) && TryGet(name, "NameInEdition", out var info, out _)
         && new EditionWindow(info.IntroducedIn).StatusAt(dialectLevel) == ConstructAvailability.NotYetIntroduced
             ? earlier
             : name;
