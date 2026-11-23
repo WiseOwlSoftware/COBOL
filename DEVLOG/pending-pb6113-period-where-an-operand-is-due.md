@@ -6,4 +6,6 @@ Fix at that arm: the period counts when a statement is open around the parser (`
 
 Not fixed, registered in the wave report: `SET I TO.` and `COMPUTE N =.` stay "cannot parse construct near '.'" because the walk at their failed prediction admits every statement start, which the arm's statement-position guard reads as a sentence boundary.
 
-No inventory row closes. Gate verdict: see below.
+Verb-by-verb the code now differs: a bare verb whose period is also a paragraph header's (FREE, VALIDATE, RAISE, INVOKE, ALLOCATE) or whose form takes a statement (inline PERFORM) keeps the bare COBOL0001; the tests that pinned COBOL0001 for bare verbs accept either code. Existing tests that pinned COBOL0001 at an operand-less period (22) now expect COBOL5506.
+
+No inventory row closes. Self-review found nothing further. Gate: `=== BUILD-LOCAL GATE: GREEN — Conformance 29,223/29,223 ran · RepoDrift 244/244 ran` (run 000004-20261123T155416Z, at 7017430), the three goldens passed in Conformance.trx.
