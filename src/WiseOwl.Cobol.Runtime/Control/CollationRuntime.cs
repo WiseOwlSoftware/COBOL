@@ -140,7 +140,7 @@ public static class CollationRuntime
         CldrLocaleLoader.PackRelease,
         CldrLocaleLoader.PackLocales.Count,
         CollationKeyCache.DefaultConfig,
-        RunUnit.TryCurrent?.Locale.Current(LocaleCategory.Collate) ?? LocaleConfig.DefaultLocale,
+        RunUnit.TryCurrent?.Locale.Current(LocaleCategory.Collate) ?? LocaleState.UserDefaultNow,
         resolved,
         UnicodeNormalizer.IsNfcAvailable,
         warmed,

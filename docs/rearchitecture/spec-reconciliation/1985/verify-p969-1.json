@@ -1,5 +1,13 @@
-{"claim_id": "p969-1", "claim_key": "c6e3de4f81b59fdd", "page": 969, "kind": "list-restructured", "severity": "structural",
- "claim": {"id": "p969-1", "page": 969, "kind": "list-restructured", "severity": "structural", "pdf_says": "Index entries printed one per line with sub-entries indented beneath their main entry, e.g. 'Linkage Section, IV-33, X-13' followed by the indented sub-entry 'VALUE clause, VI-49'", "markdown_says": "Every entry is a bare line with no list marker, sub-entries only space-indented: 'Linkage Section, IV-33, X-13' then '  VALUE clause, VI-49'", "why_it_matters": "Markdown renders consecutive bare lines as one paragraph, so the whole index page collapses into one run-on line and the entry boundaries and main-entry/sub-entry hierarchy are lost when rendered (pages 961-962 use nested '- ' list items and keep them). Index is informative; the entry text and page references themselves match the PDF."},
- "verdict": {"real": false,
-  "reasoning": "Checked the 300dpi render of page 969 (B-57) against page-969.md. The markdown source holds every entry checked on one line each, in PDF order, with sub-entries indented two spaces under their main entry (e.g. 'Linkage Section, IV-33, X-13' / '  VALUE clause, VI-49'; 'LINAGE-COUNTER' / '  Qualified', '  Special register IV-9'), so entry boundaries and the main/sub hierarchy are present in the transcription text. The claim itself concedes the entry text and page references match. The only difference is markup style (bare indented lines vs '- ' list items on other pages), i.e. how a Markdown renderer would reflow them: a formatting/rendering matter that changes no content of an informative index. Under the rejection rules (formatting-only, no change of meaning) this is not a genuine content discrepancy.",
-  "corrected_description": ""}}
+{
+  "claim_id": "p969-1",
+  "claim_key": "c6e3de4f81b59fdd",
+  "page": 969,
+  "kind": "list-restructured",
+  "severity": "structural",
+  "claim": {"id": "p969-1", "page": 969, "kind": "list-restructured", "severity": "structural", "pdf_says": "Index entries printed one per line with sub-entries indented beneath their main entry, e.g. 'Linkage Section, IV-33, X-13' followed by the indented sub-entry 'VALUE clause, VI-49'", "markdown_says": "Every entry is a bare line with no list marker, sub-entries only space-indented: 'Linkage Section, IV-33, X-13' then '  VALUE clause, VI-49'", "why_it_matters": "Markdown renders consecutive bare lines as one paragraph, so the whole index page collapses into one run-on line and the entry boundaries and main-entry/sub-entry hierarchy are lost when rendered (pages 961-962 use nested '- ' list items and keep them). Index is informative; the entry text and page references themselves match the PDF."},
+  "verdict": {
+    "real": false,
+    "reasoning": "Rendered PDF page 969 (B-57) at 300 dpi and read page-969.md. The markdown source keeps every index entry on its own line in the PDF's order, with each sub-entry indented two spaces under its main entry (e.g. 'Linkage Section, IV-33, X-13' / '  VALUE clause, VI-49'; 'LINAGE-COUNTER' / '  Qualified', '  Special register IV-9'; 'MERGE statement' / '  Imperative statement', '  Segmentation', '  Transfer of control'). The claim itself concedes the entry text and page references match. So the transcription source loses no content and no hierarchy. The complaint is only about how a Markdown renderer would reflow bare lines and about the transcription being inconsistent with pages 961-962. That is markup and formatting, not a content discrepancy, and it does not change meaning on this informative index page. Under the verification rules, a formatting-only difference is rejected.",
+    "corrected_description": ""
+  }
+}

@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.MSBuild;
 
 namespace WiseOwl.Cobol.Tools.ArchCensus;
@@ -92,6 +93,15 @@ internal sealed class LoadedSolution : IDisposable
             {
                 throw new CensusRefusal($"{project.Name} does not compile in the workspace (build the solution first):\n  "
                                         + string.Join("\n  ", errors));
+            }
+
+            // An analyzer reference the workspace could not resolve (its assembly not built at the configuration the
+            // reference pins) would drop a source generator's types silently and crash SymbolFinder later; refuse it here.
+            var unresolved = project.AnalyzerReferences.OfType<UnresolvedAnalyzerReference>().Select(r => r.FullPath).ToList();
+            if (unresolved.Count > 0)
+            {
+                throw new CensusRefusal($"{project.Name} has an analyzer reference the workspace could not resolve (build it "
+                                        + "at the configuration its reference pins):\n  " + string.Join("\n  ", unresolved));
             }
 
             string projectDir = Path.GetDirectoryName(project.FilePath!)!;

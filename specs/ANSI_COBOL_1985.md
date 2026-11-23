@@ -1576,8 +1576,8 @@ Nucleus Element Summary
 | &nbsp;PICTURE character-string ...................................... | X | X |
 | &nbsp;Comment-entries ............................................... | Z | Z |
 | <u>Uniqueness of Reference</u> | | |
-| &nbsp;&nbsp;Qualification | | |
-| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;No qualification permitted; names must be unique if referenced ................................................ | X | N |
+| &nbsp;Qualification | | |
+| &nbsp;&nbsp;No qualification permitted; names must be unique if referenced ................................................ | X | N |
 | &nbsp;&nbsp;50 qualifiers ............................................... | N | X |
 | &nbsp;Subscripting | | |
 | &nbsp;&nbsp;3 levels of subscripts ...................................... | X | N |
@@ -2846,10 +2846,10 @@ Segmentation Element Summary
 |---|---|
 | <u>LANGUAGE CONCEPTS</u> | |
 | <u>Character-Strings</u> | |
-| COBOL words | |
-| Function-name | X |
+| &nbsp;COBOL words | |
+| &nbsp;&nbsp;Function-name | X |
 | <u>Uniqueness of Reference</u> | |
-| Function-Identifier | X |
+| &nbsp;Function-Identifier | X |
 | <u>PROCEDURE DIVISION</u> | |
 | ACOS function | X |
 | ANNUITY function | X |
@@ -8834,9 +8834,9 @@ level-number [ data-name-1 ]
 │                                                         │
 ┤ { <u>SUM</u> { identifier-2 } … [ <u>UPON</u> { data-name-2 } … ] } … ├
 │                                                         │
-│ ┌          ╭ data-name-3 ╮ ┐                            │
-│ │ <u>RESET</u> ON ┤             ├ │                            │
-╰ └          ╰ <u>FINAL</u>       ╯ ┘                            ╯
+│       ┌          ╭ data-name-3 ╮ ┐                      │
+│       │ <u>RESET</u> ON ┤             ├ │                      │
+╰       └          ╰ <u>FINAL</u>       ╯ ┘                      ╯
 
 [ <u>GROUP</u> INDICATE ] .
 </pre>
@@ -10417,7 +10417,7 @@ Nucleus - DATE-COMPILED
 #### ║3.4.2 General Format║
 
 <pre style="line-height:1">
-<u>DATE-COMPILED</u>. [ comment-entry ] …
+║ <u>DATE-COMPILED</u>. [ comment-entry ] … ║
 </pre>
 
 #### ║3.4.3 Syntax Rules║
@@ -10429,7 +10429,7 @@ Nucleus - DATE-COMPILED
 ║(1) The paragraph-name DATE-COMPILED causes the current date to be inserted during program compilation. If a DATE-COMPILED paragraph is present, it is replaced during compilation with a paragraph of the form:║
 
 <pre style="line-height:1">
-          DATE-COMPILED. current date.
+║          DATE-COMPILED. current date. ║
 </pre>
 
 VI-8
@@ -15582,9 +15582,9 @@ Sequential I-O - RECORD DELIMITER
 #### ║2.8.2 General Format║
 
 <pre style="line-height:1">
-                    ╭ <u>STANDARD-1</u>         ╮
-<u>RECORD</u> <u>DELIMITER</u> IS ┤                    ├
-                    ╰ implementor-name-1 ╯
+╔                    ╭ <u>STANDARD-1</u>         ╮ ╗
+║ <u>RECORD</u> <u>DELIMITER</u> IS ┤                    ├ ║
+╚                    ╰ implementor-name-1 ╯ ╝
 </pre>
 
 #### ║2.8.3 Syntax Rules║
@@ -16164,7 +16164,7 @@ The RECORD clause specifies the number of character positions in a fixed length 
 
 <pre style="line-height:1">
 ╔ <u>RECORD</u> IS <u>VARYING</u> IN SIZE [ [ FROM integer-2 ] [ <u>TO</u> integer-3 ] CHARACTERS ] ╗
-╚ [ <u>DEPENDING</u> ON data-name-1 ]                                                 ╝
+╚    [ <u>DEPENDING</u> ON data-name-1 ]                                              ╝
 </pre>
 
 <u>Format 3</u>:
@@ -16758,7 +16758,7 @@ b. If all record-names associated with file-name-1 and the data item referenced 
 
 a. The execution of the same READ statement without the INTO phrase.
 
-b. The current record is moved from the record area to the area specified by identifier-1 according to the rules for the MOVE statement without the CORRESPONDING phrase. <u>The size of the current record is determined by rules specified in the RECORD clause. ║If the file description entry contains a RECORD IS VARYING clause, the implied move is a group move.</u>║ The implied MOVE statement does not occur if the execution of the READ statement was unsuccessful. Any subscripting associated with identifier-1 is evaluated after the record has been read and immediately before it is moved to the data item. The record is available in both the record area and the data item referenced by identifier-1.
+b. The current record is moved from the record area to the area specified by identifier-1 according to the rules for the MOVE statement without the CORRESPONDING phrase. The size of the current record is determined by rules specified in the RECORD clause. ║If the file description entry contains a RECORD IS VARYING clause, the implied move is a group move.║ The implied MOVE statement does not occur if the execution of the READ statement was unsuccessful. Any subscripting associated with identifier-1 is evaluated after the record has been read and immediately before it is moved to the data item. The record is available in both the record area and the data item referenced by identifier-1.
 
 (9) If, during the execution of a READ statement, the end of reel/unit is recognized or a reel/unit contains no logical records, and the logical end of the file has not been reached, the following operations are executed:
 
@@ -20423,11 +20423,8 @@ Inter-Program Communication - File Description Entry
 └                                           ╰ CHARACTERS ╯ ┘
 
 ┌        ╭ CONTAINS integer-3 CHARACTERS                                         ╮ ┐
-│        │                                                                       │ │
 │        │ IS <u>VARYING</u> IN SIZE [ [ FROM integer-4 ] [ <u>TO</u> integer-5 ] CHARACTERS ] │ │
-│ <u>RECORD</u> ┤                                                                       ├ │
-│        │ [ <u>DEPENDING</u> ON data-name-1 ]                                          │ │
-│        │                                                                       │ │
+│ <u>RECORD</u> ┤     [ <u>DEPENDING</u> ON data-name-1 ]                                      ├ │
 └        ╰ CONTAINS integer-6 <u>TO</u> integer-7 CHARACTERS                            ╯ ┘
 
 ┌       ╭ <u>RECORD</u> IS   ╮ ╭ <u>STANDARD</u> ╮ ┐
@@ -21289,11 +21286,8 @@ The sort-merge file description entry furnishes information concerning the physi
 <u>SD</u> file-name-1
 
 ┌        ╭ CONTAINS integer-1 CHARACTERS                                         ╮ ┐
-│        │                                                                       │ │
 │        │ IS <u>VARYING</u> IN SIZE [ [ FROM integer-2 ] [ <u>TO</u> integer-3 ] CHARACTERS ] │ │
-│ <u>RECORD</u> ┤                                                                       ├ │
-│        │ [ <u>DEPENDING</u> ON data-name-1 ]                                          │ │
-│        │                                                                       │ │
+│ <u>RECORD</u> ┤     [ <u>DEPENDING</u> ON data-name-1 ]                                      ├ │
 └        ╰ CONTAINS integer-4 <u>TO</u> integer-5 CHARACTERS                            ╯ ┘
 
 ┌      ╭ <u>RECORD</u> IS   ╮                   ┐
@@ -23768,9 +23762,9 @@ The SUM clause establishes a sum counter and names the data items to be summed.
 <pre style="line-height:1">
 { <u>SUM</u> { identifier-1 } … [ <u>UPON</u> { data-name-1 } … ] } …
 
-┌          ╭ data-name-2 ╮ ┐
-│ <u>RESET</u> ON ┤             ├ │
-└          ╰ <u>FINAL</u>       ╯ ┘
+    ┌          ╭ data-name-2 ╮ ┐
+    │ <u>RESET</u> ON ┤             ├ │
+    └          ╰ <u>FINAL</u>       ╯ ┘
 </pre>
 
 #### 3.19.3 Syntax Rules
@@ -30718,10 +30712,10 @@ SUMMARY OF ELEMENTS IN THE INTRINSIC FUNCTION MODULE
 |---|---|
 | <u>LANGUAGE CONCEPTS</u> | |
 | <u>Character-Strings</u> | |
-| COBOL words | |
-| Function-name | X |
+| &nbsp;COBOL words | |
+| &nbsp;&nbsp;Function-name | X |
 | <u>Uniqueness of Reference</u> | |
-| Function-Identifier | X |
+| &nbsp;Function-Identifier | X |
 | <u>PROCEDURE DIVISION</u> | |
 | ACOS function | X |
 | ANNUITY function | X |
