@@ -1,9 +1,1 @@
-{"batch": [479,480,481,482,483,484,485,486,487,488,489,490],
- "pages_checked": [479,480,481,482,483,484,485,486,487,488,489,490],
- "pages_unread": [],
- "findings": [
-  {"id": "p479-1", "page": 479, "kind": "missing-heading", "severity": "structural",
-   "pdf_says": "2.3.4 General Rules",
-   "markdown_says": "2.3.4 General Rules",
-   "why_it_matters": "A reader or tool walking the markdown heading tree cannot find the General Rules subsection of 2.3 (File Control Entry); its rules (1)-(8) appear to belong to the preceding subsection.", "detail": "The section heading 2.3.4 General Rules is transcribed as a plain paragraph line, not a markdown heading, while every sibling subsection heading in this batch (e.g. '### 2.4.4 General Rules' on page 480, '### 2.5.4 General Rules' on page 481) is a ### heading. The heading is demoted to body text."}
- ]}
+{"batch": [479,480,481,482,483,484,485,486,487,488,489,490], "pages_checked": [479,480,481,482,483,484,485,486,487,488,489,490], "pages_unread": [], "findings": []}

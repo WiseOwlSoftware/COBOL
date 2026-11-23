@@ -1,0 +1,25 @@
+{
+  "batch": [217, 218, 219, 220, 221, 222, 223, 224, 225, 226],
+  "pages_checked": [217, 218, 219, 220, 221, 222, 223, 224, 225, 226],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p224-1",
+      "page": 224,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "GENERAL FORMAT FOR COBOL VERBS",
+      "markdown_says": "**<u>GENERAL FORMAT FOR COBOL VERBS</u>**",
+      "why_it_matters": "The page's centred heading is demoted to bold text, while every sibling Verb Formats page (217-223) transcribes the same printed heading as `## <u>GENERAL FORMAT FOR COBOL VERBS</u>`; a heading-based slicer or outline misses this page's section."
+    },
+    {
+      "id": "p225-1",
+      "page": 225,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "GENERAL FORMAT FOR COBOL VERBS",
+      "markdown_says": "<u>**GENERAL FORMAT FOR COBOL VERBS**</u>",
+      "why_it_matters": "The page's centred heading is demoted to bold text, while the sibling Verb Formats pages 217-223 transcribe the same printed heading as a `##` heading; a heading-based slicer or outline misses this page's section."
+    }
+  ]
+}
