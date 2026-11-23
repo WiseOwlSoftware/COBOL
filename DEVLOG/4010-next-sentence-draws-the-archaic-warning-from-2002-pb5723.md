@@ -1,4 +1,4 @@
-## NEXT SENTENCE draws the archaic warning from 2002 (PB5723)
+## Entry 4010 — 2026-11-23 15:11 PST — NEXT SENTENCE draws the archaic warning from 2002 (PB5723)
 
 ISO/IEC 1989:2002 G.1 item 3 lists the NEXT SENTENCE phrase of IF and SEARCH as archaic, and 3.1.10 requires an optional
 compile-time warning for archaic elements. The 2014 Annex F.1 item 3 and 2023 F.1 item 2 repeat the designation. The construct
@@ -19,3 +19,4 @@ Rows `2002-FMT-14.8.18.1` and `2002-FMT-14.8.34.1` move GAP to CONFORMS (GAP 114
 Sibling sweep: EXIT PROGRAM (`exit-program-archaic-2023`) is the same shape; 2002 G.1 does not list it (item 1 is word
 continuation), so its 2023 start is right. The other 2002 G.1 items (word continuation, alphanumeric figurative MOVE to numeric,
 CALL ON OVERFLOW, COPY text-n) are separate mechanisms left to their own notes.
+
