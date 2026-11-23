@@ -2,18 +2,36 @@
 
 **Built.** `scripts/spec/text_layer_diff.py` compares the word sequence of each PDF page's text layer (pymupdf) with that
 page's slice of `specs/ANSI_COBOL_1985.md` and writes `docs/rearchitecture/spec-reconciliation/TEXT-LAYER-DIFF-1985.json`
-(committed; `--check` reads it without the licensed PDF). Cases: `scripts/selftests/spec/text_layer_diff/`. Measured over
-all 976 pages: OCR-NOISE 2272, CORRECTION 647, FIGURE 818, UNCOVERED 667, UNEXPLAINED 128 on 87 pages.
+(committed). Cases: `scripts/selftests/spec/text_layer_diff/`. Gate audit TEXT LAYER DIFF 1985 (`--check`, no PDF): RED when
+the Markdown, the ledger or the script changed since the JSON was written (their SHA-256 are stored in it), naming the
+re-run command. It prints what is unexplained and does not fail on it; `--require-zero` is PB6051's closing condition.
 
-`UNCOVERED` is a class beyond the four the note named: Markdown words with no text-layer counterpart (the layer omits a
-table, a figure's labels or a block of prose; the Markdown may also add them). It is not explained, only unchecked by this
-tool, and it is reported apart so that "0 unexplained" cannot be read as "all verified". The two pages seen whole are 674
-(error-key table) and 721 (history prose).
+**Round-1 review (R1-1 to R1-5) fixed.** The first version folded OCR confusions out of every word and so hid real errors
+(`identifier-i`, `file-name-l`, `comer`, `date-name-1`, `B-1`/`B-2`, `of`/`or`). Now: words align on letters and digits only,
+nothing folded; OCR-NOISE needs the PDF word to be the damaged side and the Markdown word the well-formed one (known: a
+reserved word, or spelled twice in the Markdown, or a digit suffix on a stem spelled twice; not malformed such as a
+hyphenated word ending in a lone `l`/`i`/`o`/`s`/`z`), the PDF word absent from the Markdown, and the two a confusion apart.
+CORRECTION needs one ledger `was`/`now` pair or note quote of that page to hold this hunk (PDF words in `was`, Markdown
+words in `now`, with a neighbouring word unless the hunk is three words or the whole entry). Punctuation and case are classes
+PUNCT and CASE. Words cancel only as a run of two or more moved together; a dropped `not` against a gained one stays two
+differences. The verdict line names unexplained, uncovered and punctuation/case.
 
-**The 128 unexplained** are listed per page in the JSON (`differences`, class `UNEXPLAINED`). The sampled ones are OCR
-(`6.2.2` read `8.2.2`, checked on the rendered page 284: the Markdown is right) or amended text applied in place without a
-quotable note (p7 preface terms, p323 `explicitly terminated`, p459/p501 `associated with the file connector referenced by`).
-None was changed in this branch. PB6051 and PB6135 stay open: the first condition (0 unexplained) does not hold.
+**Measured over all 976 pages (head of this change):** OCR-NOISE 5269, CORRECTION 823, FIGURE 1186, PUNCT 2322, CASE 423,
+UNCOVERED 823, UNEXPLAINED 2092 on 528 pages (was 2272, 647, 818, 667 and 128 on 87 pages before the review; the Markdown
+and ledger also moved with main). The rise is the point: the 128 hid the other 1964 behind folds. Of the 2092, by reason:
+1040 a different word, 539 a single word moved, 513 text-layer words the Markdown lacks. Sampled, most are the layer's own
+damage beyond the tolerated confusions (`meferenced`, `normumeric`, `Commun .cation`, a lone `I` speck, running-foot labels
+read as `X1-19`), a few are real candidates; none is called OCR by this tool, so each page goes to a scoped agent, never to
+a whole pass. The Markdown is unchanged in this branch. PB6051 and PB6135 stay open.
+
+**Fold-classes still tolerated, and why.** (1) l/1/I/|, O/0, rn/m, Z/2, S/5, ligatures, case-free letters of a PDF word that
+is absent from the Markdown against a well-formed Markdown word: the layer's systematic misreadings, tolerated only on the
+PDF side. (2) One letter lost, one confusable letter or glyph swapped, one stray mark added, in a word of four letters or more
+with no digit, same conditions: single-glyph damage. (3) A stray mark (a glyph of no letter, or a short fragment with no
+digit) that the Markdown does not spell: scan specks. (4) A split or join by the layer's spacing or a line-end hyphen:
+`FILE - CONTROL`/`FILE-CONTROL` (a hyphen against a space is therefore not seen). (5) A run of two or more words the layer
+reads in another place (columns). (6) Tokens of no letter or digit (a lone `-`, a box glyph) are dropped from both sides. Not
+tolerated, and visible: any difference of digits, punctuation, case, or a word the document also spells.
 
 **Class checks, not built (no precise, ungated-noise-free rule):**
 - (a) Summary-table indentation: the text layer's x0 for a level-0 row ranges 57 to 80 across the table pages (scan skew and
