@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.17.3-3",
+ "rule-digest": "e898d76c189e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitGoback; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitFlowGlobalExit; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#FlowGlobalExitError",
+ "test-ref": "conformance:cases/14.8.17@2002-GOBACK-STATEMENT/pb5715_goback_in_function_global_declarative_range",
+ "notes": "§2002:14.8.17.3 GR3: a GOBACK in a function operates as an EXIT FUNCTION (the binder binds EXIT FUNCTION as the same BoundGoback), so one executed within the range of the function's own USE GLOBAL declarative sets EC-FLOW-GLOBAL-EXIT (§2002:14.8.13.3 GR2); the checking directive must precede the GOBACK statement (§2002:7.2.19.3 GR4). The golden matched at --std 2002 and 2014."
+}

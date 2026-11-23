@@ -162,7 +162,8 @@ internal sealed class ProgramEmitter
         // is the compilation's one (kb/Work PB803): a group of prototypes alone — the library that publishes them to the
         // external repository (DESIGN-external-repository §7.2) — emits no program class, so no unit emitter is current here.
         new HostEntryEmitter(comp.SignEncoding, _atoms,
-            data => new DataEmitter(new EmitContext(w, data, _names, _atoms, _whenCompiledStamp, RangeCollationFields.Of(data, null)))).Emit(comp.EntryUnits,
+            data => new DataEmitter(new EmitContext(w, data, _names, _atoms, _whenCompiledStamp, RangeCollationFields.Of(data, null))),
+            comp.Edition).Emit(comp.EntryUnits,
             units.Where(u => u.Parent is null).Select(u => u.ClassName)
                 .Concat(classes.SelectMany(c => c.Symbol.FactoryOrInstanceClrNames))
                 .Concat(comp.Interfaces.Select(i => i.ClrName))

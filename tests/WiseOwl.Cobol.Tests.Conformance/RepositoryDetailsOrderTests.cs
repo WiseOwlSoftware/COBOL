@@ -63,7 +63,7 @@ public sealed class RepositoryDetailsOrderTests
     {
         var (ok, stdout, detail) = EditionHarness.CompileAndRun(PrototypeWordSharedByAFollowingDefinition, 2002);
         Assert.False(ok, "P989NOWHERE is defined nowhere: the activation must fail, not reach P989GONE (stdout: " + stdout + ")");
-        Assert.Contains("EC-FUNCTION-NOT-FOUND", detail, StringComparison.Ordinal);
+        Assert.Contains("EC-PROGRAM-NOT-FOUND", detail, StringComparison.Ordinal);   // §2002:8.4.2.2.3 GR5 names the 2002 function locate miss EC-PROGRAM-NOT-FOUND (kb/Work PB6107)
         Assert.Contains("P989NOWHERE", detail, StringComparison.Ordinal);
         Assert.Equal("BEFORE", stdout.Trim());
     }
