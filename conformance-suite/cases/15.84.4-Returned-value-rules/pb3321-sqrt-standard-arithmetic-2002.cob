@@ -9,7 +9,7 @@
       *> specified, argument-1 is not rounded", and RV2: the returned
       *> value is the exact square root truncated to 32 digits. The
       *> 2023 text states the same rule for standard-binary and
-      *> standard-decimal arithmetic (§2023:15.84.4 rule 1), so the band
+      *> standard-decimal arithmetic (§2023:15.84.4 RV1), so the band
       *> starts at 2002. ARITHMETIC IS STANDARD is a 2002 and 2014 option
       *> (2023 drops it), so the test is accepted at those two. The
       *> square root of 1.5129 is exactly 1.23 (1.23 * 1.23 = 1.5129),

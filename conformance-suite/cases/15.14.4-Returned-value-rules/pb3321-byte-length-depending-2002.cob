@@ -7,7 +7,7 @@
       *>---
       *> kb/Work PB3321. BYTE-LENGTH's rule for a DEPENDING ON item is
       *> in the 2002 text word for word (§2002:15.12.3 RV2, and in
-      *> §2023:15.14.4 rule 2), so it holds from 2002, the edition that
+      *> §2023:15.14.4 RV2), so it holds from 2002, the edition that
       *> introduces the function. G holds N = 3 occurrences of a one
       *> byte item, so the returned value is 3 (the length in bytes of
       *> argument-1 with the current value of the DEPENDING item).

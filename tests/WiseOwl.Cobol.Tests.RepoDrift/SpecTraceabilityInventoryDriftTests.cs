@@ -985,7 +985,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
         return bad;
     }
 
-    /// <summary>A clause 15 rule's id: <c>AR-15.22.3-1</c> → rule 1 of §15.22.3; its function section is <c>15.22</c>.</summary>
+    /// <summary>A clause 15 rule's id: <c>AR-15.22.3-1</c> → rule 1 of clause 15.22.3; its function section is <c>15.22</c>.</summary>
     private static readonly Regex FunctionRuleId = new(@"^(?:AR|RV|SR|GR)-15\.\d+\.\d+-(\d+)$", RegexOptions.Compiled);
 
     /// <summary>
