@@ -608,6 +608,12 @@ public enum DialectBehavior
     /// may use it (§2002:13.16.38.3 GR2; kb/Work PB5614; VCR row 7.120). Both editions are QUOTED. The consumer is
     /// <c>ConfigurationSlice.FinalizeCurrencySigns</c>.</summary>
     ImpliedDollarCurrencyClause = 64,
+    /// <summary>§2014:13.10.2 SR3 — "All subscripts of data-name-1 and data-name-2 shall be literals" (§2023:13.10.3 SR3 the same), the
+    /// operand of a constant entry's LENGTH OF / BYTE-LENGTH OF phrase. COBOL-2002's constant entry has no such rule: its SR3 says
+    /// only "Data-name-1 and data-name-2 may be qualified" (§2002:13.9.2 SR3), so at <c>--std 2002</c> the subscripts are ordinary ones
+    /// (§2002:8.4.1.2.2) and a data-name or an arithmetic expression may be written (kb/Work PB5709; VCR row 7.121). Both editions are
+    /// QUOTED. The consumer is <c>ConstantEntryBinder.BindConstantLength</c>.</summary>
+    ConstantLengthSubscriptsAreLiterals = 65,
 }
 
 /// <summary>
@@ -926,6 +932,10 @@ public static class DialectBehaviors
             "7.120", "§2014:12.3.6.2 SR25", "§2002:12.2.6.2 SR24",
             "a unit with no CURRENCY SIGN clause for '$' is taken to have written one, whose alphanumeric literal-7 confines '$' to usage display, "
             + "only from COBOL-2014; at COBOL-2002 the default '$' has no literal-7 and a national item may use it"),
+        new(DialectBehavior.ConstantLengthSubscriptsAreLiterals, "constant-length-subscripts-are-literals", 2014,
+            "7.121", "§2014:13.10.2 SR3", "§2002:13.9.2 SR3",
+            "every subscript of a constant entry's LENGTH OF / BYTE-LENGTH OF operand shall be a literal only from COBOL-2014; "
+            + "at COBOL-2002 the operand's subscripts are ordinary ones and may be data-names"),
     ];
 
     static DialectBehaviors()

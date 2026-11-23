@@ -246,6 +246,7 @@ WiseOwl.Cobol.Runtime.DialectBehavior.BlockContainsRangeOrdered = 52 -> WiseOwl.
 WiseOwl.Cobol.Runtime.DialectBehavior.CancelRefusesEveryActiveProgram = 16 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.CloseWithLockLocksFileConnector = 19 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.CompileTimeArithmeticIsStandardDecimal = 22 -> WiseOwl.Cobol.Runtime.DialectBehavior
+WiseOwl.Cobol.Runtime.DialectBehavior.ConstantLengthSubscriptsAreLiterals = 65 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.ControlFootingPageGroupsSeePriorControlValues = 4 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.CurrencyHexadecimalLiteralRules = 60 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.DivideRemainderSignedSubsidiary = 54 -> WiseOwl.Cobol.Runtime.DialectBehavior
