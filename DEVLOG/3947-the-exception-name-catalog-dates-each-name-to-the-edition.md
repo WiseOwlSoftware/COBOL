@@ -1,4 +1,4 @@
-## The exception-name catalog dates each name to the edition whose own list first carries it
+## Entry 3947 — 2026-11-22 19:22 PST — The exception-name catalog dates each name to the edition whose own list first carries it
 
 PB5703 and PB5599 share one root: `ExceptionCatalog.Build` registered every level-3 name through `L3(name, fatality, introduced = 2002)`, so a name with no explicit later edition was a 2002 name. Re-probed on a Debug build at the base, `>>TURN EC-FUNCTION`, `>>TURN EC-BOUND-SET` and `RAISE EXCEPTION EC-FLOW-SEARCH` were accepted at `--std 2002`, and `>>DEFINE EC-FLOW-SEARCH AS 1` was refused COBOL2650 (the name was reserved in a 2002 directive, §2002:8.12). The PB5599 word-table half (FLAG-85, PUSH, EQUATE) had already landed in wave 20262045; this is the remainder its note named.
 
@@ -9,3 +9,4 @@ Goldens: `pb5703_turn_exception_name_2014_set` (accepted 2014 and 2023, refused 
 The first gate (RED) found the corpus carrying the same wrong dating: `pb971_function_arg_omitted`, `w59h_non_cobol_names_not_found` and two `ArgOmittedConditionTests` facts used 2014 names (EC-FUNCTION-ARG-OMITTED, EC-FUNCTION-NOT-FOUND, EC-OO-ARG-OMITTED) at `--std 2002`. They now run at 2014. §2002:8.4.2.2.3 GR7 and §2002:14.8.22.3 GR10 name EC-PROGRAM-ARG-OMITTED for those references, and the run-time raise still uses the 2014 name at 2002; that raise-name arm is not fixed here.
 
 The lineage-read audit then held `w59h_non_cobol_names_not_found` to its 2002 witness rows, which the 2014 name broke, so the program split: the CALL and ADDRESS OF PROGRAM halves stay at 2002, and the function half (Annex A.1 item 88) is the new `w59h_non_cobol_function_not_found`, run from 2014. DOC-A.1-88's witness moved to it.
+
