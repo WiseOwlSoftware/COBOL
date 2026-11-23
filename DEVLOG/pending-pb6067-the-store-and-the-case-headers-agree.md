@@ -14,7 +14,7 @@ PB6067 named three gaps the 1985 widening left. Re-probed on main ccb23d13e4:
    user-word gates and the like), which the generator forbids a case to cite, so they stay as the store has them. The rule
    is now enforced: `_check_store_witnesses` (generate.py) refuses a case a row names as its own witness when the case's `rules`
    hold neither the row nor, for a chained older row, a rule it is KEPT into, unless no cite of the row could hold the case
-   (accepted outside every candidate's band). The self-test plants one refusal and one exempt gate case. The check found nine
+   (accepted outside every candidate's band). The self-test plants one refusal and one exempt gate case. The check found nine (one, pb369 under the USE format row, is the row's only accepted case and now cites FMT-14.9.49.2 instead of being retired; eight are retired)
    chained 1985 rows whose own witness was another rule's test (for example `pb5889_run_time_check_85`, which uses MOD and ORD,
    listed under the FACTORIAL, RANDOM and CHAR rows); each is retired through `record_verdicts.py --edition 1985` and keeps
    at least one other own witness (GAP 0 to 0). The 1989 function rows now cite their 2023 targets in the cases that really
