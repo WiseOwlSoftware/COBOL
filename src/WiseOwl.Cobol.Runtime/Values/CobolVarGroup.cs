@@ -108,6 +108,53 @@ public sealed record CobolVarGroup(string Fixed, string[] Dynamic, CobolVarGroup
             $"internal error: component {i} of a variable-length group carrier is a table of variable-length elements "
             + "carried as characters, with no occurrence carriers (ISO §2023:14.6.9.2 over §2023:8.5.1.12.3)"));
 
+    // ── THE RECEIVING STORE OF ONE CARRIED COMPONENT (kb/Work PB2746) ─────────────────────────────────────────────
+    //
+    // A variable-length group receives a carrier in two lanes: a declared group's emitted FromVarImage, and a group of a
+    // cell-backed area (StorageCell.StoreVarGroupAt). Both store each component through the operations below, so the
+    // receiving rule of a dynamic-length item and the recreate-or-space-fill rule of a dynamic-capacity table are written
+    // once, here, and the lanes differ only in where the component lives (a field, or a slot of the cell).
+
+    /// <summary>The content a dynamic-length component receives from component <paramref name="i"/>: replaced and
+    /// truncated on the right at <paramref name="maxSize"/>, never padded (ISO §2023:8.5.1.10.4) — or, for a formal's
+    /// copy-in (<paramref name="storage"/>, kb/Work PB1937), the whole content, because the formal occupies the
+    /// argument's storage (§2023:14.2.3 GR8) and no member LIMIT applies to that store. <paramref name="national"/> decodes
+    /// a NATIONAL component's UTF-16BE image to its characters first (<see cref="NationalImage.FromStorage"/>), so
+    /// <paramref name="maxSize"/> counts POSITIONS and a store never cuts a position's pair (kb/Work PB3441); a receiver
+    /// that holds the image itself (a cell's slot) passes false and its maximum in image characters.</summary>
+    public string ReceivedDyn(int i, int maxSize, bool storage, bool national = false)
+    {
+        string carried = national ? NationalImage.FromStorage(Dyn(i)) : Dyn(i);
+        return storage ? carried : CobolDynString.Store(carried, maxSize);
+    }
+
+    /// <summary>Store component <paramref name="i"/> into the dynamic-capacity table <paramref name="table"/> of elements
+    /// <paramref name="elementWidth"/> image characters wide. A CARRIED component RECREATES the table from its occurrences
+    /// (ISO §2023:14.6.9.2; the capacity is the carried length over OUR element width, legitimate because
+    /// §2023:8.5.1.12.3 matches corresponding tables only "when the byte length of their elements is equal"). A component
+    /// the sender did not carry is in the receiving group's EXCESS part (kb/Work PB393): §2023:14.9.25.4 GR9b sends it to
+    /// §2023:14.6.9.4, where "the current capacity of the dynamic table is unaffected, and each element of the dynamic
+    /// table is space-filled" — in the element's own <paramref name="unit"/>, so a NATIONAL element holds the national
+    /// space (the pair 00, 20), never the byte 0x20 twice, which is U+2020 (kb/Work PB3441). <paramref name="store"/>
+    /// distributes one occurrence's image into a freshly seeded element.</summary>
+    public void StoreTableComponent<T>(int i, CobolDynTable<T> table, int elementWidth, int unit, Func<T, string, T> store)
+    {
+        if (HasDyn(i)) table.FromCurrentImage(Dyn(i), elementWidth, store);
+        else table.SpaceFillElements(SpacesFor(elementWidth, unit), store);
+    }
+
+    /// <summary>Store component <paramref name="i"/> — a NESTED component, a table whose elements are variable-length
+    /// groups (kb/Work PB2496) — into <paramref name="table"/>: carried, the table is RECREATED from the sender's
+    /// occurrence carriers, each stored into its element by <paramref name="store"/> (§2023:14.6.9.2: "Correspondingly
+    /// numbered elements are moved according to the rules of the MOVE statement"), the FROM minimum filled from the empty
+    /// carrier; not carried, it is in the GR9b excess part and §2023:14.6.9.4 space-fills each element at an unaffected
+    /// capacity — the empty carrier, which GR9b's own steps space-fill.</summary>
+    public void StoreGroupTableComponent<T>(int i, CobolDynTable<T> table, Func<T, CobolVarGroup, T> store)
+    {
+        if (HasDyn(i)) table.Recreate(ElementCarriersAt(i), Empty, store);
+        else table.SpaceFillElements(Empty, store);
+    }
+
     /// <summary>The window a NESTED variable-length group occupies inside this carrier:
     /// <paramref name="fixedWidth"/> character positions of <see cref="Fixed"/> starting at
     /// <paramref name="fixedAt"/> (space-padded when the sender's fixed run was shorter — the same store rule
