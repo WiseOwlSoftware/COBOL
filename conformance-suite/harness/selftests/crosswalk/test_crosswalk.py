@@ -245,6 +245,29 @@ def case_16_a_reference_moved_after_the_name_in_the_same_init_paragraph_is_the_u
                  ([12], "ACCEPT DAY", "VI-72 6.5.4 GR8"))
 
 
+def case_17_a_unit_binds_its_feature_and_reference_once_and_a_later_move_is_the_next_units(expect):
+    # a second FEATURE line of the same test, after the name and the first FEATURE move
+    two_lines = T.parse_program("X", _program(
+        'ACC-INIT-F1-1.', 'MOVE "ACC-TEST-F1-1" TO PAR-NAME.', 'MOVE "VI-72 6.5.4 GR7" TO ANSI-REFERENCE.',
+        'MOVE "ACCEPT DATE" TO FEATURE.', 'MOVE "CONTINUED" TO FEATURE.', 'ACC-TEST-F1-1.'))
+    expect.equal("a second FEATURE move before the test paragraph does not replace the first", two_lines.units["ACC-TEST-F1-1"],
+                 ([2], "ACCEPT DATE", "VI-72 6.5.4 GR7"))
+    # a FEATURE move in a failure branch that follows the unit's own moves with no header between
+    failure = T.parse_program("X", _program(
+        'MOVE "ACCEPT DAY" TO FEATURE.', 'MOVE "VI-72 6.5.4 GR8" TO ANSI-REFERENCE.',
+        'MOVE "ACC-TEST-F1-2" TO PAR-NAME.', 'IF X EQUAL TO 1 MOVE "FAILED" TO FEATURE.', 'ACC-TEST-F1-2.'))
+    expect.equal("a move after the unit's own, in its window, is not the unit's", failure.units["ACC-TEST-F1-2"],
+                 ([3], "ACCEPT DAY", "VI-72 6.5.4 GR8"))
+    # the next unit's FEATURE moved just before its PAR-NAME move, in the previous unit's paragraph
+    chained = T.parse_program("X", _program(
+        'ACC-INIT-F1-3.', 'MOVE "ACC-TEST-F1-3" TO PAR-NAME.', 'MOVE "VI-72 6.5.4 GR1" TO ANSI-REFERENCE.',
+        'MOVE "ACCEPT TIME" TO FEATURE.', 'MOVE "SIGN" TO FEATURE.', 'MOVE "VI-42 5.12.4" TO ANSI-REFERENCE.',
+        'MOVE "ACC-TEST-F1-4" TO PAR-NAME.', 'ACC-TEST-F1-3.'))
+    expect.equal("the first unit keeps its own", chained.units["ACC-TEST-F1-3"], ([2], "ACCEPT TIME", "VI-72 6.5.4 GR1"))
+    expect.equal("the next unit takes the moves made before its name", chained.units["ACC-TEST-F1-4"],
+                 ([7], "SIGN", "VI-42 5.12.4"))
+
+
 if __name__ == "__main__":
     ensure_utf8()
     sys.exit(selftest_cases.run(sys.modules[__name__]))

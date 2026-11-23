@@ -7,7 +7,7 @@
    "lines": [
     399
    ],
-   "feature": "DIFFERENT LEVELS",
+   "feature": "MOVE CORRESPONDING -",
    "ansi": "VI-102 6.18.4 GR1",
    "disposition": "open",
    "resolution": "ambiguous",
@@ -15,6 +15,9 @@
     "1985-GR-VI.6.18.4-1"
    ],
    "literal-agrees": false,
+   "by-name": [
+    "1985-GR-VI.6.19.4-1"
+   ],
    "basis": "mechanical"
   },
   {
