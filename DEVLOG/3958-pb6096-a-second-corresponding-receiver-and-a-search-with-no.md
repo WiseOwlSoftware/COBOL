@@ -1,4 +1,4 @@
-## PB6096: a second CORRESPONDING receiver and a SEARCH with no WHEN are refused by name
+## Entry 3958 — 2026-11-22 22:49 PST — PB6096: a second CORRESPONDING receiver and a SEARCH with no WHEN are refused by name
 
 Both programs were already refused (the inventory rows 1985-FMT-VI.6.19.2 and 1985-FMT-VI.6.22.2 stayed CONFORM); the
 diagnostic named the wrong mistake. Re-probe on this build before the change: `MOVE CORR G1 TO G2 G3.` drew COBOL0307
@@ -16,3 +16,4 @@ statement (`AT END MOVE 1 TO.`) is not claimed.
 
 Goldens (refused at 85, 2002, 2014, 2023): `pb6096-search-no-when`, `pb6096-search-all-no-when`,
 `pb6096-move-corr-two-receivers`, `pb6096-add-corr-two-receivers`, `pb6096-subtract-corr-two-receivers`.
+
