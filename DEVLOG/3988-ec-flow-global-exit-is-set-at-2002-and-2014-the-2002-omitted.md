@@ -1,4 +1,6 @@
-## EC-FLOW-GLOBAL-EXIT is set at 2002 and 2014, the 2002 omitted-argument and function-not-found conditions carry the 2002 names, PB5751 retired
+## Entry 3988 — 2026-11-23 08:36 PST — EC-FLOW-GLOBAL-EXIT is set at 2002 and 2014, the 2002 omitted-argument and function-not-found conditions carry the 2002 names, PB5751 retired; EXIT PROGRAM in a main program raises no EC-FLOW-GLOBAL-EXIT
+
+### EC-FLOW-GLOBAL-EXIT is set at 2002 and 2014, the 2002 omitted-argument and function-not-found conditions carry the 2002 names, PB5751 retired
 
 Wave 20262150, group E (PB5715, PB5751, PB6107): three notes about one subsystem, the exception conditions an edition's text names.
 
@@ -32,3 +34,8 @@ owner rule for E.15.
 **Self-review.** The EXIT PROGRAM raise precedes `__asCalled` (GR2 sets the condition when the statement is executed, GR5's CONTINUE follows). A GOBACK raises it only when it returns to an
 activator (`__asCalled`, true in every function activation); a main program's GOBACK is STOP and sets nothing. With checking off the helper returns and the statement proceeds, the recorded
 determination GOBACK's twin already makes.
+
+### EXIT PROGRAM in a main program raises no EC-FLOW-GLOBAL-EXIT
+
+Review finding R1-1 of wave 20262150 group E: `CallEmitter.EmitExitProgram` raised EC-FLOW-GLOBAL-EXIT even in a program not under a calling runtime element, ending the run unit. §2002:14.8.13.3 GR5 (§2014:14.9.13.3 GR5) treats that EXIT PROGRAM as CONTINUE and raises no exception condition, so the raise is now `__asCalled`-gated like GOBACK's. Golden `pb5715_exit_program_main_global_declarative_is_continue` (2002) runs on with `AFTER-EXIT`, `BACK-IN-DECL`, `AFTER-READ 10`; D-GLOBAL-EXIT records the gate.
+
