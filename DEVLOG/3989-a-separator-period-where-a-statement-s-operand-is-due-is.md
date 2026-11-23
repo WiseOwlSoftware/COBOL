@@ -1,4 +1,4 @@
-## A separator period where a statement's operand is due is refused by naming the statement
+## Entry 3989 — 2026-11-23 08:46 PST — A separator period where a statement's operand is due is refused by naming the statement
 
 PB6113. `SEARCH E AT END MOVE 1 TO.` drew the bare COBOL0001 "unexpected '.'". Re-probe on this build showed the AT END phrase is not the cause: `MOVE 1 TO.`, `ADD 1 TO.`, `DISPLAY.`, `MULTIPLY 2 BY.`, `ADD 1 TO N GIVING.` and the same inside ON SIZE ERROR, WHEN and READ's AT END all drew it. Hint 0i's operand arm (`AdmittedKinds.Refusal`) said "expected a user-defined word ..." only for a reserved word written where an operand is due; the period fell through.
 
@@ -9,3 +9,4 @@ Not fixed, registered in the wave report: `SET I TO.` and `COMPUTE N =.` stay "c
 Verb-by-verb the code now differs: a bare verb whose period is also a paragraph header's (FREE, VALIDATE, RAISE, INVOKE, ALLOCATE) or whose form takes a statement (inline PERFORM) keeps the bare COBOL0001; the tests that pinned COBOL0001 for bare verbs accept either code. Existing tests that pinned COBOL0001 at an operand-less period (22) now expect COBOL5506.
 
 No inventory row closes. Self-review found nothing further. Gate: `=== BUILD-LOCAL GATE: GREEN — Conformance 29,223/29,223 ran · RepoDrift 244/244 ran` (run 000004-20261123T155416Z, at 7017430), the three goldens passed in Conformance.trx.
+
