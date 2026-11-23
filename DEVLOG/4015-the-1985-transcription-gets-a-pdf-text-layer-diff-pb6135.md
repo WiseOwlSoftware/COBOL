@@ -1,4 +1,4 @@
-## The 1985 transcription gets a PDF text-layer diff (PB6135)
+## Entry 4015 — 2026-11-23 15:45 PST — The 1985 transcription gets a PDF text-layer diff (PB6135)
 
 PB6051's closing condition moved from another reading pass to mechanical checks (PB6135). This change builds the second one:
 `scripts/spec/text_layer_diff.py` aligns each page's PDF text-layer words with the Markdown page on letters and digits only,
@@ -21,3 +21,4 @@ Markdown's words are a run of the amended text (the note's quote, or the text la
 read as the letter O is OCR-NOISE only inside a number of two digits or more; a row's excerpt is the whole aligned block.
 Re-measured: LIKELY-ERROR 141 to 126, UNEXPLAINED 607 to 602, AMENDMENT-APPLIED 0 to 57, 93 amendment entries not located (kb/Work PB6135
 2026-11-23-errata-amendment-class). The list of LIKELY-ERROR rows is `text_layer_diff.py --check --likely`, not copied into a note.
+
