@@ -21,7 +21,7 @@ design judges in the diagnosis layer at 85 (§8), never a FAIL.
 |---|---|---|---|
 | clears as it is | 34 | 40 % | `portable: unverified` removed; lint-clean; WiseOwl PASS at 85; a GnuCOBOL verdict already recorded (7 FAIL, each with its recorded cause) |
 | clears after a mechanical rewrite | 21 | 24 % | each `DISPLAY` of an unsigned numeric item goes through a numeric-edited item (`MOVE X TO X-E`, `X-E PIC Z..9`), the new output checked equal to the old `.out` under zero suppression (leading `0` to space, a space inserted for a one-digit item) |
-| clears once the lint reads the right text | 11 | 13 % | the lint did not apply `REPLACE` or `COPY ... REPLACING`, so pseudo-text holding `DISPLAY` was read as a statement: a lint defect, fixed at its root in `cobol_source.py` (§3.3), self-tested in `generate.py --self-test` |
+| clears once the lint reads the right text | 11 | 13 % | the lint did not apply `REPLACE` or `COPY ... REPLACING`, so pseudo-text holding `DISPLAY` was read as a statement: a lint defect, fixed at its root in `cobol_source.py` (design section 3.3), self-tested in `generate.py --self-test` |
 | stays | 20 | 23 % | 15 a numeric DISPLAY the rewrite does not reach (a table item `CNT (1)`, a multi-line DISPLAY, a test needing a library text or two program units), 3 unclassifiable names, 1 function result, 1 operand `.` |
 
 No test differed in a way that was a WiseOwl defect or an edition difference: every outcome was a lint outcome. WiseOwl
