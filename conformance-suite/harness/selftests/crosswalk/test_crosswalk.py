@@ -3,6 +3,7 @@
 the units a program holds, the reference in effect at each, the reference's tokens, the mechanical map (mapped, ambiguous,
 unmapped, excluded), the flag units, the audit of the files and the NIST term."""
 import json
+import sys
 
 import selftest_cases
 from scratch_repo import scratch_dir
@@ -231,6 +232,5 @@ def case_15_the_element_table_is_held_to_appendix_c1_of_the_transcription(expect
 
 
 if __name__ == "__main__":
-    import sys
     ensure_utf8()
     sys.exit(selftest_cases.run(sys.modules[__name__]))
