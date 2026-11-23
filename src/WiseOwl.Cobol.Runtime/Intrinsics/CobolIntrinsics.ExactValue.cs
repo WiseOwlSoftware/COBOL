@@ -26,32 +26,17 @@ namespace WiseOwl.Cobol.Runtime;
 /// </summary>
 public static partial class CobolIntrinsics
 {
-    /// <summary>The position of the greatest (<paramref name="greatest"/>) or least exact value; the leftmost of equal values
-    /// (§2023:15.59.4, §2023:15.63.4, §2023:15.71.4 RV3, §2023:15.72.4), compared by algebraic value (§2023:15.71.4 RV2: "according to the rules for simple
-    /// conditions", §2023:8.8.4.2.4).</summary>
-    private static int SelectExact(CobolExact[] xs, bool greatest, string function)
-    {
-        RequireArguments(xs.Length, function);
-        int at = 0;
-        for (int i = 1; i < xs.Length; i++)
-        {
-            int order = CobolExact.Compare(xs[i], xs[at]);
-            if (greatest ? order > 0 : order < 0) at = i;
-        }
-        return at;
-    }
-
     /// <summary>ORD-MAX (§2023:15.71.4): the ordinal position of the argument having the greatest value.</summary>
-    public static long OrdMaxExact(params CobolExact[] xs) => SelectExact(xs, greatest: true, "ORD-MAX") + 1;
+    public static long OrdMaxExact(params CobolExact[] xs) => ExtremeIndex(new ExactOrder(xs), true, "ORD-MAX") + 1;
 
     /// <summary>ORD-MIN (§2023:15.72.4): the ordinal position of the argument having the least value.</summary>
-    public static long OrdMinExact(params CobolExact[] xs) => SelectExact(xs, greatest: false, "ORD-MIN") + 1;
+    public static long OrdMinExact(params CobolExact[] xs) => ExtremeIndex(new ExactOrder(xs), false, "ORD-MIN") + 1;
 
     /// <summary>MAX (§2023:15.59.4): the content of the argument having the greatest value.</summary>
-    public static CobolExact MaxExact(params CobolExact[] xs) => xs[SelectExact(xs, greatest: true, "MAX")];
+    public static CobolExact MaxExact(params CobolExact[] xs) => xs[ExtremeIndex(new ExactOrder(xs), true, "MAX")];
 
     /// <summary>MIN (§2023:15.63.4): the content of the argument having the least value.</summary>
-    public static CobolExact MinExact(params CobolExact[] xs) => xs[SelectExact(xs, greatest: false, "MIN")];
+    public static CobolExact MinExact(params CobolExact[] xs) => xs[ExtremeIndex(new ExactOrder(xs), false, "MIN")];
 
     /// <summary>MEDIAN (§2023:15.61.4) on the SDIDI lane: <see cref="MedianWhole"/>, with an exact mean of two fixed-point middles rounded once
     /// to the SDIDI's 34 digits in <paramref name="mode"/>.</summary>
@@ -115,7 +100,7 @@ public static partial class CobolIntrinsics
     private static CobolExact Midrange(CobolExact[] xs, CobolRounding? sdidi)
     {
         if (xs.Length > 0 && TryBinary64Body(xs, MidrangeReal, out CobolExact real)) return real;
-        CobolExact mean = HalfSum(xs[SelectExact(xs, greatest: true, "MIDRANGE")], xs[SelectExact(xs, greatest: false, "MIDRANGE")]);
+        CobolExact mean = HalfSum(xs[ExtremeIndex(new ExactOrder(xs), true, "MIDRANGE")], xs[ExtremeIndex(new ExactOrder(xs), false, "MIDRANGE")]);
         return sdidi is { } mode ? CobolExact.FromDec(mean.ToDecRounded(mode)) : mean;
     }
 
@@ -158,7 +143,7 @@ public static partial class CobolIntrinsics
     private static CobolExact Range(CobolExact[] xs, CobolRounding? sdidi)
     {
         if (xs.Length > 0 && TryBinary64Body(xs, RangeReal, out CobolExact real)) return real;
-        CobolExact max = xs[SelectExact(xs, greatest: true, "RANGE")], min = xs[SelectExact(xs, greatest: false, "RANGE")];
+        CobolExact max = xs[ExtremeIndex(new ExactOrder(xs), true, "RANGE")], min = xs[ExtremeIndex(new ExactOrder(xs), false, "RANGE")];
         CobolExact difference = CobolExact.Sub(max, min);
         return sdidi is { } mode ? CobolExact.FromDec(difference.ToDecRounded(mode)) : difference;
     }
