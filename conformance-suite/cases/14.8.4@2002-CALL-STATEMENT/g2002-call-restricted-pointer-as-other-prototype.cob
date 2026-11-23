@@ -17,7 +17,7 @@
       *> required; the AS phrase names G2RPAB, whose formal is
       *> OPTIONAL, so the two signatures differ and the CALL compiles.
       *> WS-N PIC 9(4) is passed BY REFERENCE (assumed, §2002:14.8.4.3
-      *> GR9a1) to the program PA holds, G2RPAA, which adds 1: N=0008.
+      *> GR9a.1) to the program PA holds, G2RPAA, which adds 1: N=0008.
       *> The leg fails if the CALL is refused or WS-N is not shared.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. G2RPAA IS PROTOTYPE.

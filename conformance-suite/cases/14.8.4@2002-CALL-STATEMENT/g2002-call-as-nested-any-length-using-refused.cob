@@ -9,7 +9,7 @@
       *> described with the ANY LENGTH clause". G2ALUA's formal LA is
       *> ANY LENGTH (a contained program may describe one), and its
       *> CALL ... AS NESTED (format 3) passes LA on as identifier-2
-      *> (BY REFERENCE, assumed from the formal by §2002:14.8.4.3 GR9a1),
+      *> (BY REFERENCE, assumed from the formal by §2002:14.8.4.3 GR9a.1),
       *> so the CALL is refused at 2002. From 2014 the rule is split by
       *> format (§2014:14.9.4.2 SR11, SR18) and the same CALL is legal
       *> (14.9.4-CALL/pb240_call_operand_screens, accepted from 2014).
