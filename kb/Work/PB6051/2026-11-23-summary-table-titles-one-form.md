@@ -12,3 +12,7 @@ general-format titles of PB6095 and these). At origin/main it names the 23 heade
 must not touch (`test_heading_levels.py: PASS (8 cases, 46 expectations)`).
 
 The fourth pass runs over the text with this repair in it. PB6051 stays open.
+
+The reconciliation ledger records the repair: the 21 `summary-titles(p31-1)` sweep entries that recorded a headed title now
+record the plain form, and 23 `summary-title-form(PB6051)` sweep entries record each headed title and what it became.
+`verify_publishable.py --edition 1985`: `976 of 976 pages compared, every repair on its page, every claim decided`.

@@ -7,4 +7,5 @@ the same way on every page as the table's own title. All 53 are now the plain li
 `scripts/spec/heading_levels.py` generalizes PB6095's format-title check into `TITLE_FORMS`, one (detector, form) pair per
 repeated page title, so the general-format titles and the summary-table titles are checked by one loop. At origin/main the
 lint names the 23 headed titles; on the branch it is GREEN. Selftest case_07 pins the form.
-TRANSCRIPTION-STATE.md states the rule. The fourth pass over the repaired text is still owed; PB6051 stays open.
+The reconciliation ledger records it (23 `summary-title-form(PB6051)` sweeps; the 21 `summary-titles(p31-1)` sweeps that
+recorded a headed title now record the plain form). TRANSCRIPTION-STATE.md states the rule. The fourth pass over the repaired text is still owed; PB6051 stays open.
