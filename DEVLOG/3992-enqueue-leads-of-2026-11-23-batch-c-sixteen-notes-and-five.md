@@ -1,4 +1,4 @@
-## Enqueue leads of 2026-11-23 (batch c): sixteen notes and five findings filed
+## Entry 3992 — 2026-11-23 09:26 PST — Enqueue leads of 2026-11-23 (batch c): sixteen notes and five findings filed
 
 Filed from the implementer leads and non-blocking review LEADs of 18 landed reports and one unlanded lead (PB5658 lead 1). No code changed.
 Ids PB6118 to PB6133 used; none returned.
@@ -27,3 +27,4 @@ Finding files beside existing notes: `PB5390/2026-11-23-pb2620-resighting.md`, `
 
 Not filed: IsFatal duplication (already in PB2747), the GnuCOBOL Report Writer cluster (an upstream report is the owner's to send), the PB5658
 operand-tables question (already a finding file on that branch), meta-remarks about report wording.
+
