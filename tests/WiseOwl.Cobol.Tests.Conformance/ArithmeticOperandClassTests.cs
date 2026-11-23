@@ -287,6 +287,27 @@ public sealed class ArithmeticOperandClassTests
         Assert.Equal("RM=BC", output.Trim());   // the coercion computes occurrence 2 on BOTH routes
     }
 
+    /// <summary>⛔ THE COBOL1637 REFERENCE-MODIFICATION MESSAGE CITES THE RULE OF ITS OWN EDITION FOR EACH CLAIM (kb/Work
+    /// PB6088). The bounds are arithmetic expressions by §1985:IV.4.3.8.4.3 SR2 and §2023:8.4.3.3.3 SR4; §1985:VI.5.8.3 SR13
+    /// (OCCURS) says nothing of reference modification, and the 1985 text closes no list of contexts, so the 1985 message
+    /// claims no "five contexts" while the 2023 one names §2023:13.18.38.3 SR7's five.</summary>
+    [Theory]
+    [InlineData(85, "§1985:IV.4.3.8.4.3 SR2 makes both bounds", "five contexts")]
+    [InlineData(2023, "ISO §2023:8.4.3.3.3 SR4 makes both bounds", "§2023:13.18.38.3 SR7's five contexts")]
+    public void IndexNameInARefModBound_CitesTheBoundsRuleOfItsOwnEdition(int edition, string cited, string contexts)
+    {
+        const string ws = "       01 W PIC X(5) VALUE \"ABCDE\".\n       01 R2 PIC X(2).\n"
+            + "       01 T.\n          05 E PIC X OCCURS 3 TIMES INDEXED BY IX.";
+        const string body = "           SET IX TO 2.\n           MOVE W(IX:2) TO R2.\n           DISPLAY \"RM=\" R2.";
+        var (ok, errors, _) = EditionHarness.CompileFull(Program(ws, body), edition, permissive: false);
+        Assert.False(ok);
+        string message = Assert.Single(errors, e => e.Contains("COBOL1637", StringComparison.Ordinal));
+        Assert.Contains(cited, message, StringComparison.Ordinal);
+        Assert.DoesNotContain("§1985:VI.5.8.3 SR13 makes both bounds", message, StringComparison.Ordinal);
+        if (edition == 85) Assert.DoesNotContain(contexts, message, StringComparison.Ordinal);
+        else Assert.Contains(contexts, message, StringComparison.Ordinal);
+    }
+
     /// <summary>⛔ A PROBE'S PLACE IS NOT A BOUND PLACE (kb/Work PB221). <c>Refs.Probe</c> is a
     /// type-discriminating sniff and is documented as side-effect-free, which means it applies NO position
     /// screen — so a caller that commits the probe's Place into the bound tree silently loses every screen.
