@@ -56,6 +56,10 @@ internal sealed record FileDescriptionClauseRow(
 {
     /// <summary>The formats whose printed clause list contains the clause in <paramref name="edition"/>'s text.</summary>
     public FileDescriptionFormat FormatsIn(EditionInfo edition) => edition.Has(2002) ? Formats : Formats1985 ?? Formats;
+
+    /// <summary>The clause's edition window: introduced in <see cref="IntroducedIn"/>, removed by 2002 when
+    /// <see cref="DeletedAt2002"/>. Whether the clause is in force at an edition is the window's answer (kb/Work PB2620).</summary>
+    public EditionWindow Window => new(IntroducedIn, DeletedAt2002 ? 2002 : null);
 }
 
 /// <summary>⛔ THE ONE PLACE THE FILE DESCRIPTION ENTRY'S FORMAT IS DECIDED AND ITS CLAUSE ADMISSIBILITY IS ASKED
@@ -192,6 +196,6 @@ internal static class FileDescriptionFormats
     public static string Admitted(EditionInfo edition, FileDescriptionFormat format) =>
         string.Join(", ", Rows
             .Where(r => (r.FormatsIn(edition) & format) != 0
-                && (edition.Year < 2002 ? r.IntroducedIn <= 85 : !r.DeletedAt2002))
+                && r.Window.IsInForceAt(edition.Year))
             .Select(r => r.Name));
 }

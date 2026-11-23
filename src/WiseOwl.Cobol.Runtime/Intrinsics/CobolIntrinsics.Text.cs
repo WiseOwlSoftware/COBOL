@@ -204,7 +204,7 @@ public static partial class CobolIntrinsics
     /// included — §2023:15.18.4 RV1 "all of the characters"), so the result length is the sum of the argument
     /// widths. That sum is the one CONCAT length that can pass the §2023:15.4 maximum (<see cref="ReturnedValueMaximum"/>),
     /// so it is measured before the value is built.</summary>
-    public static string Concat(params string[] parts)
+    public static string Concat(params ReadOnlySpan<string> parts)
     {
         long length = 0;
         foreach (var part in parts) length += part.Length;
@@ -282,7 +282,7 @@ public static partial class CobolIntrinsics
     //       unit > 0xFF — the r1/r3-ANALOGOUS behavior extended to the serialization legs, a DOCUMENTED
     //       determination (item 209; RV-15.19.4-2): §2023:15.19.4 RV2's silence about an unrepresentable unit exists
     //       because the spec's model assumes a total serialization, and ours is partial above 0xFF.
-    //       National is UTF-16BE, one char/position (D-N1; CobolBits.NatBytes is the ONE serializer).
+    //       National is UTF-16BE, one char/position (D-N1; NationalImage.Bytes is the ONE serializer).
     //       ⛔ Source ANY = the item's RAW STORAGE byte image, emitted by the compiler's storage channel
     //       (OperandText.AsStorageImage — §2023:15.19.3 AR7 "it is not necessary for the contents to be valid
     //       according to the usage"): char==byte, a sub-byte USAGE BIT source arrives PRE-PACKED high-order-
@@ -325,7 +325,7 @@ public static partial class CobolIntrinsics
         {
             // national → UTF-16BE through the ONE serializer (2 bytes/position, the r4 basis); every serialized
             // char is ≤ 0xFF by construction, so the shared reduction below can never substitute here.
-            NAT => RawBytes(CobolBits.NatBytes(arg)),
+            NAT => RawBytes(NationalImage.Bytes(arg)),
             HEX => HexDigitsToBytes(arg),                            // a string of hex digits representing complete bytes (SR4)
             // ANUM = the characters under the 1-byte serialization; ANY = the RAW STORAGE byte image the
             // compiler emitted (char==byte — a wide char can only arrive through an alphanumeric CARRIER whose
@@ -607,7 +607,7 @@ public static partial class CobolIntrinsics
     /// (0) characters that match the delete set removed. The delete set is each argument-2's single character
     /// (§2023:15.96.3 AR2); with no argument-2 it is a space (rule 3.a). An argument consisting only of delete-set
     /// characters (or of zero length) returns a zero-length string (rule 4).</summary>
-    public static string Trim(string s, long mode, params string[] chars)
+    public static string Trim(string s, long mode, params ReadOnlySpan<string> chars)
     {
         // ⛔ SEQUENTIAL folds, never a set union (§2023:15.96.4 RV5 — "each argument-2 is processed completely in the
         // order that they are specified"; its NOTE: TRIM(a b c) ≡ TRIM(TRIM(a b) c), and TRIM("aabbcc" "c" "b")

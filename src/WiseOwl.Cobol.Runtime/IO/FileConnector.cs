@@ -1685,7 +1685,7 @@ public abstract class FileConnector
     /// two, UTF-16BE), so the pad is written as the pair, aligned to the AREA's own even byte boundary: the
     /// national positions of the area start at even offsets, and an odd short read leaves a half position whose
     /// content §2023:14.9.30.4 GR14/GR15 do not define. Padding the bytes with 0x20 instead would have manufactured
-    /// U+2020 characters — the identical trap <c>CobolBits.NatWriteWindow</c> documents on the write side.</para></summary>
+    /// U+2020 characters — the identical trap <c>NationalImage.WriteWindow</c> documents on the write side.</para></summary>
     protected string Fit(string s) => FitRecord(s, RecordWidth, NationalRecordArea);
 
     /// <summary>⛔ THE ONE RECORD FIT (kb/Work PB327): the alphanumeric fill (§2023:14.9.30.4 GR15: "a trailing space

@@ -3,6 +3,6 @@
   byte count cannot be national content (D-N1: two bytes per position), so the last position is completed with the
   alphanumeric space GR4's elementary-move fill supplies, as a fixed national receiver already is: `MOVE G3 TO DN` with
   a three-byte `G3` leaves `DN` two positions long and `FUNCTION LENGTH(DN)` = 4 (§2023:15.50.4 RV6 counts bytes). GnuCOBOL
-  3.2 has no dynamic-length items. Implementing site: `ReceivingStore.ContentCharacters` over `CobolBits.NatFromStorage`
+  3.2 has no dynamic-length items. Implementing site: `ReceivingStore.ContentCharacters` over `NationalImage.FromStorage`
   (also the READ of an elementary dynamic-length national record). Witness:
   `conformance:cases/13.18.60-USAGE/pb546_group_into_national_dynamic`.

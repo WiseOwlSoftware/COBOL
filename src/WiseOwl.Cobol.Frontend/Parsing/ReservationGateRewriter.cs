@@ -173,7 +173,7 @@ public static class ReservationGateRewriter
         {
             if (node is ITerminalNode { Symbol: { } symbol } terminal)
             {
-                if (terminal is not IErrorNode && symbol.TokenIndex >= 0 && CobolLexer.IsReservationGated(symbol.Type)
+                if (terminal is not IErrorNode && symbol.TokenIndex >= 0 && CobolLexerWordSet.IsReservationGated(symbol.Type)
                     && terminal.Parent is ParserRuleContext { RuleIndex: var rule } && rule != CobolParserCore.RULE_reservedGatedWord
                     && words.Contains(CobolNames.UpperFold(symbol.Text)) && !refused.Contains(symbol.StartIndex)
                     && (spells.TryGetValue((rule, symbol.Type), out bool known) ? known : spells[(rule, symbol.Type)] = RuleSpells(rule, symbol.Type)))
@@ -243,7 +243,7 @@ public static class ReservationGateRewriter
         {
             var tok = list[i];
             int keywordType = tok is RetypedToken retyped ? retyped.KeywordType : tok.Type;
-            if (tok.Channel != Lexer.DefaultTokenChannel || !CobolLexer.IsReservationGated(keywordType)) continue;
+            if (tok.Channel != Lexer.DefaultTokenChannel || !CobolLexerWordSet.IsReservationGated(keywordType)) continue;
             // By WORD, not by type alone: the decision is §2023:8.9's, and §2023:8.9 is keyed by spelling (the PB250 text rule).
             bool asName = freed.Contains(CobolNames.UpperFold(tok.Text)) && !kept.Contains(tok.StartIndex);
             if (asName == tok is RetypedToken) continue;

@@ -3,6 +3,7 @@
 using System.Text;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Preprocessor;
+using WiseOwl.Cobol.Runtime;
 using WiseOwl.Cobol.Runtime.Collation;
 using WiseOwl.Cobol.Runtime.Collation.Cldr;
 using WiseOwl.Cobol.Runtime.Collation.Locale;

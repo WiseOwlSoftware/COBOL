@@ -781,6 +781,16 @@ R0-0229–R0-0234) and the measured cycles `Runtime ↔ Runtime.IO` (10 and 49),
 give it them, and the first census after those waves writes the runtime's own layer table into the same file (values
 ← exceptions ← control ← I-O, verbs and intrinsics, the order `DESIGN-runtime-library.md` §2 already states), with
 its own tolerated rows. The front end's internal order is in the file now because its namespaces exist.
+The text subsystems' start-up hook is not one of those cycles: `CollationRuntime` (the cheap per-run-unit
+initialization and the eager warm-up over the collation engine, the CLDR loader, the key cache, the normalizer, the
+grapheme table and the run unit's default locale) lives in `Control/` in `WiseOwl.Cobol.Runtime`, beside `RunUnit`, its
+one product caller, and its `RuntimeConfig` row (kb/Work PB2760). `WiseOwl.Cobol.Runtime.Collation` therefore names no
+type of the root namespace, of `.Unicode`, `.Unicode.Segmentation` or `.Collation.Locale`, and sits below values in the
+runtime's layer table. One edge remains to place: `.Collation.Locale` reads the run unit's locale state
+(`LocaleManager` → `RunUnit.Current.Locale`, `LocaleConfig` → `LocaleState`), and the control layer's warm-up resolves
+the default locale through `LocaleManager`, so `Runtime ↔ Runtime.Collation.Locale` is one layer, control, by
+placement, as `Runtime ↔ Runtime.IO` is until the Move waves give `Control/` its namespace and the locale selector its
+place in it.
 
 **The drift test.** `ArchitectureEdgesDriftTests` (tests/WiseOwl.Cobol.Tests.Unit) is a metadata walk over the built
 product assemblies, not a source scan and not an MSBuild workspace, so it costs about a second per gate:
@@ -1565,6 +1575,9 @@ arguments…, the returned value", §2023:15.1): `NumericFunctions`, `Trigonomet
 adjacent behind one entry per function; the shared argument coercions become `NumericArguments`. *Seam:* one static
 entry per function on its family type, reached by emitted code through a `RuntimeMembers` handle (9); every rename
 lands as one explained oracle difference (§4 item 1). *Steps:* PB2298, PB2365–PB2370.
+*Not an intrinsic:* the arithmetic operator `**` is no §15 function. Its binary64 arm and the one §2023:8.8.1.2 rule-6 screen
+every carrier's power asks are `CobolPower` in the value library (`Values/Numeric/`, beside `CobolDec.Pow` and
+`CobolExact.Pow`), emitted through `RuntimeApi.Binary64Pow` (kb/Work PB2628, landed before PB2298).
 
 **(4) `WiseOwl.Cobol.Binding.ReferenceResolver`** — R0-0004 (its partial and nested types). **LANDED (wave 20261827; steps
 PB2299, PB2371–PB2375 ran as one group, one checkpoint commit per step, each proven by `compare_oracle.py` IDENTICAL).**
@@ -1796,8 +1809,9 @@ parameter, or a fixed one: `DirectiveExpressionFragment.cs:45` parses every dire
 parse reads), and every lexer field the front end primes from one
 (`_caseMappingEdition` and `_reservedNonNames`, set by `TokenRetypes.PrimeLexer` from `edition.Year` and from
 `ReservedNonDataNames(edition, …)`, `TokenRetypes.cs:47-51`). An EDITION READ is a member of `CobolParserCoreBase`, of a
-committed `CobolParserCore` partial or a parser grammar's `@members`, of the lexer grammar's `@members` and its
-partials, or of the retype stage (`TokenRetypes`, which primes the lexer and decides the re-lex) — a member of a
+committed `CobolParserCore` partial or a parser grammar's `@members`, of the lexer's hand-written superclass
+`CobolLexerBase` (`Parsing/CobolLexerBase.cs`, kb/Work PB2726: the lexer has the parser's shape, `superClass` in
+`CobolLexer.g4` and no `@members`), any lexer `@members` and its partials, or of the retype stage (`TokenRetypes`, which primes the lexer and decides the re-lex) — a member of a
 type NESTED in one of these included, since a nested type reads its container's protected state through an instance,
 and a member of a type in `src/` DERIVED from one of these (transitively, from the base lists), since a subclass reads
 the protected `Edition` getter and calls the protected reads through `this` —
@@ -1805,10 +1819,13 @@ whose body reads edition state or calls another edition read, to a fixpoint; an 
 lexer predicate `{…}?` or action `{…}` body, any lexer override (`NextToken`, `Emit`), any parser listener, any
 retype-stage member, or any front-end DRIVER member that hands edition state to a lexer or parser or decides a
 re-lex from it, that calls one, names edition state itself (`{Edition.Has(2014)}?`, a primed lexer field) or passes
-edition state on: the pipeline's parse-again loop (`Pipeline/Frontend.cs:425-463`,
-calling `LexesDifferentlyFrom` at `:437` and `PrimeLexer` at `:463`) and the fragment parser (`FragmentParse.Parse`,
-`Parsing/FragmentParse.cs:62,72,93`, and its callers `SubscriptExpressionFragment.cs:31` and
-`DirectiveExpressionFragment.cs:45`), both added by Draft 6 after the fifth refuter (G4). Names play no part, so a read under a new name, in any of the three stages, is
+edition state on. Those drivers are ONE mechanism (kb/Work PB2735): `Parsing/CobolTokenStream.cs` is the one
+preparation of a token stream and its parser — `CobolTokenStream.Lexer` primes every lexer (`PrimeLexer`),
+`CobolTokenStream.Parser` hands every parser the edition, `CobolTokenStream.Prepare` runs the post-lex steps in their
+one order (debugging lines, ZERO, the §2023:8.9 retype) and `CobolTokenStream.UntilLexStable` is the one re-lex loop
+(`LexesDifferentlyFrom`) — and the whole group's parse (`Frontend.LexAndParse`, `Frontend.NewParser`), the fragment
+parser's three entries (`FragmentParse.Parse`, `ParseTokens`, `ParseUnit`) and the keyword probe
+(`CobolKeywordTokens.LexProbe`) each call it. Names play no part, so a read under a new name, in any of the three stages, is
 caught the day it is written. Applied to the parser at `3d44e5f22` (*text scan, provisional*: the third refuter's
 transitive scan), the rule finds these members: `is85`, `is2002`, `is2014`, `is2023` (`:59-62`);
 `setLocaleAhead` (`:190`, the `LC_` escape of SET LOCALE); `reservedHere` (`:344-345`, `IsReservedAt(Edition.Year)`);
@@ -1871,8 +1888,8 @@ token precedence with the import order; **the lexer stays one grammar**, its mod
 
 **Kept, each with its pin:** no left-edge semantic predicate in a lexer mode (`LexerDfaCacheDriftTests`); the edition
 reads are what the rule above computes — `EditionReadDriftTests` APPLIES the rule (it computes the members' fixpoint
-from the syntax of the parser superclass, its committed partials and parser `@members`, the lexer's `@members` and
-partials and the retype stage, nested and derived types included, derives the primed lexer fields from the retype stage's setter
+from the syntax of the parser superclass, its committed partials and parser `@members`, the lexer superclass, any lexer
+`@members` and partials and the retype stage, nested and derived types included, derives the primed lexer fields from the retype stage's setter
 calls, and finds the call sites in every predicate and action body of every grammar and in every C# member of `src/`
 outside the read's own stage (a second top-level type in a stage's file included), every front-end hand-off of the edition to a parser and every
 caller that passes one on) and compares the result with the set PB2291's verdict records,

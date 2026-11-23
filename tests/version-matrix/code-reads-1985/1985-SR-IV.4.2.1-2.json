@@ -2,54 +2,54 @@
  "rule-id": "1985-SR-IV.4.2.1-2",
  "rule-digest": "51c05b292f56",
  "read": {
-  "pin": "1554cc5debb003cdbdf62be59cb1efb910488540",
-  "slice": "1985-244",
+  "pin": "550a6c4380f50c8ab9dcb7aeb97a7ca08adc312c",
+  "slice": "w20262143b-244",
   "sources": {
-   "reader": "385c7bc3ee2aae5786ce90e5e7e7d6958f2ecefab8e6c9049618cb10d9a8eb42",
-   "refuter": "455816caa4b2ed7f71897a6320ba4eb474838ff6f4a33c98005ec5227e9a8fe0"
+   "reader": "9a4be173c53256e4d0ca0735a0b53f125c9e992bc4ed125b576525bd6ef4f527",
+   "refuter": "e7eef2fd8a888451485170f309bc3f1e0002e476851836123aa5fe93c4f8e43c"
   },
   "imported": {
-   "reader": "04ff94e4dba80eab64ec8de8c7ffa80a7514150bbb8b320c2b4cf1b96e1f2240",
-   "refuter": "d70429ed2195c408c91a8b9324719bd485af973ffb03f0d79c35349a4b86fd3c"
+   "reader": "b8eb638a3845d65d724a2af667db13b62027ede92b442affcc48b8c2e79bee3e",
+   "refuter": "0bae565344ae720c08e57a587806ca49e855f1db2da7feeaf036bd941f98a8f8"
   }
  },
  "reader": {
   "rule-id": "1985-SR-IV.4.2.1-2",
   "verdict": "CONFORMS",
   "requirement": "A comma or semicolon immediately followed by a space is a separator accepted wherever the separator space may stand (between any two character-strings, in every division, in headers, clauses, statements, lists and compiler-directing COPY/REPLACE text), except that a comma inside a PICTURE character-string is a PICTURE symbol; a comma or semicolon not followed by a space is no separator.",
-  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#FNARG_SEPARATOR; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#ListItemBoundary; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#PIC_WS; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#OnPictureString; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#SEMICOLON; src/WiseOwl.Cobol.Frontend/Parsing/SeparatorRule.cs#Violations; src/WiseOwl.Cobol.Frontend/Preprocessor/TextWord.cs#IsSpaceForMatching",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#FNARG_SEPARATOR; src/WiseOwl.Cobol.Frontend/Parsing/CobolLexerBase.cs#ListItemBoundary; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#PIC_WS; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#OnPictureString; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#SEMICOLON; src/WiseOwl.Cobol.Frontend/Parsing/SeparatorRule.cs#Violations; src/WiseOwl.Cobol.Frontend/Preprocessor/TextWord.cs#IsSpaceForMatching",
   "edition-consulted": [],
-  "edition-search": "grep -i 'edition|DialectLevel|CobolVersion' over SeparatorRule.cs (its summary: edition-invariant) and CobolLexer.g4 (only the case-mapping spelling and the reference-paren word set, neither touching ', '/'; '); the separator rules FNARG_SEPARATOR, PIC_WS, SEMICOLON carry no predicate on the edition",
+  "edition-search": "grep -i 'edition|DialectLevel|CobolVersion' over SeparatorRule.cs (its summary: edition-invariant) and CobolLexer.g4 with its superclass Parsing/CobolLexerBase.cs (only the case-mapping spelling and the reference-paren word set, neither touching ', '/'; '); the separator rules FNARG_SEPARATOR, PIC_WS, SEMICOLON carry no predicate on the edition",
   "behaviour-differs-by-edition": "no",
   "witnesses-cover": "part: lists, subscripts, reference modifiers, qualifiers and the PICTURE boundary; not exercised: division/section headers, ENVIRONMENT and FILE SECTION clauses, level numbers, 88 VALUE THRU, statement keyword pairs (GO, TO; STOP, RUN), COPY ... REPLACING and REPLACE text, DECIMAL-POINT IS COMMA, a separator comma at line end",
   "probes": [
    {
     "class": "d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-244/src/sep1.cob",
+    "file": "E:/COBOL-coord/scratch/pb3160c/w20262143b/cr244/sep1.cob",
     "printed": "OK1 / C=12 / E=1,234 / T2=Y / P2 / P2",
     "expected": "accepted: ', ' and '; ' in IDENTIFICATION, DIVISION, SELECT, ASSIGN, FD, level numbers, PIC, 9(3), VALUE, 88 VALUE, 1, THRU; 3, OCCURS, MOVE, IF/ELSE, ADD GIVING, OPEN, PERFORM, 2, TIMES, GO, TO; STOP, RUN; PIC 9,999 keeps its comma"
    },
    {
     "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-244/src/sep2.cob",
+    "file": "E:/COBOL-coord/scratch/pb3160c/w20262143b/cr244/sep2.cob",
     "printed": "AAA / N=1,50; M=1,75",
     "expected": "COPY, CPYA; REPLACING, ==CPY-X==, BY; ==CPY-Y== and REPLACE, ==XX==; BY, ==N== applied; DECIMAL-POINT IS COMMA literal 1,5 with 'TO XX, M' separator"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-244/src/sep3.cob",
+    "file": "E:/COBOL-coord/scratch/pb3160c/w20262143b/cr244/sep3.cob",
     "printed": "COBOL2631 the comma is not immediately followed by a space, so it is not a separator",
     "expected": "ADD A,B refused: a comma without a following space is no separator"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-244/src/sep4.cob",
+    "file": "E:/COBOL-coord/scratch/pb3160c/w20262143b/cr244/sep4.cob",
     "printed": "COBOL2631 the semicolon is not immediately followed by a space",
     "expected": "MOVE A TO;C refused"
    },
    {
     "class": "d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-244/src/sep5.cob",
+    "file": "E:/COBOL-coord/scratch/pb3160c/w20262143b/cr244/sep5.cob",
     "printed": "A=1,234B=ABC!",
     "expected": "PIC 9,999, VALUE: the inner comma is the PICTURE symbol, the trailing ', ' a separator; a comma ending an area B line is a separator; literals followed by ', ' and '; '"
    }
@@ -60,7 +60,7 @@
     "check": "OK  §1985:IV.4.2.1 SR2  (4.2.1 Separators)  the text is in SR2"
    }
   ],
-  "notes": "The lexer skips ', '/'; ' exactly as a space outside list regions and keeps it only as an item boundary inside one; PIC_WS and OnPictureString keep a comma inside the PICTURE string. The preprocessor treats the separator as a space when matching. No edition switch on the path; the COBOL2631 refusal text cites §2023:8.3.5 at --std 85 (wording only).",
+  "notes": "The lexer skips ', '/'; ' exactly as a space outside list regions and keeps it only as an item boundary inside one (CobolLexerBase.ListItemBoundary); PIC_WS and OnPictureString keep a comma inside the PICTURE string. The preprocessor treats the separator as a space when matching. No edition switch on the path; the COBOL2631 refusal text cites §1985:IV.4.2.1 SR2 at --std 85. Re-read 2026-11-23 (wave 20262143 group B) after kb/Work PB2726 moved the lexer's hand-written members out of CobolLexer.g4 into its superclass Parsing/CobolLexerBase.cs: the same member bodies under the new path; probes sep1-sep5 re-run at the pin print the same output as the read at 1554cc5deb.",
   "seeded": true,
   "harm": "",
   "cause": "",
@@ -74,7 +74,7 @@
   "rule-id": "1985-SR-IV.4.2.1-2",
   "refutation": "UPHELD",
   "classes": "b,c,d",
-  "evidence": "Read §1985:IV.4.2.1 SR1-SR9 and the closing paragraph (PICTURE strings delimited only by space, comma, semicolon, period). Probes at --std 85 aimed at what the reader did not try: s1 (PIC, 999; PICTURE IS; X(3), VALUE; PIC 9(3), VALUE, 5; 'MOVE A TO C, .' comma before the period; '...C; .'; FUNCTION MAX (A, W; E (1)) in COMPUTE) -> runs 'A=007, B=AB ; C=007' 'F=007'; s1p (subscript 'E (W, )', comma separator before the right parenthesis, SR8/SR9) -> 'E=5'; s2 (DECIMAL-POINT IS COMMA: 'ADD 1, 2 TO X' and 'ADD 1,5; 2 TO Y') -> 'X=003 Y=003,5' (the ', ' after 1 a separator, 1,5 a literal); s3 (comma in column 72 with sequence text in 73-80, line continues 'Q.'; COPY CPYS REPLACING ==X; Y== BY ==Y== against library text 'ADD X, Y TO Z') -> 'Z=2 P=7 Q=7' (column-72 comma a separator; the pseudo-text separators match as spaces); refusal half: s4 'PIC 9(3),VALUE 5' -> COBOL0307 (the comma without space stays in the PICTURE string); s5 'PIC 9;9' -> COBOL0808 invalid PICTURE symbol ';'. A first s1 run with FUNCTION MAX as a DISPLAY operand was refused COBOL0900 (a 1985 operand-position rule, not this one). cite.py: 'OK  §1985:IV.4.2.1 SR2  (4.2.1 Separators)  the text is in SR2'; 'OK  §1985:IV.4.2.1 SR9  (4.2.1 Separators)  the text is in SR9'.",
+  "evidence": "Re-ran at the pin (550a6c4380, --std 85, runs under E:/COBOL-coord/scratch/pb3160c/w20262143b/runs) the earlier refuter's probes aimed at what the reader did not try: s1 -> 'A=007, B=AB ; C=007' 'F=007'; s1p (comma separator before the right parenthesis of a subscript) -> 'E=5'; s2 (DECIMAL-POINT IS COMMA, 'ADD 1, 2 TO X' and 'ADD 1,5; 2 TO Y') -> 'X=003 Y=003,5'; s3 (column-72 comma; COPY REPLACING pseudo-text separators) -> 'Z=2 P=7 Q=7'; refusal half: s4 'PIC 9(3),VALUE 5' -> COBOL0307; s5 'PIC 9;9' -> COBOL0808 invalid PICTURE symbol ';'. Each prints what it printed at 1554cc5deb. ListItemBoundary in Parsing/CobolLexerBase.cs is the body that stood in CobolLexer.g4's @members (kb/Work PB2726 moved it unchanged; the branch's program oracle against its base differs only in the runtime version string). cite.py: 'OK  §1985:IV.4.2.1 SR2  (4.2.1 Separators)  the text is in SR2'.",
   "edition-sites-missed": [],
   "corrected": ""
  }

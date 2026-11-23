@@ -437,7 +437,7 @@ content-validation half is separately answered by the declined A.4.14 facility (
   **The ONE unit reader (kb/Work PB546; decision PB3099, 2026-10-12).** How many bytes a position occupies is a
   function of USAGE alone — §2023:13.18.60.4 GR8 speaks of usage, and §2023:13.18.60.3 SR12 lists the five picture shapes a
   usage-national item takes (boolean, national, national-edited, numeric, numeric-edited) — and it is spelled once:
-  `PicInfo.BytesPerPosition` (`Usage.National` → `CobolBits.BytesPerNational`, else 1; a usage-bit position is
+  `PicInfo.BytesPerPosition` (`Usage.National` → `NationalImage.BytesPerNational`, else 1; a usage-bit position is
   `RefModPlace.PositionBits`' bit). `ElementaryByteWidth`, `PositionBits`, `RecordLayout.ImageContribution`,
   `ItemLength`, `FileModel.RecordImageUnit` and every `NatBytes` / `NatReadWindow` emission read it. A byte count keyed
   on `PicCategory.National` is the defect shape PB546 measured twice — a boolean slice of usage national serialized
@@ -451,7 +451,7 @@ content-validation half is separately answered by the declined A.4.14 facility (
 - **D-N8 a group sender into a national DYNAMIC LENGTH receiver** (kb/Work PB546; PB3099). §2023:14.9.25.4 GR4 makes the
   move a byte copy and §2023:8.5.1.10.4 sets the receiver's new length to the content's; an odd byte count cannot be
   national content, so the last position is completed with the alphanumeric space GR4's elementary-move fill supplies,
-  exactly as the fixed national receiver already does; the decode of a WHOLE image is `CobolBits.NatFromStorage`, asked
+  exactly as the fixed national receiver already does; the decode of a WHOLE image is `NationalImage.FromStorage`, asked
   through `ReceivingStore.ContentCharacters` by the GR4 group MOVE and by the READ of an elementary dynamic-length
   record. `MOVE G3 TO DN` with
   a three-byte `G3` leaves `DN` two positions long and `LENGTH(DN)` = 4 (§2023:15.50.4 RV6 counts bytes). Recorded in
@@ -545,7 +545,7 @@ content-validation half is separately answered by the declined A.4.14 facility (
     (kb/Work PB1466); only `USAGE INDEX` stays out.
   - only the **CHARACTER→BYTE step differs**, and it is applied ONCE, by the one national coding, at every byte
     boundary: `NationalWindow.PositionsOf` (now a single test — `Pic.Usage is National` → `ElementaryImageWidth`,
-    the count §2023:13.18.40.4 GR1 defines and §2023:15.50.4 RV2 returns) plus `CobolBits.NatBytes`/`NatReadWindow`.
+    the count §2023:13.18.40.4 GR1 defines and §2023:15.50.4 RV2 returns) plus `NationalImage.Bytes`/`NatReadWindow`.
     `GroupImageCodec` COMPOSES it over the carrier codec (`CarrierImageOf` / `CarrierFromChars`); the two used to
     be mutually exclusive arms, sound only while the shape was staged loud and could not reach emit.
   - the **SIGN CLAUSE an item INHERITS** reaches its `SignKind` through ONE method, `DataBinder.ApplyEffectiveSign`
@@ -578,7 +578,7 @@ content-validation half is separately answered by the declined A.4.14 facility (
   (`ForceStringCanonical`) — now CARRY a national leaf: the class walk advances by each member's storage extent
   (`BitLayout.RunBits` → `WidthBits` → `ElementaryByteWidth`), the class width is the members' maximum
   `ByteWidth`, the in-class OCCURS stride is `ByteWidth`, and `Place.NationalWindow` transcodes the window's
-  UTF-16BE pairs through `CobolBits.NatReadWindow`/`NatWriteWindow` — the same serialization `NatBytes` already
+  UTF-16BE pairs through `NationalImage.ReadWindow`/`NatWriteWindow` — the same serialization `NatBytes` already
   gave CONVERT's raw-storage channel. The §2023:13.18.44.3 SR8 size screen and the Tier-A alias arm read `ByteWidth`
   for the same reason. **A NATIONAL GROUP's own window is a `NationalWindow` too** (kb/Work PB1653,
   `NationalWindow.WindowPositionsOf` — §2023:13.18.29.4 GR2b: its VALUE is its m national positions over the 2m bytes
@@ -638,7 +638,7 @@ content-validation half is separately answered by the declined A.4.14 facility (
   image characters a position, `DataItem.ImageUnit`, D-N1) - the same form a declared group's `CurrentImage()`
   composes for it and a record image carries - and the one place that sees the item as characters, the leaf's own
   read and write (`PlaceRenderer`'s `DynSlotWindow` arms, `CellDynRead` / `CellDynWrite`) and the seed
-  (`CellDynSeeds`), decodes (`CobolBits.NatFromStorage`) and encodes (`CobolBits.NatBytes`). The window's maximum sizes
+  (`CellDynSeeds`), decodes (`NationalImage.FromStorage`) and encodes (`NationalImage.Bytes`). The window's maximum sizes
   are therefore IMAGE characters (`DataItem.SlotMaxSize`: the LIMIT in positions times the unit), what a store into the
   slot truncates at, and the layout reads each component's unit off its layout code (`VarGroupWindow.DynStructure`,
   `CobolDynStructure.PlainCode` / `UnitOf`, which `StorageCell.LayoutOf` divides the maximum by); a table of leaf
@@ -730,7 +730,7 @@ content-validation half is separately answered by the declined A.4.14 facility (
   `GroupImageCodec.AsImage()`/`FromImage()` is a group's **STORAGE** face: a numeric leaf already contributed
   its radix-2 / BCD / IEEE bytes and a `USAGE BIT` run its §2023:8.5.1.6.3 packing, and NATIONAL was the last leaf
   kind whose carrier was shipped instead of its bytes. It now contributes its two UTF-16BE bytes per position,
-  through the same `CobolBits.NatBytes` / `NatReadWindow` pair the Tier-B window and the cell seed ride.
+  through the same `NationalImage.Bytes` / `NatReadWindow` pair the Tier-B window and the cell seed ride.
   **The width authority moved with it:** `RecordLayout.PhysicalWidth`/`OffsetOf` and
   `PhysicalModel.BuildPhysicals` read `ByteWidth`, which IS `ImageWidth` for every other leaf kind — so the
   change is byte-identical for national-free programs, and an ELEMENTARY item's `ImageWidth` stays the CARRIER

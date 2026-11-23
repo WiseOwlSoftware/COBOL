@@ -1,9 +1,9 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using System.Reflection;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Parsing;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 
@@ -15,7 +15,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// artifacts by <c>scripts/gen-cobol-words.ps1</c> —
 /// <list type="bullet">
 ///   <item>the parser <c>cobolWord</c> rule (<c>Grammar/Core/CobolWords.g4</c>, the <c>nameSlot=true</c> rows), and</item>
-///   <item>the lexer <c>_dataNameTokens</c> subscript-trigger set (<c>Parsing/CobolLexerWordSet.g.cs</c>, the
+///   <item>the lexer's <c>CobolLexerWordSet.DataNameTokens</c> subscript-trigger set (<c>Parsing/CobolLexerWordSet.g.cs</c>, the
 ///   <c>subscriptTrigger=true</c> rows).</item>
 /// </list>
 /// These tests prove the two generated artifacts cannot silently desync from the JSON (a hand edit to either, or
@@ -244,10 +244,10 @@ public sealed class CobolWordsDriftTests
         var rows = KeywordWhereFreeTokens();
         Assert.NotEmpty(rows);
         var wrong = LoadJsonWords().Select(w => w.Token)
-            .Where(t => CobolLexer.IsKeywordWhereFree(ToWord(t)) != rows.Contains(t))
+            .Where(t => CobolLexerWordSet.IsKeywordWhereFree(ToWord(t)) != rows.Contains(t))
             .Order(StringComparer.Ordinal).ToList();
         Assert.True(wrong.Count == 0,
-            $"CobolLexer.IsKeywordWhereFree disagrees with the keywordWhereFree rows for [{string.Join(",", wrong)}]: "
+            $"CobolLexerWordSet.IsKeywordWhereFree disagrees with the keywordWhereFree rows for [{string.Join(",", wrong)}]: "
             + "re-run scripts/gen-cobol-words.ps1");
     }
 
@@ -278,23 +278,21 @@ public sealed class CobolWordsDriftTests
             + "program that declares the word cannot write that format (kb/Work PB3794)");
     }
 
-    /// <summary>The lexer's runtime <c>_dataNameTokens</c> set equals the JSON <c>subscriptTrigger=true</c> tokens.
-    /// This reads the ONE real compiled set (the hand-written HashSet was deleted from CobolLexer.g4 @members).</summary>
+    /// <summary>The lexer's runtime trigger set, as the lexer reads it (<see cref="CobolLexer.SubscriptTriggerTokens"/>,
+    /// the generated <see cref="CobolLexerWordSet.DataNameTokens"/>), equals the JSON <c>subscriptTrigger=true</c> tokens.</summary>
     [Fact]
     public void LexerRuntimeSet_Matches_Json_SubscriptTrigger()
     {
         var json = LoadJsonWords().Where(w => w.SubscriptTrigger).Select(w => w.Token).ToHashSet(StringComparer.Ordinal);
 
-        var field = typeof(CobolLexer).GetField("_dataNameTokens", BindingFlags.NonPublic | BindingFlags.Static);
-        Assert.NotNull(field);
-        var ints = (HashSet<int>)field!.GetValue(null)!;
-        var runtime = ints.Select(t => CobolLexer.DefaultVocabulary.GetSymbolicName(t) ?? $"<{t}>")
+        Assert.Same(CobolLexerWordSet.DataNameTokens, CobolLexer.SubscriptTriggerTokens);
+        var runtime = CobolLexer.SubscriptTriggerTokens.Select(t => CobolLexer.DefaultVocabulary.GetSymbolicName(t) ?? $"<{t}>")
                           .ToHashSet(StringComparer.Ordinal);
 
         var onlyJson = json.Where(w => !runtime.Contains(w)).Take(5).ToList();
         var onlyRuntime = runtime.Where(w => !json.Contains(w)).Take(5).ToList();
         Assert.True(onlyJson.Count == 0 && onlyRuntime.Count == 0,
-            $"_dataNameTokens drift: json={json.Count} runtime={runtime.Count} json-only=[{string.Join(",", onlyJson)}] runtime-only=[{string.Join(",", onlyRuntime)}]");
+            $"DataNameTokens drift: json={json.Count} runtime={runtime.Count} json-only=[{string.Join(",", onlyJson)}] runtime-only=[{string.Join(",", onlyRuntime)}]");
     }
 
     /// <summary>Reconciliation + reserved-words cross-check. The two documented asymmetries are pinned, and the

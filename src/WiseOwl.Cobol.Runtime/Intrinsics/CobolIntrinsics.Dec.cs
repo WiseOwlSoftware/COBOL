@@ -113,19 +113,19 @@ public static partial class CobolIntrinsics
     }
 
     /// <summary>§2023:15.59 MAX — the leftmost argument with the greatest value (§2023:15.59.4 RV1/r2).</summary>
-    public static CobolDec MaxDec(params CobolDec[] xs) => xs[ExtremeIndex(new DecOrder(xs), true, "MAX")];
+    public static CobolDec MaxDec(params ReadOnlySpan<CobolDec> xs) => xs[ExtremeIndex(new DecOrder(xs), true, "MAX")];
 
     /// <summary>§2023:15.63 MIN — the leftmost argument with the least value (§2023:15.63.4 RV1/r2).</summary>
-    public static CobolDec MinDec(params CobolDec[] xs) => xs[ExtremeIndex(new DecOrder(xs), false, "MIN")];
+    public static CobolDec MinDec(params ReadOnlySpan<CobolDec> xs) => xs[ExtremeIndex(new DecOrder(xs), false, "MIN")];
 
     /// <summary>§2023:15.71 ORD-MAX — the 1-based ordinal of the first greatest argument (§2023:15.71.4 RV1/r2).</summary>
-    public static long OrdMaxDec(params CobolDec[] xs) => ExtremeIndex(new DecOrder(xs), true, "ORD-MAX") + 1;
+    public static long OrdMaxDec(params ReadOnlySpan<CobolDec> xs) => ExtremeIndex(new DecOrder(xs), true, "ORD-MAX") + 1;
 
     /// <summary>§2023:15.72 ORD-MIN — the 1-based ordinal of the first least argument (§2023:15.72.4 RV1/r2).</summary>
-    public static long OrdMinDec(params CobolDec[] xs) => ExtremeIndex(new DecOrder(xs), false, "ORD-MIN") + 1;
+    public static long OrdMinDec(params ReadOnlySpan<CobolDec> xs) => ExtremeIndex(new DecOrder(xs), false, "ORD-MIN") + 1;
 
     /// <summary>§2023:15.88 SUM — the §2023:15.88.4 RV1 addition chain, per-op intermediate rounding.</summary>
-    public static CobolDec SumDec(DecArithmetic ar, params CobolDec[] xs)
+    public static CobolDec SumDec(DecArithmetic ar, params ReadOnlySpan<CobolDec> xs)
     {
         RequireArguments(xs.Length, "SUM");
         CobolDec s = xs[0];
@@ -134,31 +134,31 @@ public static partial class CobolIntrinsics
     }
 
     /// <summary>§2023:15.76 RANGE — MAX − MIN (§2023:15.76.4 RV1), exact-aligned subtraction.</summary>
-    public static CobolDec RangeDec(DecArithmetic ar, params CobolDec[] xs)
+    public static CobolDec RangeDec(DecArithmetic ar, params ReadOnlySpan<CobolDec> xs)
     {
         RequireArguments(xs.Length, "RANGE");
         return ar.Sub(MaxDec(xs), MinDec(xs));
     }
 
     /// <summary>§2023:15.60 MEAN — Σ / n (§2023:15.60.4 RV1), the one division in SDIDI form.</summary>
-    public static CobolDec MeanDec(DecArithmetic ar, params CobolDec[] xs)
+    public static CobolDec MeanDec(DecArithmetic ar, params ReadOnlySpan<CobolDec> xs)
     {
         RequireArguments(xs.Length, "MEAN");
         return ar.Div(SumDec(ar, xs), CobolDec.From(xs.Length, 0));
     }
 
     /// <summary>§2023:15.62 MIDRANGE — (MAX + MIN) / 2 (§2023:15.62.4 RV1).</summary>
-    public static CobolDec MidrangeDec(DecArithmetic ar, params CobolDec[] xs)
+    public static CobolDec MidrangeDec(DecArithmetic ar, params ReadOnlySpan<CobolDec> xs)
     {
         RequireArguments(xs.Length, "MIDRANGE");
         return ar.Div(ar.Add(MaxDec(xs), MinDec(xs)), CobolDec.From(2, 0));
     }
 
     /// <summary>§2023:15.61 MEDIAN — the middle value in sorted order, or the mean of the two middles (§2023:15.61.4).</summary>
-    public static CobolDec MedianDec(DecArithmetic ar, params CobolDec[] xs)
+    public static CobolDec MedianDec(DecArithmetic ar, params ReadOnlySpan<CobolDec> xs)
     {
         RequireArguments(xs.Length, "MEDIAN");
-        var sorted = (CobolDec[])xs.Clone();
+        var sorted = xs.ToArray();
         Array.Sort(sorted, CobolDec.Compare);
         int n = sorted.Length;
         return (n & 1) == 1
@@ -170,7 +170,7 @@ public static partial class CobolIntrinsics
     /// MEAN), each step on the SDIDI as §2023:15.4.1 1) requires; the native value is <see cref="VarianceExact"/>'s (kb/Work PB4111).
     /// ⚠ The clause number was §2023:15.97 here until kb/Work PB257: §2023:15.97 is UPPER-CASE — the derivation was right
     /// and the number was inherited without ever being re-derived, CLAUDE.md rule 1's own failure mode.</summary>
-    public static CobolDec VarianceDec(DecArithmetic ar, params CobolDec[] xs)
+    public static CobolDec VarianceDec(DecArithmetic ar, params ReadOnlySpan<CobolDec> xs)
     {
         RequireArguments(xs.Length, "VARIANCE");            // §2023:15.3 — at least one argument (kb/Work PB257)
         CobolDec mean = MeanDec(ar, xs);
@@ -218,7 +218,7 @@ public static partial class CobolIntrinsics
     /// <c>(FUNCTION SQRT (FUNCTION VARIANCE (argument-list)))</c>, so the two FUNCTION bodies are composed and
     /// §2023:15.84.4 RV2's own "absolute value … rounded to 34 digits" is inherited from the ONE SQRT body rather than
     /// re-decided. ⚠ The clause number was §2023:15.85 here until kb/Work PB257: §2023:15.85 is STANDARD-COMPARE.</summary>
-    public static CobolDec StdDevDec(DecArithmetic ar, params CobolDec[] xs)
+    public static CobolDec StdDevDec(DecArithmetic ar, params ReadOnlySpan<CobolDec> xs)
     {
         RequireArguments(xs.Length, "STANDARD-DEVIATION");
         return SqrtDec(ar, VarianceDec(ar, xs));
@@ -253,7 +253,7 @@ public static partial class CobolIntrinsics
     /// <summary>§2023:15.74 PRESENT-VALUE under STANDARD-DECIMAL — Σ argument-2ₖ / (1 + argument-1)^k, k = 1…n (§2023:15.74.4 RV1), each term
     /// on the SDIDI; the native value is <see cref="PresentValueExact"/>'s (kb/Work PB4111).
     /// Domain per §2023:15.74.3 AR2 (rate &gt; −1), through the same raise site as the double carrier.</summary>
-    public static CobolDec PresentValueDec(DecArithmetic ar, CobolDec rate, params CobolDec[] amounts)
+    public static CobolDec PresentValueDec(DecArithmetic ar, CobolDec rate, params ReadOnlySpan<CobolDec> amounts)
     {
         RequireArguments(amounts.Length, "PRESENT-VALUE");
         if (CobolDec.Compare(rate, CobolDec.From(-1, 0)) <= 0)

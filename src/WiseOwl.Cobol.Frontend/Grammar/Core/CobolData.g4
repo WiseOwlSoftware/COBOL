@@ -798,7 +798,7 @@ indexNameList
 // `OCCURS [ integer-1 TO ] integer-2 TIMES [ DEPENDING ON data-name-1 ] [ STEP integer-3 ]`, verified against the
 // printed general-format diagram). Without it a conforming repeating report entry died at the word STEP.
 // STEP is a §2023:8.10 CONTEXT-SENSITIVE word ("OCCURS clause"), NEVER reserved at any edition, so it gets NO lexer
-// token — a token would have to join `_dataNameTokens` to keep `STEP (1)` subscripting a user item named STEP, and
+// token — a token would have to join `DataNameTokens` to keep `STEP (1)` subscripting a user item named STEP, and
 // that set is generated from the §2023:8.9 RESERVED word table. It is therefore read as TEXT, the LOCALE / ATTRIBUTE
 // precedent (`pictureLocaleAhead`). Not edition-gated: the phrase is legal only in a report group description
 // entry, which the binder enforces (DataBinder.Odo.cs#NarrowToDataDivisionFormats refuses it in a data description

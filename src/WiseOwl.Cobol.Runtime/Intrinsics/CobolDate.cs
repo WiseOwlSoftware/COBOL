@@ -1,7 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Collections.Concurrent;
 using System.Globalization;
-using System.Text;
 
 namespace WiseOwl.Cobol.Runtime;
 
@@ -269,13 +269,43 @@ public static class CobolDate
     /// <summary>A format segment: a data-bearing/phantom SEPARATOR (Sep + InData) or a numeric FIELD (Field + Width).</summary>
     private readonly record struct Seg(bool IsField, Fld Field, int Width, char Sep, bool InData);
 
+    /// <summary>⛔ A §2023:15.3 FORMAT, PARSED ONCE (kb/Work PB2637). Rule 1 of every function that takes one (§2023:15.38.3,
+    /// §2023:15.39.3, §2023:15.40.3, §2023:15.41.3, §2023:15.48.3, §2023:15.79.3, §2023:15.92.3) makes argument-1 a literal, so its
+    /// segments and the facts the emitter and the analyzer read off them are a pure function of a compile-time constant: they are
+    /// computed by <see cref="Tokenize"/> on the first call that names the literal and read from <see cref="Formats"/> after it.
+    /// <see cref="ImageLength"/> is the formatted value's exact length, so <see cref="EmitFormatted"/> writes one buffer.</summary>
+    private sealed class DateTimeFormat(Seg[] segments)
+    {
+        public Seg[] Segments { get; } = segments;
+        public bool IsUtc { get; } = segments.Any(s => !s.IsField && s.Sep == 'Z');
+        public bool HasDate { get; } = segments.Any(s => s.IsField && s.Field == Fld.Year);
+        public bool HasTime { get; } = segments.Any(s => s.IsField && s.Field == Fld.Hour);
+        public bool HasWeek { get; } = segments.Any(s => s.IsField && s.Field == Fld.Week);
+        public bool HasDayOfYear { get; } = segments.Any(s => s.IsField && s.Field == Fld.DayOfYear);
+        public bool HasDayOfMonth { get; } = segments.Any(s => s.IsField && s.Field == Fld.DayOfMonth);
+        public int FractionDigits { get; } = segments.FirstOrDefault(s => s.IsField && s.Field == Fld.Fraction).Width;
+        public int ImageLength { get; } = segments.Sum(s => s.IsField ? s.Width : s.InData ? 1 : 0);
+    }
+
+    /// <summary>The parsed formats, keyed by the format literal (null for a string that is no legal format). Bounded: argument-1
+    /// is a literal, so a run unit names finitely many; past <see cref="MaxCachedFormats"/> a format is parsed per call.</summary>
+    private static readonly ConcurrentDictionary<string, DateTimeFormat?> Formats = new(StringComparer.Ordinal);
+
+    private const int MaxCachedFormats = 1024;
+
+    /// <summary>The parsed form of <paramref name="format"/>, or null when it is not a legal §2023:15.3 format.</summary>
+    private static DateTimeFormat? FormatOf(string format) =>
+        Formats.TryGetValue(format, out var parsed) ? parsed
+        : Formats.Count < MaxCachedFormats ? Formats.GetOrAdd(format, Tokenize)
+        : Tokenize(format);
+
     /// <summary>Tokenize a §2023:15.3 format string. The fractional-second decimal separator is whichever of
     /// <c>.</c> / <c>,</c> literally appears in the format — §2023:15.3.3.2 makes it ',' under DECIMAL-POINT IS COMMA,
     /// but since the separator sits in the format string itself no external mode is needed (the same char is
     /// expected in / emitted to the data). Extended (a colon/hyphen appears) ⇒ the decimal separator appears in the
     /// data; basic ⇒ it is a phantom (in the format, absent from the data). Returns null when the string is not a
-    /// legal format (unknown char / bad field width).</summary>
-    private static List<Seg>? Tokenize(string fmt)
+    /// legal format (unknown char / bad field width). Called through <see cref="FormatOf"/>, once per format literal.</summary>
+    private static DateTimeFormat? Tokenize(string fmt)
     {
         bool extended = fmt.IndexOf(':') >= 0 || fmt.IndexOf('-') >= 0;
         var segs = new List<Seg>();
@@ -326,21 +356,14 @@ public static class CobolDate
                     return null;
             }
         }
-        return segs;
+        return new DateTimeFormat([.. segs]);
     }
 
     /// <summary>The fractional-second digit count of a format (0 if none) — the SECONDS-FROM-FORMATTED-TIME /
     /// FORMATTED-TIME result scale.</summary>
-    public static int FormatFractionDigits(string format)
-    {
-        var segs = Tokenize(format);
-        if (segs is null) return 0;
-        foreach (var s in segs) if (s.IsField && s.Field == Fld.Fraction) return s.Width;
-        return 0;
-    }
+    public static int FormatFractionDigits(string format) => FormatOf(format)?.FractionDigits ?? 0;
 
     private static bool LongIsoYear(int y) => ISOWeek.GetWeeksInYear(y) == 53;   // §2023:15.3.1.7 — a "long" ISO year has 53 weeks
-    private static bool HasWeek(List<Seg> segs) { foreach (var s in segs) if (s.IsField && s.Field == Fld.Week) return true; return false; }
 
     /// <summary>⛔ A SECONDS ARGUMENT WITH A TRAILING-P PICTURE HAS A NEGATIVE SCALE (kb/Work PB2633; PictureAnalyzer:
     /// scale = -trailingP): <c>PIC 9(3)PP</c> holding 36000 is the unscaled 360 at scale -2. Every body below that
@@ -363,14 +386,10 @@ public static class CobolDate
     private static string EmitFormatted(string format, long integerDate, Int128 secUnscaled, int secScale,
                                         long offsetMinutes, bool leapSecond = false)
     {
-        var segs = Tokenize(format);
-        if (segs is null)
+        if (FormatOf(format) is not { } parsed)
             return Exceptions.ExceptionState.ArgumentErrorZeroLength(
                 $"'{format}' is not a valid ISO 1989 date/time format (§2023:15.3; CONFORMANCE.md row DOC-A.1-90)");
-
-        bool isUtc = segs.Any(s => !s.IsField && s.Sep == 'Z');
-        bool hasDate = segs.Any(s => s.IsField && s.Field == Fld.Year);
-        bool hasTime = segs.Any(s => s.IsField && s.Field == Fld.Hour);
+        bool isUtc = parsed.IsUtc, hasDate = parsed.HasDate, hasTime = parsed.HasTime;
 
         // ⛔ The seconds value arrives as Int128 unscaled + scale (kb/Work R24 — the former `long` parameter
         // silently WRAPPED a wide-PICTURE argument's unscaled form, fabricating an in-range time from a legal
@@ -426,30 +445,46 @@ public static class CobolDate
         long offMag = Math.Abs(offsetMinutes);
         int oh = (int)(offMag / 60), om = (int)(offMag % 60);
         char osign = offsetMinutes >= 0 ? '+' : '-';                   // §2023:15.3.3.6.1 — '+' = local at/ahead of UTC
-        bool week = HasWeek(segs);
+        bool week = parsed.HasWeek;
 
-        var sb = new StringBuilder();
-        foreach (var s in segs)
+        // One buffer of the image's exact length; each field is its value's digits, zero-filled to the field's width.
+        var values = new FieldValues(week ? isoY : yy, mo, dm, doy, isoW, isoD, hh, mi, ss, frac, osign, oh, om);
+        return string.Create(parsed.ImageLength, (parsed.Segments, values), static (image, state) =>
         {
-            if (!s.IsField) { if (s.InData) sb.Append(s.Sep); continue; }
-            switch (s.Field)
+            var (segments, v) = state;
+            int at = 0;
+            foreach (var s in segments)
             {
-                case Fld.Year:       sb.Append((week ? isoY : yy).ToString("0000")); break;
-                case Fld.Month:      sb.Append(mo.ToString("00")); break;
-                case Fld.DayOfMonth: sb.Append(dm.ToString("00")); break;
-                case Fld.DayOfYear:  sb.Append(doy.ToString("000")); break;
-                case Fld.Week:       sb.Append(isoW.ToString("00")); break;
-                case Fld.WeekDay:    sb.Append(isoD.ToString("0")); break;
-                case Fld.Hour:       sb.Append(hh.ToString("00")); break;
-                case Fld.Minute:     sb.Append(mi.ToString("00")); break;
-                case Fld.Second:     sb.Append(ss.ToString("00")); break;
-                case Fld.Fraction:   sb.Append(((long)(frac * (decimal)(long)Pow10.AsWide(s.Width))).ToString(new string('0', s.Width))); break;
-                case Fld.OffSign:    sb.Append(osign); break;
-                case Fld.OffHour:    sb.Append(oh.ToString("00")); break;
-                case Fld.OffMinute:  sb.Append(om.ToString("00")); break;
+                if (!s.IsField) { if (s.InData) image[at++] = s.Sep; continue; }
+                if (s.Field == Fld.OffSign) { image[at++] = v.OffSign; continue; }
+                long field = s.Field switch
+                {
+                    Fld.Year => v.Year, Fld.Month => v.Month, Fld.DayOfMonth => v.DayOfMonth, Fld.DayOfYear => v.DayOfYear,
+                    Fld.Week => v.Week, Fld.WeekDay => v.WeekDay, Fld.Hour => v.Hour, Fld.Minute => v.Minute, Fld.Second => v.Second,
+                    Fld.Fraction => (long)(v.Fraction * (decimal)(long)Pow10.AsWide(s.Width)),
+                    Fld.OffHour => v.OffHour, Fld.OffMinute => v.OffMinute,
+                    _ => throw new System.Diagnostics.UnreachableException($"no value for the format field {s.Field}"),
+                };
+                WriteDigits(image.Slice(at, s.Width), field);
+                at += s.Width;
             }
+        });
+    }
+
+    /// <summary>The subfield values one formatted image is written from (<see cref="EmitFormatted"/>); <see cref="Year"/> is the ISO
+    /// week-based year when the format has a week field (§2023:15.3.1.7).</summary>
+    private readonly record struct FieldValues(int Year, int Month, int DayOfMonth, int DayOfYear, int Week, int WeekDay,
+        int Hour, int Minute, int Second, decimal Fraction, char OffSign, int OffHour, int OffMinute);
+
+    /// <summary>The non-negative <paramref name="value"/> as exactly <c>digits.Length</c> decimal digits, zero-filled on the left. Every
+    /// caller's value fits its field (the subfield ranges of §2023:15.3.1 and §2023:15.3.3, and a fraction below 10^width).</summary>
+    private static void WriteDigits(Span<char> digits, long value)
+    {
+        for (int i = digits.Length - 1; i >= 0; i--)
+        {
+            digits[i] = (char)('0' + (int)(value % 10));
+            value /= 10;
         }
-        return sb.ToString();
     }
 
     /// <summary>FORMATTED-DATE (§2023:15.39): the integer date a2 rendered per the date format a1. An integer date
@@ -641,14 +676,13 @@ public static class CobolDate
                                out int fracDigits, out bool dateRepresentable, bool leapSecond = false)
     {
         integerDate = 0; secondsScaled = 0; fracDigits = 0; dateRepresentable = true;
-        var segs = Tokenize(format);
-        if (segs is null) return 1;
+        if (FormatOf(format) is not { } parsed) return 1;
 
         int pos = 0;
         int yy = 0, mo = 0, dm = 0, doy = 0, wk = 0, wd = 0, hh = 0, mi = 0, ss = 0;
         long frac = 0; bool offZero = false;
 
-        foreach (var s in segs)
+        foreach (var s in parsed.Segments)
         {
             if (!s.IsField)
             {
@@ -717,9 +751,7 @@ public static class CobolDate
         }
         if (pos != data.Length) return pos + 1;                       // trailing data — the first extra char is the error
 
-        bool hasWeek = segs.Any(x => x.IsField && x.Field == Fld.Week);
-        bool hasOrd  = segs.Any(x => x.IsField && x.Field == Fld.DayOfYear);
-        bool hasCal  = segs.Any(x => x.IsField && x.Field == Fld.DayOfMonth);
+        bool hasWeek = parsed.HasWeek, hasOrd = parsed.HasDayOfYear, hasCal = parsed.HasDayOfMonth;
         if (hasCal) integerDate = IntegerDateForm.Of(new DateTime(yy, mo, dm));
         else if (hasOrd) integerDate = IntegerDateForm.Of(new DateTime(yy, 1, 1).AddDays(doy - 1));
         // ⛔ THE WEEK DATE IS COMPUTED IN INTEGER ARITHMETIC, NOT VIA ISOWeek.ToDateTime, AND THAT IS THE FIX

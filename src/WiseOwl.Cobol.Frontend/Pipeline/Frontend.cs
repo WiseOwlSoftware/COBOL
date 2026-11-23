@@ -528,19 +528,16 @@ public sealed class Frontend
         // (TokenRetypes.LexesDifferentlyFrom) is run again with those words declared. Each attempt declares at least one
         // more word of a finite set, so it ends; nearly every program parses once. Only the last attempt's diagnostics
         // describe the source.
-        while (true)
+        // The loop is CobolTokenStream's one re-lex loop (kb/Work PB2735).
+        var (parse, attemptDiagnostics) = CobolTokenStream.UntilLexStable(retypes, edition, attemptRetypes =>
         {
-            var attemptDiagnostics = new DiagnosticBag();
-            var (tree, parsed, sourceDebuggingLines, commentLines, textClasses) = LexAndParseOnce(text, sourcePath, cobolWordsMap, retypes, edition, priorErrors, attemptDiagnostics, areas, gates);
-            if (tree.TokenRetypes.LexesDifferentlyFrom(retypes, edition))
-            {
-                retypes = tree.TokenRetypes;
-                continue;
-            }
-            foreach (var d in attemptDiagnostics.Diagnostics) diagnostics.Add(d);
-            diagnostics.AddCompileOutput(attemptDiagnostics.CompileOutput);
-            return (tree, parsed, sourceDebuggingLines, commentLines, textClasses);
-        }
+            var bag = new DiagnosticBag();
+            var once = LexAndParseOnce(text, sourcePath, cobolWordsMap, attemptRetypes, edition, priorErrors, bag, areas, gates);
+            return ((once, bag), once.Tree.TokenRetypes);
+        });
+        foreach (var d in attemptDiagnostics.Diagnostics) diagnostics.Add(d);
+        diagnostics.AddCompileOutput(attemptDiagnostics.CompileOutput);
+        return parse;
     }
 
     /// <summary>One lex + parse of <paramref name="text"/> with <paramref name="retypes"/> priming the lexer (see
@@ -556,7 +553,6 @@ public sealed class Frontend
         // each such line that IS source has its carrier blanked and the text is lexed again (kb/Work PB1913); the loop
         // ends when none is left, at most once per debugging line. `text` then IS the text every later reader
         // offsets into (the §2023:8.3.5 / §2023:13.18.40.3 rules below, the fragment re-parses of the tree's regions).
-        CommonTokenStream tokens;
         // The debugging lines that stay SOURCE: the region lines blanked on the way (their marker is gone from the final
         // stream) and the final stream's own (kb/Work PB2490).
         var sourceDebuggingLines = new List<IToken>();
@@ -564,30 +560,34 @@ public sealed class Frontend
         var hiddenDebuggingLines = new List<IToken>();      // the final stream's debugging lines that are comment (§1985:VI.7.3, kb/Work PB5990)
         var commentLines = new HashSet<int>();   // the text lines the final stream makes comment (kb/Work PB5588)
         var hiddenDebuggingSections = new List<IToken>();   // the final stream's USE FOR DEBUGGING sections made comment (kb/Work PB5986)
-        LexerErrorListener lexErrors;
+        LexerErrorListener lexErrors = null!;
         // Where the final lexer met each inline comment, for the source listing only (kb/Work PB5949).
-        List<(int Line, int Column)>? commentStarts;
-        while (true)
-        {
-            var lexer = NewLexer(text, retypes, edition);
-            lexer.CommentStarts = commentStarts = RecordsListing ? [] : null;
-            lexErrors = LexerErrorListener.AttachTo(lexer);
-            tokens = new CommonTokenStream(lexer);
-            var streamSourceLines = new List<IToken>();
-            misplacedDebuggingLines.Clear();
-            hiddenDebuggingLines.Clear();
-            commentLines.Clear();
-            hiddenDebuggingSections.Clear();
-            if (DebuggingLineRewriter.Rewrite(tokens, streamSourceLines, misplacedDebuggingLines,
-                    debuggingSectionsAreComments: ConstructRegistry.IsAvailable(edition, Constructs.UseForDebuggingRemoved2002),
-                    commentLines: commentLines, hiddenLines: hiddenDebuggingLines, hiddenSections: hiddenDebuggingSections) is not { } sourceRegionLine)
+        List<(int Line, int Column)>? commentStarts = null;
+        bool debuggingSectionsAreComments = ConstructRegistry.IsAvailable(edition, Constructs.UseForDebuggingRemoved2002);
+        // The stream every later step reads: the debugging-line step settles each lex's lines (a source region line's carrier
+        // blanked and the text lexed again), then ZERO beside an operator and the §2023:8.9 reservation gate's retype of the
+        // words the program declares where the edition frees them (kb/Work PB655; the >>COBOL-WORDS retype the lexer applied
+        // itself), in CobolTokenStream's one order (kb/Work PB2735).
+        (var tokens, text) = CobolTokenStream.Prepare(text, edition, retypes,
+            errors: () => lexErrors = new LexerErrorListener(),
+            debuggingLines: (lexed, lexedText) =>
             {
-                sourceDebuggingLines.AddRange(streamSourceLines);
-                break;
-            }
-            sourceDebuggingLines.Add(sourceRegionLine);
-            text = DebuggingLineRewriter.WithCarriersBlanked(text, [sourceRegionLine]);
-        }
+                var streamSourceLines = new List<IToken>();
+                misplacedDebuggingLines.Clear();
+                hiddenDebuggingLines.Clear();
+                commentLines.Clear();
+                hiddenDebuggingSections.Clear();
+                if (DebuggingLineRewriter.Rewrite(lexed, streamSourceLines, misplacedDebuggingLines, debuggingSectionsAreComments,
+                        commentLines: commentLines, hiddenLines: hiddenDebuggingLines, hiddenSections: hiddenDebuggingSections) is not { } sourceRegionLine)
+                {
+                    sourceDebuggingLines.AddRange(streamSourceLines);
+                    return null;
+                }
+                sourceDebuggingLines.Add(sourceRegionLine);
+                return DebuggingLineRewriter.WithCarriersBlanked(lexedText, [sourceRegionLine]);
+            },
+            rewriteZero: true, CobolTokenStream.Retype.WholeText,
+            setup: lexer => lexer.CommentStarts = commentStarts = RecordsListing ? [] : null);
         // A USE FOR DEBUGGING section the mode makes comment is still a use of the obsolete Debug module (§1985:p.XVII-86 (obsolete list item 18)): no
         // parse or bind sees it, so the one place that knows of it says so (kb/Work PB5986).
         // The header's RESULTANT position goes through the map's one conversion: a fixed-form resultant line has lost the sequence
@@ -603,10 +603,6 @@ public sealed class Frontend
         // Only the LAST lexer's errors describe the text the parse reads (kb/Work PB4233): an earlier one lexed a debugging
         // line's carrier this loop has since blanked.
         lexErrors.ReportInto(diagnostics, sourcePath, LineMap);
-        ZeroTokenRewriter.Rewrite(tokens);
-        // The §2023:8.9 reservation gate's retype of the words the program declares where the edition frees them (kb/Work PB655).
-        // (The >>COBOL-WORDS retype was applied by the lexer itself.) A no-op when no such word is declared.
-        retypes.Rewrite(tokens);
         // ISO §2023:4.2.14 — each embedded precompiler block (EXEC … END-EXEC) becomes the one token that stands for what its
         // precompiler writes, BEFORE every reader of the stream: the screens below skip its text, which is another
         // language, and every prediction of the parse sees the token (kb/Work PB4341). A no-op for a source with none.
@@ -773,15 +769,6 @@ public sealed class Frontend
             report(v.Token, $"[{v.Descriptor.Code}] {v.Message}");
     }
 
-    /// <summary>The ONE place a text gets its lexer: primed with the group's synonyms, the de-reserved words and the edition's
-    /// spellings (<see cref="TokenRetypes.PrimeLexer"/>) before any tokenization.</summary>
-    private static CobolLexer NewLexer(string text, TokenRetypes retypes, EditionInfo edition)
-    {
-        var lexer = new CobolLexer(new AntlrInputStream(text));
-        retypes.PrimeLexer(lexer, edition);
-        return lexer;
-    }
-
     /// <summary>§1985:VI.7.3, the other direction of "with or without" (kb/Work PB5990): the stream parsed clean with the
     /// <paramref name="hiddenLines"/> (the debugging lines of a unit without WITH DEBUGGING MODE, which are comment lines) as
     /// they stand; here <paramref name="text"/> is lexed again with every debugging line SOURCE
@@ -794,13 +781,16 @@ public sealed class Frontend
     {
         if (hiddenLines.Count == 0) return;   // every hidden line was a misplaced one, which COBOL7060 reports already
         var asSourceText = DebuggingLineRewriter.WithCarriersBlanked(text, sourceLines.Concat(hiddenLines));
-        var lexer = NewLexer(asSourceText, retypes, edition);
-        var lexErrors = LexerErrorListener.AttachTo(lexer);
-        var asSource = new CommonTokenStream(lexer);
-        DebuggingLineRewriter.Rewrite(asSource,
-            debuggingSectionsAreComments: ConstructRegistry.IsAvailable(edition, Constructs.UseForDebuggingRemoved2002));
-        ZeroTokenRewriter.Rewrite(asSource);
-        retypes.Rewrite(asSource);
+        var lexErrors = new LexerErrorListener();
+        // Every carrier is blanked, so the step has no region line left to send back: the stream stands as the rewriter leaves it.
+        var (asSource, _) = CobolTokenStream.Prepare(asSourceText, edition, retypes, () => lexErrors,
+            (lexed, _) =>
+            {
+                DebuggingLineRewriter.Rewrite(lexed,
+                    debuggingSectionsAreComments: ConstructRegistry.IsAvailable(edition, Constructs.UseForDebuggingRemoved2002));
+                return null;
+            },
+            rewriteZero: true, CobolTokenStream.Retype.WholeText);
         if (EmbeddedBlockReading.Read(asSource, () => ParseCopyOf(asSource.GetTokens(), retypes, edition, cobolWordsMap, sourcePath, areas).Clean).Any)
             return;
         // The screens source text gets, into a bag nothing reads: any error is a source-level refusal the line's being source causes.
@@ -823,13 +813,12 @@ public sealed class Frontend
     /// (the <c>fixed-form-text-in-area-a-2002</c> row): from COBOL-2002 on no token has one (§2023:6.3.1).</summary>
     private static CobolParserCore NewParser(CommonTokenStream tokens, EditionInfo edition, CobolWordsMap cobolWordsMap,
         FixedFormAreas areas)
-        => new(tokens)
-        {
-            Edition = edition,
-            CobolWords = cobolWordsMap,
-            AreaAOpenings = areas.LineOpeningsInAreaA(tokens.GetTokens(),
-                hasAreas: !ConstructRegistry.IsAvailable(edition, Constructs.FixedFormTextInAreaA2002)),
-        };
+    {
+        var parser = CobolTokenStream.Parser(tokens, edition, cobolWordsMap);
+        parser.AreaAOpenings = areas.LineOpeningsInAreaA(tokens.GetTokens(),
+            hasAreas: !ConstructRegistry.IsAvailable(edition, Constructs.FixedFormTextInAreaA2002));
+        return parser;
+    }
 
     /// <summary>Does the token list parse with no syntax error as it stands, and where is its first one? Asked by <see cref="EmbeddedBlockReading.Read"/> of an
     /// EXEC only the grammar can classify (kb/Work PB4381): one whole parse, the gate's loop included, of a COPY of the

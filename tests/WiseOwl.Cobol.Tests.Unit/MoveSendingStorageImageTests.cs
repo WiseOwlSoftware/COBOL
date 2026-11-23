@@ -69,8 +69,8 @@ public sealed class MoveSendingStorageImageTests
     {
         var arg = new CobolArg(CobolPassMode.Content, ManagedPointer<string>.Cell("ab"), null);
         Assert.Null(CobolArgAdapt.WithValueSending(arg).Sending!.Value.StorageImage);
-        var withImage = CobolArgAdapt.WithValueSending(arg, static t => CobolBits.NatBytes(t));
-        Assert.Equal(CobolBits.NatBytes("ab"), withImage.Sending!.Value.StorageImage);
+        var withImage = CobolArgAdapt.WithValueSending(arg, static t => NationalImage.Bytes(t));
+        Assert.Equal(NationalImage.Bytes("ab"), withImage.Sending!.Value.StorageImage);
         Assert.Equal("ab", withImage.Sending!.Value.Characters);
     }
 }

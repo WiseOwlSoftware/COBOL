@@ -1109,6 +1109,13 @@ internal static class RuntimeApi
         $"{nameof(CobolExact)}.{nameof(CobolExact.PowReal)}({exact}, {exponent}{(taken is null ? "" : ", " + taken)}"
         + $"{(negativeBaseRealRoots ? ", negativeBaseRealRoots: true" : "")})";
 
+    /// <summary>The arithmetic operator <c>**</c> on the binary64 carrier (<c>CobolPower.Binary64</c>, kb/Work PB2628), screened by
+    /// §2023:8.8.1.2 GR6; <paramref name="taken"/> is the enabled range conditions' spelling (<c>CobolPower.Binary64Checked</c>), or
+    /// null for the unchecked power.</summary>
+    public static string Binary64Pow(string b, string exponent, string? taken) => taken is null
+        ? $"{nameof(CobolPower)}.{nameof(CobolPower.Binary64)}({b}, {exponent})"
+        : $"{nameof(CobolPower)}.{nameof(CobolPower.Binary64Checked)}({b}, {exponent}, {taken})";
+
     /// <summary>A float ITEM's content as an exact value, every digit of its binary expansion (<c>CobolExact.FromBinary64</c>, kb/Work PB4730).</summary>
     public static string ExactFromBinary64(string doubleExpr) =>
         $"{nameof(CobolExact)}.{nameof(CobolExact.FromBinary64)}({doubleExpr})";
@@ -1758,7 +1765,7 @@ internal static class RuntimeApi
 
     /// <summary>A table(ALL) intrinsic argument's enumeration (ISO §2023:15.3; kb/Work PB62) — <c>CobolTable.AllArgs&lt;T&gt;</c>
     /// over one range lambda per ALL level (each <c>Func&lt;long[], long&gt;</c>, the index vector in) and the element
-    /// lambda; yields the <c>T[]</c> a <c>params T[]</c> body binds to.</summary>
+    /// lambda; yields the <c>T[]</c> a <c>params ReadOnlySpan&lt;T&gt;</c> body takes (kb/Work PB2636).</summary>
     public static string TableAllArgs(string csType, IEnumerable<string> countLambdas, string elementLambda, string? leadLambda = null) =>
         $"{nameof(CobolTable)}.{nameof(CobolTable.AllArgs)}<{csType}>(new Func<long[], long>[] {{ {string.Join(", ", countLambdas)} }}, {elementLambda}"
         + (leadLambda is null ? ")" : $", {leadLambda})");
@@ -1791,14 +1798,14 @@ internal static class RuntimeApi
     public static string FileRegisterRelative(string name, string assign, int width, string optional, int access, int keyDigits, string varyArgs, int edition, string? selectName = null) =>
         $"{nameof(CobolFile)}.{nameof(CobolFile.RegisterRelative)}({name}, {assign}, {width}, {optional}, {access}, {keyDigits}{varyArgs}{SelectNameArg(selectName)}{EditionArg(edition)})";
 
-    /// <summary>Bytes per national character position — <c>CobolBits.BytesPerNational</c> (ISO §2023:13.18.60.4 GR8
+    /// <summary>Bytes per national character position — <c>NationalImage.BytesPerNational</c> (ISO §2023:13.18.60.4 GR8
     /// leaves a national character's storage size to the implementor; D-N1 pins TWO, UTF-16BE). Re-exported
     /// through the façade for the same reason every emitted fragment routes here (the P7 Step 4b ratchet,
     /// <c>RuntimeApiGuardTests</c>): an emitter that needs the SIZE must not name the runtime member itself, or
     /// a rename stops breaking exactly one file. Used where a national POSITION count and a BYTE count meet —
     /// the §2023:14.9.41.4 GR13 START length, the national group's ODO extent, the record codec's per-occurrence
     /// stride (kb/Work PB327).</summary>
-    public const int BytesPerNational = CobolBits.BytesPerNational;
+    public const int BytesPerNational = NationalImage.BytesPerNational;
 
     /// <summary>Declare the connector's record area NATIONAL — <c>CobolFile.RegisterNationalArea</c>, emitted
     /// right after the registration (the <see cref="FileRegisterSharing"/> pattern) for exactly the files whose
@@ -3304,10 +3311,10 @@ internal static class RuntimeApi
     public static string BitsUnpack(string imageExpr, string countExpr) =>
         $"{nameof(CobolBits)}.{nameof(CobolBits.Unpack)}({imageExpr}, {countExpr})";
 
-    /// <summary>The UTF-16BE byte serialization of a national string — <c>CobolBits.NatBytes</c> (D-N1; the ONE
+    /// <summary>The UTF-16BE byte serialization of a national string — <c>NationalImage.Bytes</c> (D-N1; the ONE
     /// national→bytes reduction, shared with the runtime CONVERT NAT arm — PB59 family 5b's ANY storage channel).</summary>
     public static string NatBytes(string expr) =>
-        $"{nameof(CobolBits)}.{nameof(CobolBits.NatBytes)}({expr})";
+        $"{nameof(NationalImage)}.{nameof(NationalImage.Bytes)}({expr})";
 
     /// <summary>Read a Tier-B REDEFINES member's BIT window out of the class's ONE byte backing —
     /// <c>CobolBits.ReadWindow</c>. The §2023:13.18.44.4 GR1 storage association is stated in BITS, and
@@ -3330,25 +3337,25 @@ internal static class RuntimeApi
         $"{nameof(CobolBits)}.{nameof(CobolBits.WriteWindowInto)}({bufferExpr}, {startBitExpr}, {bitsExpr})";
 
     /// <summary>The national read of a Tier-B window over the class's one byte backing —
-    /// <c>CobolBits.NatReadWindow</c> (kb/Work PB231). A national character position occupies TWO bytes of the
+    /// <c>NationalImage.ReadWindow</c> (kb/Work PB231). A national character position occupies TWO bytes of the
     /// byte-addressed backing (ISO §2023:13.18.60.4 GR8 leaves the size to the implementor; D-N1 pins two), so the
     /// window's bytes are transcoded back to the member's value carrier — the inverse of
     /// <see cref="NatBytes"/>, and the national counterpart of <see cref="BitsReadWindow"/>. The offset is
     /// 0-BASED (the window helpers' convention, unlike the 1-based <see cref="StrRefMod"/>).</summary>
     public static string NatReadWindow(string imageExpr, string startByteExpr, string positionsExpr) =>
-        $"{nameof(CobolBits)}.{nameof(CobolBits.NatReadWindow)}({imageExpr}, {startByteExpr}, {positionsExpr})";
+        $"{nameof(NationalImage)}.{nameof(NationalImage.ReadWindow)}({imageExpr}, {startByteExpr}, {positionsExpr})";
 
     /// <summary>The national content of a WHOLE storage image, for a receiver whose length is its content's (a
-    /// dynamic-length national item, §2023:8.5.1.10.4) — <c>CobolBits.NatFromStorage</c>, an odd tail completed with the
+    /// dynamic-length national item, §2023:8.5.1.10.4) — <c>NationalImage.FromStorage</c>, an odd tail completed with the
     /// alphanumeric space (design D-N8, kb/Work PB546).</summary>
     public static string NatFromStorage(string imageExpr) =>
-        $"{nameof(CobolBits)}.{nameof(CobolBits.NatFromStorage)}({imageExpr})";
+        $"{nameof(NationalImage)}.{nameof(NationalImage.FromStorage)}({imageExpr})";
 
     /// <summary>Splice a value into a national window of the class backing, leaving every other byte untouched —
-    /// <c>CobolBits.NatWriteWindow</c>, the receiving twin of <see cref="NatReadWindow"/> (kb/Work PB231). The
+    /// <c>NationalImage.WriteWindow</c>, the receiving twin of <see cref="NatReadWindow"/> (kb/Work PB231). The
     /// fit to exactly the member's position count is the helper's, done in POSITIONS before serialization.</summary>
     public static string NatWriteWindow(string imageExpr, string startByteExpr, string positionsExpr, string valueExpr) =>
-        $"{nameof(CobolBits)}.{nameof(CobolBits.NatWriteWindow)}({imageExpr}, {startByteExpr}, {positionsExpr}, {valueExpr})";
+        $"{nameof(NationalImage)}.{nameof(NationalImage.WriteWindow)}({imageExpr}, {startByteExpr}, {positionsExpr}, {valueExpr})";
 
     /// <summary>One member's slice of an unpacked run carrier — <c>CobolBits.Slice</c>.</summary>
     public static string BitsSlice(string carrierExpr, string offsetExpr, string countExpr) =>

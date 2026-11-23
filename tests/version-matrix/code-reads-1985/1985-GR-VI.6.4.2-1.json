@@ -2,22 +2,22 @@
  "rule-id": "1985-GR-VI.6.4.2-1",
  "rule-digest": "7dd411cfab11",
  "read": {
-  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
-  "slice": "1985-194",
+  "pin": "6c1434a8b64f6ab98c130d2f7a7b49909bc50f7e",
+  "slice": "w20262147a-pb2628",
   "sources": {
-   "reader": "bdd3863e8ec76aad6f11f7e0e65a0c8963616a15ae67e48a809b4a2c0a6f76df",
-   "refuter": "10340cc44f038713176d94e3e5c8e9ab7219d8557dae7045825a145a7d1ded96"
+   "reader": "f97c085da7f3a4cc6c7afeb3b4efe7dd75304e2efa60427de0e6524eb825917e",
+   "refuter": "271823367b8c1a3d66fa1f9fa8c6a4d5fb037205c67f48ca305ea1a8f555a90f"
   },
   "imported": {
-   "reader": "a27bd8e53c12f2829e1279db55ea4537a72b82aa7230eb51f10b79f71f014074",
-   "refuter": "723bd0d59ca1498a3be31fada63d937c040d4f5f80b9ea9493f91dc68eca315d"
+   "reader": "656a64fa2b33e954a8cc6647a90d60bcf1775cad51c09f9c857bbc1e22ddbcf8",
+   "refuter": "9e3d625ad4a69e1551add6231ce019d65cb4cdda94d1f7a7b76b4f02e39a9935"
   }
  },
  "reader": {
   "rule-id": "1985-GR-VI.6.4.2-1",
   "verdict": "CONFORMS",
   "requirement": "When an exponentiation in an arithmetic expression violates §1985:VI.6.2.3 GR5 (a zero base with an exponent not greater than zero, or a negative base whose power has no real result), the arithmetic operation ends and a size error condition exists: with ON SIZE ERROR every affected resultant keeps its prior value and the phrase runs (NOT ON SIZE ERROR ignored); without the phrase the resultants are undefined and control goes to the end of the statement, the program continuing; a negative base with a real result (odd root) is no violation, and of two real results the positive one is returned (GR5b).",
-  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitArith; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#Power; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#BindPower; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.RealArgs.cs#CheckPowRule6; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.RealArgs.cs#PowNativeReal; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolExact.cs#PowReal",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitArith; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#Power; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#BindPower; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolPower.cs#ScreenRule6; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolPower.cs#Binary64; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolExact.cs#PowReal",
   "edition-consulted": [
    {
     "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#BindPower",
@@ -30,7 +30,7 @@
     "same-arm-as-latest": false
    }
   ],
-  "edition-search": "grep NegativeBaseRequiresIntegerExponent|UnphrasedSizeErrorIsFatal|SIZE-EXPONENTIATION over the compiler and runtime; the zero-base screen (CheckPowRule6) and the phrase handling with ON SIZE ERROR are the same at every edition.",
+  "edition-search": "grep NegativeBaseRequiresIntegerExponent|UnphrasedSizeErrorIsFatal|SIZE-EXPONENTIATION over the compiler and runtime; the zero-base screen (CobolPower.ScreenRule6) and the phrase handling with ON SIZE ERROR are the same at every edition.",
   "behaviour-differs-by-edition": "yes: (-8) ** 0.2 is the real root -1.5157 with NOT ON SIZE ERROR at 85 and a size error at 2023; COMPUTE X = 0 ** 0 with no phrase continues at 85 and terminates the run unit with EC-SIZE-EXPONENTIATION (fatal) at 2023.",
   "witnesses-cover": "part: g85_f04_03 covers 0 ** 0, 0 ** -2, -4 ** 0.5, a legal control and a violation inside a larger expression with the phrase; not exercised: several resultants, the unphrased statement continuing, NOT ON SIZE ERROR ignored without the phrase, odd-root negative bases (GR5b/GR5c real results) and the violation inside a relation condition.",
   "probes": [
@@ -43,7 +43,7 @@
    {
     "class": "c",
     "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-194/src/ex1.cob",
-    "printed": "--std 2023: T9 SE (X unchanged); T11 abnormal run-unit termination: EC-SIZE-EXPONENTIATION (fatal)",
+    "printed": "--std 2023: T9 SE (X unchanged); T11 abnormal run-unit termination: EC-SIZE-EXPONENTIATION (fatal): exponentiation: a zero base requires an exponent greater than zero (ISO §2023:8.8.1.2 GR6a)",
     "expected": "the later edition's arm, showing the 85 arm is distinct"
    },
    {
@@ -61,7 +61,7 @@
    {
     "class": "f",
     "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-194/src/g85_f04_03.cob",
-    "printed": "EXPECT: MATCH (g85_f04_03.out)",
+    "printed": "EXPECT: MATCH (g85_f04_03.out; stdout equal to it line for line at the pin, runs/g85_f04_03-002)",
     "expected": "the witness's derived output"
    }
   ],
@@ -83,7 +83,7 @@
     "check": "OK  §1985:VI.6.2.3 GR5c  (║6.2.3 Formation and Evaluation Rules║)  the text is in GR5c"
    }
   ],
-  "notes": "Two edition arms serve this rule at 85 and both match the 1985 text: BindPower keeps real roots of negative bases (GR5c), and EmitArith catches an unphrased size error and continues instead of raising the fatal 2002+ exception condition. With the phrase, every resultant of the statement stays unchanged and NOT ON SIZE ERROR is skipped, as GR1 and the phrase rules require.",
+  "notes": "Two edition arms serve this rule at 85 and both match the 1985 text: BindPower keeps real roots of negative bases (GR5c), and EmitArith catches an unphrased size error and continues instead of raising the fatal 2002+ exception condition. With the phrase, every resultant of the statement stays unchanged and NOT ON SIZE ERROR is skipped, as GR1 and the phrase rules require. Re-read (wave 20262147 group A, kb/Work PB2628): the zero-base screen and the binary64 power moved unchanged from CobolIntrinsics (RealArgs.cs) into the value library as CobolPower.ScreenRule6 and CobolPower.Binary64; every stored probe re-run at the pin prints what it printed at the first read.",
   "seeded": true,
   "harm": "",
   "cause": "",
@@ -97,7 +97,7 @@
   "rule-id": "1985-GR-VI.6.4.2-1",
   "refutation": "UPHELD",
   "classes": "c,f",
-  "evidence": "E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-194/src/re1.cob at --std 85 (runs/re1-001): a violation inside an intrinsic function argument, COMPUTE X = FUNCTION MAX(Z ** E, 5) with Z=0, E=-0.5 at run time, takes ON SIZE ERROR with X unchanged (V1 SE X=+00007.0000); a ROUNDED COMPUTE with (-16) ** 0.5 (no real result) takes ON SIZE ERROR, X unchanged; 16 ** 0.25 = 2 (positive root, GR5b); 0 ** 0.5 = 0 (exponent > 0, no violation, GR5a); (-27)**3/1000 = -19.683 (integer exponent of a negative base, no violation); unphrased COMPUTE X = Z ** Z continues (V6 CONTINUED); a violation inside a PERFORM UNTIL condition does not stop the run (V7 END). cite.py: OK §1985:VI.6.4.2 GR1 the text is in GR1; OK §1985:VI.6.2.3 GR5a; OK §1985:VI.6.2.3 GR5b.",
+  "evidence": "Re-ran at the pin (--std 85, runs under E:/COBOL-coord/scratch/w20262147a/runs) the first refuter's probe E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-194/src/re1.cob: V1 SE X=+00007.0000 / V2 SE X=+00007.0000 / V3 2.0000 / V4 0.0000 / V5 -19.6830 / V6 CONTINUED / V7 END, each what it printed at the first read; and the reader's ex1/ex2/ex3 (T1-T11, C1-C2, U1-U4 unchanged) and the witness g85_f04_03 (stdout equals its .out). CobolPower.ScreenRule6 is the body that stood in CobolIntrinsics.CheckPowRule6 with the same two legs (a zero base with an exponent not greater than zero; a negative base with a non-integer exponent, which at 85 is never asked: CobolPower.Binary64(double, CobolExact) asks it only for a non-negative base). cite.py: OK §1985:VI.6.4.2 GR1; OK §1985:VI.6.2.3 GR5a; OK §1985:VI.6.2.3 GR5c.",
   "edition-sites-missed": [],
   "corrected": ""
  }

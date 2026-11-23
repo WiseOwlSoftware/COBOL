@@ -62,7 +62,7 @@ public sealed class ExactCarrierBoundaryDriftTests
     };
 
     /// <summary>The closed set of exact-carrier value entries: they take and return CARRIER values only (an
-    /// <c>Int128</c> or an <c>Int128[]</c>), so every
+    /// <c>Int128</c> or a <c>ReadOnlySpan&lt;Int128&gt;</c> argument list, kb/Work PB2636), so every
     /// one of them evaluates a §2023:15.4.1 equivalent arithmetic expression on the D1 intermediate. Entries taking a
     /// scale, a count or a <c>double</c> are a different class (a rescale or a landing) and guard elsewhere.</summary>
     private static List<MethodInfo> ExactCarrierEntries() =>
@@ -70,9 +70,9 @@ public sealed class ExactCarrierBoundaryDriftTests
             .Where(m => m.ReturnType == typeof(Int128))
             .Where(m => m.GetParameters().Length > 0)
             .Where(m => m.GetParameters().All(p => p.ParameterType == typeof(Int128)
-                                                || p.ParameterType == typeof(Int128[])))
+                                                || p.ParameterType == typeof(ReadOnlySpan<Int128>)))
             .Where(m => m.GetParameters().Any(p => p.ParameterType == typeof(Int128)
-                                                || p.ParameterType == typeof(Int128[])))];
+                                                || p.ParameterType == typeof(ReadOnlySpan<Int128>)))];
 
     /// <summary>Every exact-carrier entry is either boundary-pinned by name below or exempted with a reason —
     /// the completeness half, so a NEW exact function cannot ship unguarded and unnoticed.</summary>
