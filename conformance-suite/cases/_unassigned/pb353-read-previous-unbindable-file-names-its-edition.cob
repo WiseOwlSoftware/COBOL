@@ -16,7 +16,7 @@
       *> SEQUENTIAL is specified ... the NEXT phrase is implied") makes an IMPLIED direction not a
       *> WRITTEN phrase - so only the PREVIOUS alternative gates.
       *> 8.4.2.1: the READ names no declared file, so the ONE file-name resolution step returns before
-      *> IBoundRead.Kind exists. READ ... PREVIOUS is still written.
+      *> the READ node's Kind exists. READ ... PREVIOUS is still written.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB353N3.
        ENVIRONMENT DIVISION.

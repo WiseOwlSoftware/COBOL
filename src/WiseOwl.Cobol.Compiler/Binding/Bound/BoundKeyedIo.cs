@@ -22,28 +22,13 @@ public sealed record KeyedInvalidKey(
 /// <para>⛔ ONE ENUM FOR BOTH READ NODES. It was <c>KeyedReadKind</c>, reachable only from
 /// <see cref="BoundKeyedRead"/>, while the sequential-organization <c>BoundRead</c> had no direction member at
 /// all — so <c>READ … PREVIOUS</c> on a SEQUENTIAL file bound as a forward read and the COBOL0900 edition
-/// gate, which keys on this enum, never fired (kb/Work PB334). Both nodes carry it now and both are reached
-/// through <see cref="IBoundRead"/>, so a rule written on the direction cannot be written for one organization
-/// only.</para>
+/// gate, which keyed on this enum, never fired (kb/Work PB334). Both nodes carry it now, and
+/// <c>BoundIoPhraseConsumptionDriftTests</c> holds every READ phrase to a member the emitter reads; the edition
+/// gate keys on the parse fact (<c>VersionConformancePass.VisitReadDirection</c>, kb/Work PB353).</para>
 /// <para><see cref="Random"/> is unreachable on a sequential-organization file: §2023:12.4.5.5.2 SR2 ("The DYNAMIC
 /// and RANDOM phrases shall not be specified for a sequential file") leaves only ACCESS MODE SEQUENTIAL, and
 /// §2023:14.9.30.3 SR8 then implies the NEXT phrase.</para></summary>
 public enum ReadKind { Next, Previous, Random }
-
-/// <summary>The two READ bound nodes (ISO §2023:14.9.30 Formats 1 and 2, every organization) seen through the state
-/// whose rules are ORGANIZATION-INDEPENDENT: the GR19 read kind and the GR22 ADVANCING ON LOCK phrase. Both are
-/// edition-gated constructs (<c>read-previous-2002</c>, <c>record-lock-phrase-2002</c>), and
-/// <c>VersionConformancePass.GateStatement</c> now gates them from ONE arm over this interface instead of one
-/// arm per node — which is exactly the shape kb/Work PB334 reported: the <c>BoundKeyedRead</c> arm gated
-/// PREVIOUS, the <c>BoundRead</c> arm beside it gated only ADVANCING ON LOCK, and a sequential
-/// <c>READ … PREVIOUS</c> compiled clean at <c>--std 85</c> (feedback_two_arm_dispatch).</summary>
-public interface IBoundRead
-{
-    /// <summary>The §2023:14.9.30.4 GR19 read kind — the direction phrase and the format, one fact.</summary>
-    ReadKind Kind { get; }
-    /// <summary>ADVANCING ON LOCK (§2023:14.9.30.4 GR22) — bracket 1 of §2023:14.9.30.2, a COBOL-2002 introduction.</summary>
-    bool AdvancingOnLock { get; }
-}
 
 /// <summary>The positioning basis of a START (ISO §2023:14.9.41 general format): FIRST / LAST (2002+), or the KEY
 /// relational phrase (the COBOL-85 form; KEY omitted ⇒ EQUAL on the relative key / prime key, GR8/GR15).</summary>
@@ -57,7 +42,7 @@ public enum KeyedStartMode { First, Last, Key }
 public sealed record BoundKeyedRead(
     FileModel File, ReadKind Kind, int KeyIndex, BoundMove? IntoMove,
     IReadOnlyList<BoundStatement>? AtEnd, IReadOnlyList<BoundStatement>? NotAtEnd,
-    KeyedInvalidKey? InvalidKey) : BoundStatement, IBoundRead, IBoundImplicitOperands, IBoundIntoPhrase
+    KeyedInvalidKey? InvalidKey) : BoundStatement, IBoundImplicitOperands, IBoundIntoPhrase
 {
     /// <summary>The record area the implicit INTO move sends is the verb's own, not an operand the program wrote (X3.23-1985 USE FOR
     /// DEBUGGING general rule 5: "explicitly references"); the INTO identifier is written.</summary>
