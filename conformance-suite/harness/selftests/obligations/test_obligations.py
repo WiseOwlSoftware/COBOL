@@ -25,13 +25,15 @@ class Case:
 
 
 def _row(rid, kind="GR", verdict="", ref=""):
+    """A planted row with at most ONE test-ref, so `_classify` lists it without splitting on the schema's separator
+    (DESIGN-architecture-review §8.2 rule 7: no script keeps a copy of it, kb/Work PB6098)."""
     return {"rule-id": rid, "kind": kind, "verdict": verdict, "test-ref": ref}
 
 
 def _classify(rows, cases, diagnostics=None, determined=(), derived=()):
     return {f.rule_id: f for f in T.classify(
         rows, cases, diagnostics=diagnostics or {}, determined=lambda r: r["rule-id"] in determined,
-        derived=lambda r: r["rule-id"] in derived, test_refs=lambda r: [x for x in r["test-ref"].split(";") if x])}
+        derived=lambda r: r["rule-id"] in derived, test_refs=lambda r: [r["test-ref"]] if r["test-ref"] else [])}
 
 
 FIXED = ("      *>--- conformance-case\n      *> id: a\n      *> rules: [SR-1-1]\n      *> accept: [85]\n"

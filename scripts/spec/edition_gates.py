@@ -60,7 +60,6 @@ from __future__ import annotations
 
 import argparse
 import dataclasses
-import json
 import pathlib
 import re
 import sys
@@ -444,8 +443,7 @@ def listing() -> int:
 # -- self-test ----------------------------------------------------------------------------------------------------------
 
 def self_test() -> int:
-    import copy  # noqa: PLC0415
-    from inventory_schema import SCHEMA_PATH  # noqa: PLC0415
+    from inventory_schema import raw_schema  # noqa: PLC0415
     schema = load_schema()
     fails: list[str] = []
 
@@ -546,7 +544,7 @@ def self_test() -> int:
     ok(kept == [Finding("a", "x")] and [f.where for f in rest] == ["b", "c"] and "delete its HELD_OPEN entry" in rest[1].text,
        "a finding a known defect holds open is kept apart, and an entry that finds nothing any more is itself a finding")
     # The kinds are DATA: a kind the schema alone adds, whose verdict is its own, proves an edge with no code change.
-    raw = copy.deepcopy(json.loads(SCHEMA_PATH.read_text(encoding="utf-8")))
+    raw = raw_schema()
     raw["next"]["kinds"]["SPLIT"] = {"meaning": "planted", "to": True, "reason": True, "chained": False}
     s_split = Schema(raw)
     p_split = pair_of(e85, e23, [dict(old[0], next={"kind": "SPLIT", "to": ["SR-14.9.1.3-1"]})], new, s_split)

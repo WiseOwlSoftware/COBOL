@@ -48,8 +48,8 @@ import sys
 from collections import Counter
 from typing import Any, Callable, NamedTuple
 
-from inventory_schema import (HELD, NEWEST, REPO, RETIRED_WITNESS_MARK, SCHEMA_PATH, SCHEMA_REL, Schema, StatementLoss,
-                              Tree, WitnessLoss, load_schema, statement_losses, statement_text,
+from inventory_schema import (HELD, NEWEST, REPO, RETIRED_WITNESS_MARK, Schema, StatementLoss,
+                              Tree, WitnessLoss, load_schema, raw_schema, statement_losses, statement_text,
                               witness_losses, witness_shape_error)
 from inventory_store import history_pathspecs
 from inventory_view import inventory, inventory_at
@@ -71,7 +71,7 @@ def _sep(field: str, schema) -> str:
 def schema_at(rev: str) -> Schema | None:
     """The inventory schema as committed at `rev` (its test-ref forms name the files of THAT tree), or None."""
     tree = Tree(REPO, rev)
-    raw = tree.json(SCHEMA_REL)
+    raw = raw_schema(tree)
     if raw is None:
         return None
     try:
@@ -542,7 +542,7 @@ def self_test(schema) -> int:
     owed = owed_back([("t", row["verdict"], l) for l in witness_losses(row, moved, schema, {refs[0]: moved_to})],
                      {row["rule-id"]: moved}, schema).get(row["rule-id"], {})
     verify("history replay owes back no re-spelled witness", not owed, f": owed {owed}")
-    raw = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
+    raw = raw_schema()
     raw["test-ref"]["forms"]["conformance"]["path-template"] = "tests/conformance/{0}.cob"   # the tree before S2
     old = Schema(raw)
     z = "\0".join(["R087", "tests/conformance/85/foo.cob", "conformance-suite/cases/7.2.3-COPY/foo_85.cob",
@@ -765,7 +765,7 @@ def self_test(schema) -> int:
     # kb/Work PB5822: a KEPT row's derivation OF ITS OWN, written through the one predicate (`lineage.derivation_refusals`)
     # against a planted schema whose derivation reads a fabricated register and catalog.
     from inventory_schema import DerivationRow
-    ds = Schema(json.loads(SCHEMA_PATH.read_text(encoding="utf-8")))
+    ds = Schema(raw_schema())
     assert ds.derivation is not None
     drv85 = ds.derivation.anchor_template.replace("{rule-id}", rid85)
     ds._catalog = {rid85: (1985, "The effect of the INSPECT statement on overlapping operands is undefined.")}

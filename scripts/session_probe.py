@@ -181,17 +181,11 @@ def suite() -> list[str]:
     return [f"suite  : {tests} tests · {refusals} WiseOwl refusals (conformance-suite/)"]
 
 
-# ── 5. Traceability inventory (exists after P14 Step 0) ─────────────────────────────────────────────────────────────────
-def inventory_built() -> bool:
-    return (REPO / "tests" / "version-matrix" / "inventory-schema.json").exists()
-
-
+# ── 5. Traceability inventory ──────────────────────────────────────────────────────────────────────────────────────────────
 def inventory() -> list[str]:
     """Each edition's inventory is a VIEW, its catalog joined with its store and each rule's state computed (kb/Work
     PB4992, scripts/spec/inventory_view.py): the probe prints the view's own summary, each edition's rules and GAP count
     side by side, then each edition's verdicts and its CONFORMS rows still a spec-derived test from closing."""
-    if not inventory_built():
-        return ["invent : not built yet (P14 Step 0)"]
     return py("scripts/spec/inventory_view.py", "--summary").lines
 
 
@@ -200,7 +194,7 @@ def work_next() -> list[str]:
     what led to picking PB39 (rule-id cosmetics, zero wrong answers) over PB24 (FUNCTION LENGTH silently wrong) — both are
     [MAJOR], so severity could not separate them. kb/Work/ replaced FIVE overlapping registers; this ranks on what a
     defect DOES to a user's program."""
-    if not inventory_built() or not (REPO / "kb" / "Work").is_dir():
+    if not (REPO / "kb" / "Work").is_dir():
         return []
     return py("scripts/spec/work.py", "next").lines
 
@@ -208,7 +202,7 @@ def work_next() -> list[str]:
 def work_check() -> list[str]:
     """`work.py check` only to learn whether the register has malformed items (`next` stops on an unreadable note, but a
     note that parses and breaks a rule only `check` finds). It runs beside `next`, not after it."""
-    if not inventory_built() or not (REPO / "kb" / "Work").is_dir():
+    if not (REPO / "kb" / "Work").is_dir():
         return []
     if py("scripts/spec/work.py", "check").rc != 0:
         return ["work   : the kb/Work register has malformed items - run: python scripts/spec/work.py check"]
@@ -223,8 +217,6 @@ def rendered_views() -> list[str]:
     stays clean. The conformance statement is a rendered view too (kb/Work PB5430): docs/CONFORMANCE.md from
     docs/conformance/. A render refuses to overwrite a hand-edited copy (rendered_views rule (e)), so a failure here names
     an edit to carry. The two renders run one after the other: they share the inventory's caches."""
-    if not inventory_built():
-        return []
     out = []
     if py("scripts/rendered_views.py", "conformance-burn-down").rc != 0:
         out.append("vault  : the kb/Conformance burn-down did not render - run: python scripts/rendered_views.py "

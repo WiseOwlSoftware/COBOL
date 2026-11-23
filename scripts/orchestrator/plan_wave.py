@@ -159,9 +159,10 @@ The in-flight set never reads a
 branch CLASSIFICATION: a dispatched branch with no commit classifies MERGED and one that edits only existing files
 classifies LANDED, so a classification-filtered set missed both (PB2118 Draft 7, the sixth refuter's partition lead).
 --no-branches skips the git half (a planning preview), never the dispatch ledger or the slice half. This set is the
-ADMISSION estimate; the GUARANTEE is the landing check (scripts/orchestrator/landing_check.py, run by `enqueue.py
-land`): R3 work whose ACTUAL diff leaves its declared set, or that meets another in-flight branch's, stops and re-plans
-(PB2118 Draft 9); fix lane against fix lane is never stopped there, and costs at most a conflict finisher at the merge.
+ADMISSION estimate, and git's merge is the authority on a conflict (FIRST READY LANDS, owner 2026-11-02, kb/Work
+PB4452): the landing check (scripts/orchestrator/landing_check.py, run by `enqueue.py land`) never compares a landing
+with its declared set, and R3 work whose ACTUAL diff meets another in-flight branch's by member only names that branch
+in a warning; a real conflict costs at most a conflict finisher at the merge (MANDATORY-PRACTICES L12).
 
 Without --dry-run, A PLAN THAT DOES NOT END GREEN CHANGES NO SHARED STATE (kb/Work PB3114). First, before anything is
 planned, it refuses (exit 2) a --scratch, --stop-file or --reports that is not a fleet path (coord.scratch_problem,
