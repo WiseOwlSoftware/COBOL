@@ -1,0 +1,16 @@
+{
+  "batch": [901, 902, 903, 904, 905, 906, 907, 908, 909, 910, 911, 912],
+  "pages_checked": [901, 902, 903, 904, 905, 906, 907, 908, 909, 910, 911, 912],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p906-1",
+      "page": 906,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "(3) The returned value must denote the same time as the compilation date and time if provided in the listing of the source program and in the generated object code for the source program, although their representations and precisions may differ.",
+      "markdown_says": "A-76\n\n# AMENDMENT 2: CORRECTION AMENDMENT (ANSI X3.23b-1993)",
+      "why_it_matters": "Printed page 906 (A-76) ends with rule (3) of the WHEN-COMPILED Returned Values and carries no amendment heading. The markdown adds a top-level heading '# AMENDMENT 2: CORRECTION AMENDMENT (ANSI X3.23b-1993)' after the A-76 folio, inside the Page 906 slice, and does not mark it as an editorial note. The part divider belongs before the amendment's cover (page 907), and its wording is not printed anywhere on page 906. Nothing normative is lost, but the page slice for 906 holds text the page does not print, and the part boundary falls inside the wrong page."
+    }
+  ]
+}

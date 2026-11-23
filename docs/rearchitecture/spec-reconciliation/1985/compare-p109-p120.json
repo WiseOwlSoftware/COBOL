@@ -1,16 +1,1 @@
-{
-  "batch": [109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120],
-  "pages_checked": [109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120],
-  "pages_unread": [],
-  "findings": [
-    {
-      "id": "p114-1",
-      "page": 114,
-      "kind": "image-restructured",
-      "severity": "structural",
-      "pdf_says": "Figure 1: COBOL Communication Environment - the first SEND line (below the second RECEIVE) runs through the Communication Descriptions (CD) bar diagonally down to the LEFT output queue, and the second SEND line runs through the CD bar to the RIGHT output queue; the second communication device from the top is joined by two lines through ENABLE/DISABLE, one to each of the two input queues; the third device's line runs back to the left input queue (arrowhead at the queue).",
-      "markdown_says": "│ SEND     │───│o │                 ^                           │N │        └─┘ ... │ SEND     │───│i │───────────&gt;│          │          │──────────│/ │        ┌─┐\n│          │   │c │───────────&gt;│          │          │          │D │───────&gt;│ │ ... │          │   │C │            └──────────┴──────────┘          │E │────────│ │",
-      "why_it_matters": "The ASCII redraw of Figure 1 loses connections the printed figure shows: the first SEND ends at the CD bar and reaches no output queue (both output-queue arrows come from the second SEND's row), the second device has a single line instead of one to each input queue, and the third device's link is drawn with an arrowhead toward the device from the input queue rather than into the input queue. The figure is explanatory (Concepts), so this is not a syntax rule, but a drawn figure is acceptable only if no information is lost, and here the data flow between program, queues and devices is misdrawn."
-    }
-  ]
-}
+{"batch": [109,110,111,112,113,114,115,116,117,118,119,120], "pages_checked": [109,110,111,112,113,114,115,116,117,118,119,120], "pages_unread": [], "findings": []}
