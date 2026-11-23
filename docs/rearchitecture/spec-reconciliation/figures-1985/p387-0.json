@@ -1,0 +1,16 @@
+{
+ "page": 387,
+ "figure": 0,
+ "drawn_lines": [
+  "                    ╭ <u>STANDARD-1</u>         ╮",
+  "<u>RECORD</u> <u>DELIMITER</u> IS ┤                    ├",
+  "                    ╰ implementor-name-1 ╯"
+ ],
+ "decided": "neither",
+ "figure_lines": [
+  "╔                    ╭ <u>STANDARD-1</u>         ╮ ╗",
+  "║ <u>RECORD</u> <u>DELIMITER</u> IS ┤                    ├ ║",
+  "╚                    ╰ implementor-name-1 ╯ ╝"
+ ],
+ "reason": "The printed page (VII-13) encloses all of 2.8 in one level-2 box, the general format included; the figure carries its box sides (fifth pass, kb/Work PB6051 p240-1 sibling sweep). The regeneration measures no box in the format's band, the box being the clause's; the {STANDARD-1 / implementor-name-1} brace is as printed."
+}
