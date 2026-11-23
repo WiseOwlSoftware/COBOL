@@ -13,7 +13,7 @@ this one shows how they fit and what a program pays. (kb/Work PB101, PB104, PB10
 | **Key cache** | `Collation/Cache/` | `CollationKeyCache` per collator — SORT/MERGE and INDEXED keys through it |
 | **Normalization** | `Unicode/` | `UnicodeNormalizer`: NFD (the engine's own) and NFC (the host's), `CompareNormalized` |
 | **Segmentation** | `Unicode/Segmentation/` | `GraphemeBreaker` / `GraphemeEnumerator` / `GraphemeCluster`: UAX #29 extended grapheme clusters from a derived table |
-| **Initialization** | `Collation/CollationRuntime.cs` | `Initialize()` (cheap, every run unit), `Warmup()` (eager), `Status` |
+| **Initialization** | `Control/CollationRuntime.cs` | `Initialize()` (cheap, every run unit), `Warmup()` (eager), `Status` |
 
 Data: `data/unicode/` (pinned UCD 17.0.0 + CLDR release-48-2 files, Unicode License; provenance in
 `data/unicode/SOURCES.md`); generators `scripts/collation/generate-collation-table.py`,

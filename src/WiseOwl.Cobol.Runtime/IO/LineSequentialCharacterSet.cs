@@ -78,7 +78,7 @@ public static class LineSequentialCharacterSet
             // Every unit of a national area on this channel is one BYTE of a UTF-16BE pair; a unit that is not a
             // byte image cannot form a national character (the storage-byte law, StorageByte).
             if (FileCharacterSet.HasCharacterWithoutByteImage(recordArea)) return true;
-            var chars = new char[recordArea.Length / CobolBits.BytesPerNational];
+            var chars = new char[recordArea.Length / NationalImage.BytesPerNational];
             for (int i = 0; i < chars.Length; i++)
                 chars[i] = (char)((StorageByte.ToByte(recordArea[2 * i]) << 8) | StorageByte.ToByte(recordArea[2 * i + 1]));
             return HasCharacterOutsideOfClass(chars, national: true, codeSet);

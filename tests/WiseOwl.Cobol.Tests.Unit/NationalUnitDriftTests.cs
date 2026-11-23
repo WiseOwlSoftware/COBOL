@@ -140,7 +140,7 @@ public sealed class NationalUnitDriftTests
     public void TheUnitReader_AnswersByUsage_ForEveryUsageNationalCategory()
     {
         foreach (var category in new[] { PicCategory.National, PicCategory.Boolean, PicCategory.Numeric, PicCategory.NumericEdited })
-            Assert.Equal(CobolBits.BytesPerNational,
+            Assert.Equal(NationalImage.BytesPerNational,
                 new PicInfo(category, Usage.National, 4, Digits: 0, Scale: 0, Signed: false).BytesPerPosition);
         Assert.Equal(1, new PicInfo(PicCategory.Alphanumeric, Usage.Display, 4, Digits: 0, Scale: 0, Signed: false).BytesPerPosition);
         Assert.Equal(1, new PicInfo(PicCategory.Boolean, Usage.Display, 4, Digits: 0, Scale: 0, Signed: false).BytesPerPosition);

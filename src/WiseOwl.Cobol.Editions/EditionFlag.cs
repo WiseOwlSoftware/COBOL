@@ -18,8 +18,8 @@ public enum EditionFlagKind
 
 /// <summary>
 /// ⛔ THE FACT THAT A DIAGNOSTIC IS AN EDITION FLAG (DESIGN-listing.md section 6.11; kb/Work PB5947), carried on the diagnostic
-/// from the one place the flag is raised: <see cref="ConstructRegistry.VerdictAt"/> for an obsolete or removed construct of the
-/// construct registry, <c>EditionContext.Extension</c> for a nonstandard extension of the extension register. A reader that
+/// from the one place the flag is raised: <see cref="EditionWindow.VerdictAt"/> for an obsolete or removed element of a windowed
+/// catalog (the construct registry, the intrinsic-function catalog), <c>EditionContext.Extension</c> for a nonstandard extension of the extension register. A reader that
 /// groups the flags (the listing's table of flagged constructs by edition) reads this record, never the code or the message, so
 /// a construct added to either register is flagged and grouped by construction.
 /// </summary>
@@ -32,19 +32,6 @@ public enum EditionFlagKind
 /// standard does not define it.</param>
 public sealed record EditionFlag(EditionFlagKind Kind, string Construct, string Description, int Edition)
 {
-    /// <summary>The flag of registry row <paramref name="row"/> at <paramref name="verdict"/>: obsolete as of its
-    /// <see cref="ConstructDialectStatus.ObsoleteIn"/>, removed in its <see cref="ConstructDialectStatus.RemovedIn"/>; null for a
-    /// verdict that flags nothing (in force, or not yet introduced, which is a refusal and no flag).</summary>
-    public static EditionFlag? Of(ConstructDialectStatus row, ConstructAvailability verdict) => verdict switch
-    {
-        ConstructAvailability.Obsolete => new(EditionFlagKind.Obsolete, row.Id, row.Display,
-            row.ObsoleteIn ?? throw new InvalidOperationException($"construct '{row.Id}' is obsolete at no edition")),
-        ConstructAvailability.Removed => new(EditionFlagKind.Removed, row.Id, row.Display,
-            row.RemovedIn ?? throw new InvalidOperationException($"construct '{row.Id}' is removed at no edition")),
-        ConstructAvailability.Available or ConstructAvailability.NotYetIntroduced => null,
-        _ => throw new ArgumentOutOfRangeException(nameof(verdict), verdict, "an availability with no flag decision"),
-    };
-
     /// <summary>The flag of extension register row <paramref name="row"/>, used in a compilation of the edition whose year
     /// <c>--std</c> spells as <paramref name="edition"/>.</summary>
     public static EditionFlag Of(NonstandardExtension row, int edition) =>
@@ -52,7 +39,8 @@ public sealed record EditionFlag(EditionFlagKind Kind, string Construct, string 
 }
 
 /// <summary>The construct registry's answer for one construct at one edition, when it reports anything
-/// (<see cref="ConstructRegistry.VerdictAt"/>): the severity, the code and, for an obsolete or removed construct, the flag.</summary>
+/// (<see cref="EditionWindow.VerdictAt"/>, for the construct registry <see cref="ConstructRegistry.VerdictAt"/>): the severity, the code
+/// and, for an obsolete or removed element, the flag.</summary>
 /// <param name="Availability">The construct's availability at the edition: never <see cref="ConstructAvailability.Available"/>.</param>
 /// <param name="Severity">Error or warning, from <see cref="EditionSeverityPolicy"/>.</param>
 /// <param name="Code">The code the report carries.</param>

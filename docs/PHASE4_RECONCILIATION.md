@@ -1000,7 +1000,7 @@ both ways); negative corpus +1 (based-level-05).
   extent — which is exactly the "per-item byte offsets + UTF-16BE cell images" this ledger entry named as the
   real fix. The class walk's per-member advance became ONE authority (`DataBinder.ClassExtentBits` →
   `BitLayout.WidthBits`), the class width and the in-class OCCURS stride became `ByteWidth`, and
-  `Place.NationalWindow` transcodes the pair through `CobolBits.NatReadWindow`/`NatWriteWindow`. Positive
+  `Place.NationalWindow` transcodes the pair through `NationalImage.ReadWindow`/`NatWriteWindow`. Positive
   witnesses `conformance:cases/14.9.3-ALLOCATE/pb231_based_bit_leaf`, `conformance:cases/14.9.3-ALLOCATE/pb231_based_national_leaf`,
   `conformance:cases/14.9.3-ALLOCATE/pb231_national_byte_window`; drift pin `ByteWindowResidueDriftTests`. ⛔ The pointer/
   object-class leaf — the third and last — is **DISCHARGED TOO** (kb/Work PB231, 2026-09-05): it is the one

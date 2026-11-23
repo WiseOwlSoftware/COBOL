@@ -89,37 +89,29 @@ public static class CobolKeywordTokens
     /// <para>Conditions for an answer to count, all checked: the lexer consumed the WHOLE word as ONE
     /// default-channel token, reported no error, and produced something other than <c>IDENTIFIER</c>. Anything
     /// else (a word that lexes as two tokens, a literal, an error) answers 0 — the conservative direction, since
-    /// 0 routes the word to the name-level mechanism rather than retyping the wrong tokens. The probe runs the
-    /// same <see cref="CobolLexer"/> the pipeline runs, over free-form text, exactly as
-    /// <c>Frontend.LexAndParse</c> constructs it.</para>
+    /// 0 routes the word to the name-level mechanism rather than retyping the wrong tokens. The probe's stream is
+    /// the pipeline's (<see cref="CobolTokenStream.Prepare"/>), with no word decision (<see cref="TokenRetypes.None"/>)
+    /// at the newest edition: which token a keyword's spelling makes is the lexer's vocabulary, the same at every
+    /// edition (an edition's Annex C spelling changes only an IDENTIFIER, which answers 0 here).</para>
     /// </summary>
     private static int LexProbe(string word)
     {
         if (word.Length == 0 || !char.IsLetter(word[0])) return 0;
         foreach (char c in word)
             if (!char.IsLetterOrDigit(c) && c != '-' && c != '_') return 0;
-        var lexer = new CobolLexer(new Antlr4.Runtime.AntlrInputStream(word));
-        lexer.RemoveErrorListeners();
-        var sink = new CountingErrorListener();
-        lexer.AddErrorListener(sink);
-        var tokens = new Antlr4.Runtime.CommonTokenStream(lexer);
+        var flag = new SyntaxErrorFlag();
+        var (tokens, _) = CobolTokenStream.Prepare(word, EditionInfo.Latest, TokenRetypes.None, () => flag,
+            CobolTokenStream.NoDebuggingLines, rewriteZero: false, CobolTokenStream.Retype.WholeText);
         tokens.Fill();
         var onChannel = tokens.GetTokens()
             .Where(t => t.Channel == Antlr4.Runtime.Lexer.DefaultTokenChannel
                         && t.Type != Antlr4.Runtime.TokenConstants.EOF)
             .ToList();
-        if (sink.Count > 0 || onChannel.Count != 1) return 0;
+        if (flag.HasError || onChannel.Count != 1) return 0;
         var tok = onChannel[0];
         if (tok.Type == CobolLexer.IDENTIFIER) return 0;
         if (tok.StartIndex != 0 || tok.StopIndex != word.Length - 1) return 0;
         return tok.Type;
-    }
-
-    private sealed class CountingErrorListener : Antlr4.Runtime.IAntlrErrorListener<int>
-    {
-        public int Count { get; private set; }
-        public void SyntaxError(TextWriter output, Antlr4.Runtime.IRecognizer recognizer, int offendingSymbol,
-            int line, int charPositionInLine, string msg, Antlr4.Runtime.RecognitionException e) => Count++;
     }
 
     /// <summary>The IDENTIFIER token type — the user-word type the rewriter retypes UNDEFINE/SUBSTITUTE keywords

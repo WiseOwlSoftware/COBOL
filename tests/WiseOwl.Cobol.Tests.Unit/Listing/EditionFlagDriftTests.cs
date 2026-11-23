@@ -53,7 +53,7 @@ public sealed class EditionFlagDriftTests
                     var edition = EditionInfo.Of(year, permissive);
                     var sink = new Captured();
                     ConstructRegistry.Check(edition, sink, row.Id, "here");
-                    var availability = row.StatusAt(year);
+                    var availability = row.Window.StatusAt(year);
                     EditionFlag? expected = availability switch
                     {
                         ConstructAvailability.Obsolete => new(EditionFlagKind.Obsolete, row.Id, row.Display, row.ObsoleteIn!.Value),
@@ -96,12 +96,12 @@ public sealed class EditionFlagDriftTests
     }
 
     /// <summary>The funnels, each the one place its code is named: the codes' declarations and the descriptors, the registry's verdict
-    /// and its rows, and the binder's extension seam.</summary>
+    /// and its rows, the edition window's verdict, and the binder's extension seam.</summary>
     private static readonly IReadOnlyDictionary<string, string> Funnels = new Dictionary<string, string>(StringComparer.Ordinal)
     {
         ["WiseOwl.Cobol.Editions/EditionCodes.cs"] = "declares COBOL0902 and COBOL0903",
         ["WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs"] = "declares the descriptors of the flag codes",
-        ["WiseOwl.Cobol.Editions/ConstructRegistry.cs"] = "VerdictAt: the code and the flag of an obsolete or removed construct",
+        ["WiseOwl.Cobol.Editions/EditionWindow.cs"] = "VerdictAt: the code and the flag of an obsolete or removed element of every windowed catalog (kb/Work PB2620)",
         ["WiseOwl.Cobol.Editions/ConstructRegistry.g.cs"] = "the registry's rows, each pinning its code (data VerdictAt reads)",
         ["WiseOwl.Cobol.Compiler/Binding/EditionContext.cs"] = "Extension: the code and the flag of a nonstandard extension",
     };
@@ -119,7 +119,7 @@ public sealed class EditionFlagDriftTests
             findings.AddRange(FlagCodeNames(rel, File.ReadAllText(file)));
         }
         Assert.True(findings.Count == 0, "a source outside the funnels names an edition flag's code, so it can report a flag that "
-            + "carries no EditionFlag (DESIGN-listing.md section 6.11): report it through ConstructRegistry.VerdictAt or "
+            + "carries no EditionFlag (DESIGN-listing.md section 6.11): report it through EditionWindow.VerdictAt or "
             + "EditionContext.Extension\n" + string.Join("\n", findings));
         foreach (string funnel in Funnels.Keys) Assert.True(File.Exists(Path.Combine(root, funnel)), $"the funnel {funnel} does not exist");
     }

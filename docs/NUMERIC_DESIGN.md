@@ -420,7 +420,7 @@ final transfer by `NumericRenderer.Settle` when `ReceiverContext.LandsAsBinary64
 truncated, sat one binary64 below the item. A binary64 intermediate lands in a binary64
 receiver unchanged under every mode. **The binary64 lane's operations are checked like the scaled lane's** where
 size-error checking is enabled (`CobolFloat.AddChecked`/`SubChecked`/`MulChecked`/`DivChecked`,
-`PowNativeRealChecked`, kb/Work PB1147/PB1581): a zero divisor is EC-SIZE-ZERO-DIVIDE (§2023:14.7.5 case 2) and a result
+`CobolPower.Binary64Checked`, kb/Work PB1147/PB1581): a zero divisor is EC-SIZE-ZERO-DIVIDE (§2023:14.7.5 case 2) and a result
 outside binary64 is EC-SIZE-OVERFLOW / -UNDERFLOW (case 5) through the one `CobolFloat.InBinary64Range` the float
 intrinsic family shares; unchecked the sum, difference and product are the bare IEEE operators and the quotient is
 `CobolFloat.Div`. **A zero divisor raises in EVERY lane, checked or not** (kb/Work PB1605): `CobolNum.Divide`,
@@ -1021,7 +1021,9 @@ requirements whose violation sets EC-SIZE-EXPONENTIATION, Fatal in Table 14. `Co
 since it was written; every NATIVE arm went straight to `System.Math.Pow` with no rule-6 check, so the same
 program answered differently depending only on whether an ARITHMETIC clause was present — `0 ** 0` returned
 **1** (IEEE's convention, not COBOL's) and `-2 ** 0.5` returned **0** (`Math.Pow` yields NaN and the quantizer
-turned it into zero), both silently. One screen, `CheckPowRule6`, now runs on every native arm.
+turned it into zero), both silently. One screen, `CobolPower.ScreenRule6`, now runs on every carrier's power: the native binary64
+arm (`CobolPower.Binary64`), the exact integer power (`CobolExact.Pow`) and the standard-decimal `CobolDec.Pow` (kb/Work PB2628
+moved the operator out of the intrinsic class into the value library and deleted `CobolDec.Pow`'s second copy of the screen).
 **r6b** is a selection rule, not a screen ("if the evaluation yields both a positive and a negative real number,
 the value returned is the positive number") and cannot arise here — both bodies yield a single value. Checked in
 the same pass rather than left to be discovered as a fourth leg.
@@ -1032,10 +1034,10 @@ integer-exponent rule (§2002:F.1 item 14). So at `--std 85` `(-32) ** 0.2` is �
 is `DialectBehavior.NegativeBaseRequiresIntegerExponent` (VCR row 7.67), read once by `ExpressionBinder.BindPower` into
 `BoundPower.NegativeBaseRealRoots`. Whether a real result exists is a property of the exponent's EXACT value, which its binary64
 cannot carry (0.2 is not 1/5), so at 85 `NumericRenderer.Power` hands the exponent to the runtime as a `CobolExact`
-(`CobolIntrinsics.PowNativeReal(double, CobolExact)` and its checked twin, and `CobolExact.PowReal`'s `negativeBaseRealRoots`
+(`CobolPower.Binary64(double, CobolExact)` and its checked twin, and `CobolExact.PowReal`'s `negativeBaseRealRoots`
 arm for an exact operand): the exponent `U × 10^−s` is p/q in lowest terms with q odd exactly when 2^s divides U
 (`CobolExact.HasOddDenominator`), and the power is then `±|b|^(p/q)`, negative when p is odd. The zero-base rule is the same in
-every edition and stays `CheckPowRule6`'s; the standard-arithmetic `CobolDec.Pow` is unreachable at 85 (no ARITHMETIC clause).
+every edition and stays `CobolPower.ScreenRule6`'s; the standard-arithmetic `CobolDec.Pow` is unreachable at 85 (no ARITHMETIC clause).
 
 **⛔ THE VALUE PAST THE CARRIER IS ONE EXACT VALUE, AND THERE IS ONE ARM FAMILY (kb/Work PB69, 2026-08-18; PB4569, 2026-11-04).**
 `PowNativeInt` — the Int128-returning literal-exponent twin — is deleted. Its past-the-carrier fallback SATURATED to
@@ -1220,7 +1222,7 @@ digits though the value may fit, as `2 ** 130`): for an integer or exact base (`
 `CobolBig` past it — and the same `CobolExact.Pow` for a scaled or SDIDI base (`CobolIntrinsics.PowNativeDec` and its
 round-to-odd product chain are deleted, with `CobolDec.MulToOdd` and `RuntimeApi.DecMulToOdd`). `CobolExact.Pow` owns its scale at run time: the exact power (the wide lane, then
 `CobolBig.Pow`, `mpz_pow_ui` with scale × n), the reciprocal `1 / (b ** |e|)` of §2023:8.8.1.5.4 GR3 for a negative exponent (one
-rounding of the exact quotient), and `CheckPowRule6`'s §2023:8.8.1.2 rule-6 screen. A power past 77 digits is therefore ONE rounding
+rounding of the exact quotient), and `CobolPower.ScreenRule6`'s §2023:8.8.1.2 rule-6 screen. A power past 77 digits is therefore ONE rounding
 of the exact power, round-to-odd, which is what every receiver of at most 32 digit positions sees as the exact value
 (`2.5 ** 100` is …0125, not the chain's …0127; `1.01 ** 119` is …851, not …852; kb/Work PB4587). Under
 STANDARD-DECIMAL the power is `CobolDec.Pow` (§2023:8.8.1.5.4 2 e), 34 digits, unchanged: `2 ** 130` is 1.361129467683753853853498429727073E+39.

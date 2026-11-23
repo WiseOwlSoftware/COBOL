@@ -165,11 +165,11 @@ public sealed class RunUnitStateDriftTests
     {
         ["WiseOwl.Cobol.Runtime.IO.StandardStreams::_applied"] =
             "the console encoding is a property of the PROCESS's standard streams, applied once",
-        ["WiseOwl.Cobol.Runtime.Collation.CollationRuntime::s_initialized"] =
+        ["WiseOwl.Cobol.Runtime.CollationRuntime::s_initialized"] =
             "idempotence latch for the process-wide collation subsystem initialization",
-        ["WiseOwl.Cobol.Runtime.Collation.CollationRuntime::s_hostConfigured"] =
+        ["WiseOwl.Cobol.Runtime.CollationRuntime::s_hostConfigured"] =
             "records that the HOST configured the process-wide collation caches",
-        ["WiseOwl.Cobol.Runtime.Collation.CollationRuntime::s_lastWarmup"] =
+        ["WiseOwl.Cobol.Runtime.CollationRuntime::s_lastWarmup"] =
             "diagnostic status of the process-wide collation warm-up",
         ["WiseOwl.Cobol.Runtime.Collation.Cache.CollationKeyCache::s_defaultConfig"] =
             "process-wide cache sizing for collation keys derived from immutable collators",
@@ -253,6 +253,8 @@ public sealed class RunUnitStateDriftTests
             "memo of monetary facts, keyed by the (immutable) LocaleFacts object",
         ["WiseOwl.Cobol.Runtime.Globalization.TimeFacts::s_cache"] =
             "memo of LC_TIME facts, keyed by the (immutable) LocaleFacts object",
+        ["WiseOwl.Cobol.Runtime.CobolDate::Formats"] =
+            "memo of parsed §2023:15.3 date/time formats, keyed by the format literal (§2023:15.40.3 AR1): derived from the string alone, bounded (kb/Work PB2637)",
         ["WiseOwl.Cobol.Runtime.Exceptions.EcCheckingProfile::Cache"] =
             "memo of checking profiles, keyed by the profile's immutable name",
         ["WiseOwl.Cobol.Runtime.Exceptions.ExceptionCatalog::Table"] =

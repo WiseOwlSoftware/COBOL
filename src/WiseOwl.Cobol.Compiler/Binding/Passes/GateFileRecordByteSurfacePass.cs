@@ -40,7 +40,7 @@ internal sealed class GateFileRecordByteSurfacePass : IBindPass
     /// §2023:13.18.60.3 SR15 refuse it in the file section.</para>
     /// <para>NATIONAL now RIDES: a national character position occupies two bytes, high-order first
     /// (§2023:13.18.60.4 GR8 leaves the size to the implementor — D-N1 pins two), which the codec composes through
-    /// <c>CobolBits.NatBytes</c> and decodes through <c>CobolBits.NatReadWindow</c>. What the fold refuses is what
+    /// <c>NationalImage.Bytes</c> and decodes through <c>NationalImage.ReadWindow</c>. What the fold refuses is what
     /// the predicate refuses everywhere else: a pointer/object-class leaf, and a leaf with no bound
     /// representation.</para></summary>
     public void Run(DataBinder binder)

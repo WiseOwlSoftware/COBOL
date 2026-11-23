@@ -466,7 +466,7 @@ public sealed record BitWindow(Position Offset, int Bits) : WindowCoding
 /// <summary>A <see cref="RedefViewPlace"/>'s NATIONAL window (kb/Work PB231 — RESIDUE-11): the member occupies
 /// <see cref="RedefViewPlace.Width"/> bytes of the backing, two per national character position (ISO
 /// §2023:13.18.60.4 GR8 leaves the size to the implementor; D-N1 pins two), holding the UTF-16BE serialization
-/// <c>CobolBits.NatBytes</c> already defines for every other national storage channel. <paramref name="Positions"/>
+/// <c>NationalImage.Bytes</c> already defines for every other national storage channel. <paramref name="Positions"/>
 /// is the character-position count the member's VALUE carrier holds — <c>Width / 2</c>, carried explicitly so the
 /// renderer never re-derives it.</summary>
 public sealed record NationalWindow(int Positions) : WindowCoding
@@ -939,8 +939,8 @@ public sealed record NumericImagePlace(Place Inner) : PlaceDecorator(Inner);
 /// A NATIONAL elementary cell viewed as the STORAGE BYTES its character positions occupy — UTF-16BE pairs, two per
 /// position (D-N1) — for a level-66 RENAMES THROUGH alias, which ISO §2023:13.18.45.4 GR2 makes "an alphanumeric group
 /// item" over the record's storage (kb/Work PB1665, PB2466). Reading serializes the cell's characters
-/// (<c>CobolBits.NatBytes</c>); writing decodes the byte image back into the cell's positions
-/// (<c>CobolBits.NatReadWindow</c>, the one inverse). The alias composes its spanned leaves through this view, and a
+/// (<c>NationalImage.Bytes</c>); writing decodes the byte image back into the cell's positions
+/// (<c>NationalImage.ReadWindow</c>, the one inverse). The alias composes its spanned leaves through this view, and a
 /// part that covers only some of a national cell's bytes is a <see cref="RefModPlace"/> over it in BYTES — which is
 /// how a window boundary, or an interior byte, on the odd byte of a national character is addressed: the bytes the
 /// alias renames, never a fraction of a character position. The national twin of <see cref="NumericImagePlace"/>'s

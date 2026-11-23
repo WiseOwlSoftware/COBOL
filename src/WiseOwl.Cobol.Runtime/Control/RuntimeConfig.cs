@@ -96,7 +96,7 @@ public static class RuntimeConfig
         new(CollationRuntime.WarmupVariable, "collation",
             "decode the collation, grapheme and CLDR tables and resolve the default locale EAGERLY when the first run unit is created (CollationRuntime.Warmup) instead of lazily on first use",
             "any value except 0 | false | off | no = warm up; unset = lazy",
-            typeof(CollationRuntime), "Collation/CollationRuntime.cs"),
+            typeof(CollationRuntime), "Control/CollationRuntime.cs"),
 
         // ── clock (IO/Clock.cs — the run unit's clock seam) ──
         new(SystemClock.PinVariable, "clock",

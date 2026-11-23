@@ -575,7 +575,7 @@ public sealed class FileBoundaryTests : IDisposable
         Assert.Equal(text, LineSequentialEncoding.FromChannel(channel, nationalArea: false));
         Assert.Equal("caf\uDCE9", LineSequentialEncoding.FromChannel("caf\u00E9", nationalArea: false));   // Latin-1 é
         Assert.Equal("\uDCE2\uDC82", LineSequentialEncoding.FromChannel("\u00E2\u0082", nationalArea: false));   // torn €
-        string pairs = CobolBits.NatBytes(Euro + "A");
+        string pairs = NationalImage.Bytes(Euro + "A");
         Assert.Equal("\u00E2\u0082\u00ACA", LineSequentialEncoding.ToChannel(pairs, nationalArea: true));
         Assert.Equal(pairs, LineSequentialEncoding.FromChannel("\u00E2\u0082\u00ACA", nationalArea: true));
         Assert.Throws<InvalidOperationException>(() => LineSequentialEncoding.ToChannel("A\uD83D", nationalArea: false));
@@ -590,7 +590,7 @@ public sealed class FileBoundaryTests : IDisposable
         string text = "h" + EAcute + Euro + "￿😀";
         Assert.Equal(LineSequentialEncoding.ToChannel(text, nationalArea: false).Length,
             LineSequentialEncoding.ChannelLength(text, nationalArea: false));
-        string pairs = CobolBits.NatBytes(Euro + "A");
+        string pairs = NationalImage.Bytes(Euro + "A");
         Assert.Equal(LineSequentialEncoding.ToChannel(pairs, nationalArea: true).Length,
             LineSequentialEncoding.ChannelLength(pairs, nationalArea: true));
         Assert.Equal(2, LineSequentialEncoding.ChannelLength("A\uD83D", nationalArea: false));       // lone high surrogate: 1 byte

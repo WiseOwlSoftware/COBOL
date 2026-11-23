@@ -72,19 +72,8 @@ public sealed record ConstructDialectStatus(
     /// <c>&gt;&gt;POP</c> naming the directive inherits the rule (§2023:7.3.20.3 SR2, §2023:7.3.22.3 SR2).</summary>
     public DirectivePlacement? Placement { get; init; }
 
-    /// <summary>True when the construct is IN FORCE at <paramref name="edition"/>: introduced and not yet removed, whether or
-    /// not flagged obsolete. An obsolete element is still a supported one (§1985:I.1.5.2.3: "A conforming implementation of
-    /// Standard COBOL is required to support obsolete language elements"), so <see cref="ConstructAvailability.Obsolete"/> is
-    /// in force: the ONE spelling of that rule for every site that branches on the edition fact.</summary>
-    public bool IsInForceAt(int edition) =>
-        StatusAt(edition) is ConstructAvailability.Available or ConstructAvailability.Obsolete;
-
-    /// <summary>The availability verdict at <paramref name="edition"/>.</summary>
-    public ConstructAvailability StatusAt(int edition)
-    {
-        if (edition < IntroducedIn) return ConstructAvailability.NotYetIntroduced;
-        if (RemovedIn is { } r && edition >= r) return ConstructAvailability.Removed;
-        if (ObsoleteIn is { } o && edition >= o) return ConstructAvailability.Obsolete;
-        return ConstructAvailability.Available;
-    }
+    /// <summary>The row's edition window (<see cref="IntroducedIn"/>, <see cref="RemovedIn"/>, <see cref="ObsoleteIn"/>): its
+    /// availability at an edition and the verdict its gate reports are the window's, the same for every catalog that carries
+    /// one (kb/Work PB2620).</summary>
+    public EditionWindow Window => new(IntroducedIn, RemovedIn, ObsoleteIn);
 }

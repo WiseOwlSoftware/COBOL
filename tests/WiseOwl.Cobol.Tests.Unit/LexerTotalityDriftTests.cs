@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Common;
 using WiseOwl.Cobol.Frontend.Diagnostics;
@@ -112,9 +113,9 @@ public sealed class LexerTotalityDriftTests
     [Fact]
     public void ALexerError_IsReportedAsCobol5704()
     {
-        var lexer = new CobolLexer(new AntlrInputStream("A"));
-        var listener = LexerErrorListener.AttachTo(lexer);
-        Assert.Single(lexer.ErrorListeners);   // ANTLR's console listener is gone
+        var listener = new LexerErrorListener();
+        var lexer = CobolTokenStream.Lexer("A", TokenRetypes.None, EditionInfo.Latest, listener);
+        Assert.Same(listener, Assert.Single(lexer.ErrorListeners));   // the one construction drops ANTLR's console listener
         listener.SyntaxError(TextWriter.Null, lexer, 0, 3, 7, "token recognition error at: '.'", null!);
         var bag = new DiagnosticBag();
         listener.ReportInto(bag, "p.cob", SourceLineMap.Identity("p.cob", 5));

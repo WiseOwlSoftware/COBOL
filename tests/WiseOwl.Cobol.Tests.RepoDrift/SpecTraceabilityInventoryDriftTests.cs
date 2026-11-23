@@ -74,8 +74,10 @@ public sealed class SpecTraceabilityInventoryDriftTests
     private static readonly TreeScope TestSources = new(Under: ["tests/"], Kinds: [".cs"]);
 
     /// <summary>The grammar a row's prose describes: every committed <c>.g4</c> of the frontend (the tracked tree, so the
-    /// ANTLR task's build copies under <c>obj/</c> are not read twice).</summary>
-    private static readonly TreeScope GrammarSources = new(Under: ["src/WiseOwl.Cobol.Frontend/Grammar/"], Kinds: [".g4"]);
+    /// ANTLR task's build copies under <c>obj/</c> are not read twice), and the two recognizers' hand-written superclasses,
+    /// which hold the members a grammar's actions and predicates call (a <c>CobolLexer.g4#Member</c> witness names a member
+    /// that moved there with the lexer's <c>@members</c>, kb/Work PB2726: moved, not deleted).</summary>
+    private static readonly TreeScope GrammarSources = new(Under: ["src/WiseOwl.Cobol.Frontend/Grammar/", "src/WiseOwl.Cobol.Frontend/Parsing/CobolLexerBase.cs", "src/WiseOwl.Cobol.Frontend/Parsing/CobolParserCoreBase.cs"], Kinds: [".g4", ".cs"]);
 
     /// <summary>The compiler's C# sources: the population the two resolvers' declared names are compared over (kb/Work PB5863).</summary>
     private static readonly TreeScope CompilerSources = new(Under: ["src/"], Kinds: [".cs"]);
@@ -2191,8 +2193,10 @@ public sealed class SpecTraceabilityInventoryDriftTests
     public void NoRowsProse_NamesAGrammarRule_ARetirementRecordsAsDeleted()
     {
         var rows = LoadInventory();
+        // A grammar's code is its text without comments; a recognizer superclass's is its C# tokens (CSharpSymbolsOf).
         IReadOnlyList<string> grammar = [.. TrackedTree.Files(GrammarSources)
-            .Select(rel => CodeText(Path.Combine(TestRepo.Root, rel.Replace('/', Path.DirectorySeparatorChar))))];
+            .Select(rel => Path.Combine(TestRepo.Root, rel.Replace('/', Path.DirectorySeparatorChar)))
+            .Select(path => path.EndsWith(".cs", StringComparison.OrdinalIgnoreCase) ? CSharpSymbolsOf(path).Code : CodeText(path))];
         Assert.True(grammar.Count > 0, "no grammar file under " + GrammarSources.Under[0] + " - the sweep would call every rule deleted");
         var bad = RetiredGrammarRulesNamedInProse(rows, LoadSchema(), grammar);
         Assert.True(bad.Count == 0, Report("row(s) whose notes name a deleted grammar rule", bad, rows.Count));
