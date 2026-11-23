@@ -25,6 +25,9 @@ null, so `ProgramVisibleFrom` asks arm 4 (§2023:8.4.6.3 SR3) alone. The reviewe
 `g2002-call-as-nested-any-length-using-refused` and `g2002-call-as-nested-any-length-returning-refused` (refused COBOL5981 at 2002);
 `pb609-call-restricted-program-pointer-signature`'s refusal narrowed to 2014 and 2023; `ListingCallGraphTests.AMethodsLiteral_ReachesAnOutermostProgramOfTheGroup`.
 Rows re-verdicted CONFORMS through one `record_verdicts` batch: 2002-GR-14.8.4.3-7 and 2002-SR-14.8.4.2-10 (2002 GAP 1147 to 1145).
+The lineage screen places both members in §2002:14.8.4 (`lineage-screen-triggers-2002.json`), and a second batch answers the new
+behaviour-switch flag on the seven stored 2002 CALL change records it reaches (SR14, SR15, SR17, SR18, SR20, SR21, GR6: none reads
+either switch).
 
 **Sibling sweep.** The SET program-pointer screen's SR22 is in 2002 as §2002:14.8.35.2 SR21, so it has no edition gap. The ANY LENGTH
 rules of the three ISO editions differ only at CALL.
