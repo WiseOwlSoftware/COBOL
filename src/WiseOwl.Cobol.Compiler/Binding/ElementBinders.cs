@@ -37,7 +37,7 @@ internal sealed class ElementBinders
     /// <summary>Record <paramref name="unit"/>'s binders (once).</summary>
     public ElementBinding Add(BoundUnit unit, DataBinder data)
     {
-        var binding = new ElementBinding(data, new ReferenceResolver(data));
+        var binding = new ElementBinding(data, new ReferenceResolver(data, site: null));
         _units.Add(unit, binding);
         return binding;
     }
@@ -45,7 +45,7 @@ internal sealed class ElementBinders
     /// <summary>Record the OBJECT half's binders of <paramref name="cls"/> (once).</summary>
     public ElementBinding AddObject(OoClassUnit cls, DataBinder data)
     {
-        var binding = new ElementBinding(data, new ReferenceResolver(data));
+        var binding = new ElementBinding(data, new ReferenceResolver(data, site: null));
         _objects.Add(cls, binding);
         return binding;
     }
@@ -53,7 +53,7 @@ internal sealed class ElementBinders
     /// <summary>Record the FACTORY half's binders of <paramref name="cls"/> (once).</summary>
     public ElementBinding AddFactory(OoClassUnit cls, DataBinder data)
     {
-        var binding = new ElementBinding(data, new ReferenceResolver(data));
+        var binding = new ElementBinding(data, new ReferenceResolver(data, site: null));
         _factories.Add(cls, binding);
         return binding;
     }

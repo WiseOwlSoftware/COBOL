@@ -179,9 +179,9 @@ internal sealed class OoDriver(BindSession session)
         // §2023:12.3.8.4 GR10a / GR11 a): "specified PREVIOUSLY" is relative to the class definition whose REPOSITORY
         // paragraph holds the specifier (kb/Work PB989) — an expansion's text starts where its skeleton does.
         int position = session.Sources.Of(cls.Symbol).Start.StartIndex;
-        var (data, refs) = session.Binders.ObjectOf(cls);
+        var data = session.Binders.ObjectOf(cls).Data;
         data.Symbols.ResolveFunctionPrototypes(unit: null, repository, position, session.Binders);
-        var binder = new StatementBinder(data, refs)
+        var binder = new StatementBinder(data)
         {
             OoClasses = session.OoClasses,
             OoCurrentClass = cls.Symbol,   // the SELF/SUPER resolution root (§2023:8.4.3.8; slice 3b)
@@ -195,9 +195,9 @@ internal sealed class OoDriver(BindSession session)
 
         // The FACTORY roster binds through a SEPARATE binder over the factory forest, with the factory
         // SELF/SUPER context (§2023:14.9.23.3 SR4f/h; §2023:16.2.1 SELF|SUPER "NEW" — OoInFactory).
-        var (fdata, frefs) = session.Binders.FactoryOf(cls);
+        var fdata = session.Binders.FactoryOf(cls).Data;
         fdata.Symbols.ResolveFunctionPrototypes(unit: null, repository, position, session.Binders);
-        var fbinder = new StatementBinder(fdata, frefs)
+        var fbinder = new StatementBinder(fdata)
         {
             OoClasses = session.OoClasses,
             OoCurrentClass = cls.Symbol,

@@ -766,12 +766,12 @@ internal sealed class BinderDriver
     /// definition or prototype §2023:12.3.8.4 GR11 a) / b) selects as of this unit's position (§2023:8.4.3.2.4 GR1).</summary>
     private static void BindUnitProcedure(BoundUnit unit, BindSession session, IReadOnlyList<BoundUnit> group)
     {
-        var (data, refs) = session.Binders.Of(unit);
+        var data = session.Binders.Of(unit).Data;
         // The unit's user-defined functions (§2023:12.3.8.4 GR11, plus §2023:8.4.6.6's containing function definition: inside a
         // function definition its OWN name is a referable function-prototype-name, and §2023:12.3.8.3 SR11 makes a present
         // self-entry a no-op), the symbol table's (DESIGN-listing.md section 6.7.1, step 6b slice 7).
         data.Symbols.ResolveFunctionPrototypes(unit, session.Repository, unit.SourcePosition, session.Binders);
-        var binder = new StatementBinder(data, refs)
+        var binder = new StatementBinder(data)
         {
             OoClasses = session.OoClasses,
             // ISO §2023:14.2.2 SR10's enumeration of the five source elements that may carry a Format-1/2 procedure

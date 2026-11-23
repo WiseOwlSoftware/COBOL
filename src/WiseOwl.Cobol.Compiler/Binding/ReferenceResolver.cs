@@ -37,22 +37,64 @@ using WiseOwl.Cobol.Symbols;
 /// <see cref="Counters"/> (the REPORT SECTION sum counters, §2023:13.18.54.4 GR5) and <see cref="Places"/> (the model-layer item-to-Place
 /// builder). What stays here is the order they are asked in — the one identification step <c>Identify</c> — the three entries that
 /// answer a closed <see cref="RefResolution"/>, the register views that are no data item (CAPACITY, EXCEPTION-OBJECT, DEBUG-ITEM)
-/// and the per-resolution state the parts share (<see cref="Probing"/>, <see cref="Diagnosed"/>, <see cref="SegmentDeferred"/>).</para>
+/// and the per-resolution state the parts share (<see cref="SegmentDeferred"/>).</para>
+/// <para>⛔ <b>WHAT A RESOLUTION MAY DO IS FIXED WHEN THE RESOLVER IS CONSTRUCTED</b> (kb/Work PB3230). Three facts used to be
+/// ambient mutable state every part read: a <c>Probing</c> flag each entry saved, set and restored around itself, five
+/// delegate hooks the statement binder installed after construction, and four identity-keyed report sets spread over
+/// two types. Now:</para>
+/// <list type="bullet">
+///   <item>The STATEMENT SITE (<see cref="Site"/>, <see cref="IStatementSite"/>) is a constructor argument: a procedure
+///         resolver is constructed with the statement binder that owns it, a data-division resolver with none.</item>
+///   <item>A PROBE is a second construction of the funnel over the same site and the same report ledger
+///         (<see cref="Prober"/>), whose parts are its own, so <see cref="Probing"/> is a constant of the object every
+///         part holds: <see cref="Probe"/> and every other speculative ask go to the prober, and a COMMIT asked while
+///         probing goes back to the committer — no flag is ever saved, set or restored.</item>
+///   <item>One report per written reference is ONE ledger (<see cref="ReferenceReports"/>), and a probe reports
+///         nothing by construction (<see cref="ReportOnce"/> answers false on the prober).</item>
+/// </list>
 /// </summary>
-public sealed class ReferenceResolver(DataBinder data)
+public sealed class ReferenceResolver
 {
+    private readonly DataBinder _data;
 
-    /// <summary>⛔ THE ODO LENGTH IS EVALUATED BEFORE THE REFERENCE MODIFIER (ISO §2023:14.6.4 steps 6 then 7 — "length
-    /// evaluation for an occurs-depending group item", then "reference modification", each done in full before the
-    /// next; kb/Work PB1123). A reference modifier whose position carries a function activation has that activation
-    /// hoisted ahead of the statement as a PRE-op (<see cref="MaterializeSegment"/>), so it would run BEFORE the
-    /// occurs-depending group's length is read at the operand site. This hook — set by the statement binder, the
-    /// same one-way edge as <see cref="MaterializeSegment"/> — pins the length first: given the reference modifier's
-    /// inner place, the index in the pending pre-ops where the reference modifier's own pre-ops begin, and the line, it
-    /// registers a copy of every DEPENDING ON object the inner's identification reads (<see cref="OdoDependence"/>) into
-    /// a compiler temp at that index and returns the place reading the temps. Null when absent (a data-division
-    /// resolver): the pre-D18 answer.</summary>
-    internal Func<Place, int, int, Place>? FreezeOdoExtent { get; set; }
+    /// <summary>The committing resolver of this pair (this one, unless this is its <see cref="Prober"/>).</summary>
+    private readonly ReferenceResolver _committer;
+
+    /// <summary>A resolver over <paramref name="data"/> for the statement binder <paramref name="site"/>, or — when
+    /// <paramref name="site"/> is null — a DATA-division resolver, which no statement owns (a VALUE operand, a clause
+    /// operand, the place table of a bound unit). Its <see cref="Prober"/> is constructed with it.</summary>
+    internal ReferenceResolver(DataBinder data, IStatementSite? site)
+    {
+        _data = data;
+        Site = site;
+        Reports = new ReferenceReports();
+        _committer = this;
+        Prober = new ReferenceResolver(this);
+    }
+
+    /// <summary>The PROBING twin of <paramref name="committer"/>: the same binder, site and report ledger, its own parts.</summary>
+    private ReferenceResolver(ReferenceResolver committer)
+    {
+        _data = committer._data;
+        Site = committer.Site;
+        Reports = committer.Reports;
+        _committer = committer;
+        Prober = this;
+        Probing = true;
+    }
+
+    /// <summary>The statement this resolver resolves for (<see cref="IStatementSite"/>), or null for a data-division
+    /// resolver: then a position the direct walk cannot read is a deferral (<see cref="SegmentFailure"/>), a reference
+    /// modifier's length is not pinned, EC-BOUND-REF-MOD checking reads as not enabled, and an object property whose
+    /// object no word spells is no property.</summary>
+    internal IStatementSite? Site { get; }
+
+    /// <summary>The PROBING construction of this funnel (itself, on the prober): the resolver every speculative ask goes
+    /// through (<see cref="Probe"/>, <see cref="ProbeDeclaration"/>, the object-property sniffs).</summary>
+    internal ReferenceResolver Prober { get; }
+
+    /// <summary>The ONE-REPORT-PER-REFERENCE ledger this resolver and its <see cref="Prober"/> share.</summary>
+    internal ReferenceReports Reports { get; }
     /// <summary>A SYNTHETIC copy of <paramref name="dref"/> without its LAST <c>dataReferenceSuffix</c> — for a
     /// caller whose resolved SYMBOL has shown that the trailing word the parser attached as a qualifier belongs to
     /// the enclosing construct instead (kb/Work PB843: a THROUGH range's <c>IN alphabet-name-1</c>). The copy ADOPTS
@@ -123,10 +165,7 @@ public sealed class ReferenceResolver(DataBinder data)
     internal DataItem? ProbeDeclaration(Core.DataReferenceContext dref)
     {
         if (WrittenQualifiedName.Of(dref) is not { } written) return null;   // a special register, or no name
-        bool savedProbing = Probing;
-        Probing = true;
-        try { return Names.DataItemNamed(written); }
-        finally { Probing = savedProbing; }
+        return Prober.Names.DataItemNamed(written);
     }
 
     /// <summary>⛔ THE ONE OWN-ITEM TEST (kb/Work PB3153): does the REFERRING element itself describe an item that
@@ -141,7 +180,7 @@ public sealed class ReferenceResolver(DataBinder data)
     /// review finding: an own <c>01 LVL CONSTANT AS 1</c> in STANDARD-COMPARE's argument-4 position was claimed as
     /// the inherited ordering-name). Diagnostic-free, like <see cref="Probe"/>.</summary>
     public bool DescribesOwnItem(Core.DataReferenceContext dref) =>
-        data.Constants.ConstantOf(dref) is not null || Probe(dref) is not null;
+        _data.Constants.ConstantOf(dref) is not null || Probe(dref) is not null;
 
     /// <summary>What a <see cref="Probe"/> may tell its caller: the resolved <see cref="DataItem"/>, the
     /// operand CATEGORY of the reference (§2023:8.4.3.3.4 GR6 for a reference-modified one — <see cref="RefModPlace"/>'s
@@ -153,32 +192,38 @@ public sealed class ReferenceResolver(DataBinder data)
     /// produced must never reach the bound tree (kb/Work PB221).</summary>
     public readonly record struct ProbeResult(DataItem Item, PicCategory? OperandCategory, string? NonSectionKind);
 
-    /// <summary>The source nodes this resolver has already DIAGNOSED — a data reference (an undefined name,
-    /// <see cref="ReportUnidentified"/>, or a rejected reference shape: SR3 ref-mod-of-ref-mod, SR1 identifier-1
-    /// exclusion) or a reference modifier (an omitted leftmost-position, <see cref="ReadRefMod"/>): one report per
-    /// source node even when a statement binder resolves the same node more than once, and the fact the receiving
-    /// chokepoint asks (<see cref="WasDiagnosed"/>) so that a null it gets back is EITHER already reported OR
-    /// reported there — never a silently dropped receiver (kb/Work PB70).</summary>
-    internal HashSet<ParserRuleContext> Diagnosed { get; } = [];
-
     /// <summary>True when a diagnostic has been emitted for <paramref name="dref"/> by this resolver — the
     /// receiving chokepoint reports an undiagnosed null itself (recognized-not-implemented shape).</summary>
-    public bool WasDiagnosed(Core.DataReferenceContext dref) => Diagnosed.Contains(dref);
+    public bool WasDiagnosed(Core.DataReferenceContext dref) => Reports.WasReported(dref);
 
-    /// <summary>True while the CURRENT resolution is a <see cref="Probe"/> — the R30 purity flag (kb/Work
-    /// PB157). A probe is a TYPE-DISCRIMINATING sniff whose Place is discarded after reading its Item, so in
-    /// probe mode the resolver must be SIDE-EFFECT-FREE: no diagnostics beyond none, no OO property temp/op
-    /// registration (the orphan op made OoWrapPropertyOps prepend a GET §2023:8.4.3.9.4 GR2 forbids — or reject a
-    /// WITH NO GET property), and no D18 subscript materialization (a function-bearing subscript would bind —
-    /// and later ACTIVATE — twice). Save/restored, not cleared: a COMMIT resolution can nest inside hooks.</summary>
-    internal bool Probing { get; set; }
+    /// <summary>True on the PROBING construction (<see cref="Prober"/>) — the R30 purity contract (kb/Work PB157). A
+    /// probe is a TYPE-DISCRIMINATING sniff whose Place is discarded after reading its Item, so a probing resolver is
+    /// SIDE-EFFECT-FREE: no diagnostics, no OO property temp/op registration (the orphan op made OoWrapPropertyOps prepend
+    /// a GET §2023:8.4.3.9.4 GR2 forbids — or reject a WITH NO GET property), and no D18 subscript materialization (a
+    /// function-bearing subscript would bind — and later ACTIVATE — twice). A constant of the object (kb/Work PB3230): a
+    /// COMMIT asked while probing is asked of the committer (<see cref="ResolveImpl"/>), so nothing saves or restores it.</summary>
+    internal bool Probing { get; }
+
+    /// <summary>⛔ THE ONE QUESTION A REPORT ASKS FIRST (kb/Work PB3230): may this resolution report about
+    /// <paramref name="written"/> under <paramref name="rule"/>? False on the <see cref="Prober"/> (a probe never
+    /// reports, R30) and for a written reference already reported under the rule (one report per source node, even when a
+    /// statement binder resolves the same node more than once, kb/Work PB70); true exactly once otherwise.</summary>
+    internal bool ReportOnce(object written, ReferenceReportRule rule = ReferenceReportRule.Reference) =>
+        !Probing && Reports.First(rule, written);
+
+    private ReportModel? _enclosingReport;
+    private IReadOnlyList<ReportVaryingModel>? _varyingScope;
 
     /// <summary>The report whose REPORT SECTION clause operands are being bound (ISO §2023:13.18.53.3 SR4 — the sum counters a
     /// SOURCE operand may name are those "defined in the current report"), or null in the procedure division and
     /// everywhere else. Set only by <c>ReportWriterBinder</c>, for the span of its own clause binding; it narrows the
     /// candidates of a sum-counter reference to that report, so a name two reports share is unambiguous there
-    /// (kb/Work PB1292).</summary>
-    internal ReportModel? EnclosingReport { get; set; }
+    /// (kb/Work PB1292). The committer holds it, so its <see cref="Prober"/> reads the same scope.</summary>
+    internal ReportModel? EnclosingReport
+    {
+        get => _committer._enclosingReport;
+        set => _committer._enclosingReport = value;
+    }
 
     /// <summary>The VARYING counters the report-section expression being bound may name (ISO §2023:13.18.64.3 SR2 — a counter
     /// "may be referenced only within the current entry or a subordinate entry"), the entries above it first, or null outside a
@@ -186,68 +231,72 @@ public sealed class ReferenceResolver(DataBinder data)
     /// temporary integer data item"), so every reader of a written NAME asks the symbol table with this scope as the reference's
     /// site (<see cref="ReportSite"/>, <c>NameClass.ReportVarying</c>): the operand and expression binders through
     /// <c>ReportWriterBinder.VaryingExpr</c>, and the subscript renderer (<see cref="ResolveSubscriptName"/>), which is how a
-    /// counter subscripts a source item (GR4's NOTE).</summary>
-    internal IReadOnlyList<ReportVaryingModel>? VaryingScope { get; set; }
+    /// counter subscripts a source item (GR4's NOTE). The committer holds it, as <see cref="EnclosingReport"/>.</summary>
+    internal IReadOnlyList<ReportVaryingModel>? VaryingScope
+    {
+        get => _committer._varyingScope;
+        set => _committer._varyingScope = value;
+    }
 
     /// <summary>Where a report-section name being bound is written (<see cref="Binding.ReportSite"/>): the enclosing report and the
     /// VARYING counters in scope, both null outside a report section clause.</summary>
     internal ReportSite ReportSite => new(EnclosingReport, VaryingScope);
 
     /// <summary>Set when a subscript or reference-modifier SEGMENT of the current resolution failed because one of
-    /// its own operands is a deferred shape (the materializer's expression came back
-    /// <see cref="BoundExprError.IsUnbuilt"/>), so the segment's null is a DEFERRAL, not a refusal (kb/Work PB1030).
-    /// Save/restored per resolution exactly as <see cref="Probing"/> is: the materializer can re-enter this
-    /// resolver for a nested reference.</summary>
+    /// its own operands is a deferred shape (the statement site answered <see cref="SegmentValue.Unbuilt"/>), so the
+    /// segment's null is a DEFERRAL, not a refusal (kb/Work PB1030). Save/restored per resolution: the site's
+    /// materializer can re-enter this resolver for a nested reference.</summary>
     internal bool SegmentDeferred { get; set; }
-
-    /// <summary>Called by the segment materializer when a segment's expression came back UNBUILT (not refused) —
-    /// see <see cref="SegmentDeferred"/>.</summary>
-    internal void NoteSegmentDeferred() => SegmentDeferred = true;
 
     // ── The parts this funnel composes (DESIGN-architecture-review §8.3 (4), kb/Work PB2299, PB2371–PB2375) ──────
 
     private CounterResolver? _counters;
 
     /// <summary>The REPORT SECTION sum-counter references (<see cref="CounterResolver"/>).</summary>
-    internal CounterResolver Counters => _counters ??= new(this, data);
+    internal CounterResolver Counters => _counters ??= new(this, _data);
 
     private ObjectPropertyResolver? _objectProperties;
 
     /// <summary>The OBJECT PROPERTY references and object views (<see cref="ObjectPropertyResolver"/>).</summary>
-    internal ObjectPropertyResolver ObjectProperties => _objectProperties ??= new(this, data);
+    internal ObjectPropertyResolver ObjectProperties => _objectProperties ??= new(this, _data);
 
     private NameResolution? _names;
 
     /// <summary>The QUALIFICATION lookups and their reports (<see cref="NameResolution"/>, ISO §2023:8.4.2.2).</summary>
-    internal NameResolution Names => _names ??= new(this, data);
+    internal NameResolution Names => _names ??= new(this, _data);
 
     private RefModBinder? _refMods;
 
     /// <summary>REFERENCE MODIFICATION: the SR screens and the GR5 view (<see cref="RefModBinder"/>, ISO §2023:8.4.3.3).</summary>
-    internal RefModBinder RefMods => _refMods ??= new(this, data);
+    internal RefModBinder RefMods => _refMods ??= new(this, _data);
 
     private PlaceBuilder? _places;
 
     /// <summary>THE ONE ITEM-TO-PLACE BUILDER (<see cref="PlaceBuilder"/>, a model-layer type), over the facts of this
     /// binding as they stand at the moment of each resolution.</summary>
-    internal PlaceBuilder Places => _places ??= new(data);
+    internal PlaceBuilder Places => _places ??= new(_data);
 
     private SubscriptBinder? _subscripts;
 
     /// <summary>SUBSCRIPTS and the position binder both subscripts and reference modifiers use
     /// (<see cref="SubscriptBinder"/>, ISO §2023:8.4.2.3).</summary>
-    internal SubscriptBinder Subscripts => _subscripts ??= new(this, data);
+    internal SubscriptBinder Subscripts => _subscripts ??= new(this, _data);
 
-    internal RefResolution ResolveImpl(Core.DataReferenceContext dref, bool report)
+    /// <summary>Resolve <paramref name="dref"/> as a COMMIT (<paramref name="report"/>) or a PROBE: each is asked of its own
+    /// construction (<see cref="Prober"/>), so a commit nested inside a probe's site call commits.</summary>
+    internal RefResolution ResolveImpl(Core.DataReferenceContext dref, bool report) =>
+        report ? _committer.ResolveHere(dref) : Prober.ResolveHere(dref);
+
+    private RefResolution ResolveHere(Core.DataReferenceContext dref)
     {
+        bool report = !Probing;
         // ⛔ EVERY DIAGNOSTIC THE RESOLUTION OF A REFERENCE REPORTS IS ABOUT THAT REFERENCE, SO IT IS POSITIONED AT THE
         // REFERENCE'S FIRST TOKEN HERE, AT THE ONE CHOKEPOINT (kb/Work PB4383). Positioning was each statement binder's
         // job, so a multi-operand statement (`DISPLAY A` with a continuation line `B C`) reported COBOL1639 for B and C
         // at the statement's first line, and the next verb's binder would have had to remember again. A synthetic
         // reference with no token leaves the position standing (DiagnosticCursorAt.At).
-        using var _ = data.Edition.At(dref);
-        bool savedProbing = Probing, savedSegment = SegmentDeferred;
-        Probing = !report;
+        using var _ = _data.Edition.At(dref);
+        bool savedSegment = SegmentDeferred;
         SegmentDeferred = false;
         try
         {
@@ -255,10 +304,10 @@ public sealed class ReferenceResolver(DataBinder data)
             // ⛔ A DEFERRAL GOES ON THE LEDGER HERE, BEFORE ANY CALLER SEES IT (kb/Work PB1030): the statement
             // funnel announces it (COBOL1756) whatever the caller then does with the answer — a caller that
             // drops it (`.OfType<Place>()`) cannot make it silent. A probe records nothing (R30 purity).
-            if (report && answer.Outcome == RefOutcome.Deferred) data.Edition.NoteUnbuilt(answer.Feature);
+            if (report && answer.Outcome == RefOutcome.Deferred) _data.Edition.NoteUnbuilt(answer.Feature);
             return answer;
         }
-        finally { Probing = savedProbing; SegmentDeferred = savedSegment; }
+        finally { SegmentDeferred = savedSegment; }
     }
 
     /// <summary>The non-place answer for a SEGMENT (subscript or reference-modifier) the renderer could not
@@ -266,7 +315,7 @@ public sealed class ReferenceResolver(DataBinder data)
     /// operand is deferred; otherwise REPORTED — the materializer reports every segment it refuses (kb/Work
     /// PB1030: a segment that is not an arithmetic expression is not a subscript, ISO §2023:8.4.2.3.2).</summary>
     internal RefResolution SegmentFailure(string written) =>
-        Subscripts.MaterializeSegment is null ? RefResolution.Deferred(DeferredShape.SegmentWithoutStatement, written)
+        Site is null ? RefResolution.Deferred(DeferredShape.SegmentWithoutStatement, written)
         : SegmentDeferred ? RefResolution.Deferred(DeferredShape.DeferredSegmentOperand, written)
         : RefResolution.Refused(written);
 
@@ -322,14 +371,14 @@ public sealed class ReferenceResolver(DataBinder data)
         // are the same item. The syntactic path, the data-division path (ResolveItemRefMod) and the resolved-place
         // path (RefModOf) all read it this way, so SR1 and the view are asked of one description.
         DataItem described = inner.Item;
-        int preOpMark = data.Procedure.PendingPreOps.Mark();   // the reference modifier's own pre-ops (function activations) start here
+        int preOpMark = _data.Procedure.PendingPreOps.Mark();   // the reference modifier's own pre-ops (function activations) start here
         if (RefMods.ReadScreenedRefMod(dref, written, described, out var refusal) is not { } spec) return refusal!;
         // §2023:14.6.4 steps 6 → 7: an occurs-depending group's length is evaluated BEFORE the reference modifier, so when
         // the modifier registered pre-ops (a function whose side effect may change the DEPENDING ON object) the length
         // is pinned ahead of them (kb/Work PB1123).
-        if (data.Procedure.PendingPreOps.AnyAfter(preOpMark) && FreezeOdoExtent is { } freeze
+        if (_data.Procedure.PendingPreOps.AnyAfter(preOpMark) && Site is { } site
             && OdoDependence.ReadsDependingObject(inner))
-            inner = freeze(inner, preOpMark, dref.Start.Line);
+            inner = site.FreezeOdoExtent(inner, preOpMark, dref.Start.Line);
         return RefMods.RefModView(described, inner, spec) is { } view
             ? RefResolution.Resolved(view, "")
             : RefResolution.Deferred(DeferredShape.NumericRefModSubstrate, WrittenSource.Of(dref));
@@ -396,7 +445,7 @@ public sealed class ReferenceResolver(DataBinder data)
         // The RECEIVING half of SR1 is screened at the ONE receiving chokepoint (ExpressionBinder.ResolveReceiving);
         // this arm is what makes the SENDING half legal source rather than a typo.
         // The predicate is <see cref="IsExceptionObjectRegister"/> — the ONE answer every caller asks for.
-        if (IsExceptionObjectRegister(dref)) return Ends(Resolved(new ExceptionObjectPlace(data.State.Implicit.ExceptionObjectRegister)));
+        if (IsExceptionObjectRegister(dref)) return Ends(Resolved(new ExceptionObjectPlace(_data.State.Implicit.ExceptionObjectRegister)));
 
         // The X3.23-1985 DEBUG-ITEM special register / member (VCR Table 7 row 7.17): an IMPLICITLY-defined read-only
         // VIEW over the program-instance __dbgItem — not in ByName, so resolved HERE (before ordinary name lookup) to
@@ -407,8 +456,8 @@ public sealed class ReferenceResolver(DataBinder data)
         // describes DEBUG-CONTENTS as PICTURE X(n), kb/Work PB4858), so the register's place meets the reference-modification
         // tail below. A qualified DEBUG-* falls through to loud.
         // Only a program whose debugging section activated the family asks (the suffix list is an allocation per reference).
-        if (data.State.Implicit.DebugRegisters.Count > 0 && dref.dataReferenceSuffix().All(suffix => suffix.refModPart() is not null)
-            && data.Symbols.Identify(dref.cobolWord(), NameClass.DebugRegister, report) is { Symbol: DebugRegisterPlace dbg })
+        if (_data.State.Implicit.DebugRegisters.Count > 0 && dref.dataReferenceSuffix().All(suffix => suffix.refModPart() is not null)
+            && _data.Symbols.Identify(dref.cobolWord(), NameClass.DebugRegister, report) is { Symbol: DebugRegisterPlace dbg })
         {
             if (!RefMods.ScreenRefModCount(dref, written, name)) return Ends(Refused());
             return new Identified(null, dbg.RegisterItem, written, [], dbg);
@@ -493,7 +542,7 @@ public sealed class ReferenceResolver(DataBinder data)
             var answer = Subscripts.ReadSubscripts(dref, item, SubscriptBinder.SubscriptGroupOf(dref), out var indexExprs)
                 ?? (Linked(Places.PlaceForItem(item, indexExprs, out var gap), dref.Start) is { } place
                     ? RefResolution.Resolved(place, "") : ItemFailure(dref, gap));
-            if (answer.Outcome == RefOutcome.Deferred) data.Edition.NoteUnbuilt(answer.Feature);
+            if (answer.Outcome == RefOutcome.Deferred) _data.Edition.NoteUnbuilt(answer.Feature);
             return answer;
         }
         finally { SegmentDeferred = savedSegment; }
@@ -603,14 +652,14 @@ public sealed class ReferenceResolver(DataBinder data)
     /// recorded there, so the statement funnel classifies the occurrence by the store position the place stands at. Nothing is linked
     /// when no listing records references, and a place nobody wrote (a temporary, an implicit operand) is never handed here.</summary>
     internal T? Linked<T>(T? place, Antlr4.Runtime.IToken head) where T : Place =>
-        place is null || !data.Symbols.GroupEntries.RecordsReferences ? place
-            : data.Symbols.GroupEntries.Link(place, data.Symbols.OccurrenceOf(head));
+        place is null || !_data.Symbols.GroupEntries.RecordsReferences ? place
+            : _data.Symbols.GroupEntries.Link(place, _data.Symbols.OccurrenceOf(head));
 
     /// <summary>The same link for an index-name receiver (an index-name's cell is held as a field name, so the receiver node is the
     /// reference: <see cref="SetBinder.SetTargetOf"/>, SEARCH's VARYING phrase).</summary>
     internal Bound.SetIndexTarget Linked(Bound.SetIndexTarget target, Antlr4.Runtime.IToken head) =>
-        !data.Symbols.GroupEntries.RecordsReferences ? target
-            : data.Symbols.GroupEntries.Link(target, data.Symbols.OccurrenceOf(head));
+        !_data.Symbols.GroupEntries.RecordsReferences ? target
+            : _data.Symbols.GroupEntries.Link(target, _data.Symbols.OccurrenceOf(head));
 
     /// <summary>⛔ THE ONE BUILDER OF A WHOLE TABLE THE PROGRAM WROTE (<see cref="PlaceBuilder.WholeTable"/>, linked): SEARCH's identifier-1,
     /// a table SORT's data-name-2 and each key data-name, INITIALIZE of a whole dynamic table. The place is the written reference's, so it is
@@ -782,19 +831,19 @@ public sealed class ReferenceResolver(DataBinder data)
         // The word is identified before its text is read: a token's text is a new string at each read, and every data reference
         // asks this arm first (section 9's budget, PB5932 review round 1).
         if (dref.cobolWord() is not { } word
-            || data.Symbols.Identify(word, NameClass.CapacityRegister, report) is not { Symbol: CapacityRegisterCandidates { Tables: var tables } })
+            || _data.Symbols.Identify(word, NameClass.CapacityRegister, report) is not { Symbol: CapacityRegisterCandidates { Tables: var tables } })
             return null;
         string name = word.GetText();
         var written = ReadWritten(dref);
         var reached = tables.Where(t => t.OccursSpec?.CapacityRegister is { } cand
-                                        && data.Symbols.QualifierChainMatches(cand, written.Qualifiers)).ToList();
+                                        && _data.Symbols.QualifierChainMatches(cand, written.Qualifiers)).ToList();
         // The nearest declaring element's reached registers (the list is in nearest-element order, §2023:8.4.6.2.1 GR3), or
         // the nearest register at all when the qualifiers reach none, so the qualifier fault is stated about it.
         DataItem table = reached.Count > 0 ? reached[0] : tables[0];
-        int depth = data.State.Forest.DeclaringDepth(table);
-        reached.RemoveAll(t => data.State.Forest.DeclaringDepth(t) != depth);
+        int depth = _data.State.Forest.DeclaringDepth(table);
+        reached.RemoveAll(t => _data.State.Forest.DeclaringDepth(t) != depth);
         if (table.OccursSpec?.CapacityRegister is not { } reg
-            || data.Symbols.NearerNameOfAnotherClassHides(name, written.Qualifiers, depth, NameSetClass.CapacityRegister)) return null;
+            || _data.Symbols.NearerNameOfAnotherClassHides(name, written.Qualifiers, depth, NameSetClass.CapacityRegister)) return null;
         var place = CapacityRegisterPlaceOf(table);
         var fault =
               written.SubscriptGroup is not null                     ? CapacityRefFault.Subscripted
@@ -837,18 +886,18 @@ public sealed class ReferenceResolver(DataBinder data)
     /// §2023:8.4.3.6.2's general format is the bare word, so a suffixed occurrence is some other (undefined)
     /// reference and must keep the ordinary resolution.</para></summary>
     internal bool IsExceptionObjectRegister(Core.DataReferenceContext dref) =>
-        data.Edition.Edition.Has(2002)
+        _data.Edition.Edition.Has(2002)
         && dref.dataReferenceSuffix().Length == 0
-        && Procedure.OoBinder.OoIsExceptionObject(dref.GetText(), data.CobolWords);
+        && Procedure.OoBinder.OoIsExceptionObject(dref.GetText(), _data.CobolWords);
 
     /// <summary>The place of one entry of the X3.23-1985 DEBUG-ITEM group (kb/Work PB4903), reached by the entry the group lists
     /// (MOVE CORRESPONDING's pair walk), or <see langword="null"/> for an item that is no register entry.</summary>
-    internal DebugRegisterPlace? DebugRegisterPlaceOf(DataItem entry) => data.State.Implicit.DebugPlaceOf(entry);
+    internal DebugRegisterPlace? DebugRegisterPlaceOf(DataItem entry) => _data.State.Implicit.DebugPlaceOf(entry);
 
     /// <summary>The places of the named entries of the X3.23-1985 DEBUG-ITEM group, in the order of its description (general rule 10);
     /// the FILLER entries are not receivers (INITIALIZE: §2023:14.9.20.4 GR5a.2) and have no place.</summary>
     internal IEnumerable<DebugRegisterPlace> DebugItemMemberPlaces() =>
-        data.State.Implicit.DebugItemMembers.Select(m => new DebugRegisterPlace(m.Item, m.Member));
+        _data.State.Implicit.DebugItemMembers.Select(m => new DebugRegisterPlace(m.Item, m.Member));
 
     /// <summary>The place a matched <see cref="CapacityRef"/> resolves to, REPORTING its fault when it has one —
     /// the single reporting site for every ill-formed reference to a named CAPACITY register (kb/Work PB457). Every
@@ -871,13 +920,13 @@ public sealed class ReferenceResolver(DataBinder data)
         // R30 purity: a probe never diagnoses, and a written reference is reported once (kb/Work PB157). Every fault
         // but Ambiguous yields null at every ask; Ambiguous's --permissive pick must be the SAME place at every ask,
         // reported or not (the index-name sibling of wave 1073 review R1-1).
-        bool report = !Probing && Diagnosed.Add(dref);
+        bool report = ReportOnce(dref);
         if (!report && cap.Fault is not CapacityRefFault.Ambiguous) return null;
         string text = WrittenSource.Of(dref);
         string subject = cap.Register.CobolName ?? cap.Register.ClrName;
         string table = cap.Table.CobolName ?? cap.Table.ClrName;
         void ReportUnderATable() =>
-            data.Edition.Error(DiagnosticCatalog.CapacityRegisterUnderTable,
+            _data.Edition.Error(DiagnosticCatalog.CapacityRegisterUnderTable,
                 $"'{text}': '{subject}' is the CAPACITY register of '{table}', which is itself subordinate to a "
                 + "table, so ISO §2023:13.18.38.3 SR30 places the register inside that outer table. ISO §2023:8.4.2.3.3 "
                 + "SR3 and SR5 then require one subscript per enclosing OCCURS clause, and ISO §2023:13.18.38.3 SR31 "
@@ -887,21 +936,21 @@ public sealed class ReferenceResolver(DataBinder data)
         switch (cap.Fault)
         {
             case CapacityRefFault.Subscripted:
-                data.Edition.Error(DiagnosticCatalog.CapacityRegisterSubscripted,
+                _data.Edition.Error(DiagnosticCatalog.CapacityRegisterSubscripted,
                     $"'{text}': '{subject}' is the CAPACITY register of the dynamic-capacity table '{table}' and "
                     + "ISO §2023:13.18.38.3 SR31 says \"Data-name-3 shall not be subscripted\". Write the register's "
                     + "name alone (optionally qualified), and subscript the TABLE's elements instead.");
                 return null;
             case CapacityRefFault.RefModified:
                 // §2023:8.4.3.3.3 SR1 lives in ONE place — RefModExclusion — and the register answers it like any item.
-                data.Edition.Error(DiagnosticCatalog.RefModIdentifierNotPermitted,
-                    $"'{text}': reference modification of {RefModBinder.RefModExclusion(cap.Register, data.Edition.Edition) ?? "a CAPACITY register"} "
-                    + $"is not permitted ({EditionInfo.Designated(RefModBinder.RefModIdentifierRule(data.Edition.Edition))})");
+                _data.Edition.Error(DiagnosticCatalog.RefModIdentifierNotPermitted,
+                    $"'{text}': reference modification of {RefModBinder.RefModExclusion(cap.Register, _data.Edition.Edition) ?? "a CAPACITY register"} "
+                    + $"is not permitted ({EditionInfo.Designated(RefModBinder.RefModIdentifierRule(_data.Edition.Edition))})");
                 return null;
             case CapacityRefFault.Qualifiers:
                 string innermost = cap.Register.Parent is { CobolName: { } p }
                     ? $"; the innermost permitted qualifier is '{p}'" : "";
-                data.Edition.Error(DiagnosticCatalog.CapacityRegisterQualifier,
+                _data.Edition.Error(DiagnosticCatalog.CapacityRegisterQualifier,
                     $"'{text}': the written qualifiers do not name context of '{subject}'. ISO §2023:13.18.38.3 SR30 "
                     + "treats a CAPACITY register \"as though implicitly defined at the same level as the entry "
                     + $"containing the OCCURS clause\", so '{subject}' stands beside '{table}' and its qualifiers "
@@ -912,7 +961,7 @@ public sealed class ReferenceResolver(DataBinder data)
                 // §2023:8.4.2.2.3 SR1, through the ONE verdict every name class shares. Its --permissive disposition
                 // picks the first declared register, which is then judged like a unique reference's: a register
                 // under a table is still COBOL2126, never a null place with no diagnostic (review R1-1).
-                if (data.UniqueOrReportAmbiguous(cap.Reached, "the CAPACITY register reference", text, out _, report)
+                if (_data.UniqueOrReportAmbiguous(cap.Reached, "the CAPACITY register reference", text, out _, report)
                     is not { } picked) return null;
                 if (CapacityRegisterPlaceOf(picked) is { } pickedPlace) return pickedPlace;
                 if (report) ReportUnderATable();

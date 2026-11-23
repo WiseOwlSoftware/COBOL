@@ -1600,7 +1600,22 @@ PAGE-COUNTER and LINE-COUNTER for `CounterResolver`, but the resolver holds no a
 stops at `SpecialRegister` and the statement binder routes them to `BoundLinageCounterRef` / `BoundReportCounterRef`); the code that
 was a counter in the resolver is the REPORT SECTION SUM counter (§2023:13.18.54.4 GR5), which is what the type owns.
 `ReferenceResolver` stays the funnel (`Identify`, the three `RefResolution` entries, the CAPACITY, EXCEPTION-OBJECT and DEBUG-ITEM
-register views, and the per-resolution state `Probing`, `Diagnosed`, `SegmentDeferred`). *Seams:* `RefResolution` and
+register views, and the per-resolution state `SegmentDeferred`). *What a resolution may do is fixed at construction* (kb/Work
+PB3230, which amends this item): the statement site is ONE immutable interface, `IStatementSite` (`Binding/IStatementSite.cs`:
+the D18 materializer, the §2023:14.6.4 ODO pin, the EC-BOUND-REF-MOD checking query, the property object, the object view),
+passed to the funnel's constructor by the statement binder that owns it (`StatementBinder.Refs`), absent for a data-division
+resolver, so the two are two constructions and no part holds a settable delegate; a PROBE is a second construction of the
+funnel over the same site (`ReferenceResolver.Prober`), so `Probing` is a constant every part reads and nothing saves, sets or
+restores it (a commit asked while probing goes back to the committer); and one report per written reference is ONE ledger,
+`ReferenceReports` (`Binding/ReferenceReports.cs`, keyed by the written node's identity and a `ReferenceReportRule`), asked
+through `ReferenceResolver.ReportOnce`, which a probe is never granted — it replaced the resolver's `Diagnosed`, the three
+index-name and LINKAGE-leg sets of `NameResolution` and the three condition-name sets of `ConditionBinder`. *Not built, by
+decision (PB3230):* returning a resolution's effects as data for one commit step to apply. The effects a commit causes are
+not the resolver's to hand back: the D18 materializer binds a whole expression through the statement binder (its diagnostics,
+its pre-ops, its compiler temps, whose names are numbered in allocation order), so a probe that ran it and discarded the
+effects would renumber every later temporary and reorder the in-order diagnostic stream the §4.1 oracle compares; the probe
+keeps its effect-free readings (the materializer's occurrence 1, `OoBinder.OoBindPropertyObject`'s descriptions) instead.
+*Seams:* `RefResolution` and
 `PlaceBuilder` / `PlaceTable`. The Format-2 table SORT of shared storage still asks `PlaceTable.Window` and
 `.CurrentOccurrenceCount` at its comparator's run-time element numbers (three `SortEmitter` sites): bound-tree data when SortBinder
 builds those windows over `StatementLocal` positions. *Steps:* PB2299, PB2371–PB2375 (landed).
