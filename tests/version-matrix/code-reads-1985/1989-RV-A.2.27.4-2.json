@@ -2,22 +2,22 @@
  "rule-id": "1989-RV-A.2.27.4-2",
  "rule-digest": "af900d3b5da0",
  "read": {
-  "pin": "608ccf507c5783aae0206275d65c1da914f13b08",
-  "slice": "1985-c05",
+  "pin": "dcde4b909111a7a1ab75f80a8034a2e510426840",
+  "slice": "1985-c05-pb6055",
   "sources": {
-   "reader": "8f4ea7714c82c6b9973d031b2c946b638102129e97c03e022cff542156ea5f27",
-   "refuter": "93e3f249ee0ae60af9c5633daffaa7e71d20edab42b8e5c2ba574ab40ff7e65e"
+   "reader": "8af69ea3c28229d1ca5a043bd8ea0770ae8f4e39c97b7226c6ca02418f07a4d1",
+   "refuter": "c6108fba7cdb5e6d7a97dc1a3ab7beb2c28ab517b08f406e02476e107db60956"
   },
   "imported": {
-   "reader": "ebf4720abb9ea1e8ca2c1019c338f19105eec193f3ef11cc6115150a4b5681ee",
-   "refuter": "1e0eb285f6731ac2ca4b39dacef1c5de828dc9220492e53fe16a058f8b5f115f"
+   "reader": "bc95eca9ca6c877e99d9d48e81b7c61d7f413a26a2360d4d7d9a96a21cdc69a6",
+   "refuter": "30ba21568372019a8803ff02baff209b3a3a7c9a0279db771feead12af3af77b"
   }
  },
  "reader": {
   "rule-id": "1989-RV-A.2.27.4-2",
   "verdict": "CONFORMS",
   "requirement": "On a tie for the least value FUNCTION MIN returns the content of the leftmost argument-1 having that value, for every argument class COBOL-85 allows (numeric, integer, alphanumeric, alphabetic mixed with alphanumeric).",
-  "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Selection.cs#ExtremeIndex; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Select.cs#MinAt; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#MinString; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.ExactValue.cs#SelectExact; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderDec",
+  "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Selection.cs#ExtremeIndex; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Select.cs#MinAt; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#MinString; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderDec; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.ExactValue.cs#MinExact; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Selection.cs#ExactOrder; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Wide.cs#MinWide; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Selection.cs#WideOrder",
   "edition-consulted": [
    {
     "site": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#IsDefinedAt",
@@ -35,50 +35,56 @@
     "same-arm-as-latest": true
    }
   ],
-  "edition-search": "grep of IntrinsicRenderer.cs, IntrinsicBinder.cs, IntrinsicArgumentRules.cs, IntrinsicCatalog.cs and Runtime/Intrinsics for Edition|CobolVersion|DialectLevel|ConstructRegistry; the runtime selection kernel and its ISelectionOrder carriers consult no edition",
+  "edition-search": "grep of IntrinsicRenderer.cs, IntrinsicCarrierRules.cs, IntrinsicBinder.cs, IntrinsicArgumentRules.cs, IntrinsicCatalog.cs, Runtime/Intrinsics (Selection, ExactValue, Wide) and CobolExact.cs for Edition|CobolVersion|DialectLevel|ConstructRegistry: the renderer's DialectLevel sites are the domain diagnostic's cited rule (CiteRule), RoundsStandardArgument (standard intermediate only, unreachable at 85: no ARITHMETIC clause) and EcFunctions.StatementLength; the lane choice (SelectionNeedsExactLane) and the runtime selection kernel and its ISelectionOrder carriers consult no edition",
   "behaviour-differs-by-edition": "no",
   "witnesses-cover": "part: g85_bf40_04 is numeric/alphanumeric; the tie between unequal-length alphanumeric/alphabetic arguments (visible only through RV3 size) is not exercised",
   "probes": [
    {
-    "class": "d",
-    "file": "E:/COBOL-coord/scratch/w20262136/coderead/probes/c05p1.cob",
-    "printed": "A9 05 (LENGTH(MIN(X(5) 'AB   ', A(3) 'AB ', X(2) 'AB'))), A10 02, A11 03, A18 'AB|'",
-    "expected": "leftmost of equal values: sizes 5, 2, 3 and content 'AB'"
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/finish-worktree-wf_780ee655-772-3/probes/x1.cob",
+    "printed": "X10 1.0000 (MIN(SC2 1.5, P**0, NUMVAL('1')), MinExact); X13 7.2500 (MIN(NUMVAL('7.25')), one argument)",
+    "expected": "1 (the least value, the leftmost of the equal 1s); 7.25"
    },
    {
     "class": "f",
-    "file": "E:/COBOL-coord/scratch/w20262136/coderead/probes/c05p1.cob",
-    "printed": "A12 -999999999999999999; A13 50 (MIN(1.50 1.5 3)*100 into PIC 99)",
-    "expected": "-999999999999999999; 150 truncated to 50"
+    "file": "E:/COBOL-coord/scratch/finish-worktree-wf_780ee655-772-3/probes/x3.cob",
+    "printed": "Z9 2.9990 (MIN(3, SQRT(9), 2.999, NUMVAL('2.9990')), MinExact)",
+    "expected": "2.999"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/finish-worktree-wf_780ee655-772-3/probes/x2.cob",
+    "printed": "Y6 03 (LENGTH(MIN(A(3) 'AB ', X(2) 'AB', X(5) 'AB   '))); Y7 05 (LENGTH(MIN(X(5), X(2))))",
+    "expected": "3 and 5: all equal after space extension, the leftmost is returned at its own size (RV2, RV3)"
    },
    {
     "class": "c",
-    "file": "E:/COBOL-coord/scratch/w20262136/coderead/probes/c05p2.cob",
-    "printed": "B7 Z (MIN('A' 'Z' 'B') under PROGRAM COLLATING SEQUENCE Z Y X C B A)",
+    "file": "E:/COBOL-coord/scratch/finish-worktree-wf_780ee655-772-3/probes/x2.cob",
+    "printed": "Y10 Z (MIN('A' 'Z' 'B') under PROGRAM COLLATING SEQUENCE Z Y X C B A)",
     "expected": "Z"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/w20262136/coderead/probes/c05p3a.cob",
-    "printed": "COBOL1627 ORD-MIN argument-2 class alphanumeric cannot agree (§1989:A.2.33.3)",
-    "expected": "refused: §1989:A.2.33.3 AR1 same class"
+    "file": "E:/COBOL-coord/scratch/finish-worktree-wf_780ee655-772-3/probes/x4.cob",
+    "printed": "COBOL1627 ORD-MIN argument-2 class numeric cannot agree (§1989:A.2.33.3); COBOL1627 ORD-MAX argument-2 class alphanumeric (§1989:A.2.32.3); COBOL1504 and COBOL0900 for an empty list at 85",
+    "expected": "refused: AR1 same class; the format needs one or more argument-1"
    }
   ],
   "citations": [
    {
     "cite": "§1989:A.2.27.4 RV2",
-    "check": "OK  §1989:A.2.27.4 RV2  the text is in the rule: the content of the argument-1 returned is the leftmost argument-1 having that value"
+    "check": "OK  §1989:A.2.27.4 RV2  (2.27.4 Returned Values)  the text is in RV2"
    },
    {
     "cite": "§1989:A.2.27.4 RV3",
-    "check": "OK  §1989:A.2.27.4 RV3  the text is in the rule: the size of the returned value is the same as the size of the selected argument-1"
+    "check": "OK  §1989:A.2.27.4 RV3  (2.27.4 Returned Values)  the text is in RV3"
    },
    {
     "cite": "§1985:VI.6.3.1.1.2",
-    "check": "OK  §1985:VI.6.3.1.1.2  the text is in the rule: as though the shorter operand were extended on the right by sufficient spaces"
+    "check": "OK  §1985:VI.6.3.1.1.2  (6.3.1.1.2 Comparison of Nonnumeric Operands)  the text is in the clause; it lies in GRL2.2"
    }
   ],
-  "notes": "ExtremeIndex updates the selection only on a strictly smaller argument, so the leftmost of equal values is kept; the string carrier compares with space padding (CobolString.Compare) or the PCS. Same output at --std 2023. Observation (not a conformance defect): CobolIntrinsics.ExactValue.cs#SelectExact re-writes the leftmost-strict-update loop beside the unified ExtremeIndex kernel (PB2635 unified the other carriers); the exact lane is what native ORD-MAX/ORD-MIN/MAX/MIN take.",
+  "notes": "Every carrier of these functions now selects through the one kernel CobolIntrinsics.Selection.cs#ExtremeIndex (start at index 0, replace only on a strictly greater or strictly smaller comparison, so the leftmost of equal values is kept; ORD-* add 1): the exact-value lane through ExactOrder (CobolExact.Compare, algebraic value) since kb/Work PB6055 deleted SelectExact, and the aligned 256-bit lane through WideOrder since the same branch deleted SelectWide. Probes x1, x2 and x3 at --std 85 on the branch build print the same output at --std 2023; the generated C# shows OrdMaxExact, OrdMinExact, MaxExact and MinExact (NUMVAL, SQRT, power and mixed-scale arguments) and OrdMaxWide and OrdMinWide (power arguments) reached. A re-read of the kb/Work PB6053 record after PB6055 moved the code.",
   "seeded": true,
   "harm": "",
   "cause": "",
@@ -91,8 +97,8 @@
  "refuter": {
   "rule-id": "1989-RV-A.2.27.4-2",
   "refutation": "UPHELD",
-  "classes": "a,c,d,f",
-  "evidence": "Code: SelectExact (ExactValue.cs:32-42) and ExtremeIndex (Selection.cs:35-45) both start at index 0 and move only on a strict order (c<0 / c>0), so the leftmost of equal values is kept; ORD-* add 1. Edition grep of IntrinsicBinder.cs/IntrinsicRenderer.cs: the only ctx.Edition sites are refusals (FUNCTION-keyword omission, REPOSITORY, ref-mod forms), none on the selection path.  Probes: E:/COBOL-coord/scratch/w20262136/coderead/probes-refute/runs/r1-001 (--std 85, PCS ALPHABET ALS IS \"B\" ALSO \"A\" \"C\" \"D\"): C1 ORD-MIN('B' 'A')=01, C2 ORD-MIN('A' 'B')=01, C3 ORD-MAX('A' 'B')=01, C4 MIN('A' 'B')='A', C5 MIN('B' 'A')='B', C6 IF 'A'='B' true; C7 ORD-MIN(X(1)'C', XX'CD')=02 agreeing with C8 IF X1>=X2 (padding space is unlisted, so after D); C9 ORD-MIN('BA' 'AB' 'AA')=01, C10 MIN=BA (all equal under ALSO) | E:/COBOL-coord/scratch/w20262136/coderead/probes-refute/runs/r2-002 (--std 85): D1 ORD-MIN(Z9 '10', 9.9 '9.5')=01 and D2 ORD-MAX(9.5,10)=01 (numeric-edited compared as nonnumeric, matches D3 IF), D4 MIN(NE2 NE1)='10' size 2, D5 ORD-MIN(ZZ9 ' 10', Z9 '10')=01; D6/D7 9PP 300 vs 999 300 tie=01 both orders; D8 VPP9 .003 vs V999 .003 tie=01; D9 MIN(9PP,999,400)=300; D10 MIN(V999,VPP9,1)=.003; D11 ORD-MIN('A', 'A'+LOW-VALUE)=02; D12-D15 C(ALL ALL)/C(2 ALL)/C(ALL 1) row-major ordinals 02,02,02,04 | E:/COBOL-coord/scratch/w20262136/coderead/probes-refute/runs/r3-002 (--std 85): E1 LENGTH(MIN(ODO group 'AA' N=2, X(5) 'AA'))=02, E2 reversed=05 (tie keeps leftmost and its size); E3-E6 ORD-MAX/ORD-MIN(0.1, NUMVAL('0.1')) and (NUMVAL('0.1'), 9V9 0.1) all 01; E7 ORD-MAX(2 SQRT(4))=01; E8 ORD-MAX(0.3 0.1+0.2)=01; E9/E10 0.3 vs NUMVAL(.1)+NUMVAL(.2) tie=01 both; E11 ORD-MAX(LOG(1) 0)=01; E12 ORD-MAX(INTEGER(2.5) 2)=01 Cite: OK  §1989:A.2.27.4 RV2  the text is in RV2 (leftmost argument-1 having that value)",
+  "classes": "b,c,d,f",
+  "evidence": "Code read independently at the pin: ExtremeIndex (Selection.cs) is the only selection loop left in Runtime/Intrinsics (a grep for a second leftmost-strict loop finds none once SelectExact and SelectWide are deleted); ExactOrder.Compare is CobolExact.Compare (big, SDIDI and wide forms compared by value, a mixed pair widened, never ordered by sign), WideOrder.Compare is CompareAligned (one scale: the emitter aligned the list). Edition: no Edition, DialectLevel or CobolVersion read on the selection path (the renderer's sites are the domain rule's citation and the standard-intermediate rounding, neither reachable for these functions at 85). Attacks past the reader's probes: x3.cob at --std 85 (exact lane with NUMVAL, SQRT, 18-digit and power arguments) printed Z1 01, Z2 01, Z3 03, Z4 01 (-0 vs -0.0 vs 0), Z5 01, Z6 .2500, Z7 01, Z8 03, Z9 2.9990, as RV1 to RV3 and the simple-condition rules require; x4.cob --compile-only refused mixed numeric and alphanumeric (COBOL1627 citing §1989:A.2.33.3 and §1989:A.2.32.3) and the 2002 empty list (COBOL0900; class c, a later edition's form refused at 85); x1, x2 and x3 identical at --std 2023. Cite: OK  §1989:A.2.27.4 RV2  (2.27.4 Returned Values)  the text is in RV2",
   "edition-sites-missed": [],
   "corrected": ""
  }
