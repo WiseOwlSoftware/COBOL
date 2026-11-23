@@ -561,7 +561,7 @@ word is the property-name, identifier-3 is the written reference less that word 
 GR1 a) qualifiers and subscripts before d) OF; g) the reference modifier last, on the property's value), and identifier-3
 is resolved by the ORDINARY resolver, so a qualified, subscripted data name and a chained property (`NM OF NXT OF D`)
 need no arm. What a word cannot spell is the grammar's `propertyObject` suffix (`OF SELF | SUPER | object-view |
-function-identifier | NULL`), bound by `OoBinder.OoBindPropertyObject` through the resolver's `BindPropertyObject` edge:
+function-identifier | NULL`), bound by `OoBinder.OoBindPropertyObject` through the resolver's statement site (`IStatementSite.BindPropertyObject`):
 SELF / SUPER / `object-class-name-1 OF SUPER` select the accessor exactly as an INVOKE through them selects a method
 (the ONE `OoBinder.OoPredefinedSearchRoot` — §2023:8.4.3.8.3 SR1/SR4, §2023:8.4.3.8.4 GR2–GR4) and invoke it on `this` / `base`
 (`OoPendingPropertyOp.Form`); a view or a function is bound to its temporary, whose evaluating pre-ops travel with the

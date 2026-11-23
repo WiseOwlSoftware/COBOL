@@ -22,8 +22,15 @@ using Core = CobolParserCore;
 /// <see cref="Place"/>, decodes every literal, and binds every expression / condition / statement into a bound node
 /// exactly once (DESIGN §2). The backend then renders the bound tree — it never re-walks the parse tree.
 /// </summary>
-public sealed partial class StatementBinder(DataBinder data, ReferenceResolver refs)
+public sealed partial class StatementBinder(DataBinder data) : IStatementSite
 {
+    private ReferenceResolver? _refs;
+
+    /// <summary>The PROCEDURE resolver of this binder's unit: constructed with this binder as its statement site
+    /// (<see cref="IStatementSite"/>, kb/Work PB3230), so every reference this binder resolves can carry a function-bearing
+    /// position, a reference-modified occurs-depending operand and an object property whose object no word spells.</summary>
+    private ReferenceResolver Refs => _refs ??= new ReferenceResolver(data, this);
+
     // ── The Step-10 collaborator seam (P7; the phase doc's §Step 10 AS-BUILT PLAN): ONE BinderContext per
     //    binder instance (= per unit / class roster) and ONE instance of each verb collaborator (their
     //    counters/memos are per-unit lifetime). Lazy — the primary-ctor fields are captured, not fields, so
@@ -37,7 +44,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     private MoveBinder? _moveBinder;
     private CorrespondingBinder? _corrBinder;
     private InitializeBinder? _initializeBinder;
-    private BinderContext Ctx => _binderCtx ??= new BinderContext(data, refs);
+    private BinderContext Ctx => _binderCtx ??= new BinderContext(data, Refs);
     private InspectBinder Inspect => _inspectBinder ??= new InspectBinder(Ctx, this);
     private EvaluateBinder Evaluate => _evaluateBinder ??= new EvaluateBinder(Ctx, this);
     private StringUnstringBinder Strings => _stringUnstringBinder ??= new StringUnstringBinder(Ctx, this);
@@ -181,29 +188,31 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// procedure division?" with a method/not-method bit and admit the other three §2023:14.2.2 SR10 elements.</para></summary>
     internal bool InMethod => Ctx.SourceElement is SourceElementKind.MethodDefinition;
 
-    /// <summary>Install the D18 segment-materialization hook on this binder's <see cref="ReferenceResolver"/>
-    /// (fix-queue PB17). Called from BOTH procedure-bind entry points — <see cref="Bind"/> and
-    /// <see cref="BindMethodRoster"/> — because the primary constructor has no body to install it in, and because
-    /// a resolver only needs the hook once a PROCEDURE DIVISION is actually being bound. Idempotent.
-    /// <para>⛔ THESE TWO (the materializer and the EC-BOUND-REF-MOD checking query) ARE THE ONLY EDGES FROM THE
-    /// PROCEDURE BINDER BACK INTO THE RESOLVER, and they are delegates, not type references: the dependency is
-    /// one-way by design (<c>StatementBinder(DataBinder, ReferenceResolver)</c>), so a resolver that never gets them
-    /// keeps the pre-D18 loud posture — which is exactly what the DATA-division throwaway resolvers in
-    /// <c>DataBinder.Constants</c>/<c>Ptr</c> should have.</para></summary>
-    private void AttachSegmentMaterializer()
-    {
-        refs.Subscripts.MaterializeSegment ??= BindPositionTemporary;
-        refs.FreezeOdoExtent ??= FreezeOdoExtentBeforeRefMod;   // §2023:14.6.4 steps 6 → 7 (kb/Work PB1123)
-        // The second edge, of the same shape: the literal reference-modification range screen asks whether
-        // EC-BOUND-REF-MOD checking is enabled at the reference's line (kb/Work PB1707 part 1). Read through
-        // Ctx.EcState.Turn AT CALL TIME, so an exception-checking PERFORM's GR14 overlay is the state it sees.
-        refs.RefMods.RefModCheckingAt ??= line => Ctx.EcState.Turn.Enabled("EC-BOUND-REF-MOD", null, line);
-        // The object of an object property that a word cannot spell — SELF, SUPER, a view, a function (§2023:8.4.3.1.2
-        // Format 7; kb/Work PB1425) — and the view of a qualified data item written as one chain: both are bound by the
-        // OO binder, which owns the method context and the view's temporaries, through the same one-way edge.
-        refs.ObjectProperties.BindPropertyObject ??= Oo.OoBindPropertyObject;
-        refs.ObjectProperties.ApplyObjectView ??= Oo.OoApplyObjectView;
-    }
+    // ── The statement site (IStatementSite, kb/Work PB3230): what the procedure resolver asks of the statement it
+    //    resolves for. The resolver is constructed with this binder (Refs), so a procedure resolver is one from its
+    //    first resolution; the DATA-division resolvers are constructed with no site and keep the pre-D18 loud posture. ──
+
+    /// <summary>D18 (fix-queue PB17): <see cref="BindPositionTemporary"/>.</summary>
+    SegmentValue IStatementSite.MaterializeSegment(Core.ArithmeticExpressionContext expression, SegmentPosition position,
+        int line) => BindPositionTemporary(expression, position, line);
+
+    /// <summary>§2023:14.6.4 steps 6 → 7 (kb/Work PB1123): <see cref="FreezeOdoExtentBeforeRefMod"/>.</summary>
+    Place IStatementSite.FreezeOdoExtent(Place inner, int preOpMark, int line) =>
+        FreezeOdoExtentBeforeRefMod(inner, preOpMark, line);
+
+    /// <summary>The literal reference-modification range screen's question (kb/Work PB1707 part 1), read through
+    /// <c>Ctx.EcState.Turn</c> AT CALL TIME, so an exception-checking PERFORM's GR14 overlay is the state it sees.</summary>
+    bool IStatementSite.RefModCheckingAt(int line) => Ctx.EcState.Turn.Enabled("EC-BOUND-REF-MOD", null, line);
+
+    /// <summary>The object of an object property that a word cannot spell — SELF, SUPER, a view, a function (§2023:8.4.3.1.2
+    /// Format 7; kb/Work PB1425): bound by the OO binder, which owns the method context and the view's temporaries.</summary>
+    PropertyReceiver? IStatementSite.BindPropertyObject(Core.PropertyObjectContext propertyObject,
+        Core.CobolWordContext? superQualifier, bool probe) => Oo.OoBindPropertyObject(propertyObject, superQualifier, probe);
+
+    /// <summary>The view of a qualified data item written as one chain (<c>A OF G AS C</c>, §2023:8.4.3.1.4 GR1a before c)),
+    /// bound by the OO binder like every object view.</summary>
+    Place? IStatementSite.ApplyObjectView(Place subject, Core.ObjectViewContext view, Core.DataReferenceContext written) =>
+        Oo.OoApplyObjectView(subject, view, written);
 
     /// <summary>The ONE guard in front of <see cref="ReportWriterBinder.BindReportGroupClauses"/>: bind the report-section
     /// clause expressions of the reports THIS unit declares, when it declares any. A program unit and a class's method
@@ -216,7 +225,6 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// <summary>Bind a program unit's PROCEDURE DIVISION into a <see cref="BoundProgram"/>.</summary>
     public BoundProgram Bind(Core.ProgramUnitContext program)
     {
-        AttachSegmentMaterializer();
         // Report-section PRESENT WHEN conditions + VARYING expressions (§2023:13.18.41/§2023:13.18.64) bind through the
         // procedure-phase binders (they resolve ordinary data references) — before statement binding, and even
         // for a PD-less unit (the report emission does not require a PROCEDURE DIVISION).
@@ -276,7 +284,6 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// </summary>
     public BoundProgram BindMethodRoster(OoClassSymbol cls, IReadOnlyList<OoMethodSymbol> roster)
     {
-        AttachSegmentMaterializer();
         // The report section of an object or factory binds its PRESENT WHEN / VARYING / SOURCE / SUM operands exactly
         // as a program unit's does, once, before any method body — a report operand is a written reference bound in the
         // PROCEDURE phase (kb/Work PB482, PB1292), and a class's methods are where that phase runs for it.

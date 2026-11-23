@@ -60,6 +60,27 @@ public sealed class ArchCensusDriftTests
     }
 
     /// <summary>
+    /// THE HOST'S RULE FIXTURES KEEP EVERY ARM (kb/Work PB2744): <c>census.py</c> runs <c>ArchCensus --self-test</c>
+    /// after it builds the host and refuses to record when an arm fails, so the table-enumeration rule (a test-only table's
+    /// rows or size KEEPS, DESIGN-architecture-review §8.7 item (a)) cannot drift unseen; this holds each arm by name, so
+    /// an arm deleted from the fixtures (which still exits 0) is red at the gate.
+    /// </summary>
+    [Fact]
+    public void CensusHost_DeclaresEveryRuleFixtureArm()
+    {
+        SelfTestArmSource.AssertDeclares(TestRepo.At("tools", "ArchCensus", "RuleFixtures.cs"), new[]
+        {
+            "the planted source compiles",
+            "a static read-only array, list or map is a table-enumeration",
+            "a *Count that is the Length, Count or *Count of its own type's member is a table-enumeration",
+            "a string, a writable field, a method with arguments and an instance collection are not",
+            "a constant, a counter field, a computed count and another type's table size are not a table's size",
+        });
+        Assert.True(File.ReadAllText(TestRepo.Scripts("arch", "census.py")).Contains("\"--self-test\"], REPO", StringComparison.Ordinal),
+            "census.py must run the host's rule fixtures (`ArchCensus.dll --self-test`) before it measures");
+    }
+
+    /// <summary>
     /// THE CENSUS READS THE PATH LOCATOR AS A SYMBOL (kb/Work PB3201): the host finds the type the drift tests'
     /// repository paths go through by its metadata name (<c>TestArtifacts.LocatorMetadataName</c>), outside the
     /// solution and so outside every rename's computed file set. This pins that name to the type itself, so a rename or

@@ -1015,7 +1015,7 @@ public sealed class DataItem
     /// dynamic-length item its maximum size in IMAGE CHARACTERS (<see cref="DynMaxSize"/> positions of
     /// <see cref="ImageUnit"/> each), because the slot of a national item holds its UTF-16BE image and a store into
     /// it truncates the image on the right at the item's maximum size (§2023:8.5.1.10.4). A layout of the same group divides it
-    /// back by the unit (<c>StorageCell.LayoutOf</c>).</summary>
+    /// back by the unit (<c>CobolContiguousLayout.Of</c>, the one layout builder of a declared and of a cell-backed group, kb/Work PB2746).</summary>
     public int SlotMaxSize => OccursSpec is { IsDynamic: true } ? VariableComponentMax : DynMaxSize * ImageUnit;
 
     /// <summary>The SPECIAL-NAMES dynamic-length structure this item's DYNAMIC LENGTH clause names (ISO §2023:13.18.19.3

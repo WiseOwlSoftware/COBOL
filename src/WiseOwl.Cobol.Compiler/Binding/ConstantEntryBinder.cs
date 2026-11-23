@@ -544,7 +544,7 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
                 + $"{operand} (ISO §2023:13.10.2), a data-name, and a data-name is not reference-modified");
             return null;
         }
-        var resolver = new ReferenceResolver(owner);
+        var resolver = new ReferenceResolver(owner, site: null);
         int subscripts = 0;   // the subscripts as written — §2023:8.4.2.3.3 SR2/SR3/SR5's operand, screened below
         if (w.SubscriptGroup is { } sub)
         {

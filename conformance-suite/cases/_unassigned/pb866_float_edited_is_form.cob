@@ -1,6 +1,6 @@
 *>--- conformance-case
 *> id: pb866_float_edited_is_form
-*> rules: []
+*> rules: [SR-13.18.40.3-12]
 *> accept: [2023]
 *> source-format: free
 *> portable: unverified

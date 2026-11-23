@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb345_record_less_fd_area_85
-      *> rules: [SR-13.4.5.3-3]
+      *> rules: [SR-13.4.5.3-3, GR-14.9.30.4-6]
       *> source-format: fixed
       *> portable: unverified
       *>---

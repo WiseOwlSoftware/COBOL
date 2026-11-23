@@ -38,7 +38,7 @@
   "",
   "    [<u>GROUP</u> INDICATE]."
  ],
- "decided": "generated",
+ "decided": "neither",
  "figure_lines": [
   "level-number [ data-name-1 ]",
   "",
@@ -70,11 +70,11 @@
   "│                                                         │",
   "┤ { <u>SUM</u> { identifier-2 } … [ <u>UPON</u> { data-name-2 } … ] } … ├",
   "│                                                         │",
-  "│ ┌          ╭ data-name-3 ╮ ┐                            │",
-  "│ │ <u>RESET</u> ON ┤             ├ │                            │",
-  "╰ └          ╰ <u>FINAL</u>       ╯ ┘                            ╯",
+  "│       ┌          ╭ data-name-3 ╮ ┐                      │",
+  "│       │ <u>RESET</u> ON ┤             ├ │                      │",
+  "╰       └          ╰ <u>FINAL</u>       ╯ ┘                      ╯",
   "",
   "[ <u>GROUP</u> INDICATE ] ."
  ],
- "reason": "The printed page encloses both LINE NUMBER alternatives (integer-1 [ON NEXT PAGE] and PLUS integer-2) in one brace inside the bracket, as the regeneration draws it; the batch dropped the brace on the second alternative. Every other word and group agrees with the page."
+ "reason": "The printed page encloses both LINE NUMBER alternatives (integer-1 [ON NEXT PAGE] and PLUS integer-2) in one brace inside the bracket, as the regeneration draws it; the batch dropped the brace on the second alternative. Every other word and group agrees with the page. Pass 5 (kb/Work PB6051 p532-1 sibling): the [RESET ON {data-name-3 FINAL}] bracket is the SUM alternative's continuation, indented under {SUM ...} ... as printed, never a fourth alternative of the brace."
 }

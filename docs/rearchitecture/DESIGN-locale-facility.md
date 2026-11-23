@@ -260,6 +260,15 @@ defined and made available on a processor*" (`--check` OK). WiseOwl COBOL's spec
 4. **Availability is a run-time property, not a compile-time one.** The compiler never calls
    `GetCultureInfo` — a locale absent at compile time may be present at run time and vice versa. An
    unavailable locale raises `EC-LOCALE-MISSING` at the point of use (§4.10).
+5. **One canonical spelling, one resolution** (kb/Work PB2763). The normalized key is a canonical BCP 47 tag,
+   `Runtime/Globalization/LocaleTag`: `_` read as `-`, `root` / `und` as the root `""`, the language lower-case, a
+   script title-case, a region upper-case, the `-u-` extension lower-case. `LocaleIdentification.Normalize` owns the
+   POSIX half (`C` / `POSIX` / `INVARIANT`, `.codeset`, `@modifier`) and hands the rest to `LocaleTag`; the CLDR
+   loader's tag (`CldrLocaleTag`, which reads the extension's collation keys), the `.tailor` lookup, the CLDR file
+   names, `LocaleFacts`' culture lookup and the engine's cache all read `LocaleTag`, so no second spelling rule exists.
+   The engine resolves each canonical tag once (`CollationEngine.ResolveLocale` → `ResolvedLocaleCollation`, which also
+   carries the availability verdict and the collator), and the host's `LocaleManager` normalizes a name by this same
+   L1 rule and returns that resolution: a host and a program select the same locale by the same spellings.
 
 *Rejected alternative:* validating the culture name at bind and erroring. It would make compilation depend on
 the build machine's installed ICU data, and §2023:8.1.5 puts the resolution at run time.
@@ -1221,6 +1230,8 @@ on the author's machine and fail in CI — a failure mode this repo has already 
 | `Runtime/Collation/CLDR/*` (PB105 ✅) | NEW — the CLDR locale loader: every CLDR release-48-2 collation file embedded (`Data/cldr-collation.zip`, `scripts/collation/pack-cldr-collation.py`), `CldrParser` (LDML/JSON + the rule syntax), `CldrLocaleLoader` (parent chain, `-u-` keys, `ResolveCollation`), `CldrTailoringBuilder` (rules → a locale's table + settings). **The locale universe a `LOCALE` clause / the named `IS LOCALE` form (T1) names is now every CLDR locale, not the four `.tailor` files.** |
 | `Runtime/Collation/Cache/*` (PB106 ✅) | NEW — `CollationKeyCache` per collator; `CobolCollation.SupportsKeys` / `KeyOf`; SORT/MERGE key columns and the indexed-file LOCALE key comparison key through it |
 | `Runtime/Control/CollationRuntime.cs` (✅) | NEW — `Initialize()` (every `RunUnit`, cheap) / `Warmup()` / `Status` |
+| `Runtime/Globalization/LocaleTag.cs` (PB2763 ✅) | NEW — the one canonical spelling of a locale tag (L1 item 5) and the one .NET culture probe (`PredefinedCulture`) |
+| `Runtime/Collation/Locale/LocaleManager.cs` (PB2763 ✅) | the host's locale selection over the engine's `ResolvedLocaleCollation` (L1-normalized names; the engine's one cache) |
 | `Runtime/Unicode/Segmentation/*` (PB104 ✅) | NEW — UAX #29 grapheme clusters from a derived table (`Data/grapheme-break.bin`, `scripts/unicode/generate-grapheme-table.py`) |
 | `Runtime/Control/LocaleState.cs` (PB101 ✅, minimal), `Runtime/Values/Text/CobolCollation.cs` (✅), `Runtime/Values/Text/LocaleCollation.cs` (✅), `Runtime/Intrinsics/CobolLocale.cs`, `Runtime/Values/Numeric/CobolLocaleEdit.cs`, `Runtime/Globalization/LocaleFacts.cs` | NEW (the last three with T4–T6) |
 | `Runtime/Values/Text/CobolString.cs` (✅) | three `Compare` + three `ThruMember` overloads → the `char pad` native form + ONE `CobolCollation` form |

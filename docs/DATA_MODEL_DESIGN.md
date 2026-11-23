@@ -641,7 +641,8 @@ content-validation half is separately answered by the declined A.4.14 facility (
   (`CellDynSeeds`), decodes (`NationalImage.FromStorage`) and encodes (`NationalImage.Bytes`). The window's maximum sizes
   are therefore IMAGE characters (`DataItem.SlotMaxSize`: the LIMIT in positions times the unit), what a store into the
   slot truncates at, and the layout reads each component's unit off its layout code (`VarGroupWindow.DynStructure`,
-  `CobolDynStructure.PlainCode` / `UnitOf`, which `StorageCell.LayoutOf` divides the maximum by); a table of leaf
+  `CobolDynStructure.PlainCode` / `UnitOf`, which `CobolContiguousLayout.Of` divides the maximum by: the one layout
+  builder a declared group's emitted layout calls too, over `DataItem.SlotMaxSize`, kb/Work PB2746); a table of leaf
   elements carries the unit of its elements there as well, which makes a space-filled element the national space
   (§2023:14.6.9.4; `CellGroupShape.DynLayout`). Before this, such a leaf was a ZERO-WIDTH byte window: `01 G EXTERNAL.
   05 A PIC X(3). 05 D PIC X DYNAMIC LENGTH.` displayed only A, silently.

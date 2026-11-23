@@ -672,13 +672,13 @@
       "from": "WiseOwl.Cobol.Binding.Bound",
       "to": "WiseOwl.Cobol.Binding",
       "uses": 48,
-      "walkUses": 44,
+      "walkUses": 43,
       "removedBy": [
         "PB2347",
         "PB2419",
         "PB2420"
       ],
-      "plan": "PB2347 (move: StatementBinder and its SubscriptSegments partial out of Bound/) and PB2405 (the rule families the bound nodes read move into compiler.bound); PB2420 (move: EditionContext, SortCollation, IeeeSpecial to compiler.model) and PB2419 (BoundAllLiteral.Of leaves for ConcatFolder) end the last nine pairs (Draft 6, G1); StatementBinder's read of DataBindState is binder-to-binder state, so it ends with PB2347's move out of Bound/ (PB2361 landed: the result is frozen after the group tail, after StatementBinder runs, so StatementBinder cannot read it); the census at ac83984ddba9 (recorded by kb/Work PB5923's listing step 1, the first since 2a581b75c6) measured 48 against 47: growth that landed on main between the two records, admitted by hand in the change that recorded the census (no listing type is in it); the removers are unchanged (kb/Work PB5923 lead 2026-11-18-census-growth)",
+      "plan": "PB2347 (move: StatementBinder and its SubscriptSegments partial out of Bound/) and PB2405 (the rule families the bound nodes read move into compiler.bound); PB2420 (move: EditionContext, SortCollation, IeeeSpecial to compiler.model) and PB2419 (BoundAllLiteral.Of leaves for ConcatFolder) end the last nine pairs (Draft 6, G1); StatementBinder's read of DataBindState is binder-to-binder state, so it ends with PB2347's move out of Bound/ (PB2361 landed: the result is frozen after the group tail, after StatementBinder runs, so StatementBinder cannot read it); the census at ac83984ddba9 (recorded by kb/Work PB5923's listing step 1, the first since 2a581b75c6) measured 48 against 47: growth that landed on main between the two records, admitted by hand in the change that recorded the census (no listing type is in it); the removers are unchanged (kb/Work PB5923 lead 2026-11-18-census-growth); kb/Work PB3230 (decision, 2026-11-23) traded three pairs for two: StatementBinder stopped installing hooks on ObjectPropertyResolver, RefModBinder and SubscriptBinder and instead implements the resolver's IStatementSite (answering SegmentValue), the one edge from a statement site to the resolver it is constructed with; both new pairs end with PB2347's move of StatementBinder out of Bound/, where the edge is within compiler.binding",
       "pairs": [
         {
           "from": "WiseOwl.Cobol.Binding.Bound.BoundAllLiteral",
@@ -901,13 +901,6 @@
         },
         {
           "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
-          "to": "WiseOwl.Cobol.Binding.ObjectPropertyResolver",
-          "removedBy": [
-            "PB2347"
-          ]
-        },
-        {
-          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
           "to": "WiseOwl.Cobol.Binding.PropertyReceiver",
           "removedBy": [
             "PB2347"
@@ -916,13 +909,6 @@
         {
           "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
           "to": "WiseOwl.Cobol.Binding.PrototypeSignatures",
-          "removedBy": [
-            "PB2347"
-          ]
-        },
-        {
-          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
-          "to": "WiseOwl.Cobol.Binding.RefModBinder",
           "removedBy": [
             "PB2347"
           ]
@@ -945,13 +931,6 @@
         {
           "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
           "to": "WiseOwl.Cobol.Binding.SegmentPosition",
-          "removedBy": [
-            "PB2347"
-          ]
-        },
-        {
-          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
-          "to": "WiseOwl.Cobol.Binding.SubscriptBinder",
           "removedBy": [
             "PB2347"
           ]
@@ -1011,6 +990,20 @@
         {
           "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
           "to": "WiseOwl.Cobol.Binding.DataBindState",
+          "removedBy": [
+            "PB2347"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.IStatementSite",
+          "removedBy": [
+            "PB2347"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.SegmentValue",
           "removedBy": [
             "PB2347"
           ]

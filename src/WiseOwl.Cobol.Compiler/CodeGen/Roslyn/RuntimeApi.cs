@@ -2624,17 +2624,34 @@ internal static class RuntimeApi
     /// <summary>The C# type of the variable-length-group boundary carrier.</summary>
     public static string VarGroupType => nameof(CobolVarGroup);
 
-    /// <summary>A variable-length record type's contiguous-image layout — <c>new CobolContiguousLayout(…)</c>, the
-    /// ONE object that both decomposes a record read back (determination D-FRA; kb/Work PB981) and locates a key
-    /// a variable-length member precedes (D-KWV; kb/Work PB1025). Emitted once per record type as the static
-    /// field <see cref="ContiguousLayoutField"/>.</summary>
-    public static string ContiguousLayoutNew(int fixedTotal, IEnumerable<int> fixedAt,
-        IEnumerable<int> unit, IEnumerable<long> maxUnits, IEnumerable<int> structure, OdoTail odo) =>
-        $"new {nameof(CobolContiguousLayout)}({fixedTotal}, "
-        + $"new int[] {{ {string.Join(", ", fixedAt)} }}, new int[] {{ {string.Join(", ", unit)} }}, "
-        + $"new long[] {{ {string.Join(", ", maxUnits.Select(m => $"{m}L"))} }}"
-        + (structure.Any(c => c != 0) ? $", new int[] {{ {string.Join(", ", structure)} }}" : "")
-        + (odo.Present ? $", Odo: {OdoTailOf(odo)}" : "") + ")";   // the constructor parameter of that name
+    /// <summary>A variable-length record type's contiguous-image layout — <c>CobolContiguousLayout.Of(…)</c> over its
+    /// component list, the ONE builder a cell-backed group's layout calls too (kb/Work PB2746) and the ONE object that both
+    /// decomposes a record read back (determination D-FRA; kb/Work PB981) and locates a key a variable-length member
+    /// precedes (D-KWV; kb/Work PB1025). Emitted once per record type as the static field
+    /// <see cref="ContiguousLayoutField"/>.</summary>
+    public static string ContiguousLayoutOfComponents(int runWidth, IEnumerable<int> fixedAt, IEnumerable<int> maxSize,
+        IEnumerable<int> layoutCodes, IEnumerable<int> tableWidth, OdoTail odo) =>
+        $"{nameof(CobolContiguousLayout)}.{nameof(CobolContiguousLayout.Of)}({runWidth}, {IntSpan(fixedAt)}, {IntSpan(maxSize)}, "
+        + $"{IntSpan(layoutCodes)}, {IntSpan(tableWidth)}, {OdoTailOf(odo)})";
+
+    /// <summary>The content a dynamic-length component receives from component <paramref name="ordinal"/> of the carrier
+    /// <paramref name="carrier"/> — <c>CobolVarGroup.ReceivedDyn</c> (§2023:8.5.1.10.4; the whole content for a formal's
+    /// copy-in, kb/Work PB1937; <paramref name="national"/> decodes the UTF-16BE image first, kb/Work PB3441).</summary>
+    public static string VarGroupReceivedDyn(string carrier, int ordinal, int maxSize, string storageExpr, bool national) =>
+        $"{carrier}.{nameof(CobolVarGroup.ReceivedDyn)}({ordinal}, {maxSize}, {storageExpr}{(national ? ", national: true" : "")})";
+
+    /// <summary>Store component <paramref name="ordinal"/> of <paramref name="carrier"/> into the dynamic-capacity table
+    /// <paramref name="tableExpr"/> — <c>CobolVarGroup.StoreTableComponent</c> (§2023:14.6.9.2 recreation when carried,
+    /// §2023:14.6.9.4 space fill when not; kb/Work PB393, PB2746).</summary>
+    public static string VarGroupStoreTableComponent(string carrier, int ordinal, string tableExpr, int elementWidth, int unit,
+                                                     string storeLambda) =>
+        $"{carrier}.{nameof(CobolVarGroup.StoreTableComponent)}({ordinal}, {tableExpr}, {elementWidth}, {unit}, {storeLambda})";
+
+    /// <summary>Store the NESTED component <paramref name="ordinal"/> of <paramref name="carrier"/> into the table of
+    /// variable-length group elements <paramref name="tableExpr"/> — <c>CobolVarGroup.StoreGroupTableComponent</c> (kb/Work
+    /// PB2496, PB2746).</summary>
+    public static string VarGroupStoreGroupTableComponent(string carrier, int ordinal, string tableExpr, string storeLambda) =>
+        $"{carrier}.{nameof(CobolVarGroup.StoreGroupTableComponent)}({ordinal}, {tableExpr}, {storeLambda})";
 
     /// <summary>The carrier of a fixed-OCCURS table of variable-length group elements: every occurrence's
     /// <c>AsVarImage()</c> concatenated, fixed runs and components in occurrence order (<c>CobolVarGroup.Concat</c>).</summary>
@@ -2666,7 +2683,7 @@ internal static class RuntimeApi
         $"{nameof(CobolDynStructure)}.{nameof(CobolDynStructure.UnframeWith)}({code}, {recordExpr})";
 
     /// <summary>The static field of a variable-length group's record struct that holds its
-    /// <see cref="ContiguousLayoutNew"/> layout.</summary>
+    /// <see cref="ContiguousLayoutOfComponents"/> layout.</summary>
     public const string ContiguousLayoutField = "__contiguous";
 
     /// <summary>The instance property that exposes <see cref="ContiguousLayoutField"/> through a record VALUE, so a
@@ -3186,8 +3203,9 @@ internal static class RuntimeApi
                                              IEnumerable<int> dynLayout, IEnumerable<int> dynTable, OdoTail odo, string count,
                                              string carrierExpr, IReadOnlyList<CellGroupShape?> dynElem, bool storage) =>
         $"{cellExpr}.{nameof(StorageCell.StoreVarGroupAt)}({fixedAtExpr}, {width}, (int)({dynBase}), {IntSpan(dynFixedAt)}, {IntSpan(dynMax)}, {IntSpan(dynLayout)}, {IntSpan(dynTable)}, {OdoTailOf(odo)}, {count}, {carrierExpr}"
-        // the storage flag reaches only the nested elements' stores (the top level's maximum sizes already say it)
-        + (dynElem.All(s => s is null) ? ")" : $"{CellElemShapes(dynElem)}{(storage ? ", true" : "")})");
+        // a formal's copy-in keeps each dynamic-length member's whole content, at every level (kb/Work PB1937):
+        // CobolVarGroup.ReceivedDyn, the one receiving store of a component, reads the flag
+        + $"{CellElemShapes(dynElem)}{(storage ? ", storage: true" : "")})";
 
     /// <summary>The INVOKE null-receiver guard (EC-OO-NULL, §2023:14.9.23.4 GR5) — <c>CobolObject.RequireNonNull</c>.</summary>
     public static string ObjRequireNonNull(string receiver) =>

@@ -123,7 +123,7 @@ internal sealed class CounterResolver(ReferenceResolver refs, DataBinder data)
             // resolution carries on; otherwise the name IS a sum counter and the ordinary resolver would only say
             // "not defined", so name the real rule (§2023:8.4.2.2.2 / §2023:8.4.2.2.3 SR4).
             if (data.Symbols.IdentifyDataName(written, report: false).Single is not null) return null;
-            if (report && refs.Diagnosed.Add(dref))
+            if (report && refs.ReportOnce(dref))
                 data.Edition.Error(DiagnosticCatalog.ReportSumCounterReference, $"'{WrittenSource.Of(dref)}': '{name}' is a sum counter "
                     + $"({data.Edition.Edition.CiteRule("§1985:XIII.3.19.4 GR5", "§2023:13.18.54.4 GR5")}), "
                     + "but none is subordinate to the qualifiers written — a sum counter is "
@@ -160,7 +160,7 @@ internal sealed class CounterResolver(ReferenceResolver refs, DataBinder data)
             .Where(item => data.State.Forest.DeclaringDepth(item) == counterDepth).Count;
         if (sameSpelling > 1)
         {
-            if (report && refs.Diagnosed.Add(dref))
+            if (report && refs.ReportOnce(dref))
             {
                 int ordinary = sameSpelling - matches.Count;
                 data.Edition.Error(DiagnosticCatalog.ReportSumCounterReference, $"'{WrittenSource.Of(dref)}': the reference is ambiguous — "

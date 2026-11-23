@@ -1,6 +1,6 @@
 *>--- conformance-case
 *> id: smallest_algebraic
-*> rules: [RV-15.83.4-2]
+*> rules: [RV-15.83.4-2, FMT-15.83.2]
 *> accept: [2023]
 *> source-format: free
 *> portable: unverified

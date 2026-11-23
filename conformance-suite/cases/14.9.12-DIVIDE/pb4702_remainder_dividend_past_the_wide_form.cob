@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb4702_remainder_dividend_past_the_wide_form
-      *> rules: [GR-14.9.12.4-6, GR-14.9.12.4-7, DOC-A.1-123]
+      *> rules: [GR-14.9.12.4-6, GR-14.9.12.4-7, DOC-A.1-123, DOC-A.1-179]
       *> accept: [2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified

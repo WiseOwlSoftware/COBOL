@@ -1,6 +1,6 @@
 {
  "edition": 1985,
- "about": "The reconciliation of specs/ANSI_COBOL_1985.md against the rendered page of the scanned PDF (kb/Work PB4850). `book_pages` is the transcription's page count and `pages_swept` the pages compared: every one of the 976 pages was compared by the batch passes of 2026-11-06 (claims, an adversarial verify and a second opinion; a box pass over every page). A page with no claim was found to agree with its transcription. Each claim carries its decision: APPLIED (with the edit, read against the rendered page first), REFUTED, ALREADY (repaired before), FORMAT (a general format, decided by figures-1985), BOX (a level-2 box, marked from the box pass), FIGURE (an illustration) or KEPT. A sweep is a sibling of an applied claim found on the page or across the file. Each box carries MARKED (and the number of blocks marked with a pair of ║), FORMAT or NOT MARKED. verify_publishable.py --edition 1985 holds the transcription to this ledger. SECOND PASS (kb/Work PB6051, owner 2026-11-22): a second independent pass over all 976 pages by agents that did not see the first pass's claims (236 claims, each with its own adversarial verdict: 167 confirmed, 69 refuted); its claims carry `pass: 2` and the id of their compare file. The headings of the whole standard were derived afresh from the printed Table of Contents (kb/Work PB6057; scripts/spec/heading_levels.py): each is a sweep `heading-levels(PB6057)` or an edit of the claim that named it. THIRD PASS (kb/Work PB6051, decision PB6091, owner 2026-11-22): a third independent pass over all 976 pages (25 claims, each with its own adversarial verdict: 7 confirmed, 18 refuted); its claims carry `pass: 3`. All 7 confirmed claims are APPLIED, five of the refuted ones are decided by the title rule of kb/Work PB6095 (APPLIED with the claim's batch still REFUTED), and the siblings of the repairs are sweeps (`format-titles(PB6095)`, `box-labels(PB6051 p354-1)`, `brace-column(PB6051 p213-1)`). FOURTH PASS (kb/Work PB6051, run wf_e5491422-f0a, 2026-11-23): a fourth independent pass over all 976 pages (19 claims, each with its own adversarial verdict: 5 confirmed, 14 refuted); its claims carry `pass: 4`. All 5 confirmed claims are APPLIED; two refuted ones (p731-1, p737-1) are decided by the same repair (APPLIED with the claim's batch still REFUTED), and the siblings are sweeps (`summary-indent(PB6051 p729-1)`, `differences-title-form(PB6051 p737-1)`).",
+ "about": "The reconciliation of specs/ANSI_COBOL_1985.md against the rendered page of the scanned PDF (kb/Work PB4850). `book_pages` is the transcription's page count and `pages_swept` the pages compared: every one of the 976 pages was compared by the batch passes of 2026-11-06 (claims, an adversarial verify and a second opinion; a box pass over every page). A page with no claim was found to agree with its transcription. Each claim carries its decision: APPLIED (with the edit, read against the rendered page first), REFUTED, ALREADY (repaired before), FORMAT (a general format, decided by figures-1985), BOX (a level-2 box, marked from the box pass), FIGURE (an illustration) or KEPT. A sweep is a sibling of an applied claim found on the page or across the file. Each box carries MARKED (and the number of blocks marked with a pair of ║), FORMAT or NOT MARKED. verify_publishable.py --edition 1985 holds the transcription to this ledger. SECOND PASS (kb/Work PB6051, owner 2026-11-22): a second independent pass over all 976 pages by agents that did not see the first pass's claims (236 claims, each with its own adversarial verdict: 167 confirmed, 69 refuted); its claims carry `pass: 2` and the id of their compare file. The headings of the whole standard were derived afresh from the printed Table of Contents (kb/Work PB6057; scripts/spec/heading_levels.py): each is a sweep `heading-levels(PB6057)` or an edit of the claim that named it. THIRD PASS (kb/Work PB6051, decision PB6091, owner 2026-11-22): a third independent pass over all 976 pages (25 claims, each with its own adversarial verdict: 7 confirmed, 18 refuted); its claims carry `pass: 3`. All 7 confirmed claims are APPLIED, five of the refuted ones are decided by the title rule of kb/Work PB6095 (APPLIED with the claim's batch still REFUTED), and the siblings of the repairs are sweeps (`format-titles(PB6095)`, `box-labels(PB6051 p354-1)`, `brace-column(PB6051 p213-1)`). FOURTH PASS (kb/Work PB6051, run wf_e5491422-f0a, 2026-11-23): a fourth independent pass over all 976 pages (19 claims, each with its own adversarial verdict: 5 confirmed, 14 refuted); its claims carry `pass: 4`. All 5 confirmed claims are APPLIED; two refuted ones (p731-1, p737-1) are decided by the same repair (APPLIED with the claim's batch still REFUTED), and the siblings are sweeps (`summary-indent(PB6051 p729-1)`, `differences-title-form(PB6051 p737-1)`). FIFTH PASS (kb/Work PB6051, run wf_10fdbb6c-b56, 2026-11-23): a fifth independent pass over all 976 pages (16 claims, each with its own adversarial verdict: 4 confirmed, 12 refuted); its claims carry `pass: 5`. All 4 confirmed claims are APPLIED, and the siblings are sweeps (`continuation-indent(PB6051 p532-1)`, `box-figure(PB6051 p240-1)`, `summary-indent(PB6051 p32-1)`); heading_levels.check_box_markup now holds the two box-marking classes p240-1 and p419-1 found.",
  "book_pages": 976,
  "pages_swept": [
   1,
@@ -9779,6 +9779,222 @@
    "batch": "REFUTED",
    "decision": "REFUTED",
    "reason": "The printed page B-60 (PDF p972) and page-972.md carry the same entries in the same order, one per line, with sub-entries indented beneath their main entry (e.g. 'Qualification, IV-18' / '  Restriction, VI-1'; 'Punctuation characters, III-18' / 'Format punctuation, IV-2' / 'Separators, IV-4'; 'Record description entry, III-19, IV-33,' with continuation 'IV-34'). The claim itself concedes the entry text and page references match. The only difference is Markdown rendering style (bare indented lines vs. '- ' list markers used on other pages), which is formatting of an informative index and changes no content or meaning."
+  },
+  {
+   "page": 32,
+   "i": "5th-1",
+   "id": "p32-1",
+   "pass": 5,
+   "kind": "misplaced-content",
+   "where": "| &nbsp;&nbsp;Qualification | | | / | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;No qualification permi",
+   "batch": "CONFIRMED",
+   "decision": "APPLIED",
+   "edits": [
+    {
+     "was": "| &nbsp;&nbsp;Qualification | | |\n| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;No qualification permitted;",
+     "now": "| &nbsp;Qualification | | |\n| &nbsp;&nbsp;No qualification permitted;"
+    }
+   ],
+   "siblings": "measured the ELEMENT-column indent of every row of the summary-of-elements tables (pages 31 to 83) from the scan's OCR word positions against the row's &nbsp; count, at the page's own column pitch, and rendered every page with an unmeasured row or a disagreement (32, 43, 59, 72, 73, 74, 83, 835): page 32 was the only page of the standard's own tables that disagreed; pages 74 to 83 carry one more &nbsp; than print by Amendment 1's own instruction (C64); Amendment 1's intrinsic function summary (page 835, folio A-5, and its applied copy on page 59) set COBOL words, Function-name and Function-Identifier flat where print indents them one and two columns (sweeps `summary-indent(PB6051 p32-1)`)."
+  },
+  {
+   "page": 240,
+   "i": "5th-1",
+   "id": "p240-1",
+   "pass": 5,
+   "kind": "incorrect-text",
+   "where": "<u>DATE-COMPILED</u>. [ comment-entry ] …  /  DATE-COMPILED. current date.  (both <pre> bl",
+   "batch": "CONFIRMED",
+   "decision": "APPLIED",
+   "edits": [
+    {
+     "was": "<pre style=\"line-height:1\">\n<u>DATE-COMPILED</u>. [ comment-entry ] …\n</pre>",
+     "now": "<pre style=\"line-height:1\">\n║ <u>DATE-COMPILED</u>. [ comment-entry ] … ║\n</pre>"
+    },
+    {
+     "was": "<pre style=\"line-height:1\">\n          DATE-COMPILED. current date.\n</pre>",
+     "now": "<pre style=\"line-height:1\">\n║          DATE-COMPILED. current date. ║\n</pre>"
+    }
+   ],
+   "siblings": "heading_levels.check_box_markup now names a `<pre>` figure standing between two box-marked lines with no box sides of its own; over the file it found page 240's general format and page 387's RECORD DELIMITER format (2.8.2, printed inside the box around all of 2.8), now `╔ ║ ╚` (sweep `box-figure(PB6051 p240-1)`), and the three flowcharts of pages 346, 347 and 349, which are drawings inside their box and exempt as page 351's is. A figure that ends its page (page 240's second block) is not reached by the check; it was read here."
+  },
+  {
+   "page": 354,
+   "i": "5th-1",
+   "id": "p354-1",
+   "pass": 5,
+   "kind": "ocr-error",
+   "where": "<u>AND</u> ... ╭data-name-2 ╭1S <u>EQUAL</u> TO╮",
+   "batch": "REFUTED",
+   "decision": "REFUTED",
+   "reason": "The 300 dpi render of page 354 (VI-122, 6.22.2 Format 2) shows the AND data-name-2 line printed as '{lS EQUAL TO / IS =}': the first glyph is the l/1 glyph of this typeface, not an I, while the WHEN data-name-1 line prints 'IS EQUAL TO'. The markdown (page-354.md line 40) reads '╭1S <u>EQUAL</u> TO╮', which reproduces the printed glyph, and line 34 reads 'IS' to match the WHEN line. So the transcription agrees with the print. No text is missing or misquoted, and nothing differs between the two sources. The claim is a request to add an editorial note on a misprint in the standard itself, not a discrepancy between the PDF and the markdown. The intended word IS is clear from the parallel WHEN line, and EQUAL TO, the choice braces and the underlining all match.",
+   "edits": []
+  },
+  {
+   "page": 419,
+   "i": "5th-1",
+   "id": "p419-1",
+   "pass": 5,
+   "kind": "incorrect-text",
+   "where": "<u>The size of the current record is determined by rules specified in the RECORD clause. ║",
+   "batch": "CONFIRMED",
+   "decision": "APPLIED",
+   "edits": [
+    {
+     "was": "<u>The size of the current record is determined by rules specified in the RECORD clause. ║If the file description entry contains a RECORD IS VARYING clause, the implied move is a group move.</u>║",
+     "now": "The size of the current record is determined by rules specified in the RECORD clause. ║If the file description entry contains a RECORD IS VARYING clause, the implied move is a group move.║"
+    }
+   ],
+   "siblings": "heading_levels.check_box_markup now names an underline that opens on one side of a box side and closes on the other; over the whole file, prose and figures, page 419 was the only one."
+  },
+  {
+   "page": 440,
+   "i": "5th-1",
+   "id": "p440-1",
+   "pass": 5,
+   "kind": "misplaced-content",
+   "where": "               ╰ ╰ ║ <u>DYNAMIC</u> ╯ ║                            ╯",
+   "batch": "REFUTED",
+   "decision": "REFUTED",
+   "reason": "Printed page 440 (300 dpi): the 2.4.2 format shows ACCESS MODE IS { SEQUENTIAL [RELATIVE KEY IS data-name-1] | {RANDOM / DYNAMIC} RELATIVE KEY IS data-name-1 }, with a level box drawn tightly around the underlined DYNAMIC, inside the inner brace. The markdown line is quoted correctly: '╰ ╰ ║ <u>DYNAMIC</u> ╯ ║ ╯'. So the closing ║ does come after the inner brace's ╯. But the box still marks exactly one word, DYNAMIC, as the level-boxed element. The brace structure is intact: the inner brace still offers RANDOM or DYNAMIC, and the outer brace still offers the two alternatives. No keyword, operand, bracket, brace or choice indicator is missing or changed, and the claim itself says the syntax meaning is unchanged. The only difference is where an ASCII box-drawing delimiter sits relative to a brace glyph. That is a rendering artifact that changes no meaning, so the claim is rejected.",
+   "edits": []
+  },
+  {
+   "page": 532,
+   "i": "5th-1",
+   "id": "p532-1",
+   "pass": 5,
+   "kind": "misplaced-content",
+   "where": "│        │ IS <u>VARYING</u> IN SIZE [ [ FROM integer-4 ] [ <u>TO</u> integer-5 ] CHARACTE",
+   "batch": "CONFIRMED",
+   "decision": "APPLIED",
+   "edits": [
+    {
+     "was": "│        │                                                                       │ │\n│        │ IS <u>VARYING</u> IN SIZE [ [ FROM integer-4 ] [ <u>TO</u> integer-5 ] CHARACTERS ] │ │\n│ <u>RECORD</u> ┤                                                                       ├ │\n│        │ [ <u>DEPENDING</u> ON data-name-1 ]                                          │ │\n│        │                                                                       │ │",
+     "now": "│        │ IS <u>VARYING</u> IN SIZE [ [ FROM integer-4 ] [ <u>TO</u> integer-5 ] CHARACTERS ] │ │\n│ <u>RECORD</u> ┤     [ <u>DEPENDING</u> ON data-name-1 ]                                      ├ │"
+    }
+   ],
+   "siblings": "swept every brace and bracket of the transcription's `<pre>` figures for an alternative opening with `[` at the alternatives' column, and every brace whose alternatives are spaced by blank rows (58), each candidate rendered: the RECORD clause of the SD (page 559) had the same fault; the SUM clause's [RESET ON] bracket was set flush with the {SUM ...} alternative inside the SOURCE/VALUE/SUM brace (page 210) and flush under {SUM ...} in 3.19.2 (page 632); the Format 2 RECORD clause's [DEPENDING ON] (page 404) was flush under RECORD IS VARYING. Each is now indented as printed (sweeps `continuation-indent(PB6051 p532-1)`). The other transcriptions of the RECORD clause (pages 201, 202, 203, 204, 396, 444, 486, 531, 533) and the EVALUATE [NOT] and USE FOR DEBUGGING [ALL REFERENCES OF] alternatives agree with print. Figure verdicts p532-0, p559-0, p210-1 and p404-1 re-stated (decided `neither`, the figure as now drawn)."
+  },
+  {
+   "page": 963,
+   "i": "5th-1",
+   "id": "p963-1",
+   "pass": 5,
+   "kind": "list-restructured",
+   "where": "Every entry is a bare line with no list marker, sub-entries only space-indented: 'CHARACTE",
+   "batch": "REFUTED",
+   "decision": "REFUTED",
+   "reason": "The printed page (B-51, index) shows one entry per line with sub-entries indented under their main entry (e.g. CHARACTERS / BLOCK CONTAINS clause, VII-23; INSPECT statement, VI-94; MEMORY SIZE clause, VI-11; RECORD clause, VII-30). The transcription page-963.md has the same entries, one per line, with sub-entries indented by two spaces, in the same order and with the same page references; the claim itself concedes the text and references match. The only difference is Markdown rendering presentation (no list markers, so a renderer would join the lines) and a style inconsistency with pages 961-962. That is formatting, not a content discrepancy: no entry, reference or hierarchy is lost from the transcription source, and the index is informative.",
+   "edits": []
+  },
+  {
+   "page": 964,
+   "i": "5th-1",
+   "id": "p964-1",
+   "pass": 5,
+   "kind": "list-restructured",
+   "where": "Every entry is a bare line with no list marker, sub-entries only space-indented: 'Configur",
+   "batch": "REFUTED",
+   "decision": "REFUTED",
+   "reason": "The 300 dpi render of PDF page 964 (index page B-52) shows two columns of index entries with sub-entries indented under their main entry. The markdown transcription of page 964 holds every entry with the same text and page references, one per line, and keeps each sub-entry under its main entry with a two-space indent (e.g. 'Configuration Section, IV-31' / '  Nucleus, VI-9'; 'Control break' / '  CONTROL clause, XIII-15' ...; 'Data Division, IV-33' / '  Communication module, XIV-2' ...). The claim's quotes of both sources are accurate. The claim itself concedes that the entry text and page references match. The only difference is Markdown markup: there are no '- ' list markers, so a CommonMark renderer would fold the lines into one paragraph, and pages 961-962 use list markers that 963-966 lack. That affects how the page renders and how consistent the pages are with each other. It does not change the transcribed content: the source text keeps every entry, its line boundary and its hierarchy, and this informative index carries no normative meaning. By the verification rules, a formatting-only difference that does not change meaning is not a content discrepancy.",
+   "edits": []
+  },
+  {
+   "page": 965,
+   "i": "5th-1",
+   "id": "p965-1",
+   "pass": 5,
+   "kind": "list-restructured",
+   "where": "Every entry is a bare line with no list marker, sub-entries only space-indented: 'DELETE s",
+   "batch": "REFUTED",
+   "decision": "REFUTED",
+   "reason": "The printed page (B-53, Index) shows main entries flush with sub-entries indented beneath them (DELETE statement / Indexed I-O module, IX-21 / Relative I-O module, VIII-19; DELIMITED BY phrase / STRING statement, VI-131 ...). The markdown source page-965.md holds the same entries, one per line, in the same order, with sub-entries indented two spaces and the wrapped continuation 'COBOL, XVII-16' indented four, so every entry boundary and the main/sub hierarchy are present in the transcription text. The claim itself concedes the entry text and page references match. The only difference is markdown rendering (bare lines vs '- ' list markers as on pages 961-962), a formatting matter in an informative index that changes no content or meaning; this falls under the 'only formatting' rejection rule.",
+   "edits": []
+  },
+  {
+   "page": 966,
+   "i": "5th-1",
+   "id": "p966-1",
+   "pass": 5,
+   "kind": "list-restructured",
+   "where": "Every entry is a bare line with no list marker, sub-entries only space-indented: 'EVALUATE",
+   "batch": "REFUTED",
+   "decision": "REFUTED",
+   "reason": "The 300-dpi render of PDF page 966 (B-54, informative Index) shows a two-column index of one entry per line, sub-entries and wrapped continuations indented. The transcription holds every entry and page reference in the printed order (checked ERROR PROCEDURES through FILE-CONTROL and the second column), one entry per line, with sub-entries and continuations space-indented as printed. The source text and its line hierarchy are therefore intact. The claim concedes the entry text matches; its only complaint is how a Markdown renderer would collapse bare lines, compared with the list-marker style used on pages 961-962. That is a formatting and style inconsistency with no change of content or meaning, and the task rules reject a difference that is only formatting.",
+   "edits": []
+  },
+  {
+   "page": 967,
+   "i": "5th-1",
+   "id": "p967-1",
+   "pass": 5,
+   "kind": "list-restructured",
+   "where": "Every entry is a bare line with no list marker, sub-entries only space-indented: 'GENERATE",
+   "batch": "REFUTED",
+   "decision": "REFUTED",
+   "reason": "Checked the 300dpi render of page 967 (printed B-55) against page-967.md. The markdown source holds every entry on its own line with sub-entries indented two spaces beneath their main entry (e.g. 'GENERATE statement, XIII-66' / '  Imperative statement, IV-39'; 'GIVING phrase' / '  ADD statement, VI-73' ...), which mirrors the printed one-entry-per-line, indented-sub-entry layout. The claim itself concedes the entry text and page references match. The only difference is markup style (bare lines vs. '- ' list items used on pp. 961-962) and how a Markdown renderer would reflow it: a formatting/rendering concern with no change to the transcribed content or the hierarchy as encoded in the source text. Formatting-only differences are rejected.",
+   "edits": []
+  },
+  {
+   "page": 968,
+   "i": "5th-1",
+   "id": "p968-1",
+   "pass": 5,
+   "kind": "list-restructured",
+   "where": "Every entry is a bare line with no list marker, sub-entries only space-indented: 'INSPECT ",
+   "batch": "REFUTED",
+   "decision": "REFUTED",
+   "reason": "The printed page (B-56, Index) shows entries one per line with sub-entries indented, e.g. 'INSPECT statement, VI-94' / indented 'Imperative statement, IV-39'. The transcription page-968.md carries the same entries, in the same order, one per source line, with sub-entries indented by two spaces; the claim itself concedes the entry text and page references match. Line-by-line hierarchy is preserved in the source text. The only difference is Markdown rendering style (no '- ' list markers, so a renderer may join lines), which is formatting in an informative index and changes no content or meaning. Formatting-only differences are to be rejected.",
+   "edits": []
+  },
+  {
+   "page": 969,
+   "i": "5th-1",
+   "id": "p969-1",
+   "pass": 5,
+   "kind": "list-restructured",
+   "where": "Every entry is a bare line with no list marker, sub-entries only space-indented: 'Linkage ",
+   "batch": "REFUTED",
+   "decision": "REFUTED",
+   "reason": "Rendered PDF page 969 (B-57) at 300 dpi and read page-969.md. The markdown source keeps every index entry on its own line in the PDF's order, with each sub-entry indented two spaces under its main entry (e.g. 'Linkage Section, IV-33, X-13' / '  VALUE clause, VI-49'; 'LINAGE-COUNTER' / '  Qualified', '  Special register IV-9'; 'MERGE statement' / '  Imperative statement', '  Segmentation', '  Transfer of control'). The claim itself concedes the entry text and page references match. So the transcription source loses no content and no hierarchy. The complaint is only about how a Markdown renderer would reflow bare lines and about the transcription being inconsistent with pages 961-962. That is markup and formatting, not a content discrepancy, and it does not change meaning on this informative index page. Under the verification rules, a formatting-only difference is rejected.",
+   "edits": []
+  },
+  {
+   "page": 970,
+   "i": "5th-1",
+   "id": "p970-1",
+   "pass": 5,
+   "kind": "list-restructured",
+   "where": "Every entry is a bare line with no list marker, sub-entries only space-indented: 'Nucleus,",
+   "batch": "REFUTED",
+   "decision": "REFUTED",
+   "reason": "I compared the 300 dpi render of printed page B-58 with page-970.md. Every entry and page reference matches, including 'Nucleus, VI-1' followed by the indented 'Element summary, I-11'. In the source, each entry sits on its own line, sub-entries are indented two spaces, and wrapped continuations such as 'VI-104' are indented four. So the line boundaries and the main-entry/sub-entry hierarchy are both still in the transcription. The only complaint is that a Markdown renderer would join these bare lines into one paragraph, which is formatting and presentation, not content. Nothing is missing, misquoted or changed in meaning. The difference from pages 961-962, which use '- ' list markers, is a formatting inconsistency in this informative index, not a content discrepancy.",
+   "edits": []
+  },
+  {
+   "page": 971,
+   "i": "5th-1",
+   "id": "p971-1",
+   "pass": 5,
+   "kind": "list-restructured",
+   "where": "Every entry is a bare line with no list marker, sub-entries only space-indented: 'Paragrap",
+   "batch": "REFUTED",
+   "decision": "REFUTED",
+   "reason": "The printed page (B-59, Index) shows entries one per line, sub-entries indented one step, continuation lines (XIII-70, VI-36) indented two steps. The transcription page-971.md holds the same entries in the same order with the same page references, one per line, sub-entries indented two spaces and continuations four, so the main-entry/sub-entry hierarchy is in the source text. Example: PDF 'Paragraph-name, IV-6, IV-7, IV-35' / 'Qualified, IV-19' / 'Reference format, IV-43' matches markdown line for line. The claim itself concedes the entry text and references match. The only difference is that the lines carry no '- ' list markers, so a Markdown renderer may join them into one paragraph. That is presentation and formatting in an informative index, not a content discrepancy, and no wording or reference changes. Formatting-only differences are rejected under the verification rules. Making index pages use consistent list markup is a cleanup for the transcription, not a PDF/markdown discrepancy.",
+   "edits": []
+  },
+  {
+   "page": 972,
+   "i": "5th-1",
+   "id": "p972-1",
+   "pass": 5,
+   "kind": "list-restructured",
+   "where": "Every entry is a bare line with no list marker, sub-entries only space-indented: 'Qualific",
+   "batch": "REFUTED",
+   "decision": "REFUTED",
+   "reason": "The 300 dpi render of page 972 (B-60) shows the index entries one per line with indented sub-entries (e.g. 'Qualification, IV-18' / indented 'Restriction, VI-1'; 'Punctuation characters, III-18' / indented 'Format punctuation, IV-2', 'Separators, IV-4'). The markdown transcription carries the same entries in the same order, one per line, with sub-entries indented two spaces and wrapped continuations indented four ('Record description entry, III-19, IV-33,' / '    IV-34'), and blank lines at the same letter-group breaks. Every entry and page reference is present, and the main-entry/sub-entry hierarchy is preserved in the source text by indentation. The claim itself concedes the text and references match. What remains is only how a Markdown renderer would flow bare lines (no list markers, inconsistent with pages 961-962): a formatting/rendering concern of an informative index, not a content discrepancy between the PDF and the transcription.",
+   "edits": []
   }
  ],
  "sweeps": [
@@ -10620,13 +10836,13 @@
    "page": 32,
    "sweep": "summary-rows(PB4953)",
    "was": "Qualification",
-   "now": "&nbsp;&nbsp;Qualification"
+   "now": "&nbsp;Qualification"
   },
   {
    "page": 32,
    "sweep": "summary-rows(PB4953)",
    "was": "No qualification permitted; names must be unique if referenced ................................................",
-   "now": "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;No qualification permitted; names must be unique if referenced ................................................"
+   "now": "&nbsp;&nbsp;No qualification permitted; names must be unique if referenced ................................................"
   },
   {
    "page": 32,
@@ -21373,6 +21589,48 @@
    "sweep": "summary-indent(PB6051 p729-1)",
    "was": "| **SOURCE TEXT MANIPULATION** | | |",
    "now": "| <u>SOURCE TEXT MANIPULATION</u> | | |"
+  },
+  {
+   "page": 559,
+   "sweep": "continuation-indent(PB6051 p532-1)",
+   "was": "│        │                                                                       │ │\n│        │ IS <u>VARYING</u> IN SIZE [ [ FROM integer-2 ] [ <u>TO</u> integer-3 ] CHARACTERS ] │ │\n│ <u>RECORD</u> ┤                                                                       ├ │\n│        │ [ <u>DEPENDING</u> ON data-name-1 ]                                          │ │\n│        │                                                                       │ │",
+   "now": "│        │ IS <u>VARYING</u> IN SIZE [ [ FROM integer-2 ] [ <u>TO</u> integer-3 ] CHARACTERS ] │ │\n│ <u>RECORD</u> ┤     [ <u>DEPENDING</u> ON data-name-1 ]                                      ├ │"
+  },
+  {
+   "page": 210,
+   "sweep": "continuation-indent(PB6051 p532-1)",
+   "was": "│ ┌          ╭ data-name-3 ╮ ┐                            │\n│ │ <u>RESET</u> ON ┤",
+   "now": "│       ┌          ╭ data-name-3 ╮ ┐                      │\n│       │ <u>RESET</u> ON ┤"
+  },
+  {
+   "page": 632,
+   "sweep": "continuation-indent(PB6051 p532-1)",
+   "was": "┌          ╭ data-name-2 ╮ ┐\n│ <u>RESET</u> ON ┤             ├ │\n└          ╰ <u>FINAL</u>       ╯ ┘",
+   "now": "    ┌          ╭ data-name-2 ╮ ┐\n    │ <u>RESET</u> ON ┤             ├ │\n    └          ╰ <u>FINAL</u>       ╯ ┘"
+  },
+  {
+   "page": 404,
+   "sweep": "continuation-indent(PB6051 p532-1)",
+   "was": "╚ [ <u>DEPENDING</u> ON data-name-1 ]",
+   "now": "╚    [ <u>DEPENDING</u> ON data-name-1 ]"
+  },
+  {
+   "page": 387,
+   "sweep": "box-figure(PB6051 p240-1)",
+   "was": "<u>RECORD</u> <u>DELIMITER</u> IS ┤                    ├\n",
+   "now": "║ <u>RECORD</u> <u>DELIMITER</u> IS ┤                    ├ ║\n"
+  },
+  {
+   "page": 835,
+   "sweep": "summary-indent(PB6051 p32-1)",
+   "was": "| COBOL words | |\n| Function-name | X |\n| <u>Uniqueness of Reference</u> | |\n| Function-Identifier | X |",
+   "now": "| &nbsp;COBOL words | |\n| &nbsp;&nbsp;Function-name | X |\n| <u>Uniqueness of Reference</u> | |\n| &nbsp;Function-Identifier | X |"
+  },
+  {
+   "page": 59,
+   "sweep": "summary-indent(PB6051 p32-1)",
+   "was": "| COBOL words | |\n| Function-name | X |\n| <u>Uniqueness of Reference</u> | |\n| Function-Identifier | X |",
+   "now": "| &nbsp;COBOL words | |\n| &nbsp;&nbsp;Function-name | X |\n| <u>Uniqueness of Reference</u> | |\n| &nbsp;Function-Identifier | X |"
   }
  ],
  "boxes": [
@@ -29931,6 +30189,33 @@
     "║When control is passed to the next executable sentence",
     "║If the number of character positions in the logical record"
    ]
+  },
+  {
+   "page": 240,
+   "n": 744,
+   "region": "format",
+   "where": "3.4.2 General Format: the format line, inside the box that encloses all of 3.4 (fifth pass, kb/Work PB6051 p240-1)",
+   "certainty": "high",
+   "decision": "FORMAT",
+   "reason": "a <pre> figure inside a printed level-2 box carries its box sides in the figure (║ ... ║, as page 237's 2.4.2), which the prose count does not read"
+  },
+  {
+   "page": 240,
+   "n": 745,
+   "region": "format",
+   "where": "3.4.4 General Rule 1: the replacement form DATE-COMPILED. current date., inside the same box (fifth pass, kb/Work PB6051 p240-1)",
+   "certainty": "high",
+   "decision": "FORMAT",
+   "reason": "a <pre> figure inside a printed level-2 box carries its box sides in the figure (║ ... ║, as page 237's 2.4.2), which the prose count does not read"
+  },
+  {
+   "page": 387,
+   "n": 746,
+   "region": "format",
+   "where": "2.8.2 General Format, RECORD DELIMITER clause, inside the box that encloses all of 2.8 (fifth pass sibling sweep of p240-1)",
+   "certainty": "high",
+   "decision": "FORMAT",
+   "reason": "a <pre> figure inside a printed level-2 box carries its box sides in the figure (╔ ║ ╚), which the prose count does not read"
   }
  ]
 }

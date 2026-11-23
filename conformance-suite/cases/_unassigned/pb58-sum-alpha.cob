@@ -1,6 +1,6 @@
 *>--- conformance-case
 *> id: pb58-sum-alpha
-*> rules: []
+*> rules: [AR-15.88.3-1]
 *> source-format: free
 *> portable: unverified
 *>---

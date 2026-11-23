@@ -6,10 +6,10 @@
   "",
   "   [<u>DEPENDING</u> ON data-name-1]"
  ],
- "decided": "generated",
+ "decided": "neither",
  "figure_lines": [
   "╔ <u>RECORD</u> IS <u>VARYING</u> IN SIZE [ [ FROM integer-2 ] [ <u>TO</u> integer-3 ] CHARACTERS ] ╗",
-  "╚ [ <u>DEPENDING</u> ON data-name-1 ]                                                 ╝"
+  "╚    [ <u>DEPENDING</u> ON data-name-1 ]                                              ╝"
  ],
- "reason": "The printed page draws a level-2 box around exactly the span the regeneration boxes (checked on the rendered page and against the box pass's list of the page's boxes); the batch drawing lost the box and agrees with the regeneration on every word, grouping, bar, underline and alignment."
+ "reason": "The printed page draws a level-2 box around exactly the span the regeneration boxes (checked on the rendered page and against the box pass's list of the page's boxes); the batch drawing lost the box and agrees with the regeneration on every word, grouping, bar, underline and alignment. Pass 5 (kb/Work PB6051 p532-1 sibling): [DEPENDING ON data-name-1] is the format's continuation line, indented under RECORD IS VARYING as printed."
 }

@@ -146,7 +146,7 @@ disagreements except the pairs a documented CLDR release change explains (Latvia
 48); every locale's `Compare` and keys agree; build times: es < 1 ms, da ~1 ms, vi ~5 ms, zh ~220 ms
 (`CldrBenchmarks`; Spanish builds in 0.7 ms and 2 MB, kb/Work PB107).
 
-**Not implemented** (reported per collation in `CldrCollation.Unsupported` / `LocaleInfo.Unsupported`, never
+**Not implemented** (reported per collation in `CldrCollation.Unsupported` / `ResolvedLocaleCollation.Unsupported`, never
 silently dropped): `hiraganaQ` only. CLDR's `bcp47/collation.xml` marks the key `deprecated="true"` ("Hiragana to be
 sorted before all non-variable on quaternary level"), ICU 53+ ignores it, and doing it needs the Script property
 (Hiragana is not a block), which the pinned data lacks: an owner question, kb/Work PB107.
@@ -159,13 +159,14 @@ numeric value"), where ICU splits it into 254-digit numbers and orders a 255-dig
 
 ## 6. Integration with `CollationTable` and `LocaleManager`
 
-`CollationEngine.ResolveLocale(tag)` (cached per tag) = `CldrLocaleLoader.ResolveCollation(tag)` →
-`CldrTailoringBuilder.Build` over the root table → then `TailoringRules.ForLocale(baseTag)` (a `.tailor` for the tag
-or its language — site override) layered on top via `CollationTable.WithTailoring` → a `ResolvedLocaleCollation`
-(table, options, the CLDR selection, the tailoring, `Unsupported`, `Notes`). `CollationEngine.ForLocale`,
-`TableForLocale`, `TryGetOrderingTable` (an `ORDER TABLE` literal may name a locale) and `LocaleManager.GetLocale` /
-`SetLocale` / `LocaleInfo` all read that one resolution; `LocaleConfig.CldrLocales` / `SupportedLocales` /
-`IsSupported` derive from what exists. Every `ALPHABET … IS LOCALE` comparison, SORT/MERGE, indexed key and
+`CollationEngine.ResolveLocale(tag)` (cached per canonical tag, `Globalization/LocaleTag`: any spelling of a locale is
+one key, kb/Work PB2763) = `CldrLocaleLoader.ResolveCollation(tag)` → `CldrTailoringBuilder.Build` over the root table
+→ then `TailoringRules.ForLocale(baseTag)` (a `.tailor` for the tag or its language — site override) layered on top
+via `CollationTable.WithTailoring` → a `ResolvedLocaleCollation` (table, options, the CLDR selection, the tailoring,
+`Unsupported`, `Notes`, whether the locale is available, and its collator, each decided once). `CollationEngine.ForLocale`,
+`TableForLocale`, `IsKnownLocale`, `TryGetOrderingTable` (an `ORDER TABLE` literal may name a locale) and
+`LocaleManager.GetLocale` / `SetLocale` all read that one resolution; `LocaleManager.CldrLocales` / `TailoredLocales` /
+`SupportedLocales` derive from what exists. Every `ALPHABET … IS LOCALE` comparison, SORT/MERGE, indexed key and
 STANDARD-COMPARE over a locale ordering table therefore collates by the locale's CLDR rules.
 
 ## 7. Legal

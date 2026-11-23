@@ -48,7 +48,7 @@ internal readonly record struct IndexRef(IndexRefOutcome Outcome, IndexDeclarati
 /// misqualified- and hidden-condition-name wordings) and the §2023:13.7.3 SR4 LINKAGE screens every identifier entry asks.
 /// <para>It holds no place and no subscript: <see cref="ReferenceResolver"/>'s identification step calls it first and the place
 /// half builds from the <see cref="DataItem"/> it answers. The per-resolution state it shares with the other parts
-/// (<c>Probing</c>, <c>Diagnosed</c>) is the funnel's.</para>
+/// (<see cref="ReferenceResolver.Probing"/>, the <see cref="ReferenceReports"/> ledger <see cref="ReferenceResolver.ReportOnce"/> asks) is the funnel's.</para>
 /// </summary>
 internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
 {
@@ -80,7 +80,7 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
             ReportRefusedDeclaration(dref, name, "a constant entry that yielded no value", "a constant-name");
             return;
         }
-        if (!refs.Diagnosed.Add(dref)) return;
+        if (!refs.ReportOnce(dref)) return;
         string text = WrittenSource.Of(dref);
         // ⛔ A DECLARED INDEX-NAME (kb/Work PB1266 — the resolver-level twin of SetBinder's PB388 screen): `ADD 1 TO IX`
         // and `CALL "P" USING IX` put an index-name in an identifier position. §2023:13.18.38.3 SR7 closes the list of
@@ -213,7 +213,7 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
     /// index-name legs (e) ask <see cref="ReportUnreferenceableLinkage"/> from their own resolutions.</summary>
     internal void ScreenLinkageReference(Core.DataReferenceContext dref, DataItem item)
     {
-        if (data.Linkage.UnreferenceableLinkageRecord(item) is not { } record || !refs.Diagnosed.Add(dref)) return;
+        if (data.Linkage.UnreferenceableLinkageRecord(item) is not { } record || !refs.ReportOnce(dref)) return;
         ReportUnreferenceableLinkage(WrittenSource.Of(dref), record);
     }
 
@@ -248,7 +248,7 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
         if (!data.Linkage.HasUnreferenceableLinkage) return;
         foreach (var depending in objects)
         {
-            if (data.Linkage.UnreferenceableLinkageRecord(depending.Item) is not { } record || !refs.Diagnosed.Add(dref)) continue;
+            if (data.Linkage.UnreferenceableLinkageRecord(depending.Item) is not { } record || !refs.ReportOnce(dref)) continue;
             data.Edition.Error(DiagnosticCatalog.LinkageItemNotReferenceable,
                 $"'{WrittenSource.Of(dref)}' implicitly references '{depending.Item.CobolName}', its OCCURS DEPENDING ON "
                 + $"object (which fixes its length or its number of occurrences), and '{depending.Item.CobolName}' belongs to LINKAGE SECTION record '{record.CobolName}': the "
@@ -294,7 +294,7 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
     internal void ReportRefusedDeclaration(Core.DataReferenceContext dref, string name, string? why,
                                           string declared = "a data item")
     {
-        if (refs.Probing || !refs.Diagnosed.Add(dref)) return;   // R30 purity; one report per written reference
+        if (!refs.ReportOnce(dref)) return;   // R30 purity; one report per written reference
         string text = WrittenSource.Of(dref);
         data.Edition.Error(DiagnosticCatalog.ReferenceToRefusedDeclaration,
             (text == name ? $"'{text}' names {declared}" : $"'{text}' names '{name}'") + ", whose declaration was refused"
@@ -381,11 +381,6 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
         return null;
     }
 
-    /// <summary>Written index-name references already reported, keyed by the written node (a
-    /// <see cref="Core.DataReferenceContext"/> or the subscript's name <see cref="IToken"/>): several binders ask
-    /// about the same reference (SET classifies its operand, then binds it).</summary>
-    private readonly HashSet<object> _indexRefsReported = new(ReferenceEqualityComparer.Instance);
-
     /// <summary>⛔ THE ONE RESOLUTION OF A WRITTEN INDEX-NAME REFERENCE — <c>index-name-1 [OF|IN qualifier] …</c>
     /// (ISO §2023:8.4.2.2.2 Format 3) — for EVERY position that admits one: a subscript (the position walk) and the
     /// identifier positions of SET, PERFORM / SEARCH VARYING and the relation condition (through
@@ -414,7 +409,7 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
         // ISO/IEC 1989:2002 Annex F.2 item 108: "Index-names may be qualified in the same manner as data and
         // condition-names" — a COBOL-2002 relaxation (qualified-index-name-2002; kb/Work PB4305). Once per written
         // reference, never from a probe (R30).
-        if (qualifiers.Count > 0 && !refs.Probing && _qualifiedIndexGated.Add(writtenAt))
+        if (qualifiers.Count > 0 && refs.ReportOnce(writtenAt, ReferenceReportRule.QualifiedIndexGate))
             ConstructRegistry.Check(data.Edition.Edition, data.Edition.Sink, Constructs.QualifiedIndexName2002,
                 $"the qualified index-name '{DataBinder.WrittenQualified(name, qualifiers)}'");
         if (cands.Single is { } one)
@@ -426,7 +421,7 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
         // (SET classifies its operand, then binds it) only the first committing one reports. The OUTCOME is the
         // same at every ask — only the report is once (wave 1073 review R1-1: a second ask that answered Failed
         // handed the backend the inert "1" as a SET receiver, CS0131).
-        bool report = !refs.Probing && _indexRefsReported.Add(writtenAt);
+        bool report = refs.ReportOnce(writtenAt, ReferenceReportRule.IndexName);
         string written = DataBinder.WrittenQualified(name, qualifiers);
         if (cands.Count == 0)
         {
@@ -456,20 +451,13 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
             $"a written index-name reference is a parse context or a token, not {writtenAt.GetType().Name}", nameof(writtenAt)),
     };
 
-    /// <summary>The written qualified index-name references already asked the qualified-index-name-2002 gate.</summary>
-    private readonly HashSet<object> _qualifiedIndexGated = new(ReferenceEqualityComparer.Instance);
-
-    /// <summary>The written index-name and function-pointer-name references already reported as §2023:13.7.3 SR4 violations (a
-    /// parse context or a token: neither is a <c>dataReference</c>, whose reports <see cref="ReferenceResolver.Diagnosed"/> keeps).</summary>
-    private readonly HashSet<object> _linkageLegReported = new(ReferenceEqualityComparer.Instance);
-
     /// <summary>§2023:13.7.3 SR4e: an index-name of a linkage table is referenceable exactly when the table is — the
     /// decision <see cref="ScreenLinkageReference"/> asks of a data-name, asked once per written reference (a probe
     /// never reports, R30).</summary>
     private void ScreenLinkageIndex(IndexDeclaration decl, string name, IReadOnlyList<string> qualifiers, object writtenAt)
     {
-        if (refs.Probing || data.Linkage.UnreferenceableLinkageRecord(decl.Table) is not { } record
-            || !_linkageLegReported.Add(writtenAt)) return;
+        if (data.Linkage.UnreferenceableLinkageRecord(decl.Table) is not { } record
+            || !refs.ReportOnce(writtenAt, ReferenceReportRule.LinkageLeg)) return;
         ReportUnreferenceableLinkage(DataBinder.WrittenQualified(name, qualifiers), record);
     }
 
@@ -479,8 +467,8 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
     /// reports, R30).</summary>
     internal void ScreenLinkageFunctionPointer(IToken written, DataItem pointer)
     {
-        if (refs.Probing || data.Linkage.UnreferenceableLinkageRecord(pointer) is not { } record
-            || !_linkageLegReported.Add(written)) return;
+        if (data.Linkage.UnreferenceableLinkageRecord(pointer) is not { } record
+            || !refs.ReportOnce(written, ReferenceReportRule.LinkageLeg)) return;
         ReportUnreferenceableLinkage(written.Text, record);
     }
 }

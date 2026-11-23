@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb1355_library_text_literal
-      *> rules: [GR-7.2.3.4-1, FMT-7.2.3.2, DOC-A.1-40]
+      *> rules: [GR-7.2.3.4-1, FMT-7.2.3.2, DOC-A.1-40, SR-7.2.3.3-4, SR-7.2.3.3-5]
       *> constructs: [copy-literal-name-2002]
       *> accept: [2002, 2014, 2023]
       *> files: [pb1355c.txt]

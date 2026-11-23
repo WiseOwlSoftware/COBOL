@@ -32,7 +32,7 @@ public sealed class RefResolutionDriftTests
     public void BothCommitEntries_LedgerTheirDeferrals()
     {
         string text = File.ReadAllText(Path.Combine(TestRepo.Src("WiseOwl.Cobol.Compiler"), "Binding", "ReferenceResolver.cs"));
-        Assert.Equal(2, Regex.Matches(text, @"answer\.Outcome == RefOutcome\.Deferred\) data\.Edition\.NoteUnbuilt\(answer\.Feature\)").Count);
+        Assert.Equal(2, Regex.Matches(text, @"answer\.Outcome == RefOutcome\.Deferred\) _data\.Edition\.NoteUnbuilt\(answer\.Feature\)").Count);
         Assert.Contains("public RefResolution Resolve(Core.DataReferenceContext dref)", text, StringComparison.Ordinal);
         Assert.Contains("public RefResolution ResolveForItem(Core.DataReferenceContext dref, DataItem item)", text, StringComparison.Ordinal);
     }

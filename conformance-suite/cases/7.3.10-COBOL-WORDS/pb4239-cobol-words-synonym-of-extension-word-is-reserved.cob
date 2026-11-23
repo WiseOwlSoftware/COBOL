@@ -1,6 +1,6 @@
 *>--- conformance-case
 *> id: pb4239-cobol-words-synonym-of-extension-word-is-reserved
-*> rules: [GR-7.3.10.4-2]
+*> rules: [GR-7.3.10.4-2, SR-7.3.10.3-4]
 *> source-format: free
 *> portable: unverified
 *>---
