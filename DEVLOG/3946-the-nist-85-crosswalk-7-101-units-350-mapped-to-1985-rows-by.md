@@ -1,4 +1,4 @@
-## The NIST-85 crosswalk: 7,101 units, 350 mapped to 1985 rows by NIST's own references, the rest owed
+## Entry 3946 — 2026-11-22 18:52 PST — The NIST-85 crosswalk: 7,101 units, 350 mapped to 1985 rows by NIST's own references, the rest owed
 
 PB6049 (suite 85 Stage 0) needed the NIST-85 unit list and its mechanical map to the 1985 catalog's rows. `harness/crosswalk.py` now reads the 459 CCVS85 programs and writes `tests/nist/crosswalk/<program>.json`, and `suite_status.py --edition 85` reads its `unmet(85)` for the NIST term.
 
@@ -11,3 +11,4 @@ Result: 350 units `rows`, 4,126 `open`/`ambiguous`, 2,448 `open`/`unmapped` (2,3
 The audit (`crosswalk.py --check`) holds each file to its program (every unit present once, its lines, feature and reference as the program says), to the catalog (every row exists) and, for `basis: "mechanical"` entries, to what the tool now maps, while a later adjudicated entry is held only to the program's facts and the catalog's rows. The self-test `selftests/crosswalk/test_crosswalk.py` plants each arm: the units and the references in effect, the reference tokens, mapped, shifted-numbering, unmapped and annex units, the flag arms, the audit's problems, the term and the loud failures.
 
 Review round 1 (two blocking findings). A CCVS init paragraph may move PAR-NAME before its own ANSI-REFERENCE and FEATURE; the parser credited such a unit with the previous test's reference (92 units, 11 of them wrongly `rows`). A unit's reference and feature are now those in effect at its test paragraph header (self-test case 16; the 459 files rebuilt: 350 `rows`, 4,126 ambiguous, 2,448 unmapped). `crosswalk.py --check` ran in no gate; it is now the gate audit `NIST-85 CROSSWALK` (scripts/gate_audits.py), a CI step and a battery.sh step.
+
