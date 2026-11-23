@@ -46,7 +46,7 @@ public sealed class StageOwnedDirectiveOperandDriftTests : WiseOwlCobolTestBase
     private static int DialectOf(string word)
     {
         var row = CompilerDirectiveCatalog.Find(word)!;
-        return new[] { 2023, 2014, 2002, 85 }.First(y => row.StatusAt(y) is not (ConstructAvailability.NotYetIntroduced or ConstructAvailability.Removed));
+        return new[] { 2023, 2014, 2002, 85 }.First(y => row.Window.StatusAt(y) is not (ConstructAvailability.NotYetIntroduced or ConstructAvailability.Removed));
     }
 
     private static IEnumerable<string> StageWords() =>

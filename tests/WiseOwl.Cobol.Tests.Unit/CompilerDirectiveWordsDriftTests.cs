@@ -93,8 +93,8 @@ public sealed partial class CompilerDirectiveWordsDriftTests
             var row = CompilerDirectiveCatalog.Find(w)!;
             foreach (int edition in new[] { 2002, 2014, 2023 })
             {
-                bool exists = row.StatusAt(edition) != ConstructAvailability.NotYetIntroduced
-                    && row.StatusAt(edition) != ConstructAvailability.Removed;
+                bool exists = row.Window.StatusAt(edition) != ConstructAvailability.NotYetIntroduced
+                    && row.Window.StatusAt(edition) != ConstructAvailability.Removed;
                 if (exists != CompilerDirectiveWords.IsReserved(w, edition)) disagree.Add($"{w}@{edition}");
             }
         }

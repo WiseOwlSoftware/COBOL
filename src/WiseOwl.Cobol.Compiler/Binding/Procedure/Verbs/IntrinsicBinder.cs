@@ -40,6 +40,13 @@ using Core = CobolParserCore;
 /// design — the premise audit's finding). <c>CompileClock</c> lives HERE (IntrinsicRenderer reads it).</summary>
 internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
 {
+    /// <summary>The codes the D8 edition window of an intrinsic function reports its verdicts under (kb/Work PB2620): COBOL1502
+    /// for a function the edition has not introduced, COBOL1503 for one it removed. The verdict and its severity are the
+    /// window's (<see cref="EditionWindow.VerdictAt"/>).</summary>
+    private static readonly EditionGateCodes IntrinsicWindowCodes = new(
+        NotYetIntroduced: DiagnosticCatalog.IntrinsicFunctionNotYetIntroduced.Code,
+        Removed: DiagnosticCatalog.IntrinsicFunctionRemoved.Code);
+
     /// <summary>The injectable compile-time clock for WHEN-COMPILED (§2023:15.99.3 RV2 — the COMPILATION timestamp;
     /// deep-dive D6). One capture per COMPILATION (kb/Work PB120), shared by every unit of that compilation, which
     /// the backend bakes into the generated source as a string constant. Never INVOKED directly: the one read is
@@ -761,12 +768,23 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // (§1989:A.2.4) has no STANDARD-COMPARE; VERSION_CHANGE_REFERENCE row 7.19 carries the quotations.
         // ⚙ AND LIFTED AGAIN AT kb/Work PB64 T4: the four LOCALE functions bind Runtime, so no catalog row is
         // Unsupported any more — the window below is enforced for every function.
-        if (sig.IntroducedIn > ctx.Edition.DialectLevel)
-            ctx.Edition.Error(DiagnosticCatalog.IntrinsicFunctionNotYetIntroduced, $"FUNCTION {sig.Name} was introduced by ISO/IEC 1989:{sig.IntroducedIn} "
-                + $"(§15) — it requires --std {sig.IntroducedIn} or later (targeting COBOL-{ctx.Edition.DialectLevel})");
-        else if (sig.RemovedIn is { } gone && ctx.Edition.DialectLevel >= gone)
-            ctx.Edition.Error(DiagnosticCatalog.IntrinsicFunctionRemoved, $"FUNCTION {sig.Name} was removed by ISO/IEC 1989:{gone} — "
-                + $"it is not available when targeting COBOL-{ctx.Edition.DialectLevel}");
+        // ⛔ THE VERDICT AND ITS SEVERITY ARE THE WINDOW'S (EditionWindow.VerdictAt, kb/Work PB2620): a removed function is an
+        // error strict and a warning under --permissive, as every removed construct is; this arm owns only its codes and words.
+        if (sig.Window.VerdictAt(ctx.Edition.Edition, IntrinsicWindowCodes, sig.Name, $"the {sig.Name} intrinsic function")
+            is { } gate)
+        {
+            string message = gate.Availability switch
+            {
+                ConstructAvailability.NotYetIntroduced => $"FUNCTION {sig.Name} was introduced by ISO/IEC 1989:{sig.IntroducedIn} "
+                    + $"(§15) — it requires --std {sig.IntroducedIn} or later (targeting COBOL-{ctx.Edition.DialectLevel})",
+                ConstructAvailability.Removed => $"FUNCTION {sig.Name} was removed by ISO/IEC 1989:{sig.RemovedIn} — "
+                    + $"it is not available when targeting COBOL-{ctx.Edition.DialectLevel}",
+                _ => throw new System.Diagnostics.UnreachableException(
+                    $"FUNCTION {sig.Name}: an intrinsic window carries no obsolete edition, so {gate.Availability} has no report"),
+            };
+            ctx.Edition.Report(new EditionDiagnostic(gate.Code, gate.Severity, "", message, $"FUNCTION {sig.Name}",
+                DiagnosticCatalog.IntrinsicFunctionNotYetIntroduced.IsoSection, gate.Flag));
+        }
 
         // The former standard-arithmetic staging (P10 Step 12 → COBOL0899) is GONE (fix-queue PB56):
         // ANNUITY / PRESENT-VALUE / VARIANCE / STANDARD-DEVIATION now evaluate their §2023:15.4.1 r1 equivalent

@@ -94,11 +94,11 @@ public sealed class ConstructRegistryDriftTests
             if (e.Rule1985 is { } r)
             {
                 Assert.True(r.StartsWith("§1985:", StringComparison.Ordinal), $"{id}: rule1985 '{r}' is not a §1985 citation");
-                Assert.True(e.StatusAt(85) == ConstructAvailability.NotYetIntroduced, $"{id}: rule1985 on a row 85 does not refuse");
+                Assert.True(e.Window.StatusAt(85) == ConstructAvailability.NotYetIntroduced, $"{id}: rule1985 on a row 85 does not refuse");
             }
             string text = (row.TryGetProperty("vcr", out var v) ? v.GetString() : "") + " "
                 + (row.TryGetProperty("description", out var d) ? d.GetString() : "");
-            if (e.StatusAt(85) != ConstructAvailability.NotYetIntroduced || !relaxation.IsMatch(text)) continue;
+            if (e.Window.StatusAt(85) != ConstructAvailability.NotYetIntroduced || !relaxation.IsMatch(text)) continue;
             asked++;
             var at85 = new EditionContext(85);
             ConstructRegistry.Check(at85.Edition, at85, id, "the probe");
@@ -107,7 +107,7 @@ public sealed class ConstructRegistryDriftTests
             if (!message.Contains("§1985:", StringComparison.Ordinal)) missing.Add($"{id}: {message}");
             var at2002 = new EditionContext(2002);
             ConstructRegistry.Check(at2002.Edition, at2002, id, "the probe");
-            if (e.Rule1985 is { } own && e.StatusAt(2002) == ConstructAvailability.NotYetIntroduced)
+            if (e.Rule1985 is { } own && e.Window.StatusAt(2002) == ConstructAvailability.NotYetIntroduced)
                 Assert.DoesNotContain(at2002.Diagnostics, m => m.Contains(own, StringComparison.Ordinal));
         }
         Assert.True(asked > 0, "no relaxation row was asked: the classifier matched nothing");

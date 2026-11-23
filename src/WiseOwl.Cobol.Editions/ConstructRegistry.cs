@@ -24,7 +24,7 @@ public static partial class ConstructRegistry
     /// same row <see cref="Check"/> reports from, so the branch and the diagnostic cannot name different editions.</summary>
     public static bool IsAvailable(EditionInfo edition, string id) =>
         (Find(id) ?? throw new ArgumentException($"unregistered construct id '{id}'", nameof(id)))
-            .IsInForceAt(edition.Year);
+            .Window.IsInForceAt(edition.Year);
 
     /// <summary>The code <see cref="Check"/> reports construct <paramref name="id"/> under at <paramref name="edition"/> when that
     /// report is an ERROR, else null (in force, obsolete, or removed under a permissive edition, all of which report a warning
@@ -39,22 +39,16 @@ public static partial class ConstructRegistry
     /// the severity <see cref="EditionSeverityPolicy"/> dictates, the code (NotYetIntroduced: the 0900 band for a row whose
     /// availability is a WINDOW, whose <see cref="ConstructDialectStatus.DiagnosticCode"/> names the removal edge, else the row's
     /// pinned code; Removed: the row's code; Obsolete: COBOL0903), and the edition flag of an obsolete or removed construct
-    /// (<see cref="EditionFlag.Of(ConstructDialectStatus, ConstructAvailability)"/>; DESIGN-listing.md section 6.11). <see cref="Check"/>
+    /// (DESIGN-listing.md section 6.11), all decided by the row's <see cref="EditionWindow.VerdictAt"/> (kb/Work PB2620). <see cref="Check"/>
     /// reports it, and a stage that reports the construct with words of its own (the reference-format, COPY and directive-word
     /// stages) takes its severity, code and flag from here, so no stage spells a flag code of its own.</summary>
     public static EditionVerdict? VerdictAt(EditionInfo edition, string id)
     {
         var c = Find(id) ?? throw new ArgumentException($"unregistered construct id '{id}'", nameof(id));
-        var verdict = c.StatusAt(edition.Year);
-        if (verdict == ConstructAvailability.Available) return null;
-        string code = verdict switch
-        {
-            ConstructAvailability.NotYetIntroduced => c.RemovedIn is null ? c.DiagnosticCode : EditionCodes.Introduction,
-            ConstructAvailability.Removed => c.DiagnosticCode,
-            ConstructAvailability.Obsolete => EditionCodes.ObsoleteFlag,
-            _ => throw new ArgumentOutOfRangeException(nameof(id), verdict, "an availability with no code"),
-        };
-        return new EditionVerdict(verdict, EditionSeverityPolicy.For(verdict, edition), code, EditionFlag.Of(c, verdict));
+        var codes = new EditionGateCodes(
+            NotYetIntroduced: c.RemovedIn is null ? c.DiagnosticCode : EditionCodes.Introduction,
+            Removed: c.DiagnosticCode);
+        return c.Window.VerdictAt(edition, codes, c.Id, c.Display);
     }
 
     /// <summary>
