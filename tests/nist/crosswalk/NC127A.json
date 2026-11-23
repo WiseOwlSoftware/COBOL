@@ -1,0 +1,40 @@
+{
+ "program": "NC127A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "low-test-gf-1",
+   "lines": [
+    326
+   ],
+   "feature": "lower case program",
+   "ansi": "III-4 NOTE-2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-III.2-p31",
+    "1985-GR-III.2-p32",
+    "1985-GR-III.2-p37",
+    "1985-GR-III.2-p38"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "low-test-gf-2",
+   "lines": [
+    345
+   ],
+   "feature": "lower case program",
+   "ansi": "vi-67 6.4.1",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.4.1-p1",
+    "1985-GR-VI.6.4.1-p2"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  }
+ ]
+}

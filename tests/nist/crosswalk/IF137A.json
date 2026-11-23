@@ -1,0 +1,346 @@
+{
+ "program": "IF137A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "F-STD-DEV-01",
+   "lines": [
+    375
+   ],
+   "feature": "STANDARD-DEVIATION",
+   "ansi": "See ref. A-70 2.41",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.41.1-p1",
+    "1989-FMT-A.2.41.2",
+    "1989-AR-A.2.41.3-1",
+    "1989-RV-A.2.41.4-1",
+    "1989-RV-A.2.41.4-2",
+    "1989-RV-A.2.41.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-STD-DEV-02",
+   "lines": [
+    389
+   ],
+   "feature": "STANDARD-DEVIATION",
+   "ansi": "See ref. A-70 2.41",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.41.1-p1",
+    "1989-FMT-A.2.41.2",
+    "1989-AR-A.2.41.3-1",
+    "1989-RV-A.2.41.4-1",
+    "1989-RV-A.2.41.4-2",
+    "1989-RV-A.2.41.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-STD-DEV-03",
+   "lines": [
+    408
+   ],
+   "feature": "STANDARD-DEVIATION",
+   "ansi": "See ref. A-70 2.41",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.41.1-p1",
+    "1989-FMT-A.2.41.2",
+    "1989-AR-A.2.41.3-1",
+    "1989-RV-A.2.41.4-1",
+    "1989-RV-A.2.41.4-2",
+    "1989-RV-A.2.41.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-STD-DEV-04",
+   "lines": [
+    431
+   ],
+   "feature": "STANDARD-DEVIATION",
+   "ansi": "See ref. A-70 2.41",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.41.1-p1",
+    "1989-FMT-A.2.41.2",
+    "1989-AR-A.2.41.3-1",
+    "1989-RV-A.2.41.4-1",
+    "1989-RV-A.2.41.4-2",
+    "1989-RV-A.2.41.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-STD-DEV-05",
+   "lines": [
+    454
+   ],
+   "feature": "STANDARD-DEVIATION",
+   "ansi": "See ref. A-70 2.41",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.41.1-p1",
+    "1989-FMT-A.2.41.2",
+    "1989-AR-A.2.41.3-1",
+    "1989-RV-A.2.41.4-1",
+    "1989-RV-A.2.41.4-2",
+    "1989-RV-A.2.41.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-STD-DEV-06",
+   "lines": [
+    477
+   ],
+   "feature": "STANDARD-DEVIATION",
+   "ansi": "See ref. A-70 2.41",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.41.1-p1",
+    "1989-FMT-A.2.41.2",
+    "1989-AR-A.2.41.3-1",
+    "1989-RV-A.2.41.4-1",
+    "1989-RV-A.2.41.4-2",
+    "1989-RV-A.2.41.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-STD-DEV-07",
+   "lines": [
+    500
+   ],
+   "feature": "STANDARD-DEVIATION",
+   "ansi": "See ref. A-70 2.41",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.41.1-p1",
+    "1989-FMT-A.2.41.2",
+    "1989-AR-A.2.41.3-1",
+    "1989-RV-A.2.41.4-1",
+    "1989-RV-A.2.41.4-2",
+    "1989-RV-A.2.41.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-STD-DEV-08",
+   "lines": [
+    523
+   ],
+   "feature": "STANDARD-DEVIATION",
+   "ansi": "See ref. A-70 2.41",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.41.1-p1",
+    "1989-FMT-A.2.41.2",
+    "1989-AR-A.2.41.3-1",
+    "1989-RV-A.2.41.4-1",
+    "1989-RV-A.2.41.4-2",
+    "1989-RV-A.2.41.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-STD-DEV-09",
+   "lines": [
+    545
+   ],
+   "feature": "STANDARD-DEVIATION",
+   "ansi": "See ref. A-70 2.41",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.41.1-p1",
+    "1989-FMT-A.2.41.2",
+    "1989-AR-A.2.41.3-1",
+    "1989-RV-A.2.41.4-1",
+    "1989-RV-A.2.41.4-2",
+    "1989-RV-A.2.41.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-STD-DEV-10",
+   "lines": [
+    569
+   ],
+   "feature": "STANDARD-DEVIATION",
+   "ansi": "See ref. A-70 2.41",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.41.1-p1",
+    "1989-FMT-A.2.41.2",
+    "1989-AR-A.2.41.3-1",
+    "1989-RV-A.2.41.4-1",
+    "1989-RV-A.2.41.4-2",
+    "1989-RV-A.2.41.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-STD-DEV-11",
+   "lines": [
+    592
+   ],
+   "feature": "STANDARD-DEVIATION",
+   "ansi": "See ref. A-70 2.41",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.41.1-p1",
+    "1989-FMT-A.2.41.2",
+    "1989-AR-A.2.41.3-1",
+    "1989-RV-A.2.41.4-1",
+    "1989-RV-A.2.41.4-2",
+    "1989-RV-A.2.41.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-STD-DEV-12",
+   "lines": [
+    615
+   ],
+   "feature": "STANDARD-DEVIATION",
+   "ansi": "See ref. A-70 2.41",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.41.1-p1",
+    "1989-FMT-A.2.41.2",
+    "1989-AR-A.2.41.3-1",
+    "1989-RV-A.2.41.4-1",
+    "1989-RV-A.2.41.4-2",
+    "1989-RV-A.2.41.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-STD-DEV-13",
+   "lines": [
+    638
+   ],
+   "feature": "STANDARD-DEVIATION",
+   "ansi": "See ref. A-70 2.41",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.41.1-p1",
+    "1989-FMT-A.2.41.2",
+    "1989-AR-A.2.41.3-1",
+    "1989-RV-A.2.41.4-1",
+    "1989-RV-A.2.41.4-2",
+    "1989-RV-A.2.41.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-STD-DEV-14",
+   "lines": [
+    660
+   ],
+   "feature": "STANDARD-DEVIATION",
+   "ansi": "See ref. A-70 2.41",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.41.1-p1",
+    "1989-FMT-A.2.41.2",
+    "1989-AR-A.2.41.3-1",
+    "1989-RV-A.2.41.4-1",
+    "1989-RV-A.2.41.4-2",
+    "1989-RV-A.2.41.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-STD-DEV-15",
+   "lines": [
+    683
+   ],
+   "feature": "STANDARD-DEVIATION",
+   "ansi": "See ref. A-70 2.41",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.41.1-p1",
+    "1989-FMT-A.2.41.2",
+    "1989-AR-A.2.41.3-1",
+    "1989-RV-A.2.41.4-1",
+    "1989-RV-A.2.41.4-2",
+    "1989-RV-A.2.41.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-STD-DEV-16",
+   "lines": [
+    706
+   ],
+   "feature": "STANDARD-DEVIATION",
+   "ansi": "See ref. A-70 2.41",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.41.1-p1",
+    "1989-FMT-A.2.41.2",
+    "1989-AR-A.2.41.3-1",
+    "1989-RV-A.2.41.4-1",
+    "1989-RV-A.2.41.4-2",
+    "1989-RV-A.2.41.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-STD-DEV-17",
+   "lines": [
+    720
+   ],
+   "feature": "STANDARD-DEVIATION",
+   "ansi": "See ref. A-70 2.41",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.41.1-p1",
+    "1989-FMT-A.2.41.2",
+    "1989-AR-A.2.41.3-1",
+    "1989-RV-A.2.41.4-1",
+    "1989-RV-A.2.41.4-2",
+    "1989-RV-A.2.41.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  }
+ ]
+}

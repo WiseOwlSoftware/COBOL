@@ -1,0 +1,230 @@
+{
+ "program": "NC125A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "EDI-TEST-GF1",
+   "lines": [
+    393
+   ],
+   "feature": "",
+   "ansi": "VI-34 5.9.5 (7), (8)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.9.5-7",
+    "1985-GR-VI.5.9.5-8"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "EDI-TEST-GF2",
+   "lines": [
+    418
+   ],
+   "feature": "l EDIT MOVE",
+   "ansi": "VI-34 5.9.5 (7), (8)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.9.5-7",
+    "1985-GR-VI.5.9.5-8"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "EDI-TEST-GF3",
+   "lines": [
+    443
+   ],
+   "feature": "+ EDIT MOVE",
+   "ansi": "VI-34 5.9.5 (7), (8)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.9.5-7",
+    "1985-GR-VI.5.9.5-8"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "EDI-TEST-GF4",
+   "lines": [
+    468
+   ],
+   "feature": "- EDIT MOVE",
+   "ansi": "VI-34 5.9.5 (7), (8)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.9.5-7",
+    "1985-GR-VI.5.9.5-8"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "EDI-TEST-GF5",
+   "lines": [
+    493
+   ],
+   "feature": "* EDIT MOVE",
+   "ansi": "VI-34 5.9.5 (7), (8)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.9.5-7",
+    "1985-GR-VI.5.9.5-8"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "EDI-TEST-GF6",
+   "lines": [
+    519
+   ],
+   "feature": "l EDIT ADD",
+   "ansi": "VI-34 5.9.5 (7), (8)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.9.5-7",
+    "1985-GR-VI.5.9.5-8"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "EDI-TEST-GF7",
+   "lines": [
+    545
+   ],
+   "feature": "+ EDIT ADD",
+   "ansi": "VI-34 5.9.5 (7), (8)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.9.5-7",
+    "1985-GR-VI.5.9.5-8"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "EDI-TEST-GF8",
+   "lines": [
+    571
+   ],
+   "feature": "- EDIT ADD",
+   "ansi": "VI-34 5.9.5 (7), (8)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.9.5-7",
+    "1985-GR-VI.5.9.5-8"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "EDI-TEST-GF9",
+   "lines": [
+    597
+   ],
+   "feature": "* EDIT ADD",
+   "ansi": "VI-34 5.9.5 (7), (8)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.9.5-7",
+    "1985-GR-VI.5.9.5-8"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "EDI-TEST-GF10",
+   "lines": [
+    623
+   ],
+   "feature": "l EDIT SUB",
+   "ansi": "VI-34 5.9.5 (7), (8)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.9.5-7",
+    "1985-GR-VI.5.9.5-8"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "EDI-TEST-GF11",
+   "lines": [
+    650
+   ],
+   "feature": "+ EDIT SUB",
+   "ansi": "VI-34 5.9.5 (7), (8)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.9.5-7",
+    "1985-GR-VI.5.9.5-8"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "EDI-TEST-GF12",
+   "lines": [
+    677
+   ],
+   "feature": "- EDIT SUB",
+   "ansi": "VI-34 5.9.5 (7), (8)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.9.5-7",
+    "1985-GR-VI.5.9.5-8"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "EDI-TEST-GF-13",
+   "lines": [
+    704
+   ],
+   "feature": "* EDIT SUB",
+   "ansi": "VI-33 5.9.5 (4), (5)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.9.5-4",
+    "1985-GR-VI.5.9.5-5"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "EDI-TEST-GF-14",
+   "lines": [
+    727
+   ],
+   "feature": "COMMA AS LAST SYMBOL",
+   "ansi": "VI-34 5.9.5 (4), (5)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.9.5-4",
+    "1985-GR-VI.5.9.5-5"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  }
+ ]
+}

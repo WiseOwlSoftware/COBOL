@@ -1,0 +1,73 @@
+{
+ "program": "RL118A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "REL-TEST-009",
+   "lines": [
+    426
+   ],
+   "feature": "",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-1",
+   "lines": [
+    445
+   ],
+   "feature": "CREATE RL-FD2",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-2",
+   "lines": [
+    476
+   ],
+   "feature": "CREATE RL-FD2",
+   "ansi": "VII-3 1.3.4 3C",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VII.1.3.4-p1"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-3",
+   "lines": [
+    503
+   ],
+   "feature": "CREATE RL-FD2",
+   "ansi": "VII-3 1.3.4 3A",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VII.1.3.4-p1"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-4",
+   "lines": [
+    526
+   ],
+   "feature": "CREATE RL-FD2",
+   "ansi": "VII-3 1.3.4 3B",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VII.1.3.4-p1"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  }
+ ]
+}

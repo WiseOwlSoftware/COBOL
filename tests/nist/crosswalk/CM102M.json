@@ -1,0 +1,160 @@
+{
+ "program": "CM102M",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "DISAB-STATUS-TEST-01",
+   "lines": [
+    312
+   ],
+   "feature": "MCS STATUS WORD",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "DISAB-STATUS-TEST-02",
+   "lines": [
+    333
+   ],
+   "feature": "MCS STATUS WORD",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "DISAB-STATUS-TEST-03",
+   "lines": [
+    355
+   ],
+   "feature": "MCS STATUS WORD",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "DISAB-STATUS-TEST-04",
+   "lines": [
+    377
+   ],
+   "feature": "MCS STATUS WORD",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "DISAB-STATUS-TEST-05",
+   "lines": [
+    394
+   ],
+   "feature": "MCS STATUS WORD",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEND-STATUS-TEST-01",
+   "lines": [
+    423
+   ],
+   "feature": "MCS STATUS WORD",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEND-STATUS-TEST-02",
+   "lines": [
+    440
+   ],
+   "feature": "MCS STATUS WORD",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "ENABL-STATUS-TEST-01",
+   "lines": [
+    461
+   ],
+   "feature": "MCS STATUS WORD",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "ENABL-STATUS-TEST-02",
+   "lines": [
+    483
+   ],
+   "feature": "MCS STATUS WORD",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "ENABL-STATUS-TEST-03",
+   "lines": [
+    505
+   ],
+   "feature": "MCS STATUS WORD",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "ENABL-STATUS-TEST-04",
+   "lines": [
+    527
+   ],
+   "feature": "MCS STATUS WORD",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEND-STATUS-TEST-03",
+   "lines": [
+    549
+   ],
+   "feature": "MCS STATUS WORD",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEND-STATUS-TEST-04",
+   "lines": [
+    572
+   ],
+   "feature": "MCS STATUS WORD",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEND-STATUS-TEST-05",
+   "lines": [
+    595
+   ],
+   "feature": "MCS STATUS WORD",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

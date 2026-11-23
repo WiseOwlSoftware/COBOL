@@ -1,0 +1,39 @@
+{
+ "program": "RL102A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "REL-TEST-003",
+   "lines": [
+    396
+   ],
+   "feature": "",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-004",
+   "lines": [
+    469
+   ],
+   "feature": "READ RANDOM",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-005",
+   "lines": [
+    539
+   ],
+   "feature": "REWRITE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

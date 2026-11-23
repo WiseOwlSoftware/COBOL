@@ -1,0 +1,108 @@
+{
+ "program": "IC222A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "CALL-TEST-1",
+   "lines": [
+    385
+   ],
+   "feature": "",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-2",
+   "lines": [
+    464
+   ],
+   "feature": "END-CALL OBSERVANCE",
+   "ansi": "X-27 5.2.4 (2)",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-X.5.2.4-2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-3",
+   "lines": [
+    545
+   ],
+   "feature": "END-CALL OBSERVANCE",
+   "ansi": "X-28 5.2.4 (3)A",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-X.5.2.4-3"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-4",
+   "lines": [
+    631
+   ],
+   "feature": "END-CALL OBSERVANCE",
+   "ansi": "X-28 5.2.4 (2)",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-X.5.2.4-2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-5",
+   "lines": [
+    715
+   ],
+   "feature": "END-CALL OBSERVANCE",
+   "ansi": "X-28 5.2.4 (3)A",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-X.5.2.4-3"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-6",
+   "lines": [
+    794
+   ],
+   "feature": "END-CALL OBSERVANCE",
+   "ansi": "X-28 5.2.4 (3)A",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-X.5.2.4-3"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-7",
+   "lines": [
+    866
+   ],
+   "feature": "END-CALL OBSERVANCE",
+   "ansi": "X-28 5.2.4 (2)",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-X.5.2.4-2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-8",
+   "lines": [
+    947
+   ],
+   "feature": "END-CALL OBSERVANCE",
+   "ansi": "X-27 5.2.4 (2)",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-X.5.2.4-2"
+   ],
+   "basis": "mechanical"
+  }
+ ]
+}

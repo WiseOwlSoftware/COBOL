@@ -1,0 +1,72 @@
+{
+ "program": "IC106A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "LINK-TEST-01",
+   "lines": [
+    324
+   ],
+   "feature": "SEPARATE INDEXES",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "LINK-TEST-02",
+   "lines": [
+    354
+   ],
+   "feature": "INDEX DATA ITEM",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "LINK-TEST-03",
+   "lines": [
+    384
+   ],
+   "feature": "SUBPROGRAM INDEX",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "LINK-TEST-04",
+   "lines": [
+    414
+   ],
+   "feature": "INDEX DATA ITEM",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "LINK-TEST-05",
+   "lines": [
+    457
+   ],
+   "feature": "TABLE REFERENCES",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "LINK-TEST-06",
+   "lines": [
+    487
+   ],
+   "feature": "REDEFINED ITEM",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

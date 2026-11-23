@@ -1,0 +1,39 @@
+{
+ "program": "IC108A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "CALL-TEST-07",
+   "lines": [
+    321
+   ],
+   "feature": "SUBPROGRAM CALLS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-08",
+   "lines": [
+    361
+   ],
+   "feature": "SUBPROGRAM CALLS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "LINK-TEST-07",
+   "lines": [
+    403
+   ],
+   "feature": "SUBPRGMS CALLED ONCE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

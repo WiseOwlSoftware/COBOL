@@ -1,0 +1,951 @@
+{
+ "program": "NC119A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "SUB-TEST-GF-1",
+   "lines": [
+    487
+   ],
+   "feature": "SUBTRACT",
+   "ansi": "VI-42 5.12.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-GR-VI.6.26.4-1",
+    "1985-GR-VI.6.26.4-2",
+    "1985-GR-VI.6.26.4-3",
+    "1985-GR-VI.6.26.4-4",
+    "1985-GR-VI.6.26.4-5"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SUB-TEST-GF-2",
+   "lines": [
+    506
+   ],
+   "feature": "SUBTRACT",
+   "ansi": "VI-42 5.12.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-GR-VI.6.26.4-1",
+    "1985-GR-VI.6.26.4-2",
+    "1985-GR-VI.6.26.4-3",
+    "1985-GR-VI.6.26.4-4",
+    "1985-GR-VI.6.26.4-5"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SUB-TEST-GF-3",
+   "lines": [
+    527
+   ],
+   "feature": "SUBTRACT",
+   "ansi": "VI-42 5.12.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-GR-VI.6.26.4-1",
+    "1985-GR-VI.6.26.4-2",
+    "1985-GR-VI.6.26.4-3",
+    "1985-GR-VI.6.26.4-4",
+    "1985-GR-VI.6.26.4-5"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SUB-TEST-GF-13",
+   "lines": [
+    548
+   ],
+   "feature": "GIVING",
+   "ansi": "VI-42 5.12.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SUB-TEST-GF-14",
+   "lines": [
+    569
+   ],
+   "feature": "GIVING",
+   "ansi": "VI-42 5.12.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SUB-TEST-GF-4",
+   "lines": [
+    589
+   ],
+   "feature": "ROUNDED",
+   "ansi": "VI-42 5.12.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SUB-TEST-GF-15",
+   "lines": [
+    612
+   ],
+   "feature": "ROUNDED",
+   "ansi": "VI-42 5.12.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SUB-TEST-GF-5-1",
+   "lines": [
+    629
+   ],
+   "feature": "SIZE ERROR",
+   "ansi": "VI-42 5.12.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SUB-TEST-GF-5-2",
+   "lines": [
+    645
+   ],
+   "feature": "SIZE ERROR",
+   "ansi": "VI-42 5.12.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SUB-TEST-GF-16-1",
+   "lines": [
+    662
+   ],
+   "feature": "SIZE ERROR",
+   "ansi": "VI-42 5.12.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SUB-TEST-GF-16-2",
+   "lines": [
+    678
+   ],
+   "feature": "SIZE ERROR",
+   "ansi": "VI-42 5.12.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SUB-TEST-GF-17-1",
+   "lines": [
+    698
+   ],
+   "feature": "ROUNDED,SIZE ERROR",
+   "ansi": "VI-42 5.12.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SUB-TEST-GF-17-2",
+   "lines": [
+    714
+   ],
+   "feature": "ROUNDED,SIZE ERROR",
+   "ansi": "VI-42 5.12.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SUB-TEST-GF-6-1",
+   "lines": [
+    735
+   ],
+   "feature": "ROUNDED,SIZE ERROR",
+   "ansi": "VI-42 5.12.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SUB-TEST-GF-6-2",
+   "lines": [
+    750
+   ],
+   "feature": "ROUNDED,SIZE ERROR",
+   "ansi": "VI-42 5.12.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SUB-TEST-GF-18-1",
+   "lines": [
+    770
+   ],
+   "feature": "ROUNDED,SIZE ERROR",
+   "ansi": "VI-42 5.12.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SUB-TEST-GF-18-2",
+   "lines": [
+    786
+   ],
+   "feature": "ROUNDED,SIZE ERROR",
+   "ansi": "VI-42 5.12.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SUB-TEST-GF-19-1",
+   "lines": [
+    807
+   ],
+   "feature": "ROUNDED,SIZE ERROR",
+   "ansi": "VI-42 5.12.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SUB-TEST-GF-19-2",
+   "lines": [
+    822
+   ],
+   "feature": "ROUNDED,SIZE ERROR",
+   "ansi": "VI-42 5.12.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SUB-TEST-GF-20",
+   "lines": [
+    848
+   ],
+   "feature": "SERIES",
+   "ansi": "VI-42 5.12.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SUB-TEST-GF-21",
+   "lines": [
+    873
+   ],
+   "feature": "SERIES",
+   "ansi": "VI-42 5.12.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SUB-TEST-GF-22",
+   "lines": [
+    899
+   ],
+   "feature": "SERIES",
+   "ansi": "VI-42 5.12.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SUB-TEST-GF-7",
+   "lines": [
+    919
+   ],
+   "feature": "COMP VS. DISPLAY",
+   "ansi": "VI-42 5.12.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-GR-VI.6.10.4-1",
+    "1985-GR-VI.6.10.4-2",
+    "1985-GR-VI.6.10.4-3",
+    "1985-GR-VI.6.10.4-4",
+    "1985-GR-VI.6.10.4-5",
+    "1985-GR-VI.6.10.4-6",
+    "1985-GR-VI.6.10.4-7",
+    "1985-GR-VI.6.10.4-8",
+    "1985-GR-VI.6.10.4-9",
+    "1985-GR-VI.6.10.4-10"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SUB-TEST-GF-8",
+   "lines": [
+    938
+   ],
+   "feature": "COMP VS. DISPLAY",
+   "ansi": "VI-42 5.12.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-GR-VI.6.10.4-1",
+    "1985-GR-VI.6.10.4-2",
+    "1985-GR-VI.6.10.4-3",
+    "1985-GR-VI.6.10.4-4",
+    "1985-GR-VI.6.10.4-5",
+    "1985-GR-VI.6.10.4-6",
+    "1985-GR-VI.6.10.4-7",
+    "1985-GR-VI.6.10.4-8",
+    "1985-GR-VI.6.10.4-9",
+    "1985-GR-VI.6.10.4-10"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SUB-TEST-GF-9",
+   "lines": [
+    959
+   ],
+   "feature": "COMP VS. DISPLAY",
+   "ansi": "VI-42 5.12.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-GR-VI.6.10.4-1",
+    "1985-GR-VI.6.10.4-2",
+    "1985-GR-VI.6.10.4-3",
+    "1985-GR-VI.6.10.4-4",
+    "1985-GR-VI.6.10.4-5",
+    "1985-GR-VI.6.10.4-6",
+    "1985-GR-VI.6.10.4-7",
+    "1985-GR-VI.6.10.4-8",
+    "1985-GR-VI.6.10.4-9",
+    "1985-GR-VI.6.10.4-10"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SUB-TEST-GF-10",
+   "lines": [
+    980
+   ],
+   "feature": "COMP VS. DISPLAY",
+   "ansi": "VI-42 5.12.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-GR-VI.6.10.4-1",
+    "1985-GR-VI.6.10.4-2",
+    "1985-GR-VI.6.10.4-3",
+    "1985-GR-VI.6.10.4-4",
+    "1985-GR-VI.6.10.4-5",
+    "1985-GR-VI.6.10.4-6",
+    "1985-GR-VI.6.10.4-7",
+    "1985-GR-VI.6.10.4-8",
+    "1985-GR-VI.6.10.4-9",
+    "1985-GR-VI.6.10.4-10"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SUB-TEST-GF-23",
+   "lines": [
+    1002
+   ],
+   "feature": "COMP VS. DISPLAY",
+   "ansi": "VI-42 5.12.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-GR-VI.6.10.4-1",
+    "1985-GR-VI.6.10.4-2",
+    "1985-GR-VI.6.10.4-3",
+    "1985-GR-VI.6.10.4-4",
+    "1985-GR-VI.6.10.4-5",
+    "1985-GR-VI.6.10.4-6",
+    "1985-GR-VI.6.10.4-7",
+    "1985-GR-VI.6.10.4-8",
+    "1985-GR-VI.6.10.4-9",
+    "1985-GR-VI.6.10.4-10"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SUB-TEST-GF-11",
+   "lines": [
+    1022
+   ],
+   "feature": "COMP VS. DISPLAY",
+   "ansi": "VI-42 5.12.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-GR-VI.6.10.4-1",
+    "1985-GR-VI.6.10.4-2",
+    "1985-GR-VI.6.10.4-3",
+    "1985-GR-VI.6.10.4-4",
+    "1985-GR-VI.6.10.4-5",
+    "1985-GR-VI.6.10.4-6",
+    "1985-GR-VI.6.10.4-7",
+    "1985-GR-VI.6.10.4-8",
+    "1985-GR-VI.6.10.4-9",
+    "1985-GR-VI.6.10.4-10"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SUB-TEST-GF-12-1",
+   "lines": [
+    1038
+   ],
+   "feature": "COMP VS. DISPLAY",
+   "ansi": "VI-42 5.12.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-GR-VI.6.10.4-1",
+    "1985-GR-VI.6.10.4-2",
+    "1985-GR-VI.6.10.4-3",
+    "1985-GR-VI.6.10.4-4",
+    "1985-GR-VI.6.10.4-5",
+    "1985-GR-VI.6.10.4-6",
+    "1985-GR-VI.6.10.4-7",
+    "1985-GR-VI.6.10.4-8",
+    "1985-GR-VI.6.10.4-9",
+    "1985-GR-VI.6.10.4-10"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SUB-TEST-GF-12-2",
+   "lines": [
+    1054
+   ],
+   "feature": "COMP VS. DISPLAY",
+   "ansi": "VI-42 5.12.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-GR-VI.6.10.4-1",
+    "1985-GR-VI.6.10.4-2",
+    "1985-GR-VI.6.10.4-3",
+    "1985-GR-VI.6.10.4-4",
+    "1985-GR-VI.6.10.4-5",
+    "1985-GR-VI.6.10.4-6",
+    "1985-GR-VI.6.10.4-7",
+    "1985-GR-VI.6.10.4-8",
+    "1985-GR-VI.6.10.4-9",
+    "1985-GR-VI.6.10.4-10"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SUB-TEST-GF-24-1",
+   "lines": [
+    1074
+   ],
+   "feature": "COMP VS. DISPLAY",
+   "ansi": "VI-42 5.12.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-GR-VI.6.10.4-1",
+    "1985-GR-VI.6.10.4-2",
+    "1985-GR-VI.6.10.4-3",
+    "1985-GR-VI.6.10.4-4",
+    "1985-GR-VI.6.10.4-5",
+    "1985-GR-VI.6.10.4-6",
+    "1985-GR-VI.6.10.4-7",
+    "1985-GR-VI.6.10.4-8",
+    "1985-GR-VI.6.10.4-9",
+    "1985-GR-VI.6.10.4-10"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SUB-TEST-GF-24-2",
+   "lines": [
+    1090
+   ],
+   "feature": "COMP VS. DISPLAY",
+   "ansi": "VI-42 5.12.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-GR-VI.6.10.4-1",
+    "1985-GR-VI.6.10.4-2",
+    "1985-GR-VI.6.10.4-3",
+    "1985-GR-VI.6.10.4-4",
+    "1985-GR-VI.6.10.4-5",
+    "1985-GR-VI.6.10.4-6",
+    "1985-GR-VI.6.10.4-7",
+    "1985-GR-VI.6.10.4-8",
+    "1985-GR-VI.6.10.4-9",
+    "1985-GR-VI.6.10.4-10"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SUB-TEST-GF-25-1",
+   "lines": [
+    1117
+   ],
+   "feature": "COMP VS. DISPLAY",
+   "ansi": "VI-42 5.12.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-GR-VI.6.10.4-1",
+    "1985-GR-VI.6.10.4-2",
+    "1985-GR-VI.6.10.4-3",
+    "1985-GR-VI.6.10.4-4",
+    "1985-GR-VI.6.10.4-5",
+    "1985-GR-VI.6.10.4-6",
+    "1985-GR-VI.6.10.4-7",
+    "1985-GR-VI.6.10.4-8",
+    "1985-GR-VI.6.10.4-9",
+    "1985-GR-VI.6.10.4-10"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SUB-TEST-GF-25-2",
+   "lines": [
+    1131
+   ],
+   "feature": "COMP VS. DISPLAY",
+   "ansi": "VI-42 5.12.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-GR-VI.6.10.4-1",
+    "1985-GR-VI.6.10.4-2",
+    "1985-GR-VI.6.10.4-3",
+    "1985-GR-VI.6.10.4-4",
+    "1985-GR-VI.6.10.4-5",
+    "1985-GR-VI.6.10.4-6",
+    "1985-GR-VI.6.10.4-7",
+    "1985-GR-VI.6.10.4-8",
+    "1985-GR-VI.6.10.4-9",
+    "1985-GR-VI.6.10.4-10"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SUB-TEST-GF-26-1",
+   "lines": [
+    1158
+   ],
+   "feature": "COMP VS. DISPLAY",
+   "ansi": "VI-42 5.12.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-GR-VI.6.10.4-1",
+    "1985-GR-VI.6.10.4-2",
+    "1985-GR-VI.6.10.4-3",
+    "1985-GR-VI.6.10.4-4",
+    "1985-GR-VI.6.10.4-5",
+    "1985-GR-VI.6.10.4-6",
+    "1985-GR-VI.6.10.4-7",
+    "1985-GR-VI.6.10.4-8",
+    "1985-GR-VI.6.10.4-9",
+    "1985-GR-VI.6.10.4-10"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SUB-TEST-GF-26-2",
+   "lines": [
+    1172
+   ],
+   "feature": "COMP VS. DISPLAY",
+   "ansi": "VI-42 5.12.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-GR-VI.6.10.4-1",
+    "1985-GR-VI.6.10.4-2",
+    "1985-GR-VI.6.10.4-3",
+    "1985-GR-VI.6.10.4-4",
+    "1985-GR-VI.6.10.4-5",
+    "1985-GR-VI.6.10.4-6",
+    "1985-GR-VI.6.10.4-7",
+    "1985-GR-VI.6.10.4-8",
+    "1985-GR-VI.6.10.4-9",
+    "1985-GR-VI.6.10.4-10"
+   ],
+   "basis": "mechanical"
+  }
+ ]
+}

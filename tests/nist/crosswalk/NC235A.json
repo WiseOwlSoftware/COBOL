@@ -1,0 +1,208 @@
+{
+ "program": "NC235A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "INIT-TBL-TH309",
+   "lines": [
+    330
+   ],
+   "feature": "",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "IDX-TEST-F2-1",
+   "lines": [
+    335
+   ],
+   "feature": "LEVEL 3 TBL HANDLING",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "IDX-TEST-F2-2",
+   "lines": [
+    357
+   ],
+   "feature": "LEVEL 3 TBL HANDLING",
+   "ansi": "VI-121 6.21.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.6.21.2"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "IDX-TEST-F2-3",
+   "lines": [
+    379
+   ],
+   "feature": "LEVEL 3 TBL HANDLING",
+   "ansi": "VI-121 6.21.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.6.21.2"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "IDX-TEST-F1-4",
+   "lines": [
+    400
+   ],
+   "feature": "LEVEL 3 TBL HANDLING",
+   "ansi": "VI-121 6.21.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.6.21.2"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "IDX-TEST-F1-5",
+   "lines": [
+    422
+   ],
+   "feature": "LEVEL 3 TBL HANDLING",
+   "ansi": "VI-121 6.21.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.6.21.2"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "IDX-TEST-F1-6",
+   "lines": [
+    444
+   ],
+   "feature": "LEVEL 3 TBL HANDLING",
+   "ansi": "VI-121 6.21.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.6.21.2"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "IDX-TEST-F1-7",
+   "lines": [
+    466
+   ],
+   "feature": "LEVEL 3 TBL HANDLING",
+   "ansi": "VI-121 6.21.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.6.21.2"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "IDX-TEST-F2-8",
+   "lines": [
+    488
+   ],
+   "feature": "LEVEL 3 TBL HANDLING",
+   "ansi": "VI-121 6.21.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.6.21.2"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "IDX-TEST-F2-9",
+   "lines": [
+    511
+   ],
+   "feature": "LEVEL 3 TBL HANDLING",
+   "ansi": "VI-121 6.21.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.6.21.2"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "IDX-TEST-F2-10",
+   "lines": [
+    532
+   ],
+   "feature": "LEVEL 3 TBL HANDLING",
+   "ansi": "VI-121 6.21.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.6.21.2"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "IDX-TEST-F2-11",
+   "lines": [
+    554
+   ],
+   "feature": "LEVEL 3 TBL HANDLING",
+   "ansi": "VI-121 6.21.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.6.21.2"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "IDX-TEST-F2-12",
+   "lines": [
+    576
+   ],
+   "feature": "LEVEL 3 TBL HANDLING",
+   "ansi": "VI-121 6.21.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.6.21.2"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "IDX-TEST-F2-13",
+   "lines": [
+    598
+   ],
+   "feature": "LEVEL 3 TBL HANDLING",
+   "ansi": "VI-121 6.21.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.6.21.2"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  }
+ ]
+}

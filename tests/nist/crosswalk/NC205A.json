@@ -1,0 +1,185 @@
+{
+ "program": "NC205A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "CON-TEST-GF-1",
+   "lines": [
+    404
+   ],
+   "feature": "CONTINUATION ---",
+   "ansi": "IV-44 7.2.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-SR-IV.7.2.2-p1",
+    "1985-SR-IV.7.2.2-p2",
+    "1985-GR-IV.7.2.2-p3",
+    "1985-SR-IV.7.2.2-p4"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CON-TEST-GF-2",
+   "lines": [
+    427
+   ],
+   "feature": "NUMERIC INTEGER",
+   "ansi": "IV-44 7.2.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-SR-IV.7.2.2-p1",
+    "1985-SR-IV.7.2.2-p2",
+    "1985-GR-IV.7.2.2-p3",
+    "1985-SR-IV.7.2.2-p4"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CON-TEST-GF-3",
+   "lines": [
+    456
+   ],
+   "feature": "COMP CONDITIONAL",
+   "ansi": "IV-44 7.2.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-SR-IV.7.2.2-p1",
+    "1985-SR-IV.7.2.2-p2",
+    "1985-GR-IV.7.2.2-p3",
+    "1985-SR-IV.7.2.2-p4"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CON-TEST-GF-4",
+   "lines": [
+    574
+   ],
+   "feature": "RESERVED WORDS",
+   "ansi": "IV-44 7.2.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-SR-IV.7.2.2-p1",
+    "1985-SR-IV.7.2.2-p2",
+    "1985-GR-IV.7.2.2-p3",
+    "1985-SR-IV.7.2.2-p4"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CON-TEST-GF-5",
+   "lines": [
+    606
+   ],
+   "feature": "DATA-NAMES",
+   "ansi": "IV-44 7.2.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-SR-IV.7.2.2-p1",
+    "1985-SR-IV.7.2.2-p2",
+    "1985-GR-IV.7.2.2-p3",
+    "1985-SR-IV.7.2.2-p4"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-SR-IV.6.3.2.1-p2",
+    "1985-GR-IV.6.3.2.1-p3",
+    "1985-GR-IV.6.3.2.1-p4",
+    "1985-GR-IV.6.3.2.1-p5",
+    "1985-GR-IV.6.3.2.1-p6",
+    "1985-FMT-IV.6.3.2.2.1"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CON-TEST-GF-6",
+   "lines": [
+    630
+   ],
+   "feature": "DATA-NAMES",
+   "ansi": "IV-44 7.2.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-SR-IV.7.2.2-p1",
+    "1985-SR-IV.7.2.2-p2",
+    "1985-GR-IV.7.2.2-p3",
+    "1985-SR-IV.7.2.2-p4"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-SR-IV.6.3.2.1-p2",
+    "1985-GR-IV.6.3.2.1-p3",
+    "1985-GR-IV.6.3.2.1-p4",
+    "1985-GR-IV.6.3.2.1-p5",
+    "1985-GR-IV.6.3.2.1-p6",
+    "1985-FMT-IV.6.3.2.2.1"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CON-TEST-GF-7",
+   "lines": [
+    654
+   ],
+   "feature": "RECORD, ITEM DESCR",
+   "ansi": "IV-44 7.2.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-SR-IV.7.2.2-p1",
+    "1985-SR-IV.7.2.2-p2",
+    "1985-GR-IV.7.2.2-p3",
+    "1985-SR-IV.7.2.2-p4"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CON-TEST-GF-10",
+   "lines": [
+    675,
+    786
+   ],
+   "feature": "SPACES BETWEEN WORDS",
+   "ansi": "IV-44 7.2.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-SR-IV.7.2.2-p1",
+    "1985-SR-IV.7.2.2-p2",
+    "1985-GR-IV.7.2.2-p3",
+    "1985-SR-IV.7.2.2-p4"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CON-WRITE-GF-9",
+   "lines": [
+    693
+   ],
+   "feature": "SPACES BETWEEN WORDS",
+   "ansi": "IV-44 7.2.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-SR-IV.7.2.2-p1",
+    "1985-SR-IV.7.2.2-p2",
+    "1985-GR-IV.7.2.2-p3",
+    "1985-SR-IV.7.2.2-p4"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  }
+ ]
+}

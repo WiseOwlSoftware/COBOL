@@ -1,0 +1,84 @@
+{
+ "program": "SQ213A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "OPEN-TEST-GF-01-02",
+   "lines": [
+    438
+   ],
+   "feature": "CREATE FILE SQ-FS1",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "OPEN-TEST-GF-01-03",
+   "lines": [
+    457
+   ],
+   "feature": "OPEN O SQ-FS1 EXTEND",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F1-01",
+   "lines": [
+    517
+   ],
+   "feature": "OPEN O SQ-FS1 EXTEND",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRITE-TEST-GF-01",
+   "lines": [
+    546
+   ],
+   "feature": "CREATE FILE SQ-FS2",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F1-02",
+   "lines": [
+    585
+   ],
+   "feature": "CREATE FILE SQ-FS2",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "USE-TEST-GF-01",
+   "lines": [
+    592,
+    611
+   ],
+   "feature": "USE PROCEDURE TESTS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "USE-TEST-GF-02",
+   "lines": [
+    631
+   ],
+   "feature": "USE PROCEDURE TESTS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

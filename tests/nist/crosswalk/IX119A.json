@@ -1,0 +1,39 @@
+{
+ "program": "IX119A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "OPN-TEST-GF-01-0",
+   "lines": [
+    652
+   ],
+   "feature": "OPEN I-O   : 00 EXP.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "RWR-TEST-GF-01-0",
+   "lines": [
+    676
+   ],
+   "feature": "REWRITE: 21/22  EXP.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "DEL-TEST-GF-01-0",
+   "lines": [
+    710
+   ],
+   "feature": "DELETE       43 EXP.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

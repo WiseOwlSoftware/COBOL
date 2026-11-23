@@ -1,0 +1,204 @@
+{
+ "program": "SQ401M",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "NON-CONFORMING@16",
+   "lines": [
+    16
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "FILE-CONTROL SELECT OPTIONAL TFIL ASSIGN",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@20",
+   "lines": [
+    20
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "XXXXX002 RESERVE 2 AREAS",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@24",
+   "lines": [
+    24
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "ORGANIZATION IS SEQUENTIAL PADDING CHARACTER IS \"P\"",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@27",
+   "lines": [
+    27
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "RECORD DELIMITER IS STANDARD-1",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@42",
+   "lines": [
+    42
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "I-O-CONTROL SAME RECORD AREA FOR TFIL2, TFIL",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@45",
+   "lines": [
+    45
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "MULTIPLE FILE TAPE CONTAINS TFIL2",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@51",
+   "lines": [
+    51
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "FILE SECTION FD TFIL BLOCK CONTAINS 1 TO 8 RECORDS",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@54",
+   "lines": [
+    54
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "RECORD VARYING IN SIZE FROM 1 TO 8 CHARACTERS",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@57",
+   "lines": [
+    57
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "LINAGE IS 20 LINES",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@63",
+   "lines": [
+    63
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "LABEL RECORDS ARE STANDARD VALUE OF XXXXX074 IS VKEY",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@96",
+   "lines": [
+    96
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "SQ401M-CLOSEREMOV CLOSE TFIL REEL FOR REMOVAL",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@101",
+   "lines": [
+    101
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "OPEN INPUT TFIL CLOSE TFIL WITH NO REWIND",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@106",
+   "lines": [
+    106
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "OPEN INPUT TFIL CLOSE TFIL WITH LOCK",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@110",
+   "lines": [
+    110
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "SQ401M-OPENREV OPEN INPUT TFIL REVERSED",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@115",
+   "lines": [
+    115
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "CLOSE TFIL OPEN INPUT TFIL WITH NO REWIND",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@120",
+   "lines": [
+    120
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "CLOSE TFIL OPEN EXTEND TFIL3",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@126",
+   "lines": [
+    126
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "OPEN INPUT TFIL READ TFIL NEXT RECORD AT END DISPLAY \"AT END\"",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@133",
+   "lines": [
+    133
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "OPEN OUTPUT TFIL WRITE FREC AT END-OF-PAGE DISPLAY \"HELLO\"",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  }
+ ]
+}

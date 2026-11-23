@@ -1,0 +1,127 @@
+{
+ "program": "SQ116A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "SEQ-WRITE-023",
+   "lines": [
+    437
+   ],
+   "feature": "CREATE FILE SQ-FS6",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-TEST-024",
+   "lines": [
+    486
+   ],
+   "feature": "CREATE FILE SQ-FS6",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "RWRT-TEST-GF-01",
+   "lines": [
+    545
+   ],
+   "feature": "VERIFY FILE SQ-FS6",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "RWRT-TEST-GF-02",
+   "lines": [
+    660
+   ],
+   "feature": "RWRT; LARGER RECORDS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "RWRT-TEST-GF-03",
+   "lines": [
+    713
+   ],
+   "feature": "RWRT; SHORTER RECORDS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "RWRT-TEST-GF-04",
+   "lines": [
+    757
+   ],
+   "feature": "RWRT FROM 139",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "RWRT-TEST-GF-05",
+   "lines": [
+    802
+   ],
+   "feature": "RWRT SHORTER RECORDS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "RWRT-TEST-GF-06",
+   "lines": [
+    839
+   ],
+   "feature": "RWRT FROM 02 LEVEL",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "RWRT-TEST-GF-07",
+   "lines": [
+    883
+   ],
+   "feature": "RWRT FROM 05 LEVEL",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "RWRT-TEST-GF-08",
+   "lines": [
+    919
+   ],
+   "feature": "RWRT FROM 05 LEVEL",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-TEST-025",
+   "lines": [
+    948
+   ],
+   "feature": "RECORD NOT REWRITTEN",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

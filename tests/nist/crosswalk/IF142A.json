@@ -1,0 +1,44 @@
+{
+ "program": "IF142A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "F-WHENCOMP-01",
+   "lines": [
+    349
+   ],
+   "feature": "WHEN-COMPILED",
+   "ansi": "See ref. A-75 2.46",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.46.1-p1",
+    "1989-FMT-A.2.46.2",
+    "1989-RV-A.2.46.3-1",
+    "1989-RV-A.2.46.3-2",
+    "1989-RV-A.2.46.3-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-WHENCOMP-02",
+   "lines": [
+    362
+   ],
+   "feature": "WHEN-COMPILED",
+   "ansi": "See ref. A-75 2.46",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.46.1-p1",
+    "1989-FMT-A.2.46.2",
+    "1989-RV-A.2.46.3-1",
+    "1989-RV-A.2.46.3-2",
+    "1989-RV-A.2.46.3-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  }
+ ]
+}

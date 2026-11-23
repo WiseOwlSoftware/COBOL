@@ -1,0 +1,50 @@
+{
+ "program": "RL213A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "REL-TEST-001",
+   "lines": [
+    427
+   ],
+   "feature": "EXTEND FILE RL-FS1",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-002-1",
+   "lines": [
+    450
+   ],
+   "feature": "EXTEND FILE RL-FS1",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-002-2",
+   "lines": [
+    462
+   ],
+   "feature": "EXTEND FILE RL-FS1",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-002",
+   "lines": [
+    468
+   ],
+   "feature": "EXTEND FILE RL-FS1",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

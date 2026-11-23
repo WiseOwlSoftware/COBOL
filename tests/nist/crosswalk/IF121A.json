@@ -1,0 +1,346 @@
+{
+ "program": "IF121A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "F-MEDIAN-01",
+   "lines": [
+    373
+   ],
+   "feature": "MEDIAN Function",
+   "ansi": "See ref. A-54 2.25",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.25.1-p1",
+    "1989-FMT-A.2.25.2",
+    "1989-AR-A.2.25.3-1",
+    "1989-RV-A.2.25.4-1",
+    "1989-RV-A.2.25.4-2",
+    "1989-RV-A.2.25.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MEDIAN-02",
+   "lines": [
+    387
+   ],
+   "feature": "MEDIAN Function",
+   "ansi": "See ref. A-54 2.25",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.25.1-p1",
+    "1989-FMT-A.2.25.2",
+    "1989-AR-A.2.25.3-1",
+    "1989-RV-A.2.25.4-1",
+    "1989-RV-A.2.25.4-2",
+    "1989-RV-A.2.25.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MEDIAN-03",
+   "lines": [
+    400
+   ],
+   "feature": "MEDIAN Function",
+   "ansi": "See ref. A-54 2.25",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.25.1-p1",
+    "1989-FMT-A.2.25.2",
+    "1989-AR-A.2.25.3-1",
+    "1989-RV-A.2.25.4-1",
+    "1989-RV-A.2.25.4-2",
+    "1989-RV-A.2.25.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MEDIAN-04",
+   "lines": [
+    419
+   ],
+   "feature": "MEDIAN Function",
+   "ansi": "See ref. A-54 2.25",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.25.1-p1",
+    "1989-FMT-A.2.25.2",
+    "1989-AR-A.2.25.3-1",
+    "1989-RV-A.2.25.4-1",
+    "1989-RV-A.2.25.4-2",
+    "1989-RV-A.2.25.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MEDIAN-05",
+   "lines": [
+    438
+   ],
+   "feature": "MEDIAN Function",
+   "ansi": "See ref. A-54 2.25",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.25.1-p1",
+    "1989-FMT-A.2.25.2",
+    "1989-AR-A.2.25.3-1",
+    "1989-RV-A.2.25.4-1",
+    "1989-RV-A.2.25.4-2",
+    "1989-RV-A.2.25.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MEDIAN-06",
+   "lines": [
+    457
+   ],
+   "feature": "MEDIAN Function",
+   "ansi": "See ref. A-54 2.25",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.25.1-p1",
+    "1989-FMT-A.2.25.2",
+    "1989-AR-A.2.25.3-1",
+    "1989-RV-A.2.25.4-1",
+    "1989-RV-A.2.25.4-2",
+    "1989-RV-A.2.25.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MEDIAN-07",
+   "lines": [
+    475
+   ],
+   "feature": "MEDIAN Function",
+   "ansi": "See ref. A-54 2.25",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.25.1-p1",
+    "1989-FMT-A.2.25.2",
+    "1989-AR-A.2.25.3-1",
+    "1989-RV-A.2.25.4-1",
+    "1989-RV-A.2.25.4-2",
+    "1989-RV-A.2.25.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MEDIAN-08",
+   "lines": [
+    494
+   ],
+   "feature": "MEDIAN Function",
+   "ansi": "See ref. A-54 2.25",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.25.1-p1",
+    "1989-FMT-A.2.25.2",
+    "1989-AR-A.2.25.3-1",
+    "1989-RV-A.2.25.4-1",
+    "1989-RV-A.2.25.4-2",
+    "1989-RV-A.2.25.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MEDIAN-09",
+   "lines": [
+    512
+   ],
+   "feature": "MEDIAN Function",
+   "ansi": "See ref. A-54 2.25",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.25.1-p1",
+    "1989-FMT-A.2.25.2",
+    "1989-AR-A.2.25.3-1",
+    "1989-RV-A.2.25.4-1",
+    "1989-RV-A.2.25.4-2",
+    "1989-RV-A.2.25.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MEDIAN-11",
+   "lines": [
+    530
+   ],
+   "feature": "MEDIAN Function",
+   "ansi": "See ref. A-54 2.25",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.25.1-p1",
+    "1989-FMT-A.2.25.2",
+    "1989-AR-A.2.25.3-1",
+    "1989-RV-A.2.25.4-1",
+    "1989-RV-A.2.25.4-2",
+    "1989-RV-A.2.25.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MEDIAN-12",
+   "lines": [
+    548
+   ],
+   "feature": "MEDIAN Function",
+   "ansi": "See ref. A-54 2.25",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.25.1-p1",
+    "1989-FMT-A.2.25.2",
+    "1989-AR-A.2.25.3-1",
+    "1989-RV-A.2.25.4-1",
+    "1989-RV-A.2.25.4-2",
+    "1989-RV-A.2.25.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MEDIAN-13",
+   "lines": [
+    570
+   ],
+   "feature": "MEDIAN Function",
+   "ansi": "See ref. A-54 2.25",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.25.1-p1",
+    "1989-FMT-A.2.25.2",
+    "1989-AR-A.2.25.3-1",
+    "1989-RV-A.2.25.4-1",
+    "1989-RV-A.2.25.4-2",
+    "1989-RV-A.2.25.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MEDIAN-14",
+   "lines": [
+    592
+   ],
+   "feature": "MEDIAN Function",
+   "ansi": "See ref. A-54 2.25",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.25.1-p1",
+    "1989-FMT-A.2.25.2",
+    "1989-AR-A.2.25.3-1",
+    "1989-RV-A.2.25.4-1",
+    "1989-RV-A.2.25.4-2",
+    "1989-RV-A.2.25.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MEDIAN-15",
+   "lines": [
+    614
+   ],
+   "feature": "MEDIAN Function",
+   "ansi": "See ref. A-54 2.25",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.25.1-p1",
+    "1989-FMT-A.2.25.2",
+    "1989-AR-A.2.25.3-1",
+    "1989-RV-A.2.25.4-1",
+    "1989-RV-A.2.25.4-2",
+    "1989-RV-A.2.25.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MEDIAN-16",
+   "lines": [
+    637
+   ],
+   "feature": "MEDIAN Function",
+   "ansi": "See ref. A-54 2.25",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.25.1-p1",
+    "1989-FMT-A.2.25.2",
+    "1989-AR-A.2.25.3-1",
+    "1989-RV-A.2.25.4-1",
+    "1989-RV-A.2.25.4-2",
+    "1989-RV-A.2.25.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MEDIAN-17",
+   "lines": [
+    660
+   ],
+   "feature": "MEDIAN Function",
+   "ansi": "See ref. A-54 2.25",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.25.1-p1",
+    "1989-FMT-A.2.25.2",
+    "1989-AR-A.2.25.3-1",
+    "1989-RV-A.2.25.4-1",
+    "1989-RV-A.2.25.4-2",
+    "1989-RV-A.2.25.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MEDIAN-18",
+   "lines": [
+    675
+   ],
+   "feature": "MEDIAN Function",
+   "ansi": "See ref. A-54 2.25",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.25.1-p1",
+    "1989-FMT-A.2.25.2",
+    "1989-AR-A.2.25.3-1",
+    "1989-RV-A.2.25.4-1",
+    "1989-RV-A.2.25.4-2",
+    "1989-RV-A.2.25.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  }
+ ]
+}

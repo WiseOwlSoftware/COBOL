@@ -1,0 +1,160 @@
+{
+ "program": "NC233A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "CHECK-ENTRIES",
+   "lines": [
+    452
+   ],
+   "feature": "SEARCH ALL-FIRST LEV",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "LEVEL-1-TEST-2",
+   "lines": [
+    476
+   ],
+   "feature": "SEARCH ALL-FIRST LEV",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "LEVEL-1-TEST-3",
+   "lines": [
+    487
+   ],
+   "feature": "SEARCH ALL-FIRST LEV",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "LEVEL-1-TEST-4",
+   "lines": [
+    498
+   ],
+   "feature": "SEARCH ALL-FIRST LEV",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "LEVEL-2-TEST-1",
+   "lines": [
+    512
+   ],
+   "feature": "SEARCH ALL-SEC LEVEL",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "LEVEL-2-TEST-2",
+   "lines": [
+    524
+   ],
+   "feature": "SEARCH ALL-SEC LEVEL",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "LEVEL-2-TEST-3",
+   "lines": [
+    538
+   ],
+   "feature": "SEARCH ALL-SEC LEVEL",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "LEVEL-2-TEST-4",
+   "lines": [
+    550
+   ],
+   "feature": "SEARCH ALL-SEC LEVEL",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "LEVEL-3-TEST-1",
+   "lines": [
+    578
+   ],
+   "feature": "SEARCH ALL-SEC LEVEL",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "LEVEL-3-TEST-2",
+   "lines": [
+    593
+   ],
+   "feature": "SEARCH ALL THIRD LEV",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "LEVEL-3-TEST-3",
+   "lines": [
+    610
+   ],
+   "feature": "SEARCH ALL THIRD LEV",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "LEVEL-3-TEST-4",
+   "lines": [
+    623
+   ],
+   "feature": "SEARCH ALL THIRD LEV",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MULT-SEARCH-TEST-1",
+   "lines": [
+    652
+   ],
+   "feature": "SEARCH ALL THIRD LEV",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MULT-SEARCH-7-TEST-3",
+   "lines": [
+    689
+   ],
+   "feature": "MULTIPLE SEARCH STMT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

@@ -1,0 +1,105 @@
+{
+ "program": "IC203A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "CALL-TEST-04",
+   "lines": [
+    316
+   ],
+   "feature": "",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-05",
+   "lines": [
+    364
+   ],
+   "feature": "INITIAL STATE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CNCL-TEST-01",
+   "lines": [
+    417
+   ],
+   "feature": "STATE UNCHANGED",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CNCL-TEST-02",
+   "lines": [
+    470
+   ],
+   "feature": "SET TO INITIAL STATE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CNCL-TEST-03",
+   "lines": [
+    524
+   ],
+   "feature": "SET TO INITIAL STATE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CNCL-TEST-04",
+   "lines": [
+    576
+   ],
+   "feature": "PREVIOUSLY CANCELED",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CNCL-TEST-05",
+   "lines": [
+    593
+   ],
+   "feature": "CANCEL UNCALLED PROG",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CNCL-TEST-06",
+   "lines": [
+    616
+   ],
+   "feature": "CANCEL IN SUBPROGRAM",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CNCL-TEST-07",
+   "lines": [
+    670
+   ],
+   "feature": "CALL CANCELED PROG",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

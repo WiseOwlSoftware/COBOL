@@ -1,0 +1,50 @@
+{
+ "program": "ST104A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "BUILD-FILE-TEST",
+   "lines": [
+    347
+   ],
+   "feature": "TAPE BEING BUILT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-1",
+   "lines": [
+    724
+   ],
+   "feature": "SORT, USING-OUTPROC",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-2",
+   "lines": [
+    784
+   ],
+   "feature": "LAST SORTED RECORD",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-3",
+   "lines": [
+    795
+   ],
+   "feature": "LAST SORTED RECORD",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

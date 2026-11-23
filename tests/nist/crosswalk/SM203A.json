@@ -1,0 +1,72 @@
+{
+ "program": "SM203A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "COPY-TEST-1",
+   "lines": [
+    374
+   ],
+   "feature": "COPY ENV DIV REPLAC",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "COPY-TEST-2",
+   "lines": [
+    716
+   ],
+   "feature": "COPY ENV DIV REPLAC",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "COPY-TEST-3",
+   "lines": [
+    731
+   ],
+   "feature": "COPY ENV DIV REPLAC",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "COPY-TEST-4",
+   "lines": [
+    746
+   ],
+   "feature": "COPY ENV DIV REPLAC",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "COPY-TEST-5",
+   "lines": [
+    762
+   ],
+   "feature": "COPY SPECIAL-NAMES",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "BAD-FILE",
+   "lines": [
+    770
+   ],
+   "feature": "COPY SPECIAL-NAMES",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

@@ -1,0 +1,84 @@
+{
+ "program": "RL105A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "REL-TEST-1",
+   "lines": [
+    469
+   ],
+   "feature": "READ/WRITE INVAL KEY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-2",
+   "lines": [
+    495
+   ],
+   "feature": "READ/WRITE INVAL KEY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-3",
+   "lines": [
+    509,
+    519
+   ],
+   "feature": "READ/WRITE INVAL KEY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-4",
+   "lines": [
+    558
+   ],
+   "feature": "READ/WRITE INVAL KEY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-5",
+   "lines": [
+    580
+   ],
+   "feature": "READ/WRITE INVAL KEY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-6",
+   "lines": [
+    593
+   ],
+   "feature": "READ/WRITE INVAL KEY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-7",
+   "lines": [
+    628
+   ],
+   "feature": "READ/WRITE INVAL KEY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

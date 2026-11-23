@@ -1,0 +1,29 @@
+{
+ "program": "SQ141A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "NOT-DECL-9",
+   "lines": [
+    320
+   ],
+   "feature": "",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "OPEN-TEST-01",
+   "lines": [
+    608,
+    613
+   ],
+   "feature": "OPEN ABSENT FILE INPUT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

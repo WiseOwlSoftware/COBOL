@@ -1,0 +1,204 @@
+{
+ "program": "SG203A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "SEGM-TEST-01",
+   "lines": [
+    302
+   ],
+   "feature": "",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEGM-TEST-02",
+   "lines": [
+    328
+   ],
+   "feature": "FALL THRU IND SEG",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEGM-TEST-03",
+   "lines": [
+    348
+   ],
+   "feature": "FALL THRU IND SEG",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEGM-TEST-04",
+   "lines": [
+    395
+   ],
+   "feature": "PERFORM IND SEG",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEGM-TEST-05",
+   "lines": [
+    416
+   ],
+   "feature": "ALTER OVLY FIXED SEG",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEGM-TEST-06",
+   "lines": [
+    451
+   ],
+   "feature": "ALTER OVLY FIXED SEG",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEGM-TEST-07",
+   "lines": [
+    470
+   ],
+   "feature": "FALL THRU IND SEG",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEGM-TEST-08",
+   "lines": [
+    491
+   ],
+   "feature": "PERFORM  IND SEG",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEGM-TEST-09",
+   "lines": [
+    514
+   ],
+   "feature": "ALTER OVLY FIXED SEG",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEGM-TEST-10",
+   "lines": [
+    556
+   ],
+   "feature": "GO TO NON-RES SEG",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEGM-TEST-11",
+   "lines": [
+    575
+   ],
+   "feature": "INITIAL STATE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEGM-TEST-12",
+   "lines": [
+    594
+   ],
+   "feature": "INITIAL STATE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEGM-TEST-13",
+   "lines": [
+    624
+   ],
+   "feature": "LAST USED STATE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEGM-TEST-14",
+   "lines": [
+    646
+   ],
+   "feature": "LAST USED STATE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEGM-TEST-15",
+   "lines": [
+    685
+   ],
+   "feature": "INITIAL STATE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEGM-TEST-16",
+   "lines": [
+    706
+   ],
+   "feature": "INITIAL STATE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEGM-TEST-17",
+   "lines": [
+    770
+   ],
+   "feature": "INITIAL STATE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEGM-TEST-18",
+   "lines": [
+    791
+   ],
+   "feature": "ALTER RES TO NON-RES",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

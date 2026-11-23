@@ -1,0 +1,358 @@
+{
+ "program": "IX108A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "WRITE-TEST-GF-01",
+   "lines": [
+    546
+   ],
+   "feature": "WRITE NOT INVALID END-",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRITE-TEST-GF-02",
+   "lines": [
+    629
+   ],
+   "feature": "CREATE IX-FS2",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F1-01",
+   "lines": [
+    649
+   ],
+   "feature": "CREATE IX-FS2",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F1-02-1",
+   "lines": [
+    676
+   ],
+   "feature": "READ NOT AT END",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F1-02-2",
+   "lines": [
+    700
+   ],
+   "feature": "READ . NOT INV. . END-",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F1-03-1",
+   "lines": [
+    719
+   ],
+   "feature": "END-READ.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F1-03-2",
+   "lines": [
+    746
+   ],
+   "feature": "IF . READ . NOT INV. . END-",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F1-03-3",
+   "lines": [
+    759
+   ],
+   "feature": "IF . READ . NOT INV. . END-",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F2-01",
+   "lines": [
+    794
+   ],
+   "feature": "IF . READ . NOT INV. . END-",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F2-02-1",
+   "lines": [
+    823
+   ],
+   "feature": "READ NOT INVALID.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F2-02-2",
+   "lines": [
+    849
+   ],
+   "feature": "READ . NOT INV. . END-",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F2-03-1",
+   "lines": [
+    868
+   ],
+   "feature": "END-READ.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F2-03-2",
+   "lines": [
+    897
+   ],
+   "feature": "IF . READ . NOT INV. . END-",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F2-03-3",
+   "lines": [
+    910
+   ],
+   "feature": "IF . READ . NOT INV. . END-",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "DELETE-TEST-GF-01",
+   "lines": [
+    950
+   ],
+   "feature": "IF . READ . NOT INV. . END-",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "DELETE-TEST-GF-02-1",
+   "lines": [
+    985
+   ],
+   "feature": "DELETE NOT INVALID.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "DELETE-TEST-GF-02-2",
+   "lines": [
+    1017
+   ],
+   "feature": "DELETE NOT INV. . END-",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "DELETE-TEST-GF-03-1",
+   "lines": [
+    1036
+   ],
+   "feature": "END-DELETE.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "DELETE-TEST-GF-03-2",
+   "lines": [
+    1072
+   ],
+   "feature": "END-DELETE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "DELETE-TEST-GF-03-3",
+   "lines": [
+    1085
+   ],
+   "feature": "END-DELETE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REWRITE-TEST-GF-01",
+   "lines": [
+    1125
+   ],
+   "feature": "END-DELETE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REWRITE-TEST-GF-02-1",
+   "lines": [
+    1161
+   ],
+   "feature": "REWRITE NOT INVALID.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REWRITE-TEST-GF-02-2",
+   "lines": [
+    1194
+   ],
+   "feature": "REWRITE NOT INV. . END-",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REWRITE-TEST-GF-03-1",
+   "lines": [
+    1213
+   ],
+   "feature": "END-REWRITE.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REWRITE-TEST-GF-03-2",
+   "lines": [
+    1250
+   ],
+   "feature": "END-REWRITE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REWRITE-TEST-GF-03-3",
+   "lines": [
+    1263
+   ],
+   "feature": "END-REWRITE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "RWR-SEQ-TEST-GF-01",
+   "lines": [
+    1304
+   ],
+   "feature": "END-REWRITE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "RWR-SEQ-TEST-GF-02-1",
+   "lines": [
+    1343
+   ],
+   "feature": "REWRITE NOT INVALID.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "RWR-SEQ-TEST-GF-02-2",
+   "lines": [
+    1374
+   ],
+   "feature": "REWRITE NOT INV. . END-",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "RWR-SEQ-TEST-GF-03-1",
+   "lines": [
+    1393
+   ],
+   "feature": "END-REWRITE.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "RWR-SEQ-TEST-GF-03-2",
+   "lines": [
+    1428
+   ],
+   "feature": "END-REWRITE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "RWR-SEQ-TEST-GF-03-3",
+   "lines": [
+    1441
+   ],
+   "feature": "END-REWRITE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

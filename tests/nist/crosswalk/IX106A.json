@@ -1,0 +1,165 @@
+{
+ "program": "IX106A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "WRITE-TEST-GF-01",
+   "lines": [
+    784
+   ],
+   "feature": "WRITE RL-FR1",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRITE-TEST-GF-02",
+   "lines": [
+    870,
+    873,
+    893,
+    899,
+    963
+   ],
+   "feature": "WRITE IX-FS1",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRITE-TEST-GF-02-2",
+   "lines": [
+    969
+   ],
+   "feature": "READ RL-FR1",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRITE-TEST-GF-02-3",
+   "lines": [
+    973
+   ],
+   "feature": "READ RL-FR1",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F2-01-02",
+   "lines": [
+    987
+   ],
+   "feature": "OPEN ALL - SEPARATE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F2-02",
+   "lines": [
+    1040
+   ],
+   "feature": "OPEN ALL 3 IN 1 LINE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "DELETE-TEST-GF-01",
+   "lines": [
+    1073
+   ],
+   "feature": "DELETE RL RECORD",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-INIT-RL",
+   "lines": [
+    1119
+   ],
+   "feature": "READ RL RECORD",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-INIT-IX.",
+   "lines": [
+    1126
+   ],
+   "feature": "READ IX RECORD",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REWRITE-TEST-GF-01",
+   "lines": [
+    1133,
+    1143
+   ],
+   "feature": "REWRITE RL RECORD",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REWRITE-TEST-005-01-1",
+   "lines": [
+    1139
+   ],
+   "feature": "READ RL RECORD",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REWRITE-TEST-GF-02I",
+   "lines": [
+    1167
+   ],
+   "feature": "RL INTO SQ",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REWRITE-TEST-GF-02",
+   "lines": [
+    1172
+   ],
+   "feature": "RL INTO SQ",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REWRITE-TEST-GF-03",
+   "lines": [
+    1193
+   ],
+   "feature": "REWRITE SQ",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

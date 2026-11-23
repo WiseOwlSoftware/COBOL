@@ -1,0 +1,104 @@
+{
+ "program": "RL302M",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "OBSOLETE@31",
+   "lines": [
+    31
+   ],
+   "flag": "OBSOLETE",
+   "statement": "I-O-CONTROL XXXXX053",
+   "element": "C.1(5)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "candidates": [
+    "1985-GR-VII.2.10.1-p1",
+    "1985-GR-VII.2.10.4-1",
+    "1985-GR-VII.2.12-p1",
+    "1985-FMT-VII.2.12.2",
+    "1985-SR-VII.2.12.3-1",
+    "1985-SR-VII.2.12.3-2",
+    "1985-SR-VII.2.12.3-3",
+    "1985-SR-VII.2.12.3-4",
+    "1985-SR-VII.2.12.3-5",
+    "1985-GR-VII.2.12.4-1",
+    "1985-GR-VII.2.12.4-2",
+    "1985-GR-VIII.2.6.1-p1",
+    "1985-GR-VIII.2.6.3-1",
+    "1985-GR-IX.2.8.1-p1",
+    "1985-GR-IX.2.8.3-1"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "OBSOLETE@37",
+   "lines": [
+    37
+   ],
+   "flag": "OBSOLETE",
+   "statement": "FILE SECTION FD TFIL LABEL RECORDS STANDARD",
+   "element": "C.1(7)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "candidates": [
+    "1985-GR-VII.3.2.4-2",
+    "1985-GR-VII.3.6.1-p1",
+    "1985-FMT-VII.3.6.2",
+    "1985-GR-VII.3.6.3-1",
+    "1985-GR-VII.3.6.3-2",
+    "1985-GR-VII.3.6.3-3",
+    "1985-GR-VII.3.6.3-4",
+    "1985-GR-VIII.3.2.4-4",
+    "1985-GR-IX.3.2.4-4"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "OBSOLETE@42",
+   "lines": [
+    42
+   ],
+   "flag": "OBSOLETE",
+   "statement": "VALUE OF XXXXX074 IS XXXXX075",
+   "element": "C.1(8)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "candidates": [
+    "1985-GR-VII.3.2.4-2",
+    "1985-GR-VII.3.9.1-p1",
+    "1985-FMT-VII.3.9.2",
+    "1985-SR-VII.3.9.3-1",
+    "1985-SR-VII.3.9.3-2",
+    "1985-GR-VII.3.9.4-1",
+    "1985-GR-VII.3.9.4-2",
+    "1985-GR-VIII.3.2.4-6",
+    "1985-GR-IX.3.2.4-6"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "OBSOLETE@44",
+   "lines": [
+    44
+   ],
+   "flag": "OBSOLETE",
+   "statement": "DATA RECORDS ARE FREC",
+   "element": "C.1(9)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "candidates": [
+    "1985-GR-VII.3.2.4-2",
+    "1985-GR-VII.3.5.1-p1",
+    "1985-FMT-VII.3.5.2",
+    "1985-SR-VII.3.5.3-1",
+    "1985-GR-VII.3.5.4-1",
+    "1985-GR-VII.3.5.4-2",
+    "1985-GR-VIII.3.2.4-3",
+    "1985-GR-IX.3.2.4-3",
+    "1985-GR-XI.3.2.4-1"
+   ],
+   "basis": "mechanical"
+  }
+ ]
+}

@@ -1,0 +1,50 @@
+{
+ "program": "IX121A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "OPN-TEST-GF-01-0",
+   "lines": [
+    658
+   ],
+   "feature": "OPEN OUTPUT: 00 EXP.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRI-TEST-GF-01-0",
+   "lines": [
+    685
+   ],
+   "feature": "WRITE: 00 EXPECTED",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRI-TEST-GF-01-1",
+   "lines": [
+    715
+   ],
+   "feature": "CREATE FILE IX-VS2",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "RWR-TEST-GF-01-0",
+   "lines": [
+    732
+   ],
+   "feature": "RWRTE LG. 00/44 EXP.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

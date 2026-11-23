@@ -1,0 +1,329 @@
+{
+ "program": "IF120A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "F-MEAN-01",
+   "lines": [
+    374
+   ],
+   "feature": "MEAN Function",
+   "ansi": "See ref. A-53 2.24",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.24.1-p1",
+    "1989-FMT-A.2.24.2",
+    "1989-AR-A.2.24.3-1",
+    "1989-RV-A.2.24.4-1",
+    "1989-RV-A.2.24.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MEAN-02",
+   "lines": [
+    388
+   ],
+   "feature": "MEAN Function",
+   "ansi": "See ref. A-53 2.24",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.24.1-p1",
+    "1989-FMT-A.2.24.2",
+    "1989-AR-A.2.24.3-1",
+    "1989-RV-A.2.24.4-1",
+    "1989-RV-A.2.24.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MEAN-03",
+   "lines": [
+    402
+   ],
+   "feature": "MEAN Function",
+   "ansi": "See ref. A-53 2.24",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.24.1-p1",
+    "1989-FMT-A.2.24.2",
+    "1989-AR-A.2.24.3-1",
+    "1989-RV-A.2.24.4-1",
+    "1989-RV-A.2.24.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MEAN-04",
+   "lines": [
+    421
+   ],
+   "feature": "MEAN Function",
+   "ansi": "See ref. A-53 2.24",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.24.1-p1",
+    "1989-FMT-A.2.24.2",
+    "1989-AR-A.2.24.3-1",
+    "1989-RV-A.2.24.4-1",
+    "1989-RV-A.2.24.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MEAN-05",
+   "lines": [
+    440
+   ],
+   "feature": "MEAN Function",
+   "ansi": "See ref. A-53 2.24",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.24.1-p1",
+    "1989-FMT-A.2.24.2",
+    "1989-AR-A.2.24.3-1",
+    "1989-RV-A.2.24.4-1",
+    "1989-RV-A.2.24.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MEAN-06",
+   "lines": [
+    459
+   ],
+   "feature": "MEAN Function",
+   "ansi": "See ref. A-53 2.24",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.24.1-p1",
+    "1989-FMT-A.2.24.2",
+    "1989-AR-A.2.24.3-1",
+    "1989-RV-A.2.24.4-1",
+    "1989-RV-A.2.24.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MEAN-07",
+   "lines": [
+    478
+   ],
+   "feature": "MEAN Function",
+   "ansi": "See ref. A-53 2.24",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.24.1-p1",
+    "1989-FMT-A.2.24.2",
+    "1989-AR-A.2.24.3-1",
+    "1989-RV-A.2.24.4-1",
+    "1989-RV-A.2.24.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MEAN-08",
+   "lines": [
+    497
+   ],
+   "feature": "MEAN Function",
+   "ansi": "See ref. A-53 2.24",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.24.1-p1",
+    "1989-FMT-A.2.24.2",
+    "1989-AR-A.2.24.3-1",
+    "1989-RV-A.2.24.4-1",
+    "1989-RV-A.2.24.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MEAN-09",
+   "lines": [
+    516
+   ],
+   "feature": "MEAN Function",
+   "ansi": "See ref. A-53 2.24",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.24.1-p1",
+    "1989-FMT-A.2.24.2",
+    "1989-AR-A.2.24.3-1",
+    "1989-RV-A.2.24.4-1",
+    "1989-RV-A.2.24.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MEAN-11",
+   "lines": [
+    534
+   ],
+   "feature": "MEAN Function",
+   "ansi": "See ref. A-53 2.24",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.24.1-p1",
+    "1989-FMT-A.2.24.2",
+    "1989-AR-A.2.24.3-1",
+    "1989-RV-A.2.24.4-1",
+    "1989-RV-A.2.24.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MEAN-12",
+   "lines": [
+    552
+   ],
+   "feature": "MEAN Function",
+   "ansi": "See ref. A-53 2.24",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.24.1-p1",
+    "1989-FMT-A.2.24.2",
+    "1989-AR-A.2.24.3-1",
+    "1989-RV-A.2.24.4-1",
+    "1989-RV-A.2.24.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MEAN-13",
+   "lines": [
+    574
+   ],
+   "feature": "MEAN Function",
+   "ansi": "See ref. A-53 2.24",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.24.1-p1",
+    "1989-FMT-A.2.24.2",
+    "1989-AR-A.2.24.3-1",
+    "1989-RV-A.2.24.4-1",
+    "1989-RV-A.2.24.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MEAN-14",
+   "lines": [
+    596
+   ],
+   "feature": "MEAN Function",
+   "ansi": "See ref. A-53 2.24",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.24.1-p1",
+    "1989-FMT-A.2.24.2",
+    "1989-AR-A.2.24.3-1",
+    "1989-RV-A.2.24.4-1",
+    "1989-RV-A.2.24.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MEAN-15",
+   "lines": [
+    619
+   ],
+   "feature": "MEAN Function",
+   "ansi": "See ref. A-53 2.24",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.24.1-p1",
+    "1989-FMT-A.2.24.2",
+    "1989-AR-A.2.24.3-1",
+    "1989-RV-A.2.24.4-1",
+    "1989-RV-A.2.24.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MEAN-16",
+   "lines": [
+    641
+   ],
+   "feature": "MEAN Function",
+   "ansi": "See ref. A-53 2.24",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.24.1-p1",
+    "1989-FMT-A.2.24.2",
+    "1989-AR-A.2.24.3-1",
+    "1989-RV-A.2.24.4-1",
+    "1989-RV-A.2.24.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MEAN-17",
+   "lines": [
+    663
+   ],
+   "feature": "MEAN Function",
+   "ansi": "See ref. A-53 2.24",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.24.1-p1",
+    "1989-FMT-A.2.24.2",
+    "1989-AR-A.2.24.3-1",
+    "1989-RV-A.2.24.4-1",
+    "1989-RV-A.2.24.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-MEAN-18",
+   "lines": [
+    679
+   ],
+   "feature": "MEAN Function",
+   "ansi": "See ref. A-53 2.24",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.24.1-p1",
+    "1989-FMT-A.2.24.2",
+    "1989-AR-A.2.24.3-1",
+    "1989-RV-A.2.24.4-1",
+    "1989-RV-A.2.24.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  }
+ ]
+}

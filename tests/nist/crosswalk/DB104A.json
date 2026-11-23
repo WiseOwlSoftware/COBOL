@@ -1,0 +1,127 @@
+{
+ "program": "DB104A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "SORT-IN-1",
+   "lines": [
+    454
+   ],
+   "feature": "",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-IN",
+   "lines": [
+    465
+   ],
+   "feature": "",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-IN-2",
+   "lines": [
+    473
+   ],
+   "feature": "DEBUG SORT INPUT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-IN-3",
+   "lines": [
+    487
+   ],
+   "feature": "DEBUG SORT INPUT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-IN-4",
+   "lines": [
+    497
+   ],
+   "feature": "DEBUG SORT INPUT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-USE-TEST",
+   "lines": [
+    568
+   ],
+   "feature": "DEBUG SORT INPUT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-OUT-1",
+   "lines": [
+    628
+   ],
+   "feature": "DEBUG USE PROC",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-OUT-2",
+   "lines": [
+    637
+   ],
+   "feature": "DEBUG USE PROC",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-OUT-3",
+   "lines": [
+    644
+   ],
+   "feature": "DEBUG USE PROC",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-OUT-4",
+   "lines": [
+    654
+   ],
+   "feature": "DEBUG USE PROC",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-OUT",
+   "lines": [
+    664
+   ],
+   "feature": "DEBUG USE PROC",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

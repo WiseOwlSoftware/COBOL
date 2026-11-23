@@ -1,0 +1,399 @@
+{
+ "program": "ST147A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "MRG-TEST-DEC",
+   "lines": [
+    510
+   ],
+   "feature": "ERROR ON OUTPUT DECL.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MRG-TEST-001",
+   "lines": [
+    681
+   ],
+   "feature": "CREATE FILE SQ-FS1",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MRG-TEST-002",
+   "lines": [
+    718
+   ],
+   "feature": "CREATE FILE SQ-FS2",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MRG-TEST-003",
+   "lines": [
+    752
+   ],
+   "feature": "CREATE FILE SQ-FS2",
+   "ansi": "XI-11 4.1.4 GR (11)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-XI.4.1.4-11"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MRG-TEST-004",
+   "lines": [
+    776
+   ],
+   "feature": "NATIVE COLL.SEQUENCE",
+   "ansi": "XI-11 4.1.4 GR (11)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-XI.4.1.4-11"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MRG-TEST-005",
+   "lines": [
+    800
+   ],
+   "feature": "NATIVE COLL.SEQUENCE",
+   "ansi": "XI-11 4.1.4 GR (11)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-XI.4.1.4-11"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MRG-TEST-006",
+   "lines": [
+    824
+   ],
+   "feature": "NATIVE COLL.SEQUENCE",
+   "ansi": "XI-11 4.1.4 GR (11)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-XI.4.1.4-11"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MRG-TEST-007",
+   "lines": [
+    848
+   ],
+   "feature": "NATIVE COLL.SEQUENCE",
+   "ansi": "XI-11 4.1.4 GR (11)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-XI.4.1.4-11"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MRG-TEST-008",
+   "lines": [
+    872
+   ],
+   "feature": "NATIVE COLL.SEQUENCE",
+   "ansi": "XI-11 4.1.4 GR (11)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-XI.4.1.4-11"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MRG-TEST-009",
+   "lines": [
+    889
+   ],
+   "feature": "NATIVE COLL.SEQUENCE",
+   "ansi": "XI-11 4.1.4 GR (11)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-XI.4.1.4-11"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MRG-TEST-010",
+   "lines": [
+    906
+   ],
+   "feature": "NUMER. SEQ. CHECK",
+   "ansi": "XI-11 4.1.4 GR (11)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-XI.4.1.4-11"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MRG-TEST-011",
+   "lines": [
+    945
+   ],
+   "feature": "NUMER. SEQ. CHECK",
+   "ansi": "XI-11 4.1.4 GR (11)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-XI.4.1.4-11"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MRG-TEST-012",
+   "lines": [
+    969
+   ],
+   "feature": "NATIVE COLL.SEQUENCE",
+   "ansi": "XI-11 4.1.4 GR (11)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-XI.4.1.4-11"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MRG-TEST-013",
+   "lines": [
+    993
+   ],
+   "feature": "NATIVE COLL.SEQUENCE",
+   "ansi": "XI-11 4.1.4 GR (11)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-XI.4.1.4-11"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MRG-TEST-014",
+   "lines": [
+    1017
+   ],
+   "feature": "NATIVE COLL.SEQUENCE",
+   "ansi": "XI-11 4.1.4 GR (11)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-XI.4.1.4-11"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MRG-TEST-015",
+   "lines": [
+    1041
+   ],
+   "feature": "NATIVE COLL.SEQUENCE",
+   "ansi": "XI-11 4.1.4 GR (11)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-XI.4.1.4-11"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MRG-TEST-016",
+   "lines": [
+    1065
+   ],
+   "feature": "NATIVE COLL.SEQUENCE",
+   "ansi": "XI-11 4.1.4 GR (11)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-XI.4.1.4-11"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MRG-TEST-017",
+   "lines": [
+    1082
+   ],
+   "feature": "NATIVE COLL.SEQUENCE",
+   "ansi": "XI-11 4.1.4 GR (11)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-XI.4.1.4-11"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MRG-TEST-018",
+   "lines": [
+    1099
+   ],
+   "feature": "NUMER. SEQ. CHECK",
+   "ansi": "XI-11 4.1.4 GR (11)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-XI.4.1.4-11"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MRG-TEST-019",
+   "lines": [
+    1138
+   ],
+   "feature": "NUMER. SEQ. CHECK",
+   "ansi": "XI-11 4.1.4 GR (11)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-XI.4.1.4-11"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MRG-TEST-020",
+   "lines": [
+    1162
+   ],
+   "feature": "NATIVE COLL.SEQUENCE",
+   "ansi": "XI-11 4.1.4 GR (11)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-XI.4.1.4-11"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MRG-TEST-021",
+   "lines": [
+    1186
+   ],
+   "feature": "NATIVE COLL.SEQUENCE",
+   "ansi": "XI-11 4.1.4 GR (11)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-XI.4.1.4-11"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MRG-TEST-022",
+   "lines": [
+    1210
+   ],
+   "feature": "NATIVE COLL.SEQUENCE",
+   "ansi": "XI-11 4.1.4 GR (11)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-XI.4.1.4-11"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MRG-TEST-023",
+   "lines": [
+    1234
+   ],
+   "feature": "NATIVE COLL.SEQUENCE",
+   "ansi": "XI-11 4.1.4 GR (11)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-XI.4.1.4-11"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MRG-TEST-024",
+   "lines": [
+    1258
+   ],
+   "feature": "NATIVE COLL.SEQUENCE",
+   "ansi": "XI-11 4.1.4 GR (11)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-XI.4.1.4-11"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MRG-TEST-025",
+   "lines": [
+    1275
+   ],
+   "feature": "NATIVE COLL.SEQUENCE",
+   "ansi": "XI-11 4.1.4 GR (11)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-XI.4.1.4-11"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MRG-TEST-026",
+   "lines": [
+    1292
+   ],
+   "feature": "NUMER. SEQ. CHECK",
+   "ansi": "XI-11 4.1.4 GR (11)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-XI.4.1.4-11"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  }
+ ]
+}

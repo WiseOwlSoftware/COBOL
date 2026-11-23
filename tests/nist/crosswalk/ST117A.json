@@ -1,0 +1,17 @@
+{
+ "program": "ST117A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "BIG-SORT",
+   "lines": [
+    460
+   ],
+   "feature": "",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

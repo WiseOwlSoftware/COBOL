@@ -1,0 +1,425 @@
+{
+ "program": "IX214A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "WRITE-TEST-GF-01",
+   "lines": [
+    816
+   ],
+   "feature": "CREATE-FILE-FS1",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F1-01",
+   "lines": [
+    869
+   ],
+   "feature": "CREATE-FILE-FS1",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-01",
+   "lines": [
+    908
+   ],
+   "feature": "START NLT RECKEY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-02",
+   "lines": [
+    989
+   ],
+   "feature": "START NLT RECKEY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-03",
+   "lines": [
+    1039
+   ],
+   "feature": "START NLT RECKEY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-04",
+   "lines": [
+    1088
+   ],
+   "feature": "START NLT RECKEY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-05",
+   "lines": [
+    1132
+   ],
+   "feature": "START NLT RECKEY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-06",
+   "lines": [
+    1184
+   ],
+   "feature": "START NLT RECKEY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-07",
+   "lines": [
+    1241
+   ],
+   "feature": "START NLT RECKEY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-08",
+   "lines": [
+    1288
+   ],
+   "feature": "START NLT RECKEY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-09",
+   "lines": [
+    1341
+   ],
+   "feature": "START NLT RECKEY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-10",
+   "lines": [
+    1395
+   ],
+   "feature": "FILE STATUS START:00",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-11",
+   "lines": [
+    1416
+   ],
+   "feature": "FILE STATUS START:00",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-12",
+   "lines": [
+    1435
+   ],
+   "feature": "FILE STATUS START:00",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-13",
+   "lines": [
+    1455
+   ],
+   "feature": "FILE STATUS START:23",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-14",
+   "lines": [
+    1475
+   ],
+   "feature": "FILE STATUS START:00",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-15",
+   "lines": [
+    1494
+   ],
+   "feature": "FILE STATUS START:00",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-16",
+   "lines": [
+    1514
+   ],
+   "feature": "FILE STATUS START:23",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-17",
+   "lines": [
+    1534
+   ],
+   "feature": "FILE STATUS START:00",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-18",
+   "lines": [
+    1554
+   ],
+   "feature": "FILE STATUS START:23",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-19",
+   "lines": [
+    1613
+   ],
+   "feature": "STR NLT ALTKY W/O DUP",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-20",
+   "lines": [
+    1658,
+    2088
+   ],
+   "feature": "STR NLT ALTKY W/O DUP",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-21",
+   "lines": [
+    1706
+   ],
+   "feature": "STR NLT ALTKY W/O DUP",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-22",
+   "lines": [
+    1755
+   ],
+   "feature": "STR NLT ALTKY W/O DUP",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-23",
+   "lines": [
+    1799
+   ],
+   "feature": "STR NLT ALTKY W/O DUP",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-24",
+   "lines": [
+    1854
+   ],
+   "feature": "STR NLT ALTKY W/O DUP",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-25",
+   "lines": [
+    1912
+   ],
+   "feature": "STR NLT ALTKY W/O DUP",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-26",
+   "lines": [
+    1959
+   ],
+   "feature": "STR NLT ALTKY W/O DUP",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-27",
+   "lines": [
+    2013
+   ],
+   "feature": "STR NLT ALTKY W/O DUP",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-28",
+   "lines": [
+    2068
+   ],
+   "feature": "FILE STATUS START:00",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-30",
+   "lines": [
+    2107
+   ],
+   "feature": "FILE STATUS START:00",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-31",
+   "lines": [
+    2127
+   ],
+   "feature": "FILE STATUS START:23",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-32",
+   "lines": [
+    2147
+   ],
+   "feature": "FILE STATUS START:00",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-33",
+   "lines": [
+    2167
+   ],
+   "feature": "FILE STATUS START:00",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-34",
+   "lines": [
+    2187
+   ],
+   "feature": "FILE STATUS START:23",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-35",
+   "lines": [
+    2207
+   ],
+   "feature": "FILE STATUS START:00",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-36",
+   "lines": [
+    2227
+   ],
+   "feature": "FILE STATUS START:23",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-37",
+   "lines": [
+    2251
+   ],
+   "feature": "START SERIES",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

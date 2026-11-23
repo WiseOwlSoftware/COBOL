@@ -1,0 +1,40 @@
+{
+ "program": "CM303M",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "OBSOLETE@29",
+   "lines": [
+    29
+   ],
+   "flag": "OBSOLETE",
+   "statement": "CM303M-DISABLE DISABLE INPUT COMMNAME WITH KEY CNAME1",
+   "element": "C.1(11)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "candidates": [
+    "1985-GR-XIV.3.2.1-p1",
+    "1985-SR-XIV.3.2.3-4",
+    "1985-GR-XIV.3.2.4-7"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "OBSOLETE@33",
+   "lines": [
+    33
+   ],
+   "flag": "OBSOLETE",
+   "statement": "CM303M-ENABLE ENABLE INPUT COMMNAME WITH KEY CNAME1",
+   "element": "C.1(12)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "candidates": [
+    "1985-GR-XIV.3.3.1-p1",
+    "1985-SR-XIV.3.3.3-4",
+    "1985-GR-XIV.3.3.4-6"
+   ],
+   "basis": "mechanical"
+  }
+ ]
+}

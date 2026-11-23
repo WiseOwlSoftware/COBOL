@@ -1,0 +1,50 @@
+{
+ "program": "IC112A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "SEQ-TEST-007",
+   "lines": [
+    407
+   ],
+   "feature": "CREATE FILE SQ-FS3",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-TEST-008",
+   "lines": [
+    449
+   ],
+   "feature": "CREATE FILE SQ-FS3",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "LINK-TEST-08",
+   "lines": [
+    486
+   ],
+   "feature": "VERIFY FILE SQ-FS3",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "LINK-TEST-09",
+   "lines": [
+    519
+   ],
+   "feature": "USING FD 01 RECORD",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

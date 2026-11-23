@@ -1,0 +1,61 @@
+{
+ "program": "SM102A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "COPY-TEST-8",
+   "lines": [
+    334
+   ],
+   "feature": "COPY FILE DESCR",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "COPY-TEST-9",
+   "lines": [
+    349
+   ],
+   "feature": "COPY FILE DESCR",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "COPY-TEST-10",
+   "lines": [
+    364
+   ],
+   "feature": "COPY FILE DESCR",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "COPY-TEST-11",
+   "lines": [
+    379
+   ],
+   "feature": "COPY FILE DESCR",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "BAD-FILE",
+   "lines": [
+    387
+   ],
+   "feature": "COPY FILE DESCR",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

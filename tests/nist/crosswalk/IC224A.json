@@ -1,0 +1,140 @@
+{
+ "program": "IC224A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "CALL-TEST-01",
+   "lines": [
+    330
+   ],
+   "feature": "",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-01-01",
+   "lines": [
+    340
+   ],
+   "feature": "LEV 2 CALL STATEMENT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-01-02",
+   "lines": [
+    351
+   ],
+   "feature": "LEV 2 CALL STATEMENT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-01-03",
+   "lines": [
+    362,
+    373
+   ],
+   "feature": "LEV 2 CALL STATEMENT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-02",
+   "lines": [
+    382
+   ],
+   "feature": "LEV 2 CALL STATEMENT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-02-01",
+   "lines": [
+    389
+   ],
+   "feature": "DATA-NAME USED TWICE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-02-02",
+   "lines": [
+    405
+   ],
+   "feature": "DATA-NAME USED TWICE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-02-03",
+   "lines": [
+    423
+   ],
+   "feature": "DATA-NAME USED TWICE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-03-01",
+   "lines": [
+    446,
+    461
+   ],
+   "feature": "ON OVERFLOW PHRASE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-03-02",
+   "lines": [
+    465
+   ],
+   "feature": "ON OVERFLOW PHRASE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-03-03",
+   "lines": [
+    483
+   ],
+   "feature": "ON OVERFLOW PHRASE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-03-04",
+   "lines": [
+    501
+   ],
+   "feature": "ON OVERFLOW PHRASE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

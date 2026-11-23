@@ -1,0 +1,116 @@
+{
+ "program": "NC236A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "SCH-TEST-F1-1",
+   "lines": [
+    323
+   ],
+   "feature": "",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SCH-TEST-F1-2",
+   "lines": [
+    351
+   ],
+   "feature": "SEARCH",
+   "ansi": "VI-121 6.21.6",
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SCH-TEST-F1-3",
+   "lines": [
+    379
+   ],
+   "feature": "SEARCH",
+   "ansi": "VI-121 6.21.6",
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SCH-TEST-F1-4",
+   "lines": [
+    407
+   ],
+   "feature": "SEARCH",
+   "ansi": "VI-121 6.21.6",
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SCH-TEST-F1-5",
+   "lines": [
+    435
+   ],
+   "feature": "SEARCH",
+   "ansi": "VI-121 6.21.6",
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SCH-TEST-F1-6",
+   "lines": [
+    463
+   ],
+   "feature": "SEARCH",
+   "ansi": "VI-121 6.21.6",
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SCH-TEST-F1-7",
+   "lines": [
+    487
+   ],
+   "feature": "SEARCH",
+   "ansi": "VI-121 6.21.6",
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SCH-TEST-F1-8",
+   "lines": [
+    511
+   ],
+   "feature": "SEARCH",
+   "ansi": "VI-121 6.21.6",
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SCH-TEST-F1-9",
+   "lines": [
+    535
+   ],
+   "feature": "SEARCH",
+   "ansi": "VI-121 6.21.6",
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SCH-TEST-F1-10",
+   "lines": [
+    559
+   ],
+   "feature": "SEARCH",
+   "ansi": "VI-121 6.21.6",
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

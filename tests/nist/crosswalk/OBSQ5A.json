@@ -1,0 +1,61 @@
+{
+ "program": "OBSQ5A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "SEQ-TEST-001",
+   "lines": [
+    447
+   ],
+   "feature": "",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-TEST-002",
+   "lines": [
+    489
+   ],
+   "feature": "VERIFY FILE SQ-FS3",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-TEST-003",
+   "lines": [
+    531
+   ],
+   "feature": "VERIFY FILE SQ-FS5",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-TEST-004",
+   "lines": [
+    573
+   ],
+   "feature": "VERIFY FILE SQ-FS6",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-TEST-005",
+   "lines": [
+    615
+   ],
+   "feature": "VERIFY FILE SQ-FS7",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

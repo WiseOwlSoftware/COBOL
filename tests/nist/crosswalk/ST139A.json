@@ -1,0 +1,127 @@
+{
+ "program": "ST139A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "MRG-TEST-DEC",
+   "lines": [
+    446
+   ],
+   "feature": "ERROR ON OUTPUT DECL.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MRG-TEST-001",
+   "lines": [
+    619
+   ],
+   "feature": "CREATE FILE SQ-FS1",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MRG-TEST-002",
+   "lines": [
+    656
+   ],
+   "feature": "CREATE FILE SQ-FS2",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MRG-TEST-003",
+   "lines": [
+    689
+   ],
+   "feature": "CREATE FILE SQ-FS2",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MRG-TEST-004",
+   "lines": [
+    713
+   ],
+   "feature": "STAND. COLLATING SEQ.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MRG-TEST-005",
+   "lines": [
+    737
+   ],
+   "feature": "STAND. COLLATING SEQ.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MRG-TEST-006",
+   "lines": [
+    761
+   ],
+   "feature": "STAND. COLLATING SEQ.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MRG-TEST-007",
+   "lines": [
+    785
+   ],
+   "feature": "STAND. COLLATING SEQ.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MRG-TEST-008",
+   "lines": [
+    809
+   ],
+   "feature": "STAND. COLLATING SEQ.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MRG-TEST-009",
+   "lines": [
+    827
+   ],
+   "feature": "EOF CHECK SQ-FS3",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MRG-TEST-010",
+   "lines": [
+    843
+   ],
+   "feature": "NUMER. SEQ. CHECK",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

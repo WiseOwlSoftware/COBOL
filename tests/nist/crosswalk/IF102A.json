@@ -1,0 +1,279 @@
+{
+ "program": "IF102A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "F-ANNUITY-01",
+   "lines": [
+    367
+   ],
+   "feature": "ANNUITY Function",
+   "ansi": "See ref. A-34 2.6",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.6.1-p1",
+    "1989-FMT-A.2.6.2",
+    "1989-AR-A.2.6.3-1",
+    "1989-AR-A.2.6.3-2",
+    "1989-AR-A.2.6.3-3",
+    "1989-RV-A.2.6.4-1",
+    "1989-RV-A.2.6.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-ANNUITY-02",
+   "lines": [
+    381
+   ],
+   "feature": "ANNUITY Function",
+   "ansi": "See ref. A-34 2.6",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.6.1-p1",
+    "1989-FMT-A.2.6.2",
+    "1989-AR-A.2.6.3-1",
+    "1989-AR-A.2.6.3-2",
+    "1989-AR-A.2.6.3-3",
+    "1989-RV-A.2.6.4-1",
+    "1989-RV-A.2.6.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-ANNUITY-03",
+   "lines": [
+    398
+   ],
+   "feature": "ANNUITY Function",
+   "ansi": "See ref. A-34 2.6",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.6.1-p1",
+    "1989-FMT-A.2.6.2",
+    "1989-AR-A.2.6.3-1",
+    "1989-AR-A.2.6.3-2",
+    "1989-AR-A.2.6.3-3",
+    "1989-RV-A.2.6.4-1",
+    "1989-RV-A.2.6.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-ANNUITY-04",
+   "lines": [
+    420
+   ],
+   "feature": "ANNUITY Function",
+   "ansi": "See ref. A-34 2.6",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.6.1-p1",
+    "1989-FMT-A.2.6.2",
+    "1989-AR-A.2.6.3-1",
+    "1989-AR-A.2.6.3-2",
+    "1989-AR-A.2.6.3-3",
+    "1989-RV-A.2.6.4-1",
+    "1989-RV-A.2.6.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-ANNUITY-05",
+   "lines": [
+    442
+   ],
+   "feature": "ANNUITY Function",
+   "ansi": "See ref. A-34 2.6",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.6.1-p1",
+    "1989-FMT-A.2.6.2",
+    "1989-AR-A.2.6.3-1",
+    "1989-AR-A.2.6.3-2",
+    "1989-AR-A.2.6.3-3",
+    "1989-RV-A.2.6.4-1",
+    "1989-RV-A.2.6.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-ANNUITY-06",
+   "lines": [
+    464
+   ],
+   "feature": "ANNUITY Function",
+   "ansi": "See ref. A-34 2.6",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.6.1-p1",
+    "1989-FMT-A.2.6.2",
+    "1989-AR-A.2.6.3-1",
+    "1989-AR-A.2.6.3-2",
+    "1989-AR-A.2.6.3-3",
+    "1989-RV-A.2.6.4-1",
+    "1989-RV-A.2.6.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-ANNUITY-07",
+   "lines": [
+    486
+   ],
+   "feature": "ANNUITY Function",
+   "ansi": "See ref. A-34 2.6",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.6.1-p1",
+    "1989-FMT-A.2.6.2",
+    "1989-AR-A.2.6.3-1",
+    "1989-AR-A.2.6.3-2",
+    "1989-AR-A.2.6.3-3",
+    "1989-RV-A.2.6.4-1",
+    "1989-RV-A.2.6.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-ANNUITY-08",
+   "lines": [
+    508
+   ],
+   "feature": "ANNUITY Function",
+   "ansi": "See ref. A-34 2.6",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.6.1-p1",
+    "1989-FMT-A.2.6.2",
+    "1989-AR-A.2.6.3-1",
+    "1989-AR-A.2.6.3-2",
+    "1989-AR-A.2.6.3-3",
+    "1989-RV-A.2.6.4-1",
+    "1989-RV-A.2.6.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-ANNUITY-09",
+   "lines": [
+    530
+   ],
+   "feature": "ANNUITY Function",
+   "ansi": "See ref. A-34 2.6",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.6.1-p1",
+    "1989-FMT-A.2.6.2",
+    "1989-AR-A.2.6.3-1",
+    "1989-AR-A.2.6.3-2",
+    "1989-AR-A.2.6.3-3",
+    "1989-RV-A.2.6.4-1",
+    "1989-RV-A.2.6.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-ANNUITY-10",
+   "lines": [
+    553
+   ],
+   "feature": "ANNUITY Function",
+   "ansi": "See ref. A-34 2.6",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.6.1-p1",
+    "1989-FMT-A.2.6.2",
+    "1989-AR-A.2.6.3-1",
+    "1989-AR-A.2.6.3-2",
+    "1989-AR-A.2.6.3-3",
+    "1989-RV-A.2.6.4-1",
+    "1989-RV-A.2.6.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-ANNUITY-11",
+   "lines": [
+    575
+   ],
+   "feature": "ANNUITY Function",
+   "ansi": "See ref. A-34 2.6",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.6.1-p1",
+    "1989-FMT-A.2.6.2",
+    "1989-AR-A.2.6.3-1",
+    "1989-AR-A.2.6.3-2",
+    "1989-AR-A.2.6.3-3",
+    "1989-RV-A.2.6.4-1",
+    "1989-RV-A.2.6.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-ANNUITY-12",
+   "lines": [
+    598
+   ],
+   "feature": "ANNUITY Function",
+   "ansi": "See ref. A-34 2.6",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.6.1-p1",
+    "1989-FMT-A.2.6.2",
+    "1989-AR-A.2.6.3-1",
+    "1989-AR-A.2.6.3-2",
+    "1989-AR-A.2.6.3-3",
+    "1989-RV-A.2.6.4-1",
+    "1989-RV-A.2.6.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-ANNUITY-13",
+   "lines": [
+    612
+   ],
+   "feature": "ANNUITY Function",
+   "ansi": "See ref. A-34 2.6",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.6.1-p1",
+    "1989-FMT-A.2.6.2",
+    "1989-AR-A.2.6.3-1",
+    "1989-AR-A.2.6.3-2",
+    "1989-AR-A.2.6.3-3",
+    "1989-RV-A.2.6.4-1",
+    "1989-RV-A.2.6.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  }
+ ]
+}

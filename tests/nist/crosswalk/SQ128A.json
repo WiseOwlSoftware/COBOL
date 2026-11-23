@@ -1,0 +1,96 @@
+{
+ "program": "SQ128A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "OPN-TEST-GF-01",
+   "lines": [
+    434
+   ],
+   "feature": "OPEN OUT  1 & 2",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "OPN-TEST-GF-02",
+   "lines": [
+    439
+   ],
+   "feature": "OPEN OUT  1 & 2",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CLOSE-TEST-GF-01",
+   "lines": [
+    450
+   ],
+   "feature": "CLOSE FILE 1 & 2",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "OPEN-TEST-GF-02",
+   "lines": [
+    460
+   ],
+   "feature": "OPEN INPUT 1 & 2",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F1-01",
+   "lines": [
+    481
+   ],
+   "feature": "OPEN INPUT 1 & 2",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F1",
+   "lines": [
+    500
+   ],
+   "feature": "VERIFY FILE SQ-FS1",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "OPEN-TEST-GF-03",
+   "lines": [
+    520
+   ],
+   "feature": "OPEN FILE SQ-FS3",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CLOSE-TEST-02",
+   "lines": [
+    533,
+    538,
+    542
+   ],
+   "feature": "CLOSE FILE SQ-FS1",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

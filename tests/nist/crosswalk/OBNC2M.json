@@ -1,0 +1,204 @@
+{
+ "program": "OBNC2M",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "GO--TEST-1",
+   "lines": [
+    611
+   ],
+   "feature": "UNFINISHED GO TO",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "ALTER-TEST-1",
+   "lines": [
+    647
+   ],
+   "feature": "SERIES ALTER",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "ALTER-TEST-2",
+   "lines": [
+    698
+   ],
+   "feature": "SERIES ALTER",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "ALTER-TEST-3 THRU 13",
+   "lines": [
+    713
+   ],
+   "feature": "SERIES ALTER",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "ALTER-TEST-3",
+   "lines": [
+    726
+   ],
+   "feature": "SERIES ALTER",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "ALTER-TEST-4",
+   "lines": [
+    740
+   ],
+   "feature": "SERIES ALTER",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "ALTER-TEST-5",
+   "lines": [
+    754
+   ],
+   "feature": "SERIES ALTER",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "ALTER-TEST-6",
+   "lines": [
+    768
+   ],
+   "feature": "SERIES ALTER",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "ALTER-TEST-7",
+   "lines": [
+    782
+   ],
+   "feature": "SERIES ALTER",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "ALTER-TEST-8",
+   "lines": [
+    796
+   ],
+   "feature": "SERIES ALTER",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "ALTER-TEST-9",
+   "lines": [
+    810
+   ],
+   "feature": "SERIES ALTER",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "ALTER-TEST-10",
+   "lines": [
+    819
+   ],
+   "feature": "SERIES ALTER",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "ALTER-TEST-11",
+   "lines": [
+    838
+   ],
+   "feature": "SERIES ALTER",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "ALTER-TEST-12",
+   "lines": [
+    852
+   ],
+   "feature": "SERIES ALTER",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "ALTER-TEST-13",
+   "lines": [
+    866
+   ],
+   "feature": "SERIES ALTER",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "DATE-COMPILED",
+   "lines": [
+    871
+   ],
+   "feature": "DATE-COMPILED",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "PARA-TEST-5",
+   "lines": [
+    890
+   ],
+   "feature": "DATE-COMPILED",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "PARA-TEST-6",
+   "lines": [
+    912
+   ],
+   "feature": "DATE-COMPILED",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

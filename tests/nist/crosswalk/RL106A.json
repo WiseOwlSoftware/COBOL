@@ -1,0 +1,130 @@
+{
+ "program": "RL106A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "REL-TEST-8",
+   "lines": [
+    510,
+    519
+   ],
+   "feature": "R/W REL LENGTH RECS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-9",
+   "lines": [
+    562
+   ],
+   "feature": "R/W REL LENGTH RECS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-10",
+   "lines": [
+    585
+   ],
+   "feature": "R/W REL LENGTH RECS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-11",
+   "lines": [
+    601,
+    625
+   ],
+   "feature": "R/W REL LENGTH RECS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-12",
+   "lines": [
+    652
+   ],
+   "feature": "R/W REL LENGTH RECS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-13",
+   "lines": [
+    674
+   ],
+   "feature": "R/W REL LENGTH RECS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-14",
+   "lines": [
+    689
+   ],
+   "feature": "R/W REL LENGTH RECS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-15",
+   "lines": [
+    708,
+    734
+   ],
+   "feature": "R/W REL LENGTH RECS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-16",
+   "lines": [
+    763
+   ],
+   "feature": "R/W REL LENGTH RECS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-17",
+   "lines": [
+    789
+   ],
+   "feature": "R/W REL LENGTH RECS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-18",
+   "lines": [
+    809
+   ],
+   "feature": "R/W REL LENGTH RECS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}
