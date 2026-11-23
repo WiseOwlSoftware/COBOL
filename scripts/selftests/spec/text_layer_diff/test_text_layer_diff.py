@@ -5,6 +5,8 @@ The tolerance is asymmetric: a PDF word is OCR-NOISE only as the damaged reading
 word that is malformed or unknown (`file-name-l`, `identifier-i`, `comer`, `date-name-1`), a PDF word the document also uses,
 two real words (`of`/`or`, `B-1`/`B-2`), a dropped `not` and a recorded note about something else are never explained;
 punctuation and case are classes of their own; the committed result is bound to its inputs."""
+import contextlib
+import io
 import sys
 
 import selftest_cases
@@ -171,17 +173,55 @@ def case_13_the_excerpt_is_the_aligned_block(expect):
     expect.equal("its text-layer excerpt too", un[0]["pdf"], "comer of")
 
 
-def case_14_the_amended_text_is_the_cited_amendment_page(expect):
-    note = ("> ⚠ **CORRECTED — see the Errata (C7).** The standard prints `a file is open` (page 5, folio I-1). Amendment 1, its "
-            "change for page I-1 (page 831, folio A-1), applied in place. Corrected to the text above.")
-    notes = _amendments(note)
-    expect.equal("the cited Amendment page is read from the note", notes[0][2], [831])
+AMEND_MD = ("## Page 831\n\n| Page No. | Change |\n|---|---|\n"
+            "| I-1 | Replace the sentence the file is open when read. |\n"
+            "| I-7 | Replace the sentence the record is closed after the write |\n"
+            "| I-9 | Replace the sentence the key is not valid |\n")
+AMEND_LAYER = ("Page No. Change I-1 Replace the sentence the file is open when read. I-7 Replace the sentence the record is "
+               "closed after the write I-9 Replace the sentence the key is not valid").split()
+
+
+def _note(printed: str, page: str = "I-1", instr: str = "Replace the sentence the file is open when read.") -> str:
+    quote = f': "{instr}"' if instr else ""
+    return (f"> ⚠ **CORRECTED — see the Errata (C7).** The standard prints `{printed}` (page 5, folio {page}). Amendment 1, its "
+            f"change for page {page} (page 831, folio A-1), applied in place{quote}. Corrected to the text above.")
+
+
+def _entry_classes(pdf: str, md: str, **note):
+    notes = _amendments(_note("the file is shut when read", **note))
+    am, missing = D.with_cited_text({5: notes}, {831: AMEND_LAYER}, D.amendment_rows(AMEND_MD))
+    return _classes(pdf, md, amendments=am[5]), missing
+
+
+def case_14_the_amended_text_is_the_notes_own_entry_of_the_amendment_page(expect):
+    notes = _amendments(_note("the file is shut when read"))
+    expect.equal("the Amendment page and page cell are read from the note", (notes[0][2][0], notes[0][2][1]), (831, D.fold("I-1")))
     expect.equal("a note that quotes no amended text has none of its own", notes[0][1], [])
-    both = D.with_cited_text({5: notes}, {831: "a big file is open".split()})[5]
-    expect.equal("the Amendment page's print is the amended text", _classes("a file is open", "a big file is open", amendments=both), ["AMENDMENT-APPLIED"])
-    expect.equal("the Markdown's word the Amendment page lacks", "AMENDMENT-APPLIED" in _classes("a file is open", "a huge file is open", amendments=both), False)
-    other = D.with_cited_text({5: notes}, {832: "a big file is open".split()})[5]
-    expect.equal("another page of the PDF is no evidence", "AMENDMENT-APPLIED" in _classes("a file is open", "a big file is open", amendments=other), False)
+    expect.equal("the control: the entry holds the amended word",
+                 _entry_classes("a b the file is shut when read x", "a b the file is open when read x"), (["AMENDMENT-APPLIED"], 0))
+    cls, _ = _entry_classes("a b the file is shut when read x", "a b the file is closed when read x")
+    expect.equal("a word of ANOTHER change on the same page is no evidence (round-3 probe)", "AMENDMENT-APPLIED" in cls, False)
+    cls, _ = _entry_classes("a b the file is shut when read x", "a b the file is not valid when read x")
+    expect.equal("words of another change on the page", "AMENDMENT-APPLIED" in cls, False)
+    cls, _ = _entry_classes("a b the file is shut when read x", "a b the file is read x")
+    expect.equal("dropped words the entry does not drop", "AMENDMENT-APPLIED" in cls, False)
+    cls, n = _entry_classes("a b the file is shut when read x", "a b the file is open when read x", instr="Replace the unknown sentence of nothing here")
+    expect.equal("an instruction no row opens: not located, not applied", ("AMENDMENT-APPLIED" in cls, n), (False, 1))
+    cls, n = _entry_classes("a b the file is shut when read x", "a b the file is open when read x", instr="")
+    expect.equal("a note with no instruction: not located", ("AMENDMENT-APPLIED" in cls, n), (False, 1))
+    cls, n = _entry_classes("a b the file is shut when read x", "a b the file is open when read x", page="I-2")
+    expect.equal("a page cell no row has: not located", ("AMENDMENT-APPLIED" in cls, n), (False, 1))
+    twin = AMEND_MD + "| I-1 | Replace the sentence the file is open when read. |\n"
+    expect.equal("two rows open alike: ambiguous, not located", D.with_cited_text({5: notes}, {831: AMEND_LAYER}, D.amendment_rows(twin))[1], 1)
+    short = "Page No. Change I-1 Replace the sentence".split()
+    expect.equal("an entry whose successor the layer does not show: not located",
+                 D.with_cited_text({5: notes}, {831: short}, D.amendment_rows(AMEND_MD))[1], 1)
+    expect.equal("another Amendment page's text is no evidence",
+                 D.with_cited_text({5: notes}, {832: AMEND_LAYER}, D.amendment_rows(AMEND_MD))[1], 1)
+    out = io.StringIO()
+    with contextlib.redirect_stdout(out):
+        D.verdict({"pages": {}, "amendment_entries_not_located": 3})
+    expect.equal("the summary names the count", "amendment entry not located: 3" in out.getvalue(), True)
 
 
 if __name__ == "__main__":

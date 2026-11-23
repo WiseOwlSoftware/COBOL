@@ -42,13 +42,13 @@ the page's words. Two reading-order cases are never a witness for the layer: a m
 layer lacks that the second reading has elsewhere on the page (a table read by column); they stay UNEXPLAINED. The planted
 cases for every outcome are case_10. `--require-zero` counts UNEXPLAINED and LIKELY-ERROR.
 
-**Measured after arbitration (all 976 pages, the tool as of 2026-11-23's second review):** OCR-NOISE 5258, OCR-ARBITRATED 1343,
-CORRECTION 823, AMENDMENT-APPLIED 88, FIGURE 1186, PUNCT 2322, CASE 423, UNCOVERED 773, LIKELY-ERROR 114, UNEXPLAINED 599
-(from 2092; the residual is on 244 pages). The LIKELY-ERROR rows are differences between the Markdown and the print that two
+**Measured after arbitration (all 976 pages, the tool as of 2026-11-23's second review):** OCR-NOISE 5261, OCR-ARBITRATED 1344,
+CORRECTION 823, AMENDMENT-APPLIED 57, FIGURE 1186, PUNCT 2322, CASE 423, UNCOVERED 787, LIKELY-ERROR 126, UNEXPLAINED 602
+(from 2092; the residual is on 251 pages). The LIKELY-ERROR rows are differences between the Markdown and the print that two
 readings agree on: some are errors, some are Amendment text applied in place that no cited Amendment page confirms word for
 word, some the transcription's own footnote renumbering, and the repeated table header that the Markdown holds once. Each is a
 page for one scoped agent, never a pass. AMENDMENT-APPLIED needs the page's CORRECTED note to hold the print and the cited
-Amendment page (or the note's quote) to hold the Markdown's words (kb/Work PB6135 2026-11-23-errata-amendment-class).
+entry of the cited Amendment page that the note names (or the note's quote) to hold the Markdown's words; 93 of 300 notes' entries are not located and give nothing (kb/Work PB6135 2026-11-23-errata-amendment-class).
 
 **Every LIKELY-ERROR** is in the committed result; list it with
 `python scripts/spec/text_layer_diff.py --check --likely` (page, line of the Markdown: layer / Markdown / tesseract). The

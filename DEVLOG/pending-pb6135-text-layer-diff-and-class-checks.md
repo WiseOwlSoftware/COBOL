@@ -17,7 +17,7 @@ layer gives no precise rule (kb/Work PB6135 addendum). The transcription is unch
 
 A triage of the 21 LIKELY-ERROR rows on seven pages found no transcription error: 20 sit under an Amendment's in-place
 CORRECTED note. So a hunk is now AMENDMENT-APPLIED only when the layer's words are a run of the note's printed quote AND the
-Markdown's words are a run of the amended text (the note's quote, or the text layer of the Amendment page it cites); a zero
+Markdown's words are a run of the amended text (the note's quote, or the text layer of the one entry of the Amendment page that the note names; an entry not located gives nothing and is counted); a zero
 read as the letter O is OCR-NOISE only inside a number of two digits or more; a row's excerpt is the whole aligned block.
-Re-measured: LIKELY-ERROR 141 to 114, UNEXPLAINED 607 to 599, AMENDMENT-APPLIED 0 to 88 (kb/Work PB6135
+Re-measured: LIKELY-ERROR 141 to 126, UNEXPLAINED 607 to 602, AMENDMENT-APPLIED 0 to 57, 93 amendment entries not located (kb/Work PB6135
 2026-11-23-errata-amendment-class). The list of LIKELY-ERROR rows is `text_layer_diff.py --check --likely`, not copied into a note.

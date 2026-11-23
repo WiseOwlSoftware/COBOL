@@ -9,12 +9,16 @@ excerpt of one row (p132 L5662) had dropped words that had paired off as OCR noi
 **Changes in `scripts/spec/text_layer_diff.py`** (cases 11 to 14 of its self-test).
 - AMENDMENT-APPLIED: `amendment_notes` reads, per page, each CORRECTED note that names an Amendment and says `applied in place`
   (a `damaged letter` note is no amendment): its first backticked quote is what the standard prints, its other quotes are the
-  amended text, and `(page N, folio A-n)` or `B-n` cites the Amendment's own PDF page. A difference is AMENDMENT-APPLIED only
-  when BOTH sides hold: the layer's words are a run of the printed quote, and the Markdown's words are a run of the amended
-  text (a quote, or the text layer of the cited Amendment page: `with_cited_text`; most notes say `the text above` and quote
-  nothing, so the Amendment's own print is the independent evidence). Words the Markdown dropped qualify only when the two
-  words around the gap are consecutive in the amended text; words it added only when they are a run of it. Round 1 checked
-  the layer's side alone, so `13 modules` for the amended `12` was also accepted (review R2-1; planted in case_11).
+  amended text, and `its change for page P (page N, folio A-n): "instruction"` names the Amendment's entry (round 3: R3-1). A
+  difference is AMENDMENT-APPLIED only when BOTH sides hold: the layer's words are a run of the printed quote, and the
+  Markdown's words are a run of the amended text. Most notes quote no amended text (`the text above`), so the amended text is
+  the text layer of THAT NOTE'S OWN entry on the cited Amendment page (`entry_text`): the row of the page's change table whose
+  page cell and first eight instruction words are the note's, exactly one row; its words run in the layer from the place its
+  first words are found to the place the next row's are found. Fail closed: no row, two rows, a start the layer does not show
+  or a successor it does not show gives no entry, the note's rows stay LIKELY-ERROR/UNEXPLAINED, and the `--check` summary
+  counts it (`amendment entry not located: N`, stored in the result). Round 2 took the whole cited page's text, so a change of
+  another entry on that page could vouch for a wrong word (planted in case_14). Dropped words qualify only if the two words
+  around the gap are consecutive in the amended text; added words only as a run of it.
 - A zero read as O: only a number of two digits or more holding a zero (`100` against `1OO`) is OCR-NOISE, and only when both
   readers give the letter. A lone `0` against `O` is decided neither by context nor by the page's words (`'Z', '0', '9'` and
   `'Z', 'O', '9'` read alike) and stays LIKELY-ERROR; the p152 range row is therefore LIKELY-ERROR again, a triaged false
@@ -23,20 +27,16 @@ excerpt of one row (p132 L5662) had dropped words that had paired off as OCR noi
 
 **Counts over 976 pages** (`python scripts/spec/text_layer_diff.py --arbitrate`):
 
-| outcome | before the class | round 1 (both-side check missing) | now |
-|---|---|---|---|
-| OCR-NOISE | 5269 | 5251 | 5258 |
-| OCR-ARBITRATED | 1344 | 1344 | 1343 |
-| CORRECTION | 823 | 823 | 823 |
-| AMENDMENT-APPLIED | 0 | 74 | 88 |
-| FIGURE | 1186 | 1185 | 1186 |
-| PUNCT | 2322 | 2322 | 2322 |
-| CASE | 423 | 423 | 423 |
-| UNCOVERED | 823 | 811 | 773 |
-| LIKELY-ERROR | 141 | 88 | 114 |
-| UNEXPLAINED | 607 | 598 | 599 |
+| outcome | before the class | round 1 | round 2 (whole page) | now (own entry) |
+|---|---|---|---|---|
+| AMENDMENT-APPLIED | 0 | 74 | 88 | 57 |
+| LIKELY-ERROR | 141 | 88 | 114 | 126 |
+| UNEXPLAINED | 607 | 598 | 599 | 602 |
+| OCR-NOISE | 5269 | 5251 | 5258 | 5261 |
+| UNCOVERED | 823 | 811 | 773 | 787 |
 
-Of round 1's 74 rows, 37 are still AMENDMENT-APPLIED, 22 are LIKELY-ERROR, 8 OCR-NOISE, 4 UNEXPLAINED and 3 in other classes or
-re-cut blocks; the Amendment pages confirm 51 more rows than the round-1 quotes did. What stays LIKELY-ERROR on the seven pages:
-the renumbered 4.3.8.4 headings (p168, an instruction to renumber, not text on the cited page), the PERFORM VARYING sentences
-(p345) and `specification`/`specifications` (p28), each for a reader of the Amendment page.
+OCR-ARBITRATED 1344, CORRECTION 823, FIGURE 1186, PUNCT 2322 and CASE 423 are as before (OCR-ARBITRATED 1343 in round 2).
+Of the 300 amendment notes, 207 have their entry located; 93 do not (45 name no row of the Amendment page by page cell and
+instruction, 25 name more than one, 20 have a row start or successor the layer does not show, 3 quote no instruction), and
+their rows stay unexplained for a reader of the Amendment page. Only the entries' rows on p132 and p152 of the seven triaged
+pages are AMENDMENT-APPLIED now.

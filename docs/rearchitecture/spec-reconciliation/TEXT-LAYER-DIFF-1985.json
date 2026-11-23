@@ -4,7 +4,7 @@
  "inputs": {
   "markdown_sha256": "b45874f3bac6713ea3404b36cdae4c3a2854957e02b91a9d1b727ca3384148b4",
   "ledger_sha256": "7dddebbbe1fb87c2a8802fc686ffa6c161127a8664e7bcd61587b0cf09b2914b",
-  "script_sha256": "a88225821f114ecea58a1aa4f66467152d29828403febab2547411befb0cec48",
+  "script_sha256": "c3f01773578224618b9e2301f06d66626c15ca52b45f1c8d88cac7c2667564af",
   "tesseract": "tesseract v5.4.0.20240606"
  },
  "classes": [
@@ -19,6 +19,7 @@
   "LIKELY-ERROR",
   "UNEXPLAINED"
  ],
+ "amendment_entries_not_located": 93,
  "pages": {
   "1": {
    "counts": {
@@ -1125,10 +1126,9 @@
    "counts": {
     "CORRECTION": 2,
     "PUNCT": 7,
-    "AMENDMENT-APPLIED": 1,
     "OCR-NOISE": 3,
     "LIKELY-ERROR": 6,
-    "UNCOVERED": 3,
+    "UNCOVERED": 4,
     "UNEXPLAINED": 1
    },
    "differences": [
@@ -1184,17 +1184,6 @@
      "line": 278,
      "words": [
       1,
-      1
-     ]
-    },
-    {
-     "class": "AMENDMENT-APPLIED",
-     "reason": "an Amendment's text applied in place (the page's CORRECTED note quotes the printed words)",
-     "pdf": "American National Standard",
-     "md": "ANSI",
-     "line": 278,
-     "words": [
-      3,
       1
      ]
     },
@@ -1312,6 +1301,17 @@
     {
      "class": "UNCOVERED",
      "reason": "Markdown words the text layer lacks",
+     "pdf": "American National Standard",
+     "md": "ANSI",
+     "line": 278,
+     "words": [
+      0,
+      1
+     ]
+    },
+    {
+     "class": "UNCOVERED",
+     "reason": "Markdown words the text layer lacks",
      "pdf": "",
      "md": "ISO R-1989:1972.",
      "line": 278,
@@ -1327,7 +1327,7 @@
      "md": "ANSI X3.23-1974, ISO 1989:1978,",
      "line": 280,
      "words": [
-      2,
+      5,
       4
      ],
      "tesseract": "refers to American National Standard X3.23-1968 e“Second Standard COBOL”"
@@ -2611,44 +2611,12 @@
   },
   "21": {
    "counts": {
-    "AMENDMENT-APPLIED": 3,
     "CORRECTION": 1,
-    "OCR-NOISE": 1
+    "OCR-NOISE": 1,
+    "LIKELY-ERROR": 2,
+    "UNEXPLAINED": 1
    },
    "differences": [
-    {
-     "class": "AMENDMENT-APPLIED",
-     "reason": "an Amendment's text applied in place (the page's CORRECTED note quotes the printed words)",
-     "pdf": "11",
-     "md": "12",
-     "line": 1169,
-     "words": [
-      1,
-      1
-     ]
-    },
-    {
-     "class": "AMENDMENT-APPLIED",
-     "reason": "an Amendment's text applied in place (the page's CORRECTED note quotes the printed words)",
-     "pdf": "",
-     "md": "Segmentation,",
-     "line": 1169,
-     "words": [
-      0,
-      1
-     ]
-    },
-    {
-     "class": "AMENDMENT-APPLIED",
-     "reason": "an Amendment's text applied in place (the page's CORRECTED note quotes the printed words)",
-     "pdf": "Segmentation.",
-     "md": "Intrinsic Function.",
-     "line": 1169,
-     "words": [
-      1,
-      2
-     ]
-    },
     {
      "class": "CORRECTION",
      "reason": "a ledger pair or correction note of this page accounts for this hunk",
@@ -2670,14 +2638,50 @@
       1,
       1
      ]
+    },
+    {
+     "class": "LIKELY-ERROR",
+     "reason": "a second OCR (tesseract) reads the text layer's words at this place, not the Markdown's",
+     "pdf": "11",
+     "md": "12",
+     "line": 1169,
+     "words": [
+      1,
+      1
+     ],
+     "tesseract": "standard defines 11 functional processing"
+    },
+    {
+     "class": "UNEXPLAINED",
+     "reason": "a single word moved: gone at one place, present at another",
+     "pdf": "",
+     "md": "Segmentation,",
+     "line": 1169,
+     "words": [
+      0,
+      1
+     ],
+     "tesseract": "Communication, Debug, and Segmentation. Nine"
+    },
+    {
+     "class": "LIKELY-ERROR",
+     "reason": "a second OCR (tesseract) reads the text layer's words at this place, not the Markdown's",
+     "pdf": "Segmentation.",
+     "md": "Intrinsic Function.",
+     "line": 1169,
+     "words": [
+      1,
+      2
+     ],
+     "tesseract": "SCOPE AND PURPOSE The scope of"
     }
    ]
   },
   "23": {
    "counts": {
     "CORRECTION": 5,
-    "AMENDMENT-APPLIED": 1,
     "OCR-NOISE": 2,
+    "UNCOVERED": 1,
     "OCR-ARBITRATED": 3
    },
    "differences": [
@@ -2690,17 +2694,6 @@
      "words": [
       1,
       1
-     ]
-    },
-    {
-     "class": "AMENDMENT-APPLIED",
-     "reason": "an Amendment's text applied in place (the page's CORRECTED note quotes the printed words)",
-     "pdf": "",
-     "md": "The Intrinsic Function module provides the capability to reference a data item whose value is derived automatically at t ...",
-     "line": 1209,
-     "words": [
-      0,
-      38
      ]
     },
     {
@@ -2767,6 +2760,17 @@
      "words": [
       1,
       1
+     ]
+    },
+    {
+     "class": "UNCOVERED",
+     "reason": "Markdown words the text layer lacks",
+     "pdf": "",
+     "md": "The Intrinsic Function module provides the capability to reference a data item whose value is derived automatically at t ...",
+     "line": 1209,
+     "words": [
+      0,
+      38
      ]
     },
     {
@@ -23171,10 +23175,10 @@
    "counts": {
     "PUNCT": 14,
     "CORRECTION": 7,
-    "AMENDMENT-APPLIED": 4,
+    "AMENDMENT-APPLIED": 2,
     "OCR-NOISE": 2,
     "LIKELY-ERROR": 1,
-    "UNCOVERED": 3,
+    "UNCOVERED": 5,
     "OCR-ARBITRATED": 1
    },
    "differences": [
@@ -23311,17 +23315,6 @@
      ]
     },
     {
-     "class": "AMENDMENT-APPLIED",
-     "reason": "an Amendment's text applied in place (the page's CORRECTED note quotes the printed words)",
-     "pdf": "",
-     "md": "it",
-     "line": 5668,
-     "words": [
-      0,
-      1
-     ]
-    },
-    {
      "class": "CORRECTION",
      "reason": "a ledger pair or correction note of this page accounts for this hunk",
      "pdf": "not",
@@ -23330,17 +23323,6 @@
      "words": [
       1,
       0
-     ]
-    },
-    {
-     "class": "AMENDMENT-APPLIED",
-     "reason": "an Amendment's text applied in place (the page's CORRECTED note quotes the printed words)",
-     "pdf": "",
-     "md": "neither",
-     "line": 5668,
-     "words": [
-      0,
-      1
      ]
     },
     {
@@ -23496,6 +23478,28 @@
      "words": [
       0,
       5
+     ]
+    },
+    {
+     "class": "UNCOVERED",
+     "reason": "Markdown words the text layer lacks",
+     "pdf": "",
+     "md": "it",
+     "line": 5668,
+     "words": [
+      0,
+      1
+     ]
+    },
+    {
+     "class": "UNCOVERED",
+     "reason": "Markdown words the text layer lacks",
+     "pdf": "",
+     "md": "neither",
+     "line": 5668,
+     "words": [
+      0,
+      1
      ]
     },
     {
@@ -24811,8 +24815,8 @@
    "counts": {
     "PUNCT": 13,
     "CORRECTION": 4,
-    "AMENDMENT-APPLIED": 1,
-    "OCR-NOISE": 1
+    "OCR-NOISE": 1,
+    "UNCOVERED": 1
    },
    "differences": [
     {
@@ -24959,17 +24963,6 @@
      ]
     },
     {
-     "class": "AMENDMENT-APPLIED",
-     "reason": "an Amendment's text applied in place (the page's CORRECTED note quotes the printed words)",
-     "pdf": "",
-     "md": "It includes a delimiting left parenthesis separator, the leftmost character position, a colon separator, optionally a le ...",
-     "line": 5955,
-     "words": [
-      0,
-      23
-     ]
-    },
-    {
      "class": "CORRECTION",
      "reason": "a ledger pair or correction note of this page accounts for this hunk",
      "pdf": "Reference Modification.)",
@@ -25022,6 +25015,17 @@
      "words": [
       1,
       1
+     ]
+    },
+    {
+     "class": "UNCOVERED",
+     "reason": "Markdown words the text layer lacks",
+     "pdf": "",
+     "md": "It includes a delimiting left parenthesis separator, the leftmost character position, a colon separator, optionally a le ...",
+     "line": 5955,
+     "words": [
+      0,
+      23
      ]
     }
    ]
@@ -25620,7 +25624,8 @@
   "144": {
    "counts": {
     "PUNCT": 14,
-    "AMENDMENT-APPLIED": 2
+    "LIKELY-ERROR": 1,
+    "UNCOVERED": 1
    },
    "differences": [
     {
@@ -25734,28 +25739,6 @@
      ]
     },
     {
-     "class": "AMENDMENT-APPLIED",
-     "reason": "an Amendment's text applied in place (the page's CORRECTED note quotes the printed words)",
-     "pdf": "which",
-     "md": "that",
-     "line": 6151,
-     "words": [
-      1,
-      1
-     ]
-    },
-    {
-     "class": "AMENDMENT-APPLIED",
-     "reason": "an Amendment's text applied in place (the page's CORRECTED note quotes the printed words)",
-     "pdf": "",
-     "md": "A subscript may be the word ALL when the subscripted identifier is used as a function argument. (See page A-28, Argument ...",
-     "line": 6151,
-     "words": [
-      0,
-      21
-     ]
-    },
-    {
      "class": "PUNCT",
      "reason": "same letters, different punctuation",
      "pdf": "Data-Name.",
@@ -25797,6 +25780,29 @@
      "words": [
       1,
       1
+     ]
+    },
+    {
+     "class": "LIKELY-ERROR",
+     "reason": "a second OCR (tesseract) reads the text layer's words at this place, not the Markdown's",
+     "pdf": "which",
+     "md": "that",
+     "line": 6151,
+     "words": [
+      1,
+      1
+     ],
+     "tesseract": "operator or a relation character."
+    },
+    {
+     "class": "UNCOVERED",
+     "reason": "Markdown words the text layer lacks",
+     "pdf": "",
+     "md": "A subscript may be the word ALL when the subscripted identifier is used as a function argument. (See page A-28, Argument ...",
+     "line": 6151,
+     "words": [
+      0,
+      21
      ]
     }
    ]
@@ -28085,27 +28091,16 @@
   },
   "169": {
    "counts": {
-    "AMENDMENT-APPLIED": 2,
     "CORRECTION": 12,
+    "AMENDMENT-APPLIED": 1,
     "PUNCT": 2,
     "CASE": 1,
     "OCR-NOISE": 1,
-    "UNCOVERED": 1,
+    "UNCOVERED": 2,
     "LIKELY-ERROR": 1,
     "FIGURE": 2
    },
    "differences": [
-    {
-     "class": "AMENDMENT-APPLIED",
-     "reason": "an Amendment's text applied in place (the page's CORRECTED note quotes the printed words)",
-     "pdf": "",
-     "md": "If an ALL subscript is specified for an operand, the reference-modifier is applied to each of the implicitly specified e ...",
-     "line": 7155,
-     "words": [
-      0,
-      23
-     ]
-    },
     {
      "class": "CORRECTION",
      "reason": "a ledger pair or correction note of this page accounts for this hunk",
@@ -28291,6 +28286,17 @@
      "words": [
       2,
       2
+     ]
+    },
+    {
+     "class": "UNCOVERED",
+     "reason": "Markdown words the text layer lacks",
+     "pdf": "",
+     "md": "If an ALL subscript is specified for an operand, the reference-modifier is applied to each of the implicitly specified e ...",
+     "line": 7155,
+     "words": [
+      0,
+      23
      ]
     },
     {
@@ -54863,12 +54869,12 @@
   "323": {
    "counts": {
     "CORRECTION": 7,
-    "AMENDMENT-APPLIED": 5,
+    "AMENDMENT-APPLIED": 2,
     "CASE": 1,
-    "OCR-NOISE": 1,
+    "OCR-NOISE": 2,
     "UNEXPLAINED": 1,
-    "UNCOVERED": 1,
-    "LIKELY-ERROR": 2
+    "UNCOVERED": 2,
+    "LIKELY-ERROR": 4
    },
    "differences": [
     {
@@ -54993,36 +54999,14 @@
      ]
     },
     {
-     "class": "AMENDMENT-APPLIED",
-     "reason": "an Amendment's text applied in place (the page's CORRECTED note quotes the printed words)",
-     "pdf": "",
-     "md": "encountered is matched with the nearest preceding IF that either has not been already matched with an ELSE",
+     "class": "OCR-NOISE",
+     "reason": "a run the layer reads in another order",
+     "pdf": "with an ELSE",
+     "md": "with an ELSE",
      "line": 13347,
      "words": [
-      0,
-      18
-     ]
-    },
-    {
-     "class": "AMENDMENT-APPLIED",
-     "reason": "an Amendment's text applied in place (the page's CORRECTED note quotes the printed words)",
-     "pdf": "considered to apply to",
-     "md": "matched with",
-     "line": 13347,
-     "words": [
-      4,
-      2
-     ]
-    },
-    {
-     "class": "AMENDMENT-APPLIED",
-     "reason": "an Amendment's text applied in place (the page's CORRECTED note quotes the printed words)",
-     "pdf": "immediately",
-     "md": "nearest",
-     "line": 13347,
-     "words": [
-      1,
-      1
+      3,
+      3
      ]
     },
     {
@@ -55041,6 +55025,17 @@
      "class": "UNCOVERED",
      "reason": "Markdown words the text layer lacks",
      "pdf": "",
+     "md": "encountered is matched with the nearest preceding IF that either has not been already matched with an ELSE",
+     "line": 13347,
+     "words": [
+      0,
+      15
+     ]
+    },
+    {
+     "class": "UNCOVERED",
+     "reason": "Markdown words the text layer lacks",
+     "pdf": "",
      "md": "has not been implicitly or explicitly terminated. Any",
      "line": 13347,
      "words": [
@@ -55051,11 +55046,35 @@
     {
      "class": "LIKELY-ERROR",
      "reason": "a second OCR (tesseract) reads the text layer's words at this place, not the Markdown's",
+     "pdf": "considered to apply to",
+     "md": "matched with",
+     "line": 13347,
+     "words": [
+      4,
+      2
+     ],
+     "tesseract": "condition is true and the NEXT SENTENCE phrase"
+    },
+    {
+     "class": "LIKELY-ERROR",
+     "reason": "a second OCR (tesseract) reads the text layer's words at this place, not the Markdown's",
+     "pdf": "immediately",
+     "md": "nearest",
+     "line": 13347,
+     "words": [
+      1,
+      1
+     ],
+     "tesseract": "If the condition is true"
+    },
+    {
+     "class": "LIKELY-ERROR",
+     "reason": "a second OCR (tesseract) reads the text layer's words at this place, not the Markdown's",
      "pdf": "already paired with an ELSE",
      "md": "implicitly",
      "line": 13347,
      "words": [
-      5,
+      2,
       1
      ],
      "tesseract": "not been already paired with an ELSE or END-IF."
@@ -70213,8 +70232,11 @@
    "counts": {
     "CASE": 3,
     "CORRECTION": 6,
-    "AMENDMENT-APPLIED": 6,
-    "PUNCT": 1
+    "OCR-NOISE": 1,
+    "AMENDMENT-APPLIED": 3,
+    "PUNCT": 1,
+    "LIKELY-ERROR": 1,
+    "UNCOVERED": 2
    },
    "differences": [
     {
@@ -70251,17 +70273,6 @@
      ]
     },
     {
-     "class": "AMENDMENT-APPLIED",
-     "reason": "an Amendment's text applied in place (the page's CORRECTED note quotes the printed words)",
-     "pdf": "phrase.",
-     "md": "imperative-statement-1.",
-     "line": 16781,
-     "words": [
-      1,
-      1
-     ]
-    },
-    {
      "class": "CORRECTION",
      "reason": "a ledger pair or correction note of this page accounts for this hunk",
      "pdf": "STANDARD",
@@ -70273,25 +70284,14 @@
      ]
     },
     {
-     "class": "AMENDMENT-APPLIED",
-     "reason": "an Amendment's text applied in place (the page's CORRECTED note quotes the printed words)",
+     "class": "OCR-NOISE",
+     "reason": "the layer's damaged reading of a well-formed word",
      "pdf": "file-name-l",
-     "md": "the file connector referenced by file-name-1",
+     "md": "file-name-1",
      "line": 16781,
      "words": [
       1,
-      6
-     ]
-    },
-    {
-     "class": "AMENDMENT-APPLIED",
-     "reason": "an Amendment's text applied in place (the page's CORRECTED note quotes the printed words)",
-     "pdf": "",
-     "md": "Execution then continues according to the rules for each statement specified in imperative-statement-1. If a procedure b ...",
-     "line": 16781,
-     "words": [
-      0,
-      67
+      1
      ]
     },
     {
@@ -70391,6 +70391,40 @@
      "words": [
       1,
       1
+     ]
+    },
+    {
+     "class": "LIKELY-ERROR",
+     "reason": "a second OCR (tesseract) reads the text layer's words at this place, not the Markdown's",
+     "pdf": "phrase.",
+     "md": "imperative-statement-1.",
+     "line": 16781,
+     "words": [
+      1,
+      1
+     ],
+     "tesseract": "at end condition. (See page"
+    },
+    {
+     "class": "UNCOVERED",
+     "reason": "Markdown words the text layer lacks",
+     "pdf": "file-name-l",
+     "md": "the file connector referenced by file-name-1",
+     "line": 16781,
+     "words": [
+      0,
+      5
+     ]
+    },
+    {
+     "class": "UNCOVERED",
+     "reason": "Markdown words the text layer lacks",
+     "pdf": "",
+     "md": "Execution then continues according to the rules for each statement specified in imperative-statement-1. If a procedure b ...",
+     "line": 16781,
+     "words": [
+      0,
+      67
      ]
     }
    ]
@@ -71294,10 +71328,9 @@
    "counts": {
     "CORRECTION": 7,
     "OCR-NOISE": 3,
-    "AMENDMENT-APPLIED": 2,
     "PUNCT": 2,
     "CASE": 3,
-    "LIKELY-ERROR": 4,
+    "LIKELY-ERROR": 6,
     "UNCOVERED": 1,
     "UNEXPLAINED": 3,
     "OCR-ARBITRATED": 4
@@ -71323,28 +71356,6 @@
      "words": [
       1,
       1
-     ]
-    },
-    {
-     "class": "AMENDMENT-APPLIED",
-     "reason": "an Amendment's text applied in place (the page's CORRECTED note quotes the printed words)",
-     "pdf": "after executing",
-     "md": "control is transferred according to",
-     "line": 17056,
-     "words": [
-      2,
-      5
-     ]
-    },
-    {
-     "class": "AMENDMENT-APPLIED",
-     "reason": "an Amendment's text applied in place (the page's CORRECTED note quotes the printed words)",
-     "pdf": "procedure, if",
-     "md": "rules of the USE statement following the execution of",
-     "line": 17056,
-     "words": [
-      2,
-      9
      ]
     },
     {
@@ -71512,6 +71523,30 @@
       0,
       2
      ]
+    },
+    {
+     "class": "LIKELY-ERROR",
+     "reason": "a second OCR (tesseract) reads the text layer's words at this place, not the Markdown's",
+     "pdf": "after executing",
+     "md": "control is transferred according to",
+     "line": 17056,
+     "words": [
+      2,
+      5
+     ],
+     "tesseract": "record-name-l, and after executing the procedure, if any, specified"
+    },
+    {
+     "class": "LIKELY-ERROR",
+     "reason": "a second OCR (tesseract) reads the text layer's words at this place, not the Markdown's",
+     "pdf": "procedure, if",
+     "md": "rules of the USE statement following the execution of",
+     "line": 17056,
+     "words": [
+      2,
+      9
+     ],
+     "tesseract": "If the execution of the WRITE statement is unsuccessful, after updating the I-O"
     },
     {
      "class": "UNEXPLAINED",
@@ -74783,9 +74818,10 @@
    "counts": {
     "CORRECTION": 8,
     "OCR-NOISE": 5,
-    "AMENDMENT-APPLIED": 2,
     "CASE": 1,
-    "OCR-ARBITRATED": 1
+    "OCR-ARBITRATED": 1,
+    "LIKELY-ERROR": 1,
+    "UNCOVERED": 1
    },
    "differences": [
     {
@@ -74866,17 +74902,6 @@
      ]
     },
     {
-     "class": "AMENDMENT-APPLIED",
-     "reason": "an Amendment's text applied in place (the page's CORRECTED note quotes the printed words)",
-     "pdf": "phrase.",
-     "md": "imperative-statement-1.",
-     "line": 18023,
-     "words": [
-      1,
-      1
-     ]
-    },
-    {
      "class": "CORRECTION",
      "reason": "a ledger pair or correction note of this page accounts for this hunk",
      "pdf": "STANDARD",
@@ -74896,17 +74921,6 @@
      "words": [
       1,
       6
-     ]
-    },
-    {
-     "class": "AMENDMENT-APPLIED",
-     "reason": "an Amendment's text applied in place (the page's CORRECTED note quotes the printed words)",
-     "pdf": "",
-     "md": "Execution then continues according to the rules for each statement specified in imperative-statement-1. If a procedure b ...",
-     "line": 18023,
-     "words": [
-      0,
-      67
      ]
     },
     {
@@ -74975,6 +74989,29 @@
       0
      ],
      "tesseract": "the MOVE statement without the"
+    },
+    {
+     "class": "LIKELY-ERROR",
+     "reason": "a second OCR (tesseract) reads the text layer's words at this place, not the Markdown's",
+     "pdf": "phrase.",
+     "md": "imperative-statement-1.",
+     "line": 18023,
+     "words": [
+      1,
+      1
+     ],
+     "tesseract": "at end condition. (See page"
+    },
+    {
+     "class": "UNCOVERED",
+     "reason": "Markdown words the text layer lacks",
+     "pdf": "",
+     "md": "Execution then continues according to the rules for each statement specified in imperative-statement-1. If a procedure b ...",
+     "line": 18023,
+     "words": [
+      0,
+      67
+     ]
     }
    ]
   },
@@ -76779,11 +76816,10 @@
     "PUNCT": 3,
     "CORRECTION": 1,
     "CASE": 2,
-    "AMENDMENT-APPLIED": 1,
     "UNCOVERED": 3,
     "LIKELY-ERROR": 1,
     "UNEXPLAINED": 1,
-    "OCR-ARBITRATED": 3
+    "OCR-ARBITRATED": 4
    },
    "differences": [
     {
@@ -76849,17 +76885,6 @@
      "line": 18520,
      "words": [
       2,
-      1
-     ]
-    },
-    {
-     "class": "AMENDMENT-APPLIED",
-     "reason": "an Amendment's text applied in place (the page's CORRECTED note quotes the printed words)",
-     "pdf": "",
-     "md": "statement",
-     "line": 18528,
-     "words": [
-      0,
       1
      ]
     },
@@ -76953,6 +76978,18 @@
       1
      ],
      "tesseract": "and no next logical record"
+    },
+    {
+     "class": "OCR-ARBITRATED",
+     "reason": "a second OCR (tesseract) reads the Markdown's words at this place, not the text layer's",
+     "pdf": "",
+     "md": "statement",
+     "line": 18528,
+     "words": [
+      0,
+      1
+     ],
+     "tesseract": "an OPEN statement with the"
     },
     {
      "class": "UNCOVERED",
@@ -79814,10 +79851,10 @@
    "counts": {
     "CORRECTION": 7,
     "OCR-NOISE": 7,
-    "AMENDMENT-APPLIED": 1,
     "CASE": 1,
     "OCR-ARBITRATED": 2,
-    "UNCOVERED": 2
+    "UNCOVERED": 2,
+    "LIKELY-ERROR": 1
    },
    "differences": [
     {
@@ -79931,17 +79968,6 @@
      ]
     },
     {
-     "class": "AMENDMENT-APPLIED",
-     "reason": "an Amendment's text applied in place (the page's CORRECTED note quotes the printed words)",
-     "pdf": "phrase.",
-     "md": "imperative-statement-1.",
-     "line": 19397,
-     "words": [
-      1,
-      1
-     ]
-    },
-    {
      "class": "CORRECTION",
      "reason": "a ledger pair or correction note of this page accounts for this hunk",
      "pdf": "STANDARD",
@@ -80030,6 +80056,18 @@
       0,
       2
      ]
+    },
+    {
+     "class": "LIKELY-ERROR",
+     "reason": "a second OCR (tesseract) reads the text layer's words at this place, not the Markdown's",
+     "pdf": "phrase.",
+     "md": "imperative-statement-1.",
+     "line": 19397,
+     "words": [
+      1,
+      1
+     ],
+     "tesseract": "at end condition. (See page"
     },
     {
      "class": "UNCOVERED",
@@ -87535,10 +87573,9 @@
   "563": {
    "counts": {
     "CASE": 1,
-    "AMENDMENT-APPLIED": 1,
     "CORRECTION": 1,
     "OCR-NOISE": 2,
-    "UNCOVERED": 1
+    "UNCOVERED": 2
    },
    "differences": [
     {
@@ -87550,17 +87587,6 @@
      "words": [
       1,
       1
-     ]
-    },
-    {
-     "class": "AMENDMENT-APPLIED",
-     "reason": "an Amendment's text applied in place (the page's CORRECTED note quotes the printed words)",
-     "pdf": "",
-     "md": "For a relative file, the content of the relative key data item is undefined after the execution of the MERGE statement.",
-     "line": 21436,
-     "words": [
-      0,
-      21
      ]
     },
     {
@@ -87594,6 +87620,17 @@
      "words": [
       1,
       1
+     ]
+    },
+    {
+     "class": "UNCOVERED",
+     "reason": "Markdown words the text layer lacks",
+     "pdf": "",
+     "md": "For a relative file, the content of the relative key data item is undefined after the execution of the MERGE statement.",
+     "line": 21436,
+     "words": [
+      0,
+      21
      ]
     },
     {
@@ -88858,8 +88895,8 @@
    "counts": {
     "OCR-NOISE": 4,
     "CASE": 1,
-    "AMENDMENT-APPLIED": 4,
-    "LIKELY-ERROR": 1,
+    "LIKELY-ERROR": 3,
+    "UNCOVERED": 2,
     "UNEXPLAINED": 1
    },
    "differences": [
@@ -88897,50 +88934,6 @@
      ]
     },
     {
-     "class": "AMENDMENT-APPLIED",
-     "reason": "an Amendment's text applied in place (the page's CORRECTED note quotes the printed words)",
-     "pdf": "STANDARD EXCEPTION/ERROR",
-     "md": "EXCEPTION",
-     "line": 21765,
-     "words": [
-      2,
-      1
-     ]
-    },
-    {
-     "class": "AMENDMENT-APPLIED",
-     "reason": "an Amendment's text applied in place (the page's CORRECTED note quotes the printed words)",
-     "pdf": "specified for",
-     "md": "associated with",
-     "line": 21765,
-     "words": [
-      2,
-      2
-     ]
-    },
-    {
-     "class": "AMENDMENT-APPLIED",
-     "reason": "an Amendment's text applied in place (the page's CORRECTED note quotes the printed words)",
-     "pdf": "",
-     "md": "connector referenced by file-name-3",
-     "line": 21765,
-     "words": [
-      0,
-      4
-     ]
-    },
-    {
-     "class": "AMENDMENT-APPLIED",
-     "reason": "an Amendment's text applied in place (the page's CORRECTED note quotes the printed words)",
-     "pdf": "",
-     "md": "The value of the data item referenced by the DEPENDING ON phrase of a RECORD IS VARYING clause specified in the sort-mer ...",
-     "line": 21767,
-     "words": [
-      0,
-      42
-     ]
-    },
-    {
      "class": "OCR-NOISE",
      "reason": "the layer's damaged reading of a well-formed word",
      "pdf": "file-name-l",
@@ -88975,6 +88968,41 @@
      "tesseract": "has been sequenced by the SORT statement. The compiler inserts a return mechanism at the end of the last statement in th ..."
     },
     {
+     "class": "LIKELY-ERROR",
+     "reason": "a second OCR (tesseract) reads the text layer's words at this place, not the Markdown's",
+     "pdf": "STANDARD EXCEPTION/ERROR",
+     "md": "EXCEPTION",
+     "line": 21765,
+     "words": [
+      2,
+      1
+     ],
+     "tesseract": "it after the file referenced by"
+    },
+    {
+     "class": "LIKELY-ERROR",
+     "reason": "a second OCR (tesseract) reads the text layer's words at this place, not the Markdown's",
+     "pdf": "specified for",
+     "md": "associated with",
+     "line": 21765,
+     "words": [
+      2,
+      2
+     ],
+     "tesseract": "output ,procedure is specified, control passes"
+    },
+    {
+     "class": "UNCOVERED",
+     "reason": "Markdown words the text layer lacks",
+     "pdf": "",
+     "md": "connector referenced by file-name-3",
+     "line": 21765,
+     "words": [
+      0,
+      4
+     ]
+    },
+    {
      "class": "UNEXPLAINED",
      "reason": "a different word",
      "pdf": "12~",
@@ -88985,6 +89013,17 @@
       1
      ],
      "tesseract": "in paragraph 1l2c above. (13)"
+    },
+    {
+     "class": "UNCOVERED",
+     "reason": "Markdown words the text layer lacks",
+     "pdf": "",
+     "md": "The value of the data item referenced by the DEPENDING ON phrase of a RECORD IS VARYING clause specified in the sort-mer ...",
+     "line": 21767,
+     "words": [
+      0,
+      42
+     ]
     }
    ]
   },
@@ -136887,10 +136926,9 @@
   },
   "858": {
    "counts": {
-    "OCR-NOISE": 6,
+    "OCR-NOISE": 7,
     "PUNCT": 1,
     "CORRECTION": 2,
-    "AMENDMENT-APPLIED": 1,
     "UNCOVERED": 2,
     "OCR-ARBITRATED": 9
    },
@@ -136984,21 +137022,21 @@
      ]
     },
     {
-     "class": "AMENDMENT-APPLIED",
-     "reason": "an Amendment's text applied in place (the page's CORRECTED note quotes the printed words)",
-     "pdf": "",
-     "md": "turn until the leftmost ALL subscript has",
+     "class": "OCR-NOISE",
+     "reason": "a run the layer reads in another order",
+     "pdf": "to the left of the rightmost ALL",
+     "md": "to the left of the rightmost ALL",
      "line": 31593,
      "words": [
-      0,
+      7,
       7
      ]
     },
     {
      "class": "OCR-NOISE",
      "reason": "a run the layer reads in another order",
-     "pdf": "to the left of the rightmost ALL",
-     "md": "to the left of the rightmost ALL",
+     "pdf": "turn until the leftmost ALL subscript has",
+     "md": "turn until the leftmost ALL subscript has",
      "line": 31593,
      "words": [
       7,
@@ -137130,7 +137168,7 @@
      "md": "",
      "line": 31593,
      "words": [
-      8,
+      1,
       0
      ],
      "tesseract": "more. For some functions, the number of arguments which can be specified may be variable. The order in which arguments"
@@ -140528,9 +140566,9 @@
     "OCR-NOISE": 8,
     "PUNCT": 6,
     "CORRECTION": 5,
-    "AMENDMENT-APPLIED": 1,
     "CASE": 1,
-    "OCR-ARBITRATED": 3
+    "OCR-ARBITRATED": 3,
+    "UNEXPLAINED": 1
    },
    "differences": [
     {
@@ -140583,17 +140621,6 @@
      "pdf": "",
      "md": "Type",
      "line": 32273,
-     "words": [
-      0,
-      1
-     ]
-    },
-    {
-     "class": "AMENDMENT-APPLIED",
-     "reason": "an Amendment's text applied in place (the page's CORRECTED note quotes the printed words)",
-     "pdf": "",
-     "md": "integer",
-     "line": 32277,
      "words": [
       0,
       1
@@ -140775,6 +140802,18 @@
       2
      ],
      "tesseract": "as follows: Argument Type Function Type Alphabetic"
+    },
+    {
+     "class": "UNEXPLAINED",
+     "reason": "a single word moved: gone at one place, present at another",
+     "pdf": "",
+     "md": "integer",
+     "line": 32277,
+     "words": [
+      0,
+      1
+     ],
+     "tesseract": "All arguments integer Integer Numeric"
     },
     {
      "class": "OCR-ARBITRATED",
@@ -141256,9 +141295,9 @@
     "OCR-NOISE": 9,
     "PUNCT": 5,
     "CORRECTION": 4,
-    "AMENDMENT-APPLIED": 1,
     "CASE": 1,
     "OCR-ARBITRATED": 3,
+    "UNEXPLAINED": 1,
     "UNCOVERED": 1
    },
    "differences": [
@@ -141301,17 +141340,6 @@
      "pdf": "",
      "md": "Type",
      "line": 32396,
-     "words": [
-      0,
-      1
-     ]
-    },
-    {
-     "class": "AMENDMENT-APPLIED",
-     "reason": "an Amendment's text applied in place (the page's CORRECTED note quotes the printed words)",
-     "pdf": "",
-     "md": "integer",
-     "line": 32400,
      "words": [
       0,
       1
@@ -141505,6 +141533,18 @@
       1
      ],
      "tesseract": "the argument types as follows: Argument"
+    },
+    {
+     "class": "UNEXPLAINED",
+     "reason": "a single word moved: gone at one place, present at another",
+     "pdf": "",
+     "md": "integer",
+     "line": 32400,
+     "words": [
+      0,
+      1
+     ],
+     "tesseract": "All arguments integer Integer Numeric"
     },
     {
      "class": "OCR-ARBITRATED",
