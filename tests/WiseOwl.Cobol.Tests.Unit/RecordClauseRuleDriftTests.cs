@@ -237,7 +237,7 @@ public sealed class RecordClauseRuleDriftTests
         Assert.True(designations.Count >= 9, $"only {designations.Count} 1985 designations — the table lost rules.");
         foreach (var rule in designations)
         {
-            // Chapter IV prints its subclause headings without the markdown marks the other chapters carry (4.3.8.2.3 Syntax Rules).
+            // Every 1985 subclause title is a markdown heading (e.g. "###### 4.3.8.2.3 Syntax Rules"); the leading marks are trimmed to compare the title text.
             string subsection = rule.Clause[(rule.Clause.IndexOf('.') + 1)..] + " Syntax Rules";
             string numbered = $"({rule.Ordinal}) ";
             bool found = false;

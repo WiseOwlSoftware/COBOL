@@ -175,6 +175,21 @@ def case_07_a_summary_of_elements_table_title_is_one_underlined_line_and_no_head
                  _found(module, "summary-of-elements table title"), [])
 
 
+
+def case_08_a_summary_of_differences_table_title_is_one_underlined_line_and_no_heading(expect):
+    page = GOOD + "\n## Page 737\n\n{}\n\n| ELEMENT | 2ND STD | 3RD STD |\n|---|---|---|\n| REDEFINES clause | 1 NUC | 1 NUC |\n"
+    expect.equal("the one form passes", _found(page.format("<u>SUMMARY OF DIFFERENCES IN DATA DIVISION</u>"),
+                                              "summary-of-differences table title"), [])
+    for what, bad in (("a level-1 heading", "# <u>SUMMARY OF DIFFERENCES IN DATA DIVISION</u>"),
+                      ("a level-2 heading", "## <u>SUMMARY OF DIFFERENCES IN DATA DIVISION</u>"),
+                      ("bold", "**<u>SUMMARY OF DIFFERENCES IN DATA DIVISION</u>**"),
+                      ("not underlined", "SUMMARY OF DIFFERENCES IN DATA DIVISION")):
+        expect(f"{what} is named", bool(_found(page.format(bad), "summary-of-differences table title")))
+    numbered = GOOD + "\n## Page 724\n\n## 1. <u>SUMMARY OF DIFFERENCES BETWEEN SECOND AND THIRD STANDARD COBOL</u>\n"
+    expect.equal("the numbered clause heading SUMMARY OF DIFFERENCES BETWEEN ... is no table title",
+                 _found(numbered, "summary-of-differences table title"), [])
+
+
 if __name__ == "__main__":
     ensure_utf8()
     sys.exit(selftest_cases.run(sys.modules[__name__]))

@@ -503,9 +503,9 @@ public sealed class ReservedWordPositionConformanceTests
     /// (<c>END-IF</c>) or a phrase of the enclosing statement (<c>ELSE</c>, <c>END-PERFORM</c>): the statement refused at a
     /// token a statement may be followed by lacks only its own tail, exactly as one refused at the period does.</para></summary>
     [Theory]
-    [InlineData("MOVE W-X TO", "ADD 1 TO.", "DISPLAY W-Y.", "ADD", "COBOL0001: unexpected '.'")]
+    [InlineData("MOVE W-X TO", "ADD 1 TO.", "DISPLAY W-Y.", "ADD", "COBOL5506: unexpected '.'")]
     [InlineData("MOVE W-X TO", "SEND TO W-X.", "DISPLAY W-Y.", "SEND", "COBOL5506")]
-    [InlineData("MOVE W-X TO", "DISPLAY W-Y UPON.", "DISPLAY W-Y.", "DISPLAY", "COBOL0001: unexpected '.'")]
+    [InlineData("MOVE W-X TO", "DISPLAY W-Y UPON.", "DISPLAY W-Y.", "DISPLAY", "COBOL5506: unexpected '.'")]
     [InlineData("MOVE W-X TO", "ADD 1 TO", "DISPLAY W-Y.", "ADD", "COBOL5506: unexpected 'DISPLAY'")]
     [InlineData("MOVE W-X TO", "ADD 1 TO", "MOVE W-X TO W-Y.", "ADD", "COBOL5506: unexpected 'MOVE'")]
     [InlineData("MOVE W-X TO", "DISPLAY W-Y UPON", "DISPLAY W-Y.", "DISPLAY", "COBOL5506: unexpected 'DISPLAY'")]
@@ -545,11 +545,18 @@ public sealed class ReservedWordPositionConformanceTests
             $"expected the refusal at '{word}' on line 11 and the statement's own ({secondFault}), no COBOL0901, got:\n{string.Join("\n", diags)}");
     }
 
+    /// <summary>A bare verb's refusal at its period: COBOL5506 naming the statement where the position takes an operand and
+    /// nothing else (kb/Work PB6113), and the bare COBOL0001 where the verb's own period is also a paragraph header's, so a
+    /// period is legal there and no operand arm claims it (a verb the edition gates, FREE, VALIDATE, RAISE, INVOKE,
+    /// ALLOCATE; PERFORM, whose inline form takes a statement).</summary>
+    private static bool IsTheStatementsOwnRefusalAtThePeriod(string diagnostic)
+        => diagnostic.Contains("COBOL5506", StringComparison.Ordinal) || diagnostic.Contains("COBOL0001", StringComparison.Ordinal);
+
     /// <summary>⛔ A BARE VERB SENTENCE IS A PARAGRAPH HEADER ONLY WHERE THE PROGRAM NAMES THE WORD AS A PROCEDURE (kb/Work PB4283),
     /// the same decision for a verb reserved at every edition (DISPLAY, READ, STOP) and one the edition gates (FREE, VALIDATE,
     /// RAISE, INVOKE). ISO §2023:8.3.2.1 SR1 ("Reserved words shall not be used as user-defined words or system-names") is broken by a USE
     /// of the word as a name, and <c>FREE.</c> alone shows none: it is the verb's statement lacking its operand, whose own report
-    /// stands (a COBOL0001 that names the statement, never COBOL0901 "reserved word used as a user-defined word"). A procedure
+    /// stands (a refusal (COBOL5506) that names the statement, never COBOL0901 "reserved word used as a user-defined word"). A procedure
     /// reference elsewhere (<c>PERFORM FREE.</c>) is the use: the sentence is that name's paragraph header, and the word is
     /// named ONCE (COBOL0901), at the first use in source order, however many sentences write it.</summary>
     [Theory]
@@ -584,7 +591,7 @@ public sealed class ReservedWordPositionConformanceTests
             Assert.True(violations == 1 && diags.Count == 1 && diags[0].Contains($"'{verb}'", StringComparison.Ordinal),
                 $"a procedure reference names '{verb}': exactly the one COBOL0901, got:\n{string.Join("\n", diags)}");
         else
-            Assert.True(violations == 0 && diags.Count >= 1 && diags[0].Contains("COBOL0001", StringComparison.Ordinal),
+            Assert.True(violations == 0 && diags.Count >= 1 && IsTheStatementsOwnRefusalAtThePeriod(diags[0]),
                 $"no procedure reference names '{verb}': the bare verb is the statement's own refusal, got:\n{string.Join("\n", diags)}");
     }
 
@@ -598,9 +605,9 @@ public sealed class ReservedWordPositionConformanceTests
     /// Each row asserts exactly two diagnostics: the COBOL0901 at the word (line 11) and the sentence's later fault, and no
     /// "unexpected" at the word.</summary>
     [Theory]
-    [InlineData("MOVE W-X TO RECEIVE W-Y", "DISPLAY W-Z UPON.", "RECEIVE", "COBOL0001: unexpected '.'")]
-    [InlineData("MOVE W-X TO RECEIVE W-Y", "ADD 1 TO.", "RECEIVE", "COBOL0001: unexpected '.'")]
-    [InlineData("MOVE W-X TO SEND W-Y", "DISPLAY W-Z\n    DISPLAY W-Z UPON.", "SEND", "COBOL0001: unexpected '.'")]
+    [InlineData("MOVE W-X TO RECEIVE W-Y", "DISPLAY W-Z UPON.", "RECEIVE", "COBOL5506: unexpected '.'")]
+    [InlineData("MOVE W-X TO RECEIVE W-Y", "ADD 1 TO.", "RECEIVE", "COBOL5506: unexpected '.'")]
+    [InlineData("MOVE W-X TO SEND W-Y", "DISPLAY W-Z\n    DISPLAY W-Z UPON.", "SEND", "COBOL5506: unexpected '.'")]
     [InlineData("MOVE W-X TO RECEIVE W-Y",
         "DISPLAY W-Z\n    ADD 1 TO W-N\n    DISPLAY W-X\n    MOVE W-Y TO W-Z\n    DISPLAY W-Z UPON", "RECEIVE", "COBOL5506: unexpected 'STOP'")]
     public void AReservedVerbOperandCarryingTheSentenceToALaterFault_IsStillCalledAMisusedName(
@@ -814,7 +821,7 @@ public sealed class ReservedWordPositionConformanceTests
     /// text of a paragraph header (ISO §2023:14.4.3: "A paragraph consists of a paragraph-name followed by a separator
     /// period"). No token says the source used STOP as a user-defined word, which is all ISO §2023:8.3.2.1 SR1 ("Reserved words
     /// shall not be used as user-defined words or system-names") refuses, so the fault the source certainly holds keeps
-    /// its own COBOL0001 at the period, inside a paragraph and where a header could stand alike, at every edition, and
+    /// its own COBOL5506 at the period, inside a paragraph and where a header could stand alike, at every edition, and
     /// nothing names the verb. Each row draws exactly one diagnostic.</summary>
     [Theory]
     [InlineData(2023, "STOP.")]
@@ -847,9 +854,9 @@ public sealed class ReservedWordPositionConformanceTests
                """, edition);
         string all = string.Join("\n", diags);
         Assert.False(ok);
-        Assert.True(diags.Count == 1 && diags[0].Contains("COBOL0001", StringComparison.Ordinal)
+        Assert.True(diags.Count == 1 && IsTheStatementsOwnRefusalAtThePeriod(diags[0])
                                      && diags[0].Contains("'.'", StringComparison.Ordinal),
-            $"expected exactly one diagnostic, the COBOL0001 at the period, got:\n{all}");
+            $"expected exactly one diagnostic, the statement's own refusal at the period, got:\n{all}");
     }
 
     /// <summary>⛔ A VERB ALONE IN ITS SENTENCE IS FAULTED AT ITS PERIOD, WHICHEVER VERB, AND EVERY SUCH SENTENCE IS (kb/Work
@@ -884,8 +891,8 @@ public sealed class ReservedWordPositionConformanceTests
             .First(l => l.text.TrimEnd('\r').EndsWith(v + ".", StringComparison.Ordinal)))
             .Select(l => $"({l.line},{l.text.TrimEnd('\r').Length}):").ToArray();
         Assert.True(diags.Count == 3 && diags.Zip(expected).All(p => p.First.Contains(p.Second, StringComparison.Ordinal)
-                                                                  && p.First.Contains("COBOL0001", StringComparison.Ordinal)),
-            $"expected three COBOL0001, at {string.Join(" ", expected)}, got:\n{string.Join("\n", diags)}");
+                                                                  && IsTheStatementsOwnRefusalAtThePeriod(p.First)),
+            $"expected three refusals, at {string.Join(" ", expected)}, got:\n{string.Join("\n", diags)}");
     }
 
     /// <summary>⛔ A VERB THAT IS COMPLETE ALONE IS NEVER FAULTED, NOR CONSUMED, BESIDE ANOTHER FAULT (kb/Work PB4494, branch
