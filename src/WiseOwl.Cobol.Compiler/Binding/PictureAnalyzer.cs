@@ -1448,7 +1448,7 @@ public static class PictureAnalyzer
             return PicInfo.Recovery(expanded.Length);
         }
         // §2002:13.16.38.2 SR6 counts "the number of digit positions described by character-string-1", and a floating-point
-        // edited character-string-1 is both parts (§2002:13.16.38.3 GR12 b; the exponent's 9s are digit positions, §2002:13.16.38.4 ER8),
+        // edited character-string-1 is both parts (§2002:13.16.38.3 GR12b; the exponent's 9s are digit positions, §2002:13.16.38.4 ER8),
         // so at COBOL-2002 significand + exponent digits shall total 1..31. COBOL-2014 split the rule: its SR12 bounds the significand alone.
         int exponentDigits = exp.Length - 1;
         int maxSignificand = wideBounds ? 36 : 31;
