@@ -1,4 +1,4 @@
-## The NIST run environment is one file both legs read; the shared test harness is one namespace per folder
+## Entry 3944 — 2026-11-22 18:36 PST — The NIST run environment is one file both legs read; the shared test harness is one namespace per folder
 
 kb/Work PB3199 (cluster PB1754, an R2 duplication finding). The NIST corpus runs on two legs: in process
 (`NistRunner`, the Conformance assembly) and over the `cobol` CLI (`scripts/guard-run-group.sh`, CI's guard). The note
@@ -61,3 +61,4 @@ first driven by a planted break, and a closed family (a root and the public type
 exception to rule 2, as that section states it. The census half of the note is not built: rule 6's per-type columns do not exist
 for `src/` either, and that section now records that they resolve a linked document by its repository path when they reach the
 reader projects. No `src/` file changed, and no inventory row changes.
+
