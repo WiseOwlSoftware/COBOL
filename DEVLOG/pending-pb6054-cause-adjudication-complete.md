@@ -31,7 +31,9 @@ record measured under another row-to-frame mapping or matcher passed `unmet`; th
 R1-4: the per-row report read the record without `unmet`'s checks; it now runs them first and fails loudly. R1-2: the
 FIGURATIVES comment cited a clause that does not exist; it now cites §1985:IV.4.2.2.2.3. R1-3: the stale docstrings of
 `coverage.py` and `points.py` and the unused `OPERAND_KINDS` are corrected or gone. R1-5: the `points-batch` verb is in
-the command-line manual and the README. Two self-test cases pin R1-1 and R1-4 (coverage self-test 18 cases, PASS).
+the command-line manual and the README, and the doc facts now list every verb's options
+(`DocumentedFactsDriftTests.Facts`), so the manual audit holds the batch verbs' options as it holds the compile's (the
+first gate's DOC AUDITS red: the page documented `--frames` and the facts knew only the compile's options). Two self-test cases pin R1-1 and R1-4 (coverage self-test 18 cases, PASS).
 
 **Design.** `DESIGN-conformance-suite.md` section 5 states how a cause is set and the final counts, section 3.4 what the
 reading digest holds, and section 8's "Today" line reads `points 994 · second compiler 0`.

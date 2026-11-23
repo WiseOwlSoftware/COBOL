@@ -525,7 +525,7 @@ def accepted(edition: str) -> list:
 
 
 def inputs_of(cat: "Catalog", catalog_digest: str, tests: list) -> dict:
-    """What the record was measured from: the catalog, the way the parse is read (frames, operand rules), and each test's text.
+    """What the record was measured from: the catalog, the way the parse is read and credited (`reading_of`), and each test's text.
     `unmet` compares it, so a catalog, a reading or a test that changed since the record fails loudly instead of being counted."""
     config = hashlib.sha256(json.dumps(reading_of(cat)).encode()).hexdigest()[:12]
     return {"catalog": catalog_digest, "reading": config,
