@@ -1,4 +1,4 @@
-## The census keeps a test-only table's rows and size, and runs again (PB2744)
+## Entry 4002 — 2026-11-23 12:09 PST — The census keeps a test-only table's rows and size, and runs again (PB2744)
 
 The architecture design's test-only judgment (DESIGN-architecture-review section 8.7, item (a)) says a static table's enumeration (`All`, `Rows`, `Catalog`, the `*Count` members) is the drift tests' observation surface and keeps, and that the census's test-only rule gains that exclusion. It never did: every census record still listed those members as test-only, so each record proposed deleting them again. PB2744's other half (constructors reached only from emitted text) had already been discharged by PB2756.
 
@@ -9,3 +9,4 @@ A rule judged from syntax can quietly stop matching, so the host now has `--self
 Proving the change required a census run, and that run exposed a second bug: every census since PB4950 round 10 had crashed in `SymbolFinder` on an `UnresolvedAnalyzerReference`. `src/Directory.Build.props` pins the analyzer reference to Release, but the Debug solution build builds the analyzer only at Debug. `census.py` now reads the pinned configuration and builds the analyzer at it. `LoadedSolution` refuses an unresolved analyzer reference by name instead of crashing after the walk. The census at 0d544ed95c recorded 36 members as `table-enumeration`, leaving 147 test-only and 97 unreferenced; without the rule, test-only would have been 183. No inventory row changes.
 
 The branch review found that the analyzer refusal also guards the host's `--member-index` mode, and `member_index.py --record` still built the solution at Debug only, so on a tree with no Release analyzer the member index was refused where it ran before. The build step now has one home, `census.build_solution` (the solution at Debug, then the analyzer at its pinned configuration), which `census.py measure` and `member_index.py record` both call. A new census self-test arm fails when a script under `scripts/arch` runs the host without building through it; reverting `member_index.py` to its own solution build turned that arm FAIL.
+
