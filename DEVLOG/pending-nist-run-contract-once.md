@@ -44,7 +44,7 @@ mechanism's file, the slot ladder's 33 public types in `TestPartitioning.cs`, `F
 `ProcessObserver` in a file named for its result record. The note's own type list was stale (PB4328 and PB4329 had
 deleted GatePlan, GateHandshake and their kin).
 
-The fix gives the linked harness its own root, stated in §8.2 (Tests): the folder is `WiseOwl.Cobol.Tests.Shared`, each
+The fix gives the linked harness its own root, stated in DESIGN-architecture-review section 8.2 (Tests): the folder is `WiseOwl.Cobol.Tests.Shared`, each
 subfolder extends it, and the props file links it recursively under its repository path. The gate's framework moved to
 `tests/_shared/Gate/` (`WiseOwl.Cobol.Tests.Shared.Gate`), one file per type or closed family: GateTestFramework.cs (the
 framework, its executor and runner), GateShard.cs, GateOnly.cs, TestWeights.cs, GateOrderer.cs, GateOrder.cs and
@@ -58,6 +58,6 @@ now reads the whole folder.
 
 `SharedHarnessLayoutDriftTests` (RepoDrift) holds rules 1-3 over every committed file under `tests/_shared/`. Each rule is
 first driven by a planted break, and a closed family (a root and the public types that name it as their base) is the one
-exception to rule 2, as §8.2 states it. The census half of the note is not built: rule 6's per-type columns do not exist
-for `src/` either, and §8.2 now records that they resolve a linked document by its repository path when they reach the
+exception to rule 2, as that section states it. The census half of the note is not built: rule 6's per-type columns do not exist
+for `src/` either, and that section now records that they resolve a linked document by its repository path when they reach the
 reader projects. No `src/` file changed, and no inventory row changes.
