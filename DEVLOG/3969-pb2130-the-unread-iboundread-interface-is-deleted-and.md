@@ -1,4 +1,4 @@
-## PB2130: the unread IBoundRead interface is deleted and IArithmeticStatement becomes a pure marker
+## Entry 3969 — 2026-11-23 03:38 PST — PB2130: the unread IBoundRead interface is deleted and IArithmeticStatement becomes a pure marker
 
 The R0 census (kb/Work PB2115) listed three bound-node interface members that only SymbolFinder's implementation
 cascade kept alive: `IBoundRead.Kind`, `IBoundRead.AdvancingOnLock` and `IArithmeticStatement.SizeError`.
@@ -22,3 +22,4 @@ narratives are history and stay as written.
 
 No golden and no inventory row change: the change is behavior-neutral (`closes_rows: []`). Neutrality is checked by
 the R0 oracle (`scripts/arch/compare_oracle.py`) and by the gate.
+
