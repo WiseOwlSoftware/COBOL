@@ -37,3 +37,5 @@ properties.
 Self-review: the architecture lens (each edition edge is a register row with its VCR row, no inline year comparison; the implementor's intermediate is not
 screened as a written PICTURE), the code lens (each message cites its edition's rule, checked with `cite.py --check`), the performance lens (the register
 read is an array index; no allocation on a hot path) and the duplication lens (each bound is written once, in the analyzer's one arm).
+
+Review round 1 (R1-1): §2002:13.16.38.2 SR6 counts the digit positions of character-string-1, which for a floating-point edited item is both parts (GR12 b; ER8 counts the exponent's digits), so at 2002 significand plus exponent digits total at most 31; 2014 SR12 splits the rule and bounds the significand alone. `AnalyzeFloatEdited` now refuses the total above 31 at 2002 (`+9(29)E+999` is COBOL1658; golden `g2002-pic-float-edited-digits-total-refused`). The accepted golden's item A became `+9(27).9E+999` (31 total, length 35); row 2002-SR-13.16.38.2-6 re-recorded with the new test-ref.

@@ -1360,7 +1360,7 @@ public static class PictureAnalyzer
 /// <c>. ,</c> under DECIMAL-POINT IS COMMA, SR13; kb/Work PB3219) (no floating insertion, no zero suppression with
     /// replacement, no S/V/P/CR/DB/currency; an IS-form EDITING character-1 is simple insertion and admitted, a FOR-form
     /// one is barred by SR12's FOR-phrase rules, kb/Work PB866) — with one point at most (SR12 b)
-    /// and 1..36 digit positions (SR15 — SR14's 31 does not apply; at COBOL-2002 it is 1..31 and a three-digit exponent, §2002:13.16.38.2 SR6 and §2002:13.16.38.3 GR12, <c>DialectBehavior.FloatEditedPictureWideBounds</c>). Every symbol of both parts is a character position
+    /// and 1..36 digit positions (SR15 — SR14's 31 does not apply; at COBOL-2002 significand plus exponent digits total 1..31 and the exponent has at most three, §2002:13.16.38.2 SR6 and §2002:13.16.38.3 GR12, <c>DialectBehavior.FloatEditedPictureWideBounds</c>). Every symbol of both parts is a character position
     /// (GR14: E, the point, the insertion symbols and the signs are all counted). Returns a numeric-edited PicInfo
     /// with <see cref="PicInfo.IsFloatEdited"/>; Scale and DigitPositions are 0 (a floating-point item's scale is a
     /// runtime property of its value); the recovery shape on a violation (the compile has failed).</summary>
@@ -1447,10 +1447,15 @@ public static class PictureAnalyzer
                 + (decimalPointIsComma ? "; SR13 — the rules for the symbol period apply to the symbol comma)" : ")"));
             return PicInfo.Recovery(expanded.Length);
         }
+        // §2002:13.16.38.2 SR6 counts "the number of digit positions described by character-string-1", and a floating-point
+        // edited character-string-1 is both parts (§2002:13.16.38.3 GR12 b; the exponent's 9s are digit positions, §2002:13.16.38.4 ER8),
+        // so at COBOL-2002 significand + exponent digits shall total 1..31. COBOL-2014 split the rule: its SR12 bounds the significand alone.
+        int exponentDigits = exp.Length - 1;
         int maxSignificand = wideBounds ? 36 : 31;
-        if (digits < 1 || digits > maxSignificand)
+        int countedDigits = wideBounds ? digits : digits + exponentDigits;
+        if (digits < 1 || countedDigits > maxSignificand)
         {
-            Bad($"the significand carries {digits} digit position(s) — it shall carry 1 to {maxSignificand} ("
+            Bad($"the PICTURE counts {countedDigits} digit position(s) (significand {digits}, exponent {exponentDigits}) — the limit is 1 to {maxSignificand} ("
                 + edition.Edition.CiteRule("§2002:13.16.38.2 SR6", "§2023:13.18.40.3 SR15", y2002: "§2002:13.16.38.2 SR6", y2014: "§2014:13.18.40.2 SR12") + ")");
             return PicInfo.Recovery(expanded.Length);
         }

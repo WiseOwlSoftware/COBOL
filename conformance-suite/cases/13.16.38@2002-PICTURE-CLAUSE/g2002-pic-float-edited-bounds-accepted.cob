@@ -8,11 +8,12 @@
       *>   '+999', or '+9(n)' where n = 1, 2, or 3."  B is the longest
       *>   exponent 2002 allows (+999) and C the shortest (+9).
       *> §2002:13.16.38.2 SR6 - the digit positions of a numeric-edited
-      *>   item "shall range from 1 through 31": A carries 30 + 1 = 31
-      *>   digit positions in its significand, the most the rule allows.
+      *>   item "shall range from 1 through 31", counted over both parts of a
+      *>   floating-point item (GR12 b; ER8): A carries 27 + 1 digits in
+      *>   its significand and 3 in its exponent = 31, the most allowed.
       *> Each symbol is counted in the size of the item (§2002:13.16.38.3
       *>   GR13, the symbols 'E' and the signs among them), so
-      *>   A  +9(30).9E+999  is 1 + 30 + 1 + 1 + 1 + 4 = 38 positions,
+      *>   A  +9(27).9E+999  is 1 + 27 + 1 + 1 + 1 + 4 = 35 positions,
       *>   B  +9.9E+999      is 1 + 1 + 1 + 1 + 1 + 4 = 9 positions,
       *>   C  +9.9E+9        is 1 + 1 + 1 + 1 + 1 + 2 = 7 positions.
       *> Fails if the compiler refuses a bound the rule allows: the
@@ -23,7 +24,7 @@
        PROGRAM-ID. G2PFB1.
        DATA DIVISION.
        WORKING-STORAGE SECTION.
-       01  A PIC +9(30).9E+999.
+       01  A PIC +9(27).9E+999.
        01  B PIC +9.9E+999.
        01  C PIC +9.9E+9.
        01  N PIC 99.
