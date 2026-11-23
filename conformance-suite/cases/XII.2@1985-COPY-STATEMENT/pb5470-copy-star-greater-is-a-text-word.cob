@@ -4,7 +4,6 @@
       *> accept: [85]
       *> files: [PB5470LB.cpy, PB5470LC.cpy]
       *> source-format: fixed
-      *> portable: unverified
       *>---
       *> kb/Work PB5470 - COBOL-85 has no floating comment indicator, so
       *> *> is an ordinary text-word (§1985:III, "Text-word": "Any other

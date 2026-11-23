@@ -4,7 +4,6 @@
       *> accept: [85]
       *> files: [LONGLIT.cpy]
       *> source-format: fixed
-      *> portable: unverified
       *>---
       *> §1985:XII.2.3 SR8 (THE COPY STATEMENT). An output test: the
       *> program must translate and run at 85 and DISPLAY exactly the

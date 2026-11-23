@@ -3,7 +3,6 @@
       *> rules: [1985-SR-VI.5.9.3-6]
       *> accept: [85]
       *> source-format: fixed
-      *> portable: unverified
       *>---
       *> §1985:VI.5.9.3 SR6 - "PIC is an abbreviation for PICTURE." The
       *> abbreviation is the same clause, so PIC and PICTURE (each with
