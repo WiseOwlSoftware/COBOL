@@ -39,7 +39,7 @@ public sealed class ConstantNameLiteralPositionDriftTests
     /// format specifies a literal. <c>integerLiteral</c> is the <c>integer-n</c> spelling, owned by
     /// <see cref="IntegerOperandSlotDriftTests"/>.</summary>
     private static readonly HashSet<string> LiteralRules =
-        ["literal", "nonNumericLiteral", "numericLiteral", "signedNumericLiteral", "signedIntegerLiteral"];
+        ["literal", "nonNumericLiteral", "quotedLiteral", "numericLiteral", "signedNumericLiteral", "signedIntegerLiteral"];
 
     /// <summary>The literal tokens, which a rule may also reference directly.</summary>
     private static readonly HashSet<string> LiteralTokens =
@@ -70,7 +70,6 @@ public sealed class ConstantNameLiteralPositionDriftTests
         ["residueOpening"] = ErrorProduction,
         ["residueInteger"] = ErrorProduction,
         ["residueLiteral"] = ErrorProduction,
-        ["residueNonNumericLiteral"] = ErrorProduction,
     };
 
     /// <summary>The error production's word run and its literal tokens (kb/Work PB3373, PB3390) are no format:

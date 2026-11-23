@@ -886,12 +886,8 @@ public sealed record BoundAllLiteral(string Literal) : BoundOperand
     public static BoundAllLiteral Of(string rawLiteral) =>
         new(WiseOwl.Cobol.Common.CobolLiteral.Decode(rawLiteral))
         {
-            Category = WiseOwl.Cobol.Common.CobolLiteral.ClassOf(rawLiteral) switch
-            {
-                WiseOwl.Cobol.Common.LiteralClass.National => PicCategory.National,
-                WiseOwl.Cobol.Common.LiteralClass.Boolean => PicCategory.Boolean,
-                _ => PicCategory.Alphanumeric,
-            },
+            Category = WiseOwl.Cobol.Common.CobolLiteral.ClassOf(rawLiteral) is { } cls
+                ? WiseOwl.Cobol.Binding.ConcatFolder.CategoryOf(cls) : PicCategory.Alphanumeric,
         };
 
     /// <summary>The ALL figurative over a literal-1 already folded by <see cref="WiseOwl.Cobol.Binding.ConcatFolder.FoldAllLiteral"/>

@@ -122,7 +122,7 @@ public sealed class InvokeContentOperandChannelTests
         var args = ArgsOf("INVOKE O \"M\" USING BY CONTENT B\"1010\".");
         Assert.Single(args);
         Assert.Null(args[0].booleanExpression());
-        Assert.NotNull(args[0].literal()?.nonNumericLiteral()?.BOOLLIT());
+        Assert.NotNull(args[0].literal()?.nonNumericLiteral()?.quotedLiteral()?.BOOLLIT());
     }
 
     /// <summary>BY VALUE does NOT gain the boolean arm — the §2023:14.9.23.2 format's BY VALUE branch is
