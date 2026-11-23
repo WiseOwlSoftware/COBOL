@@ -1,7 +1,6 @@
       *>--- conformance-case
       *> id: pb3962_figurative_zero_before_a_signed_literal
-      *> rules: [SR-8.3.3.3.2-2, GR-8.3.3.6.4-4,
-      *>    SR-8.3.3.6.3-1]
+      *> rules: [SR-8.3.3.3.2-2, GR-8.3.3.6.4-4, SR-8.3.3.6.3-1]
       *> accept: [85, 2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified

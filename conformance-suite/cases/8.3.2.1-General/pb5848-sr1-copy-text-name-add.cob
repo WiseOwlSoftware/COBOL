@@ -1,7 +1,6 @@
       *>--- conformance-case
       *> id: pb5848-sr1-copy-text-name-add
-      *> rules: [SR-8.3.2.1-1,
-      *>    SR-8.3.2.1-5]
+      *> rules: [SR-8.3.2.1-1, SR-8.3.2.1-5]
       *> files: [ADD.cpy]
       *> source-format: fixed
       *> portable: unverified

@@ -1,7 +1,6 @@
 *>--- conformance-case
 *> id: delete_file_sharing
-*> rules: [GR-9.1.13.9-2, GR-14.9.10.4-15, DOC-A.1-51, DOC-A.1-166,
-*>    GR-14.9.10.4-14]
+*> rules: [GR-9.1.13.9-2, GR-14.9.10.4-15, DOC-A.1-51, DOC-A.1-166, GR-14.9.10.4-14]
 *> accept: [2023]
 *> source-format: free
 *> portable: unverified

@@ -1,7 +1,6 @@
 *>--- conformance-case
 *> id: pb4359-numval-c-anycase-below-2002
-*> rules: [FMT-15.68.2,
-*>    FMT-15.94.2]
+*> rules: [FMT-15.68.2, FMT-15.94.2]
 *> source-format: free
 *> portable: unverified
 *>---

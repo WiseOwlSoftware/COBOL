@@ -1,7 +1,6 @@
       *>--- conformance-case
       *> id: pb5196-record-varying-zero-minimum-1985
-      *> rules: [1985-FMT-VII.3.8.2,
-      *>    SR-13.18.43.3-7]
+      *> rules: [1985-FMT-VII.3.8.2, SR-13.18.43.3-7]
       *> source-format: fixed
       *> portable: unverified
       *>---

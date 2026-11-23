@@ -1,8 +1,6 @@
       *>--- conformance-case
       *> id: l1c17_lock_mode_manual_explicit_only
-      *> rules: [GR-12.4.5.9.4-5,
-      *>    GR-9.1.16-p1,
-      *>    GR-9.1.16-p3]
+      *> rules: [GR-12.4.5.9.4-5, GR-9.1.16-p1, GR-9.1.16-p3]
       *> accept: [2002]
       *> source-format: fixed
       *> portable: unverified

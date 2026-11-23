@@ -1,8 +1,6 @@
 *>--- conformance-case
 *> id: pb5579_write_file_sequential
-*> rules: [FMT-14.9.51.2, SR-14.9.51.3-7, SR-14.9.51.3-10, GR-14.9.51.4-8,
-*>    SR-13.4.5.3-3,
-*>    SR-14.9.51.3-1]
+*> rules: [FMT-14.9.51.2, SR-14.9.51.3-7, SR-14.9.51.3-10, GR-14.9.51.4-8, SR-13.4.5.3-3, SR-14.9.51.3-1]
 *> accept: [2002, 2014, 2023]
 *> source-format: free
 *> portable: unverified

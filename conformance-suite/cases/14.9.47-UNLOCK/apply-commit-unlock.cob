@@ -1,7 +1,6 @@
 *>--- conformance-case
 *> id: apply-commit-unlock
-*> rules: [SR-14.9.47.3-2,
-*>    SR-9.1.16-p6]
+*> rules: [SR-14.9.47.3-2, SR-9.1.16-p6]
 *> source-format: free
 *> portable: unverified
 *>---

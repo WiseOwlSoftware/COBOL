@@ -1,7 +1,6 @@
       *>--- conformance-case
       *> id: pb5190_condition_name_value_fits
-      *> rules: [1985-SR-VI.5.15.3-3,
-      *>    SR-13.18.63.3-4]
+      *> rules: [1985-SR-VI.5.15.3-3, SR-13.18.63.3-4]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

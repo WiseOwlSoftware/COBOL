@@ -1,8 +1,6 @@
       *>--- conformance-case
       *> id: l1c06-currency-non-cobol-equivalent-rebound
-      *> rules: [DOC-A.1-43,
-      *>    SR-12.3.7.3-20,
-      *>    SR-13.18.40.3-3]
+      *> rules: [DOC-A.1-43, SR-12.3.7.3-20, SR-13.18.40.3-3]
       *> source-format: fixed
       *> portable: unverified
       *>---

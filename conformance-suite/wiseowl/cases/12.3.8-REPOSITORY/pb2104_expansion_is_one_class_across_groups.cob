@@ -1,7 +1,6 @@
       *>--- conformance-case
       *> id: pb2104_expansion_is_one_class_across_groups
-      *> rules: [GR-12.3.8.4-5, DOC-A.1-138, DOC-A.1-201,
-      *>    GR-12.3.8.4-6]
+      *> rules: [GR-12.3.8.4-5, DOC-A.1-138, DOC-A.1-201, GR-12.3.8.4-6]
       *> accept: [2002, 2014, 2023]
       *> files: [pb2104_skeleton_lib.cbl, pb2104_expansion_callee.cbl]
       *> build: ["pb2104_skeleton_lib.cbl > P2104SKL", "pb2104_expansion_callee.cbl > P2104CAL", "{self}"]

@@ -1,8 +1,6 @@
       *>--- conformance-case
       *> id: pb3990_prohibited_unchecked_keeps_the_resultant
-      *> rules: [GR-14.7.4.3-7, GR-14.7.5-L3.4, GR-14.9.12.4-6,
-      *>    DOC-A.1-70,
-      *>    GR-14.7.5-L3.5]
+      *> rules: [GR-14.7.4.3-7, GR-14.7.5-L3.4, GR-14.9.12.4-6, DOC-A.1-70, GR-14.7.5-L3.5]
       *> accept: [2014, 2023]
       *> source-format: fixed
       *> portable: unverified

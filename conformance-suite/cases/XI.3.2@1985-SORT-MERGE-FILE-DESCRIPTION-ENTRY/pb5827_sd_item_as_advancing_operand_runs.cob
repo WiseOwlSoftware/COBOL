@@ -1,7 +1,6 @@
       *>--- conformance-case
       *> id: pb5827_sd_item_as_advancing_operand_runs
-      *> rules: [1985-SR-XI.3.2.3-3,
-      *>    SR-13.4.6.3-4]
+      *> rules: [1985-SR-XI.3.2.3-3, SR-13.4.6.3-4]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

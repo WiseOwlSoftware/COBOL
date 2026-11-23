@@ -1,10 +1,6 @@
       *>--- conformance-case
       *> id: pb5810_record_depending_elementary_relative
-      *> rules: [SR-13.18.43.3-6,
-      *>    FMT-13.18.43.2,
-      *>    FMT-13.4.6.2,
-      *>    SR-13.4.5.3-5,
-      *>    SR-13.4.5.3-7]
+      *> rules: [SR-13.18.43.3-6, FMT-13.18.43.2, FMT-13.4.6.2, SR-13.4.5.3-5, SR-13.4.5.3-7]
       *> accept: [85, 2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified

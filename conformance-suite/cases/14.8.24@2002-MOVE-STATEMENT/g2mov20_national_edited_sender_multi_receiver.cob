@@ -1,7 +1,6 @@
       *>--- conformance-case
       *> id: g2mov20_national_edited_sender_multi_receiver
-      *> rules: [2002-GR-14.8.24.3-1,
-      *>    GR-14.9.25.4-1]
+      *> rules: [2002-GR-14.8.24.3-1, GR-14.9.25.4-1]
       *> accept: [2002]
       *> source-format: fixed
       *> portable: unverified

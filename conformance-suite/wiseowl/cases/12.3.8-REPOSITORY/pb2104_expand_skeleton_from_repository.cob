@@ -1,7 +1,6 @@
       *>--- conformance-case
       *> id: pb2104_expand_skeleton_from_repository
-      *> rules: [SR-12.3.8.3-4, SR-12.3.8.3-6, GR-12.3.8.4-5, DOC-A.1-138,
-      *>    DOC-A.1-161]
+      *> rules: [SR-12.3.8.3-4, SR-12.3.8.3-6, GR-12.3.8.4-5, DOC-A.1-138, DOC-A.1-161]
       *> accept: [2002, 2014, 2023]
       *> files: [pb2104_skeleton_lib.cbl]
       *> build: ["pb2104_skeleton_lib.cbl > P2104SKL", "{self}"]

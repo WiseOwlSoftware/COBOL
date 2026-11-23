@@ -1,8 +1,6 @@
       *>--- conformance-case
       *> id: pb415_initialize_multi_category_85
-      *> rules: [FMT-14.9.20.2,
-      *>    GR-14.9.20.4-2,
-      *>    GR-14.9.20.4-5]
+      *> rules: [FMT-14.9.20.2, GR-14.9.20.4-2, GR-14.9.20.4-5]
       *> source-format: fixed
       *> portable: unverified
       *>---

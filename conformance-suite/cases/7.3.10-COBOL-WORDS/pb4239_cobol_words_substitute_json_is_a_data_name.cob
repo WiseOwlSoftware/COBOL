@@ -1,7 +1,6 @@
 *>--- conformance-case
 *> id: pb4239_cobol_words_substitute_json_is_a_data_name
-*> rules: [SR-7.3.10.3-3, GR-7.3.10.4-4,
-*>    SR-7.3.10.3-4]
+*> rules: [SR-7.3.10.3-3, GR-7.3.10.4-4, SR-7.3.10.3-4]
 *> accept: [2023]
 *> source-format: free
 *> portable: unverified

@@ -1,8 +1,6 @@
 *>--- conformance-case
 *> id: pb248_integer_arg_float_admitted
-*> rules: [AR-15.100.3-2,
-*>    AR-15.90.3-1,
-*>    AR-15.91.3-1]
+*> rules: [AR-15.100.3-2, AR-15.90.3-1, AR-15.91.3-1]
 *> accept: [2002, 2014, 2023]
 *> source-format: free
 *> portable: unverified

@@ -1,7 +1,6 @@
       *>--- conformance-case
       *> id: pb2103_program_of_85_through_prototype
-      *> rules: [GR-12.3.8.4-10,
-      *>    GR-8.3.2.2-L2.1]
+      *> rules: [GR-12.3.8.4-10, GR-8.3.2.2-L2.1]
       *> accept: [2002, 2014, 2023]
       *> files: [pb2103_legacy85.cbl]
       *> build: ["pb2103_legacy85.cbl > P2103L85", "{self}"]

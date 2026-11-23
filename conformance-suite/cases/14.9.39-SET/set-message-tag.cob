@@ -1,7 +1,6 @@
 *>--- conformance-case
 *> id: set-message-tag
-*> rules: [SR-14.9.39.3-35, GR-14.9.39.4-40, GR-14.9.39.4-41,
-*>    SR-8.4.3.1.3-9]
+*> rules: [SR-14.9.39.3-35, GR-14.9.39.4-40, GR-14.9.39.4-41, SR-8.4.3.1.3-9]
 *> accept: [2023]
 *> source-format: free
 *> portable: unverified

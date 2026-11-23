@@ -1,7 +1,6 @@
 *>--- conformance-case
 *> id: pb3604-cce-not-equal-operator-below-2014
-*> rules: [SR-8.3.2.4.2-2, SR-7.3.8.2-1,
-*>    SR-8.7.5.2-11]
+*> rules: [SR-8.3.2.4.2-2, SR-7.3.8.2-1, SR-8.7.5.2-11]
 *> source-format: free
 *> portable: unverified
 *>---

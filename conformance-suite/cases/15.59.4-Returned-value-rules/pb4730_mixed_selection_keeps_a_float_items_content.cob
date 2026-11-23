@@ -1,8 +1,6 @@
 *>--- conformance-case
 *> id: pb4730_mixed_selection_keeps_a_float_items_content
-*> rules: [RV-15.59.4-1, RV-15.61.4-1, RV-15.63.4-1,
-*>    DOC-A.1-123,
-*>    DOC-A.1-179]
+*> rules: [RV-15.59.4-1, RV-15.61.4-1, RV-15.63.4-1, DOC-A.1-123, DOC-A.1-179]
 *> accept: [2002, 2014, 2023]
 *> source-format: free
 *> portable: unverified

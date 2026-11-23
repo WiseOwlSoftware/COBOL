@@ -1,7 +1,6 @@
 *>--- conformance-case
 *> id: pb1034_is_not_equal_symbol
-*> rules: [FMT-8.7.5.1,
-*>    SR-8.7.5.2-11]
+*> rules: [FMT-8.7.5.1, SR-8.7.5.2-11]
 *> accept: [2014]
 *> source-format: free
 *> portable: unverified

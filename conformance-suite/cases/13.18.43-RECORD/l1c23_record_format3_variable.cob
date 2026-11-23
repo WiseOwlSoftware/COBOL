@@ -1,7 +1,6 @@
       *>--- conformance-case
       *> id: l1c23_record_format3_variable
-      *> rules: [GR-13.18.43.4-18, DOC-A.1-148,
-      *>    GR-13.18.43.4-17]
+      *> rules: [GR-13.18.43.4-18, DOC-A.1-148, GR-13.18.43.4-17]
       *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified

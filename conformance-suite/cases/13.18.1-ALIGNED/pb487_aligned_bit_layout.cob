@@ -1,8 +1,7 @@
 *>--- conformance-case
 *> id: pb487_aligned_bit_layout
 *> rules: [GR-13.18.1.4-1, GR-13.18.1.4-2, GR-13.18.1.4-3, FMT-13.16.2,
-*>    FMT-13.18.1.2,
-*>    GR-13.18.60.4-5]
+*>    FMT-13.18.1.2, GR-13.18.60.4-5]
 *> accept: [2002]
 *> source-format: free
 *> portable: unverified

@@ -1,7 +1,6 @@
 *>--- conformance-case
 *> id: pb3338_apply_commit_no_operand
-*> rules: [SR-12.4.6.3.3-4,
-*>    FMT-12.4.6.3.2]
+*> rules: [SR-12.4.6.3.3-4, FMT-12.4.6.3.2]
 *> source-format: free
 *> portable: unverified
 *>---

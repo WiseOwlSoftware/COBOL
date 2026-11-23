@@ -1,9 +1,6 @@
       *>--- conformance-case
       *> id: pb2103_prototype_group_split_across_units
-      *> rules: [SR-13.7.3-2, GR-12.3.8.4-10,
-      *>    DOC-A.1-66,
-      *>    GR-10.6.3-1,
-      *>    SR-12.3.8.3-14]
+      *> rules: [SR-13.7.3-2, GR-12.3.8.4-10, DOC-A.1-66, GR-10.6.3-1, SR-12.3.8.3-14]
       *> accept: [2002, 2014, 2023]
       *> files: [pb2103_split_def.cbl]
       *> build: ["pb2103_split_def.cbl > P2103SQ", "{self}"]

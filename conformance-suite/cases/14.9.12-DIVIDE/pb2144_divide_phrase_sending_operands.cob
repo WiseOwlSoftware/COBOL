@@ -1,7 +1,6 @@
       *>--- conformance-case
       *> id: pb2144_divide_phrase_sending_operands
-      *> rules: [FMT-14.9.12.2, GR-14.9.12.4-1, GR-14.9.12.4-7,
-      *>    GR-14.9.12.4-2]
+      *> rules: [FMT-14.9.12.2, GR-14.9.12.4-1, GR-14.9.12.4-7, GR-14.9.12.4-2]
       *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified

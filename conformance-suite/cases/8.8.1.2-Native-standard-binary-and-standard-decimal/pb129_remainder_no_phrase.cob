@@ -1,7 +1,6 @@
 *>--- conformance-case
 *> id: pb129_remainder_no_phrase
-*> rules: [GR-8.8.1.2-1, GR-14.9.12.4-6,
-*>    DOC-A.1-70]
+*> rules: [GR-8.8.1.2-1, GR-14.9.12.4-6, DOC-A.1-70]
 *> accept: [2014]
 *> source-format: free
 *> portable: unverified

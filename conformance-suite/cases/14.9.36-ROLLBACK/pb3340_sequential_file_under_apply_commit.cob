@@ -1,13 +1,6 @@
 *>--- conformance-case
 *> id: pb3340_sequential_file_under_apply_commit
-*> rules: [GR-9.1.18.2-p1, GR-9.1.18.3-p1, GR-9.1.18.4-p1, GR-14.9.7.4-3, GR-14.9.36.4-3, GR-12.4.6.3.4-1,
-*>    GR-14.6.11-1,
-*>    GR-14.9.7.4-4,
-*>    GR-9.1.16-p7,
-*>    GR-9.1.16-p8,
-*>    GR-9.1.17-p1,
-*>    GR-9.1.18.1-p1,
-*>    GR-9.1.18.5-p1]
+*> rules: [GR-9.1.18.2-p1, GR-9.1.18.3-p1, GR-9.1.18.4-p1, GR-14.9.7.4-3, GR-14.9.36.4-3, GR-12.4.6.3.4-1, GR-14.6.11-1, GR-14.9.7.4-4, GR-9.1.16-p7, GR-9.1.16-p8, GR-9.1.17-p1, GR-9.1.18.1-p1, GR-9.1.18.5-p1]
 *> accept: [2023]
 *> source-format: free
 *> portable: unverified

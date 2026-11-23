@@ -1,7 +1,6 @@
       *>--- conformance-case
       *> id: pb5647-currency-bare-long-s-85
-      *> rules: [SR-12.3.7.3-22,
-      *>    DOC-A.1-44]
+      *> rules: [SR-12.3.7.3-22, DOC-A.1-44]
       *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified

@@ -1,7 +1,6 @@
       *>--- conformance-case
       *> id: pb4420-dotted-capital-i-name-is-a-word-of-its-own
-      *> rules: [GR-8.1.3.2-4,
-      *>    DOC-A.1-20]
+      *> rules: [GR-8.1.3.2-4, DOC-A.1-20]
       *> accept: [2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified

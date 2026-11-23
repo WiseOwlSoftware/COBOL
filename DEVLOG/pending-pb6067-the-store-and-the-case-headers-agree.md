@@ -10,7 +10,7 @@ PB6067 named three gaps the 1985 widening left. Re-probed on main ccb23d13e4:
 2. **22 cases at `accept: [85, 2023]`.** Each was run at 2002 and 2014 with `run_probe.py --expect` against its `.out`: all 44
    runs MATCH. Their `accept` is now `[85, 2002, 2014, 2023]`; `generate.py --check` accepts every rule at those editions.
 3. **The store named 172 cases (285 pairs) whose `rules` did not cite the row.** The headers now cite the 2023 rows the store
-   names them for (263 pairs). The other 22 pairs name a case accepted at an edition before the row's band (the `_85`
+   names them for (165 headers gained 276 citations in all, 12 of them the 2023 targets of the chained 1989 function rows and two 2002 and USE rows). The remaining pairs name a case accepted at an edition before the row's band (the `_85`
    user-word gates and the like), which the generator forbids a case to cite, so they stay as the store has them. The rule
    is now enforced: `_check_store_witnesses` (generate.py) refuses a case a row names as its own witness when the case's `rules`
    hold neither the row nor, for a chained older row, a rule it is KEPT into, unless no cite of the row could hold the case

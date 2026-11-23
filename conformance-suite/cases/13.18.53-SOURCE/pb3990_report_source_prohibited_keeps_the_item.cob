@@ -1,7 +1,6 @@
       *>--- conformance-case
       *> id: pb3990_report_source_prohibited_keeps_the_item
-      *> rules: [GR-13.18.53.4-2, GR-14.7.4.3-7, GR-13.18.53.4-4,
-      *>    DOC-A.1-70]
+      *> rules: [GR-13.18.53.4-2, GR-14.7.4.3-7, GR-13.18.53.4-4, DOC-A.1-70]
       *> accept: [2014, 2023]
       *> source-format: fixed
       *> portable: unverified
