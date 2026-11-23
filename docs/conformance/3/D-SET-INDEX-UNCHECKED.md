@@ -16,7 +16,7 @@
   integer is a different arm (GR3a): the SET is unsuccessful and the index unchanged, with or without checking. With
   checking ENABLED, the 2002 rules apply as written: an occurrence number outside 1 through the highest permissible
   occurrence raises EC-BOUND-SUBSCRIPT, the SET is unsuccessful and the index unchanged (`CobolIndex.WithinTable` and
-  `AugmentWithinTable`, reached where `EditionInfo.SetIndexOutsideTableIsSubscriptError` holds; kb/Work PB5674; witnesses
+  `AugmentWithinTable`, reached before `DialectBehavior.SetIndexOutsideTableStored` (2014; VCR row 7.118); kb/Work PB5674; witnesses
   `set-index-outside-table-checked` and `set-index-outside-table-unchecked`). COBOL-2014 and COBOL-2023 word the rule as the
   implementor index range alone (EC-RANGE-INDEX, §2014:14.9.35.3 GR2a.1b and GR4a) and keep the store at every checking state. **Survey (CLAUDE.md
   rule 1):** GnuCOBOL 3.2.0 (measured 2026-11-15 in WSL Ubuntu, `cobc -x -std=default`, `-std=cobol2002` and

@@ -7,8 +7,8 @@ the SET unsuccessful and the index unchanged.
 
 **The fix is 2002 alone.** The 2014 text (§2014:14.9.35.3 GR2a.1b/c, GR4a/b) words the range as EC-RANGE-INDEX against the
 implementor index range and says the index may refer to an occurrence "not a valid occurrence within this table"; 2023 agrees. The
-note's `editions` listed 2014; the probe at `--std 2014` stores 11, as that text requires, and the note now says `[2002]`. A named
-predicate, `EditionInfo.SetIndexOutsideTableIsSubscriptError`, carries the difference. The binder now records each index-name
+note's `editions` listed 2014; the probe at `--std 2014` stores 11, as that text requires, and the note now says `[2002]`. A register member,
+`DialectBehavior.SetIndexOutsideTableStored` (VCR row 7.118, edge 2014), carries the difference (the inline-edition-comparison drift test refused a predicate in `EditionInfo`). The binder now records each index-name
 receiver's table maximum (`SetIndexTarget.Highest`, the OCCURS count) and whether Format 1's sender is arithmetic-expression-1
 (`BoundSetTo.ValueIsArithmeticExpression`: index-name-2 and identifier-2 are placed unchanged, GR2a.2 and GR2a.3). `SetEmitter`
 emits `CobolIndex.WithinTable` per receiver for Format 1 and `CobolIndex.AugmentWithinTable` for Format 2 where the predicate holds;

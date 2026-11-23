@@ -194,7 +194,7 @@ true: every SET-family amount site lands, and no emitter narrows an amount with 
 **The one edition that does test the table (kb/Work PB5674).** COBOL-2002's SET stores an arithmetic-expression-1 only when it is
 "a valid subscript" (§2002:14.8.35.3 GR2a.1; §2002:8.4.1.2.3 GR2: 1 through the highest permissible occurrence number) and makes
 an incremented or decremented index outside the table the same condition (GR3b): EC-BOUND-SUBSCRIPT, the SET unsuccessful, the
-index unchanged. `EditionInfo.SetIndexOutsideTableIsSubscriptError` (2002 alone) makes `SetEmitter` emit, per index-name receiver,
+index unchanged. `DialectBehavior.SetIndexOutsideTableStored` (from 2014; VCR row 7.118) not being active makes `SetEmitter` emit, per index-name receiver,
 `CobolIndex.WithinTable` (a Format 1 arithmetic-expression sender only; index-name-2 and identifier-2 are placed unchanged) and
 `CobolIndex.AugmentWithinTable` (SET UP/DOWN BY only; PERFORM VARYING and SEARCH have no such 2002 rule). The table's highest
 permissible occurrence is `SetIndexTarget.Highest`, its OCCURS maximum. With checking for the condition not enabled the 2002

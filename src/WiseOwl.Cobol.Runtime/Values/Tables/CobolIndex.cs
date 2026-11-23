@@ -61,7 +61,7 @@ public enum SetAmountRule
 /// raise. A table-bounds test there would reject conforming programs. COBOL-2002 is the exception: its SET makes such a value
 /// the EC-BOUND-SUBSCRIPT condition (§2002:14.8.35.3 GR2a.1, GR3b), tested by <see cref="WithinTable"/> and
 /// <see cref="AugmentWithinTable"/>, which the emitter reaches only where
-/// <c>EditionInfo.SetIndexOutsideTableIsSubscriptError</c> holds (kb/Work PB5674).</para>
+/// <see cref="DialectBehavior.SetIndexOutsideTableStored"/> is not active (kb/Work PB5674).</para>
 ///
 /// <para><b>Checking off.</b> Every raise routes through an <c>ExceptionState</c> helper that returns when
 /// checking for the condition is not enabled at this statement (§2023:14.6.13.1.1). The callers here then still apply
@@ -184,7 +184,7 @@ public static class CobolIndex
     /// condition exists, "the execution of the SET statement is unsuccessful and the content of the receiving operand is
     /// unchanged". <see langword="false"/> is that unsuccessful leg. With checking for EC-BOUND-SUBSCRIPT not enabled the 2002
     /// outcome is implementor-defined (§2002:B.1 item 51; determination D-SET-INDEX-UNCHECKED): the value is stored, so this
-    /// returns <see langword="true"/> there. Emitted only where <c>EditionInfo.SetIndexOutsideTableIsSubscriptError</c> holds;
+    /// returns <see langword="true"/> there. Emitted only where <see cref="DialectBehavior.SetIndexOutsideTableStored"/> is not active;
     /// later editions state the implementor index range alone (<see cref="Accept"/>).</summary>
     public static bool WithinTable(long occurrence, long highest, string detail)
     {

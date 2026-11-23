@@ -280,6 +280,7 @@ WiseOwl.Cobol.Runtime.DialectBehavior.SavedNextGroupForcesPageAdvance = 26 -> Wi
 WiseOwl.Cobol.Runtime.DialectBehavior.SearchAllKeySubscriptSentences = 35 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.SearchIndexBelowTableUnsuccessful = 6 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.SelectWhenOnlyForFilePhraseStatements = 23 -> WiseOwl.Cobol.Runtime.DialectBehavior
+WiseOwl.Cobol.Runtime.DialectBehavior.SetIndexOutsideTableStored = 62 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.SumAdditionsInDependencyOrder = 31 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.SumCounterAlphanumericCap = 47 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.SumDataNameRules = 33 -> WiseOwl.Cobol.Runtime.DialectBehavior

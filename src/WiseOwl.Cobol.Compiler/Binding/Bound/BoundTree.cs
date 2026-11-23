@@ -2044,7 +2044,7 @@ public abstract record BoundSetTarget;
 /// <param name="Highest">The highest permissible occurrence number of the table the index-name is declared for — the OCCURS
 /// count, or the maximum of an OCCURS DEPENDING ON (§2002:8.4.1.2.3 GR2) — null for an inert reference whose
 /// resolution already failed. The 2002 SET rules test an occurrence number against it
-/// (<see cref="Editions.EditionInfo.SetIndexOutsideTableIsSubscriptError"/>).</param>
+/// (<see cref="WiseOwl.Cobol.Runtime.DialectBehavior.SetIndexOutsideTableStored"/>).</param>
 public sealed record SetIndexTarget(string IndexField, int? Highest = null) : BoundSetTarget;
 /// <summary>A data-item receiver: an index data item (USAGE INDEX — receives the value unchanged, §2023:14.9.39.4 GR2b)
 /// or an integer data item (receives the occurrence number via its own PICTURE store, GR2c).</summary>
@@ -2056,7 +2056,7 @@ public sealed record SetPlaceTarget(Place Place) : BoundSetTarget;
 /// <param name="Value">The sending operand.</param>
 /// <param name="ValueIsArithmeticExpression">Whether the sender is arithmetic-expression-1 (§2002:14.8.35.3 GR2a.1), as opposed to
 /// index-name-2 or identifier-2 whose content §2002:14.8.35.3 GR2a.2/GR2a.3 places in the index unchanged: only the first is
-/// "a subscript" tested against the table (<see cref="Editions.EditionInfo.SetIndexOutsideTableIsSubscriptError"/>).</param>
+/// "a subscript" tested against the table (<see cref="WiseOwl.Cobol.Runtime.DialectBehavior.SetIndexOutsideTableStored"/>).</param>
 public sealed record BoundSetTo(IReadOnlyList<BoundSetTarget> Targets, BoundExpr Value, bool ValueIsArithmeticExpression) : BoundStatement;
 
 /// <summary><c>SET index-name… {UP|DOWN} BY amount</c> (ISO §2023:14.9.39 Format 2): the amount is determined ONCE
