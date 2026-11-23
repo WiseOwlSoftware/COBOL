@@ -1,4 +1,4 @@
-## PB2726, PB2735, PB2760, PB2648, PB2646, PB2620, PB2636: the lexer gets a C# superclass, every reading of COBOL text shares one token-stream preparation, the collation start-up hook moves to the control layer, the subscript rule is raised in one place, the national codec leaves the BIT codec, every catalog shares one edition window, and no variadic intrinsic allocates its argument list
+## PB2726, PB2735, PB2760, PB2648, PB2646, PB2620, PB2636, PB2628, PB2637: the lexer gets a C# superclass, every reading of COBOL text shares one token-stream preparation, the collation start-up hook moves to the control layer, the subscript rule is raised in one place, the national codec leaves the BIT codec, every catalog shares one edition window, no variadic intrinsic allocates its argument list, the operator ** leaves the intrinsic class with one rule-6 screen, and a date/time format literal is parsed once
 
 Wave 20262135, group E, replayed onto main and continued by wave 20262139, group C, then replayed again and continued by
 wave 20262143, group B (the PB1754 campaign, seven behaviour-neutral R2 restructurings).
@@ -115,3 +115,27 @@ same collection expressions around a nested selection call. Gates: run 000001 RE
 GREEN at a4133fbd3b (Conformance 29,183/29,183 · Unit 42,803/42,803 · RepoDrift 241/241 · Characterization 37/37). Linux
 `--legs unit,conformance`: unit 42,935 and conformance 29,183 GREEN; the one red leg is selftests'
 `test_forbidden_commands.py`, which reads the Linux clone's local `origin` as not this repository, on any branch.
+
+**Wave 20262147, group A** replayed the branch onto main unchanged (16 commits, fast-forward from a23ed881c2; gate run
+000001-20261123T101602Z GREEN, every population up to date at its key) and continued with two notes.
+
+**PB2628: the operator `**` leaves the intrinsic class.** The re-probe found the §2023:8.8.1.2 rule-6 screen in two places:
+`CobolIntrinsics.CheckPowRule6` (RealArgs.cs) for the native arms and `CobolExact.Pow`, and an inline copy in
+`CobolDec.PowDeveloped`, each with its own text, so `0 ** 0` ended the run unit with "…not 0 (ISO §2023:8.8.1.2 rule 6a)" natively
+and "exponentiation of zero with a non-positive exponent (…)" under ARITHMETIC IS STANDARD-DECIMAL. `NumericRenderer.Power`
+emitted the binary64 power through `RuntimeApi.Intrinsic`. Now `Values/Numeric/CobolPower.cs` owns `Binary64`, `Binary64Checked`
+(the 2002+ and the COBOL-85 exact-exponent overloads) and the one `ScreenRule6`, which `CobolDec.PowDeveloped`, `CobolExact.Pow`
+and `CobolExact.PowReal` ask; `RuntimeApi.Binary64Pow` is the emitted handle. Both probes print `SE1`, `SE2`, `+0004.0000`, then
+the same fatal text. `ExponentiationOwnerDriftTests` pins one raise of EC-SIZE-EXPONENTIATION and no power on `CobolIntrinsics`.
+Rows GR-14.7.5-1, GR-14.7.5-L3.1, GR-8.8.1.2-6 and 1985-GR-VI.6.2.3-5 re-sited (GAP unchanged); the 1985 code read
+1985-GR-VI.6.4.2-1 re-read at its moved members (its stored probes and the refuter's re-run print what they printed;
+`code_reads.py import --replace`: 1 confirmed).
+
+**PB2637: a date/time format literal is parsed once.** `CobolDate.EmitFormatted` and `Analyze` tokenized argument-1 at every
+evaluation and the emitter built one string per field. `CobolDate.FormatOf` now holds each literal's `DateTimeFormat` (segments,
+facts, the image's length) in a bounded cache; `EmitFormatted` writes one `string.Create` buffer; `Analyze` and the compile-time
+`FormatFractionDigits` read the same parse. The emitted C# does not change. The probe prints the values §2023:15.3 gives;
+`DateFormatParseOnceDriftTests` pins it.
+
+**PB2655 and PB2747 not started**: each note sequences itself after open notes (PB2655 after PB2327's CobolEdit extract; PB2747
+inside the PB2309/PB2349 group), so each would re-baseline the emitted text a second time; their `blocked_by` now say so.
