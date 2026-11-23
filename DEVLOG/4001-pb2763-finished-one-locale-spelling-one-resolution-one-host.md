@@ -1,4 +1,4 @@
-## PB2763 finished: one locale spelling, one resolution, one host surface
+## Entry 4001 — 2026-11-23 12:04 PST — PB2763 finished: one locale spelling, one resolution, one host surface
 
 The open half of PB2763 was six merged R2 findings about locale identification. The re-probe on the base showed the
 split: the host's `LocaleManager.GetLocale("es_es.UTF-8")` answered a locale named `es-es.UTF-8` (it had its own
@@ -27,3 +27,4 @@ inheritance. Unifying them changes which site file applies, so it is a behavior 
 **Evidence.** The locale unit tests pass (448 of 448 in the Collation/Locale/RuntimeConfig/ProcessGlobal/ABI filter,
 with the new `LocaleTagTests` and two new `LocaleManagerTests`). `compare_oracle.py`: 1 of 23506 cases differ, the one
 added golden. `semgrep/verify.py`: PASS, no count moved. Runtime ABI repinned.
+
