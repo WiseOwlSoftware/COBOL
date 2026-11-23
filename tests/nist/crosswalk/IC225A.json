@@ -1,0 +1,539 @@
+{
+ "program": "IC225A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "CALL-TEST-01",
+   "lines": [
+    325
+   ],
+   "feature": "LEV 2 CALL STATEMENT",
+   "ansi": "X-27 5.2.2",
+   "disposition": "rows",
+   "rows": [
+    "1985-FMT-X.5.2.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-01-01-1",
+   "lines": [
+    346
+   ],
+   "feature": "LEV 2 CALL STATEMENT",
+   "ansi": "X-27 5.2.2",
+   "disposition": "rows",
+   "rows": [
+    "1985-FMT-X.5.2.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-01-01-2",
+   "lines": [
+    358
+   ],
+   "feature": "LEV 2 CALL STATEMENT",
+   "ansi": "X-27 5.2.2",
+   "disposition": "rows",
+   "rows": [
+    "1985-FMT-X.5.2.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-01-01-3",
+   "lines": [
+    370
+   ],
+   "feature": "LEV 2 CALL STATEMENT",
+   "ansi": "X-27 5.2.2",
+   "disposition": "rows",
+   "rows": [
+    "1985-FMT-X.5.2.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-01-01-4",
+   "lines": [
+    382
+   ],
+   "feature": "LEV 2 CALL STATEMENT",
+   "ansi": "X-27 5.2.2",
+   "disposition": "rows",
+   "rows": [
+    "1985-FMT-X.5.2.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-01-02-1",
+   "lines": [
+    408
+   ],
+   "feature": "LEV 2 CALL STATEMENT",
+   "ansi": "X-27 5.2.2",
+   "disposition": "rows",
+   "rows": [
+    "1985-FMT-X.5.2.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-01-02-2",
+   "lines": [
+    420
+   ],
+   "feature": "LEV 2 CALL STATEMENT",
+   "ansi": "X-27 5.2.2",
+   "disposition": "rows",
+   "rows": [
+    "1985-FMT-X.5.2.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-01-02-3",
+   "lines": [
+    432
+   ],
+   "feature": "LEV 2 CALL STATEMENT",
+   "ansi": "X-27 5.2.2",
+   "disposition": "rows",
+   "rows": [
+    "1985-FMT-X.5.2.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-01-02-4",
+   "lines": [
+    444
+   ],
+   "feature": "LEV 2 CALL STATEMENT",
+   "ansi": "X-27 5.2.2",
+   "disposition": "rows",
+   "rows": [
+    "1985-FMT-X.5.2.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-01-03-1",
+   "lines": [
+    471
+   ],
+   "feature": "LEV 2 CALL STATEMENT",
+   "ansi": "X-27 5.2.2",
+   "disposition": "rows",
+   "rows": [
+    "1985-FMT-X.5.2.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-01-03-2",
+   "lines": [
+    483
+   ],
+   "feature": "LEV 2 CALL STATEMENT",
+   "ansi": "X-27 5.2.2",
+   "disposition": "rows",
+   "rows": [
+    "1985-FMT-X.5.2.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-01-03-3",
+   "lines": [
+    495
+   ],
+   "feature": "LEV 2 CALL STATEMENT",
+   "ansi": "X-27 5.2.2",
+   "disposition": "rows",
+   "rows": [
+    "1985-FMT-X.5.2.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-01-03-4",
+   "lines": [
+    507
+   ],
+   "feature": "LEV 2 CALL STATEMENT",
+   "ansi": "X-27 5.2.2",
+   "disposition": "rows",
+   "rows": [
+    "1985-FMT-X.5.2.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-02-01-1",
+   "lines": [
+    537
+   ],
+   "feature": "DATA-NAME USED TWICE",
+   "ansi": "X-27 5.2.2",
+   "disposition": "rows",
+   "rows": [
+    "1985-FMT-X.5.2.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-02-01-2",
+   "lines": [
+    549
+   ],
+   "feature": "DATA-NAME USED TWICE",
+   "ansi": "X-27 5.2.2",
+   "disposition": "rows",
+   "rows": [
+    "1985-FMT-X.5.2.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-02-01-3",
+   "lines": [
+    561
+   ],
+   "feature": "DATA-NAME USED TWICE",
+   "ansi": "X-27 5.2.2",
+   "disposition": "rows",
+   "rows": [
+    "1985-FMT-X.5.2.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-02-01-4",
+   "lines": [
+    573
+   ],
+   "feature": "DATA-NAME USED TWICE",
+   "ansi": "X-27 5.2.2",
+   "disposition": "rows",
+   "rows": [
+    "1985-FMT-X.5.2.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-02-02-1",
+   "lines": [
+    597
+   ],
+   "feature": "DATA-NAME USED TWICE",
+   "ansi": "X-27 5.2.2",
+   "disposition": "rows",
+   "rows": [
+    "1985-FMT-X.5.2.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-02-02-2",
+   "lines": [
+    609
+   ],
+   "feature": "DATA-NAME USED TWICE",
+   "ansi": "X-27 5.2.2",
+   "disposition": "rows",
+   "rows": [
+    "1985-FMT-X.5.2.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-02-02-3",
+   "lines": [
+    621
+   ],
+   "feature": "DATA-NAME USED TWICE",
+   "ansi": "X-27 5.2.2",
+   "disposition": "rows",
+   "rows": [
+    "1985-FMT-X.5.2.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-02-02-4",
+   "lines": [
+    633
+   ],
+   "feature": "DATA-NAME USED TWICE",
+   "ansi": "X-27 5.2.2",
+   "disposition": "rows",
+   "rows": [
+    "1985-FMT-X.5.2.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-02-03-1",
+   "lines": [
+    660
+   ],
+   "feature": "DATA-NAME USED TWICE",
+   "ansi": "X-27 5.2.2",
+   "disposition": "rows",
+   "rows": [
+    "1985-FMT-X.5.2.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-02-03-2",
+   "lines": [
+    672
+   ],
+   "feature": "DATA-NAME USED TWICE",
+   "ansi": "X-27 5.2.2",
+   "disposition": "rows",
+   "rows": [
+    "1985-FMT-X.5.2.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-02-03-3",
+   "lines": [
+    684
+   ],
+   "feature": "DATA-NAME USED TWICE",
+   "ansi": "X-27 5.2.2",
+   "disposition": "rows",
+   "rows": [
+    "1985-FMT-X.5.2.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-02-03-4",
+   "lines": [
+    696
+   ],
+   "feature": "DATA-NAME USED TWICE",
+   "ansi": "X-27 5.2.2",
+   "disposition": "rows",
+   "rows": [
+    "1985-FMT-X.5.2.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-03",
+   "lines": [
+    711
+   ],
+   "feature": "ON OVERFLOW PHRASE",
+   "ansi": "X-27 5.2.2",
+   "disposition": "rows",
+   "rows": [
+    "1985-FMT-X.5.2.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-03-01-0",
+   "lines": [
+    720
+   ],
+   "feature": "ON OVERFLOW PHRASE",
+   "ansi": "X-27 5.2.2",
+   "disposition": "rows",
+   "rows": [
+    "1985-FMT-X.5.2.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-03-01-1",
+   "lines": [
+    732
+   ],
+   "feature": "ON OVERFLOW PHRASE",
+   "ansi": "X-27 5.2.2",
+   "disposition": "rows",
+   "rows": [
+    "1985-FMT-X.5.2.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-03-01-2",
+   "lines": [
+    744
+   ],
+   "feature": "ON OVERFLOW PHRASE",
+   "ansi": "X-27 5.2.2",
+   "disposition": "rows",
+   "rows": [
+    "1985-FMT-X.5.2.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-03-01-3",
+   "lines": [
+    756
+   ],
+   "feature": "ON OVERFLOW PHRASE",
+   "ansi": "X-27 5.2.2",
+   "disposition": "rows",
+   "rows": [
+    "1985-FMT-X.5.2.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-03-01-4",
+   "lines": [
+    768
+   ],
+   "feature": "ON OVERFLOW PHRASE",
+   "ansi": "X-27 5.2.2",
+   "disposition": "rows",
+   "rows": [
+    "1985-FMT-X.5.2.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-03-02-0",
+   "lines": [
+    780
+   ],
+   "feature": "ON OVERFLOW PHRASE",
+   "ansi": "X-27 5.2.2",
+   "disposition": "rows",
+   "rows": [
+    "1985-FMT-X.5.2.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-03-02-1",
+   "lines": [
+    797
+   ],
+   "feature": "ON OVERFLOW PHRASE",
+   "ansi": "X-27 5.2.2",
+   "disposition": "rows",
+   "rows": [
+    "1985-FMT-X.5.2.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-03-02-2",
+   "lines": [
+    809
+   ],
+   "feature": "ON OVERFLOW PHRASE",
+   "ansi": "X-27 5.2.2",
+   "disposition": "rows",
+   "rows": [
+    "1985-FMT-X.5.2.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-03-02-3",
+   "lines": [
+    821
+   ],
+   "feature": "ON OVERFLOW PHRASE",
+   "ansi": "X-27 5.2.2",
+   "disposition": "rows",
+   "rows": [
+    "1985-FMT-X.5.2.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-03-02-4",
+   "lines": [
+    833
+   ],
+   "feature": "ON OVERFLOW PHRASE",
+   "ansi": "X-27 5.2.2",
+   "disposition": "rows",
+   "rows": [
+    "1985-FMT-X.5.2.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-03-03-0",
+   "lines": [
+    845
+   ],
+   "feature": "ON OVERFLOW PHRASE",
+   "ansi": "X-27 5.2.2",
+   "disposition": "rows",
+   "rows": [
+    "1985-FMT-X.5.2.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-03-03-1",
+   "lines": [
+    860
+   ],
+   "feature": "ON OVERFLOW PHRASE",
+   "ansi": "X-27 5.2.2",
+   "disposition": "rows",
+   "rows": [
+    "1985-FMT-X.5.2.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-03-03-2",
+   "lines": [
+    872
+   ],
+   "feature": "ON OVERFLOW PHRASE",
+   "ansi": "X-27 5.2.2",
+   "disposition": "rows",
+   "rows": [
+    "1985-FMT-X.5.2.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-03-03-3",
+   "lines": [
+    884
+   ],
+   "feature": "ON OVERFLOW PHRASE",
+   "ansi": "X-27 5.2.2",
+   "disposition": "rows",
+   "rows": [
+    "1985-FMT-X.5.2.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-03-03-4",
+   "lines": [
+    896
+   ],
+   "feature": "ON OVERFLOW PHRASE",
+   "ansi": "X-27 5.2.2",
+   "disposition": "rows",
+   "rows": [
+    "1985-FMT-X.5.2.2"
+   ],
+   "basis": "mechanical"
+  }
+ ]
+}

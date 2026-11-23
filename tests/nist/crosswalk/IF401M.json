@@ -1,0 +1,160 @@
+{
+ "program": "IF401M",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "NON-CONFORMING@33",
+   "lines": [
+    33
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "0) = FUNCTION ACOS (1 0) CONTINUE",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@38",
+   "lines": [
+    38
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "IF401M-ANNUITY IF FUNCTION ANNUITY (0, 4) = FUNCTION ANNUITY (0, 4) CONTINUE",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@43",
+   "lines": [
+    43
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "0) = FUNCTION ASIN (1 0) CONTINUE",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@48",
+   "lines": [
+    48
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "0) = FUNCTION ATAN (1 0) CONTINUE",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@52",
+   "lines": [
+    52
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "IF401M-CHAR MOVE FUNCTION CHAR (37) TO WS-ANUM",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@57",
+   "lines": [
+    57
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "0) = FUNCTION COS (1 0) CONTINUE",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@61",
+   "lines": [
+    61
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "IF401M-CURRENT-DATE MOVE FUNCTION CURRENT-DATE TO TEMP1",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@67",
+   "lines": [
+    67
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "IF401M-DATE-OF-INTEGER IF FUNCTION DATE-OF-INTEGER (1) = FUNCTION DATE-OF-INTEGER (1) CONTINUE",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@72",
+   "lines": [
+    72
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "IF401M-DAY-OF-INTEGER IF FUNCTION DAY-OF-INTEGER (1) = FUNCTION DAY-OF-INTEGER (1) CONTINUE",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@77",
+   "lines": [
+    77
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "IF401M-FACTORIAL IF FUNCTION FACTORIAL (1) = FUNCTION FACTORIAL (1) CONTINUE",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@82",
+   "lines": [
+    82
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "0) = FUNCTION INTEGER (1 0) CONTINUE",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@88",
+   "lines": [
+    88
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "IF401M-INTEGER-OF-DATE IF FUNCTION INTEGER-OF-DATE (16010101) = FUNCTION INTEGER-OF-DATE (16010101) CONTINUE",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@94",
+   "lines": [
+    94
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "IF401M-INTEGER-OF-DAY IF FUNCTION INTEGER-OF-DAY (1601001) = FUNCTION INTEGER-OF-DAY (1601001) CONTINUE",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@100",
+   "lines": [
+    100
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "578) = FUNCTION INTEGER-PART (4 578) CONTINUE",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  }
+ ]
+}

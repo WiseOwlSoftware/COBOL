@@ -1,0 +1,1250 @@
+{
+ "program": "NC170A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "MPY-TEST-F2-1-1",
+   "lines": [
+    457
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "V1-107 6.19.4 GR2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.19.4-2"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-GR-VI.6.20.4-2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-2-1",
+   "lines": [
+    479
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "V1-107 6.19.4 GR2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.19.4-2"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-GR-VI.6.20.4-2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-3-1",
+   "lines": [
+    506
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "V1-107 6.19.4 GR2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.19.4-2"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-GR-VI.6.20.4-2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-3-2",
+   "lines": [
+    522
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "V1-107 6.19.4 GR2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.19.4-2"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-GR-VI.6.20.4-2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-4-1",
+   "lines": [
+    548
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "V1-107 6.19.4 GR2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.19.4-2"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-GR-VI.6.20.4-2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-4-2",
+   "lines": [
+    566
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "V1-107 6.19.4 GR2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.19.4-2"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-GR-VI.6.20.4-2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-5",
+   "lines": [
+    588
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "V1-107 6.19.4 GR2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.19.4-2"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-GR-VI.6.20.4-2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-6",
+   "lines": [
+    610
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "V1-107 6.19.4 GR2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.19.4-2"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-GR-VI.6.20.4-2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-7-1",
+   "lines": [
+    636
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "V1-107 6.19.4 GR2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.19.4-2"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-GR-VI.6.20.4-2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-7-2",
+   "lines": [
+    650
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "V1-107 6.19.4 GR2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.19.4-2"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-GR-VI.6.20.4-2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-8-1",
+   "lines": [
+    674
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "V1-107 6.19.4 GR2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.19.4-2"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-GR-VI.6.20.4-2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-8-2",
+   "lines": [
+    688
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "V1-107 6.19.4 GR2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.19.4-2"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-GR-VI.6.20.4-2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-9-1",
+   "lines": [
+    711
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "V1-107 6.19.4 GR2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.19.4-2"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-GR-VI.6.20.4-2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-9-2",
+   "lines": [
+    726
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "V1-107 6.19.4 GR2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.19.4-2"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-GR-VI.6.20.4-2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-10-1",
+   "lines": [
+    748
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "V1-107 6.19.4 GR2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.19.4-2"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-GR-VI.6.20.4-2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-10-2",
+   "lines": [
+    762
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "V1-107 6.19.4 GR2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.19.4-2"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-GR-VI.6.20.4-2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-11",
+   "lines": [
+    782
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "V1-107 6.19.4 GR2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.19.4-2"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-GR-VI.6.20.4-2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-12",
+   "lines": [
+    802
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "V1-107 6.19.4 GR2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.19.4-2"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-GR-VI.6.20.4-2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-13",
+   "lines": [
+    822
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "V1-107 6.19.4 GR2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.19.4-2"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-GR-VI.6.20.4-2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-14",
+   "lines": [
+    842
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "V1-107 6.19.4 GR2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.19.4-2"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-GR-VI.6.20.4-2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-15",
+   "lines": [
+    862
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "V1-107 6.19.4 GR2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.19.4-2"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-GR-VI.6.20.4-2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-16-2",
+   "lines": [
+    884
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "V1-67 6.4.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.4.2-1",
+    "1985-GR-VI.6.4.2-2",
+    "1985-GR-VI.6.4.2-p2",
+    "1985-GR-VI.6.4.2-3",
+    "1985-GR-VI.6.4.2-p3",
+    "1985-GR-VI.6.4.2-p4",
+    "1985-GR-VI.6.4.2-p5"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-FMT-VI.6.20.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-16-3",
+   "lines": [
+    896
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "V1-67 6.4.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.4.2-1",
+    "1985-GR-VI.6.4.2-2",
+    "1985-GR-VI.6.4.2-p2",
+    "1985-GR-VI.6.4.2-3",
+    "1985-GR-VI.6.4.2-p3",
+    "1985-GR-VI.6.4.2-p4",
+    "1985-GR-VI.6.4.2-p5"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-FMT-VI.6.20.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-17-2",
+   "lines": [
+    926
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "V1-67 6.4.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.4.2-1",
+    "1985-GR-VI.6.4.2-2",
+    "1985-GR-VI.6.4.2-p2",
+    "1985-GR-VI.6.4.2-3",
+    "1985-GR-VI.6.4.2-p3",
+    "1985-GR-VI.6.4.2-p4",
+    "1985-GR-VI.6.4.2-p5"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-FMT-VI.6.20.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-17-3",
+   "lines": [
+    939
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "V1-67 6.4.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.4.2-1",
+    "1985-GR-VI.6.4.2-2",
+    "1985-GR-VI.6.4.2-p2",
+    "1985-GR-VI.6.4.2-3",
+    "1985-GR-VI.6.4.2-p3",
+    "1985-GR-VI.6.4.2-p4",
+    "1985-GR-VI.6.4.2-p5"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-FMT-VI.6.20.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-18-2",
+   "lines": [
+    970
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "V1-67 6.4.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.4.2-1",
+    "1985-GR-VI.6.4.2-2",
+    "1985-GR-VI.6.4.2-p2",
+    "1985-GR-VI.6.4.2-3",
+    "1985-GR-VI.6.4.2-p3",
+    "1985-GR-VI.6.4.2-p4",
+    "1985-GR-VI.6.4.2-p5"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-FMT-VI.6.20.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-18-3",
+   "lines": [
+    982
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "V1-67 6.4.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.4.2-1",
+    "1985-GR-VI.6.4.2-2",
+    "1985-GR-VI.6.4.2-p2",
+    "1985-GR-VI.6.4.2-3",
+    "1985-GR-VI.6.4.2-p3",
+    "1985-GR-VI.6.4.2-p4",
+    "1985-GR-VI.6.4.2-p5"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-FMT-VI.6.20.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-19-2",
+   "lines": [
+    1012
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "V1-67 6.4.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.4.2-1",
+    "1985-GR-VI.6.4.2-2",
+    "1985-GR-VI.6.4.2-p2",
+    "1985-GR-VI.6.4.2-3",
+    "1985-GR-VI.6.4.2-p3",
+    "1985-GR-VI.6.4.2-p4",
+    "1985-GR-VI.6.4.2-p5"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-FMT-VI.6.20.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-19-3",
+   "lines": [
+    1025
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "V1-67 6.4.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.4.2-1",
+    "1985-GR-VI.6.4.2-2",
+    "1985-GR-VI.6.4.2-p2",
+    "1985-GR-VI.6.4.2-3",
+    "1985-GR-VI.6.4.2-p3",
+    "1985-GR-VI.6.4.2-p4",
+    "1985-GR-VI.6.4.2-p5"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-FMT-VI.6.20.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-20",
+   "lines": [
+    1040
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "V1-107 6.19.4 GR2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.19.4-2"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-GR-VI.6.20.4-2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-21",
+   "lines": [
+    1092
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "V1-67 6.4.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.4.2-1",
+    "1985-GR-VI.6.4.2-2",
+    "1985-GR-VI.6.4.2-p2",
+    "1985-GR-VI.6.4.2-3",
+    "1985-GR-VI.6.4.2-p3",
+    "1985-GR-VI.6.4.2-p4",
+    "1985-GR-VI.6.4.2-p5"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-FMT-VI.6.20.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-22",
+   "lines": [
+    1166
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "V1-67 6.4.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.4.2-1",
+    "1985-GR-VI.6.4.2-2",
+    "1985-GR-VI.6.4.2-p2",
+    "1985-GR-VI.6.4.2-3",
+    "1985-GR-VI.6.4.2-p3",
+    "1985-GR-VI.6.4.2-p4",
+    "1985-GR-VI.6.4.2-p5"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-FMT-VI.6.20.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-23",
+   "lines": [
+    1243
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "V1-67 6.4.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.4.2-1",
+    "1985-GR-VI.6.4.2-2",
+    "1985-GR-VI.6.4.2-p2",
+    "1985-GR-VI.6.4.2-3",
+    "1985-GR-VI.6.4.2-p3",
+    "1985-GR-VI.6.4.2-p4",
+    "1985-GR-VI.6.4.2-p5"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-FMT-VI.6.20.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-24",
+   "lines": [
+    1318
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "V1-67 6.4.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.4.2-1",
+    "1985-GR-VI.6.4.2-2",
+    "1985-GR-VI.6.4.2-p2",
+    "1985-GR-VI.6.4.2-3",
+    "1985-GR-VI.6.4.2-p3",
+    "1985-GR-VI.6.4.2-p4",
+    "1985-GR-VI.6.4.2-p5"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-FMT-VI.6.20.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-25",
+   "lines": [
+    1394
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "V1-67 6.4.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.4.2-1",
+    "1985-GR-VI.6.4.2-2",
+    "1985-GR-VI.6.4.2-p2",
+    "1985-GR-VI.6.4.2-3",
+    "1985-GR-VI.6.4.2-p3",
+    "1985-GR-VI.6.4.2-p4",
+    "1985-GR-VI.6.4.2-p5"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-FMT-VI.6.20.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-26",
+   "lines": [
+    1470
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "V1-67 6.4.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.4.2-1",
+    "1985-GR-VI.6.4.2-2",
+    "1985-GR-VI.6.4.2-p2",
+    "1985-GR-VI.6.4.2-3",
+    "1985-GR-VI.6.4.2-p3",
+    "1985-GR-VI.6.4.2-p4",
+    "1985-GR-VI.6.4.2-p5"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-FMT-VI.6.20.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-27",
+   "lines": [
+    1546
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "1V-41 6.4.3",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-IV.6.4.3-p4",
+    "1985-GR-IV.6.4.3-p5"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-27-1",
+   "lines": [
+    1569
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "1V-41 6.4.3",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-IV.6.4.3-p4",
+    "1985-GR-IV.6.4.3-p5"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-27-2",
+   "lines": [
+    1581
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "1V-41 6.4.3",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-IV.6.4.3-p4",
+    "1985-GR-IV.6.4.3-p5"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-27-3",
+   "lines": [
+    1593
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "1V-41 6.4.3",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-IV.6.4.3-p4",
+    "1985-GR-IV.6.4.3-p5"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-27-4",
+   "lines": [
+    1605
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "1V-41 6.4.3",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-IV.6.4.3-p4",
+    "1985-GR-IV.6.4.3-p5"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-27-5",
+   "lines": [
+    1617
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "1V-41 6.4.3",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-IV.6.4.3-p4",
+    "1985-GR-IV.6.4.3-p5"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-28",
+   "lines": [
+    1631
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "1V-41 6.4.3",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-IV.6.4.3-p4",
+    "1985-GR-IV.6.4.3-p5"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-28-1",
+   "lines": [
+    1652
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "1V-41 6.4.3",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-IV.6.4.3-p4",
+    "1985-GR-IV.6.4.3-p5"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-28-2",
+   "lines": [
+    1665
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "1V-41 6.4.3",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-IV.6.4.3-p4",
+    "1985-GR-IV.6.4.3-p5"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-28-3",
+   "lines": [
+    1677
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "1V-41 6.4.3",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-IV.6.4.3-p4",
+    "1985-GR-IV.6.4.3-p5"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-28-4",
+   "lines": [
+    1690
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "1V-41 6.4.3",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-IV.6.4.3-p4",
+    "1985-GR-IV.6.4.3-p5"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-28-5",
+   "lines": [
+    1703
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "1V-41 6.4.3",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-IV.6.4.3-p4",
+    "1985-GR-IV.6.4.3-p5"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-29",
+   "lines": [
+    1719
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "1V-41 6.4.3",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-IV.6.4.3-p4",
+    "1985-GR-IV.6.4.3-p5"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-29-1",
+   "lines": [
+    1742
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "1V-41 6.4.3",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-IV.6.4.3-p4",
+    "1985-GR-IV.6.4.3-p5"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-29-2",
+   "lines": [
+    1755
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "1V-41 6.4.3",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-IV.6.4.3-p4",
+    "1985-GR-IV.6.4.3-p5"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-29-3",
+   "lines": [
+    1768
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "1V-41 6.4.3",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-IV.6.4.3-p4",
+    "1985-GR-IV.6.4.3-p5"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-29-4",
+   "lines": [
+    1781
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "1V-41 6.4.3",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-IV.6.4.3-p4",
+    "1985-GR-IV.6.4.3-p5"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-29-5",
+   "lines": [
+    1794
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "1V-41 6.4.3",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-IV.6.4.3-p4",
+    "1985-GR-IV.6.4.3-p5"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-30",
+   "lines": [
+    1809
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "1V-41 6.4.3",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-IV.6.4.3-p4",
+    "1985-GR-IV.6.4.3-p5"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-30-1",
+   "lines": [
+    1831
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "1V-41 6.4.3",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-IV.6.4.3-p4",
+    "1985-GR-IV.6.4.3-p5"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-30-2",
+   "lines": [
+    1844
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "1V-41 6.4.3",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-IV.6.4.3-p4",
+    "1985-GR-IV.6.4.3-p5"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-30-3",
+   "lines": [
+    1856
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "1V-41 6.4.3",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-IV.6.4.3-p4",
+    "1985-GR-IV.6.4.3-p5"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-30-4",
+   "lines": [
+    1869
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "1V-41 6.4.3",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-IV.6.4.3-p4",
+    "1985-GR-IV.6.4.3-p5"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-30-5",
+   "lines": [
+    1882
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "1V-41 6.4.3",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-IV.6.4.3-p4",
+    "1985-GR-IV.6.4.3-p5"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-31",
+   "lines": [
+    1898
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "1V-41 6.4.3",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-IV.6.4.3-p4",
+    "1985-GR-IV.6.4.3-p5"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-31-1",
+   "lines": [
+    1919
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "1V-41 6.4.3",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-IV.6.4.3-p4",
+    "1985-GR-IV.6.4.3-p5"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-31-2",
+   "lines": [
+    1931
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "1V-41 6.4.3",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-IV.6.4.3-p4",
+    "1985-GR-IV.6.4.3-p5"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-31-3",
+   "lines": [
+    1943
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "1V-41 6.4.3",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-IV.6.4.3-p4",
+    "1985-GR-IV.6.4.3-p5"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-32",
+   "lines": [
+    1957
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "1V-41 6.4.3",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-IV.6.4.3-p4",
+    "1985-GR-IV.6.4.3-p5"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-32-1",
+   "lines": [
+    1976
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "1V-41 6.4.3",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-IV.6.4.3-p4",
+    "1985-GR-IV.6.4.3-p5"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-32-2",
+   "lines": [
+    1988
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "1V-41 6.4.3",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-IV.6.4.3-p4",
+    "1985-GR-IV.6.4.3-p5"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MPY-TEST-F2-32-3",
+   "lines": [
+    2001
+   ],
+   "feature": "MULTIPLY BY GIVING",
+   "ansi": "1V-41 6.4.3",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-IV.6.4.3-p4",
+    "1985-GR-IV.6.4.3-p5"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  }
+ ]
+}

@@ -1,0 +1,582 @@
+{
+ "program": "IF135A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "F-SIN-01",
+   "lines": [
+    369
+   ],
+   "feature": "SIN Function",
+   "ansi": "See ref. A-68 2.39",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.39.1-p1",
+    "1989-FMT-A.2.39.2",
+    "1989-AR-A.2.39.3-1",
+    "1989-RV-A.2.39.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SIN-02",
+   "lines": [
+    383
+   ],
+   "feature": "SIN Function",
+   "ansi": "See ref. A-68 2.39",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.39.1-p1",
+    "1989-FMT-A.2.39.2",
+    "1989-AR-A.2.39.3-1",
+    "1989-RV-A.2.39.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SIN-03",
+   "lines": [
+    400
+   ],
+   "feature": "SIN Function",
+   "ansi": "See ref. A-68 2.39",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.39.1-p1",
+    "1989-FMT-A.2.39.2",
+    "1989-AR-A.2.39.3-1",
+    "1989-RV-A.2.39.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SIN-04",
+   "lines": [
+    422
+   ],
+   "feature": "SIN Function",
+   "ansi": "See ref. A-68 2.39",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.39.1-p1",
+    "1989-FMT-A.2.39.2",
+    "1989-AR-A.2.39.3-1",
+    "1989-RV-A.2.39.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SIN-05",
+   "lines": [
+    444
+   ],
+   "feature": "SIN Function",
+   "ansi": "See ref. A-68 2.39",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.39.1-p1",
+    "1989-FMT-A.2.39.2",
+    "1989-AR-A.2.39.3-1",
+    "1989-RV-A.2.39.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SIN-06",
+   "lines": [
+    466
+   ],
+   "feature": "SIN Function",
+   "ansi": "See ref. A-68 2.39",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.39.1-p1",
+    "1989-FMT-A.2.39.2",
+    "1989-AR-A.2.39.3-1",
+    "1989-RV-A.2.39.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SIN-07",
+   "lines": [
+    488
+   ],
+   "feature": "SIN Function",
+   "ansi": "See ref. A-68 2.39",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.39.1-p1",
+    "1989-FMT-A.2.39.2",
+    "1989-AR-A.2.39.3-1",
+    "1989-RV-A.2.39.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SIN-08",
+   "lines": [
+    510
+   ],
+   "feature": "SIN Function",
+   "ansi": "See ref. A-68 2.39",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.39.1-p1",
+    "1989-FMT-A.2.39.2",
+    "1989-AR-A.2.39.3-1",
+    "1989-RV-A.2.39.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SIN-09",
+   "lines": [
+    532
+   ],
+   "feature": "SIN Function",
+   "ansi": "See ref. A-68 2.39",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.39.1-p1",
+    "1989-FMT-A.2.39.2",
+    "1989-AR-A.2.39.3-1",
+    "1989-RV-A.2.39.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SIN-10",
+   "lines": [
+    554
+   ],
+   "feature": "SIN Function",
+   "ansi": "See ref. A-68 2.39",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.39.1-p1",
+    "1989-FMT-A.2.39.2",
+    "1989-AR-A.2.39.3-1",
+    "1989-RV-A.2.39.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SIN-11",
+   "lines": [
+    576
+   ],
+   "feature": "SIN Function",
+   "ansi": "See ref. A-68 2.39",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.39.1-p1",
+    "1989-FMT-A.2.39.2",
+    "1989-AR-A.2.39.3-1",
+    "1989-RV-A.2.39.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SIN-12",
+   "lines": [
+    598
+   ],
+   "feature": "SIN Function",
+   "ansi": "See ref. A-68 2.39",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.39.1-p1",
+    "1989-FMT-A.2.39.2",
+    "1989-AR-A.2.39.3-1",
+    "1989-RV-A.2.39.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SIN-13",
+   "lines": [
+    620
+   ],
+   "feature": "SIN Function",
+   "ansi": "See ref. A-68 2.39",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.39.1-p1",
+    "1989-FMT-A.2.39.2",
+    "1989-AR-A.2.39.3-1",
+    "1989-RV-A.2.39.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SIN-14",
+   "lines": [
+    642
+   ],
+   "feature": "SIN Function",
+   "ansi": "See ref. A-68 2.39",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.39.1-p1",
+    "1989-FMT-A.2.39.2",
+    "1989-AR-A.2.39.3-1",
+    "1989-RV-A.2.39.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SIN-15",
+   "lines": [
+    664
+   ],
+   "feature": "SIN Function",
+   "ansi": "See ref. A-68 2.39",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.39.1-p1",
+    "1989-FMT-A.2.39.2",
+    "1989-AR-A.2.39.3-1",
+    "1989-RV-A.2.39.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SIN-16",
+   "lines": [
+    686
+   ],
+   "feature": "SIN Function",
+   "ansi": "See ref. A-68 2.39",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.39.1-p1",
+    "1989-FMT-A.2.39.2",
+    "1989-AR-A.2.39.3-1",
+    "1989-RV-A.2.39.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SIN-17",
+   "lines": [
+    708
+   ],
+   "feature": "SIN Function",
+   "ansi": "See ref. A-68 2.39",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.39.1-p1",
+    "1989-FMT-A.2.39.2",
+    "1989-AR-A.2.39.3-1",
+    "1989-RV-A.2.39.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SIN-18",
+   "lines": [
+    730
+   ],
+   "feature": "SIN Function",
+   "ansi": "See ref. A-68 2.39",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.39.1-p1",
+    "1989-FMT-A.2.39.2",
+    "1989-AR-A.2.39.3-1",
+    "1989-RV-A.2.39.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SIN-19",
+   "lines": [
+    752
+   ],
+   "feature": "SIN Function",
+   "ansi": "See ref. A-68 2.39",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.39.1-p1",
+    "1989-FMT-A.2.39.2",
+    "1989-AR-A.2.39.3-1",
+    "1989-RV-A.2.39.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SIN-20",
+   "lines": [
+    774
+   ],
+   "feature": "SIN Function",
+   "ansi": "See ref. A-68 2.39",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.39.1-p1",
+    "1989-FMT-A.2.39.2",
+    "1989-AR-A.2.39.3-1",
+    "1989-RV-A.2.39.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SIN-21",
+   "lines": [
+    796
+   ],
+   "feature": "SIN Function",
+   "ansi": "See ref. A-68 2.39",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.39.1-p1",
+    "1989-FMT-A.2.39.2",
+    "1989-AR-A.2.39.3-1",
+    "1989-RV-A.2.39.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SIN-22",
+   "lines": [
+    818
+   ],
+   "feature": "SIN Function",
+   "ansi": "See ref. A-68 2.39",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.39.1-p1",
+    "1989-FMT-A.2.39.2",
+    "1989-AR-A.2.39.3-1",
+    "1989-RV-A.2.39.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SIN-23",
+   "lines": [
+    840
+   ],
+   "feature": "SIN Function",
+   "ansi": "See ref. A-68 2.39",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.39.1-p1",
+    "1989-FMT-A.2.39.2",
+    "1989-AR-A.2.39.3-1",
+    "1989-RV-A.2.39.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SIN-24",
+   "lines": [
+    862
+   ],
+   "feature": "SIN Function",
+   "ansi": "See ref. A-68 2.39",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.39.1-p1",
+    "1989-FMT-A.2.39.2",
+    "1989-AR-A.2.39.3-1",
+    "1989-RV-A.2.39.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SIN-25",
+   "lines": [
+    884
+   ],
+   "feature": "SIN Function",
+   "ansi": "See ref. A-68 2.39",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.39.1-p1",
+    "1989-FMT-A.2.39.2",
+    "1989-AR-A.2.39.3-1",
+    "1989-RV-A.2.39.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SIN-26",
+   "lines": [
+    906
+   ],
+   "feature": "SIN Function",
+   "ansi": "See ref. A-68 2.39",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.39.1-p1",
+    "1989-FMT-A.2.39.2",
+    "1989-AR-A.2.39.3-1",
+    "1989-RV-A.2.39.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SIN-27",
+   "lines": [
+    928
+   ],
+   "feature": "SIN Function",
+   "ansi": "See ref. A-68 2.39",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.39.1-p1",
+    "1989-FMT-A.2.39.2",
+    "1989-AR-A.2.39.3-1",
+    "1989-RV-A.2.39.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SIN-28",
+   "lines": [
+    950
+   ],
+   "feature": "SIN Function",
+   "ansi": "See ref. A-68 2.39",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.39.1-p1",
+    "1989-FMT-A.2.39.2",
+    "1989-AR-A.2.39.3-1",
+    "1989-RV-A.2.39.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SIN-29",
+   "lines": [
+    972
+   ],
+   "feature": "SIN Function",
+   "ansi": "See ref. A-68 2.39",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.39.1-p1",
+    "1989-FMT-A.2.39.2",
+    "1989-AR-A.2.39.3-1",
+    "1989-RV-A.2.39.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SIN-30",
+   "lines": [
+    994
+   ],
+   "feature": "SIN Function",
+   "ansi": "See ref. A-68 2.39",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.39.1-p1",
+    "1989-FMT-A.2.39.2",
+    "1989-AR-A.2.39.3-1",
+    "1989-RV-A.2.39.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SIN-31",
+   "lines": [
+    1017
+   ],
+   "feature": "SIN Function",
+   "ansi": "See ref. A-68 2.39",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.39.1-p1",
+    "1989-FMT-A.2.39.2",
+    "1989-AR-A.2.39.3-1",
+    "1989-RV-A.2.39.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-SIN-32",
+   "lines": [
+    1031
+   ],
+   "feature": "SIN Function",
+   "ansi": "See ref. A-68 2.39",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.39.1-p1",
+    "1989-FMT-A.2.39.2",
+    "1989-AR-A.2.39.3-1",
+    "1989-RV-A.2.39.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  }
+ ]
+}

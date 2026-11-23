@@ -1,0 +1,83 @@
+{
+ "program": "SQ228A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "DCL-REWRITE-01",
+   "lines": [
+    363
+   ],
+   "feature": "",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-TEST-OP-01",
+   "lines": [
+    694
+   ],
+   "feature": "OPEN, CREATE FILE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-TEST-WR-02",
+   "lines": [
+    708
+   ],
+   "feature": "WRITE A RECORD",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-TEST-CL-03",
+   "lines": [
+    717
+   ],
+   "feature": "CLOSE FILE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-TEST-OP-04",
+   "lines": [
+    727
+   ],
+   "feature": "OPEN FILE FOR I-O",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-TEST-RD-05",
+   "lines": [
+    739
+   ],
+   "feature": "READ FIRST RECORD",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-TEST-RW-06",
+   "lines": [
+    751
+   ],
+   "feature": "REWRITE DIFFERENT SIZE REC",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

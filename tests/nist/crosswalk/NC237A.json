@@ -1,0 +1,240 @@
+{
+ "program": "NC237A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "IDX-TEST-GF-1",
+   "lines": [
+    365
+   ],
+   "feature": "SET AND SEARCH-ALL",
+   "ansi": "VI-121 6.21.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.6.21.2"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-FMT-VI.6.22.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "IDX-TEST-GF-2",
+   "lines": [
+    384
+   ],
+   "feature": "SET AND SEARCH-ALL",
+   "ansi": "VI-121 6.21.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.6.21.2"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-FMT-VI.6.22.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "IDX-TEST-GF-3",
+   "lines": [
+    406
+   ],
+   "feature": "SET AND SEARCH-ALL",
+   "ansi": "VI-121 6.21.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.6.21.2"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-FMT-VI.6.22.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "IDX-TEST-GF-4",
+   "lines": [
+    428
+   ],
+   "feature": "SET AND SEARCH-ALL",
+   "ansi": "VI-121 6.21.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.6.21.2"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-FMT-VI.6.22.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "IDX-TEST-GF-5",
+   "lines": [
+    453
+   ],
+   "feature": "SET AND SEARCH-ALL",
+   "ansi": "VI-121 6.21.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.6.21.2"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-FMT-VI.6.22.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "IDX-TEST-GF-6",
+   "lines": [
+    473
+   ],
+   "feature": "SET AND SEARCH-ALL",
+   "ansi": "VI-121 6.21.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.6.21.2"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-FMT-VI.6.22.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "IDX-TEST-GF-7",
+   "lines": [
+    497
+   ],
+   "feature": "SET AND SEARCH-ALL",
+   "ansi": "VI-121 6.21.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.6.21.2"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-FMT-VI.6.22.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "IDX-TEST-GF-8",
+   "lines": [
+    521
+   ],
+   "feature": "SET AND SEARCH-ALL",
+   "ansi": "VI-121 6.21.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.6.21.2"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-FMT-VI.6.22.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "IDX-TEST-F2-9",
+   "lines": [
+    543
+   ],
+   "feature": "SET AND SEARCH-ALL",
+   "ansi": "VI-121 6.21.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.6.21.2"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-FMT-VI.6.22.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "IDX-TEST-F2-10",
+   "lines": [
+    566
+   ],
+   "feature": "SET AND SEARCH-ALL",
+   "ansi": "VI-121 6.21.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.6.21.2"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-FMT-VI.6.22.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "IDX-TEST-F2-11",
+   "lines": [
+    589
+   ],
+   "feature": "SET AND SEARCH-ALL",
+   "ansi": "VI-121 6.21.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.6.21.2"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-FMT-VI.6.22.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "IDX-TEST-F2-12",
+   "lines": [
+    611
+   ],
+   "feature": "SET AND SEARCH-ALL",
+   "ansi": "VI-121 6.21.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.6.21.2"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-FMT-VI.6.22.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "IDX-TEST-F2-13",
+   "lines": [
+    637
+   ],
+   "feature": "SET AND SEARCH-ALL",
+   "ansi": "VI-121 6.21.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.6.21.2"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-FMT-VI.6.22.2"
+   ],
+   "basis": "mechanical"
+  }
+ ]
+}

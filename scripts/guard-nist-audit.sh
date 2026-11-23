@@ -65,6 +65,7 @@ audit() {
         if (v ~ /^DIFF/)              return "DIFF"
         if (v ~ /^FOOTER/)            return "FOOTER"
         if (v ~ /^COMPILE FAILED/)    return "COMPILE FAILED"
+        if (v ~ /^RUN FAILED/)        return "RUN FAILED"   # a matched report from a run that did not end normally (kb/Work PB3199)
         if (v ~ /NO-VERDICT/)         return "NO-VERDICT"
         return "UNRECOGNIZED"
     }

@@ -1,0 +1,425 @@
+{
+ "program": "IX210A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "WRITE-TEST-GF-1",
+   "lines": [
+    813
+   ],
+   "feature": "CREATE-FILE-FS1",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-01",
+   "lines": [
+    902,
+    936
+   ],
+   "feature": "START GT RECKEY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-02",
+   "lines": [
+    982
+   ],
+   "feature": "START GT RECKEY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-03",
+   "lines": [
+    1034
+   ],
+   "feature": "START GT RECKEY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-04",
+   "lines": [
+    1085
+   ],
+   "feature": "START GT RECKEY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-05",
+   "lines": [
+    1130
+   ],
+   "feature": "START GT RECKEY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-06",
+   "lines": [
+    1183
+   ],
+   "feature": "START GT RECKEY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-07",
+   "lines": [
+    1241
+   ],
+   "feature": "START GT RECKEY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-08",
+   "lines": [
+    1289
+   ],
+   "feature": "START GT RECKEY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-09",
+   "lines": [
+    1343
+   ],
+   "feature": "START GT RECKEY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-10",
+   "lines": [
+    1392
+   ],
+   "feature": "FILE STATUS START:00",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-11",
+   "lines": [
+    1417
+   ],
+   "feature": "FILE STATUS START:00",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-12",
+   "lines": [
+    1436
+   ],
+   "feature": "FILE STATUS START:00",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-13",
+   "lines": [
+    1455
+   ],
+   "feature": "FILE STATUS START:23",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-14",
+   "lines": [
+    1474
+   ],
+   "feature": "FILE STATUS START:00",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-15",
+   "lines": [
+    1493
+   ],
+   "feature": "FILE STATUS START:00",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-16",
+   "lines": [
+    1512
+   ],
+   "feature": "FILE STATUS START:23",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-17",
+   "lines": [
+    1531
+   ],
+   "feature": "FILE STATUS START:00",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-18",
+   "lines": [
+    1550
+   ],
+   "feature": "FILE STATUS START:23",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-19",
+   "lines": [
+    1606
+   ],
+   "feature": "STR GT ALTKY W/O DUP",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-20",
+   "lines": [
+    1652
+   ],
+   "feature": "STR GT ALTKY W/O DUP",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-21",
+   "lines": [
+    1701
+   ],
+   "feature": "STR GT ALTKY W/O DUP",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-22",
+   "lines": [
+    1751
+   ],
+   "feature": "STR GT ALTKY W/O DUP",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-23",
+   "lines": [
+    1795
+   ],
+   "feature": "STR GT ALTKY W/O DUP",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-24",
+   "lines": [
+    1851
+   ],
+   "feature": "STR GT ALTKY W/O DUP",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-25",
+   "lines": [
+    1910
+   ],
+   "feature": "STR GT ALTKY W/O DUP",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-26",
+   "lines": [
+    1958
+   ],
+   "feature": "STR GT ALTKY W/O DUP",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-27",
+   "lines": [
+    2013
+   ],
+   "feature": "STR GT ALTKY W/O DUP",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-28",
+   "lines": [
+    2068
+   ],
+   "feature": "FILE STATUS START:00",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-29",
+   "lines": [
+    2088
+   ],
+   "feature": "FILE STATUS START:00",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-30",
+   "lines": [
+    2107
+   ],
+   "feature": "FILE STATUS START:00",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-31",
+   "lines": [
+    2126
+   ],
+   "feature": "FILE STATUS START:23",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-32",
+   "lines": [
+    2145
+   ],
+   "feature": "FILE STATUS START:00",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-33",
+   "lines": [
+    2164
+   ],
+   "feature": "FILE STATUS START:00",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-34",
+   "lines": [
+    2183
+   ],
+   "feature": "FILE STATUS START:00",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-35",
+   "lines": [
+    2202
+   ],
+   "feature": "FILE STATUS START:00",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-36",
+   "lines": [
+    2221
+   ],
+   "feature": "FILE STATUS START:23",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-37",
+   "lines": [
+    2243
+   ],
+   "feature": "START SERIES",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

@@ -1,0 +1,625 @@
+{
+ "program": "IX209A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "WRITE-TEST-GF-01",
+   "lines": [
+    803,
+    849
+   ],
+   "feature": "CREATE-FILE-FS1",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F1-01",
+   "lines": [
+    856
+   ],
+   "feature": "READ FILE IX-FS1",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-01",
+   "lines": [
+    896,
+    931
+   ],
+   "feature": "START EQ TO RECKEY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-02",
+   "lines": [
+    975
+   ],
+   "feature": "START EQ TO RECKEY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-03",
+   "lines": [
+    1017
+   ],
+   "feature": "START EQ TO RECKEY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-04",
+   "lines": [
+    1057
+   ],
+   "feature": "START EQ TO RECKEY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-05",
+   "lines": [
+    1100
+   ],
+   "feature": "START EQ TO RECKEY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-06",
+   "lines": [
+    1151
+   ],
+   "feature": "START EQ TO RECKEY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-07",
+   "lines": [
+    1207
+   ],
+   "feature": "START EQ TO RECKEY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-08",
+   "lines": [
+    1257
+   ],
+   "feature": "START EQ TO RECKEY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-09",
+   "lines": [
+    1304
+   ],
+   "feature": "START EQ TO RECKEY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-10",
+   "lines": [
+    1353
+   ],
+   "feature": "FILE STATUS START:00",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-11",
+   "lines": [
+    1377
+   ],
+   "feature": "FILE STATUS START:23",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-12",
+   "lines": [
+    1396
+   ],
+   "feature": "FILE STATUS START:23",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-13",
+   "lines": [
+    1414
+   ],
+   "feature": "FILE STATUS START:23",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-14",
+   "lines": [
+    1433
+   ],
+   "feature": "FILE STATUS START:00",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-15",
+   "lines": [
+    1452
+   ],
+   "feature": "FILE STATUS START:00",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-16",
+   "lines": [
+    1471
+   ],
+   "feature": "FILE STATUS START:23",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-17",
+   "lines": [
+    1490
+   ],
+   "feature": "FILE STATUS START:23",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-18",
+   "lines": [
+    1509
+   ],
+   "feature": "FILE STATUS START:23",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-19",
+   "lines": [
+    1532
+   ],
+   "feature": "STR EQ ALTKY W/O DUP",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-20",
+   "lines": [
+    1610
+   ],
+   "feature": "STR EQ ALTKY W/O DUP",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-21",
+   "lines": [
+    1652
+   ],
+   "feature": "STR EQ ALTKY W/O DUP",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-22",
+   "lines": [
+    1694
+   ],
+   "feature": "STR EQ ALTKY W/O DUP",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-23",
+   "lines": [
+    1737
+   ],
+   "feature": "STR EQ ALTKY W/O DUP",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-24",
+   "lines": [
+    1790
+   ],
+   "feature": "STR EQ ALTKY W/O DUP",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-25",
+   "lines": [
+    1846
+   ],
+   "feature": "STR EQ ALTKY W/O DUP",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-26",
+   "lines": [
+    1896
+   ],
+   "feature": "STR EQ ALTKY W/O DUP",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-27",
+   "lines": [
+    1943
+   ],
+   "feature": "STR EQ ALTKY W/O DUP",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-28",
+   "lines": [
+    1994
+   ],
+   "feature": "FILE STATUS START:00",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-29",
+   "lines": [
+    2019
+   ],
+   "feature": "FILE STATUS START:23",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-30",
+   "lines": [
+    2038
+   ],
+   "feature": "FILE STATUS START:23",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-31",
+   "lines": [
+    2057
+   ],
+   "feature": "FILE STATUS START:23",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-32",
+   "lines": [
+    2076
+   ],
+   "feature": "FILE STATUS START:00",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-33",
+   "lines": [
+    2095
+   ],
+   "feature": "FILE STATUS START:00",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-34",
+   "lines": [
+    2114
+   ],
+   "feature": "FILE STATUS START:23",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-35",
+   "lines": [
+    2133
+   ],
+   "feature": "FILE STATUS START:23",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-36",
+   "lines": [
+    2152
+   ],
+   "feature": "FILE STATUS START:23",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-37",
+   "lines": [
+    2174,
+    2209
+   ],
+   "feature": "STRT EQ ALTKY W/DUP",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-38",
+   "lines": [
+    2254
+   ],
+   "feature": "STRT EQ ALTKY W/DUP",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-39",
+   "lines": [
+    2295
+   ],
+   "feature": "STRT EQ ALTKY W/DUP",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-40",
+   "lines": [
+    2336
+   ],
+   "feature": "STRT EQ ALTKY W/DUP",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-41",
+   "lines": [
+    2379
+   ],
+   "feature": "STRT EQ ALTKY W/DUP",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-42",
+   "lines": [
+    2433
+   ],
+   "feature": "STRT EQ ALTKY W/DUP",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-43",
+   "lines": [
+    2493
+   ],
+   "feature": "STRT EQ ALTKY W/DUP",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-44",
+   "lines": [
+    2543
+   ],
+   "feature": "STRT EQ ALTKY W/DUP",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-45",
+   "lines": [
+    2590
+   ],
+   "feature": "STRT EQ ALTKY W/DUP",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-46",
+   "lines": [
+    2641
+   ],
+   "feature": "FILE STATUS START:00",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-47",
+   "lines": [
+    2666
+   ],
+   "feature": "FILE STATUS START:23",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-48",
+   "lines": [
+    2685
+   ],
+   "feature": "FILE STATUS START:23",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-49",
+   "lines": [
+    2704
+   ],
+   "feature": "FILE STATUS START:23",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-50",
+   "lines": [
+    2723
+   ],
+   "feature": "FILE STATUS START:00",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-51",
+   "lines": [
+    2743
+   ],
+   "feature": "FILE STATUS START:00",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-52",
+   "lines": [
+    2762
+   ],
+   "feature": "FILE STATUS START:23",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-53",
+   "lines": [
+    2781
+   ],
+   "feature": "FILE STATUS START:23",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-54",
+   "lines": [
+    2800
+   ],
+   "feature": "FILE STATUS START:23",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

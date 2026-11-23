@@ -1,0 +1,21 @@
+# THE NIST RUN ENVIRONMENT, written once (kb/Work PB3199): every NIST program, and every chain predecessor before it,
+# runs with exactly these environment variables on BOTH legs. The CLI leg reads this file in scripts/guard-run-group.sh
+# (guard_run_environment) and the in-process leg in NistRunEnvironment
+# (tests/WiseOwl.Cobol.Tests.Conformance/NistRunEnvironment.cs); NistRunEnvironmentTests holds this file to every
+# variable CutRunner.RunExit sets for a program it runs, and scripts/guard-verify.sh --self-test shows a program run
+# by the shell leg sees each one.
+#
+# One line per variable: NAME<TAB>VALUE. NAME is an environment variable name (upper case, digits, underscore); VALUE is
+# non-empty and carries no tab. {run-directory} in a VALUE is the program's own run directory. A line that is empty or
+# begins with # is a comment. Anything else is refused by both readers, loudly.
+#
+# COBOL_SWITCH_1: the CCVS-85 switch programs (NC174A, NC254A) run with external SWITCH-1 ON and SWITCH-2 unset; their
+#   goldens assume exactly that (docs/conformance/7/DOC-A.1-191.md: the external facility is COBOL_<SWITCH-NAME>).
+# COBOL_USER_LOCALE, COBOL_SYSTEM_LOCALE: the run unit's default locales pinned to the root locale, so no golden
+#   depends on the host's regional setting (DESIGN-locale-facility §10 T-F; CutRunner.LocalePin).
+# WISEOWL_COBOL_MCS: the asynchronous messaging facility's MCS directory is the program's own run directory
+#   (DESIGN-message-control.md §7.1; CutRunner.McsDirectoryVariable), so no two programs share a message control system.
+COBOL_SWITCH_1	ON
+COBOL_USER_LOCALE	INVARIANT
+COBOL_SYSTEM_LOCALE	INVARIANT
+WISEOWL_COBOL_MCS	{run-directory}

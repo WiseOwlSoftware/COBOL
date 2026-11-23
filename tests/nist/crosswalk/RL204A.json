@@ -1,0 +1,28 @@
+{
+ "program": "RL204A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "REL-TEST-009",
+   "lines": [
+    441
+   ],
+   "feature": "CREATE RL-FD2",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-010",
+   "lines": [
+    531
+   ],
+   "feature": "USE/FILE STATUS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

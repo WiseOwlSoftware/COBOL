@@ -1,0 +1,39 @@
+{
+ "program": "IC201A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "CALL-TEST-01",
+   "lines": [
+    312
+   ],
+   "feature": "LEV 2 CALL STATEMENT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-02",
+   "lines": [
+    379
+   ],
+   "feature": "DATA-NAME USED TWICE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-03",
+   "lines": [
+    519
+   ],
+   "feature": "ON OVERFLOW PHRASE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

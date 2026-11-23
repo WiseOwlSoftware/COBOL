@@ -1,0 +1,237 @@
+{
+ "program": "ST133A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "SORT-TEST-1",
+   "lines": [
+    487
+   ],
+   "feature": "NUMERIC KEY CHECKS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-2",
+   "lines": [
+    503
+   ],
+   "feature": "NUMERIC KEY CHECKS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-3",
+   "lines": [
+    519
+   ],
+   "feature": "NUMERIC KEY CHECKS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-4",
+   "lines": [
+    535
+   ],
+   "feature": "NUMERIC KEY CHECKS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-5",
+   "lines": [
+    551
+   ],
+   "feature": "NUMERIC KEY CHECKS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-6",
+   "lines": [
+    567
+   ],
+   "feature": "NUMERIC KEY CHECKS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-7",
+   "lines": [
+    591
+   ],
+   "feature": "NUMERIC KEY CHECKS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-8",
+   "lines": [
+    607
+   ],
+   "feature": "NUMERIC KEY CHECKS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-9",
+   "lines": [
+    623
+   ],
+   "feature": "NUMERIC KEY CHECKS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-10",
+   "lines": [
+    639
+   ],
+   "feature": "NUMERIC KEY CHECKS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-11",
+   "lines": [
+    655
+   ],
+   "feature": "NUMERIC KEY CHECKS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-12",
+   "lines": [
+    671
+   ],
+   "feature": "NUMERIC KEY CHECKS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-13",
+   "lines": [
+    695
+   ],
+   "feature": "NUMERIC KEY CHECKS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-14",
+   "lines": [
+    711
+   ],
+   "feature": "NUMERIC KEY CHECKS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-15",
+   "lines": [
+    727
+   ],
+   "feature": "NUMERIC KEY CHECKS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-16",
+   "lines": [
+    743
+   ],
+   "feature": "NUMERIC KEY CHECKS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-17",
+   "lines": [
+    759
+   ],
+   "feature": "NUMERIC KEY CHECKS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-18",
+   "lines": [
+    775
+   ],
+   "feature": "NUMERIC KEY CHECKS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "RETURN-ERROR",
+   "lines": [
+    821
+   ],
+   "feature": "NUMERIC KEY CHECKS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-SORTOUT-ERROR",
+   "lines": [
+    832
+   ],
+   "feature": "NUMERIC KEY CHECKS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-SORTIN-ERROR",
+   "lines": [
+    843
+   ],
+   "feature": "NUMERIC KEY CHECKS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

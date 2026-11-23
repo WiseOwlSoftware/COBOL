@@ -1,0 +1,28 @@
+{
+ "program": "RL209A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "REL-TEST-001",
+   "lines": [
+    426
+   ],
+   "feature": "FILE CREATE RL-FS1",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-002",
+   "lines": [
+    453
+   ],
+   "feature": "FILE CREATE RL-FS1",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

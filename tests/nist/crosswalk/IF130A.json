@@ -1,0 +1,405 @@
+{
+ "program": "IF130A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "F-PRES-VAL-01",
+   "lines": [
+    378
+   ],
+   "feature": "PRESENT-VALUE Function",
+   "ansi": "See ref. A-63 2.34",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.34.1-p1",
+    "1989-FMT-A.2.34.2",
+    "1989-AR-A.2.34.3-1",
+    "1989-AR-A.2.34.3-2",
+    "1989-RV-A.2.34.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-PRES-VAL-02",
+   "lines": [
+    392
+   ],
+   "feature": "PRESENT-VALUE Function",
+   "ansi": "See ref. A-63 2.34",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.34.1-p1",
+    "1989-FMT-A.2.34.2",
+    "1989-AR-A.2.34.3-1",
+    "1989-AR-A.2.34.3-2",
+    "1989-RV-A.2.34.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-PRES-VAL-03",
+   "lines": [
+    411
+   ],
+   "feature": "PRESENT-VALUE Function",
+   "ansi": "See ref. A-63 2.34",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.34.1-p1",
+    "1989-FMT-A.2.34.2",
+    "1989-AR-A.2.34.3-1",
+    "1989-AR-A.2.34.3-2",
+    "1989-RV-A.2.34.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-PRES-VAL-04",
+   "lines": [
+    434
+   ],
+   "feature": "PRESENT-VALUE Function",
+   "ansi": "See ref. A-63 2.34",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.34.1-p1",
+    "1989-FMT-A.2.34.2",
+    "1989-AR-A.2.34.3-1",
+    "1989-AR-A.2.34.3-2",
+    "1989-RV-A.2.34.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-PRES-VAL-05",
+   "lines": [
+    456
+   ],
+   "feature": "PRESENT-VALUE Function",
+   "ansi": "See ref. A-63 2.34",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.34.1-p1",
+    "1989-FMT-A.2.34.2",
+    "1989-AR-A.2.34.3-1",
+    "1989-AR-A.2.34.3-2",
+    "1989-RV-A.2.34.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-PRES-VAL-06",
+   "lines": [
+    479
+   ],
+   "feature": "PRESENT-VALUE Function",
+   "ansi": "See ref. A-63 2.34",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.34.1-p1",
+    "1989-FMT-A.2.34.2",
+    "1989-AR-A.2.34.3-1",
+    "1989-AR-A.2.34.3-2",
+    "1989-RV-A.2.34.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-PRES-VAL-07",
+   "lines": [
+    502
+   ],
+   "feature": "PRESENT-VALUE Function",
+   "ansi": "See ref. A-63 2.34",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.34.1-p1",
+    "1989-FMT-A.2.34.2",
+    "1989-AR-A.2.34.3-1",
+    "1989-AR-A.2.34.3-2",
+    "1989-RV-A.2.34.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-PRES-VAL-08",
+   "lines": [
+    524
+   ],
+   "feature": "PRESENT-VALUE Function",
+   "ansi": "See ref. A-63 2.34",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.34.1-p1",
+    "1989-FMT-A.2.34.2",
+    "1989-AR-A.2.34.3-1",
+    "1989-AR-A.2.34.3-2",
+    "1989-RV-A.2.34.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-PRES-VAL-09",
+   "lines": [
+    547
+   ],
+   "feature": "PRESENT-VALUE Function",
+   "ansi": "See ref. A-63 2.34",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.34.1-p1",
+    "1989-FMT-A.2.34.2",
+    "1989-AR-A.2.34.3-1",
+    "1989-AR-A.2.34.3-2",
+    "1989-RV-A.2.34.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-PRES-VAL-11",
+   "lines": [
+    570
+   ],
+   "feature": "PRESENT-VALUE Function",
+   "ansi": "See ref. A-63 2.34",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.34.1-p1",
+    "1989-FMT-A.2.34.2",
+    "1989-AR-A.2.34.3-1",
+    "1989-AR-A.2.34.3-2",
+    "1989-RV-A.2.34.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-PRES-VAL-12",
+   "lines": [
+    592
+   ],
+   "feature": "PRESENT-VALUE Function",
+   "ansi": "See ref. A-63 2.34",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.34.1-p1",
+    "1989-FMT-A.2.34.2",
+    "1989-AR-A.2.34.3-1",
+    "1989-AR-A.2.34.3-2",
+    "1989-RV-A.2.34.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-PRES-VAL-13",
+   "lines": [
+    616
+   ],
+   "feature": "PRESENT-VALUE Function",
+   "ansi": "See ref. A-63 2.34",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.34.1-p1",
+    "1989-FMT-A.2.34.2",
+    "1989-AR-A.2.34.3-1",
+    "1989-AR-A.2.34.3-2",
+    "1989-RV-A.2.34.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-PRES-VAL-14",
+   "lines": [
+    639
+   ],
+   "feature": "PRESENT-VALUE Function",
+   "ansi": "See ref. A-63 2.34",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.34.1-p1",
+    "1989-FMT-A.2.34.2",
+    "1989-AR-A.2.34.3-1",
+    "1989-AR-A.2.34.3-2",
+    "1989-RV-A.2.34.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-PRES-VAL-15",
+   "lines": [
+    662
+   ],
+   "feature": "PRESENT-VALUE Function",
+   "ansi": "See ref. A-63 2.34",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.34.1-p1",
+    "1989-FMT-A.2.34.2",
+    "1989-AR-A.2.34.3-1",
+    "1989-AR-A.2.34.3-2",
+    "1989-RV-A.2.34.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-PRES-VAL-16",
+   "lines": [
+    685
+   ],
+   "feature": "PRESENT-VALUE Function",
+   "ansi": "See ref. A-63 2.34",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.34.1-p1",
+    "1989-FMT-A.2.34.2",
+    "1989-AR-A.2.34.3-1",
+    "1989-AR-A.2.34.3-2",
+    "1989-RV-A.2.34.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-PRES-VAL-17",
+   "lines": [
+    708
+   ],
+   "feature": "PRESENT-VALUE Function",
+   "ansi": "See ref. A-63 2.34",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.34.1-p1",
+    "1989-FMT-A.2.34.2",
+    "1989-AR-A.2.34.3-1",
+    "1989-AR-A.2.34.3-2",
+    "1989-RV-A.2.34.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-PRES-VAL-18",
+   "lines": [
+    731
+   ],
+   "feature": "PRESENT-VALUE Function",
+   "ansi": "See ref. A-63 2.34",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.34.1-p1",
+    "1989-FMT-A.2.34.2",
+    "1989-AR-A.2.34.3-1",
+    "1989-AR-A.2.34.3-2",
+    "1989-RV-A.2.34.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-PRES-VAL-19",
+   "lines": [
+    753
+   ],
+   "feature": "PRESENT-VALUE Function",
+   "ansi": "See ref. A-63 2.34",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.34.1-p1",
+    "1989-FMT-A.2.34.2",
+    "1989-AR-A.2.34.3-1",
+    "1989-AR-A.2.34.3-2",
+    "1989-RV-A.2.34.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-PRES-VAL-20",
+   "lines": [
+    776
+   ],
+   "feature": "PRESENT-VALUE Function",
+   "ansi": "See ref. A-63 2.34",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.34.1-p1",
+    "1989-FMT-A.2.34.2",
+    "1989-AR-A.2.34.3-1",
+    "1989-AR-A.2.34.3-2",
+    "1989-RV-A.2.34.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-PRES-VAL-21",
+   "lines": [
+    799
+   ],
+   "feature": "PRESENT-VALUE Function",
+   "ansi": "See ref. A-63 2.34",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.34.1-p1",
+    "1989-FMT-A.2.34.2",
+    "1989-AR-A.2.34.3-1",
+    "1989-AR-A.2.34.3-2",
+    "1989-RV-A.2.34.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-PRES-VAL-22",
+   "lines": [
+    813
+   ],
+   "feature": "PRESENT-VALUE Function",
+   "ansi": "See ref. A-63 2.34",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.34.1-p1",
+    "1989-FMT-A.2.34.2",
+    "1989-AR-A.2.34.3-1",
+    "1989-AR-A.2.34.3-2",
+    "1989-RV-A.2.34.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  }
+ ]
+}

@@ -1,0 +1,326 @@
+{
+ "program": "IF141A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "F-VARIANCE-01",
+   "lines": [
+    372
+   ],
+   "feature": "VARIANCE Function",
+   "ansi": "See ref. A-74 2.45",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.45.1-p1",
+    "1989-FMT-A.2.45.2",
+    "1989-AR-A.2.45.3-1",
+    "1989-RV-A.2.45.4-1",
+    "1989-RV-A.2.45.4-2",
+    "1989-RV-A.2.45.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-VARIANCE-02",
+   "lines": [
+    386
+   ],
+   "feature": "VARIANCE Function",
+   "ansi": "See ref. A-74 2.45",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.45.1-p1",
+    "1989-FMT-A.2.45.2",
+    "1989-AR-A.2.45.3-1",
+    "1989-RV-A.2.45.4-1",
+    "1989-RV-A.2.45.4-2",
+    "1989-RV-A.2.45.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-VARIANCE-03",
+   "lines": [
+    403
+   ],
+   "feature": "VARIANCE Function",
+   "ansi": "See ref. A-74 2.45",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.45.1-p1",
+    "1989-FMT-A.2.45.2",
+    "1989-AR-A.2.45.3-1",
+    "1989-RV-A.2.45.4-1",
+    "1989-RV-A.2.45.4-2",
+    "1989-RV-A.2.45.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-VARIANCE-04",
+   "lines": [
+    425
+   ],
+   "feature": "VARIANCE Function",
+   "ansi": "See ref. A-74 2.45",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.45.1-p1",
+    "1989-FMT-A.2.45.2",
+    "1989-AR-A.2.45.3-1",
+    "1989-RV-A.2.45.4-1",
+    "1989-RV-A.2.45.4-2",
+    "1989-RV-A.2.45.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-VARIANCE-05",
+   "lines": [
+    448
+   ],
+   "feature": "VARIANCE Function",
+   "ansi": "See ref. A-74 2.45",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.45.1-p1",
+    "1989-FMT-A.2.45.2",
+    "1989-AR-A.2.45.3-1",
+    "1989-RV-A.2.45.4-1",
+    "1989-RV-A.2.45.4-2",
+    "1989-RV-A.2.45.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-VARIANCE-06",
+   "lines": [
+    471
+   ],
+   "feature": "VARIANCE Function",
+   "ansi": "See ref. A-74 2.45",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.45.1-p1",
+    "1989-FMT-A.2.45.2",
+    "1989-AR-A.2.45.3-1",
+    "1989-RV-A.2.45.4-1",
+    "1989-RV-A.2.45.4-2",
+    "1989-RV-A.2.45.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-VARIANCE-07",
+   "lines": [
+    494
+   ],
+   "feature": "VARIANCE Function",
+   "ansi": "See ref. A-74 2.45",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.45.1-p1",
+    "1989-FMT-A.2.45.2",
+    "1989-AR-A.2.45.3-1",
+    "1989-RV-A.2.45.4-1",
+    "1989-RV-A.2.45.4-2",
+    "1989-RV-A.2.45.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-VARIANCE-08",
+   "lines": [
+    517
+   ],
+   "feature": "VARIANCE Function",
+   "ansi": "See ref. A-74 2.45",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.45.1-p1",
+    "1989-FMT-A.2.45.2",
+    "1989-AR-A.2.45.3-1",
+    "1989-RV-A.2.45.4-1",
+    "1989-RV-A.2.45.4-2",
+    "1989-RV-A.2.45.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-VARIANCE-09",
+   "lines": [
+    539
+   ],
+   "feature": "VARIANCE Function",
+   "ansi": "See ref. A-74 2.45",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.45.1-p1",
+    "1989-FMT-A.2.45.2",
+    "1989-AR-A.2.45.3-1",
+    "1989-RV-A.2.45.4-1",
+    "1989-RV-A.2.45.4-2",
+    "1989-RV-A.2.45.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-VARIANCE-11",
+   "lines": [
+    561
+   ],
+   "feature": "VARIANCE Function",
+   "ansi": "See ref. A-74 2.45",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.45.1-p1",
+    "1989-FMT-A.2.45.2",
+    "1989-AR-A.2.45.3-1",
+    "1989-RV-A.2.45.4-1",
+    "1989-RV-A.2.45.4-2",
+    "1989-RV-A.2.45.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-VARIANCE-12",
+   "lines": [
+    583
+   ],
+   "feature": "VARIANCE Function",
+   "ansi": "See ref. A-74 2.45",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.45.1-p1",
+    "1989-FMT-A.2.45.2",
+    "1989-AR-A.2.45.3-1",
+    "1989-RV-A.2.45.4-1",
+    "1989-RV-A.2.45.4-2",
+    "1989-RV-A.2.45.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-VARIANCE-13",
+   "lines": [
+    605
+   ],
+   "feature": "VARIANCE Function",
+   "ansi": "See ref. A-74 2.45",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.45.1-p1",
+    "1989-FMT-A.2.45.2",
+    "1989-AR-A.2.45.3-1",
+    "1989-RV-A.2.45.4-1",
+    "1989-RV-A.2.45.4-2",
+    "1989-RV-A.2.45.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-VARIANCE-14",
+   "lines": [
+    627
+   ],
+   "feature": "VARIANCE Function",
+   "ansi": "See ref. A-74 2.45",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.45.1-p1",
+    "1989-FMT-A.2.45.2",
+    "1989-AR-A.2.45.3-1",
+    "1989-RV-A.2.45.4-1",
+    "1989-RV-A.2.45.4-2",
+    "1989-RV-A.2.45.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-VARIANCE-15",
+   "lines": [
+    650
+   ],
+   "feature": "VARIANCE Function",
+   "ansi": "See ref. A-74 2.45",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.45.1-p1",
+    "1989-FMT-A.2.45.2",
+    "1989-AR-A.2.45.3-1",
+    "1989-RV-A.2.45.4-1",
+    "1989-RV-A.2.45.4-2",
+    "1989-RV-A.2.45.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-VARIANCE-16",
+   "lines": [
+    673
+   ],
+   "feature": "VARIANCE Function",
+   "ansi": "See ref. A-74 2.45",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.45.1-p1",
+    "1989-FMT-A.2.45.2",
+    "1989-AR-A.2.45.3-1",
+    "1989-RV-A.2.45.4-1",
+    "1989-RV-A.2.45.4-2",
+    "1989-RV-A.2.45.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-VARIANCE-17",
+   "lines": [
+    687
+   ],
+   "feature": "VARIANCE Function",
+   "ansi": "See ref. A-74 2.45",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.45.1-p1",
+    "1989-FMT-A.2.45.2",
+    "1989-AR-A.2.45.3-1",
+    "1989-RV-A.2.45.4-1",
+    "1989-RV-A.2.45.4-2",
+    "1989-RV-A.2.45.4-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  }
+ ]
+}

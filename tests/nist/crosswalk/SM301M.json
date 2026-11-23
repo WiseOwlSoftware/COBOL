@@ -1,0 +1,17 @@
+{
+ "program": "SM301M",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "NON-CONFORMING@23",
+   "lines": [
+    23
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "STOP RUN SM301M-COPY",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  }
+ ]
+}

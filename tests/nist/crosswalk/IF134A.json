@@ -1,0 +1,240 @@
+{
+ "program": "IF134A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "F-REVERSE-01",
+   "lines": [
+    325
+   ],
+   "feature": "REVERSE Function",
+   "ansi": "See ref. A-67 2.38",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.38.1-p1",
+    "1989-FMT-A.2.38.2",
+    "1989-AR-A.2.38.3-1",
+    "1989-RV-A.2.38.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-REVERSE-02",
+   "lines": [
+    341
+   ],
+   "feature": "REVERSE Function",
+   "ansi": "See ref. A-67 2.38",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.38.1-p1",
+    "1989-FMT-A.2.38.2",
+    "1989-AR-A.2.38.3-1",
+    "1989-RV-A.2.38.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-REVERSE-03",
+   "lines": [
+    359
+   ],
+   "feature": "REVERSE Function",
+   "ansi": "See ref. A-67 2.38",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.38.1-p1",
+    "1989-FMT-A.2.38.2",
+    "1989-AR-A.2.38.3-1",
+    "1989-RV-A.2.38.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-REVERSE-04",
+   "lines": [
+    377
+   ],
+   "feature": "REVERSE Function",
+   "ansi": "See ref. A-67 2.38",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.38.1-p1",
+    "1989-FMT-A.2.38.2",
+    "1989-AR-A.2.38.3-1",
+    "1989-RV-A.2.38.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-REVERSE-05",
+   "lines": [
+    395
+   ],
+   "feature": "REVERSE Function",
+   "ansi": "See ref. A-67 2.38",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.38.1-p1",
+    "1989-FMT-A.2.38.2",
+    "1989-AR-A.2.38.3-1",
+    "1989-RV-A.2.38.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-REVERSE-06",
+   "lines": [
+    413
+   ],
+   "feature": "REVERSE Function",
+   "ansi": "See ref. A-67 2.38",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.38.1-p1",
+    "1989-FMT-A.2.38.2",
+    "1989-AR-A.2.38.3-1",
+    "1989-RV-A.2.38.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-REVERSE-07",
+   "lines": [
+    431
+   ],
+   "feature": "REVERSE Function",
+   "ansi": "See ref. A-67 2.38",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.38.1-p1",
+    "1989-FMT-A.2.38.2",
+    "1989-AR-A.2.38.3-1",
+    "1989-RV-A.2.38.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-REVERSE-08",
+   "lines": [
+    449
+   ],
+   "feature": "REVERSE Function",
+   "ansi": "See ref. A-67 2.38",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.38.1-p1",
+    "1989-FMT-A.2.38.2",
+    "1989-AR-A.2.38.3-1",
+    "1989-RV-A.2.38.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-REVERSE-09",
+   "lines": [
+    467
+   ],
+   "feature": "REVERSE Function",
+   "ansi": "See ref. A-67 2.38",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.38.1-p1",
+    "1989-FMT-A.2.38.2",
+    "1989-AR-A.2.38.3-1",
+    "1989-RV-A.2.38.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-REVERSE-10",
+   "lines": [
+    485
+   ],
+   "feature": "REVERSE Function",
+   "ansi": "See ref. A-67 2.38",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.38.1-p1",
+    "1989-FMT-A.2.38.2",
+    "1989-AR-A.2.38.3-1",
+    "1989-RV-A.2.38.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-REVERSE-11",
+   "lines": [
+    503
+   ],
+   "feature": "REVERSE Function",
+   "ansi": "See ref. A-67 2.38",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.38.1-p1",
+    "1989-FMT-A.2.38.2",
+    "1989-AR-A.2.38.3-1",
+    "1989-RV-A.2.38.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-REVERSE-12",
+   "lines": [
+    522
+   ],
+   "feature": "REVERSE Function",
+   "ansi": "See ref. A-67 2.38",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.38.1-p1",
+    "1989-FMT-A.2.38.2",
+    "1989-AR-A.2.38.3-1",
+    "1989-RV-A.2.38.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-REVERSE-13",
+   "lines": [
+    541
+   ],
+   "feature": "REVERSE Function",
+   "ansi": "See ref. A-67 2.38",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.38.1-p1",
+    "1989-FMT-A.2.38.2",
+    "1989-AR-A.2.38.3-1",
+    "1989-RV-A.2.38.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  }
+ ]
+}

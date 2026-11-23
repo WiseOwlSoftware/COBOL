@@ -1,0 +1,44 @@
+{
+ "program": "IF107A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "F-WHENCOMP-01",
+   "lines": [
+    361
+   ],
+   "feature": "CURRENT-DATE",
+   "ansi": "See ref. A-39 2.11",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.11.1-p1",
+    "1989-FMT-A.2.11.2",
+    "1989-RV-A.2.11.3-1",
+    "1989-RV-A.2.11.3-2",
+    "1989-RV-A.2.11.3-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-WHENCOMP-02",
+   "lines": [
+    374
+   ],
+   "feature": "CURRENT-DATE",
+   "ansi": "See ref. A-39 2.11",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.11.1-p1",
+    "1989-FMT-A.2.11.2",
+    "1989-RV-A.2.11.3-1",
+    "1989-RV-A.2.11.3-2",
+    "1989-RV-A.2.11.3-3"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  }
+ ]
+}

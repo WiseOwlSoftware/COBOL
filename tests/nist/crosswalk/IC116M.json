@@ -1,0 +1,17 @@
+{
+ "program": "IC116M",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "USNG-TEST-01",
+   "lines": [
+    329
+   ],
+   "feature": "CALL WITHOUT USING",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

@@ -1,0 +1,28 @@
+{
+ "program": "SG401M",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "NON-CONFORMING@13",
+   "lines": [
+    13
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "OBJECT-COMPUTER XXXXX083 SEGMENT-LIMIT IS 18",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@30",
+   "lines": [
+    30
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "DISPLAY \"THIS IS A DUMMY PARAGRAPH\" NUMBER3 SECTION 18",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  }
+ ]
+}

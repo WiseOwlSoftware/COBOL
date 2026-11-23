@@ -1,0 +1,160 @@
+{
+ "program": "IX204A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "WRITE-TEST-001",
+   "lines": [
+    516
+   ],
+   "feature": "CREATE IX-FD2",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRITE-TEST-GF-01",
+   "lines": [
+    552
+   ],
+   "feature": "WRITE  IX-FD2.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRITE-TEST-GF-02",
+   "lines": [
+    563
+   ],
+   "feature": "WRITE  IX-FD2.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRITE-TEST-GF-03",
+   "lines": [
+    574
+   ],
+   "feature": "OPEN OUTPUT 00",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRITE-TEST-GF-04",
+   "lines": [
+    585
+   ],
+   "feature": "WRITE STATUS 00",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRITE-TEST-GF-05",
+   "lines": [
+    596
+   ],
+   "feature": "WRITE STATUS 00",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRITE-TEST-GF-06",
+   "lines": [
+    607
+   ],
+   "feature": "CLOSE: STATUS: 00",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "RWRT-TEST-GF-01",
+   "lines": [
+    658
+   ],
+   "feature": "REWRITE IX-FD2",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "RWRT-TEST-GF-02",
+   "lines": [
+    669
+   ],
+   "feature": "UPDATE  IX-FD2",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "RWRT-TEST-GF-03",
+   "lines": [
+    680
+   ],
+   "feature": "OPEN I-O STATUS: 00",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "RWRT-TEST-GF-04",
+   "lines": [
+    691
+   ],
+   "feature": "READ I-O STATUS 10",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "RWRT-TEST-GF-05",
+   "lines": [
+    702
+   ],
+   "feature": "UPDATE  IX-FD2",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "RWRT-TEST-GF-06",
+   "lines": [
+    713
+   ],
+   "feature": "STATUS: 10",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "RWRT-TEST-GF-07",
+   "lines": [
+    724
+   ],
+   "feature": "CLOSE . LOCK: 00",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

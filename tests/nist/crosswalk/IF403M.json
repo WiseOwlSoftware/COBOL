@@ -1,0 +1,149 @@
+{
+ "program": "IF403M",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "NON-CONFORMING@32",
+   "lines": [
+    32
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "IF403M-PRESENT-VALUE IF FUNCTION PRESENT-VALUE (0, 23, 12, 9) = FUNCTION PRESENT-VALUE (0, 23, 12, 9) CONTINUE",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@37",
+   "lines": [
+    37
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "IF403M-RANDOM IF FUNCTION RANDOM (1) = FUNCTION RANDOM (1) CONTINUE",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@43",
+   "lines": [
+    43
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "IF403M-RANGE IF FUNCTION RANGE (5, -2, -14, 0) = FUNCTION RANGE (5, -2, -14, 0) CONTINUE",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@48",
+   "lines": [
+    48
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "IF403M-REM IF FUNCTION REM (0, 20) = FUNCTION REM (0, 20) CONTINUE",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@52",
+   "lines": [
+    52
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "IF403M-REVERSE MOVE FUNCTION REVERSE (\"ABC\") TO WS-AN-TEMP",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@57",
+   "lines": [
+    57
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "0) = FUNCTION SIN (1 0) CONTINUE",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@62",
+   "lines": [
+    62
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "IF403M-SQRT IF FUNCTION SQRT (0) = FUNCTION SQRT (0) CONTINUE",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@68",
+   "lines": [
+    68
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "IF403M-STANDARD-DEVIATION IF FUNCTION STANDARD-DEVIATION (5, -2, -14, 0) = FUNCTION STANDARD-DEVIATION (5, -2, -14, 0) CONTINUE",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@74",
+   "lines": [
+    74
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "IF403M-SUM IF FUNCTION SUM (5, -2, -14, 0) = FUNCTION SUM (5, -2, -14, 0) CONTINUE",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@79",
+   "lines": [
+    79
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "0) = FUNCTION TAN (1 0) CONTINUE",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@83",
+   "lines": [
+    83
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "IF403M-UPPER-CASE MOVE FUNCTION UPPER-CASE (\"ABC\") TO WS-AN-TEMP",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@89",
+   "lines": [
+    89
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "IF403M-VARIANCE IF FUNCTION VARIANCE (5, -2, -14, 0) = FUNCTION VARIANCE (5, -2, -14, 0) CONTINUE",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@93",
+   "lines": [
+    93
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "IF403M-WHEN-COMPILED MOVE FUNCTION WHEN-COMPILED TO WS-AN-TEMP",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  }
+ ]
+}

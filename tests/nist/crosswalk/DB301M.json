@@ -1,0 +1,17 @@
+{
+ "program": "DB301M",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "NON-CONFORMING@34",
+   "lines": [
+    34
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "BUGGING-2 SECTION USE FOR DEBUGGING ON ALL PROCEDURES",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  }
+ ]
+}

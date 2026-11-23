@@ -2,12 +2,11 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 #nullable enable
 using System.Reflection;
-using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 
-namespace WiseOwl.Cobol.Gate;
+namespace WiseOwl.Cobol.Tests.Shared.Gate;
 
 /// <summary>
 /// The per-assembly audits of the gate's leg contract (kb/Work PB1719; DESIGN-test-build-ci.md section 3.14.4 arms
@@ -33,7 +32,7 @@ internal static class GateLegAudit
             + $"[{string.Join("; ", frameworks)}]. Without it the gate's leg filter never runs and both legs run "
             + "the whole assembly.");
         Assert.True(assembly.GetType(typeof(GateTestFramework).FullName!) is not null,
-            $"{assembly.GetName().Name} does not compile tests/_shared/GateLegs.cs");
+            $"{assembly.GetName().Name} does not compile tests/_shared/Gate/");
     }
 
     /// <summary>The assembly carries the weights file CI's shards are dealt by (kb/Work PB4329; tests/Directory.Build.props

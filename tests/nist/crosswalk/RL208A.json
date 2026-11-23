@@ -1,0 +1,39 @@
+{
+ "program": "RL208A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "REL-TEST-012",
+   "lines": [
+    397
+   ],
+   "feature": "READ SEQUENTIAL",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-013",
+   "lines": [
+    486
+   ],
+   "feature": "DELETE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-014",
+   "lines": [
+    541
+   ],
+   "feature": "READ UPDATED FILE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

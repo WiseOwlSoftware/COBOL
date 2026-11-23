@@ -1,0 +1,94 @@
+{
+ "program": "ST132A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "SORT-TEST-16",
+   "lines": [
+    476
+   ],
+   "feature": "SORT, OUTPUT PROC",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-17",
+   "lines": [
+    491
+   ],
+   "feature": "SORT, OUTPUT PROC",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-18",
+   "lines": [
+    510
+   ],
+   "feature": "SORT, OUTPUT PROC",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "TERMINAL-1",
+   "lines": [
+    521
+   ],
+   "feature": "SORT, OUTPUT PROC",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-19",
+   "lines": [
+    607
+   ],
+   "feature": "SORT, OUTPUT PROC",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-20",
+   "lines": [
+    622
+   ],
+   "feature": "SORT, OUTPUT PROC",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "TERMINAL-2",
+   "lines": [
+    633
+   ],
+   "feature": "SORT, OUTPUT PROC",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-21",
+   "lines": [
+    707
+   ],
+   "feature": "2 SORTS ON ONE FILE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

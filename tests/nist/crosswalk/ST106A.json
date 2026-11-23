@@ -1,0 +1,120 @@
+{
+ "program": "ST106A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "BUILD-FILE-TEST",
+   "lines": [
+    394
+   ],
+   "feature": "CREATE A FILE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-1",
+   "lines": [
+    736,
+    792
+   ],
+   "feature": "SORT, MIXED CLASSES",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-2",
+   "lines": [
+    760,
+    795
+   ],
+   "feature": "SORT, MIXED CLASSES",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-3",
+   "lines": [
+    779,
+    800
+   ],
+   "feature": "SORT, MIXED CLASSES",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-4",
+   "lines": [
+    782,
+    824
+   ],
+   "feature": "SORT, MIXED CLASSES",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-5",
+   "lines": [
+    849
+   ],
+   "feature": "SORT, MIXED CLASSES",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-6",
+   "lines": [
+    873
+   ],
+   "feature": "SORT, MIXED CLASSES",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-7",
+   "lines": [
+    899
+   ],
+   "feature": "SORT, MIXED CLASSES",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-8",
+   "lines": [
+    909
+   ],
+   "feature": "SORT, MIXED CLASSES",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-ERROR",
+   "lines": [
+    917
+   ],
+   "feature": "SORT, MIXED CLASSES",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

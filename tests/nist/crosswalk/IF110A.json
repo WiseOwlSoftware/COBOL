@@ -1,0 +1,177 @@
+{
+ "program": "IF110A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "F-FACTORIAL-01",
+   "lines": [
+    361
+   ],
+   "feature": "FACTORIAL Function",
+   "ansi": "See ref. A-43 2.14",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.14.1-p1",
+    "1989-FMT-A.2.14.2",
+    "1989-AR-A.2.14.3-1",
+    "1989-RV-A.2.14.4-1",
+    "1989-RV-A.2.14.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-FACTORIAL-02",
+   "lines": [
+    375
+   ],
+   "feature": "FACTORIAL Function",
+   "ansi": "See ref. A-43 2.14",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.14.1-p1",
+    "1989-FMT-A.2.14.2",
+    "1989-AR-A.2.14.3-1",
+    "1989-RV-A.2.14.4-1",
+    "1989-RV-A.2.14.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-FACTORIAL-03",
+   "lines": [
+    388
+   ],
+   "feature": "FACTORIAL Function",
+   "ansi": "See ref. A-43 2.14",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.14.1-p1",
+    "1989-FMT-A.2.14.2",
+    "1989-AR-A.2.14.3-1",
+    "1989-RV-A.2.14.4-1",
+    "1989-RV-A.2.14.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-FACTORIAL-04",
+   "lines": [
+    406
+   ],
+   "feature": "FACTORIAL Function",
+   "ansi": "See ref. A-43 2.14",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.14.1-p1",
+    "1989-FMT-A.2.14.2",
+    "1989-AR-A.2.14.3-1",
+    "1989-RV-A.2.14.4-1",
+    "1989-RV-A.2.14.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-FACTORIAL-05",
+   "lines": [
+    424
+   ],
+   "feature": "FACTORIAL Function",
+   "ansi": "See ref. A-43 2.14",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.14.1-p1",
+    "1989-FMT-A.2.14.2",
+    "1989-AR-A.2.14.3-1",
+    "1989-RV-A.2.14.4-1",
+    "1989-RV-A.2.14.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-FACTORIAL-06",
+   "lines": [
+    443
+   ],
+   "feature": "FACTORIAL Function",
+   "ansi": "See ref. A-43 2.14",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.14.1-p1",
+    "1989-FMT-A.2.14.2",
+    "1989-AR-A.2.14.3-1",
+    "1989-RV-A.2.14.4-1",
+    "1989-RV-A.2.14.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-FACTORIAL-07",
+   "lines": [
+    461
+   ],
+   "feature": "FACTORIAL Function",
+   "ansi": "See ref. A-43 2.14",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.14.1-p1",
+    "1989-FMT-A.2.14.2",
+    "1989-AR-A.2.14.3-1",
+    "1989-RV-A.2.14.4-1",
+    "1989-RV-A.2.14.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-FACTORIAL-08",
+   "lines": [
+    480
+   ],
+   "feature": "FACTORIAL Function",
+   "ansi": "See ref. A-43 2.14",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.14.1-p1",
+    "1989-FMT-A.2.14.2",
+    "1989-AR-A.2.14.3-1",
+    "1989-RV-A.2.14.4-1",
+    "1989-RV-A.2.14.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-FACTORIAL-09",
+   "lines": [
+    495
+   ],
+   "feature": "FACTORIAL Function",
+   "ansi": "See ref. A-43 2.14",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.14.1-p1",
+    "1989-FMT-A.2.14.2",
+    "1989-AR-A.2.14.3-1",
+    "1989-RV-A.2.14.4-1",
+    "1989-RV-A.2.14.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  }
+ ]
+}

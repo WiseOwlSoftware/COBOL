@@ -1,0 +1,139 @@
+{
+ "program": "SM101A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "COPY-TEST-1",
+   "lines": [
+    410
+   ],
+   "feature": "WKNG-STORAGE ENTRY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "COPY-TEST-2",
+   "lines": [
+    441
+   ],
+   "feature": "PROCEDURE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "COPY-TEST-3",
+   "lines": [
+    474
+   ],
+   "feature": "SECTION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "COPY-TEST-4",
+   "lines": [
+    488
+   ],
+   "feature": "SECTION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "COPY-TEST-5",
+   "lines": [
+    502
+   ],
+   "feature": "SECTION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "COPY-TEST-6",
+   "lines": [
+    516
+   ],
+   "feature": "SECTION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "COPY-TEST-7",
+   "lines": [
+    540
+   ],
+   "feature": "FILE DESCRIPTION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "COPY-TEST-8",
+   "lines": [
+    564,
+    904
+   ],
+   "feature": "FILE DESCRIPTION",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "COPY-TEST-9",
+   "lines": [
+    919
+   ],
+   "feature": "COPY FILE DESCR",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "COPY-TEST-10",
+   "lines": [
+    934
+   ],
+   "feature": "COPY FILE DESCR",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "COPY-TEST-11",
+   "lines": [
+    949
+   ],
+   "feature": "COPY FILE DESCR",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "BAD-FILE",
+   "lines": [
+    957
+   ],
+   "feature": "COPY FILE DESCR",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

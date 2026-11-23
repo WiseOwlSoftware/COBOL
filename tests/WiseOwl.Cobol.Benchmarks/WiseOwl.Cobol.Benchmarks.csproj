@@ -48,12 +48,12 @@
 
   <ItemGroup>
     <!--
-      tests/Directory.Build.props links tests/_shared/*.cs into every project under tests/. Those helpers exist
+      tests/Directory.Build.props links tests/_shared/**/*.cs into every project under tests/. Those helpers exist
       for the xUnit projects (child-process observation, repo-root location) and are dead weight here, so the
       link is dropped rather than carried: a benchmark assembly should hold benchmarks and nothing else, and an
       unused linked file is one more thing that can fail to compile for reasons unrelated to benchmarking.
     -->
-    <Compile Remove="$(MSBuildThisFileDirectory)../_shared/*.cs" />
+    <Compile Remove="$(MSBuildThisFileDirectory)../_shared/**/*.cs" />
     <!--
       The ONE exception: the repo-root locator. The PB2117 benchmarks read their inputs from the tree (the NIST
       programs, Programs/*.cob), and TestRepoDriftTests forbids a second root-finder anywhere under tests/.

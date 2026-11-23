@@ -1,0 +1,36 @@
+{
+ "program": "RL119A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "REL-TEST-1",
+   "lines": [
+    520
+   ],
+   "feature": "",
+   "ansi": "VIII-4 1.3.4 4B",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VIII.1.3.4-1",
+    "1985-GR-VIII.1.3.4-L2.1",
+    "1985-GR-VIII.1.3.4-p1",
+    "1985-GR-VIII.1.3.4-2",
+    "1985-GR-VIII.1.3.4-L2.2",
+    "1985-GR-VIII.1.3.4-p2",
+    "1985-GR-VIII.1.3.4-3",
+    "1985-GR-VIII.1.3.4-L2.3",
+    "1985-GR-VIII.1.3.4-p3",
+    "1985-GR-VIII.1.3.4-4",
+    "1985-GR-VIII.1.3.4-L2.4",
+    "1985-GR-VIII.1.3.4-5",
+    "1985-GR-VIII.1.3.4-L2.5",
+    "1985-GR-VIII.1.3.4-p5",
+    "1985-GR-VIII.1.3.4-6",
+    "1985-GR-VIII.1.3.4-L2.6"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  }
+ ]
+}

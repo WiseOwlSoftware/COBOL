@@ -1,0 +1,160 @@
+{
+ "program": "DB102A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "START-PROGRAM-TEST",
+   "lines": [
+    380
+   ],
+   "feature": "DEBUG ON PROC-NAME",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "FALL-THROUGH-TEST",
+   "lines": [
+    406
+   ],
+   "feature": "DEBUG ON PROC-NAME",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "PROC-SERIES-TEST",
+   "lines": [
+    432
+   ],
+   "feature": "DEBUG ON PROC-NAME",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "GO-TO-TEST",
+   "lines": [
+    464
+   ],
+   "feature": "DEBUG ON PROC-NAME",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "ALTER-TEST",
+   "lines": [
+    492
+   ],
+   "feature": "DEBUG ON PROC-NAME",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "ALTERED-GO-TO-TEST",
+   "lines": [
+    520
+   ],
+   "feature": "DEBUG ON PROC-NAME",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "PERF-ITERATION-TEST",
+   "lines": [
+    546
+   ],
+   "feature": "DEBUG ON PROC-NAME",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "PERFORM-THRU-TEST",
+   "lines": [
+    583
+   ],
+   "feature": "DEBUG ON PROC-NAME",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SIMPLE-PERFORM-TEST",
+   "lines": [
+    610
+   ],
+   "feature": "DEBUG ON PROC-NAME",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "DEBUG-LINE-TEST-01",
+   "lines": [
+    624
+   ],
+   "feature": "DEBUG LINE TESTS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "DEBUG-LINE-TEST-02",
+   "lines": [
+    635
+   ],
+   "feature": "DEBUG LINE TESTS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "DEBUG-LINE-TEST-03",
+   "lines": [
+    647
+   ],
+   "feature": "DEBUG LINE TESTS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "DEBUG-LINE-TEST-04",
+   "lines": [
+    662
+   ],
+   "feature": "DEBUG LINE TESTS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "DEBUG-LINE-TEST-05",
+   "lines": [
+    680
+   ],
+   "feature": "DEBUG LINE TESTS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

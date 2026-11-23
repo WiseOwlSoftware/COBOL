@@ -1,0 +1,61 @@
+{
+ "program": "SM204A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "COPY-TEST-2",
+   "lines": [
+    336
+   ],
+   "feature": "COPY ENV DIV REPLAC",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "COPY-TEST-3",
+   "lines": [
+    351
+   ],
+   "feature": "COPY ENV DIV REPLAC",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "COPY-TEST-4",
+   "lines": [
+    366
+   ],
+   "feature": "COPY ENV DIV REPLAC",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "COPY-TEST-5",
+   "lines": [
+    382
+   ],
+   "feature": "COPY SPECIAL-NAMES",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "BAD-FILE",
+   "lines": [
+    390
+   ],
+   "feature": "COPY SPECIAL-NAMES",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

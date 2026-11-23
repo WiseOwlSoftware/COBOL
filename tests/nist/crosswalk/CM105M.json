@@ -1,0 +1,127 @@
+{
+ "program": "CM105M",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "QUEUE-TEST-01",
+   "lines": [
+    222
+   ],
+   "feature": "QUEUE SERIES PPPP",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "QUEUE-TEST-02",
+   "lines": [
+    233
+   ],
+   "feature": "QUEUE SERIES PPPS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "QUEUE-TEST-03",
+   "lines": [
+    244
+   ],
+   "feature": "QUEUE SERIES PPSP",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "QUEUE-TEST-04",
+   "lines": [
+    255
+   ],
+   "feature": "QUEUE SERIES PSPP",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "QUEUE-TEST-05",
+   "lines": [
+    266
+   ],
+   "feature": "QUEUE SERIES P",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "QUEUE-TEST-06",
+   "lines": [
+    277
+   ],
+   "feature": "QUEUE SERIES PP",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "QUEUE-TEST-07",
+   "lines": [
+    288
+   ],
+   "feature": "QUEUE SERIES PPP",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "QUEUE-TEST-08",
+   "lines": [
+    299
+   ],
+   "feature": "QUEUE SERIES PS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "QUEUE-TEST-09",
+   "lines": [
+    310
+   ],
+   "feature": "QUEUE SERIES PSP",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "QUEUE-TEST-10",
+   "lines": [
+    321
+   ],
+   "feature": "QUEUE SERIES PPS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "ACCEPT-TEST-01",
+   "lines": [
+    417
+   ],
+   "feature": "ACCEPT GROUP QUEUE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

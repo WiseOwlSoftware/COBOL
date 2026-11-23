@@ -127,6 +127,8 @@ note "$(printf '%-16s %s' 'doc audits:' "$(grep -E '^=== DOC AUDITS' "$OUT/citat
 [ "$?" -eq 0 ] || { note "annex a.1:       ⛔ the Annex A.1 register audit — see $OUT/citations.log"; RC=1; }
 "$PY" scripts/spec/audit_derivations.py --check >> "$OUT/citations.log" 2>&1
 [ "$?" -eq 0 ] || { note "derivations:     ⛔ the derivation register audit — see $OUT/citations.log"; RC=1; }
+"$PY" conformance-suite/harness/crosswalk.py --check >> "$OUT/citations.log" 2>&1
+[ "$?" -eq 0 ] || { note "nist-85 crosswalk: ⛔ a committed crosswalk file is stale — see $OUT/citations.log"; RC=1; }
 
 # ⛔ AND ONE DIAGNOSTIC PREFIX, COBOL#### (kb/Work PB3575), the gate driver's DIAGNOSTIC PREFIX audit.
 "$PY" scripts/rename_diagnostic_prefix.py --check >> "$OUT/citations.log" 2>&1

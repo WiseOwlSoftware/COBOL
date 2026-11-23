@@ -163,6 +163,14 @@ guard_output_verdict() {
         fi
     done
 
+    # ⛔ THE EXIT STATUS DECIDES BEFORE THE REPORT DOES (kb/Work PB3199). NistRunner fails a run that did not exit zero
+    # before it reads the report, and this arm used to score a matching report MATCH whatever the exit status was, so
+    # a run that crashed after writing its last line was green on this leg and red on the C# one. A matched report is
+    # a MATCH only from a run that ended normally; otherwise the RUN arm below decides, the report's match named. (A row
+    # corpus.tsv declares TERMINATES never reaches here: guard_termination_verdict scores it.)
+    local matched="$GUARD_ACTUAL"
+    if [ -n "$matched" ] && [ "$rrc" -ne 0 ]; then GUARD_ACTUAL=""; fi
+
     if [ -n "$GUARD_ACTUAL" ]; then
         # A FAIL* detail line is a real failure; the AUTHORITATIVE signal is the report footer total, which can
         # be non-zero with no FAIL* line at all (the IX108A false green). "NO TEST(S) FAILED" is not [0-9]+.
@@ -196,6 +204,9 @@ guard_output_verdict() {
     elif [ "$rrc" -gt 128 ]; then
         GUARD_CLASS="no-verdict"
         GUARD_VERDICT="RUN NO-VERDICT (killed by signal $((rrc - 128))) — NOT SCORED"
+    elif [ -n "$matched" ] && [ -s "$errfile" ]; then
+        GUARD_CLASS="regression"
+        GUARD_VERDICT="RUN FAILED — REGRESSION! (exit $rrc: $(guard_first_line "$errfile"); the report matched its golden)"
     elif [ "$trouble" -ne 0 ]; then
         # The COMPARE arm's own rule: the harness could not carry out the comparison, so it observed nothing.
         GUARD_CLASS="no-verdict"

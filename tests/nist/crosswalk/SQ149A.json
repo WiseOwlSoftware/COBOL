@@ -1,0 +1,17 @@
+{
+ "program": "SQ149A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "READ-TEST-01",
+   "lines": [
+    484
+   ],
+   "feature": "READ CLOSED FILE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}
