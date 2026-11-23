@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-8.4.2.2.3-7",
+ "rule-digest": "c42687276081",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/OmittedFormal.cs#RaisedKind; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionCatalog.cs#NameInEdition; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.ArgOmitted.cs#MarkFormals; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs#EcWrap",
+ "test-ref": "conformance:cases/8.4.2.2@2002-FUNCTION-IDENTIFIER/pb6107_function_arg_omitted_2002; conformance:cases/8.4.2.2@2002-FUNCTION-IDENTIFIER/pb6107_function_arg_omitted_name_refused_2002",
+ "notes": "§2002:8.4.2.2.3 GR7: a reference in an activated function to a parameter whose omitted-argument condition is true, except as an argument or in the omitted-argument condition, sets EC-PROGRAM-ARG-OMITTED (the 2002 text has one condition for a program, a function and a method; EC-FUNCTION-ARG-OMITTED is the §2014 name and is refused at 2002, COBOL0878). The binder queries >>TURN for the edition's name (OmittedFormal.ConditionNameInEdition through ExceptionCatalog.NameInEdition) and the guard raises through the program kind (OmittedFormal.RaisedKind), so the declarative named EC-PROGRAM-ARG-OMITTED runs. The golden matched at --std 2002 (exit 0)."
+}

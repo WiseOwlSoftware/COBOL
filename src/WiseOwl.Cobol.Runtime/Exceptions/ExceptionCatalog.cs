@@ -290,6 +290,35 @@ public static class ExceptionCatalog
         && suffix.All(c => char.IsAsciiLetterOrDigit(c) || c is '-' or '_')
         && suffix[^1] is not ('-' or '_');
 
+    /// <summary>⛔ THE CONDITIONS THAT HAVE A DIFFERENT NAME BEFORE THE EDITION THAT INTRODUCED THEIRS (kb/Work PB6107): the
+    /// 2002 text states one omitted-argument condition for a called program, an activated function and an invoked method,
+    /// <c>EC-PROGRAM-ARG-OMITTED</c> (§2002:8.4.2.2.3 GR7, §2002:14.8.22.3 GR10, §2002:14.8.4.3 GR12), and one not-found condition for a program
+    /// and a user function, <c>EC-PROGRAM-NOT-FOUND</c> (§2002:8.4.2.2.3 GR5); §2014 and §2023 split each by element kind
+    /// (<c>EC-FUNCTION-ARG-OMITTED</c> §2023:8.4.3.2.4 GR8, <c>EC-OO-ARG-OMITTED</c> §2023:14.9.23.4 GR10, <c>EC-FUNCTION-NOT-FOUND</c>
+    /// §2023:8.4.3.2.4 GR6b). Keyed by the later name, valued by the name the editions before <see cref="EcInfo.IntroducedIn"/> use.
+    /// Read only by <see cref="NameInEdition"/>.</summary>
+    private static readonly Dictionary<string, string> EarlierNames = new(CobolNames.Comparer)
+    {
+        ["EC-FUNCTION-ARG-OMITTED"] = "EC-PROGRAM-ARG-OMITTED",
+        ["EC-OO-ARG-OMITTED"] = "EC-PROGRAM-ARG-OMITTED",
+        ["EC-FUNCTION-NOT-FOUND"] = "EC-PROGRAM-NOT-FOUND",
+    };
+
+    /// <summary>⛔ THE ONE ANSWER TO "WHICH EXCEPTION-NAME DOES THE EDITION'S TEXT RAISE FOR THIS CONDITION" (kb/Work PB6107):
+    /// <paramref name="name"/> — the condition's name from 2014 or 2023 — when the edition <paramref name="editionYear"/> introduces it
+    /// (<see cref="EcInfo.IntroducedIn"/>), else the name the earlier edition raises for the same event
+    /// (<c>EC-FUNCTION-NOT-FOUND</c> is <c>EC-PROGRAM-NOT-FOUND</c> at 2002). The compiler declares, gates and emits a raise
+    /// through this, so a program written for 2002 enables, catches and reads the name its own standard defines and the next
+    /// edition-dependent name is one row of <see cref="EarlierNames"/>.</summary>
+    public static string NameInEdition(string name, int editionYear) =>
+        EarlierNames.TryGetValue(name, out string? earlier) && Table.TryGetValue(name, out var info) && editionYear < info.IntroducedIn
+            ? earlier
+            : name;
+
+    /// <summary>The (later name, earlier name) pairs of <see cref="NameInEdition"/>, for the drift test that each earlier name
+    /// is catalogued and introduced before its later one.</summary>
+    public static IEnumerable<(string Later, string Earlier)> EditionRenames => EarlierNames.Select(kv => (kv.Key, kv.Value));
+
     /// <summary>The level-2 parent of a level-3 exception-name (longest-prefix match over the level-2 family
     /// names — so <c>EC-I-O-AT-END</c> → <c>EC-I-O</c>, not <c>EC-IMP</c>; <c>EC-SORT-MERGE-ACTIVE</c> →
     /// <c>EC-SORT-MERGE</c>). Null when the name is not under any family. Used by the generated

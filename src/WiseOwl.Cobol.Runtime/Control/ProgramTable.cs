@@ -403,7 +403,7 @@ public sealed class ProgramTable
     private void ActivateMain(string path)
     {
         var n = _byPath[path];
-        var inst = n.Instance ??= Create(n, null, "EC-PROGRAM-NOT-FOUND");
+        var inst = n.Instance ??= Create(n, null, "EC-PROGRAM-NOT-FOUND", function: false);
         n.Active++;
         // NOT "called in this run unit" (§2023:14.9.5.4 GR7; §1985:X.5.3.4 GR8): no CALL entered the main activation, so it
         // leaves CalledSinceCancel alone. From 2002 a CANCEL of the main is refused as ACTIVE before GR7 is asked; at 85
@@ -495,12 +495,13 @@ public sealed class ProgramTable
     /// boundary (<see cref="CallFromHost"/>).</param>
     public void CallProgram(string name, string? callerPath, CobolArg[] args, CobolArg? returning,
         string notFoundEc = "EC-PROGRAM-NOT-FOUND", bool siteArgMismatchChecking = false,
-        string[]? programSpecifiers = null, bool siteSizeTruncationChecking = false)
+        string[]? programSpecifiers = null, bool siteSizeTruncationChecking = false, bool asFunction = false)
     {
         if (callerPath is null)
-            CallFromHost(name, args, returning, notFoundEc, siteArgMismatchChecking, programSpecifiers, siteSizeTruncationChecking);
+            CallFromHost(name, args, returning, notFoundEc, siteArgMismatchChecking, programSpecifiers, siteSizeTruncationChecking, asFunction);
         else
-            Activate(name, callerPath, args, returning, notFoundEc, siteArgMismatchChecking, programSpecifiers, siteSizeTruncationChecking);
+            Activate(name, callerPath, args, returning, notFoundEc, siteArgMismatchChecking, programSpecifiers, siteSizeTruncationChecking,
+                asFunction);
     }
 
     /// <summary>⛔ THE RUN UNIT'S OUTERMOST ACTIVATION BOUNDARY UNDER A .NET HOST (owner decision R48; docs/CONFORMANCE.md
@@ -525,13 +526,13 @@ public sealed class ProgramTable
     /// only the .NET runtime's stack margin, which the §2023:14.6.11 file closes must not have to share with the deepest
     /// activation of a recursion that exhausted it.</para></summary>
     private void CallFromHost(string name, CobolArg[] args, CobolArg? returning, string notFoundEc,
-        bool siteArgMismatchChecking, string[]? programSpecifiers, bool siteSizeTruncationChecking)
+        bool siteArgMismatchChecking, string[]? programSpecifiers, bool siteSizeTruncationChecking, bool asFunction)
     {
         Exception? ending = null;
         try
         {
             Activate(name, callerPath: null, args, returning, notFoundEc, siteArgMismatchChecking, programSpecifiers,
-                siteSizeTruncationChecking);
+                siteSizeTruncationChecking, asFunction);
             // §2023:14.9.40.4 GR17 at the host boundary, the one activating site that emits no pickup of its own (kb/Work PB1177,
             // PB3246: the emitted sites ask it after their pickup, CallEmitter.EmitActivationReturned).
             _owner.SortFiles.AfterActivationReturn();
@@ -550,7 +551,7 @@ public sealed class ProgramTable
     /// <summary>The §2023:14.9.4.4 GR3 activation boundary every CALL, function activation and host activation crosses
     /// (<see cref="CallProgram"/>, whose parameters it takes; <paramref name="callerPath"/> null for a host).</summary>
     private void Activate(string name, string? callerPath, CobolArg[] args, CobolArg? returning,
-        string notFoundEc, bool siteArgMismatchChecking, string[]? programSpecifiers, bool siteSizeTruncationChecking)
+        string notFoundEc, bool siteArgMismatchChecking, string[]? programSpecifiers, bool siteSizeTruncationChecking, bool asFunction)
     {
         // The ACTIVATING element's EC-EXTERNAL half (§2023:14.8.4.1 / §2023:14.9.4.4 GR3e): the CALL statement guard's
         // checking flags, read HERE, before this activation's own checking scope opens below. The flags are a
@@ -559,11 +560,11 @@ public sealed class ProgramTable
         var excState = _owner.Exceptions;
         int activatingExternalMask = excState.ExternalActivatingMask;
         bool activatingApplyCommit = excState.FlowApplyCommitChecking;   // §2023:12.4.6.3.4 GR3/GR4's activating half (kb/Work PB3338)
-        var n = ResolveVisible(name, callerPath, wantFunction: notFoundEc == "EC-FUNCTION-NOT-FOUND")
+        var n = ResolveVisible(name, callerPath, wantFunction: asFunction)
             ?? throw new CobolCallException(
-                notFoundEc == "EC-FUNCTION-NOT-FOUND"
+                asFunction
                     ? $"FUNCTION '{ExternalizedNames.Form(name)}': the user-defined function could not be located in the run unit"
-                      + $"{NotLocatedReason(name, wantFunction: true)} (ISO §2023:8.4.3.2.4 GR6b — EC-FUNCTION-NOT-FOUND)"
+                      + $"{NotLocatedReason(name, wantFunction: true)} (ISO §2023:8.4.3.2.4 GR6b, §2002:8.4.2.2.3 GR5 — {notFoundEc})"
                     : $"CALL '{ExternalizedNames.Form(name)}': program not found in the run unit{NotLocatedReason(name, wantFunction: false)} "
                       + "(ISO §2023:14.9.4.4 GR3b — EC-PROGRAM-NOT-FOUND)",
                 notFoundEc);
@@ -573,7 +574,7 @@ public sealed class ProgramTable
         // items 14 and 89), asked before anything of the activation is set up, so a failed attempt leaves nothing to undo.
         if (!ActivationStack.IsAvailable())
             throw new CobolCallException(
-                notFoundEc == "EC-FUNCTION-NOT-FOUND"
+                asFunction
                     ? $"FUNCTION '{n.Name}': the stack the function activation needs {ActivationStack.Exhausted} "
                       + "(ISO §2023:8.4.3.2.4 GR6c — EC-PROGRAM-RESOURCES)"
                     : $"CALL '{n.Name}': the stack the program needs {ActivationStack.Exhausted} "
@@ -653,12 +654,12 @@ public sealed class ProgramTable
             // control state (§2023:14.6.2.2), each in initial state per activation; the unit's WORKING-STORAGE is
             // STATIC data (§2023:13.5.4 GR1) emitted as STATIC fields — ONE copy in last-used state (§2023:14.6.2.3.3)
             // shared across all concurrent and successive activations, untouched by this fresh instance.
-            inst = Create(n, ParentInstance(n), notFoundEc);
+            inst = Create(n, ParentInstance(n), notFoundEc, asFunction);
             n.Instance = inst;   // contained-program factories reach their container through the registry
             if (n.Initial) CancelContained(n);   // contained programs re-initialize too (ISO §2023:11.10.4 GR3)
         }
         else
-            inst = n.Instance ??= Create(n, ParentInstance(n), notFoundEc);   // cached singleton — last-used state (§2023:14.6.2.3.3)
+            inst = n.Instance ??= Create(n, ParentInstance(n), notFoundEc, asFunction);   // cached singleton — last-used state (§2023:14.6.2.3.3)
 
         n.Active++;
         n.CalledSinceCancel = true;   // §2023:14.9.5.4 GR7 — called in this run unit (cleared again by CANCEL)
@@ -767,16 +768,15 @@ public sealed class ProgramTable
     /// function, §2023:8.4.3.2.4 GR6b with the loader's message, the activation not successful, never an escaping fatal of another
     /// kind and never one that depends on WHEN the CLR happened to load the assembly (DESIGN-external-repository §11.2). An
     /// exception the program's own code throws while it executes is not one of these and keeps its own meaning.</summary>
-    private static ICobolProgram Create(Node n, ICobolProgram? parent, string notFoundEc)
+    private static ICobolProgram Create(Node n, ICobolProgram? parent, string notFoundEc, bool function)
     {
         try { return n.Factory(parent); }
         catch (Exception e) when (IsCodeLoadFailure(e))
         {
-            bool function = notFoundEc == "EC-FUNCTION-NOT-FOUND";
             throw new CobolCallException(
                 function
                     ? $"FUNCTION '{n.Name}': the code of the user-defined function could not be loaded: {FaultText(e)} "
-                      + "(ISO §2023:8.4.3.2.4 GR6b — EC-FUNCTION-NOT-FOUND)"
+                      + $"(ISO §2023:8.4.3.2.4 GR6b, §2002:8.4.2.2.3 GR5 — {notFoundEc})"
                     : $"CALL '{n.Name}': the code of the program could not be loaded: {FaultText(e)} "
                       + "(ISO §2023:14.9.4.4 GR3b — EC-PROGRAM-NOT-FOUND)",
                 notFoundEc);
@@ -956,7 +956,7 @@ public sealed class ProgramTable
                 "EC-FUNCTION-PTR-NULL");
         }
         CallProgram(target.Name!, callerPath, args, returning, notFoundEc: "EC-FUNCTION-NOT-FOUND",
-            siteArgMismatchChecking: siteArgMismatchChecking);
+            siteArgMismatchChecking: siteArgMismatchChecking, asFunction: true);
     }
 
     /// <summary>

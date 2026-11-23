@@ -270,7 +270,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             : RuntimeApi.ExternalizedNameInEdition(OperandText.AsString(c.DynamicName!, num),
                 ctx.Data.DialectLevel);   // GR3b — the identifier's value at CALL time (GR3a: read once), formed in the edition's spelling (PB2991)
         return $"ProgramRegistry.CallProgram({nameExpr}, {head}"
-            + $"{(c.IsFunction ? ", notFoundEc: \"EC-FUNCTION-NOT-FOUND\"" : "")}"   // §2023:8.4.3.2.4 GR6b
+            + $"{(c.IsFunction ? $", notFoundEc: \"{Runtime.Exceptions.ExceptionCatalog.NameInEdition("EC-FUNCTION-NOT-FOUND", ctx.Data.DialectLevel)}\", asFunction: true" : "")}"   // §2023:8.4.3.2.4 GR6b; §2002:8.4.2.2.3 GR5 names EC-PROGRAM-NOT-FOUND
             + $"{site});";
     }
 

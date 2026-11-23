@@ -1192,6 +1192,16 @@ done).
   only those three, and the rest of the EC-FLOW level-3 names (EC-FLOW-USE, EC-FLOW-SEARCH, EC-FLOW-REPORT,
   EC-FLOW-RELEASE, EC-FLOW-RETURN, EC-FLOW-GLOBAL-EXIT/-GOBACK) are 2002 EC-model names — `ExceptionCatalog`
   carries each name's own introduction edition, which is what the gate reads.
+  ⛔ A CONDITION THAT IS NAMED DIFFERENTLY BEFORE ITS EDITION IS NAMED THROUGH ONE TABLE (kb/Work PB6107): §2002 states one
+  omitted-argument condition, EC-PROGRAM-ARG-OMITTED, for a called program, an activated function and an invoked method
+  (§2002:14.8.4.3 GR12, §2002:8.4.2.2.3 GR7, §2002:14.8.22.3 GR10) and the locate miss of a function as EC-PROGRAM-NOT-FOUND
+  (§2002:8.4.2.2.3 GR5); §2014 (E.2 item 18) and §2023 split each by element kind. `ExceptionCatalog.NameInEdition` is the one
+  answer, and every consumer asks it: `EcBinder.EcWrap` maps each declared name before the TurnState filter, `EcBinder.MarkFormals`
+  queries `>>TURN` for `OmittedFormal.ConditionNameInEdition` and stamps the guard with `OmittedFormal.RaisedKind` (the PROGRAM kind
+  at 2002, so `OmittedFormal.Raise` reaches `ProgramArgOmittedError` and its flag), and the activation emitters
+  (`CallEmitter.InvocationText`, `HostEntryEmitter`) pass the edition's miss name with `asFunction: true`, the one statement of
+  function-ness the runtime reads (`ProgramTable.CallProgram`, never the spelling of the name). The next edition-dependent name
+  is one row of `ExceptionCatalog.EarlierNames`; `EditionExceptionNameTests` pins the table and the emitted text.
 - **SET cond-name TO FALSE / WHEN SET TO FALSE (D7): 2002+** — diagnosed at `--std=85` with COBOL0900, gated
   recognition-first in `VersionConformancePass.ParseArm` (`VisitValueClauseFalsePhrase`, `VisitSetBooleanStatement`)
   on the `constructs/` rows `value-false-phrase-2002` / `set-condition-false-2002`; COBOL2049 (missing FALSE

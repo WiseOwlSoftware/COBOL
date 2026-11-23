@@ -39,26 +39,30 @@ internal sealed partial class EcBinder
     /// <summary>Mark a PROGRAM or FUNCTION unit's formals (called once the unit's data is bound, before any
     /// contained program bridges its GLOBAL roots — the bridge carries the presence member too). A no-op when the
     /// compilation group enables the kind's condition nowhere: the reference then renders unguarded, because the
-    /// raise could never fire (the zero-scaffolding invariant).</summary>
-    internal static void MarkFormals(IReadOnlyList<LinkageFormal> formals, SourceElementKind element, TurnState turn)
+    /// raise could never fire (the zero-scaffolding invariant). The condition is the one the EDITION names for the element
+    /// (<see cref="OmittedFormal.ConditionNameInEdition"/>: EC-PROGRAM-ARG-OMITTED for a function at 2002; kb/Work PB6107), and
+    /// the guard carries the kind whose raise that is (<see cref="OmittedFormal.RaisedKind"/>).</summary>
+    internal static void MarkFormals(IReadOnlyList<LinkageFormal> formals, SourceElementKind element, TurnState turn, int editionYear)
     {
         var kind = ElementKindOf(element);
-        if (formals.Count == 0 || !turn.AnyEnabledFor(OmittedFormal.ConditionName(kind))) return;
+        if (formals.Count == 0 || !turn.AnyEnabledFor(OmittedFormal.ConditionNameInEdition(kind, editionYear))) return;
+        var raised = OmittedFormal.RaisedKind(kind, editionYear);
         foreach (var f in formals)
-            f.Item.OmittedGuard = new OmittedFormalGuard(OmittedFormalGuard.PresenceMember(f.Item), kind,
+            f.Item.OmittedGuard = new OmittedFormalGuard(OmittedFormalGuard.PresenceMember(f.Item), raised,
                 f.Item.CobolName ?? "", PassesCarrier: f.CarrierResident);
     }
 
     /// <summary>Mark every method's formals (§2023:14.9.23.4 GR10). The presence is the method's own omitted flag
     /// parameter (<see cref="OoFormal.OmittedFlag"/>), in scope throughout the method body.</summary>
-    internal static void MarkFormals(IEnumerable<OoMethodSymbol> methods, TurnState turn)
+    internal static void MarkFormals(IEnumerable<OoMethodSymbol> methods, TurnState turn, int editionYear)
     {
-        if (!turn.AnyEnabledFor(OmittedFormal.ConditionName(ActivatedElementKind.Method))) return;
+        if (!turn.AnyEnabledFor(OmittedFormal.ConditionNameInEdition(ActivatedElementKind.Method, editionYear))) return;
+        var raised = OmittedFormal.RaisedKind(ActivatedElementKind.Method, editionYear);
         foreach (var m in methods)
             if (m.Binding is { } b)
                 foreach (var f in b.Formals)
                     // A resident formal's root is its carrier (kb/Work PB2087, PB4320), passed through the guard.
-                    f.Item.OmittedGuard = new OmittedFormalGuard(f.OmittedFlag, ActivatedElementKind.Method,
+                    f.Item.OmittedGuard = new OmittedFormalGuard(f.OmittedFlag, raised,
                         f.Item.CobolName ?? "", PassesCarrier: f.CarrierResident);
     }
 }

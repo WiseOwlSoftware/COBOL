@@ -21,7 +21,9 @@ namespace WiseOwl.Cobol.Binding.Model;
 /// TRUE when the argument was omitted: a program/function formal's <c>__omit{Uid}</c> member (a Uid-keyed name, so
 /// a contained program's GLOBAL bridge of it cannot collide with its own formals), a method formal's
 /// <c>__omittedN</c> presence parameter.</param>
-/// <param name="Kind">The activated element that owns the formal — which of the three conditions is raised.</param>
+/// <param name="Kind">Which of the three conditions a reference raises: the kind of the activated element that owns the formal from 2014,
+/// and <see cref="ActivatedElementKind.Program"/> for every element at 2002, whose one condition is EC-PROGRAM-ARG-OMITTED
+/// (<see cref="OmittedFormal.RaisedKind"/>; kb/Work PB6107).</param>
 /// <param name="FormalName">The COBOL name, for the diagnostic detail.</param>
 /// <param name="PassesCarrier">True when the root segment the guard rides is a reference-type CARRIER that is passed
 /// through the guard rather than taken by <c>ref</c>: a carrier-resident formal's <c>ManagedPointer</c> carrier (whose

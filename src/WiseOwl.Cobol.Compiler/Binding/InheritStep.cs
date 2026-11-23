@@ -60,12 +60,12 @@ internal static class InheritStep
     /// <summary>Write the merge half of <paramref name="unit"/>'s inheritance, after its data phases: its binder is
     /// <c>unit.Data</c>, <paramref name="kind"/> its source-element kind and <paramref name="turn"/> the group's
     /// TurnState.</summary>
-    public static void Merge(BoundUnit unit, SourceElementKind kind, TurnState turn, ElementBinders binders)
+    public static void Merge(BoundUnit unit, SourceElementKind kind, TurnState turn, ElementBinders binders, int editionYear)
     {
         var data = binders.Of(unit).Data;
         // kb/Work PB971 — the formals' *-ARG-OMITTED guards, set BEFORE any contained program binds (a parent binds before
         // its children), so the GLOBAL bridge below can carry a guarded root's presence member.
-        EcBinder.MarkFormals(data.Linkage.Formals, kind, turn);
+        EcBinder.MarkFormals(data.Linkage.Formals, kind, turn, editionYear);
 
         var bridgedMembers = new HashSet<string>(StringComparer.Ordinal);
         foreach (var (anc, g, depth) in ContainerBridgedRootsOf(unit, binders))

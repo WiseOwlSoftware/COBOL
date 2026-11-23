@@ -1541,3 +1541,11 @@ static readonly WiseOwl.Cobol.Runtime.MoveCitations.Iso2023 -> WiseOwl.Cobol.Run
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryIndexOutcome.ToString() -> string
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.Equals(object obj) -> bool
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.ToString() -> string
+*REMOVED*WiseOwl.Cobol.Runtime.ProgramTable.CallProgram(string! name, string? callerPath, WiseOwl.Cobol.Runtime.CobolArg[]! args, WiseOwl.Cobol.Runtime.CobolArg? returning, string! notFoundEc = "EC-PROGRAM-NOT-FOUND", bool siteArgMismatchChecking = false, string![]? programSpecifiers = null, bool siteSizeTruncationChecking = false) -> void
+*REMOVED*static WiseOwl.Cobol.Runtime.ProgramRegistry.CallProgram(string! name, string? callerPath, WiseOwl.Cobol.Runtime.CobolArg[]! args, WiseOwl.Cobol.Runtime.CobolArg? returning, string! notFoundEc = "EC-PROGRAM-NOT-FOUND", bool siteArgMismatchChecking = false, string![]? programSpecifiers = null, bool siteSizeTruncationChecking = false) -> void
+WiseOwl.Cobol.Runtime.ProgramTable.CallProgram(string! name, string? callerPath, WiseOwl.Cobol.Runtime.CobolArg[]! args, WiseOwl.Cobol.Runtime.CobolArg? returning, string! notFoundEc = "EC-PROGRAM-NOT-FOUND", bool siteArgMismatchChecking = false, string![]? programSpecifiers = null, bool siteSizeTruncationChecking = false, bool asFunction = false) -> void
+static WiseOwl.Cobol.Runtime.ProgramRegistry.CallProgram(string! name, string? callerPath, WiseOwl.Cobol.Runtime.CobolArg[]! args, WiseOwl.Cobol.Runtime.CobolArg? returning, string! notFoundEc = "EC-PROGRAM-NOT-FOUND", bool siteArgMismatchChecking = false, string![]? programSpecifiers = null, bool siteSizeTruncationChecking = false, bool asFunction = false) -> void
+static WiseOwl.Cobol.Runtime.Exceptions.ExceptionCatalog.NameInEdition(string! name, int editionYear) -> string!
+static WiseOwl.Cobol.Runtime.Exceptions.ExceptionCatalog.EditionRenames.get -> System.Collections.Generic.IEnumerable<(string! Later, string! Earlier)>!
+static WiseOwl.Cobol.Runtime.OmittedFormal.ConditionNameInEdition(WiseOwl.Cobol.Runtime.ActivatedElementKind element, int editionYear) -> string!
+static WiseOwl.Cobol.Runtime.OmittedFormal.RaisedKind(WiseOwl.Cobol.Runtime.ActivatedElementKind element, int editionYear) -> WiseOwl.Cobol.Runtime.ActivatedElementKind

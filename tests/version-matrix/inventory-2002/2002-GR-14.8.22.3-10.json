@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.22.3-10",
+ "rule-digest": "93fee445ab18",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/OmittedFormal.cs#RaisedKind; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.ArgOmitted.cs#MarkFormals",
+ "test-ref": "conformance-test:ArgOmittedConditionTests.ElementaryReference_At2002_RaisesEcProgramArgOmitted",
+ "notes": "§2002:14.8.22.3 GR10: a reference in an invoked method to an omitted parameter sets EC-PROGRAM-ARG-OMITTED (EC-OO-ARG-OMITTED is the §2014 name). A method may carry no declaratives yet (COBOL0899), so the observable is the abnormal run-unit termination naming EC-PROGRAM-ARG-OMITTED at --std 2002."
+}
