@@ -1912,7 +1912,8 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             "EcStatus" => RuntimeApi.EcFn("Status"),                           // §2023:15.33
             "EcLocation" => RuntimeApi.EcFn("Location"),                       // §2023:15.30
             "EcLocationN" => RuntimeApi.EcFn("LocationN"),                     // §2023:15.31 — the national twin
-            "EcStatement" => RuntimeApi.EcFn("Statement"),                     // §2023:15.32
+            "EcStatement" => RuntimeApi.EcFn("Statement",                     // §2023:15.32.3 RV1 and RV2 (63), §2002:15.27.2 RV1 and RV2 (31)
+                EcFunctions.StatementLength(ctx.Data.DialectLevel).ToString(System.Globalization.CultureInfo.InvariantCulture)),
             // §2023:15.28.4 / §2023:15.29.4: the no-argument form (r1) reads the last-exception register; the 2023
             // file-connector-argument form (r2) reads the NAMED connector — the SAME FileKeyExpr the file verbs use.
             "EcFile" => ic.FileArg is { } eff

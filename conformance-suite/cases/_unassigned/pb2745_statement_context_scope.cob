@@ -12,8 +12,8 @@
       *>   ISO 15.32.3 r2 (cite.py OK) "the name of the statement that caused the
       *>     exception condition to be raised"; r1 (cite.py OK) when LOCATION "is
       *>     not specified and the implementor does not save the location
-      *>     information, the returned value is 63 spaces" (this implementation
-      *>     saves nothing then - CONFORMANCE.md);
+      *>     information, the returned value is 63 spaces" (31 at 2002, §2002:15.27.2 RV1;
+      *>     this implementation saves nothing then - CONFORMANCE.md);
       *>   ISO 15.30.3 r1 (cite.py OK) "the returned value is one alphanumeric
       *>     space character";
       *>   ISO 7.3.25.4 GR6 (cite.py OK) checking "is enabled for the procedure
@@ -25,11 +25,11 @@
       *> EC-BOUND-SUBSCRIPT; each program's declarative displays the pair and
       *> RESUMEs at the next statement.
       *> DERIVATION:
-      *>   line 1 (PB2745S's MOVE, no LOCATION): 63 spaces; line 2: one space.
+      *>   line 1 (PB2745S's MOVE, no LOCATION): 31 spaces; line 2: one space.
       *>     Before the fix the CALL statement's context leaked across the
       *>     activation: "CALL" and the CALL's location.
       *>   lines 3-4 (P-LATER's MOVE, PERFORMed from a WITH LOCATION statement,
-      *>     no LOCATION itself): 63 spaces and one space (the PERFORM's context
+      *>     no LOCATION itself): 31 spaces and one space (the PERFORM's context
       *>     leaked before the fix).
       *>   lines 5-6 (the control: MAIN-P's MOVE, WITH LOCATION): "MOVE" and its
       *>     location in this implementation's form "<program>; <paragraph> OF

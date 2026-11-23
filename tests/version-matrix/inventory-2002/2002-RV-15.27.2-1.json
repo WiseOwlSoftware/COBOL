@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-RV-15.27.2-1",
+ "rule-digest": "673300e93a70",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/EcFunctions.cs#Statement; src/WiseOwl.Cobol.Runtime/Intrinsics/EcFunctions.cs#StatementLength; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderStringValue",
+ "test-ref": "conformance:cases/15.27@2002-EXCEPTION-STATEMENT-FUNCTION/g2-exception-statement-31",
+ "notes": "§2002:15.27.2 RV1: with no location saved the returned value is 31 spaces; EcFunctions.Statement(length) pads to the length the renderer passes, EcFunctions.StatementLength(2002) = 31 (DialectBehavior.ExceptionStatementIs63Characters, 2023 and later 63). The --std 2002 and --std 2014 runs of the build matched FUNCTION LENGTH = 31 before any exception (kb/Work PB5698, PB5717)."
+}

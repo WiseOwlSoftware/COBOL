@@ -53,6 +53,7 @@
 *REMOVED*static WiseOwl.Cobol.Runtime.CobolIntrinsics.VarianceDec(WiseOwl.Cobol.Runtime.CobolRounding mode, params WiseOwl.Cobol.Runtime.CobolDec[]! xs) -> WiseOwl.Cobol.Runtime.CobolDec
 *REMOVED*static WiseOwl.Cobol.Runtime.CobolNum.AddChecked(System.Int128 a, System.Int128 b) -> System.Int128
 *REMOVED*static WiseOwl.Cobol.Runtime.CobolNum.SubChecked(System.Int128 a, System.Int128 b) -> System.Int128
+*REMOVED*static WiseOwl.Cobol.Runtime.EcFunctions.Statement() -> string!
 *REMOVED*static WiseOwl.Cobol.Runtime.IO.CobolFile.CloseIfOpen(string! name) -> void
 *REMOVED*static WiseOwl.Cobol.Runtime.IO.CobolFile.Register(string! cobolName, string! assignTarget, int recordWidth, bool lineSequential, bool optional, int varyMin = -1, int varyMax = -1, string? selectName = null, int edition = 2023, int recordMax = 0) -> void
 *REMOVED*static WiseOwl.Cobol.Runtime.IO.CobolFile.RewriteShared(string! name, string! image, int length, WiseOwl.Cobol.Runtime.IO.FileRecordLock phrase, WiseOwl.Cobol.Runtime.IO.FileRetryKind retryKind, long retryAmount, WiseOwl.Cobol.Runtime.RecordExtents? areaExtents = null, bool nationalRecord = false) -> string!
@@ -192,6 +193,7 @@ WiseOwl.Cobol.Runtime.DialectBehavior.DivideRemainderSignedSubsidiary = 54 -> Wi
 WiseOwl.Cobol.Runtime.DialectBehavior.EntryClauseImplicitQualifiers = 56 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.EvaluateObjectsInWhenPhraseOrder = 18 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.EvaluateRefusesLiteralSubjectLiteralObject = 21 -> WiseOwl.Cobol.Runtime.DialectBehavior
+WiseOwl.Cobol.Runtime.DialectBehavior.ExceptionStatementIs63Characters = 61 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.FileSharingFacility = 2 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.GenerateReportNameSingleDetail = 50 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.GroupComparisonIsElementaryAlphanumeric = 58 -> WiseOwl.Cobol.Runtime.DialectBehavior
@@ -1252,6 +1254,8 @@ static WiseOwl.Cobol.Runtime.Communication.MessageControl.Send(WiseOwl.Cobol.Run
 static WiseOwl.Cobol.Runtime.DebugItem.GroupWidthFor(int contentsWidth) -> int
 static WiseOwl.Cobol.Runtime.DecArithmetic.Sdidi(WiseOwl.Cobol.Runtime.CobolRounding mode) -> WiseOwl.Cobol.Runtime.DecArithmetic
 static WiseOwl.Cobol.Runtime.DecArithmetic.Standard(WiseOwl.Cobol.Runtime.CobolRounding mode) -> WiseOwl.Cobol.Runtime.DecArithmetic
+static WiseOwl.Cobol.Runtime.EcFunctions.Statement(int length) -> string!
+static WiseOwl.Cobol.Runtime.EcFunctions.StatementLength(int editionYear) -> int
 static WiseOwl.Cobol.Runtime.Exceptions.DispatchResult.CompletedNotNormally(int result) -> bool
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.EditionRule(string! rule1985, string! later) -> string!
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.FlowApplyCommitChecking.get -> bool

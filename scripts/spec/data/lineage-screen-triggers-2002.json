@@ -397,6 +397,12 @@
    ],
    "why": "the CURRENCY SIGN clause of the SPECIAL-NAMES paragraph, §2002:12.2.6, whose literal-7 and literal-8 rules (§2002:12.2.6.2 SR18, SR22) name no hexadecimal form at 2002 (kb/Work PB5595, PB6031, VCR row 7.116)"
   },
+  "exception-statement-is-63-characters": {
+   "sections": [
+    "15.27"
+   ],
+   "why": "the EXCEPTION-STATEMENT function, §2002:15.27, whose returned values RV1 and RV2 are 31 characters at 2002 (kb/Work PB5698, PB5717, VCR row 7.117)"
+  },
   "indexed-read-previous-after-open-at-end": {
    "sections": [
     "14.8.29"
