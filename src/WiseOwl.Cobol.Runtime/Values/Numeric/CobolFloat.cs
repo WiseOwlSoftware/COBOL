@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Diagnostics;
 using System.Globalization;
 using System.Numerics;
 using WiseOwl.Cobol.Runtime.Exceptions;
@@ -27,7 +28,7 @@ public static class CobolFloat
     /// <summary>⛔ THE ONE scaled-value→double conversion (kb/Work PB115): the CORRECTLY-ROUNDED double of the
     /// algebraic value <c>unscaled × 10^(−scale)</c>. Two paths, both single-rounded: when the unscaled magnitude
     /// fits 2^53 and |scale| ≤ 22, both operands are EXACT doubles and one IEEE divide/multiply rounds once; past
-    /// either bound, the decimal-string round-trip (<see cref="double.Parse(string)"/> is IEEE correctly rounded
+    /// either bound, one decimal parse of the value's scientific text (<c>double.Parse</c> is IEEE correctly rounded
     /// in this runtime). It replaced <c>(double)(x) / 10^scale</c> with an emit-time repeated-multiplication
     /// divisor — exact only through 1e22, so at scale ≥ 23 the divisor sat one ulp low and a LEGAL
     /// <c>ASIN(|x| ≤ 1)</c> argument (§2023:15.10.3 AR2) arrived above 1.0, evaluated NaN and drew the §2023:15.3
@@ -45,10 +46,9 @@ public static class CobolFloat
             double v = (double)(long)unscaled;                 // exact: |value| ≤ 2^53
             return scale > 0 ? v / ExactPow10[scale] : v * ExactPow10[-scale];
         }
-        // The slow path: one correctly-rounded decimal parse of "<unscaled>E<-scale>".
-        return double.Parse(
-            unscaled.ToString(CultureInfo.InvariantCulture) + "E" + (-scale).ToString(CultureInfo.InvariantCulture),
-            NumberStyles.Float, CultureInfo.InvariantCulture);
+        // The slow path: one correctly-rounded decimal parse of "<unscaled>E<-scale>", formatted on the stack.
+        Span<char> text = stackalloc char[ScientificTextCapacity];
+        return double.Parse(ScientificText(unscaled, scale, text), NumberStyles.Float, CultureInfo.InvariantCulture);
     }
 
     /// <summary>⛔ THE ONE scaled-value→binary32 conversion (kb/Work PB1110): the CORRECTLY-ROUNDED binary32 of the
@@ -57,8 +57,8 @@ public static class CobolFloat
     /// <see cref="ScaledToDouble"/> is a SECOND rounding: a value a hair above a binary32 midpoint rounds onto the
     /// midpoint in binary64 and the cast then ties to even, storing the lower neighbour. When the unscaled magnitude
     /// fits 2^24 and |scale| ≤ 10 both operands are exact binary32 values (10^10 = 2^10·5^10, 5^10 &lt; 2^24), so one
-    /// IEEE single divide/multiply rounds once; past either bound, the decimal-string parse
-    /// (<see cref="float.Parse(string)"/> is IEEE correctly rounded in this runtime). ±Infinity is the overflow
+    /// IEEE single divide/multiply rounds once; past either bound, one decimal parse of the value's scientific text
+    /// (<c>float.Parse</c> is IEEE correctly rounded in this runtime). ±Infinity is the overflow
     /// result — the caller's checked store decides whether that raises.</summary>
     public static float ScaledToSingle(Int128 unscaled, int scale)
     {
@@ -68,9 +68,39 @@ public static class CobolFloat
             float v = (float)(int)unscaled;                    // exact: |value| ≤ 2^24
             return scale > 0 ? v / ExactPow10Single[scale] : v * ExactPow10Single[-scale];
         }
-        return float.Parse(
-            unscaled.ToString(CultureInfo.InvariantCulture) + "E" + (-scale).ToString(CultureInfo.InvariantCulture),
-            NumberStyles.Float, CultureInfo.InvariantCulture);
+        Span<char> text = stackalloc char[ScientificTextCapacity];
+        return float.Parse(ScientificText(unscaled, scale, text), NumberStyles.Float, CultureInfo.InvariantCulture);
+    }
+
+    /// <summary>The correctly-rounded binary64 of an UNSIGNED magnitude <c>magnitude × 10^(−scale)</c> past the signed
+    /// carrier (<c>FloatResultant</c>'s exact magnitude reaches 2^128 − 1): the same decimal parse as
+    /// <see cref="ScaledToDouble"/>'s slow path, for the one value range <see cref="Int128"/> cannot hold.</summary>
+    internal static double ScaledMagnitudeToDouble(UInt128 magnitude, int scale)
+    {
+        Span<char> text = stackalloc char[ScientificTextCapacity];
+        return double.Parse(ScientificText(magnitude, scale, text), NumberStyles.Float, CultureInfo.InvariantCulture);
+    }
+
+    /// <summary>The longest <see cref="ScientificText{T}"/>: a signed <see cref="Int128"/> (39 digits and a sign,
+    /// <c>-170141183460469231731687303715884105728</c>; a <see cref="UInt128"/> is 39 digits), the <c>E</c>, and a
+    /// signed <see cref="int"/> exponent (10 digits and a sign) is 52 characters; 64 leaves headroom.</summary>
+    private const int ScientificTextCapacity = 64;
+
+    /// <summary>The slow-path text of the scaled→binary conversions: the algebraic value <c>mantissa × 10^(−scale)</c>
+    /// as <c>&lt;mantissa&gt;E&lt;−scale&gt;</c> in the invariant culture, written into <paramref name="buffer"/> (the
+    /// caller's <see cref="ScientificTextCapacity"/> stack buffer) so the parse allocates nothing (kb/Work PB2658: it
+    /// replaced three intermediate strings per conversion; the witness is
+    /// <c>tests/WiseOwl.Cobol.Benchmarks/Numeric/ScaledFloatBenchmarks.cs</c>). Only the 128-bit carriers reach it,
+    /// which is what bounds the buffer.</summary>
+    private static ReadOnlySpan<char> ScientificText<T>(T mantissa, int scale, Span<char> buffer)
+        where T : IBinaryInteger<T>
+    {
+        if (!mantissa.TryFormat(buffer, out int length, default, CultureInfo.InvariantCulture))
+            throw new UnreachableException($"{ScientificTextCapacity} characters hold every 128-bit integer");
+        buffer[length++] = 'E';
+        if (!(-scale).TryFormat(buffer[length..], out int exponentLength, default, CultureInfo.InvariantCulture))
+            throw new UnreachableException($"{ScientificTextCapacity} characters hold every 128-bit integer and int exponent");
+        return buffer[..(length + exponentLength)];
     }
 
     private static readonly float[] ExactPow10Single =
