@@ -1,0 +1,105 @@
+{
+ "program": "RL401M",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "NON-CONFORMING@16",
+   "lines": [
+    16
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "FILE-CONTROL SELECT OPTIONAL TFIL ASSIGN",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@19",
+   "lines": [
+    19
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "XXXXX021 RESERVE 2 AREAS",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@22",
+   "lines": [
+    22
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "ORGANIZATION IS RELATIVE ACCESS MODE IS DYNAMIC",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@31",
+   "lines": [
+    31
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "I-O-CONTROL SAME RECORD AREA FOR TFIL2, TFIL",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@37",
+   "lines": [
+    37
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "FILE SECTION FD TFIL RECORD IS VARYING IN SIZE FROM 1 TO 8 CHARACTERS",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@61",
+   "lines": [
+    61
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "RL401M-CLOSE CLOSE TFIL WITH LOCK",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@66",
+   "lines": [
+    66
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "RL401M-OPENEXT OPEN EXTEND TFIL2",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@71",
+   "lines": [
+    71
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "RL401M-READNEXT READ TFIL NEXT RECORD AT END DISPLAY \"AT END\"",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@76",
+   "lines": [
+    76
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "RL401M-START START TFIL KEY IS EQUAL TO RKEY INVALID KEY STOP RUN",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  }
+ ]
+}

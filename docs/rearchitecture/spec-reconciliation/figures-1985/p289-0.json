@@ -8,15 +8,15 @@
   "                         ⎪ <u>ALPHABETIC-UPPER</u> ⎪",
   "                         ⎩ class-name-1     ⎭"
  ],
- "decided": "drawn",
+ "decided": "neither",
  "figure_lines": [
   "                         ╭ <u>NUMERIC</u>          ╮",
   "                         ┤                  ├",
   "                         │ <u>ALPHABETIC</u>       │",
-  "identifier-1 IS [<u>NOT</u>]   ┤ <u>ALPHABETIC-LOWER</u> ├",
+  "identifier-1 IS [<u>NOT</u>]    ┤ <u>ALPHABETIC-LOWER</u> ├",
   "                         │ <u>ALPHABETIC-UPPER</u> │",
   "                         ┤                  ├",
   "                         ╰ class-name-1     ╯"
  ],
- "reason": "The printed page sets identifier-1 IS [NOT] {NUMERIC / ALPHABETIC / ALPHABETIC-LOWER / ALPHABETIC-UPPER / class-name-1}, the four class words and NOT underlined, as the batch drew it. Redrawn in the house style."
+ "reason": "The printed page sets identifier-1 IS [NOT] {NUMERIC / ALPHABETIC / ALPHABETIC-LOWER / ALPHABETIC-UPPER / class-name-1}, the four class words and NOT underlined, as the batch drew it. Redrawn in the house style. Pass 3 sibling sweep of kb/Work PB6051 p213-1: the middle row of the class-condition brace stood one column left of the brace (the point at column 24, the brace at 25); the printed page sets one brace of five rows, its point on the ALPHABETIC-LOWER row, so the row is moved one column right and the verdict is neither (the batch drew three braces)."
 }

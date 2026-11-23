@@ -1,0 +1,17 @@
+{
+ "program": "SQ210M",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "WRITE-TEST-GF-01",
+   "lines": [
+    349
+   ],
+   "feature": "LINAGE INT / D-N MIX",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

@@ -1,0 +1,149 @@
+{
+ "program": "SQ201M",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "WRT-TEST-01",
+   "lines": [
+    380
+   ],
+   "feature": "LINAGE-CT AFTER OPEN",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRT-TEST-02",
+   "lines": [
+    420
+   ],
+   "feature": "L-C AFTER WRITE PAGE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRT-TEST-03",
+   "lines": [
+    443
+   ],
+   "feature": "L-C AFT PAGE OVERFLW",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRT-TEST-04",
+   "lines": [
+    467
+   ],
+   "feature": "L-C AFT WRT W/O ADV",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRT-TEST-05",
+   "lines": [
+    490
+   ],
+   "feature": "L-C AFT WRT ADV INT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRT-TEST-06",
+   "lines": [
+    514
+   ],
+   "feature": "L-C AFT WRT ADV ID-2",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRT-TEST-07",
+   "lines": [
+    531
+   ],
+   "feature": "WRT AFT ADV PAGE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "VAR-TEST-008",
+   "lines": [
+    560
+   ],
+   "feature": "NOT END-OF-PAGE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "VAR-TEST-009",
+   "lines": [
+    588
+   ],
+   "feature": "NOT AT EOP",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "VAR-TEST-010",
+   "lines": [
+    620
+   ],
+   "feature": "NOT END-OF-PAGE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "VAR-TEST-010-1",
+   "lines": [
+    636
+   ],
+   "feature": "END-WRITE;NOT END-OF",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "VAR-TEST-011",
+   "lines": [
+    668
+   ],
+   "feature": "NOT EOP",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "VAR-TEST-011-1",
+   "lines": [
+    684
+   ],
+   "feature": "END-WRITE; NOT EOP",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

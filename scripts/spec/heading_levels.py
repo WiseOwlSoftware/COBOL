@@ -12,6 +12,11 @@ THE SCOPE is the standard itself, from Section I, and Amendment 1's Section A (t
 the other modules are), to the part heading of Amendment 2. Amendment 1's addendum and Amendment 2 quote the standard's
 clause numbers as change instructions and print their own structure (kb/Work PB6057 Sites).
 
+THE FORMAT TITLE RULE (kb/Work PB6095). A page of general formats prints one centred, bold, underlined title ("GENERAL FORMAT
+FOR COBOL VERBS"), and the transcription sets every one of them as a level-2 heading, `## <u>GENERAL FORMAT FOR ...</u>`: no
+bold, no bare underlined line, none inside a `<pre>` figure. `check_format_titles` holds each to it. Amendment 1's addendum
+(pages 846 and 847) prints its own, bold and not underlined, and is out of the rule's scope as it is out of this module's.
+
 A heading's level is markup. A citation locator is the number (`citation.ISO_HEADING` reads `#{1,6}`) and the rule catalog
 closes a block at any heading, so a level changed here moves no locator and no rule; `check` is the audit that
 `verify_publishable.py --edition 1985` runs, and `normalize` is the one function that applies the rule (a one-time repair,
@@ -203,14 +208,40 @@ def heads_as(heading: str, number: str, title: str) -> bool:
     return m.group(2) + m.group(3) == number.rstrip(".") and plain_title(m.group(5)) == plain_title(title)
 
 
+#: A line that is a general-format page title, whatever markup it carries: hashes, a box side, bold, an underline.
+FORMAT_TITLE = re.compile(r"^\s*(?:#+\s+)?(?:║|\*\*|<u>)*GENERAL FORMAT FOR\b")
+#: THE form a general-format page title takes (kb/Work PB6095): a level-2 heading, underlined, nothing else on the line.
+FORMAT_TITLE_FORM = re.compile(r"^## <u>GENERAL FORMAT FOR [^<*║]+</u>$")
+
+
+def check_format_titles(lines: list[str], first: int, last: int) -> list[str]:
+    """Every general-format page title of the standard (Amendment 1's addendum, and the quoting notes and tables, out of
+    scope) stands as `## <u>GENERAL FORMAT FOR ...</u>` on a line of its own: found anywhere, a `<pre>` figure included."""
+    failures: list[str] = []
+    page = 0
+    skip = change_pages(lines)
+    for i in range(first, last):
+        line = lines[i]
+        if (m := spec_pdf.PAGE_HEADING.match(line)) is not None:
+            page = int(m.group(1))
+        elif skip[0] <= i < skip[1] or line.startswith((">", "|")):
+            continue
+        elif FORMAT_TITLE.match(line) and not FORMAT_TITLE_FORM.match(line):
+            failures.append(f"line {i + 1} (page {page}): a general-format page title that is not "
+                            f"`## <u>GENERAL FORMAT FOR ...</u>` on a line of its own: {line.strip()[:70]!r}")
+    return failures
+
+
 def check(text: str) -> list[str]:
     """The audit (kb/Work PB6057): every numbered heading of the standard at its number's depth plus one, no numbered title
     line left as plain text, no running header promoted to a heading, each Section heading once and on its first page,
-    and every contents entry a heading of its level, on the page its folio names."""
+    every contents entry a heading of its level, on the page its folio names, and every general-format page title
+    in its one form (`check_format_titles`)."""
     failures: list[str] = []
     lines = text.split("\n")
     first, last = body_region(lines)
     page_folio = folios(lines, first, last)
+    failures += check_format_titles(lines, first, last)
     heads: list[tuple[int, int, str, str, int]] = []  # (line, page, section, text, level)
     section = ""
     for i, page, kind, line in walk(lines, first, last):

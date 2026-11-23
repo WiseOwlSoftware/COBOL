@@ -1,0 +1,69 @@
+{
+ "program": "IC228A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "GLO-TEST-01-01-1",
+   "lines": [
+    339
+   ],
+   "feature": "GLOBAL CLAUSE",
+   "ansi": "X-20 4.3.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-X.4.3.2"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-FMT-X.4.6.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-01-01-2",
+   "lines": [
+    351
+   ],
+   "feature": "GLOBAL CLAUSE",
+   "ansi": "X-20 4.3.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-X.4.3.2"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-01-01-3",
+   "lines": [
+    363
+   ],
+   "feature": "GLOBAL CLAUSE",
+   "ansi": "X-20 4.3.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-X.4.3.2"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CALL-TEST-01-01-4",
+   "lines": [
+    375
+   ],
+   "feature": "GLOBAL CLAUSE",
+   "ansi": "X-20 4.3.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-X.4.3.2"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  }
+ ]
+}

@@ -1,0 +1,141 @@
+{
+ "program": "NC248A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "SET-TEST-F1-1",
+   "lines": [
+    343
+   ],
+   "feature": "SET ... TO",
+   "ansi": "VI-126 6.22.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.6.22.2"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SET-TEST-F2-2",
+   "lines": [
+    367
+   ],
+   "feature": "SET ... UP BY",
+   "ansi": "VI-126 6.22.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.6.22.2"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SET-TEST-F2-3",
+   "lines": [
+    392
+   ],
+   "feature": "SET ... DOWN BY",
+   "ansi": "VI-126 6.22.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.6.22.2"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SET-TEST-F1-4",
+   "lines": [
+    417
+   ],
+   "feature": "SET ... TO",
+   "ansi": "VI-126 6.22.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.6.22.2"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SET-TEST-F2-5",
+   "lines": [
+    442
+   ],
+   "feature": "SET ... UP BY",
+   "ansi": "VI-126 6.22.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.6.22.2"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SET-TEST-F2-6",
+   "lines": [
+    467
+   ],
+   "feature": "SET ... DOWN BY",
+   "ansi": "VI-126 6.22.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.6.22.2"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SET-TEST-F2-7",
+   "lines": [
+    492
+   ],
+   "feature": "SET ... DOWN BY",
+   "ansi": "VI-128 6.22.4 GR7",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.22.4-7"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SET-TEST-F2-8",
+   "lines": [
+    521
+   ],
+   "feature": "SET ... DOWN BY",
+   "ansi": "VI-128 6.22.4 GR7",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.22.4-7"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SET-TEST-F2-9",
+   "lines": [
+    550
+   ],
+   "feature": "SET ... DOWN BY",
+   "ansi": "VI-128 6.22.4 GR7",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.22.4-7"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  }
+ ]
+}

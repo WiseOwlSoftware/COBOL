@@ -8,9 +8,18 @@
       "page": 833,
       "kind": "table-restructured",
       "severity": "structural",
-      "pdf_says": "OPTIONAL MODULES (Not Required in Subsets) drawn in the same grid as the COBOL SUBSETS rows HIGH / INTERMEDIATE / MINIMUM: '1 RPW 0,1' and '1 ITR 0,1' each span all three subset rows; '2 COM 0,2', '2 DEB 0,2', '2 SEG 0,2' span HIGH and the upper half of INTERMEDIATE; '1 COM 0,2', '1 DEB 0,2', '1 SEG 0,2' span the lower half of INTERMEDIATE and MINIMUM.",
-      "markdown_says": "| **Report Writer** | **Communication** | **Debug** | **Segmentation** | **Intrinsic Function** |\n| 1 RPW 0,1 | 2 COM 0,2 | 2 DEB 0,2 | 2 SEG 0,2 | 1 ITR 0,1 |\n| | 1 COM 0,2 | 1 DEB 0,2 | 1 SEG 0,2 | |",
-      "why_it_matters": "The optional-modules half of the module diagram is split into a separate table with no subset rows, so the vertical placement of each optional module level against the HIGH / INTERMEDIATE / MINIMUM subsets (RPW and ITR spanning all three, level 2 COM/DEB/SEG upper, level 1 lower) is lost. The module levels and their 0,1 / 0,2 ranges are all preserved; only the drawn alignment is gone."
+      "pdf_says": "OPTIONAL MODULES (Not Required in Subsets) drawn beside the COBOL SUBSETS rows HIGH / INTERMEDIATE / MINIMUM: the cells '1 RPW 0,1' and '1 ITR 0,1' each span all three subset rows; '2 COM 0,2', '2 DEB 0,2', '2 SEG 0,2' occupy the upper cell (HIGH down to the middle of INTERMEDIATE) and '1 COM 0,2', '1 DEB 0,2', '1 SEG 0,2' the lower cell (middle of INTERMEDIATE down through MINIMUM)",
+      "markdown_says": "| OPTIONAL MODULES<br>(Not Required in Subsets) | | | | |\n|---|---|---|---|---|\n| **Report Writer** | **Communication** | **Debug** | **Segmentation** | **Intrinsic Function** |\n| 1 RPW 0,1 | 2 COM 0,2 | 2 DEB 0,2 | 2 SEG 0,2 | 1 ITR 0,1 |\n| | 1 COM 0,2 | 1 DEB 0,2 | 1 SEG 0,2 | |",
+      "why_it_matters": "The optional-module half of the module/subset diagram is split into a separate table with no subset column, so the vertical extents that tie each optional module level to the High, Intermediate and Minimum subsets (RPW and ITR spanning all three, level 2 vs level 1 COM/DEB/SEG split inside Intermediate) are lost; the printed figure's subset relationship cannot be read from the markdown."
+    },
+    {
+      "id": "p835-1",
+      "page": 835,
+      "kind": "missing-heading",
+      "severity": "cosmetic",
+      "pdf_says": "SUMMARY OF ELEMENTS IN THE INTRINSIC FUNCTION MODULE (bold, centered page title)",
+      "markdown_says": "SUMMARY OF ELEMENTS IN THE INTRINSIC FUNCTION MODULE (plain paragraph, no heading marker)",
+      "why_it_matters": "The page title of the summary list inserted at page I-39 is demoted to plain text, so it is not navigable as a heading (the equivalent TABLE OF CONTENTS title on page 829 is a heading)."
     }
   ]
 }

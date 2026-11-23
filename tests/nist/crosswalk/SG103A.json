@@ -1,0 +1,83 @@
+{
+ "program": "SG103A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "TEST-1",
+   "lines": [
+    315
+   ],
+   "feature": "INITIAL STATE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "TEST-2",
+   "lines": [
+    331
+   ],
+   "feature": "GO TO INDEP SEG",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "TEST-3",
+   "lines": [
+    347
+   ],
+   "feature": "PERFORM IND SEG",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "TEST-4",
+   "lines": [
+    372
+   ],
+   "feature": "ALT RES FRM IND",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "TEST-5",
+   "lines": [
+    376
+   ],
+   "feature": "ALT RES FRM IND",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "TEST-6",
+   "lines": [
+    397
+   ],
+   "feature": "FALL THRU TEST",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "TEST-7",
+   "lines": [
+    440
+   ],
+   "feature": "GO TO ALTER IND",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

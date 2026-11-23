@@ -1,6 +1,6 @@
 {
  "rule-id": "1985-FMT-VI.5.8.2",
- "rule-digest": "70040e982f1a",
+ "rule-digest": "5ea3d8a1c81f",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#occursClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#occursKeyClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#indexNameList; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Odo.cs#NarrowToDataDivisionFormats; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitOccursClause",
  "test-ref": "conformance:cases/VI.5.8@1985-OCCURS-CLAUSE/1985-FMT-VI_5_8_2",

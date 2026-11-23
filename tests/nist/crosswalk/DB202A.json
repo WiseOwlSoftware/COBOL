@@ -1,0 +1,287 @@
+{
+ "program": "DB202A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "OPEN-TEST-1",
+   "lines": [
+    386
+   ],
+   "feature": "DEBUG OPEN FILENAME",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "OPEN-TEST-1A",
+   "lines": [
+    412,
+    422
+   ],
+   "feature": "DEBUG OPEN FILENAME",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "OPEN-TEST-1B",
+   "lines": [
+    415,
+    429
+   ],
+   "feature": "DEBUG OPEN FILENAME",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "OPEN-TEST-1C",
+   "lines": [
+    418,
+    438,
+    711
+   ],
+   "feature": "DEBUG OPEN FILENAME",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRITE-TEST-1",
+   "lines": [
+    447
+   ],
+   "feature": "DEBUG WRITE/ALL REF",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRITE-TEST-1A",
+   "lines": [
+    481,
+    504
+   ],
+   "feature": "DEBUG WRITE/ALL REF",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRITE-TEST-1B",
+   "lines": [
+    484,
+    511
+   ],
+   "feature": "DEBUG WRITE/ALL REF",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRITE-TEST-1C",
+   "lines": [
+    487,
+    520
+   ],
+   "feature": "DEBUG WRITE/ALL REF",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRITE-TEST-1D",
+   "lines": [
+    490,
+    536
+   ],
+   "feature": "DEBUG WRITE/ALL REF",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRITE-TEST-2",
+   "lines": [
+    551
+   ],
+   "feature": "DEBUG WRITE/NOT ALL",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRITE-TEST-2A",
+   "lines": [
+    577,
+    591
+   ],
+   "feature": "DEBUG WRITE/NOT ALL",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRITE-TEST-2B",
+   "lines": [
+    580,
+    600
+   ],
+   "feature": "DEBUG WRITE/NOT ALL",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRITE-TEST-2C",
+   "lines": [
+    583,
+    616
+   ],
+   "feature": "DEBUG WRITE/NOT ALL",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRITE-TEST-3",
+   "lines": [
+    634
+   ],
+   "feature": "WRITE/NO DEBUG PROC",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CLOSE-TEST-1",
+   "lines": [
+    659
+   ],
+   "feature": "DEBUG CLOSE FILENAME",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CLOSE-TEST-1A",
+   "lines": [
+    685,
+    695
+   ],
+   "feature": "DEBUG CLOSE FILENAME",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CLOSE-TEST-1B",
+   "lines": [
+    688,
+    702
+   ],
+   "feature": "DEBUG CLOSE FILENAME",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CLOSE-TEST-1C",
+   "lines": [
+    691
+   ],
+   "feature": "DEBUG CLOSE FILENAME",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "OPEN-TEST-2",
+   "lines": [
+    722
+   ],
+   "feature": "DEBUG OPEN FILENAME",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-1",
+   "lines": [
+    739
+   ],
+   "feature": "DEBUG READ FILENAME",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-1A",
+   "lines": [
+    769,
+    779
+   ],
+   "feature": "DEBUG READ FILENAME",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-1B",
+   "lines": [
+    772,
+    786
+   ],
+   "feature": "DEBUG READ FILENAME",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-1C",
+   "lines": [
+    775,
+    796
+   ],
+   "feature": "DEBUG READ FILENAME",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-2",
+   "lines": [
+    816,
+    822
+   ],
+   "feature": "DEBUG READ AT END",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

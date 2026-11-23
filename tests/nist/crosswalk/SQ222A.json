@@ -1,0 +1,116 @@
+{
+ "program": "SQ222A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "WRITE-TEST-GF-01",
+   "lines": [
+    424
+   ],
+   "feature": "CREATE FILE SQ-VS7",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F1-01",
+   "lines": [
+    476
+   ],
+   "feature": "READ SHORT RECORD",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F1-02",
+   "lines": [
+    518
+   ],
+   "feature": "READ LONG RECORD",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F1-03",
+   "lines": [
+    561
+   ],
+   "feature": "READ SHORT RECORDS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F1-04",
+   "lines": [
+    581
+   ],
+   "feature": "READ LONG RECORDS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F1-05",
+   "lines": [
+    601
+   ],
+   "feature": "READ SHORT RECORDS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F1-06",
+   "lines": [
+    624
+   ],
+   "feature": "VERIFY FILE SQ-VS7",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-INFO-01",
+   "lines": [
+    651
+   ],
+   "feature": "READ SHORT RECORD",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-INFO-02",
+   "lines": [
+    671
+   ],
+   "feature": "READ SHORT RECORD",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-INFO-03",
+   "lines": [
+    693
+   ],
+   "feature": "READ SHORT RECORD",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

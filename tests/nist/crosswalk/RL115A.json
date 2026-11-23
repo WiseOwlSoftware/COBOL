@@ -1,0 +1,36 @@
+{
+ "program": "RL115A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "REL-TEST-009",
+   "lines": [
+    513
+   ],
+   "feature": "CREATE RL-FD2",
+   "ansi": "VIII-36 4.8.4 GR4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VIII.4.8.4-4"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-010",
+   "lines": [
+    604
+   ],
+   "feature": "USE/FILE STATUS",
+   "ansi": "VIII-36 4.8.4 GR4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VIII.4.8.4-4"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  }
+ ]
+}

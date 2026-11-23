@@ -1,0 +1,72 @@
+{
+ "program": "SQ202A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "WRI-TEST-001",
+   "lines": [
+    397
+   ],
+   "feature": "CREATE FILE SQ-FS1",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-001",
+   "lines": [
+    436
+   ],
+   "feature": "VERIFY FILE SQ-FS1",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-GF-01",
+   "lines": [
+    876
+   ],
+   "feature": "SELECT OPTIONAL F-N",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-GF-02",
+   "lines": [
+    908
+   ],
+   "feature": "SELECT OPTIONAL F-N",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-GF-03",
+   "lines": [
+    934
+   ],
+   "feature": "SELECT OPTIONAL F-N",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-GF-04",
+   "lines": [
+    964
+   ],
+   "feature": "RESERVE INTEGER AREA",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

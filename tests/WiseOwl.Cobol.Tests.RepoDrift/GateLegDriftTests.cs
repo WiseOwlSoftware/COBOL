@@ -5,7 +5,7 @@
 // GateLegDriftTests holds arm (2) and the shard deal.
 
 using System.Text.RegularExpressions;
-using WiseOwl.Cobol.Gate;
+using WiseOwl.Cobol.Tests.Shared.Gate;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 
@@ -13,7 +13,7 @@ namespace WiseOwl.Cobol.Tests.RepoDrift;
 
 /// <summary>
 /// ⛔ THE GATE'S TEST-ASSEMBLY HALF, ARM (4) OVER THE TREE (kb/Work PB1708, PB4328; DESIGN-test-build-ci.md §3.14.4):
-/// every test project under tests/ links GateLegs.cs and names GateTestFramework, and no test source names its own xunit
+/// every test project under tests/ links tests/_shared/Gate/ and names GateTestFramework, and no test source names its own xunit
 /// framework. It reads every test project and test source, so it runs in this assembly (kb/Work PB5230); the orderer, the
 /// shard deal and the per-assembly arms are Unit's <c>GateLegDriftTests</c>. This assembly's own per-assembly arms are
 /// below, as every gated assembly carries them.
@@ -28,17 +28,19 @@ public sealed class GateLegDriftTests
     /// <summary>The test sources (<c>tests/**/*.cs</c>), COMMITTED, for the same reason.</summary>
     private static readonly TreeScope TestSources = new(Under: ["tests/"], Kinds: [".cs"]);
 
-    // ── Arm (4): every test project links GateLegs.cs and names the gate's framework ──────────────────────────────
+    // ── Arm (4): every test project links the gate's framework (tests/_shared/Gate/) and names it ─────────────────
 
     [Fact]
-    public void Arm4_EveryTestProject_LinksGateLegs_AndNamesTheGateFramework()
+    public void Arm4_EveryTestProject_LinksTheGateFramework_AndNamesIt()
     {
         string props = File.ReadAllText(TestRepo.At("tests", "Directory.Build.props"));
-        Assert.Contains(@"<Compile Include=""$(MSBuildThisFileDirectory)_shared\*.cs""", props, StringComparison.Ordinal);
+        Assert.Contains(@"<Compile Include=""$(MSBuildThisFileDirectory)_shared\**\*.cs"" "
+                        + @"Link=""_shared\%(RecursiveDir)%(Filename)%(Extension)""", props, StringComparison.Ordinal);
         Assert.Matches(new Regex(@"<AssemblyAttribute Include=""Xunit\.TestFrameworkAttribute"">\s*"
-                                 + @"<_Parameter1>WiseOwl.Cobol\.Gate\.GateTestFramework</_Parameter1>\s*"
+                                 + $@"<_Parameter1>{Regex.Escape(typeof(GateTestFramework).FullName!)}</_Parameter1>\s*"
                                  + @"<_Parameter2>\$\(AssemblyName\)</_Parameter2>"), props);
-        Assert.True(File.Exists(TestRepo.At("tests", "_shared", "GateLegs.cs")), "tests/_shared/GateLegs.cs is gone");
+        Assert.True(File.Exists(TestRepo.At("tests", "_shared", "Gate", "GateTestFramework.cs")),
+            "tests/_shared/Gate/GateTestFramework.cs is gone");
 
         var testProjects = TrackedTree.Files(TestProjects).Select(rel => TestRepo.At(rel.Split('/')))
             .Where(p => File.ReadAllText(p).Contains("<IsTestProject>true</IsTestProject>", StringComparison.Ordinal))
@@ -56,9 +58,9 @@ public sealed class GateLegDriftTests
             TestWeights.Embedded().Tenths.Keys.Select(k => k.Assembly).Distinct().Order(StringComparer.Ordinal));
 
         var unlinked = testProjects.Where(p => Regex.IsMatch(File.ReadAllText(p),
-                @"<Compile\s+Remove=""[^""]*(_shared|GateLegs)", RegexOptions.IgnoreCase))
+                @"<Compile\s+Remove=""[^""]*_shared", RegexOptions.IgnoreCase))
             .Select(p => Path.GetRelativePath(TestRepo.Root, p)).ToList();
-        Assert.True(unlinked.Count == 0, "a test project drops the gate's leg filter (tests/_shared/GateLegs.cs): "
+        Assert.True(unlinked.Count == 0, "a test project drops the gate's framework (tests/_shared/Gate/): "
                                          + string.Join(", ", unlinked));
 
         var ownFramework = TrackedTree.Files(TestSources).Select(rel => TestRepo.At(rel.Split('/')))

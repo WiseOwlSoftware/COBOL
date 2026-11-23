@@ -1,0 +1,29 @@
+{
+ "program": "SQ125A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "SEQ-TEST-OP-01",
+   "lines": [
+    566,
+    570
+   ],
+   "feature": "CREATE FILE, OPEN OUTPUT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-TEST-OP-02",
+   "lines": [
+    594
+   ],
+   "feature": "OPEN OUTPUT ON OPEN FILE",
+   "ansi": "VII-3, 1.5.3(1)A",
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

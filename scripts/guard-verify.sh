@@ -48,6 +48,8 @@ witnesses() {
     mkdir -p "$FR/tests/nist/output" "$FR/tests/nist/valid" "$FR/tests/nist/data" \
              "$FR/$(dirname "$GUARD_RUNTIME_DLL")" "$BIN"
     printf 'stub\n' > "$FR/$GUARD_RUNTIME_DLL"
+    # The NIST run environment the runner reads (kb/Work PB3199): the REAL file, so the witness below holds it.
+    cp "$ROOT/tests/nist/run-environment.tsv" "$FR/tests/nist/run-environment.tsv"
 
     # The golden: a CCVS-shaped report with a clean footer.
     printf 'FEATURE 1                PASS\nFEATURE 2                PASS\n NO TEST(S) FAILED\n' \
@@ -83,6 +85,8 @@ if [ "$t" = "WT001A" ] && [ -n "${WITNESS_FILES:-}" ]; then
 fi
 if [ "$t" = "WT001A" ] && [ -n "${WITNESS_STDOUT:-}" ]; then printf '%s\n' "$WITNESS_STDOUT"; fi
 if [ -n "${WITNESS_STDERR:-}" ]; then echo "$WITNESS_STDERR" >&2; fi
+# kb/Work PB3199: the environment the program was run in, and its run directory (the first line).
+if [ -n "${WITNESS_ENV_OUT:-}" ]; then { pwd; env; } > "$WITNESS_ENV_OUT"; fi
 # kb/Work PB3385: ONE program's own exit status and stderr (WITNESS_RC_WT001A, WITNESS_STDERR_WT001A) — a declared
 # predecessor that crashes while its consumer runs clean.
 rcvar="WITNESS_RC_$t"; errvar="WITNESS_STDERR_$t"
@@ -170,6 +174,41 @@ SHIM
          "RUN NO-VERDICT (rc=1 with NO diagnostic" "$(run_case wrong 1 '' '')"
     want "a timeout is NOT a regression" \
          "RUN NO-VERDICT (timeout/kill" "$(run_case wrong 124 '' '')"
+
+    # ── THE EXIT STATUS DECIDES BEFORE THE REPORT DOES (kb/Work PB3199; NistRunner fails a non-zero exit before it
+    #    compares). A run that did not end normally is never a MATCH, however its report reads: a matching report used
+    #    to rescue it here while the C# leg failed it. A row corpus.tsv declares TERMINATES is the other arm. ──
+    want "a CORRECT report from a run that exited non-zero with a reason is a REGRESSION, not a MATCH" \
+         "WT001A: RUN FAILED — REGRESSION! (exit 1: boom; the report matched its golden)" "$(run_case correct 1 boom '')"
+    want "a CORRECT report from a run that exited non-zero with NO reason is a lost result, not a MATCH" \
+         "WT001A: RUN NO-VERDICT (rc=1 with NO diagnostic" "$(run_case correct 1 '' '')"
+    want "a CORRECT report from a run that timed out is not a MATCH" \
+         "WT001A: RUN NO-VERDICT (timeout/kill" "$(run_case correct 124 '' '')"
+
+    # ── THE RUN ENVIRONMENT IS tests/nist/run-environment.tsv (kb/Work PB3199): every variable it declares reaches the
+    #    program, {run-directory} as the program's own run directory; NistRunEnvironmentTests holds the C# leg to it. ──
+    local envdump="$d/env.txt" ename evalue erun emiss=""
+    rm -f "$envdump"
+    out="$(WITNESS_ENV_OUT="$envdump" run_case correct 0 '' '')"
+    erun="$(head -1 "$envdump" 2>/dev/null)"
+    while IFS=$'\t' read -r ename evalue; do
+        case "$ename" in ''|'#'*) continue ;; esac
+        evalue="${evalue//\{run-directory\}/"$erun"}"
+        grep -qxF -- "$ename=$evalue" "$envdump" 2>/dev/null || emiss="$emiss $ename=$evalue"
+    done < "$ROOT/tests/nist/run-environment.tsv"
+    if [ -n "$erun" ] && [ -z "$emiss" ]; then
+        echo "  ok: the program runs in every variable of tests/nist/run-environment.tsv, {run-directory} its run directory"
+    else
+        echo "  WITNESS FAILED: the program did not see (in ${erun:-no run directory}):$emiss"; rc=1
+    fi
+    printf 'COBOL_SWITCH_1 ON\n' > "$FR/tests/nist/run-environment.tsv"
+    out="$(run_case correct 0 '' '')"
+    if [ -z "$out" ] && grep -q "is not NAME<TAB>VALUE" "$d/stderr.txt"; then
+        echo "  ok: a malformed run environment stops the runner, saying why, and scores nothing"
+    else
+        echo "  WITNESS FAILED: a malformed run environment was not refused (verdicts: ${out:-none})"; rc=1
+    fi
+    cp "$ROOT/tests/nist/run-environment.tsv" "$FR/tests/nist/run-environment.tsv"
 
     # ── THE FOOTER/FAIL* RULES (the IX108A false green) — they survive the extraction. ──
     printf 'FEATURE 1                PASS\nFEATURE 2                FAIL*\n NO TEST(S) FAILED\n' \

@@ -1,0 +1,162 @@
+{
+ "program": "NC219A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "SEQ-TEST-GF-1",
+   "lines": [
+    355
+   ],
+   "feature": "F < U",
+   "ansi": "VI-16 4.5.4 GR5/7",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.4.5.4-5"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-TEST-GF-2",
+   "lines": [
+    383
+   ],
+   "feature": "U < N",
+   "ansi": "VI-16 4.5.4 GR5/7",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.4.5.4-5"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-TEST-GF-3",
+   "lines": [
+    410
+   ],
+   "feature": "N = HIGH-VALUE",
+   "ansi": "VI-16 4.5.4 GR5/7",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.4.5.4-5"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-GR-VI.5.15.4-1"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-TEST-GF-4",
+   "lines": [
+    437
+   ],
+   "feature": "F = LOW-VALUE",
+   "ansi": "VI-16 4.5.4 GR5/7",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.4.5.4-5"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-GR-VI.5.15.4-1"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-TEST-GF-5",
+   "lines": [
+    465
+   ],
+   "feature": "H-VALUE > L-VALUE",
+   "ansi": "VI-16 4.5.4 GR5/7",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.4.5.4-5"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-GR-VI.5.15.4-1"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-TEST-GF-6",
+   "lines": [
+    489
+   ],
+   "feature": "L-VALUE < H-VALUE",
+   "ansi": "VI-16 4.5.4 GR5/7",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.4.5.4-5"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-GR-VI.5.15.4-1"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-TEST-GF-7",
+   "lines": [
+    513
+   ],
+   "feature": "H-VALUE = L-VALUE",
+   "ansi": "VI-16 4.5.4 GR5/7",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.4.5.4-5"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-GR-VI.5.15.4-1"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-TEST-GF-8",
+   "lines": [
+    539
+   ],
+   "feature": "Y = LOW-VALUE",
+   "ansi": "VI-16 4.5.4 GR5/7",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.4.5.4-5"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-GR-VI.5.15.4-1"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-TEST-GF-9",
+   "lines": [
+    569
+   ],
+   "feature": "Q = LOW-VALUE",
+   "ansi": "VI-16 4.5.4 GR5/7",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.4.5.4-5"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-GR-VI.5.15.4-1"
+   ],
+   "basis": "mechanical"
+  }
+ ]
+}

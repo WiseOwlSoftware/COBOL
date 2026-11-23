@@ -1,0 +1,13 @@
+{
+  "claim_id": "p351-1",
+  "claim_key": "c53f86884116f35a",
+  "page": 351,
+  "kind": "incorrect-text",
+  "severity": "structural",
+  "claim": {"id": "p351-1", "page": 351, "kind": "incorrect-text", "severity": "structural", "pdf_says": "Figure 4:  The VARYING option of a PERFORM statement with the TEST AFTER phrase having two conditions (printed inside the level-2 box that encloses the whole page's figure)", "markdown_says": "Figure 4: The VARYING option of a PERFORM statement with the TEST AFTER phrase having two conditions", "why_it_matters": "The caption sits inside the printed box (the level-2 mark, Section I 1.3) but the markdown drops its ║ box markers, unlike Figures 2 and 3 on pages 347 and 349, whose captions keep ║...║. The level-2 marking of this figure is lost."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The 300 dpi render of PDF page 351 (VI-119) shows one thin rectangle enclosing the whole flowchart and the two-line Figure 4 caption. It is the same ruled box that encloses the TEST AFTER text and Figure 3 on page 349 (VI-117), which is the level-2 marking. The transcription on page 351 has the mermaid flowchart and the caption 'Figure 4: The VARYING option of a PERFORM statement with the TEST AFTER phrase having two conditions' with no ║ markers. The boxed captions on pages 346, 347 and 349 (Figures 1, 2 and 3) do carry ║...║ in the markdown. The caption wording matches, and the only difference is that the box marking is missing. That marking is content, because it records the feature's level, so the claim stands as described.",
+    "corrected_description": ""
+  }
+}

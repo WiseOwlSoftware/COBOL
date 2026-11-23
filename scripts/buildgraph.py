@@ -1543,7 +1543,7 @@ def assembly_sources(repo: Path, target: TestTarget) -> list[Path]:
     that declares a type they name, transitively (the test-tree props link every shared file into every project)."""
     own = sorted((repo / target.project).rglob("*.cs"))
     own = [p for p in own if not any(part in ("bin", "obj") for part in p.relative_to(repo / target.project).parts)]
-    shared = {p: p.read_text(encoding="utf-8", errors="replace") for p in sorted((repo / "tests" / "_shared").glob("*.cs"))}
+    shared = {p: p.read_text(encoding="utf-8", errors="replace") for p in sorted((repo / "tests" / "_shared").rglob("*.cs"))}
     declares = {p: set(TYPE_DECL.findall(t)) for p, t in shared.items()}
     text = "\n".join(p.read_text(encoding="utf-8", errors="replace") for p in own)
     used: list[Path] = []

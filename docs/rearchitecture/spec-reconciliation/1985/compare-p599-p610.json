@@ -1,17 +1,1 @@
-{"batch": [599,600,601,602,603,604,605,606,607,608,609,610],
- "pages_checked": [599,600,601,602,603,604,605,606,607,608,609,610],
- "pages_unread": [],
- "findings": [
-  {"id": "p600-1", "page": 600, "kind": "missing-heading", "severity": "structural",
-   "pdf_says": "3.8.4 General Rules",
-   "markdown_says": "3.8.4 General Rules",
-   "why_it_matters": "A section heading demoted to plain text drops it from the document structure, so heading-based navigation and section slicing miss the clause boundary. ", "note": "Printed as a section heading (sibling of 3.8.3 Syntax Rules, which the markdown renders as '### 3.8.3 Syntax Rules'); the markdown demotes it to a plain paragraph with no heading marker."},
-  {"id": "p603-1", "page": 603, "kind": "missing-heading", "severity": "structural",
-   "pdf_says": "3.9.3 Syntax Rules",
-   "markdown_says": "3.9.3 Syntax Rules",
-   "why_it_matters": "A section heading demoted to plain text drops it from the document structure, so heading-based navigation and section slicing miss the clause boundary. ", "note": "Printed as a section heading (sibling of '### 3.9.2 General Format' on page 602); the markdown renders it as a plain paragraph with no heading marker."},
-  {"id": "p605-1", "page": 605, "kind": "missing-heading", "severity": "structural",
-   "pdf_says": "3.9.4 General Rules",
-   "markdown_says": "3.9.4 General Rules",
-   "why_it_matters": "A section heading demoted to plain text drops it from the document structure, so heading-based navigation and section slicing miss the clause boundary. ", "note": "Printed as a section heading (sibling of 3.9.3); the markdown renders it as a plain paragraph with no heading marker."}
- ]}
+{"batch": [599,600,601,602,603,604,605,606,607,608,609,610], "pages_checked": [599,600,601,602,603,604,605,606,607,608,609,610], "pages_unread": [], "findings": []}

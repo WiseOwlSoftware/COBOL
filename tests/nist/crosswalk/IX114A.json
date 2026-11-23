@@ -1,0 +1,39 @@
+{
+ "program": "IX114A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "OPN-TEST-GF-01-0",
+   "lines": [
+    648
+   ],
+   "feature": "OPEN I-O   : 00 EXP.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CLO-TEST-GF-01-0",
+   "lines": [
+    671
+   ],
+   "feature": "CLOSE I-O   :00 EXP.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REA-TEST-GF-01-0",
+   "lines": [
+    700
+   ],
+   "feature": "READ.        47 EXP.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

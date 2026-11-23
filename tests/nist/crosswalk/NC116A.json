@@ -1,0 +1,476 @@
+{
+ "program": "NC116A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "SIG-TEST-GF-1",
+   "lines": [
+    417
+   ],
+   "feature": "SIGN LEADING SEPARATE",
+   "ansi": "VI-42 5.12.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "literal-agrees": true,
+   "by-name": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SIG-TEST-GF-2",
+   "lines": [
+    478
+   ],
+   "feature": "SIGN TRLNG SEPARATE",
+   "ansi": "VI-42 5.12.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "literal-agrees": true,
+   "by-name": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SIG-TEST-GF-3",
+   "lines": [
+    540
+   ],
+   "feature": "SIGN LEADING",
+   "ansi": "VI-42 5.12.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "literal-agrees": true,
+   "by-name": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SIG-TEST-GF-4",
+   "lines": [
+    578
+   ],
+   "feature": "SIGN TRAILING",
+   "ansi": "VI-42 5.12.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "literal-agrees": true,
+   "by-name": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SIG-TEST-GF-5",
+   "lines": [
+    616
+   ],
+   "feature": "COMPARE SIGNED ITEMS",
+   "ansi": "VI-42 5.12.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "literal-agrees": true,
+   "by-name": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SIG-TEST-GF-6",
+   "lines": [
+    673
+   ],
+   "feature": "COMPARE SIGNED ITEMS",
+   "ansi": "VI-42 5.12.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "literal-agrees": true,
+   "by-name": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SIG-TEST-GF-7",
+   "lines": [
+    730
+   ],
+   "feature": "COMPARE SIGNED ITEMS",
+   "ansi": "VI-42 5.12.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "literal-agrees": true,
+   "by-name": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SIG-TEST-GF-8",
+   "lines": [
+    787
+   ],
+   "feature": "COMPARE SIGN ITEMS",
+   "ansi": "VI-42 5.12.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "literal-agrees": true,
+   "by-name": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SIG-TEST-GF-9",
+   "lines": [
+    844
+   ],
+   "feature": "SENDING ITEM DS-LS",
+   "ansi": "VI-42 5.12.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SIG-TEST-GF-10",
+   "lines": [
+    908
+   ],
+   "feature": "SENDING ITEM DS-TS-4",
+   "ansi": "VI-42 5.12.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SIG-TEST-GF-11",
+   "lines": [
+    975
+   ],
+   "feature": "SIGN SEPARATE ITEMS",
+   "ansi": "VI-42 5.12.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "literal-agrees": true,
+   "by-name": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SIG-TEST-GF-12",
+   "lines": [
+    1040
+   ],
+   "feature": "SIGN CLAUSE ITEMS",
+   "ansi": "VI-42 5.12.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "literal-agrees": true,
+   "by-name": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SIG-TEST-GF-13",
+   "lines": [
+    1107
+   ],
+   "feature": "SIGN CLAUSE ITEMS",
+   "ansi": "VI-42 5.12.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "literal-agrees": true,
+   "by-name": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SIG-TEST-GF-14",
+   "lines": [
+    1172
+   ],
+   "feature": "SIGNED NUM. TO ALPHA",
+   "ansi": "VI-42 5.12.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "literal-agrees": true,
+   "by-name": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SIG-TEST-GF-15",
+   "lines": [
+    1242
+   ],
+   "feature": "RECEIVING ITEM DS-LS",
+   "ansi": "VI-42 5.12.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SIG-TEST-GF-16",
+   "lines": [
+    1344
+   ],
+   "feature": "RECEIVING ITEM DS-TS",
+   "ansi": "VI-42 5.12.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.5.12.4-1",
+    "1985-GR-VI.5.12.4-2",
+    "1985-GR-VI.5.12.4-3",
+    "1985-GR-VI.5.12.4-4",
+    "1985-GR-VI.5.12.4-5",
+    "1985-GR-VI.5.12.4-6",
+    "1985-GR-VI.5.12.4-7"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SIG-TEST-GF-17",
+   "lines": [
+    1445
+   ],
+   "feature": "PRECEDENCE OF SUBORDINATE SIGN CLAUSE",
+   "ansi": "VI-42 5.12.4 GR2",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-VI.5.12.4-2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SIG-TEST-GF-18",
+   "lines": [
+    1468
+   ],
+   "feature": "PRECEDENCE OF SUBORDINATE SIGN CLAUSE",
+   "ansi": "VI-42 5.12.4 GR3",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-VI.5.12.4-3"
+   ],
+   "basis": "mechanical"
+  }
+ ]
+}

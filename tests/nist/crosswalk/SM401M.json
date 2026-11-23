@@ -1,0 +1,28 @@
+{
+ "program": "SM401M",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "NON-CONFORMING@23",
+   "lines": [
+    23
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "STOP RUN SM401M-COPYREP",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@28",
+   "lines": [
+    28
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "SM401M-REPL REPLACE OFF",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  }
+ ]
+}

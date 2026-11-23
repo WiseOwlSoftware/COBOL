@@ -1,0 +1,39 @@
+{
+ "program": "ST105A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "SORT-TEST-1",
+   "lines": [
+    371
+   ],
+   "feature": "SORT, USING-OUTPROC",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-2",
+   "lines": [
+    431
+   ],
+   "feature": "LAST SORTED RECORD",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-3",
+   "lines": [
+    442
+   ],
+   "feature": "LAST SORTED RECORD",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

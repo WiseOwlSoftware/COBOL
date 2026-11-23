@@ -2000,7 +2000,7 @@ their command lines.
 `entry_point_arms` (it reads all four out of `gate.py` by `_module_literal`, and its `driver` path names the file), the comment of
 `.github/workflows/build-and-test.yml` that says "the SAME list as the gate driver's AUDITS", and `ci_audits_not_in_gate`'s
 own message name `gate_audits.py`. `FIRST_CLASSES` and `ONLY_CASES` are the names of the channels to the C# test host:
-their VALUES (the environment variable names) are a contract with `tests/_shared/GateLegs.cs` and do not change; its
+their VALUES (the environment variable names) are a contract with `tests/_shared/Gate/` and do not change; its
 docstrings' `scripts/gate.py FIRST_CLASSES` and `Legs.first` are re-pointed. Importers re-pointed: `enqueue.py`
 (`Reading`, `NOT_RUN_CAUSES`, `read_verdict`, `read_record`, `predates_landing`, `RUN_ROOT`, `RECORD_SCHEMA`),
 `land_lane.py` (`live_gate`, `lock_of_run`, `gate_phase` → `gate_runs`), `gate_plan.py`, `gate_growth.py`, `gate_slot.py`'s

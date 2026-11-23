@@ -1,0 +1,73 @@
+{
+ "program": "RW302M",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "OBSOLETE@28",
+   "lines": [
+    28
+   ],
+   "flag": "OBSOLETE",
+   "statement": "I-O-CONTROL MULTIPLE FILE TAPE CONTAINS TFIL",
+   "element": "C.1(6)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "candidates": [
+    "1985-GR-VII.2.10.1-p1",
+    "1985-GR-VII.2.10.4-1",
+    "1985-GR-VII.2.11.1-p1",
+    "1985-FMT-VII.2.11.2",
+    "1985-GR-VII.2.11.3-1",
+    "1985-SR-XIII.2.4.3-2",
+    "1985-GR-XIII.2.4.4-1"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "OBSOLETE@35",
+   "lines": [
+    35
+   ],
+   "flag": "OBSOLETE",
+   "statement": "FILE SECTION FD TFIL LABEL RECORDS STANDARD",
+   "element": "C.1(7)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "candidates": [
+    "1985-GR-VII.3.2.4-2",
+    "1985-GR-VII.3.6.1-p1",
+    "1985-FMT-VII.3.6.2",
+    "1985-GR-VII.3.6.3-1",
+    "1985-GR-VII.3.6.3-2",
+    "1985-GR-VII.3.6.3-3",
+    "1985-GR-VII.3.6.3-4",
+    "1985-GR-VIII.3.2.4-4",
+    "1985-GR-IX.3.2.4-4"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "OBSOLETE@40",
+   "lines": [
+    40
+   ],
+   "flag": "OBSOLETE",
+   "statement": "VALUE OF XXXXX074 IS XXXXX075",
+   "element": "C.1(8)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "candidates": [
+    "1985-GR-VII.3.2.4-2",
+    "1985-GR-VII.3.9.1-p1",
+    "1985-FMT-VII.3.9.2",
+    "1985-SR-VII.3.9.3-1",
+    "1985-SR-VII.3.9.3-2",
+    "1985-GR-VII.3.9.4-1",
+    "1985-GR-VII.3.9.4-2",
+    "1985-GR-VIII.3.2.4-6",
+    "1985-GR-IX.3.2.4-6"
+   ],
+   "basis": "mechanical"
+  }
+ ]
+}

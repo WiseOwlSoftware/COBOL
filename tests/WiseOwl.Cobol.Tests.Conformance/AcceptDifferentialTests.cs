@@ -34,7 +34,7 @@ public sealed class AcceptDifferentialTests
             if (!result.Success)
                 return (false, "", $"[compile] {result.Status}: {string.Join("\n", result.Errors)}");
 
-            // The ONE child-process observer (tests/_shared/ProcessObservation.cs). This method used to carry
+            // The ONE child-process observer (tests/_shared/ProcessObserver.cs). This method used to carry
             // its own copy of the 30s-timeout-returns-empty-output shape; a timeout here surfaced as an
             // ACCEPT test seeing no input echoed back, which reads exactly like a semantic defect. See §11 A12.
             var psi = new ProcessStartInfo("dotnet", $"\"{dll}\"") { WorkingDirectory = dir };

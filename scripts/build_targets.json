@@ -13,7 +13,7 @@
       ".gitattributes": "the checkout's bytes of every file a test reads",
       "toolchain.env": "the tool versions (also the toolchain facet)",
       "WiseOwl.Cobol.sln": "the solution the gate builds",
-      "tests/Directory.Build.props": "the test-tree props: links tests/_shared/*.cs and the weights into every test project",
+      "tests/Directory.Build.props": "the test-tree props: links tests/_shared/**/*.cs and the weights into every test project",
       "tests/_shared/": "linked into every test project (TestRepo, SuiteManifest, the gate framework, the weights)",
       "scripts/gen-vault-reference.ps1": "the Cli project's Exec step",
       "scripts/gen-grammar-diagrams.ps1": "the Cli project's Exec step",
@@ -22,7 +22,7 @@
     "judged": {
       "tests/_shared/TrackedTree.cs|new ProcessStartInfo(\"git\", \"ls-files -z\") { WorkingDirectory = TestRepo.Root });": "`git ls-files` at the root reads the index, never a file: the names it returns reach a caller only through TrackedTree.Files(scope), and the audit records every Under prefix of every declared TreeScope as a read of its directory in the declaring source (a prefix without `/` at the top is a bare root there, refused in a narrow target); TrackedTreeScopeDriftTests holds every TrackedTree.Files call to a declared scope",
       "tests/_shared/PythonInstrument.cs|var psi = new ProcessStartInfo(Interpreter.Value) { WorkingDirectory = TestRepo.Root };": "the WORKING DIRECTORY of every Python script a test runs through PythonInstrument.Run (the repository root), never a read: each caller names its own script, and that script is the caller's own read, judged at its call: SuiteManifest's generate.py at the conformance-suite hand-off site (unit, conformance), ConformanceSuiteRunnerDriftTests' harness/run.py (declared by conformance), and RepoDrift's six (every population input); what a script reads is the dynamic proof's to see",
-      "tests/_shared/GateLegAudit.cs|var offenders = RootCarrying(cases.Select(c => (c.DisplayName, (object[]?)c.TestMethodArguments)), HostRoot);": "arm (5): the root AS TEXT, matched against discovered case names (RootCarrying compares strings, opens nothing)",
+      "tests/_shared/Gate/GateLegAudit.cs|var offenders = RootCarrying(cases.Select(c => (c.DisplayName, (object[]?)c.TestMethodArguments)), HostRoot);": "arm (5): the root AS TEXT, matched against discovered case names (RootCarrying compares strings, opens nothing)",
       "tests/_shared/TestRepo.cs|public static string Configuration { get; } = new DirectoryInfo(AppContext.BaseDirectory).Parent!.Name;": "TestRepo, the one locator: this build's configuration, the name of the test host's output directory",
       "tests/_shared/TestRepo.cs|public static string TargetFramework { get; } = new DirectoryInfo(AppContext.BaseDirectory).Name;": "TestRepo, the one locator: this build's target framework, the name of the test host's output directory",
       "tests/_shared/TestRepo.cs|for (var d = new DirectoryInfo(AppContext.BaseDirectory); d is not null; d = d.Parent)": "TestRepo.Locate, the one locator of the repository root, walking up from the test host to WiseOwl.Cobol.sln",

@@ -1,17 +1,1 @@
-{
-  "batch": [803, 804, 805, 806, 807, 808, 809, 810, 811, 812, 813, 814],
-  "pages_checked": [803, 804, 805, 806, 807, 808, 809, 810, 811, 812, 813, 814],
-  "pages_unread": [],
-  "findings": [
-    {
-      "id": "p812-1",
-      "page": 812,
-      "kind": "missing-heading",
-      "severity": "cosmetic",
-      "why_it_matters": "The page's running header is rendered as a level-1 markdown heading, which adds a spurious top-level 'Index' section to the outline at XVIII-6; every sibling index page (807-811, 813, 814) keeps the running header as plain text.",
-      "pdf_says": "Index",
-      "markdown_says": "# Index",
-      "note": "Running header 'Index' at the top left of folio XVIII-6, not a heading. The base index body on pages 807-819 is deliberately deleted by the transcription's Errata C337 (Amendment 2 replaces the index), so the empty index pages are not findings; only this header promotion is."
-    }
-  ]
-}
+{"batch": [803,804,805,806,807,808,809,810,811,812,813,814], "pages_checked": [803,804,805,806,807,808,809,810,811,812,813,814], "pages_unread": [], "findings": []}

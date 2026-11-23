@@ -1,0 +1,17 @@
+{
+ "program": "SQ150A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "READ-TEST-01",
+   "lines": [
+    491
+   ],
+   "feature": "READ FILE OPENED OUTPUT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

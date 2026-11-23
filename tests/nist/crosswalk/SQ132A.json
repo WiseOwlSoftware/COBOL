@@ -1,0 +1,17 @@
+{
+ "program": "SQ132A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "CLOS-TEST-01",
+   "lines": [
+    566
+   ],
+   "feature": "CLOSED UNOPENED FILE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

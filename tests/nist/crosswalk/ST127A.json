@@ -1,0 +1,594 @@
+{
+ "program": "ST127A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "SORT-TEST-1",
+   "lines": [
+    365
+   ],
+   "feature": "SORT - 8 ASC. KEYS",
+   "ansi": "XI-18 4.4.4 GR(3)b",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-3"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-2",
+   "lines": [
+    376
+   ],
+   "feature": "SORT - 8 ASC. KEYS",
+   "ansi": "XI-18 4.4.4 GR(3)b",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-3"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-3",
+   "lines": [
+    387
+   ],
+   "feature": "SORT - 8 ASC. KEYS",
+   "ansi": "XI-18 4.4.4 GR(3)b",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-3"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-4",
+   "lines": [
+    398
+   ],
+   "feature": "SORT - 8 ASC. KEYS",
+   "ansi": "XI-18 4.4.4 GR(3)b",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-3"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-5",
+   "lines": [
+    409
+   ],
+   "feature": "SORT - 8 ASC. KEYS",
+   "ansi": "XI-18 4.4.4 GR(3)b",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-3"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-6",
+   "lines": [
+    420
+   ],
+   "feature": "SORT - 8 ASC. KEYS",
+   "ansi": "XI-18 4.4.4 GR(3)b",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-3"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-7",
+   "lines": [
+    431
+   ],
+   "feature": "SORT - 8 ASC. KEYS",
+   "ansi": "XI-18 4.4.4 GR(3)b",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-3"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-8",
+   "lines": [
+    442
+   ],
+   "feature": "SORT - 8 ASC. KEYS",
+   "ansi": "XI-18 4.4.4 GR(3)b",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-3"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-9",
+   "lines": [
+    476
+   ],
+   "feature": "SORT - 8 ASC. KEYS",
+   "ansi": "XI-18 4.4.4 GR(3)b",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-3"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-10",
+   "lines": [
+    490
+   ],
+   "feature": "SORT - 8 ASC. KEYS",
+   "ansi": "XI-18 4.4.4 GR(3)b",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-3"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-11",
+   "lines": [
+    501
+   ],
+   "feature": "SORT - 8 ASC. KEYS",
+   "ansi": "XI-18 4.4.4 GR(3)b",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-3"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-12",
+   "lines": [
+    512
+   ],
+   "feature": "SORT - 8 ASC. KEYS",
+   "ansi": "XI-18 4.4.4 GR(3)b",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-3"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-13",
+   "lines": [
+    524
+   ],
+   "feature": "SORT - 8 ASC. KEYS",
+   "ansi": "XI-18 4.4.4 GR(3)b",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-3"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-14",
+   "lines": [
+    535
+   ],
+   "feature": "SORT - 8 ASC. KEYS",
+   "ansi": "XI-18 4.4.4 GR(3)b",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-3"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-15",
+   "lines": [
+    546
+   ],
+   "feature": "SORT - 8 ASC. KEYS",
+   "ansi": "XI-18 4.4.4 GR(3)b",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-3"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-16",
+   "lines": [
+    557
+   ],
+   "feature": "SORT - 8 ASC. KEYS",
+   "ansi": "XI-18 4.4.4 GR(3)b",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-3"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-17",
+   "lines": [
+    567
+   ],
+   "feature": "SORT - 8 ASC. KEYS",
+   "ansi": "XI-18 4.4.4 GR(3)b",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-3"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "RETURN-ERROR",
+   "lines": [
+    571
+   ],
+   "feature": "SORT - 8 ASC. KEYS",
+   "ansi": "XI-18 4.4.4 GR(3)b",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-3"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-18-1",
+   "lines": [
+    701
+   ],
+   "feature": "DUPLICATE KEYS",
+   "ansi": "XI-18 4.4.4 GR(3)b",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-3"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-18-2",
+   "lines": [
+    711
+   ],
+   "feature": "DUPLICATE KEYS",
+   "ansi": "XI-18 4.4.4 GR(3)b",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-3"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-19-1",
+   "lines": [
+    723
+   ],
+   "feature": "DUPLICATE KEYS",
+   "ansi": "XI-18 4.4.4 GR(3)b",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-3"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-19-2",
+   "lines": [
+    733
+   ],
+   "feature": "DUPLICATE KEYS",
+   "ansi": "XI-18 4.4.4 GR(3)b",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-3"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-20-1",
+   "lines": [
+    745
+   ],
+   "feature": "DUPLICATE KEYS",
+   "ansi": "XI-18 4.4.4 GR(3)b",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-3"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-20-2",
+   "lines": [
+    755
+   ],
+   "feature": "DUPLICATE KEYS",
+   "ansi": "XI-18 4.4.4 GR(3)b",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-3"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-21-1",
+   "lines": [
+    767
+   ],
+   "feature": "DUPLICATE KEYS",
+   "ansi": "XI-18 4.4.4 GR(3)b",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-3"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-21-2",
+   "lines": [
+    777
+   ],
+   "feature": "DUPLICATE KEYS",
+   "ansi": "XI-18 4.4.4 GR(3)b",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-3"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-22-1",
+   "lines": [
+    789
+   ],
+   "feature": "DUPLICATE KEYS",
+   "ansi": "XI-18 4.4.4 GR(3)b",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-3"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-22-2",
+   "lines": [
+    799
+   ],
+   "feature": "DUPLICATE KEYS",
+   "ansi": "XI-18 4.4.4 GR(3)b",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-3"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-23-1",
+   "lines": [
+    811
+   ],
+   "feature": "DUPLICATE KEYS",
+   "ansi": "XI-18 4.4.4 GR(3)b",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-3"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-23-2",
+   "lines": [
+    821
+   ],
+   "feature": "DUPLICATE KEYS",
+   "ansi": "XI-18 4.4.4 GR(3)b",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-3"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-24-1",
+   "lines": [
+    833
+   ],
+   "feature": "DUPLICATE KEYS",
+   "ansi": "XI-18 4.4.4 GR(3)b",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-3"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-24-2",
+   "lines": [
+    843
+   ],
+   "feature": "DUPLICATE KEYS",
+   "ansi": "XI-18 4.4.4 GR(3)b",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-3"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-25-1",
+   "lines": [
+    855
+   ],
+   "feature": "DUPLICATE KEYS",
+   "ansi": "XI-18 4.4.4 GR(3)b",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-3"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-25-2",
+   "lines": [
+    865
+   ],
+   "feature": "DUPLICATE KEYS",
+   "ansi": "XI-18 4.4.4 GR(3)b",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-3"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-26-1",
+   "lines": [
+    877
+   ],
+   "feature": "DUPLICATE KEYS",
+   "ansi": "XI-18 4.4.4 GR(3)b",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-3"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SORT-TEST-26-2",
+   "lines": [
+    887
+   ],
+   "feature": "DUPLICATE KEYS",
+   "ansi": "XI-18 4.4.4 GR(3)b",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-XI.4.4.4-3"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CHK-TEST-1",
+   "lines": [
+    906
+   ],
+   "feature": "DUPLICATE KEYS",
+   "ansi": "XI-18 4.4.4 GR(3)b",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-XI.4.4.4-3"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CHK-TEST-2",
+   "lines": [
+    918
+   ],
+   "feature": "DUPLICATE KEYS",
+   "ansi": "XI-18 4.4.4 GR(3)b",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-XI.4.4.4-3"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CHK-TEST-3",
+   "lines": [
+    930
+   ],
+   "feature": "DUPLICATE KEYS",
+   "ansi": "XI-18 4.4.4 GR(3)b",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-XI.4.4.4-3"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CHK-TEST-4",
+   "lines": [
+    942
+   ],
+   "feature": "DUPLICATE KEYS",
+   "ansi": "XI-18 4.4.4 GR(3)b",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-XI.4.4.4-3"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CHK-TEST-5",
+   "lines": [
+    954
+   ],
+   "feature": "DUPLICATE KEYS",
+   "ansi": "XI-18 4.4.4 GR(3)b",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-XI.4.4.4-3"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CHK-TEST-6",
+   "lines": [
+    966
+   ],
+   "feature": "DUPLICATE KEYS",
+   "ansi": "XI-18 4.4.4 GR(3)b",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-XI.4.4.4-3"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CHK-TEST-7",
+   "lines": [
+    978
+   ],
+   "feature": "DUPLICATE KEYS",
+   "ansi": "XI-18 4.4.4 GR(3)b",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-XI.4.4.4-3"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "CHK-TEST-8",
+   "lines": [
+    990
+   ],
+   "feature": "DUPLICATE KEYS",
+   "ansi": "XI-18 4.4.4 GR(3)b",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-XI.4.4.4-3"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  }
+ ]
+}

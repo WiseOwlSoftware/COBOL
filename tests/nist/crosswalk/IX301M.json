@@ -1,0 +1,83 @@
+{
+ "program": "IX301M",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "NON-CONFORMING@18",
+   "lines": [
+    18
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "FILE-CONTROL SELECT TFIL ASSIGN XXXXX024 ORGANIZATION IS INDEXED",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@21",
+   "lines": [
+    21
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "ACCESS MODE IS RANDOM",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@24",
+   "lines": [
+    24
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "RECORD KEY IS RKEY",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@47",
+   "lines": [
+    47
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "IX301M-READ READ TFIL INVALID KEY PERFORM INV-PARA NOT INVALID KEY PERFORM DONE-PARA",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@52",
+   "lines": [
+    52
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "IX301M-REWRITE REWRITE FREC INVALID KEY PERFORM INV-PARA NOT INVALID KEY PERFORM DONE-PARA",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@57",
+   "lines": [
+    57
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "IX301M-WRITE WRITE FREC INVALID KEY PERFORM INV-PARA NOT INVALID KEY PERFORM DONE-PARA",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@62",
+   "lines": [
+    62
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "IX301M-DELETE DELETE TFIL INVALID KEY PERFORM INV-PARA NOT INVALID KEY PERFORM DONE-PARA",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  }
+ ]
+}

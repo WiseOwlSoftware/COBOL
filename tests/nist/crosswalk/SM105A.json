@@ -1,0 +1,116 @@
+{
+ "program": "SM105A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "COPY-TEST-1",
+   "lines": [
+    420
+   ],
+   "feature": "COPY SORT DESCR",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "COPY-TEST-2",
+   "lines": [
+    435
+   ],
+   "feature": "COPY SORT DESCR",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "COPY-TEST-3",
+   "lines": [
+    450
+   ],
+   "feature": "COPY SORT DESCR",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "COPY-TEST-4",
+   "lines": [
+    466
+   ],
+   "feature": "COPY SORT DESCR",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "COPY-TEST-5",
+   "lines": [
+    481
+   ],
+   "feature": "COPY SORT DESCR",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "COPY-TEST-6",
+   "lines": [
+    496
+   ],
+   "feature": "COPY SORT DESCR",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "COPY-TEST-7",
+   "lines": [
+    511
+   ],
+   "feature": "COPY SORT DESCR",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "COPY-TEST-8",
+   "lines": [
+    526
+   ],
+   "feature": "COPY SORT DESCR",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "COPY-TEST-9",
+   "lines": [
+    539
+   ],
+   "feature": "COPY SORT DESCR",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "BAD-FILE",
+   "lines": [
+    555
+   ],
+   "feature": "COPY SORT DESCR",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

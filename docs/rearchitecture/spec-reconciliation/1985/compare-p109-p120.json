@@ -1,141 +1,16 @@
 {
- "batch": [
-  109,
-  110,
-  111,
-  112,
-  113,
-  114,
-  115,
-  116,
-  117,
-  118,
-  119,
-  120
- ],
- "pages_checked": [
-  109,
-  110,
-  111,
-  112,
-  113,
-  114,
-  115,
-  116,
-  117,
-  118,
-  119,
-  120
- ],
- "pages_unread": [],
- "findings": [
-  {
-   "id": "p110-1",
-   "page": 110,
-   "kind": "missing-heading",
-   "severity": "structural",
-   "pdf_says": "6.4.4 Sharing Files",
-   "markdown_says": "6.4.4 Sharing Files",
-   "why_it_matters": "The PDF prints this as a numbered section heading (bold, own line), like 6.4.2.2 on page 109 which the markdown renders as '###'; here it is left as a plain paragraph, so the section is invisible to heading-based navigation and section lookup."
-  },
-  {
-   "id": "p110-2",
-   "page": 110,
-   "kind": "missing-heading",
-   "severity": "structural",
-   "pdf_says": "6.5 INTRA-PROGRAM COMMUNICATION",
-   "markdown_says": "6.5 INTRA-PROGRAM COMMUNICATION",
-   "why_it_matters": "The PDF prints this as a numbered section heading (bold, own line), like 6.4.2.2 on page 109 which the markdown renders as '###'; here it is left as a plain paragraph, so the section is invisible to heading-based navigation and section lookup."
-  },
-  {
-   "id": "p110-3",
-   "page": 110,
-   "kind": "missing-heading",
-   "severity": "structural",
-   "pdf_says": "6.5.1 Transfer of Control",
-   "markdown_says": "6.5.1 Transfer of Control",
-   "why_it_matters": "The PDF prints this as a numbered section heading (bold, own line), like 6.4.2.2 on page 109 which the markdown renders as '###'; here it is left as a plain paragraph, so the section is invisible to heading-based navigation and section lookup."
-  },
-  {
-   "id": "p110-4",
-   "page": 110,
-   "kind": "missing-heading",
-   "severity": "structural",
-   "pdf_says": "6.5.2 Shared Data",
-   "markdown_says": "6.5.2 Shared Data",
-   "why_it_matters": "The PDF prints this as a numbered section heading (bold, own line), like 6.4.2.2 on page 109 which the markdown renders as '###'; here it is left as a plain paragraph, so the section is invisible to heading-based navigation and section lookup."
-  },
-  {
-   "id": "p115-1",
-   "page": 115,
-   "kind": "missing-heading",
-   "severity": "structural",
-   "pdf_says": "7.3.1 Invoking the COBOL Object Program",
-   "markdown_says": "7.3.1 Invoking the COBOL Object Program",
-   "why_it_matters": "The PDF prints this as a numbered section heading (bold, own line), like 6.4.2.2 on page 109 which the markdown renders as '###'; here it is left as a plain paragraph, so the section is invisible to heading-based navigation and section lookup."
-  },
-  {
-   "id": "p115-2",
-   "page": 115,
-   "kind": "missing-heading",
-   "severity": "structural",
-   "pdf_says": "7.3.1.1 Scheduled Initiation of the COBOL Object Program",
-   "markdown_says": "7.3.1.1 Scheduled Initiation of the COBOL Object Program",
-   "why_it_matters": "The PDF prints this as a numbered section heading (bold, own line), like 6.4.2.2 on page 109 which the markdown renders as '###'; here it is left as a plain paragraph, so the section is invisible to heading-based navigation and section lookup."
-  },
-  {
-   "id": "p115-3",
-   "page": 115,
-   "kind": "missing-heading",
-   "severity": "structural",
-   "pdf_says": "7.3.1.2 Invocation of the COBOL Object Program by the MCS",
-   "markdown_says": "7.3.1.2 Invocation of the COBOL Object Program by the MCS",
-   "why_it_matters": "The PDF prints this as a numbered section heading (bold, own line), like 6.4.2.2 on page 109 which the markdown renders as '###'; here it is left as a plain paragraph, so the section is invisible to heading-based navigation and section lookup."
-  },
-  {
-   "id": "p115-4",
-   "page": 115,
-   "kind": "missing-heading",
-   "severity": "structural",
-   "pdf_says": "7.3.1.3 Determining the Method of Scheduling",
-   "markdown_says": "7.3.1.3 Determining the Method of Scheduling",
-   "why_it_matters": "The PDF prints this as a numbered section heading (bold, own line), like 6.4.2.2 on page 109 which the markdown renders as '###'; here it is left as a plain paragraph, so the section is invisible to heading-based navigation and section lookup."
-  },
-  {
-   "id": "p113-1",
-   "page": 113,
-   "kind": "missing-heading",
-   "severity": "cosmetic",
-   "pdf_says": "7.3 RELATIONSHIP OF THE COBOL PROGRAM TO THE MESSAGE CONTROL SYSTEM AND COMMUNICATION DEVICES",
-   "markdown_says": "## 7.3 RELATIONSHIP OF THE COBOL PROGRAM TO THE MESSAGE CONTROL SYSTEM AND COMMUNICATION DEVICES",
-   "why_it_matters": "Wrong heading level: the PDF prints 7.3 as a second-level section under chapter 7 (same style as 7.1 and 7.2, which the markdown renders '###'), but the markdown renders it '##', the level of the chapter heading '## 7. COMMUNICATION FACILITY', so it reads as a sibling of chapter 7."
-  },
-  {
-   "id": "p116-1",
-   "page": 116,
-   "kind": "missing-heading",
-   "severity": "cosmetic",
-   "pdf_says": "7.4 THE CONCEPT OF MESSAGES AND MESSAGE SEGMENTS",
-   "markdown_says": "## 7.4 THE CONCEPT OF MESSAGES AND MESSAGE SEGMENTS",
-   "why_it_matters": "Wrong heading level: the PDF prints 7.4 as a second-level section under chapter 7 (same style as 7.1 and 7.2, which the markdown renders '###'), but the markdown renders it '##', the level of the chapter heading '## 7. COMMUNICATION FACILITY', so it reads as a sibling of chapter 7."
-  },
-  {
-   "id": "p116-2",
-   "page": 116,
-   "kind": "missing-heading",
-   "severity": "cosmetic",
-   "pdf_says": "7.5 THE CONCEPT OF QUEUES",
-   "markdown_says": "## 7.5 THE CONCEPT OF QUEUES",
-   "why_it_matters": "Wrong heading level: the PDF prints 7.5 as a second-level section under chapter 7 (same style as 7.1 and 7.2, which the markdown renders '###'), but the markdown renders it '##', the level of the chapter heading '## 7. COMMUNICATION FACILITY', so it reads as a sibling of chapter 7."
-  },
-  {
-   "id": "p119-1",
-   "page": 119,
-   "kind": "missing-heading",
-   "severity": "cosmetic",
-   "pdf_says": "7.6 THE CONCEPT OF TRANSACTION COMMUNICATION",
-   "markdown_says": "## 7.6 THE CONCEPT OF TRANSACTION COMMUNICATION",
-   "why_it_matters": "Wrong heading level: the PDF prints 7.6 as a second-level section under chapter 7 (same style as 7.1 and 7.2, which the markdown renders '###'), but the markdown renders it '##', the level of the chapter heading '## 7. COMMUNICATION FACILITY', so it reads as a sibling of chapter 7."
-  }
- ]
+  "batch": [109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120],
+  "pages_checked": [109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p114-1",
+      "page": 114,
+      "kind": "image-restructured",
+      "severity": "structural",
+      "pdf_says": "Figure 1: COBOL Communication Environment - the first SEND line (below the second RECEIVE) runs through the Communication Descriptions (CD) bar diagonally down to the LEFT output queue, and the second SEND line runs through the CD bar to the RIGHT output queue; the second communication device from the top is joined by two lines through ENABLE/DISABLE, one to each of the two input queues; the third device's line runs back to the left input queue (arrowhead at the queue).",
+      "markdown_says": "│ SEND     │───│o │                 ^                           │N │        └─┘ ... │ SEND     │───│i │───────────&gt;│          │          │──────────│/ │        ┌─┐\n│          │   │c │───────────&gt;│          │          │          │D │───────&gt;│ │ ... │          │   │C │            └──────────┴──────────┘          │E │────────│ │",
+      "why_it_matters": "The ASCII redraw of Figure 1 loses connections the printed figure shows: the first SEND ends at the CD bar and reaches no output queue (both output-queue arrows come from the second SEND's row), the second device has a single line instead of one to each input queue, and the third device's link is drawn with an arrowhead toward the device from the input queue rather than into the input queue. The figure is explanatory (Concepts), so this is not a syntax rule, but a drawn figure is acceptable only if no information is lost, and here the data flow between program, queues and devices is misdrawn."
+    }
+  ]
 }

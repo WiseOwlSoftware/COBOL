@@ -1,9 +1,1 @@
-{"batch": [407,408,409,410,411,412,413,414,415,416,417,418],
- "pages_checked": [407,408,409,410,411,412,413,414,415,416,417,418],
- "pages_unread": [],
- "findings": [
-  {"id": "p413-1", "page": 413, "kind": "incorrect-text", "severity": "structural",
-   "pdf_says": "In the 4.3.2 OPEN general format a drawn box encloses both the INPUT phrase's bracket [REVERSED / WITH NO REWIND] and the OUTPUT phrase's [WITH NO REWIND] (one box spanning the two lines), the same box notation that encloses 'EXTEND {file-name-4} ...'.",
-   "markdown_says": "       ╭ <u>INPUT</u>  ╭            ┌ <u>REVERSED</u>       ┐ ╮     ╮ ... <u>OPEN</u>   ┤ <u>OUTPUT</u> {file-name-2 [ WITH <u>NO</u> <u>REWIND</u> ] } …   ├ … ... ╰║<u>EXTEND</u> {file-name-4}  … ║",
-   "why_it_matters": "The transcription keeps the box marker (║) around the EXTEND line but drops the box around the REVERSED / WITH NO REWIND bracket and the OUTPUT [WITH NO REWIND] bracket, so the figure no longer shows that these phrases are boxed (higher-level/obsolete-marked) elements. Syntax itself (brackets, braces, ellipses, underlining) is otherwise faithful."}
- ]}
+{"batch": [407,408,409,410,411,412,413,414,415,416,417,418], "pages_checked": [407,408,409,410,411,412,413,414,415,416,417,418], "pages_unread": [], "findings": []}

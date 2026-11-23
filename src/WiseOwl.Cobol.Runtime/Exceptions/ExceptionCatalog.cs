@@ -107,36 +107,37 @@ public static class ExceptionCatalog
         var t = new Dictionary<string, EcInfo>(CobolNames.Comparer);
         t[EcAll] = new EcInfo(EcAll, 1, null, EcFatality.Hierarchy, 2002);
         foreach (string l2 in Level2Names)
-            t[l2] = new EcInfo(l2, 2, null, EcFatality.Hierarchy, l2 is "EC-CONTINUE" or "EC-MCS" or "EC-EXTERNAL" ? 2023 : 2002);
+            t[l2] = new EcInfo(l2, 2, null, EcFatality.Hierarchy, l2 is "EC-CONTINUE" or "EC-MCS" or "EC-EXTERNAL" ? 2023 : l2 is "EC-FUNCTION" ? 2014 : 2002);
 
-        // Level-3 rows — ISO §2023:14.6.13.1.6 Table 13 in table order. IntroducedIn: 2002 = the EC model's
-        // introduction edition; 2023 = the names VERSION_CHANGE_REFERENCE rows 40/61 record as new in 2023
-        // (EC-MCS-*, EC-FLOW-APPLY-COMMIT/-COMMIT/-ROLLBACK, EC-CONTINUE-*, EC-EXTERNAL-*, EC-I-O-WARNING,
-        // EC-I-O-RECORD-CONTENT). 2014 = the dynamic-capacity-table EC names (§2023:8.5.1.9 is a COBOL-2014 feature):
-        // EC-BOUND-OVERFLOW. (EC-BOUND-SET, the explicit-SET twin, is raised by CobolDynTable.SetCapacity — kb/Work
-        // PB460; its IntroducedIn is unaudited and left at the model's 2002.) The IntroducedIn is observably inert where the enabling construct is itself
-        // edition-gated (a dyn table cannot exist below 2014 to overflow), but the metadata is kept correct.
+        // Level-3 rows — ISO §2023:14.6.13.1.6 Table 13 in table order. IntroducedIn is the first edition whose own exception-name
+        // list carries the name (§2002:14.5.12.1, §2014:14.6.12.1, §2023:14.6.13.1; kb/Work PB5703): 2002 = the EC model's
+        // introduction edition; 2014 = the names §2014 lists and §2002 lacks (EC-FUNCTION and its children,
+        // the dynamic-capacity-table names EC-BOUND-OVERFLOW/-SET/-TABLE-LIMIT and EC-FLOW-SEARCH, EC-DATA-NOT-FINITE,
+        // EC-DATA-OVERFLOW, EC-OO-ARG-OMITTED); 2023 = the names §2014 lacks (EC-BOUND-FUNC-RET-VALUE, EC-FUNCTION-IMP, EC-MCS-*,
+        // EC-FLOW-APPLY-COMMIT/-COMMIT/-ROLLBACK, EC-CONTINUE-*, EC-EXTERNAL-*, EC-I-O-WARNING, EC-I-O-RECORD-CONTENT). The
+        // IntroducedIn is observably inert where the enabling construct is itself edition-gated (a dynamic-capacity table
+        // cannot exist below 2014 to overflow), but a written name is gated by it (ExceptionNameRule.Window).
         void L3(string name, EcFatality f, int introduced = 2002) =>
             t[name] = new EcInfo(name, 3, Level2OfName(name), f, introduced);
 
         L3("EC-ARGUMENT-FUNCTION", EcFatality.Fatal);
         L3("EC-ARGUMENT-IMP", EcFatality.Imp);
-        L3("EC-BOUND-FUNC-RET-VALUE", EcFatality.Nonfatal);
+        L3("EC-BOUND-FUNC-RET-VALUE", EcFatality.Nonfatal, 2023);
         L3("EC-BOUND-IMP", EcFatality.Imp);
         L3("EC-BOUND-ODO", EcFatality.Fatal);
         L3("EC-BOUND-OVERFLOW", EcFatality.Nonfatal, 2014);   // dynamic-capacity tables — §2023:8.5.1.9 (COBOL-2014)
         L3("EC-BOUND-PTR", EcFatality.Fatal);
         L3("EC-BOUND-REF-MOD", EcFatality.Fatal);
-        L3("EC-BOUND-SET", EcFatality.Nonfatal);
+        L3("EC-BOUND-SET", EcFatality.Nonfatal, 2014);
         L3("EC-BOUND-SUBSCRIPT", EcFatality.Fatal);
-        L3("EC-BOUND-TABLE-LIMIT", EcFatality.Fatal);
+        L3("EC-BOUND-TABLE-LIMIT", EcFatality.Fatal, 2014);
         L3("EC-CONTINUE-IMP", EcFatality.Imp, 2023);
         L3("EC-CONTINUE-LESS-THAN-ZERO", EcFatality.Nonfatal, 2023);
         L3("EC-DATA-CONVERSION", EcFatality.Nonfatal);
         L3("EC-DATA-IMP", EcFatality.Imp);
         L3("EC-DATA-INCOMPATIBLE", EcFatality.Fatal);
-        L3("EC-DATA-NOT-FINITE", EcFatality.Fatal);
-        L3("EC-DATA-OVERFLOW", EcFatality.Fatal);
+        L3("EC-DATA-NOT-FINITE", EcFatality.Fatal, 2014);
+        L3("EC-DATA-OVERFLOW", EcFatality.Fatal, 2014);
         L3("EC-DATA-PTR-NULL", EcFatality.Fatal);
         L3("EC-EXTERNAL-DATA-MISMATCH", EcFatality.Fatal, 2023);
         L3("EC-EXTERNAL-FILE-MISMATCH", EcFatality.Fatal, 2023);
@@ -151,13 +152,13 @@ public static class ExceptionCatalog
         L3("EC-FLOW-REPORT", EcFatality.Fatal);
         L3("EC-FLOW-RETURN", EcFatality.Fatal);
         L3("EC-FLOW-ROLLBACK", EcFatality.Fatal, 2023);
-        L3("EC-FLOW-SEARCH", EcFatality.Fatal);
+        L3("EC-FLOW-SEARCH", EcFatality.Fatal, 2014);
         L3("EC-FLOW-USE", EcFatality.Fatal);
-        L3("EC-FUNCTION-ARG-OMITTED", EcFatality.Fatal);
-        L3("EC-FUNCTION-IMP", EcFatality.Imp);
-        L3("EC-FUNCTION-NOT-FOUND", EcFatality.Fatal);
-        L3("EC-FUNCTION-PTR-INVALID", EcFatality.Fatal);
-        L3("EC-FUNCTION-PTR-NULL", EcFatality.Fatal);
+        L3("EC-FUNCTION-ARG-OMITTED", EcFatality.Fatal, 2014);
+        L3("EC-FUNCTION-IMP", EcFatality.Imp, 2023);
+        L3("EC-FUNCTION-NOT-FOUND", EcFatality.Fatal, 2014);
+        L3("EC-FUNCTION-PTR-INVALID", EcFatality.Fatal, 2014);
+        L3("EC-FUNCTION-PTR-NULL", EcFatality.Fatal, 2014);
         L3("EC-I-O-AT-END", EcFatality.Nonfatal);
         L3(IoEop, EcFatality.Nonfatal);
         L3(IoEopOverflow, EcFatality.Nonfatal);
@@ -184,7 +185,7 @@ public static class ExceptionCatalog
         L3("EC-MCS-NO-SERVER", EcFatality.Nonfatal, 2023);
         L3("EC-MCS-NORMAL-TERMINATION", EcFatality.Nonfatal, 2023);
         L3("EC-MCS-REQUESTOR-FAILED", EcFatality.Nonfatal, 2023);
-        L3("EC-OO-ARG-OMITTED", EcFatality.Fatal);
+        L3("EC-OO-ARG-OMITTED", EcFatality.Fatal, 2014);
         L3("EC-OO-CONFORMANCE", EcFatality.Fatal);
         L3("EC-OO-EXCEPTION", EcFatality.Fatal);
         L3("EC-OO-IMP", EcFatality.Imp);

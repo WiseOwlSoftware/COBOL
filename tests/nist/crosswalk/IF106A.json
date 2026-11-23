@@ -1,0 +1,546 @@
+{
+ "program": "IF106A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "F-COS-01",
+   "lines": [
+    369
+   ],
+   "feature": "COS Function",
+   "ansi": "See ref. A-38 2.8",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.8.1-p1",
+    "1989-FMT-A.2.8.2",
+    "1989-AR-A.2.8.3-1",
+    "1989-RV-A.2.8.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-COS-02",
+   "lines": [
+    391
+   ],
+   "feature": "COS Function",
+   "ansi": "See ref. A-38 2.8",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.8.1-p1",
+    "1989-FMT-A.2.8.2",
+    "1989-AR-A.2.8.3-1",
+    "1989-RV-A.2.8.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-COS-03",
+   "lines": [
+    413
+   ],
+   "feature": "COS Function",
+   "ansi": "See ref. A-38 2.8",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.8.1-p1",
+    "1989-FMT-A.2.8.2",
+    "1989-AR-A.2.8.3-1",
+    "1989-RV-A.2.8.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-COS-04",
+   "lines": [
+    435
+   ],
+   "feature": "COS Function",
+   "ansi": "See ref. A-38 2.8",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.8.1-p1",
+    "1989-FMT-A.2.8.2",
+    "1989-AR-A.2.8.3-1",
+    "1989-RV-A.2.8.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-COS-05",
+   "lines": [
+    457
+   ],
+   "feature": "COS Function",
+   "ansi": "See ref. A-38 2.8",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.8.1-p1",
+    "1989-FMT-A.2.8.2",
+    "1989-AR-A.2.8.3-1",
+    "1989-RV-A.2.8.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-COS-06",
+   "lines": [
+    479
+   ],
+   "feature": "COS Function",
+   "ansi": "See ref. A-38 2.8",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.8.1-p1",
+    "1989-FMT-A.2.8.2",
+    "1989-AR-A.2.8.3-1",
+    "1989-RV-A.2.8.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-COS-07",
+   "lines": [
+    501
+   ],
+   "feature": "COS Function",
+   "ansi": "See ref. A-38 2.8",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.8.1-p1",
+    "1989-FMT-A.2.8.2",
+    "1989-AR-A.2.8.3-1",
+    "1989-RV-A.2.8.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-COS-08",
+   "lines": [
+    523
+   ],
+   "feature": "COS Function",
+   "ansi": "See ref. A-38 2.8",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.8.1-p1",
+    "1989-FMT-A.2.8.2",
+    "1989-AR-A.2.8.3-1",
+    "1989-RV-A.2.8.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-COS-09",
+   "lines": [
+    545
+   ],
+   "feature": "COS Function",
+   "ansi": "See ref. A-38 2.8",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.8.1-p1",
+    "1989-FMT-A.2.8.2",
+    "1989-AR-A.2.8.3-1",
+    "1989-RV-A.2.8.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-COS-10",
+   "lines": [
+    567
+   ],
+   "feature": "COS Function",
+   "ansi": "See ref. A-38 2.8",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.8.1-p1",
+    "1989-FMT-A.2.8.2",
+    "1989-AR-A.2.8.3-1",
+    "1989-RV-A.2.8.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-COS-11",
+   "lines": [
+    589
+   ],
+   "feature": "COS Function",
+   "ansi": "See ref. A-38 2.8",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.8.1-p1",
+    "1989-FMT-A.2.8.2",
+    "1989-AR-A.2.8.3-1",
+    "1989-RV-A.2.8.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-COS-12",
+   "lines": [
+    611
+   ],
+   "feature": "COS Function",
+   "ansi": "See ref. A-38 2.8",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.8.1-p1",
+    "1989-FMT-A.2.8.2",
+    "1989-AR-A.2.8.3-1",
+    "1989-RV-A.2.8.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-COS-13",
+   "lines": [
+    633
+   ],
+   "feature": "COS Function",
+   "ansi": "See ref. A-38 2.8",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.8.1-p1",
+    "1989-FMT-A.2.8.2",
+    "1989-AR-A.2.8.3-1",
+    "1989-RV-A.2.8.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-COS-14",
+   "lines": [
+    655
+   ],
+   "feature": "COS Function",
+   "ansi": "See ref. A-38 2.8",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.8.1-p1",
+    "1989-FMT-A.2.8.2",
+    "1989-AR-A.2.8.3-1",
+    "1989-RV-A.2.8.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-COS-16",
+   "lines": [
+    677
+   ],
+   "feature": "COS Function",
+   "ansi": "See ref. A-38 2.8",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.8.1-p1",
+    "1989-FMT-A.2.8.2",
+    "1989-AR-A.2.8.3-1",
+    "1989-RV-A.2.8.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-COS-18",
+   "lines": [
+    699
+   ],
+   "feature": "COS Function",
+   "ansi": "See ref. A-38 2.8",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.8.1-p1",
+    "1989-FMT-A.2.8.2",
+    "1989-AR-A.2.8.3-1",
+    "1989-RV-A.2.8.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-COS-19",
+   "lines": [
+    721
+   ],
+   "feature": "COS Function",
+   "ansi": "See ref. A-38 2.8",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.8.1-p1",
+    "1989-FMT-A.2.8.2",
+    "1989-AR-A.2.8.3-1",
+    "1989-RV-A.2.8.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-COS-20",
+   "lines": [
+    743
+   ],
+   "feature": "COS Function",
+   "ansi": "See ref. A-38 2.8",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.8.1-p1",
+    "1989-FMT-A.2.8.2",
+    "1989-AR-A.2.8.3-1",
+    "1989-RV-A.2.8.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-COS-21",
+   "lines": [
+    765
+   ],
+   "feature": "COS Function",
+   "ansi": "See ref. A-38 2.8",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.8.1-p1",
+    "1989-FMT-A.2.8.2",
+    "1989-AR-A.2.8.3-1",
+    "1989-RV-A.2.8.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-COS-22",
+   "lines": [
+    787
+   ],
+   "feature": "COS Function",
+   "ansi": "See ref. A-38 2.8",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.8.1-p1",
+    "1989-FMT-A.2.8.2",
+    "1989-AR-A.2.8.3-1",
+    "1989-RV-A.2.8.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-COS-23",
+   "lines": [
+    809
+   ],
+   "feature": "COS Function",
+   "ansi": "See ref. A-38 2.8",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.8.1-p1",
+    "1989-FMT-A.2.8.2",
+    "1989-AR-A.2.8.3-1",
+    "1989-RV-A.2.8.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-COS-24",
+   "lines": [
+    831
+   ],
+   "feature": "COS Function",
+   "ansi": "See ref. A-38 2.8",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.8.1-p1",
+    "1989-FMT-A.2.8.2",
+    "1989-AR-A.2.8.3-1",
+    "1989-RV-A.2.8.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-COS-25",
+   "lines": [
+    853
+   ],
+   "feature": "COS Function",
+   "ansi": "See ref. A-38 2.8",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.8.1-p1",
+    "1989-FMT-A.2.8.2",
+    "1989-AR-A.2.8.3-1",
+    "1989-RV-A.2.8.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-COS-26",
+   "lines": [
+    875
+   ],
+   "feature": "COS Function",
+   "ansi": "See ref. A-38 2.8",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.8.1-p1",
+    "1989-FMT-A.2.8.2",
+    "1989-AR-A.2.8.3-1",
+    "1989-RV-A.2.8.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-COS-27",
+   "lines": [
+    897
+   ],
+   "feature": "COS Function",
+   "ansi": "See ref. A-38 2.8",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.8.1-p1",
+    "1989-FMT-A.2.8.2",
+    "1989-AR-A.2.8.3-1",
+    "1989-RV-A.2.8.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-COS-28",
+   "lines": [
+    919
+   ],
+   "feature": "COS Function",
+   "ansi": "See ref. A-38 2.8",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.8.1-p1",
+    "1989-FMT-A.2.8.2",
+    "1989-AR-A.2.8.3-1",
+    "1989-RV-A.2.8.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-COS-29",
+   "lines": [
+    941
+   ],
+   "feature": "COS Function",
+   "ansi": "See ref. A-38 2.8",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.8.1-p1",
+    "1989-FMT-A.2.8.2",
+    "1989-AR-A.2.8.3-1",
+    "1989-RV-A.2.8.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-COS-30",
+   "lines": [
+    963
+   ],
+   "feature": "COS Function",
+   "ansi": "See ref. A-38 2.8",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.8.1-p1",
+    "1989-FMT-A.2.8.2",
+    "1989-AR-A.2.8.3-1",
+    "1989-RV-A.2.8.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-COS-31",
+   "lines": [
+    986
+   ],
+   "feature": "COS Function",
+   "ansi": "See ref. A-38 2.8",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.8.1-p1",
+    "1989-FMT-A.2.8.2",
+    "1989-AR-A.2.8.3-1",
+    "1989-RV-A.2.8.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-COS-32",
+   "lines": [
+    1000
+   ],
+   "feature": "COS Function",
+   "ansi": "See ref. A-38 2.8",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.8.1-p1",
+    "1989-FMT-A.2.8.2",
+    "1989-AR-A.2.8.3-1",
+    "1989-RV-A.2.8.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  }
+ ]
+}

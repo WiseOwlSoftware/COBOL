@@ -30,6 +30,7 @@ headers. `suite_status.py` reads the rows term from `classify`.
 from __future__ import annotations
 
 import argparse
+import functools
 import re
 import sys
 from dataclasses import dataclass
@@ -210,9 +211,12 @@ def repair_headers(root: Path, cases: Iterable[Any], todo: dict[str, list[str]])
 
 # ── running ──────────────────────────────────────────────────────────────────────────────────────────────────────────
 
+@functools.cache
 def facts_of_repository(edition: str = "85") -> tuple[list[RowFacts], list[Any], Any]:
     """The facts of the repository's `edition` catalog, with the parsed tests and the generator's inputs; refuses (raises)
-    when the generator refuses the tree, since a count over a refused tree is no measure."""
+    when the generator refuses the tree, since a count over a refused tree is no measure. Read once per process: the status
+    line's rows term and the crosswalk's NIST term (crosswalk.py `unmet`) share the one generator run, and no caller edits
+    the tree between its reads."""
     import generate as g
     import inventory_view
     inputs, problems = g.repository_inputs()

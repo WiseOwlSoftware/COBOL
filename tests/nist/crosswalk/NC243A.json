@@ -1,0 +1,171 @@
+{
+ "program": "NC243A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "CHECK-ENTRIES",
+   "lines": [
+    401
+   ],
+   "feature": "PERFORM VARYING LEV1",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "LEVEL-1-TEST-2",
+   "lines": [
+    415
+   ],
+   "feature": "PERFORM VARYING LEV1",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "LEVEL-1-TEST-3",
+   "lines": [
+    428
+   ],
+   "feature": "PERFORM VARYING LEV1",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "LEVEL-1-TEST-4",
+   "lines": [
+    439
+   ],
+   "feature": "PERFORM VARYING LEV1",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "LEVEL-2-TEST-1",
+   "lines": [
+    457
+   ],
+   "feature": "PERFORM VARYING LEV2",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "LEVEL-2-TEST-2",
+   "lines": [
+    472
+   ],
+   "feature": "PERFORM VARYING LEV2",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "LEVEL-2-TEST-3",
+   "lines": [
+    486
+   ],
+   "feature": "PERFORM VARYING LEV2",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "LEVEL-2-TEST-4",
+   "lines": [
+    499
+   ],
+   "feature": "PERFORM VARYING LEV2",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "LEVEL-3-TEST-1",
+   "lines": [
+    520
+   ],
+   "feature": "PERFORM VARYING LEV3",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "LEVEL-3-TEST-2",
+   "lines": [
+    534
+   ],
+   "feature": "PERFORM VARYING LEV3",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "LEVEL-3-TEST-3",
+   "lines": [
+    549
+   ],
+   "feature": "PERFORM VARYING LEV3",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "LEVEL-3-TEST-4",
+   "lines": [
+    563
+   ],
+   "feature": "PERFORM VARYING LEV3",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "TH7-TEST",
+   "lines": [
+    593
+   ],
+   "feature": "PERFORM VARYING LEV3",
+   "ansi": "VI-2 1.3.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-SR-VI.1.3.4-p1"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-GR-VI.6.21.4-1",
+    "1985-GR-VI.6.21.4-2",
+    "1985-GR-VI.6.21.4-3",
+    "1985-GR-VI.6.21.4-4",
+    "1985-GR-VI.6.21.4-5",
+    "1985-GR-VI.6.21.4-6",
+    "1985-GR-VI.6.21.4-7",
+    "1985-GR-VI.6.21.4-8",
+    "1985-GR-VI.6.21.4-9",
+    "1985-GR-VI.6.21.4-10",
+    "1985-GR-VI.6.21.4-11",
+    "1985-GR-VI.6.21.4-12",
+    "1985-GR-VI.6.21.4-13",
+    "1985-GR-VI.6.21.4-14",
+    "1985-GR-VI.6.21.4-15",
+    "1985-GR-VI.6.21.4-16"
+   ],
+   "basis": "mechanical"
+  }
+ ]
+}

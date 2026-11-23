@@ -1,0 +1,21 @@
+{
+ "program": "IC233A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "USE-TEST-1",
+   "lines": [
+    382
+   ],
+   "feature": "",
+   "ansi": "X-34 5.5.4 GR(1)B",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-X.5.5.4-1"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  }
+ ]
+}

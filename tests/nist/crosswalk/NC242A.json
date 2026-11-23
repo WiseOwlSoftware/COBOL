@@ -1,0 +1,169 @@
+{
+ "program": "NC242A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "CHECK-ENTRIES",
+   "lines": [
+    392
+   ],
+   "feature": "LEVEL 1 TBL SUBSCRPT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "TEST-1-2",
+   "lines": [
+    406
+   ],
+   "feature": "LEVEL 1 TBL SUBSCRPT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "TEST-2",
+   "lines": [
+    421
+   ],
+   "feature": "LEVEL 2 TBL SUBSCRPT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "TEST-2-2",
+   "lines": [
+    435
+   ],
+   "feature": "LEVEL 2 TBL SUBSCRPT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "TEST-2-3",
+   "lines": [
+    449
+   ],
+   "feature": "LEVEL 2 TBL SUBSCRPT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "TEST-3",
+   "lines": [
+    464
+   ],
+   "feature": "LEVEL 3 TBL SUBSCRPT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "TEST-3-2",
+   "lines": [
+    478
+   ],
+   "feature": "LEVEL 3 TBL SUBSCRPT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "TEST-3-3",
+   "lines": [
+    493
+   ],
+   "feature": "LEVEL 3 TBL SUBSCRPT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "TH7-TEST",
+   "lines": [
+    509
+   ],
+   "feature": "LEVEL 3 TBL SUBSCRPT",
+   "ansi": "VI-2 1.3.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-SR-VI.1.3.4-p1"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "TH7-TEST-1",
+   "lines": [
+    525
+   ],
+   "feature": "LEVEL 3 TBL SUBSCRPT",
+   "ansi": "VI-2 1.3.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-SR-VI.1.3.4-p1"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "TH7-TEST-2",
+   "lines": [
+    537
+   ],
+   "feature": "LEVEL 3 TBL SUBSCRPT",
+   "ansi": "VI-2 1.3.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-SR-VI.1.3.4-p1"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "TH7-TEST-3",
+   "lines": [
+    549
+   ],
+   "feature": "LEVEL 3 TBL SUBSCRPT",
+   "ansi": "VI-2 1.3.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-SR-VI.1.3.4-p1"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "TH7-TEST-4",
+   "lines": [
+    561
+   ],
+   "feature": "LEVEL 3 TBL SUBSCRPT",
+   "ansi": "VI-2 1.3.4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-SR-VI.1.3.4-p1"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  }
+ ]
+}

@@ -1,0 +1,363 @@
+{
+ "program": "IX208A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "WRITE-INIT-GF-01",
+   "lines": [
+    558
+   ],
+   "feature": "",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRITE-TEST-GF-02",
+   "lines": [
+    626
+   ],
+   "feature": "CREATE FILE IX-FS2",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F1-01",
+   "lines": [
+    653
+   ],
+   "feature": "READ NEXT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F1-02",
+   "lines": [
+    688,
+    696
+   ],
+   "feature": "READ . NEXT INTO",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F1-03",
+   "lines": [
+    716,
+    724
+   ],
+   "feature": "READ . NEXT INTO",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F1-04",
+   "lines": [
+    732,
+    760
+   ],
+   "feature": "READ . NEXT INTO",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F2-01",
+   "lines": [
+    765,
+    785
+   ],
+   "feature": "READ . KEY IS ..",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F2-02",
+   "lines": [
+    789,
+    813
+   ],
+   "feature": "READ ... INTO",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F2-03",
+   "lines": [
+    817,
+    839
+   ],
+   "feature": "READ . KEY ALTERNATE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F2-04",
+   "lines": [
+    843,
+    863
+   ],
+   "feature": "READ .RECORD KEY ...",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F2-05",
+   "lines": [
+    867,
+    890
+   ],
+   "feature": "READ RECORD KEY IS A",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-01",
+   "lines": [
+    961,
+    980
+   ],
+   "feature": "START  EQUAL TO",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-02",
+   "lines": [
+    998,
+    1004
+   ],
+   "feature": "START KEY EQUAL TO",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-03",
+   "lines": [
+    1022,
+    1028
+   ],
+   "feature": "START KEY IS EQUAL",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-04",
+   "lines": [
+    1047,
+    1053
+   ],
+   "feature": "START KEY IS EQUAL",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-05",
+   "lines": [
+    1071,
+    1077
+   ],
+   "feature": "START KEY IS = ...",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-06",
+   "lines": [
+    1096,
+    1102
+   ],
+   "feature": "START  GREATER THAN",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-07",
+   "lines": [
+    1121,
+    1126
+   ],
+   "feature": "START KEY GREATER THAN",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-08",
+   "lines": [
+    1147,
+    1153
+   ],
+   "feature": "START KEY IS GREATER",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-09",
+   "lines": [
+    1174,
+    1180
+   ],
+   "feature": "START KEY IS > ...",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-10",
+   "lines": [
+    1201,
+    1207
+   ],
+   "feature": "START ... KEY > ...",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-11",
+   "lines": [
+    1230,
+    1236
+   ],
+   "feature": "START KEY IS NOT LESS THAN",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-12",
+   "lines": [
+    1258,
+    1264
+   ],
+   "feature": "START KEY IS NOT LESS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-13",
+   "lines": [
+    1286,
+    1292
+   ],
+   "feature": "START KEY NOT LESS THAN",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-14",
+   "lines": [
+    1314,
+    1320
+   ],
+   "feature": "START KEY IS NOT <",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-15",
+   "lines": [
+    1349,
+    1355
+   ],
+   "feature": "START KEY IS EQUAL TO",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-16",
+   "lines": [
+    1374,
+    1379
+   ],
+   "feature": "START  INVALID KEY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-17",
+   "lines": [
+    1396,
+    1401
+   ],
+   "feature": "START  INVALID KEY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-18",
+   "lines": [
+    1418,
+    1423
+   ],
+   "feature": "START  INVALID KEY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "START-TEST-GF-19",
+   "lines": [
+    1440,
+    1445
+   ],
+   "feature": "START  INVALID KEY",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}
