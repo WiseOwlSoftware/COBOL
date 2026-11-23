@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// is Table 13 Fatal, and a method's own DECLARATIVES are not implemented yet (COBOL0899), so the observable is
 /// §2023:14.6.13.1.3 GR7 — checking enabled, no applicable USE in the source unit: abnormal run-unit termination,
 /// naming EC-OO-ARG-OMITTED. The program and function arms are the goldens
-/// <c>2002/pb971_program_arg_omitted</c> and <c>2014/pb971_function_arg_omitted</c> (the function arm names the 2014 EC-FUNCTION-ARG-OMITTED; §2002:8.4.3.2.4 GR7 names EC-PROGRAM-ARG-OMITTED).
+/// <c>2002/pb971_program_arg_omitted</c> and <c>2014/pb971_function_arg_omitted</c> (the function arm names the 2014 EC-FUNCTION-ARG-OMITTED; §2002:8.4.2.2.3 GR7 names EC-PROGRAM-ARG-OMITTED).
 /// </summary>
 public sealed class ArgOmittedConditionTests
 {
