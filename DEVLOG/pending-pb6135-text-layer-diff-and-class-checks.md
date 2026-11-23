@@ -14,3 +14,11 @@ OCR-ARBITRATED, 141 LIKELY-ERROR (both readings differ from the Markdown; the fu
 addendum), 607 stay UNEXPLAINED. The three
 reading-only classes (table indentation, brace continuation, a boxed figure ending a page) were measured and not gated: the
 layer gives no precise rule (kb/Work PB6135 addendum). The transcription is unchanged; PB6051 and PB6135 stay open.
+
+A triage of the 21 LIKELY-ERROR rows on seven pages found no transcription error: 20 sit under an Amendment's in-place
+CORRECTED note, one is the digit zero read as the letter O by both readers. So a hunk whose layer words are a run of the quote
+of a page's `applied in place` CORRECTED note is now AMENDMENT-APPLIED (derived from that markup, no page list); the digit zero
+read as the letter O by both readers in a digit context is OCR-NOISE (narrowly: a lone `0` beside a digit-only word, or a
+number of two digits or more); and a row's excerpt is the whole aligned block, not what was left after words paired off.
+Re-measured: LIKELY-ERROR 141 to 88, UNEXPLAINED 607 to 598, AMENDMENT-APPLIED 0 to 74 (kb/Work PB6135
+2026-11-23-errata-amendment-class).

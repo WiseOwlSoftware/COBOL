@@ -81,7 +81,7 @@ PDF = spec_pdf.path(1985)  # None when the private submodule is not checked out
 LEDGER = REPO / "docs" / "rearchitecture" / "spec-reconciliation" / "LEDGER-1985.json"
 RESULT = REPO / "docs" / "rearchitecture" / "spec-reconciliation" / "TEXT-LAYER-DIFF-1985.json"
 RESERVED = REPO / "tests" / "version-matrix" / "reserved-words.json"
-CLASSES = ("OCR-NOISE", "OCR-ARBITRATED", "CORRECTION", "FIGURE", "PUNCT", "CASE", "UNCOVERED", "LIKELY-ERROR", "UNEXPLAINED")
+CLASSES = ("OCR-NOISE", "OCR-ARBITRATED", "CORRECTION", "AMENDMENT-APPLIED", "FIGURE", "PUNCT", "CASE", "UNCOVERED", "LIKELY-ERROR", "UNEXPLAINED")
 RERUN = "python scripts/spec/text_layer_diff.py"
 
 PAGE_HEADING = re.compile(r"^## Page (\d+)\s*$")
@@ -313,6 +313,34 @@ def note_entries(text: str) -> dict[int, list[Entry]]:
     return out
 
 
+def amendment_notes(text: str) -> dict[int, list[list[list[str]]]]:
+    """page -> its amendment notes: the `> ⚠ **CORRECTED` notes that say an Amendment's text was `applied in place`
+    (kb/Work PB5045), each as the word keys of its backticked quotes (what the standard prints, what it was corrected to).
+    The markup is the whole rule: a note of another kind (`a damaged letter on the printed page`) is no amendment."""
+    out: dict[int, list[list[list[str]]]] = {}
+    page = None
+    for line in text.splitlines():
+        m = PAGE_HEADING.match(line)
+        if m:
+            page = int(m.group(1))
+        elif page and line.lstrip().startswith("> ⚠ **CORRECTED") and "Amendment" in line and "applied in place" in line:
+            segs = [k for k in (_keys(q) for q in re.findall(r"`([^`]+)`", line)) if k]
+            if segs:
+                out.setdefault(page, []).append(segs)
+    return out
+
+
+def amendment_accounts_for(notes: list[list[list[str]]], pdf_hunk: list[str], md_hunk: list[str],
+                           pdf_ctx: tuple[str | None, str | None], md_ctx: tuple[str | None, str | None]) -> bool:
+    """An amendment note of this page governs the hunk: the layer's words are a run of what the note says the standard
+    printed (the Markdown differs from them because the Amendment's text was applied in place), or, where the layer has
+    no words, the Markdown's words are a run of the note's text. A run needs a neighbouring word or three words
+    (`_run_in`): no page-wide bag of words."""
+    if pdf_hunk:
+        return any(_run_in(pdf_hunk, segs, *pdf_ctx) for segs in notes)
+    return bool(md_hunk) and any(_run_in(md_hunk, segs, *md_ctx) for segs in notes)
+
+
 def _run_in(hunk: list[str], texts: list[list[str]], before: str | None, after: str | None) -> bool:
     """The hunk's words are a contiguous run of one text, with a neighbouring word of the page beside it (a text that is
     the hunk itself, or a hunk of three words or more, is specific enough alone)."""
@@ -400,9 +428,10 @@ def _longest_run(x: list[str], y: list[str]) -> tuple[int, int, int]:
 
 
 def classify_page(pdf: list[str], md: list[tuple[str, bool, int]], entries: list[Entry], lex: Lexicon,
-                  removed: bool = False) -> list[dict]:
+                  removed: bool = False, amendments: list[list[list[str]]] | None = None) -> list[dict]:
     """The residual differences of one page, each a record {class, reason, pdf, md, line, words}.
 
+    `amendments` is the page's `amendment_notes`: a hunk one of them governs is AMENDMENT-APPLIED.
     `removed` is a page whose printed content the transcription deliberately holds elsewhere (the base index, PDF pages
     807 to 819, replaced by Amendment 2's: Errata C337): its text-layer words are CORRECTION."""
     import difflib  # noqa: PLC0415
@@ -416,10 +445,11 @@ def classify_page(pdf: list[str], md: list[tuple[str, bool, int]], entries: list
     sm = difflib.SequenceMatcher(None, [k for _, k in a], [k for _, k in b], autojunk=False)
     rows: list[dict] = []
 
-    def emit(cls: str, reason: str, pw: list[tuple[str, str]], mw: list[tuple[str, str]], j: int, src=None) -> None:
+    def emit(cls: str, reason: str, pw: list[tuple[str, str]], mw: list[tuple[str, str]], j: int, src=None, shown=None) -> None:
         ln = line[min(j, len(line) - 1)] if line else 0
-        row = {"class": cls, "reason": reason, "pdf": clip(" ".join(w for w, _ in pw)),
-               "md": clip(" ".join(w for w, _ in mw)), "line": ln, "words": [len(pw), len(mw)]}
+        sp, sm_ = shown if shown is not None else (pw, mw)  # the excerpt is the whole aligned block, not what is left of it
+        row = {"class": cls, "reason": reason, "pdf": clip(" ".join(w for w, _ in sp)),
+               "md": clip(" ".join(w for w, _ in sm_)), "line": ln, "words": [len(pw), len(mw)]}
         if src is not None:
             row["_src"] = src  # the whole differing block with its neighbours, for the second reading (arbitrate_rows)
         rows.append(row)
@@ -442,6 +472,9 @@ def classify_page(pdf: list[str], md: list[tuple[str, bool, int]], entries: list
         if any(entry_accounts_for(e, pdf_hunk, md_hunk, pdf_ctx, md_ctx) for e in entries):
             emit("CORRECTION", "a ledger pair or correction note of this page accounts for this hunk", pa, mb, j1)
             continue
+        if amendments and amendment_accounts_for(amendments, pdf_hunk, md_hunk, pdf_ctx, md_ctx):
+            emit("AMENDMENT-APPLIED", "an Amendment's text applied in place (the page's CORRECTED note quotes the printed words)", pa, mb, j1)
+            continue
         left_p, left_m, paired = list(pa), list(mb), []
         for item in list(pa):  # the asymmetric pairing: the PDF word damaged, the Markdown word well-formed
             for cand in left_m:
@@ -460,7 +493,7 @@ def classify_page(pdf: list[str], md: list[tuple[str, bool, int]], entries: list
             emit("OCR-NOISE", "joined or split by the layer's spacing", left_p, left_m, j1)
             continue
         if left_p or left_m:
-            blocks.append([left_p, left_m, fig, j1, src])
+            blocks.append([left_p, left_m, fig, j1, src, (pa, mb)])
 
     # words that moved as a matched block: a run of two or more words left over on both sides, in another place (two
     # columns, a table read by column). A single word that is gone in one place and appears in another is not a move:
@@ -480,20 +513,20 @@ def classify_page(pdf: list[str], md: list[tuple[str, bool, int]], entries: list
         blocks[y][1] = blocks[y][1][:j] + blocks[y][1][j + n:]
         emit("OCR-NOISE", "a run the layer reads in another order", moved_p, moved_m, blocks[y][3])
 
-    pdf_only = collections.Counter(k for left_p, _, _, _, _ in blocks for _, k in left_p)
-    for left_p, left_m, fig, j, src in blocks:
+    pdf_only = collections.Counter(k for left_p, _, _, _, _, _ in blocks for _, k in left_p)
+    for left_p, left_m, fig, j, src, shown in blocks:
         if not left_p and not left_m:
             continue
         if fig:
-            emit("FIGURE", "inside a drawn figure", left_p, left_m, j)
+            emit("FIGURE", "inside a drawn figure", left_p, left_m, j, shown=shown)
         elif not left_p and all(pdf_only[k] for _, k in left_m):
-            emit("UNEXPLAINED", "a single word moved: gone at one place, present at another", left_p, left_m, j, src)
+            emit("UNEXPLAINED", "a single word moved: gone at one place, present at another", left_p, left_m, j, src, shown=shown)
         elif not left_p:
-            emit("UNCOVERED", "Markdown words the text layer lacks", left_p, left_m, j)
+            emit("UNCOVERED", "Markdown words the text layer lacks", left_p, left_m, j, shown=shown)
         elif not left_m:
-            emit("UNEXPLAINED", "text layer has words the Markdown lacks", left_p, left_m, j, src)
+            emit("UNEXPLAINED", "text layer has words the Markdown lacks", left_p, left_m, j, src, shown=shown)
         else:
-            emit("UNEXPLAINED", "a different word", left_p, left_m, j, src)
+            emit("UNEXPLAINED", "a different word", left_p, left_m, j, src, shown=shown)
     return rows
 
 
@@ -552,6 +585,18 @@ def _occurs(hunk: list[str], t: list[str]) -> bool:
     return bool(hunk) and any(t[i:i + len(hunk)] == hunk for i in range(len(t) - len(hunk) + 1))
 
 
+def zero_read_as_o(pdf_hunk: list[str], md_hunk: list[str], md_before: list[str], md_after: list[str]) -> bool:
+    """The Markdown's digit-only word (`0`, `100`) against the same word with the letter O for each zero, in a digit context:
+    a digit-only word of two or more digits is one, a lone `0` is one only beside a digit-only word (`'0', ... , '9'`).
+    Typewriter faces print the zero and the letter alike; the printed context is digits."""
+    if len(pdf_hunk) != 1 or len(md_hunk) != 1:
+        return False
+    pk, mk = pdf_hunk[0], md_hunk[0]
+    if not mk.isdigit() or "0" not in mk or pk != mk.replace("0", "o"):
+        return False
+    return len(mk) >= 2 or any(w.isdigit() for w in md_before[-1:] + md_after[:1])
+
+
 def arbitrate_rows(rows: list[dict], tess_text: str) -> None:
     """Reclassify the page's UNEXPLAINED rows by a second, independent reading (tesseract) of the same page:
       the second reading holds the Markdown's words at that place and not the layer's  -> OCR-ARBITRATED;
@@ -576,7 +621,10 @@ def arbitrate_rows(rows: list[dict], tess_text: str) -> None:
                                      (not pdf_hunk and _occurs(md_hunk, t))):
             pdf_ok = md_ok  # a reading-order difference, not a second witness: the layer's words are absent and the Markdown's
             # are on the page elsewhere (a table read by column); it stays UNEXPLAINED
-        if md_ok != pdf_ok:
+        if pdf_ok and not md_ok and zero_read_as_o(pdf_hunk, md_hunk, md_before, md_after):
+            r["class"] = "OCR-NOISE"  # both readers give the letter O for a digit zero of a digit context: the typeface's confusion
+            r["reason"] = "both readings give the letter O where the Markdown has the digit zero in a digit context"
+        elif md_ok != pdf_ok:
             r["class"] = "OCR-ARBITRATED" if md_ok else "LIKELY-ERROR"
             r["reason"] = ("a second OCR (tesseract) reads the Markdown's words at this place, not the text layer's" if md_ok else
                            "a second OCR (tesseract) reads the text layer's words at this place, not the Markdown's")
@@ -654,10 +702,11 @@ def main() -> int:
     total = max(md)
     pages = parse_pages(args.pages, total) if args.pages else list(range(1, total + 1))
     pdf = pdf_pages(pages)
-    ledger, notes = ledger_entries(), note_entries(text)
+    ledger, notes, amended = ledger_entries(), note_entries(text), amendment_notes(text)
     lex = Lexicon.of([w for words in md.values() for w, _, _ in words], reserved_words())
     result = {"edition": 1985, "pdf_pages": total, "inputs": inputs(), "classes": list(CLASSES), "pages": {}}
-    measured = {n: classify_page(pdf[n], md[n], ledger.get(n, []) + notes.get(n, []), lex, 807 <= n <= 819) for n in pages}
+    measured = {n: classify_page(pdf[n], md[n], ledger.get(n, []) + notes.get(n, []), lex, 807 <= n <= 819,
+                                  amended.get(n)) for n in pages}
     if args.arbitrate:
         exe = tesseract_exe()
         result["inputs"]["tesseract"] = tesseract_version(exe)

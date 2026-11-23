@@ -15,16 +15,16 @@ D = selftest_cases.subject(__file__)   # scripts/spec/text_layer_diff.py
 #: what the planted Markdown spells at least twice (the lexicon of well-formed words)
 CORPUS = ("the file is open or of for not name file-name-1 file-name-1 data-name-1 data-name-1 identifier-1 identifier-1 "
           "corner corner B-1 B-1 B-2 B-2 evaluated evaluated consecutive consecutive IS IS the file is open or of for not "
-          "name Section Section").split()
+          "name Section Section O O").split()
 
 
-def _rows(pdf: str, md: str, entries=(), figure: bool = False):
+def _rows(pdf: str, md: str, entries=(), figure: bool = False, amendments=None):
     words = [(w, figure, 1) for w in D.words_of_markdown(md)]
-    return D.classify_page(pdf.split(), words, list(entries), D.Lexicon.of(CORPUS))
+    return D.classify_page(pdf.split(), words, list(entries), D.Lexicon.of(CORPUS), amendments=amendments)
 
 
-def _classes(pdf: str, md: str, entries=(), figure: bool = False):
-    return sorted(r["class"] for r in _rows(pdf, md, entries, figure))
+def _classes(pdf: str, md: str, entries=(), figure: bool = False, amendments=None):
+    return sorted(r["class"] for r in _rows(pdf, md, entries, figure, amendments))
 
 
 def case_01_ocr_garbling_on_the_pdf_side_is_noise(expect):
@@ -116,6 +116,48 @@ def case_10_a_second_reading_arbitrates_by_place(expect):
     stamped = _rows(pdf, md)
     D.arbitrate_rows(stamped, "Licensed to X Downloaded 1 the file is open or the name Single user license")
     expect.equal("the purchaser's stamp is never kept as evidence", "icens" in stamped[0].get("tesseract", ""), False)
+
+
+NOTE_AMENDMENT = ("> ⚠ **CORRECTED — see the Errata (C40).** The standard prints `The standard defines 11 modules` (page 21). "
+                  "Amendment 1, its change for page I-1, applied in place: \"Replace\". Corrected to `defines 12 modules`.")
+NOTE_DAMAGE = ("> ⚠ **CORRECTED — see the Errata (C2).** The standard prints `Presentation Rules _ables` (page 17): a damaged "
+               "letter on the printed page, which the transcription had reproduced. Corrected to `Tables`.")
+
+
+def _amendments(*notes: str):
+    return D.amendment_notes("## Page 5\n\n" + "\n\n".join(notes) + "\n").get(5)
+
+
+def case_11_an_amendment_note_governs_the_words_it_quotes(expect):
+    am = _amendments(NOTE_AMENDMENT)
+    expect.equal("a note that says an Amendment was applied in place is read", am is not None and len(am), 1)
+    expect.equal("a damaged-letter note is no amendment", _amendments(NOTE_DAMAGE), None)
+    pdf, md = "the standard defines 11 modules of cobol", "the standard defines 12 modules of cobol"
+    expect.equal("the layer's words are the note's printed words", _classes(pdf, md, amendments=am), ["AMENDMENT-APPLIED"])
+    expect.equal("with no amendment note it is unexplained", _classes(pdf, md), ["UNEXPLAINED"])
+    other = "the file lists 11 files of cobol"
+    expect.equal("words the note does not quote are not governed", _classes(other, "the file lists 12 files of cobol", amendments=am), ["UNEXPLAINED"])
+    expect.equal("a run with no neighbour in the quote is not governed", _classes("an open 11 or", "an open 12 or", amendments=am), ["UNEXPLAINED"])
+
+
+def case_12_zero_read_as_o_by_both_readers_in_a_digit_context(expect):
+    z = D.zero_read_as_o
+    expect.equal("'0' beside a digit-only word", z(["o"], ["0"], ["z"], ["9"]), True)
+    expect.equal("a number of two digits", z(["1oo"], ["100"], ["a"], ["b"]), True)
+    expect.equal("a lone 0 among words is not a digit context", z(["o"], ["0"], ["the"], ["file"]), False)
+    expect.equal("other letters differ too", z(["1ob"], ["100"], ["a"], ["9"]), False)
+    expect.equal("the reverse (the Markdown has the letter) is no noise", z(["0"], ["o"], ["z"], ["9"]), False)
+    expect.equal("both readers give O: noise", _arbitrated("the 9 O 8 file", "the 9 0 8 file", "the 9 O 8 file"), ["OCR-NOISE"])
+    expect.equal("tesseract has the zero: the layer's reading is the damage", _arbitrated("the 9 O 8 file", "the 9 0 8 file", "the 9 0 8 file"), ["OCR-ARBITRATED"])
+    expect.equal("a letter O among words stays a likely error", _arbitrated("the file O open", "the file 0 open", "the file O open"), ["LIKELY-ERROR"])
+
+
+def case_13_the_excerpt_is_the_aligned_block(expect):
+    rows = _rows("open comer of name", "open corner or name")
+    un = [r for r in rows if r["class"] == "UNEXPLAINED"]
+    expect.equal("one unexplained row", len(un), 1)
+    expect.equal("its Markdown excerpt keeps the words that paired off", un[0]["md"], "corner or")
+    expect.equal("its text-layer excerpt too", un[0]["pdf"], "comer of")
 
 
 if __name__ == "__main__":
