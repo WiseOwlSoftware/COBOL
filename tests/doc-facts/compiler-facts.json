@@ -295,6 +295,11 @@
       "changedIn": 2014
     },
     {
+      "id": "set-index-outside-table-stored",
+      "vcrRow": "7.118",
+      "changedIn": 2014
+    },
+    {
       "id": "sum-additions-in-dependency-order",
       "vcrRow": "7.87",
       "changedIn": 2002
