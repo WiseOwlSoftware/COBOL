@@ -99,7 +99,7 @@
    "lines": [
     1126
    ],
-   "feature": "REWRITE RL RECORD",
+   "feature": "READ IX RECORD",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
@@ -155,7 +155,7 @@
    "lines": [
     1193
    ],
-   "feature": "READ IX RECORD",
+   "feature": "REWRITE IX",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",
