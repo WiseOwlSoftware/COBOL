@@ -63,7 +63,7 @@ public sealed class VariableLengthCarrierStoreDriftTests
         var offenders = new List<string>();
         foreach (string path in TrackedTree.Files(scope))
         {
-            string[] lines = File.ReadAllLines(Path.Combine(TestRepo.Root, path));
+            string[] lines = File.ReadAllLines(TestRepo.Within("src/", path));
             for (int i = 0; i < lines.Length; i++)
                 if (rx.IsMatch(lines[i]) && !lines[i].TrimStart().StartsWith("//"))
                     offenders.Add($"{path}:{i + 1}: {lines[i].Trim()}");
