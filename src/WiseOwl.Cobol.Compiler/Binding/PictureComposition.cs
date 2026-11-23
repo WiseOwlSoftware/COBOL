@@ -256,7 +256,7 @@ internal static class PictureComposition
         // ⛔ THE ONE DEFINITION OF THE DIGIT POSITIONS (§2023:13.18.40.4 GR14; kb/Work PB3221): 9, the zero-suppression
         // symbols, every 'P' ("not counted in the size of the item, but each symbol 'P' is counted in the maximum number
         // of digit positions") and each occurrence of a floating insertion string, of EVERY floating insertion symbol
-        // §2023:13.18.40.5 rule 6 names: "The currency symbol, the extended editing sign control symbols, if specified,
+        // §2023:13.18.40.5 GR6 names: "The currency symbol, the extended editing sign control symbols, if specified,
         // and the fixed editing sign control symbols '+' and '-' are used as the floating insertion symbols", each
         // string's second symbol "the leftmost limit of the numeric data". SR16 asks only for the leftmost and the
         // rightmost, and the P split below (which the analyzer's scale reads from the shape) is decided from them. This
@@ -813,7 +813,7 @@ internal static class PictureComposition
 /// The RESOLVED SHAPE of a legal Format-1 character-string: what <see cref="PictureComposition.Validate"/> derived to
 /// decide the composition, handed to <see cref="PictureAnalyzer"/>'s geometry and EDITING rules so neither derives it
 /// a second time (kb/Work PB3221; the PictureParser seam of DESIGN-architecture-review §8.3). It holds the symbol runs,
-/// which of them belong to a floating insertion string (§2023:13.18.40.5 rule 6, <see cref="PictureComposition"/>'s
+/// which of them belong to a floating insertion string (§2023:13.18.40.5 GR6, <see cref="PictureComposition"/>'s
 /// one definition), and the split of the 'P' string between the leftmost and the rightmost digit positions
 /// (§2023:13.18.40.4 GR14), all counted from the ONE list of digit positions the composition rules read.
 /// </summary>

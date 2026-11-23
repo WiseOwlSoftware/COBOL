@@ -17,7 +17,7 @@ leading/trailing 'P' counts. A 'P' string that is every digit position counts as
 `DecimalPointPosition` already took. The analyzer reads its scale inputs from that shape. `ResolveFloating` sets
 `EditRule.Floating` from `PictureShape.IsFloating` after the composition, and `SeparateFixedFromFloating` reads
 `PictureShape.FloatingMarks`. `FloatingString`, `HasFloatingString`, `FloatingMarks`, the `IsDigitAnchor` classifier
-and the now-uncalled `PictureSymbolRuns.Span` are deleted. The one digit-position list follows §2023:13.18.40.5 rule 6,
+and the now-uncalled `PictureSymbolRuns.Span` are deleted. The one digit-position list follows §2023:13.18.40.5 GR6,
 which names "the extended editing sign control symbols, if specified" among the floating insertion symbols. So the
 list counts every floating run, the reading the analyzer already had. LLLPPV now binds and renders -300 as ` -3`;
 LLPP99 is COBOL1934 under §2023:13.18.40.3 SR16; and LL99PPFF, accepted before with a garbage image, is SR16 too.

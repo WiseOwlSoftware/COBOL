@@ -757,7 +757,7 @@ public static class PictureAnalyzer
     }
 
     /// <summary>Set each extended (FOR-form) character-1's <see cref="CobolEdit.EditRule.Floating"/> from the composition's
-    /// resolved <paramref name="shape"/>: §2023:13.18.40.5 rule 6 lists "the extended editing sign control symbols, if
+    /// resolved <paramref name="shape"/>: §2023:13.18.40.5 GR6 lists "the extended editing sign control symbols, if
     /// specified" among the floating insertion symbols, and whether a letter forms such a string is the ADJACENCY test
     /// <see cref="PictureShape.IsFloating"/> answers over the whole string and every character-1 (kb/Work PB855,
     /// PB3221). An IS-form character-1 is simple insertion (rule 3) and never floats.</summary>

@@ -214,7 +214,7 @@ public sealed class PictureCompositionTests
     }
 
     /// <summary>
-    /// ⛔ ONE LIST OF DIGIT POSITIONS (kb/Work PB3221). §2023:13.18.40.5 rule 6 names the extended editing sign control
+    /// ⛔ ONE LIST OF DIGIT POSITIONS (kb/Work PB3221). §2023:13.18.40.5 GR6 names the extended editing sign control
     /// symbols among the floating insertion symbols, so an extended character-1's floating string holds digit positions
     /// exactly as a floating currency or sign string does, and the 'P' string of §2023:13.18.40.3 SR16 stands at an END of
     /// the list that includes it. The composition counted only '+', '-' and the currency symbol while the analyzer's
