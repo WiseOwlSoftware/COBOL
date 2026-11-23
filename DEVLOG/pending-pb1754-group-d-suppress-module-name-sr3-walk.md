@@ -1,4 +1,4 @@
-## PB1754 group D (wave 20262139): --suppress ships, a refused UDF argument reports once, MODULE-NAME's keyword is one type, every SR3 walk projects SubscriptLevels, the text runtime hands out ImmutableArray
+## PB1754 module-topology group (waves 20262139 D, 20262147 B): --suppress ships, a refused UDF argument reports once, MODULE-NAME's keyword is one type, every SR3 walk projects SubscriptLevels, the text runtime hands out ImmutableArray, STANDARD-COMPARE resolves once, the operand-evaluation window and the procedure division header each have one owner
 
 Group D of wave 20262139 held eleven notes on the module-topology root. Five mechanisms landed on this branch, one was re-probed and
 partly discharged, and five are left for a fresh implementer (the group is several mechanisms, not one).
@@ -39,4 +39,29 @@ node, emitted as the member name and switched on by `ModuleStack.Name`, whose de
 
 **PB2744 (half):** the constructor arm is discharged by PB2756 (481481e500); the census's table-enumeration exclusion stays open.
 
-**Left for the next implementer:** PB2746, PB2763, PB3213, PB3223, PB3230.
+**Wave 20262147 group B** replayed the ten commits above onto main a23ed881c2 (two conflicts: `DiagnosticBag.Report` took main's
+`descriptor.Format(args)` through the suppressing `Add`; the RENAMES SR3 screen kept main's per-edition citations over
+`RecordLayout.OccursSubjectOf`) and re-gated GREEN (run 000001-20261123T101701Z), then landed three more:
+
+**PB2763 (half): STANDARD-COMPARE re-resolved its ORDER TABLE literal on every call.** The re-probe is the code read: two
+`CldrLocaleTag.Parse` passes, two `Canon` passes (one on the constant default name), a `CollationOptions` per call at levels 1-3,
+and a substring per space-padded operand. `CollationEngine.TryGetOrderingTable` memoizes per literal (forgotten by
+`ClearLocaleCache`), the default name's canonical form is a static, `CollationEngine.OrderingAtLevel(table, level)` replaces
+`StandardAtLevel` and STANDARD-COMPARE's own tailored-table cache (one per-(table, level) cache, the root's level 4 is `Standard`), and
+the operands trim as spans. The golden `pb101_standard_compare` prints its `.out` unchanged; `CollationEngineTests.OrderingTableAndLevel_ResolveOncePerName`
+pins the memo. RV-15.85.4-5 re-sited; runtime ABI repinned inside major 34. Open: the merged locale-identification findings
+(one locale-tag canonical form and fallback chain).
+
+**PB3223: the operand-evaluation window lived in the user-function binder.** `OperandEvaluationWindow` (`StatementBinder.Window`)
+owns the mark of both pending lists, the one drain and its operand-evaluation stamp, the statement hoist (`Hoist`) and the
+per-evaluation attachments (`AttachPerEvaluation`); every `host.Udf.*` window caller changed (eight files); EXIT FUNCTION moved to
+`ControlFlowBinder.BindExitFunction`. Nine inventory rows re-sited. `compare_oracle --base c1e15e52a6`: IDENTICAL, 23455 cases.
+
+**PB3213: the procedure division header was bound twice.** `ProcedureHeaderBinder.Bind` (modes, SR1 identification, the header
+screen, residency) and `ProcedureHeaderBinder.SweepAnyLength` (§2023:13.18.2.3 SR2-SR4, per-arm input a `ProcedureHeaderOwner`) are
+called by `LinkageBinder.CallBindLinkage` and `OoDataBinder.BindMethodData`, which only name their carriers; the area-formal rule
+and the carrier name are `FormalCarrier`'s. Two ANY LENGTH messages lost their per-arm paraphrase (codes unchanged). Four inventory
+rows re-sited. `compare_oracle --base aed6a7e6ef`: IDENTICAL, 23455 cases.
+
+**Left for the next implementer:** PB2746 (the variable-length group carrier written twice, emitted and runtime), PB3230 (probe
+purity as ambient state on ReferenceResolver), and the remainders of PB2763, PB3227 and PB2744 in their addenda.
