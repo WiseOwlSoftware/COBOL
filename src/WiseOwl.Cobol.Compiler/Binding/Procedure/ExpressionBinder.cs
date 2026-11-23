@@ -482,7 +482,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         if (op is not BoundComputedOperand { Expr: BoundIndexRef }) return false;
         ctx.Edition.Error(DiagnosticCatalog.IndexNameContext,
             $"{where} references the index-name '{sourceText}', which is not an identifier "
-            + $"({EditionInfo.Designated(ctx.Edition.Edition.NotAnIdentifier())}); {ctx.Edition.Edition.Contexts()} admits an index-name only as a subscript, in PERFORM/SEARCH "
+            + $"({EditionInfo.Designated(ctx.Edition.Edition.NotAnIdentifier())}); {ctx.Edition.Edition.AdmitsIndexNameOnly()} as a subscript, in PERFORM/SEARCH "
             + "VARYING, in SET, or in a relation condition. SET a data item to the index first "
             + $"(SET data-item TO {sourceText}) and reference the data item");
         return true;
@@ -632,16 +632,16 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         {
             if (ctx.Edition.Permissive)
                 ctx.Edition.Warning(DiagnosticCatalog.IndexNameContext,
-                    $"the index-name '{WrittenSource.Of(dref)}' is used as an arithmetic operand; {ctx.Edition.Edition.Contexts()} "
-                    + "admits an index-name only in a subscript, PERFORM/SEARCH VARYING, SET, or as an operand OF a "
+                    $"the index-name '{WrittenSource.Of(dref)}' is used as an arithmetic operand; {ctx.Edition.Edition.AdmitsIndexNameOnly()} "
+                    + "in a subscript, PERFORM/SEARCH VARYING, SET, or as an operand OF a "
                     + "relation condition, never inside an arithmetic expression"
                     + ctx.Edition.Edition.Cite("", " (§2023:8.8.4.2.13)") + " — accepted under "
                     + "--permissive, computing the occurrence number");
             else
             {
                 ctx.Edition.Error(DiagnosticCatalog.IndexNameContext,
-                    $"the index-name '{WrittenSource.Of(dref)}' is not an arithmetic operand ({EditionInfo.Designated(ctx.Edition.Edition.NotArithmetic())} "
-                    + "admits an index-name only in a subscript, PERFORM/SEARCH "
+                    $"the index-name '{WrittenSource.Of(dref)}' is not an arithmetic operand ({EditionInfo.Designated(ctx.Edition.Edition.NotArithmetic())}; "
+                    + $"{ctx.Edition.Edition.AdmitsIndexNameOnly()} in a subscript, PERFORM/SEARCH "
                     + "VARYING, SET, or as an operand OF a relation condition, never inside an arithmetic "
                     + "expression" + ctx.Edition.Edition.Cite("", ", §2023:8.8.4.2.13") + "). SET a data item to the index first "
                     + $"(SET data-item TO {WrittenSource.Of(dref)}) — or --permissive accepts it as the occurrence "

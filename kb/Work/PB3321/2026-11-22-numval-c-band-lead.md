@@ -1,0 +1,3 @@
+## Lead (clerk, 2026-11-22, from the PB3321 report w20262140c): RV-15.68.4-2 (NUMVAL-C ignores the currency string and grouping) may start earlier than its band
+
+The reviewer worded it "first in 2023, band left at 2002, lower confidence", in a file the branch did not change. `tests/version-matrix/inventory/RV-15.68.4-2.json` is banded `2002,2014,2023`. The 2002 NUMVAL-C description (`specs/ISO_COBOL_2002.md:24503`, clause 15.55 there) already says "The currency string, if any, and any grouping separators preceding the decimal separator are ignored", so the question is this note's own: core obligation versus as worded. It needs an adjudicator's reading of the 2002 returned-value rules; the clerk did not judge it.
