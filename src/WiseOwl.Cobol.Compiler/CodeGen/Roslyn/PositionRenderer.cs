@@ -35,9 +35,15 @@ internal static class PositionRenderer
         PositionPointerOffset ptr => RuntimeApi.PtrOffsetOf(ptr.PointerField),
         PositionPointerDynBase ptr => RuntimeApi.PtrDynBaseOf(ptr.PointerField),
         PositionOffset o => o.Terms.Aggregate(Render(o.Origin),
-            (text, t) => $"{text} + ({Render(t.Index)} - 1) * {t.Stride.ToString(CultureInfo.InvariantCulture)}"),
+            (text, t) => $"{text} + ({RenderIndex(t)} - 1) * {t.Stride.ToString(CultureInfo.InvariantCulture)}"),
         _ => throw new System.InvalidOperationException($"PositionRenderer has no arm for {p.GetType().Name}"),
     };
+
+    /// <summary>A term's one-based index, tested against the range its <see cref="OffsetTerm.Bound"/> carries (ISO §2023:8.4.2.3.4 GR2,
+    /// §2023:13.18.38.4 GR7; kb/Work PB5762, PB5605) — the window's twin of the <c>CobolTable.At</c> a table step renders.</summary>
+    private static string RenderIndex(OffsetTerm t) => t.Bound is { } b
+        ? RuntimeApi.WindowSubscript(Render(t.Index), b.Highest, b.Odo is { } o ? (PlaceRenderer.CountRead(o.Depending), o.MinOccurs, o.MaxOccurs) : null)
+        : Render(t.Index);
 
     /// <summary>The one-based occurrence <c>(local + 1)</c> of a zero-based loop local — the code generator's own
     /// enumerations (a table SORT's element loop) address the table through it.</summary>

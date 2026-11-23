@@ -30,9 +30,25 @@
     629
    ],
    "feature": "OPEN ABSENT FILE EXTEND",
-   "ansi": "VII-4, 1.5.3(3)C",
+   "ansi": "V11-2, 1.3.5",
    "disposition": "open",
-   "resolution": "unmapped",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VII.1.3.5-1",
+    "1985-GR-VII.1.3.5-L2.1",
+    "1985-GR-VII.1.3.5-p1",
+    "1985-GR-VII.1.3.5-2",
+    "1985-GR-VII.1.3.5-L2.2",
+    "1985-GR-VII.1.3.5-3",
+    "1985-GR-VII.1.3.5-L2.3",
+    "1985-GR-VII.1.3.5-p3",
+    "1985-GR-VII.1.3.5-4",
+    "1985-GR-VII.1.3.5-L2.4",
+    "1985-GR-VII.1.3.5-5",
+    "1985-GR-VII.1.3.5-L2.5",
+    "1985-GR-VII.1.3.5-p5"
+   ],
+   "literal-agrees": false,
    "basis": "mechanical"
   }
  ]

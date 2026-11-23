@@ -161,6 +161,20 @@ def case_06_a_general_format_page_title_is_one_level_two_underlined_heading(expe
     expect.equal("Amendment 1's addendum prints its own title and is out of scope", _found(addendum, "general-format page title"), [])
 
 
+def case_07_a_summary_of_elements_table_title_is_one_underlined_line_and_no_heading(expect):
+    page = GOOD + "\n## Page 34\n\n{}\n\n| Element | Level |\n|---|---|\n| ACCEPT | 1 |\n"
+    expect.equal("the one form passes", _found(page.format("<u>SUMMARY OF ELEMENTS IN THE NUCLEUS MODULE</u>"),
+                                              "summary-of-elements table title"), [])
+    for what, bad in (("a level-1 heading", "# <u>SUMMARY OF ELEMENTS IN THE NUCLEUS MODULE</u>"),
+                      ("a level-2 heading", "## <u>SUMMARY OF ELEMENTS IN THE NUCLEUS MODULE</u>"),
+                      ("bold", "**<u>SUMMARY OF ELEMENTS IN THE NUCLEUS MODULE</u>**"),
+                      ("not underlined", "SUMMARY OF ELEMENTS IN THE NUCLEUS MODULE")):
+        expect(f"{what} is named", bool(_found(page.format(bad), "summary-of-elements table title")))
+    module = GOOD + "\n## Page 31\n\n## 2. <u>SUMMARY OF ELEMENTS BY MODULE</u>\n"
+    expect.equal("the numbered clause heading SUMMARY OF ELEMENTS BY MODULE is no table title",
+                 _found(module, "summary-of-elements table title"), [])
+
+
 if __name__ == "__main__":
     ensure_utf8()
     sys.exit(selftest_cases.run(sys.modules[__name__]))

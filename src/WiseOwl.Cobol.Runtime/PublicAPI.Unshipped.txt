@@ -1325,6 +1325,8 @@ static WiseOwl.Cobol.Runtime.CobolStandardData.Image(string! storage, WiseOwl.Co
 static WiseOwl.Cobol.Runtime.CobolTable.AllImage(System.Func<long[]!, long>![]! counts, System.Func<long[]!, string!>! element) -> string!
 static WiseOwl.Cobol.Runtime.CobolTable.OdoExtentTrimmed(WiseOwl.Cobol.Runtime.Occurrence count, int min, int max, int fixedUnits, int strideUnits, int trailingUnits) -> int
 static WiseOwl.Cobol.Runtime.CobolTable.RequireOccurrences(long count) -> void
+static WiseOwl.Cobol.Runtime.CobolTable.Subscript(WiseOwl.Cobol.Runtime.Occurrence occurrence, long highest) -> long
+static WiseOwl.Cobol.Runtime.CobolTable.Subscript(WiseOwl.Cobol.Runtime.Occurrence occurrence, long highest, WiseOwl.Cobol.Runtime.Occurrence depending, int min, int max) -> long
 static WiseOwl.Cobol.Runtime.CobolTiming.Interval(System.Int128 unscaled, int scale) -> long
 static WiseOwl.Cobol.Runtime.CobolTiming.Interval(System.UInt128 unscaled, int scale) -> long
 static WiseOwl.Cobol.Runtime.CobolTiming.Interval(WiseOwl.Cobol.Runtime.CobolDec seconds) -> long
@@ -1390,6 +1392,7 @@ static WiseOwl.Cobol.Runtime.FunctionValueField.OfItem(WiseOwl.Cobol.Runtime.Cob
 static WiseOwl.Cobol.Runtime.FunctionValueField.OfLiteral(WiseOwl.Cobol.Runtime.CobolDec value, int digits, int scale, bool signed) -> WiseOwl.Cobol.Runtime.FunctionValueField
 static WiseOwl.Cobol.Runtime.FunctionValueField.OfValue(WiseOwl.Cobol.Runtime.CobolDec value) -> WiseOwl.Cobol.Runtime.FunctionValueField
 static WiseOwl.Cobol.Runtime.FunctionValueField.OfWide(WiseOwl.Cobol.Runtime.CobolWide value, int scale) -> WiseOwl.Cobol.Runtime.FunctionValueField
+static WiseOwl.Cobol.Runtime.Globalization.MonetaryPlacement.ForPicture(WiseOwl.Cobol.Runtime.Globalization.MonetaryConvention c, bool pictureHasCurrencySymbol) -> WiseOwl.Cobol.Runtime.Globalization.MonetaryConvention
 static WiseOwl.Cobol.Runtime.Globalization.MonetaryPlacement.NegativeByPattern.get -> System.Collections.Immutable.ImmutableArray<WiseOwl.Cobol.Runtime.Globalization.MonetaryConvention>
 static WiseOwl.Cobol.Runtime.Globalization.MonetaryPlacement.PositiveByPattern.get -> System.Collections.Immutable.ImmutableArray<WiseOwl.Cobol.Runtime.Globalization.MonetaryConvention>
 static WiseOwl.Cobol.Runtime.HostLanding.Dec(System.Int128 unscaled, int scale) -> WiseOwl.Cobol.Runtime.CobolDec
