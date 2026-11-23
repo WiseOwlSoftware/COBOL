@@ -1,4 +1,4 @@
-## PB2746: a variable-length group's carrier rules are one runtime operation each, for the declared and the cell-backed lane
+## Entry 4004 — 2026-11-23 13:09 PST — PB2746: a variable-length group's carrier rules are one runtime operation each, for the declared and the cell-backed lane
 
 **What was wrong.** A variable-length group receives its §2023:8.5.1.12 carrier in two lanes: a declared group's emitted
 `FromVarImage`, and a group of a shared storage cell (EXTERNAL, ADDRESS OF, a LINKAGE formal's fresh area) through
@@ -30,3 +30,4 @@ product file that decides a table's recreation or space fill, or constructs a la
 **Left open.** PB2080 (the cell lane's WRITE arms' gate) is a PlaceRenderer arm choice this change does not touch. A lead
 for the fix lane: a declared group's layout gives a table of national elements the layout code 0 where the cell's gives it
 the national unit, so the fixed form of a fixed-length file pads that table in a different space in each lane.
+
