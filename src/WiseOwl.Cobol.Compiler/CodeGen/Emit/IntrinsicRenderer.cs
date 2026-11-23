@@ -388,7 +388,8 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
                     return new NumX(RuntimeApi.Intrinsic("TestNumvalCLocale",
                         $"{Str(ic.Args[0])}, {LocaleTagArg(ic)}{AnycaseFlag(ic)}{DigitCapFlag}"), 0);
                 return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod,
-                    $"{Str(ic.Args[0])}, {Str(ic.Args[1])}{CommaFlag}{AnycaseFlag(ic)}{DigitCapFlag}{AnycaseClassification(ic)}"), 0);
+                    $"{Str(ic.Args[0])}, {Str(ic.Args[1])}{CommaFlag}{AnycaseFlag(ic)}{DigitCapFlag}{AnycaseClassification(ic)}"
+                    + (ic.CurrencyContentUnrestricted ? ", contentUnrestricted: true" : "")), 0);
 
             // The §2023:15.90/§2023:15.91 date validators — integer verdict chains (year → month → day), scale 0.
             // ⛔ THE WIDE INTAKE, because the two functions are TOTAL (kb/Work PB254 — see IntArgWide):

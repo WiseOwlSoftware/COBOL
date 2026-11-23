@@ -270,4 +270,21 @@ public sealed class CollationTailoringTests
         Assert.True(CollationEngine.IsDefaultOrderingTableName("ISO 14651_2020_TABLE1"));
         Assert.False(CollationEngine.IsDefaultOrderingTableName("ISO 14651_2016_TABLE1"));
     }
+
+    /// <summary>The default ordering table has a name in each edition's own text (kb/Work PB5720): §2002:15.69.2 AR4
+    /// 'ISO14651_2002_TABLE1', §2014:15.79.2 AR5 'ISO14651_2010_TABLE1' (its SPECIAL-NAMES NOTE 'ISO_14651_2010_TABLE1'), §2023:15.85.3
+    /// AR5 'ISO 14651_2020_TABLE1' — and each resolves to the one derived root table.</summary>
+    [Theory]
+    [InlineData("ISO14651_2002_TABLE1")]
+    [InlineData("iso14651_2002_table1")]
+    [InlineData("ISO14651_2010_TABLE1")]
+    [InlineData("ISO_14651_2010_TABLE1")]
+    [InlineData("ISO 14651_2020_TABLE1")]
+    [InlineData("ISO_14651_2020_TABLE1")]
+    public void OrderingTableNames_EveryEditionsDefaultTableNameResolvesToTheRootTable(string name)
+    {
+        Assert.True(CollationEngine.IsDefaultOrderingTableName(name));
+        Assert.True(CollationEngine.TryGetOrderingTable(name, out var table));
+        Assert.Same(CollationTable.Root, table);
+    }
 }

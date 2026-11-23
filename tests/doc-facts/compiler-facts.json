@@ -95,6 +95,11 @@
       "changedIn": 2002
     },
     {
+      "id": "floating-literal-wide-limits",
+      "vcrRow": "7.118",
+      "changedIn": 2014
+    },
+    {
       "id": "file-sharing-facility",
       "vcrRow": "7.39",
       "changedIn": 2002
@@ -333,6 +338,11 @@
       "id": "terminate-discards-saved-next-group",
       "vcrRow": "7.59",
       "changedIn": 2002
+    },
+    {
+      "id": "test-numval-c-imports-numval-c-argument-rules",
+      "vcrRow": "7.117",
+      "changedIn": 2014
     },
     {
       "id": "unphrased-size-error-is-fatal",

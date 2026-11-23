@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-AR-15.76.2-2",
+ "rule-digest": "1c8c296ebdc3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindNumvalCFamily; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#TestNumvalC",
+ "test-ref": "conformance:cases/15.76@2002-TEST-NUMVAL-C-FUNCTION/pb5721-test-numval-c-class-rules-2002",
+ "notes": "§2002:15.76.2 AR2 asks argument-2 only the class of argument-1 (the cross rule MatchArgument1); it states no content rule (the digits, * + - , . and CR/DB screen is §2002:15.55.2 AR2, NUMVAL-C's), so at --std 2002 BindNumvalCFamily leaves the screen off for TEST-NUMVAL-C (contentRules false) and CobolIntrinsics.TestNumvalC takes contentUnrestricted for a data item's content: TEST-NUMVAL-C(\"U1 12.5\" \"U1\") and the same with a data item holding U1 are 0. From 2014 the screen applies (§2014:15.87.2 AR1)."
+}

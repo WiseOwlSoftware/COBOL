@@ -908,8 +908,11 @@ design is small and complete:
   strength; absent, level 4 (§2023:15.85.4 RV1: "the highest level defined in the ordering table"); 0 or > 4 is
   `EC-ORDER-NOT-SUPPORTED` (r2). `ORDER TABLE ordering-name-1 IS literal-9` (§2023:12.3.7.2 — ONE clause, the last of the
   paragraph; §2023:12.3.7.4 GR17: "*The implementor specifies the allowable content of literal-9*") is resolved by
-  `CollationEngine.TryGetOrderingTable`: `"ISO 14651_2020_TABLE1"` in either spelling (§2023:15.85.3 AR5 writes a space,
-  §2023:12.3.7.4 NOTE 5 an underscore — case-insensitive, the two interchangeable) → the default; as an implementor
+  `CollationEngine.TryGetOrderingTable`: a name in `CollationEngine.DefaultOrderingTableNames` — `"ISO 14651_2020_TABLE1"` in either spelling
+  (§2023:15.85.3 AR5 writes a space, §2023:12.3.7.4 NOTE 5 an underscore), and the names the earlier editions' own texts give the default
+  table, `"ISO14651_2002_TABLE1"` (§2002:15.69.2 AR4) and `"ISO14651_2010_TABLE1"` (§2014:15.79.2 AR5; the NOTE of §2014:12.3.6.3 GR17 spells it
+  `ISO_14651_2010_TABLE1`), the implementor's literal-9 content being free in each edition (§2002:12.2.6.3 GR17, §2014:12.3.6.3 GR17) — compared
+  case-insensitively with spaces and underscores ignored → the default, the one derived root table at every edition (kb/Work PB5720); as an implementor
   extension a CLDR locale tag → that locale's tailoring over the root table (a locale .NET recognizes but no
   tailoring file → the root order); anything else → `EC-ORDER-NOT-SUPPORTED` at the reference (§2023:15.85.4 RV2), the
   binder warning at compile time that the literal will never resolve. Trailing spaces truncate per r4 (the same

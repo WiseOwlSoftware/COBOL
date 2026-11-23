@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-AR-15.76.2-1",
+ "rule-digest": "45e458d18b0c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindNumvalCFamily",
+ "test-ref": "conformance:cases/15.76@2002-TEST-NUMVAL-C-FUNCTION/pb5721-test-numval-c-class-rules-2002",
+ "notes": "§2002:15.76.2 AR1 asks argument-1 of CLASS alphanumeric or national; the edited categories are class alphanumeric, so the TEST-NUMVAL-C row's CharacterCategory predicate (the 2023 and 2014 CATEGORY wording, §2014:15.87.2 AR1 -> §2014:15.63.2 AR1) starts at 2014 (DialectBehavior.TestNumvalCImportsNumvalCArgumentRules, kb/Work PB5721). At --std 2002 a PIC $$9.99 and a PIC XXBXX argument-1 are accepted (0 and 4); the same source is refused at 2014 and 2023 (COBOL1627, pb5721-test-numval-c-category-rules-2014)."
+}

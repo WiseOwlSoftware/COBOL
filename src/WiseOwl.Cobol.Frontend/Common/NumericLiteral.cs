@@ -112,30 +112,41 @@ public static class NumericLiteral
     public enum FloatingLiteralIssue
     {
         None,
-        /// <summary>SR2: the significand shall be from 1 to 36 digits.</summary>
+        /// <summary>SR2: the significand shall be from 1 to 36 digits (1 through 31 at COBOL-2002).</summary>
         SignificandDigits,
-        /// <summary>SR3: the exponent shall have a maximum of four digits.</summary>
+        /// <summary>SR3: the exponent shall have a maximum of four digits (three at COBOL-2002).</summary>
         ExponentDigits,
         /// <summary>SR4: a zero significand requires a zero exponent, and neither part may carry a negative sign.</summary>
         ZeroForm,
     }
+
+    /// <summary>The widest significand and exponent a floating-point literal may carry from COBOL-2014 on (§2014:8.3.1.2.2.2 rules 2-3,
+    /// §2023:8.3.3.3.3 SR2/SR3): 36 digits and four digits.</summary>
+    public const int WideSignificandDigits = 36, WideExponentDigits = 4;
+
+    /// <summary>The widest significand and exponent COBOL-2002 allows (§2002:8.3.1.2.2.2 rules 2-3): 31 digits and three digits.</summary>
+    public const int NarrowSignificandDigits = 31, NarrowExponentDigits = 3;
 
     /// <summary>The ISO §2023:8.3.3.3.3 SR2/SR3/SR4 form check of a canonical floating-point literal text (which shall
     /// satisfy <see cref="IsFloatingPointForm"/>). SR2's "shall include a decimal point" is the lexer's shape
     /// (a point-less <c>1E10</c> is a user-defined word, §2023:8.3.2.1), and so is the point's position: the significand
     /// is the fixed-point DEC_BODY, whose point is never the rightmost character (§2023:8.3.3.3.2 SR3), kb/Work PB2729 —
     /// <c>3.E2</c> is no token of this shape); the digit counts and the zero form are checked
-    /// here — the ONE place, since both the expression funnel and the VALUE funnel normalize through it.</summary>
-    public static FloatingLiteralIssue CheckFloatingPointForm(string text)
+    /// here — the ONE place, since both the expression funnel and the VALUE funnel normalize through it.
+    /// <paramref name="wideLimits"/> is the edition's: the 36-digit significand and four-digit exponent from COBOL-2014
+    /// (<see cref="WideSignificandDigits"/>), the 31 and three of §2002:8.3.1.2.2.2 rules 2-3 below it (kb/Work PB5613).</summary>
+    public static FloatingLiteralIssue CheckFloatingPointForm(string text, bool wideLimits)
     {
+        int maxSignificand = wideLimits ? WideSignificandDigits : NarrowSignificandDigits;
+        int maxExponent = wideLimits ? WideExponentDigits : NarrowExponentDigits;
         string t = text.Trim();
         int e = t.IndexOfAny(['E', 'e']);
         string sig = t[..e], exps = t[(e + 1)..];
         bool sigNeg = sig.StartsWith('-'), expNeg = exps.StartsWith('-');
         string sigDigits = sig.TrimStart('+', '-').Replace(".", "");
         string expDigits = exps.TrimStart('+', '-');
-        if (sigDigits.Length is < 1 or > 36) return FloatingLiteralIssue.SignificandDigits;
-        if (expDigits.Length > 4) return FloatingLiteralIssue.ExponentDigits;
+        if (sigDigits.Length < 1 || sigDigits.Length > maxSignificand) return FloatingLiteralIssue.SignificandDigits;
+        if (expDigits.Length > maxExponent) return FloatingLiteralIssue.ExponentDigits;
         bool sigZero = sigDigits.All(c => c == '0'), expZero = expDigits.All(c => c == '0');
         if (sigZero && (!expZero || sigNeg || expNeg)) return FloatingLiteralIssue.ZeroForm;
         return FloatingLiteralIssue.None;

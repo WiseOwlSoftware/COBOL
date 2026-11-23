@@ -98,13 +98,21 @@ public sealed partial class SpecialNamesBinder
         }
         // §2023:8.3.3.3.3 SR2/SR3/SR4 (kb/Work PB99) — the floating-point literal's FORM, checked HERE because both the
         // expression funnel (ExpressionBinder.CheckLiteral) and the VALUE / level-88 funnel normalize through this method.
+        // The digit limits are the edition's (kb/Work PB5613, PB6039): §2002:8.3.1.2.2.2 rules 2-3 say 31 and three, §2014:8.3.1.2.2.2
+        // rules 2-3 and §2023:8.3.3.3.3 SR2/SR3 say 36 and four; each message cites its own edition's rule.
+        bool wideLimits = DialectBehaviors.IsActive(DialectBehavior.FloatingLiteralWideLimits, Edition.Edition.Year);
         if (Common.NumericLiteral.IsFloatingPointForm(norm)
-            && Common.NumericLiteral.CheckFloatingPointForm(norm) is var fissue && fissue != Common.NumericLiteral.FloatingLiteralIssue.None)
+            && Common.NumericLiteral.CheckFloatingPointForm(norm, wideLimits) is var fissue && fissue != Common.NumericLiteral.FloatingLiteralIssue.None)
             Edition.Error(DiagnosticCatalog.FloatingLiteral, $"floating-point numeric literal '{text}': " + fissue switch
             {
-                Common.NumericLiteral.FloatingLiteralIssue.SignificandDigits => "the significand shall be from 1 to 36 digits in length (ISO §2023:8.3.3.3.3 SR2)",
-                Common.NumericLiteral.FloatingLiteralIssue.ExponentDigits => "the exponent shall have a maximum of four digits (ISO §2023:8.3.3.3.3 SR3)",
-                _ => "when all the digits of the significand are zero, all the digits of the exponent shall be zero and neither part shall have a negative sign (ISO §2023:8.3.3.3.3 SR4)",
+                Common.NumericLiteral.FloatingLiteralIssue.SignificandDigits => $"the significand shall be from 1 to "
+                    + $"{(wideLimits ? Common.NumericLiteral.WideSignificandDigits : Common.NumericLiteral.NarrowSignificandDigits)} digits in length "
+                    + $"({Edition.Edition.CiteRule("", "§2023:8.3.3.3.3 SR2", "§2002:8.3.1.2.2.2 rule 2", "§2014:8.3.1.2.2.2 rule 2")})",
+                Common.NumericLiteral.FloatingLiteralIssue.ExponentDigits => $"the exponent shall have a maximum of "
+                    + $"{Edition.Edition.Cite("", "four", "three", "four")} digits "
+                    + $"({Edition.Edition.CiteRule("", "§2023:8.3.3.3.3 SR3", "§2002:8.3.1.2.2.2 rule 3", "§2014:8.3.1.2.2.2 rule 3")})",
+                _ => "when all the digits of the significand are zero, all the digits of the exponent shall be zero and neither part shall have a negative sign "
+                    + $"({Edition.Edition.CiteRule("", "§2023:8.3.3.3.3 SR4", "§2002:8.3.1.2.2.2 rule 4", "§2014:8.3.1.2.2.2 rule 4")})",
             });
         return norm;   // canonical dot-decimal; a diagnosed literal is normalized too so downstream decode stays well-formed
     }
@@ -440,8 +448,8 @@ public sealed partial class SpecialNamesBinder
             + (failure is null
                 ? $"'{text}' does not name a cultural ordering table this implementation provides (ISO §2023:12.3.7.4 "
                   + "GR17 leaves literal-9's allowable content to the implementor: the default table "
-                  + $"'{CollationEngine.DefaultOrderingTableName}' — case-insensitive, space and underscore "
-                  + "interchangeable — or a CLDR locale tag naming a tailored collation)"
+                  + $"'{string.Join("', '", CollationEngine.DefaultOrderingTableNames)}' — the default table's name in COBOL 2002, "
+                  + "2014 and 2023 — case-insensitive, space and underscore ignored — or a CLDR locale tag naming a tailored collation)"
                 : $"the site collation data for '{text}' cannot be used ({failure}), so it names no cultural "
                   + "ordering table this implementation provides (ISO §2023:12.3.7.4 GR17 leaves literal-9's allowable "
                   + "content to the implementor)")

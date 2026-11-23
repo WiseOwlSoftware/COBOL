@@ -49,9 +49,20 @@ public sealed record ResolvedLocaleCollation(string Tag, CollationTable Table, C
 /// </summary>
 public static class CollationEngine
 {
-    /// <summary>The name of the default ordering table STANDARD-COMPARE uses (ISO/IEC 1989:2023 §2023:15.85.3 AR5) — the
-    /// spelling the standard gives; matched case-insensitively with the space and the underscore interchangeable.</summary>
+    /// <summary>The name of the default ordering table STANDARD-COMPARE uses in the current edition (ISO/IEC 1989:2023
+    /// §2023:15.85.3 AR5) — the spelling the standard gives; matched through <see cref="IsDefaultOrderingTableName"/>.</summary>
     public const string DefaultOrderingTableName = "ISO 14651_2020_TABLE1";
+
+    /// <summary>The default ordering table's name in EACH edition that has STANDARD-COMPARE and the ORDER TABLE clause — the name
+    /// the edition's own text gives, because the edition names the table of ITS ISO/IEC 14651: 'ISO14651_2002_TABLE1' of
+    /// ISO/IEC 14651:2001 (§2002:15.69.2 AR4, the 2002 text of FUNCTION STANDARD-COMPARE), 'ISO14651_2010_TABLE1' of ISO/IEC
+    /// 14651:2011 (§2014:15.79.2 AR5; its SPECIAL-NAMES NOTE writes 'ISO_14651_2010_TABLE1', the same name with the separator)
+    /// and 'ISO 14651_2020_TABLE1' (<see cref="DefaultOrderingTableName"/>). One derived table (<see cref="CollationTable.Root"/>,
+    /// the CLDR/UCA data ISO/IEC 14651's Common Template Table is kept synchronized with) is the default table of every
+    /// edition (owner decision Q4, 2026-08-18; kb/Work PB5720): the clause's literal-9 content is the implementor's
+    /// (§2002:12.2.6.3 GR17, §2014:12.3.6.3 GR17, §2023:12.3.7.4 GR17), so every edition's name resolves.</summary>
+    public static readonly IReadOnlyList<string> DefaultOrderingTableNames =
+        ["ISO14651_2002_TABLE1", "ISO14651_2010_TABLE1", DefaultOrderingTableName];
 
     private static readonly Lazy<Collator> s_standard = new(
         () => new Collator(CollationTable.Root, CollationStrength.Quaternary, AlternateHandling.Shifted),
@@ -214,11 +225,15 @@ public static class CollationEngine
         catch (ArgumentException) { return false; }
     }
 
-    /// <summary>"ISO 14651_2020_TABLE1" — case-insensitive, space/underscore interchangeable, any run of them one.</summary>
+    /// <summary>One of the <see cref="DefaultOrderingTableNames"/> — case-insensitive, with every space and underscore ignored
+    /// ("ISO 14651_2020_TABLE1", "iso_14651_2020_table1" and "ISO14651_2002_TABLE1" all name a default table).</summary>
     public static bool IsDefaultOrderingTableName(string name)
     {
-        static string Canon(string s) => string.Join('_', s.Split([' ', '_'], StringSplitOptions.RemoveEmptyEntries)).ToUpperInvariant();
-        return Canon(name) == Canon(DefaultOrderingTableName);
+        static string Canon(string s) => string.Concat(s.Split([' ', '_'], StringSplitOptions.RemoveEmptyEntries)).ToUpperInvariant();
+        string canon = Canon(name);
+        foreach (string known in DefaultOrderingTableNames)
+            if (canon == Canon(known)) return true;
+        return false;
     }
 
     /// <summary>True when the text is well-formed UTF-16 (no unpaired surrogate) — the derived table orders every

@@ -1426,3 +1426,8 @@ static readonly WiseOwl.Cobol.Runtime.MoveCitations.Iso2023 -> WiseOwl.Cobol.Run
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryIndexOutcome.ToString() -> string
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.Equals(object obj) -> bool
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.ToString() -> string
+static readonly WiseOwl.Cobol.Runtime.Collation.CollationEngine.DefaultOrderingTableNames -> System.Collections.Generic.IReadOnlyList<string!>!
+*REMOVED*static WiseOwl.Cobol.Runtime.CobolIntrinsics.TestNumvalC(string! text, string! currency, bool commaMode = false, bool anycase = false, int digitCap = 31, WiseOwl.Cobol.Runtime.Globalization.LocaleFacts? classification = null) -> long
+static WiseOwl.Cobol.Runtime.CobolIntrinsics.TestNumvalC(string! text, string! currency, bool commaMode = false, bool anycase = false, int digitCap = 31, WiseOwl.Cobol.Runtime.Globalization.LocaleFacts? classification = null, bool contentUnrestricted = false) -> long
+WiseOwl.Cobol.Runtime.DialectBehavior.TestNumvalCImportsNumvalCArgumentRules = 61 -> WiseOwl.Cobol.Runtime.DialectBehavior
+WiseOwl.Cobol.Runtime.DialectBehavior.FloatingLiteralWideLimits = 62 -> WiseOwl.Cobol.Runtime.DialectBehavior

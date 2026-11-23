@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.25.2-3",
+ "rule-digest": "3509352ffb92",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.cs#NormalizeNumericLiteral; src/WiseOwl.Cobol.Frontend/Common/NumericLiteral.cs#CheckFloatingPointForm",
+ "test-ref": "conformance:wiseowl/diagnostics/pb5613-floating-literal-wide-limits-2002; conformance:cases/8.3.3.3.3-Floating-point-numeric-literals/pb5613-floating-literal-wide-limits-2014",
+ "notes": "§2002:14.8.25.2 SR3 asks a MULTIPLY literal to be a numeric literal, and a floating-point literal is one only as §2002:8.3.1.2.2.2 forms it: a significand of 1 through 31 digits and an exponent of at most three (rules 2-3). NumericLiteral.CheckFloatingPointForm takes the edition's limits (DialectBehavior.FloatingLiteralWideLimits, from 2014 36 and four), so at --std 2002 MULTIPLY 1.00000000000000000000000000000000E0 BY W-N (a 33-digit significand) is refused, COBOL1661 (kb/Work PB5613)."
+}

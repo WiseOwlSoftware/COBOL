@@ -1139,10 +1139,13 @@ internal static partial class IntrinsicArgumentRules
             [new("NUMVAL-F")] = Uniform('a', "§2023:15.69.3 AR1").WithTailPredicate(ArgPredicate.CharacterCategory("§2023:15.69.3 AR1")),
             [new("TEST-NUMVAL")] = Uniform('a', "§2023:15.93.3 AR1"),
             [new("TEST-NUMVAL-F")] = Uniform('a', "§2023:15.95.3 AR1"),
-            // §2023:15.94.3 AR1 imports §2023:15.68's argument rules whole — the NUMVAL-C row's shape, verbatim.
+            // §2023:15.94.3 AR1 imports §2023:15.68's argument rules whole — the NUMVAL-C row's shape, verbatim — and §2014:15.87.2 AR1
+            // the same for NUMVAL-C's 15.63. ⛔ The 2002 text states its own, narrower rules (kb/Work PB5721): §2002:15.76.2 AR1 "Argument-1
+            // shall be of CLASS alphanumeric or national" (the edited categories are class alphanumeric, so no category predicate) and AR2
+            // "argument-2 ... of the same class as argument-1" (the cross rule), hence the predicate starts at 2014.
             [new("TEST-NUMVAL-C")] = Schema("§2023:15.94.3 AR1 → §2023:15.68.3 AR1/AR2", ['a', 'a'], cross: CrossArgRule.MatchArgument1,
                 crossClause: "§2023:15.68.3 AR2 (via §2023:15.94.3 AR1)")
-                .WithPredicate(0, ArgPredicate.CharacterCategory("§2023:15.94.3 AR1 → §2023:15.68.3 AR1")),
+                .WithPredicate(0, ArgPredicate.CharacterCategory("§2023:15.94.3 AR1 → §2023:15.68.3 AR1", since: 2014)),
             // The statistical trio — "Argument-1 shall be of class numeric" (variadic tail form):
             [new("STANDARD-DEVIATION")] = Uniform('n', "§2023:15.86.3 AR1"),
             [new("SUM")] = Uniform('n', "§2023:15.88.3 AR1"),

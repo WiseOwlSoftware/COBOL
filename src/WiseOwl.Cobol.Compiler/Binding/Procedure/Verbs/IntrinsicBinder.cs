@@ -2029,12 +2029,19 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // ⛔ A 2002 RULE (kb/Work PB5161): the 1989 module asks of argument-2 only its class (§1989:A.2.30.3 AR4) and makes
         // cs "the string of one or more characters specified by argument-2" (AR1), so below 2002 neither screen runs and
         // a currency string such as "Fr." or "CRC" is scanned as written.
-        bool contentRules = DialectBehaviors.IsActive(DialectBehavior.NumvalCCurrencyContentRules, ctx.Edition.Edition.Year);
+        // ⛔ A 2014 RULE FOR TEST-NUMVAL-C (kb/Work PB5721): §2014:15.87.2 AR1 and §2023:15.94.3 AR1 import NUMVAL-C's argument rules
+        // whole, so from 2014 the content screen applies to TEST-NUMVAL-C too; §2002:15.76.2 AR2 asks of its argument-2 only the
+        // class of argument-1, and the 2002 NUMVAL-C text (§2002:15.55.2 AR2) is the only 2002 text with the content screen.
+        bool argumentRulesApply = sig.Name != "TEST-NUMVAL-C"
+            || DialectBehaviors.IsActive(DialectBehavior.TestNumvalCImportsNumvalCArgumentRules, ctx.Edition.Edition.Year);
+        bool contentRules = argumentRulesApply
+            && DialectBehaviors.IsActive(DialectBehavior.NumvalCCurrencyContentRules, ctx.Edition.Edition.Year);
         if (contentRules && operands.Count == 2 && operands[1] is BoundStringLiteral curLit
             && CobolIntrinsics.CurrencyStringViolatesContentRules(curLit.Value))
             ctx.Edition.Error(DiagnosticCatalog.IntrinsicArgumentClass, $"FUNCTION {sig.Name} argument-2 shall contain at least one "
                 + "non-space character and none of the digits 0-9, the characters '*' '+' '-' ',' '.', or "
-                + "the letter pair CR/DB in any case (ISO §2023:15.68.3 rule 2)");
+                + "the letter pair CR/DB in any case ("
+                + ctx.Edition.Edition.CiteRule("§1989:A.2.30.3 AR4", "§2023:15.68.3 rule 2", "§2002:15.55.2 AR2", "§2014:15.63.2 AR2") + ")");
         if (operands.Count == 1 && !localeWritten)
         {
             // §2023:15.68.3 AR3: "If NEITHER argument-2 NOR THE LOCALE KEYWORD is specified, there shall be only one

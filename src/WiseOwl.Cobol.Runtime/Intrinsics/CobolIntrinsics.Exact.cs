@@ -564,14 +564,16 @@ public static partial class CobolIntrinsics
     /// trailing-currency or currency-then-sign form). Grouping separators are ARBITRARY-length digit groups
     /// (r4a's <c>digit [, digit]…</c> — no 3-digit constraint; <c>"1,23,4.5"</c> conforms) and are illegal
     /// after the decimal separator; DECIMAL-POINT IS COMMA SWAPS the two roles (r4d). Verdicts: 0 (r1a) /
-    /// first-error position (r1b, same sub-notes as TEST-NUMVAL) / LENGTH+1 (r1c).</summary>
+    /// first-error position (r1b, same sub-notes as TEST-NUMVAL) / LENGTH+1 (r1c). <paramref name="contentUnrestricted"/> is the
+    /// COBOL-2002 rule (kb/Work PB5721, <c>DialectBehavior.TestNumvalCImportsNumvalCArgumentRules</c> inactive): §2002:15.76.2 AR2 asks
+    /// argument-2 only the class of argument-1, so the content screen is not applied and the scan looks for the currency string as written.</summary>
     public static long TestNumvalC(string text, string currency, bool commaMode = false, bool anycase = false,
-        int digitCap = 31, LocaleFacts? classification = null)
+        int digitCap = 31, LocaleFacts? classification = null, bool contentUnrestricted = false)
     {
         // §2023:15.68.3 AR2 via §2023:15.94.3 AR1 — an invalid runtime currency raises EC-ARGUMENT-FUNCTION; the
         // checking-off verdict is the r1c "no specific character in error" LENGTH+1 leg (no character OF
         // ARGUMENT-1 is in error — the argument-2 is — and 0 would falsely certify conformance).
-        if (CurrencyStringViolatesContentRules(currency))
+        if (!contentUnrestricted && CurrencyStringViolatesContentRules(currency))
         {
             Exceptions.ExceptionState.ArgumentError(
                 $"TEST-NUMVAL-C argument-2 \"{currency}\" shall contain at least one non-space character and "

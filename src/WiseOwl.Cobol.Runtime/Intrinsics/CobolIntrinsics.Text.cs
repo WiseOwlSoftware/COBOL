@@ -712,7 +712,7 @@ public static partial class CobolIntrinsics
         long lvl = level ?? 4;
         CollationTable table;
         if (orderingTable is null)
-            table = CollationTable.Root;                       // r5's default table 'ISO 14651_2020_TABLE1'
+            table = CollationTable.Root;                       // r5's default table (each edition's name for it: CollationEngine.DefaultOrderingTableNames)
         else if (!CollationEngine.TryGetOrderingTable(orderingTable, out table))
             return OrderNotSupported($"the cultural ordering table '{orderingTable}' is not available on this "
                 + "processor (ISO §2023:15.85.4 r2; §2023:12.3.7.4 GR17 leaves literal-9's allowable content to the "
@@ -720,7 +720,7 @@ public static partial class CobolIntrinsics
                     ? $": its site collation data cannot be used ({failure.Message})" : ""));
         if (lvl is < 1 or > 4)
             return OrderNotSupported($"ordering level {lvl} is not defined in the ordering table "
-                + $"'{orderingTable ?? CollationEngine.DefaultOrderingTableName}', which defines levels 1..4 "
+                + $"{(orderingTable is null ? "the default ordering table" : $"'{orderingTable}'")}, which defines levels 1..4 "
                 + "(ISO §2023:15.85.4 r2)");
 
         var collator = ReferenceEquals(table, CollationTable.Root)

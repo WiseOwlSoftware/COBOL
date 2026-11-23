@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-AR-15.69.2-4",
+ "rule-digest": "a0b32dc745c8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Collation/CollationEngine.cs#TryGetOrderingTable; src/WiseOwl.Cobol.Runtime/Collation/CollationEngine.cs#IsDefaultOrderingTableName",
+ "test-ref": "conformance:cases/15.69@2002-STANDARD-COMPARE-FUNCTION/pb5720-standard-compare-default-table-2002; unit:CollationTailoringTests.OrderingTableNames_EveryEditionsDefaultTableNameResolvesToTheRootTable",
+ "notes": "§2002:15.69.2 AR4 names the default ordering table 'ISO14651_2002_TABLE1'. The processor's one derived table (CLDR/UCA data consistent with ISO/IEC 14651, owner decision Q4) is the default table of every edition, and CollationEngine.DefaultOrderingTableNames carries each edition's own name for it (2002, 2014, 2023), so the 2002 name in an ORDER TABLE clause resolves (no COBOL1662, no EC-ORDER-NOT-SUPPORTED) and an unspecified ordering-name compares by the same table: STANDARD-COMPARE(\"a\" \"B\") is '<' at --std 2002 (kb/Work PB5720)."
+}
