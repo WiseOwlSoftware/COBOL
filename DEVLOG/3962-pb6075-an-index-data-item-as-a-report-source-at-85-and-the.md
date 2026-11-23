@@ -1,4 +1,4 @@
-## PB6075: an index data item as a report SOURCE at 85, and the report rules 2014 added, swept at 2002
+## Entry 3962 — 2026-11-22 23:59 PST — PB6075: an index data item as a report SOURCE at 85, and the report rules 2014 added, swept at 2002
 
 Two leads from PB5775. The first asked whether PB5188's refusal of an index data item as a report SOURCE at COBOL-85 rests on the Procedure-Division-only
 §1985:VI.5.14.3 SR5 that PB5774 showed does not reach a Report Section clause. The re-probe (`SOURCE WS-IX`, `USAGE INDEX`) is refused COBOL2770 at every edition, and
@@ -15,3 +15,4 @@ FUNCTION SUM in a report description entry, exception-checking PERFORM over INIT
 GROUP and PAGE carry word-identical rules. Found on the way and left registered in the landing addendum: a zero-length literal or a refused DYNAMIC LENGTH item at 2002
 draws a second, cascading diagnostic (COBOL2247, COBOL1561) worded from COBOL-2023, and the pointer, message-tag and object arms of the MOVE class refusal still word 2023 at
 2002 and 2014. No inventory row closes: `closes_rows_reason` says so.
+
