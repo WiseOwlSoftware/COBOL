@@ -15,7 +15,6 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// explicit arrays per evaluation, one of them the compile-time-constant scales. This class refuses a <c>params</c> array in the
 /// intrinsic runtime and an array parameter on the selection entries.
 /// </summary>
-[Trait("Sweep", "tree")]
 public sealed class VariadicIntrinsicSpanDriftTests
 {
     private static readonly TreeScope IntrinsicSources = new(Under: ["src/WiseOwl.Cobol.Runtime/Intrinsics/"], Kinds: [".cs"]);
