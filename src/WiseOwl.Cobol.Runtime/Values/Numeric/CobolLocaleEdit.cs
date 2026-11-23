@@ -146,7 +146,7 @@ public static class CobolLocaleEdit
             foreach (char fc in F) { num.Append(fc); numDigit.Add(0); numSepAfter.Add(0); }
         }
 
-        var conv = negative ? facts.Negative : facts.Positive;              // !HasPlus ⇒ negative is false ⇒ the
+        var conv = MonetaryPlacement.ForPicture(negative ? facts.Negative : facts.Positive, p.HasCs);  // !HasPlus ⇒ negative is false ⇒ the
         string sign = !p.HasPlus ? ""                                       //  nonnegative layout with no glyph
             : conv.SignPosn == 0 ? ""                                       // posn 0: the parentheses ARE the sign
             : negative ? facts.NegativeSign : facts.PositiveSign;
@@ -261,11 +261,11 @@ public static class CobolLocaleEdit
         // nonnegative one — Format lost the sign there, and the only coherent de-edit is nonnegative.
         string cs = p.HasCs ? facts.CurrencySymbol : "";
         bool negDistinct = facts.Negative.SignPosn == 0 || facts.NegativeSign.Length > 0;
-        if (p.HasPlus && negDistinct && TryUnwrap(t, facts.Negative,
+        if (p.HasPlus && negDistinct && TryUnwrap(t, MonetaryPlacement.ForPicture(facts.Negative, p.HasCs),
                 facts.Negative.SignPosn == 0 ? "" : facts.NegativeSign, cs, out string? numNeg))
             return DeEditNum(numNeg!, p, facts, negative: true, s);
         string posSign = p.HasPlus && facts.Positive.SignPosn != 0 ? facts.PositiveSign : "";
-        if (TryUnwrap(t, facts.Positive, posSign, cs, out string? numPos))
+        if (TryUnwrap(t, MonetaryPlacement.ForPicture(facts.Positive, p.HasCs), posSign, cs, out string? numPos))
             return DeEditNum(numPos!, p, facts, negative: false, s);
         Incompatible(s);
         return 0;
