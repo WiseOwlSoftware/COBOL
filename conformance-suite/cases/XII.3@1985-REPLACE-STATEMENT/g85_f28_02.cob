@@ -3,7 +3,6 @@
       *> rules: [1985-SR-XII.3.3-5]
       *> accept: [85]
       *> source-format: fixed
-      *> portable: unverified
       *>---
       *> §1985:XII.3.3 SR5 - character-strings within pseudo-text-1 and
       *> pseudo-text-2 of REPLACE are continued: words, a numeric literal
@@ -26,6 +25,7 @@
        WORKING-STORAGE SECTION.
        01  WS-RESULT PIC X(12) VALUE SPACES.
        01  WS-NUM    PIC 9(4) VALUE 0.
+       01  WS-NUM-E PIC ZZZ9.
        PROCEDURE DIVISION.
        MAIN-P.
            REPLACE ==SET-RES
@@ -38,5 +38,6 @@
       -        34 TO WS-NUM==.
            SET-RESULT.
            SET-NUM.
-           DISPLAY "[" WS-RESULT "]" WS-NUM.
+           MOVE WS-NUM TO WS-NUM-E
+           DISPLAY "[" WS-RESULT "]" WS-NUM-E.
            STOP RUN.

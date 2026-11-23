@@ -3,7 +3,6 @@
       *> rules: [1985-GR-VI.6.18.4-2]
       *> accept: [85]
       *> source-format: fixed
-      *> portable: unverified
       *>---
       *> §1985:VI.6.18.4 GR2 (THE INSPECT STATEMENT). An output test:
       *> the program must translate and run at 85 and DISPLAY exactly
@@ -19,6 +18,8 @@
        01  DA  PIC A(5).
        01  DN  PIC 9(5).
        01  C1  PIC 99.
+       01  C1-E PIC Z9.
+       01  DN-E PIC ZZZZ9.
        PROCEDURE DIVISION.
        MAIN-PARA.
            MOVE "AAAAA" TO DX.
@@ -33,18 +34,22 @@
            MOVE "AXAXA" TO DX.
            MOVE ZERO TO C1.
            INSPECT DX TALLYING C1 FOR ALL "A" BEFORE INITIAL "X".
-           DISPLAY "BEFORE " C1.
+           MOVE C1 TO C1-E
+           DISPLAY "BEFORE " C1-E.
            MOVE ZERO TO C1.
            INSPECT DX TALLYING C1 FOR ALL "A" AFTER INITIAL "X".
-           DISPLAY "AFTER " C1.
+           MOVE C1 TO C1-E
+           DISPLAY "AFTER " C1-E.
            MOVE "QQQRQ" TO DA.
            INSPECT DA REPLACING ALL "QQ" BY "ST" FIRST "Q" BY "U".
            DISPLAY "ALPHABETIC " DA.
            MOVE 11101 TO DN.
            INSPECT DN REPLACING ALL "11" BY "23" FIRST "1" BY "9".
-           DISPLAY "NUMERIC " DN.
+           MOVE DN TO DN-E
+           DISPLAY "NUMERIC " DN-E.
            MOVE 00120 TO DN.
            MOVE ZERO TO C1.
            INSPECT DN TALLYING C1 FOR LEADING "0".
-           DISPLAY "ZEROS " C1.
+           MOVE C1 TO C1-E
+           DISPLAY "ZEROS " C1-E.
            STOP RUN.

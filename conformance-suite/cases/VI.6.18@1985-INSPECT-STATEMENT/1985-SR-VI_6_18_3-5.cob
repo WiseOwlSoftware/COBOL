@@ -3,7 +3,6 @@
       *> rules: [1985-SR-VI.6.18.3-5]
       *> accept: [85]
       *> source-format: fixed
-      *> portable: unverified
       *>---
       *> §1985:VI.6.18.3 SR5 (THE INSPECT STATEMENT). An output test:
       *> the program must translate and run at 85 and DISPLAY exactly
@@ -19,11 +18,13 @@
        01  WS-ID3 PIC XX VALUE "AB".
        01  WS-ID4 PIC XX VALUE "CA".
        01  WS-ID5 PIC XX VALUE "XY".
+       01  WS-CNT-E PIC Z9.
        PROCEDURE DIVISION.
        MAIN-PARA.
            INSPECT WS-STR TALLYING WS-CNT
                FOR ALL "AB" BEFORE INITIAL "CA".
-           DISPLAY WS-CNT.
+           MOVE WS-CNT TO WS-CNT-E
+           DISPLAY WS-CNT-E.
            INSPECT WS-STR REPLACING ALL WS-ID3 BY WS-ID5
                AFTER INITIAL WS-ID4.
            DISPLAY WS-STR.

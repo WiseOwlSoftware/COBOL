@@ -1855,7 +1855,7 @@
         "1985-GR-XIII_4_5_4-18": {"bucket": "output: XIII.4.5@1985-OPEN-STATEMENT", "cause": "gnucobol-nonconformance", "citation": "§1985:XIII.3.10.8 GR6"},
         "1985-GR-XIII_4_5_4-7": {"bucket": "output: XIII.4.5@1985-OPEN-STATEMENT", "cause": "gnucobol-nonconformance", "citation": "§1985:XIII.3.10.8 GR6"},
         "1985-GR-XII_2_4-7": {"bucket": "output: XII.2@1985-COPY-STATEMENT", "cause": "gnucobol-nonconformance", "citation": "§1985:XII.2.4 GR7"},
-        "1985-GR-XII_3_4-8": {"bucket": "compile: m�\u001fI�b:#: error: syntax error, unexpected end of file, expecting == or Word or Literal", "cause": "gnucobol-nonconformance", "citation": "§1985:XII.3.4 GR8"},
+        "1985-GR-XII_3_4-8": {"bucket": "compile: syntax error, unexpected end of file, expecting == or Word or Literal", "cause": "gnucobol-nonconformance", "citation": "§1985:XII.3.4 GR8"},
         "1985-GR-XIV_1_1-p1": {"bucket": "compile: COMMUNICATION SECTION is not implemented [-Wpending]", "cause": "non-portable-test"},
         "1985-GR-XIV_2_2_4-1": {"bucket": "compile: COMMUNICATION SECTION is not implemented [-Wpending]", "cause": "non-portable-test"},
         "1985-GR-XIV_2_2_4-10": {"bucket": "compile: COMMUNICATION SECTION is not implemented [-Wpending]", "cause": "non-portable-test"},

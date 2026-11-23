@@ -3,7 +3,6 @@
       *> rules: [1985-GR-VI.6.18.4-7]
       *> accept: [85]
       *> source-format: fixed
-      *> portable: unverified
       *>---
       *> §1985:VI.6.18.4 GR7 (THE INSPECT STATEMENT). An output test:
       *> the program must translate and run at 85 and DISPLAY exactly
@@ -33,22 +32,46 @@
        01  C10  PIC 99 VALUE 0.
        01  C11  PIC 99 VALUE 0.
        01  C12  PIC 99 VALUE 0.
+       01  C1-E PIC Z9.
+       01  C2-E PIC Z9.
+       01  C3-E PIC Z9.
+       01  C4-E PIC Z9.
+       01  C5-E PIC Z9.
+       01  C6-E PIC Z9.
+       01  C7-E PIC Z9.
+       01  C8-E PIC Z9.
+       01  C9-E PIC Z9.
+       01  C10-E PIC Z9.
+       01  C11-E PIC Z9.
+       01  C12-E PIC Z9.
        PROCEDURE DIVISION.
        P1.
            INSPECT W1 TALLYING C1 FOR ALL "AB" C2 FOR ALL "A".
-           DISPLAY C1 " " C2.
+           MOVE C1 TO C1-E
+           MOVE C2 TO C2-E
+           DISPLAY C1-E " " C2-E.
            INSPECT W1 TALLYING C3 FOR ALL "A" C4 FOR ALL "AB".
-           DISPLAY C3 " " C4.
+           MOVE C3 TO C3-E
+           MOVE C4 TO C4-E
+           DISPLAY C3-E " " C4-E.
            INSPECT W2 TALLYING C5 FOR ALL "AAA".
-           DISPLAY C5.
+           MOVE C5 TO C5-E
+           DISPLAY C5-E.
            INSPECT W3 TALLYING C6 FOR ALL "AB".
-           DISPLAY C6.
+           MOVE C6 TO C6-E
+           DISPLAY C6-E.
            INSPECT W1 TALLYING C7 FOR ALL "B" C8 FOR CHARACTERS.
-           DISPLAY C7 " " C8.
+           MOVE C7 TO C7-E
+           MOVE C8 TO C8-E
+           DISPLAY C7-E " " C8-E.
            INSPECT W1 TALLYING C9 FOR CHARACTERS C10 FOR ALL "B".
-           DISPLAY C9 " " C10.
+           MOVE C9 TO C9-E
+           MOVE C10 TO C10-E
+           DISPLAY C9-E " " C10-E.
            INSPECT W3 TALLYING C11 FOR LEADING "A" C12 FOR ALL "A".
-           DISPLAY C11 " " C12.
+           MOVE C11 TO C11-E
+           MOVE C12 TO C12-E
+           DISPLAY C11-E " " C12-E.
            INSPECT W4 REPLACING ALL "AB" BY "XY" ALL "A" BY "Z".
            DISPLAY W4.
            INSPECT W5 REPLACING ALL "A" BY "B" ALL "B" BY "A".
