@@ -171,6 +171,9 @@ public sealed class RunUnitStateDriftTests
             "records that the HOST configured the process-wide collation caches",
         ["WiseOwl.Cobol.Runtime.CollationRuntime::s_lastWarmup"] =
             "diagnostic status of the process-wide collation warm-up",
+        ["WiseOwl.Cobol.Runtime.Collation.CollationEngine::s_generation"] =
+            "the generation of the process-wide locale caches, moved by ClearLocaleCache so a resolution held across uses "
+            + "(a named IS LOCALE sequence's) is resolved again; it names a cache state, never a run unit's (kb/Work PB2763)",
         ["WiseOwl.Cobol.Runtime.Collation.Cache.CollationKeyCache::s_defaultConfig"] =
             "process-wide cache sizing for collation keys derived from immutable collators",
         ["WiseOwl.Cobol.Runtime.CobolTable+Scratch`1::s_cell"] =
@@ -234,15 +237,13 @@ public sealed class RunUnitStateDriftTests
         ["WiseOwl.Cobol.Runtime.Collation.Cldr.CldrTailoringBuilder::s_baseRoots"] =
             "memo of a base table's distinct weights per level, keyed weakly by the (immutable) CollationTable: derived data every locale build shares (kb/Work PB107)",
         ["WiseOwl.Cobol.Runtime.Collation.CollationEngine::s_locales"] =
-            "memo of resolved locale collations, keyed by locale name: derived from immutable CLDR data",
+            "memo of resolved locale collations, keyed by the canonical locale tag (LocaleTag): derived from immutable CLDR data",
         ["WiseOwl.Cobol.Runtime.Collation.CollationEngine::s_collators"] =
             "memo of collators, keyed by (table, options): derived from immutable inputs",
         ["WiseOwl.Cobol.Runtime.Collation.CollationEngine::s_orderingLevels"] =
             "memo of STANDARD-COMPARE's shifted collators, keyed by (table, level): derived from immutable inputs (kb/Work PB2763)",
         ["WiseOwl.Cobol.Runtime.Collation.CollationEngine::s_orderingTables"] =
             "memo of ORDER TABLE literal resolutions, keyed by the literal: derived from the locale data, forgotten with s_locales by ClearLocaleCache (kb/Work PB2763)",
-        ["WiseOwl.Cobol.Runtime.Collation.Locale.LocaleManager::s_infos"] =
-            "memo of locale facts, keyed by locale name: derived from immutable platform data",
         ["WiseOwl.Cobol.Runtime.Globalization.LocaleFacts::s_cache"] =
             "memo of locale facts, keyed by locale name: derived from immutable platform data",
         ["WiseOwl.Cobol.Runtime.LocaleCollation::s_orders"] =

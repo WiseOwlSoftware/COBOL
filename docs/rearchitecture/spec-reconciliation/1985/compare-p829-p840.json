@@ -1,16 +1,1 @@
-{
-  "batch": [829, 830, 831, 832, 833, 834, 835, 836, 837, 838, 839, 840],
-  "pages_checked": [829, 830, 831, 832, 833, 834, 835, 836, 837, 838, 839, 840],
-  "pages_unread": [],
-  "findings": [
-    {
-      "id": "p835-1",
-      "page": 835,
-      "kind": "missing-heading",
-      "severity": "structural",
-      "pdf_says": "SUMMARY OF ELEMENTS IN THE INTRINSIC FUNCTION MODULE",
-      "markdown_says": "SUMMARY OF ELEMENTS IN THE INTRINSIC FUNCTION MODULE",
-      "why_it_matters": "The PDF prints this as a centred bold title over the summary table (the page the I-39 change on page 834 points to as 'the Intrinsic Function module list'); the markdown leaves it as a plain paragraph with no heading marker, so the summary is invisible to heading-based navigation. Text itself is correct."
-    }
-  ]
-}
+{"batch": [829,830,831,832,833,834,835,836,837,838,839,840], "pages_checked": [829,830,831,832,833,834,835,836,837,838,839,840], "pages_unread": [], "findings": []}
