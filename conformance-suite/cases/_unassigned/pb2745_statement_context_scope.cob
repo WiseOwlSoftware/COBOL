@@ -12,10 +12,8 @@
       *>   ISO 15.32.3 r2 (cite.py OK) "the name of the statement that caused the
       *>     exception condition to be raised"; r1 (cite.py OK) when LOCATION "is
       *>     not specified and the implementor does not save the location
-      *>     information, the returned value is 63 spaces" (§2023:15.32.3 RV1; at
-      *>     2002 the width is 31, "the returned value is 31 spaces", §2002:15.27.2
-      *>     RV1, kb/Work PB5698) (this implementation
-      *>     saves nothing then - CONFORMANCE.md);
+      *>     information, the returned value is 63 spaces" (31 at 2002, §2002:15.27.2 RV1;
+      *>     this implementation saves nothing then - CONFORMANCE.md);
       *>   ISO 15.30.3 r1 (cite.py OK) "the returned value is one alphanumeric
       *>     space character";
       *>   ISO 7.3.25.4 GR6 (cite.py OK) checking "is enabled for the procedure
