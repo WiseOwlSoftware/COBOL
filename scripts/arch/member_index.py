@@ -142,7 +142,7 @@ def record(repo: Path = REPO, out_dir: Path | None = None) -> Path:
     work = Path(tempfile.mkdtemp(prefix="member-index-"))
     scope = census.walk_scope(repo)
     (work / "scope.json").write_text(json.dumps(scope), encoding="utf-8", newline="\n")
-    census.run_logged(["dotnet", "build", "WiseOwl.Cobol.sln", "-c", "Debug", "-v", "quiet"], repo, work / "build.log")
+    census.build_solution(repo, work)  # the solution and the analyzer at its pinned configuration (kb/Work PB2744)
     census.run_logged(["dotnet", "build", str(repo / HOST), "-c", "Release", "-o", str(work / "host"), "-v", "quiet"],
                       repo, work / "host-build.log")
     census.run_logged(["dotnet", str(work / "host" / "ArchCensus.dll"), "--solution", str(repo / "WiseOwl.Cobol.sln"),

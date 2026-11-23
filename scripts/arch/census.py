@@ -707,6 +707,17 @@ def analyzer_reference(tree: Path) -> tuple[str, str]:
     return f"src/{project}", configuration
 
 
+def build_solution(tree: Path, logs: Path) -> None:
+    """Build what the host's workspace loads: WiseOwl.Cobol.sln at Debug, then the product's analyzer at the configuration
+    its reference pins (src/Directory.Build.props, SetConfiguration). A Debug solution build builds the analyzer at
+    Debug, but the workspace resolves the reference at the pinned one, and the host REFUSES an unresolved analyzer
+    reference (LoadedSolution.LoadAsync; kb/Work PB2744: before that refusal every census since PB4950 round 10 died in
+    SymbolFinder). The ONE build step of every host run, the census's and the member index's alike."""
+    run_logged(["dotnet", "build", "WiseOwl.Cobol.sln", "-c", "Debug", "-v", "quiet"], tree, logs / "build.log")
+    analyzer, configuration = analyzer_reference(tree)
+    run_logged(["dotnet", "build", analyzer, "-c", configuration, "-v", "quiet"], tree, logs / "analyzer-build.log")
+
+
 def measure(commit: str, work: Path, out_dir: Path) -> Path:
     sha = git("rev-parse", commit)
     date = git("show", "-s", "--format=%cI", sha)
@@ -720,12 +731,7 @@ def measure(commit: str, work: Path, out_dir: Path) -> Path:
         print(f"census: scope census={scope['census']} readers={scope['readers']} excluded={scope['excluded']}",
               flush=True)
         t0 = time.time()
-        run_logged(["dotnet", "build", "WiseOwl.Cobol.sln", "-c", "Debug", "-v", "quiet"], wt, logs / "build.log")
-        # The product's analyzer reference pins its own configuration (src/Directory.Build.props, SetConfiguration); a
-        # solution build at Debug builds the analyzer at Debug, but the workspace resolves the reference at the pinned
-        # one, so build it there too (kb/Work PB2744: without it every run since PB4950 round 10 died in SymbolFinder).
-        analyzer, configuration = analyzer_reference(wt)
-        run_logged(["dotnet", "build", analyzer, "-c", configuration, "-v", "quiet"], wt, logs / "analyzer-build.log")
+        build_solution(wt, logs)
         host = work / "host"
         run_logged(["dotnet", "build", str(REPO / HOST), "-c", "Release", "-o", str(host), "-v", "quiet"], REPO,
                    logs / "host-build.log")
@@ -919,6 +925,16 @@ def self_test() -> int:
     arm("the census builds the product's analyzer at the configuration src/Directory.Build.props pins",
         analyzer_reference(REPO) == ("src/WiseOwl.Cobol.Analyzers/WiseOwl.Cobol.Analyzers.csproj", "Release"),
         failure_of(lambda: analyzer_reference(REPO)))
+    # Every script that runs the host builds through build_solution, so no host run (the member index's too) loads a
+    # workspace without the analyzer at its pinned configuration (kb/Work PB2744, review R1-1).
+    solution_build = '"build", ' + '"WiseOwl.Cobol.sln"'  # split, so this line is not itself a match
+    arch = {p.name: p.read_text(encoding="utf-8") for p in sorted(Path(__file__).resolve().parent.glob("*.py"))}
+    runners = [n for n, text in arch.items() if "ArchCensus.dll" in text]
+    stray = [n for n, text in arch.items() if text.count(solution_build) > (1 if n == "census.py" else 0)]
+    unbuilt = [n for n in runners if n != "census.py" and "census.build_solution(" not in arch[n]]
+    arm("every scripts/arch runner of the host builds through build_solution (the analyzer at its pinned configuration)",
+        sorted(runners) == ["census.py", "member_index.py"] and not stray and not unbuilt,
+        f"runners {runners}, own solution build {stray}, not through build_solution {unbuilt}")
 
     # The tracked-path prefixes are `/`-separated on every OS (a backslashed prefix matched nothing on Windows).
     record = RECORD_DIR.as_posix() + "/a02b.findings.json"
