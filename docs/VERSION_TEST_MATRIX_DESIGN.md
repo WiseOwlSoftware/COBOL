@@ -589,6 +589,28 @@ threaded into `CopyProcessor`/`ReferenceFormatProcessor` today). The COMMUNICATI
 > one-period adjacency, DB residue compiles, per-word §2023:8.9 freeing editions per ReservedWords.Table —
 > RERUN/ENTER 2002, DEBUGGING 2014, EVERY/CLOCK-UNITS/REFERENCES/PROCEDURES 2023).
 
+### P2.9 The edition band of a clause 15 function rule (kb/Work PB3321)
+
+An inventory row's `editions` band starts at the first edition whose OWN text states the rule's obligation. It is neither the
+facility's introduction ("core obligation") nor the first edition whose WORDING matches the 2023 sentence ("as worded"):
+
+- **The same obligation in other words starts the band at the earlier edition.** `LOWER-CASE`'s argument rule (§2023:15.57.3 AR1) is
+  §1989:A.2.22.3 at 85 ("class alphabetic or alphanumeric ... at least one character in length"), so its band is `85,2002,2014,2023`;
+  2002 adds class national and 2014 the LOCALE phrase, facilities and phrases that do not move the rule's start, the reading
+  `FMT-15.57.2` (the format, with its 2014 phrase) already had. The same holds for `DATE-OF-INTEGER`, `DAY-OF-INTEGER`,
+  `INTEGER-OF-DATE`, `INTEGER-OF-DAY`, `UPPER-CASE`, `ORD`, `REVERSE`, `NUMVAL` and `NUMVAL-C` argument rules, and `NUMVAL-C`'s format.
+- **A rule whose obligation first appears later starts there.** `MAX`'s strong-group bar is 2002 text (§2002:15.47.2 AR1) and its
+  zero-length-literal bar 2014 text; `NUMVAL`'s 31-digit limit (a different figure from 85's 18) is 2002's, its 35/34-digit limits are 2014's
+  (standard-binary and standard-decimal arithmetic are 2014 modes); `LOWER-CASE`'s locale returned-value rules are 2002 and 2014 text;
+  `EXCEPTION-FILE`'s argument-1 is 2023. A rule that names a facility an edition lacks is not in force at that edition, and one that
+  states a figure or an arm the earlier text does not is a new rule.
+- **A band never starts before its function** (`IntrinsicCatalog`'s window; `SpecTraceabilityInventoryDriftTests
+  .EveryFunctionRule_StartsNoEarlierThanItsFunction`) **and never after an edition at or after the window whose text states the
+  rule word for word** (`.EveryFunctionRule_StartsNoLaterThanItsFirstVerbatimStatement`: it reads the rule's sentence from
+  `specs/ISO_COBOL_2023.md` and looks for it in the 2002 and 2014 text of the same function). The test is the mechanical half of the
+  reading; a rule an earlier edition states in other words (the 1989 module's, above) is the adjudicator's half, decided from the
+  edition's text with `cite.py --check` and a probe of the compiler at that edition.
+
 ## 9. Reuse / do-not-duplicate map
 
 | Need | Existing (reuse / port) |

@@ -954,7 +954,9 @@ public sealed class SpecTraceabilityInventoryDriftTests
     /// exists before the function does, so a per-edition suite built from such a band would include a rule that
     /// edition's compiler refuses to compile (kb/Work PB3173, branch review round 1: nine rows, ABS's at 2002 and
     /// TEST-NUMVAL's at 85 among them). A band that starts LATER than the window is a reading of the rule's 2023
-    /// wording (a rule that names national arguments, say) and is not refused here.
+    /// wording (a rule that names national arguments, say) and is not refused here, but
+    /// <see cref="LateFunctionBands"/> refuses one that starts after an earlier edition states the rule word for word
+    /// (docs/VERSION_TEST_MATRIX_DESIGN.md P2.9, kb/Work PB3321).
     /// </summary>
     /// <param name="rows">the inventory rows</param>
     /// <param name="s">the schema, for the editions' order and separator</param>
@@ -981,6 +983,72 @@ public sealed class SpecTraceabilityInventoryDriftTests
                         + "(IntrinsicCatalog.cs, the COBOL1502 window; kb/Work PB3173)");
         }
         return bad;
+    }
+
+    /// <summary>A clause 15 rule's id: <c>AR-15.22.3-1</c> → rule 1 of §15.22.3; its function section is <c>15.22</c>.</summary>
+    private static readonly Regex FunctionRuleId = new(@"^(?:AR|RV|SR|GR)-15\.\d+\.\d+-(\d+)$", RegexOptions.Compiled);
+
+    /// <summary>
+    /// The rows of a clause 15 function whose band STARTS after an edition that states the rule word for word: the
+    /// rule's sentence in <c>specs/ISO_COBOL_2023.md</c> occurs, compared on words, in the same function's text of an
+    /// earlier edition at or after the function's window (kb/Work PB3321: <c>BYTE-LENGTH</c>'s DEPENDING rule is
+    /// §2002:15.12.3 RV2 and its band began at 2014). A rule's band starts at the first edition whose own text states its
+    /// obligation (docs/VERSION_TEST_MATRIX_DESIGN.md P2.9); a verbatim statement is the one case a test can see, and a
+    /// rule an earlier edition states in other words stays the adjudicator's reading.
+    /// </summary>
+    /// <param name="rows">the inventory rows</param>
+    /// <param name="s">the schema, for the editions' order and separator</param>
+    /// <param name="functionOfSection">clause 15 function section → function name</param>
+    /// <param name="introducedIn">function name → its introducing edition</param>
+    /// <param name="ruleText">(section, printed rule number) → the rule's sentence in the 2023 text, or null</param>
+    /// <param name="functionText">(edition, function name) → the function's whole clause in that edition, or null</param>
+    /// <param name="scanned">how many late-starting rows were compared</param>
+    private static List<string> LateFunctionBands(
+        IEnumerable<TraceabilityInventory.Row> rows, Schema s, IReadOnlyDictionary<string, string> functionOfSection,
+        Func<string, int> introducedIn, Func<string, int, string?> ruleText, Func<string, string, string?> functionText,
+        out int scanned)
+    {
+        var bad = new List<string>();
+        scanned = 0;
+        foreach (var r in rows)
+        {
+            if (r.Editions.Length == 0 || FunctionSectionOf.Match(r.Section) is not { Success: true } m
+                || FunctionRuleId.Match(r.RuleId) is not { Success: true } id
+                || !functionOfSection.TryGetValue(m.Groups[1].Value, out string? name))
+                continue;
+            string[] bands = Split(r.Editions, s.EditionsSeparator);
+            int start = Array.IndexOf(s.Editions, bands[0]);
+            int window = Array.IndexOf(s.Editions, introducedIn(name).ToString(CultureInfo.InvariantCulture));
+            if (start <= window || ruleText(r.Section, int.Parse(id.Groups[1].Value, CultureInfo.InvariantCulture)) is not { } rule)
+                continue;
+            scanned++;
+            string words = SpecClauseText.Norm(rule);
+            for (int e = Math.Max(window, 0); e < start; e++)
+            {
+                if (functionText(s.Editions[e], name) is { } earlier && earlier.Contains(words, StringComparison.Ordinal))
+                {
+                    bad.Add($"{r.RuleId}: editions '{r.Editions}' starts at {bands[0]}, but the {name} function's {s.Editions[e]} "
+                            + $"text states the rule word for word — write the band from {s.Editions[e]} "
+                            + "(docs/VERSION_TEST_MATRIX_DESIGN.md P2.9; kb/Work PB3321)");
+                    break;
+                }
+            }
+        }
+        return bad;
+    }
+
+    /// <summary>A function's whole clause in an edition's transcription, normalized to words: from its <c>15.n NAME function</c>
+    /// heading to the next function's, or null when the edition has no such clause. The 2002 and 2014 files head a function at
+    /// level 4 and keep the clause's rules numbered under it.</summary>
+    private static string? FunctionClauseWords(string[] lines, string name)
+    {
+        var heading = new Regex(@"^#{3,4} 15\.\d+ " + Regex.Escape(name) + @" function\s*$", RegexOptions.IgnoreCase);
+        var anyFunction = new Regex(@"^#{3,4} 15\.\d+ [A-Z0-9-]+ function\s*$");
+        int from = Array.FindIndex(lines, l => heading.IsMatch(l));
+        if (from < 0)
+            return null;
+        int to = Array.FindIndex(lines, from + 1, l => anyFunction.IsMatch(l));
+        return SpecClauseText.Norm(string.Join('\n', lines[from..(to < 0 ? lines.Length : to)]));
     }
 
     /// <summary>A row that names the screen-handling module, Annex A.4.2 (ACCEPT and DISPLAY screen handling), in its notes.
@@ -1463,6 +1531,52 @@ public sealed class SpecTraceabilityInventoryDriftTests
             return sig.IntroducedIn;
         });
         Assert.True(bad.Count == 0, Report("function rule(s) whose band starts before the function", bad, scanned));
+    }
+
+    /// <summary>
+    /// Every rule of a clause 15 function starts no later than the first edition that states it word for word: a
+    /// band that starts after the 2002 or 2014 text carrying the same sentence hides the rule from an edition whose own
+    /// standard already requires it (kb/Work PB3321; docs/VERSION_TEST_MATRIX_DESIGN.md P2.9). The twin of
+    /// <see cref="EveryFunctionRule_StartsNoEarlierThanItsFunction"/>, in the other direction.
+    /// </summary>
+    [Fact]
+    public void EveryFunctionRule_StartsNoLaterThanItsFirstVerbatimStatement()
+    {
+        var rows = LoadInventory();
+        string[] spec2023 = SpecClauseText.Lines();
+        var functionOfSection = SpecClauseText.FunctionSections(string.Join('\n', spec2023))
+            .ToDictionary(f => f.Section, f => f.Name, StringComparer.Ordinal);
+        var earlierLines = new Dictionary<string, string[]>(StringComparer.Ordinal)
+        {
+            ["2002"] = File.ReadAllLines(TestRepo.Specs("ISO_COBOL_2002.md")),
+            ["2014"] = File.ReadAllLines(TestRepo.Specs("ISO_COBOL_2014.md")),
+        };
+        var rulesOf = new Dictionary<string, Dictionary<int, string>>(StringComparer.Ordinal);
+        string? RuleText(string section, int number)
+        {
+            if (!rulesOf.TryGetValue(section, out var rules))
+                rulesOf[section] = rules = SpecClauseText.NumberedRules(SpecClauseText.ClauseRegion(spec2023, section));
+            return rules.GetValueOrDefault(number);
+        }
+        var wordsOf = new Dictionary<(string, string), string?>();
+        string? FunctionText(string edition, string name)
+        {
+            if (!earlierLines.TryGetValue(edition, out var lines))
+                return null;
+            if (!wordsOf.TryGetValue((edition, name), out var words))
+                wordsOf[(edition, name)] = words = FunctionClauseWords(lines, name);
+            return words;
+        }
+        var bad = LateFunctionBands(rows, LoadSchema(), functionOfSection, name =>
+        {
+            Assert.True(IntrinsicCatalog.TryGet(name, out var sig),
+                $"clause 15 defines the {name} function, but IntrinsicCatalog has no row for it");
+            return sig.IntroducedIn;
+        }, RuleText, FunctionText, out int scanned);
+        Assert.True(scanned >= 25,
+            $"only {scanned} clause 15 rules start after their function's window — the late starts are the rows this reads; "
+            + "if the id or heading shape changed, fix FunctionRuleId or FunctionClauseWords, do not lower the floor.");
+        Assert.True(bad.Count == 0, Report("function rule(s) whose band starts after an edition states the rule", bad, scanned));
     }
 
     /// <summary>
@@ -2154,6 +2268,21 @@ public sealed class SpecTraceabilityInventoryDriftTests
         Assert.Empty(EarlyFunctionBands(
             [Base("X-5m") with { Section = "15.7.3", Editions = "2014,2023" },
              Base("X-5n") with { Section = "15.70.3", Editions = "85,2002,2014,2023" }], s, absOnly, _ => 2014));
+
+        // A rule whose band starts after an edition states it word for word (kb/Work PB3321): with ABS introduced at 2002 and its
+        // 2002 text carrying the sentence, a 2014 start is refused, a 2002 start passes, and a sentence the 2002 text lacks passes.
+        string? Rule(string section, int number) => "Argument-1 shall be class numeric.";
+        string? Abs2002(string edition, string name) =>
+            edition == "2002" ? SpecClauseText.Norm("1) Argument-1 shall be class numeric. 2) more") : null;
+        var late = LateFunctionBands(
+            [Base("AR-15.7.3-1") with { Section = "15.7.3", Editions = "2014,2023" }], s, absOnly, _ => 2002, Rule, Abs2002, out int lateScanned);
+        Assert.Contains("2002 text states the rule word for word", Assert.Single(late));
+        Assert.Equal(1, lateScanned);
+        Assert.Empty(LateFunctionBands(
+            [Base("AR-15.7.3-2") with { Section = "15.7.3", Editions = "2002,2014,2023" }], s, absOnly, _ => 2002, Rule, Abs2002, out _));
+        Assert.Empty(LateFunctionBands(
+            [Base("AR-15.7.3-3") with { Section = "15.7.3", Editions = "2014,2023" }], s, absOnly, _ => 2002,
+            (_, _) => "Argument-1 shall be class alphabetic.", Abs2002, out _));
 
         // A screen-module rule whose band starts before the screen facility (kb/Work PB3319): refused at 85, passed from
         // 2002; a CONFORMS row naming A.4.2 is a shared rule, and A.4.21 is not A.4.2.
