@@ -1,4 +1,4 @@
-## A push that would publish a licence stamp is refused before it leaves
+## Entry 4012 — 2026-11-23 15:22 PST — A push that would publish a licence stamp is refused before it leaves
 
 PDF-derived text carrying the licensed spec's per-copy stamp reached the public origin twice (PB4814, and commit
 `0953e584ed` on 2026-11-23), because `verify_publishable.check_tree` runs inside the gate and a branch is pushed at every
@@ -12,3 +12,4 @@ after a git call that creates or moves commits, so the agent pushes in its own c
 start, because the host's global `core.hooksPath` names a directory that does not exist and git ran no hook here.
 Self-tests: `forbidden_commands` 400/400 GREEN (31 new), `test_pre_push.py` 8 cases and 21 expectations, `tooling_check`
 GREEN. The GitHub purge of `0953e584ed` (ticket #5047892) is still pending.
+
