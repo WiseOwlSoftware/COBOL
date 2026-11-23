@@ -6,7 +6,6 @@
       *>    1985-GR-VI.6.18.4-18]
       *> accept: [85]
       *> source-format: fixed
-      *> portable: unverified
       *>---
       *> §1985:VI.6.18.4 GR1 GR4 GR6 GR10 GR11 GR14 GR18 - INSPECT
       *> general rules over fixed inputs; each DISPLAY line is keyed
@@ -90,6 +89,8 @@
        01  REP PIC X(2) VALUE "* ".
        01  FR  PIC X(2) VALUE "A ".
        01  TT  PIC X(2) VALUE "a_".
+       01  N-E PIC Z9.
+       01  C5-E PIC Z9.
        PROCEDURE DIVISION.
        P0.
       * GR1
@@ -97,7 +98,8 @@
            MOVE 2 TO GC.
            MOVE 0 TO N.
            INSPECT G TALLYING N FOR CHARACTERS.
-           DISPLAY "G1=" N.
+           MOVE N TO N-E
+           DISPLAY "G1=" N-E.
            INSPECT G REPLACING ALL "A" BY "B"
                BEFORE INITIAL "AB".
            DISPLAY "G2=[" G "]".
@@ -105,16 +107,19 @@
            MOVE 1 TO GC.
            MOVE 0 TO N.
            INSPECT G TALLYING N FOR ALL "A".
-           DISPLAY "G3=" N.
+           MOVE N TO N-E
+           DISPLAY "G3=" N-E.
       * GR4
            MOVE "A A AA" TO Q.
            MOVE 0 TO N.
            INSPECT Q TALLYING N FOR ALL PAT.
-           DISPLAY "I1=" N.
+           MOVE N TO N-E
+           DISPLAY "I1=" N-E.
            MOVE "ABABB " TO W6.
            MOVE 0 TO N.
            INSPECT W6 TALLYING N FOR CHARACTERS BEFORE INITIAL DL4.
-           DISPLAY "I2=" N.
+           MOVE N TO N-E
+           DISPLAY "I2=" N-E.
            INSPECT Q REPLACING ALL PAT BY REP.
            DISPLAY "I3=[" Q "]".
            MOVE "A A AA" TO Q.
@@ -124,31 +129,38 @@
            MOVE "ABCABCAB" TO X8.
            MOVE 0 TO N.
            INSPECT X8 TALLYING N FOR ALL "AB".
-           DISPLAY "P1=" N.
+           MOVE N TO N-E
+           DISPLAY "P1=" N-E.
            INSPECT X8 REPLACING ALL "AB" BY "xy".
            DISPLAY "P2=[" X8 "]".
            MOVE "AAAAA" TO X5.
            MOVE 0 TO N.
            INSPECT X5 TALLYING N FOR ALL "AA".
-           DISPLAY "P3=" N.
+           MOVE N TO N-E
+           DISPLAY "P3=" N-E.
       * GR10
            MOVE "AAXB" TO X4.
            MOVE 0 TO N.
            INSPECT X4 TALLYING N FOR LEADING "A" "B".
-           DISPLAY "L1=" N.
+           MOVE N TO N-E
+           DISPLAY "L1=" N-E.
            MOVE 0 TO N.
            INSPECT X4 TALLYING N FOR LEADING "A" ALL "B".
-           DISPLAY "L2=" N.
+           MOVE N TO N-E
+           DISPLAY "L2=" N-E.
            MOVE "BAXB" TO X4.
            MOVE 0 TO N.
            INSPECT X4 TALLYING N FOR ALL "A" "B".
-           DISPLAY "L3=" N.
+           MOVE N TO N-E
+           DISPLAY "L3=" N-E.
       * GR11
            MOVE "AAB" TO X3.
            INSPECT X3 TALLYING C5 FOR ALL "A".
-           DISPLAY "C1=" C5.
+           MOVE C5 TO C5-E
+           DISPLAY "C1=" C5-E.
            INSPECT X3 TALLYING C5 FOR ALL "A".
-           DISPLAY "C2=" C5.
+           MOVE C5 TO C5-E
+           DISPLAY "C2=" C5-E.
       * GR14
            MOVE "ABAB" TO X4.
            INSPECT X4 REPLACING FIRST "A" BY "X" "B" BY "Y".

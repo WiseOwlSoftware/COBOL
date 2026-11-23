@@ -190,8 +190,9 @@ def unmet(root: Path, compiler: str, edition: str, population_ids: set[str]) -> 
 def record(root: Path, compiler: str, edition: str, version: str, results_files: list[Path],
            population_ids: set[str], in_suite: set[str]) -> tuple[dict[str, Any], int]:
     """Write the measurement of `edition` from run.py's results files (a later file's result replaces an earlier one's
-    for a test), and the verdicts of the `in_suite` tests into the compiler's baseline; return the edition's record
-    and the number of baseline verdicts written. Refuses a result for a test outside the population."""
+    for a test; a test no file holds keeps its recorded verdict while it is in the population), and the verdicts of the
+    `in_suite` tests into the compiler's baseline; return the edition's record and the number of baseline verdicts
+    written. Refuses a result for a test outside the population."""
     merged: dict[str, dict[str, Any]] = {}
     for f in results_files:
         for r in json.loads(f.read_text(encoding="utf-8"))["tests"]:
@@ -205,7 +206,12 @@ def record(root: Path, compiler: str, edition: str, version: str, results_files:
     if problems:
         raise ValueError("; ".join(problems))
     editions = dict((previous or {}).get("editions", {}))
-    body = record_results(merged.values(), editions.get(edition))
+    prior = editions.get(edition) or {"verdicts": {}, "failures": {}}
+    fresh = record_results(merged.values(), prior)
+    # A run of some tests re-measures those and keeps the others' recorded verdicts (a test that left the population
+    # goes), so a re-measure of the tests a clearing rewrote needs no run of the whole population.
+    body = {key: dict(sorted({**{t: v for t, v in prior[key].items() if t not in merged and t in population_ids},
+                              **fresh[key]}.items())) for key in ("verdicts", "failures")}
     editions[edition] = body
     content = {
         "$comment": [

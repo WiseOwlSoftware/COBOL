@@ -4,7 +4,6 @@
       *> accept: [85]
       *> files: [LIBA.cpy]
       *> source-format: fixed
-      *> portable: unverified
       *>---
       *> §1985:XII.2.4 GR5 (THE COPY STATEMENT). An output test: the
       *> program must translate and run at 85 and DISPLAY exactly the

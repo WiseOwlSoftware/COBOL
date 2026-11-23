@@ -45,7 +45,7 @@ internal static class CompiledProgramCache
     internal const string MaxMbVariable = "WISEOWL_COBOL_COMPILE_CACHE_MAX_MB";
 
     /// <summary>Bumped whenever the entry layout or the key recipe changes — an old store then misses whole.</summary>
-    private const int FormatVersion = 5;   // 2: an entry carries the compilation's own output (kb/Work PB2116); 3: whether the assembly is a library (kb/Work PB2099); 4: the diagnostics' records (DESIGN-listing.md section 6.3); 5: each record's edition flag (section 6.11, kb/Work PB5947)
+    private const int FormatVersion = 6;   // 2: an entry carries the compilation's own output (kb/Work PB2116); 3: whether the assembly is a library (kb/Work PB2099); 4: the diagnostics' records (DESIGN-listing.md section 6.3); 5: each record's edition flag (section 6.11, kb/Work PB5947); 6: each record's catalog descriptor (kb/Work PB2652), so a cache hit hands a test the record a compile does
 
     /// <summary>Whether this process uses the cache (see the class remarks).</summary>
     internal static bool Enabled { get; } =
@@ -357,15 +357,21 @@ internal static class CompiledProgramCache
     /// listing reads them, whose compilation reads the clock and is never stored (<see cref="Cacheability"/>). Its edition flag
     /// (<see cref="Frontend.Diagnostics.Diagnostic.Flag"/>) is.</summary>
     private sealed record StoredDiagnostic(string Code, Frontend.Diagnostics.DiagnosticSeverity Severity, string Message,
-        string? File, int Position, int Line, int Column, int SpanStart, int SpanLength, Editions.EditionFlag? Flag)
+        string? File, int Position, int Line, int Column, int SpanStart, int SpanLength, Editions.EditionFlag? Flag, string? DescriptorId)
     {
+        /// <summary>The catalog descriptors by their stable id (<see cref="Editions.Diagnostics.DiagnosticDescriptor.Id"/>): several descriptors
+        /// share a code, so a stored record names its descriptor by id and a cache hit resolves it here (kb/Work PB2652).</summary>
+        private static readonly Dictionary<string, Editions.Diagnostics.DiagnosticDescriptor> s_descriptors =
+            Editions.Diagnostics.DiagnosticCatalog.All.ToDictionary(d => d.Id, StringComparer.Ordinal);
+
         public static StoredDiagnostic Of(Frontend.Diagnostics.Diagnostic d) => new(d.Code, d.Severity, d.Message,
             d.Location?.FileName, d.Location?.Position ?? 0, d.Location?.Line ?? 0, d.Location?.Column ?? 0, d.Span.Start, d.Span.Length,
-            d.Flag);
+            d.Flag, d.Descriptor?.Id);
 
         public Frontend.Diagnostics.Diagnostic ToDiagnostic() => new(Code, Severity, Message,
             File is null ? null : new Frontend.Common.SourceLocation(File, Position, Line, Column),
-            new Frontend.Common.TextSpan(SpanStart, SpanLength)) { Flag = Flag };
+            new Frontend.Common.TextSpan(SpanStart, SpanLength))
+        { Flag = Flag, Descriptor = DescriptorId is null ? null : s_descriptors[DescriptorId] };
     }
 
     private sealed record StoredFile(string Name, string Blob);

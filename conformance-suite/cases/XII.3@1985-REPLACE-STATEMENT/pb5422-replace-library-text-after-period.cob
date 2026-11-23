@@ -4,7 +4,6 @@
       *> files: [PB5422LB.cpy]
       *> accept: [85]
       *> source-format: fixed
-      *> portable: unverified
       *>---
       *> §1985:XII.3.3 SR1 (cite.py --check: OK): a REPLACE statement "must be
       *> preceded by a separator period except when it is the first statement in

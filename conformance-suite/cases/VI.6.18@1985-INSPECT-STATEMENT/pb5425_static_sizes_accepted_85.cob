@@ -4,7 +4,6 @@
       *>     1985-SR-VI.6.18.3-9]
       *> accept: [85]
       *> source-format: fixed
-      *> portable: unverified
       *>---
       *> kb/Work PB5425: the controls of the six refusals beside it;
       *> each static size equals the one the rule pairs it with.

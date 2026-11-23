@@ -80,7 +80,23 @@ def case_04_a_recorded_measurement_loads_feeds_the_baseline_and_is_counted(expec
                  [("measurements/stub.json", "85 b: no test of the 85 population has this id")])
 
 
-def case_05_a_malformed_measurement_is_refused(expect):
+def case_05_a_run_of_some_tests_re_measures_those_and_keeps_the_others(expect):
+    root = scratch_dir("measure-partial-")
+    (root / "baselines").mkdir()
+    first = root / "first.json"
+    first.write_text(json.dumps({"tests": [_res("a", "PASS"), _res("b", "FAIL", COMPILE_FAIL), _res("c", "PASS")]}),
+                     encoding="utf-8", newline="\n")
+    T.record(root, "stub", "85", "stub 1", [first], {"a", "b", "c"}, set())
+    rerun = root / "rerun.json"
+    rerun.write_text(json.dumps({"tests": [_res("a", "FAIL", COMPILE_FAIL)]}), encoding="utf-8", newline="\n")
+    body, _ = T.record(root, "stub", "85", "stub 1", [rerun], {"a", "b"}, set())
+    expect.equal("the re-run test is re-measured, the other kept, and a test that left the population goes",
+                 body["verdicts"], {"a": "FAIL", "b": "FAIL"})
+    expect("the kept failure keeps its bucket and the re-run failure has one", set(body["failures"]) == {"a", "b"},
+           str(body["failures"]))
+
+
+def case_06_a_malformed_measurement_is_refused(expect):
     root = scratch_dir("measure-bad-")
     (root / "baselines").mkdir()
     results = root / "results.json"

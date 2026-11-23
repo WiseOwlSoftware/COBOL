@@ -325,19 +325,16 @@ def copy_statements(tokens: list[Token]) -> list[CopyStatement]:
             name = target.text
         else:
             continue
-        replacing = False
-        for later in tokens[i + 2:]:
-            if later.kind == PERIOD:
-                break
-            if later.kind == WORD and later.upper == "REPLACING":
-                replacing = True
+        end = _statement_end(tokens, i + 2)
+        replacing = any(t.kind == WORD and t.upper == "REPLACING" for t in tokens[i + 2:end])
         found.append(CopyStatement(name, tok.line, replacing, tok.source))
     return found
 
 
 def expand_copies(tokens: list[Token], library: Callable[[str], list[Token] | None], depth: int = 0) -> list[Token]:
-    """`tokens` with each COPY statement replaced by its library text's tokens, recursively (REPLACING not applied:
-    the classification of names a REPLACING introduces is then unknown, which the lint reports, never guesses).
+    """`tokens` with each COPY statement replaced by its library text's tokens, recursively, the REPLACING phrase
+    applied to the text it copies (ISO 7.2.3.4 GR 3 onward; §1985:XII.2.4 GR3-GR5): the lint judges the program text
+    the compiler reads, so a name or a statement the phrase introduces is classified, never guessed.
 
     `library(name)` returns the library text's tokens or None when the text is not available (the refusal of an
     undeclared COPY is the caller's)."""
@@ -348,16 +345,130 @@ def expand_copies(tokens: list[Token], library: Callable[[str], list[Token] | No
         if tok.kind == WORD and tok.upper == "COPY" and i + 1 < len(tokens) and depth < 16:
             target = tokens[i + 1]
             name = target.text[1:-1] if target.kind == ALPHANUMERIC else target.text
-            j = i + 2
-            while j < len(tokens) and tokens[j].kind != PERIOD:
-                j += 1
+            j = _statement_end(tokens, i + 2)
             included = library(name)
             if included is not None:
-                out.extend(expand_copies(included, library, depth + 1))
+                copied = expand_copies(included, library, depth + 1)
+                phrase = next((k for k in range(i + 2, j) if tokens[k].kind == WORD and tokens[k].upper == "REPLACING"), None)
+                if phrase is not None:
+                    copied = replace_text(copied, _split_on_by(tokens[phrase + 1:j]) or [])
+                out.extend(copied)
             i = j + 1
             continue
         out.append(tok)
         i += 1
+    return out
+
+
+# ── REPLACE and the REPLACING phrase ─────────────────────────────────────────────────────────────────────────────────
+
+Pair = tuple[list[Token], list[Token]]
+
+
+def _statement_end(tokens: list[Token], start: int) -> int:
+    """The index of the separator period that ends the COPY or REPLACE statement whose operands begin at `start`
+    (len(tokens) when it has none). A period inside pseudo-text is text of the pseudo-text, not the statement's
+    terminator: pseudo-text holds any text words (§1985:XII.2.2 format, pseudo-text-1 and pseudo-text-2;
+    §2023:7.2.3.2), so the scan steps over each `==` ... `==` span whole."""
+    i = start
+    while i < len(tokens):
+        tok = tokens[i]
+        if tok.kind == PERIOD:
+            return i
+        if tok.text == "=" and i + 1 < len(tokens) and tokens[i + 1].text == "=":
+            close = next((k for k in range(i + 2, len(tokens) - 1) if tokens[k].text == "=" and tokens[k + 1].text == "="), None)
+            if close is None:
+                return len(tokens)
+            i = close + 2
+            continue
+        i += 1
+    return len(tokens)
+
+
+def _split_on_by(tokens: list[Token]) -> list[Pair] | None:
+    """The `operand BY operand` pairs of a REPLACING phrase or a REPLACE statement's operands, each operand the tokens
+    between a pair of `==` delimiters (pseudo-text) or one word, literal or identifier (§1985:XII.2.2 format, ISO
+    7.2.3.2); None when the tokens are not of that shape, and the lint then classifies the text unreplaced, never
+    guessed."""
+    items: list[tuple[str, list[Token]]] = []
+    i = 0
+    while i < len(tokens):
+        tok = tokens[i]
+        if tok.kind == PUNCT and tok.text == "=" and i + 1 < len(tokens) and tokens[i + 1].text == "=":
+            close = next((k for k in range(i + 2, len(tokens) - 1) if tokens[k].text == "=" and tokens[k + 1].text == "="), None)
+            if close is None:
+                return None
+            items.append(("text", tokens[i + 2:close]))
+            i = close + 2
+        elif tok.kind == WORD and tok.upper == "BY":
+            items.append(("by", []))
+            i += 1
+        else:
+            items.append(("text", [tok]))
+            i += 1
+    if len(items) % 3 != 0:
+        return None
+    pairs: list[Pair] = []
+    for n in range(0, len(items), 3):
+        a, by, b = items[n:n + 3]
+        if a[0] != "text" or by[0] != "by" or b[0] != "text":
+            return None
+        pairs.append((a[1], b[1]))
+    return pairs
+
+
+def _same_word(a: Token, b: Token) -> bool:
+    """§1985:XII.2.4 GR5b: text words match character for character, a lowercase letter equal to its uppercase."""
+    return a.kind == b.kind and (a.upper == b.upper if a.kind in (WORD, NUMBER, PICTURE) else a.text == b.text)
+
+
+def replace_text(tokens: list[Token], pairs: list[Pair]) -> list[Token]:
+    """`tokens` with each match of a pair's first operand replaced by its second, by the comparison cycle of
+    §1985:XII.2.4 GR5 (a REPLACE statement's: §1985:XII.3.4 GR6, whose GR6b equates a separator comma, semicolon and
+    space): at each leftmost word the pairs are tried in order, the first match is replaced and the cycle
+    resumes after the matched words, and a word no pair matches is copied."""
+    if not pairs:
+        return tokens
+    out: list[Token] = []
+    i = 0
+    while i < len(tokens):
+        for old, new in pairs:
+            n = len(old)
+            if n and i + n <= len(tokens) and all(_same_word(tokens[i + k], old[k]) for k in range(n)):
+                out.extend(Token(t.kind, t.text, tokens[i].line, tokens[i].source) for t in new)
+                i += n
+                break
+        else:
+            out.append(tokens[i])
+            i += 1
+    return out
+
+
+def apply_replace_statements(tokens: list[Token]) -> list[Token]:
+    """`tokens` after the REPLACE statements, which are processed after every COPY statement (§1985:XII.3.4 GR4): each
+    `REPLACE ==x== BY ==y== ... .` is in effect from there to the next REPLACE statement (`REPLACE OFF.` ends it,
+    §1985:XII.3.4 GR2, GR3), and the statement itself leaves the text."""
+    out: list[Token] = []
+    pairs: list[Pair] = []
+    segment: list[Token] = []
+
+    def flush() -> None:
+        out.extend(replace_text(segment, pairs))
+        segment.clear()
+
+    i = 0
+    while i < len(tokens):
+        tok = tokens[i]
+        if tok.kind == WORD and tok.upper == "REPLACE" and i + 1 < len(tokens) and tokens[i + 1].kind != PERIOD:
+            j = _statement_end(tokens, i + 1)
+            flush()
+            operands = tokens[i + 1:j]
+            pairs = [] if (len(operands) == 1 and operands[0].upper == "OFF") else (_split_on_by(operands) or [])
+            i = j + 1
+            continue
+        segment.append(tok)
+        i += 1
+    flush()
     return out
 
 

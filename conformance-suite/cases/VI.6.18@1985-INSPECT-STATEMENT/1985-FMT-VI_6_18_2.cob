@@ -3,7 +3,6 @@
       *> rules: [1985-FMT-VI.6.18.2]
       *> accept: [85]
       *> source-format: fixed
-      *> portable: unverified
       *>---
       *> §1985:VI.6.18.2 (THE INSPECT STATEMENT). An output test: the
       *> program must translate and run at 85 and DISPLAY exactly the
@@ -19,11 +18,14 @@
        01  WS-CN2      PIC 9(2) VALUE ZERO.
        01  WS-FROM     PIC X(3) VALUE "AM*".
        01  WS-TO       PIC X(3) VALUE "EN+".
+       01  WS-CNT-E PIC Z9.
+       01  WS-CN2-E PIC Z9.
        PROCEDURE DIVISION.
        P1.
            INSPECT WS-TEXT TALLYING WS-CNT FOR ALL "A"
                BEFORE INITIAL "X".
-           DISPLAY WS-CNT.
+           MOVE WS-CNT TO WS-CNT-E
+           DISPLAY WS-CNT-E.
            INSPECT WS-TEXT REPLACING ALL "A" BY "O"
                AFTER INITIAL "N".
            DISPLAY WS-TEXT.
@@ -31,7 +33,9 @@
            INSPECT WS-TEXT TALLYING
                WS-CNT FOR CHARACTERS AFTER INITIAL "X"
                WS-CN2 FOR LEADING "B" ALL "O" BEFORE INITIAL "X".
-           DISPLAY WS-CNT " " WS-CN2.
+           MOVE WS-CNT TO WS-CNT-E
+           MOVE WS-CN2 TO WS-CN2-E
+           DISPLAY WS-CNT-E " " WS-CN2-E.
            INSPECT WS-TEXT REPLACING
                FIRST "N" BY "M"
                LEADING "B" BY "C"
@@ -41,7 +45,8 @@
            INSPECT WS-TEXT
                TALLYING WS-CNT FOR ALL "O"
                REPLACING ALL "O" BY "A" BEFORE INITIAL "X".
-           DISPLAY WS-CNT " " WS-TEXT.
+           MOVE WS-CNT TO WS-CNT-E
+           DISPLAY WS-CNT-E " " WS-TEXT.
            INSPECT WS-TEXT CONVERTING WS-FROM TO WS-TO
                AFTER INITIAL "C" BEFORE INITIAL "X".
            DISPLAY WS-TEXT.

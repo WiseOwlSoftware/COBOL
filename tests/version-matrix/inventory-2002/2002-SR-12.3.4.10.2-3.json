@@ -3,6 +3,6 @@
  "rule-digest": "2f2979324473",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Padding.cs#ScreenPaddingDataName; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Padding.cs#CapturePadding; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#PaddingCharacterOperand",
- "test-ref": "conformance:cases/12.3.4.10@2002-PADDING-CHARACTER-CLAUSE/g2pad03_padding_data_name_numeric",
+ "test-ref": "conformance:cases/12.3.4.10@2002-PADDING-CHARACTER-CLAUSE/g2pad03_padding_data_name_numeric; conformance:cases/12.3.4.10@2002-PADDING-CHARACTER-CLAUSE/pb5871-padding-alphabetic-2002",
  "notes": "§2002:12.3.4.10.2 SR3: data-name-1 \"shall be a one-character data item of category alphanumeric, defined in the working-storage, local-storage, or linkage section.\" At --std 2002 g2pad03 (PIC 9) and g2pad04 (file section) are refused COBOL6848 at line 20, and g2pad01 accepts working-storage, local-storage and linkage operands and matches its derived output (pinned build dc1f2dcce8)."
 }

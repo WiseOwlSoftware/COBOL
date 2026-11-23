@@ -3,7 +3,6 @@
       *> rules: [1985-GR-VI.6.18.4-13]
       *> accept: [85]
       *> source-format: fixed
-      *> portable: unverified
       *>---
       *> §1985:VI.6.18.4 GR13 (THE INSPECT STATEMENT). An output test:
       *> the program must translate and run at 85 and DISPLAY exactly
@@ -20,11 +19,15 @@
        01  W4   PIC X    VALUE "C".
        01  CNT  PIC 99   VALUE 0.
        01  CN2  PIC 99   VALUE 0.
+       01  CNT-E PIC Z9.
+       01  CN2-E PIC Z9.
        PROCEDURE DIVISION.
        P1.
            INSPECT W1 TALLYING CNT FOR ALL W3 BEFORE INITIAL W4.
-           DISPLAY CNT.
+           MOVE CNT TO CNT-E
+           DISPLAY CNT-E.
            INSPECT W1 TALLYING CN2 FOR ALL W3 AFTER INITIAL W4.
-           DISPLAY CN2.
+           MOVE CN2 TO CN2-E
+           DISPLAY CN2-E.
            DISPLAY W1 W3 W4.
            STOP RUN.

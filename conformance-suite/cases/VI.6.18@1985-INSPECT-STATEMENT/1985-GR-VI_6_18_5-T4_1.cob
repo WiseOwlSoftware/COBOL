@@ -3,7 +3,6 @@
       *> rules: [1985-GR-VI.6.18.5-T4.1]
       *> accept: [85]
       *> source-format: fixed
-      *> portable: unverified
       *>---
       *> §1985:VI.6.18.5 Example 4, its result row (Table 4 row 1): ITEM
       *> "ABABABABC", TALLYING COUNT-0 FOR ALL "AB" AFTER "BA" BEFORE "BC"
@@ -19,6 +18,7 @@
        WORKING-STORAGE SECTION.
        01  ITEM     PIC X(9).
        01  COUNT-0  PIC 99 VALUE 0.
+       01  COUNT-0-E PIC Z9.
        PROCEDURE DIVISION.
        MAIN-PARA.
            MOVE "ABABABABC" TO ITEM.
@@ -26,7 +26,8 @@
                 COUNT-0 FOR ALL "AB" AFTER "BA" BEFORE "BC".
            INSPECT ITEM REPLACING
                 ALL "AB" BY "XY" AFTER "BA" BEFORE "BC".
-           DISPLAY "COUNT-0 " COUNT-0 " ITEM " ITEM.
+           MOVE COUNT-0 TO COUNT-0-E
+           DISPLAY "COUNT-0 " COUNT-0-E " ITEM " ITEM.
            IF COUNT-0 = 1
                DISPLAY "COUNT OK"
            ELSE

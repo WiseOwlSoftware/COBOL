@@ -4,7 +4,6 @@
       *> accept: [85]
       *> files: [TXT11.cpy]
       *> source-format: fixed
-      *> portable: unverified
       *>---
       *> §1985:XII.2.4 GR11 (THE COPY STATEMENT). An output test: the
       *> program must translate and run at 85 and DISPLAY exactly the

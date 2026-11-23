@@ -3,7 +3,6 @@
       *> rules: [1985-GR-XII.3.4-11]
       *> accept: [85]
       *> source-format: fixed
-      *> portable: unverified
       *>---
       *> §1985:XII.3.4 GR11 decides the indicator of the INTRODUCED lines only
       *> (from the line the replaced text begins on); the text after the

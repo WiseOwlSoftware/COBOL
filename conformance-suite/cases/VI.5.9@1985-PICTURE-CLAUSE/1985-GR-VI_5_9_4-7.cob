@@ -3,7 +3,6 @@
       *> rules: [1985-GR-VI.5.9.4-7]
       *> accept: [85]
       *> source-format: fixed
-      *> portable: unverified
       *>---
       *> §1985:VI.5.9.4 GR7 (THE PICTURE CLAUSE): "An unsigned nonzero
       *> integer which is enclosed in parentheses following the symbols

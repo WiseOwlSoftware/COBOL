@@ -53,16 +53,22 @@ public static class ItemCategory
     /// <summary>Category ALPHANUMERIC (ISO §2023:8.5.2.3): an elementary <c>PIC X</c> item, or an alphanumeric group
     /// item (§2023:13.18.29.4 GR3). Alphabetic (<c>PIC A</c>) and alphanumeric-edited (§2023:8.5.2.4) are categories of their
     /// own and are excluded, as are numeric, numeric-edited, national, boolean and the PICTURE-less pointer /
-    /// object-reference usages.</summary>
-    public static bool IsAlphanumeric(DataItem item) => Admits(item, national: false);
+    /// object-reference usages.
+    /// <para>⛔ THE EDITION AXIS (kb/Work PB5871, PB5615): at COBOL-2002 an alphabetic item "is treated as though it were an
+    /// alphanumeric data item" where no rule expressly permits it (§2002:8.5.2.1), so the file control clause operands worded
+    /// "alphanumeric" (ASSIGN USING, the record keys, FILE STATUS, PADDING CHARACTER) admit a <c>PIC A</c> item there
+    /// (<see cref="EditionInfo.AlphabeticIsAlphanumeric"/>); the other editions state no such sentence.</para></summary>
+    public static bool IsAlphanumeric(DataItem item, EditionInfo edition) =>
+        Admits(Table16Operand.Of(item), item, national: false, edition.AlphabeticIsAlphanumeric);
 
     /// <summary>Category ALPHANUMERIC or category NATIONAL — the operand set §2023:12.4.5.12.3 SR2 and §2023:12.4.5.6.3 SR2
     /// name for a record key, and the elementary half of §2023:14.9.30.3 SR1b / §2023:14.9.34.3 SR2b's INTO-receiver
     /// set. A <c>GROUP-USAGE NATIONAL</c> group qualifies through its as-if <c>PIC N(m)</c> — §2023:13.18.29.4 GR2b
     /// makes a national group "treated as though it were an elementary data item of usage national … described
     /// with PICTURE N(m)", which is exactly the shape those rules name; a <c>GROUP-USAGE BIT</c> group does not
-    /// (GR1 makes it category boolean).</summary>
-    public static bool IsAlphanumericOrNational(DataItem item) => Admits(item, national: true);
+    /// (GR1 makes it category boolean). The edition axis is <see cref="IsAlphanumeric(DataItem, EditionInfo)"/>'s.</summary>
+    public static bool IsAlphanumericOrNational(DataItem item, EditionInfo edition) =>
+        Admits(Table16Operand.Of(item), item, national: true, edition.AlphabeticIsAlphanumeric);
 
     /// <summary>
     /// ⛔ ISO §2023:13.18.29.4 GR3 — <i>"If a GROUP-USAGE clause is not specified or implied for a group item that is
@@ -256,11 +262,7 @@ public static class ItemCategory
         return null;
     }
 
-    /// <summary>ONE walk for both predicates — the two rules differ only in whether category national is in the
-    /// admitted set, and writing the walk twice is how the alphabetic and group arms would come to disagree.</summary>
-    private static bool Admits(DataItem item, bool national) => Admits(Table16Operand.Of(item), item, national, alphabeticAsAlphanumeric: false);
-
-    /// <summary>⛔ THE PLACE FORM OF <see cref="IsAlphanumericOrNational(DataItem)"/> — what a rule worded "shall be
+    /// <summary>⛔ THE PLACE FORM OF <see cref="IsAlphanumericOrNational(DataItem, EditionInfo)"/> — what a rule worded "shall be
     /// of category alphanumeric or national" asks of an operand that may be REFERENCE-MODIFIED (kb/Work PB1417).
     /// §2023:8.4.3.3.4 GR6 gives the unique data item a reference modifier creates "the same class, category, and usage as
     /// that defined for identifier-1" with the lettered rewrites, so <c>GRP(7:6)</c> over an alphanumeric GROUP is an
