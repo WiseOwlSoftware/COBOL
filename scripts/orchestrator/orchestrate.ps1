@@ -33,7 +33,7 @@ Design: docs/rearchitecture/DESIGN-orchestrator-loop.md (kb/Work PB1981). Each i
      (`review_lane.py tick`, kb/Work PB3608): one read-only reviewer per branch WAITING FOR REVIEW and one finisher per
      CONFLICT stop, each its own headless session, at most -ReviewAgents at once, charged to the budget; and the PROGRESS line every -ProgressSeconds (progress.py, in
      the background: groups running, done and reviewed, landings, the oldest waiting item; each new stall posted once
-     to the operator's mailbox), and past -UnitSoftMinutes the unit gets STOP-UNIT as at the context soft cap (the
+     to the mailbox of the lane that dispatched its group), and past -UnitSoftMinutes the unit gets STOP-UNIT as at the context soft cap (the
      owner's hand-off at about 60 minutes; kb/Work PB3638)
   7. validate handoff.json against handoff.schema.json
   8. append one line to units.jsonl
@@ -242,7 +242,7 @@ function Start-PyBackground([string[]]$ArgList) {
 # THE PROGRESS LINE (kb/Work PB3638 defect 3; design section 4.3). The owner, 2026-10-24: "It's stupid to have work
 # running with no updates or progress for multiple hours." progress.py reads the dispatch ledger, the reports and the
 # landing records (no git, no GitHub), prints one PROGRESS line and a STALL line per item that stopped moving (kb/Work PB4944; an item past its size limit is only counted), and
-# posts each new stall once to the operator's mailbox (--post: the unit's log is the message's ref), and records each running
+# posts each new stall once to the mailbox of the lane that dispatched its group (--post: the unit's log is the message's ref), and records each running
 # group's run time in group_sizes.py's history, the planner's measure of a campaign's pace (--record). Background, one at
 # a time, never fatal, as the lane tick.
 $script:ProgressTick = $null
@@ -873,14 +873,14 @@ try {
                 # $ls is read on origin/main, fetched (kb/Work PB2987); when it says the checkout is behind, the
                 # publisher fast-forwards it before rendering, and mark-published refuses until then.
                 Say "LEDGER PUBLISH OWED ($ls): render with gen_ledger.py (it writes $CoordDir\ledger.html and prints this account's artifact URL), publish it there, then ledger_state.py mark-published (--url the first time an account publishes)"
-                # The attended operator session is woken by its mailbox, not by this log (kb/Work PB2482): one open
+                # The attended session of the account running the loop is woken by its mailbox (send --to account, kb/Work PB6094), not by this log (kb/Work PB2482): one open
                 # `publish` message per stamp (--unless-pending), pointing at this unit's log.
                 $stampOwed = ($ls -split ' ')[1]
-                try { [void](Invoke-Py @((Join-Path $Here 'mailbox.py'), '--coord', $CoordDir, 'send', '--to', 'operator', '--from', 'loop',
+                try { [void](Invoke-Py @((Join-Path $Here 'mailbox.py'), '--coord', $CoordDir, 'send', '--to', 'account', '--from', 'loop',
                     '--kind', 'publish', '--subject', "Ledger publish owed at $stampOwed ($($Account.name))",
                     '--body', "The supervisor found the ledger publish owed after unit '$($choice.unit)': $ls. Render with gen_ledger.py, publish to this account's artifact, then ledger_state.py mark-published.",
                     '--ref', "$logBase.jsonl", '--session', "orchestrate.ps1 pid $PID", '--unless-pending')) }
-                catch { Say "publish message not posted to the operator's mailbox (the loop continues): $_" }
+                catch { Say "publish message not posted to this account's mailbox (the loop continues): $_" }
             }
         } catch { Say "ledger state not read (the loop continues): $_" }
 

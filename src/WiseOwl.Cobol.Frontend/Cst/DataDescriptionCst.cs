@@ -7,35 +7,27 @@ namespace WiseOwl.Cobol.Frontend.Cst;
 using Core = CobolParserCore;
 
 /// <summary>
-/// Typed façade over <see cref="Core.DataDescriptionEntryContext"/> (rearchitecture PHASE 04, Group C) — the
-/// surface <c>DataBinder.BindEntry</c> reads instead of raw positional <c>GetText()</c>. Thin, 1:1 with the
-/// grammar rule, no semantic state. <see cref="Clauses"/> yields a <see cref="DataDescriptionClauseCst"/> per
-/// clause whose TEXT-bearing reads are typed; a caller keeps the presence-only clause predicates (BASED / EXTERNAL
-/// / TYPEDEF / JUSTIFIED / SYNC / SIGN / USAGE / OCCURS …) raw via <see cref="DataDescriptionClauseCst.Context"/>
-/// so their else-if order and edition-gate side effects stay byte-identical.
+/// The rule-bearing reads of a data description entry and its clauses, as EXTENSION MEMBERS of the generated contexts
+/// (<see cref="Core.DataDescriptionEntryContext"/>, <see cref="Core.DataDescriptionClauseContext"/>) that
+/// <c>DataBinder.BindEntry</c> reads instead of raw positional <c>GetText()</c>. No wrapper: the binder reads the
+/// generated contexts through <c>frontend.parse</c> (DESIGN-architecture-review §8.1), and these members sit on them,
+/// so a presence-only clause predicate (BASED / EXTERNAL / TYPEDEF / JUSTIFIED / SYNC / SIGN / USAGE / OCCURS …) and a
+/// typed read are asked of the same object (kb/Work PB2731: the two wrapper structs, their implicit conversions and their
+/// <c>Context</c> escape hatch are deleted).
 /// </summary>
-public readonly struct DataDescriptionCst(Core.DataDescriptionEntryContext ctx)
+public static class DataDescriptionCst
 {
     /// <summary>The level number as an <see cref="int"/>, or <see langword="null"/> when it does not parse
     /// (the caller returns early on null — byte-identical to the <c>int.TryParse</c> guard).</summary>
-    public int? Level => int.TryParse(ctx.levelNumber().GetText(), out int n) ? n : null;
+    public static int? Level(this Core.DataDescriptionEntryContext ctx) => int.TryParse(ctx.levelNumber().GetText(), out int n) ? n : null;
 
     /// <summary>The data-name text, or <see langword="null"/> when the entry is FILLER (no <c>dataName</c>) —
     /// the null vs non-null distinction drives the FILLER test, so this MUST stay nullable.</summary>
-    public string? Name => ctx.dataName()?.GetText();
+    public static string? Name(this Core.DataDescriptionEntryContext ctx) => ctx.dataName()?.GetText();
 
     /// <summary>The clauses of the entry body, in source order (empty when the body has no clause list).</summary>
-    public IReadOnlyList<DataDescriptionClauseCst> Clauses
-    {
-        get
-        {
-            var list = ctx.dataDescriptionBody().dataDescriptionClauses()?.dataDescriptionClause();
-            if (list is null || list.Length == 0) return [];
-            var wrapped = new DataDescriptionClauseCst[list.Length];
-            for (int i = 0; i < list.Length; i++) wrapped[i] = new DataDescriptionClauseCst(list[i]);
-            return wrapped;
-        }
-    }
+    public static IReadOnlyList<Core.DataDescriptionClauseContext> Clauses(this Core.DataDescriptionEntryContext ctx)
+        => ctx.dataDescriptionBody().dataDescriptionClauses()?.dataDescriptionClause() ?? [];
 
     /// <summary>
     /// The set of §2023:13.16.2 Format-1 clause slots this entry actually WRITES — the operand of every
@@ -56,65 +48,51 @@ public readonly struct DataDescriptionCst(Core.DataDescriptionEntryContext ctx)
     /// survived the binder's per-clause recovery (several decode flags are CLEARED on a violation, which would
     /// make a second violation in the same entry invisible).</para>
     /// </summary>
-    public DataClauseKind WrittenClauses
+    public static DataClauseKind WrittenClauses(this Core.DataDescriptionEntryContext ctx)
     {
-        get
-        {
-            var set = DataClauseKind.None;
-            foreach (var c in Clauses) set |= c.Kind;
-            return set;
-        }
+        var set = DataClauseKind.None;
+        foreach (var c in ctx.Clauses()) set |= c.Kind();
+        return set;
     }
 
-    public static implicit operator DataDescriptionCst(Core.DataDescriptionEntryContext c) => new(c);
-}
-
-/// <summary>Typed façade over one <see cref="Core.DataDescriptionClauseContext"/>. TEXT-bearing accessors are
-/// typed (each replacing one <c>GetText()</c> cluster in <c>BindEntry</c>); the presence-only clause predicates
-/// stay raw on <see cref="Context"/>.</summary>
-public readonly struct DataDescriptionClauseCst(Core.DataDescriptionClauseContext ctx)
-{
-    /// <summary>The raw clause context — for the presence-only <c>xxxClause() is [not] null</c> predicates.</summary>
-    public Core.DataDescriptionClauseContext Context => ctx;
+    // The typed reads of one clause: each TEXT-bearing accessor replaces one GetText() cluster in BindEntry; the
+    // presence-only predicates are the generated accessors themselves.
 
     /// <summary>Which §2023:13.16.2 Format-1 clause slot this is (<see cref="DataClauseKind.None"/> only when the
     /// grammar grew an alternative nobody classified — which <c>DataClauseKindDriftTests</c> makes impossible).
     /// <para>A <c>dataDescriptionClause</c> has exactly ONE child, the chosen alternative's sub-rule, so the
     /// classification is a single map lookup on that child's context type — no text, no re-parse.</para></summary>
-    public DataClauseKind Kind =>
+    public static DataClauseKind Kind(this Core.DataDescriptionClauseContext ctx) =>
         ctx.ChildCount == 1 && DataClauseKinds.ByContextType.TryGetValue(ctx.GetChild(0).GetType(), out var k)
             ? k : DataClauseKind.None;
 
     /// <summary>The PICTURE string text, or <see langword="null"/> when this is not a picture clause.</summary>
-    public string? PictureText => ctx.pictureClause()?.PIC_STRING()?.GetText();
+    public static string? PictureText(this Core.DataDescriptionClauseContext ctx) => ctx.pictureClause()?.PIC_STRING()?.GetText();
 
     /// <summary>The <c>TYPE [TO] type-name-1</c> referenced type-name text (§2023:13.18.57.2 Format 1; D17), or null. The
     /// slot is a <c>cobolWord</c>, the word set of the TYPEDEF entry's own <c>dataName</c> (kb/Work PB2721).</summary>
-    public string? TypeRefName => ctx.typeClause()?.cobolWord()?.GetText();
+    public static string? TypeRefName(this Core.DataDescriptionClauseContext ctx) => ctx.typeClause()?.cobolWord()?.GetText();
 
     /// <summary>The <c>SAME AS data-name-1</c> target data-name text (ISO §2023:13.18.49), or null. The first
     /// <c>cobolWord</c> is the target; any further ones are its OF/IN qualifiers (<see cref="SameAsQualifiers"/>).</summary>
-    public string? SameAsTargetName => ctx.sameAsClause()?.cobolWord(0)?.GetText();
+    public static string? SameAsTargetName(this Core.DataDescriptionClauseContext ctx) => ctx.sameAsClause()?.cobolWord(0)?.GetText();
 
     /// <summary>The SAME AS target's OF/IN qualifier names, outermost-last as written (empty when unqualified
     /// or when this is not a sameAsClause).</summary>
-    public IReadOnlyList<string> SameAsQualifiers
+    public static IReadOnlyList<string> SameAsQualifiers(this Core.DataDescriptionClauseContext ctx)
     {
-        get
-        {
-            var words = ctx.sameAsClause()?.cobolWord();
-            if (words is null || words.Length <= 1) return [];
-            var quals = new string[words.Length - 1];
-            for (int i = 1; i < words.Length; i++) quals[i - 1] = words[i].GetText();
-            return quals;
-        }
+        var words = ctx.sameAsClause()?.cobolWord();
+        if (words is null || words.Length <= 1) return [];
+        var quals = new string[words.Length - 1];
+        for (int i = 1; i < words.Length; i++) quals[i - 1] = words[i].GetText();
+        return quals;
     }
 
     /// <summary>The REDEFINES clause's operand as WRITTEN — the whole <c>dataReference</c>, or null. ⛔ Never its
     /// text: <c>GetText()</c> glues <c>A OF G</c> into the one word <c>AOFG</c>, which resolved to an unrelated item
     /// of that name (kb/Work PB1281). The binder screens the shape (§2023:13.18.44.3 SR5/SR6) and resolves the base
     /// data-name.</summary>
-    public Core.DataReferenceContext? RedefinesTarget => ctx.redefinesClause()?.dataReference();
+    public static Core.DataReferenceContext? RedefinesTarget(this Core.DataDescriptionClauseContext ctx) => ctx.redefinesClause()?.dataReference();
 
     // (The canonical USAGE keyword text and the VALUE-operand normalization stay in DataBinder's shared
     // UsageKeyword / ExtractValue helpers — reused by BOTH BindEntry and ReportSectionBinder.cs, so the façade does
@@ -129,15 +107,12 @@ public readonly struct DataDescriptionClauseCst(Core.DataDescriptionClauseContex
     /// <c>{ index-name-1 } …</c>, each a single word (<c>indexNameList</c>), so the text of one is exactly the name
     /// declared. It was a <c>dataReference</c>'s glued text, and <c>IX OF G</c> declared <c>IXOFG</c> (kb/Work PB2732).
     /// The caller keeps the <c>INDEXED()</c> presence guard raw.</summary>
-    public IReadOnlyList<string> IndexNames
+    public static IReadOnlyList<string> IndexNames(this Core.DataDescriptionClauseContext ctx)
     {
-        get
-        {
-            var words = ctx.occursClause()?.indexNameList()?.cobolWord();
-            if (words is null) return [];
-            var names = new string[words.Length];
-            for (int i = 0; i < words.Length; i++) names[i] = words[i].GetText();
-            return names;
-        }
+        var words = ctx.occursClause()?.indexNameList()?.cobolWord();
+        if (words is null) return [];
+        var names = new string[words.Length];
+        for (int i = 0; i < words.Length; i++) names[i] = words[i].GetText();
+        return names;
     }
 }

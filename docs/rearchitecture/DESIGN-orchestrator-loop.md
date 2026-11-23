@@ -562,7 +562,7 @@ creates STOP: the wait ends and no further tick starts), and `landing_rules.py -
 from `Invoke-Unit`, `Wait-Until` (after its STOP check) and the loop. A tick:
 
 1. REAPS: an attempt whose detached runner is gone without an exit code is DIED; a run that ended QUEUE NOT ACTIVE
-   (exit 8) writes `land-lane\HALT` and names it in the operator's mailbox.
+   (exit 8) writes `land-lane\HALT` and names it in the mailbox of the account running the loop (kb/Work PB6094).
 2. SURVEYS: `git fetch`, then `prune_worktrees.live_survey` (the one production survey, open pull requests included;
    `prune_worktrees.py` and the planner's partition call the same function) and its landing order (imported, never re-parsed from text),
    written to `land-lane\survey.json`. The survey decides a finished branch by ONE rule of three coverages, never by
@@ -652,7 +652,7 @@ instead of at the next enqueue unit, is the headless lane's second job (kb/Work 
 | a required check FAILED on its head, the queue removed it, or it CONFLICTS with main (`mergeStateStatus` DIRTY: no re-run or reopen clears a conflict, kb/Work PB3527 review R1-5) | ends (`left`): the survey reads it BOUNCED, the enqueue unit's finisher |
 | its head moved past the attempt's | ends (`left`): a new push is a new landing, watched afresh |
 | any check on its head still running (its job too), required or not | watching: nothing is late |
-| not in the queue `QUEUE_GRACE_MIN` (10) minutes after its checks' work ended (the newest check-run's end on the head, a stuck one's JOB time; the enqueue time when no check-run exists) or after the last remedy | a STALLED read, cause `stuck-check-run` or `not-queued` (for one the watch saw `queued` and finds out of the queue again, the grace counts from the last reading in the queue and read 1 is the requeue, since its checks passed and no re-run is a remedy): read 1 re-runs the workflow run of the stuck check, else of any check on the head (`enqueue.rerun_check`, `gh run rerun`; a pull request with no check-run goes straight to read 2's remedy), read 2 closes, reopens and re-queues it with auto-merge (`enqueue.requeue`, behind `queue`'s ACTIVE guard: enqueue.py stays the only file that queues; refused, touching nothing, while a workflow run on the head has not completed, since the reopen's run would cancel it, kb/Work PB4052), read 3 sends the operator a mailbox `question` and the watch acts no more (`alerted`) |
+| not in the queue `QUEUE_GRACE_MIN` (10) minutes after its checks' work ended (the newest check-run's end on the head, a stuck one's JOB time; the enqueue time when no check-run exists) or after the last remedy | a STALLED read, cause `stuck-check-run` or `not-queued` (for one the watch saw `queued` and finds out of the queue again, the grace counts from the last reading in the queue and read 1 is the requeue, since its checks passed and no re-run is a remedy): read 1 re-runs the workflow run of the stuck check, else of any check on the head (`enqueue.rerun_check`, `gh run rerun`; a pull request with no check-run goes straight to read 2's remedy), read 2 closes, reopens and re-queues it with auto-merge (`enqueue.requeue`, behind `queue`'s ACTIVE guard: enqueue.py stays the only file that queues; refused, touching nothing, while a workflow run on the head has not completed, since the reopen's run would cancel it, kb/Work PB4052), read 3 sends the lane of the account running the loop a mailbox `question` (`notify_account`, kb/Work PB6094) and the watch acts no more (`alerted`) |
 | no pull request open and the branch's work not on main | a stalled read, cause `closed`: it alerts at once |
 
    Each read is recorded on the attempt (`watch`) and in `landing_measure.py`'s record of the pull request
@@ -1554,7 +1554,7 @@ backspace; `operator-session.json` was invalid JSON with unescaped backslashes).
   (adds `result` and MOVES the file, so an inbox is the open set), `watch` (returns when the inbox holds a message:
   the background watcher's body), `session` (reads or updates `operator-session.json` with the account from `account.py`).
 - `from` is `mythos`, `operator` or `loop`: after every unit with the ledger publish owed, the supervisor posts one
-  `publish` message (per stamp) to the operator, pointing at the unit's log (section 14), so the attended session is
+  `publish` message (per stamp) to the lane of the account running the loop (`send --to account`, kb/Work PB6094), pointing at the unit's log (section 14), so the attended session is
   woken by its watcher rather than by reading the supervisor's log.
 - It is a transport of pointers, never a work register (CLAUDE.md rule 8).
 - **The watcher is visible everywhere a session looks (kb/Work PB2814).** The watcher is the only wake-up between the
@@ -2072,7 +2072,7 @@ command), `.claude/skills/workstream/references/landing.md` and `units/enqueue.m
 | `conflict_brief.py` | The conflict brief a finisher starts from (PB3640) | `CONFLICTS`, `NOTE_ID`, `MAIN`, `BRIEF_NOTES`, `_note_line`, `conflict_brief`, `brief_path`, `main_of`, `write_conflict_brief`, `show_conflict_brief` |
 | `lane_bounce.py` | THE class of a merge-queue red (the `gate` skill's THE RULE; PB4271, PB4331): its facts, the one pure decision, the watch's step on a classified bounce | `REQUEUE_BOUNCE`, `CLASSIFY`, `NAMED`, `RedFacts`, `classify_red`, `red_facts`, `bounce_step`, `classify_bounce` |
 | `lane_decide.py` | What the lane does with one branch: the decision from its attempts, the waits, the candidates | `WAITS`, `RETRYABLE`, `QUEUE_OWNED`, `SURVEY_MAX_AGE_MIN`, `Decision`, `decide`, `tip_of`, `runner_alive`, `survey_rows`, `row_dicts`, `gate_lock_free`, `land_lock_free`, `lock_free`, `predecessor_free`, `wait_free`, `candidates` |
-| `lane_watch.py` | The queue watch of a queued pull request and its remedies | `QUEUE_GRACE_MIN`, `WATCH_DONE`, `WatchStep`, `_iso`, `watch_step`, `WatchEffects`, `real_effects`, `watch_text`, `watch_queue`, `notify_operator` |
+| `lane_watch.py` | The queue watch of a queued pull request and its remedies | `QUEUE_GRACE_MIN`, `WATCH_DONE`, `WatchStep`, `_iso`, `watch_step`, `WatchEffects`, `real_effects`, `watch_text`, `watch_queue`, `notify_account` |
 | `lane_status.py` | The read side: the view `next_unit.py` and the probe print, the agent work, status lines | `ACTION`, `Lane`, `view`, `AgentWork`, `agent_work`, `outcome`, `brief_text`, `status_lines`, `collect` |
 | `land_lane.py` (stays, the lane) | The tick: survey, decide, launch, reap; the runner; `main` | `HERE`, `tick`, `launch`, `reap`, `run_attempt`, `LaneError`, `main` |
 
@@ -2081,7 +2081,7 @@ unchanged), `session_probe.py` and `enqueue.py` (`view` → `lane_status`), `pro
 `DECLARED` and `WIRING` entries for the lane (case names after PB5434; the supervisor's `'land_lane.py'` start it reads is
 unchanged), `landing_rules.py` (`merge_conflicts(`, `outcome_files(` → `conflict_brief.py`), and `review_lane.py`
 (section 4.9.1), which uses `update`, `attempt_order`, `attempts`, `by_branch`, `view`, `finished`, `loop_stop`,
-`runner_alive`, `tip_of`, `notify_operator`, `show_conflict_brief` and the survey's rows: each import is re-pointed to its
+`runner_alive`, `tip_of`, `notify_account`, `show_conflict_brief` and the survey's rows: each import is re-pointed to its
 new module, and `review_lane.py` is declared in `scripts/script_layering.py` beside them.
 
 ### 16.8 `docs/CONFORMANCE.md`: one file per entry, one reader, a rendered whole

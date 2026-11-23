@@ -1365,7 +1365,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         // ⛔ A released record that is one of the area's own character-window records IS the shared backing. The FROM operand of a
         // WRITE / REWRITE with the FILE phrase is not one (it is the implicit record, §2023:14.9.51.4 GR8, §2023:14.9.35.4 GR9; kb/Work PB5579),
         // so, like an out-of-line record, it has to be stored into the area for the files of a SAME RECORD AREA clause to see it.
-        if (!FileModel.IsOutOfLineRecord(released) && file.AreaFiles.Any(f => f.Records.Contains(released))) return null;
+        if (!FileModel.IsOutOfLineRecord(released) && file.AreaFiles.Any(f => f.HoldsRecord(released))) return null;
         Place? widest = null;
         int width = -1;
         foreach (var f in file.AreaFiles)

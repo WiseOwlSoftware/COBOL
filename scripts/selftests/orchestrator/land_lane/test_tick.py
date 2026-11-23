@@ -396,11 +396,13 @@ def case_021_exit_8_stops_all_attempts_none_starts_the_other(expect):
            (lane_dir(c6) / coord.LAND_HALT).exists(), f"{f6.started} {f6.said}")
 
 
-def case_022_exit_8_is_named_to_the_operator_one_mailbox_mess(expect):
+def case_022_exit_8_is_named_to_the_running_account_one_mailbox_mess(expect):
     import mailbox  # noqa: PLC0415  (this directory's: the sessions' mailbox)
-    inbox_files = list(mailbox.inbox(c6, "operator").glob("*.json"))
-    expect("exit 8 is named to the operator (one mailbox message)", len(inbox_files) == 1,
-           f"{inbox_files} {f6.said}")
+    own = mailbox.account_lane(c6)
+    other = next(p for p in mailbox.PARTIES if p != own)
+    inbox_files = list(mailbox.inbox(c6, own).glob("*.json"))
+    expect("exit 8 is named to the lane of the account running the loop, one mailbox message (kb/Work PB6094)",
+           len(inbox_files) == 1 and not list(mailbox.inbox(c6, other).glob("*.json")), f"{inbox_files} {f6.said}")
     expect("a later tick while halted still starts nothing", f6.tick(c6) == [], str(f6.started))
 
 

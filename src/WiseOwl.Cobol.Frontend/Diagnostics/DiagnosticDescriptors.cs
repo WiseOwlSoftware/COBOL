@@ -3,12 +3,23 @@
 namespace WiseOwl.Cobol.Frontend.Diagnostics;
 
 /// <summary>
-/// A descriptor for a specific diagnostic: code, default severity, message template.
+/// A descriptor for a frontend diagnostic: its code and its message template.
+/// <para>⛔ NO SEVERITY (kb/Work PB2624). Every frontend descriptor names an ERROR, and that is decided by its emit path,
+/// not declared beside it: a parser hint is the gloss <c>CobolErrorStrategy</c> puts on a syntax error, which
+/// <c>CobolErrorListener.SyntaxError</c> reports as an error whatever the hint says, and the COPY failures (CBL3620-3622)
+/// leave the library text unincluded. Seventeen hint rows once declared <c>Warning</c> and were reported as errors; a
+/// severity column no path reads cannot be stated falsely if it does not exist.</para>
 /// </summary>
 public sealed record DiagnosticDescriptor(
     string Code,
-    DiagnosticSeverity DefaultSeverity,
-    string MessageTemplate);
+    string MessageTemplate)
+{
+    /// <summary>⛔ THE ONE COMPOSITION of this descriptor's message (kb/Work PB2624): <see cref="MessageTemplate"/> with
+    /// <paramref name="args"/> substituted, or the template itself when there are none. A site that reports the descriptor
+    /// passes its arguments here and never types the sentence again.</summary>
+    public string Format(params object?[] args)
+        => args.Length > 0 ? string.Format(System.Globalization.CultureInfo.InvariantCulture, MessageTemplate, args) : MessageTemplate;
+}
 
 /// <summary>
 /// The frontend's own diagnostic descriptors: the generic parse error (COBOL0001), the parser's syntax hints
@@ -22,13 +33,13 @@ public static class DiagnosticDescriptors
     // ══════════════════════════════════════
     // COBOL0001: Generic parse error
     // ══════════════════════════════════════
-    public static readonly DiagnosticDescriptor COBOL0001 = new("COBOL0001", DiagnosticSeverity.Error,
+    public static readonly DiagnosticDescriptor COBOL0001 = new("COBOL0001",
         "{0}");
 
     // ══════════════════════════════════════
     // COBOL0100: Parser — a misplaced OCCURS KEY phrase
     // ══════════════════════════════════════
-    public static readonly DiagnosticDescriptor COBOL0100 = new("COBOL0100", DiagnosticSeverity.Warning,
+    public static readonly DiagnosticDescriptor COBOL0100 = new("COBOL0100",
         "ASCENDING/DESCENDING KEY is out of place: in an OCCURS clause the KEY phrases are written before INDEXED BY (ISO §2023:13.18.38.2).");
     // COBOL0101-0107 were "may not be supported" / "not yet supported" hints keyed on a word's spelling, each
     // claiming a limitation the compiler does not have: 0104 (OCCURS DEPENDING ON), 0105 (INSPECT CONVERTING) and
@@ -38,38 +49,38 @@ public static class DiagnosticDescriptors
     // ══════════════════════════════════════
     // COBOL0200–0201: Parser — reserved word conflicts
     // ══════════════════════════════════════
-    public static readonly DiagnosticDescriptor COBOL0200 = new("COBOL0200", DiagnosticSeverity.Warning,
+    public static readonly DiagnosticDescriptor COBOL0200 = new("COBOL0200",
         "STATUS is a reserved word here. For file status, use 'FILE STATUS IS <data-name>'.");
-    public static readonly DiagnosticDescriptor COBOL0201 = new("COBOL0201", DiagnosticSeverity.Warning,
+    public static readonly DiagnosticDescriptor COBOL0201 = new("COBOL0201",
         "PROGRAM is a reserved word. If this is a paragraph name, it cannot be named PROGRAM.");
 
     // ══════════════════════════════════════
     // COBOL0300–0312: Parser — syntax guidance
     // ══════════════════════════════════════
-    public static readonly DiagnosticDescriptor COBOL0300 = new("COBOL0300", DiagnosticSeverity.Warning,
+    public static readonly DiagnosticDescriptor COBOL0300 = new("COBOL0300",
         "THROUGH/THRU is not recognized in this context. Check PERFORM or VALUE THROUGH syntax.");
-    public static readonly DiagnosticDescriptor COBOL0303 = new("COBOL0303", DiagnosticSeverity.Warning,
+    public static readonly DiagnosticDescriptor COBOL0303 = new("COBOL0303",
         "In a MOVE statement, did you forget TO before the target?");
     // COBOL0304 ("Missing period after paragraph name") was keyed on a token's text containing ".MOVE" and its
     // siblings, which only a literal or a PICTURE string can contain; it was deleted by kb/Work PB2770.
-    public static readonly DiagnosticDescriptor COBOL0305 = new("COBOL0305", DiagnosticSeverity.Warning,
+    public static readonly DiagnosticDescriptor COBOL0305 = new("COBOL0305",
         "Unexpected token in SPECIAL-NAMES. Check implementor-name or mnemonic-name syntax.");
-    public static readonly DiagnosticDescriptor COBOL0306 = new("COBOL0306", DiagnosticSeverity.Warning,
+    public static readonly DiagnosticDescriptor COBOL0306 = new("COBOL0306",
         "{0} appears without a matching {1} statement.");
-    public static readonly DiagnosticDescriptor COBOL0307 = new("COBOL0307", DiagnosticSeverity.Warning,
+    public static readonly DiagnosticDescriptor COBOL0307 = new("COBOL0307",
         "A period may be missing at the end of the previous sentence.");
     // COBOL0308 ("A data-name is expected here, not a literal.") and COBOL0309 ("A literal value is expected here, not
     // a data-name.") named the kind a position admits in two shapes only; COBOL5506 names it in every shape (kb/Work
     // PB3861).
-    public static readonly DiagnosticDescriptor COBOL0310 = new("COBOL0310", DiagnosticSeverity.Warning,
+    public static readonly DiagnosticDescriptor COBOL0310 = new("COBOL0310",
         "Missing BY keyword. INDEXED BY requires 'INDEXED BY <index-name>'.");
     // COBOL0311 ("NOT = / NOT > / NOT < abbreviated condition not yet supported") was a hint for a
     // feature that now works; removed (DEVLOG 232).
-    public static readonly DiagnosticDescriptor COBOL0312 = new("COBOL0312", DiagnosticSeverity.Warning,
+    public static readonly DiagnosticDescriptor COBOL0312 = new("COBOL0312",
         "Unexpected token in FILE-CONTROL paragraph. Check SELECT/ASSIGN TO syntax.");
     // W1.5 (VERSION_TEST_MATRIX_DESIGN P2.8): a non-ISO vendor statement (JSON/XML) behind a parse error —
     // NOT the 0900 edition band (no ISO edition has the construct; owner decision 2, DEVLOG 581).
-    public static readonly DiagnosticDescriptor COBOL0313 = new("COBOL0313", DiagnosticSeverity.Error,
+    public static readonly DiagnosticDescriptor COBOL0313 = new("COBOL0313",
         "{0}");
 
     // ══════════════════════════════════════
@@ -79,11 +90,9 @@ public static class DiagnosticDescriptors
     // statement and the offending token).
     // ══════════════════════════════════════
     public static readonly DiagnosticDescriptor COBOL2072 = new(
-        WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.RequiredImperativeMissing.Code,
-        DiagnosticSeverity.Error, "{0}");
+        WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.RequiredImperativeMissing.Code, "{0}");
     public static readonly DiagnosticDescriptor COBOL2073 = new(
-        WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.WhenOtherOutOfPosition.Code,
-        DiagnosticSeverity.Error, "{0}");
+        WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.WhenOtherOutOfPosition.Code, "{0}");
 
     // ══════════════════════════════════════
     // COBOL2172/2173: a written shape NO general format of its clause prints (kb/Work PB412, PB421) — the
@@ -92,28 +101,23 @@ public static class DiagnosticDescriptors
     // composed at the CobolErrorStrategy site from the format's own cardinalities.
     // ══════════════════════════════════════
     public static readonly DiagnosticDescriptor COBOL2172 = new(
-        WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.GoToFormatShape.Code,
-        DiagnosticSeverity.Error, "{0}");
+        WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.GoToFormatShape.Code, "{0}");
     public static readonly DiagnosticDescriptor COBOL2173 = new(
-        WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.MoveCorrespondingPosition.Code,
-        DiagnosticSeverity.Error, "{0}");
+        WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.MoveCorrespondingPosition.Code, "{0}");
 
     // ══════════════════════════════════════
     // COBOL2418/2419: the parse-layer twins of the figurative-spelling keyword refusal (kb/Work PB510) and the
     // §2023:13.18.40.3 SR7 PICTURE separator-period rule (kb/Work PB569). Same single-sourcing as 2072/2073.
     // ══════════════════════════════════════
     public static readonly DiagnosticDescriptor COBOL2418 = new(
-        WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.FigurativeSpellingNotTheKeyword.Code,
-        DiagnosticSeverity.Error, "{0}");
+        WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.FigurativeSpellingNotTheKeyword.Code, "{0}");
     public static readonly DiagnosticDescriptor COBOL2419 = new(
-        WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.PictureTrailingSymbolNotLast.Code,
-        DiagnosticSeverity.Error, "{0}");
+        WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.PictureTrailingSymbolNotLast.Code, "{0}");
 
     // COBOL2994: an inline method invocation's empty parenthesis pair (kb/Work PB1430) — the grammar requires the
     // argument list inside the optional parentheses, and CobolErrorStrategy names the refused shape.
     public static readonly DiagnosticDescriptor COBOL2994 = new(
-        WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.InlineInvocationEmptyArguments.Code,
-        DiagnosticSeverity.Error, "{0}");
+        WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.InlineInvocationEmptyArguments.Code, "{0}");
 
     // ══════════════════════════════════════
     // COBOL2269: a statement written in a shape none of its general formats prints (kb/Work PB909) — the
@@ -122,38 +126,34 @@ public static class DiagnosticDescriptors
     // Same single-sourcing as 2172/2173: ONE code, the message composed at the CobolErrorStrategy site.
     // ══════════════════════════════════════
     public static readonly DiagnosticDescriptor COBOL2269 = new(
-        WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.StatementFormatShape.Code,
-        DiagnosticSeverity.Error, "{0}");
+        WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.StatementFormatShape.Code, "{0}");
 
     // COBOL5506: the element written is not of a kind the parse expects at its position (kb/Work PB3428, PB3861;
     // what is named is what the PARSE expects, a superset of the general format, less the keywords the compile edition
     // does not have, kb/Work PB4174, PB4175) — CobolErrorStrategy hint 0i, worded by AdmittedKinds. Same single-sourcing
     // as 2269.
     public static readonly DiagnosticDescriptor COBOL5506 = new(
-        WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.WrittenKindNotAdmitted.Code,
-        DiagnosticSeverity.Error, "{0}");
+        WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.WrittenKindNotAdmitted.Code, "{0}");
 
     // COBOL5818: an embedded precompiler block, EXEC … END-EXEC (kb/Work PB4341) — reported once, at its EXEC, by
     // EmbeddedBlockReading.Report after the parse. Same single-sourcing as 2269.
     public static readonly DiagnosticDescriptor COBOL5818 = new(
-        WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.EmbeddedPrecompilerBlock.Code,
-        DiagnosticSeverity.Error, "{0}");
+        WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.EmbeddedPrecompilerBlock.Code, "{0}");
 
     // COBOL5842: an embedded block left without its END-EXEC (kb/Work PB4381) — reported once, at its EXEC, by
     // EmbeddedBlockReading.Report after the parse. Same single-sourcing as 2269.
     public static readonly DiagnosticDescriptor COBOL5842 = new(
-        WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.UnterminatedEmbeddedBlock.Code,
-        DiagnosticSeverity.Error, "{0}");
+        WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.UnterminatedEmbeddedBlock.Code, "{0}");
 
     // ══════════════════════════════════════
     // CBL3620–3622: COPY preprocessing (ISO §2023:7.2.3). All three are unconditional errors: CBL3620 is library
     // text that cannot be located (§2023:7.2.3.4 GR1/GR2 — at every edition and on every path since kb/Work PB1355;
     // the search is the DOC-A.1-40 determination); CBL3621 a circular include; CBL3622 over-deep nesting.
     // ══════════════════════════════════════
-    public static readonly DiagnosticDescriptor CBL3620 = new("CBL3620", DiagnosticSeverity.Error,
+    public static readonly DiagnosticDescriptor CBL3620 = new("CBL3620",
         "COPY copybook '{0}' not found. Searched: {1}");
-    public static readonly DiagnosticDescriptor CBL3621 = new("CBL3621", DiagnosticSeverity.Error,
+    public static readonly DiagnosticDescriptor CBL3621 = new("CBL3621",
         "Circular COPY: copybook '{0}' is already being included");
-    public static readonly DiagnosticDescriptor CBL3622 = new("CBL3622", DiagnosticSeverity.Error,
+    public static readonly DiagnosticDescriptor CBL3622 = new("CBL3622",
         "COPY nesting too deep (limit {0}); possible recursive include");
 }

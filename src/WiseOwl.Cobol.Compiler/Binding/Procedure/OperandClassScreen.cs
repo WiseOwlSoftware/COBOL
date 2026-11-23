@@ -193,7 +193,7 @@ internal static class OperandClassScreen
                 "\"A function-identifier which references an integer or numeric function may be used only in an arithmetic "
                 + "expression\" (§1985:IV.4.3.8.3.3 SR4)",
                 "\"A numeric function shall not be specified where an integer operand is required\" (ISO §2023:8.4.3.2.3 SR11)")
-            : $"a function-identifier of category {IntrinsicResultType.OperandCategory(op)?.ToString().ToLowerInvariant() ?? "unknown"}";
+            : $"a function-identifier of category {(IntrinsicResultType.OperandCategory(op) is { } category ? ItemCategory.CategoryName(category) : "unknown")}";
 
     private static void Report(EditionContext edition, OperandPosition pos, string text, string what) =>
         edition.Error(pos.Diagnostic,

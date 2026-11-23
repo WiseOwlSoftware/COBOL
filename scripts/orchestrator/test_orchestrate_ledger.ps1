@@ -1,7 +1,7 @@
 #Requires -Version 7.0
 # SELF-TEST-PLATFORM: windows — the orchestrator loop is Windows-hosted: these cases drive Windows Terminal (a fake wt.exe), Win32_Process, USERPROFILE and directory junctions
 # Self-test for orchestrate.ps1 (ledger), driven by a fake -ClaudeExe (testdata/fake-claude.ps1); no Pester, no real
-# session. Proves: the owed ledger publish is announced and posted to the operator's mailbox once per stamp, and a
+# session. Proves: the owed ledger publish is announced and posted to the running account's mailbox once per stamp, and a
 # landing pushed from ANOTHER clone while the supervisor's checkout stays behind is announced (kb/Work PB2987: the stamp
 # is main's, fetched). The repository is a scratch clone of a scratch bare origin, never this machine's real one.
 # One of the parallel parts of the orchestrate.ps1 self-test (testdata/orchestrate_test_lib.ps1 is their harness;
@@ -30,15 +30,19 @@ G clone -q $Origin $Lander
 # (and says nothing once the current stamp is marked published)
 $r = Run-Orch 'ledgerowed' 'good' @('-Unit', 'wave', '-MaxUnits', '1', '-FastFailSeconds', '0', '-RepoDir', $LedgerRepo)
 Check 'an owed ledger publish is announced after a unit' ($r.out -match 'LEDGER PUBLISH OWED') $true
-# ... and posted to the operator's mailbox (kb/Work PB2482), as a well-formed `publish` from the loop
-$mb = @(Get-ChildItem (Join-Path $r.coord 'mailbox/to-operator') -Filter '*.json' -ErrorAction SilentlyContinue)
-Check 'the owed publish is one message in the operator inbox' $mb.Count 1
+# ... and posted to the mailbox of the account running the loop (kb/Work PB2482, PB6094: `send --to account`), as a
+# well-formed `publish` from the loop, and nothing in the other lane's inbox
+$lane = & python -c "import sys, pathlib; sys.path[:0] = [sys.argv[1], sys.argv[2]]; import mailbox; print(mailbox.account_lane(pathlib.Path(sys.argv[3])))" (Split-Path (Split-Path $Orch)) (Split-Path $Orch) $r.coord
+$other = if ($lane -eq 'operator') { 'mythos' } else { 'operator' }
+$mb = @(Get-ChildItem (Join-Path $r.coord "mailbox/to-$lane") -Filter '*.json' -ErrorAction SilentlyContinue)
+Check "the owed publish is one message in the running account's inbox" $mb.Count 1
+Check "the other lane's inbox holds nothing" @(Get-ChildItem (Join-Path $r.coord "mailbox/to-$other") -Filter '*.json' -ErrorAction SilentlyContinue).Count 0
 if ($mb.Count) {
     $m = Get-Content $mb[0].FullName -Raw | ConvertFrom-Json
     Check 'the publish message: from the loop, kind publish, a ref to the unit log' "$($m.from) $($m.kind) $([bool](Test-Path $m.refs[0]))" 'loop publish True'
 }
 $r2 = Run-Orch 'ledgerowed' 'good' @('-Unit', 'wave', '-MaxUnits', '1', '-FastFailSeconds', '0', '-RepoDir', $LedgerRepo)
-Check 'a second owed unit adds no second message for the same stamp' @(Get-ChildItem (Join-Path $r.coord 'mailbox/to-operator') -Filter '*.json').Count 1
+Check 'a second owed unit adds no second message for the same stamp' @(Get-ChildItem (Join-Path $r.coord "mailbox/to-$lane") -Filter '*.json').Count 1
 $r = Run-Orch 'ledgercurrent' 'good' @('-Unit', 'wave', '-MaxUnits', '1', '-FastFailSeconds', '0', '-RepoDir', $LedgerRepo) {
     param($c) & python (Join-Path (Split-Path $Orch) 'ledger_state.py') mark-published --repo $LedgerRepo --coord $c --url 'https://claude.ai/artifact/test' | Out-Null }
 Check 'a published ledger is not announced again' ($r.out -match 'LEDGER PUBLISH OWED') $false

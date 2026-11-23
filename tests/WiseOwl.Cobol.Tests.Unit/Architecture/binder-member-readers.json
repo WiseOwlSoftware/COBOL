@@ -380,17 +380,6 @@
     "WiseOwl.Cobol.Binding.DataBinder::IsDescriptionOpen": [
       "WiseOwl.Cobol.Binding.ConstantEntryBinder"
     ],
-    "WiseOwl.Cobol.Binding.DataBinder::IsFileSectionItem": [
-      "WiseOwl.Cobol.Binding.Passes.CheckUsageDeclarationsPass"
-    ],
-    "WiseOwl.Cobol.Binding.DataBinder::IsGlobalRecord": [
-      "WiseOwl.Cobol.Binding.Passes.OdoResolvePass",
-      "WiseOwl.Cobol.Binding.ReportSectionBinder"
-    ],
-    "WiseOwl.Cobol.Binding.DataBinder::IsInExternalRecord": [
-      "WiseOwl.Cobol.Binding.ExternalRecordNameRules",
-      "WiseOwl.Cobol.Binding.Passes.OdoResolvePass"
-    ],
     "WiseOwl.Cobol.Binding.DataBinder::IsPictureLessLeaf": [
       "WiseOwl.Cobol.Binding.Passes.CheckPictureRequiredPass",
       "WiseOwl.Cobol.Binding.Passes.SynthesizeImpliedPicturesPass"
@@ -683,7 +672,6 @@
       "WiseOwl.Cobol.Binding.Passes.CheckSignClausesPass",
       "WiseOwl.Cobol.Binding.Passes.CheckStorageLimitsPass",
       "WiseOwl.Cobol.Binding.Passes.ClassifyRedefinesClassesPass",
-      "WiseOwl.Cobol.Binding.Passes.DynamicResolvePass",
       "WiseOwl.Cobol.Binding.Passes.ExpandTypesPass",
       "WiseOwl.Cobol.Binding.Passes.GateFileRecordByteSurfacePass",
       "WiseOwl.Cobol.Binding.Passes.InheritSignClausesPass",
@@ -1120,12 +1108,6 @@
       "WiseOwl.Cobol.Binding.ReportSectionBinder"
     ],
     "WiseOwl.Cobol.Binding.SpecialNamesBinder::RangeCollation": [
-      "WiseOwl.Cobol.Binding.DataBinder"
-    ],
-    "WiseOwl.Cobol.Binding.SpecialNamesBinder::RangeCollationIds": [
-      "WiseOwl.Cobol.Binding.DataBinder"
-    ],
-    "WiseOwl.Cobol.Binding.SpecialNamesBinder::RangeCollations": [
       "WiseOwl.Cobol.Binding.DataBinder"
     ],
     "WiseOwl.Cobol.Binding.SpecialNamesBinder::ResolveLocaleName": [

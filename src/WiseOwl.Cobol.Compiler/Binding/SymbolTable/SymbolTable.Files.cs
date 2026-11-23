@@ -82,7 +82,7 @@ public sealed partial class SymbolTable
         }
     }
 
-    /// <summary>The file whose <see cref="FileModel.Records"/> contain <paramref name="record"/> (reference identity, never its
+    /// <summary>The file that holds <paramref name="record"/> (<see cref="FileModel.HoldsRecord"/>: reference identity, never its
     /// spelling): this element's own files in the order declared, then the visible containers' GLOBAL ones (§2023:13.18.27.4
     /// GR1 — the record-names of a GLOBAL FD are global names), so a contained program's WRITE or REWRITE of a container's
     /// record resolves to the container's one connector. The one record-to-file question: the binder's record-name-1 rule
@@ -91,9 +91,9 @@ public sealed partial class SymbolTable
     internal FileModel? FileWhoseRecordIs(DataItem record)
     {
         foreach (var file in _data.State.Files.Declared)
-            if (file.Records.Contains(record)) return file;
+            if (file.HoldsRecord(record)) return file;
         foreach (var file in VisibleFiles)
-            if (file.Records.Contains(record)) return file;
+            if (file.HoldsRecord(record)) return file;
         return null;
     }
 
@@ -172,9 +172,9 @@ public sealed partial class SymbolTable
     internal bool FileQualifies(string qualifier, DataItem root)
     {
         var key = Key(qualifier);
-        if (_ownFiles.TryGetValue(key, out var own) && own.Records.Contains(root)) return true;
+        if (_ownFiles.TryGetValue(key, out var own) && own.HoldsRecord(root)) return true;
         foreach (var file in _inheritedGlobalFiles)
-            if (Key(file.CobolName) == key && file.Records.Contains(root)) return true;
+            if (Key(file.CobolName) == key && file.HoldsRecord(root)) return true;
         return false;
     }
 

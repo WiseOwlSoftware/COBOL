@@ -431,7 +431,7 @@ def hold(cdir: pathlib.Path, row: dict[str, Any], why: str, say: Say) -> None:
                             "findings": str(findings_path(cdir, row["name"])),   # a hand-dispatched reviewer records here (R1-5)
                             "at": land_lane.now_utc().isoformat(timespec="seconds")})
     say(f"review lane: {row['name']} @{row['tip'][:12]}: HOLD — {why}")
-    land_lane.notify_operator(cdir, f"Review lane holds {row['name']}", f"{row['name']} at {row['tip']}: {why}",
+    land_lane.notify_account(cdir, f"Review lane holds {row['name']}", f"{row['name']} at {row['tip']}: {why}",
                               str(path), say)
 
 

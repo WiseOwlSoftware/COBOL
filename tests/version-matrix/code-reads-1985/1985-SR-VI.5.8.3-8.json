@@ -2,67 +2,67 @@
  "rule-id": "1985-SR-VI.5.8.3-8",
  "rule-digest": "3cdf19dc2df6",
  "read": {
-  "pin": "7a32e1dfd2227042dea69db82f70d1e0085a50cc",
-  "slice": "1985-235",
+  "pin": "524fb73a180a78bbe95a7dc192f75272d2612261",
+  "slice": "1985-c08-pb2628",
   "sources": {
-   "reader": "4fb59c7dee2bfd90d7da9fd052e20da4e4adc03242010c0c08b12cf3e52acf98",
-   "refuter": "941565f694152392a807690337899f49132bf6018cec07c01a9d85c2e2208b33"
+   "reader": "c9dd077922692e2b535985c0a95bec1e7f84ae0d64804f9c67c8d3c3e29ab6de",
+   "refuter": "35758cb6f39047f805489297eeb3890a7cc17cfe9d7eb692909a6b7da4d0c955"
   },
   "imported": {
-   "reader": "9bc8db74be8bd836054f24f8c7610c07e60801be7835bdbbddb188ba9fe027df",
-   "refuter": "7587fcf9a98a276bc9235d13b6373e9d64f8e0a5b76f7009b8f667d907ee553b"
+   "reader": "24a7bd856a825f6b56ac3f2270b9f4fe5d1a1e8c5ca4dac86700bddf46b86845",
+   "refuter": "c1502160004d9b5dedb6a4dea832e0304b2d64b79028ccf59f5f601dc528ae51"
   }
  },
  "reader": {
   "rule-id": "1985-SR-VI.5.8.3-8",
   "verdict": "CONFORMS",
   "requirement": "At 1985, when an OCCURS ... DEPENDING ON data-name-1 is written in a record description entry that contains the EXTERNAL clause, data-name-1 must be an item with the external attribute (in an EXTERNAL working-storage record, the same or another, or in a record of an EXTERNAL file, §1985:II.6.2.2.2.3) described in the same program's Data Division; an internal object (working-storage, linkage, a non-external file's record) or an external item described in a containing program is refused, and a fixed OCCURS needs no object. The witness covers part of the refusal half.",
-  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/OdoResolvePass.cs#Run; src/WiseOwl.Cobol.Compiler/Binding/Passes/OdoResolvePass.cs#DependingAttributeFault; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#IsInExternalRecord; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Odo.cs#IsDescribedInContainer",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/OdoResolvePass.cs#Run; src/WiseOwl.Cobol.Compiler/Binding/Passes/OdoResolvePass.cs#DependingAttributeFault; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#HasExternalAttribute; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Odo.cs#IsDescribedInContainer",
   "edition-consulted": [],
-  "edition-search": "grep for Year, DialectLevel, SubscriptedClauseOperands, CobolVersion in OdoResolvePass.cs and DataBinder.Odo.cs: DependingAttributeFault and IsDescribedInContainer switch on nothing edition-specific; binder.Edition.Error is the diagnostic sink only. The rule is one edition-invariant check (the 2023 SR21 and the 1985 SR8 read alike).",
+  "edition-search": "Re-read at pin 524fb73a18 after wave 20262135 group A (kb/Work PB2628's branch) moved the external-attribute test from DataBinder.IsInExternalRecord(item, files) to the one fact DataItem.HasExternalAttribute (the root's EXTERNAL clause, its EXTERNAL type, or root.RecordOfFile is { IsExternal: true }, RecordOfFile written by FileModel.AddRecord for every FD and SD record). grep for Year, DialectLevel, CobolVersion, Edition in OdoResolvePass.cs#DependingAttributeFault, DataItem.cs#HasExternalAttribute and DataBinder.Odo.cs#IsDescribedInContainer: no edition switch; binder.Edition is the diagnostic sink and ed.Cite picks the citation only.",
   "behaviour-differs-by-edition": "no",
   "witnesses-cover": "part: the attribute mismatch; an object in another EXTERNAL record or an EXTERNAL file's record, LINKAGE and file-section objects, the containing-program object and the runtime extent shared across programs are not exercised",
   "probes": [
    {
     "class": "a",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-235/c6-pos.cob",
+    "file": "E:/COBOL-coord/scratch/finish-worktree-wf_46d3a156-23e-9/probes/c6-pos.cob",
     "printed": "A [3ABC] / B [WX] / C [Q] / D [PQR] / SUB A [3ABC] 3 / SUB A5 [5ABCDE]",
     "expected": "objects in the same EXTERNAL record, another EXTERNAL 01, and an EXTERNAL file's record are accepted; the extent follows the object, and the contained program sharing EXT-A sees the same object and extent"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-235/c6-n1-ws.cob",
+    "file": "E:/COBOL-coord/scratch/finish-worktree-wf_46d3a156-23e-9/probes/c6-n1-ws.cob",
     "printed": "error COBOL2788: OCCURS DEPENDING ON 'WS-N' on 'A-T': the table's record 'EXT-A' is EXTERNAL and data-name-1 does not possess the external attribute",
     "expected": "internal working-storage object refused"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-235/c6-n2-linkage.cob",
+    "file": "E:/COBOL-coord/scratch/finish-worktree-wf_46d3a156-23e-9/probes/c6-n2-linkage.cob",
     "printed": "error COBOL2788 'LK-N' does not possess the external attribute",
     "expected": "linkage object refused"
    },
    {
     "class": "e",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-235/c6-n3-file.cob",
+    "file": "E:/COBOL-coord/scratch/finish-worktree-wf_46d3a156-23e-9/probes/c6-n3-file.cob",
     "printed": "error COBOL2788 'IF-N' does not possess the external attribute",
     "expected": "record of a non-external file refused"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-235/c6-n4-container.cob",
-    "printed": "error COBOL2788: ... data-name-1 'EXT-CNT' is described in the data division of a containing program",
+    "file": "E:/COBOL-coord/scratch/finish-worktree-wf_46d3a156-23e-9/probes/c6-n4-container.cob",
+    "printed": "error COBOL2788: OCCURS DEPENDING ON 'EXT-CNT' on 'B-T': the table's record 'EXT-B' is EXTERNAL and data-name-1 'EXT-CNT' is described in the data division of a containing program",
     "expected": "an EXTERNAL GLOBAL object of the containing program is not described in the same Data Division: refused"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-235/c6-n5-ownext.cob",
+    "file": "E:/COBOL-coord/scratch/finish-worktree-wf_46d3a156-23e-9/probes/c6-n5-ownext.cob",
     "printed": "SUB [  ] (exit 0)",
     "expected": "control: the contained program declaring the external object itself is accepted"
    },
    {
     "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-235/c6-c1-extfd.cob",
-    "printed": "RAN (exit 0) with RECORD CONTAINS 1 TO 5 CHARACTERS",
+    "file": "E:/COBOL-coord/scratch/finish-worktree-wf_46d3a156-23e-9/probes/c6-c1-extfd.cob",
+    "printed": "RAN (exit 0)",
     "expected": "a table in a record of an EXTERNAL file, whose record entry has no EXTERNAL clause, is outside SR8's condition; accepted"
    }
   ],
@@ -76,7 +76,7 @@
     "check": "OK  §1985:II.6.2.2.2.3  (6.2.2.2.3 Record Areas for Files)  the text is in the clause"
    }
   ],
-  "notes": "OdoResolvePass.Run asks DependingAttributeFault for every ODO object: the table record's own EXTERNAL clause is the trigger, IsInExternalRecord (EXTERNAL working-storage records and records of EXTERNAL files) the object's attribute, and IsDescribedInContainer the 'same Data Division' half. A table in an EXTERNAL file's record with an internal object is accepted, reading SR8's 'record description entry containing the EXTERNAL clause' literally; that is the one interpretive point. Diagnostics cite §2023:13.18.38.3 SR21 (wording only).",
+  "notes": "Re-read of the moved code (the same seven probes re-run at --std 85 on this tree print what the first read recorded). OdoResolvePass.Run asks DependingAttributeFault for every ODO object: the table record's own EXTERNAL clause or EXTERNAL type is the trigger (table.Root.HasExternalClause || ExternalFromType), DataItem.HasExternalAttribute the object's attribute (EXTERNAL working-storage records and every record of an EXTERNAL file, §1985:II.6.2.2.2.3), and IsDescribedInContainer the 'same Data Division' half. A table in an EXTERNAL file's record with an internal object is accepted, reading SR8's 'record description entry containing the EXTERNAL clause' literally; that is the one interpretive point, unchanged by the move. Diagnostics cite §1985:VI.5.8.3 SR8 at --std 85.",
   "seeded": true,
   "harm": "",
   "cause": "",
@@ -90,7 +90,7 @@
   "rule-id": "1985-SR-VI.5.8.3-8",
   "refutation": "UPHELD",
   "classes": "a,b",
-  "evidence": "r6-fwd.cob at --std 85 (EXIT 0): an ODO table in EXT-A whose object B-N lives in a LATER EXTERNAL 01 (EXT-B) is accepted and printed '[ABC]' with B-N = 3, so the extent follows the external object. r6-77.cob: a 77-level internal object for a table in an EXTERNAL record is refused (COBOL2788 'does not possess the external attribute'). cite.py: 'OK §1985:VI.5.8.3 SR8 the text is in SR8'. The reader accepts a table in an EXTERNAL file's record with an internal object (c6-c1-extfd). That reads SR8's 'record description entry containing the EXTERNAL clause' literally: an FD-level EXTERNAL is not in the record description entry. The literal text supports it, so it is not grounds to overturn.",
+  "evidence": "Adversarial pass against the moved fact (the FD half now read off DataItem.RecordOfFile rather than a scan of the files). Probes at --std 85 on this tree (E:/COBOL-coord/scratch/finish-worktree-wf_46d3a156-23e-9/refute/): x1_fd2nd.cob, the counter a level-05 item of the SECOND record of an EXTERNAL FD, is accepted and the extent follows it ('B [AB]', exit 0), so every record of the file carries the attribute (§1985:II.6.2.2.2.3: 'the data records and the data items attain the external attribute'); x2_sd.cob, an SD record's counter, is refused COBOL2788 'does not possess the external attribute' (a sort-merge file's records are always internal, II.6.2.2.2.3); x5_extnotext.cob, the counter in a record of a non-external FD H while another FD F IS EXTERNAL, is refused COBOL2788 (the attribute is the record's own file's, not any file's). The first refutation's r6-fwd.cob ('[ABC]', exit 0) and r6-77.cob (COBOL2788) print as before. cite.py: 'OK §1985:VI.5.8.3 SR8 (5.8.3 Syntax Rules) the text is in SR8'. The literal reading of 'record description entry containing the EXTERNAL clause' (c6-c1-extfd accepted) stands for the reason the first refuter gave.",
   "edition-sites-missed": [],
   "corrected": ""
  }

@@ -146,6 +146,14 @@ public sealed class DataBindState
     /// not.</summary>
     public FactSet<object> ActivationSites { get; }
 
+    /// <summary>⛔ THE per-TYPE runtime carriers of the THROUGH ranges' <c>IN alphabet-name-1</c> phrase (ISO §2023:14.7.8 GR2 —
+    /// "the collating sequence used for range evaluation is the collating sequence defined by that alphabet"), one per
+    /// ALPHABET the phrase resolves to (kb/Work PB3214). Appended by <c>SpecialNamesBinder.TryResolveRangeAlphabet</c> in the
+    /// entry walk (a level-88 VALUE THROUGH range) and while the procedure division binds (an EVALUATE WHEN range), and read
+    /// whole by code generation through <see cref="DataBindResult.RangeCollations"/>, in the order the carriers were made
+    /// (<see cref="RangeCollationId.Ordinal"/>). Identity-keyed: the binder makes one carrier per alphabet definition.</summary>
+    public FactSet<RangeCollationCarrier> RangeCollations { get; }
+
     /// <summary>An empty state: every fact set empty, each checking its appends through <see cref="Gate"/>.</summary>
     public DataBindState()
     {
@@ -156,5 +164,6 @@ public sealed class DataBindState
         CharacterChannelItems = new(FactSetKind.CharacterChannelItems, Gate);
         NumericStores = new(FactSetKind.NumericStores, Gate, Bound.NumericStore.Identity);
         ActivationSites = new(FactSetKind.ActivationSites, Gate, ReferenceEqualityComparer.Instance);
+        RangeCollations = new(FactSetKind.RangeCollations, Gate, ReferenceEqualityComparer.Instance);
     }
 }
