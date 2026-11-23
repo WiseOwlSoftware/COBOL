@@ -1,0 +1,329 @@
+{
+ "program": "IF133A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "F-REM-01",
+   "lines": [
+    361
+   ],
+   "feature": "REM Function",
+   "ansi": "See ref. A-66 2.37",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.37.1-p1",
+    "1989-FMT-A.2.37.2",
+    "1989-AR-A.2.37.3-1",
+    "1989-AR-A.2.37.3-2",
+    "1989-RV-A.2.37.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-REM-02",
+   "lines": [
+    375
+   ],
+   "feature": "REM Function",
+   "ansi": "See ref. A-66 2.37",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.37.1-p1",
+    "1989-FMT-A.2.37.2",
+    "1989-AR-A.2.37.3-1",
+    "1989-AR-A.2.37.3-2",
+    "1989-RV-A.2.37.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-REM-03",
+   "lines": [
+    389
+   ],
+   "feature": "REM Function",
+   "ansi": "See ref. A-66 2.37",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.37.1-p1",
+    "1989-FMT-A.2.37.2",
+    "1989-AR-A.2.37.3-1",
+    "1989-AR-A.2.37.3-2",
+    "1989-RV-A.2.37.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-REM-04",
+   "lines": [
+    407
+   ],
+   "feature": "REM Function",
+   "ansi": "See ref. A-66 2.37",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.37.1-p1",
+    "1989-FMT-A.2.37.2",
+    "1989-AR-A.2.37.3-1",
+    "1989-AR-A.2.37.3-2",
+    "1989-RV-A.2.37.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-REM-05",
+   "lines": [
+    426
+   ],
+   "feature": "REM Function",
+   "ansi": "See ref. A-66 2.37",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.37.1-p1",
+    "1989-FMT-A.2.37.2",
+    "1989-AR-A.2.37.3-1",
+    "1989-AR-A.2.37.3-2",
+    "1989-RV-A.2.37.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-REM-06",
+   "lines": [
+    444
+   ],
+   "feature": "REM Function",
+   "ansi": "See ref. A-66 2.37",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.37.1-p1",
+    "1989-FMT-A.2.37.2",
+    "1989-AR-A.2.37.3-1",
+    "1989-AR-A.2.37.3-2",
+    "1989-RV-A.2.37.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-REM-07",
+   "lines": [
+    462
+   ],
+   "feature": "REM Function",
+   "ansi": "See ref. A-66 2.37",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.37.1-p1",
+    "1989-FMT-A.2.37.2",
+    "1989-AR-A.2.37.3-1",
+    "1989-AR-A.2.37.3-2",
+    "1989-RV-A.2.37.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-REM-08",
+   "lines": [
+    480
+   ],
+   "feature": "REM Function",
+   "ansi": "See ref. A-66 2.37",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.37.1-p1",
+    "1989-FMT-A.2.37.2",
+    "1989-AR-A.2.37.3-1",
+    "1989-AR-A.2.37.3-2",
+    "1989-RV-A.2.37.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-REM-09",
+   "lines": [
+    502
+   ],
+   "feature": "REM Function",
+   "ansi": "See ref. A-66 2.37",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.37.1-p1",
+    "1989-FMT-A.2.37.2",
+    "1989-AR-A.2.37.3-1",
+    "1989-AR-A.2.37.3-2",
+    "1989-RV-A.2.37.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-REM-10",
+   "lines": [
+    524
+   ],
+   "feature": "REM Function",
+   "ansi": "See ref. A-66 2.37",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.37.1-p1",
+    "1989-FMT-A.2.37.2",
+    "1989-AR-A.2.37.3-1",
+    "1989-AR-A.2.37.3-2",
+    "1989-RV-A.2.37.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-REM-11",
+   "lines": [
+    546
+   ],
+   "feature": "REM Function",
+   "ansi": "See ref. A-66 2.37",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.37.1-p1",
+    "1989-FMT-A.2.37.2",
+    "1989-AR-A.2.37.3-1",
+    "1989-AR-A.2.37.3-2",
+    "1989-RV-A.2.37.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-REM-12",
+   "lines": [
+    568
+   ],
+   "feature": "REM Function",
+   "ansi": "See ref. A-66 2.37",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.37.1-p1",
+    "1989-FMT-A.2.37.2",
+    "1989-AR-A.2.37.3-1",
+    "1989-AR-A.2.37.3-2",
+    "1989-RV-A.2.37.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-REM-13",
+   "lines": [
+    590
+   ],
+   "feature": "REM Function",
+   "ansi": "See ref. A-66 2.37",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.37.1-p1",
+    "1989-FMT-A.2.37.2",
+    "1989-AR-A.2.37.3-1",
+    "1989-AR-A.2.37.3-2",
+    "1989-RV-A.2.37.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-REM-14",
+   "lines": [
+    613
+   ],
+   "feature": "REM Function",
+   "ansi": "See ref. A-66 2.37",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.37.1-p1",
+    "1989-FMT-A.2.37.2",
+    "1989-AR-A.2.37.3-1",
+    "1989-AR-A.2.37.3-2",
+    "1989-RV-A.2.37.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-REM-15",
+   "lines": [
+    636
+   ],
+   "feature": "REM Function",
+   "ansi": "See ref. A-66 2.37",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.37.1-p1",
+    "1989-FMT-A.2.37.2",
+    "1989-AR-A.2.37.3-1",
+    "1989-AR-A.2.37.3-2",
+    "1989-RV-A.2.37.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-REM-16",
+   "lines": [
+    659
+   ],
+   "feature": "REM Function",
+   "ansi": "See ref. A-66 2.37",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.37.1-p1",
+    "1989-FMT-A.2.37.2",
+    "1989-AR-A.2.37.3-1",
+    "1989-AR-A.2.37.3-2",
+    "1989-RV-A.2.37.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-REM-17",
+   "lines": [
+    673
+   ],
+   "feature": "REM Function",
+   "ansi": "See ref. A-66 2.37",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-RV-A.2.37.1-p1",
+    "1989-FMT-A.2.37.2",
+    "1989-AR-A.2.37.3-1",
+    "1989-AR-A.2.37.3-2",
+    "1989-RV-A.2.37.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  }
+ ]
+}

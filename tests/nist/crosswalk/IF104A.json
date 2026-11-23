@@ -1,0 +1,492 @@
+{
+ "program": "IF104A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "F-ATAN-01",
+   "lines": [
+    369
+   ],
+   "feature": "ATAN Function",
+   "ansi": "See ref. A-36 2.8",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.8.1-p1",
+    "1989-FMT-A.2.8.2",
+    "1989-AR-A.2.8.3-1",
+    "1989-RV-A.2.8.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-ATAN-02",
+   "lines": [
+    383
+   ],
+   "feature": "ATAN Function",
+   "ansi": "See ref. A-36 2.8",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.8.1-p1",
+    "1989-FMT-A.2.8.2",
+    "1989-AR-A.2.8.3-1",
+    "1989-RV-A.2.8.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-ATAN-03",
+   "lines": [
+    400
+   ],
+   "feature": "ATAN Function",
+   "ansi": "See ref. A-36 2.8",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.8.1-p1",
+    "1989-FMT-A.2.8.2",
+    "1989-AR-A.2.8.3-1",
+    "1989-RV-A.2.8.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-ATAN-04",
+   "lines": [
+    422
+   ],
+   "feature": "ATAN Function",
+   "ansi": "See ref. A-36 2.8",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.8.1-p1",
+    "1989-FMT-A.2.8.2",
+    "1989-AR-A.2.8.3-1",
+    "1989-RV-A.2.8.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-ATAN-05",
+   "lines": [
+    444
+   ],
+   "feature": "ATAN Function",
+   "ansi": "See ref. A-36 2.8",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.8.1-p1",
+    "1989-FMT-A.2.8.2",
+    "1989-AR-A.2.8.3-1",
+    "1989-RV-A.2.8.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-ATAN-06",
+   "lines": [
+    466
+   ],
+   "feature": "ATAN Function",
+   "ansi": "See ref. A-36 2.8",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.8.1-p1",
+    "1989-FMT-A.2.8.2",
+    "1989-AR-A.2.8.3-1",
+    "1989-RV-A.2.8.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-ATAN-07",
+   "lines": [
+    488
+   ],
+   "feature": "ATAN Function",
+   "ansi": "See ref. A-36 2.8",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.8.1-p1",
+    "1989-FMT-A.2.8.2",
+    "1989-AR-A.2.8.3-1",
+    "1989-RV-A.2.8.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-ATAN-08",
+   "lines": [
+    510
+   ],
+   "feature": "ATAN Function",
+   "ansi": "See ref. A-36 2.8",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.8.1-p1",
+    "1989-FMT-A.2.8.2",
+    "1989-AR-A.2.8.3-1",
+    "1989-RV-A.2.8.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-ATAN-09",
+   "lines": [
+    532
+   ],
+   "feature": "ATAN Function",
+   "ansi": "See ref. A-36 2.8",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.8.1-p1",
+    "1989-FMT-A.2.8.2",
+    "1989-AR-A.2.8.3-1",
+    "1989-RV-A.2.8.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-ATAN-10",
+   "lines": [
+    554
+   ],
+   "feature": "ATAN Function",
+   "ansi": "See ref. A-36 2.8",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.8.1-p1",
+    "1989-FMT-A.2.8.2",
+    "1989-AR-A.2.8.3-1",
+    "1989-RV-A.2.8.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-ATAN-11",
+   "lines": [
+    576
+   ],
+   "feature": "ATAN Function",
+   "ansi": "See ref. A-36 2.8",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.8.1-p1",
+    "1989-FMT-A.2.8.2",
+    "1989-AR-A.2.8.3-1",
+    "1989-RV-A.2.8.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-ATAN-12",
+   "lines": [
+    598
+   ],
+   "feature": "ATAN Function",
+   "ansi": "See ref. A-36 2.8",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.8.1-p1",
+    "1989-FMT-A.2.8.2",
+    "1989-AR-A.2.8.3-1",
+    "1989-RV-A.2.8.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-ATAN-13",
+   "lines": [
+    620
+   ],
+   "feature": "ATAN Function",
+   "ansi": "See ref. A-36 2.8",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.8.1-p1",
+    "1989-FMT-A.2.8.2",
+    "1989-AR-A.2.8.3-1",
+    "1989-RV-A.2.8.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-ATAN-14",
+   "lines": [
+    642
+   ],
+   "feature": "ATAN Function",
+   "ansi": "See ref. A-36 2.8",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.8.1-p1",
+    "1989-FMT-A.2.8.2",
+    "1989-AR-A.2.8.3-1",
+    "1989-RV-A.2.8.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-ATAN-15",
+   "lines": [
+    664
+   ],
+   "feature": "ATAN Function",
+   "ansi": "See ref. A-36 2.8",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.8.1-p1",
+    "1989-FMT-A.2.8.2",
+    "1989-AR-A.2.8.3-1",
+    "1989-RV-A.2.8.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-ATAN-16",
+   "lines": [
+    686
+   ],
+   "feature": "ATAN Function",
+   "ansi": "See ref. A-36 2.8",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.8.1-p1",
+    "1989-FMT-A.2.8.2",
+    "1989-AR-A.2.8.3-1",
+    "1989-RV-A.2.8.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-ATAN-17",
+   "lines": [
+    708
+   ],
+   "feature": "ATAN Function",
+   "ansi": "See ref. A-36 2.8",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.8.1-p1",
+    "1989-FMT-A.2.8.2",
+    "1989-AR-A.2.8.3-1",
+    "1989-RV-A.2.8.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-ATAN-18",
+   "lines": [
+    730
+   ],
+   "feature": "ATAN Function",
+   "ansi": "See ref. A-36 2.8",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.8.1-p1",
+    "1989-FMT-A.2.8.2",
+    "1989-AR-A.2.8.3-1",
+    "1989-RV-A.2.8.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-ATAN-19",
+   "lines": [
+    752
+   ],
+   "feature": "ATAN Function",
+   "ansi": "See ref. A-36 2.8",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.8.1-p1",
+    "1989-FMT-A.2.8.2",
+    "1989-AR-A.2.8.3-1",
+    "1989-RV-A.2.8.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-ATAN-20",
+   "lines": [
+    774
+   ],
+   "feature": "ATAN Function",
+   "ansi": "See ref. A-36 2.8",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.8.1-p1",
+    "1989-FMT-A.2.8.2",
+    "1989-AR-A.2.8.3-1",
+    "1989-RV-A.2.8.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-ATAN-21",
+   "lines": [
+    796
+   ],
+   "feature": "ATAN Function",
+   "ansi": "See ref. A-36 2.8",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.8.1-p1",
+    "1989-FMT-A.2.8.2",
+    "1989-AR-A.2.8.3-1",
+    "1989-RV-A.2.8.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-ATAN-22",
+   "lines": [
+    818
+   ],
+   "feature": "ATAN Function",
+   "ansi": "See ref. A-36 2.8",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.8.1-p1",
+    "1989-FMT-A.2.8.2",
+    "1989-AR-A.2.8.3-1",
+    "1989-RV-A.2.8.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-ATAN-23",
+   "lines": [
+    840
+   ],
+   "feature": "ATAN Function",
+   "ansi": "See ref. A-36 2.8",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.8.1-p1",
+    "1989-FMT-A.2.8.2",
+    "1989-AR-A.2.8.3-1",
+    "1989-RV-A.2.8.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-ATAN-24",
+   "lines": [
+    862
+   ],
+   "feature": "ATAN Function",
+   "ansi": "See ref. A-36 2.8",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.8.1-p1",
+    "1989-FMT-A.2.8.2",
+    "1989-AR-A.2.8.3-1",
+    "1989-RV-A.2.8.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-ATAN-25",
+   "lines": [
+    884
+   ],
+   "feature": "ATAN Function",
+   "ansi": "See ref. A-36 2.8",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.8.1-p1",
+    "1989-FMT-A.2.8.2",
+    "1989-AR-A.2.8.3-1",
+    "1989-RV-A.2.8.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-ATAN-26",
+   "lines": [
+    907
+   ],
+   "feature": "ATAN Function",
+   "ansi": "See ref. A-36 2.8",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.8.1-p1",
+    "1989-FMT-A.2.8.2",
+    "1989-AR-A.2.8.3-1",
+    "1989-RV-A.2.8.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-ATAN-27",
+   "lines": [
+    922
+   ],
+   "feature": "ATAN Function",
+   "ansi": "See ref. A-36 2.8",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.8.1-p1",
+    "1989-FMT-A.2.8.2",
+    "1989-AR-A.2.8.3-1",
+    "1989-RV-A.2.8.4-1"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  }
+ ]
+}

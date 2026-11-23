@@ -1,0 +1,638 @@
+{
+ "program": "RL205A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "REL-TEST-001",
+   "lines": [
+    533
+   ],
+   "feature": "",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-002",
+   "lines": [
+    640
+   ],
+   "feature": "READ NEXT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-003",
+   "lines": [
+    966
+   ],
+   "feature": "START  EQUAL TO",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-8X-TEST-1",
+   "lines": [
+    1518
+   ],
+   "feature": "START  INVALID KEY",
+   "ansi": "XVII-70 2.2.37",
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-8X-TEST-2",
+   "lines": [
+    1565
+   ],
+   "feature": "START  INVALID KEY",
+   "ansi": "VIII-33 4.7.2",
+   "disposition": "rows",
+   "rows": [
+    "1985-FMT-VIII.4.7.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-8X-TEST-3",
+   "lines": [
+    1597
+   ],
+   "feature": "START  INVALID KEY",
+   "ansi": "VIII-33 4.7.2",
+   "disposition": "rows",
+   "rows": [
+    "1985-FMT-VIII.4.7.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-8X-TEST-4",
+   "lines": [
+    1628
+   ],
+   "feature": "START  INVALID KEY",
+   "ansi": "VIII-33 4.7.2",
+   "disposition": "rows",
+   "rows": [
+    "1985-FMT-VIII.4.7.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-8X-TEST-5",
+   "lines": [
+    1659
+   ],
+   "feature": "START  INVALID KEY",
+   "ansi": "VIII-33 4.7.2",
+   "disposition": "rows",
+   "rows": [
+    "1985-FMT-VIII.4.7.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-8X-TEST-6",
+   "lines": [
+    1690
+   ],
+   "feature": "START  INVALID KEY",
+   "ansi": "VIII-33 4.7.2",
+   "disposition": "rows",
+   "rows": [
+    "1985-FMT-VIII.4.7.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-8X-TEST-6-2",
+   "lines": [
+    1719
+   ],
+   "feature": "START  INVALID KEY",
+   "ansi": "VIII-33 4.7.2",
+   "disposition": "rows",
+   "rows": [
+    "1985-FMT-VIII.4.7.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-8X-TEST-7",
+   "lines": [
+    1732
+   ],
+   "feature": "START  INVALID KEY",
+   "ansi": "VIII-33 4.7.2",
+   "disposition": "rows",
+   "rows": [
+    "1985-FMT-VIII.4.7.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-8X-TEST-7-2",
+   "lines": [
+    1761
+   ],
+   "feature": "START  INVALID KEY",
+   "ansi": "VIII-33 4.7.2",
+   "disposition": "rows",
+   "rows": [
+    "1985-FMT-VIII.4.7.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-8X-TEST-8",
+   "lines": [
+    1776
+   ],
+   "feature": "START  INVALID KEY",
+   "ansi": "VIII-33 4.7.2",
+   "disposition": "rows",
+   "rows": [
+    "1985-FMT-VIII.4.7.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-8X-TEST-8-2",
+   "lines": [
+    1805
+   ],
+   "feature": "START  INVALID KEY",
+   "ansi": "VIII-33 4.7.2",
+   "disposition": "rows",
+   "rows": [
+    "1985-FMT-VIII.4.7.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-8X-TEST-9",
+   "lines": [
+    1820
+   ],
+   "feature": "START  INVALID KEY",
+   "ansi": "VIII-33 4.7.2",
+   "disposition": "rows",
+   "rows": [
+    "1985-FMT-VIII.4.7.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-8X-TEST-9-2",
+   "lines": [
+    1849
+   ],
+   "feature": "START  INVALID KEY",
+   "ansi": "VIII-33 4.7.2",
+   "disposition": "rows",
+   "rows": [
+    "1985-FMT-VIII.4.7.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-8X-TEST-10",
+   "lines": [
+    1864
+   ],
+   "feature": "START  INVALID KEY",
+   "ansi": "VIII-33 4.7.2 (GR7)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VIII.4.7.2"
+   ],
+   "literal-agrees": true,
+   "by-name": [
+    "1985-FMT-VIII.4.7.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-8X-TEST-10-2",
+   "lines": [
+    1893
+   ],
+   "feature": "START  INVALID KEY",
+   "ansi": "VIII-33 4.7.2 (GR7)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VIII.4.7.2"
+   ],
+   "literal-agrees": true,
+   "by-name": [
+    "1985-FMT-VIII.4.7.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-8X-TEST-11",
+   "lines": [
+    1908
+   ],
+   "feature": "START  INVALID KEY",
+   "ansi": "VIII-33 4.7.2 (GR7)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VIII.4.7.2"
+   ],
+   "literal-agrees": true,
+   "by-name": [
+    "1985-FMT-VIII.4.7.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-8X-TEST-12",
+   "lines": [
+    1938
+   ],
+   "feature": "START  INVALID KEY",
+   "ansi": "VIII-33 4.7.2 (GR7)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VIII.4.7.2"
+   ],
+   "literal-agrees": true,
+   "by-name": [
+    "1985-FMT-VIII.4.7.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-8X-TEST-12-2",
+   "lines": [
+    1967
+   ],
+   "feature": "START  INVALID KEY",
+   "ansi": "VIII-33 4.7.2 (GR7)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VIII.4.7.2"
+   ],
+   "literal-agrees": true,
+   "by-name": [
+    "1985-FMT-VIII.4.7.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-8X-TEST-13",
+   "lines": [
+    1982
+   ],
+   "feature": "START  INVALID KEY",
+   "ansi": "VIII-33 4.7.2 (GR7)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VIII.4.7.2"
+   ],
+   "literal-agrees": true,
+   "by-name": [
+    "1985-FMT-VIII.4.7.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-8X-TEST-14",
+   "lines": [
+    2012
+   ],
+   "feature": "START  INVALID KEY",
+   "ansi": "VIII-33 4.7.2 (GR7)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VIII.4.7.2"
+   ],
+   "literal-agrees": true,
+   "by-name": [
+    "1985-FMT-VIII.4.7.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-8X-TEST-14-2",
+   "lines": [
+    2043
+   ],
+   "feature": "START  INVALID KEY",
+   "ansi": "VIII-33 4.7.2 (GR7)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VIII.4.7.2"
+   ],
+   "literal-agrees": true,
+   "by-name": [
+    "1985-FMT-VIII.4.7.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-8X-TEST-15",
+   "lines": [
+    2058
+   ],
+   "feature": "START  INVALID KEY",
+   "ansi": "VIII-33 4.7.2 (GR7)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VIII.4.7.2"
+   ],
+   "literal-agrees": true,
+   "by-name": [
+    "1985-FMT-VIII.4.7.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-8X-TEST-16",
+   "lines": [
+    2090
+   ],
+   "feature": "START  INVALID KEY",
+   "ansi": "VIII-33 4.7.2 (GR7)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VIII.4.7.2"
+   ],
+   "literal-agrees": true,
+   "by-name": [
+    "1985-FMT-VIII.4.7.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-8X-TEST-16-2",
+   "lines": [
+    2122
+   ],
+   "feature": "START  INVALID KEY",
+   "ansi": "VIII-33 4.7.2 (GR7)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VIII.4.7.2"
+   ],
+   "literal-agrees": true,
+   "by-name": [
+    "1985-FMT-VIII.4.7.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-8X-TEST-16-3",
+   "lines": [
+    2136
+   ],
+   "feature": "START  INVALID KEY",
+   "ansi": "VIII-33 4.7.2 (GR7)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VIII.4.7.2"
+   ],
+   "literal-agrees": true,
+   "by-name": [
+    "1985-FMT-VIII.4.7.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-8X-TEST-17",
+   "lines": [
+    2149
+   ],
+   "feature": "START  INVALID KEY",
+   "ansi": "VIII-33 4.7.2 (GR7)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VIII.4.7.2"
+   ],
+   "literal-agrees": true,
+   "by-name": [
+    "1985-FMT-VIII.4.7.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-8X-TEST-17-2",
+   "lines": [
+    2181
+   ],
+   "feature": "START  INVALID KEY",
+   "ansi": "VIII-33 4.7.2 (GR7)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VIII.4.7.2"
+   ],
+   "literal-agrees": true,
+   "by-name": [
+    "1985-FMT-VIII.4.7.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-8X-TEST-18",
+   "lines": [
+    2194
+   ],
+   "feature": "START  INVALID KEY",
+   "ansi": "VIII-33 4.7.2 (GR7)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VIII.4.7.2"
+   ],
+   "literal-agrees": true,
+   "by-name": [
+    "1985-FMT-VIII.4.7.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-8X-TEST-18-2",
+   "lines": [
+    2226
+   ],
+   "feature": "START  INVALID KEY",
+   "ansi": "VIII-33 4.7.2 (GR7)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VIII.4.7.2"
+   ],
+   "literal-agrees": true,
+   "by-name": [
+    "1985-FMT-VIII.4.7.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-8X-TEST-18-3",
+   "lines": [
+    2240
+   ],
+   "feature": "START  INVALID KEY",
+   "ansi": "VIII-33 4.7.2 (GR7)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VIII.4.7.2"
+   ],
+   "literal-agrees": true,
+   "by-name": [
+    "1985-FMT-VIII.4.7.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-8X-TEST-19",
+   "lines": [
+    2253
+   ],
+   "feature": "START  INVALID KEY",
+   "ansi": "VIII-33 4.7.2 (GR7)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VIII.4.7.2"
+   ],
+   "literal-agrees": true,
+   "by-name": [
+    "1985-FMT-VIII.4.7.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-8X-TEST-19-2",
+   "lines": [
+    2285
+   ],
+   "feature": "START  INVALID KEY",
+   "ansi": "VIII-33 4.7.2 (GR7)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VIII.4.7.2"
+   ],
+   "literal-agrees": true,
+   "by-name": [
+    "1985-FMT-VIII.4.7.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-8X-TEST-20",
+   "lines": [
+    2298
+   ],
+   "feature": "START  INVALID KEY",
+   "ansi": "VIII-33 4.7.2 (GR7)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VIII.4.7.2"
+   ],
+   "literal-agrees": true,
+   "by-name": [
+    "1985-FMT-VIII.4.7.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-8X-TEST-20-2",
+   "lines": [
+    2331
+   ],
+   "feature": "START  INVALID KEY",
+   "ansi": "VIII-33 4.7.2 (GR7)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VIII.4.7.2"
+   ],
+   "literal-agrees": true,
+   "by-name": [
+    "1985-FMT-VIII.4.7.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-8X-TEST-20-3",
+   "lines": [
+    2345
+   ],
+   "feature": "START  INVALID KEY",
+   "ansi": "VIII-33 4.7.2 (GR7)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VIII.4.7.2"
+   ],
+   "literal-agrees": true,
+   "by-name": [
+    "1985-FMT-VIII.4.7.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-8X-TEST-21",
+   "lines": [
+    2358
+   ],
+   "feature": "START  INVALID KEY",
+   "ansi": "VIII-33 4.7.2 (GR7)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VIII.4.7.2"
+   ],
+   "literal-agrees": true,
+   "by-name": [
+    "1985-FMT-VIII.4.7.2"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-8X-TEST-21-2",
+   "lines": [
+    2392
+   ],
+   "feature": "START  INVALID KEY",
+   "ansi": "VIII-33 4.7.2 (GR7)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VIII.4.7.2"
+   ],
+   "literal-agrees": true,
+   "by-name": [
+    "1985-FMT-VIII.4.7.2"
+   ],
+   "basis": "mechanical"
+  }
+ ]
+}

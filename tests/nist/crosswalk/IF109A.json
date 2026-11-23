@@ -1,0 +1,150 @@
+{
+ "program": "IF109A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "F-DAYOFINT-01",
+   "lines": [
+    326
+   ],
+   "feature": "DAY-OF-INTEGER",
+   "ansi": "See ref. A-42 2.13",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-FMT-A.2.13.2",
+    "1989-AR-A.2.13.3-1",
+    "1989-RV-A.2.13.4-1",
+    "1989-RV-A.2.13.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-DAYOFINT-02",
+   "lines": [
+    340
+   ],
+   "feature": "DAY-OF-INTEGER",
+   "ansi": "See ref. A-42 2.13",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-FMT-A.2.13.2",
+    "1989-AR-A.2.13.3-1",
+    "1989-RV-A.2.13.4-1",
+    "1989-RV-A.2.13.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-DAYOFINT-03",
+   "lines": [
+    353
+   ],
+   "feature": "DAY-OF-INTEGER",
+   "ansi": "See ref. A-42 2.13",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-FMT-A.2.13.2",
+    "1989-AR-A.2.13.3-1",
+    "1989-RV-A.2.13.4-1",
+    "1989-RV-A.2.13.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-DAYOFINT-04",
+   "lines": [
+    371
+   ],
+   "feature": "DAY-OF-INTEGER",
+   "ansi": "See ref. A-42 2.13",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-FMT-A.2.13.2",
+    "1989-AR-A.2.13.3-1",
+    "1989-RV-A.2.13.4-1",
+    "1989-RV-A.2.13.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-DAYOFINT-05",
+   "lines": [
+    389
+   ],
+   "feature": "DAY-OF-INTEGER",
+   "ansi": "See ref. A-42 2.13",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-FMT-A.2.13.2",
+    "1989-AR-A.2.13.3-1",
+    "1989-RV-A.2.13.4-1",
+    "1989-RV-A.2.13.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-DAYOFINT-06",
+   "lines": [
+    407
+   ],
+   "feature": "DAY-OF-INTEGER",
+   "ansi": "See ref. A-42 2.13",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-FMT-A.2.13.2",
+    "1989-AR-A.2.13.3-1",
+    "1989-RV-A.2.13.4-1",
+    "1989-RV-A.2.13.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-DAYOFINT-07",
+   "lines": [
+    426
+   ],
+   "feature": "DAY-OF-INTEGER",
+   "ansi": "See ref. A-42 2.13",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-FMT-A.2.13.2",
+    "1989-AR-A.2.13.3-1",
+    "1989-RV-A.2.13.4-1",
+    "1989-RV-A.2.13.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-DAYOFINT-08",
+   "lines": [
+    446
+   ],
+   "feature": "DAY-OF-INTEGER",
+   "ansi": "See ref. A-42 2.13",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-FMT-A.2.13.2",
+    "1989-AR-A.2.13.3-1",
+    "1989-RV-A.2.13.4-1",
+    "1989-RV-A.2.13.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  }
+ ]
+}

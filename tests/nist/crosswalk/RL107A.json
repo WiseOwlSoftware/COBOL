@@ -1,0 +1,303 @@
+{
+ "program": "RL107A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "REL-TEST-001",
+   "lines": [
+    429
+   ],
+   "feature": "OPEN OUTPUT RL-FR7",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-002",
+   "lines": [
+    434
+   ],
+   "feature": "OPEN OUTPUT RL-FR8",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-003",
+   "lines": [
+    439
+   ],
+   "feature": "WRITE RL-FR7",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-004",
+   "lines": [
+    453
+   ],
+   "feature": "WRITE RL-FR7",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-005",
+   "lines": [
+    468
+   ],
+   "feature": "WRITE RL-FR7",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-006",
+   "lines": [
+    483
+   ],
+   "feature": "WRITE RL-FR7",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-007",
+   "lines": [
+    498
+   ],
+   "feature": "WRITE RL-FR7",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-008",
+   "lines": [
+    514
+   ],
+   "feature": "WRITE RL-FR8",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-009",
+   "lines": [
+    530
+   ],
+   "feature": "CLOSE RL-FR7",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-010",
+   "lines": [
+    536
+   ],
+   "feature": "CLOSE RL-FR8",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-011",
+   "lines": [
+    541
+   ],
+   "feature": "OPEN INPUT RL-FR8",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-012",
+   "lines": [
+    546
+   ],
+   "feature": "OPEN I-O RL-FR7",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-013",
+   "lines": [
+    551
+   ],
+   "feature": "READ RL-FR7",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-014",
+   "lines": [
+    568
+   ],
+   "feature": "READ RL-FR8",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-015",
+   "lines": [
+    587
+   ],
+   "feature": "READ RL-FR7",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-016",
+   "lines": [
+    604
+   ],
+   "feature": "READ RL-FR7",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-017",
+   "lines": [
+    622
+   ],
+   "feature": "WRITE RL-FR7",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-018",
+   "lines": [
+    638
+   ],
+   "feature": "READ RL-FR7",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-019",
+   "lines": [
+    650
+   ],
+   "feature": "READ RL-FR7",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-020",
+   "lines": [
+    663
+   ],
+   "feature": "READ RL-FR8",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-021",
+   "lines": [
+    677
+   ],
+   "feature": "INVALID KEY RL-FR7",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-022",
+   "lines": [
+    685
+   ],
+   "feature": "INVALID KEY RL-FR7",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-023",
+   "lines": [
+    693
+   ],
+   "feature": "INVALID KEY RL-FR8",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-024",
+   "lines": [
+    702
+   ],
+   "feature": "INVALID KEY RL-FR7",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-025",
+   "lines": [
+    710
+   ],
+   "feature": "REWRITE RL-FR7",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-026",
+   "lines": [
+    757
+   ],
+   "feature": "CLOSE RL-FR8",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REL-TEST-027",
+   "lines": [
+    763
+   ],
+   "feature": "CLOSE RL-FR7",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

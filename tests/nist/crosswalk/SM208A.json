@@ -1,0 +1,164 @@
+{
+ "program": "SM208A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "REP-TEST-1",
+   "lines": [
+    329
+   ],
+   "feature": "",
+   "ansi": "XII-6 3.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-XII.3.2"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REP-TEST-2",
+   "lines": [
+    357
+   ],
+   "feature": "",
+   "ansi": "XII-6 3.3 (SR5&6) AND XII-8 3.4(GR11)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-SR-XII.3.3-1",
+    "1985-SR-XII.3.3-2",
+    "1985-SR-XII.3.3-3",
+    "1985-SR-XII.3.3-4",
+    "1985-SR-XII.3.3-5",
+    "1985-SR-XII.3.3-6",
+    "1985-SR-XII.3.3-7",
+    "1985-SR-XII.3.3-8",
+    "1985-GR-XII.3.4-11"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REP-TEST-3",
+   "lines": [
+    411
+   ],
+   "feature": "",
+   "ansi": "XII-6 3.3 (SR5&6) AND XII-8 3.4(GR11)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-SR-XII.3.3-1",
+    "1985-SR-XII.3.3-2",
+    "1985-SR-XII.3.3-3",
+    "1985-SR-XII.3.3-4",
+    "1985-SR-XII.3.3-5",
+    "1985-SR-XII.3.3-6",
+    "1985-SR-XII.3.3-7",
+    "1985-SR-XII.3.3-8",
+    "1985-GR-XII.3.4-11"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REP-TEST-4",
+   "lines": [
+    464
+   ],
+   "feature": "",
+   "ansi": "XII-8 3.4 (GR10)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-XII.3.4-10"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REP-TEST-5",
+   "lines": [
+    494
+   ],
+   "feature": "",
+   "ansi": "XII-6 3.3 (SR4)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-SR-XII.3.3-1",
+    "1985-SR-XII.3.3-2",
+    "1985-SR-XII.3.3-3",
+    "1985-SR-XII.3.3-4",
+    "1985-SR-XII.3.3-5",
+    "1985-SR-XII.3.3-6",
+    "1985-SR-XII.3.3-7",
+    "1985-SR-XII.3.3-8"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REP-TEST-6",
+   "lines": [
+    519
+   ],
+   "feature": "",
+   "ansi": "XII-7/8 3.4 (GR7)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-XII.3.4-7"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REP-TEST-7",
+   "lines": [
+    552
+   ],
+   "feature": "",
+   "ansi": "XII-8 3.4 (GR8)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-XII.3.4-8"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REP-TEST-8",
+   "lines": [
+    592
+   ],
+   "feature": "",
+   "ansi": "XII-7 3.4 GR6(b)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-XII.3.4-6"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REP-TEST-9",
+   "lines": [
+    618
+   ],
+   "feature": "",
+   "ansi": "XII-7 3.4 GR4",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-XII.3.4-4"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  }
+ ]
+}

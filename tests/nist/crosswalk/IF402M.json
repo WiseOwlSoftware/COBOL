@@ -1,0 +1,193 @@
+{
+ "program": "IF402M",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "NON-CONFORMING@37",
+   "lines": [
+    37
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "IF402M-LENGTH IF FUNCTION LENGTH (\"ABC\") = FUNCTION LENGTH (\"ABC\") CONTINUE",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@42",
+   "lines": [
+    42
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "0) = FUNCTION LOG (1 0) CONTINUE",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@47",
+   "lines": [
+    47
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "0) = FUNCTION LOG10 (1 0) CONTINUE",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@51",
+   "lines": [
+    51
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "IF402M-LOWER-CASE MOVE FUNCTION LOWER-CASE (\"ABC\") TO WS-AN-TEMP",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@57",
+   "lines": [
+    57
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "IF402M-MAX IF FUNCTION MAX (5, 6, 10, 3, 7) = FUNCTION MAX (5, 6, 10, 3, 7) CONTINUE",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@60",
+   "lines": [
+    60
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "MOVE FUNCTION MAX (WS-TABLE (ALL, ALL, ALL)) TO WS-AN-TEMP",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@66",
+   "lines": [
+    66
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "IF402M-MEAN IF FUNCTION MEAN (5, -2, -14, 0) = FUNCTION MEAN (5, -2, -14, 0) CONTINUE",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@72",
+   "lines": [
+    72
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "IF402M-MEDIAN IF FUNCTION MEDIAN (5, -2, -14, 0) = FUNCTION MEDIAN (5, -2, -14, 0) CONTINUE",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@78",
+   "lines": [
+    78
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "IF402M-MIDRANGE IF FUNCTION MIDRANGE (5, -2, -14, 0) = FUNCTION MIDRANGE (5, -2, -14, 0) CONTINUE",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@84",
+   "lines": [
+    84
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "IF402M-MIN IF FUNCTION MIN (5, 6, 10, 3, 7) = FUNCTION MIN (5, 6, 10, 3, 7) CONTINUE",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@87",
+   "lines": [
+    87
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "MOVE FUNCTION MIN (WS-TABLE (ALL, ALL, ALL)) TO WS-AN-TEMP",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@92",
+   "lines": [
+    92
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "IF402M-MOD IF FUNCTION MOD (6, 6) = FUNCTION MOD (6, 6) CONTINUE",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@97",
+   "lines": [
+    97
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "IF402M-NUMVAL IF FUNCTION NUMVAL (\"4738\") = FUNCTION NUMVAL (\"4738\") CONTINUE",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@103",
+   "lines": [
+    103
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "56\") = FUNCTION NUMVAL-C (\"-$1,234 56\") CONTINUE",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@108",
+   "lines": [
+    108
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "IF402M-ORD IF FUNCTION ORD (\"A\") = FUNCTION ORD (\"A\") CONTINUE",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@114",
+   "lines": [
+    114
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "IF402M-ORD-MAX IF FUNCTION ORD-MAX (5, 3, 2, 8, 3, 1) = FUNCTION ORD-MAX (5, 3, 2, 8, 3, 1) CONTINUE",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@120",
+   "lines": [
+    120
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "IF402M-ORD-MIN IF FUNCTION ORD-MIN (5, 3, 2, 8, 3, 1) = FUNCTION ORD-MIN (5, 3, 2, 8, 3, 1) CONTINUE",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  }
+ ]
+}

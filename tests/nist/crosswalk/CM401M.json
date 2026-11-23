@@ -1,0 +1,116 @@
+{
+ "program": "CM401M",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "NON-CONFORMING@16",
+   "lines": [
+    16
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "COMMUNICATION SECTION CD COMMNAME FOR INITIAL INPUT",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@18",
+   "lines": [
+    18
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "SYMBOLIC SUB-QUEUE-1 IS CQ",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@28",
+   "lines": [
+    28
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "03 FILLER   PIC X(8) CD COMM2 FOR OUTPUT DESTINATION TABLE OCCURS 7 TIMES",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@38",
+   "lines": [
+    38
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "CM401M-DISABLE DISABLE INPUT COMMNAME WITH KEY CNAME1",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@42",
+   "lines": [
+    42
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "CM401M-ENABLE ENABLE INPUT COMMNAME WITH KEY CNAME1",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@47",
+   "lines": [
+    47
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "CM401M-PURGE PURGE COMM2",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@51",
+   "lines": [
+    51
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "CM401M-SEND SEND COMM2 FROM CNAME1",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@55",
+   "lines": [
+    55
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "CM401M-SENDID SEND COMM2 FROM CNAME1 WITH CINT",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@59",
+   "lines": [
+    59
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "CM401M-SENDESI SEND COMM2 FROM CNAME1 WITH ESI",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@63",
+   "lines": [
+    63
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "CM401M-SENDREP SEND COMM2 WITH EMI REPLACING LINE",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  }
+ ]
+}

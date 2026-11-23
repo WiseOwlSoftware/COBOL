@@ -1,0 +1,17 @@
+{
+ "program": "SQ130A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "OPEN-TEST-01",
+   "lines": [
+    499
+   ],
+   "feature": "OPEN ABSENT FILE I-O",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

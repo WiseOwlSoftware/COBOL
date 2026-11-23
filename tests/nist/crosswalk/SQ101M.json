@@ -1,0 +1,644 @@
+{
+ "program": "SQ101M",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "WRT-TEST-GF-01",
+   "lines": [
+    653
+   ],
+   "feature": "WRT BEFORE ADV INT LINES",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRT-TEST-GF-02",
+   "lines": [
+    672
+   ],
+   "feature": "WRT BEFORE ADV INT LINE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRT-TEST-GF-03",
+   "lines": [
+    691
+   ],
+   "feature": "WRT BEFORE INTEGER LINES",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRT-TEST-GF-04",
+   "lines": [
+    710
+   ],
+   "feature": "WRT BEFORE INTEGER LINE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRT-TEST-GF-05",
+   "lines": [
+    729
+   ],
+   "feature": "WRT AFTER ADV INT LINES",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRT-TEST-GF-06",
+   "lines": [
+    752
+   ],
+   "feature": "WRT BEFORE ADV PAGE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRT-TEST-GF-07",
+   "lines": [
+    773
+   ],
+   "feature": "WRT AFTER ADV INT LINE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRT-TEST-GF-08",
+   "lines": [
+    795
+   ],
+   "feature": "WRT AFTER INT LINE/S",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRT-TEST-GF-09",
+   "lines": [
+    817
+   ],
+   "feature": "WRT FRM BFR ADV INT LINS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRT-TEST-GF-10",
+   "lines": [
+    835
+   ],
+   "feature": "WRT FRM BFR ADV INT LINE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRT-TEST-GF-11",
+   "lines": [
+    853
+   ],
+   "feature": "WRT FRM BEFORE INT LINES",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRT-TEST-GF-12",
+   "lines": [
+    875
+   ],
+   "feature": "WRITE BEFORE PAGE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRT-TEST-GF-13",
+   "lines": [
+    896
+   ],
+   "feature": "WRT FROM BEFORE INT LINE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRT-TEST-GF-14",
+   "lines": [
+    918
+   ],
+   "feature": "WRT AFTER ADV PAGE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRT-TEST-GF-15",
+   "lines": [
+    937
+   ],
+   "feature": "WRT FRM AFT ADV INT LINS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRT-TEST-GF-16",
+   "lines": [
+    955
+   ],
+   "feature": "WRT FRM AFT ADV INT LINE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRT-TEST-GF-17",
+   "lines": [
+    977
+   ],
+   "feature": "WRITE AFTER PAGE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRT-TEST-GF-18",
+   "lines": [
+    996
+   ],
+   "feature": "WRT FRM AFTER INT LINE/S",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRT-TEST-GF-19",
+   "lines": [
+    1017
+   ],
+   "feature": "WRITE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRT-TEST-GF-20",
+   "lines": [
+    1036
+   ],
+   "feature": "WRITE FROM",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRT-TEST-GF-21",
+   "lines": [
+    1055
+   ],
+   "feature": "WRT SUBGR BFR ADV INT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRT-TEST-GF-22",
+   "lines": [
+    1074
+   ],
+   "feature": "WRT SUBGRP BEFORE INT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRT-TEST-23",
+   "lines": [
+    1092
+   ],
+   "feature": "WRT FROM 77 AFT ADV INT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRT-TEST-GF-24",
+   "lines": [
+    1108
+   ],
+   "feature": "WRT FROM AFTER INT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRT-TEST-GF-25",
+   "lines": [
+    1126
+   ],
+   "feature": "WRT BEFORE ADV ZERO",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRT-TEST-GF-26",
+   "lines": [
+    1145
+   ],
+   "feature": "WRT BEFORE INT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRT-TEST-GF-27",
+   "lines": [
+    1164
+   ],
+   "feature": "WRT AFTER ADVANCING INT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRT-TEST-GF-28",
+   "lines": [
+    1183
+   ],
+   "feature": "WRT AFTER INT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRT-TEST-GF-29",
+   "lines": [
+    1205
+   ],
+   "feature": "WRT FROM BEFORE ADV PAGE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRT-TEST-GF-30",
+   "lines": [
+    1227
+   ],
+   "feature": "CHARACTERS IN COLUMN 1",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRT-TEST-GF-31",
+   "lines": [
+    1345
+   ],
+   "feature": "WRT FROM BEFORE PAGE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRT-TEST-GF-32",
+   "lines": [
+    1365
+   ],
+   "feature": "WRT FRM BFR ADV P99 LINE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRT-TEST-GF-33",
+   "lines": [
+    1385
+   ],
+   "feature": "WRT FRM BFR ADV P99 LINS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRT-TEST-GF-34",
+   "lines": [
+    1405
+   ],
+   "feature": "WRT FRM BEFORE ADV PIC99",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRT-TEST-GF-35",
+   "lines": [
+    1425
+   ],
+   "feature": "WRT FROM BEFORE P99 LINE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRT-TEST-GF-36",
+   "lines": [
+    1444
+   ],
+   "feature": "WRT FRM BEFORE P99 LINES",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRT-TEST-GF-37",
+   "lines": [
+    1461
+   ],
+   "feature": "WRT FROM 03 BEFORE PIC99",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRT-TEST-GF-38",
+   "lines": [
+    1478
+   ],
+   "feature": "WRT FRM AFT ADV P99 LINE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRT-TEST-GF-39",
+   "lines": [
+    1496
+   ],
+   "feature": "WRT FRM AFT ADV P99 LINS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRT-TEST-44",
+   "lines": [
+    1516
+   ],
+   "feature": "WRT FRM AFT ADV ID2",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRT-TEST-GF-41",
+   "lines": [
+    1533
+   ],
+   "feature": "WRT FROM AFTER ADV PAGE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRT-TEST-GF-42",
+   "lines": [
+    1551
+   ],
+   "feature": "WRT FROM AFTER ID2 LINE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRT-TEST-GF-43",
+   "lines": [
+    1570
+   ],
+   "feature": "WRT FROM AFTER S99 LINES",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRT-TEST-GF-44",
+   "lines": [
+    1589
+   ],
+   "feature": "WRT FROM AFTER C99",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRT-TEST-GF-45",
+   "lines": [
+    1608
+   ],
+   "feature": "WRT BEFORE ADV S99 LINE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRT-TEST-GF-46",
+   "lines": [
+    1628
+   ],
+   "feature": "WRT BEFORE ADV S99 LINES",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRT-TEST-GF-47",
+   "lines": [
+    1648
+   ],
+   "feature": "WRT BEFORE ADV S99",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRT-TEST-GF-48",
+   "lines": [
+    1668
+   ],
+   "feature": "WRT BEFORE PIC9 LINE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRT-TEST-GF-49",
+   "lines": [
+    1688
+   ],
+   "feature": "WRT BEFORE PIC9 LINES",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRT-TEST-GF-50",
+   "lines": [
+    1707
+   ],
+   "feature": "WRT BEFORE PIC9",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRT-TEST-GF-51",
+   "lines": [
+    1726
+   ],
+   "feature": "WRT AFTER ADV PIC9 LINE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRT-TEST-GF-52",
+   "lines": [
+    1745
+   ],
+   "feature": "WRT AFT ADV 9(18) LINES",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRT-TEST-GF-53",
+   "lines": [
+    1764
+   ],
+   "feature": "WRT AFTER ADV 9(18)",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRT-TEST-GF-54",
+   "lines": [
+    1783
+   ],
+   "feature": "WRT AFTER S99 LINE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRT-TEST-GF-55",
+   "lines": [
+    1803
+   ],
+   "feature": "WRT AFTER PIC99 LINES",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRT-TEST-GF-56",
+   "lines": [
+    1823
+   ],
+   "feature": "WRT AFTER PIC99",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRT-TEST-GF-57",
+   "lines": [
+    1846
+   ],
+   "feature": "WRT FROM AFTER PAGE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "AFTER-LAST-TEST",
+   "lines": [
+    1861
+   ],
+   "feature": "FINAL WRT TEST LINE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

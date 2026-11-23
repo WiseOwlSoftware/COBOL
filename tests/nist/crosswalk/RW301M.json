@@ -1,0 +1,116 @@
+{
+ "program": "RW301M",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "NON-CONFORMING@43",
+   "lines": [
+    43
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "03 RKEY PIC 9(8) FD TFIL2 REPORT IS RFIL2",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@51",
+   "lines": [
+    51
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "03 VKEY PIC 9(8) VALUE ZERO REPORT SECTION",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@53",
+   "lines": [
+    53
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "RD  RFIL2",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@56",
+   "lines": [
+    56
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "01  RREC TYPE IS DETAIL",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@59",
+   "lines": [
+    59
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "02  PIC 9(8) SOURCE IS RKEY",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@61",
+   "lines": [
+    61
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "COLUMN NUMBER IS 1",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@63",
+   "lines": [
+    63
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "LINE NUMBER IS PLUS 1",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@74",
+   "lines": [
+    74
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "OPEN OUTPUT TFIL2 INITIATE RFIL2",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@76",
+   "lines": [
+    76
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "GENERATE RREC",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@78",
+   "lines": [
+    78
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "TERMINATE RFIL2",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  }
+ ]
+}

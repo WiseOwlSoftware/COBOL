@@ -1,0 +1,316 @@
+{
+ "program": "DB105A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "PROC-002-GO--TEST-1",
+   "lines": [
+    632
+   ],
+   "feature": "GO TO",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "PROC-005-GO--TEST-2",
+   "lines": [
+    635,
+    647
+   ],
+   "feature": "GO TO DEPENDING",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "PROC-005-GO--A",
+   "lines": [
+    652
+   ],
+   "feature": "GO TO DEPENDING",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "PROC-005-GO--B",
+   "lines": [
+    663
+   ],
+   "feature": "GO TO DEPENDING",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "PROC-005-GO--C",
+   "lines": [
+    672
+   ],
+   "feature": "GO TO DEPENDING",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "PROC-005-GO--D",
+   "lines": [
+    681
+   ],
+   "feature": "GO TO DEPENDING",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "PROC-005-GO--E",
+   "lines": [
+    690
+   ],
+   "feature": "GO TO DEPENDING",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "PROC-017-GO--TEST-3",
+   "lines": [
+    712
+   ],
+   "feature": "GO TO",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "PROC-020-GO--TEST-4",
+   "lines": [
+    736
+   ],
+   "feature": "GO TO DEPENDING",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "PROC-025-ALTER-TEST-1",
+   "lines": [
+    759
+   ],
+   "feature": "ALTER",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "PROC-030-ALTER-TEST-3",
+   "lines": [
+    786
+   ],
+   "feature": "ALTER",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "PROC-037-EXIT-TEST-1",
+   "lines": [
+    799
+   ],
+   "feature": "EXIT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "PFM-TEST-1",
+   "lines": [
+    815
+   ],
+   "feature": "PERFORM",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "PROC-043-PFM-TEST-2",
+   "lines": [
+    842
+   ],
+   "feature": "PERFORM",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "PROC-047-PFM-TEST-3",
+   "lines": [
+    858
+   ],
+   "feature": "PERFORM TIMES",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "PROC-055-PFM-TEST-4",
+   "lines": [
+    873
+   ],
+   "feature": "NESTED PERFORM THRU",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "PROC-061-PFM-TEST-5",
+   "lines": [
+    888
+   ],
+   "feature": "NESTED PERFORM",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "PROC-065-PFM-TEST-6",
+   "lines": [
+    899
+   ],
+   "feature": "PERFORM SECTION-NAME",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "PROC-070-PFM-TEST-7",
+   "lines": [
+    911
+   ],
+   "feature": "PERFORM EXIT PARAS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "PROC-097-PFM-TEST-08",
+   "lines": [
+    941
+   ],
+   "feature": "PERFORM",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "PROC-106-PFM-TEST-09",
+   "lines": [
+    971
+   ],
+   "feature": "PERFORM TIMES",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "PROC-117-PFM-TEST-10",
+   "lines": [
+    1011
+   ],
+   "feature": "PERFORM THRU",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "PROC-139-PFM-TEST-11",
+   "lines": [
+    1053
+   ],
+   "feature": "PERFORM THRU, TIMES",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "PROC-169-PFM-TEST-12",
+   "lines": [
+    1101
+   ],
+   "feature": "NESTED PERFORM",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "PROC-177-PFM-TEST-13",
+   "lines": [
+    1132
+   ],
+   "feature": "PERFORM WITH EXIT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "PROC-188-PFM-TEST-14",
+   "lines": [
+    1147
+   ],
+   "feature": "PERFORM WITH EXIT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "PROC-212-PFM-TEST-15",
+   "lines": [
+    1195
+   ],
+   "feature": "PERFORM GO TO PARAS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ],
+ "unenumerated": [
+  {
+   "line": 1255,
+   "text": "MOVE EXPECTED-NAME (STATIC-INDEX) TO PAR-NAME",
+   "reason": "a PAR-NAME move naming no literal: its units are owed"
+  },
+  {
+   "line": 1275,
+   "text": "MOVE EXPECTED-NAME (STATIC-INDEX) TO PAR-NAME",
+   "reason": "a PAR-NAME move naming no literal: its units are owed"
+  }
+ ]
+}

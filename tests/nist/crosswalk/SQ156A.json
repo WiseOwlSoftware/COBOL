@@ -1,0 +1,17 @@
+{
+ "program": "SQ156A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "WRITE-TEST-01",
+   "lines": [
+    488
+   ],
+   "feature": "WRITE TO I-O FILE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

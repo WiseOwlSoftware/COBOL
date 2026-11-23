@@ -1,0 +1,256 @@
+{
+ "program": "SM103A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "COPY-TEST-1",
+   "lines": [
+    429,
+    901
+   ],
+   "feature": "DEC POINT IS COMMA",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "COPY-TEST-2",
+   "lines": [
+    461,
+    913
+   ],
+   "feature": "ENVIR DIV ENTRIES",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "COPY-TEST-3",
+   "lines": [
+    467,
+    930
+   ],
+   "feature": "ENVIR DIV ENTRIES",
+   "ansi": "XII-2 2.3 SR8",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-SR-XII.2.3-1",
+    "1985-SR-XII.2.3-2",
+    "1985-SR-XII.2.3-3",
+    "1985-SR-XII.2.3-4",
+    "1985-SR-XII.2.3-5",
+    "1985-SR-XII.2.3-6",
+    "1985-SR-XII.2.3-7",
+    "1985-SR-XII.2.3-8",
+    "1985-SR-XII.2.3-9",
+    "1985-SR-XII.2.3-10"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "COPY-TEST-4",
+   "lines": [
+    494,
+    946
+   ],
+   "feature": "ENVIR DIV ENTRIES",
+   "ansi": "XII-2 2.3 (SR8) AND XII-5 2.4(GR11)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-SR-XII.2.3-1",
+    "1985-SR-XII.2.3-2",
+    "1985-SR-XII.2.3-3",
+    "1985-SR-XII.2.3-4",
+    "1985-SR-XII.2.3-5",
+    "1985-SR-XII.2.3-6",
+    "1985-SR-XII.2.3-7",
+    "1985-SR-XII.2.3-8",
+    "1985-SR-XII.2.3-9",
+    "1985-SR-XII.2.3-10",
+    "1985-GR-XII.2.4-11"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "COPY-TEST-4-1",
+   "lines": [
+    515
+   ],
+   "feature": "ENVIR DIV ENTRIES",
+   "ansi": "XII-2 2.3 (SR8) AND XII-5 2.4(GR11)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-SR-XII.2.3-1",
+    "1985-SR-XII.2.3-2",
+    "1985-SR-XII.2.3-3",
+    "1985-SR-XII.2.3-4",
+    "1985-SR-XII.2.3-5",
+    "1985-SR-XII.2.3-6",
+    "1985-SR-XII.2.3-7",
+    "1985-SR-XII.2.3-8",
+    "1985-SR-XII.2.3-9",
+    "1985-SR-XII.2.3-10",
+    "1985-GR-XII.2.4-11"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "COPY-TEST-4-2",
+   "lines": [
+    528
+   ],
+   "feature": "ENVIR DIV ENTRIES",
+   "ansi": "XII-2 2.3 (SR8) AND XII-5 2.4(GR11)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-SR-XII.2.3-1",
+    "1985-SR-XII.2.3-2",
+    "1985-SR-XII.2.3-3",
+    "1985-SR-XII.2.3-4",
+    "1985-SR-XII.2.3-5",
+    "1985-SR-XII.2.3-6",
+    "1985-SR-XII.2.3-7",
+    "1985-SR-XII.2.3-8",
+    "1985-SR-XII.2.3-9",
+    "1985-SR-XII.2.3-10",
+    "1985-GR-XII.2.4-11"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "COPY-TEST-4-3",
+   "lines": [
+    541
+   ],
+   "feature": "ENVIR DIV ENTRIES",
+   "ansi": "XII-2 2.3 (SR8) AND XII-5 2.4(GR11)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-SR-XII.2.3-1",
+    "1985-SR-XII.2.3-2",
+    "1985-SR-XII.2.3-3",
+    "1985-SR-XII.2.3-4",
+    "1985-SR-XII.2.3-5",
+    "1985-SR-XII.2.3-6",
+    "1985-SR-XII.2.3-7",
+    "1985-SR-XII.2.3-8",
+    "1985-SR-XII.2.3-9",
+    "1985-SR-XII.2.3-10",
+    "1985-GR-XII.2.4-11"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "COPY-TEST-5",
+   "lines": [
+    961
+   ],
+   "feature": "ENVIR DIV ENTRIES",
+   "ansi": "XII-2 2.3 (SR8) AND XII-5 2.4(GR11)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-SR-XII.2.3-1",
+    "1985-SR-XII.2.3-2",
+    "1985-SR-XII.2.3-3",
+    "1985-SR-XII.2.3-4",
+    "1985-SR-XII.2.3-5",
+    "1985-SR-XII.2.3-6",
+    "1985-SR-XII.2.3-7",
+    "1985-SR-XII.2.3-8",
+    "1985-SR-XII.2.3-9",
+    "1985-SR-XII.2.3-10",
+    "1985-GR-XII.2.4-11"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "COPY-TEST-6",
+   "lines": [
+    976
+   ],
+   "feature": "ENVIR DIV ENTRIES",
+   "ansi": "XII-2 2.3 (SR8) AND XII-5 2.4(GR11)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-SR-XII.2.3-1",
+    "1985-SR-XII.2.3-2",
+    "1985-SR-XII.2.3-3",
+    "1985-SR-XII.2.3-4",
+    "1985-SR-XII.2.3-5",
+    "1985-SR-XII.2.3-6",
+    "1985-SR-XII.2.3-7",
+    "1985-SR-XII.2.3-8",
+    "1985-SR-XII.2.3-9",
+    "1985-SR-XII.2.3-10",
+    "1985-GR-XII.2.4-11"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "COPY-TEST-7",
+   "lines": [
+    991
+   ],
+   "feature": "ENVIR DIV ENTRIES",
+   "ansi": "XII-2 2.3 (SR8) AND XII-5 2.4(GR11)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-SR-XII.2.3-1",
+    "1985-SR-XII.2.3-2",
+    "1985-SR-XII.2.3-3",
+    "1985-SR-XII.2.3-4",
+    "1985-SR-XII.2.3-5",
+    "1985-SR-XII.2.3-6",
+    "1985-SR-XII.2.3-7",
+    "1985-SR-XII.2.3-8",
+    "1985-SR-XII.2.3-9",
+    "1985-SR-XII.2.3-10",
+    "1985-GR-XII.2.4-11"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "BAD-FILE",
+   "lines": [
+    998
+   ],
+   "feature": "ENVIR DIV ENTRIES",
+   "ansi": "XII-2 2.3 (SR8) AND XII-5 2.4(GR11)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-SR-XII.2.3-1",
+    "1985-SR-XII.2.3-2",
+    "1985-SR-XII.2.3-3",
+    "1985-SR-XII.2.3-4",
+    "1985-SR-XII.2.3-5",
+    "1985-SR-XII.2.3-6",
+    "1985-SR-XII.2.3-7",
+    "1985-SR-XII.2.3-8",
+    "1985-SR-XII.2.3-9",
+    "1985-SR-XII.2.3-10",
+    "1985-GR-XII.2.4-11"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  }
+ ]
+}

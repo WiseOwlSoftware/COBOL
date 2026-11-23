@@ -547,6 +547,9 @@ jobs:
       - name: Derivation register — every live derivation stands (audit_derivations.py --check)
         if: ${{ !cancelled() }}
         run: python3 scripts/spec/audit_derivations.py --check
+      - name: NIST-85 crosswalk — every committed file agrees with its program and the catalog (crosswalk.py --check)
+        if: ${{ !cancelled() }}
+        run: python3 conformance-suite/harness/crosswalk.py --check
       - name: Figure verdicts 1985 — every verdict names its block of the transcription (sweep_figures.py --edition 1985 --identity)
         if: ${{ !cancelled() }}
         run: python3 scripts/spec/sweep_figures.py --edition 1985 --identity

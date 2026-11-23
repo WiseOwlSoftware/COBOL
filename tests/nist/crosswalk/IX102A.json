@@ -1,0 +1,127 @@
+{
+ "program": "IX102A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "READ-TEST-F2-01",
+   "lines": [
+    474
+   ],
+   "feature": "READ ... INVALID",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F2-02",
+   "lines": [
+    507
+   ],
+   "feature": "READ ... INVALID",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F2-03",
+   "lines": [
+    521
+   ],
+   "feature": "READ ... INVALID",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F2-04",
+   "lines": [
+    536
+   ],
+   "feature": "READ ... INVALID",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REWRITE-TEST-F2-01",
+   "lines": [
+    551
+   ],
+   "feature": "REWRITE ... INVALID",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REWRITE-TEST-F2-02",
+   "lines": [
+    586
+   ],
+   "feature": "REWRITE ... INVALID",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REWRITE-TEST-F2-03",
+   "lines": [
+    606
+   ],
+   "feature": "REWRITE ... INVALID",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F2-05",
+   "lines": [
+    621
+   ],
+   "feature": "READ  ... INVALID",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F2-06",
+   "lines": [
+    655
+   ],
+   "feature": "READ ... INVALID",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F2-07",
+   "lines": [
+    670
+   ],
+   "feature": "READ ... INVALID",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F2-08",
+   "lines": [
+    685
+   ],
+   "feature": "READ ... INVALID",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

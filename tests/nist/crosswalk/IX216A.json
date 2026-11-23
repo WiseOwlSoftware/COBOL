@@ -1,0 +1,172 @@
+{
+ "program": "IX216A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "OPEN-TEST-GF-01",
+   "lines": [
+    557
+   ],
+   "feature": "OPEN EXTEND: EXP: 05",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRITE-TEST-GF-01",
+   "lines": [
+    593
+   ],
+   "feature": "OPEN EXTEND EXISTING",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRITE-TEST-GF-02",
+   "lines": [
+    608
+   ],
+   "feature": "OP EXT: ERROR/EXCEPT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRITE-TEST-GF-03",
+   "lines": [
+    612
+   ],
+   "feature": "OP EXT: INCORR COUNT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRITE-TEST-GF-04",
+   "lines": [
+    623
+   ],
+   "feature": "OP EXT STATUS EXP:00",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRITE-TEST-GF-05",
+   "lines": [
+    635
+   ],
+   "feature": "WRITE STATUS EXP: 00",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRITE-TEST-GF-06",
+   "lines": [
+    646
+   ],
+   "feature": "WRITE STATUS EXP: 00",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRITE-TEST-GF-07",
+   "lines": [
+    657
+   ],
+   "feature": "CLOSE STATUS EXP: 00",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "RWRT-TEST-GF-01",
+   "lines": [
+    678,
+    712
+   ],
+   "feature": "UPDATE  IX-FS2",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "RWRT-TEST-GF-02",
+   "lines": [
+    723
+   ],
+   "feature": "REWRITE ERR/EXCEPTIO",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "RWRT-TEST-GF-03",
+   "lines": [
+    734
+   ],
+   "feature": "OPEN STATUS EXP:  00",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "RWRT-TEST-GF-04",
+   "lines": [
+    745
+   ],
+   "feature": "AT END STATUS EXP:10",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "RWRT-TEST-GF-05",
+   "lines": [
+    756
+   ],
+   "feature": "REWRITE ERR/EXCEPTIO",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "RWRT-TEST-GF-06",
+   "lines": [
+    768
+   ],
+   "feature": "REWRITE ERR/EXCEPTIO",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "RWRT-TEST-GF-07",
+   "lines": [
+    779
+   ],
+   "feature": "CLOSE LOCK STAT:  00",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

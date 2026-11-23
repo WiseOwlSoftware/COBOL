@@ -1,0 +1,426 @@
+{
+ "program": "IF125A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "F-NUMVAL-01",
+   "lines": [
+    329
+   ],
+   "feature": "NUMVAL Function",
+   "ansi": "See ref. A-58 2.29",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.29.1-p1",
+    "1989-FMT-A.2.29.2",
+    "1989-AR-A.2.29.3-1",
+    "1989-AR-A.2.29.3-2",
+    "1989-AR-A.2.29.3-3",
+    "1989-RV-A.2.29.4-1",
+    "1989-RV-A.2.29.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-NUMVAL-02",
+   "lines": [
+    347
+   ],
+   "feature": "NUMVAL Function",
+   "ansi": "See ref. A-58 2.29",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.29.1-p1",
+    "1989-FMT-A.2.29.2",
+    "1989-AR-A.2.29.3-1",
+    "1989-AR-A.2.29.3-2",
+    "1989-AR-A.2.29.3-3",
+    "1989-RV-A.2.29.4-1",
+    "1989-RV-A.2.29.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-NUMVAL-03",
+   "lines": [
+    361
+   ],
+   "feature": "NUMVAL Function",
+   "ansi": "See ref. A-58 2.29",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.29.1-p1",
+    "1989-FMT-A.2.29.2",
+    "1989-AR-A.2.29.3-1",
+    "1989-AR-A.2.29.3-2",
+    "1989-AR-A.2.29.3-3",
+    "1989-RV-A.2.29.4-1",
+    "1989-RV-A.2.29.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-NUMVAL-04",
+   "lines": [
+    380
+   ],
+   "feature": "NUMVAL Function",
+   "ansi": "See ref. A-58 2.29",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.29.1-p1",
+    "1989-FMT-A.2.29.2",
+    "1989-AR-A.2.29.3-1",
+    "1989-AR-A.2.29.3-2",
+    "1989-AR-A.2.29.3-3",
+    "1989-RV-A.2.29.4-1",
+    "1989-RV-A.2.29.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-NUMVAL-05",
+   "lines": [
+    399
+   ],
+   "feature": "NUMVAL Function",
+   "ansi": "See ref. A-58 2.29",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.29.1-p1",
+    "1989-FMT-A.2.29.2",
+    "1989-AR-A.2.29.3-1",
+    "1989-AR-A.2.29.3-2",
+    "1989-AR-A.2.29.3-3",
+    "1989-RV-A.2.29.4-1",
+    "1989-RV-A.2.29.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-NUMVAL-06",
+   "lines": [
+    418
+   ],
+   "feature": "NUMVAL Function",
+   "ansi": "See ref. A-58 2.29",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.29.1-p1",
+    "1989-FMT-A.2.29.2",
+    "1989-AR-A.2.29.3-1",
+    "1989-AR-A.2.29.3-2",
+    "1989-AR-A.2.29.3-3",
+    "1989-RV-A.2.29.4-1",
+    "1989-RV-A.2.29.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-NUMVAL-07",
+   "lines": [
+    437
+   ],
+   "feature": "NUMVAL Function",
+   "ansi": "See ref. A-58 2.29",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.29.1-p1",
+    "1989-FMT-A.2.29.2",
+    "1989-AR-A.2.29.3-1",
+    "1989-AR-A.2.29.3-2",
+    "1989-AR-A.2.29.3-3",
+    "1989-RV-A.2.29.4-1",
+    "1989-RV-A.2.29.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-NUMVAL-08",
+   "lines": [
+    456
+   ],
+   "feature": "NUMVAL Function",
+   "ansi": "See ref. A-58 2.29",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.29.1-p1",
+    "1989-FMT-A.2.29.2",
+    "1989-AR-A.2.29.3-1",
+    "1989-AR-A.2.29.3-2",
+    "1989-AR-A.2.29.3-3",
+    "1989-RV-A.2.29.4-1",
+    "1989-RV-A.2.29.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-NUMVAL-09",
+   "lines": [
+    475
+   ],
+   "feature": "NUMVAL Function",
+   "ansi": "See ref. A-58 2.29",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.29.1-p1",
+    "1989-FMT-A.2.29.2",
+    "1989-AR-A.2.29.3-1",
+    "1989-AR-A.2.29.3-2",
+    "1989-AR-A.2.29.3-3",
+    "1989-RV-A.2.29.4-1",
+    "1989-RV-A.2.29.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-NUMVAL-10",
+   "lines": [
+    493
+   ],
+   "feature": "NUMVAL Function",
+   "ansi": "See ref. A-58 2.29",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.29.1-p1",
+    "1989-FMT-A.2.29.2",
+    "1989-AR-A.2.29.3-1",
+    "1989-AR-A.2.29.3-2",
+    "1989-AR-A.2.29.3-3",
+    "1989-RV-A.2.29.4-1",
+    "1989-RV-A.2.29.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-NUMVAL-11",
+   "lines": [
+    511
+   ],
+   "feature": "NUMVAL Function",
+   "ansi": "See ref. A-58 2.29",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.29.1-p1",
+    "1989-FMT-A.2.29.2",
+    "1989-AR-A.2.29.3-1",
+    "1989-AR-A.2.29.3-2",
+    "1989-AR-A.2.29.3-3",
+    "1989-RV-A.2.29.4-1",
+    "1989-RV-A.2.29.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-NUMVAL-12",
+   "lines": [
+    530
+   ],
+   "feature": "NUMVAL Function",
+   "ansi": "See ref. A-58 2.29",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.29.1-p1",
+    "1989-FMT-A.2.29.2",
+    "1989-AR-A.2.29.3-1",
+    "1989-AR-A.2.29.3-2",
+    "1989-AR-A.2.29.3-3",
+    "1989-RV-A.2.29.4-1",
+    "1989-RV-A.2.29.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-NUMVAL-13",
+   "lines": [
+    549
+   ],
+   "feature": "NUMVAL Function",
+   "ansi": "See ref. A-58 2.29",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.29.1-p1",
+    "1989-FMT-A.2.29.2",
+    "1989-AR-A.2.29.3-1",
+    "1989-AR-A.2.29.3-2",
+    "1989-AR-A.2.29.3-3",
+    "1989-RV-A.2.29.4-1",
+    "1989-RV-A.2.29.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-NUMVAL-14",
+   "lines": [
+    568
+   ],
+   "feature": "NUMVAL Function",
+   "ansi": "See ref. A-58 2.29",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.29.1-p1",
+    "1989-FMT-A.2.29.2",
+    "1989-AR-A.2.29.3-1",
+    "1989-AR-A.2.29.3-2",
+    "1989-AR-A.2.29.3-3",
+    "1989-RV-A.2.29.4-1",
+    "1989-RV-A.2.29.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-NUMVAL-15",
+   "lines": [
+    587
+   ],
+   "feature": "NUMVAL Function",
+   "ansi": "See ref. A-58 2.29",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.29.1-p1",
+    "1989-FMT-A.2.29.2",
+    "1989-AR-A.2.29.3-1",
+    "1989-AR-A.2.29.3-2",
+    "1989-AR-A.2.29.3-3",
+    "1989-RV-A.2.29.4-1",
+    "1989-RV-A.2.29.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-NUMVAL-16",
+   "lines": [
+    606
+   ],
+   "feature": "NUMVAL Function",
+   "ansi": "See ref. A-58 2.29",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.29.1-p1",
+    "1989-FMT-A.2.29.2",
+    "1989-AR-A.2.29.3-1",
+    "1989-AR-A.2.29.3-2",
+    "1989-AR-A.2.29.3-3",
+    "1989-RV-A.2.29.4-1",
+    "1989-RV-A.2.29.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-NUMVAL-17",
+   "lines": [
+    625
+   ],
+   "feature": "NUMVAL Function",
+   "ansi": "See ref. A-58 2.29",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.29.1-p1",
+    "1989-FMT-A.2.29.2",
+    "1989-AR-A.2.29.3-1",
+    "1989-AR-A.2.29.3-2",
+    "1989-AR-A.2.29.3-3",
+    "1989-RV-A.2.29.4-1",
+    "1989-RV-A.2.29.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-NUMVAL-18",
+   "lines": [
+    644
+   ],
+   "feature": "NUMVAL Function",
+   "ansi": "See ref. A-58 2.29",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.29.1-p1",
+    "1989-FMT-A.2.29.2",
+    "1989-AR-A.2.29.3-1",
+    "1989-AR-A.2.29.3-2",
+    "1989-AR-A.2.29.3-3",
+    "1989-RV-A.2.29.4-1",
+    "1989-RV-A.2.29.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-NUMVAL-19",
+   "lines": [
+    662
+   ],
+   "feature": "NUMVAL Function",
+   "ansi": "See ref. A-58 2.29",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.29.1-p1",
+    "1989-FMT-A.2.29.2",
+    "1989-AR-A.2.29.3-1",
+    "1989-AR-A.2.29.3-2",
+    "1989-AR-A.2.29.3-3",
+    "1989-RV-A.2.29.4-1",
+    "1989-RV-A.2.29.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "F-NUMVAL-20",
+   "lines": [
+    681
+   ],
+   "feature": "NUMVAL Function",
+   "ansi": "See ref. A-58 2.29",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1989-GR-A.2.29.1-p1",
+    "1989-FMT-A.2.29.2",
+    "1989-AR-A.2.29.3-1",
+    "1989-AR-A.2.29.3-2",
+    "1989-AR-A.2.29.3-3",
+    "1989-RV-A.2.29.4-1",
+    "1989-RV-A.2.29.4-2"
+   ],
+   "literal-agrees": true,
+   "basis": "mechanical"
+  }
+ ]
+}

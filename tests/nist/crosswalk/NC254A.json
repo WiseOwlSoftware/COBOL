@@ -1,0 +1,141 @@
+{
+ "program": "NC254A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "NEXT-TEST-1",
+   "lines": [
+    540
+   ],
+   "feature": "",
+   "ansi": "V1-89 6.15.4 GR2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VI.6.15.4-2"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SWH-TEST-GF-1",
+   "lines": [
+    567
+   ],
+   "feature": "SWITCH-STATUS",
+   "ansi": "V1-13 4.5.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.4.5.2"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SWH-TEST-GF-2",
+   "lines": [
+    581
+   ],
+   "feature": "SWITCH-STATUS",
+   "ansi": "V1-13 4.5.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.4.5.2"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SWH-TEST-GF-3",
+   "lines": [
+    595
+   ],
+   "feature": "SWITCH-STATUS",
+   "ansi": "V1-13 4.5.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.4.5.2"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SWH-TEST-GF-4",
+   "lines": [
+    609
+   ],
+   "feature": "SWITCH-STATUS",
+   "ansi": "V1-13 4.5.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.4.5.2"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SWH-TEST-5",
+   "lines": [
+    623
+   ],
+   "feature": "SWITCH-STATUS",
+   "ansi": "V1-13 4.5.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.4.5.2"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SWH-TEST-6",
+   "lines": [
+    637
+   ],
+   "feature": "SWITCH-STATUS",
+   "ansi": "V1-13 4.5.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.4.5.2"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SWH-TEST-7",
+   "lines": [
+    651
+   ],
+   "feature": "SWITCH-STATUS",
+   "ansi": "V1-13 4.5.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.4.5.2"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SWH-TEST-8",
+   "lines": [
+    665
+   ],
+   "feature": "SWITCH-STATUS",
+   "ansi": "V1-13 4.5.2",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-FMT-VI.4.5.2"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  }
+ ]
+}

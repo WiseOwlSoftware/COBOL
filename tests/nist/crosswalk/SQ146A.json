@@ -1,0 +1,17 @@
+{
+ "program": "SQ146A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "CLOSE-TEST-02",
+   "lines": [
+    490
+   ],
+   "feature": "CLOSE A CLOSED FILE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

@@ -1,0 +1,76 @@
+{
+ "program": "NC114M",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "ALPHA-ED-TEST-4",
+   "lines": [
+    369
+   ],
+   "feature": "B AS EDIT CHARACTER",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "ALPHA-ED-TEST-5",
+   "lines": [
+    385
+   ],
+   "feature": "/ AS EDIT CHARACTER",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NUM-EDIT-TEST-6",
+   "lines": [
+    400
+   ],
+   "feature": "/ AS EDIT CHARACTER",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MOVE-TEST-16",
+   "lines": [
+    417
+   ],
+   "feature": "STRIP MINUS SIGN",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MOVE-TEST-17",
+   "lines": [
+    433
+   ],
+   "feature": "/ AND B EDITS",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-NUM-TEST-1",
+   "lines": [
+    452
+   ],
+   "feature": "SEQUENCE NUMBER AREA",
+   "ansi": "IV-44  7.2.1",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-SR-IV.7.2.1-p1"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  }
+ ]
+}

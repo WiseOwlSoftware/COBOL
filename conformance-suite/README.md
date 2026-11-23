@@ -19,6 +19,7 @@ PB3160, PB4614); this folder is built slice by slice from its §13.
 | `harness/reformat.py` | Converts a free-form test (and the library text it copies) to fixed form in place, in the 1985 layout, refusing what it cannot convert with certainty: a test that must witness a row before 2002 is fixed form (kb/Work PB5754; design §3.6) |
 | `harness/obligations.py` | The 1985 (and each held edition's) catalog rows by what witnesses them: a cleared test, an uncleared accepted test, a refusal only, or none; `--repair-headers` names an omitted row in its test's header |
 | `harness/measurements.py` | Records a second compiler's verdicts over the tests an edition's catalog rows name, with each failure's bucket and cause, and counts what is still unrecorded or unclassified |
+| `harness/crosswalk.py` | The NIST-85 crosswalk: each CCVS85 unit (a paragraph-name test or an expected flag) and its mechanical map to the 1985 catalog's rows through NIST's own ANSI references, written to `tests/nist/crosswalk/<program>.json`; `--check` audits the files, and `unmet(85)` is the status line's NIST term |
 | `harness/suite_status.py` | One edition's status line: the rows, points, NIST, second-compiler and transcription terms, `COMPLETE` only when all are zero |
 | `harness/config.py` | The formats of the adapters, profiles and baselines, and their one loader |
 | `harness/normalization-fixture.json` | The output normalization's one fixture, which both runners' normalizations are held to |
@@ -114,6 +115,7 @@ python conformance-suite/harness/generate.py --self-test
 ```
 python conformance-suite/harness/suite_status.py --edition 85    # how far the 85 suite is from complete, term by term
 python conformance-suite/harness/obligations.py                  # the 85 catalog's rows by witness kind
+python conformance-suite/harness/crosswalk.py --check            # the NIST-85 crosswalk files against the programs and the catalog
 python conformance-suite/harness/measurements.py record --compiler gnucobol --edition 85 --version "<cobc --version line>" results.json
 ```
 

@@ -1,0 +1,74 @@
+{
+ "program": "IX217A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "OPN-TEST-GF-01",
+   "lines": [
+    462
+   ],
+   "feature": "OPEN I-O:    05 EXP.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRI-TEST-GF-01",
+   "lines": [
+    487
+   ],
+   "feature": "WRITE (OPT)F 00 EXP.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F1-01",
+   "lines": [
+    546,
+    557
+   ],
+   "feature": "READ (TO VERIFY)",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "OPN-TEST-GF-02",
+   "lines": [
+    573
+   ],
+   "feature": "OPEN EXTEND: 05 EXP.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "WRI-TEST-GF-02",
+   "lines": [
+    598
+   ],
+   "feature": "WRITE (OPT)S 00 EXP.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "READ-TEST-F1-02",
+   "lines": [
+    667,
+    677
+   ],
+   "feature": "READ (TO VERIFY)",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

@@ -1,0 +1,138 @@
+{
+ "program": "ST140A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "SRT-TEST-DEC",
+   "lines": [
+    483
+   ],
+   "feature": "ERROR ON OUTPUT DECL.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "BLD-TEST-001",
+   "lines": [
+    655
+   ],
+   "feature": "CREATE FILE SQ-FS1",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "BLD-TEST-002",
+   "lines": [
+    692
+   ],
+   "feature": "CREATE FILE SQ-FS2",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "BLD-TEST-003",
+   "lines": [
+    729
+   ],
+   "feature": "CREATE FILE SQ-FS3",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MRG-TEST-003",
+   "lines": [
+    762
+   ],
+   "feature": "STAN. COLLATING SEQ.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MRG-TEST-004",
+   "lines": [
+    786
+   ],
+   "feature": "STAN. COLLATING SEQ.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MRG-TEST-005",
+   "lines": [
+    810
+   ],
+   "feature": "STAN. COLLATING SEQ.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MRG-TEST-006",
+   "lines": [
+    834
+   ],
+   "feature": "STAN. COLLATING SEQ.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MRG-TEST-007",
+   "lines": [
+    858
+   ],
+   "feature": "STAN. COLLATING SEQ.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MRG-TEST-008",
+   "lines": [
+    882
+   ],
+   "feature": "STAN. COLLATING SEQ.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MRG-TEST-009",
+   "lines": [
+    900
+   ],
+   "feature": "EOF CHECK SQ-FS4",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "MRG-TEST-010",
+   "lines": [
+    916
+   ],
+   "feature": "NUMER. SEQ. CHECK",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

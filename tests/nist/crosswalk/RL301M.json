@@ -1,0 +1,72 @@
+{
+ "program": "RL301M",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "NON-CONFORMING@18",
+   "lines": [
+    18
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "FILE-CONTROL SELECT TFIL ASSIGN XXXXX021 ORGANIZATION IS RELATIVE",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@20",
+   "lines": [
+    20
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "ACCESS MODE IS RANDOM",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@44",
+   "lines": [
+    44
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "RL301M-READ READ TFIL INVALID KEY PERFORM INV-PARA NOT INVALID KEY PERFORM DONE-PARA",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@49",
+   "lines": [
+    49
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "RL301M-REWRITE REWRITE FREC INVALID KEY PERFORM INV-PARA NOT INVALID KEY PERFORM DONE-PARA",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@54",
+   "lines": [
+    54
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "RL301M-WRITE WRITE FREC INVALID KEY PERFORM INV-PARA NOT INVALID KEY PERFORM DONE-PARA",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NON-CONFORMING@59",
+   "lines": [
+    59
+   ],
+   "flag": "NON-CONFORMING",
+   "statement": "RL301M-DELETE DELETE TFIL INVALID KEY PERFORM INV-PARA NOT INVALID KEY PERFORM DONE-PARA",
+   "disposition": "excluded",
+   "reason": "fips-pub-21-1",
+   "basis": "mechanical"
+  }
+ ]
+}

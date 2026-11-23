@@ -1,0 +1,72 @@
+{
+ "program": "IX218A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "REA-TEST-F1-01",
+   "lines": [
+    464
+   ],
+   "feature": "READ OPTION. 10 EXP.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REA-TEST-GF-02",
+   "lines": [
+    490
+   ],
+   "feature": "NO USE MUST BE EXEC.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "STA-TEST-GF-01",
+   "lines": [
+    515
+   ],
+   "feature": "START OPT.   23 EXP.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "STA-TEST-GF-02",
+   "lines": [
+    541
+   ],
+   "feature": "START NO USE    EXP.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REA-TEST-GF-03",
+   "lines": [
+    566
+   ],
+   "feature": "RANDOM READ  23 EXP.",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "REA-TEST-GF-04",
+   "lines": [
+    592
+   ],
+   "feature": "RANDOM READ (NO USE)",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

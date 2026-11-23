@@ -1,0 +1,225 @@
+{
+ "program": "SQ124A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "SEQ-TEST-OP-01",
+   "lines": [
+    567
+   ],
+   "feature": "OPEN, CREATE FILE",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-TEST-WR-02",
+   "lines": [
+    606
+   ],
+   "feature": "WRITE FIRST RECORD",
+   "ansi": "VII-3, VII-23",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VII.1.3.5-L2.1",
+    "1985-GR-VII.1.3.5-L2.2",
+    "1985-GR-VII.1.3.5-L2.3",
+    "1985-GR-VII.1.3.5-4",
+    "1985-GR-VII.1.3.5-5",
+    "1985-GR-VII.1.3.5-p5",
+    "1985-FMT-VII.3.3.2",
+    "1985-GR-VII.3.3.3-1",
+    "1985-GR-VII.3.3.3-2",
+    "1985-GR-VII.3.3.3-3",
+    "1985-GR-VII.3.3.3-4",
+    "1985-GR-VII.3.3.3-5"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-TEST-CR-03",
+   "lines": [
+    647
+   ],
+   "feature": "CLOSE UNIT, NON-UNIT",
+   "ansi": "VII-3, VII-53,4.7.4(5)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VII.1.3.5-L2.1",
+    "1985-GR-VII.1.3.5-L2.2",
+    "1985-GR-VII.1.3.5-L2.3",
+    "1985-GR-VII.1.3.5-4",
+    "1985-GR-VII.1.3.5-5",
+    "1985-GR-VII.1.3.5-p5",
+    "1985-GR-VII.4.7.4-5"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-GR-VII.4.2.4-5"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-TEST-WR-04",
+   "lines": [
+    688
+   ],
+   "feature": "WRITE SECOND RECORD",
+   "ansi": "VII-3, VII-38,4.2.4(3)F",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VII.1.3.5-L2.1",
+    "1985-GR-VII.1.3.5-L2.2",
+    "1985-GR-VII.1.3.5-L2.3",
+    "1985-GR-VII.1.3.5-4",
+    "1985-GR-VII.1.3.5-5",
+    "1985-GR-VII.1.3.5-p5",
+    "1985-GR-VII.4.2.4-3"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-TEST-CL-05",
+   "lines": [
+    729
+   ],
+   "feature": "CLOSE AFTER CLOSE REEL",
+   "ansi": "VII-3, VII-53,4.7.4(5)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VII.1.3.5-L2.1",
+    "1985-GR-VII.1.3.5-L2.2",
+    "1985-GR-VII.1.3.5-L2.3",
+    "1985-GR-VII.1.3.5-4",
+    "1985-GR-VII.1.3.5-5",
+    "1985-GR-VII.1.3.5-p5",
+    "1985-GR-VII.4.7.4-5"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-GR-VII.4.2.4-5"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-TEST-OP-06",
+   "lines": [
+    771
+   ],
+   "feature": "OPEN FILE FOR INPUT",
+   "ansi": "VII-3, VII-38,4.2.4(4)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VII.1.3.5-L2.1",
+    "1985-GR-VII.1.3.5-L2.2",
+    "1985-GR-VII.1.3.5-L2.3",
+    "1985-GR-VII.1.3.5-4",
+    "1985-GR-VII.1.3.5-5",
+    "1985-GR-VII.1.3.5-p5",
+    "1985-GR-VII.4.2.4-4"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-TEST-CU-07",
+   "lines": [
+    814
+   ],
+   "feature": "CLOSE UNIT, NON-UNIT",
+   "ansi": "VII-3, VII-43,4.3.4(23)",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VII.1.3.5-L2.1",
+    "1985-GR-VII.1.3.5-L2.2",
+    "1985-GR-VII.1.3.5-L2.3",
+    "1985-GR-VII.1.3.5-4",
+    "1985-GR-VII.1.3.5-5",
+    "1985-GR-VII.1.3.5-p5",
+    "1985-GR-VII.4.3.4-23"
+   ],
+   "literal-agrees": false,
+   "by-name": [
+    "1985-GR-VII.4.2.4-1",
+    "1985-GR-VII.4.2.4-p1",
+    "1985-GR-VII.4.2.4-2",
+    "1985-GR-VII.4.2.4-3",
+    "1985-GR-VII.4.2.4-4",
+    "1985-GR-VII.4.2.4-5",
+    "1985-GR-VII.4.2.4-6",
+    "1985-GR-VII.4.2.4-7",
+    "1985-GR-VII.4.2.4-8"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-TEST-RD-08",
+   "lines": [
+    857
+   ],
+   "feature": "READ FIRST RECORD",
+   "ansi": "VII-3, VII-38,4.2.4(3)F",
+   "disposition": "open",
+   "resolution": "ambiguous",
+   "literal": [
+    "1985-GR-VII.1.3.5-L2.1",
+    "1985-GR-VII.1.3.5-L2.2",
+    "1985-GR-VII.1.3.5-L2.3",
+    "1985-GR-VII.1.3.5-4",
+    "1985-GR-VII.1.3.5-5",
+    "1985-GR-VII.1.3.5-p5",
+    "1985-GR-VII.4.2.4-3"
+   ],
+   "literal-agrees": false,
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-TEST-RD-09",
+   "lines": [
+    965
+   ],
+   "feature": "READ SECOND RECORD",
+   "ansi": "VII-46, 4.4.4(11)",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-VII.4.4.4-11"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-TEST-RD-10",
+   "lines": [
+    1073
+   ],
+   "feature": "READ TO GIVE AT END",
+   "ansi": "VII-46, 4.4.4(11)",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-VII.4.4.4-11"
+   ],
+   "basis": "mechanical"
+  },
+  {
+   "unit": "SEQ-TEST-CL-11",
+   "lines": [
+    1159
+   ],
+   "feature": "CLOSE AFTER READING",
+   "ansi": "VII-46, 4.4.4(10)",
+   "disposition": "rows",
+   "rows": [
+    "1985-GR-VII.4.4.4-10"
+   ],
+   "basis": "mechanical"
+  }
+ ]
+}

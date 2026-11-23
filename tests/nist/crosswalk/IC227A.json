@@ -1,0 +1,105 @@
+{
+ "program": "IC227A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "EXT-REC-TEST-01",
+   "lines": [
+    415
+   ],
+   "feature": "EXTERNAL FILE RECORD",
+   "ansi": "X-23 4.5.1",
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "EXT-FILE-TEST-02",
+   "lines": [
+    495
+   ],
+   "feature": "EXTERNAL FILE WRITE",
+   "ansi": "X-23 4.5.1",
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "EXT-FILE-TEST-03",
+   "lines": [
+    559
+   ],
+   "feature": "EXTERNAL FILE WRITE",
+   "ansi": "X-23 4.5.1",
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "EXT-FILE-TEST-04",
+   "lines": [
+    594
+   ],
+   "feature": "EXTERNAL FILE CLOSE",
+   "ansi": "X-23 4.5.1",
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "EXT-FILE-TEST-05",
+   "lines": [
+    646
+   ],
+   "feature": "EXTERNAL FILE OPEN",
+   "ansi": "X-23 4.5.1",
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "EXT-FILE-TEST-06",
+   "lines": [
+    729
+   ],
+   "feature": "EXTERNAL FILE READ",
+   "ansi": "X-23 4.5.1",
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "EXT-FILE-TEST-07",
+   "lines": [
+    780
+   ],
+   "feature": "EXTERNAL FILE READ",
+   "ansi": "X-23 4.5.1",
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "EXT-FILE-TEST-08",
+   "lines": [
+    864
+   ],
+   "feature": "EXTERNAL FILE EOF",
+   "ansi": "X-23 4.5.1",
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "EXT-FILE-TEST-09",
+   "lines": [
+    947
+   ],
+   "feature": "EXTERNAL FILE CLOSE",
+   "ansi": "X-23 4.5.1",
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}

@@ -1,0 +1,39 @@
+{
+ "program": "SQ129A",
+ "edition": "85",
+ "units": [
+  {
+   "unit": "DECL-OPEN-TEST",
+   "lines": [
+    313
+   ],
+   "feature": "",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "NOT-DECL-9",
+   "lines": [
+    330
+   ],
+   "feature": "",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  },
+  {
+   "unit": "OPEN-TEST-01",
+   "lines": [
+    618
+   ],
+   "feature": "OPEN ABSENT FILE INPUT",
+   "ansi": null,
+   "disposition": "open",
+   "resolution": "unmapped",
+   "basis": "mechanical"
+  }
+ ]
+}
