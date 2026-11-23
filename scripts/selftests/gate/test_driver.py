@@ -76,9 +76,12 @@ def case_00_shared_gate_settings_turn_malformed_while_gate(expect):
             return ()
 
         def audit_commands(self, tooling):
+            # The pid is written atomically (a temp file beside the name, then os.replace onto it): QUICK-RED's wait on
+            # the name and this arm's read after the audits stop both see the whole pid (kb/Work PB5131).
             slow = ("import pathlib, subprocess, sys; "
                     "p = subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(3600)']); "
-                    f"pathlib.Path({str(self.mark)!r}).write_text(str(p.pid), encoding='utf-8'); p.wait()")
+                    f"t = pathlib.Path({str(self.mark)!r} + '.tmp'); t.write_text(str(p.pid), encoding='utf-8'); "
+                    f"import os; os.replace(t, {str(self.mark)!r}); p.wait()")
             red = (f"import pathlib, time\nm = pathlib.Path({str(self.mark)!r})\n"
                    "while not m.exists():\n    time.sleep(0.05)\nraise SystemExit(1)")
             return (("SLOW", ["-c", slow]), ("QUICK-RED", ["-c", red]))

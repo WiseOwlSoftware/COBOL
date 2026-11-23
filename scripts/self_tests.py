@@ -1411,8 +1411,11 @@ def fleet_arms(check: Callable[[str, object, object], None]) -> None:
         # The hung one and the one that exits leaving a process behind each start a grandchild that sleeps and records
         # its pid (kb/Work PB5098: the HANG stop and the runner kill the WHOLE tree, an orphan included).
         pids = Path(tempfile.mkdtemp(dir=s))
-        grandchild = ("import subprocess, sys\np = subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(600)'],"
-                      " stdin=subprocess.DEVNULL)\nopen({path!r}, 'w').write(str(p.pid))\n")
+        # The pid is written atomically (a temp file beside it, then os.replace onto the name), so a reader that sees the
+        # name sees the whole pid (kb/Work PB5131: a read between create and write found an empty file).
+        grandchild = ("import os, subprocess, sys\np = subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(600)'],"
+                      " stdin=subprocess.DEVNULL)\nopen({path!r} + '.tmp', 'w').write(str(p.pid))\n"
+                      "os.replace({path!r} + '.tmp', {path!r})\n")
         (root / "scripts" / "test_hang.py").write_text(grandchild.format(path=str(pids / "hang.pid"))
                                                        + "import time\ntime.sleep(60)\n", encoding="utf-8", newline="\n")
         (root / "scripts" / "test_orphan.py").write_text(REAL_CLOCK + grandchild.format(path=str(pids / "orphan.pid")),
@@ -1426,6 +1429,7 @@ def fleet_arms(check: Callable[[str, object, object], None]) -> None:
                 "open('elsewhere/x.txt').read()\n")
         declare = "# SELF-TEST-POPULATION: tree — the arm's walker\n"
         for name, body in (("test_stray.py", "open('elsewhere/x.txt').read()\n"), ("test_walker.py", walk),
+                           ("test_nopid.py", "import sys\nsys.exit(0)\n"),  # exits at once, writing no pid (PB5131)
                            ("test_population.py", declare + walk), ("test_claim.py", declare + "open('data/a.txt').read()\n"),
                            ("test_unkeyed.py", "import subprocess\nsubprocess.run(['git', 'ls-files', '--', "
                                                "':(icase)DATA'], check=True, capture_output=True)\n")):
@@ -1603,10 +1607,19 @@ def fleet_arms(check: Callable[[str, object, object], None]) -> None:
         # The stop above may come before a loaded host has started the grandchild (review R2-1): the whole-tree proof
         # re-runs the hung self-test with a doubled hang limit until its grandchild recorded its pid, so the check
         # never reads a slow start as a surviving tree; no limit on the doubling (no wall clock in a verdict).
-        limit = 1.0
-        while not (pids / "hang.pid").exists():
-            limit *= 2
-            gate(False, [], hang_after_s=limit, which=[found["test_hang.py"]])
+        def pid_written(test, name: str) -> bool:
+            """Re-run `test` with a doubled hang limit until it recorded its pid; False once a rerun has ENDED on its own
+            (any state but HANG: the job's exit observed) without writing it (kb/Work PB5131)."""
+            limit = 1.0
+            while not (pids / name).exists():
+                limit *= 2
+                if gate(False, [], hang_after_s=limit, which=[test])[0].state != HANG and not (pids / name).exists():
+                    return False
+            return True
+        check("arm: the HANG arm's whole-tree proof reruns the hung self-test until it records its pid, and a self-test "
+              "that exits without one is a named FAIL, not an endless rerun (kb/Work PB5131)",
+              (pid_written(found["test_hang.py"], "hang.pid"), pid_written(found["test_nopid.py"], "nopid.pid")),
+              (True, False))
         check("arm: the HANG stop kills the hung self-test's WHOLE tree, its grandchild included (kb/Work PB5098)",
               tree_dead("hang.pid"), True)
         orphan = gate(False, [], which=[found["test_orphan.py"]])
