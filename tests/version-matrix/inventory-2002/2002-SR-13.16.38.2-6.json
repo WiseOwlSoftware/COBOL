@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.38.2-6",
+ "rule-digest": "918656f83909",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#AnalyzeFloatEdited; src/WiseOwl.Cobol.Editions/EditionInfo.cs#MaxFloatEditedSignificandDigits",
+ "test-ref": "conformance:cases/13.16.38@2002-PICTURE-CLAUSE/g2002-pic-float-edited-bounds-accepted; conformance:cases/13.16.38@2002-PICTURE-CLAUSE/g2002-pic-float-edited-significand-32-refused",
+ "notes": "§2002:13.16.38.2 SR6: the digit positions of a numeric-edited item range from 1 through 31. For a floating-point edited item AnalyzeFloatEdited asks EditionInfo.MaxFloatEditedSignificandDigits (31 at COBOL-2002, 36 from 2014); +9(32)E+99 is refused COBOL1658 at --std 2002 and accepted from 2014; 31 significand digits are accepted (PB5712). The fixed-point numeric and numeric-edited arms already refuse 32 digit positions at 2002 (COBOL0801)."
+}

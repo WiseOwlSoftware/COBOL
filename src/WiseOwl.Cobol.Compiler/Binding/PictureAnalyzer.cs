@@ -1358,7 +1358,7 @@ public static class PictureAnalyzer
 /// <c>. ,</c> under DECIMAL-POINT IS COMMA, SR13; kb/Work PB3219) (no floating insertion, no zero suppression with
     /// replacement, no S/V/P/CR/DB/currency; an IS-form EDITING character-1 is simple insertion and admitted, a FOR-form
     /// one is barred by SR12's FOR-phrase rules, kb/Work PB866) — with one point at most (SR12 b)
-    /// and 1..36 digit positions (SR15 — SR14's 31 does not apply). Every symbol of both parts is a character position
+    /// and 1..36 digit positions (SR15 — SR14's 31 does not apply; at COBOL-2002 it is 1..31 and a three-digit exponent, §2002:13.16.38.2 SR6 and §2002:13.16.38.3 GR12, <c>EditionInfo.MaxFloatEditedSignificandDigits</c>). Every symbol of both parts is a character position
     /// (GR14: E, the point, the insertion symbols and the signs are all counted). Returns a numeric-edited PicInfo
     /// with <see cref="PicInfo.IsFloatEdited"/>; Scale and DigitPositions are 0 (a floating-point item's scale is a
     /// runtime property of its value); the recovery shape on a violation (the compile has failed).</summary>
@@ -1390,16 +1390,18 @@ public static class PictureAnalyzer
         bool IsChar1(char c) => editRules is not null && editRules.Any(r => r.SimpleInsertion && char.ToUpperInvariant(r.Char1) == c);
         int e = expanded.IndexOf('E');
         string sig = expanded[..e], exp = expanded[(e + 1)..];
-        // the exponent: '+' then 1..4 '9's, nothing else (§2023:13.18.40.4 GR13b)
+        // the exponent: '+' then 1..4 '9's (1..3 at COBOL-2002), nothing else (§2023:13.18.40.4 GR13b; §2002:13.16.38.3 GR12)
         if (exp.Any(IsChar1))
         {
             Bad("a PICTURE EDITING character-1 may not appear in the exponent — Table 7 gives the exponent part no "
                 + "editing (ISO §2023:13.18.40.5 Table 7: \"None for the exponent part\")");
             return PicInfo.Recovery(expanded.Length);
         }
-        if (exp.Length < 2 || exp[0] != '+' || exp[1..].Any(c => c != '9') || exp.Length - 1 > 4)
+        int maxExponent = edition.Edition.MaxFloatEditedExponentDigits;
+        if (exp.Length < 2 || exp[0] != '+' || exp[1..].Any(c => c != '9') || exp.Length - 1 > maxExponent)
         {
-            Bad("the exponent shall be +9, +99, +999 or +9999 (ISO §2023:13.18.40.4 GR13 b)");
+            Bad($"the exponent shall be '+' and 1 to {maxExponent} nines (+9, +99, +999 or +9(n)) ("
+                + edition.Edition.CiteRule("§2002:13.16.38.3 GR12", "§2023:13.18.40.4 GR13 b", y2002: "§2002:13.16.38.3 GR12", y2014: "§2014:13.18.40.3 GR12") + ")");
             return PicInfo.Recovery(expanded.Length);
         }
         // the significand: an optional leading fixed sign, then Table 10 row E's symbols only
@@ -1439,7 +1441,13 @@ public static class PictureAnalyzer
                 + (decimalPointIsComma ? "; SR13 — the rules for the symbol period apply to the symbol comma)" : ")"));
             return PicInfo.Recovery(expanded.Length);
         }
-        if (digits < 1 || digits > 36) { Bad($"the significand carries {digits} digit position(s) — it shall carry 1 to 36 (ISO §2023:13.18.40.3 SR15)"); return PicInfo.Recovery(expanded.Length); }
+        int maxSignificand = edition.Edition.MaxFloatEditedSignificandDigits;
+        if (digits < 1 || digits > maxSignificand)
+        {
+            Bad($"the significand carries {digits} digit position(s) — it shall carry 1 to {maxSignificand} ("
+                + edition.Edition.CiteRule("§2002:13.16.38.2 SR6", "§2023:13.18.40.3 SR15", y2002: "§2002:13.16.38.2 SR6", y2014: "§2014:13.18.40.2 SR12") + ")");
+            return PicInfo.Recovery(expanded.Length);
+        }
         // ⛔ THE §2023:13.18.60.3 USAGE × PICTURE SCREEN, asked through the ONE function (kb/Work PB646). This arm
         // used to carry its own SR12 half — a hand-written staging of the national form — and NOTHING else, so
         // a floating-point edited picture under USAGE BINARY/COMP/PACKED slipped past SR3 entirely.
