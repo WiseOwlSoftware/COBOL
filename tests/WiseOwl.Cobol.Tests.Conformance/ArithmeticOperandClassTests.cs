@@ -308,6 +308,29 @@ public sealed class ArithmeticOperandClassTests
         else Assert.Contains(contexts, message, StringComparison.Ordinal);
     }
 
+    /// <summary>⛔ NO COBOL1637 MESSAGE AT 85 ATTRIBUTES A CLOSED LIST OF CONTEXTS TO §1985:VI.5.8.3 SR13 (kb/Work PB6088, the
+    /// review finding R1-1). SR13 only requires INDEXED BY and says an index-name is not data; the 1985 message says what the
+    /// formats show, and from COBOL-2002 on §2023:13.18.38.3 SR7 "admits an index-name only" in its list. One statement per
+    /// message site: an arithmetic operand (COMPUTE), INSPECT, and ACCEPT.</summary>
+    [Theory]
+    [InlineData(85, "COMPUTE N = IX + 1.")]
+    [InlineData(2023, "COMPUTE N = IX + 1.")]
+    [InlineData(85, "INSPECT IX TALLYING N FOR ALL \"A\".")]
+    [InlineData(2023, "INSPECT IX TALLYING N FOR ALL \"A\".")]
+    [InlineData(85, "ACCEPT IX.")]
+    [InlineData(2023, "ACCEPT IX.")]
+    public void IndexNameContextMessages_NeverAttributeAClosedListToTheOccursRuleAt85(int edition, string statement)
+    {
+        const string ws = "       01 N PIC 9(4).\n       01 T.\n          05 E PIC X OCCURS 3 TIMES INDEXED BY IX.";
+        string body = "           SET IX TO 2.\n           " + statement;
+        var (ok, errors, _) = EditionHarness.CompileFull(Program(ws, body), edition, permissive: false);
+        Assert.False(ok);
+        string message = Assert.Single(errors, e => e.Contains("COBOL1637", StringComparison.Ordinal));
+        Assert.DoesNotContain("§1985:VI.5.8.3 SR13 admits", message, StringComparison.Ordinal);
+        if (edition == 85) Assert.Contains("the formats of the 1985 standard", message, StringComparison.Ordinal);
+        else Assert.Contains("§2023:13.18.38.3 SR7", message, StringComparison.Ordinal);
+    }
+
     /// <summary>⛔ A PROBE'S PLACE IS NOT A BOUND PLACE (kb/Work PB221). <c>Refs.Probe</c> is a
     /// type-discriminating sniff and is documented as side-effect-free, which means it applies NO position
     /// screen — so a caller that commits the probe's Place into the bound tree silently loses every screen.

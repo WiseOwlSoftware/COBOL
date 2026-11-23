@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.Binding;
 /// through <see cref="EditionInfo.Cite"/>, so a program compiled at <c>--std 85</c> reads the 1985 rule and one compiled
 /// later reads §2023:8.4.3.1.2 and §2023:13.18.38.3 SR7. The ONE place the wordings are written.
 /// <para>The 1985 rule is §1985:VI.5.8.3 SR13: the index-name "not being data, cannot be associated with any data
-/// hierarchy"; the 1985 standard names no closed list of contexts, so the contexts arm cites the same rule.</para>
+/// hierarchy"; the 1985 standard names no closed list of contexts, so the contexts arm cites its formats, not a rule.</para>
 /// </summary>
 internal static class IndexNameRule
 {
@@ -18,9 +18,16 @@ internal static class IndexNameRule
     public static string NotAnIdentifier(this EditionInfo edition) =>
         edition.Cite("§1985:VI.5.8.3 SR13", "§2023:8.4.3.1.2");
 
-    /// <summary>The rule that closes the contexts an index-name may appear in (without the "ISO " lead-in).</summary>
+    /// <summary>The source of the contexts an index-name may appear in (without the "ISO " lead-in): §2023:13.18.38.3 SR7
+    /// closes the list from COBOL-2002 on; the 1985 text gives none (§1985:VI.5.8.3 SR13 only says an index-name is not
+    /// data), so at 85 this is the formats, never a rule claiming a closed list (kb/Work PB6088).</summary>
     public static string Contexts(this EditionInfo edition) =>
-        edition.Cite("§1985:VI.5.8.3 SR13", "§2023:13.18.38.3 SR7");
+        edition.Cite("the formats of the 1985 standard", "§2023:13.18.38.3 SR7");
+
+    /// <summary>The subject-and-verb that opens "... an index-name only as a subscript, ...": the rule that admits it from
+    /// COBOL-2002 on, the formats that show it at 85 (kb/Work PB6088).</summary>
+    public static string AdmitsIndexNameOnly(this EditionInfo edition) =>
+        edition.Cite("the formats of the 1985 standard show an index-name only", $"{edition.Contexts()} admits an index-name only");
 
     /// <summary>The rule that makes a reference-modification leftmost-position and length arithmetic expressions (without the
     /// "ISO " lead-in): §1985:IV.4.3.8.4.3 SR2 at 85, §2023:8.4.3.3.3 SR4 later (kb/Work PB6088). It is not the OCCURS rule
@@ -38,7 +45,7 @@ internal static class IndexNameRule
             $"a reference-modification leftmost-position/length is not one of {edition.Contexts()}'s five contexts (a "
                 + "subscript, PERFORM/SEARCH VARYING, SET, a relation condition)");
 
-    /// <summary>Why an index-name is no operand of an arithmetic expression (without the "ISO " lead-in).</summary>
+    /// <summary>Why an index-name is no operand of an arithmetic expression (without the "ISO " lead-in); the message follows it with <see cref="AdmitsIndexNameOnly"/>.</summary>
     public static string NotArithmetic(this EditionInfo edition) =>
-        edition.Cite("§1985:VI.5.8.3 SR13", "§2023:8.8.1.1 names no index-names; §2023:13.18.38.3 SR7");
+        edition.Cite("§1985:VI.5.8.3 SR13", "§2023:8.8.1.1 names no index-names");
 }

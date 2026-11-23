@@ -9,5 +9,4 @@ Fix: `IndexNameRule` (the one place these wordings are written) gains `Reference
 text is unchanged. Test: `ArithmeticOperandClassTests.IndexNameInARefModBound_CitesTheBoundsRuleOfItsOwnEdition` (85 and 2023);
 the existing `pb170-refmod-index-name` negative already refuses at every edition. Closes no inventory row.
 
-Sibling registered, not fixed: five other COBOL1637 messages print `Contexts()` followed by "admits an index-name only as", which at
-85 attributes a closed list to §1985:VI.5.8.3 SR13 (the root is `IndexNameRule.Contexts`, noted in the PB6088 note).
+Review round 1 (R1-1) fixed the siblings: `IndexNameRule.Contexts` names the 1985 formats at 85 (no closed list is attributed to SR13), `AdmitsIndexNameOnly` carries the verb at the five COBOL1637 sites plus the arithmetic-operand one; test `IndexNameContextMessages_NeverAttributeAClosedListToTheOccursRuleAt85`.
