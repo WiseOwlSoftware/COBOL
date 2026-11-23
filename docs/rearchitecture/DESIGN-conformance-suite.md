@@ -733,7 +733,7 @@ kb/Conformance burn-down, whose ledger page is the owner's (PB2912), so a new se
   NOT APPLICABLE 7, NO VERDICT 14) and, for each FAIL and NO VERDICT, a bucket and a cause. The bucket is mechanical (a
   compile failure's first diagnostic, an output difference's clause folder, a hang, a crash); the cause is the adjudication,
   one of `gnucobol-nonconformance` (with its `§1985:` citation), `non-portable-test`, `wiseowl-expectation-defect`, or
-  `unclassified` until Stage 2 decides it (133 of the 484 are, at this writing: 185 are gnucobol-nonconformance and 166 non-portable-test, kb/Work PB6054). `harness/measurements.py record` writes the file
+  `unclassified` until Stage 2 decides it (211 of the 484 are, at this writing: 108 are gnucobol-nonconformance and 165 non-portable-test, kb/Work PB6054). `harness/measurements.py record` writes the file
   from `run.py`'s `results.json` (keeping a cause already adjudicated for the same bucket) and the cleared tests' verdicts
   into the baseline; `generate.py --check` refuses a measurement naming a test of no population, a failure with no bucket
   or cause, a cause outside the three and a citation off the held text. The 85 run took 1,624 tests from the 2026-11-22
@@ -920,7 +920,7 @@ Revision 4 (kb/Work PB6046) orders the work in stages, COBOL-85 first (decision 
    points from `coverage.py` `unmet(edition)` (PB6050), NIST from `crosswalk.py` `unmet(edition)` (PB6049) and the
    transcription from the ledger's `second_pass` `{pages_swept, findings}` (PB6051). A term whose tool does not exist
    yet prints `UNMEASURED`, never 0, and keeps the line `INCOMPLETE`; a tool that exists and cannot answer fails the line
-   loudly (exit 2). Today: rows 2,961 · points UNMEASURED · NIST UNMEASURED · second compiler 133 · transcription UNMEASURED.
+   loudly (exit 2). Today: rows 2,961 · points UNMEASURED · NIST UNMEASURED · second compiler 211 · transcription UNMEASURED.
 1. **The pilot** (PB3178, re-scoped): one slice of about 100 rows end to end with the real tools; its cost per row, per
    test cleared, per test written and per NIST unit sets the stop rule of every later stage (above twice: redesign).
 2. **Clear the existing tests.** A test clears when the portability lint passes, WiseOwl passes it at 85, its expected
