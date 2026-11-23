@@ -1,4 +1,4 @@
-## PB2656: one numeric image writer, and a zoned decode that reads the image in place
+## Entry 3971 — 2026-11-23 04:18 PST — PB2656: one numeric image writer, and a zoned decode that reads the image in place
 
 **Mechanism.** The R2 performance review (kb/Work PB2656, cluster PB1754) found MOVEHOT's hot loop paying for the
 record-image codec it reaches three times a pass: `FormatImageSendersSign` (into `FormatImage`) for RA-AMT, `FormatImage`
@@ -39,3 +39,4 @@ is a structural guard, not a wall-clock limit. Its image vectors are computed fr
 `§2023:14.9.25.4 GR6d.2.b`, the rule `cite.py --check` resolves the text to.
 
 No inventory row (behavior-neutral restructuring). No goldens: no COBOL-visible behavior changed.
+
