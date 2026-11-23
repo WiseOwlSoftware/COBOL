@@ -1,0 +1,4 @@
+## Entry 3977 — 2026-11-23 05:15 PST — RV-15.84.4-1's notes no longer carry PB3321's branch history or a retired mark for a golden main never had
+
+PB6109. The row's notes ended with a sentence narrating why PB3321's review kept the band at 2014,2023 and a `retired-witness:` mark for `pb3321-sqrt-standard-arithmetic-2002`, a golden added and deleted on that branch. Re-probe on this tree: the note text was still there and the file does not exist. I re-recorded the row through `record_verdicts.py` with the notes reduced to the PB116 landing text plus a pointer to `kb/Work/PB3321.md` for the band decision. Verdict, band and witnesses are unchanged: GAP 2 -> 2, `audit_witness_loss.py --check` GREEN with 0 retired. Sibling check: the other PB3321 rows carrying marks retire `CorpusRunnerTests.EnabledNegativeCase_RejectsWithItsDiagnostic` and `ReferenceResolver.WrapIfOdoGroup`, symbols that existed on main; not touched. No code, so no golden.
+
