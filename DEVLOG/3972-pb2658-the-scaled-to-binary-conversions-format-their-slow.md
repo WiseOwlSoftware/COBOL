@@ -1,4 +1,4 @@
-## PB2658: the scaled-to-binary conversions format their slow-path text on the stack
+## Entry 3972 — 2026-11-23 04:23 PST — PB2658: the scaled-to-binary conversions format their slow-path text on the stack
 
 kb/Work PB2658 (R2 runtime-values-2 performance lead, cluster PB1754) said `CobolFloat.ScaledToDouble` and
 `ScaledToSingle` build three strings before the parse on their slow path. The note asked for span-based parsing, kept
@@ -34,3 +34,4 @@ the fast path, scale 0 and the parse path.
 
 **Neutrality.** The change touches only the runtime. No emitted C# changes, and no inventory row closes
 (`closes_rows: []`, with its reason).
+
