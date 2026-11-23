@@ -4607,7 +4607,7 @@ public static class DiagnosticCatalog
         + "TRAILING (§2023:14.9.22.2 prints only CHARACTERS / ALL / LEADING in a tallying-phrase and CHARACTERS / "
         + "ALL / LEADING / FIRST in a replacing-phrase), SEARCH or SEARCH ALL with a NOT AT END phrase "
         + "(§2023:14.9.37.2 prints AT END alone), a KEY phrase or a second WHEN phrase on SEARCH ALL (§2023:14.9.37.2 "
-        + "Format 2 prints one WHEN and no KEY phrase), NEXT SENTENCE anywhere but the whole of an IF Format-2 "
+        + "Format 2 prints one WHEN and no KEY phrase), a SEARCH or SEARCH ALL that ends before any WHEN phrase (§2023:14.9.37.2 prints the WHEN phrase unbracketed), a second receiving item after MOVE, ADD or SUBTRACT CORRESPONDING (§2023:14.9.25.2 Format 2, §2023:14.9.2.2 and §2023:14.9.44.2 Format 3 print one), NEXT SENTENCE anywhere but the whole of an IF Format-2 "
         + "THEN/ELSE phrase or a SEARCH WHEN phrase (§2023:14.9.19.2, §2023:14.9.37.2), or the ENTRY statement (ISO/IEC 1989 defines none). Refused at "
         + "every edition and every strictness: §2023:4.2.2 makes a general format the definition of what may be "
         + "written, and this implementation declares no vendor dialect under which an extension could be "
@@ -4615,7 +4615,7 @@ public static class DiagnosticCatalog
         + "a reference-modified INSPECT … REPLACING ALL over the trailing span, and SEARCH … NOT AT END "
         + "becomes a WHEN branch.",
         "ISO §2023:4.2.2",
-        Rule1985: "§1985:I.1.5.2.5.2 / §1985:IV.2.1 / §1985:IV.4.3.8.1 / §1985:VI.4.5.3 SR2 / §1985:VI.6.10.2 / §1985:VI.6.16.2 / §1985:VI.6.18.2 / §1985:VI.6.22.2 / §1985:VI.6.23.2 / §1985:VI.6.5.2 / §1985:VII.4.7.2");
+        Rule1985: "§1985:I.1.5.2.5.2 / §1985:IV.2.1 / §1985:IV.4.3.8.1 / §1985:VI.4.5.3 SR2 / §1985:VI.6.10.2 / §1985:VI.6.16.2 / §1985:VI.6.18.2 / §1985:VI.6.19.2 / §1985:VI.6.22.2 / §1985:VI.6.23.2 / §1985:VI.6.26.2 / §1985:VI.6.5.2 / §1985:VI.6.6.2 / §1985:VII.4.7.2");
     // ── The ASSIGN … USING operand screens (kb/Work PB324): §2023:12.4.5.2 SR7's two halves, checked post-build once
     // the data forest is indexed. Two codes, not one, because the halves have different causes and different
     // repairs — a wrong category is a declaration to change, a subordinate operand is a whole design to move. ──
