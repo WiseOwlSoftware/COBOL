@@ -278,6 +278,10 @@
       "reason": "its name operand is the parser context, resolved through the symbol table's compilation-group tier (SymbolTable.ClassNames; step 6b, the OO names, converted it from a string); its strings word a diagnostic (a site, a code, a rule citation)"
     },
     {
+      "member": "WiseOwl.Cobol.Binding.PictureComposition.Validate(string, string, char, System.Collections.Generic.IReadOnlySet<char>, System.Collections.Generic.IReadOnlySet<char>, bool, bool, WiseOwl.Cobol.Binding.EditionContext, string)",
+      "reason": "its string is the text of a literal, a PICTURE character-string or a format string, which names nothing"
+    },
+    {
       "member": "WiseOwl.Cobol.Binding.PictureAnalyzer.Analyze(string, WiseOwl.Cobol.Binding.Model.Usage, WiseOwl.Cobol.Binding.EditionContext, string, WiseOwl.Cobol.Binding.Model.SignSpec?, char, bool, bool, System.Collections.Generic.IReadOnlyList<WiseOwl.Cobol.Binding.EditingPhraseSpec>?, System.Collections.Generic.IReadOnlyDictionary<char, WiseOwl.Cobol.Binding.Model.CurrencyDefinition>?, WiseOwl.Cobol.Binding.Model.LocaleEditSpec?, bool)",
       "reason": "its string is the text of a literal, a PICTURE character-string or a format string, which names nothing"
     },

@@ -55,8 +55,10 @@ public sealed class NameTableOwnershipDriftTests
     /// The comparisons, remainder slice 4: 91 -> 92, <c>LinkageBinder.CheckExternalizedNameUniqueness</c>'s comparer, which compares
     /// the externalized names of EXTERNAL subjects as the run-unit store keys them (EXTERNAL), left the baseline. Remainder slice 5,
     /// review round 1: 128 -> 129, <c>SymbolTable.UnitNames.FunctionsNamed</c>, the group tier's keyed answer the repository's word
-    /// search now reads in place of a linear scan with a per-unit name equality.)</summary>
-    private const int StringMembersCeiling = 129;
+    /// search now reads in place of a linear scan with a per-unit name equality. kb/Work PB3221: 129 -> 130,
+    /// <c>PictureComposition.Validate</c> returns the <c>PictureShape</c> it resolves where it returned a bool; its strings are the
+    /// PICTURE character-string, its expansion and the diagnostic's site, as <c>PictureAnalyzer.Analyze</c>'s are.)</summary>
+    private const int StringMembersCeiling = 130;
     private const int ComparisonsCeiling = 92;
 
     /// <summary>Where every run writes its findings, one per line.</summary>
