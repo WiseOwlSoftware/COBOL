@@ -1,4 +1,4 @@
-## PB1754 module-topology group (waves 20262139 D, 20262147 B): --suppress ships, a refused UDF argument reports once, MODULE-NAME's keyword is one type, every SR3 walk projects SubscriptLevels, the text runtime hands out ImmutableArray, STANDARD-COMPARE resolves once, the operand-evaluation window and the procedure division header each have one owner
+## Entry 3968 — 2026-11-23 03:28 PST — PB1754 module-topology group (waves 20262139 D, 20262147 B): --suppress ships, a refused UDF argument reports once, MODULE-NAME's keyword is one type, every SR3 walk projects SubscriptLevels, the text runtime hands out ImmutableArray, STANDARD-COMPARE resolves once, the operand-evaluation window and the procedure division header each have one owner
 
 Group D of wave 20262139 held eleven notes on the module-topology root. Five mechanisms landed on this branch, one was re-probed and
 partly discharged, and five are left for a fresh implementer (the group is several mechanisms, not one).
@@ -65,3 +65,4 @@ rows re-sited. `compare_oracle --base aed6a7e6ef`: IDENTICAL, 23455 cases.
 
 **Left for the next implementer:** PB2746 (the variable-length group carrier written twice, emitted and runtime), PB3230 (probe
 purity as ambient state on ReferenceResolver), and the remainders of PB2763, PB3227 and PB2744 in their addenda.
+
