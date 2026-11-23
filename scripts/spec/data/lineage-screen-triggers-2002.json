@@ -416,6 +416,12 @@
    ],
    "why": "the PICTURE clause, §2002:13.16.38, whose floating-point exponent (GR12) is three digits and whose digit positions (SR6) are 1 through 31 at 2002 (kb/Work PB5712, VCR row 7.119)"
   },
+  "constant-length-subscripts-are-literals": {
+   "sections": [
+    "13.9"
+   ],
+   "why": "the constant entry, §2002:13.9, whose SR3 says only that data-name-1 and data-name-2 may be qualified, so a subscript of the LENGTH OF / BYTE-LENGTH OF operand is an ordinary one at 2002 (kb/Work PB5709, VCR row 7.121)"
+  },
   "implied-dollar-currency-clause": {
    "sections": [
     "12.2.6"
