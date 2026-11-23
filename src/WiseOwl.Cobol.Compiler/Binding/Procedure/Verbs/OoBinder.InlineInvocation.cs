@@ -51,7 +51,7 @@ internal readonly record struct InvocationArg(
     /// inner one, so each repetition is <c>[BY phrase] operand</c>, and an argument written without a phrase takes its
     /// mode from its formal (§2023:14.9.23.3 SR14, §2023:14.9.23.4 GR6): in <c>USING BY CONTENT G N</c>, N goes BY
     /// REFERENCE to a BY REFERENCE formal. CALL's carry-over, §2023:14.9.4.4 GR5, is a Format 1 rule with no INVOKE twin
-    /// (CallBinder.CarriedModeAfter), so never thread a carried mode through this reader.</para></summary>
+    /// (CallArgumentModes.CarriedAfter), so never thread a carried mode through this reader.</para></summary>
     public static InvocationArg OfInvokeArgument(Core.InvokeArgumentContext a)
     {
         bool keywordLess = a.VALUE() is null && a.REFERENCE() is null && a.CONTENT() is null;
