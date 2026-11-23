@@ -33,7 +33,7 @@ public sealed record OoFormal(DataItem Item, int Position, string ParamName, boo
     /// <summary>The CLR name of the per-activation data-address pointer an AREA formal's class is described over
     /// (<see cref="IsArea"/>): a member of the class, re-seeded at each activation of the method to the argument's area,
     /// Uid-keyed as the program arm's carrier member is.</summary>
-    public string AreaPointerClrName => $"__lnk{Item.Uid}";
+    public string AreaPointerClrName => FormalCarrier.AreaPointerName(Item);
 
     /// <summary>The C# name of the formal's AREA parameter (<c>CellPointer?</c>): the cell area its argument occupies,
     /// or null — positional, outside every COBOL-word family, like <see cref="OmittedFlag"/>.</summary>
@@ -42,7 +42,7 @@ public sealed record OoFormal(DataItem Item, int Position, string ParamName, boo
     /// <summary>True for an AREA formal: its class was claimed onto a cell whose implicit data-address pointer IS
     /// <see cref="AreaPointerClrName"/> (<c>PtrBindBasedAndAddressablesPass</c>), so the binder and the emitter
     /// cannot disagree about which formals are areas.</summary>
-    public bool IsArea => !CarrierResident && Item.Class?.BasedPointerField == AreaPointerClrName;
+    public bool IsArea => FormalCarrier.IsAreaFormal(Item, CarrierResident);
 
     /// <summary>The C# name of the formal's omitted-presence parameter — the METHOD arm of the one presence fact
     /// (<see cref="OmittedProbe.MethodFlag"/>; kb/Work PB757). EVERY formal carries one, not only an OPTIONAL

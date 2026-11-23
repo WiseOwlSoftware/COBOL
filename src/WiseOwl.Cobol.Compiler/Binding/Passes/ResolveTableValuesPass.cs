@@ -126,17 +126,11 @@ internal sealed class ResolveTableValuesPass : IBindPass
     /// case of a dynamic-capacity table, the expected number of occurrences, specified by its corresponding
     /// OCCURS clause" — <see cref="DataItem.Occurs"/> for a fixed or occurs-depending table (§2023:8.5.1.8 allocates
     /// the maximum), the OCCURS TO capacity for a dynamic one, and null when a dynamic table declares none.</summary>
-    private static List<TableValueDim> OccursChainOf(DataItem item)
-    {
-        var dims = new List<TableValueDim>();
-        for (DataItem? n = item; n is not null; n = n.Parent)
-        {
-            if (!n.IsTable) continue;
-            dims.Add(new TableValueDim(n, n.IsDynamicTable ? n.OccursSpec?.ExpectedMax : n.Occurs, n.IsDynamicTable));
-        }
-        dims.Reverse();
-        return dims;
-    }
+    /// <para>The levels are SR3's own (<see cref="DataItem.SubscriptLevels"/>, the one walk, kb/Work PB877, PB3217): SR20 states the
+    /// dimension order as "the same order as a subscripted reference to the subject of the entry would be specified".</para>
+    private static List<TableValueDim> OccursChainOf(DataItem item) =>
+        [.. item.SubscriptLevels().Select(n =>
+            new TableValueDim(n, n.IsDynamicTable ? n.OccursSpec?.ExpectedMax : n.Occurs, n.IsDynamicTable))];
 
     /// <summary>True when <paramref name="item"/> lies inside a TYPE DECLARATION (ISO §2023:13.18.58) — a template
     /// that allocates no storage and has no composed OCCURS chain. See <see cref="Run"/>.</summary>

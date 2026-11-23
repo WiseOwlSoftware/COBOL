@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Collections.Immutable;
 using System.Globalization;
 
 namespace WiseOwl.Cobol.Runtime.Globalization;
@@ -40,7 +41,7 @@ public sealed class MonetaryFacts
         // grouping at all.
         int[] sizes = nf.CurrencyGroupSizes;
         GroupStops = sizes.Length > 0 && sizes[^1] == 0;
-        GroupSizes = GroupStops ? sizes[..^1] : sizes;
+        GroupSizes = GroupStops ? [.. sizes[..^1]] : [.. sizes];
         FracDigits = nf.CurrencyDecimalDigits;
         PositiveSign = LocaleFacts.NormalizeLocaleText(nf.PositiveSign);
         NegativeSign = LocaleFacts.NormalizeLocaleText(nf.NegativeSign);
@@ -72,7 +73,7 @@ public sealed class MonetaryFacts
 
     /// <summary>POSIX <c>mon_grouping</c> as group sizes applied RIGHT-TO-LEFT from the decimal delimiter; the
     /// LAST element repeats unless <see cref="GroupStops"/>. Empty = no grouping.</summary>
-    public int[] GroupSizes { get; }
+    public ImmutableArray<int> GroupSizes { get; }
 
     /// <summary>True when the size list terminates (POSIX CHAR_MAX; .NET trailing 0): digits left of the listed
     /// groups are NOT grouped further.</summary>

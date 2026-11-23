@@ -88,42 +88,44 @@ def normalize(doc: dict, name: str, log: list[str], schema: Schema) -> dict:
             notes = f"{notes} EVIDENCE: {ev}".strip() if notes else f"EVIDENCE: {ev}"
             log.append(f"  {name}[{i}] {rec.get('rule-id','?')}: folded `evidence` into notes")
 
-        refs, dropped = [], []
+        refs, ref_notes = [], []
         prev_class: str | None = None            # for a bare `#Method` continuation — see below
-        # Both lists are split and joined by the schema's own separators (`Schema.test_ref_sep`, `code_location_sep`),
-        # never a literal of this file's (kb/Work PB3210): the schema is the one home of the test-ref form table.
-        for part in (rec.get("test-ref") or "").split(schema.test_ref_sep.strip()):
+        # Both lists are split by the schema's one splitter (`Schema.split`: on the stripped separator, each part
+        # stripped, empties dropped) and joined by its separators, never a literal or a split of this file's (kb/Work
+        # PB3210, PB6098; DESIGN-architecture-review §8.2 rule 7): the schema is the one home of the test-ref form table.
+        for part in schema.split(rec.get("test-ref") or "", schema.test_ref_sep):
             # ⚠ A BARE `#Method` INHERITS THE PRECEDING REF'S CLASS. Agents write
             # `tests/.../XTests.cs#A; #B` meaning two methods of ONE class, and dropping the second loses a
             # real reference. The inference is safe because it is CHECKED: the battery gate
             # SpecTraceabilityInventoryDriftTests resolves every test-ref against the working tree, so a wrong
             # guess fails loudly instead of closing a row on a test that does not exist.
-            stripped = part.strip()
-            if stripped.startswith("#") and prev_class:
-                part = f"{prev_class}.{stripped[1:].split()[0]}"
-                log.append(f"  {name}[{i}] {rec.get('rule-id','?')}: bare {stripped!r} -> {part!r} "
+            # A remark after the method stays on the ref, so normalize_ref moves it to `notes` like any ref's.
+            method, _, remark = part[1:].strip().partition(" ")
+            if part.startswith("#") and method and prev_class:
+                inherited = f"{prev_class}.{method} {remark}".rstrip()
+                log.append(f"  {name}[{i}] {rec.get('rule-id','?')}: bare {part!r} -> {inherited!r} "
                            f"(class inherited from the preceding ref)")
-            canon, why = normalize_ref(part, schema)
+                part = inherited
+            canon, note = normalize_ref(part, schema)
             if canon and ":" in canon:
                 prev_class = canon.rsplit(".", 1)[0]
             if canon:
-                if canon != part.strip():
-                    log.append(f"  {name}[{i}] {rec.get('rule-id','?')}: test-ref {part.strip()!r} -> {canon!r}")
+                if canon != part:
+                    log.append(f"  {name}[{i}] {rec.get('rule-id','?')}: test-ref {part!r} -> {canon!r}")
                 refs.append(canon)
-            elif why:
-                dropped.append(why)
-                log.append(f"  {name}[{i}] {rec.get('rule-id','?')}: {why}")
+            # A kept ref's commentary and a dropped ref's reason both go to `notes` (normalize_ref's contract): a kept
+            # ref's commentary was once discarded here, losing the remark its writer attached (kb/Work PB6098).
+            if note:
+                ref_notes.append(note)
+                log.append(f"  {name}[{i}] {rec.get('rule-id','?')}: {note}")
         rec["test-ref"] = schema.test_ref_sep.join(refs)
-        if dropped:
-            notes = f"{notes} [{'; '.join(dropped)}]".strip()
+        if ref_notes:
+            notes = f"{notes} [{'; '.join(ref_notes)}]".strip()
 
         # A canonical code-location is `path[#Symbol]`, joined by the schema's separator — it never contains a space,
         # so the same commentary-stripping rule applies as for test-ref ("…#IntrinsicCatalog (the MAX row)").
         locs, loc_notes = [], []
-        for part in (rec.get("code-location") or "").split(schema.code_location_sep.strip()):
-            part = part.strip()
-            if not part:
-                continue
+        for part in schema.split(rec.get("code-location") or "", schema.code_location_sep):
             head, _, tail = part.partition(" ")
             if tail.strip():
                 loc_notes.append(f"code-location note: {tail.strip()}")

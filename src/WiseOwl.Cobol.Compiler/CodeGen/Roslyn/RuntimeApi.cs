@@ -3423,9 +3423,10 @@ internal static class RuntimeApi
         $"{nameof(ActivationStack)}.{nameof(ActivationStack.RequireForMethod)}({methodLiteral}, {classLiteral})";
 
 
-    /// <summary>FUNCTION MODULE-NAME's runtime read (§2023:15.65) — <c>CobolModule.Name(kind)</c>.</summary>
-    public static string ModuleNameFn(int kind) =>
-        $"{nameof(CobolModule)}.{nameof(CobolModule.Name)}({kind})";
+    /// <summary>FUNCTION MODULE-NAME's runtime read (§2023:15.65) — <c>CobolModule.Name(ModuleNameKeyword.X)</c>, the member named
+    /// (kb/Work PB2742).</summary>
+    public static string ModuleNameFn(ModuleNameKeyword keyword) =>
+        $"{nameof(CobolModule)}.{nameof(CobolModule.Name)}({nameof(ModuleNameKeyword)}.{keyword})";
 
     /// <summary>The SDIDI lane's subsidiary quotient (§2023:14.9.12.4 GR6c, kb/Work PB3017, PB3975) - the SDIDI quotient truncated
     /// at the GIVING receiver's scale.</summary>

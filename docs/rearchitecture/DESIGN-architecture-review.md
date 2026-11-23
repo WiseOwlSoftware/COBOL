@@ -968,11 +968,22 @@ The rules (each a drift assertion, listed with the measure that shows today's di
    so these counts stop being text scans, and `file_census_notes.py` files their findings like the others (rules 2 and
    3 have no notes until it does); the drift assertions read the newest record, as `ArchCensusDriftTests` does.
 7. **A schema-owned vocabulary has no hand-kept copy in `scripts/`.** The inventory schema
-   (`tests/version-matrix/inventory-schema.json`) owns the verdicts and their `resolves` flags, the test-ref forms and
-   both list separators; a script reads them through `inventory_schema.load_schema()` (`Schema.resolving`,
-   `Schema.defective`, `Schema.test_ref_forms`, `Schema.test_ref_sep`, `Schema.code_location_sep`), never by retyping
-   them or by a second parse of the JSON (kb/Work PB3206, PB3210). Each reader's self-test plants a schema with a new
-   entry and shows it carried through (`scripts/selftests/spec/normalize_batch/`).
+   (`tests/version-matrix/inventory-schema.json`) owns the verdicts and their `resolves` flags, the test-ref forms, the
+   list separators and the retired-witness mark; a script reads them through `inventory_schema.load_schema()`
+   (`Schema.resolving`, `Schema.defective`, `Schema.test_ref_forms`, `Schema.test_ref_sep`, `Schema.code_location_sep`,
+   `Schema.editions_sep`) and the module's constants (`RETIRED_WITNESS_MARK`), splits a list field with `Schema.split`,
+   and takes the raw entries (to plant in a self-test, or a history commit's) from `inventory_schema.raw_schema(tree)`,
+   the one parse of the file; never by retyping them, by a second parse of the JSON or by a hand split on a separator
+   (kb/Work PB3206, PB3210, PB6098). The drift assertion is `scripts/spec/schema_readers.py --check`, run over the tree
+   by its self-test (`scripts/selftests/spec/schema_readers/`, every gate of a change that touches a script, and CI):
+   outside `inventory_schema.py` no live Python file names the schema file as a path, parses it, or hands a schema
+   separator to `str.split`. Measured at PB6098: 11 findings in 6 scripts (`rename_diagnostic_prefix.py`'s parse of the
+   mark, `normalize_batch.py`'s two inline splits, the conformance generator's four editions splits, `session_probe.py`'s
+   probe of the file, `inventory_view.py`'s and `audit_witness_loss.py`'s parses), plus 11 parses through the former
+   `SCHEMA_PATH` constant (deleted) or `docchecks/register.py`'s alias of the path, which the scan, reading one call at a
+   time, does not see (its named residue); 0 of either after it. The form table's reader,
+   `normalize_batch.py`, also plants a schema with a new form and a new separator and shows them carried through
+   (`scripts/selftests/spec/normalize_batch/`).
 
 **Names: what changes, what does not, and the one owner question.**
 - *Project and assembly names do not change.* `WiseOwl.Cobol.{Editions,Frontend,Compiler,Runtime,Cli}` and the
@@ -1211,7 +1222,9 @@ which returns and removes the entries after the mark in registration order, plus
 proved they need: `InsertAt(position, …)`, the evaluation-order placement a freeze makes ahead of a later operand's
 entries (`SendingValueTemp.Positioned`, `StatementBinder.FreezeOdoExtentBeforeRefMod`; §2023:14.6.4), and `Since(mark)`,
 the read of an operand's entries without taking them (the reference resolver's enclosing-occurrence capture); it holds
-`PendingPreOps` and `PropertyOps`, the former `OoPendingPropertyOps`); and a **scope cursor** (`Cursor<T>`:
+`PendingPreOps` and `PropertyOps`, the former `OoPendingPropertyOps`, and the window protocol over the two, mark on
+entry, drain the suffix, stamp each step an operand evaluation, hoist it or attach it per evaluation, has ONE owner,
+`OperandEvaluationWindow` (`StatementBinder.Window`; kb/Work PB3223), never one of its four producers); and a **scope cursor** (`Cursor<T>`:
 `Enter(value)` returns the restoring scope, and `Advance(value)` moves the cursor inside the open scope, which the
 operand-evaluation count needs as the statement drains its steps; it holds `OperandEvaluations`, entered at zero per
 statement, and `ActiveMethodScope`). It is held per unit binder (`DataBinder.Procedure`), not on `BindSession`: the
@@ -2097,17 +2110,21 @@ unknown set meets its subsystem"): the group is named UNPARTITIONED and holds no
 notes' site blocks. No partition removes every conflict (kb/Work PB3640: a declared set is a prediction), so a conflict
 at the landing is repaired by a conflict finisher (MANDATORY-PRACTICES L12).
 
-**The planner's set is the ADMISSION estimate; the landing check is the GUARANTEE** (PB2118 Drafts 9–10). Three refuter
-rounds each found a new hole in the computed set (hand lists, then the index's blind spots, then its staleness), so a
-remaining miss must stop a landing, never land silently. `scripts/orchestrator/landing_check.py` runs in
+**The planner's set is the ADMISSION estimate; git's merge judges a conflict, and the landing check names it** (PB2118
+Drafts 9–10, kb/Work PB4452). Three refuter
+rounds each found a new hole in the computed set (hand lists, then the index's blind spots, then its staleness); since
+FIRST READY LANDS (owner 2026-11-02, kb/Work PB4452: "Non overlapping edits to the same file typically will merge without
+conflict") a remaining miss is git's merge to judge, and the check stops a landing only for a path no landing carries
+(`coord.NEVER_WORK`, above all the harness's tracked `.claude/settings.local.json`) or a public-API baseline that lists a
+symbol twice (RS0025, kb/Work PB3694). `scripts/orchestrator/landing_check.py` runs in
 `enqueue.py land` (its `checks` step), the one way a commit reaches `main`, before a CI run is spent. It reads the notes a landing
 WORKS ON (the ids leading its commit subjects, ranges expanded, and the notes whose `status` it changes; a commit that
 only mentions a note does not work on it) and compares the landing's ACTUAL diff (`git diff --name-only --no-renames
 origin/main...<rev>`: a moved file counts at its old path too, and the planner's admission reads diffs the same way,
 through one reader, `inflight.changed_files`) with every other in-flight branch's actual diff and every dispatched
 group's declared set, started or not, until its notes are terminal or its report answers it (`inflight_file_sets`;
-a returned group is read through its branch, kb/Work PB2795): a shared file stops it only when it is R3 work on either
-side and the two EDITS MEET, a member of one matching a member of the other (`inflight.hold`, on the units each diff
+a returned group is read through its branch, kb/Work PB2795): a shared file NAMES the other branch in a warning only when
+it is R3 work on either side and the two EDITS MEET, a member of one matching a member of the other (`inflight.hold`, on the units each diff
 touches, `inflight.inflight_units`; a dispatch's are the members its ledger entry recorded; kb/Work PB4452). The check
 does not compare the landing with its declared file set: a file outside it is the planner's estimate missing a caller,
 and git's merge is the authority on a conflict, so a landing that edits a file nobody else edits lands. R3 work is attributed PER COMMIT (PB2703): a landing can be mixed (a branch that merged a

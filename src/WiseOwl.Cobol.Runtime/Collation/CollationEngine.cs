@@ -59,6 +59,18 @@ public static class CollationEngine
     private static readonly ConcurrentDictionary<string, ResolvedLocaleCollation> s_locales = new(StringComparer.OrdinalIgnoreCase);
     private static readonly ConcurrentDictionary<(CollationTable Table, CollationOptions Options), Collator> s_collators = new();
 
+    /// <summary>The per-(table, level) shifted collators <see cref="OrderingAtLevel"/> hands out: STANDARD-COMPARE asks once
+    /// per call, so the configuration is built once per pair, never a <see cref="CollationOptions"/> per call (kb/Work PB2763).</summary>
+    private static readonly ConcurrentDictionary<(CollationTable Table, int Level), Collator> s_orderingLevels = new();
+
+    /// <summary>Each <c>ORDER TABLE</c> literal's resolution (<see cref="TryGetOrderingTable"/>), keyed by the literal as
+    /// written: null is "not a supported ordering table". The literal is a compile-time constant, so a program resolves it
+    /// once, not once per STANDARD-COMPARE call; <see cref="ClearLocaleCache"/> forgets it with the locales (kb/Work PB2763).</summary>
+    private static readonly ConcurrentDictionary<string, CollationTable?> s_orderingTables = new(StringComparer.Ordinal);
+
+    /// <summary>The canonical form of <see cref="DefaultOrderingTableName"/>, computed once (kb/Work PB2763).</summary>
+    private static readonly string s_defaultOrderingTableCanon = CanonicalOrderingTableName(DefaultOrderingTableName);
+
     /// <summary>The CLDR root default — root table, tertiary strength, non-ignorable variables.</summary>
     public static Collator Root => Collator.Root;
 
@@ -72,12 +84,15 @@ public static class CollationEngine
     public static int Compare(string? a, string? b, CollationStrength strength, AlternateHandling alternate = AlternateHandling.NonIgnorable) =>
         Cached(CollationTable.Root, strength, alternate).Compare(a, b);
 
-    /// <summary>The 14651-style ordering at ordering level <paramref name="level"/> (1–4; STANDARD-COMPARE's
-    /// argument-4): the levels above <paramref name="level"/> do not distinguish.</summary>
-    public static Collator StandardAtLevel(int level)
+    /// <summary>The 14651-style ordering of <paramref name="table"/> at ordering level <paramref name="level"/> (1–4;
+    /// STANDARD-COMPARE's argument-4), variables shifted: the levels above <paramref name="level"/> do not distinguish.
+    /// The root table's level 4 is <see cref="Standard"/> itself. Cached per (table, level).</summary>
+    public static Collator OrderingAtLevel(CollationTable table, int level)
     {
+        ArgumentNullException.ThrowIfNull(table);
         if (level is < 1 or > 4) throw new ArgumentOutOfRangeException(nameof(level), level, "ordering level must be 1..4");
-        return Cached(CollationTable.Root, (CollationStrength)level, AlternateHandling.Shifted);
+        return s_orderingLevels.GetOrAdd((table, level),
+            static k => Cached(k.Table, (CollationStrength)k.Level, AlternateHandling.Shifted));
     }
 
     /// <summary>The materialized key of <paramref name="text"/> under a locale's collation (null/empty/"root" = the
@@ -148,6 +163,7 @@ public static class CollationEngine
     public static void ClearLocaleCache()
     {
         s_locales.Clear();
+        s_orderingTables.Clear();
         CldrLocaleLoader.ClearCache();
     }
 
@@ -161,14 +177,21 @@ public static class CollationEngine
     {
         table = CollationTable.Root;
         if (string.IsNullOrWhiteSpace(name)) return false;
-        string n = name.Trim();
-        if (IsDefaultOrderingTableName(n)) return true;
-        string tag = n.Replace('_', '-');
-        if (!IsKnownLocale(tag)) return false;
-        var resolved = ResolveLocale(tag);
-        if (resolved.Failure is not null) return false;
-        table = resolved.Table;
+        if (s_orderingTables.GetOrAdd(name, static n => ResolveOrderingTable(n)) is not { } resolved) return false;
+        table = resolved;
         return true;
+    }
+
+    /// <summary>The one resolution <see cref="TryGetOrderingTable"/> memoizes: the table, or null when the name is not a
+    /// supported ordering table.</summary>
+    private static CollationTable? ResolveOrderingTable(string name)
+    {
+        string n = name.Trim();
+        if (IsDefaultOrderingTableName(n)) return CollationTable.Root;
+        string tag = n.Replace('_', '-');
+        if (!IsKnownLocale(tag)) return null;
+        var resolved = ResolveLocale(tag);
+        return resolved.Failure is null ? resolved.Table : null;
     }
 
     /// <summary>Is <paramref name="localeTag"/> a locale this implementation KNOWS — one with a CLDR collation file of
@@ -215,11 +238,10 @@ public static class CollationEngine
     }
 
     /// <summary>"ISO 14651_2020_TABLE1" — case-insensitive, space/underscore interchangeable, any run of them one.</summary>
-    public static bool IsDefaultOrderingTableName(string name)
-    {
-        static string Canon(string s) => string.Join('_', s.Split([' ', '_'], StringSplitOptions.RemoveEmptyEntries)).ToUpperInvariant();
-        return Canon(name) == Canon(DefaultOrderingTableName);
-    }
+    public static bool IsDefaultOrderingTableName(string name) => CanonicalOrderingTableName(name) == s_defaultOrderingTableCanon;
+
+    private static string CanonicalOrderingTableName(string name) =>
+        string.Join('_', name.Split([' ', '_'], StringSplitOptions.RemoveEmptyEntries)).ToUpperInvariant();
 
     /// <summary>True when the text is well-formed UTF-16 (no unpaired surrogate) — the derived table orders every
     /// well-formed text; see <see cref="Collator.IsWellFormed"/>.</summary>

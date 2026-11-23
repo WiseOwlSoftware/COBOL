@@ -20,6 +20,18 @@ public abstract record FormalCarrier
     /// <see cref="CarrierValueSegment"/>.</summary>
     public abstract RootSegment Root(OmittedFormalGuard? guard);
 
+    /// <summary>⛔ THE ONE NAME OF A FORMAL'S CARRIER AND AREA POINTER (kb/Work PB3213): Uid-keyed, never positional (kb/Work
+    /// PB1009), for the program arm's carrier member (<c>LinkageFormal.CarrierField</c>) and the method arm's area pointer
+    /// (<c>OoFormal.AreaPointerClrName</c>) alike.</summary>
+    public static string AreaPointerName(DataItem item) => $"__lnk{item.Uid}";
+
+    /// <summary>⛔ THE ONE AREA-FORMAL RULE (ISO §2023:14.2.3 GR8; kb/Work PB2087, PB3213): a formal that is not carrier-resident
+    /// is an AREA formal when its class was claimed onto a cell whose implicit data-address pointer IS
+    /// <see cref="AreaPointerName"/> (<c>PtrBindBasedAndAddressablesPass</c>), so the binder and the emitter cannot disagree
+    /// about which formals are areas, in either arm.</summary>
+    public static bool IsAreaFormal(DataItem item, bool carrierResident) =>
+        !carrierResident && item.Class?.BasedPointerField == AreaPointerName(item);
+
     /// <summary>The PROGRAM arm: the program class's carrier member, <paramref name="MemberClrName"/>
     /// (<c>LinkageFormal.CarrierField</c>, set by <c>LinkageBinder.CallBindLinkage</c>).</summary>
     public sealed record Member(string MemberClrName) : FormalCarrier

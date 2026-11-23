@@ -158,7 +158,8 @@ public sealed class DiagnosticRegistryDriftTests
         sb.Append("This catalogue is the first-class registry that replaced bare `COBOLnnnn` string literals\n");
         sb.Append("(rearch PHASE 02, P2.10). A **Code** may repeat across rows — the emitted number is byte-stable, the\n");
         sb.Append("stable **Id** is the identity. The `recognized-not-implemented` suppress key groups every\n");
-        sb.Append("legal-but-deferred feature so it can be muted as a group. Scope: the edition band + the `COBOL0899`\n");
+        sb.Append("legal-but-deferred feature so it can be muted as a group: `cobol --suppress <code|id|key>` mutes every WARNING\n");
+        sb.Append("a name names (an error is never muted; kb/Work PB2652). Scope: the edition band + the `COBOL0899`\n");
         sb.Append("split + the reused `COBOL1533`; the broader every-code→descriptor migration is the P7 follow-on.\n\n");
         sb.Append("| Code | Id | Severity | ISO § | Suppress key | Title |\n");
         sb.Append("| --- | --- | --- | --- | --- | --- |\n");

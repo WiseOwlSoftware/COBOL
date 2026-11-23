@@ -305,10 +305,10 @@ def band_drift(ed: Edition, rows: Iterable[dict[str, Any]], targets: dict[str, d
 
 def self_test() -> int:
     import copy  # noqa: PLC0415
-    from inventory_schema import SCHEMA_PATH, editions_of, held_edition  # noqa: PLC0415
+    from inventory_schema import editions_of, held_edition, raw_schema  # noqa: PLC0415
     from inventory_store import inventory_dir  # noqa: PLC0415
     schema = load_schema()
-    raw = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
+    raw = raw_schema()
     fails: list[str] = []
 
     def ok(cond: bool, what: str) -> None:

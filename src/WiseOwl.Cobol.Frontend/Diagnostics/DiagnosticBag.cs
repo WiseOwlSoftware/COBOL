@@ -12,6 +12,10 @@ public sealed class DiagnosticBag
     private readonly List<Diagnostic> _diagnostics = [];
 
     public IReadOnlyList<Diagnostic> Diagnostics => _diagnostics;
+
+    /// <summary>The warnings this compilation does not record (<c>--suppress</c>; <see cref="WarningSuppression"/>, kb/Work PB2652). Every
+    /// way into the bag asks it.</summary>
+    public WarningSuppression Suppression { get; init; } = WarningSuppression.None;
     public bool HasErrors => _diagnostics.Exists(d => d.IsError);
 
     private readonly List<CompileOutputLine> _compileOutput = [];
@@ -34,7 +38,7 @@ public sealed class DiagnosticBag
     public void Report(string code, DiagnosticSeverity severity, string message,
         SourceLocation location, TextSpan span, Editions.EditionFlag? flag = null)
     {
-        _diagnostics.Add(new Diagnostic(code, severity, message, location, span) { Flag = flag });
+        Add(new Diagnostic(code, severity, message, location, span) { Flag = flag });
     }
 
     /// <summary>Record the report of construct verdict <paramref name="verdict"/> (<see cref="Editions.ConstructRegistry.VerdictAt"/>)
@@ -53,7 +57,11 @@ public sealed class DiagnosticBag
         Report(code, DiagnosticSeverity.Warning, message, location, span);
     }
 
-    public void Add(Diagnostic diagnostic) => _diagnostics.Add(diagnostic);
+    /// <summary>Record <paramref name="diagnostic"/>, unless it is a warning <see cref="Suppression"/> mutes.</summary>
+    public void Add(Diagnostic diagnostic)
+    {
+        if (!Suppression.Mutes(diagnostic)) _diagnostics.Add(diagnostic);
+    }
 
     /// <summary>
     /// Add <paramref name="causes"/> so that each reads BEFORE the first effect it can explain: the first diagnostic that stood
@@ -73,6 +81,7 @@ public sealed class DiagnosticBag
         var placed = new List<(int At, Diagnostic Cause)>();
         foreach (var cause in causes)
         {
+            if (Suppression.Mutes(cause)) continue;
             int at = effectCount;
             for (int i = from; i < effectCount; i++)
             {
@@ -120,5 +129,5 @@ public sealed class DiagnosticBag
     /// </summary>
     public void Report(DiagnosticDescriptor descriptor, SourceLocation location, TextSpan span,
         params object[] args)
-        => _diagnostics.Add(new Diagnostic(descriptor.Code, DiagnosticSeverity.Error, descriptor.Format(args), location, span));
+        => Add(new Diagnostic(descriptor.Code, DiagnosticSeverity.Error, descriptor.Format(args), location, span));
 }

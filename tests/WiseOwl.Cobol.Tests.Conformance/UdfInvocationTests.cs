@@ -111,6 +111,21 @@ public sealed class UdfInvocationTests
         EditionHarness.AssertHasDiagnostic(errors, "COBOL1506");
     }
 
+    /// <summary>A refused argument is reported by the rule it breaks ONCE (kb/Work PB3227): an undefined name draws COBOL1639 and a
+    /// phrase word COBOL1638, and the activation adds no COBOL1506 — the §2023:14.8.2.1 count code, which once also claimed the
+    /// illegal source "is not yet supported".</summary>
+    [Theory]
+    [InlineData("    COMPUTE WS-R = FUNCTION UDFDBL(NOSUCH).", "COBOL1639")]
+    [InlineData("    COMPUTE WS-R = FUNCTION UDFDBL(LEADING).", "COBOL1638")]
+    public void ARefusedArgument_IsReportedByItsOwnRuleAlone(string body, string own)
+    {
+        var (ok, errors, _) = EditionHarness.CompileFull(Group("UDFT4R", body), 2002);
+        Assert.False(ok);
+        EditionHarness.AssertHasDiagnostic(errors, own);
+        Assert.DoesNotContain(errors, e => e.Contains("COBOL1506", StringComparison.Ordinal));
+        Assert.DoesNotContain(errors, e => e.Contains("not yet supported", StringComparison.Ordinal));
+    }
+
     /// <summary>§2023:14.2 procedure-division header (:23666): "The RETURNING phrase shall be specified in a
     /// function definition" — checked once per unit, even for an uncalled function (COBOL1507).</summary>
     [Fact]

@@ -352,14 +352,15 @@ internal sealed class PlaceBuilder(IPlaceFacts facts)
 
     /// <summary>The subscript levels of a reference to <paramref name="item"/> WITHIN its Tier-B class
     /// <paramref name="cls"/>, outermost first: every fixed OCCURS level and every dynamic-capacity table level on
-    /// its path (§2023:8.4.2.3.3 SR3 — one subscript per OCCURS clause, a dynamic table's included).</summary>
+    /// its path (§2023:8.4.2.3.3 SR3 — one subscript per OCCURS clause, a dynamic table's included). The levels are SR3's own
+    /// (<see cref="DataItem.SubscriptLevels"/>, the one walk, kb/Work PB877, PB3217): the trailing run of them that lies in the class,
+    /// which is where the walk up from the item stops (a class is one region, so no ancestor above its boundary is in it again).</summary>
     private static List<DataItem> SubscriptLevelsWithin(DataItem item, RedefinesClass cls)
     {
-        var levels = new List<DataItem>();
-        for (DataItem? n = item; n is not null && ReferenceEquals(n.Class, cls); n = n.Parent)
-            if (n.Occurs is not null || n.IsDynamicTable) levels.Add(n);
-        levels.Reverse();
-        return levels;
+        var levels = item.SubscriptLevels();
+        int first = levels.Count;
+        while (first > 0 && ReferenceEquals(levels[first - 1].Class, cls)) first--;
+        return levels.GetRange(first, levels.Count - first);
     }
 
     /// <summary>Where a Tier-B class reference's window lives, and its displacements there.</summary>

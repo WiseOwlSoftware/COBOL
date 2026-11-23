@@ -5,6 +5,7 @@ using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Common;
 using Diagnostic = WiseOwl.Cobol.Frontend.Diagnostics.Diagnostic;
 using DiagnosticSeverity = WiseOwl.Cobol.Frontend.Diagnostics.DiagnosticSeverity;
+using WarningSuppression = WiseOwl.Cobol.Frontend.Diagnostics.WarningSuppression;
 using WiseOwl.Cobol.Runtime;
 
 using WiseOwl.Cobol.Binding.Model;
@@ -181,6 +182,10 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     /// new.</summary>
     public bool FlagExtensions { get; set; }
 
+    /// <summary>The warnings this compilation does not record (<c>--suppress</c>; <see cref="WarningSuppression"/>, kb/Work PB2652), asked
+    /// by <see cref="AddWarningOnce"/>, the one way a warning is kept. An error is never muted.</summary>
+    public WarningSuppression Suppression { get; init; } = WarningSuppression.None;
+
     /// <summary>The <see cref="IDiagnosticSink.Cursor"/> — REAL here (the interface default is a no-op).</summary>
     public DiagnosticCursor Cursor { get; set; }
 
@@ -224,10 +229,14 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     public void Error(string code, string message) => Error(code, message, null);
 
     /// <summary><see cref="Error(string, string)"/> for an error that is an edition flag (<see cref="Report"/>).</summary>
-    private void Error(string code, string message, EditionFlag? flag)
+    private void Error(string code, string message, EditionFlag? flag) =>
+        AddError(Record(DiagnosticSeverity.Error, code, message, flag));
+
+    /// <summary>Count the error <paramref name="record"/> (<see cref="ErrorsRecorded"/>) and keep it: into the open <see cref="Gather"/>, or
+    /// once (<see cref="RecordErrorOnce"/>).</summary>
+    private void AddError(Diagnostic record)
     {
         ErrorsRecorded++;
-        var record = Record(DiagnosticSeverity.Error, code, message, flag);
         if (_muted == 0 && _gathered is { } gathered) gathered.Add(record);
         else RecordErrorOnce(record);
     }
@@ -407,7 +416,7 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     /// it is located at the region's EXPANDS entry with the expansion's name (<see cref="Record"/>), which no other text's is.</summary>
     private void AddWarningOnce(Diagnostic record)
     {
-        if (_muted != 0) return;
+        if (_muted != 0 || Suppression.Mutes(record)) return;
         if (_gathered is { } gathered) { gathered.Add(record); return; }
         string key = KeyOf(record.ToString());
         if (!_reported.Add(key)) return;
@@ -474,7 +483,8 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     /// to the former bare-code call — while binding the site to a stable, documented, suppressible identity
     /// (<see cref="DiagnosticDescriptor.Id"/>). All P2-catalogued descriptors reachable here are error-severity;
     /// warning-severity descriptors route through <see cref="Warning"/> at their own sites.</summary>
-    public void Error(DiagnosticDescriptor descriptor, string message) => Error(descriptor.Code, message);
+    public void Error(DiagnosticDescriptor descriptor, string message) =>
+        AddError(Record(DiagnosticSeverity.Error, descriptor.Code, message) with { Descriptor = descriptor });
 
     /// <summary>Record a non-failing edition diagnostic (the 0903 obsolete/archaic flags; removed constructs
     /// under <see cref="Permissive"/> via <see cref="Removed"/>).</summary>
@@ -492,7 +502,8 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     /// COBOL1628 (PB6) — both documented under codes they never printed. Warning and Error must offer the
     /// SAME shape, or the asymmetry writes the bug for the next caller.
     /// <see cref="DiagnosticEmitFormDriftTests"/> keeps it from returning.</summary>
-    public void Warning(DiagnosticDescriptor descriptor, string message) => Warning(descriptor.Code, message);
+    public void Warning(DiagnosticDescriptor descriptor, string message) =>
+        AddWarningOnce(Record(DiagnosticSeverity.Warning, descriptor.Code, message) with { Descriptor = descriptor });
 
     /// <summary>⛔ THE ONE SEAM FOR A NONSTANDARD EXTENSION IN USE (ISO §2023:4.2.10; kb/Work PB1525) — every binder
     /// site that ACCEPTS a construct ISO does not define names it through here, with the register row's id
@@ -589,8 +600,8 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
         // The descriptor's words in the edition in force: at 85 its 1985 ground when it has one (kb/Work PB4950, PB5875).
         string title = Edition.Cite(descriptor.Title1985 ?? descriptor.Title, descriptor.Title);
         string message = seen is null ? title : $"{seen}: {title}";
-        if (Refuses(descriptor)) Error(descriptor.Code, message);
-        else Warning(descriptor.Code, message);
+        if (Refuses(descriptor)) Error(descriptor, message);
+        else Warning(descriptor, message);
     }
 
     /// <summary>⛔ THE ONE REFUSE RULE for a declined element, under THIS compile's options: an

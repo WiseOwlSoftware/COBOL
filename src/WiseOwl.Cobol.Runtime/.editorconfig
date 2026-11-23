@@ -1,0 +1,8 @@
+# The runtime's own analyzer rules, on top of the solution's (kb/Work PB2776; DESIGN-architecture-review section 8.7, R4 step 4:
+# one analyzer rule per modernize wave). The runtime's public surface is a recorded contract (PublicAPI.Shipped.txt), so a public
+# property that hands out its backing array lets any caller rewrite a shared table every program reads: CA1819 is an error, and the
+# surface exposes ImmutableArray<T> instead. It is an error in the folders whose surface has been converted; the rest of the runtime
+# (the activation descriptions, cell shapes, variable groups and record formats that generated programs construct) is the rule's
+# next wave, and each folder joins this section when its surface converts.
+[{Globalization,Collation}/**.cs]
+dotnet_diagnostic.CA1819.severity = error
