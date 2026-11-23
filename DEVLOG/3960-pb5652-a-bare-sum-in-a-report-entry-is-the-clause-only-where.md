@@ -1,4 +1,4 @@
-## PB5652: a bare SUM in a report entry is the clause only where a clause can begin
+## Entry 3960 — 2026-11-22 23:44 PST — PB5652: a bare SUM in a report entry is the clause only where a clause can begin
 
 **The mechanism.** At `--std 2002` a REPOSITORY-declared SUM intrinsic written without FUNCTION inside a report clause
 operand (`SUM OF WA + SUM(WB WC)`, `SOURCE WA + SUM(WB WC)`, `SOURCE SUM(1 2 3)`) was COBOL5506. The note named
@@ -36,3 +36,4 @@ called `SUM (A * B)` "staged loud COBOL0899", which PB924 had already fixed. Tha
 **Gate red, fixed.** The first gate was RED at the generator. `pb924_report_sum_paren_addend` names only
 SR-13.18.54.3-9 and was accepted from 2002, which is outside the rule's band now that the band is 2014,2023. Its `accept`
 moved to 2014. The 2002 parenthesised-addend reading is witnessed by g2sum07 leg E under 2002-SR-13.16.52.2-1.
+
