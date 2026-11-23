@@ -904,7 +904,7 @@ design is small and complete:
   17.0.0 — ISO/IEC 14651's Common Template Table is kept synchronized with the same Unicode data) under the
   ISO/IEC 14651 DEFAULT treatment — four levels, variable characters (space, punctuation, symbols) ignored through
   level 3 and weighted at level 4 (UTS #10 "shifted"). The ordering LEVEL (argument-4: 1 primary, 2 secondary, 3
-  tertiary, 4 the full four-level ordering) is `CollationEngine.StandardAtLevel(n)` — a `Collator` at that
+  tertiary, 4 the full four-level ordering) is `CollationEngine.OrderingAtLevel(table, n)` — a `Collator` at that
   strength; absent, level 4 (§2023:15.85.4 RV1: "the highest level defined in the ordering table"); 0 or > 4 is
   `EC-ORDER-NOT-SUPPORTED` (r2). `ORDER TABLE ordering-name-1 IS literal-9` (§2023:12.3.7.2 — ONE clause, the last of the
   paragraph; §2023:12.3.7.4 GR17: "*The implementor specifies the allowable content of literal-9*") is resolved by
@@ -912,7 +912,7 @@ design is small and complete:
   §2023:12.3.7.4 NOTE 5 an underscore — case-insensitive, the two interchangeable) → the default; as an implementor
   extension a CLDR locale tag → that locale's tailoring over the root table (a locale .NET recognizes but no
   tailoring file → the root order); anything else → `EC-ORDER-NOT-SUPPORTED` at the reference (§2023:15.85.4 RV2), the
-  binder warning at compile time that the literal will never resolve. Trailing spaces truncate per r4 (the same
+  binder warning at compile time that the literal will never resolve. The literal is a compile-time constant, so its resolution is memoized per literal (and forgotten with the locales by `ClearLocaleCache`) and each (table, level) collator is built once: a STANDARD-COMPARE call re-resolves nothing (kb/Work PB2763). Trailing spaces truncate per r4 (the same
   `TrimForLocale` as §4.4.3); the national conversion of r3 is the identity on the D-N1 substrate; the result is
   `"<"`, `"="`, `">"` (r6/r7). Every derived table stays a Unicode-licensed derivation — never a hand-vendored ISO
   file. The conformance statement WiseOwl COBOL makes, VERBATIM:

@@ -220,7 +220,7 @@ internal static class ClausePlacementRules
             [DataClauseKind.Type] = "§2023:13.16.3 SR14 — ScreenReferenceComposition",
             [DataClauseKind.Typedef] = "§2023:13.16.3 SR15 — RegisterTypeDecl and BindEntries (level 1, data-name); SR4 — ScreenLeadingClausePosition (first clause)",
             [DataClauseKind.SameAs] = "§2023:13.16.3 SR12 — ScreenReferenceComposition",
-            [DataClauseKind.AnyLength] = "§2023:13.18.2.3 — AnyLengthValidateUnit (linkage, elementary)",
+            [DataClauseKind.AnyLength] = "§2023:13.18.2.3 — ProcedureHeaderBinder.SweepAnyLength (linkage, elementary)",
             [DataClauseKind.DynamicLength] = "§2023:13.18.19.3 — BindEntry's DYNAMIC LENGTH block",
             [DataClauseKind.GroupUsage] = "§2023:13.18.29.3 SR1 — UsageInheritanceGroup / UsageInheritanceElementary",
             [DataClauseKind.SelectWhen] = "§2023:13.18.51.3 SR1 — DataBinder.BindSelectWhen (level 01 only); SR2 - SR6 are ResolveRecordFormatPass's",

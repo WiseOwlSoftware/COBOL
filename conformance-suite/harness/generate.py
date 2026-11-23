@@ -452,9 +452,11 @@ class Reader:
         except ValueError as e:
             self.refuse(rel, line, f"{key}: {e}")
             return ()
-        if spelled.split(self.inputs.schema.editions_sep) != values:
-            self.refuse(rel, line, f"{key} lists its editions in ascending order: [{spelled.replace(',', ', ')}]")
-        return tuple(spelled.split(self.inputs.schema.editions_sep)) if spelled else ()
+        schema = self.inputs.schema
+        ordered = schema.split(spelled, schema.editions_sep)   # the schema's one splitter (§8.2 rule 7, kb/Work PB6098)
+        if ordered != values:
+            self.refuse(rel, line, f"{key} lists its editions in ascending order: [{', '.join(ordered)}]")
+        return tuple(ordered)
 
     # ── one test ──
 
@@ -976,7 +978,7 @@ def check_cases(reader: Reader) -> None:
         try:
             for key, at in lists.items():
                 if at is not None:
-                    spelled[key] = inputs.schema.spell_editions(at).split(inputs.schema.editions_sep)
+                    spelled[key] = inputs.schema.split(inputs.schema.spell_editions(at), inputs.schema.editions_sep)
         except ValueError as e:
             reader.refuse(where, 1, f"{test_id}: {key}: {e}")
             continue
@@ -1224,7 +1226,7 @@ def manifests(cases: list[Case], inputs: Inputs) -> dict[str, dict[str, Any]]:
         """`warns`: the diagnostic WiseOwl reports as a WARNING on a program it compiles at this edition (its
         `wiseowl/diagnostics/` entry's `warn-at`), which the runner requires beside the test's own verdict."""
         entry = inputs.diagnostics.get(case.test_id, {})
-        spelled = inputs.schema.spell_editions(entry.get("warn-at", [])).split(inputs.schema.editions_sep)
+        spelled = inputs.schema.split(inputs.schema.spell_editions(entry.get("warn-at", [])), inputs.schema.editions_sep)
         return {"warns": entry["expect"]} if edition in spelled else {}
 
     for e in inputs.editions:

@@ -266,6 +266,18 @@ public sealed class CliParserTests
         Assert.Equal("a.cob", on.SourcePath);
     }
 
+    /// <summary><c>--suppress NAME</c> (kb/Work PB2652, owner decision D20) is repeatable, takes one name per occurrence so it never
+    /// swallows the source, and refuses a name no diagnostic answers to as an argument error.</summary>
+    [Fact]
+    public void Suppress_IsRepeatable_AndRefusesAnUnknownName()
+    {
+        Assert.Null(Resolve("a.cob").Suppress);
+        var named = Resolve("--suppress", "COBOL2187", "--suppress", "recognized-not-implemented", "a.cob");
+        Assert.Equal(["COBOL2187", "recognized-not-implemented"], named.Suppress);
+        Assert.Equal("a.cob", named.SourcePath);
+        Assert.Contains(Errors("a.cob", "--suppress", "COBOL9999X"), m => m.Contains("--suppress: 'COBOL9999X' is not a diagnostic"));
+    }
+
     [Fact]
     public void Flags_And_Full_Sweep_Pattern()
     {

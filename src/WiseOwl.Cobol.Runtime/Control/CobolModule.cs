@@ -15,5 +15,5 @@ public static class CobolModule
     public static ModuleStack Stack => RunUnit.Current.Modules;
 
     /// <inheritdoc cref="ModuleStack.Name"/>
-    public static string Name(int kind) => RunUnit.Current.Modules.Name(kind);
+    public static string Name(ModuleNameKeyword keyword) => RunUnit.Current.Modules.Name(keyword);
 }

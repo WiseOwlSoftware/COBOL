@@ -237,6 +237,10 @@ public sealed class RunUnitStateDriftTests
             "memo of resolved locale collations, keyed by locale name: derived from immutable CLDR data",
         ["WiseOwl.Cobol.Runtime.Collation.CollationEngine::s_collators"] =
             "memo of collators, keyed by (table, options): derived from immutable inputs",
+        ["WiseOwl.Cobol.Runtime.Collation.CollationEngine::s_orderingLevels"] =
+            "memo of STANDARD-COMPARE's shifted collators, keyed by (table, level): derived from immutable inputs (kb/Work PB2763)",
+        ["WiseOwl.Cobol.Runtime.Collation.CollationEngine::s_orderingTables"] =
+            "memo of ORDER TABLE literal resolutions, keyed by the literal: derived from the locale data, forgotten with s_locales by ClearLocaleCache (kb/Work PB2763)",
         ["WiseOwl.Cobol.Runtime.Collation.Locale.LocaleManager::s_infos"] =
             "memo of locale facts, keyed by locale name: derived from immutable platform data",
         ["WiseOwl.Cobol.Runtime.Globalization.LocaleFacts::s_cache"] =
@@ -251,8 +255,6 @@ public sealed class RunUnitStateDriftTests
             "memo of LC_TIME facts, keyed by the (immutable) LocaleFacts object",
         ["WiseOwl.Cobol.Runtime.CobolDate::Formats"] =
             "memo of parsed §2023:15.3 date/time formats, keyed by the format literal (§2023:15.40.3 AR1): derived from the string alone, bounded (kb/Work PB2637)",
-        ["WiseOwl.Cobol.Runtime.CobolIntrinsics::s_orderingCollators"] =
-            "memo of collators for FUNCTION ORDERING, keyed by (table, level): derived from immutable inputs",
         ["WiseOwl.Cobol.Runtime.Exceptions.EcCheckingProfile::Cache"] =
             "memo of checking profiles, keyed by the profile's immutable name",
         ["WiseOwl.Cobol.Runtime.Exceptions.ExceptionCatalog::Table"] =

@@ -132,7 +132,7 @@ public sealed class ImplicitStatementSeriesDriftTests
     {
         string code = CodeOf(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "Bound", "StatementBinder.cs"));
 
-        foreach (string desugar in new[] { "UdfWrapCalls", "OoWrapPropertyOps" })
+        foreach (string desugar in new[] { "Hoist", "OoWrapPropertyOps" })
         {
             var calls = Regex.Matches(code, @"[\w.]*\b" + desugar + @"\(");
             Assert.True(calls.Count > 0, $"StatementBinder no longer applies {desugar} — re-derive this test.");

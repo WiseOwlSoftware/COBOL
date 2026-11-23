@@ -24,6 +24,7 @@ the form `--output=out.dll`.
 | `--std <85\|2002\|2014\|2023>` | the ISO edition to compile for (default 2023); see [Editions](../editions/) |
 | `--permissive` | accepts a construct the chosen edition removed, with a warning in place of the error; see [Editions](../editions/) |
 | `--flag-extensions` | warns (COBOL2894) at every use of a nonstandard extension the compiler accepts; see [Editions](../editions/) |
+| `--suppress <NAME>` | does not report a warning (repeatable): `NAME` is a diagnostic code (`COBOL2187`), a diagnostic id or a suppress key (`recognized-not-implemented`); an error is never suppressed, and a name no diagnostic has is refused |
 | `--source-format <fixed\|free\|auto>` | the reference format the source starts in (default `fixed`); see [Source format and COPY libraries](../source-format/) |
 | `--copy <DIR>` | a directory searched for COPY library text; repeat the option for several |
 | `--sign-encoding <ibm\|ascii>` | how DISPLAY stores the sign of a signed item whose sign is not SEPARATE (default `ibm`) |

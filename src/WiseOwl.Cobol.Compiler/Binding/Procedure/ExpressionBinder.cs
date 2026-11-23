@@ -969,7 +969,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         if (resolve() is not { } place) return null;
         if (pending.AnyAfter(mark))
             ctx.Data.Procedure.ReceiverIdentifications.Add(
-                new ReceiverBracket(new WrittenReceiverKey(place), host.Udf.OperandSteps(pending.DrainFrom(mark)), []));
+                new ReceiverBracket(new WrittenReceiverKey(place), host.Window.OperandSteps(pending.DrainFrom(mark)), []));
         return place;
     }
 

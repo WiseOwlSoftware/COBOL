@@ -25,11 +25,13 @@ public static class EditionHarness
     /// removals, 0903 flags). <paramref name="copybooks"/> (file name → library text), when given, is staged beside
     /// the program and that directory is named as a <c>--copy</c> search path, as a user names theirs (the default
     /// COBOL library never includes the source file's own directory — DOC-A.1-40, kb/Work PB1355). <paramref name="format"/>
-    /// is the reference format the text is written in (<see cref="TestSourceFormat"/>: free form unless the test says fixed).</summary>
+    /// is the reference format the text is written in (<see cref="TestSourceFormat"/>: free form unless the test says fixed).
+    /// <paramref name="suppress"/> is the command line's <c>--suppress</c> names (kb/Work PB2652).</summary>
     public static (bool Ok, IReadOnlyList<string> Errors, IReadOnlyList<string> Warnings) CompileFull(
         string source, int edition, bool permissive = false, IReadOnlyDictionary<string, string>? copybooks = null,
-        bool flagExtensions = false, InitialReferenceFormat format = TestSourceFormat.Inline) =>
-        CompileStaged(source, edition, permissive, copybooks, flagExtensions, static (_, r) => Outcome(r), format);
+        bool flagExtensions = false, InitialReferenceFormat format = TestSourceFormat.Inline,
+        IReadOnlyList<string>? suppress = null) =>
+        CompileStaged(source, edition, permissive, copybooks, flagExtensions, static (_, r) => Outcome(r), format, suppress);
 
     /// <summary>
     /// THE staging-and-compile path every source-text compile of this harness takes: stage
@@ -40,7 +42,8 @@ public static class EditionHarness
     /// </summary>
     internal static T CompileStaged<T>(string source, int edition, bool permissive,
         IReadOnlyDictionary<string, string>? copybooks, bool flagExtensions,
-        Func<string, CompilerDriver.Result, T> observe, InitialReferenceFormat format = TestSourceFormat.Inline)
+        Func<string, CompilerDriver.Result, T> observe, InitialReferenceFormat format = TestSourceFormat.Inline,
+        IReadOnlyList<string>? suppress = null)
     {
         string dir = ScratchDirectory.Create("WiseOwlCobol_Ed_");
         try
@@ -51,7 +54,7 @@ public static class EditionHarness
             var r = CompiledProgramCache.Compile(new CompilerDriver.Options(
                 src, EditionInfo.Of(edition, permissive), Path.Combine(dir, "prog.dll"),
                 CopyPaths: copybooks is null ? null : [Path.GetDirectoryName(src)!], SourceFormat: format,
-                FlagExtensions: flagExtensions));
+                FlagExtensions: flagExtensions, Suppress: suppress));
             return observe(dir, r);
         }
         finally { ScratchDirectory.Remove(dir); }

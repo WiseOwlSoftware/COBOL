@@ -122,9 +122,14 @@ public sealed class SubscriptAdmissionDriftTests
 
     /// <summary>§2023:8.4.2.3.3 SR3's arity walk — "the number of subscripts shall equal the number of OCCURS clauses
     /// in the description of the table element being referenced" — exists in exactly ONE place. Five copies of
-    /// this ancestor walk were in the compiler when PB877 landed; the ones that answer a DIFFERENT question (a
-    /// class-scoped Tier-B window walk, which counts <c>Occurs is not null</c> and stops at the REDEFINES class
-    /// boundary) do not match this pattern and are untouched.</summary>
+    /// this ancestor walk were in the compiler when PB877 landed.
+    /// <para>kb/Work PB3217: the pattern matches the walk SEMANTICALLY, whatever its spelling: any ancestor loop (a bounded one
+    /// included) whose body first tests a table level, as <c>IsTable</c>, its negation (<c>if (!n.IsTable) continue;</c>), or the
+    /// predicate spelled out (<c>Occurs is not null || IsDynamicTable</c>), its variable declared by type or by <c>var</c>. Five
+    /// respelled copies passed the literal pattern it replaced (the Format-2 VALUE dimension list, the class-scoped reference levels,
+    /// <c>RecordLayout.OccursSubjectOf</c>, and the RENAMES SR3 and SAME AS SR1 screens): each is now a projection of
+    /// <c>SubscriptLevels</c>, the last two through <c>OccursSubjectOf</c>. A walk that counts FIXED <c>Occurs</c> levels alone answers a different question (a byte
+    /// displacement) and does not match.</para></summary>
     [Fact]
     public void TheSr3ArityWalk_IsWrittenExactlyOnce()
     {
@@ -133,12 +138,25 @@ public sealed class SubscriptAdmissionDriftTests
                      "*.cs", SearchOption.AllDirectories))
         {
             string text = File.ReadAllText(file);
-            if (Regex.IsMatch(text,
-                    @"for \(DataItem\? (?<v>\w+) = [^;]+; \k<v> is not null; \k<v> = \k<v>\.Parent\)\s*if \(\k<v>\.IsTable\)"))
-                files.Add(Path.GetFileName(file));
+            if (Sr3Walk.IsMatch(text)) files.Add(Path.GetFileName(file));
         }
         Assert.Equal(["DataItem.cs"], files.Distinct().Order().ToArray());
     }
+
+    /// <summary>The SR3 table-level walk, by what it asks rather than how it is spelled (<see cref="TheSr3ArityWalk_IsWrittenExactlyOnce"/>).</summary>
+    private static readonly Regex Sr3Walk = new(
+        @"for \((?:DataItem\?|var) (?<v>\w+) = [^;]+; \k<v> is not null[^;]*; \k<v> = \k<v>\.Parent\)\s*\{?\s*"
+        + @"if \((?:!?\k<v>\.IsTable|\k<v>\.Occurs is not null \|\| \k<v>\.IsDynamicTable|\k<v>\.IsDynamicTable \|\| \k<v>\.Occurs is not null)\)");
+
+    /// <summary>The semantic pattern catches each respelling PB3217 found, and not a fixed-Occurs displacement walk.</summary>
+    [Theory]
+    [InlineData("for (DataItem? n = item; n is not null; n = n.Parent)\n{\n    if (!n.IsTable) continue;", true)]
+    [InlineData("for (DataItem? n = item; n is not null && ReferenceEquals(n.Class, cls); n = n.Parent)\n    if (n.Occurs is not null || n.IsDynamicTable) levels.Add(n);", true)]
+    [InlineData("for (DataItem? x = this; x is not null; x = x.Parent) if (x.IsTable) n++;", true)]
+    [InlineData("for (var p = target.Parent; p is not null; p = p.Parent)\n    if (p.IsTable)", true)]
+    [InlineData("for (DataItem? n = item; n is not null; n = n.Parent)\n{\n    if (n.Occurs is not null) occursLevels.Add(n);", false)]
+    public void TheSr3WalkPattern_MatchesEverySpelling(string text, bool walk) =>
+        Assert.Equal(walk, Sr3Walk.IsMatch(text));
 
     /// <summary>Both rules are reported by name, on both sides of a statement. Deleting either screen would put
     /// COBOL0899's "not yet implemented" promise back on permanently illegal source (the PB489 shape).</summary>

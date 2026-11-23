@@ -2928,14 +2928,13 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             return false;
         }
         // §2023:13.18.49.3 SR1: data-name-1 shall not be SUBJECT TO any OCCURS clause (no table ancestor — the
-        // reference is a bare data-name, never subscripted).
-        for (var p = target.Parent; p is not null; p = p.Parent)
-            if (p.IsTable)
-            {
-                Edition.Error(DiagnosticCatalog.SameAsReferencedEntry, $"'{subject}': SAME AS target "
-                    + $"'{targetName}' shall not be subject to any OCCURS clause (ISO §2023:13.18.49.3 SR1)");
-                return false;
-            }
+        // reference is a bare data-name, never subscripted). RecordLayout.OccursSubjectOf asks it (kb/Work PB3217).
+        if (target.Parent is { } parent && RecordLayout.OccursSubjectOf(parent) is not null)
+        {
+            Edition.Error(DiagnosticCatalog.SameAsReferencedEntry, $"'{subject}': SAME AS target "
+                + $"'{targetName}' shall not be subject to any OCCURS clause (ISO §2023:13.18.49.3 SR1)");
+            return false;
+        }
         // §2023:13.18.49.3 SR10: data-name-1's description shall not contain a CONSTANT RECORD clause.
         if (target.IsConstantRecord)
         {
@@ -4519,7 +4518,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // band is exhausted, the 1521 precedent). Violations clear the flag so the item binds as ordinary storage
         // under an already-failed compile (the IsBased discipline). The SR2/SR3/SR4 PLACEMENT rules (linkage-only,
         // elementary, unit kind, formal/RETURNING reference) need unit-level facts and live in the post-bind
-        // sweeps: AnyLengthValidateUnit (program/function/object paths) and Oo.BindMethodData (methods).
+        // sweep: ProcedureHeaderBinder.SweepAnyLength, called by Linkage.CallBindLinkage (program/function/object paths) and Oo.BindMethodData (methods).
         if (isAnyLength)
         {
             // §2023:13.18.2.3 SR1: a PICTURE clause shall be specified, and its character-string shall be ONE

@@ -1908,17 +1908,25 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>MODULE-NAME (§2023:15.65) — one mandatory phrase keyword selecting a runtime element of the running
     /// COBOL hierarchy (§2023:15.65.2: ACTIVATING/CURRENT/NESTED/STACK/TOP-LEVEL; <c>TOP-LEVEL</c> is one hyphenated
-    /// word). The selector rides on <see cref="BoundIntrinsicCall.ModuleNameKind"/>; the value resolves at
+    /// word). The selector rides on <see cref="BoundIntrinsicCall.ModuleNameKeyword"/>; the value resolves at
     /// runtime from the module call-name stack (<c>CobolModule</c>). NESTED requires a contained program
     /// (§2023:15.65.3 argument rule 1) — a compile-time conformance check.</summary>
     private BoundExpr BindModuleName(IntrinsicSig sig, IReadOnlyList<Core.FunctionArgumentContext> argCtxs)
     {
-        int kind = -1;
+        ModuleNameKeyword? kind = null;
         foreach (var a in argCtxs)
         {
-            int k = KeywordWordOf(a) switch
-                { "CURRENT" => 0, "ACTIVATING" => 1, "NESTED" => 2, "STACK" => 3, "TOP-LEVEL" => 4, _ => -1 };
-            if (k < 0 || kind >= 0)
+            // The one binding of the written keyword to the type the runtime switches on (kb/Work PB2742).
+            ModuleNameKeyword? k = KeywordWordOf(a) switch
+            {
+                "CURRENT" => ModuleNameKeyword.Current,
+                "ACTIVATING" => ModuleNameKeyword.Activating,
+                "NESTED" => ModuleNameKeyword.Nested,
+                "STACK" => ModuleNameKeyword.Stack,
+                "TOP-LEVEL" => ModuleNameKeyword.TopLevel,
+                _ => null,
+            };
+            if (k is null || kind is not null)
             {
                 ctx.Edition.Error(DiagnosticCatalog.IntrinsicFunctionFormInvalid, "FUNCTION MODULE-NAME takes exactly one keyword argument "
                     + $"(ACTIVATING/CURRENT/NESTED/STACK/TOP-LEVEL) (ISO §2023:15.65.2), not '{WrittenSource.Of(a)}'");
@@ -1926,17 +1934,17 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             }
             kind = k;
         }
-        if (kind < 0)
+        if (kind is not { } keyword)
         {
             ctx.Edition.Error(DiagnosticCatalog.IntrinsicFunctionFormInvalid, "FUNCTION MODULE-NAME requires one keyword argument "
                 + "(ACTIVATING/CURRENT/NESTED/STACK/TOP-LEVEL) (ISO §2023:15.65.2)");
             return BoundExprError.Refused(ctx.Edition, "FUNCTION MODULE-NAME");
         }
         // §2023:15.65.3 argument rule 1 — NESTED only within a nested (contained) program.
-        if (kind == 2 && !host.InNestedProgram)
+        if (keyword == ModuleNameKeyword.Nested && !host.InNestedProgram)
             ctx.Edition.Error(DiagnosticCatalog.ModuleNameNestedOutsideNestedProgram, "FUNCTION MODULE-NAME NESTED shall be specified only within a "
                 + "nested program (ISO §2023:15.65.3 argument rule 1) — this compilation unit is not contained");
-        return new BoundIntrinsicCall(sig, [], PicCategory.Alphanumeric) { Arithmetic = ctx.Options.Arithmetic, ModuleNameKind = kind };
+        return new BoundIntrinsicCall(sig, [], PicCategory.Alphanumeric) { Arithmetic = ctx.Options.Arithmetic, ModuleNameKeyword = keyword };
     }
 
     // (LocaleUnsupported — the ONE A.4.9 documented-non-support diagnostic, COBOL1518 — is DELETED with the

@@ -186,8 +186,7 @@
     ],
     "WiseOwl.Cobol.Binding.DataBinder::CompleteDescriptionAhead": [
       "WiseOwl.Cobol.Binding.ConstantEntryBinder",
-      "WiseOwl.Cobol.Binding.LinkageBinder",
-      "WiseOwl.Cobol.Binding.OoDataBinder"
+      "WiseOwl.Cobol.Binding.ProcedureHeaderBinder"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::CompletePreboundGroup": [
       "WiseOwl.Cobol.Binding.ConstantEntryBinder"
@@ -298,6 +297,7 @@
       "WiseOwl.Cobol.Binding.Passes.ResolveTableValuesPass",
       "WiseOwl.Cobol.Binding.Passes.SynthesizeImpliedPicturesPass",
       "WiseOwl.Cobol.Binding.Procedure.BinderContext",
+      "WiseOwl.Cobol.Binding.ProcedureHeaderBinder",
       "WiseOwl.Cobol.Binding.RefModBinder",
       "WiseOwl.Cobol.Binding.ReferenceResolver",
       "WiseOwl.Cobol.Binding.ReportGroupResolution",
@@ -506,6 +506,7 @@
       "WiseOwl.Cobol.Binding.Procedure.ExpressionBinder",
       "WiseOwl.Cobol.Binding.Procedure.MoveBinder",
       "WiseOwl.Cobol.Binding.Procedure.OoBinder",
+      "WiseOwl.Cobol.Binding.Procedure.OperandEvaluationWindow",
       "WiseOwl.Cobol.Binding.Procedure.ReportWriterBinder",
       "WiseOwl.Cobol.Binding.Procedure.SearchBinder",
       "WiseOwl.Cobol.Binding.Procedure.SendingValueTemp",
@@ -727,7 +728,6 @@
       "WiseOwl.Cobol.Binding.CounterResolver",
       "WiseOwl.Cobol.Binding.FileControlBinder",
       "WiseOwl.Cobol.Binding.InheritStep",
-      "WiseOwl.Cobol.Binding.LinkageBinder",
       "WiseOwl.Cobol.Binding.LiteralEnvironment",
       "WiseOwl.Cobol.Binding.NameResolution",
       "WiseOwl.Cobol.Binding.ObjectPropertyResolver",
@@ -749,6 +749,7 @@
       "WiseOwl.Cobol.Binding.Procedure.MnemonicRegistry",
       "WiseOwl.Cobol.Binding.Procedure.ProcedureTableBuilder",
       "WiseOwl.Cobol.Binding.Procedure.ReportWriterBinder",
+      "WiseOwl.Cobol.Binding.ProcedureHeaderBinder",
       "WiseOwl.Cobol.Binding.ReferenceResolver",
       "WiseOwl.Cobol.Binding.ReportGroupResolution",
       "WiseOwl.Cobol.Binding.ReportSectionBinder",
@@ -889,7 +890,7 @@
       "WiseOwl.Cobol.Binding.BinderDriver"
     ],
     "WiseOwl.Cobol.Binding.LinkageBinder::FormalIsCarrierResident": [
-      "WiseOwl.Cobol.Binding.OoDataBinder"
+      "WiseOwl.Cobol.Binding.ProcedureHeaderBinder"
     ],
     "WiseOwl.Cobol.Binding.LinkageBinder::Formals": [
       "WiseOwl.Cobol.Binding.DataBinder",

@@ -13,7 +13,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// 14.2.2 → OK 14.2.2 2)) — is <c>ProcedureHeaderScreen.ByValueClass</c>; the program/function header arm
 /// (<c>CallBindLinkage</c>) and the METHOD header arm (<c>OoDataBinder.BindMethodData</c>) both ASK it, and neither spells the
 /// class set or the <c>COBOL1553</c> code itself. Before this the program arm held the rule inline and the method arm
-/// refused every BY VALUE formal outright — a second copy of the rule waiting to disagree. Likewise the method formal's
+/// refused every BY VALUE formal outright — a second copy of the rule waiting to disagree. Since kb/Work PB3213 the two arms
+/// share one header binding (<c>ProcedureHeaderBinder.Bind</c>), which is the one asker. Likewise the method formal's
 /// passing mode is compared by the ONE §2023:9.3.8.2.3 rule set (<c>OoConformance.MethodConformanceMismatches</c>, rule 1).
 /// </summary>
 [Trait("Sweep", "tree")]
@@ -27,8 +28,12 @@ public sealed class ByValueFormalScreenDriftTests
     public void EveryHeaderArm_AsksTheOneByValueClassScreen_AndSpellsNoClassSetOfItsOwn(string folder, string file)
     {
         string text = Compiler(folder, file);
-        Assert.Contains("header.ByValueClass(", text);
+        Assert.Contains("ProcedureHeaderBinder.Bind(", text);
+        Assert.DoesNotContain("ByValueClass(", text);
         Assert.DoesNotContain("COBOL1553", text);
+        string binder = Compiler("Binding", "ProcedureHeaderBinder.cs");
+        Assert.Contains("header.ByValueClass(", binder);
+        Assert.DoesNotContain("COBOL1553", binder);
     }
 
     /// <summary>⛔ THE CLASS SET IS THE TABLE-2 CLASSIFIER'S, NOT A PicCategory LIST (kb/Work PB3222). The list read the

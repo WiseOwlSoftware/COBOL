@@ -35,9 +35,9 @@ def record_dispatch(coord_dir: pathlib.Path, wave: str, groups: list[dict[str, A
     `continues` and `overflow` are the chain's records, kb/Work PB4396: the branches the group continues and the
     notes a later link takes onto its branch), and return the entries written. A group
     recorded again (a re-rendered spec) replaces its notes, files and slug but KEEPS its `at`, the time of its FIRST
-    recording (kb/Work PB3392): `at` is the dispatch order the landing check reads (the later of two overlapping
-    branches re-plans) and the time `answers` bounds a report by, and a re-render is not a new dispatch (the Mythos
-    lane's re-render of wave 1118's specs at 16:42, a wave dispatched about 05:00, had made the engine the LATER
+    recording (kb/Work PB3392): `at` is the dispatch order (the landing check's last tie-break when it binds a branch
+    to the ledger group that best covers its diff, `landing_check.best_group`) and the time `answers` bounds a report
+    by, and a re-render is not a new dispatch (the Mythos lane's re-render of wave 1118's specs at 16:42, a wave dispatched about 05:00, had made the engine the LATER
     dispatch than wave 1126 C, 14:02). A group recorded under a key whose entry shares NO note with it is a DIFFERENT
     dispatch (two sessions planning one wave number) and takes the time of its own recording. Every other group of
     every wave stays, except the entries whose notes are all terminal and the entries coord.ledger_groups does not read (the retired hand entries), which are
@@ -53,9 +53,8 @@ def record_dispatch(coord_dir: pathlib.Path, wave: str, groups: list[dict[str, A
     live = [g for g in coord.ledger_groups(coord_dir) if not all(terminal(i) for i in g.get("notes", []))]
     keep = [g for g in live if (str(g["wave"]), g["letter"].upper()) not in mine]
     earlier = {(str(g["wave"]), g["letter"].upper()): g for g in live if (str(g["wave"]), g["letter"].upper()) in mine}
-    at = time.time()   # the dispatch order the landing check reads (the later of two overlapping branches re-plans):
-    #   one millisecond apart in letter order, so two groups of one wave never tie (a tie left neither "later" and both
-    #   proceeded with a warning: the ninth refuter's N4)
+    at = time.time()   # the dispatch order (`landing_check.best_group`'s last tie-break, the latest group):
+    #   one millisecond apart in letter order, so two groups of one wave never tie (the ninth refuter's N4)
 
     def stamp(k: int, g: dict[str, Any]) -> float:
         """The group's dispatch time: its entry's own when this is the same group recorded again (it shares a note

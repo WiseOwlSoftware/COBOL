@@ -3284,8 +3284,8 @@ internal sealed class VersionConformancePass
 
         // ── Step 14h.5: the four I/O PHRASE gates that stayed on the bound arm (kb/Work PB353) ────────────────
         // ⛔ THEY WERE CLASSIFIED "SEMANTIC" AND THEY ARE NOT. The bound arm keyed them on
-        // `BoundKeyedStart.Mode ∈ {First,Last}`, `BoundKeyedStart.Length != null`, `IBoundRead.Kind == Previous`
-        // and `IBoundRead.AdvancingOnLock` — and every one of those members is assigned from a PARSE fact alone
+        // `BoundKeyedStart.Mode ∈ {First,Last}`, `BoundKeyedStart.Length != null`, the READ nodes' `Kind == Previous`
+        // and their `AdvancingOnLock` — and every one of those members is assigned from a PARSE fact alone
         // (`st.FIRST()/st.LAST()`, `kp.startWithLength()`, `readDirection PREVIOUS`, `readAdvancingOnLock`), with
         // no file organization, access mode, USAGE or category anywhere in the decision. So the bound-tree home
         // bought no precision and cost the diagnostic on every path that bails out BEFORE the node is built.
@@ -3490,7 +3490,7 @@ internal sealed class VersionConformancePass
         /// introduction as <see cref="VisitRecordLockPhrase"/> and <see cref="VisitReadIgnoringLock"/>, and the
         /// last of the three printed lock spellings to reach the parse arm. ⛔ Until kb/Work PB353 this ONE
         /// construct id fired from BOTH arms — two of its three spellings on recognition, this one on
-        /// <c>IBoundRead.AdvancingOnLock</c> — which is precisely the "a Check for any one construct fires from
+        /// <c>BoundRead.AdvancingOnLock</c> / <c>BoundKeyedRead.AdvancingOnLock</c> — which is precisely the "a Check for any one construct fires from
         /// EXACTLY one arm" invariant this pass documents, broken. §2023:14.9.30.3 SR6 ("None of the phrases ADVANCING,
         /// AT END, NEXT, NOT AT END, or PREVIOUS shall be specified if ACCESS MODE RANDOM is specified in the file
         /// control entry for file-name-1" — <c>cite.py --check 14.9.30.3 "ADVANCING"</c> OK) restricts WHERE the

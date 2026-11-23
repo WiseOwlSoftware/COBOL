@@ -180,8 +180,8 @@ internal sealed class InvocationSite
 /// reached through <c>OoBindByReceiver</c> / <c>OoBindResolvedInvoke</c>.</para>
 ///
 /// <para><b>The hoist is the EXISTING one</b> — <c>ProcedureBindState.PendingPreOps</c>, drained by
-/// <c>UdfBinder.UdfWrapCalls</c> at the <c>StatementBinder.BindStatement</c> chokepoint and attached
-/// per-evaluation by <c>UdfAttachPerEvaluation</c> inside a conditionally-evaluated condition window. That
+/// <c>OperandEvaluationWindow.Hoist</c> at the <c>StatementBinder.BindStatement</c> chokepoint and attached
+/// per-evaluation by <c>OperandEvaluationWindow.AttachPerEvaluation</c> inside a conditionally-evaluated condition window. That
 /// list is documented as the ONE statement-scoped pre-op list precisely so a third client registers rather
 /// than grows a fourth ordering rule, and its two existing clients (a user-function activation, a
 /// function-bearing subscript's §2023:15.4 temp store) share this one's hoist rules exactly: §2023:8.4.3.4.3 SR1

@@ -120,6 +120,8 @@ internal static class BackendContract
             "Model.NamingConvention.SumCounterPrefix", "Model.OoClassSymbol.FactoryOrInstanceClrNames",
             "Model.OoInterfaceSymbol.ImplementedClrNames", "Model.OoMethodBinding.FormalName()", "Model.OoFormal.ParamName",
             "Model.OoFormal.AreaParam", "Model.OoFormal.OmittedFlag", "Model.ImportedFrom.ClrNamespace", "Model.ImportedFrom.AssemblyName",
+            // the one carrier and area-pointer name of a formal, both header arms (kb/Work PB3213)
+            "Model.FormalCarrier.AreaPointerName()",
             "Model.ExpansionIdentity.Homes",
         ]),
         new(NeutralKind.LiteralValue,

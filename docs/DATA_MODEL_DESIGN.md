@@ -1929,7 +1929,7 @@ shape it could read term by term.
 nested recursion, so a USER-defined function in a subscript falls out of the same change); synthesize the temp via
 `CompilerTemps.Create`, already "THE ONE synthesized-compiler-temp constructor"; register a statement-scoped
 pending PRE-op drained at the `BindStatement` chokepoint — the mark-on-entry / drain-own-suffix protocol that
-ALREADY serves two clients (`Udf.Mark`, `data.Procedure.PropertyOps`). The subscript segment then renders
+ALREADY serves two clients (`Window.Mark`, `data.Procedure.PropertyOps`). The subscript segment then renders
 as an ordinary data-name through the existing `ResolveSubscriptName`.
 ⭐ **Prefer GENERALIZING the UDF pending list to a third list**: a function-identifier is never a receiving operand
 (**§2023:8.4.3.2.3 SR1**), so intrinsic and user-function activations are both unconditional pre-ops with identical
@@ -2033,7 +2033,7 @@ standard applies it. A SINGLE scaled operand IS the result, so it needs no detou
 ⛔ **THE CORRECTNESS TRAP — DO NOT HOIST OUT OF A REPEATEDLY-EVALUATED CONDITION.** §2023:8.8.4.13 GR2 evaluates a
 function "if and when the conditions containing them are evaluated", so a subscript inside a PERFORM UNTIL /
 SEARCH WHEN / EVALUATE object must not be lifted to a statement pre-op. `UdfBinder` already solves this
-(`UdfAttachPerEvaluation` / `BoundUdfEvaluated`) — **follow that precedent exactly.** (The loud residue stage it
+(`OperandEvaluationWindow.AttachPerEvaluation` / `BoundUdfEvaluated`) — **follow that precedent exactly.** (The loud residue stage it
 used to carry for the windows it did not reach, COBOL1509, is DELETED: its last two callers — an EVALUATE
 condition subject and a partial-expression object's subject splice — now bind the subject once, kb/Work PB912.)
 

@@ -17,7 +17,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </summary>
 public sealed class ModuleStackInvariantTests
 {
-    private const int Current = 0, Activating = 1, Nested = 2, Stack = 3, TopLevel = 4;
+    private const ModuleNameKeyword Current = ModuleNameKeyword.Current, Activating = ModuleNameKeyword.Activating,
+        Nested = ModuleNameKeyword.Nested, Stack = ModuleNameKeyword.Stack, TopLevel = ModuleNameKeyword.TopLevel;
 
     [Fact]
     public void NoTrailingSpaces_AndNoTruncation_AtEveryDepth()
@@ -28,7 +29,7 @@ public sealed class ModuleStackInvariantTests
         string longName = new string('Q', 300);
         s.Push(longName, longName, isNested: false, recursive: false);
         for (int i = 0; i < 60; i++) s.Push("RECURSE", "RECURSE", isNested: false, recursive: false);   // deep recursion (PB36's depth)
-        foreach (int kind in new[] { Current, Activating, Nested, Stack, TopLevel })
+        foreach (var kind in Enum.GetValues<ModuleNameKeyword>())
         {
             string v = s.Name(kind);
             Assert.False(v.Length > 1 && v.EndsWith(' ') && kind != Stack, $"kind {kind}: '{v}' has trailing spaces (§2023:15.65.4 r1)");
@@ -64,10 +65,20 @@ public sealed class ModuleStackInvariantTests
         Assert.Equal("INNER;HOSTED; ", s.Name(Stack));
         // And with no COBOL element running at all, every keyword is the r3 single space.
         var empty = new ModuleStack();
-        foreach (int kind in new[] { Current, Activating, Nested, Stack, TopLevel }) Assert.Equal(" ", empty.Name(kind));
+        foreach (var kind in Enum.GetValues<ModuleNameKeyword>()) Assert.Equal(" ", empty.Name(kind));
     }
 
-    /// <summary>kb/Work PB3540 — §2023:9.1.18.7's "under the control of a recursive runtime element" is a question to the module
+    /// <summary>kb/Work PB2742 — every keyword has its own arm; a value outside <see cref="ModuleNameKeyword"/> is a defect of the
+    /// caller and throws, where the int selector once answered it with a single space no one could tell from r3's.</summary>
+    [Fact]
+    public void AValueOutsideTheKeywords_Throws()
+    {
+        var s = new ModuleStack();
+        s.PushMain("MAINPROG", recursive: false);
+        Assert.Throws<ArgumentOutOfRangeException>(() => s.Name((ModuleNameKeyword)5));
+    }
+
+    /// <summary>kb/Work PB3540 —§2023:9.1.18.7's "under the control of a recursive runtime element" is a question to the module
     /// stack: a recursive frame (a RECURSIVE program, a function, a method; §2023:8.6.6) is under way from its push to its
     /// pop, whatever kind of frame sits above it, and the count balances however frames interleave.</summary>
     [Fact]

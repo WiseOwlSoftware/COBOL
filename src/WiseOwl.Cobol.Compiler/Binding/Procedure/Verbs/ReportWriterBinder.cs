@@ -45,7 +45,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
     public void BindReportGroupClauses()
     {
         var memo = new Dictionary<Core.ConditionContext, BoundCondition>(ReferenceEqualityComparer.Instance);
-        var entry = host.Udf.Mark;
+        var entry = host.Window.Mark;
         BoundCondition Bind(Core.ConditionContext c)
         {
             // A condition §2023:13.15.3 SR16 refused at data bind was reported there, under its rule; binding it would word
@@ -71,7 +71,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
             BindRolledValues(reports);   // after EVERY report's operands are bound: SR4 g) lets a total roll up another report's entry
             // ⛔ NOTHING MAY BE LEFT FOR THE FIRST STATEMENT TO HOIST: a clause operand bound outside a window would leave
             // its steps on the statement-scoped lists, and that was the PB4517 wrong answer. Loud at compile time.
-            if (host.Udf.Mark != entry)
+            if (host.Window.Mark != entry)
                 throw new InvalidOperationException("report clause binding left operand-evaluation steps or property operations "
                     + "outside a per-evaluation window (kb/Work PB4517)");
         }
@@ -227,8 +227,8 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
     /// presence probe evaluates it, and a condition that registered none is returned unchanged.</summary>
     private BoundCondition PerEvaluation(Func<BoundCondition> bind)
     {
-        var mark = host.Udf.Mark;
-        return host.Udf.UdfAttachPerEvaluation(bind(), mark);
+        var mark = host.Window.Mark;
+        return host.Window.AttachPerEvaluation(bind(), mark);
     }
 
     /// <summary>The EXPRESSION twin of <see cref="PerEvaluation(Func{BoundCondition})"/> — a SUM addend and a VARYING
@@ -236,8 +236,8 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
     /// runs at the addition or the counter setting that reads the value.</summary>
     private BoundExpr PerEvaluation(Func<BoundExpr> bind)
     {
-        var mark = host.Udf.Mark;
-        return host.Udf.UdfAttachPerEvaluation(bind(), mark);
+        var mark = host.Window.Mark;
+        return host.Window.AttachPerEvaluation(bind(), mark);
     }
 
     /// <summary>The window of a SOURCE operand (either form) and a CODE identifier, whose steps are kept BESIDE the
@@ -245,9 +245,9 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
     /// transfer), but the steps run once per placement, and a CODE place has no expression to carry them.</summary>
     private (T Value, IReadOnlyList<BoundStatement>? Steps) WithSteps<T>(Func<T> bind)
     {
-        var mark = host.Udf.Mark;
+        var mark = host.Window.Mark;
         var value = bind();
-        return (value, host.Udf.DrainPerEvaluation(mark));
+        return (value, host.Window.DrainPerEvaluation(mark));
     }
 
     /// <summary>⛔ THE SOURCE CLAUSE'S identifier-1 RULES THAT NEED ITS BOUND ITEM (kb/Work PB1293), reported under

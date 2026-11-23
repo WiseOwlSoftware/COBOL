@@ -1,5 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Collections.Immutable;
+using System.Runtime.InteropServices;
 using System.Buffers.Binary;
 using System.IO.Compression;
 
@@ -155,7 +157,7 @@ public sealed class CollationTable
     /// Katakana → "Hira Kana") lists every code. What a CLDR <c>[reorder …]</c> permutes; the primaries below the
     /// first group (U+FFFE's) and above the last (unassigned implicit weights, the trailing U+FFFD..U+FFFF) belong to
     /// no group and never move.</summary>
-    public IReadOnlyList<ReorderGroup> ReorderGroups => _groups;
+    public ImmutableArray<ReorderGroup> ReorderGroups => ImmutableCollectionsMarshal.AsImmutableArray(_groups);   // a view, never the array (kb/Work PB2776)
 
     /// <summary>The group named by a CLDR reorder code — a script code (case-insensitive; <c>Hrkt</c> = the Kana group,
     /// <c>Zyyy</c>/<c>Zinh</c> name no group) or one of the special codes — or false.</summary>
@@ -395,12 +397,13 @@ public sealed class CollationTable
         if (rules.UcaVersion is { } v && !string.Equals(v, UcaVersion, StringComparison.Ordinal))
             throw new LocaleCollationException(rules.Source, null,
                 $"tailoring '{rules.Name}' was written for UCA {v} but the base table is UCA {UcaVersion} — its numeric weights are not comparable");
-        if (rules.Entries.Count == 0) return this;   // a header-only tailoring (en-US, fr-FR: "the root order is valid") IS this table
+        if (rules.Entries.IsEmpty) return this;   // a header-only tailoring (en-US, fr-FR: "the root order is valid") IS this table
 
-        var entries = new List<(int[] CodePoints, CollationElement[] Elements)>(rules.Entries.Count);
+        var entries = new List<(int[] CodePoints, CollationElement[] Elements)>(rules.Entries.Length);
         foreach (var e in rules.Entries)
         {
-            var mapped = e.Elements;
+            // The entry's own arrays, read and never written: the plan copies what it keeps (kb/Work PB2776).
+            var mapped = ImmutableCollectionsMarshal.AsArray(e.Elements)!;
             if (IsRenumbered)
             {
                 mapped = new CollationElement[e.Elements.Length];
@@ -415,7 +418,7 @@ public sealed class CollationTable
                     };
                 }
             }
-            entries.Add((e.CodePoints, mapped));
+            entries.Add((ImmutableCollectionsMarshal.AsArray(e.CodePoints)!, mapped));
         }
         return Rebuild(new TailoringPlan
         {
@@ -762,7 +765,7 @@ public sealed class CollationTable
         {
             string codes = r.Str();
             int lo = r.U16(), hi = r.U16();
-            groups[i] = new ReorderGroup(codes.Split(' ', StringSplitOptions.RemoveEmptyEntries), lo << shift, hi << shift);
+            groups[i] = new ReorderGroup([.. codes.Split(' ', StringSplitOptions.RemoveEmptyEntries)], lo << shift, hi << shift);
         }
         int digitRunCount = r.U16();
         var digitRuns = new int[digitRunCount];
@@ -796,7 +799,7 @@ public sealed class CollationTable
 /// <c>currency</c>, <c>digit</c>).</param>
 /// <param name="FirstPrimary">The lowest primary weight of a member.</param>
 /// <param name="LastPrimary">The highest primary weight of a member.</param>
-public readonly record struct ReorderGroup(string[] Codes, int FirstPrimary, int LastPrimary)
+public readonly record struct ReorderGroup(ImmutableArray<string> Codes, int FirstPrimary, int LastPrimary)
 {
     /// <summary>The group's first (canonical) reorder code.</summary>
     public string Code => Codes[0];
