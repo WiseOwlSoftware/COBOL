@@ -212,11 +212,21 @@ def heads_as(heading: str, number: str, title: str) -> bool:
 FORMAT_TITLE = re.compile(r"^\s*(?:#+\s+)?(?:║|\*\*|<u>)*GENERAL FORMAT FOR\b")
 #: THE form a general-format page title takes (kb/Work PB6095): a level-2 heading, underlined, nothing else on the line.
 FORMAT_TITLE_FORM = re.compile(r"^## <u>GENERAL FORMAT FOR [^<*║]+</u>$")
+#: A line that is a summary-of-elements table title (pages 31 to 38), whatever markup it carries.
+SUMMARY_TITLE = re.compile(r"^\s*(?:#+\s+)?(?:║|\*\*|<u>)*SUMMARY OF ELEMENTS IN\b")
+#: THE form a summary-of-elements table title takes (kb/Work PB6051): the page prints it as the table's own title, repeated
+#: on every page of the table and never a node of the document's tree, so it is one underlined line and no heading.
+SUMMARY_TITLE_FORM = re.compile(r"^<u>SUMMARY OF ELEMENTS IN [^<*║#]+</u>$")
+#: Each repeated page title of the standard and its one form: (detector, form, what it is, the form as a failure names it).
+TITLE_FORMS = ((FORMAT_TITLE, FORMAT_TITLE_FORM, "a general-format page title", "`## <u>GENERAL FORMAT FOR ...</u>`"),
+               (SUMMARY_TITLE, SUMMARY_TITLE_FORM, "a summary-of-elements table title",
+                "`<u>SUMMARY OF ELEMENTS IN ...</u>` (no heading)"))
 
 
 def check_format_titles(lines: list[str], first: int, last: int) -> list[str]:
-    """Every general-format page title of the standard (Amendment 1's addendum, and the quoting notes and tables, out of
-    scope) stands as `## <u>GENERAL FORMAT FOR ...</u>` on a line of its own: found anywhere, a `<pre>` figure included."""
+    """Every repeated page title of the standard (`TITLE_FORMS`: the general-format titles, kb/Work PB6095, and the
+    summary-of-elements table titles, kb/Work PB6051) stands in its one form on a line of its own: found anywhere, a `<pre>`
+    figure included (Amendment 1's addendum, and the quoting notes and tables, out of scope)."""
     failures: list[str] = []
     page = 0
     skip = change_pages(lines)
@@ -226,9 +236,11 @@ def check_format_titles(lines: list[str], first: int, last: int) -> list[str]:
             page = int(m.group(1))
         elif skip[0] <= i < skip[1] or line.startswith((">", "|")):
             continue
-        elif FORMAT_TITLE.match(line) and not FORMAT_TITLE_FORM.match(line):
-            failures.append(f"line {i + 1} (page {page}): a general-format page title that is not "
-                            f"`## <u>GENERAL FORMAT FOR ...</u>` on a line of its own: {line.strip()[:70]!r}")
+        else:
+            for detect, form, what, shown in TITLE_FORMS:
+                if detect.match(line) and not form.match(line):
+                    failures.append(f"line {i + 1} (page {page}): {what} that is not {shown} on a line of its own: "
+                                    f"{line.strip()[:70]!r}")
     return failures
 
 

@@ -192,8 +192,10 @@ transcription once put after the previous page's folio are gone), an Appendix le
 `n.n` level 3, and each further number one deeper, at most 6 (Markdown's deepest: the 14 headings of six and seven parts
 share it). A numbered title line the printed page sets as a heading is a heading, bold or boxed as the page prints it
 (`### ║3.4 THE PURGE STATEMENT║`); a running header (`Sequential I-O - Input-Output Section`) is plain text; an
-underlined unnumbered title (`<u>SUMMARY OF ELEMENTS IN THE NUCLEUS MODULE</u>`, `<u>GENERAL FORMAT FOR …</u>`) keeps the
-level the page gives it. The scope is the standard (Sections I to XVIII) and Amendment 1's Section A, which the
+underlined unnumbered title keeps the level the page gives it, except the two repeated page titles, which each take one
+form (`heading_levels.TITLE_FORMS`): a general-format title is `## <u>GENERAL FORMAT FOR …</u>` (kb/Work PB6095), and a
+summary-of-elements table title, the table's own title repeated on each of pages 31 to 38, is the plain line
+`<u>SUMMARY OF ELEMENTS IN THE NUCLEUS MODULE</u>` and no heading (kb/Work PB6051). The scope is the standard (Sections I to XVIII) and Amendment 1's Section A, which the
 amendment sets out as the other modules are; Amendment 1's change list and Amendment 2 quote the standard's clause numbers
 as change instructions and print their own structure. `scripts/spec/heading_levels.py` is the one function of the rule
 (`level_of`, `canonical`, `normalize`) and the audit (`check`, run by `verify_publishable.py --edition 1985`): every numbered
