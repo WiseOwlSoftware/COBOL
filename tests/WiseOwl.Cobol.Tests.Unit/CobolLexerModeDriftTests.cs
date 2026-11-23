@@ -247,6 +247,62 @@ public sealed class CobolLexerModeDriftTests
         if (paren == "FNARG_LPAREN") Assert.DoesNotContain("REF_LPAREN", names);
     }
 
+    /// <summary>kb/Work PB5652: the region exception holds only where a clause can BEGIN. Where the entry still owes an
+    /// operand — after an operator, inside a parenthesis, after the word that introduces a report clause's operand — a bare
+    /// `SUM (` can only be the keyword-omitted SUM intrinsic (§2002:12.2.7.3 GR13), so its '(' is the reference paren the
+    /// parser reads as its argument list; from 2014 the binder refuses that tree by §2023:13.18.54.3 SR9 (COBOL7933).</summary>
+    [Theory]
+    [InlineData("SOURCE SUM(1 2 3).")]
+    [InlineData("SOURCE IS SUM(1 2 3).")]
+    [InlineData("SOURCES ARE SUM(1 2 3).")]
+    [InlineData("SOURCE WA + SUM(WB WC).")]
+    [InlineData("SOURCE WA - SUM(WB WC).")]
+    [InlineData("SOURCE WA * SUM(WB WC).")]
+    [InlineData("SOURCE WA / SUM(WB WC).")]
+    [InlineData("SOURCE WA ** SUM(WB WC).")]
+    [InlineData("SOURCE (WA + SUM(WB WC)).")]
+    [InlineData("SOURCE FUNCTION MAX(WA SUM(WB WC)).")]
+    [InlineData("SUM OF WA + SUM(WB WC).")]
+    [InlineData("SUM OF SUM(WB WC).")]
+    [InlineData("SUM SUM(WB WC).")]
+    [InlineData("PRESENT WHEN SUM(WB WC) > 1.")]
+    [InlineData("PRESENT WHEN WA > SUM(WB WC).")]
+    [InlineData("PRESENT WHEN WA = SUM(WB WC).")]
+    [InlineData("PRESENT WHEN WA < SUM(WB WC).")]
+    [InlineData("PRESENT WHEN WA >= SUM(WB WC).")]
+    [InlineData("PRESENT WHEN WA <= SUM(WB WC).")]
+    [InlineData("PRESENT WHEN WA <> SUM(WB WC).")]
+    [InlineData("PRESENT WHEN WA IS GREATER THAN SUM(WB WC).")]
+    [InlineData("PRESENT WHEN WA IS LESS THAN SUM(WB WC).")]
+    [InlineData("PRESENT WHEN WA IS EQUAL TO SUM(WB WC).")]
+    [InlineData("PRESENT WHEN WA > 1 AND SUM(WB WC) > 1.")]
+    [InlineData("PRESENT WHEN WA > 1 OR SUM(WB WC) > 1.")]
+    [InlineData("PRESENT WHEN NOT SUM(WB WC) > 1.")]
+    [InlineData("VARYING V FROM SUM(WB WC) BY 1.")]
+    [InlineData("VARYING V FROM 1 BY SUM(WB WC).")]
+    public void ReportSum_WhereAnOperandIsOwed_IsTheKeywordOmittedFunction(string entry)
+    {
+        string[] names = TokenNames(ReportSectionHead + entry);
+        int sum = Array.LastIndexOf(names, "SUM");
+        Assert.Equal("REF_LPAREN", names[sum + 1]);
+    }
+
+    /// <summary>The other arm of PB5652: where a clause CAN begin — after a complete operand, after a separator comma —
+    /// a bare SUM is the clause keyword and its '(' opens a parenthesised addend, at every edition (§2023:13.18.54.3 SR9's
+    /// reading, and the reading §2002:13.16.52.2 SR1's repeated SUM keyword leaves open).</summary>
+    [Theory]
+    [InlineData("SUM WA SUM (WB * WC).")]
+    [InlineData("SUM WA, SUM (WB * WC).")]
+    [InlineData("SOURCE WA SUM (WB * WC).")]
+    [InlineData("SUM (WA) SUM (WB * WC).")]
+    public void ReportSum_WhereAClauseCanBegin_IsTheClauseKeyword(string entry)
+    {
+        string[] names = TokenNames(ReportSectionHead + entry);
+        int sum = Array.LastIndexOf(names, "SUM");
+        Assert.Equal("LPAREN", names[sum + 1]);
+        Assert.DoesNotContain("REF_LPAREN", names);
+    }
+
     // ── The FUNCTION argument-list parenthesis, and the figurative ZERO it used to destroy (PB48) ────────────
 
     /// <summary>Token names AFTER <see cref="ZeroTokenRewriter"/> — the stream the PARSER actually sees. The

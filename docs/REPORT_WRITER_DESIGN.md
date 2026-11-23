@@ -798,12 +798,11 @@ reach a report with steps is the statement they were evaluated in (`ReportWriter
 `BoundActivationSite`). Before PB4517 the FIRST procedure statement hoisted them, so a function in a SOURCE operand or
 subscript ran once and every line printed its stale value, and a FUNCTION in PRESENT WHEN was refused COBOL0899.
 
-**Staged LOUD at bind (`COBOL0899`, Edition.Error — legal-but-unimplemented, never silent):** an
-arithmetic-expression-1 SUM addend written with a LEADING PARENTHESIS
-(`SUM (A * B)` — the lexer's §2023:8.4.3.2.3 SR2 keyword-omitted-intrinsic trigger on the SUM token made that `(` a
-subscript capture, against §2023:13.18.54.3 SR9's "Otherwise, SUM refers to the report writer SUM
-clause"; every OTHER spelling of the expression addend is LIVE, and §2023:13.18.54.3 states no parenthesization
-rule that would force the refused one).
+**A SUM written without FUNCTION in a report entry** is the SUM clause where a clause can begin, so
+`SUM (A * B)` is the clause with a parenthesised addend (kb/Work PB924), and the keyword-omitted SUM intrinsic where
+the entry still owes an operand (`SOURCE WA + SUM(WB WC)`, `SUM OF SUM(WB WC)`; kb/Work PB5652): legal at COBOL 2002
+when the REPOSITORY declares it (§2002:12.2.7.3 GR13), refused from 2014 by §2023:13.18.54.3 SR9 (COBOL7933,
+`IntrinsicBinder.ReportSumClauseWord`). The lexer draws the line (DESIGN-frontend-grammar §1.9, `IsReportSumClauseKeyword`).
 
 **A report group item's USAGE is DISPLAY or NATIONAL, and a group entry's clause is inherited**
 (kb/Work PB541). §2023:13.18.60.3 SR7 — "Only the DISPLAY or NATIONAL phrase may be specified in any USAGE

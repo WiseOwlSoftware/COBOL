@@ -63,6 +63,17 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             // SUBSTITUTE synonym canonically, so a second resolution would read the de-reserved literal-4 as removed.
             var fw = FunctionWord.OfToken(reservedToken, ctx.CobolWords);
             string fn = fw.Written;
+            if (ReportSumClauseWord(fc))
+            {
+                // Below 2014 there is no such rule and the REPOSITORY check below decides (§2002:12.2.7.3 GR13), so this
+                // fires at 2014 and 2023 alone and the y1985 text is never chosen.
+                ctx.Edition.Error(DiagnosticCatalog.ReportSumWithoutFunctionKeyword,
+                    $"'{fn}' is written without the word FUNCTION where this report description entry owes an operand, and within a "
+                    + "report description entry a SUM not preceded by FUNCTION is the SUM clause even when the REPOSITORY declares the "
+                    + $"intrinsic ({ctx.Edition.Edition.CiteRule("§2014:13.18.54.2 SR9", "§2023:13.18.54.3 SR9", y2014: "§2014:13.18.54.2 SR9")}) "
+                    + $"— write 'FUNCTION {fn}'.");
+                return BoundExprError.Refused(ctx.Edition, $"FUNCTION {fn}");
+            }
             if (!ctx.Data.IsRepositoryIntrinsic(fw))   // the ONE REPOSITORY membership (kb/Work PB1083)
             {
                 // Where the REPOSITORY FUNCTION entry does not exist yet (the same the construct catalogue row KeywordOmittedFunction
@@ -111,6 +122,20 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         return ArgumentsOf(fc.functionArgList()?.functionArgument() ?? []) is { } written
             ? FinishIntrinsic(fc, BindIntrinsicCore(functionWord, nameToken, written), display)
             : BoundExprError.Refused(ctx.Edition, $"{display} arguments");
+    }
+
+    /// <summary>ISO §2023:13.18.54.3 SR9 (from COBOL 2014, §2014:13.18.54.2 SR9): "Within a report description entry, if the keyword
+    /// SUM is preceded by the keyword FUNCTION, SUM is a reference to the SUM intrinsic function. Otherwise, SUM refers to the report
+    /// writer SUM clause". True for a keyword-omitted SUM call inside a report description entry at an edition that has the rule:
+    /// the lexer gives `SUM (` the call's argument list only where the entry owes an operand (CobolLexer.IsReportSumClauseKeyword,
+    /// kb/Work PB5652), so this tree is the SUM clause written where no clause can stand. The token's type is its effective keyword
+    /// (the lexer retyped a >>COBOL-WORDS synonym of SUM to SUM).</summary>
+    private bool ReportSumClauseWord(Core.FunctionCallContext call)
+    {
+        if (call.reservedIntrinsicArgFn()?.SUM() is null || !ctx.Edition.Edition.Has(2014)) return false;
+        for (var node = call.Parent; node is not null; node = node.Parent)
+            if (node is Core.ReportDescriptionEntryContext) return true;
+        return false;
     }
 
     /// <summary>ISO §2023:8.4.3.2.3 SR6 — "If a function's definition permits arguments and a left parenthesis

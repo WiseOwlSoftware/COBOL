@@ -1,7 +1,8 @@
 {
  "rule-id": "2002-SR-13.16.52.2-1",
  "rule-digest": "7ab8d9e3cbca",
- "verdict": "DIVERGES",
- "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportSumClause",
- "notes": "kb/Work PB5652: at --std 2002 (golden-2002-1 re-probe on main b15bb9088f) an unprefixed REPOSITORY SUM intrinsic inside a SUM clause addend is a parse error COBOL5506 at 2002, which has no 2014/2023 SUM keyword rule."
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportSumClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#IsReportSumClauseKeyword; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#ReportOperandFollows",
+ "test-ref": "conformance:cases/13.16.52@2002-SUM-CLAUSE/g2sum07_sum_repository_intrinsic_unprefixed; conformance:cases/13.16.52@2002-SUM-CLAUSE/g2sum01_sum_cd_addends_timing; unit:CobolLexerModeDriftTests.ReportSum_WhereAnOperandIsOwed_IsTheKeywordOmittedFunction; unit:CobolLexerModeDriftTests.ReportSum_WhereAClauseCanBegin_IsTheClauseKeyword",
+ "notes": "kb/Work PB5652: §2002:13.16.52.2 SR1 makes each data-name-1, identifier-1 or arithmetic-expression-1 an addend and lets the SUM keyword repeat. An addend that is an arithmetic expression holding the REPOSITORY-declared SUM intrinsic without FUNCTION (SUM OF WA + SUM(WB WC), SUM OF SUM(WB WC)) is one addend at --std 2002 (g2sum07 prints 0111 and 0110); a SUM written after a complete addend is the repeated keyword (SUM WA SUM (WB * WC) prints 1001). The lexer keeps the function reading only where the entry owes an operand (CobolLexer IsReportSumClauseKeyword / ReportOperandFollows). The other addend forms are witnessed by g2sum01."
 }

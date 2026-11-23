@@ -113,8 +113,32 @@ channels { ABSENT_DEBUG_LINE, EMBEDDED_BLOCK_TEXT }
     // keyword-omitted SUM(…) still captures exactly as before. SUM is the only §2023:8.9 ∩ §2023:8.11 word (LENGTH,
     // RANDOM, SIGN, SUM) that begins a report or data description clause whose operand can open with '(' — the
     // SIGN clause (§2023:13.18.52) takes none — so it is the only word the region changes (CobolLexerModeDriftTests).
+    // ⛔ BUT ONLY WHERE A CLAUSE CAN BEGIN (kb/Work PB5652). A clause keyword stands after something has ended — the
+    // entry's name or level, or the last word of the clause before — never where an OPERAND is still owed: inside an
+    // open parenthesis, after an operator, or after the word that introduces a report clause's operand (SOURCE IS,
+    // SOURCES ARE, SUM OF, PRESENT WHEN, VARYING … FROM … BY, a relational operator). There `SUM (` can only be a
+    // function-identifier, so its '(' is the keyword-omitted call's argument list, as everywhere else. The EDITION
+    // decides nothing here: COBOL 2002 has no SR9, and §2002:12.2.7.3 GR13 lets a REPOSITORY-declared SUM drop the
+    // word FUNCTION in a report entry as anywhere (`SOURCE WA + SUM(WB WC)` is legal 2002); from 2014
+    // (§2014:13.18.54.2 SR9) the same tree is the SUM clause written where no clause can stand, which the binder
+    // refuses by name (IntrinsicBinder, COBOL7933) rather than leaving a raw parse error. Where SUM CAN begin the
+    // clause — after a complete operand, `SUM A SUM (B * C)` — the clause reading stays at every edition: SR9's
+    // reading, and the one 2002's repeated-SUM format (§2002:13.16.52.2 SR1) leaves open.
     private bool _inReportSection;
-    private bool IsReportSumClauseKeyword() => _inReportSection && _lastNonWsTokenType == SUM;
+    private bool IsReportSumClauseKeyword() =>
+        _inReportSection && _lastNonWsTokenType == SUM
+        && _parenRegions.Count == 0 && !ReportOperandFollows.Contains(_prevNonWsTokenType);
+
+    // The tokens after which a report clause still owes an operand (the arithmetic operators of ListOperandFollows,
+    // and the words that introduce a report clause's expression or condition operand). The separators are NOT here:
+    // a comma or semicolon may stand between two clauses (§2023:8.3.5), so a SUM after one may begin the clause.
+    // CobolLexerModeDriftTests pins the members that decide a report-entry SUM.
+    private static readonly System.Collections.Generic.HashSet<int> ReportOperandFollows =
+    [
+        PLUS, MINUS, STAR, SLASH, POWER, AMPERSAND, OF, IN,
+        SOURCE, SOURCES, IS, ARE, SUM, WHEN, FROM, BY,
+        EQUALS, GT, LT, GTEQUAL, LTEQUAL, NOTEQUAL, EQUAL, GREATER, LESS, THAN, TO, AND, OR, NOT,
+    ];
 
     // The REPORT SECTION region: opened by the `REPORT SECTION` header, closed by the next section or division
     // header — the data division's fixed section order puts only the SCREEN SECTION or the PROCEDURE DIVISION after
