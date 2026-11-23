@@ -33,6 +33,8 @@ desktop.ini
 # Test results
 TestResults/
 coverage/
+# ...but the conformance suite's coverage-point tool is named coverage (kb/Work PB6050): its self-test directory is source.
+!conformance-suite/harness/selftests/coverage/
 
 # Compiled COBOL output (samples directory)
 samples/*.dll
