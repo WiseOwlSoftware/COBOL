@@ -545,6 +545,13 @@ public sealed class ReservedWordPositionConformanceTests
             $"expected the refusal at '{word}' on line 11 and the statement's own ({secondFault}), no COBOL0901, got:\n{string.Join("\n", diags)}");
     }
 
+    /// <summary>A bare verb's refusal at its period: COBOL5506 naming the statement where the position takes an operand and
+    /// nothing else (kb/Work PB6113), and the bare COBOL0001 where the verb's own period is also a paragraph header's, so a
+    /// period is legal there and no operand arm claims it (a verb the edition gates, FREE, VALIDATE, RAISE, INVOKE,
+    /// ALLOCATE; PERFORM, whose inline form takes a statement).</summary>
+    private static bool IsTheStatementsOwnRefusalAtThePeriod(string diagnostic)
+        => diagnostic.Contains("COBOL5506", StringComparison.Ordinal) || diagnostic.Contains("COBOL0001", StringComparison.Ordinal);
+
     /// <summary>⛔ A BARE VERB SENTENCE IS A PARAGRAPH HEADER ONLY WHERE THE PROGRAM NAMES THE WORD AS A PROCEDURE (kb/Work PB4283),
     /// the same decision for a verb reserved at every edition (DISPLAY, READ, STOP) and one the edition gates (FREE, VALIDATE,
     /// RAISE, INVOKE). ISO §2023:8.3.2.1 SR1 ("Reserved words shall not be used as user-defined words or system-names") is broken by a USE
@@ -584,7 +591,7 @@ public sealed class ReservedWordPositionConformanceTests
             Assert.True(violations == 1 && diags.Count == 1 && diags[0].Contains($"'{verb}'", StringComparison.Ordinal),
                 $"a procedure reference names '{verb}': exactly the one COBOL0901, got:\n{string.Join("\n", diags)}");
         else
-            Assert.True(violations == 0 && diags.Count >= 1 && diags[0].Contains("COBOL5506", StringComparison.Ordinal),
+            Assert.True(violations == 0 && diags.Count >= 1 && IsTheStatementsOwnRefusalAtThePeriod(diags[0]),
                 $"no procedure reference names '{verb}': the bare verb is the statement's own refusal, got:\n{string.Join("\n", diags)}");
     }
 
@@ -847,9 +854,9 @@ public sealed class ReservedWordPositionConformanceTests
                """, edition);
         string all = string.Join("\n", diags);
         Assert.False(ok);
-        Assert.True(diags.Count == 1 && diags[0].Contains("COBOL5506", StringComparison.Ordinal)
+        Assert.True(diags.Count == 1 && IsTheStatementsOwnRefusalAtThePeriod(diags[0])
                                      && diags[0].Contains("'.'", StringComparison.Ordinal),
-            $"expected exactly one diagnostic, the COBOL5506 at the period, got:\n{all}");
+            $"expected exactly one diagnostic, the statement's own refusal at the period, got:\n{all}");
     }
 
     /// <summary>⛔ A VERB ALONE IN ITS SENTENCE IS FAULTED AT ITS PERIOD, WHICHEVER VERB, AND EVERY SUCH SENTENCE IS (kb/Work
@@ -884,8 +891,8 @@ public sealed class ReservedWordPositionConformanceTests
             .First(l => l.text.TrimEnd('\r').EndsWith(v + ".", StringComparison.Ordinal)))
             .Select(l => $"({l.line},{l.text.TrimEnd('\r').Length}):").ToArray();
         Assert.True(diags.Count == 3 && diags.Zip(expected).All(p => p.First.Contains(p.Second, StringComparison.Ordinal)
-                                                                  && p.First.Contains("COBOL5506", StringComparison.Ordinal)),
-            $"expected three COBOL5506, at {string.Join(" ", expected)}, got:\n{string.Join("\n", diags)}");
+                                                                  && IsTheStatementsOwnRefusalAtThePeriod(p.First)),
+            $"expected three refusals, at {string.Join(" ", expected)}, got:\n{string.Join("\n", diags)}");
     }
 
     /// <summary>⛔ A VERB THAT IS COMPLETE ALONE IS NEVER FAULTED, NOR CONSUMED, BESIDE ANOTHER FAULT (kb/Work PB4494, branch
