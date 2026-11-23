@@ -1222,7 +1222,9 @@ which returns and removes the entries after the mark in registration order, plus
 proved they need: `InsertAt(position, …)`, the evaluation-order placement a freeze makes ahead of a later operand's
 entries (`SendingValueTemp.Positioned`, `StatementBinder.FreezeOdoExtentBeforeRefMod`; §2023:14.6.4), and `Since(mark)`,
 the read of an operand's entries without taking them (the reference resolver's enclosing-occurrence capture); it holds
-`PendingPreOps` and `PropertyOps`, the former `OoPendingPropertyOps`); and a **scope cursor** (`Cursor<T>`:
+`PendingPreOps` and `PropertyOps`, the former `OoPendingPropertyOps`, and the window protocol over the two, mark on
+entry, drain the suffix, stamp each step an operand evaluation, hoist it or attach it per evaluation, has ONE owner,
+`OperandEvaluationWindow` (`StatementBinder.Window`; kb/Work PB3223), never one of its four producers); and a **scope cursor** (`Cursor<T>`:
 `Enter(value)` returns the restoring scope, and `Advance(value)` moves the cursor inside the open scope, which the
 operand-evaluation count needs as the statement drains its steps; it holds `OperandEvaluations`, entered at zero per
 statement, and `ActiveMethodScope`). It is held per unit binder (`DataBinder.Procedure`), not on `BindSession`: the

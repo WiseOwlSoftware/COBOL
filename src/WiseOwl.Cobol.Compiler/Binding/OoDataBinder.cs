@@ -374,69 +374,27 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
             data.Linkage.SuppressRootField(root.ClrName);
         }
 
-        // The PD header formals (§2023:14.2.2 SR1 — level-01/77 LINKAGE entries; correspondence is positional).
-        // The using-phrase modes (§2023:14.2.1: { [BY REFERENCE] { [OPTIONAL] d }… | BY VALUE { d }… }…) are TRANSITIVE
-        // across the parameters that follow until the other phrase appears, BY REFERENCE assumed before the first
-        // (§2023:14.2.3 GR4) — threaded flat over the grammar's one-parameter-per-node shape, exactly as the program arm
-        // does (CallBindLinkage). A BY VALUE formal is recorded (OoFormal.ByValue): the activator hands it a detached
-        // value and the method never copies it back (kb/Work PB1051). The OPTIONAL phrase CARRIES (kb/Work PB757): the
-        // formal records it, and the method ABI pairs every formal with its omitted-presence parameter
-        // (OoFormal.OmittedFlag) — the method arm of the one presence fact the program arm's null carrier realizes
-        // (kb/Work PB133 wave C).
+        // The PD header (§2023:14.2.2, §2023:14.2.3 GR4): the ONE header binding every arm calls (ProcedureHeaderBinder, kb/Work
+        // PB3213). A BY VALUE formal is recorded (OoFormal.ByValue): the activator hands it a detached value and the method
+        // never copies it back (kb/Work PB1051). The OPTIONAL phrase CARRIES (kb/Work PB757): the method ABI pairs every formal
+        // with its omitted-presence parameter (OoFormal.OmittedFlag). The formals whose ADDRESS OF the body takes are AREA
+        // formals.
         var pd = definition.procedureDivision();
-        int pos = 0;
-        bool byValue = false;
-        // The formals whose ADDRESS OF the body takes are AREA formals (FormalIsCarrierResident — the program arm's test).
-        var addressed = pd is null ? SymbolTable.AddressedNames.None : SymbolTable.AddressedBy(data.ClaimScans.AddressTargets(pd));
-        var header = new ProcedureHeaderScreen(Edition, where);   // §2023:14.2.2 SR1/SR2/SR5/SR6 — the ONE header screen (kb/Work PB1145)
-        foreach (var prm in pd?.usingClause()?.usingParameter() ?? [])
+        var header = pd is null ? ProcedureHeader.None
+            : ProcedureHeaderBinder.Bind(data, pd, m.Binding!.LinkageRoots,
+                () => SymbolTable.AddressedBy(data.ClaimScans.AddressTargets(pd)), new ProcedureHeaderScreen(Edition, where), method: true);
+        foreach (var f in header.Formals)
         {
-            using var _ = Edition.At(prm);
-            Core.DataReferenceContext dref;
-            bool optional = false;
-            if (prm.usingByValue() is { } vb) { byValue = true; dref = vb.dataReference(); }
-            else if (prm.usingByReference() is { } rb)
-            {
-                byValue = false;
-                dref = rb.dataReference();
-                optional = rb.OPTIONAL() is not null;
-            }
-            else { dref = prm.dataReference(); optional = prm.OPTIONAL() is not null; }
-            string pname = dref.GetText();
-            string pnameWritten = WrittenSource.Of(dref);
-            var item = data.Symbols.IdentifyHeaderOperand(m.Binding!.LinkageRoots, dref);
-            if (item is null)
-                Edition.Error(DiagnosticCatalog.ProcedureHeaderItemNotLinkageRoot, $"{where}: PROCEDURE DIVISION USING parameter '{pnameWritten}' is not "
-                    + "a level-01/77 LINKAGE SECTION item of the method (ISO §2023:14.2.2 SR1)");
-            else if (header.AdmitFormal(pname, item))
-            {
-                if (optional && byValue) header.OptionalNeedsByReference(pname);   // §2023:14.2.1: OPTIONAL is a BY REFERENCE word
-                if (byValue)
-                {
-                    data.CompleteDescriptionAhead(item);   // a TYPE-typed formal has no class until its subject is composed (kb/Work PB3222)
-                    header.ByValueClass(pname, item); // §2023:14.2.2 SR2
-                }
-                // ⛔ A RESIDENT formal's every reference reads and writes its argument's storage through the method-local
-                // carrier (ISO §2023:14.2.3 GR8; kb/Work PB2087, the method arm of CallBindLinkage's rule): every place built
-                // over it starts at the carrier's local root (PlaceBuilder.AddRoot; kb/Work PB4320, PB4380), and no
-                // local of its own is declared — the method's linkage roots were all suppressed above.
-                bool resident = LinkageBinder.FormalIsCarrierResident(item, m.Binding!.LinkageRoots, addressed);
-                var formal = new OoFormal(item, pos, m.Binding!.FormalName(item, pos), optional, byValue, resident);
-                if (resident) item.ResidentCarrier = new FormalCarrier.Local(formal.Carrier);
-                m.Binding!.Formals.Add(formal);
-            }
-            pos++;
+            // ⛔ A RESIDENT formal's every reference reads and writes its argument's storage through the method-local
+            // carrier (ISO §2023:14.2.3 GR8; kb/Work PB2087): every place built over it starts at the carrier's local root
+            // (PlaceBuilder.AddRoot; kb/Work PB4320, PB4380), and no local of its own is declared — the method's linkage
+            // roots were all suppressed above.
+            var formal = new OoFormal(f.Item, f.Position, m.Binding!.FormalName(f.Item, f.Position), f.Optional, f.ByValue,
+                f.CarrierResident);
+            if (f.CarrierResident) f.Item.ResidentCarrier = new FormalCarrier.Local(formal.Carrier);
+            m.Binding!.Formals.Add(formal);
         }
-        if (pd?.returningClause()?.dataReference() is { } rref)
-        {
-            using var returningAt = Edition.At(rref);   // the RETURNING item's own position, as each USING parameter's (kb/Work PB2034)
-            m.Binding!.Returning = data.Symbols.IdentifyHeaderOperand(m.Binding!.LinkageRoots, rref);
-            if (m.Binding!.Returning is null)
-                Edition.Error(DiagnosticCatalog.ProcedureHeaderItemNotLinkageRoot, $"{where}: PROCEDURE DIVISION RETURNING item '{WrittenSource.Of(rref)}' "
-                    + "is not a level-01/77 LINKAGE SECTION item of the method (ISO §2023:14.2.2 SR1)");
-            else
-                header.CheckReturning(rref.GetText(), m.Binding!.Returning);   // SR5 / SR6 — SR6 was mis-cited "SR4" here
-        }
+        m.Binding!.Returning = header.Returning;
         ScreenPropertyMethodHeader(m, definition, pd?.usingClause()?.usingParameter().Length ?? 0,
             m.Owner is { } owner ? $"class '{owner.Name}'{(m.IsFactory ? " (FACTORY)" : "")}: " : "");
         // §2023:13.7.3 SR4: which of the method's linkage records its procedure division may reference — the ONE decision
@@ -451,41 +409,11 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
         // whole-group-referenced (its numeric-DISPLAY leaves image-stored, untouched caller bytes round-tripping) —
         // registered post-bind by UsageCollectionPass (PHASE-05 Step 5), which receives these formals from the emitter.
 
-        // ── The ANY LENGTH placement sweep, METHOD path (ISO §2023:13.18.2.3 SR2/SR3; the CallBindLinkage sweep is
-        // the program/function/object path). SR2: LINKAGE only, elementary, and the containing method shall not
-        // be a PROPERTY method (an explicit METHOD-ID GET|SET PROPERTY — Accessor != '\0'; a PROPERTY-clause-
-        // synthesized accessor clones object data, where the clause is already rejected). SR3: referenced in the
-        // method's PD header as a BY REFERENCE formal (SR3a — a BY VALUE formal does not qualify) or the RETURNING
-        // item (SR3b). Violations clear the flag (the IsBased discipline). ──
-        foreach (var root in m.Binding!.LocalRoots)
-            if (root.IsAnyLength)
-            {
-                using var localAt = Edition.At(root);   // the entry's own position, as AnyLengthValidateUnit's (kb/Work PB2034)
-                Edition.Error(DiagnosticCatalog.AnyLengthPlacement, $"{where}: data item '{root.CobolName ?? "FILLER"}': the ANY "
-                    + "LENGTH clause may be specified only in the LINKAGE SECTION (ISO §2023:13.18.2.3 SR2)");
-                root.IsAnyLength = false;
-            }
-        foreach (var root in m.Binding!.LinkageRoots)
-        {
-            if (!root.IsAnyLength) continue;
-            using var linkageAt = Edition.At(root);   // the entry's own position, as AnyLengthValidateUnit's (kb/Work PB2034)
-            string rw = $"{where}: data item '{root.CobolName ?? "FILLER"}'";
-            if (root.IsGroup)
-                Edition.Error(DiagnosticCatalog.AnyLengthPlacement, $"{rw}: the subject of an ANY LENGTH clause shall be ELEMENTARY "
-                    + "— this entry has subordinate items (ISO §2023:13.18.2.3 SR2)");
-            else if (m.Accessor != '\0')
-                Edition.Error(DiagnosticCatalog.AnyLengthPlacement, $"{rw}: the ANY LENGTH clause may not be specified in a PROPERTY "
-                    + "method (ISO §2023:13.18.2.3 SR2 — a method that is not a property method)");
-            else if (!m.Binding!.Formals.Any(f => ReferenceEquals(f.Item, root) && !f.ByValue)   // SR3 a): a BY VALUE formal does not qualify
-                && !ReferenceEquals(m.Binding!.Returning, root))
-                Edition.Error(DiagnosticCatalog.AnyLengthSubjectNotInHeader, $"{rw}: the subject of an ANY LENGTH clause shall be referenced "
-                    + "in the method's procedure division header as a BY REFERENCE formal parameter or as the "
-                    + "RETURNING item (ISO §2023:13.18.2.3 SR3)");
-            else
-                continue;   // conformant — keep the flag. A RETURNING item (SR3 b)) receives the INVOKE receiver's length
-                            // through the method's trailing __retLen parameter (§2023:13.18.2.4 GR1b; OoEmitter.OoSignatureOf).
-            root.IsAnyLength = false;
-        }
+        // The ANY LENGTH placement sweep, METHOD path (ISO §2023:13.18.2.3 SR2/SR3): the ONE sweep, over the method's own
+        // local and linkage roots. An explicit METHOD-ID GET|SET PROPERTY (Accessor != '\0') is a property method; a
+        // PROPERTY-clause-synthesized accessor clones object data, where the clause is already rejected.
+        ProcedureHeaderBinder.SweepAnyLength(Edition, m.Binding!.LocalRoots.Concat(m.Binding!.LinkageRoots), m.Binding!.LinkageRoots,
+            m.Accessor != '\0' ? ProcedureHeaderOwner.PropertyMethod : ProcedureHeaderOwner.Method, header, prefix: where + ": ");
     }
 
     /// <summary>ISO §2023:11.7.3 SR6 / SR7 — the header a GET or SET PROPERTY method shall have, asked of the BOUND header

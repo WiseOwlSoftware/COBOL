@@ -9946,9 +9946,10 @@ public static class DiagnosticCatalog
     /// <summary>COBOL1506 — user function argument rule (kb/Work PB4463).</summary>
     public static readonly DiagnosticDescriptor UserFunctionArgumentRule = new(
         "COBOL1506", "user-function-argument-rule", EditionSeverity.Error,
-        "The arguments of a user-defined function activation do not match its formal parameters: the count differs, or an "
-        + "argument form is not supported for user-defined function activation (§2023:14.8.2, Parameters).",
-        "ISO §2023:14.8.2",
+        "The number of arguments of a user-defined function activation differs from the number of its formal parameters, "
+        + "other than trailing OPTIONAL formals omitted (§2023:14.8.2.1). A refused argument is reported by its own rule only "
+        + "(kb/Work PB3227).",
+        "ISO §2023:14.8.2.1",
         No1985Rule: No1985Function);
 
     /// <summary>COBOL1507 — function id returning required (kb/Work PB4463).</summary>

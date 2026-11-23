@@ -168,6 +168,24 @@ internal static class Program
                 + "construct ISO/IEC 1989 does not define (ISO 4.2.10). The register is docs/CONFORMANCE.md 3.2.",
         };
 
+        // kb/Work PB2652 (owner decision D20): ISO §2023:4.2.2's warning mechanism is one "that optionally may be invoked by the user
+        // at compile time", and this is the user's choice of which of its warnings to see. A name no diagnostic answers to is a CLI
+        // argument error (WarningSuppression.Problem): a misspelling that muted nothing would pass for a warning the compiler kept.
+        var suppressOption = new Option<string[]>("--suppress")
+        {
+            Description = "Do not report a warning (repeatable): NAME is a diagnostic code (COBOL2187), a diagnostic id or a suppress "
+                + "key (recognized-not-implemented), as docs/DIAGNOSTICS.md lists them. An error is never suppressed.",
+            Arity = ArgumentArity.OneOrMore,
+            AllowMultipleArgumentsPerToken = false,   // `--suppress A --suppress B`, never grabbing the source positional
+            HelpName = "NAME",
+        };
+        suppressOption.Validators.Add(result =>
+        {
+            foreach (string v in result.GetValueOrDefault<string[]>() ?? [])
+                if (WiseOwl.Cobol.Frontend.Diagnostics.WarningSuppression.Problem(v) is { } problem)
+                    result.AddError($"--suppress: {problem}.");
+        });
+
         // kb/Work PB2100: ISO §2023:8.13 — "The implementor shall provide a mechanism that allows the user to specify whether to
         // update the external repository when a compilation unit is compiled." This is that mechanism
         // (DESIGN-external-repository §9.1): on (the default) writes every published unit's signature into the module, off
@@ -285,7 +303,7 @@ internal static class Program
             + $"`cobol {CheckBatchName} <manifest>` checks many sources without emitting (`cobol {CheckBatchName} --help`).")
         {
             sourceArgument, outputOption, nistOption, stdOption, permissiveOption, copyOption, runOption,
-            signEncodingOption, numericDisplayOption, sourceFormatOption, flagExtensionsOption, repositoryUpdateOption,
+            signEncodingOption, numericDisplayOption, sourceFormatOption, flagExtensionsOption, suppressOption, repositoryUpdateOption,
             repositoryOption, referenceOption, repositoryCheckOption,
             listingOption, listingOutputOption, listingFormatOption, listingSectionsOption, listingPageLengthOption,
             listingPageWidthOption,
@@ -352,7 +370,8 @@ internal static class Program
                 source, parse.GetValue(outputOption), nistName, edition,
                 parse.GetValue(copyOption) ?? [], parse.GetValue(runOption),
                 signEncoding, sourceFormat, parse.GetValue(flagExtensionsOption), numericDisplay, repositoryUpdate,
-                repositories, parse.GetValue(referenceOption) ?? [], repositoryCheck, listing);
+                repositories, parse.GetValue(referenceOption) ?? [], repositoryCheck, listing,
+                parse.GetValue(suppressOption) is { Length: > 0 } suppress ? suppress : null);
         }
 
         // The root's OWN action: a bare `cobol <source>` compiles.
@@ -574,7 +593,8 @@ internal static class Program
             SignEncoding: options.SignEncoding, SourceFormat: options.SourceFormat,
             FlagExtensions: options.FlagExtensions, NumericDisplay: options.NumericDisplay,
             RepositoryUpdate: options.RepositoryUpdate, RepositoryPaths: options.RepositoryPaths,
-            ReferencePaths: options.ReferencePaths, RepositoryCheck: options.RepositoryCheck, Listing: options.Listing));
+            ReferencePaths: options.ReferencePaths, RepositoryCheck: options.RepositoryCheck, Listing: options.Listing,
+            Suppress: options.Suppress));
 
         // `--listing-output -`: the one format requested goes to standard output (DESIGN-listing.md section 8), before the
         // diagnostics; the request admits exactly one format there (ListingRequest.FormatsProblem). It is streamed (kb/Work PB5941)

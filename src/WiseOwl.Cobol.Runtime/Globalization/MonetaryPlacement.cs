@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Collections.Immutable;
 using System.Globalization;
 
 namespace WiseOwl.Cobol.Runtime.Globalization;
@@ -75,12 +76,12 @@ public static class MonetaryPlacement
 
     /// <summary>The convention for each <see cref="NumberFormatInfo.CurrencyNegativePattern"/> value this runtime
     /// accepts (index = the pattern value; length = the DISCOVERED accepted range, 17 on .NET 10).</summary>
-    public static MonetaryConvention[] NegativeByPattern { get; }
+    public static ImmutableArray<MonetaryConvention> NegativeByPattern { get; }
 
     /// <summary>The (cs_precedes, sep_by_space) pair for each <see cref="NumberFormatInfo.CurrencyPositivePattern"/>
     /// value this runtime accepts. The pair's <c>SignPosn</c> carries the determined constant 1 (see the class doc)
     /// so a <see cref="MonetaryConvention"/> comes out ready to use.</summary>
-    public static MonetaryConvention[] PositiveByPattern { get; }
+    public static ImmutableArray<MonetaryConvention> PositiveByPattern { get; }
 
     static MonetaryPlacement()
     {
@@ -98,7 +99,7 @@ public static class MonetaryPlacement
         NegativeByPattern = Derive(nfi, negative: true);
     }
 
-    private static MonetaryConvention[] Derive(NumberFormatInfo nfi, bool negative)
+    private static ImmutableArray<MonetaryConvention> Derive(NumberFormatInfo nfi, bool negative)
     {
         var table = new List<MonetaryConvention>();
         for (int v = 0; ; v++)

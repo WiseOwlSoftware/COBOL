@@ -62,6 +62,8 @@ internal static class OptionsSectionBuilder
         new(nameof(CompilerDriver.Options.SourceFormat), "--source-format",
             o => Frontend.Preprocessor.InitialReferenceFormatOption.OptionSpellings[(int)o.SourceFormat]),
         new(nameof(CompilerDriver.Options.FlagExtensions), "--flag-extensions", o => OnOff(o.FlagExtensions)),
+        new(nameof(CompilerDriver.Options.Suppress), "--suppress",
+            o => o.Suppress is { Count: > 0 } names ? string.Join(",", names) : "none"),
         new(nameof(CompilerDriver.Options.RepositoryUpdate), "--repository-update", o => OnOff(o.RepositoryUpdate)),
         new(nameof(CompilerDriver.Options.RepositoryPaths), "--repository",
             o => o.RepositoryPaths is null ? "the output directory" : List(o.RepositoryPaths)),

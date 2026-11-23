@@ -66,6 +66,9 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     private CallBinder Call => _callBinder ??= new CallBinder(Ctx, this);
     private UdfBinder? _udfBinder;
     internal UdfBinder Udf => _udfBinder ??= new UdfBinder(Ctx, this);
+    private OperandEvaluationWindow? _window;
+    /// <summary>The operand-evaluation window every binder marks and drains (kb/Work PB3223).</summary>
+    internal OperandEvaluationWindow Window => _window ??= new OperandEvaluationWindow(Ctx, this);
     private ParameterConformance? _parameterConformance;
     /// <summary>The ONE argument half of ISO §2023:14.8.2 — shared by the Format-2 CALL and the function-identifier
     /// (kb/Work PB1418) — and the activation operand screens CALL and INVOKE state in the same words (the storage
@@ -416,7 +419,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         // that statement's own BindStatement. The UDF wrap is the INNER sequence (function activations are
         // always pre-ops, §2023:8.4.3.2.3 SR1), so a property argument's GET — a pre-op of the OUTER property
         // wrap — still runs before the activation that consumes its temp.
-        var marks = Udf.Mark;
+        var marks = Window.Mark;
         // The receivers this statement identifies as it stores them (kb/Work PB5386): mark-on-entry / drain-own-suffix like the
         // two pending queues, so a nested statement's receivers are its own.
         int identificationMark = data.Procedure.ReceiverIdentifications.Mark();
@@ -523,7 +526,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         // The receivers' identification brackets innermost (kb/Work PB5386): the emitter opens each at its receiver's store, inside
         // the statement the hoist and the property wrap below enclose.
         core = BoundImplicitSeries.Rewrap(core, n => WrapReceiverIdentifications(n, identificationMark));
-        core = BoundImplicitSeries.Rewrap(core, n => Udf.UdfWrapCalls(n, marks.PreOps));
+        core = BoundImplicitSeries.Rewrap(core, n => Window.Hoist(n, marks.PreOps));
         core = BoundImplicitSeries.Rewrap(core, n => Oo.OoWrapPropertyOps(n, marks.PropertyOps));
         // ISO §2023:14.9.33.4 GR2a 2./3. — the statement an operand activation was specified in is where a RESUME AT
         // NEXT STATEMENT for the condition it propagates lands. Through Rewrap like the hoist above, so a
@@ -593,7 +596,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     private bool _inDebuggingSection;
 
     /// <summary>The source line of the statement now binding — the §2023:7.3.25 line an operand activation's checking
-    /// profile is taken at (<c>UdfBinder.DrainPending</c>; kb/Work PB892). Saved and restored around a nested
+    /// profile is taken at (<c>OperandEvaluationWindow.DrainPending</c>; kb/Work PB892). Saved and restored around a nested
     /// statement by <see cref="BindStatement"/>.</summary>
     internal int StatementLine { get; private set; }
 

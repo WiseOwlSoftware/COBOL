@@ -486,17 +486,17 @@ public static class CldrTailoringBuilder
                     // EXCEPT that everything between the last regular script's last primary and the Han implicit range —
                     // the space CLDR reserves for tailoring, where a `&[last regular]<…` pinyin/stroke/zhuyin order puts
                     // the Han characters — belongs to the Hani tile, so those tailored primaries move WITH Hani.
-                    var tiles = new (int First, int Last)[groups.Count];
-                    for (int i = 0; i < groups.Count; i++)
+                    var tiles = new (int First, int Last)[groups.Length];
+                    for (int i = 0; i < groups.Length; i++)
                     {
-                        bool nextIsHani = i + 1 < groups.Count && groups[i + 1].Code == "Hani";
+                        bool nextIsHani = i + 1 < groups.Length && groups[i + 1].Code == "Hani";
                         int first = i > 0 && groups[i].Code == "Hani" ? mapP(groups[i - 1].LastPrimary) + 1 : mapP(groups[i].FirstPrimary);
-                        int last = i + 1 < groups.Count
+                        int last = i + 1 < groups.Length
                             ? (nextIsHani ? mapP(groups[i].LastPrimary) : mapP(groups[i + 1].FirstPrimary) - 1)
                             : mapP(groups[i].LastPrimary);
                         tiles[i] = (first, last);
                     }
-                    var newFirst = new int[groups.Count];
+                    var newFirst = new int[groups.Length];
                     int cursor = tiles[0].First;
                     foreach (int gi in order)
                     {
@@ -504,7 +504,7 @@ public static class CldrTailoringBuilder
                         cursor += tiles[gi].Last - tiles[gi].First + 1;
                     }
                     bool identity = true;
-                    for (int i = 0; i < groups.Count; i++) if (newFirst[i] != tiles[i].First) { identity = false; break; }
+                    for (int i = 0; i < groups.Length; i++) if (newFirst[i] != tiles[i].First) { identity = false; break; }
                     if (!identity)
                     {
                         var tilesCopy = tiles;
@@ -515,7 +515,7 @@ public static class CldrTailoringBuilder
                                 if (x >= tilesCopy[i].First && x <= tilesCopy[i].Last) return firstCopy[i] + (x - tilesCopy[i].First);
                             return x;
                         };
-                        newGroups = new ReorderGroup[groups.Count];
+                        newGroups = new ReorderGroup[groups.Length];
                         int k = 0;
                         foreach (int gi in order)
                             newGroups[k++] = new ReorderGroup(groups[gi].Codes, perm(mapP(groups[gi].FirstPrimary)), perm(mapP(groups[gi].LastPrimary)));
@@ -536,8 +536,8 @@ public static class CldrTailoringBuilder
             }
             if (newGroups is null && pMap is not null)
             {
-                newGroups = new ReorderGroup[groups.Count];
-                for (int i = 0; i < groups.Count; i++)
+                newGroups = new ReorderGroup[groups.Length];
+                for (int i = 0; i < groups.Length; i++)
                     newGroups[i] = new ReorderGroup(groups[i].Codes, mapP(groups[i].FirstPrimary), mapP(groups[i].LastPrimary));
             }
 
@@ -792,7 +792,7 @@ public static class CldrTailoringBuilder
                     // The last primary below the Han implicit range: the group before Hani (Khitan Small Script).
                     int last = 0;
                     var groups = _base.ReorderGroups;
-                    for (int i = 0; i < groups.Count; i++)
+                    for (int i = 0; i < groups.Length; i++)
                         if (groups[i].Code == "Hani") { last = i > 0 ? groups[i - 1].LastPrimary : groups[i].FirstPrimary - 1; break; }
                     if (last == 0) last = Mapped((HanImplicitFirst - 1) << _shift);
                     return Make(last, CommonSecondary, CommonTertiary);

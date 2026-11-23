@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Collections.Immutable;
 using System.Globalization;
 
 namespace WiseOwl.Cobol.Runtime.Collation;
@@ -40,7 +41,7 @@ namespace WiseOwl.Cobol.Runtime.Collation;
 public sealed class TailoringRules
 {
     /// <summary>One override: the code point sequence (length 1, or a contraction) and its element sequence.</summary>
-    public sealed record Entry(int[] CodePoints, CollationElement[] Elements, int Line);
+    public sealed record Entry(ImmutableArray<int> CodePoints, ImmutableArray<CollationElement> Elements, int Line);
 
     /// <summary>The environment variable naming a directory of site <c>.tailor</c> files (searched first;
     /// <see cref="SearchDirectories"/>). Registered in <see cref="RuntimeConfig"/>.</summary>
@@ -55,9 +56,9 @@ public sealed class TailoringRules
         Source = source;
         Locale = locale;
         UcaVersion = ucaVersion;
-        Entries = entries;
+        Entries = [.. entries];
         _byKey = new Dictionary<CodePointKey, Entry>(entries.Count);
-        foreach (var e in entries) _byKey[new CodePointKey(e.CodePoints)] = e;
+        foreach (var e in entries) _byKey[new CodePointKey(e.CodePoints.AsSpan())] = e;
     }
 
     /// <summary>Where the rules came from (a path or an embedded resource name) — for diagnostics.</summary>
@@ -70,7 +71,7 @@ public sealed class TailoringRules
     public string? UcaVersion { get; }
 
     /// <summary>The overrides, in file order.</summary>
-    public IReadOnlyList<Entry> Entries { get; }
+    public ImmutableArray<Entry> Entries { get; }
 
     /// <summary>The tailoring's name: its locale, else its source's file name without extension.</summary>
     public string Name => Locale ?? Path.GetFileNameWithoutExtension(Source);
@@ -217,9 +218,9 @@ public sealed class TailoringRules
                 continue;
             }
             var entry = ParseMapping(line, sourceName, lineNo);
-            var key = new CodePointKey(entry.CodePoints);
+            var key = new CodePointKey(entry.CodePoints.AsSpan());
             if (seen.TryGetValue(key, out int first))
-                throw Error(sourceName, lineNo, $"duplicate mapping for {Describe(entry.CodePoints)} (first at line {first})");
+                throw Error(sourceName, lineNo, $"duplicate mapping for {Describe(entry.CodePoints.AsSpan())} (first at line {first})");
             seen[key] = lineNo;
             entries.Add(entry);
         }
@@ -282,7 +283,7 @@ public sealed class TailoringRules
         {
             elements.Add(ParseElement(tokens, t, tokens.Count, source, lineNo));
         }
-        return new Entry(cps.ToArray(), elements.ToArray(), lineNo);
+        return new Entry([.. cps], [.. elements], lineNo);
     }
 
     private static CollationElement ParseElement(List<string> tokens, int start, int end, string source, int lineNo)
@@ -326,7 +327,7 @@ public sealed class TailoringRules
         return w;
     }
 
-    private static string Describe(int[] cps) => string.Join(" ", cps.Select(c => $"U+{c:X4}"));
+    private static string Describe(ReadOnlySpan<int> cps) => string.Join(" ", cps.ToArray().Select(c => $"U+{c:X4}"));
 
     private static LocaleCollationException Error(string source, int lineNo, string message) =>
         new(source, lineNo, message);

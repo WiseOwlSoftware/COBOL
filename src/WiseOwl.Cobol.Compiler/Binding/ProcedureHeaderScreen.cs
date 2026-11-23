@@ -27,6 +27,9 @@ namespace WiseOwl.Cobol.Binding;
 /// </summary>
 internal sealed class ProcedureHeaderScreen(EditionContext edition, string where)
 {
+    /// <summary>The element whose header this screens, as its messages name it.</summary>
+    public string Where => where;
+
     private readonly HashSet<DataItem> _formals = new(ReferenceEqualityComparer.Instance);
 
     private void Refuse(string requirement, string rule, string? rule1985 = null) =>

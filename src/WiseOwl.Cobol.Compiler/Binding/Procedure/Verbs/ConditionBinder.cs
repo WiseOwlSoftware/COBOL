@@ -867,7 +867,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// A user-function reference in a NON-FIRST operand of an AND/OR chain is CONDITIONALLY evaluated
     /// (§2023:8.8.4.13 GR1 — evaluation stops when the hierarchical level's truth value is determined; r2 — functions
     /// are evaluated "if and when the conditions containing them are evaluated"), so that operand's activations
-    /// attach to the operand itself (<c>UdfAttachPerEvaluation</c>) and run only when C#'s matching
+    /// attach to the operand itself (<c>OperandEvaluationWindow.AttachPerEvaluation</c>) and run only when C#'s matching
     /// short-circuit reaches it. The FIRST operand always evaluates — its activations stay statement-hoisted
     /// (exact) unless an ENCLOSING repeated window drains them. XOR is exempt: both operands are always
     /// required (§2023:8.8.4.9), so a hoist is exact for every XOR operand.</summary>
@@ -879,10 +879,10 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             var ch = ctx.GetChild(i);
             // The AND / OR connective tokens, and the one xorOperator node (XOR / EXCLUSIVE-OR — kb/Work PB1390).
             if (ch is ITerminalNode or Core.XorOperatorContext) continue;
-            var udfMark = host.Udf.Mark;
+            var udfMark = host.Window.Mark;
             parts.Add(BindCondition(ch, carry));
             if (parts.Count > 1 && op != "^")
-                parts[^1] = host.Udf.UdfAttachPerEvaluation(parts[^1], udfMark);
+                parts[^1] = host.Window.AttachPerEvaluation(parts[^1], udfMark);
         }
         return parts.Count == 1 ? parts[0] : new BoundLogical(op, parts);
     }

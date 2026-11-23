@@ -73,7 +73,7 @@ internal static class ExpansionAssemblies
                     CheckOnly: false, SignEncoding: state.SignEncoding, SourceFormat: Frontend.Preprocessor.InitialReferenceFormat.Free,
                     FlagExtensions: state.FlagExtensions, NumericDisplay: RepositoryVocabulary.FromPersisted(state.NumericDisplay),
                     RepositoryUpdate: options.RepositoryUpdate, RepositoryPaths: options.RepositoryDirectories(),
-                    ReferencePaths: references, RepositoryCheck: false) { PublishAs = placement.Identity, ClientWritten = ClientWrittenTokens.OfTexts(clientWritten) });
+                    ReferencePaths: references, RepositoryCheck: false, Suppress: options.Suppress) { PublishAs = placement.Identity, ClientWritten = ClientWrittenTokens.OfTexts(clientWritten) });
                 // Who answers for the text's warnings (DiagnosticRegion; kb/Work PB4469, PB4483): the text of a skeleton read from the
                 // repository is this compilation's, reported at the entry, and the group's bind of it withdraws what it raised; the text
                 // of a skeleton written in the group is the user's own, which the group has reported where the user wrote it, under the
