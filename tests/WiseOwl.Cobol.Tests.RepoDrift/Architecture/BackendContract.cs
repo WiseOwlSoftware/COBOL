@@ -225,6 +225,9 @@ internal static class BackendContract
             // name, the selected occurrence, and the length-prefixed Key the run-time descriptor carries
             "Model.DataItem.ExternalizedRecordName()", "Model.ExternalDataItemIdentity.Record", "Model.ExternalDataItemIdentity.Item",
             "Model.ExternalDataItemIdentity.Occurrence", "Model.ExternalDataItemIdentity.Key",
+            // the run-unit storage an external record lies in, the Record part of that identity: an FD IS EXTERNAL file's
+            // record-area cell, keyed FD::<file> for every describer of the file (kb/Work PB3212)
+            "Model.DataItem.ExternalStorageName()", "Model.FileModel.ExternalAreaName()", "Model.FileModel.ExternalAreaPrefix",
             // an expansion's key and the labeled digests it is made of: compared for identity, written as attribute strings (kb/Work PB2104)
             "Model.ExpansionIdentity.Key", "Model.ExpansionIdentity.Parts",
             "Model.StrongTypeModel.EssentialCharacteristicsKey()", "Model.StrongTypeModel.InvariantRecordText()",

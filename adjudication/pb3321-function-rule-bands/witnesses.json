@@ -1,0 +1,10 @@
+{
+ "batch": "pb3321-witnesses",
+ "records": [
+  {
+   "rule-id": "RV-15.14.4-2",
+   "verdict": "CONFORMS",
+   "test-ref": "conformance:cases/13.18.29-GROUP-USAGE/pb61_length_byte_length_rule_branches; conformance:cases/13.18.38-OCCURS/pb80_based_odo_group; conformance:cases/15.14.4-Returned-value-rules/pb3321-byte-length-depending-2002"
+  }
+ ]
+}

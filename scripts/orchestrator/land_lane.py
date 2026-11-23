@@ -104,7 +104,7 @@ THE TICK, in order (the queue watch, step 4, runs right after the survey, ahead 
      QUEUE_GRACE_MIN after its checks' work ended (the newest check-run's end; a stuck one's JOB time) is a STALLED read:
      read 1 re-runs the stuck check's workflow run, read 2 (one grace after) closes, reopens and re-queues the pull
      request, refused while a run on its head is in progress (both enqueue.py's: the only file that queues), read 3
-     sends the operator a mailbox question and the watch acts no more; each read is recorded on the
+     sends the running account's lane a mailbox question (notify_account, kb/Work PB6094) and the watch acts no more; each read is recorded on the
      attempt (`watch`) and in landing_measure.py's record (`stalls`). A pull request the queue REMOVED (a merge-group
      red) is CLASSIFIED before anyone is blamed (the class section above `watch_step`; kb/Work PB4271, PB4331): INFRA
      and RUNNER are re-queued once by the lane, no agent woken; GENUINE, MERGE, UNCLASSIFIED and a second red of the
@@ -649,15 +649,16 @@ def wait_free(rc: int | None, worktree: str, *,
     raise ValueError(f"exit {rc} is no retry-when-free exit (WAITS)")
 
 
-def notify_operator(cdir: pathlib.Path, subject: str, body: str, ref: str, say: Say, kind: str = "info") -> None:
-    """One open mailbox message per subject (the supervisor's own pattern for an owed publish); never fatal. `kind`:
-    `info` for what the operator should know, `question` for what it must decide (the queue watch's alert)."""
+def notify_account(cdir: pathlib.Path, subject: str, body: str, ref: str, say: Say, kind: str = "info") -> None:
+    """One open mailbox message per subject (the supervisor's own pattern for an owed publish), to the lane of the
+    account the loop runs under (mailbox.TO_ACCOUNT, kb/Work PB6094: account 1's loop alerted account 2); never fatal.
+    `kind`: `info` for what that session should know, `question` for what it must decide (the queue watch's alert)."""
     try:
         import mailbox  # noqa: PLC0415
-        mailbox.send(cdir, to="operator", kind=kind, subject=subject, body=body[:mailbox.BODY_MAX], refs=[ref],
+        mailbox.send(cdir, to=mailbox.recipient(cdir, mailbox.TO_ACCOUNT), kind=kind, subject=subject, body=body[:mailbox.BODY_MAX], refs=[ref],
                      sender="loop", session=f"land_lane.py pid {os.getpid()}", unless_pending=True)
     except Exception as exc:  # noqa: BLE001  (a mailbox that cannot be written must not stop the lane; it is said)
-        say(f"land lane: the operator's mailbox was not written ({exc}); {subject}")
+        say(f"land lane: the account's mailbox was not written ({exc}); {subject}")
 
 
 # ── the enqueue unit's re-arm ──────────────────────────────────────────────────────────────────────────────────────
@@ -1211,7 +1212,7 @@ def real_effects(cdir: pathlib.Path, say: Say, repo: pathlib.Path = coord.REPO) 
     return WatchEffects(
         rerun=lambda repo, run: enqueue.rerun_check(repo, run, gh=ruleset.real_gh),
         requeue=lambda repo, pr, head: enqueue.requeue(repo, pr, head, gh=ruleset.real_gh, state=enqueue.queue_state),
-        alert=lambda subject, body, ref: notify_operator(cdir, subject, body, ref, say, kind="question"),
+        alert=lambda subject, body, ref: notify_account(cdir, subject, body, ref, say, kind="question"),
         measure=measure, red_facts=red_facts, measure_red=measure_red,
         open_causes=lambda: open_causes_now(cdir, lambda note: note_landed(repo, note), say,
                                             lambda cases: cause_note(repo, cases)),
@@ -1385,7 +1386,7 @@ def reap(cdir: pathlib.Path, atts: list[dict[str, Any]], alive: Callable[[dict[s
                                 f"{a.get('verdict')}\n", encoding="utf-8", newline="\n")
                 say(f"land lane: HALTED — {a['branch']} ended QUEUE NOT ACTIVE; no landing starts until the operator "
                     f"runs `land_lane.py clear-halt` once `ruleset.py check` reports ACTIVE")
-                notify_operator(cdir, "Landing lane halted: the merge queue is not ACTIVE",
+                notify_account(cdir, "Landing lane halted: the merge queue is not ACTIVE",
                                 f"enqueue.py land {a['branch']} ended QUEUE NOT ACTIVE (exit 8): "
                                 f"{a.get('verdict')}. The landing lane starts no landing until the queue is ACTIVE "
                                 "(`python scripts/orchestrator/ruleset.py check`) and the operator runs "
@@ -1633,7 +1634,7 @@ def rearm_hold(rec: dict[str, Any], row: dict[str, Any] | None) -> str:
                 "it (the queue watch keeps reading it until it merges, and acts if it leaves the queue unmerged)")
     if row.get("state") == "NOT QUEUED":
         return ("the survey reads it NOT QUEUED: its pull request was handed to the queue, so the next tick does NOT "
-                "land it. The queue watch acts on it (a re-run, a requeue, then an alert to the operator); once it "
+                "land it. The queue watch acts on it (a re-run, a requeue, then an alert to the running account); once it "
                 "has ALERTED, only the operator does (the branch's status line says the watch's state)")
     return ""
 

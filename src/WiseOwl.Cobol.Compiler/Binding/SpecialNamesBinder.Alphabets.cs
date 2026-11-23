@@ -32,16 +32,10 @@ public sealed partial class SpecialNamesBinder
     /// rendering <c>new AlphanumericCollation(new ushort[256]{…}, …)</c> there would allocate a fresh 256-entry
     /// table per evaluation. SORT / MERGE / the indexed-file key registrations render their alphabet inline because
     /// each of those runs once per statement; a WHEN does not. The carriers are made at BIND, so the field exists
-    /// before any body that names it is rendered.</para></summary>
-    public IReadOnlyList<RangeCollationCarrier> RangeCollations => _rangeCollations;
-
-    private readonly List<RangeCollationCarrier> _rangeCollations = [];
-
-    /// <summary>The identities of <see cref="RangeCollations"/>, in the same order: what the backend resolves a range's node by
-    /// (<see cref="DataBindResult.RangeCollationIds"/>).</summary>
-    public IReadOnlyList<RangeCollationId> RangeCollationIds => _rangeCollationIdList;
-
-    private readonly List<RangeCollationId> _rangeCollationIdList = [];
+    /// before any body that names it is rendered.</para>
+    /// <para>The carriers are the unit's fact set <see cref="DataBindState.RangeCollations"/> (kb/Work PB3214): this binder
+    /// appends to it and keeps only the two indexes below, which answer whether it already made an alphabet's carrier.</para></summary>
+    private IAppends<RangeCollationCarrier> RangeCollations => _host.State.RangeCollations;
 
     /// <summary>Each carrier by the alphabet's DEFINITION (the symbol the name identified), never by its name.</summary>
     private readonly Dictionary<object, RangeCollationCarrier> _rangeCollationsByDefinition = new(ReferenceEqualityComparer.Instance);
@@ -166,9 +160,8 @@ public sealed partial class SpecialNamesBinder
         if (_rangeCollationsByDefinition.TryGetValue(definition, out var made)) return made.Id;
         bool identity = table is null && locale is null;
         var sequence = identity ? RangeCollationSequence.Native : known ?? RangeCollationSequence.Own;
-        var carrier = new RangeCollationCarrier(new RangeCollationId(name, sequence, _rangeCollations.Count), table, locale, National);
-        _rangeCollations.Add(carrier);
-        _rangeCollationIdList.Add(carrier.Id);
+        var carrier = new RangeCollationCarrier(new RangeCollationId(name, sequence, _rangeCollationsById.Count), table, locale, National);
+        RangeCollations.Add(carrier);
         _rangeCollationsByDefinition[definition] = carrier;
         _rangeCollationsById[carrier.Id] = carrier;
         return carrier.Id;

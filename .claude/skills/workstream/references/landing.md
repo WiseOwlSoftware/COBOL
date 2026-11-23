@@ -71,7 +71,7 @@
   GATE BUSY, whatever record exists (kb/Work PB4204): the lane lands the head again once the gate lock is free.
   After `ENQUEUED` the
   lane's QUEUE WATCH follows the pull request into the merge queue: a NOT QUEUED pull request past the grace gets a
-  re-run of its stuck check, then a close, reopen and re-queue, then a mailbox question to the operator. A stop resolved with no new commit is landed again only when the enqueue
+  re-run of its stuck check, then a close, reopen and re-queue, then a mailbox question to the lane of the account running the loop (kb/Work PB6094). A stop resolved with no new commit is landed again only when the enqueue
   unit re-arms it (`land_lane.py rearm <branch> --why ...`, kb/Work PB3103). A permission refusal of `enqueue.py land` is handed off,
   never retried or routed around: `READY-TO-LAND <worktree> <branch>` (L13).
 - **No landing takes a lease: the merge queue orders main (kb/Work PB2537, PB3023 review R1-1, PB3024).** Main
@@ -153,7 +153,7 @@
 ## The attended session's duties while the loop runs (moved here from SKILL.md, kb/Work PB3780)
 
 **The attended session's duties while the loop runs**: publish the ledger whenever the supervisor logs `LEDGER PUBLISH
-OWED`, which it also posts as a `publish` message to the operator's mailbox (`mailbox.py`, PB2482; a headless unit has no Artifact tool): render `{COORD}\ledger.html`, publish it to THIS account's artifact
+OWED`, which it also posts as a `publish` message to the mailbox of the account running the loop (`mailbox.py send --to account`, PB2482, PB6094; a headless unit has no Artifact tool): render `{COORD}\ledger.html`, publish it to THIS account's artifact
 (`python scripts/orchestrator/ledger_state.py url`; an artifact belongs to the account that published it, PB2481), then
 `python scripts/orchestrator/ledger_state.py mark-published` (`--url` the first time an account publishes) (PB2016, owner 2026-10-04: "Publish ledger each time");
 read each unit's handoff; decide every DECISION row `python scripts/prune_worktrees.py --brief` prints (land it via a

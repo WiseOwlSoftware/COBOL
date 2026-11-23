@@ -648,8 +648,7 @@ internal static class RecordLayout
     /// violation of the two SR2s, and answering "false" is what lets one row state that rule.</para></summary>
     public static bool IsInRecordOfFile(FileModel file, DataItem? item)
     {
-        if (item is null) return false;
-        return file.Records.Contains(RootOf(item));
+        return item is not null && ReferenceEquals(RootOf(item).RecordOfFile, file);
     }
 
     /// <summary>The index of the record key whose leftmost byte position is <paramref name="off"/> and which

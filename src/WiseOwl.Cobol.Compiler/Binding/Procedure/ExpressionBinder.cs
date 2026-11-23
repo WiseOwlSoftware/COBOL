@@ -798,7 +798,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     private BoundExprError NonNumericAliasExpr(LiteralAlias alias)
     {
         ctx.Edition.Error(DiagnosticCatalog.ArithmeticOperandNotNumeric, alias.Constant is { } k
-            ? $"constant-name '{alias.Word}' substitutes a literal of category {k.Category} and is not a numeric operand "
+            ? $"constant-name '{alias.Word}' substitutes a literal of category {ItemCategory.CategoryName(k.Category)} and is not a numeric operand "
                 + "(ISO §2023:8.8.1.1 / §2023:13.10.3 SR2)"
             : $"symbolic-character '{alias.Word}' is a figurative constant other than ZERO and is not a numeric operand "
                 + ctx.Edition.Edition.Cite(

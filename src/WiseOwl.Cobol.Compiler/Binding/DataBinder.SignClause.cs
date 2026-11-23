@@ -98,7 +98,7 @@ public sealed partial class DataBinder
                     ? $"has no PICTURE clause (USAGE {UsageFamilies.UsageWord(pic.Usage)})"
                     : pic.Category is PicCategory.Numeric
                         ? $"is numeric but PICTURE {pictureText} has no 'S'"
-                        : $"is of category {pic.Category.ToString().ToLowerInvariant()} (PICTURE {pictureText})");
+                        : $"is of category {ItemCategory.CategoryName(pic)} (PICTURE {pictureText})");
         // SR2 — the usage of the elementary subject, written or inherited (§2023:13.18.60.4 GR1).
         if (pic.Usage is not (Usage.Display or Usage.National))
             return "the usage of an elementary item for which the SIGN clause is specified shall be "

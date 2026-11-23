@@ -807,7 +807,7 @@ internal sealed class StatementValidation(DataBinder data)
                 return false;
             }
         if (data.Symbols.FileWhoseRecordIs(record.Item) is { } owner) { file = owner; return true; }
-        if (data.State.Inherited.ContainerLocalFiles.FirstOrDefault(f => f.Records.Contains(record.Item)) is { } hiddenFile)
+        if (data.State.Inherited.ContainerLocalFiles.FirstOrDefault(f => f.HoldsRecord(record.Item)) is { } hiddenFile)
         {
             // The containing-program rule begins at 2002 (§2002:13.16.25.2 SR3). COBOL-85 has none: a global name "may be
             // referenced" by every contained program "without describing it again" (§1985:X.4.6.4 GR2), the record-name

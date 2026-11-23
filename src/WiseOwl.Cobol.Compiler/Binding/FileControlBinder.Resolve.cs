@@ -472,15 +472,15 @@ public sealed partial class FileControlBinder
             return;
         }
         // "shall not be subordinate to the file description entry for file-name-1" — subordinate means anywhere
-        // under one of THIS file's record descriptions (a record description entry is subordinate to the FD).
-        for (DataItem? a = item; a is not null; a = a.Parent)
-            if (file.Records.Any(r => ReferenceEquals(r, a)))
-            {
-                Edition.Error(DiagnosticCatalog.AssignUsingInOwnRecord,
-                    $"file '{file.SelectName}': ASSIGN … USING '{dynName}' shall not be subordinate to the file "
-                    + $"description entry for '{file.SelectName}' (ISO §2023:12.4.5.2 SR7)");
-                return;
-            }
+        // under one of THIS file's record descriptions (a record description entry is subordinate to the FD), which is
+        // the one record-of-file predicate asked of the item's root.
+        if (RecordLayout.IsInRecordOfFile(file, item))
+        {
+            Edition.Error(DiagnosticCatalog.AssignUsingInOwnRecord,
+                $"file '{file.SelectName}': ASSIGN … USING '{dynName}' shall not be subordinate to the file "
+                + $"description entry for '{file.SelectName}' (ISO §2023:12.4.5.2 SR7)");
+            return;
+        }
         file.AssignUsingItem = item;
     }
 }

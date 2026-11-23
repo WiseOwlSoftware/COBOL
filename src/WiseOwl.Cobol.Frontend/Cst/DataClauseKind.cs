@@ -87,7 +87,7 @@ public enum DataClauseKind : uint
 }
 
 /// <summary>The grammar-alternative → <see cref="DataClauseKind"/> map, and the §2023:13.16.3 permitted-set constants
-/// derived from it. ⛔ ONE declaration: <see cref="DataDescriptionClauseCst.Kind"/> reads it and
+/// derived from it. ⛔ ONE declaration: the clause extension <c>Kind</c> (<see cref="DataDescriptionCst"/>) reads it and
 /// <c>DataClauseKindDriftTests</c> checks it against the generated parser, so there is no second copy to drift.</summary>
 public static class DataClauseKinds
 {

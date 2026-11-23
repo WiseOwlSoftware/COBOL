@@ -168,12 +168,13 @@ public static class MoveTable16
     /// erased, because the unique data item a view creates is plain class-and-category alphanumeric). An
     /// INTRINSIC sender reports the §2023:15.18.4 RV3 ALPHABETIC rider alongside its result category — the finer row
     /// Table 16 keys on and <c>PicCategory</c> deliberately cannot express (the PIC A fold).
-    /// <para>It is a NAMED reader rather than an inline switch because the FROM-phrase function-class rules
-    /// (§2023:14.9.32.3 SR2 · §2023:14.9.51.3 SR4 · §2023:14.9.35.3 SR9) ask the same question of the same operand, and a
-    /// second reading of "what category is this sender" is exactly how a folded <c>FUNCTION LENGTH</c> — which
-    /// reaches the binder as a plain numeric literal — would have been read as "unknown" and waved through
-    /// (kb/Work PB348). It sits HERE rather than in <c>MoveBinder</c> because §2023:14.9.20.3 SR4 makes INITIALIZE
-    /// REPLACING's identifier-2 / literal-1 the sending item of the same hypothetical MOVE (kb/Work PB416).</para></summary>
+    /// <para>It is a NAMED reader rather than an inline switch, and it sits HERE rather than in <c>MoveBinder</c>, because
+    /// §2023:14.9.20.3 SR4 makes INITIALIZE REPLACING's identifier-2 / literal-1 the sending item of the same hypothetical
+    /// MOVE (kb/Work PB416). ⛔ It is a Table 16 POSITION, not a category: its <see cref="PicCategory.Group"/> is the
+    /// §2023:14.9.25.4 GR4 group move, which no rule names as a category, so a rule worded by CATEGORY (the FROM-phrase
+    /// function-class rules, §2023:14.9.32.3 SR2 · §2023:14.9.51.3 SR4 · §2023:14.9.35.3 SR9) asks
+    /// <see cref="IntrinsicResultType.OperandCategory"/>, which gives an alphanumeric group §2023:8.5.2.1's alphanumeric
+    /// (kb/Work PB3229 review R1-1).</para></summary>
     public static Table16Operand SenderPosition(BoundOperand source) => source switch
     {
         BoundStringLiteral sl => new Table16Operand(sl.Category),
