@@ -480,6 +480,8 @@ CLASSIFICATION = Classification(inert={
        "scripts/telemetry/usage_report.py": "imported by scripts/orchestrator/budget.py",
        "scripts/test_population.py": "every gate leg: it plans the population the compiler tests run",
        "toolchain.env": "every compiler test and the build: the SDK they run on (the toolchain manifest, kb/Work PB4007)",
+       "tools/ArchCensus/RuleFixtures.cs": "RepoDrift's ArchCensusDriftTests (CensusHost_DeclaresEveryRuleFixtureArm "
+                                           "holds the host's rule-fixture arms by name, kb/Work PB2744)",
        "tools/ArchCensus/TestArtifacts.cs": "RepoDrift's ArchCensusDriftTests (CensusHost_NamesTheLocatorTheDriftTestsCall "
                                             "pins its LocatorMetadataName to typeof(TestRepo), kb/Work PB3201)",
        "tools/rr/rr.war": "scripts/gen-grammar-diagrams.ps1 (the build's Exec and GrammarDiagramGeneratorDriftTests)",

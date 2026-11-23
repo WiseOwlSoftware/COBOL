@@ -671,20 +671,6 @@ WiseOwl.Cobol.Runtime.Collation.ElementCase
 WiseOwl.Cobol.Runtime.Collation.ElementCase.Lower = 0 -> WiseOwl.Cobol.Runtime.Collation.ElementCase
 WiseOwl.Cobol.Runtime.Collation.ElementCase.Mixed = 1 -> WiseOwl.Cobol.Runtime.Collation.ElementCase
 WiseOwl.Cobol.Runtime.Collation.ElementCase.Upper = 2 -> WiseOwl.Cobol.Runtime.Collation.ElementCase
-WiseOwl.Cobol.Runtime.Collation.Locale.LocaleConfig
-WiseOwl.Cobol.Runtime.Collation.Locale.LocaleInfo
-WiseOwl.Cobol.Runtime.Collation.Locale.LocaleInfo.Cldr.get -> WiseOwl.Cobol.Runtime.Collation.Cldr.CldrCollationSelection!
-WiseOwl.Cobol.Runtime.Collation.Locale.LocaleInfo.Collator.get -> WiseOwl.Cobol.Runtime.Collation.Collator!
-WiseOwl.Cobol.Runtime.Collation.Locale.LocaleInfo.HasCldrRules.get -> bool
-WiseOwl.Cobol.Runtime.Collation.Locale.LocaleInfo.HasTailoringFile.get -> bool
-WiseOwl.Cobol.Runtime.Collation.Locale.LocaleInfo.IsRecognizedCulture.get -> bool
-WiseOwl.Cobol.Runtime.Collation.Locale.LocaleInfo.IsTailored.get -> bool
-WiseOwl.Cobol.Runtime.Collation.Locale.LocaleInfo.Name.get -> string!
-WiseOwl.Cobol.Runtime.Collation.Locale.LocaleInfo.Options.get -> WiseOwl.Cobol.Runtime.Collation.CollationOptions!
-WiseOwl.Cobol.Runtime.Collation.Locale.LocaleInfo.Resolved.get -> WiseOwl.Cobol.Runtime.Collation.ResolvedLocaleCollation!
-WiseOwl.Cobol.Runtime.Collation.Locale.LocaleInfo.Table.get -> WiseOwl.Cobol.Runtime.Collation.CollationTable!
-WiseOwl.Cobol.Runtime.Collation.Locale.LocaleInfo.TailorFilePath.get -> string?
-WiseOwl.Cobol.Runtime.Collation.Locale.LocaleInfo.Unsupported.get -> System.Collections.Generic.IReadOnlyList<string!>!
 WiseOwl.Cobol.Runtime.Collation.Locale.LocaleManager
 WiseOwl.Cobol.Runtime.Collation.MaxVariable
 WiseOwl.Cobol.Runtime.Collation.MaxVariable.Currency = 3 -> WiseOwl.Cobol.Runtime.Collation.MaxVariable
@@ -2150,10 +2136,6 @@ const WiseOwl.Cobol.Runtime.Collation.Cldr.CldrLocaleLoader.PackResourceName = "
 const WiseOwl.Cobol.Runtime.Collation.CollationEngine.DefaultOrderingTableName = "ISO 14651_2020_TABLE1" -> string!
 const WiseOwl.Cobol.Runtime.CollationRuntime.WarmupVariable = "COBOL_COLLATION_WARMUP" -> string!
 const WiseOwl.Cobol.Runtime.Collation.CollationTable.RootResourceName = "Collation/Data/root-collation.bin" -> string!
-const WiseOwl.Cobol.Runtime.Collation.Locale.LocaleConfig.CldrDirectoryVariable = "COBOL_CLDR_DIR" -> string!
-const WiseOwl.Cobol.Runtime.Collation.Locale.LocaleConfig.DefaultLocaleVariable = "COBOL_USER_LOCALE" -> string!
-const WiseOwl.Cobol.Runtime.Collation.Locale.LocaleConfig.Root = "" -> string!
-const WiseOwl.Cobol.Runtime.Collation.Locale.LocaleConfig.TailoringDirectoryVariable = "COBOL_COLLATION_DIR" -> string!
 const WiseOwl.Cobol.Runtime.Collation.TailoringRules.EnvDirectory = "COBOL_COLLATION_DIR" -> string!
 const WiseOwl.Cobol.Runtime.DebugItem.ContentsWidth = 30 -> int
 const WiseOwl.Cobol.Runtime.DebugItem.GroupWidth = 86 -> int
@@ -2298,7 +2280,6 @@ override WiseOwl.Cobol.Runtime.Collation.CollationOptions.ToString() -> string!
 override WiseOwl.Cobol.Runtime.CollationRuntimeStatus.Equals(object? obj) -> bool
 override WiseOwl.Cobol.Runtime.CollationRuntimeStatus.GetHashCode() -> int
 override WiseOwl.Cobol.Runtime.CollationRuntimeStatus.ToString() -> string!
-override WiseOwl.Cobol.Runtime.Collation.Locale.LocaleInfo.ToString() -> string!
 override WiseOwl.Cobol.Runtime.Collation.ReorderGroup.GetHashCode() -> int
 override WiseOwl.Cobol.Runtime.Collation.ReorderGroup.ToString() -> string!
 override WiseOwl.Cobol.Runtime.Collation.ResolvedLocaleCollation.Equals(object? obj) -> bool
@@ -3019,20 +3000,9 @@ static WiseOwl.Cobol.Runtime.Collation.CollationTable.Root.get -> WiseOwl.Cobol.
 static WiseOwl.Cobol.Runtime.Collation.Collator.CompareCodePoints(System.ReadOnlySpan<char> a, System.ReadOnlySpan<char> b) -> int
 static WiseOwl.Cobol.Runtime.Collation.Collator.IsWellFormed(System.ReadOnlySpan<char> text) -> bool
 static WiseOwl.Cobol.Runtime.Collation.Collator.Root.get -> WiseOwl.Cobol.Runtime.Collation.Collator!
-static WiseOwl.Cobol.Runtime.Collation.Locale.LocaleConfig.CldrLocales.get -> System.Collections.Generic.IReadOnlyList<string!>!
-static WiseOwl.Cobol.Runtime.Collation.Locale.LocaleConfig.DefaultLocale.get -> string!
-static WiseOwl.Cobol.Runtime.Collation.Locale.LocaleConfig.IsKnownCulture(string! tag) -> bool
-static WiseOwl.Cobol.Runtime.Collation.Locale.LocaleConfig.IsSupported(string? localeName) -> bool
-static WiseOwl.Cobol.Runtime.Collation.Locale.LocaleConfig.SupportedLocales.get -> System.Collections.Generic.IReadOnlyList<string!>!
-static WiseOwl.Cobol.Runtime.Collation.Locale.LocaleConfig.TailoredLocales.get -> System.Collections.Generic.IReadOnlyList<string!>!
-static WiseOwl.Cobol.Runtime.Collation.Locale.LocaleManager.ClearCache() -> void
-static WiseOwl.Cobol.Runtime.Collation.Locale.LocaleManager.CurrentCollator.get -> WiseOwl.Cobol.Runtime.Collation.Collator!
-static WiseOwl.Cobol.Runtime.Collation.Locale.LocaleManager.CurrentLocale.get -> WiseOwl.Cobol.Runtime.Collation.Locale.LocaleInfo!
-static WiseOwl.Cobol.Runtime.Collation.Locale.LocaleManager.GetLocale(string? localeName) -> WiseOwl.Cobol.Runtime.Collation.Locale.LocaleInfo!
 static WiseOwl.Cobol.Runtime.Collation.Locale.LocaleManager.ResetLocale() -> void
 static WiseOwl.Cobol.Runtime.Collation.Locale.LocaleManager.SetLocale(string? localeName) -> void
 static WiseOwl.Cobol.Runtime.Collation.Locale.LocaleManager.SupportedLocales.get -> System.Collections.Generic.IReadOnlyList<string!>!
-static WiseOwl.Cobol.Runtime.Collation.Locale.LocaleManager.TryGetLocale(string? localeName, out WiseOwl.Cobol.Runtime.Collation.Locale.LocaleInfo? info) -> bool
 static WiseOwl.Cobol.Runtime.Collation.ReorderGroup.operator !=(WiseOwl.Cobol.Runtime.Collation.ReorderGroup left, WiseOwl.Cobol.Runtime.Collation.ReorderGroup right) -> bool
 static WiseOwl.Cobol.Runtime.Collation.ReorderGroup.operator ==(WiseOwl.Cobol.Runtime.Collation.ReorderGroup left, WiseOwl.Cobol.Runtime.Collation.ReorderGroup right) -> bool
 static WiseOwl.Cobol.Runtime.Collation.ResolvedLocaleCollation.operator !=(WiseOwl.Cobol.Runtime.Collation.ResolvedLocaleCollation? left, WiseOwl.Cobol.Runtime.Collation.ResolvedLocaleCollation? right) -> bool

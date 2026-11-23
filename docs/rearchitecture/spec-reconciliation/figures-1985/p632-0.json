@@ -1,0 +1,20 @@
+{
+ "page": 632,
+ "figure": 0,
+ "drawn_lines": [
+  "{ <u>SUM</u> { identifier-1 } … [ <u>UPON</u> { data-name-1 } … ] } …",
+  "",
+  "┌          ╭ data-name-2 ╮ ┐",
+  "│ <u>RESET</u> ON ┤             ├ │",
+  "└          ╰ <u>FINAL</u>       ╯ ┘"
+ ],
+ "decided": "neither",
+ "figure_lines": [
+  "{ <u>SUM</u> { identifier-1 } … [ <u>UPON</u> { data-name-1 } … ] } …",
+  "",
+  "    ┌          ╭ data-name-2 ╮ ┐",
+  "    │ <u>RESET</u> ON ┤             ├ │",
+  "    └          ╰ <u>FINAL</u>       ╯ ┘"
+ ],
+ "reason": "The printed page (XIII-52, 3.19.2) sets the [RESET ON {data-name-2 FINAL}] bracket indented under {SUM ...} ..., the SUM phrase's continuation; the regeneration sets it flush (fifth pass, kb/Work PB6051 p532-1 sibling sweep). The rest of the figure is the regeneration's."
+}

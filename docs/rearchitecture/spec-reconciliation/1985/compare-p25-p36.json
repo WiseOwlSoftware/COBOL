@@ -1,1 +1,16 @@
-{"batch": [25,26,27,28,29,30,31,32,33,34,35,36], "pages_checked": [25,26,27,28,29,30,31,32,33,34,35,36], "pages_unread": [], "findings": []}
+{
+  "batch": [25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36],
+  "pages_checked": [25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p32-1",
+      "page": 32,
+      "kind": "misplaced-content",
+      "severity": "cosmetic",
+      "pdf_says": "Uniqueness of Reference / Qualification / No qualification permitted; names must be unique if referenced ... X N / 50 qualifiers ... N X / Subscripting / 3 levels of subscripts ... X N (printed with 'Qualification' and 'Subscripting' at the same indent, and 'No qualification permitted...' and '50 qualifiers' at the same deeper indent)",
+      "markdown_says": "| &nbsp;&nbsp;Qualification | | |\n| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;No qualification permitted; names must be unique if referenced ................................................ | X | N |\n| &nbsp;&nbsp;50 qualifiers ............................................... | N | X |\n| &nbsp;Subscripting | | |",
+      "why_it_matters": "The element hierarchy is carried by indentation. The markdown indents 'Qualification' (2) deeper than its sibling 'Subscripting' (1), and indents 'No qualification permitted...' (5) far deeper than its sibling '50 qualifiers' (2), which now sits at the same level as its parent 'Qualification'. The printed page has the two headings at one level and the two qualification entries at one level below them; the X/N values are unaffected."
+    }
+  ]
+}

@@ -18350,26 +18350,48 @@
     "tree": [
      "seq",
      [
-      "word",
-      "RECORD"
-     ],
-     [
-      "word",
-      "DELIMITER"
-     ],
-     [
-      "optional",
-      "IS"
-     ],
-     [
-      "alt",
+      "seq",
+      [
+       "word",
+       "("
+      ],
       [
        "word",
        "STANDARD-1"
       ],
       [
+       "word",
+       ")"
+      ]
+     ],
+     [
+      "seq",
+      [
+       "word",
+       "RECORD"
+      ],
+      [
+       "word",
+       "DELIMITER"
+      ],
+      [
+       "optional",
+       "IS"
+      ]
+     ],
+     [
+      "seq",
+      [
+       "word",
+       "("
+      ],
+      [
        "operand",
        "implementor-name"
+      ],
+      [
+       "word",
+       ")"
       ]
      ]
     ],
@@ -18382,22 +18404,12 @@
      {
       "id": "1985-FMT-VII.2.8.2/f1/written:IS",
       "event": "written",
-      "node": 3
+      "node": 8
      },
      {
       "id": "1985-FMT-VII.2.8.2/f1/omit:IS",
       "event": "omit",
-      "node": 3
-     },
-     {
-      "id": "1985-FMT-VII.2.8.2/f1/written:STANDARD-1",
-      "event": "written",
-      "node": 5
-     },
-     {
-      "id": "1985-FMT-VII.2.8.2/f1/written:opnd:implementor-name",
-      "event": "written",
-      "node": 6
+      "node": 8
      }
     ]
    }
@@ -41218,5 +41230,5 @@
    }
   ]
  },
- "digest": "98433281cef9"
+ "digest": "873431aaaaf9"
 }

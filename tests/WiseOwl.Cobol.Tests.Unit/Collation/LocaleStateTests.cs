@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Runtime;
+using WiseOwl.Cobol.Runtime.Collation;
 using WiseOwl.Cobol.Runtime.Collation.Locale;
 using WiseOwl.Cobol.Runtime.Exceptions;
 using WiseOwl.Cobol.Runtime.IO;
@@ -218,7 +219,7 @@ public sealed class LocaleStateTests
 
     /// <summary>kb/Work PB3331 (review w1123b R1-1): a snapshot (§2023:14.6.6 GR5; §2023:12.4.5.7.4 GR1 for an open indexed file)
     /// resolves ONE collator, at its first use, and keeps it. The engine's caches can be dropped between two uses
-    /// (<c>LocaleManager.ClearCache</c>), which makes the next resolution a NEW collator, and
+    /// (<c>CollationEngine.ClearLocaleCache</c>), which makes the next resolution a NEW collator, and
     /// <see cref="WiseOwl.Cobol.Runtime.Collation.CollationKey.CompareTo"/> refuses keys of two collators: the live form shows
     /// the hazard (its keys from before and after a clear do not compare), the snapshot's keys always do, in Danish
     /// order (aa is å, after z).</summary>
@@ -232,13 +233,13 @@ public sealed class LocaleStateTests
         var collatorBefore = live.Resolve();
         try
         {
-            LocaleManager.ClearCache();
+            CollationEngine.ClearLocaleCache();
             Assert.NotSame(collatorBefore, live.Resolve());                                   // the live form resolves anew
             Assert.Throws<ArgumentException>(() => liveBefore.CompareTo(live.KeyOf("zz")));   // the hazard the pin removes
             Assert.True(snapBefore.CompareTo(snap.KeyOf("zz")) > 0);                           // da: aa (å) after zz
             Assert.Same(Assert.IsType<LocaleCollation>(snap).Resolve(), snapBefore.Collator);   // one collator throughout
         }
-        finally { LocaleManager.ClearCache(); }
+        finally { CollationEngine.ClearLocaleCache(); }
     }
 
     /// <summary>kb/Work PB3331 (review w1123b R1-1), the SORT arm of the pin: a sort larger than its memory limit merges
@@ -273,7 +274,7 @@ public sealed class LocaleStateTests
                 while (CobolSort.Return(sd, out var image))
                 {
                     got.Add(image);
-                    if (got.Count % 1000 == 1) LocaleManager.ClearCache();                        // between two RETURNs
+                    if (got.Count % 1000 == 1) CollationEngine.ClearLocaleCache();                        // between two RETURNs
                 }
                 Assert.Equal(expected, got);
                 CobolSort.Close(sd);
@@ -281,7 +282,7 @@ public sealed class LocaleStateTests
         }
         finally
         {
-            LocaleManager.ClearCache();
+            CollationEngine.ClearLocaleCache();
             ScratchDirectory.Remove(dir);
         }
     }

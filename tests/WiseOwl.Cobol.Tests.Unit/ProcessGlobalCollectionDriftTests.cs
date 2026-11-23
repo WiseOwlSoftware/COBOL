@@ -29,7 +29,7 @@ public sealed class ProcessGlobalCollectionDriftTests
     private static readonly string[] ResolverTypes =
     [
         "CldrLocaleLoader", "CldrTailoringBuilder", "TailoringRules", "LocaleManager", "CollationEngine",
-        "LocaleCollation", "LocaleConfig", "CollationRuntime", "LocaleState", "LocaleInfo",
+        "LocaleCollation", "CollationRuntime", "LocaleState",
     ];
 
     /// <summary>The source types that name a resolver but resolve nothing themselves (tables, keys, facts, the config
@@ -37,11 +37,11 @@ public sealed class ProcessGlobalCollectionDriftTests
     private static readonly string[] NonResolvingTypes =
     [
         "CldrLocaleData", "CobolIntrinsics", "CodePointKey", "CollationElement", "CollationTable", "Collator",
-        "LocaleCollationException", "LocaleFacts", "RuntimeConfig", "SpecialNamesBinder", "UnicodeNormalizer",
+        "LocaleCollationException", "LocaleFacts", "LocaleTag", "RuntimeConfig", "SpecialNamesBinder", "UnicodeNormalizer",
     ];
 
     private static readonly Regex Reader = new(
-        @"\b(" + string.Join('|', ResolverTypes) + @")\.\w+|\bnew (LocaleCollation|LocaleConfig)\b|\b(" + string.Join('|', SiteVariables) + @")\b",
+        @"\b(" + string.Join('|', ResolverTypes) + @")\.\w+|\bnew LocaleCollation\b|\b(" + string.Join('|', SiteVariables) + @")\b",
         RegexOptions.Compiled);
 
     private static readonly Regex NamesResolver = new(@"\b(" + string.Join('|', ResolverTypes[..5]) + @")\b", RegexOptions.Compiled);
