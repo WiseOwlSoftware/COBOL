@@ -24,7 +24,7 @@ from gate_host import CI_BOUNCE_RESULTS, Host, Spawn, host_env  # noqa: E402
 from gate_reuse import Carry  # noqa: E402
 from gate_generated import Generations  # noqa: E402
 
-#: The mark a listed name cut short ends with (tests/_shared/GateLegs.cs `GateOnly.Truncation`, the same text): a line of a
+#: The mark a listed name cut short ends with (tests/_shared/Gate/GateOnly.cs `GateOnly.Truncation`, the same text): a line of a
 #: retry file ending in it names every case whose display name it begins, so `<class>.` and the mark name every case of
 #: that class (a display name is `<namespace>.<class>.<method>(…)`).
 TRUNCATION = "···"

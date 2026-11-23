@@ -35,7 +35,7 @@ public sealed class ProcessObservationDriftTests
     // need to be; named individually so that a new exemption is a deliberate edit here, not a silent inheritance.
     private static readonly string[] Exempt =
     [
-        "ProcessObservation.cs", "ProcessObservationDriftTests.cs",
+        "ProcessObserver.cs", "ProcessObservationDriftTests.cs",
     ];
 
     /// <summary>The test sources this sweep reads: the COMMITTED C# under <c>tests/</c> (kb/Work PB3814), never a walk
@@ -65,7 +65,7 @@ public sealed class ProcessObservationDriftTests
             + string.Join(Environment.NewLine, offenders.Select(o => "    " + o))
             + $"{Environment.NewLine}A private timeout returns PARTIAL OUTPUT on expiry, which the caller then "
             + "compares against a golden — a contention timeout reported as a value mismatch (plan §11 A12). "
-            + "Use ProcessObserver.ObserveOrThrow — see tests/_shared/ProcessObservation.cs.");
+            + "Use ProcessObserver.ObserveOrThrow — see tests/_shared/ProcessObserver.cs.");
     }
 
     /// <summary>

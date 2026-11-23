@@ -62,7 +62,7 @@ public sealed class NoWallClockAssertionDriftTests
 
     // The harness's one budget, and the test of the observer itself (a never-ending child times out by construction).
     private static readonly string[] LimitExempt =
-        ["ProcessObservation.cs", "ProcessObservationDriftTests.cs", nameof(NoWallClockAssertionDriftTests) + ".cs"];
+        ["ProcessObserver.cs", "ProcessObservationDriftTests.cs", nameof(NoWallClockAssertionDriftTests) + ".cs"];
 
     [Fact]
     public void NoTestSetsALiteralTimeLimit()

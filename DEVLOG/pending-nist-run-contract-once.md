@@ -1,4 +1,4 @@
-## The NIST run environment is one file both legs read, and both read the exit status before the report
+## The NIST run environment is one file both legs read; the shared test harness is one namespace per folder
 
 kb/Work PB3199 (cluster PB1754, an R2 duplication finding). The NIST corpus runs on two legs: in process
 (`NistRunner`, the Conformance assembly) and over the `cobol` CLI (`scripts/guard-run-group.sh`, CI's guard). The note
@@ -31,4 +31,33 @@ The fix:
   Three witnesses cover the rule, and all three were red on the pre-change code.
 
 DESIGN-test-build-ci §1.2 now describes the shared environment and the exit-status rule. No inventory row changes: this
-is test-harness process work only.
+is test-harness process work only. The branch's gate after this half, run at the cherry-pick onto main:
+`=== BUILD-LOCAL GATE: GREEN — Conformance 29,090/29,090 ran · Unit 42,693/42,693 ran · RepoDrift 232/232 ran · …`
+(run 000001-20261123T012250Z).
+
+kb/Work PB3200 (cluster PB1754, an R2 architecture finding). `tests/Directory.Build.props` links every file of
+`tests/_shared/` into every test project, so DESIGN-architecture-review §8.2 rule 1 ("the project's root namespace plus
+its folder") named a different namespace for each project, and nothing measured the folder: the census inventories
+`src/` alone. The re-probe found the folder in two namespaces (`WiseOwl.Cobol.Gate` for `GateLegs.cs` and
+`GateLegAudit.cs`), `GateLegs.cs` declaring 11 top-level types and named for none of them, the partition audit inside the
+mechanism's file, the slot ladder's 33 public types in `TestPartitioning.cs`, `FileOrg` public beside `FileHarness`, and
+`ProcessObserver` in a file named for its result record. The note's own type list was stale (PB4328 and PB4329 had
+deleted GatePlan, GateHandshake and their kin).
+
+The fix gives the linked harness its own root, stated in §8.2 (Tests): the folder is `WiseOwl.Cobol.Tests.Shared`, each
+subfolder extends it, and the props file links it recursively under its repository path. The gate's framework moved to
+`tests/_shared/Gate/` (`WiseOwl.Cobol.Tests.Shared.Gate`), one file per type or closed family: GateTestFramework.cs (the
+framework, its executor and runner), GateShard.cs, GateOnly.cs, TestWeights.cs, GateOrderer.cs, GateOrder.cs and
+GateLegAudit.cs. TestPartitionAudit, the slot ladder (ITestPartitionSlot.cs) and FileOrg each got their own file, and
+ProcessObservation.cs is ProcessObserver.cs. Every caller changed in the same change: the framework attribute and the
+weights resource name in the props, four GateLegDriftTests (RepoDrift's arm 4 now builds its expected attribute from
+`typeof(GateTestFramework).FullName`), two drift exemptions, the two projects that drop the shared folder, and every
+script, workflow and design document that named a moved file. `scripts/buildgraph.py` read only the folder's top level
+when it traced which shared files a target uses, so the move would have hidden `Gate/` from the BUILD TARGETS audit; it
+now reads the whole folder.
+
+`SharedHarnessLayoutDriftTests` (RepoDrift) holds rules 1-3 over every committed file under `tests/_shared/`. Each rule is
+first driven by a planted break, and a closed family (a root and the public types that name it as their base) is the one
+exception to rule 2, as §8.2 states it. The census half of the note is not built: rule 6's per-type columns do not exist
+for `src/` either, and §8.2 now records that they resolve a linked document by its repository path when they reach the
+reader projects. No `src/` file changed, and no inventory row changes.

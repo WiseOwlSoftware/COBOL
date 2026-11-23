@@ -37,14 +37,14 @@ from gate_audits import AUDITS, AUDIT_PREREQUISITES, BUILT_SELF_TESTS, CHANGE_SC
 
 
 #: ⛔ THE ONE ORDERING CHANNEL TO A TEST HOST (kb/Work PB4328): the path of a file of test class names, one per line, that
-#: the host's orderer runs FIRST (tests/_shared/GateLegs.cs `GateOrderer.FirstVariable`, the same name). It orders, it
+#: the host's orderer runs FIRST (tests/_shared/Gate/GateOrderer.cs `GateOrderer.FirstVariable`, the same name). It orders, it
 #: never selects: a class it names that the assembly lacks is ignored, every other class still runs, and the population
 #: check proves both. Its prefix is a scrubbed one (test_population.is_scrubbed), so only this gate hands it to a host.
 FIRST_CLASSES = "WISEOWL_COBOL_GATE_FIRST"
 
 
 #: ⛔ THE ONE RETRY CHANNEL TO A TEST HOST (kb/Work PB5099): the path of a file of test display names, one per line, that
-#: the host runs INSTEAD of its whole population (tests/_shared/GateLegs.cs `GateOnly`, the same name). Only a re-gate of a
+#: the host runs INSTEAD of its whole population (tests/_shared/Gate/GateOnly.cs `GateOnly`, the same name). Only a re-gate of a
 #: tree an earlier run of this worktree already measured sets it (`PassCarry.carry`), for the cases that run did not pass; the
 #: population check then composes the passes it carried (test_population.py `check`'s `carried`), so a case neither
 #: carried nor run is still a named NEVER RAN. Its prefix is a scrubbed one, so only this gate hands it to a host.
@@ -547,7 +547,7 @@ def host_env(first: Path | None, observations: Path, only: Path | None = None,
     (ONLY_CASES) when this host runs only the cases an earlier run of the tree did not pass. `handed`: each generated
     target the host's target depends on, its variable naming the output directory the gate generated and keyed the target
     on (kb/Work PB5231; `Generations.handed`), so the host runs exactly that suite. The test harness's observation
-    log (every retry and non-observation of a child process, tests/_shared/ProcessObservation.cs) goes to `observations`
+    log (every retry and non-observation of a child process, tests/_shared/ProcessObserver.cs) goes to `observations`
     in the run directory, one per host, so a non-observation is read beside the host's own log instead of in one temp
     file every gate on the host appends to (kb/Work PB3108)."""
     order = {FIRST_CLASSES: str(first)} if first is not None else {}
