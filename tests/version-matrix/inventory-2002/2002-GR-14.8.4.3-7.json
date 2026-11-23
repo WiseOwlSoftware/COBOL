@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.4.3-7",
+ "rule-digest": "97b03cb2ca8f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#Identifier1Screen; src/WiseOwl.Cobol.Runtime/Control/DialectBehavior.cs#CallRestrictedPointerSignatureSame",
+ "test-ref": "conformance:cases/14.8.4@2002-CALL-STATEMENT/g2002-call-restricted-pointer-as-other-prototype",
+ "notes": "§2002:14.8.4.3 GR7: without NESTED, program-prototype-name-1 (or a restricted program-pointer's prototype) determines the called program's characteristics; COBOL-2002 asks no agreement of the two prototypes, a rule first stated by §2014:14.9.4.2 SR14. CallBinder.Identifier1Screen asks the SR14 screen (COBOL2936) only where DialectBehavior.CallRestrictedPointerSignatureSame is active (VCR row 7.121, from 2014), so CALL PA AS G2RPAB with PA restricted to a prototype of another signature compiles at --std 2002 and passes WS-N by reference to the held program (N=0008); refused from 2014 (pb609-call-restricted-program-pointer-signature) (PB5714)."
+}

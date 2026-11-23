@@ -45,6 +45,16 @@
       "changedIn": 2002
     },
     {
+      "id": "call-any-length-operand-rule-by-format",
+      "vcrRow": "7.122",
+      "changedIn": 2014
+    },
+    {
+      "id": "call-restricted-pointer-signature-same",
+      "vcrRow": "7.121",
+      "changedIn": 2014
+    },
+    {
       "id": "cancel-refuses-every-active-program",
       "vcrRow": "7.66",
       "changedIn": 2002

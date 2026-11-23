@@ -185,6 +185,60 @@ public sealed class ListingCallGraphTests : IDisposable
         Assert.Equal([(outer, r, 4), (r, r, 9), (r, cr, 10), (cr, cr, 16)], xref.Calls.Select(e => (e.From ?? 0, e.To, e.Line ?? 0)));
     }
 
+    /// <summary>⛔ kb/Work PB5963: a method or factory method contains no program and is contained in none, so the one arm of the scope of
+    /// a program-name that reaches from its body is arm 4 (§2023:8.4.6.3 SR3: "that program-name may be referenced by statements included in
+    /// any source element in the run unit"). Its CALL and CANCEL literals are edges to the group's outermost program, from the instance
+    /// method's binder and from the factory method's alike; a contained program that is not COMMON is reached by no arm, so its name is
+    /// the external program of that name. Both binders were built without the scope, and every literal of a method was an external program.</summary>
+    [Fact]
+    public void AMethodsLiteral_ReachesAnOutermostProgramOfTheGroup()
+    {
+        string[] source =
+        [
+            "       IDENTIFICATION DIVISION.",                  // 1
+            "       PROGRAM-ID. MP.",                           // 2
+            "       PROCEDURE DIVISION.",                       // 3
+            "           STOP RUN.",                             // 4
+            "       IDENTIFICATION DIVISION.",                  // 5
+            "       PROGRAM-ID. INNER.",                        // 6
+            "       PROCEDURE DIVISION.",                       // 7
+            "           EXIT PROGRAM.",                         // 8
+            "       END PROGRAM INNER.",                        // 9
+            "       END PROGRAM MP.",                           // 10
+            "       IDENTIFICATION DIVISION.",                  // 11
+            "       CLASS-ID. OOM INHERITS FROM BASE.",         // 12
+            "       ENVIRONMENT DIVISION.",                     // 13
+            "       CONFIGURATION SECTION.",                    // 14
+            "       REPOSITORY.",                               // 15
+            "           CLASS BASE.",                           // 16
+            "       IDENTIFICATION DIVISION.",                  // 17
+            "       FACTORY.",                                  // 18
+            "       PROCEDURE DIVISION.",                       // 19
+            "       IDENTIFICATION DIVISION.",                  // 20
+            "       METHOD-ID. FM.",                            // 21
+            "       PROCEDURE DIVISION.",                       // 22
+            "           CANCEL \"MP\".",                        // 23 arm 4 from the factory method's binder
+            "       END METHOD FM.",                            // 24
+            "       END FACTORY.",                              // 25
+            "       IDENTIFICATION DIVISION.",                  // 26
+            "       OBJECT.",                                   // 27
+            "       PROCEDURE DIVISION.",                       // 28
+            "       IDENTIFICATION DIVISION.",                  // 29
+            "       METHOD-ID. M1.",                            // 30
+            "       PROCEDURE DIVISION.",                       // 31
+            "           CALL \"MP\".",                          // 32 arm 4 from the instance method's binder
+            "           CALL \"INNER\".",                       // 33 INNER is contained in MP and not COMMON: no arm reaches it
+            "       END METHOD M1.",                            // 34
+            "       END OBJECT.",                               // 35
+            "       END CLASS OOM.",                            // 36
+        ];
+        var xref = CompileScope(source, 2023);
+        int mp = ProgramId(xref, "MP");
+        Assert.Equal([(mp, 23, "CANCEL"), (mp, 32, "CALL"), (ExternalId(xref, "INNER"), 33, "CALL")],
+            xref.Calls.Select(e => (e.To, e.Line ?? 0, e.Verb)));
+        Assert.DoesNotContain(xref.Symbols, s => s.Name == "MP" && s.Kind == ListingSymbolKind.ExternalProgram);
+    }
+
     [Fact]
     public void TheTextCrossReference_PrintsTheCallGraphRows()
     {
