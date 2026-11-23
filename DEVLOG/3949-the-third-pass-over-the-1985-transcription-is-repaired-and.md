@@ -1,4 +1,4 @@
-## The third pass over the 1985 transcription is repaired, and every general-format page title is one heading (PB6051, PB6095)
+## Entry 3949 — 2026-11-22 19:54 PST — The third pass over the 1985 transcription is repaired, and every general-format page title is one heading (PB6051, PB6095)
 
 The third independent pass (PB6091) left 25 claims, 7 confirmed. All 7 are applied after reading each page rendered:
 Figure 1's SEND and device connectors (page 114), the CLOSE format's one tall brace (213), a title set as bold text (224),
@@ -10,3 +10,4 @@ block, so page 202's figure verdicts renumber) and `heading_levels.check_format_
 condition, page 289). 11 catalog rows changed by a box side only; their inventory records were re-recorded unchanged and their 11
 code reads are stale for account 1's re-read: 1985-FMT-VI.5.8.2, -VI.5.15.2, -VI.6.5.2, -VI.6.6.2, -VI.6.19.2, -VI.6.22.2,
 -VI.6.23.2, -VII.3.8.2, -XIV.3.6.2 and 1985-GR-VI.6.21.4-10, -VI.6.22.4-10. PB6051 stays open for a fourth pass.
+
