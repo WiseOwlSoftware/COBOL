@@ -1,9 +1,16 @@
-{"batch": [923,924,925,926,927,928,929,930,931,932,933,934],
- "pages_checked": [923,924,925,926,927,928,929,930,931,932,933,934],
- "pages_unread": [],
- "findings": [
-  {"id": "p933-1", "page": 933, "kind": "ocr-error", "severity": "cosmetic",
-   "pdf_says": "Paragraph 4.1.4 of the MERGE statement, general rule 7b, add the following as the new last sentence for the paragraph:",
-   "markdown_says": "Paragraph 4.1.4 of thc MERGE statement, general rule 7b, add the following as the new last sentence for the paragraph:",
-   "why_it_matters": "Character-level OCR error 'thc' for 'the' in the XI-10 row of the X3.23b-1993 amendment table; meaning recoverable, editorial fix only."}
- ]}
+{
+  "batch": [923, 924, 925, 926, 927, 928, 929, 930, 931, 932, 933, 934],
+  "pages_checked": [923, 924, 925, 926, 927, 928, 929, 930, 931, 932, 933, 934],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p934-1",
+      "page": 934,
+      "kind": "table-restructured",
+      "severity": "cosmetic",
+      "pdf_says": "Page No.    Description of Change (printed once at the top of the page; rows XI-12, XI-13 (A-20), XI-19, XI-20 follow as one table)",
+      "markdown_says": "| Page No. | Description of Change |\n|---|---|\n| XI-13 (A-20) | Paragraph 4.2.3 of the RELEASE statement in the Sort-Merge module, syntax rule 3, second sentence, change to read: |",
+      "why_it_matters": "The page prints one table with a single 'Page No. / Description of Change' header; the markdown splits it into four tables and repeats the header row before XI-13, XI-19 and XI-20, with each row's replacement text placed outside its row. No wording is lost, but the structure differs from the printed page and from the sibling pages (924, 926-933) that keep the replacement text inside the row."
+    }
+  ]
+}

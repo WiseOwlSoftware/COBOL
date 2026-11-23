@@ -1,0 +1,51 @@
+{
+  "batch": [
+    205,
+    206,
+    207,
+    208,
+    209,
+    210,
+    211,
+    212,
+    213,
+    214,
+    215,
+    216
+  ],
+  "pages_checked": [
+    205,
+    206,
+    207,
+    208,
+    209,
+    210,
+    211,
+    212,
+    213,
+    214,
+    215,
+    216
+  ],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p208-1",
+      "page": 208,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "GENERAL FORMAT FOR COMMUNICATION DESCRIPTION ENTRY",
+      "markdown_says": "<u>GENERAL FORMAT FOR COMMUNICATION DESCRIPTION ENTRY</u>",
+      "why_it_matters": "The centred, underlined general-format title that heads Format 2 and Format 3 of the CD entry is transcribed as a plain underlined paragraph, not a heading. The identical title on page 207, and every other general-format title in this batch (pages 205, 206, 209-216), is a '## ' heading, so this page's CD formats drop out of the document outline and heading-based slicing."
+    },
+    {
+      "id": "p213-1",
+      "page": 213,
+      "kind": "incorrect-figure",
+      "severity": "structural",
+      "pdf_says": "SW CLOSE { file-name-1 [ {REEL | UNIT} [FOR REMOVAL] | WITH {NO REWIND | LOCK} ] } ...  (one left brace before file-name-1, drawn as a single brace spanning the bracket, with CLOSE to its left)",
+      "markdown_says": "<pre style=\"line-height:1\">\n         ╭             ┌╭<u>REEL</u> ╮  [FOR <u>REMOVAL</u>] ┐ ╮\n         ┤             │┤     ├                │ ├\n         │             │╰<u>UNIT</u> ╯                │ │\nSW        <u>CLOSE</u> ┤ file-name-1   │                      │ ├ …\n         │             │      ╭ <u>NO</u> <u>REWIND</u>╮     │ │\n         ┤             │      ┤          ├     │ ├\n         ╰             └WITH  ╰ <u>LOCK</u>     ╯     ┘ ╯\n</pre>",
+      "why_it_matters": "The drawn SW CLOSE format is misaligned: the middle row 'SW        <u>CLOSE</u> ┤ file-name-1   │ ... │ ├ …' is shifted about nine columns right of the other six rows. In the rendered figure the outer brace (column of ╭ ┤ │ ┤ ╰) stands to the RIGHT of where CLOSE prints, the bracket's left edge (┌/└ at the column of file-name-1) cuts through 'file-name-1', and its right edge and closing brace on that row sit beyond the ┐/╮ of the rows above. The outer brace also carries three ┤ middle marks. The geometry no longer shows that file-name-1 and the optional REEL/UNIT-or-WITH bracket are inside one repeated brace; the intended syntax is recoverable only by reading the glyphs in order."
+    }
+  ]
+}

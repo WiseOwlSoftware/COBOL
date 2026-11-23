@@ -1,0 +1,13 @@
+{
+  "claim_id": "p358-1",
+  "claim_key": "0c80ae6420e0f00a",
+  "page": 358,
+  "kind": "incorrect-text",
+  "severity": "structural",
+  "claim": {"id": "p358-1", "page": 358, "kind": "incorrect-text", "severity": "structural", "pdf_says": "Figure 1:  Format 1 SEARCH statement having two WHEN phrases / * These operations are options included only when specified in the SEARCH statement. / ** Each of these control transfers is to the end of the SEARCH statement unless the imperative-statement ends with a GO TO statement. (all printed inside the level-2 box enclosing the figure)", "markdown_says": "Figure 1: Format 1 SEARCH statement having two WHEN phrases\n\n\\* These operations are options included only when specified in the SEARCH statement.\n\n\\*\\* Each of these control transfers is to the end of the SEARCH statement unless the imperative-statement ends with a GO TO statement.", "why_it_matters": "The caption and the two figure notes are printed inside the box (level 2) but the markdown carries no ║ markers on any of them, so the notes read as unboxed text; the boxed prose convention requires ║ at each end of each boxed paragraph."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The 300 dpi render of p358 (VI-126) shows one rectangle running from below the 'Nucleus - SEARCH' header to below the '**' note; it encloses the flowchart, the caption 'Figure 1: Format 1 SEARCH statement having two WHEN phrases' and both notes. This is the level-2 box continued from p357, where every SEARCH general rule (5)-(10) is transcribed with ║ markers, and rule (10) introduces this figure. In page-358.md the caption and both notes are word-for-word correct but have no ║ markers, so a reader of the markdown sees them as unboxed (level 1). The text itself is not wrong; what is missing is the level marking. The figure is informative ('not intended to dictate implementation'), so no syntax or semantics changes. It is still a real loss of structure under the transcription's boxed-prose convention.",
+    "corrected_description": "Missing level-2 box markers, not incorrect text: on p358 the caption and the two figure notes (* and **) sit inside the level-2 box continued from p357, but page-358.md gives them without ║ markers. Their wording matches the PDF exactly. The boxed flowchart (mermaid) carries no level marking either."
+  }
+}

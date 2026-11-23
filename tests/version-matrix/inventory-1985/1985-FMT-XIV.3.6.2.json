@@ -1,6 +1,6 @@
 {
  "rule-id": "1985-FMT-XIV.3.6.2",
- "rule-digest": "5fec93fde353",
+ "rule-digest": "4f12cac2686b",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolCommunication.g4#communicationSendStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolCommunication.g4#sendIdentifier; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolCommunication.g4#sendIndicator; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolCommunication.g4#sendAdvancingPhrase; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolCommunication.g4#sendReplacingPhrase; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#statement; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitMessagingSendStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#BindSend",
  "test-ref": "conformance:cases/XIV.3.6@1985-SEND-STATEMENT/1985-FMT-XIV_3_6_2",

@@ -1,9 +1,1 @@
-{"batch": [887,888,889,890,891,892,893,894,895,896,897,898],
- "pages_checked": [887,888,889,890,891,892,893,894,895,896,897,898],
- "pages_unread": [],
- "findings": [
-  {"id": "p889-1", "page": 889, "kind": "missing-heading", "severity": "structural",
-   "pdf_says": "Intrinsic Function - NUMVAL-C",
-   "markdown_says": "# Intrinsic Function - NUMVAL-C",
-   "why_it_matters": "The page's running header is transcribed as a level-1 markdown heading, ranking above the real section heading '## 2.30 THE NUMVAL-C FUNCTION'. Every sibling page (887, 888, 890-898) keeps the running header as plain text. The spurious H1 puts a false top-level entry in the document outline; it should be plain text like its siblings (or removed as scaffolding)."}
- ]}
+{"batch": [887,888,889,890,891,892,893,894,895,896,897,898], "pages_checked": [887,888,889,890,891,892,893,894,895,896,897,898], "pages_unread": [], "findings": []}

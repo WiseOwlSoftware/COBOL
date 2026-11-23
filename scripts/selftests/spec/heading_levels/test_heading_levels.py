@@ -141,6 +141,26 @@ def case_05_the_scope_is_the_standard_and_amendment_1s_section_a(expect):
     expect.equal("Amendment 2 is out of scope", [f for f in found if "NOT READ" in f], [])
 
 
+def case_06_a_general_format_page_title_is_one_level_two_underlined_heading(expect):
+    title = "## <u>GENERAL FORMAT FOR COBOL VERBS</u>"
+    page = GOOD + "\n## Page 212\n\nVerb Formats (ACCEPT - CALL)\n\n{}\n\n<pre>\n<u>ACCEPT</u> identifier-1\n</pre>\n"
+    expect.equal("the one form passes", _found(page.format(title), "general-format page title"), [])
+    for what, bad in (("bold and underlined", "**<u>GENERAL FORMAT FOR COBOL VERBS</u>**"),
+                      ("underlined and bold", "<u>**GENERAL FORMAT FOR COBOL VERBS**</u>"),
+                      ("a bare underlined line", "<u>GENERAL FORMAT FOR COBOL VERBS</u>"),
+                      ("a heading of another level", "### <u>GENERAL FORMAT FOR COBOL VERBS</u>"),
+                      ("a heading that is not underlined", "## GENERAL FORMAT FOR COBOL VERBS"),
+                      ("a box side", "║<u>GENERAL FORMAT FOR COBOL VERBS</u>║")):
+        expect(f"{what} is named", bool(_found(page.format(bad), "general-format page title")))
+    inside = GOOD + "\n## Page 202\n\n<pre style=\"line-height:1\">\n                         <u>GENERAL FORMAT FOR FILE DESCRIPTION ENTRY</u>\n</pre>\n"
+    expect("a title inside a <pre> figure is named", bool(_found(inside, "general-format page title")))
+    quoted = GOOD + "\n## Page 230\n\n> Corrected to `GENERAL FORMAT FOR INTRINSIC FUNCTIONS: FUNCTION ACOS`.\n\n| a | GENERAL FORMAT FOR X |\n"
+    expect.equal("a quoting note and a table row are no title", _found(quoted, "general-format page title"), [])
+    addendum = (GOOD + "\n# AMENDMENT 1: INTRINSIC FUNCTION MODULE (ANSI X3.23a-1989)\n\n## Page 846\n\n# GENERAL FORMAT FOR INTRINSIC FUNCTIONS\n\n"
+                "## Page 857\n\n# SECTION A: INTRINSIC FUNCTION MODULE\n")
+    expect.equal("Amendment 1's addendum prints its own title and is out of scope", _found(addendum, "general-format page title"), [])
+
+
 if __name__ == "__main__":
     ensure_utf8()
     sys.exit(selftest_cases.run(sys.modules[__name__]))

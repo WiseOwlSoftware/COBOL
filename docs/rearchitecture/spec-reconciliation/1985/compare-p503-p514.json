@@ -1,16 +1,1 @@
-{
-  "batch": [503, 504, 505, 506, 507, 508, 509, 510, 511, 512, 513, 514],
-  "pages_checked": [503, 504, 505, 506, 507, 508, 509, 510, 511, 512, 513, 514],
-  "pages_unread": [],
-  "findings": [
-    {
-      "id": "p505-1",
-      "page": 505,
-      "kind": "ocr-error",
-      "severity": "cosmetic",
-      "pdf_says": "b. When the file is open in the dynamic or random access mode, and the value of the prime record key of the record to be replaced is not equal to the value of the prime record key of any record existing in the file, or",
-      "markdown_says": "b. When the file is open in the [║dynamic or║] random access mode, and the value of the prime record key of the record to be replaced is not equal to the value of the prime record key of any record existing in the file, or",
-      "why_it_matters": "The printed page boxes 'dynamic or' as level-2 text with no square brackets; the markdown adds stray '[' and ']' around the level-2 markers, unlike every other level-2 box in this batch (e.g. p504 GR14 '║or dynamic║'). In a rule text square brackets can read as an optional element; the words themselves are unchanged."
-    }
-  ]
-}
+{"batch": [503,504,505,506,507,508,509,510,511,512,513,514], "pages_checked": [503,504,505,506,507,508,509,510,511,512,513,514], "pages_unread": [], "findings": []}

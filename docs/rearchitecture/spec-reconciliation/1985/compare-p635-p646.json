@@ -1,13 +1,1 @@
-{"batch": [635,636,637,638,639,640,641,642,643,644,645,646],
- "pages_checked": [635,636,637,638,639,640,641,642,643,644,645,646],
- "pages_unread": [],
- "findings": [
-  {"id": "p638-1", "page": 638, "kind": "missing-heading", "severity": "structural",
-   "pdf_says": "3.21 THE USAGE CLAUSE / 3.21.1 Function / 3.21.2 General Format / 3.21.3 Syntax Rules / 3.21.4 General Rules (3.21 is a sibling of 3.20 THE TYPE CLAUSE and 3.22 THE VALUE CLAUSE)",
-   "markdown_says": "## 3.21 THE USAGE CLAUSE / ### 3.21.1 Function / ### 3.21.2 General Format / ### 3.21.3 Syntax Rules / ### 3.21.4 General Rules",
-   "why_it_matters": "The sibling clauses 3.15-3.20 and 3.22 (page 639) are rendered at ### with their subclauses at ####; 3.21 is at ## and its subclauses at ###, one level too high, so the outline makes the USAGE clause a peer of the Report Writer data-division clause rather than of TYPE and VALUE."},
-  {"id": "p641-1", "page": 641, "kind": "missing-heading", "severity": "structural",
-   "pdf_says": "4.2 THE CLOSE STATEMENT / 4.2.1 Function / 4.2.2 General Format / 4.2.3 Syntax Rules / 4.2.4 General Rules (4.2 is a subclause of 4. PROCEDURE DIVISION IN THE REPORT WRITER MODULE, same rank as 4.1 and 4.3)",
-   "markdown_says": "## 4.2 THE CLOSE STATEMENT / ### 4.2.1 Function / ### 4.2.2 General Format / ### 4.2.3 Syntax Rules / ### 4.2.4 General Rules",
-   "why_it_matters": "Page 640 renders '## 4. PROCEDURE DIVISION IN THE REPORT WRITER MODULE' and '### 4.1 GENERAL DESCRIPTION', and page 644 renders '### 4.3 THE GENERATE STATEMENT' with '#### 4.3.x'; 4.2 is at ## (the level of clause 4) and 4.2.x at ###, one level too high."}
- ]}
+{"batch": [635,636,637,638,639,640,641,642,643,644,645,646], "pages_checked": [635,636,637,638,639,640,641,642,643,644,645,646], "pages_unread": [], "findings": []}

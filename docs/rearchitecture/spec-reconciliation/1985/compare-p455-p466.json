@@ -1,13 +1,1 @@
-{"batch": [455,456,457,458,459,460,461,462,463,464,465,466],
- "pages_checked": [455,456,457,458,459,460,461,462,463,464,465,466],
- "pages_unread": [],
- "findings": [
-  {"id": "p462-1", "page": 462, "kind": "ocr-error", "severity": "cosmetic",
-   "pdf_says": "(13) For a file accessed in either random or dynamic access mode, the mass storage control system (MSCS)",
-   "markdown_says": "(13) For a file accessed in |║either║| random |║or dynamic║| access mode, the mass storage control system (MSCS)",
-   "why_it_matters": "The level-2 boxes around 'either' and 'or dynamic' are rendered with stray pipe characters outside the level marks (|║...║|), a notation used nowhere else in the transcription; the characters are not printed text and could be read as choice-indicator or alternation syntax."},
-  {"id": "p465-1", "page": 465, "kind": "missing-heading", "severity": "structural",
-   "pdf_says": "4.8 THE USE STATEMENT / 4.8.1 Function / 4.8.2 General Format / 4.8.3 Syntax Rules / 4.8.4 General Rules",
-   "markdown_says": "### 4.8 THE USE STATEMENT ... #### 4.8.1 Function ... #### 4.8.2 General Format ... #### 4.8.3 Syntax Rules ... #### 4.8.4 General Rules",
-   "why_it_matters": "The sibling statement clauses on the preceding pages are '## 4.5 THE READ STATEMENT', '## 4.6 THE REWRITE STATEMENT', '## 4.7 THE START STATEMENT' with '### 4.x.y' subheadings; 4.8 and its subclauses are demoted one level, so a heading-based outline nests the USE statement under START instead of beside it."}
- ]}
+{"batch": [455,456,457,458,459,460,461,462,463,464,465,466], "pages_checked": [455,456,457,458,459,460,461,462,463,464,465,466], "pages_unread": [], "findings": []}
