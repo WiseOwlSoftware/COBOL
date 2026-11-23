@@ -21,7 +21,7 @@
   "edition-consulted": [
    {
     "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitNextSentenceStatement",
-    "switches": "NextSentenceArchaic2002: an archaic-feature warning from 2002; nothing at 85",
+    "switches": "NextSentenceArchaic2023: an archaic-feature warning at 2023 only; nothing at 85",
     "same-arm-as-latest": false
    }
   ],
