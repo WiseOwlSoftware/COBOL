@@ -75,6 +75,9 @@ STAMPED = with_commits("fc-stamped-", ("base", {"a.txt": "one\n"}), ("ocr", {"oc
 STAMPED_MESSAGE = with_commits("fc-stamped-msg-", ("quotes " + PLANTED, {"a.txt": "one\n"}))
 CLEAN = with_commits("fc-clean-", ("base", {"a.txt": "one\n"}), ("more", {"b.txt": "two\n"}))
 ON_ORIGIN = with_commits("fc-on-origin-", ("ocr", {"ocr.json": PLANTED + "\n"}), ("more", {"b.txt": "two\n"}), published=1)
+SPLIT = with_commits("fc-split-", ("split", {"g.txt": "x\norder " + "#\n" + "1234" + "56\n"}))   # review R1-2
+TAGGED = with_commits("fc-tagged-", ("base", {"a.txt": "one\n"}))                               # review R1-3
+ScratchRepo(TAGGED).git("tag", "-a", "v-stamped", "-m", "release " + PLANTED)
 BS = chr(92)  # a backslash, spelled without one
 NL = chr(10)
 # kb/Work PB3198: every rule reads the ONE model of the command line (shell_location.steps), so each rule is checked
@@ -474,7 +477,9 @@ UNIT_CASES = [
     (QS + "git -C " + OTHER + " push", True),
     (QS + "git push", False),
     ("git commit -q -m 'x' && xargs -n1 git -C " + OTHER + " push origin < refs.txt", True),   # git wherever it stands in the step
-    ("git commit -q -m 'x' && xargs -n1 git push origin < refs.txt", False),
+    # this repository, but its refspecs come from xargs, unreadable to the scan, after a commit: rule 2c (kb/Work PB6136)
+    ("git commit -q -m 'x' && xargs -n1 git push origin < refs.txt", True),
+    ("git status && git push origin HEAD", False),
     # the branch review of PB3198, R1-1: a push inside a command substitution is a push
     ("out=$(git -C /e/claude-skills push origin main 2>&1)", True),
     ("out=$(git push -q origin HEAD:main 2>&1)", True),
@@ -559,7 +564,27 @@ fails += [(f"[PowerShell stamp] {c}", True) for c in ["git -C " + STAMPED + " pu
 _said = reason("cd " + STAMPED + " && git push origin HEAD:pb-topic")
 if not ("ocr.json:1" in _said and "per-copy licence stamp naming a purchaser" in _said and "Jane" not in _said):
     fails.append(("[stamp] the refusal names the file, line and shape and never the matched text: " + _said, True))
-STAMP_TOTAL = len(STAMP_CASES) + 3 + 1 + 1
+# kb/Work PB6136 branch review: R1-1, a push after a step that creates or moves commits on the same line is refused (the
+# scan runs before the line does; the reviewer's probe is the first case), while reads and staging before it are not;
+# R1-2, a shape broken across a line break; R1-3, an annotated tag's message, by name and through `--follow-tags`
+LATER_CASES = [
+    ("cd " + CLEAN + " && echo x > f.txt && git add f.txt && git commit -q -m x && git push -u origin HEAD", True),
+    ("cd " + CLEAN + " && git add f.txt && git status && git push origin HEAD:pb-topic", False),
+    ("cd " + CLEAN + " && git fetch -q origin && git push origin HEAD:pb-topic", False),
+    ("cd " + CLEAN + " && git checkout -q main && git push origin HEAD:pb-topic", True),
+    ("cd " + CLEAN + " && git ci -m x && git push origin HEAD:pb-topic", True),              # an alias: fails closed
+    ("git -C " + CLEAN + " merge x; git -C " + CLEAN + " push origin HEAD:pb-topic", True),
+    ("cd " + CLEAN + " && git commit -q -m x && git push other HEAD:pb-topic", False),       # another repository
+    ("cd " + SPLIT + " && git push origin HEAD:pb-topic", True),
+    ("cd " + TAGGED + " && git push origin v-stamped", True),
+    ("cd " + TAGGED + " && git push --follow-tags origin HEAD:pb-topic", True),
+    ("cd " + TAGGED + " && git push origin HEAD:pb-topic", False),
+]
+fails += [(f"[stamp, review] {c}", e) for c, e in LATER_CASES if blocked(c) != e]
+_said = reason(LATER_CASES[0][0])
+if "follows `git commit`" not in _said or "as its own command" not in _said:
+    fails.append(("[stamp, review] the refusal names the step and says to push in its own command: " + _said, True))
+STAMP_TOTAL = len(STAMP_CASES) + 3 + 1 + 1 + len(LATER_CASES) + 1
 # the PowerShell tool inside a unit: its environment assignments redirect git the same way (kb/Work PB5269)
 UNIT_PS = [("$env:GIT_DIR = '" + OTHER + "/.git'; git push origin HEAD", True),
            ("$env:GIT_DIR='" + OTHER + "/.git'; git push", True),

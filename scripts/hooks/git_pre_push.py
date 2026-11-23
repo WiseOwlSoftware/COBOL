@@ -6,12 +6,14 @@ WHY. The bought PDFs stamp every page with the purchaser's name and the download
 branch is pushed at every checkpoint (CLAUDE.md rule 7), gated or not. On 2026-11-23 a branch pushed a commit whose
 OCR text carried the stamp; the gate went RED on it afterwards and the branch was force-pushed clean, but GitHub still
 serves the commit by its SHA (the first incident, kb/Work PB4814, took a history rewrite and a GitHub Support purge).
-So the check runs where the publication happens, on the push, over what the push publishes: the ADDED lines of every
-commit not yet on the remote, and those commits' messages, searched for the same shapes (imported, never copied).
+So the check runs where the publication happens, on the push, over what the push publishes: every file a commit not yet
+on the remote adds or changes, read whole at that commit, those commits' messages, and the messages of the annotated
+tags the push sends, each read by the gate's own matcher (`verify_publishable.text_stamp_hits`, never a copy).
 
 TWO CALLERS, ONE SCAN (`scan`):
   - `scripts/hooks/forbidden_commands.py` rule 2c, for a `git push` an agent runs through Claude Code: it refuses the
-    tool call before git runs.
+    tool call before the command line runs, so it also refuses a push that follows a git call creating or moving
+    commits on the same line (that line's commits do not exist yet when it scans).
   - git's own pre-push hook, for every other push from this repository: `.githooks/pre-push` runs this file with git's
     arguments (`<remote name> <remote url>`) and its stdin (`<local ref> <local sha> <remote ref> <remote sha>` lines),
     and exit 1 stops the push. It runs only where `git config --local core.hooksPath .githooks` is set; the
@@ -53,15 +55,54 @@ def _git(repo: pathlib.Path, *args: str) -> str | None:
     return r.stdout.decode("utf-8", "replace") if r.returncode == 0 else None
 
 
-#: The ref selectors a push's own flags publish (`--all`/`--branches` the branches, `--mirror` every ref, `--tags`).
-SELECTORS = ("--all", "--branches", "--tags")
+#: The ref selectors a push's own flags publish (`--all`/`--branches` the branches, `--mirror` every ref, `--tags` the
+#: tags), and `--follow-tags` (the annotated tags that point into what the push publishes; `push.followTags` too).
+SELECTORS = ("--all", "--branches", "--tags", "--follow-tags")
+
+
+def _tag_objects(repo: pathlib.Path, sources: list[str], published: set[str]) -> list[str] | None:
+    """The annotated tag objects a push of `sources` publishes: a source that names one (`git push origin v1`, or the tag
+    object's sha on git's pre-push stdin), every annotated tag for `--tags` and `--all` (`--mirror`), and for
+    `--follow-tags` or `push.followTags` each annotated tag whose commit is in `published`. None when git cannot be read."""
+    tags: list[str] = []
+    for s in sources:
+        if s not in SELECTORS and (_git(repo, "cat-file", "-t", s) or "").strip() == "tag":
+            tags.append((_git(repo, "rev-parse", s) or "").strip())
+    follow = "--follow-tags" in sources or (_git(repo, "config", "--bool", "--get", "push.followTags") or "").strip() == "true"
+    if follow or "--tags" in sources or "--all" in sources:
+        refs = _git(repo, "for-each-ref", "--format=%(objecttype) %(objectname) %(*objectname)", "refs/tags")
+        if refs is None:
+            return None
+        for kind, sha, *peeled in (ln.split() for ln in refs.splitlines() if ln.strip()):
+            if kind == "tag" and ("--tags" in sources or "--all" in sources or (peeled and peeled[0] in published)):
+                tags.append(sha)
+    return list(dict.fromkeys(t for t in tags if t))
+
+
+def _tag_message_hits(repo: pathlib.Path, tag: str, text_stamp_hits) -> list[tuple[str, str]] | None:
+    """(what, tag object) for each stamp shape in the message of annotated tag `tag`, and of any tag it points at."""
+    hits: list[tuple[str, str]] = []
+    seen: set[str] = set()
+    while tag and tag not in seen:
+        seen.add(tag)
+        raw = _git(repo, "cat-file", "tag", tag)
+        if raw is None:
+            return None
+        header, _, body = raw.partition("\n\n")
+        hits += [(what, tag) for what, _line in text_stamp_hits(body)]
+        fields = dict(ln.split(" ", 1) for ln in header.splitlines() if " " in ln)
+        tag = fields.get("object", "").strip() if fields.get("type", "").strip() == "tag" else ""
+    return hits
 
 
 def scan(repo: pathlib.Path, sources: list[str], remote: str | None = "origin") -> list[str] | None:
-    """Every stamp shape (verify_publishable.tree_shapes) on an ADDED line of a commit reachable from `sources` and not
-    from the remote-tracking refs of `remote` (all remotes' when None), or in such a commit's message: one finding per
-    shape, file and commit, naming them and never the matched text. [] when none; None when git cannot be read. A merge
-    commit is read against its first parent, so what a merge adds is read too."""
+    """Every stamp shape (verify_publishable.text_stamp_hits, THE matcher the gate's check_tree uses) in a file a commit
+    reachable from `sources` and not from the remote-tracking refs of `remote` (all remotes' when None) adds or changes,
+    in such a commit's message, and in the message of an annotated tag the push publishes (`_tag_objects`). A changed
+    file is read WHOLE at that commit, as the gate reads it, so a shape that crosses a line break, or that an added line
+    completes against an unchanged one, is found. One finding per shape, file and commit, naming them and never the
+    matched text. [] when none; None when git cannot be read. A merge commit is read against its first parent, so what
+    a merge adds is read too."""
     if any(s.startswith("-") and s not in SELECTORS for s in sources):
         return None   # a source git would read as an option: nothing this scan can judge
     if _git(repo, "rev-parse", "--git-dir") is None:
@@ -70,39 +111,50 @@ def scan(repo: pathlib.Path, sources: list[str], remote: str | None = "origin") 
     sources = [s for s in sources if s in SELECTORS or _git(repo, "rev-parse", "--verify", "-q", s + "^{commit}")]
     if not sources:
         return []
-    import verify_publishable  # noqa: PLC0415  (THE stamp shapes; imported only when a push is judged)
-    shapes = [(re.compile(p), what) for p, what in verify_publishable.tree_shapes()]
+    import git_batch  # noqa: PLC0415  (scripts/: the one batched blob reader)
+    import verify_publishable  # noqa: PLC0415  (THE stamp matcher; imported only when a push is judged)
+    revs = [s for s in sources if s != "--follow-tags"]
     since = ["--not", f"--remotes={remote}" if remote else "--remotes"]
-    diff = _git(repo, "log", "-p", "-U0", "--no-color", "--no-ext-diff", "--no-textconv", "--diff-merges=first-parent",
-                "--format=%x00%H", *sources, *since, "--")
-    messages = _git(repo, "log", "--format=%H%x00%B%x01", *sources, *since, "--")
-    if diff is None or messages is None:
+    raw = _git(repo, "log", "--raw", "--no-abbrev", "--no-renames", "--diff-merges=first-parent", "--format=%x00%H",
+               *revs, *since, "--") if revs else ""
+    messages = _git(repo, "log", "--format=%H%x00%B%x01", *revs, *since, "--") if revs else ""
+    if raw is None or messages is None:
         return None
-    found: dict[tuple[str, str, str], int] = {}
-    commit = path = ""
-    header, line_no = False, 0
-    for line in diff.split("\n"):
+    changed: list[tuple[str, str, str]] = []   # (commit, path, blob of the path at that commit)
+    commit = ""
+    for line in raw.split("\n"):
         if line.startswith("\0"):
-            commit, header = line[1:].strip(), False
-        elif line.startswith("diff --git ") or line.startswith("diff --cc "):
-            header, path = True, ""
-        elif header and line.startswith("+++ "):
-            path = line[4:].removeprefix("b/")
-        elif line.startswith("@@"):
-            header = False
-            m = re.search(r"\+(\d+)", line)
-            line_no = int(m.group(1)) if m else 0
-        elif not header and line.startswith("+"):
-            for rx, what in shapes:
-                if rx.search(line[1:]):
-                    found.setdefault((what, f"{path}:{line_no}", commit[:12]), 0)
-            line_no += 1
+            commit = line[1:].strip()
+        elif line.startswith(":"):
+            meta, _, path = line[1:].partition("\t")
+            parts = meta.split()
+            if len(parts) >= 5 and not parts[4].startswith("D") and parts[1] != "160000" and not ZERO.match(parts[3]):
+                changed.append((commit, path, parts[3]))
+    found: dict[tuple[str, str, str], int] = {}
+    try:
+        hits = {sha: verify_publishable.stamp_hits(body) for sha, body in git_batch.blobs(repo, (b for _, _, b in changed))}
+    except git_batch.GitError:
+        return None
+    for commit, path, blob in changed:
+        for what, line_no in hits.get(blob, []):
+            found.setdefault((what, f"{path}:{line_no}", f"commit {commit[:12]}"), 0)
+    published: set[str] = set()
     for record in messages.split("\x01"):
         sha, _, body = record.strip("\n").partition("\0")
-        for rx, what in shapes:
-            if sha and rx.search(body):
-                found.setdefault((what, "the commit message", sha[:12]), 0)
-    return [f"{what}: {where} in commit {sha}" for what, where, sha in found]
+        if sha:
+            published.add(sha)
+            for what, _line in verify_publishable.text_stamp_hits(body):
+                found.setdefault((what, "the commit message", f"commit {sha[:12]}"), 0)
+    tags = _tag_objects(repo, sources, published)
+    if tags is None:
+        return None
+    for tag in tags:
+        tag_hits = _tag_message_hits(repo, tag, verify_publishable.text_stamp_hits)
+        if tag_hits is None:
+            return None
+        for what, obj in tag_hits:
+            found.setdefault((what, "the annotated tag message", f"tag object {obj[:12]}"), 0)
+    return [f"{what}: {where} in {obj}" for what, where, obj in found]
 
 
 REMEDY = ("remove it from the file (and the message), then rebuild the commits that carry it (`git commit --amend`, or "

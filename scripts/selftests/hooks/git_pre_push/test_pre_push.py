@@ -72,6 +72,46 @@ def case_e_already_on_remote(expect):
         REPO.git("update-ref", "refs/remotes/origin/main", BASE)
 
 
+def case_ea_shape_across_lines(expect):
+    # kb/Work PB6136 review R1-2: the reviewer's probe, an order number broken from its `order #` across a line break,
+    # in one commit and completed by a later one against the unchanged first line; both found as the gate finds them
+    order, number = "order " + "#\n", "1234" + "56\n"
+    REPO.git("checkout", "-q", "-b", "split", CLEAN)
+    try:
+        REPO.commit("split", {"g.txt": "x\n" + order + number})
+        code, said = _push(REPO.git("rev-parse", "HEAD"))
+        expect("a shape that crosses a line break is refused, on the line it starts",
+               code == 1 and "reseller order number: g.txt:2" in said, said)
+        REPO.git("reset", "-q", "--hard", CLEAN)
+        REPO.commit("first half", {"h.txt": order})
+        REPO.git("update-ref", "refs/remotes/origin/main", "HEAD")
+        REPO.commit("second half", {"h.txt": order + number})
+        code, said = _push(REPO.git("rev-parse", "HEAD"))
+        expect("an added line that completes a shape against an unchanged line is refused",
+               code == 1 and "h.txt:1" in said, said)
+    finally:
+        REPO.git("update-ref", "refs/remotes/origin/main", BASE)
+        REPO.git("checkout", "-q", "main")
+        REPO.git("reset", "-q", "--hard", CLEAN)
+
+
+def case_eb_annotated_tag_message(expect):
+    # kb/Work PB6136 review R1-3: an annotated tag's message is published by a tag push, `--tags` and `--follow-tags`
+    REPO.git("tag", "-a", "v-stamped", "-m", "release " + STAMP, CLEAN)
+    try:
+        tag = REPO.git("rev-parse", "v-stamped")
+        code, said = P.pre_push(REPO.path, ["origin", str(BARE.path)], f"refs/tags/v-stamped {tag} refs/tags/v-stamped {ZERO}\n")
+        expect("a tag push whose annotated message carries the stamp is refused, never echoing it",
+               code == 1 and "the annotated tag message" in said and "Jane" not in said, said)
+        expect("`git push origin v-stamped` (the tag named as a source) is scanned", bool(P.scan(REPO.path, ["v-stamped"])))
+        expect("`git push --tags` is scanned", bool(P.scan(REPO.path, ["--tags"])))
+        expect("`git push --follow-tags` of the commit it points at is scanned",
+               bool(P.scan(REPO.path, [CLEAN, "--follow-tags"])))
+        expect.equal("a push without its tags is not refused for it", P.scan(REPO.path, [CLEAN]), [])
+    finally:
+        REPO.git("tag", "-d", "v-stamped")
+
+
 def case_f_wrapper_end_to_end(expect):
     REPO.git("config", "core.hooksPath", (P.REPO / ".githooks").as_posix())
     r = REPO.run("push", "origin", f"{STAMPED}:refs/heads/topic")
