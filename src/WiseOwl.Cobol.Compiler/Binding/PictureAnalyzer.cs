@@ -185,7 +185,8 @@ public static class PictureAnalyzer
         // §2023:12.3.7.3 SR28's input — the class of the literal-7 behind the symbol THIS picture uses; null when it uses
         // none (the default below is only what the whitelist/editing checks see, not a symbol the picture wrote).
         // A symbol whose clause was refused for its string has no known class (kb/Work PB1920): SR28 is not asked.
-        LiteralClass? currencyClass = cs == '\0' || currencySet[cs].ClauseRefused ? null : currencySet[cs].LiteralClass;
+        // The default '$' of COBOL-2002 has no literal-7 at all (§2002:12.2.6.2 SR24 speaks only of one that is written; kb/Work PB5614).
+        LiteralClass? currencyClass = cs == '\0' || currencySet[cs].ClauseRefused || currencySet[cs].IsDefaultSign ? null : currencySet[cs].LiteralClass;
         if (cs == '\0') cs = '$';   // no currency symbol in this picture: the whitelist/editing checks see the default
         // GR14: the first occurrence contributes the whole string; the mask below is canonical ('$').
         int currencyExtra = runs.Contains(cs) ? currencyString.Length - 1 : 0;
@@ -574,9 +575,10 @@ public static class PictureAnalyzer
             && (literal7Class is LiteralClass.National) != (usage is Usage.National))
             edition.Error(DiagnosticCatalog.CurrencySymbolClassUsage, $"{where}: the currency symbol of PICTURE {picture} "
                 + $"is defined by a{(literal7Class is LiteralClass.National ? " national" : "n alphanumeric")} literal-7 "
-                + "of a CURRENCY SIGN clause (the clause SR25 implies for '$' is alphanumeric), so it may be used only to "
+                + "of a CURRENCY SIGN clause (written, or implied for '$' from COBOL-2014), so it may be used only to "
                 + $"define a numeric-edited item with usage {(literal7Class is LiteralClass.National ? "national" : "display")}"
-                + $", not one with USAGE {UsageFamilies.UsageWord(usage)} (ISO §2023:12.3.7.3 SR28)");
+                + $", not one with USAGE {UsageFamilies.UsageWord(usage)} ("
+                + edition.Edition.CiteRule("§2002:12.2.6.2 SR24", "§2023:12.3.7.3 SR28", y2002: "§2002:12.2.6.2 SR24", y2014: "§2014:12.3.6.2 SR28") + ")");
 
         // ── §2023:13.18.60.3 SR20 ── "Only the NATIONAL phrase may be specified in a USAGE clause associated with an
         // elementary data item whose explicit or implicit picture character-string contains the symbol 'N'."

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-12.2.6.2-24",
+ "rule-digest": "d31850886c4f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ConfigurationSlice.cs#FinalizeCurrencySigns; src/WiseOwl.Cobol.Compiler/Binding/Model/CurrencyDefinition.cs#DefaultDollar; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#ScreenUsageAgainstPicture",
+ "test-ref": "conformance:cases/12.2.6@2002-SPECIAL-NAMES-PARAGRAPH/g2002-default-currency-sign-national-edited; conformance:cases/12.2.6@2002-SPECIAL-NAMES-PARAGRAPH/g2002-alphanumeric-currency-string-national-refused",
+ "notes": "§2002:12.2.6.2 SR24 confines a currency symbol to the usage of its WRITTEN literal-7's class. COBOL-2002 has no rule that implies a CURRENCY SIGN '$' clause (that is §2014:12.3.6.2 SR25), so the default '$' has no literal-7: FinalizeCurrencySigns joins CurrencyDefinition.DefaultDollar (IsDefaultSign) below EditionInfo.ImpliesDollarCurrencyClause and the analyzer asks no class of it. PIC $9.99 USAGE NATIONAL compiles at --std 2002 and edits $1.25; an explicit alphanumeric CURRENCY SIGN literal on a national item is still COBOL2883 at 2002; the implied '$' is still refused at 2014 and 2023 (PB5614)."
+}
