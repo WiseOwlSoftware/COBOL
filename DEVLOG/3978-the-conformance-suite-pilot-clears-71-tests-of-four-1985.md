@@ -1,4 +1,4 @@
-## The conformance-suite pilot clears 71 tests of four 1985 clauses and the lint learns REPLACE
+## Entry 3978 — 2026-11-23 05:35 PST — The conformance-suite pilot clears 71 tests of four 1985 clauses and the lint learns REPLACE
 
 PB3178, the Stage 1 pilot of design revision 4, ran INSPECT (`VI.6.18@1985`), the PICTURE clause, COPY and REPLACE, 105 rows
 of the 1985 catalog, with the real tools. Of the 86 tests the slice accepts at 85, 34 cleared as they were (the lint passes,
@@ -44,3 +44,4 @@ The cost per row, per test cleared, per test written and per NIST unit, and what
 `kb/Work/PB3178/2026-11-23-pilot-measurement.md`. Gate: see the landing record.
 
 Review round 1: a separator period inside pseudo-text no longer ends a COPY or REPLACE statement for the lint (`cobol_source._statement_end` steps over each `==` span), so a REPLACING or REPLACE pair after such a period is applied; selftest `selftests/cobol_source`. The REPLACE comparison rule is cited as §1985:XII.3.4 GR6b.
+
