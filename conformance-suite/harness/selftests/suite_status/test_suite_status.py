@@ -10,7 +10,7 @@ from scratch_repo import scratch_dir
 from standard_streams import ensure_utf8
 
 T = selftest_cases.subject(__file__)   # conformance-suite/harness/suite_status.py
-ZERO = {"non-support": 0, "suite": 0, "determination": 0, "derivation": 0, "accepted-uncleared": 0, "refusal-only": 0,
+ZERO = {"non-support": 0, "suite": 0, "determination": 0, "derivation": 0, "accepted-uncleared": 0, "wiseowl-tree-only": 0, "refusal-only": 0,
         "other-edition-only": 0, "header-omits": 0, "shared-test": 0, "no-test": 0, "rows": 0, "observable": 0, "unmet": 0}
 
 
