@@ -1400,7 +1400,9 @@ public static class PictureAnalyzer
             return PicInfo.Recovery(expanded.Length);
         }
         // ⛔ The bounds are one register row (kb/Work PB5712): four exponent digits and 36 significand digits from COBOL-2014, three and 31 at 2002.
-        bool wideBounds = DialectBehaviors.IsActive(DialectBehavior.FloatEditedPictureWideBounds, edition.DialectLevel);
+        // Below COBOL-2002 the form itself is the construct gate's refusal (COBOL0900, pic-external-float-2002), which a bound's error here would hide.
+        bool wideBounds = DialectBehaviors.IsActive(DialectBehavior.FloatEditedPictureWideBounds, edition.DialectLevel)
+            || !ConstructRegistry.IsAvailable(edition.Edition, Constructs.PicExternalFloat2002);
         int maxExponent = wideBounds ? 4 : 3;
         if (exp.Length < 2 || exp[0] != '+' || exp[1..].Any(c => c != '9') || exp.Length - 1 > maxExponent)
         {

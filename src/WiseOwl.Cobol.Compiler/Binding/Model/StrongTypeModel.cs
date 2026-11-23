@@ -264,7 +264,8 @@ public static class StrongTypeModel
                  : open.FindIndex(o => IsOpenDeclaration(o, decl)) is var at and >= 0
                      ? string.Create(CultureInfo.InvariantCulture, $"@{open.Count - at}")
                      : $"[{TypeIdentityKey(decl, open)}]");
-        string profile = InvariantRecordText(p with { EditingRules = null, RestrictedTypeName = null, RestrictedTypeDecl = null, RestrictedPrototypeName = null, LocaleEdit = null });
+        // CurrencyClass is elided as SameAnalyzedProfile elides it (kb/Work PB5614): equal keys are equal relations.
+        string profile = InvariantRecordText(p with { EditingRules = null, RestrictedTypeName = null, RestrictedTypeDecl = null, RestrictedPrototypeName = null, LocaleEdit = null, CurrencyClass = null });
         return $"{entry}|{profile}|{rules}|{locale}|{PrototypeSignatures.NamedRestriction(x)}|{restricted}";
     }
 
