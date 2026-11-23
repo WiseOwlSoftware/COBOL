@@ -1740,6 +1740,13 @@ internal static class RuntimeApi
     public static string TableAtOdo(string path, string oneBasedIndex, string count, int minOccurs, int maxOccurs) =>
         $"{nameof(CobolTable)}.{nameof(CobolTable.At)}({path}, {oneBasedIndex}, {count}, {minOccurs}, {maxOccurs})";
 
+    /// <summary>A Tier-B window's subscript tested against its table's range — <c>CobolTable.Subscript</c> (ISO §2023:8.4.2.3.4 GR2;
+    /// with <paramref name="odo"/> also §2023:13.18.38.4 GR7), the value of the subscript as a <c>long</c> (kb/Work PB5762, PB5605).</summary>
+    public static string WindowSubscript(string oneBasedIndex, int highest, (string Count, int Min, int Max)? odo) =>
+        odo is { } o
+            ? $"{nameof(CobolTable)}.{nameof(CobolTable.Subscript)}({oneBasedIndex}, {highest}, {o.Count}, {o.Min}, {o.Max})"
+            : $"{nameof(CobolTable)}.{nameof(CobolTable.Subscript)}({oneBasedIndex}, {highest})";
+
     /// <summary>The current POSITION extent of an occurs-depending GROUP operand (ISO §2023:13.18.38.4 GR8) — the fixed
     /// prefix plus data-name-1's clamped value × the element width — <c>CobolTable.OdoExtent</c>. The unit is the
     /// group's own (bit positions for a subtree holding USAGE BIT leaves, character positions otherwise; kb/Work

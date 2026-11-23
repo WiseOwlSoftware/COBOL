@@ -1,0 +1,7 @@
+{
+ "rule-id": "2002-GR-13.16.36.3-7",
+ "rule-digest": "e4c90edcd917",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/PlaceBuilder.cs#WindowScopeOf; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolTable.cs#Subscript",
+ "test-ref": "conformance:cases/13.16.36@2002-OCCURS-CLAUSE/pb5605-fd-second-record-odo-bound-2002"
+}
