@@ -4,8 +4,8 @@
   {
    "rule-id": "DOC-A.1-65",
    "verdict": "CONFORMS",
-   "editions": "2002,2014,2023",
-   "notes": "§14.9.18.4 1) a) + §14.9.14.4 3): a Roslyn-built C# host calls GOBACK and EXIT PROGRAM modules via ProgramRegistry.CallProgram; the host resumes at each call site, exit 0 || editions corrected from 85,2002,2014,2023 to 2002,2014,2023 (kb/Work PB3320, docs/VERSION_TEST_MATRIX_DESIGN.md P2.10): §2023:14.9.18.4 GR3 (GOBACK in a program not under a calling runtime element) is the rule this item documents; GOBACK is a COBOL-2002 statement (§2002:14.8.17.3 GR2 states the rule; the 1985 text has no GOBACK statement)."
+   "editions": "85,2002,2014,2023",
+   "notes": "§14.9.18.4 1) a) + §14.9.14.4 3): a Roslyn-built C# host calls GOBACK and EXIT PROGRAM modules via ProgramRegistry.CallProgram; the host resumes at each call site, exit 0 || band kept at 85 (kb/Work PB3320 review R1-1): the A.1 item is 'EXIT and GOBACK statements', its EXIT PROGRAM arm is 1985 text (§1985:II.6.1 leaves the relationship between COBOL and non-COBOL runtime elements to the implementor) and the GOBACK arm starts at §2002:14.8.17.3 GR2, so the item is a listed exemption in DocItemBandDriftTests."
   }
  ]
 }

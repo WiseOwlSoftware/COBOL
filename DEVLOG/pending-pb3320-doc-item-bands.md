@@ -10,10 +10,10 @@ adjudicator's reading; an 85 start means the 1985 text leaves the same latitude 
 addendum without re-banding its rows.
 
 Of the 8 early rows, DOC-A.1-68 and -117 name whole clauses; DOC-A.1-64, -43 and -131 are exemptions on a recorded determination of
-the behaviour at the earlier edition (DOC-A.1-77 is the same PB670 determination and is not read); DOC-A.1-65 was re-banded to 2002
-(`adjudication/pb3320-doc-item-bands/batch.json`, GAP 2 to 2): GOBACK is §2002:14.8.17.3 GR2 text and 1985 has no GOBACK statement.
-The first gate refused my first batch, which also moved DOC-A.1-43, -77 and -131: their 85 goldens witness recorded determinations
-(PB670's option (i) and DOC-A.1-43's bare form), so those rows were restored and exempted instead.
+the behaviour at the earlier edition (DOC-A.1-77 is the same PB670 determination and is not read); DOC-A.1-65 is also exempt: the item is "EXIT and GOBACK statements", its EXIT PROGRAM arm is 1985 text (§1985:II.6.1) and only the GOBACK arm starts at 2002 (review R1-1 reversed my first re-band to 2002)
+(GOBACK is §2002:14.8.17.3 GR2 text). No row changes band (GAP 2 to 2). My first batch moved -43, -65, -77 and -131 to 2002; the
+first gate refused it (their 85 goldens witness recorded determinations) and review R1-1 showed -65 covers EXIT PROGRAM too, so
+`adjudication/pb3320-doc-item-bands/batch.json` keeps -65 at 85 with the reading in its notes.
 
 `DocItemBandDriftTests` holds the early direction, with a self-test of the reference reader and a test that fails when an exemption
 stops being needed.

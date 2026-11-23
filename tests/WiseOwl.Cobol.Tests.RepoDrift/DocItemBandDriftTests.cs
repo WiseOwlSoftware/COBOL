@@ -36,6 +36,10 @@ public sealed class DocItemBandDriftTests
             "docs/conformance/7/DOC-A.1-43.md determines the equivalence of a currency symbol outside the repertoire for every edition "
             + "that has the clause form, the bare single-character form from COBOL-85 (golden l1c06_currency_non_cobol_equivalence_85); "
             + "the rule it names, §2023:12.3.7.3 SR21, is the 2002 text on equivalent symbols of two clauses (kb/Work PB3320)",
+        ["DOC-A.1-65"] =
+            "the item is 'EXIT and GOBACK statements': its EXIT PROGRAM arm is 1985 text and §1985:II.6.1 leaves the relationship to a non-COBOL "
+            + "runtime element to the implementor, so the obligation to document it starts at 85; the GOBACK arm it names, §2002:14.8.17.3 GR2, "
+            + "is the 2002 text (kb/Work PB3320, review R1-1)",
         ["DOC-A.1-131"] =
             "the owner's determination of 2026-10-23, option (i) (kb/Work PB670): at --std 85 the implementor's own sharing mode restricts "
             + "nobody (golden pb670_cobol85_no_sharing_facility); the rule it names, §2023:14.9.27.4 GR23, is the 2002 sharing text "
