@@ -1323,6 +1323,8 @@ static WiseOwl.Cobol.Runtime.CobolStandardData.Image(string! storage, WiseOwl.Co
 static WiseOwl.Cobol.Runtime.CobolTable.AllImage(System.Func<long[]!, long>![]! counts, System.Func<long[]!, string!>! element) -> string!
 static WiseOwl.Cobol.Runtime.CobolTable.OdoExtentTrimmed(WiseOwl.Cobol.Runtime.Occurrence count, int min, int max, int fixedUnits, int strideUnits, int trailingUnits) -> int
 static WiseOwl.Cobol.Runtime.CobolTable.RequireOccurrences(long count) -> void
+static WiseOwl.Cobol.Runtime.CobolTable.Subscript(WiseOwl.Cobol.Runtime.Occurrence occurrence, long highest) -> long
+static WiseOwl.Cobol.Runtime.CobolTable.Subscript(WiseOwl.Cobol.Runtime.Occurrence occurrence, long highest, WiseOwl.Cobol.Runtime.Occurrence depending, int min, int max) -> long
 static WiseOwl.Cobol.Runtime.CobolTiming.Interval(System.Int128 unscaled, int scale) -> long
 static WiseOwl.Cobol.Runtime.CobolTiming.Interval(System.UInt128 unscaled, int scale) -> long
 static WiseOwl.Cobol.Runtime.CobolTiming.Interval(WiseOwl.Cobol.Runtime.CobolDec seconds) -> long
@@ -1533,5 +1535,3 @@ static readonly WiseOwl.Cobol.Runtime.MoveCitations.Iso2023 -> WiseOwl.Cobol.Run
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryIndexOutcome.ToString() -> string
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.Equals(object obj) -> bool
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.ToString() -> string
-static WiseOwl.Cobol.Runtime.CobolTable.Subscript(WiseOwl.Cobol.Runtime.Occurrence occurrence, long highest) -> long
-static WiseOwl.Cobol.Runtime.CobolTable.Subscript(WiseOwl.Cobol.Runtime.Occurrence occurrence, long highest, WiseOwl.Cobol.Runtime.Occurrence depending, int min, int max) -> long
