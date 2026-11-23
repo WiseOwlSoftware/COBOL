@@ -12,7 +12,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// an <see cref="ISelectionOrder"/> — the aligned <see cref="Int128"/> and the binary64 by their own operators
 /// (<see cref="ValueOrder{T}"/>), the (unscaled, scale) pair through <see cref="CobolNum.Compare"/>
 /// (<see cref="ScaledOrder"/>), the SDIDI through <see cref="CobolDec.Compare"/> (<see cref="DecOrder"/>), and an
-/// alphanumeric or national argument through the program collating sequence (<see cref="StringOrder"/>). Before it the
+/// alphanumeric or national argument through the program collating sequence (<see cref="StringOrder"/>), the exact argument values through <see cref="CobolExact.Compare"/> (<see cref="ExactOrder"/>). Before it the
 /// loop was written once per carrier, and the binary64 MAX / MIN had drifted onto <c>Enumerable.Max</c> / <c>Min</c>,
 /// whose NaN rule differs from the loop's: a NaN argument made MAX and ORD-MAX name different arguments.
 /// </summary>
@@ -75,5 +75,13 @@ public static partial class CobolIntrinsics
     {
         public int Count => xs.Length;
         public int Compare(int i, int j) => collation is null ? CobolString.Compare(xs[i], xs[j]) : collation.Compare(xs[i], xs[j]);
+    }
+
+    /// <summary>Exact argument values on the native SDIDI lane, compared by algebraic value (<see cref="CobolExact.Compare"/>,
+    /// §2023:8.8.4.2.4).</summary>
+    internal readonly struct ExactOrder(CobolExact[] xs) : ISelectionOrder
+    {
+        public int Count => xs.Length;
+        public int Compare(int i, int j) => CobolExact.Compare(xs[i], xs[j]);
     }
 }
