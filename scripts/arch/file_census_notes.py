@@ -465,9 +465,10 @@ def file_set_lines(moves):
             "plus every file `scripts/arch/member_index.py` finds using or emitting what it moves or changes (" +
             ("the names above and every member of their types its target names" if moves
              else "every type its Sites declare") + "), on the index of the current tree; "
-            "`plan_wave.py --cluster` admits the wave on that set, the landing check (`landing_check.py`, run by "
-            "`enqueue.py land`) stops a landing that changed a file outside it, and `python scripts/arch/member_index.py "
-            "--note <id>` prints it.", ""]
+            "`plan_wave.py --cluster` admits the wave on that set, an admission estimate the landing never compares "
+            "with (git's merge is the authority on a conflict, and the landing check only names an in-flight branch "
+            "whose edits meet the landing's: kb/Work PB4452), and `python scripts/arch/member_index.py --note <id>` "
+            "prints it.", ""]
     return out
 
 

@@ -41,7 +41,7 @@ import sys
 # ⛔ THE §7 TABLE PARSER IS NOT WRITTEN HERE: `conformance_source.py` is the ONE reader of docs/CONFORMANCE.md (kb/Work PB5395), and
 # this audit, which CHECKS the rows, asks it for them like every other reader of the register.
 import conformance_source
-from inventory_schema import NEWEST, SCHEMA_PATH, load_schema
+from inventory_schema import NEWEST, load_schema, raw_schema
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
@@ -882,7 +882,7 @@ def main(argv: list[str]) -> int:
                         'or its parser is what changed')
     findings.extend(orphan_verdicts(inventory_rows, set(numbered), set(unreachable)))
     # kb/Work PB593 — no Annex A.1 element is grounded on §2023:4.2.7, which its own first sentence scopes to Annex A.4.
-    findings.extend(sweep_inherited_grounds(text, inventory_rows, json.loads(SCHEMA_PATH.read_text(encoding='utf-8'))))
+    findings.extend(sweep_inherited_grounds(text, inventory_rows, raw_schema()))
 
     print('\n=== docs/CONFORMANCE.md §7 ROWS ===')
     seen: set[int] = set()

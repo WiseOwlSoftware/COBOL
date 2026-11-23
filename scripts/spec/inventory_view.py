@@ -48,7 +48,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import lineage  # noqa: E402  (an older edition's change record and its state)
 import code_read_store  # noqa: E402  (the code reads' counts, summary's line of them: kb/Work PB5759)
 from inventory_schema import (HELD, NEWEST, REGISTER_EXTRACT_REL, REPO, SCHEMA_REL, WORKING_TREE, Edition,  # noqa: E402
-                              NotReadAhead, Schema, Tree, edition, edition_key_errors, load_schema, read_view_ahead,
+                              NotReadAhead, Schema, Tree, edition, edition_key_errors, load_schema, raw_schema, read_view_ahead,
                               refuter_files)
 from inventory_store import STORE_KEYS, inventory_dir, read_store, store_at  # noqa: E402
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
@@ -232,7 +232,7 @@ def check() -> int:
     question, `edition_gates.check`: this module is in the conformance-suite generator's import closure, and the
     reconciliation ledgers' reader is not.)"""
     schema = load_schema()
-    findings: list[str] = edition_key_errors(WORKING_TREE.json(SCHEMA_REL))
+    findings: list[str] = edition_key_errors(raw_schema())
     for year in sorted(HELD, reverse=True):
         ed = schema.edition(year)
         v = view(year, schema)
@@ -522,7 +522,7 @@ def self_test() -> int:
     ok(any("docs/conformance/" in p.replace("\\", "/") for p in planted),   # the statement's sources (kb/Work PB5430)
        f"the probe sees a state input that reads the Markdown register (planted; opened {planted[:3]})")
     # Branch review R2-1: a tree main never held (a WIP checkpoint whose schema predates `editions.of`) is refused by name.
-    old_raw = json.loads(WORKING_TREE.text(SCHEMA_REL))
+    old_raw = raw_schema()
     old_raw["editions"]["values"] = [e["spelling"] for e in old_raw["editions"].pop("of")]
     repo.commit("a WIP checkpoint", {SCHEMA_REL: json.dumps(old_raw)})
     wip = repo.git("rev-parse", "HEAD").strip()
