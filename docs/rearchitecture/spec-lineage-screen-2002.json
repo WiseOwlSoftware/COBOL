@@ -107,7 +107,7 @@
   "definition-dropped": 359,
   "cross-reference": 28,
   "pending-clause": 621,
-  "behaviour-switch": 263,
+  "behaviour-switch": 272,
   "held": 6,
   "band-formats": 84,
   "clause-identity": 1767,
@@ -3951,7 +3951,7 @@
     "SAME": 3
    },
    "behaviour-switch": {
-    "DIFFERENT": 0,
+    "DIFFERENT": 1,
     "DOUBTFUL": 0,
     "SAME": 16
    },
@@ -5402,14 +5402,17 @@
    "pending-clause": "§2002:14.5.2.1.2.1 (changed), §2002:14.5.3 (changed), §2002:14.5.10 (changed)"
   },
   "2002-GR-14.8.13.3-1": {
-   "definition-changed": "procedure"
+   "definition-changed": "procedure",
+   "behaviour-switch": "flow-global-exit-is-never-set"
   },
   "2002-GR-14.8.13.3-12": {
+   "behaviour-switch": "flow-global-exit-is-never-set",
    "band-formats": "band-formats [6] against [[4]]"
   },
   "2002-GR-14.8.13.3-5": {
    "definition-changed": "exit program statement; runtime element",
-   "pending-clause": "§2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)"
+   "pending-clause": "§2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)",
+   "behaviour-switch": "flow-global-exit-is-never-set"
   },
   "2002-GR-14.8.14.3-1": {
    "definition-dropped": "null (newer: 8.4.3.7.1)",
@@ -5434,7 +5437,8 @@
   },
   "2002-GR-14.8.17.3-5": {
    "definition-changed": "procedure",
-   "pending-clause": "§2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)"
+   "pending-clause": "§2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)",
+   "behaviour-switch": "flow-global-exit-is-never-set"
   },
   "2002-GR-14.8.18.3-1": {
    "deferral": "the rules for "
@@ -7679,18 +7683,22 @@
    "pending-clause": "§2002:14.6.4 (changed), §2002:14.6.6 (changed)"
   },
   "2002-SR-14.8.13.2-11": {
+   "behaviour-switch": "flow-global-exit-is-never-set",
    "band-formats": "band-formats [6] against [[4]]"
   },
   "2002-SR-14.8.13.2-2": {
    "definition-changed": "procedure",
    "pending-clause": "§2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)",
+   "behaviour-switch": "flow-global-exit-is-never-set",
    "band-formats": "band-formats [2, 3, 4] against [[2]]"
   },
   "2002-SR-14.8.13.2-4": {
+   "behaviour-switch": "flow-global-exit-is-never-set",
    "band-formats": "band-formats [2, 3, 4] against [[2]]"
   },
   "2002-SR-14.8.13.2-7": {
-   "definition-changed": "exit program statement; procedure"
+   "definition-changed": "exit program statement; procedure",
+   "behaviour-switch": "flow-global-exit-is-never-set"
   },
   "2002-SR-14.8.15.2-1": {
    "definition-dropped": "report (newer: 13.18.46.2)",
@@ -7709,7 +7717,8 @@
   },
   "2002-SR-14.8.17.2-1": {
    "definition-changed": "procedure",
-   "pending-clause": "§2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)"
+   "pending-clause": "§2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)",
+   "behaviour-switch": "flow-global-exit-is-never-set"
   },
   "2002-SR-14.8.2.2-5": {
    "pending-clause": "§2002:14.6.4 (changed), §2002:14.6.6 (changed)"
