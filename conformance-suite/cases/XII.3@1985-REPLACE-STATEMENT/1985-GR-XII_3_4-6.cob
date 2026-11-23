@@ -3,7 +3,6 @@
       *> rules: [1985-GR-XII.3.4-6]
       *> accept: [85]
       *> source-format: fixed
-      *> portable: unverified
       *>---
       *> §1985:XII.3.4 GR6 (THE REPLACE STATEMENT). An output test: the
       *> program must translate and run at 85 and DISPLAY exactly the
@@ -16,8 +15,10 @@
 000400 WORKING-STORAGE SECTION.
 000500 01  W-A PIC 9 VALUE 0.
 000600     REPLACE ==ADD 1 TO W-A== BY ==ADD 5 TO W-A==.
+       01  W-A-E PIC Z9.
 000700 PROCEDURE DIVISION.
 000800 P1.
 000900     ADD 1;   TO    W-A.
-001000     DISPLAY W-A.
+           MOVE W-A TO W-A-E
+001000     DISPLAY W-A-E.
 001100     STOP RUN.

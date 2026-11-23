@@ -723,7 +723,7 @@ class Reader:
                 self.refuse(stmt.source or rel, stmt.line, f"COPY {stmt.name}: the library text is not a declared "
                                                            f"file of this test (`files`, §3.1)")
         # A run-time expectation at 85 (§3.2), in the program or in the library text it copies.
-        expanded = cobol.expand_copies(tokens, lambda name: self._library(case, name))
+        expanded = cobol.apply_replace_statements(cobol.expand_copies(tokens, lambda name: self._library(case, name)))
         case.words = frozenset(t.text.upper() for t in expanded
                                if t.kind == cobol.WORD and any(ch.isalpha() for ch in t.text))
         case.defined = frozenset(cobol.defined_names(expanded))
@@ -2289,6 +2289,29 @@ def self_test() -> int:
     check("arm: a reference-modified numeric display item is alphanumeric; a computational one is not; a floating "
           "comment is no operand", issues == [("A", "a data item of class " + cobol.NUMERIC_COMPUTATIONAL_CLASS)],
           issues)
+
+    # §1985:XII.3.4 GR1-GR4 and XII.2.4 GR3-GR5: REPLACE and REPLACING change the text the compiler reads, so the lint
+    # judges the text after them: pseudo-text holding DISPLAY is no DISPLAY statement, and a name the replacement
+    # introduces is the operand (kb/Work PB3178: a REPLACE test's pseudo-text was read as the statement).
+    replace_head = ["       DATA DIVISION.", "       WORKING-STORAGE SECTION.", "       01 W PIC X.", "       01 N PIC 9.",
+                    "       PROCEDURE DIVISION."]
+
+    def replaced(*lines: str) -> list[str]:
+        return [i.operand for i in cobol.display_issues(cobol.apply_replace_statements(
+            fixed_tokens(*replace_head, *lines, "           STOP RUN.")))]
+
+    check("arm: a REPLACE statement's pseudo-text is no DISPLAY statement",
+          replaced("       REPLACE ==SHOW, IT== BY ==DISPLAY 12==.", "           MOVE 1 TO N.") == [])
+    check("arm: a REPLACE introduces the statement the lint then judges, until REPLACE OFF",
+          replaced("       REPLACE ==SHOW== BY ==DISPLAY N==.", "           SHOW.", "       REPLACE OFF.",
+                   "           SHOW.") == ["N"])
+    check("arm: the first pair that matches replaces, a lowercase word matches its uppercase, a pair with no match "
+          "leaves the text",
+          replaced("       REPLACE ==NOPE== BY ==DISPLAY N== ==show== BY ==DISPLAY W==.", "           SHOW.") == [])
+    copy_tokens = cobol.expand_copies(fixed_tokens(*replace_head, "           COPY LIB REPLACING ==SHOW== BY ==DISPLAY N==."),
+                                      lambda name: fixed_tokens("           SHOW.") if name == "LIB" else None)
+    check("arm: COPY REPLACING is applied to the library text it copies",
+          [i.operand for i in cobol.display_issues(copy_tokens)] == ["N"])
 
     def refused(data: list[str], displays: list[str], environment: tuple[str, ...] = ()) -> list[str]:
         """The operands the lint refuses in a one-unit program with `data` and one DISPLAY per `displays` item."""

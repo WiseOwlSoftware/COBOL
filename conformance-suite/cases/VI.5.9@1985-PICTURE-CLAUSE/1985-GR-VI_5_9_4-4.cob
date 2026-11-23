@@ -3,7 +3,6 @@
       *> rules: [1985-GR-VI.5.9.4-4]
       *> accept: [85]
       *> source-format: fixed
-      *> portable: unverified
       *>---
       *> §1985:VI.5.9.4 GR4 (THE PICTURE CLAUSE). An output test: the
       *> program must translate and run at 85 and DISPLAY exactly the

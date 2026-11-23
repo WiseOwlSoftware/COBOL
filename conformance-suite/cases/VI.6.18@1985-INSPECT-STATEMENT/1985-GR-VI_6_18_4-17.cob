@@ -3,7 +3,6 @@
       *> rules: [1985-GR-VI.6.18.4-17]
       *> accept: [85]
       *> source-format: fixed
-      *> portable: unverified
       *>---
       *> §1985:VI.6.18.4 GR17 (THE INSPECT STATEMENT). An output test:
       *> the program must translate and run at 85 and DISPLAY exactly
@@ -22,6 +21,8 @@
        01  SUB1 PIC 9 VALUE 1.
        01  W PIC X(5) VALUE "AAXAA".
        01  CNT PIC 99 VALUE 0.
+       01  SUB1-E PIC Z9.
+       01  CNT-E PIC Z9.
        PROCEDURE DIVISION.
        MAIN-PARA.
            MOVE "AAXA" TO T (1).
@@ -31,9 +32,11 @@
            MOVE "XXXX" TO T (5).
            INSPECT T (SUB1) TALLYING SUB1 FOR ALL "A"
                REPLACING ALL "A" BY "B".
-           DISPLAY "SUB1 " SUB1.
+           MOVE SUB1 TO SUB1-E
+           DISPLAY "SUB1 " SUB1-E.
            DISPLAY T (1) " " T (2) " " T (3) " " T (4).
            INSPECT W TALLYING CNT FOR CHARACTERS BEFORE "X"
                REPLACING ALL "A" BY "Z" AFTER "X".
-           DISPLAY CNT " " W.
+           MOVE CNT TO CNT-E
+           DISPLAY CNT-E " " W.
            STOP RUN.

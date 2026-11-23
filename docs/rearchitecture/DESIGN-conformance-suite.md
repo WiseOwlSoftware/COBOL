@@ -330,6 +330,11 @@ conforming compilers print one signed numeric item as `01E` and `+01.5`.
   sequence is associated with the figurative constant HIGH-VALUE" (§2023:12.3.7.4 GR 8; GR 9 likewise for LOW-VALUE). A
   reference-modified display numeric item is alphanumeric (§2023:8.4.3.3.4 GR6c and allowed unless signed without SIGN
   SEPARATE: "Neither the representation nor the position of that operational sign is specified" (§2023:13.18.52.4 GR 4).
+- **The lint reads the text the compiler reads.** Text manipulation comes first: a `COPY ... REPLACING` phrase is applied to the
+  library text it copies and each `REPLACE` statement to the text after it, by the comparison cycle of §1985:XII.2.4 GR5 (a REPLACE statement's: §1985:XII.3.4 GR6)
+  (`cobol_source.replace_text`, `apply_replace_statements`), so pseudo-text holding the word DISPLAY is no DISPLAY statement
+  and an operand a replacement introduces is judged (kb/Work PB3178: nine REPLACE tests and two COPY tests were refused
+  for text no compiler reads).
 - **The lint judges the storage an operand shows.** A group is allowed only when every item it holds is alphanumeric,
   numeric-edited, or unsigned or separately signed display numeric, and none is SYNCHRONIZED ("The effect of this clause
   is defined by the implementor", §2023:13.18.55.4 GR 9). An item whose storage another entry describes (REDEFINES, the
@@ -776,7 +781,9 @@ kb/Conformance burn-down, whose ledger page is the owner's (PB2912), so a new se
   into the baseline; `generate.py --check` refuses a measurement naming a test of no population, a failure with no bucket
   or cause, a cause outside the three and a citation off the held text. The 85 run took 1,624 tests from the 2026-11-22
   measurement (no conformance-suite file had changed since) and the 138 tests PB6048's header repair added to the
-  population from a run of their own; a changed test's record is stale until `record` is run again.
+  population from a run of their own; a changed test's record is stale until `record` is run again. A run of some
+  tests re-measures those and keeps every other recorded verdict (a test that left the population goes), so a clearing that
+  rewrote a test re-measures it with a run of that test alone.
 - **Results** are JUnit XML and JSON, one result per test naming its file, totalled per edition, clause and placement
   class, INTERFERENCE apart, with CHANGES against the compiler's baseline, so a second compiler is a regression net, not
   a permanently red leg. A run is RED when a verdict differs from its record and is FAIL or NO VERDICT or was a recorded
@@ -984,6 +991,16 @@ Revision 4 (kb/Work PB6046) orders the work in stages, COBOL-85 first (decision 
    loudly (exit 2). Today: rows 2,961 · points 994 · NIST 6,931 · second compiler 0 · transcription UNMEASURED.
 1. **The pilot** (PB3178, re-scoped): one slice of about 100 rows end to end with the real tools; its cost per row, per
    test cleared, per test written and per NIST unit sets the stop rule of every later stage (above twice: redesign).
+   **Measured 2026-11-23** on INSPECT (VI.6.18), the PICTURE clause (VI.5.9), COPY (XII.2) and REPLACE (XII.3), 105 rows:
+   the suite witnesses 75 of the 104 observable rows (2 before), 73 rows closed in the whole catalog. Of the 86 tests the
+   slice accepts at 85, 34 cleared as they were (lint-clean, WiseOwl PASS, a GnuCOBOL verdict recorded), 21 after a
+   mechanical rewrite of each DISPLAY of an unsigned numeric item through a numeric-edited item (output equal to the old
+   `.out` under zero suppression, checked by a run), 11 once the lint read the text after REPLACE (a lint defect, not a
+   test defect), and 20 stay (15 a numeric DISPLAY the rewrite does not reach: a table item, a multi-line DISPLAY, a
+   test with a library text or a second program unit; 3 unclassifiable names, 1 function result, 1 operand `.`).
+   Five rows with no test got one written from the text (five tests, each PASS on WiseOwl and GnuCOBOL with the expected
+   output derived from the rule). 11 of the 74 NIST INSPECT units of NC115A, NC216A and NC221A were adjudicated to rows.
+   The cost is in `kb/Work/PB3178/2026-11-23-pilot-measurement.md`.
 2. **Clear the existing tests.** A test clears when the portability lint passes, WiseOwl passes it at 85, its expected
    output is the one the 1985 reads recorded for its row, and its GnuCOBOL verdict is recorded; two compilers agreeing
    clear it with no agent. The residue is bucketed by cause, one fix train per bucket.

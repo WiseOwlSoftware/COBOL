@@ -4,7 +4,6 @@
       *> accept: [85]
       *> files: [G85F28CA.cpy]
       *> source-format: fixed
-      *> portable: unverified
       *>---
       *> §1985:XII.3.4 GR4 - REPLACE statements are processed after the
       *> COPY statements. cite.py --check "§1985:XII.3.4 GR4" "Any

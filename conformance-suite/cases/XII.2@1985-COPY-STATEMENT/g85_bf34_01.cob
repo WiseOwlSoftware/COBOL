@@ -4,7 +4,6 @@
       *> accept: [85]
       *> files: [G85BF34A.cpy, G85BF34B.cpy, G85BF34C.cpy]
       *> source-format: fixed
-      *> portable: unverified
       *>---
       *> §1985:XII.2.4 GR1 - all COPY statements are processed before
       *> the resultant source program is: a MOVE statement and a data

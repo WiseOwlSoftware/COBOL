@@ -3,7 +3,6 @@
       *> rules: [1985-GR-VI.6.18.4-12]
       *> accept: [85]
       *> source-format: fixed
-      *> portable: unverified
       *>---
       *> §1985:VI.6.18.4 GR12 (THE INSPECT STATEMENT). An output test:
       *> the program must translate and run at 85 and DISPLAY exactly
@@ -18,46 +17,60 @@
        01  D5  PIC X(5).
        01  C1  PIC 99.
        01  C2  PIC 99.
+       01  C1-E PIC Z9.
+       01  C2-E PIC Z9.
        PROCEDURE DIVISION.
        MAIN-PARA.
            MOVE "AAXAA" TO D5.
            MOVE ZERO TO C1.
            INSPECT D5 TALLYING C1 FOR ALL "A".
-           DISPLAY "ALL-1 " C1.
+           MOVE C1 TO C1-E
+           DISPLAY "ALL-1 " C1-E.
            MOVE "AAAAA" TO D5.
            MOVE 10 TO C1.
            INSPECT D5 TALLYING C1 FOR ALL "AA".
-           DISPLAY "ALL-2 " C1.
+           MOVE C1 TO C1-E
+           DISPLAY "ALL-2 " C1-E.
            MOVE "AAXAA" TO D5.
            MOVE ZERO TO C1.
            INSPECT D5 TALLYING C1 FOR LEADING "A".
-           DISPLAY "LEAD-1 " C1.
+           MOVE C1 TO C1-E
+           DISPLAY "LEAD-1 " C1-E.
            MOVE "XAAAA" TO D5.
            MOVE ZERO TO C1.
            INSPECT D5 TALLYING C1 FOR LEADING "A".
-           DISPLAY "LEAD-2 " C1.
+           MOVE C1 TO C1-E
+           DISPLAY "LEAD-2 " C1-E.
            MOVE "AAXAA" TO D5.
            MOVE ZERO TO C1.
            INSPECT D5 TALLYING C1 FOR LEADING "A" AFTER INITIAL "X".
-           DISPLAY "LEAD-3 " C1.
+           MOVE C1 TO C1-E
+           DISPLAY "LEAD-3 " C1-E.
            MOVE "AXBAA" TO D5.
            MOVE ZERO TO C1.
            INSPECT D5 TALLYING C1 FOR LEADING "A" AFTER INITIAL "X".
-           DISPLAY "LEAD-4 " C1.
+           MOVE C1 TO C1-E
+           DISPLAY "LEAD-4 " C1-E.
            MOVE "AABBA" TO D5.
            MOVE ZERO TO C1 C2.
            INSPECT D5 TALLYING C1 FOR LEADING "A"
                                C2 FOR LEADING "B".
-           DISPLAY "LEAD-5 " C1 " " C2.
+           MOVE C1 TO C1-E
+           MOVE C2 TO C2-E
+           DISPLAY "LEAD-5 " C1-E " " C2-E.
            MOVE "AAXAA" TO D5.
            MOVE ZERO TO C1.
            INSPECT D5 TALLYING C1 FOR CHARACTERS.
-           DISPLAY "CHAR-1 " C1.
+           MOVE C1 TO C1-E
+           DISPLAY "CHAR-1 " C1-E.
            MOVE ZERO TO C1 C2.
            INSPECT D5 TALLYING C1 FOR ALL "A"
                                C2 FOR CHARACTERS.
-           DISPLAY "CHAR-2 " C1 " " C2.
+           MOVE C1 TO C1-E
+           MOVE C2 TO C2-E
+           DISPLAY "CHAR-2 " C1-E " " C2-E.
            MOVE ZERO TO C1.
            INSPECT D5 TALLYING C1 FOR CHARACTERS BEFORE INITIAL "X".
-           DISPLAY "CHAR-3 " C1.
+           MOVE C1 TO C1-E
+           DISPLAY "CHAR-3 " C1-E.
            STOP RUN.

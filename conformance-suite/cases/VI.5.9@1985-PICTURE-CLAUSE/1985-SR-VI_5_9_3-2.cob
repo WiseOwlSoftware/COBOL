@@ -3,7 +3,6 @@
       *> rules: [1985-SR-VI.5.9.3-2]
       *> accept: [85]
       *> source-format: fixed
-      *> portable: unverified
       *>---
       *> §1985:VI.5.9.3 SR2 (THE PICTURE CLAUSE). An output test: the
       *> program must translate and run at 85 and DISPLAY exactly the
@@ -18,12 +17,14 @@
        01  NUM-ITEM   PIC 9(3).
        01  ALPH-ITEM  PIC X(3).
        01  EDIT-ITEM  PIC ZZ9.
+       01  NUM-ITEM-E PIC ZZ9.
        PROCEDURE DIVISION.
        MAIN-PARA.
            MOVE 7 TO NUM-ITEM.
            MOVE "7" TO ALPH-ITEM.
            MOVE 7 TO EDIT-ITEM.
-           DISPLAY "N=" NUM-ITEM "|".
+           MOVE NUM-ITEM TO NUM-ITEM-E
+           DISPLAY "N=" NUM-ITEM-E "|".
            DISPLAY "A=" ALPH-ITEM "|".
            DISPLAY "E=" EDIT-ITEM "|".
            STOP RUN.
