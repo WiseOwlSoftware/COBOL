@@ -23,7 +23,8 @@ namespace WiseOwl.Cobol.Tests.RepoDrift;
 /// </remarks>
 public sealed class DocItemBandDriftTests
 {
-    /// <summary>The A.1 items whose band starts before a rule they name, each with the edition text that justifies it. The
+    /// <summary>The A.1 items whose band starts before a rule they name, each with the determination or edition text that
+    /// justifies it: an item at an edition below its rule's is a recorded determination of the behaviour AT that edition. The
     /// scan must still flag each one without this entry (<see cref="EveryExemption_StillCarriesTheEarlierStartItExcuses"/>), so a
     /// stale entry fails.</summary>
     private static readonly Dictionary<string, string> Exempt = new(StringComparer.Ordinal)
@@ -31,6 +32,14 @@ public sealed class DocItemBandDriftTests
         ["DOC-A.1-64"] =
             "§2002:11.8.5.3 GR2 and its default paragraph state the entry convention's implementor-defined meaning and default at 2002; "
             + "the rule it names, §2023:11.9.7.4 GR2, is the 2014 text that adds the COBOL alternative's naming (kb/Work PB3322)",
+        ["DOC-A.1-43"] =
+            "docs/conformance/7/DOC-A.1-43.md determines the equivalence of a currency symbol outside the repertoire for every edition "
+            + "that has the clause form, the bare single-character form from COBOL-85 (golden l1c06_currency_non_cobol_equivalence_85); "
+            + "the rule it names, §2023:12.3.7.3 SR21, is the 2002 text on equivalent symbols of two clauses (kb/Work PB3320)",
+        ["DOC-A.1-131"] =
+            "the owner's determination of 2026-10-23, option (i) (kb/Work PB670): at --std 85 the implementor's own sharing mode restricts "
+            + "nobody (golden pb670_cobol85_no_sharing_facility); the rule it names, §2023:14.9.27.4 GR23, is the 2002 sharing text "
+            + "(DOC-A.1-77, the same determination, chains whole-clause references and is not read)",
     };
 
     /// <summary>The reference at the end of an item's text: the last parenthesis group, nested parentheses allowed.</summary>

@@ -620,9 +620,11 @@ latitude, read from each edition's own text (P2.9):
 - **A band never starts before the earliest rule row its text names.** The obligation to document a determination cannot predate
   the rule that leaves it to the implementor. `DocItemBandDriftTests.EveryDocItem_StartsNoEarlierThanTheRulesItNames` reads each
   item whose every reference is a clause with rule numbers and refuses an earlier start. An item that names a whole clause, or chains
-  two clauses in one reference, names no one rule and is the adjudicator's. `DOC-A.1-64` is the one exemption (2002's ENTRY-CONVENTION
-  clause states the implementor-defined meaning and default; the rule row it cites carries the 2014 COBOL alternative), and the test
-  fails when an exemption stops being needed.
+  two clauses in one reference, names no one rule and is the adjudicator's. Three items start earlier on a recorded determination of the
+  behaviour at that edition, and the test lists each with its source and fails when an exemption stops being needed: `DOC-A.1-64`
+  (2002's ENTRY-CONVENTION clause states the item; the rule row it cites carries the 2014 COBOL alternative), `DOC-A.1-43` (the
+  currency-symbol equivalence, determined for every edition with the clause form, the bare form from 85) and `DOC-A.1-131` (the owner's
+  option (i) of PB670: at `--std 85` the implementor's sharing mode restricts nobody).
 - **A band may start later than the earliest rule it names.** The item then documents an arm or a facility the earlier text does not
   state (national characters, the exception conditions, hexadecimal literals, line sequential files); each such row carries its
   facility in its notes (kb/Work PB3173), and no test can read it.
