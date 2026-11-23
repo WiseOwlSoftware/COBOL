@@ -128,7 +128,9 @@ internal sealed class PtrBindBasedAndAddressablesPass(Core.ProgramUnitContext pr
         // own name is no user function (kb/Work PB3121: this test used to admit it whatever the unit's kind).
         bool IsUserFunction(string fn) => binder.Symbols.DeclaresFunctionPrototype(fn);
         // §2023:8.4.6.8: a REPOSITORY program-prototype-name or a containing PROGRAM definition's own name; a CALL without the AS
-        // phrase whose bare target word is one is Format 2, whose keyword-less arguments take GR9's mode (kb/Work PB3227).
+        // phrase whose bare target word is one is Format 2, whose keyword-less arguments take GR9's mode (kb/Work PB3227). This is
+        // THIS element's scope; a contained program's CALL also sees its own name and those of the contained programs between it
+        // and this element, which the scan itself records (StorageClaimScan.AskedWord.NamesContainingProgram, review R1-1).
         bool IsProgramPrototype(string word) => binder.Symbols.DeclaresPrototypeName(word, function: false);
         var own = binder.Oo.IsClassUnit
             ? binder.Oo.BoundMethods.Select(m => (Method: m, Body: binder.Oo.BodyOf(m))).Where(b => b.Body is not null)

@@ -28,3 +28,9 @@ legs, all `B n: 5678` / `AFTER n: 5678`. Its refusal at 85 is `pb3227_format2_ke
 **Self-review.** Architecture: one rule, two askers, and no format decision left in the scan. Code: every keyword-less
 CALL arm uses the shared rule; the INVOKE arm was already per-argument (§2023:14.9.23.4 GR6) and now uses GR8's reduction.
 Performance: the scan still makes one walk and adds one record per operand. Duplication: `OperandIdentifier` is deleted.
+
+**Review fix (R1-1).** A container claims its GLOBAL items' storage from its scan of its contained programs, and it judged
+their bare CALL targets in its own prototype scope. That scope lacks a contained program's own name, which §2023:8.4.6.8
+makes a program-prototype-name for that program's CALLs, so a RECURSIVE contained program's `CALL INNERP USING BY CONTENT N
+NUM NUM` was claimed as Format 1 while its bind passed NUM BY REFERENCE (`B: 1234`). The scan now records whether the word
+names a contained program holding the CALL. Golden `pb3227_contained_own_name_shares_storage`: `B: 5678` at 2002 and 2023.
