@@ -8,4 +8,4 @@ form. Page 240's two figures inside the box around 3.4 gained their box sides, a
 Page 419 had a box edge read as an underline. Page 32's Qualification rows were a column off; a measurement of every
 summary-of-elements row against the scan found Amendment 1's intrinsic function summary (835, and its copy on 59) flat too.
 `heading_levels.check_box_markup` now refuses an underline that crosses a box side and a figure between boxed lines with no
-box sides. Two KEPT rows owe a code read (1985-FMT-VII.2.8.2, 1985-GR-VII.4.4.4-8). PB6051 stays open for a sixth pass.
+box sides. Two KEPT rows owe a code read (1985-FMT-VII.2.8.2, 1985-GR-VII.4.4.4-8). PB6051 stays open; it closes on mechanical checks and a PDF text diff, not another full pass (kb/Work PB6135).

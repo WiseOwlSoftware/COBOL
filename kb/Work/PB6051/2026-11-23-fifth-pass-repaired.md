@@ -1,4 +1,4 @@
-## The fifth pass is repaired: 4 confirmed, all applied; two classes now linted; a sixth pass is owed
+## The fifth pass is repaired: 4 confirmed, all applied; two classes now linted; no further full pass (PB6135)
 
 The fifth independent pass (run wf_10fdbb6c-b56) read all 976 pages and left 16 claims: 4 confirmed, 12 refuted, each with
 its own adversarial verdict (`1985/compare-*.json`, `1985/verify-*.json`, committed as the run's record). All 4 confirmed
@@ -49,5 +49,5 @@ were re-recorded unchanged through `record_verdicts.py`. Code reads owed: 1985-F
 **`sweep_figures --check --edition 1985`** names one figure awaiting a verdict, page 634's 3.20.2 format ("not located on
 the page"); its page is untouched by this pass, so it stands on main as well and is not this pass's.
 
-**PB6051 stays open.** It closes only on a full pass that confirms nothing; this pass confirmed 4, so a sixth pass over the
-repaired text is owed.
+**PB6051 stays open.** No sixth full pass runs (owner 2026-11-23, kb/Work PB6135): PB6051 closes when every error class found
+has a whole-document check GREEN in the gate and a PDF text-layer diff reports no unexplained difference.
