@@ -1,4 +1,4 @@
-## The Delete program note PB2119 is marked blocked
+## Entry 3967 — 2026-11-23 03:18 PST — The Delete program note PB2119 is marked blocked
 
 Wave 20262147 dispatched kb/Work PB2119 by itself as group D. PB2119 is the Delete program's umbrella. Its work lives in
 its member notes (`cluster: ["PB2119"]`), and it names no file or member of its own. The owner's 2026-11-15 hold
@@ -9,3 +9,4 @@ The note's `status` is now `blocked`, which records the hold where `work.waiting
 dispatching the note. The reasoning is in `kb/Work/PB2119/2026-11-23-umbrella-held.md`. No code changed and no inventory
 row moved. The root cause, that a note leading a cluster with open members still counts as ready, is a lead in the wave's
 report and is not fixed here.
+
