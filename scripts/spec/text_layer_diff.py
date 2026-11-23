@@ -17,7 +17,7 @@ classifies every residual difference:
   UNEXPLAINED anything else. The verdict line counts these.
 
 The result is committed (docs/rearchitecture/spec-reconciliation/TEXT-LAYER-DIFF-1985.json), so CI reads the measured result
-without the licensed PDF (`--check` re-reads only the JSON). The PDF is specs-private/ANSI_COBOL_1985.pdf.
+without the licensed PDF (`--check` re-reads only the JSON). The PDF is the private submodule's 1985 file (spec_pdf.path).
 
     python scripts/spec/text_layer_diff.py                  # measure all pages, write the JSON, print the verdict
     python scripts/spec/text_layer_diff.py --pages 30-40    # a range, printed only
@@ -36,11 +36,13 @@ import unicodedata
 
 HERE = pathlib.Path(__file__).resolve().parent
 REPO = HERE.parents[1]
+sys.path.insert(0, str(HERE))
 sys.path.append(str(HERE.parent))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
+import spec_pdf  # noqa: E402
 
-MARKDOWN = REPO / "specs" / "ANSI_COBOL_1985.md"
-PDF = REPO / "specs-private" / "ANSI_COBOL_1985.pdf"
+MARKDOWN = spec_pdf.markdown(1985)
+PDF = spec_pdf.path(1985)  # None when the private submodule is not checked out
 LEDGER = REPO / "docs" / "rearchitecture" / "spec-reconciliation" / "LEDGER-1985.json"
 RESULT = REPO / "docs" / "rearchitecture" / "spec-reconciliation" / "TEXT-LAYER-DIFF-1985.json"
 CLASSES = ("OCR-NOISE", "CORRECTION", "FIGURE", "UNCOVERED", "UNEXPLAINED")
@@ -332,8 +334,8 @@ def main() -> int:
     args = ap.parse_args()
     if args.check:
         return verdict(json.loads(RESULT.read_text(encoding="utf-8")))
-    if not PDF.is_file():
-        sys.exit(f"FATAL: {PDF} is missing: git submodule update --init specs-private")
+    if PDF is None or not PDF.is_file():
+        sys.exit("FATAL: the 1985 PDF is missing: git submodule update --init specs-private")
     text = MARKDOWN.read_text(encoding="utf-8")
     md = markdown_pages(text)
     total = max(md)
