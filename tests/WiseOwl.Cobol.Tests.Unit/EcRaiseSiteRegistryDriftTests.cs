@@ -245,7 +245,6 @@ public sealed class EcRaiseSiteRegistryDriftTests
         ["BoundMerge"] = "File is the SD merge file, not a connector; the USING and GIVING files are",
         ["BoundRelease"] = "File is the SD sort file RELEASE writes to; its conditions are the sort-merge names (EcBinder.NodeKindRaises)",
         ["BoundReturn"] = "File is the SD sort file RETURN reads from; its conditions are the sort-merge names (EcBinder.NodeKindRaises)",
-        ["BoundRejected"] = "RefusedSortMergeFile is the SD file of a REFUSED SORT/MERGE (kb/Work PB5496); a refused statement is never emitted, so it wraps nothing",
     };
 
     [Fact]
