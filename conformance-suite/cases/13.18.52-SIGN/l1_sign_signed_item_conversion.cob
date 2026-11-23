@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: l1_sign_signed_item_conversion
       *> rules: [GR-13.18.52.4-7]
-      *> accept: [85, 2023]
+      *> accept: [85, 2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---

@@ -1,6 +1,6 @@
 *>--- conformance-case
 *> id: arith_standard
-*> rules: [RV-15.60.4-1]
+*> rules: [RV-15.60.4-1, GR-8.8.1.2-3]
 *> accept: [2002]
 *> source-format: free
 *> portable: unverified

@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb5577-validate-redefines-boolean
-      *> rules: [GR-14.9.50.4-2, GR-14.9.50.4-6]
+      *> rules: [GR-14.9.50.4-2, GR-14.9.50.4-6, FMT-14.9.50.2, GR-13.18.44.4-3]
       *> accept: [2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified

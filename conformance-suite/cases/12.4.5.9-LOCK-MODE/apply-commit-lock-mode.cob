@@ -1,6 +1,6 @@
 *>--- conformance-case
 *> id: apply-commit-lock-mode
-*> rules: [SR-12.4.5.9.3-1]
+*> rules: [SR-12.4.5.9.3-1, SR-9.1.16-p6]
 *> source-format: free
 *> portable: unverified
 *>---

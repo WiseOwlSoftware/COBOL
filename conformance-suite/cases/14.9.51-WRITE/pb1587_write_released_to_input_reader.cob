@@ -1,6 +1,6 @@
 *>--- conformance-case
 *> id: pb1587_write_released_to_input_reader
-*> rules: [GR-14.9.51.4-12, GR-9.1.15-2]
+*> rules: [GR-14.9.51.4-12, GR-9.1.15-2, DOC-A.1-164]
 *> accept: [2002]
 *> source-format: free
 *> portable: unverified

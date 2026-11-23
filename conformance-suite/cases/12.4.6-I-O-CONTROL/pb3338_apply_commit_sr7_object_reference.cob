@@ -1,6 +1,6 @@
 *>--- conformance-case
 *> id: pb3338_apply_commit_sr7_object_reference
-*> rules: [SR-12.4.6.3.3-7]
+*> rules: [SR-12.4.6.3.3-7, SR-9.1.18.6-p1]
 *> source-format: free
 *> portable: unverified
 *>---

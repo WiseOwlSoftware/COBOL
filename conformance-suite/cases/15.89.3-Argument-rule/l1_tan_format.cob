@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: l1_tan_format
       *> rules: [AR-15.89.3-1, FMT-15.89.2]
-      *> accept: [85, 2023]
+      *> accept: [85, 2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---
