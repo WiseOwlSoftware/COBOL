@@ -127,11 +127,16 @@ public sealed class ConfigurationSlice
     /// <summary>The number of distinct explicitly specified currency strings (for the r3 diagnostic's text).</summary>
     public int ExplicitCurrencyStringCount => ExplicitCurrencyStrings.Count;
 
-    /// <summary>r25's implied clause: after the SPECIAL-NAMES walk, '$' → "$" joins the set unless a clause
-    /// specified '$' as literal-7 or literal-8. Idempotent (a re-walk cannot double it).</summary>
-    internal void FinalizeCurrencySigns()
+    /// <summary>After the SPECIAL-NAMES walk, '$' → "$" joins the set unless a clause specified '$' as literal-7 or literal-8.
+    /// From COBOL-2014 it joins as r25's implied clause, whose alphanumeric literal-7 SR28 asks of every use
+    /// (<see cref="CurrencyDefinition.ImpliedDollar"/>); at COBOL-2002 no such clause exists and it joins as the default currency
+    /// sign, with no literal-7 for SR24 to ask (<see cref="CurrencyDefinition.DefaultDollar"/>; kb/Work PB5614). The edge is the register's
+    /// (<see cref="DialectBehavior.ImpliedDollarCurrencyClause"/>). Idempotent (a re-walk cannot double it).</summary>
+    internal void FinalizeCurrencySigns(int dialectLevel)
     {
-        if (!DollarSpecified) DeclaredCurrencySigns.TryAdd('$', CurrencyDefinition.ImpliedDollar);
+        if (!DollarSpecified)
+            DeclaredCurrencySigns.TryAdd('$', DialectBehaviors.IsActive(DialectBehavior.ImpliedDollarCurrencyClause, dialectLevel)
+                ? CurrencyDefinition.ImpliedDollar : CurrencyDefinition.DefaultDollar);
     }
 
     /// <summary>True when SOURCE-COMPUTER declares WITH DEBUGGING MODE (the X3.23-1985 compile-time debug

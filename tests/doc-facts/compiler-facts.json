@@ -105,6 +105,11 @@
       "changedIn": 2002
     },
     {
+      "id": "float-edited-picture-wide-bounds",
+      "vcrRow": "7.118",
+      "changedIn": 2014
+    },
+    {
       "id": "generate-report-name-single-detail",
       "vcrRow": "7.106",
       "changedIn": 2002
@@ -123,6 +128,11 @@
       "id": "group-indicate-consumed-by-issued-generate",
       "vcrRow": "7.60",
       "changedIn": 2002
+    },
+    {
+      "id": "implied-dollar-currency-clause",
+      "vcrRow": "7.119",
+      "changedIn": 2014
     },
     {
       "id": "index-name-qualification",

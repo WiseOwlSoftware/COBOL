@@ -19,6 +19,8 @@
       *> NC5  the implied '$': SR25 implies CURRENCY SIGN '$' PICTURE SYMBOL '$', whose literal-7 is the ALPHANUMERIC
       *>      literal '$', so SR28's first sentence confines '$' to usage display. (The standard's text is the only
       *>      authority here: the implied clause's literal-7 is written alphanumeric and SR28 says "may be used only".)
+      *>      From COBOL-2014 only (§2014:12.3.6.2 SR25): COBOL-2002 implies no clause, so there NC5 compiles
+      *>      (g2002-default-currency-sign-national-edited) and the case is refused at 2002 through NC2.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1089NC.
        ENVIRONMENT DIVISION.
