@@ -209,6 +209,12 @@ addend may open with '(' — so the lexer tracks the REPORT SECTION (`TrackRepor
 closed by the next section or division header) and a SUM there opens no reference paren
 (`IsReportSumClauseKeyword`). SUM is the only §2023:8.9 ∩ §2023:8.11 word that begins a report or data description clause
 whose operand can open with '('; `CobolLexerModeDriftTests` pins both regions for all four words.
+The exception holds only where a clause can BEGIN (kb/Work PB5652): inside an open parenthesis, or after a token after
+which the entry still owes an operand (an arithmetic operator, SOURCE IS, SOURCES ARE, SUM OF, PRESENT WHEN, VARYING's
+FROM and BY, a relational word; the lexer's `ReportOperandFollows`), `SUM (` can only be a function-identifier and keeps
+the keyword-omitted call's reference paren. The lexer reads no edition for it: at COBOL 2002, which has no SR9,
+§2002:12.2.7.3 GR13 makes `SOURCE WA + SUM(WB WC)` the REPOSITORY-declared intrinsic, and from 2014
+(§2014:13.18.54.2 SR9) the binder refuses the same tree by name (`IntrinsicBinder.ReportSumClauseWord`, COBOL7933).
 
 The trigger has one POSITION exception besides (kb/Work PB780): a word right after the invocation operator `::` is an
 inline method invocation's literal-1 spelled by a constant-name (§2023:8.4.3.4.2; §2023:13.10.3 SR2), never a data-name, so

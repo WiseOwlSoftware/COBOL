@@ -10946,6 +10946,19 @@ public static class DiagnosticCatalog
         "ISO §2023:14.9.50.4 GR7; ISO/IEC 1989:2002 §14.8.46.3 GR7",
         No1985Rule: No1985Validate);
 
+    /// <summary>COBOL7933 — from COBOL 2014, a SUM written without FUNCTION where a report description entry owes an operand
+    /// (kb/Work PB5652): §2023:13.18.54.3 SR9 makes every SUM there not preceded by FUNCTION the SUM clause, even when the REPOSITORY
+    /// declares the intrinsic, so `SOURCE WA + SUM(WB WC)` writes the clause where no clause can stand. COBOL 2002 has no such rule
+    /// (§2002:12.2.7.3 GR13), so there the same source is the keyword-omitted function and compiles.</summary>
+    public static readonly DiagnosticDescriptor ReportSumWithoutFunctionKeyword = new(
+        "COBOL7933", "report-sum-without-function-keyword", EditionSeverity.Error,
+        "A SUM not preceded by the word FUNCTION is written in a report description entry where an operand is owed. §2023:13.18.54.3 SR9: "
+        + "\"Within a report description entry, if the keyword SUM is preceded by the keyword FUNCTION, SUM is a reference to the SUM "
+        + "intrinsic function. Otherwise, SUM refers to the report writer SUM clause, even when SUM is implicitly or explicitly included as "
+        + "an intrinsic-function-name in the intrinsic format of a function-specifier in the REPOSITORY paragraph.\" Write FUNCTION SUM.",
+        "ISO §2023:13.18.54.3 SR9; ISO/IEC 1989:2014 §13.18.54.2 SR9",
+        No1985Rule: No1985Repository);
+
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>
     public static IReadOnlyList<DiagnosticDescriptor> All { get; } = typeof(DiagnosticCatalog)
