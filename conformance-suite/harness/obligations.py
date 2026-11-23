@@ -14,15 +14,19 @@ first witness kind that holds:
     suite                a test of the suite (a cleared test) that accepts at 85 names the row in its header `rules`
     determination        a DOC row docs/CONFORMANCE.md §7 determines
     derivation           a standing derivation settles the row (no test owed)
-    accepted-uncleared   an accepted-at-85 test names it, none of them cleared yet (Stage 2 clears them)
+    accepted-uncleared   a `cases/` test that accepts at 85 names it, none of them cleared yet (Stage 2 clears them)
+    wiseowl-tree-only    only accepted-at-85 tests of the `wiseowl/` tree name it: that tree joins no suite
+                         (`generate.Case.in_suite`), so no clearing pass can witness the row; it needs a `cases/` test
+                         (an authoring obligation, Stage 3, kb/Work PB6104)
     refusal-only         only tests WiseOwl refuses or the suite flags at 85 name it: no accepted test yet
     other-edition-only   only tests with no behaviour at 85 name it
-    header-omits         no header names it, and its inventory `test-ref` names a test that accepts at 85 ALONE whose
-                         header omits it: a header to repair (`--repair-headers`), never an authoring task
-    shared-test          no header names it, and the `test-ref` tests that accept at 85 accept another edition too: a 1985
+    header-omits         no header names it, and its inventory `test-ref` names a `cases/` test that accepts at 85 ALONE
+                         whose header omits it: a header to repair (`--repair-headers`), never an authoring task
+    shared-test          no header names it, and the `test-ref` `cases/` tests that accept at 85 accept another edition too: a 1985
                          row's test runs at 85 alone (§12.1, and the generator refuses a test accepted outside its rules'
                          bands), so the row needs an 85-only test, an authoring obligation (Stage 3)
-    no-test           no header names it and no `test-ref` test accepts at 85: an authoring obligation (Stage 3)
+    no-test           no header names it and no `test-ref` `cases/` test accepts at 85 (a `wiseowl/` test does not count,
+                         it can never join a suite): an authoring obligation (Stage 3)
 
 The module takes the parsed tests and the inventory's rows and returns facts; `generate.py` stays the one reader of
 headers. `suite_status.py` reads the rows term from `classify`.
@@ -47,8 +51,8 @@ from standard_streams import ensure_utf8  # noqa: E402
 VERDICT = "=== OBLIGATIONS 85: "
 
 #: The witness kinds in the order a row is counted under the first that holds.
-WITNESS = ("non-support", "suite", "determination", "derivation", "accepted-uncleared", "refusal-only",
-           "other-edition-only", "header-omits", "shared-test", "no-test")
+WITNESS = ("non-support", "suite", "determination", "derivation", "accepted-uncleared", "wiseowl-tree-only",
+           "refusal-only", "other-edition-only", "header-omits", "shared-test", "no-test")
 #: The kinds that owe no test: a row no program can observe yet, or one a derivation settles.
 UNOBSERVABLE = frozenset({"non-support", "derivation"})
 
@@ -62,6 +66,8 @@ OBLIGATION = {
     "DOC": "a test per value the row enumerates, otherwise the determination docs/CONFORMANCE.md carries",
 }
 NON_SUPPORT = "DOCUMENTED-NON-SUPPORT"
+#: The one tree whose tests can join a per-edition suite (`generate.Case.in_suite` requires it); the `wiseowl/` tree never does.
+SUITE_TREE = "cases"
 CONFORMANCE_REF = "conformance:"
 MARGIN = {"fixed": 72, "free": 100}  # a wrapped header line stays inside margin R (fixed) or well inside 255 (free)
 CONTINUATION = "    "  # generate.CONTINUATION: the indent that marks a field's continuation line
@@ -116,14 +122,18 @@ def classify(rows: Iterable[dict[str, Any]], cases: Iterable[Any], *, diagnostic
             witness = "determination"
         elif derived(row):
             witness = "derivation"
-        elif accepted:
+        elif any(c.tree == SUITE_TREE for c in accepted):
             witness = "accepted-uncleared"
+        elif accepted:
+            witness = "wiseowl-tree-only"
         elif any(refused_at(c, diagnostics, edition) for c in tests):
             witness = "refusal-only"
         elif tests:
             witness = "other-edition-only"
         else:
-            at_85 = {tid for tid in map(_test_id_of, test_refs(row)) if tid in by_id and accepts(by_id[tid], edition)}
+            # a `wiseowl/` test is no witness and no header to repair: that tree joins no suite (PB6104)
+            at_85 = {tid for tid in map(_test_id_of, test_refs(row))
+                     if tid in by_id and by_id[tid].tree == SUITE_TREE and accepts(by_id[tid], edition)}
             repair = tuple(sorted(tid for tid in at_85 if tuple(by_id[tid].accept) == (edition,)))
             witness = "header-omits" if repair else "shared-test" if at_85 else "no-test"
         out.append(RowFacts(rule_id, kind, OBLIGATION[kind], witness, tuple(sorted(c.test_id for c in tests)), repair))

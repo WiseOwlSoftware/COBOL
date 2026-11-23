@@ -22,6 +22,7 @@ class Case:
     accept: tuple = ()
     flag: object = None
     in_suite: bool = False
+    tree: str = "cases"
 
 
 def _row(rid, kind="GR", verdict="", ref=""):
@@ -112,6 +113,23 @@ def case_08_a_header_with_no_rules_field_is_refused(expect):
     except ValueError:
         expect("a header with no rules field is refused", True)
 
+
+
+def case_09_a_wiseowl_tree_test_is_no_uncleared_witness_and_no_header_to_repair(expect):
+    """kb/Work PB6104: the wiseowl/ tree joins no suite, so no clearing pass witnesses a row only it names."""
+    rows = [_row("R-wo"), _row("R-mixed"), _row("R-hdr", "FMT", ref="conformance:wiseowl/x/t-wo-alone"),
+            _row("R-shared", ref="conformance:wiseowl/x/t-wo-shared")]
+    cases = [Case("t-wo", ("R-wo",), ("85",), tree="wiseowl"), Case("t-wo2", ("R-mixed",), ("85",), tree="wiseowl"),
+             Case("t-cases", ("R-mixed",), ("85",)), Case("t-wo-alone", ("R-x",), ("85",), tree="wiseowl"),
+             Case("t-wo-shared", ("R-y",), ("85", "2002"), tree="wiseowl")]
+    got = _classify(rows, cases)
+    expect.equal("only a wiseowl-tree test names it", got["R-wo"].witness, "wiseowl-tree-only")
+    expect.equal("a cases/ test beside it keeps the row clearable", got["R-mixed"].witness, "accepted-uncleared")
+    expect.equal("a wiseowl-tree test-ref is authoring, not a header", got["R-hdr"].witness, "no-test")
+    expect.equal("a wiseowl-tree test-ref repairs nothing", got["R-hdr"].repair, ())
+    expect.equal("a shared wiseowl-tree test-ref is authoring too", got["R-shared"].witness, "no-test")
+    c = T.counts(got.values())
+    expect.equal("the kind is counted once and stays observable", (c["wiseowl-tree-only"], c["rows"], c["observable"]), (1, 4, 4))
 
 if __name__ == "__main__":
     ensure_utf8()

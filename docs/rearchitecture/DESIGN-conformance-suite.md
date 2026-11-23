@@ -685,14 +685,14 @@ read "none 0" at 85, so the report adds these axes.
 **An edition whose own text is held** (1985 and 2002 today: `inputs.older`) is counted on that edition's catalog, never on
 the newest edition's rows banded at it (revision 4, kb/Work PB6047): `harness/obligations.py` counts each row once under the
 first witness kind that holds, non-support, suite (a cleared test that accepts the edition names it), determination,
-derivation, accepted-uncleared (only tests not yet cleared), refusal-only (only a test WiseOwl refuses or the suite flags),
+derivation, accepted-uncleared (only `cases/` tests not yet cleared), wiseowl-tree-only (only `wiseowl/` tests, a tree that joins no suite, so authoring, kb/Work PB6104), refusal-only (only a test WiseOwl refuses or the suite flags),
 other-edition-only, then, for a row no header names, header-omits (its inventory `test-ref` names a test that accepts the
-edition ALONE, whose header only lacks the row: `obligations.py --repair-headers` writes it, no agent), shared-test (the
+edition ALONE and sits in `cases/`, whose header only lacks the row: `obligations.py --repair-headers` writes it, no agent), shared-test (the
 `test-ref` tests accept another edition too, and the generator refuses a test accepted outside the band of a rule it names,
 so the row needs an edition-only test: authoring, Stage 3) and no-test (authoring). Measured at the 1985 catalog (2026-11-22, after the
 header repair): 3,109 rows, of which 9 are documented non-support and 115 derivations; of the 2,985 observable rows 24 have a
-cleared test, 2,276 only an uncleared accepted test, 340 only a refusal test, and 345 are named by no header (224
-shared-test, 121 no-test; the 302 header-omits rows were repaired, 178 headers). The 85 figures in the axes below were
+cleared test, 2,258 only an uncleared `cases/` test, 18 only a `wiseowl/` test, 340 only a refusal test, and 345 are named
+by no header (219 shared-test, 126 no-test; the 302 header-omits rows were repaired, 178 headers). The 85 figures in the axes below were
 measured on the 2023 rows banded at 85 and are the 2023 suite's cut, not the 85 suite's.
 
 - **WiseOwl-only, split** into a `cases/` test at this edition not yet cleared, one at another edition only, and an xUnit

@@ -1313,7 +1313,7 @@ def print_report(report: dict[str, dict[str, int]]) -> None:
             print(f"  {e}'s own catalog, {c['rows']} rows, by witness: " + ", ".join(f"{k} {c[k]}" for k in obligations.WITNESS))
             print(f"  suite measure at {e}: {c['suite'] + c['determination']} of the {c['observable']} observable rows have a "
                   f"cleared test; {c['unmet']} do not: {c['accepted-uncleared']} only an uncleared accepted test, "
-                  f"{c['refusal-only']} only a refusal test, "
+                  f"{c['wiseowl-tree-only']} only a test of the wiseowl/ tree, {c['refusal-only']} only a refusal test, "
                   f"{c['header-omits'] + c['shared-test'] + c['no-test']} named by no header")
             continue
         print(f"  suite measure at {e}: {c['suite']} of the {c['observable']} rows a program can observe are "
