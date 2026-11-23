@@ -1,4 +1,4 @@
-## PB3221: the PICTURE composition hands the analyzer its resolved shape, and the two lists of digit positions become one
+## Entry 3956 — 2026-11-22 22:20 PST — PB3221: the PICTURE composition hands the analyzer its resolved shape, and the two lists of digit positions become one
 
 kb/Work PB3221 (an R2 duplication finding of the PB1754 architecture review): `PictureComposition.Validate` resolved a
 character-string's floating strings, digit positions and 'P' split, threw them away, and `PictureAnalyzer` derived them
@@ -28,3 +28,4 @@ and `pb3221-picture-p-between-extended-float` (COBOL1934 at 2023; the below-2023
 the two adjacency theories now read the shape. Inventory batch `w20262145c-pb3221-picture-shape`: SR-13.18.40.3-24
 re-sites its code-location (two dead links retired) and restates its notes, and SR-16, SR-19 and GR-13.18.40.4-14 take
 the new witnesses. GAP 2 -> 2. `docs/DATA_MODEL_DESIGN.md` names the shape.
+
