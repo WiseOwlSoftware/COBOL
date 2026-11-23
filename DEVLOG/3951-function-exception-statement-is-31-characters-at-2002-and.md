@@ -1,4 +1,4 @@
-## FUNCTION EXCEPTION-STATEMENT is 31 characters at 2002 and 2014, 63 from 2023
+## Entry 3951 — 2026-11-22 20:17 PST — FUNCTION EXCEPTION-STATEMENT is 31 characters at 2002 and 2014, 63 from 2023
 
 PB5698 and PB5717 (one mechanism). `EcFunctions.Statement` padded to 63 at every edition, so at `--std 2002` and
 `--std 2014` `FUNCTION LENGTH (FUNCTION EXCEPTION-STATEMENT)` was 63. §2002:15.27.2 RV1/RV2 and §2014:15.29.2 RV1/RV2
@@ -20,3 +20,4 @@ refusal at 85 (`wiseowl/diagnostics/g2-exception-statement-31.json`, COBOL0900 f
 and `-2` close (GAP 1173 to 1171).
 
 The gate found one more case that pinned the 63-wide value at 2002 (`_unassigned/pb2745_statement_context_scope`); its expected output now carries 31 spaces.
+
