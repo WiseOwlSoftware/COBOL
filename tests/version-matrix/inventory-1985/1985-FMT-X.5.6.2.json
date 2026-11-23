@@ -1,8 +1,7 @@
 {
  "rule-id": "1985-FMT-X.5.6.2",
  "rule-digest": "ba1aef36fa06",
- "test-ref": "conformance:cases/14.9.49-USE/pb332-use-format1-needs-exception-or-error",
- "notes": "retired-witness: conformance:cases/13.18.27-GLOBAL/pb369_global_report_use_selection (the case tests the per-statement selection of a USE BEFORE REPORTING declarative (GR-14.9.49.4-4, -8), not the format of the USE statement; pb332-use-format1-needs-exception-or-error is the row's witness (kb/Work PB6067: a witness cites the row it witnesses))",
+ "test-ref": "conformance:cases/14.9.49-USE/pb332-use-format1-needs-exception-or-error; conformance:cases/13.18.27-GLOBAL/pb369_global_report_use_selection",
  "next": {
   "kind": "KEPT",
   "edition": 2023,
