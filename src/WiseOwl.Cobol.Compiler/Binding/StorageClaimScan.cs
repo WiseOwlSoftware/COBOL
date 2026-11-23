@@ -68,7 +68,8 @@ internal sealed class StorageClaimScan
         for (int i = span.OperandStart; i < span.OperandEnd; i++)
         {
             var entry = scan.Operands[i];
-            var claim = entry.Asked is not { } asked || (asked.Function ? isUserFunction : isProgramPrototype)(asked.Word)
+            var claim = entry.Asked is not { } asked || asked.NamesContainingProgram
+                || (asked.Function ? isUserFunction : isProgramPrototype)(asked.Word)
                 ? entry.Claim : entry.Otherwise;
             if (claim is { } operand) yield return operand;
         }
@@ -96,8 +97,15 @@ internal sealed class StorageClaimScan
     /// else <paramref name="Otherwise"/>; null is no claim.</summary>
     private readonly record struct Entry(ByReferenceOperand? Claim, ByReferenceOperand? Otherwise = null, AskedWord? Asked = null);
 
-    /// <summary>A word only the asking element can judge: a function name (<paramref name="Function"/>) or a CALL's bare target word.</summary>
-    private readonly record struct AskedWord(string Word, bool Function);
+    /// <summary>A word only the asking element can judge: a function name (<paramref name="Function"/>) or a CALL's bare target word.
+    /// <para>⛔ <paramref name="NamesContainingProgram"/>: the CALL's target word is the program-name of a program CONTAINED in the
+    /// asking element that contains the CALL (the CALL's own program among them). §2023:8.4.6.8 makes "the program-name of a
+    /// containing program definition" a program-prototype-name of the REFERENCING source element, and the asker's own scope
+    /// (<see cref="SymbolTable.DeclaresPrototypeName"/>) holds only the asker and the programs containing it, so a container asking
+    /// about a contained program's <c>CALL INNERP</c> inside INNERP answered Format 1 while INNERP's own CALL bind selected Format 2
+    /// and passed the keyword-less GLOBAL item BY REFERENCE with no cell (kb/Work PB3227 review R1-1). The REPOSITORY half needs no
+    /// such fact: a contained program has no configuration section of its own (§2023:12.3.3 SR1) and inherits its container's.</para></summary>
+    private readonly record struct AskedWord(string Word, bool Function, bool NamesContainingProgram = false);
 
     private sealed class TreeScan
     {
@@ -180,7 +188,7 @@ internal sealed class StorageClaimScan
             bool asPhrase = call.callAsPhrase() is not null;
             AskedWord? prototypeWord = !asPhrase && call.callTarget()?.sendingOperand()?.dataReference() is { } target
                 && CallBinder.BarePrototypeWord(target) is { } word
-                    ? new AskedWord(word.GetText(), Function: false)
+                    ? new AskedWord(word.GetText(), Function: false, NamesContainingProgram: NamesContainedProgramAbove(call, word.GetText()))
                     : null;
             var carried = CobolPassMode.Reference;   // GR5: "the BY REFERENCE phrase is assumed" before the first phrase
             foreach (var arg in phrase.callArgument())
@@ -209,6 +217,19 @@ internal sealed class StorageClaimScan
                     : prototypeWord is null || format1 == format2 ? new Entry(format1)
                     : new Entry(format2, format1, prototypeWord));
             }
+        }
+
+        /// <summary>Whether <paramref name="word"/> is the program-name of a contained program whose subtree holds
+        /// <paramref name="node"/>: the CALL's own program and every contained program between it and the outermost one, each a
+        /// containing program definition of the CALL's source element (§2023:8.4.6.8; <see cref="AskedWord.NamesContainingProgram"/>).</summary>
+        private static bool NamesContainedProgramAbove(IParseTree node, string word)
+        {
+            for (var up = node.Parent; up is not null; up = up.Parent)
+                if (up is Core.NestedProgramContext nested
+                    && nested.identificationDivision()?.identificationBody()?.programIdParagraph()?.programName()?.GetText() is { } name
+                    && CobolNames.Comparer.Equals(name, word))
+                    return true;
+            return false;
         }
 
         /// <summary>The claim a CALL operand passed in <paramref name="mode"/> makes: BY REFERENCE claims its cell, BY CONTENT only when

@@ -32,6 +32,17 @@ reduction, `ConditionBinder.ReduceArgument`; the scan's own text-matching `Opera
 VALUE, after BY CONTENT, in the boolean node, the bare prototype name) and its refusal at 85,
 `pb3227_format2_keywordless_85` (the CALL AS phrase requires COBOL-2002).
 
+**Review R1-1 (contained program's own name).** A container claims its GLOBAL items' cells from its scan of its contained
+programs, and judged each bare CALL target with its OWN prototype scope. §2023:8.4.6.8 makes "the program-name of a
+containing program definition" a program-prototype-name of the REFERENCING source element, so a contained program's own
+name (and every contained program between it and the asker) is one for that program's CALLs but was missing from the
+container's set. Probe (the reviewer's `rec.cob`): RECURSIVE INNERP's `CALL INNERP USING BY CONTENT N NUM NUM`, NUM the
+container's GLOBAL item, gave `B: 1234`; expected `B: 5678`. The scan now records, with each asked CALL word, whether it
+spells the program-name of a contained program that holds the CALL (`AskedWord.NamesContainingProgram`), a fact of the parse
+tree alone; the asker's predicate covers itself, its containers and the REPOSITORY (a contained program inherits its
+container's, §2023:12.3.3 SR1). Golden `14.9.4-CALL/pb3227_contained_own_name_shares_storage` (2002, 2023): `B: 5678`,
+red without the fix (`expected 'B: 5678', got 'B: 1234'`).
+
 ## Landing
 
 - `src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallArgumentModes.cs#CallArgumentModes`: the one GR5/GR9 CALL pass-mode rule; REUSE `KeywordLessIdentifier` / `KeywordLessValue` / `FormalIsByValue` / `CarriedAfter`, never re-derive a mode from the phrases.
@@ -39,3 +50,4 @@ VALUE, after BY CONTENT, in the boolean node, the bare prototype name) and its r
 - `src/WiseOwl.Cobol.Compiler/Binding/StorageClaimScan.cs#ByReferenceOperands`: two asker predicates (user function, program prototype); an `Entry` holds both formats' claims when the bare target word decides the format.
 - `src/WiseOwl.Cobol.Compiler/Binding/Passes/PtrBindBasedAndAddressablesPass.cs#IsProgramPrototype`: `SymbolTable.DeclaresPrototypeName(word, function: false)` (§2023:8.4.6.8).
 - `src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BarePrototypeWord`: internal; the one shape test of a program-prototype-name operand. Trap: renaming a member an inventory row cites needs a `record_verdicts` retirement (SpecTraceabilityInventoryDriftTests).
+- `src/WiseOwl.Cobol.Compiler/Binding/StorageClaimScan.cs#NamesContainedProgramAbove`: a contained CALL's own program and the contained programs above it are its containing program definitions (§2023:8.4.6.8); the asker's `IsProgramPrototype` covers only its own scope. Trap: the container judges its contained programs' CALLs.
