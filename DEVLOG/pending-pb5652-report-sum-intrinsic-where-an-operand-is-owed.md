@@ -32,3 +32,7 @@ since SR9 is a 2014 rule.
 
 **Docs.** DESIGN-frontend-grammar §1.9 now states where the exception holds. A paragraph of REPORT_WRITER_DESIGN still
 called `SUM (A * B)` "staged loud COBOL0899", which PB924 had already fixed. That paragraph now describes the current rule.
+
+**Gate red, fixed.** The first gate was RED at the generator. `pb924_report_sum_paren_addend` names only
+SR-13.18.54.3-9 and was accepted from 2002, which is outside the rule's band now that the band is 2014,2023. Its `accept`
+moved to 2014. The 2002 parenthesised-addend reading is witnessed by g2sum07 leg E under 2002-SR-13.16.52.2-1.

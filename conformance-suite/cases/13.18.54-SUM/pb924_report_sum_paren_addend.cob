@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb924_report_sum_paren_addend
       *> rules: [SR-13.18.54.3-9]
-      *> accept: [2002]
+      *> accept: [2014]
       *> source-format: fixed
       *> portable: unverified
       *>---
