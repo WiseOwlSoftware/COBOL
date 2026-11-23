@@ -19,7 +19,7 @@
       *>    b) indicator established by a prior successful OPEN or START -> "the first existing
       *>       record that is selected is made available, REGARDLESS of whether NEXT or PREVIOUS is
       *>       specified" -- the 2023 text.  At 2014 the rule is the comparison of
-      *>       §2014:14.9.29.3 GR19 c2, for PREVIOUS "the first existing record in the
+      *>       §2014:14.9.29.3 GR19c.2, for PREVIOUS "the first existing record in the
       *>       physical file whose record number or key value is less than or equal to the file
       *>       position indicator"                                 (R1, S1, T1; S2 and T2 are NEXT)
       *>    c) established by a prior successful READ -> the first existing record whose relative
@@ -44,7 +44,7 @@
       *> rule b) makes S1 (PREVIOUS) and S2 (NEXT) name the same record, the 2002/2014 comparison does not.
       *>
       *> EDITIONS: DIFFERENT at one point (kb/Work PB5742).  OPEN sets the indicator to 1
-      *> (14.8.26.3 GR12 of 2002, 14.9.27.3 of 2014), and for PREVIOUS the 2002/2014 rule c2 is
+      *> (§2002:14.8.26.3 GR12, and the same in 2014), and for PREVIOUS the 2002/2014 rule is
       *> "less than or equal to" it, so the sparse file whose lowest record is RRN 5 is AT END
       *> for the READ PREVIOUS that follows the OPEN (S1=ATEND|10); 2023's direction-blind rule b)
       *> returns RRN 5 (see the 2023 copy).  A START names an existing record, so T1 is unchanged.

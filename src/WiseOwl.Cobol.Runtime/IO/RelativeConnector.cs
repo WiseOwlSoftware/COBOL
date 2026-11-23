@@ -202,7 +202,7 @@ public sealed class RelativeConnector : KeyedConnector
         // immediately after OPEN INPUT where rule b) owes the first record. Because the relative block's rule
         // b) is the 2023 rule, this organization needs no at-end carve-out at any edition — but the 2002 and 2014 rule is a
         // DIFFERENT one, not rule b) read the same (kb/Work PB5742; docs/FILES_DESIGN.md, "READ PREVIOUS is not COBOL-85";
-        // VERSION_CHANGE_REFERENCE row 7.121): §2002:14.8.29.3 GR18c2 (§2014:14.9.29.3 GR19c2) — for an indicator "established
+        // VERSION_CHANGE_REFERENCE row 7.121): §2002:14.8.29.3 GR18c.2 (§2014:14.9.29.3 GR19c.2) — for an indicator "established
         // by a prior OPEN or START statement", PREVIOUS selects "the first existing record in the physical file whose record
         // number or key value is less than or equal to the file position indicator". OPEN sets the indicator to 1
         // (§2002:14.8.26.3 GR12), so there a file whose lowest record is above RRN 1 is at end; a START's indicator names an
@@ -213,7 +213,7 @@ public sealed class RelativeConnector : KeyedConnector
         // PREVIOUS is specified is selected".
         var relation = _inclusive
             ? previous && !DialectBehaviors.IsActive(DialectBehavior.RelativeReadPreviousAfterOpenComparesFpi, Edition)
-                ? SeekRelation.LessOrEqual                                  // §2002:14.8.29.3 GR18c2 — PREVIOUS compares "less than or equal to"
+                ? SeekRelation.LessOrEqual                                  // §2002:14.8.29.3 GR18c.2 — PREVIOUS compares "less than or equal to"
                 : SeekRelation.GreaterOrEqual                               // rule b) — ascending, direction ignored
             : previous ? SeekRelation.LessThan : SeekRelation.GreaterThan;  // rule c)
         return _st.Seek(_fpi, relation, withValue, out slot, out value);
