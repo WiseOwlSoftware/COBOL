@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-RV-15.27.2-2",
+ "rule-digest": "6ac5f04a83ab",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/EcFunctions.cs#Statement; src/WiseOwl.Cobol.Runtime/Intrinsics/EcFunctions.cs#StatementLength; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderStringValue",
+ "test-ref": "conformance:cases/15.27@2002-EXCEPTION-STATEMENT-FUNCTION/g2-exception-statement-31",
+ "notes": "§2002:15.27.2 RV2: with LOCATION specified the returned value is a 31-character uppercase, left-justified, space-filled statement name; after a STRING overflow under >>TURN ... WITH LOCATION the function returns STRING plus 25 spaces and FUNCTION LENGTH is 31 at --std 2002 (kb/Work PB5698, PB5717)."
+}

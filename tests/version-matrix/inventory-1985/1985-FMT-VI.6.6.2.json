@@ -1,6 +1,6 @@
 {
  "rule-id": "1985-FMT-VI.6.6.2",
- "rule-digest": "a8d1e3607798",
+ "rule-digest": "34e91ac293db",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#addStatement; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#addToPhrase; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#arithmeticGivingPhrase; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#roundedPhrase; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#conditionalPhrases; src/WiseOwl.Cobol.Frontend/Parsing/ConditionalPhrases.cs#OutOfPrintedOrder; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitConditionalPhrases; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRoundedPhrase; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#BindAdd; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#Format1Receivers; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#GivingSendingOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#BindAddCorresponding",
  "test-ref": "conformance:cases/VI.6.6@1985-ADD-STATEMENT/1985-FMT-VI_6_6_2",

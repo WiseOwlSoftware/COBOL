@@ -575,6 +575,13 @@ public enum DialectBehavior
     /// decoded characters are checked like any other's (kb/Work PB5595). The consumers are <c>SpecialNamesBinder</c>'s
     /// CURRENCY SIGN binding (the literal-8 screen, the PICTURE SYMBOL requirement and the character exemption).</summary>
     CurrencyHexadecimalLiteralRules = 60,
+    /// <summary>§2023:15.32.3 RV1/RV2 — FUNCTION EXCEPTION-STATEMENT returns "63 spaces" or "a 63-character alphanumeric
+    /// character-string that is the name of the statement". §2002:15.27.2 RV1/RV2 and §2014:15.29.2 RV1/RV2 say 31 for both
+    /// ("the returned value is 31 spaces", "a 31-character alphanumeric character-string"), so at <c>--std 2002</c> and
+    /// <c>--std 2014</c> FUNCTION LENGTH (FUNCTION EXCEPTION-STATEMENT) is 31 and from 2023 it is 63 (kb/Work PB5698, PB5717;
+    /// VCR row 7.117). Both editions are QUOTED. The consumers are <c>IntrinsicRenderer</c> (which passes the width) and
+    /// <c>EcFunctions.StatementLength</c>.</summary>
+    ExceptionStatementIs63Characters = 61,
     /// <summary>§2014:15.87.2 AR1 — "The argument rules for the TEST-NUMVAL-C function are the same as those specified in 15.63,
     /// NUMVAL-C function, Arguments" (§2023:15.94.3 AR1 the same), so from 2014 TEST-NUMVAL-C asks argument-1 of CATEGORY
     /// alphanumeric or national and argument-2 of the NUMVAL-C content rules (§2014:15.63.2 AR1, AR2). The 2002 text states its
@@ -583,7 +590,7 @@ public enum DialectBehavior
     /// <c>--std 2002</c> an edited argument-1 (a class alphanumeric item) is legal and a currency string such as "U1" is
     /// scanned as written (kb/Work PB5721). The consumers are <c>IntrinsicBinder.BindNumvalCFamily</c> (the content screen and
     /// <c>BoundIntrinsicCall.CurrencyContentUnrestricted</c>) and the TEST-NUMVAL-C row of <c>IntrinsicArgumentRules</c>.</summary>
-    TestNumvalCImportsNumvalCArgumentRules = 61,
+    TestNumvalCImportsNumvalCArgumentRules = 62,
     /// <summary>§2014:8.3.1.2.2.2, items 2 and 3 — a floating-point numeric literal's significand "shall be from 1 to 36 digits in
     /// length" and its exponent "shall have a maximum of four digits" (§2023:8.3.3.3.3 SR3 says the exponent's, and its SR2 the
     /// significand's, the same; §2014:E.3 item 20: the
@@ -591,7 +598,7 @@ public enum DialectBehavior
     /// digits" (§2002:8.3.1.2.2.2, items 2, 3), so at <c>--std 2002</c> a 32-to-36-digit significand or a four-digit exponent is
     /// refused (kb/Work PB5613, PB6039). The consumer is <c>SpecialNamesBinder.NormalizeNumericLiteral</c>, the one funnel of the
     /// expression and VALUE paths, through <c>NumericLiteral.CheckFloatingPointForm</c>.</summary>
-    FloatingLiteralWideLimits = 62,
+    FloatingLiteralWideLimits = 63,
 }
 
 /// <summary>
@@ -894,13 +901,17 @@ public static class DialectBehaviors
             "a hexadecimal currency literal-7 requires the PICTURE SYMBOL phrase and is exempt from the currency "
             + "string's character limits, and literal-8 may not be hexadecimal, only from COBOL-2014; COBOL-2002 asks "
             + "an alphanumeric literal that is no figurative constant and checks its characters whatever its form"),
+        new(DialectBehavior.ExceptionStatementIs63Characters, "exception-statement-is-63-characters", 2023,
+            "7.117", "§2023:15.32.3 RV1", "§2014:15.29.2 RV1",
+            "FUNCTION EXCEPTION-STATEMENT returns 63 characters (63 spaces when no location was saved) only from COBOL-2023; "
+            + "COBOL-2002 and COBOL-2014 return 31 characters (31 spaces when no location was saved)"),
         new(DialectBehavior.TestNumvalCImportsNumvalCArgumentRules, "test-numval-c-imports-numval-c-argument-rules", 2014,
-            "7.117", "§2014:15.87.2 AR1", "§2002:15.76.2 AR1",
+            "7.118", "§2014:15.87.2 AR1", "§2002:15.76.2 AR1",
             "TEST-NUMVAL-C asks argument-1 of category alphanumeric or national and argument-2 of NUMVAL-C's content rules "
             + "only from COBOL-2014; COBOL-2002 asks argument-1 of class alphanumeric or national and argument-2 only the "
             + "same class"),
         new(DialectBehavior.FloatingLiteralWideLimits, "floating-literal-wide-limits", 2014,
-            "7.118", "§2014:8.3.1.2.2.2", "§2002:8.3.1.2.2.2",
+            "7.119", "§2014:8.3.1.2.2.2", "§2002:8.3.1.2.2.2",
             "a floating-point literal may have a 36-digit significand and a four-digit exponent only from COBOL-2014; "
             + "COBOL-2002 allows 31 and three"),
     ];

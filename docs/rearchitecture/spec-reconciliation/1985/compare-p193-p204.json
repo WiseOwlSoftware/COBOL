@@ -10,7 +10,7 @@
       "severity": "structural",
       "pdf_says": "GENERAL FORMAT FOR FILE CONTROL ENTRY",
       "markdown_says": "<u>GENERAL FORMAT FOR FILE CONTROL ENTRY</u>",
-      "why_it_matters": "The centred, underlined figure title is a heading on every sibling page (pages 194-196, 198, 199, 201, 203, 204 carry it as `## <u>GENERAL FORMAT ...</u>`); on page 197 it is plain underlined body text, so the heading-based outline and page slicing miss the V-5 SEQUENTIAL/RELATIVE file control entry formats."
+      "why_it_matters": "The centred general-format title is demoted to plain underlined text; the sibling pages (194, 195, 196, 198, 199, 201, 203, 204) render the same title as a '## ' heading, so this format is missing from the heading outline and navigation of the skeleton."
     },
     {
       "id": "p200-1",
@@ -19,43 +19,16 @@
       "severity": "structural",
       "pdf_says": "GENERAL FORMAT FOR DATA DIVISION",
       "markdown_says": "<pre style=\"line-height:1\">\nData Division\n\n                         <u>GENERAL FORMAT FOR DATA DIVISION</u>\n</pre>",
-      "why_it_matters": "The figure title is buried inside a <pre> block with the running header instead of being a `##` heading like its siblings, so the Data Division general format (V-8) has no heading in the transcription's outline."
-    },
-    {
-      "id": "p201-1",
-      "page": 201,
-      "kind": "incorrect-figure",
-      "severity": "normative",
-      "pdf_says": "BLOCK CONTAINS [integer-1 TO] integer-2 {RECORDS / CHARACTERS} (RECORDS underlined; CHARACTERS printed without underline)",
-      "markdown_says": "│<u>BLOCK</u> CONTAINS [integer-1 <u>TO</u>] integer-2 ┤          ├│\n    └                                        ╰<u>CHARACTERS</u>╯┘",
-      "why_it_matters": "Underlining added: per §1985:IV.2.1.2 an uppercase word not underlined is optional. The printed BLOCK CONTAINS clause (sequential FD, V-9) leaves CHARACTERS un-underlined (the implicitly selected choice that may be omitted, e.g. BLOCK CONTAINS 80); the markdown makes it a required key word, falsely restrictive syntax. Page 203's transcription of the same clause correctly leaves it plain."
+      "why_it_matters": "The general-format title is buried inside a <pre> block as plain text instead of a '## ' heading like its sibling pages, so the Data Division general format has no heading in the transcription's outline."
     },
     {
       "id": "p202-1",
-      "page": 202,
-      "kind": "incorrect-figure",
-      "severity": "normative",
-      "pdf_says": "BLOCK CONTAINS [integer-1 TO] integer-2 {RECORDS / CHARACTERS} (RECORDS underlined; CHARACTERS printed without underline)",
-      "markdown_says": "│<u>BLOCK</u> CONTAINS [integer-1 <u>TO</u>] integer-2 ┤          ├│\n    └                                        ╰<u>CHARACTERS</u>╯┘",
-      "why_it_matters": "Same added underline in the relative-file FD (V-10): CHARACTERS is an optional word in the printed figure (§1985:IV.2.1.2), the markdown marks it a required key word, so BLOCK CONTAINS integer-2 with CHARACTERS omitted reads as illegal."
-    },
-    {
-      "id": "p202-2",
       "page": 202,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "GENERAL FORMAT FOR FILE DESCRIPTION ENTRY",
       "markdown_says": "<pre style=\"line-height:1\">\n                         <u>GENERAL FORMAT FOR FILE DESCRIPTION ENTRY</u>\n</pre>",
-      "why_it_matters": "The figure title is inside a <pre> block rather than a `##` heading as on pages 201, 203 and 204, so the RELATIVE FILE FD format (V-10) has no heading in the outline."
-    },
-    {
-      "id": "p204-1",
-      "page": 204,
-      "kind": "incorrect-figure",
-      "severity": "normative",
-      "pdf_says": "BLOCK CONTAINS [integer-1 TO] integer-2 {RECORDS / CHARACTERS} (RECORDS underlined; CHARACTERS printed without underline)",
-      "markdown_says": "┌<u>BLOCK</u> CONTAINS [integer-1 <u>TO</u>] integer-2 ╭<u>RECORDS</u>    ╮ ┐\n    │                                        ┤           ├ │\n    └                                        ╰<u>CHARACTERS</u> ╯ ┘",
-      "why_it_matters": "Same added underline in the report-file FD (V-12): the printed CHARACTERS is not underlined and so is optional (§1985:IV.2.1.2); the markdown makes it a required key word."
+      "why_it_matters": "The general-format title is placed inside a <pre> block as plain text instead of a '## ' heading as on pages 201, 203 and 204, so the relative-file FD format has no heading in the outline."
     }
   ]
 }

@@ -1,6 +1,6 @@
 {
  "rule-id": "1985-FMT-VI.5.15.2",
- "rule-digest": "e571f3e63aad",
+ "rule-digest": "f9994b7218e1",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#valueClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#valueItem; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#CheckValueConnective; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindCondition; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#RawValueOperandText; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitValueClause; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitValueClauseFalsePhrase; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitValidateValidPhrase; src/WiseOwl.Cobol.Compiler/Validation/ClosedFormatPass.cs#ScreenClauseRepetition",
  "test-ref": "conformance:cases/VI.5.15@1985-VALUE-CLAUSE/1985-FMT-VI_5_15_2",

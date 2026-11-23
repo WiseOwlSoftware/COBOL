@@ -2,7 +2,7 @@
 
 Four notes (PB5721, PB5720, PB5613, PB6039) were three mechanisms where the 2002 text says less or something else than the
 2014 and 2023 text, and the compiler applied the later wording at every edition. Each is now an edition gate in the one table
-(`DialectBehavior`), with VCR rows 7.117 and 7.118.
+(`DialectBehavior`), with VCR rows 7.118 and 7.119.
 
 **PB5721, TEST-NUMVAL-C.** The re-probe on this build reproduced it: `TEST-NUMVAL-C(NE)` for a numeric-edited item and
 `TEST-NUMVAL-C(AE)` for an alphanumeric-edited item were each COBOL1627, and `TEST-NUMVAL-C("U1 12.5" "U1")` was COBOL1627 on

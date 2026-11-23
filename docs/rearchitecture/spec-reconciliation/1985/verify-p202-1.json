@@ -1,13 +1,1 @@
-{
-  "claim_id": "p202-1",
-  "claim_key": "1fe31f4a793a6c90",
-  "page": 202,
-  "kind": "incorrect-figure",
-  "severity": "normative",
-  "claim": {"id": "p202-1", "page": 202, "kind": "incorrect-figure", "severity": "normative", "pdf_says": "BLOCK CONTAINS [integer-1 TO] integer-2 {RECORDS / CHARACTERS} (RECORDS underlined; CHARACTERS printed without underline)", "markdown_says": "│<u>BLOCK</u> CONTAINS [integer-1 <u>TO</u>] integer-2 ┤          ├│\n    └                                        ╰<u>CHARACTERS</u>╯┘", "why_it_matters": "Same added underline in the relative-file FD (V-10): CHARACTERS is an optional word in the printed figure (§1985:IV.2.1.2), the markdown marks it a required key word, so BLOCK CONTAINS integer-2 with CHARACTERS omitted reads as illegal."},
-  "verdict": {
-    "real": true,
-    "reasoning": "Rendered page 202 (V-10, relative-file FD general format) at 300 dpi. In the BLOCK CONTAINS clause the brace stacks RECORDS over CHARACTERS: RECORDS carries an underline, CHARACTERS has none (compare the underlined BLOCK and TO on the same line). page-202.md line 22 writes <u>CHARACTERS</u>, which adds an underline the printed figure does not have. In 1985 notation an un-underlined word is optional, so in this brace (exactly one option, explicitly specified or implicitly selected) CHARACTERS may be omitted. The transcription makes it a required key word. That changes the syntax, so it is normative. The RECORD CONTAINS lines correctly leave CHARACTERS un-underlined, which confirms the BLOCK line is the error.",
-    "corrected_description": ""
-  }
-}
+{"claim_id": "p202-1", "claim_key": "9096bf376a03becd", "page": 202, "kind": "missing-heading", "severity": "structural", "claim": {"id": "p202-1", "page": 202, "kind": "missing-heading", "severity": "structural", "pdf_says": "GENERAL FORMAT FOR FILE DESCRIPTION ENTRY", "markdown_says": "<pre style=\"line-height:1\">\n                         <u>GENERAL FORMAT FOR FILE DESCRIPTION ENTRY</u>\n</pre>", "why_it_matters": "The general-format title is placed inside a <pre> block as plain text instead of a '## ' heading as on pages 201, 203 and 204, so the relative-file FD format has no heading in the outline."}, "verdict": {"real": false, "reasoning": "The printed page (V-10) shows the centered, underlined title 'GENERAL FORMAT FOR FILE DESCRIPTION ENTRY' above 'RELATIVE FILE:'. page-202.md carries that exact text, underlined, in the same position, so nothing is missing and the words match. The only difference is markup: the title sits in a <pre> block on page 202, while pages 201 and 203 use a '## ' heading. That inconsistency affects the Markdown outline but does not change the standard's content or meaning. It is formatting, which the rejection criteria exclude.", "corrected_description": ""}}

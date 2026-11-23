@@ -1,13 +1,5 @@
-{
-  "claim_id": "p208-1",
-  "claim_key": "cdec4f64240cc00e",
-  "page": 208,
-  "kind": "missing-heading",
-  "severity": "structural",
-  "claim": {"id": "p208-1", "page": 208, "kind": "missing-heading", "severity": "structural", "pdf_says": "GENERAL FORMAT FOR COMMUNICATION DESCRIPTION ENTRY", "markdown_says": "<u>GENERAL FORMAT FOR COMMUNICATION DESCRIPTION ENTRY</u>", "why_it_matters": "The PDF prints this underlined, centred format heading exactly as on pages 205-207 and 209-214, where the markdown renders it as '## <u>GENERAL FORMAT ...</u>'; on page 208 it is left as plain underlined text with no '##', so the Format 2 and Format 3 CD entries are invisible to heading-based navigation."},
-  "verdict": {
-    "real": false,
-    "reasoning": "The rendered page 208 (folio V-16) prints the centred, underlined line 'GENERAL FORMAT FOR COMMUNICATION DESCRIPTION ENTRY'. The markdown carries the same words with the same underline (<u>...</u>) at the same position, directly after the running head and before FORMAT 2. Nothing is missing or misquoted. The only difference is the markdown heading level: pages 204-207 and 209-214 render their repeated general-format heading as '## <u>...</u>', and page 208 does not. This is a markdown structure/navigation inconsistency that changes no text and no meaning of the standard. Under the verification rules it is formatting only, so it is not a content discrepancy. It would be a reasonable cosmetic fix (add '## ' on line 8679 of specs/ANSI_COBOL_1985.md for consistency).",
-    "corrected_description": null
-  }
-}
+{"claim_id": "p208-1", "claim_key": "7339bc88456ab736", "page": 208, "kind": "missing-heading", "severity": "structural",
+ "claim": {"id": "p208-1", "page": 208, "kind": "missing-heading", "severity": "structural", "pdf_says": "GENERAL FORMAT FOR COMMUNICATION DESCRIPTION ENTRY", "markdown_says": "<u>GENERAL FORMAT FOR COMMUNICATION DESCRIPTION ENTRY</u>", "why_it_matters": "The centred, underlined general-format title that heads Format 2 and Format 3 of the CD entry is transcribed as a plain underlined paragraph, not a heading. The identical title on page 207, and every other general-format title in this batch (pages 205, 206, 209-216), is a '## ' heading, so this page's CD formats drop out of the document outline and heading-based slicing."},
+ "verdict": {"real": false,
+  "reasoning": "The printed page 208 (folio V-16, rendered at 300 dpi) carries the centred, underlined title 'GENERAL FORMAT FOR COMMUNICATION DESCRIPTION ENTRY'. The markdown at specs/ANSI_COBOL_1985.md line 8669 carries the same words, underlined, in the same place, ahead of FORMAT 2. No text is missing or misquoted. The only difference is that the markdown has no '## ' heading marker, while page 207's identical title (line 8635) and most other general-format titles have one. The PDF has no heading levels to compare against, so this is a markdown formatting inconsistency that does not change meaning. The same convention gap also appears at lines 8181 (FILE CONTROL ENTRY) and 9891 (QUALIFICATION). It is a valid outline cleanup, but it is not a content discrepancy between the PDF and its transcription.",
+  "corrected_description": ""}}

@@ -1,6 +1,6 @@
 {
  "edition": 1985,
- "about": "The reconciliation of specs/ANSI_COBOL_1985.md against the rendered page of the scanned PDF (kb/Work PB4850). `book_pages` is the transcription's page count and `pages_swept` the pages compared: every one of the 976 pages was compared by the batch passes of 2026-11-06 (claims, an adversarial verify and a second opinion; a box pass over every page). A page with no claim was found to agree with its transcription. Each claim carries its decision: APPLIED (with the edit, read against the rendered page first), REFUTED, ALREADY (repaired before), FORMAT (a general format, decided by figures-1985), BOX (a level-2 box, marked from the box pass), FIGURE (an illustration) or KEPT. A sweep is a sibling of an applied claim found on the page or across the file. Each box carries MARKED (and the number of blocks marked with a pair of ║), FORMAT or NOT MARKED. verify_publishable.py --edition 1985 holds the transcription to this ledger. SECOND PASS (kb/Work PB6051, owner 2026-11-22): a second independent pass over all 976 pages by agents that did not see the first pass's claims (236 claims, each with its own adversarial verdict: 167 confirmed, 69 refuted); its claims carry `pass: 2` and the id of their compare file. The headings of the whole standard were derived afresh from the printed Table of Contents (kb/Work PB6057; scripts/spec/heading_levels.py): each is a sweep `heading-levels(PB6057)` or an edit of the claim that named it.",
+ "about": "The reconciliation of specs/ANSI_COBOL_1985.md against the rendered page of the scanned PDF (kb/Work PB4850). `book_pages` is the transcription's page count and `pages_swept` the pages compared: every one of the 976 pages was compared by the batch passes of 2026-11-06 (claims, an adversarial verify and a second opinion; a box pass over every page). A page with no claim was found to agree with its transcription. Each claim carries its decision: APPLIED (with the edit, read against the rendered page first), REFUTED, ALREADY (repaired before), FORMAT (a general format, decided by figures-1985), BOX (a level-2 box, marked from the box pass), FIGURE (an illustration) or KEPT. A sweep is a sibling of an applied claim found on the page or across the file. Each box carries MARKED (and the number of blocks marked with a pair of ║), FORMAT or NOT MARKED. verify_publishable.py --edition 1985 holds the transcription to this ledger. SECOND PASS (kb/Work PB6051, owner 2026-11-22): a second independent pass over all 976 pages by agents that did not see the first pass's claims (236 claims, each with its own adversarial verdict: 167 confirmed, 69 refuted); its claims carry `pass: 2` and the id of their compare file. The headings of the whole standard were derived afresh from the printed Table of Contents (kb/Work PB6057; scripts/spec/heading_levels.py): each is a sweep `heading-levels(PB6057)` or an edit of the claim that named it. THIRD PASS (kb/Work PB6051, decision PB6091, owner 2026-11-22): a third independent pass over all 976 pages (25 claims, each with its own adversarial verdict: 7 confirmed, 18 refuted); its claims carry `pass: 3`. All 7 confirmed claims are APPLIED, five of the refuted ones are decided by the title rule of kb/Work PB6095 (APPLIED with the claim's batch still REFUTED), and the siblings of the repairs are sweeps (`format-titles(PB6095)`, `box-labels(PB6051 p354-1)`, `brace-column(PB6051 p213-1)`).",
  "book_pages": 976,
  "pages_swept": [
   1,
@@ -8634,6 +8634,426 @@
      "now": "| XI-10 | Paragraph 4.1.4 of the MERGE statement, general rule 7b, add the following as the new last sentence for the paragraph:<br><br>If the file referenced by file-name-1 is described with variable length records, the size of any record written to file-name-1 is the size of that record when it was read from file-name-2 or file-name-3, regardless of the content of the data item referenced by the DEPENDING ON phrase of either a RECORD IS VARYING clause or an OCCURS clause specified in the sort-merge file description entry for file-name-1. |"
     }
    ]
+  },
+  {
+   "page": 114,
+   "i": "3rd-1",
+   "id": "p114-1",
+   "pass": 3,
+   "kind": "image-restructured",
+   "where": "Figure 1: COBOL Communication Environment - the first SEND line (below the second RECEIVE)",
+   "batch": "CONFIRMED",
+   "decision": "APPLIED",
+   "edits": [
+    {
+     "was": "│ RECEIVE &lt;────│  │────────────│          │          │&lt;─────────│  │        ┌─┐",
+     "now": "│ RECEIVE &lt;────│  │────────────│          │          │&lt;─┐       │  │        ┌─┐"
+    },
+    {
+     "was": "│          │   │C │            └──────────┴──────────┘          │E │────────│ │",
+     "now": "│          │   │C │            └──────────┴──────────┘  └───────│E │────────│ │"
+    },
+    {
+     "was": "│ SEND     │───│o │                 ^                           │N │        └─┘",
+     "now": "│ SEND     │───│o │──┐           ^    ^                     ┌───│N │────────│ │"
+    },
+    {
+     "was": "│          │   │m │                 │                           │A │        ┌─┐",
+     "now": "│          │   │m │  │           │    └─────────────────────┘   │A │        └─┘"
+    },
+    {
+     "was": "│          │   │m │                 └───────────────────────────│B │───────&gt;│ │",
+     "now": "│          │   │m │  │           │                              │B │        ┌─┐"
+    },
+    {
+     "was": "│          │   │u │               Output  Queues                │L │        └─┘",
+     "now": "│          │   │u │  │           └──────────────────────────────│L │────────│ │"
+    },
+    {
+     "was": "│          │   │n │            ┌──────────┬──────────┐          │E │",
+     "now": "│          │   │n │  │              ┌───────────────────────────│E │───────&gt;│ │"
+    },
+    {
+     "was": "│ SEND     │───│i │───────────&gt;│          │          │──────────│/ │        ┌─┐",
+     "now": "│          │   │i │  │              │  Output  Queues           │/ │        └─┘"
+    },
+    {
+     "was": "│          │   │c │───────────&gt;│          │          │          │D │───────&gt;│ │",
+     "now": "│          │   │c │  │         ┌────┴─────┬──────────┐          │D │        ┌─┐"
+    },
+    {
+     "was": "│          │   │a │            └──────────┴──────────┘          │I │        └─┘",
+     "now": "│          │   │a │  │         │          │          │──────────│I │───────&gt;│ │"
+    },
+    {
+     "was": "│          │   │t │                                             │S │",
+     "now": "│          │   │t │  └────────&gt;│          │          │          │S │        └─┘"
+    },
+    {
+     "was": "│          │   │i │                                             │A │",
+     "now": "│          │   │i │            └──────────┴──────────┘          │A │"
+    },
+    {
+     "was": "│          │   │o │                                             │B │",
+     "now": "│          │   │o │                            ^                │B │"
+    },
+    {
+     "was": "│          │   │n │                                             │L │",
+     "now": "│ SEND     │───│n │────────────────────────────┘                │L │"
+    }
+   ],
+   "siblings": "Figure 1 is the only drawn connector illustration of the standard (every `<pre>` block decided not-a-format with an arrow was listed: this one); its three connector defects are repaired together."
+  },
+  {
+   "page": 197,
+   "i": "3rd-1",
+   "id": "p197-1",
+   "pass": 3,
+   "kind": "missing-heading",
+   "where": "GENERAL FORMAT FOR FILE CONTROL ENTRY",
+   "batch": "REFUTED",
+   "decision": "APPLIED",
+   "edits": [
+    {
+     "was": "<u>GENERAL FORMAT FOR FILE CONTROL ENTRY</u>",
+     "now": "## <u>GENERAL FORMAT FOR FILE CONTROL ENTRY</u>"
+    }
+   ],
+   "siblings": "swept every `GENERAL FORMAT FOR` line of the standard (grep, then heading_levels.check_format_titles): eleven titles stood otherwise (pages 197, 200, 202, 208, 224, 225, 227, 229, 231 twice, 232) and all are repaired; the lint holds the rule (kb/Work PB6095).",
+   "reason": "the claim's own verdict refuted it as formatting only; the title rule decided by kb/Work PB6095 (one form for every general-format page title, read on the rendered pages) applies the repair"
+  },
+  {
+   "page": 200,
+   "i": "3rd-1",
+   "id": "p200-1",
+   "pass": 3,
+   "kind": "missing-heading",
+   "where": "GENERAL FORMAT FOR DATA DIVISION",
+   "batch": "REFUTED",
+   "decision": "APPLIED",
+   "edits": [
+    {
+     "was": "                         <u>GENERAL FORMAT FOR DATA DIVISION</u>",
+     "now": "## <u>GENERAL FORMAT FOR DATA DIVISION</u>"
+    }
+   ],
+   "siblings": "swept every `GENERAL FORMAT FOR` line of the standard (grep, then heading_levels.check_format_titles): eleven titles stood otherwise (pages 197, 200, 202, 208, 224, 225, 227, 229, 231 twice, 232) and all are repaired; the lint holds the rule (kb/Work PB6095).",
+   "reason": "the claim's own verdict refuted it as formatting only; the title rule decided by kb/Work PB6095 (one form for every general-format page title, read on the rendered pages) applies the repair"
+  },
+  {
+   "page": 202,
+   "i": "3rd-1",
+   "id": "p202-1",
+   "pass": 3,
+   "kind": "missing-heading",
+   "where": "GENERAL FORMAT FOR FILE DESCRIPTION ENTRY",
+   "batch": "REFUTED",
+   "decision": "APPLIED",
+   "edits": [
+    {
+     "was": "                         <u>GENERAL FORMAT FOR FILE DESCRIPTION ENTRY</u>",
+     "now": "## <u>GENERAL FORMAT FOR FILE DESCRIPTION ENTRY</u>"
+    }
+   ],
+   "siblings": "swept every `GENERAL FORMAT FOR` line of the standard (grep, then heading_levels.check_format_titles): eleven titles stood otherwise (pages 197, 200, 202, 208, 224, 225, 227, 229, 231 twice, 232) and all are repaired; the lint holds the rule (kb/Work PB6095).",
+   "reason": "the claim's own verdict refuted it as formatting only; the title rule decided by kb/Work PB6095 (one form for every general-format page title, read on the rendered pages) applies the repair"
+  },
+  {
+   "page": 208,
+   "i": "3rd-1",
+   "id": "p208-1",
+   "pass": 3,
+   "kind": "missing-heading",
+   "where": "GENERAL FORMAT FOR COMMUNICATION DESCRIPTION ENTRY",
+   "batch": "REFUTED",
+   "decision": "APPLIED",
+   "edits": [
+    {
+     "was": "<u>GENERAL FORMAT FOR COMMUNICATION DESCRIPTION ENTRY</u>",
+     "now": "## <u>GENERAL FORMAT FOR COMMUNICATION DESCRIPTION ENTRY</u>"
+    }
+   ],
+   "siblings": "swept every `GENERAL FORMAT FOR` line of the standard (grep, then heading_levels.check_format_titles): eleven titles stood otherwise (pages 197, 200, 202, 208, 224, 225, 227, 229, 231 twice, 232) and all are repaired; the lint holds the rule (kb/Work PB6095).",
+   "reason": "the claim's own verdict refuted it as formatting only; the title rule decided by kb/Work PB6095 (one form for every general-format page title, read on the rendered pages) applies the repair"
+  },
+  {
+   "page": 213,
+   "i": "3rd-1",
+   "id": "p213-1",
+   "pass": 3,
+   "kind": "incorrect-figure",
+   "where": "SW CLOSE { file-name-1 [ {REEL | UNIT} [FOR REMOVAL] | WITH {NO REWIND | LOCK} ] } ...  (o",
+   "batch": "CONFIRMED",
+   "decision": "APPLIED",
+   "edits": [
+    {
+     "was": "         ┤             │┤     ├                │ ├",
+     "now": "         │             │┤     ├                │ │"
+    },
+    {
+     "was": "SW        <u>CLOSE</u> ┤ file-name-1   │                      │ ├ …",
+     "now": "SW <u>CLOSE</u> ┤ file-name-1 │                       │ ├ …"
+    },
+    {
+     "was": "         ┤             │      ┤          ├     │ ├",
+     "now": "         │             │      ┤          ├     │ │"
+    }
+   ],
+   "siblings": "swept every `<pre>` block for a tall brace whose rows leave its column (sweep_brace, all 511 blocks): one sibling (page 289, the class condition: the middle row one column left of its brace), repaired; Figure 1 is the only connector illustration of the standard."
+  },
+  {
+   "page": 224,
+   "i": "3rd-1",
+   "id": "p224-1",
+   "pass": 3,
+   "kind": "missing-heading",
+   "where": "GENERAL FORMAT FOR COBOL VERBS",
+   "batch": "CONFIRMED",
+   "decision": "APPLIED",
+   "edits": [
+    {
+     "was": "**<u>GENERAL FORMAT FOR COBOL VERBS</u>**",
+     "now": "## <u>GENERAL FORMAT FOR COBOL VERBS</u>"
+    }
+   ],
+   "siblings": "swept every `GENERAL FORMAT FOR` line of the standard (grep, then heading_levels.check_format_titles): eleven titles stood otherwise (pages 197, 200, 202, 208, 224, 225, 227, 229, 231 twice, 232) and all are repaired; the lint holds the rule (kb/Work PB6095)."
+  },
+  {
+   "page": 225,
+   "i": "3rd-1",
+   "id": "p225-1",
+   "pass": 3,
+   "kind": "missing-heading",
+   "where": "GENERAL FORMAT FOR COBOL VERBS",
+   "batch": "REFUTED",
+   "decision": "APPLIED",
+   "edits": [
+    {
+     "was": "<u>**GENERAL FORMAT FOR COBOL VERBS**</u>",
+     "now": "## <u>GENERAL FORMAT FOR COBOL VERBS</u>"
+    }
+   ],
+   "siblings": "swept every `GENERAL FORMAT FOR` line of the standard (grep, then heading_levels.check_format_titles): eleven titles stood otherwise (pages 197, 200, 202, 208, 224, 225, 227, 229, 231 twice, 232) and all are repaired; the lint holds the rule (kb/Work PB6095).",
+   "reason": "the claim's own verdict refuted it as formatting only; the title rule decided by kb/Work PB6095 (one form for every general-format page title, read on the rendered pages) applies the repair"
+  },
+  {
+   "page": 32,
+   "i": "3rd-1",
+   "id": "p32-1",
+   "pass": 3,
+   "kind": "misplaced-content",
+   "where": "Uniqueness of Reference / Qualification / No qualification permitted; names must be unique",
+   "batch": "REFUTED",
+   "decision": "REFUTED",
+   "reason": "The printed page I-12 (PDF p32, 300 dpi) shows 'Qualification' and 'Subscripting' at the same indent under 'Uniqueness of Reference', with 'No qualification permitted; names must be unique if referenced' (X N) and '50 qualifiers' (N X) one step further in. The markdown has the indentation the claim describes: Qualification with 2 &nbsp;, No qualification with 5, 50 qualifiers with 2, Subscripting with 1. So the claim quotes both sources correctly. But the whole difference is the &nbsp; indentation in a non-normative element-summary table. Every row's text and every LEVEL 1/LEVEL 2 entry (X N, "
+  },
+  {
+   "page": 34,
+   "i": "3rd-1",
+   "id": "p34-1",
+   "pass": 3,
+   "kind": "missing-heading",
+   "where": "SUMMARY OF ELEMENTS IN THE NUCLEUS MODULE (underlined running table title, identical to pa",
+   "batch": "REFUTED",
+   "decision": "REFUTED",
+   "reason": "The printed page 34 (I-14) shows the centered, underlined running title 'SUMMARY OF ELEMENTS IN THE NUCLEUS MODULE', and the markdown carries exactly that text, underlined, at the same position. Nothing is missing, misquoted or altered. The only difference is the Markdown heading marker '## ' in front of the title (specs/ANSI_COBOL_1985.md line 1676), while pages 31, 32, 33, 35, 36 and 38 render it as plain <u> text. That is a formatting difference with no change to the standard's content or meaning, which this verification rejects. The claim's description is also imprecise: page 34 is not the"
+  },
+  {
+   "page": 351,
+   "i": "3rd-1",
+   "id": "p351-1",
+   "pass": 3,
+   "kind": "incorrect-text",
+   "where": "Figure 4:  The VARYING option of a PERFORM statement with the TEST AFTER phrase having two",
+   "batch": "CONFIRMED",
+   "decision": "APPLIED",
+   "edits": [
+    {
+     "was": "Figure 4: The VARYING option of a PERFORM statement with the TEST AFTER phrase having two conditions",
+     "now": "║Figure 4: The VARYING option of a PERFORM statement with the TEST AFTER phrase having two conditions║"
+    }
+   ],
+   "siblings": "swept every unmarked `Format n:` label that stands before a boxed format against the rendered pages: eight sat inside the printed box (pages 258, 280, 303, 305, 335, 359, 404, 684) and are marked, the other 20 stand outside it; every Figure caption and footnote line after a boxed flowchart was read the same way (pages 351 and 358 only)."
+  },
+  {
+   "page": 354,
+   "i": "3rd-1",
+   "id": "p354-1",
+   "pass": 3,
+   "kind": "incorrect-text",
+   "where": "Format 2: (printed inside the box that encloses all of 6.22 through the end of Format 2)",
+   "batch": "CONFIRMED",
+   "decision": "APPLIED",
+   "edits": [
+    {
+     "was": "<u>Format 2</u>:",
+     "now": "║<u>Format 2</u>:║"
+    }
+   ],
+   "siblings": "swept every unmarked `Format n:` label that stands before a boxed format against the rendered pages: eight sat inside the printed box (pages 258, 280, 303, 305, 335, 359, 404, 684) and are marked, the other 20 stand outside it; every Figure caption and footnote line after a boxed flowchart was read the same way (pages 351 and 358 only)."
+  },
+  {
+   "page": 358,
+   "i": "3rd-1",
+   "id": "p358-1",
+   "pass": 3,
+   "kind": "incorrect-text",
+   "where": "Figure 1:  Format 1 SEARCH statement having two WHEN phrases / * These operations are opti",
+   "batch": "CONFIRMED",
+   "decision": "APPLIED",
+   "edits": [
+    {
+     "was": "Figure 1: Format 1 SEARCH statement having two WHEN phrases",
+     "now": "║Figure 1: Format 1 SEARCH statement having two WHEN phrases║"
+    },
+    {
+     "was": "\\* These operations are options included only when specified in the SEARCH statement.",
+     "now": "║\\* These operations are options included only when specified in the SEARCH statement.║"
+    },
+    {
+     "was": "\\*\\* Each of these control transfers is to the end of the SEARCH statement unless the imperative-statement ends with a GO TO statement.",
+     "now": "║\\*\\* Each of these control transfers is to the end of the SEARCH statement unless the imperative-statement ends with a GO TO statement.║"
+    }
+   ],
+   "siblings": "swept every unmarked `Format n:` label that stands before a boxed format against the rendered pages: eight sat inside the printed box (pages 258, 280, 303, 305, 335, 359, 404, 684) and are marked, the other 20 stand outside it; every Figure caption and footnote line after a boxed flowchart was read the same way (pages 351 and 358 only)."
+  },
+  {
+   "page": 440,
+   "i": "3rd-1",
+   "id": "p440-1",
+   "pass": 3,
+   "kind": "misplaced-content",
+   "where": "ACCESS MODE IS { SEQUENTIAL [RELATIVE KEY IS data-name-1] / { RANDOM / [DYNAMIC] } RELATIV",
+   "batch": "REFUTED",
+   "decision": "REFUTED",
+   "reason": "The 300 dpi render of page 440 (VIII-10, 2.4.2) shows the level-2 box drawn tightly around the underlined word DYNAMIC, with the inner brace's closing glyph outside the box. Markdown line 18 reads `║ <u>DYNAMIC</u> ╯ ║`, so the glyph order differs as claimed and both sources are quoted accurately. The difference does not change meaning. Both renderings carry the same syntax: ACCESS MODE IS SEQUENTIAL [RELATIVE KEY IS data-name-1], or RANDOM/DYNAMIC (choose exactly one per §1985:IV.2.1.4 braces) followed by RELATIVE KEY IS data-name-1, with only DYNAMIC marked as level 2. A brace-closing glyph "
+  },
+  {
+   "page": 833,
+   "i": "3rd-1",
+   "id": "p833-1",
+   "pass": 3,
+   "kind": "table-restructured",
+   "where": "OPTIONAL MODULES (Not Required in Subsets) drawn beside the COBOL SUBSETS rows HIGH / INTE",
+   "batch": "CONFIRMED",
+   "decision": "APPLIED",
+   "edits": [
+    {
+     "was": "| | | REQUIRED MODULES<br>(Required in Subsets) | | | | | | |\n|---|---|---|---|---|---|---|---|---|\n| | | **Nucleus** | **Sequential I-O** | **Relative I-O** | **Indexed I-O** | **Inter-Program Communication** | **Sort-Merge** | **Source Text Manipulation** |\n| **COBOL SUBSETS** | **HIGH** | 2 NUC 1,2 | 2 SEQ 1,2 | 2 REL 0,2 | 2 INX 0,2 | 2 IPC 1,2 | 1 SRT 0,1 | 2 STM 0,2 |\n| | **INTERMEDIATE** | 1 NUC 1,2 | 1 SEQ 1,2 | 1 REL 0,2 | 1 INX 0,2 | 1 IPC 1,2 | 1 SRT 0,1 | 1 STM 0,2 |\n| | **MINIMUM** | 1 NUC 1,2 | 1 SEQ 1,2 | NULL | NULL | 1 IPC 1,2 | NULL | NULL |\n\n| OPTIONAL MODULES<br>(Not Required in Subsets) | | | | |\n|---|---|---|---|---|\n| **Report Writer** | **Communication** | **Debug** | **Segmentation** | **Intrinsic Function** |\n| 1 RPW 0,1 | 2 COM 0,2 | 2 DEB 0,2 | 2 SEG 0,2 | 1 ITR 0,1 |\n| | 1 COM 0,2 | 1 DEB 0,2 | 1 SEG 0,2 | |",
+     "now": "<table>\n<tr>\n<th rowspan=\"2\" colspan=\"2\"></th>\n<th colspan=\"7\">REQUIRED MODULES<br>(Required in Subsets)</th>\n<th colspan=\"5\">OPTIONAL MODULES<br>(Not Required in Subsets)</th>\n</tr>\n<tr>\n<th>Nucleus</th>\n<th>Sequential<br>I-O</th>\n<th>Relative<br>I-O</th>\n<th>Indexed<br>I-O</th>\n<th>Inter-Program<br>Communication</th>\n<th>Sort-Merge</th>\n<th>Source Text<br>Manipulation</th>\n<th>Report<br>Writer</th>\n<th>Communication</th>\n<th>Debug</th>\n<th>Segmentation</th>\n<th>Intrinsic<br>Function</th>\n</tr>\n<tr>\n<td rowspan=\"4\">COBOL SUBSETS</td>\n<td>HIGH</td>\n<td>2 NUC 1,2</td>\n<td>2 SEQ 1,2</td>\n<td>2 REL 0,2</td>\n<td>2 INX 0,2</td>\n<td>2 IPC 1,2</td>\n<td>1 SRT 0,1</td>\n<td>2 STM 0,2</td>\n<td rowspan=\"4\">1 RPW 0,1</td>\n<td rowspan=\"2\">2 COM 0,2</td>\n<td rowspan=\"2\">2 DEB 0,2</td>\n<td rowspan=\"2\">2 SEG 0,2</td>\n<td rowspan=\"4\">1 ITR 0,1</td>\n</tr>\n<tr>\n<td rowspan=\"2\">INTERMEDIATE</td>\n<td rowspan=\"2\">1 NUC 1,2</td>\n<td rowspan=\"2\">1 SEQ 1,2</td>\n<td rowspan=\"2\">1 REL 0,2</td>\n<td rowspan=\"2\">1 INX 0,2</td>\n<td rowspan=\"2\">1 IPC 1,2</td>\n<td rowspan=\"2\">1 SRT 0,1</td>\n<td rowspan=\"2\">1 STM 0,2</td>\n</tr>\n<tr>\n<td rowspan=\"2\">1 COM 0,2</td>\n<td rowspan=\"2\">1 DEB 0,2</td>\n<td rowspan=\"2\">1 SEG 0,2</td>\n</tr>\n<tr>\n<td>MINIMUM</td>\n<td>1 NUC 1,2</td>\n<td>1 SEQ 1,2</td>\n<td>NULL</td>\n<td>NULL</td>\n<td>1 IPC 1,2</td>\n<td>NULL</td>\n<td>NULL</td>\n</tr>\n</table>"
+    }
+   ],
+   "siblings": "swept the other diagrams of the module subsets: page 25 (I-5) already holds the same diagram as an HTML table with row spans; no other page prints one."
+  },
+  {
+   "page": 835,
+   "i": "3rd-1",
+   "id": "p835-1",
+   "pass": 3,
+   "kind": "missing-heading",
+   "where": "SUMMARY OF ELEMENTS IN THE INTRINSIC FUNCTION MODULE (bold, centered page title)",
+   "batch": "REFUTED",
+   "decision": "REFUTED",
+   "reason": "The rendered page 835 (folio A-5, not I-39) shows the bold centered title 'SUMMARY OF ELEMENTS IN THE INTRINSIC FUNCTION MODULE'. The markdown for page 835 carries the same words, verbatim, as the first line after '## Page 835'. No text is missing or altered. The only difference is that the markdown has no heading marker, which is formatting and does not change meaning. The claim also gives the wrong folio: the page is A-5, not I-39."
+  },
+  {
+   "page": 934,
+   "i": "3rd-1",
+   "id": "p934-1",
+   "pass": 3,
+   "kind": "table-restructured",
+   "where": "Page No.    Description of Change (printed once at the top of the page; rows XI-12, XI-13 ",
+   "batch": "REFUTED",
+   "decision": "REFUTED",
+   "reason": "The 300 dpi render of page 934 (B-22 of ANSI X3.23b-1993) prints the 'Page No. / Description of Change' heading once, followed by rows XI-12, XI-13 (A-20), XI-19 and XI-20. The markdown does repeat the header before each of the four rows and puts each row's replacement text after its table, so the observation is accurate. But every word is present and in order: the XI-12 added paragraph, the XI-13 replacement sentence 'Record-name-1 and identifier-1 must not reference the same storage area.', the XI-19 replacement rules 9b and 9c plus its two trailing paragraphs, and the XI-20 'execution' -> '"
+  },
+  {
+   "page": 963,
+   "i": "3rd-1",
+   "id": "p963-1",
+   "pass": 3,
+   "kind": "list-restructured",
+   "where": "Index entries printed one per line with sub-entries indented beneath their main entry, e.g",
+   "batch": "REFUTED",
+   "decision": "REFUTED",
+   "reason": "Rendered PDF page 963 (index page B-51) and page-963.md checked: every entry and page reference read matches (e.g. Character set, IV-4 / Restriction, VI-1; CHARACTERS with BLOCK CONTAINS clause VII-23, INSPECT statement VI-94, MEMORY SIZE clause VI-11, RECORD clause VII-30; CLOSE statement sub-entries; Comma sub-entries). The markdown keeps one entry per line and two-space indentation for sub-entries, so the text and hierarchy are present in the source. The claim concedes the content matches; its only point is that Markdown renderers merge bare lines into a paragraph and that pages 961-962 use"
+  },
+  {
+   "page": 964,
+   "i": "3rd-1",
+   "id": "p964-1",
+   "pass": 3,
+   "kind": "list-restructured",
+   "where": "Index entries printed one per line with sub-entries indented beneath their main entry, e.g",
+   "batch": "REFUTED",
+   "decision": "REFUTED",
+   "reason": "The claim quotes both sources accurately. The 300 dpi render of PDF page 964 (B-52, Index) prints one entry per line, with sub-entries indented. The transcription (page-964.md) has the same entries and page references, one per line, and indents each sub-entry by two spaces (for example 'Configuration Section, IV-31' then ' Nucleus, VI-9', and 'Control break' with its four sub-entries). No text is missing, misquoted or changed. The only difference is Markdown presentation: the page uses no list markers, while pages 961-962 do, so a renderer may join the lines into one paragraph. The source text"
+  },
+  {
+   "page": 965,
+   "i": "3rd-1",
+   "id": "p965-1",
+   "pass": 3,
+   "kind": "list-restructured",
+   "where": "Index entries printed one per line with sub-entries indented beneath their main entry, e.g",
+   "batch": "REFUTED",
+   "decision": "REFUTED",
+   "reason": "The printed page B-53 (PDF p965) is an informative index page. The transcription holds one line per entry with the sub-entries indented two spaces beneath their main entry, e.g. 'DELETE statement' / ' Indexed I-O module, IX-21' / ' Relative I-O module, VIII-19'. That mirrors the printed layout. I spot-checked the entries in the left column: DELIMITED BY, Delimiters, DEPENDING, DESCENDING KEY, DIVIDE and DUPLICATES, with their sub-entries and page references. They match, and the claim itself says the entries and references match. The only issue the claim raises is how a Markdown renderer would "
+  },
+  {
+   "page": 966,
+   "i": "3rd-1",
+   "id": "p966-1",
+   "pass": 3,
+   "kind": "list-restructured",
+   "where": "Index entries printed one per line with sub-entries indented beneath their main entry, e.g",
+   "batch": "REFUTED",
+   "decision": "REFUTED",
+   "reason": "I checked the printed page B-54 (PDF p966) at 300 dpi against page-966.md. The markdown holds every index entry and page reference in the printed order, one entry per line, with sub-entries indented two spaces under their main entry. That matches the printed layout: for example 'EVALUATE statement, VI-84' is followed by the indented 'Conditional expression, VI-54', and 'EXIT PROGRAM statement, X-33' by its three indented sub-entries. The claim itself concedes that the entries and references match. Its only complaint is how a Markdown renderer would lay the page out (no '- ' list markers, so th"
+  },
+  {
+   "page": 967,
+   "i": "3rd-1",
+   "id": "p967-1",
+   "pass": 3,
+   "kind": "list-restructured",
+   "where": "Index entries printed one per line with sub-entries indented beneath their main entry, e.g",
+   "batch": "REFUTED",
+   "decision": "REFUTED",
+   "reason": "The printed page (B-55, informative Index) and page-967.md hold the same entries, in the same order, with the same page references. In the transcription, each entry is on its own line and each sub-entry is indented under its main entry, as in the PDF (e.g. 'GENERATE statement, XIII-66' / ' Imperative statement, IV-39'; 'GIVING phrase' followed by six indented sub-entries). The claim itself says the entries and references match. The only difference is Markdown rendering: bare lines with no list markers, and the markup differs from pages 961-962. That is formatting with no change of content or m"
+  },
+  {
+   "page": 968,
+   "i": "3rd-1",
+   "id": "p968-1",
+   "pass": 3,
+   "kind": "list-restructured",
+   "where": "Index entries printed one per line with sub-entries indented beneath their main entry, e.g",
+   "batch": "REFUTED",
+   "decision": "REFUTED",
+   "reason": "Rendered p968 at 300 dpi (printed page B-56, informative Index). Every entry and page reference in page-968.md matches the printed page in order (e.g. 'INSPECT statement, VI-94' / indented 'Imperative statement, IV-39', 'INTEGER function, A-44' / 'A-8, A-10, A-29', the INTO, INVALID KEY, I-O-CONTROL, I-O phrase, I-O status and JUSTIFIED groups), and the markdown keeps one entry per line with two-space indentation for sub-entries, mirroring the printed hierarchy. The claim itself concedes the entries and references match. The only complaint is how a Markdown renderer would reflow bare lines and"
+  },
+  {
+   "page": 969,
+   "i": "3rd-1",
+   "id": "p969-1",
+   "pass": 3,
+   "kind": "list-restructured",
+   "where": "Index entries printed one per line with sub-entries indented beneath their main entry, e.g",
+   "batch": "REFUTED",
+   "decision": "REFUTED",
+   "reason": "page-969.md holds the index one entry per line with sub-entries indented two spaces (e.g. 'Linkage Section, IV-33, X-13' then ' VALUE clause, VI-49'), which keeps the printed page's lines and hierarchy in the source text. The claim itself says every entry and page reference matches the PDF. The only issue it raises is how a Markdown renderer would reflow bare lines, and that is formatting. It is not a content discrepancy with the PDF. The rest of the page is an informative index, so no meaning changes."
+  },
+  {
+   "page": 970,
+   "i": "3rd-1",
+   "id": "p970-1",
+   "pass": 3,
+   "kind": "list-restructured",
+   "where": "Index entries printed one per line with sub-entries indented beneath their main entry, e.g",
+   "batch": "REFUTED",
+   "decision": "REFUTED",
+   "reason": "Checked the 300 dpi render of printed page B-58 against page-970.md. The markdown keeps every entry on its own line and indents each sub-entry two spaces under its main entry, as the PDF does (NOT / EVALUATE statement VI-84 ...; Nucleus, VI-1 / Element summary, I-11; OCCURS clause / CORRESPONDING phrase VI-68 ...). The claim itself concedes that entries and page references match. The only difference is how a Markdown renderer would treat bare lines, which is presentation markup and not a content discrepancy. The task's rules exclude differences that are only formatting and do not change meanin"
   }
  ],
  "sweeps": [
@@ -11938,30 +12358,6 @@
    "now": "## 6. <u>PROGRAM AND RUN UNIT ORGANIZATION AND COMMUNICATION</u>"
   },
   {
-   "page": 114,
-   "sweep": "figure-1-connectors(p114-0)",
-   "was": "│ SEND     │   │o │                                             │N │        └─┘",
-   "now": "│ SEND     │───│o │                 ^                           │N │        └─┘"
-  },
-  {
-   "page": 114,
-   "sweep": "figure-1-connectors(p114-0)",
-   "was": "│          │   │m │                                             │A │        ┌─┐",
-   "now": "│          │   │m │                 │                           │A │        ┌─┐"
-  },
-  {
-   "page": 114,
-   "sweep": "figure-1-connectors(p114-0)",
-   "was": "│          │   │m │                                             │B │───────&gt;│ │",
-   "now": "│          │   │m │                 └───────────────────────────│B │───────&gt;│ │"
-  },
-  {
-   "page": 114,
-   "sweep": "figure-1-connectors(p114-0)",
-   "was": "│          │   │c │            │          │          │          │D │───────&gt;│ │",
-   "now": "│          │   │c │───────────&gt;│          │          │          │D │───────&gt;│ │"
-  },
-  {
    "page": 121,
    "sweep": "heading-underlines(PB4953)",
    "was": "## SECTION III: GLOSSARY",
@@ -12385,7 +12781,7 @@
    "page": 200,
    "sweep": "heading-underlines(PB5028)",
    "was": "                         GENERAL FORMAT FOR DATA DIVISION",
-   "now": "                         <u>GENERAL FORMAT FOR DATA DIVISION</u>"
+   "now": "## <u>GENERAL FORMAT FOR DATA DIVISION</u>"
   },
   {
    "page": 204,
@@ -12451,7 +12847,7 @@
    "page": 227,
    "sweep": "heading-underlines(PB5028)",
    "was": "**GENERAL FORMAT FOR CONDITIONS**",
-   "now": "**<u>GENERAL FORMAT FOR CONDITIONS</u>**"
+   "now": "## <u>GENERAL FORMAT FOR CONDITIONS</u>"
   },
   {
    "page": 227,
@@ -18500,6 +18896,90 @@
    "sweep": "heading-levels(PB6057)",
    "was": "### 2.46.3 Returned Values",
    "now": "#### 2.46.3 Returned Values"
+  },
+  {
+   "page": 227,
+   "sweep": "format-titles(PB6095)",
+   "was": "**<u>GENERAL FORMAT FOR CONDITIONS</u>**",
+   "now": "## <u>GENERAL FORMAT FOR CONDITIONS</u>"
+  },
+  {
+   "page": 229,
+   "sweep": "format-titles(PB6095)",
+   "was": "<u>GENERAL FORMAT FOR QUALIFICATION</u>",
+   "now": "## <u>GENERAL FORMAT FOR QUALIFICATION</u>"
+  },
+  {
+   "page": 231,
+   "sweep": "format-titles(PB6095)",
+   "was": "**<u>GENERAL FORMAT FOR NESTED SOURCE PROGRAMS</u>**",
+   "now": "## <u>GENERAL FORMAT FOR NESTED SOURCE PROGRAMS</u>"
+  },
+  {
+   "page": 231,
+   "sweep": "format-titles(PB6095)",
+   "was": "**<u>GENERAL FORMAT FOR NESTED-SOURCE-PROGRAM</u>**",
+   "now": "## <u>GENERAL FORMAT FOR NESTED-SOURCE-PROGRAM</u>"
+  },
+  {
+   "page": 232,
+   "sweep": "format-titles(PB6095)",
+   "was": "**<u>GENERAL FORMAT FOR A SEQUENCE OF SOURCE PROGRAMS</u>**",
+   "now": "## <u>GENERAL FORMAT FOR A SEQUENCE OF SOURCE PROGRAMS</u>"
+  },
+  {
+   "page": 258,
+   "sweep": "box-labels(PB6051 p354-1)",
+   "was": "<u>Format 2:</u>",
+   "now": "║<u>Format 2:</u>║"
+  },
+  {
+   "page": 280,
+   "sweep": "box-labels(PB6051 p354-1)",
+   "was": "<u>Format 2</u>:",
+   "now": "║<u>Format 2</u>:║"
+  },
+  {
+   "page": 303,
+   "sweep": "box-labels(PB6051 p354-1)",
+   "was": "<u>Format 2</u>:",
+   "now": "║<u>Format 2</u>:║"
+  },
+  {
+   "page": 305,
+   "sweep": "box-labels(PB6051 p354-1)",
+   "was": "<u>Format 3</u>:",
+   "now": "║<u>Format 3</u>:║"
+  },
+  {
+   "page": 335,
+   "sweep": "box-labels(PB6051 p354-1)",
+   "was": "<u>Format 2</u>:",
+   "now": "║<u>Format 2</u>:║"
+  },
+  {
+   "page": 359,
+   "sweep": "box-labels(PB6051 p354-1)",
+   "was": "<u>Format 4</u>:",
+   "now": "║<u>Format 4</u>:║"
+  },
+  {
+   "page": 404,
+   "sweep": "box-labels(PB6051 p354-1)",
+   "was": "<u>Format 2</u>:",
+   "now": "║<u>Format 2</u>:║"
+  },
+  {
+   "page": 684,
+   "sweep": "box-labels(PB6051 p354-1)",
+   "was": "<u>Format 1</u>:",
+   "now": "║<u>Format 1</u>:║"
+  },
+  {
+   "page": 289,
+   "sweep": "brace-column(PB6051 p213-1)",
+   "was": "identifier-1 IS [<u>NOT</u>]   ┤ <u>ALPHABETIC-LOWER</u> ├",
+   "now": "identifier-1 IS [<u>NOT</u>]    ┤ <u>ALPHABETIC-LOWER</u> ├"
   }
  ],
  "boxes": [
@@ -18783,6 +19263,18 @@
    ]
   },
   {
+   "page": 248,
+   "n": 727,
+   "region": "rule",
+   "where": "4.5.4 GR 4d, the new subitem 4, shaded by Amendment 2 row VI-16 (Errata, kb/Work PB5045)",
+   "certainty": "high",
+   "decision": "MARKED",
+   "blocks": 1,
+   "opens": [
+    "║4\\) If a character code set is being specified"
+   ]
+  },
+  {
    "page": 252,
    "n": 24,
    "region": "format",
@@ -18915,6 +19407,18 @@
    ]
   },
   {
+   "page": 258,
+   "n": 735,
+   "region": "label",
+   "where": "the format label Format 2: inside the box that encloses its format (pass 3 sibling sweep of p354-1)",
+   "certainty": "high",
+   "decision": "MARKED",
+   "blocks": 1,
+   "opens": [
+    "║<u>Format 2:</u>║"
+   ]
+  },
+  {
    "page": 259,
    "n": 36,
    "region": "rule",
@@ -18972,6 +19476,18 @@
    "blocks": 1,
    "opens": [
     "║or the subject of the RENAMES clause.║ In these cases the u"
+   ]
+  },
+  {
+   "page": 263,
+   "n": 728,
+   "region": "rule",
+   "where": "5.9.4 GR 8, symbol P, item c, shaded by Amendment 2 row VI-31 (Errata, kb/Work PB5045)",
+   "certainty": "high",
+   "decision": "MARKED",
+   "blocks": 1,
+   "opens": [
+    "║c. A MOVE statement where the sending operand is numeric edited"
    ]
   },
   {
@@ -19089,6 +19605,18 @@
    "blocks": 1,
    "opens": [
     "║The VALUE clause may be specified for condition-name entrie"
+   ]
+  },
+  {
+   "page": 280,
+   "n": 736,
+   "region": "label",
+   "where": "the format label Format 2: inside the box that encloses its format (pass 3 sibling sweep of p354-1)",
+   "certainty": "high",
+   "decision": "MARKED",
+   "blocks": 1,
+   "opens": [
+    "║<u>Format 2</u>:║"
    ]
   },
   {
@@ -19500,6 +20028,18 @@
    ]
   },
   {
+   "page": 303,
+   "n": 737,
+   "region": "label",
+   "where": "the format label Format 2: inside the box that encloses its format (pass 3 sibling sweep of p354-1)",
+   "certainty": "high",
+   "decision": "MARKED",
+   "blocks": 1,
+   "opens": [
+    "║<u>Format 2</u>:║"
+   ]
+  },
+  {
    "page": 304,
    "n": 86,
    "region": "rule",
@@ -19566,6 +20106,18 @@
    "blocks": 1,
    "opens": [
     "║In format 3, each identifier must refer to a group item.║"
+   ]
+  },
+  {
+   "page": 305,
+   "n": 738,
+   "region": "label",
+   "where": "the format label Format 3: inside the box that encloses its format (pass 3 sibling sweep of p354-1)",
+   "certainty": "high",
+   "decision": "MARKED",
+   "blocks": 1,
+   "opens": [
+    "║<u>Format 3</u>:║"
    ]
   },
   {
@@ -19893,6 +20445,19 @@
    ]
   },
   {
+   "page": 323,
+   "n": 729,
+   "region": "rule",
+   "where": "6.16.4 GR 3, second paragraph: the two phrases implicitly or, shaded by Amendment 2 row VI-91 (Errata C223, kb/Work PB5045)",
+   "certainty": "high",
+   "decision": "MARKED",
+   "blocks": 2,
+   "opens": [
+    "║implicitly or║ explicitly terminated. Any END-IF",
+    "║implicitly or║ explicitly terminated."
+   ]
+  },
+  {
    "page": 324,
    "n": 120,
    "region": "paragraph",
@@ -20217,6 +20782,18 @@
    ]
   },
   {
+   "page": 335,
+   "n": 739,
+   "region": "label",
+   "where": "the format label Format 2: inside the box that encloses its format (pass 3 sibling sweep of p354-1)",
+   "certainty": "high",
+   "decision": "MARKED",
+   "blocks": 1,
+   "opens": [
+    "║<u>Format 2</u>:║"
+   ]
+  },
+  {
    "page": 336,
    "n": 152,
    "region": "paragraph",
@@ -20454,10 +21031,13 @@
    "page": 351,
    "n": 172,
    "region": "other",
-   "where": "Figure 4: The VARYING option of a PERFORM statement with the TEST AFTER phrase having two conditions",
+   "where": "Figure 4 caption, inside the box that encloses the flowchart (pass 3, kb/Work PB6051 p351-1)",
    "certainty": "medium",
-   "decision": "NOT MARKED",
-   "reason": "a flowchart drawn as a diagram: it has no prose to mark"
+   "decision": "MARKED",
+   "blocks": 1,
+   "opens": [
+    "║Figure 4: The VARYING option of a PERFORM statement with the TEST AFTER phrase having two conditions║"
+   ]
   },
   {
    "page": 352,
@@ -20478,7 +21058,7 @@
    "where": "6.22 THE SEARCH STATEMENT",
    "certainty": "medium",
    "decision": "MARKED",
-   "blocks": 5,
+   "blocks": 6,
    "opens": [
     "║6.22 THE SEARCH STATEMENT║"
    ]
@@ -20520,6 +21100,18 @@
    ]
   },
   {
+   "page": 358,
+   "n": 734,
+   "region": "other",
+   "where": "Figure 1 caption and its two notes, inside the box that encloses the flowchart (pass 3, kb/Work PB6051 p358-1)",
+   "certainty": "high",
+   "decision": "MARKED",
+   "blocks": 3,
+   "opens": [
+    "║Figure 1: Format 1 SEARCH statement having two WHEN phrases║"
+   ]
+  },
+  {
    "page": 359,
    "n": 178,
    "region": "paragraph",
@@ -20550,6 +21142,18 @@
    "blocks": 1,
    "opens": [
     "║(6) Condition-name-1 must be associated with a conditional"
+   ]
+  },
+  {
+   "page": 359,
+   "n": 740,
+   "region": "label",
+   "where": "the format label Format 4: inside the box that encloses its format (pass 3 sibling sweep of p354-1)",
+   "certainty": "high",
+   "decision": "MARKED",
+   "blocks": 1,
+   "opens": [
+    "║<u>Format 4</u>:║"
    ]
   },
   {
@@ -21291,6 +21895,18 @@
    ]
   },
   {
+   "page": 404,
+   "n": 741,
+   "region": "label",
+   "where": "the format label Format 2: inside the box that encloses its format (pass 3 sibling sweep of p354-1)",
+   "certainty": "high",
+   "decision": "MARKED",
+   "blocks": 1,
+   "opens": [
+    "║<u>Format 2</u>:║"
+   ]
+  },
+  {
    "page": 405,
    "n": 246,
    "region": "rule",
@@ -21324,6 +21940,18 @@
    "blocks": 6,
    "opens": [
     "║b. If data-name-1 is not specified and the record does not"
+   ]
+  },
+  {
+   "page": 406,
+   "n": 730,
+   "region": "rule",
+   "where": "3.8.4 GR 10, the new last paragraph, shaded by Amendment 2 row VII-32 (Errata C250, kb/Work PB5045)",
+   "certainty": "high",
+   "decision": "MARKED",
+   "blocks": 1,
+   "opens": [
+    "║If the number of character positions in the logical record to be written"
    ]
   },
   {
@@ -23061,6 +23689,20 @@
    ]
   },
   {
+   "page": 474,
+   "n": 731,
+   "region": "rule",
+   "where": "1.3.4 item 3b, I-O status 22: its shaded words, as Amendment 2 row IX-4 rewrote the item (Errata C278, kb/Work PB5045)",
+   "certainty": "high",
+   "decision": "MARKED",
+   "blocks": 4,
+   "opens": [
+    "║either:║",
+    "║1)║ to write a record that would create a duplicate prime record key║; or║",
+    "║2) to write or rewrite a record that would create a duplicate alternate record key"
+   ]
+  },
+  {
    "page": 475,
    "n": 401,
    "region": "rule",
@@ -24252,6 +24894,19 @@
    ]
   },
   {
+   "page": 519,
+   "n": 723,
+   "region": "paragraph",
+   "where": "1.3.8 Scope of Names, second paragraph: 'either' and 'which contains ... that program', boxed by Amendment 1, Addendum 1, row X-5 (T) (Errata, kb/Work PB5045)",
+   "certainty": "high",
+   "decision": "MARKED",
+   "blocks": 2,
+   "opens": [
+    "║either║ in that program",
+    "║which contains a Configuration Section or in any program con"
+   ]
+  },
+  {
    "page": 520,
    "n": 504,
    "region": "paragraph",
@@ -24273,6 +24928,18 @@
    "blocks": 10,
    "opens": [
     "║A program cannot reference any condition-name, data-name, f"
+   ]
+  },
+  {
+   "page": 520,
+   "n": 724,
+   "region": "rule",
+   "where": "1.3.8.1 rule 3, boxed by Amendment 1, Addendum 1, row X-6 (T) (Errata, kb/Work PB5045)",
+   "certainty": "high",
+   "decision": "MARKED",
+   "blocks": 1,
+   "opens": [
+    "║except programs it directly or indirectly contains║"
    ]
   },
   {
@@ -24321,6 +24988,19 @@
    "blocks": 1,
    "opens": [
     "║(2) The first time the program is called after the executio"
+   ]
+  },
+  {
+   "page": 524,
+   "n": 725,
+   "region": "rule",
+   "where": "2.4.2 Programs in the Initial State, items 3 and 4, boxed by Amendment 1, Addendum 1, row X-10 (T) (Errata, kb/Work PB5045)",
+   "certainty": "high",
+   "decision": "MARKED",
+   "blocks": 2,
+   "opens": [
+    "║(3) Every time the program is called",
+    "║(4) The first time the program is called after the execution"
    ]
   },
   {
@@ -24492,6 +25172,19 @@
    "blocks": 1,
    "opens": [
     "║The EXTERNAL clause is presented on page X-23. The GLOBAL c"
+   ]
+  },
+  {
+   "page": 535,
+   "n": 726,
+   "region": "paragraph",
+   "where": "4.3.1 Function, 'or global names' and 'or external', boxed by Amendment 1, Addendum 1, row X-19 (T) (Errata, kb/Work PB5045)",
+   "certainty": "high",
+   "decision": "MARKED",
+   "blocks": 2,
+   "opens": [
+    "║or global names║",
+    "║or external║ attribute"
    ]
   },
   {
@@ -24912,6 +25605,18 @@
    "blocks": 1,
    "opens": [
     "║(3) Besides the actions specified in general rule 2, the ex"
+   ]
+  },
+  {
+   "page": 549,
+   "n": 732,
+   "region": "rule",
+   "where": "5.4.4 GR 4, the new rule, shaded by Amendment 2 row X-33 (Errata C291, kb/Work PB5045)",
+   "certainty": "high",
+   "decision": "MARKED",
+   "blocks": 1,
+   "opens": [
+    "║(4) An EXIT PROGRAM statement must not be executed while executing"
    ]
   },
   {
@@ -26031,6 +26736,18 @@
    ]
   },
   {
+   "page": 684,
+   "n": 742,
+   "region": "label",
+   "where": "the format label Format 1: inside the box that encloses its format (pass 3 sibling sweep of p354-1)",
+   "certainty": "high",
+   "decision": "MARKED",
+   "blocks": 1,
+   "opens": [
+    "║<u>Format 1</u>:║"
+   ]
+  },
+  {
    "page": 685,
    "n": 658,
    "region": "rule",
@@ -26628,6 +27345,19 @@
    ]
   },
   {
+   "page": 920,
+   "n": 733,
+   "region": "table",
+   "where": "Amendment 2 row VI-16: the shaded first-sentence quotation, the new sentence and the new subitem 4 (second pass, kb/Work PB6051 p920-1, p920-2)",
+   "certainty": "high",
+   "decision": "MARKED",
+   "blocks": 3,
+   "opens": [
+    "║If the THROUGH phrase is specified║",
+    "║4) If a character code set is being specified"
+   ]
+  },
+  {
    "page": 922,
    "n": 708,
    "region": "rule",
@@ -26793,145 +27523,6 @@
    "blocks": 1,
    "opens": [
     "║A comment line or blank line in source program text is not"
-   ]
-  },
-  {
-   "page": 519,
-   "n": 723,
-   "region": "paragraph",
-   "where": "1.3.8 Scope of Names, second paragraph: 'either' and 'which contains ... that program', boxed by Amendment 1, Addendum 1, row X-5 (T) (Errata, kb/Work PB5045)",
-   "certainty": "high",
-   "decision": "MARKED",
-   "blocks": 2,
-   "opens": [
-    "║either║ in that program",
-    "║which contains a Configuration Section or in any program con"
-   ]
-  },
-  {
-   "page": 520,
-   "n": 724,
-   "region": "rule",
-   "where": "1.3.8.1 rule 3, boxed by Amendment 1, Addendum 1, row X-6 (T) (Errata, kb/Work PB5045)",
-   "certainty": "high",
-   "decision": "MARKED",
-   "blocks": 1,
-   "opens": [
-    "║except programs it directly or indirectly contains║"
-   ]
-  },
-  {
-   "page": 524,
-   "n": 725,
-   "region": "rule",
-   "where": "2.4.2 Programs in the Initial State, items 3 and 4, boxed by Amendment 1, Addendum 1, row X-10 (T) (Errata, kb/Work PB5045)",
-   "certainty": "high",
-   "decision": "MARKED",
-   "blocks": 2,
-   "opens": [
-    "║(3) Every time the program is called",
-    "║(4) The first time the program is called after the execution"
-   ]
-  },
-  {
-   "page": 535,
-   "n": 726,
-   "region": "paragraph",
-   "where": "4.3.1 Function, 'or global names' and 'or external', boxed by Amendment 1, Addendum 1, row X-19 (T) (Errata, kb/Work PB5045)",
-   "certainty": "high",
-   "decision": "MARKED",
-   "blocks": 2,
-   "opens": [
-    "║or global names║",
-    "║or external║ attribute"
-   ]
-  },
-  {
-   "page": 248,
-   "n": 727,
-   "region": "rule",
-   "where": "4.5.4 GR 4d, the new subitem 4, shaded by Amendment 2 row VI-16 (Errata, kb/Work PB5045)",
-   "certainty": "high",
-   "decision": "MARKED",
-   "blocks": 1,
-   "opens": [
-    "║4\\) If a character code set is being specified"
-   ]
-  },
-  {
-   "page": 263,
-   "n": 728,
-   "region": "rule",
-   "where": "5.9.4 GR 8, symbol P, item c, shaded by Amendment 2 row VI-31 (Errata, kb/Work PB5045)",
-   "certainty": "high",
-   "decision": "MARKED",
-   "blocks": 1,
-   "opens": [
-    "║c. A MOVE statement where the sending operand is numeric edited"
-   ]
-  },
-  {
-   "page": 323,
-   "n": 729,
-   "region": "rule",
-   "where": "6.16.4 GR 3, second paragraph: the two phrases implicitly or, shaded by Amendment 2 row VI-91 (Errata C223, kb/Work PB5045)",
-   "certainty": "high",
-   "decision": "MARKED",
-   "blocks": 2,
-   "opens": [
-    "║implicitly or║ explicitly terminated. Any END-IF",
-    "║implicitly or║ explicitly terminated."
-   ]
-  },
-  {
-   "page": 406,
-   "n": 730,
-   "region": "rule",
-   "where": "3.8.4 GR 10, the new last paragraph, shaded by Amendment 2 row VII-32 (Errata C250, kb/Work PB5045)",
-   "certainty": "high",
-   "decision": "MARKED",
-   "blocks": 1,
-   "opens": [
-    "║If the number of character positions in the logical record to be written"
-   ]
-  },
-  {
-   "page": 474,
-   "n": 731,
-   "region": "rule",
-   "where": "1.3.4 item 3b, I-O status 22: its shaded words, as Amendment 2 row IX-4 rewrote the item (Errata C278, kb/Work PB5045)",
-   "certainty": "high",
-   "decision": "MARKED",
-   "blocks": 4,
-   "opens": [
-    "║either:║",
-    "║1)║ to write a record that would create a duplicate prime record key║; or║",
-    "║2) to write or rewrite a record that would create a duplicate alternate record key"
-   ]
-  },
-  {
-   "page": 549,
-   "n": 732,
-   "region": "rule",
-   "where": "5.4.4 GR 4, the new rule, shaded by Amendment 2 row X-33 (Errata C291, kb/Work PB5045)",
-   "certainty": "high",
-   "decision": "MARKED",
-   "blocks": 1,
-   "opens": [
-    "║(4) An EXIT PROGRAM statement must not be executed while executing"
-   ]
-  },
-  {
-   "page": 920,
-   "n": 733,
-   "region": "table",
-   "where": "Amendment 2 row VI-16: the shaded first-sentence quotation, the new sentence and the new subitem 4 (second pass, kb/Work PB6051 p920-1, p920-2)",
-   "certainty": "high",
-   "decision": "MARKED",
-   "blocks": 3,
-   "opens": [
-    "║If the THROUGH phrase is specified║",
-    "║4) If a character code set is being specified"
    ]
   }
  ]

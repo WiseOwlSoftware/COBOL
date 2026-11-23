@@ -1,139 +1,80 @@
 {
  "rule-id": "1985-FMT-VI.6.19.2",
- "rule-digest": "a867a75eedf0",
+ "rule-digest": "604910176708",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-002",
+  "pin": "218e1ac74d0dc24beff3046566e97dacb9fac671",
+  "slice": "1985-c08",
   "sources": {
-   "reader": "b0e6d8ba59e5e93a5a02cf4c1257b21348190cb94cafef1c08994c368f793594",
-   "refuter": "1b8643170d13b1e11aaae7e09151deeab16da3bcb67e4f2b7fcb310ee921d082"
+   "reader": "03d9d55a631e626129bdd24e51bfa00bab24636b10248fabe3fee0f6ab0c2b30",
+   "refuter": "c5717da7214e7837549c91a931e8948fccc142a4e906df49b7813ccca477da8f"
   },
   "imported": {
-   "reader": "b800234eb9b84261e421269421a5314ed6f3f3e917375c356b27854521353b52",
-   "refuter": "be2091a2265bbb7842a164ea21aa1ec8b5bb8f7373add3611d9401bfa15d8420"
+   "reader": "07887d925cd517be19fdb1fe62a5b8ed5324dc0f59b4bdcf00de3e16a1ec2a0f",
+   "refuter": "c990da9a8d0f41b808a5ecbda9043ed6724886548f83c7ad9a652674682ef377"
   }
  },
  "reader": {
   "rule-id": "1985-FMT-VI.6.19.2",
   "verdict": "CONFORMS",
-  "requirement": "At --std 85 the compiler must accept Format 1 MOVE {identifier-1 | literal-1} TO identifier-2 ... (one sending operand, which may be a figurative constant, ALL literal, reference-modified or subscripted identifier, or, under the intrinsic-function amendment, a function-identifier; one or more receiving identifiers) and Format 2 MOVE {CORRESPONDING | CORR} identifier-1 TO identifier-2 (exactly one receiver), and refuse every shape neither format prints, plus later-edition operand forms (hex, national literals, inline method invocation); the witness covers the format-shape refusals at the 2023 framing.",
+  "requirement": "At --std 85 the compiler must accept MOVE {identifier-1 | literal-1} TO {identifier-2} ... (Format 1) and MOVE {CORRESPONDING | CORR} identifier-1 TO identifier-2 (Format 2, a level-2 Nucleus element that a full-level implementation provides) and refuse every shape neither format prints; the witness covers the accepted shapes only.",
   "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#moveStatement; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#moveReceivingPhrase; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#sendingOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#Bind; src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs#GuessCobolIntent",
   "edition-consulted": [
    {
-    "site": "src/WiseOwl.Cobol.Frontend/Parsing/LiteralScreen.cs#Screen",
-    "switches": "hex alphanumeric literal X\"..\" and national literal N\"..\" (Constructs.HexAlphanumericLiteral2002 / NationalLiteral2002): COBOL0900 below 2002",
-    "same-arm-as-latest": false
-   },
-   {
-    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitInlineMethodInvocation",
-    "switches": "sendingOperand's inlineMethodInvocation alternative: COBOL0900 below 2002",
-    "same-arm-as-latest": false
-   },
-   {
-    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitFunctionCall",
-    "switches": "empty function argument list only (2002); a function-identifier sender itself is admitted at 85",
+    "site": "src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs#GuessCobolIntent",
+    "switches": "only the citation text of the COBOL2173 hint (EditionOf(recognizer).Cite: §1985:VI.6.19.2 vs ISO §2023:14.9.25.2)",
     "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Editions/ConstructRegistry.g.cs#inline-method-invocation-2002",
+    "switches": "refuses the inlineMethodInvocation alternative of sendingOperand before 2002 (COBOL0900)",
+    "same-arm-as-latest": false
    }
   ],
-  "edition-search": "grep Edition/CobolVersion/Constructs in MoveBinder.cs (only diagnostic sinks via ctx.Edition, no edition comparison); moveStatement/moveReceivingPhrase/sendingOperand carry no edition predicate; the gates are operand-level in LiteralScreen and VersionConformancePass.",
-  "behaviour-differs-by-edition": "yes: at 85 the sending-operand alternatives hex/national literal and inline method invocation are refused (COBOL0900); the two format shapes are parsed and bound by the same edition-free rules as at 2023.",
-  "witnesses-cover": "part: the witness pins the format shapes; the 85-only refusals of later operand forms and the multi-receiver/refmod/CORR run behaviour are not exercised by it",
+  "edition-search": "grep Edition|CobolVersion|Dialect|ConstructRegistry in MoveBinder.cs (only ctx.Edition diagnostic sinks and the FROM/INTO phrase arms, not the MOVE format path); the grammar rules carry no edition predicate; no subset-level (Nucleus level 1/2) switch exists anywhere in src (grep 'subset level|SubsetLevel|NucleusLevel').",
+  "behaviour-differs-by-edition": "no: both formats are the same at 1985 and 2023; only the inline-method-invocation sending operand (2002+) is gated off at 85.",
+  "witnesses-cover": "part: pb421 exercises the accepted spellings; the refusal half (CORRESPONDING after a sending operand, a second Format-2 receiver, missing TO, missing sending operand) and the 2002 inline-invocation operand are not exercised.",
   "probes": [
    {
-    "class": "d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/mv_arms.cob",
-    "printed": "1:HELLO:HELLO 2:XY   :XY    3:ABABA 4:00000:\"\"\"\"\" 5:- 12.5 6:  E  :000EL 7:ABC00110 8:ABC0011  9:ABC   10:H E  :0",
-    "expected": "multiple receivers with and without comma, literal, ALL literal, figurative ZERO/QUOTES, signed scaled to numeric-edited, refmod sender/receivers with a variable length, CORRESPONDING and CORR, function sender, receivers evaluated immediately before each move (GR2: TE(L) with L=1 before L is changed)"
-   },
-   {
-    "class": "a",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/mv_arms.cob",
-    "printed": "6:  E  :000EL",
-    "expected": "A(2:L) with L=3 is ELL; TE(3)=E; B(4:) receives EL"
+    "class": "a,d",
+    "file": "E:/COBOL-coord/scratch/md85-coderead/probes/src/c08m1.cob",
+    "printed": "B=ABAB C=ABAB / N=+000.0 / NE=- 12.5 / B=BCDB / V=QRS / G2=123XYZ / G2=123XYZ (ALL literal to two receivers, figurative ZERO, signed and edited, refmod both sides, ODO group receiver, MOVE CORRESPONDING and CORR); the two lines that differed from my expected file were slips in that file (DISPLAY of a signed V9 item, fixed-insertion minus), the printed values are the rule's result",
+    "expected": "Format 1 and Format 2 accepted and executed"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/mv_r_nosend.cob",
-    "printed": "error COBOL5506: The word TO is not expected here",
+    "file": "E:/COBOL-coord/scratch/md85-coderead/probes/src/c08m2.cob",
+    "printed": "error COBOL2173: unexpected 'CORRESPONDING' ... no format admits a CORRESPONDING phrase after a sending operand (§1985:VI.6.19.2)",
     "expected": "refused"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/mv_r_noto.cob",
-    "printed": "error COBOL5506: expected TO",
+    "file": "E:/COBOL-coord/scratch/md85-coderead/probes/src/c08m3.cob",
+    "printed": "error COBOL0307: unexpected 'G3'. A period may be missing at the end of the previous sentence.",
+    "expected": "refused (Format 2 prints one identifier-2)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/md85-coderead/probes/src/c08m4.cob",
+    "printed": "error COBOL5506: missing token before 'B' ... expected TO (§1985:IV.2.1)",
     "expected": "refused"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/mv_r_norecv.cob",
-    "printed": "error COBOL0001: unexpected '.'",
-    "expected": "refused"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/mv_r_twosend.cob",
-    "printed": "error COBOL5506: The alphanumeric literal \"X\" is not expected here: expected TO",
-    "expected": "refused: one sending operand"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/mv_r_litrecv.cob",
-    "printed": "error COBOL5506: no literal is expected at this position",
-    "expected": "refused: receiver is identifier-2"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/mv_r_corr2recv.cob",
-    "printed": "error COBOL0307: unexpected 'B'",
-    "expected": "refused: Format 2 has one identifier-2"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/mv_r_corrlit.cob",
-    "printed": "error COBOL5506: no literal is expected at this position",
-    "expected": "refused"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/mv_r_corrfig.cob",
-    "printed": "error COBOL5506: The word ZERO is not expected here",
-    "expected": "refused"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/mv_r_sendcorr.cob",
-    "printed": "error COBOL2173: unexpected 'CORR'. Both general formats of the MOVE statement put the whole sending specification directly after the verb",
-    "expected": "refused"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/mv_r_corrnoto.cob",
-    "printed": "error COBOL5506: expected TO",
+    "file": "E:/COBOL-coord/scratch/md85-coderead/probes/src/c08m6.cob",
+    "printed": "error COBOL5506: cannot parse construct near 'TO' ... expected a user-defined word, CORR, CORRESPONDING, ... or a literal",
     "expected": "refused"
    },
    {
     "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/mv_r_hex.cob",
-    "printed": "error COBOL0900: the hexadecimal alphanumeric literal X\"...\" requires COBOL-2002 (targeting COBOL-85)",
-    "expected": "refused: 1985 literal-1 is nonnumeric or numeric"
+    "file": "E:/COBOL-coord/scratch/md85-coderead/probes/src/c08m5.cob",
+    "printed": "error COBOL0900: in-line method invocation id :: \"method\" requires COBOL-2002 (targeting COBOL-85); also COBOL0900 USAGE OBJECT REFERENCE",
+    "expected": "refused at 85 (no such operand in the 1985 formats)"
    },
    {
-    "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/mv_r_natlit.cob",
-    "printed": "error COBOL0900: the national literal N\"...\" requires COBOL-2002 (plus COBOL0819)",
-    "expected": "refused"
-   },
-   {
-    "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/mv_r_inlinemeth.cob",
-    "printed": "error COBOL0900: in-line method invocation id :: \"method\" requires COBOL-2002 (plus COBOL0900 on USAGE OBJECT REFERENCE)",
-    "expected": "refused"
-   },
-   {
-    "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/mv_r_lengthof.cob",
-    "printed": "error COBOL5506: cannot parse construct near 'OF'",
-    "expected": "refused: no LENGTH OF special register in 1985"
+    "class": "witness",
+    "file": "E:/COBOL-wt/md85-pass3/conformance-suite/cases/14.9.25-MOVE/pb421_move_general_formats.cob",
+    "printed": "EXPECT: MATCH",
+    "expected": "the .out"
    }
   ],
   "citations": [
@@ -144,13 +85,9 @@
    {
     "cite": "§1985:VI.6.19.3 SR3",
     "check": "OK  §1985:VI.6.19.3 SR3  (6.19.3 Syntax Rules)  the text is in SR3"
-   },
-   {
-    "cite": "§1985:VI.6.19.4 GR2",
-    "check": "OK  §1985:VI.6.19.4 GR2  (6.19.4 General Rules)  the text is in GR2"
    }
   ],
-  "notes": "Both 1985 formats are spelled by one edition-free grammar rule and MoveBinder.Bind; every shape outside them is refused at parse time with a named diagnostic, and the post-1985 sending-operand forms are refused at 85 by operand-level construct gates. Run results of every arm, including CORR and GR2's per-receiver evaluation, match the text.",
+  "notes": "The grammar spells exactly the two printed formats (one alternative each) and the error strategy names the one tempting non-format shape. The level-2 box on Format 2 marks a Nucleus level-2 element, not an edition difference; the compiler implements the full level and has no subset mode, so acceptance at 85 is right. The second-receiver refusal (c08m3) carries a generic missing-period message, a weak diagnosis but still a compile-time refusal.",
   "seeded": true,
   "harm": "",
   "cause": "",
@@ -164,8 +101,10 @@
   "rule-id": "1985-FMT-VI.6.19.2",
   "refutation": "UPHELD",
   "classes": "b,c,d",
-  "evidence": "Read §1985:VI.6.19, the figurative-constant definition (ALL literal: 'The literal must be a nonnumeric literal') and §1985:IV.4.3.8.3.3 (function-identifier). Probes at --std 85 under E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-002/: mv_allnum (MOVE ALL 12) refused COBOL5506; mv_float (1.5E3) refused COBOL0900; mv_bool (B\"1\") refused COBOL0900; mv_z (Z\"AB\") refused; mv_allhex (ALL X\"41\") refused COBOL0900; mv_funcrecv (function as receiver) refused; mv_nested (MOVE FUNCTION LENGTH(X) TO N) refused COBOL0900, correct per SR4; mv_concat (&) refused COBOL0900; mv_symb (NULL) refused; mv_allfig (MOVE ALL ZERO TO X, MOVE ALL \"AB\" TO N, the 1985 obsolete-but-legal form) compiled and printed 000000:ABABAB; mv_space2 (comma-separated receivers) printed AB    :000000. cite.py: OK §1985:IV.4.3.8.3.3 SR4 'may be used only in an arithmetic expression'. No 85-legal sender refused and no later-edition sender admitted.",
-  "edition-sites-missed": [],
+  "evidence": "Probes at --std 85 under E:/COBOL-coord/scratch/md85-coderead/probes-refute/src (runs under ../runs). Class c (later-edition literal forms Format 1's literal-1 must not admit at 1985): RM01 MOVE X\"41\" -> COBOL0900 hexadecimal literal requires COBOL-2002; RM02 MOVE N\"AB\" -> COBOL0900 national literal; RM06 MOVE 1.5E3 -> COBOL0900 floating-point literal; RM07 MOVE B\"1\" -> COBOL0900 boolean literal. Class c accept half (Amendment 1 applied in place): RM05 MOVE FUNCTION UPPER-CASE(\"ab\") TO B runs, prints 'AB  '. Class b: RM03 MOVE CORR \"PQ\" TO G2 -> COBOL5506 no literal expected; RM04 MOVE A TO \"LIT\" -> COBOL5506; RM08 MOVE A TO FUNCTION UPPER-CASE(B) -> COBOL5506; RM10 MOVE CORRESPONDING G1 TO G2 B -> COBOL0307; RM12 MOVE A TO. -> COBOL0001; RM13 MOVE A B TO G2 -> COBOL5506 expected TO; RM14 MOVE CORR G1 G2 TO G2 -> COBOL5506 expected TO. Class d accept: RM09 MOVE A TO B, G2 N (comma separators, three receivers) prints ABCDAB; RM11 MOVE ALL \"XY\" / HIGH-VALUE prints XYXY. cite.py: OK §1985:VI.6.19.3 SR1 'The data item referenced by identifier-2 represents the receiving area'; OK §1985:VI.6.19.3 SR3 'When the CORRESPONDING phrase is used, all identifiers must be group items'. (A diagram quotation of VI.6.19.2 fails cite.py on its <u> markup; the reader's clause-level check stands.) No form the two formats print is refused and no form outside them compiles.",
+  "edition-sites-missed": [
+   "literal lexing/edition gate emitting COBOL0900 for X/N/B/floating literals: an edition consultation on the sending-operand path the reader's edition-consulted list omits; it takes the correct 1985 arm (refuse)"
+  ],
   "corrected": ""
  }
 }

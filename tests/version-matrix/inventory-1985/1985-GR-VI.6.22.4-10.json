@@ -1,6 +1,6 @@
 {
  "rule-id": "1985-GR-VI.6.22.4-10",
- "rule-digest": "70c6aa1452d3",
+ "rule-digest": "a269f808e17f",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SearchBinder.cs#BindSearch; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitSearchScan; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitSerialScan; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitSearchWhens; src/WiseOwl.Cobol.Runtime/Control/DialectBehavior.cs#SearchIndexBelowTableUnsuccessful",
  "test-ref": "conformance:cases/VI.6.22@1985-SEARCH-STATEMENT/1985-GR-VI_6_22_4-10",

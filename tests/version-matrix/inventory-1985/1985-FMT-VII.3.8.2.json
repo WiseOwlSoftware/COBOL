@@ -1,6 +1,6 @@
 {
  "rule-id": "1985-FMT-VII.3.8.2",
- "rule-digest": "04ffdc38ecdc",
+ "rule-digest": "2fb61cb1ec0b",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#recordClause; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRecordClause; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindRecordClause; src/WiseOwl.Cobol.Compiler/Binding/RecordClauseRules.cs#Screen; src/WiseOwl.Cobol.Compiler/Binding/RecordClauseRules.cs#AppliesAt; src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs#RecordClause; src/WiseOwl.Cobol.Compiler/Validation/ClosedFormatPass.cs#ScreenClauseRepetition",
  "test-ref": "conformance:cases/VII.3.8@1985-RECORD-CLAUSE/1985-FMT-VII_3_8_2",
