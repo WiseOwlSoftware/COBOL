@@ -339,7 +339,7 @@ public static partial class CobolNum
     }
 
     /// <summary>The unsigned BinaryCapacity receiver's stored value for an in-range input: the magnitude
-    /// (§2023:14.9.25.4 GR6b) as the container's bits in the <see cref="Int128"/> carrier. A magnitude of 2^127
+    /// (§2023:14.9.25.4 GR6d.2.b) as the container's bits in the <see cref="Int128"/> carrier. A magnitude of 2^127
     /// (only <see cref="Int128.MinValue"/> has it) is its own bit pattern, which the 16-byte tier's
     /// <c>unchecked((UInt128))</c> store reinterprets exactly (kb/Work R10); every narrower container's
     /// magnitude is below 2^120 and converts unchanged.</summary>
@@ -554,12 +554,8 @@ public static partial class CobolNum
 
     /// <summary>The unsigned-wide sibling of <see cref="FormatUnsignedDisplay(Int128, int)"/> (distinctly
     /// named — see <see cref="FormatDisplayU"/>).</summary>
-    public static string FormatUnsignedDisplayU(UInt128 value, int digits)
-    {
-        if (digits <= 0) return "";
-        UInt128 v = value % Pow10U(digits);
-        return v.ToString(CultureInfo.InvariantCulture).PadLeft(digits, '0');
-    }
+    public static string FormatUnsignedDisplayU(UInt128 value, int digits) =>
+        digits <= 0 ? "" : string.Create(digits, value % Pow10U(digits), static (image, m) => WriteDigits(image, m));
 
     /// <summary>Rescale an unsigned wide unscaled value between fraction scales. Narrowing divides with the
     /// rounding <paramref name="mode"/> (the shared generic <see cref="RoundDiv{T}"/> kernel). Widening multiplies
@@ -848,11 +844,10 @@ public static partial class CobolNum
     /// zero-padded magnitude digits, and for a signed item the sign fused onto the last digit as a DISPLAY item of the same picture
     /// holds it (the S is "not counted in determining the size", §1985:VI.5.9.4 GR8d, so no character is added for it, unlike
     /// <see cref="FormatDisplay(Int128, in NumProfile)"/> whose binary sign is a leading minus).</summary>
-    public static string FormatStandardData(Int128 unscaled, in NumProfile item)
-    {
-        string mag = FormatUnsignedDisplay(unscaled, item.Digits);
-        return item.Signed ? Overpunch(mag, mag.Length - 1, unscaled < 0, item.SignEncoding) : mag;
-    }
+    public static string FormatStandardData(Int128 unscaled, in NumProfile item) =>
+        item.Signed
+            ? FormatZoned(unscaled, unscaled < 0, item.Digits, NumericSign.TrailingOverpunch, item.SignEncoding)
+            : FormatUnsignedDisplay(unscaled, item.Digits);
 
     /// <summary>Storage-form bridge (the <c>CobolPosition&lt;PositionUse.Subscript&gt;.Read</c> pattern): a numeric-DISPLAY field whose backing the
     /// post-bind whole-group analysis turned into its character IMAGE is already display-formatted — pass through.
@@ -905,41 +900,96 @@ public static partial class CobolNum
 
     /// <summary>The signed DISPLAY image with the sign given APART from the magnitude — the only way to write a
     /// NEGATIVE ZERO, which a value cannot be (<see cref="RetainSign"/>).</summary>
-    private static string FormatDisplaySigned(Int128 unscaled, bool neg, in NumProfile receiver)
+    private static string FormatDisplaySigned(Int128 unscaled, bool neg, in NumProfile receiver) =>
+        FormatZoned(unscaled, neg, receiver.Digits, receiver.SignKind, receiver.SignEncoding);
+
+    // ── THE ONE ZONED IMAGE WRITER (kb/Work PB2656) ──────────────────────────────────────────────────────────────
+    //
+    // Every DISPLAY image of a fixed-point value (unsigned, over-punched, separate-signed or binary-minus, and the
+    // STANDARD DATA FORMAT image SEND counts) is ONE string written in place: the low digits straight into the
+    // result (WriteDigits), the sign fused onto a digit position or written into its own position. Before it the
+    // writer formatted the magnitude (ToString), padded it (PadLeft) and then rebuilt the whole string to place the
+    // sign: two substrings and a concatenation for an over-punch, which under the default SignEncoding.Ibm is EVERY
+    // signed image, positive or not, because the IBM positive table is not the plain digits. The R2 performance
+    // review measured it on the MOVEHOT hot path (FormatImage twice per pass); the image characters are unchanged.
+
+    /// <summary>The zoned image of <paramref name="unscaled"/>'s low <paramref name="digits"/> digits carrying the
+    /// sign <paramref name="neg"/> under <paramref name="kind"/>: a trailing or leading over-punch through the
+    /// program's <see cref="ZonedSign"/> tables (§2023:13.18.52.4 GR4 / GR5, Annex A.1 item 177; the convention is
+    /// <paramref name="encoding"/>, kb/Work PB803), a trailing or leading separate <c>+</c>/<c>-</c> (always
+    /// present), or a leading <c>-</c> only when negative (<see cref="NumericSign.BinaryMinus"/>). A picture with no
+    /// digit positions has nothing to punch: its over-punched image is empty.</summary>
+    private static string FormatZoned(Int128 unscaled, bool neg, int digits, NumericSign kind, SignEncoding encoding)
     {
-        string mag = FormatUnsignedDisplay(unscaled, receiver.Digits);
-        return receiver.SignKind switch
+        if (digits < 0) digits = 0;
+        int length = kind switch
         {
-            NumericSign.BinaryMinus => neg ? "-" + mag : mag,
-            NumericSign.LeadingSeparate => (neg ? "-" : "+") + mag,
-            NumericSign.TrailingSeparate => mag + (neg ? "-" : "+"),
-            NumericSign.LeadingOverpunch => Overpunch(mag, 0, neg, receiver.SignEncoding),
-            _ => Overpunch(mag, mag.Length - 1, neg, receiver.SignEncoding),   // TrailingOverpunch (the default)
+            NumericSign.LeadingSeparate or NumericSign.TrailingSeparate => digits + 1,
+            NumericSign.BinaryMinus => neg ? digits + 1 : digits,
+            _ => digits,
         };
+        if (length == 0) return "";
+        return string.Create(length, (Magnitude: LowDigits(unscaled, digits), Neg: neg, Kind: kind, Encoding: encoding),
+            static (image, z) =>
+            {
+                switch (z.Kind)
+                {
+                    case NumericSign.LeadingSeparate:
+                        image[0] = z.Neg ? '-' : '+';
+                        WriteDigits(image[1..], z.Magnitude);
+                        break;
+                    case NumericSign.TrailingSeparate:
+                        WriteDigits(image[..^1], z.Magnitude);
+                        image[^1] = z.Neg ? '-' : '+';
+                        break;
+                    case NumericSign.BinaryMinus:
+                        if (z.Neg) image[0] = '-';
+                        WriteDigits(z.Neg ? image[1..] : image, z.Magnitude);
+                        break;
+                    case NumericSign.LeadingOverpunch:
+                        WriteDigits(image, z.Magnitude);
+                        image[0] = ZonedSign.Punch(z.Encoding, image[0] - '0', z.Neg);
+                        break;
+                    default:   // TrailingOverpunch (the no-SIGN-clause default)
+                        WriteDigits(image, z.Magnitude);
+                        image[^1] = ZonedSign.Punch(z.Encoding, image[^1] - '0', z.Neg);
+                        break;
+                }
+            });
     }
 
-    /// <summary>Replace the digit at <paramref name="pos"/> of <paramref name="mag"/> with its signed over-punch
-    /// under <paramref name="encoding"/> — the program's §2023:13.18.52.4 GR4/GR5 convention (kb/Work PB803).</summary>
-    private static string Overpunch(string mag, int pos, bool negative, SignEncoding encoding)
+    /// <summary>The magnitude of <paramref name="value"/>'s low <paramref name="digits"/> decimal digits: the part of
+    /// a value that a picture of that many digit positions holds.</summary>
+    private static UInt128 LowDigits(Int128 value, int digits)
     {
-        if (pos < 0 || pos >= mag.Length) return mag;   // no digit positions (Digits == 0)
-        int v = mag[pos] - '0';
-        if ((uint)v > 9) return mag;
-        char op = ZonedSign.Punch(encoding, v, negative);
-        // The ASCII convention's POSITIVE table is the plain digits, so the punch is the character already there —
-        // return the string unchanged rather than rebuilding it (the +ve DISPLAY path is the common one).
-        return op == mag[pos] ? mag : mag[..pos] + op + mag[(pos + 1)..];
+        if (digits <= 0) return 0;
+        Int128 v = value % Pow10Wide(digits);
+        return (UInt128)(v < 0 ? -v : v);
+    }
+
+    /// <summary>Write <paramref name="magnitude"/> (below 10^<c>digits.Length</c>) into <paramref name="digits"/> as
+    /// its zero-padded decimal digits, most significant first: the one place a DISPLAY image's digit run is laid
+    /// out. The 128-bit division runs only while the magnitude is past the 64-bit range.</summary>
+    private static void WriteDigits(Span<char> digits, UInt128 magnitude)
+    {
+        int i = digits.Length - 1;
+        for (; i >= 0 && magnitude > ulong.MaxValue; i--)
+        {
+            digits[i] = (char)('0' + (int)(magnitude % 10));
+            magnitude /= 10;
+        }
+        ulong m = (ulong)magnitude;
+        for (; i >= 0; i--)
+        {
+            digits[i] = (char)('0' + (int)(m % 10));
+            m /= 10;
+        }
     }
 
     /// <summary>The DISPLAY image of an unsigned integer with <paramref name="digits"/> digit positions: the
     /// magnitude's low <paramref name="digits"/> digits, zero-padded.</summary>
-    public static string FormatUnsignedDisplay(Int128 value, int digits)
-    {
-        if (digits <= 0) return "";
-        Int128 v = value % Pow10Wide(digits);
-        string s = (v < 0 ? -v : v).ToString(CultureInfo.InvariantCulture);
-        return s.PadLeft(digits, '0');
-    }
+    public static string FormatUnsignedDisplay(Int128 value, int digits) =>
+        digits <= 0 ? "" : string.Create(digits, LowDigits(value, digits), static (image, m) => WriteDigits(image, m));
 
     /// <summary>
     /// ⛔ THE TEXT IMAGE OF AN INTRINSIC FUNCTION'S RETURNED VALUE (DA2). A function's value lives in a
@@ -1074,9 +1124,13 @@ public static partial class CobolNum
     /// <remarks>The span overload is the core, so <see cref="FromAlphanumeric"/>'s 31-position window costs no
     /// allocation — it slices rather than substrings. The emitted C# always passes a <c>string</c> and binds to
     /// the overload above.</remarks>
-    public static Int128 DigitMagnitude(ReadOnlySpan<char> image)
+    public static Int128 DigitMagnitude(ReadOnlySpan<char> image) => DigitMagnitude(0, image);
+
+    /// <summary>The scan of <see cref="DigitMagnitude(ReadOnlySpan{char})"/> continuing from the digits already read,
+    /// <paramref name="leading"/>: the leading over-punch decode seeds it with the punched first digit.</summary>
+    private static Int128 DigitMagnitude(Int128 leading, ReadOnlySpan<char> image)
     {
-        Int128 mag = 0;
+        Int128 mag = leading;
         foreach (char c in image)
             if (c is >= '0' and <= '9') mag = mag * 10 + (c - '0');
         return mag;
@@ -1170,57 +1224,38 @@ public static partial class CobolNum
     public static string RetainSign(string digits, string current, in NumProfile receiver) =>
         FormatDisplaySigned(DigitMagnitude(digits), ImageIsNegative(current, receiver), receiver);
 
-    /// <summary>The magnitude half of <see cref="ParseDisplay"/>, with the decoded sign returned apart from it.</summary>
+    /// <summary>The magnitude half of <see cref="ParseDisplay"/>, with the decoded sign returned apart from it.
+    /// <para>It reads the image in place (kb/Work PB2656): the digit scan is
+    /// <see cref="DigitMagnitude(ReadOnlySpan{char})"/>'s, and only the sign carrier is read apart from it. A separate
+    /// sign or a binary minus is not a digit, so the scan passes over it. An over-punched position decodes through
+    /// <paramref name="receiver"/>'s <see cref="ZonedSign"/> tables (kb/Work PB803, the program's §2023:13.18.52.4 GR5b
+    /// sign set) to its digit, which takes that position in the magnitude; a character in neither table (a plain digit
+    /// under the IBM convention, or incompatible content, §2023:14.6.13.2) is scanned as it stands and the sign stays
+    /// positive.</para></summary>
     private static Int128 ParseDisplayMagnitude(string image, in NumProfile receiver, out bool negative)
     {
         negative = false;
         if (string.IsNullOrEmpty(image)) return 0;
-        var chars = image.ToCharArray();   // a mutable copy so a sign carrier can be reduced to its digit
+        ReadOnlySpan<char> s = image;
+        if (!receiver.Signed) return DigitMagnitude(s);
 
-        if (receiver.Signed)
+        switch (receiver.SignKind)
         {
-            switch (receiver.SignKind)
-            {
-                case NumericSign.LeadingSeparate:
-                    negative = chars[0] == '-';
-                    if (chars[0] is '-' or '+') chars[0] = ' ';
-                    break;
-                case NumericSign.TrailingSeparate:
-                    negative = chars[^1] == '-';
-                    if (chars[^1] is '-' or '+') chars[^1] = ' ';
-                    break;
-                case NumericSign.BinaryMinus:
-                    negative = chars[0] == '-';
-                    if (chars[0] == '-') chars[0] = ' ';
-                    break;
-                case NumericSign.LeadingOverpunch:
-                    DecodeOverpunch(chars, 0, ref negative, receiver.SignEncoding);
-                    break;
-                default:   // TrailingOverpunch (the no-SIGN-clause default)
-                    DecodeOverpunch(chars, chars.Length - 1, ref negative, receiver.SignEncoding);
-                    break;
-            }
-        }
-
-        Int128 mag = 0;
-        foreach (char c in chars)
-            if (c is >= '0' and <= '9')
-                mag = mag * 10 + (c - '0');
-        return mag;
-    }
-
-    /// <summary>Reduce the over-punch character at <paramref name="pos"/> (in place) to its underlying digit, setting
-    /// <paramref name="negative"/> when the punch is in <paramref name="encoding"/>'s NEGATIVE table (kb/Work PB803 —
-    /// the program's §2023:13.18.52.4 GR5b sign set, <see cref="ZonedSign"/>). A character in neither table — a plain
-    /// digit under the IBM convention, or genuinely incompatible content (§2023:14.6.13.2) — is left as-is and the sign
-    /// stays positive.</summary>
-    private static void DecodeOverpunch(char[] chars, int pos, ref bool negative, SignEncoding encoding)
-    {
-        if (pos < 0 || pos >= chars.Length) return;
-        if (ZonedSign.TryUnpunch(encoding, chars[pos], out int digit, out bool neg))
-        {
-            chars[pos] = (char)('0' + digit);
-            negative = neg;
+            case NumericSign.LeadingSeparate:
+            case NumericSign.BinaryMinus:
+                negative = s[0] == '-';
+                return DigitMagnitude(s);
+            case NumericSign.TrailingSeparate:
+                negative = s[^1] == '-';
+                return DigitMagnitude(s);
+            case NumericSign.LeadingOverpunch:
+                return ZonedSign.TryUnpunch(receiver.SignEncoding, s[0], out int first, out negative)
+                    ? DigitMagnitude(first, s[1..])
+                    : DigitMagnitude(s);
+            default:   // TrailingOverpunch (the no-SIGN-clause default)
+                return ZonedSign.TryUnpunch(receiver.SignEncoding, s[^1], out int last, out negative)
+                    ? DigitMagnitude(s[..^1]) * 10 + last
+                    : DigitMagnitude(s);
         }
     }
 
