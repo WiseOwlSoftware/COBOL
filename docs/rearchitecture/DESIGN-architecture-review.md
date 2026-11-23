@@ -2218,7 +2218,7 @@ field or property, never a string, is a table's rows; a get-only `*Count` whose 
 `*Count` of its own type's field or property is its size; an instance collection, a counter field and a computed count
 stay `test-only` for (b) and (c); `ArchCensus --self-test` pins each arm on planted source, and the census runs it
 before it measures); (b) **a seam that exists for
-observation** (`ResetForTests`, `ClearCache`, `HostConfiguration`) moves to the test project as a helper over product
+observation** (`ResetForTests`, `ClearCache`; `RunUnit.HostConfiguration`, once one, is today a static table of member names and so item (a)) moves to the test project as a helper over product
 state where the product allows it, and is otherwise renamed to say it is a seam; (c) **the rest is dead product code a
 test keeps alive** and is deleted with the tests that test only it, as the findings' own target says. R2's Opus
 reviewer applies the rule; a Sonnet wave executes (c).
