@@ -63,7 +63,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
         bool previous = r.readDirection()?.PREVIOUS() is not null;
         // READ PREVIOUS (§2023:14.9.30 Format 1) is a COBOL-2002 introduction; the edition gate lives in the
         // VersionConformancePass PARSE arm (VisitReadDirection), firing on the printed phrase, not on this
-        // binder's IBoundRead.Kind — which a refused READ never reaches (kb/Work PB353).
+        // binder's BoundKeyedRead.Kind — which a refused READ never reaches (kb/Work PB353).
 
         // §2023:14.9.30.3 SR6 — the ONE check, shared with the sequential arm (kb/Work PB334). Gated through the ONE
         // severity seam (kb/Work PB144): an error under strict, a warning under --permissive with the bind

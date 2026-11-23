@@ -506,23 +506,21 @@ internal sealed class ResolveRedefinesPass : IBindPass
         }
 
         // SR3 — "Data-name-1, data-name-2 and data-name-3 shall not be subject to any OCCURS clauses": the operand's
-        // own OCCURS or any ancestor's.
-        for (var n = operand; n is not null; n = n.Parent)
-            if (n.IsTable)
-            {
-                binder.Edition.Error(DiagnosticCatalog.RenamesEntryRule,
-                    $"'{alias}' RENAMES: {role} '{op}' is subject to an OCCURS clause"
-                    + (ReferenceEquals(n, operand) ? "" : $" (of '{n.CobolName ?? "FILLER"}')")
-                    + " " + binder.Edition.Edition.Cite(
-                        "(§1985:VI.5.11.3 SR3: \"Neither data-name-2 nor data-name-3 may have an OCCURS clause in its data description entry nor be subordinate to an item that has an OCCURS clause in its data description entry.\")",
-                        "(ISO §2023:13.18.45.3 SR3: \"Data-name-1, data-name-2 and data-name-3 shall not be subject to any OCCURS clauses.\")",
-                        y2002: "(ISO §2002:13.16.43.2 SR3: \"Neither data-name-2 nor data-name-3 may have an OCCURS clause in its data description entry "
-                        + "nor be subordinate to an item that has an OCCURS clause in its data description entry.\")",
-                        y2014: "(ISO §2014:13.18.45.2 SR3: \"Neither data-name-2 nor data-name-3 may have an OCCURS clause in its data description entry "
-                        + "nor be subordinate to an item that has an OCCURS clause in its data description entry.\")"));
-                ok = false;
-                break;
-            }
+        // own OCCURS or any ancestor's (RecordLayout.OccursSubjectOf, the one "subject to an OCCURS clause" question; kb/Work PB3217).
+        if (RecordLayout.OccursSubjectOf(operand) is { } n)
+        {
+            binder.Edition.Error(DiagnosticCatalog.RenamesEntryRule,
+                $"'{alias}' RENAMES: {role} '{op}' is subject to an OCCURS clause"
+                + (ReferenceEquals(n, operand) ? "" : $" (of '{n.CobolName ?? "FILLER"}')")
+                + " " + binder.Edition.Edition.Cite(
+                    "(§1985:VI.5.11.3 SR3: \"Neither data-name-2 nor data-name-3 may have an OCCURS clause in its data description entry nor be subordinate to an item that has an OCCURS clause in its data description entry.\")",
+                    "(ISO §2023:13.18.45.3 SR3: \"Data-name-1, data-name-2 and data-name-3 shall not be subject to any OCCURS clauses.\")",
+                    y2002: "(ISO §2002:13.16.43.2 SR3: \"Neither data-name-2 nor data-name-3 may have an OCCURS clause in its data description entry "
+                    + "nor be subordinate to an item that has an OCCURS clause in its data description entry.\")",
+                    y2014: "(ISO §2014:13.18.45.2 SR3: \"Neither data-name-2 nor data-name-3 may have an OCCURS clause in its data description entry "
+                    + "nor be subordinate to an item that has an OCCURS clause in its data description entry.\")"));
+            ok = false;
+        }
 
         // SR6 — no operand within a CONSTANT RECORD: the alias would be a modifiable name for constant content.
         if (binder.IsConstantRecordItem(operand))

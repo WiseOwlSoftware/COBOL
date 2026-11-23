@@ -2,7 +2,7 @@
  "rule-id": "2002-SR-14.8.13.2-9",
  "rule-digest": "becfa137b0b3",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/UdfBinder.cs#UdfBindExitFunction",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindExitFunction",
  "test-ref": "conformance:cases/14.8.13@2002-EXIT-STATEMENT/g2_exit_function_ends_function; conformance:cases/14.8.13@2002-EXIT-STATEMENT/g2-exit-function-in-program",
- "notes": "§2002:14.8.13.2 SR9: EXIT FUNCTION is accepted in a function procedure division and ends the function with its RETURNING value (§2002:14.8.13.3 GR8: R=GOOD, AFTER-FUNCTION); in a program it is refused (COBOL0827). Matched at --std 2002 with the pinned build of dc1f2dcce8."
+ "notes": "§2002:14.8.13.2 SR9: EXIT FUNCTION is accepted in a function procedure division and ends the function with its RETURNING value (§2002:14.8.13.3 GR8: R=GOOD, AFTER-FUNCTION); in a program it is refused (COBOL0827). Matched at --std 2002 with the pinned build of dc1f2dcce8. retired-witness: src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/UdfBinder.cs#UdfBindExitFunction (kb/Work PB3223: the operand-evaluation window (mark, drain, stamp, hoist, per-evaluation attach) moved out of UdfBinder into OperandEvaluationWindow, and EXIT FUNCTION moved to ControlFlowBinder with the EXIT family)"
 }

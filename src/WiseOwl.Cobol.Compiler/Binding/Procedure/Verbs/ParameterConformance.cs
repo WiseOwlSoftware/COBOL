@@ -119,6 +119,14 @@ internal readonly record struct BitAlignmentRule(string Clause, string Alignment
 /// </summary>
 internal sealed class ParameterConformance(BinderContext ctx, StatementBinder host)
 {
+    /// <summary>⛔ THE ONE STATEMENT OF §2023:14.8.2.1's COUNT RULE, for every activation that knows its callee's formals (CALL, INVOKE,
+    /// a function-identifier; kb/Work PB3227): "The number of arguments in the activating element shall be equal to the number of
+    /// formal parameters in the activated element, with the exception of trailing formal parameters that are specified with an
+    /// OPTIONAL phrase in the procedure division header of the activated element and omitted from the list of arguments." True when
+    /// <paramref name="count"/> arguments conform to <paramref name="formals"/>, each of which <paramref name="optional"/> asks.</summary>
+    internal static bool ArgumentCountConforms<TFormal>(IReadOnlyList<TFormal> formals, int count, Func<TFormal, bool> optional) =>
+        count <= formals.Count && formals.Skip(count).All(optional);
+
     /// <summary>One bound argument against its corresponding formal parameter, reported under
     /// <paramref name="site"/>. <paramref name="position"/> is 1-based. An OMITTED argument is never asked:
     /// §2023:14.8.2's rules are about a formal parameter's DESCRIPTION, which an omitted argument has none of.

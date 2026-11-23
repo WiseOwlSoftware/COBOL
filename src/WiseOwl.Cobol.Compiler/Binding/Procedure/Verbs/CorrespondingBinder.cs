@@ -124,7 +124,7 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
         // temporary, kb/Work PB5767): they are taken off the statement's queue, so they do not run once before the first pair,
         // and run again before EACH pair (BoundCorresponding.PairIdentification).
         IReadOnlyList<BoundStatement> pairIdentification = perPair && preOps.AnyAfter(identificationMark)
-            ? host.Udf.OperandSteps(preOps.DrainFrom(identificationMark))
+            ? host.Window.OperandSteps(preOps.DrainFrom(identificationMark))
             : [];
         int id = _corrCounter++;
         var hoists = new List<CorrespondingHoist>();

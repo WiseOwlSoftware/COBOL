@@ -29,6 +29,12 @@ public sealed record Diagnostic(
     /// is part of the record, never of its line: <see cref="Render"/> prints the code and the message alone.</summary>
     public EditionFlag? Flag { get; init; }
 
+    /// <summary>The catalog descriptor this diagnostic was reported by, when its site reported it by one (kb/Work PB2652): the stable
+    /// identity (<see cref="Editions.Diagnostics.DiagnosticDescriptor.Id"/>) and family key that <see cref="WarningSuppression"/> names
+    /// beside the code, which several descriptors share. Null for a diagnostic reported by its code alone. Like <see cref="Flag"/>, part
+    /// of the record and never of its line.</summary>
+    public Editions.Diagnostics.DiagnosticDescriptor? Descriptor { get; init; }
+
     public bool IsError => Severity == DiagnosticSeverity.Error;
 
     public override string ToString() => Render(Location, Severity, Code, Message);

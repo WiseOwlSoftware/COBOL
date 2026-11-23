@@ -125,7 +125,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         if (pre.Count + post.Count + brackets.Count == 0) return core;
         // §2023:8.4.3.9.4 GR1/GR2: each accessor is invoked "as though" by an INVOKE, but it is written as an OPERAND of
         // the statement, so a condition it propagates resumes after THAT statement — the operand-activation mark
-        // UdfBinder.DrainPending gives a function reference (kb/Work PB892; §2023:14.9.33.4 GR2a.2). Its checking
+        // OperandEvaluationWindow.DrainPending gives a function reference (kb/Work PB892; §2023:14.9.33.4 GR2a.2). Its checking
         // profile is EcBinder.EcWrap's sequence stamp, which reaches these steps (and the brackets' through
         // BoundReceiverBrackets).
         var evaluations = ctx.Data.Procedure.OperandEvaluations;
@@ -157,7 +157,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         new(op.Form, op.ClassClrName, receiver, get.ClrName, ctx.Refs.Places.ResolveItem(op.Temp)!, null, get.Binding!.Returning, op.OwnerClrNameOf(get));
 
     /// <summary>Drain the property references registered since <paramref name="mark"/> for a PER-EVALUATION
-    /// window (<c>UdfBinder.UdfAttachPerEvaluation</c> — a PERFORM UNTIL / VARYING condition, a SEARCH WHEN, an
+    /// window (<c>OperandEvaluationWindow.AttachPerEvaluation</c> — a PERFORM UNTIL / VARYING condition, a SEARCH WHEN, an
     /// EVALUATE object, a non-first AND/OR operand, a VARYING BY / AFTER FROM operand) and return their GETs.
     /// ISO §2023:8.8.4.13 GR2: "Values are established for arithmetic expressions and functions if and when the
     /// conditions containing them are evaluated" — an object-property reference is an inline activation of its
@@ -976,8 +976,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         // list of arguments" (§2023:9.3.6 match rule 1 states the same equality for method resolution). The trap-#3
         // rule still holds for everything else: an arity mismatch is LOUD — a silently dropped/extra argument
         // would shift every following slot (the legacy DEVLOG-449 blocker: the first USING bound to RETURNING).
-        if (argCtxs.Count > formals.Count
-            || formals.Skip(argCtxs.Count).FirstOrDefault(f => !f.Optional) is { } required)
+        if (!ParameterConformance.ArgumentCountConforms(formals, argCtxs.Count, f => f.Optional))
         {
             string why = argCtxs.Count > formals.Count ? ""
                 : $" — only trailing OPTIONAL formal parameters may be omitted, and '{formals.Skip(argCtxs.Count).First(f => !f.Optional).Item.CobolName}' is not OPTIONAL";

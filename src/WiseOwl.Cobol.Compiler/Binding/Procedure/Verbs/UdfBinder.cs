@@ -1,13 +1,11 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using Antlr4.Runtime;
 using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Runtime;
-using WiseOwl.Cobol.Runtime.Exceptions;
 using WiseOwl.Cobol.Compiler.Oo;
 using WiseOwl.Cobol.Symbols;
 
@@ -21,7 +19,7 @@ using Core = CobolParserCore;
 /// program-activation machinery the group already has: a caller-side result temporary cloned from the
 /// callee's RETURNING description (§2023:8.4.3.2.4 GR1 :6963), a <see cref="BoundCallProgram"/> = CALL
 /// "name" USING «args» RETURNING «temp» registered on a statement-scoped pending list, and the reading
-/// expression/operand over the temp. <see cref="UdfWrapCalls"/> drains the list at the BindStatement
+/// expression/operand over the temp. <see cref="OperandEvaluationWindow.Hoist"/> (the statement funnel's window, kb/Work PB3223) drains the list at the BindStatement
 /// chokepoint into a <see cref="BoundSequence"/> that HOISTS each activation before the carrying
 /// statement — always a PRE-op, because a function-identifier is never a receiving operand
 /// (§2023:8.4.3.2.3 SR1), so no store-polarity classification is needed (unlike property references).
@@ -32,7 +30,7 @@ using Core = CobolParserCore;
 /// evaluated exactly once per statement execution; every conditionally- or repeatedly-evaluated CONDITION
 /// window (a PERFORM UNTIL/VARYING UNTIL condition, a SEARCH WHEN, an EVALUATE object term, a non-first
 /// AND/OR operand) instead drains its suffix into a per-evaluation <see cref="BoundUdfEvaluated"/> wrapper
-/// (<see cref="UdfAttachPerEvaluation"/> — §2023:8.8.4.13 GR2 "if and when the conditions containing them are
+/// (<see cref="OperandEvaluationWindow.AttachPerEvaluation(BoundCondition, OperandEvaluationWindow.PendingMark)"/> — §2023:8.8.4.13 GR2 "if and when the conditions containing them are
 /// evaluated"); every repeatedly-evaluated OPERAND window — a PERFORM VARYING BY operand and an AFTER level's
 /// FROM operand, §2023:14.9.28.4 GR12's "each time … is used in a setting or augmenting operation" — drains its
 /// suffix into the expression twin <see cref="BoundUdfEvaluatedExpr"/> (kb/Work PB437). No window stages
@@ -49,32 +47,15 @@ using Core = CobolParserCore;
 /// P7 Step 10k: a real collaborator over <see cref="BinderContext"/>, landed TOGETHER with
 /// <see cref="IntrinsicBinder"/> (the argument bind reaches back into its <c>BindArgOperand</c>). The
 /// user functions a reference names are the symbol table's (<c>SymbolTable.ResolveFunctionPrototypes</c>, docs/rearchitecture/
-/// DESIGN-listing.md section 6.7.1, step 6b slice 7), handed in as the reference's identified prototype; the statement-scoped <c>_udfPendingCalls</c> mark/drain
-/// suffix protocol is exposed through <see cref="Mark"/> for the host's BindStatement /
-/// BindFlatSequence chokepoints. The line-65 <c>ConstructRegistry.Check</c> stays THE documented bind-time
+/// DESIGN-listing.md section 6.7.1, step 6b slice 7), handed in as the reference's identified prototype; the statement-scoped mark/drain
+/// suffix protocol over the pending list is <see cref="OperandEvaluationWindow"/>'s, which the host's BindStatement
+/// and BindFlatSequence chokepoints ask (kb/Work PB3223). The line-65 <c>ConstructRegistry.Check</c> stays THE documented bind-time
 /// gate exception (fires on RECOGNITION, pre-hoist), moved VERBATIM.</summary>
 internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
 {
-    /// <summary>THIS statement's not-yet-hoisted PRE-ops (statement-scoped: BindStatement marks the count on entry
-    /// and drains only its own suffix — the property-op discipline).
-    /// <para>⛔ IT IS THE SHARED <see cref="ProcedureBindState.PendingPreOps"/>, NOT A LIST OWNED HERE. A D18
-    /// function-bearing subscript registers its §2023:15.4 temp store on the same list while this binder's arguments
-    /// bind (fix-queue PB17), and only ONE list in registration order sequences the store before the activation
-    /// that consumes it. Every member below is therefore written against <see cref="BoundStatement"/>, not
-    /// <see cref="BoundCallProgram"/>.</para></summary>
+    /// <summary>The statement-scoped pre-op list this binder registers each activation on: the shared
+    /// <see cref="ProcedureBindState.PendingPreOps"/>, which <see cref="OperandEvaluationWindow"/> marks and drains.</summary>
     private DrainQueue<BoundStatement> Pending => ctx.Data.Procedure.PendingPreOps;
-
-    /// <summary>The mark of BOTH statement-scoped pending lists at one instant — the pre-op list
-    /// (<see cref="ProcedureBindState.PendingPreOps"/>: function activations, inline method invocations, function-bearing
-    /// subscript temps) and the object-property op list (<see cref="ProcedureBindState.PropertyOps"/>).</summary>
-    internal readonly record struct PendingMark(int PreOps, int PropertyOps);
-
-    /// <summary>The pending-list mark for the host chokepoints (the suffix-drain protocol). ⛔ IT MARKS BOTH LISTS
-    /// (kb/Work PB987): a per-evaluation window drains everything that activates while it binds — a function, an
-    /// inline invocation AND an object-property GET — so none of the three can be hoisted out of a condition that
-    /// is evaluated repeatedly or conditionally. It marked only the pre-op list until PB987, and a property
-    /// reference in <c>PERFORM UNTIL P OF S &gt; 3</c> was fetched ONCE for the whole loop.</summary>
-    internal PendingMark Mark => new(Pending.Mark(), ctx.Data.Procedure.PropertyOps.Mark());
 
     /// <summary>Bind one user-function reference (the <see cref="BindIntrinsicCore"/> dispatch target for a
     /// REPOSITORY-declared name, which per §2023:12.3.8.4 GR12 refers to the user function and never a same-named
@@ -191,7 +172,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
         // formal parameters that are specified with an OPTIONAL phrase in the procedure division header of the
         // activated element and omitted from the list of arguments" — the callee's program-ABI adapters answer a
         // missing trailing slot as the omitted carrier (§2023:8.4.3.2.4 GR7), exactly as they do for CALL.
-        if (operands.Count > fn.Formals.Count || fn.Formals.Skip(operands.Count).Any(f => !f.Optional))
+        if (!ParameterConformance.ArgumentCountConforms(fn.Formals, operands.Count, f => f.Optional))
         {
             ctx.Edition.Error(DiagnosticCatalog.UserFunctionArgumentRule,
                 $"FUNCTION {name.ToUpperInvariant()} takes {fn.Formals.Count} argument(s); {operands.Count} "
@@ -228,6 +209,11 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
                 callArgs.Add(new BoundCallArg(CobolPassMode.Reference, null, null, Omitted: true) { Formal = fn.Formals[i].Item });
                 continue;
             }
+            // ⛔ An argument the operand binder already answered for (kb/Work PB3227): a refusal reported the rule the source
+            // breaks (an undefined name, a phrase word, an ALL subscript), and an unbuilt shape is on the ledger the statement
+            // funnel announces (COBOL1756). The activation carries that one failure and reports nothing of its own; a second
+            // error here named a capability gap where the source was simply wrong.
+            if (operand is BoundOperandError failed) return BoundExprError.Carry(failed.Feature, failed.IsUnbuilt);
             var formal = fn.Formals[i];
             // §2023:8.4.3.2.3 SR10: when the formal corresponding to argument-1 is specified with a BY VALUE phrase,
             // argument-1 shall be of class numeric, object, or pointer. Checked HERE (the one place the
@@ -245,20 +231,11 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
                     + "shall be of class numeric, object, or pointer (ISO §2023:8.4.3.2.3 SR10)");
                 return BoundExprError.Refused(ctx.Edition, $"FUNCTION {name} argument {i + 1} BY VALUE class");
             }
+            // Every argument FORM §2023:8.4.3.2.3 SR8 names has an arm in UdfArg, so an operand it has no arm for is a bound
+            // shape this binder has not learned: WiseOwl COBOL's gap, announced once by the statement funnel (COBOL1756), never
+            // a source diagnostic (kb/Work PB3227).
             if (UdfArg(operand, argCtxs[i], formal) is not { } arg)
-            {
-                // The operand refused to bind (the segment parser or resolver already classified it — an
-                // unresolvable name, an ALL subscript) — name that ACTUAL shape, never a message claiming a legal
-                // form is illegal. Every argument FORM §2023:8.4.3.2.3 SR8 names has an arm in UdfArg.
-                string what = operand is BoundOperandError err
-                    ? err.Feature
-                    : "this argument form (ISO §2023:8.4.3.2.3 SR8 admits an identifier, a literal, a boolean "
-                      + "expression, or an arithmetic expression)";
-                ctx.Edition.Error(DiagnosticCatalog.UserFunctionArgumentRule,
-                    $"FUNCTION {name.ToUpperInvariant()} argument {i + 1}: {what} is not yet supported for "
-                    + "user-defined function activation");
-                return BoundExprError.Refused(ctx.Edition, $"FUNCTION {name} argument {i + 1}");
-            }
+                return BoundExprError.Unbuilt(ctx.Edition, $"FUNCTION {name.ToUpperInvariant()} argument {i + 1}");
             // §2023:8.4.3.2.3 SR14: with a BY REFERENCE formal and a bit data item argument, the argument "shall be
             // described such that it is aligned on a byte boundary", with literal-only subscripts and ref-mod
             // leftmost position — the SAME proof CALL's §2023:14.9.4.3 SR6 asks, so it is the same method.
@@ -334,7 +311,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
     /// constant or ALL literal is a literal wherever 'literal' appears in a rule (§2023:8.3.3.6.3 SR1), and its crossing
     /// fills the formal (<c>CallEmitter.ArgText</c>, §2023:8.3.3.6.4 GR2).</item>
     /// </list>
-    /// Null = the operand itself refused to bind (the caller reports).</summary>
+    /// Null = an operand shape no arm has learned (the caller announces it as unbuilt; a refused operand never reaches here).</summary>
     /// <remarks>Every arm records <see cref="BoundCallArg.Formal"/>: §2023:14.2.3 GR9's second branch names "a
     /// function" outright, so a UDF argument's crossing into a numeric formal is the ACTIVATING element's
     /// COMPUTE (kb/Work PB640), and this binder has always had the formal in hand.</remarks>
@@ -381,129 +358,4 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
         && !ctx.Refs.ObjectProperties.IsObjectPropertyReference(dref)
         && !ctx.Data.Oo.IsObjectData(place.Item)
         && host.Expr.PermitsReceiving(dref, place);
-
-    /// <summary>⛔ THE ONE DRAIN OF THE PENDING PRE-OP SUFFIX, and the only place the list is mutated on the way
-    /// out. Takes everything registered past <paramref name="mark"/> and REMOVES it, so exactly one carrier ends
-    /// up owning each activation — the statement hoist, the per-evaluation condition wrapper, or the
-    /// per-evaluation operand wrapper. Null when nothing was registered, which is what lets every caller return
-    /// its subject UNCHANGED and keeps the generated source byte-identical on the function-free path.
-    /// <para>It is one method because the three callers differ ONLY in the node they wrap the drained suffix in;
-    /// three copies of the take-and-remove pair is the shape where one of them eventually forgets the remove and
-    /// double-activates.</para>
-    /// <para>⛔ IT IS ALSO WHERE AN OPERAND-EVALUATION STEP IS STAMPED (kb/Work PB892, PB1432). Everything it drains
-    /// was WRITTEN INSIDE the statement now binding, so every step is marked
-    /// <see cref="BoundStatement.OperandEvaluation"/> — an activation (§2023:14.9.33.4 GR2a.2): the applicable statement
-    /// is "the statement in which the inline invocation or function invocation was specified") and a §2023:15.4
-    /// subscript temporary store alike (GR2 a) 1.: "the one in which the exception condition was raised"; before
-    /// PB1432 an unmarked store's size-error landing wrote a <c>goto</c> inside a short-circuited operand's lambda,
-    /// CS0159, and fell back INTO the statement when hoisted). An <see cref="IProfiledStatement"/> is also given THAT statement's
-    /// §2023:7.3.25 checking profile (§2023:14.9.18.4 GR1b) — "if checking for that exception condition is enabled in the
-    /// activating runtime element"). The profile cannot wait for <c>EcBinder.EcWrap</c>'s stamp: a per-evaluation
-    /// window's activations live inside a CONDITION or an OPERAND, which that statement-shaped walk never enters,
-    /// so before PB892 they carried an empty profile and every condition they propagated was discarded.</para></summary>
-    private List<BoundStatement>? DrainPending(int mark, List<BoundStatement>? leading = null)
-    {
-        var taken = leading ?? [];
-        if (Pending.AnyAfter(mark)) taken.AddRange(Pending.DrainFrom(mark));
-        return taken.Count == 0 ? null : OperandSteps(taken);
-    }
-
-    /// <summary>Stamp <paramref name="taken"/> as OPERAND-EVALUATION steps of the statement now binding (see
-    /// <see cref="DrainPending"/>): each step is marked, an activation is given the statement's checking profile, and
-    /// the statement's operand-evaluation count grows. The ONE place a step is stamped — also for steps a binder
-    /// COPIES rather than drains (a SEARCH's prelude that fixes an enclosing occurrence, kb/Work PB3365).</summary>
-    internal List<BoundStatement> OperandSteps(List<BoundStatement> taken)
-    {
-        EcCheckingProfile? profile = null;
-        for (int i = 0; i < taken.Count; i++)
-        {
-            var step = taken[i] with { OperandEvaluation = true };
-            if (step is IProfiledStatement a)
-            {
-                profile ??= ctx.EcState.Turn.ProfileAt(host.StatementLine);
-                step = a.WithCheckingProfile(profile);
-            }
-            taken[i] = step;
-            ctx.Data.Procedure.OperandEvaluations.Advance(ctx.Data.Procedure.OperandEvaluations.Current + 1);
-        }
-        return taken;
-    }
-
-    /// <summary>Drain one per-evaluation window's suffix of BOTH lists (<see cref="Mark"/>): the object-property
-    /// GETs first — the statement-level order, where the property wrap is the OUTER sequence — then the pre-ops, in
-    /// registration order. A property written in a FUNCTION ARGUMENT is not among those GETs: ArgumentOrder moved its
-    /// GET onto the pre-op list at the argument's position (kb/Work PB1932), so it precedes the activation that
-    /// consumes its temp and follows every argument to its left (§2023:8.4.3.2.4 GR2).
-    /// Every property reference a window drains is a SENDING operand (a condition or an arithmetic expression
-    /// has no receiving operand), so each one is a §2023:8.4.3.9.4 GR1 GET (<c>OoBinder.OoDrainPropertyGets</c>).
-    /// <para>Called directly — not through a wrapper node — by a window whose carrier is no condition and no expression:
-    /// a report-section SOURCE identifier and CODE identifier (<c>ReportWriterBinder.PerEvaluation</c>, kb/Work PB4517).</para></summary>
-    internal List<BoundStatement>? DrainPerEvaluation(PendingMark mark) =>
-        DrainPending(mark.PreOps, host.Oo.OoDrainPropertyGets(mark.PropertyOps));
-
-    /// <summary>Drain THIS statement's pending function activations (registered while the statement bound)
-    /// into the hoisted <see cref="BoundSequence"/>: every activation is a PRE-op — a function-identifier
-    /// is never a receiving operand (§2023:8.4.3.2.3 SR1), so unlike property references there is no polarity
-    /// classification and no post-ops. Runs INSIDE the property-op wrap at the BindStatement chokepoint; a
-    /// property-reference ARGUMENT's GET is not in that wrap but on this list, at its argument's position
-    /// (ArgumentOrder, kb/Work PB1932), so it precedes the activation that consumes its temp and follows the
-    /// arguments to its left. The hoist is EXACT here: every conditionally- or repeatedly-evaluated window
-    /// already drained its own suffix into a per-evaluation <see cref="BoundUdfEvaluated"/> wrapper BEFORE the
-    /// statement completed
-    /// binding, so what remains pending is evaluated exactly once per statement execution (a plain operand,
-    /// a sole IF condition, a TIMES count — §2023:14.9.28.4 GR7, a first-level VARYING FROM — GR13a init, an
-    /// EVALUATE subject occurrence).</summary>
-    internal BoundStatement UdfWrapCalls(BoundStatement core, int mark) =>
-        DrainPending(mark) is { } taken ? new BoundSequence([.. taken, core]) : core;
-
-    /// <summary>Attach the function activations registered while <paramref name="cond"/> bound (those past
-    /// <paramref name="mark"/>) to the condition itself as a per-evaluation <see cref="BoundUdfEvaluated"/>
-    /// wrapper — the §2023:8.4.3.2.4 GR1/GR6a "value is determined when the function is referenced at runtime" semantics for a
-    /// window the statement evaluates conditionally or repeatedly (§2023:8.8.4.13 GR2). The drained suffix leaves
-    /// the pending list, so the statement-level hoist never double-activates them. No pending growth returns
-    /// the condition unchanged (zero cost for the UDF-free path).</summary>
-    internal BoundCondition UdfAttachPerEvaluation(BoundCondition cond, PendingMark mark) =>
-        DrainPerEvaluation(mark) is { } taken ? new BoundUdfEvaluated(taken, cond) : cond;
-
-    /// <summary>The EXPRESSION twin of <see cref="UdfAttachPerEvaluation"/>: attach the activations registered
-    /// while <paramref name="e"/> bound (those past <paramref name="mark"/>) to the OPERAND as a
-    /// <see cref="BoundUdfEvaluatedExpr"/>, for a window the statement evaluates repeatedly — ISO §2023:14.9.28.4
-    /// GR12's "item identification … is done each time the content … is used in a setting or augmenting
-    /// operation" (§2023:8.4.3.2.4 GR1/GR6a). The drained suffix leaves the pending list, so the statement-level
-    /// hoist never double-activates it; no pending growth returns the expression unchanged, so the UDF-free
-    /// path costs nothing and the generated source is byte-identical.
-    /// <para>⛔ IT REPLACED A REFUSAL, NOT A SILENCE (kb/Work PB437). These two operand positions used to call
-    /// the (since deleted) narrowed residue stage and REJECT the program (COBOL1509) while the adjacent
-    /// first-level FROM and the UNTIL condition accepted the same construct — a capability limit shipped as a
-    /// diagnostic, pinned green by two tests. The carrier the condition already used is what the augment and
-    /// re-initialization sites needed too.</para></summary>
-    internal BoundExpr UdfAttachPerEvaluation(BoundExpr e, PendingMark mark) =>
-        DrainPerEvaluation(mark) is { } taken ? new BoundUdfEvaluatedExpr(taken, e) : e;
-
-    /// <summary>EXIT FUNCTION (pre-2023 editions — introduced 2002 with user functions, REMOVED by 2023,
-    /// Annex E.2 :49036; the <c>exit-function-window</c> registry row flags 0900/0902 at the window edges
-    /// via the version-conformance pass, mirroring EXIT METHOD): inside a function definition it is the
-    /// function-return synonym — equivalent to GOBACK (the §2023:14.9.18.4 GR5 semantics: the activation
-    /// terminates and the RETURNING item's value becomes the function result); outside one it violates its
-    /// placement rule (the 0827 EXIT-family placement band). The optional RAISING tail stages exactly like
-    /// GOBACK RAISING (§2023:14.9.18 GR — re-raised in the activator).</summary>
-    internal BoundStatement UdfBindExitFunction(Core.ExitStatementContext e)
-    {
-        // The EXIT statement's placement rule for the pre-2023 FUNCTION format, asked of the ONE bind-position
-        // probe every other EXIT format now asks (kb/Work PB403) — §2023:14.2.2 SR10's source-element kind, not a
-        // per-verb predicate. A function PROTOTYPE definition is a function procedure division too: EXIT FUNCTION
-        // means "return from this function", and the prototype's procedure division is one.
-        if (ctx.Enclosing.SourceElement is not (SourceElementKind.FunctionDefinition or SourceElementKind.FunctionPrototype))
-        {
-            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ExitStatementPlacement,
-                "EXIT FUNCTION may be specified only in a function definition (the pre-2023 §2023:14.9.14 "
-                + "function form of the EXIT statement; this is not a function procedure division)");
-        }
-        if (e.raisingPhrase() is { } raising)
-            return host.Ec.EcBindRaising(raising, e.Start.Line, EcRaiseSite.Exit("EXIT FUNCTION")) is { } r
-                ? new BoundGoback(null, r)
-                : new BoundUnsupported("EXIT FUNCTION RAISING identifier (the exception-object form of the RAISING phrase — the OO wave)");
-        return new BoundGoback(null);
-    }
-
 }

@@ -61,7 +61,7 @@ public sealed class OperandActivationDriftTests
         string ec = CodeGenFile("EcEmitter.cs");
         Assert.DoesNotContain("Func<string, string>? landing", ec);
         foreach (var drain in new[] {
-            File.ReadAllText(TestRepo.Src(["WiseOwl.Cobol.Compiler", "Binding", "Procedure", "Verbs", "UdfBinder.cs"])),
+            File.ReadAllText(TestRepo.Src(["WiseOwl.Cobol.Compiler", "Binding", "Procedure", "OperandEvaluationWindow.cs"])),
             File.ReadAllText(TestRepo.Src(["WiseOwl.Cobol.Compiler", "Binding", "Procedure", "Verbs", "OoBinder.cs"])) })
             Assert.Contains("with { OperandEvaluation = true }", drain);
     }

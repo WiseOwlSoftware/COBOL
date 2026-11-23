@@ -1221,6 +1221,7 @@
     "--sign-encoding",
     "--source-format",
     "--std",
+    "--suppress",
     "--version"
   ],
   "cliExitStatuses": [

@@ -2611,8 +2611,10 @@ Port the proven per-connector last-read-unsuccessful, past-end, prev-op-was-succ
 §2023:14.9.30.4 GR19 — "An implicit or explicit NEXT phrase or a PREVIOUS phrase results in a sequential read:
 otherwise, the read is a random read and the rules for format 2 apply" — makes the direction phrase and the
 FORMAT one fact, so ONE enum carries it: `ReadKind { Next, Previous, Random }`, on `BoundRead` and
-`BoundKeyedRead` alike, reached through `IBoundRead`. `VersionConformancePass.GateStatement` has ONE arm over
-that interface. (It was `KeyedReadKind`, reachable only from the keyed node; the sequential node had no direction
+`BoundKeyedRead` alike; each emitter reads its own node's member, and `BoundIoPhraseConsumptionDriftTests` holds
+every READ phrase to a member its emitter reads. The 2002 edition gate fires on the printed phrase, ONE parse arm
+(`VersionConformancePass.VisitReadDirection`, kb/Work PB353), so no bound-node interface carries the direction
+(the `IBoundRead` interface it once went through had no consumer left and was deleted, kb/Work PB2130). (It was `KeyedReadKind`, reachable only from the keyed node; the sequential node had no direction
 member, so `READ … PREVIOUS` on a SEQUENTIAL file bound as a forward read AND skipped its COBOL0900 2002 gate
 — kb/Work PB334.)
 
@@ -2870,7 +2872,7 @@ rows; derive 85↔2002 gating from the 2002 standard / the ISO2023_CONFORMANCE_P
   not-yet-introduced diagnostic under `--std` 85/2002/2014; its statuses 05/37/39/41/62 from DELETE FILE exist only
   at 2023. (Format-1 record DELETE is 85.)
 - **READ PREVIOUS is not COBOL-85** (a 2002 introduction — §2002:F.2 item 109, kb/Work PB3965): rejected at 85 on
-  EVERY organization (the gate is one `IBoundRead` arm in the VersionConformancePass; it used to be two arms and
+  EVERY organization (the gate is one parse arm, `VisitReadDirection`, in the VersionConformancePass; it used to be two arms and
   the sequential one did not carry it — kb/Work PB334). FLAG-14 flags every READ PREVIOUS (row 108).
   ⚠ **The 2014→2023 after-OPEN change (row 29) is the INDEXED leg only.** Annex E.2 item 22 ("READ PREVIOUS
   statement following an OPEN statement. Ensure that an at end condition occurs.") is INFORMATIVE and names the

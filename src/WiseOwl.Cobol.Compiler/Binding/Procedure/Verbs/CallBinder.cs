@@ -771,10 +771,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         // diagnostic" lane; the dynamic Format-1 count check (EC-PROGRAM-ARG-MISMATCH at activation) rides wave C2.
         if (calleeFormals is not null)
         {
-            bool countBad = args.Count > calleeFormals.Count;
-            for (int i = args.Count; !countBad && i < calleeFormals.Count; i++)
-                if (!calleeFormals[i].Optional) countBad = true;
-            if (countBad)
+            if (!ParameterConformance.ArgumentCountConforms(calleeFormals, args.Count, f => f.Optional))
                 ctx.Edition.Error(DiagnosticCatalog.CallArgumentCount,
                     $"{calleeWhere} supplies {args.Count} argument(s) where the program declares "
                     + $"{calleeFormals.Count} formal parameter(s); ISO §2023:14.8.2.1 requires the counts to be "
