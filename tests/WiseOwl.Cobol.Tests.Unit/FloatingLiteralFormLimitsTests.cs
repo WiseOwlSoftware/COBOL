@@ -6,8 +6,8 @@ using Xunit;
 
 namespace WiseOwl.Cobol.Tests.Unit;
 
-/// <summary>The floating-point literal's digit limits are the edition's (kb/Work PB5613, PB6039): §2002:8.3.1.2.2.2 rules 2 and 3
-/// allow a significand of 1 through 31 digits and an exponent of at most three; §2014:8.3.1.2.2.2 rules 2-3 and §2023:8.3.3.3.3
+/// <summary>The floating-point literal's digit limits are the edition's (kb/Work PB5613, PB6039): §2002:8.3.1.2.2.2, items 2 and 3
+/// allow a significand of 1 through 31 digits and an exponent of at most three; §2014:8.3.1.2.2.2, items 2-3 and §2023:8.3.3.3.3
 /// SR2-SR3 allow 36 and four. <see cref="DialectBehavior.FloatingLiteralWideLimits"/> is the edition gate (2014).</summary>
 public sealed class FloatingLiteralFormLimitsTests
 {

@@ -120,11 +120,11 @@ public static class NumericLiteral
         ZeroForm,
     }
 
-    /// <summary>The widest significand and exponent a floating-point literal may carry from COBOL-2014 on (§2014:8.3.1.2.2.2 rules 2-3,
+    /// <summary>The widest significand and exponent a floating-point literal may carry from COBOL-2014 on (§2014:8.3.1.2.2.2, items 2-3,
     /// §2023:8.3.3.3.3 SR2/SR3): 36 digits and four digits.</summary>
     public const int WideSignificandDigits = 36, WideExponentDigits = 4;
 
-    /// <summary>The widest significand and exponent COBOL-2002 allows (§2002:8.3.1.2.2.2 rules 2-3): 31 digits and three digits.</summary>
+    /// <summary>The widest significand and exponent COBOL-2002 allows (§2002:8.3.1.2.2.2, items 2-3): 31 digits and three digits.</summary>
     public const int NarrowSignificandDigits = 31, NarrowExponentDigits = 3;
 
     /// <summary>The ISO §2023:8.3.3.3.3 SR2/SR3/SR4 form check of a canonical floating-point literal text (which shall
@@ -134,7 +134,7 @@ public static class NumericLiteral
     /// <c>3.E2</c> is no token of this shape); the digit counts and the zero form are checked
     /// here — the ONE place, since both the expression funnel and the VALUE funnel normalize through it.
     /// <paramref name="wideLimits"/> is the edition's: the 36-digit significand and four-digit exponent from COBOL-2014
-    /// (<see cref="WideSignificandDigits"/>), the 31 and three of §2002:8.3.1.2.2.2 rules 2-3 below it (kb/Work PB5613).</summary>
+    /// (<see cref="WideSignificandDigits"/>), the 31 and three of §2002:8.3.1.2.2.2, items 2-3 below it (kb/Work PB5613).</summary>
     public static FloatingLiteralIssue CheckFloatingPointForm(string text, bool wideLimits)
     {
         int maxSignificand = wideLimits ? WideSignificandDigits : NarrowSignificandDigits;

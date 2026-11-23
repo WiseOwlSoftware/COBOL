@@ -408,7 +408,7 @@
    "sections": [
     "8.3.1.2.2.2"
    ],
-   "why": "the floating-point numeric literal, §2002:8.3.1.2.2.2 rules 2 and 3, whose significand is 1 through 31 digits and whose exponent has at most three digits at 2002 where 2014 and 2023 allow 36 and four (kb/Work PB5613, PB6039, VCR row 7.118)"
+   "why": "the floating-point numeric literal, §2002:8.3.1.2.2.2, items 2 and 3, whose significand is 1 through 31 digits and whose exponent has at most three digits at 2002 where 2014 and 2023 allow 36 and four (kb/Work PB5613, PB6039, VCR row 7.118)"
   },
   "indexed-read-previous-after-open-at-end": {
    "sections": [

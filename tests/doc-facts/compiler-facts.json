@@ -95,14 +95,14 @@
       "changedIn": 2002
     },
     {
-      "id": "floating-literal-wide-limits",
-      "vcrRow": "7.118",
-      "changedIn": 2014
-    },
-    {
       "id": "file-sharing-facility",
       "vcrRow": "7.39",
       "changedIn": 2002
+    },
+    {
+      "id": "floating-literal-wide-limits",
+      "vcrRow": "7.118",
+      "changedIn": 2014
     },
     {
       "id": "generate-report-name-single-detail",

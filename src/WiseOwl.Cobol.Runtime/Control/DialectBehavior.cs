@@ -584,10 +584,11 @@ public enum DialectBehavior
     /// scanned as written (kb/Work PB5721). The consumers are <c>IntrinsicBinder.BindNumvalCFamily</c> (the content screen and
     /// <c>BoundIntrinsicCall.CurrencyContentUnrestricted</c>) and the TEST-NUMVAL-C row of <c>IntrinsicArgumentRules</c>.</summary>
     TestNumvalCImportsNumvalCArgumentRules = 61,
-    /// <summary>§2014:8.3.1.2.2.2 rules 2 and 3 — a floating-point numeric literal's significand "shall be from 1 to 36 digits in
-    /// length" and its exponent "shall have a maximum of four digits" (§2023:8.3.3.3.3 SR2, SR3 the same; §2014:E.3 item 20: the
+    /// <summary>§2014:8.3.1.2.2.2, items 2 and 3 — a floating-point numeric literal's significand "shall be from 1 to 36 digits in
+    /// length" and its exponent "shall have a maximum of four digits" (§2023:8.3.3.3.3 SR3 says the exponent's, and its SR2 the
+    /// significand's, the same; §2014:E.3 item 20: the
     /// limits "are increased from 31 to 36 ... from 3 to 4"). The 2002 text says "1 through 31 digits" and "a maximum of three
-    /// digits" (§2002:8.3.1.2.2.2 rules 2, 3), so at <c>--std 2002</c> a 32-to-36-digit significand or a four-digit exponent is
+    /// digits" (§2002:8.3.1.2.2.2, items 2, 3), so at <c>--std 2002</c> a 32-to-36-digit significand or a four-digit exponent is
     /// refused (kb/Work PB5613, PB6039). The consumer is <c>SpecialNamesBinder.NormalizeNumericLiteral</c>, the one funnel of the
     /// expression and VALUE paths, through <c>NumericLiteral.CheckFloatingPointForm</c>.</summary>
     FloatingLiteralWideLimits = 62,

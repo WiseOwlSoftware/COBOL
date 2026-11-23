@@ -16,7 +16,7 @@
 *>   n*sum(d**2) - (sum d)**2 = 9 X**2 = 3.6 * 10**6145 is not.
 *> PV   PRESENT-VALUE (10**3100, 1, 1, 1): d = 1 + 10**3100; 1/d + 1/d**2 + 1/d**3 lies between 10**-3100 * (1 - 10**-3100) and
 *>   10**-3100 * (1 + 10**-3100), so it is below 2E-3100 and above 5E-3101, while d**3 (about 10**9300) is past 10**6145.
-*> (Accepted from 2014: its literals carry four-digit exponents, which §2002:8.3.1.2.2.2 rule 3 refuses at 2002 - "a maximum of
+*> (Accepted from 2014: its literals carry four-digit exponents, which §2002:8.3.1.2.2.2, item 3 refuses at 2002 - "a maximum of
 *> three digits"; kb/Work PB5613.)
 IDENTIFICATION DIVISION.
 PROGRAM-ID. PB4797WORKING.
