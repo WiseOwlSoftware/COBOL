@@ -6,6 +6,7 @@ using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.CodeGen.Emit;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.CodeGen;
@@ -50,9 +51,22 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
         // (kb/Work PB2078), and a debugging section that describes it reads the identification its store made (§1985:VI.6.23.4 GR3d: "Any
         // subscripting associated with identifier-1 is evaluated immediately before the value of the respective data item is changed";
         // kb/Work PB5385).
+        bool tableRange = s.ValueIsArithmeticExpression && SetIndexTableRange;
         using (w.Block($"if ({guard})"))
-            foreach (var t in s.Targets) brackets.Receive(t, () => StoreSetTarget(IdentifiedAtStore(t), new NumX(tmp, 0)));
+            foreach (var t in s.Targets)
+            {
+                // §2002:14.8.35.3 GR2a.1, per receiving index-name: a value outside its table is unsuccessful for THAT receiver (kb/Work PB5674).
+                if (tableRange && t is SetIndexTarget { Highest: { } highest })
+                {
+                    using (w.Block($"if ({RuntimeApi.IndexWithinTable(tmp, highest, "SET index-name TO")})"))
+                        StoreSetTarget(t, new NumX(tmp, 0));
+                }
+                else brackets.Receive(t, () => StoreSetTarget(IdentifiedAtStore(t), new NumX(tmp, 0)));
+            }
     }
+
+    /// <summary>Whether this edition's SET of an index-name tests the table range (<see cref="EditionInfo.SetIndexOutsideTableIsSubscriptError"/>).</summary>
+    private bool SetIndexTableRange => EditionInfo.Of(ctx.Data.DialectLevel).SetIndexOutsideTableIsSubscriptError;
 
     /// <summary>The receiver <paramref name="t"/> as its store identifies it (<see cref="DebugTriggerEmitter.IdentifiedAtStore"/>); an index-name is no data item.</summary>
     private BoundSetTarget IdentifiedAtStore(BoundSetTarget t) =>
@@ -207,8 +221,15 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
         var w = ctx.Writer;
         string verb = $"SET index-name {(s.Down ? "DOWN" : "UP")} BY";
         string guard = LandAmount(s.Amount, SetAmountRule.IndexBy, verb, out string tmp, "set");
+        bool tableRange = SetIndexTableRange;
         using (w.Block($"if ({guard})"))
-            foreach (var t in s.Targets) AugmentSetTarget(t, s.Down, new NumX(tmp, 0), verb);
+            foreach (var t in s.Targets)
+            {
+                // §2002:14.8.35.3 GR3b: a result outside the table is unsuccessful for THAT receiver (kb/Work PB5674).
+                if (tableRange && t is SetIndexTarget { Highest: { } highest } ix)
+                    w.Line($"{ix.IndexField} = {RuntimeApi.IndexAugmentWithinTable(ix.IndexField, $"(Int128)({NumericRenderer.Align(new NumX(tmp, 0), 0)})", s.Down, highest, verb)};");
+                else AugmentSetTarget(t, s.Down, new NumX(tmp, 0), verb);
+            }
     }
 
     /// <summary>SET Format 14 (ISO §2023:14.9.39.4 GR29; OCCURS DYNAMIC, data-model D9): the amount is evaluated ONCE,

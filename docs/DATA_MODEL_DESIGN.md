@@ -191,6 +191,15 @@ is not a valid occurrence within this table", so an index legitimately points ou
 table-bounds test here would reject conforming programs. `SetIndexAmountLandingDriftTests` keeps both halves
 true: every SET-family amount site lands, and no emitter narrows an amount with a bare `(long)` cast first.
 
+**The one edition that does test the table (kb/Work PB5674).** COBOL-2002's SET stores an arithmetic-expression-1 only when it is
+"a valid subscript" (§2002:14.8.35.3 GR2a.1; §2002:8.4.1.2.3 GR2: 1 through the highest permissible occurrence number) and makes
+an incremented or decremented index outside the table the same condition (GR3b): EC-BOUND-SUBSCRIPT, the SET unsuccessful, the
+index unchanged. `EditionInfo.SetIndexOutsideTableIsSubscriptError` (2002 alone) makes `SetEmitter` emit, per index-name receiver,
+`CobolIndex.WithinTable` (a Format 1 arithmetic-expression sender only; index-name-2 and identifier-2 are placed unchanged) and
+`CobolIndex.AugmentWithinTable` (SET UP/DOWN BY only; PERFORM VARYING and SEARCH have no such 2002 rule). The table's highest
+permissible occurrence is `SetIndexTarget.Highest`, its OCCURS maximum. With checking for the condition not enabled the 2002
+outcome is implementor-defined and the value is stored (D-SET-INDEX-UNCHECKED), as at every later edition.
+
 ### D4. Level-88 condition-names emit as C# bool properties over the parent Place; level-66 RENAMES emit as alias properties (overlapping-byte RENAMES deferred to G6).
 
 **Rationale.** An 88 is a predicate, not storage; a property is the idiomatic, zero-storage encoding and SET TO TRUE just assigns the parent. RENAMES of single/whole items composes from member images; only the overlapping-byte case needs the byte fallback.

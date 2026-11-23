@@ -1388,7 +1388,8 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         // value of that data item is changed", so SetEmitter places an object-property receiver's accessors around ITS
         // store (kb/Work PB2078): `SET IX, BAL OF AR(IX) TO 2` reaches AR(2).
         ctx.Data.Procedure.ClaimInterleavedReceiver(targets.OfType<SetPlaceTarget>().Select(t => t.Place));
-        return new BoundSetTo(targets, FormatOneValueOf(sender, amount));
+        return new BoundSetTo(targets, FormatOneValueOf(sender, amount),
+            alternative is IndexAssignmentSender.ArithmeticExpression);
     }
 
     /// <summary>The value Format 1 stores, as an expression. A function-identifier or inline invocation sender is

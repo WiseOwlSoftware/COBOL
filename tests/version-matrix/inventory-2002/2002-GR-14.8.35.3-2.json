@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.35.3-2",
+ "rule-digest": "0332e06e8601",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Tables/CobolIndex.cs#WithinTable; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SetEmitter.cs#EmitSetTo; src/WiseOwl.Cobol.Editions/EditionInfo.cs#SetIndexOutsideTableIsSubscriptError",
+ "test-ref": "conformance:cases/14.8.35@2002-SET-STATEMENT/set-index-outside-table-checked; conformance:wiseowl/cases/14.8.35@2002-SET-STATEMENT/set-index-outside-table-unchecked",
+ "notes": "§2002:14.8.35.3 GR2a.1: an arithmetic-expression-1 that is not a valid subscript (8.4.1.2.3 GR2: outside 1 through the highest permissible occurrence number) sets EC-BOUND-SUBSCRIPT, the SET is unsuccessful and the receiving index-name unchanged. SetEmitter.EmitSetTo tests each index-name receiver through CobolIndex.WithinTable where EditionInfo.SetIndexOutsideTableIsSubscriptError (2002 alone; 2014 and 2023 word the range as EC-RANGE-INDEX only) and only for an arithmetic-expression sender (GR2a.2 and GR2a.3 place the content unchanged). With checking not enabled the outcome is implementor-defined and the value is stored (D-SET-INDEX-UNCHECKED). kb/Work PB5674."
+}

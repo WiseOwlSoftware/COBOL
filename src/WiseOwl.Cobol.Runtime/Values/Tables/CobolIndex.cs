@@ -56,9 +56,12 @@ public enum SetAmountRule
 /// occurrence number (data-model D3), so the range is the full signed 64-bit interval
 /// [−9 223 372 036 854 775 808, +9 223 372 036 854 775 807] — documented as DOC-A.1-128 in
 /// <c>docs/CONFORMANCE.md</c> §7, which A.1 item 128 requires. A value OUTSIDE it is the EC-RANGE-INDEX case;
-/// a value inside it but outside the TABLE is NOT — every one of these rules ends "even if that occurrence is
+/// a value inside it but outside the TABLE is NOT, from COBOL-2014 — every one of these rules ends "even if that occurrence is
 /// not a valid occurrence within this table", so an index pointing past its own table is legal and must not
-/// raise. A table-bounds test here would reject conforming programs.</para>
+/// raise. A table-bounds test there would reject conforming programs. COBOL-2002 is the exception: its SET makes such a value
+/// the EC-BOUND-SUBSCRIPT condition (§2002:14.8.35.3 GR2a.1, GR3b), tested by <see cref="WithinTable"/> and
+/// <see cref="AugmentWithinTable"/>, which the emitter reaches only where
+/// <c>EditionInfo.SetIndexOutsideTableIsSubscriptError</c> holds (kb/Work PB5674).</para>
 ///
 /// <para><b>Checking off.</b> Every raise routes through an <c>ExceptionState</c> helper that returns when
 /// checking for the condition is not enabled at this statement (§2023:14.6.13.1.1). The callers here then still apply
@@ -174,6 +177,41 @@ public static class CobolIndex
         }
         return (long)r;
     }
+
+    /// <summary>⛔ THE COBOL-2002 TABLE-RANGE ARM OF SET FORMAT 1 (kb/Work PB5674): the occurrence number an arithmetic-expression
+    /// landed as is "a subscript … as described in 8.4.1.2" only inside 1 through <paramref name="highest"/>, the highest
+    /// permissible occurrence number (§2002:14.8.35.3 GR2a.1, §2002:8.4.1.2.3 GR2); outside it the EC-BOUND-SUBSCRIPT exception
+    /// condition exists, "the execution of the SET statement is unsuccessful and the content of the receiving operand is
+    /// unchanged". <see langword="false"/> is that unsuccessful leg. With checking for EC-BOUND-SUBSCRIPT not enabled the 2002
+    /// outcome is implementor-defined (§2002:B.1 item 51; determination D-SET-INDEX-UNCHECKED): the value is stored, so this
+    /// returns <see langword="true"/> there. Emitted only where <c>EditionInfo.SetIndexOutsideTableIsSubscriptError</c> holds;
+    /// later editions state the implementor index range alone (<see cref="Accept"/>).</summary>
+    public static bool WithinTable(long occurrence, long highest, string detail)
+    {
+        if (CobolTable.Permissible(occurrence, highest)) return true;
+        ExceptionState.SubscriptError(OutsideTableDetail(occurrence, highest, detail, "14.8.35.3 GR2a.1"));
+        return !ExceptionState.BoundSubscriptChecking;
+    }
+
+    /// <summary>The COBOL-2002 table-range arm of SET Format 2 (kb/Work PB5674): the index incremented (UP BY) or decremented
+    /// (DOWN BY) is "a valid subscript for the table" or "the EC-BOUND-SUBSCRIPT exception condition is set to exist, the execution
+    /// of the SET statement is unsuccessful, and the content of the receiving operand is unchanged" (§2002:14.8.35.3 GR3b) —
+    /// so with checking enabled this returns <paramref name="index"/> itself on that leg. With checking not enabled the outcome is
+    /// implementor-defined and this is <see cref="Augment"/> (D-SET-INDEX-UNCHECKED). PERFORM VARYING and SEARCH, which the
+    /// 2002 text gives no such rule, keep calling <see cref="Augment"/> alone.</summary>
+    public static long AugmentWithinTable(long index, Int128 amount, bool down, long highest, string detail)
+    {
+        Int128 r = down ? (Int128)index - amount : (Int128)index + amount;
+        if (ExceptionState.BoundSubscriptChecking && (r < 1 || r > highest))
+        {
+            ExceptionState.SubscriptError(OutsideTableDetail(r, highest, detail, "14.8.35.3 GR3b"));
+            return index;
+        }
+        return Augment(index, amount, down, detail);
+    }
+
+    private static string OutsideTableDetail(Int128 occurrence, long highest, string detail, string rule) =>
+        $"{detail} — the occurrence number {occurrence} is outside 1..{highest} (ISO 2002 {rule} / 8.4.1.2.3 GR2)";
 
     private static void OutOfRange(SetAmountRule rule, string detail)
     {

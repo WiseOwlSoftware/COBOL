@@ -68,6 +68,16 @@ public readonly record struct EditionInfo(int Year, bool Permissive = false)
     /// the intrinsic argument class screen, never a per-site <c>Year == 2002</c>.</summary>
     public bool AlphabeticIsAlphanumeric => Year == 2002;
 
+    /// <summary>⛔ WHETHER SET OF AN INDEX-NAME TO AN OCCURRENCE NUMBER OUTSIDE ITS TABLE IS THE EC-BOUND-SUBSCRIPT CASE (kb/Work
+    /// PB5674): at COBOL-2002 SET Format 1 stores an arithmetic expression only when it is "a valid subscript" as 8.4.1.2 describes,
+    /// "otherwise the execution of the SET statement is unsuccessful and the content of the receiving operand is unchanged"
+    /// (§2002:14.8.35.3 GR2a.1), a subscript beyond 1 through the highest permissible occurrence number being the
+    /// EC-BOUND-SUBSCRIPT condition (§2002:8.4.1.2.3 GR2); Format 2 says the same of the incremented or decremented occurrence number
+    /// (§2002:14.8.35.3 GR3b). COBOL-2014 and COBOL-2023 replaced both with the implementor index range alone, EC-RANGE-INDEX, and
+    /// state that the index may refer to an occurrence "not a valid occurrence within this table" (§2014:14.9.35.3 GR2a.1c, GR4b).
+    /// With checking for the condition not enabled the 2002 outcome is implementor-defined (D-SET-INDEX-UNCHECKED).</summary>
+    public bool SetIndexOutsideTableIsSubscriptError => Year == 2002;
+
     /// <summary>⛔ WHETHER A CONTROL OPERAND MAY BE AN INDEX DATA ITEM (kb/Work PB5774): COBOL-85 provides for that control
     /// ("If the control data item is an index data item, the relation test is for the comparison of two index data items",
     /// §1985:XIII.3.7.4 GR3b) and limits explicit references to an index data item to Procedure Division statements

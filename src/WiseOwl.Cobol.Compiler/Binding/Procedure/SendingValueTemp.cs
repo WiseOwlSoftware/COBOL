@@ -513,7 +513,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
         (op, model.Pic?.Usage) switch
         {
             (BoundFieldOperand { Place: var src }, Usage.Index) =>
-                new BoundSetTo([new SetPlaceTarget(place)], new BoundNumRef(src)),
+                new BoundSetTo([new SetPlaceTarget(place)], new BoundNumRef(src), ValueIsArithmeticExpression: false),
             (BoundFieldOperand { Place: var src }, Usage.Pointer) =>
                 new BoundSetPointer([new BoundPointerReceiver(place, null)], src, ToNull: false),
             (BoundFieldOperand { Place: var src }, Usage.ProgramPointer) =>

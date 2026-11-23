@@ -14,7 +14,11 @@
   the index and continues; no exception condition is raised. Measured on the build of main 24372b7b17, a table of 10:
   `SET IX TO 11` gives 11, `SET IX TO 3` then `UP BY 12` gives 15, then `DOWN BY 10` gives 5. An amount that is not an
   integer is a different arm (GR3a): the SET is unsuccessful and the index unchanged, with or without checking. With
-  checking ENABLED, the 2002 rules apply as written; the compiler does not yet do so (kb/Work PB5674). **Survey (CLAUDE.md
+  checking ENABLED, the 2002 rules apply as written: an occurrence number outside 1 through the highest permissible
+  occurrence raises EC-BOUND-SUBSCRIPT, the SET is unsuccessful and the index unchanged (`CobolIndex.WithinTable` and
+  `AugmentWithinTable`, reached where `EditionInfo.SetIndexOutsideTableIsSubscriptError` holds; kb/Work PB5674; witnesses
+  `set-index-outside-table-checked` and `set-index-outside-table-unchecked`). COBOL-2014 and COBOL-2023 word the rule as the
+  implementor index range alone (EC-RANGE-INDEX, §2014:14.9.35.3 GR2a.1b and GR4a) and keep the store at every checking state. **Survey (CLAUDE.md
   rule 1):** GnuCOBOL 3.2.0 (measured 2026-11-15 in WSL Ubuntu, `cobc -x -std=default`, `-std=cobol2002` and
   `-std=cobol2002 -debug`, the same program) stores the value and continues in all three, printing `S2=11 U2=15 U3=05`,
   the same as WiseOwl COBOL. IBM Enterprise COBOL and Micro Focus: unmeasured (neither is installed on this host, and

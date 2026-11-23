@@ -1556,6 +1556,17 @@ internal static class RuntimeApi
         $"{nameof(CobolIndex)}.{nameof(CobolIndex.Augment)}({index}, {amount}, {(down ? "true" : "false")}, "
         + $"{EmitText.CsLiteral(detail)})";
 
+    /// <summary>The COBOL-2002 table-range test of SET Format 1 — <c>CobolIndex.WithinTable</c> (§2002:14.8.35.3 GR2a.1, kb/Work PB5674).
+    /// <see langword="false"/> is "the execution of the SET statement is unsuccessful".</summary>
+    public static string IndexWithinTable(string occurrence, long highest, string detail) =>
+        $"{nameof(CobolIndex)}.{nameof(CobolIndex.WithinTable)}({occurrence}, {highest}, {EmitText.CsLiteral(detail)})";
+
+    /// <summary>The COBOL-2002 table-range augment of SET Format 2 — <c>CobolIndex.AugmentWithinTable</c> (§2002:14.8.35.3 GR3b,
+    /// kb/Work PB5674).</summary>
+    public static string IndexAugmentWithinTable(string index, string amount, bool down, long highest, string detail) =>
+        $"{nameof(CobolIndex)}.{nameof(CobolIndex.AugmentWithinTable)}({index}, {amount}, {(down ? "true" : "false")}, {highest}, "
+        + $"{EmitText.CsLiteral(detail)})";
+
     // ── More strings / tables ──
 
     /// <summary>A reference-modification slice — <c>CobolString.RefMod</c> (1-based start, length).

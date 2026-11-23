@@ -1535,3 +1535,5 @@ static readonly WiseOwl.Cobol.Runtime.MoveCitations.Iso2023 -> WiseOwl.Cobol.Run
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryIndexOutcome.ToString() -> string
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.Equals(object obj) -> bool
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.ToString() -> string
+static WiseOwl.Cobol.Runtime.CobolIndex.AugmentWithinTable(long index, System.Int128 amount, bool down, long highest, string! detail) -> long
+static WiseOwl.Cobol.Runtime.CobolIndex.WithinTable(long occurrence, long highest, string! detail) -> bool

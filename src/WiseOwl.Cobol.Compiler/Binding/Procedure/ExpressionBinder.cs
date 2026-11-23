@@ -204,7 +204,11 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// a duplicated spelling written without the qualifiers that settle it is §2023:8.4.2.2.3 SR1's error — reported
     /// there, and still answered with an (inert) cell so the caller keeps the index-name shape instead of
     /// re-resolving the word as a data-name (kb/Work PB919).</summary>
-    public string? IndexFieldOf(Core.DataReferenceContext dref)
+    public string? IndexFieldOf(Core.DataReferenceContext dref) => IndexRefOf(dref)?.Cell;
+
+    /// <summary>The resolved index-name reference behind <see cref="IndexFieldOf"/> (cell and declaring table), or
+    /// <see langword="null"/> when <paramref name="dref"/> is no index-name reference.</summary>
+    private IndexRef? IndexRefOf(Core.DataReferenceContext dref)
     {
         if (WrittenQualifiedName.Of(dref) is not { } written) return null;
         foreach (var suffix in dref.dataReferenceSuffix())
@@ -214,14 +218,14 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
             if (suffix.qualification() is not { } q || q.ChildCount != 2) return null;
         }
         var ix = ctx.Refs.Names.ResolveIndexName(written, dref);
-        return ix.Outcome is IndexRefOutcome.NotAnIndexName ? null : ix.Cell;
+        return ix.Outcome is IndexRefOutcome.NotAnIndexName ? null : ix;
     }
 
     /// <summary>The receiver an INDEXED BY index-name written as <paramref name="dref"/> is (SET, PERFORM VARYING, SEARCH VARYING), linked to
     /// the index-name's occurrence so the cross-reference finds the store (<see cref="ReferenceResolver.Linked(Bound.SetIndexTarget, Antlr4.Runtime.IToken)"/>);
     /// <see langword="null"/> when it is no index-name (<see cref="IndexFieldOf"/>).</summary>
     public SetIndexTarget? IndexTargetOf(Core.DataReferenceContext dref) =>
-        IndexFieldOf(dref) is { } ix ? ctx.Refs.Linked(new SetIndexTarget(ix), dref.Start) : null;
+        IndexRefOf(dref) is { } ix ? ctx.Refs.Linked(new SetIndexTarget(ix.Cell, ix.Decl?.Table.Occurs), dref.Start) : null;
 
     // ── Operands & expressions ─────────────────────────────────────────────────────────────────────────────
 
