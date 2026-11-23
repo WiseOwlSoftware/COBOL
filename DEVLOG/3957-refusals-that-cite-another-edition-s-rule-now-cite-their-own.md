@@ -1,4 +1,4 @@
-## Refusals that cite another edition's rule now cite their own (PB6072)
+## Entry 3957 — 2026-11-22 22:30 PST — Refusals that cite another edition's rule now cite their own (PB6072)
 
 Seven sites named in kb/Work PB6072 cited the 2023 clause, or 2023 words, at `--std 85`, 2002 or 2014. Each was re-probed on the branch build first.
 
@@ -15,3 +15,4 @@ Seven sites named in kb/Work PB6072 cited the 2023 clause, or 2023 words, at `--
 **Tests.** `EditionCiteTests` pins the per-edition FROM-phrase function and MOVE rules; `RefusalCitesItsEditionTests` compiles a RENAMES level-1 operand, a RENAMES window, and a RECORD DEPENDING table element at 2002, 2014 and 2023 and asserts the clause each message cites; `ClosedFormatReservedWordTests` pins the reserved-word sentence at the four editions; `FileControlKeyRuleDriftTests.Every2014Row_…` checks the 2014 rows against the 2014 text.
 
 **Not fixed (registered in the wave report).** The other `FileControlKeyRules` rows (clause numbers 12.4.5.x at 2014 are 12.4.4.x), the FILE STATUS, LINAGE and ASSIGN USING messages of `FileControlBinder.Resolve.cs`, and about a thousand `(ISO §2023:` message literals in `Binding/` that a refusal can print at an earlier edition.
+
