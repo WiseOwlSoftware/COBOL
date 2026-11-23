@@ -31,24 +31,6 @@ public readonly record struct EditionInfo(int Year, bool Permissive = false)
     /// positions).</summary>
     public int MaxDigits => Year < 2002 ? 18 : 31;
 
-    /// <summary>⛔ WHETHER A SOURCE UNIT WITH NO CURRENCY SIGN CLAUSE FOR '$' IS TAKEN TO HAVE WRITTEN ONE (kb/Work PB5614): from COBOL-2014
-    /// "the clause CURRENCY SIGN '$' PICTURE SYMBOL '$' is implied" (§2014:12.3.6.2 SR25; §2023:12.3.7.3 SR25), so the symbol has a
-    /// literal-7 of class alphanumeric and SR28 confines it to usage-display numeric-edited items (§2014:12.3.6.2 SR28). COBOL-2002 has
-    /// no such rule: its SR24 speaks only of a literal-7 that is written (§2002:12.2.6.2 SR24), and the default '$' is the COBOL
-    /// currency sign, which a national item edits as a national character (§2002:13.16.38.3 GR2).</summary>
-    public bool ImpliesDollarCurrencyClause => Year >= 2014;
-
-    /// <summary>⛔ THE MOST DIGIT POSITIONS THE SIGNIFICAND OF A FLOATING-POINT NUMERIC-EDITED PICTURE MAY DESCRIBE (kb/Work PB5712): 31
-    /// at COBOL-2002, whose only bound is the one for every numeric and numeric-edited item (§2002:13.16.38.2 SR6 "shall range from 1
-    /// through 31"), and 36 from COBOL-2014, which gives the floating-point form its own (§2014:13.18.40.2 SR12; §2023:13.18.40.3
-    /// SR15). The floating-point form begins at COBOL-2002, so the 1985 answer is never asked.</summary>
-    public int MaxFloatEditedSignificandDigits => Year == 2002 ? 31 : 36;
-
-    /// <summary>⛔ THE MOST DIGITS THE EXPONENT OF A FLOATING-POINT NUMERIC-EDITED PICTURE MAY HOLD (kb/Work PB5712): 3 at COBOL-2002
-    /// ("The exponent shall be '+9', '+99', '+999', or '+9(n)' where n = 1, 2, or 3", §2002:13.16.38.3 GR12) and 4 from COBOL-2014 (adding
-    /// '+9999' and n = 4, §2014:13.18.40.3 GR12; §2023:13.18.40.4 GR13).</summary>
-    public int MaxFloatEditedExponentDigits => Year == 2002 ? 3 : 4;
-
     /// <summary>⛔ WHETHER A data-name-n CLAUSE OPERAND MAY BE WRITTEN SUBSCRIPTED (kb/Work PB5602): COBOL-2002 reads data-name-n as "a
     /// user-defined word, including qualification and subscription if needed" (§2002:5.1.3), and its FILE STATUS, RECORD KEY,
     /// ALTERNATE RECORD KEY, RELATIVE KEY, COLLATING SEQUENCE and CONTROL clauses say only that the operand "may be qualified". The

@@ -385,8 +385,11 @@ public static class StrongTypeModel
     {
         if (a.Pic is not { } x || b.Pic is not { } y) return a.Pic is null && b.Pic is null;
         if (ReferenceEquals(x, y)) return true;
-        if ((x with { EditingRules = null, RestrictedTypeName = null, RestrictedTypeDecl = null, RestrictedPrototypeName = null })
-            != (y with { EditingRules = null, RestrictedTypeName = null, RestrictedTypeDecl = null, RestrictedPrototypeName = null }))
+        // ⛔ CurrencyClass is elided too (kb/Work PB5614): exception 1 compares currency STRINGS ("Currency symbols match if and only if the
+        // corresponding currency strings are the same"), which Clause carries, and SR28 ties a symbol's literal-7 class to the item's USAGE, which
+        // the record compare asks. Asked as a member it made the default '$' (no literal-7 at COBOL-2002) differ from a clause's "$" under another symbol.
+        if ((x with { EditingRules = null, RestrictedTypeName = null, RestrictedTypeDecl = null, RestrictedPrototypeName = null, CurrencyClass = null })
+            != (y with { EditingRules = null, RestrictedTypeName = null, RestrictedTypeDecl = null, RestrictedPrototypeName = null, CurrencyClass = null }))
             return false;
         if ((x.RestrictedTypeName is not null || y.RestrictedTypeName is not null)
             && !SameRestriction(PointerRestriction(a), PointerRestriction(b), within)) return false;

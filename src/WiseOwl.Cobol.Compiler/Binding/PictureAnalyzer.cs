@@ -1360,7 +1360,7 @@ public static class PictureAnalyzer
 /// <c>. ,</c> under DECIMAL-POINT IS COMMA, SR13; kb/Work PB3219) (no floating insertion, no zero suppression with
     /// replacement, no S/V/P/CR/DB/currency; an IS-form EDITING character-1 is simple insertion and admitted, a FOR-form
     /// one is barred by SR12's FOR-phrase rules, kb/Work PB866) — with one point at most (SR12 b)
-    /// and 1..36 digit positions (SR15 — SR14's 31 does not apply; at COBOL-2002 it is 1..31 and a three-digit exponent, §2002:13.16.38.2 SR6 and §2002:13.16.38.3 GR12, <c>EditionInfo.MaxFloatEditedSignificandDigits</c>). Every symbol of both parts is a character position
+    /// and 1..36 digit positions (SR15 — SR14's 31 does not apply; at COBOL-2002 it is 1..31 and a three-digit exponent, §2002:13.16.38.2 SR6 and §2002:13.16.38.3 GR12, <c>DialectBehavior.FloatEditedPictureWideBounds</c>). Every symbol of both parts is a character position
     /// (GR14: E, the point, the insertion symbols and the signs are all counted). Returns a numeric-edited PicInfo
     /// with <see cref="PicInfo.IsFloatEdited"/>; Scale and DigitPositions are 0 (a floating-point item's scale is a
     /// runtime property of its value); the recovery shape on a violation (the compile has failed).</summary>
@@ -1399,7 +1399,9 @@ public static class PictureAnalyzer
                 + "editing (ISO §2023:13.18.40.5 Table 7: \"None for the exponent part\")");
             return PicInfo.Recovery(expanded.Length);
         }
-        int maxExponent = edition.Edition.MaxFloatEditedExponentDigits;
+        // ⛔ The bounds are one register row (kb/Work PB5712): four exponent digits and 36 significand digits from COBOL-2014, three and 31 at 2002.
+        bool wideBounds = DialectBehaviors.IsActive(DialectBehavior.FloatEditedPictureWideBounds, edition.DialectLevel);
+        int maxExponent = wideBounds ? 4 : 3;
         if (exp.Length < 2 || exp[0] != '+' || exp[1..].Any(c => c != '9') || exp.Length - 1 > maxExponent)
         {
             Bad($"the exponent shall be '+' and 1 to {maxExponent} nines (+9, +99, +999 or +9(n)) ("
@@ -1443,7 +1445,7 @@ public static class PictureAnalyzer
                 + (decimalPointIsComma ? "; SR13 — the rules for the symbol period apply to the symbol comma)" : ")"));
             return PicInfo.Recovery(expanded.Length);
         }
-        int maxSignificand = edition.Edition.MaxFloatEditedSignificandDigits;
+        int maxSignificand = wideBounds ? 36 : 31;
         if (digits < 1 || digits > maxSignificand)
         {
             Bad($"the significand carries {digits} digit position(s) — it shall carry 1 to {maxSignificand} ("

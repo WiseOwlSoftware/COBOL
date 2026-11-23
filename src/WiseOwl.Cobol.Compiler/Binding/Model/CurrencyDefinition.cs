@@ -1,7 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Common;
-using WiseOwl.Cobol.Editions;
 
 namespace WiseOwl.Cobol.Binding.Model;
 
@@ -25,7 +24,7 @@ public readonly record struct CurrencyDefinition(string Text, LiteralClass Liter
     /// <summary>The currency symbol <c>$</c> as SR25's implied clause defines it: the string "$", alphanumeric.</summary>
     public static CurrencyDefinition ImpliedDollar { get; } = new("$", LiteralClass.Alphanumeric);
 
-    /// <summary>The currency symbol <c>$</c> where no clause implies it (COBOL-2002; <see cref="EditionInfo.ImpliesDollarCurrencyClause"/>): the
+    /// <summary>The currency symbol <c>$</c> where no clause implies it (COBOL-2002; <c>DialectBehavior.ImpliedDollarCurrencyClause</c>): the
     /// default currency sign, whose string "$" has no literal-7 and so no class for SR28 to ask (§2002:12.2.6.2 SR24 speaks only of a literal-7
     /// that is written). <see cref="LiteralClass"/> is the class its string is stored in and is never read as a rule's input.</summary>
     public static CurrencyDefinition DefaultDollar { get; } = new("$", LiteralClass.Alphanumeric) { IsDefaultSign = true };
