@@ -104,7 +104,7 @@ THE TICK, in order (the queue watch, step 4, runs right after the survey, ahead 
      QUEUE_GRACE_MIN after its checks' work ended (the newest check-run's end; a stuck one's JOB time) is a STALLED read:
      read 1 re-runs the stuck check's workflow run, read 2 (one grace after) closes, reopens and re-queues the pull
      request, refused while a run on its head is in progress (both enqueue.py's: the only file that queues), read 3
-     sends the operator a mailbox question and the watch acts no more; each read is recorded on the
+     sends the running account's lane a mailbox question (notify_account, kb/Work PB6094) and the watch acts no more; each read is recorded on the
      attempt (`watch`) and in landing_measure.py's record (`stalls`). A pull request the queue REMOVED (a merge-group
      red) is CLASSIFIED before anyone is blamed (the class section above `watch_step`; kb/Work PB4271, PB4331): INFRA
      and RUNNER are re-queued once by the lane, no agent woken; GENUINE, MERGE, UNCLASSIFIED and a second red of the
@@ -1634,7 +1634,7 @@ def rearm_hold(rec: dict[str, Any], row: dict[str, Any] | None) -> str:
                 "it (the queue watch keeps reading it until it merges, and acts if it leaves the queue unmerged)")
     if row.get("state") == "NOT QUEUED":
         return ("the survey reads it NOT QUEUED: its pull request was handed to the queue, so the next tick does NOT "
-                "land it. The queue watch acts on it (a re-run, a requeue, then an alert to the operator); once it "
+                "land it. The queue watch acts on it (a re-run, a requeue, then an alert to the running account); once it "
                 "has ALERTED, only the operator does (the branch's status line says the watch's state)")
     return ""
 

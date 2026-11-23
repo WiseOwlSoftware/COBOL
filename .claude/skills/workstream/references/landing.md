@@ -71,7 +71,7 @@
   GATE BUSY, whatever record exists (kb/Work PB4204): the lane lands the head again once the gate lock is free.
   After `ENQUEUED` the
   lane's QUEUE WATCH follows the pull request into the merge queue: a NOT QUEUED pull request past the grace gets a
-  re-run of its stuck check, then a close, reopen and re-queue, then a mailbox question to the operator. A stop resolved with no new commit is landed again only when the enqueue
+  re-run of its stuck check, then a close, reopen and re-queue, then a mailbox question to the lane of the account running the loop (kb/Work PB6094). A stop resolved with no new commit is landed again only when the enqueue
   unit re-arms it (`land_lane.py rearm <branch> --why ...`, kb/Work PB3103). A permission refusal of `enqueue.py land` is handed off,
   never retried or routed around: `READY-TO-LAND <worktree> <branch>` (L13).
 - **No landing takes a lease: the merge queue orders main (kb/Work PB2537, PB3023 review R1-1, PB3024).** Main

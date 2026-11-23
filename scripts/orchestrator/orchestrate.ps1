@@ -33,7 +33,7 @@ Design: docs/rearchitecture/DESIGN-orchestrator-loop.md (kb/Work PB1981). Each i
      (`review_lane.py tick`, kb/Work PB3608): one read-only reviewer per branch WAITING FOR REVIEW and one finisher per
      CONFLICT stop, each its own headless session, at most -ReviewAgents at once, charged to the budget; and the PROGRESS line every -ProgressSeconds (progress.py, in
      the background: groups running, done and reviewed, landings, the oldest waiting item; each new stall posted once
-     to the operator's mailbox), and past -UnitSoftMinutes the unit gets STOP-UNIT as at the context soft cap (the
+     to the mailbox of the lane that dispatched its group), and past -UnitSoftMinutes the unit gets STOP-UNIT as at the context soft cap (the
      owner's hand-off at about 60 minutes; kb/Work PB3638)
   7. validate handoff.json against handoff.schema.json
   8. append one line to units.jsonl
@@ -242,7 +242,7 @@ function Start-PyBackground([string[]]$ArgList) {
 # THE PROGRESS LINE (kb/Work PB3638 defect 3; design section 4.3). The owner, 2026-10-24: "It's stupid to have work
 # running with no updates or progress for multiple hours." progress.py reads the dispatch ledger, the reports and the
 # landing records (no git, no GitHub), prints one PROGRESS line and a STALL line per item that stopped moving (kb/Work PB4944; an item past its size limit is only counted), and
-# posts each new stall once to the operator's mailbox (--post: the unit's log is the message's ref), and records each running
+# posts each new stall once to the mailbox of the lane that dispatched its group (--post: the unit's log is the message's ref), and records each running
 # group's run time in group_sizes.py's history, the planner's measure of a campaign's pace (--record). Background, one at
 # a time, never fatal, as the lane tick.
 $script:ProgressTick = $null
