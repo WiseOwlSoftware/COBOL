@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-A.2.5.2-2",
+ "rule-digest": "e14fe364a49e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#BindReceive; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#IsCommunicationAlphanumericArea",
+ "test-ref": "conformance:cases/A.2.5@2002-RECEIVE-STATEMENT/pb5722-receive-into-alphanumeric-edited-refused; conformance:cases/A.2.5@2002-RECEIVE-STATEMENT/pb5615-receive-into-alphabetic-2002",
+ "notes": "§2002:A.2.5.2 SR2 'Identifier-1 shall reference a data item of category alphanumeric' is a CATEGORY rule: an alphanumeric-edited item (PIC X(2)/X(2), XBX, X0X) is category alphanumeric-edited (§2002:8.5.2.3), so RECEIVE INTO it is refused COBOL6171 at --std 2002 (before the fix ANE=[AB/CD] ran, rc 0); a PIC A item is admitted at 2002 (§2002:8.5.2.1, pb5615). Run at --std 2002 on the PB5722 branch build."
+}
