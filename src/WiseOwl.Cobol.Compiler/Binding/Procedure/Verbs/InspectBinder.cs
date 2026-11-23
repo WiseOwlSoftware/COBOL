@@ -85,7 +85,7 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
         {
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.IndexNameContext,
                 $"INSPECT identifier-1 is the index-name '{WrittenSource.Of(ins.dataReference())}', which is not an "
-                + $"identifier ({EditionInfo.Designated(ctx.Edition.Edition.NotAnIdentifier())}); {ctx.Edition.Edition.Contexts()} admits an index-name only as a subscript, in "
+                + $"identifier ({EditionInfo.Designated(ctx.Edition.Edition.NotAnIdentifier())}); {ctx.Edition.Edition.AdmitsIndexNameOnly()} as a subscript, in "
                 + "PERFORM/SEARCH VARYING, in SET, or in a relation condition");
         }
         // ⛔ IDENTIFIER-1 IS A RECEIVING OPERAND EXACTLY WHEN THE STATEMENT MODIFIES IT (kb/Work PB881). §2023:14.9.22.3
