@@ -1,10 +1,12 @@
       *>--- conformance-case
       *> id: pb4975_float_edited_wide_significand_quotient
       *> rules: [DOC-A.1-123, GR-8.8.1.2-1]
-      *> accept: [2002, 2014, 2023]
+      *> accept: [2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---
+      *> Accepted from 2014 (kb/Work PB5613): a literal here has a significand of more than 31 digits or an exponent of four
+      *> digits, which §2002:8.3.1.2.2.2 refuses at 2002 (31 digits, a maximum of three exponent digits).
       *> kb/Work PB4975: a floating-point edited receiver may carry a
       *> 1 to 36 digit significand (PICTURE, §2023:13.18.40.3 SR15; cite.py OK), and
       *> the arithmetic value is rounded ONCE into the resultant

@@ -1,10 +1,12 @@
       *>--- conformance-case
       *> id: pb3570_floating_literal_group_move
       *> rules: [GR-14.9.25.4-4, GR-14.9.25.4-6]
-      *> accept: [2002, 2014, 2023]
+      *> accept: [2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---
+      *> Accepted from 2014 (kb/Work PB5613): a literal here has a significand of more than 31 digits or an exponent of four
+      *> digits, which §2002:8.3.1.2.2.2 refuses at 2002 (31 digits, a maximum of three exponent digits).
       *> kb/Work PB3570 (branch review R1-1), docs/CONFORMANCE.md D-B4: A FLOATING-POINT
       *> LITERAL SENT TO A GROUP STORES THE DIGITS OF ITS SIGNIFICAND AS WRITTEN, never the
       *> digits of its scaled value and never the exponent. A MOVE to a group is 14.9.25.4 GR4's

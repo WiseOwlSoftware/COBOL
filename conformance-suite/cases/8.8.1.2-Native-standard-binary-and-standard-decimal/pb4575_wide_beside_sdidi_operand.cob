@@ -1,10 +1,12 @@
       *>--- conformance-case
       *> id: pb4575_wide_beside_sdidi_operand
       *> rules: [DOC-A.1-123, GR-8.8.1.2-1]
-      *> accept: [2002, 2014, 2023]
+      *> accept: [2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---
+      *> Accepted from 2014 (kb/Work PB5613): a literal here has a significand of more than 31 digits or an exponent of four
+      *> digits, which §2002:8.3.1.2.2.2 refuses at 2002 (31 digits, a maximum of three exponent digits).
       *> kb/Work PB4575 (docs/CONFORMANCE.md DOC-A.1-123): under NATIVE
       *> arithmetic an arithmetic expression in which an exact wide
       *> intermediate (a nested product of 39 to 77 digits) meets an

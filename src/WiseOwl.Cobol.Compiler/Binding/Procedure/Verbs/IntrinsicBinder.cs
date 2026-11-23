@@ -1935,7 +1935,8 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// the renderer must tell a bare LOCALE from no phrase at all.</summary>
     private BoundExpr BindNumvalCFamily(IntrinsicSig sig, IReadOnlyList<Core.FunctionArgumentContext> argCtxs)
     {
-        string fmt = sig.Name == "NUMVAL-C" ? "15.68.2" : "15.94.2";
+        bool isNumvalC = sig.Name == "NUMVAL-C";
+        string fmt = isNumvalC ? "15.68.2" : "15.94.2";
         // §2023:15.68.2/§2023:15.94.2: ( argument-1 [argument-2 | LOCALE [locale-name-1]] [ANYCASE] ) — a POSITIONAL walk,
         // not an order-free keyword sweep (fix-queue PB60 / FMT-15.68.2). Slot 0 is ALWAYS argument-1 and binds
         // as an operand — POSITIONALLY, because the format puts argument-1 there, not because a data item may be
@@ -2032,7 +2033,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // ⛔ A 2014 RULE FOR TEST-NUMVAL-C (kb/Work PB5721): §2014:15.87.2 AR1 and §2023:15.94.3 AR1 import NUMVAL-C's argument rules
         // whole, so from 2014 the content screen applies to TEST-NUMVAL-C too; §2002:15.76.2 AR2 asks of its argument-2 only the
         // class of argument-1, and the 2002 NUMVAL-C text (§2002:15.55.2 AR2) is the only 2002 text with the content screen.
-        bool argumentRulesApply = sig.Name != "TEST-NUMVAL-C"
+        bool argumentRulesApply = isNumvalC
             || DialectBehaviors.IsActive(DialectBehavior.TestNumvalCImportsNumvalCArgumentRules, ctx.Edition.Edition.Year);
         bool contentRules = argumentRulesApply
             && DialectBehaviors.IsActive(DialectBehavior.NumvalCCurrencyContentRules, ctx.Edition.Edition.Year);
