@@ -968,11 +968,22 @@ The rules (each a drift assertion, listed with the measure that shows today's di
    so these counts stop being text scans, and `file_census_notes.py` files their findings like the others (rules 2 and
    3 have no notes until it does); the drift assertions read the newest record, as `ArchCensusDriftTests` does.
 7. **A schema-owned vocabulary has no hand-kept copy in `scripts/`.** The inventory schema
-   (`tests/version-matrix/inventory-schema.json`) owns the verdicts and their `resolves` flags, the test-ref forms and
-   both list separators; a script reads them through `inventory_schema.load_schema()` (`Schema.resolving`,
-   `Schema.defective`, `Schema.test_ref_forms`, `Schema.test_ref_sep`, `Schema.code_location_sep`), never by retyping
-   them or by a second parse of the JSON (kb/Work PB3206, PB3210). Each reader's self-test plants a schema with a new
-   entry and shows it carried through (`scripts/selftests/spec/normalize_batch/`).
+   (`tests/version-matrix/inventory-schema.json`) owns the verdicts and their `resolves` flags, the test-ref forms, the
+   list separators and the retired-witness mark; a script reads them through `inventory_schema.load_schema()`
+   (`Schema.resolving`, `Schema.defective`, `Schema.test_ref_forms`, `Schema.test_ref_sep`, `Schema.code_location_sep`,
+   `Schema.editions_sep`) and the module's constants (`RETIRED_WITNESS_MARK`), splits a list field with `Schema.split`,
+   and takes the raw entries (to plant in a self-test, or a history commit's) from `inventory_schema.raw_schema(tree)`,
+   the one parse of the file; never by retyping them, by a second parse of the JSON or by a hand split on a separator
+   (kb/Work PB3206, PB3210, PB6098). The drift assertion is `scripts/spec/schema_readers.py --check`, run over the tree
+   by its self-test (`scripts/selftests/spec/schema_readers/`, every gate of a change that touches a script, and CI):
+   outside `inventory_schema.py` no live Python file names the schema file as a path, parses it, or hands a schema
+   separator to `str.split`. Measured at PB6098: 11 findings in 6 scripts (`rename_diagnostic_prefix.py`'s parse of the
+   mark, `normalize_batch.py`'s two inline splits, the conformance generator's four editions splits, `session_probe.py`'s
+   probe of the file, `inventory_view.py`'s and `audit_witness_loss.py`'s parses), plus 11 parses through the former
+   `SCHEMA_PATH` constant (deleted) or `docchecks/register.py`'s alias of the path, which the scan, reading one call at a
+   time, does not see (its named residue); 0 of either after it. The form table's reader,
+   `normalize_batch.py`, also plants a schema with a new form and a new separator and shows them carried through
+   (`scripts/selftests/spec/normalize_batch/`).
 
 **Names: what changes, what does not, and the one owner question.**
 - *Project and assembly names do not change.* `WiseOwl.Cobol.{Editions,Frontend,Compiler,Runtime,Cli}` and the

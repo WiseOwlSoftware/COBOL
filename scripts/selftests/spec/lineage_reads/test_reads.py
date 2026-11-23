@@ -269,7 +269,7 @@ def case_05c_a_row_closed_on_its_own_derivation_is_planned_no_witness(expect):
     """kb/Work PB5822: the planners' population (`bare_kept`, so `witness-batch` and `widen`) leaves out a KEPT row closed
     on a derivation of its own, as `lineage.unwitnessed` does, and keeps one whose derivation does not stand. The states
     are the state rule's (`lineage.state_of`) on a planted schema whose derivation reads a fabricated register."""
-    schema = R.inventory_schema.Schema(json.loads(R.inventory_schema.SCHEMA_PATH.read_text(encoding="utf-8")))
+    schema = R.inventory_schema.Schema(R.inventory_schema.raw_schema())
     d, e85, t = schema.derivation, R.edition(1985), "GR-1"
     stands, falls, bare = "1985-GR-XIV.1-1", "1985-GR-XIV.1-2", "1985-GR-XIV.1-3"
     text = "If the operands overlap, the result of the transfer is undefined."

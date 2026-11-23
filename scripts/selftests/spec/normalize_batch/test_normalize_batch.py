@@ -2,8 +2,6 @@
 """The batch normalizer reads the inventory schema's test-ref form table and both separators, never a copy of its own
 (kb/Work PB3210): a form the schema gains is kept and respelled, and a separator the schema changes splits and joins every
 batch, with no edit to normalize_batch.py."""
-import copy
-import json
 import sys
 
 import selftest_cases
@@ -15,7 +13,7 @@ import inventory_schema  # noqa: E402  (the subject's sibling, on sys.path once 
 
 def _raw() -> dict:
     """A fresh copy of the working tree's schema, for a case to plant a form or a separator in."""
-    return copy.deepcopy(json.loads(inventory_schema.SCHEMA_PATH.read_text(encoding="utf-8")))
+    return inventory_schema.raw_schema()
 
 
 def _normalize(schema, test_ref: str, code_location: str = "") -> dict:
@@ -49,6 +47,20 @@ def case_01_the_schemas_separators_split_and_join(expect):
     expect.equal("the real schema's separators round-trip a canonical record unchanged",
                  (rec["test-ref"], rec["code-location"]), ("unit:A.B; unit:A.C", "src/A.cs; src/B.cs"))
 
+
+
+def case_02_a_kept_refs_remark_goes_to_notes(expect):
+    """normalize_ref's contract (kb/Work PB6098): a remark after a canonical ref is split off and kept in `notes`,
+    a kept ref's as well as a dropped ref's, and a bare `#Method`'s remark too; empty parts are dropped by the schema's
+    one splitter (`Schema.split`), never by a copy of it here."""
+    rec = _normalize(C.load_schema(), "unit:A.B (corroboration only);; #C (second method); not a ref",
+                     "src/A.cs#M (the MAX row);;")
+    expect.equal("the kept refs, the bare method inheriting its class, the empty part gone",
+                 rec["test-ref"], "unit:A.B; unit:A.C")
+    expect.equal("the code-location keeps its path, the empty parts gone", rec["code-location"], "src/A.cs#M")
+    expect.equal("every remark and the dropped ref's reason reach notes", rec["notes"],
+                 "[ref note: (corroboration only); ref note: (second method); test-ref 'not a ref' did not parse and "
+                 "was removed by normalize_batch] [code-location note: (the MAX row)]")
 
 if __name__ == "__main__":
     ensure_utf8()

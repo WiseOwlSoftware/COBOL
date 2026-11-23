@@ -9,6 +9,7 @@ A live tool is a script the gates, the loop or a session run against this tree. 
   scripts/standard_streams.py  holds every Python file under ROOTS to the one UTF-8 switch for its streams (PB3637);
   scripts/test_population.py  its trx-writer audit (PB3155) and its trx-reader audit (the one trx reader, PB3661) read every
                            live tool.
+  scripts/spec/schema_readers.py  holds every Python file under ROOTS to the inventory schema's one reader (PB6098).
 Each kept its own copy until PB3176: when the conformance suite's harness (conformance-suite/harness/, whose generator is
 a gate audit; kb/Work PB3174) joined the self-test runner and the WRITERS arm, the temp-name audit's copy stayed at
 scripts/ and .claude/, so a fixed temp name committed in the harness passed every gate. A tree added here reaches all
@@ -51,7 +52,7 @@ def tracked(repo: Path | str, suffixes: tuple[str, ...] | None = None, env: Mapp
 THIS = "scripts/live_tools.py"
 #: The scripts that read the live tools' trees: each lists them through `tracked` and declares no tuple of its own.
 READERS = ("scripts/self_tests.py", "scripts/line_endings.py", "scripts/temp_names.py", "scripts/scratch_repo.py",
-           "scripts/standard_streams.py", "scripts/test_population.py")
+           "scripts/standard_streams.py", "scripts/test_population.py", "scripts/spec/schema_readers.py")
 #: A reader's own copy of the trees: a module-level `ROOTS = (` or `<PREFIX>_ROOTS = (` tuple.
 OWN_ROOTS = re.compile(r"^\w*ROOTS\s*=\s*\(", re.MULTILINE)
 #: A `git ls-files` argument list that holds the trees' list (`ROOTS`, or the name a reader imported it as): the listing

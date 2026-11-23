@@ -24,7 +24,6 @@ from conformance_source import Conformance  # noqa: E402
 
 EXTRACT_PATH = schema.REGISTER_EXTRACT_REL
 PROFILE_PATH = "conformance-suite/profiles/wiseowl.json"
-SCHEMA_PATH = schema.SCHEMA_REL
 EDITIONS = ["85", "2002", "2014", "2023"]
 CODE = re.compile(r"COBOL[0-9]{4}")
 #: An unresolved citation: a clause path whose last component is the literal `x` standing in for the part nobody derived.
@@ -96,7 +95,7 @@ def render_extract(extract: dict) -> str:
 
 
 def _derivation_heading(root: Path) -> str:
-    return json.loads(common.text(root, SCHEMA_PATH))["derivation"]["register-heading"]
+    return schema.raw_schema(schema.Tree(root))["derivation"]["register-heading"]
 
 
 def current_extract(root: Path) -> str:
@@ -118,13 +117,13 @@ def schema_prefixes(node: object) -> list[str]:
 
 
 def prefixes_over_lead(prefixes: list[str], lead_length: int = LEAD_LENGTH) -> list[str]:
-    return [f"{SCHEMA_PATH}: the determination-prefix '{p}' is {len(p)} characters, over the extract's LEAD_LENGTH {lead_length} "
+    return [f"{schema.SCHEMA_REL}: the determination-prefix '{p}' is {len(p)} characters, over the extract's LEAD_LENGTH {lead_length} "
             f"({EXTRACT_PATH} keeps only that many of each §7 determination, so the C# selector would test nothing for it): "
             "raise LEAD_LENGTH in scripts/docchecks/register.py and regenerate the extract" for p in prefixes if len(p) > lead_length]
 
 
 def lead_covers_schema_prefixes(root: Path) -> list[str]:
-    return prefixes_over_lead(schema_prefixes(json.loads(common.text(root, SCHEMA_PATH))))
+    return prefixes_over_lead(schema_prefixes(schema.raw_schema(schema.Tree(root))))
 
 
 def register_extract_fresh(root: Path) -> list[str]:
@@ -342,7 +341,7 @@ def self_test() -> list[str]:
              "## 7. Annex A.1\n| A.1 item | E | D | P |\n|---|---|---|---|\n| DOC-A.1-82 | E | rounds \\|v\\| away from zero | — |\n").a1_rows()],
          ["rounds |v| away from zero"]),
         ("every determination-prefix the real schema carries fits the extract's lead",
-         prefixes_over_lead(schema_prefixes(json.loads((Path(__file__).resolve().parents[2] / SCHEMA_PATH).read_text(encoding="utf-8")))), []),
+         prefixes_over_lead(schema_prefixes(schema.raw_schema())), []),
         ("the prefixes are found in nested selector arms and in a list of arms, and only those",
          schema_prefixes({"a": [{"arms": [{"determination-prefix": ["P1", "P2"], "kinds": ["DOC"]}]}], "determination-prefix": ["P3"],
                           "b": "determination-prefix"}), ["P1", "P2", "P3"]),
