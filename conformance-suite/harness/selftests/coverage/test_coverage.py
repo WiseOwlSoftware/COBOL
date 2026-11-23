@@ -151,6 +151,40 @@ def case_16_a_record_that_is_not_a_measure_of_the_tests_fails_loudly(expect):
         T.accepted, T.read_record = saved
 
 
+def case_17_the_reading_digest_moves_with_the_mapping_and_the_matcher(expect):
+    """kb/Work PB6050 review R1-1: a record measured under another row-to-frame mapping or matcher is stale."""
+    cat = T.Catalog(P.load())
+    base = T.inputs_of(cat, "c", [])["reading"]
+    T.NO_FRAME["1985-FMT-Z.9.9.2"] = "planted"
+    try:
+        expect("a row-to-frame mapping change moves the digest", T.inputs_of(cat, "c", [])["reading"] != base)
+    finally:
+        del T.NO_FRAME["1985-FMT-Z.9.9.2"]
+    T.FIGURATIVES.add("PLANTED")
+    try:
+        expect("a matcher table change moves the digest", T.inputs_of(cat, "c", [])["reading"] != base)
+    finally:
+        T.FIGURATIVES.discard("PLANTED")
+    expect.equal("restored, the digest is the same", T.inputs_of(cat, "c", [])["reading"], base)
+
+
+def case_18_the_per_row_report_fails_loudly_on_a_stale_record(expect):
+    """kb/Work PB6050 review R1-4: the report runs unmet's checks first, never printing a missing record as a measure."""
+    class Case:
+        test_id = "t1"
+        path = "none"
+    saved = (T.accepted, T.read_record)
+    T.accepted = lambda edition: [Case()]
+    T.read_record = lambda edition: {}
+    try:
+        T.report("85")
+        expect("the report refuses a test with no record", False, "no error")
+    except RuntimeError as e:
+        expect("the report refuses a test with no record", "no points record" in str(e), str(e))
+    finally:
+        T.accepted, T.read_record = saved
+
+
 if __name__ == "__main__":
     ensure_utf8()
     sys.exit(selftest_cases.run(sys.modules[__name__]))

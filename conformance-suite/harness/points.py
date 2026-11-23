@@ -12,8 +12,8 @@ and it is committed as `scripts/spec/data/format-points-1985.json` so CI checks 
     python conformance-suite/harness/points.py --edition 85 --check     the committed catalog is what the transcription yields
     python conformance-suite/harness/points.py --edition 85 --report    points per row
 
-The catalog binds each row to the grammar rules whose parse nodes carry its formats (`FRAMES`, held by a drift check: every
-row has one) and each operand word to the kinds of item it matches (`coverage.OPERAND_KINDS`); `coverage.py` reads both.
+The catalog holds the points; `coverage.py` binds each row to the grammar rules whose parse nodes carry its formats
+(`coverage.frames_of`, `FRAME_OVERRIDES`, `NO_FRAME`) and matches each operand word to a token (`coverage.operand_ok`).
 """
 from __future__ import annotations
 

@@ -449,7 +449,8 @@ denominator is fixed first.
   together until the operand-kind map names their grammar elements.
 - **The record** is `wiseowl/points/<test id>.json`, `{"85": "3-17,21"}`: the catalog's point numbers as ranges (a test credits
   hundreds of points; ids would weigh megabytes), one file per test as `wiseowl/diagnostics/` is, and `wiseowl/points-inputs.json`,
-  the catalog's digest, the reading's, and each test's text digest. `coverage.unmet` raises, never counts, when a test accepted at
+  the catalog's digest, the reading's (the rules the parse is read through, the row-to-frame mapping and the matcher,
+  `coverage.reading_of`), and each test's text digest. `coverage.unmet` raises, never counts, when a test accepted at
   the edition has no record or changed since, or the catalog or the reading changed. `coverage.py --edition 85 --record` rewrites it
   (about a minute); `suite_status.py` prints `points N owed`. A change to the grammar that moves a credit is not seen by the digest:
   the record is re-run with the grammar's own gates (kb/Work PB6050 lead).
@@ -767,7 +768,10 @@ kb/Conformance burn-down, whose ledger page is the owner's (PB2912), so a new se
   NOT APPLICABLE 7, NO VERDICT 14) and, for each FAIL and NO VERDICT, a bucket and a cause. The bucket is mechanical (a
   compile failure's first diagnostic, an output difference's clause folder, a hang, a crash); the cause is the adjudication,
   one of `gnucobol-nonconformance` (with its `§1985:` citation), `non-portable-test`, `wiseowl-expectation-defect`, or
-  `unclassified` until Stage 2 decides it (211 of the 484 are, at this writing: 108 are gnucobol-nonconformance and 165 non-portable-test, kb/Work PB6054). `harness/measurements.py record` writes the file
+  `unclassified` until it is decided. A cause is set per test from that test's own diff, re-run on the compiler and read
+  against the rule the test names; a `gnucobol-nonconformance` cites the rule the compiler's output breaks, checked with
+  `cite.py --check`. GnuCOBOL at 85 has none left unclassified: of the 484, 284 are gnucobol-nonconformance and 200
+  non-portable-test, and none is a wiseowl-expectation-defect (kb/Work PB6054 and its addenda). `harness/measurements.py record` writes the file
   from `run.py`'s `results.json` (keeping a cause already adjudicated for the same bucket) and the cleared tests' verdicts
   into the baseline; `generate.py --check` refuses a measurement naming a test of no population, a failure with no bucket
   or cause, a cause outside the three and a citation off the held text. The 85 run took 1,624 tests from the 2026-11-22
@@ -977,7 +981,7 @@ Revision 4 (kb/Work PB6046) orders the work in stages, COBOL-85 first (decision 
    points from `coverage.py` `unmet(edition)` (PB6050), NIST from `crosswalk.py` `unmet(edition)` (PB6049) and the
    transcription from the ledger's `second_pass` `{pages_swept, findings}` (PB6051). A term whose tool does not exist
    yet prints `UNMEASURED`, never 0, and keeps the line `INCOMPLETE`; a tool that exists and cannot answer fails the line
-   loudly (exit 2). Today: rows 2,961 · points UNMEASURED · NIST 6,931 · second compiler 211 · transcription UNMEASURED.
+   loudly (exit 2). Today: rows 2,961 · points 994 · NIST 6,931 · second compiler 0 · transcription UNMEASURED.
 1. **The pilot** (PB3178, re-scoped): one slice of about 100 rows end to end with the real tools; its cost per row, per
    test cleared, per test written and per NIST unit sets the stop rule of every later stage (above twice: redesign).
 2. **Clear the existing tests.** A test clears when the portability lint passes, WiseOwl passes it at 85, its expected

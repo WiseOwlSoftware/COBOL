@@ -38,10 +38,10 @@ internal static class Program
         return Parse(args).Invoke();
     }
 
-    /// <summary>The name of the batch-check command, the one command line whose first word is not a source file.</summary>
+    /// <summary>The name of the batch-check command, a verb whose first word is not a source file.</summary>
     internal const string CheckBatchName = "check-batch";
 
-    /// <summary>The name of the parse-reading batch command (kb/Work PB6050), the other verb whose first word is not a source file.</summary>
+    /// <summary>The name of the parse-reading batch command (kb/Work PB6050), the other such verb.</summary>
     internal const string PointsBatchName = "points-batch";
 
     /// <summary>⛔ THE ONE ROUTE FROM A COMMAND LINE TO ITS PARSE (kb/Work PB4340). The compile and the batch check are
