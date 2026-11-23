@@ -1,6 +1,7 @@
       *>--- conformance-case
       *> id: pb5196-record-contains-zero-minimum-1985
-      *> rules: [1985-FMT-VII.3.8.2]
+      *> rules: [1985-FMT-VII.3.8.2,
+      *>    SR-13.18.43.3-8]
       *> source-format: fixed
       *> portable: unverified
       *>---

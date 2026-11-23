@@ -1,7 +1,8 @@
 {
  "rule-id": "1985-SR-IX.4.5.3-2",
  "rule-digest": "a31557f3fc1c",
- "test-ref": "conformance:cases/14.9.30-READ/pb481-read-key-refmod; conformance:cases/14.9.30-READ/pb5794-read-key-numeric-twin; conformance:cases/14.9.30-READ/pb5877-read-key-redefines-own-record; conformance:cases/IX.4.5@1985-READ-STATEMENT/pb5883-read-key-subscripted-85; conformance:cases/IX.4.5@1985-READ-STATEMENT/pb5883-read-key-qualified-85",
+ "test-ref": "conformance:cases/14.9.30-READ/pb5794-read-key-numeric-twin; conformance:cases/14.9.30-READ/pb5877-read-key-redefines-own-record; conformance:cases/IX.4.5@1985-READ-STATEMENT/pb5883-read-key-subscripted-85; conformance:cases/IX.4.5@1985-READ-STATEMENT/pb5883-read-key-qualified-85",
+ "notes": "retired-witness: conformance:cases/14.9.30-READ/pb481-read-key-refmod (the case tests a reference-modified READ key under SR-14.9.30.3-12 and SR-8.4.3.3.3-5, not the rule this row states; the row keeps its four read-key witnesses (kb/Work PB6067: a witness cites the row it witnesses))",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

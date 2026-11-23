@@ -1,6 +1,7 @@
       *>--- conformance-case
       *> id: pb5976-own-condition-name-hides-global-report-85
-      *> rules: [1985-GR-X.1.3.8.2-3]
+      *> rules: [1985-GR-X.1.3.8.2-3,
+      *>    GR-8.4.6.2.1-3]
       *> source-format: fixed
       *> portable: unverified
       *>---

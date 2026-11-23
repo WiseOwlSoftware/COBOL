@@ -1,6 +1,8 @@
       *>--- conformance-case
       *> id: gl2m2_ct_arith_mode
-      *> rules: [DOC-A.1-29]
+      *> rules: [DOC-A.1-29,
+      *>    GR-7.3.6.3-2,
+      *>    SR-7.3.6.2-2]
       *> accept: [2023]
       *> source-format: fixed
       *> portable: unverified

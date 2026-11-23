@@ -1,6 +1,7 @@
 *>--- conformance-case
 *> id: pb1136-invoke-null-identifier-2
-*> rules: [SR-14.9.23.3-1, SR-14.9.23.3-7]
+*> rules: [SR-14.9.23.3-1, SR-14.9.23.3-7,
+*>    SR-8.4.3.7.3-2]
 *> source-format: free
 *> portable: unverified
 *>---

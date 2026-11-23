@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb5886-product-quotient
-      *> rules: [AR-15.3-6]
+      *> rules: [AR-15.3-6, AR-15.64.3-1]
       *> source-format: fixed
       *> portable: unverified
       *>---

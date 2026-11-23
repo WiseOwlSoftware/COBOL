@@ -1,6 +1,7 @@
       *>--- conformance-case
       *> id: l1c10_figurative_code_values
-      *> rules: [GR-8.3.3.6.4-5, DOC-A.1-74]
+      *> rules: [GR-8.3.3.6.4-5, DOC-A.1-74,
+      *>    GR-8.3.3.6.4-1]
       *> accept: [2002]
       *> source-format: fixed
       *> portable: unverified

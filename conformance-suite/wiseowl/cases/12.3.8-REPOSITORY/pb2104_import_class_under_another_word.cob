@@ -1,6 +1,8 @@
       *>--- conformance-case
       *> id: pb2104_import_class_under_another_word
-      *> rules: [SR-12.3.8.3-6, GR-12.3.8.4-6]
+      *> rules: [SR-12.3.8.3-6, GR-12.3.8.4-6,
+      *>    DOC-A.1-161,
+      *>    GR-8.3.2.2-L2.1]
       *> accept: [2002, 2014, 2023]
       *> files: [pb2104_ledger_lib.cbl]
       *> build: ["pb2104_ledger_lib.cbl > P2104LIB", "{self}"]

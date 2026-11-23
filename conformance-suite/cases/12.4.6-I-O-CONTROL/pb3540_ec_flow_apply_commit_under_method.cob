@@ -1,6 +1,7 @@
 *>--- conformance-case
 *> id: pb3540_ec_flow_apply_commit_under_method
-*> rules: [GR-12.4.6.3.4-3, GR-9.1.18.7-p1]
+*> rules: [GR-12.4.6.3.4-3, GR-9.1.18.7-p1,
+*>    SR-9.1.18.6-p1]
 *> accept: [2023]
 *> source-format: free
 *> portable: unverified

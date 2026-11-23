@@ -1,6 +1,8 @@
 *>--- conformance-case
 *> id: l1_encoding_marked_malformed_is_refused
-*> rules: [DOC-A.1-25]
+*> rules: [DOC-A.1-25,
+*>    DOC-A.1-26,
+*>    GR-8.1.3.2-2]
 *> files: [L1BADMRK.cpy]
 *> source-format: free
 *> portable: unverified

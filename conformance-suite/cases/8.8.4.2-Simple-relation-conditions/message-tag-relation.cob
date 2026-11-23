@@ -1,6 +1,7 @@
 *>--- conformance-case
 *> id: message-tag-relation
-*> rules: [GR-8.8.4.2.1-9, GR-8.4.3.10.4-4]
+*> rules: [GR-8.8.4.2.1-9, GR-8.4.3.10.4-4,
+*>    FMT-8.8.4.2.2]
 *> accept: [2023]
 *> source-format: free
 *> portable: unverified

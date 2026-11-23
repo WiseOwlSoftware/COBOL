@@ -1,6 +1,9 @@
 *>--- conformance-case
 *> id: format_roundtrip_bit
-*> rules: [GR-13.18.24.4-5, GR-13.18.24.4-7]
+*> rules: [GR-13.18.24.4-5, GR-13.18.24.4-7,
+*>    DOC-A.1-85,
+*>    FMT-13.18.24.2,
+*>    GR-13.18.24.4-11]
 *> accept: [2002, 2014, 2023]
 *> constructs: [format-clause-2002]
 *> source-format: free

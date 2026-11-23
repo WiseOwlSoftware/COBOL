@@ -1,6 +1,8 @@
 *>--- conformance-case
 *> id: pb5579_rewrite_file
-*> rules: [FMT-14.9.35.2, SR-14.9.35.3-10, GR-14.9.35.4-9]
+*> rules: [FMT-14.9.35.2, SR-14.9.35.3-10, GR-14.9.35.4-9,
+*>    GR-14.9.35.4-2,
+*>    SR-13.4.5.3-3]
 *> accept: [2002, 2014, 2023]
 *> source-format: free
 *> portable: unverified

@@ -1,6 +1,7 @@
 *>--- conformance-case
 *> id: allocate-chars-no-returning
-*> rules: []
+*> rules: [FMT-14.9.3.2,
+*>    SR-14.9.3.3-2]
 *> source-format: free
 *> portable: unverified
 *>---

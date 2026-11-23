@@ -1,7 +1,8 @@
 *>--- conformance-case
 *> id: file_sharing_mutate
 *> rules: [GR-9.1.13.8-1, GR-14.9.10.4-4, GR-14.9.10.4-6,
-*>    GR-14.9.10.4-10, GR-14.9.47.4-1, DOC-A.1-109]
+*>    GR-14.9.10.4-10, GR-14.9.47.4-1, DOC-A.1-109,
+*>    GR-9.1.16-p4]
 *> accept: [2002]
 *> source-format: free
 *> portable: unverified

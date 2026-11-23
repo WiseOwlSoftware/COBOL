@@ -1,6 +1,8 @@
       *>--- conformance-case
       *> id: pb4092_size_checking_is_per_name
-      *> rules: [GR-14.7.5-3, GR-14.7.5-4, GR-7.3.25.4-6]
+      *> rules: [GR-14.7.5-3, GR-14.7.5-4, GR-7.3.25.4-6,
+      *>    DOC-A.1-179,
+      *>    DOC-A.1-70]
       *> accept: [2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified

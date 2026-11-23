@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: l1_subtract_format1_initial_evaluation
       *> rules: [GR-14.9.44.4-1]
-      *> accept: [85, 2023]
+      *> accept: [85, 2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---

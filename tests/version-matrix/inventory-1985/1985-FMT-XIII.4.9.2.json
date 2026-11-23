@@ -1,7 +1,8 @@
 {
  "rule-id": "1985-FMT-XIII.4.9.2",
  "rule-digest": "1b032bdfc112",
- "test-ref": "conformance:cases/14.9.49-USE/pb332-use-format1-needs-exception-or-error; conformance:cases/XIII.4.9@1985-USE-BEFORE-REPORTING-STATEMENT/pb5775-use-before-reporting-homonym-85; conformance:cases/XIII.4.9@1985-USE-BEFORE-REPORTING-STATEMENT/1985-FMT-XIII_4_9_2",
+ "test-ref": "conformance:cases/14.9.49-USE/pb332-use-format1-needs-exception-or-error; conformance:cases/XIII.4.9@1985-USE-BEFORE-REPORTING-STATEMENT/1985-FMT-XIII_4_9_2",
+ "notes": "retired-witness: conformance:cases/XIII.4.9@1985-USE-BEFORE-REPORTING-STATEMENT/pb5775-use-before-reporting-homonym-85 (the case cites 1985-SR-XIII.4.9.3-2 (the homonym rule), not the format; the row keeps its two witnesses (kb/Work PB6067: a witness cites the row it witnesses))",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

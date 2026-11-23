@@ -1,6 +1,8 @@
       *>--- conformance-case
       *> id: l1c06_currency_non_cobol_symbols
-      *> rules: [DOC-A.1-43, DOC-A.1-44]
+      *> rules: [DOC-A.1-43, DOC-A.1-44,
+      *>    SR-12.3.7.3-20,
+      *>    SR-13.18.40.3-3]
       *> accept: [2002]
       *> source-format: fixed
       *> portable: unverified

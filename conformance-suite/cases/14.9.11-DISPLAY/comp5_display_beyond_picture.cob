@@ -1,6 +1,7 @@
 *>--- conformance-case
 *> id: comp5_display_beyond_picture
-*> rules: [GR-14.9.11.4-1, DOC-A.1-56]
+*> rules: [GR-14.9.11.4-1, DOC-A.1-56,
+*>    GR-14.9.11.4-10]
 *> accept: [2002, 2023]
 *> source-format: free
 *> portable: unverified

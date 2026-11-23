@@ -1,6 +1,7 @@
 *>--- conformance-case
 *> id: pb3686_returning_external_prototype_pointer
-*> rules: [SR-14.9.39.3-22, GR-14.8.2.3.2-4]
+*> rules: [SR-14.9.39.3-22, GR-14.8.2.3.2-4,
+*>    GR-14.8.3.3-2]
 *> accept: [2002]
 *> source-format: free
 *> portable: unverified

@@ -1,7 +1,8 @@
 *>--- conformance-case
 *> id: intrinsics_date_window
 *> rules: [RV-15.23.4-1, RV-15.25.4-1, AR-15.100.3-1, RV-15.100.4-1,
-*>    FMT-15.23.2, FMT-15.25.2, FMT-15.100.2]
+*>    FMT-15.23.2, FMT-15.25.2, FMT-15.100.2,
+*>    RV-15.100.4-2]
 *> accept: [2002]
 *> source-format: free
 *> portable: unverified

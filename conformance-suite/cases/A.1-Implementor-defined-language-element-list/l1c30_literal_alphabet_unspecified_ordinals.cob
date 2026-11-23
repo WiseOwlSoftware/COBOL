@@ -1,6 +1,7 @@
       *>--- conformance-case
       *> id: l1c30_literal_alphabet_unspecified_ordinals
-      *> rules: [DOC-A.1-186]
+      *> rules: [DOC-A.1-186,
+      *>    GR-12.3.7.4-7]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

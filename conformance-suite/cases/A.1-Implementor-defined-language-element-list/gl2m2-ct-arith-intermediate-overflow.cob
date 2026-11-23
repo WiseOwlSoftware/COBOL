@@ -1,6 +1,7 @@
       *>--- conformance-case
       *> id: gl2m2-ct-arith-intermediate-overflow
-      *> rules: [DOC-A.1-29]
+      *> rules: [DOC-A.1-29,
+      *>    SR-7.3.6.2-2]
       *> source-format: fixed
       *> portable: unverified
       *>---

@@ -1,6 +1,7 @@
       *>--- conformance-case
       *> id: pb5775-generate-homonym
-      *> rules: [FMT-14.9.16.2]
+      *> rules: [FMT-14.9.16.2,
+      *>    SR-14.9.16.3-1]
       *> source-format: fixed
       *> portable: unverified
       *>---

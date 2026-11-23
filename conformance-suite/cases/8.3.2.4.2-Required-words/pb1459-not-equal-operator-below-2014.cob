@@ -1,6 +1,7 @@
 *>--- conformance-case
 *> id: pb1459-not-equal-operator-below-2014
-*> rules: [SR-8.3.2.4.2-2]
+*> rules: [SR-8.3.2.4.2-2,
+*>    SR-8.7.5.2-11]
 *> source-format: free
 *> portable: unverified
 *>---

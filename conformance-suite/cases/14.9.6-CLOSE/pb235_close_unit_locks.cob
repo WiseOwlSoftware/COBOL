@@ -1,6 +1,7 @@
 *>--- conformance-case
 *> id: pb235_close_unit_locks
-*> rules: [GR-14.9.6.4-9, DOC-A.1-24]
+*> rules: [GR-14.9.6.4-9, DOC-A.1-24,
+*>    GR-9.1.16-p5]
 *> accept: [2002]
 *> source-format: free
 *> portable: unverified

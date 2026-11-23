@@ -1,6 +1,7 @@
       *>--- conformance-case
       *> id: pb5647-currency-picture-symbol-long-s-2002
-      *> rules: [SR-12.3.7.3-27]
+      *> rules: [SR-12.3.7.3-27,
+      *>    DOC-A.1-44]
       *> accept: [2002]
       *> source-format: fixed
       *> portable: unverified

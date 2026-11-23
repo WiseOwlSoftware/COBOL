@@ -1,6 +1,7 @@
       *>--- conformance-case
       *> id: pb5311-external-reserve-and-delimiter-defaults
-      *> rules: [1985-GR-VIII.2.3.4-1]
+      *> rules: [1985-GR-VIII.2.3.4-1,
+      *>    DOC-A.1-149]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

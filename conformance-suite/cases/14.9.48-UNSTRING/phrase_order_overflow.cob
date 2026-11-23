@@ -1,6 +1,8 @@
       *>--- conformance-case
       *> id: phrase_order_overflow
-      *> rules: [GR-14.9.48.4-16]
+      *> rules: [GR-14.9.48.4-16,
+      *>    FMT-14.9.43.2,
+      *>    GR-14.9.43.4-9]
       *> accept: [2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified

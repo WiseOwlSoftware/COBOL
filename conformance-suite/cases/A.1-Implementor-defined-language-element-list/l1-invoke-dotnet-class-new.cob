@@ -1,6 +1,7 @@
       *>--- conformance-case
       *> id: l1-invoke-dotnet-class-new
-      *> rules: [DOC-A.1-101]
+      *> rules: [DOC-A.1-101,
+      *>    GR-14.9.23.4-2]
       *> source-format: fixed
       *> portable: unverified
       *>---

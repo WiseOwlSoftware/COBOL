@@ -1,6 +1,7 @@
 *>--- conformance-case
 *> id: select_when_without_code_set_or_format_has_no_effect
-*> rules: [GR-13.18.51.4-5, DOC-A.1-173]
+*> rules: [GR-13.18.51.4-5, DOC-A.1-173,
+*>    GR-13.18.51.4-2]
 *> accept: [2002, 2014, 2023]
 *> constructs: [select-when-clause-2002]
 *> source-format: free

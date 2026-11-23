@@ -1,6 +1,7 @@
 *>--- conformance-case
 *> id: pb3338_apply_commit_below_2023
-*> rules: [GR-12.4.6.3.4-1]
+*> rules: [GR-12.4.6.3.4-1,
+*>    FMT-12.4.6.3.2]
 *> source-format: free
 *> portable: unverified
 *>---

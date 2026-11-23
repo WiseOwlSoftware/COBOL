@@ -1,6 +1,7 @@
 *>--- conformance-case
 *> id: continue_after
-*> rules: [SR-14.9.9.3-2, GR-14.9.9.4-1]
+*> rules: [SR-14.9.9.3-2, GR-14.9.9.4-1,
+*>    FMT-14.9.9.2]
 *> accept: [2023]
 *> source-format: free
 *> portable: unverified

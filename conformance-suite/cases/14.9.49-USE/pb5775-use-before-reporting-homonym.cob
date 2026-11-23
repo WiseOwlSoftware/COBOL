@@ -1,6 +1,7 @@
       *>--- conformance-case
       *> id: pb5775-use-before-reporting-homonym
-      *> rules: [SR-14.9.49.3-9]
+      *> rules: [SR-14.9.49.3-9,
+      *>    FMT-14.9.49.2]
       *> source-format: fixed
       *> portable: unverified
       *>---

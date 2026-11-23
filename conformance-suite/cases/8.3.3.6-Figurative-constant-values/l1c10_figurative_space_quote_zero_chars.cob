@@ -1,7 +1,8 @@
       *>--- conformance-case
       *> id: l1c10_figurative_space_quote_zero_chars
       *> rules: [GR-8.3.3.6.4-5, GR-8.3.3.6.4-8, DOC-A.1-74,
-      *>    1985-GR-IV.4.2.2.2.3-2, 1985-GR-IV.4.2.2.2.3-5]
+      *>    1985-GR-IV.4.2.2.2.3-2, 1985-GR-IV.4.2.2.2.3-5,
+      *>    GR-8.3.3.6.4-1]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

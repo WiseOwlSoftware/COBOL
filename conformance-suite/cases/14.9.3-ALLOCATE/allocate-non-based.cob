@@ -1,6 +1,7 @@
 *>--- conformance-case
 *> id: allocate-non-based
-*> rules: [SR-14.9.3.3-1]
+*> rules: [SR-14.9.3.3-1,
+*>    FMT-14.9.3.2]
 *> source-format: free
 *> portable: unverified
 *>---

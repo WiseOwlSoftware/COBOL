@@ -1,6 +1,7 @@
       *>--- conformance-case
       *> id: pb4093_truncation_not_enabled_stores_low_order_digits
-      *> rules: [GR-14.7.5-4, GR-14.6.13.1.3-8, GR-7.3.25.4-6]
+      *> rules: [GR-14.7.5-4, GR-14.6.13.1.3-8, GR-7.3.25.4-6,
+      *>    DOC-A.1-70]
       *> accept: [2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified

@@ -1,6 +1,7 @@
 *>--- conformance-case
 *> id: message-tag-call-by-reference
-*> rules: [GR-14.8.2.3.2-4]
+*> rules: [GR-14.8.2.3.2-4,
+*>    SR-14.2.2-2]
 *> accept: [2023]
 *> source-format: free
 *> portable: unverified

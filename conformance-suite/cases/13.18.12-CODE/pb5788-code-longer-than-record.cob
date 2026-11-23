@@ -1,6 +1,7 @@
       *>--- conformance-case
       *> id: pb5788-code-longer-than-record
-      *> rules: [GR-13.18.12.4-1]
+      *> rules: [GR-13.18.12.4-1,
+      *>    GR-13.18.12.4-2]
       *> source-format: fixed
       *> portable: unverified
       *>---

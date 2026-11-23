@@ -1,6 +1,9 @@
       *>--- conformance-case
       *> id: pb2104_import_interface_and_property
-      *> rules: [SR-12.3.8.3-9, GR-12.3.8.4-9, SR-12.3.8.3-16]
+      *> rules: [SR-12.3.8.3-9, GR-12.3.8.4-9, SR-12.3.8.3-16,
+      *>    DOC-A.1-162,
+      *>    GR-11.6.4-1,
+      *>    GR-8.3.2.2-L2.1]
       *> accept: [2002, 2014, 2023]
       *> files: [pb2104_speaker_lib.cbl]
       *> build: ["pb2104_speaker_lib.cbl > P2104SPK", "{self}"]

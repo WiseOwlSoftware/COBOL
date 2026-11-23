@@ -1,6 +1,7 @@
 *>--- conformance-case
 *> id: format_then_code_set_conversion_on_output
-*> rules: [GR-13.18.13.4-5, 2002-GR-13.16.13.3-5, 2002-GR-13.16.13.3-1, 2002-GR-13.16.13.3-2]
+*> rules: [GR-13.18.13.4-5, 2002-GR-13.16.13.3-5, 2002-GR-13.16.13.3-1, 2002-GR-13.16.13.3-2,
+*>    GR-13.18.13.4-4]
 *> accept: [2002]
 *> constructs: [format-clause-2002]
 *> source-format: free

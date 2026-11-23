@@ -1,6 +1,8 @@
 *>--- conformance-case
 *> id: l1_encoding_unmarked_non_utf8_is_latin1
-*> rules: [DOC-A.1-25]
+*> rules: [DOC-A.1-25,
+*>    DOC-A.1-26,
+*>    GR-8.1.3.2-1]
 *> accept: [2023]
 *> files: [L1LAT1.cpy]
 *> source-format: free

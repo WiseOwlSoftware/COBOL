@@ -1,6 +1,8 @@
 *>--- conformance-case
 *> id: pb4311-case-locale-phrase-below-2014
-*> rules: [FMT-15.97.2, FMT-15.57.2]
+*> rules: [FMT-15.97.2, FMT-15.57.2,
+*>    RV-15.57.4-2,
+*>    RV-15.97.4-2]
 *> source-format: free
 *> portable: unverified
 *>---

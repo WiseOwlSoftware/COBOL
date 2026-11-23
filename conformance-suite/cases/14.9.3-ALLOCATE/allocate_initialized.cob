@@ -1,6 +1,7 @@
 *>--- conformance-case
 *> id: allocate_initialized
-*> rules: [GR-14.9.3.4-4, GR-14.9.3.4-6, GR-14.9.3.4-7, GR-14.9.3.4-10]
+*> rules: [GR-14.9.3.4-4, GR-14.9.3.4-6, GR-14.9.3.4-7, GR-14.9.3.4-10,
+*>    FMT-14.9.3.2]
 *> accept: [2002]
 *> source-format: free
 *> portable: unverified

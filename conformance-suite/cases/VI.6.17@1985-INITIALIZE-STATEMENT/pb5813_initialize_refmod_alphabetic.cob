@@ -1,6 +1,11 @@
       *>--- conformance-case
       *> id: pb5813_initialize_refmod_alphabetic
-      *> rules: [1985-GR-VI.6.17.4-1, 1985-GR-VI.6.17.4-2]
+      *> rules: [1985-GR-VI.6.17.4-1, 1985-GR-VI.6.17.4-2,
+      *>    GR-14.9.20.4-2,
+      *>    GR-14.9.20.4-4,
+      *>    GR-14.9.20.4-5,
+      *>    GR-14.9.20.4-6,
+      *>    SR-14.9.20.3-8]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

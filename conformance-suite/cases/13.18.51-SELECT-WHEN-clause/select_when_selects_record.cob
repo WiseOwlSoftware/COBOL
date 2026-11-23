@@ -1,6 +1,9 @@
 *>--- conformance-case
 *> id: select_when_selects_record
-*> rules: [GR-13.18.51.4-3, GR-13.18.51.4-1, SR-13.18.51.3-1, SR-13.18.51.3-2, SR-13.18.51.3-6]
+*> rules: [GR-13.18.51.4-3, GR-13.18.51.4-1, SR-13.18.51.3-1, SR-13.18.51.3-2, SR-13.18.51.3-6,
+*>    FMT-13.18.51.2,
+*>    GR-13.18.24.4-2,
+*>    GR-13.18.51.4-2]
 *> accept: [2002, 2014, 2023]
 *> constructs: [format-clause-2002, select-when-clause-2002]
 *> source-format: free

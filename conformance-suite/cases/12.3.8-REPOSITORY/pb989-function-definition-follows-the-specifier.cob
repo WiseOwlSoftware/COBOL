@@ -1,6 +1,7 @@
 *>--- conformance-case
 *> id: pb989-function-definition-follows-the-specifier
-*> rules: [GR-12.3.8.4-11]
+*> rules: [GR-12.3.8.4-11,
+*>    SR-12.3.8.3-10]
 *> source-format: free
 *> portable: unverified
 *>---

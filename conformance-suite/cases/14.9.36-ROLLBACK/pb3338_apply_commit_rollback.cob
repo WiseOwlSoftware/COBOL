@@ -1,6 +1,15 @@
 *>--- conformance-case
 *> id: pb3338_apply_commit_rollback
-*> rules: [GR-12.4.6.3.4-1, GR-14.9.7.4-3, GR-14.9.7.4-5, GR-14.9.36.4-3]
+*> rules: [GR-12.4.6.3.4-1, GR-14.9.7.4-3, GR-14.9.7.4-5, GR-14.9.36.4-3,
+*>    DOC-A.1-28,
+*>    FMT-12.4.6.3.2,
+*>    GR-12.4.6.3.4-5,
+*>    GR-14.9.36.4-7,
+*>    GR-9.1.18.1-p1,
+*>    GR-9.1.18.2-p1,
+*>    GR-9.1.18.3-p1,
+*>    GR-9.1.18.4-p1,
+*>    SR-12.4.6.3.3-9]
 *> accept: [2023]
 *> source-format: free
 *> portable: unverified

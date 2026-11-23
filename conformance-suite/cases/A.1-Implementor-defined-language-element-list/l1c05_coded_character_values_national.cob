@@ -1,6 +1,7 @@
       *>--- conformance-case
       *> id: l1c05_coded_character_values_national
-      *> rules: [DOC-A.1-32]
+      *> rules: [DOC-A.1-32,
+      *>    GR-8.3.3.6.4-1]
       *> accept: [2002]
       *> source-format: fixed
       *> portable: unverified
