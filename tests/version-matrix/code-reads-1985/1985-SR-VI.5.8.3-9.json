@@ -2,54 +2,54 @@
  "rule-id": "1985-SR-VI.5.8.3-9",
  "rule-digest": "f9c7b5ce09ce",
  "read": {
-  "pin": "7a32e1dfd2227042dea69db82f70d1e0085a50cc",
-  "slice": "1985-236",
+  "pin": "524fb73a180a78bbe95a7dc192f75272d2612261",
+  "slice": "1985-c08-pb2628",
   "sources": {
-   "reader": "512c02f56c3a47c611830738fee062815aa4c177a4ec0c46758af157f304ad13",
-   "refuter": "59706be367945bed95443e558b94e18db15415727de8a491eb7471c0e48eb036"
+   "reader": "c9dd077922692e2b535985c0a95bec1e7f84ae0d64804f9c67c8d3c3e29ab6de",
+   "refuter": "35758cb6f39047f805489297eeb3890a7cc17cfe9d7eb692909a6b7da4d0c955"
   },
   "imported": {
-   "reader": "c461fc54fb2442615020886b32710d3dc4b7697d8cdf6f25ba89936a7c098b8f",
-   "refuter": "3b6c1ceddb6730efadca479cea63b2ba9e11d820ce2c1141bd7a99356f1ef6e8"
+   "reader": "de035d1f16d89a2cde4faa2191e077dff202fc4d4849510dd7bbde380f375afa",
+   "refuter": "48117eb1d5ee17685719f8810f9a07aff8e5255e2df45f75fdab05050b230e3f"
   }
  },
  "reader": {
   "rule-id": "1985-SR-VI.5.8.3-9",
   "verdict": "CONFORMS",
   "requirement": "At --std 85, when an OCCURS ... DEPENDING ON data-name-1 entry is subordinate to an entry carrying GLOBAL (a GLOBAL 01 record, or a record of an FD written GLOBAL), the compiler must refuse a data-name-1 that is not a global name, and refuse one that resolves to an item described in a containing program's Data Division rather than this program's own.",
-  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/OdoResolvePass.cs#DependingAttributeFault; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Odo.cs#IsGlobalRecord; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Odo.cs#IsDescribedInContainer; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ResolveReportOccursDepending",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/OdoResolvePass.cs#DependingAttributeFault; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#IsGlobalName; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Odo.cs#IsDescribedInContainer; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ResolveReportOccursDepending",
   "edition-consulted": [],
-  "edition-search": "Read OdoResolvePass.cs (the DependingAttributeFault call site and body) and DataBinder.Odo.cs; grep for Edition/CobolVersion/DialectLevel/ConstructRegistry/DialectBehavior in OdoResolvePass.cs finds only Edition.Error/Edition.At (diagnostic sinks, no switch). COBOL2788 is an EditionSeverity.Error descriptor with no per-edition arm. The path is one code for every edition.",
+  "edition-search": "Re-read at pin 524fb73a18 after the move of DataBinder.IsGlobalRecord (record.HasGlobalClause or a scan of the GLOBAL files' records) to the one fact DataItem.IsGlobalName (the root's GLOBAL clause or root.RecordOfFile is { IsGlobal: true }). grep for Edition/CobolVersion/DialectLevel/ConstructRegistry/DialectBehavior in OdoResolvePass.cs#DependingAttributeFault and DataItem.cs#IsGlobalName: only Edition.Error and ed.Cite (diagnostic sink and citation). COBOL2788 has no per-edition arm.",
   "behaviour-differs-by-edition": "no",
   "witnesses-cover": "part: the witness pb1261_depending_attributes_and_area exercises only the admitted forms (GLOBAL record with a GLOBAL counter); the refusal half (non-global counter under a GLOBAL record, under a GLOBAL FD, and a container's global counter used by a contained program's GLOBAL table) is exercised only by the probes here",
   "probes": [
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-236/c1_neg_ws.cob",
+    "file": "E:/COBOL-coord/scratch/finish-worktree-wf_46d3a156-23e-9/probes/c1_neg_ws.cob",
     "printed": "error COBOL2788: OCCURS DEPENDING ON 'NX' on 'TG': the table's record 'G' is global and data-name-1 is not a global name",
     "expected": "refusal: data-name-1 must be a global name (SR9)"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-236/c1_neg_fd.cob",
-    "printed": "error COBOL2788: ... the table's record 'R1' is global and data-name-1 is not a global name (FD F GLOBAL, counter in non-global WORKING-STORAGE)",
+    "file": "E:/COBOL-coord/scratch/finish-worktree-wf_46d3a156-23e-9/probes/c1_neg_fd.cob",
+    "printed": "error COBOL2788: OCCURS DEPENDING ON 'NX' on 'T': the table's record 'R1' is global and data-name-1 is not a global name",
     "expected": "refusal: the record is subordinate to an FD with GLOBAL, so data-name-1 must be global"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-236/c1_neg_nested.cob",
+    "file": "E:/COBOL-coord/scratch/finish-worktree-wf_46d3a156-23e-9/probes/c1_neg_nested.cob",
     "printed": "error COBOL2788: ... data-name-1 'NG' is described in the data division of a containing program",
     "expected": "refusal: data-name-1 must reference a data item described in the same Data Division"
    },
    {
     "class": "a",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-236/c1_pos.cob",
+    "file": "E:/COBOL-coord/scratch/finish-worktree-wf_46d3a156-23e-9/probes/c1_pos.cob",
     "printed": "G=ABC H=VWX / IN G=AB",
     "expected": "accepted; qualified global counter N1 OF NG=3 gives G 3 occurrences; the contained program sets N1=2 and sees G as AB"
    },
    {
     "class": "a",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-236/c1_pos_fd.cob",
+    "file": "E:/COBOL-coord/scratch/finish-worktree-wf_46d3a156-23e-9/probes/c1_pos_fd.cob",
     "printed": "G=ABCD",
     "expected": "accepted: FD GLOBAL record with an in-record counter; GLOBAL group whose subordinate (level 10) table depends on a GLOBAL 01 counter; G = G1 + 3 occurrences = ABCD"
    }
@@ -60,7 +60,7 @@
     "check": "OK  §1985:VI.5.8.3 SR9  (5.8.3 Syntax Rules)  the text is in SR9"
    }
   ],
-  "notes": "The fault is decided by DependingAttributeFault over IsGlobalRecord (the record's own GLOBAL clause or its FD's) and IsDescribedInContainer (an inherited container root). Both halves of SR9 (global name; same Data Division) refuse and the legal forms run with correct ODO extents. The message cites §2023:13.18.38.3 SR18 for the global-name half and adds §1985:VI.5.8.3 SR9 only for the same-Data-Division half (cosmetic).",
+  "notes": "Re-read of the moved code (the five probes re-run at --std 85 on this tree print what the first read recorded). The fault is decided by DependingAttributeFault over DataItem.IsGlobalName for both the table (its record's GLOBAL clause or its FD's) and data-name-1 (a sum counter answers its report's GLOBAL), and IsDescribedInContainer (an inherited container root). Both halves of SR9 (global name; same Data Division) refuse and the legal forms run with correct ODO extents. At --std 85 both messages cite §1985:VI.5.8.3 SR9.",
   "seeded": true,
   "harm": "",
   "cause": "",
@@ -74,7 +74,7 @@
   "rule-id": "1985-SR-VI.5.8.3-9",
   "refutation": "UPHELD",
   "classes": "a,b,c",
-  "evidence": "Read OdoResolvePass.cs#DependingAttributeFault and DataBinder.Odo.cs#IsGlobalRecord/#IsDescribedInContainer. Probes at --std 85 (runs under refute-1985-236/runs): container GLOBAL FD record counter FN used by a contained program's GLOBAL table -> COBOL2788 'described in the data division of a containing program' (r1_fdctr_nested, correct); GLOBAL FD record table depending on a Linkage counter -> COBOL2788 not global (r1_fd_lk, correct); counter in 01 X REDEFINES H (H GLOBAL, X not) -> COBOL2788 (r1_redef_noglob, correct: only the REDEFINES subject carries the attribute); counter in 01 X REDEFINES H GLOBAL -> accepted, G=ABC with XN=3 (r1_redef_glob, correct); counter HN in the redefined non-global H -> COBOL2788 (r1_redef_glob_hn, correct); WS GLOBAL table depending on a GLOBAL FD record counter -> runs G=AB (r1_fdglob_wsctr); contained program shadowing a container's global NC with its own global NC -> binds its own, G=AB (r1_shadow); class c: 01 LK GLOBAL in Linkage -> COBOL0900 requires COBOL-2002 (r1_lkglobal, correct by X.4.6.3 SR1). cite.py: 'OK  §1985:VI.5.8.3 SR9  (5.8.3 Syntax Rules)  the text is in SR9'; 'OK  §1985:X.4.6.4 GR3  (║4.6.4 General Rules║)  the text is in GR3'; 'OK  §1985:X.4.6.3 SR1  (║4.6.3 Syntax Rules║)  the text is in SR1'. Residual: the global-name refusal at --std 85 cites only §2023:13.18.38.3 SR18 (cosmetic, already noted by the reader).",
+  "evidence": "Adversarial pass against the moved fact (IsGlobalName reads the FD half off RecordOfFile). Probes at --std 85 on this tree (E:/COBOL-coord/scratch/finish-worktree-wf_46d3a156-23e-9/refute/): x3_glob2nd.cob, a GLOBAL table depending on a level-05 item of the SECOND record of FD F GLOBAL, is accepted and the extent follows it in the program and in the contained program ('G [VWX]' / 'IN G [VW]'); x4_fdnotglob.cob, the counter in a record of a non-global FD H while another FD F is GLOBAL, is refused COBOL2788 'not a global name'. The first refutation's probes re-run unchanged: r1_fdctr_nested (COBOL2788 containing program), r1_fd_lk (COBOL2788 not global), r1_redef_noglob and r1_redef_glob_hn (COBOL2788), r1_redef_glob ('G=ABC'), r1_fdglob_wsctr ('G=AB'), r1_shadow ('G=AB'), r1_lkglobal (COBOL0900, §1985:X.4.6.3 SR1). cite.py: 'OK §1985:VI.5.8.3 SR9 (5.8.3 Syntax Rules) the text is in SR9'.",
   "edition-sites-missed": [],
   "corrected": ""
  }

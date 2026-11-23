@@ -111,3 +111,10 @@ own-record walk asks `RecordLayout.IsInRecordOfFile`.
 (29,104) legs were GREEN; its self-test leg failed `scripts/hooks/test_forbidden_commands.py` on two `git push <url>`
 cases that pass on Windows, a tooling defect of the Linux clone untouched by this branch.
 
+
+**The 1985 code reads the move owed (finisher).** The landing refused the branch (`code_read_landing.py`, kb/Work PB6056, exit
+6): three stored 1985 reads named the members it folded into one fact, `DataBinder.IsInExternalRecord` (1985-SR-VI.5.8.3-8,
+1985-GR-VIII.4.4.4-2) and `DataBinder.IsGlobalRecord` (1985-SR-VI.5.8.3-9). Re-read at pin 524fb73a18 as slice `1985-c08-pb2628`
+against `DataItem.HasExternalAttribute` and `DataItem.IsGlobalName`: the first reads' probes re-run at `--std 85` print what they
+recorded, and an adversarial pass on the FD half now read off `RecordOfFile` (a second FD record's counter, an SD record's, a
+record of the other, non-external or non-global FD) upheld all three; `code_reads.py import --replace`, 3 CONFORMS, 3 UPHELD.
