@@ -224,7 +224,7 @@ internal sealed class VersionConformancePass
             if (!ranges.TryGetValue((file, release), out var range))
                 ranges[(file, release)] = range = procedures.Range(prog, file, release);
             if (range.ContainsKey(pc)) continue;
-            if (procedures.Refused.Contains(file)) continue;   // a statement for this file was refused, its procedures' ranges are unknown, so the use is no cascade of ours (kb/Work PB5496)
+            if (procedures.Unresolved.Contains((file, release))) continue;   // a refused statement's phrase for this file names no procedure: the range the use stands in is unknown, so it is no cascade of ours (kb/Work PB5496, PB6068)
             if (pc < prog.EntryPc && DeclarativeExecutableFromRange(prog, range, pc)) continue;   // a declarative the range may execute: GR7/GR10
             if (_calledFromRange.TryGetValue(prog, out var reached) && reached.Contains((file, release))) continue;   // a CALLed program's statements
             using var _ = _sink.At(node.At);
@@ -282,22 +282,29 @@ internal sealed class VersionConformancePass
     };
 
     /// <summary>A program's SORT and MERGE procedures and its RELEASE and RETURN statements, each with the pc of its paragraph: what
-    /// <see cref="GateReleaseReturnRange"/> and <see cref="CalledFromRange"/> both read, collected by one walk. <see cref="Refused"/> holds the
-    /// file of every refused SORT or MERGE: its procedures' ranges are unknown, so a RELEASE or RETURN for it is no cascade of ours (kb/Work PB5496).</summary>
+    /// <see cref="GateReleaseReturnRange"/> and <see cref="CalledFromRange"/> both read, collected by one walk. A refused SORT or MERGE contributes the ranges its phrases name
+    /// to <see cref="Inputs"/> and <see cref="Outputs"/> like a bound one (kb/Work PB5496), so a RELEASE or RETURN written there is no cascade of ours and
+    /// one written elsewhere is still judged (kb/Work PB6068); <see cref="Unresolved"/> holds the (file, RELEASE) direction of every refused phrase whose
+    /// names resolve to no procedure, the one case where the range of a use is unknown.</summary>
     private sealed record SortMergeProcedures(
         List<(PcRange Range, FileModel File)> Inputs,
         List<(PcRange Range, FileModel File)> Outputs,
         List<(BoundStatement Node, FileModel File, bool Release, int Pc)> Uses,
-        HashSet<FileModel> Refused)
+        HashSet<(FileModel File, bool Release)> Unresolved)
     {
         public static SortMergeProcedures Of(BoundProgram prog)
         {
-            var procedures = new SortMergeProcedures([], [], [], new HashSet<FileModel>(ReferenceEqualityComparer.Instance));
+            var procedures = new SortMergeProcedures([], [], [], []);
             void Collect(BoundStatement s, int pc)
             {
                 switch (s)
                 {
-                    case BoundRejected { RefusedSortMergeFile: { } rf }: procedures.Refused.Add(rf); break;
+                    case BoundRejected { RefusedSortMerge: { } rf }:
+                        if (rf.Input is { } rip) procedures.Inputs.Add((rip, rf.File));
+                        if (rf.Output is { } rop) procedures.Outputs.Add((rop, rf.File));
+                        if (rf.InputUnresolved) procedures.Unresolved.Add((rf.File, true));
+                        if (rf.OutputUnresolved) procedures.Unresolved.Add((rf.File, false));
+                        break;
                     case BoundSort so:
                         if (so.InputProcedure is { } ip) procedures.Inputs.Add((ip, so.File));
                         if (so.OutputProcedure is { } op) procedures.Outputs.Add((op, so.File));
@@ -1809,33 +1816,30 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
-        /// <summary>A strongly-typed EXTERNAL type declaration (ISO §2023:13.18.22.3 SR1/SR5; §2023:8.5.3; Annex E.3.3 item 20) —
-        /// a COBOL-2023 introduction: E.3.3 item 20 ("External data items may now be strongly typed"), corroborated by
-        /// E.2 item 10 ("previously external items could not be strongly typed"), so
-        /// it is specifically the <c>STRONG</c>+<c>EXTERNAL</c> combination on a level-1 TYPEDEF that is new. A WEAK
-        /// <c>TYPEDEF IS EXTERNAL</c> (no STRONG) was already valid in COBOL-2002 (§2023:13.18.58.3 SR3), so it is NOT gated
-        /// here; plain EXTERNAL is 1985-continuous and plain TYPEDEF is the separate COBOL-2002 gate above. Gate on the
-        /// CO-OCCURRENCE of the EXTERNAL clause with a STRONG TYPEDEF clause on ONE dataDescriptionEntry. SR5 forces a
-        /// strongly-typed external record's type to itself be a strong external type declaration, so gating the
-        /// DECLARATION covers both faces (the declaration AND the "strongly-typed external item" that must reference
-        /// it). Recognition-based, keyed on the externalClause node (the TYPEDEF/DEVLOG-734 drop-proof lesson: a
-        /// bound-arm gate would lose the 0900 whenever RegisterTypeDecl rejects the typedef). Fires once per written
-        /// strong-external-typedef entry.</summary>
+        /// <summary>An EXTERNAL type declaration (ISO §2023:13.18.22.3 SR1 "in level 1 type declarations"; §2023:13.18.58.3 SR3) —
+        /// a COBOL-2023 introduction, strong or weak alike (kb/Work PB5710). §2002:13.14.2 SR5 and §2014:13.16.2 SR5 both read
+        /// "The EXTERNAL clause shall not be specified in the same data description entry as the REDEFINES, TYPEDEF, or BASED
+        /// clause", so EXTERNAL and TYPEDEF in one entry is refused below 2023, whether or not the TYPEDEF is STRONG; 2023's
+        /// §2023:13.16.3 SR5 drops TYPEDEF from that list and §2023:13.18.22.3 SR1 admits the type declaration. The strong
+        /// form is additionally a 2023 novelty by Annex E.3.3 item 20 (E.2 item 10: "previously external items could not be
+        /// strongly typed"), but the weak form was never valid in 2002 (the former reading took the 2023 sentence of
+        /// §2023:13.18.58.3 SR3 for a 2002 rule). Gate on the CO-OCCURRENCE of the EXTERNAL clause with a TYPEDEF clause on
+        /// ONE dataDescriptionEntry. Recognition-based, keyed on the externalClause node (the TYPEDEF/DEVLOG-734 drop-proof
+        /// lesson: a bound-arm gate would lose the 0900 whenever RegisterTypeDecl rejects the typedef). Fires once per
+        /// written external type declaration.</summary>
         public override object? VisitExternalClause(CobolParserCore.ExternalClauseContext ctx)
         {
-            if (InGatedDataEntry(ctx) && EntryHasStrongTypedef(ctx))
-                _p.Check(Constructs.ExternalTypeDeclaration2023, "a strongly-typed EXTERNAL type declaration");
+            if (InGatedDataEntry(ctx) && EntryHasTypedef(ctx))
+                _p.Check(Constructs.ExternalTypeDeclaration2023, "an EXTERNAL type declaration");
             return base.VisitChildren(ctx);
         }
 
-        /// <summary>Whether the dataDescriptionEntry enclosing <paramref name="ctx"/> also carries a <c>TYPEDEF STRONG</c>
-        /// clause — i.e. <paramref name="ctx"/> (an externalClause) sits on a STRONGLY-TYPED type DECLARATION (the 2023
-        /// combination, E.3 item 10), not a plain external data item nor a weak (COBOL-2002) external type declaration.
-        /// externalClause and typedefClause are both <c>dataDescriptionClause</c> alternatives under the entry's
-        /// <c>dataDescriptionClauses</c> list, so the sibling scan is over that list; <c>typedefClause.STRONG()</c> is
-        /// the STRONG phrase (the same test <c>DataBinder</c> uses at its typedef bind, §2023:13.18.58.2).</summary>
-        private static bool EntryHasStrongTypedef(Antlr4.Runtime.RuleContext ctx) =>
-            EntryHasClause(ctx, c => c.typedefClause()?.STRONG() is not null);
+        /// <summary>Whether the dataDescriptionEntry enclosing <paramref name="ctx"/> also carries a <c>TYPEDEF</c> clause
+        /// (STRONG or not) — i.e. <paramref name="ctx"/> (an externalClause) sits on a type DECLARATION, not a plain
+        /// external data item. externalClause and typedefClause are both <c>dataDescriptionClause</c> alternatives under the
+        /// entry's <c>dataDescriptionClauses</c> list, so the sibling scan is over that list.</summary>
+        private static bool EntryHasTypedef(Antlr4.Runtime.RuleContext ctx) =>
+            EntryHasClause(ctx, c => c.typedefClause() is not null);
 
         /// <summary>Whether the data description entry being walked is part of the description or redefinition of an
         /// external data record (F.2 item 145's third subject). ⛔ THE RECORD, NOT THE ENTRY (kb/Work PB5072):
