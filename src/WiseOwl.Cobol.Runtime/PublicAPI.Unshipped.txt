@@ -245,6 +245,7 @@ WiseOwl.Cobol.Runtime.DecArithmetic.Pow(WiseOwl.Cobol.Runtime.CobolDec b, WiseOw
 WiseOwl.Cobol.Runtime.DecArithmetic.Sqrt(WiseOwl.Cobol.Runtime.CobolDec v) -> WiseOwl.Cobol.Runtime.CobolDec
 WiseOwl.Cobol.Runtime.DecArithmetic.StandardIntermediate.get -> bool
 WiseOwl.Cobol.Runtime.DecArithmetic.Sub(WiseOwl.Cobol.Runtime.CobolDec a, WiseOwl.Cobol.Runtime.CobolDec b) -> WiseOwl.Cobol.Runtime.CobolDec
+WiseOwl.Cobol.Runtime.DialectBehavior.AddressOfSubordinateStrongGroupNeedsNoOwnTypeClause = 69 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.BlockContainsRangeOrdered = 52 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.CallAnyLengthOperandRuleByFormat = 66 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.CallRestrictedPointerSignatureSame = 65 -> WiseOwl.Cobol.Runtime.DialectBehavior
@@ -284,7 +285,7 @@ WiseOwl.Cobol.Runtime.DialectBehavior.NextGroupNeedsLineNumber = 41 -> WiseOwl.C
 WiseOwl.Cobol.Runtime.DialectBehavior.NumvalCCurrencyContentRules = 12 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.PageFootingFirstLineAbsolute = 44 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.PerformVaryingInitInnerBeforeAugmentOuter = 3 -> WiseOwl.Cobol.Runtime.DialectBehavior
-WiseOwl.Cobol.Runtime.DialectBehavior.PrototypeSpecialNamesAdmitAlphabetAndSymbolic = 69 -> WiseOwl.Cobol.Runtime.DialectBehavior
+WiseOwl.Cobol.Runtime.DialectBehavior.PrototypeSpecialNamesAdmitAlphabetAndSymbolic = 70 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.RecordContainsRangeBindsRecordSize = 13 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.RelationOperandNotALiteral = 53 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.RelativeReadPreviousAfterOpenComparesFpi = 67 -> WiseOwl.Cobol.Runtime.DialectBehavior

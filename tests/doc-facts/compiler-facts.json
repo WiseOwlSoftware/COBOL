@@ -40,6 +40,11 @@
   ],
   "dialectBehaviors": [
     {
+      "id": "address-of-subordinate-strong-group-needs-no-own-type-clause",
+      "vcrRow": "7.125",
+      "changedIn": 2023
+    },
+    {
       "id": "block-contains-range-ordered",
       "vcrRow": "7.108",
       "changedIn": 2002
@@ -246,7 +251,7 @@
     },
     {
       "id": "prototype-special-names-admit-alphabet-and-symbolic",
-      "vcrRow": "7.125",
+      "vcrRow": "7.126",
       "changedIn": 2023
     },
     {
