@@ -1229,7 +1229,8 @@
     "COBOL7735",
     "COBOL7736",
     "COBOL7737",
-    "COBOL7933"
+    "COBOL7933",
+    "COBOL8092"
   ],
   "cliOptions": [
     "--copy",

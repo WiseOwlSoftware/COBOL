@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-7.2.2-8",
+ "rule-digest": "f32a9b73f12f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalLineBuilder.cs#CheckNoDirective; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatDiagnostics.cs#OnDirectiveOnDebuggingLine",
+ "test-ref": "conformance:cases/_unassigned/pb5701-directive-on-debugging-line; conformance:cases/_unassigned/pb5701-floating-directive-on-debugging-line; unit:LogicalLineBuilderTests.DirectiveOnADebuggingLine_IsRefusedAt2002",
+ "notes": "Item d) on a debugging line: COBOL8092 at 2002 for the fixed D line and the floating >>D line, in either reference format (kb/Work PB5701). Item b) within a source text manipulation statement is COBOL2697 and item c) between the lines of a continued character-string is COBOL2696/COBOL5563, both probed at --std 2002; item a) is each directive's own rule."
+}
