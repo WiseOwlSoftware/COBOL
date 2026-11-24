@@ -599,7 +599,7 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
             // is said here — never a silent refusal that the first use of the constant reports as "see the declaration".
             if (unread.Outcome is RefOutcome.Deferred)
                 owner.Edition.Error(DiagnosticCatalog.ConstantEntryRule, $"{where}: {phrase} '{written}': a subscript of the "
-                    + $"operand names no data item or index-name, or is an expression this compiler cannot evaluate ahead of the "
+                    + $"operand could not be bound: it names no integer data item, index-name or integer constant-name, or is an expression this compiler cannot evaluate ahead of the "
                     + "procedure division (subscripting, ISO §2002:8.4.1.2.2)");
             return null;
         }
