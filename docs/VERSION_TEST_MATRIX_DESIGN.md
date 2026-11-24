@@ -354,6 +354,14 @@ the edition in force has no such rule, the message cites the edition where the r
   at 85 says too) or its code's descriptors record `No1985Rule`. It is a plain rule with no allowance list: it was laid as a
   ratchet of 301 codes (1656 lines of the 2459 refusals at 85), and the PB4950 sweep emptied it, so the ratchet file and its
   grow/shrink arithmetic do not exist. `EditionCitationNetDriftTests` plants an offending line and each of the three ways out.
+- **The net at 2002 and 2014** (kb/Work PB5922, the same decision's other directions). The same net asks every refusal the manifest
+  compiles at `--std 2002` and `--std 2014`: a diagnostic that cites a rule of a LATER edition (`§2014:` or `§2023:` at 2002,
+  `§2023:` at 2014, or the prose form) and none of its own edition fails, unless it is an edition gate naming the edition it
+  targets ("(targeting COBOL-2002)"). It is laid as a RATCHET: `tests/WiseOwl.Cobol.Tests.Conformance/edition-citation-sweep.json`
+  holds, per edition, the codes whose message still cites only a later rule somewhere (525 codes and 3395 lines at 2002, 536 codes
+  and 3146 lines at 2014, measured 2026-11-24), and the sweep of kb/Work PB6118 empties it a code at a time; no code joins. A run
+  with `WISEOWL_COBOL_RECORD_CITATION_SWEEP=<directory>` writes every remaining offence to `<directory>/<edition>.txt` and asserts
+  nothing: the sweep's measure.
 - **Where a family of sites shares one rule, the 1985 arm lives with the rule, not at the sites** (kb/Work PB4950 slice 1):
   `UniqueReferenceRule` (Compiler/Binding) writes the §1985:IV.4.3.8 / §2023:8.4.2.1 "a reference identifies one resource"
   citation and quotation once, through `Cite`, for every undefined-name, wrong-kind-of-name and unidentified-procedure message;
