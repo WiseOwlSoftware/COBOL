@@ -2054,7 +2054,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// prediction that chooses among a verb's formats, or between a paragraph-name and a verb, failed before any statement rule was
     /// entered (<c>ACCEPT.</c>, <c>SEARCH.</c>, <c>DELETE.</c>: the dispatcher <c>statement</c>; <c>UNLOCK.</c>: the
     /// <c>paragraphDefinition</c> that would own it), the verb the parser stands at, when that verb is a reserved word of the compile
-    /// edition (§2023:8.9) and so cannot be the paragraph-name this period would end (§2023:8.3.2.1 1: "Reserved words shall not be
+    /// edition (§2023:8.9) and so cannot be the paragraph-name this period would end (§2023:8.3.2.1 SR1: "Reserved words shall not be
     /// used as user-defined words"). A verb the edition does not reserve (<c>FREE.</c> at COBOL-85) is a legal paragraph-name, so that
     /// period ends a header and names no statement. Null where none is open.</summary>
     private static string? StatementOpenAtAPeriod(Parser recognizer)

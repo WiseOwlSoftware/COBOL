@@ -862,7 +862,7 @@ public sealed class ReservedWordPositionConformanceTests
     /// <summary>⛔ THE SEPARATOR PERIOD WHERE A STATEMENT'S OPERAND IS DUE NAMES THE STATEMENT, WHICHEVER VERB AND WHATEVER OPENS THE
     /// OPERAND (kb/Work PB6119; PB6113 covered the verbs whose walk admits no '('). A '(' the position admits opens a parenthesized
     /// arithmetic expression (<c>SET I TO.</c>, <c>COMPUTE N =.</c>, <c>IF N = .</c>), and a bare verb that is a reserved word at the
-    /// edition cannot be the paragraph-name its period would end (§2023:8.3.2.1 1), including the verbs whose formats the parser
+    /// edition cannot be the paragraph-name its period would end (§2023:8.3.2.1 SR1), including the verbs whose formats the parser
     /// chooses among before it enters a statement (<c>ACCEPT.</c>, <c>SEARCH.</c>, <c>DELETE.</c>) or against a paragraph header
     /// (<c>UNLOCK.</c>, <c>FREE.</c>). Each row is exactly one COBOL5506 naming the statement; the last two are COBOL-85 paragraph-names
     /// (§2023:8.9 reserves them from COBOL-2002), which no statement refusal may call a statement.</summary>

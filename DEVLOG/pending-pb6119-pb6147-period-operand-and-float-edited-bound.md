@@ -6,7 +6,7 @@ causes. (1) The positions that take an arithmetic expression admit the grouping 
 before the token is complete", took it for completion; `AdmittedKinds.Refusal` now treats the grouping paren as one more alternative of the operand due and lists it
 (`'('`). (2) A verb whose formats the parser chooses among (`statement` dispatcher) or weighs against a paragraph header (`paragraphDefinition`) fails before any statement rule is open, so the
 period named no statement; `CobolErrorStrategy.StatementOpenAtAPeriod` names the verb the parser stands at when the compile edition reserves it (§2023:8.9, `ReservedWords.IsReservedAt`), because a reserved word cannot be the
-paragraph-name the period would end (§2023:8.3.2.1 1). The "deliberate" list of PB6119 (FREE, VALIDATE, RAISE, INVOKE, ALLOCATE) held only where the edition does not reserve the verb: `UNLOCK.` at COBOL-85 and `RECEIVE.` at COBOL-2014 still
+paragraph-name the period would end (§2023:8.3.2.1 SR1). The "deliberate" list of PB6119 (FREE, VALIDATE, RAISE, INVOKE, ALLOCATE) held only where the edition does not reserve the verb: `UNLOCK.` at COBOL-85 and `RECEIVE.` at COBOL-2014 still
 name no statement. Inline `PERFORM.` keeps COBOL0001. Five refusal goldens (`pb6119-set-index-no-sending-operand`, `-compute-no-expression`, `-if-no-condition-operand`, `-accept-bare-verb`,
 `-unlock-bare-verb`) and a 15-row theory (`ABareVerbOrAnOperandStartingWithAParen_AtThePeriod_NamesTheStatement`) that asserts the statement named, which the older `ABareVerbSentence_IsAnIncompleteStatement_NeverNamedCobol0901`
 could not (it accepts COBOL0001 as well as COBOL5506; review lead R1-3 of PB6113).
