@@ -355,8 +355,8 @@ WiseOwl.Cobol.Runtime.Exceptions.SortTerminationSignal
 WiseOwl.Cobol.Runtime.Exceptions.SortTerminationSignal.Action.get -> int
 WiseOwl.Cobol.Runtime.Exceptions.SortTerminationSignal.File.get -> string!
 WiseOwl.Cobol.Runtime.Exceptions.SortTerminationSignal.SortTerminationSignal(string! file, int action) -> void
-WiseOwl.Cobol.Runtime.ExternalDescriptor.Deconstruct(out string! Kind, out int ByteCount, out string? ValueImage, out string? StrongTypeKey, out bool ConstantRecord, out string? FileStatusRef, out string? RelativeKeyRef, out string? LinageRef, out string? SelectFingerprint, out string? RecordDelimiter, out bool NonExternalItem) -> void
-WiseOwl.Cobol.Runtime.ExternalDescriptor.ExternalDescriptor(string! Kind, int ByteCount = 0, string? ValueImage = null, string? StrongTypeKey = null, bool ConstantRecord = false, string? FileStatusRef = null, string? RelativeKeyRef = null, string? LinageRef = null, string? SelectFingerprint = null, string? RecordDelimiter = null, bool NonExternalItem = false) -> void
+WiseOwl.Cobol.Runtime.ExternalDescriptor.Deconstruct(out string! Kind, out int? ByteCount, out string? ValueImage, out string? StrongTypeKey, out bool ConstantRecord, out string? FileStatusRef, out string? RelativeKeyRef, out string? LinageRef, out string? SelectFingerprint, out string? RecordDelimiter, out bool NonExternalItem) -> void
+WiseOwl.Cobol.Runtime.ExternalDescriptor.ExternalDescriptor(string! Kind, int? ByteCount = null, string? ValueImage = null, string? StrongTypeKey = null, bool ConstantRecord = false, string? FileStatusRef = null, string? RelativeKeyRef = null, string? LinageRef = null, string? SelectFingerprint = null, string? RecordDelimiter = null, bool NonExternalItem = false) -> void
 WiseOwl.Cobol.Runtime.ExternalDescriptor.NonExternalItem.get -> bool
 WiseOwl.Cobol.Runtime.ExternalDescriptor.NonExternalItem.init -> void
 WiseOwl.Cobol.Runtime.ExternalDescriptor.RecordDelimiter.get -> string?
@@ -1592,3 +1592,5 @@ static readonly WiseOwl.Cobol.Runtime.MoveCitations.Iso2023 -> WiseOwl.Cobol.Run
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryIndexOutcome.ToString() -> string
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.Equals(object obj) -> bool
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.ToString() -> string
+*REMOVED*WiseOwl.Cobol.Runtime.ExternalDescriptor.ByteCount.get -> int
+WiseOwl.Cobol.Runtime.ExternalDescriptor.ByteCount.get -> int?
