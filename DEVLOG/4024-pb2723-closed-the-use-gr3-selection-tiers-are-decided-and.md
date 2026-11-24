@@ -1,4 +1,4 @@
-## PB2723 closed: the USE GR3 selection tiers are decided and rendered once, the open-mode tier included
+## Entry 4024 — 2026-11-23 18:22 PST — PB2723 closed: the USE GR3 selection tiers are decided and rendered once, the open-mode tier included
 
 Wave 20262161 group B was handed PB2723 with `ExceptionSelectionTierDriftTests.cs` as its root. The re-probe at main
 ddf3400a61 found nothing of the note's own mechanism left to fix. Two earlier landings did the work. The GR3 unify
@@ -26,3 +26,4 @@ one mode expression both selectors use, the PERFORM's WHEN-phrase modes forming 
 test pins the one renderer, and the golden `14.9.28-PERFORM/pb2723_when_exception_both_modes_open_mode_runs` covers both
 phrase orders and the single-mode arm. The probe now prints `INPUT-MODE 41`. The determination
 D-USE-OPEN-MODE-BOTH names the WHEN phrases too.
+
