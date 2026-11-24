@@ -347,7 +347,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
     /// and <c>exp(operand-2 × ln operand-1)</c> developed entirely on SDIDI operands everywhere else
     /// (owner decision D-C, 2026-08-30; kb/Work PB167). EC-SIZE-EXPONENTIATION legs: 0 ** 0 (GR4),
     /// zero base with a non-positive exponent (§2023:8.8.1.2 GR6a), and a negative base with a non-integer exponent
-    /// (§2023:8.8.1.2 GR6c), screened by the one <see cref="CobolPower.ScreenRule6(bool, bool, bool, bool)"/>. Every step is range-checked at the decimal128 bounds (§2023:8.8.1.5.2 GR2, via the ONE
+    /// (§2023:8.8.1.2 GR6c), screened by the one <see cref="CobolPower.ScreenRule6(CobolDec, CobolDec, bool)"/>. Every step is range-checked at the decimal128 bounds (§2023:8.8.1.5.2 GR2, via the ONE
     /// <see cref="Round34Wide"/> clamp).</summary>
     public static CobolDec Pow(CobolDec b, CobolDec e, CobolRounding mode) => PowDeveloped(b, e, mode, standardIntermediate: false);
 
@@ -360,7 +360,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
     {
         bool eInt = TryIntegerValue(e, out long eBoundProbe, out bool eNegative, out bool eEven);
         // §2023:8.8.1.2 GR6a (with §2023:8.8.1.5.4 GR4's 0 ** 0) and GR6c: the one rule-6 screen every carrier's power asks.
-        CobolPower.ScreenRule6(zeroBase: b.Sig == 0, exponentNotPositive: e.Sig <= 0, negativeBase: b.Sig < 0, exponentNotInteger: !eInt);
+        CobolPower.ScreenRule6(b, e, eInt);
         if (b.Sig == 0)
             return eInt ? ZeroPower(b, eBoundProbe) : Zero(0);   // a non-integer power is a transcendental, never formed here
         if (e.Sig == 0) return One;                              // §2023:8.8.1.5.4 GR1: b ** 0 = 1 (b ≠ 0)
