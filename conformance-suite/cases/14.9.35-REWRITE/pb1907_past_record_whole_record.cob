@@ -32,6 +32,8 @@
       *>       length of the record being replaced: klmno then spaces.
       *>   N1  RECORD VARYING 5 TO 20 without DEPENDING ON: GR13 b) the
       *>       record is the 5 bytes of record-name-1.
+      *> COBOL-2002 states the same rules: §2002:14.8.47.3 GR12 (WRITE)
+      *> and §2002:14.8.33.3 GR15 (REWRITE), §2002:B.2 items 68, 48.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1907NP.
        ENVIRONMENT DIVISION.

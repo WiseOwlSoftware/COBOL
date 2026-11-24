@@ -1,0 +1,1 @@
+{"refuse-at": ["2002"], "expect": "(18,12): error COBOL1679: CALL USING BY REFERENCE 'P' is a data item of class pointer (ISO §2002:14.8.4.2 SR11"}

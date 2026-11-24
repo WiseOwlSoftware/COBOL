@@ -235,7 +235,7 @@ public sealed partial class SymbolTable
             };
             string notDeclared = "it is not the name of the containing class or interface definition and is not "
                 + "declared in the REPOSITORY paragraph of this source element or a containing one "
-                + $"({ruleCitation}; ISO §2023:8.4.6.4)";
+                + $"({ruleCitation}; {EditionInfo.Designated(edition.Edition.Cite("§2002:8.4.5.3", "§2023:8.4.6.4", y2014: "§2014:8.4.5.3"))})";
             edition.Error(code,
                 cls is { Origin: OoSymbolOrigin.Standard }
                     // The standard class is reached exactly like a written one — through a REPOSITORY class-specifier

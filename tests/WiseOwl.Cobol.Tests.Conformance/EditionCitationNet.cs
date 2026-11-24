@@ -138,12 +138,15 @@ public static class EditionCitationNet
     {
         if (edition is "2002" or "2014")
         {
-            var later = OffencesAt(diagnostics, edition);
-            if (Environment.GetEnvironmentVariable(RecordVariable) is { Length: > 0 } dir && later.Count > 0)
+            if (Environment.GetEnvironmentVariable(RecordVariable) is { Length: > 0 } dir)
             {
-                lock (RecordLock) File.AppendAllLines(Path.Combine(dir, $"{edition}.txt"), later.Select(l => $"{subject}\t{l}"));
+                // The measure lists every remaining site, the open sweep's codes included: it is how the sweep shrinks.
+                var all = diagnostics.Where(d => CitesOnlyALaterEditionAt(d, edition)).ToList();
+                if (all.Count > 0)
+                    lock (RecordLock) File.AppendAllLines(Path.Combine(dir, $"{edition}.txt"), all.Select(l => $"{subject}\t{l}"));
                 return;
             }
+            var later = OffencesAt(diagnostics, edition);
             Assert.True(later.Count == 0,
                 $"{subject}: a diagnostic at --std {edition} cites only a later edition's rule (kb/Work PB5922): cite the "
                 + $"{edition} rule through EditionInfo.Cite's y{edition} argument:\n  " + string.Join("\n  ", later));

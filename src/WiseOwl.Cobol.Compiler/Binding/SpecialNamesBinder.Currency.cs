@@ -272,7 +272,8 @@ public sealed partial class SpecialNamesBinder
         {
             Edition.Error(DiagnosticCatalog.CurrencySymbolRule, $"CURRENCY SIGN: the symbol '{symbol}' is already bound to "
                 + $"{(bound.LiteralClass is LiteralClass.National ? "national " : "")}\"{bound.Text}\" "
-                + $"(ISO §2023:12.3.7.3 SR21; SR28)");
+                // COBOL-2002 has no SR21; its uniqueness rule is literal-8's (§2002:12.2.6.2 SR22) beside SR24's class rule.
+                + $"({Edition.Edition.CiteRule("§2002:12.2.6.2 SR22; SR24", "§2023:12.3.7.3 SR21; SR28", y2014: "§2014:12.3.6.2 SR21; SR28")})");
             return;
         }
         Cfg.DeclaredCurrencySigns[key] = defined;

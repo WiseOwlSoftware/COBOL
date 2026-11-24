@@ -1232,10 +1232,10 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     ? $"{ReportGroupTypeWords(g.Kind)} for control '{model.Controls[g.ControlLevel].Display}' ("
                         + $"'{first[(g.Kind, g.ControlLevel)].Name ?? "FILLER"}' is the first); at most one CONTROL HEADING and at "
                         + "most one CONTROL FOOTING may be defined for each control data item or FINAL of the CONTROL clause ("
-                        + Edition.Edition.CiteRule("§1985:XIII.3.20.3 SR4", "§2023:13.18.57.3 SR14") + ")"
+                        + Edition.Edition.CiteRule("§1985:XIII.3.20.3 SR4", "§2023:13.18.57.3 SR14", "§2002:13.16.55.2 SR14", "§2014:13.18.57.2 SR14") + ")"
                     : $"{ReportGroupTypeWords(g.Kind)} ('{first[(g.Kind, -1)].Name ?? "FILLER"}' is the first); REPORT HEADING, "
                         + "PAGE HEADING, REPORT FOOTING, and PAGE FOOTING may each appear no more than once in any given report "
-                        + $"description ({Edition.Edition.CiteRule("§1985:XIII.3.20.3 SR2", "§2023:13.18.57.3 SR13")})"));
+                        + $"description ({Edition.Edition.CiteRule("§1985:XIII.3.20.3 SR2", "§2023:13.18.57.3 SR13", "§2002:13.16.55.2 SR13", "§2014:13.18.57.2 SR13")})"));
         }
         if (model.Groups.Count > 0 && !model.Groups.Exists(g => g.Kind is ReportGroupKindModel.Detail
                 or ReportGroupKindModel.ControlHeading or ReportGroupKindModel.ControlFooting))
@@ -1243,7 +1243,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             using var at = Edition.At(model.Groups[0].Entry);
             Edition.Error(DiagnosticCatalog.ReportGroupSetRule, $"RD '{model.Name}' describes no body group: each report "
                 + "description shall include at least one body group, a DETAIL, CONTROL HEADING or CONTROL FOOTING group "
-                + $"({Edition.Edition.CiteRule("§1985:XIII.3.20.3 SR7", "§2023:13.18.57.3 SR15")})");
+                + $"({Edition.Edition.CiteRule("§1985:XIII.3.20.3 SR7", "§2023:13.18.57.3 SR15", "§2002:13.16.55.2 SR15", "§2014:13.18.57.2 SR15")})");
         }
     }
 

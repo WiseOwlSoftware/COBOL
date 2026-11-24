@@ -1279,7 +1279,8 @@ public sealed class FileModel
     /// <summary>⛔ DETERMINATION D-WRT1 (docs/CONFORMANCE.md §3, kb/Work PB1907) — THE ONE ANSWER to "does a WRITE or
     /// REWRITE of <paramref name="record"/> transfer bytes that extend outside the end of record-name-1?", the
     /// premise of §2023:14.9.51.4 GR13 and §2023:14.9.35.4 GR15 (Annex A.2 items 64 and 49), whose content those rules leave
-    /// undefined. WiseOwl COBOL's determination is that such a byte is the record AREA's content at its position
+    /// undefined, and of the same rules at COBOL-2002, §2002:14.8.47.3 GR12 and §2002:14.8.33.3 GR15 (§2002:B.2 items 68 and 48: "the
+    /// bytes that extend beyond the end of the record"); the mechanism runs at every edition (kb/Work PB5654). WiseOwl COBOL's determination is that such a byte is the record AREA's content at its position
     /// (§2023:13.18.33.4 GR3: every level-1 entry is an implicit redefinition of the same area), so a statement that
     /// transfers more than record-name-1 sends <see cref="AreaRecord"/>'s image instead of record-name-1's own.
     /// <para>It transfers more exactly when ALL of these hold. (1) The number of bytes comes from somewhere other

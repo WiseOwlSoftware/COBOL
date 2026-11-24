@@ -35,6 +35,8 @@
       *>       area positions 6-12 (Z). A record sequential REWRITE must be
       *>       the length of the record it replaces (14.9.35.4 GR16): 12.
       *>   V1' REWRITE of those 12 bytes: vwxyz then area positions 6-12 (Q).
+      *> COBOL-2002 states the same rules: §2002:14.8.47.3 GR12 (WRITE)
+      *> and §2002:14.8.33.3 GR15 (REWRITE), §2002:B.2 items 68, 48.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1907KR.
        ENVIRONMENT DIVISION.
