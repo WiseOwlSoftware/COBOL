@@ -54,8 +54,8 @@ public sealed class EditionCiteSlotAnalyzerTests
         Assert.Empty(Analyze("""
                 string A(EditionInfo e) => e.Cite("§1985:X.1", "§2023:9.1", y2002: "§2002:8.1", y2014: "§2014:8.1");
                 string B(EditionInfo e) => e.Cite("§1985:X.1", "§2023:9.1", y2002: "§2002:8.1");
-                string D(EditionInfo e) => e.Cite("§2014:13.1 SR9", "§2023:13.1 SR9", y2002: "§2014:13.1 SR9", y2014: "§2014:13.1 SR9");
-                string F(EditionInfo e) => e.Cite("§2023:12.4 SR7", "§2023:12.4 SR7");
+                string D(EditionInfo e) => e.Cite("§2014:13.18.54.2 SR9", "§2023:13.18.54.3 SR9", y2002: "§2014:13.18.54.2 SR9", y2014: "§2014:13.18.54.2 SR9");
+                string F(EditionInfo e) => e.Cite("§2023:12.4.5.2 SR7", "§2023:12.4.5.2 SR7");
                 string G(EditionInfo e) => e.Cite("§1985:VI.1", "§2002:8.1");
             """));
 
