@@ -117,31 +117,19 @@ public sealed partial class FileControlBinder
                         file.ReportNames.Add(clauseName);
                         _reportNamesWritten[clauseName] = rn;
                     }
-                else if (clause.fileGlobalExternalClause() is { } ge)
+                else if (clause.externalClause() is { } ext)
                 {
-                    // FD IS EXTERNAL / IS GLOBAL (ISO §2023:13.18.22 / §2023:13.18.27.4 GR1): EXTERNAL ⇒ one run-unit file
-                    // connector + external record data (GR4a/GR4b), externalized as the FD name (GR5); GLOBAL ⇒
-                    // the file-name and record-names are global names, inherited by contained programs.
-                    if (ge.EXTERNAL() is not null)
-                    {
-                        file.IsExternal = true;
-                        // GR5's two sentences, in order: literal-1 when the AS phrase is written, the FD's own
-                        // file-name otherwise (kb/Work PB511). The literal is a character-string, not a COBOL
-                        // word, so its case is kept, while the file-name is written in its one upper-case spelling
-                        // (CobolNames.UpperFold: §2023:8.1.3.2's Annex C fold, kb/Work PB1965). §2023:13.18.22.3 SR3 screens it through the ONE shared
-                        // externalized-name screen (COBOL2156), which also FORMS it — leading and trailing
-                        // spaces removed (DOC-A.1-68, kb/Work PB1539).
-                        file.ExternalName =
-                            (ge.externalizedNamePhrase() is { } asPhrase
-                                ? ExternalizedName.Screen(asPhrase, _host.ReadConstant, Edition,
-                                    DiagnosticCatalog.ExternalClauseAsLiteral,
-                                    $"file '{name}' IS EXTERNAL AS {ExternalizedName.Written(asPhrase)}", "literal-1",
-                                    "ISO §2023:13.18.22.3 SR3", _host.LiteralEnv, rejectZeroLength: true)
-                                : null)
-                            ?? CobolNames.UpperFold(name);
-                    }
-                    if (ge.GLOBAL() is not null) file.IsGlobal = true;
+                    // FD IS EXTERNAL (ISO §2023:13.18.22): one run-unit file connector + external record data (GR4a/GR4b),
+                    // externalized under literal-1 or the FD's own file-name (GR5) — the ONE reading of the clause the
+                    // data description entry shares (ExternalizedName.AsLiteralOf / OfExternalSubject; kb/Work PB2724).
+                    file.IsExternal = true;
+                    file.ExternalName = ExternalizedName.OfExternalSubject(
+                        ExternalizedName.AsLiteralOf(ext, $"file '{name}'", _host.ReadConstant, Edition, _host.LiteralEnv), name);
                 }
+                else if (clause.globalClause() is not null)
+                    // FD IS GLOBAL (ISO §2023:13.18.27.4 GR1): the file-name and record-names are global names, inherited by
+                    // contained programs.
+                    file.IsGlobal = true;
             // §2023:13.4.5.3 SR8 — "Format 3 is the file description entry for a report file. No record description
             // entries or constant entries shall be associated with the file description entry for a report file."
             // Asked after the clause loop because the REPORT clause may follow any other clause (kb/Work PB1171:

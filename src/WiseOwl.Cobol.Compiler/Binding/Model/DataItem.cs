@@ -420,8 +420,8 @@ public sealed class DataItem
     /// connector or record that is externalized to the operating environment. If literal-1 is not specified,
     /// the externalized name of the file connector or record is the name specified in the file description
     /// entry or the data-name format of the entry-name clause, respectively."</i> So this field IS the rule's
-    /// first sentence and the null case IS its second — the default is applied at the ONE cell-keying site
-    /// (<c>CallBindExternalAndGlobal</c> → <c>CallMakeExternal</c>), never re-derived per caller. The literal
+    /// first sentence and the null case IS its second — the default is applied by the ONE reading of GR5,
+    /// <c>ExternalizedName.OfExternalSubject</c>, which the file description entry asks too (kb/Work PB2724). The literal
     /// is NOT case-folded: a COBOL word is case-insensitive and is uppercased for the key, but a literal is
     /// its own character-string and §2023:8.3.2.2 2) leaves the operating-environment mapping to the implementor,
     /// which this compiler defines as the literal verbatim.</summary>
@@ -472,7 +472,7 @@ public sealed class DataItem
     /// the entry's EXTERNAL clause writes <c>AS literal-1</c>, else the record's own data-name (case-folded, a COBOL word). The
     /// one spelling of the rule, read by the cell keying (<c>LinkageBinder</c>, kb/Work PB511) and by
     /// <see cref="ExternalItemIdentity(IReadOnlyList{int})"/>, so the record two programs share is the record both ask about.</summary>
-    public string ExternalizedRecordName() => ExternalizedAs ?? CobolNames.UpperFold(CobolName!);
+    public string ExternalizedRecordName() => ExternalizedName.OfExternalSubject(ExternalizedAs, CobolName!);
 
     /// <summary>The name of the run-unit storage this EXTERNAL record lies in: for a record of an <c>FD … IS EXTERNAL</c> file the
     /// file's record-area cell (<see cref="FileModel.ExternalAreaName"/>), which every describer of the file shares whatever it

@@ -129,7 +129,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         // repeat (COBOL2423 — the grammar's `reportDescriptionClause*` admits both).
         var rdClauses = rd.reportDescriptionClause();
         string rdWhere = $"RD '{model.Name}'";
-        UnrepeatedElements.AtMostOnce(Edition, rdClauses.Count(c => c.reportGlobalClause() is not null), rdWhere,
+        UnrepeatedElements.AtMostOnce(Edition, rdClauses.Count(c => c.globalClause() is not null), rdWhere,
             "the GLOBAL clause", Edition.Edition.CiteRule("§1985:XIII.3.5.2", "§2023:13.14.2"));
         UnrepeatedElements.AtMostOnce(Edition, rdClauses.Count(c => c.reportCodeClause() is not null), rdWhere,
             "the CODE clause", Edition.Edition.CiteRule("§1985:XIII.3.5.2", "§2023:13.14.2"));
@@ -142,7 +142,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             // §2023:13.18.27.3 SR1e) — the report-name is a global name. The containment half (visibility in contained
             // programs, §2023:13.18.27.4 GR1/GR2, and the declarative a contained GENERATE selects, §2023:14.9.49.4 GR4) is
             // BinderDriver's inheritance walk and the emitter's GR4 selector (kb/Work PB369).
-            if (clause.reportGlobalClause() is not null)
+            if (clause.globalClause() is not null)
                 model.IsGlobal = true;
             else if (clause.reportCodeClause() is { } code)
             {

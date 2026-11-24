@@ -143,7 +143,7 @@ internal sealed class ClosedFormatPass(EditionContext edition) : CursorFollowing
     /// division's comment-entry paragraphs are counted and ranked at 85 only).</summary>
     private void ScreenClauseRepetition(ParserRuleContext container)
     {
-        Dictionary<(string Format, object Element), (ClauseList List, int Count, ParserRuleContext First, ParserRuleContext Second)>? seen = null;
+        Dictionary<(string Format, Type Element), (ClauseList List, int Count, ParserRuleContext First, ParserRuleContext Second)>? seen = null;
         (int Rank, ParserRuleContext Clause)? latest = null;   // the element the figure prints LAST among those written so far
         for (int i = 0; i < container.ChildCount; i++)
         {
