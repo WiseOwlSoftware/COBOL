@@ -1,4 +1,4 @@
-## PB5702: COBOL 2002 folds a user-defined word by its own Annex D, not the 2014 table
+## Entry 4045 — 2026-11-24 10:35 PST — PB5702: COBOL 2002 folds a user-defined word by its own Annex D, not the 2014 table
 
 **Re-probe.** `01 X<U+2160>Y` and `01 X<U+2170>Y` (ROMAN NUMERAL ONE and its small form) at `--std 2002` drew COBOL1639, one name
 declared twice. §2002:8.1.2.1 GR4c folds an uppercase extended letter by the mapping of Annex D, and 2002's Annex D (D.2.1,
@@ -28,3 +28,4 @@ names the character written. Annex D prints (0256,0189) beside (0189,0256); tran
 **Left open (COBOL 2014 waits).** 2014 is still 2023's table with Annex E reversed, and its repertoire the same derivation (`Xµ` at `--std 2014`).
 
 **Review round 1.** R1-1 (blocking): the ASSIGN operand's word read `GetText()`, so a 2002 stand-in (U+E000..) reached the emitted C# and the host file name. `CobolWordRule.WrittenText(ParserRuleContext)` reads the written text back from the input and `AssignTargetRule` uses it for both word arms; `AssignNameWrittenTextTests` (2002, 2014, 2023) holds the emitted C# carries the written word and no stand-in. R1-2 (lead): the design text now says which readers see the written text; diagnostics that print a spelling and the listing cross-reference still show the stand-in (report lead).
+
