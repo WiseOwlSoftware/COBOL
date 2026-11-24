@@ -52,8 +52,6 @@ public sealed class ExactCarrierBoundaryDriftTests
     /// </summary>
     private static readonly Dictionary<string, string> CannotLeaveTheCarrier = new()
     {
-        ["MaxScaled"] = "§2023:15.59.4 r1 returns the CONTENT of an argument — pure selection, no arithmetic at all.",
-        ["MinScaled"] = "§2023:15.63.4 r1 returns the CONTENT of an argument — pure selection, no arithmetic at all.",
         ["RemScaled"] = "§2023:15.77.4 r1's EAE is C#'s `%` exactly (truncated remainder), whose result satisfies "
                       + "|r| < |b| ≤ Int128.MaxValue for every operand pair the aligner can produce.",
         // ABS is not listed: |Int128.MinValue| = 2^127 is past the carrier, so it is boundary-pinned below (kb/Work
@@ -82,7 +80,8 @@ public sealed class ExactCarrierBoundaryDriftTests
         string[] guarded = ["SumScaled", "RangeScaled", "MedianScaled", "MidrangeScaled", "ModScaled", "AbsScaled"];
         var entries = ExactCarrierEntries().Select(m => m.Name).ToHashSet(StringComparer.Ordinal);
 
-        Assert.True(entries.Count >= 9,
+        // 7 since kb/Work PB2627 made MaxScaled and MinScaled private helpers of RANGE and MIDRANGE.
+        Assert.True(entries.Count >= 7,
             $"the exact-carrier entry filter found only {entries.Count} methods — it has stopped matching the "
             + "family it is meant to close over, and a silent wrap could return through the gap");
 
@@ -159,7 +158,7 @@ public sealed class ExactCarrierBoundaryDriftTests
 
     /// <summary>The native switch's BODY — comments stripped, bounded at its own <c>default:</c> label.</summary>
     /// <remarks>Strip EVERY <c>//</c> comment, trailing ones included: the switch's arms carry long trailing
-    /// citations, and a whole-line-only strip left <c>case "ModScaled":   // §2023:15.64 …</c> looking like an arm
+    /// citations, and a whole-line-only strip left <c>case "MOD":   // §2023:15.64 …</c> looking like an arm
     /// with a body, which dropped MOD from the scan. (No string literal in this switch contains <c>//</c>.)
     /// <para>⛔ AND BOUND THE SCAN TO THE SWITCH BLOCK. Without the <c>default:</c> anchor the LAST arm's "body"
     /// runs to end-of-file and picks up every helper call in the methods below it — the scan then reports an arm
@@ -168,8 +167,8 @@ public sealed class ExactCarrierBoundaryDriftTests
     private static string ExactSwitchBody()
     {
         string src = RendererSource();
-        int from = src.IndexOf("switch (sig.RuntimeMethod)", StringComparison.Ordinal);
-        Assert.True(from > 0, "IntrinsicRenderer no longer switches on sig.RuntimeMethod — this guard is blind");
+        int from = src.IndexOf("switch (sig.Name)", StringComparison.Ordinal);
+        Assert.True(from > 0, "IntrinsicRenderer no longer switches on sig.Name — this guard is blind");
         string body = Regex.Replace(src[from..], @"//[^\n]*", "");
         int end = body.IndexOf("\n            default:", StringComparison.Ordinal);
         Assert.True(end > 0, "the native switch has no `default:` label — the arm scan has no end anchor");
@@ -178,7 +177,7 @@ public sealed class ExactCarrierBoundaryDriftTests
 
     /// <summary>The switch's arms, each as its LABELS and the code that follows them — the ONE reader of this
     /// switch's shape, so the two guards below cannot disagree about what an arm is (kb/Work PB620).</summary>
-    /// <remarks>⛔ <c>case "ModScaled":</c> sits ALONE above <c>case "RemScaled":</c> and their shared body — a
+    /// <remarks>⛔ <c>case "MOD":</c> sits ALONE above <c>case "RemScaled":</c> and their shared body — a
     /// chunk with no body of its own. Reading each chunk independently silently dropped MOD, which is the very
     /// arm invariant 2 exists to catch; the ≥ floors below are what surfaced it. Stacked labels are carried
     /// forward onto the arm that does have a body.</remarks>
@@ -190,9 +189,9 @@ public sealed class ExactCarrierBoundaryDriftTests
         var pending = new List<string>();                       // labels STACKED above a shared body (MOD/REM)
         foreach (string arm in chunks.Where(a => a.StartsWith("case ", StringComparison.Ordinal)))
         {
-            var labels = Regex.Match(arm, @"^case\s+(?<lbl>""[A-Za-z0-9]+""(?:\s+or\s+""[A-Za-z0-9]+"")*)\s*(?::|when\b)");
+            var labels = Regex.Match(arm, @"^case\s+(?<lbl>""[A-Z0-9-]+""(?:\s+or\s+""[A-Z0-9-]+"")*)\s*(?::|when\b)");
             Assert.True(labels.Success, $"could not read the case labels of an arm: {arm[..Math.Min(90, arm.Length)]}");
-            var here = Regex.Matches(labels.Groups["lbl"].Value, @"""(?<n>[A-Za-z0-9]+)""")
+            var here = Regex.Matches(labels.Groups["lbl"].Value, @"""(?<n>[A-Z0-9-]+)""")
                             .Select(x => x.Groups["n"].Value).ToList();
             string rest = arm[labels.Length..];
             if (rest.Trim().Length == 0) { pending.AddRange(here); continue; }
@@ -219,7 +218,7 @@ public sealed class ExactCarrierBoundaryDriftTests
     /// <summary>⛔ THE PB62/PB252 GUARD. Every arm that cross-aligns is the runtime body of a function in
     /// <c>CrossAligningFunctions</c>, and every function in that set still has such an arm. The set is keyed on the
     /// function (kb/Work PB4370) and the switch on the Roslyn renderer's runtime body, so the two meet through the
-    /// catalog row (<see cref="IntrinsicCarrierRuleKeyDriftTests.RuntimeMethodOf"/>). Adding an aligning arm without
+    /// catalog row (<see cref="IntrinsicCarrierRuleKeyDriftTests.KeyOf"/>). Adding an aligning arm without
     /// routing it fails here rather than eight months later on a user's program.</summary>
     [Fact]
     public void EveryCrossAligningNativeArm_IsRoutedToTheSdidiUnderAStandardMode()
@@ -229,7 +228,7 @@ public sealed class ExactCarrierBoundaryDriftTests
             $"only {inSwitch.Count} cross-aligning arms found ({string.Join(", ", inSwitch.Order())}) — the scan "
             + "has stopped seeing the switch and would pass with the routing set empty");
         var routed = IntrinsicCarrierRules.CrossAligningFunctions
-            .ToDictionary(IntrinsicCarrierRuleKeyDriftTests.RuntimeMethodOf, fn => fn, StringComparer.Ordinal);
+            .ToDictionary(IntrinsicCarrierRuleKeyDriftTests.KeyOf, fn => fn, StringComparer.Ordinal);
 
         foreach (string arm in inSwitch)
             Assert.True(routed.ContainsKey(arm),
@@ -254,7 +253,7 @@ public sealed class ExactCarrierBoundaryDriftTests
         foreach (string sel in new[] { "MAX", "MIN", "ORD-MAX", "ORD-MIN" })
         {
             // A name the catalog does not spell would be absent from the set vacuously.
-            Assert.NotEmpty(IntrinsicCarrierRuleKeyDriftTests.RuntimeMethodOf(sel));
+            Assert.NotEmpty(IntrinsicCarrierRuleKeyDriftTests.KeyOf(sel));
             Assert.False(IntrinsicCarrierRules.CrossAligningFunctions.Contains(sel),
                 $"{sel} is pure selection (RawArgPairs rescales each argument to its OWN scale) — it forms no "
                 + "common scale and has no boundary to escape (kb/Work PB65)");
@@ -292,7 +291,7 @@ public sealed class ExactCarrierBoundaryDriftTests
         Assert.True(end > from, "RenderDec's switch has no `_ => null,` arm — the scan has no end anchor");
         string body = Regex.Replace(src[from..end], @"//[^\n]*", "");
         return new HashSet<string>(
-            Regex.Matches(body, @"""(?<n>[A-Za-z0-9]+)""\s*(?:when\b[^\n]*?)?=>").Select(m => m.Groups["n"].Value),
+            Regex.Matches(body, @"""(?<n>[A-Z0-9-]+)""\s*(?:when\b[^\n]*?)?=>").Select(m => m.Groups["n"].Value),
             StringComparer.Ordinal);
     }
 
@@ -315,17 +314,17 @@ public sealed class ExactCarrierBoundaryDriftTests
     public void TheDecBodyDetector_CatchesTheDefectAndNothingElse()
     {
         var none = new HashSet<string>(StringComparer.Ordinal);
-        Assert.Equal(["CombinedDatetime"], ArmsWithNoDecBody(
-            "            case \"CombinedDatetime\":\n{ NumX t = Arg(ic, 1); return X(t.Expr, t.Scale); }", none));
+        Assert.Equal(["COMBINED-DATETIME"], ArmsWithNoDecBody(
+            "            case \"COMBINED-DATETIME\":\n{ NumX t = Arg(ic, 1); return X(t.Expr, t.Scale); }", none));
         Assert.Empty(ArmsWithNoDecBody(
-            "            case \"CombinedDatetime\":\n{ NumX t = RawArg(ic, 1); return X(t.Expr, t.Scale); }",
-            new HashSet<string>(new[] { "CombinedDatetime" }, StringComparer.Ordinal)));
+            "            case \"COMBINED-DATETIME\":\n{ NumX t = RawArg(ic, 1); return X(t.Expr, t.Scale); }",
+            new HashSet<string>(new[] { "COMBINED-DATETIME" }, StringComparer.Ordinal)));
         Assert.Empty(ArmsWithNoDecBody(
-            "            case \"Factorial\":\nreturn new NumX(Intrinsic(m, IntArg(ic, 0)), 0);", none));
+            "            case \"FACTORIAL\":\nreturn new NumX(Intrinsic(m, IntArg(ic, 0)), 0);", none));
         Assert.Empty(ArmsWithNoDecBody(
-            "            case \"Ord\":\nreturn new NumX(Intrinsic(m, Str(ic.Args[0])), 0);", none));
-        Assert.Equal(["ModScaled", "RemScaled"], ArmsWithNoDecBody(
-            "            case \"RemScaled\":\n            case \"ModScaled\":\n{ var a = Arg(ic, 0); }", none)
+            "            case \"ORD\":\nreturn new NumX(Intrinsic(m, Str(ic.Args[0])), 0);", none));
+        Assert.Equal(["MOD", "REM"], ArmsWithNoDecBody(
+            "            case \"REM\":\n            case \"MOD\":\n{ var a = Arg(ic, 0); }", none)
             .Order().ToList());
     }
 
@@ -345,7 +344,7 @@ public sealed class ExactCarrierBoundaryDriftTests
             + "has stopped seeing the exact switch and would pass with the Dec set empty");
         Assert.True(decArms.Count >= 20,
             $"only {decArms.Count} RenderDec arms found — the Dec-switch scan has stopped seeing the switch");
-        Assert.Contains("CombinedDatetime", scanned);            // the arm this invariant was bought with
+        Assert.Contains("COMBINED-DATETIME", scanned);            // the arm this invariant was bought with
 
         var offenders = ArmsWithNoDecBody(exact, decArms);
         Assert.True(offenders.Count == 0,
@@ -370,7 +369,7 @@ public sealed class ExactCarrierBoundaryDriftTests
     /// <summary>The unary fraction-bearing arms with NO equivalent arithmetic expression, each with its reason:
     /// INTEGER (<c>Floor</c>) — §2023:15.44.4 RV1 defines it as "the greatest integer less than or equal to the value of
     /// argument-1", so its argument is a value, not an operand of an expression.</summary>
-    private static readonly string[] UnaryArmsWithNoEquivalentExpression = ["Floor"];
+    private static readonly string[] UnaryArmsWithNoEquivalentExpression = ["INTEGER"];
 
     /// <summary>The exact switch's UNARY arms: one <c>Arg(ic, 0)</c> intake and nothing that aligns, pairs or
     /// takes a second argument.</summary>
@@ -413,7 +412,7 @@ public sealed class ExactCarrierBoundaryDriftTests
     [Fact]
     public void ThePureSelectionArms_AreNotRoutedByTheirArgumentLift()
     {
-        foreach (string sel in new[] { "MaxScaled", "MinScaled", "OrdMax", "OrdMin", "Floor" })
+        foreach (string sel in new[] { "MAX", "MIN", "ORD-MAX", "ORD-MIN", "INTEGER" })
             Assert.False(IntrinsicRenderer.EquivalentExpressionUnaryArms.Contains(sel),
                 $"{sel} returns a value defined without an equivalent arithmetic expression (§2023:15.59.4 r1, §2023:15.63.4 r1, "
                 + "§2023:15.71.4 r1, §2023:15.72.4 r1, §2023:15.44.4 r1), so its argument is not an SDIDI operand and is not rounded (kb/Work PB2965)");

@@ -545,6 +545,14 @@ public sealed record BoundIntrinsicCall(
     /// Never true together with <see cref="Collate"/> — each call reads exactly one class's sequence.</summary>
     public bool CollateNat { get; init; }
 
+    /// <summary>MAX, MIN, ORD-MAX or ORD-MIN whose arguments are compared as STRINGS (kb/Work PB2627): every argument is alphanumeric,
+    /// national or class-neutral and at least one is not neutral, so the class all arguments share (§2023:15.59.3 AR2: "All arguments
+    /// shall be of the same class") is a string class, and the comparisons "are made according to the rules for simple conditions"
+    /// (§2023:15.59.4 RV1) between strings, by the program collating sequence (<see cref="Collate"/> / <see cref="CollateNat"/>). ORD-MAX
+    /// and ORD-MIN still return an ordinal ("The type of this function is integer", §2023:15.71.1), so this is a fact about the
+    /// comparison and not the type. The binder decides it once (<c>IntrinsicBinder</c>); false for every other call.</summary>
+    public bool ComparesStrings { get; init; }
+
     /// <summary>DATE-OF-INTEGER, DAY-OF-INTEGER, INTEGER-OF-DATE or INTEGER-OF-DAY bound for an edition whose integer date form has
     /// no upper bound: the 1989 intrinsic function module, where the year is bounded below only (§1989:A.2.16.3 AR1;
     /// <c>DialectBehavior.IntegerDateFormBounded</c> inactive; kb/Work PB5130). False for every other call.</summary>

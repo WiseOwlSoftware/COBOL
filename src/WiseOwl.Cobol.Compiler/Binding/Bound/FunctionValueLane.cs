@@ -42,16 +42,17 @@ namespace WiseOwl.Cobol.Binding.Bound;
 /// </summary>
 internal static class FunctionValueLane
 {
-    /// <summary>The runtime-method names <c>IntrinsicRenderer.RenderDec</c> has a body for under NATIVE arithmetic — the
-    /// functions that, handed an SDIDI-carried argument, compute on the SDIDI instead of in binary64.
+    /// <summary>The functions (their catalog names, kb/Work PB2627) <c>IntrinsicRenderer.RenderDec</c> has a body for under NATIVE
+    /// arithmetic — the functions that, handed an SDIDI-carried argument, compute on the SDIDI instead of in binary64.
     /// <c>FunctionValueLaneDriftTests</c> derives the set from the renderer's switch, so a body added there without a
-    /// line here fails the build of the gate. (<c>Sqrt</c> and <c>Factorial</c> have arms too, but only
-    /// <c>when num.StandardDecimal</c>: a native call to either keeps its lane.)</summary>
+    /// line here fails the build of the gate. (SQRT and FACTORIAL have arms too, but only
+    /// <c>when num.StandardDecimal</c>: a native call to either keeps its lane. A MAX, MIN, ORD-MAX or ORD-MIN whose arguments are
+    /// compared as strings, <see cref="BoundIntrinsicCall.ComparesStrings"/>, has none.)</summary>
     internal static readonly FrozenSet<string> NativeSdidiBodies = new[]
     {
-        "Numval", "NumvalC", "NumvalF", "CombinedDatetime", "SignOf", "AbsScaled", "Floor", "Truncate", "FractionPart",
-        "ModScaled", "RemScaled", "MaxScaled", "MinScaled", "OrdMax", "OrdMin", "SumScaled", "RangeScaled", "MeanScaled",
-        "MedianScaled", "MidrangeScaled", "Variance", "StandardDeviation", "Annuity", "PresentValue",
+        "NUMVAL", "NUMVAL-C", "NUMVAL-F", "COMBINED-DATETIME", "SIGN", "ABS", "INTEGER", "INTEGER-PART", "FRACTION-PART",
+        "MOD", "REM", "MAX", "MIN", "ORD-MAX", "ORD-MIN", "SUM", "RANGE", "MEAN",
+        "MEDIAN", "MIDRANGE", "VARIANCE", "STANDARD-DEVIATION", "ANNUITY", "PRESENT-VALUE",
     }.ToFrozenSet(StringComparer.Ordinal);
 
     /// <summary>The native SDIDI bodies whose value <c>IntrinsicRenderer.RenderDec</c> returns as an EXACT scale-0 value
@@ -62,7 +63,7 @@ internal static class FunctionValueLane
     /// the renderer's switch (the native arms built as <c>new NumX(...)</c>).</summary>
     internal static readonly FrozenSet<string> NativeSdidiBodiesWithExactResult = new[]
     {
-        "SignOf", "OrdMax", "OrdMin",
+        "SIGN", "ORD-MAX", "ORD-MIN",
     }.ToFrozenSet(StringComparer.Ordinal);
 
     /// <summary>The native SDIDI bodies whose value <c>IntrinsicRenderer.RenderDec</c> returns as a run-time-scaled EXACT value
@@ -77,8 +78,8 @@ internal static class FunctionValueLane
     /// a given function"). <c>FunctionValueLaneDriftTests</c> derives this set from the renderer's switch (the native arms built by <c>Exact(...)</c>).</summary>
     internal static readonly FrozenSet<string> NativeSdidiBodiesWithWholeResult = new[]
     {
-        "SumScaled", "RangeScaled", "MeanScaled", "MidrangeScaled", "MaxScaled", "MinScaled", "MedianScaled",
-        "Variance", "StandardDeviation", "Annuity", "PresentValue",
+        "SUM", "RANGE", "MEAN", "MIDRANGE", "MAX", "MIN", "MEDIAN",
+        "VARIANCE", "STANDARD-DEVIATION", "ANNUITY", "PRESENT-VALUE",
     }.ToFrozenSet(StringComparer.Ordinal);
 
     /// <summary>The pure selections, which a MIXED list takes onto the SDIDI under native arithmetic so the compared and
@@ -90,7 +91,7 @@ internal static class FunctionValueLane
     /// "according to the rules for simple conditions" (§2023:15.59.4 RV1 / §2023:15.63.4 RV1 / §2023:15.71.4 RV2 / §2023:15.72.4 RV2 / §2023:15.61.4 RV3).</summary>
     private static readonly FrozenSet<string> Selections = new[]
     {
-        "MaxScaled", "MinScaled", "OrdMax", "OrdMin", "MedianScaled",
+        "MAX", "MIN", "ORD-MAX", "ORD-MIN", "MEDIAN",
     }.ToFrozenSet(StringComparer.Ordinal);
 
     /// <summary>True when <paramref name="call"/>'s returned value is a binary64 wherever no fixed-point scale governs the
@@ -143,7 +144,7 @@ internal static class FunctionValueLane
         // Else an argument on the SDIDI takes a function with an SDIDI body there (RenderNum's `AnyDecRaw` arm), as any SDIDI argument does,
         // and the value is an approximation when an argument that kept significance went into it.
         bool significance = read.Any(a => a.Significance);
-        if (significance && NativeSdidiBodies.Contains(sig.RuntimeMethod) && kind == CarrierKind.Fixed) kind = OnSdidiBody(sig.RuntimeMethod);
+        if (significance && HasNativeSdidiBody(call) && kind == CarrierKind.Fixed) kind = OnSdidiBody(sig.Name);
         bool approximation = read.Any(a => a.Approximation) && kind == CarrierKind.Dec;
         return kind == CarrierKind.Fixed ? Carrier.Exact(IsInteger(call))
             : new Carrier(kind, Significance: significance && kind == CarrierKind.Dec, Approximation: approximation);
@@ -170,24 +171,24 @@ internal static class FunctionValueLane
         bool anyDec = args.Any(a => a.Kind == CarrierKind.Dec);
         bool anyReal = args.Any(a => a.IsReal);
         bool allReal = args.Count > 0 && args.All(a => a.IsReal);
-        bool sdidiBody = NativeSdidiBodies.Contains(sig.RuntimeMethod);
+        bool sdidiBody = HasNativeSdidiBody(call);
         // The SDIDI lane precedes the float lane: an SDIDI-carried argument (a floating-point literal, ...) is computed
         // on the SDIDI by a function that has a body for it (RenderNum's `AnyDecRaw(ic) && RenderDec(ic)` arm).
-        if (anyDec && sdidiBody) return OnSdidiBody(sig.RuntimeMethod);
+        if (anyDec && sdidiBody) return OnSdidiBody(sig.Name);
         // A cross-aligning arm (SUM / RANGE / MEDIAN / MIDRANGE) whose aligned arguments may leave the Int128 carrier
         // takes the SDIDI (RenderNum's PB621 arm) — ahead of the float lane, whatever the arithmetic around it.
         if (IntrinsicCarrierRules.CrossAligningFunctions.Contains(sig.Name)
             && IntrinsicCarrierRules.AlignmentMayLeaveCarrier(sig.Name, args.Select(a => a.Aligned).ToList()))
-            return OnSdidiBody(sig.RuntimeMethod);
+            return OnSdidiBody(sig.Name);
         // MEAN is the SDIDI quotient of its equivalent expression for every list with no binary64 operand (RenderNum's
         // PB3860 arm); a list with one keeps the float lane below, as there.
-        if (IntrinsicCarrierRules.ReturnsSdidiQuotient(sig.Name) && !anyReal) return OnSdidiBody(sig.RuntimeMethod);
+        if (IntrinsicCarrierRules.ReturnsSdidiQuotient(sig.Name) && !anyReal) return OnSdidiBody(sig.Name);
         // A mixed selection list rides the SDIDI too (RenderNum's selection arm).
-        if (Selections.Contains(sig.RuntimeMethod) && sdidiBody
+        if (Selections.Contains(sig.Name) && sdidiBody
             && IntrinsicCarrierRules.SelectionNeedsExactLane(anyReal, allReal,
                 args.Any(a => a.Kind == CarrierKind.Real), args.Any(a => a.Kind == CarrierKind.ApproximateReal),
                 IntrinsicCarrierRules.ReturnsMeanOfMiddlePair(sig.Name, call.Args)))
-            return OnSdidiBody(sig.RuntimeMethod);
+            return OnSdidiBody(sig.Name);
         if (sig.Float) return CarrierKind.ApproximateReal;
         // RenderNum's last dispatch: a binary64 argument at a numeric position moves the whole call onto the float lane. The value
         // is an engine APPROXIMATION only when none of those arguments is a float ITEM's content (kb/Work PB4622, the one
@@ -218,8 +219,13 @@ internal static class FunctionValueLane
     /// <summary>The carrier of the value an SDIDI body returns (<c>RenderDec</c>'s arm for the function), as its consumer receives it: the
     /// SDIDI (also for <see cref="NativeSdidiBodiesWithWholeResult"/>, which lower to it), or an exact scale-0 value for
     /// <see cref="NativeSdidiBodiesWithExactResult"/>.</summary>
-    private static CarrierKind OnSdidiBody(string runtimeMethod) =>
-        NativeSdidiBodiesWithExactResult.Contains(runtimeMethod) ? CarrierKind.Fixed : CarrierKind.Dec;
+    private static CarrierKind OnSdidiBody(string function) =>
+        NativeSdidiBodiesWithExactResult.Contains(function) ? CarrierKind.Fixed : CarrierKind.Dec;
+
+    /// <summary>Does <c>IntrinsicRenderer.RenderDec</c> have a native SDIDI body for this call? Its function's, unless the call compares
+    /// its arguments as strings (<see cref="BoundIntrinsicCall.ComparesStrings"/>), which has no numeric body at all.</summary>
+    private static bool HasNativeSdidiBody(BoundIntrinsicCall call) =>
+        !call.ComparesStrings && NativeSdidiBodies.Contains(call.CarrierFacts.Name);
 
     /// <summary>The argument as the renderer's intake (<c>IntrinsicRenderer.RawArg</c>) hands it to the lane predicates: at a
     /// §2023:15.3 type-6 (integer) position a binary64 or fractional fixed-point operand is already its INTEGER on the exact

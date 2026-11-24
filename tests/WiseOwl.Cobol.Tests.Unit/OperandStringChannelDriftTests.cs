@@ -133,12 +133,12 @@ public sealed class OperandStringChannelDriftTests
         // ';', which sank the first draft of this guard (it matched nothing and would have passed green on an
         // empty caller set had the expected list not been asserted).
         var callers = Regex.Matches(renderers, @"StrNum\(ic|StrArgList\(ic,\s*admitNumeric:\s*true")
-            .Select(tok => Regex.Matches(renderers[..tok.Index], @"""(?<fn>\w+)""\s*=>")
+            .Select(tok => Regex.Matches(renderers[..tok.Index], @"""(?<fn>[A-Z0-9-]+)""\s*(?:when\b[^\n]*?)?=>")
                 .Select(m => m.Groups["fn"].Value).LastOrDefault())
             .Where(fn => fn is not null).Distinct().Order().ToList();
-        Assert.True(callers.SequenceEqual(new[] { "BaseConvert", "Concat" }),
+        Assert.True(callers.SequenceEqual(new[] { "BASECONVERT", "CONCAT" }),
             $"the numeric-admitting string entry is reached from [{string.Join(", ", callers)}] — expected "
-            + "exactly [BaseConvert, Concat] (§2023:15.12.3 r1's unsigned-integer-literal argument-1; §2023:15.18.3 r1's "
+            + "exactly [BASECONVERT, CONCAT] (§2023:15.12.3 r1's unsigned-integer-literal argument-1; §2023:15.18.3 r1's "
             + "class-numeric list). If a new function legitimately admits numeric literals, add it here WITH "
             + "the §15.x.3 rule that says so.");
     }

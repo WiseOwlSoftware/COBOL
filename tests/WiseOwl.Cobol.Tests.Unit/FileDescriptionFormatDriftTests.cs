@@ -83,7 +83,8 @@ public sealed class FileDescriptionFormatDriftTests
             .Select(r => r.Context).ToHashSet();
         Assert.Equal(new HashSet<Type>
         {
-            typeof(Core.FileGlobalExternalClauseContext), typeof(Core.BlockContainsClauseContext), typeof(Core.RecordClauseContext),
+            typeof(Core.ExternalClauseContext), typeof(Core.GlobalClauseContext), typeof(Core.BlockContainsClauseContext),
+            typeof(Core.RecordClauseContext),
             typeof(Core.LabelRecordsClauseContext), typeof(Core.ValueOfClauseContext), typeof(Core.CodeSetClauseContext),
             typeof(Core.ReportClauseContext),
         }, admitted);

@@ -1281,10 +1281,11 @@ internal sealed class VersionConformancePass
         }
 
         /// <summary>F.2 item 61: "The GLOBAL clause may be specified in level 1 data description entries in the linkage
-        /// section."</summary>
+        /// section." The item's subject is the DATA DESCRIPTION entry, so the gate asks the clause's host: the one
+        /// <c>globalClause</c> is also a constant entry's (kb/Work PB2724), and a constant entry is not one.</summary>
         public override object? VisitGlobalClause(CobolParserCore.GlobalClauseContext ctx)
         {
-            if (HasAncestor<CobolParserCore.LinkageSectionContext>(ctx))
+            if (ctx.Parent is CobolParserCore.DataDescriptionClauseContext && HasAncestor<CobolParserCore.LinkageSectionContext>(ctx))
                 _p.Check(Constructs.LinkageGlobal2002, "the GLOBAL clause in the linkage section");
             return base.VisitChildren(ctx);
         }

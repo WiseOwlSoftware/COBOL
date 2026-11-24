@@ -45,9 +45,6 @@ namespace WiseOwl.Cobol.Frontend.Cst;
 /// that frees it; the 1985 SPECIAL-NAMES paragraph fixes its sequence by §1985:IV.2.1.
 /// <c>ClauseCardinalityDriftTests</c> requires a sequence to hold exactly the list's alternatives outside
 /// <see cref="NotInFigure"/>, so a clause added to such a list cannot go unranked.</param>
-/// <param name="KindOf">The element an alternative instance fills, when the grammar folds two figure elements into
-/// one alternative (the FD's <c>IS EXTERNAL</c> and <c>IS GLOBAL</c> slots are one <c>fileGlobalExternalClause</c>);
-/// null means "the alternative itself".</param>
 /// <param name="Earlier">⛔ THE EDITION DECISION (kb/Work PB2532): the figure an EARLIER edition printed for the same
 /// list, where it differs from this one — below <see cref="EarlierFigure.Until"/> the screen reads that figure instead
 /// (<see cref="At"/>). Null when every edition the compiler targets prints this figure, or prints a subset of it whose
@@ -62,7 +59,7 @@ namespace WiseOwl.Cobol.Frontend.Cst;
 /// COBOL2423). A choice-indicator group is order-free by the same clause, so it carries no
 /// <see cref="Sequence"/> (kb/Work PB3133, ISO review R1-1).</param>
 public sealed record ClauseList(string Format, string FormatLabel, string Subject, IReadOnlySet<Type> Repeatable,
-    IReadOnlySet<Type> NotInFigure, IReadOnlyList<Type>? Sequence, Func<ParserRuleContext, object>? KindOf = null, EarlierFigure? Earlier = null,
+    IReadOnlySet<Type> NotInFigure, IReadOnlyList<Type>? Sequence, EarlierFigure? Earlier = null,
     bool ChoiceIndicators = false, string? Format1985 = null)
 {
     /// <summary>The general format as a diagnostic names it in the edition in force (kb/Work PB4950): the 1985 clause
@@ -82,15 +79,15 @@ public sealed record ClauseList(string Format, string FormatLabel, string Subjec
     }
 
     /// <summary>Whether <paramref name="element"/> may be written more than once (<see cref="Repeatable"/>).</summary>
-    public bool Repeats(object element) => element is Type type && Repeatable.Contains(type);
+    public bool Repeats(Type element) => Repeatable.Contains(element);
 
     /// <summary>The position of <paramref name="element"/> in <see cref="Sequence"/>, or null when the list's
     /// order is free or the element is not ranked.</summary>
-    public int? RankOf(object element)
+    public int? RankOf(Type element)
     {
-        if (Sequence is null || element is not Type type) return null;
+        if (Sequence is null) return null;
         for (int i = 0; i < Sequence.Count; i++)
-            if (Sequence[i] == type) return i;
+            if (Sequence[i] == element) return i;
         return null;
     }
 }
@@ -152,7 +149,7 @@ public static class ClauseCardinalities
             [typeof(Core.FileDescriptionClauseContext)] =
                 new("ISO §2023:13.4.5.2", "", "file description entry", None,
                     new HashSet<Type> { typeof(Core.UnrecognizedDataClauseContext) },
-                    Sequence: null, KindOfFileDescriptionClause, Format1985: "ANSI X3.23-1985"),
+                    Sequence: null, Format1985: "ANSI X3.23-1985"),
 
             // §2023:13.4.6.2: `SD file-name-1 [ record-clause ] .` (and the '85 DATA RECORDS clause, removal-gated at
             // 2002). ORDER: nothing to order — the figure prints one element.
@@ -319,20 +316,13 @@ public static class ClauseCardinalities
                             ]))),
         }.ToFrozenDictionary();
 
-    /// <summary>The figure element a written clause fills: its alternative's context type, refined by
-    /// <see cref="ClauseList.KindOf"/> where one alternative serves two elements; null when the alternative is not an
-    /// element of the figure (<see cref="ClauseList.NotInFigure"/>).</summary>
-    public static object? ElementOf(ClauseList list, ParserRuleContext clause)
+    /// <summary>The figure element a written clause fills: its alternative's context type (every grammar alternative is ONE
+    /// figure element — the FD's <c>IS EXTERNAL</c> and <c>IS GLOBAL</c> brackets are the two rules <c>externalClause</c> and <c>globalClause</c>,
+    /// kb/Work PB2724); null when the alternative is not an element of the figure (<see cref="ClauseList.NotInFigure"/>).</summary>
+    public static Type? ElementOf(ClauseList list, ParserRuleContext clause)
     {
         if (clause.ChildCount != 1 || clause.GetChild(0) is not ParserRuleContext alternative) return null;
         Type type = alternative.GetType();
-        if (list.NotInFigure.Contains(type)) return null;
-        return list.KindOf?.Invoke(alternative) ?? type;
+        return list.NotInFigure.Contains(type) ? null : type;
     }
-
-    /// <summary>The FD's <c>fileGlobalExternalClause</c> is the figure's <c>[ IS EXTERNAL [ AS literal-1 ] ]</c> or its
-    /// <c>[ IS GLOBAL ]</c> — two brackets, so GLOBAL and EXTERNAL are different elements.</summary>
-    private static object KindOfFileDescriptionClause(ParserRuleContext alternative) =>
-        alternative is Core.FileGlobalExternalClauseContext g ? (g.GLOBAL() is not null ? "GLOBAL" : "EXTERNAL")
-                                                              : alternative.GetType();
 }

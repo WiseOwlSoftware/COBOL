@@ -59,6 +59,21 @@ internal static class ExternalizedName
         Screen(phrase, constants, new EditionContext(dialectLevel), DiagnosticCatalog.ExternalizedNameLiteral, "", "", "",
             LiteralEnvironment.Unscoped, rejectZeroLength: true);
 
+    /// <summary>⛔ THE ONE READING OF THE EXTERNAL CLAUSE'S <c>AS literal-1</c> (ISO §2023:13.18.22.2; kb/Work PB511, PB2724),
+    /// for both entries that host the one <c>externalClause</c> rule: the file description entry and the data description
+    /// entry. Null when the clause writes no AS phrase, or (having reported COBOL2156) when §2023:13.18.22.3 SR3 refuses
+    /// its operand — "Literal-1 shall be an alphanumeric or national literal and shall be neither a figurative constant
+    /// nor a zero-length literal." <paramref name="subject"/> is the message's source-shaped name of the entry, e.g.
+    /// <c>file 'F'</c>; the caller has positioned <paramref name="edition"/>. The default when this is null is
+    /// <c>ExternalClauseName.Of</c>'s.</summary>
+    public static string? AsLiteralOf(Core.ExternalClauseContext clause, string subject,
+        Func<Core.CobolWordContext, ConstantReading> constants, EditionContext edition, LiteralEnvironment env) =>
+        clause.externalizedNamePhrase() is { } asPhrase
+            ? Screen(asPhrase, constants, edition, DiagnosticCatalog.ExternalClauseAsLiteral,
+                $"{subject} IS EXTERNAL AS {Written(asPhrase)}", "literal-1", "ISO §2023:13.18.22.3 SR3", env,
+                rejectZeroLength: true)
+            : null;
+
     /// <summary>Screen one AS phrase's operand against its clause's syntax rule and return the externalized name it
     /// FORMS (see <see cref="Form"/>), or null (having reported) on violation.</summary>
     /// <param name="phrase">The <c>externalizedNamePhrase</c>.</param>

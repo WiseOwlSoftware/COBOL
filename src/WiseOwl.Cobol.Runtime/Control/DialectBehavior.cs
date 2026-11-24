@@ -655,13 +655,22 @@ public enum DialectBehavior
     /// 2023 that directive is refused (kb/Work PB5725; VCR row 7.126). Both editions are QUOTED. The consumer is
     /// <c>TurnDirectiveProcessor.ParseTurn</c>.</summary>
     TurnDirectiveRepeatsOnlyNameFileCombination = 70,
+    /// <summary>§2014:12.3.6.2 SR26 — "Literal-8 shall be an alphanumeric or national literal consisting of a single character"
+    /// (§2023:12.3.7.3 SR26 the same), and neither edition has a rule against repeating a literal-8: two clauses may give the same
+    /// symbol the same string (§2014:12.3.6.2 SR21; §2023:12.3.7.3 SR21 "unless they specify identical currency strings").
+    /// COBOL-2002 asks more of the PICTURE SYMBOL literal: "Literal-8 shall be an alphanumeric literal consisting of a single
+    /// character. It shall not be a figurative constant. No two occurrences of literal-8 may be the same value" (§2002:12.2.6.2
+    /// SR22), so at <c>--std 2002</c> a national literal-8 and a repeated literal-8 are refused (kb/Work PB5707; VCR row 7.127).
+    /// Both editions are QUOTED. The consumers are <c>SpecialNamesBinder.CurrencyOperandOf</c> and
+    /// <c>SpecialNamesBinder.SwitchBindCurrency</c>.</summary>
+    CurrencyPictureSymbolLiteralAlphanumericAndUnique = 71,
     /// <summary>§2023:10.6.2 SR4c — "The only clauses that may be specified in the SPECIAL-NAMES paragraph are the ALPHABET clause, the
     /// CURRENCY clause, the DECIMAL-POINT clause, the LOCALE clause, and the SYMBOLIC-CHARACTERS clause" of a program, function or
     /// method prototype. §2014:10.6.2 SR4c and §2002:10.5.2 SR5c list only "the LOCALE clause, the CURRENCY clause, and the
     /// DECIMAL-POINT clause", so at <c>--std 2002</c> and <c>--std 2014</c> an ALPHABET or SYMBOLIC CHARACTERS clause in a prototype is
-    /// refused COBOL2272 (kb/Work PB5706; VCR row 7.127). Both editions are QUOTED. The consumer is
+    /// refused COBOL2272 (kb/Work PB5706; VCR row 7.128). Both editions are QUOTED. The consumer is
     /// <c>PrototypeUnitRules.AdmittedInPrototype</c>.</summary>
-    PrototypeSpecialNamesAdmitAlphabetAndSymbolic = 71,
+    PrototypeSpecialNamesAdmitAlphabetAndSymbolic = 72,
 }
 
 /// <summary>
@@ -1006,8 +1015,12 @@ public static class DialectBehaviors
             "a TURN directive may name one exception-name twice, with different file-names, from COBOL-2023, which refuses only a "
             + "repeated exception-name and file-name combination; at COBOL-2002 and COBOL-2014 no exception-name shall be specified "
             + "more than once in one TURN directive"),
+        new(DialectBehavior.CurrencyPictureSymbolLiteralAlphanumericAndUnique, "currency-picture-symbol-literal-alphanumeric-and-unique", 2014,
+            "7.127", "§2014:12.3.6.2 SR26", "§2002:12.2.6.2 SR22",
+            "a CURRENCY SIGN PICTURE SYMBOL literal-8 may be a national literal and may repeat another clause's literal-8 only from "
+            + "COBOL-2014; COBOL-2002 asks an alphanumeric literal-8 and no two occurrences of the same value"),
         new(DialectBehavior.PrototypeSpecialNamesAdmitAlphabetAndSymbolic, "prototype-special-names-admit-alphabet-and-symbolic", 2023,
-            "7.127", "§2023:10.6.2 SR4c", "§2014:10.6.2 SR4c",
+            "7.128", "§2023:10.6.2 SR4c", "§2014:10.6.2 SR4c",
             "a prototype's SPECIAL-NAMES paragraph may specify the ALPHABET and SYMBOLIC-CHARACTERS clauses only from COBOL-2023; "
             + "at COBOL-2002 and COBOL-2014 it is limited to the LOCALE, CURRENCY and DECIMAL-POINT clauses"),
     ];

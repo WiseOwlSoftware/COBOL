@@ -14,14 +14,18 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </summary>
 public sealed class SelectionRuleCarrierAgreementTests
 {
+    /// <summary>Every argument at one scale: the selection and the ordinal the renderer's arms emit (<c>MaxAt</c>, <c>OrdMaxAt</c>), and
+    /// the aligned <c>MAX - MIN</c> that RANGE is (§2023:15.76.4 RV1), the one entry point of the aligned extremes (kb/Work PB2627).</summary>
     [Fact]
-    public void TheAlignedLane_TheLeftmostExtreme_AndItsOrdinal()
+    public void TheCommonScaleList_TheLeftmostExtreme_AndItsOrdinal()
     {
         Int128[] xs = [3, 7, 1, 7, 1];
-        Assert.Equal((Int128)7, CobolIntrinsics.MaxScaled(xs));
-        Assert.Equal(2, CobolIntrinsics.OrdMax(xs));                   // the leftmost of the two 7s
-        Assert.Equal((Int128)1, CobolIntrinsics.MinScaled(xs));
-        Assert.Equal(3, CobolIntrinsics.OrdMin(xs));
+        int[] s = [0, 0, 0, 0, 0];
+        Assert.Equal((Int128)7, CobolIntrinsics.MaxAt(0, store: false, xs, s));
+        Assert.Equal(2, CobolIntrinsics.OrdMaxAt(xs, s));              // the leftmost of the two 7s
+        Assert.Equal((Int128)1, CobolIntrinsics.MinAt(0, store: false, xs, s));
+        Assert.Equal(3, CobolIntrinsics.OrdMinAt(xs, s));
+        Assert.Equal((Int128)6, CobolIntrinsics.RangeScaled(xs));
     }
 
     [Fact]
