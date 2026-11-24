@@ -2,7 +2,8 @@
 
 Wave 20262165 group A (kb/Work PB5922, PB6118, PB6149, PB5670, PB5659, PB5660, PB5676, PB5671, PB5654), continuing the branches of
 PB5706 (worktree-wf_c37a519f-ba4-18) and PB2622 (worktree-wf_38508f28-551-1), merged here. Their two new dialect behaviours both took
-number 71 and VCR row 7.127: PB5707's (stamped DEVLOG 4036) keeps them, PB5706's moves to `DialectBehavior` 72 and VCR row 7.128.
+number 71 and VCR row 7.127; main settled them (PB5706 `DialectBehavior` 71 and VCR row 7.127, PB5707 72 and 7.128), and this branch
+takes main's numbering.
 
 **The net.** `EditionCitationNet` asked only `--std 85` (PB4950). It now asks 2002 and 2014 too: a diagnostic citing a later
 edition's rule and none of its own fails, unless it is an edition gate. Measured on the merged base the 2002 and 2014 directions were
