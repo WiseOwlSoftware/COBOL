@@ -4162,7 +4162,7 @@ runtime major. What remains of the cut is kb/Work PB2349's item 4a, the static r
 
 - [ ] **Step 10 — Regenerate `Generated/` from clean and confirm.**
   - `Generated/` is a build output (gitignored); a from-clean build must regenerate it without error and the emitted
-    parser must be consistent with the flipped namespaces (the frontend's generated namespace is `WiseOwl.Cobol.Frontend.Generated`
+    parser must be consistent with the flipped namespaces (the frontend's generated namespace is `WiseOwl.Cobol.Frontend.Parsing`, kb/Work PB2245,
     per P1/P4 — unaffected by the runtime flip, but re-verify a cold build).
   - Verify:
     ```bash

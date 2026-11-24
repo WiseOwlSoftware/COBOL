@@ -6,8 +6,8 @@
     is a .NET record, a COBOL elementary item is a native .NET field. See docs/DESIGN.md.
 
     Split out of the old exe at G0 (§17): the CLI shell is now WiseOwl.Cobol.Cli (producing cobol.exe); this library
-    is what the CLI and the tests reference. RootNamespace is the single token WiseOwl.Cobol; the shared front-end's
-    namespaces were renamed to WiseOwl.Cobol.Frontend.* at rearchitecture PHASE 01 (no longer a G8 big-bang).
+    is what the CLI and the tests reference. RootNamespace is the project name, WiseOwl.Cobol.Compiler, and every
+    namespace is it plus the folder path (owner, kb/Work PB2118 question 1; PB2415; DESIGN-architecture-review 8.2).
 
     Front-end reuse (no byte-array substrate): the proven preprocessor + ANTLR lexer/parser live
     in WiseOwl.Cobol.Frontend; we consume ONLY its public front-end (preprocessing + parse tree).

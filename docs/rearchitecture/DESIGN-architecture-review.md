@@ -582,24 +582,26 @@ against backend-abstraction §1.3, whose table does not list it), and the wave k
 (§8.3 (1) and (4): the binder hands the backend an immutable `DataBindResult`, and `PlaceBuilder` moves to
 `compiler.model` and runs at bind time), not a Move.
 
-The layers, bottom up, with today's namespaces (the §8.2 rename maps each one to one; the file below is keyed on the
+The layers, bottom up, with today's namespaces (the §8.2 renames of the compiler and the front end landed, kb/Work
+PB2415, PB2239–PB2242, PB2244, PB2245, each namespace joining its folder's layer, so the JSON block below is R1's
+proposal in R1's names; the file below is keyed on the
 names as they are at the time the test runs):
 
 | # | Layer id | Namespaces (census `types` ids) | ISO anchor |
 |---|---|---|---|
 | 0 | `runtime` | `WiseOwl.Cobol.Runtime`, `.Collation`, `.Collation.Cache`, `.Collation.Cldr`, `.Collation.Locale`, `.Exceptions`, `.Globalization`, `.IO`, `.Unicode`, `.Unicode.Segmentation` | none: the standard defines no run-time library; its general rules assign duties to "the runtime system" (§2023:8.4.3.2.4 GR6b, "the runtime system attempts to locate the function being activated"), which this layer is part of. It is not a runtime module: "A runtime module results from compiling a compilation unit" (§2023:14.6.1), which is the emitted `Cobol.<S>` assembly |
 | 1 | `editions` | `WiseOwl.Cobol.Editions`, `WiseOwl.Cobol.Editions.Diagnostics` | the editions' word lists (§2023:8.9, Reserved words) and the conformance criteria (§2023:4.2.1: "To conform to this Working Draft International Standard, an implementation of standard COBOL shall provide the required normative elements") |
-| 2 | `frontend.common` | `WiseOwl.Cobol.Frontend.Common`, `WiseOwl.Cobol.Common` (absorbed, R0-0221) | source text, spans, literals, compilation inputs |
+| 2 | `frontend.common` | `WiseOwl.Cobol.Frontend.Common` (`WiseOwl.Cobol.Common` absorbed, R0-0221, PB2244) | source text, spans, literals, compilation inputs |
 | 3 | `frontend.diagnostics` | `WiseOwl.Cobol.Frontend.Diagnostics` | the front end's diagnostic bag |
-| 4 | `frontend.parse` | `WiseOwl.Cobol.Frontend.Generated`, `WiseOwl.Cobol.Frontend.Cst`, `WiseOwl.Cobol.Frontend.Parsing`, `WiseOwl.Cobol.Frontend.Expressions` | the compilation stage's syntax: lexer, parser, parse tree, compile-time expressions (§2023:7.1) |
+| 4 | `frontend.parse` | `WiseOwl.Cobol.Frontend.Parsing` (the generated parser's too, through `AntlrNamespace`; `.Generated` absorbed, R0-0222, PB2245), `WiseOwl.Cobol.Frontend.Cst`, `WiseOwl.Cobol.Frontend.Expressions` | the compilation stage's syntax: lexer, parser, parse tree, compile-time expressions (§2023:7.1) |
 | 5 | `frontend.preprocessor` | `WiseOwl.Cobol.Frontend.Preprocessor` | the text manipulation stage (§2023:7.1) |
 | 6 | `frontend.pipeline` | `WiseOwl.Cobol.Frontend` | the front-end orchestrator |
-| 7 | `compiler.model` | `WiseOwl.Cobol.Binding.Model` | the compile-time facts: items, places, files, options, the symbol table, the bound unit; after §8.3 (1) and (4), `DataBindResult` and `PlaceBuilder` |
-| 8 | `compiler.bound` | `WiseOwl.Cobol.Binding.Bound` | the bound tree (the seven `[BoundNode]` roots and their leaves) |
-| 9 | `compiler.binding` | `WiseOwl.Cobol.Binding`, `WiseOwl.Cobol.Binding.Procedure`, `WiseOwl.Cobol.Binding.Passes`, `WiseOwl.Cobol.Binding.Validation`, `WiseOwl.Cobol.Compiler.Oo` | data and procedure binding (§2023:10.3's source units; §13, §14) |
-| 10 | `compiler.validation` | `WiseOwl.Cobol.Validation` | the post-bind passes and the one edition gate |
-| 11 | `compiler.codegen` | `WiseOwl.Cobol.CodeGen`, `WiseOwl.Cobol.CodeGen.Emit` | the backends behind `ICodeGenBackend` (§2023:14.1's statements rendered) |
-| 12 | `compiler.pipeline` | `WiseOwl.Cobol` (root: `CompilerDriver`; `BinderDriver` and `BackendFactory` after §8.3) | the driver, a composition root |
+| 7 | `compiler.model` | `WiseOwl.Cobol.Compiler.Binding.Model` | the compile-time facts: items, places, files, options, the symbol table, the bound unit; after §8.3 (1) and (4), `DataBindResult` and `PlaceBuilder` |
+| 8 | `compiler.bound` | `WiseOwl.Cobol.Compiler.Binding.Bound` | the bound tree (the seven `[BoundNode]` roots and their leaves) |
+| 9 | `compiler.binding` | `WiseOwl.Cobol.Compiler.Binding`, `.Binding.Procedure`, `.Binding.Procedure.Verbs`, `.Binding.Passes`, `.Binding.Repository`, `.Binding.Validation`, `WiseOwl.Cobol.Compiler.Oo` | data and procedure binding (§2023:10.3's source units; §13, §14) |
+| 10 | `compiler.validation` | `WiseOwl.Cobol.Compiler.Validation` | the post-bind passes and the one edition gate |
+| 11 | `compiler.codegen` | `WiseOwl.Cobol.Compiler.CodeGen`, `.CodeGen.DataDivision`, `.CodeGen.Emit`, `.CodeGen.Roslyn`, `.CodeGen.Verbs` | the backends behind `ICodeGenBackend` (§2023:14.1's statements rendered) |
+| 12 | `compiler.pipeline` | `WiseOwl.Cobol.Compiler` (root: `CompilerDriver`; `BinderDriver` and `BackendFactory` after §8.3) | the driver, a composition root |
 | 13 | `cli` | `WiseOwl.Cobol.Cli` | the command line, a composition root |
 | — | (tool) | `WiseOwl.Cobol.Compiler.SourceGen` | a build-time generator with no product reference; outside the graph by rule, not by omission |
 
