@@ -245,6 +245,7 @@ WiseOwl.Cobol.Runtime.DecArithmetic.Pow(WiseOwl.Cobol.Runtime.CobolDec b, WiseOw
 WiseOwl.Cobol.Runtime.DecArithmetic.Sqrt(WiseOwl.Cobol.Runtime.CobolDec v) -> WiseOwl.Cobol.Runtime.CobolDec
 WiseOwl.Cobol.Runtime.DecArithmetic.StandardIntermediate.get -> bool
 WiseOwl.Cobol.Runtime.DecArithmetic.Sub(WiseOwl.Cobol.Runtime.CobolDec a, WiseOwl.Cobol.Runtime.CobolDec b) -> WiseOwl.Cobol.Runtime.CobolDec
+WiseOwl.Cobol.Runtime.DialectBehavior.AddressOfSubordinateStrongGroupNeedsNoOwnTypeClause = 69 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.BlockContainsRangeOrdered = 52 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.CallAnyLengthOperandRuleByFormat = 66 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.CallRestrictedPointerSignatureSame = 65 -> WiseOwl.Cobol.Runtime.DialectBehavior
@@ -254,7 +255,7 @@ WiseOwl.Cobol.Runtime.DialectBehavior.CompileTimeArithmeticIsStandardDecimal = 2
 WiseOwl.Cobol.Runtime.DialectBehavior.ConstantLengthSubscriptsAreLiterals = 68 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.ControlFootingPageGroupsSeePriorControlValues = 4 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.CurrencyHexadecimalLiteralRules = 60 -> WiseOwl.Cobol.Runtime.DialectBehavior
-WiseOwl.Cobol.Runtime.DialectBehavior.CurrencyPictureSymbolLiteralAlphanumericAndUnique = 69 -> WiseOwl.Cobol.Runtime.DialectBehavior
+WiseOwl.Cobol.Runtime.DialectBehavior.CurrencyPictureSymbolLiteralAlphanumericAndUnique = 70 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.DivideRemainderSignedSubsidiary = 54 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.EntryClauseImplicitQualifiers = 56 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.EvaluateObjectsInWhenPhraseOrder = 18 -> WiseOwl.Cobol.Runtime.DialectBehavior

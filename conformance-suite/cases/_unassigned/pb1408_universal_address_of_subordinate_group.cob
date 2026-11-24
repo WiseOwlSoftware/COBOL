@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: pb1408_universal_address_of_subordinate_group
 *> rules: []
-*> accept: [2002]
+*> accept: [2023]
 *> source-format: free
 *> portable: unverified
 *>---
