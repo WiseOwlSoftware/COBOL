@@ -535,14 +535,14 @@ def self_test():
             name = folder.split("/")[1]
             (t / folder).mkdir(parents=True)
             (t / folder / (name + ".csproj")).write_text(
-                "<Project>" + "".join('<ProjectReference Include="%s" />' % d for d in deps) + "</Project>", encoding="utf-8")
+                "<Project>" + "".join('<ProjectReference Include="%s" />' % d for d in deps) + "</Project>", encoding="utf-8", newline="\n")
             sln += 'Project("{FAE04EC0}") = "%s", "%s\\%s.csproj", "{0}"\nEndProject\n' % (name, folder.replace("/", "\\"), name)
-        (t / "WiseOwl.Cobol.sln").write_text(sln, encoding="utf-8")
+        (t / "WiseOwl.Cobol.sln").write_text(sln, encoding="utf-8", newline="\n")
         order = project_order(t)
         arm("project_order puts every project after the ones it references, the unlisted analyzer project first",
             order == ["WiseOwl.Cobol.Analyzers", "WiseOwl.Cobol.Editions", "WiseOwl.Cobol.Compiler", "WiseOwl.Cobol.Tests.Unit"])
         (t / "src/WiseOwl.Cobol.Analyzers/WiseOwl.Cobol.Analyzers.csproj").write_text(
-            '<Project><ProjectReference Include="..\\WiseOwl.Cobol.Compiler\\WiseOwl.Cobol.Compiler.csproj" /></Project>', encoding="utf-8")
+            '<Project><ProjectReference Include="..\\WiseOwl.Cobol.Compiler\\WiseOwl.Cobol.Compiler.csproj" /></Project>', encoding="utf-8", newline="\n")
         try:
             project_order(t)
             arm("project_order refuses a reference cycle", False)
