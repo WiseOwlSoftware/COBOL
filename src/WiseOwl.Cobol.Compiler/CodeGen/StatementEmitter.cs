@@ -431,7 +431,7 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
         // catch(MethodReturn) still delivers the RETURNING local + copy-outs, so the INVOKE-site pickup sees the
         // exception only AFTER the result — the result-before-exception ordering for free (D-EO6).
         if (n.Raising is { } mrr) _call.EmitRaisingStage(mrr, "GOBACK");
-        _ctx.Writer.Line("throw new MethodReturn();   // terminate the METHOD only — caught at the method entry (ISO §2023:14.9.18.4 GR4)");
+        _ctx.Writer.Line($"{_dispatchState.ReturnToActivator(inMethod: true)}   // terminate the METHOD only — at the method entry (ISO §2023:14.9.18.4 GR4)");
         return true;
     }
 

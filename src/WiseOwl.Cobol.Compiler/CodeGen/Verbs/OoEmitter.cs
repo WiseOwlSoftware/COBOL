@@ -1321,11 +1321,11 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                         hasIoChecked: mDecls.Count > 0 && bound.Ec is { HasIoChecked: true },
                         hasF3Perform: methodF3, w, asLocal: true);
                 if (methodF3)
-                    U.Dispatch.EmitDispatchMethod(bound, w, "int __MDispatch(int __startPc, int __exitPc)",
+                    U.Dispatch.EmitDispatchMethod(bound, w, $"int __MDispatch(int __startPc, int __exitPc, bool {DispatchState.DirectParam} = false)",
                         m.Binding!.DeclStartPc, m.Binding!.EndPc, inMethod: true,
                         m.Binding!.HandlerStartPc, m.Binding!.HandlerStartPc + m.Binding!.HandlerCount - 1);
                 else
-                    U.Dispatch.EmitDispatchMethod(bound, w, "int __MDispatch(int __startPc, int __exitPc)",
+                    U.Dispatch.EmitDispatchMethod(bound, w, $"int __MDispatch(int __startPc, int __exitPc, bool {DispatchState.DirectParam} = false)",
                         m.Binding!.DeclStartPc, m.Binding!.EndPc, inMethod: true);
                 dispatch.DispatchName = saved;
                 dispatch.BeforeReportingSelectors.Clear();   // the selectors are this method's locals — no other unit's statement may name them
@@ -1342,7 +1342,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                         + "   // this method's USE selection for a runtime-site nonfatal raise (§2023:14.9.49.4 GR4 a))");
                 // No frame-stack floor here: the method's ModuleStack push is the boundary the exception-checking
                 // PERFORM's WHEN frames stop at, for EVERY method (ExceptionEngine.RunTopFrame; kb/Work PB442).
-                string run = $"__MDispatch({m.Binding!.EntryPc}, {m.Binding!.EndPc});";
+                string run = $"__MDispatch({m.Binding!.EntryPc}, {m.Binding!.EndPc}, {DispatchState.DirectParam}: true);";
                 if (copyOut.Count == 0)
                     w.Line($"try {{ {run} }} catch (MethodReturn) {{ }} finally {{ {restore} }}   "
                         + "// GOBACK / falling off the last paragraph returns HERE (§2023:14.9.18.4 GR4; deep-dive D8)");
@@ -1385,7 +1385,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 w.Line($"return {OoReturnConversion(m, r)}{src};   // the invocation result (§2023:14.9.23.4 GR8)");
             }
             // Close the PB36 activation try. The finally must cover every exit — the RETURNING `return` above, a
-            // GOBACK unwinding as MethodReturn, and an exception propagating to the invoker — or the stack leaks a
+            // GOBACK's return (direct, or MethodReturn), and an exception propagating to the invoker — or the stack leaks a
             // frame and every later MODULE-NAME reads one element too deep.
             w.Line("}");
             // This activation's cells end BEFORE the activator's are restored (§2023:8.6.4 / §2023:8.6.5; kb/Work PB1216): a pointer

@@ -79,7 +79,7 @@ OO mechanism (feedback_one_mechanism_per_job):
   one activation tail `CallEmitter.EmitActivationReturned`, BEFORE the §2023:14.9.40.4 GR17 termination question (kb/Work
   PB1177, PB3246: the termination unwinds the rest of a SORT's range, so asked first it left the staged condition to be
   raised at the activator's next, unrelated activation).
-  GR1b's result-before-exception ordering falls out of stage-then-`throw MethodReturn` + the entry catch
+  GR1b's result-before-exception ordering falls out of stage-then-return (`MethodReturn`, or its direct form) + the entry
   delivering RETURNING/copy-outs before the site's pickup.
 - **Headers**: the PD-header RAISING phrase (§2023:14.2.1 — `exception-name-1 | [FACTORY OF] object-class-name-1 |
   interface-name-1`) is partitioned by ONE function, `RaisingPhrase.Partition`, for program, function and

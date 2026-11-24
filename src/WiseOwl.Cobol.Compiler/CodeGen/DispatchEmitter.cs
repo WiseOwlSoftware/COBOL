@@ -136,7 +136,7 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
             // implicit-GOBACK arm (§2023:14.6.3; kb/Work PB3511) and never runs into the synthetic handlers. Every bounded
             // __RunUse / out-of-line PERFORM passes its own exit pc.
             int topExit = LastElementPc(bound);
-            w.Line($"try {{ __Dispatch({bound.EntryPc}, {topExit}); }} catch (ProgramReturn) {{ }}   // GOBACK (an implicit one too, §2023:14.6.3) / called-program EXIT PROGRAM returns to the activator here (ISO §2023:14.9.18.4 GR2/GR3; §2023:14.9.14.4 GR3)");
+            w.Line($"try {{ __Dispatch({bound.EntryPc}, {topExit}, {DispatchState.DirectParam}: true); }} catch (ProgramReturn) {{ }}   // GOBACK (an implicit one too, §2023:14.6.3) / called-program EXIT PROGRAM returns to the activator here (ISO §2023:14.9.18.4 GR2/GR3; §2023:14.9.14.4 GR3)");
         }
         w.Line();
         // The machinery also emits for a declarative-FREE program whose statements carry enabled EC-I-O checking
@@ -151,19 +151,14 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
         int last = LastElementPc(bound);
         EmitDispatchMethod(bound, w,
             dispatchState.SegmentEntry
-                ? "private int __Dispatch(int __startPc, int __exitPc, bool __lastUsed = false)"   // __lastUsed: an implicit entry (§1985:XVI.1.4.3; kb/Work PB5380)
-                : "private int __Dispatch(int __startPc, int __exitPc)",
+                ? $"private int __Dispatch(int __startPc, int __exitPc, bool {DispatchState.DirectParam} = false, bool __lastUsed = false)"   // __lastUsed: an implicit entry (§1985:XVI.1.4.3; kb/Work PB5380)
+                : $"private int __Dispatch(int __startPc, int __exitPc, bool {DispatchState.DirectParam} = false)",
             0, last, inMethod: false, handlerFromPc: last + 1, handlerToPc: bound.Paragraphs.Count - 1);
     }
 
     /// <summary>The pc of a program's or function's LAST paragraph — the end of its source element's procedure
     /// division, below any appended Format-3 handler pc-range (−1 for a unit with no paragraphs).</summary>
     private static int LastElementPc(BoundProgram bound) => (bound.F3HandlerBasePc ?? bound.Paragraphs.Count) - 1;
-
-    /// <summary>The return signal of the source element being emitted — the one its GOBACK throws and its activation
-    /// entry catches: <c>MethodReturn</c> in a method (§2023:14.9.18.4 GR4), <c>ProgramReturn</c> in a program or a
-    /// function (GR2, GR3, GR5).</summary>
-    private static string ReturnSignal(bool inMethod) => inMethod ? "MethodReturn" : "ProgramReturn";
 
     // The dispatch-method NAME the statement emitters call for a bounded range is DispatchState.DispatchName
     // (Step 9b — see EmitterState.cs for the __Dispatch / __MDispatch contract).
@@ -274,11 +269,12 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
                 // a GO TO left, or whose THRU exit lies before its start (§2023:14.9.28.4 GR6), arrives here without the
                 // at-exit return above: returning __pc would read as its range COMPLETING and resume after the
                 // performing statement, although the return mechanism (§2023:14.9.28.4 GR5b) was never reached. It leaves
-                // by the element's return signal instead, the path an explicit GOBACK takes, which unwinds every nested
-                // frame to the activation entry. Fall-through, EXIT PARAGRAPH / SECTION and NEXT SENTENCE all arrive
-                // here, so the test sits after the transfer label, not in the paragraph epilogue. The activation's
-                // own call is bounded at the last paragraph, so its fall-off returns above and never throws.
-                w.Line($"if (__pc == {toPc + 1}) throw new {ReturnSignal(inMethod)}();   // the implicit GOBACK past the source element's last paragraph (ISO §2023:14.6.3)");
+                // by the element's return to its activator instead (DispatchState.ReturnToActivator), the path an explicit
+                // GOBACK takes, which leaves every nested frame to the activation entry. Fall-through, EXIT PARAGRAPH /
+                // SECTION and NEXT SENTENCE all arrive here, so the test sits after the transfer label, not in the
+                // paragraph epilogue. The activation's own call is bounded at the last paragraph, so its fall-off
+                // returns above and never reaches it.
+                w.Line($"if (__pc == {toPc + 1}) {{ {dispatchState.ReturnToActivator(inMethod)} }}   // the implicit GOBACK past the source element's last paragraph (ISO §2023:14.6.3)");
             }
             w.Line("return __pc;");
         }
@@ -540,7 +536,7 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
     /// <c>CobolSort.UseProcedureExited</c> records it when another element's format 1 SORT is active, which is then
     /// terminated once this activation has returned. <paramref name="idTest"/> limits it to DECLARATIVE ids.</summary>
     private static string UseProcedureExitFilter(bool inMethod, string idTest) =>
-        $"catch ({ReturnSignal(inMethod)}) when ({idTest}{RuntimeApi.SortUseProcedureExited("__useActive")}) "
+        $"catch ({DispatchState.ReturnSignal(inMethod)}) when ({idTest}{RuntimeApi.SortUseProcedureExited("__useActive")}) "
         + "{ throw; }   // §2023:14.9.40.4 GR17 — the filter declines (never runs): the return goes on";
 
     /// <summary>Emit a paragraph body SENTENCE by sentence. When the paragraph contains a NEXT SENTENCE anywhere,

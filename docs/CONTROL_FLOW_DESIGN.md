@@ -130,7 +130,7 @@ section, so a USE range is never empty by construction.
 
 **Rejected alternatives.** Routing inline PERFORM through Dispatch too (uniformity) — rejected: there are no paragraphs to dispatch, EXIT PERFORM would need PC plumbing, and it would produce unreadable output for the common structured case. Using C# goto for EXIT PERFORM CYCLE — acceptable fallback only when the increment block can't be reached by `continue` (TEST BEFORE VARYING).
 
-### D7. STOP RUN → `throw new StopRun();` caught ONLY at the run-unit Main. GOBACK → `throw new ProgramReturn();` caught at the current program's Entry wrapper. EXIT PROGRAM → `if (__asCalled) throw new ProgramReturn();` — a DISTINCT exception, thrown ONLY when the program is under the control of a caller. Normal transfers (GO TO, fall-through, range completion, EXIT PARAGRAPH/SECTION) stay integer-pc; exceptions are used ONLY for program/run-unit termination.
+### D7. STOP RUN → `throw new StopRun();` caught ONLY at the run-unit Main. GOBACK → the element's return to its activator, `if (__direct) return ElementReturn.Returned; throw new ProgramReturn();` (`DispatchState.ReturnToActivator`; kb/Work PB6140): a dispatch frame whose `__direct` argument is true returns `ElementReturn.Returned` and every frame above it returns it on, otherwise it throws `ProgramReturn`, caught at the current program's Entry wrapper. EXIT PROGRAM → the same return inside `if (__asCalled) { … }` — a DISTINCT signal from StopRun, taken ONLY when the program is under the control of a caller. Normal transfers (GO TO, fall-through, range completion, EXIT PARAGRAPH/SECTION) stay integer-pc; exceptions are used ONLY for program/run-unit termination.
 
 **Rationale.** A recursive Dispatch means a STOP RUN N PERFORMs deep must unwind ALL frames AND cross CALL boundaries — only an exception does that cleanly (ISO §2023:14.9.42 STOP terminates the run unit). GOBACK and EXIT PROGRAM in a CALLED program must unwind THIS program's PERFORM frames and return to the CALL site WITHOUT killing the run unit (ISO §2023:14.9.18.4 GR2 / §2023:14.9.14.4 GR3) — a separate exception caught at Entry. **GOBACK and EXIT PROGRAM DIVERGE when the program is NOT under the control of a caller** (a main program): EXIT PROGRAM is treated as a CONTINUE — control passes to the next statement (§2023:14.9.14.4 GR2; §2023:14.6.3), so it is emitted `if (__asCalled) throw new ProgramReturn();` and is a plain fall-through in a main program; GOBACK in a main program acts as a STOP statement, terminating the run unit (§2023:14.9.18.4 GR3) — its `ProgramReturn` reaches the run-unit boundary, which ends the run unit. The new runtime already provides StopRun; add ProgramReturn.
 
@@ -300,12 +300,12 @@ private static int Dispatch(int startPc, int exitPc) {
       default: pc = N; break;
     }
     if (atExit && pc == exitPc + 1) return pc;   // named THRU exit paragraph fell through
-    if (pc == 5) throw new ProgramReturn();      // LAST+1 without completing this call's range: the implicit GOBACK (§2023:14.6.3)
+    if (pc == 5) { if (direct) return ElementReturn.Returned; throw new ProgramReturn(); }   // LAST+1 without completing this call's range: the implicit GOBACK (§2023:14.6.3)
   }
   return pc;
 }
 internal static void Main() {
-  try { Dispatch(/*EntryParagraphIndex*/0, /*LAST*/4); }   // bounded at LAST: SUB-END's fall-off is this call's at-exit return, never the throw
+  try { Dispatch(/*EntryParagraphIndex*/0, /*LAST*/4, direct: true); }   // bounded at LAST: SUB-END's fall-off is this call's at-exit return
   catch (ProgramReturn) { }                               // GOBACK, explicit or implicit (§2023:14.9.18.4 GR3: in a main program it acts as STOP)
   catch (StopRun) { }
   // (run-unit cleanup: implicit CLOSE of open files, ISO 14.6.11)
@@ -338,12 +338,14 @@ break;
 GOBACK / EXIT PROGRAM in a CALLed program:
 ```csharp
 internal static int Entry(ManagedPointer[] args) {
-  try { Dispatch(EntryParagraphIndex, LAST); }  // bounded at the element's last paragraph (D10)
+  try { Dispatch(EntryParagraphIndex, LAST, direct: true); }  // bounded at the element's last paragraph (D10); a direct return ends it
   catch (ProgramReturn) { }                     // GOBACK (explicit, or the §2023:14.6.3 implicit one) / EXIT PROGRAM -> return to caller, run unit lives
   return 0;                                      // StopRun is NOT caught here -> propagates to run-unit Main
 }
-// GOBACK body:        throw new ProgramReturn();                        // in a main program: acts as STOP (§2023:14.9.18.4 GR3) — the run-unit boundary ends the run unit
-// EXIT PROGRAM body:   if (__asCalled) throw new ProgramReturn();         // §2023:14.9.14.4 GR2: CONTINUE (plain fall-through) when NOT under a caller
+// GOBACK body:        if (direct) return ElementReturn.Returned; throw new ProgramReturn();   // in a main program: acts as STOP (§2023:14.9.18.4 GR3) — the run-unit boundary ends the run unit
+// EXIT PROGRAM body:  if (__asCalled) { if (direct) return ElementReturn.Returned; throw new ProgramReturn(); }   // §2023:14.9.14.4 GR2: CONTINUE when NOT under a caller
+// out-of-line PERFORM: if (Dispatch(idxP, idxQ, direct) == ElementReturn.Returned) return ElementReturn.Returned;   // passes its own frame's `direct` on
+// __RunUse / __RunDebug: Dispatch(start, end);   // direct = false below them: a return there throws, through __RunUse's GR17 filter
 ```
 
 EXIT PARAGRAPH / EXIT SECTION:
@@ -362,7 +364,7 @@ Emitter implementation note: build a per-unit `ParagraphTable` (flattened source
 
 ### STOP RUN / GOBACK unwinding nested PERFORMs and CALL frames in a RECURSIVE Dispatch (the central correctness fork; the legacy is internally inconsistent here — returns -1 yet has a stop-run catch comment).
 
-Two distinct exceptions, never integer-pc: STOP RUN throws StopRun (caught only at run-unit Main → unwinds ALL Dispatch frames in ALL programs); GOBACK/EXIT PROGRAM throws ProgramReturn (caught at the current program's Entry → unwinds this program's frames, returns to the CALL site, run unit survives). Integer pc is used ONLY for in-program transfers. ISO §2023:14.9.42 (STOP terminates run unit), §2023:14.9.18 (GOBACK = logical end of THIS program/method).
+Two distinct exceptions, never integer-pc: STOP RUN throws StopRun (caught only at run-unit Main → unwinds ALL Dispatch frames in ALL programs); GOBACK/EXIT PROGRAM leaves this program's frames to the current program's Entry and returns to the CALL site, the run unit surviving: directly (`return ElementReturn.Returned` up a chain of frames that each test for it: the activation's top frame and the out-of-line PERFORMs and SORT/MERGE procedures it entered), and by throwing ProgramReturn below a frame entered any other way (`__RunUse`, `__RunDebug`), whose catch clauses and exception filters belong to the rules they implement. The thrown form was the only one until kb/Work PB6140 measured it at about 2 us per CALL return. Integer pc is used ONLY for in-program transfers. ISO §2023:14.9.42 (STOP terminates run unit), §2023:14.9.18 (GOBACK = logical end of THIS program/method).
 
 ### GO TO that leaves a PERFORM range and later re-enters it; inverted THRU range (proc-2 physically precedes proc-1).
 
@@ -409,8 +411,8 @@ Lay declarative paragraphs at the LOW PC indices [0..declEnd); set EntryParagrap
     own return mechanism was never reached (a GO TO left its range, or `PERFORM P2 THRU P1` with P1 before P2, whose
     exit is never reached: docs/CONFORMANCE.md D-PTHRU). The procedure is then not executing under the control of
     another statement, so §2023:14.6.3 GR3's implicit GOBACK executes: the dispatcher emits
-    `if (__pc == LAST + 1) throw new ProgramReturn();` after the at-exit return (`MethodReturn` in a method's
-    `__MDispatch`), the same signal an explicit GOBACK throws, unwinding every nested frame to the activation entry
+    `if (__pc == LAST + 1) { if (__direct) return ElementReturn.Returned; throw new ProgramReturn(); }` after the at-exit
+    return (`MethodReturn` in a method's `__MDispatch`), the same return an explicit GOBACK takes, leaving every nested frame to the activation entry
     (§2023:14.9.18.4 GR2–GR5: return to the CALL / INVOKE / function reference, or STOP in a main program). Returning `pc`
     instead would read as the range COMPLETING and resume after the performing statement, although §2023:14.9.28.4 GR5b's
     return mechanism was never reached. The test sits after the `__xfer` landing, so fall-through, EXIT

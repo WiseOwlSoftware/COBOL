@@ -1638,9 +1638,9 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
 
     /// <summary>Emit GOBACK (ISO §2023:14.9.18): move the RETURNING source into the header RETURNING item (GR2 — the
     /// activation result), stage a RAISING exception condition for the activator (the EC model — picked up at
-    /// the activating statement's pickup, and never raised when the activator emitted none — kb/Work PB892), then raise <see cref="ProgramReturn"/> —
-    /// caught at THIS program's activation entry, returning control to the activator (called program) or ending
-    /// the run unit (main program, GR3).</summary>
+    /// the activating statement's pickup, and never raised when the activator emitted none — kb/Work PB892), then return to
+    /// THIS program's activation entry (<see cref="DispatchState.ReturnToActivator"/>: directly, or by <see cref="ProgramReturn"/>),
+    /// returning control to the activator (called program) or ending the run unit (main program, GR3).</summary>
     public bool EmitGoback(BoundGoback g)
     {
         var w = ctx.Writer;
@@ -1680,7 +1680,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         // guard on __asCalled, the same activation flag EmitExitProgram uses.
         if (g.Status is { } st)
             w.Line($"if (!__asCalled) {RuntimeApi.SetExitStatus(num.ExitStatus(st))};   // §2023:14.9.18.4 GR3/GR10 — a main program passes the status");
-        w.Line("throw new ProgramReturn();   // return to the activator; in a main program ≡ STOP (ISO §2023:14.9.18.4 GR2/GR3)");
+        w.Line($"{dispatch.ReturnToActivator(inMethod: false)}   // return to the activator; in a main program ≡ STOP (ISO §2023:14.9.18.4 GR2/GR3)");
         return true;
     }
 
@@ -1717,7 +1717,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             using (w.Block("if (__asCalled)   // ISO §2023:14.9.14.4 GR2: CONTINUE in a non-called program; GR3: return in a called one"))
             {
                 Debug.LandBeforeTransfer();   // the return is the transfer: the enclosing statements' after-statement debugging sections run first
-                w.Line("throw new ProgramReturn();");
+                w.Line(dispatch.ReturnToActivator(inMethod: false));
             }
             return;
         }
@@ -1725,7 +1725,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         {
             Debug.LandBeforeTransfer();
             EmitRaisingStage(ep.Raising, "EXIT PROGRAM");
-            w.Line("throw new ProgramReturn();   // return to the activator (ISO §2023:14.9.14.4 GR3)");
+            w.Line($"{dispatch.ReturnToActivator(inMethod: false)}   // return to the activator (ISO §2023:14.9.14.4 GR3)");
         }
     }
 
