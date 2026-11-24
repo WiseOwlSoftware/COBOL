@@ -959,7 +959,7 @@ value of the typed RECORD KEY / RELATIVE KEY field.
   A typed-array table whose KEY has no stored field on the element struct (a member of a REDEFINES view of the
   element) is `TypedArray` with `KeyWindowOuter` set: every key is then read through its window at an element number,
   the NUMBERS are sorted and the elements permuted (kb/Work PB599) — one comparer, the member-path form kept for the
-  common case. **The record sizes of the files of one SORT or MERGE are ONE screen**, `SortBinder.ScreenTransferRecordSizes`
+  common case. **The record sizes of the files of one SORT or MERGE are ONE screen**, `SortMergePhraseBinder.ScreenTransferRecordSizes`
   over `FileModel.RecordSizeRange` (§2023:14.9.40.3 SR5 / SR11, §2023:14.9.24.3 SR3 / SR12: a variable-length file bounds both ends
   of the other's records, a fixed-length file only the upper one; USING bounded by the SD, the SD bounded by GIVING;
   kb/Work PB995). **A fixed-length SD's record is the largest record description's** (the implied Format 1,
