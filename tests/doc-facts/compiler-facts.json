@@ -380,6 +380,11 @@
       "changedIn": 2002
     },
     {
+      "id": "turn-directive-repeats-only-name-file-combination",
+      "vcrRow": "7.126",
+      "changedIn": 2023
+    },
+    {
       "id": "unphrased-size-error-is-fatal",
       "vcrRow": "7.71",
       "changedIn": 2002
