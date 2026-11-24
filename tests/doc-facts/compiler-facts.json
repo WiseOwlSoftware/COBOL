@@ -85,13 +85,13 @@
       "changedIn": 2002
     },
     {
-      "id": "currency-picture-symbol-literal-alphanumeric-and-unique",
-      "vcrRow": "7.125",
+      "id": "currency-hexadecimal-literal-rules",
+      "vcrRow": "7.116",
       "changedIn": 2014
     },
     {
-      "id": "currency-hexadecimal-literal-rules",
-      "vcrRow": "7.116",
+      "id": "currency-picture-symbol-literal-alphanumeric-and-unique",
+      "vcrRow": "7.125",
       "changedIn": 2014
     },
     {
