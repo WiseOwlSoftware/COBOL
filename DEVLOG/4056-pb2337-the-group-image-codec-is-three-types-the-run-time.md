@@ -1,4 +1,4 @@
-## PB2337: the group image codec is three types, the run-time faces, the initial-image seed and the bit faces
+## Entry 4056 — 2026-11-24 15:42 PST — PB2337: the group image codec is three types, the run-time faces, the initial-image seed and the bit faces
 
 kb/Work PB2337 (census R0-0042, DESIGN-architecture-review §8.3) planned an extract of `GroupImageCodec`, a type of
 983 lines at the census and 1,403 lines at this branch's base (f6ad06877c). It had three jobs: the run-time image a record
@@ -45,3 +45,4 @@ PROJECT_ORG_DESIGN.md, D-USAGE-BIT.md, the §8.3 row) now name the new homes.
 **Gate.** `pwsh scripts/build-local.ps1 -Priority BelowNormal` at e3540158df, run 000001-20261124T232631Z:
 `=== BUILD-LOCAL GATE: GREEN — Conformance 29,412/29,412 ran · Unit 42,990/42,990 ran · RepoDrift 245/245 ran ·
 Characterization 37/37 ran (skipped 0) …`. All three `GroupImageCodecBoundaryDriftTests` facts passed (Unit.trx).
+
