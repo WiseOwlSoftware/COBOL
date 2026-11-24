@@ -27,7 +27,9 @@ from inside the bound tree; they are `ConcatFolder.AllLiteral(string)` and `Conc
 
 **The picture shape's edition gate (PB2421).** `VersionConformancePass.PictureConstructId` is `PicInfo.ConstructId` in
 compiler.model, so the report SUM-counter screen in `ReportSectionBinder` no longer reads the validation layer.
-`EditionGateArmDriftTests` reads the member as part of the bound arm, whose gate it is.
+`EditionGateArmDriftTests` reads the member as part of the bound arm, whose gate it is. It is a METHOD: as a property it
+joined `PicInfo`'s synthesized record text, which `StrongTypeModel`'s type-identity key compiles into the program, and
+the arch oracle caught it (33 of 23,644 cases emitted a different strong-type key) before the gate did.
 
 **The edges file and the census.** A census recorded on the code head (`a27353bac97b`) measures the new names; the edges
 file is re-keyed (each pair to the namespace that declares its types now, a split row starting at its parent's counts)
@@ -35,6 +37,9 @@ and ratcheted to it: the row `Frontend.Parsing → Frontend.Preprocessor` is del
 ConcatFolder` and `ReportSectionBinder → VersionConformancePass` are gone, the CodeGen rows split by folder, and the
 open removers' **Removes** lines name the re-keyed rows. ArchitectureEdgesDriftTests and ArchCensusDriftTests pass (11);
 `work.py check` passes.
+
+**Neutrality.** `python scripts/arch/compare_oracle.py` against the base 92fddd91d3e9: `=== ARCH-ORACLE: IDENTICAL — 23644
+cases (baseline 92fddd91d3e9, new 90b4b81168ea) ===`. `python scripts/semgrep/verify.py`: PASS, no rule's count grew.
 
 **Self-review.** Architecture: each move goes down a layer the edges file allows; no new cross-layer pair (the ratchet
 admits none). Code: the moved members keep their bodies verbatim. Duplication: the carrier test now has one body.
