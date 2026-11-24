@@ -1,5 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Globalization;
+
 namespace WiseOwl.Cobol.Runtime;
 
 /// <summary>
@@ -21,22 +23,40 @@ namespace WiseOwl.Cobol.Runtime;
 /// </remarks>
 public static class CobolPower
 {
-    /// <summary>The §2023:8.8.1.2 rule-6 screen, written once: GR6a for a zero base whose exponent is not greater than zero (which
-    /// includes §2023:8.8.1.5.4 GR4's <c>0 ** 0</c>), GR6c for a negative base whose exponent is not an integer. Each carrier states the
-    /// four facts of its own operands.</summary>
-    internal static void ScreenRule6(bool zeroBase, bool exponentNotPositive, bool negativeBase, bool exponentNotInteger)
+    /// <summary>Which §2023:8.8.1.2 rule-6 refusal, if any, the four facts of an operand pair state: GR6a for a zero base whose exponent
+    /// is not greater than zero (which includes §2023:8.8.1.5.4 GR4's <c>0 ** 0</c>), GR6c for a negative base whose exponent is not an
+    /// integer. The one place the rule's condition is written; each carrier states the four facts of its own operands.</summary>
+    private static Rule6Refusal Classify(bool zeroBase, bool exponentNotPositive, bool negativeBase, bool exponentNotInteger) =>
+        zeroBase && exponentNotPositive ? Rule6Refusal.ZeroBase
+        : negativeBase && exponentNotInteger ? Rule6Refusal.NegativeBase
+        : Rule6Refusal.None;
+
+    private enum Rule6Refusal { None, ZeroBase, NegativeBase }
+
+    /// <summary>The refusal <paramref name="which"/>, naming the base and the exponent as the program holds them, so the diagnosis says
+    /// which operand broke the rule (kb/Work PB6126). The texts are formed only here, on the refusal, never on the success path.</summary>
+    private static CobolSizeError Rule6Error(Rule6Refusal which, string b, string e) => which == Rule6Refusal.ZeroBase
+        ? new CobolSizeError(
+            $"exponentiation: a zero base requires an exponent greater than zero, not {e} (ISO §2023:8.8.1.2 GR6a)", "EC-SIZE-EXPONENTIATION")
+        : new CobolSizeError(
+            $"exponentiation: a negative base ({b}) requires an integer exponent, not {e} (ISO §2023:8.8.1.2 GR6c)", "EC-SIZE-EXPONENTIATION");
+
+    /// <summary>The §2023:8.8.1.2 rule-6 screen over two binary64 operands.</summary>
+    internal static void ScreenRule6(double b, double e)
     {
-        if (zeroBase && exponentNotPositive)
-            throw new CobolSizeError(
-                "exponentiation: a zero base requires an exponent greater than zero (ISO §2023:8.8.1.2 GR6a)", "EC-SIZE-EXPONENTIATION");
-        if (negativeBase && exponentNotInteger)
-            throw new CobolSizeError(
-                "exponentiation: a negative base requires an integer exponent (ISO §2023:8.8.1.2 GR6c)", "EC-SIZE-EXPONENTIATION");
+        Rule6Refusal refusal = Classify(zeroBase: b == 0, exponentNotPositive: e <= 0, negativeBase: b < 0, exponentNotInteger: e != Math.Floor(e));
+        if (refusal != Rule6Refusal.None)
+            throw Rule6Error(refusal, b.ToString(CultureInfo.InvariantCulture), e.ToString(CultureInfo.InvariantCulture));
     }
 
-    /// <summary><see cref="ScreenRule6(bool, bool, bool, bool)"/> over two binary64 operands.</summary>
-    internal static void ScreenRule6(double b, double e) =>
-        ScreenRule6(zeroBase: b == 0, exponentNotPositive: e <= 0, negativeBase: b < 0, exponentNotInteger: e != Math.Floor(e));
+    /// <summary>The §2023:8.8.1.2 rule-6 screen over two standard-decimal operands; <paramref name="exponentIsInteger"/> is the
+    /// exponent's integrality, which the caller has already read (<c>CobolDec.TryIntegerValue</c>).</summary>
+    internal static void ScreenRule6(CobolDec b, CobolDec e, bool exponentIsInteger)
+    {
+        Rule6Refusal refusal = Classify(zeroBase: b.Sig == 0, exponentNotPositive: e.Sig <= 0, negativeBase: b.Sig < 0,
+            exponentNotInteger: !exponentIsInteger);
+        if (refusal != Rule6Refusal.None) throw Rule6Error(refusal, b.ToFunctionText(), e.ToFunctionText());
+    }
 
     /// <summary>Native <c>**</c> on the FLOATING carrier: the §2023:8.8.1.3 implementor-defined approximation, screened by rule 6 first.
     /// From COBOL-2002; the COBOL-85 rule for a negative base is <see cref="Binary64(double, CobolExact)"/>'s.</summary>
@@ -70,8 +90,8 @@ public static class CobolPower
         if (!(b < 0)) return Binary64(b, e);
         if (!exponent.HasOddDenominator(out bool oddNumerator))
             throw new CobolSizeError(
-                $"exponentiation: no real number is the result of the negative base ({b}) raised to {e} "
-                + "(§1985:VI.6.2.3 GR5c)", "EC-SIZE-EXPONENTIATION");
+                $"exponentiation: no real number is the result of the negative base ({b.ToString(CultureInfo.InvariantCulture)}) raised to "
+                + $"{e.ToString(CultureInfo.InvariantCulture)} (§1985:VI.6.2.3 GR5c)", "EC-SIZE-EXPONENTIATION");
         double magnitude = Math.Pow(-b, e);
         return oddNumerator ? -magnitude : magnitude;
     }
