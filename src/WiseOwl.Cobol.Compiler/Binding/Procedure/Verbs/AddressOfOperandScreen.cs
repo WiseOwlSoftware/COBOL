@@ -30,6 +30,9 @@ using Core = CobolParserCore;
 ///         SR3 — a CONSTANT RECORD item or one subordinate to it; SR6 — a dynamic-length elementary item, an element
 ///         of or item under a dynamic-capacity table, an item under a group that contains a dynamic-length
 ///         elementary item → <see cref="DiagnosticCatalog.AddressOfOperandKind"/>.</item>
+///   <item>§2002:8.4.2.11.2 SR4 / §2014:8.4.2.11.2 SR5 (below 2023 only) — a strongly-typed group item shall carry its own
+///         TYPE clause referencing a STRONG declaration → <see cref="DiagnosticCatalog.AddressOfOperandKind"/>,
+///         kb/Work PB5705.</item>
 ///   <item>SR4 (2002: SR3) — a bit item must have literal subscripts and reference-modification positions and lengths, and sit on a byte
 ///         boundary → <see cref="DiagnosticCatalog.AddressOfBitAlignment"/>, through the ONE static-start walk
 ///         CALL, INVOKE and the function-identifier already spend (<see cref="ParameterConformance.BitStartOf"/>).</item>
@@ -80,6 +83,20 @@ internal sealed class AddressOfOperandScreen(BinderContext ctx)
                 $"is an elementary item subordinate to the strongly-typed group item '{strong.CobolName}', so it shall "
                 + "not be the identifier-1 of ADDRESS OF — the address of the group is the restricted data-pointer "
                 + "§2023:8.4.3.11.4 GR2 defines (ISO §2023:8.4.3.11.3 SR2)");
+            ok = false;
+        }
+
+        // 2002 SR4 / 2014 SR5 (no 2023 counterpart): a strongly-typed GROUP item shall be defined with its OWN TYPE clause
+        // referencing a STRONG declaration, so a group merely subordinate to a strong record is refused. 2023 drops the
+        // rule: its GR2 types such a group by position (StrongTypeModel.AddressOfRestriction).
+        if (ctx.Edition.Edition.Year < 2023 && item.IsGroupEntry && !item.StrongType
+            && StrongTypeModel.StrongRoot(item) is { } owner)
+        {
+            Report(DiagnosticCatalog.AddressOfOperandKind, text,
+                $"is a strongly-typed group item subordinate to '{owner.CobolName}' and defined without a TYPE clause of its "
+                + "own, so it shall not be the identifier-1 of ADDRESS OF; identifier-1 shall be defined with a TYPE clause "
+                + "referencing a type declaration described with the STRONG phrase "
+                + ctx.Edition.Edition.Cite("(ISO §2002:8.4.2.11.2 SR4)", "(ISO §2002:8.4.2.11.2 SR4)", "(ISO §2002:8.4.2.11.2 SR4)", "(ISO §2014:8.4.2.11.2 SR5)"));
             ok = false;
         }
 
