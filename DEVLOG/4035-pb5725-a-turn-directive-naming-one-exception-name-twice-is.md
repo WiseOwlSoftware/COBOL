@@ -1,4 +1,4 @@
-## PB5725: a >>TURN directive naming one exception-name twice is refused below 2023
+## Entry 4035 — 2026-11-24 06:30 PST — PB5725: a >>TURN directive naming one exception-name twice is refused below 2023
 
 §2002:7.2.19.2 SR3 (and §2014:7.3.20.2 SR3 the same): "No exception-name shall be specified more than once in one TURN
 directive"; SR4 adds that no file-name is specified twice for one exception condition. §2023:7.3.25.3 SR3 relaxes the
@@ -17,3 +17,4 @@ Goldens: `7.3.25-TURN/pb5725_turn_name_with_two_files` (accept 2023) and the ref
 `TurnDirectiveExceptionNameTests` cover the repeated name, the repeated file (SR4), the repeated pair and the legal
 `EC-I-O F1 EC-SIZE EC-I-O-AT-END F1` at 2002, compiled and omitted-branch alike. Row `2002-SR-7.2.19.2-3` recorded
 CONFORMS (2002 GAP 1134 to 1133). No new diagnostic code used.
+
