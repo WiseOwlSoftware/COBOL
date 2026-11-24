@@ -3697,7 +3697,7 @@ internal static class RuntimeApi
     /// (<c>CobolDec.FractionDigits</c>) - a floating-point literal's precision, which the decimal lane carries (kb/Work PB4641).</summary>
     public static int DecFractionDigitsOf(Int128 significand, int exp10) => CobolDec.FractionDigits(new CobolDec(significand, exp10));
 
-    /// <summary>The standard intermediate data item's digits (<c>CobolDec.SidiDigits</c>, §2002:8.8.1.3.1 r1): the operand bound past
+    /// <summary>The standard intermediate data item's digits (<c>CobolDec.SidiDigits</c>, §2002:8.8.1.3.1): the operand bound past
     /// which a fixed-point operand is cut to the SIDI.</summary>
     public const int DecSidiDigits = CobolDec.SidiDigits;
 
