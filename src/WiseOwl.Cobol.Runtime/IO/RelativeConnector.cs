@@ -167,7 +167,7 @@ public sealed class RelativeConnector : KeyedConnector
     /// <c>VisitReadDirection</c> arm of <c>VersionConformancePass</c>, COBOL0900). On THIS organization it selects a
     /// record by exactly the same §2023:14.9.30.4 GR21 rules a READ NEXT does — see
     /// <see cref="SelectSequentialSlot"/> for why the after-OPEN at-end carve-out is the INDEXED block's alone
-    /// (kb/Work PB343) and why the selection therefore takes no edition parameter.</summary>
+    /// (kb/Work PB343) and why, before 2023, a PREVIOUS after OPEN compares "less than or equal to" the indicator (kb/Work PB5742).</summary>
     public string ReadPrevious(out string image) => ReadSequential(out image, previous: true);
 
     /// <summary>ISO §2023:14.9.30.4 GR21's "When the file is a relative file" SELECTION — rules b)/c): the file
@@ -182,11 +182,11 @@ public sealed class RelativeConnector : KeyedConnector
     /// moves, without a second copy of these rules living in the peek.</para></summary>
     private StoreStatus SelectSequentialSlot(bool previous, bool withValue, out long? slot, out byte[]? value)
     {
-        // ⛔ RULE b) IS DIRECTION-BLIND, AND IT IS THE WHOLE RULE FOR AN INCLUSIVE INDICATOR (kb/Work PB343).
+        // ⛔ FROM 2023 RULE b) IS DIRECTION-BLIND, AND IT IS THE WHOLE RULE FOR AN INCLUSIVE INDICATOR (kb/Work PB343).
         // §2023:14.9.30.4 GR21, "When the file is a relative file": "b) If the file position indicator was
         // established by a prior successful OPEN or START statement, the first existing record that is selected
         // is made available, regardless of whether NEXT or PREVIOUS is specified." One seek serves both
-        // directions, so `previous` is not consulted at all here: the answer is the first existing record at or
+        // directions, so `previous` is not consulted from 2023: the answer is the first existing record at or
         // after the indicator. That is well defined for every way an inclusive indicator can arise —
         // §2023:14.9.41.4 GR9 a)/b), GR11 and GR12 only ever set a RELATIVE file's indicator to "the relative record
         // number of" an EXISTING record (a comparison satisfied by none is GR9 c)'s invalid key, which
@@ -200,14 +200,21 @@ public sealed class RelativeConnector : KeyedConnector
         // alone, and Annex E.2 item 22, the amendment that put it there, is INFORMATIVE (Annex E is headed
         // "(informative)") and names no organization. Enforcing it here returned '10' from a READ PREVIOUS
         // immediately after OPEN INPUT where rule b) owes the first record. Because the relative block's rule
-        // b) reads identically in 2002, 2014 and 2023, this selection takes NO edition parameter —
-        // docs/FILES_DESIGN.md, "READ PREVIOUS is not COBOL-85"; VERSION_CHANGE_REFERENCE row 29 is
-        // the indexed leg only.
+        // b) is the 2023 rule, this organization needs no at-end carve-out at any edition — but the 2002 and 2014 rule is a
+        // DIFFERENT one, not rule b) read the same (kb/Work PB5742; docs/FILES_DESIGN.md, "READ PREVIOUS is not COBOL-85";
+        // VERSION_CHANGE_REFERENCE row 7.123): §2002:14.8.29.3 GR18c.2 (§2014:14.9.29.3 GR19c.2) — for an indicator "established
+        // by a prior OPEN or START statement", PREVIOUS selects "the first existing record in the physical file whose record
+        // number or key value is less than or equal to the file position indicator". OPEN sets the indicator to 1
+        // (§2002:14.8.26.3 GR12), so there a file whose lowest record is above RRN 1 is at end; a START's indicator names an
+        // existing record, so its READ PREVIOUS still returns that record.
         // Rule c) — an indicator established by a prior successful READ is EXCLUSIVE and the direction selects:
         // "the first existing record in the physical file whose relative key number is greater than the file
         // position indicator if NEXT is specified or implied or is less than the file position indicator if
         // PREVIOUS is specified is selected".
-        var relation = _inclusive ? SeekRelation.GreaterOrEqual            // rule b) — ascending, direction ignored
+        var relation = _inclusive
+            ? previous && !DialectBehaviors.IsActive(DialectBehavior.RelativeReadPreviousAfterOpenComparesFpi, Edition)
+                ? SeekRelation.LessOrEqual                                  // §2002:14.8.29.3 GR18c.2 — PREVIOUS compares "less than or equal to"
+                : SeekRelation.GreaterOrEqual                               // rule b) — ascending, direction ignored
             : previous ? SeekRelation.LessThan : SeekRelation.GreaterThan;  // rule c)
         return _st.Seek(_fpi, relation, withValue, out slot, out value);
     }
