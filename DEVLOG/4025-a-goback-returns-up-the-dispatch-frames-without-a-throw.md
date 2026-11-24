@@ -1,4 +1,4 @@
-## A GOBACK returns up the dispatch frames without a throw where every frame tests for it (PB6140)
+## Entry 4025 — 2026-11-23 18:47 PST — A GOBACK returns up the dispatch frames without a throw where every frame tests for it (PB6140)
 
 **The mechanism (kb/Work PB6140, R2 `runtime-control-2--performance--f1#1`).** Every GOBACK, called-program EXIT PROGRAM, method
 GOBACK and §2023:14.6.3 implicit GOBACK threw `ProgramReturn` / `MethodReturn`, caught at the activation entry, from whatever dispatch
@@ -37,3 +37,4 @@ is the protocol.
 **Gate.** `=== BUILD-LOCAL GATE: GREEN — Conformance 29,325/29,325 ran · Unit 42,919/42,919 ran · RepoDrift 245/245 ran ·
 Characterization 37/37 ran` (run 000004-20261124T023107Z), after three reds fixed at their root: the public API baseline's order, the
 new drift test's Sweep trait, the snapshots.
+
