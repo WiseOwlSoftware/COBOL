@@ -1,4 +1,4 @@
-## A crosswalk rebuild keeps every adjudicated entry (PB6131)
+## Entry 4021 — 2026-11-23 17:20 PST — A crosswalk rebuild keeps every adjudicated entry (PB6131)
 
 `python conformance-suite/harness/crosswalk.py --build` used to write each program's file from the mechanical map alone.
 On main ddf3400a61 it replaced all 11 adjudicated NC115A entries (`basis: adjudicated: ...`, the PB3178 INSPECT pilot) with
@@ -14,3 +14,4 @@ Rebuilding the whole crosswalk now prints `BUILD GREEN: wrote 459 file(s) ..., 1
 0 conflict(s)` and changes no file. The files were already LF: the build writes bytes through `write_file`. An AST sweep of
 `conformance-suite/` found no text-mode writer without `newline=`. Self-test cases 18-21 pin the merge, the conflict
 reports, the loud failure and LF output. Design §6.3 and the suite README describe the rebuild.
+
