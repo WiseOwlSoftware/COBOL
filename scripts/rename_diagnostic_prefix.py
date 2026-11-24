@@ -55,7 +55,6 @@ A broken enumeration (no git, too few tracked paths) is NOT RUN, exit 2 (a failu
 from __future__ import annotations
 
 import argparse
-import json
 import re
 import subprocess
 import sys
@@ -65,6 +64,8 @@ from pathlib import Path
 from standard_streams import ensure_utf8
 
 REPO = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(REPO / "scripts" / "spec"))
+import inventory_schema  # noqa: E402  (the inventory schema's one reader, DESIGN-architecture-review §8.2 rule 7)
 
 #: Paths never rewritten and never audited: a directory (ending in `/`) and everything beneath it, or one exact path.
 EXCEPT = (
@@ -115,12 +116,12 @@ BINARY_PROBE = 8192
 OLD_CODE = re.compile(rb"COBOLNET([0-9]{4})")
 
 #: ⛔ A witness the traceability inventory records as RETIRED keeps the spelling it was retired under: the mark
-#: (`retired-witness: <ref>`, its text read from the inventory schema, the one place it is defined) is what lets
+#: (`retired-witness: <ref>`, `inventory_schema.RETIRED_WITNESS_MARK`: the schema defines it and its one reader reads it,
+#: never a second parse of the JSON here, kb/Work PB6098) is what lets
 #: `audit_witness_loss.py` excuse the loss of `<ref>`, so re-spelling the ref would turn a recorded retirement back into
 #: an unexcused loss. The rename re-spelled 14 witnesses (test names and one anchor that carried a code); they went
 #: through `record_verdicts.py` as a batch that retired the old spelling, never as a hand edit of the inventory.
-RETIRED_MARK = json.loads((REPO / "tests" / "version-matrix" / "inventory-schema.json").read_text(encoding="utf-8"))[
-    "notes"]["retired-witness-mark"].encode("utf-8")
+RETIRED_MARK = inventory_schema.RETIRED_WITNESS_MARK.encode("utf-8")
 PROTECTED = re.compile(re.escape(RETIRED_MARK) + rb"\s*\S+")
 
 

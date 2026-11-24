@@ -73,7 +73,7 @@ internal static class ReceivingStore
     /// area's bytes, already fitted by the caller's own rule (a MOVE's alphanumeric fill, a READ's GR15 record
     /// fill); <paramref name="positions"/> is the receiver's position count in its own units. The receiver's
     /// representation is DECODED FROM the bytes: a NATIONAL item's UTF-16BE pairs through the ONE inverse
-    /// <c>CobolBits.NatReadWindow</c> (D-N1), a USAGE BIT item's packed bits through <c>CobolBits.Unpack</c>, and
+    /// <c>NationalImage.ReadWindow</c> (D-N1), a USAGE BIT item's packed bits through <c>CobolBits.Unpack</c>, and
     /// a NATIVE numeric carrier (zoned, radix-2, BCD, IEEE — any byte form, including the national-form numeric
     /// of §2023:13.18.60.3 SR12, whose decoded characters are its zoned digit run) through
     /// <see cref="Emit.NumericRenderer.CarrierOfImage"/>, the ONE crossing decode. Every string-backed shape —
@@ -186,7 +186,7 @@ internal static class ReceivingStore
     }
 
     /// <summary>The REPRESENTATION decode of an elementary item's storage <paramref name="area"/>, before any boolean
-    /// conversion: a NATIONAL item's UTF-16BE pairs through <c>CobolBits.NatReadWindow</c> (D-N1), a USAGE BIT item's
+    /// conversion: a NATIONAL item's UTF-16BE pairs through <c>NationalImage.ReadWindow</c> (D-N1), a USAGE BIT item's
     /// packed bits through <c>CobolBits.Unpack</c>, every other string-backed item the bytes as they are (the
     /// <see cref="AreaHoldsCharacters"/> pass-through).</summary>
     private static string DecodedStorage(DataItem item, string area, string positions) => item.OperandPic switch

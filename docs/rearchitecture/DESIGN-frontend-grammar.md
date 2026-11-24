@@ -209,6 +209,12 @@ addend may open with '(' — so the lexer tracks the REPORT SECTION (`TrackRepor
 closed by the next section or division header) and a SUM there opens no reference paren
 (`IsReportSumClauseKeyword`). SUM is the only §2023:8.9 ∩ §2023:8.11 word that begins a report or data description clause
 whose operand can open with '('; `CobolLexerModeDriftTests` pins both regions for all four words.
+The exception holds only where a clause can BEGIN (kb/Work PB5652): inside an open parenthesis, or after a token after
+which the entry still owes an operand (an arithmetic operator, SOURCE IS, SOURCES ARE, SUM OF, PRESENT WHEN, VARYING's
+FROM and BY, a relational word; the lexer's `ReportOperandFollows`), `SUM (` can only be a function-identifier and keeps
+the keyword-omitted call's reference paren. The lexer reads no edition for it: at COBOL 2002, which has no SR9,
+§2002:12.2.7.3 GR13 makes `SOURCE WA + SUM(WB WC)` the REPOSITORY-declared intrinsic, and from 2014
+(§2014:13.18.54.2 SR9) the binder refuses the same tree by name (`IntrinsicBinder.ReportSumClauseWord`, COBOL7933).
 
 The trigger has one POSITION exception besides (kb/Work PB780): a word right after the invocation operator `::` is an
 inline method invocation's literal-1 spelled by a constant-name (§2023:8.4.3.4.2; §2023:13.10.3 SR2), never a data-name, so
@@ -380,10 +386,11 @@ context-sensitive word with the facts all three consumers need:
 
 `scripts/gen-cobol-words.ps1` (extends the proven `gen-reserved-words.ps1` pattern) generates THREE outputs
 from it:
-1. `Parsing/CobolLexerWordSet.g.cs` — a committed `partial class CobolLexer` (NOT under `Generated/`, so
-   `dotnet clean` keeps it) carrying the subscript-trigger set; a partial `.cs` is the minimal buildable form
-   because ANTLR has no portable `@members` text-include and the set references token-type `int` constants on
-   the generated lexer.
+1. `Parsing/CobolLexerWordSet.g.cs` — a committed generated DATA class, `CobolLexerWordSet` (NOT under
+   `Generated/`, so `dotnet clean` keeps it), carrying the subscript-trigger set (`DataNameTokens`), the
+   reservation-gated set (`IsReservationGated`) and the keyword-where-free words (`IsKeywordWhereFree`); it names the
+   generated lexer's token-type `int` constants through a `using static`, and the lexer's hand-written superclass
+   (`Parsing/CobolLexerBase.cs`, kb/Work PB2726) and the parser read it.
 2. `Grammar/Core/CobolWords.g4` — a generated parser fragment holding TWO rules, `cobolWord` and
    `reservedGatedWord`, imported by `CobolParserCore.g4`.
 3. It cross-checks against `reserved-words.json` (RW-1: a subscript-trigger-only word must be 2023-reserved,
@@ -757,7 +764,7 @@ predicate-led keyword, the tokenless-keyword alternatives it names with their re
 **A REFERENCE to a gated word is answered by the parse-error path.** The gate leaves no name-slot alternative for
 `DISPLAY CONSTANT.` at `--std 2002`, and a source that fails to parse never reaches the bound-tree funnel. So the
 error strategy's one report path (`CobolErrorStrategy.Report`, through `ReservedWordUse`) asks the parser whether the
-offending token is reservation-gated (the generated `CobolLexer.IsReservationGated` set) and still rejects at this
+offending token is reservation-gated (the generated `CobolLexerWordSet.IsReservationGated` set) and still rejects at this
 edition (`CobolParserCoreBase.ReservedUserWordViolation`), and reports COBOL0901 with the ONE message
 `ReservedWordSet.UserWordViolationMessage` owns, in place of its own diagnosis of the token. The cause is named in
 reference slots too, which the funnel deliberately never screened. It is named ONCE per occurrence of the word: ANTLR
@@ -932,7 +939,7 @@ COBOL's grammar), but the *duplicated* literal/operator token bodies are factore
 fragment `fragment` rule set (`NUM_BODY`, `STR_BODY`, `NAT_BODY`, `BOOL_BODY`, `NAME_BODY`) referenced by
 both the DEFAULT tokens and the `SUB_*` tokens, so `"-15.6"` / `N"AB"` tokenization rules exist once. This
 removes the "keep SUB_* in sync with DEFAULT" hazard without touching the mode-switch strategy.
-**The trigger is narrowed per compile (kb/Work PB1465).** `_dataNameTokens` is edition-blind — every word that
+**The trigger is narrowed per compile (kb/Work PB1465).** `CobolLexerWordSet.DataNameTokens` is edition-blind — every word that
 is a user-defined word in SOME edition — so `TokenRetypes.PrimeLexer(lexer, edition)` hands the lexer the
 trigger tokens whose word the edition RESERVES (§2023:8.9 at the edition's year, `--permissive` off) and the program
 has not DECLARED (`ReservedWordSet.AdmitsAsUserWord` for the strict edition, §2023:8.3.2.1 SR1), minus the parser's
@@ -994,8 +1001,8 @@ ASCII character of a re-lex leaves the cached DFA and every mode has a cached st
 has no DFA edge in ANTLR (`MAX_DFA_EDGE`) and the EOF transition is never cached; both are reported, never asserted.
 
 **3.3d The ALL figurative's literal-1 (kb/Work PB71, 2026-08-18; PB1627, 2026-09-26).** `figurativeConstant`'s
-Format-6 arm is `ALL allLiteral`, where `allLiteral : concatenationExpression | STRINGLIT | HEXLIT | NATLIT |
-BOOLLIT` — ONE arm for the four literal kinds §2023:8.3.3.6.3 SR2 admits (alphanumeric plain or hexadecimal, national
+Format-6 arm is `ALL allLiteral`, where `allLiteral : concatenationExpression | quotedLiteral` — ONE arm for the four
+literal kinds §2023:8.3.3.6.3 SR2 admits (alphanumeric plain or hexadecimal, national
 N/NX, boolean B/BX), and literal-1 "may be a concatenation expression", which is THE `concatenationExpression`
 rule below, operands and all. Two load-bearing decisions: (1) `nonNumericLiteral` lists `figurativeConstant` BEFORE
 `concatenationExpression`, because `ALL "A" & "B"` is genuinely ambiguous between "ALL over the concatenated
@@ -1019,8 +1026,16 @@ boolean literal-1 is the literal token's, `LiteralScreen.GateFormat`, position-b
 moved to the binder because they need the program's constant-names, which the parse walk has not got (the version
 pass used to ask them over a quoted-only operand list — kb/Work PB1393's arm, PB1627).
 
-**The `&` operand and its class (kb/Work PB1406, 2026-09-26).** `concatOperand : STRINGLIT | NATLIT | BOOLLIT |
-HEXLIT | figurativeConstant | cobolWord`. The `cobolWord` arm is how §2023:8.8.3.1's literal-1 / literal-2 admit the two
+**The quoted literal (kb/Work PB2725, 2026-11-23).** `quotedLiteral : STRINGLIT | HEXLIT | NATLIT | BOOLLIT` is the ONE
+rule that admits a delimited literal: `nonNumericLiteral`, `concatOperand`, `allLiteral` and `residueLiteral` name it,
+never the four tokens. Its one reader is `Parsing.QuotedLiteral` (`Of` a `quotedLiteral` node, `In` a
+`nonNumericLiteral`), which takes the class and format from the written prefix (`CobolLiteral.FormOfToken`, the same
+prefix-to-class map `CobolLiteral.ClassOf` reads) and the value from `CobolLiteral.Decode`; the compiler's
+`ConcatFolder.Folded.Of` and `ConcatFolder.CategoryOf` turn it into a category. No consumer asks the token kind, so a
+new literal token or prefix is one edit to the rule or to `CobolLiteral`.
+
+**The `&` operand and its class (kb/Work PB1406, 2026-09-26).** `concatOperand : quotedLiteral | figurativeConstant |
+predefinedNull | cobolWord`. The `cobolWord` arm is how §2023:8.8.3.1's literal-1 / literal-2 admit the two
 WORDS that stand for a literal — a constant-name (§2023:13.10.3 SR2) and a symbolic-character, a figurative constant by
 §2023:12.3.7.4 GR11a — which the parse cannot tell from a data-name, so the arm admits any word and
 `ConcatFolder` resolves it through its `LiteralEnvironment` (COBOL2473 for a word that stands for no literal;
@@ -2135,7 +2150,7 @@ joined the table the same way, which is the table doing its job: a tenth format 
   {tokensAreContiguous(2)}? COMMA INTEGERLIT | (PLUS | MINUS) numericLiteralCore`; an item is `residueOpening |
   AMPERSAND concatOperand`; `residueInteger` is the integer and the integer-led comma decimal.
   `residueLiteral` is every one-token literal except the unsigned integer (`ClosedFormatDriftTests` derives that set
-  from `nonNumericLiteral` and `numericLiteralCore` in the generated parser), and `ClosedFormatPass` quotes the
+  from `quotedLiteral` and `numericLiteralCore` in the generated parser), and `ClosedFormatPass` quotes the
   opening (the first item of either form) as written, word or whole literal. Opening at a word only, the run left `SOURCE-COMPUTER. XYZ "LIT".` ONE viable parse, the name-less
   paragraph followed by the configuration paragraph `XYZ "LIT"`, so XYZ was the refused word; with the literal
   admitted the name's reading is viable too and the ambiguity resolves to it (the lower alternative). No closed
@@ -2236,7 +2251,7 @@ joined the table the same way, which is the table doing its job: a tenth format 
   says whether the edition has one (constant-entry-2002): `OCCURS 0 TO TIMES` expects "an integer literal" at 85 and "a
   user-defined word or an integer literal" from 2002. The binder's refusal of a word there (COBOL1547,
   `ConstantEntryBinder.ConstantIntegerOperand`, the PICTURE repetition count) says the same by edition. An
-  older edition's dropped word and a `keywordWhereFree` word (generated into `CobolLexer.IsKeywordWhereFree` by
+  older edition's dropped word and a `keywordWhereFree` word (generated into `CobolLexerWordSet.IsKeywordWhereFree` by
   `gen-cobol-words.ps1`) are named whatever the table says. A §2023:8.10 word's `Introduced` edition is generated
   (`gen-reserved-words.ps1` step 7c) from the 2002 list (`tests/version-matrix/context-sensitive-words-2002.json`) and
   Annex E.3.3 item 13, and held to that derivation by `ContextSensitiveWordsDriftTests` (CONFORMANCE.md D-EXPECT). The
@@ -2715,9 +2730,12 @@ lowercase with Annex C. Three pieces, each in one place:
   `user-word-extended-letter-2002` (COBOL0900) below 2002 for an extended letter — but a character that NO edition's
   Annex B holds (U+00A0, the euro sign) is no extended letter, so `CobolCharacterRepertoire.ViolationAtEveryEdition`
   makes it COBOL2773 at every target, COBOL-85 included, worded by what the character is (kb/Work PB4130). The gate is decided per CHARACTER (`CobolCharacterRepertoire.HasExtendedLetter`: any character some edition's Annex B holds), so a word holding both an extended letter and such a character draws the gate (COBOL0900) and COBOL2773 at COBOL-85 (kb/Work PB4156). The tables are COBOL 2023's, transcribed list for list
-  from the standard by `scripts/spec/gen_annex_bc.py`; COBOL 2002/2014 are derived by reversing Annex E (E.2 item 4,
-  E.3.3 items 4 and 5 — the standard records no 2002→2014 change, so 2002 uses 2014's). `AnnexBCDriftTests` re-reads
-  every list from `specs/ISO_COBOL_2023.md`. A word's length is counted in characters (code points), so a combining
+  from the standard by `scripts/spec/gen_annex_bc.py`; COBOL 2014 is derived by reversing Annex E (E.2 item 4,
+  E.3.3 items 4 and 5); COBOL 2002 has its OWN repertoire, Annex C.2 of `specs/ISO_COBOL_2002.md` (TR 10176:2001, narrower
+  than 2014's), whose special characters (C.2.1's row and C.2.2's MIDDLE DOT) and combining characters §2002:8.1.2.1 GR4b bars
+  from the first AND the last place — both the medial class, the combining ones taken from the rows 2014's Annex B.3.1
+  labels combining, since 2002 Annex C labels none (kb/Work PB5702). `AnnexBCDriftTests` re-reads
+  every list from the three specifications. A word's length is counted in characters (code points), so a combining
   character counts separately (GR4 c).
 - **Where the legality is asked (kb/Work PB3845).** `WordCharacterScreen` (Frontend/Parsing), over the words of the
   compilation: every `IDENTIFIER` token that holds an underscore or a character outside the basic repertoire gets the
@@ -3300,7 +3318,7 @@ paths (`subscriptPart` vs `inlineMethodInvocationStatement`'s `argumentList`) in
 The mode is not gratuitous; it solves two problems a naïve DEFAULT-mode rule reintroduces:
 - **The LPAREN ambiguity.** `(` after a data-name is a subscript / ref-mod / function-argument opener; `(`
   elsewhere is arithmetic grouping. The mode disambiguates by the *preceding* token
-  (`PreviousTokenCouldBeDataName` over the generated `_dataNameTokens` set). A grammar-level rule must recover this
+  (`PreviousTokenCouldBeDataName` over the generated `CobolLexerWordSet.DataNameTokens` set). A grammar-level rule must recover this
   another way (the same ambiguity the `{is2023()}? inlineMethodInvocationStatement` predicate already fights).
 - **⚠ Separator loss (the blocker).** DEFAULT mode `-> skip`s `WS`, and outside a function-argument region
   `FNARG_SEPARATOR`'s action skips the comma/semicolon-space separator. But ISO/IEC 1989:2023 §2023:8.3.5

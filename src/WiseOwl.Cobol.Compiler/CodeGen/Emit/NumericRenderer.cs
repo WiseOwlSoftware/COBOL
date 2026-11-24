@@ -1731,7 +1731,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         // does (PB13): §2023:8.8.1.2 already makes this an implementor-defined approximation computed in double, and
         // with no receiver there is no scale to quantize TO — the ws = 9 stand-in saturated, so `IF 10 ** 30 =
         // 10 ** 31` evaluated TRUE. A fixed-point receiver still quantizes, at the capacity-capped working scale.
-        // ⛔ BOTH ARMS NOW SCREEN §2023:8.8.1.2 RULE 6 (PB28) — `PowNativeReal`, not a bare `System.Math.Pow`. The rule
+        // ⛔ BOTH ARMS NOW SCREEN §2023:8.8.1.2 RULE 6 (PB28) — `CobolPower.Binary64`, not a bare `System.Math.Pow`. The rule
         // is a GENERAL rule of arithmetic-expression evaluation and binds native `**` exactly as it binds the
         // SDIDI one, which `CobolDec.Pow` above has always honoured while every native arm ignored it.
         // ⛔ THE SAME QUANTIZER, SO THE SAME LANDING DECISION (PB13's sibling — feedback_scan_all_similar). A flat
@@ -1752,9 +1752,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         // (kb/Work PB5186): §1985:VI.6.2.3 GR5c refuses a negative base only when no real number is the result, which the exponent's
         // exact value decides and its binary64 cannot (0.2 is not 1/5), so the runtime's COBOL-85 overload takes the exact operand.
         string exponent = negativeBaseRealRoots ? ExactOperand(e) : Real(e);
-        string pow = RangeChecks is { } powTaken
-            ? RuntimeApi.Intrinsic("PowNativeRealChecked", $"{Real(b)}, {exponent}, {powTaken}")
-            : RuntimeApi.Intrinsic("PowNativeReal", $"{Real(b)}, {exponent}");
+        string pow = RuntimeApi.Binary64Pow(Real(b), exponent, RangeChecks);
         // The binary64 power is an APPROXIMATION the engine produced (§2023:8.8.1.3) unless an operand is itself a float
         // ITEM's content, which then owns the result (kb/Work PB1641 — see CombineCore's lane note).
         if (b.Real || e.Real || !landing.Quantize)

@@ -3,7 +3,6 @@
       *> rules: [1985-SR-VI.6.18.3-6]
       *> accept: [85]
       *> source-format: fixed
-      *> portable: unverified
       *>---
       *> The control of pb5859-inspect-tallying-refmod-counter: the
       *> whole numeric item N1 is an elementary numeric data item. N1
@@ -15,8 +14,10 @@
        WORKING-STORAGE SECTION.
        01 X PIC X(7) VALUE "AAXAAYA".
        01 N1 PIC 9(4) VALUE 1234.
+       01  N1-E PIC ZZZ9.
        PROCEDURE DIVISION.
        P1.
            INSPECT X TALLYING N1 FOR ALL "A".
-           DISPLAY N1.
+           MOVE N1 TO N1-E
+           DISPLAY N1-E.
            STOP RUN.

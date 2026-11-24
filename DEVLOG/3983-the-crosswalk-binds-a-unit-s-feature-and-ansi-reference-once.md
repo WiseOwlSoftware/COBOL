@@ -1,0 +1,6 @@
+## Entry 3983 — 2026-11-23 07:06 PST — The crosswalk binds a unit's FEATURE and ANSI-REFERENCE once
+
+PB6110: `crosswalk.py` rewrote a pending unit's FEATURE and ANSI-REFERENCE at every later move before the next paragraph header, so a second print line, a failure-branch FEATURE or the next unit's FEATURE moved before its PAR-NAME replaced the unit's own. Re-probed on this build: `--check` was GREEN with the old reader, and the corrected reader differs on 9 units.
+
+Fix: `parse_program` keeps, per slot, whether it was moved since the last boundary (paragraph header or previous unit's PAR-NAME move). Those moves are the unit's own; a slot none filled takes the first move after the PAR-NAME move; later moves never replace a bound one and feed the next unit. Self-test case 17 pins the three shapes. `--build` regenerated 9 crosswalk files (IX101A, IX103A, IX106A, NC105A, NC209A, NC211A, SQ128A, SQ225A); it also rewrote the adjudicated NC115A entries, which were restored from main (the builder does not preserve adjudication; registered, not fixed here).
+

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-12.2.7.3-13",
+ "rule-digest": "dc3ffa5a0aea",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsic; src/WiseOwl.Cobol.Frontend/Parsing/CobolLexerBase.cs#IsReportSumClauseKeyword",
+ "test-ref": "conformance:cases/13.16.52@2002-SUM-CLAUSE/g2sum07_sum_repository_intrinsic_unprefixed; conformance:cases/12.2.7@2002-REPOSITORY-PARAGRAPH/g2sum08_sum_unprefixed_undeclared",
+ "notes": "kb/Work PB5652: §2002:12.2.7.3 GR13 lets a REPOSITORY-declared intrinsic-function-name omit FUNCTION within the environment division's scope, the report section included (2002 has no SR9 of the 2014 SUM clause). At --std 2002 SOURCE WA + SUM(WB WC) prints 0111, SOURCE SUM(1 2 3) prints 0006, PRESENT WHEN SUM(WB WC) = 110 is present and FUNCTION MAX(WA SUM(WB WC)) prints 110 (g2sum07); without the REPOSITORY declaration the same SOURCE is refused COBOL1543 at 85 and 2002 (g2sum08). retired-witness: src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#IsReportSumClauseKeyword (kb/Work PB2726 moved the lexer's @members out of CobolLexer.g4 into its superclass Parsing/CobolLexerBase.cs; the same member under its new path)"
+}

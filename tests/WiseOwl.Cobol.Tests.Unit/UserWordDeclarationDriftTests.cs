@@ -237,7 +237,7 @@ public sealed class UserWordDeclarationDriftTests
             + "own constant-name (" + string.Join(", ", raw) + "): ask ReferenceResolver.DescribesOwnItem (§2023:8.4.6.1, kb/Work PB3153)");
         string resolver = sources.Single(s => s.Name == "ReferenceResolver.cs").Text;
         Assert.Matches(@"public bool DescribesOwnItem\(Core\.DataReferenceContext dref\) =>\s+"
-            + @"data.Constants.ConstantOf\(dref\) is not null \|\| Probe\(dref\) is not null;", resolver);
+            + @"_data.Constants.ConstantOf\(dref\) is not null \|\| Probe\(dref\) is not null;", resolver);
     }
 
     /// <summary>⛔ A PROCEDURE-DIVISION MEMBER THAT TAKES A DATA REFERENCE AS AN INHERITABLE CONFIGURATION-SECTION NAME

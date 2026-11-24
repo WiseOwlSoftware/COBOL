@@ -38,8 +38,11 @@ internal static class Program
         return Parse(args).Invoke();
     }
 
-    /// <summary>The name of the batch-check command, the one command line whose first word is not a source file.</summary>
+    /// <summary>The name of the batch-check command, a verb whose first word is not a source file.</summary>
     internal const string CheckBatchName = "check-batch";
+
+    /// <summary>The name of the parse-reading batch command (kb/Work PB6050), the other such verb.</summary>
+    internal const string PointsBatchName = "points-batch";
 
     /// <summary>⛔ THE ONE ROUTE FROM A COMMAND LINE TO ITS PARSE (kb/Work PB4340). The compile and the batch check are
     /// two verbs, not a command and its child: <c>System.CommandLine</c> writes a parent command's arguments before
@@ -47,8 +50,12 @@ internal static class Program
     /// the compile root its help listed <c>&lt;source&gt;</c> and printed <c>cobol &lt;source&gt; check-batch
     /// &lt;manifest&gt;</c>, and <c>cobol x.cob check-batch m.tsv</c> ran the batch and ignored <c>x.cob</c>. Each verb
     /// is therefore its own command tree, and the first word chooses the tree.</summary>
-    internal static ParseResult Parse(IReadOnlyList<string> args) =>
-        args is [CheckBatchName, ..] ? BuildCheckBatchParser().Parse(args) : BuildParser().Command.Parse(args);
+    internal static ParseResult Parse(IReadOnlyList<string> args) => args switch
+    {
+        [CheckBatchName, ..] => BuildCheckBatchParser().Parse(args),
+        [PointsBatchName, ..] => BuildPointsBatchParser().Parse(args),
+        _ => BuildParser().Command.Parse(args),
+    };
 
     /// <summary>Build the argument parser (exposed for unit testing the grammar without spawning a process):
     /// the configured <see cref="RootCommand"/> plus a pure resolver that maps a <see cref="ParseResult"/> to the
@@ -160,6 +167,24 @@ internal static class Program
             Description = "Warn (COBOL2894) at every use of a nonstandard extension this compiler accepts — a "
                 + "construct ISO/IEC 1989 does not define (ISO 4.2.10). The register is docs/CONFORMANCE.md 3.2.",
         };
+
+        // kb/Work PB2652 (owner decision D20): ISO §2023:4.2.2's warning mechanism is one "that optionally may be invoked by the user
+        // at compile time", and this is the user's choice of which of its warnings to see. A name no diagnostic answers to is a CLI
+        // argument error (WarningSuppression.Problem): a misspelling that muted nothing would pass for a warning the compiler kept.
+        var suppressOption = new Option<string[]>("--suppress")
+        {
+            Description = "Do not report a warning (repeatable): NAME is a diagnostic code (COBOL2187), a diagnostic id or a suppress "
+                + "key (recognized-not-implemented), as docs/DIAGNOSTICS.md lists them. An error is never suppressed.",
+            Arity = ArgumentArity.OneOrMore,
+            AllowMultipleArgumentsPerToken = false,   // `--suppress A --suppress B`, never grabbing the source positional
+            HelpName = "NAME",
+        };
+        suppressOption.Validators.Add(result =>
+        {
+            foreach (string v in result.GetValueOrDefault<string[]>() ?? [])
+                if (WiseOwl.Cobol.Frontend.Diagnostics.WarningSuppression.Problem(v) is { } problem)
+                    result.AddError($"--suppress: {problem}.");
+        });
 
         // kb/Work PB2100: ISO §2023:8.13 — "The implementor shall provide a mechanism that allows the user to specify whether to
         // update the external repository when a compilation unit is compiled." This is that mechanism
@@ -278,7 +303,7 @@ internal static class Program
             + $"`cobol {CheckBatchName} <manifest>` checks many sources without emitting (`cobol {CheckBatchName} --help`).")
         {
             sourceArgument, outputOption, nistOption, stdOption, permissiveOption, copyOption, runOption,
-            signEncodingOption, numericDisplayOption, sourceFormatOption, flagExtensionsOption, repositoryUpdateOption,
+            signEncodingOption, numericDisplayOption, sourceFormatOption, flagExtensionsOption, suppressOption, repositoryUpdateOption,
             repositoryOption, referenceOption, repositoryCheckOption,
             listingOption, listingOutputOption, listingFormatOption, listingSectionsOption, listingPageLengthOption,
             listingPageWidthOption,
@@ -345,7 +370,8 @@ internal static class Program
                 source, parse.GetValue(outputOption), nistName, edition,
                 parse.GetValue(copyOption) ?? [], parse.GetValue(runOption),
                 signEncoding, sourceFormat, parse.GetValue(flagExtensionsOption), numericDisplay, repositoryUpdate,
-                repositories, parse.GetValue(referenceOption) ?? [], repositoryCheck, listing);
+                repositories, parse.GetValue(referenceOption) ?? [], repositoryCheck, listing,
+                parse.GetValue(suppressOption) is { Length: > 0 } suppress ? suppress : null);
         }
 
         // The root's OWN action: a bare `cobol <source>` compiles.
@@ -374,6 +400,94 @@ internal static class Program
         var root = new RootCommand(CheckBatchDescription);
         root.Subcommands.Add(checkBatch);
         return root;
+    }
+
+    internal static RootCommand BuildPointsBatchParser()
+    {
+        var manifestArgument = new Argument<string>("manifest")
+        {
+            Description = "A TSV file; each line `source<TAB>std<TAB>source-format` is parsed under that edition and reference format.",
+        };
+        var framesOption = new Option<string>("--frames")
+        {
+            Description = "The grammar rules (comma-separated, lower camel case) whose parse nodes are read.",
+            Required = true,
+            HelpName = "RULES",
+        };
+        var operandsOption = new Option<string>("--operands")
+        {
+            Description = "The grammar rules (comma-separated) whose contexts, inside a node, stand as one placeholder token when they hold more than one.",
+            Required = true,
+            HelpName = "RULES",
+        };
+        var flatOption = new Option<string>("--flat")
+        {
+            Description = "The frames (comma-separated) whose nodes keep every token of their operands, none standing for its context.",
+            DefaultValueFactory = _ => "",
+            HelpName = "RULES",
+        };
+        var pointsBatch = new Command(PointsBatchName, PointsBatchDescription)
+        {
+            manifestArgument, framesOption, operandsOption, flatOption,
+        };
+        pointsBatch.SetAction(parse => RunPointsBatch(parse.GetValue(manifestArgument)!, new ParseNodeReader.Selection(
+            SplitRules(parse.GetValue(framesOption)!), SplitRules(parse.GetValue(operandsOption)!), SplitRules(parse.GetValue(flatOption)!))));
+        var root = new RootCommand(PointsBatchDescription);
+        root.Subcommands.Add(pointsBatch);
+        return root;
+    }
+
+    private const string PointsBatchDescription =
+        "Parse many (source, edition) entries in one process and print, per entry, the token stream of each parse node of the "
+        + "named rules as one JSON line (the conformance suite's coverage measure, DESIGN-conformance-suite.md section 3.4).";
+
+    private static HashSet<string> SplitRules(string list) =>
+        [.. list.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)];
+
+    /// <summary>Read the parse of every entry of a TSV manifest in one warm process, in parallel, and print one JSON line per
+    /// entry in the manifest's order: <c>{"source", "std", "parsed", "nodes": [{"rule", "line", "tokens": [[text, type], ...]}]}</c>.
+    /// An entry whose std or source format is not one the compiler accepts, or whose source is missing, prints
+    /// <c>"parsed": false</c> and no nodes, never a default; the exit status is 0 whatever the entries say, the lines being the answer.</summary>
+    private static int RunPointsBatch(string manifestPath, ParseNodeReader.Selection selection)
+    {
+        if (!File.Exists(manifestPath))
+        {
+            Console.Error.WriteLine($"error: manifest not found: {manifestPath}");
+            return 66;
+        }
+        string[] entries = File.ReadAllLines(manifestPath).Where(l => l.Trim().Length > 0).ToArray();
+        var lines = new string[entries.Length];
+        Parallel.For(0, entries.Length, i => lines[i] = PointsBatchLine(entries[i], selection));
+        foreach (string line in lines) Console.Out.WriteLine(line);
+        return 0;
+    }
+
+    /// <summary>The JSON line of one points-batch manifest entry (see <see cref="RunPointsBatch"/>).</summary>
+    internal static string PointsBatchLine(string manifestLine, ParseNodeReader.Selection selection)
+    {
+        string[] f = manifestLine.Split('\t');
+        string source = f[0];
+        string std = f.Length > 1 ? f[1] : "";
+        ParseNodeReader.Reading reading = new(false, []);
+        if (TryParseStd(std, out int year) && File.Exists(source)
+            && InitialReferenceFormatOption.TryParse(f.Length > 2 && f[2].Length > 0 ? f[2] : null, out var format))
+        {
+            reading = ParseNodeReader.Read(new CompilerDriver.Options(
+                source, EditionInfo.Of(year), CopyPaths: [Path.GetDirectoryName(Path.GetFullPath(source))!],
+                SourceFormat: format), selection);
+        }
+        return System.Text.Json.JsonSerializer.Serialize(new
+        {
+            source,
+            std,
+            parsed = reading.Parsed,
+            nodes = reading.Nodes.Select(n => new
+            {
+                rule = n.Rule,
+                line = n.Line,
+                tokens = n.Tokens.Select(t => new[] { t.Text, t.Type }),
+            }),
+        });
     }
 
     private const string CheckBatchDescription =
@@ -479,7 +593,8 @@ internal static class Program
             SignEncoding: options.SignEncoding, SourceFormat: options.SourceFormat,
             FlagExtensions: options.FlagExtensions, NumericDisplay: options.NumericDisplay,
             RepositoryUpdate: options.RepositoryUpdate, RepositoryPaths: options.RepositoryPaths,
-            ReferencePaths: options.ReferencePaths, RepositoryCheck: options.RepositoryCheck, Listing: options.Listing));
+            ReferencePaths: options.ReferencePaths, RepositoryCheck: options.RepositoryCheck, Listing: options.Listing,
+            Suppress: options.Suppress));
 
         // `--listing-output -`: the one format requested goes to standard output (DESIGN-listing.md section 8), before the
         // diagnostics; the request admits exactly one format there (ListingRequest.FormatsProblem). It is streamed (kb/Work PB5941)

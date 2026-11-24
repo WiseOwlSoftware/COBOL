@@ -813,7 +813,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     private static IToken? HeaderAnEntryLoopReadAsAName(Parser recognizer, IToken token)
         => CobolParserCoreBase.ClosesAHeader(token.Type)
            && PreviousDefault((ITokenStream)recognizer.InputStream, token.TokenIndex) is { } opener
-           && CobolLexer.IsReservationGated(opener.Type)
+           && CobolLexerWordSet.IsReservationGated(opener.Type)
            && new OffendingPosition(recognizer, opener).FollowsALevelNumber
             ? opener
             : null;
@@ -1810,7 +1810,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // ⛔ 0e. THE SEARCH PHRASES NO SEARCH FORMAT PRINTS (kb/Work PB446). The two SEARCH rules now spell the
         // two printed formats exactly, so their complement arrives here; each shape is read from the PARSER
         // STATE (the half-built or just-completed SEARCH context), never from a scan for a keyword.
-        if (SearchFormatShapeMessage(recognizer, token, stream) is { } searchMsg)
+        if (SearchFormatShapeMessage(recognizer, token, stream, expected) is { } searchMsg)
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL2269, 0, [searchMsg]));
         // ⛔ 0e'. A SUBSCRIPT, REFERENCE MODIFICATION OR QUALIFIER ON A MNEMONIC-NAME (kb/Work PB2499). ACCEPT's
         // FROM, DISPLAY's UPON and SET Format 3's receivers are spelled `cobolWord` because a mnemonic-name is a word
@@ -1864,6 +1864,12 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
                     + "CORRESPONDING phrase after a sending operand (§1985:VI.6.19.2).",
                     "is 'MOVE { CORRESPONDING | CORR } identifier-3 TO identifier-4' — so no format admits a "
                     + "CORRESPONDING phrase after a sending operand (ISO §2023:14.9.25.2).")]));
+        // ⛔ 0c'. A SECOND RECEIVER OF A CORRESPONDING STATEMENT (kb/Work PB6096). Read from the statement the parser
+        // COMPLETED immediately before the token, never from the token's spelling; the reference format's area-A
+        // opening is the missing period's (hint 14), so it is not claimed here.
+        if (!at.PeriodIsMissingBeforeAnAreaAOpening
+            && CorrespondingReceiverMessage(recognizer, token, stream) is { } receiverMsg)
+            hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL2269, 0, [receiverMsg]));
 
         // ⛔ 0h. A WORD THE STATEMENT JUST WRITTEN DOES NOT PRINT HERE (kb/Work PB906). A statement the parser has ended
         // and a word that no statement, phrase or entry can take after it (not a scope terminator, which hint 13
@@ -1908,7 +1914,8 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
             && at.Admitted() is { } admitted
             && AdmittedKinds.Refusal(token, admitted.Tokens, admitted.Words, admitted.WordChangesNothing, StatementBlockStart(recognizer),
                    at.APeriodLetsTheSentenceFollow, theEditionPrints, constantNamesPrinted || !admitted.WordsStandForLiterals,
-                   at.ClosedConstructCouldTake, EditionOf(recognizer), out bool anOperandIsDue) is { } kindMsg)
+                   at.ClosedConstructCouldTake, EditionOf(recognizer),
+                   token.Type == CobolLexer.DOT ? OpenStatementName(recognizer.Context) : null, out bool anOperandIsDue) is { } kindMsg)
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL5506, 0, [kindMsg], LeavesNoTail: anOperandIsDue));
         // ⛔ A LITERAL WHERE THE NEXT SENTENCE WOULD BEGIN (kb/Work PB4425): the parser's own position has left the
         // procedure division (OffendingPosition.SentenceMayBeginAt), so the position the refusal names is the sentence
@@ -1916,7 +1923,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // word there may be a paragraph-name whose period is missing, which hint 14 says; it is not asked.
         else if (!HasStructuralHint(hints) && token.Type != CobolLexer.IDENTIFIER && at.SentenceMayBeginAt()
                  && AdmittedKinds.Refusal(token, StatementBlockStart(recognizer), [], _ => false, StatementBlockStart(recognizer),
-                        () => false, theEditionPrints, aUserWordIsPrinted: true, () => null, EditionOf(recognizer), out _) is { } sentenceMsg)
+                        () => false, theEditionPrints, aUserWordIsPrinted: true, () => null, EditionOf(recognizer), null, out _) is { } sentenceMsg)
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL5506, 0, [sentenceMsg]));
 
         // ⛔ NO "MISSING SPACE BEFORE / AFTER STRING LITERAL" GUESS HERE (kb/Work PB1394). A literal delimiter that is not
@@ -2039,10 +2046,16 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// <summary>The name of the statement <paramref name="context"/> is, or of the innermost one around it, for a message
     /// (<c>EVALUATE</c>, <c>PERFORM</c>; <see cref="StatementName"/>).</summary>
     private static string StatementOwning(ParserRuleContext context)
+        => OpenStatementName(context)
+           ?? SplitCamelCase(CobolParserCore.ruleNames[context.RuleIndex]).ToUpperInvariant();
+
+    /// <summary>The name of the innermost statement open around <paramref name="context"/>, or null where none is
+    /// (a period ending a data entry or a header names no statement).</summary>
+    private static string? OpenStatementName(ParserRuleContext? context)
     {
         for (var c = context; c is not null; c = c.Parent as ParserRuleContext)
             if (IsStatementRule(c.RuleIndex)) return StatementName(c);
-        return SplitCamelCase(CobolParserCore.ruleNames[context.RuleIndex]).ToUpperInvariant();
+        return null;
     }
 
     /// <summary>The statement's name as the standard names it: from its rule (<c>ifStatement</c> → IF), and where
@@ -2852,6 +2865,41 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
             && PreviousDefault(stream, name.TokenIndex)?.Type == CobolLexer.COLONCOLON;
     }
 
+    // ── The CORRESPONDING formats' one receiving item (kb/Work PB6096) ──
+
+    /// <summary>The message for a receiver written after a COMPLETED CORRESPONDING statement, or null. MOVE Format 2,
+    /// ADD Format 3 and SUBTRACT Format 3 each print exactly ONE receiving identifier (no ellipsis follows it), so a
+    /// further identifier, or the comma that would introduce one, is no second receiver and the parse reports the
+    /// sentence as ended. The statement is the one that ENDED immediately before the token (the SEARCH ALL walk of
+    /// <see cref="SearchFormatShapeMessage"/>); where the word could instead begin the next sentence the message
+    /// says so, because a paragraph-name after a missing period reads the same.</summary>
+    private static string? CorrespondingReceiverMessage(Parser recognizer, IToken token, ITokenStream stream)
+    {
+        if (!(IsIdentifier(token) || token.Type == CobolLexer.COMMA)) return null;
+        for (var c = recognizer.Context; c is not null; c = c.Parent as ParserRuleContext)
+            for (var d = LastWrittenRuleChild(c); d is not null; d = LastWrittenRuleChild(d))
+            {
+                var (verb, joiner, y1985, later) = d switch
+                {
+                    CobolParserCore.MoveStatementContext m when m.CORRESPONDING() is not null || m.CORR() is not null
+                        => ("MOVE", "TO", "§1985:VI.6.19.2", "§2023:14.9.25.2"),
+                    CobolParserCore.AddStatementContext m when m.CORRESPONDING() is not null || m.CORR() is not null
+                        => ("ADD", "TO", "§1985:VI.6.6.2", "§2023:14.9.2.2"),
+                    CobolParserCore.SubtractStatementContext m when m.CORRESPONDING() is not null || m.CORR() is not null
+                        => ("SUBTRACT", "FROM", "§1985:VI.6.26.2", "§2023:14.9.44.2"),
+                    _ => (null, null, null, null),
+                };
+                if (verb is not null && d.Stop is { } stop && NextDefault(stream, stop.TokenIndex)?.TokenIndex == token.TokenIndex)
+                    return $"{verb} CORRESPONDING names exactly one receiving item: Format "
+                        + (verb == "MOVE" ? "2" : "3") + $" is '{verb} {{ CORRESPONDING | CORR }} identifier {joiner} identifier' and no "
+                        + "ellipsis follows the receiving identifier (" + CiteRuleAt(recognizer, y1985!, later!) + "), so "
+                        + (token.Type == CobolLexer.COMMA ? "a comma and a further receiver are" : $"'{Truncate(token.Text ?? "", 40)}' is not")
+                        + $" a second receiver; write one {verb} CORRESPONDING statement per receiving group. "
+                        + "Where the word begins the next sentence, the period before it is missing.";
+            }
+        return null;
+    }
+
     // ── The SEARCH general-format complement (kb/Work PB446) ──
 
     /// <summary>The §2023:14.9.37.2 message for a SEARCH written with a phrase neither general format prints, or null.
@@ -2871,7 +2919,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     ///         matched), so the SEARCH ALL context is the rightmost descendant of an enclosing context and ends
     ///         immediately before the offending WHEN.</item>
     /// </list></summary>
-    private static string? SearchFormatShapeMessage(Parser recognizer, IToken token, ITokenStream stream)
+    private static string? SearchFormatShapeMessage(Parser recognizer, IToken token, ITokenStream stream, IntervalSet? expected)
     {
         string formats = " " + CiteRuleAt(recognizer, "§1985:VI.6.22.2", "§2023:14.9.37.2") + " prints two SEARCH formats and ";
         var ctx = recognizer.Context;
@@ -2894,6 +2942,17 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
                   + "NOT AT END phrase. Test for a hit in the WHEN branch instead."
                 : "SEARCH NOT AT END:" + formats + "each has an AT END phrase alone — there is no NOT "
                   + "AT END phrase. Test for a hit in a WHEN branch instead.";
+
+        // A SEARCH that ends before any WHEN phrase (kb/Work PB6096): both formats print `WHEN` unbracketed, so the
+        // sentence or the END-SEARCH arrives where only a WHEN phrase may follow. The expected set says a WHEN is what
+        // is due, so a fault inside the AT END statement itself (`AT END MOVE 1 TO.`) is not claimed.
+        if (token.Type is CobolLexer.END_SEARCH or CobolLexer.DOT && expected?.Contains(CobolLexer.WHEN) == true
+            && NearestSearchBeforeWhen(ctx) is { } unfinished)
+            return (unfinished is CobolParserCore.SearchAllStatementContext ? "SEARCH ALL" : "SEARCH")
+                + " with no WHEN phrase:" + formats + "each requires at least one WHEN phrase after the table operand and "
+                + "any AT END phrase, and "
+                + (token.Type == CobolLexer.END_SEARCH ? "END-SEARCH" : "the sentence") + " ends the statement before one is written. "
+                + "Add WHEN condition-1 followed by its imperative-statement or NEXT SENTENCE.";
 
         if (token.Type == CobolLexer.WHEN)
             for (var c = ctx; c is not null; c = c.Parent as ParserRuleContext)

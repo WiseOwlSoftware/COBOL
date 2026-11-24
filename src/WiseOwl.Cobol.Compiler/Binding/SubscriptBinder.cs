@@ -58,35 +58,11 @@ internal readonly record struct IndexUse(IToken Token, IndexDeclaration Decl);
 /// length of a reference modifier through the SAME position binder, because §2023:8.4.3.3.3 SR4 gives both the arithmetic-expression
 /// operand form (<see cref="BindPosition"/>, <see cref="SegmentPosition"/>).
 /// <para>A position the direct walk cannot read — a function activation, a division — is MATERIALIZED through the statement
-/// binder's hook (<see cref="MaterializeSegment"/>, the D18 hook of kb/Work PB17) into the one <c>ExpressionBinder.BindExpr</c>,
+/// binder (<see cref="IStatementSite.MaterializeSegment"/>, the D18 route of kb/Work PB17) into the one <c>ExpressionBinder.BindExpr</c>,
 /// so no position reaches code generation as C# text (kb/Work PB2151).</para>
 /// </summary>
 internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
 {
-    /// <summary>The D18 hook that MATERIALIZES a subscript / ref-mod position the direct walk cannot read
-    /// (fix-queue PB17): given the position's PARSED arithmetic expression (null when the written position is not
-    /// one — the hook refuses it by name, COBOL2363), its written text for that message and its line, it binds the
-    /// expression through the ONE <c>ExpressionBinder.BindExpr</c>, synthesizes the §2023:15.4 temporary via
-    /// <c>CompilerTemps.Create</c>, registers the store as a statement-scoped pending PRE-op on
-    /// <see cref="ProcedureBindState.PendingPreOps"/>, and returns the temp — which this resolver then reads as an ordinary
-    /// position (<see cref="PositionRead"/>).
-    /// <para>⛔ IT IS A HOOK, NOT A COLLABORATOR REFERENCE, because the binder dependency is ONE-WAY:
-    /// <c>StatementBinder(DataBinder, ReferenceResolver)</c>. StatementBinder installs it in its constructor (the
-    /// <c>ConditionRenderer.Calls</c> property-wire precedent). Null on the DATA-division resolution paths
-    /// (<c>DataBinder.Constants</c>/<c>Ptr</c> build a throwaway resolver with no procedure binder), where the
-    /// old loud posture stands — a VALUE/ADDRESS OF subscript cannot carry a function activation anyway.</para>
-    /// <para>⚠ Binding happens HERE, at resolve time, NOT at the drain. That is load-bearing for nesting: the UDF
-    /// precedent's own words are "a nested call registers while its consumer's arguments bind, so it precedes the
-    /// consumer in the sequence". Deferring the bind to the drain would append an INNER segment's temp AFTER its
-    /// consumer's — <c>W-E(FUNCTION INTEGER(W-F(FUNCTION INTEGER(2))))</c> would store in the wrong order.</para></summary>
-    /// <remarks>⛔ THE POSITION RIDES THE HOOK (kb/Work PB170/PB172). It used to be <c>Func&lt;string, int,
-    /// DataItem?&gt;</c>, so ONE hook served BOTH <see cref="SegmentPosition.Subscript"/> and
-    /// <see cref="SegmentPosition.RefMod"/> and the binder hard-coded the index-name window context for both —
-    /// but §2023:13.18.38.3 SR7's five contexts list "as a subscript" and do NOT list a reference-modification
-    /// position, so an index-name in a ref-mod bound was wrongly admitted. One hook, two positions, one context
-    /// was the defect; the position is now part of the hook's question.</remarks>
-    internal Func<Core.ArithmeticExpressionContext, SegmentPosition, int, DataItem?>? MaterializeSegment { get; set; }
-
     /// <summary>⛔ THE WRITTEN SUBSCRIPT LIST OF <paramref name="dref"/> AGAINST <paramref name="item"/>, read ONCE for
     /// both commit entries (<see cref="Resolve"/> and <see cref="ResolveForItem"/> each carried a copy before kb/Work
     /// PB1030): §2023:8.4.2.3.2's empty-parentheses screen, the segment renderer, §2023:8.4.2.3.3 SR4's index-name
@@ -222,7 +198,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
         int enclosing = table.SubscriptArity - 1;
         if (written == enclosing) return false;
         if (refs.Probing) return true;   // R30 purity: a probe never diagnoses (kb/Work PB157)
-        if (!refs.Diagnosed.Add(dref)) return true;
+        if (!refs.ReportOnce(dref)) return true;
         string subject = table.CobolName ?? table.ClrName;
         data.Edition.Error(DiagnosticCatalog.SubscriptCountMismatch,
             $"'{WrittenSource.Of(dref)}': the table '{subject}' sits inside {enclosing} enclosing OCCURS "
@@ -242,7 +218,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
     {
         if (data.Edition.DialectLevel >= 2014 || table.SubscriptArity < 2) return false;
         if (refs.Probing) return true;   // R30 purity: a probe never diagnoses (kb/Work PB157)
-        if (!refs.Diagnosed.Add(dref)) return true;
+        if (!refs.ReportOnce(dref)) return true;
         data.Edition.Error(DiagnosticCatalog.TableSortSubjectRightmostAll,
             $"'{WrittenSource.Of(dref)}': the table '{table.CobolName ?? table.ClrName}' is subject to {table.SubscriptArity} "
             + "levels of OCCURS clauses, and at COBOL-2002 the SORT subject writes a subscript for every level with the word ALL "
@@ -288,9 +264,9 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
     private bool ScreenEmptyParentheses(Core.DataReferenceContext dref, Core.SubscriptPartContext group)
     {
         if (!IsEmptyGroup(group)) return false;
-        // R30 purity: a probe never diagnoses (kb/Work PB157); one report per written reference (Diagnosed).
+        // R30 purity: a probe never diagnoses (kb/Work PB157); one report per written reference (ReportOnce).
         if (refs.Probing) return true;
-        if (!refs.Diagnosed.Add(dref)) return true;
+        if (!refs.ReportOnce(dref)) return true;
         data.Edition.Error(DiagnosticCatalog.EmptyParenthesesOnDataReference,
             $"'{WrittenSource.Of(dref)}': " + EmptyParenthesesMessage(data.Edition.Edition));
         return true;
@@ -329,9 +305,9 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
         // so every reference that reaches THIS screen is outside them and SR5 applies with no exception.
         int arity = item.SubscriptArity;
         if (written == arity) return false;
-        // R30 purity: a probe never diagnoses (kb/Work PB157); one report per written reference (Diagnosed).
+        // R30 purity: a probe never diagnoses (kb/Work PB157); one report per written reference (ReportOnce).
         if (refs.Probing) return true;
-        if (!refs.Diagnosed.Add(dref)) return true;
+        if (!refs.ReportOnce(dref)) return true;
         string text = WrittenSource.Of(dref);
         string subject = item.CobolName ?? item.ClrName;
         if (written == 0)
@@ -884,25 +860,26 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
 
     /// <summary>The D18 route (fix-queue PB17, widened by PB42): materialize ANY position the direct walk cannot
     /// read into the §2023:15.4 temporary, and read the position as that temp's ordinary position read. The position's
-    /// PARSE NODE — its <c>arithmeticExpression</c> — is handed to the <see cref="MaterializeSegment"/> hook, which
+    /// PARSE NODE — its <c>arithmeticExpression</c> — is handed to the statement site (<see cref="IStatementSite.MaterializeSegment"/>), which
     /// binds it through the ONE expression binder (kb/Work PB2151: the node is bound where the grammar parsed it; the
     /// verbatim-text re-parse through an isolated fragment rule is gone).
     /// <para>⛔ IT IS DELIBERATELY NOT GATED ON A TOKEN LIST. The ARITHMETIC-EXPRESSION GRAMMAR decides
     /// admissibility: a position that did not parse as an arithmetic expression — the word ALL outside §2023:8.4.2.3.3
     /// SR6's two contexts, a nonnumeric literal, a piece of an item the declarations cut that has no subscript
     /// reading (<see cref="SegmentsOf"/>) — is refused here by name (COBOL2363, kb/Work PB1030) and never reaches
-    /// the hook. That is what lets a function-identifier, <c>**</c>, a decimal literal and every
+    /// the statement site. That is what lets a function-identifier, <c>**</c>, a decimal literal and every
     /// future arithmetic form share ONE route with no per-token edit.</para>
-    /// <para>Null when the hook is absent (a data-division resolver builds a throwaway resolver with no procedure
-    /// binder) or the hook refuses or defers the position — in every such case the caller's loud posture stands.</para></summary>
+    /// <para>Null when there is no site (a data-division resolver, which no statement owns) or the site refuses or defers
+    /// the position — in every such case the caller's loud posture stands; a deferral marks the resolution
+    /// (<see cref="ReferenceResolver.SegmentDeferred"/>), so its null is a deferral, not a refusal (kb/Work PB1030).</para></summary>
     private Position? MaterializePosition(PositionSegment seg, SegmentPosition position)
     {
-        // R30 PURITY (kb/Work PB157): a probe must not BIND the position — the hook registers a §2023:15.4 pre-op and a
+        // R30 PURITY (kb/Work PB157): a probe must not BIND the position — the site registers a §2023:15.4 pre-op and a
         // function-bearing position would activate TWICE (once per probe+commit). The probe's Place is discarded
         // after its Item is read, so the dummy occurrence is never emitted.
         if (refs.Probing) return new PositionConstant(1);
         var tokens = seg.Tokens;
-        if (MaterializeSegment is null || tokens.Count == 0) return null;
+        if (refs.Site is not { } site || tokens.Count == 0) return null;
         // A reference the declarations cut (kb/Work PB136) is read without its list by every reader (ReadWritten), so a
         // position the walk cannot read binds through the expression binder like any other.
         if (seg.Operand?.arithmeticExpression() is not { } expr)
@@ -920,7 +897,9 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
             data.Edition.Error(DiagnosticCatalog.NotASubscript, IllegalPositionMessage(text.Trim(), position, data.Edition.Edition));
             return null;
         }
-        return MaterializeSegment(expr, position, tokens[0].Line) is { } temp ? PositionRead(temp, position) : null;
+        var value = site.MaterializeSegment(expr, position, tokens[0].Line);
+        if (value.Unbuilt) refs.SegmentDeferred = true;
+        return value.Temp is { } temp ? PositionRead(temp, position) : null;
     }
 
     /// <summary>The COBOL2363 text for a position that is not an arithmetic expression (kb/Work PB1030) — the
@@ -1035,9 +1014,8 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
     private void IndexNameInPositionError(string name, SegmentPosition position)
     {
         var ed = data.Edition.Edition;
-        string what = $"the index-name '{name}' is not an identifier ({EditionInfo.Designated(ed.NotAnIdentifier())}) and a "
-            + $"reference-modification leftmost-position/length is not one of {ed.Contexts()}'s five contexts (a "
-            + $"subscript, PERFORM/SEARCH VARYING, SET, a relation condition) — {ed.Cite("§1985:VI.5.8.3 SR13", "§2023:8.4.3.3.3 SR4")} makes both bounds "
+        string what = $"the index-name '{name}' is not an identifier ({EditionInfo.Designated(ed.NotAnIdentifier())}) and "
+            + $"{ed.ReferenceModificationContext()} — {EditionInfo.Designated(ed.ReferenceModificationBounds())} makes both bounds "
             + "arithmetic expressions";
         if (data.Edition.Permissive)
             data.Edition.Warning(DiagnosticCatalog.IndexNameContext,

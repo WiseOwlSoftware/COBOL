@@ -105,7 +105,7 @@ public static partial class CobolNum
     /// <para>⛔ THE UNSIGNED VALUE MUST NOT ENTER THE SIGNED LANE (kb/Work PB164 — the Step D review's
     /// sweep-note #409). It was written as <c>FormatImage(unchecked((Int128)unscaled), item)</c> on the theory
     /// that the reinterpretation is bit-identical. It is not, because
-    /// <see cref="FormatBinaryImage"/> applies §2023:14.9.25.4 GR6b — "when an unsigned numeric item is the
+    /// <see cref="FormatBinaryImage"/> applies §2023:14.9.25.4 GR6d.2.b — "when an unsigned numeric item is the
     /// receiving item, the ABSOLUTE VALUE of the sending value is used" — and that rule is about a NEGATIVE
     /// VALUE, while a 16-byte container value ≥ 2^127 reinterprets to a negative <c>Int128</c> that is not a
     /// negative value at all. The rule then NEGATED the bit pattern: an item holding 2^128−1 encoded as
@@ -416,7 +416,7 @@ public static partial class CobolNum
     private static string FormatBinaryImage(Int128 unscaled, in NumProfile item)
     {
         int n = Width(item);
-        // §2023:14.9.25.4 GR6b — an unsigned receiving item takes the ABSOLUTE VALUE of the sending value. This is a
+        // §2023:14.9.25.4 GR6d.2.b — an unsigned receiving item takes the ABSOLUTE VALUE of the sending value. This is a
         // VALUE-domain rule; the unsigned CARRIER lanes above therefore never come through here, because their
         // "negative" Int128 is a reinterpreted bit pattern, not a negative value.
         if (!item.Signed && unscaled < 0) unscaled = -unscaled;
@@ -424,14 +424,14 @@ public static partial class CobolNum
     }
 
     /// <summary>The radix-2 rendering itself: <paramref name="raw"/>'s low <paramref name="n"/> bytes, most
-    /// significant first, one byte per char. The ONE place binary bytes are laid out — the signed lane reaches
-    /// it after §2023:14.9.25.4 GR6b normalization, the unsigned carrier lanes directly.</summary>
-    private static string BinaryBytes(UInt128 raw, int n)
-    {
-        var chars = new char[n];
-        for (int i = 0; i < n; i++) chars[i] = StorageByte.ToChar((byte)(raw >> (8 * (n - 1 - i))));
-        return new string(chars);
-    }
+    /// significant first, one byte per char, written straight into the image string (kb/Work PB2656). The ONE place
+    /// binary bytes are laid out — the signed lane reaches it after §2023:14.9.25.4 GR6d.2.b normalization, the unsigned
+    /// carrier lanes directly.</summary>
+    private static string BinaryBytes(UInt128 raw, int n) =>
+        string.Create(n, raw, static (image, r) =>
+        {
+            for (int i = image.Length - 1; i >= 0; i--, r >>= 8) image[i] = StorageByte.ToChar((byte)r);
+        });
 
     private static Int128 ParseBinaryImage(string image, in NumProfile item)
     {
@@ -474,19 +474,29 @@ public static partial class CobolNum
         bool negative = item.Signed && unscaled < 0;
         Int128 mag = unscaled < 0 ? -unscaled : unscaled;
         if (item.Digits > 0) mag %= Pow10Wide(item.Digits);   // the picture's digit capacity, as the zoned form does
+        int sign = !hasSignNibble ? -1 : item.Signed ? (negative ? SignNegative : SignPositive) : SignUnsigned;
 
-        var nibbles = new byte[2 * n];
-        for (int i = digitNibbles - 1; i >= 0; i--)
+        // Written straight into the image string, least significant nibble first (kb/Work PB2656): the last byte's
+        // low nibble is the sign when the form reserves one, and every other nibble takes the magnitude's next digit,
+        // so the digits fill the 2n - (sign ? 1 : 0) digit nibbles from the right and a leading pad nibble is zero.
+        return string.Create(n, (Magnitude: mag, Sign: sign), static (image, p) =>
         {
-            nibbles[i] = (byte)(mag % 10);
-            mag /= 10;
-        }
-        if (hasSignNibble)
-            nibbles[^1] = item.Signed ? (negative ? SignNegative : SignPositive) : SignUnsigned;
+            Int128 m = p.Magnitude;
+            for (int i = image.Length - 1; i >= 0; i--)
+            {
+                int low = i == image.Length - 1 && p.Sign >= 0 ? p.Sign : NextDigit(ref m);
+                int high = NextDigit(ref m);
+                image[i] = StorageByte.ToChar((byte)((high << 4) | low));
+            }
+        });
+    }
 
-        var chars = new char[n];
-        for (int i = 0; i < n; i++) chars[i] = StorageByte.ToChar((byte)((nibbles[2 * i] << 4) | nibbles[2 * i + 1]));
-        return new string(chars);
+    /// <summary>The magnitude's least significant decimal digit, removed from it.</summary>
+    private static int NextDigit(ref Int128 magnitude)
+    {
+        int d = (int)(magnitude % 10);
+        magnitude /= 10;
+        return d;
     }
 
     private static Int128 ParsePackedImage(string image, in NumProfile item)

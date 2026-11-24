@@ -1,7 +1,8 @@
 {
  "rule-id": "2002-GR-13.16.38.4-14",
  "rule-digest": "5f9cb6730e1b",
- "verdict": "DIVERGES",
+ "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Runtime/Globalization/MonetaryPlacement.cs#Render",
- "notes": "kb/Work PB5650: at --std 2002 (golden-2002-1 re-probe on main b15bb9088f) de-DE ZZZZZZ9.99 SIZE 14 leaves a trailing space and pt-BR puts a space between sign and value: GR14 a) right justification with left space fill fails; the en-US legs are witnessed by g2-pic38-cd-categories-locale."
+ "test-ref": "conformance:cases/13.16.38@2002-PICTURE-CLAUSE/pb5650-locale-no-currency-symbol-no-space; unit:MonetaryFactsTests.ForPicture_NoCurrencySymbol_AddsNoSeparatorSpace_PB5650",
+ "notes": "kb/Work PB5650 fixed: de-DE ZZZZZZ9.99 SIZE 14 with 1234567.89 now prints [  1.234.567,89], right justified with left space fill (§2002:13.16.38.4 GR14); the en-US legs are witnessed by g2-pic38-cd-categories-locale; run at --std 2002 on this branch's build."
 }

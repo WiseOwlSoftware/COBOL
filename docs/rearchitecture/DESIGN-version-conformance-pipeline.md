@@ -148,7 +148,7 @@ after parsing — never by a grammar action or a side table keyed on the parse n
   node instead.
 - **The test is "WHICH RESOLVED FACT?", and a self-identifying bound-node TYPE is NOT an answer** (kb/Work
   PB353). That was the original wording, and it is what put five gates on the wrong arm: `BoundKeyedStart.Mode`,
-  `BoundKeyedStart.Length`, `IBoundRead.Kind`, `IBoundRead.AdvancingOnLock` and `BoundInvoke` are all
+  `BoundKeyedStart.Length`, the READ nodes' `Kind` and `AdvancingOnLock`, and `BoundInvoke` are all
   self-identifying, and all five are assigned from a PARSE fact and nothing else — so the bound-tree home bought
   no precision and cost the diagnostic on every path that returned `BoundUnsupported`/`BoundNop` before the node
   existed. `START NOSUCHF FIRST` at `--std 85` named COBOL1639 and no edition; so did `START SDF FIRST` on an

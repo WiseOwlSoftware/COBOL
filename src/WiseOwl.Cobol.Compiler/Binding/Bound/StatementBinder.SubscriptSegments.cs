@@ -68,9 +68,10 @@ public sealed partial class StatementBinder
 
     /// <summary>Materialize one position the resolver's direct walk cannot read — a function-bearing subscript or
     /// ref-mod bound, a division, an exponentiation, a decimal literal (the D18 route; the
-    /// <c>SubscriptBinder.MaterializeSegment</c> hook), given the position's own <c>arithmeticExpression</c> parse
+    /// statement site's <see cref="IStatementSite.MaterializeSegment"/>), given the position's own <c>arithmeticExpression</c> parse
     /// node (kb/Work PB2151: the node is bound where the grammar parsed it). Returns the §2023:15.4 temporary the value
-    /// lands in, or <see langword="null"/> to leave the caller's loud posture untouched. A position that is not an
+    /// lands in, or none to leave the caller's loud posture untouched (marked <see cref="SegmentValue.Unbuilt"/> when an
+    /// operand of the position is a deferred shape). A position that is not an
     /// arithmetic expression never arrives: the resolver refuses it by name (COBOL2363, kb/Work PB1030).
     ///
     /// <para><b>Ordering is why this binds HERE and not at the drain.</b> A nested segment
@@ -83,7 +84,7 @@ public sealed partial class StatementBinder
     /// numeric renderer and the ONE arithmetic store path, but the integrality question is asked of the value on
     /// its own carrier BEFORE the store, which a <c>BoundCompute</c> into a fixed-scale temp could not do (kb/Work
     /// PB1890). The temp is the saturated integer position, so a size error at the store is unreachable.</para></summary>
-    private DataItem? BindPositionTemporary(Frontend.Generated.CobolParserCore.ArithmeticExpressionContext expr,
+    private SegmentValue BindPositionTemporary(Frontend.Generated.CobolParserCore.ArithmeticExpressionContext expr,
         SegmentPosition position, int line)
     {
         // ⛔ THE POSITION DECIDES THE CONTEXT (kb/Work PB170/PB172). ISO §2023:13.18.38.3 SR7 lists five contexts in
@@ -100,9 +101,8 @@ public sealed partial class StatementBinder
         if (value is BoundExprError err)
         {
             // Refused: the expression binder reported it. Unbuilt: an operand of the segment is a deferred shape, so
-            // the REFERENCE is deferred too, not refused (kb/Work PB1030) — the resolver reads that from here.
-            if (err.IsUnbuilt) refs.NoteSegmentDeferred();
-            return null;
+            // the REFERENCE is deferred too, not refused (kb/Work PB1030) — the answer tells the resolver so.
+            return new SegmentValue(null, Unbuilt: err.IsUnbuilt);
         }
 
         // The MODEL is a description carrier only: Temps.Create clones its Pic (and, for a group, its
@@ -110,10 +110,10 @@ public sealed partial class StatementBinder
         var model = new DataItem { Level = 1, CobolName = "__SUBEXPR-MODEL", ClrName = "__subexprModel",
                                   Pic = SegmentTempPic };
         var temp = data.Temps.Create(model, "__SUBEXPR-", "__subexpr", $"L{line}");
-        if (Ctx.Refs.Places.ResolveItem(temp) is not { } place) return null;
+        if (Ctx.Refs.Places.ResolveItem(temp) is not { } place) return default;
 
         data.Procedure.PendingPreOps.Add(new BoundPositionValue(value, place, RefMod: position == SegmentPosition.RefMod));
-        return temp;
+        return new SegmentValue(temp, Unbuilt: false);
     }
 
     /// <summary>⛔ THE OCCURS DEPENDING ON OBJECTS AN OPERAND'S IDENTIFICATION READS, PINNED AT ITS IDENTIFICATION (ISO
@@ -124,7 +124,7 @@ public sealed partial class StatementBinder
     /// <paramref name="preOpMark"/>, and the place returned reads the temps (<see cref="OdoDependence.Rebind"/>, the one
     /// walk over every place kind). A DEPENDING ON place the walk meets twice is copied once. The copy is a plain MOVE, so the value it pins is exactly the one the operand site would
     /// have read at <paramref name="preOpMark"/>.
-    /// <para>Two callers: the <c>ReferenceResolver.FreezeOdoExtent</c> hook, when a reference modifier's position
+    /// <para>Two callers: the statement site's <see cref="IStatementSite.FreezeOdoExtent"/>, when a reference modifier's position
     /// registered pre-ops (a function activation that may change the object runs after the length, steps 6 then 7), and
     /// <see cref="FreezeOdoExtentForStatement"/>.</para></summary>
     private Place FreezeOdoExtentBeforeRefMod(Place place, int preOpMark, int line)

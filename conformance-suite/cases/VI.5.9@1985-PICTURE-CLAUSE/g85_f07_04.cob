@@ -3,7 +3,6 @@
       *> rules: [1985-SR-VI.5.9.3-1]
       *> accept: [85]
       *> source-format: fixed
-      *> portable: unverified
       *>---
       *> §1985:VI.5.9.3 SR1 - "A PICTURE clause can be specified only
       *> at the elementary item level." Every PICTURE below is on an
@@ -24,10 +23,12 @@
            05  WS-S.
                10  WS-X  PIC XX VALUE "XY".
                10  WS-D  PIC 9  VALUE 7.
+       01  WS-N-E PIC ZZ9.
        PROCEDURE DIVISION.
        MAIN-PARA.
            DISPLAY "[" WS-G "]".
            DISPLAY "[" WS-S "]".
            MOVE 345 TO WS-N.
-           DISPLAY "[" WS-N "]".
+           MOVE WS-N TO WS-N-E
+           DISPLAY "[" WS-N-E "]".
            STOP RUN.

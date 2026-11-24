@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.CommandLine;
 using System.Reflection;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -56,8 +57,11 @@ public sealed class DocumentedFactsDriftTests
             })
             .OrderBy(o => o.ToJsonString(), StringComparer.Ordinal)
             .ToList();
+        // Every verb's options: the compile's, and those of the batch verbs (check-batch, points-batch), which the command-line
+        // page documents in their own sections.
         var (command, _) = Program.BuildParser();
-        var options = command.Options.SelectMany(o => o.Aliases.Append(o.Name))
+        var verbs = new Command[] { command }.Concat(Program.BuildCheckBatchParser().Subcommands).Concat(Program.BuildPointsBatchParser().Subcommands);
+        var options = verbs.SelectMany(v => v.Options).SelectMany(o => o.Aliases.Append(o.Name))
             .Where(n => n.StartsWith("--", StringComparison.Ordinal));
         var statuses = Enum.GetValues<CompilerDriver.Outcome>().Select(o => Program.ExitCode(o)).Append(Program.LibraryRunExitCode)
             .Distinct().Order();

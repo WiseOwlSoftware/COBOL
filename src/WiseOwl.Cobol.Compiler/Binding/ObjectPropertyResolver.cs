@@ -45,17 +45,13 @@ internal readonly record struct PropertyReceiver(InvokeForm Form, Place? Receive
 /// </summary>
 internal sealed class ObjectPropertyResolver(ReferenceResolver refs, DataBinder data)
 {
-    /// <summary>The procedure binder's reading of a non-word object (<c>propertyObject</c>) — SELF, SUPER (with its
+    /// <summary>The statement site's reading of a non-word object (<c>propertyObject</c>) — SELF, SUPER (with its
     /// <c>object-class-name-1</c> qualifier when the chain spelled one), an object-view, a function-identifier, NULL —
-    /// as a property's receiver; null having reported, or (a PROBE, the bool) null when it cannot be told without side
-    /// effects. The same one-way delegate edge as <see cref="MaterializeSegment"/>: a data-division resolver has none,
-    /// and those objects exist only in a method's procedure division.</summary>
-    internal Func<Core.PropertyObjectContext, Core.CobolWordContext?, bool, PropertyReceiver?>? BindPropertyObject { get; set; }
-
-    /// <summary>The procedure binder's object-view (§2023:8.4.3.5) over an already resolved identifier-1 — for
-    /// <c>A OF G AS C</c>, a view of the qualified data item <c>A OF G</c> (§2023:8.4.3.1.4 GR1a before c)) that the grammar
-    /// spells as a property chain (<see cref="ViewOfQualifiedItem"/>). Null having reported.</summary>
-    internal Func<Place, Core.ObjectViewContext, string, Place?>? ApplyObjectView { get; set; }
+    /// as a property's receiver (<see cref="IStatementSite.BindPropertyObject"/>), asked in this resolver's mode; null
+    /// having reported, or on a probe null when it cannot be told without side effects. A data-division resolver has no
+    /// site, and those objects exist only in a procedure division.</summary>
+    private PropertyReceiver? BindPropertyObject(Core.PropertyObjectContext po, Core.CobolWordContext? superQualifier) =>
+        refs.Site?.BindPropertyObject(po, superQualifier, refs.Probing);
 
     /// <summary>True when <paramref name="dref"/> is an OBJECT-PROPERTY reference (§2023:8.4.3.9.2) rather than an ordinary
     /// data reference. The ONE such test, over the SAME <see cref="ResolveObjectProperty"/> the committing path runs, so
@@ -63,7 +59,7 @@ internal sealed class ObjectPropertyResolver(ReferenceResolver refs, DataBinder 
     /// <para>Its callers are §2023:14.9.4.3 SR20's carve-out (kb/Work PB238): "BY CONTENT shall not be omitted when
     /// identifier-4 is an identifier that is permitted as a receiving operand, EXCEPT that BY CONTENT may be omitted when
     /// identifier-4 is an object property" — and §2023:8.4.3.2.4 GR5a's "other than an object property".</para>
-    /// <para>⛔ PURE — it runs the resolution under <c>Probing</c>, so no temp is synthesized, no pending §2023:8.4.3.9.4 op
+    /// <para>⛔ PURE — it runs the resolution on the PROBING resolver (<see cref="ReferenceResolver.Prober"/>), so no temp is synthesized, no pending §2023:8.4.3.9.4 op
     /// is registered and no diagnostic is reported (the R30 probe contract). The ordinary-qualification test comes FIRST
     /// for the same reason the committing path orders it that way.</para></summary>
     public bool IsObjectPropertyReference(Core.DataReferenceContext dref)
@@ -74,10 +70,8 @@ internal sealed class ObjectPropertyResolver(ReferenceResolver refs, DataBinder 
             && (written.Qualifiers.Count == 0
                 || refs.Names.DataItemNamed(WrittenQualifiedName.OfRead(dref, written.Qualifiers)) is not null))
             return false;
-        bool saved = refs.Probing;
-        refs.Probing = true;
-        try { return ViewOfQualifiedItem(dref, report: false) is null && ResolveObjectProperty(dref, written).Temp is not null; }
-        finally { refs.Probing = saved; }
+        var probing = refs.Prober.ObjectProperties;
+        return probing.ViewOfQualifiedItem(dref, report: false) is null && probing.ResolveObjectProperty(dref, written).Temp is not null;
     }
 
     /// <summary>The <c>object-class-name-1</c> of a written <c>object-class-name-1 OF SUPER</c> (§2023:8.4.3.8.2), or null.
@@ -98,13 +92,8 @@ internal sealed class ObjectPropertyResolver(ReferenceResolver refs, DataBinder 
 
     /// <summary>True when <paramref name="dref"/> is the object-view of a qualified data item written as one chain,
     /// <c>A OF G AS C</c> — a view, which §2023:8.4.3.5.3 SR2 forbids as a receiving operand. Pure.</summary>
-    internal bool IsObjectViewOfQualifiedItem(Core.DataReferenceContext dref)
-    {
-        bool saved = refs.Probing;
-        refs.Probing = true;
-        try { return ViewSubjectChain(dref) is not null; }
-        finally { refs.Probing = saved; }
-    }
+    internal bool IsObjectViewOfQualifiedItem(Core.DataReferenceContext dref) =>
+        refs.Prober.ObjectProperties.ViewSubjectChain(dref) is not null;
 
     /// <summary>§2023:8.4.3.1.4 GR1a before c): when the chain <c>head OF … OF subject</c> in front of a trailing object-view
     /// (<c>A OF G AS C</c>) is itself a qualified data name, the view applies to THAT item, not to the last word —
@@ -116,7 +105,7 @@ internal sealed class ObjectPropertyResolver(ReferenceResolver refs, DataBinder 
         var (subject, view) = chain;
         var resolved = refs.ResolveImpl(subject, report);
         if (resolved.Place is not { } place || !report) return resolved;
-        if (ApplyObjectView?.Invoke(place, view, WrittenSource.Of(subject)) is { } viewed)
+        if (refs.Site?.ApplyObjectView(place, view, subject) is { } viewed)
             return RefResolution.Resolved(viewed, "");
         return RefResolution.Refused(WrittenSource.Of(dref));
     }
@@ -174,7 +163,7 @@ internal sealed class ObjectPropertyResolver(ReferenceResolver refs, DataBinder 
             // identifier-3 (PropertyObjectReference), where the ordinary screen reads them.
             if (written.SubscriptGroup is { } sub && sub.Start.TokenIndex > terminal!.Stop.TokenIndex)
             {
-                if (!refs.Probing && refs.Diagnosed.Add(dref))
+                if (refs.ReportOnce(dref))
                     data.Edition.Error(DiagnosticCatalog.SubscriptOnNonTableItem,
                         $"'{WrittenSource.Of(dref)}': a subscript is written on the object property '{name}' OF "
                         + $"'{objWritten}', which is no table element, so no subscript may be written on it "
@@ -185,14 +174,14 @@ internal sealed class ObjectPropertyResolver(ReferenceResolver refs, DataBinder 
             // admits it only as the object an invocation selects a method through (OoBinder.OoBindByReceiver).
             if (terminal!.SUPER() is not null && dref.cobolWord() is { } head && IsClassName(dref, head))
             {
-                if (!refs.Probing && refs.Diagnosed.Add(dref))
+                if (refs.ReportOnce(dref))
                     data.Edition.Error(DiagnosticCatalog.SuperPosition,
                         $"'{WrittenSource.Of(dref)}' is written as an operand: SUPER may be specified only as the object "
                         + "in an object-property identifier or as the object used to invoke a method (ISO §2023:8.4.3.8.3 SR3)");
                 return (null, Refusal());
             }
-            if (BindPropertyObject?.Invoke(terminal, null, refs.Probing) is not { } bound)
-                return refs.Probing || BindPropertyObject is null ? default : (null, Refusal());
+            if (BindPropertyObject(terminal, null) is not { } bound)
+                return refs.Probing || refs.Site is null ? default : (null, Refusal());
             receiver = bound;
         }
         else if (objRef.dataReferenceSuffix().Length == 0
@@ -204,8 +193,8 @@ internal sealed class ObjectPropertyResolver(ReferenceResolver refs, DataBinder 
         }
         else if (QualifiedSuperClass(objRef) is { } superClass)
         {
-            if (BindPropertyObject?.Invoke(objRef.dataReferenceSuffix()[0].propertyObject(), superClass, refs.Probing) is not { } bound)
-                return refs.Probing || BindPropertyObject is null ? default : (null, Refusal());
+            if (BindPropertyObject(objRef.dataReferenceSuffix()[0].propertyObject(), superClass) is not { } bound)
+                return refs.Probing || refs.Site is null ? default : (null, Refusal());
             receiver = bound;
         }
         else
@@ -226,7 +215,7 @@ internal sealed class ObjectPropertyResolver(ReferenceResolver refs, DataBinder 
             }
             else
                 typed = ViewSubjectChain(objRef) is { View.Parent: Core.PropertyObjectContext viewed }
-                    ? BindPropertyObject?.Invoke(viewed, null, true)
+                    ? BindPropertyObject(viewed, null)
                     : RosterOf(sniff.Item, new PropertyReceiver(InvokeForm.Instance, null, null, null, false), name,
                         objWritten, out answered);
             if (typed is not { } found) return answered && !refs.Probing ? (null, Refusal()) : default;

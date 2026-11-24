@@ -22,7 +22,7 @@ namespace WiseOwl.Cobol.Tests.Unit.Collation;
 /// conformance-suite/cases/14.6.6-Locale-identification/pb64t4_locale_functions proves the same through compiled COBOL.
 /// </summary>
 [Collection("process-globals")]   // was "site-tailoring-directory"; widened (kb/Work PB126) — this class
-                                  // clears the process-global locale/collation caches (LocaleManager.ClearCache),
+                                  // clears the process-global locale/collation caches (CollationEngine.ClearLocaleCache),
                                   // which races any parallel identity-assert on the same caches.
 public sealed class CobolLocaleTests
 {
@@ -321,12 +321,12 @@ public sealed class CobolLocaleTests
     public void AvailableLocaleWithoutCultureData_IsInvalid_ForTheTimeFunctions()
     {
         string dir = ScratchDirectory.Create("wiseowl-cobol-locales-");
-        string saved = Environment.GetEnvironmentVariable(LocaleConfig.TailoringDirectoryVariable) ?? "";
+        string saved = Environment.GetEnvironmentVariable(TailoringRules.EnvDirectory) ?? "";
         try
         {
             File.WriteAllText(Path.Combine(dir, "zz-QQ.tailor"), "@locale zz-QQ\n");
-            Environment.SetEnvironmentVariable(LocaleConfig.TailoringDirectoryVariable, dir);
-            LocaleManager.ClearCache();
+            Environment.SetEnvironmentVariable(TailoringRules.EnvDirectory, dir);
+            CollationEngine.ClearLocaleCache();
             LocaleFacts.ClearCache();
             Assert.True(LocaleIdentification.IsAvailable("zz-QQ"));
             var facts = LocaleFacts.For("zz-QQ");
@@ -365,8 +365,8 @@ public sealed class CobolLocaleTests
         }
         finally
         {
-            Environment.SetEnvironmentVariable(LocaleConfig.TailoringDirectoryVariable, saved.Length == 0 ? null : saved);
-            LocaleManager.ClearCache();
+            Environment.SetEnvironmentVariable(TailoringRules.EnvDirectory, saved.Length == 0 ? null : saved);
+            CollationEngine.ClearLocaleCache();
             LocaleFacts.ClearCache();
             ScratchDirectory.Remove(dir);
         }

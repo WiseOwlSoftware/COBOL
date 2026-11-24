@@ -781,6 +781,16 @@ R0-0229–R0-0234) and the measured cycles `Runtime ↔ Runtime.IO` (10 and 49),
 give it them, and the first census after those waves writes the runtime's own layer table into the same file (values
 ← exceptions ← control ← I-O, verbs and intrinsics, the order `DESIGN-runtime-library.md` §2 already states), with
 its own tolerated rows. The front end's internal order is in the file now because its namespaces exist.
+The text subsystems' start-up hook is not one of those cycles: `CollationRuntime` (the cheap per-run-unit
+initialization and the eager warm-up over the collation engine, the CLDR loader, the key cache, the normalizer, the
+grapheme table and the run unit's default locale) lives in `Control/` in `WiseOwl.Cobol.Runtime`, beside `RunUnit`, its
+one product caller, and its `RuntimeConfig` row (kb/Work PB2760). `WiseOwl.Cobol.Runtime.Collation` therefore names no
+type of the root namespace, of `.Unicode`, `.Unicode.Segmentation` or `.Collation.Locale`, and sits below values in the
+runtime's layer table. One edge remains to place: `.Collation.Locale` reads the run unit's locale state
+(`LocaleManager` → `RunUnit.Current.Locale`), and the control layer's warm-up resolves
+the default locale through `LocaleManager`, so `Runtime ↔ Runtime.Collation.Locale` is one layer, control, by
+placement, as `Runtime ↔ Runtime.IO` is until the Move waves give `Control/` its namespace and the locale selector its
+place in it.
 
 **The drift test.** `ArchitectureEdgesDriftTests` (tests/WiseOwl.Cobol.Tests.Unit) is a metadata walk over the built
 product assemblies, not a source scan and not an MSBuild workspace, so it costs about a second per gate:
@@ -968,11 +978,22 @@ The rules (each a drift assertion, listed with the measure that shows today's di
    so these counts stop being text scans, and `file_census_notes.py` files their findings like the others (rules 2 and
    3 have no notes until it does); the drift assertions read the newest record, as `ArchCensusDriftTests` does.
 7. **A schema-owned vocabulary has no hand-kept copy in `scripts/`.** The inventory schema
-   (`tests/version-matrix/inventory-schema.json`) owns the verdicts and their `resolves` flags, the test-ref forms and
-   both list separators; a script reads them through `inventory_schema.load_schema()` (`Schema.resolving`,
-   `Schema.defective`, `Schema.test_ref_forms`, `Schema.test_ref_sep`, `Schema.code_location_sep`), never by retyping
-   them or by a second parse of the JSON (kb/Work PB3206, PB3210). Each reader's self-test plants a schema with a new
-   entry and shows it carried through (`scripts/selftests/spec/normalize_batch/`).
+   (`tests/version-matrix/inventory-schema.json`) owns the verdicts and their `resolves` flags, the test-ref forms, the
+   list separators and the retired-witness mark; a script reads them through `inventory_schema.load_schema()`
+   (`Schema.resolving`, `Schema.defective`, `Schema.test_ref_forms`, `Schema.test_ref_sep`, `Schema.code_location_sep`,
+   `Schema.editions_sep`) and the module's constants (`RETIRED_WITNESS_MARK`), splits a list field with `Schema.split`,
+   and takes the raw entries (to plant in a self-test, or a history commit's) from `inventory_schema.raw_schema(tree)`,
+   the one parse of the file; never by retyping them, by a second parse of the JSON or by a hand split on a separator
+   (kb/Work PB3206, PB3210, PB6098). The drift assertion is `scripts/spec/schema_readers.py --check`, run over the tree
+   by its self-test (`scripts/selftests/spec/schema_readers/`, every gate of a change that touches a script, and CI):
+   outside `inventory_schema.py` no live Python file names the schema file as a path, parses it, or hands a schema
+   separator to `str.split`. Measured at PB6098: 11 findings in 6 scripts (`rename_diagnostic_prefix.py`'s parse of the
+   mark, `normalize_batch.py`'s two inline splits, the conformance generator's four editions splits, `session_probe.py`'s
+   probe of the file, `inventory_view.py`'s and `audit_witness_loss.py`'s parses), plus 11 parses through the former
+   `SCHEMA_PATH` constant (deleted) or `docchecks/register.py`'s alias of the path, which the scan, reading one call at a
+   time, does not see (its named residue); 0 of either after it. The form table's reader,
+   `normalize_batch.py`, also plants a schema with a new form and a new separator and shows them carried through
+   (`scripts/selftests/spec/normalize_batch/`).
 
 **Names: what changes, what does not, and the one owner question.**
 - *Project and assembly names do not change.* `WiseOwl.Cobol.{Editions,Frontend,Compiler,Runtime,Cli}` and the
@@ -1211,7 +1232,9 @@ which returns and removes the entries after the mark in registration order, plus
 proved they need: `InsertAt(position, …)`, the evaluation-order placement a freeze makes ahead of a later operand's
 entries (`SendingValueTemp.Positioned`, `StatementBinder.FreezeOdoExtentBeforeRefMod`; §2023:14.6.4), and `Since(mark)`,
 the read of an operand's entries without taking them (the reference resolver's enclosing-occurrence capture); it holds
-`PendingPreOps` and `PropertyOps`, the former `OoPendingPropertyOps`); and a **scope cursor** (`Cursor<T>`:
+`PendingPreOps` and `PropertyOps`, the former `OoPendingPropertyOps`, and the window protocol over the two, mark on
+entry, drain the suffix, stamp each step an operand evaluation, hoist it or attach it per evaluation, has ONE owner,
+`OperandEvaluationWindow` (`StatementBinder.Window`; kb/Work PB3223), never one of its four producers); and a **scope cursor** (`Cursor<T>`:
 `Enter(value)` returns the restoring scope, and `Advance(value)` moves the cursor inside the open scope, which the
 operand-evaluation count needs as the statement drains its steps; it holds `OperandEvaluations`, entered at zero per
 statement, and `ActiveMethodScope`). It is held per unit binder (`DataBinder.Procedure`), not on `BindSession`: the
@@ -1552,6 +1575,9 @@ arguments…, the returned value", §2023:15.1): `NumericFunctions`, `Trigonomet
 adjacent behind one entry per function; the shared argument coercions become `NumericArguments`. *Seam:* one static
 entry per function on its family type, reached by emitted code through a `RuntimeMembers` handle (9); every rename
 lands as one explained oracle difference (§4 item 1). *Steps:* PB2298, PB2365–PB2370.
+*Not an intrinsic:* the arithmetic operator `**` is no §15 function. Its binary64 arm and the one §2023:8.8.1.2 rule-6 screen
+every carrier's power asks are `CobolPower` in the value library (`Values/Numeric/`, beside `CobolDec.Pow` and
+`CobolExact.Pow`), emitted through `RuntimeApi.Binary64Pow` (kb/Work PB2628, landed before PB2298).
 
 **(4) `WiseOwl.Cobol.Binding.ReferenceResolver`** — R0-0004 (its partial and nested types). **LANDED (wave 20261827; steps
 PB2299, PB2371–PB2375 ran as one group, one checkpoint commit per step, each proven by `compare_oracle.py` IDENTICAL).**
@@ -1574,7 +1600,22 @@ PAGE-COUNTER and LINE-COUNTER for `CounterResolver`, but the resolver holds no a
 stops at `SpecialRegister` and the statement binder routes them to `BoundLinageCounterRef` / `BoundReportCounterRef`); the code that
 was a counter in the resolver is the REPORT SECTION SUM counter (§2023:13.18.54.4 GR5), which is what the type owns.
 `ReferenceResolver` stays the funnel (`Identify`, the three `RefResolution` entries, the CAPACITY, EXCEPTION-OBJECT and DEBUG-ITEM
-register views, and the per-resolution state `Probing`, `Diagnosed`, `SegmentDeferred`). *Seams:* `RefResolution` and
+register views, and the per-resolution state `SegmentDeferred`). *What a resolution may do is fixed at construction* (kb/Work
+PB3230, which amends this item): the statement site is ONE immutable interface, `IStatementSite` (`Binding/IStatementSite.cs`:
+the D18 materializer, the §2023:14.6.4 ODO pin, the EC-BOUND-REF-MOD checking query, the property object, the object view),
+passed to the funnel's constructor by the statement binder that owns it (`StatementBinder.Refs`), absent for a data-division
+resolver, so the two are two constructions and no part holds a settable delegate; a PROBE is a second construction of the
+funnel over the same site (`ReferenceResolver.Prober`), so `Probing` is a constant every part reads and nothing saves, sets or
+restores it (a commit asked while probing goes back to the committer); and one report per written reference is ONE ledger,
+`ReferenceReports` (`Binding/ReferenceReports.cs`, keyed by the written node's identity and a `ReferenceReportRule`), asked
+through `ReferenceResolver.ReportOnce`, which a probe is never granted — it replaced the resolver's `Diagnosed`, the three
+index-name and LINKAGE-leg sets of `NameResolution` and the three condition-name sets of `ConditionBinder`. *Not built, by
+decision (PB3230):* returning a resolution's effects as data for one commit step to apply. The effects a commit causes are
+not the resolver's to hand back: the D18 materializer binds a whole expression through the statement binder (its diagnostics,
+its pre-ops, its compiler temps, whose names are numbered in allocation order), so a probe that ran it and discarded the
+effects would renumber every later temporary and reorder the in-order diagnostic stream the §4.1 oracle compares; the probe
+keeps its effect-free readings (the materializer's occurrence 1, `OoBinder.OoBindPropertyObject`'s descriptions) instead.
+*Seams:* `RefResolution` and
 `PlaceBuilder` / `PlaceTable`. The Format-2 table SORT of shared storage still asks `PlaceTable.Window` and
 `.CurrentOccurrenceCount` at its comparator's run-time element numbers (three `SortEmitter` sites): bound-tree data when SortBinder
 builds those windows over `StatementLocal` positions. *Steps:* PB2299, PB2371–PB2375 (landed).
@@ -1747,7 +1788,7 @@ carries its order and blockers):
 | `CodeGen.EcEmitter` (R0-0039) | per-statement checking state, declarative dispatch (`Dispatch`) | `EcCheckingEmitter`; `DeclarativeDispatchEmitter` | EcCheckingEmitter.Emit(EcStatementInfo, EmitContext); DeclarativeDispatchEmitter.Emit(the unit's declaratives) |
 | `Runtime.IO.FileConnector` (R0-0040) | the base of the three organizations: open modes (`Open`), the record area | OpenModeMachine (the §2023:9.1.13 transitions); `RecordArea` | OpenModeMachine.Transition(open mode, operation) → I-O status |
 | `CodeGen.PlaceRenderer` (R0-0041) | rendering per `Place` kind (`Group`, `Image`); its `_ => throw` arms | one renderer per Place kind family | one visitor over the Place union (§8.5 step 3); each family renderer Render(a Place kind, EmitContext) |
-| `CodeGen.GroupImageCodec` (R0-0042) | AsImage/FromImage (`Image`), bit images, image initialization | `GroupImageCodec`; `BitImageCodec`; `ImageInitializer` | the AsImage / FromImage entries (existing) |
+| `CodeGen.GroupImageCodec` (R0-0042) | AsImage/FromImage (`Image`), bit images, image initialization; the variable-length carrier (AsVarImage/FromVarImage, the record layout) | `GroupImageCodec`; `BitImageCodec`; `ImageInitializer`. The carrier's rules are runtime operations both lanes call (kb/Work PB2746, landed): the component stores `CobolVarGroup.ReceivedDyn` / `StoreTableComponent` / `StoreGroupTableComponent` and the layout builder `CobolContiguousLayout.Of`, which the emitted `FromVarImage` and layout field and the cell-backed `StorageCell.StoreVarGroupAt` and layout share | the AsImage / FromImage entries (existing) |
 | `Binding.Procedure.EvaluateBinder` (R0-0043) | subjects and objects (`Subject`), WHEN phrases | `EvaluateSubjectBinder`; `WhenPhraseBinder` | EvaluateOperandCombinations (existing) pairs subjects and objects |
 | `CodeGen.SortEmitter` (R0-0044) | keys, INPUT/OUTPUT PROCEDURE ranges, MERGE | `SortKeyEmitter`; `SortProcedureEmitter`; `MergeEmitter` | Emit(BoundSort or BoundMerge, EmitContext); SortKeyEmitter.Render(keys) |
 | `Validation.FlagConformancePass` (R0-0045) | the directive-axis flags; the `FileStatus` partial | `FlagConformancePass`; `FileStatusFlagRules` | FlagState (existing) |
@@ -1783,8 +1824,9 @@ parameter, or a fixed one: `DirectiveExpressionFragment.cs:45` parses every dire
 parse reads), and every lexer field the front end primes from one
 (`_caseMappingEdition` and `_reservedNonNames`, set by `TokenRetypes.PrimeLexer` from `edition.Year` and from
 `ReservedNonDataNames(edition, …)`, `TokenRetypes.cs:47-51`). An EDITION READ is a member of `CobolParserCoreBase`, of a
-committed `CobolParserCore` partial or a parser grammar's `@members`, of the lexer grammar's `@members` and its
-partials, or of the retype stage (`TokenRetypes`, which primes the lexer and decides the re-lex) — a member of a
+committed `CobolParserCore` partial or a parser grammar's `@members`, of the lexer's hand-written superclass
+`CobolLexerBase` (`Parsing/CobolLexerBase.cs`, kb/Work PB2726: the lexer has the parser's shape, `superClass` in
+`CobolLexer.g4` and no `@members`), any lexer `@members` and its partials, or of the retype stage (`TokenRetypes`, which primes the lexer and decides the re-lex) — a member of a
 type NESTED in one of these included, since a nested type reads its container's protected state through an instance,
 and a member of a type in `src/` DERIVED from one of these (transitively, from the base lists), since a subclass reads
 the protected `Edition` getter and calls the protected reads through `this` —
@@ -1792,10 +1834,13 @@ whose body reads edition state or calls another edition read, to a fixpoint; an 
 lexer predicate `{…}?` or action `{…}` body, any lexer override (`NextToken`, `Emit`), any parser listener, any
 retype-stage member, or any front-end DRIVER member that hands edition state to a lexer or parser or decides a
 re-lex from it, that calls one, names edition state itself (`{Edition.Has(2014)}?`, a primed lexer field) or passes
-edition state on: the pipeline's parse-again loop (`Pipeline/Frontend.cs:425-463`,
-calling `LexesDifferentlyFrom` at `:437` and `PrimeLexer` at `:463`) and the fragment parser (`FragmentParse.Parse`,
-`Parsing/FragmentParse.cs:62,72,93`, and its callers `SubscriptExpressionFragment.cs:31` and
-`DirectiveExpressionFragment.cs:45`), both added by Draft 6 after the fifth refuter (G4). Names play no part, so a read under a new name, in any of the three stages, is
+edition state on. Those drivers are ONE mechanism (kb/Work PB2735): `Parsing/CobolTokenStream.cs` is the one
+preparation of a token stream and its parser — `CobolTokenStream.Lexer` primes every lexer (`PrimeLexer`),
+`CobolTokenStream.Parser` hands every parser the edition, `CobolTokenStream.Prepare` runs the post-lex steps in their
+one order (debugging lines, ZERO, the §2023:8.9 retype) and `CobolTokenStream.UntilLexStable` is the one re-lex loop
+(`LexesDifferentlyFrom`) — and the whole group's parse (`Frontend.LexAndParse`, `Frontend.NewParser`), the fragment
+parser's three entries (`FragmentParse.Parse`, `ParseTokens`, `ParseUnit`) and the keyword probe
+(`CobolKeywordTokens.LexProbe`) each call it. Names play no part, so a read under a new name, in any of the three stages, is
 caught the day it is written. Applied to the parser at `3d44e5f22` (*text scan, provisional*: the third refuter's
 transitive scan), the rule finds these members: `is85`, `is2002`, `is2014`, `is2023` (`:59-62`);
 `setLocaleAhead` (`:190`, the `LC_` escape of SET LOCALE); `reservedHere` (`:344-345`, `IsReservedAt(Edition.Year)`);
@@ -1858,8 +1903,8 @@ token precedence with the import order; **the lexer stays one grammar**, its mod
 
 **Kept, each with its pin:** no left-edge semantic predicate in a lexer mode (`LexerDfaCacheDriftTests`); the edition
 reads are what the rule above computes — `EditionReadDriftTests` APPLIES the rule (it computes the members' fixpoint
-from the syntax of the parser superclass, its committed partials and parser `@members`, the lexer's `@members` and
-partials and the retype stage, nested and derived types included, derives the primed lexer fields from the retype stage's setter
+from the syntax of the parser superclass, its committed partials and parser `@members`, the lexer superclass, any lexer
+`@members` and partials and the retype stage, nested and derived types included, derives the primed lexer fields from the retype stage's setter
 calls, and finds the call sites in every predicate and action body of every grammar and in every C# member of `src/`
 outside the read's own stage (a second top-level type in a stage's file included), every front-end hand-off of the edition to a parser and every
 caller that passes one on) and compares the result with the set PB2291's verdict records,
@@ -2097,17 +2142,21 @@ unknown set meets its subsystem"): the group is named UNPARTITIONED and holds no
 notes' site blocks. No partition removes every conflict (kb/Work PB3640: a declared set is a prediction), so a conflict
 at the landing is repaired by a conflict finisher (MANDATORY-PRACTICES L12).
 
-**The planner's set is the ADMISSION estimate; the landing check is the GUARANTEE** (PB2118 Drafts 9–10). Three refuter
-rounds each found a new hole in the computed set (hand lists, then the index's blind spots, then its staleness), so a
-remaining miss must stop a landing, never land silently. `scripts/orchestrator/landing_check.py` runs in
+**The planner's set is the ADMISSION estimate; git's merge judges a conflict, and the landing check names it** (PB2118
+Drafts 9–10, kb/Work PB4452). Three refuter
+rounds each found a new hole in the computed set (hand lists, then the index's blind spots, then its staleness); since
+FIRST READY LANDS (owner 2026-11-02, kb/Work PB4452: "Non overlapping edits to the same file typically will merge without
+conflict") a remaining miss is git's merge to judge, and the check stops a landing only for a path no landing carries
+(`coord.NEVER_WORK`, above all the harness's tracked `.claude/settings.local.json`) or a public-API baseline that lists a
+symbol twice (RS0025, kb/Work PB3694). `scripts/orchestrator/landing_check.py` runs in
 `enqueue.py land` (its `checks` step), the one way a commit reaches `main`, before a CI run is spent. It reads the notes a landing
 WORKS ON (the ids leading its commit subjects, ranges expanded, and the notes whose `status` it changes; a commit that
 only mentions a note does not work on it) and compares the landing's ACTUAL diff (`git diff --name-only --no-renames
 origin/main...<rev>`: a moved file counts at its old path too, and the planner's admission reads diffs the same way,
 through one reader, `inflight.changed_files`) with every other in-flight branch's actual diff and every dispatched
 group's declared set, started or not, until its notes are terminal or its report answers it (`inflight_file_sets`;
-a returned group is read through its branch, kb/Work PB2795): a shared file stops it only when it is R3 work on either
-side and the two EDITS MEET, a member of one matching a member of the other (`inflight.hold`, on the units each diff
+a returned group is read through its branch, kb/Work PB2795): a shared file NAMES the other branch in a warning only when
+it is R3 work on either side and the two EDITS MEET, a member of one matching a member of the other (`inflight.hold`, on the units each diff
 touches, `inflight.inflight_units`; a dispatch's are the members its ledger entry recorded; kb/Work PB4452). The check
 does not compare the landing with its declared file set: a file outside it is the planner's estimate missing a caller,
 and git's merge is the authority on a conflict, so a landing that edits a file nobody else edits lands. R3 work is attributed PER COMMIT (PB2703): a landing can be mixed (a branch that merged a
@@ -2178,8 +2227,13 @@ code and pass this one. A grammar wave needs §4 item 3 built
 use is one of three things, and the Delete program decides each family by this rule: (a) **a table's enumeration**
 (`All`, `Rows`, `Catalog`, `Owners`, `Level3Rows`, `StandardModes`, `LiteralOnlySlots`, `MixedRules`, `TableCount`,
 `RangeCount`, `MappingCount`, about twenty of the 67 by name) is the drift tests' observation surface over data and
-KEEPS — the census's `test-only` rule gains that exclusion so it stops reporting them; (b) **a seam that exists for
-observation** (`ResetForTests`, `ClearCache`, `HostConfiguration`) moves to the test project as a helper over product
+KEEPS — the census reports such a member `table-enumeration`, never `test-only` (kb/Work PB2744:
+`tools/ArchCensus/TableEnumeration.cs`, judged only once a test is confirmed its one user: a STATIC read-only collection
+field or property, never a string, is a table's rows; a get-only `*Count` whose whole getter is the `Count`, `Length` or
+`*Count` of its own type's field or property is its size; an instance collection, a counter field and a computed count
+stay `test-only` for (b) and (c); `ArchCensus --self-test` pins each arm on planted source, and the census runs it
+before it measures); (b) **a seam that exists for
+observation** (`ResetForTests`, `ClearCache`; `RunUnit.HostConfiguration`, once one, is today a static table of member names and so item (a)) moves to the test project as a helper over product
 state where the product allows it, and is otherwise renamed to say it is a seam; (c) **the rest is dead product code a
 test keeps alive** and is deleted with the tests that test only it, as the findings' own target says. R2's Opus
 reviewer applies the rule; a Sonnet wave executes (c).

@@ -71,17 +71,4 @@ internal sealed class PictureSymbolRuns
         foreach (var (symbol, _) in _runs) if (!predicate(symbol)) return false;
         return true;
     }
-
-    /// <summary>The 0-based positions of the first and the last character that satisfies <paramref name="predicate"/>, or
-    /// <c>(-1, -1)</c> when none does.</summary>
-    public (int First, int Last) Span(Func<char, bool> predicate)
-    {
-        int first = -1, last = -1, at = 0;
-        foreach (var (symbol, count) in _runs)
-        {
-            if (predicate(symbol)) { if (first < 0) first = at; last = at + count - 1; }
-            at += count;
-        }
-        return (first, last);
-    }
 }

@@ -1364,7 +1364,7 @@ file KINDS it is screened over (`FileKinds` — one flag per §2023:12.4.5.10.3 
 CLAUSE it is stated about (`FileKeyRole`, whose `Entry` member is the rule stated about the entry itself), three
 predicates (precondition · violation · message) and an optional diagnostic code. `FileControlBinder.ResolveFiles` calls `Screen(file, Edition)` once per declared
 file, after the keys resolve. A rule COBOL-85 states differently is a row of the companion `Rules1985` catalog, screened only
-below COBOL-2002 (§1985:IX.2.7.3 SR3 and §1985:IX.2.5.3 SR3, a key naming a group that holds an OCCURS DEPENDING ON table, kb/Work PB5445); A 1985 row that is the SAME obligation as a 2023 row under the 1985 numbering and wording (the SR2 category and location rows of both key clauses, §1985:IX.2.7.3 SR2 and §1985:IX.2.5.3 SR2) names it in `Supersedes`, and `Rules85` drops the superseded 2023 row, so a refusal at `--std 85` cites the rule its edition prints (kb/Work PB5361). COBOL-2002's wider "variable-length data item" (§2002:13.16.36.3 GR8) is the `Rules2002` catalog, screened at 2002 alone. One-report-per-file is then a consequence of *where* the screen runs, not a set it
+below COBOL-2002 (§1985:IX.2.7.3 SR3 and §1985:IX.2.5.3 SR3, a key naming a group that holds an OCCURS DEPENDING ON table, kb/Work PB5445); A 1985 row that is the SAME obligation as a 2023 row under the 1985 numbering and wording (the SR2 category and location rows of both key clauses, §1985:IX.2.7.3 SR2 and §1985:IX.2.5.3 SR2) names it in `Supersedes`, and `Rules85` drops the superseded 2023 row, so a refusal at `--std 85` cites the rule its edition prints (kb/Work PB5361). COBOL-2002's wider "variable-length data item" (§2002:13.16.36.3 GR8) is the `Rules2002` catalog, screened at 2002 alone. The `Rules2014` catalog restates the three OCCURS bans at COBOL-2014, whose key clauses say "shall not be subscripted" (§2014:12.4.4.11.2 SR1 and its siblings), so a key naming a table element is §2014:8.4.1.2.2 SR5's unsubscripted table element reference. A restating row (`Of1985`, the 2014 rows) takes its file kinds, role, precondition and violated predicate from the 2023 row it `Supersedes` (`FileControlKeyRules.Restating`), and carries only its own id, citation, quoted rule and message; `FileControlKeyRuleDriftTests` re-derives each 2014 row from `specs/ISO_COBOL_2014.md` (kb/Work PB6072). One-report-per-file is then a consequence of *where* the screen runs, not a set it
 has to carry, and the diagnostic is positioned at the offending CLAUSE (`FileModel.RecordKeyAt` /
 `AlternateKeyClause.At` / `RelativeKeyAt`) or, for an absent clause, at the entry (`FileModel.EntryAt`).
 An absent clause is modelled as an operand with a null name, so a rule that requires a clause BECAUSE OF something
@@ -1394,7 +1394,7 @@ description entry and its remedy is a different edit.
 **A rule with two obligations gets a row per arm, sharing one rule-id** (kb/Work PB743). §2023:12.4.5.12.3 SR2 and
 §2023:12.4.5.6.3 SR2 each join a CATEGORY and a LOCATION with the word "within"; PB699 screened the location half
 alone, so a `PIC 9(5)` prime key built an index on an operand the standard forbids, silently. The category arm
-reads `ItemCategory.IsAlphanumericOrNational` — the ONE §2023:8.5.2 category reader, shared with §2023:12.4.5.2 SR7's
+reads `ItemCategory.IsAlphanumericOrNational(item, edition)` — the ONE §2023:8.5.2 category reader (its edition axis admits a PIC A item at COBOL-2002 alone, §2002:8.5.2.1; kb/Work PB5871), shared with §2023:12.4.5.2 SR7's
 ASSIGN … USING screen — which admits an alphanumeric group item (§2023:13.18.29.4 GR3) and a national group and
 refuses alphabetic, numeric, edited, boolean and the PICTURE-less usages. The inventory row earns CONFORMS only
 when both rows are live, which is why PB699 recorded no verdict for either.
@@ -2611,8 +2611,10 @@ Port the proven per-connector last-read-unsuccessful, past-end, prev-op-was-succ
 §2023:14.9.30.4 GR19 — "An implicit or explicit NEXT phrase or a PREVIOUS phrase results in a sequential read:
 otherwise, the read is a random read and the rules for format 2 apply" — makes the direction phrase and the
 FORMAT one fact, so ONE enum carries it: `ReadKind { Next, Previous, Random }`, on `BoundRead` and
-`BoundKeyedRead` alike, reached through `IBoundRead`. `VersionConformancePass.GateStatement` has ONE arm over
-that interface. (It was `KeyedReadKind`, reachable only from the keyed node; the sequential node had no direction
+`BoundKeyedRead` alike; each emitter reads its own node's member, and `BoundIoPhraseConsumptionDriftTests` holds
+every READ phrase to a member its emitter reads. The 2002 edition gate fires on the printed phrase, ONE parse arm
+(`VersionConformancePass.VisitReadDirection`, kb/Work PB353), so no bound-node interface carries the direction
+(the `IBoundRead` interface it once went through had no consumer left and was deleted, kb/Work PB2130). (It was `KeyedReadKind`, reachable only from the keyed node; the sequential node had no direction
 member, so `READ … PREVIOUS` on a SEQUENTIAL file bound as a forward read AND skipped its COBOL0900 2002 gate
 — kb/Work PB334.)
 
@@ -2870,21 +2872,25 @@ rows; derive 85↔2002 gating from the 2002 standard / the ISO2023_CONFORMANCE_P
   not-yet-introduced diagnostic under `--std` 85/2002/2014; its statuses 05/37/39/41/62 from DELETE FILE exist only
   at 2023. (Format-1 record DELETE is 85.)
 - **READ PREVIOUS is not COBOL-85** (a 2002 introduction — §2002:F.2 item 109, kb/Work PB3965): rejected at 85 on
-  EVERY organization (the gate is one `IBoundRead` arm in the VersionConformancePass; it used to be two arms and
+  EVERY organization (the gate is one parse arm, `VisitReadDirection`, in the VersionConformancePass; it used to be two arms and
   the sequential one did not carry it — kb/Work PB334). FLAG-14 flags every READ PREVIOUS (row 108).
-  ⚠ **The 2014→2023 after-OPEN change (row 29) is the INDEXED leg only.** Annex E.2 item 22 ("READ PREVIOUS
-  statement following an OPEN statement. Ensure that an at end condition occurs.") is INFORMATIVE and names the
-  rule it amended: §2023:14.9.30.4 GR21's indexed sub-rule d.3, which in the 2023 text reads "If no such record is
-  found or PREVIOUS is specified and the previous operation on the file was an OPEN statement, the at end
-  condition exists." The RELATIVE and SEQUENTIAL sub-rule blocks print rule b) unamended — "the first existing
-  record that is selected is made available, regardless of whether NEXT or PREVIOUS is specified" — so on those
-  two organizations the after-OPEN behaviour is **identical at 2002, 2014 and 2023** and the connector takes no
-  edition parameter for it. Both legs are now asserted at all three editions —
-  `conformance:{2002,2014,2023}/pb334_read_previous_sequential` (sequential) and
-  `conformance:{2002,2014,2023}/pb343_read_previous_relative` (relative, kb/Work PB343, which also removed the
-  carve-out from the legacy engine's `RelativeFileHandler`). The relative golden's SPARSE-file phase is what
-  makes rule b) falsifiable: with the lowest record at RRN 5, OPEN's indicator of 1 names an empty slot, so
-  PREVIOUS and NEXT can only name the same record if the rule ignores the direction.
+  ⚠ **The 2014→2023 after-OPEN change (row 29) reaches INDEXED and RELATIVE; SEQUENTIAL is unchanged.** Annex E.2 item 22
+  ("READ PREVIOUS statement following an OPEN statement. Ensure that an at end condition occurs.") is INFORMATIVE; the
+  INDEXED sub-rule d.3 of §2023:14.9.30.4 GR21 carries the at end sentence, "If no such record is found or PREVIOUS is
+  specified and the previous operation on the file was an OPEN statement, the at end condition exists." The RELATIVE
+  and SEQUENTIAL blocks print rule b) — "the first existing record that is selected is made available, regardless of
+  whether NEXT or PREVIOUS is specified" — so at 2023 PREVIOUS and NEXT after an OPEN name the same record on those two
+  organizations. Below 2023 the after-OPEN PREVIOUS is §2002:14.8.29.3 GR18c.2 (§2014:14.9.29.3 GR19c.2), "the first
+  existing record in the physical file whose record number or key value is less than or equal to the file position
+  indicator", and OPEN sets a sequential or relative file's indicator to 1 (§2002:14.8.26.3 GR12). SEQUENTIAL records
+  are numbered densely from 1, so record 1 answers at every edition (`pb334_read_previous_sequential`). A RELATIVE file
+  can be sparse: `RelativeConnector.SelectSequentialSlot` asks `DialectBehaviors.IsActive(
+  RelativeReadPreviousAfterOpenComparesFpi, Edition)` (VCR row 7.123, kb/Work PB5742) and below 2023 seeks the last
+  record at most the indicator, so a file whose lowest record is RRN 5 is at end ('10') for the PREVIOUS that follows
+  the OPEN, while a START's indicator names an existing record and PREVIOUS still returns it. Both legs are asserted —
+  `conformance:{2002,2014,2023}/pb334_read_previous_sequential` and
+  `conformance:{2002,2014,2023}/pb343_read_previous_relative` (kb/Work PB343, PB5742); the relative golden's SPARSE-file
+  phase (S1) is where the editions differ.
   ⚠ **The INDEXED leg IS gated, and the `<=2014` answer is the ordinary comparison, not the first record**
   (kb/Work PB344, corrected by kb/Work PB5639). `IndexedConnector.SelectSequentialRecord` asks
   `DialectBehaviors.IsActive(IndexedReadPreviousAfterOpenAtEnd, Edition)`: at 2023 a PREVIOUS immediately after an

@@ -70,6 +70,13 @@ AUDITS = (
     ("SPEC CORRECTIONS", ["scripts/spec/verify_publishable.py"]),
     # kb/Work PB4850: the 1985 transcription is publishable and agrees with its reconciliation ledger (LEDGER-1985.json).
     ("SPEC CORRECTIONS 1985", ["scripts/spec/verify_publishable.py", "--edition", "1985"]),
+    # kb/Work PB6135: the committed PDF text-layer diff of that transcription (TEXT-LAYER-DIFF-1985.json) was measured from
+    # the Markdown, the ledger and the script as they are; a change of any of them without a re-run is RED, naming the command.
+    # It reads no PDF. What the result holds unexplained is printed (`--require-zero` is PB6051's close), never red here.
+    # LOCAL GATE ONLY: CI's `audits` job does not run it (no PDF there to re-measure after a 1985 Markdown edit; the re-run
+    # needs the private submodule and tesseract), so a merge cannot turn CI red on it; a branch editing that Markdown
+    # re-runs `text_layer_diff.py --arbitrate` before its gate.
+    ("TEXT LAYER DIFF 1985", ["scripts/spec/text_layer_diff.py", "--check"]),
     ("LINE ENDINGS", ["scripts/line_endings.py", "--check"]),
     # kb/Work PB735, PB2878: a byte-level fact about the committed tree, an audit so that no test reads every path.
     ("CONFLICT MARKERS", ["scripts/conflict_markers.py", "--check"]),

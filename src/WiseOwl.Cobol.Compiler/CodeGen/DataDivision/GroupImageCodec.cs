@@ -418,11 +418,10 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         /// maximum image less the characters beyond the count (<c>OdoTail.CutAt</c>, the bit arm's ceiling included).</summary>
         public string CurrentChars(string odo) => $"{MemberWidth} - {RuntimeApi.OdoTailCutAt(Tail, odo)}";
 
-        /// <summary>The table as the RECORD layout's last component (determination D-FRA (ix)): the character offset
-        /// in the member where it starts, its unit and the most units it holds (<c>OdoTail.RecordUnit</c> /
-        /// <c>RecordMaxUnits</c>: one element per unit, or one CHARACTER per unit for a table counted in bits, whose
-        /// occurrences have no character boundary of their own).</summary>
-        public (int StartChar, int Unit, int MaxUnits) RecordTail => (MemberWidth - Tail.Width, Tail.RecordUnit, Tail.RecordMaxUnits);
+        /// <summary>The character offset in the member where the table starts: the RECORD layout takes the table out of the
+        /// fixed run there and makes it its last component (determination D-FRA (ix); <c>CobolContiguousLayout.Of</c> reads
+        /// its unit and most units off the tail, <c>OdoTail.RecordUnit</c> / <c>RecordMaxUnits</c>).</summary>
+        public int TableStart => MemberWidth - Tail.Width;
 
         /// <summary>The C# statement that keeps the member's occurrences past the RECEIVING count <c>__odo</c>
         /// (§2023:13.18.38.4 GR8a): the received fixed run <c>__s</c>, whose member starts at character
@@ -633,7 +632,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     /// layout states it (<c>CobolContiguousLayout</c>'s <c>Odo</c>; kb/Work PB244, PB2497): for elements of a fixed
     /// image <see cref="OdoModel.FixedImageTail"/> over the member that holds it (<see cref="OdoModel.ImageHolder"/>, the
     /// <see cref="VarPartKind.OdoFixed"/> part), which the layout makes its LAST component, taken out of the fixed run
-    /// (<see cref="OdoMemberTail.RecordTail"/>); for variable-length elements one occurrence's fixed run, the maximum
+    /// (<see cref="OdoMemberTail.TableStart"/>); for variable-length elements one occurrence's fixed run, the maximum
     /// count and the element's own component count, whose components the layout lists at the maximum
     /// (<see cref="VarPartKind.OdoTable"/>, flattened in place). <c>default</c> for a group without one.</summary>
     private OdoTail RecordOdo(DataItem group) =>
@@ -755,17 +754,25 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         // (§2023:8.5.1.11.2 — what CurrentImage() wrote) is decomposed into this same carrier by the ONE split rule,
         // CobolContiguousLayout.Decompose, over the component layout below — the flattened VarParts walk, so a
         // nested variable-length group's components are located exactly where FromVarImage's Slice expects them.
-        var layout = new List<(int FixedAt, int Unit, long MaxUnits, int Structure)>();
-        ContiguousLayout(group, 0, layout);
+        var layout = new List<LayoutComponent>();
+        var tails = new List<int>();
+        ContiguousLayout(group, 0, layout, tails);
         var odo = RecordOdo(group);
+        // The OCCURS DEPENDING table of fixed-image elements is the layout's last component, and CobolContiguousLayout.Of
+        // places it from the tail alone (the fixed run's last odo.Width characters, §2023:13.18.38.3 SR22): the walk's own
+        // record of where the member holding it starts its table must be that place, or the two would disagree silently.
+        if (tails.Count != (odo.Present && odo.Comps == 0 ? 1 : 0) || tails.Count == 1 && tails[0] != totalFixed - odo.Width)
+            throw new InvalidOperationException(
+                $"internal error: the OCCURS DEPENDING table of '{group.CobolName}' is not its layout's trailing component "
+                + $"(walk {string.Join(", ", tails)}; tail at {totalFixed - odo.Width})");
         // ⛔ ONE LAYOUT OBJECT PER RECORD TYPE (kb/Work PB1025): the same layout locates a key a variable-length
         // member precedes (CobolContiguousLayout.Position, read through __Contiguous by the SORT/MERGE key and the
         // indexed key registrations), so the decomposition and the key window cannot disagree. It also carries each
         // component's DYNAMIC LENGTH STRUCTURE (kb/Work PB1094), so the same object frames the record on the way out
         // (MediumImage) and unframes it on the way in (Decompose).
         w.Line($"private static readonly CobolContiguousLayout {RuntimeApi.ContiguousLayoutField} = "
-            + RuntimeApi.ContiguousLayoutNew(totalFixed - (odo.Comps == 0 ? odo.Width : 0), layout.Select(l => l.FixedAt),
-                layout.Select(l => l.Unit), layout.Select(l => l.MaxUnits), layout.Select(l => l.Structure), odo) + ";");
+            + RuntimeApi.ContiguousLayoutOfComponents(totalFixed, layout.Select(l => l.FixedAt), layout.Select(l => l.MaxSize),
+                layout.Select(l => l.LayoutCode), layout.Select(l => l.TableWidth), odo) + ";");
         w.Line($"public readonly CobolContiguousLayout {RuntimeApi.ContiguousLayoutProperty} => "
             + $"{RuntimeApi.ContiguousLayoutField};");
         // ⛔ THE EXTENT TABLE (D-FRA (v); kb/Work PB1053): the WRITE / REWRITE / RELEASE side sends where each
@@ -818,46 +825,26 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
                         off = RecordLayout.Advance(off, p.FixedWidth);
                         dynAt += p.DynCount;
                         break;
+                    // ⛔ EACH COMPONENT IS STORED BY THE CARRIER'S ONE RECEIVING STORE OF ITS KIND (kb/Work PB2746), the
+                    // operation a cell-backed group's store (StorageCell.StoreVarGroupAt) calls too; the emitted text
+                    // names only where the component lives and how one element decodes.
                     case VarPartKind.DynLeaf:
-                        // §2023:8.5.1.10.4 — the receiving store for a dynamic-length item: replace, truncate on the
-                        // right to the LIMIT, never pad. The component IS the item's whole current content.
-                        // A NATIONAL leaf's component is its image, UTF-16BE (CurrentMemberImage): the characters are decoded
-                        // first and the LIMIT counts POSITIONS, so a store never cuts a position's pair (kb/Work PB3441).
-                        string carried = p.Item!.ImageUnit > 1 ? RuntimeApi.NatFromStorage($"__v.Dyn({dynAt})") : $"__v.Dyn({dynAt})";
-                        w.Line($"{p.Field.Name} = __storage ? {carried} : {RuntimeApi.DynStore(carried, $"{p.Item.DynMaxSize}")};");
+                        // §2023:8.5.1.10.4 — replace, truncate on the right to the LIMIT, never pad; a NATIONAL leaf's
+                        // component is its UTF-16BE image, decoded first so the LIMIT counts POSITIONS (kb/Work PB3441).
+                        w.Line($"{p.Field.Name} = {RuntimeApi.VarGroupReceivedDyn("__v", dynAt, p.Item!.DynMaxSize, "__storage", p.Item.ImageUnit > 1)};");
                         dynAt++;
                         break;
                     case VarPartKind.DynTable:
-                        // The capacity comes from the carried length divided by OUR element width — legitimate
-                        // because §2023:8.5.1.12.3 admits corresponding tables only "when the byte length of their
-                        // elements is equal", which the bind-time compatibility check enforced.
-                        // ⛔ WHEN NO COMPONENT WAS CARRIED THIS TABLE IS IN THE EXCESS PART, AND THAT IS A
-                        // DIFFERENT RULE (kb/Work PB393). §2023:14.9.25.4 GR9b step 2 sends it to §2023:14.6.9.4, where
-                        // "the current capacity of the dynamic table is unaffected, and each element of the
-                        // dynamic table is space-filled" — the opposite of recreating it at capacity zero,
-                        // which is what an empty CARRIED component means under §2023:14.6.9.2. The shape is
-                        // reachable on conforming source: §2023:8.5.1.12.2's last sentence admits a trailing
-                        // dynamic-capacity table beyond the shorter group's last character, "treated as if it
-                        // corresponds to a space-filled fixed-length table".
-                        using (w.Block($"if (__v.HasDyn({dynAt}))"))
-                            w.Line($"{p.Field.Name}.FromCurrentImage(__v.Dyn({dynAt}), {p.Field.Width}, "
-                                + $"{TableElementFromImage(p.Item!)});");
-                        using (w.Block("else"))
-                            w.Line($"{p.Field.Name}.SpaceFillElements({SpaceElementImage(p.Item!, p.Field.Width)}, "
-                                + $"{TableElementFromImage(p.Item!)});");
+                        // §2023:14.6.9.2's recreation when carried, §2023:14.6.9.4's space fill when not (kb/Work PB393).
+                        w.Line(RuntimeApi.VarGroupStoreTableComponent("__v", dynAt, p.Field.Name, p.Field.Width, p.Item!.ImageUnit,
+                            TableElementFromImage(p.Item!)) + ";");
                         dynAt++;
                         break;
                     case VarPartKind.DynGroupTable:
-                        // §2023:14.6.9.2: the table is RECREATED from the sender's occurrences, each stored into its element
-                        // by the element's own FromVarImage — "Correspondingly numbered elements are moved according to
-                        // the rules of the MOVE statement" (kb/Work PB2496); the FROM minimum is filled with space-filled
-                        // elements. Not carried at all, it is in the GR9b excess part: §2023:14.6.9.4 space-fills each
-                        // element at an unaffected capacity — the empty carrier, which GR9b's own steps space-fill.
-                        string store = "(__e, __x) => { __e.FromVarImage(__x, __storage); return __e; }";
-                        using (w.Block($"if (__v.HasDyn({dynAt}))"))
-                            w.Line($"{p.Field.Name}.Recreate(__v.ElementCarriersAt({dynAt}), {RuntimeApi.VarGroupEmpty}, {store});");
-                        using (w.Block("else"))
-                            w.Line($"{p.Field.Name}.SpaceFillElements({RuntimeApi.VarGroupEmpty}, {store});");
+                        // The same pair over the occurrences' own carriers, each stored by the element's own FromVarImage
+                        // (kb/Work PB2496).
+                        w.Line(RuntimeApi.VarGroupStoreGroupTableComponent("__v", dynAt, p.Field.Name,
+                            "(__e, __x) => { __e.FromVarImage(__x, __storage); return __e; }") + ";");
                         dynAt++;
                         break;
                     case VarPartKind.Nested:
@@ -873,41 +860,43 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         }
     }
 
-    /// <summary>The flattened component layout <c>CobolContiguousLayout.Decompose</c> decomposes a record over:
-    /// each variable-length component's offset in the FIXED run, its unit width in image characters (the image unit of a
-    /// dynamic-length item's positions - <see cref="DataItem.ImageUnit"/>, one for an alphanumeric item and two for
-    /// a national one, whose image <see cref="CurrentMemberImage"/> composes as its UTF-16BE bytes, kb/Work PB3441 - the
-    /// element width for a dynamic-capacity table), and its maximum size in those units (§2023:8.5.1.10.1's
-    /// maximum size; the table's maximum capacity). Nested scalar variable-length groups flatten in place, the
-    /// same flattening <see cref="VarParts"/> gives the carrier. The fourth element is the component's DYNAMIC LENGTH
-    /// STRUCTURE (<c>CobolDynStructure.Code</c>, or the bare unit for an item that names none, <c>PlainCode</c>; 0 for an
-    /// alphanumeric item with none - ISO §2023:12.3.7.4 GR18/GR19; kb/Work PB1094), read through <see cref="FileModel.LayoutCodeOf"/>,
-    /// the one reader of what a structured item occupies in a record.</summary>
-    private void ContiguousLayout(DataItem group, int baseAt, List<(int FixedAt, int Unit, long MaxUnits, int Structure)> layout)
+    /// <summary>One variable-length component of a declared group's record layout, as <c>CobolContiguousLayout.Of</c> takes
+    /// it (the one builder a cell-backed group's layout calls too, kb/Work PB2746): its offset in the FIXED run, its maximum
+    /// (a table's maximum capacity; a dynamic-length item's maximum size in image characters, <see cref="DataItem.SlotMaxSize"/>),
+    /// its layout code and its table element width (0 for a dynamic-length item).</summary>
+    private readonly record struct LayoutComponent(int FixedAt, int MaxSize, int LayoutCode, int TableWidth);
+
+    /// <summary>The flattened component list <c>CobolContiguousLayout.Of</c> builds a record's layout from: each
+    /// variable-length component's offset in the FIXED run, its maximum, its layout code and its table element width
+    /// (<see cref="LayoutComponent"/>). A dynamic-length item's layout code is <see cref="FileModel.LayoutCodeOf"/>, the one reader
+    /// of what a structured item occupies in a record (its DYNAMIC LENGTH STRUCTURE, ISO §2023:12.3.7.4 GR18/GR19, or the
+    /// unit of its image alone - two for a national item, kb/Work PB1094, PB3441); a dynamic-capacity table's is 0 and its
+    /// unit is its element width. Nested scalar variable-length groups flatten in place, the same flattening
+    /// <see cref="VarParts"/> gives the carrier. The OCCURS DEPENDING table of fixed-image elements is NOT listed: the
+    /// layout builder makes it the trailing component from the group's tail (<see cref="RecordOdo"/>), and
+    /// <paramref name="tails"/> records where the walk found it, which the caller checks against that place.</summary>
+    private void ContiguousLayout(DataItem group, int baseAt, List<LayoutComponent> layout, List<int> tails)
     {
         int off = baseAt;
         foreach (var p in VarParts(group))
             switch (p.Kind)
             {
                 case VarPartKind.Fixed: off = RecordLayout.Advance(off, p.Field.Width); break;
-                // A dynamic-length item is counted in positions of its image unit: one character an alphanumeric position, two
-                // bytes a national one (kb/Work PB3441), the unit its fixed form pads and its structure frames by.
-                case VarPartKind.DynLeaf: layout.Add((off, p.Item!.ImageUnit, p.Item.VariableComponentMax, FileModel.LayoutCodeOf(p.Item))); break;
+                case VarPartKind.DynLeaf: layout.Add(new(off, p.Item!.SlotMaxSize, FileModel.LayoutCodeOf(p.Item), 0)); break;
                 case VarPartKind.DynTable:
-                case VarPartKind.DynGroupTable: layout.Add((off, p.Field.Width, p.Item!.VariableComponentMax, 0)); break;
-                case VarPartKind.Nested: ContiguousLayout(p.Item!, off, layout); off = RecordLayout.Advance(off, p.FixedWidth); break;
+                case VarPartKind.DynGroupTable: layout.Add(new(off, p.Item!.VariableComponentMax, 0, p.Field.Width)); break;
+                case VarPartKind.Nested: ContiguousLayout(p.Item!, off, layout, tails); off = RecordLayout.Advance(off, p.FixedWidth); break;
                 case VarPartKind.NestedTable:
                 case VarPartKind.OdoTable:   // the components at the table's MAXIMUM: where compare / the boundary look for them
-                    for (int i = 0; i < p.Occurs; i++) ContiguousLayout(p.Item!, RecordLayout.OccurrenceAt(off, i, p.FixedWidth / p.Occurs), layout);
+                    for (int i = 0; i < p.Occurs; i++)
+                        ContiguousLayout(p.Item!, RecordLayout.OccurrenceAt(off, i, p.FixedWidth / p.Occurs), layout, tails);
                     off = RecordLayout.Advance(off, p.FixedWidth);
                     break;
                 case VarPartKind.OdoFixed:
-                    // The OCCURS DEPENDING table is a variable-length COMPONENT of the record, up to its maximum
-                    // (OdoMemberTail.RecordTail: one element per unit, or one character per unit for a table counted
-                    // in bits). §2023:13.18.38.3 SR22 makes it the record's trailing storage, so it is the last component.
-                    var (startChar, unit, maxUnits) = OdoMemberTail.Of(p).RecordTail;
-                    layout.Add((off + startChar, unit, maxUnits, 0));
-                    off = RecordLayout.Advance(off, startChar);   // the table itself leaves the FIXED run
+                    // The table itself leaves the FIXED run at the character its member starts it.
+                    int startChar = OdoMemberTail.Of(p).TableStart;
+                    tails.Add(off + startChar);
+                    off = RecordLayout.Advance(off, startChar);
                     break;
                 default:
                     throw ImageOnlyPartInCarrier(p);
@@ -937,12 +926,6 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
                     : $"(__e, __x) => ({d.Pic.ClrType}){RuntimeApi.NumParseImage(x, d.ProfileName, sending: false)}")
             : $"(__e, __x) => {x}";
     }
-
-    /// <summary>The image of ONE space-filled element of the dynamic-capacity table <paramref name="d"/> (ISO §2023:14.6.9.4: "each
-    /// element of the dynamic table is space-filled"): <paramref name="width"/> bytes of the national space (the pair 00, 20)
-    /// for a national element, never the byte 0x20 twice, which is U+2020 (kb/Work PB3441); else spaces.</summary>
-    private static string SpaceElementImage(DataItem d, int width) =>
-        d.ImageUnit > 1 ? RuntimeApi.NatBytes($"new string(' ', {width / d.ImageUnit})") : $"new string(' ', {width})";
 
     /// <summary>THE ONE RECIPE for what a class pointer/object/message-tag leaf occupies in a byte image (kb/Work PB231 ->
     /// PB244, PB1071, PB4838). A class-object leaf has no image: <paramref name="width"/> RESERVED placeholder positions,
@@ -1016,12 +999,12 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     /// <para>⛔ DERIVED FROM THE IMAGE, never a second walk over the children: §2023:13.18.29.3 SR3 requires that "all
     /// elementary items subordinate to the subject of the entry shall be explicitly or implicitly described as
     /// usage national", so every byte pair of a national group's image IS a national character position and the
-    /// two faces are exactly <c>CobolBits.NatBytes</c> and its inverse. That is why this needs no <c>BitAreaOf</c>
+    /// two faces are exactly <c>NationalImage.Bytes</c> and its inverse. That is why this needs no <c>BitAreaOf</c>
     /// analogue: the bit face exists because §2023:8.5.1.6.3 lets same-level bit items SHARE a byte, and national
     /// positions never share one.</para>
     /// <para>The receiving side fits in POSITIONS before serializing (<c>CobolString.Store</c> then
     /// <c>NatBytes</c>): padding the BYTES with 0x20 would manufacture U+2020 characters instead of the national
-    /// spaces §2023:14.9.25.4's national move requires — the identical trap <c>CobolBits.NatWriteWindow</c> documents.</para></summary>
+    /// spaces §2023:14.9.25.4's national move requires — the identical trap <c>NationalImage.WriteWindow</c> documents.</para></summary>
     private static void EmitNatMethods(DataItem group, CodeWriter w)
     {
         // m — the as-if PICTURE N(m) length, THE ONE reader of it (DataItem.AsIfPic reads the same ImageWidth,
@@ -1278,7 +1261,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         : f.SlotLeaf is { } slot ? SlotImageOf(f, slot)
         // ⛔ A NATIONAL LEAF IMAGES AS ITS BYTES (kb/Work PB327): two per character position, high-order first
         // (ISO §2023:13.18.60.4 GR8 leaves the size to the implementor — D-N1 pins two, UTF-16BE), through the ONE
-        // serializer CobolBits.NatBytes that the Tier-B window, the EXTERNAL/BASED cell seed and CONVERT's
+        // serializer NationalImage.Bytes that the Tier-B window, the EXTERNAL/BASED cell seed and CONVERT's
         // raw-storage channel already ride. Concatenating the occurrences BEFORE serializing is the same string
         // as serializing each and concatenating, so the OCCURS arm needs no separate spelling.
         // ⛔ IT IS A TRANSFORM OVER THE CARRIER'S OWN CHARACTER IMAGE, NOT AN ALTERNATIVE TO IT (design D-N7,
@@ -1365,7 +1348,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
             return;
         }
         // ⛔ THE INVERSE OF AsImageOf's national arm (kb/Work PB327): decode the UTF-16BE byte pairs back to the
-        // leaf's character positions through CobolBits.NatReadWindow — the inverse CobolBits.NatBytes names, never
+        // leaf's character positions through NationalImage.ReadWindow — the inverse NationalImage.Bytes names, never
         // a second decoder. A pair the image is too short to hold decodes as the NATIONAL space, which is exactly
         // §2023:14.9.30.4 GR15's fill for a national record area ("a trailing space is defined to be the national space
         // character") — the connector's byte-level pad and this decode agree on it by construction.

@@ -449,12 +449,13 @@ public static class MoveTable16
     /// intrinsic call whose §2023:15.2 GR6 type is index — so the THIRD shape, an index-NAME operand
     /// (<c>BoundIndexRef</c>, which the same classifier has reported as class index since kb/Work R27), was
     /// class index to every other screen in the compiler and numeric to this one.</para></summary>
-    public static string? SenderClassRefusal(BoundOperand sender, EditionInfo edition) =>
+    public static string? SenderClassRefusal(BoundOperand sender, EditionInfo edition, bool procedureDivisionStatement = true) =>
         Sr1ClassRefusal(edition, IntrinsicArgumentRules.ClassOf(sender),
             sender is BoundComputedOperand { Expr: BoundIntrinsicCall ic }
                 ? $"§2023:15.2 item 6 — FUNCTION {ic.Sig.Name} over index arguments is an INDEX function, of the "
                   + "class and category index"
-                : null);
+                : null,
+            procedureDivisionStatement);
 
     /// <summary>ISO §2023:14.9.25.3 SR1's RECEIVING half — the SAME sentence, which names "identifier-1 OR
     /// identifier-2" and therefore reaches a receiving operand exactly as it reaches a sending one.
@@ -470,7 +471,7 @@ public static class MoveTable16
     /// admits reference modification only over class alphanumeric, boolean or national anyway, so no excluded
     /// class can arrive wearing a modifier.</para></summary>
     public static string? ReceiverClassRefusal(Place receiver, EditionInfo edition) =>
-        Sr1ClassRefusal(edition, IntrinsicArgumentRules.ClassOfPlace(receiver), null);
+        Sr1ClassRefusal(edition, IntrinsicArgumentRules.ClassOfPlace(receiver), null, procedureDivisionStatement: true);
 
     /// <summary>
     /// ⭐ ISO §2023:14.9.25.3 SR1 ITSELF — <i>"The class of identifier-1 or identifier-2 shall not be index,
@@ -497,18 +498,16 @@ public static class MoveTable16
     /// <param name="cls">The operand's §2023:8.5.2.1 Table-2 class, or null when it is not statically decidable (a
     /// figurative constant whose class the context chooses) — which fails OPEN, as every class screen here does.</param>
     /// <param name="why">An operand-shape-specific reason to append, or null for the class's own.</param>
-    private static string? Sr1ClassRefusal(EditionInfo edition, CobolClass? cls, string? why) => cls switch
+    private static string? Sr1ClassRefusal(EditionInfo edition, CobolClass? cls, string? why, bool procedureDivisionStatement) => cls switch
     {
         // COBOL-85 states the rule as its own SR4 ("An index data item must not appear as an operand of a MOVE statement",
         // §1985:VI.6.19.3 SR4) and lists the contexts of an index data item in the USAGE clause (§1985:VI.5.14.3 SR5): no
-        // intrinsic function, no inline method and no INVOKE exist there (kb/Work PB4950).
+        // intrinsic function, no inline method and no INVOKE exist there (kb/Work PB4950). SR5 limits what a Procedure Division
+        // STATEMENT may reference (§1985:IV.4.4.1), so a Report Section clause that executes an implicit MOVE (the SOURCE clause,
+        // §1985:XIII.3.18.3 SR2) does not cite it at COBOL-85: SR4 alone refuses the sender there (kb/Work PB5774, PB6075).
         CobolClass.Index => "a MOVE operand shall not be of class index ("
-            + edition.CiteRule("§1985:VI.6.19.3 SR4", "§2023:14.9.25.3 SR1") + "; "
-            + (why ?? edition.Cite("§1985:VI.5.14.3 SR5 — only a SEARCH or SET statement, a relation condition, the USING phrase of a "
-                    + "Procedure Division header or the USING phrase of a CALL statement may reference an index data item",
-                    "§2023:13.18.60.3 SR10 — only a SEARCH or SET statement, a relation condition, an "
-                    + "intrinsic-function or inline-method argument, or a procedure-division / CALL / INVOKE "
-                    + "USING phrase may reference an index data item")) + ")",
+            + Sr1Rule(edition)
+            + IndexContextClause(why ?? IndexExplicitReferenceRule(edition, procedureDivisionStatement)) + ")",
         CobolClass.Pointer => "a MOVE operand shall not be of class pointer — §2023:8.5.2.1 Table 2 puts the "
             + "data-pointer, function-pointer and program-pointer categories in that class (ISO §2023:14.9.25.3 SR1; "
             + "§2023:13.18.60.3 SR9 — a data-pointer data item \"may be referenced explicitly only in a CALL "
@@ -525,4 +524,30 @@ public static class MoveTable16
             + "assign an object reference",
         _ => null,
     };
+
+    /// <summary>The MOVE rule that bars class index as an operand, in the edition in force: §1985:VI.6.19.3 SR4, §2002:14.8.24.2 SR1,
+    /// §2014:14.9.24.2 SR1, §2023:14.9.25.3 SR1 (each checked with <c>scripts/spec/cite.py --check</c>), so a COBOL-2002 or COBOL-2014
+    /// compile is sent to its own edition's text and not to COBOL-2023's (kb/Work PB6075).</summary>
+    private static string Sr1Rule(EditionInfo edition) =>
+        edition.CiteRule("§1985:VI.6.19.3 SR4", "§2023:14.9.25.3 SR1", "§2002:14.8.24.2 SR1", "§2014:14.9.24.2 SR1");
+
+    private static string IndexContextClause(string rule) => rule.Length == 0 ? "" : "; " + rule;
+
+    /// <summary>The rule that closes the set of contexts an index data item may be referenced in, with the contexts that edition names:
+    /// §1985:VI.5.14.3 SR5, §2002:13.16.58.2 SR9 and §2014:13.18.60.2 SR10 (an intrinsic function argument and an inline method
+    /// invocation argument join the list at 2002) and §2023:13.18.60.3 SR10.</summary>
+    private static string IndexExplicitReferenceRule(EditionInfo edition, bool procedureDivisionStatement) => edition.Cite(
+        procedureDivisionStatement
+            ? "§1985:VI.5.14.3 SR5 — only a SEARCH or SET statement, a relation condition, the USING phrase of a "
+                + "Procedure Division header or the USING phrase of a CALL statement may reference an index data item"
+            : "",
+        "§2023:13.18.60.3 SR10 — only a SEARCH or SET statement, a relation condition, an "
+            + "intrinsic-function or inline-method argument, or a procedure-division / CALL / INVOKE "
+            + "USING phrase may reference an index data item",
+        "§2002:13.16.58.2 SR9 — only a SEARCH or SET statement, a relation condition, an "
+            + "intrinsic-function or inline-method argument, or a procedure-division / CALL / INVOKE "
+            + "USING phrase may reference an index data item",
+        "§2014:13.18.60.2 SR10 — only a SEARCH or SET statement, a relation condition, an "
+            + "intrinsic-function or inline-method argument, or a procedure-division / CALL / INVOKE "
+            + "USING phrase may reference an index data item");
 }

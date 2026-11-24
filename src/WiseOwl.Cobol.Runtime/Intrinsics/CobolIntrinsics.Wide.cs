@@ -145,31 +145,20 @@ public static partial class CobolIntrinsics
         return remainder;
     }
 
-    /// <summary>The position of the greatest (<paramref name="greatest"/>) or least aligned value; the leftmost of equal values
-    /// (§2023:15.59.4 RV2, §2023:15.63.4 RV2, §2023:15.71.4, §2023:15.72.4).</summary>
-    private static int SelectWide(CobolWide[] xs, bool greatest, string function)
-    {
-        RequireArguments(xs.Length, function);
-        int at = 0;
-        for (int i = 1; i < xs.Length; i++)
-            if (greatest ? CompareAligned(xs[i], xs[at]) > 0 : CompareAligned(xs[i], xs[at]) < 0) at = i;
-        return at;
-    }
-
     /// <summary>MAX (§2023:15.59.4): the content of the argument having the greatest value, at the common scale.</summary>
-    public static CobolWide MaxWide(params CobolWide[] xs) => xs[SelectWide(xs, greatest: true, "MAX")];
+    public static CobolWide MaxWide(params ReadOnlySpan<CobolWide> xs) => xs[ExtremeIndex(new WideOrder(xs), true, "MAX")];
 
     /// <summary>MIN (§2023:15.63.4): the content of the argument having the least value, at the common scale.</summary>
-    public static CobolWide MinWide(params CobolWide[] xs) => xs[SelectWide(xs, greatest: false, "MIN")];
+    public static CobolWide MinWide(params ReadOnlySpan<CobolWide> xs) => xs[ExtremeIndex(new WideOrder(xs), false, "MIN")];
 
     /// <summary>ORD-MAX (§2023:15.71.4): the ordinal position of the argument having the greatest value.</summary>
-    public static long OrdMaxWide(params CobolWide[] xs) => SelectWide(xs, greatest: true, "ORD-MAX") + 1;
+    public static long OrdMaxWide(params ReadOnlySpan<CobolWide> xs) => ExtremeIndex(new WideOrder(xs), true, "ORD-MAX") + 1;
 
     /// <summary>ORD-MIN (§2023:15.72.4): the ordinal position of the argument having the least value.</summary>
-    public static long OrdMinWide(params CobolWide[] xs) => SelectWide(xs, greatest: false, "ORD-MIN") + 1;
+    public static long OrdMinWide(params ReadOnlySpan<CobolWide> xs) => ExtremeIndex(new WideOrder(xs), false, "ORD-MIN") + 1;
 
     /// <summary>SUM (§2023:15.88.4): the sum of the aligned arguments, left to right.</summary>
-    public static CobolWide SumWide(params CobolWide[] xs)
+    public static CobolWide SumWide(params ReadOnlySpan<CobolWide> xs)
     {
         RequireArguments(xs.Length, "SUM");
         CobolWide sum = default;
@@ -178,7 +167,7 @@ public static partial class CobolIntrinsics
     }
 
     /// <summary>RANGE (§2023:15.76.4): <c>FUNCTION MAX − FUNCTION MIN</c>, at the common scale.</summary>
-    public static CobolWide RangeWide(params CobolWide[] xs)
+    public static CobolWide RangeWide(params ReadOnlySpan<CobolWide> xs)
     {
         RequireArguments(xs.Length, "RANGE");
         return CobolWide.Sub(MaxWide(xs), MinWide(xs));
@@ -190,7 +179,7 @@ public static partial class CobolIntrinsics
     /// rounds once (§2023:14.7.4.3). The arguments arrive ALREADY ALIGNED by the emitter to the common <paramref name="scale"/>. Lowering
     /// each argument to its round-to-odd image first and dividing that sum rounded twice: MEAN (BIG * BIG * K3, 1) of 18-, 18- and
     /// 3-digit items showed …000000000000100000 where one rounding of the exact …000500 is …000000000000000000.</summary>
-    public static CobolDec MeanWide(CobolRounding mode, int scale, params CobolWide[] xs)
+    public static CobolDec MeanWide(CobolRounding mode, int scale, params ReadOnlySpan<CobolWide> xs)
     {
         RequireArguments(xs.Length, "MEAN");
         return SumWide(xs).QuotientDec(scale, xs.Length, mode);
@@ -199,10 +188,10 @@ public static partial class CobolIntrinsics
     /// <summary>MEDIAN (§2023:15.61.4): the middle of the sorted arguments for an odd count, the mean of the two middles for an even
     /// one — returned at the common scale PLUS ONE, so the halving is exact in both branches (odd: × 10; even: the sum × 5), as
     /// <see cref="MedianScaled"/> does.</summary>
-    public static CobolWide MedianWide(params CobolWide[] xs)
+    public static CobolWide MedianWide(params ReadOnlySpan<CobolWide> xs)
     {
         RequireArguments(xs.Length, "MEDIAN");
-        var sorted = (CobolWide[])xs.Clone();
+        var sorted = xs.ToArray();
         Array.Sort(sorted, CompareAligned);
         int mid = sorted.Length / 2;
         return sorted.Length % 2 != 0
@@ -211,7 +200,7 @@ public static partial class CobolIntrinsics
     }
 
     /// <summary>MIDRANGE (§2023:15.62.4): <c>(MAX + MIN) / 2</c>, returned at the common scale plus one ((max + min) × 5, exact).</summary>
-    public static CobolWide MidrangeWide(params CobolWide[] xs)
+    public static CobolWide MidrangeWide(params ReadOnlySpan<CobolWide> xs)
     {
         RequireArguments(xs.Length, "MIDRANGE");
         return CobolWide.Mul(CobolWide.Add(MaxWide(xs), MinWide(xs)), CobolWide.From(5));

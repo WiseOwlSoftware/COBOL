@@ -106,6 +106,27 @@ public sealed class ScaledToDoubleTests
         Assert.True(actual < 0, $"scale {scale}: {actual:R}");
     }
 
+    /// <summary>kb/Work PB2658: the slow path formats <c>&lt;unscaled&gt;E&lt;−scale&gt;</c> into a fixed stack buffer. The
+    /// LONGEST text each carrier can produce, a 40-character signed minimum or 39-digit unsigned maximum beside an
+    /// 11-character exponent, must fit and parse to the oracle's value (here ±0 or ±Infinity at the int extremes).</summary>
+    [Theory]
+    [InlineData(int.MaxValue)]
+    [InlineData(int.MinValue + 1)]
+    [InlineData(-400)]
+    [InlineData(400)]
+    public void TheLongestScientificText_FitsTheBuffer(int scale)
+    {
+        Assert.Equal(Oracle(Int128.MinValue, scale), CobolFloat.ScaledToDouble(Int128.MinValue, scale));
+        Assert.Equal(
+            float.Parse(Int128.MinValue.ToString(CultureInfo.InvariantCulture) + "E" + (-scale).ToString(CultureInfo.InvariantCulture),
+                NumberStyles.Float, CultureInfo.InvariantCulture),
+            CobolFloat.ScaledToSingle(Int128.MinValue, scale));
+        Assert.Equal(
+            double.Parse(UInt128.MaxValue.ToString(CultureInfo.InvariantCulture) + "E" + (-scale).ToString(CultureInfo.InvariantCulture),
+                NumberStyles.Float, CultureInfo.InvariantCulture),
+            CobolFloat.ScaledMagnitudeToDouble(UInt128.MaxValue, scale));
+    }
+
     [Fact]
     public void CobolDecToDouble_RidesTheSameConversion()
     {

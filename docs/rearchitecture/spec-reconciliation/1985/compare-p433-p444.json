@@ -1,0 +1,17 @@
+{
+  "batch": [433, 434, 435, 436, 437, 438, 439, 440, 441, 442, 443, 444],
+  "pages_checked": [433, 434, 435, 436, 437, 438, 439, 440, 441, 442, 443, 444],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p440-1",
+      "page": 440,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "section": "2.4.2 General Format (ACCESS MODE clause)",
+      "pdf_says": "The level box around DYNAMIC sits inside the inner brace: {RANDOM / [DYNAMIC]} with the box closing before the inner brace closes.",
+      "markdown_says": "               ╰ ╰ ║ <u>DYNAMIC</u> ╯ ║                            ╯",
+      "why_it_matters": "The closing level-box marker ║ is placed after the inner brace's closing ╯, so the box appears to enclose the brace rather than only DYNAMIC. The same format on page 438 renders it correctly as '║ <u>DYNAMIC</u> ║ ╯'. Syntax meaning is unchanged (DYNAMIC still a brace alternative), but the box-delimiter nesting is wrong."
+    }
+  ]
+}

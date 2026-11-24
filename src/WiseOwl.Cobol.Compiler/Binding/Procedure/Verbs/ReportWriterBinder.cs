@@ -44,14 +44,19 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
     /// runs them at each evaluation.</para></summary>
     public void BindReportGroupClauses()
     {
-        var memo = new Dictionary<Core.ConditionContext, BoundCondition>(ReferenceEqualityComparer.Instance);
-        var entry = host.Udf.Mark;
+        // A condition is bound once per written clause, except that a condition naming a VARYING counter binds once per
+        // DECLARING occurrence of that counter: a replayed entry (OCCURS, §2023:13.18.38 Format 3) declares a counter of its own
+        // per repetition, and the condition must read the one its field's repetition owns (§2023:13.18.64.4 GR3; kb/Work PB5624).
+        var memo = new Dictionary<(Core.ConditionContext, string), BoundCondition>();   // parse contexts compare by reference
+        var entry = host.Window.Mark;
         BoundCondition Bind(Core.ConditionContext c)
         {
+            string scopeKey = ctx.Refs.VaryingScope is { } scope
+                ? string.Join(",", scope.Where(v => ReportSectionBinder.HasWord(c, v.Name)).Select(v => v.Uid)) : "";
             // A condition §2023:13.15.3 SR16 refused at data bind was reported there, under its rule; binding it would word
             // the same report-section reference again under §2023:13.8.6.2.3 (kb/Work PB4226).
-            if (!memo.TryGetValue(c, out var b))
-                memo[c] = b = ctx.Data.State.Reports.PresentWhenRefused(c)
+            if (!memo.TryGetValue((c, scopeKey), out var b))
+                memo[(c, scopeKey)] = b = ctx.Data.State.Reports.PresentWhenRefused(c)
                     ? host.Cond.Refused("a PRESENT WHEN condition refused by ISO §2023:13.15.3 SR16")
                     : PerEvaluation(() => host.Cond.BindCondition(c));
             return b;
@@ -71,7 +76,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
             BindRolledValues(reports);   // after EVERY report's operands are bound: SR4 g) lets a total roll up another report's entry
             // ⛔ NOTHING MAY BE LEFT FOR THE FIRST STATEMENT TO HOIST: a clause operand bound outside a window would leave
             // its steps on the statement-scoped lists, and that was the PB4517 wrong answer. Loud at compile time.
-            if (host.Udf.Mark != entry)
+            if (host.Window.Mark != entry)
                 throw new InvalidOperationException("report clause binding left operand-evaluation steps or property operations "
                     + "outside a per-evaluation window (kb/Work PB4517)");
         }
@@ -103,10 +108,10 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         foreach (var g in r.Groups)
             foreach (var ln in g.Lines)
             {
-                foreach (var c in ln.PresentWhenCtxs) ln.PresentWhen.Add(Bind(c));
+                BindPresentWhen(ln.PresentWhenCtxs, ln.PresentWhen, ln.PresentCounters, Bind);
                 foreach (var f in ln.Fields)
                 {
-                    foreach (var c in f.PresentWhenCtxs) f.PresentWhen.Add(Bind(c));
+                    BindPresentWhen(f.PresentWhenCtxs, f.PresentWhen, f.PresentCounters, Bind);
                     // §2023:13.18.64.2 writes FROM/BY as plain arithmetic-expression-1/-2, and the RW VARYING is on NEITHER
                     // index clause's list (§2023:13.18.38.3 SR7 names only PERFORM's and SEARCH's VARYING; §2023:13.18.60.3 SR10
                     // names no VARYING) — so both screens apply (kb/Work PB215). A counter's expressions may name the
@@ -139,14 +144,14 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         foreach (var o in r.ItemOccurrences)
         {
             if (o.Sum is not null) continue;
-            foreach (var c in o.PresentWhenCtxs) o.PresentWhen.Add(Bind(c));
+            BindPresentWhen(o.PresentWhenCtxs, o.PresentWhen, o.PresentCounters, Bind);
             ctx.Refs.VaryingScope = ScopeOf(o.Varyings.Select(u => u.Counter));
             if (o.Source is not null) BindSourceOperands(r, [o.Source]);
             ctx.Refs.VaryingScope = null;
         }
         foreach (var s in r.Sums)
         {
-            foreach (var c in s.PresentWhenCtxs) s.PresentWhen.Add(Bind(c));
+            BindPresentWhen(s.PresentWhenCtxs, s.PresentWhen, s.PresentCounters, Bind);
             // SUM addends (§2023:13.18.54.3 SR5 — kb/Work PB482). An addend written as identifier-1 is an
             // ORDINARY IDENTIFIER (§2023:8.4.3.1.2 Format 2, qualified-data-name-with-subscripts), so its VALUE
             // is bound HERE, through the same `BindExpr` a procedure-division reference takes — which is
@@ -167,6 +172,48 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
             s.Rounding = host.Expr.RoundingOf(s.Rounded);
         }
     }
+
+    /// <summary>Bind a PRESENT WHEN chain (§2023:13.18.41.2 Format 1), each condition with the VARYING counters it may name:
+    /// §2023:13.18.64.3 SR2 lets a counter be referenced "only within the current entry or a subordinate entry", so a
+    /// condition written on entry E sees the counters among <paramref name="counters"/> that E or an entry enclosing E declares —
+    /// not those of an entry subordinate to E, which the chain reaches only because it is composed with E's (kb/Work PB5624).</summary>
+    private void BindPresentWhen(List<Core.ConditionContext> ctxs, List<BoundCondition> bound,
+        IReadOnlyList<ReportVaryingUse> counters, Func<Core.ConditionContext, BoundCondition> Bind)
+    {
+        foreach (var c in ctxs)
+        {
+            var written = WrittenOn(c);
+            var visible = counters.Where(u => Declares(u.Counter.Entry, written)).Select(u => u.Counter).ToList();
+            ctx.Refs.VaryingScope = visible.Count > 0 ? ScopeOf(visible) : null;
+            bound.Add(Bind(c));
+        }
+        ctx.Refs.VaryingScope = null;
+    }
+
+    /// <summary>Whether entry <paramref name="declaring"/> is <paramref name="written"/> or encloses it: the entries that follow it
+    /// in the level-number hierarchy (§2023:13.15) up to the first of a level no deeper than its own.</summary>
+    private static bool Declares(Core.ReportGroupEntryContext declaring, Core.ReportGroupEntryContext written)
+    {
+        if (ReferenceEquals(declaring, written)) return true;
+        var siblings = ((Antlr4.Runtime.ParserRuleContext)declaring.Parent!).children.OfType<Core.ReportGroupEntryContext>().ToList();
+        int level = LevelOf(declaring);
+        foreach (var e in siblings.Skip(siblings.IndexOf(declaring) + 1))
+        {
+            if (LevelOf(e) <= level) return false;
+            if (ReferenceEquals(e, written)) return true;
+        }
+        return false;
+    }
+
+    /// <summary>The report group description entry a clause's condition is written on.</summary>
+    private static Core.ReportGroupEntryContext WrittenOn(Antlr4.Runtime.ParserRuleContext clause)
+    {
+        Antlr4.Runtime.RuleContext? up = clause;
+        while (up is not Core.ReportGroupEntryContext) up = up!.Parent;
+        return (Core.ReportGroupEntryContext)up;
+    }
+
+    private static int LevelOf(Core.ReportGroupEntryContext e) => int.Parse(e.levelNumber().GetText());
 
     /// <summary>Bind the SOURCE operands of one report entry, each ONCE (an operand an earlier pass bound is left alone —
     /// a printable entry's field binds them first, a rolled total's unprintable entry here; kb/Work PB1294).
@@ -227,8 +274,8 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
     /// presence probe evaluates it, and a condition that registered none is returned unchanged.</summary>
     private BoundCondition PerEvaluation(Func<BoundCondition> bind)
     {
-        var mark = host.Udf.Mark;
-        return host.Udf.UdfAttachPerEvaluation(bind(), mark);
+        var mark = host.Window.Mark;
+        return host.Window.AttachPerEvaluation(bind(), mark);
     }
 
     /// <summary>The EXPRESSION twin of <see cref="PerEvaluation(Func{BoundCondition})"/> — a SUM addend and a VARYING
@@ -236,8 +283,8 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
     /// runs at the addition or the counter setting that reads the value.</summary>
     private BoundExpr PerEvaluation(Func<BoundExpr> bind)
     {
-        var mark = host.Udf.Mark;
-        return host.Udf.UdfAttachPerEvaluation(bind(), mark);
+        var mark = host.Window.Mark;
+        return host.Window.AttachPerEvaluation(bind(), mark);
     }
 
     /// <summary>The window of a SOURCE operand (either form) and a CODE identifier, whose steps are kept BESIDE the
@@ -245,9 +292,9 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
     /// transfer), but the steps run once per placement, and a CODE place has no expression to carry them.</summary>
     private (T Value, IReadOnlyList<BoundStatement>? Steps) WithSteps<T>(Func<T> bind)
     {
-        var mark = host.Udf.Mark;
+        var mark = host.Window.Mark;
         var value = bind();
-        return (value, host.Udf.DrainPerEvaluation(mark));
+        return (value, host.Window.DrainPerEvaluation(mark));
     }
 
     /// <summary>⛔ THE SOURCE CLAUSE'S identifier-1 RULES THAT NEED ITS BOUND ITEM (kb/Work PB1293), reported under
@@ -271,13 +318,16 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         {
             ctx.Edition.Error(DiagnosticCatalog.ReportSourceOperandRule, $"{where}: identifier-1 references the "
                 + $"variable-length group '{item.CobolName ?? item.ClrName}', which a SOURCE clause shall not name "
-                + "(ISO §2023:13.18.53.3 SR8)");
+                + $"({ctx.Edition.Edition.CiteRule("§2023:13.18.53.3 SR8", "§2023:13.18.53.3 SR8", y2014: "§2014:13.18.53.2 SR8")})");
             return true;
         }
         // §2023:14.9.25.3 SR1's sending half is part of "a MOVE statement is valid": an index, message-tag, object or
-        // pointer identifier-1 is refused, printable entry or not — no edition's list of the contexts an index data item
-        // may be referenced in names a SOURCE clause (§2023:13.18.60.3 SR10; §1985:VI.5.14.3 SR5; kb/Work PB5188).
-        if (MoveTable16.SenderClassRefusal(operand, ctx.Edition.Edition) is { } classRefusal)
+        // pointer identifier-1 is refused, printable entry or not. At COBOL-85 the authority is the MOVE's own SR4 that SOURCE SR2
+        // imports ("conforms to the rules for sending items in the MOVE statements", §1985:XIII.3.18.3 SR2 → §1985:VI.6.19.3 SR4),
+        // not §1985:VI.5.14.3 SR5, which limits Procedure Division statements and so does not reach a Report Section clause
+        // (kb/Work PB5774, PB6075); from 2002 the data-division clause is an explicit reference no list of contexts names
+        // (§2023:13.18.60.3 SR10 with §2023:8.4.5; kb/Work PB5188).
+        if (MoveTable16.SenderClassRefusal(operand, ctx.Edition.Edition, procedureDivisionStatement: false) is { } classRefusal)
         {
             ctx.Edition.Error(DiagnosticCatalog.ReportSourceOperandRule, $"{where}: the implicit MOVE of {ImplicitMoveRule()} "
                 + $"from identifier-1 is invalid — {classRefusal} ({EditionInfo.Designated(SourceMoveRule())})");
@@ -292,10 +342,12 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
 
     /// <summary>The rule that makes a SOURCE clause an implicit MOVE, in the edition in force (kb/Work PB4950): §2023:13.18.53.4 GR1, or at
     /// COBOL-85 the SOURCE clause's own §1985:XIII.3.18.3 SR2.</summary>
-    private string ImplicitMoveRule() => ctx.Edition.Edition.Cite("§1985:XIII.3.18.3 SR2", "§2023:13.18.53.4 GR1");
+    private string ImplicitMoveRule() =>
+        ctx.Edition.Edition.Cite("§1985:XIII.3.18.3 SR2", "§2023:13.18.53.4 GR1", "§2002:13.16.51.3 GR1", "§2014:13.18.53.3 GR1");
 
     /// <summary>The rule that identifier-1 shall be valid as the sending operand of that MOVE, in the edition in force (kb/Work PB4950).</summary>
-    private string SourceMoveRule() => ctx.Edition.Edition.Cite("§1985:XIII.3.18.3 SR2", "§2023:13.18.53.3 SR2");
+    private string SourceMoveRule() =>
+        ctx.Edition.Edition.Cite("§1985:XIII.3.18.3 SR2", "§2023:13.18.53.3 SR2", "§2002:13.16.51.2 SR2", "§2014:13.18.53.2 SR2");
 
     /// <summary>⛔ THE VALUE EACH ROLLED ADDITION ADDS (ISO §2023:13.18.54.4 GR6; kb/Work PB1294) — bound once every
     /// report's own clauses are, because a rolled total may name an entry of ANOTHER report (§2023:13.18.54.3 SR4g).

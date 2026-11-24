@@ -8,6 +8,7 @@ sidebar:
 ```text
 cobol <source> [options]
 cobol check-batch <manifest>
+cobol points-batch <manifest> --frames <rules> --operands <rules> [--flat <rules>]
 ```
 
 `cobol` compiles one COBOL compilation group, the source file named by `<source>`, to a .NET assembly. The default
@@ -23,6 +24,7 @@ the form `--output=out.dll`.
 | `--std <85\|2002\|2014\|2023>` | the ISO edition to compile for (default 2023); see [Editions](../editions/) |
 | `--permissive` | accepts a construct the chosen edition removed, with a warning in place of the error; see [Editions](../editions/) |
 | `--flag-extensions` | warns (COBOL2894) at every use of a nonstandard extension the compiler accepts; see [Editions](../editions/) |
+| `--suppress <NAME>` | does not report a warning (repeatable): `NAME` is a diagnostic code (`COBOL2187`), a diagnostic id or a suppress key (`recognized-not-implemented`); an error is never suppressed, and a name no diagnostic has is refused |
 | `--source-format <fixed\|free\|auto>` | the reference format the source starts in (default `fixed`); see [Source format and COPY libraries](../source-format/) |
 | `--copy <DIR>` | a directory searched for COPY library text; repeat the option for several |
 | `--sign-encoding <ibm\|ascii>` | how DISPLAY stores the sign of a signed item whose sign is not SEPARATE (default `ibm`) |
@@ -96,3 +98,14 @@ an abnormal termination; 0 otherwise. A `.NET` host that starts the program itse
 code, which is how the compiler's own test suites sweep thousands of programs. The manifest is a tab-separated file;
 each line is `source<TAB>std<TAB>nist-name<TAB>permissive`, with `permissive` 0 or 1 and the last three fields
 optional. The command prints `source<TAB>std<TAB>PASS` or `FAIL` for each line and exits 0.
+
+## points-batch
+
+`cobol points-batch <manifest> --frames <rules> --operands <rules> [--flat <rules>]` parses many sources in one process
+and prints what the parse holds, which is how the conformance suite measures which general-format alternatives its
+tests write. Each manifest line is `source<TAB>std<TAB>source-format`. For each line the command prints one JSON line,
+`{"source", "std", "parsed", "nodes"}`, in the manifest's order: `nodes` lists every parse node of the grammar rules
+`--frames` names, each with its line and its tokens. Inside a node, a context of a rule `--operands` names stands as one
+token when it holds more than one, and a node of a rule `--flat` names keeps every token. Rule names are the grammar's,
+comma-separated. A line whose edition, reference format or source cannot be read prints `"parsed": false` and no nodes.
+The command exits 0, or 66 when the manifest does not exist.

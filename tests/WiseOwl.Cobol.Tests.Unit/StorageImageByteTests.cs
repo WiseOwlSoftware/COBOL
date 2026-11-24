@@ -46,7 +46,7 @@ public sealed class StorageImageByteTests
         {
             ExceptionState.Clear();
             ExceptionState.DataConversionChecking = true;
-            Assert.Equal(Units(0x3F41, 0x4243), CobolBits.NatReadWindow(EuroAbc, 0, 2));
+            Assert.Equal(Units(0x3F41, 0x4243), NationalImage.ReadWindow(EuroAbc, 0, 2));
             Assert.Equal("EC-DATA-CONVERSION", ExceptionState.LastName);
             Assert.False(ExceptionState.LastFatal);   // Table 13: EC-DATA-CONVERSION is nonfatal
         });
@@ -61,7 +61,7 @@ public sealed class StorageImageByteTests
         {
             ExceptionState.Clear();
             ExceptionState.DataConversionChecking = false;
-            Assert.Equal(Units(0x3F41, 0x4243), CobolBits.NatReadWindow(EuroAbc, 0, 2));
+            Assert.Equal(Units(0x3F41, 0x4243), NationalImage.ReadWindow(EuroAbc, 0, 2));
             Assert.Null(ExceptionState.LastName);
         });
     }
@@ -74,8 +74,8 @@ public sealed class StorageImageByteTests
         RunUnit.Run(_ =>
         {
             ExceptionState.Clear();
-            string national = CobolBits.NatReadWindow(EuroAbc, 0, 2);
-            Assert.Equal("?ABC", CobolBits.NatWriteWindow("????", 0, 2, national));
+            string national = NationalImage.ReadWindow(EuroAbc, 0, 2);
+            Assert.Equal("?ABC", NationalImage.WriteWindow("????", 0, 2, national));
         });
     }
 
@@ -106,7 +106,7 @@ public sealed class StorageImageByteTests
             Assert.Equal("EC-DATA-CONVERSION", ExceptionState.LastName);
 
             ExceptionState.Clear();
-            Assert.Equal(Units(0x3F41), CobolBits.NatFromStorage(Units(0x20AC, 'A')));
+            Assert.Equal(Units(0x3F41), NationalImage.FromStorage(Units(0x20AC, 'A')));
             Assert.Equal("EC-DATA-CONVERSION", ExceptionState.LastName);
         });
     }
@@ -121,9 +121,9 @@ public sealed class StorageImageByteTests
         {
             ExceptionState.Clear();
             ExceptionState.DataConversionChecking = true;
-            Assert.Equal(Units(0xFFFF, 0xFFFF), CobolBits.NatReadWindow(Units(0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF), 0, 2));
-            Assert.Equal(Units(0x00FF), CobolBits.NatReadWindow(Units(0x00, 0xFF), 0, 1));
-            Assert.Equal(Units(0xE9 << 8 | 'A'), CobolBits.NatReadWindow(Units(0xE9, 'A'), 0, 1));
+            Assert.Equal(Units(0xFFFF, 0xFFFF), NationalImage.ReadWindow(Units(0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF), 0, 2));
+            Assert.Equal(Units(0x00FF), NationalImage.ReadWindow(Units(0x00, 0xFF), 0, 1));
+            Assert.Equal(Units(0xE9 << 8 | 'A'), NationalImage.ReadWindow(Units(0xE9, 'A'), 0, 1));
             Assert.Equal("11111111", CobolBits.ReadWindow(Units(0xFF), 0, 8));
             Assert.Null(ExceptionState.LastName);
         });

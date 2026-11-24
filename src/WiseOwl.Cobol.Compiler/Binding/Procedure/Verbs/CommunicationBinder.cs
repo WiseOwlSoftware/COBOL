@@ -176,17 +176,22 @@ internal sealed class CommunicationBinder(BinderContext ctx, StatementBinder hos
         ? Table16Operand.Of(place) is { Category: PicCategory.Alphanumeric } v && (!v.IsAlphabetic || edition.AlphabeticIsAlphanumeric)
         : IsCommunicationAlphanumericArea(place.Item, edition);
 
+    /// <summary>An alphanumeric-edited elementary item (<see cref="PicInfo.IsCharacterEdited"/>) is category alphanumeric-edited, a category of its own
+    /// (§2002:8.5.2), so it is not "of category alphanumeric" (§2002:A.2.5.2 SR2; kb/Work PB5722).</summary>
     private static bool IsCommunicationAlphanumericArea(DataItem item, EditionInfo edition) =>
         item.IsGroup ? item.GroupUsage is GroupUsage.None
-        : item.Pic is { Category: PicCategory.Alphanumeric } pic && (!pic.IsAlphabetic || edition.AlphabeticIsAlphanumeric);
+        : item.Pic is { Category: PicCategory.Alphanumeric, EditMask: null } pic && (!pic.IsAlphabetic || edition.AlphabeticIsAlphanumeric);
 
     /// <summary>A.2.6: the SEND statement.</summary>
     internal BoundStatement BindSend(Core.CommunicationSendStatementContext s)
     {
         var cd = ResolveCommunicationCd(s.cobolWord(), SendRule);
         BoundOperand? text = s.sendIdentifier() is { } written ? BindSendIdentifier(written) : null;
-        if (text is not null && IntrinsicArgumentRules.ClassOf(text) is not (null or CobolClass.Alphanumeric)
-            && !(ctx.Edition.Edition.AlphabeticIsAlphanumeric && IntrinsicArgumentRules.ClassOf(text) is CobolClass.Alphabetic))
+        // SR2 asks a CLASS (§2002:A.2.6.2 SR2), so the refined numeric-edited member is read through Table 2's class column: a display
+        // numeric-edited item is class alphanumeric (§2002:8.5.2), a national one class national (kb/Work PB5722).
+        CobolClass? sendClass = text is null ? null : IntrinsicArgumentRules.ClassOf(text) is { } sent ? IntrinsicArgumentRules.TableTwoClass(sent) : null;
+        if (sendClass is not (null or CobolClass.Alphanumeric)
+            && !(ctx.Edition.Edition.AlphabeticIsAlphanumeric && sendClass is CobolClass.Alphabetic))
         {
             using var at = ctx.Edition.At(s.sendIdentifier());
             if (Prints2002)

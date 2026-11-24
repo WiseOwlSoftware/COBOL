@@ -1,0 +1,13 @@
+{
+  "claim_id": "p532-1",
+  "claim_key": "ae1a4e83c82e9ec1",
+  "page": 532,
+  "kind": "misplaced-content",
+  "severity": "normative",
+  "claim": {"id": "p532-1", "page": 532, "kind": "misplaced-content", "severity": "normative", "pdf_says": "IS VARYING IN SIZE [[FROM integer-4] [TO integer-5] CHARACTERS]\n     [DEPENDING ON data-name-1]", "markdown_says": "│        │ IS <u>VARYING</u> IN SIZE [ [ FROM integer-4 ] [ <u>TO</u> integer-5 ] CHARACTERS ] │ │\n│ <u>RECORD</u> ┤                                                                       ├ │\n│        │ [ <u>DEPENDING</u> ON data-name-1 ]                                          │ │", "why_it_matters": "In the Format 2 FD RECORD clause the PDF indents [DEPENDING ON data-name-1] under the IS VARYING alternative as its continuation (as the markdown of the identical Formats 1 and 3 on pages 531 and 533 does). On page 532 the markdown puts it flush with the other alternatives of the brace, separated by blank lines, so the brace reads as four alternatives: RECORD DEPENDING ON data-name-1 looks like a standalone choice and IS VARYING IN SIZE looks unable to take DEPENDING ON."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The 300-dpi render of page 532 (X-16, Format 2 FD) shows the RECORD brace with three alternatives stacked tightly: CONTAINS integer-3 CHARACTERS; IS VARYING IN SIZE [[FROM integer-4] [TO integer-5] CHARACTERS] with its continuation line '[DEPENDING ON data-name-1]' visibly indented about six columns under it; CONTAINS integer-6 TO integer-7 CHARACTERS. The page-532 markdown starts '[ DEPENDING ON data-name-1 ]' at the same column as 'CONTAINS' and 'IS VARYING', and its layout puts a blank line between every alternative, DEPENDING included. Read by §1985:IV.2.1.4, a brace without choice bars means exactly one of its stacked options, so the markdown shows four alternatives: DEPENDING ON becomes a standalone choice and is cut off from IS VARYING. The other transcriptions of this same RECORD clause in specs/ANSI_COBOL_1985.md (lines 8377, 8427, 8468 and 8500) keep the indentation, so this one page is the outlier. The indentation is the only thing in the notation that marks DEPENDING as part of IS VARYING, so losing it changes the syntax the page describes. This is a content defect, not a formatting difference.",
+    "corrected_description": ""
+  }
+}

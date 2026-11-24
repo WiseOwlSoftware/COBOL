@@ -17,6 +17,10 @@ FOR COBOL VERBS"), and the transcription sets every one of them as a level-2 hea
 bold, no bare underlined line, none inside a `<pre>` figure. `check_format_titles` holds each to it. Amendment 1's addendum
 (pages 846 and 847) prints its own, bold and not underlined, and is out of the rule's scope as it is out of this module's.
 
+THE BOX MARKING RULE (kb/Work PB6051, fifth pass). A level-2 box is marked `║...║`, and two of its misreadings are held
+mechanically by `check_box_markup`: an underline that crosses a box side (a box edge read as an underline, p419-1), and
+a figure standing between box-marked lines with no box sides of its own (p240-1).
+
 A heading's level is markup. A citation locator is the number (`citation.ISO_HEADING` reads `#{1,6}`) and the rule catalog
 closes a block at any heading, so a level changed here moves no locator and no rule; `check` is the audit that
 `verify_publishable.py --edition 1985` runs, and `normalize` is the one function that applies the rule (a one-time repair,
@@ -212,11 +216,29 @@ def heads_as(heading: str, number: str, title: str) -> bool:
 FORMAT_TITLE = re.compile(r"^\s*(?:#+\s+)?(?:║|\*\*|<u>)*GENERAL FORMAT FOR\b")
 #: THE form a general-format page title takes (kb/Work PB6095): a level-2 heading, underlined, nothing else on the line.
 FORMAT_TITLE_FORM = re.compile(r"^## <u>GENERAL FORMAT FOR [^<*║]+</u>$")
+#: A line that is a summary-of-elements table title (pages 31 to 83), whatever markup it carries.
+SUMMARY_TITLE = re.compile(r"^\s*(?:#+\s+)?(?:║|\*\*|<u>)*SUMMARY OF ELEMENTS IN\b")
+#: THE form a summary-of-elements table title takes (kb/Work PB6051): the page prints it as the table's own title, repeated
+#: on every page of the table and never a node of the document's tree, so it is one underlined line and no heading.
+SUMMARY_TITLE_FORM = re.compile(r"^<u>SUMMARY OF ELEMENTS IN [^<*║#]+</u>$")
+#: A line that is a summary-of-differences table title (Section XVII, pages 725 to 748), whatever markup it carries.
+DIFFERENCES_TITLE = re.compile(r"^\s*(?:#+\s+)?(?:║|\*\*|<u>)*SUMMARY OF DIFFERENCES IN\b")
+#: THE form a summary-of-differences table title takes (kb/Work PB6051, fourth pass p737-1): like the summary-of-elements
+#: titles, the page prints it as the table's own title repeated on every page of the table, so one underlined line and no
+#: heading.
+DIFFERENCES_TITLE_FORM = re.compile(r"^<u>SUMMARY OF DIFFERENCES IN [^<*║#]+</u>$")
+#: Each repeated page title of the standard and its one form: (detector, form, what it is, the form as a failure names it).
+TITLE_FORMS = ((FORMAT_TITLE, FORMAT_TITLE_FORM, "a general-format page title", "`## <u>GENERAL FORMAT FOR ...</u>`"),
+               (SUMMARY_TITLE, SUMMARY_TITLE_FORM, "a summary-of-elements table title",
+                "`<u>SUMMARY OF ELEMENTS IN ...</u>` (no heading)"),
+               (DIFFERENCES_TITLE, DIFFERENCES_TITLE_FORM, "a summary-of-differences table title",
+                "`<u>SUMMARY OF DIFFERENCES IN ...</u>` (no heading)"))
 
 
 def check_format_titles(lines: list[str], first: int, last: int) -> list[str]:
-    """Every general-format page title of the standard (Amendment 1's addendum, and the quoting notes and tables, out of
-    scope) stands as `## <u>GENERAL FORMAT FOR ...</u>` on a line of its own: found anywhere, a `<pre>` figure included."""
+    """Every repeated page title of the standard (`TITLE_FORMS`: the general-format titles, kb/Work PB6095, and the
+    summary-of-elements and summary-of-differences table titles, kb/Work PB6051) stands in its one form on a line of its own: found anywhere, a `<pre>`
+    figure included (Amendment 1's addendum, and the quoting notes and tables, out of scope)."""
     failures: list[str] = []
     page = 0
     skip = change_pages(lines)
@@ -226,22 +248,83 @@ def check_format_titles(lines: list[str], first: int, last: int) -> list[str]:
             page = int(m.group(1))
         elif skip[0] <= i < skip[1] or line.startswith((">", "|")):
             continue
-        elif FORMAT_TITLE.match(line) and not FORMAT_TITLE_FORM.match(line):
-            failures.append(f"line {i + 1} (page {page}): a general-format page title that is not "
-                            f"`## <u>GENERAL FORMAT FOR ...</u>` on a line of its own: {line.strip()[:70]!r}")
+        else:
+            for detect, form, what, shown in TITLE_FORMS:
+                if detect.match(line) and not form.match(line):
+                    failures.append(f"line {i + 1} (page {page}): {what} that is not {shown} on a line of its own: "
+                                    f"{line.strip()[:70]!r}")
+    return failures
+
+
+#: The marks of a drawn flowchart (an arrowhead): a drawing inside a level-2 box carries no box sides of its own, they stand
+#: on its prose and its caption (pages 346 to 351 and 358, kb/Work PB6051 p351-1).
+DRAWING_MARKS = frozenset("▼▲►◄")
+#: The tokens whose nesting `check_box_markup` reads: an underline's ends and a level-2 box side.
+UNDERLINE_OR_SIDE = re.compile(r"</?u>|║")
+CODE_SPAN = re.compile(r"`[^`\n]*`")
+
+
+def check_box_markup(lines: list[str], first: int, last: int) -> list[str]:
+    """The level-2 box marking (kb/Work PB6051, fifth pass p419-1, p240-1) agrees with its neighbours:
+    - an underline opens and closes on one side of a box side: a `<u>` opened outside a `║...║` span and closed inside it
+      (or the reverse) is a box edge read as an underline, the claim p419-1 found;
+    - a `<pre>` figure that stands between two box-marked prose lines (the nearest non-blank line before it and after it,
+      on its page) carries box sides of its own (`║`, `╔`, `╚`), as page 237's boxed format does: the claim p240-1 found.
+      A drawn flowchart (`DRAWING_MARKS`) is exempt. A figure that ends its page is not reached (its after-neighbour is
+      the folio), so that case stays a reading pass's."""
+    failures: list[str] = []
+    page, figure_from = 0, None
+    skip = change_pages(lines)
+
+    def prose(i: int, step: int) -> str:
+        while 0 <= i < len(lines) and not lines[i].strip():
+            i += step
+        return lines[i] if 0 <= i < len(lines) else ""
+
+    for i in range(first, last):
+        line = lines[i]
+        if (m := spec_pdf.PAGE_HEADING.match(line)) is not None:
+            page = int(m.group(1))
+            continue
+        if skip[0] <= i < skip[1]:
+            continue
+        if line.startswith("<pre"):
+            figure_from = i
+        if figure_from is None:
+            boxed, opened = False, None
+            for t in UNDERLINE_OR_SIDE.finditer(CODE_SPAN.sub("", line)):
+                if t.group() == "║":
+                    boxed = not boxed
+                elif t.group() == "<u>":
+                    opened = boxed
+                elif opened is not None:
+                    if opened != boxed:
+                        failures.append(f"line {i + 1} (page {page}): an underline crosses a level-2 box side (opened "
+                                        f"{'inside' if opened else 'outside'} the box, closed "
+                                        f"{'inside' if boxed else 'outside'}): {line[max(0, t.start() - 60):t.end()]!r}")
+                    opened = None
+        if line.startswith("</pre>") and figure_from is not None:
+            body = lines[figure_from + 1:i]
+            before, after = prose(figure_from - 1, -1), prose(i + 1, 1)
+            if ("║" in before and "║" in after and not spec_pdf.PAGE_HEADING.match(after)
+                    and not any(set(row) & (set("║╔╚") | DRAWING_MARKS) for row in body)):
+                failures.append(f"line {figure_from + 1} (page {page}): a figure between two box-marked lines carries no "
+                                f"box sides of its own: {(body or [''])[0].strip()[:60]!r}")
+            figure_from = None
     return failures
 
 
 def check(text: str) -> list[str]:
     """The audit (kb/Work PB6057): every numbered heading of the standard at its number's depth plus one, no numbered title
     line left as plain text, no running header promoted to a heading, each Section heading once and on its first page,
-    every contents entry a heading of its level, on the page its folio names, and every general-format page title
-    in its one form (`check_format_titles`)."""
+    every contents entry a heading of its level, on the page its folio names, every general-format page title
+    in its one form (`check_format_titles`), and the level-2 box marking agreeing with its neighbours (`check_box_markup`)."""
     failures: list[str] = []
     lines = text.split("\n")
     first, last = body_region(lines)
     page_folio = folios(lines, first, last)
     failures += check_format_titles(lines, first, last)
+    failures += check_box_markup(lines, first, last)
     heads: list[tuple[int, int, str, str, int]] = []  # (line, page, section, text, level)
     section = ""
     for i, page, kind, line in walk(lines, first, last):

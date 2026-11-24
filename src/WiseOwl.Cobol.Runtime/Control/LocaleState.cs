@@ -3,6 +3,7 @@
 using System.Globalization;
 using WiseOwl.Cobol.Runtime.Collation;
 using WiseOwl.Cobol.Runtime.Exceptions;
+using WiseOwl.Cobol.Runtime.Globalization;
 
 namespace WiseOwl.Cobol.Runtime;
 
@@ -118,33 +119,35 @@ public static class LocaleIdentification
     public static bool SameExternalIdentification(string a, bool aFromLiteral, string b, bool bFromLiteral) =>
         aFromLiteral && bFromLiteral ? string.Equals(a, b, StringComparison.Ordinal) : CobolNames.Same(a, b);
 
-    /// <summary>Normalize an external identification to its locale tag (L1). Never throws; an unusable spelling
-    /// comes back as given (lower-cased) and is simply not available.</summary>
+    /// <summary>Normalize an external identification to its canonical locale tag (L1; <see cref="LocaleTag.Canonical"/>,
+    /// the spelling every locale cache is keyed by). The POSIX and .NET names of the root (<c>INVARIANT</c>, <c>C</c>,
+    /// <c>POSIX</c>), the <c>.codeset</c> suffix and the <c>@modifier</c> are this rule's; the root's BCP 47 names, the
+    /// <c>_</c> spelling and the subtag case are <see cref="LocaleTag"/>'s. Never throws; an unusable spelling comes back
+    /// in canonical form and is simply not available.</summary>
     public static string Normalize(string? external)
     {
         string s = (external ?? "").Trim();
         if (s.Length == 0) return "";
-        if (s.Equals("INVARIANT", StringComparison.OrdinalIgnoreCase) || s.Equals("ROOT", StringComparison.OrdinalIgnoreCase)   // not a COBOL word: a locale identification (BCP 47 / POSIX text)
-            || s.Equals("C", StringComparison.OrdinalIgnoreCase) || s.Equals("POSIX", StringComparison.OrdinalIgnoreCase)   // not a COBOL word: a locale identification (BCP 47 / POSIX text)
-            || s.Equals("und", StringComparison.OrdinalIgnoreCase))   // not a COBOL word: a locale identification (BCP 47 / POSIX text)
+        if (s.Equals("INVARIANT", StringComparison.OrdinalIgnoreCase)   // not a COBOL word: a locale identification (.NET / POSIX text)
+            || s.Equals("C", StringComparison.OrdinalIgnoreCase) || s.Equals("POSIX", StringComparison.OrdinalIgnoreCase))   // not a COBOL word: a locale identification (BCP 47 / POSIX text)
             return "";
         string? modifier = null;
         int at = s.IndexOf('@');
         if (at >= 0) { modifier = s[(at + 1)..].Trim(); s = s[..at]; }
         int dot = s.IndexOf('.');
         if (dot >= 0) s = s[..dot];                     // the codeset suffix: ignored (UTF-16 repertoire)
-        s = s.Replace('_', '-');
         if (modifier is { Length: > 0 })
         {
             // A CLDR collation type modifier (bcp47/collation.xml's `co` key — name or alias) → the -u-co- extension,
             // APPENDED to any -u- keys the tag already carries ("de-u-kf-upper@phonebook" → "de-u-kf-upper-co-phonebook").
             // Any other modifier stays in the tag as written — no locale of that name exists, so the locale is
             // unavailable (EC-LOCALE-MISSING at use), never silently the plain locale.
-            if (!Collation.Cldr.CldrLocaleLoader.IsCollationType(modifier)) return s + "@" + modifier;
+            if (!Collation.Cldr.CldrLocaleLoader.IsCollationType(modifier)) return LocaleTag.Parse(s + "@" + modifier).Canonical;
+            var tag = LocaleTag.Parse(s);
             string type = Collation.Cldr.CldrCollation.CanonicalType(modifier);
-            s = s.Contains("-u-", StringComparison.OrdinalIgnoreCase) ? s + "-co-" + type : s + "-u-co-" + type;   // not a COBOL word: a locale identification (BCP 47 / POSIX text)
+            return LocaleTag.Parse(tag.Canonical + (tag.Extension.Length == 0 ? "-u-co-" : "-co-") + type).Canonical;   // not a COBOL word: a locale identification (BCP 47 / POSIX text)
         }
-        return s;
+        return LocaleTag.Parse(s).Canonical;
     }
 
     /// <summary>Is the locale available in this operating environment (§2023:14.9.39.4 GR24 — "If the locale specified by
@@ -190,9 +193,15 @@ public sealed class LocaleState
     private LocaleValue _current;
     private long _nextHandle = 1;
 
+    /// <summary>The L2 user default as a run unit created NOW would determine it — <c>COBOL_USER_LOCALE</c> when set
+    /// (L1-normalized; blank = root), else <see cref="CultureInfo.CurrentCulture"/>'s name, else the root. Read afresh on
+    /// each call, so a host that changes the variable before creating a run unit sees the change; a run unit reads it
+    /// ONCE, at its creation (determination L3).</summary>
+    public static string UserDefaultNow => Determine(UserDefaultVariable, () => CultureInfo.CurrentCulture);
+
     public LocaleState()
     {
-        UserDefault = LocaleValue.Of(Determine(UserDefaultVariable, () => CultureInfo.CurrentCulture));
+        UserDefault = LocaleValue.Of(UserDefaultNow);
         SystemDefault = LocaleValue.Of(Determine(SystemDefaultVariable, () => CultureInfo.InstalledUICulture));
         _current = UserDefault;   // §2023:14.6.6 GR1 — the user default becomes the current locale for all categories
     }
@@ -314,12 +323,12 @@ public sealed class LocaleState
     };
 
     /// <summary>The L2 determination: the variable when set (trimmed, L1-normalized; "" means root), else the
-    /// culture's name.</summary>
+    /// culture's name in canonical form.</summary>
     internal static string Determine(string variable, Func<CultureInfo> fallback)
     {
         string? env = Environment.GetEnvironmentVariable(variable);
         if (env is not null) return LocaleIdentification.Normalize(env);
-        try { return fallback().Name; }
+        try { return LocaleTag.Parse(fallback().Name).Canonical; }
         catch (Exception) { return ""; }   // a host without culture data (invariant globalization): the root
     }
 }

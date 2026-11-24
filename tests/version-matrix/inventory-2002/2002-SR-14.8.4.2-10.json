@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.4.2-10",
+ "rule-digest": "e97f5cac283e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#ScreenCallOperand; src/WiseOwl.Cobol.Runtime/Control/DialectBehavior.cs#CallAnyLengthOperandRuleByFormat",
+ "test-ref": "conformance:cases/14.8.4@2002-CALL-STATEMENT/g2002-call-as-nested-any-length-using-refused; conformance:cases/14.8.4@2002-CALL-STATEMENT/g2002-call-as-nested-any-length-returning-refused",
+ "notes": "§2002:14.8.4.2 SR10 sits under ALL FORMATS: identifier-2, identifier-3 and identifier-4 shall not be ANY LENGTH. CallBinder.ScreenCallOperand screens every USING operand and the RETURNING item of every format at --std 2002 (COBOL5981 citing §2002:14.8.4.2 SR10) and narrows to 2014's split (§2014:14.9.4.2 SR11 / SR18) only where DialectBehavior.CallAnyLengthOperandRuleByFormat is active (VCR row 7.122). CALL ... AS NESTED USING an ANY LENGTH formal and AS NESTED RETURNING one are refused at 2002 and compile from 2014 (pb240_call_operand_screens, pb1167_any_length_returning, accepted from 2014) (PB5611)."
+}

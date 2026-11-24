@@ -93,7 +93,7 @@ internal sealed class RecordStructEmitter(EmitContext ctx, PhysicalModel phys, G
                          && ctx.Data.StorageTier.StaticAddressableCells.Contains(cell))
                     stmts.Add($"{cell}.Reinitialize({RuntimeApi.StrStore(codec.ImageInitOf(root), $"{cls.Width}")}){codec.CellDynSeeds(root)};   // {root.CobolName ?? "FILLER"} (ADDRESS-OF cell, §2023:14.6.2.3.2 #2)");
             }
-            else if (!(root.Class is { Tier: RedefinesTier.Alias } && !root.IsCanonical)   // a Tier-A view has no field
+            else if (!root.IsAliasView   // a Tier-A view has no field
                 && ctx.Data.StorageTier.StaticRootFields.Contains(root.ClrName))
                 stmts.Add($"{root.ClrName} = {vals.FieldInit(root)};   // {root.CobolName ?? "FILLER"}");
             foreach (var idx in IndexDeclaration.Under(root))

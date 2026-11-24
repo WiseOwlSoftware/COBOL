@@ -166,7 +166,7 @@ public static class Constructs
     public const string NationalData2002 = "national-data-2002";
     public const string NationalEdited2002 = "national-edited-2002";
     public const string NationalLiteral2002 = "national-literal-2002";
-    public const string NextSentenceArchaic2023 = "next-sentence-archaic-2023";
+    public const string NextSentenceArchaic2002 = "next-sentence-archaic-2002";
     public const string NotEqualOperator2014 = "not-equal-operator-2014";
     public const string NucleusMoveDisplay = "nucleus-move-display";
     public const string NumericFunctionIdentifierOperand2002 = "numeric-function-identifier-operand-2002";

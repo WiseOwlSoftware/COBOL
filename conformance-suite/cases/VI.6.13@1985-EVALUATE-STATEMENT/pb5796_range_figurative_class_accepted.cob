@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb5796_range_figurative_class_accepted
-      *> rules: [1985-SR-VI.6.13.3-4]
+      *> rules: [1985-SR-VI.6.13.3-4, SR-14.9.13.3-4]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

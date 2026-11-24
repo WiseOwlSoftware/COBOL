@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb5891-degree-over-cap
-      *> rules: [AR-15.3-6]
+      *> rules: [AR-15.3-6, AR-15.64.3-1]
       *> accept: [85, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified

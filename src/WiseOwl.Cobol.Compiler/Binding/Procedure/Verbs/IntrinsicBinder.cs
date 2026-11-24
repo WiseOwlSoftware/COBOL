@@ -40,6 +40,13 @@ using Core = CobolParserCore;
 /// design — the premise audit's finding). <c>CompileClock</c> lives HERE (IntrinsicRenderer reads it).</summary>
 internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
 {
+    /// <summary>The codes the D8 edition window of an intrinsic function reports its verdicts under (kb/Work PB2620): COBOL1502
+    /// for a function the edition has not introduced, COBOL1503 for one it removed. The verdict and its severity are the
+    /// window's (<see cref="EditionWindow.VerdictAt"/>).</summary>
+    private static readonly EditionGateCodes IntrinsicWindowCodes = new(
+        NotYetIntroduced: DiagnosticCatalog.IntrinsicFunctionNotYetIntroduced.Code,
+        Removed: DiagnosticCatalog.IntrinsicFunctionRemoved.Code);
+
     /// <summary>The injectable compile-time clock for WHEN-COMPILED (§2023:15.99.3 RV2 — the COMPILATION timestamp;
     /// deep-dive D6). One capture per COMPILATION (kb/Work PB120), shared by every unit of that compilation, which
     /// the backend bakes into the generated source as a string constant. Never INVOKED directly: the one read is
@@ -63,6 +70,17 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             // SUBSTITUTE synonym canonically, so a second resolution would read the de-reserved literal-4 as removed.
             var fw = FunctionWord.OfToken(reservedToken, ctx.CobolWords);
             string fn = fw.Written;
+            if (ReportSumClauseWord(fc))
+            {
+                // Below 2014 there is no such rule and the REPOSITORY check below decides (§2002:12.2.7.3 GR13), so this
+                // fires at 2014 and 2023 alone and the y1985 text is never chosen.
+                ctx.Edition.Error(DiagnosticCatalog.ReportSumWithoutFunctionKeyword,
+                    $"'{fn}' is written without the word FUNCTION where this report description entry owes an operand, and within a "
+                    + "report description entry a SUM not preceded by FUNCTION is the SUM clause even when the REPOSITORY declares the "
+                    + $"intrinsic ({ctx.Edition.Edition.CiteRule("§2014:13.18.54.2 SR9", "§2023:13.18.54.3 SR9", y2014: "§2014:13.18.54.2 SR9")}) "
+                    + $"— write 'FUNCTION {fn}'.");
+                return BoundExprError.Refused(ctx.Edition, $"FUNCTION {fn}");
+            }
             if (!ctx.Data.IsRepositoryIntrinsic(fw))   // the ONE REPOSITORY membership (kb/Work PB1083)
             {
                 // Where the REPOSITORY FUNCTION entry does not exist yet (the same the construct catalogue row KeywordOmittedFunction
@@ -111,6 +129,20 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         return ArgumentsOf(fc.functionArgList()?.functionArgument() ?? []) is { } written
             ? FinishIntrinsic(fc, BindIntrinsicCore(functionWord, nameToken, written), display)
             : BoundExprError.Refused(ctx.Edition, $"{display} arguments");
+    }
+
+    /// <summary>ISO §2023:13.18.54.3 SR9 (from COBOL 2014, §2014:13.18.54.2 SR9): "Within a report description entry, if the keyword
+    /// SUM is preceded by the keyword FUNCTION, SUM is a reference to the SUM intrinsic function. Otherwise, SUM refers to the report
+    /// writer SUM clause". True for a keyword-omitted SUM call inside a report description entry at an edition that has the rule:
+    /// the lexer gives `SUM (` the call's argument list only where the entry owes an operand (CobolLexer.IsReportSumClauseKeyword,
+    /// kb/Work PB5652), so this tree is the SUM clause written where no clause can stand. The token's type is its effective keyword
+    /// (the lexer retyped a >>COBOL-WORDS synonym of SUM to SUM).</summary>
+    private bool ReportSumClauseWord(Core.FunctionCallContext call)
+    {
+        if (call.reservedIntrinsicArgFn()?.SUM() is null || !ctx.Edition.Edition.Has(2014)) return false;
+        for (var node = call.Parent; node is not null; node = node.Parent)
+            if (node is Core.ReportDescriptionEntryContext) return true;
+        return false;
     }
 
     /// <summary>ISO §2023:8.4.3.2.3 SR6 — "If a function's definition permits arguments and a left parenthesis
@@ -736,12 +768,23 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // (§1989:A.2.4) has no STANDARD-COMPARE; VERSION_CHANGE_REFERENCE row 7.19 carries the quotations.
         // ⚙ AND LIFTED AGAIN AT kb/Work PB64 T4: the four LOCALE functions bind Runtime, so no catalog row is
         // Unsupported any more — the window below is enforced for every function.
-        if (sig.IntroducedIn > ctx.Edition.DialectLevel)
-            ctx.Edition.Error(DiagnosticCatalog.IntrinsicFunctionNotYetIntroduced, $"FUNCTION {sig.Name} was introduced by ISO/IEC 1989:{sig.IntroducedIn} "
-                + $"(§15) — it requires --std {sig.IntroducedIn} or later (targeting COBOL-{ctx.Edition.DialectLevel})");
-        else if (sig.RemovedIn is { } gone && ctx.Edition.DialectLevel >= gone)
-            ctx.Edition.Error(DiagnosticCatalog.IntrinsicFunctionRemoved, $"FUNCTION {sig.Name} was removed by ISO/IEC 1989:{gone} — "
-                + $"it is not available when targeting COBOL-{ctx.Edition.DialectLevel}");
+        // ⛔ THE VERDICT AND ITS SEVERITY ARE THE WINDOW'S (EditionWindow.VerdictAt, kb/Work PB2620): a removed function is an
+        // error strict and a warning under --permissive, as every removed construct is; this arm owns only its codes and words.
+        if (sig.Window.VerdictAt(ctx.Edition.Edition, IntrinsicWindowCodes, sig.Name, $"the {sig.Name} intrinsic function")
+            is { } gate)
+        {
+            string message = gate.Availability switch
+            {
+                ConstructAvailability.NotYetIntroduced => $"FUNCTION {sig.Name} was introduced by ISO/IEC 1989:{sig.IntroducedIn} "
+                    + $"(§15) — it requires --std {sig.IntroducedIn} or later (targeting COBOL-{ctx.Edition.DialectLevel})",
+                ConstructAvailability.Removed => $"FUNCTION {sig.Name} was removed by ISO/IEC 1989:{sig.RemovedIn} — "
+                    + $"it is not available when targeting COBOL-{ctx.Edition.DialectLevel}",
+                _ => throw new System.Diagnostics.UnreachableException(
+                    $"FUNCTION {sig.Name}: an intrinsic window carries no obsolete edition, so {gate.Availability} has no report"),
+            };
+            ctx.Edition.Report(new EditionDiagnostic(gate.Code, gate.Severity, "", message, $"FUNCTION {sig.Name}",
+                DiagnosticCatalog.IntrinsicFunctionNotYetIntroduced.IsoSection, gate.Flag));
+        }
 
         // The former standard-arithmetic staging (P10 Step 12 → COBOL0899) is GONE (fix-queue PB56):
         // ANNUITY / PRESENT-VALUE / VARIANCE / STANDARD-DEVIATION now evaluate their §2023:15.4.1 r1 equivalent
@@ -1865,17 +1908,25 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>MODULE-NAME (§2023:15.65) — one mandatory phrase keyword selecting a runtime element of the running
     /// COBOL hierarchy (§2023:15.65.2: ACTIVATING/CURRENT/NESTED/STACK/TOP-LEVEL; <c>TOP-LEVEL</c> is one hyphenated
-    /// word). The selector rides on <see cref="BoundIntrinsicCall.ModuleNameKind"/>; the value resolves at
+    /// word). The selector rides on <see cref="BoundIntrinsicCall.ModuleNameKeyword"/>; the value resolves at
     /// runtime from the module call-name stack (<c>CobolModule</c>). NESTED requires a contained program
     /// (§2023:15.65.3 argument rule 1) — a compile-time conformance check.</summary>
     private BoundExpr BindModuleName(IntrinsicSig sig, IReadOnlyList<Core.FunctionArgumentContext> argCtxs)
     {
-        int kind = -1;
+        ModuleNameKeyword? kind = null;
         foreach (var a in argCtxs)
         {
-            int k = KeywordWordOf(a) switch
-                { "CURRENT" => 0, "ACTIVATING" => 1, "NESTED" => 2, "STACK" => 3, "TOP-LEVEL" => 4, _ => -1 };
-            if (k < 0 || kind >= 0)
+            // The one binding of the written keyword to the type the runtime switches on (kb/Work PB2742).
+            ModuleNameKeyword? k = KeywordWordOf(a) switch
+            {
+                "CURRENT" => ModuleNameKeyword.Current,
+                "ACTIVATING" => ModuleNameKeyword.Activating,
+                "NESTED" => ModuleNameKeyword.Nested,
+                "STACK" => ModuleNameKeyword.Stack,
+                "TOP-LEVEL" => ModuleNameKeyword.TopLevel,
+                _ => null,
+            };
+            if (k is null || kind is not null)
             {
                 ctx.Edition.Error(DiagnosticCatalog.IntrinsicFunctionFormInvalid, "FUNCTION MODULE-NAME takes exactly one keyword argument "
                     + $"(ACTIVATING/CURRENT/NESTED/STACK/TOP-LEVEL) (ISO §2023:15.65.2), not '{WrittenSource.Of(a)}'");
@@ -1883,17 +1934,17 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             }
             kind = k;
         }
-        if (kind < 0)
+        if (kind is not { } keyword)
         {
             ctx.Edition.Error(DiagnosticCatalog.IntrinsicFunctionFormInvalid, "FUNCTION MODULE-NAME requires one keyword argument "
                 + "(ACTIVATING/CURRENT/NESTED/STACK/TOP-LEVEL) (ISO §2023:15.65.2)");
             return BoundExprError.Refused(ctx.Edition, "FUNCTION MODULE-NAME");
         }
         // §2023:15.65.3 argument rule 1 — NESTED only within a nested (contained) program.
-        if (kind == 2 && !host.InNestedProgram)
+        if (keyword == ModuleNameKeyword.Nested && !host.InNestedProgram)
             ctx.Edition.Error(DiagnosticCatalog.ModuleNameNestedOutsideNestedProgram, "FUNCTION MODULE-NAME NESTED shall be specified only within a "
                 + "nested program (ISO §2023:15.65.3 argument rule 1) — this compilation unit is not contained");
-        return new BoundIntrinsicCall(sig, [], PicCategory.Alphanumeric) { Arithmetic = ctx.Options.Arithmetic, ModuleNameKind = kind };
+        return new BoundIntrinsicCall(sig, [], PicCategory.Alphanumeric) { Arithmetic = ctx.Options.Arithmetic, ModuleNameKeyword = keyword };
     }
 
     // (LocaleUnsupported — the ONE A.4.9 documented-non-support diagnostic, COBOL1518 — is DELETED with the

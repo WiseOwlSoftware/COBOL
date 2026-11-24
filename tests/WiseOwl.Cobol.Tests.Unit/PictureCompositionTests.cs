@@ -199,8 +199,53 @@ public sealed class PictureCompositionTests
     [InlineData("L999L", 'L', false)]
     [InlineData("L9999.99F", 'L', false)]
     public void AnExtendedFloatingStringIsAdjacency_NotACount(string expanded, char letter, bool floating)
-        => Assert.Equal(floating, PictureComposition.HasFloatingString(expanded, '$',
-            new HashSet<char> { 'L', 'F' }, new HashSet<char> { 'L', 'F' }, decimalPointIsComma: false, letter));
+        => Assert.Equal(floating, Shape(expanded, new HashSet<char> { 'L', 'F' }).IsFloating(letter));
+
+    /// <summary>The composition's resolved shape of a legal character-string (kb/Work PB3221) — the one value the
+    /// analyzer's geometry and EDITING rules read.</summary>
+    private static PictureShape Shape(string expanded, HashSet<char>? extended = null)
+    {
+        var ed = new EditionContext(2023);
+        extended ??= [];
+        var shape = PictureComposition.Validate(expanded, expanded, '$', extended, extended, blankWhenZero: false,
+            decimalPointIsComma: false, ed, "data item 'T'");
+        Assert.True(shape is not null, $"PIC {expanded} was refused: {string.Join("; ", ed.Diagnostics)}");
+        return shape!;
+    }
+
+    /// <summary>
+    /// ⛔ ONE LIST OF DIGIT POSITIONS (kb/Work PB3221). §2023:13.18.40.5 GR6 names the extended editing sign control
+    /// symbols among the floating insertion symbols, so an extended character-1's floating string holds digit positions
+    /// exactly as a floating currency or sign string does, and the 'P' string of §2023:13.18.40.3 SR16 stands at an END of
+    /// the list that includes it. The composition counted only '+', '-' and the currency symbol while the analyzer's
+    /// own copy counted every floating symbol: <c>PIC LLLPPV</c> (trailing 'P's, 'V' after them, SR19) was refused as a
+    /// leading 'P' string that 'V' may not follow, and <c>PIC LLPP99</c> (the 'P's between two runs of digit
+    /// positions) bound at scale 0.
+    /// </summary>
+    [Theory]
+    [InlineData("LLLPP", 0, 2)]
+    [InlineData("LLLPPV", 0, 2)]
+    [InlineData("$$$$PP", 0, 2)]
+    [InlineData("PP99", 2, 0)]
+    [InlineData("99PPP", 0, 3)]
+    [InlineData("LLL99PP", 0, 2)]
+    public void ThePSplit_CountsEveryFloatingStringsDigitPositions(string expanded, int leadingP, int trailingP)
+    {
+        var shape = Shape(expanded, new HashSet<char> { 'L' });
+        Assert.Equal((leadingP, trailingP), (shape.LeadingP, shape.TrailingP));
+    }
+
+    [Theory]
+    [InlineData("LLPP99")]
+    [InlineData("LL99PPFF")]
+    public void APStringBesideAnExtendedFloatingString_IsBetweenDigitPositions(string picture)
+    {
+        var ed = new EditionContext(2023);
+        var extended = new HashSet<char> { 'L', 'F' };
+        Assert.Null(PictureComposition.Validate(picture, picture, '$', extended, extended, blankWhenZero: false,
+            decimalPointIsComma: false, ed, "data item 'T'"));
+        Assert.Contains(ed.Diagnostics, d => d.Contains("COBOL1934") && d.Contains("SR16"));
+    }
 
     private static string[] DiagnoseEditing(string picture, char[] phraseOrder)
     {
@@ -217,7 +262,8 @@ public sealed class PictureCompositionTests
     /// <c>PictureAnalyzer</c>'s geometry. Floating-ness is ADJACENCY ("a string of at least two identical
     /// floating insertion editing symbols", with the simple insertion symbols and — rule 6 b — the decimal point
     /// embedded), never a bare occurrence count: the count this replaced read <c>+999+</c> and <c>$999$</c> as
-    /// floating strings and silently answered a question the source never asked.
+    /// floating strings and silently answered a question the source never asked. Being FIXED, those two are SR24's
+    /// refusals (<see cref="ACompositionViolation_IsCOBOL1934"/>), so they have no shape to read here.
     /// </summary>
     [Theory]
     [InlineData("$$$9.99", '$', 3)]
@@ -225,14 +271,11 @@ public sealed class PictureCompositionTests
     [InlineData("$$$.$$", '$', 5)]      // rule 6 b: the string spans the decimal point
     [InlineData("+$$99", '$', 2)]       // the lone '+' is FIXED; the two '$' are the floating string
     [InlineData("++", '+', 2)]
-    [InlineData("$999$", '\0', 0)]      // separated by digits: two FIXED currency symbols, not a string
-    [InlineData("+999+", '\0', 0)]
-    [InlineData("$999+", '\0', 0)]
+    [InlineData("$999+", '\0', 0)]      // separated by digits: two FIXED symbols, not a string
     [InlineData("999", '\0', 0)]
     public void AFloatingStringIsAdjacency_NotACount(string expanded, char symbol, int occurrences)
-        => Assert.Equal((symbol, occurrences),
-            PictureComposition.FloatingString(expanded, '$', new HashSet<char>(), new HashSet<char>(),
-                decimalPointIsComma: false));
+        => Assert.Equal((symbol, occurrences), Shape(expanded).FloatingString);
+
     /// <summary>
     /// ⛔ THE SCALE GATE. §2023:13.18.40.3 SR4 caps character-string-1 at 63 characters AS WRITTEN, which
     /// <c>PIC X(30000)</c> obeys — so <c>ExpandRepeats</c> hands the composition validator a 30 000-SYMBOL

@@ -478,8 +478,37 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
             return new BoundExitSection(sec.EndPc, ctx.SourceLine(e));
         }
         if (e.methodKeyword() is not null) return host.Oo.OoBindExitMethod(e);   // method-return synonym ≤2014; 0902 at 2023 (validator)
-        if (e.FUNCTION() is not null) return host.Udf.UdfBindExitFunction(e);   // function-return synonym ≤2014; 0900/0902 window (validator)
+        if (e.FUNCTION() is not null) return BindExitFunction(e);   // function-return synonym ≤2014; 0900/0902 window (validator)
         return new BoundNop();   // bare EXIT (§2023:14.9.14.4 GR1); its SR1 placement is asked by the funnel, see above
+    }
+
+    /// <summary>EXIT FUNCTION (pre-2023 editions — introduced 2002 with user functions, REMOVED by 2023,
+    /// Annex E.2 :49036; the <c>exit-function-window</c> registry row flags 0900/0902 at the window edges
+    /// via the version-conformance pass, mirroring EXIT METHOD): inside a function definition it is the
+    /// function-return synonym — equivalent to GOBACK (the §2023:14.9.18.4 GR5 semantics: the activation
+    /// terminates and the RETURNING item's value becomes the function result); outside one it violates its
+    /// placement rule (the 0827 EXIT-family placement band). The optional RAISING tail stages exactly like
+    /// GOBACK RAISING (§2023:14.9.18 GR — re-raised in the activator).</summary>
+    private BoundStatement BindExitFunction(Core.ExitStatementContext e)
+    {
+        // The EXIT statement's placement rule for the pre-2023 FUNCTION format, asked of the ONE bind-position
+        // probe every other EXIT format now asks (kb/Work PB403) — §2023:14.2.2 SR10's source-element kind, not a
+        // per-verb predicate. A function PROTOTYPE definition is a function procedure division too: EXIT FUNCTION
+        // means "return from this function", and the prototype's procedure division is one.
+        if (ctx.Enclosing.SourceElement is not (SourceElementKind.FunctionDefinition or SourceElementKind.FunctionPrototype))
+        {
+            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ExitStatementPlacement,
+                "EXIT FUNCTION may be specified only in a function definition (the pre-2023 §2023:14.9.14 "
+                + "function form of the EXIT statement; this is not a function procedure division)");
+        }
+        // §2002:14.8.13.2 SR2 — a flat prohibition over every EXIT format (as EXIT PROGRAM and GOBACK, kb/Work PB5618).
+        if (PlacementRules.RefusedInGlobalDeclarative(ctx, EcRaiseSite.Exit("EXIT FUNCTION")))
+            return BoundRejected.Reported(ctx.Edition);
+        if (e.raisingPhrase() is { } raising)
+            return host.Ec.EcBindRaising(raising, e.Start.Line, EcRaiseSite.Exit("EXIT FUNCTION")) is { } r
+                ? new BoundGoback(null, r)
+                : new BoundUnsupported("EXIT FUNCTION RAISING identifier (the exception-object form of the RAISING phrase — the OO wave)");
+        return new BoundGoback(null);
     }
 
 
@@ -659,9 +688,9 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
             // The UNTIL condition is evaluated per iteration (§2023:14.9.28.4 GR6/GR13), so a user-function
             // reference inside it activates per evaluation — the drained-suffix wrapper, never the
             // once-per-statement hoist (§2023:8.4.3.2.4 GR1/GR6a; §2023:8.8.4.13 GR2).
-            var udfMark = host.Udf.Mark;
+            var udfMark = host.Window.Mark;
             var cond = host.Cond.BindCondition(condition);
-            return new PerformUntil(host.Udf.UdfAttachPerEvaluation(cond, udfMark), u.AFTER() is not null);
+            return new PerformUntil(host.Window.AttachPerEvaluation(cond, udfMark), u.AFTER() is not null);
         }
         if ((p.performVarying() ?? opt?.performVarying()) is { } v) return BindVarying(v);
         return new PerformOnce();

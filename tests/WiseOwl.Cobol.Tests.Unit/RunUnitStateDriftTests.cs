@@ -165,12 +165,15 @@ public sealed class RunUnitStateDriftTests
     {
         ["WiseOwl.Cobol.Runtime.IO.StandardStreams::_applied"] =
             "the console encoding is a property of the PROCESS's standard streams, applied once",
-        ["WiseOwl.Cobol.Runtime.Collation.CollationRuntime::s_initialized"] =
+        ["WiseOwl.Cobol.Runtime.CollationRuntime::s_initialized"] =
             "idempotence latch for the process-wide collation subsystem initialization",
-        ["WiseOwl.Cobol.Runtime.Collation.CollationRuntime::s_hostConfigured"] =
+        ["WiseOwl.Cobol.Runtime.CollationRuntime::s_hostConfigured"] =
             "records that the HOST configured the process-wide collation caches",
-        ["WiseOwl.Cobol.Runtime.Collation.CollationRuntime::s_lastWarmup"] =
+        ["WiseOwl.Cobol.Runtime.CollationRuntime::s_lastWarmup"] =
             "diagnostic status of the process-wide collation warm-up",
+        ["WiseOwl.Cobol.Runtime.Collation.CollationEngine::s_generation"] =
+            "the generation of the process-wide locale caches, moved by ClearLocaleCache so a resolution held across uses "
+            + "(a named IS LOCALE sequence's) is resolved again; it names a cache state, never a run unit's (kb/Work PB2763)",
         ["WiseOwl.Cobol.Runtime.Collation.Cache.CollationKeyCache::s_defaultConfig"] =
             "process-wide cache sizing for collation keys derived from immutable collators",
         ["WiseOwl.Cobol.Runtime.CobolTable+Scratch`1::s_cell"] =
@@ -234,11 +237,13 @@ public sealed class RunUnitStateDriftTests
         ["WiseOwl.Cobol.Runtime.Collation.Cldr.CldrTailoringBuilder::s_baseRoots"] =
             "memo of a base table's distinct weights per level, keyed weakly by the (immutable) CollationTable: derived data every locale build shares (kb/Work PB107)",
         ["WiseOwl.Cobol.Runtime.Collation.CollationEngine::s_locales"] =
-            "memo of resolved locale collations, keyed by locale name: derived from immutable CLDR data",
+            "memo of resolved locale collations, keyed by the canonical locale tag (LocaleTag): derived from immutable CLDR data",
         ["WiseOwl.Cobol.Runtime.Collation.CollationEngine::s_collators"] =
             "memo of collators, keyed by (table, options): derived from immutable inputs",
-        ["WiseOwl.Cobol.Runtime.Collation.Locale.LocaleManager::s_infos"] =
-            "memo of locale facts, keyed by locale name: derived from immutable platform data",
+        ["WiseOwl.Cobol.Runtime.Collation.CollationEngine::s_orderingLevels"] =
+            "memo of STANDARD-COMPARE's shifted collators, keyed by (table, level): derived from immutable inputs (kb/Work PB2763)",
+        ["WiseOwl.Cobol.Runtime.Collation.CollationEngine::s_orderingTables"] =
+            "memo of ORDER TABLE literal resolutions, keyed by the literal: derived from the locale data, forgotten with s_locales by ClearLocaleCache (kb/Work PB2763)",
         ["WiseOwl.Cobol.Runtime.Globalization.LocaleFacts::s_cache"] =
             "memo of locale facts, keyed by locale name: derived from immutable platform data",
         ["WiseOwl.Cobol.Runtime.LocaleCollation::s_orders"] =
@@ -249,8 +254,8 @@ public sealed class RunUnitStateDriftTests
             "memo of monetary facts, keyed by the (immutable) LocaleFacts object",
         ["WiseOwl.Cobol.Runtime.Globalization.TimeFacts::s_cache"] =
             "memo of LC_TIME facts, keyed by the (immutable) LocaleFacts object",
-        ["WiseOwl.Cobol.Runtime.CobolIntrinsics::s_orderingCollators"] =
-            "memo of collators for FUNCTION ORDERING, keyed by (table, level): derived from immutable inputs",
+        ["WiseOwl.Cobol.Runtime.CobolDate::Formats"] =
+            "memo of parsed §2023:15.3 date/time formats, keyed by the format literal (§2023:15.40.3 AR1): derived from the string alone, bounded (kb/Work PB2637)",
         ["WiseOwl.Cobol.Runtime.Exceptions.EcCheckingProfile::Cache"] =
             "memo of checking profiles, keyed by the profile's immutable name",
         ["WiseOwl.Cobol.Runtime.Exceptions.ExceptionCatalog::Table"] =

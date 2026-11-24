@@ -72,6 +72,7 @@ import measurements  # noqa: E402  (this directory's: the second compiler's reco
 import generated_output  # noqa: E402  (the one way a generator clears the directory it writes: never wholesale)
 import inventory_schema  # noqa: E402  (the inventory's one schema: its editions, its evidence predicates)
 import inventory_view  # noqa: E402  (the one view of the inventory, kb/Work PB4992)
+import lineage  # noqa: E402  (the `conformance:<key>` test-ref form, kb/Work PB6067)
 sys.path.append(str(Path(__file__).resolve().parents[2] / "scripts"))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
@@ -452,9 +453,11 @@ class Reader:
         except ValueError as e:
             self.refuse(rel, line, f"{key}: {e}")
             return ()
-        if spelled.split(self.inputs.schema.editions_sep) != values:
-            self.refuse(rel, line, f"{key} lists its editions in ascending order: [{spelled.replace(',', ', ')}]")
-        return tuple(spelled.split(self.inputs.schema.editions_sep)) if spelled else ()
+        schema = self.inputs.schema
+        ordered = schema.split(spelled, schema.editions_sep)   # the schema's one splitter (§8.2 rule 7, kb/Work PB6098)
+        if ordered != values:
+            self.refuse(rel, line, f"{key} lists its editions in ascending order: [{', '.join(ordered)}]")
+        return tuple(ordered)
 
     # ── one test ──
 
@@ -721,7 +724,7 @@ class Reader:
                 self.refuse(stmt.source or rel, stmt.line, f"COPY {stmt.name}: the library text is not a declared "
                                                            f"file of this test (`files`, §3.1)")
         # A run-time expectation at 85 (§3.2), in the program or in the library text it copies.
-        expanded = cobol.expand_copies(tokens, lambda name: self._library(case, name))
+        expanded = cobol.apply_replace_statements(cobol.expand_copies(tokens, lambda name: self._library(case, name)))
         case.words = frozenset(t.text.upper() for t in expanded
                                if t.kind == cobol.WORD and any(ch.isalpha() for ch in t.text))
         case.defined = frozenset(cobol.defined_names(expanded))
@@ -957,6 +960,7 @@ def check_cases(reader: Reader) -> None:
                 reader.refuse(rel, 1, f"requires names {name!r}, not an Annex A.4 module `A.4.<n>` or an Annex A.3 "
                                       f"element `A.3-<n>` of the standard")
         _check_outputs(reader, case)
+    _check_store_witnesses(reader)
     # wiseowl/diagnostics/ (§9): one file per refused test.
     for test_id, entry in inputs.diagnostics.items():
         where = sidecar_path(DIAGNOSTICS_DIR, test_id)
@@ -976,7 +980,7 @@ def check_cases(reader: Reader) -> None:
         try:
             for key, at in lists.items():
                 if at is not None:
-                    spelled[key] = inputs.schema.spell_editions(at).split(inputs.schema.editions_sep)
+                    spelled[key] = inputs.schema.split(inputs.schema.spell_editions(at), inputs.schema.editions_sep)
         except ValueError as e:
             reader.refuse(where, 1, f"{test_id}: {key}: {e}")
             continue
@@ -1025,6 +1029,36 @@ def check_cases(reader: Reader) -> None:
         if case.flag is not None and case.test_id not in inputs.diagnostics:
             reader.refuse(case.path, 1, "a flagged test needs a file wiseowl/diagnostics/<id>.json: the editions at "
                                         "which WiseOwl COBOL refuses it or warns of it, and what it reports (§4, §9)")
+
+
+def _check_store_witnesses(reader: Reader) -> None:
+    """A conformance-suite case the inventory names as a row's own witness (`conformance:<key>` in its `test-ref`) says
+    so in its header (kb/Work PB6067): the case's `rules` hold the row, or, for an older edition's row KEPT into a rule
+    of the next (`lineage.chained`), a rule the row is KEPT into (`next.to`, which the case cites because a case accepted
+    at 2002 or later cannot cite an older edition's rule, `check_cases`). `rules` and the store are two statements of
+    one fact: left to differ, a lineage read that asks "does this witness cite its row" is answered by whichever it
+    reads. An older row with a verdict of its own (not chained) is witnessed by a case at its own edition that cites
+    the 2023 rules it is read against, so the older row is no part of that case's `rules`.
+    A case that `check_cases` forbids to cite any of them (it is accepted at an edition outside the band of each: the
+    rule's introduction gate, or a rule whose row has not been widened down to the case's edition) is exempt: the
+    store names it, and its `rules` cannot.
+    """
+    inputs = reader.inputs
+    by_key = {_posix(c.path).removesuffix(".cob"): c for c in reader.cases}
+    for rid, row in inputs.rows.items():
+        if rid in inputs.older and not lineage.chained(row, inputs.schema):
+            continue
+        refs = inputs.schema.split(row.get("test-ref", "") or "", inputs.schema.test_ref_sep)
+        cites = {rid, *((row.get("next") or {}).get("to") or ())}
+        for ref in refs:
+            form, _, key = ref.partition(":")
+            case = by_key.get(key.strip()) if form.strip() == lineage.SUITE_FORM else None
+            if case is None or cites & set(case.rules):
+                continue
+            if not any(all(e in inputs.band(c) for e in case.accept) for c in cites if c in inputs.rows):
+                continue
+            reader.refuse(case.path, 1, f"the inventory names this test as a witness of {rid} (its test-ref), and "
+                                        f"`rules` does not cite {' or '.join(sorted(cites))} (kb/Work PB6067)")
 
 
 def format_defined_at(source_format: str, edition: str, order: list[str]) -> bool:
@@ -1224,7 +1258,7 @@ def manifests(cases: list[Case], inputs: Inputs) -> dict[str, dict[str, Any]]:
         """`warns`: the diagnostic WiseOwl reports as a WARNING on a program it compiles at this edition (its
         `wiseowl/diagnostics/` entry's `warn-at`), which the runner requires beside the test's own verdict."""
         entry = inputs.diagnostics.get(case.test_id, {})
-        spelled = inputs.schema.spell_editions(entry.get("warn-at", [])).split(inputs.schema.editions_sep)
+        spelled = inputs.schema.split(inputs.schema.spell_editions(entry.get("warn-at", [])), inputs.schema.editions_sep)
         return {"warns": entry["expect"]} if edition in spelled else {}
 
     for e in inputs.editions:
@@ -1311,7 +1345,7 @@ def print_report(report: dict[str, dict[str, int]]) -> None:
             print(f"  {e}'s own catalog, {c['rows']} rows, by witness: " + ", ".join(f"{k} {c[k]}" for k in obligations.WITNESS))
             print(f"  suite measure at {e}: {c['suite'] + c['determination']} of the {c['observable']} observable rows have a "
                   f"cleared test; {c['unmet']} do not: {c['accepted-uncleared']} only an uncleared accepted test, "
-                  f"{c['refusal-only']} only a refusal test, "
+                  f"{c['wiseowl-tree-only']} only a test of the wiseowl/ tree, {c['refusal-only']} only a refusal test, "
                   f"{c['header-omits'] + c['shared-test'] + c['no-test']} named by no header")
             continue
         print(f"  suite measure at {e}: {c['suite']} of the {c['observable']} rows a program can observe are "
@@ -1559,6 +1593,8 @@ def _planted_inputs(diagnostics: dict[str, dict[str, Any]] | None = None) -> Inp
         row("SR-1.1.1-2", "1.1.1", "SR", "2002,2014,2023"),
         row("AR-1.1.1-1", "1.1.1", "AR", "85,2002,2014,2023"),
         row("SR-2.2.2-1", "2.2.2", "SR", "85,2002,2014,2023"),
+        row("SR-2.2.2-2", "2.2.2", "SR", "85,2002,2014,2023", test_ref="conformance:cases/2.2.2-Rule/uncited"),
+        row("SR-2.2.2-3", "2.2.2", "SR", "2023", test_ref="conformance:cases/2.2.2-Rule/gate"),
         row("GR-1.1.1-2", "1.1.1", "GR", "2002,2014,2023"),
         row("GR-1.1.1-3", "1.1.1", "GR", "85,2002,2014,2023", verdict=NON_SUPPORT),
         row("GR-1.1.1-4", "1.1.1", "GR", "85,2002,2014,2023", test_ref="unit:Some.Test_PinnedToSpec"),
@@ -1630,6 +1666,11 @@ def self_test() -> int:
                                                     "constructs: [c-2002]", "source-format: fixed"], _PROGRAM),
         "cases/1.1.1-Rule/per-edition.out": "a\n",
         "cases/1.1.1-Rule/per-edition.2023.out": "b\n",
+        # The store names this case as a witness of SR-2.2.2-3, which begins at 2023: a case accepted at 2002 cannot cite
+        # it (the introduction gate), so its `rules` need not (`_check_store_witnesses`).
+        "cases/2.2.2-Rule/gate.cob": _fixed(["id: gate", "rules: [SR-2.2.2-1]", "accept: [2002]", "source-format: fixed"],
+                                            _PROGRAM),
+        "cases/2.2.2-Rule/gate.out": "OK ABC  0\n",
         "cases/1.1.1-Rule/stated-late.cob": _fixed(["id: stated-late", "rules: [GR-1.1.1-6]", "accept: [2002]",
                                                     "constructs: [c-old]", "source-format: fixed"], _PROGRAM),
         "cases/1.1.1-Rule/stated-late.out": "x\n",
@@ -1796,14 +1837,14 @@ def self_test() -> int:
             r2002 = report["2002"]
             check("arm: completeness counts each row once under its first witness kind",
                   {k: r2002[k] for k in WITNESS_KINDS} == {"documented-non-support": 1, "suite": 7, "determination": 1,
-                                                           "derivation": 1, "wiseowl-only": 1, "none": 2}
-                  and r2002["rows"] == 13 and r2002["observable"] == 11, r2002)
+                                                           "derivation": 1, "wiseowl-only": 2, "none": 2}
+                  and r2002["rows"] == 14 and r2002["observable"] == 12, r2002)
             check("arm: an edition whose own text is held is counted on that catalog's rows, by what witnesses each "
                   "(obligations.py), not on the newest edition's rows banded at it",
                   {k: r85[k] for k in obligations.WITNESS if r85[k]} == {"suite": 1}
                   and (r85["rows"], r85["observable"], r85["unmet"]) == (1, 1, 0), r85)
             check("arm: a row not in the edition's band is not counted there (GR-1.1.1-2, SR-1.1.1-2 are 2002 on)",
-                  report["2002"]["rows"] == 13, report["2002"])
+                  report["2002"]["rows"] == 14, report["2002"])
         remove_tree(root / "suites")
         rc_check, _ = generate(root, inputs, [], None)
         check("arm: --check writes nothing", rc_check == 0 and not (root / "suites").exists())
@@ -1957,6 +1998,10 @@ def self_test() -> int:
                                                 _PROGRAM), "a test with no rules belongs in _unassigned/"),
         "folder": ("cases/COMPUTE/folder.cob", _fixed(["id: folder", "rules: [GR-1.1.1-1]", "accept: [85]",
                                                        "source-format: fixed"], _PROGRAM), "a clause folder is named"),
+        "store witness not cited": ("cases/2.2.2-Rule/uncited.cob",
+                                    _fixed(["id: uncited", "rules: [SR-2.2.2-1]", "accept: [2002]",
+                                            "source-format: fixed"], _PROGRAM),
+                                    "the inventory names this test as a witness of SR-2.2.2-2"),
         "free at 85": ("cases/2.2.2-Free/free85.cob",
                        "*>--- conformance-case\n*> id: free85\n*> rules: [RV-2.2.2-1]\n*> accept: [85]\n"
                        "*> source-format: free\n*>---\nSTOP RUN.\n", "free form at 85"),
@@ -2287,6 +2332,29 @@ def self_test() -> int:
     check("arm: a reference-modified numeric display item is alphanumeric; a computational one is not; a floating "
           "comment is no operand", issues == [("A", "a data item of class " + cobol.NUMERIC_COMPUTATIONAL_CLASS)],
           issues)
+
+    # §1985:XII.3.4 GR1-GR4 and XII.2.4 GR3-GR5: REPLACE and REPLACING change the text the compiler reads, so the lint
+    # judges the text after them: pseudo-text holding DISPLAY is no DISPLAY statement, and a name the replacement
+    # introduces is the operand (kb/Work PB3178: a REPLACE test's pseudo-text was read as the statement).
+    replace_head = ["       DATA DIVISION.", "       WORKING-STORAGE SECTION.", "       01 W PIC X.", "       01 N PIC 9.",
+                    "       PROCEDURE DIVISION."]
+
+    def replaced(*lines: str) -> list[str]:
+        return [i.operand for i in cobol.display_issues(cobol.apply_replace_statements(
+            fixed_tokens(*replace_head, *lines, "           STOP RUN.")))]
+
+    check("arm: a REPLACE statement's pseudo-text is no DISPLAY statement",
+          replaced("       REPLACE ==SHOW, IT== BY ==DISPLAY 12==.", "           MOVE 1 TO N.") == [])
+    check("arm: a REPLACE introduces the statement the lint then judges, until REPLACE OFF",
+          replaced("       REPLACE ==SHOW== BY ==DISPLAY N==.", "           SHOW.", "       REPLACE OFF.",
+                   "           SHOW.") == ["N"])
+    check("arm: the first pair that matches replaces, a lowercase word matches its uppercase, a pair with no match "
+          "leaves the text",
+          replaced("       REPLACE ==NOPE== BY ==DISPLAY N== ==show== BY ==DISPLAY W==.", "           SHOW.") == [])
+    copy_tokens = cobol.expand_copies(fixed_tokens(*replace_head, "           COPY LIB REPLACING ==SHOW== BY ==DISPLAY N==."),
+                                      lambda name: fixed_tokens("           SHOW.") if name == "LIB" else None)
+    check("arm: COPY REPLACING is applied to the library text it copies",
+          [i.operand for i in cobol.display_issues(copy_tokens)] == ["N"])
 
     def refused(data: list[str], displays: list[str], environment: tuple[str, ...] = ()) -> list[str]:
         """The operands the lint refuses in a one-unit program with `data` and one DISPLAY per `displays` item."""

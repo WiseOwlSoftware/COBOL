@@ -179,10 +179,10 @@ public static partial class CobolIntrinsics
     // ── Variadic statistics over scale-ALIGNED unscaled values (ISO §2023:15.59–§2023:15.63, §2023:15.71–72, §2023:15.76, §2023:15.88) ──
 
     /// <summary>MAX (§2023:15.59.4): the greatest argument value, at the common scale.</summary>
-    public static Int128 MaxScaled(params Int128[] xs) => xs[ExtremeIndex(new ValueOrder<Int128>(xs), true, "MAX")];
+    public static Int128 MaxScaled(params ReadOnlySpan<Int128> xs) => xs[ExtremeIndex(new ValueOrder<Int128>(xs), true, "MAX")];
 
     /// <summary>MIN (§2023:15.63.4): the least argument value, at the common scale.</summary>
-    public static Int128 MinScaled(params Int128[] xs) => xs[ExtremeIndex(new ValueOrder<Int128>(xs), false, "MIN")];
+    public static Int128 MinScaled(params ReadOnlySpan<Int128> xs) => xs[ExtremeIndex(new ValueOrder<Int128>(xs), false, "MIN")];
 
     /// <summary>SUM (§2023:15.88.4): Σ arguments, at the common scale, EXACT in Int128 or not at all. (MEAN's numerator is
     /// not this body's: MEAN is the SDIDI quotient in every mode, kb/Work PB3860 - <see cref="MeanDec"/>.)</summary>
@@ -191,7 +191,7 @@ public static partial class CobolIntrinsics
     /// values are bounded only by <see cref="NumericRenderer"/>'s PER-ARGUMENT escape — which says nothing about
     /// their SUM: three aligned 38-digit arguments exceed the carrier while each one passes. See
     /// <see cref="SizeEscape"/> for why a wrap is never the answer (kb/Work PB252).</remarks>
-    public static Int128 SumScaled(params Int128[] xs)
+    public static Int128 SumScaled(params ReadOnlySpan<Int128> xs)
     {
         RequireArguments(xs.Length, "SUM");
         try
@@ -207,7 +207,7 @@ public static partial class CobolIntrinsics
     /// the escape: both operands are argument CONTENTS that individually passed the per-argument escape, and their
     /// difference is up to twice the larger — a positive maximum less a negative minimum wrapped to a NEGATIVE
     /// range, a value §2023:15.76.4 RV1 cannot produce (kb/Work PB252).</summary>
-    public static Int128 RangeScaled(params Int128[] xs)
+    public static Int128 RangeScaled(params ReadOnlySpan<Int128> xs)
     {
         RequireArguments(xs.Length, "RANGE");
         return ExactSub(MaxScaled(xs), MinScaled(xs), "RANGE");
@@ -295,10 +295,10 @@ public static partial class CobolIntrinsics
     /// EXACT in both branches (odd: middle × 10; even: (b + c) × 5), so no rounding decision is buried here.
     /// The scale bump costs a decimal digit of carrier headroom, which is why both branches go through
     /// <see cref="ExactMul"/> rather than multiplying raw (fix-queue PB32).</summary>
-    public static Int128 MedianScaled(params Int128[] xs)
+    public static Int128 MedianScaled(params ReadOnlySpan<Int128> xs)
     {
         RequireArguments(xs.Length, "MEDIAN");
-        var sorted = (Int128[])xs.Clone();
+        var sorted = xs.ToArray();
         Array.Sort(sorted);
         int mid = sorted.Length / 2;
         return sorted.Length % 2 != 0
@@ -308,7 +308,7 @@ public static partial class CobolIntrinsics
 
     /// <summary>MIDRANGE (§2023:15.62.4): <c>(MAX + MIN) / 2</c> — returned at scale common+1 ((max+min) × 5, exact),
     /// through <see cref="ExactMul"/> for the headroom reason documented there (fix-queue PB32).</summary>
-    public static Int128 MidrangeScaled(params Int128[] xs)
+    public static Int128 MidrangeScaled(params ReadOnlySpan<Int128> xs)
     {
         RequireArguments(xs.Length, "MIDRANGE");
         return ExactMul(ExactAdd(MaxScaled(xs), MinScaled(xs), "MIDRANGE"), 5, "MIDRANGE");
@@ -316,10 +316,10 @@ public static partial class CobolIntrinsics
 
     /// <summary>ORD-MAX (§2023:15.71.4): the 1-based ordinal position of the greatest argument; ties take the FIRST
     /// occurrence (strictly-greater update — the legacy-proven rule the NIST goldens encode).</summary>
-    public static long OrdMax(params Int128[] xs) => ExtremeIndex(new ValueOrder<Int128>(xs), true, "ORD-MAX") + 1;
+    public static long OrdMax(params ReadOnlySpan<Int128> xs) => ExtremeIndex(new ValueOrder<Int128>(xs), true, "ORD-MAX") + 1;
 
     /// <summary>ORD-MIN (§2023:15.72.4): the 1-based ordinal position of the least argument; ties take the FIRST.</summary>
-    public static long OrdMin(params Int128[] xs) => ExtremeIndex(new ValueOrder<Int128>(xs), false, "ORD-MIN") + 1;
+    public static long OrdMin(params ReadOnlySpan<Int128> xs) => ExtremeIndex(new ValueOrder<Int128>(xs), false, "ORD-MIN") + 1;
 
     // ── MAX/MIN/ORD-MAX/ORD-MIN over all-alphanumeric/national arguments (category-polymorphic; §2023:15.59/§2023:15.63/§2023:15.71/§2023:15.72) ──
     // §2023:15.59.4 RV1 etc.: the greatest/least is determined by §2023:8.8.4.2 simple-condition rules — the alphanumeric PROGRAM
@@ -330,20 +330,20 @@ public static partial class CobolIntrinsics
     // passes __COLLATE first), and a non-native national PCS (the emitter passes __COLLATE_NAT first). (CA23.)
 
     /// <summary>MAX (§2023:15.59) — the greatest argument per the effective collating sequence; the value IS the selected string.</summary>
-    public static string MaxString(params string[] xs) => xs[ExtremeIndex(new StringOrder(xs, null), true, "MAX")];
-    public static string MaxString(CobolCollation collation, params string[] xs) => xs[ExtremeIndex(new StringOrder(xs, collation), true, "MAX")];
+    public static string MaxString(params ReadOnlySpan<string> xs) => xs[ExtremeIndex(new StringOrder(xs, null), true, "MAX")];
+    public static string MaxString(CobolCollation collation, params ReadOnlySpan<string> xs) => xs[ExtremeIndex(new StringOrder(xs, collation), true, "MAX")];
 
     /// <summary>MIN (§2023:15.63) — the least argument per the effective collating sequence.</summary>
-    public static string MinString(params string[] xs) => xs[ExtremeIndex(new StringOrder(xs, null), false, "MIN")];
-    public static string MinString(CobolCollation collation, params string[] xs) => xs[ExtremeIndex(new StringOrder(xs, collation), false, "MIN")];
+    public static string MinString(params ReadOnlySpan<string> xs) => xs[ExtremeIndex(new StringOrder(xs, null), false, "MIN")];
+    public static string MinString(CobolCollation collation, params ReadOnlySpan<string> xs) => xs[ExtremeIndex(new StringOrder(xs, collation), false, "MIN")];
 
     /// <summary>ORD-MAX (§2023:15.71) — 1-based position of the greatest; tie = first.</summary>
-    public static long OrdMaxString(params string[] xs) => ExtremeIndex(new StringOrder(xs, null), true, "ORD-MAX") + 1;
-    public static long OrdMaxString(CobolCollation collation, params string[] xs) => ExtremeIndex(new StringOrder(xs, collation), true, "ORD-MAX") + 1;
+    public static long OrdMaxString(params ReadOnlySpan<string> xs) => ExtremeIndex(new StringOrder(xs, null), true, "ORD-MAX") + 1;
+    public static long OrdMaxString(CobolCollation collation, params ReadOnlySpan<string> xs) => ExtremeIndex(new StringOrder(xs, collation), true, "ORD-MAX") + 1;
 
     /// <summary>ORD-MIN (§2023:15.72) — 1-based position of the least; tie = first.</summary>
-    public static long OrdMinString(params string[] xs) => ExtremeIndex(new StringOrder(xs, null), false, "ORD-MIN") + 1;
-    public static long OrdMinString(CobolCollation collation, params string[] xs) => ExtremeIndex(new StringOrder(xs, collation), false, "ORD-MIN") + 1;
+    public static long OrdMinString(params ReadOnlySpan<string> xs) => ExtremeIndex(new StringOrder(xs, null), false, "ORD-MIN") + 1;
+    public static long OrdMinString(CobolCollation collation, params ReadOnlySpan<string> xs) => ExtremeIndex(new StringOrder(xs, collation), false, "ORD-MIN") + 1;
 
     // ── NUMVAL / NUMVAL-C (ISO §2023:15.67 / §2023:15.68) ───────────────────────────────────────────────────────────────
 
@@ -470,17 +470,16 @@ public static partial class CobolIntrinsics
     /// IS the NUMVAL-F argument format and no function-reference lands it. ⛔ THE FUNCTION REFERENCE DOES NOT USE IT
     /// (kb/Work PB3839): <c>FUNCTION NUMVAL-F</c> returns <see cref="NumvalFDec"/>'s exact value in every channel, and a
     /// COMP-2 receiver converts that exact value once, so the binary64 here and the one the receiver stores are the
-    /// same number. The conversion is ONE <c>double.Parse</c> of the scan's canonical <c>[-]digits E exp</c> — never a
+    /// same number. The conversion is <see cref="CobolFloat.ScaledToDouble"/>, the ONE correctly rounded scaled→binary64
+    /// conversion (as <see cref="NumvalFSingle"/> is <see cref="CobolFloat.ScaledToSingle"/>; kb/Work PB2658) — never a
     /// multiply chain of two roundings; a magnitude past binary64 is ±Infinity. Same scan, same reject projection as the
     /// twins.</summary>
     public static double NumvalFDouble(string text, bool commaMode = false, int digitCap = 31)
     {
         NvfParse p = NvfScan(text, commaMode, digitCap);
         if (p.ErrPos != 0) return (double)NumvalFReject(p, text, digitCap);
-        if (p.Unscaled == 0) return 0d;
-        return double.Parse(
-            string.Create(System.Globalization.CultureInfo.InvariantCulture, $"{(p.Neg ? "-" : "")}{p.Unscaled}E{p.Exp - p.Frac}"),
-            System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture);
+        // A non-negative magnitude below 10^digitCap, so the negation is total (see NumvalFSingle; kb/Work PB2698).
+        return CobolFloat.ScaledToDouble(p.Neg ? -p.Unscaled : p.Unscaled, p.Frac - p.Exp);
     }
 
     /// <summary>The §2023:15.69 reject projection — shared by <see cref="NumvalFSingle"/>, <see cref="NumvalFDouble"/> and

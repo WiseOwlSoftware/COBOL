@@ -296,7 +296,7 @@ def self_test() -> int:
     sr = ScratchRepo.init(scratch_dir("backfill-history-") / "repo")
     sr.commit("base", {f"{store}/R-1.json": json.dumps({"rule-id": "R-1", "section": "1.1", "ordinal": 1, "verdict": "", "state": "GAP"})})
     sr.git("checkout", "-q", "-b", "side")
-    old_schema = json.loads(inventory_schema.SCHEMA_PATH.read_text(encoding="utf-8"))
+    old_schema = inventory_schema.raw_schema()
     old_schema["editions"].pop("of")
     sr.commit("PB9001: WIP", {f"{store}/R-1.json": json.dumps({"rule-id": "R-1", "rule-digest": "d", "verdict": "CONFORMS"}),
                               inventory_schema.SCHEMA_REL: json.dumps(old_schema)})

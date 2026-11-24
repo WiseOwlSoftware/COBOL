@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb5826_condition_without_variable_runs
-      *> rules: [1985-SR-VI.6.22.3-3, 1985-SR-VI.6.3.1.1-p3]
+      *> rules: [1985-SR-VI.6.22.3-3, 1985-SR-VI.6.3.1.1-p3, GR-8.8.4.2.1-13]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

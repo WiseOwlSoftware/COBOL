@@ -151,7 +151,7 @@
     1691,
     1706
    ],
-   "feature": "READ SEQUENTIAL",
+   "feature": "RECORD KEY ON OPEN",
    "ansi": null,
    "disposition": "open",
    "resolution": "unmapped",

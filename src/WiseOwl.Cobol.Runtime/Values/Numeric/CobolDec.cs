@@ -345,9 +345,9 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
     /// §2023:8.8.1.2 GR6c) is the r2e implementor-defined equivalent expression, and THIS implementation's choice is
     /// stated in <see cref="PowCore"/> / <see cref="Half"/>: <c>FUNCTION SQRT(operand-1)</c> at |operand-2| = ½,
     /// and <c>exp(operand-2 × ln operand-1)</c> developed entirely on SDIDI operands everywhere else
-    /// (owner decision D-C, 2026-08-30; kb/Work PB167). EC-SIZE-EXPONENTIATION legs: 0 ** 0 (r4),
+    /// (owner decision D-C, 2026-08-30; kb/Work PB167). EC-SIZE-EXPONENTIATION legs: 0 ** 0 (GR4),
     /// zero base with a non-positive exponent (§2023:8.8.1.2 GR6a), and a negative base with a non-integer exponent
-    /// (§2023:8.8.1.2 GR6c). Every step is range-checked at the decimal128 bounds (§2023:8.8.1.5.2 GR2, via the ONE
+    /// (§2023:8.8.1.2 GR6c), screened by the one <see cref="CobolPower.ScreenRule6(CobolDec, CobolDec, bool)"/>. Every step is range-checked at the decimal128 bounds (§2023:8.8.1.5.2 GR2, via the ONE
     /// <see cref="Round34Wide"/> clamp).</summary>
     public static CobolDec Pow(CobolDec b, CobolDec e, CobolRounding mode) => PowDeveloped(b, e, mode, standardIntermediate: false);
 
@@ -359,18 +359,11 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
     private static CobolDec PowDeveloped(CobolDec b, CobolDec e, CobolRounding mode, bool standardIntermediate)
     {
         bool eInt = TryIntegerValue(e, out long eBoundProbe, out bool eNegative, out bool eEven);
+        // §2023:8.8.1.2 GR6a (with §2023:8.8.1.5.4 GR4's 0 ** 0) and GR6c: the one rule-6 screen every carrier's power asks.
+        CobolPower.ScreenRule6(b, e, eInt);
         if (b.Sig == 0)
-        {
-            // §2023:8.8.1.2 GR6a / §2023:8.8.1.5.4 GR4: a zero base requires an exponent greater than zero.
-            if (e.Sig <= 0)
-                throw new CobolSizeError("exponentiation of zero with a non-positive exponent "
-                    + "(ISO §2023:8.8.1.2 GR6a / §2023:8.8.1.5.4 r4)", "EC-SIZE-EXPONENTIATION");
             return eInt ? ZeroPower(b, eBoundProbe) : Zero(0);   // a non-integer power is a transcendental, never formed here
-        }
         if (e.Sig == 0) return One;                              // §2023:8.8.1.5.4 GR1: b ** 0 = 1 (b ≠ 0)
-        if (b.Sig < 0 && !eInt)
-            throw new CobolSizeError("exponentiation of a negative base with a non-integer exponent "
-                + "(ISO §2023:8.8.1.2 GR6c)", "EC-SIZE-EXPONENTIATION");
         // ⛔ §2023:8.8.1.5.4 GR3 IS THE OUTER CONSTRUCTION, IT IS WRITTEN HERE ONCE, AND NOTHING BELOW EVER SEES A
         // NEGATIVE EXPONENT (kb/Work PB266). r3 is not implementor latitude — r2's latitude is scoped "When
         // the value of operand-2 is greater than zero" — it is an equivalence: "When operand-2 is less than

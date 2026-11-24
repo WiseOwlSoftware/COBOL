@@ -1109,6 +1109,13 @@ internal static class RuntimeApi
         $"{nameof(CobolExact)}.{nameof(CobolExact.PowReal)}({exact}, {exponent}{(taken is null ? "" : ", " + taken)}"
         + $"{(negativeBaseRealRoots ? ", negativeBaseRealRoots: true" : "")})";
 
+    /// <summary>The arithmetic operator <c>**</c> on the binary64 carrier (<c>CobolPower.Binary64</c>, kb/Work PB2628), screened by
+    /// §2023:8.8.1.2 GR6; <paramref name="taken"/> is the enabled range conditions' spelling (<c>CobolPower.Binary64Checked</c>), or
+    /// null for the unchecked power.</summary>
+    public static string Binary64Pow(string b, string exponent, string? taken) => taken is null
+        ? $"{nameof(CobolPower)}.{nameof(CobolPower.Binary64)}({b}, {exponent})"
+        : $"{nameof(CobolPower)}.{nameof(CobolPower.Binary64Checked)}({b}, {exponent}, {taken})";
+
     /// <summary>A float ITEM's content as an exact value, every digit of its binary expansion (<c>CobolExact.FromBinary64</c>, kb/Work PB4730).</summary>
     public static string ExactFromBinary64(string doubleExpr) =>
         $"{nameof(CobolExact)}.{nameof(CobolExact.FromBinary64)}({doubleExpr})";
@@ -1733,6 +1740,13 @@ internal static class RuntimeApi
     public static string TableAtOdo(string path, string oneBasedIndex, string count, int minOccurs, int maxOccurs) =>
         $"{nameof(CobolTable)}.{nameof(CobolTable.At)}({path}, {oneBasedIndex}, {count}, {minOccurs}, {maxOccurs})";
 
+    /// <summary>A Tier-B window's subscript tested against its table's range — <c>CobolTable.Subscript</c> (ISO §2023:8.4.2.3.4 GR2;
+    /// with <paramref name="odo"/> also §2023:13.18.38.4 GR7), the value of the subscript as a <c>long</c> (kb/Work PB5762, PB5605).</summary>
+    public static string WindowSubscript(string oneBasedIndex, int highest, (string Count, int Min, int Max)? odo) =>
+        odo is { } o
+            ? $"{nameof(CobolTable)}.{nameof(CobolTable.Subscript)}({oneBasedIndex}, {highest}, {o.Count}, {o.Min}, {o.Max})"
+            : $"{nameof(CobolTable)}.{nameof(CobolTable.Subscript)}({oneBasedIndex}, {highest})";
+
     /// <summary>The current POSITION extent of an occurs-depending GROUP operand (ISO §2023:13.18.38.4 GR8) — the fixed
     /// prefix plus data-name-1's clamped value × the element width — <c>CobolTable.OdoExtent</c>. The unit is the
     /// group's own (bit positions for a subtree holding USAGE BIT leaves, character positions otherwise; kb/Work
@@ -1758,7 +1772,7 @@ internal static class RuntimeApi
 
     /// <summary>A table(ALL) intrinsic argument's enumeration (ISO §2023:15.3; kb/Work PB62) — <c>CobolTable.AllArgs&lt;T&gt;</c>
     /// over one range lambda per ALL level (each <c>Func&lt;long[], long&gt;</c>, the index vector in) and the element
-    /// lambda; yields the <c>T[]</c> a <c>params T[]</c> body binds to.</summary>
+    /// lambda; yields the <c>T[]</c> a <c>params ReadOnlySpan&lt;T&gt;</c> body takes (kb/Work PB2636).</summary>
     public static string TableAllArgs(string csType, IEnumerable<string> countLambdas, string elementLambda, string? leadLambda = null) =>
         $"{nameof(CobolTable)}.{nameof(CobolTable.AllArgs)}<{csType}>(new Func<long[], long>[] {{ {string.Join(", ", countLambdas)} }}, {elementLambda}"
         + (leadLambda is null ? ")" : $", {leadLambda})");
@@ -1791,14 +1805,14 @@ internal static class RuntimeApi
     public static string FileRegisterRelative(string name, string assign, int width, string optional, int access, int keyDigits, string varyArgs, int edition, string? selectName = null) =>
         $"{nameof(CobolFile)}.{nameof(CobolFile.RegisterRelative)}({name}, {assign}, {width}, {optional}, {access}, {keyDigits}{varyArgs}{SelectNameArg(selectName)}{EditionArg(edition)})";
 
-    /// <summary>Bytes per national character position — <c>CobolBits.BytesPerNational</c> (ISO §2023:13.18.60.4 GR8
+    /// <summary>Bytes per national character position — <c>NationalImage.BytesPerNational</c> (ISO §2023:13.18.60.4 GR8
     /// leaves a national character's storage size to the implementor; D-N1 pins TWO, UTF-16BE). Re-exported
     /// through the façade for the same reason every emitted fragment routes here (the P7 Step 4b ratchet,
     /// <c>RuntimeApiGuardTests</c>): an emitter that needs the SIZE must not name the runtime member itself, or
     /// a rename stops breaking exactly one file. Used where a national POSITION count and a BYTE count meet —
     /// the §2023:14.9.41.4 GR13 START length, the national group's ODO extent, the record codec's per-occurrence
     /// stride (kb/Work PB327).</summary>
-    public const int BytesPerNational = CobolBits.BytesPerNational;
+    public const int BytesPerNational = NationalImage.BytesPerNational;
 
     /// <summary>Declare the connector's record area NATIONAL — <c>CobolFile.RegisterNationalArea</c>, emitted
     /// right after the registration (the <see cref="FileRegisterSharing"/> pattern) for exactly the files whose
@@ -2250,18 +2264,10 @@ internal static class RuntimeApi
     public static string FileIoConditionName(string name) =>
         $"{nameof(CobolFile)}.{nameof(CobolFile.IoConditionName)}({name})";
 
-    /// <summary>The open-mode ordinal of a connector (the USE mode-scope switch) — <c>CobolFile.OpenModeOf</c>.</summary>
-    public static string FileOpenModeOf(string name) =>
-        $"{nameof(CobolFile)}.{nameof(CobolFile.OpenModeOf)}({name})";
-
     /// <summary>The one open mode a USE open-mode switch selects on, from the set of modes (a bit mask of ordinals) the unit
     /// declares a procedure for — <c>CobolFile.UseModeOf</c>.</summary>
     public static string FileUseModeOf(string name, int declaredModes) =>
         $"{nameof(CobolFile)}.{nameof(CobolFile.UseModeOf)}({name}, {declaredModes})";
-
-    /// <summary>The mode a connector IS open in, −1 when not open — <c>CobolFile.OpenedModeOf</c>.</summary>
-    public static string FileOpenedModeOf(string name) =>
-        $"{nameof(CobolFile)}.{nameof(CobolFile.OpenedModeOf)}({name})";
 
     /// <summary>The just-read record's frame length — <c>CobolFile.LastReadLength</c>.</summary>
     public static string FileLastReadLength(string name) =>
@@ -2610,17 +2616,34 @@ internal static class RuntimeApi
     /// <summary>The C# type of the variable-length-group boundary carrier.</summary>
     public static string VarGroupType => nameof(CobolVarGroup);
 
-    /// <summary>A variable-length record type's contiguous-image layout — <c>new CobolContiguousLayout(…)</c>, the
-    /// ONE object that both decomposes a record read back (determination D-FRA; kb/Work PB981) and locates a key
-    /// a variable-length member precedes (D-KWV; kb/Work PB1025). Emitted once per record type as the static
-    /// field <see cref="ContiguousLayoutField"/>.</summary>
-    public static string ContiguousLayoutNew(int fixedTotal, IEnumerable<int> fixedAt,
-        IEnumerable<int> unit, IEnumerable<long> maxUnits, IEnumerable<int> structure, OdoTail odo) =>
-        $"new {nameof(CobolContiguousLayout)}({fixedTotal}, "
-        + $"new int[] {{ {string.Join(", ", fixedAt)} }}, new int[] {{ {string.Join(", ", unit)} }}, "
-        + $"new long[] {{ {string.Join(", ", maxUnits.Select(m => $"{m}L"))} }}"
-        + (structure.Any(c => c != 0) ? $", new int[] {{ {string.Join(", ", structure)} }}" : "")
-        + (odo.Present ? $", Odo: {OdoTailOf(odo)}" : "") + ")";   // the constructor parameter of that name
+    /// <summary>A variable-length record type's contiguous-image layout — <c>CobolContiguousLayout.Of(…)</c> over its
+    /// component list, the ONE builder a cell-backed group's layout calls too (kb/Work PB2746) and the ONE object that both
+    /// decomposes a record read back (determination D-FRA; kb/Work PB981) and locates a key a variable-length member
+    /// precedes (D-KWV; kb/Work PB1025). Emitted once per record type as the static field
+    /// <see cref="ContiguousLayoutField"/>.</summary>
+    public static string ContiguousLayoutOfComponents(int runWidth, IEnumerable<int> fixedAt, IEnumerable<int> maxSize,
+        IEnumerable<int> layoutCodes, IEnumerable<int> tableWidth, OdoTail odo) =>
+        $"{nameof(CobolContiguousLayout)}.{nameof(CobolContiguousLayout.Of)}({runWidth}, {IntSpan(fixedAt)}, {IntSpan(maxSize)}, "
+        + $"{IntSpan(layoutCodes)}, {IntSpan(tableWidth)}, {OdoTailOf(odo)})";
+
+    /// <summary>The content a dynamic-length component receives from component <paramref name="ordinal"/> of the carrier
+    /// <paramref name="carrier"/> — <c>CobolVarGroup.ReceivedDyn</c> (§2023:8.5.1.10.4; the whole content for a formal's
+    /// copy-in, kb/Work PB1937; <paramref name="national"/> decodes the UTF-16BE image first, kb/Work PB3441).</summary>
+    public static string VarGroupReceivedDyn(string carrier, int ordinal, int maxSize, string storageExpr, bool national) =>
+        $"{carrier}.{nameof(CobolVarGroup.ReceivedDyn)}({ordinal}, {maxSize}, {storageExpr}{(national ? ", national: true" : "")})";
+
+    /// <summary>Store component <paramref name="ordinal"/> of <paramref name="carrier"/> into the dynamic-capacity table
+    /// <paramref name="tableExpr"/> — <c>CobolVarGroup.StoreTableComponent</c> (§2023:14.6.9.2 recreation when carried,
+    /// §2023:14.6.9.4 space fill when not; kb/Work PB393, PB2746).</summary>
+    public static string VarGroupStoreTableComponent(string carrier, int ordinal, string tableExpr, int elementWidth, int unit,
+                                                     string storeLambda) =>
+        $"{carrier}.{nameof(CobolVarGroup.StoreTableComponent)}({ordinal}, {tableExpr}, {elementWidth}, {unit}, {storeLambda})";
+
+    /// <summary>Store the NESTED component <paramref name="ordinal"/> of <paramref name="carrier"/> into the table of
+    /// variable-length group elements <paramref name="tableExpr"/> — <c>CobolVarGroup.StoreGroupTableComponent</c> (kb/Work
+    /// PB2496, PB2746).</summary>
+    public static string VarGroupStoreGroupTableComponent(string carrier, int ordinal, string tableExpr, string storeLambda) =>
+        $"{carrier}.{nameof(CobolVarGroup.StoreGroupTableComponent)}({ordinal}, {tableExpr}, {storeLambda})";
 
     /// <summary>The carrier of a fixed-OCCURS table of variable-length group elements: every occurrence's
     /// <c>AsVarImage()</c> concatenated, fixed runs and components in occurrence order (<c>CobolVarGroup.Concat</c>).</summary>
@@ -2652,7 +2675,7 @@ internal static class RuntimeApi
         $"{nameof(CobolDynStructure)}.{nameof(CobolDynStructure.UnframeWith)}({code}, {recordExpr})";
 
     /// <summary>The static field of a variable-length group's record struct that holds its
-    /// <see cref="ContiguousLayoutNew"/> layout.</summary>
+    /// <see cref="ContiguousLayoutOfComponents"/> layout.</summary>
     public const string ContiguousLayoutField = "__contiguous";
 
     /// <summary>The instance property that exposes <see cref="ContiguousLayoutField"/> through a record VALUE, so a
@@ -3172,8 +3195,9 @@ internal static class RuntimeApi
                                              IEnumerable<int> dynLayout, IEnumerable<int> dynTable, OdoTail odo, string count,
                                              string carrierExpr, IReadOnlyList<CellGroupShape?> dynElem, bool storage) =>
         $"{cellExpr}.{nameof(StorageCell.StoreVarGroupAt)}({fixedAtExpr}, {width}, (int)({dynBase}), {IntSpan(dynFixedAt)}, {IntSpan(dynMax)}, {IntSpan(dynLayout)}, {IntSpan(dynTable)}, {OdoTailOf(odo)}, {count}, {carrierExpr}"
-        // the storage flag reaches only the nested elements' stores (the top level's maximum sizes already say it)
-        + (dynElem.All(s => s is null) ? ")" : $"{CellElemShapes(dynElem)}{(storage ? ", true" : "")})");
+        // a formal's copy-in keeps each dynamic-length member's whole content, at every level (kb/Work PB1937):
+        // CobolVarGroup.ReceivedDyn, the one receiving store of a component, reads the flag
+        + $"{CellElemShapes(dynElem)}{(storage ? ", storage: true" : "")})";
 
     /// <summary>The INVOKE null-receiver guard (EC-OO-NULL, §2023:14.9.23.4 GR5) — <c>CobolObject.RequireNonNull</c>.</summary>
     public static string ObjRequireNonNull(string receiver) =>
@@ -3304,10 +3328,10 @@ internal static class RuntimeApi
     public static string BitsUnpack(string imageExpr, string countExpr) =>
         $"{nameof(CobolBits)}.{nameof(CobolBits.Unpack)}({imageExpr}, {countExpr})";
 
-    /// <summary>The UTF-16BE byte serialization of a national string — <c>CobolBits.NatBytes</c> (D-N1; the ONE
+    /// <summary>The UTF-16BE byte serialization of a national string — <c>NationalImage.Bytes</c> (D-N1; the ONE
     /// national→bytes reduction, shared with the runtime CONVERT NAT arm — PB59 family 5b's ANY storage channel).</summary>
     public static string NatBytes(string expr) =>
-        $"{nameof(CobolBits)}.{nameof(CobolBits.NatBytes)}({expr})";
+        $"{nameof(NationalImage)}.{nameof(NationalImage.Bytes)}({expr})";
 
     /// <summary>Read a Tier-B REDEFINES member's BIT window out of the class's ONE byte backing —
     /// <c>CobolBits.ReadWindow</c>. The §2023:13.18.44.4 GR1 storage association is stated in BITS, and
@@ -3330,25 +3354,25 @@ internal static class RuntimeApi
         $"{nameof(CobolBits)}.{nameof(CobolBits.WriteWindowInto)}({bufferExpr}, {startBitExpr}, {bitsExpr})";
 
     /// <summary>The national read of a Tier-B window over the class's one byte backing —
-    /// <c>CobolBits.NatReadWindow</c> (kb/Work PB231). A national character position occupies TWO bytes of the
+    /// <c>NationalImage.ReadWindow</c> (kb/Work PB231). A national character position occupies TWO bytes of the
     /// byte-addressed backing (ISO §2023:13.18.60.4 GR8 leaves the size to the implementor; D-N1 pins two), so the
     /// window's bytes are transcoded back to the member's value carrier — the inverse of
     /// <see cref="NatBytes"/>, and the national counterpart of <see cref="BitsReadWindow"/>. The offset is
     /// 0-BASED (the window helpers' convention, unlike the 1-based <see cref="StrRefMod"/>).</summary>
     public static string NatReadWindow(string imageExpr, string startByteExpr, string positionsExpr) =>
-        $"{nameof(CobolBits)}.{nameof(CobolBits.NatReadWindow)}({imageExpr}, {startByteExpr}, {positionsExpr})";
+        $"{nameof(NationalImage)}.{nameof(NationalImage.ReadWindow)}({imageExpr}, {startByteExpr}, {positionsExpr})";
 
     /// <summary>The national content of a WHOLE storage image, for a receiver whose length is its content's (a
-    /// dynamic-length national item, §2023:8.5.1.10.4) — <c>CobolBits.NatFromStorage</c>, an odd tail completed with the
+    /// dynamic-length national item, §2023:8.5.1.10.4) — <c>NationalImage.FromStorage</c>, an odd tail completed with the
     /// alphanumeric space (design D-N8, kb/Work PB546).</summary>
     public static string NatFromStorage(string imageExpr) =>
-        $"{nameof(CobolBits)}.{nameof(CobolBits.NatFromStorage)}({imageExpr})";
+        $"{nameof(NationalImage)}.{nameof(NationalImage.FromStorage)}({imageExpr})";
 
     /// <summary>Splice a value into a national window of the class backing, leaving every other byte untouched —
-    /// <c>CobolBits.NatWriteWindow</c>, the receiving twin of <see cref="NatReadWindow"/> (kb/Work PB231). The
+    /// <c>NationalImage.WriteWindow</c>, the receiving twin of <see cref="NatReadWindow"/> (kb/Work PB231). The
     /// fit to exactly the member's position count is the helper's, done in POSITIONS before serialization.</summary>
     public static string NatWriteWindow(string imageExpr, string startByteExpr, string positionsExpr, string valueExpr) =>
-        $"{nameof(CobolBits)}.{nameof(CobolBits.NatWriteWindow)}({imageExpr}, {startByteExpr}, {positionsExpr}, {valueExpr})";
+        $"{nameof(NationalImage)}.{nameof(NationalImage.WriteWindow)}({imageExpr}, {startByteExpr}, {positionsExpr}, {valueExpr})";
 
     /// <summary>One member's slice of an unpacked run carrier — <c>CobolBits.Slice</c>.</summary>
     public static string BitsSlice(string carrierExpr, string offsetExpr, string countExpr) =>
@@ -3423,9 +3447,10 @@ internal static class RuntimeApi
         $"{nameof(ActivationStack)}.{nameof(ActivationStack.RequireForMethod)}({methodLiteral}, {classLiteral})";
 
 
-    /// <summary>FUNCTION MODULE-NAME's runtime read (§2023:15.65) — <c>CobolModule.Name(kind)</c>.</summary>
-    public static string ModuleNameFn(int kind) =>
-        $"{nameof(CobolModule)}.{nameof(CobolModule.Name)}({kind})";
+    /// <summary>FUNCTION MODULE-NAME's runtime read (§2023:15.65) — <c>CobolModule.Name(ModuleNameKeyword.X)</c>, the member named
+    /// (kb/Work PB2742).</summary>
+    public static string ModuleNameFn(ModuleNameKeyword keyword) =>
+        $"{nameof(CobolModule)}.{nameof(CobolModule.Name)}({nameof(ModuleNameKeyword)}.{keyword})";
 
     /// <summary>The SDIDI lane's subsidiary quotient (§2023:14.9.12.4 GR6c, kb/Work PB3017, PB3975) - the SDIDI quotient truncated
     /// at the GIVING receiver's scale.</summary>

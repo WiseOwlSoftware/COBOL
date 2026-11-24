@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-8.4.2.11.2-4",
+ "rule-digest": "1594b8b205c5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AddressOfOperandScreen.cs#Admit",
+ "test-ref": "conformance:cases/8.4.2.11@2002-Data-address-identifier/pb5705-address-of-strong-group-own-type; conformance:cases/8.4.2.11@2002-Data-address-identifier/pb5705-address-of-strong-subgroup-no-type",
+ "notes": "The 2002 text (and the same text at SR5 of 2014) has no 2023 twin: 2023 drops it and types a group subordinate to a strong record by position (GR2). AddressOfOperandScreen.Admit refuses, below 2023, a group entry that is strongly typed (StrongRoot present) but whose own StrongType flag is not set, i.e. a group with no TYPE clause of its own referencing a STRONG declaration (COBOL2785, citing the edition's rule), for every ADDRESS OF surface (SET, CALL, INVOKE, relation operand), because they all reach the one screen (kb/Work PB1407); a group that carries its own TYPE clause stays legal (pb5705-address-of-strong-group-own-type). kb/Work PB5705."
+}

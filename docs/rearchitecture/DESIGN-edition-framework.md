@@ -160,7 +160,7 @@ public static partial class ConstructRegistry
     public static void Check(EditionInfo ed, IDiagnosticSink sink, string id, string where, SourceSpan? at = null)
     {
         var c = Require(id);
-        var verdict = c.StatusAt(ed.Year);
+        var verdict = c.Window.StatusAt(ed.Year);
         if (verdict == ConstructAvailability.Available) return;
         var sev = EditionSeverityPolicy.For(verdict, ed);
         var code = verdict switch
@@ -177,6 +177,16 @@ public static partial class ConstructRegistry
 Note the `Check` body is *identical* to today's logic (`ConstructDialectStatus.cs:183-203`); only the
 plumbing changes (EditionInfo + sink instead of `EditionContext`). This keeps behavior byte-stable
 for the migration.
+
+**The window is one type for every catalog (kb/Work PB2620).** The verdict and its severity are not the registry's own: a
+row's `IntroducedIn`/`RemovedIn`/`ObsoleteIn` columns are its `EditionWindow` (`src/WiseOwl.Cobol.Editions/EditionWindow.cs`),
+whose `StatusAt` is the one availability rule and whose `VerdictAt(edition, codes, construct, display)` is the one report
+verdict: the availability, the severity `EditionSeverityPolicy.For` dictates, the code the catalog passes for that
+availability (`EditionGateCodes`), and the edition flag. `ConstructRegistry.VerdictAt` passes the row's codes; the
+intrinsic-function catalog (`IntrinsicSig.Window`, the D8 window, codes COBOL1502/COBOL1503) and the exception-name catalog
+(`EcInfo.IntroducedIn`, COBOL0878, through `ExceptionNameRule.Window`) pass theirs. So a removed intrinsic function is an error
+strict and a warning under `--permissive`, as a removed construct is, and a fourth windowed catalog writes no fourth
+comparison.
 
 ### 2.6 Generate the registry FROM `constructs/` (fixes P7 — one source, auto-checked)
 

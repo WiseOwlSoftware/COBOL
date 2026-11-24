@@ -1,6 +1,6 @@
 *>--- conformance-case
 *> id: delete_file_absent
-*> rules: [GR-9.1.13.2-4, GR-14.9.10.4-21, FMT-14.9.10.2, DOC-A.1-51]
+*> rules: [GR-9.1.13.2-4, GR-14.9.10.4-21, FMT-14.9.10.2, DOC-A.1-51, GR-14.9.10.4-14]
 *> accept: [2023]
 *> source-format: free
 *> portable: unverified

@@ -1,7 +1,8 @@
 {
  "rule-id": "1985-SR-XIII.4.3.3-1",
  "rule-digest": "0f06bc54059f",
- "test-ref": "conformance:cases/XIII.4.3@1985-GENERATE-STATEMENT/g85_f31_01; conformance:cases/XIII.4.3@1985-GENERATE-STATEMENT/pb5775-generate-homonym-85; conformance:cases/XIII.3.19@1985-SUM-CLAUSE/pb5910_reset_plain_qualified_control_85",
+ "test-ref": "conformance:cases/XIII.4.3@1985-GENERATE-STATEMENT/g85_f31_01; conformance:cases/XIII.3.19@1985-SUM-CLAUSE/pb5910_reset_plain_qualified_control_85",
+ "notes": "retired-witness: conformance:cases/XIII.4.3@1985-GENERATE-STATEMENT/pb5775-generate-homonym-85 (the case cites 1985-FMT-XIII.4.3.2 (the GENERATE homonym), not this rule; the row keeps its two witnesses (kb/Work PB6067: a witness cites the row it witnesses))",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb5844_rd_word_not_a_name
-      *> rules: [FMT-12.4.5.11.2]
+      *> rules: [FMT-12.4.5.11.2, DOC-A.1-150]
       *> source-format: fixed
       *> portable: unverified
       *>---

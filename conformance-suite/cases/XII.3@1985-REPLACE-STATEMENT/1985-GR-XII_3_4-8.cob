@@ -3,7 +3,6 @@
       *> rules: [1985-GR-XII.3.4-8]
       *> accept: [85]
       *> source-format: fixed
-      *> portable: unverified
       *>---
       *> §1985:XII.3.4 GR8 (THE REPLACE STATEMENT). An output test: the
       *> program must translate and run at 85 and DISPLAY exactly the
@@ -15,10 +14,12 @@
 000300 DATA DIVISION.
 000400 WORKING-STORAGE SECTION.
 000500 01  X PIC 9 VALUE 0.
+       01  X-E PIC Z9.
 000600 PROCEDURE DIVISION.
 000700     REPLACE ==MOVE 1
 000800D        TO X== BY ==MOVE 2 TO X==.
 000900 P1.
 001000     MOVE 1 TO X.
-001100     DISPLAY X.
+           MOVE X TO X-E
+001100     DISPLAY X-E.
 001200     STOP RUN.

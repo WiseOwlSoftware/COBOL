@@ -1,0 +1,44 @@
+{
+  "batch": [
+    409,
+    410,
+    411,
+    412,
+    413,
+    414,
+    415,
+    416,
+    417,
+    418,
+    419,
+    420
+  ],
+  "pages_checked": [
+    409,
+    410,
+    411,
+    412,
+    413,
+    414,
+    415,
+    416,
+    417,
+    418,
+    419,
+    420
+  ],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p419-1",
+      "page": 419,
+      "kind": "incorrect-text",
+      "severity": "cosmetic",
+      "location": "4.4.4 General Rules (8) b",
+      "pdf_says": "The size of the current record is determined by rules specified in the RECORD clause. If the file description entry contains a RECORD IS VARYING clause, the implied move is a group move. The implied MOVE statement",
+      "markdown_says": "<u>The size of the current record is determined by rules specified in the RECORD clause. ║If the file description entry contains a RECORD IS VARYING clause, the implied move is a group move.</u>║ The implied MOVE statement",
+      "explanation": "The printed page has no underlining in this rule. The lines the transcription read as underlining are the staircase border of the change box, which starts mid-line at 'If the file description entry...' (its top edge runs over the end of the line 'The size of the current record is determined by rules', and its lower-left step runs under 'specified in the RECORD clause.'). The ║ box markers are placed correctly. The <u>...</u> markup is spurious and should be removed, which also fixes the bad nesting of </u> inside the box span.",
+      "why_it_matters": "Spurious underlining in prose adds emphasis the standard does not print and mis-nests with the change-box markers; it does not alter the rule text."
+    }
+  ]
+}

@@ -207,13 +207,33 @@ public sealed class CollationEngineTests
         Same(Root.With(strength: CollationStrength.Primary), "A", "\U0001D400");
     }
 
+    /// <summary>kb/Work PB2763: STANDARD-COMPARE's ordering table and level are resolved once, not per call. The same
+    /// literal answers the same table instance, each (table, level) the same collator, the root table's level 4 is
+    /// <see cref="CollationEngine.Standard"/> itself, and <see cref="CollationEngine.ClearLocaleCache"/> forgets the
+    /// literal's resolution with the locales.</summary>
+    [Fact]
+    public void OrderingTableAndLevel_ResolveOncePerName()
+    {
+        Assert.True(CollationEngine.TryGetOrderingTable("es", out var es1));
+        Assert.True(CollationEngine.TryGetOrderingTable("es", out var es2));
+        Assert.Same(es1, es2);
+        Assert.False(CollationEngine.TryGetOrderingTable("NO-SUCH-TABLE", out var none));
+        Assert.Same(CollationTable.Root, none);
+        Assert.Same(CollationEngine.OrderingAtLevel(es1, 2), CollationEngine.OrderingAtLevel(es2, 2));
+        Assert.Same(CollationEngine.Standard, CollationEngine.OrderingAtLevel(CollationTable.Root, 4));
+        Assert.Throws<ArgumentOutOfRangeException>(() => CollationEngine.OrderingAtLevel(CollationTable.Root, 5));
+        CollationEngine.ClearLocaleCache();
+        Assert.True(CollationEngine.TryGetOrderingTable("es", out var es3));
+        Assert.NotSame(es1, es3);   // re-resolved from the sources after the cache was cleared
+    }
+
     [Fact]
     public void Shifted_VariablesIgnoredThroughLevel3_WeighedAtLevel4()
     {
         // The ISO/IEC 14651-style default: "a-b" and "ab" are equal through level 3 and differ at level 4.
-        Same(CollationEngine.StandardAtLevel(3), "a-b", "ab");
-        Same(CollationEngine.StandardAtLevel(3), "a b", "ab");
-        Same(CollationEngine.StandardAtLevel(1), "di Silva", "diSilva");
+        Same(CollationEngine.OrderingAtLevel(CollationTable.Root, 3), "a-b", "ab");
+        Same(CollationEngine.OrderingAtLevel(CollationTable.Root, 3), "a b", "ab");
+        Same(CollationEngine.OrderingAtLevel(CollationTable.Root, 1), "di Silva", "diSilva");
         Less(Standard, "a-b", "ab");                          // level 4: the hyphen's position weight < "no variable"
         Less(Standard, "a b", "a-b");                         // space (0209) < hyphen at level 4
         Less(Standard, "ab", "ac");                           // primaries still decide first

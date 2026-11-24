@@ -1,6 +1,5 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using System.Globalization;
 
 namespace WiseOwl.Cobol.Runtime;
 
@@ -293,11 +292,11 @@ public static class FloatResultant
     private readonly record struct ExactMagnitude(UInt128 Mag, int Scale) : IBinary64Magnitude
     {
         /// <summary>The correctly rounded (ties-to-even) binary64 of the magnitude — <c>CobolFloat.ScaledToDouble</c>,
-        /// the ONE scaled→double conversion, or its decimal-string twin past the signed carrier.</summary>
+        /// the ONE scaled→double conversion, or its unsigned twin <c>CobolFloat.ScaledMagnitudeToDouble</c> past the
+        /// signed carrier.</summary>
         public double NearestBinary64() => Mag <= (UInt128)Int128.MaxValue
             ? CobolFloat.ScaledToDouble((Int128)Mag, Scale)
-            : double.Parse(Mag.ToString(CultureInfo.InvariantCulture) + "E" + (-Scale).ToString(CultureInfo.InvariantCulture),
-                NumberStyles.Float, CultureInfo.InvariantCulture);
+            : CobolFloat.ScaledMagnitudeToDouble(Mag, Scale);
 
         /// <summary>sign(c − magnitude) for a finite binary64 <paramref name="c"/> ≥ 0. A magnitude past the signed
         /// carrier compares HALVES — c/2 is exact (c is nowhere near the subnormals there) and Mag/2 splits into an

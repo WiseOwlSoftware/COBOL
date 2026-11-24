@@ -124,7 +124,7 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
         // temporary, kb/Work PB5767): they are taken off the statement's queue, so they do not run once before the first pair,
         // and run again before EACH pair (BoundCorresponding.PairIdentification).
         IReadOnlyList<BoundStatement> pairIdentification = perPair && preOps.AnyAfter(identificationMark)
-            ? host.Udf.OperandSteps(preOps.DrainFrom(identificationMark))
+            ? host.Window.OperandSteps(preOps.DrainFrom(identificationMark))
             : [];
         int id = _corrCounter++;
         var hoists = new List<CorrespondingHoist>();
@@ -491,7 +491,7 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
             if (_isDebugRegister) return chain.Count == 1 ? _refs.DebugRegisterPlaceOf(leaf) : null;
             if (_isMember)
             {
-                if (chain.All(CorrPlainMember))
+                if (chain.All(c => c.IsPlainMember))
                 {
                     // The child is a member path off the anchor local: LocalRootSegment(anchor) + one MemberSegment
                     // per chain step.
@@ -542,10 +542,5 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
             }
             return _local;
         }
-
-        /// <summary>True when a chain member is an ordinary struct member: no REDEFINES class, or the stored
-        /// canonical of a Tier-A alias class (the alias tier keeps the canonical's typed field).</summary>
-        private static bool CorrPlainMember(DataItem c) =>
-            c.Class is null || (c.Class.Tier is RedefinesTier.Alias && c.IsCanonical);
     }
 }

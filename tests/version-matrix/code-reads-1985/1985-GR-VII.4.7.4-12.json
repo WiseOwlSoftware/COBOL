@@ -2,58 +2,71 @@
  "rule-id": "1985-GR-VII.4.7.4-12",
  "rule-digest": "bb70572a740c",
  "read": {
-  "pin": "946daf5a4d16ed4c6a2370978e1249457c072b90",
-  "slice": "1985-239",
+  "pin": "9c9df6c3c8cd21723562256cbd96dd86442f7758",
+  "slice": "1985-pb6161",
   "sources": {
-   "reader": "204c971910d5f4e0cd8912654dcb31898d6ac9326064d9505c11d20a5e430ec5",
-   "refuter": "4ad490973e8fa4e395708d8252f64188831a4b7a7ae00917e7c4884df49a0e68"
+   "reader": "74fb74c1e37d3eac7c8827915aecba5efb6f258c7ea1ab1d171fad0bc70ca40a",
+   "refuter": "1631a2a834ed0650250ebb4b541aee142907de73aac2700056e14dc60a8a9564"
   },
   "imported": {
-   "reader": "c5c3bb7659d6d819f0f0453a465958250dccbcdc0331e8b51999925707e53295",
-   "refuter": "f9d82e8ea1bce01fd73400023e1dc0b9ff6c81bda97bb493d62c9d7a435825be"
+   "reader": "115a3c70d9ce06fb010b2df03f00c7899b801032b28007800a2968aa2d097ff5",
+   "refuter": "6af86bdbd68375656d9b4d88df9e54f6bdfb356ca3175c21c5b375c7c31ec207"
   }
  },
  "reader": {
   "rule-id": "1985-GR-VII.4.7.4-12",
   "verdict": "CONFORMS",
-  "requirement": "At --std 85 the order in which a sequential file's records are read back must be the order in which the WRITE statements that created it executed, unchanged by a REWRITE, extended only by records added at the end (OPEN EXTEND, including on a created optional file), and established afresh when OPEN OUTPUT creates the file again; this holds for fixed, variable-length (RECORD VARYING / ODO) and multi-description records.",
-  "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#ReleaseRecord; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#ReleaseBufferedRecords; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#OpenCore; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#CountRecords; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#OtherConnectorsMayShare; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#SharedOpenAttempt; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#MapOrganization",
+  "requirement": "A sequential file's record order must be the order in which WRITEs created it (OPEN OUTPUT starts the order over), a REWRITE in I-O mode must not move a record, and the order changes only by records appended at the end in EXTEND mode, for fixed and RECORD VARYING records alike; the witness covers fixed records with one REWRITE and one EXTEND.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#OpenCore; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#WriteRecord; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#ReleaseRecord; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Rewrite; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#SharedOpenAttempt",
   "edition-consulted": [
    {
-    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#OtherConnectorsMayShare",
-    "switches": "SharingFacilityInEffect: from 2002 every WRITE is flushed to the medium; at 85 a connector buffers while it is the only connector on the physical file and flushes per record once a sibling is open",
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#SharedOpenAttempt",
+    "switches": "SharingFacilityInEffect: at 85 a second connector's OPEN EXTEND or OUTPUT of the open file is 41, so no other writer can interleave with or truncate the order; from 2002 Table 19 decides",
     "same-arm-as-latest": false
    },
    {
-    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#SharedOpenAttempt",
-    "switches": "at 85 (no sharing facility) each connector already open on the file releases its buffered records before an incoming OPEN's body runs",
+    "site": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#ReleaseRecord",
+    "switches": "OtherConnectorsMayShare (FileSharingFacility): flush per WRITE and medium-counted ordinal only from 2002",
     "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#OpenCore",
+    "switches": "the EXTEND arm's ordinal seeding asks FileLockPosture.AdmitsAnotherWriter(HostShare) (AllOther at 85); OUTPUT Create and EXTEND Append are the same at every edition",
+    "same-arm-as-latest": true
    }
   ],
-  "edition-search": "grep SharingFacilityInEffect/Edition/DialectBehavior over SequentialConnector.cs, FileConnector.cs and FileRegistry.cs on the WRITE and OPEN EXTEND paths",
-  "behaviour-differs-by-edition": "no for the order of records; yes for when a WRITE reaches the medium (85 buffers a lone connector's records), which the 85 arm compensates for at a sibling's OPEN",
-  "witnesses-cover": "part: g85_bf21_02 covers fixed-length records, REWRITE in place and EXTEND on an existing and an empty file; variable-length records, multi-description FDs, an optional file created by EXTEND, re-creation by OUTPUT and two connectors appending to one file (the 85 buffering arm) are not exercised",
+  "edition-search": "grep of DialectBehavior, Edition, SharingFacilityInEffect, HostShare in SequentialConnector.cs and FileRegistry.cs; the ordering itself (append-only writer, OUTPUT truncation, in-place REWRITE) is edition-independent",
+  "behaviour-differs-by-edition": "yes: at 85 a sibling connector cannot open the file to append beside the owner (41); from 2002 a Table 19 admitted sibling may. The order produced by one connector's WRITE, REWRITE and EXTEND is the same.",
+  "witnesses-cover": "part: g85_bf21_02 covers fixed records, one REWRITE, one EXTEND; not exercised are OPEN OUTPUT over an existing file restarting the order, RECORD VARYING records of differing lengths, a refused sibling EXTEND, two successive EXTENDs, and a REVERSED read of the established order",
   "probes": [
    {
-    "class": "a,e",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-239/src/p12a.cob",
-    "printed": "LAST WRITE 00 / RW 00 / V 5 E 06 / V 1 Z 02 / V 8 H 09 / V 3 C 04 / W LONGONE / W S01GONE / W LONGTWO / W S02GTWO / X OPEN 05 / X N01",
-    "expected": "write order kept for variable-length records with their lengths, REWRITE in place, EXTEND at the end; FD with two record lengths keeps order; optional file created by EXTEND (05); OUTPUT re-creates the file with a new relationship"
+    "class": "a,c,e",
+    "file": "E:/COBOL-coord/scratch/w20262162a-PB6161/reread/work-reader/p12a.cob (runs/p12a-002)",
+    "printed": "REWRITE 00 / SIBLING EXTEND 41 / SIBLING WRITE 48 / 1 04 [MIKE  ] / 2 01 [B     ] / 3 06 [QUEBEC] / 4 05 [ROMEO ] / 5 01 [C     ] / 6 06 [SIERRA] / COUNT 6 10 / REVERSED 00 / R1 [SIERRA] R2 [C     ] R3 [ROMEO ] R4 [QUEBEC] R5 [B     ] R6 [MIKE  ]",
+    "expected": "the earlier ZZZZZZ file is replaced by OPEN OUTPUT; order MIKE, A (rewritten in place to B), QUEBEC, then the EXTENDs append ROMEO, C, SIERRA; the refused sibling EXTEND adds nothing (GR12, GR13); REVERSED (a 1985-only phrase) reads the same order backwards"
    },
    {
-    "class": "c,e",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-239/src/p12b.cob",
-    "printed": "FB OPEN 00 / A R01 / A R02 / A R03 / A R04 / A R05",
-    "expected": "two connectors appending to one physical file at 85 (the buffering arm): records read back in the order of the WRITE executions"
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/w20262162a-PB6161/reread/work-reader/p12a.cob (runs/p12a-001, first draft)",
+    "printed": "error COBOL6826: READ of sequential file 'F1' specifies no AT END phrase ... (§1985:VII.4.4.3 SR2)",
+    "expected": "incidental: the first draft omitted AT END with no USE procedure, which 1985 VII.4.4.3 SR2 refuses"
    }
   ],
   "citations": [
    {
     "cite": "§1985:VII.4.7.4 GR12",
     "check": "OK  §1985:VII.4.7.4 GR12  (4.7.4 General Rules)  the text is in GR12"
+   },
+   {
+    "cite": "§1985:VII.4.7.4 GR13",
+    "check": "OK  §1985:VII.4.7.4 GR13  (4.7.4 General Rules)  the text is in GR13"
+   },
+   {
+    "cite": "§1985:VII.1.3.5",
+    "check": "OK  §1985:VII.1.3.5  (1.3.5 I-O Status)  the text is in the clause; it lies in GRL2.4a"
    }
   ],
-  "notes": "The one 85-specific arm on this path is the release policy (buffer while alone, release before a sibling's OPEN, flush per record while a sibling is open); the probe with two appending connectors shows the order of execution survives it. A first probe run without setting the DEPENDING ON item failed its WRITEs (VL=0 below the minimum), a probe error and not a finding.",
+  "notes": "The order comes from an append-only writer (OUTPUT Create, EXTEND Append) and an in-place REWRITE through the reader's stream; at 85 the 41 refusal in SharedOpenAttempt keeps any second connector from appending or truncating while the file is open, so the deleted 85 sibling-release machinery has no case left to serve. Same comment drift as the GR7 record (the EnsureReaderCoherent summary and the OpenCore OUTPUT arm describe an admitted 85 sibling OPEN OUTPUT).",
   "seeded": true,
   "harm": "",
   "cause": "",
@@ -67,7 +80,7 @@
   "rule-id": "1985-GR-VII.4.7.4-12",
   "refutation": "UPHELD",
   "classes": "a,b,c,e",
-  "evidence": "q4a.cob (runs/q4a-001): RECORD VARYING 2..6 DEPENDING ON VL. OUTPUT A1,B22, a WRITE below the minimum (44, adds nothing), C333; CLOSE WITH NO REWIND (07); EXTEND D4444; I-O REWRITE of record 2 to b22; EXTEND E55555. Forward read: A1 2, b22 3, C333 4, D4444 5, E55555 6, then 10. The 1985-only OPEN INPUT ... REVERSED (obsolete, level 2) reads the same relationship backwards: E55555, D4444, C333, b22, A1, then 10. The order is the WRITE order, unchanged by REWRITE and by the failed WRITE, extended only at the end. Citations: OK §1985:VII.4.7.4 GR12 (the text is in GR12).",
+  "evidence": "r3-001 at --std 85: F1 OPEN OUTPUT two 8-char records, CLOSE; F2 (second SELECT, same path, RECORD VARYING 1-8 DEPENDING ON) OPEN OUTPUT over the existing file writes 'AAA'(3), 'BBBBBBB'(7); F1 OPEN EXTEND 'C'(1); F2 OPEN EXTEND 'DDDDD'(5); then F1 OPEN INPUT, one READ, and mid-read sibling OPEN EXTEND F2 and OPEN OUTPUT F2. Printed 'R1 03 [AAA] / SIBLING EXTEND MID-READ 41 / SIBLING OUTPUT MID-READ 41 / R 01 07 [BBBBBBB] / R 02 01 [C] / R 03 05 [DDDDD]': OPEN OUTPUT through another connector restarts the successor relationship (the OLD1OLD1 records are gone), two successive EXTENDs through different connectors append in execution order at their own lengths (GR13), and the refused sibling OPENs leave the reader's position and the order unaffected. Class c refusals as for GR7 (r2, r2b, r2c COBOL0900). cite.py: 'OK  §1985:VII.4.7.4 GR12  (4.7.4 General Rules)  the text is in GR12'; 'OK  §1985:VII.4.7.4 GR13  (4.7.4 General Rules)  the text is in GR13'; 'OK  §1985:VII.1.3.5  (1.3.5 I-O Status)  the text is in the clause; it lies in GRL2.4a'. The NoteRelease() removal in OpenCore's OUTPUT arm matters to GR12 only through a reader open beside the truncating OUTPUT, which at 85 answers 41 (r3-001) and from 2002 Table 19 refuses; a later OPEN re-seeds the reader's _coherentAt (SequentialConnector.cs lines 398 and 2426), so a reader re-opened after the truncation sees the new order. Not re-probed on a rebuilt tree.",
   "edition-sites-missed": [],
   "corrected": ""
  }

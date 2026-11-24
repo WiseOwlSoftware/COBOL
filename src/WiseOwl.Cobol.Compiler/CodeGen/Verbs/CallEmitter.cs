@@ -270,7 +270,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             : RuntimeApi.ExternalizedNameInEdition(OperandText.AsString(c.DynamicName!, num),
                 ctx.Data.DialectLevel);   // GR3b — the identifier's value at CALL time (GR3a: read once), formed in the edition's spelling (PB2991)
         return $"ProgramRegistry.CallProgram({nameExpr}, {head}"
-            + $"{(c.IsFunction ? ", notFoundEc: \"EC-FUNCTION-NOT-FOUND\"" : "")}"   // §2023:8.4.3.2.4 GR6b
+            + $"{(c.IsFunction ? $", notFoundEc: \"{Editions.ExceptionNameRule.NameInEdition("EC-FUNCTION-NOT-FOUND", ctx.Data.DialectLevel)}\", asFunction: true" : "")}"   // §2023:8.4.3.2.4 GR6b; §2002:8.4.2.2.3 GR5 names EC-PROGRAM-NOT-FOUND
             + $"{site});";
     }
 
@@ -1638,9 +1638,9 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
 
     /// <summary>Emit GOBACK (ISO §2023:14.9.18): move the RETURNING source into the header RETURNING item (GR2 — the
     /// activation result), stage a RAISING exception condition for the activator (the EC model — picked up at
-    /// the activating statement's pickup, and never raised when the activator emitted none — kb/Work PB892), then raise <see cref="ProgramReturn"/> —
-    /// caught at THIS program's activation entry, returning control to the activator (called program) or ending
-    /// the run unit (main program, GR3).</summary>
+    /// the activating statement's pickup, and never raised when the activator emitted none — kb/Work PB892), then return to
+    /// THIS program's activation entry (<see cref="DispatchState.ReturnToActivator"/>: directly, or by <see cref="ProgramReturn"/>),
+    /// returning control to the activator (called program) or ending the run unit (main program, GR3).</summary>
     public bool EmitGoback(BoundGoback g)
     {
         var w = ctx.Writer;
@@ -1660,6 +1660,10 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             w.Line($"if ({inGlobalRange}) ExceptionState.FlowGlobalGobackError(\"a GOBACK statement executed "
                 + "within the range of a USE ... GLOBAL declarative procedure of the same program "
                 + "(ISO 14.9.18.4 GR6)\");");
+        // §2002:14.8.17.3 GR1/GR3 (kb/Work PB5715): a GOBACK in a function, or in a program under a calling element, "operates as if
+        // executing" the EXIT FUNCTION / EXIT PROGRAM statement, so it also sets EC-FLOW-GLOBAL-EXIT (§2002:14.8.13.3 GR2). A
+        // GOBACK in a main program operates as STOP (GR2) and sets nothing; `__asCalled` is true in every function activation.
+        EmitFlowGlobalExit("a GOBACK statement operating as an EXIT PROGRAM or EXIT FUNCTION statement", calledOnly: true);
         // The move was BOUND by CallBinder.BindGoback (kb/Work PB880) into the header's RETURNING item. A RETURNING
         // source with no such item has no move: the binder folded it into Status (the main-program exit status,
         // kb/Work PB4335), emitted below with the written status phrase.
@@ -1676,8 +1680,25 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         // guard on __asCalled, the same activation flag EmitExitProgram uses.
         if (g.Status is { } st)
             w.Line($"if (!__asCalled) {RuntimeApi.SetExitStatus(num.ExitStatus(st))};   // §2023:14.9.18.4 GR3/GR10 — a main program passes the status");
-        w.Line("throw new ProgramReturn();   // return to the activator; in a main program ≡ STOP (ISO §2023:14.9.18.4 GR2/GR3)");
+        w.Line($"{dispatch.ReturnToActivator(inMethod: false)}   // return to the activator; in a main program ≡ STOP (ISO §2023:14.9.18.4 GR2/GR3)");
         return true;
+    }
+
+    /// <summary>The EC-FLOW-GLOBAL-EXIT raise (§2002:14.8.13.3 GR2, §2014:14.9.13.3 GR2): "If an EXIT statement is executed within the
+    /// range of a declarative procedure whose USE statement contains the GLOBAL phrase and that USE statement is specified in the same
+    /// function, method, or program as the function format, method format, or program format EXIT statement respectively, the
+    /// EC-FLOW-GLOBAL-EXIT exception condition is set to exist." The ONE test of "within the range" is
+    /// <see cref="DispatchState.InGlobalDeclarativeRangeTest"/>, the same as GOBACK's GR6. ⛔ CHECKING-GATED at EMIT: <see cref="EcEmitter.EnabledHere"/>
+    /// is false from 2023, whose binder declares no such raise (<c>DialectBehavior.FlowGlobalExitIsNeverSet</c>), so a 2023 program
+    /// keeps byte-identical generated source. <paramref name="calledOnly"/> is a GOBACK's own gate: it is an EXIT only when it returns
+    /// to an activator (a function always does; a program does while <c>__asCalled</c>).</summary>
+    private void EmitFlowGlobalExit(string statement, bool calledOnly)
+    {
+        if (dispatch.InGlobalDeclarativeRangeTest is not { } inGlobalRange || !ec.EnabledHere("EC-FLOW-GLOBAL-EXIT"))
+            return;
+        string called = calledOnly ? "__asCalled && " : "";
+        ctx.Writer.Line($"if ({called}({inGlobalRange})) ExceptionState.FlowGlobalExitError(\"{statement} executed within the range of a "
+            + "USE ... GLOBAL declarative procedure of the same element (ISO §2002:14.8.13.3 GR2, §2014:14.9.13.3 GR2)\");");
     }
 
     /// <summary>Emit EXIT PROGRAM [RAISING …] (ISO §2023:14.9.14 Format 2): GR2 — in a program NOT under the control
@@ -1687,12 +1708,16 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     public void EmitExitProgram(BoundExitProgram ep)
     {
         var w = ctx.Writer;
+        // §2002:14.8.13.3 GR2 / §2014:14.9.13.3 GR2 (kb/Work PB5715): FIRST, like GOBACK's GR6 — the condition exists when the statement
+        // is executed, before GR6's return. __asCalled-gated: in a program not under a calling runtime element GR5 treats the statement as
+        // CONTINUE and "No exception condition is raised" (§2002:14.8.13.3 GR5, §2014:14.9.13.3 GR5), the more specific rule.
+        EmitFlowGlobalExit("an EXIT PROGRAM statement", calledOnly: true);
         if (ep.Raising is null)
         {
             using (w.Block("if (__asCalled)   // ISO §2023:14.9.14.4 GR2: CONTINUE in a non-called program; GR3: return in a called one"))
             {
                 Debug.LandBeforeTransfer();   // the return is the transfer: the enclosing statements' after-statement debugging sections run first
-                w.Line("throw new ProgramReturn();");
+                w.Line(dispatch.ReturnToActivator(inMethod: false));
             }
             return;
         }
@@ -1700,7 +1725,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         {
             Debug.LandBeforeTransfer();
             EmitRaisingStage(ep.Raising, "EXIT PROGRAM");
-            w.Line("throw new ProgramReturn();   // return to the activator (ISO §2023:14.9.14.4 GR3)");
+            w.Line($"{dispatch.ReturnToActivator(inMethod: false)}   // return to the activator (ISO §2023:14.9.14.4 GR3)");
         }
     }
 

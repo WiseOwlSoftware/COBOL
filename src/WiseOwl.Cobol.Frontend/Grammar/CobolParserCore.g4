@@ -25,7 +25,7 @@ import CobolExpressions, CobolData, CobolSpecialNames, CobolReportWriter, CobolI
 // Grammar/Core/CobolWords.g4 from tests/version-matrix/cobol-words.json (the nameSlot=true rows) by
 // scripts/gen-cobol-words.ps1 (rearchitecture PHASE 04, Group A). It is single-sourced with the lexer
 // subscript-trigger set (Parsing/CobolLexerWordSet.g.cs) and cross-checked by CobolWordsDriftTests, so the
-// three former hand-synced copies (this rule, the lexer _dataNameTokens set, and the §2023:8.9 ReservedWords table)
+// three former hand-synced copies (this rule, the lexer DataNameTokens set, and the §2023:8.9 ReservedWords table)
 // can no longer silently desync. Do NOT re-add the rule here: edit cobol-words.json and re-run the generator.
 
 // ==========================================

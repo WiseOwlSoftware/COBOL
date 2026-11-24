@@ -304,7 +304,7 @@ public sealed class ClosedFormatDriftTests : WiseOwlCobolTestBase
     {
         var atn = Core._ATN;
         var single = new IntervalSet();
-        foreach (int rule in new[] { Core.RULE_nonNumericLiteral, Core.RULE_numericLiteralCore })
+        foreach (int rule in new[] { Core.RULE_quotedLiteral, Core.RULE_numericLiteralCore })
             single.AddAll(SingleTokenAlternatives(atn, rule));
         Assert.True(single.Contains(CobolLexer.STRINGLIT) && single.Contains(CobolLexer.INTEGERLIT),
             $"the single-token literal probe found {single.ToString(Core.DefaultVocabulary)} — it is broken");

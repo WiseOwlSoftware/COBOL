@@ -185,7 +185,8 @@ public static class PictureAnalyzer
         // §2023:12.3.7.3 SR28's input — the class of the literal-7 behind the symbol THIS picture uses; null when it uses
         // none (the default below is only what the whitelist/editing checks see, not a symbol the picture wrote).
         // A symbol whose clause was refused for its string has no known class (kb/Work PB1920): SR28 is not asked.
-        LiteralClass? currencyClass = cs == '\0' || currencySet[cs].ClauseRefused ? null : currencySet[cs].LiteralClass;
+        // The default '$' of COBOL-2002 has no literal-7 at all (§2002:12.2.6.2 SR24 speaks only of one that is written; kb/Work PB5614).
+        LiteralClass? currencyClass = cs == '\0' || currencySet[cs].ClauseRefused || currencySet[cs].IsDefaultSign ? null : currencySet[cs].LiteralClass;
         if (cs == '\0') cs = '$';   // no currency symbol in this picture: the whitelist/editing checks see the default
         // GR14: the first occurrence contributes the whole string; the mask below is canonical ('$').
         int currencyExtra = runs.Contains(cs) ? currencyString.Length - 1 : 0;
@@ -205,13 +206,10 @@ public static class PictureAnalyzer
         // letters like 'L'/'T'/'G' would trip COBOL0808); char1Extended is the FOR-phrase subset, which
         // §2023:13.18.40.5 GR6 makes FLOATING insertion symbols. The introduction gate below 2023 is fired by
         // VersionConformancePass.ParseArm.VisitPictureClause.
+        // An extended character-1's EditRule.Floating is rule 6's adjacency test, which needs the whole string and the
+        // full character-1 sets: it is read from the composition's PictureShape below (ResolveFloating), never here.
         var editRules = ValidateEditing(editing, expanded, usage, edition, where, cs, decimalPointIsComma,
             out var char1Set, out var char1Extended, out var char1Declared);
-        // §2023:13.18.40.4 GR14 'es' — the character-1 positions' size beyond the one position each occupies in
-        // character-string-1 (kb/Work PB491). Computed once here, beside the currency widening, and added at
-        // every category arm a character-1 can reach.
-        int editingExtra = EditingPositions(expanded, editRules);
-        clause = clause with { Editing = PictureClauseIdentity.EditingText(editRules) };
 
         // ── The §2023:13.18.40.3 SR2 symbol whitelist (the W2 loud guard). The legal ISO 2023 Format-1 symbols are
         // A B E N P S V X Z 0 1 9 / , . + - * CR DB and the program's currency symbol (§2023:13.18.40.4 GR14;
@@ -264,9 +262,14 @@ public static class PictureAnalyzer
         //    whole string is validated as significand 'E' exponent and returned as a numeric-edited PicInfo whose
         //    IsFloatEdited flag drives every store / read dispatch. The COBOL-2002 introduction gate keys on that flag
         //    in VersionConformancePass.UsageConstructId (no SkeletonGate: the category is no longer recovered). ──
+        // Its character-1 are the IS form alone (SR12 b admits no 'E' beside a FOR phrase), which never floats, so its
+        // rules are final here. §2023:13.18.40.4 GR14 'es' sizes them (EditingPositions).
         if (hasE && invalid is null && !hasN && !has1)
-            return AnalyzeFloatEdited(picture, expanded, usage, explicitUsage, edition, where, editRules, char1Extended, editingExtra,
-                decimalPointIsComma);
+        {
+            clause = clause with { Editing = PictureClauseIdentity.EditingText(editRules) };
+            return AnalyzeFloatEdited(picture, expanded, usage, explicitUsage, edition, where, editRules, char1Extended,
+                EditingPositions(expanded, editRules), decimalPointIsComma);
+        }
         if (invalid is { } bad)
         {
             // Wording is exact about what IS checked HERE: symbol MEMBERSHIP in the SR2 inventory. SR2's
@@ -302,16 +305,22 @@ public static class PictureAnalyzer
         // message did — AND its guard was hiding a SILENT REJECTION, because an E-bearing picture that also
         // held N or '1' (`PIC NE`, `PIC 1E`) entered that block, matched neither message and returned Recovery
         // with NO diagnostic at all: `01 W PIC NE.` compiled clean as a 2-character item.
-        if (!PictureComposition.Validate(picture, expanded, cs, char1Set, char1Extended, blankWhenZero, decimalPointIsComma,
-                edition, where))
+        // ⛔ The composition's resolved SHAPE is what the geometry below and the EDITING rules read (kb/Work PB3221): the
+        // floating strings, the digit positions and the 'P' split are derived ONCE, there, never again here.
+        if (PictureComposition.Validate(picture, expanded, cs, char1Set, char1Extended, blankWhenZero, decimalPointIsComma,
+                edition, where) is not { } shape)
             return PicInfo.Recovery(expanded.Length);
+        ResolveFloating(editRules, shape);
+        clause = clause with { Editing = PictureClauseIdentity.EditingText(editRules) };
 
         // The composition is legal, so the mask can take the shape the runtime reads: one kind of insertion per
-        // rule key (SeparateFixedFromFloating, kb/Work PB3220). GR14's size is re-asked of that mask.
-        var separated = SeparateFixedFromFloating(expanded, editRules, cs, char1Set, char1Extended, decimalPointIsComma);
+        // rule key (SeparateFixedFromFloating, kb/Work PB3220). GR14's size is asked of that mask.
+        var separated = SeparateFixedFromFloating(expanded, editRules, shape, char1Set, char1Extended);
         if (!ReferenceEquals(separated.Mask, expanded)) runs = PictureSymbolRuns.Of(separated.Mask);
         (expanded, editRules) = separated;
-        editingExtra = EditingPositions(expanded, editRules);
+        // §2023:13.18.40.4 GR14 'es' — the character-1 positions' size beyond the one position each occupies in
+        // character-string-1 (kb/Work PB491), added at every category arm a character-1 can reach.
+        int editingExtra = EditingPositions(expanded, editRules);
 
         // ── Category national (§2023:8.5.2.10) / national-edited (§2023:8.5.2.11) / boolean (§2023:8.5.2.5) — LIVE. The
         // introduction gate stays at every entry point (COBOL0900 below 2002; the registry rows are silent at
@@ -394,30 +403,16 @@ public static class PictureAnalyzer
         // a multiple of 10^P). LEADING P (e.g. P(4)9) puts the point left of every digit → scale = leadingP + the
         // digit count (all 9s are fractional). The net SIGNED scale flows through the whole numeric pipeline; the
         // runtime Rescale handles a negative scale natively (Pow10 of the always-non-negative scale difference).
-        // P positions classify against the DIGIT POSITIONS — 9, the suppression symbols Z/* (an EDITED
-        // P-scaled mask like ZZZPP has no '9' at all, NC124A PICTURE-TEST-30), AND a FLOATING string's
-        // occurrences (kb/Work PB155: `PIC $$$$PP` has no 9/Z/* at all, so its rightmost P run classified as
-        // LEADING and the scale came out +2 where the value is a multiple of 10^2, scale −2; §2023:13.18.40.6
-        // Table 10 places left-of-point P beside the floating symbols). The floating symbol is determined
-        // FIRST so the anchors can include it; §2023:13.18.40.5 allows at most one floating string per picture.
-        // ⛔ ONE floating-string detector, shared with the composition validator (kb/Work PB528). §2023:13.18.40.5
-        // rule 6 defines a floating string as "a string of at least two IDENTICAL floating insertion editing
-        // symbols" with the simple insertion symbols (and, by rule 6 b, the decimal point) embedded — an
-        // ADJACENCY property, never a bare occurrence count. The count this once read made `PIC +999+` and
-        // `PIC $999$` look like floating strings and silently answered a question the source never asked; both
-        // are now SR24 errors, and the two readings can no longer disagree because there is only one.
-        var (floatChar, floatOcc) = PictureComposition.FloatingString(expanded, cs, char1Set, char1Extended,
-            decimalPointIsComma);
+        // Whether the 'P's stand in the leftmost or the rightmost digit positions is the composition's answer
+        // (PictureShape.LeadingP / TrailingP), classified against its ONE list of digit positions: 9, Z, *, 'P' and
+        // every floating insertion string's occurrences (kb/Work PB155: `PIC $$$$PP` has no 9/Z/* at all, and its
+        // rightmost P run read as LEADING put the scale at +2 where the value is a multiple of 10^2, scale −2). The
+        // analyzer's own copy of that list once disagreed with the composition's about an extended character-1's
+        // floating string (kb/Work PB3221). The floating string's occurrences are rule 6's ADJACENCY property
+        // (kb/Work PB528), read from the same shape.
+        int floatOcc = shape.FloatingString.Occurrences;
         int floatingExtra = floatOcc >= 2 ? floatOcc - 1 : 0;
-        bool IsDigitAnchor(char c) => c is '9' or 'Z' or '*' || (floatChar != '\0' && c == floatChar);
-        var (firstNine, lastNine) = runs.Span(IsDigitAnchor);
-        int leadingP = 0, trailingP = 0, at = 0;
-        foreach (var (symbol, count) in runs.Runs)
-        {
-            // A run of P is never an anchor, so it lies wholly before the first anchor, after the last, or between them.
-            if (symbol == 'P') { if (firstNine < 0 || at < firstNine) leadingP += count; else if (at > lastNine) trailingP += count; }
-            at += count;
-        }
+        int leadingP = shape.LeadingP, trailingP = shape.TrailingP;
         int digitPositions = runs.Count(c => c is '9' or 'Z' or '*');
         int scale = trailingP > 0 ? -trailingP : leadingP > 0 ? leadingP + digitPositions + floatingExtra : afterV;
 
@@ -580,9 +575,10 @@ public static class PictureAnalyzer
             && (literal7Class is LiteralClass.National) != (usage is Usage.National))
             edition.Error(DiagnosticCatalog.CurrencySymbolClassUsage, $"{where}: the currency symbol of PICTURE {picture} "
                 + $"is defined by a{(literal7Class is LiteralClass.National ? " national" : "n alphanumeric")} literal-7 "
-                + "of a CURRENCY SIGN clause (the clause SR25 implies for '$' is alphanumeric), so it may be used only to "
+                + "of a CURRENCY SIGN clause (written, or implied for '$' from COBOL-2014), so it may be used only to "
                 + $"define a numeric-edited item with usage {(literal7Class is LiteralClass.National ? "national" : "display")}"
-                + $", not one with USAGE {UsageFamilies.UsageWord(usage)} (ISO §2023:12.3.7.3 SR28)");
+                + $", not one with USAGE {UsageFamilies.UsageWord(usage)} ("
+                + edition.Edition.CiteRule("§2002:12.2.6.2 SR24", "§2023:12.3.7.3 SR28", y2002: "§2002:12.2.6.2 SR24", y2014: "§2014:12.3.6.2 SR28") + ")");
 
         // ── §2023:13.18.60.3 SR20 ── "Only the NATIONAL phrase may be specified in a USAGE clause associated with an
         // elementary data item whose explicit or implicit picture character-string contains the symbol 'N'."
@@ -754,12 +750,24 @@ public static class PictureAnalyzer
             foreach (char c in expanded) if (char.ToUpperInvariant(c) == c1) occ++;
             if (occ == 0) continue;
             // ONE fixed/floating decision (kb/Work PB3220): a FLOATING string (EditRule.Floating, rule 6's adjacency
-            // test, PictureComposition.HasFloatingString) is one literal-wide occurrence plus one character per
+            // test, PictureShape.IsFloating) is one literal-wide occurrence plus one character per
             // repetition; every other rule — the IS form and a FOR form with FIXED occurrences, PIC L999L —
             // counts the literal's width at EACH occurrence.
             extra += (r.Floating ? 1 : occ) * (r.Width - 1);
         }
         return extra;
+    }
+
+    /// <summary>Set each extended (FOR-form) character-1's <see cref="CobolEdit.EditRule.Floating"/> from the composition's
+    /// resolved <paramref name="shape"/>: §2023:13.18.40.5 GR6 lists "the extended editing sign control symbols, if
+    /// specified" among the floating insertion symbols, and whether a letter forms such a string is the ADJACENCY test
+    /// <see cref="PictureShape.IsFloating"/> answers over the whole string and every character-1 (kb/Work PB855,
+    /// PB3221). An IS-form character-1 is simple insertion (rule 3) and never floats.</summary>
+    private static void ResolveFloating(CobolEdit.EditRule[]? rules, PictureShape shape)
+    {
+        if (rules is null) return;
+        for (int k = 0; k < rules.Length; k++)
+            if (!rules[k].SimpleInsertion) rules[k] = rules[k] with { Floating = shape.IsFloating(rules[k].Char1) };
     }
 
     /// <summary>⛔ ONE EDITING RULE IS ONE KIND OF INSERTION (kb/Work PB3220). SR24 counts "extended editing sign
@@ -777,8 +785,7 @@ public static class PictureAnalyzer
     /// de-editor — then reads one kind per key, with no second fixed-or-floating decision anywhere.</summary>
     /// <returns>The mask to emit and the rules for it; both unchanged when no letter holds both kinds.</returns>
     private static (string Mask, CobolEdit.EditRule[]? Rules) SeparateFixedFromFloating(string expanded,
-        CobolEdit.EditRule[]? rules, char cs, HashSet<char> char1Set, HashSet<char> char1Extended,
-        bool decimalPointIsComma)
+        CobolEdit.EditRule[]? rules, PictureShape shape, HashSet<char> char1Set, HashSet<char> char1Extended)
     {
         if (rules is null) return (expanded, rules);
         bool[]? marks = null;
@@ -788,7 +795,7 @@ public static class PictureAnalyzer
         {
             if (r.SimpleInsertion || !r.Floating) continue;
             char c1 = char.ToUpperInvariant(r.Char1);
-            marks ??= PictureComposition.FloatingMarks(expanded, cs, char1Set, char1Extended, decimalPointIsComma);
+            marks ??= shape.FloatingMarks();
             char twin = '\0';
             for (int i = 0; i < expanded.Length; i++)
             {
@@ -938,8 +945,8 @@ public static class PictureAnalyzer
     /// character-string. All other lowercase letters are not equivalent to their corresponding uppercase representations."
     /// (§1985:VI.5.9.3 SR3) — so under CURRENCY SIGN IS "W" the letter w is no symbol, and the SR2 whitelist refuses it.
     /// SR3 is about the letters of the COBOL character set; a character outside it (a currency symbol such as é) folds by
-    /// <see cref="CurrencySymbolEquivalence.Fold"/>: the invariant uppercase mapping from 2014, itself below (a character such as
-    /// U+017F is no basic letter, §2002:8.1.2.1 GR3; docs/CONFORMANCE.md DOC-A.1-43; kb/Work PB5647).</summary>
+    /// <see cref="CurrencySymbolEquivalence.Fold"/>: the invariant uppercase mapping from 2014, itself below (no equivalence of a
+    /// character outside the repertoire is granted there; docs/CONFORMANCE.md DOC-A.1-43; kb/Work PB5647, PB6162).</summary>
     internal static string FoldPictureCase(string picture, int dialectLevel)
     {
         return string.Create(picture.Length, (picture, dialectLevel), static (span, state) =>
@@ -1172,8 +1179,8 @@ public static class PictureAnalyzer
                 // extended editing sign control symbols, if specified" among the floating insertion symbols and its
                 // second sentence is the ≥2 test, with Table 9 for the result. Which one a letter is depends on the
                 // WHOLE character-string and the full set of character-1 (an IS-form letter embedded in the string is
-                // part of it), so the flag is decided AFTER this loop, by the one floating-string detector
-                // (PictureComposition.HasFloatingString). A literal wider than one character is no longer a GAP
+                // part of it), so the flag is decided once the composition has resolved the string, from its
+                // PictureShape (ResolveFloating). A literal wider than one character is no longer a GAP
                 // either: §2023:13.18.40.4 GR14's 'es' entry gives the item the literal's width and CobolEdit
                 // materializes it (kb/Work PB491; Annex D.24 demonstrates both shapes, so both were legal source
                 // the compiler refused).
@@ -1189,15 +1196,6 @@ public static class PictureAnalyzer
                 rules.Add(new CobolEdit.EditRule(char1, lit, lit, SimpleInsertion: true, Floating: false));
             }
         }
-
-        // Rule 6's floating test, per extended letter, now that every character-1 is known (see the FOR arm above).
-        for (int k = 0; k < rules.Count; k++)
-            if (!rules[k].SimpleInsertion)
-                rules[k] = rules[k] with
-                {
-                    Floating = PictureComposition.HasFloatingString(expanded, cs, char1Set, char1Extended,
-                        decimalPointIsComma, rules[k].Char1),
-                };
 
         // ── SR25's SECOND sentence over the EXTENDED editing sign control symbols as a SET (ISO §2023:13.18.40.3). It is
         // not askable inside the phrase loop: it is stated over the WHOLE phrase list. (SR24's second sentence, the
@@ -1362,7 +1360,7 @@ public static class PictureAnalyzer
 /// <c>. ,</c> under DECIMAL-POINT IS COMMA, SR13; kb/Work PB3219) (no floating insertion, no zero suppression with
     /// replacement, no S/V/P/CR/DB/currency; an IS-form EDITING character-1 is simple insertion and admitted, a FOR-form
     /// one is barred by SR12's FOR-phrase rules, kb/Work PB866) — with one point at most (SR12 b)
-    /// and 1..36 digit positions (SR15 — SR14's 31 does not apply). Every symbol of both parts is a character position
+    /// and 1..36 digit positions (SR15 — SR14's 31 does not apply; at COBOL-2002 significand plus exponent digits total 1..31 and the exponent has at most three, §2002:13.16.38.2 SR6 and §2002:13.16.38.3 GR12, <c>DialectBehavior.FloatEditedPictureWideBounds</c>). Every symbol of both parts is a character position
     /// (GR14: E, the point, the insertion symbols and the signs are all counted). Returns a numeric-edited PicInfo
     /// with <see cref="PicInfo.IsFloatEdited"/>; Scale and DigitPositions are 0 (a floating-point item's scale is a
     /// runtime property of its value); the recovery shape on a violation (the compile has failed).</summary>
@@ -1394,16 +1392,22 @@ public static class PictureAnalyzer
         bool IsChar1(char c) => editRules is not null && editRules.Any(r => r.SimpleInsertion && char.ToUpperInvariant(r.Char1) == c);
         int e = expanded.IndexOf('E');
         string sig = expanded[..e], exp = expanded[(e + 1)..];
-        // the exponent: '+' then 1..4 '9's, nothing else (§2023:13.18.40.4 GR13b)
+        // the exponent: '+' then 1..4 '9's (1..3 at COBOL-2002), nothing else (§2023:13.18.40.4 GR13b; §2002:13.16.38.3 GR12)
         if (exp.Any(IsChar1))
         {
             Bad("a PICTURE EDITING character-1 may not appear in the exponent — Table 7 gives the exponent part no "
                 + "editing (ISO §2023:13.18.40.5 Table 7: \"None for the exponent part\")");
             return PicInfo.Recovery(expanded.Length);
         }
-        if (exp.Length < 2 || exp[0] != '+' || exp[1..].Any(c => c != '9') || exp.Length - 1 > 4)
+        // ⛔ The bounds are one register row (kb/Work PB5712): four exponent digits and 36 significand digits from COBOL-2014, three and 31 at 2002.
+        // Below COBOL-2002 the form itself is the construct gate's refusal (COBOL0900, pic-external-float-2002), which a bound's error here would hide.
+        bool wideBounds = DialectBehaviors.IsActive(DialectBehavior.FloatEditedPictureWideBounds, edition.DialectLevel)
+            || !ConstructRegistry.IsAvailable(edition.Edition, Constructs.PicExternalFloat2002);
+        int maxExponent = wideBounds ? 4 : 3;
+        if (exp.Length < 2 || exp[0] != '+' || exp[1..].Any(c => c != '9') || exp.Length - 1 > maxExponent)
         {
-            Bad("the exponent shall be +9, +99, +999 or +9999 (ISO §2023:13.18.40.4 GR13 b)");
+            Bad($"the exponent shall be '+' and 1 to {maxExponent} nines (+9, +99, +999 or +9(n)) ("
+                + edition.Edition.CiteRule("§2002:13.16.38.3 GR12", "§2023:13.18.40.4 GR13 b", y2002: "§2002:13.16.38.3 GR12", y2014: "§2014:13.18.40.3 GR12") + ")");
             return PicInfo.Recovery(expanded.Length);
         }
         // the significand: an optional leading fixed sign, then Table 10 row E's symbols only
@@ -1443,7 +1447,24 @@ public static class PictureAnalyzer
                 + (decimalPointIsComma ? "; SR13 — the rules for the symbol period apply to the symbol comma)" : ")"));
             return PicInfo.Recovery(expanded.Length);
         }
-        if (digits < 1 || digits > 36) { Bad($"the significand carries {digits} digit position(s) — it shall carry 1 to 36 (ISO §2023:13.18.40.3 SR15)"); return PicInfo.Recovery(expanded.Length); }
+        // §2002:13.16.38.2 SR6 counts "the number of digit positions described by character-string-1", and a floating-point
+        // edited character-string-1 is both parts (§2002:13.16.38.3 GR12b; the exponent's 9s are digit positions, §2002:13.16.38.4 GR8),
+        // so at COBOL-2002 significand + exponent digits shall total 1..31. COBOL-2014 split the rule: its SR12 bounds the significand alone.
+        int exponentDigits = exp.Length - 1;
+        int maxSignificand = wideBounds ? 36 : 31;
+        int countedDigits = wideBounds ? digits : digits + exponentDigits;
+        if (digits < 1 || countedDigits > maxSignificand)
+        {
+            // 2002 counts both parts, so the message names the sum of its parts; from 2014 only the significand counts.
+            string counted = edition.Edition.Cite(
+                $"the PICTURE counts {countedDigits} digit position(s) (significand {digits} + exponent {exponentDigits})",
+                $"the PICTURE's significand has {digits} digit position(s)",
+                y2002: $"the PICTURE counts {countedDigits} digit position(s) (significand {digits} + exponent {exponentDigits})",
+                y2014: $"the PICTURE's significand has {digits} digit position(s)");
+            Bad($"{counted} — the limit is 1 to {maxSignificand} ("
+                + edition.Edition.CiteRule("§2002:13.16.38.2 SR6", "§2023:13.18.40.3 SR15", y2002: "§2002:13.16.38.2 SR6", y2014: "§2014:13.18.40.2 SR12") + ")");
+            return PicInfo.Recovery(expanded.Length);
+        }
         // ⛔ THE §2023:13.18.60.3 USAGE × PICTURE SCREEN, asked through the ONE function (kb/Work PB646). This arm
         // used to carry its own SR12 half — a hand-written staging of the national form — and NOTHING else, so
         // a floating-point edited picture under USAGE BINARY/COMP/PACKED slipped past SR3 entirely.

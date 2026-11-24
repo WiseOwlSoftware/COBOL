@@ -1,8 +1,9 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Collections.Concurrent;
-using System.Globalization;
+using System.Collections.Frozen;
 using WiseOwl.Cobol.Runtime.Collation.Cldr;
+using WiseOwl.Cobol.Runtime.Globalization;
 
 namespace WiseOwl.Cobol.Runtime.Collation;
 
@@ -14,18 +15,39 @@ namespace WiseOwl.Cobol.Runtime.Collation;
 /// that the engine does not honor (empty for the vast majority of locales). <see cref="Failure"/> is set when the
 /// locale's collation DATA could not be used at all (kb/Work PB2773): the resolution is then the root order — the
 /// nearest available order — and every consumer reads the failure to reach its own defined outcome.
+/// <para>It is also what the host's locale selection reports (<see cref="Locale.LocaleManager.GetLocale"/>): the one
+/// description of a locale, resolved once per canonical tag and cached by the engine (kb/Work PB2763).</para>
 /// </summary>
+/// <param name="Tag">The canonical tag (<see cref="LocaleTag.Canonical"/>: "es-ES", "de-u-co-phonebk"); "" is the root.</param>
+/// <param name="Table">The collation table: the root table with the CLDR collation and the <c>.tailor</c> layer applied, or the root table itself. Never mutated.</param>
+/// <param name="Options">The settings the locale collates with — the CLDR collation's own with the tag's <c>-u-</c> keys applied.</param>
+/// <param name="Cldr">The CLDR collation selected for the tag: the file it was found in, the type in effect and the tag's <c>-u-</c> keys.</param>
+/// <param name="Tailoring">The site's numeric <c>.tailor</c> layer (its <see cref="TailoringRules.Source"/> names the file or resource), or null.</param>
+/// <param name="Unsupported">What the tag or its CLDR collation asked for that the engine does not honor.</param>
+/// <param name="Notes">What the builder noted while building the table.</param>
 public sealed record ResolvedLocaleCollation(string Tag, CollationTable Table, CollationOptions Options,
     CldrCollationSelection Cldr, TailoringRules? Tailoring, IReadOnlyList<string> Unsupported, IReadOnlyList<string> Notes)
 {
     /// <summary>Why the locale's collation data could not be used, or null when it resolved (kb/Work PB2773).</summary>
     public LocaleCollationException? Failure { get; init; }
 
-    /// <summary>The cached collator for the resolution's own settings.</summary>
-    public Collator Collator => CollationEngine.For(Table, Options);
+    /// <summary>Is the locale available in this operating environment — the ONE known-locale rule
+    /// (<see cref="CollationEngine.IsKnownLocale"/>), decided once when the tag is resolved.</summary>
+    public bool IsAvailable { get; init; }
+
+    /// <summary>The collator for the resolution's own settings (determination L11), built once with the resolution, so a
+    /// comparison under the locale costs no collator lookup and no <see cref="CollationOptions"/> (kb/Work PB2763).</summary>
+    public Collator Collator { get; } = CollationEngine.For(Table, Options);
 
     /// <summary>True when the table differs from the root's (a CLDR tailoring or a <c>.tailor</c> changed something).</summary>
     public bool IsTailored => !ReferenceEquals(Table, CollationTable.Root);
+
+    /// <summary>True when .NET recognizes the tag's base as a culture (<see cref="LocaleTag.PredefinedCulture"/>); the root
+    /// counts as one.</summary>
+    public bool IsRecognizedCulture => Cldr.Tag.BaseTag.Length == 0 || LocaleTag.PredefinedCulture(Cldr.Tag.BaseTag) is not null;
+
+    public override string ToString() =>
+        $"{(Tag.Length == 0 ? "root" : Tag)} ({(IsTailored ? "tailored: " : "root order")}{(Cldr.HasRules ? $"CLDR {Cldr.Found!.Tag}/{Cldr.Type}" : "")}{(Tailoring is not null ? $"{(Cldr.HasRules ? " + " : "")}{Tailoring.Source}" : "")})";
 }
 
 /// <summary>
@@ -67,8 +89,27 @@ public static class CollationEngine
     private static readonly Lazy<Collator> s_standard = new(
         () => new Collator(CollationTable.Root, CollationStrength.Quaternary, AlternateHandling.Shifted),
         LazyThreadSafetyMode.ExecutionAndPublication);
-    private static readonly ConcurrentDictionary<string, ResolvedLocaleCollation> s_locales = new(StringComparer.OrdinalIgnoreCase);
+    /// <summary>Each locale's resolution, keyed by its canonical tag (<see cref="LocaleTag.Canonical"/>) and compared
+    /// ordinally: the one spelling of a locale is the one key (kb/Work PB2763).</summary>
+    private static readonly ConcurrentDictionary<string, ResolvedLocaleCollation> s_locales = new(StringComparer.Ordinal);
     private static readonly ConcurrentDictionary<(CollationTable Table, CollationOptions Options), Collator> s_collators = new();
+
+    /// <summary>Bumped by every <see cref="ClearLocaleCache"/>: a holder of a resolution (a named <c>IS LOCALE</c>
+    /// sequence) keeps it while the generation it was resolved in is current.</summary>
+    private static int s_generation;
+
+    /// <summary>The per-(table, level) shifted collators <see cref="OrderingAtLevel"/> hands out: STANDARD-COMPARE asks once
+    /// per call, so the configuration is built once per pair, never a <see cref="CollationOptions"/> per call (kb/Work PB2763).</summary>
+    private static readonly ConcurrentDictionary<(CollationTable Table, int Level), Collator> s_orderingLevels = new();
+
+    /// <summary>Each <c>ORDER TABLE</c> literal's resolution (<see cref="TryGetOrderingTable"/>), keyed by the literal as
+    /// written: null is "not a supported ordering table". The literal is a compile-time constant, so a program resolves it
+    /// once, not once per STANDARD-COMPARE call; <see cref="ClearLocaleCache"/> forgets it with the locales (kb/Work PB2763).</summary>
+    private static readonly ConcurrentDictionary<string, CollationTable?> s_orderingTables = new(StringComparer.Ordinal);
+
+    /// <summary>The canonical forms of the <see cref="DefaultOrderingTableNames"/>, computed once (kb/Work PB2763, PB5720).</summary>
+    private static readonly FrozenSet<string> s_defaultOrderingTableCanons =
+        DefaultOrderingTableNames.Select(CanonicalOrderingTableName).ToFrozenSet(StringComparer.Ordinal);
 
     /// <summary>The CLDR root default — root table, tertiary strength, non-ignorable variables.</summary>
     public static Collator Root => Collator.Root;
@@ -83,12 +124,15 @@ public static class CollationEngine
     public static int Compare(string? a, string? b, CollationStrength strength, AlternateHandling alternate = AlternateHandling.NonIgnorable) =>
         Cached(CollationTable.Root, strength, alternate).Compare(a, b);
 
-    /// <summary>The 14651-style ordering at ordering level <paramref name="level"/> (1–4; STANDARD-COMPARE's
-    /// argument-4): the levels above <paramref name="level"/> do not distinguish.</summary>
-    public static Collator StandardAtLevel(int level)
+    /// <summary>The 14651-style ordering of <paramref name="table"/> at ordering level <paramref name="level"/> (1–4;
+    /// STANDARD-COMPARE's argument-4), variables shifted: the levels above <paramref name="level"/> do not distinguish.
+    /// The root table's level 4 is <see cref="Standard"/> itself. Cached per (table, level).</summary>
+    public static Collator OrderingAtLevel(CollationTable table, int level)
     {
+        ArgumentNullException.ThrowIfNull(table);
         if (level is < 1 or > 4) throw new ArgumentOutOfRangeException(nameof(level), level, "ordering level must be 1..4");
-        return Cached(CollationTable.Root, (CollationStrength)level, AlternateHandling.Shifted);
+        return s_orderingLevels.GetOrAdd((table, level),
+            static k => Cached(k.Table, (CollationStrength)k.Level, AlternateHandling.Shifted));
     }
 
     /// <summary>The materialized key of <paramref name="text"/> under a locale's collation (null/empty/"root" = the
@@ -118,18 +162,19 @@ public static class CollationEngine
     /// <summary>The (cached) table of a locale — the root table when the locale has no tailoring.</summary>
     public static CollationTable TableForLocale(string? localeTag) => ResolveLocale(localeTag).Table;
 
-    /// <summary>Resolve (once per tag; cached) what a locale tag means to the engine: the CLDR collation of the tag
+    /// <summary>Resolve (once per locale; cached) what a locale tag means to the engine: the CLDR collation of the tag
     /// (<see cref="CldrLocaleLoader.ResolveCollation"/> → <see cref="CldrTailoringBuilder"/>) over the root table,
     /// then the site's numeric tailoring for the tag or its language (<see cref="TailoringRules.ForLocale"/>) on top,
-    /// and the settings the CLDR collation and the tag's <c>-u-</c> keys declare. Null/empty/"root"/"und" is the root
-    /// order. Collation data that cannot be used (a malformed or stale site file) is never a silent fallback and never
-    /// an exception: the resolution carries it as <see cref="ResolvedLocaleCollation.Failure"/> over the root order.</summary>
-    public static ResolvedLocaleCollation ResolveLocale(string? localeTag)
-    {
-        string tag = string.IsNullOrWhiteSpace(localeTag) ? "" : localeTag.Trim().Replace('_', '-');
-        if (tag.Equals("root", StringComparison.OrdinalIgnoreCase) || tag.Equals("und", StringComparison.OrdinalIgnoreCase)) tag = "";
-        return s_locales.GetOrAdd(tag, static t => Resolve(t));
-    }
+    /// the settings the CLDR collation and the tag's <c>-u-</c> keys declare, and whether the locale is available
+    /// (<see cref="IsKnownLocale"/>). Any spelling of one tag is one locale: the cache is keyed by
+    /// <see cref="LocaleTag.Canonical"/>, so "es_es", "es-ES" and " ES-es " share one resolution, and a caller that already
+    /// holds the canonical spelling (a run unit's current locale, a SPECIAL-NAMES locale's tag) pays one lookup and no
+    /// parse. Null/empty/"root"/"und" is the root order. Collation data that cannot be used (a malformed or stale site
+    /// file) is never a silent fallback and never an exception: the resolution carries it as
+    /// <see cref="ResolvedLocaleCollation.Failure"/> over the root order.</summary>
+    public static ResolvedLocaleCollation ResolveLocale(string? localeTag) =>
+        localeTag is not null && s_locales.TryGetValue(localeTag, out var resolved) ? resolved
+            : s_locales.GetOrAdd(LocaleTag.Parse(localeTag).Canonical, static t => Resolve(t));
 
     /// <summary>⛔ THE ONE CATCH OF THE RESOLUTION PATH (kb/Work PB2773). Every data problem below it — the CLDR loader,
     /// the tailoring builder, the <c>.tailor</c> reader, <see cref="CollationTable.WithTailoring"/> — raises
@@ -142,24 +187,47 @@ public static class CollationEngine
             var selection = CldrLocaleLoader.ResolveCollation(tag);
             var built = CldrTailoringBuilder.Build(selection, tag.Length == 0 ? "root" : tag);
             var table = built.Table;
-            var rules = tag.Length == 0 ? null : TailoringRules.ForLocale(selection.Tag.BaseTag);
+            string baseTag = selection.Tag.BaseTag;
+            var rules = tag.Length == 0 ? null : TailoringRules.ForLocale(baseTag);
             if (rules is not null) table = table.WithTailoring(rules);
-            return new ResolvedLocaleCollation(tag, table, built.Options, selection, rules, built.Unsupported, built.Notes);
+            return new ResolvedLocaleCollation(tag, table, built.Options, selection, rules, built.Unsupported, built.Notes)
+            {
+                IsAvailable = LocaleTag.Parse(tag).IsWellFormed && IsAvailable(baseTag, rules),
+            };
         }
         catch (LocaleCollationException failure)
         {
+            // A locale whose resolution failed is not available, WHICHEVER source would otherwise make it known: its own
+            // CLDR file can be sound while the site's .tailor layered over it is stale or malformed, and answering
+            // available then would compare in the root order this failed resolution carries, silently (kb/Work PB2773,
+            // train 1055 review).
             var rootOrder = new CldrCollationSelection(CldrLocaleTag.Parse(tag), null, null, null, "standard", []);
             return new ResolvedLocaleCollation(tag, CollationTable.Root, CollationOptions.Default, rootOrder, null,
-                [failure.Message], []) { Failure = failure };
+                [failure.Message], []) { Failure = failure, IsAvailable = false };
         }
     }
+
+    /// <summary>The known-locale rule over a resolution that succeeded, for a well-formed tag (<see cref="LocaleTag.IsWellFormed"/>:
+    /// "es-ES@foo" — an <c>@modifier</c> that is no collation type, L1 — names no locale even though its language has a
+    /// <c>.tailor</c>; see <see cref="IsKnownLocale"/>): the root; a <c>.tailor</c> for the tag or its language
+    /// (<paramref name="rules"/>, which the resolution already found); a CLDR collation file of the base tag's own (never
+    /// the parent chain alone); a culture .NET recognizes.</summary>
+    private static bool IsAvailable(string baseTag, TailoringRules? rules) =>
+        baseTag.Length == 0 || rules is not null || CldrLocaleLoader.LoadExact(baseTag) is not null
+        || LocaleTag.PredefinedCulture(baseTag) is not null;
+
+    /// <summary>The generation of the locale caches: <see cref="ClearLocaleCache"/> moves it, so a resolution held across
+    /// uses (a named <c>IS LOCALE</c> sequence's) is resolved again once it is no longer current.</summary>
+    public static int LocaleGeneration => Volatile.Read(ref s_generation);
 
     /// <summary>Forget every resolved locale (a test that writes a tailoring or CLDR file at run time). Tables already
     /// handed out stay valid; the next resolution re-reads the sources.</summary>
     public static void ClearLocaleCache()
     {
         s_locales.Clear();
+        s_orderingTables.Clear();
         CldrLocaleLoader.ClearCache();
+        Interlocked.Increment(ref s_generation);
     }
 
     /// <summary>Resolve an <c>ORDER TABLE ordering-name IS literal</c> name (§2023:12.3.7 / §2023:15.85): the standard's
@@ -172,14 +240,18 @@ public static class CollationEngine
     {
         table = CollationTable.Root;
         if (string.IsNullOrWhiteSpace(name)) return false;
-        string n = name.Trim();
-        if (IsDefaultOrderingTableName(n)) return true;
-        string tag = n.Replace('_', '-');
-        if (!IsKnownLocale(tag)) return false;
-        var resolved = ResolveLocale(tag);
-        if (resolved.Failure is not null) return false;
-        table = resolved.Table;
+        if (s_orderingTables.GetOrAdd(name, static n => ResolveOrderingTable(n)) is not { } resolved) return false;
+        table = resolved;
         return true;
+    }
+
+    /// <summary>The one resolution <see cref="TryGetOrderingTable"/> memoizes: the table, or null when the name is not a
+    /// supported ordering table.</summary>
+    private static CollationTable? ResolveOrderingTable(string name)
+    {
+        if (IsDefaultOrderingTableName(name)) return CollationTable.Root;
+        var resolved = ResolveLocale(name);
+        return resolved.IsAvailable ? resolved.Table : null;
     }
 
     /// <summary>Is <paramref name="localeTag"/> a locale this implementation KNOWS — one with a CLDR collation file of
@@ -188,53 +260,18 @@ public static class CollationEngine
     /// make a tag known: "NO SUCH TABLE" parses as the tag <c>no-Such-TABLE</c>, whose chain reaches Norwegian's
     /// file — an <c>ORDER TABLE</c> literal or a LOCALE name that names nothing must stay unknown
     /// (EC-ORDER-NOT-SUPPORTED; an unselectable locale). The ONE rule <see cref="TryGetOrderingTable"/>,
-    /// <see cref="Locale.LocaleManager"/> and <see cref="Locale.LocaleConfig"/> share; a <c>-u-</c> extension is
-    /// ignored for the test and honored by the resolution. Null/empty/"root" is known (the root order). A locale whose
-    /// own site data cannot be read is NOT known — it is not available in this operating environment (kb/Work PB2773).</summary>
-    public static bool IsKnownLocale(string? localeTag)
-    {
-        if (string.IsNullOrWhiteSpace(localeTag)) return true;
-        var parsed = CldrLocaleTag.Parse(localeTag.Trim().Replace('_', '-'));
-        string baseTag = parsed.BaseTag;
-        if (baseTag.Length == 0) return true;
-        // A locale whose resolution failed is not available, WHICHEVER source would otherwise make it known: its own
-        // CLDR file can be sound while the site's .tailor layered over it is stale or malformed, and answering true
-        // then would compare in the root order the failed resolution carries, silently (kb/Work PB2773, train 1055
-        // review). ResolveLocale is cached and never asks this method.
-        if (ResolveLocale(localeTag).Failure is not null) return false;
-        try
-        {
-            if (CldrLocaleLoader.LoadExact(baseTag) is not null) return true;
-            if (TailoringRules.ForLocale(baseTag) is not null) return true;
-        }
-        catch (LocaleCollationException)
-        {
-            return false;   // why: ResolveLocale(tag).Failure, which reads the same cached failure
-        }
-        return IsKnownCulture(baseTag);
-    }
-
-    private static bool IsKnownCulture(string tag)
-    {
-        try
-        {
-            _ = CultureInfo.GetCultureInfo(tag, predefinedOnly: true);
-            return true;
-        }
-        catch (CultureNotFoundException) { return false; }
-        catch (ArgumentException) { return false; }
-    }
+    /// <see cref="LocaleIdentification.IsAvailable"/> and <see cref="Locale.LocaleManager"/> share, decided once per
+    /// locale by its resolution (<see cref="ResolvedLocaleCollation.IsAvailable"/>); a <c>-u-</c> extension is ignored
+    /// for the test and honored by the resolution. Null/empty/"root" is known (the root order). A locale whose own site
+    /// data cannot be read is NOT known — it is not available in this operating environment (kb/Work PB2773).</summary>
+    public static bool IsKnownLocale(string? localeTag) => ResolveLocale(localeTag).IsAvailable;
 
     /// <summary>One of the <see cref="DefaultOrderingTableNames"/> — case-insensitive, with every space and underscore ignored
     /// ("ISO 14651_2020_TABLE1", "iso_14651_2020_table1" and "ISO14651_2002_TABLE1" all name a default table).</summary>
-    public static bool IsDefaultOrderingTableName(string name)
-    {
-        static string Canon(string s) => string.Concat(s.Split([' ', '_'], StringSplitOptions.RemoveEmptyEntries)).ToUpperInvariant();
-        string canon = Canon(name);
-        foreach (string known in DefaultOrderingTableNames)
-            if (canon == Canon(known)) return true;
-        return false;
-    }
+    public static bool IsDefaultOrderingTableName(string name) => s_defaultOrderingTableCanons.Contains(CanonicalOrderingTableName(name));
+
+    private static string CanonicalOrderingTableName(string name) =>
+        string.Concat(name.Split([' ', '_'], StringSplitOptions.RemoveEmptyEntries)).ToUpperInvariant();
 
     /// <summary>True when the text is well-formed UTF-16 (no unpaired surrogate) — the derived table orders every
     /// well-formed text; see <see cref="Collator.IsWellFormed"/>.</summary>

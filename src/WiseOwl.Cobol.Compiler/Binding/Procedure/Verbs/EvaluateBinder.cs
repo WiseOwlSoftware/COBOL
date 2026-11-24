@@ -170,7 +170,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
     private void BindSurplusObject(Core.EvaluateWhenItemContext item)
     {
         if (!ScreenObjectNegation(item)) return;
-        var mark = host.Udf.Mark;
+        var mark = host.Window.Mark;
         BindObjectOperandsStandalone(item, AnalyzeObjectBare(item), mark);
     }
 
@@ -189,7 +189,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
     /// <param name="bare">The object's one bare-operand resolution (<see cref="AnalyzeObjectBare"/>): an operand it
     /// already bound (a condition-name, a switch-status, a boolean expression) is not bound a second time.</param>
     /// <param name="mark">The user-function window opened before that resolution.</param>
-    private void BindObjectOperandsStandalone(Core.EvaluateWhenItemContext item, in BareOperandAnalysis bare, UdfBinder.PendingMark mark)
+    private void BindObjectOperandsStandalone(Core.EvaluateWhenItemContext item, in BareOperandAnalysis bare, OperandEvaluationWindow.PendingMark mark)
     {
         if (item.valueRange() is { } range) _ = BindRangeObject(range);
         else if (item.addressIdentifier() is { } address) _ = host.Ptr.AddressIdentifierOperand(address, "an EVALUATE selection object");
@@ -202,7 +202,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         // ANY, TRUE and FALSE have no operand; an operator-bearing boolean expression was bound by the resolution.
         else if (BooleanOperatorBearing(item) is null && BareOperand(item) is { } value && bare.Form is BareOperandForm.Value)
             _ = BindValueOperand(value);
-        _ = host.Udf.DrainPerEvaluation(mark);
+        _ = host.Window.DrainPerEvaluation(mark);
     }
 
     /// <summary>The Table-15 coordinates of ONE selection pair, after §2023:14.9.13.3 SR6's per-WHEN
@@ -406,7 +406,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         // ⛔ A FIGURATIVE END ABSTAINS FROM TableTwoClassOf BUT IS NOT CLASS-FREE (kb/Work PB5796): SPACE, QUOTE,
         // HIGH-VALUE and LOW-VALUE are character values (§2023:8.3.3.6.4 GR1; §1985:IV.4.2.2.2.3 — nonnumeric literals,
         // category alphanumeric by §1985:IV.4.2.2.2.1.3 GR3), so `SPACE THRU 9` and `1 THRU HIGH-VALUE` join two
-        // classes exactly as `"A" THRU 9` does. Only ZERO also stands for the numeric value 0 and so pairs with any class (§2023:8.3.3.6.4 GR1).
+        // classes exactly as `"A" THRU 9` does. Only ZERO also stands for the numeric value 0 and so pairs with any class (§2023:8.3.3.6.4 GR4: "The zero format represents the numeric value '0'").
         else if (!excluded && (loClass is null || hiClass is null) && !IntrinsicArgumentRules.CanShareClass(lo, hi))
         {
             ok = false;
@@ -559,7 +559,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         // reported §2023:8.4.2.2 twice, and the two could disagree about what the operand IS with nothing to catch it.
         // The mark precedes the classification because a boolean-expression OBJECT is bound BY it (the one analysis,
         // PB1412): its activations belong to this object's own evaluation, never to the statement's beginning.
-        var classifyMark = host.Udf.Mark;
+        var classifyMark = host.Window.Mark;
         var pair = ClassifyPair(slot, item);
         // ⛔ AN INVALID PAIR ENDS THE PAIR'S CHECKS: one Table 15 diagnostic, not that and every secondary one the same
         // pair would draw (the SR7 a) relation checkpoint, a TRUE/FALSE word bound as a condition). The pair's value is
@@ -619,10 +619,10 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
             // short-circuit is between PAIRS, never inside one).
             if (pair.Object is EvaluateObjectOperand.Condition)
             {
-                var objMark2 = host.Udf.Mark;
+                var objMark2 = host.Window.Mark;
                 if (ObjectAsCondition(item, pair) is { } objCond2)
                     return new BoundNot(new BoundLogical("^",
-                        [subjCond, host.Udf.UdfAttachPerEvaluation(objCond2, objMark2)]));
+                        [subjCond, host.Window.AttachPerEvaluation(objCond2, objMark2)]));
             }
             return host.Cond.Refused($"EVALUATE condition-subject paired with non-boolean WHEN '{WrittenSource.Of(item)}'");
         }
@@ -639,8 +639,8 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         // NOT condition-2: it falls through to the partial arm below, which splices the subject in.
         if (pair.Object is not EvaluateObjectOperand.PartialExpression && item.condition() is { } cond)
         {
-            var objMark = host.Udf.Mark;
-            var bound = host.Udf.UdfAttachPerEvaluation(host.Cond.BindCondition(cond), objMark);
+            var objMark = host.Window.Mark;
+            var bound = host.Window.AttachPerEvaluation(host.Cond.BindCondition(cond), objMark);
             return subjFalse ? new BoundNot(bound) : bound;   // EVALUATE TRUE/FALSE WHEN <condition>
         }
 
@@ -660,8 +660,8 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         // character boolean object here as well.
         if (pair.Object is EvaluateObjectOperand.Condition && ObjectAsCondition(item, pair) is { } objCond)
         {
-            var objMark = host.Udf.Mark;
-            var bound = host.Udf.UdfAttachPerEvaluation(objCond, objMark);
+            var objMark = host.Window.Mark;
+            var bound = host.Window.AttachPerEvaluation(objCond, objMark);
             return subjFalse ? new BoundNot(bound) : bound;
         }
 
@@ -698,7 +698,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
                 return host.Cond.Refused("EVALUATE TRUE/FALSE paired with a value WHEN object");
             var content = slot.InPlaceValue is BoundFieldOperand inPlace ? inPlace : subjValue;
             var spliced = new ConditionBinder.PartialSubjectOperand(subjOp, subjValue, content);
-            var objMark = host.Udf.Mark;
+            var objMark = host.Window.Mark;
             var partialCond = item.partialExpression() is { } partial
                 ? host.Cond.BindPartialExpression(partial, spliced)
                 : item.condition() is { } leadingClass
@@ -706,7 +706,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
                 : pair.ObjectBare.ClassWord is { } classWord
                     ? host.Cond.BindPartialClassName(classWord, spliced)
                     : host.Cond.Refused($"EVALUATE partial-expression '{WrittenSource.Of(item)}'");
-            return host.Udf.UdfAttachPerEvaluation(partialCond, objMark);
+            return host.Window.AttachPerEvaluation(partialCond, objMark);
         }
 
         // Value subject vs operand / range: equality or inclusive bounds (§2023:14.9.13.4 GR5b/c).
@@ -721,7 +721,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
 
         if (item.valueRange() is { } range)
         {
-            var objMark = host.Udf.Mark;
+            var objMark = host.Window.Mark;
             // ⛔ A REJECTED RANGE CONTRIBUTES AN ERROR NODE, NOT A COMPARISON. Both lowerings below — the
             // BoundRangeMembership one and the inclusive CheckedRelational pair — ask questions these operands
             // have already failed to be admissible for, and the relation checkpoint would draw the §2023:8.8.4.2.2
@@ -755,10 +755,10 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
             bool flatRange = RelationPair.Classify(left, lo) is RelationPairShape.Flat
                 && RelationPair.Classify(left, hi) is RelationPairShape.Flat;
             if (flatRange && (collation is not null || ecApplies))
-                return host.Udf.UdfAttachPerEvaluation(
+                return host.Window.AttachPerEvaluation(
                     host.Cond.CheckedRangeMembership(left, lo, hi, checkInvalid: ecApplies, collation),
                     objMark);
-            return host.Udf.UdfAttachPerEvaluation(new BoundLogical("&&",
+            return host.Window.AttachPerEvaluation(new BoundLogical("&&",
                 [host.Cond.CheckedRelational(left, ">=", lo), host.Cond.CheckedRelational(left, "<=", hi)]),
                 objMark);
         }
@@ -767,20 +767,20 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         // exactly as the IF form `subject = A B-AND C` is (ConditionBinder.BindPrimaryBoolean). The expression was bound
         // ONCE, by the classification, so this reads that node.
         if (BooleanOperatorBearing(item) is not null && pair.ObjectBare.Boolean is { } objectBoolean)
-            return host.Udf.UdfAttachPerEvaluation(
+            return host.Window.AttachPerEvaluation(
                 host.Cond.CheckedRelational(left, "==", new BoundBoolOperand(objectBoolean)), classifyMark);
         // An address-identifier object (kb/Work PB1060): "selection-subject = selection-object" over two data
         // items of class pointer — §2023:8.8.4.2's pointer relation, screened by the ONE relation checkpoint.
         if (item.addressIdentifier() is { } oai)
         {
-            var objMark = host.Udf.Mark;
-            return host.Udf.UdfAttachPerEvaluation(host.Cond.CheckedRelational(left, "==",
+            var objMark = host.Window.Mark;
+            return host.Window.AttachPerEvaluation(host.Cond.CheckedRelational(left, "==",
                 host.Ptr.AddressIdentifierOperand(oai, "an EVALUATE selection object")), objMark);
         }
         if (BareOperand(item) is { } v)
         {
-            var objMark = host.Udf.Mark;
-            return host.Udf.UdfAttachPerEvaluation(
+            var objMark = host.Window.Mark;
+            return host.Window.AttachPerEvaluation(
                 host.Cond.CheckedRelational(left, "==", BindValueOperand(v)), objMark);
         }
         return host.Cond.Refused($"EVALUATE WHEN object '{WrittenSource.Of(item)}'");

@@ -3706,6 +3706,17 @@ public static class DiagnosticCatalog
         "ISO/IEC 1989:2002 clause 6.1.2.1 SR8",
         No1985Rule: No1985Floating);
 
+    /// <summary>COBOL8092 — at COBOL 2002 a compiler directive written on a debugging line (kb/Work PB5701). ISO/IEC 1989:2002
+    /// clause 7.2.2 SR8 d): a compiler directive may be specified anywhere in a compilation group except on a debugging line. The
+    /// 2014 and 2023 texts carry no such rule (they have no debugging line), so only the 2002 edition refuses it.</summary>
+    public static readonly DiagnosticDescriptor DirectiveOnDebuggingLine = new(
+        "COBOL8092", "directive-on-debugging-line", EditionSeverity.Error,
+        "A compiler directive is written on a debugging line (indicator D, or the floating indicator >>D). ISO/IEC 1989:2002 "
+        + "clause 7.2.2 SR8: \"A compiler directive may be specified anywhere in a compilation group, in source text or in library "
+        + "text, except ... d) on a debugging line.\" Write the directive on a line of its own.",
+        "ISO/IEC 1989:2002 clause 7.2.2 SR8 d)",
+        No1985Rule: No1985Directive);
+
     /// <summary>COBOL2687 — a literal continued with both the fixed and the floating form (kb/Work PB1359).
     /// §2023:6.2.3.2 SR4, second sentence.</summary>
     public static readonly DiagnosticDescriptor LiteralContinuedTwoForms = new(
@@ -4607,7 +4618,7 @@ public static class DiagnosticCatalog
         + "TRAILING (§2023:14.9.22.2 prints only CHARACTERS / ALL / LEADING in a tallying-phrase and CHARACTERS / "
         + "ALL / LEADING / FIRST in a replacing-phrase), SEARCH or SEARCH ALL with a NOT AT END phrase "
         + "(§2023:14.9.37.2 prints AT END alone), a KEY phrase or a second WHEN phrase on SEARCH ALL (§2023:14.9.37.2 "
-        + "Format 2 prints one WHEN and no KEY phrase), NEXT SENTENCE anywhere but the whole of an IF Format-2 "
+        + "Format 2 prints one WHEN and no KEY phrase), a SEARCH or SEARCH ALL that ends before any WHEN phrase (§2023:14.9.37.2 prints the WHEN phrase unbracketed), a second receiving item after MOVE, ADD or SUBTRACT CORRESPONDING (§2023:14.9.25.2 Format 2, §2023:14.9.2.2 and §2023:14.9.44.2 Format 3 print one), NEXT SENTENCE anywhere but the whole of an IF Format-2 "
         + "THEN/ELSE phrase or a SEARCH WHEN phrase (§2023:14.9.19.2, §2023:14.9.37.2), or the ENTRY statement (ISO/IEC 1989 defines none). Refused at "
         + "every edition and every strictness: §2023:4.2.2 makes a general format the definition of what may be "
         + "written, and this implementation declares no vendor dialect under which an extension could be "
@@ -4615,7 +4626,7 @@ public static class DiagnosticCatalog
         + "a reference-modified INSPECT … REPLACING ALL over the trailing span, and SEARCH … NOT AT END "
         + "becomes a WHEN branch.",
         "ISO §2023:4.2.2",
-        Rule1985: "§1985:I.1.5.2.5.2 / §1985:IV.2.1 / §1985:IV.4.3.8.1 / §1985:VI.4.5.3 SR2 / §1985:VI.6.10.2 / §1985:VI.6.16.2 / §1985:VI.6.18.2 / §1985:VI.6.22.2 / §1985:VI.6.23.2 / §1985:VI.6.5.2 / §1985:VII.4.7.2");
+        Rule1985: "§1985:I.1.5.2.5.2 / §1985:IV.2.1 / §1985:IV.4.3.8.1 / §1985:VI.4.5.3 SR2 / §1985:VI.6.10.2 / §1985:VI.6.16.2 / §1985:VI.6.18.2 / §1985:VI.6.19.2 / §1985:VI.6.22.2 / §1985:VI.6.23.2 / §1985:VI.6.26.2 / §1985:VI.6.5.2 / §1985:VI.6.6.2 / §1985:VII.4.7.2");
     // ── The ASSIGN … USING operand screens (kb/Work PB324): §2023:12.4.5.2 SR7's two halves, checked post-build once
     // the data forest is indexed. Two codes, not one, because the halves have different causes and different
     // repairs — a wrong category is a declaration to change, a subordinate operand is a whole design to move. ──
@@ -9946,9 +9957,10 @@ public static class DiagnosticCatalog
     /// <summary>COBOL1506 — user function argument rule (kb/Work PB4463).</summary>
     public static readonly DiagnosticDescriptor UserFunctionArgumentRule = new(
         "COBOL1506", "user-function-argument-rule", EditionSeverity.Error,
-        "The arguments of a user-defined function activation do not match its formal parameters: the count differs, or an "
-        + "argument form is not supported for user-defined function activation (§2023:14.8.2, Parameters).",
-        "ISO §2023:14.8.2",
+        "The number of arguments of a user-defined function activation differs from the number of its formal parameters, "
+        + "other than trailing OPTIONAL formals omitted (§2023:14.8.2.1). A refused argument is reported by its own rule only "
+        + "(kb/Work PB3227).",
+        "ISO §2023:14.8.2.1",
         No1985Rule: No1985Function);
 
     /// <summary>COBOL1507 — function id returning required (kb/Work PB4463).</summary>
@@ -10945,6 +10957,19 @@ public static class DiagnosticCatalog
         + "or validate the elements one by one.",
         "ISO §2023:14.9.50.4 GR7; ISO/IEC 1989:2002 §14.8.46.3 GR7",
         No1985Rule: No1985Validate);
+
+    /// <summary>COBOL7933 — from COBOL 2014, a SUM written without FUNCTION where a report description entry owes an operand
+    /// (kb/Work PB5652): §2023:13.18.54.3 SR9 makes every SUM there not preceded by FUNCTION the SUM clause, even when the REPOSITORY
+    /// declares the intrinsic, so `SOURCE WA + SUM(WB WC)` writes the clause where no clause can stand. COBOL 2002 has no such rule
+    /// (§2002:12.2.7.3 GR13), so there the same source is the keyword-omitted function and compiles.</summary>
+    public static readonly DiagnosticDescriptor ReportSumWithoutFunctionKeyword = new(
+        "COBOL7933", "report-sum-without-function-keyword", EditionSeverity.Error,
+        "A SUM not preceded by the word FUNCTION is written in a report description entry where an operand is owed. §2023:13.18.54.3 SR9: "
+        + "\"Within a report description entry, if the keyword SUM is preceded by the keyword FUNCTION, SUM is a reference to the SUM "
+        + "intrinsic function. Otherwise, SUM refers to the report writer SUM clause, even when SUM is implicitly or explicitly included as "
+        + "an intrinsic-function-name in the intrinsic format of a function-specifier in the REPOSITORY paragraph.\" Write FUNCTION SUM.",
+        "ISO §2023:13.18.54.3 SR9; ISO/IEC 1989:2014 §13.18.54.2 SR9",
+        No1985Rule: No1985Repository);
 
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>

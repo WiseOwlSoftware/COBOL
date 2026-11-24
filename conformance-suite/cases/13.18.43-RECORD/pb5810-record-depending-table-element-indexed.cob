@@ -1,6 +1,6 @@
 *>--- conformance-case
 *> id: pb5810-record-depending-table-element-indexed
-*> rules: [SR-13.18.43.3-6]
+*> rules: [SR-13.18.43.3-6, FMT-13.18.43.2, FMT-13.4.6.2, SR-13.4.5.3-5, SR-13.4.5.3-7]
 *> source-format: free
 *> portable: unverified
 *>---

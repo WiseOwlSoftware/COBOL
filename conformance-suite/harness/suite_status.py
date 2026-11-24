@@ -94,7 +94,7 @@ def status(edition: str, *, rows: Callable[[], dict[str, int]], population: Call
     counts = rows()
     terms: dict[str, int | str] = {"rows": counts["unmet"]}
     detail = {"rows": f"{counts['unmet']} of {counts['observable']} observable rows have no cleared test "
-                      f"(accepted-uncleared {counts['accepted-uncleared']}, refusal-only {counts['refusal-only']}, "
+                      f"(accepted-uncleared {counts['accepted-uncleared']}, wiseowl-tree-only {counts['wiseowl-tree-only']}, refusal-only {counts['refusal-only']}, "
                       f"other-edition-only {counts['other-edition-only']}, header-omits {counts['header-omits']}, "
                       f"shared-test {counts['shared-test']}, no-test {counts['no-test']})"}
     terms["points"] = module_term("coverage", edition, root)

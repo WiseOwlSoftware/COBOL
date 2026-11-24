@@ -26,40 +26,25 @@ namespace WiseOwl.Cobol.Runtime;
 /// </summary>
 public static partial class CobolIntrinsics
 {
-    /// <summary>The position of the greatest (<paramref name="greatest"/>) or least exact value; the leftmost of equal values
-    /// (§2023:15.59.4, §2023:15.63.4, §2023:15.71.4 RV3, §2023:15.72.4), compared by algebraic value (§2023:15.71.4 RV2: "according to the rules for simple
-    /// conditions", §2023:8.8.4.2.4).</summary>
-    private static int SelectExact(CobolExact[] xs, bool greatest, string function)
-    {
-        RequireArguments(xs.Length, function);
-        int at = 0;
-        for (int i = 1; i < xs.Length; i++)
-        {
-            int order = CobolExact.Compare(xs[i], xs[at]);
-            if (greatest ? order > 0 : order < 0) at = i;
-        }
-        return at;
-    }
-
     /// <summary>ORD-MAX (§2023:15.71.4): the ordinal position of the argument having the greatest value.</summary>
-    public static long OrdMaxExact(params CobolExact[] xs) => SelectExact(xs, greatest: true, "ORD-MAX") + 1;
+    public static long OrdMaxExact(params ReadOnlySpan<CobolExact> xs) => ExtremeIndex(new ExactOrder(xs), true, "ORD-MAX") + 1;
 
     /// <summary>ORD-MIN (§2023:15.72.4): the ordinal position of the argument having the least value.</summary>
-    public static long OrdMinExact(params CobolExact[] xs) => SelectExact(xs, greatest: false, "ORD-MIN") + 1;
+    public static long OrdMinExact(params ReadOnlySpan<CobolExact> xs) => ExtremeIndex(new ExactOrder(xs), false, "ORD-MIN") + 1;
 
     /// <summary>MAX (§2023:15.59.4): the content of the argument having the greatest value.</summary>
-    public static CobolExact MaxExact(params CobolExact[] xs) => xs[SelectExact(xs, greatest: true, "MAX")];
+    public static CobolExact MaxExact(params ReadOnlySpan<CobolExact> xs) => xs[ExtremeIndex(new ExactOrder(xs), true, "MAX")];
 
     /// <summary>MIN (§2023:15.63.4): the content of the argument having the least value.</summary>
-    public static CobolExact MinExact(params CobolExact[] xs) => xs[SelectExact(xs, greatest: false, "MIN")];
+    public static CobolExact MinExact(params ReadOnlySpan<CobolExact> xs) => xs[ExtremeIndex(new ExactOrder(xs), false, "MIN")];
 
     /// <summary>MEDIAN (§2023:15.61.4) on the SDIDI lane: <see cref="MedianWhole"/>, with an exact mean of two fixed-point middles rounded once
     /// to the SDIDI's 34 digits in <paramref name="mode"/>.</summary>
-    public static CobolExact MedianExact(CobolRounding mode, params CobolExact[] xs) => Median(xs, mode);
+    public static CobolExact MedianExact(CobolRounding mode, params ReadOnlySpan<CobolExact> xs) => Median(xs, mode);
 
     /// <summary>MEDIAN (§2023:15.61.4) EXACTLY, never cut to the SDIDI's 34 digits: the lane of a list that aligns an argument of unknown
     /// bound (kb/Work PB4792, review R1-1), whose value the Int128 body held whole before the alignment could leave it.</summary>
-    public static CobolExact MedianWhole(params CobolExact[] xs) => Median(xs, null);
+    public static CobolExact MedianWhole(params ReadOnlySpan<CobolExact> xs) => Median(xs, null);
 
     /// <summary>⛔ MEDIAN (§2023:15.61.4), ONE BODY FOR BOTH LANES (kb/Work PB4827, PB4859, PB4891). An odd count returns the middle argument whole,
     /// as its own kind (§2023:15.61.4 RV1). An even count is the mean of the two middle values (§2023:15.61.4 RV2), a new value: when a MIDDLE value
@@ -69,11 +54,12 @@ public static partial class CobolIntrinsics
     /// binary64 of the kind its middles have (<see cref="CobolExact.OfBinary64Result"/>); when both middles are fixed-point it is their exact mean, a binary64 elsewhere
     /// in the list being no operand of it, rounded once in <paramref name="sdidi"/> when the lane returns the SDIDI. Equal values keep their
     /// written order, so the middle values are the ones <c>FunctionValueField.Median</c> picks for DISPLAY.</summary>
-    private static CobolExact Median(CobolExact[] xs, CobolRounding? sdidi)
+    private static CobolExact Median(ReadOnlySpan<CobolExact> xs, CobolRounding? sdidi)
     {
         RequireArguments(xs.Length, "MEDIAN");
         int[] order = [.. Enumerable.Range(0, xs.Length)];
-        Array.Sort(order, (i, j) => CobolExact.Compare(xs[i], xs[j]) is var c and not 0 ? c : i.CompareTo(j));
+        CobolExact[] items = xs.ToArray();   // the comparer is a lambda, which cannot capture the span
+        Array.Sort(order, (i, j) => CobolExact.Compare(items[i], items[j]) is var c and not 0 ? c : i.CompareTo(j));
         CobolExact high = xs[order[xs.Length / 2]];
         if (xs.Length % 2 != 0) return high;
         CobolExact low = xs[order[xs.Length / 2 - 1]];
@@ -97,25 +83,32 @@ public static partial class CobolIntrinsics
     /// <para><paramref name="floatFamily"/> is true for a function of the §2023:15.4.1 floating-math family (VARIANCE, STANDARD-DEVIATION,
     /// PRESENT-VALUE, ANNUITY: <c>IntrinsicCarrierRules.Binary64ResultIsApproximation</c>, kb/Work PB4979): its binary64 value is always an
     /// engine approximation and lands by its shortest round-trip decimal, never a float item's content that lands by its exact expansion.</para></summary>
-    private static bool TryBinary64Body(CobolExact[] xs, Func<double[], double> real, out CobolExact value, bool floatFamily = false)
+    private static bool TryBinary64Body(ReadOnlySpan<CobolExact> xs, Binary64Body real, out CobolExact value, bool floatFamily = false)
     {
         value = default;
-        if (!xs.Any(x => x.TryBinary64(out _))) return false;
-        value = CobolExact.OfBinary64Result(real([.. xs.Select(x => x.AsBinary64())]), !floatFamily && xs.Any(x => x.IsFloatContent));
+        bool binary64 = false, floatContent = false;
+        foreach (var x in xs) { binary64 |= x.TryBinary64(out _); floatContent |= x.IsFloatContent; }
+        if (!binary64) return false;
+        var doubles = new double[xs.Length];
+        for (int i = 0; i < xs.Length; i++) doubles[i] = xs[i].AsBinary64();
+        value = CobolExact.OfBinary64Result(real(doubles), !floatFamily && floatContent);
         return true;
     }
 
+    /// <summary>A binary64 body of the variadic family, over its argument values (<see cref="TryBinary64Body"/>).</summary>
+    private delegate double Binary64Body(ReadOnlySpan<double> xs);
+
     /// <summary>MIDRANGE (§2023:15.62.4): <c>(FUNCTION MAX + FUNCTION MIN) / 2</c>, rounded once; the binary64 mean of the two when an
     /// argument is binary64 (<see cref="TryBinary64Body"/>).</summary>
-    public static CobolExact MidrangeExact(CobolRounding mode, params CobolExact[] xs) => Midrange(xs, mode);
+    public static CobolExact MidrangeExact(CobolRounding mode, params ReadOnlySpan<CobolExact> xs) => Midrange(xs, mode);
 
     /// <summary>MIDRANGE (§2023:15.62.4) exactly (see <see cref="MedianWhole"/>).</summary>
-    public static CobolExact MidrangeWhole(params CobolExact[] xs) => Midrange(xs, null);
+    public static CobolExact MidrangeWhole(params ReadOnlySpan<CobolExact> xs) => Midrange(xs, null);
 
-    private static CobolExact Midrange(CobolExact[] xs, CobolRounding? sdidi)
+    private static CobolExact Midrange(ReadOnlySpan<CobolExact> xs, CobolRounding? sdidi)
     {
         if (xs.Length > 0 && TryBinary64Body(xs, MidrangeReal, out CobolExact real)) return real;
-        CobolExact mean = HalfSum(xs[SelectExact(xs, greatest: true, "MIDRANGE")], xs[SelectExact(xs, greatest: false, "MIDRANGE")]);
+        CobolExact mean = HalfSum(xs[ExtremeIndex(new ExactOrder(xs), true, "MIDRANGE")], xs[ExtremeIndex(new ExactOrder(xs), false, "MIDRANGE")]);
         return sdidi is { } mode ? CobolExact.FromDec(mean.ToDecRounded(mode)) : mean;
     }
 
@@ -125,7 +118,7 @@ public static partial class CobolIntrinsics
         CobolExact.Mul(CobolExact.Add(a, b), CobolExact.From(5, 1));
 
     /// <summary>The exact sum of the values at their common scale, on the wide form and, past it, the arbitrary-precision one.</summary>
-    private static CobolExact Total(CobolExact[] xs)
+    private static CobolExact Total(ReadOnlySpan<CobolExact> xs)
     {
         CobolExact sum = xs[0];
         for (int i = 1; i < xs.Length; i++) sum = CobolExact.Add(sum, xs[i]);
@@ -134,13 +127,13 @@ public static partial class CobolIntrinsics
 
     /// <summary>SUM (§2023:15.88.4): the exact sum of the arguments at their common scale, rounded once; the binary64 sum when an
     /// argument is binary64 (<see cref="TryBinary64Body"/>).</summary>
-    public static CobolExact SumExact(CobolRounding mode, params CobolExact[] xs) => Sum(xs, mode);
+    public static CobolExact SumExact(CobolRounding mode, params ReadOnlySpan<CobolExact> xs) => Sum(xs, mode);
 
     /// <summary>SUM (§2023:15.88.4) exactly (see <see cref="MedianWhole"/>): 10000 and .9999999999999999999999999999999 stored at five places
     /// are 10000.99999, not the 10001.00000 of the sum's 34-digit image.</summary>
-    public static CobolExact SumWhole(params CobolExact[] xs) => Sum(xs, null);
+    public static CobolExact SumWhole(params ReadOnlySpan<CobolExact> xs) => Sum(xs, null);
 
-    private static CobolExact Sum(CobolExact[] xs, CobolRounding? sdidi)
+    private static CobolExact Sum(ReadOnlySpan<CobolExact> xs, CobolRounding? sdidi)
     {
         RequireArguments(xs.Length, "SUM");
         if (TryBinary64Body(xs, SumReal, out CobolExact real)) return real;
@@ -150,15 +143,15 @@ public static partial class CobolIntrinsics
 
     /// <summary>RANGE (§2023:15.76.4): <c>FUNCTION MAX − FUNCTION MIN</c>, at the two values' common scale, rounded once; the binary64
     /// difference when an argument is binary64 (<see cref="TryBinary64Body"/>).</summary>
-    public static CobolExact RangeExact(CobolRounding mode, params CobolExact[] xs) => Range(xs, mode);
+    public static CobolExact RangeExact(CobolRounding mode, params ReadOnlySpan<CobolExact> xs) => Range(xs, mode);
 
     /// <summary>RANGE (§2023:15.76.4) exactly (see <see cref="MedianWhole"/>).</summary>
-    public static CobolExact RangeWhole(params CobolExact[] xs) => Range(xs, null);
+    public static CobolExact RangeWhole(params ReadOnlySpan<CobolExact> xs) => Range(xs, null);
 
-    private static CobolExact Range(CobolExact[] xs, CobolRounding? sdidi)
+    private static CobolExact Range(ReadOnlySpan<CobolExact> xs, CobolRounding? sdidi)
     {
         if (xs.Length > 0 && TryBinary64Body(xs, RangeReal, out CobolExact real)) return real;
-        CobolExact max = xs[SelectExact(xs, greatest: true, "RANGE")], min = xs[SelectExact(xs, greatest: false, "RANGE")];
+        CobolExact max = xs[ExtremeIndex(new ExactOrder(xs), true, "RANGE")], min = xs[ExtremeIndex(new ExactOrder(xs), false, "RANGE")];
         CobolExact difference = CobolExact.Sub(max, min);
         return sdidi is { } mode ? CobolExact.FromDec(difference.ToDecRounded(mode)) : difference;
     }
@@ -166,7 +159,7 @@ public static partial class CobolIntrinsics
     /// <summary>MEAN (§2023:15.60.4 RV1): <c>(argument-11 + … + argument-1n) / n</c>, the exact sum divided ONCE — the SDIDI quotient every
     /// lane forms (kb/Work PB3860, PB4075; <see cref="MeanWide"/> is the same quotient over a wide sum); the binary64 mean when an
     /// argument is binary64 (<see cref="TryBinary64Body"/>).</summary>
-    public static CobolExact MeanExact(CobolRounding mode, params CobolExact[] xs)
+    public static CobolExact MeanExact(CobolRounding mode, params ReadOnlySpan<CobolExact> xs)
     {
         RequireArguments(xs.Length, "MEAN");
         return TryBinary64Body(xs, MeanReal, out CobolExact real)
@@ -207,21 +200,21 @@ public static partial class CobolIntrinsics
     /// <para>⛔ THE BINARY64 EVALUATION WHEN AN ARGUMENT IS BINARY64 (kb/Work PB4979; docs/CONFORMANCE.md DOC-A.1-92b): a nested selection that returned
     /// a float item's content is binary64, a run-time fact (<see cref="TryBinary64Body"/>), so the variance is formed in binary64 as
     /// <c>VARIANCE (F M)</c> forms it, and is itself an approximation (the floating-math family's value, which lands by its shortest round-trip decimal).</para></summary>
-    public static CobolExact VarianceExact(CobolRounding mode, params CobolExact[] xs)
+    public static CobolExact VarianceExact(CobolRounding mode, params ReadOnlySpan<CobolExact> xs)
     {
         RequireArguments(xs.Length, "VARIANCE");            // §2023:15.3 — at least one argument (kb/Work PB257)
         return TryBinary64Body(xs, Variance, out CobolExact real, floatFamily: true) ? real : CobolExact.FromDec(VarianceOfExact(xs, mode));
     }
 
     /// <summary>The variance of arguments that are all fixed-point, exactly and rounded once (<see cref="VarianceExact"/>'s fixed-point arm).</summary>
-    private static CobolDec VarianceOfExact(CobolExact[] xs, CobolRounding mode) =>
+    private static CobolDec VarianceOfExact(ReadOnlySpan<CobolExact> xs, CobolRounding mode) =>
         TryVariance(xs, mode, out CobolDec variance) ? variance : VarianceBig(xs, mode);
 
     /// <summary>The identity of <see cref="VarianceOfExact"/> where a step leaves the wide form: the same numerator
     /// <c>n·Σdᵢ² − (Σdᵢ)²</c> and denominator <c>n²</c> formed by <see cref="CobolExact"/>'s operations (the wide form, then the
     /// arbitrary-precision one, kb/Work PB4592), divided once, so a variance of arguments past 77 digits is the exact variance
     /// rounded once and never the SDIDI body's (kb/Work PB4750).</summary>
-    private static CobolDec VarianceBig(CobolExact[] xs, CobolRounding mode)
+    private static CobolDec VarianceBig(ReadOnlySpan<CobolExact> xs, CobolRounding mode)
     {
         CobolExact sum = CobolExact.From(0, 0).Working(), squares = sum, first = xs[0].Working();
         foreach (CobolExact x in xs)
@@ -235,7 +228,7 @@ public static partial class CobolIntrinsics
         return CobolExact.Quotient(numerator, CobolExact.Mul(n, n), mode, jam: false);
     }
 
-    private static bool TryVariance(CobolExact[] xs, CobolRounding mode, out CobolDec variance)
+    private static bool TryVariance(ReadOnlySpan<CobolExact> xs, CobolRounding mode, out CobolDec variance)
     {
         variance = default;
         if (!CobolExact.TryAlign(xs, out CobolWide[] v, out int s)) return false;
@@ -258,7 +251,7 @@ public static partial class CobolIntrinsics
     /// so §2023:15.84.4's square root is the ONE SQRT body's (<see cref="SqrtDec"/>). The variance rounded once at 34 digits before the
     /// root is harmless: the square root's condition number is ½.
     /// <para>A binary64 argument (<see cref="TryBinary64Body"/>) takes the binary64 body, <c>StandardDeviation (F M)</c>'s (kb/Work PB4979).</para></summary>
-    public static CobolExact StdDevExact(CobolRounding mode, params CobolExact[] xs)
+    public static CobolExact StdDevExact(CobolRounding mode, params ReadOnlySpan<CobolExact> xs)
     {
         RequireArguments(xs.Length, "STANDARD-DEVIATION");
         return TryBinary64Body(xs, StandardDeviation, out CobolExact real, floatFamily: true)
@@ -276,7 +269,7 @@ public static partial class CobolIntrinsics
     /// <para>⛔ A BINARY64 RATE OR AMOUNT (<see cref="TryBinary64Body"/>, kb/Work PB4979; docs/CONFORMANCE.md DOC-A.1-92b) takes the binary64 body
     /// <c>PRESENT-VALUE (F M)</c> takes, over the discount base <c>1 + rate</c> formed on the rate's own carrier and then narrowed
     /// (kb/Work PB1000): the base is this exact <c>1 + rate</c> or, for a binary64 rate, the binary64 sum.</para></summary>
-    public static CobolExact PresentValueExact(CobolRounding mode, CobolExact rate, params CobolExact[] amounts)
+    public static CobolExact PresentValueExact(CobolRounding mode, CobolExact rate, params ReadOnlySpan<CobolExact> amounts)
     {
         RequireArguments(amounts.Length, "PRESENT-VALUE");
         CobolExact discount = CobolExact.Add(CobolExact.From(1, 0), rate);   // 1 + rate, exact
@@ -304,7 +297,7 @@ public static partial class CobolIntrinsics
     /// places): <c>Σ aₖ·d^(n−k) / d^n</c> for the discount base d = 1 + rate, the numerator by Horner's rule
     /// (<c>Nₖ = Nₖ₋₁·d + aₖ</c>), formed by <see cref="CobolExact"/>'s operations (the arbitrary-precision form past the wide one,
     /// kb/Work PB4592) and divided once (kb/Work PB4750).</summary>
-    private static CobolDec PresentValueBig(CobolExact discount, CobolExact[] amounts, CobolRounding mode)
+    private static CobolDec PresentValueBig(CobolExact discount, ReadOnlySpan<CobolExact> amounts, CobolRounding mode)
     {
         discount = discount.Working();
         CobolExact numerator = CobolExact.From(0, 0).Working();
@@ -312,7 +305,7 @@ public static partial class CobolIntrinsics
         return CobolExact.Quotient(numerator, CobolExact.Pow(discount, amounts.Length), mode, jam: false);
     }
 
-    private static bool TryPresentValue(CobolExact rate, CobolExact[] amounts, CobolRounding mode, out CobolDec value)
+    private static bool TryPresentValue(CobolExact rate, ReadOnlySpan<CobolExact> amounts, CobolRounding mode, out CobolDec value)
     {
         value = default;
         int a = Math.Max(0, rate.Scale);

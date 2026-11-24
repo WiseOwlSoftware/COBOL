@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding.Bound;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Compiler.Oo;
 using WiseOwl.Cobol.Editions.Diagnostics;
@@ -459,8 +460,13 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
         // can raise come from DeclaredRaisableNames — the statement-shape rows, the operand rows and the ambient rows —
         // and this is the ONE place they are filtered by the TurnState at the statement's line (§2023:7.3.25.4 GR6). Nothing
         // else computes a statement's names, so a name added to a table is checkable by construction.
-        var scope = new EcRaiseScope(ElementKindOf(ctx.SourceElement), ctx.Data.State.Configuration.Classification is not null);
+        var scope = new EcRaiseScope(ElementKindOf(ctx.SourceElement), ctx.Data.State.Configuration.Classification is not null,
+            ctx.Edition.Edition.Year);
+        // ⛔ THE NAME THE EDITION'S TEXT RAISES (kb/Work PB6107): a table names a condition by its 2014/2023 spelling; at 2002 the
+        // function's locate miss and the omitted-argument reference are EC-PROGRAM-NOT-FOUND and EC-PROGRAM-ARG-OMITTED
+        // (ExceptionNameRule.NameInEdition), which is what a 2002 program can write in a TURN directive or a USE statement.
         var enabled = DeclaredRaisableNames(bound, scope)
+            .Select(d => (Ec: ExceptionNameRule.NameInEdition(d.Ec, scope.EditionYear), d.File))
             .Where(d => ctx.EcState.Turn.Enabled(d.Ec, d.File, line))
             .Distinct()   // a sequence's steps can re-contribute a family (two hoisted activations ⇒ ProgramNames twice)
             .ToList();

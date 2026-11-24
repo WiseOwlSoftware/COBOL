@@ -3,7 +3,6 @@
       *> rules: [1985-GR-VI.6.18.5-p7]
       *> accept: [85]
       *> source-format: fixed
-      *> portable: unverified
       *>---
       *> §1985:VI.6.18.5 p7, Example 5: "The above INSPECT is equivalent
       *> to the following INSPECT": INSPECT ITEM CONVERTING "ABCD" TO

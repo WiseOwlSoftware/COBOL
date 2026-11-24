@@ -3,7 +3,6 @@
       *> rules: [1985-SR-XII.2.3-10]
       *> accept: [85]
       *> source-format: fixed
-      *> portable: unverified
       *>---
       *> §1985:XII.2.3 SR10 (THE COPY STATEMENT). An output test: the
       *> program must translate and run at 85 and DISPLAY exactly the

@@ -330,6 +330,11 @@ conforming compilers print one signed numeric item as `01E` and `+01.5`.
   sequence is associated with the figurative constant HIGH-VALUE" (§2023:12.3.7.4 GR 8; GR 9 likewise for LOW-VALUE). A
   reference-modified display numeric item is alphanumeric (§2023:8.4.3.3.4 GR6c and allowed unless signed without SIGN
   SEPARATE: "Neither the representation nor the position of that operational sign is specified" (§2023:13.18.52.4 GR 4).
+- **The lint reads the text the compiler reads.** Text manipulation comes first: a `COPY ... REPLACING` phrase is applied to the
+  library text it copies and each `REPLACE` statement to the text after it, by the comparison cycle of §1985:XII.2.4 GR5 (a REPLACE statement's: §1985:XII.3.4 GR6)
+  (`cobol_source.replace_text`, `apply_replace_statements`), so pseudo-text holding the word DISPLAY is no DISPLAY statement
+  and an operand a replacement introduces is judged (kb/Work PB3178: nine REPLACE tests and two COPY tests were refused
+  for text no compiler reads).
 - **The lint judges the storage an operand shows.** A group is allowed only when every item it holds is alphanumeric,
   numeric-edited, or unsigned or separately signed display numeric, and none is SYNCHRONIZED ("The effect of this clause
   is defined by the implementor", §2023:13.18.55.4 GR 9). An item whose storage another entry describes (REDEFINES, the
@@ -421,6 +426,39 @@ kb/Work PB5213). Only an operand-kind point needs a hand-kept map to its grammar
 Table cells and lettered sub-items are credited there too; how, since no parse node shows one, S14 settles. Only the
 coverage measure uses WiseOwl's parser; a grammar defect that credits a wrong point is bounded by the map's drift test,
 the grammar-versus-printed-figure audit (`spec-grammar-conformance`), and a second compiler's run of the test.
+
+**The catalog at 85 (Stage 0, kb/Work PB6050)** is S14 and S15 cut to the 1985 figures, built before the pilot so the
+denominator is fixed first.
+- **The catalog**, `scripts/spec/data/format-points-1985.json` (digest in the file; the 2023 catalog is its own file when S14
+  reaches it), holds for each of the 213 FMT rows each format's tree and points. The figures are the transcription's decided
+  blocks (`figures-1985/` verdicts, written into `specs/ANSI_COBOL_1985.md`), not the PDF, which the 1985 scan has no text layer to
+  measure; `harness/formats.py` reads one drawing into a tree of five nodes (required word, optional word, operand, sequence,
+  alternation, bracket, repetition) from the drawing's own delimiters (`figure_reading`), and `harness/points.py` derives the
+  points and writes the file. `points.py --edition 85 --check` regenerates it and is the drift check; a figure whose notation the
+  reading cannot resolve fails the build, and the two typed-delimiter figures it cannot take (EVALUATE, the report group SIGN
+  clause) are hand-read from the page in `formats.DECIDED_READINGS` and held to the words of their drawing.
+- **A point** is one thing a format lets a program do: each alternative of a brace or of a bracket of stacked rows written, a
+  bracket and an optional word written and omitted, a repeated portion written twice, one choice-indicator alternative alone and
+  two out of order, and the format itself. Ids are the row, the format and the point's words (`1985-FMT-VI.6.19.2/f2/written:CORR`),
+  an operand-only alternative named by its operand, a name a format gives twice told apart by `#n`. Must-diagnose points are the
+  refusal side's (Stage 3's obligations, §6.1) and are not in this catalog.
+- **The credit** is `harness/coverage.py`. `cobol points-batch` (WiseOwl's parse, `ParseNodeReader`) prints, per test and per parse
+  node of the rules a row names (`coverage.frames_of`: the grammar rule that carries the row's format, held by a self-test), the
+  node's tokens; a nested statement is one token and so is a longer operand context, a one-token operand is the token whose
+  lexer type is its kind. `coverage.Matcher` chart-parses each node whole against each format of the rows that name its rule and
+  credits the points on a derivation, so a keyword point is credited only where the keyword is in the text. A row whose format
+  prints its context before a clause (`level-number data-name-1 REDEFINES`) is also matched without it, and a file or report
+  description entry is also matched without the entries after its period. Rows with no parse node (COPY and REPLACE, read before the
+  parse; a section header; the four division-structure rows; a nonnumeric literal, one token to the lexer) keep every point owed and
+  `--report` names why. Alternatives whose operands have one token class (`identifier-1` against `index-name-1`) are credited
+  together until the operand-kind map names their grammar elements.
+- **The record** is `wiseowl/points/<test id>.json`, `{"85": "3-17,21"}`: the catalog's point numbers as ranges (a test credits
+  hundreds of points; ids would weigh megabytes), one file per test as `wiseowl/diagnostics/` is, and `wiseowl/points-inputs.json`,
+  the catalog's digest, the reading's (the rules the parse is read through, the row-to-frame mapping and the matcher,
+  `coverage.reading_of`), and each test's text digest. `coverage.unmet` raises, never counts, when a test accepted at
+  the edition has no record or changed since, or the catalog or the reading changed. `coverage.py --edition 85 --record` rewrites it
+  (about a minute); `suite_status.py` prints `points N owed`. A change to the grammar that moves a credit is not seen by the digest:
+  the record is re-run with the grammar's own gates (kb/Work PB6050 lead).
 
 ### 3.5 Placing a test at each edition
 
@@ -550,6 +588,14 @@ review.md section 10.6). So a free-form case a 1985 row needs as its witness is 
 free-form test no 1985 row names is left as it is. A test whose subject is free form itself or the `--source-format`
 option stays free form and witnesses no 1985 row.
 
+**A witness cites its row (kb/Work PB6067).** The inventory's `test-ref` and a case's `rules` are two statements of one
+fact, and `generate.py` refuses them differing (`_check_store_witnesses`): a case a row names as its own witness holds the
+row in `rules`, or, for an older edition's row KEPT into a later rule (`next.to`), that rule, because a case accepted at
+2002 or later cannot cite a 1985 row (`check_cases`: the older row's band is its own edition). A case that no cite of the
+row can hold, because it is accepted at an edition outside the band of every candidate (an introduction gate, or a rule
+whose row is not yet widened down to the case's edition), is exempt. A witness that does not state the row it is listed
+under is retired from the row (`record_verdicts.py` `retire-witnesses`), never left to be read as one.
+
 **The converter.** `python conformance-suite/harness/reformat.py [--dry-run] <case.cob>...` (S8's tool, §13) rewrites a
 free-form case and each library text it declares and copies, IN PLACE, in the 1985 layout (§1985:IV.7): division,
 section and paragraph headers, paragraph-names, FD/SD/CD/RD, level-numbers 01 and 77, DECLARATIVES and end markers in
@@ -587,10 +633,11 @@ conformance-suite/
   measurements/<compiler>.json  the compiler's verdicts over every test an edition's catalog rows name, and each failure's bucket and cause (§5)
   harness/                      the generator, its sibling modules, the runner
   wiseowl/diagnostics/<file>.jsonl  WiseOwl's diagnoses, one line per test (§3.2)
-  wiseowl/points/<file>.json    points WiseOwl's parse credits, per test and accepted edition (§3.4); generated
+  wiseowl/points/<test id>.json points WiseOwl's parse credits, per test and accepted edition, as catalog point numbers (§3.4); generated
+  wiseowl/points-inputs.json    what the record was measured from: the catalog, the reading of the parse, each test's text (§3.4)
   wiseowl/options/<file>.json   WiseOwl compile options keyed by test id (and build step); such a test runs solo
   wiseowl/cases/<clause>/       WiseOwl-only case files: documented non-support, no normative rule, not portable
-scripts/spec/data/format-points.json   every FMT row's points (§3.4)
+scripts/spec/data/format-points-1985.json   every 1985 FMT row's formats and points (§3.4; the other editions' catalogs are S14's)
 scripts/spec/facility.py               the one facility resolver (§3.5)
 tests/nist/crosswalk/<program>.json    each NIST-85 program's units and dispositions (§6.3)
 ```
@@ -609,7 +656,8 @@ tests/nist/crosswalk/<program>.json    each NIST-85 program's units and disposit
   refusals are raised. At 1,936 lines it is already large, so revision 3's derivations go to sibling modules that take
   the parsed tests and return facts or refusals, each with a `--self-test` and one owning slice: `casefile.py` (S5b),
   `derive.py` (S6), `completeness.py` (S9), `obligations.py` (landed at Stage 0, cut to the held editions' catalogs: §6.1),
-  `measurements.py` (§5) and `suite_status.py` (§8; both landed at Stage 0), `placement.py` (S10-S12), `coverage.py` (S15),
+  `measurements.py` (§5) and `suite_status.py` (§8; both landed at Stage 0), `placement.py` (S10-S12), `formats.py`, `points.py` and
+  `coverage.py` (the format-point catalog and its credit, S14 and S15; landed at Stage 0 for the 1985 catalog, §3.4),
   `crosswalk.py` (landed at Stage 0 as the mechanical map, §6.3; S17 adjudicates its residue), and two tools, `reformat.py` (S8) and `group.py` (S5b's one-time migration).
 - **The refusals.** Every "refuses" in §3 and §6.3 is a generator refusal. Besides them it refuses: a syntax flag on a
   row neither FMT- nor identified-as a syntax rule; a conformance flag outside 14.8.2, 14.8.3 and 9.3.8.2.3; a test
@@ -618,7 +666,9 @@ tests/nist/crosswalk/<program>.json    each NIST-85 program's units and disposit
   under a clause none of its rules belongs to, or with no rules outside `_unassigned/`; editions outside a band or
   window; a rule whose band begins after every construct its test is written in (PB870), unless the row's `notes` name
   it; a flagged line whose control is unaccepted at its editions, an obsolete or archaic flagged line at an edition where
-  its control holds another element of that kind, and a mark no line names; free form at 85 in `cases/`; a STOP
+  its control holds another element of that kind, and a mark no line names; free form ACCEPTED or FLAGGED at 85 in
+  `cases/` (a free-form REFUSAL test may refuse there, §3.6); a test the inventory names as a row's witness whose `rules`
+  do not cite the row (§3.6, kb/Work PB6067); a STOP
   statement in a test that is not marked `main` and enters a grouped program; a test not marked `main` holding no program
   definition that is not a prototype (none today, `rev3e/noprog.py`); a test with no `accept`, no flagged line and no
   WiseOwl diagnosis; an accepted test that displays nothing; a literal beginning `*TEST `; an undeclared COPY (a COPY
@@ -645,14 +695,14 @@ read "none 0" at 85, so the report adds these axes.
 **An edition whose own text is held** (1985 and 2002 today: `inputs.older`) is counted on that edition's catalog, never on
 the newest edition's rows banded at it (revision 4, kb/Work PB6047): `harness/obligations.py` counts each row once under the
 first witness kind that holds, non-support, suite (a cleared test that accepts the edition names it), determination,
-derivation, accepted-uncleared (only tests not yet cleared), refusal-only (only a test WiseOwl refuses or the suite flags),
+derivation, accepted-uncleared (only `cases/` tests not yet cleared), wiseowl-tree-only (only `wiseowl/` tests, a tree that joins no suite, so authoring, kb/Work PB6104), refusal-only (only a test WiseOwl refuses or the suite flags),
 other-edition-only, then, for a row no header names, header-omits (its inventory `test-ref` names a test that accepts the
-edition ALONE, whose header only lacks the row: `obligations.py --repair-headers` writes it, no agent), shared-test (the
+edition ALONE and sits in `cases/`, whose header only lacks the row: `obligations.py --repair-headers` writes it, no agent), shared-test (the
 `test-ref` tests accept another edition too, and the generator refuses a test accepted outside the band of a rule it names,
 so the row needs an edition-only test: authoring, Stage 3) and no-test (authoring). Measured at the 1985 catalog (2026-11-22, after the
 header repair): 3,109 rows, of which 9 are documented non-support and 115 derivations; of the 2,985 observable rows 24 have a
-cleared test, 2,276 only an uncleared accepted test, 340 only a refusal test, and 345 are named by no header (224
-shared-test, 121 no-test; the 302 header-omits rows were repaired, 178 headers). The 85 figures in the axes below were
+cleared test, 2,258 only an uncleared `cases/` test, 18 only a `wiseowl/` test, 340 only a refusal test, and 345 are named
+by no header (219 shared-test, 126 no-test; the 302 header-omits rows were repaired, 178 headers). The 85 figures in the axes below were
 measured on the 2023 rows banded at 85 and are the 2023 suite's cut, not the 85 suite's.
 
 - **WiseOwl-only, split** into a `cases/` test at this edition not yet cleared, one at another edition only, and an xUnit
@@ -733,20 +783,25 @@ kb/Conformance burn-down, whose ledger page is the owner's (PB2912), so a new se
   NOT APPLICABLE 7, NO VERDICT 14) and, for each FAIL and NO VERDICT, a bucket and a cause. The bucket is mechanical (a
   compile failure's first diagnostic, an output difference's clause folder, a hang, a crash); the cause is the adjudication,
   one of `gnucobol-nonconformance` (with its `§1985:` citation), `non-portable-test`, `wiseowl-expectation-defect`, or
-  `unclassified` until Stage 2 decides it (211 of the 484 are, at this writing: 108 are gnucobol-nonconformance and 165 non-portable-test, kb/Work PB6054). `harness/measurements.py record` writes the file
+  `unclassified` until it is decided. A cause is set per test from that test's own diff, re-run on the compiler and read
+  against the rule the test names; a `gnucobol-nonconformance` cites the rule the compiler's output breaks, checked with
+  `cite.py --check`. GnuCOBOL at 85 has none left unclassified: of the 484, 284 are gnucobol-nonconformance and 200
+  non-portable-test, and none is a wiseowl-expectation-defect (kb/Work PB6054 and its addenda). `harness/measurements.py record` writes the file
   from `run.py`'s `results.json` (keeping a cause already adjudicated for the same bucket) and the cleared tests' verdicts
   into the baseline; `generate.py --check` refuses a measurement naming a test of no population, a failure with no bucket
   or cause, a cause outside the three and a citation off the held text. The 85 run took 1,624 tests from the 2026-11-22
   measurement (no conformance-suite file had changed since) and the 138 tests PB6048's header repair added to the
-  population from a run of their own; a changed test's record is stale until `record` is run again.
+  population from a run of their own; a changed test's record is stale until `record` is run again. A run of some
+  tests re-measures those and keeps every other recorded verdict (a test that left the population goes), so a clearing that
+  rewrote a test re-measures it with a run of that test alone.
 - **Results** are JUnit XML and JSON, one result per test naming its file, totalled per edition, clause and placement
   class, INTERFERENCE apart, with CHANGES against the compiler's baseline, so a second compiler is a regression net, not
   a permanently red leg. A run is RED when a verdict differs from its record and is FAIL or NO VERDICT or was a recorded
   PASS; with no baseline, on any FAIL or NO VERDICT; on WiseOwl, also on any INTERFERENCE. `--record-baseline`
   replaces the baseline (with `--editions`, those editions' records).
 - **In WiseOwl's pipeline** the xUnit runner in `WiseOwl.Cobol.Tests.Conformance` executes the same manifests
-  in-process by the same three steps, one xUnit result per test; it checks `wiseowl/diagnostics/` and recomputes
-  `wiseowl/points/`. An accepted test compiles alone only when it must (at least 426 of 2,329, §3). A drift test runs
+  in-process by the same three steps, one xUnit result per test; it checks `wiseowl/diagnostics/`; `wiseowl/points/` is a measurement
+  `coverage.py --record` writes and `coverage.unmet` checks against its inputs (§3.4). An accepted test compiles alone only when it must (at least 426 of 2,329, §3). A drift test runs
   `run.py` with the WiseOwl adapter on the same suites and requires equal verdicts, in every gate and on both CI
   operating systems, with both output normalizations pinned to `harness/normalization-fixture.json`. The GnuCOBOL
   adapter does not replace `scripts/gnucobol_differential.py`, which runs the other direction.
@@ -903,8 +958,14 @@ otherwise (2,448, 2,385 of them units whose program sets no reference at all: Se
 file-I/O programs). A flag unit maps through Appendix C.1: the catalog marks each obsolete row `obsolete: C.1(n)` and the
 flagged statement names the element n; an element with one row maps to it, one with several is `ambiguous`; the 177 FIPS
 flags are `excluded` (`fips-pub-21-1`). An entry's `basis: "mechanical"` marks what the tool reproduces and `--check`
-enforces; Stage 4's adjudicated entries carry another basis and the audit holds them only to the program's facts and the
-catalog's rows. `unmet(edition)`, the status line's NIST term, counts the units still owed at row level: every `open` unit,
+enforces; Stage 4's adjudicated entries carry `basis: "adjudicated: <reason>"` (any other basis is a broken record that
+`--build` keeps and reports and `--check` refuses), and the audit holds them only to the program's facts and the
+catalog's rows. **A rebuild keeps an adjudication** (kb/Work PB6131): `--build` merges each program's file by unit name, writes
+every adjudicated entry back verbatim, and reports (verdict `BUILD RED`) each kept one whose recorded facts (lines, FEATURE,
+ANSI-REFERENCE, flag) the program now contradicts or whose unit the program no longer has, so a decision is never silently
+overwritten nor silently kept stale; a unit adjudicated twice stops the build before any file is written. `--check` runs the
+same merge and refuses a file in which a rebuild would change an adjudicated entry. The files are written as UTF-8 bytes
+with LF line ends. `unmet(edition)`, the status line's NIST term, counts the units still owed at row level: every `open` unit,
 every `unenumerated` site and every `rows` unit with a row that no cleared test, determination or derivation witnesses (6,931
 of 6,931 at landing). The coverage points are PB6050's: a `rows` unit is subsumed at row level only until `coverage.py`
 exists.
@@ -943,9 +1004,19 @@ Revision 4 (kb/Work PB6046) orders the work in stages, COBOL-85 first (decision 
    points from `coverage.py` `unmet(edition)` (PB6050), NIST from `crosswalk.py` `unmet(edition)` (PB6049) and the
    transcription from the ledger's `second_pass` `{pages_swept, findings}` (PB6051). A term whose tool does not exist
    yet prints `UNMEASURED`, never 0, and keeps the line `INCOMPLETE`; a tool that exists and cannot answer fails the line
-   loudly (exit 2). Today: rows 2,961 · points UNMEASURED · NIST 6,931 · second compiler 211 · transcription UNMEASURED.
+   loudly (exit 2). Today: rows 2,961 · points 994 · NIST 6,931 · second compiler 0 · transcription UNMEASURED.
 1. **The pilot** (PB3178, re-scoped): one slice of about 100 rows end to end with the real tools; its cost per row, per
    test cleared, per test written and per NIST unit sets the stop rule of every later stage (above twice: redesign).
+   **Measured 2026-11-23** on INSPECT (VI.6.18), the PICTURE clause (VI.5.9), COPY (XII.2) and REPLACE (XII.3), 105 rows:
+   the suite witnesses 75 of the 104 observable rows (2 before), 73 rows closed in the whole catalog. Of the 86 tests the
+   slice accepts at 85, 34 cleared as they were (lint-clean, WiseOwl PASS, a GnuCOBOL verdict recorded), 21 after a
+   mechanical rewrite of each DISPLAY of an unsigned numeric item through a numeric-edited item (output equal to the old
+   `.out` under zero suppression, checked by a run), 11 once the lint read the text after REPLACE (a lint defect, not a
+   test defect), and 20 stay (15 a numeric DISPLAY the rewrite does not reach: a table item, a multi-line DISPLAY, a
+   test with a library text or a second program unit; 3 unclassifiable names, 1 function result, 1 operand `.`).
+   Five rows with no test got one written from the text (five tests, each PASS on WiseOwl and GnuCOBOL with the expected
+   output derived from the rule). 11 of the 74 NIST INSPECT units of NC115A, NC216A and NC221A were adjudicated to rows.
+   The cost is in `kb/Work/PB3178/2026-11-23-pilot-measurement.md`.
 2. **Clear the existing tests.** A test clears when the portability lint passes, WiseOwl passes it at 85, its expected
    output is the one the 1985 reads recorded for its row, and its GnuCOBOL verdict is recorded; two compilers agreeing
    clear it with no agent. The residue is bucketed by cause, one fix train per bucket.
@@ -974,8 +1045,10 @@ gate's and CI's audits before the build, so a refused test is red in seconds. Be
   test twice, so it stays out of the gate.
 - `format-points.json` matches the printed figures where the PDF is held, and its shape and digest everywhere; every
   point's window agrees with its words unless a construct governs it, and no construct window contradicts them.
-- Every operand-kind point of an implemented format maps to a grammar element; every `wiseowl/points/` file equals what
-  the parse credits now.
+- Every row of a point catalog has a grammar frame or a stated reason it has none (`coverage.frames_of`, a self-test); every
+  `wiseowl/points/` file is a record of the test as it stands (`coverage.unmet`'s inputs check, in the status line), and a nightly
+  re-run of `coverage.py --record` equals the committed record, which sees a grammar change the digest cannot.
+- Every operand-kind point of an implemented format maps to a grammar element (the operand-kind map, S15's remainder).
 - Every SR row has a decided `restricts`, every SR and FMT row an `identified-as` equal to its heading, every DOC row a
   decided `enumerates`; every row and edition outside documented non-support and derivations yields an obligation.
 - Every normative sentence of clauses 6-16 and the A.1 references is held by a row or recorded as covered by one,
@@ -1079,9 +1152,9 @@ below that revision 4 did not name are revision 3's, planned with the editions a
   85 passes.
 - **S13 — removed facilities' rows (§3.5).** (PB4692) The extractor on the held drafts for the facilities and whole rules 2023
   removed; the `ruleText: none` constructs.
-- **S14 — the coverage-point catalog (§3.4), scoped by S3.** (PB4693) The script over the 2023, FCD and 2002 figures; word ids;
+- **S14 — the coverage-point catalog (§3.4), scoped by S3.** (PB4693; the 1985 catalog landed at Stage 0, PB6050) The script over the 2023, FCD and 2002 figures; word ids;
   derived windows; must-diagnose points; the 25 unpaired delimiters; table cells and sub-items; the CI digest check.
-- **S15 — crediting points from the parse (§3.4), sized by S14.** (PB4694) Keyword points from
+- **S15 — crediting points from the parse (§3.4), sized by S14.** (PB4694; the credit at 85 landed at Stage 0, PB6050) Keyword points from
   node tokens; the operand-kind map; `wiseowl/points/`; `coverage.py`.
 - **S16 — the A.1 verdict (§3.3, §5).** (PB4695) UNDOCUMENTED in both runners; A.1 values held to `docs/CONFORMANCE.md` §7;
   `implementor-defined.json` deleted.

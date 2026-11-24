@@ -14,6 +14,13 @@ fires inside subagents and Workflow agents too. Each rule below was written in a
   repository                repository, any flags: a unit never publishes another repo (owner 2026-10-05, kb/Work/PB2044:
                             the wave unit pushed the public skills repo's main with `git push -q origin HEAD:main`). Its
                             own work branch it pushes like any session (kb/Work PB5234: every one of 31 refusals was that).
+  a push that publishes a   a `git push` to THIS repository whose unpublished commits (what the push sends: its source
+  licence stamp             refs `--not --remotes=<remote>`) carry a per-copy licence stamp in a file they change, a
+                            message or an annotated tag they send: the matcher is verify_publishable's tree matcher,
+                            the scan scripts/hooks/git_pre_push.py's (kb/Work PB6136: a branch pushed OCR text carrying
+                            the stamp before its gate, and GitHub serves the commit by SHA after the force-push; PB4814
+                            took a history rewrite). Fails closed: a push after a commit-making git call on the same
+                            line, or fed by xargs, is refused, because the scan runs before the line does.
   a backslash run in a      the Bash TOOL halves every run of two or more backslashes that does not end at a double
   Bash heredoc body         quote, after this hook and before bash runs (measured 2026-11-10, kb/Work PB5234; a single
                             backslash and the PowerShell tool are byte-exact), so a quoted heredoc body that holds one
@@ -245,17 +252,24 @@ def _push_urls(call, cwd: pathlib.Path) -> list[str] | None:
     return _git_out(cwd, "remote", "get-url", "--push", "--all", repo, config=config)
 
 
-def _pushes_elsewhere(call) -> bool:
-    """Whether a push publishes to a repository other than this one (or one this hook cannot determine)."""
+def _push_destinations(call) -> list[bool] | None:
+    """For each URL a push publishes to (`_push_urls`), whether it is THIS repository's origin; None when the push's
+    destination cannot be determined (an unknown directory, a redirected git, a git that does not answer)."""
     if call.cwd is None or _redirected(call):
-        return True
+        return None
     urls = _push_urls(call, _HOOK_CWD / call.cwd)
-    # this repository's own remote is asked only here, inside a unit and for a push: asked at import it cost every
-    # tool call a git process (0.070 s became 0.725 s median, kb/Work PB5234)
+    # this repository's own remote is asked only here, for a push: asked at import it cost every tool call a git
+    # process (0.070 s became 0.725 s median, kb/Work PB5234)
     this_remote = _git_out(_ROOT_DIR, "remote", "get-url", "origin")
     if urls is None or this_remote is None:
-        return True
-    return any(_repo_key(u) != _repo_key(this_remote[0]) for u in urls)
+        return None
+    return [_repo_key(u) == _repo_key(this_remote[0]) for u in urls]
+
+
+def _pushes_elsewhere(call) -> bool:
+    """Whether a push publishes to a repository other than this one (or one this hook cannot determine)."""
+    here = _push_destinations(call)
+    return here is None or not all(here)
 
 
 if os.environ.get("COBOL_COORD_DIR"):
@@ -266,6 +280,109 @@ if os.environ.get("COBOL_COORD_DIR"):
                   "`python scripts/orchestrator/enqueue.py land <branch>`; a change to ANOTHER repository (the public "
                   "skills repo, a site) is never published by a unit: hand it off as an owed push and the attended "
                   "session or the owner publishes it (kb/Work/PB2044).")
+# 2c. a push to THIS repository that would publish a per-copy licence stamp (kb/Work PB6136). The repository is public,
+# and the gate's tree check (verify_publishable.check_tree) runs after a checkpoint push, not before it: on 2026-11-23 a
+# branch pushed tesseract OCR text carrying a purchaser's name and download date, the gate went RED on it, the branch was
+# force-pushed clean, and GitHub still serves the commit by its SHA (the first incident, PB4814, took a history rewrite
+# and a GitHub Support purge). So every push whose destination is this repository's origin (`_push_destinations`: any of
+# its URLs) is scanned first, attended or in a unit: every file changed by a commit it would publish (its source refs,
+# `_push_sources`, `--not --remotes=<remote>`), read whole at that commit, those commits' messages and the annotated tags
+# it sends, through verify_publishable's tree matcher; the scan is git_pre_push.scan, the one git's own pre-push hook
+# (`.githooks/pre-push`) runs for a push made any other way. The scan runs before any step of the command line, so a push
+# that follows a git call that creates or moves commits on the same line (`_READS_ONLY`), or takes its refspecs from
+# xargs, is refused and pushed in its own command. A push whose destination cannot be determined from a directory that
+# is this repository, or whose commits git cannot read, is refused: the rule fails closed. A push elsewhere (another
+# repository, a submodule) is not judged here. Git runs only for a push, as rule 2b's does.
+
+
+def _push_sources(args: tuple[str, ...]) -> list[str] | None:
+    """What a `git push` publishes, as revisions for `git log`: each refspec's source side (`+src:dst`; a `:dst`
+    deletion publishes nothing), `--branches` for `--all`/`--branches`, `--all` for `--mirror`, `--tags` for `--tags`,
+    and HEAD for a push that names no refspec; [] for `--delete`; None when the refspecs come from stdin."""
+    positional, selectors, i = [], [], 0
+    while i < len(args):
+        a = args[i]
+        if a in ("--delete", "-d"):
+            return []
+        if a == "--stdin":
+            return None
+        if a in ("--all", "--branches"):
+            selectors.append("--branches")
+        elif a == "--mirror":
+            selectors.append("--all")
+        elif a == "--tags":
+            selectors.append("--tags")
+        elif a == "--follow-tags":
+            selectors.append("--follow-tags")
+        elif a in _PUSH_VALUE_OPTIONS:
+            i += 1
+        elif not a.startswith("-") and ">" not in a and "<" not in a:
+            positional.append(a)
+        i += 1
+    refspecs = positional[1:]   # the first positional word is the repository (`_push_repository`)
+    sources = [s for r in refspecs if (s := r.lstrip("+").split(":", 1)[0])]
+    # `--follow-tags` adds tags to what the refs publish; it selects no ref itself, so alone it still pushes HEAD
+    return sources + selectors if refspecs or set(selectors) - {"--follow-tags"} else ["HEAD"] + selectors
+
+
+def _tracking_remote(args: tuple[str, ...]) -> str | None:
+    """The remote whose tracking refs hold what is already published: the remote the push names, `origin` for a push
+    that names none, None (every remote's) for a push to a URL or path."""
+    repo = _push_repository(args)
+    if repo is None:
+        return "origin"
+    return None if re.search(r"[:/]", repo.replace(chr(92), "/")) else repo
+
+
+#: The git subcommands that move no ref and create no commit or tag (`add` stages only, `fetch` moves only the
+#: remote-tracking refs, which can only shrink what a push sends): the only git calls a scanned push may follow on one
+#: command line. The scan runs when the hook does, BEFORE any step of the line, so a commit, merge, cherry-pick, rebase,
+#: am, revert, tag, checkout, reset, `branch -f`, `update-ref` or alias earlier on the line would change what the push
+#: publishes after it was judged (kb/Work PB6136 branch review R1-1: `git add f && git commit -m x && git push -u origin
+#: HEAD` passed a planted stamp). Anything outside this set, an alias included, is refused for such a push: it fails closed.
+_READS_ONLY = frozenset({"add", "status", "log", "diff", "show", "rev-parse", "rev-list", "ls-files", "ls-tree",
+                         "ls-remote", "cat-file", "describe", "grep", "shortlog", "blame", "fetch", "for-each-ref",
+                         "show-ref", "merge-base", "version", "help", "cherry", "range-diff", "whatchanged", "check-ignore",
+                         "check-attr"})
+_STAMP_REMEDY = ("Remove it from the file (and from any commit message), rebuild the commits that carry it (`git commit "
+                 "--amend`, or a new branch from origin/main with the clean change) so no unpushed commit holds it, and "
+                 "push again. Never quote the matched text into a command, a note or a message.")
+for _k, call in enumerate(GIT_CALLS):
+    if call.subcommand != "push":
+        continue
+    _here = _push_destinations(call)
+    if _here is None:
+        if _is_this_repo(call.cwd):
+            block("this `git push` runs in this repository, but its destination cannot be determined, so it cannot be "
+                  "scanned for a per-copy licence stamp (kb/Work PB6136; the repository is public). Push a named remote "
+                  "of this repository (`git push origin <branch>`) from a directory git can read.")
+        continue
+    if not any(_here):
+        continue
+    if any(call in shell_location.git_calls(st) and any(shell_location.program(w) == "xargs" for w in st.words)
+           for st in STEPS):
+        block("this `git push` to this repository takes its refspecs from `xargs`, which this hook cannot read, so what "
+              "it publishes cannot be scanned for a per-copy licence stamp (kb/Work PB6136). Push named refspecs.")
+    _movers = [c.subcommand or "(none)" for c in GIT_CALLS[:_k] if c.subcommand not in _READS_ONLY]
+    if _movers:
+        block(f"this `git push` to this repository follows `git {_movers[0]}` on the same command line, and the push is "
+              "scanned for a per-copy licence stamp when this hook runs, before any step of the line has run, so the "
+              "commits that step would create or move would be published unscanned (kb/Work PB6136 review R1-1). Run the "
+              "push as its own command after the others have run, so the scan reads what it publishes.")
+    import git_pre_push  # noqa: E402  (THE push-time stamp scan, kb/Work PB6136; imported only for a push)
+    _sources = _push_sources(call.args)
+    _findings = (None if _sources is None
+                 else git_pre_push.scan(_HOOK_CWD / call.cwd, _sources, _tracking_remote(call.args)))
+    if _findings is None:
+        block("this `git push` publishes to this repository, but the commits it would send cannot be read (git did not "
+              "answer, or the refspecs come from stdin), so they cannot be scanned for a per-copy licence stamp "
+              "(kb/Work PB6136; the repository is public). Push named refspecs from a directory git can read.")
+    if _findings:
+        block("this `git push` would publish a per-copy licence stamp (a purchaser's name, an order number or a "
+              "download date) to a PUBLIC repository, and GitHub serves a pushed commit by its SHA even after a "
+              "force-push (kb/Work PB6136, PB4814): " + "; ".join(_findings[:10])
+              + (f"; and {len(_findings) - 10} more" if len(_findings) > 10 else "") + ". " + _STAMP_REMEDY)
+
 # 3. a run of two or more backslashes, not ending at a double quote, inside a Bash heredoc body. Measured 2026-11-10
 # (kb/Work PB5234, its guard-measurements addendum): the Bash tool hands bash `eval '<command>'` with every such run
 # halved (`\\n` arrives as `\n`, four backslashes as two), AFTER this hook has read the command; a single

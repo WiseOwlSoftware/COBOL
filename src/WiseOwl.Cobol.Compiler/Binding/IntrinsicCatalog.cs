@@ -105,8 +105,12 @@ public readonly record struct IntrinsicSig(
     /// its D8 window [<see cref="IntroducedIn"/>, <see cref="RemovedIn"/>)? The REPOSITORY's <c>FUNCTION ALL
     /// INTRINSIC</c> list is the §2023:8.11 names OF THAT EDITION: Annex E.2 item 13 names seven functions whose names
     /// it prohibits as user-defined words only from 2023 on (kb/Work PB1083).</summary>
-    public bool IsDefinedAt(int dialectLevel) =>
-        IntroducedIn <= dialectLevel && (RemovedIn is not { } gone || dialectLevel < gone);
+    public bool IsDefinedAt(int dialectLevel) => Window.IsInForceAt(dialectLevel);
+
+    /// <summary>The function's D8 edition window [<see cref="IntroducedIn"/>, <see cref="RemovedIn"/>): the availability and the
+    /// verdict the binder's edition gate reports (COBOL1502 / COBOL1503, at the severity every windowed catalog shares) are the
+    /// window's, never a comparison written here (kb/Work PB2620).</summary>
+    public EditionWindow Window => new(IntroducedIn, RemovedIn);
 
     /// <summary>The §2023:15.3 kind code of argument position <paramref name="i"/> (0-based; the last code repeats).</summary>
     public char ArgKind(int i) =>

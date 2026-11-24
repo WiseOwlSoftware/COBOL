@@ -9,40 +9,16 @@
    ],
    "feature": "TALLY FOR CHARACTERS",
    "ansi": "VI-95 6.17.4",
-   "disposition": "open",
-   "resolution": "ambiguous",
-   "literal": [
-    "1985-GR-VI.6.17.4-1",
-    "1985-GR-VI.6.17.4-2",
-    "1985-GR-VI.6.17.4-3",
-    "1985-GR-VI.6.17.4-4",
-    "1985-GR-VI.6.17.4-5",
-    "1985-GR-VI.6.17.4-6",
-    "1985-GR-VI.6.17.4-7"
-   ],
-   "literal-agrees": false,
-   "by-name": [
-    "1985-GR-VI.6.18.4-1",
+   "disposition": "rows",
+   "basis": "adjudicated: each row named by the INSPECT statement's own phrases (pilot, kb/Work PB3178)",
+   "rows": [
+    "1985-FMT-VI.6.18.2",
     "1985-GR-VI.6.18.4-2",
-    "1985-GR-VI.6.18.4-3",
-    "1985-GR-VI.6.18.4-4",
-    "1985-GR-VI.6.18.4-5",
     "1985-GR-VI.6.18.4-6",
     "1985-GR-VI.6.18.4-7",
-    "1985-GR-VI.6.18.4-8",
-    "1985-GR-VI.6.18.4-9",
-    "1985-GR-VI.6.18.4-10",
     "1985-GR-VI.6.18.4-11",
-    "1985-GR-VI.6.18.4-12",
-    "1985-GR-VI.6.18.4-13",
-    "1985-GR-VI.6.18.4-14",
-    "1985-GR-VI.6.18.4-15",
-    "1985-GR-VI.6.18.4-16",
-    "1985-GR-VI.6.18.4-17",
-    "1985-GR-VI.6.18.4-18",
-    "1985-GR-VI.6.18.4-19"
-   ],
-   "basis": "mechanical"
+    "1985-GR-VI.6.18.4-12"
+   ]
   },
   {
    "unit": "INSP-TEST-F1-2",
@@ -51,40 +27,17 @@
    ],
    "feature": "TALLY ALL LITERAL",
    "ansi": "VI-95 6.17.4",
-   "disposition": "open",
-   "resolution": "ambiguous",
-   "literal": [
-    "1985-GR-VI.6.17.4-1",
-    "1985-GR-VI.6.17.4-2",
-    "1985-GR-VI.6.17.4-3",
-    "1985-GR-VI.6.17.4-4",
-    "1985-GR-VI.6.17.4-5",
-    "1985-GR-VI.6.17.4-6",
-    "1985-GR-VI.6.17.4-7"
-   ],
-   "literal-agrees": false,
-   "by-name": [
-    "1985-GR-VI.6.18.4-1",
+   "disposition": "rows",
+   "basis": "adjudicated: each row named by the INSPECT statement's own phrases (pilot, kb/Work PB3178)",
+   "rows": [
+    "1985-FMT-VI.6.18.2",
     "1985-GR-VI.6.18.4-2",
-    "1985-GR-VI.6.18.4-3",
-    "1985-GR-VI.6.18.4-4",
-    "1985-GR-VI.6.18.4-5",
     "1985-GR-VI.6.18.4-6",
     "1985-GR-VI.6.18.4-7",
-    "1985-GR-VI.6.18.4-8",
-    "1985-GR-VI.6.18.4-9",
     "1985-GR-VI.6.18.4-10",
     "1985-GR-VI.6.18.4-11",
-    "1985-GR-VI.6.18.4-12",
-    "1985-GR-VI.6.18.4-13",
-    "1985-GR-VI.6.18.4-14",
-    "1985-GR-VI.6.18.4-15",
-    "1985-GR-VI.6.18.4-16",
-    "1985-GR-VI.6.18.4-17",
-    "1985-GR-VI.6.18.4-18",
-    "1985-GR-VI.6.18.4-19"
-   ],
-   "basis": "mechanical"
+    "1985-GR-VI.6.18.4-12"
+   ]
   },
   {
    "unit": "INSP-TEST-F1-3",
@@ -93,40 +46,17 @@
    ],
    "feature": "TALLY FOR ALL SPACE",
    "ansi": "VI-95 6.17.4",
-   "disposition": "open",
-   "resolution": "ambiguous",
-   "literal": [
-    "1985-GR-VI.6.17.4-1",
-    "1985-GR-VI.6.17.4-2",
-    "1985-GR-VI.6.17.4-3",
-    "1985-GR-VI.6.17.4-4",
-    "1985-GR-VI.6.17.4-5",
-    "1985-GR-VI.6.17.4-6",
-    "1985-GR-VI.6.17.4-7"
-   ],
-   "literal-agrees": false,
-   "by-name": [
-    "1985-GR-VI.6.18.4-1",
+   "disposition": "rows",
+   "basis": "adjudicated: each row named by the INSPECT statement's own phrases (pilot, kb/Work PB3178)",
+   "rows": [
+    "1985-FMT-VI.6.18.2",
     "1985-GR-VI.6.18.4-2",
-    "1985-GR-VI.6.18.4-3",
-    "1985-GR-VI.6.18.4-4",
-    "1985-GR-VI.6.18.4-5",
     "1985-GR-VI.6.18.4-6",
     "1985-GR-VI.6.18.4-7",
-    "1985-GR-VI.6.18.4-8",
-    "1985-GR-VI.6.18.4-9",
     "1985-GR-VI.6.18.4-10",
     "1985-GR-VI.6.18.4-11",
-    "1985-GR-VI.6.18.4-12",
-    "1985-GR-VI.6.18.4-13",
-    "1985-GR-VI.6.18.4-14",
-    "1985-GR-VI.6.18.4-15",
-    "1985-GR-VI.6.18.4-16",
-    "1985-GR-VI.6.18.4-17",
-    "1985-GR-VI.6.18.4-18",
-    "1985-GR-VI.6.18.4-19"
-   ],
-   "basis": "mechanical"
+    "1985-GR-VI.6.18.4-12"
+   ]
   },
   {
    "unit": "INSP-TEST-F1-4",
@@ -135,40 +65,17 @@
    ],
    "feature": "TALLY LEADING LIT",
    "ansi": "VI-95 6.17.4",
-   "disposition": "open",
-   "resolution": "ambiguous",
-   "literal": [
-    "1985-GR-VI.6.17.4-1",
-    "1985-GR-VI.6.17.4-2",
-    "1985-GR-VI.6.17.4-3",
-    "1985-GR-VI.6.17.4-4",
-    "1985-GR-VI.6.17.4-5",
-    "1985-GR-VI.6.17.4-6",
-    "1985-GR-VI.6.17.4-7"
-   ],
-   "literal-agrees": false,
-   "by-name": [
-    "1985-GR-VI.6.18.4-1",
+   "disposition": "rows",
+   "basis": "adjudicated: each row named by the INSPECT statement's own phrases (pilot, kb/Work PB3178)",
+   "rows": [
+    "1985-FMT-VI.6.18.2",
     "1985-GR-VI.6.18.4-2",
-    "1985-GR-VI.6.18.4-3",
-    "1985-GR-VI.6.18.4-4",
-    "1985-GR-VI.6.18.4-5",
     "1985-GR-VI.6.18.4-6",
     "1985-GR-VI.6.18.4-7",
-    "1985-GR-VI.6.18.4-8",
-    "1985-GR-VI.6.18.4-9",
     "1985-GR-VI.6.18.4-10",
     "1985-GR-VI.6.18.4-11",
-    "1985-GR-VI.6.18.4-12",
-    "1985-GR-VI.6.18.4-13",
-    "1985-GR-VI.6.18.4-14",
-    "1985-GR-VI.6.18.4-15",
-    "1985-GR-VI.6.18.4-16",
-    "1985-GR-VI.6.18.4-17",
-    "1985-GR-VI.6.18.4-18",
-    "1985-GR-VI.6.18.4-19"
-   ],
-   "basis": "mechanical"
+    "1985-GR-VI.6.18.4-12"
+   ]
   },
   {
    "unit": "INSP-TEST-F1-5",
@@ -177,40 +84,17 @@
    ],
    "feature": "FOR CHARS AFTER LIT",
    "ansi": "VI-95 6.17.4",
-   "disposition": "open",
-   "resolution": "ambiguous",
-   "literal": [
-    "1985-GR-VI.6.17.4-1",
-    "1985-GR-VI.6.17.4-2",
-    "1985-GR-VI.6.17.4-3",
-    "1985-GR-VI.6.17.4-4",
-    "1985-GR-VI.6.17.4-5",
-    "1985-GR-VI.6.17.4-6",
-    "1985-GR-VI.6.17.4-7"
-   ],
-   "literal-agrees": false,
-   "by-name": [
-    "1985-GR-VI.6.18.4-1",
+   "disposition": "rows",
+   "basis": "adjudicated: each row named by the INSPECT statement's own phrases (pilot, kb/Work PB3178)",
+   "rows": [
+    "1985-FMT-VI.6.18.2",
     "1985-GR-VI.6.18.4-2",
-    "1985-GR-VI.6.18.4-3",
-    "1985-GR-VI.6.18.4-4",
-    "1985-GR-VI.6.18.4-5",
     "1985-GR-VI.6.18.4-6",
     "1985-GR-VI.6.18.4-7",
     "1985-GR-VI.6.18.4-8",
-    "1985-GR-VI.6.18.4-9",
-    "1985-GR-VI.6.18.4-10",
     "1985-GR-VI.6.18.4-11",
-    "1985-GR-VI.6.18.4-12",
-    "1985-GR-VI.6.18.4-13",
-    "1985-GR-VI.6.18.4-14",
-    "1985-GR-VI.6.18.4-15",
-    "1985-GR-VI.6.18.4-16",
-    "1985-GR-VI.6.18.4-17",
-    "1985-GR-VI.6.18.4-18",
-    "1985-GR-VI.6.18.4-19"
-   ],
-   "basis": "mechanical"
+    "1985-GR-VI.6.18.4-12"
+   ]
   },
   {
    "unit": "INSP-TEST-F1-6",
@@ -219,19 +103,18 @@
    ],
    "feature": "ALL BEFORE INITIAL",
    "ansi": "VI-95 6.17.4",
-   "disposition": "open",
-   "resolution": "ambiguous",
-   "literal": [
-    "1985-GR-VI.6.17.4-1",
-    "1985-GR-VI.6.17.4-2",
-    "1985-GR-VI.6.17.4-3",
-    "1985-GR-VI.6.17.4-4",
-    "1985-GR-VI.6.17.4-5",
-    "1985-GR-VI.6.17.4-6",
-    "1985-GR-VI.6.17.4-7"
-   ],
-   "literal-agrees": true,
-   "basis": "mechanical"
+   "disposition": "rows",
+   "basis": "adjudicated: each row named by the INSPECT statement's own phrases (pilot, kb/Work PB3178)",
+   "rows": [
+    "1985-FMT-VI.6.18.2",
+    "1985-GR-VI.6.18.4-2",
+    "1985-GR-VI.6.18.4-6",
+    "1985-GR-VI.6.18.4-7",
+    "1985-GR-VI.6.18.4-8",
+    "1985-GR-VI.6.18.4-10",
+    "1985-GR-VI.6.18.4-11",
+    "1985-GR-VI.6.18.4-12"
+   ]
   },
   {
    "unit": "INSP-TEST-F1-7",
@@ -240,19 +123,18 @@
    ],
    "feature": "LEAD LIT INITIAL FIG",
    "ansi": "VI-95 6.17.4",
-   "disposition": "open",
-   "resolution": "ambiguous",
-   "literal": [
-    "1985-GR-VI.6.17.4-1",
-    "1985-GR-VI.6.17.4-2",
-    "1985-GR-VI.6.17.4-3",
-    "1985-GR-VI.6.17.4-4",
-    "1985-GR-VI.6.17.4-5",
-    "1985-GR-VI.6.17.4-6",
-    "1985-GR-VI.6.17.4-7"
-   ],
-   "literal-agrees": true,
-   "basis": "mechanical"
+   "disposition": "rows",
+   "basis": "adjudicated: each row named by the INSPECT statement's own phrases (pilot, kb/Work PB3178)",
+   "rows": [
+    "1985-FMT-VI.6.18.2",
+    "1985-GR-VI.6.18.4-2",
+    "1985-GR-VI.6.18.4-6",
+    "1985-GR-VI.6.18.4-7",
+    "1985-GR-VI.6.18.4-8",
+    "1985-GR-VI.6.18.4-10",
+    "1985-GR-VI.6.18.4-11",
+    "1985-GR-VI.6.18.4-12"
+   ]
   },
   {
    "unit": "INSP-TEST-F2-1",
@@ -303,19 +185,15 @@
    ],
    "feature": "CHARS BEFORE INITIAL",
    "ansi": "VI-95 6.17.4",
-   "disposition": "open",
-   "resolution": "ambiguous",
-   "literal": [
-    "1985-GR-VI.6.17.4-1",
-    "1985-GR-VI.6.17.4-2",
-    "1985-GR-VI.6.17.4-3",
-    "1985-GR-VI.6.17.4-4",
-    "1985-GR-VI.6.17.4-5",
-    "1985-GR-VI.6.17.4-6",
-    "1985-GR-VI.6.17.4-7"
-   ],
-   "literal-agrees": true,
-   "basis": "mechanical"
+   "disposition": "rows",
+   "basis": "adjudicated: each row named by the INSPECT statement's own phrases (pilot, kb/Work PB3178)",
+   "rows": [
+    "1985-FMT-VI.6.18.2",
+    "1985-GR-VI.6.18.4-2",
+    "1985-GR-VI.6.18.4-6",
+    "1985-GR-VI.6.18.4-7",
+    "1985-GR-VI.6.18.4-15"
+   ]
   },
   {
    "unit": "INSP-TEST-F2-3",
@@ -324,40 +202,16 @@
    ],
    "feature": "LEAD AFTER INIT ID",
    "ansi": "VI-95 6.17.4",
-   "disposition": "open",
-   "resolution": "ambiguous",
-   "literal": [
-    "1985-GR-VI.6.17.4-1",
-    "1985-GR-VI.6.17.4-2",
-    "1985-GR-VI.6.17.4-3",
-    "1985-GR-VI.6.17.4-4",
-    "1985-GR-VI.6.17.4-5",
-    "1985-GR-VI.6.17.4-6",
-    "1985-GR-VI.6.17.4-7"
-   ],
-   "literal-agrees": false,
-   "by-name": [
-    "1985-GR-VI.6.18.4-1",
+   "disposition": "rows",
+   "basis": "adjudicated: each row named by the INSPECT statement's own phrases (pilot, kb/Work PB3178)",
+   "rows": [
+    "1985-FMT-VI.6.18.2",
     "1985-GR-VI.6.18.4-2",
-    "1985-GR-VI.6.18.4-3",
-    "1985-GR-VI.6.18.4-4",
-    "1985-GR-VI.6.18.4-5",
     "1985-GR-VI.6.18.4-6",
     "1985-GR-VI.6.18.4-7",
     "1985-GR-VI.6.18.4-8",
-    "1985-GR-VI.6.18.4-9",
-    "1985-GR-VI.6.18.4-10",
-    "1985-GR-VI.6.18.4-11",
-    "1985-GR-VI.6.18.4-12",
-    "1985-GR-VI.6.18.4-13",
-    "1985-GR-VI.6.18.4-14",
-    "1985-GR-VI.6.18.4-15",
-    "1985-GR-VI.6.18.4-16",
-    "1985-GR-VI.6.18.4-17",
-    "1985-GR-VI.6.18.4-18",
-    "1985-GR-VI.6.18.4-19"
-   ],
-   "basis": "mechanical"
+    "1985-GR-VI.6.18.4-15"
+   ]
   },
   {
    "unit": "INSP-TEST-F2-4",
@@ -366,40 +220,17 @@
    ],
    "feature": "FIRST BY ID BEFORE",
    "ansi": "VI-95 6.17.4",
-   "disposition": "open",
-   "resolution": "ambiguous",
-   "literal": [
-    "1985-GR-VI.6.17.4-1",
-    "1985-GR-VI.6.17.4-2",
-    "1985-GR-VI.6.17.4-3",
-    "1985-GR-VI.6.17.4-4",
-    "1985-GR-VI.6.17.4-5",
-    "1985-GR-VI.6.17.4-6",
-    "1985-GR-VI.6.17.4-7"
-   ],
-   "literal-agrees": false,
-   "by-name": [
-    "1985-GR-VI.6.18.4-1",
+   "disposition": "rows",
+   "basis": "adjudicated: each row named by the INSPECT statement's own phrases (pilot, kb/Work PB3178)",
+   "rows": [
+    "1985-FMT-VI.6.18.2",
     "1985-GR-VI.6.18.4-2",
-    "1985-GR-VI.6.18.4-3",
-    "1985-GR-VI.6.18.4-4",
-    "1985-GR-VI.6.18.4-5",
     "1985-GR-VI.6.18.4-6",
     "1985-GR-VI.6.18.4-7",
     "1985-GR-VI.6.18.4-8",
-    "1985-GR-VI.6.18.4-9",
-    "1985-GR-VI.6.18.4-10",
-    "1985-GR-VI.6.18.4-11",
-    "1985-GR-VI.6.18.4-12",
-    "1985-GR-VI.6.18.4-13",
     "1985-GR-VI.6.18.4-14",
-    "1985-GR-VI.6.18.4-15",
-    "1985-GR-VI.6.18.4-16",
-    "1985-GR-VI.6.18.4-17",
-    "1985-GR-VI.6.18.4-18",
-    "1985-GR-VI.6.18.4-19"
-   ],
-   "basis": "mechanical"
+    "1985-GR-VI.6.18.4-15"
+   ]
   },
   {
    "unit": "INSP-TEST-F2-5",
@@ -408,40 +239,17 @@
    ],
    "feature": "ALL ID BY LIT AFTER",
    "ansi": "VI-95 6.17.4",
-   "disposition": "open",
-   "resolution": "ambiguous",
-   "literal": [
-    "1985-GR-VI.6.17.4-1",
-    "1985-GR-VI.6.17.4-2",
-    "1985-GR-VI.6.17.4-3",
-    "1985-GR-VI.6.17.4-4",
-    "1985-GR-VI.6.17.4-5",
-    "1985-GR-VI.6.17.4-6",
-    "1985-GR-VI.6.17.4-7"
-   ],
-   "literal-agrees": false,
-   "by-name": [
-    "1985-GR-VI.6.18.4-1",
+   "disposition": "rows",
+   "basis": "adjudicated: each row named by the INSPECT statement's own phrases (pilot, kb/Work PB3178)",
+   "rows": [
+    "1985-FMT-VI.6.18.2",
     "1985-GR-VI.6.18.4-2",
-    "1985-GR-VI.6.18.4-3",
-    "1985-GR-VI.6.18.4-4",
-    "1985-GR-VI.6.18.4-5",
     "1985-GR-VI.6.18.4-6",
     "1985-GR-VI.6.18.4-7",
     "1985-GR-VI.6.18.4-8",
-    "1985-GR-VI.6.18.4-9",
-    "1985-GR-VI.6.18.4-10",
-    "1985-GR-VI.6.18.4-11",
-    "1985-GR-VI.6.18.4-12",
-    "1985-GR-VI.6.18.4-13",
     "1985-GR-VI.6.18.4-14",
-    "1985-GR-VI.6.18.4-15",
-    "1985-GR-VI.6.18.4-16",
-    "1985-GR-VI.6.18.4-17",
-    "1985-GR-VI.6.18.4-18",
-    "1985-GR-VI.6.18.4-19"
-   ],
-   "basis": "mechanical"
+    "1985-GR-VI.6.18.4-15"
+   ]
   },
   {
    "unit": "INSP-TEST-F3-1",

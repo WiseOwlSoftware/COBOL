@@ -299,6 +299,28 @@ public sealed class LogicalLineBuilderTests
         Assert.DoesNotContain(bag.Diagnostics, x => x.Code == "COBOL5770");
     }
 
+    [Theory] // 2002 7.2.2 SR8 d): a compiler directive shall not be specified on a debugging line - COBOL8092, at the directive
+             // indicator (0-based column), for the fixed D line and the floating >>D spelling in either format; a 2002 rule only
+    [InlineData("000200D>>DEFINE VV AS 1\n", InitialReferenceFormat.Fixed, 2002, 7, true)]
+    [InlineData("000200D  >>DEFINE VV AS 1\n", InitialReferenceFormat.Fixed, 2002, 9, true)]
+    [InlineData("000200 >>D >>DEFINE VV AS 1\n", InitialReferenceFormat.Fixed, 2002, 11, true)]
+    [InlineData(">>D >>DEFINE VV AS 1\n", InitialReferenceFormat.Free, 2002, 4, true)]
+    [InlineData("000200D>>DEFINE VV AS 1\n", InitialReferenceFormat.Fixed, 2014, 7, false)]
+    [InlineData("000200D>>DEFINE VV AS 1\n", InitialReferenceFormat.Fixed, 85, 7, false)]
+    [InlineData("000200D    DISPLAY \"B\".\n", InitialReferenceFormat.Fixed, 2002, 7, false)]
+    public void DirectiveOnADebuggingLine_IsRefusedAt2002(string line, InitialReferenceFormat format, int std, int column, bool refused)
+    {
+        var (_, bag) = Normalize((format == InitialReferenceFormat.Fixed ? "000100     DISPLAY \"A\".\n" : "DISPLAY \"A\".\n") + line, format, std);
+        if (!refused)
+        {
+            Assert.DoesNotContain(bag.Diagnostics, x => x.Code == "COBOL8092");
+            return;
+        }
+        var d = Assert.Single(bag.Diagnostics, x => x.Code == "COBOL8092");
+        Assert.Equal((1, column), (d.Location!.Value.Line, d.Location!.Value.Column));
+        Assert.True(d.IsError);
+    }
+
     [Fact] // a fixed-form line with the space indicator is the legal home of >>D: no COBOL5770
     public void FloatingDebuggingIndicator_OnASpaceIndicatorLine_IsNotRefused()
     {

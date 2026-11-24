@@ -64,7 +64,7 @@ public sealed class ByteWindowResidueDriftTests
         // RESIDUE-11: §2023:13.18.60.4 GR8 leaves the size to the implementor ("characters of a uniform size equal
         // to or a multiple of the size of characters in the computer's alphanumeric character set") and D-N1
         // pins TWO bytes, so the leaf's storage extent is 2n and the window transcodes the UTF-16BE pair
-        // (Place.NationalWindow / CobolBits.NatReadWindow). The BYTES column is what proves it: an alias of
+        // (Place.NationalWindow / NationalImage.ReadWindow). The BYTES column is what proves it: an alias of
         // 2n is what the REDEFINES spelling needs and what §2023:14.9.3.4 GR3 allocates.
         { "BWR09", "PIC N(4)", 8, true },
         // ⛔ AND THE OTHER FOUR SPELLINGS §2023:13.18.60.3 SR12 ADMITS — ROWS AT LAST (kb/Work PB646). The

@@ -1168,7 +1168,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// <summary>The argument list from position <paramref name="from"/> on as ONE <c>T[]</c> expression when a
     /// table(ALL) argument is among them (else null — the caller keeps its comma-list form, byte-identical to
     /// before): runs of written operands become array literals, each ALL an <see cref="AllArgsExpr"/>, joined
-    /// in source order by <c>CobolTable.ArgConcat</c> — the ONE array a <c>params T[]</c> body binds to.</summary>
+    /// in source order by <c>CobolTable.ArgConcat</c> — the ONE array a <c>params ReadOnlySpan&lt;T&gt;</c> body takes (kb/Work PB2636).</summary>
     /// <param name="lead">When given, renders the list's FIRST argument (the operand at <paramref name="from"/>, or
     /// the first element that operand's table(ALL) enumerates) — a leading argument with its own intake.</param>
     internal string? ArgArray(BoundIntrinsicCall ic, int from, string csType, Func<BoundOperand, string> render,
@@ -1204,7 +1204,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         if (ic.Args[0] is BoundFieldOperand { Place: TableAllPlace })
         {
             string xs = NextWithVar();
-            return RuntimeApi.With(ArgArray(ic, 0, csType, render, lead)!, xs, RuntimeApi.Intrinsic(method, $"{prefix}{xs}[0], {mid}{xs}[1..]"));
+            return RuntimeApi.With(ArgArray(ic, 0, csType, render, lead)!, xs, RuntimeApi.Intrinsic(method, $"{prefix}{xs}[0], {mid}{xs}.AsSpan(1)"));
         }
         string tail = ArgArray(ic, 1, csType, render) ?? string.Join(", ", ic.Args.Skip(1).Select(render));
         return RuntimeApi.Intrinsic(method, $"{prefix}{(lead ?? render)(ic.Args[0])}, {mid}{tail}");
@@ -1735,11 +1735,13 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         var xs = Operands(ic).ToList();
         int s = xs.Count == 0 ? 0 : xs.Max(x => x.Scale);
         // A table(ALL) argument enumerates (kb/Work PB62): its elements share one scale, so the scales array
-        // enumerates the same ranges with a constant selector.
+        // enumerates the same ranges with a constant selector. A written list is a collection expression the runtime
+        // takes as a ReadOnlySpan, so the values ride the stack and the constant scales static data: no array per
+        // evaluation (kb/Work PB2636).
         string vals = ArgArray(ic, 0, "Int128", a => { var x = num.AsNum(a, NumericArgument); return NumericRenderer.Align(x, x.Scale); })
-                      ?? $"new Int128[] {{ {string.Join(", ", xs.Select(x => NumericRenderer.Align(x, x.Scale)))} }}";
+                      ?? $"[{string.Join(", ", xs.Select(x => NumericRenderer.Align(x, x.Scale)))}]";
         string scales = ArgArray(ic, 0, "int", a => num.AsNum(a, NumericArgument).Scale.ToString())
-                        ?? $"new int[] {{ {string.Join(", ", xs.Select(x => x.Scale))} }}";
+                        ?? $"[{string.Join(", ", xs.Select(x => x.Scale))}]";
         return (vals, scales, s);
     }
 
@@ -1793,8 +1795,8 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         ic.Collate ? $", {ObjectComputerEmit.ProgramCollation}" : ic.CollateNat ? $", {ObjectComputerEmit.NationalProgramCollation}" : "";
 
     /// <summary>The LEADING weights argument for a PCS-flagged MAX/MIN/ORD-MAX/ORD-MIN string form — collate goes
-    /// FIRST (a <c>params string[]</c> can take no trailing param), selecting the <c>MaxString(ushort[]|NationalCollation,
-    /// params string[])</c> overload. The mirror of <see cref="Collate"/>'s trailing form for the single-arg CHAR/ORD.</summary>
+    /// FIRST (a <c>params</c> list can take no trailing param), selecting the <c>MaxString(ushort[]|NationalCollation,
+    /// params ReadOnlySpan&lt;string&gt;)</c> overload. The mirror of <see cref="Collate"/>'s trailing form for the single-arg CHAR/ORD.</summary>
     private static string CollatePrefix(BoundIntrinsicCall ic) =>
         // The MAX/MIN family takes the program's CobolCollation carrier, exactly as CHAR/ORD do (PB101 — the
         // ushort[] raw-table overload is gone; the carrier's Compare is the order-equivalent tail, PB59).
@@ -1899,7 +1901,8 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
                     $"{(ic.ConvertSource == 0 ? StorageArg(ic.Args[0]) : Str(ic.Args[0]))}, "
                     + $"{ic.ConvertSource}, {ic.ConvertDest}, {(ic.ConvertDestHex ? "true" : "false")}"),
             "ModuleName" =>                                                    // §2023:15.65 — the runtime module call-name stack (2023)
-                RuntimeApi.ModuleNameFn(ic.ModuleNameKind),
+                RuntimeApi.ModuleNameFn(ic.ModuleNameKeyword
+                    ?? throw new InvalidOperationException("a MODULE-NAME call bound with no keyword (IntrinsicBinder.BindModuleName binds one)")),
             "FormattedDate" =>                                                 // §2023:15.39 — integer date per a date format (2014)
                 RuntimeApi.DateFn(sig.RuntimeMethod, $"{Str(ic.Args[0])}, {ArgInt(ic.Args[1])}"),
             "FormattedTime" => RenderFormattedTime(ic),                        // §2023:15.41

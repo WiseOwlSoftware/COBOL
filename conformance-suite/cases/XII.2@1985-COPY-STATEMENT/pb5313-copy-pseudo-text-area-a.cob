@@ -4,7 +4,6 @@
       *> accept: [85]
       *> files: [PB5313LB.cpy, PB5313LC.cpy]
       *> source-format: fixed
-      *> portable: unverified
       *>---
       *> §1985:XII.2.4 GR9 (cite.py --check: OK): "Each text word in
       *> pseudo-text-2 that is to be placed into the resultant program

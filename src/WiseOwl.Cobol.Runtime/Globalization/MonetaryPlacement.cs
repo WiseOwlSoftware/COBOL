@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Collections.Immutable;
 using System.Globalization;
 
 namespace WiseOwl.Cobol.Runtime.Globalization;
@@ -37,6 +38,14 @@ public readonly record struct MonetaryConvention(bool CsPrecedes, int SepBySpace
 /// </summary>
 public static class MonetaryPlacement
 {
+    /// <summary>The convention a picture is rendered with: a picture with no currency symbol includes no currency
+    /// string (§2002:13.16.38.3 GR17, the same in 2023), so there is nothing for <c>sep_by_space</c> to separate and
+    /// the space slots are dropped (kb/Work PB5650) — which keeps the edited data right justified
+    /// (§2002:13.16.38.4 GR14). A picture WITH the currency symbol keeps the locale's convention even when the
+    /// locale's currency string is empty.</summary>
+    public static MonetaryConvention ForPicture(MonetaryConvention c, bool pictureHasCurrencySymbol)
+        => pictureHasCurrencySymbol ? c : c with { SepBySpace = 0 };
+
     /// <summary>Lay out one monetary rendering per the POSIX convention — the B.1 shape of the T6 derivation.
     /// When <c>SignPosn</c> is 0 the parentheses ARE the sign and <paramref name="sign"/> is not used; when 3 or 4
     /// the sign is GLUED to the currency string and travels with it, which is what separates
@@ -75,12 +84,12 @@ public static class MonetaryPlacement
 
     /// <summary>The convention for each <see cref="NumberFormatInfo.CurrencyNegativePattern"/> value this runtime
     /// accepts (index = the pattern value; length = the DISCOVERED accepted range, 17 on .NET 10).</summary>
-    public static MonetaryConvention[] NegativeByPattern { get; }
+    public static ImmutableArray<MonetaryConvention> NegativeByPattern { get; }
 
     /// <summary>The (cs_precedes, sep_by_space) pair for each <see cref="NumberFormatInfo.CurrencyPositivePattern"/>
     /// value this runtime accepts. The pair's <c>SignPosn</c> carries the determined constant 1 (see the class doc)
     /// so a <see cref="MonetaryConvention"/> comes out ready to use.</summary>
-    public static MonetaryConvention[] PositiveByPattern { get; }
+    public static ImmutableArray<MonetaryConvention> PositiveByPattern { get; }
 
     static MonetaryPlacement()
     {
@@ -98,7 +107,7 @@ public static class MonetaryPlacement
         NegativeByPattern = Derive(nfi, negative: true);
     }
 
-    private static MonetaryConvention[] Derive(NumberFormatInfo nfi, bool negative)
+    private static ImmutableArray<MonetaryConvention> Derive(NumberFormatInfo nfi, bool negative)
     {
         var table = new List<MonetaryConvention>();
         for (int v = 0; ; v++)

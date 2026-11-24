@@ -64,6 +64,49 @@ public sealed class CobolContiguousLayout(int FixedTotal, int[] FixedAt, int[] U
 {
     private readonly CobolDynStructure?[]? _structure = CobolDynStructure.FromCodes(StructureCodes);
 
+    /// <summary>⛔ THE ONE BUILDER OF A VARIABLE-LENGTH GROUP'S LAYOUT FROM ITS COMPONENT LIST (kb/Work PB2746): a declared
+    /// group's emitted layout field and a cell-backed group's layout (<c>StorageCell</c>) both call it, so the unit rule
+    /// below exists once. <paramref name="runWidth"/> is the group's FIXED run, which holds an OCCURS DEPENDING table of
+    /// fixed-image elements at its maximum. Component k sits at <paramref name="fixedAt"/>[k] of that run;
+    /// <paramref name="tableWidth"/>[k] is its element width when it is a dynamic-capacity table and 0 for a dynamic-length
+    /// item; <paramref name="maxSize"/>[k] is the table's maximum capacity or the item's maximum size in IMAGE characters
+    /// (§2023:8.5.1.10.1: its maximum size in positions, each <see cref="CobolDynStructure.UnitOf"/> its layout code wide, two
+    /// for a national item, kb/Work PB3441); <paramref name="layoutCodes"/>[k] is its layout code (<see cref="CobolDynStructure.Code"/>,
+    /// or its unit alone, <see cref="CobolDynStructure.PlainCode"/>; ISO §2023:12.3.7.4 GR18/GR19; kb/Work PB1094).
+    /// <list type="bullet">
+    /// <item>A table's unit is its element width and its maximum its capacity; a dynamic-length item's unit is the image
+    /// characters of one position and its maximum that many positions of it.</item>
+    /// <item>An OCCURS DEPENDING table of fixed-image elements (<paramref name="odo"/>, <c>Comps</c> zero) is the layout's
+    /// LAST component (§2023:13.18.38.3 SR22: the trailing storage), taken out of the fixed run: one element per unit up to
+    /// its maximum (<see cref="OdoTail.RecordUnit"/>, <see cref="OdoTail.RecordMaxUnits"/>). A table of VARIABLE-LENGTH
+    /// elements stays in the fixed run at its maximum, its components already listed, and the layout cuts both to the
+    /// count a record holds (kb/Work PB2497).</item>
+    /// </list></summary>
+    public static CobolContiguousLayout Of(int runWidth, ReadOnlySpan<int> fixedAt, ReadOnlySpan<int> maxSize,
+                                           ReadOnlySpan<int> layoutCodes, ReadOnlySpan<int> tableWidth, OdoTail odo)
+    {
+        bool tableIsComponent = odo.Present && odo.Comps == 0;
+        int comps = fixedAt.Length, n = comps + (tableIsComponent ? 1 : 0);
+        var at = new int[n];
+        var units = new int[n];
+        var max = new long[n];
+        for (int k = 0; k < comps; k++)
+        {
+            at[k] = fixedAt[k];
+            int unit = tableWidth[k] > 0 ? tableWidth[k] : CobolDynStructure.UnitOf(layoutCodes[k]);
+            units[k] = unit;
+            max[k] = tableWidth[k] > 0 ? maxSize[k] : maxSize[k] / unit;
+        }
+        if (tableIsComponent) { at[comps] = runWidth - odo.Width; units[comps] = odo.RecordUnit; max[comps] = odo.RecordMaxUnits; }
+        int[]? structure = null;
+        if (layoutCodes.ContainsAnyExcept(0))
+        {
+            structure = new int[n];
+            layoutCodes.CopyTo(structure);
+        }
+        return new CobolContiguousLayout(tableIsComponent ? runWidth - odo.Width : runWidth, at, units, max, structure, odo);
+    }
+
     /// <summary>Component k's SPACE in image characters a position (kb/Work PB3441): the unit its layout code names
     /// (<see cref="CobolDynStructure.UnitOf"/>; two for a national item, whose space is the national space, the pair 00 20),
     /// null when no component's code names one. A component's <see cref="Unit"/> is something else for a table (its

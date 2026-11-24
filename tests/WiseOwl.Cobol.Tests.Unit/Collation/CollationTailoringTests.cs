@@ -131,11 +131,11 @@ public sealed class CollationTailoringTests
         Assert.Equal("17.0.0", rules.UcaVersion);
         Assert.Equal("zz", rules.Locale);
         Assert.Equal("zz", rules.Name);
-        Assert.Equal(5, rules.Entries.Count);
+        Assert.Equal(5, rules.Entries.Length);
         Assert.Equal(new CollationElement(0x25718, 0x20, 0x02), rules.Find(0x00F1)!.Elements.Single());
         // Tertiary 0008 is an uppercase weight: the case bit follows the DUCET rule the generator applies (CollationElement.IsUpperTertiary).
         Assert.Equal(new CollationElement(0x25718, 0x20, 0x08, IsVariable: true, Case: ElementCase.Upper), rules.Find(0x00D1)!.Elements.Single());
-        Assert.Equal([0x006E, 0x0303], rules.Find(0x006E, 0x0303)!.CodePoints);
+        Assert.Equal<int>([0x006E, 0x0303], rules.Find(0x006E, 0x0303)!.CodePoints);
         Assert.Equal(3, rules.Find(0x00E6)!.Elements.Length);
         Assert.Equal(0x011F, rules.Find(0x00E6)!.Elements[1].Secondary);
         Assert.Equal(new CollationElement(0x23EC0, 0x20, 0x8, Case: ElementCase.Upper), rules.Find(0x41)!.Elements.Single());

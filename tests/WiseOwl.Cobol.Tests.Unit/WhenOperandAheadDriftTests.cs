@@ -3,6 +3,7 @@
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Parsing;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 
@@ -30,12 +31,10 @@ public sealed class WhenOperandAheadDriftTests
     {
         string path = TestRepo.VersionMatrix("cobol-words.json");
         using var doc = JsonDocument.Parse(File.ReadAllText(path));
-        var field = typeof(CobolLexer).GetField("_reservationGatedTokens",
-            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
-        Assert.NotNull(field);
-        var gated = ((HashSet<int>)field!.GetValue(null)!)
+        var gated = Enumerable.Range(1, CobolLexer._ATN.maxTokenType)
+            .Where(CobolLexerWordSet.IsReservationGated)
             .Select(t => CobolLexer.DefaultVocabulary.GetSymbolicName(t)).ToHashSet(StringComparer.Ordinal);
-        Assert.True(gated.Count > 50, $"only {gated.Count} reservation-gated tokens read — the reflection broke");
+        Assert.True(gated.Count > 50, $"only {gated.Count} reservation-gated tokens read — the vocabulary walk broke");
         return doc.RootElement.GetProperty("words").EnumerateArray()
             .Where(e => e.GetProperty("nameSlot").GetBoolean())
             .Select(e => e.GetProperty("token").GetString()!)

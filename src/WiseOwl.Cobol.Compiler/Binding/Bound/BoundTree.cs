@@ -230,7 +230,7 @@ public sealed record BoundDeclarative(
     int? ModeIndex,
     bool Global,
     ReportGroupModel? ReportGroup = null,
-    IReadOnlyList<(string Ec, FileModel? File)>? EcEntries = null,
+    IReadOnlyList<BoundExceptionSelector>? EcEntries = null,
     BoundEoOperand? Eo = null)
 {
     /// <summary>Is <paramref name="pc"/> a paragraph of THIS declarative section — the "am I binding inside this
@@ -242,8 +242,8 @@ public sealed record BoundDeclarative(
     public bool Contains(int pc) => !Range.IsEmpty && pc >= Range.Start && pc <= Range.End;
 }
 // EcEntries: the Format-3 scope (ISO §2023:14.9.49.2 — USE AFTER {EXCEPTION CONDITION | EC} {ec-name [FILE f]…}…):
-// each pair is one (exception-name, optional file) selection entry, consumed by the generated __EcDispatch
-// selector's GR3c–g tiers. Null for Format 1/2 declaratives; an F3 declarative has empty Files / null ModeIndex,
+// each entry is one (exception-name, optional file) selector carrying its GR3 tier (BoundExceptionSelector, the shape a
+// Format-3 PERFORM WHEN operand shares), consumed by the generated __EcDispatch selector's GR3c–g tiers. Null for Format 1/2 declaratives; an F3 declarative has empty Files / null ModeIndex,
 // so the F1 __IoCheck switches naturally exclude it.
 // Eo: Format 4's ONE operand (USE AFTER {EXCEPTION OBJECT | EO} {object-class-name-1 | interface-name-1},
 // §2023:14.9.49.2 — the EC-OO wave). See BoundEoOperand: the two alternatives are ONE discriminated value, never
@@ -664,9 +664,9 @@ public sealed record BoundIntrinsicCall(
     /// <summary>CONVERT (§2023:15.19.2): the HEX destination modifier (§2023:15.19.4 RV2/r4). False for every other function.</summary>
     public bool ConvertDestHex { get; init; }
 
-    /// <summary>MODULE-NAME (§2023:15.65.2): the keyword selector — 0 = CURRENT (r7), 1 = ACTIVATING (r5/r6),
-    /// 2 = NESTED (r8), 3 = STACK (r9), 4 = TOP-LEVEL (r10). Zero for every other function.</summary>
-    public int ModuleNameKind { get; init; }
+    /// <summary>MODULE-NAME (§2023:15.65.2): the keyword argument, the runtime's own type (kb/Work PB2742). Null for every other
+    /// function.</summary>
+    public ModuleNameKeyword? ModuleNameKeyword { get; init; }
 }
 
 // ── General operands (DISPLAY / MOVE source / comparison) — render as string or number per context ─────────────
@@ -886,12 +886,8 @@ public sealed record BoundAllLiteral(string Literal) : BoundOperand
     public static BoundAllLiteral Of(string rawLiteral) =>
         new(WiseOwl.Cobol.Common.CobolLiteral.Decode(rawLiteral))
         {
-            Category = WiseOwl.Cobol.Common.CobolLiteral.ClassOf(rawLiteral) switch
-            {
-                WiseOwl.Cobol.Common.LiteralClass.National => PicCategory.National,
-                WiseOwl.Cobol.Common.LiteralClass.Boolean => PicCategory.Boolean,
-                _ => PicCategory.Alphanumeric,
-            },
+            Category = WiseOwl.Cobol.Common.CobolLiteral.ClassOf(rawLiteral) is { } cls
+                ? WiseOwl.Cobol.Binding.ConcatFolder.CategoryOf(cls) : PicCategory.Alphanumeric,
         };
 
     /// <summary>The ALL figurative over a literal-1 already folded by <see cref="WiseOwl.Cobol.Binding.ConcatFolder.FoldAllLiteral"/>
@@ -1154,7 +1150,7 @@ public abstract record BoundStatement
     /// falls back into that statement and never writes a <c>goto</c> (which a lambda cannot hold): the statement
     /// emitter opens <c>DispatchState.OperandEvaluation</c> around it, and the ONE landing
     /// (<c>DispatchState.ResumeTransfer</c>) unwinds to the carrying statement's <see cref="BoundActivationSite"/>.
-    /// Set at exactly two places — <c>UdfBinder.DrainPending</c> and <c>OoBinder.OoWrapPropertyOps</c> — never by a
+    /// Set at exactly two places — <c>OperandEvaluationWindow.DrainPending</c> and <c>OoBinder.OoWrapPropertyOps</c> — never by a
     /// construction site remembering to.</summary>
     public bool OperandEvaluation { get; init; }
 
@@ -1237,12 +1233,13 @@ public sealed record BoundRejected : BoundStatement
 
     private BoundRejected(string? code) => Code = code;
 
-    /// <summary>For a refused SORT or MERGE whose sort-merge file was resolved: that file. The statement's INPUT/OUTPUT PROCEDURE ranges are
-    /// unknown once it is refused, so the placement of a RELEASE or RETURN of the file cannot be judged (kb/Work PB5496).</summary>
-    public FileModel? RefusedSortMergeFile { get; private init; }
+    /// <summary>For a refused SORT or MERGE whose sort-merge file was resolved: the file and the INPUT/OUTPUT PROCEDURE ranges the refusal
+    /// left (kb/Work PB5496, PB6068). The refused statement is never a <see cref="BoundSort"/>/<see cref="BoundMerge"/>, so the placement of
+    /// a RELEASE or RETURN written in those ranges cannot be judged against it; one written elsewhere still can.</summary>
+    public RefusedSortMerge? RefusedSortMerge { get; private init; }
 
-    /// <summary>This refusal, marked as the refusal of a SORT or MERGE statement for <paramref name="file"/>.</summary>
-    public BoundRejected RefusingSortMergeFile(FileModel file) => this with { RefusedSortMergeFile = file };
+    /// <summary>This refusal, marked as the refusal of a SORT or MERGE statement.</summary>
+    public BoundRejected RefusingSortMerge(RefusedSortMerge refused) => this with { RefusedSortMerge = refused };
 
     /// <summary>A refusal whose diagnostic a CALLEE already reported — a file-name or procedure-name resolution, an
     /// operand screen, a placement rule (kb/Work PB1029: ~100 sites wrote <c>return new BoundNop();</c> after such a
@@ -1284,6 +1281,14 @@ public sealed record BoundRejected : BoundStatement
         return new BoundRejected(rule.Code);
     }
 }
+
+/// <summary>⛔ WHAT A REFUSED SORT OR MERGE KEEPS OF ITS PROCEDURE PHRASES (kb/Work PB5496, PB6068): the sort-merge <paramref name="File"/>,
+/// and for each of its INPUT and OUTPUT PROCEDURE phrases the pc range its names resolve to when they resolve
+/// (<paramref name="Input"/>, <paramref name="Output"/>), else that the phrase was written and could not be resolved
+/// (<paramref name="InputUnresolved"/>, <paramref name="OutputUnresolved"/>). A RELEASE or RETURN in a resolved range is judged as the
+/// statement's own procedure would be (§1985:XI.4.2.3 SR2, §1985:XI.4.3.3 SR3); only a phrase that names no procedure leaves the
+/// file's uses of that direction unjudgeable, since the range they would stand in is unknown.</summary>
+public sealed record RefusedSortMerge(FileModel File, PcRange? Input, PcRange? Output, bool InputUnresolved, bool OutputUnresolved);
 
 /// <summary>The STOP RUN / GOBACK termination status phrase (ISO §2023:14.9.42 / §2023:14.9.18.2 — COBOL-2002 on STOP,
 /// COBOL-2023 on GOBACK): <c>WITH {ERROR | NORMAL} STATUS [value]</c>. <paramref name="Error"/> selects the OS
@@ -1608,12 +1613,12 @@ public sealed record SizeErrorPhrase(IReadOnlyList<BoundStatement>? OnError, IRe
 /// — the statements that OWN their size error condition: <c>ArithmeticEmitter.EmitArith</c> wraps their evaluation
 /// and stores in the §2023:14.7.5 shape (the SIZE ERROR phrase, the EC-SIZE handling, the fatal default), so the generic
 /// EC-SIZE statement guard skips them (kb/Work PB75 — otherwise a size error dispatched by the statement would be
-/// dispatched again by the guard). A structural marker, not a name list: a new arithmetic statement declares it with
-/// its <see cref="SizeError"/> and is excluded by construction (<c>EcSizeGuardDriftTests</c> holds the two in step).</summary>
-public interface IArithmeticStatement
-{
-    SizeErrorPhrase? SizeError { get; }
-}
+/// dispatched again by the guard). A structural marker, not a name list: a new arithmetic statement declares it beside
+/// its <see cref="SizeErrorPhrase"/> member and is excluded by construction. The marker carries no member: its only
+/// reader is a type test (<c>EcEmitter</c>'s <c>ec.Inner is IArithmeticStatement</c>), every consumer of the phrase reads
+/// the concrete node's own <c>SizeError</c>, and <c>EcSizeGuardDriftTests</c> holds marker and phrase in step in both
+/// directions (kb/Work PB2130).</summary>
+public interface IArithmeticStatement;
 
 /// <summary><c>ADD addends TO targets</c> — each target ← target + Σ addends.</summary>
 public sealed record BoundAddTo(IReadOnlyList<BoundExpr> Addends, IReadOnlyList<Receiver> Targets, SizeErrorPhrase? SizeError) : BoundStatement, IArithmeticStatement;
@@ -2327,7 +2332,7 @@ public sealed record BoundWrite(FileModel File, Place Record, BoundMove? FromMov
 /// enforced on the keyed arm only) and no INVALID KEY phrase (so a <c>NOT INVALID KEY</c> block was compiled
 /// away) — kb/Work PB334. The drift test that keeps this true for the next phrase is PB340.</para></summary>
 public sealed record BoundRead(
-    FileModel File, BoundMove? IntoMove, IReadOnlyList<BoundStatement>? AtEnd, IReadOnlyList<BoundStatement>? NotAtEnd, string? Unsupported) : BoundStatement, IBoundRead, IBoundImplicitOperands, IBoundIntoPhrase
+    FileModel File, BoundMove? IntoMove, IReadOnlyList<BoundStatement>? AtEnd, IReadOnlyList<BoundStatement>? NotAtEnd, string? Unsupported) : BoundStatement, IBoundImplicitOperands, IBoundIntoPhrase
 {
     /// <summary>The record area the implicit INTO move sends is the verb's own, not an operand the program wrote (X3.23-1985 USE FOR
     /// DEBUGGING general rule 5: "explicitly references"); the INTO identifier is written.</summary>

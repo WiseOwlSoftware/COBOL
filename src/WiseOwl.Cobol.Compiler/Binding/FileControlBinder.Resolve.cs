@@ -207,7 +207,9 @@ public sealed partial class FileControlBinder
             + "is a table element reference, which "
             + (Edition.Edition.Cite(
                 $"must be subscripted, and data-name-1 is written without a subscript ({ClauseOperandRules1985.TableElementSubscripted.Citation})",
-                "shall be subscripted, and data-name-1 is written without a subscript (ISO §2023:8.4.2.3.3 SR5)")));
+                "shall be subscripted, and data-name-1 is written without a subscript (ISO §2023:8.4.2.3.3 SR5)",
+                y2002: "shall be subscripted, and data-name-1 is written without a subscript (ISO §2002:8.4.1.2.2 SR5)",
+                y2014: "shall be subscripted, and data-name-1 is written without a subscript (ISO §2014:8.4.1.2.2 SR5)")));
         return false;
     }
 
@@ -275,7 +277,7 @@ public sealed partial class FileControlBinder
     /// <summary>Which conjunct of §2023:12.4.5.8.3 SR2 the FILE STATUS item breaks, as the phrase the diagnostic prints;
     /// null when it satisfies all three (category, size, section) — asked in the rule's own word order.</summary>
     private string? FileStatusShapeFault(DataItem item) =>
-        !ItemCategory.IsAlphanumeric(item) ? $"{ItemCategory.Face(item)}, not of the category alphanumeric"
+        !ItemCategory.IsAlphanumeric(item, Edition.Edition) ? $"{ItemCategory.Face(item)}, not of the category alphanumeric"
         : DataItem.HasOdoOnOrBeneath(item) ? "a group whose size an OCCURS DEPENDING ON clause varies, not a two-character data item"
         : item.ByteWidth != 2 ? $"{item.ByteWidth} character position{(item.ByteWidth == 1 ? "" : "s")} long, not a two-character data item"
         : item.Section is { } s and not (EntrySection.WorkingStorage or EntrySection.LocalStorage or EntrySection.Linkage)
@@ -340,8 +342,8 @@ public sealed partial class FileControlBinder
     {
         // A SOURCE-form key has the class and category of data-name-2 (§2023:12.4.5.6.3 SR6), and its character positions
         // are its segments' (GR2's concatenation) — SR2 makes every segment the same category, so one unit applies.
-        if (operand is null || !ItemCategory.IsAlphanumericOrNational(key.CategorySource)) return null;
-        bool national = !ItemCategory.IsAlphanumeric(key.CategorySource);
+        if (operand is null || !ItemCategory.IsAlphanumericOrNational(key.CategorySource, Edition.Edition)) return null;
+        bool national = !ItemCategory.IsAlphanumeric(key.CategorySource, Edition.Edition);
         int positions = RecordLayout.ItemSize(key.Segments.Aggregate(0L, (sum, s) => RecordLayout.Plus(sum, s.ByteWidth / (s.OperandPic?.BytesPerPosition ?? 1))));   // the ONE unit reader (kb/Work PB546)
         var category = national ? PicCategory.National : PicCategory.Alphanumeric;
         string value = operand.Form switch
@@ -427,6 +429,11 @@ public sealed partial class FileControlBinder
         : pic.Signed ? "a signed numeric data item, not an unsigned one"
         : null;
 
+    /// <summary>The citation of ASSIGN USING's data-name-1 rule in the edition compiled: "Data-name-1 shall reference an alphanumeric data
+    /// item and shall not be subordinate to the file description entry for file-name-1" (§2002:12.3.4.2 SR7, §2014:12.4.4.2 SR7,
+    /// §2023:12.4.5.2 SR7); the clause has no COBOL-85 form, so the row of COBOL-85 is the 2023 one (kb/Work PB5871).</summary>
+    private string AssignUsingRule => Edition.Edition.CiteRule("§2023:12.4.5.2 SR7", "§2023:12.4.5.2 SR7", "§2002:12.3.4.2 SR7", "§2014:12.4.4.2 SR7");
+
     /// <summary>
     /// Resolve the ASSIGN … USING data-name-1 (ISO §2023:12.4.5.3 GR3 b — dynamic file assignment, §2023:9.1.21) and enforce
     /// §2023:12.4.5.2 SR7, <i>"Data-name-1 shall reference an alphanumeric data item and shall not be subordinate to the
@@ -463,12 +470,12 @@ public sealed partial class FileControlBinder
         bool ambiguous = false;
         DataItem? item = counter ?? _host.UniqueOrReportAmbiguous(candidates, "ASSIGN USING", written, out ambiguous);
         if (ambiguous && item is null) return;
-        if (item is null || !ItemCategory.IsAlphanumeric(item))
+        if (item is null || !ItemCategory.IsAlphanumeric(item, Edition.Edition))
         {
             Edition.Error(DiagnosticCatalog.AssignUsingNotAlphanumeric,
                 $"file '{file.SelectName}': ASSIGN … USING '{dynName}' shall reference an alphanumeric data item "
                 + (item is null ? "and no such data item is described" : $"— '{dynName}' is {ItemCategory.Face(item)}")
-                + " (ISO §2023:12.4.5.2 SR7)");
+                + $" ({AssignUsingRule})");
             return;
         }
         // "shall not be subordinate to the file description entry for file-name-1" — subordinate means anywhere
@@ -478,7 +485,7 @@ public sealed partial class FileControlBinder
         {
             Edition.Error(DiagnosticCatalog.AssignUsingInOwnRecord,
                 $"file '{file.SelectName}': ASSIGN … USING '{dynName}' shall not be subordinate to the file "
-                + $"description entry for '{file.SelectName}' (ISO §2023:12.4.5.2 SR7)");
+                + $"description entry for '{file.SelectName}' ({AssignUsingRule})");
             return;
         }
         file.AssignUsingItem = item;

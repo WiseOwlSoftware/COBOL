@@ -7,6 +7,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// program) raises it; the raising program's activation entry catches it and returns control to the activator.
 /// In a MAIN program the activation entry is the run-unit wrapper, so a main-program GOBACK terminates the run
 /// unit (§2023:14.9.18.4 GR3 — GOBACK in a main program acts as a STOP statement). Distinct from <see cref="StopRun"/>,
-/// which unwinds the WHOLE run unit from anywhere (§2023:14.9.42.4 GR1).
+/// which unwinds the WHOLE run unit from anywhere (§2023:14.9.42.4 GR1). Thrown only below a dispatch frame that does not
+/// test for the direct form, <see cref="ElementReturn.Returned"/> (kb/Work PB6140).
 /// </summary>
 public sealed class ProgramReturn : Exception;

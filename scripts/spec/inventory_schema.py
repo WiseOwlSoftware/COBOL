@@ -47,7 +47,6 @@ import git_batch  # noqa: E402  (scripts/: one git process for many objects)
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
 SCHEMA_REL = "tests/version-matrix/inventory-schema.json"
-SCHEMA_PATH = REPO / SCHEMA_REL
 # The IMPLEMENTOR-DEFINED ELEMENT REGISTER is docs/CONFORMANCE.md §7, whose rows are keyed by the inventory rule-id
 # `DOC-A.1-<n>` because `kinds.DOC.anchor-template` computes that key as the row's own anchor; `conformance_source.py` is the
 # one reader of it (kb/Work PB5395). An item's FURTHER determinations are keyed by that id plus a letter (`DOC-A.1-92b`,
@@ -122,6 +121,15 @@ class NotReadAhead(RuntimeError):
 
 
 WORKING_TREE = Tree()
+
+
+def raw_schema(tree: Tree = WORKING_TREE) -> dict[str, Any] | None:
+    """THE ONE PARSE OF THE INVENTORY SCHEMA (DESIGN-architecture-review §8.2 rule 7; kb/Work PB3206, PB6098): the JSON of
+    `SCHEMA_REL` as `tree` has it, a fresh dict on every call (so a self-test may plant an entry in it and build a `Schema`
+    of it), or None when the tree has no schema file. `load_schema` and every script that needs the raw entries call this;
+    none opens or parses the file itself, and the RULE 7 drift test (scripts/selftests/spec/inventory_schema/) holds them
+    to it."""
+    return tree.json(SCHEMA_REL)
 
 
 @dataclasses.dataclass(frozen=True)
@@ -279,7 +287,9 @@ def change_record_of(raw: dict[str, Any]) -> ChangeRecord:
     return ChangeRecord(frozenset(spec["keys"]), tuple(spec["verdict-fields"]), kinds)
 
 
-_RAW_SCHEMA: dict[str, Any] = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
+_RAW_SCHEMA: dict[str, Any] | None = raw_schema()
+if _RAW_SCHEMA is None:
+    raise SystemExit(f"inventory schema not found: {SCHEMA_REL} in {REPO}")
 #: Every edition, oldest first (the schema's `editions.of`); `HELD` are the years of those with a catalog and a store, and
 #: `NEWEST` is the newest of them, whose rows carry the `editions` band.
 EDITIONS: tuple[Edition, ...] = editions_of(_RAW_SCHEMA)
@@ -1547,7 +1557,7 @@ def read_view_ahead(tree: Tree) -> Tree:
 
 def load_schema(tree: Tree = WORKING_TREE) -> Schema:
     """The schema as `tree` has it (the working tree by default)."""
-    raw = tree.json(SCHEMA_REL)
+    raw = raw_schema(tree)
     if raw is None:
         raise SystemExit(f"inventory schema not found: {SCHEMA_REL} in {tree.rev or tree.root}")
     try:

@@ -2928,14 +2928,13 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             return false;
         }
         // §2023:13.18.49.3 SR1: data-name-1 shall not be SUBJECT TO any OCCURS clause (no table ancestor — the
-        // reference is a bare data-name, never subscripted).
-        for (var p = target.Parent; p is not null; p = p.Parent)
-            if (p.IsTable)
-            {
-                Edition.Error(DiagnosticCatalog.SameAsReferencedEntry, $"'{subject}': SAME AS target "
-                    + $"'{targetName}' shall not be subject to any OCCURS clause (ISO §2023:13.18.49.3 SR1)");
-                return false;
-            }
+        // reference is a bare data-name, never subscripted). RecordLayout.OccursSubjectOf asks it (kb/Work PB3217).
+        if (target.Parent is { } parent && RecordLayout.OccursSubjectOf(parent) is not null)
+        {
+            Edition.Error(DiagnosticCatalog.SameAsReferencedEntry, $"'{subject}': SAME AS target "
+                + $"'{targetName}' shall not be subject to any OCCURS clause (ISO §2023:13.18.49.3 SR1)");
+            return false;
+        }
         // §2023:13.18.49.3 SR10: data-name-1's description shall not contain a CONSTANT RECORD clause.
         if (target.IsConstantRecord)
         {
@@ -4519,7 +4518,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // band is exhausted, the 1521 precedent). Violations clear the flag so the item binds as ordinary storage
         // under an already-failed compile (the IsBased discipline). The SR2/SR3/SR4 PLACEMENT rules (linkage-only,
         // elementary, unit kind, formal/RETURNING reference) need unit-level facts and live in the post-bind
-        // sweeps: AnyLengthValidateUnit (program/function/object paths) and Oo.BindMethodData (methods).
+        // sweep: ProcedureHeaderBinder.SweepAnyLength, called by Linkage.CallBindLinkage (program/function/object paths) and Oo.BindMethodData (methods).
         if (isAnyLength)
         {
             // §2023:13.18.2.3 SR1: a PICTURE clause shall be specified, and its character-string shall be ONE
@@ -4876,7 +4875,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         if (op.nonNumericLiteral() is { } nn)
             // ALL cobolWord is the ONE word-bearing figurative alternative: Format 7 (§2023:8.3.3.6.2), whose word SR4
             // requires to be declared in SYMBOLIC CHARACTERS, or Format 6 over a constant-name literal-1 (§2023:13.10.3
-            // SR2 — kb/Work PB1627). Every other alternative — STRINGLIT / NATLIT / BOOLLIT / HEXLIT, a concatenation
+            // SR2 — kb/Work PB1627). Every other alternative — a quotedLiteral, a concatenation
             // expression, ALL literal-1, and the keyword figuratives ZERO / SPACE / HIGH-VALUE / LOW-VALUE / QUOTE —
             // is a literal by shape. The predefined NULL is NOT: it is an identifier (§2023:8.4.3.1.2 Format 8), and
             // §2023:8.4.3.10.3 SR1 names no VALUE clause among the places it may be written (kb/Work PB1427 / PB939 —
@@ -4932,7 +4931,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
 
     /// <summary>The VALUE operands this binder has already diagnosed — one report per source operand even when
     /// two callers read the same node (<see cref="ExtractValue"/> screens a THRU range or a glued literal list
-    /// that <see cref="RawValueOperandText"/> may also visit). The <c>ReferenceResolver.Diagnosed</c>
+    /// that <see cref="RawValueOperandText"/> may also visit). The <see cref="ReferenceReports"/>
     /// shape.</summary>
     private readonly HashSet<Core.ValueClauseOperandContext> _valueOperandDiagnosed = [];
 
@@ -5839,7 +5838,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // and D-N1 pins two), and that is now the window's own geometry: the class walk advances by the
         // member's STORAGE extent (BitLayout.RunBits → WidthBits → ElementaryByteWidth, already 2n for
         // national), the class width is the members' maximum ByteWidth, and Place.NationalWindow transcodes the
-        // pair through CobolBits.NatReadWindow/NatWriteWindow — the same UTF-16BE serialization CONVERT's
+        // pair through NationalImage.ReadWindow/NatWriteWindow — the same UTF-16BE serialization CONVERT's
         // raw-storage channel and FUNCTION BYTE-LENGTH already answer with.
         // ⛔ ONE PREDICATE, because the gate and the geometry must not be able to disagree about WHICH leaves
         // are national. The two spellings are the CATEGORY (PIC N / USAGE NATIONAL) and the national-form

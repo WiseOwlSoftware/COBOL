@@ -1343,7 +1343,7 @@ internal sealed class StatementValidation(DataBinder data)
         // BOTH halves of arm b), and the FIRST offender of each is kept so the message names WHICH item failed
         // rather than restating the rule. identifier-1 is reported in preference to a record: it is the operand
         // the programmer chose, and a record-name they may not have written.
-        DataItem? badRecord = file.Records.FirstOrDefault(r => !AdmitsIntoRecord(r));
+        DataItem? badRecord = file.Records.FirstOrDefault(r => !AdmitsIntoRecord(r, data.Edition.Edition));
         bool badReceiver = !AdmitsIntoOperand(receiver, data.Edition.Edition);
         if (badRecord is null && !badReceiver) return true;
 
@@ -1379,7 +1379,7 @@ internal sealed class StatementValidation(DataBinder data)
     /// alphanumeric or category national", which is exactly <see cref="ItemCategory.IsAlphanumericOrNational"/>:
     /// its group arm IS §2023:13.18.29.4 GR3's alphanumeric group item and its national arm covers both the elementary
     /// national item and the GR2 b) national group. Never a second category walk.</summary>
-    private static bool AdmitsIntoRecord(DataItem item) => ItemCategory.IsAlphanumericOrNational(item);
+    private static bool AdmitsIntoRecord(DataItem item, EditionInfo edition) => ItemCategory.IsAlphanumericOrNational(item, edition);
 
     /// <summary>How identifier-1 names itself in these two diagnostics.</summary>
     private static string ReceiverFace(Place p) => p.Item.CobolName ?? p.Item.ClrName;

@@ -43,7 +43,7 @@ internal static class RecordLayout
     /// in them. Any other group is an alphanumeric group (§2023:8.5.2.1: "an alphanumeric group item has class and
     /// category alphanumeric"), moved "exactly as if it were an alphanumeric to alphanumeric elementary move"
     /// (§2023:14.9.25.4 GR4) — a string of STORAGE characters, in which a national position occupies
-    /// <c>CobolBits.BytesPerNational</c> of them (§2023:13.18.60.4 GR8, pinned by D-N1). Counting the national leaf once
+    /// <c>NationalImage.BytesPerNational</c> of them (§2023:13.18.60.4 GR8, pinned by D-N1). Counting the national leaf once
     /// there made a group MOVE copy fewer characters than the sending group's image holds, so the trailing
     /// members were lost (kb/Work PB1665: <c>MOVE G5 TO G6</c> left <c>B</c> as spaces). Every consumer of a group's
     /// character-image width — MOVE, the receiving store, the boundary windows, ref-mod positions, LENGTH folds,
@@ -296,7 +296,7 @@ internal static class RecordLayout
     {
         if (child.Class is { Tier: RedefinesTier.StringCanonical } cls && cls.Members.Contains(child))
             return child.IsCanonical ? cls.Width : 0;
-        if (child.Class is { Tier: RedefinesTier.Alias } alias && alias.Members.Contains(child) && !child.IsCanonical)
+        if (child.IsAliasView)
             return 0;
         if (child.RedefinesTargetName is not null) return 0;
         return Times(ExactPhysicalOccurrenceWidth(child), child);
@@ -633,12 +633,8 @@ internal static class RecordLayout
     /// Format-4 dynamic-capacity alike), so the test is <see cref="DataItem.IsTable"/>, never <c>Occurs</c> alone:
     /// <c>Occurs</c> is null for a dynamic-capacity table, and asking it let an item under OCCURS DYNAMIC pass every
     /// "subject to an OCCURS clause" rule (kb/Work PB1273's sweep; the CONTROL SR3 arm fell into the same trap).</summary>
-    public static DataItem? OccursSubjectOf(DataItem item)
-    {
-        for (var p = item; p is not null; p = p.Parent)
-            if (p.IsTable) return p;
-        return null;
-    }
+    /// <remarks>The innermost of SR3's levels (<see cref="DataItem.SubscriptLevels"/>, the one walk, kb/Work PB877, PB3217).</remarks>
+    public static DataItem? OccursSubjectOf(DataItem item) => item.SubscriptLevels() is [.., var innermost] ? innermost : null;
 
     /// <summary>The item's 01 record description entry is one of <paramref name="file"/>'s records — ISO
     /// §2023:14.9.41.3 SR6b 1.'s <i>"within a record of the file"</i>, and the same predicate the file control

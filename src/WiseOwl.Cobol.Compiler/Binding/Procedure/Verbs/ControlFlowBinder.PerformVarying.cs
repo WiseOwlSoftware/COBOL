@@ -192,14 +192,14 @@ internal sealed partial class ControlFlowBinder
         var from = BindVaryingOperand(ops[0], firstLevel ? VaryingSlot.FirstFrom : VaryingSlot.AfterFrom);
         var by = ops.Length > 1 ? BindVaryingOperand(ops[1], VaryingSlot.By) : OmittedBy;
         CheckVaryingOperandRules(dref, var, from, by);
-        var untilMark = host.Udf.Mark;
+        var untilMark = host.Window.Mark;
         // The varying-phrase prints `UNTIL condition-1` / `UNTIL condition-2`: an EXIT here is the superset
         // spelling CheckUntilExitPlacement has already refused under §2023:14.9.28.3 SR8 (COBOL2954), so the level
         // carries a refused condition rather than a loop the program never asked for.
         var cond = until.condition() is { } c
             ? host.Cond.BindCondition(c)
             : host.Cond.Refused("an UNTIL EXIT in the varying-phrase (ISO §2023:14.9.28.3 SR8)");
-        return new VaryingLevel(var, from.Expr, by.Expr, host.Udf.UdfAttachPerEvaluation(cond, untilMark), from.Kind);
+        return new VaryingLevel(var, from.Expr, by.Expr, host.Window.AttachPerEvaluation(cond, untilMark), from.Kind);
     }
 
     /// <summary>Bind ONE operand of the varying phrase and classify it against the brace group §2023:14.9.28.2 prints.
@@ -209,7 +209,7 @@ internal sealed partial class ControlFlowBinder
     /// reaches the ONE numeric-context literal reading instead of failing to parse at all.</para></summary>
     private VaryingOperand BindVaryingOperand(Core.ValueOperandContext op, VaryingSlot slot)
     {
-        var mark = host.Udf.Mark;
+        var mark = host.Window.Mark;
         // §2023:14.9.28.3 SR3 is the rule that closes THIS operand list, so a non-numeric literal is sent to it
         // rather than to §2023:8.8.1.1 alone. PERFORM VARYING is a §2023:13.18.38.3 SR7 index-name window (kb/Work R29) but
         // not on §2023:13.18.60.3 SR10's index-data-item list, and §2023:14.9.28.3 SR2 wants a numeric item (kb/Work PB215).
@@ -218,7 +218,7 @@ internal sealed partial class ControlFlowBinder
                 "\"Each literal shall be numeric\" (ISO §2023:14.9.28.3 SR3)"));
         // GR12's window, applied before anything else can read the operand: an operand whose setting/augmenting
         // operation repeats carries its function activations to that operation (kb/Work PB437).
-        if (IsPerEvaluationWindow(slot)) e = host.Udf.UdfAttachPerEvaluation(e, mark);
+        if (IsPerEvaluationWindow(slot)) e = host.Window.AttachPerEvaluation(e, mark);
 
         // As written (kb/Work PB3961): GetText() would spell a ZERO the rewriter made arithmetic as its token text "0".
         string text = WrittenSource.Of(op);

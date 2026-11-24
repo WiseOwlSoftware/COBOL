@@ -403,24 +403,73 @@
    ],
    "why": "the EXCEPTION-STATEMENT function, §2002:15.27, whose returned values RV1 and RV2 are 31 characters at 2002 (kb/Work PB5698, PB5717, VCR row 7.117)"
   },
+  "flow-global-exit-is-never-set": {
+   "sections": [
+    "14.8.13",
+    "14.8.17"
+   ],
+   "why": "the EXIT statement, §2002:14.8.13 (GR2 sets EC-FLOW-GLOBAL-EXIT for an EXIT within the range of a GLOBAL declarative), and the GOBACK statement, §2002:14.8.17 (GR3 and GR4 make a GOBACK in a function or method that EXIT), where §2023 states no rule that sets it (kb/Work PB5715, VCR row 7.118)"
+  },
+  "float-edited-picture-wide-bounds": {
+   "sections": [
+    "13.16.38"
+   ],
+   "why": "the PICTURE clause, §2002:13.16.38, whose floating-point exponent (GR12) is three digits and whose digit positions (SR6) are 1 through 31 at 2002 (kb/Work PB5712, VCR row 7.119)"
+  },
+  "address-of-subordinate-strong-group-needs-no-own-type-clause": {
+   "sections": [
+    "8.4.2.11.2"
+   ],
+   "why": "the data-address-identifier's syntax rules, §2002:8.4.2.11.2, whose SR4 requires a strongly-typed group item to be defined with its own TYPE clause referencing a STRONG declaration, a rule §2023:8.4.3.11.3 drops (kb/Work PB5705, VCR row 7.125)"
+  },
+  "constant-length-subscripts-are-literals": {
+   "sections": [
+    "13.9"
+   ],
+   "why": "the constant entry, §2002:13.9, whose SR3 says only that data-name-1 and data-name-2 may be qualified, so a subscript of the LENGTH OF / BYTE-LENGTH OF operand is an ordinary one at 2002 (kb/Work PB5709, VCR row 7.121)"
+  },
+  "implied-dollar-currency-clause": {
+   "sections": [
+    "12.2.6"
+   ],
+   "why": "the CURRENCY SIGN clause of the SPECIAL-NAMES paragraph, §2002:12.2.6, whose SR24 asks the class of a written literal-7 only and implies no '$' clause at 2002 (kb/Work PB5614, VCR row 7.120)"
+  },
+  "call-restricted-pointer-signature-same": {
+   "sections": [
+    "14.8.4"
+   ],
+   "why": "the CALL statement, §2002:14.8.4, whose GR7 lets program-prototype-name-1 decide the called program's characteristics and asks no agreement with a restricted program-pointer's prototype at 2002 (kb/Work PB5714, VCR row 7.121)"
+  },
+  "call-any-length-operand-rule-by-format": {
+   "sections": [
+    "14.8.4"
+   ],
+   "why": "the CALL statement, §2002:14.8.4, whose SR10 (ALL FORMATS) forbids an ANY LENGTH identifier-2, identifier-3 and identifier-4 in every format at 2002 (kb/Work PB5611, VCR row 7.122)"
+  },
   "test-numval-c-imports-numval-c-argument-rules": {
    "sections": [
     "15.55",
     "15.76"
    ],
-   "why": "TEST-NUMVAL-C, §2002:15.76, states its own argument rules at 2002 (argument-1 of class alphanumeric or national, argument-2 of the same class, AR1 and AR2) where §2014:15.87.2 AR1 and §2023:15.94.3 AR1 import NUMVAL-C's, §2002:15.55.2 (kb/Work PB5721, VCR row 7.118)"
+   "why": "TEST-NUMVAL-C, §2002:15.76, states its own argument rules at 2002 (argument-1 of class alphanumeric or national, argument-2 of the same class, AR1 and AR2) where §2014:15.87.2 AR1 and §2023:15.94.3 AR1 import NUMVAL-C's, §2002:15.55.2 (kb/Work PB5721, VCR row 7.126)"
   },
   "floating-literal-wide-limits": {
    "sections": [
     "8.3.1.2.2.2"
    ],
-   "why": "the floating-point numeric literal, §2002:8.3.1.2.2.2, items 2 and 3, whose significand is 1 through 31 digits and whose exponent has at most three digits at 2002 where 2014 and 2023 allow 36 and four (kb/Work PB5613, PB6039, VCR row 7.119)"
+   "why": "the floating-point numeric literal, §2002:8.3.1.2.2.2, items 2 and 3, whose significand is 1 through 31 digits and whose exponent has at most three digits at 2002 where 2014 and 2023 allow 36 and four (kb/Work PB5613, PB6039, VCR row 7.127)"
   },
   "indexed-read-previous-after-open-at-end": {
    "sections": [
     "14.8.29"
    ],
    "why": "the READ statement, §2002:14.8.29"
+  },
+  "relative-read-previous-after-open-compares-fpi": {
+   "sections": [
+    "14.8.29"
+   ],
+   "why": "the READ statement, §2002:14.8.29, whose GR18c2 compares 'less than or equal to' the file position indicator for PREVIOUS after an OPEN, where §2023 relative rule b) ignores the direction (kb/Work PB5742, VCR row 7.123)"
   },
   "relative-write-key-out-of-range-permanent-error": {
    "sections": [

@@ -27,7 +27,7 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
         var opens = new List<BoundOpenFile>();
         foreach (var clause in o.openClause())
         {
-            BoundOpenMode mode = MapOpenMode(clause.openMode());
+            BoundOpenMode mode = OpenModeOperand.Of(clause.openMode());
             // ⛔ THE PHRASES ARE SCOPED TO THIS GROUP, WHICH IS WHY THEY ARE DECLARED INSIDE THIS LOOP.
             // §2023:14.9.27.2's general format nests [sharing-phrase] and [retry-phrase] INSIDE the outer repeated
             // group, beside the open mode and the file-names they govern; the outer group carries the trailing
@@ -612,12 +612,6 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
             ? new BoundAdvancing(before, true, null)
             : new BoundAdvancing(before, false, new BoundNumericLiteral("0"));
     }
-
-    private static BoundOpenMode MapOpenMode(Core.OpenModeContext m) =>
-        m.OUTPUT() is not null ? BoundOpenMode.Output
-        : m.EXTEND() is not null ? BoundOpenMode.Extend
-        : m.I_O() is not null ? BoundOpenMode.IO
-        : BoundOpenMode.Input;
 
     // ⛔ `FileOfRecord` LIVED HERE AND IS GONE (kb/Work PB347). It answered "which file owns the record
     // CONTAINING this reference" while all three of its callers — WRITE, REWRITE and RELEASE — asked "which

@@ -392,18 +392,23 @@ public sealed class InterProgramFileDifferentialTests
     }
 
     /// <summary>ISO §2023:8.4.3.2.4 GR6b + Table 13 — with the SQUARER definition absent, the UDF locate miss raises
-    /// EC-FUNCTION-NOT-FOUND (Fatal), NOT the CALL's EC-PROGRAM-NOT-FOUND: the run unit terminates loudly with the
-    /// function-specific condition name (the prototype supplied a signature but no activation target exists).</summary>
-    [Fact]
-    public void Udf_AbsentFunctionDefinition_RaisesFunctionNotFound()
+    /// EC-FUNCTION-NOT-FOUND (Fatal) from 2014, NOT the CALL's EC-PROGRAM-NOT-FOUND: the run unit terminates loudly with the
+    /// function-specific condition name (the prototype supplied a signature but no activation target exists).
+    /// §2002:8.4.2.2.3 GR5 states the same miss as EC-PROGRAM-NOT-FOUND, since the 2002 text has no EC-FUNCTION-NOT-FOUND
+    /// (kb/Work PB6107).</summary>
+    [Theory]
+    [InlineData(2002, "EC-PROGRAM-NOT-FOUND")]
+    [InlineData(2014, "EC-FUNCTION-NOT-FOUND")]
+    public void Udf_AbsentFunctionDefinition_RaisesTheEditionsLocateMissCondition(int edition, string condition)
     {
         string dir = ScratchDirectory.Create("udfproton");
         try
         {
-            CompileTo(UdfProtoCaller, dir, "UPROTOX", 2002);
+            CompileTo(UdfProtoCaller, dir, "UPROTOX", edition);
             var (ok, _, detail) = CutRunner.Run(Path.Combine(dir, "UPROTOX.dll"), dir);
             Assert.False(ok, "a FUNCTION reference to an absent separately-compiled definition must terminate loudly");
-            Assert.Contains("EC-FUNCTION-NOT-FOUND", detail);
+            Assert.Contains(condition, detail);
+            if (edition < 2014) Assert.DoesNotContain("EC-FUNCTION-NOT-FOUND", detail);
         }
         finally { ScratchDirectory.Remove(dir); }
     }

@@ -1,6 +1,6 @@
 *>--- conformance-case
 *> id: pb52-intrinsic-argument-stage
-*> rules: []
+*> rules: [AR-15.84.3-1]
 *> source-format: free
 *> portable: unverified
 *>---

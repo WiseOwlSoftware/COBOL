@@ -94,7 +94,7 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
         // stores only when it is evaluated, and the scan bound is read before that: the subscripts' own evaluation runs
         // first, in the order a per-evaluation window drains it - the property GETs, then the pre-ops (R1-1, R2-1).
         if (written is null && fromWhens is not null)
-            prelude = host.Udf.OperandSteps([.. host.Oo.OoReplayPropertyGets(fromWhens.PropertyOps), .. fromWhens.PreOps]);
+            prelude = host.Window.OperandSteps([.. host.Oo.OoReplayPropertyGets(fromWhens.PropertyOps), .. fromWhens.PreOps]);
         path = PlaceBuilder.BuildTablePath(table, enclosing);
         if (path is null)
         {
@@ -165,14 +165,14 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
         EnclosingOccurrence? whenEnclosing = null;
         var bound = whens.Select(w =>
             {
-                var udfMark = host.Udf.Mark;
+                var udfMark = host.Window.Mark;
                 BoundCondition condition = null!;
                 var named = capture
                     ? ctx.Refs.Subscripts.CaptureEnclosingSubscripts(table, () => condition = host.Cond.BindCondition(w.Cond))
                     : null;
                 if (!capture) condition = host.Cond.BindCondition(w.Cond);
                 whenEnclosing ??= named;   // the first WHEN phrase that references the table names the occurrence
-                var cond = host.Udf.UdfAttachPerEvaluation(condition, udfMark);
+                var cond = host.Window.AttachPerEvaluation(condition, udfMark);
                 return new BoundSearchWhen(cond, host.BindBlocks([w.Arm]));
             })
             .ToList();

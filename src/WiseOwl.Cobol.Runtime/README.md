@@ -9,11 +9,11 @@ this one shows how they fit and what a program pays. (kb/Work PB101, PB104, PB10
 |---|---|---|
 | **Collation engine** | `Collation/` | the derived CLDR/UCA table (`CollationTable`), the streaming comparison and keys (`Collator`, `CollationKey`), the façade (`CollationEngine`); `.tailor` site overrides (`TailoringRules`) |
 | **CLDR locale loader** | `Collation/CLDR/` | every CLDR collation file (135 locales), the rule-syntax parser, the builder that turns rules into a locale's table + settings |
-| **Locale selection** | `Collation/Locale/` | `LocaleManager` (select for the run unit), `LocaleInfo`, `LocaleConfig` — over the run unit's ONE `LocaleState` |
+| **Locale selection** | `Collation/Locale/` | `LocaleManager` (select for the run unit; reports the engine's `ResolvedLocaleCollation`) — over the run unit's ONE `LocaleState`; every locale spelling is canonicalized by `Globalization/LocaleTag` |
 | **Key cache** | `Collation/Cache/` | `CollationKeyCache` per collator — SORT/MERGE and INDEXED keys through it |
 | **Normalization** | `Unicode/` | `UnicodeNormalizer`: NFD (the engine's own) and NFC (the host's), `CompareNormalized` |
 | **Segmentation** | `Unicode/Segmentation/` | `GraphemeBreaker` / `GraphemeEnumerator` / `GraphemeCluster`: UAX #29 extended grapheme clusters from a derived table |
-| **Initialization** | `Collation/CollationRuntime.cs` | `Initialize()` (cheap, every run unit), `Warmup()` (eager), `Status` |
+| **Initialization** | `Control/CollationRuntime.cs` | `Initialize()` (cheap, every run unit), `Warmup()` (eager), `Status` |
 
 Data: `data/unicode/` (pinned UCD 17.0.0 + CLDR release-48-2 files, Unicode License; provenance in
 `data/unicode/SOURCES.md`); generators `scripts/collation/generate-collation-table.py`,
@@ -81,10 +81,10 @@ keys whole texts.
         │  canonically (the one table-building step both front-ends use)
         ▼  TailoringRules.ForLocale (a .tailor for the tag or its language — the site override) → WithTailoring
         ▼
-   ResolvedLocaleCollation (table · options · what came from where · Unsupported · Notes) — cached per tag
+   ResolvedLocaleCollation (table · options · what came from where · Unsupported · Notes · IsAvailable · Collator) — cached per canonical tag (LocaleTag)
         │
         ├──► CollationEngine.ForLocale / TableForLocale / GetKey / TryGetOrderingTable
-        ├──► LocaleManager.GetLocale / SetLocale (writes RunUnit.Current.Locale — the ONE LocaleState) / LocaleInfo
+        ├──► LocaleManager.GetLocale / SetLocale (writes RunUnit.Current.Locale — the ONE LocaleState)
         └──► LocaleCollation.Current (the IS LOCALE phrase: resolves the run unit's LC_COLLATE locale at each use)
 ```
 

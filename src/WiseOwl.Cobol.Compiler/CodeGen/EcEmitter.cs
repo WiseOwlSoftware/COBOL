@@ -521,9 +521,12 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         // §2023:14.9.18.4 GR6 — a GOBACK executed within the RANGE of one of THIS program's GLOBAL declaratives
         // (kb/Work PB409). Before this row the name was a catalog entry with no raise site and no gate, so
         // `>>TURN EC-FLOW-GLOBAL-GOBACK CHECKING ON` was accepted and wired nothing — a green compile that read
-        // as support. Its Table 13 neighbour EC-FLOW-GLOBAL-EXIT has no row because the standard states no
-        // general rule that SETS it (see ExceptionEngine.FlowGlobalGobackError).
+        // as support.
         ("EC-FLOW-GLOBAL-GOBACK", "FlowGlobalGobackChecking"),  // §2023:14.9.18.4 GR6 — GOBACK in a global declarative's range
+        // §2002:14.8.13.3 GR2 / §2014:14.9.13.3 GR2 — an EXIT PROGRAM, EXIT FUNCTION or EXIT METHOD executed within the range
+        // of a global declarative of the same element. A row at EVERY edition is harmless: from 2023 no statement declares the
+        // name (§2023 states no rule that sets it, DialectBehavior.FlowGlobalExitIsNeverSet), so no gate ever reads it.
+        ("EC-FLOW-GLOBAL-EXIT", "FlowGlobalExitChecking"),
         // The sort-merge flow conditions (kb/Work PB349). Before these rows the three names were catalog entries
         // with no gate, no flag and no raise site, so `>>TURN EC-FLOW-RELEASE CHECKING ON` compiled clean and
         // wired nothing. Each rides a flag CobolSort's statement entry consults against the store's phase.
@@ -829,32 +832,19 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
     {
         using (w.Block($"{MemberMod(asLocal)}int __EcDispatch(string __ec, string __f)"))
         {
-            void Tier(string comment, Func<string, Binding.Model.FileModel?, int, string?> condition)
+            // The tiers in GR3's order, source order within each; the tier is the bound entry's and the test is the one
+            // renderer's that the PERFORM Format-3 WHEN matcher shares (§2023:14.9.28.4 GR17; kb/Work PB2723).
+            foreach (var tier in Enum.GetValues<ExceptionSelectionTier>())
             {
                 bool any = false;
                 for (int i = 0; i < decls.Count; i++)
-                {
-                    foreach (var (ec, file) in decls[i].EcEntries ?? [])
-                        if (condition(ec, file, i) is { } cond)
+                    foreach (var entry in decls[i].EcEntries ?? [])
+                        if (entry.Tier == tier)
                         {
-                            if (!any) { w.Line(comment); any = true; }
-                            w.Line($"if ({cond}) return {dispatch.RunUseCall(i, decls[i].Range)};");
+                            if (!any) { w.Line(ExceptionSelectionEmitter.Banner(tier)); any = true; }
+                            w.Line($"if ({ExceptionSelectionEmitter.Test(entry)}) return {dispatch.RunUseCall(i, decls[i].Range)};");
                         }
-                }
             }
-            bool L3(string ec) => ExceptionCatalog.TryGet(ec, out var i) && i.Level == 3;
-            bool L2(string ec) => ExceptionCatalog.TryGet(ec, out var i) && i.Level == 2;
-
-            Tier("// GR3c — file-scoped level-3 entries", (ec, f, i) =>
-                f is not null && L3(ec) ? $"__f == {FileKeyExpr(f)} && __ec == {CsLiteral(ec)}" : null);
-            Tier("// GR3d — file-scoped level-2 entries", (ec, f, i) =>
-                f is not null && L2(ec) ? $"__f == {FileKeyExpr(f)} && ExceptionCatalog.UnderLevel2(__ec, {CsLiteral(ec)})" : null);
-            Tier("// GR3e — level-3 entries", (ec, f, i) =>
-                f is null && L3(ec) ? $"__ec == {CsLiteral(ec)}" : null);
-            Tier("// GR3f — level-2 entries", (ec, f, i) =>
-                f is null && L2(ec) ? $"ExceptionCatalog.UnderLevel2(__ec, {CsLiteral(ec)})" : null);
-            Tier("// GR3g — the level-1 EC-ALL entry", (ec, f, i) =>
-                f is null && CobolNames.Same(ec, ExceptionCatalog.EcAll) ? "true" : null);
             w.Line("return DispatchResult.NoHandler;   // no qualifying declarative (GR3g tail)");
         }
         w.Line();
@@ -995,10 +985,8 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
             }
             if (ecState.UnitHasF3Perform)
             {
-                w.Line("bool __wh = false;");
-                w.Line("__sel = ExceptionState.RunTopFrame(__ec!, __f, out __wh);   // GR17 — a matching WHEN preempts the USE declaratives");
-                w.Line("if (!__wh) __sel = DispatchResult.NoHandler;   // no WHEN matched → fall to the USE tiers below");
-                using (w.Block("if (!__wh)")) EmitUseTiers();
+                w.Line("__sel = ExceptionState.RunTopFrame(__ec!, __f);   // GR17 — a matching WHEN preempts the USE declaratives");
+                using (w.Block("if (__sel == DispatchResult.NoHandler)   // no WHEN matched → the USE tiers")) EmitUseTiers();
             }
             else EmitUseTiers();
             w.Line("if (DispatchResult.SuppressesFatal(__sel)) return __sel;   // RESUME redirected/suppressed (§2023:14.9.33)");
@@ -1054,9 +1042,13 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
     {
         using (w.Block($"{MemberMod(asLocal)}int __EcPerform(string __ec, string __f)"))
         {
-            w.Line("int __a = ExceptionState.RunTopFrame(__ec, __f.Length == 0 ? null : __f, out bool __h);");
-            w.Line($"return __h ? __a : {(ecState.UnitHasF3 ? "__EcDispatch(__ec, __f)" : "DispatchResult.NoHandler")};   "
-                + "// GR17/18 win over USE; else the USE tiers / NoHandler");
+            if (ecState.UnitHasF3)
+            {
+                w.Line("int __a = ExceptionState.RunTopFrame(__ec, __f.Length == 0 ? null : __f);");
+                w.Line("return __a != DispatchResult.NoHandler ? __a : __EcDispatch(__ec, __f);   // GR17/18 win over USE; else the USE tiers");
+            }
+            else
+                w.Line("return ExceptionState.RunTopFrame(__ec, __f.Length == 0 ? null : __f);   // GR17/18; no USE Format 3: NoHandler is the answer");
         }
         w.Line();
     }

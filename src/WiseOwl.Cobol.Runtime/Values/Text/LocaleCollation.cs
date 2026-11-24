@@ -50,11 +50,19 @@ public sealed class LocaleCollation : CobolCollation
     /// is not a snapshot.</summary>
     private Collator? _pinned;
 
+    /// <summary>A named sequence's resolution and the locale-cache generation it was made in: the named locale's
+    /// availability and collator are decided once per generation, not at every comparison (kb/Work PB2763), and
+    /// resolved again after <see cref="CollationEngine.ClearLocaleCache"/>. Null before the first use and for the
+    /// current-locale form, whose locale is the run unit's at each use.</summary>
+    private NamedResolution? _named;
+
+    private sealed record NamedResolution(int Generation, ResolvedLocaleCollation Locale);
+
     /// <summary>The <c>IS LOCALE</c> phrase without a locale-name: the run unit's current LC_COLLATE locale at each use.</summary>
     public static LocaleCollation Current { get; } = new(null);
 
     /// <summary>A sequence bound to one locale (a SPECIAL-NAMES locale-name's L1-normalized tag — "" IS the root,
-    /// a locale like any other, e.g. <c>LOCALE INV IS "INVARIANT"</c> — or an ORDER TABLE locale tag); NULL = the
+    /// a locale like any other, e.g. <c>LOCALE INV IS "INVARIANT"</c>; any spelling L1 accepts selects it); NULL = the
     /// current locale at each use. ⚠ "" and null differ: a sequence bound to the root stays the root after a SET
     /// LOCALE; the current-locale form follows it.</summary>
     public LocaleCollation(string? localeTag) : this(localeTag, pins: false) { }
@@ -73,7 +81,7 @@ public sealed class LocaleCollation : CobolCollation
     /// DESIGN-locale-facility L1 item 4 — availability is a run-time property, the compiler never resolved it);
     /// with checking off the sequence answers the locale's nearest available order (the CLDR parent chain / root).
     /// <para>A <see cref="Snapshot"/> resolves at its first use and answers that collator from then on, so every key it
-    /// builds comes from ONE collator: the engine's caches can be dropped between two uses (<c>LocaleManager.ClearCache</c>,
+    /// builds comes from ONE collator: the engine's caches can be dropped between two uses (<c>CollationEngine.ClearLocaleCache</c>,
     /// which makes the next resolution a new collator), and <see cref="CollationKey.CompareTo"/> refuses keys of two.</para></summary>
     public Collator Resolve()
     {
@@ -85,11 +93,15 @@ public sealed class LocaleCollation : CobolCollation
     {
         if (_localeTag is { } tag)
         {
-            if (!LocaleIdentification.IsAvailable(tag))
+            int generation = CollationEngine.LocaleGeneration;
+            var named = _named;
+            if (named is null || named.Generation != generation)
+                _named = named = new NamedResolution(generation, CollationEngine.ResolveLocale(LocaleIdentification.Normalize(tag)));
+            if (!named.Locale.IsAvailable)
                 ExceptionState.LocaleMissingError($"the locale '{tag}' of the IS LOCALE collating sequence is not available in this operating environment (ISO §2023:8.2.1 / §2023:12.3.7.4 GR5)");
-            return CollationEngine.ForLocale(tag);
+            return named.Locale.Collator;
         }
-        return CollationEngine.ForLocale(RunUnit.Current.Locale.Current(LocaleCategory.Collate));
+        return CollationEngine.ResolveLocale(RunUnit.Current.Locale.Current(LocaleCategory.Collate)).Collator;
     }
 
     /// <summary>§2023:14.6.6 GR5 — "A locale switch during execution of a SORT or MERGE statement has no effect on the
@@ -124,7 +136,7 @@ public sealed class LocaleCollation : CobolCollation
     public override CollationKey KeyOf(string? value) => KeyOf(value, CollationKeyCache.For(Resolve()));
 
     /// <summary>Two operands' keys built by ONE resolution of the sequence (<see cref="CobolCollation.CompareByKeys"/>):
-    /// a key cache the process drops between two lookups (<c>LocaleManager.ClearCache</c>) can then never hand the
+    /// a key cache the process drops between two lookups (<c>CollationEngine.ClearLocaleCache</c>) can then never hand the
     /// comparison keys of two collators, which <see cref="CollationKey.CompareTo"/> refuses.</summary>
     internal override int CompareByKeys(string? left, string? right)
     {

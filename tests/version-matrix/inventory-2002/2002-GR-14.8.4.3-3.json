@@ -1,0 +1,7 @@
+{
+ "rule-id": "2002-GR-14.8.4.3-3",
+ "rule-digest": "15ce206034bc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/PlaceBuilder.cs#WindowScopeOf; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolTable.cs#Subscript",
+ "test-ref": "conformance:cases/14.8.4@2002-CALL-STATEMENT/pb5762-call-by-reference-subscript-bound-2002"
+}

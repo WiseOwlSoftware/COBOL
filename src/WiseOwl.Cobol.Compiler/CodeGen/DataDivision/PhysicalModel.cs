@@ -183,7 +183,7 @@ internal sealed class PhysicalModel(EmitContext ctx)
                 }
                 continue;
             }
-            if (c.Class is { Tier: RedefinesTier.Alias } && !c.IsCanonical)
+            if (c.IsAliasView)
                 continue;   // a Tier-A view forwards to the canonical's stored field
             string comment = c.CobolName is { } n ? $"{n}{(c.Occurs is { } o ? $" OCCURS {o}" : "")}" : "FILLER";
             // For a group child, use its PHYSICAL image width (skips its own redefines views, counts a contained

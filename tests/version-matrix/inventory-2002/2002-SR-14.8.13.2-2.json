@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.13.2-2",
+ "rule-digest": "1e057bdbafd0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindExitFunction; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindExitMethod; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindExit; src/WiseOwl.Cobol.Compiler/Binding/Procedure/EnclosingContext.cs#RefusedInGlobalDeclarative",
+ "test-ref": "conformance:cases/14.8.13@2002-EXIT-STATEMENT/g2-exit-function-in-global-declarative; conformance:cases/14.8.13@2002-EXIT-STATEMENT/g2-exit-method-in-global-declarative",
+ "notes": "§2002:14.8.13.2 SR2: EXIT FUNCTION and EXIT METHOD, like EXIT PROGRAM and GOBACK, are refused (COBOL2102) in a declarative procedure whose USE statement carries GLOBAL; the refusal is asked through PlacementRules.RefusedInGlobalDeclarative by the program, function and method formats the rule's band names (FORMATS 2, 3 AND 4) (kb/Work PB5618)."
+}

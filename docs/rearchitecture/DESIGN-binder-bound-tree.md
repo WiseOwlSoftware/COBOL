@@ -846,7 +846,7 @@ null for all three shapes, so every format saw "no identifier" and refused `SET 
 `SET TX TO FUNCTION MAX(IA IB)` as an arithmetic expression: one sniff, one arm of the dispatch fixed (PB456), the other
 three shapes never reached.
 
-**An alphabetic item stands as an alphanumeric one at COBOL-2002 alone, asked in ONE place (kb/Work PB5615).** §2002:8.5.2.1: "An alphabetic data item may be specified wherever an elementary alphanumeric data item is permitted as an operand. Where an alphabetic data item is not expressly permitted, the alphabetic data item is treated as though it were an alphanumeric data item." §2014:E.2 item 2 withdrew it and §2023 has no such sentence. The edition fact is `EditionInfo.AlphabeticIsAlphanumeric` (Year == 2002); the Place reader `ItemCategory.IsAlphanumericOrNational(Place, EditionInfo)` and the function-argument class screen `IntrinsicArgumentRules.Violation(rule, op, edition)` ask it, so SET ADDRESS OF PROGRAM / FUNCTION, CALL and CANCEL targets, STRING and UNSTRING operands, INVOKE identifier-2, READ / RETURN INTO identifier-1, every function argument position whose class set holds alphanumeric, and the RECEIVE / SEND screens (`CommunicationBinder`) share it. The file-control clause operands (record keys, FILE STATUS, ASSIGN USING, SORT keys) still take the `DataItem` overloads, which keep category alone.
+**An alphabetic item stands as an alphanumeric one at COBOL-2002 alone, asked in ONE place (kb/Work PB5615).** §2002:8.5.2.1: "An alphabetic data item may be specified wherever an elementary alphanumeric data item is permitted as an operand. Where an alphabetic data item is not expressly permitted, the alphabetic data item is treated as though it were an alphanumeric data item." §2014:E.2 item 2 withdrew it and §2023 has no such sentence. The edition fact is `EditionInfo.AlphabeticIsAlphanumeric` (Year == 2002); the Place reader `ItemCategory.IsAlphanumericOrNational(Place, EditionInfo)`, the DataItem readers `ItemCategory.IsAlphanumeric(DataItem, EditionInfo)` and `IsAlphanumericOrNational(DataItem, EditionInfo)` (kb/Work PB5871: the file control clause operands, which the 2002 text words in the category and none of its rules expressly permits an alphabetic item: ASSIGN USING, RECORD KEY, ALTERNATE RECORD KEY, FILE STATUS, PADDING CHARACTER, the report CODE operand and a READ / RETURN INTO record-name; the key rows reach it through `FileKeyOperand.Edition`) and the function-argument class screen `IntrinsicArgumentRules.Violation(rule, op, edition)` ask it, so SET ADDRESS OF PROGRAM / FUNCTION, CALL and CANCEL targets, STRING and UNSTRING operands, INVOKE identifier-2, READ / RETURN INTO identifier-1, every function argument position whose class set holds alphanumeric, and the RECEIVE / SEND screens (`CommunicationBinder`) share it. The file-control clause operands (record keys, FILE STATUS, ASSIGN USING, SORT keys) still take the `DataItem` overloads, which keep category alone.
 
 **The name operand of an address-identifier is one rule in one place (kb/Work PB1417 + PB1452).** §2023:8.4.3.12.3 SR1 and
 §2023:8.4.3.13.3 SR1 print the same sentence — "Identifier-1 shall be of category alphanumeric or national" — and
@@ -865,7 +865,7 @@ function ARGUMENT; §2023:8.5.2.1 makes the class and the category of the group 
 an argument position must not read the lattice's alphanumeric answer. Two shapes, two readers: a rule worded in a CATEGORY
 ("Identifier-1 shall be defined as an alphanumeric or national data item" — CALL §2023:14.9.4.3 SR1, CANCEL §2023:14.9.5.3 SR1, the
 report CODE clause §2023:13.18.12.3 SR2; §2023:8.5.2.1: a class or category named in the rules "refers to the category unless class
-is specifically indicated") asks `ItemCategory.IsAlphanumericOrNational(Place, EditionInfo)` / `IsAlphanumeric(DataItem)` and prints
+is specifically indicated") asks `ItemCategory.IsAlphanumericOrNational(Place, EditionInfo)` / `IsAlphanumeric(DataItem, EditionInfo)` and prints
 `ItemCategory.Face`; a PAIR rule worded in CLASS (EVALUATE's range-expression §2023:14.9.13.3 SR4, "the same class") asks
 `IntrinsicArgumentRules.SameClass`, which takes a strongly-typed group to be of the class of another operand only when that
 operand is a strongly-typed group of the same type. The three screens used to ask the lattice (CALL and CANCEL accepted the
@@ -951,8 +951,16 @@ public sealed record PositionGroup(Position Inner) : Position;     // a WRITTEN 
 public sealed record PositionPointerOffset(string PointerField) : Position;   // CobolPtr.OffsetOf(pointer), a BASED displacement
 public sealed record PositionPointerDynBase(string PointerField) : Position;   // CobolPtr.DynBaseOf(pointer), its ordinal twin
 public sealed record PositionOffset(Position Origin, IReadOnlyList<OffsetTerm> Terms) : Position;
-public readonly record struct OffsetTerm(Position Index, long Stride);   // + (Index - 1) * Stride
+public readonly record struct OffsetTerm(Position Index, long Stride, OccurrenceBound? Bound = null);   // + (Index - 1) * Stride
+public sealed record OccurrenceBound(int Highest, OdoReferenceCheck? Odo);   // the range the subscript is tested against
 ```
+
+A Tier-B window locates its element by this arithmetic, not through `CobolTable.At`, so the checks a table step carries ride
+the term as its `Bound` (kb/Work PB5762, PB5605): §2023:8.4.2.3.4 GR2's subscript range (EC-BOUND-SUBSCRIPT) against the
+level's highest permissible occurrence number, and §2023:13.18.38.4 GR7's data-name-1 bound test (EC-BOUND-ODO) at an
+occurs-depending level when the group can enable it. `PositionRenderer` renders a bounded term's index through
+`CobolTable.Subscript`, the window's twin of `CobolTable.At`; `PlaceBuilder.WindowScopeOf` and `FixedLevelTerm` are the
+only producers that set it.
 
 `PositionOffset` is the ONE structured form of every address the place model computes from subscripts: an origin plus
 Σ (index − 1) × stride, outermost level first. A Tier-B view's byte offset (`ClassOffset + Σ (index − 1) × level
@@ -1003,7 +1011,7 @@ one — what the evaluate-once identification asks before it hoists).
   collector, §2023:13.18.38.3 SR7's ref-mod screen); an integer constant-name → `PositionConstant`; a report VARYING counter
   → `PositionLocal(AsLong)`; a data item with a position overload → `PositionItemRead`, with the §2023:8.8.1.1 class screen
   queued to the commit point exactly as PB220 required;
-- anything else, at any depth, routes the WHOLE position to the D18 temporary: the `MaterializeSegment` hook
+- anything else, at any depth, routes the WHOLE position to the D18 temporary: the statement site's `IStatementSite.MaterializeSegment`
   (`StatementBinder.BindPositionTemporary`) takes the position's own `arithmeticExpression` node and binds it through
   the expression binder. A `functionArgument` that is not an `arithmeticExpression` (a nonnumeric literal, a boolean
   expression, `OMITTED`, an address identifier, a phrase word) and the word ALL outside §2023:8.4.2.3.3 SR6's two contexts

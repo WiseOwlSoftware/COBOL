@@ -13,7 +13,7 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 /// reference-modifier segment were the others until kb/Work PB2113 and PB2151 made them parse nodes of the main tree,
 /// bound where they were parsed.) Each needs the SAME five steps — lex the text, prime the lexer
 /// for its region, normalize the token stream, parse at an edition, and return null on any syntax error — and
-/// each had its own copy.
+/// each had its own copy. The first four are now the whole parse's own, <see cref="CobolTokenStream"/> (kb/Work PB2735).
 /// </summary>
 /// <remarks>
 /// <para>
@@ -64,21 +64,9 @@ public static class FragmentParse
         bool rewriteZero, System.Func<CobolParserCore, T> rule, bool trailingSeparatorIsError = false) where T : class
     {
         var flag = new SyntaxErrorFlag();
-        var lexer = new CobolLexer(new AntlrInputStream(text));
-        retypes.PrimeLexer(lexer, edition);
-        prime?.Invoke(lexer);
-        lexer.RemoveErrorListeners();
-        lexer.AddErrorListener(flag);
-        var tokens = new CommonTokenStream(lexer);
-        // A debugging line that is SOURCE had its carrier blanked before the main lex (kb/Work PB1913), so a carrier left in
-        // this slice of that text is a COMMENT line: hide it, exactly as the main lexer's region skip did (kb/Work PB1705).
-        DebuggingLineRewriter.HideAll(tokens);
-        if (rewriteZero) ZeroTokenRewriter.Rewrite(tokens);
-        retypes.RewriteSlice(tokens);
-        var parser = new CobolParserCore(tokens) { Edition = edition, CobolWords = retypes.CobolWords };
-        parser.RemoveErrorListeners();
-        parser.AddErrorListener(flag);
-        var tree = rule(parser);
+        var (tokens, _) = CobolTokenStream.Prepare(text, edition, retypes, () => flag, CobolTokenStream.HideDebuggingLines,
+            rewriteZero, CobolTokenStream.Retype.Slice, prime);
+        var tree = rule(CobolTokenStream.Parser(tokens, edition, retypes.CobolWords, flag));
         if (trailingSeparatorIsError && EndsWithHiddenSemicolon(tokens)) return null;
         return flag.HasError ? null : tree;
     }
@@ -107,14 +95,7 @@ public static class FragmentParse
         System.Func<CobolParserCore, T> rule) where T : class
     {
         var flag = new SyntaxErrorFlag();
-        var parser = new CobolParserCore(new CommonTokenStream(new ListTokenSource(tokens)))
-        {
-            Edition = edition,
-            CobolWords = words,
-        };
-        parser.RemoveErrorListeners();
-        parser.AddErrorListener(flag);
-        var tree = rule(parser);
+        var tree = rule(CobolTokenStream.Parser(new CommonTokenStream(new ListTokenSource(tokens)), edition, words, flag));
         return flag.HasError ? null : tree;
     }
 
@@ -129,20 +110,13 @@ public static class FragmentParse
     /// <param name="text">The source text, in free form.</param>
     /// <param name="edition">The edition (both axes) the text was written under.</param>
     /// <param name="words">The <c>&gt;&gt;COBOL-WORDS</c> map it was written under.</param>
-    public static CobolParserCore.CompilationUnitContext? ParseUnit(string text, EditionInfo edition, CobolWordsMap words)
-    {
-        var retypes = TokenRetypes.None with { CobolWords = words };
-        while (true)
+    public static CobolParserCore.CompilationUnitContext? ParseUnit(string text, EditionInfo edition, CobolWordsMap words) =>
+        CobolTokenStream.UntilLexStable(TokenRetypes.None with { CobolWords = words }, edition, retypes =>
         {
             var flag = new SyntaxErrorFlag();
-            var lexer = new CobolLexer(new AntlrInputStream(text));
-            retypes.PrimeLexer(lexer, edition);
-            lexer.RemoveErrorListeners();
-            lexer.AddErrorListener(flag);
-            var tokens = new CommonTokenStream(lexer);
-            ZeroTokenRewriter.Rewrite(tokens);
-            retypes.Rewrite(tokens);
-            var parser = new CobolParserCore(tokens) { Edition = edition, CobolWords = words };
+            var (tokens, _) = CobolTokenStream.Prepare(text, edition, retypes, () => flag, CobolTokenStream.NoDebuggingLines,
+                rewriteZero: true, CobolTokenStream.Retype.WholeText);
+            var parser = CobolTokenStream.Parser(tokens, edition, words);
             bool parseFailed = false;
             var tree = ReservationGateRewriter.ParseToFixpoint(parser, tokens, retypes, new Diagnostics.DiagnosticBag(), (_, witness) =>
             {
@@ -156,25 +130,6 @@ public static class FragmentParse
                 parseFailed = passFlag.HasError;
                 return unit;
             });
-            if (tree.TokenRetypes.LexesDifferentlyFrom(retypes, edition))
-            {
-                retypes = tree.TokenRetypes;
-                continue;
-            }
-            return flag.HasError || parseFailed ? null : tree;
-        }
-    }
-
-    /// <summary>Error-presence flag for BOTH recognizers — the parser's token errors and the lexer's character
-    /// errors. It was copied verbatim into all three fragment parsers; this is the one copy.</summary>
-    private sealed class SyntaxErrorFlag : BaseErrorListener, IAntlrErrorListener<int>
-    {
-        public bool HasError { get; private set; }
-
-        public override void SyntaxError(TextWriter output, IRecognizer recognizer, IToken offendingSymbol,
-            int line, int charPositionInLine, string msg, RecognitionException e) => HasError = true;
-
-        public void SyntaxError(TextWriter output, IRecognizer recognizer, int offendingSymbol,
-            int line, int charPositionInLine, string msg, RecognitionException e) => HasError = true;
-    }
+            return (flag.HasError || parseFailed ? null : tree, tree.TokenRetypes);
+        });
 }

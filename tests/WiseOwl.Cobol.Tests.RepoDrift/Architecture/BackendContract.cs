@@ -16,7 +16,7 @@ internal static class BackendContract
     [
         new(NeutralKind.CobolWord,
         [
-            "Bound.BoundAlterEntry.NewName", "Bound.BoundDebugSubject.SubjectName", "Bound.BoundDebugTarget.Name", "Bound.BoundDeclarative.SectionName", "Bound.BoundExceptionMatch.OpenMode",
+            "Bound.BoundAlterEntry.NewName", "Bound.BoundDebugSubject.SubjectName", "Bound.BoundDebugTarget.Name", "Bound.BoundDeclarative.SectionName",
             "Bound.BoundMethod.CobolName", "Bound.BoundNumLiteral.FoldedFunction", "Bound.BoundNumericLiteral.FoldedFunction",
             "Bound.BoundParagraph.CobolName", "Bound.BoundProgramAddress.Prototype", "Bound.BoundSendToServer.ServerName",
             "Bound.BoundSetSwitches.Switches", "Bound.BoundSwitchCondition.ImplementorName",
@@ -120,6 +120,8 @@ internal static class BackendContract
             "Model.NamingConvention.SumCounterPrefix", "Model.OoClassSymbol.FactoryOrInstanceClrNames",
             "Model.OoInterfaceSymbol.ImplementedClrNames", "Model.OoMethodBinding.FormalName()", "Model.OoFormal.ParamName",
             "Model.OoFormal.AreaParam", "Model.OoFormal.OmittedFlag", "Model.ImportedFrom.ClrNamespace", "Model.ImportedFrom.AssemblyName",
+            // the one carrier and area-pointer name of a formal, both header arms (kb/Work PB3213)
+            "Model.FormalCarrier.AreaPointerName()",
             "Model.ExpansionIdentity.Homes",
         ]),
         new(NeutralKind.LiteralValue,
@@ -154,10 +156,10 @@ internal static class BackendContract
         ]),
         new(NeutralKind.RuntimeDatum,
         [
-            "Bound.BoundDeclarative.EcEntries", "Bound.BoundIntrinsicCall.OrderingTable",
+            "Bound.BoundDeclarative.EcEntries", "Bound.BoundExceptionSelector.Ec", "Bound.BoundIntrinsicCall.OrderingTable",
             "Bound.BoundRaise.EcName", "Bound.BoundRaise.Location",
             "Bound.BoundRaising.EcName", "Bound.BoundRaising.Location", "Bound.BoundRaising.PdRaising",
-            "Bound.BoundRaising.StatementName", "Bound.BoundWhenOperand.Ec",
+            "Bound.BoundRaising.StatementName",
             "Bound.EcStatementInfo.Enabled", "Bound.EcStatementInfo.Location", "Bound.EcStatementInfo.StatementName",
             // the key of the AS NESTED callee table: an externalized program-name, the run-time program table's (kb/Work PB5932)
             "Model.ExternalizedProgramName._name",
@@ -197,7 +199,7 @@ internal static class BackendContract
             "Bound.PropertyReceiverKey.Face", "Bound.ReceiverBracketKey.Face", "Bound.WrittenReceiverKey.Face",
             // a rule's citation and wording as each edition numbers it, for a diagnostic (kb/Work PB5352)
             "Model.EditionCite.At()", "Model.EditionCite.AtEveryOrganization()", "Model.EditionCite.Iso2023", "Model.EditionCite.Sequential1985",
-            "Model.EditionCite.Relative1985", "Model.EditionCite.Indexed1985",
+            "Model.EditionCite.Relative1985", "Model.EditionCite.Indexed1985", "Model.EditionCite.Iso2002", "Model.EditionCite.Iso2014",
             "Model.DescriptionClauses.AlignedOrDynamicLengthMismatch()", "Model.DescriptionCopyAttribute.Reason",
             "Model.ItemCategory.Face()", "Model.RecordClauseFacts.LowerName",
             "Model.RecordClauseFacts.UpperName", "Model.SectionDataItem.NonSectionKind()", "Model.TierCIsland.Reason()",

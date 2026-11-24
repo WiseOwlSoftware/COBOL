@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.20.2-1",
+ "rule-digest": "b073612132c6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitExternalClause; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#ClausePlacementRules",
+ "test-ref": "conformance:wiseowl/diagnostics/pb5710-typedef-external-weak-below-2023",
+ "notes": "2002 admits EXTERNAL only in file description entries and in record description entries of the working-storage section; a type declaration is no record description entry, so EXTERNAL on a TYPEDEF entry is refused below 2023 (VisitExternalClause, COBOL0900, kb/Work PB5710); the level-1 and working-storage residence is the clause-placement table's Residence row."
+}

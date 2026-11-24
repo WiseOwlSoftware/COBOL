@@ -101,9 +101,8 @@ public sealed partial class FileControlBinder
         }
         // NULL is an identifier, not a literal (§2023:8.4.3.10.3 SR1): the one refusal, not the literal-shape verdict.
         if (nn.predefinedNull() is not null) return null;
-        if (nn.STRINGLIT() is null && nn.HEXLIT() is null) return null;   // a concatenation, national or boolean literal
-        string token = nn.GetText();
-        return CobolLiteral.ClassOf(token) == LiteralClass.Alphanumeric && CobolLiteral.Decode(token) is { Length: 1 } v ? v : null;
+        // A concatenation, national or boolean literal is none.
+        return QuotedLiteral.In(nn) is { Class: LiteralClass.Alphanumeric, Value: { Length: 1 } v } ? v : null;
     }
 
     /// <summary>The one character the written <paramref name="word"/> stands for when it names an alphanumeric symbolic-character,
@@ -124,7 +123,7 @@ public sealed partial class FileControlBinder
             ? "is subject to an OCCURS clause, so every reference to it is a table element reference that shall be subscripted, "
               + "yet the clause's data-name-1 may be qualified and takes no subscript "
               + Edition.Edition.Cite("(§1985:IV.4.3.8.2.3 SR4 and §1985:VII.2.7.3 SR2)", "(ISO §2002:8.4.1.2.2 SR5)")
-            : !ItemCategory.IsAlphanumeric(item) ? $"is {ItemCategory.Face(item)}, not of the category alphanumeric"
+            : !ItemCategory.IsAlphanumeric(item, Edition.Edition) ? $"is {ItemCategory.Face(item)}, not of the category alphanumeric"
             : item.ByteWidth != 1 || DataItem.HasOdoOnOrBeneath(item)
                 ? $"is {item.ByteWidth} character positions long, not a one-character data item"
             : item.Section is { } s and not (EntrySection.WorkingStorage or EntrySection.LocalStorage or EntrySection.Linkage)

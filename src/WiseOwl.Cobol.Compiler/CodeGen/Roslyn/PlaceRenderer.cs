@@ -54,7 +54,7 @@ internal static class PlaceRenderer
             ? NumericRenderer.ImageOfCarrier(Read(n.Inner), n.Inner.Item)
             : RuntimeApi.NumFormatImage(Read(n.Inner), n.Inner.Item.ProfileName),
         // A NATIONAL cell viewed as its STORAGE BYTES (a RENAMES THROUGH alias's leaf, §2023:13.18.45.4 GR2; kb/Work PB1665,
-        // PB2466): its characters serialized as UTF-16BE pairs (D-N1), the same CobolBits.NatBytes every other storage
+        // PB2466): its characters serialized as UTF-16BE pairs (D-N1), the same NationalImage.Bytes every other storage
         // image uses.
         NationalBytesPlace b => RuntimeApi.NatBytes(Read(b.Inner)),
         // A GROUP viewed as its character image for reference modification (ISO §2023:8.4.3.3.3 SR1 / §2023:8.4.3.3.4 GR6 —
@@ -215,7 +215,7 @@ internal static class PlaceRenderer
             ? Write(n.Inner, NumericRenderer.CarrierOfImage(rhs, n.Inner.Item))
             : Write(n.Inner, RuntimeApi.NumStoreImage(rhs, n.Inner.Item.ProfileName, Read(n.Inner))),
         // The receiving twin of the national-bytes read above: the cell's positions decoded out of its byte image
-        // (CobolBits.NatReadWindow, the one inverse of NatBytes). A byte slice that split a character was spliced
+        // (NationalImage.ReadWindow, the one inverse of NatBytes). A byte slice that split a character was spliced
         // into the cell's WHOLE image first (the RefModPlace arm), so the decode always sees whole pairs.
         NationalBytesPlace b => Write(b.Inner, RuntimeApi.NatReadWindow(rhs, "0", b.Inner.Item.ImageWidth.ToString())),
         // The spliced group image goes back through the ONE group-image store (kb/Work PB70).
@@ -949,7 +949,7 @@ internal static class PlaceRenderer
         // variable-length group formal's fresh area is a cell): no member LIMIT applies to that store.
         RedefViewPlace { Coding: VarGroupWindow g } v => $"{RuntimeApi.CellVarStoreCarrier(RenderPath(g.Cell, AccessDir.Receiving),
             $"(int)({PositionRenderer.Render(v.Offset)})", v.Width, PositionRenderer.Render(g.DynBase), g.DynFixedAt,
-            formalStorage ? g.DynMax.Select(_ => int.MaxValue) : g.DynMax, g.DynStructure, g.DynTable, g.Odo,
+            g.DynMax, g.DynStructure, g.DynTable, g.Odo,
             odoCount ?? g.Odo.Max.ToString(), value, g.DynElem, formalStorage)};",   // kb/Work PB1026, PB1042, PB244, PB2496
         _ when !group.Item.CurrentExtentImageCapable => EmitText.LoudStmt(TierCIsland.Reason(group.Item, context)),
         _ => $"{GroupTarget(group)}.FromVarImage({value}{(odoCount is null ? (formalStorage ? ", true" : "") : $", {(formalStorage ? "true" : "false")}, {odoCount}")});",
@@ -1248,7 +1248,7 @@ internal static class PlaceRenderer
     /// this face speaks national positions, so a consumer reaching for the image reader on a national group would
     /// compare UTF-16BE bytes against national literals.
     /// <para>The ODO extent arrives in BYTES (<see cref="CharLengthExpr"/> slices the AsImage channel), so the
-    /// national-position count is that extent over <c>CobolBits.BytesPerNational</c> — the ONE pinned size
+    /// national-position count is that extent over <c>NationalImage.BytesPerNational</c> — the ONE pinned size
     /// (§2023:13.18.60.4 GR8 leaves it to the implementor; D-N1 pins two), never a literal 2 written here.</para></summary>
     public static string SendingNat(Place group) => NatAs(group, AccessDir.Sending);
 

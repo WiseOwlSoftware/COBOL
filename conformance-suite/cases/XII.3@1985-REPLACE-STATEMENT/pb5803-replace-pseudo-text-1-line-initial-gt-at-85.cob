@@ -3,7 +3,6 @@
       *> rules: [1985-SR-XII.3.3-3]
       *> accept: [85]
       *> source-format: fixed
-      *> portable: unverified
       *>---
       *> kb/Work PB5803. §1985:XII.3.3 SR3: "Pseudo-text-1 must contain one or
       *> more text words" (cite.py --check: OK). COBOL-85 has no compiler

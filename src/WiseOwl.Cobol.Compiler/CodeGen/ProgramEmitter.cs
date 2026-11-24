@@ -162,7 +162,8 @@ internal sealed class ProgramEmitter
         // is the compilation's one (kb/Work PB803): a group of prototypes alone — the library that publishes them to the
         // external repository (DESIGN-external-repository §7.2) — emits no program class, so no unit emitter is current here.
         new HostEntryEmitter(comp.SignEncoding, _atoms,
-            data => new DataEmitter(new EmitContext(w, data, _names, _atoms, _whenCompiledStamp, RangeCollationFields.Of(data, null)))).Emit(comp.EntryUnits,
+            data => new DataEmitter(new EmitContext(w, data, _names, _atoms, _whenCompiledStamp, RangeCollationFields.Of(data, null))),
+            comp.Edition).Emit(comp.EntryUnits,
             units.Where(u => u.Parent is null).Select(u => u.ClassName)
                 .Concat(classes.SelectMany(c => c.Symbol.FactoryOrInstanceClrNames))
                 .Concat(comp.Interfaces.Select(i => i.ClrName))
@@ -630,7 +631,7 @@ internal sealed class ProgramEmitter
                 foreach (var root in unit.Data.Forest.LocalStorageRoots)
                 {
                     if (unit.Data.Linkage.SuppressedRootFields.Contains(root.ClrName)) continue;
-                    if (root.Class is { Tier: RedefinesTier.Alias } && !root.IsCanonical) continue;   // Tier-A view — no field
+                    if (root.IsAliasView) continue;   // Tier-A view — no field
                     if (fields.MethodRedefinesBackingDecl(root) is { } bkl)   // Tier-B canonical → the ONE string backing
                         w.Line($"{bkl.Name} = {bkl.Init};   // LOCAL-STORAGE {root.CobolName} (Tier-B backing) — initial state each activation (§2023:13.6.4 GR1 / §2023:14.6.2.3.2)");
                     else if (root.Class is { Tier: RedefinesTier.StringCanonical })

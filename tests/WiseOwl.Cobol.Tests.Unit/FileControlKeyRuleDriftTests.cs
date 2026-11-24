@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 
@@ -354,7 +355,7 @@ public sealed class FileControlKeyRuleDriftTests
         {
             // An ALTERNATE RECORD KEY operand carries a SUPPRESS WHEN literal-1 too, so the §2023:12.4.5.6.3 SR7 rows
             // render the operand they actually describe (kb/Work PB1072).
-            var op = new FileKeyOperand(rule.Role, "KEY", "K", item, default,
+            var op = new FileKeyOperand(rule.Role, "KEY", "K", item, default, EditionInfo.Of(2023),
                 SuppressWhen: new SuppressWhenOperand("ALL 'AB'", SuppressWhenForm.AllLiteral,
                     WiseOwl.Cobol.Common.LiteralClass.Alphanumeric, "AB", null));
             string message = rule.Message(file, op);
@@ -434,13 +435,13 @@ public sealed class FileControlKeyRuleDriftTests
                 Assert.True(inFormat, $"§1985:{rule.Clause} has no general format containing \"{rule.RuleText}\".");
                 var fmtFile = new FileModel { CobolName = "F", SelectName = "F", AssignTarget = "F" };
                 var fmtItem = new DataItem { Level = 5, CobolName = "K", ClrName = "K" };
-                Assert.Contains(rule.Citation, rule.Message(fmtFile, new FileKeyOperand(rule.Role, "KEY", "K", fmtItem, default)));
+                Assert.Contains(rule.Citation, rule.Message(fmtFile, new FileKeyOperand(rule.Role, "KEY", "K", fmtItem, default, EditionInfo.Of(85))));
                 continue;
             }
             var m = Regex.Match(rule.RuleId, @"^1985-SR-(?<clause>[IVX]+\.[0-9.]+)-(?<n>\d+)$");
             Assert.True(m.Success, $"rule-id '{rule.RuleId}' is not the 1985 inventory's 1985-SR-<clause>-<n> (or 1985-FMT-<clause>-<key>) shape.");
             Assert.Equal(rule.Clause, m.Groups["clause"].Value);
-            // Chapter IV prints its subclause headings without the markdown marks the other chapters carry (4.3.8.2.3 Syntax Rules).
+            // Every 1985 subclause title is a markdown heading (e.g. "###### 4.3.8.2.3 Syntax Rules"); the leading marks are trimmed to compare the title text.
             string subsection = rule.Clause[(rule.Clause.IndexOf('.') + 1)..] + " Syntax Rules";
             string numbered = $"({m.Groups["n"].Value}) ";
             bool found = false;
@@ -455,7 +456,7 @@ public sealed class FileControlKeyRuleDriftTests
             Assert.DoesNotContain(Norm(rule.RuleText), text2023);
             var file = new FileModel { CobolName = "F", SelectName = "F", AssignTarget = "F" };
             var item = new DataItem { Level = 5, CobolName = "K", ClrName = "K" };
-            Assert.Contains(rule.Citation, rule.Message(file, new FileKeyOperand(rule.Role, "KEY", "K", item, default)));
+            Assert.Contains(rule.Citation, rule.Message(file, new FileKeyOperand(rule.Role, "KEY", "K", item, default, EditionInfo.Of(85))));
         }
     }
 
@@ -484,9 +485,42 @@ public sealed class FileControlKeyRuleDriftTests
             Assert.True(found, $"§2002:{rule.Clause} has no numbered syntax rule {m.Groups["n"].Value} containing \"{rule.RuleText}\".");
             var file = new FileModel { CobolName = "F", SelectName = "F", AssignTarget = "F" };
             var item = new DataItem { Level = 5, CobolName = "K", ClrName = "K" };
-            string message = rule.Message(file, new FileKeyOperand(rule.Role, "KEY", "K", item, default));
+            string message = rule.Message(file, new FileKeyOperand(rule.Role, "KEY", "K", item, default, EditionInfo.Of(2002)));
             Assert.Contains(rule.Citation, message);
             Assert.Contains("§2002:13.16.36.3 GR8", message);
+        }
+    }
+
+    /// <summary>⛔ THE 2014 ROWS ARE RE-DERIVED FROM <c>specs/ISO_COBOL_2014.md</c> (kb/Work PB6072): each row quotes a numbered syntax
+    /// rule inside the "Syntax rules" subsection of the clause it cites, replaces a 2023 row whose file kind, role, precondition and
+    /// predicate it takes as its own, and ships its citation in the message. The 2014 text carries no "subject to any OCCURS
+    /// clauses" ban in the key clauses (each says "shall not be subscripted"), which is why the rows are the table-element rule.</summary>
+    [Fact]
+    public void Every2014Row_QuotesItsOwnNumberedRuleOfTheClauseItCites_AndRestatesA2023Row()
+    {
+        var lines = File.ReadAllLines(TestRepo.Specs("ISO_COBOL_2014.md"));
+        Assert.NotEmpty(FileControlKeyRules.Catalog2014);
+        foreach (var rule in FileControlKeyRules.Catalog2014)
+        {
+            var m = Regex.Match(rule.RuleId, @"^2014-SR-(?<clause>[0-9.]+)-(?<n>\d+)$");
+            Assert.True(m.Success, $"rule-id '{rule.RuleId}' is not the 2014 inventory's 2014-SR-<clause>-<n> shape.");
+            Assert.Equal(rule.Clause, m.Groups["clause"].Value);
+            Assert.Equal($"ISO §2014:{rule.Clause} SR{m.Groups["n"].Value}", rule.Citation);
+            int at = Array.FindIndex(lines, l => l.Trim() == $"###### {rule.Clause} Syntax rules");
+            Assert.True(at >= 0, $"§2014:{rule.Clause} has no Syntax rules subsection.");
+            string numbered = m.Groups["n"].Value + "\\) ";
+            bool found = false;
+            for (int j = at + 1; j < lines.Length && !lines[j].StartsWith('#'); j++)
+                if (lines[j].StartsWith(numbered, StringComparison.Ordinal) && Norm(lines[j]).Contains(Norm(rule.RuleText)))
+                    found = true;
+            Assert.True(found, $"§2014:{rule.Clause} has no numbered syntax rule {m.Groups["n"].Value} containing \"{rule.RuleText}\".");
+            var from2023 = Assert.Single(FileControlKeyRules.Catalog, r => r.RuleId == rule.Supersedes);
+            Assert.Equal(from2023.ScreenedOn, rule.ScreenedOn);
+            Assert.Equal(from2023.Role, rule.Role);
+            Assert.Same(from2023.Violated, rule.Violated);
+            var file = new FileModel { CobolName = "F", SelectName = "F", AssignTarget = "F" };
+            var item = new DataItem { Level = 5, CobolName = "K", ClrName = "K" };
+            Assert.Contains(rule.Citation, rule.Message(file, new FileKeyOperand(rule.Role, "KEY", "K", item, default, EditionInfo.Of(2014))));
         }
     }
 

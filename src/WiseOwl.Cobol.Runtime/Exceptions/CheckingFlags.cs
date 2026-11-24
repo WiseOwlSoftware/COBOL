@@ -182,9 +182,15 @@ public struct CheckingFlags
 
     /// <summary>EC-FLOW-GLOBAL-GOBACK — a GOBACK statement executed within the RANGE of a declarative procedure
     /// whose USE statement contains the GLOBAL phrase and is specified in the same program as the GOBACK
-    /// (§2023:14.9.18.4 GR6; Table 13 Fatal). ⚠ Its Table 13 neighbour EC-FLOW-GLOBAL-EXIT has NO flag because the
-    /// standard states no general rule that sets it — see <c>ExceptionEngine.FlowGlobalGobackError</c>.</summary>
+    /// (§2023:14.9.18.4 GR6; Table 13 Fatal).</summary>
     public bool FlowGlobalGoback;
+
+    /// <summary>EC-FLOW-GLOBAL-EXIT — an EXIT PROGRAM, EXIT METHOD or EXIT FUNCTION statement (or the GOBACK that
+    /// operates as one) executed within the RANGE of a declarative procedure whose USE statement contains the GLOBAL
+    /// phrase and is specified in the same function, method or program (§2002:14.8.13.3 GR2; Table 13 Fatal). Set only
+    /// at <c>--std 2002</c> and <c>--std 2014</c>: §2023 states no rule that sets it, so the binder declares no raise
+    /// from 2023 (<c>DialectBehavior.FlowGlobalExitIsNeverSet</c>; docs/conformance/3/D-GLOBAL-EXIT.md).</summary>
+    public bool FlowGlobalExit;
 
     /// <summary>EC-FLOW-RELEASE — a RELEASE executed other than within the range of an input procedure being
     /// executed by a SORT statement that references the file-name associated with its record-name-1
