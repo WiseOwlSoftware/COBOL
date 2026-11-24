@@ -1,4 +1,4 @@
-## PB5618: EXIT FUNCTION and EXIT METHOD in a GLOBAL declarative are refused at 2002 and 2014
+## Entry 4030 — 2026-11-24 02:40 PST — PB5618: EXIT FUNCTION and EXIT METHOD in a GLOBAL declarative are refused at 2002 and 2014
 
 The 2002 read found that `EXIT FUNCTION` and `EXIT METHOD` inside a declarative whose USE statement carries GLOBAL compiled
 and ran (the note's repro printed 7), although `EXIT PROGRAM` and `GOBACK` there were refused with COBOL2102.
@@ -18,3 +18,4 @@ Goldens: `g2-exit-function-in-global-declarative` and `g2-exit-method-in-global-
 accepted forms are the existing `g2_exit_function_ends_function` and `g2_exit_method_ends_method`). Row
 `2002-SR-14.8.13.2-2` is CONFORMS (GAP 1137 to 1136). The run-time EC-FLOW-GLOBAL-EXIT sibling is a separate rule
 (§2002:14.8.13.3 GR2, landed by PB5715) and was not touched.
+
