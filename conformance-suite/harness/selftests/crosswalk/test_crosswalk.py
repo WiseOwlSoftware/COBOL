@@ -268,6 +268,75 @@ def case_17_a_unit_binds_its_feature_and_reference_once_and_a_later_move_is_the_
                  ([7], "SIGN", "VI-42 5.12.4"))
 
 
+_SIGN = ('MOVE "SIGN" TO FEATURE.', 'MOVE "VI-42 5.12.4 GR1" TO ANSI-REFERENCE.', 'MOVE "SIGN-TEST-1" TO PAR-NAME.',
+         'MOVE "MPY-TEST-F1-1" TO PAR-NAME.')
+_DECIDED = {"disposition": "rows", "rows": ["1985-GR-VI.5.12.4-2"], "basis": "adjudicated: planted (selftest)"}
+
+
+def case_18_a_rebuild_keeps_an_adjudicated_entry_verbatim_and_rebuilds_the_mechanical_ones(expect):
+    programs = {"A": _program(*_SIGN)}
+    catalog, directory = _world(programs)
+    _edit(directory, "A", lambda o: (o["units"][0].update(_DECIDED), o["units"][1].update(feature="STALE")))
+    before = json.loads((directory / "A.json").read_text(encoding="utf-8"))
+    files, kept, conflicts = T.build(catalog, programs, directory)
+    after = json.loads((directory / "A.json").read_text(encoding="utf-8"))
+    expect.equal("one file, one adjudication kept, no conflict", (files, kept, conflicts), (1, 1, []))
+    expect.equal("the adjudicated entry is written back verbatim, in its place", after["units"][0], before["units"][0])
+    expect.equal("the mechanical entry is rebuilt", after["units"][1], T.build_program(catalog, "A", programs["A"])["units"][1])
+    expect.equal("the audit of the rebuilt file is silent", T.audit(catalog, programs, directory), [])
+    raw = (directory / "A.json").read_bytes()
+    expect("the file is LF, never CRLF", b"\n" in raw and b"\r" not in raw, repr(raw[:80]))
+
+
+def case_19_a_rebuild_reports_an_adjudication_the_program_no_longer_supports_and_still_keeps_it(expect):
+    catalog, directory = _world({"A": _program(*_SIGN)})
+    _edit(directory, "A", lambda o: (o["units"][0].update(_DECIDED), o["units"][1].update(_DECIDED)))
+    kept = json.loads((directory / "A.json").read_text(encoding="utf-8"))["units"]
+    # the program moved: SIGN-TEST-1 has another FEATURE, MPY-TEST-F1-1 is gone
+    moved = {"A": _program('MOVE "SIGNS" TO FEATURE.', 'MOVE "VI-42 5.12.4 GR1" TO ANSI-REFERENCE.',
+                           'MOVE "SIGN-TEST-1" TO PAR-NAME.')}
+    files, count, conflicts = T.build(catalog, moved, directory)
+    got = "\n".join(conflicts)
+    expect.equal("two adjudications kept, two conflicts", (count, len(conflicts)), (2, 2))
+    expect("a changed fact is named", "A:SIGN-TEST-1: feature is 'SIGN', the program says 'SIGNS' (adjudicated entry kept" in got, got)
+    expect("a vanished unit is named", "A:MPY-TEST-F1-1: an adjudicated entry of no unit of the program (kept" in got, got)
+    expect.equal("both entries are kept verbatim", json.loads((directory / "A.json").read_text(encoding="utf-8"))["units"], kept)
+    audit = "\n".join(T.audit(catalog, moved, directory))
+    expect("the audit names the stale fact and the vanished unit",
+           "feature is 'SIGN', the program says 'SIGNS'" in audit and "entry MPY-TEST-F1-1 is no unit" in audit, audit)
+    expect("and no rebuild would change either entry", "a rebuild would change" not in audit, audit)
+
+
+def case_20_a_unit_adjudicated_twice_fails_loudly_and_writes_nothing(expect):
+    programs = {"A": _program(*_SIGN)}
+    catalog, directory = _world(programs)
+    _edit(directory, "A", lambda o: o.update(units=[o["units"][0] | _DECIDED, o["units"][0] | _DECIDED | {"rows": []}]))
+    before = (directory / "A.json").read_bytes()
+    try:
+        T.build(catalog, programs, directory)
+        expect("a unit adjudicated twice fails loudly", False, "no error")
+    except T.CrosswalkError as e:
+        expect("a unit adjudicated twice fails loudly", "adjudicated twice" in str(e), str(e))
+    expect.equal("the file is untouched", (directory / "A.json").read_bytes(), before)
+    expect("the audit names it", "adjudicated twice" in "\n".join(T.audit(catalog, programs, directory)))
+
+
+def case_21_the_audit_refuses_a_file_a_rebuild_would_change_an_adjudicated_entry_of(expect):
+    programs = {"A": _program(*_SIGN)}
+    catalog, directory = _world(programs)
+    _edit(directory, "A", lambda o: o["units"][0].update(_DECIDED))
+    stored = json.loads((directory / "A.json").read_text(encoding="utf-8"))
+    fresh = T.build_program(catalog, "A", programs["A"])
+    expect.equal("a sound file", T.rebuild_problems(fresh, stored), [])
+    real = T.merge
+    try:   # a merge that drops adjudications, as the builder before PB6131 did
+        T.merge = lambda f, s: (f, 0, [])
+        expect.equal("is named when the rebuild would replace its adjudicated entry", T.rebuild_problems(fresh, stored),
+                     ["A:SIGN-TEST-1: a rebuild would change this adjudicated entry"])
+    finally:
+        T.merge = real
+
+
 if __name__ == "__main__":
     ensure_utf8()
     sys.exit(selftest_cases.run(sys.modules[__name__]))
