@@ -17,4 +17,4 @@ Goldens: `pb6116_picture_one_extended_floating_string_2023` (accepted, from 2023
 (refused at 2023 with COBOL1934); unit theory `PictureCompositionTests.ASecondExtendedFloatingString_IsRefusedBySR27`. No inventory
 row closed.
 
-Review round 1 (R1-1): the SR27 count now also counts a string of Z, of *, and a floating +, - or currency string against a floating extended string, so `PIC LLZZ9` and `PIC LL$$99` are refused (COBOL1934). Unit theory rows added. R1-2 (a lone trailing floating extended string) is left as a lead.
+Review round 1 (R1-1, answered no_change_needed): SR27's list names only '+', '-', currency, '*' and 'Z' strings; a floating extended string is not on it, so `PIC LLZZ9` and `PIC LL$$99` are not two SR27 strings. The adjudicated golden pb4755_deedit_for_floating_blank_landing_before_z (PIC LLLZZ9, SR12 b) accepts the Z shape: a count that refused it went RED (Conformance, RepositoryRoundTripCorpus, HostEntryShapeDrift) and was reverted. R1-2 (a lone trailing floating extended string) is left as a lead.

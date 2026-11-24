@@ -435,24 +435,16 @@ internal static class PictureComposition
         // count is made here: a second run of the same extended symbol that something other than a transparent
         // symbol separates (`PIC LL9LL`), or a run of another extended character-1 (`PIC LL99FF`), is a second
         // string (kb/Work PB6116).
-        // The extended string also counts against the other SR27 strings (a floating '+', '-' or currency string, a
-        // string of '*', a string of 'Z'), which the walk refuses among themselves but never against an extended one:
-        // `PIC LLZZ9` and `PIC LL$$99` hold two (kb/Work PB6116, review R1-1).
-        int extendedFloatingStrings = 0, otherSr27Strings = 0;
+        int extendedFloatingStrings = 0;
         for (int r = 0; r < runs; r++)
         {
-            char kind = syms[r].Kind;
-            bool extended = char1Extended.Contains(kind);
-            bool other = !extended && (kind is 'Z' or '*' || (kind == '+' || kind == '-' || kind == cs) && IsFloating(r));
-            if (!(extended && IsFloating(r)) && !other) continue;
-            if (ContinuesEarlierRun(syms, r, char1, decimalSep, grouping)) continue;
-            if (extended) extendedFloatingStrings++; else otherSr27Strings++;
+            if (!IsFloating(r) || !char1Extended.Contains(syms[r].Kind)) continue;
+            if (!ContinuesEarlierRun(syms, r, char1, decimalSep, grouping)) extendedFloatingStrings++;
         }
-        if (extendedFloatingStrings >= 1 && extendedFloatingStrings + otherSr27Strings > 1)
+        if (extendedFloatingStrings > 1)
             return Fail(DiagnosticCatalog.PictureComposition,
-                $"character-string-1 holds {extendedFloatingStrings + otherSr27Strings} floating insertion strings "
-                + "(a floating string of extended editing sign control symbols is one) — no more than one of a string of "
-                + "'+', '-', currency symbols, '*' or 'Z' may be specified "
+                $"character-string-1 holds {extendedFloatingStrings} floating insertion strings of extended editing sign "
+                + "control symbols — no more than one floating insertion string may be specified "
                 + "(ISO §2023:13.18.40.3 SR27)");
 
         // SR12 a) "Character-string-1 shall contain: — at least on[e] one of the symbols from the set 'A', 'N',
