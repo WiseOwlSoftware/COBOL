@@ -595,73 +595,114 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     }
 
     /// <summary>SET program-pointer assignment (ISO §2023:14.9.39 Format 9; SR21 — every target AND the sender
-    /// shall be category program-pointer; P10 Step 7): the data-pointer Format-7 twin over the ProgramPointer
-    /// carrier. The sender is NULL or another program-pointer; SELF/SUPER are object references (0869).</summary>
+    /// shall be category program-pointer; SR22 — a RESTRICTED receiver's prototype and the sender's shall have the same
+    /// signature): <see cref="BindSetPrototypedPointer"/> over the ProgramPointer carrier. The sender is NULL or another
+    /// program-pointer; SELF/SUPER are object references (0869).</summary>
     private BoundStatement BindSetProgramPointer(
         IReadOnlyList<Core.DataReferenceContext> targetRefs, SetSender? sender,
-        bool toNull, bool senderIsSelfSuper, string? senderText = null)
+        bool toNull, bool senderIsSelfSuper, string? senderText = null) =>
+        BindSetPrototypedPointer(PrototypedPointerFormat.ProgramPointer, targetRefs, sender, toNull, senderIsSelfSuper, senderText);
+
+    /// <summary>SET function-pointer assignment (ISO §2023:14.9.39.2 Format 8; §2023:14.9.39.3 SR20 — every target AND the
+    /// sender shall be category function-pointer, the sender may be the predefined address NULL, and "the
+    /// function-prototypes associated with identifier-12 and identifier-13 shall have the same signature"):
+    /// <see cref="BindSetPrototypedPointer"/> over the FunctionPointer carrier. kb/Work PB452 + PB817.</summary>
+    private BoundStatement BindSetFunctionPointer(
+        IReadOnlyList<Core.DataReferenceContext> targetRefs, SetSender? sender,
+        bool toNull, bool senderIsSelfSuper, string? senderText = null) =>
+        BindSetPrototypedPointer(PrototypedPointerFormat.FunctionPointer, targetRefs, sender, toNull, senderIsSelfSuper, senderText);
+
+    /// <summary>⛔ THE ONE BINDING OF A SET OF A POINTER THAT A PROTOTYPE MAY RESTRICT — Format 9 (program-pointer, SR21/SR22) and
+    /// Format 8 (function-pointer, SR20) of ISO §2023:14.9.39 are one statement over two carriers (kb/Work PB2155, census R0-0053;
+    /// kb/Work PB817: "SR20 and SR22 are ONE rule over TWO carriers; write it once"). Every receiver and the sender shall be of
+    /// <paramref name="format"/>'s category; the sender is NULL or an identifier of that category, never SELF/SUPER (Format 5's)
+    /// nor a literal or an arithmetic expression (kb/Work PB456); and each receiver and the sender are held to the same-signature
+    /// rule by <see cref="PointerAssignmentReason"/>, which knows the one asymmetry (SR22 binds only a RESTRICTED program-pointer
+    /// receiver, SR20 every function-pointer). <paramref name="format"/> carries what the two formats spell differently.</summary>
+    private BoundStatement BindSetPrototypedPointer(PrototypedPointerFormat format,
+        IReadOnlyList<Core.DataReferenceContext> targetRefs, SetSender? sender,
+        bool toNull, bool senderIsSelfSuper, string? senderText)
     {
         if (senderIsSelfSuper)
         {
             using var atWord = ctx.Edition.At(sender?.Predefined);   // the refusal is about the SELF / SUPER word (kb/Work PB4652)
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.PointerOperandShape,
                 $"SET {SetFormatSelection.Written(targetRefs)} TO {senderText ?? "SELF/SUPER"}: SELF and SUPER "
-                + "are object references, not program pointers "
-                + "(ISO §2023:14.9.39.2 Format 9 — the sender of a program-pointer SET is NULL, another "
-                + "program-pointer, or an ENTRY program-address-identifier; SELF and SUPER belong to Format 5, "
+                + $"are object references, not {format.Plural} "
+                + $"(ISO §2023:14.9.39.2 {format.Format} — the sender of a {format.Kind} SET is NULL, another "
+                + $"{format.Kind}, or {format.AddressSender}; SELF and SUPER belong to Format 5, "
                 + "the object-reference assignment)");
         }
+        string rules = $"ISO §2023:14.9.39 {format.Format}, §2023:14.9.39.3 {format.Rule}";
         var targets = new List<Place>(targetRefs.Count);
         foreach (var t in targetRefs)
         {
-            if (SetIndexNameOperand(t, "receiving operand", "program-pointer", "ISO §2023:14.9.39 Format 9, §2023:14.9.39.3 SR21")) return BoundRejected.Reported(ctx.Edition);
-            if (host.Expr.ResolveReceiving(t) is not { } tp || tp.Item.Pic?.Category is not PicCategory.ProgramPointer)
+            if (SetIndexNameOperand(t, "receiving operand", format.Kind, rules)) return BoundRejected.Reported(ctx.Edition);
+            if (host.Expr.ResolveReceiving(t) is not { } tp || tp.Item.Pic?.Category != format.Category)
             {
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.PointerOperandShape,
-                    $"SET '{WrittenSource.Of(t)}': the receiving operand of a program-pointer SET shall be USAGE "
-                    + "PROGRAM-POINTER (ISO §2023:14.9.39.3 SR21, Format 9)");
+                    $"SET '{WrittenSource.Of(t)}': the receiving operand of a {format.Kind} SET shall be USAGE "
+                    + $"{format.Usage} (ISO §2023:14.9.39.3 {format.ReceiverRule})");
             }
             targets.Add(tp);
         }
         Place? source = null;
         if (!toNull)
         {
-            if (sender is not { IsIdentifierOperand: true })   // SR21 over a literal / expression sender (kb/Work PB456)
+            if (sender is not { IsIdentifierOperand: true })   // SR20 / SR21 over a literal / expression sender (kb/Work PB456)
             {
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.PointerOperandShape,
                     $"SET {SetFormatSelection.Written(targetRefs)} TO {senderText}: "
-                    + "identifier-8 shall be of category program-pointer — a program-pointer sender is NULL, "
-                    + "another USAGE PROGRAM-POINTER item, a function-identifier or inline method invocation of "
-                    + "category program-pointer, or an ENTRY program-address-identifier, never a "
-                    + "literal or an arithmetic expression (ISO §2023:14.9.39.2 Format 9, §2023:14.9.39.3 SR21)");
+                    + $"{format.SenderIdentifier} shall be of category {format.Kind} — a {format.Kind} sender is NULL, "
+                    + $"another USAGE {format.Usage} item, a function-identifier or inline method invocation of "
+                    + $"category {format.Kind}, or {format.AddressSender}, "
+                    + $"never a literal or an arithmetic expression (ISO §2023:14.9.39.2 {format.Format}, §2023:14.9.39.3 {format.Rule})");
             }
-            var sp = CarrierSenderPlace(sender, "program-pointer", "ISO §2023:14.9.39 Format 9, §2023:14.9.39.3 SR21", out var senderRefusal);
+            var sp = CarrierSenderPlace(sender, format.Kind, rules, out var senderRefusal);
             if (senderRefusal is not null) return senderRefusal;
-            if (sp?.Item.Pic?.Category is not PicCategory.ProgramPointer)
+            if (sp?.Item.Pic?.Category != format.Category)
             {
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.PointerOperandShape,
-                    // ⛔ NAME THE RECEIVERS (kb/Work PB388's sweep, finished here): the renderer transliterates
-                    // U+2026 to ASCII, so `SET … TO 'x'` reached the user as `SET . TO 'x'` — a statement
-                    // nobody wrote. The Format-7 twin was fixed; these two were the arms it missed.
+                    // ⛔ NAME THE RECEIVERS (kb/Work PB388's sweep): the renderer transliterates U+2026 to ASCII, so
+                    // `SET … TO 'x'` reached the user as `SET . TO 'x'` — a statement nobody wrote.
                     $"SET {SetFormatSelection.Written(targetRefs)} TO "
-                    + $"'{sender.Text}': a program-pointer sender shall be NULL, another "
-                    + "USAGE PROGRAM-POINTER item, a function-identifier or inline method invocation of category "
-                    + "program-pointer, or an ENTRY program-address-identifier "
-                    + "(ISO §2023:14.9.39.3 SR21, Format 9 / §2023:8.4.3.13)");
+                    + $"'{sender.Text}': a {format.Kind} sender shall be NULL, another "
+                    + $"USAGE {format.Usage} item, a function-identifier or inline method invocation of category "
+                    + $"{format.Kind}, or {format.AddressSender} "
+                    + $"(ISO §2023:14.9.39.3 {format.ReceiverRule} / {format.AddressIdentifierClause})");
             }
             source = sp;
-            // §2023:14.9.39.3 SR22 — "If identifier-7 references a RESTRICTED program-pointer, identifier-8 shall be
-            // the predefined address NULL or shall reference a program-pointer and the program-prototypes
-            // associated with identifier-7 and identifier-8 shall have the same signature." The rule is
-            // conditioned on the RECEIVER being restricted (unlike SR20, where every function-pointer is), which
-            // is the only asymmetry between the two; the compare itself is the same one, so it is the same
-            // helper. kb/Work PB817: "SR20 and SR22 are ONE rule over TWO carriers; write it once."
+            // SR20's last sentence and SR22, over every receiver: the associated prototypes shall have the same signature.
+            // §2023:13.18.60.4 GR25/GR26 make "associated" a compile-time fact — every restricted pointer carries the prototype
+            // its unbracketed TO phrase names.
             foreach (var t in targets)
                 if (PointerAssignmentReason(t.Item, sp.Item) is { } why)
                     return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.PrototypePointerSignature,
                         $"SET '{t.Item.CobolName}' TO '{sp.Item.CobolName}': {why}");
         }
-        return new BoundSetProgramPointer(targets, source, toNull);
+        return format.Bind(targets, source, toNull);
+    }
+
+    /// <summary>What SET Format 9 and Format 8 (<see cref="BindSetPrototypedPointer"/>) spell differently: the carrier's
+    /// category and its words, the format and its rule, the sender identifier's name, the address-identifier sender
+    /// (§2023:8.4.3.13 program-address-identifier, §2023:8.4.3.12 function-address-identifier) and the bound statement.</summary>
+    private sealed record PrototypedPointerFormat(
+        PicCategory Category, string Kind, string Usage, string Format, string Rule, string ReceiverRule,
+        string SenderIdentifier, string AddressSender, string AddressIdentifierClause,
+        Func<IReadOnlyList<Place>, Place?, bool, BoundStatement> Bind)
+    {
+        public static readonly PrototypedPointerFormat ProgramPointer = new(PicCategory.ProgramPointer,
+            "program-pointer", "PROGRAM-POINTER", "Format 9", "SR21", "SR21, Format 9", "identifier-8",
+            "an ENTRY program-address-identifier", "§2023:8.4.3.13",
+            static (targets, source, toNull) => new BoundSetProgramPointer(targets, source, toNull));
+
+        public static readonly PrototypedPointerFormat FunctionPointer = new(PicCategory.FunctionPointer,
+            "function-pointer", "FUNCTION-POINTER", "Format 8", "SR20", "SR20", "identifier-13",
+            "an ADDRESS OF FUNCTION function-address-identifier", "§2023:8.4.3.12",
+            static (targets, source, toNull) => new BoundSetFunctionPointer(targets, source, toNull));
+
+        /// <summary>The carrier named in prose as a plural noun ("program pointers").</summary>
+        public string Plural => Kind.Replace('-', ' ') + "s";
     }
 
     /// <summary>⛔ THE ONE §2023:14.9.39.3 VERDICT FOR A PROGRAM- OR FUNCTION-POINTER IDENTIFIER STORED INTO A POINTER
@@ -744,71 +785,6 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         if (PointerAssignmentReason(receiver.Item, sender.Item) is not { } why) return true;
         ctx.Edition.Error(DiagnosticCatalog.PrototypePointerSignature, $"{implicitSet}: {why}");
         return false;
-    }
-
-    /// <summary>SET function-pointer assignment (ISO §2023:14.9.39.2 Format 8; §2023:14.9.39.3 SR20 — every target AND the
-    /// sender shall be category function-pointer, the sender may be the predefined address NULL, and "the
-    /// function-prototypes associated with identifier-12 and identifier-13 shall have the same signature"): the
-    /// Format-9 program-pointer twin over the FunctionPointer carrier. kb/Work PB452 + PB817.</summary>
-    private BoundStatement BindSetFunctionPointer(
-        IReadOnlyList<Core.DataReferenceContext> targetRefs, SetSender? sender,
-        bool toNull, bool senderIsSelfSuper, string? senderText = null)
-    {
-        if (senderIsSelfSuper)
-        {
-            using var atWord = ctx.Edition.At(sender?.Predefined);   // the refusal is about the SELF / SUPER word (kb/Work PB4652)
-            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.PointerOperandShape,
-                $"SET {SetFormatSelection.Written(targetRefs)} TO {senderText ?? "SELF/SUPER"}: SELF and SUPER "
-                + "are object references, not function pointers "
-                + "(ISO §2023:14.9.39.2 Format 8 — the sender of a function-pointer SET is NULL, another "
-                + "function-pointer, or an ADDRESS OF FUNCTION function-address-identifier; SELF and SUPER "
-                + "belong to Format 5, the object-reference assignment)");
-        }
-        var targets = new List<Place>(targetRefs.Count);
-        foreach (var t in targetRefs)
-        {
-            if (SetIndexNameOperand(t, "receiving operand", "function-pointer", "ISO §2023:14.9.39 Format 8, §2023:14.9.39.3 SR20")) return BoundRejected.Reported(ctx.Edition);
-            if (host.Expr.ResolveReceiving(t) is not { } tp || tp.Item.Pic?.Category is not PicCategory.FunctionPointer)
-            {
-                return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.PointerOperandShape,
-                    $"SET '{WrittenSource.Of(t)}': the receiving operand of a function-pointer SET shall be USAGE "
-                    + "FUNCTION-POINTER (ISO §2023:14.9.39.3 SR20)");
-            }
-            targets.Add(tp);
-        }
-        Place? source = null;
-        if (!toNull)
-        {
-            if (sender is not { IsIdentifierOperand: true })   // SR20 over a literal / expression sender (kb/Work PB456)
-            {
-                return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.PointerOperandShape,
-                    $"SET {SetFormatSelection.Written(targetRefs)} TO {senderText}: "
-                    + "identifier-13 shall be of category function-pointer — a function-pointer sender is NULL, "
-                    + "another USAGE FUNCTION-POINTER item, a function-identifier or inline method invocation of "
-                    + "category function-pointer, or an ADDRESS OF FUNCTION function-address-identifier, "
-                    + "never a literal or an arithmetic expression (ISO §2023:14.9.39.2 Format 8, §2023:14.9.39.3 SR20)");
-            }
-            var sp = CarrierSenderPlace(sender, "function-pointer", "ISO §2023:14.9.39 Format 8, §2023:14.9.39.3 SR20", out var senderRefusal);
-            if (senderRefusal is not null) return senderRefusal;
-            if (sp?.Item.Pic?.Category is not PicCategory.FunctionPointer)
-            {
-                return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.PointerOperandShape,
-                    $"SET {SetFormatSelection.Written(targetRefs)} TO "   // kb/Work PB388
-                    + $"'{sender.Text}': a function-pointer sender shall be NULL, another "
-                    + "USAGE FUNCTION-POINTER item, a function-identifier or inline method invocation of category "
-                    + "function-pointer, or an ADDRESS OF FUNCTION function-address-identifier "
-                    + "(ISO §2023:14.9.39.3 SR20 / §2023:8.4.3.12)");
-            }
-            source = sp;
-            // SR20's LAST sentence, over every receiver: the associated function-prototypes shall have the same
-            // signature. §2023:13.18.60.4 GR26 is what makes "associated" a compile-time fact — every function-pointer
-            // carries the prototype its unbracketed TO phrase names.
-            foreach (var t in targets)
-                if (PointerAssignmentReason(t.Item, sp.Item) is { } why)
-                    return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.PrototypePointerSignature,
-                        $"SET '{t.Item.CobolName}' TO '{sp.Item.CobolName}': {why}");
-        }
-        return new BoundSetFunctionPointer(targets, source, toNull);
     }
 
     /// <summary><c>SET function-pointer… TO ADDRESS OF FUNCTION {function-prototype-name-1 | identifier-1}</c> —
