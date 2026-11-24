@@ -110,6 +110,11 @@ public sealed class ConfigurationSlice
     /// r25 is the picture-symbol default, not a competing string).</summary>
     internal HashSet<string> ExplicitCurrencyStrings { get; } = new(StringComparer.Ordinal);
 
+    /// <summary>The PICTURE SYMBOL literals (literal-8) this unit's own CURRENCY SIGN clauses wrote, for §2002:12.2.6.2 SR22's "No two
+    /// occurrences of literal-8 may be the same value" (kb/Work PB5707). Not inherited: SR22 counts occurrences in one source unit's
+    /// SPECIAL-NAMES paragraph, and a contained unit restating its container's clause is not a second occurrence there.</summary>
+    internal HashSet<char> PictureSymbolLiterals { get; } = new();
+
     /// <summary>True once a clause named '$' as literal-7 or literal-8 (r25 — the implied clause is then NOT added).</summary>
     internal bool DollarSpecified { get; set; }
 
