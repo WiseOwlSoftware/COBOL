@@ -311,6 +311,7 @@ WiseOwl.Cobol.Runtime.DialectBehavior.SumSizeErrorBlanksPrintableItem = 8 -> Wis
 WiseOwl.Cobol.Runtime.DialectBehavior.SumSizeErrorRaisedAtAddition = 27 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.SumUponSameReport = 49 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.TerminateDiscardsSavedNextGroup = 9 -> WiseOwl.Cobol.Runtime.DialectBehavior
+WiseOwl.Cobol.Runtime.DialectBehavior.TurnDirectiveRepeatsOnlyNameFileCombination = 70 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.UnphrasedSizeErrorIsFatal = 20 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.UnstringZeroLengthSenderTerminates = 24 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.EditionDerivedAttribute
