@@ -7261,7 +7261,8 @@ public static class DiagnosticCatalog
         + "LOCALE clause, and the SYMBOLIC-CHARACTERS clause. d) The environment division shall not contain an "
         + "input-output section. e) The data division may contain only a linkage section. f) The procedure "
         + "division shall contain only a procedure division header.\" A prototype describes a signature; it has "
-        + "no storage and no statements of its own.",
+        + "no storage and no statements of its own. At COBOL-2002 and COBOL-2014 item c) lists only the LOCALE, "
+        + "CURRENCY and DECIMAL-POINT clauses (§2002:10.5.2 SR5c; §2014:10.6.2 SR4c; kb/Work PB5706).",
         "ISO §2023:10.6.2 SR4",
         No1985Rule: No1985Function);
 
