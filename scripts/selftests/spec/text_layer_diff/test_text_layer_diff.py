@@ -20,8 +20,13 @@ CORPUS = ("the file is open or of for not name file-name-1 file-name-1 data-name
           "name Section Section O O").split()
 
 
+#: a planted page: its heading, a blank line, then the Markdown from line 3 (`_rows`); `_amendments` writes its notes after a
+#: one-line block on that line, so a note governs a one-line planted Markdown
+PAGE, FIRST_LINE = "## Page 5\n\n", 3
+
+
 def _rows(pdf: str, md: str, entries=(), figure: bool = False, amendments=None):
-    words = [(w, figure, 1) for w in D.words_of_markdown(md)]
+    words = [(w, figure, n) for w, _, n in D.markdown_pages(PAGE + md + "\n")[5]]
     return D.classify_page(pdf.split(), words, list(entries), D.Lexicon.of(CORPUS), amendments=amendments)
 
 
@@ -126,8 +131,9 @@ NOTE_DAMAGE = ("> ⚠ **CORRECTED — see the Errata (C2).** The standard prints
                "letter on the printed page, which the transcription had reproduced. Corrected to `Tables`.")
 
 
-def _amendments(*notes: str):
-    return D.amendment_notes("## Page 5\n\n" + "\n\n".join(notes) + "\n").get(5)
+def _amendments(*notes: str, page: str | None = None):
+    """The page's amendment notes, each written after the one-line block on FIRST_LINE (or in the planted `page` text)."""
+    return D.amendment_notes(page if page is not None else PAGE + "governed\n\n" + "\n\n".join(notes) + "\n").get(5)
 
 
 def case_11_an_amendment_note_governs_the_words_it_quotes(expect):
@@ -256,6 +262,46 @@ def case_15_an_insertion_is_anchored_at_its_place_in_the_entry(expect):
                  applied("a b the file is shut when read x", "a b the file is open when read page x", "page", paged_am[5]), False)
     expect.equal("the probes' replacement itself is still applied",
                  applied("a b the file is shut when read x", "a b the file is open when read page x", "open", paged_am[5]), True)
+
+
+KEY_MD = ("## Page 831\n\n| Page No. | Change |\n|---|---|\n"
+          "| I-1 | Replace the sentence the key is not a name. |\n| I-7 | Replace the sentence the record is closed |\n")
+KEY_LAYER = "Page No. Change I-1 Replace the sentence the key is not a name. I-7 Replace the sentence the record is closed".split()
+
+
+def case_16_a_note_excuses_only_the_block_it_governs(expect):
+    """kb/Work PB6144 round 1: a note governs the Markdown block it is attached to (the nearest block above it), and a
+    difference outside that block is never AMENDMENT-APPLIED, whatever words the entry holds."""
+    note = _note("the key is a name", instr="Replace the sentence the key is not a name.")
+
+    def classes(pdf: str, md: str, page_md: str | None = None, run: str | None = None) -> list[str]:
+        """The classes of the rows of `run` (every row when None); the note sits after the first block of `md`."""
+        blocks = md.split("\n\n")
+        text = PAGE + "\n\n".join([blocks[0], note, *blocks[1:]]) + "\n"
+        am, missing = D.with_cited_text({5: _amendments(page=page_md if page_md is not None else text)}, {831: KEY_LAYER},
+                                        D.amendment_rows(KEY_MD))
+        words = [(w, False, n) for w, _, n in D.markdown_pages(text)[5]]
+        rows = D.classify_page(pdf.split(), words, [], D.Lexicon.of(CORPUS), amendments=am[5])
+        return [r["class"] for r in rows if run is None or r["md"] == run]
+
+    printed = "a b the key is a name x c d this item is a name y"
+    expect.equal("the control: the amended sentence in the governed block",
+                 classes(printed, "a b the key is not a name x\n\nc d this item is a name y"), ["AMENDMENT-APPLIED"])
+    expect.equal("the reviewer's probe: `not` gained by the look-alike in another block",
+                 "AMENDMENT-APPLIED" in classes(printed, "a b the key is a name x\n\nc d this item is not a name y", run="not"), False)
+    expect.equal("the look-alike changed as well as the amended sentence: only the governed one is applied",
+                 classes(printed, "a b the key is not a name x\n\nc d this item is not a name y"), ["AMENDMENT-APPLIED", "UNCOVERED"])
+    expect.equal("the amended sentence in a block the note does not follow",
+                 "AMENDMENT-APPLIED" in classes("c d this item is a name y a b the key is a name x",
+                                                "c d this item is a name y\n\na b the key is not a name x"), False)
+    expect.equal("a note at the top of its page governs nothing",
+                 _amendments(page=PAGE + note + "\n\na b the key is not a name x\n")[0][3], None)
+    expect.equal("a note past another note governs the block above both",
+                 _amendments(page=PAGE + "one\ntwo\n\n" + _note("other") + "\n\n" + note + "\n")[1][3], (3, 4))
+    expect.equal("a figure is one block, blank lines and all",
+                 _amendments(page=PAGE + "<pre>\nA\n\nB\n</pre>\n\n" + note + "\n")[0][3], (3, 7))
+    expect.equal("a fenced figure is one block too",
+                 _amendments(page=PAGE + "```\nA\n\nB\n```\n" + note + "\n")[0][3], (3, 7))
 
 
 if __name__ == "__main__":

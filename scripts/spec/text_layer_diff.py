@@ -314,8 +314,10 @@ def note_entries(text: str) -> dict[int, list[Entry]]:
 
 
 Change = tuple[int, str, list[str]]  # (the PDF page of the Amendment, the page cell's first word, the instruction's words)
-Amendment = tuple[list[list[str]], list[list[str]], Change | None]  # (what the note says the standard printed, the amended
-# text it quotes, the Amendment entry the note names: its page, its page cell and the instruction it quotes)
+Block = tuple[int, int]  # the first and last Markdown line of the block a note governs
+Amendment = tuple[list[list[str]], list[list[str]], Change | None, Block | None]  # (what the note says the standard printed,
+# the amended text it quotes, the Amendment entry the note names: its page, its page cell and the instruction it quotes; the
+# block of the Markdown the note governs, None when there is none)
 CHANGE = re.compile(r'its change for page (.+?) \(page (\d+), folio [AB]-\d+\)(?:.*?)applied in place(?:: "(.*?)")?')
 SIGNATURE = 5   # words of an entry's instruction that find its start in the Amendment page's text layer
 MATCHED = 8     # words of the quoted instruction that must open exactly one entry of the Amendment page
@@ -325,20 +327,40 @@ def amendment_notes(text: str) -> dict[int, list[Amendment]]:
     """page -> its amendment notes: the `> ⚠ **CORRECTED` notes that say an Amendment's text was `applied in place`
     (kb/Work PB5045). A note's first backticked quote is what the standard prints; its other quotes are the amended text it
     was corrected to; `its change for page P (page N, folio A-n): "instruction"` names the Amendment's entry for it. The
-    markup is the whole rule: a note of another kind (`a damaged letter on the printed page`) is no amendment."""
+    markup is the whole rule: a note of another kind (`a damaged letter on the printed page`) is no amendment.
+
+    A note governs the block it is attached to (kb/Work PB6144): the nearest block of the page above it, past any other note
+    (the transcription writes a note after the paragraph, list item, heading, table or figure it corrects). A block is a run
+    of non-blank lines; a `<pre>` or fenced figure is one block, blank lines and all. A note with no block above it on its
+    page governs nothing (None): its differences stay unexplained."""
     out: dict[int, list[Amendment]] = {}
     page = None
-    for line in text.splitlines():
+    block: Block | None = None   # the last block of the page above this line
+    open_at: int | None = None   # the first line of the block being read
+    in_figure = False
+    for no, line in enumerate(text.splitlines(), 1):
         m = PAGE_HEADING.match(line)
         if m:
-            page = int(m.group(1))
-        elif page and line.lstrip().startswith("> ⚠ **CORRECTED") and "Amendment" in line and "applied in place" in line:
+            page, block, open_at, in_figure = int(m.group(1)), None, None, False
+            continue
+        note = line.lstrip().startswith("> ⚠")
+        if not in_figure and (not line.strip() or note):
+            if open_at is not None:
+                block, open_at = (open_at, no - 1), None
+        elif not note:
+            if open_at is None:
+                open_at = no
+            if line.lstrip().startswith("```"):
+                in_figure = not in_figure
+            elif re.search(r"<pre\b", line) or "</pre>" in line:
+                in_figure = bool(re.search(r"<pre\b", line)) and "</pre>" not in line
+        if page and line.lstrip().startswith("> ⚠ **CORRECTED") and "Amendment" in line and "applied in place" in line:
             quotes = [_keys(q) for q in re.findall(r"`([^`]+)`", line)]
             printed, amended = [k for k in quotes[:1] if k], [k for k in quotes[1:] if k]
             c = CHANGE.search(line)
             change = (int(c.group(2)), (_keys(c.group(1)) or [""])[0], _keys(c.group(3) or "")) if c else None
             if printed:
-                out.setdefault(page, []).append((printed, amended, change))
+                out.setdefault(page, []).append((printed, amended, change, block))
     return out
 
 
@@ -411,13 +433,13 @@ def with_cited_text(notes: dict[int, list[Amendment]], layer: dict[int, list[str
     missing = 0
     out: dict[int, list[Amendment]] = {}
     for pg, ns in notes.items():
-        for pr, am, change in ns:
+        for pr, am, change, governed in ns:
             entry = None
             if change is not None:
                 keys = [k for k in (fold(w) for w in layer.get(change[0], [])) if k]
                 entry = entry_text(rows.get(change[0], []), keys, change)
             missing += entry is None
-            out.setdefault(pg, []).append((pr, am + ([entry] if entry else []), change))
+            out.setdefault(pg, []).append((pr, am + ([entry] if entry else []), change, governed))
     return out, missing
 
 
@@ -431,16 +453,33 @@ def _stands_between(hunk: list[str], texts: list[list[str]], before: str | None,
     return any(t[i:i + len(window)] == window for t in texts for i in range(len(t) - len(window) + 1))
 
 
+def _inside(governed: Block | None, md_at: tuple[list[int], int | None, int | None]) -> bool:
+    """The difference lies in the block the note governs: every Markdown word of it on the block's lines, or, when the
+    Markdown has no word of it (a drop), the gap on the block's edge or inside it (a word beside the gap on its lines)."""
+    if governed is None:
+        return False
+    lo, hi = governed
+    lines, before, after = md_at
+    if lines:
+        return all(lo <= n <= hi for n in lines)
+    return any(n is not None and lo <= n <= hi for n in (before, after))
+
+
 def amendment_accounts_for(notes: list[Amendment], pdf_hunk: list[str], md_hunk: list[str],
-                           pdf_ctx: tuple[str | None, str | None], md_ctx: tuple[str | None, str | None]) -> bool:
+                           pdf_ctx: tuple[str | None, str | None], md_ctx: tuple[str | None, str | None],
+                           md_at: tuple[list[int], int | None, int | None]) -> bool:
     """An amendment note of this page governs the hunk on BOTH sides: the layer's words are a run of what the note says the
     standard printed, and the Markdown's words are a run of the amended text the note says it was corrected to. A run needs
     a neighbouring word or three words (`_run_in`): no page-wide bag of words, and a Markdown word the note does not give
     (`13` for `12`) is no amendment. A side with no words is checked at its place (`_stands_between`): words the Markdown
     dropped need the two words around the gap consecutive in the amended text, and words the Markdown alone has (the
     printed side empty, so nothing else locates them) need the Markdown's words on each side to stand around them there
-    (kb/Work PB6144): an inserted run found elsewhere in the entry, or beside its edge, is no amendment."""
-    for printed, amended, _ in notes:
+    (kb/Work PB6144): an inserted run found elsewhere in the entry, or beside its edge, is no amendment. Before all of it,
+    the difference must lie in the block of the Markdown the note governs (`_inside`; `md_at` is the Markdown lines of the
+    hunk's words and of the words beside it): a note excuses nothing outside the text it is attached to."""
+    for printed, amended, _, governed in notes:
+        if not _inside(governed, md_at):
+            continue
         if not pdf_hunk:
             if md_hunk and _stands_between(md_hunk, amended, *md_ctx):
                 return True
@@ -585,7 +624,8 @@ def classify_page(pdf: list[str], md: list[tuple[str, bool, int]], entries: list
         if any(entry_accounts_for(e, pdf_hunk, md_hunk, pdf_ctx, md_ctx) for e in entries):
             emit("CORRECTION", "a ledger pair or correction note of this page accounts for this hunk", pa, mb, j1)
             continue
-        if amendments and amendment_accounts_for(amendments, pdf_hunk, md_hunk, pdf_ctx, md_ctx):
+        md_at = (line[j1:j2], line[j1 - 1] if j1 > 0 else None, line[j2] if j2 < len(line) else None)
+        if amendments and amendment_accounts_for(amendments, pdf_hunk, md_hunk, pdf_ctx, md_ctx, md_at):
             emit("AMENDMENT-APPLIED", "an Amendment's text applied in place (the page's CORRECTED note quotes the printed words)", pa, mb, j1)
             continue
         left_p, left_m, paired = list(pa), list(mb), []
@@ -818,7 +858,7 @@ def main() -> int:
     pages = parse_pages(args.pages, total) if args.pages else list(range(1, total + 1))
     pdf = pdf_pages(pages)
     ledger, notes, amended = ledger_entries(), note_entries(text), amendment_notes(text)
-    cited = sorted({ch[0] for ns in amended.values() for _, _, ch in ns if ch} - set(pdf))
+    cited = sorted({ch[0] for ns in amended.values() for _, _, ch, _ in ns if ch} - set(pdf))
     amended, not_located = with_cited_text(amended, {**pdf, **pdf_pages(cited)}, amendment_rows(text))
     lex = Lexicon.of([w for words in md.values() for w, _, _ in words], reserved_words())
     result = {"edition": 1985, "pdf_pages": total, "inputs": inputs(), "classes": list(CLASSES),
