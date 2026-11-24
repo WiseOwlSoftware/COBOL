@@ -83,7 +83,8 @@ internal static class FileDescriptionFormats
     /// Format columns are the rendered §2023:13.4.5.2 lists.</summary>
     public static readonly IReadOnlyList<FileDescriptionClauseRow> Rows =
     [
-        new(typeof(Core.FileGlobalExternalClauseContext), "IS EXTERNAL / IS GLOBAL clause", FileDescriptionFormat.All),
+        new(typeof(Core.ExternalClauseContext), "IS EXTERNAL clause", FileDescriptionFormat.All),
+        new(typeof(Core.GlobalClauseContext), "IS GLOBAL clause", FileDescriptionFormat.All),
         new(typeof(Core.FormatClauseContext), "FORMAT clause", FileDescriptionFormat.Sequential, IntroducedIn: 2002),
         new(typeof(Core.BlockContainsClauseContext), "BLOCK CONTAINS clause", FileDescriptionFormat.All),
         new(typeof(Core.RecordClauseContext), "RECORD clause", FileDescriptionFormat.All),

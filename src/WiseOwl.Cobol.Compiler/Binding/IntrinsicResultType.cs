@@ -151,14 +151,14 @@ public enum IntrinsicResultRule
 /// </remarks>
 internal static class IntrinsicResultType
 {
-    /// <summary>⛔ THE CATALOG FACTS OF A CALL THAT DECIDE ITS CARRIER (kb/Work PB5891 review R5-2): the function's name, runtime body and
+    /// <summary>⛔ THE CATALOG FACTS OF A CALL THAT DECIDE ITS CARRIER (kb/Work PB5891 review R5-2): the function's name and
     /// floating-math membership (its catalog row), its resolved type, and, for the arguments written, which positions are §2023:15.3 type 6
     /// (integer) positions and whether the run is numeric-only (its argument schema). The bound layer's carrier rules read them as data
     /// (<see cref="IntrinsicCarrierFacts"/>, on <see cref="BoundIntrinsicCall.CarrierFacts"/>), decided once with the call's type.</summary>
     public static IntrinsicCarrierFacts CarrierFacts(in IntrinsicSig sig, IReadOnlyList<BoundOperand> args, IntrinsicType type)
     {
         string name = sig.Name;
-        return new IntrinsicCarrierFacts(name, sig.RuntimeMethod, sig.Float, type is IntrinsicType.Integer,
+        return new IntrinsicCarrierFacts(name, sig.Float, type is IntrinsicType.Integer,
             [.. Enumerable.Range(0, args.Count).Select(i => IntrinsicArgumentRules.IsIntegerPosition(name, i))],
             IntrinsicArgumentRules.ArgumentRunIsAllNumeric(name, args.Count));
     }

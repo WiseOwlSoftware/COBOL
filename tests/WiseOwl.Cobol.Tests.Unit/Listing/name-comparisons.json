@@ -92,7 +92,7 @@
       "reason": "compares a written word with a fixed word of the standard or the implementor (FILLER, ZERO, NEW, an intrinsic function, exception or implementor-name, a register keyword): no user-defined name is resolved"
     },
     {
-      "site": "NAMEEQ Binding/Procedure/Verbs/IntrinsicBinder.cs WiseOwl.Cobol.Binding.Procedure.IntrinsicBinder.BindFunctionResult resolved.Name == \"CONCAT\"",
+      "site": "NAMEEQ Binding/Procedure/Verbs/IntrinsicBinder.cs WiseOwl.Cobol.Binding.Procedure.IntrinsicBinder.BindFunctionResult sig.Name == \"CONCAT\"",
       "class": "KEYWORD",
       "reason": "compares a written word with a fixed word of the standard or the implementor (FILLER, ZERO, NEW, an intrinsic function, exception or implementor-name, a register keyword): no user-defined name is resolved"
     },
@@ -157,17 +157,27 @@
       "reason": "compares externalized names or repository-record names from compiled metadata: identity across compilations, not a reference written in this program"
     },
     {
-      "site": "NAMEEQ CodeGen/Emit/IntrinsicRenderer.cs WiseOwl.Cobol.CodeGen.Emit.IntrinsicRenderer.RenderStringValue sig.Name == \"LOCALE-COMPARE\"",
+      "site": "NAMEEQ CodeGen/Emit/FunctionDeviceText.cs WiseOwl.Cobol.CodeGen.Emit.FunctionDeviceText.Describes ic.Sig.Name != \"MEAN\"",
       "class": "KEYWORD",
       "reason": "compares a written word with a fixed word of the standard or the implementor (FILLER, ZERO, NEW, an intrinsic function, exception or implementor-name, a register keyword): no user-defined name is resolved"
     },
     {
-      "site": "NAMEEQ CodeGen/Emit/IntrinsicRenderer.cs WiseOwl.Cobol.CodeGen.Emit.IntrinsicRenderer.RenderStringValue sig.Name == \"LOCALE-DATE\"",
+      "site": "NAMEEQ CodeGen/Emit/IntrinsicRenderer.cs WiseOwl.Cobol.CodeGen.Emit.IntrinsicRenderer.RenderNum sig.Name == \"E\"",
       "class": "KEYWORD",
       "reason": "compares a written word with a fixed word of the standard or the implementor (FILLER, ZERO, NEW, an intrinsic function, exception or implementor-name, a register keyword): no user-defined name is resolved"
     },
     {
-      "site": "NAMEEQ CodeGen/Emit/IntrinsicRenderer.cs WiseOwl.Cobol.CodeGen.Emit.IntrinsicRenderer.RenderStringValue sig.Name == \"LOCALE-TIME\"",
+      "site": "NAMEEQ CodeGen/Emit/IntrinsicRenderer.cs WiseOwl.Cobol.CodeGen.Emit.IntrinsicRenderer.RenderNum sig.Name == \"PI\"",
+      "class": "KEYWORD",
+      "reason": "compares a written word with a fixed word of the standard or the implementor (FILLER, ZERO, NEW, an intrinsic function, exception or implementor-name, a register keyword): no user-defined name is resolved"
+    },
+    {
+      "site": "NAMEEQ CodeGen/Emit/IntrinsicRenderer.cs WiseOwl.Cobol.CodeGen.Emit.IntrinsicRenderer.RenderNum sig.Name == \"EXP\"",
+      "class": "KEYWORD",
+      "reason": "compares a written word with a fixed word of the standard or the implementor (FILLER, ZERO, NEW, an intrinsic function, exception or implementor-name, a register keyword): no user-defined name is resolved"
+    },
+    {
+      "site": "NAMEEQ CodeGen/Emit/IntrinsicRenderer.cs WiseOwl.Cobol.CodeGen.Emit.IntrinsicRenderer.RenderNum sig.Name == \"EXP10\"",
       "class": "KEYWORD",
       "reason": "compares a written word with a fixed word of the standard or the implementor (FILLER, ZERO, NEW, an intrinsic function, exception or implementor-name, a register keyword): no user-defined name is resolved"
     },

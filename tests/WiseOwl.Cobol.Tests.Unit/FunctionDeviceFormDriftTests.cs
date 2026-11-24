@@ -44,16 +44,15 @@ public sealed class FunctionDeviceFormDriftTests
         Assert.Empty(RowsDeclaring(FunctionDeviceForm.Value));   // the default is never written
     }
 
-    /// <summary>The renderer builds an argument-copy field for the runtime methods of the Argument rows, and for no others: a row that
+    /// <summary>The renderer builds an argument-copy field for the functions of the Argument rows (its cases are keyed on the function's
+    /// catalog name, kb/Work PB2627), and for no others: a row that
     /// says Argument without a case would fall to the value's description silently, and a case without the row is dead.</summary>
     [Fact]
     public void EveryArgumentRowHasACaseInTheRenderer_AndNoOtherHas()
     {
         string renderer = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "CodeGen", "Emit", "FunctionDeviceText.cs"));
-        var cases = Regex.Matches(renderer, "case \\(_, \"(?<method>\\w+)\"\\)").Select(m => m.Groups["method"].Value).Order(StringComparer.Ordinal).ToList();
-        var declared = RowsDeclaring(FunctionDeviceForm.Argument)
-            .Select(name => { Assert.True(IntrinsicCatalog.TryGet(name, out var sig), name); return sig.RuntimeMethod; })
-            .Order(StringComparer.Ordinal).ToList();
+        var cases = Regex.Matches(renderer, "case \\(_, \"(?<function>[\\w-]+)\"\\)").Select(m => m.Groups["function"].Value).Order(StringComparer.Ordinal).ToList();
+        var declared = RowsDeclaring(FunctionDeviceForm.Argument).Order(StringComparer.Ordinal).ToList();
         Assert.Equal(declared, cases);
     }
 
@@ -107,7 +106,7 @@ public sealed class FunctionDeviceFormDriftTests
         string renderer = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "CodeGen", "Emit", "IntrinsicRenderer.cs"));
         int lengthArm = renderer.IndexOf("FunctionDeviceText.IsNumericFunctionResult(ic.Args[0])", StringComparison.Ordinal);
         Assert.True(lengthArm >= 0, "the renderer's LENGTH / BYTE-LENGTH arm asks the one predicate FunctionDeviceText.IsNumericFunctionResult");
-        Assert.Contains("RuntimeApi.FunctionFieldLength(new FunctionDeviceText(num).Field(ic.Args[0]), bytes: sig.RuntimeMethod is \"ByteLength\")", renderer[lengthArm..], StringComparison.Ordinal);
+        Assert.Contains("RuntimeApi.FunctionFieldLength(new FunctionDeviceText(num).Field(ic.Args[0]), bytes: sig.Name is \"BYTE-LENGTH\")", renderer[lengthArm..], StringComparison.Ordinal);
         Assert.True(lengthArm < renderer.IndexOf("AnyRealArgument(ic) && IntrinsicArgumentRules.ArgumentRunIsAllNumeric", StringComparison.Ordinal),
             "the length arm runs BEFORE the float-lane routing: a binary64 argument (SQRT) is no reason to leave it");
     }

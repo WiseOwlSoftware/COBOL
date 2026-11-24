@@ -25,6 +25,8 @@
       *>        V5-V8 (record sequential) and Q5-Q8 (relative), both 001 033 001 033.
       *> Every statement is checked through FILE STATUS ('00' for each success).
       *> WHY EACH LEG CAN FAIL: a byte-level PadRight(' ') anywhere in the four paths yields 033 033 033 033 for the tail.
+      *> COBOL-2002 states the same rules: §2002:14.8.47.3 GR12 (WRITE)
+      *> and §2002:14.8.33.3 GR15 (REWRITE), 2002 Annex B.2 items 68, 48.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1880NP.
        ENVIRONMENT DIVISION.

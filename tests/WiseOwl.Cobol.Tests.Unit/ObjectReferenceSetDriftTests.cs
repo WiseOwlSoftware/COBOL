@@ -45,7 +45,7 @@ public sealed class ObjectReferenceSetDriftTests
         // The compiler's pair is OoClassTable.SetOperands — SetOperand per side, a formal side standing for the most
         // favourable actual (kb/Work PB2937) — and the table answers it.
         Assert.Contains("var (s, r) = table.SetOperands(send, recv);", compiler);
-        Assert.Contains("ObjectReferenceSet.Refusal(s, r, activeClassSenderAdmitted)", compiler);
+        Assert.Contains("ObjectReferenceSet.Refusal(s, r, setRules, activeClassSenderAdmitted)", compiler);
         Assert.Contains("ActivationCategory.Object => ObjectReferenceSet.Refusal(", runtime);
     }
 
@@ -67,20 +67,20 @@ public sealed class ObjectReferenceSetDriftTests
         var activeInM = new ObjectReferenceOperand(ObjectReferenceKind.ActiveClass, "M", false, false, ["M"], []);
         var activeReceiver = new ObjectReferenceOperand(ObjectReferenceKind.ActiveClass, "Q", false, false, ["Q"], []);
 
-        Assert.Null(ObjectReferenceSet.Refusal(sub, parent));                                    // SR12 a)2. subclass
-        Assert.Contains("SR12a.2", ObjectReferenceSet.Refusal(sub, other));                     // unrelated
-        Assert.Contains("SR12a.1", ObjectReferenceSet.Refusal(sub, Class("S", only: true)));    // ONLY receiver
-        Assert.Contains("SR12a.3", ObjectReferenceSet.Refusal(sub, Class("S", factory: true))); // FACTORY differs
-        Assert.Null(ObjectReferenceSet.Refusal(sub, ifaceA));                                     // SR10 b)2.
-        Assert.Contains("SR10 b)2.", ObjectReferenceSet.Refusal(other, ifaceA));
-        Assert.Null(ObjectReferenceSet.Refusal(ifaceB, ifaceA));                                  // SR10 a)
-        Assert.Contains("SR10 a)", ObjectReferenceSet.Refusal(ifaceA, ifaceB));
-        Assert.Contains("SR12 —", ObjectReferenceSet.Refusal(universal, parent));                 // closed list
-        Assert.Null(ObjectReferenceSet.Refusal(universal, universal));                            // SR8
-        Assert.Null(ObjectReferenceSet.Refusal(activeInM, Class("M")));                           // SR12 b)2.
-        Assert.Contains("SR12b.2", ObjectReferenceSet.Refusal(activeInM, parent));
-        Assert.Null(ObjectReferenceSet.Refusal(activeInM, activeReceiver));                       // SR14 a)
-        Assert.Contains("SR14", ObjectReferenceSet.Refusal(sub, activeReceiver));
-        Assert.Contains("unresolvable", ObjectReferenceSet.Refusal(Class("X", classes: null) with { Classes = null }, parent));
+        Assert.Null(ObjectReferenceSet.Refusal(sub, parent, ObjectReferenceSet.Rules2023));                                    // SR12 a)2. subclass
+        Assert.Contains("SR12a.2", ObjectReferenceSet.Refusal(sub, other, ObjectReferenceSet.Rules2023));                     // unrelated
+        Assert.Contains("SR12a.1", ObjectReferenceSet.Refusal(sub, Class("S", only: true), ObjectReferenceSet.Rules2023));    // ONLY receiver
+        Assert.Contains("SR12a.3", ObjectReferenceSet.Refusal(sub, Class("S", factory: true), ObjectReferenceSet.Rules2023)); // FACTORY differs
+        Assert.Null(ObjectReferenceSet.Refusal(sub, ifaceA, ObjectReferenceSet.Rules2023));                                     // SR10 b)2.
+        Assert.Contains("SR10 b)2.", ObjectReferenceSet.Refusal(other, ifaceA, ObjectReferenceSet.Rules2023));
+        Assert.Null(ObjectReferenceSet.Refusal(ifaceB, ifaceA, ObjectReferenceSet.Rules2023));                                  // SR10 a)
+        Assert.Contains("SR10 a)", ObjectReferenceSet.Refusal(ifaceA, ifaceB, ObjectReferenceSet.Rules2023));
+        Assert.Contains("SR12 —", ObjectReferenceSet.Refusal(universal, parent, ObjectReferenceSet.Rules2023));                 // closed list
+        Assert.Null(ObjectReferenceSet.Refusal(universal, universal, ObjectReferenceSet.Rules2023));                            // SR8
+        Assert.Null(ObjectReferenceSet.Refusal(activeInM, Class("M"), ObjectReferenceSet.Rules2023));                           // SR12 b)2.
+        Assert.Contains("SR12b.2", ObjectReferenceSet.Refusal(activeInM, parent, ObjectReferenceSet.Rules2023));
+        Assert.Null(ObjectReferenceSet.Refusal(activeInM, activeReceiver, ObjectReferenceSet.Rules2023));                       // SR14 a)
+        Assert.Contains("SR14", ObjectReferenceSet.Refusal(sub, activeReceiver, ObjectReferenceSet.Rules2023));
+        Assert.Contains("unresolvable", ObjectReferenceSet.Refusal(Class("X", classes: null) with { Classes = null }, parent, ObjectReferenceSet.Rules2023));
     }
 }

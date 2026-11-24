@@ -195,6 +195,8 @@ internal static class BackendContract
             "Bound.IntoPhraseRules.ArmB1985", "Bound.IntoPhraseRules.ArmB2023",
             "Bound.IntoPhraseRules.EntryFace", "Bound.IntoPhraseRules.Statement",
             "Bound.IntoPhraseRules.StrongReceiverCite", "Bound.IntoPhraseRules.StrongReceiverCount",
+            // how a diagnostic names a compiler temporary, whose own name no source spells (kb/Work PB5660)
+            "Model.SectionDataItem.TemporaryPhrase",
             // how a receiver names itself in the emitter's internal-error message (kb/Work PB5386)
             "Bound.PropertyReceiverKey.Face", "Bound.ReceiverBracketKey.Face", "Bound.WrittenReceiverKey.Face",
             // a rule's citation and wording as each edition numbers it, for a diagnostic (kb/Work PB5352)
@@ -218,14 +220,16 @@ internal static class BackendContract
         new(NeutralKind.IdentityKey,
         [
             "Model.DataItem.PointerRestrictionIdentity", "Model.PictureClauseIdentity.Key",
-            // runtime-body names the bound layer's carrier prediction keys its sets on, never emitted (kb/Work PB5891 review R5-2)
+            // the function names the bound layer's carrier prediction keys its sets on, never emitted (kb/Work PB5891 review R5-2;
+            // catalog names since kb/Work PB2627)
             "Bound.FunctionValueLane.NativeSdidiBodies", "Bound.FunctionValueLane.NativeSdidiBodiesWithExactResult",
             "Bound.FunctionValueLane.NativeSdidiBodiesWithWholeResult", "Bound.FunctionValueLane.Selections",
-            "Model.IntrinsicCarrierFacts.RuntimeMethod",
             // the corresponding external data item an external file's clauses name, compared across describers (kb/Work PB2418)
             // a value whose parts stay apart (kb/Work PB5888 review R1-1): the external record's externalized name, the item's own
             // name, the selected occurrence, and the length-prefixed Key the run-time descriptor carries
             "Model.DataItem.ExternalizedRecordName()", "Model.ExternalDataItemIdentity.Record", "Model.ExternalDataItemIdentity.Item",
+            // ... and the one ISO §2023:13.18.22.4 GR5 reading both that name and an FD's ExternalName are formed by (kb/Work PB2724)
+            "Model.ExternalClauseName.Of()",
             "Model.ExternalDataItemIdentity.Occurrence", "Model.ExternalDataItemIdentity.Key",
             // the run-unit storage an external record lies in, the Record part of that identity: an FD IS EXTERNAL file's
             // record-area cell, keyed FD::<file> for every describer of the file (kb/Work PB3212)

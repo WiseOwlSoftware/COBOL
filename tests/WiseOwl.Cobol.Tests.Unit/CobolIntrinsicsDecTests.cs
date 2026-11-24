@@ -158,8 +158,9 @@ public sealed class CobolIntrinsicsDecTests
         var exact = System.Array.ConvertAll(xs, x => (System.Int128)x);
         const CobolRounding m = CobolRounding.NearestAwayFromZero;
 
-        Assert.Equal(CobolIntrinsics.MaxScaled(exact), CobolIntrinsics.MaxDec(dec).ToUnscaled(2, CobolRounding.Truncation));
-        Assert.Equal(CobolIntrinsics.MinScaled(exact), CobolIntrinsics.MinDec(dec).ToUnscaled(2, CobolRounding.Truncation));
+        var scales = System.Array.ConvertAll(xs, _ => 2);
+        Assert.Equal(CobolIntrinsics.MaxAt(2, store: false, exact, scales), CobolIntrinsics.MaxDec(dec).ToUnscaled(2, CobolRounding.Truncation));
+        Assert.Equal(CobolIntrinsics.MinAt(2, store: false, exact, scales), CobolIntrinsics.MinDec(dec).ToUnscaled(2, CobolRounding.Truncation));
         Assert.Equal(CobolIntrinsics.SumScaled(exact), CobolIntrinsics.SumDec(DecArithmetic.Sdidi(m), dec).ToUnscaled(2, CobolRounding.Truncation));
         Assert.Equal(CobolIntrinsics.RangeScaled(exact), CobolIntrinsics.RangeDec(DecArithmetic.Sdidi(m), dec).ToUnscaled(2, CobolRounding.Truncation));
         // Median/Midrange: the exact bodies return at scale s+1 (the ×10/2 discipline) — compare there.

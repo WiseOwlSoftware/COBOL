@@ -50,15 +50,15 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     public NumX RenderNum(BoundIntrinsicCall ic)
     {
         var sig = ic.Sig;
-        if (sig.Bind == IntrinsicBind.Deferred || sig.RuntimeMethod.Length == 0)
+        if (sig.Bind == IntrinsicBind.Deferred)
             return new NumX(EmitText.LoudValue("long", $"FUNCTION {sig.Name} (catalogued, not yet implemented)"), 0);
         // ⛔ LENGTH / BYTE-LENGTH OF A NUMERIC OR INTEGER FUNCTION MEASURE ITS RETURNED-VALUE TEMPORARY, BEFORE ANY CARRIER ROUTING (kb/Work PB3951).
         // §2023:8.4.3.2.4 GR1: a function-identifier references a temporary data item (§2023:15.4); §2023:15.14.4 RV1 measures it in bytes (ByteLength) and
         // §2023:15.50.4 RV2 / r3 in national or alphanumeric character positions (Length). It is the item DISPLAY shows (FunctionValueField, DOC-A.1-92), so its length is read from that field
         // and never from a width of ours; the argument's value only fills the field, so a binary64 argument (SQRT) is no reason to
         // leave this arm for the float lane below. The binder sends every such argument here (IntrinsicBinder.FunctionResultLength).
-        if (sig.RuntimeMethod is "Length" or "ByteLength" && FunctionDeviceText.IsNumericFunctionResult(ic.Args[0]))
-            return new NumX(RuntimeApi.FunctionFieldLength(new FunctionDeviceText(num).Field(ic.Args[0]), bytes: sig.RuntimeMethod is "ByteLength"), 0);
+        if (sig.Name is "LENGTH" or "BYTE-LENGTH" && FunctionDeviceText.IsNumericFunctionResult(ic.Args[0]))
+            return new NumX(RuntimeApi.FunctionFieldLength(new FunctionDeviceText(num).Field(ic.Args[0]), bytes: sig.Name is "BYTE-LENGTH"), 0);
         // A string-class function result in a NUMERIC context reaches here only under --permissive (the binder's
         // §2023:8.8.1.1 screen rejects it under strict conformance — kb/Work PB68): the DA6 leniency, the same
         // digit-character decode an alphanumeric DATA ITEM gets there (CobolNum.FromAlphanumeric over the
@@ -127,7 +127,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // routing these through RenderFloat gave receiver-DEPENDENT answers (§2023:15.4.1's same-for-all-instances
         // rule) wrong from the third significant digit's ulp up. A float ARGUMENT lifts via DecOperand →
         // CobolDec.FromBinary64 (§2023:8.8.1.5.1), exactly as the landed exact-family lane does.
-        // (An if-chain, deliberately NOT a `switch (sig.RuntimeMethod)`: IntrinsicRealArgDriftTests anchors its
+        // (An if-chain, deliberately NOT a switch on the function name: IntrinsicRealArgDriftTests anchors its
         // exact-arm scan on the FIRST such switch, and these arms are not exact-family arms — a Real argument
         // lifts through DecOperand, so no `…Real` body exists or is needed.)
         if (num.StandardDecimal)
@@ -136,14 +136,14 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             // DecOperand(Arg(...)) round-tripped a Dec operand through the interim unscaled landing — truncated
             // at the working scale — and only then lifted it back, which is the very quantization this arm
             // exists to avoid (the RV-15.34.4-1 triage row measured it).
-            if (sig.RuntimeMethod == "E") return new NumX(RuntimeApi.DecE, 0, Dec: true);
-            if (sig.RuntimeMethod == "Pi") return new NumX(RuntimeApi.DecPi, 0, Dec: true);
+            if (sig.Name == "E") return new NumX(RuntimeApi.DecE, 0, Dec: true);
+            if (sig.Name == "PI") return new NumX(RuntimeApi.DecPi, 0, Dec: true);
             // Under ARITHMETIC IS STANDARD the expression's FUNCTION E is the 32-digit standard intermediate data item, and an
             // integer power develops one standard intermediate per multiplication (§2002:15.29.3 RV1, §2002:8.8.1.3.6; kb/Work PB5575).
             string e = num.StandardIntermediate ? RuntimeApi.DecToSidi(RuntimeApi.DecE, num.IntermediateMode) : RuntimeApi.DecE;
-            if (sig.RuntimeMethod == "Exp")
+            if (sig.Name == "EXP")
                 return new NumX(RuntimeApi.DecPow(e, DecArg(ic, 0), num.IntermediateMode, num.StandardIntermediate), 0, Dec: true);
-            if (sig.RuntimeMethod == "Exp10")
+            if (sig.Name == "EXP10")
                 return new NumX(RuntimeApi.DecPow(RuntimeApi.DecFrom("10", "0"), DecArg(ic, 0), num.IntermediateMode, num.StandardIntermediate), 0, Dec: true);
             if (RenderDec(ic) is { } dec)
                 return dec;
@@ -166,7 +166,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // DOC-A.1-92b lives there: a binary64 argument makes the function binary64 even beside an argument that is on the SDIDI only because a
         // floating-point receiver's argument keeps significance, which the SDIDI-argument arm below would otherwise take.
         else if (FunctionValueLane.IsBinary64(ic, num.CurrentLaneContext))
-            return sig.Float ? RenderFloat(ic, sig.RuntimeMethod) : RenderFloat(ic, RealMethod(sig.RuntimeMethod));
+            return RenderFloat(ic, Binary64Body(sig));
         else if (RenderWide(ic) is { } wideExact)
             return wideExact;
         // ⛔ A CROSS-ALIGNING ARM WHOSE ALIGNED ARGUMENTS PROVABLY CANNOT STAY IN THE Int128 CARRIER TAKES THE SDIDI
@@ -209,7 +209,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         if (IntrinsicCarrierRules.ReturnsSdidiQuotient(sig.Name) && !AnyRealArgument(ic)
             && RenderDec(ic) is { } sdidiQuotient)
             return sdidiQuotient;
-        if (sig.Float) return RenderFloat(ic, sig.RuntimeMethod);
+        if (sig.Float) return RenderFloat(ic, Binary64Body(sig));
         // (The float lane's precondition is IntrinsicArgumentRules.ArgumentRunIsAllNumeric — an argument run binary64
         // can carry — and its trigger is a binary64 operand at a §2023:15.3 TYPE-10 position: AnyRealArgument reads the
         // operands through RawArg, where a type-6 operand is already its integer (kb/Work PB651). That is also why no
@@ -230,7 +230,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // all-float list stays in the float lane below (its content IS the double), and the arithmetic
         // statistical family (SUM / MEAN / RANGE / MIDRANGE — equivalent arithmetic expressions) keeps the D16
         // native float lane a float operand selects.
-        if (sig.RuntimeMethod is "MaxScaled" or "MinScaled" or "OrdMax" or "OrdMin" or "MedianScaled"
+        if (sig.Name is "MAX" or "MIN" or "ORD-MAX" or "ORD-MIN" or "MEDIAN" && !ic.ComparesStrings
             && IntrinsicCarrierRules.SelectionNeedsExactLane(AnyRealArgument(ic), AllRealArguments(ic),
                 AnyFloatItemArgument(ic), AnyApproximateArgument(ic), IntrinsicCarrierRules.ReturnsMeanOfMiddlePair(sig.Name, ic.Args))
             && RenderDec(ic) is { } decSelection)
@@ -242,7 +242,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // ROUNDED MODE AWAY-FROM-ZERO stored 0.0 where NUMVAL-F of the same text stores 0.1) - the double rounding and
         // the receiver-dependent value this note removes, left standing at the cap. The SDIDI holds the selected
         // argument exactly at its own digits whatever the receiver, and its store rounds once.
-        if (sig.RuntimeMethod is "MaxScaled" or "MinScaled" && SelectionPastReceiverHeadroom(ic)
+        if (sig.Name is "MAX" or "MIN" && SelectionPastReceiverHeadroom(ic)
             && RenderDec(ic) is { } decHeadroom)
             return decHeadroom;
         // ⛔ AND THE LANE IS A FACT ABOUT THE ARGUMENT RUN, NOT ABOUT ONE ARGUMENT (kb/Work PB635).
@@ -261,13 +261,13 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // IntrinsicArgumentRules.ArgumentRunIsAllNumeric derives the precondition from the SPEC-VERIFIED
         // argument table and fails open, so it can only ever take a call OUT of the lane on a cited rule.
         if (AnyRealArgument(ic) && IntrinsicArgumentRules.ArgumentRunIsAllNumeric(sig.Name, ic.Args.Count))
-            return RenderFloat(ic, RealMethod(sig.RuntimeMethod));
+            return RenderFloat(ic, Binary64Body(sig));
 
-        switch (sig.RuntimeMethod)
+        switch (sig.Name)
         {
             // Integer functions — scale-0 results (§2023:15.2 type 5).
-            case "Factorial":                                                   // §2023:15.36 (Int128; 34! overflows → EC default 0)
-                return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod, IntArg(ic, 0)), 0);
+            case "FACTORIAL":                                                   // §2023:15.36 (Int128; 34! overflows → EC default 0)
+                return new NumX(RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.Factorial, IntArg(ic, 0)), 0);
             // ⛔ THE FIVE UNARY EXACT ARMS TAKE AN UNSIGNED-WIDE ARGUMENT ON ITS OWN LANE (kb/Work PB2698). `Arg` passes a
             // `NumX.U` operand (a 16-byte unsigned COMP-5 item above Int128.MaxValue) through unlanded, and these arms
             // handed its UInt128 expression to Int128 parameters — Roslyn CS1503 on conforming source for ABS, SIGN,
@@ -275,36 +275,36 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             // overloaded: an int literal converts to both Int128 and UInt128, CS0121 — see CobolNum.FormatDisplayU)
             // whose result is correct WITHOUT narrowing (ABS of an unsigned operand is the operand itself), so the
             // five agree on the one carrier question.
-            case "SignOf":                                                      // §2023:15.81 — scale-independent sign
+            case "SIGN":                                                        // §2023:15.81 — scale-independent sign
             {
                 NumX a = Arg(ic, 0);
-                return new NumX(RuntimeApi.Intrinsic(a.U ? "SignOfU" : sig.RuntimeMethod, a.Expr), 0);
+                return new NumX(RuntimeApi.Intrinsic(a.U ? RuntimeApi.IntrinsicBody.SignOfU : RuntimeApi.IntrinsicBody.SignOf, a.Expr), 0);
             }
-            case "Floor":                                                       // §2023:15.44 INTEGER — floor to scale 0
-            case "Truncate":                                                    // §2023:15.49 INTEGER-PART — truncate to scale 0
+            case "INTEGER":                                                     // §2023:15.44 INTEGER — floor to scale 0
+            case "INTEGER-PART":                                                // §2023:15.49 INTEGER-PART — truncate to scale 0
             {
                 NumX a = Arg(ic, 0);
                 return a.U
-                    ? new NumX(RuntimeApi.Intrinsic("IntegerPartU", $"{a.Expr}, {a.Scale}"), 0, U: true)
-                    : new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod, $"{a.Expr}, {a.Scale}"), 0);
+                    ? new NumX(RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.IntegerPartU, $"{a.Expr}, {a.Scale}"), 0, U: true)
+                    : new NumX(RuntimeApi.Intrinsic(sig.Name is "INTEGER" ? RuntimeApi.IntrinsicBody.Floor : RuntimeApi.IntrinsicBody.Truncate, $"{a.Expr}, {a.Scale}"), 0);
             }
-            case "AbsScaled":                                                   // §2023:15.7 ABS — argument's own scale
+            case "ABS":                                                         // §2023:15.7 ABS — argument's own scale
             {
                 NumX a = Arg(ic, 0);
                 // |U| is U itself (an unsigned operand is never negative): no call, the operand passes on its own lane.
-                return a.U ? a : new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod, a.Expr), a.Scale);
+                return a.U ? a : new NumX(RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.AbsScaled, a.Expr), a.Scale);
             }
-            case "FractionPart":                                                // §2023:15.42 — argument's own scale
+            case "FRACTION-PART":                                               // §2023:15.42 — argument's own scale
             {
                 NumX a = Arg(ic, 0);
-                return new NumX(RuntimeApi.Intrinsic(a.U ? "FractionPartU" : sig.RuntimeMethod, $"{a.Expr}, {a.Scale}"), a.Scale);
+                return new NumX(RuntimeApi.Intrinsic(a.U ? RuntimeApi.IntrinsicBody.FractionPartU : RuntimeApi.IntrinsicBody.FractionPart, $"{a.Expr}, {a.Scale}"), a.Scale);
             }
-            case "ModScaled":                                                   // §2023:15.64 — floored modulus (sign table)
-            case "RemScaled":                                                   // §2023:15.77 — truncated remainder
+            case "MOD":                                                         // §2023:15.64 — floored modulus (sign table)
+            case "REM":                                                         // §2023:15.77 — truncated remainder
             {
                 NumX a = Arg(ic, 0), b = Arg(ic, 1);
                 int s = Math.Max(a.Scale, b.Scale);
-                return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod,
+                return new NumX(RuntimeApi.Intrinsic(sig.Name is "MOD" ? RuntimeApi.IntrinsicBody.ModScaled : RuntimeApi.IntrinsicBody.RemScaled,
                     $"{NumericRenderer.Align(a, s)}, {NumericRenderer.Align(b, s)}"), s);
             }
 
@@ -313,7 +313,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             // non-widening compare over each argument AT ITS OWN SCALE, and only the ONE selected value
             // rescales (escape-checked) to the common scale. The aligned forms wrapped silently at 39 aligned
             // digits — MIN of two positive arguments returned a NEGATIVE value, the content of NO argument.
-            case "MaxScaled" or "MinScaled":
+            case "MAX" or "MIN":
             {
                 var (vals, scales, s) = RawArgPairs(ic);
                 // ⛔ THE SELECTED VALUE REACHES A RECEIVER WITH EVERY DIGIT IT HAS (kb/Work PB3839). The result scale
@@ -334,7 +334,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
                 // float context too: its Scale is only the mask's hint (ReceiverContext.RoundsAtItsScale).
                 bool store = num.Receiver.RoundsAtItsScale;
                 int to = store ? num.Receiver.WorkingScale(s) : s;
-                return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod is "MaxScaled" ? "MaxAt" : "MinAt",
+                return new NumX(RuntimeApi.Intrinsic(sig.Name is "MAX" ? RuntimeApi.IntrinsicBody.MaxAt : RuntimeApi.IntrinsicBody.MinAt,
                     $"{to}, {(store ? "true" : "false")}, {vals}, {scales}"), to);
             }
             // SUM/RANGE genuinely ADD, so they keep aligned arguments — escape-CHECKED both at the per-argument
@@ -342,34 +342,35 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             // kb/Work PB252): every step past the Int128 intermediate is the size-error condition, never a wrap.
             // ⛔ Both of these reach here ONLY under NATIVE arithmetic — CrossAligningFunctions routes them to
             // SumDec/RangeDec under a standard mode, where §2023:15.4.1 r1 admits no approximation at all.
-            case "SumScaled":                                                   // §2023:15.88 — Σ at the common scale
+            case "SUM":                                                         // §2023:15.88 — Σ at the common scale
             {
                 var (argList, s) = AlignedArgs(ic);
-                return new NumX(RuntimeApi.Intrinsic("SumScaled", argList), s);
+                return new NumX(RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.SumScaled, argList), s);
             }
-            case "RangeScaled":                                                 // §2023:15.76 — MAX − MIN at the common scale
+            case "RANGE":                                                       // §2023:15.76 — MAX − MIN at the common scale
             {
                 var (argList, s) = AlignedArgs(ic);
-                return new NumX(RuntimeApi.Intrinsic("RangeScaled", argList), s);
+                return new NumX(RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.RangeScaled, argList), s);
             }
-            case "MedianScaled" or "MidrangeScaled":                            // §2023:15.61/62 — the /2 is exact at scale s+1 (×10/2)
+            case "MEDIAN" or "MIDRANGE":                                        // §2023:15.61/62 — the /2 is exact at scale s+1 (×10/2)
             {
                 var (argList, s) = AlignedArgs(ic);
-                return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod, argList), s + 1);
+                return new NumX(RuntimeApi.Intrinsic(sig.Name is "MEDIAN" ? RuntimeApi.IntrinsicBody.MedianScaled : RuntimeApi.IntrinsicBody.MidrangeScaled, argList), s + 1);
             }
             // (MEAN, §2023:15.60, has NO arm in this switch: its value is the SDIDI quotient of its equivalent arithmetic expression in
             // every arithmetic mode and for every receiver, IntrinsicCarrierRules.SdidiQuotientFunctions, so RenderNum hands it to
             // RenderDec's MeanDec before this switch - kb/Work PB3860. An arm here is where a receiver-scale read lives.)
-            case "OrdMax" or "OrdMin":                                          // §2023:15.71/72 — 1-based ordinal, tie = first
+            case "ORD-MAX" or "ORD-MIN" when ic.ComparesStrings:                // all-string form (PCS via CollatePrefix, CA23)
+                return new NumX(RuntimeApi.Intrinsic(sig.Name is "ORD-MAX" ? RuntimeApi.IntrinsicBody.OrdMaxString : RuntimeApi.IntrinsicBody.OrdMinString,
+                    CollatePrefix(ic) + StrArgList(ic)), 0);
+            case "ORD-MAX" or "ORD-MIN":                                        // §2023:15.71/72 — 1-based ordinal, tie = first
             {
                 // Pure selection with NO result rescale — every legal argument list has its defined ordinal
                 // (fix-queue PB65; the aligned form wrapped at 39 aligned digits and picked the wrong argument).
                 var (vals, scales, _) = RawArgPairs(ic);
-                return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod is "OrdMax" ? "OrdMaxAt" : "OrdMinAt",
+                return new NumX(RuntimeApi.Intrinsic(sig.Name is "ORD-MAX" ? RuntimeApi.IntrinsicBody.OrdMaxAt : RuntimeApi.IntrinsicBody.OrdMinAt,
                     $"{vals}, {scales}"), 0);
             }
-            case "OrdMaxString" or "OrdMinString":                              // all-string form (PCS via CollatePrefix, CA23)
-                return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod, CollatePrefix(ic) + StrArgList(ic)), 0);
 
             // (NUMVAL / NUMVAL-C have NO arm here in ANY arithmetic mode — §2023:15.67.4 RV1 / §2023:15.68.4 RV1 fix their
             // value, so RenderNum's §2023:15.4.1 arm routes both to the SDIDI projection before the mode dispatch
@@ -379,39 +380,40 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             // sub-notes are ARITHMETIC-MODE dependent (§2023:15.93.4 RV1b notes 2/4): 31 native, 34 under the SDIDI
             // standard modes (standard-binary's 35 is in ArithmeticModes.NumvalDigitCap and unreachable — the
             // mode is declined at bind on §2023:4.2.6 processor-dependence, kb/Work PB198).
-            case "TestNumval":
-                return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod,
+            case "TEST-NUMVAL":
+                return new NumX(RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.TestNumval,
                     $"{Str(ic.Args[0])}{CommaFlag}{DigitCapFlag}"), 0);
-            case "TestNumvalC":
+            case "TEST-NUMVAL-C":
                 // The LOCALE arm mirrors NumvalC's (§2023:15.94.3 AR1 imports §2023:15.68.3 whole; PB64 T6).
                 if (ic.LocaleWritten)
-                    return new NumX(RuntimeApi.Intrinsic("TestNumvalCLocale",
+                    return new NumX(RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.TestNumvalCLocale,
                         $"{Str(ic.Args[0])}, {LocaleTagArg(ic)}{AnycaseFlag(ic)}{DigitCapFlag}"), 0);
-                return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod,
+                return new NumX(RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.TestNumvalC,
                     $"{Str(ic.Args[0])}, {Str(ic.Args[1])}{CommaFlag}{AnycaseFlag(ic)}{DigitCapFlag}{AnycaseClassification(ic)}"), 0);
 
             // The §2023:15.90/§2023:15.91 date validators — integer verdict chains (year → month → day), scale 0.
             // ⛔ THE WIDE INTAKE, because the two functions are TOTAL (kb/Work PB254 — see IntArgWide):
             // §2023:15.90.3 AR1 / §2023:15.91.3 AR1 constrain nothing but integer-ness and r1a is a CATCH-ALL — which is also
             // why a binary64 past the Int128 carrier may be clamped here: the verdict past the window never varies.
-            case "TestDateYyyymmdd" or "TestDayYyyyddd":
-                return new NumX(RuntimeApi.DateFn(sig.RuntimeMethod, IntArgWideSaturating(ic, 0)), 0);
+            case "TEST-DATE-YYYYMMDD" or "TEST-DAY-YYYYDDD":
+                return new NumX(RuntimeApi.DateFn(sig.Name is "TEST-DATE-YYYYMMDD" ? RuntimeApi.DateBody.TestDateYyyymmdd : RuntimeApi.DateBody.TestDayYyyyddd,
+                    IntArgWideSaturating(ic, 0)), 0);
 
-            case "FindString":                                                  // §2023:15.37 FIND-STRING (2023) — 1-based position of argument-2 in argument-1
+            case "FIND-STRING":                                                 // §2023:15.37 FIND-STRING (2023) — 1-based position of argument-2 in argument-1
                 // Argument-3 also takes the WIDE intake: §2023:15.37.3 AR3 places no value constraint and
                 // §2023:15.37.4 RV2/r3 answer for every integer — ignore that many matches, else 0 (PB254). Past every
                 // match the answer is 0 however large the count, so a binary64 past the carrier is clamped.
-                return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod,
+                return new NumX(RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.FindString,
                     $"{Str(ic.Args[0])}, {Str(ic.Args[1])}, {(ic.FindLast ? "true" : "false")}, "
                     + $"{(ic.Args.Count > 2 ? IntArgWideSaturating(ic, 2) : "0")}, {(ic.Anycase ? "true" : "false")}{AnycaseClassification(ic)}"), 0);
-            case "Ord":                                                         // §2023:15.70 — PCS-relative ordinal (H5: weights only when flagged)
-                return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod, $"{Str(ic.Args[0])}{Collate(ic)}"), 0);
-            case "Length" or "ByteLength" when ic.OverCurrentImage && ic.Args[0] is BoundFieldOperand { Place: { } vg }:
+            case "ORD":                                                         // §2023:15.70 — PCS-relative ordinal (H5: weights only when flagged)
+                return new NumX(RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.Ord, $"{Str(ic.Args[0])}{Collate(ic)}"), 0);
+            case "LENGTH" or "BYTE-LENGTH" when ic.OverCurrentImage && ic.Args[0] is BoundFieldOperand { Place: { } vg }:
                 // §2023:15.50.4 RV7 / §2023:15.14.4 RV6 over a variable-length group's CURRENT-EXTENT IMAGE (kb/Work PB244):
                 // the same string DISPLAY shows (A.1 item 57), whose storage characters are bytes.
-                return new NumX(RuntimeApi.Intrinsic("ByteLength",
+                return new NumX(RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.ByteLength,
                     PlaceRenderer.VarGroupCurrentImage(vg, $"FUNCTION {sig.Name} of", transfer: true)), 0);
-            case "Length":                                                      // §2023:15.50 runtime shapes (kb/Work PB61)
+            case "LENGTH":                                                      // §2023:15.50 runtime shapes (kb/Work PB61)
                 // (A group with a runtime length — an OCCURS DEPENDING table, dynamic-length items or
                 // dynamic-capacity tables beneath it — never arrives here: the binder's VariableLengthGroupSum
                 // builds the §2023:15.50.4 RV4b/r7 expression, whose ODO part is a BoundOdoExtent.)
@@ -419,11 +421,11 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
                 // runtime shape (a ref-mod view, an ANY LENGTH / dynamic-length alphanumeric item, a nested
                 // string-function result) is the character-position count over the string image.
                 if (ic.LengthInBytes && ic.Args[0] is BoundFieldOperand { Place: { } lp })
-                    return new NumX(RuntimeApi.Intrinsic("ByteLength", OperandText.AsStorageImage(lp)), 0);
-                return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod, Str(ic.Args[0])), 0);
-            case "ByteLength":                                                  // §2023:15.14 runtime shapes (kb/Work PB61)
+                    return new NumX(RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.ByteLength, OperandText.AsStorageImage(lp)), 0);
+                return new NumX(RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.Length, Str(ic.Args[0])), 0);
+            case "BYTE-LENGTH":                                                 // §2023:15.14 runtime shapes (kb/Work PB61)
                 if (ic.Args[0] is BoundFieldOperand { Place: { } bp })
-                    return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod, OperandText.AsStorageImage(bp)), 0);
+                    return new NumX(RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.ByteLength, OperandText.AsStorageImage(bp)), 0);
                 // A nested function result is not storage the renderer can slice; its string image is the value's
                 // characters, and the BYTES those occupy follow its §2023:15.2 category (kb/Work PB1398): a national
                 // result is 2 bytes per position (D-N1), a boolean result (implicit usage bit, §2023:15.2 GR2) packs 8
@@ -431,9 +433,9 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
                 return new NumX(RuntimeApi.Intrinsic(
                     IntrinsicResultType.OperandCategory(ic.Args[0]) switch
                     {
-                        PicCategory.National => "ByteLengthNational",
-                        PicCategory.Boolean => "ByteLengthBoolean",
-                        _ => sig.RuntimeMethod,
+                        PicCategory.National => RuntimeApi.IntrinsicBody.ByteLengthNational,
+                        PicCategory.Boolean => RuntimeApi.IntrinsicBody.ByteLengthBoolean,
+                        _ => RuntimeApi.IntrinsicBody.ByteLength,
                     }, Str(ic.Args[0])), 0);
 
             // Date/time conversions (§2023:15.22/24/46/47; integer date form §2023:15.5.2). These four keep the NARROW
@@ -441,26 +443,37 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             // cannot represent really is an incorrect value and EC-ARGUMENT-FUNCTION is the standard's answer —
             // the exact opposite of the TEST- validators above (kb/Work PB22 / PB254).
             // The 1989 module's form has no upper bound on the year (kb/Work PB5130, BoundIntrinsicCall.IntegerDateFormUnbounded).
-            case "DateOfInteger" or "DayOfInteger" or "IntegerOfDate" or "IntegerOfDay":
-                return new NumX(RuntimeApi.DateFn(sig.RuntimeMethod,
+            case "DATE-OF-INTEGER" or "DAY-OF-INTEGER" or "INTEGER-OF-DATE" or "INTEGER-OF-DAY":
+                return new NumX(RuntimeApi.DateFn(sig.Name switch
+                    {
+                        "DATE-OF-INTEGER" => RuntimeApi.DateBody.DateOfInteger,
+                        "DAY-OF-INTEGER" => RuntimeApi.DateBody.DayOfInteger,
+                        "INTEGER-OF-DATE" => RuntimeApi.DateBody.IntegerOfDate,
+                        _ => RuntimeApi.DateBody.IntegerOfDay,
+                    },
                     $"{IntArg(ic, 0)}{(ic.IntegerDateFormUnbounded ? ", unbounded: true" : "")}"), 0);
 
             // The Y2K windowing trio (§2023:15.23/§2023:15.25/§2023:15.100) — integer results; the optional trailing
             // argument-2 (a SIGNED offset) / argument-3 ride the runtime's C#-optional-parameter defaults
             // (50 / the execution-time year via the argument-3 = 0 sentinel), so only the present arguments
             // render.
-            case "DateToYyyymmdd" or "DayToYyyyddd" or "YearToYyyy":
-                return new NumX(RuntimeApi.DateFn(sig.RuntimeMethod,
+            case "DATE-TO-YYYYMMDD" or "DAY-TO-YYYYDDD" or "YEAR-TO-YYYY":
+                return new NumX(RuntimeApi.DateFn(sig.Name switch
+                    {
+                        "DATE-TO-YYYYMMDD" => RuntimeApi.DateBody.DateToYyyymmdd,
+                        "DAY-TO-YYYYDDD" => RuntimeApi.DateBody.DayToYyyyddd,
+                        _ => RuntimeApi.DateBody.YearToYyyy,
+                    },
                     string.Join(", ", Enumerable.Range(0, ic.Args.Count).Select(i => IntArg(ic, i)))), 0);
 
             // SECONDS-PAST-MIDNIGHT (§2023:15.80) — type NUMERIC in standard numeric time form: the runtime
             // returns the local time-of-day TICK count = the unscaled value at SCALE 7 (the documented
             // 100 ns WiseOwl COBOL precision, §2023:15.80.3 RV3).
-            case "SecondsPastMidnight":
-                return new NumX(RuntimeApi.DateFn(sig.RuntimeMethod, ""), 7);
+            case "SECONDS-PAST-MIDNIGHT":
+                return new NumX(RuntimeApi.DateFn(RuntimeApi.DateBody.SecondsPastMidnight, ""), 7);
 
             // ── The COBOL-2014 date/time + number family (§2023:15.17/48/79/92; §2023:15.69/95) ───────────────────────────
-            case "CombinedDatetime":                                            // §2023:15.17 — a1 + a2/100000
+            case "COMBINED-DATETIME":                                           // §2023:15.17 — a1 + a2/100000
             {
                 // ⛔ ARGUMENT-2 IS TAKEN EXACTLY, NEVER LANDED (kb/Work PB620). §2023:15.17.3 AR2 requires only
                 // "standard numeric time form", which §2023:15.5.5 defines by MAGNITUDE — no fraction-digit limit —
@@ -471,46 +484,90 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
                 NumX t = RawArg(ic, 1);
                 // A trailing-P argument (negative scale) is whole seconds first (the runtime's WholeSecondsAtScale), so
                 // the exact result is read at max(scale, 0) + 5 (kb/Work PB2633).
-                return new NumX(RuntimeApi.DateFn(sig.RuntimeMethod, $"{IntArg(ic, 0)}, {t.Expr}, {t.Scale}{LeapSecondFlag}"), Math.Max(0, t.Scale) + 5);
+                return new NumX(RuntimeApi.DateFn(RuntimeApi.DateBody.CombinedDatetime, $"{IntArg(ic, 0)}, {t.Expr}, {t.Scale}{LeapSecondFlag}"), Math.Max(0, t.Scale) + 5);
             }
-            case "IntegerOfFormattedDate":                                       // §2023:15.48 — analyze a2 per format a1 → integer date
-                return new NumX(RuntimeApi.DateFn(sig.RuntimeMethod, $"{Str(ic.Args[0])}, {Str(ic.Args[1])}{LeapSecondFlag}"), 0);
-            case "SecondsFromFormattedTime":                                    // §2023:15.79 — result scale = the format's fractional-second count
+            case "INTEGER-OF-FORMATTED-DATE":                                   // §2023:15.48 — analyze a2 per format a1 → integer date
+                return new NumX(RuntimeApi.DateFn(RuntimeApi.DateBody.IntegerOfFormattedDate, $"{Str(ic.Args[0])}, {Str(ic.Args[1])}{LeapSecondFlag}"), 0);
+            case "SECONDS-FROM-FORMATTED-TIME":                                 // §2023:15.79 — result scale = the format's fractional-second count
             {
                 if (ic.Args[0] is not BoundStringLiteral fmt)
                     return new NumX(EmitText.LoudValue("long",
                         "FUNCTION SECONDS-FROM-FORMATTED-TIME requires a literal time format (§2023:15.79.3 r1)"), 0);
                 int fsc = RuntimeApi.DateFormatFractionDigits(fmt.Value);       // compile-time — the ONE format analyzer
-                return new NumX(RuntimeApi.DateFn(sig.RuntimeMethod, $"{Str(ic.Args[0])}, {Str(ic.Args[1])}, {fsc}{LeapSecondFlag}"), fsc);
+                return new NumX(RuntimeApi.DateFn(RuntimeApi.DateBody.SecondsFromFormattedTime, $"{Str(ic.Args[0])}, {Str(ic.Args[1])}, {fsc}{LeapSecondFlag}"), fsc);
             }
-            case "TestFormattedDatetime":                                       // §2023:15.92 — 0 (valid) or the 1-based error position
-                return new NumX(RuntimeApi.DateFn(sig.RuntimeMethod, $"{Str(ic.Args[0])}, {Str(ic.Args[1])}{LeapSecondFlag}"), 0);
+            case "TEST-FORMATTED-DATETIME":                                     // §2023:15.92 — 0 (valid) or the 1-based error position
+                return new NumX(RuntimeApi.DateFn(RuntimeApi.DateBody.TestFormattedDatetime, $"{Str(ic.Args[0])}, {Str(ic.Args[1])}{LeapSecondFlag}"), 0);
             // (NUMVAL-F has NO arm here in ANY arithmetic mode or channel: its value is the exact parse, so RenderNum's first
             // arm routes it to the SDIDI projection before the mode dispatch, exactly as NUMVAL and NUMVAL-C; kb/Work PB3839.)
-            case "TestNumvalF":                                                 // §2023:15.95 — 0 / first-error position / LENGTH+1;
-                return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod,         //   the r1b digit-cap sub-note is MODE-dependent,
+            case "TEST-NUMVAL-F":                                               // §2023:15.95 — 0 / first-error position / LENGTH+1;
+                return new NumX(RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.TestNumvalF,    //   the r1b digit-cap sub-note is MODE-dependent,
                     $"{Str(ic.Args[0])}{CommaFlag}{DigitCapFlag}"), 0);         //   exactly as its two TEST- siblings (PB60)
 
-            case "IntegerOfBoolean":                                            // §2023:15.45.4 RV1 — the unsigned MSB-first value of the bit configuration
-                return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod, Str(ic.Args[0])), 0);
+            case "INTEGER-OF-BOOLEAN":                                          // §2023:15.45.4 RV1 — the unsigned MSB-first value of the bit configuration
+                return new NumX(RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.IntegerOfBoolean, Str(ic.Args[0])), 0);
 
             default:
                 return new NumX(EmitText.LoudValue("long", $"FUNCTION {sig.Name} (no numeric render recipe)"), 0);
         }
     }
 
-    /// <summary>The FLOATING-POINT body's name for an exact-family runtime method (PB2).</summary>
+    /// <summary>⛔ THE BINARY64 BODY OF EACH FUNCTION THE FLOAT LANE RENDERS, keyed on the function (its catalog name) and named
+    /// through its <c>nameof</c>-anchored <c>RuntimeApi.IntrinsicBody</c> constant (kb/Work PB2627): the body a call emits is the compiler's fact, so a renamed or deleted body fails the build
+    /// and the reachability census sees exactly the bodies a program can reach.</summary>
     /// <remarks>
-    /// A CONVENTION, not a table: <c>XxxScaled</c> → <c>XxxReal</c>, anything else gains a <c>Real</c> suffix.
-    /// The obvious alternative — a same-named <c>double</c> overload — does not compile: an integer literal
-    /// converts implicitly to both <c>Int128</c> and <c>double</c>, so <c>FUNCTION MAX(5 7)</c> became a CS0121
-    /// ambiguity and broke six corpus programs that never touched a float. <c>IntrinsicRealArgDriftTests</c>
-    /// asserts the counterpart exists for every exact method reachable with a real argument.
+    /// <para>Two families. The §2023:15.4.1 floating-math rows (<see cref="IntrinsicSig.Float"/>) compute in binary64 always. An exact-family
+    /// function computes in binary64 when a binary64 argument reaches a numeric position (PB2), through a <c>…Real</c> twin: a
+    /// same-named <c>double</c> overload does not compile, because an integer literal converts implicitly to both <c>Int128</c> and
+    /// <c>double</c>, so <c>FUNCTION MAX(5 7)</c> became a CS0121 ambiguity and broke six corpus programs that never touched a float.</para>
+    /// <para><c>IntrinsicRealArgDriftTests</c> holds the table to every function whose argument run can carry a binary64
+    /// (<c>IntrinsicArgumentRules.ArgumentRunIsAllNumeric</c>, the precondition the lane dispatches on) and to no other.</para>
     /// </remarks>
-    internal static string RealMethod(string exact) =>
-        exact.EndsWith("Scaled", StringComparison.Ordinal)
-            ? string.Concat(exact.AsSpan(0, exact.Length - "Scaled".Length), "Real")
-            : exact + "Real";
+    internal static readonly FrozenDictionary<string, string> Binary64Bodies = new Dictionary<string, string>(StringComparer.Ordinal)
+    {
+        // The §2023:15.4.1 floating-math family.
+        ["ACOS"] = RuntimeApi.IntrinsicBody.Acos,
+        ["ASIN"] = RuntimeApi.IntrinsicBody.Asin,
+        ["ATAN"] = RuntimeApi.IntrinsicBody.Atan,
+        ["COS"] = RuntimeApi.IntrinsicBody.Cos,
+        ["SIN"] = RuntimeApi.IntrinsicBody.Sin,
+        ["TAN"] = RuntimeApi.IntrinsicBody.Tan,
+        ["SQRT"] = RuntimeApi.IntrinsicBody.Sqrt,
+        ["LOG"] = RuntimeApi.IntrinsicBody.Log,
+        ["LOG10"] = RuntimeApi.IntrinsicBody.Log10,
+        ["ANNUITY"] = RuntimeApi.IntrinsicBody.Annuity,
+        ["PRESENT-VALUE"] = RuntimeApi.IntrinsicBody.PresentValue,
+        ["RANDOM"] = RuntimeApi.IntrinsicBody.Random,
+        ["STANDARD-DEVIATION"] = RuntimeApi.IntrinsicBody.StandardDeviation,
+        ["VARIANCE"] = RuntimeApi.IntrinsicBody.Variance,
+        ["E"] = RuntimeApi.IntrinsicBody.E,
+        ["PI"] = RuntimeApi.IntrinsicBody.Pi,
+        ["EXP"] = RuntimeApi.IntrinsicBody.Exp,
+        ["EXP10"] = RuntimeApi.IntrinsicBody.Exp10,
+        // The exact family's binary64 twins (PB2).
+        ["ABS"] = RuntimeApi.IntrinsicBody.AbsReal,
+        ["COMBINED-DATETIME"] = RuntimeApi.IntrinsicBody.CombinedDatetimeReal,
+        ["FRACTION-PART"] = RuntimeApi.IntrinsicBody.FractionPartReal,
+        ["INTEGER"] = RuntimeApi.IntrinsicBody.FloorReal,
+        ["INTEGER-PART"] = RuntimeApi.IntrinsicBody.TruncateReal,
+        ["MAX"] = RuntimeApi.IntrinsicBody.MaxReal,
+        ["MEAN"] = RuntimeApi.IntrinsicBody.MeanReal,
+        ["MEDIAN"] = RuntimeApi.IntrinsicBody.MedianReal,
+        ["MIDRANGE"] = RuntimeApi.IntrinsicBody.MidrangeReal,
+        ["MIN"] = RuntimeApi.IntrinsicBody.MinReal,
+        ["ORD-MAX"] = RuntimeApi.IntrinsicBody.OrdMaxReal,
+        ["ORD-MIN"] = RuntimeApi.IntrinsicBody.OrdMinReal,
+        ["RANGE"] = RuntimeApi.IntrinsicBody.RangeReal,
+        ["REM"] = RuntimeApi.IntrinsicBody.RemReal,
+        ["SIGN"] = RuntimeApi.IntrinsicBody.SignOfReal,
+        ["SUM"] = RuntimeApi.IntrinsicBody.SumReal,
+    }.ToFrozenDictionary(StringComparer.Ordinal);
+
+    /// <summary>The binary64 body of <paramref name="sig"/>'s function (<see cref="Binary64Bodies"/>).</summary>
+    private static string Binary64Body(in IntrinsicSig sig) =>
+        Binary64Bodies.TryGetValue(sig.Name, out string? body)
+            ? body
+            : throw new InvalidOperationException($"FUNCTION {sig.Name} reached the binary64 lane, which has no body for it (IntrinsicRenderer.Binary64Bodies)");
 
     /// <summary>The binary64 CALL this family computes in — the argument run only, with no container or receiver
     /// decision in it (kb/Work PB253: those belong to <see cref="RenderFloat"/> and
@@ -521,24 +578,24 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // ⛔ THE SEED TAKES THE WIDE INTAKE, because the argument is TOTAL (kb/Work PB636 — see IntArgWide):
         // §2023:15.75.3 AR2 constrains the SIGN alone and §2023:15.75.4 RV3 makes the distinct-sequence subset a FLOOR
         // ("from 0 through at least 32767"), not a domain, so §2023:15.3 has no incorrect value to raise on.
-        "Random" when ic.Args.Count == 0 => RuntimeApi.Intrinsic(method, ""),
-        "Random" => RuntimeApi.Intrinsic(method, IntArgWide(ic, 0)),
+        RuntimeApi.IntrinsicBody.Random when ic.Args.Count == 0 => RuntimeApi.Intrinsic(method, ""),
+        RuntimeApi.IntrinsicBody.Random => RuntimeApi.Intrinsic(method, IntArgWide(ic, 0)),
         // COMBINED-DATETIME's binary64 carrier takes the compilation group's LEAP-SECOND state, exactly as its
         // two exact-carrier twins do (kb/Work PB620): §2023:15.17.3 AR2's bound is §2023:7.3.17.4 GR4/GR5's, so a screen
         // that could not see the directive would admit 86 400.5 on one carrier and refuse it on another.
-        "CombinedDatetimeReal" => RuntimeApi.Intrinsic(method, $"{Dbl(ic, 0)}, {Dbl(ic, 1)}{LeapSecondFlag}"),
+        RuntimeApi.IntrinsicBody.CombinedDatetimeReal => RuntimeApi.Intrinsic(method, $"{Dbl(ic, 0)}, {Dbl(ic, 1)}{LeapSecondFlag}"),
         // A variadic body whose EAE CANCELS across its list takes an all-exact list as its EXACT values (kb/Work PB1565, PB4111 —
         // see ExactListBodies): the expression formed exactly and divided once in the native intermediate rounding mode, narrowed
         // once. PRESENT-VALUE's rate leads unscreened, exactly as on RenderDec's arm: the exact body decides §2023:15.74.3 AR2 on the
         // exact rate itself (PresentValueExact), so a leading table(ALL) stays one CobolExact[] enumeration.
-        "PresentValue" when !AnyRealArgument(ic) =>
+        RuntimeApi.IntrinsicBody.PresentValue when !AnyRealArgument(ic) =>
             LeadThenTail(ic, method, $"{num.IntermediateMode}, ", RuntimeApi.ExactType, a => ExactValueOf(ic, a)),
         _ when ExactListBodies.Contains(method) && !AnyRealArgument(ic) =>
             RuntimeApi.Intrinsic(method, $"{num.IntermediateMode}, {ExactValueArgList(ic)}"),
         // PRESENT-VALUE (§2023:15.74.2 `argument-1 { argument-2 } …`): the rate leads, the amounts are the params tail.
         // The lead is the DISCOUNT BASE 1 + rate, formed on the rate's exact carrier after the ONE screen
         // (kb/Work PB1000 — see PresentValueBase).
-        "PresentValue" => LeadThenTail(ic, method, "", "double", DblOf, lead: a => PresentValueBase(ic, a)),
+        RuntimeApi.IntrinsicBody.PresentValue => LeadThenTail(ic, method, "", "double", DblOf, lead: a => PresentValueBase(ic, a)),
         // An ill-conditioned body handed an argument expression past the Int128 carrier takes the EXACT WIDE value, not its
         // 34-digit image (kb/Work PB4075 — see WideLeadArg).
         _ when WideLeadArg(ic, method) is { } wide => RuntimeApi.Intrinsic(method + "Wide", wide),
@@ -584,11 +641,11 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// </remarks>
     internal static readonly FrozenDictionary<string, ExactIntake> WholeRangeBodies = new Dictionary<string, ExactIntake>
     {
-        ["Sqrt"] = ExactIntake.Sdidi,
-        ["Sin"] = ExactIntake.Wide, ["Cos"] = ExactIntake.Wide, ["Tan"] = ExactIntake.Wide,
-        ["Log"] = ExactIntake.Wide, ["Log10"] = ExactIntake.Wide,
-        ["Acos"] = ExactIntake.Wide, ["Asin"] = ExactIntake.Wide,
-        ["Exp"] = ExactIntake.EveryExact, ["Exp10"] = ExactIntake.EveryExact,
+        [RuntimeApi.IntrinsicBody.Sqrt] = ExactIntake.Sdidi,
+        [RuntimeApi.IntrinsicBody.Sin] = ExactIntake.Wide, [RuntimeApi.IntrinsicBody.Cos] = ExactIntake.Wide, [RuntimeApi.IntrinsicBody.Tan] = ExactIntake.Wide,
+        [RuntimeApi.IntrinsicBody.Log] = ExactIntake.Wide, [RuntimeApi.IntrinsicBody.Log10] = ExactIntake.Wide,
+        [RuntimeApi.IntrinsicBody.Acos] = ExactIntake.Wide, [RuntimeApi.IntrinsicBody.Asin] = ExactIntake.Wide,
+        [RuntimeApi.IntrinsicBody.Exp] = ExactIntake.EveryExact, [RuntimeApi.IntrinsicBody.Exp10] = ExactIntake.EveryExact,
     }.ToFrozenDictionary(StringComparer.Ordinal);
 
     /// <summary>
@@ -616,7 +673,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// </remarks>
     internal static readonly FrozenSet<string> ExactListBodies = new[]
     {
-        "Variance", "StandardDeviation", "PresentValue",
+        RuntimeApi.IntrinsicBody.Variance, RuntimeApi.IntrinsicBody.StandardDeviation, RuntimeApi.IntrinsicBody.PresentValue,
     }.ToFrozenSet(StringComparer.Ordinal);
 
     /// <summary>Which exact carriers a <see cref="WholeRangeBodies"/> member takes unnarrowed.</summary>
@@ -692,7 +749,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     private string PresentValueBase(BoundIntrinsicCall ic, BoundOperand a)
     {
         NumX x = num.AsNum(a, NumericArgument);
-        return RuntimeApi.Intrinsic("PresentValueBase", x.Real ? DomainArg(ic, x) : ExactArg(ic, x));
+        return RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.PresentValueBase, x.Real ? DomainArg(ic, x) : ExactArg(ic, x));
     }
 
     /// <summary>Argument-1 of a binary64-family call, SCREENED against the row's §15.x.3 value domain on its exact
@@ -768,7 +825,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // The standard-mode lift is the ONE operand lift (NumericRenderer.DecOperand): an approximation enters by its shortest
         // round-trip decimal, a value derived from a float ITEM by §2023:8.8.1.5.1's conversion of the item (CobolDec.FromBinary64).
         return num.StandardDecimal
-            ? new NumX(num.DecOperand(new NumX(RuntimeApi.Intrinsic("RealResult", call), 0, Real: true, Approximate: approximation)), 0, Dec: true)
+            ? new NumX(num.DecOperand(new NumX(RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.RealResult, call), 0, Real: true, Approximate: approximation)), 0, Dec: true)
             : RenderFloatNative(call, approximation);
     }
 
@@ -835,7 +892,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // Approximate, and NumericRenderer.CombineCore — the one place the lane is chosen — lifts it to the SDIDI
         // (its shortest-round-trip decimal) beside fixed-point operands, so `13.2 + FUNCTION SQRT(16)` is 17.2 and not
         // the 17.1 a truncating store of 13.199999999999999 + 4.0 gives.
-        var value = new NumX(RuntimeApi.Intrinsic("RealResult", call), 0, Real: true, Approximate: approximation);
+        var value = new NumX(RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.RealResult, call), 0, Real: true, Approximate: approximation);
         if (!landing.Quantize)
             return value;
         // ⛔ ONE LANDING FOR EVERY FUNCTION OF THE FAMILY, WITH NO CODOMAIN CLAMP (kb/Work PB3829, overturning PB65's
@@ -857,7 +914,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // RealResult keeps the NaN screen FromDouble owns.
         if (!value.Approximate)
             return new NumX(RuntimeApi.FloatToScaled(value.Expr, value.Approximate, $"{landing.Scale}", landing.Mode, num.CheckedLanding), landing.Scale);
-        return new NumX(RuntimeApi.Intrinsic("FromDouble", $"{call}, {landing.Scale}, {RuntimeApi.RoundingText(landing.Mode)}{CheckedFlag}"), landing.Scale);
+        return new NumX(RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.FromDouble, $"{call}, {landing.Scale}, {RuntimeApi.RoundingText(landing.Mode)}{CheckedFlag}"), landing.Scale);
     }
 
     // ── Argument rendering (the ONE NumericRenderer for every numeric-kind argument) ────────────────────────
@@ -1249,12 +1306,12 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// Int128 body, the arithmetic expression and SUM (A F) give 10000.99999, and SUM (A B) ROUNDED of a 26-digit A and .004999999
     /// would store .01 where A + B stores .00 (§2023:15.4.1 leaves the approximation to the implementor; CLAUDE.md rule 1 sends it to
     /// GnuCOBOL, whose decimal temporary is exact). Null for a function this family does not cover.</summary>
-    private NumX? RenderWholeAligned(BoundIntrinsicCall ic) => ic.Sig.RuntimeMethod switch
+    private NumX? RenderWholeAligned(BoundIntrinsicCall ic) => ic.Sig.Name switch
     {
-        "SumScaled" => Exact("SumWhole", ExactValueArgList(ic), null),
-        "RangeScaled" => Exact("RangeWhole", ExactValueArgList(ic), null),
-        "MedianScaled" => Exact("MedianWhole", ExactValueArgList(ic), null),
-        "MidrangeScaled" => Exact("MidrangeWhole", ExactValueArgList(ic), null),
+        "SUM" => Exact(RuntimeApi.IntrinsicBody.SumWhole, ExactValueArgList(ic), null),
+        "RANGE" => Exact(RuntimeApi.IntrinsicBody.RangeWhole, ExactValueArgList(ic), null),
+        "MEDIAN" => Exact(RuntimeApi.IntrinsicBody.MedianWhole, ExactValueArgList(ic), null),
+        "MIDRANGE" => Exact(RuntimeApi.IntrinsicBody.MidrangeWhole, ExactValueArgList(ic), null),
         _ => null,
     };
 
@@ -1265,7 +1322,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// float argument has its own lanes.</summary>
     /// <remarks>INTAKE(PREDICATE) — renders only to ASK a question — of the RAW operands' scales.</remarks>
     private bool SelectionPastReceiverHeadroom(BoundIntrinsicCall ic) =>
-        ic.Sig.RuntimeMethod is "MaxScaled" or "MinScaled" && num.Receiver.RoundsAtItsScale && !AnyRealArgument(ic)
+        ic.Sig.Name is "MAX" or "MIN" && !ic.ComparesStrings && num.Receiver.RoundsAtItsScale && !AnyRealArgument(ic)
         && Operands(ic).Select(x => x.Scale).DefaultIfEmpty(0).Max() is var s && num.Receiver.WorkingScale(s) < s;
 
     /// <summary>Does any argument arrive on the SDIDI carrier (a native integer power — kb/Work PB69)?</summary>
@@ -1293,8 +1350,8 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// </remarks>
     private static readonly FrozenSet<string> StandardValueFixedByRule = new[]
     {
-        "Sqrt", "Factorial",
-        "Annuity", "PresentValue", "Variance", "StandardDeviation",
+        "SQRT", "FACTORIAL",
+        "ANNUITY", "PRESENT-VALUE", "VARIANCE", "STANDARD-DEVIATION",
     }.ToFrozenSet(StringComparer.Ordinal);
 
     /// <summary>
@@ -1322,14 +1379,14 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// </remarks>
     internal static readonly FrozenSet<string> EquivalentExpressionUnaryArms = new[]
     {
-        "AbsScaled", "SignOf", "Truncate", "FractionPart",
+        "ABS", "SIGN", "INTEGER-PART", "FRACTION-PART",
     }.ToFrozenSet(StringComparer.Ordinal);
 
     /// <summary>Does lifting this call's argument into the SDIDI round it (§2023:8.8.1.5.2 GR1) under the statement's
     /// arithmetic mode? Asked only of an <see cref="EquivalentExpressionUnaryArms"/> member under a standard mode.</summary>
     /// <remarks>INTAKE(PREDICATE) — renders only to ASK a question; the rendered text is discarded, so no value semantics apply.</remarks>
     private bool ArgumentRoundsAtLift(BoundIntrinsicCall ic) =>
-        num.StandardDecimal && EquivalentExpressionUnaryArms.Contains(ic.Sig.RuntimeMethod)
+        num.StandardDecimal && EquivalentExpressionUnaryArms.Contains(ic.Sig.Name)
         && Operands(ic).Any(num.LiftRounds);
 
     /// <summary>
@@ -1355,7 +1412,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// </remarks>
     private NumX? RenderDec(BoundIntrinsicCall ic)
     {
-        string m = ic.Sig.RuntimeMethod;
+        string m = ic.Sig.Name;
         // ⛔ FOUR SETS, ONE DECISION (kb/Work PB252, PB3860): CrossAligningFunctions is STRUCTURAL (the native arm
         // cross-aligns, so alignment can need more digits than the Int128 carrier holds),
         // StandardValueFixedByRule is the cited-exception half, ReturnsExactParse is the NUMVAL family and
@@ -1377,6 +1434,9 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // (§2002:8.8.1.3.2), so SUM (10 ** 30, .5, .25) is 10 ** 30 + .7 there and 10 ** 30 + .75 exactly.
         if (!num.StandardIntermediate && !alwaysSdidi && !AnyDecOrRealRaw(ic) && !ArgumentRoundsAtLift(ic) && !SelectionPastReceiverHeadroom(ic))
             return null;
+        // An ORD-MAX or ORD-MIN whose arguments are compared as strings has no SDIDI body: its arm is the string one in RenderNum's
+        // switch (kb/Work PB2627; the arms below are keyed on the function, so the string form is excluded by its fact, not its key).
+        if (ic.ComparesStrings) return null;
 
         string mode = num.IntermediateMode, arithmetic = num.DecArithmetic;
         return m switch
@@ -1390,40 +1450,40 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             // verdict and the value agree on the same number. NUMVAL-F is the third member (kb/Work PB3839): its
             // §2023:15.69.4 RV2 grants native arithmetic an approximation, and the implementor's determination is r3's exact
             // value, so it cannot depend on the receiver that lands it or on the channel that reads it.
-            "Numval" => Dec(RuntimeApi.Intrinsic("NumvalDec", $"{Str(ic.Args[0])}{CommaFlag}{DigitCapFlag}")),
+            "NUMVAL" => Dec(RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.NumvalDec, $"{Str(ic.Args[0])}{CommaFlag}{DigitCapFlag}")),
             // ReturnsExactParse makes this the path for EVERY NUMVAL-C in every arithmetic mode: RenderNum's
             // first arm reaches it under NATIVE too (PB251) — the
             // LOCALE arm is needed HERE too or --arithmetic standard is silently wrong (indexing the absent
             // ic.Args[1] — no argument-2 is injected under LOCALE; PB64 T6).
-            "NumvalC" when ic.LocaleWritten => Dec(RuntimeApi.Intrinsic("NumvalCLocaleDec",
+            "NUMVAL-C" when ic.LocaleWritten => Dec(RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.NumvalCLocaleDec,
                 $"{Str(ic.Args[0])}, {LocaleTagArg(ic)}{AnycaseFlag(ic)}{DigitCapFlag}")),
             // At COBOL-85 argument-2's content is not screened (kb/Work PB5161, BoundIntrinsicCall.CurrencyContentUnrestricted).
-            "NumvalC" => Dec(RuntimeApi.Intrinsic("NumvalCDec",
+            "NUMVAL-C" => Dec(RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.NumvalCDec,
                 $"{Str(ic.Args[0])}, {Str(ic.Args[1])}{CommaFlag}{AnycaseFlag(ic)}{DigitCapFlag}{AnycaseClassification(ic)}"
                 + (ic.CurrencyContentUnrestricted ? ", contentUnrestricted: true" : ""))),
-            "NumvalF" => Dec(RuntimeApi.Intrinsic("NumvalFDec", $"{mode}, {Str(ic.Args[0])}{CommaFlag}{DigitCapFlag}")),
+            "NUMVAL-F" => Dec(RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.NumvalFDec, $"{mode}, {Str(ic.Args[0])}{CommaFlag}{DigitCapFlag}")),
             // SQRT (§2023:15.84.4 RV2; kb/Work PB116): the one function whose standard-mode value is FIXED — the
             // 34-digit correctly-rounded root; without this arm it fell to RenderFloat's binary64 Math.Sqrt.
             // ⛔ Guarded to STANDARD-DECIMAL: RenderDec is also consulted under NATIVE when a float-typed
             // argument is present (AnyDecOrRealRaw), and an unguarded arm would flip native float SQRT onto
             // the Dec lane — a behavior change r4's approximation licence does not ask for.
-            "Sqrt" when num.StandardDecimal => Dec(RuntimeApi.Intrinsic("SqrtDec", $"{arithmetic}, {DecArg(ic, 0)}")),
+            "SQRT" when num.StandardDecimal => Dec(RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.SqrtDec, $"{arithmetic}, {DecArg(ic, 0)}")),
             // FACTORIAL (§2023:15.36.4 RV1c; kb/Work PB125): the SDIDI product loop — FACTORIAL(34) is exact where
             // the native Int128 lane's 33 cap returned the §2023:15.3 default 0 on a conforming argument.
-            "Factorial" when num.StandardDecimal =>
-                Dec(RuntimeApi.Intrinsic("FactorialDec", $"{arithmetic}, {IntArg(ic, 0)}")),
+            "FACTORIAL" when num.StandardDecimal =>
+                Dec(RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.FactorialDec, $"{arithmetic}, {IntArg(ic, 0)}")),
             // COMBINED-DATETIME (§2023:15.17.4 RV1's EAE `argument-1 + (argument-2 / 100000)`; kb/Work PB620): the one
             // §2023:15.4.1 r1 function PB56 left on the landing intake. Argument-2 carries no fraction-digit limit
             // (§2023:15.17.3 AR2 → §2023:15.5.5's magnitude-only "standard numeric time form"), so a landing at
             // max(receiver scale, 6) truncated it and the function stopped equalling its own EAE; argument-1
             // keeps the NARROW intake because §2023:15.5.2 genuinely bounds the integer date form.
-            "CombinedDatetime" => Dec(RuntimeApi.DateFn("CombinedDatetimeDec",
+            "COMBINED-DATETIME" => Dec(RuntimeApi.DateFn(RuntimeApi.DateBody.CombinedDatetimeDec,
                 $"{mode}, {IntArg(ic, 0)}, {DecArg(ic, 1)}{LeapSecondFlag}")),
-            "SignOf" => new NumX(RuntimeApi.Intrinsic("SignDec", DecArg(ic, 0)), 0),
-            "AbsScaled" => Dec(RuntimeApi.Intrinsic("AbsDec", DecArg(ic, 0))),
-            "Floor" => Dec(RuntimeApi.Intrinsic("FloorDec", DecArg(ic, 0))),
-            "Truncate" => Dec(RuntimeApi.Intrinsic("TruncDec", DecArg(ic, 0))),
-            "FractionPart" => Dec(RuntimeApi.Intrinsic("FractionPartDec", $"{arithmetic}, {DecArg(ic, 0)}")),
+            "SIGN" => new NumX(RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.SignDec, DecArg(ic, 0)), 0),
+            "ABS" => Dec(RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.AbsDec, DecArg(ic, 0))),
+            "INTEGER" => Dec(RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.FloorDec, DecArg(ic, 0))),
+            "INTEGER-PART" => Dec(RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.TruncDec, DecArg(ic, 0))),
+            "FRACTION-PART" => Dec(RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.FractionPartDec, $"{arithmetic}, {DecArg(ic, 0)}")),
             // ⛔ UNDER NATIVE ARITHMETIC THE ARGUMENTS ENTER AS THEIR EXACT VALUES (kb/Work PB4111, PB4568; DOC-A.1-123). The arms below
             // are reached under native when an argument is SDIDI-carried (a floating-point literal, a power), an argument
             // expression the exact wide lane could not take (beside an SDIDI or binary64, or past 77 digits), a 39-digit container,
@@ -1434,57 +1494,57 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             // rounded every step: ORD-MAX (P - 1, P, 2.0E0) of a 39-digit P answered 1 although IF P - 1 < P is true, MOD (P, 2 ** 10)
             // answered 0 for 999, and VARIANCE (P, P - 1) 10^10 for 0.25. Under a standard mode the SDIDI evaluation IS the value
             // (§2023:8.8.1.5.2 GR1 rounds each operand, §2023:15.4.1 1) equates the expression), so those keep the Dec bodies.
-            "ModScaled" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("ModExact", $"{mode}, {ExactValueArg(ic, 0)}, {ExactValueArg(ic, 1)}")),
-            "RemScaled" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("RemExact", $"{mode}, {ExactValueArg(ic, 0)}, {ExactValueArg(ic, 1)}")),
-            "OrdMax" when !num.StandardDecimal => new NumX(RuntimeApi.Intrinsic("OrdMaxExact", ExactValueArgList(ic)), 0),
-            "OrdMin" when !num.StandardDecimal => new NumX(RuntimeApi.Intrinsic("OrdMinExact", ExactValueArgList(ic)), 0),
+            "MOD" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.ModExact, $"{mode}, {ExactValueArg(ic, 0)}, {ExactValueArg(ic, 1)}")),
+            "REM" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.RemExact, $"{mode}, {ExactValueArg(ic, 0)}, {ExactValueArg(ic, 1)}")),
+            "ORD-MAX" when !num.StandardDecimal => new NumX(RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.OrdMaxExact, ExactValueArgList(ic)), 0),
+            "ORD-MIN" when !num.StandardDecimal => new NumX(RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.OrdMinExact, ExactValueArgList(ic)), 0),
             // ⛔ A SELECTION RETURNS THE SELECTED ARGUMENT'S CONTENT, WHOLE (kb/Work PB4730): §2023:15.59.4 RV1 "the content of the argument-1
             // having the greatest value", §2023:15.63.4 RV1, §2023:15.61.1. The selected value is an EXACT value (NumX.Exact), not an SDIDI
             // content: a float item's expansion (DP = 2.5E+40 is 25000000000000000155002161260194579873792) keeps all 41 digits to its
             // receiver, where the SDIDI's 34 stored 00000 for 73792.
-            "MaxScaled" when !num.StandardDecimal => Exact("MaxExact", ExactValueArgList(ic), null),
-            "MinScaled" when !num.StandardDecimal => Exact("MinExact", ExactValueArgList(ic), null),
-            "SumScaled" when !num.StandardDecimal => Exact("SumExact", $"{mode}, {ExactValueArgList(ic)}", null),
-            "RangeScaled" when !num.StandardDecimal => Exact("RangeExact", $"{mode}, {ExactValueArgList(ic)}", null),
-            "MeanScaled" when !num.StandardDecimal => Exact("MeanExact", $"{mode}, {ExactValueArgList(ic)}", null),
+            "MAX" when !num.StandardDecimal => Exact(RuntimeApi.IntrinsicBody.MaxExact, ExactValueArgList(ic), null),
+            "MIN" when !num.StandardDecimal => Exact(RuntimeApi.IntrinsicBody.MinExact, ExactValueArgList(ic), null),
+            "SUM" when !num.StandardDecimal => Exact(RuntimeApi.IntrinsicBody.SumExact, $"{mode}, {ExactValueArgList(ic)}", null),
+            "RANGE" when !num.StandardDecimal => Exact(RuntimeApi.IntrinsicBody.RangeExact, $"{mode}, {ExactValueArgList(ic)}", null),
+            "MEAN" when !num.StandardDecimal => Exact(RuntimeApi.IntrinsicBody.MeanExact, $"{mode}, {ExactValueArgList(ic)}", null),
             // ⛔ A MEDIAN DECIDES ITS PARITY, ITS MIDDLE PAIR AND THEIR KINDS AT RUN TIME (kb/Work PB4827, PB4859, PB4891). An odd count selects
             // (§2023:15.61.4 RV1, the exact lane keeps the selected argument's own kind); an even count is the mean of the two middle values
             // (§2023:15.61.4 RV2), a new value that is the binary64 mean when a MIDDLE value is binary64 (DOC-A.1-92b), as the float lane forms it for
             // a count the binder knows (IntrinsicCarrierRules.ReturnsMeanOfMiddlePair), and the exact mean when both are fixed-point. Which values
             // are the middle pair is a run-time fact, and so is the kind of a nested selection's returned content (MAX (F M2) returns F's or
             // M2's), so the body reads each middle's binary64-ness off its exact value (CobolExact.TryBinary64), never off the written operands.
-            "MedianScaled" when !num.StandardDecimal => Exact("MedianExact", $"{mode}, {ExactValueArgList(ic)}", null),
-            "MidrangeScaled" when !num.StandardDecimal => Exact("MidrangeExact", $"{mode}, {ExactValueArgList(ic)}", null),
+            "MEDIAN" when !num.StandardDecimal => Exact(RuntimeApi.IntrinsicBody.MedianExact, $"{mode}, {ExactValueArgList(ic)}", null),
+            "MIDRANGE" when !num.StandardDecimal => Exact(RuntimeApi.IntrinsicBody.MidrangeExact, $"{mode}, {ExactValueArgList(ic)}", null),
             // ⛔ VARIANCE, STANDARD-DEVIATION, PRESENT-VALUE AND ANNUITY DECIDE THEIR KIND AT RUN TIME TOO (kb/Work PB4979; DOC-A.1-92b): an argument
             // that is a nested selection may have returned a float item's content, so the body reads the arguments' binary64-ness off their
             // exact values (CobolExact.TryBinary64) and returns the binary64 of `VARIANCE (F M)` as the SUM family does (PB4923), else the
             // exact value rounded once. The value is a run-time-scaled exact one that its consumer reads as the SDIDI image it lowers to.
-            "Variance" when !num.StandardDecimal => Exact("VarianceExact", $"{mode}, {ExactValueArgList(ic)}", null),
-            "StandardDeviation" when !num.StandardDecimal => Exact("StdDevExact", $"{mode}, {ExactValueArgList(ic)}", null),
-            "PresentValue" when !num.StandardDecimal =>
-                Exact(LeadThenTail(ic, "PresentValueExact", $"{mode}, ", RuntimeApi.ExactType, a => ExactValueOf(ic, a))),
-            "Annuity" when !num.StandardDecimal => Exact("AnnuityExact", $"{mode}, {ExactValueArg(ic, 0)}, {DecArg(ic, 1)}", null),
-            "ModScaled" => Dec(RuntimeApi.Intrinsic("ModDec", $"{arithmetic}, {DecArg(ic, 0)}, {DecArg(ic, 1)}")),
-            "RemScaled" => Dec(RuntimeApi.Intrinsic("RemDec", $"{arithmetic}, {DecArg(ic, 0)}, {DecArg(ic, 1)}")),
-            "MaxScaled" => Dec(RuntimeApi.Intrinsic("MaxDec", DecArgList(ic))),
-            "MinScaled" => Dec(RuntimeApi.Intrinsic("MinDec", DecArgList(ic))),
-            "OrdMax" => new NumX(RuntimeApi.Intrinsic("OrdMaxDec", DecArgList(ic)), 0),
-            "OrdMin" => new NumX(RuntimeApi.Intrinsic("OrdMinDec", DecArgList(ic)), 0),
-            "SumScaled" => Dec(RuntimeApi.Intrinsic("SumDec", $"{arithmetic}, {DecArgList(ic)}")),
-            "RangeScaled" => Dec(RuntimeApi.Intrinsic("RangeDec", $"{arithmetic}, {DecArgList(ic)}")),
-            "MeanScaled" => Dec(RuntimeApi.Intrinsic("MeanDec", $"{arithmetic}, {DecArgList(ic)}")),
-            "MedianScaled" => Dec(RuntimeApi.Intrinsic("MedianDec", $"{arithmetic}, {DecArgList(ic)}")),
-            "MidrangeScaled" => Dec(RuntimeApi.Intrinsic("MidrangeDec", $"{arithmetic}, {DecArgList(ic)}")),
-            "Variance" => Dec(RuntimeApi.Intrinsic("VarianceDec", $"{arithmetic}, {DecArgList(ic)}")),
-            "StandardDeviation" => Dec(RuntimeApi.Intrinsic("StdDevDec", $"{arithmetic}, {DecArgList(ic)}")),
+            "VARIANCE" when !num.StandardDecimal => Exact(RuntimeApi.IntrinsicBody.VarianceExact, $"{mode}, {ExactValueArgList(ic)}", null),
+            "STANDARD-DEVIATION" when !num.StandardDecimal => Exact(RuntimeApi.IntrinsicBody.StdDevExact, $"{mode}, {ExactValueArgList(ic)}", null),
+            "PRESENT-VALUE" when !num.StandardDecimal =>
+                Exact(LeadThenTail(ic, RuntimeApi.IntrinsicBody.PresentValueExact, $"{mode}, ", RuntimeApi.ExactType, a => ExactValueOf(ic, a))),
+            "ANNUITY" when !num.StandardDecimal => Exact(RuntimeApi.IntrinsicBody.AnnuityExact, $"{mode}, {ExactValueArg(ic, 0)}, {DecArg(ic, 1)}", null),
+            "MOD" => Dec(RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.ModDec, $"{arithmetic}, {DecArg(ic, 0)}, {DecArg(ic, 1)}")),
+            "REM" => Dec(RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.RemDec, $"{arithmetic}, {DecArg(ic, 0)}, {DecArg(ic, 1)}")),
+            "MAX" => Dec(RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.MaxDec, DecArgList(ic))),
+            "MIN" => Dec(RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.MinDec, DecArgList(ic))),
+            "ORD-MAX" => new NumX(RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.OrdMaxDec, DecArgList(ic)), 0),
+            "ORD-MIN" => new NumX(RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.OrdMinDec, DecArgList(ic)), 0),
+            "SUM" => Dec(RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.SumDec, $"{arithmetic}, {DecArgList(ic)}")),
+            "RANGE" => Dec(RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.RangeDec, $"{arithmetic}, {DecArgList(ic)}")),
+            "MEAN" => Dec(RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.MeanDec, $"{arithmetic}, {DecArgList(ic)}")),
+            "MEDIAN" => Dec(RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.MedianDec, $"{arithmetic}, {DecArgList(ic)}")),
+            "MIDRANGE" => Dec(RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.MidrangeDec, $"{arithmetic}, {DecArgList(ic)}")),
+            "VARIANCE" => Dec(RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.VarianceDec, $"{arithmetic}, {DecArgList(ic)}")),
+            "STANDARD-DEVIATION" => Dec(RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.StdDevDec, $"{arithmetic}, {DecArgList(ic)}")),
             // ANNUITY (kb/Work PB637): §2023:15.9.3 AR3's "positive integer" is a SIGN rule and says nothing about magnitude,
             // so argument-2 is a TOTAL argument and rides the SDIDI as the position intake left it (RawArg: the operand's
             // integer on the SDIDI, unbounded — an SDIDI integer reaches past Int128), never on a native integer
             // carrier. At a positive rate an enormous n is the equivalent expression's own size condition, never
             // EC-ARGUMENT-FUNCTION (see CobolIntrinsics.AnnuityDec). IntrinsicCarrierAgreementDriftTests
             // .IntegerArgumentsThatRideTheSdidi_TakeNoNativeIntake pins this arm.
-            "Annuity" => Dec(RuntimeApi.Intrinsic("AnnuityDec", $"{arithmetic}, {DecArg(ic, 0)}, {DecArg(ic, 1)}")),
-            "PresentValue" => Dec(LeadThenTail(ic, "PresentValueDec", $"{arithmetic}, ", "CobolDec", DecOf)),
+            "ANNUITY" => Dec(RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.AnnuityDec, $"{arithmetic}, {DecArg(ic, 0)}, {DecArg(ic, 1)}")),
+            "PRESENT-VALUE" => Dec(LeadThenTail(ic, RuntimeApi.IntrinsicBody.PresentValueDec, $"{arithmetic}, ", "CobolDec", DecOf)),
             _ => null,
         };
 
@@ -1502,13 +1562,13 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// selection, MOD/REM and statistics bodies take it exact on the SDIDI lane (<see cref="RenderDec"/>'s native arms over
     /// <see cref="ExactValueArg"/>). <c>ExactWideSettlementDriftTests.EveryWideBody_TakesTheExactValueToo</c> holds that closed.
     /// </summary>
-    private NumX? RenderExactUnary(string runtimeMethod, NumX x) => runtimeMethod switch
+    private NumX? RenderExactUnary(string function, NumX x) => function switch
     {
-        "AbsScaled" => Exact("AbsExact", x.Expr, x.Precision),
-        "SignOf" => new NumX(RuntimeApi.Intrinsic("SignExact", x.Expr), 0),
-        "Floor" => Exact("FloorExact", x.Expr, 0),
-        "Truncate" => Exact("TruncateExact", x.Expr, 0),
-        "FractionPart" => Exact("FractionPartExact", $"{num.IntermediateMode}, {x.Expr}", null),
+        "ABS" => Exact(RuntimeApi.IntrinsicBody.AbsExact, x.Expr, x.Precision),
+        "SIGN" => new NumX(RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.SignExact, x.Expr), 0),
+        "INTEGER" => Exact(RuntimeApi.IntrinsicBody.FloorExact, x.Expr, 0),
+        "INTEGER-PART" => Exact(RuntimeApi.IntrinsicBody.TruncateExact, x.Expr, 0),
+        "FRACTION-PART" => Exact(RuntimeApi.IntrinsicBody.FractionPartExact, $"{num.IntermediateMode}, {x.Expr}", null),
         _ => null,
     };
 
@@ -1555,7 +1615,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // answered here without rendering its arguments a further time.
         if (num.StandardDecimal || !ic.Args.Any(a => a is BoundComputedOperand)) return null;
         var xs = Enumerable.Range(0, ic.Args.Count).Select(i => RawWideArg(ic, i)).ToList();
-        if (xs.Count == 1 && xs[0].Exact) return RenderExactUnary(ic.Sig.RuntimeMethod, xs[0]);
+        if (xs.Count == 1 && xs[0].Exact) return RenderExactUnary(ic.Sig.Name, xs[0]);
         if (!xs.Any(x => x.Wide) || xs.Any(x => x.Dec || x.Real || x.Exact)) return null;
 
         int s = xs.Max(x => x.Scale);
@@ -1576,27 +1636,27 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
                                             + (ic.Args[i] is BoundFieldOperand { Place: TableAllPlace } ? 9 : 0)).Max()
                         + xs.Count.ToString(System.Globalization.CultureInfo.InvariantCulture).Length;
 
-        (NumX Value, int Work)? call = ic.Sig.RuntimeMethod switch
+        (NumX Value, int Work)? call = ic.ComparesStrings ? null : ic.Sig.Name switch
         {
-            "AbsScaled" => (Wide("AbsWide", Aligned(0), one, widest), widest),
-            "SignOf" => (new NumX(RuntimeApi.Intrinsic("SignWide", Aligned(0)), 0), widest),
+            "ABS" => (Wide(RuntimeApi.IntrinsicBody.AbsWide, Aligned(0), one, widest), widest),
+            "SIGN" => (new NumX(RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.SignWide, Aligned(0)), 0), widest),
             // A negative scale (trailing P positions) is an integer already: its zeros are multiplied in.
-            "Floor" => (Wide("FloorWide", $"{Aligned(0)}, {one}", 0, widest + Math.Max(0, -one) + 1), widest + Math.Max(0, -one) + 1),
-            "Truncate" => (Wide("TruncateWide", $"{Aligned(0)}, {one}", 0, widest + Math.Max(0, -one)), widest + Math.Max(0, -one)),
-            "FractionPart" => (Wide("FractionPartWide", $"{Aligned(0)}, {one}", one, widest), widest),
-            "ModScaled" => (Wide("ModWide", $"{Aligned(0)}, {Aligned(1)}", s, widest), widest),
-            "RemScaled" => (Wide("RemWide", $"{Aligned(0)}, {Aligned(1)}", s, widest), widest),
-            "MaxScaled" => (Wide("MaxWide", List(), s, widest), widest),
-            "MinScaled" => (Wide("MinWide", List(), s, widest), widest),
-            "OrdMax" => (new NumX(RuntimeApi.Intrinsic("OrdMaxWide", List()), 0), widest),
-            "OrdMin" => (new NumX(RuntimeApi.Intrinsic("OrdMinWide", List()), 0), widest),
-            "SumScaled" => (Wide("SumWide", List(), s, sumDigits), sumDigits),
-            "RangeScaled" => (Wide("RangeWide", List(), s, widest + 1), widest + 1),
+            "INTEGER" => (Wide(RuntimeApi.IntrinsicBody.FloorWide, $"{Aligned(0)}, {one}", 0, widest + Math.Max(0, -one) + 1), widest + Math.Max(0, -one) + 1),
+            "INTEGER-PART" => (Wide(RuntimeApi.IntrinsicBody.TruncateWide, $"{Aligned(0)}, {one}", 0, widest + Math.Max(0, -one)), widest + Math.Max(0, -one)),
+            "FRACTION-PART" => (Wide(RuntimeApi.IntrinsicBody.FractionPartWide, $"{Aligned(0)}, {one}", one, widest), widest),
+            "MOD" => (Wide(RuntimeApi.IntrinsicBody.ModWide, $"{Aligned(0)}, {Aligned(1)}", s, widest), widest),
+            "REM" => (Wide(RuntimeApi.IntrinsicBody.RemWide, $"{Aligned(0)}, {Aligned(1)}", s, widest), widest),
+            "MAX" => (Wide(RuntimeApi.IntrinsicBody.MaxWide, List(), s, widest), widest),
+            "MIN" => (Wide(RuntimeApi.IntrinsicBody.MinWide, List(), s, widest), widest),
+            "ORD-MAX" => (new NumX(RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.OrdMaxWide, List()), 0), widest),
+            "ORD-MIN" => (new NumX(RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.OrdMinWide, List()), 0), widest),
+            "SUM" => (Wide(RuntimeApi.IntrinsicBody.SumWide, List(), s, sumDigits), sumDigits),
+            "RANGE" => (Wide(RuntimeApi.IntrinsicBody.RangeWide, List(), s, widest + 1), widest + 1),
             // MEAN (§2023:15.60.4 RV1) is the one arm whose value is not wide: the exact sum divided ONCE on the SDIDI (kb/Work PB4075,
             // PB3860), the value every other lane forms, returned as the SDIDI the receiver then rounds once.
-            "MeanScaled" => (new NumX(RuntimeApi.Intrinsic("MeanWide", $"{num.IntermediateMode}, {s}, {List()}"), 0, Dec: true), sumDigits),
-            "MedianScaled" => (Wide("MedianWide", List(), s + 1, widest + 2), widest + 2),
-            "MidrangeScaled" => (Wide("MidrangeWide", List(), s + 1, widest + 2), widest + 2),
+            "MEAN" => (new NumX(RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.MeanWide, $"{num.IntermediateMode}, {s}, {List()}"), 0, Dec: true), sumDigits),
+            "MEDIAN" => (Wide(RuntimeApi.IntrinsicBody.MedianWide, List(), s + 1, widest + 2), widest + 2),
+            "MIDRANGE" => (Wide(RuntimeApi.IntrinsicBody.MidrangeWide, List(), s + 1, widest + 2), widest + 2),
             _ => null,
         };
         return call is { } c && c.Work <= RuntimeApi.WideMaxDigits ? c.Value : null;
@@ -1827,104 +1887,111 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     private string RenderStringValue(BoundIntrinsicCall ic)
     {
         var sig = ic.Sig;
-        if (sig.Bind == IntrinsicBind.Deferred || sig.RuntimeMethod.Length == 0)
+        if (sig.Bind == IntrinsicBind.Deferred)
             return EmitText.LoudValue("string", $"FUNCTION {sig.Name} (catalogued, not yet implemented)");
-        return sig.RuntimeMethod switch
+        return sig.Name switch
         {
             // UPPER-CASE / LOWER-CASE (§2023:15.97 / §2023:15.57; kb/Work PB64 T5): with a LOCALE phrase, the named locale's LC_CTYPE
             // (r2); else, when this module has a CHARACTER CLASSIFICATION, the classification's LC_CTYPE for the
             // operand's class (r3 — __CLASSIFY, resolved at activation); else the implementor's correspondence (r4 —
             // the invariant map the function always used).
-            "UpperCase" or "LowerCase" when ic.Locale.Tag is { } caseTag =>
-                RuntimeApi.LocaleFn(sig.RuntimeMethod, $"{Str(ic.Args[0])}, {EmitText.CsLiteral(caseTag)}"),
-            "UpperCase" or "LowerCase" when ctx.Data.Configuration.Classification is not null =>
-                RuntimeApi.LocaleFn(sig.RuntimeMethod, $"{Str(ic.Args[0])}{ObjectComputerEmit.ClassificationArg(ic.Args[0])}"),
-            "UpperCase" or "LowerCase" or "Reverse" =>                         // §2023:15.97/57/78 — length-preserving
-                RuntimeApi.Intrinsic(sig.RuntimeMethod, Str(ic.Args[0])),
-            "Char" =>                                                          // §2023:15.15 — PCS-relative (H5 conditional weights)
-                RuntimeApi.Intrinsic(sig.RuntimeMethod, $"{ArgInt(ic.Args[0])}{Collate(ic)}"),
-            "CharNational" =>                                                  // §2023:15.16 — the NATIONAL PCS ordinal (native UTF-16 order,
-                RuntimeApi.Intrinsic(sig.RuntimeMethod,                        //   or __COLLATE_NAT under a non-native ALPHABET … FOR NATIONAL)
+            "UPPER-CASE" or "LOWER-CASE" when ic.Locale.Tag is { } caseTag =>
+                RuntimeApi.LocaleFn(sig.Name is "UPPER-CASE" ? RuntimeApi.LocaleBody.UpperCase : RuntimeApi.LocaleBody.LowerCase,
+                    $"{Str(ic.Args[0])}, {EmitText.CsLiteral(caseTag)}"),
+            "UPPER-CASE" or "LOWER-CASE" when ctx.Data.Configuration.Classification is not null =>
+                RuntimeApi.LocaleFn(sig.Name is "UPPER-CASE" ? RuntimeApi.LocaleBody.UpperCase : RuntimeApi.LocaleBody.LowerCase,
+                    $"{Str(ic.Args[0])}{ObjectComputerEmit.ClassificationArg(ic.Args[0])}"),
+            "UPPER-CASE" or "LOWER-CASE" or "REVERSE" =>                       // §2023:15.97/57/78 — length-preserving
+                RuntimeApi.Intrinsic(sig.Name switch
+                {
+                    "UPPER-CASE" => RuntimeApi.IntrinsicBody.UpperCase,
+                    "LOWER-CASE" => RuntimeApi.IntrinsicBody.LowerCase,
+                    _ => RuntimeApi.IntrinsicBody.Reverse,
+                }, Str(ic.Args[0])),
+            "CHAR" =>                                                          // §2023:15.15 — PCS-relative (H5 conditional weights)
+                RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.Char, $"{ArgInt(ic.Args[0])}{Collate(ic)}"),
+            "CHAR-NATIONAL" =>                                                 // §2023:15.16 — the NATIONAL PCS ordinal (native UTF-16 order,
+                RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.CharNational,                 //   or __COLLATE_NAT under a non-native ALPHABET … FOR NATIONAL)
                     $"{ArgInt(ic.Args[0])}{Collate(ic)}"),
-            "CurrentDate" => RuntimeApi.DateFn(sig.RuntimeMethod, ""),         // §2023:15.21 — the runtime clock
+            "CURRENT-DATE" => RuntimeApi.DateFn(RuntimeApi.DateBody.CurrentDate, ""),   // §2023:15.21 — the runtime clock
             // WHEN-COMPILED is the COMPILATION timestamp (§2023:15.99.3 RV2) — a constant in the generated source,
             // captured ONCE PER COMPILATION on ProgramEmitter (kb/Work PB120), not per process. (The legacy's
             // runtime-clock placeholder also passes IF142A's plausibility checks; the constant is the
             // spec-correct form — scout brief §4.4.)
-            "WhenCompiled" => EmitText.CsLiteral(ctx.WhenCompiledStamp),
-            "MaxString" or "MinString" =>                                      // §2023:15.59/63 all-string form (PCS via CollatePrefix, CA23)
-                RuntimeApi.Intrinsic(sig.RuntimeMethod, CollatePrefix(ic) + StrArgList(ic)),
-            "Concat" =>                                                        // §2023:15.18 — concatenate all argument images (2023);
-                RuntimeApi.Intrinsic(sig.RuntimeMethod,                        //   r1 admits class NUMERIC → the admitting list (PB59)
+            "WHEN-COMPILED" => EmitText.CsLiteral(ctx.WhenCompiledStamp),
+            "MAX" or "MIN" when ic.ComparesStrings =>                          // §2023:15.59/63 all-string form (PCS via CollatePrefix, CA23)
+                RuntimeApi.Intrinsic(sig.Name is "MAX" ? RuntimeApi.IntrinsicBody.MaxString : RuntimeApi.IntrinsicBody.MinString, CollatePrefix(ic) + StrArgList(ic)),
+            "CONCAT" =>                                                        // §2023:15.18 — concatenate all argument images (2023);
+                RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.Concat,                       //   r1 admits class NUMERIC → the admitting list (PB59)
                     StrArgList(ic, admitNumeric: true)),
             // BOOLEAN-OF-INTEGER (§2023:15.13.4 RV1) — a boolean-result function on the D-B1 '0'/'1' substrate:
             // rightmost position = low-order digit, left zero-fill/truncate to argument-2 positions.
             // Argument-1 crosses the WIDE bridge (Int128 — §2023:15.13.3 AR1 admits any positive integer, PB65);
             // argument-2 stays on the long bridge (§2023:15.4 caps the returned length at CobolIntrinsics.ReturnedValueMaximum).
-            "BooleanOfInteger" =>
-                RuntimeApi.Intrinsic(sig.RuntimeMethod, $"{ArgIntWide(ic.Args[0])}, {ArgInt(ic.Args[1])}"),
+            "BOOLEAN-OF-INTEGER" =>
+                RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.BooleanOfInteger, $"{ArgIntWide(ic.Args[0])}, {ArgInt(ic.Args[1])}"),
             // DISPLAY-OF (§2023:15.26) / NATIONAL-OF (§2023:15.66) — the national↔alphanumeric repertoire pair (2002);
             // the optional argument-2 is the one-character substitution string (§2023:15.26.3 AR2 / §2023:15.66.3 AR2).
-            "DisplayOf" or "NationalOf" =>
-                RuntimeApi.Intrinsic(sig.RuntimeMethod, StrArgList(ic)),
-            "BaseConvert" =>                                                   // §2023:15.12 — unsigned-integer base conversion (2023);
-                RuntimeApi.Intrinsic(sig.RuntimeMethod,                        //   r1 admits an unsigned integer LITERAL argument-1 below
+            "DISPLAY-OF" or "NATIONAL-OF" =>
+                RuntimeApi.Intrinsic(sig.Name is "DISPLAY-OF" ? RuntimeApi.IntrinsicBody.DisplayOf : RuntimeApi.IntrinsicBody.NationalOf, StrArgList(ic)),
+            "BASECONVERT" =>                                                   // §2023:15.12 — unsigned-integer base conversion (2023);
+                RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.BaseConvert,                  //   r1 admits an unsigned integer LITERAL argument-1 below
                     $"{StrNum(ic.Args[0])}, {ArgInt(ic.Args[1])}, {ArgInt(ic.Args[2])}"),   // base 11 (PB59); args 2/3 stay integers
-            "Trim" =>                                                          // §2023:15.96 — delete leading/trailing/both of the char set (default: space)
+            "TRIM" =>                                                          // §2023:15.96 — delete leading/trailing/both of the char set (default: space)
                 ic.Args.Any(a => a is BoundFieldOperand { Place: TableAllPlace })   //   a table(ALL) argument-2 list enumerates (kb/Work PB62)
-                    ? LeadThenTail(ic, sig.RuntimeMethod, "", "string", Str, mid: $"{ic.TrimMode}, ")
-                    : RuntimeApi.Intrinsic(sig.RuntimeMethod, $"{Str(ic.Args[0])}, {ic.TrimMode}"
+                    ? LeadThenTail(ic, RuntimeApi.IntrinsicBody.Trim, "", "string", Str, mid: $"{ic.TrimMode}, ")
+                    : RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.Trim, $"{Str(ic.Args[0])}, {ic.TrimMode}"
                         + string.Concat(ic.Args.Skip(1).Select(a => $", {Str(a)}"))),
             // STANDARD-COMPARE (§2023:15.85) — the cultural-ordering comparison over the derived CLDR/UCA engine
             // (kb/Work PB101 T7). The ordering TABLE travels as the bind-time-resolved literal-9 (null ⇒ §2023:15.85.3
             // r5's default table); the ordering LEVEL travels as 0 when argument-4 is omitted, which §2023:15.85.4 RV1
             // defines as "the highest level defined in the ordering table". Both are complete on the bound node,
             // so the backend never consults the SPECIAL-NAMES model.
-            "StandardCompare" =>
-                RuntimeApi.Intrinsic(sig.RuntimeMethod, $"{Str(ic.Args[0])}, {Str(ic.Args[1])}, "
+            "STANDARD-COMPARE" =>
+                RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.StandardCompare, $"{Str(ic.Args[0])}, {Str(ic.Args[1])}, "
                     + $"{(ic.OrderingTable is { } ot ? EmitText.CsLiteral(ot) : "null")}, "
                     + $"{(ic.Args.Count > 2 ? ArgInt(ic.Args[2]) : "null")}"),   // null = argument-4 unspecified (§2023:15.85.4 RV1); a specified 0 is §2023:15.85.3 AR6's violation
             // The LOCALE functions (§2023:15.51–§2023:15.54; kb/Work PB64 T4): the bound LocaleRef travels as the named locale's
             // L1-normalized tag (null ⇒ the locale current for the category at use — §2023:14.6.6 GR7/r8); the runtime
             // resolves availability (EC-LOCALE-MISSING) and content (EC-LOCALE-INVALID) at use.
-            "Compare" when sig.Name == "LOCALE-COMPARE" =>
-                RuntimeApi.LocaleFn(sig.RuntimeMethod, $"{Str(ic.Args[0])}, {Str(ic.Args[1])}, {LocaleTagArg(ic)}"),
-            "Date" when sig.Name == "LOCALE-DATE" =>
-                RuntimeApi.LocaleFn(sig.RuntimeMethod, $"{Str(ic.Args[0])}, {LocaleTagArg(ic)}"),
-            "Time" when sig.Name == "LOCALE-TIME" =>
-                RuntimeApi.LocaleFn(sig.RuntimeMethod, $"{Str(ic.Args[0])}, {LocaleTagArg(ic)}"),
-            "TimeFromSeconds" => RenderLocaleTimeFromSeconds(ic),               // §2023:15.54 — standard numeric time form per t_fmt
-            "Substitute" => RenderSubstitute(ic),                              // §2023:15.87 — replace argument-2 pairs (2023)
-            "Convert" =>                                                       // §2023:15.19 — repertoire / hex / byte conversion (2023);
-                RuntimeApi.Intrinsic(sig.RuntimeMethod,                        //   an ANY source takes the RAW STORAGE image (r7, PB59 5b)
+            "LOCALE-COMPARE" =>
+                RuntimeApi.LocaleFn(RuntimeApi.LocaleBody.Compare, $"{Str(ic.Args[0])}, {Str(ic.Args[1])}, {LocaleTagArg(ic)}"),
+            "LOCALE-DATE" =>
+                RuntimeApi.LocaleFn(RuntimeApi.LocaleBody.Date, $"{Str(ic.Args[0])}, {LocaleTagArg(ic)}"),
+            "LOCALE-TIME" =>
+                RuntimeApi.LocaleFn(RuntimeApi.LocaleBody.Time, $"{Str(ic.Args[0])}, {LocaleTagArg(ic)}"),
+            "LOCALE-TIME-FROM-SECONDS" => RenderLocaleTimeFromSeconds(ic),      // §2023:15.54 — standard numeric time form per t_fmt
+            "SUBSTITUTE" => RenderSubstitute(ic),                              // §2023:15.87 — replace argument-2 pairs (2023)
+            "CONVERT" =>                                                       // §2023:15.19 — repertoire / hex / byte conversion (2023);
+                RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.Convert,                      //   an ANY source takes the RAW STORAGE image (r7, PB59 5b)
                     $"{(ic.ConvertSource == 0 ? StorageArg(ic.Args[0]) : Str(ic.Args[0]))}, "
                     + $"{ic.ConvertSource}, {ic.ConvertDest}, {(ic.ConvertDestHex ? "true" : "false")}"),
-            "ModuleName" =>                                                    // §2023:15.65 — the runtime module call-name stack (2023)
+            "MODULE-NAME" =>                                                   // §2023:15.65 — the runtime module call-name stack (2023)
                 RuntimeApi.ModuleNameFn(ic.ModuleNameKeyword
                     ?? throw new InvalidOperationException("a MODULE-NAME call bound with no keyword (IntrinsicBinder.BindModuleName binds one)")),
-            "FormattedDate" =>                                                 // §2023:15.39 — integer date per a date format (2014)
-                RuntimeApi.DateFn(sig.RuntimeMethod, $"{Str(ic.Args[0])}, {ArgInt(ic.Args[1])}"),
-            "FormattedTime" => RenderFormattedTime(ic),                        // §2023:15.41
-            "FormattedDatetime" => RenderFormattedDatetime(ic),               // §2023:15.40
-            "FormattedCurrentDate" =>                                          // §2023:15.38 — the runtime clock per a combined format
-                RuntimeApi.DateFn(sig.RuntimeMethod, Str(ic.Args[0])),
+            "FORMATTED-DATE" =>                                                // §2023:15.39 — integer date per a date format (2014)
+                RuntimeApi.DateFn(RuntimeApi.DateBody.FormattedDate, $"{Str(ic.Args[0])}, {ArgInt(ic.Args[1])}"),
+            "FORMATTED-TIME" => RenderFormattedTime(ic),                       // §2023:15.41
+            "FORMATTED-DATETIME" => RenderFormattedDatetime(ic),               // §2023:15.40
+            "FORMATTED-CURRENT-DATE" =>                                        // §2023:15.38 — the runtime clock per a combined format
+                RuntimeApi.DateFn(RuntimeApi.DateBody.FormattedCurrentDate, Str(ic.Args[0])),
             // The last-exception interrogation functions (§2023:15.28–15.33 — the EC model, incl. the national
             // twins EXCEPTION-FILE-N/EXCEPTION-LOCATION-N §2023:15.29/§2023:15.31): zero-argument reads of the runtime
             // register; the binder's EcNoteFunction flagged the group EC gate, so the generated source
             // carries the WiseOwl.Cobol.Runtime.Exceptions using.
-            "EcStatus" => RuntimeApi.EcFn("Status"),                           // §2023:15.33
-            "EcLocation" => RuntimeApi.EcFn("Location"),                       // §2023:15.30
-            "EcLocationN" => RuntimeApi.EcFn("LocationN"),                     // §2023:15.31 — the national twin
-            "EcStatement" => RuntimeApi.EcFn("Statement",                     // §2023:15.32.3 RV1 and RV2 (63), §2002:15.27.2 RV1 and RV2 (31)
+            "EXCEPTION-STATUS" => RuntimeApi.EcFn(RuntimeApi.EcBody.Status),                           // §2023:15.33
+            "EXCEPTION-LOCATION" => RuntimeApi.EcFn(RuntimeApi.EcBody.Location),                       // §2023:15.30
+            "EXCEPTION-LOCATION-N" => RuntimeApi.EcFn(RuntimeApi.EcBody.LocationN),                     // §2023:15.31 — the national twin
+            "EXCEPTION-STATEMENT" => RuntimeApi.EcFn(RuntimeApi.EcBody.Statement,                     // §2023:15.32.3 RV1 and RV2 (63), §2002:15.27.2 RV1 and RV2 (31)
                 EcFunctions.StatementLength(ctx.Data.DialectLevel).ToString(System.Globalization.CultureInfo.InvariantCulture)),
             // §2023:15.28.4 / §2023:15.29.4: the no-argument form (r1) reads the last-exception register; the 2023
             // file-connector-argument form (r2) reads the NAMED connector — the SAME FileKeyExpr the file verbs use.
-            "EcFile" => ic.FileArg is { } eff
-                ? RuntimeApi.EcFn("File", EmitText.FileKeyExpr(eff))          // §2023:15.28.4 RV2 — the named connector's status
-                : RuntimeApi.EcFn("File"),                                    // §2023:15.28.4 RV1 — the no-argument form
-            "EcFileN" => ic.FileArg is { } effn
-                ? RuntimeApi.EcFn("FileN", EmitText.FileKeyExpr(effn))        // §2023:15.29.4 RV2 — the national twin
-                : RuntimeApi.EcFn("FileN"),                                   // §2023:15.29.4 RV1 — the no-argument form
+            "EXCEPTION-FILE" => ic.FileArg is { } eff
+                ? RuntimeApi.EcFn(RuntimeApi.EcBody.File, EmitText.FileKeyExpr(eff))          // §2023:15.28.4 RV2 — the named connector's status
+                : RuntimeApi.EcFn(RuntimeApi.EcBody.File),                                    // §2023:15.28.4 RV1 — the no-argument form
+            "EXCEPTION-FILE-N" => ic.FileArg is { } effn
+                ? RuntimeApi.EcFn(RuntimeApi.EcBody.FileN, EmitText.FileKeyExpr(effn))        // §2023:15.29.4 RV2 — the national twin
+                : RuntimeApi.EcFn(RuntimeApi.EcBody.FileN),                                   // §2023:15.29.4 RV1 — the no-argument form
             _ => EmitText.LoudValue("string", $"FUNCTION {sig.Name} in a string context"),
         };
     }
@@ -1934,7 +2001,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     private string RenderFormattedTime(BoundIntrinsicCall ic)
     {
         var (secExpr, secScale) = SecondsArg(ArgNum(ic.Args[1]));
-        return RuntimeApi.DateFn(ic.Sig.RuntimeMethod, $"{Str(ic.Args[0])}, {secExpr}, {secScale}, "
+        return RuntimeApi.DateFn(RuntimeApi.DateBody.FormattedTime, $"{Str(ic.Args[0])}, {secExpr}, {secScale}, "
              + $"{OffsetMinutesArg(ic, 2)}{LeapSecondFlag}");
     }
 
@@ -1948,7 +2015,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     private string RenderLocaleTimeFromSeconds(BoundIntrinsicCall ic)
     {
         var (secExpr, secScale) = SecondsArg(ArgNum(ic.Args[0]));
-        return RuntimeApi.LocaleFn(ic.Sig.RuntimeMethod, $"{secExpr}, {secScale}, {LocaleTagArg(ic)}{LeapSecondFlag}");
+        return RuntimeApi.LocaleFn(RuntimeApi.LocaleBody.TimeFromSeconds, $"{secExpr}, {secScale}, {LocaleTagArg(ic)}{LeapSecondFlag}");
     }
 
     /// <summary>FORMATTED-DATETIME (§2023:15.40): integer date a2 + seconds a3 (via <see cref="SecondsArg"/>) + the
@@ -1956,7 +2023,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     private string RenderFormattedDatetime(BoundIntrinsicCall ic)
     {
         var (secExpr, secScale) = SecondsArg(ArgNum(ic.Args[2]));
-        return RuntimeApi.DateFn(ic.Sig.RuntimeMethod, $"{Str(ic.Args[0])}, {ArgInt(ic.Args[1])}, "
+        return RuntimeApi.DateFn(RuntimeApi.DateBody.FormattedDatetime, $"{Str(ic.Args[0])}, {ArgInt(ic.Args[1])}, "
              + $"{secExpr}, {secScale}, {OffsetMinutesArg(ic, 3)}{LeapSecondFlag}");
     }
 
@@ -2013,7 +2080,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             var parts = ic.Args.Skip(1).Select(a => a is BoundFieldOperand { Place: TableAllPlace all }
                 ? AllArgsExpr(all, "string", Str)
                 : $"new string[] {{ {Str(a)} }}");
-            return RuntimeApi.Intrinsic("SubstituteFlat", $"{Str(ic.Args[0])}, "
+            return RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.SubstituteFlat, $"{Str(ic.Args[0])}, "
                 + $"new string[][] {{ {string.Join(", ", parts)} }}, "
                 + $"new int[] {{ {string.Join(", ", ic.SubstituteModes ?? [])} }}{AnycaseClassification(ic)}");
         }
@@ -2024,7 +2091,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             froms.Add(Str(ic.Args[i]));
             tos.Add(Str(ic.Args[i + 1]));
         }
-        return RuntimeApi.Intrinsic(ic.Sig.RuntimeMethod, $"{Str(ic.Args[0])}, "
+        return RuntimeApi.Intrinsic(RuntimeApi.IntrinsicBody.Substitute, $"{Str(ic.Args[0])}, "
             + $"new string[] {{ {string.Join(", ", froms)} }}, "
             + $"new string[] {{ {string.Join(", ", tos)} }}, "
             + $"new int[] {{ {string.Join(", ", ic.SubstituteModes ?? [])} }}{AnycaseClassification(ic)}");

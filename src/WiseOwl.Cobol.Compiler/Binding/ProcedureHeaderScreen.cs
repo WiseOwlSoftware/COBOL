@@ -34,7 +34,10 @@ internal sealed class ProcedureHeaderScreen(EditionContext edition, string where
 
     private void Refuse(string requirement, string rule, string? rule1985 = null) =>
         edition.Error(DiagnosticCatalog.ProcedureHeaderParameter,
-            $"{where}: {requirement} ({edition.Edition.CiteRule(rule1985 ?? $"§2023:14.2.2 {rule}", $"§2023:14.2.2 {rule}")})");
+            // The procedure division header's syntax rules are numbered alike at 2002 (§2002:14.1.2), 2014 (§2014:14.2.2) and 2023
+            // (§2023:14.2.2), SR1 to SR13 (kb/Work PB5922; each re-read 2026-11-24).
+            $"{where}: {requirement} ({edition.Edition.CiteRule(rule1985 ?? $"§2002:14.1.2 {rule}", $"§2023:14.2.2 {rule}",
+                $"§2002:14.1.2 {rule}", $"§2014:14.2.2 {rule}")})");
 
     /// <summary>Screen one formal parameter (data-name-1) against SR1. Returns false when the parameter shall not be
     /// admitted as a formal — a repeated one, whose second occurrence would be a second formal of the same item.
@@ -97,7 +100,10 @@ internal sealed class ProcedureHeaderScreen(EditionContext edition, string where
         if (cls is null or CobolClass.MessageTag or CobolClass.Numeric or CobolClass.Object or CobolClass.Pointer) return;
         edition.Error(DiagnosticCatalog.ByValueFormalClass,
             $"{where}: BY VALUE formal parameter '{written}' is of class {IntrinsicArgumentRules.ClassNameOf(item)}; it shall "
-            + "be of class numeric, message-tag, object, or pointer (ISO §2023:14.2.2 SR2)");
+            // Class message-tag is COBOL-2023's (kb/Work PB5922): §2002:14.1.2 SR2 and §2014:14.2.2 SR2 name "numeric, object, or pointer".
+            + edition.Edition.Cite("be of class numeric, object, or pointer", "be of class numeric, message-tag, object, or pointer",
+                y2014: "be of class numeric, object, or pointer")
+            + $" ({EditionInfo.Designated(edition.Edition.Cite("§2002:14.1.2 SR2", "§2023:14.2.2 SR2", y2014: "§2014:14.2.2 SR2"))})");
     }
 
     /// <summary>§2023:14.2.1's using-phrase prints OPTIONAL only inside the BY REFERENCE alternative

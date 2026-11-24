@@ -959,7 +959,9 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             var r = ctx.Data.OoClasses!.Names.Resolve(ctx.Edition, use, use.cobolWord(),
                 Compiler.Oo.OoNameWant.Either,
                 $"declarative section '{sectionName}': USE AFTER EXCEPTION OBJECT",
-                DiagnosticCatalog.UseExceptionObjectName.Code, "ISO §2023:14.9.49.3 SR16/SR17");
+                DiagnosticCatalog.UseExceptionObjectName.Code,
+                EditionInfo.Designated(ctx.Edition.Edition.Cite("§2002:14.8.45.2 SR16/SR17", "§2023:14.9.49.3 SR16/SR17",
+                    y2014: "§2014:14.9.45.2 SR16/SR17")));
             if (!r.Ok) return null;
             // The bound operand carries the RESOLVED SYMBOL, never a C# type name: how many emitted types one
             // COBOL name selects is GR14's question and the emitter's answer (kb/Work PB366 — a class is TWO).

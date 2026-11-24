@@ -27,7 +27,7 @@ public sealed class FunctionValueLaneDriftTests
     /// <summary>A <c>"Name" =></c> or <c>"Name" when … =></c> arm of the <c>RenderDec</c> switch, and the text of its
     /// value expression that follows on the same line (empty when the expression starts on the next one).</summary>
     private static readonly Regex Arm = new(
-        "^\\s*\"(?<name>\\w+)\"(?<guard>\\s+when\\s+[^=]+?)?\\s*=>\\s*(?<body>.*)$", RegexOptions.Compiled);
+        "^\\s*\"(?<name>[\\w-]+)\"(?<guard>\\s+when\\s+[^=]+?)?\\s*=>\\s*(?<body>.*)$", RegexOptions.Compiled);
 
     /// <summary>How a <c>RenderDec</c> arm builds its value: the switch's local <c>Dec(...)</c> (an SDIDI value), its local
     /// <c>Exact(...)</c> (a run-time-scaled <c>NumX.Exact</c> its consumer lowers to the SDIDI), or <c>new NumX(...)</c> (an exact
@@ -49,7 +49,7 @@ public sealed class FunctionValueLaneDriftTests
         {
             var m = Arm.Match(lines[i].TrimEnd('\r'));
             if (!m.Success) continue;
-            // `"Sqrt" when num.StandardDecimal` / `"Factorial" when num.StandardDecimal` are standard-mode arms: a NATIVE
+            // `"SQRT" when num.StandardDecimal` / `"FACTORIAL" when num.StandardDecimal` are standard-mode arms: a NATIVE
             // call to either keeps the float / exact lane (IntrinsicRenderer: "an unguarded arm would flip native float
             // SQRT onto the Dec lane"). A `when !num.StandardDecimal` arm is the NATIVE one and stays (kb/Work PB4730: the native
             // selections return their exact value, not an SDIDI).
@@ -116,17 +116,17 @@ public sealed class FunctionValueLaneDriftTests
         var crossAligned = IntrinsicCarrierRules.CrossAligningFunctions;
         Assert.True(crossAligned.Count > 0);
         foreach (string fn in crossAligned)
-            Assert.True(FunctionValueLane.NativeSdidiBodies.Contains(IntrinsicCarrierRuleKeyDriftTests.RuntimeMethodOf(fn)),
+            Assert.True(FunctionValueLane.NativeSdidiBodies.Contains(IntrinsicCarrierRuleKeyDriftTests.KeyOf(fn)),
                 $"CrossAligningFunctions names FUNCTION {fn}, which has no native SDIDI body in NativeSdidiBodies");
         foreach (string fn in new[] { "NUMVAL", "NUMVAL-C", "NUMVAL-F" })
         {
             Assert.True(IntrinsicCarrierRules.ReturnsExactParse(fn), $"FUNCTION {fn} returns the exact parse of its argument (§2023:15.67.4 r1 / §2023:15.68.4 r1 by definition, §2023:15.69.4 r2/r3 by the PB3839 determination)");
-            Assert.True(FunctionValueLane.NativeSdidiBodies.Contains(IntrinsicCarrierRuleKeyDriftTests.RuntimeMethodOf(fn)),
+            Assert.True(FunctionValueLane.NativeSdidiBodies.Contains(IntrinsicCarrierRuleKeyDriftTests.KeyOf(fn)),
                 $"FUNCTION {fn} has no native SDIDI body in NativeSdidiBodies");
         }
         Assert.True(IntrinsicCarrierRules.SdidiQuotientFunctions.Count > 0);
         foreach (string fn in IntrinsicCarrierRules.SdidiQuotientFunctions)
-            Assert.True(FunctionValueLane.NativeSdidiBodies.Contains(IntrinsicCarrierRuleKeyDriftTests.RuntimeMethodOf(fn)),
+            Assert.True(FunctionValueLane.NativeSdidiBodies.Contains(IntrinsicCarrierRuleKeyDriftTests.KeyOf(fn)),
                 $"SdidiQuotientFunctions names FUNCTION {fn}, which has no native SDIDI body in NativeSdidiBodies (kb/Work PB3860)");
     }
 

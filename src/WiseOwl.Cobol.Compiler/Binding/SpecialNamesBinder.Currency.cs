@@ -120,6 +120,14 @@ public sealed partial class SpecialNamesBinder
             if (what is null)
                 value = new(k.Text, hex, k.Category is PicCategory.National ? LiteralClass.National : LiteralClass.Alphanumeric);
         }
+        // §2002:12.2.6.2 SR22 asks literal-8 an ALPHANUMERIC literal; the national form is §2014:12.3.6.2 SR26's (kb/Work PB5707).
+        if (value is { Class: LiteralClass.National } && op == CurrencyOperand.Literal8
+            && !DialectBehaviors.IsActive(DialectBehavior.CurrencyPictureSymbolLiteralAlphanumericAndUnique, Edition.DialectLevel))
+        {
+            Report($"CURRENCY SIGN {spelling}: {op.Name} shall be an alphanumeric literal consisting of a single character — this is a national literal "
+                + $"({EditionInfo.Designated("§2002:12.2.6.2 SR22")})");
+            // The symbol is still named: binding it keeps a later PIC U... from cascading behind the clause's one diagnostic (kb/Work PB1920).
+        }
         if (value is not null) return value;
         // At COBOL-85 a numeric literal-6 breaks GR11 ("The literal must be nonnumeric"); SR12 names only the figurative
         // constant (kb/Work PB4950).
@@ -174,6 +182,15 @@ public sealed partial class SpecialNamesBinder
             {
                 Edition.Error(DiagnosticCatalog.CurrencySignClauseForm, "CURRENCY SIGN: the PICTURE SYMBOL literal shall be a single "
                     + "character (ISO §2023:12.3.7.3 SR26)");
+                return;
+            }
+            // §2002:12.2.6.2 SR22: "No two occurrences of literal-8 may be the same value" — dropped from the 2014 text, whose SR21
+            // lets two clauses give the same symbol the identical string (kb/Work PB5707).
+            if (!Cfg.PictureSymbolLiterals.Add(literal8[0])
+                && !DialectBehaviors.IsActive(DialectBehavior.CurrencyPictureSymbolLiteralAlphanumericAndUnique, Edition.DialectLevel))
+            {
+                Edition.Error(DiagnosticCatalog.CurrencySymbolRule, $"CURRENCY SIGN: the PICTURE SYMBOL literal '{literal8[0]}' is already "
+                    + $"the literal-8 of an earlier clause ({EditionInfo.Designated("§2002:12.2.6.2 SR22")})");
                 return;
             }
             ValidateCurrencyChar(literal8[0], "PICTURE SYMBOL literal");   // r27 — same forbidden set as r22
@@ -255,7 +272,8 @@ public sealed partial class SpecialNamesBinder
         {
             Edition.Error(DiagnosticCatalog.CurrencySymbolRule, $"CURRENCY SIGN: the symbol '{symbol}' is already bound to "
                 + $"{(bound.LiteralClass is LiteralClass.National ? "national " : "")}\"{bound.Text}\" "
-                + $"(ISO §2023:12.3.7.3 SR21; SR28)");
+                // COBOL-2002 has no SR21; its uniqueness rule is literal-8's (§2002:12.2.6.2 SR22) beside SR24's class rule.
+                + $"({Edition.Edition.CiteRule("§2002:12.2.6.2 SR22; SR24", "§2023:12.3.7.3 SR21; SR28", y2014: "§2014:12.3.6.2 SR21; SR28")})");
             return;
         }
         Cfg.DeclaredCurrencySigns[key] = defined;

@@ -29,7 +29,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 public sealed class IntrinsicArgumentDomainDriftTests
 {
     private static readonly Regex Row = new(
-        "Add\\(new\\(\"(?<n>[A-Z0-9-]+)\",\\s*IntrinsicType\\.\\w+,\\s*IntrinsicArity\\.\\w+,\\s*[-\\w]+,\\s*[-\\w]+,\\s*\"[^\"]*\",\\s*\"\\w+\",\\s*IntrinsicBind\\.\\w+,\\s*true",
+        "Add\\(new\\(\"(?<n>[A-Z0-9-]+)\",\\s*IntrinsicType\\.\\w+,\\s*IntrinsicArity\\.\\w+,\\s*[-\\w]+,\\s*[-\\w]+,\\s*\"[^\"]*\",\\s*IntrinsicBind\\.\\w+,\\s*true",
         RegexOptions.Compiled);
 
     /// <summary>The §15.x.3 phrase → domain the rule states. The minus sign is matched loosely: the transcription
