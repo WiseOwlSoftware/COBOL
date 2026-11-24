@@ -4,7 +4,6 @@ using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
-using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.Binding;
 
@@ -66,7 +65,7 @@ internal static class ExternalizedName
     /// its operand — "Literal-1 shall be an alphanumeric or national literal and shall be neither a figurative constant
     /// nor a zero-length literal." <paramref name="subject"/> is the message's source-shaped name of the entry, e.g.
     /// <c>file 'F'</c>; the caller has positioned <paramref name="edition"/>. The default when this is null is
-    /// <see cref="OfExternalSubject"/>'s.</summary>
+    /// <c>ExternalClauseName.Of</c>'s.</summary>
     public static string? AsLiteralOf(Core.ExternalClauseContext clause, string subject,
         Func<Core.CobolWordContext, ConstantReading> constants, EditionContext edition, LiteralEnvironment env) =>
         clause.externalizedNamePhrase() is { } asPhrase
@@ -74,16 +73,6 @@ internal static class ExternalizedName
                 $"{subject} IS EXTERNAL AS {Written(asPhrase)}", "literal-1", "ISO §2023:13.18.22.3 SR3", env,
                 rejectZeroLength: true)
             : null;
-
-    /// <summary>⛔ ISO §2023:13.18.22.4 GR5, THE ONE PLACE ITS TWO SENTENCES ARE APPLIED (kb/Work PB511, PB2724): "Literal-1,
-    /// if specified, is the name of the file connector or record that is externalized to the operating environment. If
-    /// literal-1 is not specified, the externalized name of the file connector or record is the name specified in the
-    /// file description entry or the data-name format of the entry-name clause, respectively." <paramref name="literal1"/>
-    /// is <see cref="AsLiteralOf"/>'s answer and keeps its case (a literal is its own character-string); the entry's
-    /// name is a COBOL word, written in its one upper-case spelling (CobolNames.UpperFold: §2023:8.1.3.2's Annex C fold,
-    /// kb/Work PB1965).</summary>
-    public static string OfExternalSubject(string? literal1, string subjectName) =>
-        literal1 ?? CobolNames.UpperFold(subjectName);
 
     /// <summary>Screen one AS phrase's operand against its clause's syntax rule and return the externalized name it
     /// FORMS (see <see cref="Form"/>), or null (having reported) on violation.</summary>

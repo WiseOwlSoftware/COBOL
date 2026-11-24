@@ -226,6 +226,8 @@ internal static class BackendContract
             // a value whose parts stay apart (kb/Work PB5888 review R1-1): the external record's externalized name, the item's own
             // name, the selected occurrence, and the length-prefixed Key the run-time descriptor carries
             "Model.DataItem.ExternalizedRecordName()", "Model.ExternalDataItemIdentity.Record", "Model.ExternalDataItemIdentity.Item",
+            // ... and the one ISO §2023:13.18.22.4 GR5 reading both that name and an FD's ExternalName are formed by (kb/Work PB2724)
+            "Model.ExternalClauseName.Of()",
             "Model.ExternalDataItemIdentity.Occurrence", "Model.ExternalDataItemIdentity.Key",
             // the run-unit storage an external record lies in, the Record part of that identity: an FD IS EXTERNAL file's
             // record-area cell, keyed FD::<file> for every describer of the file (kb/Work PB3212)

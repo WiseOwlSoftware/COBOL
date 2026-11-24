@@ -18,7 +18,7 @@ EXTERNAL spellings were all present. The two `ExternalizedName.Screen` calls wit
 `ClauseCardinalities.KindOfFileDescriptionClause` and `ClauseList.KindOf` are deleted, and a clause list's element is a
 `Type`. `GlobalClauseSites` keys on the host rule of the one `globalClause`. The screen description entry, which already
 referenced `globalClause`, gets its own SR1 c) row; before, the data-description row matched it under the wrong entry name.
-`ExternalizedName.AsLiteralOf` is the one SR3 reading of the EXTERNAL AS phrase and `ExternalizedName.OfExternalSubject` the
+`ExternalizedName.AsLiteralOf` is the one SR3 reading of the EXTERNAL AS phrase and `ExternalClauseName.Of` (model layer) the
 one GR5 default, used by the FD binder and by `DataItem.ExternalizedRecordName`. `VersionConformancePass.VisitGlobalClause`
 (F.2 item 61) now checks that the clause's host is a data description clause, because the constant entry's GLOBAL reaches it too.
 

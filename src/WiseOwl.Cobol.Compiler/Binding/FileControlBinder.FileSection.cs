@@ -121,9 +121,9 @@ public sealed partial class FileControlBinder
                 {
                     // FD IS EXTERNAL (ISO §2023:13.18.22): one run-unit file connector + external record data (GR4a/GR4b),
                     // externalized under literal-1 or the FD's own file-name (GR5) — the ONE reading of the clause the
-                    // data description entry shares (ExternalizedName.AsLiteralOf / OfExternalSubject; kb/Work PB2724).
+                    // data description entry shares (ExternalizedName.AsLiteralOf / ExternalClauseName.Of; kb/Work PB2724).
                     file.IsExternal = true;
-                    file.ExternalName = ExternalizedName.OfExternalSubject(
+                    file.ExternalName = ExternalClauseName.Of(
                         ExternalizedName.AsLiteralOf(ext, $"file '{name}'", _host.ReadConstant, Edition, _host.LiteralEnv), name);
                 }
                 else if (clause.globalClause() is not null)
