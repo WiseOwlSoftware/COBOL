@@ -1379,7 +1379,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     /// <see cref="OperandText.RecordSendImage"/> of record-name-1, except where the statement transfers more bytes
     /// than record-name-1 holds (<see cref="FileModel.TransfersPastRecord"/>): §2023:14.9.51.4 GR13 and §2023:14.9.35.4 GR15
     /// leave the content of those bytes undefined (Annex A.2 items 64 and 49), as §2002:14.8.47.3 GR12 and §2002:14.8.33.3 GR15 do at
-    /// COBOL-2002 (§2002:B.2 items 68 and 48), and the compiler's determination is
+    /// COBOL-2002 (the 2002 Annex B.2 items 68 and 48), and the compiler's determination is
     /// the record area's content at those positions — so the statement sends the image of the area
     /// (<c>PlaceTable.RecordArea</c>, the widest record's view over the one shared backing,
     /// §2023:13.18.33.4 GR3), whose leading positions ARE record-name-1. The runtime's <c>Stored</c> then cuts it to the

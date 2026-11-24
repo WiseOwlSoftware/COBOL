@@ -48,7 +48,7 @@
       *>       writes 9 bytes (13.18.43.4 GR13 a): ABCDEFG then area
       *>       positions 8-9, YY; read back through R9 (9 positions).
       *> COBOL-2002 states the same rules: §2002:14.8.47.3 GR12 (WRITE)
-      *> and §2002:14.8.33.3 GR15 (REWRITE), §2002:B.2 items 68, 48.
+      *> and §2002:14.8.33.3 GR15 (REWRITE), 2002 Annex B.2 items 68, 48.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB5217WO.
        ENVIRONMENT DIVISION.

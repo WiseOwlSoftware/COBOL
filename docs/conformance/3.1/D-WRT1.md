@@ -5,7 +5,7 @@
   record-name-1 are undefined"` → OK 13)); §2023:14.9.35.4 GR15 says the same of REWRITE (`cite.py --check 14.9.35.4
   "the content of the bytes that extend outside the end of record-name-1 are undefined"` → OK 15)). **The rule is the same at COBOL-2002 and the determination applies there too** (kb/Work PB5654):
   §2002:14.8.47.3 GR12 (WRITE) and §2002:14.8.33.3 GR15 (REWRITE), each `cite.py --check` OK on "if the number of bytes to
-  be written to the file is greater than the number of bytes in record-name-1", leave undefined what §2002:B.2 items 68
+  be written to the file is greater than the number of bytes in record-name-1", leave undefined what the 2002 Annex B.2 items 68
   and 48 call "The content of the bytes that extend beyond the end of the record" (2002 says "beyond", 2023 "outside"). **The NUMBER of
   bytes is not latitude, and WiseOwl COBOL writes exactly the standard's count:** §2023:13.18.43.4 GR13a takes it from
   the DEPENDING ON item (`--check 13.18.43.4 "If data-name-1 is specified, by the content of the data item referenced

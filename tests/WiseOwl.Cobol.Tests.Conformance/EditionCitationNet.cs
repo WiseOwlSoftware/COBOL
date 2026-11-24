@@ -88,7 +88,7 @@ public static class EditionCitationNet
     private static readonly Regex After2002Citation = new(@"§(2014|2023):|ISO/IEC 1989:(2014|2023)\b", RegexOptions.Compiled);
 
     /// <summary>A citation of a rule of an edition later than COBOL-2014.</summary>
-    private static readonly Regex After2014Citation = new(@"§2023:|ISO/IEC 1989:2023\b", RegexOptions.Compiled);
+    private static readonly Regex After2014Citation = new(@"§(2023):|ISO/IEC 1989:(2023)\b", RegexOptions.Compiled);
 
     /// <summary>Whether a rendered diagnostic compiled at <paramref name="edition"/> (2002 or 2014) cites a later edition's rule and
     /// none of its own edition's (kb/Work PB5922, the 2002 and 2014 directions of PB4950's decision): its own citation is

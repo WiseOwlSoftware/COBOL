@@ -14,7 +14,7 @@
       *> are "REC1-ABCDE" (the bytes past R2 are the area's content, §2023:14.9.51.4 GR13 leaves them to the implementor and
       *> docs/conformance D-WRT1 states the area). EXPECTED: both records read back "REC1-ABCDE".
       *> COBOL-2002 states the same rules: §2002:14.8.47.3 GR12 (WRITE)
-      *> and §2002:14.8.33.3 GR15 (REWRITE), §2002:B.2 items 68, 48.
+      *> and §2002:14.8.33.3 GR15 (REWRITE), 2002 Annex B.2 items 68, 48.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB5579OR.
        ENVIRONMENT DIVISION.
