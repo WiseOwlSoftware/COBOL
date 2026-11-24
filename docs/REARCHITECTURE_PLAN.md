@@ -153,8 +153,9 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   its decision note PB5448 is in pull request 1576, not yet on main. The PB3726 restructure design landed (see WHO RUNS WHAT).
 - **▶ PRIORITY (owner 2026-10-10, kb/Work PB2911): THE COMPILER AND ZERO GAP COME FIRST.** Zero GAP was reached on
   2026-11-05 (kb/Work A11 closed DOC-A.1-17, the last GAP row); the GAP campaign's remaining open notes are named in
-  WHO RUNS WHAT above, and the fix lane's defect waves come first. The Delete program PB2119 and the R2 review's
-  batch 3 are HELD until zero known compiler defects. Quota (owner 2026-11-11,
+  WHO RUNS WHAT above, and the fix lane's defect waves come first. The owner RELEASED the
+  hold on the Delete program PB2119 and R2's remaining batches on 2026-11-24 (kb/Work PB2911 and PB2119, dated files of that
+  day): both run now as PB1754 work, each Delete note re-measured first, R2 on a new pin. Quota (owner 2026-11-11,
   kb/Work PB5357, which withdraws the whole-week borrow of 2026-10-10): NO borrowed days on either account. Each account
   follows its day line (`budget.py` at borrow 0: day N of 7 allows N × 14.3 %); an account above its line starts no
   worker, fleet or landing until the line passes its reading; each account spends its remainder by the late evening

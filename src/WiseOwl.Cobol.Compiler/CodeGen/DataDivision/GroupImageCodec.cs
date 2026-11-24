@@ -870,8 +870,8 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     /// variable-length component's offset in the FIXED run, its maximum, its layout code and its table element width
     /// (<see cref="LayoutComponent"/>). A dynamic-length item's layout code is <see cref="FileModel.LayoutCodeOf"/>, the one reader
     /// of what a structured item occupies in a record (its DYNAMIC LENGTH STRUCTURE, ISO §2023:12.3.7.4 GR18/GR19, or the
-    /// unit of its image alone - two for a national item, kb/Work PB1094, PB3441); a dynamic-capacity table's is 0 and its
-    /// unit is its element width. Nested scalar variable-length groups flatten in place, the same flattening
+    /// unit of its image alone - two for a national item, kb/Work PB1094, PB3441); a dynamic-capacity table's is the same call (the bare unit of its elements,
+    /// two for a national one, kb/Work PB6138) and its layout unit is its element width. Nested scalar variable-length groups flatten in place, the same flattening
     /// <see cref="VarParts"/> gives the carrier. The OCCURS DEPENDING table of fixed-image elements is NOT listed: the
     /// layout builder makes it the trailing component from the group's tail (<see cref="RecordOdo"/>), and
     /// <paramref name="tails"/> records where the walk found it, which the caller checks against that place.</summary>
@@ -884,7 +884,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
                 case VarPartKind.Fixed: off = RecordLayout.Advance(off, p.Field.Width); break;
                 case VarPartKind.DynLeaf: layout.Add(new(off, p.Item!.SlotMaxSize, FileModel.LayoutCodeOf(p.Item), 0)); break;
                 case VarPartKind.DynTable:
-                case VarPartKind.DynGroupTable: layout.Add(new(off, p.Item!.VariableComponentMax, 0, p.Field.Width)); break;
+                case VarPartKind.DynGroupTable: layout.Add(new(off, p.Item!.VariableComponentMax, FileModel.LayoutCodeOf(p.Item), p.Field.Width)); break;
                 case VarPartKind.Nested: ContiguousLayout(p.Item!, off, layout, tails); off = RecordLayout.Advance(off, p.FixedWidth); break;
                 case VarPartKind.NestedTable:
                 case VarPartKind.OdoTable:   // the components at the table's MAXIMUM: where compare / the boundary look for them

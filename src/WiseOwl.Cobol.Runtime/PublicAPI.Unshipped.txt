@@ -6,6 +6,7 @@
 *REMOVED*WiseOwl.Cobol.Runtime.Collation.Collator.With(WiseOwl.Cobol.Runtime.Collation.CollationStrength? strength = null, WiseOwl.Cobol.Runtime.Collation.AlternateHandling? alternate = null, WiseOwl.Cobol.Runtime.Collation.CollationTable? table = null, WiseOwl.Cobol.Runtime.Collation.MaxVariable? maxVariable = null, WiseOwl.Cobol.Runtime.Collation.CaseFirst? caseFirst = null, bool? backwardsSecondary = null) -> WiseOwl.Cobol.Runtime.Collation.Collator!
 *REMOVED*WiseOwl.Cobol.Runtime.DebugItem.DebugItem() -> void
 *REMOVED*WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.RunTopFrame(string! ec, string? file, out bool handled) -> int
+*REMOVED*WiseOwl.Cobol.Runtime.ExternalDescriptor.ByteCount.get -> int
 *REMOVED*WiseOwl.Cobol.Runtime.ExternalDescriptor.Deconstruct(out string! Kind, out int ByteCount, out string? ValueImage, out string? StrongTypeKey, out bool ConstantRecord, out string? FileStatusRef, out string? RelativeKeyRef, out string? LinageRef, out string? SelectFingerprint) -> void
 *REMOVED*WiseOwl.Cobol.Runtime.ExternalDescriptor.ExternalDescriptor(string! Kind, int ByteCount = 0, string? ValueImage = null, string? StrongTypeKey = null, bool ConstantRecord = false, string? FileStatusRef = null, string? RelativeKeyRef = null, string? LinageRef = null, string? SelectFingerprint = null) -> void
 *REMOVED*WiseOwl.Cobol.Runtime.IO.CobolReport.AddRolled(WiseOwl.Cobol.Runtime.IO.ReportGroup! source, int sumId, int presentSlot, System.Func<System.Int128, System.Int128>! apply) -> void
@@ -355,8 +356,9 @@ WiseOwl.Cobol.Runtime.Exceptions.SortTerminationSignal
 WiseOwl.Cobol.Runtime.Exceptions.SortTerminationSignal.Action.get -> int
 WiseOwl.Cobol.Runtime.Exceptions.SortTerminationSignal.File.get -> string!
 WiseOwl.Cobol.Runtime.Exceptions.SortTerminationSignal.SortTerminationSignal(string! file, int action) -> void
-WiseOwl.Cobol.Runtime.ExternalDescriptor.Deconstruct(out string! Kind, out int ByteCount, out string? ValueImage, out string? StrongTypeKey, out bool ConstantRecord, out string? FileStatusRef, out string? RelativeKeyRef, out string? LinageRef, out string? SelectFingerprint, out string? RecordDelimiter, out bool NonExternalItem) -> void
-WiseOwl.Cobol.Runtime.ExternalDescriptor.ExternalDescriptor(string! Kind, int ByteCount = 0, string? ValueImage = null, string? StrongTypeKey = null, bool ConstantRecord = false, string? FileStatusRef = null, string? RelativeKeyRef = null, string? LinageRef = null, string? SelectFingerprint = null, string? RecordDelimiter = null, bool NonExternalItem = false) -> void
+WiseOwl.Cobol.Runtime.ExternalDescriptor.ByteCount.get -> int?
+WiseOwl.Cobol.Runtime.ExternalDescriptor.Deconstruct(out string! Kind, out int? ByteCount, out string? ValueImage, out string? StrongTypeKey, out bool ConstantRecord, out string? FileStatusRef, out string? RelativeKeyRef, out string? LinageRef, out string? SelectFingerprint, out string? RecordDelimiter, out bool NonExternalItem) -> void
+WiseOwl.Cobol.Runtime.ExternalDescriptor.ExternalDescriptor(string! Kind, int? ByteCount = null, string? ValueImage = null, string? StrongTypeKey = null, bool ConstantRecord = false, string? FileStatusRef = null, string? RelativeKeyRef = null, string? LinageRef = null, string? SelectFingerprint = null, string? RecordDelimiter = null, bool NonExternalItem = false) -> void
 WiseOwl.Cobol.Runtime.ExternalDescriptor.NonExternalItem.get -> bool
 WiseOwl.Cobol.Runtime.ExternalDescriptor.NonExternalItem.init -> void
 WiseOwl.Cobol.Runtime.ExternalDescriptor.RecordDelimiter.get -> string?
@@ -1311,6 +1313,7 @@ static WiseOwl.Cobol.Runtime.CobolIntrinsics.VarianceDec(WiseOwl.Cobol.Runtime.D
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.VarianceExact(WiseOwl.Cobol.Runtime.CobolRounding mode, params System.ReadOnlySpan<WiseOwl.Cobol.Runtime.CobolExact> xs) -> WiseOwl.Cobol.Runtime.CobolExact
 static WiseOwl.Cobol.Runtime.CobolModule.Name(WiseOwl.Cobol.Runtime.ModuleNameKeyword keyword) -> string!
 static WiseOwl.Cobol.Runtime.CobolNames.HasEditionSpelling(int dialectLevel) -> bool
+static WiseOwl.Cobol.Runtime.CobolNames.HasReservedSpelling(string! word) -> bool
 static WiseOwl.Cobol.Runtime.CobolNum.AddChecked(System.Int128 a, System.Int128 b, WiseOwl.Cobol.Runtime.SizeChecks taken) -> System.Int128
 static WiseOwl.Cobol.Runtime.CobolNum.DeSignImage(string! image, in WiseOwl.Cobol.Runtime.NumProfile item, int digits) -> string!
 static WiseOwl.Cobol.Runtime.CobolNum.DeSignImageSending(string! image, in WiseOwl.Cobol.Runtime.NumProfile item, int digits) -> string!
