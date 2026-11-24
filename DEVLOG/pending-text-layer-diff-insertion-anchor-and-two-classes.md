@@ -16,6 +16,6 @@ Markdown numbers higher by one offset per shape, with the words either side equa
 marker at the same offset (`_renumbering`, `_renumbered_hunks`). Both fail closed; neither is an excuse for a word that differs. The
 brief's premise that the Markdown holds the header once was not what the pages show (it holds it on each page); the rule follows the
 pages. LIKELY-ERROR 128 to 88, UNEXPLAINED 603 to 554, OCR-NOISE 5266 to 5260, TABLE-HEADER 26, FOOTNOTE-RENUMBERED 17; every other
-class unchanged. PB6135 stays open; evidence in `kb/Work/PB6135/2026-11-24-likely-error-classes.md`.
+class unchanged. PB6135 stays open; evidence in `kb/Work/PB6135/2026-11-24-two-classes-measured.md`.
 
 **Self-test.** Cases 17 to 19 (the wide-block probe; header read in another order, its negatives; marker offsets, its negatives).
