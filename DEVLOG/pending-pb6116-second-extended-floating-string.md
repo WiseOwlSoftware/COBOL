@@ -16,3 +16,5 @@ string; any other floating extended run starts a new one, and a second is COBOL1
 Goldens: `pb6116_picture_one_extended_floating_string_2023` (accepted, from 2023) and `pb6116-picture-two-extended-floating-strings`
 (refused at 2023 with COBOL1934); unit theory `PictureCompositionTests.ASecondExtendedFloatingString_IsRefusedBySR27`. No inventory
 row closed.
+
+Review round 1 (R1-1): the SR27 count now also counts a string of Z, of *, and a floating +, - or currency string against a floating extended string, so `PIC LLZZ9` and `PIC LL$$99` are refused (COBOL1934). Unit theory rows added. R1-2 (a lone trailing floating extended string) is left as a lead.
