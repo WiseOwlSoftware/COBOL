@@ -2784,7 +2784,9 @@ lowercase with Annex C. Three pieces, each in one place:
   answers for the edition. A character the edition does NOT fold while 2023 does (U+2160 at 2002) has no key the 2023 table
   leaves alone, so it is written as one private-use stand-in character per key (`CobolNames.Reserved`; U+E000.. for a BMP
   key), which no word may hold: the character screen and the error strategy read such a word's WRITTEN text back from its
-  input (`CobolWordRule.WrittenText`), so a diagnostic still names the character the user wrote. A LITERAL that names a word (an AS literal, a CALL / CANCEL / `ADDRESS OF` target, an INVOKE method name)
+  input (`CobolWordRule.WrittenText`), so COBOL2773 still names the character the user wrote; a name that leaves the compiler as an
+  external name, the ASSIGN operand's host file name, is read the same way (`AssignTargetRule`), while a diagnostic that
+  prints a word's spelling and the listing's cross-reference still show the stand-in (PB4312 `Spelled`, a lead, not yet fixed). A LITERAL that names a word (an AS literal, a CALL / CANCEL / `ADDRESS OF` target, an INVOKE method name)
   is source text too, so it is written in the same spelling when it is formed (`ExternalizedNames.FormInEdition`,
   `OoBinder.OoMethodNameOf`; kb/Work PB2840); a name held in a data item is formed by the same function, which the
   emitted C# calls with the compiled program's edition (`RuntimeApi.ExternalizedNameInEdition`; kb/Work PB2991),

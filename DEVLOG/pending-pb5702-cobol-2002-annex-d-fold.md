@@ -26,3 +26,5 @@ names the character written. Annex D prints (0256,0189) beside (0189,0256); tran
 **Register.** `2002-GR-8.1.2.1-4` PARTIAL to CONFORMS (GAP 1133 to 1132). PB5702 closes.
 
 **Left open (COBOL 2014 waits).** 2014 is still 2023's table with Annex E reversed, and its repertoire the same derivation (`Xµ` at `--std 2014`).
+
+**Review round 1.** R1-1 (blocking): the ASSIGN operand's word read `GetText()`, so a 2002 stand-in (U+E000..) reached the emitted C# and the host file name. `CobolWordRule.WrittenText(ParserRuleContext)` reads the written text back from the input and `AssignTargetRule` uses it for both word arms; `AssignNameWrittenTextTests` (2002, 2014, 2023) holds the emitted C# carries the written word and no stand-in. R1-2 (lead): the design text now says which readers see the written text; diagnostics that print a spelling and the listing cross-reference still show the stand-in (report lead).

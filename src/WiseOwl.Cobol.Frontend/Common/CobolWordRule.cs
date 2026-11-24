@@ -44,6 +44,19 @@ public static class CobolWordRule
             : text;
     }
 
+    /// <summary>The text the user wrote for a parse-tree node that holds word tokens: the input from its first token to its last
+    /// when a token of it is spelled with a <see cref="CobolNames.HasReservedSpelling"/> stand-in, else its token text. A name that
+    /// leaves the compiler as an EXTERNAL name (the ASSIGN operand's host file name, <c>AssignTargetRule</c>) is read this way,
+    /// because a stand-in character is a device of the one comparer and must not reach the host.</summary>
+    public static string WrittenText(Antlr4.Runtime.ParserRuleContext node)
+    {
+        string text = node.GetText();
+        return CobolNames.HasReservedSpelling(text) && node.Start is { } start && node.Stop is { } stop
+            && start.InputStream is { } input && stop.StopIndex >= start.StartIndex
+            ? input.GetText(Interval.Of(start.StartIndex, stop.StopIndex))
+            : text;
+    }
+
     /// <summary>The §2023:8.3.2.1 maximum COBOL-word length for a targeted edition.</summary>
     [EditionDerived]
     public static int MaxLength(int dialectLevel) =>
