@@ -39,12 +39,6 @@ public readonly record struct EditionInfo(int Year, bool Permissive = false)
     /// ONE predicate, asked by every clause that admits the subscript (docs/conformance/3/D-CLAUSE-SUBSCRIPT.md).</summary>
     public bool SubscriptedClauseOperands => Year == 2002;
 
-    /// <summary>⛔ WHETHER A PROTOTYPE'S SPECIAL-NAMES PARAGRAPH MAY HOLD AN ALPHABET OR SYMBOLIC CHARACTERS CLAUSE (kb/Work PB5706):
-    /// COBOL-2002 and COBOL-2014 limit it to "the LOCALE clause, the CURRENCY clause, and the DECIMAL-POINT clause" (§2002:10.5.2 SR5c,
-    /// §2014:10.6.2 SR4c); COBOL-2023 adds "the ALPHABET clause" and "the SYMBOLIC-CHARACTERS clause" (§2023:10.6.2 SR4c). Asked by
-    /// <c>PrototypeUnitRules.ScreenBody</c> only.</summary>
-    public bool PrototypeSpecialNamesAlphabetAndSymbolic => Year >= 2023;
-
     /// <summary>⛔ THE LONGEST TEXT-WORD A COPY LIBRARY TEXT, A COPY REPLACING PSEUDO-TEXT OR A REPLACE PSEUDO-TEXT MAY HOLD
     /// (kb/Work PB5700): 322 character positions at COBOL-2002 (§2002:7.1.2.2 SR11 "shall be from 1 through 322 character
     /// positions"; §2002:7.1.3.2 SR9), 65,535 from 2014 (§2014:7.2.2.2 SR11; §2023:7.2.3.3 SR9). COBOL-85 only says "The implementor
