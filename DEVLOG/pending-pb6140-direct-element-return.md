@@ -26,3 +26,14 @@ dispatch call passing `__direct` tests its result and that only `DispatchState` 
 follows the new call shape. Docs: CONTROL_FLOW_DESIGN D7 and its samples, DESIGN §5.1/§5.2, CONDITIONS_EXCEPTIONS_DESIGN.
 
 No inventory row (a restructuring; `closes_rows: []`).
+
+**Self-review.** Architecture: one owner of the return's spelling (`DispatchState.ReturnToActivator`) and of the tested call
+(`DispatchCall`); the throw stays where a frame cannot test (`__RunUse`, `__RunDebug`, operand evaluation, `__IoCheckEc`). Code: the
+cited rules (§2023:14.9.18.4 GR2/GR4, §2023:14.9.14.4 GR3, §2023:14.6.3) are unchanged in effect; every sibling arm (EXIT PROGRAM with
+and without RAISING, method GOBACK, implicit GOBACK) goes through the one renderer. Performance: no allocation on a normal return; one
+compare per PERFORM. Duplication: `ReturnSignal` has one home. The gate's emitted-C# snapshots (14) were re-baselined; every changed line
+is the protocol.
+
+**Gate.** `=== BUILD-LOCAL GATE: GREEN — Conformance 29,325/29,325 ran · Unit 42,919/42,919 ran · RepoDrift 245/245 ran ·
+Characterization 37/37 ran` (run 000004-20261124T023107Z), after three reds fixed at their root: the public API baseline's order, the
+new drift test's Sweep trait, the snapshots.
