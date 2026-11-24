@@ -5334,15 +5334,15 @@
    "pending-clause": "§2002:9.3.5 (changed)"
   },
   "2002-GR-13.9.3-1": {
-   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode, constant-length-subscripts-are-literals"
   },
   "2002-GR-13.9.3-2": {
    "definition-changed": "class | of a data item",
-   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode, constant-length-subscripts-are-literals"
   },
   "2002-GR-13.9.3-3": {
    "pending-clause": "§2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed)",
-   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode, constant-length-subscripts-are-literals"
   },
   "2002-GR-14.1.3-1": {
    "definition-changed": "procedure",
@@ -7657,32 +7657,32 @@
   },
   "2002-SR-13.9.2-1": {
    "pending-clause": "§2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed)",
-   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode, constant-length-subscripts-are-literals"
   },
   "2002-SR-13.9.2-10": {
-   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode, constant-length-subscripts-are-literals"
   },
   "2002-SR-13.9.2-11": {
    "definition-dropped": "report (newer: 13.18.46.2)",
-   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode, constant-length-subscripts-are-literals"
   },
   "2002-SR-13.9.2-4": {
-   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode, constant-length-subscripts-are-literals"
   },
   "2002-SR-13.9.2-5": {
    "pending-clause": "§2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed)",
-   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode, constant-length-subscripts-are-literals"
   },
   "2002-SR-13.9.2-6": {
    "pending-clause": "§2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed)",
-   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode, constant-length-subscripts-are-literals"
   },
   "2002-SR-13.9.2-8": {
-   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode, constant-length-subscripts-are-literals"
   },
   "2002-SR-13.9.2-9": {
    "pending-clause": "§2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed)",
-   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode, constant-length-subscripts-are-literals"
   },
   "2002-SR-14.1.2-10": {
    "definition-changed": "program prototype definition",

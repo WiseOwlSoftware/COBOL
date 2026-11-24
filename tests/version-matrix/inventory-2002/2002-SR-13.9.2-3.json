@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.9.2-3",
+ "rule-digest": "dfa20b4c388f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ConstantEntryBinder.cs#BindConstantLength",
+ "test-ref": "conformance:cases/13.9@2002-CONSTANT-ENTRY/pb5709-constant-length-data-name-subscript; conformance:wiseowl/diagnostics/pb5709-constant-length-data-name-subscript-from-2014",
+ "notes": "Data-name-1 and data-name-2 may be qualified (qualification read by the one ReferenceResolver decomposition, kb/Work PB1016). The 2002 rule has no literal-subscript restriction: a subscript is ordinary (8.4.1.2.2), read by SubscriptBinder.ReadSubscripts, while the literal-only rule is 2014 and later (DialectBehavior.ConstantLengthSubscriptsAreLiterals, VCR row 7.121; kb/Work PB5709)."
+}
