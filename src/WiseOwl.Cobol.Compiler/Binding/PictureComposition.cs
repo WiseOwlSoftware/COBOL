@@ -426,6 +426,27 @@ internal static class PictureComposition
                 + "symbols (each fixed occurrence, and each floating string of one character-1, is one) — either ONE "
                 + "or TWO may be used (ISO §2023:13.18.40.3 SR24)");
 
+        // SR27 admits ONE floating insertion string in character-string-1 ("No more than one of the following may be
+        // specified in character-string-1: a string of two or more symbols '+' / '-' / currency symbol, ..."; NOTE 5:
+        // `+++$$$` is invalid), and the extended editing sign control symbols are floating insertion symbols beside
+        // them (§2023:13.18.40.5 GR6). The Table-10 walk asks that of '+', '-' and the currency symbol, which it gives
+        // floating roles; a floating extended string has none and must stay outside the matrix (`PIC LLLL9.99F`,
+        // Annex D.24, ends in a fixed extended symbol that the cs-trailing cell refuses after a floating cs), so the
+        // count is made here: a second run of the same extended symbol that something other than a transparent
+        // symbol separates (`PIC LL9LL`), or a run of another extended character-1 (`PIC LL99FF`), is a second
+        // string (kb/Work PB6116).
+        int extendedFloatingStrings = 0;
+        for (int r = 0; r < runs; r++)
+        {
+            if (!IsFloating(r) || !char1Extended.Contains(syms[r].Kind)) continue;
+            if (!ContinuesEarlierRun(syms, r, char1, decimalSep, grouping)) extendedFloatingStrings++;
+        }
+        if (extendedFloatingStrings > 1)
+            return Fail(DiagnosticCatalog.PictureComposition,
+                $"character-string-1 holds {extendedFloatingStrings} floating insertion strings of extended editing sign "
+                + "control symbols — no more than one floating insertion string may be specified "
+                + "(ISO §2023:13.18.40.3 SR27)");
+
         // SR12 a) "Character-string-1 shall contain: — at least on[e] one of the symbols from the set 'A', 'N',
         // 'X', 'Z', '1', '9', *', or — at least two occurrences of one of the symbols from the set character-1,
         // 'x', '+', '-', and the currency symbol." (The two printed defects — "at least on one" and the
@@ -557,8 +578,7 @@ internal static class PictureComposition
         // A PICTURE EDITING character-1 stays transparent to this walk in EITHER form, for the reason the role map
         // below records: it constrains no neighbour, and breaking a floating run on one would answer a Table-10
         // question the standard does not ask here (kb/Work PB528).
-        bool Embedded(char c) => WiseOwl.Cobol.Runtime.CobolEdit.IsSimpleInsertionSymbol(c, grouping)
-            || c == decimalSep || char1.Contains(c);
+        bool Embedded(char c) => IsEmbedded(c, char1, decimalSep, grouping);
         // ⛔ THE FLOATING INSERTION SYMBOLS are §2023:13.18.40.5 GR6's own list, all four kinds: "The currency
         // symbol, the EXTENDED EDITING SIGN CONTROL SYMBOLS, if specified, and the fixed editing sign control
         // symbols '+' and '-' are used as the floating insertion symbols." The extended ones are exactly the
@@ -583,6 +603,26 @@ internal static class PictureComposition
             }
         }
         return floating;
+    }
+
+    /// <summary>Does <paramref name="c"/> continue a floating insertion string it stands inside or to the immediate right
+    /// of — a simple insertion symbol, the decimal point, or a PICTURE character-1 (§2023:13.18.40.5 GR6; see
+    /// <see cref="MarkFloating"/>)?</summary>
+    private static bool IsEmbedded(char c, IReadOnlySet<char> char1, char decimalSep, char grouping) =>
+        WiseOwl.Cobol.Runtime.CobolEdit.IsSimpleInsertionSymbol(c, grouping) || c == decimalSep || char1.Contains(c);
+
+    /// <summary>Does run <paramref name="at"/> continue the floating string of the nearest earlier run of its own kind:
+    /// is every run between the two floating-string-transparent (<see cref="IsEmbedded"/>)?</summary>
+    private static bool ContinuesEarlierRun(List<Sym> syms, int at, IReadOnlySet<char> char1, char decimalSep,
+        char grouping)
+    {
+        char kind = syms[at].Kind;
+        for (int j = at - 1; j >= 0; j--)
+        {
+            if (syms[j].Kind == kind) return true;
+            if (!IsEmbedded(syms[j].Kind, char1, decimalSep, grouping)) return false;
+        }
+        return false;
     }
 
     private static IEnumerable<char> Doubled(IReadOnlySet<char> char1, char cs)
@@ -832,7 +872,7 @@ internal sealed class PictureShape
         LeadingP = leadingP;
         TrailingP = trailingP;
         // §2023:13.18.40.3 SR27 admits one floating string per character-string (the Table-10 walk refuses a second
-        // of '+', '-' or the currency symbol), so the first floating run names it.
+        // of "+", "-" or the currency symbol, Validate a second extended one), so the first floating run names it.
         for (int r = 0; r < runs.Count; r++)
         {
             if (!floating[r]) continue;
