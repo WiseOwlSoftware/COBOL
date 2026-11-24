@@ -13,8 +13,8 @@
        PROGRAM-ID. PB5702R.
        DATA DIVISION.
        WORKING-STORAGE SECTION.
-       01 XⅠY PIC X(3) VALUE "UP".
-       01 XⅰY PIC X(3) VALUE "LO".
+       01 XⅠY PIC X(2) VALUE "UP".
+       01 XⅰY PIC X(2) VALUE "LO".
        PROCEDURE DIVISION.
            DISPLAY XⅠY " " XⅰY.
            STOP RUN.
