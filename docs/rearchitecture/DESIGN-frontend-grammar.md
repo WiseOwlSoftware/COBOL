@@ -2775,11 +2775,16 @@ lowercase with Annex C. Three pieces, each in one place:
   `CobolNames.NotApplied` and leaves them out of the applied lists: today `(0130,0069)` and `(212A,006B)` at every edition and
   `(0131,0069)` in the 2002/2014 table. `CUSTOMER-İD` and `CUSTOMER-ID` are two names. `AnnexBCDriftTests` re-reads the
   lists from the spec and holds that the applied lists are the standard's less the crossing pairs, that those pairs are
-  `NotApplied`, and that no character at or above U+0080 folds to ASCII at any edition. The table is COBOL 2023's; the only fold
-  difference a COBOL 2002/2014 word can observe is E.2 item 14's (03C2,03C3) (U+03C2 → U+03C3 before 2023), so the lexer writes
-  that letter in its edition's fold
-  (`CobolNames.EditionSpelling`, primed through `TokenRetypes.PrimeLexer`) and the one comparer then answers for the
-  edition. A LITERAL that names a word (an AS literal, a CALL / CANCEL / `ADDRESS OF` target, an INVOKE method name)
+  `NotApplied`, and that no character at or above U+0080 folds to ASCII at any edition. The table is COBOL 2023's, and COBOL 2002 has its OWN case mapping,
+  Annex D of `specs/ISO_COBOL_2002.md` (§2002:8.1.2.1 GR4c; 600 pairs, `CobolNames.D2002Mappings` from `gen_annex_bc.py`; kb/Work PB5702),
+  which lacks mappings 2023 has for characters 2002's Annex C permits (the Roman numerals U+2160.., U+2126, U+212B, Georgian U+10A0..) and
+  prints (0256,0189) beside (0189,0256). COBOL 2014's is 2023's with Annex E reversed, whose one observable difference is
+  E.2 item 14's (03C2,03C3) (U+03C2 → U+03C3 before 2023). The lexer writes each character whose edition fold differs from
+  2023's in its edition's key (`CobolNames.EditionSpelling`, primed through `TokenRetypes.PrimeLexer`), and the one comparer then
+  answers for the edition. A character the edition does NOT fold while 2023 does (U+2160 at 2002) has no key the 2023 table
+  leaves alone, so it is written as one private-use stand-in character per key (`CobolNames.Reserved`; U+E000.. for a BMP
+  key), which no word may hold: the character screen and the error strategy read such a word's WRITTEN text back from its
+  input (`CobolWordRule.WrittenText`), so a diagnostic still names the character the user wrote. A LITERAL that names a word (an AS literal, a CALL / CANCEL / `ADDRESS OF` target, an INVOKE method name)
   is source text too, so it is written in the same spelling when it is formed (`ExternalizedNames.FormInEdition`,
   `OoBinder.OoMethodNameOf`; kb/Work PB2840); a name held in a data item is formed by the same function, which the
   emitted C# calls with the compiled program's edition (`RuntimeApi.ExternalizedNameInEdition`; kb/Work PB2991),

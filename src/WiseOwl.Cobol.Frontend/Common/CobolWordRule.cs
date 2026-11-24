@@ -1,5 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using Antlr4.Runtime;
+using Antlr4.Runtime.Misc;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Runtime;
@@ -30,6 +32,18 @@ namespace WiseOwl.Cobol.Frontend.Common;
 /// </summary>
 public static class CobolWordRule
 {
+    /// <summary>The text the user wrote for a word token. The lexer writes a word in its edition's case-mapping spelling
+    /// (<see cref="CobolNames.EditionSpelling"/>), which stands a character the edition does not fold for one no word may
+    /// hold (<see cref="CobolNames.HasReservedSpelling"/>); the character rules judge the character the user wrote, so a word so
+    /// spelled is read back from the input it was cut from. Every other token's text is its written text.</summary>
+    public static string WrittenText(IToken token)
+    {
+        string text = token.Text;
+        return CobolNames.HasReservedSpelling(text) && token.InputStream is { } input && token.StopIndex >= token.StartIndex
+            ? input.GetText(Interval.Of(token.StartIndex, token.StopIndex))
+            : text;
+    }
+
     /// <summary>The §2023:8.3.2.1 maximum COBOL-word length for a targeted edition.</summary>
     [EditionDerived]
     public static int MaxLength(int dialectLevel) =>

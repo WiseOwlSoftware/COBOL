@@ -17,13 +17,15 @@ reversed — E.2 item 4 (037A deleted, 30FB made medial), E.2 item 14 (two mappi
 specs/ISO_COBOL_2002.md (TR 10176:2001, narrower than 2014's and 2023's), transcribed as C2002Letters and C2002Special;
 the 2002 text (§2002:8.1.2.1 GR4b) also bars the combining characters of TR 10176:2001 Annex A from the first and last
 place, and Annex C does not label them, so the combining rows that COBOL 2014's Annex B.3.1 does label are transcribed
-(B2014Combining) to be intersected with the 2002 repertoire. The generator transcribes each list separately, exactly as the standard prints it, so
+(B2014Combining) to be intersected with the 2002 repertoire. COBOL 2002's case mapping is likewise its OWN, Annex D of the
+2002 text (D2002Mappings, 600 pairs); 2014's is the 2023 table with Annex E.2 item 14 and E.3.3 item 6 reversed. The generator transcribes each list separately, exactly as the standard prints it, so
 AnnexBCDriftTests can re-read every list from specs/ISO_COBOL_2023.md and compare.
 
 Usage: python scripts/spec/gen_annex_bc.py [--check]   (--check: exit 1 when a committed table differs)
 """
 from __future__ import annotations
 
+import html
 import re
 import sys
 import unicodedata
@@ -152,6 +154,20 @@ def table_ranges(lines: list[str], opener: str, closer: str, keep) -> list[tuple
     return out
 
 
+#: §2002 Annex D prints a pair as `(<U0041>,<U0061>)`, in markdown-escaped angle brackets (`&lt;`).
+PAIR2002 = re.compile(r"\(<U([0-9A-Fa-f]{4,5})>,<U([0-9A-Fa-f]{4,5})>\)")
+
+
+def extract_2002_mappings() -> list[tuple[int, int]]:
+    """§2002 Annex D.2.1 (the general case mappings) and D.2.2 (the additional ones), as printed, in order: the case
+    mapping COBOL 2002's rule §2002:8.1.2.1 GR4c folds an extended letter by. D.2.1 prints (0256,0189), which lowers
+    LATIN SMALL LETTER D WITH TAIL to its own capital, the reverse of (0189,0256) printed beside it; 2014 Annex E.2 item 14
+    records it as a pair deleted, so it is transcribed as printed and the comparison of the two letters is the standard's."""
+    lines = spec_pdf.markdown(2002).read_text(encoding="utf-8").splitlines()
+    body = section_lines(lines, "##### D.2.1 General case mappings", "### Annex E (informative) Concepts")
+    return [(int(a, 16), int(b, 16)) for line in body for a, b in PAIR2002.findall(html.unescape(line))]
+
+
 def extract_tables() -> dict[str, list[tuple[int, int]]]:
     cache: dict[int, list[str]] = {}
     out = {}
@@ -202,6 +218,9 @@ def applied_lists(data: dict[str, list[tuple[int, int]]]) -> dict[str, list[tupl
     out["NotApplied"] = [p for name in FOLD_LISTS for p in data[name] if crosses_classes(p)]
     for name in FOLD_LISTS:
         out[name] = [p for p in data[name] if not crosses_classes(p)]
+    # The 2002 list's own crossing pairs, (0130,0069) and (0131,0069), are already in NotApplied (the same pairs of the
+    # lists above), so it is reduced here and adds none (AnnexBCDriftTests holds the two sets to each other).
+    out["D2002Mappings"] = [p for p in data["D2002Mappings"] if not crosses_classes(p)]
     return out
 
 
@@ -241,6 +260,8 @@ def render(data: dict[str, list[tuple[int, int]]], names: list[str], namespace: 
         "C2002Special": "Annex C.2.1 (COBOL 2002): the special characters of TR 10176:2001 Annex A, barred from the first and last place (§2002:8.1.2.1 GR4b).",
         "C2002Additional": "Annex C.2.2 (COBOL 2002): the characters beyond the basic ones the standard adds (MIDDLE DOT), special characters.",
         "B2014Combining": "Annex B.3.1 (COBOL 2014): the rows labelled combining, which 2002 Annex C leaves unlabelled (§2002:8.1.2.1 GR4b bars them from the first and last place).",
+        "D2002Mappings": "Annex D.2 (COBOL 2002): the case mappings (uppercase, lowercase) COBOL 2002's fold applies "
+                         "(§2002:8.1.2.1 GR4c), less <see cref=\"NotApplied\"/>.",
         "NotApplied": "The pairs of Annex C.2, E.2 item 14 and E.3.3 item 6 that map an extended letter to a basic one, which the "
                       "fold of a COBOL word does not apply (§2023:8.1.3.2 GR4b: the corresponding lowercase EXTENDED letter; kb/Work PB4420).",
     }
@@ -265,7 +286,7 @@ OUTPUTS = [
       "E33Item5Added", "C2002Letters", "C2002Special", "C2002Additional", "B2014Combining"]),
     (ROOT / "src" / "WiseOwl.Cobol.Runtime" / "CobolNames.Table.cs", "WiseOwl.Cobol.Runtime", "CobolNames",
      "Annex C.2 (general case mappings, as (uppercase, lowercase) pairs)",
-     ["C2Mappings", "E2Item14Deleted", "E33Item6Added", "NotApplied"]),
+     ["C2Mappings", "E2Item14Deleted", "E33Item6Added", "D2002Mappings", "NotApplied"]),
 ]
 
 
@@ -274,6 +295,7 @@ def main() -> int:
     for note in plausibility(transcribed):
         print("plausibility:", note, file=sys.stderr)
     transcribed.update(extract_tables())
+    transcribed["D2002Mappings"] = extract_2002_mappings()
     data = applied_lists(transcribed)
     stale = 0
     for path, namespace, cls, what, names in OUTPUTS:

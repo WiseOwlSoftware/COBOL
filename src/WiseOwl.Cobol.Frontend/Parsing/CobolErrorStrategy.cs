@@ -10,6 +10,7 @@ using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Cst;          // ClosedFormats — the ONE table of closed general formats (0g)
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Runtime;
+using WiseOwl.Cobol.Frontend.Common;
 
 namespace WiseOwl.Cobol.Frontend.Parsing;
 
@@ -3848,7 +3849,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
             var stream = (ITokenStream)_recognizer.InputStream;
             int i = Token.TokenIndex;
             var before = PreviousDefault(stream, ref i);
-            if (before is { Type: CobolLexer.IDENTIFIER, Text: { } word } && !CobolCharacterRepertoire.IsWordAtSomeEdition(word))
+            if (before is { Type: CobolLexer.IDENTIFIER } && !CobolCharacterRepertoire.IsWordAtSomeEdition(CobolWordRule.WrittenText(before)))
                 return false;
             var sentence = SentenceTypesFrom(stream, Token);
             return walk.TakesAll([CobolLexer.DOT, .. sentence])
