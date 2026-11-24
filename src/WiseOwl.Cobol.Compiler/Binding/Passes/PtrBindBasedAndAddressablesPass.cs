@@ -127,14 +127,19 @@ internal sealed class PtrBindBasedAndAddressablesPass(Core.ProgramUnitContext pr
         // §2023:8.4.6.6: a REPOSITORY function-prototype-name or the containing FUNCTION definition's own name — a program's
         // own name is no user function (kb/Work PB3121: this test used to admit it whatever the unit's kind).
         bool IsUserFunction(string fn) => binder.Symbols.DeclaresFunctionPrototype(fn);
+        // §2023:8.4.6.8: a REPOSITORY program-prototype-name or a containing PROGRAM definition's own name; a CALL without the AS
+        // phrase whose bare target word is one is Format 2, whose keyword-less arguments take GR9's mode (kb/Work PB3227). This is
+        // THIS element's scope; a contained program's CALL also sees its own name and those of the contained programs between it
+        // and this element, which the scan itself records (StorageClaimScan.AskedWord.NamesContainingProgram, review R1-1).
+        bool IsProgramPrototype(string word) => binder.Symbols.DeclaresPrototypeName(word, function: false);
         var own = binder.Oo.IsClassUnit
             ? binder.Oo.BoundMethods.Select(m => (Method: m, Body: binder.Oo.BodyOf(m))).Where(b => b.Body is not null)
-                .SelectMany(b => binder.ClaimScans.ByReferenceOperands(b.Body!, IsUserFunction).Select(t => (t.Written, t.Invoke, t.SlotsOnly, Method: (OoMethodSymbol?)b.Method)))
+                .SelectMany(b => binder.ClaimScans.ByReferenceOperands(b.Body!, IsUserFunction, IsProgramPrototype).Select(t => (t.Written, t.Invoke, t.SlotsOnly, Method: (OoMethodSymbol?)b.Method)))
             : program.procedureDivision() is { } opd
-                ? binder.ClaimScans.ByReferenceOperands(opd, IsUserFunction).Select(t => (t.Written, t.Invoke, t.SlotsOnly, Method: (OoMethodSymbol?)null))
+                ? binder.ClaimScans.ByReferenceOperands(opd, IsUserFunction, IsProgramPrototype).Select(t => (t.Written, t.Invoke, t.SlotsOnly, Method: (OoMethodSymbol?)null))
                 : [];
         var operands = own.Select(t => (t.Written, t.Invoke, t.SlotsOnly, t.Method, Contained: false))
-            .Concat(containedPrograms.SelectMany(n => binder.ClaimScans.ByReferenceOperands(n, IsUserFunction))
+            .Concat(containedPrograms.SelectMany(n => binder.ClaimScans.ByReferenceOperands(n, IsUserFunction, IsProgramPrototype))
                 .Select(t => (t.Written, t.Invoke, t.SlotsOnly, Method: (OoMethodSymbol?)null, Contained: true)));
         foreach (var (written, invoke, slotsOnly, method, contained) in operands)
         {

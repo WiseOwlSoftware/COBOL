@@ -246,6 +246,22 @@ public sealed partial class SymbolTable
             ? DeclaresFunction(Key(name))
             : (!_containingAreFunctions && _containingDefinitions.ContainsKey(Key(name))) || DeclaresProgramSpecifier(name);
 
+    /// <summary>Whether <paramref name="word"/> is the program-name of a CONTAINED program whose subtree holds <paramref name="node"/>:
+    /// the program written around it and every contained program between it and the outermost one, each a containing program
+    /// definition of the source element that writes <paramref name="node"/>, so a program-prototype-name there (§2023:8.4.6.8). The
+    /// parse-tree half of <see cref="DeclaresPrototypeName"/>'s containing-definition leg, for a CONTAINER asking about its contained
+    /// programs' statements before they bind (<c>StorageClaimScan</c>, kb/Work PB3227 review R1-1): the container's own table holds
+    /// only itself and the programs containing it.</summary>
+    internal static bool NamesContainedProgramHolding(Antlr4.Runtime.Tree.IParseTree node, string word)
+    {
+        for (var up = node.Parent; up is not null; up = up.Parent)
+            if (up is WiseOwl.Cobol.Frontend.Generated.CobolParserCore.NestedProgramContext nested
+                && nested.identificationDivision()?.identificationBody()?.programIdParagraph()?.programName()?.GetText() is { } name
+                && Key(name) == Key(word))
+                return true;
+        return false;
+    }
+
     /// <summary>Whether a reference to <paramref name="name"/> is the cascade of a PROGRAM specifier whose <c>AS literal-3</c> was
     /// refused (§2023:12.3.8.3 SR2) and reported where it is written (kb/Work PB4936): then the reference adds no diagnostic and
     /// <see cref="EditionContext.NoteCauseReportedEarlier"/> answers for the refusal it builds. The twin of
