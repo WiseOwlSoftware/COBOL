@@ -20,7 +20,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <c>CobolNames.NotApplied</c> (§2023:8.1.3.2 GR4b, kb/Work PB4420), and no extended letter folds to a basic one at any
 /// edition. It also holds the two facts the
 /// fold's implementation relies on: every Annex C mapping keeps a character's UTF-16 width (so a word and its fold
-/// line up unit for unit), and every mapping Annex E.3.3 item 6 added at 2023 pairs a character the 2002/2014 Annex B
+/// line up unit for unit), and every mapping Annex E.3.3 item 6 added at 2023 pairs a character the 2014 Annex B
 /// does not hold (so the ONE 2023 comparer is exact for those editions once the lexer has written E.2 item 14's two
 /// letters in their spelling).
 /// </summary>
@@ -94,6 +94,75 @@ public sealed class AnnexBCDriftTests
         var table = (( int First, int Second)[])typeof(CobolCharacterRepertoire)
             .GetField(field, System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)!.GetValue(null)!;
         Assert.Equal(CodePoints(Section(opener, closer)), CodePoints(table));
+    }
+
+    private static readonly string[] Spec2002 = File.ReadAllLines(TestRepo.Specs("ISO_COBOL_2002.md"));
+    private static readonly string[] Spec2014 = File.ReadAllLines(TestRepo.Specs("ISO_COBOL_2014.md"));
+
+    /// <summary>The code points of the rows of a markdown table (<c>| label | ranges |</c>) between two markers whose label
+    /// <paramref name="keep"/> accepts; an empty label continues the row above it across a page break.</summary>
+    private static SortedSet<int> TableCodePoints(string[] spec, string opener, string closer, Func<string, bool> keep)
+    {
+        int start = Array.FindIndex(spec, l => l.StartsWith(opener, StringComparison.Ordinal));
+        Assert.True(start >= 0, $"spec marker not found: {opener}");
+        int end = Array.FindIndex(spec, start + 1, l => l.StartsWith(closer, StringComparison.Ordinal));
+        Assert.True(end > start, $"spec marker not found after '{opener}': {closer}");
+        var rows = new List<string>();
+        string label = "";
+        foreach (string line in spec[(start + 1)..end])
+        {
+            string[] cells = line.Trim().Trim('|').Split('|', StringSplitOptions.TrimEntries);
+            if (!line.TrimStart().StartsWith('|') || cells.Length != 2 || (cells[0] + cells[1]).All(ch => ch is '-' or ':' or ' ')) continue;
+            if (cells[0].Length > 0) label = cells[0];
+            if (!label.StartsWith("Script or", StringComparison.Ordinal) && Range.IsMatch(cells[1]) && keep(label)) rows.Add(cells[1]);
+        }
+        return CodePoints(rows);
+    }
+
+    private const string C21 = "##### C.2.1 Characters from TR 10176:2001, Annex A";
+    private const string C22 = "##### C.2.2 Additional characters";
+
+    /// <summary>⛔ COBOL 2002'S REPERTOIRE IS ITS OWN ANNEX C (§2002:C.2, kb/Work PB5702), not 2014's or 2023's: the lists the
+    /// generator transcribes from it and from COBOL 2014's Annex B.3.1 equal the standards' text, and the position classes
+    /// <see cref="CobolCharacterRepertoire.PositionOf"/> answers at 2002 are exactly the rule's (§2002:8.1.2.1 GR4b): a
+    /// special or combining character is medial, any other character of C.2.1 is permitted anywhere, and a character outside
+    /// C.2.1 and C.2.2 is not permitted.</summary>
+    [Fact]
+    public void Edition2002Repertoire_IsAnnexC_WithSpecialAndCombiningMedial()
+    {
+        var letters = TableCodePoints(Spec2002, C21, C22, l => !l.Contains("pecial"));
+        var special = TableCodePoints(Spec2002, C21, C22, l => l.Contains("pecial"));
+        var additional = CodePoints(Spec2002.SkipWhile(l => !l.StartsWith(C22, StringComparison.Ordinal)).Skip(1)
+            .TakeWhile(l => !l.StartsWith("## Page 723", StringComparison.Ordinal)).Select(l => Regex.Replace(l, @"\(.*?\)|\\", "")));
+        additional.RemoveWhere(cp => cp < 0x80);
+        var combining = TableCodePoints(Spec2014, "##### B.3.1 Characters from TR 10176:2003, Annex A",
+            "##### B.3.2 Additional characters", l => l.Contains("ombining"));
+        Assert.Equal(letters, CodePoints(CobolCharacterRepertoire.C2002Letters));
+        Assert.Equal(special, CodePoints(CobolCharacterRepertoire.C2002Special));
+        Assert.Equal(additional, CodePoints(CobolCharacterRepertoire.C2002Additional));
+        Assert.Equal(combining, CodePoints(CobolCharacterRepertoire.B2014Combining));
+        Assert.Equal([0x00B7], additional);
+
+        var medial = special.Union(additional).Union(letters.Where(combining.Contains)).ToHashSet();
+        for (int cp = 0x80; cp <= 0x30000; cp++)
+        {
+            var expected = medial.Contains(cp) ? WordCharacterPosition.Medial
+                : letters.Contains(cp) ? WordCharacterPosition.Anywhere : WordCharacterPosition.NotPermitted;
+            Assert.True(expected == CobolCharacterRepertoire.PositionOf(cp, 2002), $"U+{cp:X4} at 2002 is not {expected}");
+        }
+    }
+
+    /// <summary>Every character of COBOL 2002's repertoire is in the 2023 or the 2014 table (2002's Annex C lists U+2118, which
+    /// 2014's Annex B.3.1 does not and 2023's does) — so the extended-letter question a pre-2002 target asks of a character
+    /// (<see cref="CobolCharacterRepertoire.HasExtendedLetter"/>) never calls a 2002 letter "in no edition".</summary>
+    [Fact]
+    public void Edition2002Repertoire_IsInThe2014Or2023Table()
+    {
+        for (int cp = 0x80; cp <= 0xFFFF; cp++)
+            if (CobolCharacterRepertoire.PositionOf(cp, 2002) != WordCharacterPosition.NotPermitted)
+                Assert.True(CobolCharacterRepertoire.PositionOf(cp, 2014) != WordCharacterPosition.NotPermitted
+                            || CobolCharacterRepertoire.PositionOf(cp, 2023) != WordCharacterPosition.NotPermitted,
+                    $"U+{cp:X4} is in the 2002 repertoire but in neither the 2014 nor the 2023 one");
     }
 
     /// <summary>Whether an (uppercase, lowercase) pair maps between the BASIC letters (A-Z, a-z) and the EXTENDED ones,
