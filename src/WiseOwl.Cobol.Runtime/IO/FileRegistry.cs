@@ -1212,11 +1212,12 @@ public sealed class FileRegistry
     /// <para>⛔ THE DEFAULT IS A FUNCTION OF THE EDITION TOO (kb/Work PB670, the owner's determination of 2026-10-23,
     /// docs/CONFORMANCE.md DOC-A.1-77): the file sharing facility is a COBOL-2002 module
     /// (<see cref="DialectBehavior.FileSharingFacility"/>), so for a program compiled for <paramref name="edition"/>
-    /// <c>85</c> the implementor-defined mode §2023:9.1.15 allows to be <i>"a mode completely specified by the
-    /// implementor"</i> is the one that restricts nobody: <see cref="FileSharing.AllOther"/>, whose file lock
-    /// (<see cref="FileLockPosture.OfSharingMode"/>, <see cref="FileShare.ReadWrite"/>) admits every sibling handle of the
-    /// run unit in every open mode. It stands for that mode and nothing more: Table 19 is not asked at that edition
-    /// (<see cref="FileConnector.SharingFacilityInEffect"/>), because its OUTPUT row refuses even an ALL OTHER sibling.</para></summary>
+    /// <c>85</c> the mode is the one that restricts no OTHER RUN UNIT: <see cref="FileSharing.AllOther"/>, whose file lock
+    /// (<see cref="FileLockPosture.OfSharingMode"/>, <see cref="FileShare.ReadWrite"/>) refuses no host handle. It stands for
+    /// that and nothing more: within the run unit 1985 keys its status 41 to the physical file (§1985:VII.1.3.5, §1985:II.2), so
+    /// <see cref="SharedOpenAttempt"/> refuses a second connector's OPEN of an open physical file with '41' before any mode is
+    /// asked, and Table 19 is not asked at that edition (<see cref="FileConnector.SharingFacilityInEffect"/>; kb/Work
+    /// PB6161).</para></summary>
     public static FileSharing ImplementorDefaultSharing(FileOpenMode mode, int edition) =>
         !DialectBehaviors.IsActive(DialectBehavior.FileSharingFacility, edition) ? FileSharing.AllOther
         : mode == FileOpenMode.Input ? FileSharing.ReadOnly : FileSharing.NoOther;
@@ -1997,22 +1998,29 @@ public sealed class FileRegistry
         // ImplementorDefaultSharing) and so is one of the three modes Table 19 prints.
         var posture = ShareOf(name);
         FileSharing sharing = sharingOverride ?? posture.Sharing ?? ImplementorDefaultSharing(mode, c.Edition);
-        // ⛔ THE ARBITRATION BELONGS TO THE FILE SHARING FACILITY, a COBOL-2002 module (kb/Work PB670): a COBOL-85 program
-        // is compiled for a processor on which neither Table 19 nor its '61' exists (ISO §2023:A.4.1: the facility's rules and
-        // I-O status values are optional with it), and the sharing mode its connectors hold is the implementor's own,
-        // which restricts nobody (ImplementorDefaultSharing) — so two connectors open one physical file in any modes and
-        // every OPEN is a normal open. The registration below still records the open, as the close and the physical file's
-        // shared state read it.
-        if (c.SharingFacilityInEffect)
-            foreach (var (other, existing) in st.Open)
-            {
-                if (CobolNames.Same(other, name)) continue;
-                if (Table19.Conflicts(request: (sharing, mode), existing))
-                {
-                    c.SetStatus(FileStatusCode.FileSharingConflict);   // 61 — §2023:9.1.13.9 GR1
-                    return RetryAttempt.InRunUnit(FileStatusCode.FileSharingConflict);   // held by this run unit
-                }
-            }
+        // ⛔ EACH EDITION'S OWN TEXT DECIDES A SECOND FILE CONNECTOR'S OPEN OF A PHYSICAL FILE THIS RUN UNIT HOLDS OPEN (kb/Work PB6161).
+        // From 2002 the file sharing facility arbitrates it: "the sharing mode and the open mode shall be allowed by all other file
+        // connectors that are currently associated with the physical file" (§2002:9.1.14, §2014:9.1.14; 2023 reads "the sharing mode
+        // and the open mode of that OPEN statement shall be allowed by all other file connectors", §2023:9.1.15), a refusal is
+        // the file sharing conflict condition '61' (§2002:9.1.12.8, §2014:9.1.12.8, §2023:9.1.13.9 GR1), and '41' is keyed to the
+        // FILE CONNECTOR (§2002:9.1.12.6, §2023:9.1.13.7 GR1: "attempted for a file connector in an open mode"), so it never answers
+        // another connector's OPEN. ANSI X3.23-1985 has no sharing facility and keys '41' to the PHYSICAL file: "The terms 'file
+        // referenced by file-name' and 'file' mean the physical file regardless of the file-name used in the COBOL program"
+        // (§1985:II.2), "each subsequent OPEN statement execution for that same file must be preceded by the execution of a CLOSE
+        // statement" (§1985:VII.4.3.4 GR5), and its status 41 is "An OPEN statement is attempted for a file in the open mode"
+        // (§1985:VII.1.3.5). So at --std 85 an OPEN of a physical file another connector of the run unit holds open answers '41'
+        // whatever the two modes, and the file is not affected (the owner's decision of 2026-11-24, replacing PB670's option (i)).
+        // Two ASSIGN values name one physical file exactly when they reach one host path, WiseOwl's mapping (§1985:VII.2.3.3 SR3).
+        foreach (var (other, existing) in st.Open)
+        {
+            if (CobolNames.Same(other, name)) continue;
+            string refusal = !c.SharingFacilityInEffect ? FileStatusCode.FileAlreadyOpen                  // 41 — §1985:VII.1.3.5
+                : Table19.Conflicts(request: (sharing, mode), existing) ? FileStatusCode.FileSharingConflict   // 61 — §2023:9.1.13.9 GR1
+                : "";
+            if (refusal.Length == 0) continue;
+            c.SetStatus(refusal);
+            return RetryAttempt.InRunUnit(refusal);   // held by this run unit
+        }
         // ⛔ The registration is gated on the STATUS, not on `IsOpen`. A re-OPEN of a connector that is already
         // open is unsuccessful with '41' (§2023:9.1.13.7 GR1) and FileConnector.Open leaves the connector in its
         // ORIGINAL mode — but `IsOpen` is true throughout, so gating on it re-registered the connector under the
@@ -2045,13 +2053,6 @@ public sealed class FileRegistry
         // cross-run-unit region lock (RunUnitFileLock, kb/Work PB833), so the two halves of the file lock cannot
         // disagree about which mode this OPEN is under.
         c.HostSharing = sharing;
-        // ⛔ A SIBLING THAT ARRIVES AFTER A WRITER IS OWED WHAT THE WRITER HAS ALREADY WRITTEN (kb/Work PB670 review R1-1).
-        // At COBOL-85 a connector buffers its records while it is the only one open on the file (FileConnector.
-        // OtherConnectorsMayShare), so the incoming OPEN's connector must find them in the physical file: each connector
-        // already open on it releases its buffer first, ahead of the body that may read, count or truncate the medium.
-        if (!c.SharingFacilityInEffect)
-            foreach (var other in st.Open.Keys)
-                if (!CobolNames.Same(other, name) && _files.TryGetValue(other, out var holder)) holder.ReleaseBufferedRecords();
         // ⛔ AT --std 85 A LINAGE VALUE-RULE VIOLATION REFUSES THE OPEN (kb/Work PB5845, DialectBehavior.LinageViolatingOpenLeavesFileOpen):
         // the '90' it answers is an unsuccessful statement of §1985:VII.1.3.5 GR5, so no open mode results (§1985:VII.4.3.4 GR1) and the
         // connector is never opened. RefusedAsAlreadyOpen answered '41' above, so the connector is not open here. From 2002 the

@@ -66,14 +66,15 @@ public enum DialectBehavior
     /// item (Annex E is the 2014 to 2023 window) but by §2023:A.4.1, <i>"Any associated syntax rules, general rules, other
     /// rules, exception conditions, and I-O status values are also optional"</i> — the facility is a 2002 module (the
     /// SHARING and LOCK MODE clauses are COBOL-2002 introductions, <c>COBOL0900</c> below 2002), so a COBOL-85
-    /// program is compiled for a processor on which it is not in effect. At <c>--std 85</c> a file connector therefore
-    /// has the implementor-defined sharing mode §2023:9.1.15 allows ("a mode completely specified by the implementor", which
-    /// need not be one of the three): <b>no mode restricts another connector</b>. Two connectors of one run unit open the
-    /// same physical file in any combination of modes and every OPEN answers '00' (the owner's determination of
-    /// 2026-10-23, kb/Work PB670, option (i): it is GnuCOBOL's measured <c>-std=cobol85</c> behaviour, and it produces no
-    /// status the 1985 edition does not define); a host refusal by a process outside the run unit answers '30'. The edge
-    /// is DERIVED (docs/VERSION_CHANGE_REFERENCE.md Table 7 row 7.39). Consumers: <c>FileRegistry.SharedOpenAttempt</c>
-    /// (the arbitration and the default mode) and <c>FileConnector.Open</c> (the cross-run-unit file lock and the
+    /// program is compiled for a processor on which it is not in effect. At <c>--std 85</c> 1985's own rule answers the OPEN of a
+    /// physical file another connector of the run unit holds open: its status 41 is keyed to the physical file (<i>"An OPEN
+    /// statement is attempted for a file in the open mode"</i>, §1985:VII.1.3.5, where "file" is <i>"the physical file
+    /// regardless of the file-name used"</i>, §1985:II.2), so that OPEN answers '41' in every pair of modes (the owner's decision
+    /// of 2026-11-24, kb/Work PB6161, replacing PB670's option (i)); no file lock is taken against other run units, and a host
+    /// refusal by a process outside the run unit answers '30'. From 2002, '41' is keyed to the file connector
+    /// (§2002:9.1.12.6, §2023:9.1.13.7 GR1) and the facility's Table 19 answers the same OPEN ('00' or '61'). The edge is
+    /// DERIVED (docs/VERSION_CHANGE_REFERENCE.md Table 7 row 7.39). Consumers: <c>FileRegistry.SharedOpenAttempt</c> (the
+    /// refusal, the arbitration and the default mode) and <c>FileConnector.Open</c> (the cross-run-unit file lock and the
     /// host refusal's status), both through <c>FileConnector.SharingFacilityInEffect</c>.</summary>
     FileSharingFacility = 2,
 

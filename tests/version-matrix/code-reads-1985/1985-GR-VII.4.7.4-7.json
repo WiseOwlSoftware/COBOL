@@ -2,70 +2,96 @@
  "rule-id": "1985-GR-VII.4.7.4-7",
  "rule-digest": "a93f0567cc16",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-126",
+  "pin": "9c9df6c3c8cd21723562256cbd96dd86442f7758",
+  "slice": "1985-pb6161",
   "sources": {
-   "reader": "20e9170bc5f4459a0cadc85ee07856342193ac4a9994c0f1a7c4d2bffcfdb769",
-   "refuter": "36f42f5698e704443f96abc322584ae83c422491de9c6ccc64124a0dc2d3e306"
+   "reader": "74fb74c1e37d3eac7c8827915aecba5efb6f258c7ea1ab1d171fad0bc70ca40a",
+   "refuter": "1631a2a834ed0650250ebb4b541aee142907de73aac2700056e14dc60a8a9564"
   },
   "imported": {
-   "reader": "ee2885e7df50a4e14cdc0053d211f05cd7515e19eac7fb14ca51b9c41839aadf",
-   "refuter": "cfc2cfb34cca0a42da66071e3d82e8366e3e203b12e59fb6a0028edd31d7211b"
+   "reader": "857d717fb027a02cfb6258b11017d2c9c0842d3f3579352d9174ffd2c0d9e79b",
+   "refuter": "088eb625ec47eaae6109b62db699664a1a9bfb09473ed1133b0c709b7ae4f737"
   }
  },
  "reader": {
   "rule-id": "1985-GR-VII.4.7.4-7",
   "verdict": "CONFORMS",
-  "requirement": "At --std 85, each successful WRITE hands its logical record to the operating system (it reaches the file, in order, and is not merely held in the record area), whatever the source of the record (record area, FROM a group item, figurative content); an unsuccessful WRITE releases nothing.",
-  "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#ReleaseRecord; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#ReleaseBufferedRecords; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#WriteRecord; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#OtherConnectorsMayShare; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#SharedOpenAttempt",
+  "requirement": "Each successful WRITE on a sequential file open OUTPUT or EXTEND must hand its logical record to the file so that it is part of the physical file a later OPEN (after CLOSE, or after STOP RUN's implicit CLOSE) reads, in every record form 1985 allows (fixed, RECORD VARYING); an unsuccessful WRITE (not open, wrong mode, GR8 size violation) releases nothing. At 1985 no second connector can observe the file while it is open (a sibling OPEN answers 41), so the release is observable only through the file's content after close; the witness covers the fixed-length OUTPUT case only.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#WriteRecord; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#ReleaseRecord; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#CloseCore; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#SharedOpenAttempt; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseAll; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#OtherConnectorsMayShare",
   "edition-consulted": [
    {
-    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SharingFacilityInEffect",
-    "switches": "DialectBehavior.FileSharingFacility (2002+): at 85 off, so OtherConnectorsMayShare is true only when another connector has the physical file open, and a WRITE flushes on release only then",
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#OtherConnectorsMayShare",
+    "switches": "via SharingFacilityInEffect (DialectBehavior.FileSharingFacility, from 2002): at 85 false, so ReleaseRecord does not flush per WRITE; the record stays in the writer buffer until CloseCore flushes it",
     "same-arm-as-latest": false
    },
    {
     "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#SharedOpenAttempt",
-    "switches": "at 85 (no sharing facility) every connector already open on the physical file releases its buffered records before a sibling's OPEN; at 2002+ Table 19 arbitrates the OPEN instead",
+    "switches": "c.SharingFacilityInEffect: at 85 any second connector's OPEN of an open physical file answers 41 before c.Open; from 2002 Table 19 arbitrates (61)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ImplementorDefaultSharing",
+    "switches": "FileSharingFacility: at 85 the default sharing is AllOther (host share mode only)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Status",
+    "switches": "IoStatusValuesOutside1985Lists: status reported through the 1985 list",
     "same-arm-as-latest": false
    }
   ],
-  "edition-search": "",
-  "behaviour-differs-by-edition": "yes: at --std 2023 the sharing facility applies, so the probe's OPEN INPUT of a second file-name on the physical file still open OUTPUT is refused with 61 (Table 19); at --std 85 it opens 00 and sees every released record",
-  "witnesses-cover": "part: g85_f22_05 reads back after CLOSE; not exercised: visibility of released records before CLOSE through a sibling connector, WRITE FROM a group item, and an unsuccessful WRITE releasing nothing",
+  "edition-search": "grep of DialectBehavior, Edition, SharingFacilityInEffect in SequentialConnector.cs, FileConnector.cs, FileRegistry.cs; the write path itself (WriteRecord) takes the same arm at every edition apart from the flush decision in ReleaseRecord",
+  "behaviour-differs-by-edition": "yes: at 85 a record is buffered until CLOSE and no sibling connector can open the file to see it (41); from 2002 a sibling admitted by Table 19 forces a flush per WRITE. The observable content after CLOSE is the same.",
+  "witnesses-cover": "part: g85_f22_05 covers fixed-length OUTPUT then CLOSE; not exercised are RECORD VARYING records, refused WRITEs releasing nothing, STOP RUN without CLOSE, and a sibling OPEN during the release",
   "probes": [
    {
-    "class": "d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-126/src/wrgr7.cob",
-    "printed": "F WRITES 00 / G OPEN WHILE F OUTPUT 00 / G SEES [ALPHA] / [GR007] / [ZZZZZ]",
-    "expected": "each WRITE (record area, FROM a group, ALL-literal content) has released its record before CLOSE, in order"
+    "class": "b,e",
+    "file": "E:/COBOL-coord/scratch/w20262162a-PB6161/reread/work-reader/p7a.cob",
+    "printed": "WRITE NOT OPEN 48 / W1 00 / SIBLING INPUT 41 / SIBLING OUTPUT 41 / SIBLING EXTEND 41 / W2 00 / WRITE IN INPUT 48 / OPEN F2 00 / 1 ALPHA / 2 BRAVO / COUNT 2 10",
+    "expected": "refused WRITEs (48) release nothing; the second connector's OPEN of the open file is 41 and leaves it unaffected (VII.1.3.5, VII.4.3.4 GR5); after CLOSE exactly the two released records ALPHA, BRAVO are in the file (GR7)"
    },
    {
-    "class": "a",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-126/src/wrgr7.cob",
-    "printed": "RECORD VARYING 3 TO 6: V LEN 2 44 / V LEN 7 44 / V LEN 4 00; read-back holds only V READ 04 [ABCD]",
-    "expected": "a size-violating WRITE is unsuccessful (GR8) and releases nothing; the valid one is released at its length"
+    "class": "a,b",
+    "file": "E:/COBOL-coord/scratch/w20262162a-PB6161/reread/work-reader/p7b.cob",
+    "printed": "W2 00 / W8 00 / W1 44 [A       ] / W9 44 / W4 00 (then STOP RUN with the file open)",
+    "expected": "lengths 2, 8, 4 released; lengths 1 and 9 refused 44 with nothing written and the record area unaffected (GR8)"
+   },
+   {
+    "class": "a,e",
+    "file": "E:/COBOL-coord/scratch/w20262162a-PB6161/reread/work-reader/p7c.cob (with runs/p7b-001/P7B.DAT)",
+    "printed": "OPEN 00 / 1 02 [AB      ] / 2 08 [ABCDEFGH] / 3 04 [LAST    ] / COUNT 3 10",
+    "expected": "STOP RUN's implicit CLOSE (VI.6.24.4 GR2) leaves the three released records at their lengths, and none of the refused ones"
    },
    {
     "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-126/src/wrgr7.cob",
-    "printed": "first draft WRITE FR FROM ALL \"Z\": error COBOL0871: FROM literal-1 requires COBOL-2002 (targeting COBOL-85)",
-    "expected": "the 1985 FROM operand is identifier-1 only: refused"
-   },
-   {
-    "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-126/src/wrgr7.cob",
-    "printed": "--std 2023: F WRITES 00 / G OPEN WHILE F OUTPUT 61 (then the probe's read loop on the unopened G timed out)",
-    "expected": "edition arm differs at the sharing layer only"
+    "file": "E:/COBOL-coord/scratch/w20262162a-PB6161/reread/work-reader/p7a.cob at --std 2023",
+    "printed": "SIBLING INPUT 61 / SIBLING OUTPUT 61 / SIBLING EXTEND 61; every other line identical",
+    "expected": "the edition arm: 2023 arbitrates by Table 19 (61), 1985 answers 41"
    }
   ],
   "citations": [
    {
     "cite": "§1985:VII.4.7.4 GR7",
     "check": "OK  §1985:VII.4.7.4 GR7  (4.7.4 General Rules)  the text is in GR7"
+   },
+   {
+    "cite": "§1985:VII.4.7.4 GR8",
+    "check": "OK  §1985:VII.4.7.4 GR8  (4.7.4 General Rules)  the text is in GR8"
+   },
+   {
+    "cite": "§1985:VII.1.3.5",
+    "check": "OK  §1985:VII.1.3.5  (1.3.5 I-O Status)  the text is in the clause; it lies in GRL2.4a"
+   },
+   {
+    "cite": "§1985:VII.4.3.4 GR5",
+    "check": "OK  §1985:VII.4.3.4 GR5  (4.3.4 General Rules)  the text is in GR5"
+   },
+   {
+    "cite": "§1985:VI.6.24.4 GR2",
+    "check": "OK  §1985:VI.6.24.4 GR2  (6.24.4 General Rules)  the text is in GR2"
    }
   ],
-  "notes": "The writer buffers; at 85 the buffer is flushed on each WRITE when a sibling connector holds the file and, before any sibling OPEN, by ReleaseBufferedRecords, so every record a successful WRITE released is in the file when anything can look. The edition consult is in the sharing layer (FileSharingFacility) and decides only flush timing and OPEN admission, not what WRITE releases.",
+  "notes": "Release at 1985 is the buffered write plus the flush in CloseCore (explicit CLOSE, or CloseAll at STOP RUN); with no file sharing facility and 41 on any sibling OPEN, no connector of the run unit can observe the buffer, so buffering until CLOSE conforms. Comment drift, not behaviour: the summary of SequentialConnector.cs#EnsureReaderCoherent and the OUTPUT arm of SequentialConnector.cs#OpenCore still say that at COBOL-85 a sibling OPEN OUTPUT is admitted and truncates, which the 41 arm in FileRegistry.SharedOpenAttempt now refuses (probe p7a: SIBLING OUTPUT 41).",
   "seeded": true,
   "harm": "",
   "cause": "",
@@ -78,8 +104,8 @@
  "refuter": {
   "rule-id": "1985-GR-VII.4.7.4-7",
   "refutation": "UPHELD",
-  "classes": "d,e",
-  "evidence": "Probe E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-126/src/rw7.cob (run rw7-001, --std 85): OPEN OUTPUT F X, WRITE from the record area, WRITE FROM a group holding a signed COMP-3 item, WRITE of HIGH-VALUES, WRITE RX FROM the group and of LOW-VALUES, then STOP RUN with NO CLOSE: 'WRITES 00 00'; rw7f.dat = 'AAAA' 'QQ' 01 2D FF FF FF FF and rw7x.dat = 51 51 01 2D 00 00 00 00: every released record reached the file in order even without CLOSE. With the reader's sibling-connector visibility before CLOSE and the size-violating WRITE releasing nothing, no form found where a successful WRITE's record is not released. cite.py: OK §1985:VII.4.7.4 GR7.",
+  "classes": "a,b,c,e",
+  "evidence": "Probes at --std 85 on the pinned Debug build (9c9df6c3c8), work-refuter/runs: r1-001 (nested INITIAL program SUBI OPEN OUTPUT + two WRITEs + EXIT PROGRAM with no CLOSE; non-INITIAL SUBN the same, then CANCEL) printed 'SUBI W 00 / AFTER INITIAL EXIT OPEN 00 / I 01 ALPHA / I 02 BRAVO / SUBN W 00 / SUBN STILL OPEN 41 / AFTER CANCEL OPEN 00 / N 01 CHARLIE / N 02 DELTA': the buffered records are released by the implicit CLOSE of the implicit CANCEL (EXIT PROGRAM of an initial program) and of the explicit CANCEL, and while SUBN holds the file the caller's second connector is refused 41, so no path of the run unit observes an unreleased buffer. r4-001 (WRITE AFTER ADVANCING 2 / BEFORE ADVANCING PAGE / plain WRITE, and a LINAGE file AFTER 1 / AFTER PAGE, then STOP RUN without CLOSE) printed '00 00' and both files hold every record (od: R4.DAT '\\n\\nONE  \\rTWO  \\f\\nTHREE\\n'; R4L.DAT '\\r\\nL1\\r\\n\\r\\n\\r\\n\\r\\nL2\\r\\n'). r3-001 class e: OPEN EXTEND of an absent non-optional file 35, then WRITE 48, and no R3NONE.DAT is created (nothing released). Class c: r2 'WRITE F1R WITH NO LOCK' refused COBOL0900; r2b 'WRITE FILE F1 FROM X' refused COBOL0900; r2c 'OPEN OUTPUT SHARING WITH ALL OTHER' refused COBOL0900 at 85. Reading: buffering until CLOSE conforms because 1985 itself contemplates blocking of logical records and no conforming 1985 observer exists (II.2 makes 'file' the physical file, so VII.4.3.4 GR5 and VII.1.3.5's 41 refuse every sibling OPEN). cite.py: 'OK  §1985:VII.4.7.4 GR7  (4.7.4 General Rules)  the text is in GR7'; 'OK  §1985:X.5.3.4 GR10  (║5.3.4 General Rules║)  the text is in GR10'; 'OK  §1985:X.5.4.4 GR3  (5.4.4 General Rules)  the text is in GR3'; 'OK  §1985:II.2  (2. FILES)  the text is in the clause'; 'OK  §1985:VII.4.3.4 GR5  (4.3.4 General Rules)  the text is in GR5'; 'OK  §1985:VII.1.3.5  (1.3.5 I-O Status)  the text is in the clause; it lies in GRL2.4a'. The uncommitted removal of NoteRelease() from SequentialConnector.OpenCore's OUTPUT arm does not bear on GR7: it announced a truncation, not a release, and at 85 no reader can be open beside an OUTPUT (r3-001 'SIBLING OUTPUT MID-READ 41'); not probed on a rebuilt tree (the build is the pin's). Side observation, not GR7: in R4.DAT a BEFORE ADVANCING write after an AFTER write is presented on the AFTER record's line after a bare CR (overprint); that is GR16's positioning, not the release.",
   "edition-sites-missed": [],
   "corrected": ""
  }

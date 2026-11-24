@@ -578,8 +578,8 @@ public sealed class StoreCoherenceTests
     /// writes at every statement, so its connector serializes against ANY other run unit
     /// (<see cref="FileLockPosture.AdmitsAnotherRunUnit"/>) and asks nothing else. The sequential organization asks two
     /// questions: its release (<c>SequentialConnector.ReleaseRecord</c>'s flush) asks about ANY other connector, a reader
-    /// as well as a writer, through the ONE read <c>FileConnector.OtherConnectorsMayShare</c> (kb/Work PB670 review R1-1, which
-    /// adds to the mode's answer the COBOL-85 rule that only an open sibling is owed; kb/Work PB1587: §2023:14.9.51.4 GR12 releases the record to the operating environment at the WRITE,
+    /// as well as a writer, through the ONE read <c>FileConnector.OtherConnectorsMayShare</c> (kb/Work PB670 review R1-1 and PB6161,
+    /// which answer no at COBOL-85, where no sibling can be open beside the writer; kb/Work PB1587: §2023:14.9.51.4 GR12 releases the record to the operating environment at the WRITE,
     /// and §2023:9.1.15 GR2 admits an INPUT reader beside a READ ONLY writer), while its shared append stream (its append
     /// position), its ordinal count (the release's and the <c>OPEN EXTEND</c>'s) and its reader's re-anchoring ask only
     /// about another WRITER (<see cref="FileLockPosture.AdmitsAnotherWriter"/>).

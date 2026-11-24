@@ -24,10 +24,9 @@
       *> DOC-A.1-131), so Table 19 refuses that pair '61'; the pair that
       *> Table 19 admits is the one both connectors DECLARE, and SHARING
       *> (with the LOCK MODE clause 14.9.27.3 SR8 couples to it) is a
-      *> COBOL-2002 clause. At COBOL-85 two clause-less connectors are
-      *> not arbitrated at all (kb/Work PB670, DOC-A.1-77: every OPEN
-      *> is a normal open), and GR5's visibility holds there too
-      *> (SharingFacilityEditionTests, unit).
+      *> COBOL-2002 clause. At COBOL-85 the second connector's OPEN of
+      *> the open file answers 41 (1985 keys 41 to the physical file,
+      *> kb/Work PB6161), so no two connectors share it there.
        ENVIRONMENT DIVISION.
        INPUT-OUTPUT SECTION.
        FILE-CONTROL.
