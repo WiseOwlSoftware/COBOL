@@ -140,9 +140,9 @@ public sealed class ProcedureRangeEmptinessDriftTests
         var state = new DispatchState();
 
         // A non-empty range renders the bounded call — inverted included.
-        Assert.Equal("__Dispatch(2, 6);", state.DispatchCall(PcRange.Of(2, 6)));
-        Assert.Equal("__Dispatch(5, 4);", state.DispatchCall(PcRange.Of(5, 4)));
-        Assert.Equal("__Dispatch(2, 6);   // x", state.DispatchCall(PcRange.Of(2, 6), "   // x"));
+        Assert.Equal("if (__Dispatch(2, 6, __direct) == ElementReturn.Returned) return ElementReturn.Returned;", state.DispatchCall(PcRange.Of(2, 6)));
+        Assert.Equal("if (__Dispatch(5, 4, __direct) == ElementReturn.Returned) return ElementReturn.Returned;", state.DispatchCall(PcRange.Of(5, 4)));
+        Assert.Equal("if (__Dispatch(2, 6, __direct) == ElementReturn.Returned) return ElementReturn.Returned;   // x", state.DispatchCall(PcRange.Of(2, 6), "   // x"));
 
         // An empty one is an emitter bug: the generated dispatcher's return test (__atExit && __pc == __exitPc+1)
         // cannot fire on it, so the program would run to the end of the pc space. Fail at COMPILE time instead.
@@ -157,7 +157,7 @@ public sealed class ProcedureRangeEmptinessDriftTests
     /// procedure range and therefore cannot be empty.</summary>
     private static readonly Dictionary<string, string> ExemptDispatchCalls = new(StringComparer.Ordinal)
     {
-        ["__Dispatch({bound.EntryPc}, {topExit})"] =
+        ["__Dispatch({bound.EntryPc}, {topExit}, {DispatchState.DirectParam}: true)"] =
             "the WHOLE program's entry dispatch (ISO §2023:14.2.3 GR1 — execution begins with the first "
             + "nondeclarative procedure): its bounds are the unit's own pc space, never a resolved procedure range",
         ["{dispatchState.DispatchName}(__startPc, __endPc)"] =
@@ -166,7 +166,7 @@ public sealed class ProcedureRangeEmptinessDriftTests
         ["__Dispatch(__ds, __de)"] =
             "inside the emitted __RunDebug helper — the bounds are its runtime parameters (a debug SUBJECT's "
             + "section range, which by construction contains the subject paragraph)",
-        ["{DispatchName}({range.Start}, {range.End}{arg})"] =
+        ["{DispatchName}({range.Start}, {range.End}, {DirectParam}{arg})"] =
             "DispatchState.DispatchCall itself — THE one construction site, which refuses an empty range",
     };
 

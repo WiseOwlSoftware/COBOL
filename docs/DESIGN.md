@@ -601,7 +601,7 @@ One C# method per program unit:
 
 ```csharp
 private const int N = /* paragraph count */;
-private static int Dispatch(int startPc, int exitPc) {
+private static int Dispatch(int startPc, int exitPc, bool direct = false) {
   int pc = startPc;
   while ((uint)pc < (uint)N) {
     bool atExit = pc == exitPc;                 // captured BEFORE the body (the body overwrites pc)
@@ -613,20 +613,21 @@ private static int Dispatch(int startPc, int exitPc) {
       default: pc = N; break;
     }
     if (atExit && pc == exitPc + 1) return pc;   // named THRU exit paragraph fell off its end
-    if (pc == LAST + 1) throw new ProgramReturn(); // past the element's last paragraph: the implicit GOBACK (§2023:14.6.3)
+    if (pc == LAST + 1) { if (direct) return ElementReturn.Returned; throw new ProgramReturn(); } // past the element's last paragraph: the implicit GOBACK (§2023:14.6.3)
   }
   return pc;
 }
-// The activation's own call is bounded at the LAST paragraph, so its fall-off is the at-exit return, never the throw.
-public void __Activate() { try { Dispatch(/*EntryPc*/0, /*LAST*/N - 1); } catch (ProgramReturn) { } }
+// The activation's own call is bounded at the LAST paragraph, so its fall-off is the at-exit return. It passes direct: true, so a
+// GOBACK reached through frames that all test the result (DispatchCall) returns ElementReturn.Returned instead of throwing (kb/Work PB6140).
+public void __Activate() { try { Dispatch(/*EntryPc*/0, /*LAST*/N - 1, direct: true); } catch (ProgramReturn) { } }
 ```
 
 This realizes the legacy's PROVEN **return-address / exit-bounded** dispatch in idiomatic C#.
 Control is followed by **pc value, never by physical block extent** — which is why inverted THRU ranges and
 GO-TO-out-of-and-back-into a PERFORM range are correct *for free*. A nested call (out-of-line PERFORM, SORT/MERGE
 procedure, `__RunUse`) whose range a GO TO left, or whose inverted THRU exit is never reached, can run past the
-source element's last paragraph without completing its range; that is the implicit GOBACK of §2023:14.6.3, so it throws
-the element's return signal (`MethodReturn` in a method's `__MDispatch`) instead of returning `pc`, which the
+source element's last paragraph without completing its range; that is the implicit GOBACK of §2023:14.6.3, so it takes
+the element's return (`MethodReturn` in a method's `__MDispatch` where it throws) instead of returning `pc`, which the
 performer would read as its range completing (kb/Work PB3511; `LAST` is below a unit's appended Format-3 handler
 pcs, docs/CONFORMANCE.md D-PTHRU for the inverted THRU).
 
@@ -638,7 +639,7 @@ pcs, docs/CONFORMANCE.md D-PTHRU for the inverted THRU).
 | `GO TO p` | `pc = idxP; break;` |
 | `GO TO p1 p2 … DEPENDING ON sel` | `switch ((int)sel) { case 1: pc=idx1; break; … default: /* no transfer → fall-through */ }` |
 | `ALTER g TO PROCEED TO t` | `_alter_g = idxT;` (a mutable `private static int _alter_g = <defaultTarget>;`); the alterable GO TO emits `pc = _alter_g; break;` |
-| out-of-line `PERFORM p [THRU q]` | `Dispatch(idxP, idxQ); pc=i+1; break;` (recursive bounded dispatch; idxQ=idxP if no THRU) |
+| out-of-line `PERFORM p [THRU q]` | `if (Dispatch(idxP, idxQ, direct) == ElementReturn.Returned) return ElementReturn.Returned; pc=i+1; break;` (recursive bounded dispatch; idxQ=idxP if no THRU) |
 | out-of-line `PERFORM` of an EMPTY range | the control-phrase loop with an EMPTY body and NO `Dispatch` call — a zero-paragraph section (§2023:14.4.2) makes GR4's specified set empty, and GR4's "function identically" makes that the inline emission minus the body |
 | `PERFORM p n TIMES` | `for (long i=0;i<n;i++) Dispatch(idxP, idxQ);` |
 | inline `PERFORM … END-PERFORM` | a REAL C# loop INSIDE the case (`for`/`while`/`do…while`), never a Dispatch call |
@@ -648,7 +649,7 @@ pcs, docs/CONFORMANCE.md D-PTHRU for the inverted THRU).
 | `EXIT` (bare) / `CONTINUE` | no-op (no statement) |
 | `NEXT SENTENCE` | forward `goto __sent_<n>;` to a sentence-boundary label in the same case |
 | `STOP RUN` | `throw new StopRun();` (caught only at run-unit `Main`) |
-| `GOBACK` / `EXIT PROGRAM` | `throw new ProgramReturn();` (caught at the current program's `Entry`) |
+| `GOBACK` / `EXIT PROGRAM` | `if (direct) return ElementReturn.Returned; throw new ProgramReturn();` (the direct return up frames that test for it, else the signal caught at the current program's `Entry`; kb/Work PB6140) |
 
 ### 5.3 Key decisions
 

@@ -223,10 +223,10 @@ public sealed record BoundSelfReference(Place Target) : BoundStatement;
 /// <summary>A method-context <c>GOBACK</c> / (pre-2023) <c>EXIT METHOD</c> (ISO §2023:14.9.18.4 GR4; deep-dive D8 —
 /// the one decision that silently miscompiles if missed): terminates the executing METHOD only, returning
 /// control to the INVOKE site — never the run unit (<see cref="BoundStop"/>) and never the program activation
-/// (<see cref="BoundGoback"/>). Rendered as <c>throw new MethodReturn()</c>, caught at the method's public
-/// entry (the ProgramReturn-pattern realization of D8: a plain <c>return</c> cannot unwind the nested bounded
-/// <c>__Dispatch</c> frames an out-of-line PERFORM stacks).</summary>
+/// (<see cref="BoundGoback"/>). Rendered by <c>DispatchState.ReturnToActivator</c>: <c>ElementReturn.Returned</c> returned up
+/// the nested bounded <c>__MDispatch</c> frames an out-of-line PERFORM stacks, each of which tests for it, or, below a frame
+/// that does not, <c>throw new MethodReturn()</c>, caught at the method's public entry (kb/Work PB6140).</summary>
 public sealed record BoundMethodReturn(BoundRaising? Raising = null) : BoundStatement, IBoundTransfersControl;
 // Raising: GOBACK/EXIT METHOD … RAISING from a method (§2023:14.9.18.4 GR1b; the EC-OO wave) — STAGED before
-// the MethodReturn throw; the INVOKE site's pickup applies the §2023:14.6.13.1.5 activator rules AFTER the
-// RETURNING delivery + copy-outs (GR1b's result-before-exception ordering falls out of the throw/catch).
+// the method's return; the INVOKE site's pickup applies the §2023:14.6.13.1.5 activator rules AFTER the
+// RETURNING delivery + copy-outs (GR1b's result-before-exception ordering falls out of the method entry).
