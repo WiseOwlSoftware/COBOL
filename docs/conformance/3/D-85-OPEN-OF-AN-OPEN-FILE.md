@@ -15,7 +15,7 @@
   connector's own second OPEN. The second connector's OPEN is arbitrated instead: "the sharing mode and the open mode shall be
   allowed by all other file connectors that are currently associated with the physical file" (`§2002:9.1.14`, `§2014:9.1.14`,
   `§2023:9.1.15`), under the implementor default when no SHARING phrase or clause is written (`§2002:14.8.26.3 GR22`,
-  `§2014:14.9.26.3 GR22`, `§2023:14.9.27.4 GR23`; WiseOwl's default, DOC-A.1-77: INPUT is SHARING WITH READ ONLY, every other mode
+  `§2014:14.9.26.3 GR22`, `§2023:14.9.27.4 GR23`; WiseOwl's default, A.1 item 77: INPUT is SHARING WITH READ ONLY, every other mode
   SHARING WITH NO OTHER), and a refusal is the file sharing conflict condition, I-O status 61 (`§2002:9.1.12.8`, `§2014:9.1.12.8`,
   `§2023:9.1.13.9 GR1`). Two clause-less readers therefore share the file (00), and every other pair answers 61. Toward another run
   unit COBOL-85 promises nothing: no file lock is taken, and a host refusal by a process outside the run unit answers 30. One
