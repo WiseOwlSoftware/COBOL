@@ -52,6 +52,8 @@ clause, and D-IO-STATUS-04 pins them. It also found 2002 rejecting legal source:
 2002, where only 2014's SR20 grants that equivalence, so two clauses binding them to EUR and USD were refused COBOL0891.
 `CurrencySymbolEquivalence.Fold` now folds a character outside the repertoire only from 2014, which also refuses `PIC É9.99` under
 `CURRENCY SIGN IS "é"` at 85 and 2002 (PB6162, landed). The 2023 sharing quotation is now 2023's own wording. The 1985 code reads of
-1985-GR-VIII.1.3.4-L2.1 and 1985-GR-VII.4.3.4-5 were re-read and refuted, and the change record of the second became CHANGED (PB6165).
+1985-GR-VIII.1.3.4-L2.1 and 1985-GR-VII.4.3.4-5 were re-read and refuted. The change record of the second became CHANGED (PB6165);
+the import then refused its read (a code read adjudicates only a KEPT row's shared verdict), so the stored read was withdrawn and
+the row holds the decision in its own verdict and notes.
 PB6166 records the refuter's unadjudicated ADVANCING overprint.
 
