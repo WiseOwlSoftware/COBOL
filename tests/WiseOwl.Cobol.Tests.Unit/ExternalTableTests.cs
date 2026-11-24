@@ -68,4 +68,23 @@ public class ExternalTableTests
         t.Describe("A", "F", File(), ExternalChecks.DataMismatch);
         t.Describe("B", "F", File(), ExternalChecks.DataMismatch);   // no throw
     }
+
+    [Fact]   // kb/Work PB6017: §2023:13.18.22.4 GR6 compares the byte count of records that define one; a null count (a variable-length
+    public void FixedRecordsOfDifferentSize_RaiseFormatConflict_VariableLengthRecordsDoNot()   // record) defines none and agrees.
+    {
+        var t = new ExternalTable();
+        t.Describe("A", "R", new ExternalDescriptor("record", ByteCount: 4), ExternalChecks.FormatConflict);
+        var ex = Assert.Throws<CobolCallException>(() =>
+            t.Describe("B", "R", new ExternalDescriptor("record", ByteCount: 5), ExternalChecks.FormatConflict));
+        Assert.Equal("EC-EXTERNAL-FORMAT-CONFLICT", ex.EcName);
+
+        var v = new ExternalTable();
+        v.Describe("A", "R", new ExternalDescriptor("record", ByteCount: null), ExternalChecks.FormatConflict);
+        v.Describe("B", "R", new ExternalDescriptor("record", ByteCount: null), ExternalChecks.FormatConflict);   // no throw
+        v.Describe("C", "R", new ExternalDescriptor("record", ByteCount: 9), ExternalChecks.FormatConflict);      // no throw
+        var vv = new ExternalTable();
+        vv.Describe("A", "R", new ExternalDescriptor("record", ByteCount: null, ConstantRecord: true), ExternalChecks.FormatConflict);
+        Assert.Throws<CobolCallException>(() =>   // the identity facts are still compared
+            vv.Describe("B", "R", new ExternalDescriptor("record", ByteCount: null), ExternalChecks.FormatConflict));
+    }
 }

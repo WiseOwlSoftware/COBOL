@@ -25,11 +25,11 @@ namespace WiseOwl.Cobol.Binding;
 internal static class ExternalRecordDescription
 {
     /// <summary>The description <paramref name="backing"/>'s source element gives of its external record: its size in the
-    /// characters (bytes) of its one shared image, the record name's OWN VALUE clause specification as a canonical key
+    /// characters (bytes) of its one shared image (null for a variable-length record, <see cref="DefinesItsSize"/>), the record name's OWN VALUE clause specification as a canonical key
     /// (<see cref="ValueSpecificationKey"/>), the external strong TYPE name (upper-folded), and the CONSTANT RECORD presence.</summary>
     public static ExternalDescriptor Of(CallExternalBacking backing) => new(
         "record",
-        ByteCount: backing.Width,
+        ByteCount: DefinesItsSize(backing) ? backing.Width : null,
         ValueImage: backing.Record.RawValue is { } rv ? ValueSpecificationKey(rv) : null,
         StrongTypeKey: backing.Record.StrongType && backing.Record.TypeName is { } tn ? CobolNames.UpperFold(tn) : null,
         ConstantRecord: backing.Record.IsConstantRecord);
