@@ -87,7 +87,7 @@ public sealed class OoNameResolutionDriftTests
         foreach (string rel in new[]
                  {
                      Path.Combine("Oo", "OoClassTable.cs"),                          // INHERITS, IMPLEMENTS
-                     Path.Combine("Binding", "Procedure", "ProcedureTableBuilder.cs"),// USE Format 4
+                     Path.Combine("Binding", "Procedure", "UseStatementBinder.cs"),   // USE Format 4
                      // USAGE OBJECT REFERENCE and the object-view's AS phrase: OoDataBinder.DescribeNamedReference (kb/Work PB389).
                      Path.Combine("Binding", "OoDataBinder.cs"),
                      Path.Combine("Binding", "RaisingPhrase.cs"),                     // PD-header + METHOD-ID RAISING (PB815)
