@@ -131,6 +131,17 @@ public sealed class ReferenceFormatDiagnostics(int dialectLevel, bool permissive
             + "indicator or a fixed continuation indicator (ISO/IEC 1989:2002 clause 6.1.2.1 SR8)", At(file, line, column), default);
     }
 
+    /// <summary>ISO/IEC 1989:2002 clause 7.2.2 SR8 d) — COBOL8092: a compiler directive written on a debugging line, reported at
+    /// the directive indicator. A 2002 rule: the 2014 and 2023 texts have no debugging line to forbid it on, and COBOL-85 has no
+    /// directive (kb/Work PB5701).</summary>
+    public void OnDirectiveOnDebuggingLine(string file, int line, int column)
+    {
+        if (dialectLevel != 2002) return;
+        diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.DirectiveOnDebuggingLine.Code,
+            "a compiler directive shall not be specified on a debugging line (ISO/IEC 1989:2002 clause 7.2.2 SR8 d)",
+            At(file, line, column), default);
+    }
+
     /// <summary>A debugging line written between the parts of a continued literal, passed over by the logical conversion
     /// as it would a comment line (kb/Work PB2490). Whether it is one is decided later, per source unit, by
     /// <c>DebuggingLineRewriter</c>; <see cref="OnSourceDebuggingLines"/> reports it if the unit's mode makes it source.</summary>

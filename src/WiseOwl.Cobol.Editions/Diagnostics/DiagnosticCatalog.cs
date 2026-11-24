@@ -3706,6 +3706,17 @@ public static class DiagnosticCatalog
         "ISO/IEC 1989:2002 clause 6.1.2.1 SR8",
         No1985Rule: No1985Floating);
 
+    /// <summary>COBOL8092 — at COBOL 2002 a compiler directive written on a debugging line (kb/Work PB5701). ISO/IEC 1989:2002
+    /// clause 7.2.2 SR8 d): a compiler directive may be specified anywhere in a compilation group except on a debugging line. The
+    /// 2014 and 2023 texts carry no such rule (they have no debugging line), so only the 2002 edition refuses it.</summary>
+    public static readonly DiagnosticDescriptor DirectiveOnDebuggingLine = new(
+        "COBOL8092", "directive-on-debugging-line", EditionSeverity.Error,
+        "A compiler directive is written on a debugging line (indicator D, or the floating indicator >>D). ISO/IEC 1989:2002 "
+        + "clause 7.2.2 SR8: \"A compiler directive may be specified anywhere in a compilation group, in source text or in library "
+        + "text, except ... d) on a debugging line.\" Write the directive on a line of its own.",
+        "ISO/IEC 1989:2002 clause 7.2.2 SR8 d)",
+        No1985Rule: No1985Directive);
+
     /// <summary>COBOL2687 — a literal continued with both the fixed and the floating form (kb/Work PB1359).
     /// §2023:6.2.3.2 SR4, second sentence.</summary>
     public static readonly DiagnosticDescriptor LiteralContinuedTwoForms = new(

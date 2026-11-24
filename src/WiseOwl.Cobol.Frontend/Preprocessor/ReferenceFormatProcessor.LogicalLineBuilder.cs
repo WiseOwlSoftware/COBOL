@@ -177,6 +177,7 @@ public static partial class ReferenceFormatProcessor
             // it finds the literal it left open.
             var state = LiteralState.Outside;
             string kept = Scan(programText, 0, ref state, site, fixedContinuation: false);
+            CheckNoDirective(programText, site);
             if (CobolSpace.IsBlank(kept))
             {
                 // A blank line, logically discarded (§2023:6.5 GR2): its slot stays and it touches neither the join target nor the
@@ -198,6 +199,16 @@ public static partial class ReferenceFormatProcessor
                 return;
             }
             Emit(text, spans, state, isDirective: false);
+        }
+
+        /// <summary>ISO/IEC 1989:2002 clause 7.2.2 SR8 d): "A compiler directive may be specified anywhere in a compilation group
+        /// ... except ... d) on a debugging line" — COBOL8092 for a debugging line whose program text (the floating indicator
+        /// already written as spaces) is a compiler-directive line. A fixed <c>D</c> line whose text begins <c>&gt;&gt;D</c> is
+        /// the floating indicator on a fixed one (<see cref="CheckNoFloatingDebuggingOnFixedIndicator"/>), not a directive.</summary>
+        private void CheckNoDirective(string programText, TextSite site)
+        {
+            if (!CompilerDirectiveLine.TryParse(programText, out _) || TryFloatingDebugging(programText, spaceFilled: true, out _)) return;
+            gates?.OnDirectiveOnDebuggingLine(file, site.Line, site.Col(FirstNonSpace(programText)));
         }
 
         /// <summary>The FLOATING debugging indicator <c>&gt;&gt;D</c> (ISO/IEC 1989:2002 clause 6.1.2, "a debugging line when
