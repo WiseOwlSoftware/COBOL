@@ -256,7 +256,6 @@ public sealed partial class SequentialConnector : FileConnector
     /// and an ordinal of a print line is no record identity in either arm.</para></summary>
     private void ReleaseRecord()
     {
-        ThrowDeferredReleaseFault();
         bool anotherWriter = FileLockPosture.AdmitsAnotherWriter(HostShare);
         bool released = OtherConnectorsMayShare;   // a READER or a writer may be open beside this one
         if (released)
@@ -270,30 +269,6 @@ public sealed partial class SequentialConnector : FileConnector
         _writeOrdinal = anotherWriter && released && FileLock!.CanRead
             ? PhysicalOrdinalOfRelease((SharedAppendStream)_writer!.BaseStream)   // §2023:9.1.16 identity, off the medium
             : ++shared.ReleasedOrdinal;                                           // …or the only writer's mint
-    }
-
-    /// <summary>A host refusal met by <see cref="ReleaseBufferedRecords"/>, held for the statement that owns the bytes.</summary>
-    private IOException? _deferredReleaseFault;
-
-    /// <inheritdoc/>
-    internal override void ReleaseBufferedRecords()
-    {
-        if (_writer is null || _deferredReleaseFault is not null) return;
-        try
-        {
-            _writer.Flush();   // GR12 - the records already WRITTEN are released before the sibling's OPEN reads the medium
-            NoteRelease();
-        }
-        catch (IOException refused) { _deferredReleaseFault = refused; }
-    }
-
-    /// <summary>Report the refusal <see cref="ReleaseBufferedRecords"/> held, once, at the writer's own next release or
-    /// CLOSE, through the catch shape those statements already have (<see cref="WriteRecord"/>).</summary>
-    private void ThrowDeferredReleaseFault()
-    {
-        if (_deferredReleaseFault is not { } fault) return;
-        _deferredReleaseFault = null;
-        System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw(fault);
     }
 
     /// <summary>The records counted so far of the physical file a sharing writer appends to: the ones that START
@@ -374,8 +349,8 @@ public sealed partial class SequentialConnector : FileConnector
     private void EnsureReaderCoherent()
     {
         if (Physical is not { } physical) return;
-        // At COBOL-85 no other run unit is owed (OtherConnectorsMayShare): a sibling connector of this run unit announces
-        // its releases through the generation, and that is all this reader compares.
+        // At COBOL-85 no other run unit is owed (OtherConnectorsMayShare) and no sibling connector of this run unit can be open
+        // on the file beside this one (§1985:VII.1.3.5's '41', kb/Work PB6161), so the generation is all this reader compares.
         bool anotherRunUnitMayWrite = SharingFacilityInEffect && FileLockPosture.AdmitsAnotherWriter(HostShare);
         if (!anotherRunUnitMayWrite && physical.ReleaseGeneration == _coherentAt) return;
         _coherentAt = physical.ReleaseGeneration;
@@ -1190,7 +1165,6 @@ public sealed partial class SequentialConnector : FileConnector
     protected override string OpenCore(FileOpenMode mode, FilePresence presence)
     {
         _printControl = false;
-        _deferredReleaseFault = null;   // a refusal held for the previous OPEN's writer ended with that OPEN
         _device = DeviceLine.Fresh;
         _lineEnd = SelectLineEnd();   // the registry told HasLinageClause before this OPEN's body ran
         _lastReadBlockStart = -1;
@@ -1427,7 +1401,6 @@ public sealed partial class SequentialConnector : FileConnector
             // An unterminated line — an AFTER write's record — is ended here; a line some travel already ended
             // gets nothing (kb/Work PB864).
             if (_device != DeviceLine.Fresh) { _writer?.Write(_lineEnd); _device = DeviceLine.Fresh; }
-            ThrowDeferredReleaseFault();
             _writer?.Flush();   // the records land before the bytes that guard them are given back; a refusal maps to '30' (§2023:9.1.13.6 GR1)
         }
         finally
