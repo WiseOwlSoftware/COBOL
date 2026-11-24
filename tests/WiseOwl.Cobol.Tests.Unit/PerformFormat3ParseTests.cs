@@ -68,7 +68,7 @@ public sealed class PerformFormat3ParseTests
         var r = Parse(Prog("    PERFORM\n        ADD 1 TO N\n    WHEN EC-I-O-PERMANENT-ERROR RESUME AT NEXT STATEMENT\n    END-PERFORM.\n    STOP RUN."), 2023);
         AssertParses(r);
         // Exactly ONE exception-name operand (EC-I-O-PERMANENT-ERROR); RESUME was NOT swallowed as a second one.
-        var ecItems = Descendants<CobolParserCore.PerformWhenEcItemContext>(r.Tree!).ToList();
+        var ecItems = Descendants<CobolParserCore.ExceptionSelectionOperandContext>(r.Tree!).ToList();
         Assert.Single(ecItems);
         // The RESUME landed as the WHEN body (a resumeStatement inside the phrase).
         Assert.Single(Descendants<CobolParserCore.ResumeStatementContext>(r.Tree!));
@@ -99,7 +99,7 @@ public sealed class PerformFormat3ParseTests
             "    PERFORM\n        ADD 1 TO N\n    WHEN EC-BOUND-SUBSCRIPT " + imp2 + "\n    END-PERFORM.\n    STOP RUN.\n";
         var r = Parse(src, 2023);
         AssertParses(r);
-        Assert.Single(Descendants<CobolParserCore.PerformWhenEcItemContext>(r.Tree!));
+        Assert.Single(Descendants<CobolParserCore.ExceptionSelectionOperandContext>(r.Tree!));
     }
 
     // ── (2) RESUME AT? — all four spellings parse (the §2023:14.9.33.2 AT-optional fix).
@@ -137,7 +137,7 @@ public sealed class PerformFormat3ParseTests
     {
         var r = Parse(Prog("    PERFORM\n        ADD 1 TO N\n    WHEN EC-BOUND-SUBSCRIPT DISPLAY \"x\"\n    END-PERFORM.\n    STOP RUN."), 2023);
         AssertParses(r);
-        Assert.Single(Descendants<CobolParserCore.PerformWhenEcItemContext>(r.Tree!));
+        Assert.Single(Descendants<CobolParserCore.ExceptionSelectionOperandContext>(r.Tree!));
     }
 
     // ── (4) The trailing WHEN OTHER / WHEN COMMON / FINALLY lines, with and without the optional 2nd EXCEPTION.
@@ -185,7 +185,7 @@ public sealed class PerformFormat3ParseTests
         AssertParses(r);
         Assert.Single(Descendants<CobolParserCore.PerformFinallyContext>(r.Tree!));
         // EC-SIZE is the ONLY operand — FINALLY was not swallowed as a second exception-name.
-        Assert.Single(Descendants<CobolParserCore.PerformWhenEcItemContext>(r.Tree!));
+        Assert.Single(Descendants<CobolParserCore.ExceptionSelectionOperandContext>(r.Tree!));
     }
 
     /// <summary>The same statement with imperative-statement-2 OMITTED is refused: §2023:14.9.28.2 Format 3 leaves it
