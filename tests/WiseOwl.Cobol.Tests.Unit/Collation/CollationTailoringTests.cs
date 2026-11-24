@@ -48,8 +48,7 @@ public sealed class CollationTailoringTests
     [Fact]
     public void ForLocale_SiteFileOfACldrParentApplies()   // kb/Work PB6137: nb -> no, es-MX -> es-419
     {
-        string dir = Path.Combine(Path.GetTempPath(), "tailor-chain-" + Guid.NewGuid().ToString("N"));
-        Directory.CreateDirectory(dir);
+        string dir = ScratchDirectory.Create("tailor-chain-");
         string? saved = Environment.GetEnvironmentVariable(TailoringRules.EnvDirectory);
         try
         {
@@ -64,7 +63,7 @@ public sealed class CollationTailoringTests
         finally
         {
             Environment.SetEnvironmentVariable(TailoringRules.EnvDirectory, saved);
-            Directory.Delete(dir, recursive: true);
+            ScratchDirectory.Remove(dir);
         }
     }
 
