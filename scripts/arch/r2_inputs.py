@@ -211,11 +211,36 @@ def analyzer_key(commit: str) -> dict:
     return {"pin": commit, "version": STEP_VERSION["analyzers"], "modern_rules": MODERN_RULES}
 
 
-PROJECT_ORDER = ["WiseOwl.Cobol.Editions", "WiseOwl.Cobol.Runtime", "WiseOwl.Cobol.Frontend", "WiseOwl.Cobol.Cli",
-                 "WiseOwl.Cobol.Compiler.SourceGen", "WiseOwl.Cobol.Compiler", "WiseOwl.Cobol.Benchmarks",
-                 "WiseOwl.Cobol.Tests.Characterization", "WiseOwl.Cobol.Tests.Conformance", "WiseOwl.Cobol.Tests.Unit",
-                 "WiseOwl.Cobol.Tests.RepoDrift",
-                 "WiseOwl.Cobol.ArchOracle"]
+def project_order(tree: Path) -> list[str]:
+    """Every C# project of the tree's solution, each after the projects it references (`<ProjectReference>`, the
+    analyzer reference included): the analyzer step builds them one at a time with `--no-incremental`, so a project
+    built before its reference fails on the reference's missing DLL. COMPUTED from `WiseOwl.Cobol.sln`, never listed:
+    the hand list missed WiseOwl.Cobol.Analyzers and WiseOwl.Cobol.Listing, both added after it was written, and the
+    analyzer build of the first project then failed (2026-11-24, pin 9e65164eb; kb/Work PB6171)."""
+    sln = (tree / "WiseOwl.Cobol.sln").read_text(encoding="utf-8")
+    paths = {m.group(1): tree / m.group(2).replace("\\", "/")
+             for m in re.finditer(r'^Project\("[^"]*"\) = "([^"]+)", "([^"]+\.csproj)"', sln, re.M)}
+    refs = {name: {Path(r.replace("\\", "/")).stem
+                   for r in re.findall(r'<ProjectReference\s+Include="([^"]+)"', path.read_text(encoding="utf-8"))}
+            for name, path in paths.items()}
+    order, state = [], {}
+
+    def visit(name, chain):
+        if state.get(name) == "done":
+            return
+        if state.get(name) == "open":
+            raise SystemExit("project reference cycle: " + " -> ".join(chain + [name]))
+        state[name] = "open"
+        for dep in sorted(refs[name]):
+            if dep not in refs:
+                raise SystemExit("%s references %s, which is not in WiseOwl.Cobol.sln" % (name, dep))
+            visit(dep, chain + [name])
+        state[name] = "done"
+        order.append(name)
+
+    for name in sorted(refs):
+        visit(name, [])
+    return order
 
 
 def project_of(path: str) -> str | None:
@@ -232,11 +257,18 @@ def analyzer_worktree(commit: str, out: Path) -> Path:
     if not (wt / "WiseOwl.Cobol.sln").exists():
         subprocess.run(["git", "-C", str(REPO), "worktree", "add", "--detach", str(wt), commit], check=True,
                        capture_output=True)
-        # a plain build first, so each analyzer step compiles ONLY its own project (BuildProjectReferences=false)
-        r = subprocess.run(["dotnet", "build", str(wt / "WiseOwl.Cobol.sln"), "-c", "Debug", "-nologo", "-nodeReuse:false",
-                            "-v:minimal"], capture_output=True, text=True, encoding="utf-8", errors="replace")
-        if r.returncode != 0:
-            raise SystemExit("the pin's plain build failed (exit %d):%s" % (r.returncode, r.stdout[-3000:]))
+        # A plain build first, so each analyzer step compiles ONLY its own project (BuildProjectReferences=false). It
+        # builds each PROJECT, never the solution, because a reference resolves differently in the two: in a solution
+        # build MSBuild assigns every in-solution reference the solution's configuration, so the analyzer project that
+        # every src project references with SetConfiguration=Release is built as Debug only, while the analyzer step's
+        # project-alone build honours SetConfiguration and reads bin/Release, which then does not exist (CS0006;
+        # kb/Work PB6171). Built project by project, every reference is built where the analyzer step reads it.
+        for name in project_order(wt):
+            proj = next(wt.glob("*/%s/%s.csproj" % (name, name)))
+            r = subprocess.run(["dotnet", "build", str(proj), "-c", "Debug", "-nologo", "-nodeReuse:false", "-v:minimal"],
+                               capture_output=True, text=True, encoding="utf-8", errors="replace")
+            if r.returncode != 0:
+                raise SystemExit("the pin's plain build of %s failed (exit %d):%s" % (name, r.returncode, r.stdout[-3000:]))
     return wt
 
 
@@ -418,9 +450,10 @@ def build(pin: Path, out: Path, max_lines: int, projects=None):
             "notes": cached(out, "notes", dict(pin_key("notes"), register=head), lambda: open_notes(files)),
             "analyzers": {}}
     measured = set()
-    wanted = [p for p in PROJECT_ORDER if projects is None or p in projects]
+    all_projects = project_order(pin)
+    wanted = [p for p in all_projects if projects is None or p in projects]
     akey = analyzer_key(commit)
-    for proj in PROJECT_ORDER:
+    for proj in all_projects:
         step = "analyzers-" + proj
         if proj in wanted and cached_data(out, step, akey) is None:
             wt = analyzer_worktree(commit, out)
@@ -429,7 +462,7 @@ def build(pin: Path, out: Path, max_lines: int, projects=None):
         if data is not None:
             mech["analyzers"].update(data)
             measured.add(proj)
-    if measured == set(PROJECT_ORDER) and (out / "mech" / "tree").exists():   # every project measured: drop the tree
+    if measured == set(all_projects) and (out / "mech" / "tree").exists():   # every project measured: drop the tree
         subprocess.run(["git", "-C", str(REPO), "worktree", "remove", "--force", str(out / "mech" / "tree")],
                        capture_output=True)
     census = json.loads((REPO / (m["census"][:-5] + ".findings.json")).read_text(encoding="utf-8"))
@@ -489,6 +522,32 @@ def self_test():
         nonlocal ok
         print(("PASS  " if cond else "FAIL  ") + name)
         ok = ok and cond
+
+    # project_order (kb/Work PB6171): computed from the solution, each project after what it references; a project the
+    # hand list never named (the analyzer project) is built first because the others reference it.
+    with tempfile.TemporaryDirectory() as td:
+        t = Path(td)
+        projs = {"src/WiseOwl.Cobol.Analyzers": [], "src/WiseOwl.Cobol.Editions": ["..\\WiseOwl.Cobol.Analyzers\\WiseOwl.Cobol.Analyzers.csproj"],
+                 "src/WiseOwl.Cobol.Compiler": ["..\\WiseOwl.Cobol.Editions\\WiseOwl.Cobol.Editions.csproj"],
+                 "tests/WiseOwl.Cobol.Tests.Unit": ["..\\..\\src\\WiseOwl.Cobol.Compiler\\WiseOwl.Cobol.Compiler.csproj"]}
+        sln = ""
+        for folder, deps in projs.items():
+            name = folder.split("/")[1]
+            (t / folder).mkdir(parents=True)
+            (t / folder / (name + ".csproj")).write_text(
+                "<Project>" + "".join('<ProjectReference Include="%s" />' % d for d in deps) + "</Project>", encoding="utf-8")
+            sln += 'Project("{FAE04EC0}") = "%s", "%s\\%s.csproj", "{0}"\nEndProject\n' % (name, folder.replace("/", "\\"), name)
+        (t / "WiseOwl.Cobol.sln").write_text(sln, encoding="utf-8")
+        order = project_order(t)
+        arm("project_order puts every project after the ones it references, the unlisted analyzer project first",
+            order == ["WiseOwl.Cobol.Analyzers", "WiseOwl.Cobol.Editions", "WiseOwl.Cobol.Compiler", "WiseOwl.Cobol.Tests.Unit"])
+        (t / "src/WiseOwl.Cobol.Analyzers/WiseOwl.Cobol.Analyzers.csproj").write_text(
+            '<Project><ProjectReference Include="..\\WiseOwl.Cobol.Compiler\\WiseOwl.Cobol.Compiler.csproj" /></Project>', encoding="utf-8")
+        try:
+            project_order(t)
+            arm("project_order refuses a reference cycle", False)
+        except SystemExit as e:
+            arm("project_order refuses a reference cycle", "cycle" in str(e))
 
     # A fixture root only: parse_warnings compares path strings and nothing is read or written there. Under a drive or
     # filesystem anchor, never a fixed name in the machine-wide temp directory (kb/Work PB2922).
