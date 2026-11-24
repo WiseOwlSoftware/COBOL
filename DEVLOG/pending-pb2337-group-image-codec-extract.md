@@ -41,3 +41,7 @@ PROJECT_ORG_DESIGN.md, D-USAGE-BIT.md, the §8.3 row) now name the new homes.
 **Neutrality.** `python scripts/arch/compare_oracle.py --no-build`:
 `=== ARCH-ORACLE: IDENTICAL — 23650 cases (baseline f6ad06877c76, new f6ad06877c76-dirty) ===`.
 `python scripts/semgrep/verify.py`: PASS, no rule's count moved.
+
+**Gate.** `pwsh scripts/build-local.ps1 -Priority BelowNormal` at e3540158df, run 000001-20261124T232631Z:
+`=== BUILD-LOCAL GATE: GREEN — Conformance 29,412/29,412 ran · Unit 42,990/42,990 ran · RepoDrift 245/245 ran ·
+Characterization 37/37 ran (skipped 0) …`. All three `GroupImageCodecBoundaryDriftTests` facts passed (Unit.trx).
