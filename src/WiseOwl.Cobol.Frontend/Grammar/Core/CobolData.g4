@@ -87,7 +87,8 @@ fileDescriptionClause
     | labelRecordsClause
     | dataRecordsClause
     | valueOfClause
-    | fileGlobalExternalClause
+    | externalClause   // §2023:13.4.5.2 prints `[ IS EXTERNAL [ AS literal-1 ] ]` and `[ IS GLOBAL ]` as two brackets:
+    | globalClause     // the ONE clause rules each, shared with the data description entry (kb/Work PB2724)
     | linageClause
     | reportClause
     | unrecognizedDataClause   // ⛔ LAST — refused BY NAME by ClosedFormatPass (COBOL1970)
@@ -110,20 +111,6 @@ formatClause
 // REPORT(S) clause (§2023:13.18.46): names the report(s) produced on this file by the Report Writer.
 reportClause
     : (REPORT IS? | REPORTS ARE?) refReportName1=reportName+
-    ;
-
-// IS GLOBAL / IS EXTERNAL on an FD (§2023:13.18.27/§2023:13.18.22): GLOBAL makes the file-name and
-// record visible to contained programs; EXTERNAL shares the file across the run unit.
-// Parsed here; GLOBAL visibility is handled by nested-program name resolution.
-// ⛔ THE TWO ARMS ARE NOT SYMMETRIC, and writing them as one `(GLOBAL | EXTERNAL)` hid it (kb/Work PB511):
-// the file-description Formats 1/2/3 (§2023:13.4.5.2, rendered) print `[ IS EXTERNAL [ AS literal-1 ] ]` and
-// `[ IS GLOBAL ]` — the AS phrase rides EXTERNAL ONLY, because §2023:13.18.22.4 GR5 makes literal-1 the name of
-// the FILE CONNECTOR that is externalized to the operating environment and the GLOBAL clause (§2023:13.18.27)
-// has no such phrase at all. This is the FD arm of the one EXTERNAL clause; its data-description twin is
-// externalClause below, and both take the SHARED externalizedNamePhrase (PB303's one gate, one screen).
-fileGlobalExternalClause
-    : IS? GLOBAL
-    | IS? EXTERNAL externalizedNamePhrase?
     ;
 
 // BLOCK CONTAINS clause (§2023:13.18.10)
@@ -308,7 +295,7 @@ dataDescriptionBody
 // optional words are "shown in uppercase and not underlined in general formats" and "may be written to add clarity"). No alternative of constantValue begins with a word the clause list or FROM can
 // begin with (FROM and RECORD are reserved), so the bare operand stays LL-disjoint from `CONSTANT RECORD`.
 constantEntryBody
-    : CONSTANT (IS? GLOBAL)? (AS? constantValue | FROM nnCobolWord1=cobolWord)
+    : CONSTANT globalClause? (AS? constantValue | FROM nnCobolWord1=cobolWord)
     ;
 
 // The constant entry as a REPORT SECTION entry (kb/Work PB1226): §2023:13.8.2's brace group
@@ -437,7 +424,7 @@ groupUsageClause
     : GROUP_USAGE IS? (BIT | NATIONAL)
     ;
 
-// EXTERNAL clause (§2023:13.18.22) — shared storage across run unit
+// PROPERTY clause (§2023:13.18.42): the data item is a property of the object, with generated GET and/or SET methods
 propertyClause
     : PROPERTY (WITH? NO (GET | SET))? (IS? FINAL)?   // §2023:13.18.42.2 :21146-21148 (WITH optional per the IS?-style tolerance)
     ;
@@ -447,7 +434,7 @@ propertyClause
 // IS is NOT underlined (an optional word, §2023:8.3.2.4.3); EXTERNAL and AS are. The data-description Format 1
 // (§2023:13.16.2) and the file-description Formats 1/2/3 (§2023:13.4.5.2) print the SAME slot as
 // `[ IS EXTERNAL [ AS literal-1 ] ]`, so the phrase belongs to BOTH surfaces — see
-// fileGlobalExternalClause above, which is this clause's other arm (kb/Work PB511).
+// fileDescriptionClause, which references THIS rule (kb/Work PB511, PB2724: the AS asymmetry a fused FD rule once hid).
 // ⚠ `AS literal-1` is the SHARED externalizedNamePhrase, never a local `AS literal` of its own: PB303's
 // landing made that rule the ONE surface and VersionConformancePass ParseArm.VisitExternalizedNamePhrase the
 // ONE COBOL-2002 introduction gate (the construct catalogue externalized-name-as-2002), so a new AS site is gated by
@@ -495,7 +482,11 @@ dynamicLengthClause
     : DYNAMIC LENGTH? refCobolWord1=cobolWord? (LIMIT IS? refIntegerOperand1=integerOperand)?
     ;
 
-// GLOBAL clause (§2023:13.18.27) — visible to contained programs
+// GLOBAL clause (§2023:13.18.27) — visible to contained programs. ⛔ THE ONE SPELLING (kb/Work PB2724): §2023:13.18.27.3 SR1's
+// entries reference this rule — the constant entry (constantEntryBody), the data description entry (dataDescriptionClause),
+// the screen description entry (screenClause), the file description entry (fileDescriptionClause) and the report
+// description entry (reportDescriptionClause) — so a reader asks the HOST rule, never a second GLOBAL spelling
+// (OoDefinitionRules.GlobalClauseSites, held equal to this rule's hosts by OoDefinitionRulesDriftTests).
 globalClause
     : IS? GLOBAL
     ;

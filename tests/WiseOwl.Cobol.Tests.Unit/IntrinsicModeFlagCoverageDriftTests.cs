@@ -57,43 +57,30 @@ public sealed class IntrinsicModeFlagCoverageDriftTests
             new Regex(@"\bANYCASE\b", RegexOptions.IgnoreCase)),
     ];
 
-    /// <summary>RuntimeMethod → COBOL function name, read out of the ONE catalog table's rows
-    /// (<c>Add(new("NUMVAL-C", …, "ss", "NumvalC", IntrinsicBind.…))</c>). ⛔ The detailed scan must reach EVERY
-    /// row the file declares, not merely many of them: a row shape this regex cannot see is a function this gate
-    /// is blind to, which is the same under-count that let the arms go untested in the first place. The
-    /// <see cref="IntrinsicBind"/>-fold rows carry an EMPTY RuntimeMethod (they emit no runtime call at all) and
-    /// are counted but not mapped.</summary>
-    private static Dictionary<string, string> CobolNameByRuntimeMethod()
+    /// <summary>The COBOL function names, read out of the ONE catalog table's rows (<c>Add(new("NUMVAL-C", …))</c>): the renderer's
+    /// arms are labelled with them (kb/Work PB2627), so a label names its function directly. Each is held to the catalog's own lookup.</summary>
+    private static HashSet<string> CatalogNames()
     {
         string src = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "IntrinsicCatalog.cs"));
         var declared = Regex.Matches(src, @"Add\(new\(""(?<cobol>[A-Z0-9\-]+)""")
             .Select(m => m.Groups["cobol"].Value).ToHashSet(StringComparer.Ordinal);
         Assert.True(declared.Count > 80, $"only {declared.Count} IntrinsicCatalog rows found — this guard is blind");
-
-        var map = new Dictionary<string, string>(StringComparer.Ordinal);
-        var seen = new HashSet<string>(StringComparer.Ordinal);
-        foreach (Match m in Regex.Matches(src,
-            @"Add\(new\(""(?<cobol>[A-Z0-9\-]+)""[^;]*?""(?<spec>[a-zA-Z]*)""\s*,\s*""(?<rt>[A-Za-z0-9]*)""\s*,\s*IntrinsicBind"))
-        {
-            seen.Add(m.Groups["cobol"].Value);
-            if (m.Groups["rt"].Value.Length > 0) map[m.Groups["rt"].Value] = m.Groups["cobol"].Value;
-        }
-        Assert.Equal(declared.OrderBy(x => x, StringComparer.Ordinal),
-                     seen.OrderBy(x => x, StringComparer.Ordinal));
-        return map;
+        foreach (string name in declared)
+            Assert.Equal(name, IntrinsicCarrierRuleKeyDriftTests.KeyOf(name));
+        return declared;
     }
 
     /// <summary>Every (COBOL function, flag) pair the renderer can emit, attributed by walking the renderer's
     /// source and remembering the LAST arm label seen before each flag interpolation. Arm labels come in three
     /// spellings — <c>case "X":</c>, <c>"X" =&gt;</c> and <c>"X" when … =&gt;</c> — and a token only counts as a
-    /// label when its name is a catalogued RuntimeMethod, so an unrelated string literal cannot claim a flag.</summary>
+    /// label when its name is a catalogued function, so an unrelated string literal cannot claim a flag.</summary>
     private static SortedSet<(string Fn, string Flag)> RenderedFlagPairs()
     {
         string src = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "CodeGen", "Emit", "IntrinsicRenderer.cs"));
-        var byMethod = CobolNameByRuntimeMethod();
+        var functions = CatalogNames();
         string flagAlt = string.Join("|", Flags.Select(f => f.Flag));
         var rx = new Regex(
-            @"(?<label>(?:case\s+)?""(?<n>[A-Za-z0-9]+)""(?:\s+or\s+""[A-Za-z0-9]+"")*\s*(?::|=>|when\b))"
+            @"(?<label>(?:case\s+)?""(?<n>[A-Z0-9-]+)""(?:\s+or\s+""[A-Z0-9-]+"")*\s*(?::|=>|when\b))"
             + @"|(?<flag>\{(?<f>" + flagAlt + @")(?:\(ic\))?\})");
         var pairs = new SortedSet<(string, string)>();
         string? current = null;
@@ -101,7 +88,7 @@ public sealed class IntrinsicModeFlagCoverageDriftTests
         {
             if (m.Groups["label"].Success)
             {
-                if (byMethod.TryGetValue(m.Groups["n"].Value, out string? cobol)) current = cobol;
+                if (functions.Contains(m.Groups["n"].Value)) current = m.Groups["n"].Value;
                 continue;
             }
             Assert.NotNull(current);      // a flag before any arm label would mean the walk lost its anchor

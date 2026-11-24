@@ -3395,9 +3395,218 @@ internal static class RuntimeApi
 
     // ── Intrinsic functions (CobolIntrinsics / CobolDate / EcFunctions / CobolModule; ISO §15 — P7 Step 12) ──
 
-    /// <summary>A <c>CobolIntrinsics</c> call. <paramref name="method"/> is normally the catalog row's
-    /// <c>RuntimeMethod</c> name — <c>IntrinsicCatalog</c> is the single name source, exercised end-to-end by
-    /// the intrinsic conformance suite; the TYPE anchor breaks here on a rename.</summary>
+    // ⛔ THE RUNTIME BODIES THE INTRINSIC RENDERER EMITS ARE NAMED HERE, THROUGH nameof (kb/Work PB2627). The catalog row names no
+    // runtime member: IntrinsicRenderer's arms are keyed on the function (its catalog name) and pass one of these constants to
+    // Intrinsic, DateFn, LocaleFn or EcFn, so a renamed or deleted body breaks the build in this file, and the reachability census
+    // sees exactly the bodies a program can reach. These are the intrinsic entries of the one runtime-member catalogue
+    // DESIGN-architecture-review §8.3 (9) names RuntimeMembers.
+
+    /// <summary>The names of the <c>CobolIntrinsics</c> bodies <c>IntrinsicRenderer</c> emits, each anchored here (kb/Work PB2627).</summary>
+    internal static class IntrinsicBody
+    {
+        internal const string AbsDec = nameof(CobolIntrinsics.AbsDec);
+        internal const string AbsExact = nameof(CobolIntrinsics.AbsExact);
+        internal const string AbsReal = nameof(CobolIntrinsics.AbsReal);
+        internal const string AbsScaled = nameof(CobolIntrinsics.AbsScaled);
+        internal const string AbsWide = nameof(CobolIntrinsics.AbsWide);
+        internal const string Acos = nameof(CobolIntrinsics.Acos);
+        internal const string Annuity = nameof(CobolIntrinsics.Annuity);
+        internal const string AnnuityDec = nameof(CobolIntrinsics.AnnuityDec);
+        internal const string AnnuityExact = nameof(CobolIntrinsics.AnnuityExact);
+        internal const string Asin = nameof(CobolIntrinsics.Asin);
+        internal const string Atan = nameof(CobolIntrinsics.Atan);
+        internal const string BaseConvert = nameof(CobolIntrinsics.BaseConvert);
+        internal const string BooleanOfInteger = nameof(CobolIntrinsics.BooleanOfInteger);
+        internal const string ByteLength = nameof(CobolIntrinsics.ByteLength);
+        internal const string ByteLengthBoolean = nameof(CobolIntrinsics.ByteLengthBoolean);
+        internal const string ByteLengthNational = nameof(CobolIntrinsics.ByteLengthNational);
+        internal const string Char = nameof(CobolIntrinsics.Char);
+        internal const string CharNational = nameof(CobolIntrinsics.CharNational);
+        internal const string CombinedDatetimeReal = nameof(CobolIntrinsics.CombinedDatetimeReal);
+        internal const string Concat = nameof(CobolIntrinsics.Concat);
+        internal const string Convert = nameof(CobolIntrinsics.Convert);
+        internal const string Cos = nameof(CobolIntrinsics.Cos);
+        internal const string DisplayOf = nameof(CobolIntrinsics.DisplayOf);
+        internal const string E = nameof(CobolIntrinsics.E);
+        internal const string Exp = nameof(CobolIntrinsics.Exp);
+        internal const string Exp10 = nameof(CobolIntrinsics.Exp10);
+        internal const string Factorial = nameof(CobolIntrinsics.Factorial);
+        internal const string FactorialDec = nameof(CobolIntrinsics.FactorialDec);
+        internal const string FindString = nameof(CobolIntrinsics.FindString);
+        internal const string Floor = nameof(CobolIntrinsics.Floor);
+        internal const string FloorDec = nameof(CobolIntrinsics.FloorDec);
+        internal const string FloorExact = nameof(CobolIntrinsics.FloorExact);
+        internal const string FloorReal = nameof(CobolIntrinsics.FloorReal);
+        internal const string FloorWide = nameof(CobolIntrinsics.FloorWide);
+        internal const string FractionPart = nameof(CobolIntrinsics.FractionPart);
+        internal const string FractionPartDec = nameof(CobolIntrinsics.FractionPartDec);
+        internal const string FractionPartExact = nameof(CobolIntrinsics.FractionPartExact);
+        internal const string FractionPartReal = nameof(CobolIntrinsics.FractionPartReal);
+        internal const string FractionPartU = nameof(CobolIntrinsics.FractionPartU);
+        internal const string FractionPartWide = nameof(CobolIntrinsics.FractionPartWide);
+        internal const string FromDouble = nameof(CobolIntrinsics.FromDouble);
+        internal const string IntegerOfBoolean = nameof(CobolIntrinsics.IntegerOfBoolean);
+        internal const string IntegerPartU = nameof(CobolIntrinsics.IntegerPartU);
+        internal const string Length = nameof(CobolIntrinsics.Length);
+        internal const string Log = nameof(CobolIntrinsics.Log);
+        internal const string Log10 = nameof(CobolIntrinsics.Log10);
+        internal const string LowerCase = nameof(CobolIntrinsics.LowerCase);
+        internal const string MaxAt = nameof(CobolIntrinsics.MaxAt);
+        internal const string MaxDec = nameof(CobolIntrinsics.MaxDec);
+        internal const string MaxExact = nameof(CobolIntrinsics.MaxExact);
+        internal const string MaxReal = nameof(CobolIntrinsics.MaxReal);
+        internal const string MaxString = nameof(CobolIntrinsics.MaxString);
+        internal const string MaxWide = nameof(CobolIntrinsics.MaxWide);
+        internal const string MeanDec = nameof(CobolIntrinsics.MeanDec);
+        internal const string MeanExact = nameof(CobolIntrinsics.MeanExact);
+        internal const string MeanReal = nameof(CobolIntrinsics.MeanReal);
+        internal const string MeanWide = nameof(CobolIntrinsics.MeanWide);
+        internal const string MedianDec = nameof(CobolIntrinsics.MedianDec);
+        internal const string MedianExact = nameof(CobolIntrinsics.MedianExact);
+        internal const string MedianReal = nameof(CobolIntrinsics.MedianReal);
+        internal const string MedianScaled = nameof(CobolIntrinsics.MedianScaled);
+        internal const string MedianWhole = nameof(CobolIntrinsics.MedianWhole);
+        internal const string MedianWide = nameof(CobolIntrinsics.MedianWide);
+        internal const string MidrangeDec = nameof(CobolIntrinsics.MidrangeDec);
+        internal const string MidrangeExact = nameof(CobolIntrinsics.MidrangeExact);
+        internal const string MidrangeReal = nameof(CobolIntrinsics.MidrangeReal);
+        internal const string MidrangeScaled = nameof(CobolIntrinsics.MidrangeScaled);
+        internal const string MidrangeWhole = nameof(CobolIntrinsics.MidrangeWhole);
+        internal const string MidrangeWide = nameof(CobolIntrinsics.MidrangeWide);
+        internal const string MinAt = nameof(CobolIntrinsics.MinAt);
+        internal const string MinDec = nameof(CobolIntrinsics.MinDec);
+        internal const string MinExact = nameof(CobolIntrinsics.MinExact);
+        internal const string MinReal = nameof(CobolIntrinsics.MinReal);
+        internal const string MinString = nameof(CobolIntrinsics.MinString);
+        internal const string MinWide = nameof(CobolIntrinsics.MinWide);
+        internal const string ModDec = nameof(CobolIntrinsics.ModDec);
+        internal const string ModExact = nameof(CobolIntrinsics.ModExact);
+        internal const string ModScaled = nameof(CobolIntrinsics.ModScaled);
+        internal const string ModWide = nameof(CobolIntrinsics.ModWide);
+        internal const string NationalOf = nameof(CobolIntrinsics.NationalOf);
+        internal const string NumvalCDec = nameof(CobolIntrinsics.NumvalCDec);
+        internal const string NumvalCLocaleDec = nameof(CobolIntrinsics.NumvalCLocaleDec);
+        internal const string NumvalDec = nameof(CobolIntrinsics.NumvalDec);
+        internal const string NumvalFDec = nameof(CobolIntrinsics.NumvalFDec);
+        internal const string Ord = nameof(CobolIntrinsics.Ord);
+        internal const string OrdMaxAt = nameof(CobolIntrinsics.OrdMaxAt);
+        internal const string OrdMaxDec = nameof(CobolIntrinsics.OrdMaxDec);
+        internal const string OrdMaxExact = nameof(CobolIntrinsics.OrdMaxExact);
+        internal const string OrdMaxReal = nameof(CobolIntrinsics.OrdMaxReal);
+        internal const string OrdMaxString = nameof(CobolIntrinsics.OrdMaxString);
+        internal const string OrdMaxWide = nameof(CobolIntrinsics.OrdMaxWide);
+        internal const string OrdMinAt = nameof(CobolIntrinsics.OrdMinAt);
+        internal const string OrdMinDec = nameof(CobolIntrinsics.OrdMinDec);
+        internal const string OrdMinExact = nameof(CobolIntrinsics.OrdMinExact);
+        internal const string OrdMinReal = nameof(CobolIntrinsics.OrdMinReal);
+        internal const string OrdMinString = nameof(CobolIntrinsics.OrdMinString);
+        internal const string OrdMinWide = nameof(CobolIntrinsics.OrdMinWide);
+        internal const string Pi = nameof(CobolIntrinsics.Pi);
+        internal const string PresentValue = nameof(CobolIntrinsics.PresentValue);
+        internal const string PresentValueBase = nameof(CobolIntrinsics.PresentValueBase);
+        internal const string PresentValueDec = nameof(CobolIntrinsics.PresentValueDec);
+        internal const string PresentValueExact = nameof(CobolIntrinsics.PresentValueExact);
+        internal const string Random = nameof(CobolIntrinsics.Random);
+        internal const string RangeDec = nameof(CobolIntrinsics.RangeDec);
+        internal const string RangeExact = nameof(CobolIntrinsics.RangeExact);
+        internal const string RangeReal = nameof(CobolIntrinsics.RangeReal);
+        internal const string RangeScaled = nameof(CobolIntrinsics.RangeScaled);
+        internal const string RangeWhole = nameof(CobolIntrinsics.RangeWhole);
+        internal const string RangeWide = nameof(CobolIntrinsics.RangeWide);
+        internal const string RealResult = nameof(CobolIntrinsics.RealResult);
+        internal const string RemDec = nameof(CobolIntrinsics.RemDec);
+        internal const string RemExact = nameof(CobolIntrinsics.RemExact);
+        internal const string RemReal = nameof(CobolIntrinsics.RemReal);
+        internal const string RemScaled = nameof(CobolIntrinsics.RemScaled);
+        internal const string RemWide = nameof(CobolIntrinsics.RemWide);
+        internal const string Reverse = nameof(CobolIntrinsics.Reverse);
+        internal const string SignDec = nameof(CobolIntrinsics.SignDec);
+        internal const string SignExact = nameof(CobolIntrinsics.SignExact);
+        internal const string SignOf = nameof(CobolIntrinsics.SignOf);
+        internal const string SignOfReal = nameof(CobolIntrinsics.SignOfReal);
+        internal const string SignOfU = nameof(CobolIntrinsics.SignOfU);
+        internal const string SignWide = nameof(CobolIntrinsics.SignWide);
+        internal const string Sin = nameof(CobolIntrinsics.Sin);
+        internal const string Sqrt = nameof(CobolIntrinsics.Sqrt);
+        internal const string SqrtDec = nameof(CobolIntrinsics.SqrtDec);
+        internal const string StandardCompare = nameof(CobolIntrinsics.StandardCompare);
+        internal const string StandardDeviation = nameof(CobolIntrinsics.StandardDeviation);
+        internal const string StdDevDec = nameof(CobolIntrinsics.StdDevDec);
+        internal const string StdDevExact = nameof(CobolIntrinsics.StdDevExact);
+        internal const string Substitute = nameof(CobolIntrinsics.Substitute);
+        internal const string SubstituteFlat = nameof(CobolIntrinsics.SubstituteFlat);
+        internal const string SumDec = nameof(CobolIntrinsics.SumDec);
+        internal const string SumExact = nameof(CobolIntrinsics.SumExact);
+        internal const string SumReal = nameof(CobolIntrinsics.SumReal);
+        internal const string SumScaled = nameof(CobolIntrinsics.SumScaled);
+        internal const string SumWhole = nameof(CobolIntrinsics.SumWhole);
+        internal const string SumWide = nameof(CobolIntrinsics.SumWide);
+        internal const string Tan = nameof(CobolIntrinsics.Tan);
+        internal const string TestNumval = nameof(CobolIntrinsics.TestNumval);
+        internal const string TestNumvalC = nameof(CobolIntrinsics.TestNumvalC);
+        internal const string TestNumvalCLocale = nameof(CobolIntrinsics.TestNumvalCLocale);
+        internal const string TestNumvalF = nameof(CobolIntrinsics.TestNumvalF);
+        internal const string Trim = nameof(CobolIntrinsics.Trim);
+        internal const string TruncDec = nameof(CobolIntrinsics.TruncDec);
+        internal const string Truncate = nameof(CobolIntrinsics.Truncate);
+        internal const string TruncateExact = nameof(CobolIntrinsics.TruncateExact);
+        internal const string TruncateReal = nameof(CobolIntrinsics.TruncateReal);
+        internal const string TruncateWide = nameof(CobolIntrinsics.TruncateWide);
+        internal const string UpperCase = nameof(CobolIntrinsics.UpperCase);
+        internal const string Variance = nameof(CobolIntrinsics.Variance);
+        internal const string VarianceDec = nameof(CobolIntrinsics.VarianceDec);
+        internal const string VarianceExact = nameof(CobolIntrinsics.VarianceExact);
+    }
+
+    /// <summary>The names of the <c>CobolDate</c> bodies (the date and time family) <c>IntrinsicRenderer</c> emits, each anchored here (kb/Work PB2627).</summary>
+    internal static class DateBody
+    {
+        internal const string CombinedDatetime = nameof(CobolDate.CombinedDatetime);
+        internal const string CombinedDatetimeDec = nameof(CobolDate.CombinedDatetimeDec);
+        internal const string CurrentDate = nameof(CobolDate.CurrentDate);
+        internal const string DateOfInteger = nameof(CobolDate.DateOfInteger);
+        internal const string DateToYyyymmdd = nameof(CobolDate.DateToYyyymmdd);
+        internal const string DayOfInteger = nameof(CobolDate.DayOfInteger);
+        internal const string DayToYyyyddd = nameof(CobolDate.DayToYyyyddd);
+        internal const string FormattedCurrentDate = nameof(CobolDate.FormattedCurrentDate);
+        internal const string FormattedDate = nameof(CobolDate.FormattedDate);
+        internal const string FormattedDatetime = nameof(CobolDate.FormattedDatetime);
+        internal const string FormattedTime = nameof(CobolDate.FormattedTime);
+        internal const string IntegerOfDate = nameof(CobolDate.IntegerOfDate);
+        internal const string IntegerOfDay = nameof(CobolDate.IntegerOfDay);
+        internal const string IntegerOfFormattedDate = nameof(CobolDate.IntegerOfFormattedDate);
+        internal const string SecondsFromFormattedTime = nameof(CobolDate.SecondsFromFormattedTime);
+        internal const string SecondsPastMidnight = nameof(CobolDate.SecondsPastMidnight);
+        internal const string TestDateYyyymmdd = nameof(CobolDate.TestDateYyyymmdd);
+        internal const string TestDayYyyyddd = nameof(CobolDate.TestDayYyyyddd);
+        internal const string TestFormattedDatetime = nameof(CobolDate.TestFormattedDatetime);
+        internal const string YearToYyyy = nameof(CobolDate.YearToYyyy);
+    }
+
+    /// <summary>The names of the <c>CobolLocale</c> bodies (the LOCALE functions and the locale case maps) <c>IntrinsicRenderer</c> emits, each anchored here (kb/Work PB2627).</summary>
+    internal static class LocaleBody
+    {
+        internal const string Compare = nameof(CobolLocale.Compare);
+        internal const string Date = nameof(CobolLocale.Date);
+        internal const string LowerCase = nameof(CobolLocale.LowerCase);
+        internal const string Time = nameof(CobolLocale.Time);
+        internal const string TimeFromSeconds = nameof(CobolLocale.TimeFromSeconds);
+        internal const string UpperCase = nameof(CobolLocale.UpperCase);
+    }
+
+    /// <summary>The names of the <c>EcFunctions</c> reads (the last-exception functions) <c>IntrinsicRenderer</c> emits, each anchored here (kb/Work PB2627).</summary>
+    internal static class EcBody
+    {
+        internal const string File = nameof(Runtime.EcFunctions.File);
+        internal const string FileN = nameof(Runtime.EcFunctions.FileN);
+        internal const string Location = nameof(Runtime.EcFunctions.Location);
+        internal const string LocationN = nameof(Runtime.EcFunctions.LocationN);
+        internal const string Statement = nameof(Runtime.EcFunctions.Statement);
+        internal const string Status = nameof(Runtime.EcFunctions.Status);
+    }
+
+    /// <summary>A <c>CobolIntrinsics</c> call. <paramref name="method"/> is an <see cref="IntrinsicBody"/> constant (kb/Work PB2627), so a
+    /// renamed member and the TYPE both break the build here.</summary>
     public static string Intrinsic(string method, string args) =>
         $"{nameof(CobolIntrinsics)}.{method}({args})";
 

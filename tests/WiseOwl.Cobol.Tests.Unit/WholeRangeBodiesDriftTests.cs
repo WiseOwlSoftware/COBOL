@@ -32,9 +32,8 @@ public sealed class WholeRangeBodiesDriftTests
         Assert.NotEmpty(IntrinsicRenderer.WholeRangeBodies);
         foreach (string method in IntrinsicRenderer.WholeRangeBodies.Keys)
         {
-            // Each member's function-name is its runtime method upper-cased (LOG10 → Log10); the catalog proves it.
-            Assert.True(IntrinsicCatalog.TryGet(method.ToUpperInvariant(), out var sig) && sig.RuntimeMethod == method,
-                $"{method}: no catalog row whose runtime method it is");
+            // Each member is the binary64 body of exactly one function (IntrinsicRenderer.Binary64Bodies, kb/Work PB2627).
+            var sig = FunctionOf(method);
             Assert.True(sig.Float, $"{method}: a whole-range body must be a binary64-family (Float) row");
             Type want = sig.Domain is IntrinsicDomain.None ? typeof(CobolDec) : typeof(CobolDec?);
             var overload = typeof(CobolIntrinsics).GetMethod(method, BindingFlags.Public | BindingFlags.Static, [want]);
@@ -53,7 +52,7 @@ public sealed class WholeRangeBodiesDriftTests
     {
         foreach (var (method, intake) in IntrinsicRenderer.WholeRangeBodies)
         {
-            Assert.True(IntrinsicCatalog.TryGet(method.ToUpperInvariant(), out var sig));
+            var sig = FunctionOf(method);
             Type want = sig.Domain is IntrinsicDomain.None ? typeof(CobolWide) : typeof(CobolWide?);
             var wide = typeof(CobolIntrinsics).GetMethod(method + "Wide", BindingFlags.Public | BindingFlags.Static, [want, typeof(int)]);
             if (intake is IntrinsicRenderer.ExactIntake.Wide)
@@ -62,6 +61,15 @@ public sealed class WholeRangeBodiesDriftTests
             else
                 Assert.True(wide is null, $"{method}: has a {method}Wide body but its intake is {intake}, not Wide — the renderer never emits it");
         }
+    }
+
+    /// <summary>The catalog row of the one function whose binary64 body <paramref name="body"/> is.</summary>
+    private static IntrinsicSig FunctionOf(string body)
+    {
+        var functions = IntrinsicRenderer.Binary64Bodies.Where(kv => kv.Value == body).Select(kv => kv.Key).ToList();
+        Assert.True(functions.Count == 1, $"{body}: the binary64 body of {functions.Count} functions, not one");
+        Assert.True(IntrinsicCatalog.TryGet(functions[0], out var sig), functions[0]);
+        return sig;
     }
 
     private static CobolDec Pow10(int e) => new(1, e);
@@ -204,18 +212,18 @@ public sealed class WholeRangeBodiesDriftTests
         string src = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "IntrinsicCatalog.cs"));
         var row = new System.Text.RegularExpressions.Regex(
             "Add\\(new\\(\"(?<n>[A-Z0-9-]+)\",\\s*IntrinsicType\\.\\w+,\\s*IntrinsicArity\\.(?<arity>\\w+),\\s*[-\\w]+,"
-            + "\\s*[-\\w.]+,\\s*\"[^\"]*\",\\s*\"(?<m>\\w*)\",\\s*IntrinsicBind\\.\\w+,\\s*(?<float>true|false),");
+            + "\\s*[-\\w.]+,\\s*\"[^\"]*\",\\s*IntrinsicBind\\.\\w+,\\s*(?<float>true|false),");
         var rows = row.Matches(src).ToList();
         Assert.True(rows.Count >= 79, $"only {rows.Count} catalog rows parsed — the Add(new(...)) shape changed; fix the regex.");
         var variadicFloat = rows
             .Where(m => m.Groups["float"].Value == "true" && m.Groups["arity"].Value == "Variadic")
-            .Select(m => m.Groups["m"].Value)
+            .Select(m => IntrinsicRenderer.Binary64Bodies[m.Groups["n"].Value])
             .ToHashSet(StringComparer.Ordinal);
         Assert.Equal(variadicFloat.Order(StringComparer.Ordinal), IntrinsicRenderer.ExactListBodies.Order(StringComparer.Ordinal));
 
         foreach (string method in IntrinsicRenderer.ExactListBodies)
         {
-            Type[] want = method == "PresentValue"
+            Type[] want = method == nameof(CobolIntrinsics.PresentValue)
                 ? [typeof(CobolRounding), typeof(CobolExact), typeof(ReadOnlySpan<CobolExact>)]
                 : [typeof(CobolRounding), typeof(ReadOnlySpan<CobolExact>)];
             var overload = typeof(CobolIntrinsics).GetMethod(method, BindingFlags.Public | BindingFlags.Static, want);

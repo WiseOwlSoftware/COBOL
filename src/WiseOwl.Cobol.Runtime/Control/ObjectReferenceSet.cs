@@ -75,11 +75,21 @@ public readonly record struct ObjectReferenceOperand(ObjectReferenceKind Kind, s
 /// </summary>
 public static class ObjectReferenceSet
 {
+    /// <summary>The SET statement's syntax-rules clause in COBOL-2023, the one the run time's reasons cite.</summary>
+    public const string Rules2023 = "§2023:14.9.39.3";
+
     /// <summary>Null when a SET of <paramref name="send"/> into <paramref name="recv"/> is valid by §2023:14.9.39.3 SR8 / SR10
     /// / SR12 / SR14, else the clause it violates. An operand whose class or interface was not resolved
     /// (<see cref="ObjectReferenceOperand.Classes"/> / <see cref="ObjectReferenceOperand.Interfaces"/> null where the rule
     /// reads them) is refused with that reason.</summary>
-    public static string? Refusal(ObjectReferenceOperand send, ObjectReferenceOperand recv, bool activeClassSenderAdmitted = true)
+    /// <param name="send">The sending operand.</param>
+    /// <param name="recv">The receiving operand.</param>
+    /// <param name="setRules">The SET statement's syntax-rules clause the reason cites, as the edition in force numbers it
+    /// (<c>§2023:14.9.39.3</c>, <c>§2014:14.9.35.2</c>, <c>§2002:14.8.35.2</c>; the rules SR8 to SR14 and their items are numbered alike
+    /// in all three, kb/Work PB5659): the compiler passes its edition's, the run time, which has no edition, <see cref="Rules2023"/>.</param>
+    /// <param name="activeClassSenderAdmitted">False for the interface-conformance reading (see the class summary).</param>
+    public static string? Refusal(ObjectReferenceOperand send, ObjectReferenceOperand recv, string setRules,
+        bool activeClassSenderAdmitted = true)
     {
         switch (recv.Kind)
         {
@@ -101,7 +111,7 @@ public static class ObjectReferenceSet
                             return $"unresolvable interface '{send.Name}' in the sending description";
                         return Holds(send.Interfaces, int1) ? null
                             : $"interface {send.Name} neither identifies nor inherits from interface "
-                              + $"{recv.Name} (ISO §2023:14.9.39.3 SR10 a))";
+                              + $"{recv.Name} (ISO {setRules} SR10 a))";
                     // b) an object reference described with an object-class-name: b)1. FACTORY written ⇒ the FACTORY
                     //    object of that class implements int-1; b)2. otherwise ⇒ its instance objects do.
                     case ObjectReferenceKind.ObjectClass:
@@ -110,7 +120,7 @@ public static class ObjectReferenceSet
                         return Holds(send.Interfaces, int1) ? null
                             : $"the {(send.Factory ? "factory object" : "objects")} of class {send.Name} "
                               + $"do{(send.Factory ? "es" : "")} not implement interface {recv.Name} "
-                              + $"(ISO §2023:14.9.39.3 SR10 b){(send.Factory ? "1" : "2")}.)";
+                              + $"(ISO {setRules} SR10 b){(send.Factory ? "1" : "2")}.)";
                     // c) an object reference described with an ACTIVE-CLASS phrase — the same two legs, asked of the
                     //    class CONTAINING the sending data item.
                     case ObjectReferenceKind.ActiveClass:
@@ -125,10 +135,10 @@ public static class ObjectReferenceSet
                         return Holds(send.Interfaces, int1) ? null
                             : $"the {(send.Factory ? "factory object" : "objects")} of the class containing the "
                               + $"ACTIVE-CLASS sender ({send.Name}) do{(send.Factory ? "es" : "")} not implement "
-                              + $"interface {recv.Name} (ISO §2023:14.9.39.3 SR10 c){(send.Factory ? "1" : "2")}.)";
+                              + $"interface {recv.Name} (ISO {setRules} SR10 c){(send.Factory ? "1" : "2")}.)";
                     default:
                         return "a UNIVERSAL object reference does not conform to a receiver described with "
-                               + $"interface-name '{recv.Name}' (ISO §2023:14.9.39.3 SR10 — its closed list of "
+                               + $"interface-name '{recv.Name}' (ISO {setRules} SR10 — its closed list of "
                                + "senders does not include a universal reference)";
                 }
             }
@@ -144,20 +154,20 @@ public static class ObjectReferenceSet
                         if (send.Factory != recv.Factory)
                             return $"the FACTORY phrase is {FactoryPresence(recv.Factory)} in the receiver's "
                                    + $"description but {FactoryPresence(send.Factory)} in the sender's "
-                                   + "— its presence or absence shall be the same (ISO §2023:14.9.39.3 SR12a.3)";
+                                   + $"— its presence or absence shall be the same (ISO {setRules} SR12a.3)";
                         // a)1. — an ONLY receiver takes an ONLY sender naming the SAME class, exactly.
                         if (recv.Only)
                             return send.Only && CobolNames.Same(send.Name, recv.Name)
                                 ? null
                                 : $"the receiver is described with the ONLY phrase, so the sender shall also be "
                                   + $"described ONLY and with the same object-class-name '{recv.Name}' (the "
-                                  + $"sender is {send.Spelled}) (ISO §2023:14.9.39.3 SR12a.1)";
+                                  + $"sender is {send.Spelled}) (ISO {setRules} SR12a.1)";
                         // a)2. — otherwise the same class or a subclass.
                         if (send.Classes is null || recv.Classes is not [var receiverClass, ..])
                             return $"unresolvable class in the pair (sender {send.Name} to receiver {recv.Name})";
                         return Holds(send.Classes, receiverClass) ? null
                             : $"class {send.Name} is not {recv.Name} or one of its subclasses "
-                              + "(ISO §2023:14.9.39.3 SR12a.2)";
+                              + $"(ISO {setRules} SR12a.2)";
                     // b) an ACTIVE-CLASS sender.
                     case ObjectReferenceKind.ActiveClass:
                         if (!activeClassSenderAdmitted)
@@ -167,10 +177,10 @@ public static class ObjectReferenceSet
                         if (send.Factory != recv.Factory)
                             return $"the FACTORY phrase is {FactoryPresence(recv.Factory)} in the receiver's "
                                    + $"description but {FactoryPresence(send.Factory)} in the ACTIVE-CLASS sender's "
-                                   + "— its presence or absence shall be the same (ISO §2023:14.9.39.3 SR12b.3)";
+                                   + $"— its presence or absence shall be the same (ISO {setRules} SR12b.3)";
                         if (recv.Only)
                             return "the receiver is described with the ONLY phrase, so an ACTIVE-CLASS sender is "
-                                   + "not permitted (ISO §2023:14.9.39.3 SR12b.1)";
+                                   + $"not permitted (ISO {setRules} SR12b.1)";
                         if (send.Name is null)
                             return OwnerlessActiveClassSender;
                         if (send.Classes is null || recv.Classes is not [var receiverClass2, ..])
@@ -178,10 +188,10 @@ public static class ObjectReferenceSet
                                    + $"receiver {recv.Name})";
                         return Holds(send.Classes, receiverClass2) ? null
                             : $"the class containing the ACTIVE-CLASS sender ({send.Name}) is not {recv.Name} or "
-                              + "one of its subclasses (ISO §2023:14.9.39.3 SR12b.2)";
+                              + $"one of its subclasses (ISO {setRules} SR12b.2)";
                     default:
                         return $"{send.Spelled} does not conform to a receiver described with object-class-name "
-                               + $"'{recv.Name}' (ISO §2023:14.9.39.3 SR12 — its closed list of senders is an "
+                               + $"'{recv.Name}' (ISO {setRules} SR12 — its closed list of senders is an "
                                + "object-class-name reference, an ACTIVE-CLASS reference, SELF and NULL)";
                 }
 
@@ -189,12 +199,12 @@ public static class ObjectReferenceSet
             default:
                 if (send.Kind is not ObjectReferenceKind.ActiveClass)
                     return $"{send.Spelled} does not conform to a receiver described with the ACTIVE-CLASS "
-                           + "phrase (ISO §2023:14.9.39.3 SR14 — its closed list of senders is an ACTIVE-CLASS "
+                           + $"phrase (ISO {setRules} SR14 — its closed list of senders is an ACTIVE-CLASS "
                            + "reference, SELF and NULL)";
                 return send.Factory == recv.Factory ? null
                     : $"the FACTORY phrase is {FactoryPresence(recv.Factory)} in the receiver's ACTIVE-CLASS "
                       + $"description but {FactoryPresence(send.Factory)} in the sender's — its presence or absence "
-                      + "shall be the same (ISO §2023:14.9.39.3 SR14a)";
+                      + $"shall be the same (ISO {setRules} SR14a)";
         }
     }
 

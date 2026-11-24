@@ -962,7 +962,8 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // ⚠ SEPARATE CONCERN, DELIBERATELY NOT MERGED ABOVE: which runtime BODY compares the arguments.
         // MAX/MIN/ORD-MAX/ORD-MIN over string arguments dispatch to the string comparison body; ORD-MAX/ORD-MIN
         // still return an ordinal (§2023:15.71.1/§2023:15.72.1 carry NO result-type table — only MAX/MIN do), which is why
-        // this is a RuntimeMethod choice and not a type one, and why the two must not be folded together.
+        // this is a fact about the comparison (BoundIntrinsicCall.ComparesStrings, kb/Work PB2627) and not a type one, and why the two
+        // must not be folded together.
         // ⛔ A CLASS-NEUTRAL ARGUMENT MUST NOT VOTE (fix-queue PB48). This read `args.All(IsStringOperand)`, which
         // silently counted the figurative ZERO as a NON-string argument and so forced the numeric body on a list
         // that was alphanumeric: `FUNCTION MAX(ZERO "A")` returned "0" — a WRONG ANSWER, since §2023:15.59.4 RV1 takes
@@ -972,20 +973,9 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // from the context — so the non-neutral arguments are the context, and they are what chooses the body.
         // With every argument neutral (`FUNCTION MAX(ZERO ZERO)`) there is no such context and the numeric reading
         // stands, which is both GR4's first-listed value and §2023:8.8.1.1's.
-        var resolved = sig;
-        if (sig.ArgKinds == "p" && args.Count > 0
+        bool comparesStrings = sig.ArgKinds == "p" && args.Count > 0
             && args.All(a => IsStringOperand(a) || IsClassNeutralOperand(a))
-            && args.Any(IsStringOperand))
-        {
-            resolved = sig with
-            {
-                RuntimeMethod = sig.Name switch
-                {
-                    "MAX" => "MaxString", "MIN" => "MinString",
-                    "ORD-MAX" => "OrdMaxString", _ => "OrdMinString",
-                },
-            };
-        }
+            && args.Any(IsStringOperand);
 
         // CHAR/ORD are PCS-relative (§2023:15.15.4 RV2 / §2023:15.70.4 RV1): flag the call when a NON-identity ALPHANUMERIC
         // program collating sequence is in effect so the backend passes its weights table — and only then
@@ -997,12 +987,11 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // phrase — NATIVE/UCS-4 are the D-N3 code-unit identity the parameterless runtime bodies realize).
         bool nationalArg = args.Any(a => OperandCategory(a) is PicCategory.National);
         // MAX/MIN/ORD-MAX/ORD-MIN over string arguments compare by the SAME PCS as CHAR/ORD (§2023:15.59.4 RV1 → §2023:8.8.4.2.7
-        // alphanumeric / §2023:8.8.4.2.9 national) — flag the STRING form (resolved above) so the backend passes __COLLATE /
+        // alphanumeric / §2023:8.8.4.2.9 national) — flag the STRING form (comparesStrings above) so the backend passes __COLLATE /
         // __COLLATE_NAT, else it silently uses the native ordinal and disagrees with the program's relation conditions. (CA23.)
-        bool maxMinStr = resolved.RuntimeMethod is "MaxString" or "MinString" or "OrdMaxString" or "OrdMinString";
-        bool collate = (sig.Name is "CHAR" or "ORD" || maxMinStr) && ctx.Data.State.Configuration.Collating is not null && !nationalArg;
+        bool collate = (sig.Name is "CHAR" or "ORD" || comparesStrings) && ctx.Data.State.Configuration.Collating is not null && !nationalArg;
         bool collateNat = ctx.Data.State.Configuration.NationalCollating is not null
-            && (sig.Name is "CHAR-NATIONAL" || ((sig.Name is "ORD" || maxMinStr) && nationalArg));
+            && (sig.Name is "CHAR-NATIONAL" || ((sig.Name is "ORD" || comparesStrings) && nationalArg));
 
         // CHAR takes an INTEGER argument (§2023:15.15.3 AR1) — a national operand is a category violation; the
         // national ordinal→character direction is FUNCTION CHAR-NATIONAL (§2023:15.16, implemented — the P10
@@ -1019,7 +1008,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
 
         // A FUNCTION EXCEPTION-* reference reads the runtime last-exception register (§2023:15.28–15.33) — flag the
         // program's EC usage so the generated source carries the Exceptions using (the group EC gate).
-        if (resolved.RuntimeMethod.StartsWith("Ec", StringComparison.Ordinal)) host.Ec.EcNoteFunction();
+        if (sig.Name.StartsWith("EXCEPTION-", StringComparison.Ordinal)) host.Ec.EcNoteFunction();
 
         // §2023:15.18.4 RV3 — CONCAT returns an ALPHABETIC value when argument-1 is usage display and argument-1 and
         // all argument-2 are of class alphabetic (PB59 family 7 / RV-15.18.4-3). Class alphabetic is a PIC A
@@ -1027,15 +1016,18 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // (§2023:8.4.3.3.4 GR6's exhaustive exception list, kb/Work PB73), and a nested CONCAT contributes through its own rider — and every PIC A item is usage
         // display, so all-alphabetic subsumes r3's usage-display precondition. Fail-soft: any shape not
         // provably alphabetic keeps r3's "otherwise" arm (alphanumeric).
-        bool alphabetic = resolved.Name == "CONCAT" && args.Count > 0 && args.All(IsAlphabeticArg);
+        bool alphabetic = sig.Name == "CONCAT" && args.Count > 0 && args.All(IsAlphabeticArg);
 
         // The four 1989 integer-date conversions take the year's upper bound from the edition (kb/Work PB5130): the 1989
         // module bounds it below only (§1989:A.2.16.3 AR1), 2002 and later at 9999 (§2023:15.5.2).
-        bool integerDateUnbounded = resolved.RuntimeMethod is "DateOfInteger" or "DayOfInteger" or "IntegerOfDate" or "IntegerOfDay"
+        bool integerDateUnbounded = sig.Name is "DATE-OF-INTEGER" or "DAY-OF-INTEGER" or "INTEGER-OF-DATE" or "INTEGER-OF-DAY"
             && !DialectBehaviors.IsActive(DialectBehavior.IntegerDateFormBounded, ctx.Edition.Edition.Year);
 
-        return new BoundIntrinsicCall(resolved, args, category, collate)
-            { Arithmetic = ctx.Options.Arithmetic, CollateNat = collateNat, ResultIsAlphabetic = alphabetic, IntegerDateFormUnbounded = integerDateUnbounded };
+        return new BoundIntrinsicCall(sig, args, category, collate)
+        {
+            Arithmetic = ctx.Options.Arithmetic, CollateNat = collateNat, ComparesStrings = comparesStrings,
+            ResultIsAlphabetic = alphabetic, IntegerDateFormUnbounded = integerDateUnbounded,
+        };
     }
 
     /// <summary>Is this argument provably CLASS ALPHABETIC (§2023:8.5.2.1 Table 2 — category alphabetic, the PIC A

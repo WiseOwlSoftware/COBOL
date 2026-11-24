@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 
 using System;
+using Antlr4.Runtime.Atn;
 using System.IO;
 using System.Linq;
 using WiseOwl.Cobol.Binding;
@@ -91,29 +92,40 @@ public sealed class OoDefinitionRulesDriftTests
                 $"{file} raises COBOL1519 by literal code — the placement family is DiagnosticCatalog.OoDataDivisionPlacement, asked only through OoDefinitionRules.Screen");
     }
 
-    /// <summary>kb/Work PB1045 — §2023:13.18.27.3 SR4 ("The GLOBAL clause shall not be specified in a factory definition,
-    /// an instance definition, or a method definition") is asked of every entry SR1 lets carry the clause because
-    /// <c>OoDefinitionRules.GlobalClauseSites</c> IS the grammar's list: the parser rules whose ATN matches the
-    /// GLOBAL token, less the USE statement, whose GLOBAL is the declarative's PHRASE (§2023:14.9.49.2), not this clause.
-    /// A GLOBAL clause added to any entry's grammar (a screen-description entry's, SR1 c)) turns this red until it
-    /// has a row, so the SR4 walk cannot silently miss it the way the constant entry was missed.</summary>
+    /// <summary>kb/Work PB1045, PB2724 — §2023:13.18.27.3 SR4 ("The GLOBAL clause shall not be specified in a factory
+    /// definition, an instance definition, or a method definition") is asked of every entry SR1 lets carry the clause
+    /// because <c>OoDefinitionRules.GlobalClauseSites</c> IS the grammar's list of the rules that reference the ONE
+    /// <c>globalClause</c> rule. Two halves: (1) the GLOBAL token is matched by <c>globalClause</c> alone (less the USE
+    /// statement, whose GLOBAL is the declarative's PHRASE, §2023:14.9.49.2, not this clause), so
+    /// no entry spells the clause a second time (a fused FD rule once hid the EXTERNAL AS asymmetry, kb/Work PB511);
+    /// (2) the table's hosts are exactly the rules whose ATN calls <c>globalClause</c>, so a GLOBAL clause added to any
+    /// entry's grammar turns this red until it has a row and the SR4 walk cannot silently miss it the way the constant
+    /// entry was missed.</summary>
     [Fact]
-    public void TheGlobalClauseSites_AreTheGrammarsGlobalRules()
+    public void TheGlobalClauseSites_AreTheGrammarsGlobalClauseHosts()
     {
         var atn = CobolParserCore._ATN;
-        var grammar = atn.states
-            .Where(s => s is not null && Enumerable.Range(0, s.NumberOfTransitions)
-                .Any(i => s.Transition(i).Label is { } label && label.Contains(CobolParserCore.GLOBAL)))
-            .Select(s => CobolParserCore.ruleNames[s.ruleIndex])
+        var transitions = atn.states
+            .Where(s => s is not null)
+            .SelectMany(s => Enumerable.Range(0, s.NumberOfTransitions).Select(i => (State: s, Transition: s.Transition(i))))
+            .ToList();
+        var spellers = transitions
+            .Where(x => x.Transition.Label is { } label && label.Contains(CobolParserCore.GLOBAL))
+            .Select(x => CobolParserCore.ruleNames[x.State.ruleIndex])
             .Where(rule => rule != "useStatement")
+            .Distinct().ToList();
+        Assert.Equal(["globalClause"], spellers);
+        var hosts = transitions
+            .Where(x => x.Transition is RuleTransition call && call.target.ruleIndex == CobolParserCore.RULE_globalClause)
+            .Select(x => CobolParserCore.ruleNames[x.State.ruleIndex])
             .Distinct().Order(StringComparer.Ordinal).ToList();
         var table = OoDefinitionRules.GlobalClauseSites
-            .Select(site => char.ToLowerInvariant(site.Clause.Name[0]) + site.Clause.Name[1..^"Context".Length])
+            .Select(site => char.ToLowerInvariant(site.Host.Name[0]) + site.Host.Name[1..^"Context".Length])
             .Order(StringComparer.Ordinal).ToList();
-        Assert.Equal(grammar, table);
-        // SR1's items, each named once: a) constant, b) data description, d) file description, e) report description
-        // (c), the screen-description entry, has no grammar site — the screen module is not provided).
-        Assert.Equal(["a)", "b)", "d)", "e)"], OoDefinitionRules.GlobalClauseSites.Select(s => s.Sr1Item).Order(StringComparer.Ordinal));
+        Assert.Equal(hosts, table);
+        // SR1's items, each named once: a) constant, b) data description, c) screen description, d) file description,
+        // e) report description.
+        Assert.Equal(["a)", "b)", "c)", "d)", "e)"], OoDefinitionRules.GlobalClauseSites.Select(s => s.Sr1Item).Order(StringComparer.Ordinal));
     }
 
     /// <summary>The GLOBAL clause's SR4 refusal has ONE reporter (kb/Work PB1045): the class arm in <c>OoDriver</c> and

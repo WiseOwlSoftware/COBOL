@@ -30,6 +30,42 @@ public sealed class EditionCitationNetDriftTests
         Assert.Empty(EditionCitationNet.Offences([$"prog.cob(1,8): error {exempt}: planted (ISO §2023:14.9.37.3 SR7)"]));
     }
 
+    /// <summary>The 2002 and 2014 arm (kb/Work PB5922): a citation of a later edition alone fails under a code the open sweep does not
+    /// hold; its own edition's citation beside it, or the edition gate's words naming the edition, passes; a code the sweep holds passes
+    /// until it leaves.</summary>
+    [Fact]
+    public void AtTwoThousandTwoAndFourteen_ALaterEditionOnlyCitation_Fails_AndEachWayOutPasses()
+    {
+        foreach (var (edition, later) in new[] { ("2002", "§2014:14.8.4.2 SR19"), ("2002", "§2023:14.9.4.3 SR22"), ("2014", "§2023:14.9.4.3 SR22") }) // citation-audit: example
+        {
+            string code = DiagnosticCatalog.All.Select(d => d.Code)
+                .First(c => !EditionCitationNet.OpenSweep[edition].Contains(c));
+            string offence = $"prog.cob(1,8): error {code}: planted (ISO {later})";
+            Assert.Equal([offence], EditionCitationNet.OffencesAt([offence], edition));
+            Assert.Empty(EditionCitationNet.OffencesAt([$"prog.cob(1,8): error {code}: planted (ISO {later}; §{edition}:14.8.4.2 SR19)"], edition)); // citation-audit: example
+            Assert.Empty(EditionCitationNet.OffencesAt(
+                [$"prog.cob(1,8): error {code}: X begins in COBOL-2023 (targeting COBOL-{edition}) (ISO {later})"], edition));
+            if (EditionCitationNet.OpenSweep[edition].Order(StringComparer.Ordinal).FirstOrDefault() is { } open)
+                Assert.Empty(EditionCitationNet.OffencesAt([$"prog.cob(1,8): error {open}: planted (ISO {later})"], edition));
+        }
+        // An older edition's citation is not this arm's offence: 2014 may cite the 2002 text it kept only beside its own.
+        Assert.False(EditionCitationNet.CitesOnlyALaterEditionAt("prog.cob(1,8): error COBOL0001: planted (ISO §2002:14.8.4.2 SR19)", "2014")); // citation-audit: example
+    }
+
+    /// <summary>The open sweep only shrinks (kb/Work PB6118): every code it holds is a code of the catalog or of the front end's descriptors.</summary>
+    [Fact]
+    public void TheOpenSweep_HoldsOnlyCatalogCodes()
+    {
+        var codes = DiagnosticCatalog.All.Select(d => d.Code)
+            .Concat(typeof(Frontend.Diagnostics.DiagnosticDescriptors).GetFields()
+                .Where(f => f.FieldType == typeof(Frontend.Diagnostics.DiagnosticDescriptor))
+                .Select(f => ((Frontend.Diagnostics.DiagnosticDescriptor)f.GetValue(null)!).Code))
+            .ToHashSet(StringComparer.Ordinal);
+        foreach (var (edition, open) in EditionCitationNet.OpenSweep)
+            Assert.True(open.All(codes.Contains), $"{EditionCitationNet.SweepFile} at {edition} names a code the catalog has not: "
+                + string.Join(", ", open.Where(c => !codes.Contains(c))));
+    }
+
     /// <summary>A code whose descriptors record their 1985 rule (<see cref="DiagnosticDescriptor.Rule1985"/>, kb/Work PB5993): a
     /// message citing that rule passes, one citing another 1985 rule is mis-recorded, and one citing no 1985 rule is not this arm's.</summary>
     [Fact]

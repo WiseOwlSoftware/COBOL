@@ -508,20 +508,25 @@ public static class MoveTable16
         CobolClass.Index => "a MOVE operand shall not be of class index ("
             + Sr1Rule(edition)
             + IndexContextClause(why ?? IndexExplicitReferenceRule(edition, procedureDivisionStatement)) + ")",
-        CobolClass.Pointer => "a MOVE operand shall not be of class pointer — §2023:8.5.2.1 Table 2 puts the "
-            + "data-pointer, function-pointer and program-pointer categories in that class (ISO §2023:14.9.25.3 SR1; "
-            + "§2023:13.18.60.3 SR9 — a data-pointer data item \"may be referenced explicitly only in a CALL "
+        // The class arms name the rule of the edition in force (kb/Work PB5660, PB6118): §2002:14.8.24.2 SR1, §2014:14.9.24.2 SR1,
+        // §2023:14.9.25.3 SR1, and the pointer data items' reference rules §2002:13.16.58.2 SR8/SR7, §2014:13.18.60.2 SR9/SR8,
+        // §2023:13.18.60.3 SR9/SR8. COBOL-85 has none of these classes, and only COBOL-2023 has class message-tag.
+        CobolClass.Pointer => "a MOVE operand shall not be of class pointer, the class of the data-pointer, function-pointer and "
+            + "program-pointer categories (" + Sr1Rule(edition) + "; "
+            + EditionInfo.Designated(edition.Cite("§2002:13.16.58.2 SR8", "§2023:13.18.60.3 SR9", y2002: "§2002:13.16.58.2 SR8", y2014: "§2014:13.18.60.2 SR9"))
+            + " — a data-pointer data item \"may be referenced explicitly only in a CALL "
             + "statement, an INITIALIZE statement, an INVOKE statement, a SET statement, a relation condition, "
             + "a procedure division header, the argument list of an inline invocation of a method, as an "
             + "argument in a function-identifier, in the RETURNING phrase of an ALLOCATE statement, or in a "
-            + "FREE statement\", and SR8 says the same of a program-pointer). Use SET to assign a pointer",
+            + "FREE statement\", and "
+            + edition.Cite("§2002:13.16.58.2 SR7", "§2023:13.18.60.3 SR8", y2002: "§2002:13.16.58.2 SR7", y2014: "§2014:13.18.60.2 SR8")
+            + " says the same of a program-pointer). Use SET to assign a pointer",
         CobolClass.MessageTag => "a MOVE operand shall not be of class message-tag — §2023:8.5.2.1 Table 2 gives usage "
             + "MESSAGE-TAG the message-tag category of class message-tag (ISO §2023:14.9.25.3 SR1; §2023:8.4.3.10.3 SR1b admits NULL "
             + "only as a sending operand of an INITIALIZE or a SET statement or in a message-tag relation condition). "
             + "Use SET to assign a message tag",
-        CobolClass.Object => "a MOVE operand shall not be of class object — §2023:8.5.2.1 Table 2 gives usage "
-            + "OBJECT REFERENCE the object-reference category of class object (ISO §2023:14.9.25.3 SR1). Use SET to "
-            + "assign an object reference",
+        CobolClass.Object => "a MOVE operand shall not be of class object, the class of the object-reference category of a "
+            + "USAGE OBJECT REFERENCE item (" + Sr1Rule(edition) + "). Use SET to assign an object reference",
         _ => null,
     };
 

@@ -46,16 +46,16 @@ namespace WiseOwl.Cobol.Tests.Unit;
 ///
 /// <para><b>The probe is the GENERATED C#</b>, because the property is about which BODY is called: a call that
 /// stayed in its own lane names the catalog row's own runtime method, never that name with a <c>Real</c> suffix
-/// (<c>IntrinsicRenderer.RealMethod</c>'s transform). A compile that fails in the BACKEND is a failure outright —
+/// (<c>IntrinsicRenderer.Binary64Bodies</c>). A compile that fails in the BACKEND is a failure outright —
 /// that is the defect's own signature.</para>
 /// </remarks>
 public sealed class IntrinsicFloatLaneArgumentRunDriftTests : WiseOwlCobolTestBase
 {
     /// <summary>The catalog rows, read from the source so the population cannot drift away from the table:
-    /// name → (result type, runtime method, max args).</summary>
+    /// name → (result type, max args, bind).</summary>
     private static readonly Regex Row = new(
         "Add\\(new\\(\"(?<n>[A-Z0-9-]+)\",\\s*IntrinsicType\\.(?<t>\\w+),\\s*IntrinsicArity\\.\\w+,\\s*[-\\w]+,"
-        + "\\s*(?<max>[-\\w.]+),\\s*\"[^\"]*\",\\s*\"(?<rm>\\w*)\"",
+        + "\\s*(?<max>[-\\w.]+),\\s*\"[^\"]*\",\\s*IntrinsicBind\\.(?<bind>\\w+)",
         RegexOptions.Compiled);
 
     /// <summary>One legal reference per mixed-class row, with a <c>FLOAT-LONG</c> operand at a position the
@@ -87,7 +87,7 @@ public sealed class IntrinsicFloatLaneArgumentRunDriftTests : WiseOwlCobolTestBa
     /// dispatch is the channel it reaches, and (b) has at least one argument position §2023:15.3 does not type as
     /// numeric — read through the same <c>ArgumentRunIsAllNumeric</c> derivation the renderer dispatches on, so
     /// the test cannot disagree with the compiler about who is in the set.</summary>
-    private static List<(string Name, string Rm)> MixedClassNumericRows()
+    private static List<string> MixedClassNumericRows()
     {
         string src = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "IntrinsicCatalog.cs"));
         var all = Row.Matches(src).ToList();
@@ -96,10 +96,12 @@ public sealed class IntrinsicFloatLaneArgumentRunDriftTests : WiseOwlCobolTestBa
         return [.. all
             .Where(m => m.Groups["t"].Value is "Numeric" or "Integer")
             .Where(m => m.Groups["max"].Value != "0")
-            .Where(m => m.Groups["rm"].Value.Length > 0)
+            // A row the binder always folds (the ALGEBRAIC family) never reaches the renderer; LENGTH and BYTE-LENGTH fold too, but a
+            // run-time length does reach it.
+            .Where(m => m.Groups["bind"].Value == nameof(IntrinsicBind.Runtime) || m.Groups["n"].Value is "LENGTH" or "BYTE-LENGTH")
             // argCount: every DECLARED position plus one tail position, so a variadic tail is exercised too.
             .Where(m => !IntrinsicArgumentRules.ArgumentRunIsAllNumeric(m.Groups["n"].Value, PastEveryDeclaredPosition))
-            .Select(m => (m.Groups["n"].Value, m.Groups["rm"].Value))];
+            .Select(m => m.Groups["n"].Value)];
     }
 
     [Fact]
@@ -109,8 +111,8 @@ public sealed class IntrinsicFloatLaneArgumentRunDriftTests : WiseOwlCobolTestBa
         Assert.True(rows.Count >= 12,
             $"only {rows.Count} mixed-class numeric-result rows found — the §2023:15.3 argument-type sweep shrank "
             + "unexpectedly; check IntrinsicArgumentRules.Verified before lowering this.");
-        var missing = rows.Select(r => r.Name).Where(n => !Fixtures.ContainsKey(n)).ToList();
-        var stale = Fixtures.Keys.Where(n => !rows.Any(r => string.Equals(r.Name, n, StringComparison.OrdinalIgnoreCase))).ToList();
+        var missing = rows.Where(n => !Fixtures.ContainsKey(n)).ToList();
+        var stale = Fixtures.Keys.Where(n => !rows.Any(r => string.Equals(r, n, StringComparison.OrdinalIgnoreCase))).ToList();
         Assert.True(missing.Count == 0,
             "a catalogued function now MIXES a non-numeric §2023:15.3 argument position with the numeric channel and "
             + "has no float-argument fixture — add one, or the PB635 shape (a float argument moving the whole "
@@ -126,7 +128,7 @@ public sealed class IntrinsicFloatLaneArgumentRunDriftTests : WiseOwlCobolTestBa
     {
         var offenders = new List<string>();
         int i = 0;
-        foreach (var (name, rm) in MixedClassNumericRows().OrderBy(r => r.Name, StringComparer.Ordinal))
+        foreach (string name in MixedClassNumericRows().Order(StringComparer.Ordinal))
         {
             string programId = "PB635D" + (++i).ToString("00");
             var result = CompileWithAFloatArgument(programId, Fixtures[name]);
@@ -142,8 +144,9 @@ public sealed class IntrinsicFloatLaneArgumentRunDriftTests : WiseOwlCobolTestBa
             }
             if (result.GeneratedCsPath is not { } csPath || !File.Exists(csPath)) continue;
             string generated = File.ReadAllText(csPath);
-            string realName = IntrinsicRenderer.RealMethod(rm);
-            if (generated.Contains(realName + "(", StringComparison.Ordinal))
+            // A mixed-class function has no binary64 body (IntrinsicRenderer.Binary64Bodies): any binary64 body named is the lane's.
+            string? realName = IntrinsicRenderer.Binary64Bodies.Values.FirstOrDefault(body => generated.Contains("." + body + "(", StringComparison.Ordinal));
+            if (realName is not null)
                 offenders.Add($"{name}: the emitted C# calls {realName} — a float argument moved the whole call "
                     + "to the binary64 lane, where every argument including the non-numeric ones is converted to "
                     + "double and the function's phrases are dropped");
@@ -158,7 +161,7 @@ public sealed class IntrinsicFloatLaneArgumentRunDriftTests : WiseOwlCobolTestBa
     /// <summary>
     /// ⛔ THE OTHER ARM (feedback_two_arm_dispatch). <c>RenderNum</c> has TWO routes into
     /// <see cref="IntrinsicRenderer.RenderFloat"/>: the ARGUMENT one this file guards, and the FAMILY one —
-    /// <c>if (sig.Float) return RenderFloat(ic, sig.RuntimeMethod)</c> — which runs FIRST and consults no
+    /// <c>if (sig.Float) return RenderFloat(ic, Binary64Body(sig))</c> — which runs FIRST and consults no
     /// argument at all. A <c>Float: true</c> row with a non-numeric §2023:15.3 position would ride that arm straight
     /// into the same binary64 conversion of every argument, and would NOT show up as a missing <c>…Real</c> body
     /// because the exact name exists: the failure would be a wrong ANSWER, not a crash, which is strictly worse.
@@ -171,7 +174,7 @@ public sealed class IntrinsicFloatLaneArgumentRunDriftTests : WiseOwlCobolTestBa
         string src = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "IntrinsicCatalog.cs"));
         var floatRow = new Regex(
             "Add\\(new\\(\"(?<n>[A-Z0-9-]+)\",\\s*IntrinsicType\\.\\w+,\\s*IntrinsicArity\\.\\w+,\\s*[-\\w]+,"
-            + "\\s*[-\\w.]+,\\s*\"[^\"]*\",\\s*\"\\w*\",\\s*IntrinsicBind\\.\\w+,\\s*(?<float>true|false),");
+            + "\\s*[-\\w.]+,\\s*\"[^\"]*\",\\s*IntrinsicBind\\.\\w+,\\s*(?<float>true|false),");
         var all = floatRow.Matches(src).ToList();
         Assert.True(all.Count >= 79,
             $"only {all.Count} catalog rows parsed — the Add(new(...)) shape changed; fix the regex, do not lower the floor.");

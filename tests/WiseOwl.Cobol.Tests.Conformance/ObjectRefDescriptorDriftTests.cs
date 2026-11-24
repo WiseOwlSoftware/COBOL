@@ -93,18 +93,24 @@ public sealed class ObjectRefDescriptorDriftTests
     public void EveryObjectRefKind_HasItsOwnClassNameSenderRule()
     {
         var kinds = Enum.GetValues<WiseOwl.Cobol.Binding.Model.ObjectRefKind>();
-        var byRule = kinds.ToLookup(WiseOwl.Cobol.Compiler.Oo.OoConformance.ClassNameSenderRule);
+        var at2023 = WiseOwl.Cobol.Editions.EditionInfo.Of(2023);
+        var byRule = kinds.ToLookup(k => WiseOwl.Cobol.Compiler.Oo.OoConformance.ClassNameSenderRule(k, at2023));
         var collided = byRule.Where(g => g.Count() > 1)
                              .Select(g => $"{g.Key} ← {string.Join(", ", g)}").ToList();
         Assert.True(collided.Count == 0,
             "two ObjectRefKind values share one §2023:14.9.39.3 rule label — a kind added without an arm in "
             + "OoConformance.ClassNameSenderRule fell through to the discard: " + string.Join(" | ", collided));
         Assert.Equal("ISO §2023:14.9.39.3 SR11",
-            WiseOwl.Cobol.Compiler.Oo.OoConformance.ClassNameSenderRule(WiseOwl.Cobol.Binding.Model.ObjectRefKind.Interface));
+            WiseOwl.Cobol.Compiler.Oo.OoConformance.ClassNameSenderRule(WiseOwl.Cobol.Binding.Model.ObjectRefKind.Interface, at2023));
         Assert.Equal("ISO §2023:14.9.39.3 SR13",
-            WiseOwl.Cobol.Compiler.Oo.OoConformance.ClassNameSenderRule(WiseOwl.Cobol.Binding.Model.ObjectRefKind.ObjectClass));
+            WiseOwl.Cobol.Compiler.Oo.OoConformance.ClassNameSenderRule(WiseOwl.Cobol.Binding.Model.ObjectRefKind.ObjectClass, at2023));
         Assert.Equal("ISO §2023:14.9.39.3 SR14",
-            WiseOwl.Cobol.Compiler.Oo.OoConformance.ClassNameSenderRule(WiseOwl.Cobol.Binding.Model.ObjectRefKind.ActiveClass));
+            WiseOwl.Cobol.Compiler.Oo.OoConformance.ClassNameSenderRule(WiseOwl.Cobol.Binding.Model.ObjectRefKind.ActiveClass, at2023));
+        // The edition in force numbers the rule (kb/Work PB5659): §2002:14.8.35.2 and §2014:14.9.35.2 number SR8 to SR14 alike.
+        Assert.Equal("ISO §2002:14.8.35.2 SR14", WiseOwl.Cobol.Compiler.Oo.OoConformance.ClassNameSenderRule(
+            WiseOwl.Cobol.Binding.Model.ObjectRefKind.ActiveClass, WiseOwl.Cobol.Editions.EditionInfo.Of(2002)));
+        Assert.Equal("ISO §2014:14.9.35.2 SR14", WiseOwl.Cobol.Compiler.Oo.OoConformance.ClassNameSenderRule(
+            WiseOwl.Cobol.Binding.Model.ObjectRefKind.ActiveClass, WiseOwl.Cobol.Editions.EditionInfo.Of(2014)));
     }
 
     /// <summary>Two items of the given shape (X the receiver, Y the sender), a universal U, and the statement

@@ -38,6 +38,8 @@
       *>   I1  no RECORD clause: 13.18.43.4 GR5 a) makes the implied Format 1
       *>       integer-1 the largest record description, 20, so the record
       *>       is 20 bytes: ABCDE then Z.
+      *> COBOL-2002 states the same rules: §2002:14.8.47.3 GR12 (WRITE)
+      *> and §2002:14.8.33.3 GR15 (REWRITE), 2002 Annex B.2 items 68, 48.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1907WP.
        ENVIRONMENT DIVISION.

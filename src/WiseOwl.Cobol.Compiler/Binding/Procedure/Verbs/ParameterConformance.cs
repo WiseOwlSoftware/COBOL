@@ -14,7 +14,8 @@ namespace WiseOwl.Cobol.Binding.Procedure;
 /// rule that imports them differs between the activating statements.</summary>
 /// <param name="Callee">The activation as the message names it — <c>CALL … AS NESTED</c>,
 /// <c>CALL … program-prototype 'P'</c>, <c>FUNCTION F</c>.</param>
-/// <param name="ImportingRule">The syntax rule that makes §2023:14.8.2 apply to this activation — §2023:14.9.4.3 SR25 for a
+/// <param name="ImportingRule">The syntax rule that makes §2023:14.8.2 apply to this activation, as the edition in force numbers it
+/// (<see cref="CallSyntaxRules.Clause"/>) — §2023:14.9.4.3 SR25 for a
 /// Format-2 CALL, §2023:8.4.3.2.3 SR13 for a function-identifier.</param>
 /// <param name="Conformance">The descriptor a §2023:14.8.2 non-conformance reports under.</param>
 internal sealed record ActivationSite(string Callee, string ImportingRule, DiagnosticDescriptor Conformance);
@@ -27,15 +28,46 @@ internal sealed record ActivationSite(string Callee, string ImportingRule, Diagn
 /// <param name="Sections">The sections that rule names, as the message states them.</param>
 internal readonly record struct StorageSectionRule(string Clause, string Sections)
 {
-    /// <summary>§1985:X.5.2.3 SR3 - the '85 list has a Communication Section and no Local-Storage Section.</summary>
-    internal static StorageSectionRule Cobol85 { get; } = new("§1985:X.5.2.3 SR3",
-        "a data item defined in the file, working-storage, communication, or linkage section");
+    /// <summary>The rule as the edition in force numbers it, with the section list THAT edition's rule states (kb/Work PB5670, PB4950:
+    /// a diagnostic cites the rule of the edition the program is compiled under). The lists differ by edition:
+    /// <list type="bullet">
+    /// <item>COBOL-85: "a data item defined in the File, Working-Storage, Communication, or Linkage Section" (§1985:X.5.2.3 SR3;
+    /// no Local-Storage Section);</item>
+    /// <item>COBOL-2002: "the file, working-storage, local-storage, linkage, or communication section" (§2002:14.8.4.2 SR3 and SR7,
+    /// §2002:14.8.22.2 SR9 and SR11);</item>
+    /// <item>from COBOL-2014: "the file, working-storage, local-storage, or linkage section" (§2014:14.9.4.2 SR3, §2023:14.9.4.3 SR3),
+    /// the communication section being gone.</item>
+    /// </list></summary>
+    /// <param name="edition">The edition in force.</param>
+    /// <param name="y1985">The 1985 rule (the CALL's §1985:X.5.2.3 SR3; a statement 1985 lacks passes its 2002 rule).</param>
+    /// <param name="y2002">The 2002 rule.</param>
+    /// <param name="y2014">The 2014 rule.</param>
+    /// <param name="y2023">The 2023 rule.</param>
+    internal static StorageSectionRule For(EditionInfo edition, string y1985, string y2002, string y2014, string y2023) =>
+        new(edition.Cite(y1985, y2023, y2002, y2014), edition.Cite(
+            "a data item defined in the file, working-storage, communication, or linkage section",
+            ModernSections, y2002: "a data item defined in the file, working-storage, local-storage, linkage, or communication section",
+            y2014: ModernSections));
 
-    /// <summary>A COBOL-2002-and-later rule (§2023:14.9.4.3 SR3/SR7, §2023:14.9.23.3 SR9/SR11): the list names the
-    /// Local-Storage Section and no Communication Section.</summary>
-    /// <param name="clause">The §2023 clause the message cites.</param>
-    internal static StorageSectionRule Of2023(string clause) => new(clause,
-        "a data item defined in the file, working-storage, local-storage, or linkage section");
+    /// <summary>A CALL USING operand, identifier-2: §1985:X.5.2.3 SR3, §2002:14.8.4.2 SR3, §2014:14.9.4.2 SR3, §2023:14.9.4.3 SR3.</summary>
+    internal static StorageSectionRule CallUsing(EditionInfo edition) =>
+        For(edition, "§1985:X.5.2.3 SR3", "§2002:14.8.4.2 SR3", "§2014:14.9.4.2 SR3", "§2023:14.9.4.3 SR3");
+
+    /// <summary>The CALL RETURNING item, identifier-3 (COBOL-85's CALL has no RETURNING phrase): §2002:14.8.4.2 SR7,
+    /// §2014:14.9.4.2 SR7, §2023:14.9.4.3 SR7.</summary>
+    internal static StorageSectionRule CallReturning(EditionInfo edition) =>
+        For(edition, "§2002:14.8.4.2 SR7", "§2002:14.8.4.2 SR7", "§2014:14.9.4.2 SR7", "§2023:14.9.4.3 SR7");
+
+    /// <summary>An INVOKE USING operand, identifier-3 (COBOL-85 has no INVOKE): §2002:14.8.22.2 SR9, §2014:14.9.22.2 SR9,
+    /// §2023:14.9.23.3 SR9.</summary>
+    internal static StorageSectionRule InvokeUsing(EditionInfo edition) =>
+        For(edition, "§2002:14.8.22.2 SR9", "§2002:14.8.22.2 SR9", "§2014:14.9.22.2 SR9", "§2023:14.9.23.3 SR9");
+
+    /// <summary>The INVOKE RETURNING item, identifier-4: §2002:14.8.22.2 SR11, §2014:14.9.22.2 SR11, §2023:14.9.23.3 SR11.</summary>
+    internal static StorageSectionRule InvokeReturning(EditionInfo edition) =>
+        For(edition, "§2002:14.8.22.2 SR11", "§2002:14.8.22.2 SR11", "§2014:14.9.22.2 SR11", "§2023:14.9.23.3 SR11");
+
+    private const string ModernSections = "a data item defined in the file, working-storage, local-storage, or linkage section";
 }
 
 /// <summary>The statements whose syntax rules ask a bit data item to be "aligned on a byte boundary" with literal
@@ -172,7 +204,7 @@ internal sealed class ParameterConformance(BinderContext ctx, StatementBinder ho
             if (ByReferenceViolation(ap, formal) is { } why)
                 ctx.Edition.Error(site.Conformance,
                     $"{site.Callee} argument {position} ('{ap.Item.CobolName}') does not conform to formal "
-                    + $"parameter '{formal.CobolName}': {why} (ISO §2023:14.8.2 via {site.ImportingRule})");
+                    + $"parameter '{formal.CobolName}': {why} ({EditionInfo.Designated(CallSyntaxRules.Conformance(ctx.Edition.Edition))} via {site.ImportingRule})");
             return;
         }
         // §2023:14.8.2.3.3 (BY CONTENT / BY VALUE) + §2023:14.8.2.2 SR2 — the OTHER ARM OF THE SAME DISPATCH (kb/Work
@@ -187,7 +219,7 @@ internal sealed class ParameterConformance(BinderContext ctx, StatementBinder ho
                 + $"{(arg.Mode is CobolPassMode.Value ? "BY VALUE" : "BY CONTENT")}: {cwhy} "
                 // §2023:14.8.2 as a whole, as the BY REFERENCE arm says it: the reason names its own subclause —
                 // §2023:14.8.2.3.3 for an elementary formal, §2023:14.8.2.2 SR2 for a group one (kb/Work PB1617).
-                + $"(ISO §2023:14.8.2 via {site.ImportingRule})");
+                + $"({EditionInfo.Designated(CallSyntaxRules.Conformance(ctx.Edition.Edition))} via {site.ImportingRule})");
         else if (arg.Mode is CobolPassMode.Content)
             GateFigurativeEdition(formal, arg.Value, $"{site.Callee} argument {position}");
     }
@@ -267,7 +299,8 @@ internal sealed class ParameterConformance(BinderContext ctx, StatementBinder ho
                 ? WiseOwl.Cobol.Compiler.Oo.OoConformance.ObjectRefAssignmentMismatch(classes,
                     WiseOwl.Cobol.Compiler.Oo.OoConformance.ReturningSender(
                         sendPic.ObjectRef ?? ObjectRefDescriptor.Universal, invokedWith ?? ObjectRefDescriptor.Universal),
-                    recvPic.ObjectRef ?? ObjectRefDescriptor.Universal) is { } setReason
+                    recvPic.ObjectRef ?? ObjectRefDescriptor.Universal, WiseOwl.Cobol.Compiler.Oo.OoConformance.SetRules(ctx.Edition.Edition))
+                    is { } setReason
                     ? $"{setReason} (§2023:14.8.3.3 rule 1 — the conformance of a SET statement from the activated returning "
                       + "item into the activating one)"
                     : null
@@ -340,7 +373,7 @@ internal sealed class ParameterConformance(BinderContext ctx, StatementBinder ho
         if (formal.Pic is { Category: PicCategory.ObjectReference } formalPic
             && arg.Place?.DescribedItem?.Pic is { Category: PicCategory.ObjectReference } argumentPic)
             return WiseOwl.Cobol.Compiler.Oo.OoConformance.ObjectReferenceContentMismatch(host.OoClasses, formalPic, argumentPic,
-                invokedWith);
+                invokedWith, WiseOwl.Cobol.Compiler.Oo.OoConformance.SetRules(ctx.Edition.Edition));
         if (WiseOwl.Cobol.Compiler.Oo.ActivationDescriptions.OfCallArgument(arg, programRestriction: null, host.OoClasses)
             is not { } a)
             return arg.Place is { } p ? WiseOwl.Cobol.Compiler.Oo.ActivationDescriptions.NoDescriptionReason(p.Item, "argument")

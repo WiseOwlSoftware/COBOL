@@ -1,0 +1,1 @@
+{"refuse-at": ["2002"], "expect": "(26,12): error COBOL0809: a MOVE operand shall not be of class object, the class of the object-reference category of a USAGE OBJECT REFERENCE item (ISO §2002:14.8.24.2 SR1). Use SET to assign an object reference — MOVE a temporary data item the compiler synthesizes"}

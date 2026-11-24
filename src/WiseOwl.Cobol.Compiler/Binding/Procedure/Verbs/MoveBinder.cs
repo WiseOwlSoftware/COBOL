@@ -684,7 +684,9 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
         if (MoveTable16.SenderClassRefusal(source, ctx.Edition.Edition) is { } classRefusal)
             ctx.Edition.Error(DiagnosticCatalog.MoveOperandClassNotAllowed, classRefusal
                 + (source is BoundFieldOperand sIdx
-                    ? $" — MOVE {sIdx.Place.Item.CobolName}{ImplicitMovePhrase.Via(implicitOf)}"
+                    // A compiler temporary is named by what it is (kb/Work PB5660: "MOVE __INV-TEMP-200002" named no source).
+                    ? $" — MOVE {(SectionDataItem.IsCompilerTemporary(sIdx.Place.Item) ? SectionDataItem.TemporaryPhrase : sIdx.Place.Item.CobolName)}"
+                      + ImplicitMovePhrase.Via(implicitOf)
                     : ImplicitMovePhrase.Via(implicitOf)));
         foreach (var t in targets)
             if (MoveTable16.ReceiverClassRefusal(t, ctx.Edition.Edition) is { } recvRefusal)
