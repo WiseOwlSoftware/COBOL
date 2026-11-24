@@ -104,11 +104,20 @@ public static partial class CobolCharacterRepertoire
         return n;
     }
 
+    /// <summary>The edition whose repertoire judges a word at <paramref name="dialectLevel"/>: 2023's Annex B.3, 2014's (2023's with
+    /// Annex E reversed) or 2002's own Annex C (kb/Work PB5702) — the one place the three are told apart.</summary>
+    private static int RepertoireOf(int dialectLevel) => dialectLevel >= 2023 ? 2023 : dialectLevel >= 2014 ? 2014 : 2002;
+
     /// <summary>Where the edition <paramref name="dialectLevel"/>'s Annex B.3 permits <paramref name="codePoint"/>.
     /// Below 2002 only the basic characters exist (the construct gate names an extended one first).</summary>
     public static WordCharacterPosition PositionOf(int codePoint, int dialectLevel)
     {
-        var table = dialectLevel >= 2023 ? Edition2023.Value : dialectLevel >= 2014 ? Edition2014.Value : Edition2002.Value;
+        var table = RepertoireOf(dialectLevel) switch
+        {
+            2023 => Edition2023.Value,
+            2014 => Edition2014.Value,
+            _ => Edition2002.Value,
+        };
         foreach (var (classSet, position) in table)
             if (Contains(classSet, codePoint)) return position;
         return WordCharacterPosition.NotPermitted;
@@ -159,7 +168,7 @@ public static partial class CobolCharacterRepertoire
     /// underscore are not judged here: their position rule is edition-free (<see cref="SeparatorPositionViolation"/>).</summary>
     public static string? Violation(string word, int dialectLevel)
     {
-        int edition = dialectLevel >= 2023 ? 2023 : dialectLevel >= 2014 ? 2014 : 2002;
+        int edition = RepertoireOf(dialectLevel);
         for (int i = 0; i < word.Length;)
         {
             int start = i;
