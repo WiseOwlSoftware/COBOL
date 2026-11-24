@@ -267,7 +267,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 string valueSpec = d.ValueImage is { } vs ? CsLiteral(vs) : "null";
                 string strongKey = d.StrongTypeKey is { } tn ? CsLiteral(tn) : "null";
                 w.Line($"ExternalStore.Describe({CsLiteral(unitPath)}, {CsLiteral(ext.ExternalName)}, "
-                    + $"new ExternalDescriptor(\"record\", ByteCount: {d.ByteCount}, ValueImage: {valueSpec}, "
+                    + $"new ExternalDescriptor(\"record\", ByteCount: {(d.ByteCount is { } bc ? bc.ToString(System.Globalization.CultureInfo.InvariantCulture) : "null")}, ValueImage: {valueSpec}, "
                     + $"StrongTypeKey: {strongKey}, ConstantRecord: {(d.ConstantRecord ? "true" : "false")}), "
                     + $"{selfMask});   // §2023:14.8.4.3 / §2023:13.18.22.4 GR6");
             }

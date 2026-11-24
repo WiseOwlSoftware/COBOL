@@ -7,7 +7,9 @@ namespace WiseOwl.Cobol.Runtime;
 /// <summary>One runtime element's compile-time description of an external item or external file connector —
 /// the facts §2023:14.8.4 compares across the run unit's describers. Every field is a compile-time constant emitted
 /// at the describing element's activation entry.
-/// RECORD kind (§2023:14.8.4.3 / §2023:13.18.22.4 GR6): <see cref="ByteCount"/> = the record's byte count;
+/// RECORD kind (§2023:14.8.4.3 / §2023:13.18.22.4 GR6): <see cref="ByteCount"/> = the record's byte count, or null for a variable-length record (one holding a
+/// dynamic-length item or a dynamic-capacity table), which defines no fixed number of bytes, so GR6's byte agreement does not reach it and a description of its
+/// table that disagrees is EC-DATA-INCOMPATIBLE at the reference (§2023:14.6.13.2 GR6; kb/Work PB6017);
 /// <see cref="ValueImage"/> = the record name's OWN VALUE clause specification as a canonical KEY, else null (the
 /// GR6 "identical VALUE clause specification" identity: the clause's words are case-folded, a literal's characters
 /// are kept exactly — <c>ExternalRecordDescription.ValueSpecificationKey</c>, the one description the compile-time agreement compares too; it is NOT a composed image); a complete-record
@@ -26,7 +28,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// an equality, so it travels beside the fingerprint and is compared by <see cref="RecordDelimitersAgree"/> (kb/Work PB5844).</summary>
 public sealed record ExternalDescriptor(
     string Kind,
-    int ByteCount = 0,
+    int? ByteCount = null,
     string? ValueImage = null,
     string? StrongTypeKey = null,
     bool ConstantRecord = false,
@@ -108,11 +110,11 @@ public sealed class ExternalTable
             {
                 if (ExternalizedNames.Same(other, describer)) continue;
                 if ((gate & ExternalChecks.FormatConflict) != 0 && desc.Kind == "record"
-                    && (prior.ByteCount != desc.ByteCount || prior.ValueImage != desc.ValueImage
+                    && (BytesDisagree(prior.ByteCount, desc.ByteCount) || prior.ValueImage != desc.ValueImage
                         || prior.StrongTypeKey != desc.StrongTypeKey || prior.ConstantRecord != desc.ConstantRecord))
                     throw new CobolCallException(
                         $"external record '{name}': the descriptions in '{other}' and '{describer}' do not conform "
-                        + $"— byte count {prior.ByteCount} vs {desc.ByteCount}, VALUE/strong-type/CONSTANT-RECORD identity "
+                        + $"— byte count {prior.ByteCount?.ToString() ?? "variable"} vs {desc.ByteCount?.ToString() ?? "variable"}, VALUE/strong-type/CONSTANT-RECORD identity "
                         + "(ISO §2023:14.8.4.3 / §2023:13.18.22.4 GR6 — EC-EXTERNAL-FORMAT-CONFLICT)",
                         "EC-EXTERNAL-FORMAT-CONFLICT");
                 if ((gate & ExternalChecks.DataMismatch) != 0 && desc.Kind == "file"
@@ -143,4 +145,9 @@ public sealed class ExternalTable
     /// kb/Work PB5888 review R2-1 the mark was a "!" token found by splitting the reference text on ';', and a record externalized
     /// AS "A;!;B" raised a false EC-EXTERNAL-DATA-MISMATCH.</summary>
     private static bool AnyNonExternalRef(ExternalDescriptor d) => d.NonExternalItem;
+
+    /// <summary>§2023:13.18.22.4 GR6 "the records shall define the same number of bytes", for the records that define a number: a null
+    /// count is a variable-length record, which defines none, so it agrees with every description (the compile-time comparison,
+    /// <c>ExternalRecordDescription.DefinesItsSize</c>, leaves it out the same way; kb/Work PB6017).</summary>
+    private static bool BytesDisagree(int? a, int? b) => a is { } x && b is { } y && x != y;
 }
