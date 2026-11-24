@@ -467,7 +467,7 @@ content-validation half is separately answered by the declined A.4.14 facility (
   and one MOVE/ACCEPT/STRING receiver arm serve both. The rules that DO tell them apart read `Category` beside
   `EditMask`: Table 16's separate national-edited ROW (`MoveValidity.Table16Refusal`, through `Table16Operand.Heading`), `InitializeCategory.NationalEdited`
   (§2023:14.9.20.4 GR5c's category-name match, even though GR6c fills both with national SPACES), and the edition
-  gate (`VersionConformancePass.PictureConstructId` → `national-edited-2002`, the FINER identity, so the usage
+  gate (`PicInfo.ConstructId` → `national-edited-2002`, the FINER identity, so the usage
   arm does not also fire `national-data-2002` on the same entry), and every rule worded "category alphanumeric"
   or "category national" (§2023:8.5.2.1: a category name in a rule means the category), which asks `ItemCategory`'s
   one screen — its `Admits` reads `Table16Operand.IsEdited` beside the category (kb/Work PB850: until then the
@@ -1263,7 +1263,7 @@ incompatible content → EC-DATA-INCOMPATIBLE); HIGHEST/LOWEST-ALGEBRAIC per mod
 
 **As landed (DEVLOG 1322, 2026-08-18):** `PictureAnalyzer.AnalyzeFloatEdited` (COBOL1658 per violated rule —
 Table 10 rendered from PDF pages 489–490 to confirm the OCR'd row E); the 2002 introduction gate keys on
-`IsFloatEdited` through the ONE `VersionConformancePass.PictureConstructId` (the forest, report printables and the
+`IsFloatEdited` through the ONE `PicInfo.ConstructId` (the forest, report printables and the
 report SUM-counter Analyze alike — since kb/Work PB492 that ONE function also keys national-edited off the
 category-national picture's own `EditMask`, and `PicInfo.SkeletonGate`, which existed only to carry the recovered
 national-edited identity forward, is gone); the

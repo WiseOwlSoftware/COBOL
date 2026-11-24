@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// PICTURE-shape gates — the floating-point numeric-edited picture (symbol E; LIVE since data-model design D21 /
 /// kb/Work PB66, keyed on <c>PicInfo.IsFloatEdited</c>) and the recognized-but-unimplemented national-edited skeleton
 /// (<c>PicInfo.SkeletonGate</c>; its category is recovered to Alphanumeric) — which gate BOUND-arm through the ONE
-/// <c>VersionConformancePass.PictureConstructId</c>. The version matrix + <c>DataSkeletonEditionTests</c> verify
+/// <c>PicInfo.ConstructId</c>. The version matrix + <c>DataSkeletonEditionTests</c> verify
 /// PRESENCE; these pin the FIRING COUNT — exactly ONE per construct.
 /// </summary>
 public sealed class RepositoryPrototypeEditionTests
@@ -81,7 +81,7 @@ public sealed class RepositoryPrototypeEditionTests
         => Assert.Equal(1, Count0900(Repository, 85, "REPOSITORY PROPERTY 'MYPROP'"));
 
     /// <summary>A floating-point numeric-edited PICTURE (symbol E) gates EXACTLY ONCE at 85 — keyed on
-    /// <c>PicInfo.IsFloatEdited</c> through <c>PictureConstructId</c> (kb/Work PB66).</summary>
+    /// <c>PicInfo.IsFloatEdited</c> through <c>PicInfo.ConstructId</c> (kb/Work PB66).</summary>
     [Fact]
     public void FloatEditedPicture_At85_ExactlyOne0900()
         => Assert.Equal(1, Count0900(Prog("01 WS-EF PIC +9.99E+99."), 85, "floating-point numeric-edited PICTURE"));
@@ -123,7 +123,7 @@ public sealed class RepositoryPrototypeEditionTests
 
     /// <summary>DEVLOG-740 regression: a floating-point numeric-edited PICTURE on a NON-printable report SUM counter
     /// still gates EXACTLY ONCE at 85 — the SUM-counter Analyze PicInfo is discarded (only its scale is used), so the
-    /// 0900 must be carried on ReportSumModel.SkeletonGate (PictureConstructId) and fired by GateData's report-Sums
+    /// 0900 must be carried on ReportSumModel.SkeletonGate (PicInfo.ConstructId) and fired by GateData's report-Sums
     /// walk, else it is silently dropped.</summary>
     [Fact]
     public void ReportSumExternalFloat_At85_ExactlyOne0900()

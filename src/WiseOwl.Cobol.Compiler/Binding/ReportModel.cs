@@ -1115,7 +1115,7 @@ public sealed class ReportSumFamily : ReportEntryFamily
 
     /// <summary>The COBOL-2002 PICTURE-shape introduction gate (a <c>Constructs.*</c> id) this counter's PICTURE
     /// carries — a floating-point numeric-edited (symbol E) or national-edited picture, from the ONE
-    /// <c>VersionConformancePass.PictureConstructId</c>. The SUM-counter scale-derivation <c>Analyze</c> (GR1) is a
+    /// <c>PicInfo.ConstructId</c>. The SUM-counter scale-derivation <c>Analyze</c> (GR1) is a
     /// DISTINCT call off <c>ConformanceForest</c>, so this preserves its gate for the post-bind
     /// <c>VersionConformancePass</c> GateData report-Sums walk (DEVLOG 740; else the 0900 below 2002 is dropped on
     /// this error path). Null when the picture is version-invariant (the normal numeric case).</summary>

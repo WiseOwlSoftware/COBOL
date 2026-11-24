@@ -575,7 +575,7 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   EC-DATA-OVERFLOW (unchecked → the pinned saturated image, CONFORMANCE.md §3) / EC-DATA-INCOMPATIBLE (new flag,
   fatal — and the fixed-point `DeEdit` now raises it too, by the exact `Format(DeEdit(x)) == x` round trip),
   HIGHEST/LOWEST-ALGEBRAIC + COBOL1660, VALUE (COBOL1659 both directions of §2023:13.18.63.3 SR6's form rule,
-  COBOL1625 no-truncation), the 2002 gate through the ONE `VersionConformancePass.PictureConstructId`.
+  COBOL1625 no-truncation), the 2002 gate through the ONE `PicInfo.ConstructId`.
   **Two defects found on the way landed with it:** **PB97** (a floating-point literal in a VALUE clause on a
   fixed-point numeric item CRASHED the backend, CS0595 — the literal now expands to its exact value in
   `ValidateValueCategory`, the item-VALUE + level-88 funnel; a numeric-edited conditional variable's numeric

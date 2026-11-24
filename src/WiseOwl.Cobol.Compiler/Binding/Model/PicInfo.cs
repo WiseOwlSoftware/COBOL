@@ -504,6 +504,19 @@ public sealed record PicInfo(
     /// parser (the analyzer validated the form; consumers read it through the runtime type).</summary>
     public bool IsFloatEdited { get; init; }
 
+    /// <summary>The 2002-introduction gate this PICTURE's SHAPE carries, or null when the shape is version-invariant: the
+    /// ONE answer every Analyze site asks (the forest and report printable items, <c>VersionConformancePass.GateDataItem</c>,
+    /// and the report SUM counter's scale picture, <c>ReportSumModel.SkeletonGate</c>, whose PicInfo is otherwise
+    /// discarded). The floating-point numeric-edited form (symbol E, data-model design D21, kb/Work PB66) keys on
+    /// <see cref="IsFloatEdited"/>; NATIONAL-EDITED (§2023:8.5.2.11, §2023:13.18.40.4 GR10, kb/Work PB492) on the
+    /// category-national picture's edit mask, which is what the category IS in this model (the same
+    /// <c>{ Category, EditMask: not null }</c> pair alphanumeric-edited uses). A fact of the analysed picture, so it
+    /// lives on the picture, and the binder asks it without reading the validation layer (kb/Work PB2421).</summary>
+    public string? ConstructId =>
+        IsFloatEdited ? Constructs.PicExternalFloat2002
+        : this is { Category: PicCategory.National, EditMask: not null } ? Constructs.NationalEdited2002
+        : null;
+
     /// <summary>The digit positions of a FLOATING-POINT numeric-edited item's significand (<c>CobolEdit.FloatMask.SigDigits</c>,
     /// §2023:13.18.40.3 SR15); 0 for every other item. The compile-time reader of the ONE mask parser, so a final-transfer
     /// quotient can ask whether the receiver is coarse enough for a 34-digit round-to-odd quotient (kb/Work PB4641).</summary>

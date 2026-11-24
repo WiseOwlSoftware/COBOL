@@ -3404,7 +3404,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             },
             // Preserve a floating-point-edited / national-edited PICTURE gate for the post-bind GateData report-Sums
             // walk (this PicInfo is otherwise discarded — only Scale is used — so the 0900 would drop; DEVLOG 740).
-            SkeletonGate = pic is null ? null : WiseOwl.Cobol.Compiler.Validation.VersionConformancePass.PictureConstructId(pic),
+            SkeletonGate = pic?.ConstructId,
             SkeletonWhere = sumWhere,
         };
         st.SumFamilies[ge] = family;

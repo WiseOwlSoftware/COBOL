@@ -62,7 +62,7 @@ namespace WiseOwl.Cobol.Compiler.Validation;
 /// (14g.3, parse-arm); file SHARING/LOCK-MODE + SPECIAL-NAMES FOR + PD RETURNING/RAISING (14g.4, parse-arm — the recon's
 /// bound-arm SHARING/LOCK-MODE reclassified for the same drop-proof reason); FUNCTION- and PROGRAM-PROTOTYPE (parse-arm
 /// over the shared <c>prototypePhrase</c> since kb/Work PB894; 14g.5 had it bound-arm) + REPOSITORY CLASS/INTERFACE/PROPERTY (14g.5, parse-arm) + the external-float /
-/// national-edited PICTURE forms (14g.5, bound-arm via <see cref="PictureConstructId"/> — each keyed on the
+/// national-edited PICTURE forms (14g.5, bound-arm via <see cref="PicInfo.ConstructId"/> — each keyed on the
 /// analyzed <c>PicInfo</c>'s own shape: <c>IsFloatEdited</c>, and a category-national picture's <c>EditMask</c>).
 /// The one principled exception is the
 /// UDF-invocation gate (an intrinsic FUNCTION and a user-function call are
@@ -770,23 +770,9 @@ internal sealed class VersionConformancePass
     private void GateDataItem(DataItem item, string where)
     {
         using var _ = _sink.At(item);   // the entry's own position, captured when it was bound (kb/Work PB82, PB1925)
-        string? id = (item.Pic is { } pic ? PictureConstructId(pic) : null) ?? UsageConstructId(item);
+        string? id = item.Pic?.ConstructId ?? UsageConstructId(item);
         if (id is { } gate) Check(gate, where);
     }
-
-    /// <summary>The 2002-introduction gate a PICTURE's SHAPE carries (or null when version-invariant) — the ONE
-    /// function for every Analyze site: the forest / report printable items (<see cref="GateDataItem"/>) and the
-    /// report SUM-counter scale Analyze (<c>ReportSumModel.SkeletonGate</c>, ReportSectionBinder.cs — a distinct call
-    /// whose PicInfo is otherwise discarded, DEVLOG 740). The floating-point numeric-edited form (symbol E — LIVE,
-    /// data-model design D21 / kb/Work PB66) keys on <see cref="PicInfo.IsFloatEdited"/>; NATIONAL-EDITED (§2023:8.5.2.11
-    /// / §2023:13.18.40.4 GR10 — LIVE since kb/Work PB492) on the category-national picture's EDIT MASK, which is what
-    /// the category IS in this model (the same <c>{ Category, EditMask: not null }</c> pair alphanumeric-edited
-    /// uses). It used to ride a <c>PicInfo.SkeletonGate</c> string because the analyzer RECOVERED the category to
-    /// Alphanumeric and no category key could see it; the category is real now and the carrier is gone.</summary>
-    internal static string? PictureConstructId(PicInfo pic) =>
-        pic.IsFloatEdited ? Constructs.PicExternalFloat2002
-        : pic is { Category: PicCategory.National, EditMask: not null } ? Constructs.NationalEdited2002
-        : null;
 
     /// <summary>The 2002-introduction USAGE / PICTURE-category of a resolved item, or null when version-invariant.
     /// Keyed on the resolved <c>(OwnUsage, Pic.Category, Pic.Usage)</c>: <see cref="DataItem.OwnUsage"/> is mandatory
@@ -1667,7 +1653,7 @@ internal sealed class VersionConformancePass
             // PICTURE format 2 (the LOCALE phrase, §2023:13.18.40.2) — a COBOL-2002 introduction with the locale
             // facility (A.4.9 item 8; kb/Work PB64 T6). Recognition-based here in the PARSE arm because the
             // binder recovers/clears on every SR32–SR37 violation, so a bound-arm gate would drop the 0900 on
-            // exactly those paths. NOT also in PictureConstructId — the two arms are disjoint by the class
+            // exactly those paths. NOT also in PicInfo.ConstructId — the two arms are disjoint by the class
             // contract and a double gate doubles the diagnostic.
             if (ctx.pictureLocalePhrase() is not null) _p.Check(Constructs.PictureLocaleFormat22002, "the PICTURE LOCALE phrase (format 2)");
             return base.VisitChildren(ctx);
