@@ -15,6 +15,30 @@ using Core = CobolParserCore;
 /// PB2314; DESIGN-architecture-review §8.3, R0-0019). <see cref="SetFormatSelection"/> chose the format before this binder runs.</summary>
 internal sealed class SetPointerBinder(BinderContext ctx, StatementBinder host)
 {
+    /// <summary>The formats this binder binds from a <c>SET … TO</c> statement: 7 (without an ADDRESS phrase), 8, 9 and 17.</summary>
+    internal static bool Binds(SetFormat format) => format is SetFormat.F7 or SetFormat.F8 or SetFormat.F9 or SetFormat.F17;
+
+    /// <summary>Bind a <c>SET receivers… TO NULL</c> (<paramref name="toNull"/>) or <c>SET receivers… TO value</c>
+    /// (<paramref name="amount"/>, classified as <paramref name="sender"/>) that <see cref="SetBinder"/> selected as
+    /// <paramref name="format"/>, one of <see cref="Binds"/>'s. Each format's diagnostic quotes the sender as the program spelled
+    /// it (kb/Work PB388): the NULL word, or the TO operand's source extent (kb/Work PB4209).</summary>
+    internal BoundStatement BindTo(SetFormat format, Core.DataReferenceContext[] recvs, SetSender? sender,
+        Core.PredefinedNullContext? toNull, Core.ArithmeticExpressionContext? amount)
+    {
+        string senderText = toNull is not null ? toNull.GetText()
+            : WrittenSource.Of(amount ?? throw new ArgumentNullException(nameof(amount), "a SET TO value names its sending operand"));
+        bool isNull = toNull is not null;
+        bool selfSuper = sender?.Predefined is not null;
+        return format switch
+        {
+            SetFormat.F7 => BindSetPointer(recvs, sender, isNull, selfSuper, senderText),
+            SetFormat.F9 => BindSetProgramPointer(recvs, sender, isNull, selfSuper, senderText),
+            SetFormat.F8 => BindSetFunctionPointer(recvs, sender, isNull, selfSuper, senderText),
+            SetFormat.F17 => BindMessageTagSet(recvs, sender, isNull, senderText),
+            _ => throw new ArgumentOutOfRangeException(nameof(format), format, "not a format SetPointerBinder binds"),
+        };
+    }
+
     /// <summary>⛔ AN INDEX-NAME OPERAND IS A CATEGORY ERROR, NEVER AN UNDEFINED NAME (kb/Work PB388), and it
     /// reaches SIX operand positions, not one. The carrier re-routes — data-pointer (§2023:14.9.39 Format 7),
     /// function-pointer (Format 8), program-pointer (Format 9) — are selected by whichever operand HAS a
@@ -69,7 +93,7 @@ internal sealed class SetPointerBinder(BinderContext ctx, StatementBinder host)
     /// (SELF/SUPER are object-only — 0869). A pointer-item sender is screened per receiver for §2023:14.9.39.3 SR19's
     /// restricted-data-pointer rule through PtrBinder's one screen (kb/Work PB548); the <c>ADDRESS OF</c>
     /// spellings reach Format 7 through <c>PtrBinder.BindSetAddress</c> (<c>SetToStatementCst.SpellsAddressPhrase</c>).</summary>
-    internal BoundStatement BindSetPointer(
+    private BoundStatement BindSetPointer(
         IReadOnlyList<Core.DataReferenceContext> targetRefs, SetSender? sender,
         bool toNull, bool senderIsSelfSuper, string? senderText = null)
     {
@@ -167,7 +191,7 @@ internal sealed class SetPointerBinder(BinderContext ctx, StatementBinder host)
     /// <c>StatementBinder.BindStatement</c> binds a statement naming a gated message-tag item to a no-op for every verb and
     /// every SET format (<c>StatementBinder.NamesGatedMessageTag</c>), so the SR35 class refusals below speak only where the usage
     /// exists, or where the operand is imported and so ungated (§2023:8.4.3.9.2).</para></summary>
-    internal BoundStatement BindMessageTagSet(
+    private BoundStatement BindMessageTagSet(
         IReadOnlyList<Core.DataReferenceContext> receivers, SetSender? sender, bool toNull, string senderText)
     {
         string written = SetFormatSelection.Written(receivers);
@@ -204,7 +228,7 @@ internal sealed class SetPointerBinder(BinderContext ctx, StatementBinder host)
     /// shall be category program-pointer; SR22 — a RESTRICTED receiver's prototype and the sender's shall have the same
     /// signature): <see cref="BindSetPrototypedPointer"/> over the ProgramPointer carrier. The sender is NULL or another
     /// program-pointer; SELF/SUPER are object references (0869).</summary>
-    internal BoundStatement BindSetProgramPointer(
+    private BoundStatement BindSetProgramPointer(
         IReadOnlyList<Core.DataReferenceContext> targetRefs, SetSender? sender,
         bool toNull, bool senderIsSelfSuper, string? senderText = null) =>
         BindSetPrototypedPointer(PrototypedPointerFormat.ProgramPointer, targetRefs, sender, toNull, senderIsSelfSuper, senderText);
@@ -213,7 +237,7 @@ internal sealed class SetPointerBinder(BinderContext ctx, StatementBinder host)
     /// sender shall be category function-pointer, the sender may be the predefined address NULL, and "the
     /// function-prototypes associated with identifier-12 and identifier-13 shall have the same signature"):
     /// <see cref="BindSetPrototypedPointer"/> over the FunctionPointer carrier. kb/Work PB452 + PB817.</summary>
-    internal BoundStatement BindSetFunctionPointer(
+    private BoundStatement BindSetFunctionPointer(
         IReadOnlyList<Core.DataReferenceContext> targetRefs, SetSender? sender,
         bool toNull, bool senderIsSelfSuper, string? senderText = null) =>
         BindSetPrototypedPointer(PrototypedPointerFormat.FunctionPointer, targetRefs, sender, toNull, senderIsSelfSuper, senderText);
@@ -244,11 +268,11 @@ internal sealed class SetPointerBinder(BinderContext ctx, StatementBinder host)
         foreach (var t in targetRefs)
         {
             if (SetIndexNameOperand(t, "receiving operand", format.Kind, rules)) return BoundRejected.Reported(ctx.Edition);
-            if (host.Expr.ResolveReceiving(t) is not { } tp || tp.Item.Pic?.Category != format.Category)
+            if (host.Expr.ResolveReceiving(t) is not { } tp || tp.Item.Pic?.Category != format.Carrier)
             {
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.PointerOperandShape,
                     $"SET '{WrittenSource.Of(t)}': the receiving operand of a {format.Kind} SET shall be USAGE "
-                    + $"{format.Usage} (ISO §2023:14.9.39.3 {format.ReceiverRule})");
+                    + $"{UsageFamilies.UsageWord(format.Usage)} (ISO §2023:14.9.39.3 {format.ReceiverRule})");
             }
             targets.Add(tp);
         }
@@ -260,20 +284,20 @@ internal sealed class SetPointerBinder(BinderContext ctx, StatementBinder host)
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.PointerOperandShape,
                     $"SET {SetFormatSelection.Written(targetRefs)} TO {senderText}: "
                     + $"{format.SenderIdentifier} shall be of category {format.Kind} — a {format.Kind} sender is NULL, "
-                    + $"another USAGE {format.Usage} item, a function-identifier or inline method invocation of "
+                    + $"another USAGE {UsageFamilies.UsageWord(format.Usage)} item, a function-identifier or inline method invocation of "
                     + $"category {format.Kind}, or {format.AddressSender}, "
                     + $"never a literal or an arithmetic expression (ISO §2023:14.9.39.2 {format.Format}, §2023:14.9.39.3 {format.Rule})");
             }
             var sp = CarrierSenderPlace(sender, format.Kind, rules, out var senderRefusal);
             if (senderRefusal is not null) return senderRefusal;
-            if (sp?.Item.Pic?.Category != format.Category)
+            if (sp?.Item.Pic?.Category != format.Carrier)
             {
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.PointerOperandShape,
                     // ⛔ NAME THE RECEIVERS (kb/Work PB388's sweep): the renderer transliterates U+2026 to ASCII, so
                     // `SET … TO 'x'` reached the user as `SET . TO 'x'` — a statement nobody wrote.
                     $"SET {SetFormatSelection.Written(targetRefs)} TO "
                     + $"'{sender.Text}': a {format.Kind} sender shall be NULL, another "
-                    + $"USAGE {format.Usage} item, a function-identifier or inline method invocation of category "
+                    + $"USAGE {UsageFamilies.UsageWord(format.Usage)} item, a function-identifier or inline method invocation of category "
                     + $"{format.Kind}, or {format.AddressSender} "
                     + $"(ISO §2023:14.9.39.3 {format.ReceiverRule} / {format.AddressIdentifierClause})");
             }
@@ -290,20 +314,20 @@ internal sealed class SetPointerBinder(BinderContext ctx, StatementBinder host)
     }
 
     /// <summary>What SET Format 9 and Format 8 (<see cref="BindSetPrototypedPointer"/>) spell differently: the carrier's
-    /// category and its words, the format and its rule, the sender identifier's name, the address-identifier sender
+    /// category, its word and its usage, the format and its rule, the sender identifier's name, the address-identifier sender
     /// (§2023:8.4.3.13 program-address-identifier, §2023:8.4.3.12 function-address-identifier) and the bound statement.</summary>
     private sealed record PrototypedPointerFormat(
-        PicCategory Category, string Kind, string Usage, string Format, string Rule, string ReceiverRule,
+        PicCategory Carrier, string Kind, Usage Usage, string Format, string Rule, string ReceiverRule,
         string SenderIdentifier, string AddressSender, string AddressIdentifierClause,
         Func<IReadOnlyList<Place>, Place?, bool, BoundStatement> Bind)
     {
         public static readonly PrototypedPointerFormat ProgramPointer = new(PicCategory.ProgramPointer,
-            "program-pointer", "PROGRAM-POINTER", "Format 9", "SR21", "SR21, Format 9", "identifier-8",
+            "program-pointer", Usage.ProgramPointer, "Format 9", "SR21", "SR21, Format 9", "identifier-8",
             "an ENTRY program-address-identifier", "§2023:8.4.3.13",
             static (targets, source, toNull) => new BoundSetProgramPointer(targets, source, toNull));
 
         public static readonly PrototypedPointerFormat FunctionPointer = new(PicCategory.FunctionPointer,
-            "function-pointer", "FUNCTION-POINTER", "Format 8", "SR20", "SR20", "identifier-13",
+            "function-pointer", Usage.FunctionPointer, "Format 8", "SR20", "SR20", "identifier-13",
             "an ADDRESS OF FUNCTION function-address-identifier", "§2023:8.4.3.12",
             static (targets, source, toNull) => new BoundSetFunctionPointer(targets, source, toNull));
 

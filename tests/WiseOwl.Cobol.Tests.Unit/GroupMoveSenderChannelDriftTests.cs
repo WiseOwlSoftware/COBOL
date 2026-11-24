@@ -75,7 +75,8 @@ public sealed class GroupMoveSenderChannelDriftTests
     /// decimal point (kb/Work PB3570, PB3613), and both arms read the ONE digits rule, <c>CobolNum.GroupDigits</c> - the
     /// compiler calls it on a literal's text, the emitted code on a function value's run-time text, so a function the compiler
     /// folded to a literal and the same call evaluated at run time send the same characters. The rule is written nowhere
-    /// else in the compiler.</summary>
+    /// else in the compiler; both arms reach it through the façade (<c>RuntimeApi.NumGroupDigitsOf</c> at compile time,
+    /// <c>RuntimeApi.NumGroupDigits</c> as emitted text; kb/Work PB2302).</summary>
     [Fact]
     public void NonElementaryMoveSender_NumericValue_SendsItsDigitsOnly_ThroughTheOneRule()
     {
@@ -85,11 +86,11 @@ public sealed class GroupMoveSenderChannelDriftTests
         Assert.True(body.Success, "OperandText.NonElementaryMoveSender is no longer recognizable");
         string b = body.Groups["b"].Value;
         // The literal arm covers a function value folded to a literal too (no FunctionValue exemption).
-        Assert.Matches(@"BoundNumericLiteral\s+\w+\s*=>\s*EmitText\.CsLiteral\(\s*CobolNum\.GroupDigits\(", b);
+        Assert.Matches(@"BoundNumericLiteral\s+\w+\s*=>\s*EmitText\.CsLiteral\(\s*RuntimeApi\.NumGroupDigitsOf\(", b);
         Assert.Matches(@"BoundComputedOperand\s*\{\s*IsNumericFunctionValue:\s*true\s*\}\s*=>\s*RuntimeApi\.NumGroupDigits\(", b);
         // …both ahead of the fallthrough that renders the operand text.
         int fallthrough = b.IndexOf("RepresentationOfText(", System.StringComparison.Ordinal);
-        Assert.True(b.IndexOf("CobolNum.GroupDigits(", System.StringComparison.Ordinal) < fallthrough
+        Assert.True(b.IndexOf("RuntimeApi.NumGroupDigitsOf(", System.StringComparison.Ordinal) < fallthrough
                     && b.IndexOf("RuntimeApi.NumGroupDigits(", System.StringComparison.Ordinal) < fallthrough,
             "the numeric-value arms must precede the operand-text fallthrough");
         // One rule in one place: the compiler holds no second copy of the digit filter (it lives in CobolNum.GroupDigits).

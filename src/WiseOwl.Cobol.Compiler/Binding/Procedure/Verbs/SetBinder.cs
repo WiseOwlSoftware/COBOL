@@ -165,17 +165,12 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             UnreservedKeywordReference.Report(ctx.Edition, "NULL");
             return BoundRejected.Reported(ctx.Edition);
         }
-        // The word as written (kb/Work PB388): each format's diagnostic quotes the sender the program spelled.
-        string written = toNull.GetText();
         return SetFormatSelection.Select(_fmt.KindsOf(recvs), SetDirections.To, out _) switch
         {
-            SetFormat.F7 => Pointer.BindSetPointer(recvs, null, toNull: true, senderIsSelfSuper: false, written),
-            SetFormat.F9 => Pointer.BindSetProgramPointer(recvs, null, toNull: true, senderIsSelfSuper: false, written),
-            SetFormat.F8 => Pointer.BindSetFunctionPointer(recvs, null, toNull: true, senderIsSelfSuper: false, written),
-            // ⛔ THE SECOND ARM OF THE SAME DISPATCH (kb/Work PB453; feedback_two_arm_dispatch). `SET MT TO NULL`
-            // arrives HERE rather than through BindSetTo, and it was this arm that produced the §2023:14.9.39.3 SR8
+            // Formats 7, 9, 8 and 17. ⛔ F17 IS THE SECOND ARM OF THE SAME DISPATCH (kb/Work PB453; feedback_two_arm_dispatch):
+            // `SET MT TO NULL` arrives HERE rather than through BindSetTo, and it was this arm that produced the §2023:14.9.39.3 SR8
             // object-reference diagnostic the note measured.
-            SetFormat.F17 => Pointer.BindMessageTagSet(recvs, null, toNull: true, written),
+            SetFormat pointer when SetPointerBinder.Binds(pointer) => Pointer.BindTo(pointer, recvs, null, toNull, amount: null),
             // Format 5, and the residual: NULL is a sender of no other format, so a receiving list that selects
             // Format 1/14/16 here is refused by SR8 inside — the diagnostic that names what the statement was
             // trying to be.
@@ -224,18 +219,13 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         // §2023:14.9.39.3 SR8. It now selects Format 5 and SR8 refuses N4 by name.
         switch (_fmt.SelectForTo(kinds, sender, out _))
         {
+            // Formats 7, 9, 8 and 17 (the receivers select F17, or a message-tag SENDER over Format 1's catch-all brace).
             // SELF / SUPER senders arrive here too (the expression tier carries them, kb/Work PB1425), by name.
-            case SetFormat.F7:
-                return Pointer.BindSetPointer(recvs, sender, toNull: false, senderIsSelfSuper: sender.Predefined is not null, senderText);
-            case SetFormat.F9:
-                return Pointer.BindSetProgramPointer(recvs, sender, toNull: false, senderIsSelfSuper: sender.Predefined is not null, senderText);
-            case SetFormat.F8:
-                return Pointer.BindSetFunctionPointer(recvs, sender, toNull: false, senderIsSelfSuper: sender.Predefined is not null, senderText);
+            case SetFormat pointer when SetPointerBinder.Binds(pointer):
+                return Pointer.BindTo(pointer, recvs, sender, toNull: null, amount);
             case SetFormat.F5:
                 return host.Oo.OoBindSetObjectRef(recvs, sender, senderNull: false, senderSelf: sender.IsSelf,
                     senderSuper: sender.IsSuper, senderText);
-            case SetFormat.F17:   // the receivers select it, or a message-tag SENDER over Format 1's catch-all brace
-                return Pointer.BindMessageTagSet(recvs, sender, toNull: false, senderText);
             case SetFormat.F1:
                 break;
             default:

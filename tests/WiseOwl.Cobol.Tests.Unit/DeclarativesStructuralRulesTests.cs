@@ -414,8 +414,11 @@ public sealed class DeclarativesStructuralRulesTests
     {
         string rw = File.ReadAllText(
             TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "Procedure", "Verbs", "ReportWriterBinder.cs"));
-        foreach (string verb in new[] { "INITIATE", "GENERATE", "TERMINATE" })
-            Assert.Contains($"RejectInBeforeReporting(\"{verb}\")", rw);
+        Assert.Contains("RejectInBeforeReporting(\"GENERATE\")", rw);
+        // INITIATE and TERMINATE bind through the one report-name series, which asks the guard with its verb's word (kb/Work PB2158).
+        Assert.Contains("RejectInBeforeReporting(verb.Word)", rw);
+        foreach (string verb in new[] { "INITIATE", "TERMINATE" })
+            Assert.Contains($"new(\"{verb}\", ", rw);
     }
 
     // ── Fixtures ────────────────────────────────────────────────────────────────────────────────────────────

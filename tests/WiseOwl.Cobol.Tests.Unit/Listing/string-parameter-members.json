@@ -374,7 +374,7 @@
       "reason": "its string is a C# identifier the compiler mints or emits (a temporary's tag or prefix, a CLR or member name), never a COBOL word"
     },
     {
-      "member": "WiseOwl.Cobol.Binding.Procedure.SetBinder.BindProgramAddressOperand(WiseOwl.Cobol.Frontend.Generated.CobolParserCore.ProgramAddressIdentifierContext, string)",
+      "member": "WiseOwl.Cobol.Binding.Procedure.SetAddressBinder.BindProgramAddressOperand(WiseOwl.Cobol.Frontend.Generated.CobolParserCore.ProgramAddressIdentifierContext, string)",
       "reason": "its strings word a diagnostic (a feature, a message, a verb, a rule citation, a site): the operand, if any, is the parser context"
     },
     {

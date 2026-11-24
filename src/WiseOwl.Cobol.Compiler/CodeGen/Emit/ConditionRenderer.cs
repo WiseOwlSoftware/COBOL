@@ -824,7 +824,9 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         string test = c.ClassKind switch
         {
             'N' => numericTest,
-            'A' or 'U' or 'L' => RuntimeApi.ClassIsAlphabetic(c.ClassKind, arg, classify),
+            'A' => RuntimeApi.ClassIsAlphabetic(arg, classify),
+            'U' => RuntimeApi.ClassIsAlphabeticUpper(arg, classify),
+            'L' => RuntimeApi.ClassIsAlphabeticLower(arg, classify),
             // §2023:8.8.4.4.4 GR3e — "If BOOLEAN is specified, the condition is true if the content of the data
             // item referenced by identifier-1 consists entirely of the boolean values '0' and '1'." No
             // classification argument: LC_CTYPE governs the three ALPHABETIC forms (GR3 b1/c1/d1) and names no

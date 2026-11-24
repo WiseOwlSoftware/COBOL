@@ -296,7 +296,7 @@ internal static class RuntimeApi
     /// condition is true if the content of the data item referenced by identifier-1 consists entirely of the
     /// boolean values '0' and '1'", with GR1's zero-length FALSE already on it. Anchored here rather than
     /// emitted bare because it is the class condition's NEWEST alternative (kb/Work PB590); its three ALPHABETIC siblings are
-    /// <see cref="ClassIsAlphabetic"/> (kb/Work PB2302).</summary>
+    /// <see cref="ClassIsAlphabetic"/>, <see cref="ClassIsAlphabeticUpper"/> and <see cref="ClassIsAlphabeticLower"/> (kb/Work PB2302).</summary>
     public static string ClassIsBoolean(string value) =>
         $"{nameof(CobolClass)}.{nameof(CobolClass.IsBoolean)}({value})";
 
@@ -3774,14 +3774,16 @@ internal static class RuntimeApi
     /// <summary>The NUMERIC class test of a non-numeric operand (<c>CobolClass.IsNumeric</c>; ISO §2023:8.8.4.4.4 GR3).</summary>
     public static string ClassIsNumeric(string operand) => $"{nameof(CobolClass)}.{nameof(CobolClass.IsNumeric)}({operand})";
 
-    /// <summary>The ALPHABETIC, ALPHABETIC-UPPER or ALPHABETIC-LOWER class test (<paramref name="kind"/> 'A', 'U' or 'L';
-    /// <c>CobolClass.IsAlphabetic</c>, <c>IsAlphabeticUpper</c>, <c>IsAlphabeticLower</c>; ISO §2023:8.8.4.4.4 GR3).
-    /// <paramref name="classification"/> is the trailing classification argument, possibly empty.</summary>
-    public static string ClassIsAlphabetic(char kind, string operand, string classification) => kind switch
-    {
-        'A' => $"{nameof(CobolClass)}.{nameof(CobolClass.IsAlphabetic)}({operand}{classification})",
-        'U' => $"{nameof(CobolClass)}.{nameof(CobolClass.IsAlphabeticUpper)}({operand}{classification})",
-        'L' => $"{nameof(CobolClass)}.{nameof(CobolClass.IsAlphabeticLower)}({operand}{classification})",
-        _ => throw new ArgumentException($"'{kind}' is not an ALPHABETIC class test", nameof(kind)),
-    };
+    /// <summary>The ALPHABETIC class test (<c>CobolClass.IsAlphabetic</c>; ISO §2023:8.8.4.4.4 GR3). <paramref name="classification"/>
+    /// is the trailing classification argument, possibly empty.</summary>
+    public static string ClassIsAlphabetic(string operand, string classification) =>
+        $"{nameof(CobolClass)}.{nameof(CobolClass.IsAlphabetic)}({operand}{classification})";
+
+    /// <summary>The ALPHABETIC-UPPER class test (<c>CobolClass.IsAlphabeticUpper</c>; ISO §2023:8.8.4.4.4 GR3).</summary>
+    public static string ClassIsAlphabeticUpper(string operand, string classification) =>
+        $"{nameof(CobolClass)}.{nameof(CobolClass.IsAlphabeticUpper)}({operand}{classification})";
+
+    /// <summary>The ALPHABETIC-LOWER class test (<c>CobolClass.IsAlphabeticLower</c>; ISO §2023:8.8.4.4.4 GR3).</summary>
+    public static string ClassIsAlphabeticLower(string operand, string classification) =>
+        $"{nameof(CobolClass)}.{nameof(CobolClass.IsAlphabeticLower)}({operand}{classification})";
 }

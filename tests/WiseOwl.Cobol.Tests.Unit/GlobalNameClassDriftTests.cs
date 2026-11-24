@@ -301,7 +301,8 @@ public sealed class GlobalNameClassDriftTests
                 RegexOptions.Multiline | RegexOptions.Singleline))
             .Where(m => m.Groups["rest"].Value.Contains("if (scope.Method is { } m)", StringComparison.Ordinal))
             .ToList();
-        Assert.True(tiered.Count >= 5, $"expected the five method-tiered lookups of SymbolTable, found {tiered.Count}");
+        // Four: the data-name and condition-name lookups share one method tier, SymbolTable.TryNearestTable (kb/Work PB2157).
+        Assert.True(tiered.Count >= 4, $"expected the four method-tiered lookups of SymbolTable, found {tiered.Count}");
         foreach (var m in tiered)
             Assert.True(Regex.IsMatch(m.Groups["rest"].Value, @"\bMethodDeclaresWord\(m, (?:name|key\.Word)\)"),
                 $"SymbolTable.{m.Groups["name"].Value} opens a method tier but never asks MethodDeclaresWord(m, name): a "
