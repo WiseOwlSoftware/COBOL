@@ -199,9 +199,9 @@ from reports import FINISH_STATUSES, IndexedReport, Review, age_minutes, newest_
 if TYPE_CHECKING:
     from land_lane import Lane  # noqa: E402  (likewise: land_lane imports this module back)
 
-DECL = re.compile(r'^\+\s*(?:(?:public|internal|private|protected|static|sealed|abstract|partial|override|readonly|async|virtual|unsafe|new)\s+)*'
+DECL = re.compile(r'^\+\s*(?:(?:public|internal|private|protected|static|sealed|abstract|closed|partial|override|readonly|async|virtual|unsafe|new)\s+)*'
                   r'(?:class|record|struct|enum|interface)\s+(?:struct\s+)?(\w+)')
-METH = re.compile(r'^\+\s*(?:(?:public|internal|private|protected|static|sealed|abstract|override|readonly|async|virtual|unsafe)\s+)+'
+METH = re.compile(r'^\+\s*(?:(?:public|internal|private|protected|static|sealed|abstract|closed|override|readonly|async|virtual|unsafe)\s+)+'
                   r'[\w<>\[\],.?()\s]+?\s+(\w+)\s*\(')
 TEST = re.compile(r'^\+\s*public (?:async )?(?:void|Task)\s+(\w+)\s*\(')
 LANDED_CONTENT = ('MERGED', 'LANDED')

@@ -88,7 +88,7 @@ public sealed record BoundTableSort(
 /// <summary>Where a Format-2 table SORT's elements are stored — the closed answer the binder reads off the table's
 /// data description (§2023:14.9.40.3 SR13, §2023:13.18.44.4 GR1). The data-name-2 reference's own subscripts are the ENCLOSING
 /// tables' occurrences (§2023:8.4.2.3.3 SR3, SR5 e), SR6), read once at the statement and carried here as structure.</summary>
-public abstract record TableSortStorage
+public closed record TableSortStorage
 {
     /// <summary>A table with its own typed element array, reached by <paramref name="Array"/> — the whole-table
     /// access path, with an index for each enclosing table (<c>PlaceBuilder.BuildTablePath</c>).

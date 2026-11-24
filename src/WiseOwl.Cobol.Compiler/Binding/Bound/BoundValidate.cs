@@ -40,7 +40,7 @@ public sealed record BoundValidate(Place Written, IReadOnlyList<ValidateStep> St
 }
 
 /// <summary>One step of an expanded VALIDATE operand: an element, or the loop over one table dimension.</summary>
-public abstract record ValidateStep;
+public closed record ValidateStep;
 
 /// <summary>One element of a VALIDATE operand. <see cref="FormatValid"/> is stage one's test (§2023:14.9.50.4 GR6 a: "Each elementary data item is
 /// checked for compatibility with the PICTURE, SIGN, and USAGE clauses, as applicable"), true when the content is valid for the item's description.

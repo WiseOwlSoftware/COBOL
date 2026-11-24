@@ -26,7 +26,7 @@ public sealed record AccessPath(IReadOnlyList<AccessSegment> Segments)
 }
 
 /// <summary>One step of an <see cref="AccessPath"/>.</summary>
-public abstract record AccessSegment;
+public closed record AccessSegment;
 
 /// <summary>⛔ THE ROOT OF AN ACCESS PATH, its first segment: storage named by an allocated CLR name
 /// (<see cref="RootFieldSegment"/>) or a local of the generated method named by its identity
@@ -35,7 +35,7 @@ public abstract record AccessSegment;
 /// PARAMETER's storage whose reference can raise its *-ARG-OMITTED condition (kb/Work PB971), and the backend then
 /// renders the root through the runtime guard. A path step that asks "is this a root" asks this type, so a third kind of
 /// root (kb/Work PB4380 added the second's three residual producers) is answered everywhere at once.</summary>
-public abstract record RootSegment(OmittedFormalGuard? Guard) : AccessSegment;
+public closed record RootSegment(OmittedFormalGuard? Guard) : AccessSegment;
 
 /// <summary>A root named by an allocated CLR name (DESIGN-backend-abstraction §1.1): a static or instance MEMBER of the
 /// program class — a data item's storage, a Tier-B class's backing or cell, a program's formal carrier.
@@ -78,7 +78,7 @@ public sealed record CellBackingSegment : AccessSegment
 /// <c>BoundUnit.AnchorOf</c> (kb/Work PB1133) and carried as structure on a GLOBAL bridge
 /// (<c>CallBridge</c>), so no model string holds the access text (kb/Work PB4320; DESIGN-backend-abstraction §1.3
 /// L7); each backend spells it.</summary>
-public abstract record ContainerAnchor
+public closed record ContainerAnchor
 {
     private ContainerAnchor() { }
 

@@ -263,7 +263,7 @@ def _skip_group(toks: list[tuple[str, int]], i: int) -> int:
 #: The modifiers a member header can carry before its type: a `(` group right after one of them (or at the header's
 #: start, or after `<`) is a TUPLE TYPE, never the parameter list (`private static (char[] A, bool B) Render(...)`).
 _MODIFIERS = frozenset(("public", "private", "protected", "internal", "static", "readonly", "virtual", "override",
-                        "abstract", "sealed", "async", "extern", "unsafe", "new", "partial", "volatile", "const",
+                        "abstract", "sealed", "closed", "async", "extern", "unsafe", "new", "partial", "volatile", "const",
                         "required", "file", "ref", "scoped", "fixed", "implicit", "explicit"))
 
 
