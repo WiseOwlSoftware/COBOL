@@ -28,7 +28,7 @@ Lifting the hold also frees the other things that waited on it:
   dispatch.
 
 **How the rest of R2 runs (Claude's decision, CLAUDE.md Ownership):** the next batches are taken on a NEW pin at the main of
-the day they launch, not at cd85e49017. Seven weeks of landings since that pin renamed the projects (`Cobol.Net.*` became
+the day they launch, not at cd85e49017. Seven weeks of landings since that pin renamed the projects (to
 `WiseOwl.Cobol.*`) and moved many files, and `r2_collect.py --r2` refuses any path the committed tree no longer has. So a
 finding against the old pin would be stale before anyone filed it.
 
