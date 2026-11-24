@@ -250,11 +250,10 @@ internal sealed class ReportWriterEmitter(
         bool slotPerPlacement = presentSlot >= 0 && PresenceSlotCount(f) > 1;
         string[] tests = [.. presentSlot >= 0 && !slotPerPlacement ? [RuntimeApi.ReportIsPresent(r.CsIndex, gi, presentSlot)] : (string[])[],
                           .. f.GroupIndicate ? [$"__RPT_{r.CsIndex}.GroupIndicatePresent"] : (string[])[]];
-        // An absent repetition 0 of a STEPped entry still fixes the step anchor: §2023:13.18.38.4 GR12 measures every later
-        // repetition from the column repetition 0 would occupy, so the seed is written OUTSIDE every presence test.
-        bool anchorHoisted = f.Columns[0].Kind == ReportColumnKindModel.AnchorSeed;
-        if (anchorHoisted)
-            w.Line($"__ra{f.Columns[0].AnchorId} = __hc + {f.Columns[0].Value};   // §2023:13.18.14.4 GR8 + §2023:13.18.38.4 GR12");
+        // An absent repetition 0 of a STEPped entry still fixes the step anchors: §2023:13.18.38.4 GR12 measures every later
+        // repetition from the column repetition 0 would occupy, so EVERY operand's seed is written OUTSIDE every presence test
+        // — the field's and each placement's — at the column the operands before it would leave the horizontal counter on.
+        EmitAnchorSeeds(f, w);
         using IDisposable? guard = tests.Length > 0
             ? w.Block($"if ({string.Join(" && ", tests)})   // presence (§2023:13.18.41.4 GR2b / §2023:13.18.28.4 GR1 / §2023:13.18.38.4 GR13)")
             : null;
@@ -290,9 +289,8 @@ internal sealed class ReportWriterEmitter(
                 case ReportColumnKindModel.AnchorSeed:
                     // Repetition 0 of a STEP'd repeating entry whose COLUMN operand is relative: place as GR8
                     // says AND remember the column, because §2023:13.18.38.4 GR12 measures the later repetitions from
-                    // the column this one occupies, not from the horizontal counter (which holds its RIGHTMOST).
-                    if (rep > 0 || !anchorHoisted)
-                        w.Line($"__ra{spec.AnchorId} = __hc + {spec.Value};   // §2023:13.18.14.4 GR8 + §2023:13.18.38.4 GR12");
+                    // the column this one occupies, not from the horizontal counter (which holds its RIGHTMOST); the seed
+                    // itself was written before the presence tests (EmitAnchorSeeds).
                     w.Line($"{RuntimeApi.ReportPlace(r.CsIndex, "__ln", $"__ra{spec.AnchorId}", image)};");
                     w.Line($"__hc = __ra{spec.AnchorId} + {f.PrintItem.DisplayTextWidth - 1};   // §2023:13.18.14.4 GR9");
                     break;
@@ -304,6 +302,36 @@ internal sealed class ReportWriterEmitter(
                     break;
             }
         }
+    }
+
+    /// <summary>Write the step anchor of every operand of <paramref name="f"/>'s multiple COLUMN clause that is the seed of one
+    /// (<see cref="ReportColumnKindModel.AnchorSeed"/>), before any presence test (§2023:13.18.38.4 GR12: "the column repetition 0
+    /// would occupy"). Each seed is the column its operand takes when every operand before it is present (§2023:13.18.14.4
+    /// GR8/GR9), tracked as a base expression plus a constant, so an absent earlier operand leaves the later anchors where
+    /// they would be — the placement then reads the anchor, never writes it.</summary>
+    private static void EmitAnchorSeeds(ReportFieldModel f, CodeWriter w)
+    {
+        if (!f.Columns.Any(c => c.Kind == ReportColumnKindModel.AnchorSeed)) return;
+        string basis = "__hc";
+        int delta = 0;
+        int width = f.PrintItem.DisplayTextWidth;
+        foreach (var c in f.Columns)
+            switch (c.Kind)
+            {
+                case ReportColumnKindModel.Absolute:
+                    (basis, delta) = ("0", c.AbsoluteRightmost(width));
+                    break;
+                case ReportColumnKindModel.Relative:
+                    delta += c.Value + width - 1;
+                    break;
+                case ReportColumnKindModel.AnchorSeed:
+                    w.Line($"__ra{c.AnchorId} = {basis} + {delta + c.Value};   // §2023:13.18.14.4 GR8 + §2023:13.18.38.4 GR12");
+                    (basis, delta) = ($"__ra{c.AnchorId}", width - 1);
+                    break;
+                default:
+                    (basis, delta) = ($"__ra{c.AnchorId}", c.Value + width - 1);
+                    break;
+            }
     }
 
     /// <summary>ONE repetition's OCCURS … DEPENDING presence test as a C# boolean (ISO §2023:13.18.38.4 GR13 with

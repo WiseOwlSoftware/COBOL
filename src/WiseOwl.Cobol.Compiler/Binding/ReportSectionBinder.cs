@@ -3058,7 +3058,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
 
     /// <summary>True when <paramref name="tree"/> contains a word terminal spelled <paramref name="word"/>
     /// (case-insensitive) — the VARYING-counter / report-section-name reference scans.</summary>
-    private static bool HasWord(Antlr4.Runtime.Tree.IParseTree tree, string word)
+    internal static bool HasWord(Antlr4.Runtime.Tree.IParseTree tree, string word)
     {
         if (tree is Antlr4.Runtime.Tree.ITerminalNode t)
             return CobolNames.Same(t.GetText(), word);

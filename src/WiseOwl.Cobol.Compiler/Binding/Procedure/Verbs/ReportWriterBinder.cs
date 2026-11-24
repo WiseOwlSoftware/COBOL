@@ -44,14 +44,19 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
     /// runs them at each evaluation.</para></summary>
     public void BindReportGroupClauses()
     {
-        var memo = new Dictionary<Core.ConditionContext, BoundCondition>(ReferenceEqualityComparer.Instance);
+        // A condition is bound once per written clause, except that a condition naming a VARYING counter binds once per
+        // DECLARING occurrence of that counter: a replayed entry (OCCURS, §2023:13.18.38 Format 3) declares a counter of its own
+        // per repetition, and the condition must read the one its field's repetition owns (§2023:13.18.64.4 GR3; kb/Work PB5624).
+        var memo = new Dictionary<(Core.ConditionContext, string), BoundCondition>();   // parse contexts compare by reference
         var entry = host.Window.Mark;
         BoundCondition Bind(Core.ConditionContext c)
         {
+            string scopeKey = ctx.Refs.VaryingScope is { } scope
+                ? string.Join(",", scope.Where(v => ReportSectionBinder.HasWord(c, v.Name)).Select(v => v.Uid)) : "";
             // A condition §2023:13.15.3 SR16 refused at data bind was reported there, under its rule; binding it would word
             // the same report-section reference again under §2023:13.8.6.2.3 (kb/Work PB4226).
-            if (!memo.TryGetValue(c, out var b))
-                memo[c] = b = ctx.Data.State.Reports.PresentWhenRefused(c)
+            if (!memo.TryGetValue((c, scopeKey), out var b))
+                memo[(c, scopeKey)] = b = ctx.Data.State.Reports.PresentWhenRefused(c)
                     ? host.Cond.Refused("a PRESENT WHEN condition refused by ISO §2023:13.15.3 SR16")
                     : PerEvaluation(() => host.Cond.BindCondition(c));
             return b;
