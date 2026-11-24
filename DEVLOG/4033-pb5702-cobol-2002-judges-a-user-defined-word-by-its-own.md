@@ -1,4 +1,4 @@
-## PB5702: COBOL 2002 judges a user-defined word by its own Annex C, not the 2014 table
+## Entry 4033 — 2026-11-24 05:15 PST — PB5702: COBOL 2002 judges a user-defined word by its own Annex C, not the 2014 table
 
 **Re-probe.** `01 Xµ PIC X(3)` (U+00B5 MICRO SIGN last) compiled and ran at `--std 2002` (output `OK`). §2002:8.1.2.1 GR4b
 bars the special characters of Annex C from the first and the last place of a user-defined word, so COBOL2773 is
@@ -25,3 +25,4 @@ checks `PositionOf` at 2002 for every code point; a second test holds the 2002 r
 **Left open (COBOL 2014 waits).** 2014 is still the table derived from 2023, so `Xµ` is accepted at `--std 2014` though
 §2014:8.1.2.1 GR4b bars it, and the non-ASCII digits are "not first" there where 2014's Digits row permits them anywhere.
 Noted on PB5702.
+
