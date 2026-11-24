@@ -12,18 +12,19 @@
       *> in Annex C" (cite.py --check: OK). Annex C.2 pairs U+212A
       *> KELVIN SIGN with the BASIC letter k, (212A,006B); k is no
       *> lowercase EXTENDED letter, so the fold does not apply the pair:
-      *> WORK-K and WORK-K are two user-defined words, two items. (The
-      *> Kelvin sign may end a word at every edition from 2002: Annex
-      *> B.3 item 2, Annex E.3.3 item 4 added it as a first character at
-      *> 2023.) It fails when the fold maps U+212A to k.
+      *> WORK-KX and WORK-KX are two user-defined words, two items.
+      *> (The Kelvin sign may stand inside a word at every edition from
+      *> 2002; it is a special character of the 2002 Annex C.2.1, barred
+      *> first and last by 8.1.2.1 GR4b, which is why it is medial here.)
+      *> It fails when the fold maps U+212A to k.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB4420K.
        DATA DIVISION.
        WORKING-STORAGE SECTION.
-       01 WORK-K PIC X(4) VALUE "KELV".
-       01 WORK-K PIC X(4) VALUE "BASK".
+       01 WORK-KX PIC X(4) VALUE "KELV".
+       01 WORK-KX PIC X(4) VALUE "BASK".
        PROCEDURE DIVISION.
-           DISPLAY WORK-K.
-           DISPLAY WORK-K.
-           DISPLAY work-k.
+           DISPLAY WORK-KX.
+           DISPLAY WORK-KX.
+           DISPLAY work-kx.
            STOP RUN.
