@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
+using WiseOwl.Cobol.Runtime;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
 
@@ -57,12 +58,14 @@ internal static class PrototypeUnitRules
                         + "OBJECT-COMPUTER paragraph");
                 // c) "The only clauses that may be specified in the SPECIAL-NAMES paragraph are the ALPHABET
                 //    clause, the CURRENCY clause, the DECIMAL-POINT clause, the LOCALE clause, and the
-                //    SYMBOLIC-CHARACTERS clause." An unrecognized clause is refused BY NAME elsewhere
+                //    SYMBOLIC-CHARACTERS clause." (§2023:10.6.2 SR4c; §2014:10.6.2 SR4c and §2002:10.5.2 SR5c list
+                //    only the LOCALE, CURRENCY and DECIMAL-POINT clauses: DialectBehavior.PrototypeSpecialNamesAdmitAlphabetAndSymbolic.)
+                //    An unrecognized clause is refused BY NAME elsewhere
                 //    (ClosedFormatPass, COBOL1970), so it is not reported twice here.
                 foreach (var entry in paragraph.specialNamesParagraph()?.specialNameEntry() ?? [])
-                    if (!AdmittedInPrototype(entry))
-                        Refuse(entry, "c)", "the only clauses a prototype's SPECIAL-NAMES paragraph may specify "
-                            + "are ALPHABET, CURRENCY, DECIMAL-POINT, LOCALE and SYMBOLIC CHARACTERS");
+                    if (!AdmittedInPrototype(entry, edition))
+                        Refuse(entry, "c)", "the only clauses a prototype's SPECIAL-NAMES paragraph may specify are CURRENCY, "
+                            + "DECIMAL-POINT and LOCALE, and from COBOL-2023 ALPHABET and SYMBOLIC CHARACTERS");
             }
         // d) "The environment division shall not contain an input-output section."
         if (environment?.inputOutputSection() is { } io)
@@ -84,10 +87,14 @@ internal static class PrototypeUnitRules
                 + "header — no declaratives, sections, paragraphs or statements");
     }
 
-    private static bool AdmittedInPrototype(Core.SpecialNameEntryContext e) =>
-        e.alphabetClause() is not null || e.currencySignClause() is not null || e.decimalPointClause() is not null
-        || e.localeClause() is not null || e.symbolicCharactersClause() is not null
-        || e.unrecognizedClause() is not null;
+    private static bool AlphabetAndSymbolicAdmitted(EditionContext edition) =>
+        DialectBehaviors.IsActive(DialectBehavior.PrototypeSpecialNamesAdmitAlphabetAndSymbolic, edition.DialectLevel);
+
+    private static bool AdmittedInPrototype(Core.SpecialNameEntryContext e, EditionContext edition) =>
+        e.currencySignClause() is not null || e.decimalPointClause() is not null || e.localeClause() is not null
+        || e.unrecognizedClause() is not null
+        || (AlphabetAndSymbolicAdmitted(edition)
+            && (e.alphabetClause() is not null || e.symbolicCharactersClause() is not null));
 
     /// <summary>§2023:10.6.2 SR1: "Within a compilation group, function-prototypes and program-prototypes shall precede
     /// all other types of source units." Walked over the group's children in source order, so a class or

@@ -655,6 +655,13 @@ public enum DialectBehavior
     /// 2023 that directive is refused (kb/Work PB5725; VCR row 7.126). Both editions are QUOTED. The consumer is
     /// <c>TurnDirectiveProcessor.ParseTurn</c>.</summary>
     TurnDirectiveRepeatsOnlyNameFileCombination = 70,
+    /// <summary>§2023:10.6.2 SR4c — "The only clauses that may be specified in the SPECIAL-NAMES paragraph are the ALPHABET clause, the
+    /// CURRENCY clause, the DECIMAL-POINT clause, the LOCALE clause, and the SYMBOLIC-CHARACTERS clause" of a program, function or
+    /// method prototype. §2014:10.6.2 SR4c and §2002:10.5.2 SR5c list only "the LOCALE clause, the CURRENCY clause, and the
+    /// DECIMAL-POINT clause", so at <c>--std 2002</c> and <c>--std 2014</c> an ALPHABET or SYMBOLIC CHARACTERS clause in a prototype is
+    /// refused COBOL2272 (kb/Work PB5706; VCR row 7.127). Both editions are QUOTED. The consumer is
+    /// <c>PrototypeUnitRules.AdmittedInPrototype</c>.</summary>
+    PrototypeSpecialNamesAdmitAlphabetAndSymbolic = 71,
 }
 
 /// <summary>
@@ -999,6 +1006,10 @@ public static class DialectBehaviors
             "a TURN directive may name one exception-name twice, with different file-names, from COBOL-2023, which refuses only a "
             + "repeated exception-name and file-name combination; at COBOL-2002 and COBOL-2014 no exception-name shall be specified "
             + "more than once in one TURN directive"),
+        new(DialectBehavior.PrototypeSpecialNamesAdmitAlphabetAndSymbolic, "prototype-special-names-admit-alphabet-and-symbolic", 2023,
+            "7.127", "§2023:10.6.2 SR4c", "§2014:10.6.2 SR4c",
+            "a prototype's SPECIAL-NAMES paragraph may specify the ALPHABET and SYMBOLIC-CHARACTERS clauses only from COBOL-2023; "
+            + "at COBOL-2002 and COBOL-2014 it is limited to the LOCALE, CURRENCY and DECIMAL-POINT clauses"),
     ];
 
     static DialectBehaviors()

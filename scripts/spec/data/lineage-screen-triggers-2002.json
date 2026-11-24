@@ -422,6 +422,12 @@
    ],
    "why": "the data-address-identifier's syntax rules, §2002:8.4.2.11.2, whose SR4 requires a strongly-typed group item to be defined with its own TYPE clause referencing a STRONG declaration, a rule §2023:8.4.3.11.3 drops (kb/Work PB5705, VCR row 7.125)"
   },
+  "prototype-special-names-admit-alphabet-and-symbolic": {
+   "sections": [
+    "10.5"
+   ],
+   "why": "the compilation group, §2002:10.5, whose SR5c limits a prototype's SPECIAL-NAMES paragraph to the LOCALE, CURRENCY and DECIMAL-POINT clauses at 2002 (kb/Work PB5706, VCR row 7.127)"
+  },
   "turn-directive-repeats-only-name-file-combination": {
    "sections": [
     "7.2.19.2"

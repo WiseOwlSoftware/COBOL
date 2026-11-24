@@ -285,6 +285,7 @@ WiseOwl.Cobol.Runtime.DialectBehavior.NextGroupNeedsLineNumber = 41 -> WiseOwl.C
 WiseOwl.Cobol.Runtime.DialectBehavior.NumvalCCurrencyContentRules = 12 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.PageFootingFirstLineAbsolute = 44 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.PerformVaryingInitInnerBeforeAugmentOuter = 3 -> WiseOwl.Cobol.Runtime.DialectBehavior
+WiseOwl.Cobol.Runtime.DialectBehavior.PrototypeSpecialNamesAdmitAlphabetAndSymbolic = 71 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.RecordContainsRangeBindsRecordSize = 13 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.RelationOperandNotALiteral = 53 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.RelativeReadPreviousAfterOpenComparesFpi = 67 -> WiseOwl.Cobol.Runtime.DialectBehavior
