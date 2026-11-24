@@ -1,4 +1,4 @@
-## The Tier-A REDEFINES alias view rule has one home on DataItem (PB6141)
+## Entry 4026 — 2026-11-23 18:47 PST — The Tier-A REDEFINES alias view rule has one home on DataItem (PB6141)
 
 **Mechanism.** A Tier-A (`RedefinesTier.Alias`) class keeps one typed field, its canonical's, and every other member is a view
 that owns no field and renders the canonical's (§2023:13.18.44.4 GR1: one storage area). The test "a non-canonical member of an
@@ -24,3 +24,4 @@ new f9f0d80c744b-dirty) ===`. No goldens: no behavior changed. No inventory row 
 
 **Self-review.** Architecture: one predicate per question, on the model type every phase already reads. Duplication: the grep
 above now hits only the owners. Performance: the predicates are field reads; `RecordLayout` lost a `List.Contains`.
+
