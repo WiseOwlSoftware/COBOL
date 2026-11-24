@@ -5,6 +5,7 @@ using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Frontend.Parsing;
 using WiseOwl.Cobol.Editions;
+using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.Binding.Procedure;
 
@@ -89,7 +90,8 @@ internal sealed class AddressOfOperandScreen(BinderContext ctx)
         // 2002 SR4 / 2014 SR5 (no 2023 counterpart): a strongly-typed GROUP item shall be defined with its OWN TYPE clause
         // referencing a STRONG declaration, so a group merely subordinate to a strong record is refused. 2023 drops the
         // rule: its GR2 types such a group by position (StrongTypeModel.AddressOfRestriction).
-        if (ctx.Edition.Edition.Year < 2023 && item.IsGroupEntry && !item.StrongType
+        if (!DialectBehaviors.IsActive(DialectBehavior.AddressOfSubordinateStrongGroupNeedsNoOwnTypeClause, ctx.Edition.DialectLevel)
+            && item.IsGroupEntry && !item.StrongType
             && StrongTypeModel.StrongRoot(item) is { } owner)
         {
             Report(DiagnosticCatalog.AddressOfOperandKind, text,
