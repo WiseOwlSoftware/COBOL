@@ -88,7 +88,7 @@ the parse-layer metadata copy and the two preprocessor severity copies in one mo
 > **Superseded 2026-10-07 (owner, kb/Work PB2118 question 1):** every root becomes its project's name
 > (`WiseOwl.Cobol.Editions`, `WiseOwl.Cobol.Frontend`, `WiseOwl.Cobol.Runtime` at P15 Cut 3, `WiseOwl.Cobol.Compiler`, `WiseOwl.Cobol.Cli`);
 > the flips were `DESIGN-architecture-review.md` §8.2's waves PB2412–PB2415, the compiler's last (PB2415). The table
-> below is the state now: each root is its csproj's `RootNamespace`, and each folder adds its name (§8.2 rule 1).
+> below is the state now: each root is its csproj's `RootNamespace`, and each folder adds its name (`DESIGN-architecture-review.md` §8.2 rule 1).
 
 **Decision: adopt `WiseOwl.Cobol.*` as the real namespace root across the greenfield tree as the FIRST mechanical step of the
 rearchitecture, decoupled from the G8 legacy retirement.** The G8 "big-bang namespace rename" premise assumed the legacy

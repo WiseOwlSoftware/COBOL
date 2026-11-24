@@ -68,7 +68,7 @@
     "WiseOwl.Cobol.Compiler.Binding.DataBinder::ActiveScope": [
       "WiseOwl.Cobol.Compiler.Binding.NameResolution",
       "WiseOwl.Cobol.Compiler.Binding.Procedure.BinderContext",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.KeyedIoBinder",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.KeyedIoBinder",
       "WiseOwl.Cobol.Compiler.Binding.SubscriptBinder",
       "WiseOwl.Cobol.Compiler.Binding.SymbolTable",
       "WiseOwl.Cobol.Compiler.Binding.Validation.SearchAllFormat2Rules",
@@ -146,7 +146,7 @@
       "WiseOwl.Cobol.Compiler.Binding.Passes.PtrBindBasedAndAddressablesPass"
     ],
     "WiseOwl.Cobol.Compiler.Binding.DataBinder::ClaimTemporarySlotCarriedCell": [
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.UdfBinder"
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.UdfBinder"
     ],
     "WiseOwl.Cobol.Compiler.Binding.DataBinder::ClassifyOccurrences": [
       "WiseOwl.Cobol.Compiler.Binding.Bound.StatementBinder"
@@ -324,8 +324,8 @@
       "WiseOwl.Cobol.Compiler.Binding.Passes.CheckCodeSetRecordItemsPass",
       "WiseOwl.Cobol.Compiler.Binding.Passes.ResolveFilesPass",
       "WiseOwl.Cobol.Compiler.Binding.Passes.UsageCollectionPass",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.FileLockBinder",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.SequentialIoBinder",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.FileLockBinder",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.SequentialIoBinder",
       "WiseOwl.Cobol.Compiler.Binding.ReportSectionBinder"
     ],
     "WiseOwl.Cobol.Compiler.Binding.DataBinder::ForceStringCanonical": [
@@ -368,7 +368,7 @@
       "WiseOwl.Cobol.Compiler.Binding.Passes.CheckConstantRecordSubtreesPass",
       "WiseOwl.Cobol.Compiler.Binding.Passes.CheckUsageDeclarationsPass",
       "WiseOwl.Cobol.Compiler.Binding.Passes.ResolveRedefinesPass",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.AddressOfOperandScreen"
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.AddressOfOperandScreen"
     ],
     "WiseOwl.Cobol.Compiler.Binding.DataBinder::IsDescribedInContainer": [
       "WiseOwl.Cobol.Compiler.Binding.Passes.OdoResolvePass",
@@ -385,7 +385,7 @@
       "WiseOwl.Cobol.Compiler.Binding.Passes.SynthesizeImpliedPicturesPass"
     ],
     "WiseOwl.Cobol.Compiler.Binding.DataBinder::IsRepositoryIntrinsic": [
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.IntrinsicBinder",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.IntrinsicBinder",
       "WiseOwl.Cobol.Compiler.Binding.SubscriptBinder"
     ],
     "WiseOwl.Cobol.Compiler.Binding.DataBinder::IsTypeDeclarationCondition": [
@@ -404,7 +404,7 @@
       "WiseOwl.Cobol.Compiler.Binding.ReportSectionBinder"
     ],
     "WiseOwl.Cobol.Compiler.Binding.DataBinder::KeyReference": [
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.KeyedIoBinder",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.KeyedIoBinder",
       "WiseOwl.Cobol.Compiler.Binding.ReportSectionBinder"
     ],
     "WiseOwl.Cobol.Compiler.Binding.DataBinder::LeapSecond": [
@@ -425,8 +425,8 @@
       "WiseOwl.Cobol.Compiler.Binding.Passes.PtrBindBasedAndAddressablesPass",
       "WiseOwl.Cobol.Compiler.Binding.Passes.RouteStaticUnitStoragePass",
       "WiseOwl.Cobol.Compiler.Binding.Passes.UsageCollectionPass",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.CallBinder",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.ConditionBinder",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.CallBinder",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.ConditionBinder",
       "WiseOwl.Cobol.Compiler.Binding.Procedure.ExpressionBinder",
       "WiseOwl.Cobol.Compiler.Binding.Repository.RepositoryCodec",
       "WiseOwl.Cobol.Compiler.Binding.SymbolTable"
@@ -434,10 +434,10 @@
     "WiseOwl.Cobol.Compiler.Binding.DataBinder::LiteralEnv": [
       "WiseOwl.Cobol.Compiler.Binding.ConstantEntryBinder",
       "WiseOwl.Cobol.Compiler.Binding.FileControlBinder",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.ConditionBinder",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.ControlFlowBinder",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.ConditionBinder",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.ControlFlowBinder",
       "WiseOwl.Cobol.Compiler.Binding.Procedure.ExpressionBinder",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.OoBinder",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.OoBinder",
       "WiseOwl.Cobol.Compiler.Binding.ReportSectionBinder",
       "WiseOwl.Cobol.Compiler.Binding.Validation.SearchAllFormat2Rules"
     ],
@@ -459,11 +459,11 @@
       "WiseOwl.Cobol.Compiler.Binding.Passes.OoRouteMethodRedefinesBackingsPass",
       "WiseOwl.Cobol.Compiler.Binding.Passes.PtrBindBasedAndAddressablesPass",
       "WiseOwl.Cobol.Compiler.Binding.Passes.StorageFormPass",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.AddressOfOperandScreen",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.CallBinder",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.OoBinder",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.ParameterConformance",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.UdfBinder",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.AddressOfOperandScreen",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.CallBinder",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.OoBinder",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.ParameterConformance",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.UdfBinder",
       "WiseOwl.Cobol.Compiler.Binding.SpecialNamesBinder",
       "WiseOwl.Cobol.Compiler.Binding.SymbolTable",
       "WiseOwl.Cobol.Compiler.Oo.OoDriver",
@@ -482,7 +482,7 @@
     ],
     "WiseOwl.Cobol.Compiler.Binding.DataBinder::OperandSubscriptRule": [
       "WiseOwl.Cobol.Compiler.Binding.FileControlBinder",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.SortMergePhraseBinder",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.SortMergePhraseBinder",
       "WiseOwl.Cobol.Compiler.Binding.ReportSectionBinder"
     ],
     "WiseOwl.Cobol.Compiler.Binding.DataBinder::OwnWords": [
@@ -498,21 +498,21 @@
       "WiseOwl.Cobol.Compiler.Binding.OoDataBinder",
       "WiseOwl.Cobol.Compiler.Binding.Passes.PtrBindBasedAndAddressablesPass",
       "WiseOwl.Cobol.Compiler.Binding.Procedure.ArgumentOrder",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.ArithmeticBinder",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.ArithmeticBinder",
       "WiseOwl.Cobol.Compiler.Binding.Procedure.BinderContext",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.CallBinder",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.ControlFlowBinder",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.CorrespondingBinder",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.CallBinder",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.ControlFlowBinder",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.CorrespondingBinder",
       "WiseOwl.Cobol.Compiler.Binding.Procedure.ExpressionBinder",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.MoveBinder",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.OoBinder",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.MoveBinder",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.OoBinder",
       "WiseOwl.Cobol.Compiler.Binding.Procedure.OperandEvaluationWindow",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.ReportWriterBinder",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.SearchBinder",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.ReportWriterBinder",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.SearchBinder",
       "WiseOwl.Cobol.Compiler.Binding.Procedure.SendingValueTemp",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.SetIndexBinder",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.StringUnstringBinder",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.UdfBinder",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.SetIndexBinder",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.StringUnstringBinder",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.UdfBinder",
       "WiseOwl.Cobol.Compiler.Binding.ReferenceResolver",
       "WiseOwl.Cobol.Compiler.Binding.SubscriptBinder",
       "WiseOwl.Cobol.Compiler.Binding.Validation.StatementValidation",
@@ -564,7 +564,7 @@
       "WiseOwl.Cobol.Compiler.Binding.NameResolution",
       "WiseOwl.Cobol.Compiler.Binding.Passes.OdoResolvePass",
       "WiseOwl.Cobol.Compiler.Binding.Passes.ResolveReportsPass",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.ConditionBinder",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.ConditionBinder",
       "WiseOwl.Cobol.Compiler.Binding.SymbolTable"
     ],
     "WiseOwl.Cobol.Compiler.Binding.DataBinder::ReserveInheritedMemberNames": [
@@ -595,10 +595,10 @@
       "WiseOwl.Cobol.Compiler.Binding.SymbolTable"
     ],
     "WiseOwl.Cobol.Compiler.Binding.DataBinder::ScreenDataNameShape": [
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.KeyedIoBinder",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.MessagingBinder",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.SortBinder",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.SortMergePhraseBinder"
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.KeyedIoBinder",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.MessagingBinder",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.SortBinder",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.SortMergePhraseBinder"
     ],
     "WiseOwl.Cobol.Compiler.Binding.DataBinder::ScreenGlobalNameUniqueness": [
       "WiseOwl.Cobol.Compiler.Binding.Passes.CheckGlobalNameUniquenessPass"
@@ -614,7 +614,7 @@
       "WiseOwl.Cobol.Compiler.Binding.ReportSectionBinder"
     ],
     "WiseOwl.Cobol.Compiler.Binding.DataBinder::ScreenReferenceModifier": [
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.SortBinder",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.SortBinder",
       "WiseOwl.Cobol.Compiler.Binding.Validation.SearchAllFormat2Rules"
     ],
     "WiseOwl.Cobol.Compiler.Binding.DataBinder::ScreenReportSignClauses": [
@@ -635,13 +635,13 @@
     "WiseOwl.Cobol.Compiler.Binding.DataBinder::SpecialNames": [
       "WiseOwl.Cobol.Compiler.Binding.FileControlBinder",
       "WiseOwl.Cobol.Compiler.Binding.LiteralEnvironment",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.ConditionBinder",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.ConditionBinder",
       "WiseOwl.Cobol.Compiler.Binding.Procedure.ExpressionBinder",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.InspectBinder",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.IntrinsicBinder",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.SetLocaleBinder",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.SortMergePhraseBinder",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.WhenPhraseBinder",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.InspectBinder",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.IntrinsicBinder",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.SetLocaleBinder",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.SortMergePhraseBinder",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.WhenPhraseBinder",
       "WiseOwl.Cobol.Compiler.Binding.ReportSectionBinder",
       "WiseOwl.Cobol.Compiler.Binding.SymbolTable"
     ],
@@ -690,16 +690,16 @@
       "WiseOwl.Cobol.Compiler.Binding.Passes.UsageCollectionPass",
       "WiseOwl.Cobol.Compiler.Binding.Passes.UsageInheritancePass",
       "WiseOwl.Cobol.Compiler.Binding.Procedure.BinderContext",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.ConditionBinder",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.ConditionBinder",
       "WiseOwl.Cobol.Compiler.Binding.Procedure.DebugDeclarativeResolver",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.EcBinder",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.EcBinder",
       "WiseOwl.Cobol.Compiler.Binding.Procedure.ExpressionBinder",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.IntrinsicBinder",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.MoveBinder",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.IntrinsicBinder",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.MoveBinder",
       "WiseOwl.Cobol.Compiler.Binding.Procedure.ProcedureTableBuilder",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.ReportWriterBinder",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.ReportWriterBinder",
       "WiseOwl.Cobol.Compiler.Binding.Procedure.SendingValueTemp",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.SortMergePhraseBinder",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.SortMergePhraseBinder",
       "WiseOwl.Cobol.Compiler.Binding.ReferenceResolver",
       "WiseOwl.Cobol.Compiler.Binding.ReportSectionBinder",
       "WiseOwl.Cobol.Compiler.Binding.Repository.RepositoryCodec",
@@ -720,7 +720,7 @@
       "WiseOwl.Cobol.Compiler.Binding.Passes.OdoResolvePass"
     ],
     "WiseOwl.Cobol.Compiler.Binding.DataBinder::SwitchConditionCompetes": [
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.ConditionBinder"
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.ConditionBinder"
     ],
     "WiseOwl.Cobol.Compiler.Binding.DataBinder::Symbols": [
       "WiseOwl.Cobol.Compiler.Binding.BinderDriver",
@@ -743,15 +743,15 @@
       "WiseOwl.Cobol.Compiler.Binding.Passes.PtrBindBasedAndAddressablesPass",
       "WiseOwl.Cobol.Compiler.Binding.Passes.ResolveRecordFormatPass",
       "WiseOwl.Cobol.Compiler.Binding.Passes.ResolveRedefinesPass",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.AcceptDisplayBinder",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.AcceptDisplayBinder",
       "WiseOwl.Cobol.Compiler.Binding.Procedure.BinderContext",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.CallBinder",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.ConditionBinder",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.CallBinder",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.ConditionBinder",
       "WiseOwl.Cobol.Compiler.Binding.Procedure.DebugDeclarativeResolver",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.KeyedIoBinder",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.KeyedIoBinder",
       "WiseOwl.Cobol.Compiler.Binding.Procedure.MnemonicRegistry",
       "WiseOwl.Cobol.Compiler.Binding.Procedure.ProcedureTableBuilder",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.ReportWriterBinder",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.ReportWriterBinder",
       "WiseOwl.Cobol.Compiler.Binding.ProcedureHeaderBinder",
       "WiseOwl.Cobol.Compiler.Binding.ReferenceResolver",
       "WiseOwl.Cobol.Compiler.Binding.ReportGroupResolution",
@@ -786,13 +786,13 @@
       "WiseOwl.Cobol.Compiler.Binding.Bound.StatementBinder",
       "WiseOwl.Cobol.Compiler.Binding.ObjectPropertyResolver",
       "WiseOwl.Cobol.Compiler.Binding.Passes.StorageFormPass",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.AcceptDisplayBinder",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.OoBinder",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.AcceptDisplayBinder",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.OoBinder",
       "WiseOwl.Cobol.Compiler.Binding.Procedure.SendingValueTemp",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.UdfBinder"
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.UdfBinder"
     ],
     "WiseOwl.Cobol.Compiler.Binding.DataBinder::TryIntrinsicOfThisCompilation": [
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.IntrinsicBinder"
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.IntrinsicBinder"
     ],
     "WiseOwl.Cobol.Compiler.Binding.DataBinder::UnderStrongTypeDeclaration": [
       "WiseOwl.Cobol.Compiler.Binding.Passes.CheckAlignedClausesPass",
@@ -805,8 +805,8 @@
       "WiseOwl.Cobol.Compiler.Binding.Passes.OccursKeyResolvePass",
       "WiseOwl.Cobol.Compiler.Binding.Passes.OdoResolvePass",
       "WiseOwl.Cobol.Compiler.Binding.Passes.ResolveRedefinesPass",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.KeyedIoBinder",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.SortBinder",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.KeyedIoBinder",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.SortBinder",
       "WiseOwl.Cobol.Compiler.Binding.ReferenceResolver",
       "WiseOwl.Cobol.Compiler.Binding.ReportSectionBinder"
     ],
@@ -863,14 +863,14 @@
       "WiseOwl.Cobol.Compiler.Binding.Bound.StatementBinder"
     ],
     "WiseOwl.Cobol.Compiler.Binding.FileControlBinder::MapSharing": [
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.SequentialIoBinder"
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.SequentialIoBinder"
     ],
     "WiseOwl.Cobol.Compiler.Binding.FileControlBinder::ResolveFiles": [
       "WiseOwl.Cobol.Compiler.Binding.Passes.ResolveFilesPass"
     ],
     "WiseOwl.Cobol.Compiler.Binding.FileControlBinder::ScreenApplyCommitSubject": [
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.FileLockBinder",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.SequentialIoBinder"
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.FileLockBinder",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.SequentialIoBinder"
     ],
     "WiseOwl.Cobol.Compiler.Binding.FileControlBinder::ScreenSelectsHaveDescriptions": [
       "WiseOwl.Cobol.Compiler.Binding.DataBinder"
@@ -926,7 +926,7 @@
       "WiseOwl.Cobol.Compiler.Binding.ElementBinders",
       "WiseOwl.Cobol.Compiler.Binding.Passes.PtrBindBasedAndAddressablesPass",
       "WiseOwl.Cobol.Compiler.Binding.Passes.UsageCollectionPass",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.CallBinder",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.CallBinder",
       "WiseOwl.Cobol.Compiler.Binding.Repository.RepositoryCodec"
     ],
     "WiseOwl.Cobol.Compiler.Binding.LinkageBinder::Roots": [
@@ -943,7 +943,7 @@
     ],
     "WiseOwl.Cobol.Compiler.Binding.LinkageBinder::UnreferenceableLinkageRecord": [
       "WiseOwl.Cobol.Compiler.Binding.NameResolution",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.ConditionBinder"
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.ConditionBinder"
     ],
     "WiseOwl.Cobol.Compiler.Binding.OoDataBinder::ActiveMethodDeclares": [
       "WiseOwl.Cobol.Compiler.Binding.SpecialNamesBinder",
@@ -983,7 +983,7 @@
       "WiseOwl.Cobol.Compiler.Binding.SymbolTable"
     ],
     "WiseOwl.Cobol.Compiler.Binding.OoDataBinder::DescribeNamedReference": [
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.OoBinder"
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.OoBinder"
     ],
     "WiseOwl.Cobol.Compiler.Binding.OoDataBinder::EnterMethodDeclarations": [
       "WiseOwl.Cobol.Compiler.Binding.Bound.StatementBinder",
@@ -999,11 +999,11 @@
     ],
     "WiseOwl.Cobol.Compiler.Binding.OoDataBinder::IsObjectData": [
       "WiseOwl.Cobol.Compiler.Binding.Passes.PtrBindBasedAndAddressablesPass",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.AddressOfOperandScreen",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.CallBinder",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.OoBinder",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.ParameterConformance",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.UdfBinder"
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.AddressOfOperandScreen",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.CallBinder",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.OoBinder",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.ParameterConformance",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.UdfBinder"
     ],
     "WiseOwl.Cobol.Compiler.Binding.OoDataBinder::MethodDeclarationScope": [
       "WiseOwl.Cobol.Compiler.Binding.Bound.StatementBinder",
@@ -1029,13 +1029,13 @@
       "WiseOwl.Cobol.Compiler.Binding.DataBinder"
     ],
     "WiseOwl.Cobol.Compiler.Binding.ReportSectionBinder::ControlDataReferenceOf": [
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.ReportWriterBinder"
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.ReportWriterBinder"
     ],
     "WiseOwl.Cobol.Compiler.Binding.ReportSectionBinder::ControlDataRuleWords": [
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.ReportWriterBinder"
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.ReportWriterBinder"
     ],
     "WiseOwl.Cobol.Compiler.Binding.ReportSectionBinder::HasWord": [
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.ReportWriterBinder"
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.ReportWriterBinder"
     ],
     "WiseOwl.Cobol.Compiler.Binding.ReportSectionBinder::InheritContainerReports": [
       "WiseOwl.Cobol.Compiler.Binding.DataBinder"
@@ -1050,10 +1050,10 @@
     "WiseOwl.Cobol.Compiler.Binding.ReportSectionBinder::ReportEntryReferenceRefused": [
       "WiseOwl.Cobol.Compiler.Binding.NameResolution",
       "WiseOwl.Cobol.Compiler.Binding.Passes.OdoResolvePass",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.ConditionBinder"
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.ConditionBinder"
     ],
     "WiseOwl.Cobol.Compiler.Binding.ReportSectionBinder::ReportGroupTypeWords": [
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.ReportWriterBinder"
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.ReportWriterBinder"
     ],
     "WiseOwl.Cobol.Compiler.Binding.ReportSectionBinder::ReportItemOperandRefused": [
       "WiseOwl.Cobol.Compiler.Binding.DataBinder",
@@ -1073,26 +1073,26 @@
     ],
     "WiseOwl.Cobol.Compiler.Binding.SpecialNamesBinder::CollatingAlphabetFault": [
       "WiseOwl.Cobol.Compiler.Binding.FileControlBinder",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.SortMergePhraseBinder"
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.SortMergePhraseBinder"
     ],
     "WiseOwl.Cobol.Compiler.Binding.SpecialNamesBinder::CollatingAlphabetViolation": [
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.SortMergePhraseBinder"
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.SortMergePhraseBinder"
     ],
     "WiseOwl.Cobol.Compiler.Binding.SpecialNamesBinder::GateRangeAlphabetPhrase": [
       "WiseOwl.Cobol.Compiler.Binding.DataBinder"
     ],
     "WiseOwl.Cobol.Compiler.Binding.SpecialNamesBinder::IsAlphabetName": [
       "WiseOwl.Cobol.Compiler.Binding.DataBinder",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.ConditionBinder",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.InspectBinder",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.WhenPhraseBinder",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.ConditionBinder",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.InspectBinder",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.WhenPhraseBinder",
       "WiseOwl.Cobol.Compiler.Binding.SymbolTable"
     ],
     "WiseOwl.Cobol.Compiler.Binding.SpecialNamesBinder::IsClassConditionWord": [
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.ConditionBinder"
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.ConditionBinder"
     ],
     "WiseOwl.Cobol.Compiler.Binding.SpecialNamesBinder::IsLocaleAlphabet": [
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.ConditionBinder"
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.ConditionBinder"
     ],
     "WiseOwl.Cobol.Compiler.Binding.SpecialNamesBinder::IsSymbolicCharacterName": [
       "WiseOwl.Cobol.Compiler.Binding.LiteralEnvironment"
@@ -1119,8 +1119,8 @@
     ],
     "WiseOwl.Cobol.Compiler.Binding.SpecialNamesBinder::ResolveLocaleName": [
       "WiseOwl.Cobol.Compiler.Binding.DataBinder",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.IntrinsicBinder",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.SetLocaleBinder"
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.IntrinsicBinder",
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.SetLocaleBinder"
     ],
     "WiseOwl.Cobol.Compiler.Binding.SpecialNamesBinder::SymbolicOf": [
       "WiseOwl.Cobol.Compiler.Binding.DataBinder",
@@ -1129,15 +1129,15 @@
     ],
     "WiseOwl.Cobol.Compiler.Binding.SpecialNamesBinder::TryResolveRangeAlphabet": [
       "WiseOwl.Cobol.Compiler.Binding.DataBinder",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.WhenPhraseBinder"
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.WhenPhraseBinder"
     ],
     "WiseOwl.Cobol.Compiler.Binding.SpecialNamesBinder::UseAlphabetName": [
       "WiseOwl.Cobol.Compiler.Binding.FileControlBinder",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.SortMergePhraseBinder"
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.SortMergePhraseBinder"
     ],
     "WiseOwl.Cobol.Compiler.Binding.SpecialNamesBinder::WrittenAlphabet": [
       "WiseOwl.Cobol.Compiler.Binding.FileControlBinder",
-      "WiseOwl.Cobol.Compiler.Binding.Procedure.SortMergePhraseBinder"
+      "WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.SortMergePhraseBinder"
     ]
   }
 }

@@ -31,7 +31,7 @@
 > (kb/Work PB3837, 2026-10-26) made the front end's, the editions leaf's, the CLI's and the runtime's roots their project
 > names; the compiler's, `WiseOwl.Cobol` → `WiseOwl.Cobol.Compiler`, was the architecture review's wave PB2415
 > (`DESIGN-architecture-review.md` §8.2). Every root is now its project's name, and every namespace is its project's
-> root plus its folder path (§8.2 rule 1).
+> root plus its folder path (`DESIGN-architecture-review.md` §8.2 rule 1).
 
 **Decision — name form (owner, kb/Work PB3837, 2026-10-26).** The code takes the product's name: assemblies, projects, folders, the solution and the namespace roots are **`WiseOwl.Cobol.*`**; each project's root namespace is its project name (e.g. `WiseOwl.Cobol.Compiler.CodeGen`; kb/Work PB2415). The NuGet id stays `WiseOwl.COBOL` and the executable `cobol`. The product's earlier names are retired outside history (`scripts/rename_retired_names.py`, the rename and the RETIRED NAMES audit). The design SSOT, `docs/DESIGN.md` §17, carries the full decision.
 
