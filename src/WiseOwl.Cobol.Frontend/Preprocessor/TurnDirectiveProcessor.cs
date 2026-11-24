@@ -79,6 +79,12 @@ public static class TurnDirectiveProcessor
         var words = body.SplitSpaces();
         var names = new List<(string Ec, string? File)>();
         var seen = new HashSet<string>(CobolNames.Comparer);
+        // ⛔ What "twice" means is the edition's (VCR 7.126): 2002 SR3 and 2014 SR3 refuse an exception-NAME written more than
+        // once in a directive, whatever file-names follow it (SR4 then refuses a file-name repeated for one exception
+        // condition, which the pair set above keeps); 2023 SR3 refuses only a repeated exception-name/file-name COMBINATION.
+        var edition = new EditionInfo(dialectLevel, false);
+        bool nameAloneIsUnique = !DialectBehaviors.IsActive(DialectBehavior.TurnDirectiveRepeatsOnlyNameFileCombination, dialectLevel);
+        var seenNames = new HashSet<string>(CobolNames.Comparer);
         bool? on = null;
         bool withLocation = false;
         int checkingEnd = -1;   // the index just past the last word the CHECKING phrase consumed
@@ -97,6 +103,7 @@ public static class TurnDirectiveProcessor
         EcInfo currentInfo = default;
         bool currentEcResolved = false;
         bool currentEcHasFiles = false;
+        bool currentEcRepeated = false;   // the name repeats an earlier one: reported once, so its pairs are not reported again
         bool anyUnresolved = false;   // a name SR2 refused: already reported, so an empty `names` is not also "malformed"
         void Flush()
         {
@@ -105,13 +112,18 @@ public static class TurnDirectiveProcessor
             currentEc = null;
             currentEcResolved = false;
             currentEcHasFiles = false;
+            currentEcRepeated = false;
         }
         void AddPair(string ec, string? file)
         {
             if (!seen.Add(ec + "|" + (file ?? "")))
-                diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.TurnDirectiveMalformed.Code,
-                    $">>TURN: the exception-name/file-name combination '{ec}{(file is null ? "" : " " + file)}' is "
-                    + "specified more than once in this directive (ISO §2023:7.3.25.3 SR3)", loc, default);
+            {
+                if (!currentEcRepeated)
+                    diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.TurnDirectiveMalformed.Code,
+                        $">>TURN: the exception-name/file-name combination '{ec}{(file is null ? "" : " " + file)}' is "
+                        + $"specified more than once in this directive ({edition.CiteRule("", "§2023:7.3.25.3 SR3", "§2002:7.2.19.2 SR4", "§2014:7.3.20.2 SR4")})",
+                        loc, default);
+            }
             else if (currentEcResolved)   // the catalog's canonical spelling: the binder's fold matches on it
                 names.Add((currentInfo.Name, file is null ? null : CobolNames.UpperFold(file)));
         }
@@ -174,6 +186,13 @@ public static class TurnDirectiveProcessor
                 Flush();
                 CheckWord(w);
                 currentEc = w;
+                if (nameAloneIsUnique && !seenNames.Add(w))
+                {
+                    currentEcRepeated = true;
+                    diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.TurnDirectiveMalformed.Code,
+                        $">>TURN: the exception-name '{w}' is specified more than once in this directive "
+                        + $"({edition.CiteRule("", "§2023:7.3.25.3 SR3", "§2002:7.2.19.2 SR3", "§2014:7.3.20.2 SR3")})", loc, default);
+                }
                 currentEcResolved = ResolveName(w);
                 anyUnresolved |= !currentEcResolved;
             }

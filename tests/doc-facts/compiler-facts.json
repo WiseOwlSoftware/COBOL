@@ -96,7 +96,7 @@
     },
     {
       "id": "currency-picture-symbol-literal-alphanumeric-and-unique",
-      "vcrRow": "7.126",
+      "vcrRow": "7.127",
       "changedIn": 2014
     },
     {
@@ -383,6 +383,11 @@
       "id": "terminate-discards-saved-next-group",
       "vcrRow": "7.59",
       "changedIn": 2002
+    },
+    {
+      "id": "turn-directive-repeats-only-name-file-combination",
+      "vcrRow": "7.126",
+      "changedIn": 2023
     },
     {
       "id": "unphrased-size-error-is-fatal",

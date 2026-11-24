@@ -395,7 +395,7 @@
    "sections": [
     "12.2.6"
    ],
-   "why": "the CURRENCY SIGN clause of the SPECIAL-NAMES paragraph, §2002:12.2.6, whose literal-8 is an alphanumeric literal that no two occurrences may repeat at 2002 (§2002:12.2.6.2 SR22; kb/Work PB5707, VCR row 7.126)"
+   "why": "the CURRENCY SIGN clause of the SPECIAL-NAMES paragraph, §2002:12.2.6, whose literal-8 is an alphanumeric literal that no two occurrences may repeat at 2002 (§2002:12.2.6.2 SR22; kb/Work PB5707, VCR row 7.127)"
   },
   "currency-hexadecimal-literal-rules": {
    "sections": [
@@ -427,6 +427,12 @@
     "8.4.2.11.2"
    ],
    "why": "the data-address-identifier's syntax rules, §2002:8.4.2.11.2, whose SR4 requires a strongly-typed group item to be defined with its own TYPE clause referencing a STRONG declaration, a rule §2023:8.4.3.11.3 drops (kb/Work PB5705, VCR row 7.125)"
+  },
+  "turn-directive-repeats-only-name-file-combination": {
+   "sections": [
+    "7.2.19.2"
+   ],
+   "why": "the TURN directive's syntax rules, §2002:7.2.19.2, whose SR3 refuses an exception-name specified more than once in one TURN directive, where §2023:7.3.25.3 SR3 refuses only a repeated exception-name and file-name combination (kb/Work PB5725, VCR row 7.126)"
   },
   "constant-length-subscripts-are-literals": {
    "sections": [

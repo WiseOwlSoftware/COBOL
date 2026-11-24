@@ -648,15 +648,22 @@ public enum DialectBehavior
     /// (kb/Work PB5705; VCR row 7.125). §2023:8.4.3.11.3 has no such rule: its GR2 (§2023:8.4.3.11.4) types the group by position.
     /// Both editions are QUOTED. The consumer is <c>AddressOfOperandScreen.Admit</c>.</summary>
     AddressOfSubordinateStrongGroupNeedsNoOwnTypeClause = 69,
+    /// <summary>§2023:7.3.25.3 SR3 — "No exception-name-1 and file-name-1 combination shall be specified more than once in a TURN
+    /// directive", so from 2023 a name may be written again with another file-name (<c>&gt;&gt;TURN EC-I-O F1 EC-I-O F2 CHECKING ON</c>).
+    /// §2014:7.3.20.2 SR3 and §2002:7.2.19.2 SR3 key on the name alone — "No exception-name shall be specified more than once in one
+    /// TURN directive" — and their SR4 keeps "No file-name shall be specified more than once for one exception condition", so below
+    /// 2023 that directive is refused (kb/Work PB5725; VCR row 7.126). Both editions are QUOTED. The consumer is
+    /// <c>TurnDirectiveProcessor.ParseTurn</c>.</summary>
+    TurnDirectiveRepeatsOnlyNameFileCombination = 70,
     /// <summary>§2014:12.3.6.2 SR26 — "Literal-8 shall be an alphanumeric or national literal consisting of a single character"
     /// (§2023:12.3.7.3 SR26 the same), and neither edition has a rule against repeating a literal-8: two clauses may give the same
     /// symbol the same string (§2014:12.3.6.2 SR21; §2023:12.3.7.3 SR21 "unless they specify identical currency strings").
     /// COBOL-2002 asks more of the PICTURE SYMBOL literal: "Literal-8 shall be an alphanumeric literal consisting of a single
     /// character. It shall not be a figurative constant. No two occurrences of literal-8 may be the same value" (§2002:12.2.6.2
-    /// SR22), so at <c>--std 2002</c> a national literal-8 and a repeated literal-8 are refused (kb/Work PB5707; VCR row 7.126).
+    /// SR22), so at <c>--std 2002</c> a national literal-8 and a repeated literal-8 are refused (kb/Work PB5707; VCR row 7.127).
     /// Both editions are QUOTED. The consumers are <c>SpecialNamesBinder.CurrencyOperandOf</c> and
     /// <c>SpecialNamesBinder.SwitchBindCurrency</c>.</summary>
-    CurrencyPictureSymbolLiteralAlphanumericAndUnique = 70,
+    CurrencyPictureSymbolLiteralAlphanumericAndUnique = 71,
 }
 
 /// <summary>
@@ -996,8 +1003,13 @@ public static class DialectBehaviors
             "7.125", "§2023:8.4.3.11.4 GR2", "§2014:8.4.2.11.2 SR5",
             "ADDRESS OF a group subordinate to a strongly-typed group item is admitted from COBOL-2023, which types it by position; "
             + "at COBOL-2002 and COBOL-2014 identifier-1 shall be defined with a TYPE clause of its own referencing a STRONG declaration"),
+        new(DialectBehavior.TurnDirectiveRepeatsOnlyNameFileCombination, "turn-directive-repeats-only-name-file-combination", 2023,
+            "7.126", "§2023:7.3.25.3 SR3", "§2014:7.3.20.2 SR3",
+            "a TURN directive may name one exception-name twice, with different file-names, from COBOL-2023, which refuses only a "
+            + "repeated exception-name and file-name combination; at COBOL-2002 and COBOL-2014 no exception-name shall be specified "
+            + "more than once in one TURN directive"),
         new(DialectBehavior.CurrencyPictureSymbolLiteralAlphanumericAndUnique, "currency-picture-symbol-literal-alphanumeric-and-unique", 2014,
-            "7.126", "§2014:12.3.6.2 SR26", "§2002:12.2.6.2 SR22",
+            "7.127", "§2014:12.3.6.2 SR26", "§2002:12.2.6.2 SR22",
             "a CURRENCY SIGN PICTURE SYMBOL literal-8 may be a national literal and may repeat another clause's literal-8 only from "
             + "COBOL-2014; COBOL-2002 asks an alphanumeric literal-8 and no two occurrences of the same value"),
     ];

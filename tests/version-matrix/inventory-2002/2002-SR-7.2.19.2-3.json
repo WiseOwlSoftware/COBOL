@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-7.2.19.2-3",
+ "rule-digest": "2249125d3ca2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/TurnDirectiveProcessor.cs#ParseTurn",
+ "test-ref": "conformance:cases/7.2.19@2002-TURN-DIRECTIVE/pb5725-turn-exception-name-repeated; conformance:cases/7.3.25-TURN/pb5725_turn_name_with_two_files; unit:TurnDirectiveExceptionNameTests.BelowTheCombinationRule_ARepeatedExceptionNameIsRefused",
+ "notes": "§2002:7.2.19.2 SR3 (and §2014:7.3.20.2 SR3 the same) refuses an exception-name written more than once in one TURN directive; §2023:7.3.25.3 SR3 refuses only a repeated exception-name and file-name combination. TurnDirectiveProcessor.ParseTurn keeps a set of the names written and, where DialectBehavior.TurnDirectiveRepeatsOnlyNameFileCombination is not active (below 2023; VCR 7.126), reports COBOL0718 for the second spelling of a name, whatever file-names follow; the pair set that stays at every edition is SR4's (2002/2014) and SR3's (2023) rule, so a name repeated reports once. kb/Work PB5725."
+}

@@ -85,6 +85,30 @@ public sealed class TurnDirectiveExceptionNameTests
         Assert.Equal(["COBOL0711", "COBOL0711"], Compiled("EC-NOSUCH EC-OTHER CHECKING ON", 2023, out _));
     }
 
+    [Theory]   // kb/Work PB5725: §2002:7.2.19.2 SR3 and §2014:7.3.20.2 SR3 refuse a repeated exception-NAME; SR4 a repeated file-name
+    [InlineData("EC-I-O F1 EC-I-O F2 CHECKING ON", 2002, new[] { "COBOL0718" })]
+    [InlineData("EC-I-O F1 EC-I-O F2 CHECKING ON", 2014, new[] { "COBOL0718" })]
+    [InlineData("EC-SIZE EC-SIZE CHECKING ON", 2002, new[] { "COBOL0718" })]
+    [InlineData("ec-size EC-SIZE CHECKING ON", 2014, new[] { "COBOL0718" })]
+    [InlineData("EC-I-O F1 F1 CHECKING ON", 2002, new[] { "COBOL0718" })]
+    [InlineData("EC-I-O F1 EC-I-O F1 CHECKING ON", 2002, new[] { "COBOL0718" })]
+    [InlineData("EC-I-O F1 EC-SIZE EC-I-O-AT-END F1 CHECKING ON", 2002, new string[0])]
+    public void BelowTheCombinationRule_ARepeatedExceptionNameIsRefused(string operand, int dialectLevel, string[] codes)
+    {
+        Assert.Equal(codes, Compiled(operand, dialectLevel, out _));
+        Assert.Equal(codes, Omitted(operand, dialectLevel));
+    }
+
+    [Theory]   // §2023:7.3.25.3 SR3 refuses only a repeated name-and-file combination
+    [InlineData("EC-I-O F1 EC-I-O F2 CHECKING ON", new string[0])]
+    [InlineData("EC-I-O F1 EC-I-O F1 CHECKING ON", new[] { "COBOL0718" })]
+    [InlineData("EC-SIZE EC-SIZE CHECKING ON", new[] { "COBOL0718" })]
+    public void From2023_OnlyARepeatedCombinationIsRefused(string operand, string[] codes)
+    {
+        Assert.Equal(codes, Compiled(operand, 2023, out _));
+        Assert.Equal(codes, Omitted(operand, 2023));
+    }
+
     [Fact]   // below COBOL-2002 the directive itself is the refusal (COBOL0900); the name window adds nothing
     public void Below2002_TheNameWindowAddsNoSecondDiagnostic()
     {
