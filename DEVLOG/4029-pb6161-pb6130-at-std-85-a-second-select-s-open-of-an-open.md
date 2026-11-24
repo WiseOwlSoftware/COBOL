@@ -1,4 +1,4 @@
-## PB6161, PB6130: at --std 85 a second SELECT's OPEN of an open physical file answers 41; the A.1 exemption bands follow the text
+## Entry 4029 — 2026-11-23 21:26 PST — PB6161, PB6130: at --std 85 a second SELECT's OPEN of an open physical file answers 41; the A.1 exemption bands follow the text
 
 **PB6161 (owner decision 2026-11-24, "Yes, return 41").** PB670's option (i) let a second connector open a physical file another
 connector of the run unit held open at `--std 85`, answering 00 in every pair of modes, on the premise that 1985 is silent. It is
