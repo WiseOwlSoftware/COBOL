@@ -1,4 +1,4 @@
-## A report VARYING counter in a PRESENT WHEN condition (PB5624)
+## Entry 4018 — 2026-11-23 16:27 PST — A report VARYING counter in a PRESENT WHEN condition (PB5624)
 
 A PRESENT WHEN condition naming a VARYING counter of its own entry or of an enclosing entry was bound with no counter scope and refused COBOL1639 ("not defined"), at 2002, 2014 and 2023. Re-probe on the base build reproduced it (the note's `rv-pw.cob`).
 
@@ -9,3 +9,4 @@ Goldens: `pb5624-present-when-varying-counter` (the filed program, a LINE entry'
 Review round 1 (R1-1): a STEPped entry with a relative COLUMN whose repetition 0 is absent (PRESENT WHEN K NOT = 1) left the step anchor at 0, so later repetitions landed at 0 + STEP (the probe printed "H2L3O"). The anchor seed (§2023:13.18.38.4 GR12) is now written before every presence test of the field (`EmitFieldPlacements`, `anchorHoisted`), so the later repetitions measure from the column repetition 0 would occupy. Golden: cases/13.18.64-VARYING/pb5624-present-when-absent-first-repetition-anchor ("HELLO   2 3").
 
 Review round 2 (R2-1): R1-1's hoist covered Columns[0] only. A multiple COLUMN clause under a STEPped OCCURS gives every relative operand its own anchor, and operands after the first still wrote their seed inside the per-placement presence test; and the shape did not compile (CS0103 `__kv5`) because the PRESENT WHEN condition was bound once per written clause (a memo keyed by the parse context) while an OCCURS replay declares a counter of its own per repetition. Two root fixes: `BindReportGroupClauses` keys its memo by the condition plus the uids of the in-scope counters it names (`ReportSectionBinder.HasWord`), so each replay's condition reads its own counter; and `EmitAnchorSeeds` writes every operand's seed before any presence test, at the column the earlier operands would leave the horizontal counter on (§2023:13.18.38.4 GR12). Probe before: CS0103; after "HELLO 1         1 2" (7, 17, 19). Golden: cases/13.18.64-VARYING/pb5624-present-when-absent-operand-anchor.
+
