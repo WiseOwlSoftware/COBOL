@@ -30,20 +30,15 @@ public sealed class DocItemBandDriftTests
     private static readonly Dictionary<string, string> Exempt = new(StringComparer.Ordinal)
     {
         ["DOC-A.1-64"] =
-            "§2002:11.8.5.3 GR2 and its default paragraph state the entry convention's implementor-defined meaning and default at 2002; "
-            + "the rule it names, §2023:11.9.7.4 GR2, is the 2014 text that adds the COBOL alternative's naming (kb/Work PB3322)",
-        ["DOC-A.1-43"] =
-            "docs/conformance/7/DOC-A.1-43.md determines the equivalence of a currency symbol outside the repertoire for every edition "
-            + "that has the clause form, the bare single-character form from COBOL-85 (golden l1c06_currency_non_cobol_equivalence_85); "
-            + "the rule it names, §2023:12.3.7.3 SR21, is the 2002 text on equivalent symbols of two clauses (kb/Work PB3320)",
+            "the item's latitude spans two 2002 rules: the default convention, §2002:11.8.5.3 GR2's second paragraph ('The entry "
+            + "convention used when this clause is not specified is implementor-defined'), which 2014 and 2023 carry in the rule "
+            + "the item names, §2023:11.9.7.4 GR2, whose row bands at 2014 for its COBOL keyword; and the names and their meaning, "
+            + "§2023:11.9.7.4 GR3, band 2002 (kb/Work PB6130, refuter's amendment)",
         ["DOC-A.1-65"] =
-            "the item is 'EXIT and GOBACK statements': its EXIT PROGRAM arm is 1985 text and §1985:II.6.1 leaves the relationship to a non-COBOL "
-            + "runtime element to the implementor, so the obligation to document it starts at 85; the GOBACK arm it names, §2002:14.8.17.3 GR2, "
-            + "is the 2002 text (kb/Work PB3320, review R1-1)",
-        ["DOC-A.1-131"] =
-            "the owner's determination of 2026-10-23, option (i) (kb/Work PB670): at --std 85 the implementor's own sharing mode restricts "
-            + "nobody (golden pb670_cobol85_no_sharing_facility); the rule it names, §2023:14.9.27.4 GR23, is the 2002 sharing text "
-            + "(DOC-A.1-77, the same determination, chains whole-clause references and is not read)",
+            "the item is 'EXIT and GOBACK statements', and its cross-reference (14.9.18, General rule 3) is stale (2002 numbering, also in "
+            + "§2023:14.9.14.4 GR3): the latitude is §2023:14.9.18.4 GR1a for GOBACK and, through §2023:14.9.14.4 GR3, EXIT PROGRAM, "
+            + "whose 1985 text §1985:II.6.1 leaves the relationship to a non-COBOL runtime element to the implementor, so the item "
+            + "starts at 85 (kb/Work PB3320, PB6130)",
     };
 
     /// <summary>The reference at the end of an item's text: the last parenthesis group, nested parentheses allowed.</summary>

@@ -66,14 +66,15 @@ public enum DialectBehavior
     /// item (Annex E is the 2014 to 2023 window) but by §2023:A.4.1, <i>"Any associated syntax rules, general rules, other
     /// rules, exception conditions, and I-O status values are also optional"</i> — the facility is a 2002 module (the
     /// SHARING and LOCK MODE clauses are COBOL-2002 introductions, <c>COBOL0900</c> below 2002), so a COBOL-85
-    /// program is compiled for a processor on which it is not in effect. At <c>--std 85</c> a file connector therefore
-    /// has the implementor-defined sharing mode §2023:9.1.15 allows ("a mode completely specified by the implementor", which
-    /// need not be one of the three): <b>no mode restricts another connector</b>. Two connectors of one run unit open the
-    /// same physical file in any combination of modes and every OPEN answers '00' (the owner's determination of
-    /// 2026-10-23, kb/Work PB670, option (i): it is GnuCOBOL's measured <c>-std=cobol85</c> behaviour, and it produces no
-    /// status the 1985 edition does not define); a host refusal by a process outside the run unit answers '30'. The edge
-    /// is DERIVED (docs/VERSION_CHANGE_REFERENCE.md Table 7 row 7.39). Consumers: <c>FileRegistry.SharedOpenAttempt</c>
-    /// (the arbitration and the default mode) and <c>FileConnector.Open</c> (the cross-run-unit file lock and the
+    /// program is compiled for a processor on which it is not in effect. At <c>--std 85</c> 1985's own rule answers the OPEN of a
+    /// physical file another connector of the run unit holds open: its status 41 is keyed to the physical file (<i>"An OPEN
+    /// statement is attempted for a file in the open mode"</i>, §1985:VII.1.3.5, where "file" is <i>"the physical file
+    /// regardless of the file-name used"</i>, §1985:II.2), so that OPEN answers '41' in every pair of modes (the owner's decision
+    /// of 2026-11-24, kb/Work PB6161, replacing PB670's option (i)); no file lock is taken against other run units, and a host
+    /// refusal by a process outside the run unit answers '30'. From 2002, '41' is keyed to the file connector
+    /// (§2002:9.1.12.6, §2023:9.1.13.7 GR1) and the facility's Table 19 answers the same OPEN ('00' or '61'). The edge is
+    /// DERIVED (docs/VERSION_CHANGE_REFERENCE.md Table 7 row 7.39). Consumers: <c>FileRegistry.SharedOpenAttempt</c> (the
+    /// refusal, the arbitration and the default mode) and <c>FileConnector.Open</c> (the cross-run-unit file lock and the
     /// host refusal's status), both through <c>FileConnector.SharingFacilityInEffect</c>.</summary>
     FileSharingFacility = 2,
 
@@ -582,7 +583,6 @@ public enum DialectBehavior
     /// VCR row 7.117). Both editions are QUOTED. The consumers are <c>IntrinsicRenderer</c> (which passes the width) and
     /// <c>EcFunctions.StatementLength</c>.</summary>
     ExceptionStatementIs63Characters = 61,
-
     /// <summary>§2002:14.8.13.3 GR2 (and §2014:14.9.13.3 GR2) — "If an EXIT statement is executed within the range of a declarative
     /// procedure whose USE statement contains the GLOBAL phrase and that USE statement is specified in the same function, method, or
     /// program as the function format, method format, or program format EXIT statement respectively, the EC-FLOW-GLOBAL-EXIT exception
@@ -592,6 +592,62 @@ public enum DialectBehavior
     /// declares the raise only while this behaviour is inactive, so <c>CallEmitter.EmitExitProgram</c> and <c>EmitGoback</c>
     /// write the check only at 2002 and 2014 (kb/Work PB5715; VCR row 7.118).</summary>
     FlowGlobalExitIsNeverSet = 62,
+    /// <summary>§2014:13.18.40.3 GR12 — a floating-point numeric-edited PICTURE's exponent "shall be '+9', '+99', '+999', '+9999',
+    /// or '+9(n)' where n = 1, 2, 3, or 4", and its significand carries 1 through 36 digit positions (§2014:13.18.40.2 SR12;
+    /// §2023:13.18.40.3 SR15, GR13 b). COBOL-2002 allows "'+9', '+99', '+999', or '+9(n)' where n = 1, 2, or 3"
+    /// (§2002:13.16.38.3 GR12) and 1 through 31 digit positions for any numeric-edited item, counted over the significand and the
+    /// exponent together (§2002:13.16.38.2 SR6; character-string-1 is both, §2002:13.16.38.3 GR12b), so at
+    /// <c>--std 2002</c> <c>PIC +9.9E+9999</c> and <c>PIC +9(32)E+99</c> are refused (kb/Work PB5712; VCR row 7.119). Both editions
+    /// are QUOTED. The consumer is <c>PictureAnalyzer.AnalyzeFloatEdited</c>; the implementor's own widest intermediate
+    /// (<c>SendingValueTemp.WidestFloatEditedPic</c>) is analyzed at the newest edition and is not the program's PICTURE.</summary>
+    FloatEditedPictureWideBounds = 63,
+    /// <summary>§2014:12.3.6.2 SR25 — "If a source unit does not contain a CURRENCY SIGN clause that specifies '$' as the currency
+    /// symbol (either as literal-7 or literal-8), the clause CURRENCY SIGN '$' PICTURE SYMBOL '$' is implied for that source
+    /// unit", so SR28 confines that symbol, whose literal-7 is alphanumeric, to a numeric-edited item with usage display
+    /// (§2023:12.3.7.3 SR25 and SR28 the same). COBOL-2002 has no such rule: its SR24 asks only a literal-7 that is written
+    /// (§2002:12.2.6.2 SR24), so at <c>--std 2002</c> the default '$' is the COBOL currency sign and a national numeric-edited item
+    /// may use it (§2002:13.16.38.3 GR2; kb/Work PB5614; VCR row 7.120). Both editions are QUOTED. The consumer is
+    /// <c>ConfigurationSlice.FinalizeCurrencySigns</c>.</summary>
+    ImpliedDollarCurrencyClause = 64,
+    /// <summary>§2014:14.9.4.2 SR14 — "If identifier-1 references a restricted program-pointer, the signature of the
+    /// program-prototype specified in the definition of that pointer shall be the same as the signature of
+    /// program-prototype-name-1" (§2023:14.9.4.3 SR14 the same). COBOL-2002 states no such rule: its CALL says only which
+    /// prototype decides, "If the NESTED phrase is not specified, program-prototype-name-1, or the program prototype specified
+    /// in the definition of identifier-1 if it is defined as a restricted program-pointer, is used to determine the
+    /// characteristics of the called program" (§2002:14.8.4.3 GR7), so at <c>--std 2002</c> <c>CALL PA AS PRB</c> compiles
+    /// whatever the two signatures are (kb/Work PB5714; VCR row 7.121). Both editions are QUOTED. The consumer is
+    /// <c>CallBinder.Identifier1Screen</c>.</summary>
+    CallRestrictedPointerSignatureSame = 65,
+    /// <summary>§2014:14.9.4.2 SR11 (FORMATS 1 AND 2) — "Identifier-2 and identifier-3 shall not be described with the ANY
+    /// LENGTH clause" — and SR18 (FORMAT 3) — "Identifier-4 shall not be described with the ANY LENGTH clause"
+    /// (§2023:14.9.4.3 SR11 and SR18 the same), so from 2014 a program-prototype CALL's BY REFERENCE argument and its
+    /// RETURNING item may be ANY LENGTH. COBOL-2002 states the rule once, under ALL FORMATS: "Identifier-2, identifier-3, and
+    /// identifier-4 shall not be described with the ANY LENGTH clause" (§2002:14.8.4.2 SR10), so at <c>--std 2002</c> every
+    /// USING operand and the RETURNING item of every format is refused (kb/Work PB5611; VCR row 7.122). Both editions are
+    /// QUOTED. The consumer is <c>CallBinder.ScreenCallOperand</c>.</summary>
+    CallAnyLengthOperandRuleByFormat = 66,
+    /// <summary>§2002:14.8.29.3 GR18c.2 (and §2014:14.9.29.3 GR19c.2) — for a file position indicator "established by a prior OPEN or
+    /// START statement", PREVIOUS selects "the first existing record in the physical file whose record number or key value is less
+    /// than or equal to the file position indicator", and OPEN sets a relative file's indicator to 1 (§2002:14.8.26.3 GR12), so a
+    /// relative file whose lowest record is above RRN 1 is at end, status '10', for a READ PREVIOUS that follows the OPEN (a START
+    /// names an existing record, so its READ PREVIOUS still returns that record). §2023:14.9.30.4 GR21 relative rule b) is
+    /// direction-blind — "the first existing record that is selected is made available, regardless of whether NEXT or PREVIOUS is
+    /// specified" — so from 2023 PREVIOUS after OPEN returns the lowest record (kb/Work PB5742, the relative twin of
+    /// <see cref="IndexedReadPreviousAfterOpenAtEnd"/>; VCR row 7.123). Both editions are QUOTED. The consumer is
+    /// <c>RelativeConnector.SelectSequentialSlot</c>.</summary>
+    RelativeReadPreviousAfterOpenComparesFpi = 67,
+    /// <summary>§2014:13.10.2 SR3 — "All subscripts of data-name-1 and data-name-2 shall be literals" (§2023:13.10.3 SR3 the same), the
+    /// operand of a constant entry's LENGTH OF / BYTE-LENGTH OF phrase. COBOL-2002's constant entry has no such rule: its SR3 says
+    /// only "Data-name-1 and data-name-2 may be qualified" (§2002:13.9.2 SR3), so at <c>--std 2002</c> the subscripts are ordinary ones
+    /// (§2002:8.4.1.2.2) and a data-name or an arithmetic expression may be written (kb/Work PB5709; VCR row 7.124). Both editions are
+    /// QUOTED. The consumer is <c>ConstantEntryBinder.BindConstantLength</c>.</summary>
+    ConstantLengthSubscriptsAreLiterals = 68,
+    /// <summary>§2014:8.4.2.11.2 SR5 — "If identifier-1 references a strongly-typed group item, identifier-1 shall be defined with a
+    /// TYPE clause referencing a type declaration described with the STRONG phrase" (§2002:8.4.2.11.2 SR4 the same), so below 2023
+    /// the ADDRESS OF a group that is merely subordinate to a strong record and carries no TYPE clause of its own is refused
+    /// (kb/Work PB5705; VCR row 7.125). §2023:8.4.3.11.3 has no such rule: its GR2 (§2023:8.4.3.11.4) types the group by position.
+    /// Both editions are QUOTED. The consumer is <c>AddressOfOperandScreen.Admit</c>.</summary>
+    AddressOfSubordinateStrongGroupNeedsNoOwnTypeClause = 69,
     /// <summary>ISO/IEC 1989:2014 §2014:14.9.35.3 GR2a.1 and GR4a — SET of an index-name to an occurrence number, or UP / DOWN BY,
     /// outside the table. From 2014 the only range is the implementor index range of §2014:13.18.38.3 GR2 (EC-RANGE-INDEX), and
     /// the index "is set to a value causing it to refer to the table element that would correspond in occurrence number …, even
@@ -599,10 +655,10 @@ public enum DialectBehavior
     /// such a value an invalid subscript: "otherwise the execution of the SET statement is unsuccessful and the content of the
     /// receiving operand is unchanged" (§2002:14.8.35.3 GR2a.1; GR3b for UP / DOWN BY), the EC-BOUND-SUBSCRIPT condition of
     /// §2002:8.4.1.2.3 GR2. At <c>--std 2002</c> with checking for that condition enabled the SET raises it and leaves the index
-    /// unchanged (kb/Work PB5674; VCR row 7.119); with checking not enabled the 2002 outcome is implementor-defined and the value
+    /// unchanged (kb/Work PB5674; VCR row 7.126); with checking not enabled the 2002 outcome is implementor-defined and the value
     /// is stored (D-SET-INDEX-UNCHECKED). The consumer is <c>SetEmitter</c>, which emits <c>CobolIndex.WithinTable</c> /
     /// <c>AugmentWithinTable</c> only while this is not active.</summary>
-    SetIndexOutsideTableStored = 63,
+    SetIndexOutsideTableStored = 70,
 }
 
 /// <summary>
@@ -913,8 +969,37 @@ public static class DialectBehaviors
             "7.118", "§2023:14.9.14.4 GR3", "§2002:14.8.13.3 GR2",
             "an EXIT PROGRAM, EXIT METHOD or EXIT FUNCTION executed within the range of a USE ... GLOBAL declarative of the same "
             + "element sets EC-FLOW-GLOBAL-EXIT only at COBOL-2002 and COBOL-2014; COBOL-2023 states no rule that sets it"),
+        new(DialectBehavior.FloatEditedPictureWideBounds, "float-edited-picture-wide-bounds", 2014,
+            "7.119", "§2014:13.18.40.3 GR12", "§2002:13.16.38.3 GR12",
+            "a floating-point numeric-edited PICTURE may carry a four-digit exponent and a 36-digit significand only from COBOL-2014; "
+            + "COBOL-2002 allows an exponent of three digits and 31 digit positions, significand and exponent counted together"),
+        new(DialectBehavior.ImpliedDollarCurrencyClause, "implied-dollar-currency-clause", 2014,
+            "7.120", "§2014:12.3.6.2 SR25", "§2002:12.2.6.2 SR24",
+            "a unit with no CURRENCY SIGN clause for '$' is taken to have written one, whose alphanumeric literal-7 confines '$' to usage display, "
+            + "only from COBOL-2014; at COBOL-2002 the default '$' has no literal-7 and a national item may use it"),
+        new(DialectBehavior.CallRestrictedPointerSignatureSame, "call-restricted-pointer-signature-same", 2014,
+            "7.121", "§2014:14.9.4.2 SR14", "§2002:14.8.4.3 GR7",
+            "a CALL of a restricted program-pointer AS program-prototype-name-1 requires the two prototypes' signatures to be the "
+            + "same only from COBOL-2014; at COBOL-2002 program-prototype-name-1 decides the called program's characteristics"),
+        new(DialectBehavior.CallAnyLengthOperandRuleByFormat, "call-any-length-operand-rule-by-format", 2014,
+            "7.122", "§2014:14.9.4.2 SR11", "§2002:14.8.4.2 SR10",
+            "a program-prototype CALL's BY REFERENCE argument and RETURNING item may be described with ANY LENGTH only from "
+            + "COBOL-2014; COBOL-2002 refuses an ANY LENGTH USING operand or RETURNING item in every format of CALL"),
+        new(DialectBehavior.RelativeReadPreviousAfterOpenComparesFpi, "relative-read-previous-after-open-compares-fpi", 2023,
+            "7.123", "§2023:14.9.30.4 GR21b", "§2002:14.8.29.3 GR18c.2",
+            "READ ... PREVIOUS on a relative file immediately after OPEN returns the lowest existing record, the direction-blind rule b), "
+            + "only from COBOL-2023; COBOL-2002 and COBOL-2014 compare 'less than or equal to' the indicator OPEN set to 1, so a file "
+            + "whose lowest record is above RRN 1 is at end"),
+        new(DialectBehavior.ConstantLengthSubscriptsAreLiterals, "constant-length-subscripts-are-literals", 2014,
+            "7.124", "§2014:13.10.2 SR3", "§2002:13.9.2 SR3",
+            "every subscript of a constant entry's LENGTH OF / BYTE-LENGTH OF operand shall be a literal only from COBOL-2014; "
+            + "at COBOL-2002 the operand's subscripts are ordinary ones and may be data-names"),
+        new(DialectBehavior.AddressOfSubordinateStrongGroupNeedsNoOwnTypeClause, "address-of-subordinate-strong-group-needs-no-own-type-clause", 2023,
+            "7.125", "§2023:8.4.3.11.4 GR2", "§2014:8.4.2.11.2 SR5",
+            "ADDRESS OF a group subordinate to a strongly-typed group item is admitted from COBOL-2023, which types it by position; "
+            + "at COBOL-2002 and COBOL-2014 identifier-1 shall be defined with a TYPE clause of its own referencing a STRONG declaration"),
         new(DialectBehavior.SetIndexOutsideTableStored, "set-index-outside-table-stored", 2014,
-            "7.119", "§2014:14.9.35.3 GR2a.1", "§2002:14.8.35.3 GR2a.1",
+            "7.126", "§2014:14.9.35.3 GR2a.1", "§2002:14.8.35.3 GR2a.1",
             "SET index-name TO / UP BY / DOWN BY an occurrence number outside the table stores it (the only range being the "
             + "implementor index range) only from COBOL-2014; COBOL-2002 makes it the EC-BOUND-SUBSCRIPT condition, the SET "
             + "unsuccessful and the index unchanged"),

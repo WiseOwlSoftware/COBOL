@@ -57,8 +57,11 @@ public sealed class NameTableOwnershipDriftTests
     /// review round 1: 128 -> 129, <c>SymbolTable.UnitNames.FunctionsNamed</c>, the group tier's keyed answer the repository's word
     /// search now reads in place of a linear scan with a per-unit name equality. kb/Work PB3221: 129 -> 130,
     /// <c>PictureComposition.Validate</c> returns the <c>PictureShape</c> it resolves where it returned a bool; its strings are the
-    /// PICTURE character-string, its expansion and the diagnostic's site, as <c>PictureAnalyzer.Analyze</c>'s are.)</summary>
-    private const int StringMembersCeiling = 130;
+    /// PICTURE character-string, its expansion and the diagnostic's site, as <c>PictureAnalyzer.Analyze</c>'s are. kb/Work PB2725:
+    /// 130 -> 128, <c>ExpressionBinder.NationalLiteralOperand</c> and <c>BooleanLiteralOperand</c> became <c>QuotedLiteralOperand</c>,
+    /// which takes the one <c>QuotedLiteral</c> reader's value, not a string. kb/Work PB3230: 128 -> 127,
+    /// <c>OoBinder.OoApplyObjectView</c> takes identifier-1's written reference, not its text.)</summary>
+    private const int StringMembersCeiling = 127;
     private const int ComparisonsCeiling = 92;
 
     /// <summary>Where every run writes its findings, one per line.</summary>

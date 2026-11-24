@@ -40,9 +40,24 @@
   ],
   "dialectBehaviors": [
     {
+      "id": "address-of-subordinate-strong-group-needs-no-own-type-clause",
+      "vcrRow": "7.125",
+      "changedIn": 2023
+    },
+    {
       "id": "block-contains-range-ordered",
       "vcrRow": "7.108",
       "changedIn": 2002
+    },
+    {
+      "id": "call-any-length-operand-rule-by-format",
+      "vcrRow": "7.122",
+      "changedIn": 2014
+    },
+    {
+      "id": "call-restricted-pointer-signature-same",
+      "vcrRow": "7.121",
+      "changedIn": 2014
     },
     {
       "id": "cancel-refuses-every-active-program",
@@ -63,6 +78,11 @@
       "id": "compile-time-arithmetic-mode",
       "vcrRow": "12",
       "changedIn": 2023
+    },
+    {
+      "id": "constant-length-subscripts-are-literals",
+      "vcrRow": "7.124",
+      "changedIn": 2014
     },
     {
       "id": "control-footing-page-groups-see-prior-values",
@@ -105,6 +125,11 @@
       "changedIn": 2002
     },
     {
+      "id": "float-edited-picture-wide-bounds",
+      "vcrRow": "7.119",
+      "changedIn": 2014
+    },
+    {
       "id": "flow-global-exit-is-never-set",
       "vcrRow": "7.118",
       "changedIn": 2023
@@ -128,6 +153,11 @@
       "id": "group-indicate-consumed-by-issued-generate",
       "vcrRow": "7.60",
       "changedIn": 2002
+    },
+    {
+      "id": "implied-dollar-currency-clause",
+      "vcrRow": "7.120",
+      "changedIn": 2014
     },
     {
       "id": "index-name-qualification",
@@ -230,6 +260,11 @@
       "changedIn": 2002
     },
     {
+      "id": "relative-read-previous-after-open-compares-fpi",
+      "vcrRow": "7.123",
+      "changedIn": 2023
+    },
+    {
       "id": "relative-write-key-out-of-range-permanent-error",
       "vcrRow": "7.64",
       "changedIn": 2014
@@ -301,7 +336,7 @@
     },
     {
       "id": "set-index-outside-table-stored",
-      "vcrRow": "7.119",
+      "vcrRow": "7.126",
       "changedIn": 2014
     },
     {
@@ -1204,7 +1239,8 @@
     "COBOL7735",
     "COBOL7736",
     "COBOL7737",
-    "COBOL7933"
+    "COBOL7933",
+    "COBOL8092"
   ],
   "cliOptions": [
     "--copy",

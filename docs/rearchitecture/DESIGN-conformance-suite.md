@@ -588,6 +588,14 @@ review.md section 10.6). So a free-form case a 1985 row needs as its witness is 
 free-form test no 1985 row names is left as it is. A test whose subject is free form itself or the `--source-format`
 option stays free form and witnesses no 1985 row.
 
+**A witness cites its row (kb/Work PB6067).** The inventory's `test-ref` and a case's `rules` are two statements of one
+fact, and `generate.py` refuses them differing (`_check_store_witnesses`): a case a row names as its own witness holds the
+row in `rules`, or, for an older edition's row KEPT into a later rule (`next.to`), that rule, because a case accepted at
+2002 or later cannot cite a 1985 row (`check_cases`: the older row's band is its own edition). A case that no cite of the
+row can hold, because it is accepted at an edition outside the band of every candidate (an introduction gate, or a rule
+whose row is not yet widened down to the case's edition), is exempt. A witness that does not state the row it is listed
+under is retired from the row (`record_verdicts.py` `retire-witnesses`), never left to be read as one.
+
 **The converter.** `python conformance-suite/harness/reformat.py [--dry-run] <case.cob>...` (S8's tool, §13) rewrites a
 free-form case and each library text it declares and copies, IN PLACE, in the 1985 layout (§1985:IV.7): division,
 section and paragraph headers, paragraph-names, FD/SD/CD/RD, level-numbers 01 and 77, DECLARATIVES and end markers in
@@ -658,7 +666,9 @@ tests/nist/crosswalk/<program>.json    each NIST-85 program's units and disposit
   under a clause none of its rules belongs to, or with no rules outside `_unassigned/`; editions outside a band or
   window; a rule whose band begins after every construct its test is written in (PB870), unless the row's `notes` name
   it; a flagged line whose control is unaccepted at its editions, an obsolete or archaic flagged line at an edition where
-  its control holds another element of that kind, and a mark no line names; free form at 85 in `cases/`; a STOP
+  its control holds another element of that kind, and a mark no line names; free form ACCEPTED or FLAGGED at 85 in
+  `cases/` (a free-form REFUSAL test may refuse there, §3.6); a test the inventory names as a row's witness whose `rules`
+  do not cite the row (§3.6, kb/Work PB6067); a STOP
   statement in a test that is not marked `main` and enters a grouped program; a test not marked `main` holding no program
   definition that is not a prototype (none today, `rev3e/noprog.py`); a test with no `accept`, no flagged line and no
   WiseOwl diagnosis; an accepted test that displays nothing; a literal beginning `*TEST `; an undeclared COPY (a COPY
@@ -948,8 +958,14 @@ otherwise (2,448, 2,385 of them units whose program sets no reference at all: Se
 file-I/O programs). A flag unit maps through Appendix C.1: the catalog marks each obsolete row `obsolete: C.1(n)` and the
 flagged statement names the element n; an element with one row maps to it, one with several is `ambiguous`; the 177 FIPS
 flags are `excluded` (`fips-pub-21-1`). An entry's `basis: "mechanical"` marks what the tool reproduces and `--check`
-enforces; Stage 4's adjudicated entries carry another basis and the audit holds them only to the program's facts and the
-catalog's rows. `unmet(edition)`, the status line's NIST term, counts the units still owed at row level: every `open` unit,
+enforces; Stage 4's adjudicated entries carry `basis: "adjudicated: <reason>"` (any other basis is a broken record that
+`--build` keeps and reports and `--check` refuses), and the audit holds them only to the program's facts and the
+catalog's rows. **A rebuild keeps an adjudication** (kb/Work PB6131): `--build` merges each program's file by unit name, writes
+every adjudicated entry back verbatim, and reports (verdict `BUILD RED`) each kept one whose recorded facts (lines, FEATURE,
+ANSI-REFERENCE, flag) the program now contradicts or whose unit the program no longer has, so a decision is never silently
+overwritten nor silently kept stale; a unit adjudicated twice stops the build before any file is written. `--check` runs the
+same merge and refuses a file in which a rebuild would change an adjudicated entry. The files are written as UTF-8 bytes
+with LF line ends. `unmet(edition)`, the status line's NIST term, counts the units still owed at row level: every `open` unit,
 every `unenumerated` site and every `rows` unit with a row that no cleared test, determination or derivation witnesses (6,931
 of 6,931 at landing). The coverage points are PB6050's: a `rows` unit is subsumed at row level only until `coverage.py`
 exists.

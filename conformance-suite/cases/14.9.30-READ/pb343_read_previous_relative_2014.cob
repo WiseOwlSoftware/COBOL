@@ -8,7 +8,8 @@
       *> kb/Work PB343 — READ ... PREVIOUS on a file with RELATIVE organization, the 2014 leg.
       *> Until PB343 the connector applied the INDEXED block's after-OPEN carve-out here: a READ
       *> PREVIOUS immediately after OPEN INPUT returned the at end condition where the relative
-      *> block's own rule b) owes the first existing record.
+      *> block's own rule b) owes the first existing record (kb/Work PB5742: at 2002 and 2014 the rule is
+      *> the "less than or equal to" comparison below, not rule b)).
       *>
       *> THE RULES, and every expected value below derived from them (no observation):
       *>  14.9.27.4 GR14 - "When the organization of the file referenced by file-name-1 is
@@ -17,7 +18,10 @@
       *>  14.9.30.4 GR21 "When the file is a relative file":
       *>    b) indicator established by a prior successful OPEN or START -> "the first existing
       *>       record that is selected is made available, REGARDLESS of whether NEXT or PREVIOUS is
-      *>       specified"                                          (R1, S1/S2, T1, T2)
+      *>       specified" -- the 2023 text.  At 2014 the rule is the comparison of
+      *>       §2014:14.9.29.3 GR19c.2, for PREVIOUS "the first existing record in the
+      *>       physical file whose record number or key value is less than or equal to the file
+      *>       position indicator"                                 (R1, S1, T1; S2 and T2 are NEXT)
       *>    c) established by a prior successful READ -> the first existing record whose relative
       *>       key number is "greater than the file position indicator if NEXT ... or is less than
       *>       the file position indicator if PREVIOUS"             (R2, R4, R5, R6)
@@ -36,15 +40,14 @@
       *>
       *> WHY THE SPARSE FILE IS HERE.  On a DENSE file rule b) cannot be told apart from a backward
       *> walk that merely includes the indicator: both answer RRN 1.  The sparse file has its lowest
-      *> record at RRN 5, so OPEN's indicator of 1 names an EMPTY slot and only a direction-BLIND
-      *> rule b) can make S1 (PREVIOUS) and S2 (NEXT) name the same record.
+      *> record at RRN 5, so OPEN's indicator of 1 names an EMPTY slot: the 2023 direction-BLIND
+      *> rule b) makes S1 (PREVIOUS) and S2 (NEXT) name the same record, the 2002/2014 comparison does not.
       *>
-      *> EDITIONS: identical at 2002, 2014 and 2023 -- which is what the three copies of this program
-      *> assert.  Annex E is INFORMATIVE (its heading is "(informative)") and its only READ-
-      *> positioning change, E.2 item 22, amends the INDEXED sub-rule d.3 -- "If no such record is
-      *> found or PREVIOUS is specified and the previous operation on the file was an OPEN statement,
-      *> the at end condition exists" -- which is written in the indexed block alone.  The relative
-      *> block prints rule b) unamended, so this organization's selection takes no edition parameter.
+      *> EDITIONS: DIFFERENT at one point (kb/Work PB5742).  OPEN sets the indicator to 1
+      *> (§2002:14.8.26.3 GR12, and the same in 2014), and for PREVIOUS the 2002/2014 rule is
+      *> "less than or equal to" it, so the sparse file whose lowest record is RRN 5 is AT END
+      *> for the READ PREVIOUS that follows the OPEN (S1=ATEND|10); 2023's direction-blind rule b)
+      *> returns RRN 5 (see the 2023 copy).  A START names an existing record, so T1 is unchanged.
       *> At --std 85 the whole program is rejected: negative/pb343-read-previous-relative-85.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB343R4.
@@ -120,9 +123,8 @@
            READ DEN NEXT RECORD
            DISPLAY "R6=" D-REC "|" D-K "|" D-ST
            CLOSE DEN
-      *> Phase 3 - the SPARSE file: OPEN's indicator of 1 names an EMPTY slot, so the two
-      *> directions can only agree if rule b) ignores the direction, which is what
-      *> "regardless of whether NEXT or PREVIOUS is specified" says.
+      *> Phase 3 - the SPARSE file: OPEN's indicator of 1 names an EMPTY slot.  PREVIOUS
+      *> compares "less than or equal to" 1, so S1 is at end; NEXT's "greater than or equal to" gives S2.
            OPEN OUTPUT SPA
            MOVE 5 TO S-K
            MOVE "EEEE" TO S-REC

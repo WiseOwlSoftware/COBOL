@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb1123_inspect_item_identification_once
       *> rules: [GR-14.6.4-7, GR-14.9.22.4-6, GR-14.9.22.4-19]
-      *> accept: [85, 2023]
+      *> accept: [85, 2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---

@@ -1,0 +1,12 @@
+#!/bin/sh
+# git's pre-push hook for this repository (kb/Work PB6136): refuse a push that would publish a per-copy licence stamp.
+# Active where `git config --local core.hooksPath .githooks` is set (the session-start TOOLING check sets it).
+# The scan is scripts/hooks/git_pre_push.py; a missing Python refuses the push (fails closed).
+here=$(dirname "$0")
+for py in python python3; do
+  if command -v "$py" >/dev/null 2>&1; then
+    exec "$py" "$here/../scripts/hooks/git_pre_push.py" "$@"
+  fi
+done
+echo "pre-push (kb/Work PB6136): no python on PATH, so the push is refused unscanned." >&2
+exit 1

@@ -1,0 +1,43 @@
+{
+ "batch": [
+  349,
+  350,
+  351,
+  352,
+  353,
+  354,
+  355,
+  356,
+  357,
+  358,
+  359,
+  360
+ ],
+ "pages_checked": [
+  349,
+  350,
+  351,
+  352,
+  353,
+  354,
+  355,
+  356,
+  357,
+  358,
+  359,
+  360
+ ],
+ "pages_unread": [],
+ "findings": [
+  {
+   "id": "p354-1",
+   "page": 354,
+   "kind": "ocr-error",
+   "severity": "cosmetic",
+   "pdf_says": "{1S EQUAL TO / IS =} (SEARCH Format 2, AND data-name-2 line; the first glyph of the upper choice is printed like the lowercase l / digit 1 of this typeface, while the identical choice on the WHEN data-name-1 line prints IS EQUAL TO)",
+   "markdown_says": "<u>AND</u> ... ╭data-name-2 ╭1S <u>EQUAL</u> TO╮",
+   "note": "The markdown carries the misprint as the token '1S' with no editorial note, where the format means the optional word IS (as in the parallel WHEN data-name-1 line, 'IS EQUAL TO'). A grammar or reader taking the transcription literally sees a non-word in the format. Either transcribe it as IS with an editorial note recording the printed glyph, or keep it with a note. No effect on choice indicators, brackets, ellipses or underlining, which all match the print.",
+   "why_it_matters": "The SEARCH Format 2 AND line shows the non-word '1S' where the format means the optional word IS; a reader or grammar audit taking the transcription literally sees a token that is not a COBOL word."
+  }
+ ]
+}

@@ -77,12 +77,11 @@ internal static class UseTierEmitter
         // Open-mode scope (GR3 b)/GR6 b)–e)): the mode the file IS open in when it has a declarative (an OPEN refused '41' leaves
         // the file open as it was: §1985:XIII.4.8.4 GR5b/GR5c, §2023:14.9.49.4 GR6c: "open in the output mode"; kb/Work PB5825),
         // else the mode the executing OPEN or CLOSE is scoped to ("in the process of being opened"). The runtime picks the one
-        // mode from the set this unit declares (<c>UseModeOf</c>, over FileConnector.UseModeView), so the switch stays single:
+        // mode from the set this unit declares (ExceptionSelectionEmitter.OpenModeSelected, the WHEN arms' too), so the switch stays single:
         // where both modes have a procedure the text names no order, and the open mode's runs, as GnuCOBOL's does (kb/Work PB5878).
-        int declared = 0;
-        foreach (var d in decls)
-            if (Qualifies(d) && d.ModeIndex is { } mi) declared |= 1 << mi;
-        string switchHead = $"switch ({RuntimeApi.FileUseModeOf("__f", declared)})";
+        int declared = ExceptionSelectionEmitter.DeclaredModes(
+            decls.Where(Qualifies).Select(d => d.ModeIndex).OfType<int>());
+        string switchHead = $"switch ({ExceptionSelectionEmitter.OpenModeSelected(declared)})";
         if (when is not null)
             switchHead = $"if ({when}) {switchHead}{(modeTierNote is null ? "" : $"   {modeTierNote}")}";
         using (w.Block(switchHead))

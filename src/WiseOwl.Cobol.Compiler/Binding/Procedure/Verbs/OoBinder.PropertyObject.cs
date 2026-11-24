@@ -14,7 +14,7 @@ using Core = CobolParserCore;
 /// <summary>
 /// ⛔ <b>THE OBJECT OF AN OBJECT PROPERTY WHEN A WORD CANNOT SPELL IT</b> (kb/Work PB1425, PB1783) — the procedure
 /// binder's half of §2023:8.4.3.1.2 Format 7 (<c>property-name-1 OF identifier-3</c>), reached through the resolver's
-/// <c>BindPropertyObject</c> edge for the <c>propertyObject</c> suffix: SELF, SUPER and <c>object-class-name-1 OF
+/// statement site (<see cref="IStatementSite.BindPropertyObject"/>) for the <c>propertyObject</c> suffix: SELF, SUPER and <c>object-class-name-1 OF
 /// SUPER</c> (§2023:8.4.3.8.3 SR3 names "the object in an object-property identifier" as one of SUPER's two homes), an
 /// object-view, a function-identifier, NULL. The word chains (a qualified or subscripted data name, a chained property)
 /// never reach here: the resolver reads them itself.

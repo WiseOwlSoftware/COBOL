@@ -1,6 +1,6 @@
 {
  "edition": 1985,
- "about": "The reconciliation of specs/ANSI_COBOL_1985.md against the rendered page of the scanned PDF (kb/Work PB4850). `book_pages` is the transcription's page count and `pages_swept` the pages compared: every one of the 976 pages was compared by the batch passes of 2026-11-06 (claims, an adversarial verify and a second opinion; a box pass over every page). A page with no claim was found to agree with its transcription. Each claim carries its decision: APPLIED (with the edit, read against the rendered page first), REFUTED, ALREADY (repaired before), FORMAT (a general format, decided by figures-1985), BOX (a level-2 box, marked from the box pass), FIGURE (an illustration) or KEPT. A sweep is a sibling of an applied claim found on the page or across the file. Each box carries MARKED (and the number of blocks marked with a pair of ║), FORMAT or NOT MARKED. verify_publishable.py --edition 1985 holds the transcription to this ledger. SECOND PASS (kb/Work PB6051, owner 2026-11-22): a second independent pass over all 976 pages by agents that did not see the first pass's claims (236 claims, each with its own adversarial verdict: 167 confirmed, 69 refuted); its claims carry `pass: 2` and the id of their compare file. The headings of the whole standard were derived afresh from the printed Table of Contents (kb/Work PB6057; scripts/spec/heading_levels.py): each is a sweep `heading-levels(PB6057)` or an edit of the claim that named it. THIRD PASS (kb/Work PB6051, decision PB6091, owner 2026-11-22): a third independent pass over all 976 pages (25 claims, each with its own adversarial verdict: 7 confirmed, 18 refuted); its claims carry `pass: 3`. All 7 confirmed claims are APPLIED, five of the refuted ones are decided by the title rule of kb/Work PB6095 (APPLIED with the claim's batch still REFUTED), and the siblings of the repairs are sweeps (`format-titles(PB6095)`, `box-labels(PB6051 p354-1)`, `brace-column(PB6051 p213-1)`).",
+ "about": "The reconciliation of specs/ANSI_COBOL_1985.md against the rendered page of the scanned PDF (kb/Work PB4850). `book_pages` is the transcription's page count and `pages_swept` the pages compared: every one of the 976 pages was compared by the batch passes of 2026-11-06 (claims, an adversarial verify and a second opinion; a box pass over every page). A page with no claim was found to agree with its transcription. Each claim carries its decision: APPLIED (with the edit, read against the rendered page first), REFUTED, ALREADY (repaired before), FORMAT (a general format, decided by figures-1985), BOX (a level-2 box, marked from the box pass), FIGURE (an illustration) or KEPT. A sweep is a sibling of an applied claim found on the page or across the file. Each box carries MARKED (and the number of blocks marked with a pair of ║), FORMAT or NOT MARKED. verify_publishable.py --edition 1985 holds the transcription to this ledger. SECOND PASS (kb/Work PB6051, owner 2026-11-22): a second independent pass over all 976 pages by agents that did not see the first pass's claims (236 claims, each with its own adversarial verdict: 167 confirmed, 69 refuted); its claims carry `pass: 2` and the id of their compare file. The headings of the whole standard were derived afresh from the printed Table of Contents (kb/Work PB6057; scripts/spec/heading_levels.py): each is a sweep `heading-levels(PB6057)` or an edit of the claim that named it. THIRD PASS (kb/Work PB6051, decision PB6091, owner 2026-11-22): a third independent pass over all 976 pages (25 claims, each with its own adversarial verdict: 7 confirmed, 18 refuted); its claims carry `pass: 3`. All 7 confirmed claims are APPLIED, five of the refuted ones are decided by the title rule of kb/Work PB6095 (APPLIED with the claim's batch still REFUTED), and the siblings of the repairs are sweeps (`format-titles(PB6095)`, `box-labels(PB6051 p354-1)`, `brace-column(PB6051 p213-1)`). FOURTH PASS (kb/Work PB6051, run wf_e5491422-f0a, 2026-11-23): a fourth independent pass over all 976 pages (19 claims, each with its own adversarial verdict: 5 confirmed, 14 refuted); its claims carry `pass: 4`. All 5 confirmed claims are APPLIED; two refuted ones (p731-1, p737-1) are decided by the same repair (APPLIED with the claim's batch still REFUTED), and the siblings are sweeps (`summary-indent(PB6051 p729-1)`, `differences-title-form(PB6051 p737-1)`). FIFTH PASS (kb/Work PB6051, run wf_10fdbb6c-b56, 2026-11-23): a fifth independent pass over all 976 pages (16 claims, each with its own adversarial verdict: 4 confirmed, 12 refuted); its claims carry `pass: 5`. All 4 confirmed claims are APPLIED, and the siblings are sweeps (`continuation-indent(PB6051 p532-1)`, `box-figure(PB6051 p240-1)`, `summary-indent(PB6051 p32-1)`); heading_levels.check_box_markup now holds the two box-marking classes p240-1 and p419-1 found.",
  "book_pages": 976,
  "pages_swept": [
   1,
@@ -9054,6 +9054,947 @@
    "batch": "REFUTED",
    "decision": "REFUTED",
    "reason": "Checked the 300 dpi render of printed page B-58 against page-970.md. The markdown keeps every entry on its own line and indents each sub-entry two spaces under its main entry, as the PDF does (NOT / EVALUATE statement VI-84 ...; Nucleus, VI-1 / Element summary, I-11; OCCURS clause / CORRESPONDING phrase VI-68 ...). The claim itself concedes that entries and page references match. The only difference is how a Markdown renderer would treat bare lines, which is presentation markup and not a content discrepancy. The task's rules exclude differences that are only formatting and do not change meanin"
+  },
+  {
+   "page": 729,
+   "i": "4th-1",
+   "id": "p729-1",
+   "pass": 4,
+   "kind": "misplaced-content",
+   "where": "| CURRENCY SIGN clause | 1 NUC | 1 NUC | | / | Literal can be figurative constant | 1 NUC | ",
+   "batch": "CONFIRMED",
+   "decision": "APPLIED",
+   "edits": [
+    {
+     "was": "| Environment Division is required | 1 NUC | N | |",
+     "now": "| &nbsp;Environment Division is required | 1 NUC | N | |"
+    },
+    {
+     "was": "| Environment Division is optional | N | 1 NUC | |",
+     "now": "| &nbsp;Environment Division is optional | N | 1 NUC | |"
+    },
+    {
+     "was": "| Configuration Section is required | 1 NUC | N | |",
+     "now": "| &nbsp;Configuration Section is required | 1 NUC | N | |"
+    },
+    {
+     "was": "| Configuration Section is optional | N | 1 NUC | |",
+     "now": "| &nbsp;Configuration Section is optional | N | 1 NUC | |"
+    },
+    {
+     "was": "| SOURCE-COMPUTER paragraph is required | 1 NUC | N | |",
+     "now": "| &nbsp;SOURCE-COMPUTER paragraph is required | 1 NUC | N | |"
+    },
+    {
+     "was": "| SOURCE-COMPUTER paragraph is optional | N | 1 NUC | |",
+     "now": "| &nbsp;SOURCE-COMPUTER paragraph is optional | N | 1 NUC | |"
+    },
+    {
+     "was": "| Empty paragraph may be specified | N | 1 NUC | |",
+     "now": "| &nbsp;Empty paragraph may be specified | N | 1 NUC | |"
+    },
+    {
+     "was": "| Computer-name | 1 NUC | 1 NUC | |",
+     "now": "| &nbsp;Computer-name | 1 NUC | 1 NUC | |"
+    },
+    {
+     "was": "| WITH DEBUGGING MODE clause for debugging lines | 1 DEB | 1 NUC | |",
+     "now": "| &nbsp;WITH DEBUGGING MODE clause for debugging lines | 1 DEB | 1 NUC | |"
+    },
+    {
+     "was": "| WITH DEBUGGING MODE clause for debugging sections | 1 DEB | 1 DEB | Z |",
+     "now": "| &nbsp;WITH DEBUGGING MODE clause for debugging sections | 1 DEB | 1 DEB | Z |"
+    },
+    {
+     "was": "| OBJECT-COMPUTER paragraph is required | 1 NUC | N | |",
+     "now": "| &nbsp;OBJECT-COMPUTER paragraph is required | 1 NUC | N | |"
+    },
+    {
+     "was": "| OBJECT-COMPUTER paragraph is optional | N | 1 NUC | |",
+     "now": "| &nbsp;OBJECT-COMPUTER paragraph is optional | N | 1 NUC | |"
+    },
+    {
+     "was": "| Empty paragraph may be specified | N | 1 NUC | |",
+     "now": "| &nbsp;Empty paragraph may be specified | N | 1 NUC | |"
+    },
+    {
+     "was": "| Computer-name | 1 NUC | 1 NUC | |",
+     "now": "| &nbsp;Computer-name | 1 NUC | 1 NUC | |"
+    },
+    {
+     "was": "| MEMORY SIZE clause | 1 NUC | 1 NUC | Z |",
+     "now": "| &nbsp;MEMORY SIZE clause | 1 NUC | 1 NUC | Z |"
+    },
+    {
+     "was": "| PROGRAM COLLATING SEQUENCE clause | 1 NUC | 1 NUC | |",
+     "now": "| &nbsp;PROGRAM COLLATING SEQUENCE clause | 1 NUC | 1 NUC | |"
+    },
+    {
+     "was": "| SEGMENT-LIMIT clause | 2 SEG | 2 SEG | Z |",
+     "now": "| &nbsp;SEGMENT-LIMIT clause | 2 SEG | 2 SEG | Z |"
+    },
+    {
+     "was": "| ALPHABET clause | 1 NUC | 1 NUC | |",
+     "now": "| &nbsp;ALPHABET clause | 1 NUC | 1 NUC | |"
+    },
+    {
+     "was": "| STANDARD-1 option | 1 NUC | 1 NUC | |",
+     "now": "| &nbsp;&nbsp;STANDARD-1 option | 1 NUC | 1 NUC | |"
+    },
+    {
+     "was": "| STANDARD-2 option | N | 1 NUC | |",
+     "now": "| &nbsp;&nbsp;STANDARD-2 option | N | 1 NUC | |"
+    },
+    {
+     "was": "| NATIVE option | 1 NUC | 1 NUC | |",
+     "now": "| &nbsp;&nbsp;NATIVE option | 1 NUC | 1 NUC | |"
+    },
+    {
+     "was": "| Implementor-name option | 1 NUC | 1 NUC | |",
+     "now": "| &nbsp;&nbsp;Implementor-name option | 1 NUC | 1 NUC | |"
+    },
+    {
+     "was": "| Literal option | 2 NUC | 2 NUC | |",
+     "now": "| &nbsp;&nbsp;Literal option | 2 NUC | 2 NUC | |"
+    },
+    {
+     "was": "| CLASS clause | N | 1 NUC | |",
+     "now": "| &nbsp;CLASS clause | N | 1 NUC | |"
+    },
+    {
+     "was": "| CURRENCY SIGN clause | 1 NUC | 1 NUC | |",
+     "now": "| &nbsp;CURRENCY SIGN clause | 1 NUC | 1 NUC | |"
+    },
+    {
+     "was": "| Literal can be figurative constant | 1 NUC | N | |",
+     "now": "| &nbsp;&nbsp;Literal can be figurative constant | 1 NUC | N | |"
+    },
+    {
+     "was": "| DECIMAL-POINT clause | 1 NUC | 1 NUC | |",
+     "now": "| &nbsp;DECIMAL-POINT clause | 1 NUC | 1 NUC | |"
+    },
+    {
+     "was": "| Implementor-name clause | 1 NUC | 1 NUC | |",
+     "now": "| &nbsp;Implementor-name clause | 1 NUC | 1 NUC | |"
+    },
+    {
+     "was": "| IS mnemonic-name option | 1 NUC | 1 NUC | |",
+     "now": "| &nbsp;&nbsp;IS mnemonic-name option | 1 NUC | 1 NUC | |"
+    },
+    {
+     "was": "| If implementor-name is switch, condition-name must be specified | 1 NUC | N | |",
+     "now": "| &nbsp;&nbsp;&nbsp;If implementor-name is switch, condition-name must be specified | 1 NUC | N | |"
+    },
+    {
+     "was": "| If implementor-name is switch, condition-name may be specified | N | 1 NUC | |",
+     "now": "| &nbsp;&nbsp;&nbsp;If implementor-name is switch, condition-name may be specified | N | 1 NUC | |"
+    },
+    {
+     "was": "| ON STATUS IS condition-name option | 1 NUC | 1 NUC | |",
+     "now": "| &nbsp;&nbsp;ON STATUS IS condition-name option | 1 NUC | 1 NUC | |"
+    },
+    {
+     "was": "| OFF STATUS IS condition-name option | 1 NUC | 1 NUC | |",
+     "now": "| &nbsp;&nbsp;OFF STATUS IS condition-name option | 1 NUC | 1 NUC | |"
+    },
+    {
+     "was": "| SYMBOLIC CHARACTERS clause | N | 2 NUC | |",
+     "now": "| &nbsp;&nbsp;SYMBOLIC CHARACTERS clause | N | 2 NUC | |"
+    }
+   ],
+   "siblings": "rendered and read every page of the Section XVII summary-of-differences tables (pages 725 to 749): pages 725, 726, 727, 729, 731, 732, 733 and 743 to 749 set the ELEMENT column flat (page 726 held one indented row) while the print indents it; every row now carries one &nbsp; per printed column of indent, measured against the ELEMENT heading. The claims name pages 729, 731, 733, 743 and 744; the other nine pages are sweeps `summary-indent(PB6051 p729-1)`, with page 749's two group titles, printed underlined and set bold, made `<u>...</u>`. Pages 728 and 730, 734 to 742 already carried the hierarchy. The C322 correction note on page 727 now quotes the row as it stands (`| &nbsp;Reference modification ...`)."
+  },
+  {
+   "page": 731,
+   "i": "4th-1",
+   "id": "p731-1",
+   "pass": 4,
+   "kind": "misplaced-content",
+   "where": "| ASSIGN clause | 1 SEQ<br>1 REL<br>1 INX<br>1 SRT<br>1 RPW | 1 SEQ<br>1 REL<br>1 INX<br>1",
+   "batch": "REFUTED",
+   "decision": "APPLIED",
+   "edits": [
+    {
+     "was": "| ASSIGN clause | 1 SEQ<br>1 REL<br>1 INX<br>1 SRT<br>1 RPW | 1 SEQ<br>1 REL<br>1 INX<br>1 SRT<br>1 RPW |",
+     "now": "| &nbsp;ASSIGN clause | 1 SEQ<br>1 REL<br>1 INX<br>1 SRT<br>1 RPW | 1 SEQ<br>1 REL<br>1 INX<br>1 SRT<br>1 RPW |"
+    },
+    {
+     "was": "| Implementor-name | 1 SEQ<br>1 REL<br>1 INX<br>1 SRT<br>1 RPW | 1 SEQ<br>1 REL<br>1 INX<br>1 SRT<br>1 RPW |",
+     "now": "| &nbsp;&nbsp;Implementor-name | 1 SEQ<br>1 REL<br>1 INX<br>1 SRT<br>1 RPW | 1 SEQ<br>1 REL<br>1 INX<br>1 SRT<br>1 RPW |"
+    },
+    {
+     "was": "| Literal | N | 1 SEQ<br>1 REL<br>1 INX<br>1 SRT<br>1 RPW |",
+     "now": "| &nbsp;&nbsp;Literal | N | 1 SEQ<br>1 REL<br>1 INX<br>1 SRT<br>1 RPW |"
+    },
+    {
+     "was": "| FILE STATUS clause | 1 SEQ<br>1 REL<br>1 INX<br>1 RPW | 1 SEQ<br>1 REL<br>1 INX<br>1 RPW |",
+     "now": "| &nbsp;FILE STATUS clause | 1 SEQ<br>1 REL<br>1 INX<br>1 RPW | 1 SEQ<br>1 REL<br>1 INX<br>1 RPW |"
+    },
+    {
+     "was": "| ORGANIZATION clause | | |",
+     "now": "| &nbsp;ORGANIZATION clause | | |"
+    },
+    {
+     "was": "| SEQUENTIAL | 1 SEQ<br>1 RPW | 1 SEQ<br>1 RPW |",
+     "now": "| &nbsp;&nbsp;SEQUENTIAL | 1 SEQ<br>1 RPW | 1 SEQ<br>1 RPW |"
+    },
+    {
+     "was": "| RELATIVE | 1 REL | 1 REL |",
+     "now": "| &nbsp;&nbsp;RELATIVE | 1 REL | 1 REL |"
+    },
+    {
+     "was": "| INDEXED | 1 INX | 1 INX |",
+     "now": "| &nbsp;&nbsp;INDEXED | 1 INX | 1 INX |"
+    },
+    {
+     "was": "| PADDING CHARACTER clause | N | 2 SEQ<br>1 RPW |",
+     "now": "| &nbsp;PADDING CHARACTER clause | N | 2 SEQ<br>1 RPW |"
+    },
+    {
+     "was": "| RECORD DELIMITER clause | N | 2 SEQ<br>1 RPW |",
+     "now": "| &nbsp;RECORD DELIMITER clause | N | 2 SEQ<br>1 RPW |"
+    },
+    {
+     "was": "| RECORD KEY clause | 1 INX | 1 INX |",
+     "now": "| &nbsp;RECORD KEY clause | 1 INX | 1 INX |"
+    },
+    {
+     "was": "| RESERVE AREA clause | 2 SEQ<br>2 REL<br>2 INX<br>1 RPW | 2 SEQ<br>2 REL<br>2 INX<br>1 RPW |",
+     "now": "| &nbsp;RESERVE AREA clause | 2 SEQ<br>2 REL<br>2 INX<br>1 RPW | 2 SEQ<br>2 REL<br>2 INX<br>1 RPW |"
+    },
+    {
+     "was": "| Order of clauses is immaterial | N | 1 SEQ<br>1 REL<br>1 INX<br>1 SRT<br>1 RPW |",
+     "now": "| &nbsp;Order of clauses is immaterial | N | 1 SEQ<br>1 REL<br>1 INX<br>1 SRT<br>1 RPW |"
+    },
+    {
+     "was": "| MULTIPLE FILE TAPE clause | 2 SEQ | 2 SEQ Z<br>1 RPW Z |",
+     "now": "| &nbsp;MULTIPLE FILE TAPE clause | 2 SEQ | 2 SEQ Z<br>1 RPW Z |"
+    },
+    {
+     "was": "| RERUN clause | 1 SEQ<br>1 REL<br>1 INX | 1 SEQ Z<br>1 REL Z<br>1 INX Z |",
+     "now": "| &nbsp;RERUN clause | 1 SEQ<br>1 REL<br>1 INX | 1 SEQ Z<br>1 REL Z<br>1 INX Z |"
+    }
+   ],
+   "siblings": "rendered and read every page of the Section XVII summary-of-differences tables (pages 725 to 749): pages 725, 726, 727, 729, 731, 732, 733 and 743 to 749 set the ELEMENT column flat (page 726 held one indented row) while the print indents it; every row now carries one &nbsp; per printed column of indent, measured against the ELEMENT heading. The claims name pages 729, 731, 733, 743 and 744; the other nine pages are sweeps `summary-indent(PB6051 p729-1)`, with page 749's two group titles, printed underlined and set bold, made `<u>...</u>`. Pages 728 and 730, 734 to 742 already carried the hierarchy. The C322 correction note on page 727 now quotes the row as it stands (`| &nbsp;Reference modification ...`).",
+   "reason": "the claim's own verdict refuted it as formatting only; the print indents page 731's ELEMENT column as it does pages 729 and 733, so the indentation repair of the confirmed claims p729-1, p733-1, p743-1 and p744-1 applies to it (one form for the whole table)"
+  },
+  {
+   "page": 733,
+   "i": "4th-1",
+   "id": "p733-1",
+   "pass": 4,
+   "kind": "misplaced-content",
+   "where": "| FD level indicator ............................................ | 1 SEQ | 1 SEQ | / | BLOC",
+   "batch": "CONFIRMED",
+   "decision": "APPLIED",
+   "edits": [
+    {
+     "was": "| Data Division is required .................................... | 1 NUC | N |",
+     "now": "| &nbsp;Data Division is required .................................... | 1 NUC | N |"
+    },
+    {
+     "was": "| Data Division is optional .................................... | N | 1 NUC |",
+     "now": "| &nbsp;Data Division is optional .................................... | N | 1 NUC |"
+    },
+    {
+     "was": "| FD level indicator ............................................ | 1 SEQ | 1 SEQ |",
+     "now": "| &nbsp;FD level indicator ............................................ | 1 SEQ | 1 SEQ |"
+    },
+    {
+     "was": "| BLOCK CONTAINS clause | | |",
+     "now": "| &nbsp;BLOCK CONTAINS clause | | |"
+    },
+    {
+     "was": "| Integer RECORDS/CHARACTERS .................................. | 1 SEQ | 1 SEQ |",
+     "now": "| &nbsp;&nbsp;Integer RECORDS/CHARACTERS .................................. | 1 SEQ | 1 SEQ |"
+    },
+    {
+     "was": "| Integer-1 TO integer-2 RECORDS/CHARACTERS ...................... | 2 SEQ | 2 SEQ |",
+     "now": "| &nbsp;&nbsp;Integer-1 TO integer-2 RECORDS/CHARACTERS ...................... | 2 SEQ | 2 SEQ |"
+    },
+    {
+     "was": "| CODE-SET clause ............................................. | 1 SEQ | 1 SEQ |",
+     "now": "| &nbsp;CODE-SET clause ............................................. | 1 SEQ | 1 SEQ |"
+    },
+    {
+     "was": "| DATA RECORDS clause .......................................... | 1 SEQ | 1 SEQ Z |",
+     "now": "| &nbsp;DATA RECORDS clause .......................................... | 1 SEQ | 1 SEQ Z |"
+    },
+    {
+     "was": "| EXTERNAL clause ............................................. | N | 2 IPC |",
+     "now": "| &nbsp;EXTERNAL clause ............................................. | N | 2 IPC |"
+    },
+    {
+     "was": "| GLOBAL clause ............................................... | N | 2 IPC |",
+     "now": "| &nbsp;GLOBAL clause ............................................... | N | 2 IPC |"
+    },
+    {
+     "was": "| LABEL RECORDS clause ......................................... | 1 SEQ | 1 SEQ Z |",
+     "now": "| &nbsp;LABEL RECORDS clause ......................................... | 1 SEQ | 1 SEQ Z |"
+    },
+    {
+     "was": "| LINAGE clause ............................................... | 2 SEQ | 2 SEQ |",
+     "now": "| &nbsp;LINAGE clause ............................................... | 2 SEQ | 2 SEQ |"
+    },
+    {
+     "was": "| FOOTING phrase .............................................. | 2 SEQ | 2 SEQ |",
+     "now": "| &nbsp;&nbsp;FOOTING phrase .............................................. | 2 SEQ | 2 SEQ |"
+    },
+    {
+     "was": "| TOP phrase .................................................. | 2 SEQ | 2 SEQ |",
+     "now": "| &nbsp;&nbsp;TOP phrase .................................................. | 2 SEQ | 2 SEQ |"
+    },
+    {
+     "was": "| BOTTOM phrase ............................................... | 2 SEQ | 2 SEQ |",
+     "now": "| &nbsp;&nbsp;BOTTOM phrase ............................................... | 2 SEQ | 2 SEQ |"
+    },
+    {
+     "was": "| RECORD clause | | |",
+     "now": "| &nbsp;RECORD clause | | |"
+    },
+    {
+     "was": "| Integer-1 CHARACTERS ........................................ | 1 SEQ | 1 SEQ |",
+     "now": "| &nbsp;&nbsp;Integer-1 CHARACTERS ........................................ | 1 SEQ | 1 SEQ |"
+    },
+    {
+     "was": "| VARYING IN SIZE phrase ........................................ | N | 2 SEQ |",
+     "now": "| &nbsp;&nbsp;VARYING IN SIZE phrase ........................................ | N | 2 SEQ |"
+    }
+   ],
+   "siblings": "rendered and read every page of the Section XVII summary-of-differences tables (pages 725 to 749): pages 725, 726, 727, 729, 731, 732, 733 and 743 to 749 set the ELEMENT column flat (page 726 held one indented row) while the print indents it; every row now carries one &nbsp; per printed column of indent, measured against the ELEMENT heading. The claims name pages 729, 731, 733, 743 and 744; the other nine pages are sweeps `summary-indent(PB6051 p729-1)`, with page 749's two group titles, printed underlined and set bold, made `<u>...</u>`. Pages 728 and 730, 734 to 742 already carried the hierarchy. The C322 correction note on page 727 now quotes the row as it stands (`| &nbsp;Reference modification ...`)."
+  },
+  {
+   "page": 737,
+   "i": "4th-1",
+   "id": "p737-1",
+   "pass": 4,
+   "kind": "missing-heading",
+   "where": "# <u>SUMMARY OF DIFFERENCES IN DATA DIVISION</u>",
+   "batch": "REFUTED",
+   "decision": "APPLIED",
+   "edits": [
+    {
+     "was": "# <u>SUMMARY OF DIFFERENCES IN DATA DIVISION</u>",
+     "now": "<u>SUMMARY OF DIFFERENCES IN DATA DIVISION</u>"
+    }
+   ],
+   "siblings": "swept every `SUMMARY OF DIFFERENCES IN` line of the standard (heading_levels.check_format_titles): eight stood as `#` or `##` headings (pages 728, 729, 732, 736, 737, 740, 745, 747), all checked underlined on the rendered page and made plain; the other seven are sweeps `differences-title-form(PB6051 p737-1)`, and the eight `summary-titles(p31-1)` sweeps that named the headed form are re-stated.",
+   "reason": "the claim's own verdict refuted it as formatting only; the title is the table's own repeated title, printed underlined on every page of the table, so it takes one form, `<u>SUMMARY OF DIFFERENCES IN ...</u>` with no heading, as the summary-of-elements titles do; heading_levels.TITLE_FORMS holds it"
+  },
+  {
+   "page": 743,
+   "i": "4th-1",
+   "id": "p743-1",
+   "pass": 4,
+   "kind": "misplaced-content",
+   "where": "| INPUT phrase | 1 SEQ | 1 SEQ | / ... / | WITH NO REWIND phrase | 2 SEQ | 2 SEQ | / | REVERSED ",
+   "batch": "CONFIRMED",
+   "decision": "APPLIED",
+   "edits": [
+    {
+     "was": "| TO identifier | 1 NUC | 1 NUC |",
+     "now": "| &nbsp;TO identifier | 1 NUC | 1 NUC |"
+    },
+    {
+     "was": "| TO identifier series | 1 NUC | 1 NUC |",
+     "now": "| &nbsp;TO identifier series | 1 NUC | 1 NUC |"
+    },
+    {
+     "was": "| CORRESPONDING phrase | 2 NUC | 2 NUC |",
+     "now": "| &nbsp;CORRESPONDING phrase | 2 NUC | 2 NUC |"
+    },
+    {
+     "was": "| De-editing of numeric edited items | N | 2 NUC |",
+     "now": "| &nbsp;De-editing of numeric edited items | N | 2 NUC |"
+    },
+    {
+     "was": "| BY identifier | 1 NUC | 1 NUC |",
+     "now": "| &nbsp;BY identifier | 1 NUC | 1 NUC |"
+    },
+    {
+     "was": "| BY identifier series | 2 NUC | 1 NUC |",
+     "now": "| &nbsp;BY identifier series | 2 NUC | 1 NUC |"
+    },
+    {
+     "was": "| GIVING identifier | 1 NUC | 1 NUC |",
+     "now": "| &nbsp;GIVING identifier | 1 NUC | 1 NUC |"
+    },
+    {
+     "was": "| GIVING identifier series | 2 NUC | 1 NUC |",
+     "now": "| &nbsp;GIVING identifier series | 2 NUC | 1 NUC |"
+    },
+    {
+     "was": "| ROUNDED phrase | 1 NUC | 1 NUC |",
+     "now": "| &nbsp;ROUNDED phrase | 1 NUC | 1 NUC |"
+    },
+    {
+     "was": "| ON SIZE ERROR phrase | 1 NUC | 1 NUC |",
+     "now": "| &nbsp;ON SIZE ERROR phrase | 1 NUC | 1 NUC |"
+    },
+    {
+     "was": "| NOT ON SIZE ERROR phrase | N | 1 NUC |",
+     "now": "| &nbsp;NOT ON SIZE ERROR phrase | N | 1 NUC |"
+    },
+    {
+     "was": "| END-MULTIPLY phrase | N | 1 NUC |",
+     "now": "| &nbsp;END-MULTIPLY phrase | N | 1 NUC |"
+    },
+    {
+     "was": "| File-name | 1 SEQ | 1 SEQ |",
+     "now": "| &nbsp;File-name | 1 SEQ | 1 SEQ |"
+    },
+    {
+     "was": "| File-name series | 2 SEQ | 1 SEQ |",
+     "now": "| &nbsp;File-name series | 2 SEQ | 1 SEQ |"
+    },
+    {
+     "was": "| INPUT phrase | 1 SEQ | 1 SEQ |",
+     "now": "| &nbsp;INPUT phrase | 1 SEQ | 1 SEQ |"
+    },
+    {
+     "was": "| WITH NO REWIND phrase | 2 SEQ | 2 SEQ |",
+     "now": "| &nbsp;&nbsp;WITH NO REWIND phrase | 2 SEQ | 2 SEQ |"
+    },
+    {
+     "was": "| REVERSED phrase | 2 SEQ | 2 SEQ Z |",
+     "now": "| &nbsp;&nbsp;REVERSED phrase | 2 SEQ | 2 SEQ Z |"
+    },
+    {
+     "was": "| OUTPUT phrase | 1 SEQ | 1 SEQ |",
+     "now": "| &nbsp;OUTPUT phrase | 1 SEQ | 1 SEQ |"
+    },
+    {
+     "was": "| WITH NO REWIND phrase | 2 SEQ | 2 SEQ |",
+     "now": "| &nbsp;&nbsp;WITH NO REWIND phrase | 2 SEQ | 2 SEQ |"
+    },
+    {
+     "was": "| I-O phrase | 1 SEQ | 1 SEQ |",
+     "now": "| &nbsp;I-O phrase | 1 SEQ | 1 SEQ |"
+    },
+    {
+     "was": "| EXTEND phrase | 2 SEQ | 2 SEQ |",
+     "now": "| &nbsp;EXTEND phrase | 2 SEQ | 2 SEQ |"
+    },
+    {
+     "was": "| INPUT, OUTPUT, I-O series | 2 SEQ | 1 SEQ |",
+     "now": "| &nbsp;INPUT, OUTPUT, I-O series | 2 SEQ | 1 SEQ |"
+    },
+    {
+     "was": "| EXTEND series | 2 SEQ | 2 SEQ |",
+     "now": "| &nbsp;EXTEND series | 2 SEQ | 2 SEQ |"
+    }
+   ],
+   "siblings": "rendered and read every page of the Section XVII summary-of-differences tables (pages 725 to 749): pages 725, 726, 727, 729, 731, 732, 733 and 743 to 749 set the ELEMENT column flat (page 726 held one indented row) while the print indents it; every row now carries one &nbsp; per printed column of indent, measured against the ELEMENT heading. The claims name pages 729, 731, 733, 743 and 744; the other nine pages are sweeps `summary-indent(PB6051 p729-1)`, with page 749's two group titles, printed underlined and set bold, made `<u>...</u>`. Pages 728 and 730, 734 to 742 already carried the hierarchy. The C322 correction note on page 727 now quotes the row as it stands (`| &nbsp;Reference modification ...`)."
+  },
+  {
+   "page": 744,
+   "i": "4th-1",
+   "id": "p744-1",
+   "pass": 4,
+   "kind": "misplaced-content",
+   "where": "| UNTIL phrase ....................................................... | 2 NUC | 1 NUC | / |",
+   "batch": "CONFIRMED",
+   "decision": "APPLIED",
+   "edits": [
+    {
+     "was": "| Procedure-name is required ......................................... | 1 NUC | N |",
+     "now": "| &nbsp;Procedure-name is required ......................................... | 1 NUC | N |"
+    },
+    {
+     "was": "| Procedure-name is optional ......................................... | N | 1 NUC |",
+     "now": "| &nbsp;Procedure-name is optional ......................................... | N | 1 NUC |"
+    },
+    {
+     "was": "| THROUGH procedure-name phrase ...................................... | 1 NUC | 1 NUC |",
+     "now": "| &nbsp;THROUGH procedure-name phrase ...................................... | 1 NUC | 1 NUC |"
+    },
+    {
+     "was": "| Imperative-statement option ........................................ | N | 1 NUC |",
+     "now": "| &nbsp;Imperative-statement option ........................................ | N | 1 NUC |"
+    },
+    {
+     "was": "| END-PERFORM phrase ................................................. | N | 1 NUC |",
+     "now": "| &nbsp;END-PERFORM phrase ................................................. | N | 1 NUC |"
+    },
+    {
+     "was": "| TIMES phrase ....................................................... | 1 NUC | 1 NUC |",
+     "now": "| &nbsp;TIMES phrase ....................................................... | 1 NUC | 1 NUC |"
+    },
+    {
+     "was": "| UNTIL phrase ....................................................... | 2 NUC | 1 NUC |",
+     "now": "| &nbsp;UNTIL phrase ....................................................... | 2 NUC | 1 NUC |"
+    },
+    {
+     "was": "| TEST BEFORE/AFTER phrase ......................................... | N | 2 NUC |",
+     "now": "| &nbsp;&nbsp;TEST BEFORE/AFTER phrase ......................................... | N | 2 NUC |"
+    },
+    {
+     "was": "| VARYING phrase ..................................................... | 2 NUC | 2 NUC |",
+     "now": "| &nbsp;VARYING phrase ..................................................... | 2 NUC | 2 NUC |"
+    },
+    {
+     "was": "| TEST BEFORE/AFTER phrase ......................................... | N | 2 NUC |",
+     "now": "| &nbsp;&nbsp;TEST BEFORE/AFTER phrase ......................................... | N | 2 NUC |"
+    },
+    {
+     "was": "| AFTER phrase ..................................................... | 2 NUC | 2 NUC |",
+     "now": "| &nbsp;&nbsp;AFTER phrase ..................................................... | 2 NUC | 2 NUC |"
+    },
+    {
+     "was": "| Maximum of two AFTER phrases ................................... | 2 NUC | N |",
+     "now": "| &nbsp;&nbsp;&nbsp;Maximum of two AFTER phrases ................................... | 2 NUC | N |"
+    },
+    {
+     "was": "| At least 6 AFTER phrases permitted ............................. | N | 2 NUC |",
+     "now": "| &nbsp;&nbsp;&nbsp;At least 6 AFTER phrases permitted ............................. | N | 2 NUC |"
+    },
+    {
+     "was": "| Identifier-2 augmented before identifier-5 set ................. | N | 2 NUC |",
+     "now": "| &nbsp;&nbsp;Identifier-2 augmented before identifier-5 set ................. | N | 2 NUC |"
+    },
+    {
+     "was": "| Identifier-5 set before identifier-2 augmented ................. | 2 NUC | N |",
+     "now": "| &nbsp;&nbsp;Identifier-5 set before identifier-2 augmented ................. | 2 NUC | N |"
+    },
+    {
+     "was": "| NEXT phrase ...................................................... | 2 REL<br>2 INX | 2 REL<br>2 INX<br>2 SEQ |",
+     "now": "| &nbsp;NEXT phrase ...................................................... | 2 REL<br>2 INX | 2 REL<br>2 INX<br>2 SEQ |"
+    },
+    {
+     "was": "| INTO phrase ...................................................... | 1 SEQ<br>1 REL<br>1 INX | 1 SEQ<br>1 REL<br>1 INX |",
+     "now": "| &nbsp;INTO phrase ...................................................... | 1 SEQ<br>1 REL<br>1 INX | 1 SEQ<br>1 REL<br>1 INX |"
+    },
+    {
+     "was": "| AT END phrase .................................................... | 1 SEQ<br>1 REL<br>1 INX | 1 SEQ<br>1 REL<br>1 INX |",
+     "now": "| &nbsp;AT END phrase .................................................... | 1 SEQ<br>1 REL<br>1 INX | 1 SEQ<br>1 REL<br>1 INX |"
+    },
+    {
+     "was": "| NOT AT END phrase ................................................ | N | 1 SEQ<br>1 REL<br>1 INX |",
+     "now": "| &nbsp;NOT AT END phrase ................................................ | N | 1 SEQ<br>1 REL<br>1 INX |"
+    },
+    {
+     "was": "| KEY phrase ....................................................... | 2 INX | 2 INX |",
+     "now": "| &nbsp;KEY phrase ....................................................... | 2 INX | 2 INX |"
+    },
+    {
+     "was": "| INVALID KEY phrase ............................................... | 1 REL<br>1 INX | 1 REL<br>1 INX |",
+     "now": "| &nbsp;INVALID KEY phrase ............................................... | 1 REL<br>1 INX | 1 REL<br>1 INX |"
+    },
+    {
+     "was": "| NOT INVALID KEY phrase ........................................... | N | 1 REL<br>1 INX |",
+     "now": "| &nbsp;NOT INVALID KEY phrase ........................................... | N | 1 REL<br>1 INX |"
+    },
+    {
+     "was": "| END-READ phrase .................................................. | N | 1 SEQ<br>1 REL<br>1 INX |",
+     "now": "| &nbsp;END-READ phrase .................................................. | N | 1 SEQ<br>1 REL<br>1 INX |"
+    },
+    {
+     "was": "| MESSAGE phrase ................................................... | 1 COM | 1 COM |",
+     "now": "| &nbsp;MESSAGE phrase ................................................... | 1 COM | 1 COM |"
+    },
+    {
+     "was": "| SEGMENT phrase ................................................... | 2 COM | 2 COM |",
+     "now": "| &nbsp;SEGMENT phrase ................................................... | 2 COM | 2 COM |"
+    },
+    {
+     "was": "| INTO phrase ...................................................... | 1 COM | 1 COM |",
+     "now": "| &nbsp;INTO phrase ...................................................... | 1 COM | 1 COM |"
+    },
+    {
+     "was": "| NO DATA phrase ................................................... | 1 COM | 1 COM |",
+     "now": "| &nbsp;NO DATA phrase ................................................... | 1 COM | 1 COM |"
+    },
+    {
+     "was": "| WITH DATA phrase ................................................. | N | 1 COM |",
+     "now": "| &nbsp;WITH DATA phrase ................................................. | N | 1 COM |"
+    },
+    {
+     "was": "| END-RECEIVE phrase ............................................... | N | 1 COM |",
+     "now": "| &nbsp;END-RECEIVE phrase ............................................... | N | 1 COM |"
+    },
+    {
+     "was": "| FROM phrase ...................................................... | 1 SRT | 1 SRT |",
+     "now": "| &nbsp;FROM phrase ...................................................... | 1 SRT | 1 SRT |"
+    }
+   ],
+   "siblings": "rendered and read every page of the Section XVII summary-of-differences tables (pages 725 to 749): pages 725, 726, 727, 729, 731, 732, 733 and 743 to 749 set the ELEMENT column flat (page 726 held one indented row) while the print indents it; every row now carries one &nbsp; per printed column of indent, measured against the ELEMENT heading. The claims name pages 729, 731, 733, 743 and 744; the other nine pages are sweeps `summary-indent(PB6051 p729-1)`, with page 749's two group titles, printed underlined and set bold, made `<u>...</u>`. Pages 728 and 730, 734 to 742 already carried the hierarchy. The C322 correction note on page 727 now quotes the row as it stands (`| &nbsp;Reference modification ...`)."
+  },
+  {
+   "page": 835,
+   "i": "4th-1",
+   "id": "p835-1",
+   "pass": 4,
+   "kind": "missing-heading",
+   "where": "SUMMARY OF ELEMENTS IN THE INTRINSIC FUNCTION MODULE",
+   "batch": "REFUTED",
+   "decision": "REFUTED",
+   "reason": "The rendered page 835 (A-5) prints 'SUMMARY OF ELEMENTS IN THE INTRINSIC FUNCTION MODULE' centred in bold over the table. The markdown carries that exact text as the first line under '## Page 835', followed by the full table. The claim itself says the text is correct. The only difference is that the markdown has no heading marker, which is formatting. No words are missing or changed, and the meaning is the same, so this is not a content discrepancy."
+  },
+  {
+   "page": 906,
+   "i": "4th-1",
+   "id": "p906-1",
+   "pass": 4,
+   "kind": "misplaced-content",
+   "where": "A-76 /  / # AMENDMENT 2: CORRECTION AMENDMENT (ANSI X3.23b-1993)",
+   "batch": "REFUTED",
+   "decision": "REFUTED",
+   "reason": "The 300 dpi render of page 906 (A-76) shows the WHEN-COMPILED table row 20-21 and rules (2) and (3), then the A-76 folio. The markdown slice reproduces all of that text verbatim. The only extra line is '# AMENDMENT 2: CORRECTION AMENDMENT (ANSI X3.23b-1993)', a document part divider the transcriber inserted at the boundary between Amendment 1 and Amendment 2. It sits directly before the '## Page 907' marker, so it falls at the page boundary. It changes no text that page 906 prints, and page 907's slice still carries the amendment's printed cover (ANSI INCITS 23b-1993 ... Correction Amendment for COBOL). The difference is navigation scaffolding at a page break, not a content discrepancy, and it changes no meaning. A slice-boundary tool could attribute the line to page 906, but that is a formatting and placement matter the verification rules exclude."
+  },
+  {
+   "page": 924,
+   "i": "4th-1",
+   "id": "p924-1",
+   "pass": 4,
+   "kind": "missing-text",
+   "where": "<br><br>If index-name-1 is specified, the value of identifier-3, index-name-2, or literal-",
+   "batch": "CONFIRMED",
+   "decision": "APPLIED",
+   "edits": [
+    {
+     "was": "| VI-113 | Paragraph 6.21.4 of the PERFORM statement, general rule 10d, change the fourth and fifth sentences to read:<br><br>If index-name-1 is specified, the value of identifier-3, index-name-2, or literal-1 at the beginning of the execution of the PERFORM statement must correspond to an occurrence number of an element in the table associated with index-name-1. If index-name-3 is specified, the value of identifier-6, index-name-4, or literal-3 at the beginning of the execution of the PERFORM statement must correspond to an occurrence number of an element in the table associated with index-name-3. |",
+     "now": "| VI-113 | Paragraph 6.21.4 of the PERFORM statement, general rule 10d, change the fourth and fifth sentences to read:<br><br>║If index-name-1 is specified, the value of identifier-3, index-name-2, or literal-1 at the beginning of the execution of the PERFORM statement must correspond to an occurrence number of an element in the table associated with index-name-1. If index-name-3 is specified, the value of identifier-6, index-name-4, or literal-3 at the beginning of the execution of the PERFORM statement must correspond to an occurrence number of an element in the table associated with index-name-3.║ |"
+    },
+    {
+     "was": "| VI-124 | Paragraph 6.22.4 of the SEARCH statement, general rule 2b, add the following as the new last sentence:<br><br>When control is passed to the next executable sentence, the effect is a transfer of control to an implicit CONTINUE statement immediately preceding the next separator period. |",
+     "now": "| VI-124 | Paragraph 6.22.4 of the SEARCH statement, general rule 2b, add the following as the new last sentence:<br><br>║When control is passed to the next executable sentence, the effect is a transfer of control to an implicit CONTINUE statement immediately preceding the next separator period.║ |"
+    },
+    {
+     "was": "| VI-124 | Paragraph 6.22.4 of the SEARCH statement, general rule 4, add the following as the new last sentence:<br><br>When control is passed to the next executable sentence, the effect is a transfer of control to an implicit CONTINUE statement immediately preceding the next separator period. |",
+     "now": "| VI-124 | Paragraph 6.22.4 of the SEARCH statement, general rule 4, add the following as the new last sentence:<br><br>║When control is passed to the next executable sentence, the effect is a transfer of control to an implicit CONTINUE statement immediately preceding the next separator period.║ |"
+    },
+    {
+     "was": "| VII-32 | Paragraph 3.8.4 of the RECORD clause, general rule 10, add the following as a new last paragraph:<br><br>If the number of character positions in the logical record to be written is less than integer-2 or greater than integer-3, the output statement is unsuccessful and, except during execution of a RELEASE statement, the associated I-O status is set to a value indicating the cause of the condition. (See page VII-2, I-O Status.) |",
+     "now": "| VII-32 | Paragraph 3.8.4 of the RECORD clause, general rule 10, add the following as a new last paragraph:<br><br>║If the number of character positions in the logical record to be written is less than integer-2 or greater than integer-3, the output statement is unsuccessful and, except during execution of a RELEASE statement, the associated I-O status is set to a value indicating the cause of the condition. (See page VII-2, I-O Status.)║ |"
+    }
+   ],
+   "siblings": "rendered and read every Amendment 2 page (907 to 960) for shading: pages 919, 920, 922, 927, 930, 932, 935 and 936 carry shaded text and their ║ pairs already match it (2, 3, 2, 1, 4, 3, 2, 2 blocks); page 924 was the only page with shading and no marker. No other page of the amendment is shaded."
+  },
+  {
+   "page": 963,
+   "i": "4th-1",
+   "id": "p963-1",
+   "pass": 4,
+   "kind": "list-restructured",
+   "where": "Every entry is a bare line with no list marker, sub-entries only space-indented: 'CHARACTE",
+   "batch": "REFUTED",
+   "decision": "REFUTED",
+   "reason": "The printed page (B-51, informative index) shows one entry per line with sub-entries indented; the transcription page-963.md has exactly that: one entry per line, sub-entries indented two spaces (e.g. 'CHARACTERS' then '  BLOCK CONTAINS clause, VII-23', '  INSPECT statement, VI-94', ...; 'CLOSE statement' with its six indented sub-entries). Every entry's text and page reference matches, and the claim concedes this. The main-entry/sub-entry hierarchy is present in the source text as indentation. The only complaint is how a Markdown renderer would collapse bare lines and that pages 961-962 use '- ' list markers instead: a formatting and rendering-consistency issue, with no content missing, misquoted or changed in meaning. Formatting-only differences are excluded, so this is not a content discrepancy."
+  },
+  {
+   "page": 964,
+   "i": "4th-1",
+   "id": "p964-1",
+   "pass": 4,
+   "kind": "list-restructured",
+   "where": "Every entry is a bare line with no list marker, sub-entries only space-indented: 'Configur",
+   "batch": "REFUTED",
+   "decision": "REFUTED",
+   "reason": "Checked the 300 dpi render of PDF page 964 (B-52, Index, two columns Conditional sentence .. Definitions) against page-964.md. Every main entry, every sub-entry and every page reference is present in order, each on its own source line, and the sub-entries keep their indentation (two spaces; wrapped continuations four), so the PDF's entry boundaries and hierarchy are carried in the transcription text. The only difference is markup style: no '- ' list markers, unlike pages 961-962 (page 963 uses the same bare-line style). That is a rendering/formatting difference of an informative index, not a content discrepancy; the claim itself concedes the text and references match. Rejected as formatting only."
+  },
+  {
+   "page": 965,
+   "i": "4th-1",
+   "id": "p965-1",
+   "pass": 4,
+   "kind": "list-restructured",
+   "where": "Every entry is a bare line with no list marker, sub-entries only space-indented: 'DELETE s",
+   "batch": "REFUTED",
+   "decision": "REFUTED",
+   "reason": "Both sources are quoted accurately. The printed page B-53 (PDF p965) shows a two-column index whose sub-entries are indented under main entries. The markdown page-965.md keeps every entry on its own line, in order, with each sub-entry indented two spaces under its main entry (DELETE statement / '  Indexed I-O module, IX-21' / '  Relative I-O module, VIII-19', and so on), and the wrapped continuation 'COBOL, XVII-16' is indented further. Nothing is missing and no page reference changes, as the claim itself concedes. The hierarchy is in the source text as indentation. The only difference is how a Markdown renderer would lay out bare lines, and the page differs in style from pages 961-962, which use '- ' list markers. That is a formatting and rendering difference on an informative index page, with no change to content or meaning, so it is not a genuine content discrepancy."
+  },
+  {
+   "page": 966,
+   "i": "4th-1",
+   "id": "p966-1",
+   "pass": 4,
+   "kind": "list-restructured",
+   "where": "Every entry is a bare line with no list marker, sub-entries only space-indented: 'EVALUATE",
+   "batch": "REFUTED",
+   "decision": "REFUTED",
+   "reason": "The 300-dpi render of page 966 (B-54, informative Index) shows a two-column list of entries, sub-entries indented under their main entry, continuation lines (e.g. 'X-34, XIII-76' under ERROR PROCEDURES) also indented. The markdown page-966.md holds the same entries in the same order, one per line, with sub-entries and continuations indented by two spaces; the entry text and page references match (the claim itself concedes this). The source text preserves every entry boundary and the indentation hierarchy line for line; the only difference is that the transcription uses bare indented lines rather than '- ' list markup, so a Markdown renderer would reflow them. That is a formatting/markup convention, not a content discrepancy: nothing is missing, misquoted or changed in meaning, and the page is informative index furniture. Consistency with pages 961-962 is a style matter."
+  },
+  {
+   "page": 967,
+   "i": "4th-1",
+   "id": "p967-1",
+   "pass": 4,
+   "kind": "list-restructured",
+   "where": "Every entry is a bare line with no list marker, sub-entries only space-indented: 'GENERATE",
+   "batch": "REFUTED",
+   "decision": "REFUTED",
+   "reason": "Checked the 300dpi render of PDF page 967 (B-55, index G-I, two columns) against page-967.md. The markdown holds every entry and sub-entry in the PDF's order with the same page references (e.g. GENERATE statement, XIII-66 / Imperative statement, IV-39; Implementor-name, IV-8 with its six sub-entries; continuation lines XIII-3 and XVII-87, A-24, B-47 kept indented). Sub-entries are indented by two spaces exactly as the PDF indents them, so the source text preserves both entry boundaries (one per line) and hierarchy. The claim itself concedes the entry text and page references match. The only difference is how a Markdown renderer would reflow bare lines: a presentation/formatting matter, not a content discrepancy, on an informative index page. Per the verification rules (reject differences that are only formatting and do not change meaning), not real."
+  },
+  {
+   "page": 968,
+   "i": "4th-1",
+   "id": "p968-1",
+   "pass": 4,
+   "kind": "list-restructured",
+   "where": "Every entry is a bare line with no list marker, sub-entries only space-indented: 'INSPECT ",
+   "batch": "REFUTED",
+   "decision": "REFUTED",
+   "reason": "Checked the 300 dpi render of page 968 (printed B-56) against page-968.md. The markdown carries every entry one per line, in the PDF's order, with sub-entries indented two spaces under their main entry, exactly as printed (e.g. 'INSPECT statement, VI-94' / '  Imperative statement, IV-39'; 'INPUT phrase' with its five indented sub-entries). The source text keeps the entry boundaries and the hierarchy. The claim concedes that the entry text and page references match. The only complaint is how a Markdown renderer would show bare lines (as one paragraph) and that the page uses no list markers like pages 961-962. That is a formatting and rendering difference on an informative index page. It changes no content or meaning, so it falls under the formatting-only rejection rule."
+  },
+  {
+   "page": 969,
+   "i": "4th-1",
+   "id": "p969-1",
+   "pass": 4,
+   "kind": "list-restructured",
+   "where": "Every entry is a bare line with no list marker, sub-entries only space-indented: 'Linkage ",
+   "batch": "REFUTED",
+   "decision": "REFUTED",
+   "reason": "Checked the 300dpi render of page 969 (B-57) against page-969.md. The markdown source holds every entry checked on one line each, in PDF order, with sub-entries indented two spaces under their main entry (e.g. 'Linkage Section, IV-33, X-13' / '  VALUE clause, VI-49'; 'LINAGE-COUNTER' / '  Qualified', '  Special register IV-9'), so entry boundaries and the main/sub hierarchy are present in the transcription text. The claim itself concedes the entry text and page references match. The only difference is markup style (bare indented lines vs '- ' list items on other pages), i.e. how a Markdown renderer would reflow them: a formatting/rendering matter that changes no content of an informative index. Under the rejection rules (formatting-only, no change of meaning) this is not a genuine content discrepancy."
+  },
+  {
+   "page": 970,
+   "i": "4th-1",
+   "id": "p970-1",
+   "pass": 4,
+   "kind": "list-restructured",
+   "where": "Every entry is a bare line with no list marker, sub-entries only space-indented: 'Nucleus,",
+   "batch": "REFUTED",
+   "decision": "REFUTED",
+   "reason": "The printed page B-58 (index, NOT through OTHER) and page-970.md hold the same entries in the same order with the same page references; the markdown keeps one entry per line and indents each sub-entry (e.g. 'Nucleus, VI-1' / '  Element summary, I-11', 'NOT' / '  EVALUATE statement, VI-84'), so the hierarchy is present in the source text. The claim itself concedes the entry text and references match. The only difference is Markdown rendering style (bare lines versus '- ' list items, a consistency question with pages 961-962) in an informative index: formatting only, no change of content or meaning."
+  },
+  {
+   "page": 971,
+   "i": "4th-1",
+   "id": "p971-1",
+   "pass": 4,
+   "kind": "list-restructured",
+   "where": "Every entry is a bare line with no list marker, sub-entries only space-indented: 'Paragrap",
+   "batch": "REFUTED",
+   "decision": "REFUTED",
+   "reason": "page-971.md holds every index entry on its own line with sub-entries indented two spaces and continuations four (e.g. 'Paragraph-name, IV-6, IV-7, IV-35' then '  Qualified, IV-19', '  Reference format, IV-43'), exactly mirroring the printed one-entry-per-line, indented-sub-entry layout. The claim itself concedes the entry text and page references match the PDF. The only difference is how a Markdown renderer would reflow bare lines, and the inconsistency with the '- ' list style of pages 961-962: a formatting/rendering concern in an informative index, not a content discrepancy between PDF and transcription. No text is missing, misquoted, or changed in meaning."
+  },
+  {
+   "page": 972,
+   "i": "4th-1",
+   "id": "p972-1",
+   "pass": 4,
+   "kind": "list-restructured",
+   "where": "Every entry is a bare line with no list marker, sub-entries only space-indented: 'Qualific",
+   "batch": "REFUTED",
+   "decision": "REFUTED",
+   "reason": "The printed page B-60 (PDF p972) and page-972.md carry the same entries in the same order, one per line, with sub-entries indented beneath their main entry (e.g. 'Qualification, IV-18' / '  Restriction, VI-1'; 'Punctuation characters, III-18' / 'Format punctuation, IV-2' / 'Separators, IV-4'; 'Record description entry, III-19, IV-33,' with continuation 'IV-34'). The claim itself concedes the entry text and page references match. The only difference is Markdown rendering style (bare indented lines vs. '- ' list markers used on other pages), which is formatting of an informative index and changes no content or meaning."
+  },
+  {
+   "page": 32,
+   "i": "5th-1",
+   "id": "p32-1",
+   "pass": 5,
+   "kind": "misplaced-content",
+   "where": "| &nbsp;&nbsp;Qualification | | | / | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;No qualification permi",
+   "batch": "CONFIRMED",
+   "decision": "APPLIED",
+   "edits": [
+    {
+     "was": "| &nbsp;&nbsp;Qualification | | |\n| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;No qualification permitted;",
+     "now": "| &nbsp;Qualification | | |\n| &nbsp;&nbsp;No qualification permitted;"
+    }
+   ],
+   "siblings": "measured the ELEMENT-column indent of every row of the summary-of-elements tables (pages 31 to 83) from the scan's OCR word positions against the row's &nbsp; count, at the page's own column pitch, and rendered every page with an unmeasured row or a disagreement (32, 43, 59, 72, 73, 74, 83, 835): page 32 was the only page of the standard's own tables that disagreed; pages 74 to 83 carry one more &nbsp; than print by Amendment 1's own instruction (C64); Amendment 1's intrinsic function summary (page 835, folio A-5, and its applied copy on page 59) set COBOL words, Function-name and Function-Identifier flat where print indents them one and two columns (sweeps `summary-indent(PB6051 p32-1)`)."
+  },
+  {
+   "page": 240,
+   "i": "5th-1",
+   "id": "p240-1",
+   "pass": 5,
+   "kind": "incorrect-text",
+   "where": "<u>DATE-COMPILED</u>. [ comment-entry ] …  /  DATE-COMPILED. current date.  (both <pre> bl",
+   "batch": "CONFIRMED",
+   "decision": "APPLIED",
+   "edits": [
+    {
+     "was": "<pre style=\"line-height:1\">\n<u>DATE-COMPILED</u>. [ comment-entry ] …\n</pre>",
+     "now": "<pre style=\"line-height:1\">\n║ <u>DATE-COMPILED</u>. [ comment-entry ] … ║\n</pre>"
+    },
+    {
+     "was": "<pre style=\"line-height:1\">\n          DATE-COMPILED. current date.\n</pre>",
+     "now": "<pre style=\"line-height:1\">\n║          DATE-COMPILED. current date. ║\n</pre>"
+    }
+   ],
+   "siblings": "heading_levels.check_box_markup now names a `<pre>` figure standing between two box-marked lines with no box sides of its own; over the file it found page 240's general format and page 387's RECORD DELIMITER format (2.8.2, printed inside the box around all of 2.8), now `╔ ║ ╚` (sweep `box-figure(PB6051 p240-1)`), and the three flowcharts of pages 346, 347 and 349, which are drawings inside their box and exempt as page 351's is. A figure that ends its page (page 240's second block) is not reached by the check; it was read here."
+  },
+  {
+   "page": 354,
+   "i": "5th-1",
+   "id": "p354-1",
+   "pass": 5,
+   "kind": "ocr-error",
+   "where": "<u>AND</u> ... ╭data-name-2 ╭1S <u>EQUAL</u> TO╮",
+   "batch": "REFUTED",
+   "decision": "REFUTED",
+   "reason": "The 300 dpi render of page 354 (VI-122, 6.22.2 Format 2) shows the AND data-name-2 line printed as '{lS EQUAL TO / IS =}': the first glyph is the l/1 glyph of this typeface, not an I, while the WHEN data-name-1 line prints 'IS EQUAL TO'. The markdown (page-354.md line 40) reads '╭1S <u>EQUAL</u> TO╮', which reproduces the printed glyph, and line 34 reads 'IS' to match the WHEN line. So the transcription agrees with the print. No text is missing or misquoted, and nothing differs between the two sources. The claim is a request to add an editorial note on a misprint in the standard itself, not a discrepancy between the PDF and the markdown. The intended word IS is clear from the parallel WHEN line, and EQUAL TO, the choice braces and the underlining all match.",
+   "edits": []
+  },
+  {
+   "page": 419,
+   "i": "5th-1",
+   "id": "p419-1",
+   "pass": 5,
+   "kind": "incorrect-text",
+   "where": "<u>The size of the current record is determined by rules specified in the RECORD clause. ║",
+   "batch": "CONFIRMED",
+   "decision": "APPLIED",
+   "edits": [
+    {
+     "was": "<u>The size of the current record is determined by rules specified in the RECORD clause. ║If the file description entry contains a RECORD IS VARYING clause, the implied move is a group move.</u>║",
+     "now": "The size of the current record is determined by rules specified in the RECORD clause. ║If the file description entry contains a RECORD IS VARYING clause, the implied move is a group move.║"
+    }
+   ],
+   "siblings": "heading_levels.check_box_markup now names an underline that opens on one side of a box side and closes on the other; over the whole file, prose and figures, page 419 was the only one."
+  },
+  {
+   "page": 440,
+   "i": "5th-1",
+   "id": "p440-1",
+   "pass": 5,
+   "kind": "misplaced-content",
+   "where": "               ╰ ╰ ║ <u>DYNAMIC</u> ╯ ║                            ╯",
+   "batch": "REFUTED",
+   "decision": "REFUTED",
+   "reason": "Printed page 440 (300 dpi): the 2.4.2 format shows ACCESS MODE IS { SEQUENTIAL [RELATIVE KEY IS data-name-1] | {RANDOM / DYNAMIC} RELATIVE KEY IS data-name-1 }, with a level box drawn tightly around the underlined DYNAMIC, inside the inner brace. The markdown line is quoted correctly: '╰ ╰ ║ <u>DYNAMIC</u> ╯ ║ ╯'. So the closing ║ does come after the inner brace's ╯. But the box still marks exactly one word, DYNAMIC, as the level-boxed element. The brace structure is intact: the inner brace still offers RANDOM or DYNAMIC, and the outer brace still offers the two alternatives. No keyword, operand, bracket, brace or choice indicator is missing or changed, and the claim itself says the syntax meaning is unchanged. The only difference is where an ASCII box-drawing delimiter sits relative to a brace glyph. That is a rendering artifact that changes no meaning, so the claim is rejected.",
+   "edits": []
+  },
+  {
+   "page": 532,
+   "i": "5th-1",
+   "id": "p532-1",
+   "pass": 5,
+   "kind": "misplaced-content",
+   "where": "│        │ IS <u>VARYING</u> IN SIZE [ [ FROM integer-4 ] [ <u>TO</u> integer-5 ] CHARACTE",
+   "batch": "CONFIRMED",
+   "decision": "APPLIED",
+   "edits": [
+    {
+     "was": "│        │                                                                       │ │\n│        │ IS <u>VARYING</u> IN SIZE [ [ FROM integer-4 ] [ <u>TO</u> integer-5 ] CHARACTERS ] │ │\n│ <u>RECORD</u> ┤                                                                       ├ │\n│        │ [ <u>DEPENDING</u> ON data-name-1 ]                                          │ │\n│        │                                                                       │ │",
+     "now": "│        │ IS <u>VARYING</u> IN SIZE [ [ FROM integer-4 ] [ <u>TO</u> integer-5 ] CHARACTERS ] │ │\n│ <u>RECORD</u> ┤     [ <u>DEPENDING</u> ON data-name-1 ]                                      ├ │"
+    }
+   ],
+   "siblings": "swept every brace and bracket of the transcription's `<pre>` figures for an alternative opening with `[` at the alternatives' column, and every brace whose alternatives are spaced by blank rows (58), each candidate rendered: the RECORD clause of the SD (page 559) had the same fault; the SUM clause's [RESET ON] bracket was set flush with the {SUM ...} alternative inside the SOURCE/VALUE/SUM brace (page 210) and flush under {SUM ...} in 3.19.2 (page 632); the Format 2 RECORD clause's [DEPENDING ON] (page 404) was flush under RECORD IS VARYING. Each is now indented as printed (sweeps `continuation-indent(PB6051 p532-1)`). The other transcriptions of the RECORD clause (pages 201, 202, 203, 204, 396, 444, 486, 531, 533) and the EVALUATE [NOT] and USE FOR DEBUGGING [ALL REFERENCES OF] alternatives agree with print. Figure verdicts p532-0, p559-0, p210-1 and p404-1 re-stated (decided `neither`, the figure as now drawn)."
+  },
+  {
+   "page": 963,
+   "i": "5th-1",
+   "id": "p963-1",
+   "pass": 5,
+   "kind": "list-restructured",
+   "where": "Every entry is a bare line with no list marker, sub-entries only space-indented: 'CHARACTE",
+   "batch": "REFUTED",
+   "decision": "REFUTED",
+   "reason": "The printed page (B-51, index) shows one entry per line with sub-entries indented under their main entry (e.g. CHARACTERS / BLOCK CONTAINS clause, VII-23; INSPECT statement, VI-94; MEMORY SIZE clause, VI-11; RECORD clause, VII-30). The transcription page-963.md has the same entries, one per line, with sub-entries indented by two spaces, in the same order and with the same page references; the claim itself concedes the text and references match. The only difference is Markdown rendering presentation (no list markers, so a renderer would join the lines) and a style inconsistency with pages 961-962. That is formatting, not a content discrepancy: no entry, reference or hierarchy is lost from the transcription source, and the index is informative.",
+   "edits": []
+  },
+  {
+   "page": 964,
+   "i": "5th-1",
+   "id": "p964-1",
+   "pass": 5,
+   "kind": "list-restructured",
+   "where": "Every entry is a bare line with no list marker, sub-entries only space-indented: 'Configur",
+   "batch": "REFUTED",
+   "decision": "REFUTED",
+   "reason": "The 300 dpi render of PDF page 964 (index page B-52) shows two columns of index entries with sub-entries indented under their main entry. The markdown transcription of page 964 holds every entry with the same text and page references, one per line, and keeps each sub-entry under its main entry with a two-space indent (e.g. 'Configuration Section, IV-31' / '  Nucleus, VI-9'; 'Control break' / '  CONTROL clause, XIII-15' ...; 'Data Division, IV-33' / '  Communication module, XIV-2' ...). The claim's quotes of both sources are accurate. The claim itself concedes that the entry text and page references match. The only difference is Markdown markup: there are no '- ' list markers, so a CommonMark renderer would fold the lines into one paragraph, and pages 961-962 use list markers that 963-966 lack. That affects how the page renders and how consistent the pages are with each other. It does not change the transcribed content: the source text keeps every entry, its line boundary and its hierarchy, and this informative index carries no normative meaning. By the verification rules, a formatting-only difference that does not change meaning is not a content discrepancy.",
+   "edits": []
+  },
+  {
+   "page": 965,
+   "i": "5th-1",
+   "id": "p965-1",
+   "pass": 5,
+   "kind": "list-restructured",
+   "where": "Every entry is a bare line with no list marker, sub-entries only space-indented: 'DELETE s",
+   "batch": "REFUTED",
+   "decision": "REFUTED",
+   "reason": "The printed page (B-53, Index) shows main entries flush with sub-entries indented beneath them (DELETE statement / Indexed I-O module, IX-21 / Relative I-O module, VIII-19; DELIMITED BY phrase / STRING statement, VI-131 ...). The markdown source page-965.md holds the same entries, one per line, in the same order, with sub-entries indented two spaces and the wrapped continuation 'COBOL, XVII-16' indented four, so every entry boundary and the main/sub hierarchy are present in the transcription text. The claim itself concedes the entry text and page references match. The only difference is markdown rendering (bare lines vs '- ' list markers as on pages 961-962), a formatting matter in an informative index that changes no content or meaning; this falls under the 'only formatting' rejection rule.",
+   "edits": []
+  },
+  {
+   "page": 966,
+   "i": "5th-1",
+   "id": "p966-1",
+   "pass": 5,
+   "kind": "list-restructured",
+   "where": "Every entry is a bare line with no list marker, sub-entries only space-indented: 'EVALUATE",
+   "batch": "REFUTED",
+   "decision": "REFUTED",
+   "reason": "The 300-dpi render of PDF page 966 (B-54, informative Index) shows a two-column index of one entry per line, sub-entries and wrapped continuations indented. The transcription holds every entry and page reference in the printed order (checked ERROR PROCEDURES through FILE-CONTROL and the second column), one entry per line, with sub-entries and continuations space-indented as printed. The source text and its line hierarchy are therefore intact. The claim concedes the entry text matches; its only complaint is how a Markdown renderer would collapse bare lines, compared with the list-marker style used on pages 961-962. That is a formatting and style inconsistency with no change of content or meaning, and the task rules reject a difference that is only formatting.",
+   "edits": []
+  },
+  {
+   "page": 967,
+   "i": "5th-1",
+   "id": "p967-1",
+   "pass": 5,
+   "kind": "list-restructured",
+   "where": "Every entry is a bare line with no list marker, sub-entries only space-indented: 'GENERATE",
+   "batch": "REFUTED",
+   "decision": "REFUTED",
+   "reason": "Checked the 300dpi render of page 967 (printed B-55) against page-967.md. The markdown source holds every entry on its own line with sub-entries indented two spaces beneath their main entry (e.g. 'GENERATE statement, XIII-66' / '  Imperative statement, IV-39'; 'GIVING phrase' / '  ADD statement, VI-73' ...), which mirrors the printed one-entry-per-line, indented-sub-entry layout. The claim itself concedes the entry text and page references match. The only difference is markup style (bare lines vs. '- ' list items used on pp. 961-962) and how a Markdown renderer would reflow it: a formatting/rendering concern with no change to the transcribed content or the hierarchy as encoded in the source text. Formatting-only differences are rejected.",
+   "edits": []
+  },
+  {
+   "page": 968,
+   "i": "5th-1",
+   "id": "p968-1",
+   "pass": 5,
+   "kind": "list-restructured",
+   "where": "Every entry is a bare line with no list marker, sub-entries only space-indented: 'INSPECT ",
+   "batch": "REFUTED",
+   "decision": "REFUTED",
+   "reason": "The printed page (B-56, Index) shows entries one per line with sub-entries indented, e.g. 'INSPECT statement, VI-94' / indented 'Imperative statement, IV-39'. The transcription page-968.md carries the same entries, in the same order, one per source line, with sub-entries indented by two spaces; the claim itself concedes the entry text and page references match. Line-by-line hierarchy is preserved in the source text. The only difference is Markdown rendering style (no '- ' list markers, so a renderer may join lines), which is formatting in an informative index and changes no content or meaning. Formatting-only differences are to be rejected.",
+   "edits": []
+  },
+  {
+   "page": 969,
+   "i": "5th-1",
+   "id": "p969-1",
+   "pass": 5,
+   "kind": "list-restructured",
+   "where": "Every entry is a bare line with no list marker, sub-entries only space-indented: 'Linkage ",
+   "batch": "REFUTED",
+   "decision": "REFUTED",
+   "reason": "Rendered PDF page 969 (B-57) at 300 dpi and read page-969.md. The markdown source keeps every index entry on its own line in the PDF's order, with each sub-entry indented two spaces under its main entry (e.g. 'Linkage Section, IV-33, X-13' / '  VALUE clause, VI-49'; 'LINAGE-COUNTER' / '  Qualified', '  Special register IV-9'; 'MERGE statement' / '  Imperative statement', '  Segmentation', '  Transfer of control'). The claim itself concedes the entry text and page references match. So the transcription source loses no content and no hierarchy. The complaint is only about how a Markdown renderer would reflow bare lines and about the transcription being inconsistent with pages 961-962. That is markup and formatting, not a content discrepancy, and it does not change meaning on this informative index page. Under the verification rules, a formatting-only difference is rejected.",
+   "edits": []
+  },
+  {
+   "page": 970,
+   "i": "5th-1",
+   "id": "p970-1",
+   "pass": 5,
+   "kind": "list-restructured",
+   "where": "Every entry is a bare line with no list marker, sub-entries only space-indented: 'Nucleus,",
+   "batch": "REFUTED",
+   "decision": "REFUTED",
+   "reason": "I compared the 300 dpi render of printed page B-58 with page-970.md. Every entry and page reference matches, including 'Nucleus, VI-1' followed by the indented 'Element summary, I-11'. In the source, each entry sits on its own line, sub-entries are indented two spaces, and wrapped continuations such as 'VI-104' are indented four. So the line boundaries and the main-entry/sub-entry hierarchy are both still in the transcription. The only complaint is that a Markdown renderer would join these bare lines into one paragraph, which is formatting and presentation, not content. Nothing is missing, misquoted or changed in meaning. The difference from pages 961-962, which use '- ' list markers, is a formatting inconsistency in this informative index, not a content discrepancy.",
+   "edits": []
+  },
+  {
+   "page": 971,
+   "i": "5th-1",
+   "id": "p971-1",
+   "pass": 5,
+   "kind": "list-restructured",
+   "where": "Every entry is a bare line with no list marker, sub-entries only space-indented: 'Paragrap",
+   "batch": "REFUTED",
+   "decision": "REFUTED",
+   "reason": "The printed page (B-59, Index) shows entries one per line, sub-entries indented one step, continuation lines (XIII-70, VI-36) indented two steps. The transcription page-971.md holds the same entries in the same order with the same page references, one per line, sub-entries indented two spaces and continuations four, so the main-entry/sub-entry hierarchy is in the source text. Example: PDF 'Paragraph-name, IV-6, IV-7, IV-35' / 'Qualified, IV-19' / 'Reference format, IV-43' matches markdown line for line. The claim itself concedes the entry text and references match. The only difference is that the lines carry no '- ' list markers, so a Markdown renderer may join them into one paragraph. That is presentation and formatting in an informative index, not a content discrepancy, and no wording or reference changes. Formatting-only differences are rejected under the verification rules. Making index pages use consistent list markup is a cleanup for the transcription, not a PDF/markdown discrepancy.",
+   "edits": []
+  },
+  {
+   "page": 972,
+   "i": "5th-1",
+   "id": "p972-1",
+   "pass": 5,
+   "kind": "list-restructured",
+   "where": "Every entry is a bare line with no list marker, sub-entries only space-indented: 'Qualific",
+   "batch": "REFUTED",
+   "decision": "REFUTED",
+   "reason": "The 300 dpi render of page 972 (B-60) shows the index entries one per line with indented sub-entries (e.g. 'Qualification, IV-18' / indented 'Restriction, VI-1'; 'Punctuation characters, III-18' / indented 'Format punctuation, IV-2', 'Separators, IV-4'). The markdown transcription carries the same entries in the same order, one per line, with sub-entries indented two spaces and wrapped continuations indented four ('Record description entry, III-19, IV-33,' / '    IV-34'), and blank lines at the same letter-group breaks. Every entry and page reference is present, and the main-entry/sub-entry hierarchy is preserved in the source text by indentation. The claim itself concedes the text and references match. What remains is only how a Markdown renderer would flow bare lines (no list markers, inconsistent with pages 961-962): a formatting/rendering concern of an informative index, not a content discrepancy between the PDF and the transcription.",
+   "edits": []
   }
  ],
  "sweeps": [
@@ -9301,49 +10242,49 @@
    "page": 728,
    "sweep": "summary-titles(p31-1)",
    "was": "## SUMMARY OF DIFFERENCES IN IDENTIFICATION DIVISION",
-   "now": "## <u>SUMMARY OF DIFFERENCES IN IDENTIFICATION DIVISION</u>"
+   "now": "<u>SUMMARY OF DIFFERENCES IN IDENTIFICATION DIVISION</u>"
   },
   {
    "page": 729,
    "sweep": "summary-titles(p31-1)",
    "was": "## SUMMARY OF DIFFERENCES IN ENVIRONMENT DIVISION",
-   "now": "## <u>SUMMARY OF DIFFERENCES IN ENVIRONMENT DIVISION</u>"
+   "now": "<u>SUMMARY OF DIFFERENCES IN ENVIRONMENT DIVISION</u>"
   },
   {
    "page": 732,
    "sweep": "summary-titles(p31-1)",
    "was": "## SUMMARY OF DIFFERENCES IN ENVIRONMENT DIVISION",
-   "now": "## <u>SUMMARY OF DIFFERENCES IN ENVIRONMENT DIVISION</u>"
+   "now": "<u>SUMMARY OF DIFFERENCES IN ENVIRONMENT DIVISION</u>"
   },
   {
    "page": 736,
    "sweep": "summary-titles(p31-1)",
    "was": "## SUMMARY OF DIFFERENCES IN DATA DIVISION",
-   "now": "## <u>SUMMARY OF DIFFERENCES IN DATA DIVISION</u>"
+   "now": "<u>SUMMARY OF DIFFERENCES IN DATA DIVISION</u>"
   },
   {
    "page": 737,
    "sweep": "summary-titles(p31-1)",
    "was": "# SUMMARY OF DIFFERENCES IN DATA DIVISION",
-   "now": "# <u>SUMMARY OF DIFFERENCES IN DATA DIVISION</u>"
+   "now": "<u>SUMMARY OF DIFFERENCES IN DATA DIVISION</u>"
   },
   {
    "page": 740,
    "sweep": "summary-titles(p31-1)",
    "was": "## SUMMARY OF DIFFERENCES IN PROCEDURE DIVISION",
-   "now": "## <u>SUMMARY OF DIFFERENCES IN PROCEDURE DIVISION</u>"
+   "now": "<u>SUMMARY OF DIFFERENCES IN PROCEDURE DIVISION</u>"
   },
   {
    "page": 745,
    "sweep": "summary-titles(p31-1)",
    "was": "# SUMMARY OF DIFFERENCES IN PROCEDURE DIVISION",
-   "now": "# <u>SUMMARY OF DIFFERENCES IN PROCEDURE DIVISION</u>"
+   "now": "<u>SUMMARY OF DIFFERENCES IN PROCEDURE DIVISION</u>"
   },
   {
    "page": 747,
    "sweep": "summary-titles(p31-1)",
    "was": "## SUMMARY OF DIFFERENCES IN PROCEDURE DIVISION",
-   "now": "## <u>SUMMARY OF DIFFERENCES IN PROCEDURE DIVISION</u>"
+   "now": "<u>SUMMARY OF DIFFERENCES IN PROCEDURE DIVISION</u>"
   },
   {
    "page": 831,
@@ -9895,13 +10836,13 @@
    "page": 32,
    "sweep": "summary-rows(PB4953)",
    "was": "Qualification",
-   "now": "&nbsp;&nbsp;Qualification"
+   "now": "&nbsp;Qualification"
   },
   {
    "page": 32,
    "sweep": "summary-rows(PB4953)",
    "was": "No qualification permitted; names must be unique if referenced ................................................",
-   "now": "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;No qualification permitted; names must be unique if referenced ................................................"
+   "now": "&nbsp;&nbsp;No qualification permitted; names must be unique if referenced ................................................"
   },
   {
    "page": 32,
@@ -19118,6 +20059,1578 @@
    "sweep": "summary-title-form(PB6051)",
    "was": "## <u>SUMMARY OF ELEMENTS IN LANGUAGE CONCEPTS</u>",
    "now": "<u>SUMMARY OF ELEMENTS IN LANGUAGE CONCEPTS</u>"
+  },
+  {
+   "page": 728,
+   "sweep": "differences-title-form(PB6051 p737-1)",
+   "was": "## <u>SUMMARY OF DIFFERENCES IN IDENTIFICATION DIVISION</u>",
+   "now": "<u>SUMMARY OF DIFFERENCES IN IDENTIFICATION DIVISION</u>"
+  },
+  {
+   "page": 729,
+   "sweep": "differences-title-form(PB6051 p737-1)",
+   "was": "## <u>SUMMARY OF DIFFERENCES IN ENVIRONMENT DIVISION</u>",
+   "now": "<u>SUMMARY OF DIFFERENCES IN ENVIRONMENT DIVISION</u>"
+  },
+  {
+   "page": 732,
+   "sweep": "differences-title-form(PB6051 p737-1)",
+   "was": "## <u>SUMMARY OF DIFFERENCES IN ENVIRONMENT DIVISION</u>",
+   "now": "<u>SUMMARY OF DIFFERENCES IN ENVIRONMENT DIVISION</u>"
+  },
+  {
+   "page": 736,
+   "sweep": "differences-title-form(PB6051 p737-1)",
+   "was": "## <u>SUMMARY OF DIFFERENCES IN DATA DIVISION</u>",
+   "now": "<u>SUMMARY OF DIFFERENCES IN DATA DIVISION</u>"
+  },
+  {
+   "page": 740,
+   "sweep": "differences-title-form(PB6051 p737-1)",
+   "was": "## <u>SUMMARY OF DIFFERENCES IN PROCEDURE DIVISION</u>",
+   "now": "<u>SUMMARY OF DIFFERENCES IN PROCEDURE DIVISION</u>"
+  },
+  {
+   "page": 745,
+   "sweep": "differences-title-form(PB6051 p737-1)",
+   "was": "# <u>SUMMARY OF DIFFERENCES IN PROCEDURE DIVISION</u>",
+   "now": "<u>SUMMARY OF DIFFERENCES IN PROCEDURE DIVISION</u>"
+  },
+  {
+   "page": 747,
+   "sweep": "differences-title-form(PB6051 p737-1)",
+   "was": "## <u>SUMMARY OF DIFFERENCES IN PROCEDURE DIVISION</u>",
+   "now": "<u>SUMMARY OF DIFFERENCES IN PROCEDURE DIVISION</u>"
+  },
+  {
+   "page": 725,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Characters used in words 0-9 A-Z - (hyphen) .................... | 1 NUC | 1 NUC | |",
+   "now": "| &nbsp;Characters used in words 0-9 A-Z - (hyphen) .................... | 1 NUC | 1 NUC | |"
+  },
+  {
+   "page": 725,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Characters used in punctuation \" ( ) . space ................... | 1 NUC | 1 NUC | |",
+   "now": "| &nbsp;Characters used in punctuation \" ( ) . space ................... | 1 NUC | 1 NUC | |"
+  },
+  {
+   "page": 725,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Characters used in punctuation , (comma) ; (semicolon) ........ | 2 NUC | 1 NUC | |",
+   "now": "| &nbsp;Characters used in punctuation , (comma) ; (semicolon) ........ | 2 NUC | 1 NUC | |"
+  },
+  {
+   "page": 725,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Characters used in punctuation : (colon) ....................... | N | 2 NUC | |",
+   "now": "| &nbsp;Characters used in punctuation : (colon) ....................... | N | 2 NUC | |"
+  },
+  {
+   "page": 725,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Characters used in punctuation = ............................... | 2 LIB | 2 STM | |",
+   "now": "| &nbsp;Characters used in punctuation = ............................... | 2 LIB | 2 STM | |"
+  },
+  {
+   "page": 725,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Characters used in editing B + - . , Z \\* $ 0 CR DB / .......... | 1 NUC | 1 NUC | |",
+   "now": "| &nbsp;Characters used in editing B + - . , Z \\* $ 0 CR DB / .......... | 1 NUC | 1 NUC | |"
+  },
+  {
+   "page": 725,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Characters used in arithmetic operations + - \\* / \\*\\* ........... | 2 NUC | 2 NUC | |",
+   "now": "| &nbsp;Characters used in arithmetic operations + - \\* / \\*\\* ........... | 2 NUC | 2 NUC | |"
+  },
+  {
+   "page": 725,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Characters used in relation conditions = &gt; &lt; .................. | 2 NUC | 1 NUC | |",
+   "now": "| &nbsp;Characters used in relation conditions = &gt; &lt; .................. | 2 NUC | 1 NUC | |"
+  },
+  {
+   "page": 725,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Characters used in relation conditions &gt;= &lt;= .................. | N | 1 NUC | |",
+   "now": "| &nbsp;Characters used in relation conditions &gt;= &lt;= .................. | N | 1 NUC | |"
+  },
+  {
+   "page": 725,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Characters used in subscripting + - ........................... | 2 TBL | 1 NUC | |",
+   "now": "| &nbsp;Characters used in subscripting + - ........................... | 2 TBL | 1 NUC | |"
+  },
+  {
+   "page": 725,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Double character substitution allowed .......................... | 1 NUC | 1 NUC | Z |",
+   "now": "| &nbsp;Double character substitution allowed .......................... | 1 NUC | 1 NUC | Z |"
+  },
+  {
+   "page": 725,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Single character substitution allowed .......................... | N | 1 NUC | |",
+   "now": "| &nbsp;Single character substitution allowed .......................... | N | 1 NUC | |"
+  },
+  {
+   "page": 725,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Single character substitution must be made for missing COBOL characters ...................................... | 1 NUC | N | |",
+   "now": "| &nbsp;Single character substitution must be made for missing COBOL characters ...................................... | 1 NUC | N | |"
+  },
+  {
+   "page": 725,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| A space which is part of a separator may be one or more space characters ........................................ | N | 1 NUC | |",
+   "now": "| &nbsp;A space which is part of a separator may be one or more space characters ........................................ | N | 1 NUC | |"
+  },
+  {
+   "page": 725,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| COBOL words | | | |",
+   "now": "| &nbsp;COBOL words | | | |"
+  },
+  {
+   "page": 725,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Maximum of 30 characters ..................................... | 1 NUC | 1 NUC | |",
+   "now": "| &nbsp;&nbsp;Maximum of 30 characters ..................................... | 1 NUC | 1 NUC | |"
+  },
+  {
+   "page": 725,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| System-names and user-defined words must be disjoint sets ...... | 1 NUC | N | |",
+   "now": "| &nbsp;&nbsp;System-names and user-defined words must be disjoint sets ...... | 1 NUC | N | |"
+  },
+  {
+   "page": 725,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| System-names and user-defined words form intersecting sets ..... | N | 1 NUC | |",
+   "now": "| &nbsp;&nbsp;System-names and user-defined words form intersecting sets ..... | N | 1 NUC | |"
+  },
+  {
+   "page": 725,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Function-names, system-names, and user-defined words form intersecting sets ...... | N | 1 ITR | |",
+   "now": "| &nbsp;&nbsp;Function-names, system-names, and user-defined words form intersecting sets ...... | N | 1 ITR | |"
+  },
+  {
+   "page": 725,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| User-defined words | | | |",
+   "now": "| &nbsp;&nbsp;User-defined words | | | |"
+  },
+  {
+   "page": 725,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Alphabet-name .............................................. | 1 NUC | 1 NUC | |",
+   "now": "| &nbsp;&nbsp;&nbsp;Alphabet-name .............................................. | 1 NUC | 1 NUC | |"
+  },
+  {
+   "page": 725,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Cd-name .................................................... | 1 COM | 1 COM | |",
+   "now": "| &nbsp;&nbsp;&nbsp;Cd-name .................................................... | 1 COM | 1 COM | |"
+  },
+  {
+   "page": 725,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Class-name ................................................. | N | 1 NUC | |",
+   "now": "| &nbsp;&nbsp;&nbsp;Class-name ................................................. | N | 1 NUC | |"
+  },
+  {
+   "page": 725,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Condition-name ............................................. | 2 NUC | 2 NUC | |",
+   "now": "| &nbsp;&nbsp;&nbsp;Condition-name ............................................. | 2 NUC | 2 NUC | |"
+  },
+  {
+   "page": 725,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Data-name .................................................. | 1 NUC | 1 NUC | |",
+   "now": "| &nbsp;&nbsp;&nbsp;Data-name .................................................. | 1 NUC | 1 NUC | |"
+  },
+  {
+   "page": 725,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Must begin with alphabetic character ...................... | 1 NUC | N | |",
+   "now": "| &nbsp;&nbsp;&nbsp;&nbsp;Must begin with alphabetic character ...................... | 1 NUC | N | |"
+  },
+  {
+   "page": 725,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Need not begin with alphabetic character .................. | 2 NUC | 1 NUC | |",
+   "now": "| &nbsp;&nbsp;&nbsp;&nbsp;Need not begin with alphabetic character .................. | 2 NUC | 1 NUC | |"
+  },
+  {
+   "page": 725,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| File-name .................................................. | 1 SEQ | 1 SEQ | |",
+   "now": "| &nbsp;&nbsp;&nbsp;File-name .................................................. | 1 SEQ | 1 SEQ | |"
+  },
+  {
+   "page": 725,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Index-name ................................................. | 1 TBL | 1 NUC | |",
+   "now": "| &nbsp;&nbsp;&nbsp;Index-name ................................................. | 1 TBL | 1 NUC | |"
+  },
+  {
+   "page": 725,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Level-number ............................................... | 1 NUC | 1 NUC | |",
+   "now": "| &nbsp;&nbsp;&nbsp;Level-number ............................................... | 1 NUC | 1 NUC | |"
+  },
+  {
+   "page": 725,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Library-name ............................................... | 2 LIB | 2 STM | |",
+   "now": "| &nbsp;&nbsp;&nbsp;Library-name ............................................... | 2 LIB | 2 STM | |"
+  },
+  {
+   "page": 725,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Mnemonic-name .............................................. | 1 NUC | 1 NUC | |",
+   "now": "| &nbsp;&nbsp;&nbsp;Mnemonic-name .............................................. | 1 NUC | 1 NUC | |"
+  },
+  {
+   "page": 725,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Paragraph-name ............................................. | 1 NUC | 1 NUC | |",
+   "now": "| &nbsp;&nbsp;&nbsp;Paragraph-name ............................................. | 1 NUC | 1 NUC | |"
+  },
+  {
+   "page": 725,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Program-name ............................................... | 1 NUC | 1 NUC | |",
+   "now": "| &nbsp;&nbsp;&nbsp;Program-name ............................................... | 1 NUC | 1 NUC | |"
+  },
+  {
+   "page": 726,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| User-defined words (continued) | | | |",
+   "now": "| &nbsp;&nbsp;User-defined words (continued) | | | |"
+  },
+  {
+   "page": 726,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Record-name .................................................... | 1 SEQ | 1 SEQ | |",
+   "now": "| &nbsp;&nbsp;&nbsp;Record-name .................................................... | 1 SEQ | 1 SEQ | |"
+  },
+  {
+   "page": 726,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Report-name .................................................... | 1 RPW | 1 RPW | |",
+   "now": "| &nbsp;&nbsp;&nbsp;Report-name .................................................... | 1 RPW | 1 RPW | |"
+  },
+  {
+   "page": 726,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Routine-name ................................................... | 1 NUC | 1 NUC | Z |",
+   "now": "| &nbsp;&nbsp;&nbsp;Routine-name ................................................... | 1 NUC | 1 NUC | Z |"
+  },
+  {
+   "page": 726,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Section-name ................................................... | 1 NUC | 1 NUC | |",
+   "now": "| &nbsp;&nbsp;&nbsp;Section-name ................................................... | 1 NUC | 1 NUC | |"
+  },
+  {
+   "page": 726,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Segment-number ................................................. | 1 SEG | 1 SEG | Z |",
+   "now": "| &nbsp;&nbsp;&nbsp;Segment-number ................................................. | 1 SEG | 1 SEG | Z |"
+  },
+  {
+   "page": 726,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Symbolic-character ............................................. | N | 2 NUC | |",
+   "now": "| &nbsp;&nbsp;&nbsp;Symbolic-character ............................................. | N | 2 NUC | |"
+  },
+  {
+   "page": 726,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Text-name ...................................................... | 1 LIB | 1 STM | |",
+   "now": "| &nbsp;&nbsp;&nbsp;Text-name ...................................................... | 1 LIB | 1 STM | |"
+  },
+  {
+   "page": 726,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| System-names | | | |",
+   "now": "| &nbsp;&nbsp;System-names | | | |"
+  },
+  {
+   "page": 726,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Computer-name .................................................. | 1 NUC | 1 NUC | |",
+   "now": "| &nbsp;&nbsp;&nbsp;Computer-name .................................................. | 1 NUC | 1 NUC | |"
+  },
+  {
+   "page": 726,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Implementor-name ............................................... | 1 NUC | 1 NUC | |",
+   "now": "| &nbsp;&nbsp;&nbsp;Implementor-name ............................................... | 1 NUC | 1 NUC | |"
+  },
+  {
+   "page": 726,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Language-name .................................................. | 1 NUC | 1 NUC | Z |",
+   "now": "| &nbsp;&nbsp;&nbsp;Language-name .................................................. | 1 NUC | 1 NUC | Z |"
+  },
+  {
+   "page": 726,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Reserved words | | | |",
+   "now": "| &nbsp;&nbsp;Reserved words | | | |"
+  },
+  {
+   "page": 726,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Required words ................................................. | 1 NUC | 1 NUC | |",
+   "now": "| &nbsp;&nbsp;&nbsp;Required words ................................................. | 1 NUC | 1 NUC | |"
+  },
+  {
+   "page": 726,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Key words ...................................................... | 1 NUC | 1 NUC | |",
+   "now": "| &nbsp;&nbsp;&nbsp;&nbsp;Key words ...................................................... | 1 NUC | 1 NUC | |"
+  },
+  {
+   "page": 726,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Special character words | | | |",
+   "now": "| &nbsp;&nbsp;&nbsp;&nbsp;Special character words | | | |"
+  },
+  {
+   "page": 726,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Arithmetic operators + - \\* / \\*\\* .......................... | 2 NUC | 2 NUC | |",
+   "now": "| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Arithmetic operators + - \\* / \\*\\* .......................... | 2 NUC | 2 NUC | |"
+  },
+  {
+   "page": 726,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Arithmetic operators used in subscripting + - ............. | N | 1 NUC | |",
+   "now": "| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Arithmetic operators used in subscripting + - ............. | N | 1 NUC | |"
+  },
+  {
+   "page": 726,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Arithmetic operators used in indexing + - ................. | 2 TBL | 1 NUC | |",
+   "now": "| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Arithmetic operators used in indexing + - ................. | 2 TBL | 1 NUC | |"
+  },
+  {
+   "page": 726,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Relation characters = &gt; &lt; .................................. | 2 NUC | 1 NUC | |",
+   "now": "| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Relation characters = &gt; &lt; .................................. | 2 NUC | 1 NUC | |"
+  },
+  {
+   "page": 726,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Relation characters &gt;= &lt;= .................................. | N | 1 NUC | |",
+   "now": "| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Relation characters &gt;= &lt;= .................................. | N | 1 NUC | |"
+  },
+  {
+   "page": 726,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Optional words ................................................. | 1 NUC | 1 NUC | |",
+   "now": "| &nbsp;&nbsp;&nbsp;&nbsp;Optional words ................................................. | 1 NUC | 1 NUC | |"
+  },
+  {
+   "page": 726,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Connectives .................................................... | 2 NUC | N | |",
+   "now": "| &nbsp;&nbsp;&nbsp;&nbsp;Connectives .................................................... | 2 NUC | N | |"
+  },
+  {
+   "page": 726,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Special purpose words | | | |",
+   "now": "| &nbsp;&nbsp;&nbsp;&nbsp;Special purpose words | | | |"
+  },
+  {
+   "page": 726,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Figurative constants | | | |",
+   "now": "| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Figurative constants | | | |"
+  },
+  {
+   "page": 726,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| ZERO, SPACE, HIGH-VALUE, LOW-VALUE, QUOTE ................. | 1 NUC | 1 NUC | |",
+   "now": "| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ZERO, SPACE, HIGH-VALUE, LOW-VALUE, QUOTE ................. | 1 NUC | 1 NUC | |"
+  },
+  {
+   "page": 726,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| ALL option ................................................. | N | 2 NUC | |",
+   "now": "| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ALL option ................................................. | N | 2 NUC | |"
+  },
+  {
+   "page": 726,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| ZEROS, ZEROES, SPACES, HIGH-VALUE, LOW-VALUES, QUOTES ...... | 2 NUC | 1 NUC | |",
+   "now": "| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ZEROS, ZEROES, SPACES, HIGH-VALUE, LOW-VALUES, QUOTES ...... | 2 NUC | 1 NUC | |"
+  },
+  {
+   "page": 726,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| ALL option ................................................. | N | 2 NUC | |",
+   "now": "| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ALL option ................................................. | N | 2 NUC | |"
+  },
+  {
+   "page": 726,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Symbolic-character ......................................... | N | 2 NUC | |",
+   "now": "| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Symbolic-character ......................................... | N | 2 NUC | |"
+  },
+  {
+   "page": 726,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| ALL option ................................................. | N | 2 NUC | |",
+   "now": "| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ALL option ................................................. | N | 2 NUC | |"
+  },
+  {
+   "page": 726,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| ALL literal ................................................ | 2 NUC | 2 NUC | |",
+   "now": "| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ALL literal ................................................ | 2 NUC | 2 NUC | |"
+  },
+  {
+   "page": 726,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Special registers | | | |",
+   "now": "| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Special registers | | | |"
+  },
+  {
+   "page": 726,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| LINAGE-COUNTER ............................................. | 2 SEQ | 2 SEQ | |",
+   "now": "| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;LINAGE-COUNTER ............................................. | 2 SEQ | 2 SEQ | |"
+  },
+  {
+   "page": 726,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| LINE-COUNTER ............................................... | 1 RPW | 1 RPW | |",
+   "now": "| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;LINE-COUNTER ............................................... | 1 RPW | 1 RPW | |"
+  },
+  {
+   "page": 726,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| PAGE-COUNTER ............................................... | 1 RPW | 1 RPW | |",
+   "now": "| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;PAGE-COUNTER ............................................... | 1 RPW | 1 RPW | |"
+  },
+  {
+   "page": 726,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| DEBUG-ITEM ................................................. | 1 DEB | 1 DEB | Z |",
+   "now": "| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;DEBUG-ITEM ................................................. | 1 DEB | 1 DEB | Z |"
+  },
+  {
+   "page": 726,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| &nbsp;Function-names .............................................. | N | 1 ITR | |",
+   "now": "| &nbsp;&nbsp;Function-names .............................................. | N | 1 ITR | |"
+  },
+  {
+   "page": 726,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Literals | | | |",
+   "now": "| &nbsp;Literals | | | |"
+  },
+  {
+   "page": 726,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Numeric literals: 1 through 18 digits ......................... | 1 NUC | 1 NUC | |",
+   "now": "| &nbsp;&nbsp;Numeric literals: 1 through 18 digits ......................... | 1 NUC | 1 NUC | |"
+  },
+  {
+   "page": 726,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Nonnumeric literals: 1 through 120 characters ................. | 1 NUC | N | |",
+   "now": "| &nbsp;&nbsp;Nonnumeric literals: 1 through 120 characters ................. | 1 NUC | N | |"
+  },
+  {
+   "page": 726,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Nonnumeric literals: 1 through 160 characters ................. | N | 1 NUC | |",
+   "now": "| &nbsp;&nbsp;Nonnumeric literals: 1 through 160 characters ................. | N | 1 NUC | |"
+  },
+  {
+   "page": 726,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Nonnumeric literals: Length applies to representation in object program ...................... | N | 1 NUC | |",
+   "now": "| &nbsp;&nbsp;Nonnumeric literals: Length applies to representation in object program ...................... | N | 1 NUC | |"
+  },
+  {
+   "page": 726,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| PICTURE character-strings ......................................... | 1 NUC | 1 NUC | |",
+   "now": "| &nbsp;PICTURE character-strings ......................................... | 1 NUC | 1 NUC | |"
+  },
+  {
+   "page": 726,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Comment-entries ................................................... | 1 NUC | 1 NUC | Z |",
+   "now": "| &nbsp;Comment-entries ................................................... | 1 NUC | 1 NUC | Z |"
+  },
+  {
+   "page": 727,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Uniqueness of reference required at time of reference ........... | N | 1 NUC |",
+   "now": "| &nbsp;Uniqueness of reference required at time of reference ........... | N | 1 NUC |"
+  },
+  {
+   "page": 727,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Uniqueness of reference required at time of specification ....... | 2 NUC | N |",
+   "now": "| &nbsp;Uniqueness of reference required at time of specification ....... | 2 NUC | N |"
+  },
+  {
+   "page": 727,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Qualification | | |",
+   "now": "| &nbsp;Qualification | | |"
+  },
+  {
+   "page": 727,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| No qualification permitted ...................................... | 1 NUC | 1 NUC |",
+   "now": "| &nbsp;&nbsp;No qualification permitted ...................................... | 1 NUC | 1 NUC |"
+  },
+  {
+   "page": 727,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Qualification permitted ......................................... | 2 NUC | 2 NUC |",
+   "now": "| &nbsp;&nbsp;Qualification permitted ......................................... | 2 NUC | 2 NUC |"
+  },
+  {
+   "page": 727,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| At least 5 levels of qualifiers must be permitted ............. | 2 NUC | N |",
+   "now": "| &nbsp;&nbsp;At least 5 levels of qualifiers must be permitted ............. | 2 NUC | N |"
+  },
+  {
+   "page": 727,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| 50 qualifiers ................................................... | N | 2 NUC |",
+   "now": "| &nbsp;&nbsp;50 qualifiers ................................................... | N | 2 NUC |"
+  },
+  {
+   "page": 727,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Subscripting (data-name/literal) ................................ | 1 TBL | 1 NUC |",
+   "now": "| &nbsp;Subscripting (data-name/literal) ................................ | 1 TBL | 1 NUC |"
+  },
+  {
+   "page": 727,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| 3 levels ........................................................ | 1 TBL | 1 NUC |",
+   "now": "| &nbsp;&nbsp;3 levels ........................................................ | 1 TBL | 1 NUC |"
+  },
+  {
+   "page": 727,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| 7 levels ........................................................ | N | 2 NUC |",
+   "now": "| &nbsp;&nbsp;7 levels ........................................................ | N | 2 NUC |"
+  },
+  {
+   "page": 727,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Subscripting (index-name) ....................................... | 1 TBL | 1 NUC |",
+   "now": "| &nbsp;Subscripting (index-name) ....................................... | 1 TBL | 1 NUC |"
+  },
+  {
+   "page": 727,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| 3 levels ........................................................ | 1 TBL | 1 NUC |",
+   "now": "| &nbsp;&nbsp;3 levels ........................................................ | 1 TBL | 1 NUC |"
+  },
+  {
+   "page": 727,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| 7 levels ........................................................ | N | 2 NUC |",
+   "now": "| &nbsp;&nbsp;7 levels ........................................................ | N | 2 NUC |"
+  },
+  {
+   "page": 727,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Relative subscripting ........................................... | N | 1 NUC |",
+   "now": "| &nbsp;Relative subscripting ........................................... | N | 1 NUC |"
+  },
+  {
+   "page": 727,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Relative indexing ............................................... | 1 TBL | 1 NUC |",
+   "now": "| &nbsp;Relative indexing ............................................... | 1 TBL | 1 NUC |"
+  },
+  {
+   "page": 727,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Function-identifier ............................................. | N | 1 ITR |",
+   "now": "| &nbsp;Function-identifier ............................................. | N | 1 ITR |"
+  },
+  {
+   "page": 727,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Reference modification ............................................ | N | 2 NUC |",
+   "now": "| &nbsp;Reference modification ............................................ | N | 2 NUC |"
+  },
+  {
+   "page": 727,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Sequence number ................................................. | 1 NUC | 1 NUC |",
+   "now": "| &nbsp;Sequence number ................................................. | 1 NUC | 1 NUC |"
+  },
+  {
+   "page": 727,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Must be digits .................................................. | 1 NUC | N |",
+   "now": "| &nbsp;&nbsp;Must be digits .................................................. | 1 NUC | N |"
+  },
+  {
+   "page": 727,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| May be any character in computer character set ................ | N | 1 NUC |",
+   "now": "| &nbsp;&nbsp;May be any character in computer character set ................ | N | 1 NUC |"
+  },
+  {
+   "page": 727,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Continuation of lines | | |",
+   "now": "| &nbsp;Continuation of lines | | |"
+  },
+  {
+   "page": 727,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Continuation of nonnumeric literal ............................ | 1 NUC | 1 NUC |",
+   "now": "| &nbsp;&nbsp;Continuation of nonnumeric literal ............................ | 1 NUC | 1 NUC |"
+  },
+  {
+   "page": 727,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Continuation of COBOL word, numeric literal ................... | 2 NUC | 2 NUC |",
+   "now": "| &nbsp;&nbsp;Continuation of COBOL word, numeric literal ................... | 2 NUC | 2 NUC |"
+  },
+  {
+   "page": 727,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Continuation of PICTURE character-string ...................... | N | 2 NUC |",
+   "now": "| &nbsp;&nbsp;Continuation of PICTURE character-string ...................... | N | 2 NUC |"
+  },
+  {
+   "page": 727,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Intervening comment lines allowed ............................. | N | 1 NUC |",
+   "now": "| &nbsp;&nbsp;Intervening comment lines allowed ............................. | N | 1 NUC |"
+  },
+  {
+   "page": 727,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Intervening blank lines allowed ............................... | N | 1 NUC |",
+   "now": "| &nbsp;&nbsp;Intervening blank lines allowed ............................... | N | 1 NUC |"
+  },
+  {
+   "page": 727,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Blank lines ..................................................... | 1 NUC | 1 NUC |",
+   "now": "| &nbsp;Blank lines ..................................................... | 1 NUC | 1 NUC |"
+  },
+  {
+   "page": 727,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Comment lines | | |",
+   "now": "| &nbsp;Comment lines | | |"
+  },
+  {
+   "page": 727,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Asterisk (\\*) comment line ...................................... | 1 NUC | 1 NUC |",
+   "now": "| &nbsp;&nbsp;Asterisk (\\*) comment line ...................................... | 1 NUC | 1 NUC |"
+  },
+  {
+   "page": 727,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Slant (/) comment line .......................................... | 1 NUC | 1 NUC |",
+   "now": "| &nbsp;&nbsp;Slant (/) comment line .......................................... | 1 NUC | 1 NUC |"
+  },
+  {
+   "page": 727,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Debugging line with D in indicator area ......................... | 1 DEB | 1 NUC |",
+   "now": "| &nbsp;Debugging line with D in indicator area ......................... | 1 DEB | 1 NUC |"
+  },
+  {
+   "page": 727,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Identification Division required ................................ | 1 NUC | 1 NUC |",
+   "now": "| &nbsp;Identification Division required ................................ | 1 NUC | 1 NUC |"
+  },
+  {
+   "page": 727,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Environment Division optional ................................... | N | 1 NUC |",
+   "now": "| &nbsp;Environment Division optional ................................... | N | 1 NUC |"
+  },
+  {
+   "page": 727,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Data Division optional .......................................... | N | 1 NUC |",
+   "now": "| &nbsp;Data Division optional .......................................... | N | 1 NUC |"
+  },
+  {
+   "page": 727,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Procedure Division optional ..................................... | N | 1 NUC |",
+   "now": "| &nbsp;Procedure Division optional ..................................... | N | 1 NUC |"
+  },
+  {
+   "page": 727,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| End program header .............................................. | N | 2 NUC |",
+   "now": "| &nbsp;End program header .............................................. | N | 2 NUC |"
+  },
+  {
+   "page": 727,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Nested source programs .......................................... | N | 2 IPC |",
+   "now": "| &nbsp;Nested source programs .......................................... | N | 2 IPC |"
+  },
+  {
+   "page": 732,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| SAME AREA clause ........................................................ | 1 SEQ | 1 SEQ |",
+   "now": "| &nbsp;SAME AREA clause ........................................................ | 1 SEQ | 1 SEQ |"
+  },
+  {
+   "page": 732,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| SAME RECORD AREA clause ................................................. | 2 SEQ | 2 SEQ |",
+   "now": "| &nbsp;SAME RECORD AREA clause ................................................. | 2 SEQ | 2 SEQ |"
+  },
+  {
+   "page": 732,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| SAME SORT/SORT-MERGE AREA clause ........................................ | 2 SRT | 1 SRT |",
+   "now": "| &nbsp;SAME SORT/SORT-MERGE AREA clause ........................................ | 2 SRT | 1 SRT |"
+  },
+  {
+   "page": 745,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| INTO phrase | 1 SRT | 1 SRT |",
+   "now": "| &nbsp;INTO phrase | 1 SRT | 1 SRT |"
+  },
+  {
+   "page": 745,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| AT END phrase | 1 SRT | 1 SRT |",
+   "now": "| &nbsp;AT END phrase | 1 SRT | 1 SRT |"
+  },
+  {
+   "page": 745,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| NOT AT END phrase | N | 1 SRT |",
+   "now": "| &nbsp;NOT AT END phrase | N | 1 SRT |"
+  },
+  {
+   "page": 745,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| END-RETURN phrase | N | 1 SRT |",
+   "now": "| &nbsp;END-RETURN phrase | N | 1 SRT |"
+  },
+  {
+   "page": 745,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| FROM phrase | 1 SEQ | 1 SEQ |",
+   "now": "| &nbsp;FROM phrase | 1 SEQ | 1 SEQ |"
+  },
+  {
+   "page": 745,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| INVALID KEY phrase | 1 REL | 1 REL |",
+   "now": "| &nbsp;INVALID KEY phrase | 1 REL | 1 REL |"
+  },
+  {
+   "page": 745,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| NOT INVALID KEY phrase | N | 1 REL |",
+   "now": "| &nbsp;NOT INVALID KEY phrase | N | 1 REL |"
+  },
+  {
+   "page": 745,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| END-REWRITE phrase | N | 1 SEQ |",
+   "now": "| &nbsp;END-REWRITE phrase | N | 1 SEQ |"
+  },
+  {
+   "page": 745,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| VARYING phrase | 2 TBL | 2 NUC |",
+   "now": "| &nbsp;VARYING phrase | 2 TBL | 2 NUC |"
+  },
+  {
+   "page": 745,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| AT END phrase | 2 TBL | 2 NUC |",
+   "now": "| &nbsp;AT END phrase | 2 TBL | 2 NUC |"
+  },
+  {
+   "page": 745,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| WHEN phrase | 2 TBL | 2 NUC |",
+   "now": "| &nbsp;WHEN phrase | 2 TBL | 2 NUC |"
+  },
+  {
+   "page": 745,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| WHEN phrase series | 2 TBL | 2 NUC |",
+   "now": "| &nbsp;WHEN phrase series | 2 TBL | 2 NUC |"
+  },
+  {
+   "page": 745,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| END-SEARCH phrase | N | 2 NUC |",
+   "now": "| &nbsp;END-SEARCH phrase | N | 2 NUC |"
+  },
+  {
+   "page": 745,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| AT END phrase | 2 TBL | 2 NUC |",
+   "now": "| &nbsp;AT END phrase | 2 TBL | 2 NUC |"
+  },
+  {
+   "page": 745,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| WHEN phrase | 2 TBL | 2 NUC |",
+   "now": "| &nbsp;WHEN phrase | 2 TBL | 2 NUC |"
+  },
+  {
+   "page": 745,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| END-SEARCH phrase | N | 2 NUC |",
+   "now": "| &nbsp;END-SEARCH phrase | N | 2 NUC |"
+  },
+  {
+   "page": 745,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| FROM identifier phrase (portion of a message) | 2 COM | 2 COM |",
+   "now": "| &nbsp;FROM identifier phrase (portion of a message) | 2 COM | 2 COM |"
+  },
+  {
+   "page": 745,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| FROM identifier phrase (complete message) | 1 COM | 1 COM |",
+   "now": "| &nbsp;FROM identifier phrase (complete message) | 1 COM | 1 COM |"
+  },
+  {
+   "page": 745,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| WITH identifier phrase | 2 COM | 2 COM |",
+   "now": "| &nbsp;WITH identifier phrase | 2 COM | 2 COM |"
+  },
+  {
+   "page": 745,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| WITH ESI phrase | 2 COM | 2 COM |",
+   "now": "| &nbsp;WITH ESI phrase | 2 COM | 2 COM |"
+  },
+  {
+   "page": 745,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| WITH EMI phrase | 1 COM | 1 COM |",
+   "now": "| &nbsp;WITH EMI phrase | 1 COM | 1 COM |"
+  },
+  {
+   "page": 745,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| WITH EGI phrase | 1 COM | 1 COM |",
+   "now": "| &nbsp;WITH EGI phrase | 1 COM | 1 COM |"
+  },
+  {
+   "page": 745,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| BEFORE/AFTER ADVANCING phrase | 1 COM | 1 COM |",
+   "now": "| &nbsp;BEFORE/AFTER ADVANCING phrase | 1 COM | 1 COM |"
+  },
+  {
+   "page": 745,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Integer LINE/LINES | 1 COM | 1 COM |",
+   "now": "| &nbsp;&nbsp;Integer LINE/LINES | 1 COM | 1 COM |"
+  },
+  {
+   "page": 745,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Identifier LINE/LINES | 1 COM | 1 COM |",
+   "now": "| &nbsp;&nbsp;Identifier LINE/LINES | 1 COM | 1 COM |"
+  },
+  {
+   "page": 745,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Mnemonic-name | 1 COM | 2 COM |",
+   "now": "| &nbsp;&nbsp;Mnemonic-name | 1 COM | 2 COM |"
+  },
+  {
+   "page": 745,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| PAGE | 1 COM | 1 COM |",
+   "now": "| &nbsp;&nbsp;PAGE | 1 COM | 1 COM |"
+  },
+  {
+   "page": 745,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| REPLACING LINE phrase | N | 2 COM |",
+   "now": "| &nbsp;REPLACING LINE phrase | N | 2 COM |"
+  },
+  {
+   "page": 745,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Index-name/identifier TO | 1 TBL | 1 NUC |",
+   "now": "| &nbsp;Index-name/identifier TO | 1 TBL | 1 NUC |"
+  },
+  {
+   "page": 745,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Index-name UP BY/DOWN BY | 1 TBL | 1 NUC |",
+   "now": "| &nbsp;Index-name UP BY/DOWN BY | 1 TBL | 1 NUC |"
+  },
+  {
+   "page": 745,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Mnemonic-name TO ON/OFF | N | 1 NUC |",
+   "now": "| &nbsp;Mnemonic-name TO ON/OFF | N | 1 NUC |"
+  },
+  {
+   "page": 745,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Condition-name TO TRUE | N | 2 NUC |",
+   "now": "| &nbsp;Condition-name TO TRUE | N | 2 NUC |"
+  },
+  {
+   "page": 746,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| ASCENDING/DESCENDING KEY phrase | 1 SRT | 1 SRT |",
+   "now": "| &nbsp;ASCENDING/DESCENDING KEY phrase | 1 SRT | 1 SRT |"
+  },
+  {
+   "page": 746,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| DUPLICATES phrase | N | 1 SRT |",
+   "now": "| &nbsp;DUPLICATES phrase | N | 1 SRT |"
+  },
+  {
+   "page": 746,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| COLLATING SEQUENCE phrase | 2 SRT | 1 SRT |",
+   "now": "| &nbsp;COLLATING SEQUENCE phrase | 2 SRT | 1 SRT |"
+  },
+  {
+   "page": 746,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| INPUT PROCEDURE phrase | 1 SRT | 1 SRT |",
+   "now": "| &nbsp;INPUT PROCEDURE phrase | 1 SRT | 1 SRT |"
+  },
+  {
+   "page": 746,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Section-name | 1 SRT | N |",
+   "now": "| &nbsp;&nbsp;Section-name | 1 SRT | N |"
+  },
+  {
+   "page": 746,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Procedure-name | N | 1 SRT |",
+   "now": "| &nbsp;&nbsp;Procedure-name | N | 1 SRT |"
+  },
+  {
+   "page": 746,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| USING phrase | 1 SRT | 1 SRT |",
+   "now": "| &nbsp;USING phrase | 1 SRT | 1 SRT |"
+  },
+  {
+   "page": 746,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| File-name series | 2 SRT | 1 SRT |",
+   "now": "| &nbsp;&nbsp;File-name series | 2 SRT | 1 SRT |"
+  },
+  {
+   "page": 746,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| OUTPUT PROCEDURE phrase | 1 SRT | 1 SRT |",
+   "now": "| &nbsp;OUTPUT PROCEDURE phrase | 1 SRT | 1 SRT |"
+  },
+  {
+   "page": 746,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Section-name | 1 SRT | N |",
+   "now": "| &nbsp;&nbsp;Section-name | 1 SRT | N |"
+  },
+  {
+   "page": 746,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Procedure-name | N | 1 SRT |",
+   "now": "| &nbsp;&nbsp;Procedure-name | N | 1 SRT |"
+  },
+  {
+   "page": 746,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| GIVING phrase | 1 SRT | 1 SRT |",
+   "now": "| &nbsp;GIVING phrase | 1 SRT | 1 SRT |"
+  },
+  {
+   "page": 746,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| File-name series | N | 1 SRT |",
+   "now": "| &nbsp;&nbsp;File-name series | N | 1 SRT |"
+  },
+  {
+   "page": 746,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| USING/GIVING file must be sequential file | 1 SRT | N |",
+   "now": "| &nbsp;USING/GIVING file must be sequential file | 1 SRT | N |"
+  },
+  {
+   "page": 746,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| USING/GIVING file may be sequential, relative, or indexed | N | 1 SRT |",
+   "now": "| &nbsp;USING/GIVING file may be sequential, relative, or indexed | N | 1 SRT |"
+  },
+  {
+   "page": 746,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| KEY phrase | 2 REL<br>2 INX | 2 REL<br>2 INX |",
+   "now": "| &nbsp;KEY phrase | 2 REL<br>2 INX | 2 REL<br>2 INX |"
+  },
+  {
+   "page": 746,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| EQUAL TO | 2 REL<br>2 INX | 2 REL<br>2 INX |",
+   "now": "| &nbsp;&nbsp;EQUAL TO | 2 REL<br>2 INX | 2 REL<br>2 INX |"
+  },
+  {
+   "page": 746,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| = | 2 REL<br>2 INX | 2 REL<br>2 INX |",
+   "now": "| &nbsp;&nbsp;= | 2 REL<br>2 INX | 2 REL<br>2 INX |"
+  },
+  {
+   "page": 746,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| GREATER THAN | 2 REL<br>2 INX | 2 REL<br>2 INX |",
+   "now": "| &nbsp;&nbsp;GREATER THAN | 2 REL<br>2 INX | 2 REL<br>2 INX |"
+  },
+  {
+   "page": 746,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| &gt; | 2 REL<br>2 INX | 2 REL<br>2 INX |",
+   "now": "| &nbsp;&nbsp;&gt; | 2 REL<br>2 INX | 2 REL<br>2 INX |"
+  },
+  {
+   "page": 746,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| NOT LESS THAN | 2 REL<br>2 INX | 2 REL<br>2 INX |",
+   "now": "| &nbsp;&nbsp;NOT LESS THAN | 2 REL<br>2 INX | 2 REL<br>2 INX |"
+  },
+  {
+   "page": 746,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| NOT &lt; | 2 REL<br>2 INX | 2 REL<br>2 INX |",
+   "now": "| &nbsp;&nbsp;NOT &lt; | 2 REL<br>2 INX | 2 REL<br>2 INX |"
+  },
+  {
+   "page": 746,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| GREATER THAN OR EQUAL TO | N | 2 REL<br>2 INX |",
+   "now": "| &nbsp;&nbsp;GREATER THAN OR EQUAL TO | N | 2 REL<br>2 INX |"
+  },
+  {
+   "page": 746,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| &gt;= | N | 2 REL<br>2 INX |",
+   "now": "| &nbsp;&nbsp;&gt;= | N | 2 REL<br>2 INX |"
+  },
+  {
+   "page": 746,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| INVALID KEY phrase | 2 REL<br>2 INX | 2 REL<br>2 INX |",
+   "now": "| &nbsp;INVALID KEY phrase | 2 REL<br>2 INX | 2 REL<br>2 INX |"
+  },
+  {
+   "page": 746,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| NOT INVALID KEY phrase | N | 2 REL<br>2 INX |",
+   "now": "| &nbsp;NOT INVALID KEY phrase | N | 2 REL<br>2 INX |"
+  },
+  {
+   "page": 746,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| END-START phrase | N | 2 REL<br>2 INX |",
+   "now": "| &nbsp;END-START phrase | N | 2 REL<br>2 INX |"
+  },
+  {
+   "page": 746,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| RUN | 1 NUC | 1 NUC |",
+   "now": "| &nbsp;RUN | 1 NUC | 1 NUC |"
+  },
+  {
+   "page": 746,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Literal | 1 NUC | 1 NUC Z |",
+   "now": "| &nbsp;Literal | 1 NUC | 1 NUC Z |"
+  },
+  {
+   "page": 747,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| DELIMITED BY series ......................................... | 2 NUC | 2 NUC |",
+   "now": "| &nbsp;DELIMITED BY series ......................................... | 2 NUC | 2 NUC |"
+  },
+  {
+   "page": 747,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| WITH POINTER phrase ......................................... | 2 NUC | 2 NUC |",
+   "now": "| &nbsp;WITH POINTER phrase ......................................... | 2 NUC | 2 NUC |"
+  },
+  {
+   "page": 747,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| ON OVERFLOW phrase .......................................... | 2 NUC | 2 NUC |",
+   "now": "| &nbsp;ON OVERFLOW phrase .......................................... | 2 NUC | 2 NUC |"
+  },
+  {
+   "page": 747,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| NOT ON OVERFLOW phrase ...................................... | N | 2 NUC |",
+   "now": "| &nbsp;NOT ON OVERFLOW phrase ...................................... | N | 2 NUC |"
+  },
+  {
+   "page": 747,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| END-STRING phrase ........................................... | N | 2 NUC |",
+   "now": "| &nbsp;END-STRING phrase ........................................... | N | 2 NUC |"
+  },
+  {
+   "page": 747,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Identifier/literal .......................................... | 1 NUC | 1 NUC |",
+   "now": "| &nbsp;Identifier/literal .......................................... | 1 NUC | 1 NUC |"
+  },
+  {
+   "page": 747,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Identifier/literal series ................................... | 1 NUC | 1 NUC |",
+   "now": "| &nbsp;Identifier/literal series ................................... | 1 NUC | 1 NUC |"
+  },
+  {
+   "page": 747,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| FROM identifier ............................................. | 1 NUC | 1 NUC |",
+   "now": "| &nbsp;FROM identifier ............................................. | 1 NUC | 1 NUC |"
+  },
+  {
+   "page": 747,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| FROM identifier series ...................................... | 2 NUC | 1 NUC |",
+   "now": "| &nbsp;FROM identifier series ...................................... | 2 NUC | 1 NUC |"
+  },
+  {
+   "page": 747,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| GIVING identifier ........................................... | 1 NUC | 1 NUC |",
+   "now": "| &nbsp;GIVING identifier ........................................... | 1 NUC | 1 NUC |"
+  },
+  {
+   "page": 747,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| GIVING identifier series .................................... | 2 NUC | 1 NUC |",
+   "now": "| &nbsp;GIVING identifier series .................................... | 2 NUC | 1 NUC |"
+  },
+  {
+   "page": 747,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| ROUNDED phrase .............................................. | 1 NUC | 1 NUC |",
+   "now": "| &nbsp;ROUNDED phrase .............................................. | 1 NUC | 1 NUC |"
+  },
+  {
+   "page": 747,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| ON SIZE ERROR phrase ........................................ | 1 NUC | 1 NUC |",
+   "now": "| &nbsp;ON SIZE ERROR phrase ........................................ | 1 NUC | 1 NUC |"
+  },
+  {
+   "page": 747,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| NOT ON SIZE ERROR phrase .................................... | N | 1 NUC |",
+   "now": "| &nbsp;NOT ON SIZE ERROR phrase .................................... | N | 1 NUC |"
+  },
+  {
+   "page": 747,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| END-SUBTRACT phrase ......................................... | N | 1 NUC |",
+   "now": "| &nbsp;END-SUBTRACT phrase ......................................... | N | 1 NUC |"
+  },
+  {
+   "page": 747,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| CORRESPONDING phrase ........................................ | 2 NUC | 2 NUC |",
+   "now": "| &nbsp;CORRESPONDING phrase ........................................ | 2 NUC | 2 NUC |"
+  },
+  {
+   "page": 747,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| DELIMITED BY phrase ......................................... | 2 NUC | 2 NUC |",
+   "now": "| &nbsp;DELIMITED BY phrase ......................................... | 2 NUC | 2 NUC |"
+  },
+  {
+   "page": 747,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| DELIMITER IN phrase ......................................... | 2 NUC | 2 NUC |",
+   "now": "| &nbsp;DELIMITER IN phrase ......................................... | 2 NUC | 2 NUC |"
+  },
+  {
+   "page": 747,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| COUNT IN phrase ............................................. | 2 NUC | 2 NUC |",
+   "now": "| &nbsp;COUNT IN phrase ............................................. | 2 NUC | 2 NUC |"
+  },
+  {
+   "page": 747,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| WITH POINTER phrase ......................................... | 2 NUC | 2 NUC |",
+   "now": "| &nbsp;WITH POINTER phrase ......................................... | 2 NUC | 2 NUC |"
+  },
+  {
+   "page": 747,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| TALLYING phrase ............................................. | 2 NUC | 2 NUC |",
+   "now": "| &nbsp;TALLYING phrase ............................................. | 2 NUC | 2 NUC |"
+  },
+  {
+   "page": 747,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| ON OVERFLOW phrase .......................................... | 2 NUC | 2 NUC |",
+   "now": "| &nbsp;ON OVERFLOW phrase .......................................... | 2 NUC | 2 NUC |"
+  },
+  {
+   "page": 747,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| NOT ON OVERFLOW phrase ...................................... | N | 2 NUC |",
+   "now": "| &nbsp;NOT ON OVERFLOW phrase ...................................... | N | 2 NUC |"
+  },
+  {
+   "page": 747,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| END-UNSTRING phrase ......................................... | N | 2 NUC |",
+   "now": "| &nbsp;END-UNSTRING phrase ......................................... | N | 2 NUC |"
+  },
+  {
+   "page": 747,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| EXCEPTION/ERROR PROCEDURE phrase ............................ | 1 SEQ | 1 SEQ |",
+   "now": "| &nbsp;EXCEPTION/ERROR PROCEDURE phrase ............................ | 1 SEQ | 1 SEQ |"
+  },
+  {
+   "page": 747,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| GLOBAL phrase ............................................... | N | 2 IPC |",
+   "now": "| &nbsp;&nbsp;GLOBAL phrase ............................................... | N | 2 IPC |"
+  },
+  {
+   "page": 747,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| ON file-name ................................................ | 1 SEQ | 1 SEQ |",
+   "now": "| &nbsp;&nbsp;ON file-name ................................................ | 1 SEQ | 1 SEQ |"
+  },
+  {
+   "page": 747,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| ON file-name series ......................................... | 2 SEQ | 2 SEQ |",
+   "now": "| &nbsp;&nbsp;ON file-name series ......................................... | 2 SEQ | 2 SEQ |"
+  },
+  {
+   "page": 748,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| EXCEPTION/ERROR PROCEDURE phrase (continued) | | |",
+   "now": "| &nbsp;EXCEPTION/ERROR PROCEDURE phrase (continued) | | |"
+  },
+  {
+   "page": 748,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| ON INPUT | 1 SEQ<br>1 REL<br>1 INX | 1 SEQ<br>1 REL<br>1 INX |",
+   "now": "| &nbsp;&nbsp;ON INPUT | 1 SEQ<br>1 REL<br>1 INX | 1 SEQ<br>1 REL<br>1 INX |"
+  },
+  {
+   "page": 748,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| ON OUTPUT | 1 SEQ<br>1 REL<br>1 INX<br>1 RPW | 1 SEQ<br>1 REL<br>1 INX<br>1 RPW |",
+   "now": "| &nbsp;&nbsp;ON OUTPUT | 1 SEQ<br>1 REL<br>1 INX<br>1 RPW | 1 SEQ<br>1 REL<br>1 INX<br>1 RPW |"
+  },
+  {
+   "page": 748,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| ON I-O | 1 SEQ<br>1 REL<br>1 INX | 1 SEQ<br>1 REL<br>1 INX |",
+   "now": "| &nbsp;&nbsp;ON I-O | 1 SEQ<br>1 REL<br>1 INX | 1 SEQ<br>1 REL<br>1 INX |"
+  },
+  {
+   "page": 748,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| ON EXTEND | 2 SEQ | 2 SEQ<br>2 REL<br>2 INX<br>1 RPW |",
+   "now": "| &nbsp;&nbsp;ON EXTEND | 2 SEQ | 2 SEQ<br>2 REL<br>2 INX<br>1 RPW |"
+  },
+  {
+   "page": 748,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| BEFORE REPORTING phrase | 1 RPW | 1 RPW |",
+   "now": "| &nbsp;BEFORE REPORTING phrase | 1 RPW | 1 RPW |"
+  },
+  {
+   "page": 748,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| GLOBAL phrase | N | 2 IPC |",
+   "now": "| &nbsp;&nbsp;GLOBAL phrase | N | 2 IPC |"
+  },
+  {
+   "page": 748,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| FOR DEBUGGING phrase | 1 DEB | 1 DEB Z |",
+   "now": "| &nbsp;FOR DEBUGGING phrase | 1 DEB | 1 DEB Z |"
+  },
+  {
+   "page": 748,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Procedure-name | 1 DEB | 1 DEB Z |",
+   "now": "| &nbsp;&nbsp;Procedure-name | 1 DEB | 1 DEB Z |"
+  },
+  {
+   "page": 748,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| ALL PROCEDURES | 1 DEB | 1 DEB Z |",
+   "now": "| &nbsp;&nbsp;ALL PROCEDURES | 1 DEB | 1 DEB Z |"
+  },
+  {
+   "page": 748,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| ALL REFERENCES OF identifier-1 | 2 DEB | 2 DEB Z |",
+   "now": "| &nbsp;&nbsp;ALL REFERENCES OF identifier-1 | 2 DEB | 2 DEB Z |"
+  },
+  {
+   "page": 748,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Cd-name | 2 DEB | 2 DEB Z |",
+   "now": "| &nbsp;&nbsp;Cd-name | 2 DEB | 2 DEB Z |"
+  },
+  {
+   "page": 748,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| File-name | 2 DEB | 2 DEB Z |",
+   "now": "| &nbsp;&nbsp;File-name | 2 DEB | 2 DEB Z |"
+  },
+  {
+   "page": 748,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| FROM phrase | 1 SEQ<br>1 REL<br>1 INX | 1 SEQ<br>1 REL<br>1 INX |",
+   "now": "| &nbsp;FROM phrase | 1 SEQ<br>1 REL<br>1 INX | 1 SEQ<br>1 REL<br>1 INX |"
+  },
+  {
+   "page": 748,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| BEFORE/AFTER ADVANCING phrase | 1 SEQ | 1 SEQ |",
+   "now": "| &nbsp;BEFORE/AFTER ADVANCING phrase | 1 SEQ | 1 SEQ |"
+  },
+  {
+   "page": 748,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Integer LINE/LINES | 1 SEQ | 1 SEQ |",
+   "now": "| &nbsp;&nbsp;Integer LINE/LINES | 1 SEQ | 1 SEQ |"
+  },
+  {
+   "page": 748,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Identifier LINE/LINES | 2 SEQ | 1 SEQ |",
+   "now": "| &nbsp;&nbsp;Identifier LINE/LINES | 2 SEQ | 1 SEQ |"
+  },
+  {
+   "page": 748,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Mnemonic-name | 2 SEQ | 2 SEQ |",
+   "now": "| &nbsp;&nbsp;Mnemonic-name | 2 SEQ | 2 SEQ |"
+  },
+  {
+   "page": 748,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| PAGE | 1 SEQ | 1 SEQ |",
+   "now": "| &nbsp;&nbsp;PAGE | 1 SEQ | 1 SEQ |"
+  },
+  {
+   "page": 748,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| AT END-OF-PAGE/EOP phrase | 2 SEQ | 2 SEQ |",
+   "now": "| &nbsp;AT END-OF-PAGE/EOP phrase | 2 SEQ | 2 SEQ |"
+  },
+  {
+   "page": 748,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| NOT AT END-OF-PAGE/EOP phrase | N | 2 SEQ |",
+   "now": "| &nbsp;NOT AT END-OF-PAGE/EOP phrase | N | 2 SEQ |"
+  },
+  {
+   "page": 748,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| INVALID KEY phrase | 1 REL<br>1 INX | 1 REL<br>1 INX |",
+   "now": "| &nbsp;INVALID KEY phrase | 1 REL<br>1 INX | 1 REL<br>1 INX |"
+  },
+  {
+   "page": 748,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| NOT INVALID KEY phrase | N | 1 REL<br>1 INX |",
+   "now": "| &nbsp;NOT INVALID KEY phrase | N | 1 REL<br>1 INX |"
+  },
+  {
+   "page": 748,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| END-WRITE phrase | N | 1 SEQ<br>1 REL<br>1 INX |",
+   "now": "| &nbsp;END-WRITE phrase | N | 1 SEQ<br>1 REL<br>1 INX |"
+  },
+  {
+   "page": 749,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Segment-numbers 0 through 49 for permanent segments ............. | 1 SEG | 1 SEG Z |",
+   "now": "| &nbsp;Segment-numbers 0 through 49 for permanent segments ............. | 1 SEG | 1 SEG Z |"
+  },
+  {
+   "page": 749,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Segment-numbers 50 through 99 for independent segments .......... | 1 SEG | 1 SEG Z |",
+   "now": "| &nbsp;Segment-numbers 50 through 99 for independent segments .......... | 1 SEG | 1 SEG Z |"
+  },
+  {
+   "page": 749,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| All sections with the same segment-number must be together in the source program ............................... | 1 SEG | 1 SEG Z |",
+   "now": "| &nbsp;All sections with the same segment-number must be together in the source program ............................... | 1 SEG | 1 SEG Z |"
+  },
+  {
+   "page": 749,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Sections with the same segment-number need not be physically contiguous in the source program .................. | 2 SEG | 2 SEG Z |",
+   "now": "| &nbsp;Sections with the same segment-number need not be physically contiguous in the source program .................. | 2 SEG | 2 SEG Z |"
+  },
+  {
+   "page": 749,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| COPY statement ................................................. | 1 LIB | 1 STM |",
+   "now": "| &nbsp;COPY statement ................................................. | 1 LIB | 1 STM |"
+  },
+  {
+   "page": 749,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| OF/IN library-name phrase ...................................... | 2 LIB | 2 STM |",
+   "now": "| &nbsp;&nbsp;OF/IN library-name phrase ...................................... | 2 LIB | 2 STM |"
+  },
+  {
+   "page": 749,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| REPLACING phrase ............................................... | 2 LIB | 2 STM |",
+   "now": "| &nbsp;&nbsp;REPLACING phrase ............................................... | 2 LIB | 2 STM |"
+  },
+  {
+   "page": 749,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Pseudo-text .................................................... | 2 LIB | 2 STM |",
+   "now": "| &nbsp;&nbsp;&nbsp;Pseudo-text .................................................... | 2 LIB | 2 STM |"
+  },
+  {
+   "page": 749,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Identifier ..................................................... | 2 LIB | 2 STM |",
+   "now": "| &nbsp;&nbsp;&nbsp;Identifier ..................................................... | 2 LIB | 2 STM |"
+  },
+  {
+   "page": 749,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Literal ........................................................ | 2 LIB | 2 STM |",
+   "now": "| &nbsp;&nbsp;&nbsp;Literal ........................................................ | 2 LIB | 2 STM |"
+  },
+  {
+   "page": 749,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Word ........................................................... | 2 LIB | 2 STM |",
+   "now": "| &nbsp;&nbsp;&nbsp;Word ........................................................... | 2 LIB | 2 STM |"
+  },
+  {
+   "page": 749,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| REPLACE statement .............................................. | N | 2 STM |",
+   "now": "| &nbsp;REPLACE statement .............................................. | N | 2 STM |"
+  },
+  {
+   "page": 749,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| Pseudo-text BY pseudo-text ..................................... | N | 2 STM |",
+   "now": "| &nbsp;&nbsp;Pseudo-text BY pseudo-text ..................................... | N | 2 STM |"
+  },
+  {
+   "page": 749,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| OFF ............................................................ | N | 2 STM |",
+   "now": "| &nbsp;&nbsp;OFF ............................................................ | N | 2 STM |"
+  },
+  {
+   "page": 749,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| **SEGMENTATION** | | |",
+   "now": "| <u>SEGMENTATION</u> | | |"
+  },
+  {
+   "page": 749,
+   "sweep": "summary-indent(PB6051 p729-1)",
+   "was": "| **SOURCE TEXT MANIPULATION** | | |",
+   "now": "| <u>SOURCE TEXT MANIPULATION</u> | | |"
+  },
+  {
+   "page": 559,
+   "sweep": "continuation-indent(PB6051 p532-1)",
+   "was": "│        │                                                                       │ │\n│        │ IS <u>VARYING</u> IN SIZE [ [ FROM integer-2 ] [ <u>TO</u> integer-3 ] CHARACTERS ] │ │\n│ <u>RECORD</u> ┤                                                                       ├ │\n│        │ [ <u>DEPENDING</u> ON data-name-1 ]                                          │ │\n│        │                                                                       │ │",
+   "now": "│        │ IS <u>VARYING</u> IN SIZE [ [ FROM integer-2 ] [ <u>TO</u> integer-3 ] CHARACTERS ] │ │\n│ <u>RECORD</u> ┤     [ <u>DEPENDING</u> ON data-name-1 ]                                      ├ │"
+  },
+  {
+   "page": 210,
+   "sweep": "continuation-indent(PB6051 p532-1)",
+   "was": "│ ┌          ╭ data-name-3 ╮ ┐                            │\n│ │ <u>RESET</u> ON ┤",
+   "now": "│       ┌          ╭ data-name-3 ╮ ┐                      │\n│       │ <u>RESET</u> ON ┤"
+  },
+  {
+   "page": 632,
+   "sweep": "continuation-indent(PB6051 p532-1)",
+   "was": "┌          ╭ data-name-2 ╮ ┐\n│ <u>RESET</u> ON ┤             ├ │\n└          ╰ <u>FINAL</u>       ╯ ┘",
+   "now": "    ┌          ╭ data-name-2 ╮ ┐\n    │ <u>RESET</u> ON ┤             ├ │\n    └          ╰ <u>FINAL</u>       ╯ ┘"
+  },
+  {
+   "page": 404,
+   "sweep": "continuation-indent(PB6051 p532-1)",
+   "was": "╚ [ <u>DEPENDING</u> ON data-name-1 ]",
+   "now": "╚    [ <u>DEPENDING</u> ON data-name-1 ]"
+  },
+  {
+   "page": 387,
+   "sweep": "box-figure(PB6051 p240-1)",
+   "was": "<u>RECORD</u> <u>DELIMITER</u> IS ┤                    ├\n",
+   "now": "║ <u>RECORD</u> <u>DELIMITER</u> IS ┤                    ├ ║\n"
+  },
+  {
+   "page": 835,
+   "sweep": "summary-indent(PB6051 p32-1)",
+   "was": "| COBOL words | |\n| Function-name | X |\n| <u>Uniqueness of Reference</u> | |\n| Function-Identifier | X |",
+   "now": "| &nbsp;COBOL words | |\n| &nbsp;&nbsp;Function-name | X |\n| <u>Uniqueness of Reference</u> | |\n| &nbsp;Function-Identifier | X |"
+  },
+  {
+   "page": 59,
+   "sweep": "summary-indent(PB6051 p32-1)",
+   "was": "| COBOL words | |\n| Function-name | X |\n| <u>Uniqueness of Reference</u> | |\n| Function-Identifier | X |",
+   "now": "| &nbsp;COBOL words | |\n| &nbsp;&nbsp;Function-name | X |\n| <u>Uniqueness of Reference</u> | |\n| &nbsp;Function-Identifier | X |"
   }
  ],
  "boxes": [
@@ -27662,6 +30175,47 @@
    "opens": [
     "║A comment line or blank line in source program text is not"
    ]
+  },
+  {
+   "page": 924,
+   "n": 743,
+   "region": "table",
+   "where": "Amendment 2 rows VI-113 (PERFORM GR10d), VI-124 (SEARCH GR2b, GR4) and VII-32 (RECORD GR10): the four shaded replacement passages (fourth pass, kb/Work PB6051 p924-1)",
+   "certainty": "high",
+   "decision": "MARKED",
+   "blocks": 4,
+   "opens": [
+    "║If index-name-1 is specified",
+    "║When control is passed to the next executable sentence",
+    "║If the number of character positions in the logical record"
+   ]
+  },
+  {
+   "page": 240,
+   "n": 744,
+   "region": "format",
+   "where": "3.4.2 General Format: the format line, inside the box that encloses all of 3.4 (fifth pass, kb/Work PB6051 p240-1)",
+   "certainty": "high",
+   "decision": "FORMAT",
+   "reason": "a <pre> figure inside a printed level-2 box carries its box sides in the figure (║ ... ║, as page 237's 2.4.2), which the prose count does not read"
+  },
+  {
+   "page": 240,
+   "n": 745,
+   "region": "format",
+   "where": "3.4.4 General Rule 1: the replacement form DATE-COMPILED. current date., inside the same box (fifth pass, kb/Work PB6051 p240-1)",
+   "certainty": "high",
+   "decision": "FORMAT",
+   "reason": "a <pre> figure inside a printed level-2 box carries its box sides in the figure (║ ... ║, as page 237's 2.4.2), which the prose count does not read"
+  },
+  {
+   "page": 387,
+   "n": 746,
+   "region": "format",
+   "where": "2.8.2 General Format, RECORD DELIMITER clause, inside the box that encloses all of 2.8 (fifth pass sibling sweep of p240-1)",
+   "certainty": "high",
+   "decision": "FORMAT",
+   "reason": "a <pre> figure inside a printed level-2 box carries its box sides in the figure (╔ ║ ╚), which the prose count does not read"
   }
  ]
 }

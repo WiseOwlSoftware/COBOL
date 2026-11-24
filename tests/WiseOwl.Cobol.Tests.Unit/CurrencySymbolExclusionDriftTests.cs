@@ -73,8 +73,12 @@ public sealed class CurrencySymbolExclusionDriftTests
     [InlineData(2002, 's', 'S')]
     [InlineData(2002, 'ſ', 'ſ')]
     [InlineData(2014, 'ſ', 'S')]
-    [InlineData(2002, 'é', 'É')]
-    [InlineData(85, 'é', 'É')]
+    // é and É are characters outside the repertoire: 2014's SR20 grants their equivalence to the implementor, and neither the
+    // 1985 text (§1985:VI.5.9.3 SR3) nor the 2002 text grants any (kb/Work PB6130, PB6162).
+    [InlineData(2002, 'é', 'é')]
+    [InlineData(85, 'é', 'é')]
+    [InlineData(2014, 'é', 'É')]
+    [InlineData(2023, 'é', 'É')]
     public void TheCurrencyEquivalence_FoldsNonCobolLettersFrom2014(int year, char c, char folded) =>
         Assert.Equal(folded, CurrencySymbolEquivalence.Fold(c, year));
 

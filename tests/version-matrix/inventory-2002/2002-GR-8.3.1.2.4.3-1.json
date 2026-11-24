@@ -2,7 +2,7 @@
  "rule-id": "2002-GR-8.3.1.2.4.3-1",
  "rule-digest": "ed592089fcbe",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#Decode; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#NationalLiteralOperand",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#Decode; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#QuotedLiteralOperand",
  "test-ref": "conformance:cases/8.3.1.2.4@2002-NATIONAL-LITERALS/g2002_national_literal_separators",
- "notes": "§2002:8.3.1.2.4.3 GR1: the delimiters are not part of the value, so N\"AB\", N'AB' and NX\"00410042\" each move as \"AB  \" with LENGTH 2, and N\"A\"\"B\" is A\"B with length 3; the run at --std 2002 matched."
+ "notes": "§2002:8.3.1.2.4.3 GR1: the delimiters are not part of the value, so N\"AB\", N'AB' and NX\"00410042\" each move as \"AB  \" with LENGTH 2, and N\"A\"\"B\" is A\"B with length 3; the run at --std 2002 matched. retired-witness: src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#NationalLiteralOperand (kb/Work PB2725 merged NationalLiteralOperand into QuotedLiteralOperand, the one quoted-literal operand binder)"
 }

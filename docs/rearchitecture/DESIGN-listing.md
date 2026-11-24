@@ -2096,7 +2096,9 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
     leaves out of its one-for-one comparison. `CallBinder.RecordProgramName` records the occurrence at the literal of the entry of the program
     the name reaches by the scope of a program-name (§2023:8.4.6.3 SR1, SR2, SR3: `BinderDriver.ProgramVisibleFrom`: arms 1 to 3
     are `ProgramNameScope.FirstVisible`, the one spelling of the rule the run-time resolver and the AS NESTED table also ask, with the COMMON
-    exception, and arm 4 is an outermost unit of the compilation group; kb/Work PB5965, `ListingCallGraphTests` pins every arm), or, where the group defines none, of the group's
+    exception, and arm 4 is an outermost unit of the compilation group; kb/Work PB5965, `ListingCallGraphTests` pins every arm). Every
+    statement binder carries that scope, made by the one `BinderDriver.ProgramsInScopeOf`: a method or factory method contains no program
+    and is contained in none, so its binders (`OoDriver.BindClassBody`) carry arm 4 alone (kb/Work PB5963). The occurrence is, where the group defines none, of the group's
     one entry of class `ExternalProgram` of that externalized name (`ListingSymbolKind.ExternalProgram`, declared nowhere, so no `Defined`
     reference and never flagged unreferenced). **Decided (section 6.7 was silent):** an unresolved literal target is an edge to a named
     external program, since section 6.7 lists "CALL targets" among the symbols and a program called and not defined here is a target the

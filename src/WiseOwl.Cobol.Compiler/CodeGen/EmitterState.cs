@@ -113,6 +113,8 @@ internal sealed class DispatchState
     /// for an empty range; asking for the call is an emitter bug and throws here rather than shipping that
     /// program (kb/Work PB440). Note that a LEGAL INVERTED range (GR6) also has <c>End &lt; Start</c>, so this
     /// is <see cref="PcRange.IsEmpty"/> and never an arithmetic test.</para>
+    /// <para>The call passes the calling frame's <see cref="DirectParam"/> on and returns <c>ElementReturn.Returned</c> when the
+    /// range executed the element's return (<see cref="ReturnToActivator"/>; kb/Work PB6140).</para>
     /// <para><paramref name="lastUsedFlag"/> is the name of a per-PERFORM <c>bool</c> local an ITERATIVE out-of-line PERFORM
     /// declared before its loop (null for every other call): the call passes it as the dispatch method's <c>__lastUsed</c>
     /// argument and sets it, so the PERFORM's first execution of the range is the explicit transfer it is and every later
@@ -126,8 +128,37 @@ internal sealed class DispatchState
                 + $"set of statements has no first statement to transfer to (ISO §2023:14.9.28.4 GR4/GR5)");
         string arg = lastUsedFlag is null ? "" : ", " + lastUsedFlag;
         string mark = lastUsedFlag is null ? "" : $" {lastUsedFlag} = true;";
-        return $"{DispatchName}({range.Start}, {range.End}{arg});{mark}{comment}";
+        return $"if ({DispatchName}({range.Start}, {range.End}, {DirectParam}{arg}) == {Returned}) return {Returned};{mark}{comment}";
     }
+
+    // ── The return to the activator: direct where every frame tests for it (kb/Work PB6140) ─────────────────
+    //  A GOBACK, a called program's EXIT PROGRAM and the §2023:14.6.3 implicit GOBACK end the element from whatever
+    //  dispatch frame they execute in. The frames between it and the activation entry are the element's own: the top
+    //  frame, the out-of-line PERFORMs and SORT/MERGE procedures it entered (DispatchCall, which tests the result and
+    //  passes its own __direct on), and the bounded runs of __RunUse and __RunDebug (which pass none, so __direct is
+    //  false below them). Where __direct is true the return is `return ElementReturn.Returned` up that chain; elsewhere
+    //  it is the thrown signal, whose exception filter in __RunUse (§2023:14.9.40.4 GR17) must see it pass.
+
+    /// <summary>The parameter of every dispatch method that says the frames above it, up to the activation entry, all test
+    /// its result for <c>ElementReturn.Returned</c> (<see cref="DispatchCall"/> and the activation entry's own call).</summary>
+    public const string DirectParam = "__direct";
+
+    /// <summary>The direct return value, as emitted C#.</summary>
+    private const string Returned = "ElementReturn.Returned";
+
+    /// <summary>The source element's return signal: <c>MethodReturn</c> in a method (§2023:14.9.18.4 GR4), <c>ProgramReturn</c>
+    /// in a program or a function (GR2, GR3, GR5).</summary>
+    public static string ReturnSignal(bool inMethod) => inMethod ? "MethodReturn" : "ProgramReturn";
+
+    /// <summary>Render the return of the element being emitted to its activator, from a statement of a dispatch frame: the
+    /// direct return when the frame's <see cref="DirectParam"/> says every frame above it tests for it, the thrown
+    /// <see cref="ReturnSignal"/> otherwise. The ONE spelling of that return for GOBACK, EXIT PROGRAM, a method's GOBACK and
+    /// the dispatcher's implicit GOBACK. An operand-evaluation step may run inside a lambda, where no <c>return</c> leaves
+    /// the frame, so it always throws (the rule <see cref="TransferJump"/> states for its <c>goto</c>).</summary>
+    public string ReturnToActivator(bool inMethod) =>
+        InOperandEvaluation
+            ? $"throw new {ReturnSignal(inMethod)}();"
+            : $"if ({DirectParam}) return {Returned}; throw new {ReturnSignal(inMethod)}();";
 
     /// <summary>Render the invocation of ONE selected declarative's use procedure — the single place a
     /// <see cref="BoundDeclarative"/> becomes a <c>__RunUse(id, start, end)</c> expression, for every selection

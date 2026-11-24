@@ -1,0 +1,16 @@
+{
+  "batch": [529, 530, 531, 532, 533, 534, 535, 536, 537, 538, 539, 540],
+  "pages_checked": [529, 530, 531, 532, 533, 534, 535, 536, 537, 538, 539, 540],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p532-1",
+      "page": 532,
+      "kind": "misplaced-content",
+      "severity": "normative",
+      "pdf_says": "IS VARYING IN SIZE [[FROM integer-4] [TO integer-5] CHARACTERS]\n     [DEPENDING ON data-name-1]",
+      "markdown_says": "│        │ IS <u>VARYING</u> IN SIZE [ [ FROM integer-4 ] [ <u>TO</u> integer-5 ] CHARACTERS ] │ │\n│ <u>RECORD</u> ┤                                                                       ├ │\n│        │ [ <u>DEPENDING</u> ON data-name-1 ]                                          │ │",
+      "why_it_matters": "In the Format 2 FD RECORD clause the PDF indents [DEPENDING ON data-name-1] under the IS VARYING alternative as its continuation (as the markdown of the identical Formats 1 and 3 on pages 531 and 533 does). On page 532 the markdown puts it flush with the other alternatives of the brace, separated by blank lines, so the brace reads as four alternatives: RECORD DEPENDING ON data-name-1 looks like a standalone choice and IS VARYING IN SIZE looks unable to take DEPENDING ON."
+    }
+  ]
+}

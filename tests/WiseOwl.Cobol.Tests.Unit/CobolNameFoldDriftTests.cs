@@ -224,6 +224,18 @@ public sealed class CobolNameFoldDriftTests
     [InlineData("ͺX", 2023, "U+037A, which is not a character")]
     [InlineData("KX", 2023, null)]                                         // first from 2023 (E.3.3 item 4)
     [InlineData("KX", 2014, "U+212A as its first character")]
+    // COBOL 2002's own Annex C (§2002:8.1.2.1 GR4b, kb/Work PB5702): special and combining characters neither first nor last
+    [InlineData("Xµ", 2002, "U+00B5 as its last character")]               // MICRO SIGN, C.2.1 special
+    [InlineData("µX", 2002, "U+00B5 as its first character")]
+    [InlineData("X·", 2002, "U+00B7 as its last character")]               // MIDDLE DOT, C.2.2
+    [InlineData("Xµy", 2002, null)]
+    [InlineData("A·B", 2002, null)]
+    [InlineData("Xµ", 2014, null)]                                         // 2014's derived table: not yet judged by its own Annex B.3.1
+    [InlineData("Xµ", 2023, null)]
+    [InlineData("Aा", 2002, "U+093E as its last character")]               // DEVANAGARI VOWEL SIGN AA, a combining character
+    [InlineData("Aाb", 2002, null)]
+    [InlineData("ܐX", 2002, "U+0710, which is not a character")]            // SYRIAC LETTER ALAPH: in 2014's Annex B.3.1, not in 2002's C.2.1
+    [InlineData("ܐX", 2014, null)]
     public void Violation_IsTheEditionsAnnexB(string word, int edition, string? expected)
     {
         string? v = CobolCharacterRepertoire.Violation(word, edition);

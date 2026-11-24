@@ -620,17 +620,22 @@ latitude, read from each edition's own text (P2.9):
 - **A band never starts before the earliest rule row its text names.** The obligation to document a determination cannot predate
   the rule that leaves it to the implementor. `DocItemBandDriftTests.EveryDocItem_StartsNoEarlierThanTheRulesItNames` reads each
   item whose every reference is a clause with rule numbers and refuses an earlier start. An item that names a whole clause, or chains
-  two clauses in one reference, names no one rule and is the adjudicator's. Four items start earlier on a recorded determination of the
-  behaviour at that edition, and the test lists each with its source and fails when an exemption stops being needed: `DOC-A.1-64`
-  (2002's ENTRY-CONVENTION clause states the item; the rule row it cites carries the 2014 COBOL alternative), `DOC-A.1-43` (the
-  currency-symbol equivalence, determined for every edition with the clause form, the bare form from 85) and `DOC-A.1-131` (the owner's
-  option (i) of PB670: at `--std 85` the implementor's sharing mode restricts nobody) and `DOC-A.1-65` ("EXIT and GOBACK statements": the EXIT PROGRAM arm is 1985 text that §1985:II.6.1 leaves to the implementor, the GOBACK arm the 2002 rule it names).
+  two clauses in one reference, names no one rule and is the adjudicator's. A determination of the behaviour at an edition (an
+  owner's or the implementor's choice) creates no latitude that edition's text lacks, so it never widens a band (kb/Work PB6130).
+  Two items start earlier than the rule row they name, each because the 2023 cross-reference carries the rule where 2014 and 2023
+  moved or renumbered 2002 text, and the test lists each with its reason and fails when an exemption stops being needed:
+  `DOC-A.1-64` (2002's ENTRY-CONVENTION clause states both halves, the default in §2002:11.8.5.3 GR2's second paragraph, which
+  2023 carries in the GR2 row the item names, banded 2014 for its COBOL keyword) and `DOC-A.1-65` ("EXIT and GOBACK statements":
+  its reference to GR3 of 14.9.18 is 2002 numbering; the latitude is §2023:14.9.18.4 GR1a, which EXIT PROGRAM reaches through
+  §2023:14.9.14.4 GR3, and §1985:II.6.1 leaves the EXIT PROGRAM arm to the implementor at 85).
 - **A band may start later than the earliest rule it names.** The item then documents an arm or a facility the earlier text does not
   state (national characters, the exception conditions, hexadecimal literals, line sequential files); each such row carries its
   facility in its notes (kb/Work PB3173), and no test can read it.
 - **An 85 start means the 1985 text leaves the same latitude, not that 1985 has an A.1 item.** The 1985 standard has no Annex A, so no
   item can be found in it; the rule the item documents is in force at 85 (its own row starts there) and 1985's module text leaves the
-  matter to the implementor. The item is the later catalogue's name for that latitude.
+  matter to the implementor. The item is the later catalogue's name for that latitude. The 85 check is 1985's own Implementor-Defined
+  Language Element List (items 1-87, in its section XVII), which names what 1985 leaves to the implementor: an 85 start
+  needs the latitude there or in the module text it points to (kb/Work PB6130).
 
 ## 9. Reuse / do-not-duplicate map
 

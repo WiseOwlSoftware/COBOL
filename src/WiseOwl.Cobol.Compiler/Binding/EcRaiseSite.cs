@@ -67,9 +67,10 @@ internal readonly record struct EcRaiseSite(string Verb, string Clause, int Leve
 
     /// <summary>This site's GLOBAL-declarative prohibition in the edition in force (kb/Work PB4950): at COBOL-85 the EXIT PROGRAM
     /// statement's own rule, §1985:X.5.4.3 SR2 (the other statements it names are not in that edition), else
-    /// <see cref="Cite"/> of <see cref="GlobalDeclarativeRule"/>.</summary>
+    /// <see cref="Cite"/> of <see cref="GlobalDeclarativeRule"/>; at COBOL-2002 an EXIT format's is §2002:14.8.13.2 SR2.</summary>
     public string GlobalDeclarativeCite(EditionInfo edition) =>
-        edition.Cite(GlobalDeclarativeRule1985 ?? Cite(GlobalDeclarativeRule), Cite(GlobalDeclarativeRule));
+        edition.Cite(GlobalDeclarativeRule1985 ?? Cite(GlobalDeclarativeRule), Cite(GlobalDeclarativeRule),
+                     y2002: Verb.StartsWith("EXIT", StringComparison.Ordinal) ? "ISO §2002:14.8.13.2 SR2" : null, y2014: Cite(GlobalDeclarativeRule));
 
     /// <summary>This site's citation of one of its own rules — <c>Cite(Level3Rule)</c> → "ISO §2023:14.9.14.3 SR3".
     /// <paramref name="sub"/> spells a sub-item ("a", "d").</summary>

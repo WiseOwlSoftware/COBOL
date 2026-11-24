@@ -4875,7 +4875,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         if (op.nonNumericLiteral() is { } nn)
             // ALL cobolWord is the ONE word-bearing figurative alternative: Format 7 (§2023:8.3.3.6.2), whose word SR4
             // requires to be declared in SYMBOLIC CHARACTERS, or Format 6 over a constant-name literal-1 (§2023:13.10.3
-            // SR2 — kb/Work PB1627). Every other alternative — STRINGLIT / NATLIT / BOOLLIT / HEXLIT, a concatenation
+            // SR2 — kb/Work PB1627). Every other alternative — a quotedLiteral, a concatenation
             // expression, ALL literal-1, and the keyword figuratives ZERO / SPACE / HIGH-VALUE / LOW-VALUE / QUOTE —
             // is a literal by shape. The predefined NULL is NOT: it is an identifier (§2023:8.4.3.1.2 Format 8), and
             // §2023:8.4.3.10.3 SR1 names no VALUE clause among the places it may be written (kb/Work PB1427 / PB939 —
@@ -4931,7 +4931,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
 
     /// <summary>The VALUE operands this binder has already diagnosed — one report per source operand even when
     /// two callers read the same node (<see cref="ExtractValue"/> screens a THRU range or a glued literal list
-    /// that <see cref="RawValueOperandText"/> may also visit). The <c>ReferenceResolver.Diagnosed</c>
+    /// that <see cref="RawValueOperandText"/> may also visit). The <see cref="ReferenceReports"/>
     /// shape.</summary>
     private readonly HashSet<Core.ValueClauseOperandContext> _valueOperandDiagnosed = [];
 

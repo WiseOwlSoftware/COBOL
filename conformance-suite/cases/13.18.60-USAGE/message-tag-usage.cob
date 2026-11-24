@@ -1,6 +1,6 @@
 *>--- conformance-case
 *> id: message-tag-usage
-*> rules: [GR-13.18.60.4-9, GR-13.18.63.4-4, DOC-A.1-212]
+*> rules: [GR-13.18.60.4-9, GR-13.18.63.4-4, DOC-A.1-212, FMT-13.18.60.2, GR-8.4.3.10.4-4]
 *> accept: [2023]
 *> source-format: free
 *> portable: unverified

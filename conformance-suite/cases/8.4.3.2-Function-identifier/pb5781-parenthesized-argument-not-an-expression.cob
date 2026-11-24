@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb5781-parenthesized-argument-not-an-expression
-      *> rules: [SR-8.4.3.2.3-8]
+      *> rules: [SR-8.4.3.2.3-8, GR-8.8.1.2-5]
       *> source-format: fixed
       *> portable: unverified
       *>---

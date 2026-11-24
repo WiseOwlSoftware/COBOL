@@ -5,7 +5,8 @@ namespace WiseOwl.Cobol.Runtime.Exceptions;
 /// <summary>
 /// ⛔ THE DECLARATIVE DISPATCH-RESULT PROTOCOL, AS ONE NAMED TYPE (kb/Work PB1122 Task A, PB1761). Every selection
 /// path — <c>__RunUse</c>, <c>__EcDispatch</c>, <c>__EcPerform</c>, <c>__EcObjDispatch</c>, <c>__IoCheck</c>,
-/// <c>__IoCheckEc</c>, <c>__RunGlobalUse</c>, <c>INonfatalSelector.NonfatalDispatch</c> — answers the raise site with
+/// <c>__IoCheckEc</c>, <c>__RunGlobalUse</c>, <c>INonfatalSelector.NonfatalDispatch</c>, and the exception-checking
+/// PERFORM's <see cref="PerformFrame.Matcher"/> and <see cref="ExceptionEngine.RunTopFrame"/> — answers the raise site with
 /// one <see cref="int"/>, and the emitters used to spell its values as bare literals (<c>-1</c> … <c>-4</c>) at a
 /// dozen sites, so adding a value meant finding every literal by hand. The emitters now render the NAMES below and the
 /// questions the consumers ask are the predicates, so a new result value lands in one file; the
@@ -15,7 +16,9 @@ namespace WiseOwl.Cobol.Runtime.Exceptions;
 /// (an I-O hook's successful arm).</item>
 /// <item><see cref="ResumeNext"/> — RESUME AT NEXT STATEMENT (§2023:14.9.33.4 GR2): fall through past the raising
 /// statement, which also suppresses a fatal termination (§2023:14.6.13.1.3 GR5 NOTE 2).</item>
-/// <item><see cref="NoHandler"/> — no qualifying declarative (§2023:14.9.49.4 GR3g tail; GR14 b)).</item>
+/// <item><see cref="NoHandler"/> — no qualifying declarative (§2023:14.9.49.4 GR3g tail; GR14 b)), and no WHEN phrase of
+/// an active exception-checking PERFORM is associated with the raised condition (§2023:14.9.28.4 GR17): the ONE "nothing
+/// selected" value, never a second sentinel or an <c>out bool</c> beside it (kb/Work PB2723).</item>
 /// <item><see cref="HandledNonfatal"/> — a NONFATAL condition raised by a SUCCESSFUL statement that a WHEN phrase or a
 /// USE declarative handled and that completed normally (kb/Work PB1120): §2023:14.6.13.1.4 2)/3) — the statement's NOT
 /// phrase is skipped. Distinct from <see cref="Normal"/> so "handled" and "no condition at all" can be told apart.</item>

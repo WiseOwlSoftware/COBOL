@@ -105,11 +105,13 @@ internal sealed partial class OoBinder
         return new BoundNumRef(source!);
     }
 
-    /// <summary>The resolver's view edge (<c>ObjectPropertyResolver.ApplyObjectView</c>): the object-view of a qualified data
+    /// <summary>The resolver's view edge (<see cref="IStatementSite.ApplyObjectView"/>): the object-view of a qualified data
     /// item written as one chain, <c>A OF G AS C</c> (§2023:8.4.3.1.4 GR1a before c)), over the item already resolved.
-    /// §2023:8.4.3.5.3 SR1 asks identifier-1's class here as it does for every other subject. Null having reported.</summary>
-    internal Place? OoApplyObjectView(Place subject, Core.ObjectViewContext ov, string written)
+    /// §2023:8.4.3.5.3 SR1 asks identifier-1's class here as it does for every other subject. <paramref name="subjectWritten"/>
+    /// is identifier-1 as written, which a refusal names. Null having reported.</summary>
+    internal Place? OoApplyObjectView(Place subject, Core.ObjectViewContext ov, Core.DataReferenceContext subjectWritten)
     {
+        string written = WrittenSource.Of(subjectWritten);
         if (subject.Item.Pic is not { Category: PicCategory.ObjectReference })
         {
             _ = RefuseViewSubject(written, "identifier-1 is not of class object (it is not an object reference)");

@@ -8,24 +8,23 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ THE FILE SHARING FACILITY IS A COBOL-2002 MODULE, SO AT <c>--std 85</c> NO CONNECTOR RESTRICTS ANOTHER AND NO OPEN
-/// ANSWERS '61' (kb/Work PB670, the owner's determination of 2026-10-23, option (i); docs/CONFORMANCE.md DOC-A.1-77 and
-/// DOC-A.1-131; <see cref="DialectBehavior.FileSharingFacility"/>).
+/// ⛔ EACH EDITION'S OWN TEXT DECIDES A SECOND FILE CONNECTOR'S OPEN OF A PHYSICAL FILE THE RUN UNIT HOLDS OPEN (kb/Work PB6161,
+/// the owner's decision of 2026-11-24, which replaced PB670's option (i) at COBOL-85; <see cref="DialectBehavior.FileSharingFacility"/>).
 ///
-/// <para>The rule: ISO §2023:9.1.15 — <i>"If no specification is made in either location, the implementor defines the sharing
-/// mode in which the file is opened; the implementor-defined sharing mode may be one of the modes specified in this Working
-/// Draft International Standard or may be a mode completely specified by the implementor"</i> — and §2023:A.4.1, which makes
-/// <i>"any associated syntax rules, general rules, other rules, exception conditions, and I-O status values"</i> of an
-/// optional module optional with it (file sharing and record locking is Annex A.4.7). A COBOL-85 program is compiled for a
-/// processor on which the module is not in effect: the mode its connectors hold restricts nobody, Table 19 (§2023:14.9.27.4) is
-/// not asked, and the file sharing conflict condition (§2023:9.1.13.9 item 1) does not exist. GnuCOBOL's measured
-/// <c>-std=cobol85</c> behaviour is the same: every OPEN below answers '00'.</para>
+/// <para>COBOL-85: the standard has no file sharing facility and keys its status 41 to the PHYSICAL file. <i>"The terms 'file
+/// referenced by file-name' and 'file' mean the physical file regardless of the file-name used in the COBOL program"</i>
+/// (§1985:II.2); <i>"each subsequent OPEN statement execution for that same file must be preceded by the execution of a CLOSE
+/// statement"</i> (§1985:VII.4.3.4 GR5); and status 41 is <i>"An OPEN statement is attempted for a file in the open mode"</i>
+/// (§1985:VII.1.3.5). Two SELECTs whose ASSIGN values reach one host path name one physical file (WiseOwl's mapping,
+/// §1985:VII.2.3.3 SR3), so the second connector's OPEN answers '41' in every organization and every pair of modes, and the
+/// file is not affected. From 2002 the facility arbitrates the same OPEN (§2002:9.1.14, §2023:9.1.15; Table 19) and its refusal
+/// is '61'; '41' is keyed to the file connector there (§2002:9.1.12.6, §2023:9.1.13.7 GR1) and never answers another
+/// connector's OPEN.</para>
 ///
-/// <para>What each test fails on: the first on any pair of opens (every organization, every pair of open modes) that is
-/// refused at 85 or admitted by mistake at 2002; the second on a '61' where a process outside the run unit holds the file
-/// (a status 1985 does not define: the host's refusal is §2023:9.1.13.6 GR1's '30') and on a file that a refused open
-/// affected; the third on a second RUN UNIT being refused by a file lock (there is none at 85); the fourth on a record a
-/// connector appended and a sibling's append losing it; the last on the CLOSE and the re-OPEN that follow a refusal.</para>
+/// <para>What each test fails on: the first on any pair of opens at 85 that is admitted, answers anything but '41', disturbs the
+/// holder or the file, or leaves the refused connector unable to open once the holder closes; the second on a pair from 2002
+/// that is not Table 19's cell; then a third connector; a process outside the run unit (the host's refusal, '30' at 85, '61'
+/// from 2002); a second RUN UNIT, which no file lock refuses at 85; and the COBOL-85 writer, which buffers.</para>
 /// </summary>
 [Trait("Host", "ReFS")]
 public sealed class SharingFacilityEditionTests
@@ -66,32 +65,66 @@ public sealed class SharingFacilityEditionTests
         finally { FileHarness.TryDelete(host); }
     }
 
-    /// <summary>§2023:9.1.15 with §2023:A.4.1 at COBOL-85: every pair of opens of one physical file by two clause-less connectors
-    /// of one run unit is a normal open, in every organization, whatever the two modes — OUTPUT beside a reader and I-O
-    /// beside I-O included, the cells Table 19 prints "Unsuccessful open" for (§2023:9.1.13.9 item 1 e)).</summary>
+    /// <summary>§1985:VII.4.3.4 GR5 and §1985:VII.1.3.5 at COBOL-85, for every organization and every pair of open modes: a second
+    /// connector's OPEN of a physical file another connector holds open answers '41'; the file is not affected (OUTPUT does not
+    /// truncate it); the holder still reads its record and closes normally; the refused connector was never associated with the
+    /// file (§1985:VII.4.3.4 GR1), so its CLOSE does not close the holder's; and once the holder has closed, the same OPEN
+    /// succeeds.</summary>
     [Theory]
     [MemberData(nameof(EveryPairOfOpens))]
-    public void AtCobol85_EveryPairOfOpensIsANormalOpen(FileOrg org, FileOpenMode existing, FileOpenMode incoming)
+    public void AtCobol85_ASecondConnectorsOpenOfAnOpenPhysicalFileAnswers41(FileOrg org, FileOpenMode existing, FileOpenMode incoming)
     {
-        var r = OpenPair(org, existing, incoming, Cobol85);
-        Assert.True(r.First == "00" && r.Second == "00",
-            $"{org} OPEN {existing} then a second connector's OPEN {incoming} at --std 85 answered '{r.First}' and "
-            + $"'{r.Second}'; with the file sharing facility not in effect both are normal opens ('00').");
-        Assert.True(r.CloseSecond == "00" && r.CloseFirst == "00",
-            $"{org}: the CLOSEs after the pair answered '{r.CloseSecond}' and '{r.CloseFirst}'");
+        string host = FileHarness.Tmp($"pb6161-{org}-{existing}{incoming}");
+        try
+        {
+            FileHarness.Seed(host, org, ["SEED"]);
+            byte[] before = File.ReadAllBytes(host);
+            var reg = new FileRegistry();
+            FileHarness.Register(reg, "A", host, org, sharing: null, access: FileHarness.AccessFor(existing), edition: Cobol85);
+            FileHarness.Register(reg, "B", host, org, sharing: null, access: FileHarness.AccessFor(incoming), edition: Cobol85);
+            FileHarness.Open(reg, "A", existing);
+            Assert.Equal("00", reg.Status("A"));
+            FileHarness.Open(reg, "B", incoming);
+            Assert.True(reg.Status("B") == FileStatusCode.FileAlreadyOpen,
+                $"{org} OPEN {existing} then a second connector's OPEN {incoming} at --std 85 answered '{reg.Status("B")}'; "
+                + "1985 keys status 41 to the physical file (§1985:VII.1.3.5).");
+            reg.Close("B");
+            Assert.Equal(FileStatusCode.FileNotOpen, reg.Status("B"));   // B never entered an open mode
+            if (existing is FileOpenMode.Input or FileOpenMode.IO)
+            {
+                Assert.Equal("00", FileHarness.ReadNext(reg, "A", out string image));   // the holder is undisturbed
+                Assert.Equal(FileHarness.Rec(1, "SEED"), image);
+            }
+            reg.Close("A");
+            Assert.Equal("00", reg.Status("A"));
+            if (existing == FileOpenMode.Input) Assert.Equal(before, File.ReadAllBytes(host));   // a reader's file is byte-identical
+
+            FileHarness.Open(reg, "B", incoming);   // OPEN after the holder's CLOSE is a normal open
+            Assert.Equal("00", reg.Status("B"));
+            reg.Close("B");
+            Assert.Equal("00", reg.Status("B"));
+        }
+        finally { FileHarness.TryDelete(host); }
     }
 
-    /// <summary>The control: the same programs at the editions that have the facility answer Table 19's cell — the edition
-    /// is the only difference — so a '00' above cannot be a pair the table admits anyway.</summary>
+    /// <summary>The same pair at each edition that has the facility, derived from that edition's own text: '41' is keyed to the file
+    /// connector (§2002:9.1.12.6, §2014:9.1.12.6, §2023:9.1.13.7 GR1), so it never answers the second connector; the facility
+    /// arbitrates instead under the implementor default (INPUT is SHARING WITH READ ONLY, every other mode SHARING WITH NO OTHER;
+    /// §2002:14.8.26.3 GR22, DOC-A.1-77), and the file sharing conflict condition '61' refuses every pair but two readers: a NO OTHER
+    /// holder refuses every opener and a NO OTHER opener every holder (§2002:9.1.12.8 items a and b, §2014:9.1.12.8,
+    /// §2023:9.1.13.9 GR1).</summary>
     [Theory]
     [MemberData(nameof(EveryPairOfOpens))]
-    public void From2002_TheSamePairIsArbitratedByTable19(FileOrg org, FileOpenMode existing, FileOpenMode incoming)
+    public void From2002_TheSamePairIsArbitratedByTheSharingFacility(FileOrg org, FileOpenMode existing, FileOpenMode incoming)
     {
-        var r = OpenPair(org, existing, incoming, 2002);
-        Assert.Equal("00", r.First);
-        bool refused = Table19.Conflicts((FileRegistry.ImplementorDefaultSharing(incoming, 2002), incoming),
-                                         (FileRegistry.ImplementorDefaultSharing(existing, 2002), existing));
-        Assert.Equal(refused ? FileStatusCode.FileSharingConflict : "00", r.Second);
+        foreach (int edition in new[] { 2002, 2014, 2023 })
+        {
+            var r = OpenPair(org, existing, incoming, edition);
+            Assert.Equal("00", r.First);
+            string expected = existing == FileOpenMode.Input && incoming == FileOpenMode.Input ? "00" : FileStatusCode.FileSharingConflict;
+            Assert.True(r.Second == expected,
+                $"{org} OPEN {existing} then a second connector's OPEN {incoming} at {edition} answered '{r.Second}', expected '{expected}'.");
+        }
     }
 
     /// <summary>The default mode of a COBOL-85 connector is the one that restricts nobody, for every open mode
@@ -188,132 +221,51 @@ public sealed class SharingFacilityEditionTests
         }
     }
 
-    /// <summary>§2023:14.9.27.4 GR18 at COBOL-85, for every organization: <i>"If the OUTPUT phrase is specified, the successful
-    /// execution of the OPEN statement creates the file. After the creation of the file, the file contains no records."</i>
-    /// A connector that held the file open when another's OPEN OUTPUT created it finds no record at its next READ ('10',
-    /// the at end condition), every statement of its answers an I-O status (an OPEN, a READ, a CLOSE: never an escaping
-    /// exception from the keyed store engine, which Table 19 used to keep out of this state), and the file holds exactly the
-    /// records written after the creation.</summary>
+    /// <summary>A third SELECT of the same physical file at COBOL-85: while one connector holds the file, every other connector's OPEN,
+    /// in every mode, answers '41' (§1985:VII.1.3.5), and an OPEN of the holder itself answers '41' as at every edition; after the
+    /// holder's CLOSE the first of the others to OPEN becomes the holder, and the rest are refused in turn.</summary>
     [Theory]
-    [InlineData(FileOrg.Sequential, FileOpenMode.Input)]
-    [InlineData(FileOrg.Sequential, FileOpenMode.IO)]
-    [InlineData(FileOrg.Relative, FileOpenMode.Input)]
-    [InlineData(FileOrg.Relative, FileOpenMode.IO)]
-    [InlineData(FileOrg.Indexed, FileOpenMode.Input)]
-    [InlineData(FileOrg.Indexed, FileOpenMode.IO)]
-    public void AtCobol85_AHolderOfTheFileMeetsAnEmptyFileAfterAnotherConnectorsOutput(FileOrg org, FileOpenMode holder)
+    [InlineData(FileOrg.Sequential)]
+    [InlineData(FileOrg.Relative)]
+    [InlineData(FileOrg.Indexed)]
+    public void AtCobol85_EveryOtherConnectorIsRefusedWhileOneHoldsTheFile(FileOrg org)
     {
-        string host = FileHarness.Tmp($"pb670-created-{org}-{holder}");
+        string host = FileHarness.Tmp($"pb6161-third-{org}");
         try
         {
             FileHarness.Seed(host, org, ["SEED"]);
             var reg = new FileRegistry();
-            FileHarness.Register(reg, "A", host, org, sharing: null, access: FileHarness.AccessFor(holder), edition: Cobol85);
-            FileHarness.Register(reg, "B", host, org, sharing: null, access: FileHarness.AccessFor(FileOpenMode.Output), edition: Cobol85);
-            FileHarness.Open(reg, "A", holder);
-            Assert.Equal("00", reg.Status("A"));
-            FileHarness.Open(reg, "B", FileOpenMode.Output);
-            Assert.Equal("00", reg.Status("B"));
-            Assert.Equal("10", FileHarness.ReadNext(reg, "A", out _));   // GR18: the created file has no records
-            Assert.Equal("00", FileHarness.Write(reg, "B", org, 1, "NEWB"));
-            reg.Close("A");
-            Assert.Equal("00", reg.Status("A"));
-            reg.Close("B");
-            Assert.Equal("00", reg.Status("B"));
-
-            var fresh = new FileRegistry();
-            FileHarness.Register(fresh, "R", host, org, sharing: null, access: FileHarness.AccessFor(FileOpenMode.Input), edition: Cobol85);
-            FileHarness.Open(fresh, "R", FileOpenMode.Input);
-            Assert.Equal("00", fresh.Status("R"));
-            var records = new List<string>();
-            while (FileHarness.ReadNext(fresh, "R", out string image) == "00") records.Add(image);
-            fresh.Close("R");
-            Assert.Equal([FileHarness.Rec(1, "NEWB")], records);
-        }
-        finally { FileHarness.TryDelete(host); }
-    }
-
-    /// <summary>§2023:14.9.10.4 GR5 at COBOL-85, the golden <c>pb143_shared_visibility</c> of 2002 without its SHARING clause: a record
-    /// one of two clause-less I-O connectors writes or deletes is, at once, written or <i>"logically removed from the physical
-    /// file"</i> for the other, because the keyed store is one per physical file whatever the sharing mode.</summary>
-    [Theory]
-    [InlineData(FileOrg.Relative)]
-    [InlineData(FileOrg.Indexed)]
-    public void AtCobol85_TwoUpdatersSeeEachOthersWritesAndDeletes(FileOrg org)
-    {
-        string host = FileHarness.Tmp($"pb670-visible-{org}");
-        try
-        {
-            FileHarness.Seed(host, org, ["ONE"]);
-            var reg = new FileRegistry();
-            foreach (string name in new[] { "P", "Q" })
+            foreach (string name in new[] { "A", "B", "C" })
                 FileHarness.Register(reg, name, host, org, sharing: null, access: FileHarness.AccessFor(FileOpenMode.IO), edition: Cobol85);
-            FileHarness.Open(reg, "P", FileOpenMode.IO);
-            FileHarness.Open(reg, "Q", FileOpenMode.IO);
-            Assert.Equal("00", reg.Status("P"));
-            Assert.Equal("00", reg.Status("Q"));
-            Assert.Equal("00", FileHarness.Delete(reg, "Q", org, 1));
-            Assert.Equal("23", FileHarness.Read(reg, "P", org, 1, out _));   // GR5: no longer accessible through any connector
-            Assert.Equal("00", FileHarness.Write(reg, "P", org, 3, "3333"));
-            Assert.Equal("00", FileHarness.Read(reg, "Q", org, 3, out string image));
-            Assert.Equal(FileHarness.Rec(3, "3333"), image);
-            reg.Close("P");
-            reg.Close("Q");
-            Assert.Equal("00", reg.Status("P"));
-            Assert.Equal("00", reg.Status("Q"));
+            FileHarness.Open(reg, "A", FileOpenMode.Input);
+            Assert.Equal("00", reg.Status("A"));
+            FileHarness.Open(reg, "A", FileOpenMode.Input);
+            Assert.Equal(FileStatusCode.FileAlreadyOpen, reg.Status("A"));   // the connector's own re-OPEN
+            foreach (string other in new[] { "B", "C" })
+                foreach (var mode in Enum.GetValues<FileOpenMode>().Where(m => org == FileOrg.Sequential || m != FileOpenMode.Extend))
+                {
+                    FileHarness.Open(reg, other, mode);
+                    Assert.True(reg.Status(other) == FileStatusCode.FileAlreadyOpen, $"{org} {other} OPEN {mode}: '{reg.Status(other)}'");
+                }
+            reg.Close("A");
+            Assert.Equal("00", reg.Status("A"));
+            FileHarness.Open(reg, "C", FileOpenMode.IO);
+            Assert.Equal("00", reg.Status("C"));
+            FileHarness.Open(reg, "B", FileOpenMode.Input);
+            Assert.Equal(FileStatusCode.FileAlreadyOpen, reg.Status("B"));
+            reg.Close("C");
+            Assert.Equal("00", reg.Status("C"));
         }
         finally { FileHarness.TryDelete(host); }
     }
 
-    /// <summary>Two sequential connectors EXTENDing one physical file at COBOL-85 keep both records (the sharing writers'
-    /// append of <c>SharedExtendWriteDriftTests</c> serves every connector there, whatever mode it holds), and the OUTPUT
-    /// that follows beside a reader creates the empty file §2023:14.9.27.4 GR18 describes.</summary>
+    /// <summary>The COST side at COBOL-85 (review R1-1 of PB670): with no sibling possible in the run unit and no other run unit
+    /// promised its records (§2023:A.4.1), a writer keeps its records in its input-output areas until the CLOSE
+    /// (§2023:14.9.51.4 GR12 releases a record to the operating environment), and a sibling's refused OPEN takes none of them.</summary>
     [Fact]
-    public void AtCobol85_TwoExtendingConnectorsKeepBothRecords_AndOutputCreatesTheEmptyFile()
+    public void AtCobol85_AWriterBuffers_AndARefusedSiblingReleasesNothing()
     {
-        string host = FileHarness.Tmp("pb670-extend");
-        try
-        {
-            FileHarness.Seed(host, FileOrg.Sequential, ["SEED"]);
-            var reg = new FileRegistry();
-            foreach (string name in new[] { "A", "B", "R" })
-                FileHarness.Register(reg, name, host, FileOrg.Sequential, sharing: null,
-                    access: FileHarness.AccessFor(FileOpenMode.Extend), edition: Cobol85);
-            FileHarness.Open(reg, "A", FileOpenMode.Extend);
-            FileHarness.Open(reg, "B", FileOpenMode.Extend);
-            Assert.Equal("00", reg.Status("A"));
-            Assert.Equal("00", reg.Status("B"));
-            Assert.Equal("00", FileHarness.Write(reg, "A", FileOrg.Sequential, 2, "AAAA"));
-            Assert.Equal("00", FileHarness.Write(reg, "B", FileOrg.Sequential, 3, "BBBB"));
-            Assert.Equal("00", FileHarness.Write(reg, "A", FileOrg.Sequential, 4, "CCCC"));
-            reg.Close("A");
-            reg.Close("B");
-            Assert.Equal("00", reg.Status("A"));
-            Assert.Equal("00", reg.Status("B"));
-            Assert.Equal(4 * FileHarness.Rec(1, "SEED").Length, new FileInfo(host).Length);
-
-            FileHarness.Open(reg, "R", FileOpenMode.Input);
-            Assert.Equal("00", reg.Status("R"));
-            FileHarness.Open(reg, "A", FileOpenMode.Output);
-            Assert.Equal("00", reg.Status("A"));   // Table 19 would print "Unsuccessful open" for every OUTPUT request
-            reg.Close("A");
-            reg.Close("R");
-            Assert.Equal(0, new FileInfo(host).Length);
-        }
-        finally { FileHarness.TryDelete(host); }
-    }
-
-    /// <summary>The COST side of the determination (review R1-1 of PB670): the default mode restricts nobody, but a COBOL-85
-    /// file connector with no sibling open pays nothing for it. §2023:14.9.51.4 GR12 releases a record to the operating environment,
-    /// not to the physical file at once (the 2002 program with no sharing clause buffers its OUTPUT the same way), so a
-    /// lone writer keeps its records in its input-output areas; a sibling connector of the run unit that OPENs the file
-    /// later is owed what was already written, and every WRITE while it is open reaches the medium at once (§2023:9.1.15 GR3), the
-    /// reader's next READ selects it (§2023:14.9.30.4 GR21c); when the sibling closes the writer buffers again. The control
-    /// arms: 2002's clause-less OUTPUT buffers (NO OTHER), and 2002's SHARING WITH ALL OTHER writes through.</summary>
-    [Fact]
-    public void AtCobol85_ALoneWriterBuffers_AndASiblingThatArrivesFindsWhatWasWritten()
-    {
-        string host = FileHarness.Tmp("pb670-lazy");
+        string host = FileHarness.Tmp("pb6161-lazy");
         try
         {
             int record = FileHarness.Rec(1, "AAAA").Length;
@@ -322,94 +274,19 @@ public sealed class SharingFacilityEditionTests
                 FileHarness.Register(reg, name, host, FileOrg.Sequential, sharing: null, edition: Cobol85);
             FileHarness.Open(reg, "A", FileOpenMode.Output);
             Assert.Equal("00", FileHarness.Write(reg, "A", FileOrg.Sequential, 1, "AAAA"));
-            Assert.Equal(0, new FileInfo(host).Length);                 // alone: buffered, no syscall per record
-
+            Assert.Equal(0, new FileInfo(host).Length);                 // buffered, no syscall per record
             FileHarness.Open(reg, "B", FileOpenMode.Input);
-            Assert.Equal("00", reg.Status("B"));
-            Assert.Equal(record, new FileInfo(host).Length);            // the arriving sibling was handed the earlier record
-            Assert.Equal("00", FileHarness.ReadNext(reg, "B", out string first));
-            Assert.Equal(FileHarness.Rec(1, "AAAA"), first);
-
+            Assert.Equal(FileStatusCode.FileAlreadyOpen, reg.Status("B"));
+            Assert.Equal(0, new FileInfo(host).Length);
             Assert.Equal("00", FileHarness.Write(reg, "A", FileOrg.Sequential, 2, "BBBB"));
-            Assert.Equal(2 * record, new FileInfo(host).Length);        // with a sibling open: released at the WRITE
-            Assert.Equal("00", FileHarness.ReadNext(reg, "B", out string second));
-            Assert.Equal(FileHarness.Rec(2, "BBBB"), second);           // …and the reader's next READ selects it
-
-            reg.Close("B");
-            Assert.Equal("00", reg.Status("B"));
-            Assert.Equal("00", FileHarness.Write(reg, "A", FileOrg.Sequential, 3, "CCCC"));
-            Assert.Equal(2 * record, new FileInfo(host).Length);        // alone again: buffered
             reg.Close("A");
             Assert.Equal("00", reg.Status("A"));
-            Assert.Equal(3 * record, new FileInfo(host).Length);        // CLOSE releases the rest
+            Assert.Equal(2 * record, new FileInfo(host).Length);        // CLOSE releases them
         }
         finally { FileHarness.TryDelete(host); }
     }
 
-    /// <summary>A sibling OPEN OUTPUT truncates the file an open INPUT connector has read ahead of (admitted at COBOL-85, where
-    /// Table 19 is not asked): the reader's next READ selects an existing record of the physical file (§2023:14.9.30.4 GR21c, and
-    /// the truncated file holds none, so it is the at end condition ('10') whether or not the truncating connector has written
-    /// anything yet. Fails on a reader serving its read-ahead of records the file no longer holds. The control arm writes first:
-    /// the reader, positioned after its first record, finds the new second record, never one of the old ones.</summary>
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public void AtCobol85_ASiblingOutputThatTruncatesTheFileIsHeardByAnOpenReader(bool writeAfterTruncating)
-    {
-        string host = FileHarness.Tmp($"pb670-truncated-{writeAfterTruncating}");
-        try
-        {
-            FileHarness.Seed(host, FileOrg.Sequential, Enumerable.Range(1, 50).Select(i => $"O{i:D3}").ToArray());
-            var reg = new FileRegistry();
-            foreach (string name in new[] { "A", "B" })
-                FileHarness.Register(reg, name, host, FileOrg.Sequential, sharing: null, edition: Cobol85);
-            FileHarness.Open(reg, "A", FileOpenMode.Input);
-            Assert.Equal("00", FileHarness.ReadNext(reg, "A", out _));        // fills the read-ahead with the later records too
-
-            FileHarness.Open(reg, "B", FileOpenMode.Output);
-            Assert.Equal("00", reg.Status("B"));                              // admitted: no sharing facility at 85
-            Assert.Equal(0, new FileInfo(host).Length);                       // …and it truncated
-
-            if (writeAfterTruncating)
-            {
-                Assert.Equal("00", FileHarness.Write(reg, "B", FileOrg.Sequential, 1, "NEW1"));
-                Assert.Equal("00", FileHarness.Write(reg, "B", FileOrg.Sequential, 2, "NEW2"));
-                Assert.Equal("00", FileHarness.ReadNext(reg, "A", out string found));   // the reader had read record 1 already
-                Assert.Equal(FileHarness.Rec(2, "NEW2"), found);
-            }
-            else
-                Assert.Equal(FileStatusCode.AtEnd, FileHarness.ReadNext(reg, "A", out _));
-            reg.CloseAll();
-        }
-        finally { FileHarness.TryDelete(host); }
-    }
-
-    /// <summary>The sibling arms of <see cref="AtCobol85_ASiblingOutputThatTruncatesTheFileIsHeardByAnOpenReader"/>: a keyed
-    /// store (RELATIVE, INDEXED) reads the store afresh at every statement, so an open reader's next READ meets the truncated
-    /// store's empty file the same way (§2023:14.9.30.4 GR21, the at end condition).</summary>
-    [Theory]
-    [InlineData(FileOrg.Relative)]
-    [InlineData(FileOrg.Indexed)]
-    public void AtCobol85_ASiblingOutputThatTruncatesAKeyedStoreIsHeardByAnOpenReader(FileOrg org)
-    {
-        string host = FileHarness.Tmp($"pb670-truncated-{org}");
-        try
-        {
-            FileHarness.Seed(host, org, Enumerable.Range(1, 50).Select(i => $"O{i:D3}").ToArray());
-            var reg = new FileRegistry();
-            foreach (string name in new[] { "A", "B" })
-                FileHarness.Register(reg, name, host, org, sharing: null, edition: Cobol85);
-            FileHarness.Open(reg, "A", FileOpenMode.Input);
-            Assert.Equal("00", FileHarness.ReadNext(reg, "A", out _));
-            FileHarness.Open(reg, "B", FileOpenMode.Output);
-            Assert.Equal("00", reg.Status("B"));
-            Assert.Equal(FileStatusCode.AtEnd, FileHarness.ReadNext(reg, "A", out _));
-            reg.CloseAll();
-        }
-        finally { FileHarness.TryDelete(host); }
-    }
-
-    /// <summary>The controls of <see cref="AtCobol85_ALoneWriterBuffers_AndASiblingThatArrivesFindsWhatWasWritten"/>: from
+    /// <summary>The controls of <see cref="AtCobol85_AWriterBuffers_AndARefusedSiblingReleasesNothing"/>: from
     /// 2002 the posture is fixed at OPEN by the sharing mode, so a clause-less OUTPUT (NO OTHER) buffers whether or not a sibling
     /// could exist, and SHARING WITH ALL OTHER releases every record at once, alone or not.</summary>
     [Theory]
@@ -429,56 +306,5 @@ public sealed class SharingFacilityEditionTests
             reg.Close("A");
         }
         finally { FileHarness.TryDelete(host); }
-    }
-
-    /// <summary>A host that refuses the earlier writer's buffered records when a sibling arrives (the OPEN asks for the release):
-    /// the sibling's OPEN is not the statement that failed to store them, so it answers '00', and the refusal is the writer's
-    /// own, at its next WRITE ('30', or '34' where the medium is full; §2023:9.1.13.6 items 1 and 3) — never an escaping
-    /// exception, and never lost. Windows refuses a write into a byte range another handle has LOCKED; Linux's
-    /// <c>/dev/full</c> refuses every write with ENOSPC. A host with neither must be neither of them, so the test cannot pass on a
-    /// CI host by not running.</summary>
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public void AtCobol85_AHostRefusalOfTheEarlierWritersRecordsIsTheWritersOwnAtItsNextWriteOrClose(bool writeAgain)
-    {
-        bool windows = OperatingSystem.IsWindows();
-        const string full = "/dev/full";
-        if (!windows && !File.Exists(full))
-        {
-            Assert.False(OperatingSystem.IsLinux(), "a Linux host provides /dev/full; the refusal was not exercised");
-            return;
-        }
-        string host = windows ? FileHarness.Tmp("pb670-lazy-refused") : full;
-        try
-        {
-            var reg = new FileRegistry();
-            foreach (string name in new[] { "A", "B" })
-                FileHarness.Register(reg, name, host, FileOrg.Sequential, sharing: null, edition: Cobol85);
-            FileHarness.Open(reg, "A", FileOpenMode.Output);
-            Assert.Equal("00", reg.Status("A"));
-            FileStream? locker = null;
-            try
-            {
-                if (windows)
-                {
-                    locker = new FileStream(host, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
-                    locker.Lock(0, 1024);
-                }
-                Assert.Equal("00", FileHarness.Write(reg, "A", FileOrg.Sequential, 1, "AAAA"));   // alone: buffered, nothing refused yet
-                FileHarness.Open(reg, "B", FileOpenMode.Input);
-                Assert.Equal("00", reg.Status("B"));                                              // the opener is not the failing statement
-                string refused = windows ? FileStatusCode.PermanentError : FileStatusCode.PermanentBoundary;
-                if (writeAgain) Assert.Equal(refused, FileHarness.Write(reg, "A", FileOrg.Sequential, 2, "BBBB"));
-                else
-                {
-                    reg.Close("A");   // the CLOSE is the next statement that owns the bytes: its final flush answers the host's refusal
-                    Assert.Equal(FileStatusCode.PermanentError, reg.Status("A"));
-                }
-            }
-            finally { locker?.Dispose(); }
-            reg.CloseAll();
-        }
-        finally { if (windows) FileHarness.TryDelete(host); }
     }
 }

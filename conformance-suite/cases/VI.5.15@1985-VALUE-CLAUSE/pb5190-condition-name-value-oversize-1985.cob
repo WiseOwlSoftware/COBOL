@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb5190-condition-name-value-oversize-1985
-      *> rules: [1985-SR-VI.5.15.3-3]
+      *> rules: [1985-SR-VI.5.15.3-3, SR-13.18.63.3-4]
       *> source-format: fixed
       *> portable: unverified
       *>---

@@ -1,6 +1,6 @@
 *>--- conformance-case
 *> id: declined-ec-flow-apply-commit-use
-*> rules: []
+*> rules: [GR-12.4.6.3.4-3]
 *> accept: [2023]
 *> source-format: free
 *> portable: unverified

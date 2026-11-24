@@ -416,28 +416,24 @@ share one file were refused by the host, the second OPEN answering '30' — a st
 §2023:9.1.13.9 item produces — and its mirror, measured across processes, had a `SHARING WITH NO OTHER` connector
 admit a foreign append to a file the program had declared exclusive.)
 
-**The whole of the above is the COBOL-2002 FILE SHARING FACILITY, and a COBOL-85 program has none of it (kb/Work PB670, owner
-2026-10-23, option (i); `DialectBehavior.FileSharingFacility`, VCR row 7.39).** File sharing and record locking is an optional
-module (Annex A.4.7), §2023:A.4.1 makes its rules and its I-O status values optional with it, and its clauses are 2002 introductions, so
-at `--std 85` (`FileConnector.Edition`, baked into the connector at registration) `FileConnector.SharingFacilityInEffect` is false and
-the runtime asks the question in ONE place per job: `SharedOpenAttempt` does not run the Table 19 loop, and the connector's default
-mode (`ImplementorDefaultSharing(mode, edition)`) is ALL OTHER — §2023:9.1.15's "a mode completely specified by the implementor", standing for
-the one that restricts nobody, whose host share mode (`FileShare.ReadWrite`) admits every sibling handle of the run unit in every open
-mode; `FileConnector.Open` takes no `RunUnitFileLock` (a column lock would refuse an in-process sibling like any other holder: the
-OFD and handle locks do not know a process's own descriptors), and a host refusal by a process outside the run unit answers `'30'`
-(§2023:9.1.13.6 GR1), because `'61'` is a status the 1985 edition does not define. Every pair of opens is therefore a normal open, and
-the engines meet the states Table 19 used to keep out: a keyed `OPEN OUTPUT` beside connectors that hold the file creates the new store
-and `StoreTable.AttachCreated(…, arbitrated: false)` makes it the path's (the holders keep the store they have; what they find in the file
-is the engine's own word, an at-end `'10'` for a created file with no records, §2023:14.9.27.4 GR18). From 2002 the guard of PB754 stays loud
-(`arbitrated: true` throws on a creation beside a holder). **The ALL OTHER default is a statement about what the host handle ADMITS,
-not about what a lone connector DOES (review R1-1 of PB670).** A connector pays for a sibling only while one is open: from 2002 the
-file lock fixed at OPEN decides it (`FileLockPosture.AdmitsAnotherRunUnit`), and at 85 `FileConnector.OtherConnectorsMayShare` also
-asks whether another connector of the run unit is open on the physical file (`PhysicalFileTable.State.Open`). Where none is, a
-sequential writer keeps its records in its input-output areas until the area fills or the CLOSE (GR12 releases to the operating
-environment, as the 2002 clause-less OUTPUT does), and a reader compares only the release generation, with no re-anchor per frame.
-A sibling that OPENs later is owed what was already written: `SharedOpenAttempt` asks every connector open on the file to
-`ReleaseBufferedRecords` before the incoming body runs, and a host refusal met there is held by the writer and reported by its own
-next WRITE or CLOSE (`'34'` or `'30'`), never by the opener. No run unit is promised another's records at 85 (A.4.1).
+**The whole of the above is the COBOL-2002 FILE SHARING FACILITY, and a COBOL-85 program has none of it; 1985's own rule
+answers in its place (kb/Work PB6161, owner 2026-11-24, replacing PB670's option (i); `DialectBehavior.FileSharingFacility`, VCR
+row 7.39).** File sharing and record locking is an optional module (Annex A.4.7), §2023:A.4.1 makes its rules and its I-O status
+values optional with it, and its clauses are 2002 introductions, so at `--std 85` (`FileConnector.Edition`, baked into the
+connector at registration) `FileConnector.SharingFacilityInEffect` is false. 1985 keys its status 41 to the PHYSICAL file: "file"
+means "the physical file regardless of the file-name used in the COBOL program" (§1985:II.2), a second OPEN of it must follow a
+CLOSE (§1985:VII.4.3.4 GR5), and status 41 is "An OPEN statement is attempted for a file in the open mode" (§1985:VII.1.3.5).
+So `SharedOpenAttempt` answers `'41'` for an OPEN of a physical file another connector of the run unit holds open, in every pair
+of modes, before the connector's body runs (the file is not affected), where from 2002 the same loop asks Table 19 (41 being keyed
+to the file connector there, §2002:9.1.12.6, §2023:9.1.13.7 GR1). Two ASSIGN values name one physical file when they reach one host
+path (WiseOwl's mapping, §1985:VII.2.3.3 SR3). Toward OTHER run units 85 promises nothing: the default mode
+(`ImplementorDefaultSharing(mode, edition)`) is ALL OTHER, whose host share mode refuses no handle, `FileConnector.Open` takes no
+`RunUnitFileLock`, and a host refusal by a process outside the run unit answers `'30'` (§2023:9.1.13.6 GR1), `'61'` being a status
+the 1985 edition does not define. Since no sibling of the run unit can be open beside a connector, a COBOL-85 sequential writer
+keeps its records in its input-output areas until the area fills or the CLOSE (`FileConnector.OtherConnectorsMayShare` is false
+at 85; GR12 releases to the operating environment, as the 2002 clause-less OUTPUT does), and its reader compares only the release
+generation. The keyed `StoreTable.AttachCreated` keeps PB754's loud guard at every edition: an OPEN OUTPUT beside a holder of
+the run unit is refused before it (Table 19 from 2002, 41 at 85).
 
 **The §2023:9.1.15 FILE LOCK AGAINST OTHER RUN UNITS is Table 19 itself: `RunUnitFileLock` (`IO/Sharing/`), taken by
 `FileConnector.Open` (kb/Work PB833).** The share mode above is what a process that takes part in no protocol

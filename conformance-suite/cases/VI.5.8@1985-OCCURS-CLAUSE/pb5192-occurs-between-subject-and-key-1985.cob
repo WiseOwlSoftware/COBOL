@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb5192-occurs-between-subject-and-key-1985
-      *> rules: [1985-SR-VI.5.8.3-12]
+      *> rules: [1985-SR-VI.5.8.3-12, SR-13.18.38.3-4]
       *> source-format: fixed
       *> portable: unverified
       *>---

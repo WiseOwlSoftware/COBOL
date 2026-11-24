@@ -175,6 +175,41 @@ def case_07_a_summary_of_elements_table_title_is_one_underlined_line_and_no_head
                  _found(module, "summary-of-elements table title"), [])
 
 
+
+def case_08_a_summary_of_differences_table_title_is_one_underlined_line_and_no_heading(expect):
+    page = GOOD + "\n## Page 737\n\n{}\n\n| ELEMENT | 2ND STD | 3RD STD |\n|---|---|---|\n| REDEFINES clause | 1 NUC | 1 NUC |\n"
+    expect.equal("the one form passes", _found(page.format("<u>SUMMARY OF DIFFERENCES IN DATA DIVISION</u>"),
+                                              "summary-of-differences table title"), [])
+    for what, bad in (("a level-1 heading", "# <u>SUMMARY OF DIFFERENCES IN DATA DIVISION</u>"),
+                      ("a level-2 heading", "## <u>SUMMARY OF DIFFERENCES IN DATA DIVISION</u>"),
+                      ("bold", "**<u>SUMMARY OF DIFFERENCES IN DATA DIVISION</u>**"),
+                      ("not underlined", "SUMMARY OF DIFFERENCES IN DATA DIVISION")):
+        expect(f"{what} is named", bool(_found(page.format(bad), "summary-of-differences table title")))
+    numbered = GOOD + "\n## Page 724\n\n## 1. <u>SUMMARY OF DIFFERENCES BETWEEN SECOND AND THIRD STANDARD COBOL</u>\n"
+    expect.equal("the numbered clause heading SUMMARY OF DIFFERENCES BETWEEN ... is no table title",
+                 _found(numbered, "summary-of-differences table title"), [])
+
+
+def case_09_the_level_2_box_marking_agrees_with_its_neighbours(expect):
+    rule = GOOD + "\n## Page 419\n\nb. The current record is moved. {}\n"
+    expect.equal("an underline wholly outside a box, and a box holding a whole underline, pass",
+                 _found(rule.format("<u>Moved first.</u> ║If <u>VARYING</u>, a group move.║ The move"), "box side"), [])
+    expect("an underline opened outside a box and closed inside it is named (pass 5 p419-1)",
+           bool(_found(rule.format("<u>The size is set. ║If VARYING, a group move.</u>║ The move"), "crosses a level-2 box side")))
+    expect("an underline opened inside a box and closed outside it is named",
+           bool(_found(rule.format("║If <u>VARYING, a group move.║ The</u> move"), "crosses a level-2 box side")))
+    expect.equal("an underline in a code span is no markup", _found(rule.format("`<u>a ║b</u>║`"), "box side"), [])
+    boxed = GOOD + "\n## Page 240\n\n#### ║3.4.2 General Format║\n\n<pre style=\"line-height:1\">\n{}\n</pre>\n\n#### ║3.4.3 Syntax Rules║\n\nVI-8\n"
+    expect("a figure between two box-marked lines with no box sides is named (pass 5 p240-1)",
+           bool(_found(boxed.format("<u>DATE-COMPILED</u>. [ comment-entry ] …"), "carries no box sides")))
+    expect.equal("the figure carrying its box sides passes",
+                 _found(boxed.format("║ <u>DATE-COMPILED</u>. [ comment-entry ] … ║"), "box sides"), [])
+    expect.equal("a figure boxed with corners passes", _found(boxed.format("╔ A ╗\n║ B ║\n╚ C ╝"), "box sides"), [])
+    expect.equal("a drawn flowchart inside a box carries none of its own", _found(boxed.format("Entrance\n   │\n   ▼"), "box sides"), [])
+    plain = GOOD + "\n## Page 241\n\n#### 4.2.2 General Format\n\n<pre style=\"line-height:1\">\nA\n</pre>\n\n║(1) A rule.║\n"
+    expect.equal("a figure with a box-marked line on one side only is not named", _found(plain, "box sides"), [])
+
+
 if __name__ == "__main__":
     ensure_utf8()
     sys.exit(selftest_cases.run(sys.modules[__name__]))

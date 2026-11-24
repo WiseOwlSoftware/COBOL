@@ -16,7 +16,7 @@ internal static class BackendContract
     [
         new(NeutralKind.CobolWord,
         [
-            "Bound.BoundAlterEntry.NewName", "Bound.BoundDebugSubject.SubjectName", "Bound.BoundDebugTarget.Name", "Bound.BoundDeclarative.SectionName", "Bound.BoundExceptionMatch.OpenMode",
+            "Bound.BoundAlterEntry.NewName", "Bound.BoundDebugSubject.SubjectName", "Bound.BoundDebugTarget.Name", "Bound.BoundDeclarative.SectionName",
             "Bound.BoundMethod.CobolName", "Bound.BoundNumLiteral.FoldedFunction", "Bound.BoundNumericLiteral.FoldedFunction",
             "Bound.BoundParagraph.CobolName", "Bound.BoundProgramAddress.Prototype", "Bound.BoundSendToServer.ServerName",
             "Bound.BoundSetSwitches.Switches", "Bound.BoundSwitchCondition.ImplementorName",
@@ -156,10 +156,10 @@ internal static class BackendContract
         ]),
         new(NeutralKind.RuntimeDatum,
         [
-            "Bound.BoundDeclarative.EcEntries", "Bound.BoundIntrinsicCall.OrderingTable",
+            "Bound.BoundDeclarative.EcEntries", "Bound.BoundExceptionSelector.Ec", "Bound.BoundIntrinsicCall.OrderingTable",
             "Bound.BoundRaise.EcName", "Bound.BoundRaise.Location",
             "Bound.BoundRaising.EcName", "Bound.BoundRaising.Location", "Bound.BoundRaising.PdRaising",
-            "Bound.BoundRaising.StatementName", "Bound.BoundWhenOperand.Ec",
+            "Bound.BoundRaising.StatementName",
             "Bound.EcStatementInfo.Enabled", "Bound.EcStatementInfo.Location", "Bound.EcStatementInfo.StatementName",
             // the key of the AS NESTED callee table: an externalized program-name, the run-time program table's (kb/Work PB5932)
             "Model.ExternalizedProgramName._name",

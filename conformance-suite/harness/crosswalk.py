@@ -3,7 +3,8 @@
 section 6.3, kb/Work PB6049).
 
     python conformance-suite/harness/crosswalk.py             # the map's counts, one verdict line
-    python conformance-suite/harness/crosswalk.py --build     # write tests/nist/crosswalk/<program>.json for every program
+    python conformance-suite/harness/crosswalk.py --build     # write tests/nist/crosswalk/<program>.json for every program,
+                                                              # every adjudicated entry kept verbatim
     python conformance-suite/harness/crosswalk.py --check     # the audit: every file agrees with its program and the catalog
 
 THE UNIT is NIST's own test (section 6.3): one paragraph-name test (a distinct `MOVE "<name>" TO PAR-NAME` literal of a
@@ -13,7 +14,10 @@ never dropped. The 17 FIPS programs (the ones whose flags expect NON-CONFORMING 
 every one `excluded` with the reason `fips-pub-21-1`.
 
 THE MAP is mechanical and says so (`basis: "mechanical"`): NIST's references seed it and never decide it (section 6.3).
-A unit's `ANSI-REFERENCE` is the last one its program moved before the unit's `PAR-NAME` move, read as page and section
+An entry whose basis is `adjudicated: <reason>` is an ADJUDICATION (Stage 4, PB4696; any other basis is refused): `--build` merges by unit name and keeps it verbatim,
+and reports it when a program fact it was decided on (its lines, FEATURE, ANSI-REFERENCE or flag) no longer holds or the
+program no longer has its unit; `--check` refuses a file in which a rebuild would change an adjudicated entry (kb/Work
+PB6131). A unit's `ANSI-REFERENCE` is the last one its program moved before the unit's `PAR-NAME` move, read as page and section
 tokens (`VI-106 6.19.4 GR1`) and resolved to the catalog's rows by the section's locator (`VI.6.19.4`). NIST's numbering
 is not the held text's after the ENTER statement (a MULTIPLY unit cites 6.19.4, which the held text gives to MOVE), so a
 reference is believed only when it also agrees with the unit's own words: the FEATURE and paragraph-name words must
@@ -131,8 +135,7 @@ def parse_program(name: str, text: str) -> Program:
     prog = Program(name)
     feature, reference = "", None
     #: the unit named in the init paragraph now being read: a CCVS init paragraph moves PAR-NAME, ANSI-REFERENCE and
-    #: FEATURE in either order, so a unit's own FEATURE and ANSI-REFERENCE are those set before its test paragraph
-    #: header, not only those before its PAR-NAME move
+    #: FEATURE in either order, so a unit's own move of each may come before or after its PAR-NAME move.
     #: A slot a move since the last boundary (a paragraph header or the previous unit's PAR-NAME move) already filled is
     #: that unit's own; for a slot none filled, the FIRST move after the PAR-NAME move and before the next paragraph
     #: header is; every later move is the NEXT unit's (a second print line, a failure branch's FEATURE) and never
@@ -424,12 +427,91 @@ def dump(obj: dict[str, Any]) -> str:
     return json.dumps(obj, indent=1, ensure_ascii=False) + "\n"
 
 
+def write_file(path: Path, obj: dict[str, Any]) -> None:
+    """A crosswalk file: UTF-8 with LF line ends on every host, written as bytes so that no text-mode newline translation
+    can turn `\n` into CRLF on Windows (kb/Work PB6131)."""
+    path.write_bytes(dump(obj).encode("utf-8"))
+
+
+# ── adjudications survive a rebuild ──────────────────────────────────────────────────────────────────────────────────
+
+#: the program's facts an entry records; a mechanical entry and an adjudicated one alike are held to them
+FACTS = ("lines", "feature", "ansi", "flag")
+
+
+#: the one form of an adjudication's basis (design 6.3): the word, a colon, a space and the reason it was decided on
+ADJUDICATED = "adjudicated: "
+
+
+def adjudicated(entry: dict[str, Any]) -> bool:
+    """An entry the tool does not reproduce: its basis is `adjudicated: <reason>`, a decision a rebuild keeps."""
+    basis = entry.get("basis")
+    return isinstance(basis, str) and basis.startswith(ADJUDICATED) and bool(basis[len(ADJUDICATED):].strip())
+
+
+def basis_problems(where: str, entry: dict[str, Any]) -> list[str]:
+    """An entry's basis is exactly `mechanical` or `adjudicated: <reason>`; any other (missing, `Mechanical`, a trailing
+    blank, `adjudicated` with no reason) is a broken record, refused loudly by `--build` and `--check` alike (kb/Work
+    PB6131 review R1-1), never read as either."""
+    if entry.get("basis") == BASIS or adjudicated(entry):
+        return []
+    return [f"{where}: basis {entry.get('basis')!r} is neither {BASIS!r} nor {ADJUDICATED!r} and a reason"]
+
+
+def fact_problems(where: str, want: dict[str, Any], have: dict[str, Any]) -> list[str]:
+    """Each fact of the program an entry records that the program now contradicts."""
+    return [f"{where}: {k} is {have.get(k)!r}, the program says {want.get(k)!r}" for k in FACTS if have.get(k) != want.get(k)]
+
+
+def merge(fresh: dict[str, Any], stored: dict[str, Any] | None) -> tuple[dict[str, Any], int, list[str]]:
+    """The file a rebuild writes: the fresh mechanical map with each adjudicated entry of the stored file, verbatim, in
+    place of its unit's mechanical one. Returns (file, adjudicated entries kept, conflicts). A conflict is a kept
+    adjudication whose program facts no longer hold, or whose unit the program no longer has (kept after the program's
+    units, so the decision is never lost, and `--check` names it), or a stored entry whose basis is neither form
+    (`basis_problems`): it is kept too, since it may be a decision written wrong, and never silently replaced. A unit
+    kept twice fails loudly: neither entry can be told to be the decision."""
+    program = fresh["program"]
+    kept: dict[str, dict[str, Any]] = {}
+    conflicts: list[str] = []
+    for u in (stored or {}).get("units", []):
+        if u.get("basis") != BASIS:
+            conflicts += [f"{p} (entry kept: correct its basis)" for p in basis_problems(f"{program}:{u.get('unit')}", u)]
+            if u.get("unit") in kept:
+                raise CrosswalkError(f"{program}: unit {u.get('unit')} is adjudicated twice; resolve it by hand")
+            kept[u.get("unit")] = u
+    units = []
+    for u in fresh["units"]:
+        have = kept.pop(u["unit"], None)
+        if have is not None:
+            conflicts += [f"{p} (adjudicated entry kept: re-adjudicate it)"
+                          for p in fact_problems(f"{program}:{u['unit']}", u, have)]
+        units.append(have if have is not None else u)
+    for name, have in kept.items():
+        conflicts.append(f"{program}:{name}: an adjudicated entry of no unit of the program (kept: re-adjudicate it)")
+        units.append(have)
+    return fresh | {"units": units}, sum(1 for u in units if adjudicated(u)), conflicts
+
+
 def read_programs(directory: Path = PROGRAMS) -> dict[str, str]:
     return {p.stem: p.read_text(encoding="latin-1") for p in sorted(directory.glob("*.cob"))}
 
 
 def build_all(catalog: Catalog, programs: dict[str, str]) -> dict[str, dict[str, Any]]:
     return {n: build_program(catalog, n, t) for n, t in programs.items()}
+
+
+def read_file(path: Path) -> dict[str, Any] | None:
+    return json.loads(path.read_text(encoding="utf-8")) if path.is_file() else None
+
+
+def build(catalog: Catalog, programs: dict[str, str], directory: Path) -> tuple[int, int, list[str]]:
+    """`--build`: write every program's file, its adjudicated entries kept (`merge`). Every file is merged before any is
+    written, so a file `merge` refuses leaves the directory as it was. Returns (files, adjudicated kept, conflicts)."""
+    merged = {n: merge(obj, read_file(directory / f"{n}.json")) for n, obj in build_all(catalog, programs).items()}
+    directory.mkdir(parents=True, exist_ok=True)
+    for name, (obj, _, _) in merged.items():
+        write_file(directory / f"{name}.json", obj)
+    return len(merged), sum(k for _, k, _ in merged.values()), [c for _, _, cs in merged.values() for c in cs]
 
 
 # ── the audit and the term ───────────────────────────────────────────────────────────────────────────────────────────
@@ -455,7 +537,19 @@ def audit(catalog: Catalog, programs: dict[str, str], directory: Path) -> list[s
             problems.append(f"{name}: the unenumerated sites disagree with the program")
         for n in sorted(set(want) & set(have)):
             problems += audit_unit(catalog, name, want[n], have[n])
+        problems += rebuild_problems(fresh[name], stored)
     return problems
+
+
+def rebuild_problems(fresh: dict[str, Any], stored: dict[str, Any]) -> list[str]:
+    """Each adjudicated entry of a stored file that the rebuild (`merge`, the one `--build` writes through) would not
+    write back verbatim (kb/Work PB6131). A stale adjudication `merge` keeps and reports is `audit_unit`'s to name."""
+    try:
+        rebuilt = merge(fresh, stored)[0]["units"]
+    except CrosswalkError as e:
+        return [str(e)]
+    return [f"{fresh['program']}:{u.get('unit')}: a rebuild would change this adjudicated entry"
+            for u in stored.get("units", []) if adjudicated(u) and u not in rebuilt]
 
 
 def audit_elements(spec: str) -> list[str]:
@@ -478,8 +572,7 @@ def audit_elements(spec: str) -> list[str]:
 
 def audit_unit(catalog: Catalog, program: str, want: dict[str, Any], have: dict[str, Any]) -> list[str]:
     where = f"{program}:{have['unit']}"
-    problems = [f"{where}: {k} is {have.get(k)!r}, the program says {want.get(k)!r}"
-                for k in ("lines", "feature", "ansi", "flag") if have.get(k) != want.get(k)]
+    problems = fact_problems(where, want, have) + basis_problems(where, have)
     disposition = have.get("disposition")
     if disposition not in DISPOSITIONS:
         return problems + [f"{where}: disposition {disposition!r} is none of {', '.join(DISPOSITIONS)}"]
@@ -559,12 +652,13 @@ def main(argv: list[str]) -> int:
     programs = read_programs()
     try:
         if args.build:
-            CROSSWALK.mkdir(parents=True, exist_ok=True)
-            built = build_all(catalog, programs)
-            for name, obj in built.items():
-                (CROSSWALK / f"{name}.json").write_bytes(dump(obj).encode("utf-8"))
-            print(f"  wrote {len(built)} file(s) to {CROSSWALK.relative_to(REPO).as_posix()}")
-            return 0
+            files, kept, conflicts = build(catalog, programs, CROSSWALK)
+            for c in conflicts:
+                print(f"  {c}")
+            print(f"{VERDICT}BUILD {'RED' if conflicts else 'GREEN'}: wrote {files} file(s) to "
+                  f"{CROSSWALK.relative_to(REPO).as_posix()}, {kept} adjudicated entr{'y' if kept == 1 else 'ies'} kept "
+                  f"verbatim, {len(conflicts)} conflict(s) ===")
+            return 1 if conflicts else 0
         if args.check:
             problems = audit_elements(SPEC_1985.read_text(encoding="utf-8")) + audit(catalog, programs, CROSSWALK)
             for p in problems[:50]:

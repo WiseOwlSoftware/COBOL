@@ -111,20 +111,42 @@ public static class CobolLiteral
     /// PB71): the VALUE-clause validator computed the class from <c>raw[0]</c>/<c>raw[1]</c> and so refused the
     /// Format-2 hexadecimal spellings (<c>NX"…"</c>, <c>BX"…"</c>) and every <c>ALL literal</c>; the ALL-figurative
     /// binder tested two token kinds of four. Both ask this now.</summary>
-    public static LiteralClass? ClassOf(string raw) => SplitLiteral(raw) switch
+    public static LiteralClass? ClassOf(string raw) => SplitLiteral(raw) is { } lit ? ClassOfPrefix(lit.Prefix) : null;
+
+    /// <summary>The class and format of a delimited literal TOKEN by its written prefix — the question
+    /// <see cref="ClassOf"/> and <see cref="IsHexadecimalFormat"/> answer, asked of a token the lexer made one of its four
+    /// quoted-literal tokens, so it opens a delimiter by construction but may not close one (an open literal is the
+    /// token of a line that ends inside it, COBOL5563, kb/Work PB3245, and the bind still reads it). The class is the
+    /// prefix's whether or not the literal closes, as the lexer's token kind is. ⛔ The one reader of the parser's
+    /// <c>quotedLiteral</c> node asks this (<c>Parsing.QuotedLiteral</c>, kb/Work PB2725); text that opens no delimiter
+    /// is no such token and throws.</summary>
+    public static (LiteralClass Class, bool Hexadecimal) FormOfToken(string token)
     {
-        null => null,
-        ("N" or "NX", _) => LiteralClass.National,
-        ("B" or "BX", _) => LiteralClass.Boolean,
+        int open = OpeningDelimiterAt(token);
+        if (open < 0)
+            throw new System.ArgumentException($"'{token}' opens no delimited literal, so it is no quoted-literal token", nameof(token));
+        string prefix = token[..open].ToUpperInvariant();
+        return (ClassOfPrefix(prefix), IsHexadecimalPrefix(prefix));
+    }
+
+    /// <summary>The class a written prefix (upper-cased) gives its literal: <c>N</c>/<c>NX</c> national (§2023:8.3.3.5.1),
+    /// <c>B</c>/<c>BX</c> boolean (§2023:8.3.3.4.1), none or <c>X</c> alphanumeric (§2023:8.3.3.2.1).</summary>
+    private static LiteralClass ClassOfPrefix(string prefix) => prefix switch
+    {
+        "N" or "NX" => LiteralClass.National,
+        "B" or "BX" => LiteralClass.Boolean,
         _ => LiteralClass.Alphanumeric,
     };
+
+    /// <summary>Whether a written prefix (upper-cased) is a hexadecimal format's: <c>X</c>, <c>NX</c> or <c>BX</c>.</summary>
+    private static bool IsHexadecimalPrefix(string prefix) => prefix is "X" or "NX" or "BX";
 
     /// <summary>True when <paramref name="raw"/> is written in a HEXADECIMAL FORMAT — <c>X"…"</c> (§2023:8.3.3.2 Format 2),
     /// <c>NX"…"</c> (§2023:8.3.3.5.2 Format 2) or <c>BX"…"</c> (§2023:8.3.3.4.2 Format 2). ⛔ THE ONE hexadecimal-format question,
     /// asked of the parsed PREFIX (the classifier's own) and never of a second <c>text[0] is 'X'</c> test: the rules
     /// that treat a hexadecimal literal apart from its decoded characters (§2023:12.3.7.3 SR19 and SR26 — a currency literal
     /// "in hexadecimal format") need the FORM, which the decoded characters cannot tell (kb/Work PB791).</summary>
-    public static bool IsHexadecimalFormat(string raw) => SplitLiteral(raw) is { Prefix: "X" or "NX" or "BX" };
+    public static bool IsHexadecimalFormat(string raw) => SplitLiteral(raw) is { } lit && IsHexadecimalPrefix(lit.Prefix);
 
     /// <summary>True when <paramref name="raw"/> opens a delimited literal with an APOSTROPHE — <c>'…'</c>, <c>X'…'</c>,
     /// <c>N'…'</c>, <c>NX'…'</c>, <c>B'…'</c>, <c>BX'…'</c> — closed or not. ⛔ THE ONE delimiter question, asked of the

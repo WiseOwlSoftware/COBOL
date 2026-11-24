@@ -185,7 +185,8 @@ public static class PictureAnalyzer
         // §2023:12.3.7.3 SR28's input — the class of the literal-7 behind the symbol THIS picture uses; null when it uses
         // none (the default below is only what the whitelist/editing checks see, not a symbol the picture wrote).
         // A symbol whose clause was refused for its string has no known class (kb/Work PB1920): SR28 is not asked.
-        LiteralClass? currencyClass = cs == '\0' || currencySet[cs].ClauseRefused ? null : currencySet[cs].LiteralClass;
+        // The default '$' of COBOL-2002 has no literal-7 at all (§2002:12.2.6.2 SR24 speaks only of one that is written; kb/Work PB5614).
+        LiteralClass? currencyClass = cs == '\0' || currencySet[cs].ClauseRefused || currencySet[cs].IsDefaultSign ? null : currencySet[cs].LiteralClass;
         if (cs == '\0') cs = '$';   // no currency symbol in this picture: the whitelist/editing checks see the default
         // GR14: the first occurrence contributes the whole string; the mask below is canonical ('$').
         int currencyExtra = runs.Contains(cs) ? currencyString.Length - 1 : 0;
@@ -574,9 +575,10 @@ public static class PictureAnalyzer
             && (literal7Class is LiteralClass.National) != (usage is Usage.National))
             edition.Error(DiagnosticCatalog.CurrencySymbolClassUsage, $"{where}: the currency symbol of PICTURE {picture} "
                 + $"is defined by a{(literal7Class is LiteralClass.National ? " national" : "n alphanumeric")} literal-7 "
-                + "of a CURRENCY SIGN clause (the clause SR25 implies for '$' is alphanumeric), so it may be used only to "
+                + "of a CURRENCY SIGN clause (written, or implied for '$' from COBOL-2014), so it may be used only to "
                 + $"define a numeric-edited item with usage {(literal7Class is LiteralClass.National ? "national" : "display")}"
-                + $", not one with USAGE {UsageFamilies.UsageWord(usage)} (ISO §2023:12.3.7.3 SR28)");
+                + $", not one with USAGE {UsageFamilies.UsageWord(usage)} ("
+                + edition.Edition.CiteRule("§2002:12.2.6.2 SR24", "§2023:12.3.7.3 SR28", y2002: "§2002:12.2.6.2 SR24", y2014: "§2014:12.3.6.2 SR28") + ")");
 
         // ── §2023:13.18.60.3 SR20 ── "Only the NATIONAL phrase may be specified in a USAGE clause associated with an
         // elementary data item whose explicit or implicit picture character-string contains the symbol 'N'."
@@ -943,8 +945,8 @@ public static class PictureAnalyzer
     /// character-string. All other lowercase letters are not equivalent to their corresponding uppercase representations."
     /// (§1985:VI.5.9.3 SR3) — so under CURRENCY SIGN IS "W" the letter w is no symbol, and the SR2 whitelist refuses it.
     /// SR3 is about the letters of the COBOL character set; a character outside it (a currency symbol such as é) folds by
-    /// <see cref="CurrencySymbolEquivalence.Fold"/>: the invariant uppercase mapping from 2014, itself below (a character such as
-    /// U+017F is no basic letter, §2002:8.1.2.1 GR3; docs/CONFORMANCE.md DOC-A.1-43; kb/Work PB5647).</summary>
+    /// <see cref="CurrencySymbolEquivalence.Fold"/>: the invariant uppercase mapping from 2014, itself below (no equivalence of a
+    /// character outside the repertoire is granted there; docs/CONFORMANCE.md DOC-A.1-43; kb/Work PB5647, PB6162).</summary>
     internal static string FoldPictureCase(string picture, int dialectLevel)
     {
         return string.Create(picture.Length, (picture, dialectLevel), static (span, state) =>
@@ -1358,7 +1360,7 @@ public static class PictureAnalyzer
 /// <c>. ,</c> under DECIMAL-POINT IS COMMA, SR13; kb/Work PB3219) (no floating insertion, no zero suppression with
     /// replacement, no S/V/P/CR/DB/currency; an IS-form EDITING character-1 is simple insertion and admitted, a FOR-form
     /// one is barred by SR12's FOR-phrase rules, kb/Work PB866) — with one point at most (SR12 b)
-    /// and 1..36 digit positions (SR15 — SR14's 31 does not apply). Every symbol of both parts is a character position
+    /// and 1..36 digit positions (SR15 — SR14's 31 does not apply; at COBOL-2002 significand plus exponent digits total 1..31 and the exponent has at most three, §2002:13.16.38.2 SR6 and §2002:13.16.38.3 GR12, <c>DialectBehavior.FloatEditedPictureWideBounds</c>). Every symbol of both parts is a character position
     /// (GR14: E, the point, the insertion symbols and the signs are all counted). Returns a numeric-edited PicInfo
     /// with <see cref="PicInfo.IsFloatEdited"/>; Scale and DigitPositions are 0 (a floating-point item's scale is a
     /// runtime property of its value); the recovery shape on a violation (the compile has failed).</summary>
@@ -1390,16 +1392,22 @@ public static class PictureAnalyzer
         bool IsChar1(char c) => editRules is not null && editRules.Any(r => r.SimpleInsertion && char.ToUpperInvariant(r.Char1) == c);
         int e = expanded.IndexOf('E');
         string sig = expanded[..e], exp = expanded[(e + 1)..];
-        // the exponent: '+' then 1..4 '9's, nothing else (§2023:13.18.40.4 GR13b)
+        // the exponent: '+' then 1..4 '9's (1..3 at COBOL-2002), nothing else (§2023:13.18.40.4 GR13b; §2002:13.16.38.3 GR12)
         if (exp.Any(IsChar1))
         {
             Bad("a PICTURE EDITING character-1 may not appear in the exponent — Table 7 gives the exponent part no "
                 + "editing (ISO §2023:13.18.40.5 Table 7: \"None for the exponent part\")");
             return PicInfo.Recovery(expanded.Length);
         }
-        if (exp.Length < 2 || exp[0] != '+' || exp[1..].Any(c => c != '9') || exp.Length - 1 > 4)
+        // ⛔ The bounds are one register row (kb/Work PB5712): four exponent digits and 36 significand digits from COBOL-2014, three and 31 at 2002.
+        // Below COBOL-2002 the form itself is the construct gate's refusal (COBOL0900, pic-external-float-2002), which a bound's error here would hide.
+        bool wideBounds = DialectBehaviors.IsActive(DialectBehavior.FloatEditedPictureWideBounds, edition.DialectLevel)
+            || !ConstructRegistry.IsAvailable(edition.Edition, Constructs.PicExternalFloat2002);
+        int maxExponent = wideBounds ? 4 : 3;
+        if (exp.Length < 2 || exp[0] != '+' || exp[1..].Any(c => c != '9') || exp.Length - 1 > maxExponent)
         {
-            Bad("the exponent shall be +9, +99, +999 or +9999 (ISO §2023:13.18.40.4 GR13 b)");
+            Bad($"the exponent shall be '+' and 1 to {maxExponent} nines (+9, +99, +999 or +9(n)) ("
+                + edition.Edition.CiteRule("§2002:13.16.38.3 GR12", "§2023:13.18.40.4 GR13 b", y2002: "§2002:13.16.38.3 GR12", y2014: "§2014:13.18.40.3 GR12") + ")");
             return PicInfo.Recovery(expanded.Length);
         }
         // the significand: an optional leading fixed sign, then Table 10 row E's symbols only
@@ -1439,7 +1447,24 @@ public static class PictureAnalyzer
                 + (decimalPointIsComma ? "; SR13 — the rules for the symbol period apply to the symbol comma)" : ")"));
             return PicInfo.Recovery(expanded.Length);
         }
-        if (digits < 1 || digits > 36) { Bad($"the significand carries {digits} digit position(s) — it shall carry 1 to 36 (ISO §2023:13.18.40.3 SR15)"); return PicInfo.Recovery(expanded.Length); }
+        // §2002:13.16.38.2 SR6 counts "the number of digit positions described by character-string-1", and a floating-point
+        // edited character-string-1 is both parts (§2002:13.16.38.3 GR12b; the exponent's 9s are digit positions, §2002:13.16.38.4 GR8),
+        // so at COBOL-2002 significand + exponent digits shall total 1..31. COBOL-2014 split the rule: its SR12 bounds the significand alone.
+        int exponentDigits = exp.Length - 1;
+        int maxSignificand = wideBounds ? 36 : 31;
+        int countedDigits = wideBounds ? digits : digits + exponentDigits;
+        if (digits < 1 || countedDigits > maxSignificand)
+        {
+            // 2002 counts both parts, so the message names the sum of its parts; from 2014 only the significand counts.
+            string counted = edition.Edition.Cite(
+                $"the PICTURE counts {countedDigits} digit position(s) (significand {digits} + exponent {exponentDigits})",
+                $"the PICTURE's significand has {digits} digit position(s)",
+                y2002: $"the PICTURE counts {countedDigits} digit position(s) (significand {digits} + exponent {exponentDigits})",
+                y2014: $"the PICTURE's significand has {digits} digit position(s)");
+            Bad($"{counted} — the limit is 1 to {maxSignificand} ("
+                + edition.Edition.CiteRule("§2002:13.16.38.2 SR6", "§2023:13.18.40.3 SR15", y2002: "§2002:13.16.38.2 SR6", y2014: "§2014:13.18.40.2 SR12") + ")");
+            return PicInfo.Recovery(expanded.Length);
+        }
         // ⛔ THE §2023:13.18.60.3 USAGE × PICTURE SCREEN, asked through the ONE function (kb/Work PB646). This arm
         // used to carry its own SR12 half — a hand-written staging of the national form — and NOTHING else, so
         // a floating-point edited picture under USAGE BINARY/COMP/PACKED slipped past SR3 entirely.

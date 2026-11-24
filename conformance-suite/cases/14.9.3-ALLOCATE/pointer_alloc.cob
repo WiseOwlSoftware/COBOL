@@ -1,6 +1,6 @@
 *>--- conformance-case
 *> id: pointer_alloc
-*> rules: [GR-14.9.3.4-3, GR-14.9.3.4-4]
+*> rules: [GR-14.9.3.4-3, GR-14.9.3.4-4, FMT-14.9.3.2, SR-14.9.3.3-2]
 *> accept: [2002]
 *> source-format: free
 *> portable: unverified

@@ -787,7 +787,7 @@ grapheme table and the run unit's default locale) lives in `Control/` in `WiseOw
 one product caller, and its `RuntimeConfig` row (kb/Work PB2760). `WiseOwl.Cobol.Runtime.Collation` therefore names no
 type of the root namespace, of `.Unicode`, `.Unicode.Segmentation` or `.Collation.Locale`, and sits below values in the
 runtime's layer table. One edge remains to place: `.Collation.Locale` reads the run unit's locale state
-(`LocaleManager` → `RunUnit.Current.Locale`, `LocaleConfig` → `LocaleState`), and the control layer's warm-up resolves
+(`LocaleManager` → `RunUnit.Current.Locale`), and the control layer's warm-up resolves
 the default locale through `LocaleManager`, so `Runtime ↔ Runtime.Collation.Locale` is one layer, control, by
 placement, as `Runtime ↔ Runtime.IO` is until the Move waves give `Control/` its namespace and the locale selector its
 place in it.
@@ -1600,7 +1600,22 @@ PAGE-COUNTER and LINE-COUNTER for `CounterResolver`, but the resolver holds no a
 stops at `SpecialRegister` and the statement binder routes them to `BoundLinageCounterRef` / `BoundReportCounterRef`); the code that
 was a counter in the resolver is the REPORT SECTION SUM counter (§2023:13.18.54.4 GR5), which is what the type owns.
 `ReferenceResolver` stays the funnel (`Identify`, the three `RefResolution` entries, the CAPACITY, EXCEPTION-OBJECT and DEBUG-ITEM
-register views, and the per-resolution state `Probing`, `Diagnosed`, `SegmentDeferred`). *Seams:* `RefResolution` and
+register views, and the per-resolution state `SegmentDeferred`). *What a resolution may do is fixed at construction* (kb/Work
+PB3230, which amends this item): the statement site is ONE immutable interface, `IStatementSite` (`Binding/IStatementSite.cs`:
+the D18 materializer, the §2023:14.6.4 ODO pin, the EC-BOUND-REF-MOD checking query, the property object, the object view),
+passed to the funnel's constructor by the statement binder that owns it (`StatementBinder.Refs`), absent for a data-division
+resolver, so the two are two constructions and no part holds a settable delegate; a PROBE is a second construction of the
+funnel over the same site (`ReferenceResolver.Prober`), so `Probing` is a constant every part reads and nothing saves, sets or
+restores it (a commit asked while probing goes back to the committer); and one report per written reference is ONE ledger,
+`ReferenceReports` (`Binding/ReferenceReports.cs`, keyed by the written node's identity and a `ReferenceReportRule`), asked
+through `ReferenceResolver.ReportOnce`, which a probe is never granted — it replaced the resolver's `Diagnosed`, the three
+index-name and LINKAGE-leg sets of `NameResolution` and the three condition-name sets of `ConditionBinder`. *Not built, by
+decision (PB3230):* returning a resolution's effects as data for one commit step to apply. The effects a commit causes are
+not the resolver's to hand back: the D18 materializer binds a whole expression through the statement binder (its diagnostics,
+its pre-ops, its compiler temps, whose names are numbered in allocation order), so a probe that ran it and discarded the
+effects would renumber every later temporary and reorder the in-order diagnostic stream the §4.1 oracle compares; the probe
+keeps its effect-free readings (the materializer's occurrence 1, `OoBinder.OoBindPropertyObject`'s descriptions) instead.
+*Seams:* `RefResolution` and
 `PlaceBuilder` / `PlaceTable`. The Format-2 table SORT of shared storage still asks `PlaceTable.Window` and
 `.CurrentOccurrenceCount` at its comparator's run-time element numbers (three `SortEmitter` sites): bound-tree data when SortBinder
 builds those windows over `StatementLocal` positions. *Steps:* PB2299, PB2371–PB2375 (landed).
@@ -1773,7 +1788,7 @@ carries its order and blockers):
 | `CodeGen.EcEmitter` (R0-0039) | per-statement checking state, declarative dispatch (`Dispatch`) | `EcCheckingEmitter`; `DeclarativeDispatchEmitter` | EcCheckingEmitter.Emit(EcStatementInfo, EmitContext); DeclarativeDispatchEmitter.Emit(the unit's declaratives) |
 | `Runtime.IO.FileConnector` (R0-0040) | the base of the three organizations: open modes (`Open`), the record area | OpenModeMachine (the §2023:9.1.13 transitions); `RecordArea` | OpenModeMachine.Transition(open mode, operation) → I-O status |
 | `CodeGen.PlaceRenderer` (R0-0041) | rendering per `Place` kind (`Group`, `Image`); its `_ => throw` arms | one renderer per Place kind family | one visitor over the Place union (§8.5 step 3); each family renderer Render(a Place kind, EmitContext) |
-| `CodeGen.GroupImageCodec` (R0-0042) | AsImage/FromImage (`Image`), bit images, image initialization | `GroupImageCodec`; `BitImageCodec`; `ImageInitializer` | the AsImage / FromImage entries (existing) |
+| `CodeGen.GroupImageCodec` (R0-0042) | AsImage/FromImage (`Image`), bit images, image initialization; the variable-length carrier (AsVarImage/FromVarImage, the record layout) | `GroupImageCodec`; `BitImageCodec`; `ImageInitializer`. The carrier's rules are runtime operations both lanes call (kb/Work PB2746, landed): the component stores `CobolVarGroup.ReceivedDyn` / `StoreTableComponent` / `StoreGroupTableComponent` and the layout builder `CobolContiguousLayout.Of`, which the emitted `FromVarImage` and layout field and the cell-backed `StorageCell.StoreVarGroupAt` and layout share | the AsImage / FromImage entries (existing) |
 | `Binding.Procedure.EvaluateBinder` (R0-0043) | subjects and objects (`Subject`), WHEN phrases | `EvaluateSubjectBinder`; `WhenPhraseBinder` | EvaluateOperandCombinations (existing) pairs subjects and objects |
 | `CodeGen.SortEmitter` (R0-0044) | keys, INPUT/OUTPUT PROCEDURE ranges, MERGE | `SortKeyEmitter`; `SortProcedureEmitter`; `MergeEmitter` | Emit(BoundSort or BoundMerge, EmitContext); SortKeyEmitter.Render(keys) |
 | `Validation.FlagConformancePass` (R0-0045) | the directive-axis flags; the `FileStatus` partial | `FlagConformancePass`; `FileStatusFlagRules` | FlagState (existing) |
@@ -2212,8 +2227,13 @@ code and pass this one. A grammar wave needs §4 item 3 built
 use is one of three things, and the Delete program decides each family by this rule: (a) **a table's enumeration**
 (`All`, `Rows`, `Catalog`, `Owners`, `Level3Rows`, `StandardModes`, `LiteralOnlySlots`, `MixedRules`, `TableCount`,
 `RangeCount`, `MappingCount`, about twenty of the 67 by name) is the drift tests' observation surface over data and
-KEEPS — the census's `test-only` rule gains that exclusion so it stops reporting them; (b) **a seam that exists for
-observation** (`ResetForTests`, `ClearCache`, `HostConfiguration`) moves to the test project as a helper over product
+KEEPS — the census reports such a member `table-enumeration`, never `test-only` (kb/Work PB2744:
+`tools/ArchCensus/TableEnumeration.cs`, judged only once a test is confirmed its one user: a STATIC read-only collection
+field or property, never a string, is a table's rows; a get-only `*Count` whose whole getter is the `Count`, `Length` or
+`*Count` of its own type's field or property is its size; an instance collection, a counter field and a computed count
+stay `test-only` for (b) and (c); `ArchCensus --self-test` pins each arm on planted source, and the census runs it
+before it measures); (b) **a seam that exists for
+observation** (`ResetForTests`, `ClearCache`; `RunUnit.HostConfiguration`, once one, is today a static table of member names and so item (a)) moves to the test project as a helper over product
 state where the product allows it, and is otherwise renamed to say it is a seam; (c) **the rest is dead product code a
 test keeps alive** and is deleted with the tests that test only it, as the findings' own target says. R2's Opus
 reviewer applies the rule; a Sonnet wave executes (c).

@@ -36,15 +36,13 @@
       *>
       *> WHY THE SPARSE FILE IS HERE.  On a DENSE file rule b) cannot be told apart from a backward
       *> walk that merely includes the indicator: both answer RRN 1.  The sparse file has its lowest
-      *> record at RRN 5, so OPEN's indicator of 1 names an EMPTY slot and only a direction-BLIND
-      *> rule b) can make S1 (PREVIOUS) and S2 (NEXT) name the same record.
+      *> record at RRN 5, so OPEN's indicator of 1 names an EMPTY slot: the 2023 direction-BLIND
+      *> rule b) makes S1 (PREVIOUS) and S2 (NEXT) name the same record, the 2002/2014 comparison does not.
       *>
-      *> EDITIONS: identical at 2002, 2014 and 2023 -- which is what the three copies of this program
-      *> assert.  Annex E is INFORMATIVE (its heading is "(informative)") and its only READ-
-      *> positioning change, E.2 item 22, amends the INDEXED sub-rule d.3 -- "If no such record is
-      *> found or PREVIOUS is specified and the previous operation on the file was an OPEN statement,
-      *> the at end condition exists" -- which is written in the indexed block alone.  The relative
-      *> block prints rule b) unamended, so this organization's selection takes no edition parameter.
+      *> EDITIONS: this 2023 copy asserts the direction-blind rule b); the 2002 and 2014 copies assert
+      *> the "less than or equal to" comparison for PREVIOUS after OPEN (kb/Work PB5742).  Annex E is
+      *> INFORMATIVE and its READ-positioning item 22 amends the INDEXED sub-rule d.3 only, so the
+      *> relative change is read from the two texts themselves.
       *> At --std 85 the whole program is rejected: negative/pb343-read-previous-relative-85.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB343R3.
@@ -120,9 +118,9 @@
            READ DEN NEXT RECORD
            DISPLAY "R6=" D-REC "|" D-K "|" D-ST
            CLOSE DEN
-      *> Phase 3 - the SPARSE file: OPEN's indicator of 1 names an EMPTY slot, so the two
-      *> directions can only agree if rule b) ignores the direction, which is what
-      *> "regardless of whether NEXT or PREVIOUS is specified" says.
+      *> Phase 3 - the SPARSE file: OPEN's indicator of 1 names an EMPTY slot.  At 2023 rule b)
+      *> ignores the direction ("regardless of whether NEXT or PREVIOUS is specified"), so S1 = S2;
+      *> at 2002 and 2014 PREVIOUS compares "less than or equal to" 1 and S1 is at end.
            OPEN OUTPUT SPA
            MOVE 5 TO S-K
            MOVE "EEEE" TO S-REC

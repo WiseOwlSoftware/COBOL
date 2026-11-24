@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb1080_file_status_item_forms
-      *> rules: []
+      *> rules: [SR-12.4.5.8.3-2]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

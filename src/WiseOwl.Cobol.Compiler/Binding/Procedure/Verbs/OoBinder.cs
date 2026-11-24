@@ -2140,7 +2140,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             return ConcatFolder.ClassOf(concat, ctx.Data.LiteralEnv) is PicCategory.Boolean ? null
                 : probe ? ConcatFolder.Peek(concat, ctx.Data.LiteralEnv).Value
                 : ConcatFolder.Fold(concat, ctx.Edition, ctx.Data.LiteralEnv).Value;
-        return (nn.STRINGLIT() ?? nn.NATLIT() ?? nn.HEXLIT()) is { } token ? CobolLiteral.Decode(token.GetText()) : null;
+        return QuotedLiteral.In(nn) is { Class: not LiteralClass.Boolean } literal ? literal.Value : null;
     }
 
     /// <summary>⛔ THE TYPED LANE'S VERDICT ON ONE BY REFERENCE ARGUMENT — the universal switch's relations over the
@@ -2217,6 +2217,9 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                 "EXIT METHOD may be specified only in a method definition (ISO §2023:14.9.14 — the method form "
                 + "of the EXIT statement; this is not a method procedure division)");
         }
+        // §2002:14.8.13.2 SR2 — a flat prohibition over every EXIT format (kb/Work PB5618).
+        if (PlacementRules.RefusedInGlobalDeclarative(ctx, EcRaiseSite.Exit("EXIT METHOD")))
+            return BoundRejected.Reported(ctx.Edition);
         return new BoundMethodReturn(OoBindMethodRaising(e.raisingPhrase(), EcRaiseSite.Exit("EXIT METHOD")));
     }
 

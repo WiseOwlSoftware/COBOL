@@ -825,7 +825,7 @@ def examine(gm: GrammarModel, keywords: dict[str, set[str]], keyword: str, plain
                                                for a in u.arms]
             for group, arm, need in arms:
                 # An arm is this construct's only when it DEMANDS a word the format prints: an arm demanding nothing
-                # (`useEcEntry : cobolWord (FILE fileName)*`) is anchored by any format that prints its one keyword.
+                # (`exceptionSelectionOperand : cobolWord (FILE fileName)*`) is anchored by any format that prints its one keyword.
                 if not arm.demands or not spells(need, words):
                     continue
                 # A word the arm both writes and omits is spelled twice (`LOCK MODE … lockOnPhrase?` with

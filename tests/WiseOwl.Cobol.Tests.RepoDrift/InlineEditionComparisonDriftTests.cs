@@ -99,7 +99,7 @@ public sealed class InlineEditionComparisonDriftTests
         ["src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs"] = 1,
         ["src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs"] = 1,
         ["src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs"] = 6,
-        ["src/WiseOwl.Cobol.Editions/CobolCharacterRepertoire.cs"] = 4,
+        ["src/WiseOwl.Cobol.Editions/CobolCharacterRepertoire.cs"] = 3,
         ["src/WiseOwl.Cobol.Editions/EditionInfo.cs"] = 20,
         ["src/WiseOwl.Cobol.Frontend/Common/CobolWordRule.cs"] = 4,
         ["src/WiseOwl.Cobol.Frontend/Common/CompilerDirectiveWords.cs"] = 1,

@@ -194,7 +194,7 @@ true: every SET-family amount site lands, and no emitter narrows an amount with 
 **The one edition that does test the table (kb/Work PB5674).** COBOL-2002's SET stores an arithmetic-expression-1 only when it is
 "a valid subscript" (§2002:14.8.35.3 GR2a.1; §2002:8.4.1.2.3 GR2: 1 through the highest permissible occurrence number) and makes
 an incremented or decremented index outside the table the same condition (GR3b): EC-BOUND-SUBSCRIPT, the SET unsuccessful, the
-index unchanged. `DialectBehavior.SetIndexOutsideTableStored` (from 2014; VCR row 7.119) not being active makes `SetEmitter` emit, per index-name receiver,
+index unchanged. `DialectBehavior.SetIndexOutsideTableStored` (from 2014; VCR row 7.126) not being active makes `SetEmitter` emit, per index-name receiver,
 `CobolIndex.WithinTable` (a Format 1 arithmetic-expression sender only; index-name-2 and identifier-2 are placed unchanged) and
 `CobolIndex.AugmentWithinTable` (SET UP/DOWN BY only; PERFORM VARYING and SEARCH have no such 2002 rule). The table's highest
 permissible occurrence is `SetIndexTarget.Highest`, its OCCURS maximum. With checking for the condition not enabled the 2002
@@ -650,7 +650,8 @@ content-validation half is separately answered by the declined A.4.14 facility (
   (`CellDynSeeds`), decodes (`NationalImage.FromStorage`) and encodes (`NationalImage.Bytes`). The window's maximum sizes
   are therefore IMAGE characters (`DataItem.SlotMaxSize`: the LIMIT in positions times the unit), what a store into the
   slot truncates at, and the layout reads each component's unit off its layout code (`VarGroupWindow.DynStructure`,
-  `CobolDynStructure.PlainCode` / `UnitOf`, which `StorageCell.LayoutOf` divides the maximum by); a table of leaf
+  `CobolDynStructure.PlainCode` / `UnitOf`, which `CobolContiguousLayout.Of` divides the maximum by: the one layout
+  builder a declared group's emitted layout calls too, over `DataItem.SlotMaxSize`, kb/Work PB2746); a table of leaf
   elements carries the unit of its elements there as well, which makes a space-filled element the national space
   (§2023:14.6.9.4; `CellGroupShape.DynLayout`). Before this, such a leaf was a ZERO-WIDTH byte window: `01 G EXTERNAL.
   05 A PIC X(3). 05 D PIC X DYNAMIC LENGTH.` displayed only A, silently.

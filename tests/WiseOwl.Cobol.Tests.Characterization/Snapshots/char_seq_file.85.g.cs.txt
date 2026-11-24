@@ -51,10 +51,10 @@ internal sealed class _PRG_CHAR_SEQ_FILE : ICobolProgram
             __filesRegistered = true;
             CobolFile.Register("CHAR-SEQ-FILE::OUT-FILE", "char-seq.dat", 10, false, false, selectName: "OUT-FILE", edition: 85);
         }
-        try { __Dispatch(0, 0); } catch (ProgramReturn) { }   // GOBACK (an implicit one too, §2023:14.6.3) / called-program EXIT PROGRAM returns to the activator here (ISO §2023:14.9.18.4 GR2/GR3; §2023:14.9.14.4 GR3)
+        try { __Dispatch(0, 0, __direct: true); } catch (ProgramReturn) { }   // GOBACK (an implicit one too, §2023:14.6.3) / called-program EXIT PROGRAM returns to the activator here (ISO §2023:14.9.18.4 GR2/GR3; §2023:14.9.14.4 GR3)
     }
 
-    private int __Dispatch(int __startPc, int __exitPc)
+    private int __Dispatch(int __startPc, int __exitPc, bool __direct = false)
     {
         int __pc = __startPc;
         while ((uint)__pc < (uint)__N)
@@ -105,7 +105,7 @@ internal sealed class _PRG_CHAR_SEQ_FILE : ICobolProgram
                 }
             }
             if (__atExit && __pc == __exitPc + 1) return __pc;   // a named THRU exit paragraph COMPLETED (an explicit GO TO cleared __atExit — §2023:14.6.3 rule 1)
-            if (__pc == 1) throw new ProgramReturn();   // the implicit GOBACK past the source element's last paragraph (ISO §2023:14.6.3)
+            if (__pc == 1) { if (__direct) return ElementReturn.Returned; throw new ProgramReturn(); }   // the implicit GOBACK past the source element's last paragraph (ISO §2023:14.6.3)
         }
         return __pc;
     }

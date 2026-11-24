@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Collections.Concurrent;
 using System.IO.Compression;
+using WiseOwl.Cobol.Runtime.Globalization;
 
 namespace WiseOwl.Cobol.Runtime.Collation.Cldr;
 
@@ -108,9 +109,7 @@ public static class CldrLocaleLoader
     /// sr, root; "nb" → nb, no, root (its explicit parent). Any <c>-u-</c> extension is dropped first.</summary>
     public static IEnumerable<string> Chain(string? localeName)
     {
-        string baseTag = CldrLocaleTag.Parse(localeName).BaseTag;
-        if (baseTag.Length == 0 || baseTag.Equals("root", StringComparison.OrdinalIgnoreCase)) { yield return "root"; yield break; }
-        string current = baseTag.Replace('-', '_');
+        string current = CldrLocaleTag.FileName(localeName);
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         while (current.Length > 0 && !current.Equals("root", StringComparison.OrdinalIgnoreCase) && seen.Add(current))
         {
@@ -416,37 +415,31 @@ public sealed class CldrLocaleTag
     public IReadOnlyList<string> Unsupported { get; }
 
     /// <summary>The CLDR file name of the base tag ("de_AT", "root").</summary>
-    public string FileNameStem => BaseTag.Length == 0 ? "root" : BaseTag.Replace('-', '_');
+    public string FileNameStem => FileNameOf(BaseTag);
 
-    /// <summary>The CLDR file name stem of any tag.</summary>
-    public static string FileName(string? localeName)
-    {
-        string t = (localeName ?? "").Trim();
-        if (t.Length == 0 || t.Equals("root", StringComparison.OrdinalIgnoreCase) || t.Equals("und", StringComparison.OrdinalIgnoreCase)) return "root";
-        return Parse(t).FileNameStem;
-    }
+    /// <summary>The CLDR file name stem of any tag ("de_AT", "root"): its canonical base (<see cref="LocaleTag"/>), '_'-joined.</summary>
+    public static string FileName(string? localeName) => FileNameOf(LocaleTag.Parse(localeName).Base);
+
+    private static string FileNameOf(string baseTag) => baseTag.Length == 0 ? "root" : baseTag.Replace('-', '_');
 
     /// <summary>Parse a tag. Never throws: an unparsable extension is recorded as unsupported.</summary>
     public static CldrLocaleTag Parse(string? localeName)
     {
-        string t = (localeName ?? "").Trim().Replace('_', '-');
+        var tag = LocaleTag.Parse(localeName);
         var unsupported = new List<string>();
         var settings = new CldrSettings();
         string? type = null;
-        string baseTag = t;
-        int u = IndexOfExtension(t);
-        if (u >= 0)
+        if (tag.Extension.Length > 0)
         {
-            baseTag = t[..u];
-            var subs = t[(u + 3)..].Split('-', StringSplitOptions.RemoveEmptyEntries);
+            var subs = tag.Extension.Split('-');
             int i = 0;
             while (i < subs.Length)
             {
-                string key = subs[i].ToLowerInvariant();
+                string key = subs[i];
                 if (key.Length != 2) { unsupported.Add($"malformed -u- extension near '{subs[i]}'"); break; }
                 var values = new List<string>();
                 i++;
-                while (i < subs.Length && !(subs[i].Length == 2 && char.IsLetter(subs[i][0]))) values.Add(subs[i++].ToLowerInvariant());
+                while (i < subs.Length && !(subs[i].Length == 2 && char.IsLetter(subs[i][0]))) values.Add(subs[i++]);
                 string v = values.Count == 0 ? "true" : values[0];
                 switch (key)
                 {
@@ -489,37 +482,13 @@ public sealed class CldrLocaleTag
         }
         // A setting the engine recognizes but does not implement is NOT listed here: whether it is in force is a question
         // of the EFFECTIVE settings (the collation's, overridden by this tag's), which the builder answers once.
-        return new CldrLocaleTag(localeName ?? "", NormalizeBase(baseTag), type, settings, unsupported);
-    }
-
-    private static int IndexOfExtension(string t)
-    {
-        // "-u-" as a subtag boundary (or "u-" at the very start, which is not a valid tag anyway).
-        int i = t.IndexOf("-u-", StringComparison.OrdinalIgnoreCase);
-        return i;
+        return new CldrLocaleTag(localeName ?? "", tag.Base, type, settings, unsupported);
     }
 
     /// <summary>A BCP 47 <c>kr</c> value → the CLDR reorder code spelling ("latn" → "Latn", "cyrl" → "Cyrl";
     /// the special codes and "others" stay lower-case).</summary>
     private static string ReorderCode(string v) =>
         v.Length == 4 && v is not ("space" or "punct" or "digit") ? char.ToUpperInvariant(v[0]) + v[1..].ToLowerInvariant() : v.ToLowerInvariant();
-
-    /// <summary>CLDR spelling: language lower, script title-case, region upper, the rest as given; "root"/"und" → "".</summary>
-    private static string NormalizeBase(string tag)
-    {
-        var parts = tag.Split('-', StringSplitOptions.RemoveEmptyEntries);
-        if (parts.Length == 0) return "";
-        if (parts[0].Equals("root", StringComparison.OrdinalIgnoreCase) || parts[0].Equals("und", StringComparison.OrdinalIgnoreCase)) return "";
-        var outParts = new List<string>(parts.Length) { parts[0].ToLowerInvariant() };
-        for (int i = 1; i < parts.Length; i++)
-        {
-            string p = parts[i];
-            if (p.Length == 4 && p.All(char.IsLetter)) outParts.Add(char.ToUpperInvariant(p[0]) + p[1..].ToLowerInvariant());
-            else if ((p.Length == 2 && p.All(char.IsLetter)) || (p.Length == 3 && p.All(char.IsDigit))) outParts.Add(p.ToUpperInvariant());
-            else outParts.Add(p);
-        }
-        return string.Join('-', outParts);
-    }
 
     public override string ToString() => Original;
 }

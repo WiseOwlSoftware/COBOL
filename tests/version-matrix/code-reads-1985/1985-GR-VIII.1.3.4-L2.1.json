@@ -2,50 +2,60 @@
  "rule-id": "1985-GR-VIII.1.3.4-L2.1",
  "rule-digest": "c0f48346051c",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-127",
+  "pin": "8bdbd239ac59a5f132b779e2b40a8eb363caf3ba",
+  "slice": "1985-pb6161b",
   "sources": {
-   "reader": "1cee9424aa0830998a16df340aff017f5f6b278055f56029b84815b8c3bd4053",
-   "refuter": "5be2bd587bac17aee83d32e65239aac0b77e7b437fbc4117cc4c8ef1a5948552"
+   "reader": "d2ca3902cfcec25b29b1083381972a87334572db0c2f6488a824dfe7776b8854",
+   "refuter": "bacc1f99b76d5ca999315607f84e3540d484b79256cd6710304df0ea17343177"
   },
   "imported": {
-   "reader": "eb6a20edb5462ebde1bf2c614f6d7e2c0269fdcd3eaf75dc785422dee5242d8e",
-   "refuter": "7157ffa1909604968a06b5c878e29c22f5397b29d88356866ecc52c405389b44"
+   "reader": "d383c61e758a691d67b010bdfd0a5d6dd13ad94c1c7f97daf123c718a997b887",
+   "refuter": "48b6a269ab84855dcb627fc77c90950fedc40e98e9db2761551ce2b332724fef"
   }
  },
  "reader": {
   "rule-id": "1985-GR-VIII.1.3.4-L2.1",
   "verdict": "CONFORMS",
-  "requirement": "At 85 a successful relative-file statement sets 00; a READ whose record length does not conform to the file's fixed attributes is successful with 04; an OPEN of an OPTIONAL file that is not present is successful with 05, and in I-O or extend mode the file is created (in input mode it is not).",
-  "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#Success; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#RecordLengthShortLong; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#OptionalFileNotFound; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#OpenCore; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#RecordLengthConflicts; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#ReadRandom; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#ReadSequential",
-  "edition-consulted": [],
-  "edition-search": "grep -rn 'CobolVersion|Edition|Dialect|Std' src/WiseOwl.Cobol.Runtime/IO/*.cs; grep -n 'Edition|Version|Dialect' CodeGen/EcEmitter.cs CodeGen/DispatchEmitter.cs CodeGen/Verbs/IoStatusClass.cs; read Runtime/Control/DialectBehavior.cs rows 2, 14, 19; KeyedConnector.OpenCore's 05 arms and RelativeConnector's 04 test consult no edition",
-  "behaviour-differs-by-edition": "no",
-  "witnesses-cover": "part: the witness covers 00 on every verb, 05 on OPEN I-O (created) and 04 on a random READ; not exercised there: 05 on OPEN EXTEND (created) and OPEN INPUT (not created), and 04 on a sequential READ",
+  "requirement": "At 85, a successful I-O statement on a relative file sets 00. A READ that succeeds although the record read lies outside the reader's minimum and maximum record size sets 04. An OPEN of an absent OPTIONAL file sets 05 in every open mode it permits: INPUT (then the first sequential READ gives 10 and a random READ gives 23, per VIII.4.4.4 Table 1), I-O, and EXTEND (sequential access only, SR1), and the I-O and EXTEND forms create the file. The witness covers 00 and only the I-O form of 05. It does not cover 04, because at 85 a READ can never meet an out-of-size record.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#Success; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#RecordLengthShortLong; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#OptionalFileNotFound; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#OpenCore; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#FixedAttributeConflict; src/WiseOwl.Cobol.Runtime/IO/FixedFileAttributes.cs#Conflicts; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Open; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#RecordLengthConflicts; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#ReadSequential; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#ReadRandom; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#ProgramStatus; src/WiseOwl.Cobol.Runtime/IO/IoStatus1985.cs#Report",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#ProgramStatus",
+    "switches": "DialectBehavior.IoStatusValuesOutside1985Lists: at 85 the condition is reported through IoStatus1985.Report against the Relative list. 00, 04 and 05 are all on that list, so they pass through unchanged",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SharingFacilityInEffect",
+    "switches": "DialectBehavior.FileSharingFacility (from 2002). At 85, an OPEN of a physical file that another connector of the run unit holds open answers 41 where 2023 answers 61. This closes the only route by which a record outside the reader's size reached a READ (a reader opened on a zero-byte file, then a sibling writing)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#OtherConnectorsMayShare",
+    "switches": "follows SharingFacilityInEffect: at 85 a lone writer buffers, and no other run unit is promised its records",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "Grepped DialectBehavior, Edition and CobolVersion across IO/FileConnector.cs, KeyedConnector.cs, RelativeConnector.cs and IO/Sharing. The 04 test (RecordLengthConflicts), the 39 comparison (FixedFileAttributes.Conflicts) and the 05 arm of KeyedConnector.OpenCore consult no edition, so they are the same code at every edition.",
+  "behaviour-differs-by-edition": "yes: in the zero-byte-reader-then-sibling-writer sequence, the sibling OPEN gets 41 at 85 and 61 at 2023 (no SHARING clause, so the default sharing mode applies). Either way the reader's later random READ gets 23, never 04. The 00 and 05 values and the 04 test are identical at every edition.",
+  "witnesses-cover": "part: g85_bf18_04 covers 00 (OPEN OUTPUT, WRITE, CLOSE, OPEN I-O, random READ, REWRITE, DELETE, START, READ NEXT) and 05 on OPEN I-O of an absent OPTIONAL file, which it then shows was created. It does not cover 05 on OPEN INPUT (file not created) or on OPEN EXTEND (file created), or 05 under random access, which probe p05 adds. Its 04 leg was removed: at 85 the value is implemented but unreachable (see notes). The witness still declares SQ, WF and RDF, files of the removed leg that no statement uses.",
   "probes": [
    {
     "class": "e",
-    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/VIII.1.3@1985-LANGUAGE-CONCEPTS/g85_bf18_04.cob",
-    "printed": "EXPECT: MATCH (C OPEN-I-O 05, C REOPEN 00, B READ-1 04 [AAA], B READ-2 04 truncated, B READ-3 00)",
-    "expected": "00 / 04 / 05"
+    "file": "E:/COBOL-coord/scratch/w20262162a-PB6161/reread2/work-reader/src/p05.cob",
+    "printed": "A OPEN-INPUT 05 / A ATEND / A READ 10 / A CLOSE 00 / A REOPEN-INPUT 05 / B OPEN-EXTEND 05 / B WRITE 00 / B REOPEN 00 / B READ 00 BBBB / C OPEN-INPUT 05 / C INVALID / C READ 23 / C OPEN-I-O 05 / C WRITE 00 / C REOPEN-I-O 00 / D OPEN-INPUT-NONOPT 35 / D READ-AFTER-FAILED-OPEN 47 (run p05-002)",
+    "expected": "GRL2.1c: 05 on each OPEN of an absent OPTIONAL file. INPUT does not create it, so the re-OPEN also gets 05. I-O and EXTEND create it, so the re-OPEN gets 00. Table 1: the first READ after INPUT gives at end (10) or invalid key (23). A non-optional absent file gives 35, and a READ after that failed OPEN gives 47"
    },
    {
-    "class": "e",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-127/src/p1succ.cob",
-    "printed": "X1 05, then WRITE 00 and a reopen INPUT 00 that reads XREC; I1 05, CLOSE 00, a reopen INPUT 05 again",
-    "expected": "extend creates the file, input does not"
+    "class": "a,d",
+    "file": "E:/COBOL-coord/scratch/w20262162a-PB6161/reread2/work-reader/src/p04.cob",
+    "printed": "M WRITE-SHORT 00 / M WRITE-LONG 00 / M OPEN 00 / M READ-SHORT 00 SSSSS / M READ-LONG 00 LLLLLLLLLL / V WRITE-1 00 / V WRITE-20 00 / V WRITE-21 44 / V OPEN 00 / V READ-1 00 01 / V READ-20 00 20 / R OPEN-OTHER-SIZES 39 / R READ-AFTER-39 47 (run p04-001)",
+    "expected": "Records at the minimum and maximum of the reader's own sizes (two 01s of 5 and 10; RECORD VARYING 1 TO 20 at 1 and 20) read with 00, not 04. A write outside the bounds gets 44. A reader with different sizes (VARYING 5 TO 10 over a 1..20 file) is refused at OPEN with 39 under VIII.4.4.4 GR8's implementor-defined validated set, and the READ after that failed OPEN gets 47"
    },
    {
-    "class": "f",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-127/src/p1succ.cob",
-    "printed": "B1 00 / B2 00 BIGR at key 999999999",
-    "expected": "00"
-   },
-   {
-    "class": "a",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-127/src/p1succ.cob",
-    "printed": "first version (run p1succ-002): V0 39 for an OPEN INPUT with RECORD VARYING 4 TO 8 on a file created 1 TO 12",
-    "expected": "the implementor validates record bounds at OPEN (§1985:VIII.4.4.4 GR8), which is why 04 needs an unvalidated store"
+    "class": "c,e",
+    "file": "E:/COBOL-coord/scratch/w20262162a-PB6161/reread2/work-reader/src/p41.cob",
+    "printed": "--std 85: SQ ZERO-BYTE 00 / RDF OPEN-ON-EMPTY 00 / WF OPEN-SIBLING 41 / WF WRITE 48 / RDF INV / RDF READ 23 00 (run p41-001). --std 2023: same except WF OPEN-SIBLING 61 (run p41-002)",
+    "expected": "At 85, an OPEN of a file already in the open mode gets 41 (VIII.1.3.4 GRL2.5), so no sibling writes a record outside the reader's size. The reader of the zero-byte file finds no record (23), so 04 cannot arise by this route"
    }
   ],
   "citations": [
@@ -56,13 +66,25 @@
    {
     "cite": "§1985:VIII.4.4.4 GR8",
     "check": "OK  §1985:VIII.4.4.4 GR8  (4.4.4 General Rules)  the text is in GR8"
+   },
+   {
+    "cite": "§1985:VIII.4.5.4 GR16",
+    "check": "OK  §1985:VIII.4.5.4 GR16  (4.5.4 General Rules)  the text is in GR16"
+   },
+   {
+    "cite": "§1985:VIII.4.4.4 GR1",
+    "check": "OK  §1985:VIII.4.4.4 GR1  (4.4.4 General Rules)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:VIII.1.3.4 GRL2.5",
+    "check": "OK  §1985:VIII.1.3.4 GRL2.5  (1.3.4 I-O Status)  the text is in GRL2.5"
    }
   ],
-  "notes": "05 comes from OpenCore's absent-OPTIONAL arms (input keeps a placeholder store; I-O and extend create the file), and 04 from the one RecordLengthConflicts test on both relative READ paths. Because OPEN validates the record bounds (39), a relative 04 is reachable only through a zero-byte store, and the sequential leg could not be built that way (a reader opened on an empty store did not see later records). The status class tests (CodeGen/Verbs/IoStatusClass.cs), the generated __IoCheck hook (DispatchEmitter.EmitUseMachinery) and the Status setter's permanent-error record are the same code at every edition.",
+  "notes": "00 and 05 arise at 85 and conform: every OPEN mode that allows an optional file was probed. 04 is implemented in RelativeConnector.ReadSequential and ReadRandom through FileConnector.RecordLengthConflicts, but it cannot arise at 85. Under VIII.4.4.4 GR8 the OPEN compares the recorded minimum and maximum size and the record type exactly (39), WRITE keeps every record within the writer's bounds (44), and the one route around the OPEN check (a zero-byte file with no recorded attributes, then a sibling connector writing) is now 41. This is a legal implementor choice of the validated set, not an omission. The cross-run-unit variant (another process writes after the reader opens a zero-byte file) was not probed, because a probe cannot run two concurrent run units; that the reader sees no records there rests on the dispatch's statement and on FileConnector.OtherConnectorsMayShare.",
   "seeded": true,
   "harm": "",
   "cause": "",
-  "at-2023": "",
+  "at-2023": "p41 at --std 2023: the sibling OPEN gets 61 and the reader's READ gets 23; no 04",
   "repro": "",
   "expected": "",
   "observed": "",
@@ -71,9 +93,12 @@
  "refuter": {
   "rule-id": "1985-GR-VIII.1.3.4-L2.1",
   "refutation": "UPHELD",
-  "classes": "c,e,f",
-  "evidence": "runs/r1a-001: 05 on OPEN INPUT of absent OPTIONAL (not created, no USE) and on OPEN I-O (created: r1absent2.dat present in the run directory, WRITE/READ 00). 04 per §1985:VIII.4.5.4 GR16 compares the record to the program's record descriptions; because OPEN validates organization and record size (r4a-001: 39 for both), a 04 needs a store with no recorded bounds, as the reader says; no combination with validated equal bounds can yield a nonconforming record, so no 04 is owed elsewhere. Class c: 07 forms refused (rc1..rc4). cite.py: 'OK §1985:VIII.1.3.4 GRL2.1 (1.3.4 I-O Status) the text is in GRL2.1'.",
-  "edition-sites-missed": [],
+  "classes": "a,c,e",
+  "evidence": "Probes at --std 85, tree fix-pb6161 (8bdbd239), run dirs under E:/COBOL-coord/scratch/w20262162a-PB6161/reread2/work-refuter/runs/. (1) b1var-003: RECORD IS VARYING FROM 5 TO 20 DEPENDING ON; writer 01s of 5 and 20, reader 01s of 10 and 20 with the same FROM/TO: V WRITE-5 00, V WRITE-7 00, V OPEN-IN 00, V READ-5 00 LEN 05, V READ-7 00 LEN 07, V READ-EOF 10. The 5-character record conforms to the file's fixed attributes (min 5 by the RECORD clause, VII.3.8.4 GR4), so 00 is GRL2.1b's answer. The one counter-reading is VIII.4.5.4 GR16's 'minimum size specified by the record description entries' (10 for this reader). That tension belongs to GR16's own wording. It is not a defect under GRL2.1, which keys 04 to the fixed file attributes. Format 3 (RECORD CONTAINS 5 TO 20) with the same 01 pairs: F3 OPEN-IN 39, READ 47. This matches docs/conformance/7/DOC-A.1-148: at 85, format 3's bounds are the record descriptions' own smallest and largest sizes, so a 10..20 reader conflicts with a 5..20 file, and 04 stays unreachable by that route. (2) c1opt-001: an OPTIONAL relative reader opened INPUT on an absent file (05), then a sibling OPEN OUTPUT of the same path: 41, sibling WRITE 48, reader READ 10. This closes the absent-optional route to an out-of-size record. (3) b3dyn-002: OPTIONAL relative file, DYNAMIC access. OPEN INPUT absent 05, READ NEXT 10, keyed READ 23, START 23. OPEN I-O absent 05, WRITE 00, re-OPEN 00 (the file was created). OPEN OUTPUT of an absent OPTIONAL file 00, not 05; OPEN INPUT of the created empty file 00; READ NEXT 10. (4) class c, b2ext-001: OPEN EXTEND of a RANDOM relative file is refused at compile with COBOL2372, citing §1985:VIII.4.4.3 SR1. Citations: OK §1985:VIII.1.3.4 GRL2.1 'does not conform to the fixed file attributes for that file'; OK §1985:VIII.4.5.4 GR16 'less than the minimum size specified by the record description entries for file-name-1'; OK §1985:VII.3.8.4 GR4 'Integer-2 specifies the minimum number of character positions to be contained in any record of the file'; OK §1985:VII.3.8.4 GR14 'integer-4 and integer-5 refer to the minimum number of characters in the smallest size data record'. No probe gave a wrong 00, 04 or 05. The cross-run-unit zero-byte route is still unprobed (the reader said so).",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#(line 215) DialectBehavior.RelativeReadPreviousAfterOpenComparesFpi: READ PREVIOUS positioning; not on the 00/04/05 path at 85",
+   "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ImplementorDefaultSharing: DialectBehavior.FileSharingFacility; at 85 the host share mode is AllOther toward other run units, which bears on the unprobed cross-run-unit zero-byte route"
+  ],
   "corrected": ""
  }
 }

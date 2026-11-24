@@ -1,6 +1,6 @@
 *>--- conformance-case
 *> id: initialize-message-tag
-*> rules: [GR-14.9.20.4-4, GR-14.9.20.4-5, GR-14.9.20.4-6]
+*> rules: [GR-14.9.20.4-4, GR-14.9.20.4-5, GR-14.9.20.4-6, FMT-14.9.20.2, SR-14.9.20.3-1]
 *> accept: [2023]
 *> source-format: free
 *> portable: unverified

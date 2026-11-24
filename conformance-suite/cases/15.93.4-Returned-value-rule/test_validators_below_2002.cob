@@ -1,6 +1,6 @@
 *>--- conformance-case
 *> id: test_validators_below_2002
-*> rules: [RV-15.93.4-1, RV-15.95.4-1]
+*> rules: [RV-15.93.4-1, RV-15.95.4-1, FMT-15.90.2]
 *> source-format: free
 *> portable: unverified
 *>---

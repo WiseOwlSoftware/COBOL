@@ -250,7 +250,6 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         // the folded value rides the same operand shapes the plain literals produce (P10 Step 14).
         if (nn.concatenationExpression() is { } ce) return ConcatOperand(ce);
         if (nn.figurativeConstant() is { } fig) return FigurativeOperand(fig);
-        if (nn.STRINGLIT() is { } s) return new BoundStringLiteral(CobolLiteral.Decode(s.GetText()));
         // ⛔ DA3 — X"…" is an ALPHANUMERIC literal, not a separate species: §2023:8.3.3.2 Format 2 IS the
         // hexadecimal-alphanumeric FORMAT of the alphanumeric literal, and §2023:8.3.3.2.1 makes every format of it "of
         // the class and category alphanumeric" (both cite.py-verified). So it belongs wherever an alphanumeric
@@ -259,13 +258,11 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         // exist — cite.py --check, kb/Work PB182, whose note owns the remaining sites; the both-literals half is
         // StatementValidation.CheckRelationHasNonLiteralOperand's, kb/Work PB1470), MOVE, STRING, an
         // intrinsic argument. CobolLiteral.DecodeHex is the ONE hex codec (landed by DA1 for the §2023:12.3.7 ALPHABET
-        // path); this reuses it rather than decoding again.
-        if (nn.HEXLIT() is { } hx) return new BoundStringLiteral(CobolLiteral.DecodeHex(hx.GetText()));
+        // path); the one QuotedLiteral reader decodes through it.
         // National N"…" (§2023:8.3.3.5) / boolean B"…" (§2023:8.3.3.4) literals — LIVE (Phase 4a): the introduction
         // gate rides every occurrence (0900 below 2002); the length rule (COBOL0814) is LiteralScreen's, for
         // every class and position. The lexer already restricts a BOOLLIT's content to [01]+ (CobolLexer.g4).
-        if (nn.NATLIT() is { } nat) return NationalLiteralOperand(nat.GetText());
-        if (nn.BOOLLIT() is { } b) return BooleanLiteralOperand(b.GetText());
+        if (QuotedLiteral.In(nn) is { } literal) return QuotedLiteralOperand(literal);
         if (nn.predefinedNull() is { } pn) return RefusePredefinedNull(pn);
         return null;
     }
@@ -283,10 +280,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
             var folded = ConcatFolder.Peek(ce, ctx.Data.LiteralEnv);
             return new BoundStringLiteral(folded.Value) { Category = folded.Category };
         }
-        if (nn.STRINGLIT() is { } s) return new BoundStringLiteral(CobolLiteral.Decode(s.GetText()));
-        if (nn.HEXLIT() is { } hx) return new BoundStringLiteral(CobolLiteral.DecodeHex(hx.GetText()));
-        if (nn.NATLIT() is { } nat) return new BoundStringLiteral(CobolLiteral.Decode(nat.GetText())) { Category = PicCategory.National };
-        return null;
+        return QuotedLiteral.In(nn) is { Class: not LiteralClass.Boolean } literal ? QuotedLiteralOperand(literal) : null;
     }
 
     /// <summary>A <c>literal</c> node as an operand: the non-numeric forms through the ONE
@@ -364,23 +358,19 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         };
     }
 
-    /// <summary>Bind an <c>N"…"</c> national literal (ISO §2023:8.3.3.5). The content repertoire is the FULL national
+    /// <summary>Bind a quoted literal (<see cref="QuotedLiteral"/>, kb/Work PB2725): its decoded value in its class's category
+    /// (§2023:8.3.3.2.1, §2023:8.3.3.4.1, §2023:8.3.3.5.1). An <c>N"…"</c> national literal (ISO §2023:8.3.3.5): the content repertoire is the FULL national
     /// character set — one UTF-16 char per position (D-N1, §2023:8.1.2 NOTE 2) — including characters above U+00FF: the
     /// alphanumeric↔national correspondence (Annex A.1 item 33 — the TOTAL UTF-16 identity, both directions, PB59)
     /// is live through FUNCTION DISPLAY-OF / NATIONAL-OF (§2023:15.26/§2023:15.66), so the former staged-loud Latin-1-only
     /// guard is lifted (P10 national wave). The §2023:8.3.3.5.3 SR1 length and SR5 grouping rules are the literal's
-    /// own and LiteralScreen asks them of every literal token (kb/Work PB1393) — never a binder funnel.</summary>
-    public BoundStringLiteral NationalLiteralOperand(string raw) =>
-        // NationalLiteral2002 (the N"…" literal introduction) is the literal token's format gate, position-blind
-        // (LiteralScreen.GateFormat, kb/Work PB5416).
-        new(CobolLiteral.Decode(raw)) { Category = PicCategory.National };
-
-    /// <summary>Bind a <c>B"…"</c> boolean literal (ISO §2023:8.3.3.4): SR2 ('0'/'1' only) is lexer-enforced, and the
-    /// §2023:8.3.3.4.3 SR1 length rule is LiteralScreen's (kb/Work PB1393).</summary>
-    public BoundStringLiteral BooleanLiteralOperand(string raw) =>
-        // BooleanLiteral2002 (the B"…" literal introduction) is the literal token's format gate, position-blind
-        // (LiteralScreen.GateFormat, kb/Work PB5416).
-        new(CobolLiteral.Decode(raw)) { Category = PicCategory.Boolean };
+    /// own and LiteralScreen asks them of every literal token (kb/Work PB1393) — never a binder funnel. A <c>B"…"</c> boolean
+    /// literal (ISO §2023:8.3.3.4): SR2 ('0'/'1' only) is lexer-enforced, and the §2023:8.3.3.4.3 SR1 length rule is
+    /// LiteralScreen's (kb/Work PB1393).</summary>
+    public static BoundStringLiteral QuotedLiteralOperand(QuotedLiteral literal) =>
+        // NationalLiteral2002 / BooleanLiteral2002 (the N"…" / B"…" literal introductions) are the literal token's format
+        // gate, position-blind (LiteralScreen.GateFormat, kb/Work PB5416).
+        new(literal.Value) { Category = ConcatFolder.CategoryOf(literal.Class) };
 
     /// <summary>Bind a figurative constant to a bound operand. <c>ALL "literal"</c> / <c>ALL X"…"</c> (a
     /// multi-character figurative, ISO §2023:8.3.3.6 Format 6) → <see cref="BoundAllLiteral"/>; <c>ALL ZEROS</c> etc.
@@ -1367,13 +1357,14 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
                     + "is permitted WITHOUT the ALL phrase)") + where);
             return BoundExprError.Refused(ctx.Edition, $"figurative constant '{ConcatFolder.Spelling(fig)}' in a numeric context");
         }
-        if ((nn.NATLIT() ?? nn.BOOLLIT()) is not null)
+        var quoted = QuotedLiteral.In(nn);
+        if (quoted is { Class: LiteralClass.National or LiteralClass.Boolean } other)
         {
-            ctx.Edition.Error(DiagnosticCatalog.ArithmeticOperandNotNumeric, $"a {(nn.NATLIT() is not null ? "national" : "boolean")} "
+            ctx.Edition.Error(DiagnosticCatalog.ArithmeticOperandNotNumeric, $"a {(other.Class is LiteralClass.National ? "national" : "boolean")} "
                 + $"literal is not a numeric operand ({EditionInfo.Designated(ctx.Edition.Edition.ArithmeticCitation())} — arithmetic operands shall be numeric)" + where);
             return BoundExprError.Refused(ctx.Edition, $"literal '{text}' in a numeric context");
         }
-        if ((nn.STRINGLIT() ?? nn.HEXLIT()) is not null)
+        if (quoted is { Class: LiteralClass.Alphanumeric })
         {
             // kb/Work PB155: this arm fell through to BoundNumLiteral carrying the QUOTED text, and the
             // emitter rendered it into the generated arithmetic — a raw Roslyn error at the wrong stage

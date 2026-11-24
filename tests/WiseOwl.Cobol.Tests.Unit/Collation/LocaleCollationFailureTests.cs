@@ -223,7 +223,7 @@ public sealed class LocaleCollationFailureTests
             _saved = Environment.GetEnvironmentVariable(variable);
             Path = ScratchDirectory.Create("wiseowl-cobol-pb2773-");
             Environment.SetEnvironmentVariable(variable, Path);
-            LocaleManager.ClearCache();
+            CollationEngine.ClearLocaleCache();
         }
 
         public string Path { get; }
@@ -232,14 +232,14 @@ public sealed class LocaleCollationFailureTests
         {
             string file = System.IO.Path.Combine(Path, name);
             File.WriteAllText(file, content);
-            LocaleManager.ClearCache();
+            CollationEngine.ClearLocaleCache();
             return file;
         }
 
         public void Dispose()
         {
             Environment.SetEnvironmentVariable(_variable, _saved);
-            LocaleManager.ClearCache();
+            CollationEngine.ClearLocaleCache();
             ScratchDirectory.Remove(Path);
         }
     }

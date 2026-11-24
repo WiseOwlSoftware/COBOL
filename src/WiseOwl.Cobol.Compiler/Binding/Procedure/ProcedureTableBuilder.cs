@@ -929,7 +929,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     /// group, Format 3's (exception-name, file) entries, or Format 4's single operand (ISO §2023:14.9.49).</summary>
     private readonly record struct DeclScope(
         IReadOnlyList<FileModel> Files, int? ModeIndex, bool Global, ReportGroupModel? Report,
-        IReadOnlyList<(string Ec, FileModel? File)>? EcEntries = null, BoundEoOperand? Eo = null);
+        IReadOnlyList<BoundExceptionSelector>? EcEntries = null, BoundEoOperand? Eo = null);
 
     /// <summary>Bind the USE statement's trigger scope (ISO §2023:14.9.49): Format 1's file list or open mode; the
     /// GLOBAL phrase drives the cross-program GR4b dispatch (the emitter's <c>__RunGlobalUse</c> containment
@@ -941,7 +941,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     private DeclScope? DeclBindUse(Core.UseStatementContext use, string sectionName)
     {
         bool global = use.GLOBAL() is not null;
-        if (use.useEcEntry() is { Length: > 0 } ecEntries)
+        if (use.exceptionSelectionOperand() is { Length: > 0 } ecEntries)
             return DeclBindUseF3(ecEntries, sectionName);
         if (use.OBJECT() is not null || use.EO() is not null)
         {
@@ -999,13 +999,9 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         var target = use.useOnTarget();
         if (target is null) return null;
 
-        // Mode scope (GR3b/GR6b–e) — the index IS the runtime FileOpenMode ordinal (the compiler references
-        // the runtime enum; both sides stay aligned by construction).
-        int? mode = target.INPUT() is not null ? (int)Runtime.IO.FileOpenMode.Input
-            : target.OUTPUT() is not null ? (int)Runtime.IO.FileOpenMode.Output
-            : target.EXTEND() is not null ? (int)Runtime.IO.FileOpenMode.Extend
-            : target.I_O() is not null ? (int)Runtime.IO.FileOpenMode.IO
-            : null;
+        // Mode scope (GR3b/GR6b–e) — the index IS the runtime FileOpenMode ordinal, mapped by the one mapping the
+        // PERFORM Format-3 WHEN EXCEPTION mode operand shares.
+        int? mode = OpenModeOperand.ExceptionModeIndex(target.openMode());
         if (mode is { } m)
         {
             // SR7: the INPUT, OUTPUT, I-O and EXTEND phrases may each be specified only once in the
@@ -1023,18 +1019,8 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         var files = new List<FileModel>();
         foreach (var fn in target.fileName())
         {
+            if (ResolveUseFile(fn, sectionName) is not { } file) continue;
             string fname = fn.GetText();
-            if (ctx.Symbols.Identify(fn, NameClass.File, report: true) is not { Symbol: FileModel file })
-            {
-                ctx.Edition.Error(DiagnosticCatalog.DeclarativeUseRule, $"declarative section '{sectionName}': USE names unknown "
-                    + $"file '{fname}' (ISO §2023:14.9.49)");
-                continue;
-            }
-            if (file.IsSortMerge)
-            {
-                ReportUseNamesSortMergeFile(sectionName, fname);
-                continue;
-            }
             // SR8: "The same file-name shall not appear in more than one USE AFTER EXCEPTION statement within
             // the same procedure division." ONE statement writing the name twice is not more than one — the
             // Format-1 figure's `{ file-name-1 } …` permits the repetition and GR6 a) associates the one
@@ -1062,75 +1048,54 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     /// name shall begin EC-I-O), SR14 (the same (exception-name-2, file-name-2) PAIR in more than one USE
     /// statement of this procedure division — a bare exception-name-1 is outside that rule and is bound as
     /// written), and the per-name edition window. The whole format is 2002+ (the EC model's introduction).</summary>
-    private DeclScope? DeclBindUseF3(Core.UseEcEntryContext[] entries, string sectionName)
+    private DeclScope? DeclBindUseF3(Core.ExceptionSelectionOperandContext[] entries, string sectionName)
     {
         // use-after-exception-condition-2002: the pass owns the edition gate (Exec Step E).
         ctx.EcState.F3 = true;
-        var pairs = new List<(string Ec, FileModel? File)>();
+        var pairs = new List<BoundExceptionSelector>();
+        // Each entry resolves through the one resolver a PERFORM Format-3 WHEN operand shares (§2023:14.9.28.4 GR17; kb/Work
+        // PB6139). ⚠ Its name funnel gates the introduction edition at EVERY level where this site's former copy guarded
+        // Level == 3 — a LEVEL-2 name of a 2023-only family (EC-MCS) in a USE entry slipped the old gate at 2002/2014.
         foreach (var entry in entries)
-        {
-            string raw = entry.cobolWord().GetText();
-            // Resolution + the 0711/0878/1636 diagnostics live in the ONE funnel (kb/Work R05). ⚠ The funnel
-            // gates the introduction edition at EVERY level where this site's former copy guarded Level == 3 —
-            // a LEVEL-2 name of a 2023-only family (EC-MCS) in a USE entry slipped the old gate at 2002/2014.
-            if (!EcNameResolution.TryResolve(ctx.Edition, raw,
-                    $"declarative section '{sectionName}'", out var info)) continue;
-            var fileNames = entry.fileName();
-            if (fileNames.Length > 0 && !Runtime.Exceptions.ExceptionCatalog.IsIoName(info.Name))
-            {
-                ctx.Edition.Error(DiagnosticCatalog.UseFileExceptionNameNotIo, $"declarative section '{sectionName}': FILE may be specified "
-                    + $"only with an exception-name beginning 'EC-I-O' — '{info.Name}' does not (ISO §2023:14.9.49.3 SR13)");
-                continue;
-            }
-            if (fileNames.Length == 0)
-            {
-                // A BARE name is exception-name-1, not exception-name-2 (§2023:14.9.49.2's Format-3 figure puts
-                // exception-name-2 only in the `exception-name-2 { FILE file-name-2 } …` alternative, and
-                // §2023:14.9.49.4 GR3 c)–d) against e)–g) split on the same axis). SR14 governs PAIRS, so nothing
-                // screens a repeated exception-name-1 — GR3 gives it its OUTCOME instead: "The first
-                // declarative that satisfies the selection criteria is executed and no other declaratives are
-                // executed." It therefore never enters the SR14 register.
-                pairs.Add((info.Name, null));
-                continue;
-            }
-            foreach (var fn in fileNames)
-            {
-                string fname = fn.GetText();
-                if (ctx.Symbols.Identify(fn, NameClass.File, report: true) is not { Symbol: FileModel file })
+            ExceptionSelectionOperands.Resolve(ctx, entry, $"declarative section '{sectionName}'",
+                refuseFilePairing: (_, info) =>
+                    ctx.Edition.Error(DiagnosticCatalog.UseFileExceptionNameNotIo, $"declarative section '{sectionName}': FILE may be specified "
+                        + $"only with an exception-name beginning 'EC-I-O' — '{info.Name}' does not (ISO §2023:14.9.49.3 SR13)"),
+                resolveFile: fn => ResolveUseFile(fn, sectionName),
+                select: (selector, _) =>
                 {
-                    ctx.Edition.Error(DiagnosticCatalog.DeclarativeUseRule, $"declarative section '{sectionName}': USE names unknown "
-                        + $"file '{fname}' (ISO §2023:14.9.49)");
-                    continue;
-                }
-                if (file.IsSortMerge)
-                {
-                    ReportUseNamesSortMergeFile(sectionName, fname);
-                    continue;
-                }
-                AddPair(info.Name, file);
-            }
-        }
+                    // A BARE name is exception-name-1, not exception-name-2 (§2023:14.9.49.2's Format-3 figure puts
+                    // exception-name-2 only in the `exception-name-2 { FILE file-name-2 } …` alternative, and
+                    // §2023:14.9.49.4 GR3 c)–d) against e)–g) split on the same axis). SR14 governs PAIRS, so nothing
+                    // screens a repeated exception-name-1 — GR3 gives it its OUTCOME instead: "The first
+                    // declarative that satisfies the selection criteria is executed and no other declaratives are
+                    // executed." It therefore never enters the SR14 register.
+                    if (selector.File is null) pairs.Add(selector);
+                    else AddPair(selector);
+                });
         return new DeclScope([], null, Global: false, null, pairs);
 
-        void AddPair(string ec, FileModel file)
+        void AddPair(BoundExceptionSelector pair)
         {
+            string ecName = pair.Ec!;
+            FileModel file = pair.File!;
             // SR14: "The same pair of exception-name-2 and file-name-2 shall not be specified in more than one
             // USE statement within the same procedure division." The pair is the key (a bare exception-name-1
             // never gets here) and the STATEMENT is the boundary: the figure's inner `{ FILE file-name-2 } …`
             // and outer `…` both let ONE statement write a pair twice, which is not more than one statement.
             // The pair is the exception-name (the catalog's own spelling) and the FILE the file-name identified: two
             // file-names are one when they identify one file, so the comparison of written names stays the symbol table's.
-            switch (_useEcPairs.Register((ec, file)))
+            switch (_useEcPairs.Register((ecName, file)))
             {
                 case ConstructOperand.Repeated:
                     return;   // written twice in this one statement — legal, and bound once
                 case ConstructOperand.Duplicate:
                     ctx.Edition.Error(DiagnosticCatalog.UseExceptionFilePairRepeated, $"declarative section '{sectionName}': the exception-name/"
-                        + $"file pair '{ec} FILE {file.CobolName}' is already specified in another USE statement "
+                        + $"file pair '{ecName} FILE {file.CobolName}' is already specified in another USE statement "
                         + "of this procedure division (ISO §2023:14.9.49.3 SR14)");
                     return;   // §2023:14.9.49.4 GR3 recovery — the FIRST declarative keeps the pair
             }
-            pairs.Add((ec, file));
+            pairs.Add(pair);
         }
     }
 
@@ -1144,6 +1109,25 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     // ends the section only at the next section header or END DECLARATIVES, §2023:14.6.3 GR1 puts the implied
     // transfer back to the controlling USE at "the last statement" of "the last procedure in the range", and
     // §2023:14.9.14.4 GR7's NOTE names USE among the return mechanisms that sit AFTER the section's last paragraph.
+
+    /// <summary>The file a USE statement's written file-name identifies (Format 1's file-name-1 and Format 3's file-name-2 alike), or
+    /// null after reporting a name that identifies no file (§2023:14.9.49) or a sort or merge file (§2023:14.9.49.3 SR2).</summary>
+    private FileModel? ResolveUseFile(Core.FileNameContext fn, string sectionName)
+    {
+        string fname = fn.GetText();
+        if (ctx.Symbols.Identify(fn, NameClass.File, report: true) is not { Symbol: FileModel file })
+        {
+            ctx.Edition.Error(DiagnosticCatalog.DeclarativeUseRule, $"declarative section '{sectionName}': USE names unknown "
+                + $"file '{fname}' (ISO §2023:14.9.49)");
+            return null;
+        }
+        if (file.IsSortMerge)
+        {
+            ReportUseNamesSortMergeFile(sectionName, fname);
+            return null;
+        }
+        return file;
+    }
 
     /// <summary>⛔ THE ONE REFUSAL OF A USE STATEMENT THAT NAMES A SORT OR MERGE FILE (both USE formats that name files), citing the rule of
     /// the edition in force (kb/Work PB4950): §2023:14.9.49.3 SR2 from 2002; COBOL-85's USE statements state no such syntax rule, and
