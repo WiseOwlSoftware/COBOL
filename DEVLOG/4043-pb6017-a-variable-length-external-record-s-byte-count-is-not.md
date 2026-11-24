@@ -1,4 +1,4 @@
-## PB6017: a variable-length EXTERNAL record's byte count is not compared at run time
+## Entry 4043 — 2026-11-24 10:05 PST — PB6017: a variable-length EXTERNAL record's byte count is not compared at run time
 
 A record holding a dynamic-capacity table, described with another element size by a second program, raised
 EC-EXTERNAL-FORMAT-CONFLICT at the CALL at --std 2023 (probe, `extdyn.cob`: `A HANDLED EC-EXTERNAL-FORMAT-CONFLICT`, EXTDB
@@ -9,3 +9,4 @@ treated it), and `ExternalTable.Describe` compares two counts only when both exi
 identities are still compared. Golden `pb6017_dyn_table_external_2023` (2023, both conditions checked: B and C handled as
 EC-DATA-INCOMPATIBLE, D clean, the CALLs complete), refused at 2002/2014 with COBOL0878; unit test in `ExternalTableTests`.
 Rows re-verdicted: none. No diagnostic code used.
+
