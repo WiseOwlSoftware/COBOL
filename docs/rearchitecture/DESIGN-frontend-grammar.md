@@ -2730,9 +2730,12 @@ lowercase with Annex C. Three pieces, each in one place:
   `user-word-extended-letter-2002` (COBOL0900) below 2002 for an extended letter — but a character that NO edition's
   Annex B holds (U+00A0, the euro sign) is no extended letter, so `CobolCharacterRepertoire.ViolationAtEveryEdition`
   makes it COBOL2773 at every target, COBOL-85 included, worded by what the character is (kb/Work PB4130). The gate is decided per CHARACTER (`CobolCharacterRepertoire.HasExtendedLetter`: any character some edition's Annex B holds), so a word holding both an extended letter and such a character draws the gate (COBOL0900) and COBOL2773 at COBOL-85 (kb/Work PB4156). The tables are COBOL 2023's, transcribed list for list
-  from the standard by `scripts/spec/gen_annex_bc.py`; COBOL 2002/2014 are derived by reversing Annex E (E.2 item 4,
-  E.3.3 items 4 and 5 — the standard records no 2002→2014 change, so 2002 uses 2014's). `AnnexBCDriftTests` re-reads
-  every list from `specs/ISO_COBOL_2023.md`. A word's length is counted in characters (code points), so a combining
+  from the standard by `scripts/spec/gen_annex_bc.py`; COBOL 2014 is derived by reversing Annex E (E.2 item 4,
+  E.3.3 items 4 and 5); COBOL 2002 has its OWN repertoire, Annex C.2 of `specs/ISO_COBOL_2002.md` (TR 10176:2001, narrower
+  than 2014's), whose special characters (C.2.1's row and C.2.2's MIDDLE DOT) and combining characters §2002:8.1.2.1 GR4b bars
+  from the first AND the last place — both the medial class, the combining ones taken from the rows 2014's Annex B.3.1
+  labels combining, since 2002 Annex C labels none (kb/Work PB5702). `AnnexBCDriftTests` re-reads
+  every list from the three specifications. A word's length is counted in characters (code points), so a combining
   character counts separately (GR4 c).
 - **Where the legality is asked (kb/Work PB3845).** `WordCharacterScreen` (Frontend/Parsing), over the words of the
   compilation: every `IDENTIFIER` token that holds an underscore or a character outside the basic repertoire gets the

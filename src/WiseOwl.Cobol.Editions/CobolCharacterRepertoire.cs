@@ -31,11 +31,14 @@ public enum WordCharacterPosition
 /// <see cref="Violation"/>, asked of the finished word with the edition in hand — so a character outside Annex B is
 /// named in a diagnostic of its own rather than ending the word with an unexplained "unexpected" (the superset-parse
 /// / bind-narrow doctrine the underscore follows).</para>
-/// <para><b>Editions.</b> The tables are COBOL 2023's Annex B.3; COBOL 2002 and 2014 hold the earlier repertoire,
+/// <para><b>Editions.</b> The tables are COBOL 2023's Annex B.3; COBOL 2014 holds the earlier repertoire,
 /// derived by reversing Annex E: E.2 item 4 (U+037A deleted at 2023; U+30FB made medial — it was permitted anywhere),
 /// E.3.3 item 4 (characters newly permitted FIRST at 2023 — before, anywhere but first) and E.3.3 item 5 (characters
-/// added at 2023 — absent before). The standard records no change of Annex B between 2002 and 2014, so 2002 uses the
-/// 2014 repertoire. COBOL-85 has no extended letters: the gate is the construct
+/// added at 2023 — absent before). COBOL 2002 has its OWN repertoire, Annex C of that edition (TR 10176:2001, narrower
+/// than 2014's, which is TR 10176:2003; kb/Work PB5702): §2002:8.1.2.1 GR4b bars the special characters of Annex C
+/// and the combining characters of TR 10176:2001 Annex A from the first AND the last place of a word, which makes both
+/// <see cref="WordCharacterPosition.Medial"/>; Annex C does not label the combining characters, so the rows COBOL 2014's
+/// Annex B.3.1 labels combining, within the 2002 repertoire, stand for them (<see cref="Edition2002"/>). COBOL-85 has no extended letters: the gate is the construct
 /// <c>user-word-extended-letter-2002</c>, asked before <see cref="Violation"/>, except for a character no edition's
 /// Annex B holds (<see cref="ViolationAtEveryEdition"/>), which is no extended letter and draws COBOL2773.</para>
 /// </summary>
@@ -105,18 +108,18 @@ public static partial class CobolCharacterRepertoire
     /// Below 2002 only the basic characters exist (the construct gate names an extended one first).</summary>
     public static WordCharacterPosition PositionOf(int codePoint, int dialectLevel)
     {
-        var table = dialectLevel >= 2023 ? Edition2023.Value : Edition2014.Value;
+        var table = dialectLevel >= 2023 ? Edition2023.Value : dialectLevel >= 2014 ? Edition2014.Value : Edition2002.Value;
         foreach (var (classSet, position) in table)
             if (Contains(classSet, codePoint)) return position;
         return WordCharacterPosition.NotPermitted;
     }
 
     /// <summary>Are <paramref name="word"/>'s characters where SOME edition's Annex B permits them (<see cref="Violation"/>
-    /// is null at 2023 or at 2014, whose table 2002 shares; COBOL-85's basic repertoire is a subset of both)? A word
+    /// is null at 2023, 2014 or 2002; COBOL-85's basic repertoire is a subset of all three)? A word
     /// no edition admits is no COBOL word whatever edition is targeted, so a reading of the source that takes it for
     /// one is no reading the standard has (the parse layer's missing-period guess, kb/Work PB3832).</summary>
     public static bool IsWordAtSomeEdition(string word) =>
-        !BreaksSeparatorPosition(word) && (Violation(word, 2023) is null || Violation(word, 2014) is null);
+        !BreaksSeparatorPosition(word) && (Violation(word, 2023) is null || Violation(word, 2014) is null || Violation(word, 2002) is null);
 
     /// <summary>⛔ THE BASIC SEPARATORS' POSITION RULE, as a message — §2023:8.3.2.1: "The hyphen or underscore shall not
     /// appear as the first or last character in such words." Edition-free (it holds at COBOL-85 as at 2023), so it
@@ -174,15 +177,17 @@ public static partial class CobolCharacterRepertoire
                     return $"{what} as its first character, which Annex B.3 item 2 permits in a word only after the "
                         + $"start character (COBOL-{edition}; ISO §2023:8.3.2.1)";
                 case WordCharacterPosition.Medial when first || last:
-                    return $"{what} as its {(first ? "first" : "last")} character, which Annex B.3 item 3 permits only "
-                        + $"inside a word (COBOL-{edition}; ISO §2023:8.3.2.1)";
+                    string medial = $"which Annex B.3 item 3 permits only inside a word (COBOL-{edition}; ISO §2023:8.3.2.1)";
+                    return $"{what} as its {(first ? "first" : "last")} character, " + EditionInfo.Of(dialectLevel).Cite("",
+                        medial, "a special or combining character of Annex C, which may be neither the first nor the last character of a word "
+                        + "(COBOL-2002; ISO §2002:8.1.2.1 GR4b)", medial);
             }
         }
         return null;
     }
 
     /// <summary>Is <paramref name="codePoint"/> (beyond the basic repertoire) in SOME edition's Annex B — the 2023 table or the
-    /// 2002/2014 one? Such a character is an EXTENDED LETTER (§2023:8.1.3.2 GR4: Annex B less the basic characters), which COBOL-85
+    /// 2014 one (every character of the 2002 Annex C is in one of the two, <c>AnnexBCDriftTests</c>)? Such a character is an EXTENDED LETTER (§2023:8.1.3.2 GR4: Annex B less the basic characters), which COBOL-85
     /// lacks; one in neither is no extended letter at all (U+00A0, the euro sign). The one place that distinction is drawn:
     /// <see cref="HasExtendedLetter"/> and <see cref="ViolationAtEveryEdition"/> both ask it.</summary>
     private static bool IsInSomeAnnexB(int codePoint) =>
@@ -253,7 +258,7 @@ public static partial class CobolCharacterRepertoire
         new(() => [(B3Anywhere, WordCharacterPosition.Anywhere), (B3NotFirst, WordCharacterPosition.NotFirst),
                    (B3Medial, WordCharacterPosition.Medial)]);
 
-    /// <summary>The COBOL 2002/2014 classes: 2023's with Annex E reversed.</summary>
+    /// <summary>The COBOL 2014 classes: 2023's with Annex E reversed.</summary>
     private static readonly Lazy<((int First, int Second)[] Set, WordCharacterPosition Position)[]> Edition2014 = new(() =>
     {
         var added = Expand(E33Item5Added);
@@ -271,6 +276,22 @@ public static partial class CobolCharacterRepertoire
         anywhere.UnionWith(Expand(E2Item4Deleted));
         return [(Ranges(anywhere), WordCharacterPosition.Anywhere), (Ranges(notFirst), WordCharacterPosition.NotFirst),
                 (Ranges(medial), WordCharacterPosition.Medial)];
+    });
+
+    /// <summary>The COBOL 2002 classes, from that edition's own Annex C (kb/Work PB5702): the letters and digits of C.2.1
+    /// are permitted anywhere, except that §2002:8.1.2.1 GR4b bars the special characters (C.2.1's special row and
+    /// C.2.2's MIDDLE DOT) and the combining characters from the first and the last place — both <see cref="WordCharacterPosition.Medial"/>.
+    /// The combining characters are those COBOL 2014's Annex B.3.1 labels combining that lie in the 2002 repertoire.</summary>
+    private static readonly Lazy<((int First, int Second)[] Set, WordCharacterPosition Position)[]> Edition2002 = new(() =>
+    {
+        var medial = Expand(C2002Special);
+        medial.UnionWith(Expand(C2002Additional));
+        var combining = Expand(B2014Combining);
+        var anywhere = Expand(C2002Letters);
+        combining.IntersectWith(anywhere);
+        medial.UnionWith(combining);
+        anywhere.ExceptWith(medial);
+        return [(Ranges(anywhere), WordCharacterPosition.Anywhere), (Ranges(medial), WordCharacterPosition.Medial)];
     });
 
     private static HashSet<int> Expand((int First, int Second)[] ranges)
