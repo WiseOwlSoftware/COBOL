@@ -311,6 +311,7 @@ WiseOwl.Cobol.Runtime.DialectBehavior.UnphrasedSizeErrorIsFatal = 20 -> WiseOwl.
 WiseOwl.Cobol.Runtime.DialectBehavior.UnstringZeroLengthSenderTerminates = 24 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.EditionDerivedAttribute
 WiseOwl.Cobol.Runtime.EditionDerivedAttribute.EditionDerivedAttribute() -> void
+WiseOwl.Cobol.Runtime.ElementReturn
 WiseOwl.Cobol.Runtime.Exceptions.CheckingFlags.FlowApplyCommit -> bool
 WiseOwl.Cobol.Runtime.Exceptions.CheckingFlags.FlowCommit -> bool
 WiseOwl.Cobol.Runtime.Exceptions.CheckingFlags.FlowGlobalExit -> bool
@@ -1080,6 +1081,7 @@ const WiseOwl.Cobol.Runtime.CobolDec.SidiRoundedDigits = 31 -> int
 const WiseOwl.Cobol.Runtime.CobolNum.NestedQuotientGuardDigits = 14 -> int
 const WiseOwl.Cobol.Runtime.DebugItem.MaxSubscriptLevels = 3 -> int
 const WiseOwl.Cobol.Runtime.DebugItem.MinContentsWidth = 30 -> int
+const WiseOwl.Cobol.Runtime.ElementReturn.Returned = -2147483648 -> int
 const WiseOwl.Cobol.Runtime.IO.CobolReport.NoPageWidth = 2147483647 -> int
 const WiseOwl.Cobol.Runtime.IO.FileStatusCode.RecordIdentificationFailure = "45" -> string!
 const WiseOwl.Cobol.Runtime.IO.RecordFormat.BySelectWhen = -1 -> int
@@ -1584,5 +1586,3 @@ static readonly WiseOwl.Cobol.Runtime.MoveCitations.Iso2023 -> WiseOwl.Cobol.Run
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryIndexOutcome.ToString() -> string
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.Equals(object obj) -> bool
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.ToString() -> string
-WiseOwl.Cobol.Runtime.ElementReturn
-const WiseOwl.Cobol.Runtime.ElementReturn.Returned = -2147483648 -> int
