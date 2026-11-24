@@ -642,6 +642,12 @@ public enum DialectBehavior
     /// (§2002:8.4.1.2.2) and a data-name or an arithmetic expression may be written (kb/Work PB5709; VCR row 7.124). Both editions are
     /// QUOTED. The consumer is <c>ConstantEntryBinder.BindConstantLength</c>.</summary>
     ConstantLengthSubscriptsAreLiterals = 68,
+    /// <summary>§2014:8.4.2.11.2 SR5 — "If identifier-1 references a strongly-typed group item, identifier-1 shall be defined with a
+    /// TYPE clause referencing a type declaration described with the STRONG phrase" (§2002:8.4.2.11.2 SR4 the same), so below 2023
+    /// the ADDRESS OF a group that is merely subordinate to a strong record and carries no TYPE clause of its own is refused
+    /// (kb/Work PB5705; VCR row 7.125). §2023:8.4.3.11.3 has no such rule: its GR2 (§2023:8.4.3.11.4) types the group by position.
+    /// Both editions are QUOTED. The consumer is <c>AddressOfOperandScreen.Admit</c>.</summary>
+    AddressOfSubordinateStrongGroupNeedsNoOwnTypeClause = 69,
 }
 
 /// <summary>
@@ -977,6 +983,10 @@ public static class DialectBehaviors
             "7.124", "§2014:13.10.2 SR3", "§2002:13.9.2 SR3",
             "every subscript of a constant entry's LENGTH OF / BYTE-LENGTH OF operand shall be a literal only from COBOL-2014; "
             + "at COBOL-2002 the operand's subscripts are ordinary ones and may be data-names"),
+        new(DialectBehavior.AddressOfSubordinateStrongGroupNeedsNoOwnTypeClause, "address-of-subordinate-strong-group-needs-no-own-type-clause", 2023,
+            "7.125", "§2023:8.4.3.11.4 GR2", "§2014:8.4.2.11.2 SR5",
+            "ADDRESS OF a group subordinate to a strongly-typed group item is admitted from COBOL-2023, which types it by position; "
+            + "at COBOL-2002 and COBOL-2014 identifier-1 shall be defined with a TYPE clause of its own referencing a STRONG declaration"),
     ];
 
     static DialectBehaviors()
