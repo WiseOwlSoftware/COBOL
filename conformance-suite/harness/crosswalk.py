@@ -14,7 +14,7 @@ never dropped. The 17 FIPS programs (the ones whose flags expect NON-CONFORMING 
 every one `excluded` with the reason `fips-pub-21-1`.
 
 THE MAP is mechanical and says so (`basis: "mechanical"`): NIST's references seed it and never decide it (section 6.3).
-An entry with any other basis is an ADJUDICATION (Stage 4, PB4696): `--build` merges by unit name and keeps it verbatim,
+An entry whose basis is `adjudicated: <reason>` is an ADJUDICATION (Stage 4, PB4696; any other basis is refused): `--build` merges by unit name and keeps it verbatim,
 and reports it when a program fact it was decided on (its lines, FEATURE, ANSI-REFERENCE or flag) no longer holds or the
 program no longer has its unit; `--check` refuses a file in which a rebuild would change an adjudicated entry (kb/Work
 PB6131). A unit's `ANSI-REFERENCE` is the last one its program moved before the unit's `PAR-NAME` move, read as page and section
@@ -439,9 +439,23 @@ def write_file(path: Path, obj: dict[str, Any]) -> None:
 FACTS = ("lines", "feature", "ansi", "flag")
 
 
+#: the one form of an adjudication's basis (design 6.3): the word, a colon, a space and the reason it was decided on
+ADJUDICATED = "adjudicated: "
+
+
 def adjudicated(entry: dict[str, Any]) -> bool:
-    """An entry the tool does not reproduce: any basis but `mechanical` is a decision (design 6.3) a rebuild keeps."""
-    return entry.get("basis") != BASIS
+    """An entry the tool does not reproduce: its basis is `adjudicated: <reason>`, a decision a rebuild keeps."""
+    basis = entry.get("basis")
+    return isinstance(basis, str) and basis.startswith(ADJUDICATED) and bool(basis[len(ADJUDICATED):].strip())
+
+
+def basis_problems(where: str, entry: dict[str, Any]) -> list[str]:
+    """An entry's basis is exactly `mechanical` or `adjudicated: <reason>`; any other (missing, `Mechanical`, a trailing
+    blank, `adjudicated` with no reason) is a broken record, refused loudly by `--build` and `--check` alike (kb/Work
+    PB6131 review R1-1), never read as either."""
+    if entry.get("basis") == BASIS or adjudicated(entry):
+        return []
+    return [f"{where}: basis {entry.get('basis')!r} is neither {BASIS!r} nor {ADJUDICATED!r} and a reason"]
 
 
 def fact_problems(where: str, want: dict[str, Any], have: dict[str, Any]) -> list[str]:
@@ -453,16 +467,18 @@ def merge(fresh: dict[str, Any], stored: dict[str, Any] | None) -> tuple[dict[st
     """The file a rebuild writes: the fresh mechanical map with each adjudicated entry of the stored file, verbatim, in
     place of its unit's mechanical one. Returns (file, adjudicated entries kept, conflicts). A conflict is a kept
     adjudication whose program facts no longer hold, or whose unit the program no longer has (kept after the program's
-    units, so the decision is never lost, and `--check` names it). A unit adjudicated twice fails loudly: neither entry
-    can be told to be the decision."""
+    units, so the decision is never lost, and `--check` names it), or a stored entry whose basis is neither form
+    (`basis_problems`): it is kept too, since it may be a decision written wrong, and never silently replaced. A unit
+    kept twice fails loudly: neither entry can be told to be the decision."""
     program = fresh["program"]
     kept: dict[str, dict[str, Any]] = {}
+    conflicts: list[str] = []
     for u in (stored or {}).get("units", []):
-        if adjudicated(u):
+        if u.get("basis") != BASIS:
+            conflicts += [f"{p} (entry kept: correct its basis)" for p in basis_problems(f"{program}:{u.get('unit')}", u)]
             if u.get("unit") in kept:
                 raise CrosswalkError(f"{program}: unit {u.get('unit')} is adjudicated twice; resolve it by hand")
             kept[u.get("unit")] = u
-    conflicts: list[str] = []
     units = []
     for u in fresh["units"]:
         have = kept.pop(u["unit"], None)
@@ -556,11 +572,11 @@ def audit_elements(spec: str) -> list[str]:
 
 def audit_unit(catalog: Catalog, program: str, want: dict[str, Any], have: dict[str, Any]) -> list[str]:
     where = f"{program}:{have['unit']}"
-    problems = fact_problems(where, want, have)
+    problems = fact_problems(where, want, have) + basis_problems(where, have)
     disposition = have.get("disposition")
     if disposition not in DISPOSITIONS:
         return problems + [f"{where}: disposition {disposition!r} is none of {', '.join(DISPOSITIONS)}"]
-    if not adjudicated(have) and have != want:
+    if have.get("basis") == BASIS and have != want:
         problems.append(f"{where}: a mechanical entry differs from what the tool now maps (rerun --build)")
     if disposition == "excluded" and have.get("reason") not in EXCLUSIONS:
         problems.append(f"{where}: exclusion reason {have.get('reason')!r} is unknown")
