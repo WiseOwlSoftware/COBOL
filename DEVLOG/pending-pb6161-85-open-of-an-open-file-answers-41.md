@@ -30,6 +30,11 @@ DOC-A.1-77 and -131 to 2002,2014,2023; `DocItemBandDriftTests.Exempt` loses -43 
 amendment: GR2 carries 2002's default-convention half) and -65 (a stale cross-reference). `record_verdicts`: 9 rows changed in
 2023 (the brief expected 3; the other 6 are the currency golden's move to `cases/13.18.40-PICTURE/`, which the A.1 folder refused
 once its header named no A.1 rule, and the PB6161 goldens added to the OPEN rows), 7 witnesses retired, GAP 1 → 1; 2 rows in 1985,
-GAP 0 → 0. `l1c06_currency_non_cobol_equivalence_85` keeps only its 1985-legal `é` line. P2.10 now names 1985's own
+GAP 0 → 0. `l1c06_currency_non_cobol_equivalence_85` keeps only its 1985-legal `é` line. The first gate was RED before any
+host ran: `generate.py` refused `l1c06_currency_non_cobol_symbols`, accepted at 2002 with DOC-A.1-43, a sibling the adjudication had
+not listed. It is now accepted at 2014 and 2023, a 2002 twin writes each symbol as its clause gives it (3 more witness-only rows), and
+the equivalent-rebound refusal names 2014 and 2023 only (its 2002 refusal is PB6162's). The 85 coverage points were re-recorded
+(`coverage.py --edition 85 --record`); the record was already stale on main (catalog digest and tests this change does not touch),
+so every points file moved. P2.10 now names 1985's own
 Implementor-Defined Language Element List as the 85 check. Leads filed: PB6162 (`PIC É9.99` accepted at 85), PB6163
 (SR-12.3.7.3-20's 2002 band), PB6164 (the standard's stale GOBACK rule numbers).
