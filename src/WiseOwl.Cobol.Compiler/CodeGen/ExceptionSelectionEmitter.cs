@@ -16,7 +16,8 @@ using static WiseOwl.Cobol.CodeGen.Emit.EmitText;
 /// the two already disagreed on a name the catalog does not resolve (kb/Work PB2723). The TIER is the bound operand's
 /// (<see cref="BoundExceptionSelector.Tier"/>, decided at bind from the catalog level); this type renders it. The Format-1
 /// file-name and open-mode tiers of a USE declarative are the I-O hook's switch (<see cref="UseTierEmitter"/>), which runs
-/// only for an I-O condition and so needs no exception-name test.
+/// only for an I-O condition and so needs no exception-name test; its open-mode switch selects on
+/// <see cref="OpenModeSelected"/>, the same expression the WHEN open-mode arms test.
 /// </summary>
 internal static class ExceptionSelectionEmitter
 {
@@ -35,13 +36,27 @@ internal static class ExceptionSelectionEmitter
         _ => throw new InvalidOperationException($"a {s.Tier} selector has no exception-name test (§2023:14.9.49.4 GR3)"),
     };
 
-    /// <summary>The C# test of the GR3 b) open-mode tier for the <c>FileOpenMode</c> ordinal <paramref name="modeIndex"/>: an
-    /// EC-I-O condition of a file currently open in that mode or being opened in it by the executing OPEN (the being-opened
-    /// mode, <c>FileConnector.OpenModeView</c>, or the mode it is open in, <c>FileConnector.OpenedModeView</c>; kb/Work PB5200,
-    /// PB5825). <c>__f</c> is null for a non-I-O condition or a file-less EC-I-O RAISE.</summary>
-    public static string OpenModeTest(int modeIndex) =>
-        $"ExceptionCatalog.IsIoName(__ec) && __f is not null && ({RuntimeApi.FileOpenModeOf("__f")} == {modeIndex} "
-        + $"|| {RuntimeApi.FileOpenedModeOf("__f")} == {modeIndex})";
+    /// <summary>The C# expression of the ONE open mode the GR3 b) tier selects on for the file key <c>__f</c>, given the
+    /// <c>FileOpenMode</c> ordinals <paramref name="declaredModes"/> (a bit mask) the selector has a procedure or WHEN phrase
+    /// for: the mode the file IS open in when one is declared for it, else the mode the executing OPEN or CLOSE is scoped to
+    /// (<c>FileConnector.UseModeView</c>). A file is in a mode's scope when it is "open in the input mode or in the process of
+    /// being opened in the input mode" (§2023:14.9.49.4 GR6, b) to e) alike), so an OPEN refused '41' on a file open in
+    /// another mode meets two modes; where both are declared the text names no order and the open mode's runs, as GnuCOBOL's
+    /// does (kb/Work PB5878, docs/conformance/3/D-USE-OPEN-MODE-BOTH.md). Both selectors of the tier use this one expression,
+    /// the USE Format-1 switch (<see cref="UseTierEmitter"/>) and a Format-3 PERFORM's WHEN EXCEPTION INPUT | OUTPUT | I-O |
+    /// EXTEND arms (<see cref="OpenModeTest"/>), because §2023:14.9.28.4 GR17 makes the WHEN match the USE rule (kb/Work
+    /// PB2723 review R1-1: the WHEN arms once tested the attempted OR the opened mode and so ran the first-written phrase).</summary>
+    public static string OpenModeSelected(int declaredModes) => RuntimeApi.FileUseModeOf("__f", declaredModes);
+
+    /// <summary>The bit mask of <c>FileOpenMode</c> ordinals <see cref="OpenModeSelected"/> takes.</summary>
+    public static int DeclaredModes(IEnumerable<int> modeIndexes) => modeIndexes.Aggregate(0, (mask, mi) => mask | 1 << mi);
+
+    /// <summary>The C# test of a WHEN phrase's GR3 b) open-mode tier for the <c>FileOpenMode</c> ordinal
+    /// <paramref name="modeIndex"/>, among the PERFORM's open-mode phrases <paramref name="declaredModes"/>: an EC-I-O
+    /// condition of a file whose selected mode (<see cref="OpenModeSelected"/>) is that mode. <c>__f</c> is null for a
+    /// non-I-O condition or a file-less EC-I-O RAISE.</summary>
+    public static string OpenModeTest(int modeIndex, int declaredModes) =>
+        $"ExceptionCatalog.IsIoName(__ec) && __f is not null && {OpenModeSelected(declaredModes)} == {modeIndex}";
 
     /// <summary>The generated-source banner of a tier in <c>__EcDispatch</c>.</summary>
     public static string Banner(ExceptionSelectionTier tier) => tier switch

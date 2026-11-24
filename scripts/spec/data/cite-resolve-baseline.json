@@ -8,7 +8,7 @@
   "longer fails. Repair a citation, then rewrite this file with",
   "`python scripts/spec/audit_code_citations.py --write-baseline` (it refuses to add an entry)."
  ],
- "count": 1941,
+ "count": 1940,
  "entries": [
   {
    "file": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4",
@@ -1944,14 +1944,14 @@
   },
   {
    "file": "docs/DATA_MODEL_DESIGN.md",
-   "line": 2620,
+   "line": 2621,
    "citation": "§2023:14.8.2.3.2",
    "kind": "designator-not-canonical",
    "reason": "the catalog gives that ordinal no one rule of the clause"
   },
   {
    "file": "docs/DATA_MODEL_DESIGN.md",
-   "line": 2630,
+   "line": 2631,
    "citation": "§2023:8.4.2.2",
    "kind": "designator-not-canonical",
    "reason": "the catalog gives that ordinal no one rule of the clause"
@@ -2112,14 +2112,14 @@
   },
   {
    "file": "docs/FILES_DESIGN.md",
-   "line": 3262,
+   "line": 3266,
    "citation": "§2023:9.1.13.6 item 6",
    "kind": "designator-not-canonical",
    "reason": "its canonical form §2023:9.1.13.6 item 6a.3 is refused (item-is-a-rule): derive the designator"
   },
   {
    "file": "docs/FILES_DESIGN.md",
-   "line": 3262,
+   "line": 3266,
    "citation": "§2023:9.1.13.6 item 6",
    "kind": "item-is-a-rule",
    "reason": "§2023:9.1.13.6 item 6: the catalog holds that item as the numbered rule GR6 of 9.1.13.6: cite §2023:9.1.13.6 GR6"
@@ -2567,49 +2567,49 @@
   },
   {
    "file": "docs/rearchitecture/DESIGN-frontend-grammar.md",
-   "line": 1227,
+   "line": 1235,
    "citation": "§2023:6.5",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
   },
   {
    "file": "docs/rearchitecture/DESIGN-frontend-grammar.md",
-   "line": 1244,
+   "line": 1252,
    "citation": "§2023:6.5",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
   },
   {
    "file": "docs/rearchitecture/DESIGN-frontend-grammar.md",
-   "line": 1361,
+   "line": 1369,
    "citation": "§2023:7.3.13.4",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
   },
   {
    "file": "docs/rearchitecture/DESIGN-frontend-grammar.md",
-   "line": 1895,
+   "line": 1903,
    "citation": "§2023:8.3.2.2",
    "kind": "designator-not-canonical",
    "reason": "the catalog gives that ordinal no one rule of the clause"
   },
   {
    "file": "docs/rearchitecture/DESIGN-frontend-grammar.md",
-   "line": 2985,
+   "line": 2993,
    "citation": "§2023:14.5.3.3",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
   },
   {
    "file": "docs/rearchitecture/DESIGN-locale-facility.md",
-   "line": 769,
+   "line": 778,
    "citation": "§2023:14.8.2.3.2",
    "kind": "designator-not-canonical",
    "reason": "the catalog gives that ordinal no one rule of the clause"
   },
   {
    "file": "docs/rearchitecture/DESIGN-locale-facility.md",
-   "line": 810,
+   "line": 819,
    "citation": "§2023:15.53.3",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
@@ -2812,7 +2812,7 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs",
-   "line": 1145,
+   "line": 1154,
    "citation": "§2023:8.3.2.2",
    "kind": "designator-not-canonical",
    "reason": "the catalog gives that ordinal no one rule of the clause"
@@ -2833,56 +2833,56 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs",
-   "line": 973,
+   "line": 969,
    "citation": "§2023:8.8.2",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs",
-   "line": 1029,
+   "line": 1025,
    "citation": "§2023:14.8.2.3.3",
    "kind": "designator-not-canonical",
    "reason": "the catalog gives that ordinal no one rule of the clause"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs",
-   "line": 1496,
+   "line": 1501,
    "citation": "§2023:14.9.30.4 GR4",
    "kind": "designator-not-canonical",
    "reason": "the same designator text stands in a message string this run does not rewrite"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs",
-   "line": 1510,
+   "line": 1515,
    "citation": "§2023:14.9.34.4 GR5",
    "kind": "designator-not-canonical",
    "reason": "the same designator text stands in a message string this run does not rewrite"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs",
-   "line": 1577,
+   "line": 1582,
    "citation": "§2023:14.6.9.2",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs",
-   "line": 2277,
+   "line": 2282,
    "citation": "§2023:14.9.51.4 GR25",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs",
-   "line": 2307,
+   "line": 2312,
    "citation": "§2023:14.9.51.4 GR25",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs",
-   "line": 2471,
+   "line": 2476,
    "citation": "§2023:14.9.33.4 GR2",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
@@ -2931,28 +2931,28 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/ConstantEntryBinder.cs",
-   "line": 848,
+   "line": 845,
    "citation": "§2023:5.5",
    "kind": "designator-not-canonical",
    "reason": "a test or suite file no expectation reader rewrites quotes the designator text"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/ConstantEntryBinder.cs",
-   "line": 856,
+   "line": 853,
    "citation": "§2023:5.5",
    "kind": "designator-not-canonical",
    "reason": "a test or suite file no expectation reader rewrites quotes the designator text"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/ConstantEntryBinder.cs",
-   "line": 871,
+   "line": 868,
    "citation": "§2023:5.5",
    "kind": "designator-not-canonical",
    "reason": "a test or suite file no expectation reader rewrites quotes the designator text"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/ConstantEntryBinder.cs",
-   "line": 875,
+   "line": 872,
    "citation": "§2023:5.5",
    "kind": "designator-not-canonical",
    "reason": "a test or suite file no expectation reader rewrites quotes the designator text"
@@ -3512,7 +3512,7 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs",
-   "line": 1427,
+   "line": 1431,
    "citation": "§2023:13.18.40.4 GR13",
    "kind": "designator-not-canonical",
    "reason": "the same designator text stands in a message string this run does not rewrite"
@@ -3533,49 +3533,49 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs",
-   "line": 806,
+   "line": 796,
    "citation": "§2023:12.3.7.4 GR11",
    "kind": "designator-not-canonical",
    "reason": "the parentheses around the designator do not balance in its string"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs",
-   "line": 806,
+   "line": 796,
    "citation": "§2023:8.3.3.6.3 SR1",
    "kind": "designator-not-canonical",
    "reason": "the parentheses around the designator do not balance in its string"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs",
-   "line": 1026,
+   "line": 1016,
    "citation": "§2023:8.4.3.2.4 GR5",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs",
-   "line": 1436,
+   "line": 1427,
    "citation": "§2023:8.3.3.3.3",
    "kind": "designator-not-canonical",
    "reason": "the same designator text is rewritten two ways, so an expectation of it is ambiguous"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs",
-   "line": 1436,
+   "line": 1427,
    "citation": "§2023:8.8.1.5.2",
    "kind": "designator-not-canonical",
    "reason": "the same designator text is rewritten two ways, so an expectation of it is ambiguous"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs",
-   "line": 1089,
+   "line": 1085,
    "citation": "§2023:14.9.49.4 GR3",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/SendingValueTemp.cs",
-   "line": 98,
+   "line": 99,
    "citation": "§2023:15.2",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
@@ -3617,7 +3617,7 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs",
-   "line": 1616,
+   "line": 1623,
    "citation": "§2023:14.8.3.3",
    "kind": "designator-not-canonical",
    "reason": "the catalog gives that ordinal no one rule of the clause"
@@ -3701,14 +3701,14 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs",
-   "line": 346,
+   "line": 347,
    "citation": "§2023:14.9.18.3 SR4",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs",
-   "line": 346,
+   "line": 347,
    "citation": "§2023:14.9.14.3 SR5",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
@@ -4415,21 +4415,21 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs",
-   "line": 390,
+   "line": 391,
    "citation": "§2023:14.9.40.3 SR14",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs",
-   "line": 729,
+   "line": 747,
    "citation": "§2023:14.9.40.3 SR6",
    "kind": "designator-not-canonical",
    "reason": "the parentheses around the designator do not balance in its string"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs",
-   "line": 729,
+   "line": 747,
    "citation": "§2023:14.9.24.3 SR4",
    "kind": "designator-not-canonical",
    "reason": "the parentheses around the designator do not balance in its string"
@@ -4527,28 +4527,28 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/ReportModel.cs",
-   "line": 501,
+   "line": 508,
    "citation": "§2023:13.18.14.4 GR6",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/ReportModel.cs",
-   "line": 510,
+   "line": 517,
    "citation": "§2023:13.18.14.4 GR6",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/ReportModel.cs",
-   "line": 520,
+   "line": 527,
    "citation": "§2023:13.18.14.4 GR6",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/ReportModel.cs",
-   "line": 924,
+   "line": 938,
    "citation": "§2023:13.18.54.3 SR4",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
@@ -4618,56 +4618,56 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs",
-   "line": 3940,
+   "line": 3954,
    "citation": "§2023:13.18.14.4 GR6",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs",
-   "line": 4038,
+   "line": 4052,
    "citation": "§2023:13.18.35.3 SR6",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs",
-   "line": 4116,
+   "line": 4130,
    "citation": "§2023:13.18.14.3 SR8",
    "kind": "designator-not-canonical",
    "reason": "the designator ends its string literal and the string is concatenated, so its text may continue"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs",
-   "line": 4168,
+   "line": 4182,
    "citation": "§2023:13.18.14.3 SR8",
    "kind": "designator-not-canonical",
    "reason": "the designator ends its string literal and the string is concatenated, so its text may continue"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs",
-   "line": 4380,
+   "line": 4394,
    "citation": "§2023:13.18.54.3 SR4",
    "kind": "designator-not-canonical",
    "reason": "the same designator text stands in a message string this run does not rewrite"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs",
-   "line": 4411,
+   "line": 4425,
    "citation": "§2023:13.18.54.3 SR4",
    "kind": "designator-not-canonical",
    "reason": "the same designator text stands in a message string this run does not rewrite"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs",
-   "line": 4444,
+   "line": 4458,
    "citation": "§2023:13.18.54.3 SR4",
    "kind": "designator-not-canonical",
    "reason": "the same designator text is rewritten two ways, so an expectation of it is ambiguous"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs",
-   "line": 4542,
+   "line": 4556,
    "citation": "§2023:13.18.54.4 GR7",
    "kind": "designator-not-canonical",
    "reason": "the parentheses around the designator do not balance in its string"
@@ -4863,28 +4863,28 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs",
-   "line": 725,
+   "line": 728,
    "citation": "§2023:14.6.13.1.2",
    "kind": "designator-not-canonical",
    "reason": "a test or suite file no expectation reader rewrites quotes the designator text"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs",
-   "line": 963,
+   "line": 953,
    "citation": "§2023:14.6.13.1.4",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs",
-   "line": 968,
+   "line": 958,
    "citation": "§2023:14.6.13.1.4",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs",
-   "line": 1009,
+   "line": 997,
    "citation": "§2023:14.6.13.1.3",
    "kind": "designator-not-canonical",
    "reason": "a test or suite file no expectation reader rewrites quotes the designator text"
@@ -5073,35 +5073,35 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/HostEntryEmitter.cs",
-   "line": 143,
+   "line": 145,
    "citation": "§2023:14.2.3",
    "kind": "designator-not-canonical",
    "reason": "the parentheses around the designator do not balance in its string"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/HostEntryEmitter.cs",
-   "line": 144,
+   "line": 146,
    "citation": "§2023:14.9.4.4",
    "kind": "designator-not-canonical",
    "reason": "the parentheses around the designator do not balance in its string"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/HostEntryEmitter.cs",
-   "line": 264,
+   "line": 268,
    "citation": "§2023:14.2.3",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/HostEntryEmitter.cs",
-   "line": 366,
+   "line": 370,
    "citation": "§2023:14.8.2.3.2",
    "kind": "designator-not-canonical",
    "reason": "the catalog gives that ordinal no one rule of the clause"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs",
-   "line": 316,
+   "line": 317,
    "citation": "§2023:14.6.13.1.5",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
@@ -5199,49 +5199,49 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs",
-   "line": 1923,
+   "line": 1930,
    "citation": "§2023:14.9.30.4 GR10",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs",
-   "line": 2055,
+   "line": 2062,
    "citation": "§2023:12.4.5.3 GR3",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs",
-   "line": 2074,
+   "line": 2081,
    "citation": "§2023:14.9.49.4 GR6",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs",
-   "line": 2078,
+   "line": 2085,
    "citation": "§2023:14.9.49.4 GR6",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs",
-   "line": 2277,
+   "line": 2276,
    "citation": "§2023:9.1.13.6 item 4",
    "kind": "designator-not-canonical",
    "reason": "its canonical form §2023:9.1.13.6 item 4b is refused (item-is-a-rule): derive the designator"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs",
-   "line": 2277,
+   "line": 2276,
    "citation": "§2023:9.1.13.6 item 4",
    "kind": "item-is-a-rule",
    "reason": "§2023:9.1.13.6 item 4: the catalog holds that item as the numbered rule GR4 of 9.1.13.6: cite §2023:9.1.13.6 GR4"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs",
-   "line": 3197,
+   "line": 3214,
    "citation": "§2023:14.8.3.3",
    "kind": "designator-not-canonical",
    "reason": "the catalog gives that ordinal no one rule of the clause"
@@ -5353,21 +5353,21 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs",
-   "line": 1746,
+   "line": 1771,
    "citation": "§2023:14.6.13.1.5 item 1",
    "kind": "item-is-a-rule",
    "reason": "§2023:14.6.13.1.5 item 1: the catalog holds that item as the numbered rule GR1 of 14.6.13.1.5: cite §2023:14.6.13.1.5 GR1"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs",
-   "line": 1749,
+   "line": 1774,
    "citation": "§2023:14.6.13.1.5 item 1",
    "kind": "item-is-a-rule",
    "reason": "§2023:14.6.13.1.5 item 1: the catalog holds that item as the numbered rule GR1 of 14.6.13.1.5: cite §2023:14.6.13.1.5 GR1"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs",
-   "line": 680,
+   "line": 643,
    "citation": "§2023:14.9.37.4 GR1",
    "kind": "designator-not-canonical",
    "reason": "a test or suite file no expectation reader rewrites quotes the designator text"
@@ -5612,7 +5612,7 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs",
-   "line": 968,
+   "line": 1040,
    "citation": "§2023:13.18.54.4 GR7",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
@@ -6025,7 +6025,7 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs",
-   "line": 3052,
+   "line": 3056,
    "citation": "§2023:8.3.2.2",
    "kind": "designator-not-canonical",
    "reason": "the catalog gives that ordinal no one rule of the clause"
@@ -7005,7 +7005,7 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs",
-   "line": 452,
+   "line": 453,
    "citation": "§2023:8.8.2",
    "kind": "designator-not-canonical",
    "reason": "the same designator text stands in a message string this run does not rewrite"
@@ -7747,14 +7747,14 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs",
-   "line": 512,
+   "line": 513,
    "citation": "§2023:14.9.42.4",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs",
-   "line": 547,
+   "line": 548,
    "citation": "§2023:14.9.42.4",
    "kind": "designator-not-canonical",
    "reason": "a test or suite file no expectation reader rewrites quotes the designator text"
@@ -7789,21 +7789,21 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/Exceptions/DispatchResult.cs",
-   "line": 20,
+   "line": 23,
    "citation": "§2023:14.6.13.1.4",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/Exceptions/DispatchResult.cs",
-   "line": 46,
+   "line": 49,
    "citation": "§2023:14.6.13.1.4",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/Exceptions/DispatchResult.cs",
-   "line": 80,
+   "line": 83,
    "citation": "§2023:14.6.13.1.4",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
@@ -8384,21 +8384,14 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/CobolFile.cs",
-   "line": 213,
+   "line": 210,
    "citation": "§2023:14.9.49.4 GR6",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/CobolFile.cs",
-   "line": 216,
-   "citation": "§2023:14.9.49.4 GR6",
-   "kind": "designator-not-canonical",
-   "reason": "a list of designators: no one designator says it"
-  },
-  {
-   "file": "src/WiseOwl.Cobol.Runtime/IO/CobolFile.cs",
-   "line": 220,
+   "line": 214,
    "citation": "§2023:14.9.49.4 GR6",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
@@ -8657,112 +8650,112 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs",
-   "line": 783,
+   "line": 780,
    "citation": "§1985:VII.4.6.4 GR5",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs",
-   "line": 783,
+   "line": 780,
    "citation": "§2023:14.9.49.4 GR6",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs",
-   "line": 789,
+   "line": 786,
    "citation": "§2023:14.9.49.4 GR6",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs",
-   "line": 881,
+   "line": 878,
    "citation": "§2023:9.1.13.6 item 4",
    "kind": "designator-not-canonical",
    "reason": "its canonical form §2023:9.1.13.6 item 4b is refused (item-is-a-rule): derive the designator"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs",
-   "line": 881,
+   "line": 878,
    "citation": "§2023:9.1.13.6 item 4",
    "kind": "item-is-a-rule",
    "reason": "§2023:9.1.13.6 item 4: the catalog holds that item as the numbered rule GR4 of 9.1.13.6: cite §2023:9.1.13.6 GR4"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs",
-   "line": 1238,
+   "line": 1235,
    "citation": "§2023:12.4.5.9.4 GR1",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs",
-   "line": 2260,
+   "line": 2257,
    "citation": "§2023:14.9.30.4 GR10",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs",
-   "line": 2337,
+   "line": 2334,
    "citation": "§2023:14.9.30.4 GR11",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs",
-   "line": 2356,
+   "line": 2353,
    "citation": "§2023:9.1.13.8",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs",
-   "line": 2383,
+   "line": 2380,
    "citation": "§2023:14.9.30.4 GR11",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs",
-   "line": 2416,
+   "line": 2413,
    "citation": "§2023:12.4.5.9.4 GR1",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs",
-   "line": 2423,
+   "line": 2420,
    "citation": "§2023:12.4.5.9.4 GR1",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs",
-   "line": 2645,
+   "line": 2642,
    "citation": "§2023:14.9.30.4 GR10",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs",
-   "line": 2707,
+   "line": 2704,
    "citation": "§2023:9.1.13.8",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs",
-   "line": 2760,
+   "line": 2757,
    "citation": "§2023:9.1.13.8",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs",
-   "line": 2880,
+   "line": 2877,
    "citation": "§2023:14.9.51.4 GR25",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
@@ -11618,7 +11611,7 @@
   },
   {
    "file": "tests/WiseOwl.Cobol.Tests.Unit/RunUnitStateDriftTests.cs",
-   "line": 277,
+   "line": 278,
    "citation": "§2023:14.6.11",
    "kind": "designator-not-canonical",
    "reason": "a test's string literal: an expectation changes only with the message it quotes"

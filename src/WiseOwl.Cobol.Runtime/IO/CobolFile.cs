@@ -203,15 +203,9 @@ public static class CobolFile
         { Dispatched = true };
     }
 
-    /// <summary>The open-mode view for USE-declarative mode scoping (ISO §2023:14.9.49.4 GR6b–e).</summary>
-    public static int OpenModeOf(string name) => _reg.OpenModeOf(name);
-
     /// <summary>The mode a USE open-mode switch selects on (<see cref="FileConnector.UseModeView"/>); <paramref name="declaredModes"/> is
     /// a bit mask of the mode ordinals the unit has a procedure for.</summary>
     public static int UseModeOf(string name, int declaredModes) => _reg.UseModeOf(name, declaredModes);
-
-    /// <summary>The mode the file IS open in, −1 when not open (§2023:14.9.49.4 GR6 b)–e) "open in" mode; kb/Work PB5825).</summary>
-    public static int OpenedModeOf(string name) => _reg.OpenedModeOf(name);
 
     /// <summary>An OPEN statement begins on a file in <paramref name="mode"/> (§2023:14.9.49.4 GR6 b)–e), "in the process of being
     /// opened"): emitted before the OPEN, paired with <see cref="EndModeScope"/> after the statement's USE hook.</summary>
@@ -226,7 +220,7 @@ public static class CobolFile
 
     /// <summary>The open mode of a connector that IS OPEN, null otherwise (ISO §2023:9.1.4) -- the
     /// §2023:14.9.21.4 GR3 report-file-mode test. See <see cref="FileConnector.OpenModeIfOpen"/> for why this is
-    /// not <see cref="OpenModeOf"/>.</summary>
+    /// not the USE mode view (<see cref="UseModeOf"/>).</summary>
     public static FileOpenMode? OpenModeIfOpen(string name) => _reg.OpenModeIfOpen(name);
 
     /// <summary>Stage the RELATIVE KEY item's value for the next keyed verb.</summary>
