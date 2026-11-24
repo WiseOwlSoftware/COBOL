@@ -1,5 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using Antlr4.Runtime;
+using Antlr4.Runtime.Misc;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Runtime;
@@ -30,6 +32,31 @@ namespace WiseOwl.Cobol.Frontend.Common;
 /// </summary>
 public static class CobolWordRule
 {
+    /// <summary>The text the user wrote for a word token. The lexer writes a word in its edition's case-mapping spelling
+    /// (<see cref="CobolNames.EditionSpelling"/>), which stands a character the edition does not fold for one no word may
+    /// hold (<see cref="CobolNames.HasReservedSpelling"/>); the character rules judge the character the user wrote, so a word so
+    /// spelled is read back from the input it was cut from. Every other token's text is its written text.</summary>
+    public static string WrittenText(IToken token)
+    {
+        string text = token.Text;
+        return CobolNames.HasReservedSpelling(text) && token.InputStream is { } input && token.StopIndex >= token.StartIndex
+            ? input.GetText(Interval.Of(token.StartIndex, token.StopIndex))
+            : text;
+    }
+
+    /// <summary>The text the user wrote for a parse-tree node that holds word tokens: the input from its first token to its last
+    /// when a token of it is spelled with a <see cref="CobolNames.HasReservedSpelling"/> stand-in, else its token text. A name that
+    /// leaves the compiler as an EXTERNAL name (the ASSIGN operand's host file name, <c>AssignTargetRule</c>) is read this way,
+    /// because a stand-in character is a device of the one comparer and must not reach the host.</summary>
+    public static string WrittenText(Antlr4.Runtime.ParserRuleContext node)
+    {
+        string text = node.GetText();
+        return CobolNames.HasReservedSpelling(text) && node.Start is { } start && node.Stop is { } stop
+            && start.InputStream is { } input && stop.StopIndex >= start.StartIndex
+            ? input.GetText(Interval.Of(start.StartIndex, stop.StopIndex))
+            : text;
+    }
+
     /// <summary>The §2023:8.3.2.1 maximum COBOL-word length for a targeted edition.</summary>
     [EditionDerived]
     public static int MaxLength(int dialectLevel) =>

@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Common;
+using WiseOwl.Cobol.Frontend.Common;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Frontend.Parsing;
@@ -92,14 +93,14 @@ internal static class AssignTargetRule
                     $"ASSIGN TO {WrittenSource.Of(num)}: literal-1 shall be an alphanumeric literal (", Sr4Later, ")"));
             return "";
         }
-        if (t.nonNumericLiteral() is not { } nn) return WordText(edition, env, t.cobolWord(), t.cobolWord().GetText());
+        if (t.nonNumericLiteral() is not { } nn) return WordText(edition, env, t.cobolWord(), CobolWordRule.WrittenText(t.cobolWord()));
         // ⛔ NULL IS A RESERVED WORD ONLY WHERE THE EDITION RESERVES IT (kb/Work PB5802). The grammar parses the token as the
         // predefined NULL at every edition, but where it is free (COBOL-85: §1985:IV.4.2.2.1, reserved words and system-names
         // form disjoint sets, and NULL is not in the 1985 reserved-word list) it is implementor-name-1, a system-name whose
         // allowable content the implementor defines (§1985:VII.2.3.3 SR3) — the word reads as any other, so NULL names the
         // file as NULLS does.
         if (nn.predefinedNull() is not null && UnreservedKeywordReference.IsFreeAt("NULL", edition))
-            return WordText(edition, env, nn, nn.GetText());
+            return WordText(edition, env, nn, CobolWordRule.WrittenText(nn));
         void Refuse(string why, bool zeroLength = false) =>
             Report(edition, nn, $"ASSIGN TO {WrittenSource.Of(nn)}: literal-1 {why} ("
                 + EditionInfo.Designated(zeroLength ? edition.Edition.Cite("§1985:IV.4.2.2.2.1", "§2023:12.4.5.2 SR4") : Sr4(edition, Rule1985Of(file))) + ")");
