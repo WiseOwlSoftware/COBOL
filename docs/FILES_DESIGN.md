@@ -1894,7 +1894,7 @@ the programmer actually wrote (`the implicit MOVE of RELEASE … FROM to SRT-REC
   unit without it); **(4)** `MarkRefModStoreImage`; **(5)** visibility to the post-bind passes that walk
   `StatementChildren` (the CORRESPONDING and GOBACK moves are child statements). INITIALIZE's phrase carries
   `ValidityAskedByStatement`: §2023:14.9.20.3 SR4 asks the validity question once per REPLACING CATEGORY
-  (`InitializeBinder.CheckReplacingMoveValidity`) and the GR6a/GR6c senders are valid by construction, so the
+  (`ReplacingPhraseBinder.CheckReplacingMoveValidity`) and the GR6a/GR6c senders are valid by construction, so the
   per-receiver screens stay silent while (2)–(4) still run. Its edition half, §2023:14.9.25.3 SR5, is asked by
   `VersionConformancePass.GateInitialize` over `BoundInitialize.Replacing` through the same
   `FigurativeAssociation.GateSr5` rows `GateMove` asks (kb/Work PB879) — and the BY CONTENT activation arm asks them too,
