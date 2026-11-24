@@ -22,6 +22,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// thrown, through the exception filter <c>__RunUse</c> keeps for §2023:14.9.40.4 GR17. A dispatch call that passed
 /// <c>__direct</c> without testing the result would resume a PERFORM the program had left: these facts pin the pairing.</para>
 /// </summary>
+[Trait("Sweep", "tree")]
 public sealed class ElementReturnProtocolDriftTests
 {
     private const string Src = """
