@@ -44,50 +44,21 @@
                ORGANIZATION IS RELATIVE
                ACCESS MODE IS SEQUENTIAL
                FILE STATUS IS OPT-ST.
-           SELECT SQ ASSIGN TO "G85BF1804C.DAT"
-               FILE STATUS IS SQ-ST.
-           SELECT WF ASSIGN TO "G85BF1804C.DAT"
-               ORGANIZATION IS RELATIVE
-               ACCESS MODE IS RANDOM
-               RELATIVE KEY IS WF-KEY
-               FILE STATUS IS WF-ST.
-           SELECT RDF ASSIGN TO "G85BF1804C.DAT"
-               ORGANIZATION IS RELATIVE
-               ACCESS MODE IS RANDOM
-               RELATIVE KEY IS RD-KEY
-               FILE STATUS IS RD-ST.
        DATA DIVISION.
        FILE SECTION.
        FD  RL.
        01  RL-REC PIC X(6).
        FD  OPT.
        01  OPT-REC PIC X(6).
-       FD  SQ.
-       01  SQ-REC PIC X(4).
-       FD  WF
-           RECORD IS VARYING IN SIZE FROM 1 TO 20 CHARACTERS
-               DEPENDING ON WF-LEN.
-       01  WF-REC PIC X(20).
-       FD  RDF
-           RECORD IS VARYING IN SIZE FROM 5 TO 10 CHARACTERS
-               DEPENDING ON RD-LEN.
-       01  RD-REC PIC X(10).
        WORKING-STORAGE SECTION.
        01  RL-ST PIC XX.
        01  OPT-ST PIC XX.
-       01  SQ-ST PIC XX.
-       01  WF-ST PIC XX.
-       01  RD-ST PIC XX.
        01  RL-KEY PIC 9(4).
-       01  WF-KEY PIC 9(4).
-       01  RD-KEY PIC 9(4).
-       01  WF-LEN PIC 99.
-       01  RD-LEN PIC 99.
        01  USE-COUNT PIC 9 VALUE 0.
        PROCEDURE DIVISION.
        DECLARATIVES.
        RL-ERR SECTION.
-           USE AFTER STANDARD EXCEPTION PROCEDURE ON RL OPT RDF.
+           USE AFTER STANDARD EXCEPTION PROCEDURE ON RL OPT.
        RL-ERR-PARA.
            ADD 1 TO USE-COUNT.
            DISPLAY "USE RAN " RL-ST.

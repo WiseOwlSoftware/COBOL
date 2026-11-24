@@ -46,3 +46,12 @@ keyed record outside the reader's size cannot reach a READ at 85. They were dele
 witness), and `g85_bf18_04` lost its 04 leg. A unit test that tried the route through a second run unit was dropped: at 85 a run unit
 is not promised another's records, and the reader saw none (23).
 
+**Review round 1.** The branch review found the keyed '04' arm unwitnessed: it is still live from 2002, where a SHARING WITH ALL
+OTHER reader opened on a zero-byte file meets a writer's records. The three PB5480 goldens return as 2002-2023 tests under that
+clause, and D-IO-STATUS-04 pins them. It also found 2002 rejecting legal source: the currency fold made 'é' and 'É' one symbol at
+2002, where only 2014's SR20 grants that equivalence, so two clauses binding them to EUR and USD were refused COBOL0891.
+`CurrencySymbolEquivalence.Fold` now folds a character outside the repertoire only from 2014, which also refuses `PIC É9.99` under
+`CURRENCY SIGN IS "é"` at 85 and 2002 (PB6162, landed). The 2023 sharing quotation is now 2023's own wording. The 1985 code reads of
+1985-GR-VIII.1.3.4-L2.1 and 1985-GR-VII.4.3.4-5 were re-read and refuted, and the change record of the second became CHANGED (PB6165).
+PB6166 records the refuter's unadjudicated ADVANCING overprint.
+
