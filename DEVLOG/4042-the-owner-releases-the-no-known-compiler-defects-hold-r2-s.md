@@ -1,4 +1,4 @@
-## The owner releases the "no known compiler defects" hold: R2's remaining batches and the Delete program start
+## Entry 4042 — 2026-11-24 09:55 PST — The owner releases the "no known compiler defects" hold: R2's remaining batches and the Delete program start
 
 **Owner, 2026-11-24 (account 1):** "I release the 'no known compiler defects' hold". Asked whether that also lifts the
 Delete program's own hold of 2026-11-15 (zero GAP in 2002 and 1985 first), the owner answered "Yes, start Delete too".
@@ -18,3 +18,4 @@ Delete program's own hold of 2026-11-15 (zero GAP in 2002 and 1985 first), the o
 
 **What did not change.** The quota plan PB5357 (no borrowed days, day lines; R2 batches are sized against the room
 `budget.py` reports) and the rule that every Mythos or Fable dispatch needs the owner's approval.
+
