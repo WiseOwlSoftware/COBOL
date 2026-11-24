@@ -20,7 +20,9 @@
   attributes reaches a READ only through a file whose attributes the OPEN could not check (kb/Work PB5480): the WRITE refuses it ('44')
   and the OPEN refuses a file created under other bounds ('39', A.1 item 129), but a ZERO-BYTE store records no attributes
   (`KeyedConnector.FixedAttributeConflict`, `StoreFormat.Empty`), so a connector opened INPUT on one can read the records another connector
-  writes later under wider bounds. The relative and indexed READ (random and sequential) therefore tests the record's length against the
+  writes later under wider bounds, where another connector may open the file beside the reader: from 2002 under a SHARING mode that
+  admits it. At `--std 85` it cannot, because that OPEN is an OPEN of a file in the open mode, '41' (§1985:VII.1.3.5; kb/Work PB6161), so
+  at 85 such a record never reaches a READ. The relative and indexed READ (random and sequential) therefore tests the record's length against the
   reader's own minimum and maximum as the sequential READ does, through the one test `FileConnector.RecordLengthConflicts`: outside it the READ is
   successful, the long record truncated on the right to the maximum, status '04' (§1985:VIII.4.5.4 GR16, §1985:IX.4.5.4 GR18; every
   edition, §2023:14.9.30.4 GR14), and the RECORD VARYING DEPENDING ON item holds the length of the record read, as for the sequential READ.

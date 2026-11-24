@@ -38,3 +38,11 @@ the equivalent-rebound refusal names 2014 and 2023 only (its 2002 refusal is PB6
 so every points file moved. P2.10 now names 1985's own
 Implementor-Defined Language Element List as the 85 check. Leads filed: PB6162 (`PIC É9.99` accepted at 85), PB6163
 (SR-12.3.7.3-20's 2002 band), PB6164 (the standard's stale GOBACK rule numbers).
+
+The gate's Conformance population then found five 85 goldens that opened a second connector on an open file. `pb5210_close_lock_exception_paths_85`
+was re-derived (S2's OPEN 41, its CLOSE 42, the lock's 38 legs unchanged). The three PB5480 goldens existed only for the zero-byte route
+to a keyed '04', which needs that second OPEN; with every other OPEN validating the attributes (the writer-first probe answers 39), a
+keyed record outside the reader's size cannot reach a READ at 85. They were deleted and retired from their 1985 rows (each keeps another
+witness), and `g85_bf18_04` lost its 04 leg. A unit test that tried the route through a second run unit was dropped: at 85 a run unit
+is not promised another's records, and the reader saw none (23).
+
