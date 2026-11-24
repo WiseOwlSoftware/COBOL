@@ -1242,12 +1242,12 @@ INTERPOLATED_HEAD = re.compile(r'(?:\$@?|@\$)"([^"{}\\]*)\{')
 #: is judged as a use of `TestRepo.Root` (kb/Work PB5230 R1-5), so an alias cannot hide a read.
 ROOT_ALIAS = re.compile(r"\bstatic\s+string\s+(\w+)\s*(?:=>|\{\s*get;\s*\}\s*=)\s*TestRepo\.Root\s*;")
 #: The top-level type a source declares first: an alias's declaring type.
-FIRST_TYPE = re.compile(r"^(?:(?:internal|public|static|sealed|partial|abstract|file|readonly)\s+)*"
+FIRST_TYPE = re.compile(r"^(?:(?:internal|public|static|sealed|partial|abstract|closed|file|readonly)\s+)*"
                         r"(?:class|record|struct)\s+(\w+)", re.MULTILINE)
 STRING = re.compile(r'"((?:[^"\\\n]|\\.)*)"')
 #: A TOP-LEVEL type declaration (no indentation): what another source must name to use a tests/_shared file. Nested types
 #: (`Row`, `Edition`) are reached through their outer type, and their common names would link every file to every other.
-TYPE_DECL = re.compile(r"^(?:(?:internal|public|static|sealed|partial|abstract|file|readonly)\s+)*"
+TYPE_DECL = re.compile(r"^(?:(?:internal|public|static|sealed|partial|abstract|closed|file|readonly)\s+)*"
                        r"(?:class|record|struct|enum|interface)\s+(\w+)", re.MULTILINE)
 #: A listing of a helper's directory by a literal pattern: `Directory.EnumerateFiles(TestRepo.Scripts(), "guard*.sh")`.
 LISTING = re.compile(r"Directory\.(?:Enumerate|Get)(?:Files|Directories|FileSystemEntries)\(\s*TestRepo\.(\w+)"

@@ -692,7 +692,7 @@ def test_types(root=ROOT):
             t = types.setdefault((project(rel), m.group("name")), TestType(project(rel), m.group("name"), [], set()))
             t.files.append(rel)
             t.traits |= {(x.group("name"), x.group("value")) for x in TRAIT.finditer(code)}
-            t.abstract |= "abstract " in text[m.start():m.end("name")]
+            t.abstract |= any(f"{k} " in text[m.start():m.end("name")] for k in ("abstract", "closed"))  # closed: implicitly abstract
             base = BASE_TYPE.match(text, m.end("name"))
             t.base = t.base or (base.group("base") if base else "")
             t.own_tests |= bool(FACT.search(body))

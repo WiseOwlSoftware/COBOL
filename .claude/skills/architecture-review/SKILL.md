@@ -147,8 +147,10 @@ repository from .NET 10 to .NET 11 on 2026-11-20, kb/Work PB5971). R4 targets th
 `netstandard2.0`, because Roslyn hosts generators there.
 
 **The .NET 11 alternative** (the design's §5.5, owner 2026-09-29):
-- **C# 15 unions** for the closed hierarchies (the bound tree and the dispatchers), so the compiler proves
-  exhaustiveness where a `default: throw` does today. R1 (PB2118) decides which hierarchies and in what order.
+- **C# 15 `closed`** for the closed hierarchies (owner 2026-11-24, kb/Work PB6168; the design's §8.5): the bound
+  tree and `Place` are `closed` now, so a switch over them is proven exhaustive and needs no `default: throw`;
+  PB6169 removes those arms and closes the remaining abstract hierarchies. Unions are only for a sum of types
+  with no common base.
 - **The JIT gains**, adopted only if measured against the R0 baseline.
 - **Set aside:** runtime async (2 files use async), NativeAOT for the CLI (in-process Roslyn plus dynamic loading),
   and SIMD for packed/zoned decimal (file-boundary only, unless profiling says otherwise).
