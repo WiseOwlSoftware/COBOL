@@ -254,6 +254,7 @@ WiseOwl.Cobol.Runtime.DialectBehavior.CompileTimeArithmeticIsStandardDecimal = 2
 WiseOwl.Cobol.Runtime.DialectBehavior.ConstantLengthSubscriptsAreLiterals = 68 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.ControlFootingPageGroupsSeePriorControlValues = 4 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.CurrencyHexadecimalLiteralRules = 60 -> WiseOwl.Cobol.Runtime.DialectBehavior
+WiseOwl.Cobol.Runtime.DialectBehavior.CurrencyPictureSymbolLiteralAlphanumericAndUnique = 69 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.DivideRemainderSignedSubsidiary = 54 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.EntryClauseImplicitQualifiers = 56 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.EvaluateObjectsInWhenPhraseOrder = 18 -> WiseOwl.Cobol.Runtime.DialectBehavior

@@ -642,6 +642,15 @@ public enum DialectBehavior
     /// (§2002:8.4.1.2.2) and a data-name or an arithmetic expression may be written (kb/Work PB5709; VCR row 7.124). Both editions are
     /// QUOTED. The consumer is <c>ConstantEntryBinder.BindConstantLength</c>.</summary>
     ConstantLengthSubscriptsAreLiterals = 68,
+    /// <summary>§2014:12.3.6.2 SR26 — "Literal-8 shall be an alphanumeric or national literal consisting of a single character"
+    /// (§2023:12.3.7.3 SR26 the same), and neither edition has a rule against repeating a literal-8: two clauses may give the same
+    /// symbol the same string (§2014:12.3.6.2 SR21; §2023:12.3.7.3 SR21 "unless they specify identical currency strings").
+    /// COBOL-2002 asks more of the PICTURE SYMBOL literal: "Literal-8 shall be an alphanumeric literal consisting of a single
+    /// character. It shall not be a figurative constant. No two occurrences of literal-8 may be the same value" (§2002:12.2.6.2
+    /// SR22), so at <c>--std 2002</c> a national literal-8 and a repeated literal-8 are refused (kb/Work PB5707; VCR row 7.125).
+    /// Both editions are QUOTED. The consumers are <c>SpecialNamesBinder.CurrencyOperandOf</c> and
+    /// <c>SpecialNamesBinder.SwitchBindCurrency</c>.</summary>
+    CurrencyPictureSymbolLiteralAlphanumericAndUnique = 69,
 }
 
 /// <summary>
@@ -977,6 +986,10 @@ public static class DialectBehaviors
             "7.124", "§2014:13.10.2 SR3", "§2002:13.9.2 SR3",
             "every subscript of a constant entry's LENGTH OF / BYTE-LENGTH OF operand shall be a literal only from COBOL-2014; "
             + "at COBOL-2002 the operand's subscripts are ordinary ones and may be data-names"),
+        new(DialectBehavior.CurrencyPictureSymbolLiteralAlphanumericAndUnique, "currency-picture-symbol-literal-alphanumeric-and-unique", 2014,
+            "7.125", "§2014:12.3.6.2 SR26", "§2002:12.2.6.2 SR22",
+            "a CURRENCY SIGN PICTURE SYMBOL literal-8 may be a national literal and may repeat another clause's literal-8 only from "
+            + "COBOL-2014; COBOL-2002 asks an alphanumeric literal-8 and no two occurrences of the same value"),
     ];
 
     static DialectBehaviors()
