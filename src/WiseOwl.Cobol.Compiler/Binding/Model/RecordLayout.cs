@@ -296,7 +296,7 @@ internal static class RecordLayout
     {
         if (child.Class is { Tier: RedefinesTier.StringCanonical } cls && cls.Members.Contains(child))
             return child.IsCanonical ? cls.Width : 0;
-        if (child.Class is { Tier: RedefinesTier.Alias } alias && alias.Members.Contains(child) && !child.IsCanonical)
+        if (child.IsAliasView)
             return 0;
         if (child.RedefinesTargetName is not null) return 0;
         return Times(ExactPhysicalOccurrenceWidth(child), child);
