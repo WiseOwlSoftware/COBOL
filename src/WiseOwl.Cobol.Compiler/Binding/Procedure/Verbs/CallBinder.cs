@@ -762,7 +762,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             if (!ParameterConformance.ArgumentCountConforms(calleeFormals, args.Count, f => f.Optional))
                 ctx.Edition.Error(DiagnosticCatalog.CallArgumentCount,
                     $"{calleeWhere} supplies {args.Count} argument(s) where the program declares "
-                    + $"{calleeFormals.Count} formal parameter(s); {EditionInfo.Designated(ctx.Edition.Edition.Cite("§2002:14.7.1", "§2023:14.8.2.1", y2014: "§2014:14.8.1"))} requires the counts to be "
+                    + $"{calleeFormals.Count} formal parameter(s); {EditionInfo.Designated(ctx.Edition.Edition.Cite("§2002:14.7.1", "§2023:14.8.2.1", y2002: "§2002:14.7.1", y2014: "§2014:14.8.1"))} requires the counts to be "
                     + "equal, except for trailing formal parameters declared OPTIONAL and omitted");
             for (int i = 0; i < args.Count && i < calleeFormals.Count; i++)
             {
@@ -1495,7 +1495,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
     /// statement if and only if a returning item is specified in the procedure division header of the activated element", as the
     /// edition in force numbers it: §2023:14.8.3.1, §2014:14.8.2, §2002:14.7.2.</summary>
     private string ReturningGeneral =>
-        EditionInfo.Designated(ctx.Edition.Edition.Cite("§2002:14.7.2", "§2023:14.8.3.1", y2014: "§2014:14.8.2"));
+        EditionInfo.Designated(ctx.Edition.Edition.Cite("§2002:14.7.2", "§2023:14.8.3.1", y2002: "§2002:14.7.2", y2014: "§2014:14.8.2"));
 
     /// <summary>The <see cref="Sr23LiteralIsNumeric"/> twin for a literal-alias argument (kb/Work PB1544). A
     /// constant-name is literal-2 by substitution (§2023:13.10.4 GR1) with the SUBSTITUTED literal's class and category

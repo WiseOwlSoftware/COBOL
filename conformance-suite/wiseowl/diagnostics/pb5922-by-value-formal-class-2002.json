@@ -1,0 +1,1 @@
+{"refuse-at": ["2002"], "expect": "(16,33): error COBOL1553: PROCEDURE DIVISION: BY VALUE formal parameter 'L' is of class alphanumeric; it shall be of class numeric, object, or pointer (ISO §2002:14.1.2 SR2)"}

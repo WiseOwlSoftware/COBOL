@@ -25,4 +25,14 @@ sender is now named as the compiler temporary it is. PB5671 and PB5654 were comm
 `14.9.25-MOVE/pb5660-inline-invocation-move-object-2002`, `12.3.8-REPOSITORY/pb5676-invoke-parameterized-class` (2002, 2014, 2023).
 Thirteen refusal expectations that quoted a 2023 clause at every edition keep its rule designator. 32 codes left the ratchet.
 
+**Review round 1 (R1-1).** Eleven `Cite` calls of this branch passed the COBOL-2002 rule only as `y1985`, which `Cite` reads at 85
+alone, so `--std 2002` printed the 2023 rule: `PROCEDURE DIVISION USING BY VALUE L` (`L PIC X(4)`) said "numeric, message-tag,
+object, or pointer (ISO §2023:14.2.2 SR2)", and `MOVE P TO Q` of two pointers cited §2023:13.18.60.3 SR9 and SR8. Each now passes its
+2002 text as `y2002` (the MoveTable16 pointer arm, USE AFTER EXCEPTION OBJECT, CallBinder's formal-count and RETURNING rules,
+OoBinder's INVOKE fallthrough, UdfBinder's activation rule, the BY VALUE class words and rule, CURRENCY SR21's 2002 rule, the
+REPOSITORY scope rule). The build now refuses the shape: `EditionCiteSlotAnalyzer` (WOCA0004) reports a `Cite` or `CiteRule` call whose
+2002 or 2014 citation is not in the argument the call chooses at that edition; a planted violation failed `dotnet build` with WOCA0004,
+and `EditionCiteSlotAnalyzerTests` plants each shape. The 2002 net had stayed silent because COBOL1553 is in the sweep and the 0809
+message also names a §2002 rule. Goldens `pb5922-by-value-formal-class-2002` and `pb5922-move-pointer-2002` pin both messages.
+
 **Left open.** PB5922 (COBOL1560/1707 licence text, COBOL1627 intrinsic clauses, the run-time reason texts) and PB6118 (the ratchet).

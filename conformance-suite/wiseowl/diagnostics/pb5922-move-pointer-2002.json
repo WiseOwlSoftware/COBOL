@@ -1,0 +1,1 @@
+{"refuse-at": ["2002"], "expect": "(19,12): error COBOL0809: a MOVE operand shall not be of class pointer, the class of the data-pointer, function-pointer and program-pointer categories (ISO §2002:14.8.24.2 SR1; ISO §2002:13.16.58.2 SR8 — a data-pointer data item"}

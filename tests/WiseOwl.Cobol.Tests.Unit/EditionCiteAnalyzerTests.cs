@@ -16,11 +16,11 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// clean build is evidence and not a silent analyzer.</summary>
 public sealed class EditionCiteAnalyzerTests
 {
-    private static readonly CSharpParseOptions Parse = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview);
+    internal static readonly CSharpParseOptions Parse = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview);
 
     /// <summary>The framework, as metadata: the test host's trusted platform assemblies less the WiseOwl ones (the planted source declares
     /// the decider and the mark itself, so a built copy beside it would make each ambiguous).</summary>
-    private static IReadOnlyList<MetadataReference> Framework { get; } =
+    internal static IReadOnlyList<MetadataReference> Framework { get; } =
         [.. ((string)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")!).Split(Path.PathSeparator)
             .Where(f => !Path.GetFileName(f).StartsWith("WiseOwl.", StringComparison.Ordinal))
             .Select(f => MetadataReference.CreateFromFile(f))];
@@ -28,7 +28,7 @@ public sealed class EditionCiteAnalyzerTests
     /// <summary>The decider and the mark, as the planted compilations declare them: <c>EditionInfo</c> under its metadata name, with the
     /// shapes the analyzer reads from its symbol (an <c>int</c> property, a <c>bool</c> method of one <c>int</c>, a named rule fact), and
     /// a <c>Cite</c> whose own choice is the decider's and is not reported.</summary>
-    private const string Decider = """
+    internal const string Decider = """
         namespace WiseOwl.Cobol.Editions
         {
             public readonly record struct EditionInfo(int Year, bool Permissive = false)

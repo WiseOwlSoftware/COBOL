@@ -475,8 +475,8 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.InvokeMethodNameInvalid,
             $"INVOKE: '{WrittenSource.Of(dref)}' is neither a resolvable data item nor a class this source element "
             + "may reference (" + EditionInfo.Designated(ctx.Edition.Edition.Cite("§2002:14.8.22.1", "§2023:14.9.23.2",
-                y2014: "§2014:14.9.22.1")) + " — identifier-1 or class-name-1; "
-            + ctx.Edition.Edition.Cite("§2002:8.4.5.3", "§2023:8.4.6.4", y2014: "§2014:8.4.5.3") + ")");
+                y2002: "§2002:14.8.22.1", y2014: "§2014:14.9.22.1")) + " — identifier-1 or class-name-1; "
+            + ctx.Edition.Edition.Cite("§2002:8.4.5.3", "§2023:8.4.6.4", y2002: "§2002:8.4.5.3", y2014: "§2014:8.4.5.3") + ")");
     }
 
     /// <summary>⛔ INVOKE NULL (kb/Work PB1136) — LEGAL source with one run-time meaning. §2023:14.9.23.3 SR1 asks only that
