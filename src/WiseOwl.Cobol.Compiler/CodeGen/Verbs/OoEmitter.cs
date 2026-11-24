@@ -1112,7 +1112,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             {
                 // A Tier-A (alias) view root forwards to its canonical's field — no local (symmetry with
                 // BuildPhysicals; DESIGN §4.1; M2-OO-1h review C).
-                if (root.Class is { Tier: RedefinesTier.Alias } && !root.IsCanonical) continue;
+                if (root.IsAliasView) continue;
                 // ⛔ A FORMAL OCCUPIES ITS ARGUMENT'S STORAGE (ISO §2023:14.2.3 GR8: "If the argument is passed by reference, the
                 // activated runtime element operates as if the formal parameter occupies the same storage area as the
                 // argument"; kb/Work PB2087, the method arm). A RESIDENT formal reads and writes through the argument's
@@ -1232,7 +1232,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             Ctx.ActivationLocalRoots = m.Binding!.LocalRoots;
             foreach (var root in m.Binding!.LocalRoots)
             {
-                if (root.Class is { Tier: RedefinesTier.Alias } && !root.IsCanonical) continue;   // Tier-A view → no local (review C)
+                if (root.IsAliasView) continue;   // Tier-A view → no local (review C)
                 if (MethodBackingDecl(fields, root) is { } bkl)   // Tier-B canonical → the string backing local (M2-OO-1h step 3)
                 {
                     w.Line($"string {bkl.Name} = {bkl.Init};   // LOCAL-STORAGE Tier-B REDEFINES backing for {root.CobolName} (§2023:8.6.4)");

@@ -863,6 +863,23 @@ public sealed class DataItem
         "the same classifier's stored-member verdict")]
     public bool IsCanonical { get; set; } = true;
 
+    /// <summary>⛔ THE TIER-A (ALIAS) VIEW RULE, written once (kb/Work PB6141): the canonical member this item forwards to
+    /// when it is a non-canonical member of a <see cref="RedefinesTier.Alias"/> class, else null. A Tier-A view owns no
+    /// field, local or physical slot; every reference to it renders its canonical's typed field, which is the one storage
+    /// area (§2023:13.18.44.4 GR1). Every non-canonical item of an Alias class is a member, because the classifier admits
+    /// the tier only when every member is elementary (<c>ClassifyRedefinesClassesPass.ComputeTier</c>), so no subordinate
+    /// carries the class. No other file spells the tier test (<c>AliasViewRuleDriftTests</c>).</summary>
+    public DataItem? AliasCanonical => Class is { Tier: RedefinesTier.Alias } cls && !IsCanonical ? cls.Canonical : null;
+
+    /// <summary>True for a Tier-A (Alias) REDEFINES view, which owns no storage of its own (<see cref="AliasCanonical"/>).</summary>
+    public bool IsAliasView => AliasCanonical is not null;
+
+    /// <summary>True when the item is reached as a plain typed member of its parent's storage, named by its own
+    /// <see cref="ClrName"/>: it belongs to no REDEFINES class, or it is the stored canonical of a Tier-A class (the alias
+    /// tier keeps the canonical's typed field). A Tier-A view (<see cref="IsAliasView"/>) and every member and subordinate
+    /// of a Tier-B or rejected class are not.</summary>
+    public bool IsPlainMember => Class is null || (Class.Tier == RedefinesTier.Alias && IsCanonical);
+
     /// <summary>The reference-time *-ARG-OMITTED fact when this item is a FORMAL PARAMETER of its source element
     /// and the compilation group can enable the kind's condition (kb/Work PB971 — ISO §2023:14.9.4.4 GR12, §2023:8.4.3.2.4
     /// GR8, §2023:14.9.23.4 GR10). Every access path rooted here carries it; null otherwise.</summary>

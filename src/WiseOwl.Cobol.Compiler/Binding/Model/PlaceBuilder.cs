@@ -109,10 +109,9 @@ internal sealed class PlaceBuilder(IPlaceFacts facts)
         }
         // A Tier-A view forwards to the canonical (a numeric view reinterprets the shared unscaled value via its own
         // scale, for free). A not-yet-wired (Tier-C) / Rejected view is loud.
-        if (item.Class is { } cls && !item.IsCanonical && cls.Tier != RedefinesTier.Alias)
+        if (item.Class is { Tier: RedefinesTier.Rejected } && !item.IsCanonical)
             return null;   // Tier D (Rejected) — refused at the declaration; the gap names the item itself
-        DataItem accessItem = item.Class is { Tier: RedefinesTier.Alias } ac && !item.IsCanonical
-            ? ac.Canonical : item;
+        DataItem accessItem = item.AliasCanonical ?? item;
         // A subscripted element whose access path crosses an OCCURS DYNAMIC level (data-model D9): the sending and
         // receiving accessors differ (RefSending vs RefReceiving — the latter grows-and-seeds), so build BOTH paths
         // and return a direction-carrying DynTablePlace. (A dynamic element is never an ODO subject, and a group

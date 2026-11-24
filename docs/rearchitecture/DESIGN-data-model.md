@@ -313,6 +313,10 @@ build; there was a predicate that stopped short.
 
 - Tier classification produces `StorageForm` for each member: Tier-A view → the canonical's form; Tier-B view →
   `TierBWindow`; Tier-D → a rejection diagnostic (no form emitted).
+- **The Tier-A view rule has one home** (kb/Work PB6141): `DataItem.AliasCanonical` (the canonical a Tier-A view
+  forwards to, else null), `DataItem.IsAliasView`, and for the canonical's side `DataItem.IsPlainMember` (no class,
+  or a Tier-A canonical: reached as a typed member by its own name). The binder, the model and the emitter ask these;
+  no other compiler file names `RedefinesTier.Alias` (`AliasViewRuleDriftTests`).
 - **Tier A means ONE FIELD SERVES EVERY MEMBER, so the members must agree on the UNIT** (kb/Work PB203). The arm
   compared CLR carrier type and `ImageWidth`, and neither says what the field HOLDS: a `USAGE BIT` leaf's carrier
   is its PICTURE 1(n) boolean positions while its `ImageWidth` is the `ceil(n/8)` bytes it occupies, so
