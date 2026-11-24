@@ -3715,7 +3715,7 @@ internal static class RuntimeApi
     /// <summary>The three-way comparison of two decimal-lane values (<c>CobolDec.Compare</c>).</summary>
     public static string DecCompare(string left, string right) => $"{nameof(CobolDec)}.{nameof(CobolDec.Compare)}({left}, {right})";
 
-    /// <summary>A binary64 dyadic operation (ISO §2023:8.8.1.3.1, native arithmetic): with <paramref name="taken"/> null, the bare IEEE
+    /// <summary>A binary64 dyadic operation (ISO §2023:8.8.1.3, native arithmetic): with <paramref name="taken"/> null, the bare IEEE
     /// operator for a sum, difference or product and <c>CobolFloat.Div</c> for a quotient (a zero divisor is a size error whether
     /// or not checking is enabled, kb/Work PB1605); with the checks taken, <c>CobolFloat.AddChecked</c>, <c>SubChecked</c>,
     /// <c>MulChecked</c> or <c>DivChecked</c>.</summary>
@@ -3771,11 +3771,11 @@ internal static class RuntimeApi
     public static string ClassIsInClass(string operand, string membersLiteral) =>
         $"{nameof(CobolClass)}.{nameof(CobolClass.IsInClass)}({operand}, {membersLiteral})";
 
-    /// <summary>The NUMERIC class test of a non-numeric operand (<c>CobolClass.IsNumeric</c>; ISO §2023:8.8.4.4.4 GR3 n 2).</summary>
+    /// <summary>The NUMERIC class test of a non-numeric operand (<c>CobolClass.IsNumeric</c>; ISO §2023:8.8.4.4.4 GR3).</summary>
     public static string ClassIsNumeric(string operand) => $"{nameof(CobolClass)}.{nameof(CobolClass.IsNumeric)}({operand})";
 
     /// <summary>The ALPHABETIC, ALPHABETIC-UPPER or ALPHABETIC-LOWER class test (<paramref name="kind"/> 'A', 'U' or 'L';
-    /// <c>CobolClass.IsAlphabetic</c>, <c>IsAlphabeticUpper</c>, <c>IsAlphabeticLower</c>; ISO §2023:8.8.4.4.4 GR3 b, c, d).
+    /// <c>CobolClass.IsAlphabetic</c>, <c>IsAlphabeticUpper</c>, <c>IsAlphabeticLower</c>; ISO §2023:8.8.4.4.4 GR3).
     /// <paramref name="classification"/> is the trailing classification argument, possibly empty.</summary>
     public static string ClassIsAlphabetic(char kind, string operand, string classification) => kind switch
     {
