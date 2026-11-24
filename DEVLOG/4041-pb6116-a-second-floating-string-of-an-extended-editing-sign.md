@@ -1,4 +1,4 @@
-## PB6116: a second floating string of an extended editing sign control symbol is refused (SR27)
+## Entry 4041 — 2026-11-24 09:40 PST — PB6116: a second floating string of an extended editing sign control symbol is refused (SR27)
 
 `PIC LL99FF EDITING L FOR NEGATIVE IS "-" EDITING F FOR NEGATIVE IS "-"` bound and showed `[ -0005]` for -5. §2023:13.18.40.3 SR27
 allows one floating insertion string in character-string-1, and §2023:13.18.40.5 GR6 lists the extended editing sign control symbols
@@ -18,3 +18,4 @@ Goldens: `pb6116_picture_one_extended_floating_string_2023` (accepted, from 2023
 row closed.
 
 Review round 1 (R1-1, answered no_change_needed): SR27's list names only '+', '-', currency, '*' and 'Z' strings; a floating extended string is not on it, so `PIC LLZZ9` and `PIC LL$$99` are not two SR27 strings. The adjudicated golden pb4755_deedit_for_floating_blank_landing_before_z (PIC LLLZZ9, SR12 b) accepts the Z shape: a count that refused it went RED (Conformance, RepositoryRoundTripCorpus, HostEntryShapeDrift) and was reverted. R1-2 (a lone trailing floating extended string) is left as a lead.
+
