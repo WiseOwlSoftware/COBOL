@@ -600,24 +600,31 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
             // and the length never depends on the value (§2002:13.9.3 GR5/GR6), so it is accepted and only its count was read
             // (kb/Work PB5709, review R1-1).
             if (unread.Outcome is not RefOutcome.Deferred) return null;
-            // A written name no data item, index-name or constant-name answers is still an undefined name (reported by the
-            // symbol table); a list with a function-identifier is left to the procedure division's own binding of the use.
+            // Every written name must still answer: an undefined one is reported here, inside a function argument too (nothing binds
+            // a constant entry's subscript again, so no later pass would see it), and a constant-name must be numeric (§2002:8.8.1:
+            // an arithmetic expression's operands reference numeric data items or are numeric literals; the procedure division
+            // refuses the same subscript COBOL0844). The word after FUNCTION is the function's own name, not an operand.
             var written2 = new List<Antlr4.Runtime.IToken>();
             SubscriptBinder.CollectLeafTokens(w.SubscriptGroup, written2);
-            if (!written2.Any(t => t.Type is Core.FUNCTION))
-                foreach (var t in written2.Where(SubscriptBinder.IsNameToken))
-                {
-                    var word = WrittenWord.Of(t);
-                    var head = new WrittenQualifiedName(t, []);
-                    if (owner.Symbols.IdentifyDataName(head, report: false).Count == 0
-                        && resolver.Names.ResolveIndexName(head, t).Outcome is IndexRefOutcome.NotAnIndexName
-                        && owner.Symbols.Identify(word, NameClass.Constant, report: false) is null)
-                    {
-                        owner.Edition.Error(DiagnosticCatalog.ConstantEntryRule, $"{where}: {phrase} '{written}': the subscript "
-                            + $"'{t.Text}' names no data item, index-name or constant-name (subscripting, ISO §2002:8.4.1.2.2)");
-                        return null;
-                    }
-                }
+            for (int i = 0; i < written2.Count; i++)
+            {
+                var t = written2[i];
+                if (!SubscriptBinder.IsNameToken(t) || (i > 0 && written2[i - 1].Type is Core.FUNCTION)) continue;
+                var head = new WrittenQualifiedName(t, []);
+                if (owner.Symbols.IdentifyDataName(head, report: false).Count != 0
+                    || resolver.Names.ResolveIndexName(head, t).Outcome is not IndexRefOutcome.NotAnIndexName)
+                    continue;
+                var constant = owner.Symbols.Identify(WrittenWord.Of(t), NameClass.Constant, report: false)?.Symbol as ConstantDef;
+                if (constant is null)
+                    owner.Edition.Error(DiagnosticCatalog.ConstantEntryRule, $"{where}: {phrase} '{written}': the subscript "
+                        + $"'{t.Text}' names no data item, index-name or constant-name (subscripting, ISO §2002:8.4.1.2.2)");
+                else if (constant.Category != PicCategory.Numeric)
+                    owner.Edition.Error(DiagnosticCatalog.ConstantEntryRule, $"{where}: {phrase} '{written}': the subscript "
+                        + $"constant-name '{t.Text}' is not numeric, and a subscript is an arithmetic expression whose operands are "
+                        + "numeric (ISO §2002:8.4.1.2.2, §2002:8.8.1)");
+                else continue;
+                return null;
+            }
             if (resolver.Subscripts.ScreenSubscriptArity(dref, item, subscripts)) return null;
         }
         // §2023:13.10.4 GR5/GR6 measure the item AS DESCRIBED — its implied PICTURE, TYPE / SAME AS composition, group USAGE
