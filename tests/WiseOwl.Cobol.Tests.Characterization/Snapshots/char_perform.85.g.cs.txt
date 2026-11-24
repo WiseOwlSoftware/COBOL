@@ -34,10 +34,10 @@ internal sealed class _PRG_CHAR_PERFORM : ICobolProgram
 
     public void __Activate()
     {
-        try { __Dispatch(0, 1); } catch (ProgramReturn) { }   // GOBACK (an implicit one too, §2023:14.6.3) / called-program EXIT PROGRAM returns to the activator here (ISO §2023:14.9.18.4 GR2/GR3; §2023:14.9.14.4 GR3)
+        try { __Dispatch(0, 1, __direct: true); } catch (ProgramReturn) { }   // GOBACK (an implicit one too, §2023:14.6.3) / called-program EXIT PROGRAM returns to the activator here (ISO §2023:14.9.18.4 GR2/GR3; §2023:14.9.14.4 GR3)
     }
 
-    private int __Dispatch(int __startPc, int __exitPc)
+    private int __Dispatch(int __startPc, int __exitPc, bool __direct = false)
     {
         int __pc = __startPc;
         while ((uint)__pc < (uint)__N)
@@ -101,7 +101,9 @@ internal sealed class _PRG_CHAR_PERFORM : ICobolProgram
                     }
                     __pexit2: ;
 #line (15, 12) - (15, 27) 21 "char_perform.cob"
-                    __Dispatch(1, 1);
+                    if (__Dispatch(1, 1, __direct) == ElementReturn.Returned)
+#line hidden
+                    return ElementReturn.Returned;
 #line (16, 12) - (16, 20) 21 "char_perform.cob"
                     global::System.Console.WriteLine(CobolNum.DisplayDecimal(T, _P_1, false));
 #line (17, 12) - (17, 19) 21 "char_perform.cob"
@@ -136,7 +138,7 @@ internal sealed class _PRG_CHAR_PERFORM : ICobolProgram
                 }
             }
             if (__atExit && __pc == __exitPc + 1) return __pc;   // a named THRU exit paragraph COMPLETED (an explicit GO TO cleared __atExit — §2023:14.6.3 rule 1)
-            if (__pc == 2) throw new ProgramReturn();   // the implicit GOBACK past the source element's last paragraph (ISO §2023:14.6.3)
+            if (__pc == 2) { if (__direct) return ElementReturn.Returned; throw new ProgramReturn(); }   // the implicit GOBACK past the source element's last paragraph (ISO §2023:14.6.3)
         }
         return __pc;
     }
