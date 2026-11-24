@@ -2000,7 +2000,8 @@ public sealed class FileRegistry
         FileSharing sharing = sharingOverride ?? posture.Sharing ?? ImplementorDefaultSharing(mode, c.Edition);
         // ⛔ EACH EDITION'S OWN TEXT DECIDES A SECOND FILE CONNECTOR'S OPEN OF A PHYSICAL FILE THIS RUN UNIT HOLDS OPEN (kb/Work PB6161).
         // From 2002 the file sharing facility arbitrates it: "the sharing mode and the open mode shall be allowed by all other file
-        // connectors that are currently associated with the physical file" (§2002:9.1.14, §2014:9.1.14, §2023:9.1.15), a refusal is
+        // connectors that are currently associated with the physical file" (§2002:9.1.14, §2014:9.1.14; 2023 reads "the sharing mode
+        // and the open mode of that OPEN statement shall be allowed by all other file connectors", §2023:9.1.15), a refusal is
         // the file sharing conflict condition '61' (§2002:9.1.12.8, §2014:9.1.12.8, §2023:9.1.13.9 GR1), and '41' is keyed to the
         // FILE CONNECTOR (§2002:9.1.12.6, §2023:9.1.13.7 GR1: "attempted for a file connector in an open mode"), so it never answers
         // another connector's OPEN. ANSI X3.23-1985 has no sharing facility and keys '41' to the PHYSICAL file: "The terms 'file

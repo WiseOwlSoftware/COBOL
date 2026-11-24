@@ -13,7 +13,8 @@
   2023: the sharing facility.** Their status 41 is keyed to the file connector ("An OPEN statement is attempted for a file
   connector in an open mode", `§2002:9.1.12.6`, `§2014:9.1.12.6`; `§2023:9.1.13.7 GR1` adds DELETE FILE), so it answers only a
   connector's own second OPEN. The second connector's OPEN is arbitrated instead: "the sharing mode and the open mode shall be
-  allowed by all other file connectors that are currently associated with the physical file" (`§2002:9.1.14`, `§2014:9.1.14`,
+  allowed by all other file connectors that are currently associated with the physical file" (`§2002:9.1.14`, `§2014:9.1.14`;
+  2023 reads "the sharing mode and the open mode of that OPEN statement shall be allowed by all other file connectors",
   `§2023:9.1.15`), under the implementor default when no SHARING phrase or clause is written (`§2002:14.8.26.3 GR22`,
   `§2014:14.9.26.3 GR22`, `§2023:14.9.27.4 GR23`; WiseOwl's default, A.1 item 77: INPUT is SHARING WITH READ ONLY, every other mode
   SHARING WITH NO OTHER), and a refusal is the file sharing conflict condition, I-O status 61 (`§2002:9.1.12.8`, `§2014:9.1.12.8`,

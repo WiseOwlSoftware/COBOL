@@ -28,5 +28,8 @@
   edition, §2023:14.9.30.4 GR14), and the RECORD VARYING DEPENDING ON item holds the length of the record read, as for the sequential READ.
   An indexed READ that is also a duplicate-key READ answers '04', not '02': the one status states the length conflict, which GR18 makes the
   READ's own outcome, where '02' only reports a neighbour (the standards state no order; determination). Pinned by
-  `conformance:cases/VIII.4.5@1985-READ-STATEMENT/pb5480_relative_read_record_length_conflict`, `conformance:cases/IX.4.5@1985-READ-STATEMENT/pb5480_indexed_read_record_length_conflict` and
+  `conformance:cases/9.1.13.2-Successful-completion/pb5480_relative_read_record_length_conflict`,
+  `conformance:cases/9.1.13.2-Successful-completion/pb5480_indexed_read_record_length_conflict`,
+  `conformance:wiseowl/cases/9.1.13.2-Successful-completion/pb5480_depending_on_after_truncated_read` (2002, 2014 and 2023, every
+  connector SHARING WITH ALL OTHER) and
   `conformance:cases/14.9.30-READ/pb5238_read_inside_record_clause_is_no_length_conflict` (every edition).

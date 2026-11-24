@@ -355,13 +355,13 @@ internal sealed record CurrencySymbolExclusion(string UppercaseLetters, bool Eve
 /// of a PICTURE character-string and the exclusion list's letter test all ask it, so they cannot disagree. A COBOL basic
 /// letter folds by the Annex mapping at every edition (§2002:8.1.2.1 GR3). A character outside the repertoire folds by its
 /// invariant-culture upper case (the implementor's equivalence, DOC-A.1-43) from COBOL-2014, where the text lets the
-/// implementor specify the additional characters and their equivalence (§2014:12.3.6.2 SR20); below 2014 it is equivalent to
-/// no COBOL letter, so <c>ſ</c> (U+017F) is no <c>S</c> and stays the symbol it was written as.</summary>
+/// implementor specify the additional characters and their equivalence (§2014:12.3.6.2 SR20). Below 2014 the text grants no
+/// such equivalence, so a character outside the repertoire is equivalent to no other character and stays the symbol it was
+/// written as: <c>ſ</c> (U+017F) is no <c>S</c>, and <c>é</c> is no <c>É</c> (1985: "All other lowercase letters are not
+/// equivalent to their corresponding uppercase representations", §1985:VI.5.9.3 SR3; 2002 has no counterpart of 2014's SR20;
+/// kb/Work PB6130, PB6162).</summary>
 internal static class CurrencySymbolEquivalence
 {
-    internal static char Fold(char c, int dialectLevel)
-    {
-        char upper = char.ToUpperInvariant(c);
-        return dialectLevel < 2014 && !char.IsAscii(c) && char.IsAscii(upper) ? c : upper;
-    }
+    internal static char Fold(char c, int dialectLevel) =>
+        dialectLevel < 2014 && !char.IsAscii(c) ? c : char.ToUpperInvariant(c);
 }
