@@ -102,7 +102,7 @@ import sys
 from collections import Counter
 
 from inventory_schema import (NEWEST, RETIRED_WITNESS_MARK, WITNESS_FIELDS, Edition, edition, load_schema, prose_of,
-                              resites, retired_symbols_left_in_prose, statement_losses, witness_losses, witness_shape_error)
+                              dropped_sites_named_in_prose, resites, retired_symbols_left_in_prose, statement_losses, witness_losses, witness_shape_error)
 from inventory_store import REPO, inventory_dir, read_store, record_of, write_store
 import inventory_view  # noqa: E402  (THE view: the rows a batch is validated against and written from; kb/Work PB4992)
 import lineage  # noqa: E402  (THE definition of an older edition's change record and its state; kb/Work PB4993)
@@ -402,6 +402,15 @@ def validate(records: list[tuple[pathlib.Path, int, dict]], schema, catalog: dic
             bad.append(f"{where}: retiring '{ref}' leaves the row's notes naming '{ref.partition('#')[2]}' — the "
                        f"prose describes the code as it is now, so rewrite the sentence (restate `notes`, with the "
                        f"verdict and editions) and put the history in '{RETIRE_REASON}'")
+        # ⛔ A RE-SITE KEEPS EVERY SITE THE PROSE STILL NAMES (kb/Work PB6066): `merged` replaces the code-location of a
+        # re-adjudication with the record's, so the sites the record does not restate leave the field while the prose
+        # above still sends the reader to them.
+        for ref in dropped_sites_named_in_prose(schema.split(row.get("code-location", "") or "", _sep("code-location", schema)),
+                                                schema.split(after["code-location"], _sep("code-location", schema)),
+                                                after["notes"], retire):
+            bad.append(f"{where}: the record leaves '{ref}' out of the code-location, and the row's notes still name "
+                       f"'{ref.partition('#')[2]}' — list it again with the new site (the union), or rewrite the "
+                       f"sentence (restate `notes`)")
 
         for field in schema.requires(verdict):
             if not after.get(field):

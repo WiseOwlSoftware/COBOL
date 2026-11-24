@@ -387,6 +387,27 @@ def retired_symbols_left_in_prose(after_notes: str, retired: Iterable[str], live
             and re.search(rf"(?<![A-Za-z0-9_]){re.escape(sym)}(?![A-Za-z0-9_])", prose)]
 
 
+def dropped_sites_named_in_prose(before_locations: Iterable[str], after_locations: Iterable[str], after_notes: str,
+                                 retired: Iterable[str]) -> list[str]:
+    """The code-locations a write DROPS (not retired by name) whose symbol the row's PROSE still names (kb/Work PB6066).
+
+    ⛔ THE SHAPE OF kb/Work PB6066: a re-adjudication that flips a row to CONFORMS re-sites its code-location to the one
+    method it added (`resites`), so the sites that implement the rest of the rule leave the field while the notes still
+    say "OdoResolve asks DependingAttributeFault" and the next reader is sent to a method the row no longer cites. The
+    sibling of `retired_symbols_left_in_prose`, which asks the same of a RETIREMENT: here the site left by the re-site, not
+    by a named retirement. The prose is the present state of the code, so a site it names stays in the field, as the union
+    of the old sites and the new (or the prose stops naming it). A site whose symbol another cited location still names
+    (it MOVED), a bare path, and a retired witness are exempt.
+    """
+    kept = list(after_locations)
+    still_cited = {s for loc in kept if (s := symbol_of(loc))}
+    gone = set(retired)
+    prose = prose_of(after_notes)
+    return [ref for ref in dict.fromkeys(before_locations)
+            if ref not in kept and ref not in gone and (sym := symbol_of(ref)) and sym not in still_cited
+            and re.search(rf"(?<![A-Za-z0-9_]){re.escape(sym)}(?![A-Za-z0-9_])", prose)]
+
+
 def resites(field: str, before_verdict: str, after_verdict: str) -> bool:
     """Does a write REPLACE this witness field rather than merge it? Only a re-adjudication's code-location."""
     return (CODE_LOCATION_RESITES_ON_READJUDICATION and field == "code-location"

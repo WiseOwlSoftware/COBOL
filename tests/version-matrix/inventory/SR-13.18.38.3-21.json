@@ -2,8 +2,8 @@
  "rule-id": "SR-13.18.38.3-21",
  "rule-digest": "61e7dc1f00f7",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Odo.cs#IsDescribedInContainer",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Odo.cs#IsDescribedInContainer; src/WiseOwl.Cobol.Compiler/Binding/Passes/OdoResolvePass.cs#DependingAttributeFault",
  "test-ref": "conformance:cases/13.18.38-OCCURS/pb1261-depending-not-external; conformance:cases/13.18.38-OCCURS/pb1261_depending_attributes_and_area; conformance:cases/13.18.38-OCCURS/pb5797-depending-container-counter-external",
  "editions": "85,2002,2014,2023",
- "notes": "CONFORMS (kb/Work PB5797): a table whose record carries the EXTERNAL clause (or an EXTERNAL type, 13.18.22.4 GR3) and whose data-name-1 lacks the external attribute (8.6.3) OR is described in a CONTAINING program's data division (an EXTERNAL GLOBAL record of the container, inherited by the contained program) draws COBOL2788. Earlier account (kb/Work PB1261, wave 1015 Y): the external-attribute half, witness pb1261-depending-not-external."
+ "notes": "CONFORMS (kb/Work PB5797): a table whose record carries the EXTERNAL clause (or an EXTERNAL type, 13.18.22.4 GR3) and whose data-name-1 lacks the external attribute (8.6.3) OR is described in a CONTAINING program's data division (an EXTERNAL GLOBAL record of the container, inherited by the contained program) draws COBOL2788. Earlier account (kb/Work PB1261, wave 1015 Y): the external-attribute half, witness pb1261-depending-not-external. retired-witness: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#IsInExternalRecord (kb/Work PB5797 replaced DataBinder.IsInExternalRecord by DataBinder.IsDescribedInContainer (DataBinder.Odo.cs), which the row names; the external-record half stays in OdoResolvePass.DependingAttributeFault. Restored by kb/Work PB6066 before it was found gone)"
 }

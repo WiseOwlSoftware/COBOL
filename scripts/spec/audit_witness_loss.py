@@ -645,6 +645,25 @@ def self_test(schema) -> int:
            not stale(retiring_loc, untouched))
     verify("writer: a record retiring nothing is never asked about the prose", not stale({**planted_stmt}, narrating))
 
+    # A RE-SITE KEEPS EVERY SITE THE PROSE STILL NAMES (kb/Work PB6066): a re-adjudication that supplies one new site drops
+    # the others (`resites`), and the writer refuses it while the restated prose still names a dropped one. The row is PLANTED.
+    sited = {**planted, "verdict": "PARTIAL", "notes": "Both PlantedSymbol and OtherSymbol decide the rule."}
+    resite_stmt = {"rule-id": rid, "verdict": "CONFORMS", "editions": planted["editions"],
+                   "notes": "Both PlantedSymbol and OtherSymbol decide the rule; HelperSymbol is new."}
+
+    def dropped(rec: dict[str, str]) -> bool:
+        errs = validate([(pathlib.Path("self-test"), 0, {"rule-id": rid, **rec})], schema, catalog, {rid: sited})
+        return any("leaves '" in e and "out of the code-location" in e for e in errs)
+
+    verify("writer: a re-site to one new site that drops two the prose names is refused",
+           dropped({**resite_stmt, "code-location": "src/Helper.cs#HelperSymbol"}))
+    verify("writer: a re-site that lists the union (old sites and the new) is accepted",
+           not dropped({**resite_stmt, "code-location": schema.code_location_sep.join([*planted_locs, "src/Helper.cs#HelperSymbol"])}))
+    verify("writer: a re-site whose restated prose no longer names the dropped sites is accepted",
+           not dropped({**resite_stmt, "notes": "HelperSymbol decides the rule.", "code-location": "src/Helper.cs#HelperSymbol"}))
+    verify("writer: a re-site naming no site keeps the row's, so drops nothing",
+           not dropped(resite_stmt))
+
     # A STATEMENT IS NEVER ERASED (kb/Work PB3795, PB3375): `inventory_schema.statement_losses`, asked of planted rows,
     # of the writer's output and of a history restore. The row is PLANTED: a live row may carry no prose at all.
     prose = "The planted derivation, its cite.py --check and its goldens."
