@@ -9,7 +9,7 @@ period named no statement; `CobolErrorStrategy.StatementOpenAtAPeriod` names the
 paragraph-name the period would end (§2023:8.3.2.1 SR1). The "deliberate" list of PB6119 (FREE, VALIDATE, RAISE, INVOKE, ALLOCATE) held only where the edition does not reserve the verb: `UNLOCK.` at COBOL-85 and `RECEIVE.` at COBOL-2014 still
 name no statement. Inline `PERFORM.` keeps COBOL0001. Five refusal goldens (`pb6119-set-index-no-sending-operand`, `-compute-no-expression`, `-if-no-condition-operand`, `-accept-bare-verb`,
 `-unlock-bare-verb`) and a 15-row theory (`ABareVerbOrAnOperandStartingWithAParen_AtThePeriod_NamesTheStatement`) that asserts the statement named, which the older `ABareVerbSentence_IsAnIncompleteStatement_NeverNamedCobol0901`
-could not (it accepts COBOL0001 as well as COBOL5506; review lead R1-3 of PB6113).
+could not (it accepts COBOL0001 as well as COBOL5506; review lead R1-3 of PB6113). The 1985 golden `1985-FMT-XIV_3_6_2` (`SEND OUT-CD.`) pinned the bare COBOL0001 and now expects the SEND statement named.
 
 PB6147. `PictureAnalyzer.AnalyzeFloatEdited` forced `wideBounds` true when the construct is unavailable, which chose the digit count by the 2014 rule (significand alone, limit 36) while the message text was chosen by
 edition (the 2002 sum): at `--std 85` `+9(40)E+99` drew COBOL1658 "counts 40 digit position(s) (significand 40 + exponent 2) — the limit is 1 to 36", and the bound error displaced the COBOL0900 construct gate (the gate reads

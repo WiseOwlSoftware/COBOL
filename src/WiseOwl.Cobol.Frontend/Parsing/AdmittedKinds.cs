@@ -168,7 +168,7 @@ internal static class AdmittedKinds
         if (!named.Statement && (CobolErrorStrategy.IsReservedWord(token) || aPeriodEndsAnOperandList)
             && (takesAWord || named.Literals.Count > 0))
         {
-            // ⛔ THE GROUPING '(' OPENS AN ARITHMETIC OPERAND (kb/Work PB6119). Where the period stands in an operand list, a '(' the
+            // ⛔ THE GROUPING '(' OPENS AN ARITHMETIC OPERAND (kb/Work PB6119; GROUPING-PAREN-ONLY: the plain LPAREN is meant). Where the period stands in an operand list, a '(' the
             // position admits is the opening of a parenthesized expression (§2023:8.4.3.2.3 SR6: the subscript, reference-
             // modifier and function-argument parens are the lexer's other tokens, which follow a completed word), so it is one more
             // alternative of the operand due, named with the rest, and no sign that an element before the token is complete
@@ -208,7 +208,8 @@ internal static class AdmittedKinds
 
     private static IntervalSet? _userWordSpellings;
 
-    /// <summary>The token a parenthesized arithmetic expression opens with (<c>LPAREN</c>, never the subscript or function-argument twin).</summary>
+    /// <summary>The token a parenthesized arithmetic expression opens with (<c>LPAREN</c>, never the subscript or function-argument twin;
+    /// GROUPING-PAREN-ONLY, ParenTokenTwinDriftTests).</summary>
     private static readonly IntervalSet GroupingParen = IntervalSet.Of(CobolLexer.LPAREN);
 
     private static IntervalSet BuildUserWordSpellings()
