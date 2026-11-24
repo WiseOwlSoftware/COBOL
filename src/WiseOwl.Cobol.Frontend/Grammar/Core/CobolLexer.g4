@@ -54,7 +54,7 @@ COMMENT_START: '*>' { OnCommentStart(); } -> skip, pushMode(COMMENT_MODE) ;
 
 // A fixed-form DEBUGGING LINE's marker (the X3.23-1985 debug module; kb/Work PB1705, owner decision R56): the §2023:6.5
 // logical conversion writes a `D` line as this carrier followed by the line's program text
-// (ReferenceFormatProcessor.DebugLineCarrier, held equal to this spelling by DebuggingLineDriftTests). The marker is a
+// (DebugLineCarrier.Text, held equal to this spelling by DebuggingLineRewriterTests). The marker is a
 // HIDDEN token, and the line's text is lexed as ordinary tokens behind it: whether they are SOURCE or COMMENT is decided
 // per source unit, after lexing, by DebuggingLineRewriter (the unit's SOURCE-COMPUTER WITH DEBUGGING MODE clause is
 // further down the token stream than the line may be, so no earlier stage can know). Longer than COMMENT_START's `*>`, so

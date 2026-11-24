@@ -80,7 +80,7 @@ public sealed class ReferenceFormatLogicalConversionTests
         var m = ReferenceFormatProcessor.NormalizeToFreeFormMapped("000100" + indicator + "DISPLAY \"L\".\n",
             new ReferenceFormatDiagnostics(2023, false, bag), "t.cob", initialFixed: true, out _, ccvsIndicators: ccvs);
         Assert.Equal(diagnosed, Codes(bag).Contains("COBOL2616"));
-        Assert.Equal(line.Replace("<debug>", ReferenceFormatProcessor.DebugLineCarrier), m.Text.Split('\n')[0]);
+        Assert.Equal(line.Replace("<debug>", DebugLineCarrier.Text), m.Text.Split('\n')[0]);
     }
 
     [Fact] // kb/Work PB1494 — §2023:6.5 GR5: a source line's program-text area is copied. The comment-entry reading of

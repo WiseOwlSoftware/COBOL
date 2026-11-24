@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
 using WiseOwl.Cobol.Editions;
+using WiseOwl.Cobol.Frontend.Common;
 using WiseOwl.Cobol.Frontend.Parsing;
 
 namespace WiseOwl.Cobol.Frontend.Parsing;
@@ -11,7 +12,7 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 /// <para>The COBOL-85 debug module compiles an indicator-<c>D</c> line only when the program's SOURCE-COMPUTER paragraph
 /// says <c>WITH DEBUGGING MODE</c>; otherwise it is a comment line. The reference-format stage that reads the
 /// indicator runs before any clause is bound — and before the clause is even in the text it has read — so it cannot
-/// decide: it CARRIES the line (<see cref="WiseOwl.Cobol.Frontend.Preprocessor.ReferenceFormatProcessor.DebugLineCarrier"/>),
+/// decide: it CARRIES the line (<see cref="DebugLineCarrier.Text"/>),
 /// the lexer turns the carrier into a hidden <c>DEBUG_LINE</c> marker and lexes the line's text as ordinary tokens, and
 /// this pass — which sees the whole token stream, the clause included — keeps those tokens (the line is source) or moves
 /// them to the <see cref="CobolLexer.ABSENT_DEBUG_LINE"/> channel the parser, the §2023:8.3.5 separator rules and every
@@ -141,7 +142,7 @@ public static class DebuggingLineRewriter
     /// has already worked on.</summary>
     public static string WithCarriersBlanked(string text, IEnumerable<IToken> lines)
     {
-        string carrier = WiseOwl.Cobol.Frontend.Preprocessor.ReferenceFormatProcessor.DebugLineCarrier;
+        string carrier = DebugLineCarrier.Text;
         char[]? blanked = null;
         foreach (var line in lines)
         {

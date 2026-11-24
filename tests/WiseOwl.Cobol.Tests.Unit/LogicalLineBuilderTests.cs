@@ -213,7 +213,7 @@ public sealed class LogicalLineBuilderTests
         }
         // A D line is CARRIED (DebuggingLineRewriter keeps it or hides it per source unit, kb/Work PB1705); the NIST S / Y
         // letters are excluded alternates: an empty line, whatever the SOURCE-COMPUTER paragraph says.
-        if (indicator is "D") Assert.StartsWith(ReferenceFormatProcessor.DebugLineCarrier, m.Text.Split('\n')[0]);
+        if (indicator is "D") Assert.StartsWith(DebugLineCarrier.Text, m.Text.Split('\n')[0]);
         else Assert.Equal("", m.Text.Split('\n')[0]);
     }
 
@@ -494,7 +494,7 @@ public sealed class LogicalLineBuilderTests
     // The line is CARRIED (DebuggingLineRewriter keeps or hides it per source unit, after this walk), so the walk reads it
     // so that both readings agree on every other line: docs/CONFORMANCE.md D-DEBUG.
 
-    private static readonly string Carrier = ReferenceFormatProcessor.DebugLineCarrier;
+    private static readonly string Carrier = DebugLineCarrier.Text;
 
     /// <summary>A fixed-form line whose program text <paramref name="prefix"/> ends inside an open literal that runs to
     /// margin R (position 72), filled with <paramref name="fill"/> — the shape that REQUIRES a continuation line.</summary>

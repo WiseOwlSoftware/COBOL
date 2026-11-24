@@ -139,7 +139,7 @@ public static partial class ReferenceFormatProcessor
                     // REPLACING / REPLACE as if the D were absent (TextWordScanner skips the carrier).
                     gates?.OnDebuggingLine(file, lineNo);
                     _builder.CheckNoFloatingDebuggingOnFixedIndicator(area, site);   // 2002 clause 6.1.2.1 SR8
-                    _builder.EmitDebugging(DebugLineCarrier, area, site, FixedFormLine.IndicatorColumn);
+                    _builder.EmitDebugging(DebugLineCarrier.Text, area, site, FixedFormLine.IndicatorColumn);
                     break;
 
                 // 'S' and 'Y' (the CCVS debug-suite letters, §2023:6.2.2 lists neither) are excluded the same way: they are the

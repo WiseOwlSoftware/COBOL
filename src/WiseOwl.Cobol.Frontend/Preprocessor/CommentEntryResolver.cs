@@ -119,5 +119,5 @@ internal static class CommentEntryResolver
     /// <summary>A line the division is not read from and that does not end a candidate: blank, or a fixed-form debugging
     /// line (source or commentary as the unit's WITH DEBUGGING MODE says, known only after the parse).</summary>
     private static bool Inert(string line)
-        => ReferenceFormatProcessor.HoldsNoProgramText(line) || line.StartsWith(ReferenceFormatProcessor.DebugLineCarrier, StringComparison.Ordinal);
+        => ReferenceFormatProcessor.HoldsNoProgramText(line) || line.StartsWith(DebugLineCarrier.Text, StringComparison.Ordinal);
 }

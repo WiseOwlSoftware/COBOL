@@ -16,25 +16,13 @@ namespace WiseOwl.Cobol.Frontend.Preprocessor;
 /// </summary>
 public static partial class ReferenceFormatProcessor
 {
-    /// <summary>How a fixed-form debugging line (indicator <c>D</c>) travels from the §2023:6.5 logical conversion to the
-    /// lexer: the carrier, then the line's program text. COPY REPLACING and REPLACE match over that text as if the
-    /// <c>D</c> were absent (the COPY rule of COBOL-85; <see cref="TextWordScanner"/> skips only this carrier), and the
-    /// lexer reads the carrier as the hidden <c>DEBUG_LINE</c> marker (<c>CobolLexer.g4</c>, whose spelling this must
-    /// equal — <c>DebuggingLineDriftTests</c>) and the line's text as ordinary tokens, which
-    /// <c>DebuggingLineRewriter</c> then keeps (the unit's SOURCE-COMPUTER says WITH DEBUGGING MODE) or hides as a
-    /// comment (kb/Work PB1705). The carrier holds U+FDD0, a Unicode NONCHARACTER —
-    /// reserved for process-internal use and never in interchanged text — so no comment a programmer writes can be
-    /// mistaken for a debugging line (kb/Work PB1350: the printable <c>*&gt; DEBUG:</c> carrier made a genuine
-    /// <c>*&gt; DEBUG: …</c> comment take part in matching).</summary>
-    public static readonly string DebugLineCarrier = CobolSourceText.CommentIndicator + (char)0xFDD0 + "DEBUG ";
-
-    /// <summary>Whether a logical line (as <see cref="DebugLineCarrier"/> and the §2023:6.5 conversion leave it) holds no
+    /// <summary>Whether a logical line (as <see cref="DebugLineCarrier.Text"/> and the §2023:6.5 conversion leave it) holds no
     /// program text: it is empty, spaces, or the BARE carrier of a blank debugging line (which keeps its slot so
     /// <c>DebuggingLineRewriter</c> can decide it; kb/Work PB4412). §2023:6.5 GR2: a blank line is one with nothing but spaces
     /// in its program-text area, whichever indicator it carries, so a stage that asks "is there text on this line" asks it
     /// here.</summary>
     public static bool HoldsNoProgramText(string line)
-        => CobolSpace.IsBlank(line.StartsWith(DebugLineCarrier, StringComparison.Ordinal) ? line[DebugLineCarrier.Length..] : line);
+        => CobolSpace.IsBlank(line.StartsWith(DebugLineCarrier.Text, StringComparison.Ordinal) ? line[DebugLineCarrier.Text.Length..] : line);
 
     /// <summary>Minimum percentage of lines that must match fixed-form pattern for detection.</summary>
     private const int FixedFormThresholdPercent = 60;

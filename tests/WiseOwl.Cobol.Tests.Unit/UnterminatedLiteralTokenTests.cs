@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
 using WiseOwl.Cobol.Editions;
+using WiseOwl.Cobol.Frontend.Common;
 using WiseOwl.Cobol.Frontend.Parsing;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using Xunit;
@@ -102,7 +103,7 @@ public sealed class UnterminatedLiteralTokenTests
     public void ReportUnterminated_SkipsADebuggingLineThatIsAComment(string paragraph, int expected)
     {
         string text = string.Join("\n",
-            "PROGRAM-ID. P.", paragraph, ReferenceFormatProcessor.DebugLineCarrier + "DISPLAY \"OPEN", "STOP RUN.") + "\n";
+            "PROGRAM-ID. P.", paragraph, DebugLineCarrier.Text + "DISPLAY \"OPEN", "STOP RUN.") + "\n";
         var stream = new CommonTokenStream(new CobolLexer(new AntlrInputStream(text)));
         DebuggingLineRewriter.Rewrite(stream);
         int count = 0;

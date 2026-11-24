@@ -106,7 +106,7 @@ public static partial class ReferenceFormatProcessor
             for (; _divisionRead < _lines.Count; _divisionRead++)
             {
                 string line = _lines[_divisionRead];
-                if (line.Length > 0 && !line.StartsWith(DebugLineCarrier, StringComparison.Ordinal)) division.Read(line);
+                if (line.Length > 0 && !line.StartsWith(DebugLineCarrier.Text, StringComparison.Ordinal)) division.Read(line);
             }
         }
 
@@ -154,7 +154,7 @@ public static partial class ReferenceFormatProcessor
 
         /// <summary>A DEBUGGING line — the fixed indicator <c>D</c> or the floating indicator <c>&gt;&gt;D</c>, the one
         /// construct in two spellings (<see cref="TryEmitFloatingDebugging"/>) — carried as <paramref name="carrier"/> (the
-        /// <see cref="DebugLineCarrier"/> and the line's program text) for <c>DebuggingLineRewriter</c> to keep or hide
+        /// <see cref="DebugLineCarrier.Text"/> and the line's program text) for <c>DebuggingLineRewriter</c> to keep or hide
         /// per source unit (docs/CONFORMANCE.md D-DEBUG; kb/Work PB1705). Which of the two it is is decided after this
         /// walk, so the walk must read the line so that BOTH readings agree on every OTHER line:
         /// <list type="bullet">
@@ -241,7 +241,7 @@ public static partial class ReferenceFormatProcessor
         {
             if (!TryFloatingDebugging(programText, spaceFilled, out int at)) return false;
             gates?.OnFloatingDebuggingLine(file, site.Line, site.Col(at));
-            EmitDebugging(DebugLineCarrier, string.Concat(programText.AsSpan(0, at), "   ", programText.AsSpan(at + 3)), site, site.Col(at));
+            EmitDebugging(DebugLineCarrier.Text, string.Concat(programText.AsSpan(0, at), "   ", programText.AsSpan(at + 3)), site, site.Col(at));
             return true;
         }
 
