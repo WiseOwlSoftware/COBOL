@@ -426,7 +426,13 @@
    "sections": [
     "10.5"
    ],
-   "why": "the compilation group, §2002:10.5, whose SR5c limits a prototype's SPECIAL-NAMES paragraph to the LOCALE, CURRENCY and DECIMAL-POINT clauses at 2002 (kb/Work PB5706, VCR row 7.126)"
+   "why": "the compilation group, §2002:10.5, whose SR5c limits a prototype's SPECIAL-NAMES paragraph to the LOCALE, CURRENCY and DECIMAL-POINT clauses at 2002 (kb/Work PB5706, VCR row 7.127)"
+  },
+  "turn-directive-repeats-only-name-file-combination": {
+   "sections": [
+    "7.2.19.2"
+   ],
+   "why": "the TURN directive's syntax rules, §2002:7.2.19.2, whose SR3 refuses an exception-name specified more than once in one TURN directive, where §2023:7.3.25.3 SR3 refuses only a repeated exception-name and file-name combination (kb/Work PB5725, VCR row 7.126)"
   },
   "constant-length-subscripts-are-literals": {
    "sections": [
