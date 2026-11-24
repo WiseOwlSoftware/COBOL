@@ -384,7 +384,22 @@ def entry_text(rows: list[tuple[str, list[str]]], layer: list[str], change: Chan
     h = hits[0]
     if starts[h] is None or (h + 1 < len(rows) and starts[h + 1] is None):
         return None
-    return layer[starts[h]:starts[h + 1] if h + 1 < len(rows) else len(layer)]
+    if h + 1 == len(rows):
+        return layer[starts[h]:]
+    return layer[starts[h]:_before_cell(layer, starts[h], starts[h + 1], rows[h + 1][0])]
+
+
+CELL_REACH = 3  # words before the next row's instruction in which the layer prints that row's page cell
+
+
+def _before_cell(layer: list[str], start: int, end: int, cell: str) -> int:
+    """Where the entry that runs from `start` to the next row's instruction at `end` ends: before the next row's page cell
+    (and a `page` printed with it) when the layer prints that cell in the last CELL_REACH words, so the cell is never a
+    word of this entry's amended text (kb/Work PB6144)."""
+    cut = next((k for k in range(end - 1, max(start, end - CELL_REACH) - 1, -1) if layer[k] == cell), None)
+    if cut is None:
+        return end
+    return cut - 1 if cut - 1 > start and layer[cut - 1] == "page" else cut
 
 
 def with_cited_text(notes: dict[int, list[Amendment]], layer: dict[int, list[str]],
@@ -406,27 +421,35 @@ def with_cited_text(notes: dict[int, list[Amendment]], layer: dict[int, list[str
     return out, missing
 
 
-def _adjacent_in(texts: list[list[str]], before: str | None, after: str | None) -> bool:
-    """`before` and `after` are consecutive words of one text: the words between them were dropped."""
-    return before is not None and after is not None and any(
-        t[i] == before and t[i + 1] == after for t in texts for i in range(len(t) - 1))
+def _stands_between(hunk: list[str], texts: list[list[str]], before: str | None, after: str | None) -> bool:
+    """The page's words on each side of the hunk stand consecutively around it in one text: `before`, the hunk's words,
+    `after`. With an empty hunk this is a drop (the two words around the gap are consecutive); with a Markdown-only hunk it
+    is an insertion anchored at its place. A hunk at the page's edge has no word on one side and is never anchored."""
+    if before is None or after is None:
+        return False
+    window = [before, *hunk, after]
+    return any(t[i:i + len(window)] == window for t in texts for i in range(len(t) - len(window) + 1))
 
 
 def amendment_accounts_for(notes: list[Amendment], pdf_hunk: list[str], md_hunk: list[str],
                            pdf_ctx: tuple[str | None, str | None], md_ctx: tuple[str | None, str | None]) -> bool:
     """An amendment note of this page governs the hunk on BOTH sides: the layer's words are a run of what the note says the
-    standard printed, and the Markdown's words are a run of the amended text the note says it was corrected to (words the
-    Markdown dropped: the two words around the gap are consecutive in the amended text). A run needs a neighbouring word or
-    three words (`_run_in`): no page-wide bag of words, and a Markdown word the note does not give (`13` for `12`) is no
-    amendment."""
+    standard printed, and the Markdown's words are a run of the amended text the note says it was corrected to. A run needs
+    a neighbouring word or three words (`_run_in`): no page-wide bag of words, and a Markdown word the note does not give
+    (`13` for `12`) is no amendment. A side with no words is checked at its place (`_stands_between`): words the Markdown
+    dropped need the two words around the gap consecutive in the amended text, and words the Markdown alone has (the
+    printed side empty, so nothing else locates them) need the Markdown's words on each side to stand around them there
+    (kb/Work PB6144): an inserted run found elsewhere in the entry, or beside its edge, is no amendment."""
     for printed, amended, _ in notes:
-        if pdf_hunk and not _run_in(pdf_hunk, printed, *pdf_ctx):
+        if not pdf_hunk:
+            if md_hunk and _stands_between(md_hunk, amended, *md_ctx):
+                return True
+            continue
+        if not _run_in(pdf_hunk, printed, *pdf_ctx):
             continue
         if md_hunk and _run_in(md_hunk, amended, *md_ctx):
             return True
-        if not md_hunk and pdf_hunk and _adjacent_in(amended, *md_ctx):
-            return True
-        if not pdf_hunk and md_hunk and _run_in(md_hunk, amended, *md_ctx):
+        if not md_hunk and _stands_between([], amended, *md_ctx):
             return True
     return False
 

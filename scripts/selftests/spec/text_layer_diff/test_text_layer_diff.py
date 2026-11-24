@@ -224,6 +224,40 @@ def case_14_the_amended_text_is_the_notes_own_entry_of_the_amendment_page(expect
     expect.equal("the summary names the count", "amendment entry not located: 3" in out.getvalue(), True)
 
 
+
+def case_15_an_insertion_is_anchored_at_its_place_in_the_entry(expect):
+    """kb/Work PB6144: a Markdown-only run has no printed side to locate it, so its neighbours must stand around it in the
+    note's entry; and the entry ends before the next row's page cell (the round-4 review probes)."""
+    notes = _amendments(_note("the file is shut when read"))
+    am, _ = D.with_cited_text({5: notes}, {831: AMEND_LAYER}, D.amendment_rows(AMEND_MD))
+
+    def applied(pdf: str, md: str, run: str | None = None, amendments=am[5]) -> bool:
+        """The row of the inserted `run` (every row when None) is AMENDMENT-APPLIED."""
+        return "AMENDMENT-APPLIED" in [r["class"] for r in _rows(pdf, md, amendments=amendments) if run is None or r["md"] == run]
+
+    expect.equal("a correct one-word insertion still passes", _entry_classes("a b the file is when read x", "a b the file is open when read x"),
+                 (["AMENDMENT-APPLIED"], 0))
+    expect.equal("a correct run of four words still passes", _entry_classes("a b the read x", "a b the file is open when read x"),
+                 (["AMENDMENT-APPLIED"], 0))
+    expect.equal("a run of the entry inserted at another place (probe: a misplaced duplicate)",
+                 applied("a b c d e f g h the file is shut when read x", "a b c the file is d e f g h the file is open when read x", "the file is"), False)
+    expect.equal("a run of the entry inserted again after itself", applied("a b the file is shut when read x", "a b the file is open when read the file is x", "the file is"), False)
+    expect.equal("an insertion whose one neighbour only matches", applied("a b the file is when read x", "a b the file is open x read x"), False)
+    expect.equal("an insertion at the page's edge has no anchor", applied("open when read x", "the file is open when read x"), False)
+    expect.equal("a stray next-row page cell", applied("a b the file is shut when read x", "a b the file is open when read 17 x", "17"), False)
+    paged = ("Page No. Change page I-1 Replace the sentence the file is open when read. page I-7 Replace the sentence the record is "
+             "closed after the write page I-9 Replace the sentence the key is not valid").split()
+    for label, layer in (("a page cell", AMEND_LAYER), ("a page cell printed with `page`", paged)):
+        keys = [k for k in (D.fold(w) for w in layer) if k]
+        entry = D.entry_text(D.amendment_rows(AMEND_MD)[831], keys, notes[0][2])
+        expect.equal(f"the entry ends before the next row's {label}", entry[-2:], [D.fold("when"), D.fold("read")])
+    paged_am, _ = D.with_cited_text({5: notes}, {831: paged}, D.amendment_rows(AMEND_MD))
+    expect.equal("a stray `page` beside the amended text (probe)",
+                 applied("a b the file is shut when read x", "a b the file is open when read page x", "page", paged_am[5]), False)
+    expect.equal("the probes' replacement itself is still applied",
+                 applied("a b the file is shut when read x", "a b the file is open when read page x", "open", paged_am[5]), True)
+
+
 if __name__ == "__main__":
     ensure_utf8()
     sys.exit(selftest_cases.run(sys.modules[__name__]))
