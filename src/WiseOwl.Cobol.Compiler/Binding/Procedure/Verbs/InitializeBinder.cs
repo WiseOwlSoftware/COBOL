@@ -685,9 +685,9 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
                     // first place the restricted program-/function-/data-pointer receiver is in hand. §2023:13.18.60.4
                     // GR23/GR25/GR26 forbid it to hold anything but NULL or an address of its type; the implicit SET
                     // is the store GR4 describes, so §2023:14.9.39.3 SR19/SR20/SR22 hold it, and SR10/SR12 an object
-                    // reference's class (SetBinder.ScreenImplicitSet).
+                    // reference's class (SetPointerBinder.ScreenImplicitSet).
                     BoundFieldOperand { Place: var sp } =>
-                        host.Set.ScreenImplicitSet(cur.ToPlace(), sp,
+                        host.Set.Pointer.ScreenImplicitSet(cur.ToPlace(), sp,
                             $"INITIALIZE REPLACING {InitializeCategories.Spelling(cat)} DATA BY '{sp.Item.CobolName}'")
                             ? new InitializeSetFrom(cur.ToPlace(), sp) : null,
                     // `REPLACING … BY NULL` (kb/Work PB1427): GR4's SET receiving-operand TO NULL — the same
@@ -897,7 +897,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
     /// receiving operand shall be valid". §2023:14.9.39's pointer and object-reference formats admit only a sending
     /// operand of the receiver's own category, so category agreement is the NECESSARY condition, checked here
     /// (the receiver-specific rules — a restricted pointer's type or signature, an object reference's class — are
-    /// asked per RECEIVING OPERAND by <c>SetBinder.ScreenImplicitSet</c>, at the store; kb/Work PB3817).
+    /// asked per RECEIVING OPERAND by <c>SetPointerBinder.ScreenImplicitSet</c>, at the store; kb/Work PB3817).
     /// <para>It is checked at BIND time rather than left to the backend because <see cref="InitializeSetFrom"/>
     /// renders the SET statement's own straight copy: a mismatched sender would otherwise reach Roslyn as a
     /// CS-level type error on emitted code, which names no COBOL rule.</para></summary>

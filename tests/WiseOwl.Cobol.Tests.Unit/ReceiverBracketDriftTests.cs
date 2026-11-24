@@ -59,7 +59,7 @@ public sealed class ReceiverBracketDriftTests
                 claimants.Add(Path.GetFileName(file));
         claimants.Sort(StringComparer.Ordinal);
         Assert.Equal(["ArithmeticBinder.cs", "CallBinder.cs", "ControlFlowBinder.PerformVarying.cs", "ExpressionBinder.cs",
-                "MoveBinder.cs", "SearchBinder.cs", "SetBinder.cs", "StringUnstringBinder.cs"],
+                "MoveBinder.cs", "SearchBinder.cs", "SetIndexBinder.cs", "StringUnstringBinder.cs"],
             claimants);
     }
 

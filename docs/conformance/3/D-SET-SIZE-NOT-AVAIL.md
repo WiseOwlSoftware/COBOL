@@ -18,6 +18,6 @@
   a raw `ArgumentOutOfRangeException` out of generated code. The maximum size is now computed by the one producer
   `CobolDynString.MaxSizeOf` for EVERY dynamic-length item (A.1 item 62 below), which makes the clamp the one
   path for an over-large request and the narrowing exact by construction rather than by inspection. The integer-2
-  literal form is compile-time bounded by SR34 (`SetBinder.BindSetSize` over `SetLiteralAmount`, COBOL2113 —
+  literal form is compile-time bounded by SR34 (`SetCapacityBinder.BindSetSize` over `SetLiteralAmount`, COBOL2113 —
   kb/Work PB458; the sentence stood here for a screen nobody had written until then), so its out-of-range
   cases are compile diagnostics, not this runtime EC.

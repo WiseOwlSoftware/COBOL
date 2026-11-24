@@ -2,8 +2,8 @@
  "rule-id": "SR-14.9.39.3-4",
  "rule-digest": "8b02fd6fc731",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#ScreenIndexAssignmentReceiver",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetIndexBinder.cs#ScreenIndexAssignmentReceiver",
  "test-ref": "conformance:cases/14.9.17-GO-TO/pb212_operand_class_screens; conformance:cases/14.9.39-SET/pb212-set-numeric-from-literal",
  "editions": "85,2002,2014,2023",
- "notes": "kb/Work/PB212 (landed): a numeric receiver admits only index-name-2 -- arithmetic-expression-1 and an index-data-item identifier-2 are refused (COBOL2326; Removed seam: strict error, --permissive warning + store). FlagDirectiveTests' plain-numeric-receiver fixture re-pointed from SET N TO 3 to SET N TO IDX."
+ "notes": "kb/Work/PB212 (landed): a numeric receiver admits only index-name-2 -- arithmetic-expression-1 and an index-data-item identifier-2 are refused (COBOL2326; Removed seam: strict error, --permissive warning + store). FlagDirectiveTests' plain-numeric-receiver fixture re-pointed from SET N TO 3 to SET N TO IDX. retired-witness: src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#ScreenIndexAssignmentReceiver (kb/Work PB2314 split SetBinder into one binder per SET format family; the member moved, unchanged, to the family binder the record names in its place)"
 }

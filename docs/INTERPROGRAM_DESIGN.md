@@ -280,7 +280,7 @@ Annex D.6.5.6.4: "it will never be updated even when passed by reference. It beh
 content." The grammar spells the identifier through ONE `addressIdentifier` rule (`dataAddressIdentifier` |
 `programAddressIdentifier`) shared with the SET senders, so the data pass forces the named record onto cell
 storage by walking those nodes, and each arm binds through the ONE operand binder its SET twin uses
-(`PtrBinder.BindDataAddress`, `SetBinder.BindProgramAddressOperand`). At a Format-2 boundary the pairing is
+(`PtrBinder.BindDataAddress`, `SetAddressBinder.BindProgramAddressOperand`). At a Format-2 boundary the pairing is
 §2023:14.8.2.3.2's class-pointer paragraph (same category; restricted ⇔ restricted to the same type) —
 `PtrBinder.AddressConformanceReason`, the ONE verdict the INVOKE argument reads too. A program arm that cannot be located is §2023:8.4.3.13.4 GR4's NULL, raised as
 EC-PROGRAM-NOT-FOUND while the argument array is built when the CALL's checking enables it (§2023:14.9.4.4 GR3a — "no

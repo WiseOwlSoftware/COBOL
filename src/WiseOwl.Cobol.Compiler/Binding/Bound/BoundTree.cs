@@ -1961,7 +1961,7 @@ public sealed record AddressRefMod(RefModSpec Spec, int? Positions, int UnitBits
 /// EXTERNALIZED name — §2023:8.4.3.13.4 GR2) or by the run-time content of <paramref name="NamePlace"/>
 /// (identifier-1, GR1a). <paramref name="Prototype"/> is set exactly for the program-prototype-name-1 arm, which
 /// GR3 makes a program-pointer RESTRICTED to that prototype. Produced by the ONE operand binder
-/// (<c>SetBinder.BindProgramAddressOperand</c>) for both surfaces that take it — the SET Format-9 sender and the
+/// (<c>SetAddressBinder.BindProgramAddressOperand</c>) for both surfaces that take it — the SET Format-9 sender and the
 /// CALL argument (kb/Work PB239).</summary>
 public sealed record BoundProgramAddress(string? NameLiteral, Place? NamePlace, string? Prototype);
 

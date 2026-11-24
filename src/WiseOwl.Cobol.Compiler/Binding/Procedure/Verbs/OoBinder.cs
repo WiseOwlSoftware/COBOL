@@ -1840,7 +1840,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>⛔ THE ONE REPORT OF §2023:14.9.39.3 SR10/SR12's OBJECT-REFERENCE STORE — a sender object reference into a
     /// receiver one, as a written SET Format 5 (<see cref="OoBindSetObjectRef"/>) and as the implicit SET of
-    /// INITIALIZE … REPLACING OBJECT-REFERENCE (<c>SetBinder.ScreenImplicitSet</c>, §2023:14.9.20.4 GR4; kb/Work PB3817) both
+    /// INITIALIZE … REPLACING OBJECT-REFERENCE (<c>SetPointerBinder.ScreenImplicitSet</c>, §2023:14.9.20.4 GR4; kb/Work PB3817) both
     /// ask it, so the two statements cannot answer differently. <paramref name="statement"/> is the text the message
     /// opens with. True when the pair conforms; otherwise COBOL0867 is reported and false returned.</summary>
     internal bool ScreenObjectRefAssignment(PicInfo sender, PicInfo receiver, string statement)

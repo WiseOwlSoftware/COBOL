@@ -903,7 +903,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>Bind ONE address-identifier argument (ISO §2023:8.4.3.1.2 identifier Format 9; §2023:14.9.4.3 SR3/SR4 —
     /// kb/Work PB239) through the ONE operand binder of each arm — <c>PtrBinder.BindDataAddress</c> for
-    /// §2023:8.4.3.11, <c>SetBinder.BindProgramAddressOperand</c> for §2023:8.4.3.13 — the same binders the SET senders use,
+    /// §2023:8.4.3.11, <c>SetAddressBinder.BindProgramAddressOperand</c> for §2023:8.4.3.13 — the same binders the SET senders use,
     /// so the operand rules (the cell-backing check, §2023:8.4.3.13.3 SR1–SR3) are stated once. Null having reported.
     /// <para>⚠ DETERMINATION — §2023:14.9.4.3 SR10 does not reach it. SR10 bars a Format-1 BY REFERENCE identifier-2
     /// "of class object or pointer", and §2023:8.4.3.11.4 GR1 makes an address-identifier "a unique data item of class

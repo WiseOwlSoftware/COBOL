@@ -79,7 +79,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
         {
             // identifier-6 written as another identifier format (§2023:8.4.3.1.3 SR1): a function-identifier or an inline
             // method invocation references a temporary data item (§2023:8.4.3.2.1, §2023:8.4.3.4.4 GR1), which SR17 asks to be of
-            // category data-pointer, exactly as SetBinder.BindSetPointer asks it of the identifier-5 route. SELF / SUPER,
+            // category data-pointer, exactly as SetPointerBinder.BindSetPointer asks it of the identifier-5 route. SELF / SUPER,
             // a literal and an arithmetic expression are no data-pointer at all.
             if (arithmeticSender is not { Predefined: null, TemporaryItem: { Item.Pic.Category: PicCategory.Pointer } temp })
             {
@@ -159,14 +159,14 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
     /// several receivers — a per-statement screen would have answered for operand zero only.
     /// <para>⛔ ONE SCREEN, EVERY ARM THAT STORES INTO IDENTIFIER-5 (kb/Work PB548). Format 7 reaches the binder
     /// by TWO routes: <see cref="BindSetAddress"/> (a setToStatement that spells an <c>ADDRESS OF</c> on either side) and
-    /// <c>SetBinder.BindSetPointer</c> (every other setToStatement, re-routed on the
+    /// <c>SetPointerBinder.BindSetPointer</c> (every other setToStatement, re-routed on the
     /// receivers' category — the plain <c>SET p TO q</c>). The second route never asked this question, so an
     /// UNRESTRICTED pointer was stored into a RESTRICTED one and a based item rebased through it read another
     /// type's storage — exactly what §2023:13.18.60.4 GR23's last sentence ("A restricted data-pointer shall contain
     /// only the predefined address NULL or the address of a data item of the specified type") forbids. Both
     /// routes now call THIS method, which words the verdict of <see cref="StrongTypeModel.DataPointerStore"/>, the one predicate
     /// the argument lane (<see cref="AddressConformanceReason"/>) asks too (kb/Work PB2625). A THIRD route, the implicit SET of
-    /// INITIALIZE … REPLACING (<c>SetBinder.ScreenImplicitSet</c>, §2023:14.9.20.4 GR4; kb/Work PB3966), asks it too and
+    /// INITIALIZE … REPLACING (<c>SetPointerBinder.ScreenImplicitSet</c>, §2023:14.9.20.4 GR4; kb/Work PB3966), asks it too and
     /// names the statement and the subordinate receiver through <paramref name="implicitSet"/> — the one place the
     /// receiver is not an operand the user wrote.</para></summary>
     /// <param name="implicitSet">The words that lead the diagnostic when the store is an implicit SET (the statement,
@@ -273,7 +273,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>⛔ THE ONE BINDER OF AN <c>addressIdentifier</c> OPERAND — ISO §2023:8.4.3.1.2 identifier FORMAT 9,
     /// either arm (kb/Work PB1021). The data arm goes through <see cref="BindDataAddress"/> (the cell-backing check,
-    /// §2023:8.4.3.11.3), the program arm through <c>SetBinder.BindProgramAddressOperand</c> (§2023:8.4.3.13.3 SR1–SR3), the
+    /// §2023:8.4.3.11.3), the program arm through <c>SetAddressBinder.BindProgramAddressOperand</c> (§2023:8.4.3.13.3 SR1–SR3), the
     /// same binders the SET senders use — so every surface that takes the identifier (the CALL argument, the INVOKE
     /// argument, the relation operand) states its operand rules once. <paramref name="site"/> names the surface in
     /// a diagnostic. Null having reported.</summary>
@@ -281,7 +281,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
     {
         if (ai.dataAddressIdentifier() is { } dai)
             return BindDataAddress(dai) is { } addr ? new BoundAddressOperand(addr, null) : null;
-        return host.Set.BindProgramAddressOperand(ai.programAddressIdentifier(), site) is { } pa
+        return host.Set.Address.BindProgramAddressOperand(ai.programAddressIdentifier(), site) is { } pa
             ? new BoundAddressOperand(null, pa)
             : null;
     }

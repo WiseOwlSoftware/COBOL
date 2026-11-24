@@ -26,9 +26,14 @@ namespace WiseOwl.Cobol.Tests.Unit;
 [Trait("Sweep", "tree")]
 public sealed class SetSenderWrittenTextDriftTests
 {
+    /// <summary>SetBinder and the binder of each SET format family it dispatches to (kb/Work PB2314), as paths under src/.</summary>
+    private static IEnumerable<string> SetFormatFamilyBinders() =>
+        Directory.EnumerateFiles(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "Procedure", "Verbs"), "Set*Binder.cs")
+            .Select(f => Path.GetRelativePath(TestRepo.Src(), f)).Order(StringComparer.Ordinal);
+
     private static readonly string[] Files =
     [
-        Path.Combine("WiseOwl.Cobol.Compiler", "Binding", "Procedure", "Verbs", "SetBinder.cs"),
+        .. SetFormatFamilyBinders(),
         Path.Combine("WiseOwl.Cobol.Compiler", "Binding", "Procedure", "Verbs", "SetSender.cs"),
     ];
 

@@ -36,10 +36,15 @@ namespace WiseOwl.Cobol.Tests.Unit;
 [Trait("Sweep", "tree")]
 public sealed class SetDiagnosticNamesReceiversDriftTests
 {
+    /// <summary>SetBinder and the binder of each SET format family it dispatches to (kb/Work PB2314), as paths under src/.</summary>
+    private static IEnumerable<string> SetFormatFamilyBinders() =>
+        Directory.EnumerateFiles(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "Procedure", "Verbs"), "Set*Binder.cs")
+            .Select(f => Path.GetRelativePath(TestRepo.Src(), f)).Order(StringComparer.Ordinal);
+
     /// <summary>The SET-family binders: every file that reports about a SET receiving operand.</summary>
     private static readonly string[] Binders =
     [
-        Path.Combine("WiseOwl.Cobol.Compiler", "Binding", "Procedure", "Verbs", "SetBinder.cs"),
+        .. SetFormatFamilyBinders(),
         Path.Combine("WiseOwl.Cobol.Compiler", "Binding", "Procedure", "Verbs", "OoBinder.cs"),
         Path.Combine("WiseOwl.Cobol.Compiler", "Binding", "Procedure", "Verbs", "SetFormatSelection.cs"),
         Path.Combine("WiseOwl.Cobol.Compiler", "Binding", "Procedure", "Verbs", "PtrBinder.cs"),

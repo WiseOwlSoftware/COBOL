@@ -7102,7 +7102,7 @@ public static class DiagnosticCatalog
             + "usage rule for the operand of those tests is a code of its own (COBOL-85's DISPLAY rule), so the 2002 phrases "
             + "that reach this code at COBOL-85 are edition gates and cite the edition where they begin, kb/Work PB4950.");
     // COBOL2205 ("mcs-message-tag-set-unsupported") is RETIRED, NEVER REALLOCATE IT: SET Format 17 (message-tag)
-    // binds since kb/Work PB4740 (SetBinder.BindMessageTagSet).
+    // binds since kb/Work PB4740 (SetPointerBinder.BindMessageTagSet).
 
     /// <summary>Two definitions in one compilation group externalize the SAME name to the operating
     /// environment (kb/Work PB660). ISO §2023:8.3.2.2 states the rule as two sentences over one list, so this is one

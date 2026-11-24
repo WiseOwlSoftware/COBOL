@@ -2,8 +2,8 @@
  "rule-id": "SR-8.4.3.13.3-2",
  "rule-digest": "8bae678ef229",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#ProgramAddressLiteral",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetAddressBinder.cs#ProgramAddressLiteral",
  "test-ref": "conformance:cases/8.4.3.13-Program-address-identifier/l1c23-program-address-zero-length-literal; conformance:cases/8.4.3.13-Program-address-identifier/l1c23-program-address-boolean-literal",
  "editions": "2002,2014,2023",
- "notes": "cite.py --check 8.4.3.13.3 'Literal-1 shall be an alphanumeric or national literal whose length is not zero.' OK. Probed: \"\" -> COBOL2157 (zero length); SPACE (figurative) -> COBOL2157; B\"1\" (boolean) -> COBOL2157; 123 (numeric) -> parse error COBOL0308; X\"41\" (alphanumeric hex), \"A\" & \"B\" (concatenation, 8.8.3.3 GR3) and N\"PAISUB\" (national) accepted. No existing negative golden exercises SR2 -> test-needed. [editions as adjudicated: 2002, 2014, 2023 (the program-pointer family; absent from COBOL-85 - Annex E covers only 2014->2023, the introduction is the 2002 address-identifier; probe: --std 85 draws COBOL0900)]"
+ "notes": "cite.py --check 8.4.3.13.3 'Literal-1 shall be an alphanumeric or national literal whose length is not zero.' OK. Probed: \"\" -> COBOL2157 (zero length); SPACE (figurative) -> COBOL2157; B\"1\" (boolean) -> COBOL2157; 123 (numeric) -> parse error COBOL0308; X\"41\" (alphanumeric hex), \"A\" & \"B\" (concatenation, 8.8.3.3 GR3) and N\"PAISUB\" (national) accepted. No existing negative golden exercises SR2 -> test-needed. [editions as adjudicated: 2002, 2014, 2023 (the program-pointer family; absent from COBOL-85 - Annex E covers only 2014->2023, the introduction is the 2002 address-identifier; probe: --std 85 draws COBOL0900)] retired-witness: src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#ProgramAddressLiteral (kb/Work PB2314 split SetBinder into one binder per SET format family; the member moved, unchanged, to the family binder the record names in its place)"
 }

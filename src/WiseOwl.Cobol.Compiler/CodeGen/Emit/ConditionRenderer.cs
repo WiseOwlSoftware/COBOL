@@ -913,7 +913,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     /// intermediate holds zero exactly, so "closer to zero than is permitted" cannot be zero itself), the operand's
     /// own NUMERIC test for a fixed-point one. That containment holds for every description this compiler can
     /// declare under every mode it accepts — binary64 is the widest carrier and its extremes ARE the native
-    /// intermediate's — which is the same measurement SetBinder.ClampToArithmeticRange records. A description
+    /// intermediate's — which is the same measurement SetContentBinder.ClampToArithmeticRange records. A description
     /// that ever escapes it is rendered LOUD here rather than guessed at, so the day a wider carrier lands this arm
     /// says so instead of answering.</para></summary>
     private string RenderInArithmeticRange(BoundFieldOperand f, string numericTest)

@@ -147,7 +147,7 @@ public sealed class ReferenceResolver
     /// materializer's <c>return "1"</c> short-circuit made <c>E(FUNCTION INTEGER(2))</c> bind occurrence ONE — a
     /// WRONG ANSWER, live since PB157 landed the flag. A comment cannot hold that invariant; a return type can.
     /// A caller that has finished discriminating asks <see cref="Resolve"/> for the Place that enters the tree,
-    /// which is the pattern <c>SetBinder.BindSetLocale</c> already used.</para></summary>
+    /// which is the pattern <c>SetLocaleBinder.BindSetLocale</c> already used.</para></summary>
     public ProbeResult? Probe(Core.DataReferenceContext dref) =>
         ResolveImpl(dref, report: false).Place is { } p
             ? new ProbeResult(p.Item, p is RefModPlace rm ? rm.Category : p.Item.OperandPic?.Category,
@@ -656,7 +656,7 @@ public sealed class ReferenceResolver
             : _data.Symbols.GroupEntries.Link(place, _data.Symbols.OccurrenceOf(head));
 
     /// <summary>The same link for an index-name receiver (an index-name's cell is held as a field name, so the receiver node is the
-    /// reference: <see cref="SetBinder.SetTargetOf"/>, SEARCH's VARYING phrase).</summary>
+    /// reference: <see cref="SetIndexBinder.SetTargetOf"/>, SEARCH's VARYING phrase).</summary>
     internal Bound.SetIndexTarget Linked(Bound.SetIndexTarget target, Antlr4.Runtime.IToken head) =>
         !_data.Symbols.GroupEntries.RecordsReferences ? target
             : _data.Symbols.GroupEntries.Link(target, _data.Symbols.OccurrenceOf(head));

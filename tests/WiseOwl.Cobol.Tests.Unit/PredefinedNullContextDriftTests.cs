@@ -162,7 +162,7 @@ public sealed class PredefinedNullContextDriftTests
     /// (<c>nonNumericLiteral() is …</c>) without deciding the <c>predefinedNull</c> arm, and why each is exempt.</summary>
     private static readonly Dictionary<string, string> LiteralClassifiersExempt = new()
     {
-        ["SetBinder.cs"] = "the SET program-name literal binds through ProgramNameLiteral.Of -> "
+        ["SetAddressBinder.cs"] = "the SET program-name literal binds through ProgramNameLiteral.Of -> "
             + "ExpressionBinder.NonNumericLiteralOperand, which refuses NULL (COBOL2576)",
     };
 

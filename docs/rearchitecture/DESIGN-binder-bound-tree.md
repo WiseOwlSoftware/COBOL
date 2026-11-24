@@ -850,7 +850,7 @@ three shapes never reached.
 
 **The name operand of an address-identifier is one rule in one place (kb/Work PB1417 + PB1452).** §2023:8.4.3.12.3 SR1 and
 §2023:8.4.3.13.3 SR1 print the same sentence — "Identifier-1 shall be of category alphanumeric or national" — and
-`SetBinder.ScreenAddressName` asks it of the data item, through `ItemCategory.IsAlphanumericOrNational(Place, EditionInfo)` (the
+`SetAddressBinder.ScreenAddressName` asks it of the data item, through `ItemCategory.IsAlphanumericOrNational(Place, EditionInfo)` (the
 `Place` form reads a reference-modified view's §2023:8.4.3.3.4 GR6 category). Both sites used to test the raw
 `Item.Pic?.Category`: null for a GROUP (refused as "category (none)"), and equal to alphanumeric for a PIC A item
 (accepted). Identifier-1 is any identifier format too, so both grammar rules take `functionCall | inlineMethodInvocation

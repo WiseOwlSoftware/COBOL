@@ -2,7 +2,7 @@
  "rule-id": "2002-SR-8.4.2.12.2-2",
  "rule-digest": "ba0f711fdd17",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#ProgramAddressLiteral",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetAddressBinder.cs#ProgramAddressLiteral",
  "test-ref": "conformance:cases/8.4.3.13-Program-address-identifier/l1c23-program-address-zero-length-literal; conformance:cases/8.4.3.13-Program-address-identifier/l1c23-program-address-boolean-literal",
- "notes": "Own verdict from the read lineage-reads-2002/u-06.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-8.4.3.13.3-2, witnessed at 2002 by the cases test-ref names. The read: 2023 adds 'whose length is not zero'; 2002 has no zero-length literal at all (its literal-length rule requires more than zero positions), so the added words change nothing a 2002 program can show; l1c23-program-address-zero-length-literal is refused at 2002 too. Cited: §2002:8.4.2.12.2 SR2; §2002:8.3.1.2.1.2 SR1."
+ "notes": "Own verdict from the read lineage-reads-2002/u-06.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-8.4.3.13.3-2, witnessed at 2002 by the cases test-ref names. The read: 2023 adds 'whose length is not zero'; 2002 has no zero-length literal at all (its literal-length rule requires more than zero positions), so the added words change nothing a 2002 program can show; l1c23-program-address-zero-length-literal is refused at 2002 too. Cited: §2002:8.4.2.12.2 SR2; §2002:8.3.1.2.1.2 SR1. retired-witness: src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#ProgramAddressLiteral (kb/Work PB2314 split SetBinder into one binder per SET format family; the member moved, unchanged, to the family binder the record names in its place)"
 }

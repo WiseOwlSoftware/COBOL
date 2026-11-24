@@ -474,7 +474,7 @@ public static class ItemCategory
     /// <summary>⛔ THE FACE OF AN OPERAND A CATEGORY-WORDED RULE REFUSED (kb/Work PB3355, PB1417): what the operand
     /// IS — its Table 2 category (a reference-modified view's is §2023:8.4.3.3.4 GR6's, <see cref="CategoryName(Place)"/>),
     /// else the group description <see cref="Face(DataItem)"/> gives, which names a strongly-typed group's
-    /// exclusion out loud. <c>SetBinder.ScreenAddressName</c> (§2023:8.4.3.12.3 SR1 / §2023:8.4.3.13.3 SR1), <c>CALL</c>'s and
+    /// exclusion out loud. <c>SetAddressBinder.ScreenAddressName</c> (§2023:8.4.3.12.3 SR1 / §2023:8.4.3.13.3 SR1), <c>CALL</c>'s and
     /// <c>CANCEL</c>'s identifier-1 (§2023:14.9.4.3 SR1, §2023:14.9.5.3 SR1) refuse the same shape and print the same words.</summary>
     public static string Face(Place place) =>
         CategoryName(place) is { } category ? $"of category {category}" : Face(place.Item);

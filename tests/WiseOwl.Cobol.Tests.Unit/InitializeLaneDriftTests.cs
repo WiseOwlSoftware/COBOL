@@ -105,7 +105,7 @@ public sealed class InitializeLaneDriftTests
         {
             string before = code[Math.Max(0, site.Index - 400)..site.Index];
             Assert.True(before.Contains("ScreenImplicitSet(", StringComparison.Ordinal),
-                "an InitializeSetFrom is constructed without SetBinder.ScreenImplicitSet in the same expression: the implicit "
+                "an InitializeSetFrom is constructed without SetPointerBinder.ScreenImplicitSet in the same expression: the implicit "
                 + "SET of §2023:14.9.20.4 GR4 must be held to its receiver's §2023:14.9.39.3 SR12/SR19/SR20/SR22 rules (kb/Work PB3817).");
         }
     }

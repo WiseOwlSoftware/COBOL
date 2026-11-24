@@ -6,5 +6,5 @@
   in the direction opposite to the format. The format, every other SET format and §2023:14.9.39.1 ("setting the content of a
   message-tag data item to NULL or another message-tag") agree on the receiver, so GR40 and GR41 are read with data-name-4 as the
   receiver: `SET T1 TO T2` copies the content of T2 into T1, and `SET T1 TO NULL` makes T1 the null content
-  (`SetBinder.BindMessageTagSet`, `SetEmitter.EmitSetMessageTag`). The printed format has one receiving operand, so a list of
+  (`SetPointerBinder.BindMessageTagSet`, `SetEmitter.EmitSetMessageTag`). The printed format has one receiving operand, so a list of
   receivers is refused (COBOL0869). Witnessed by `conformance:cases/14.9.39-SET/set-message-tag`.

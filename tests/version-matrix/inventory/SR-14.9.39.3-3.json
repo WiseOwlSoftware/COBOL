@@ -2,8 +2,8 @@
  "rule-id": "SR-14.9.39.3-3",
  "rule-digest": "026b3ac9a17d",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#ScreenIndexAssignmentReceiver",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetIndexBinder.cs#ScreenIndexAssignmentReceiver",
  "test-ref": "conformance:cases/14.9.17-GO-TO/pb212_operand_class_screens; conformance:cases/14.9.39-SET/pb212-set-index-data-from-literal",
  "editions": "85,2002,2014,2023",
- "notes": "kb/Work/PB212 (landed): a cell of the receiver-class x sender-alternative table -- class-index receiver with arithmetic-expression-1. COBOL2326 through the Removed seam: error under strict, warning with the value stored under --permissive."
+ "notes": "kb/Work/PB212 (landed): a cell of the receiver-class x sender-alternative table -- class-index receiver with arithmetic-expression-1. COBOL2326 through the Removed seam: error under strict, warning with the value stored under --permissive. retired-witness: src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#ScreenIndexAssignmentReceiver (kb/Work PB2314 split SetBinder into one binder per SET format family; the member moved, unchanged, to the family binder the record names in its place)"
 }
