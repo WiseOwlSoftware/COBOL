@@ -1,4 +1,4 @@
-## PB6139: the exception-selection operands of USE and PERFORM Format 3 are written once and resolved once
+## Entry 4023 — 2026-11-23 18:12 PST — PB6139: the exception-selection operands of USE and PERFORM Format 3 are written once and resolved once
 
 **Mechanism (kb/Work PB6139, remainder 1 of PB2723, R2 finding lexer-grammar-1--duplication--f2#3).** §2023:14.9.28.4 GR17 makes
 a Format-3 PERFORM WHEN match the USE statement's ("The rules for determining a match are specified in General rules 3a to 3g of
@@ -35,3 +35,4 @@ every edition (2023 1 → 1, 2002 1138 → 1138, 1985 0 → 0).
 diagnostic whose order or position changed (the resolver calls back as it resolves; the oracle's DIAGNOSTICS compare is
 identical); a recovered parse reaching the new throwing arm of `OpenModeOperand.Of` (`OPEN F1.` reports COBOL5506 and never
 binds); unused usings left by the move (one removed).
+
