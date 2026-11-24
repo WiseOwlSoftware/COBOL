@@ -247,6 +247,35 @@ public sealed class PictureCompositionTests
         Assert.Contains(ed.Diagnostics, d => d.Contains("COBOL1934") && d.Contains("SR16"));
     }
 
+    /// <summary>
+    /// §2023:13.18.40.3 SR27 admits one floating insertion string, and §2023:13.18.40.5 GR6 makes a string of one
+    /// extended character-1 a floating insertion string: a second one, of the same character-1 after a digit position
+    /// or of another, is refused (kb/Work PB6116). The accepted rows are the shapes that hold ONE string: Annex D.24's
+    /// <c>LLLL9.99F</c> (a fixed extended symbol after the string), a string across the decimal point, and a string
+    /// whose simple insertion symbol is embedded.
+    /// </summary>
+    [Theory]
+    [InlineData("LL99FF", false)]
+    [InlineData("LL9.99FF", false)]
+    [InlineData("LL9LL", false)]
+    [InlineData("LL99LL", false)]
+    [InlineData("LLFF99", false)]
+    [InlineData("FFLL99", false)]
+    [InlineData("LL99", true)]
+    [InlineData("LLLL9.99F", true)]
+    [InlineData("LL,LL9", true)]
+    [InlineData("LLL.LL", true)]
+    public void ASecondExtendedFloatingString_IsRefusedBySR27(string picture, bool legal)
+    {
+        var ed = new EditionContext(2023);
+        var extended = new HashSet<char> { 'L', 'F' };
+        var shape = PictureComposition.Validate(picture, picture, '$', extended, extended, blankWhenZero: false,
+            decimalPointIsComma: false, ed, "data item 'T'");
+        if (legal) Assert.Empty(ed.Diagnostics);
+        else Assert.Contains(ed.Diagnostics, d => d.Contains("SR27") || d.Contains("COBOL1935") || d.Contains("COBOL1934"));
+        Assert.Equal(legal, shape is not null);
+    }
+
     private static string[] DiagnoseEditing(string picture, char[] phraseOrder)
     {
         var ed = new EditionContext(2023);

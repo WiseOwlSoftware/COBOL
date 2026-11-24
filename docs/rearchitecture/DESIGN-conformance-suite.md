@@ -16,7 +16,7 @@ need not use the NIST structure as that is a 40+ year old designs. We can modern
 COBOL compiler" can run the suites (expected results are outputs and diagnosis sites, never WiseOwl codes, and the suite
 can be licensed on its own); that they are "A: one tree, generated" (§4); that revision 1's case format, tree, harness
 and migration "Looks right"; and "Pilot now, rest after GAP": the move and the pilot now, the clause-by-clause
-completion after zero GAP and zero known defects (kb/Work PB2911).
+completion after zero GAP (kb/Work PB2911; the owner released its "zero known defects" half on 2026-11-24).
 
 **Success** is one suite per edition (85, 2002, 2014, 2023, and 2027 once published), each witnessing every rule of its
 edition that a program can observe, inherited rules included, and every coverage point of those rules (§3.4), by tests
