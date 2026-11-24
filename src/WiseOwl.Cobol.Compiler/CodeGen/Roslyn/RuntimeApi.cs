@@ -10,12 +10,10 @@ namespace WiseOwl.Cobol.CodeGen;
 /// <summary>
 /// The typed, <c>nameof</c>-anchored façade over the emitted runtime surface (P7 Step 4b;
 /// DESIGN-codegen-backend §3): every C# fragment that names a runtime member routes through here, so a runtime
-/// rename breaks THIS file at compile time instead of silently mis-emitting text. Migration is INCREMENTAL by
-/// design (the doc's shrinking-whitelist plan): the ratchet guard test
-/// (<c>tests/WiseOwl.Cobol.Tests.Characterization/RuntimeApiGuardTests.cs</c>) pins each CodeGen file's bare
-/// <c>Cobol*.</c> count and fails on any INCREASE — Step 9's per-verb rewrites drive the counts to zero, at
-/// which point the whitelist empties and the guard flips to forbid-all. Type-name anchors land first (a runtime
-/// TYPE rename already breaks here); member anchors accrete per migrated file.
+/// rename breaks THIS file at compile time instead of silently mis-emitting text. The guard test
+/// (<c>tests/WiseOwl.Cobol.Tests.Characterization/RuntimeApiGuardTests.cs</c>) forbids a bare <c>Cobol*.</c> access in
+/// every other CodeGen file but the anchored writers it names: the incremental migration ended with kb/Work PB2302 (step 1 of
+/// the RuntimeApi extract), which routed the last three renderers here.
 /// </summary>
 internal static class RuntimeApi
 {
@@ -297,9 +295,8 @@ internal static class RuntimeApi
     /// <summary>⛔ THE BOOLEAN CLASS CONDITION — <c>CobolClass.IsBoolean</c> (ISO §2023:8.8.4.4.4 GR3e): "the
     /// condition is true if the content of the data item referenced by identifier-1 consists entirely of the
     /// boolean values '0' and '1'", with GR1's zero-length FALSE already on it. Anchored here rather than
-    /// emitted bare because it is the class condition's NEWEST alternative (kb/Work PB590) and the ratchet in
-    /// <c>RuntimeApiGuardTests</c> is what keeps the renderer's remaining bare accesses shrinking; its three
-    /// ALPHABETIC siblings route at P9 with the rest of <c>ConditionRenderer</c>.</summary>
+    /// emitted bare because it is the class condition's NEWEST alternative (kb/Work PB590); its three ALPHABETIC siblings are
+    /// <see cref="ClassIsAlphabetic"/> (kb/Work PB2302).</summary>
     public static string ClassIsBoolean(string value) =>
         $"{nameof(CobolClass)}.{nameof(CobolClass.IsBoolean)}({value})";
 
@@ -3690,4 +3687,101 @@ internal static class RuntimeApi
     public static string EditCompose(Int128 value, int valueScale, string picture, bool blankWhenZero, string? currencyString,
         bool commaMode, IReadOnlyList<CobolEdit.EditRule>? edits = null) =>
         CobolEdit.Format(value, valueScale, picture, blankWhenZero, '$', commaMode, edits?.ToArray(), currencyString);
+
+    // ── The expression and condition renderers' runtime names (kb/Work PB2302, step 1 of the RuntimeApi extract): every name
+    //    NumericRenderer, ConditionRenderer and OperandText wrote out for themselves, so RuntimeApiGuardTests holds them at zero.
+    //    A member that answers at COMPILE time calls the runtime (so a runtime change of the rule is the compiler's too); every
+    //    other one returns the emitted text.
+
+    /// <summary>⚠ COMPILE TIME: the fraction digits of the exact decimal value <paramref name="significand"/> x 10^<paramref name="exp10"/>
+    /// (<c>CobolDec.FractionDigits</c>) - a floating-point literal's precision, which the decimal lane carries (kb/Work PB4641).</summary>
+    public static int DecFractionDigitsOf(Int128 significand, int exp10) => CobolDec.FractionDigits(new CobolDec(significand, exp10));
+
+    /// <summary>The standard intermediate data item's digits (<c>CobolDec.SidiDigits</c>, §2002:8.8.1.3.1 r1): the operand bound past
+    /// which a fixed-point operand is cut to the SIDI.</summary>
+    public const int DecSidiDigits = CobolDec.SidiDigits;
+
+    /// <summary>The decimal lane's dyadic operation for the arithmetic operator <paramref name="op"/> (<c>CobolDec.Add</c>,
+    /// <c>Sub</c>, <c>Mul</c>, <c>Div</c>) under the intermediate rounding <paramref name="modeExpr"/>.</summary>
+    public static string DecDyadic(string op, string left, string right, string modeExpr) => op switch
+    {
+        "+" => $"{nameof(CobolDec)}.{nameof(CobolDec.Add)}({left}, {right}, {modeExpr})",
+        "-" => $"{nameof(CobolDec)}.{nameof(CobolDec.Sub)}({left}, {right}, {modeExpr})",
+        "*" => $"{nameof(CobolDec)}.{nameof(CobolDec.Mul)}({left}, {right}, {modeExpr})",
+        "/" => $"{nameof(CobolDec)}.{nameof(CobolDec.Div)}({left}, {right}, {modeExpr})",
+        _ => throw new ArgumentException($"no decimal operator '{op}'", nameof(op)),
+    };
+
+    /// <summary>The three-way comparison of two decimal-lane values (<c>CobolDec.Compare</c>).</summary>
+    public static string DecCompare(string left, string right) => $"{nameof(CobolDec)}.{nameof(CobolDec.Compare)}({left}, {right})";
+
+    /// <summary>A binary64 dyadic operation (ISO §2023:8.8.1.3.1, native arithmetic): with <paramref name="taken"/> null, the bare IEEE
+    /// operator for a sum, difference or product and <c>CobolFloat.Div</c> for a quotient (a zero divisor is a size error whether
+    /// or not checking is enabled, kb/Work PB1605); with the checks taken, <c>CobolFloat.AddChecked</c>, <c>SubChecked</c>,
+    /// <c>MulChecked</c> or <c>DivChecked</c>.</summary>
+    public static string FloatBinary(string op, string x, string y, string? taken)
+    {
+        string? fn = (op, taken is not null) switch
+        {
+            ("/", false) => nameof(CobolFloat.Div),
+            ("+" or "-" or "*", false) => null,
+            ("+", true) => nameof(CobolFloat.AddChecked),
+            ("-", true) => nameof(CobolFloat.SubChecked),
+            ("*", true) => nameof(CobolFloat.MulChecked),
+            ("/", true) => nameof(CobolFloat.DivChecked),
+            _ => throw new InvalidOperationException($"no binary64 operator '{op}'"),
+        };
+        return fn is null ? $"({x} {op} {y})" : $"{nameof(CobolFloat)}.{fn}({x}, {y}{(taken is null ? "" : ", " + taken)})";
+    }
+
+    /// <summary>⚠ COMPILE TIME: the working scale of a nested native quotient (<c>CobolNum.NestedQuotientScale</c>).</summary>
+    public static int NumNestedQuotientScale(int receiverScale, int precision) => CobolNum.NestedQuotientScale(receiverScale, precision);
+
+    /// <summary>A scaled-lane sum or difference checked for overflow at the Int128 boundary (<c>CobolNum.AddChecked</c>,
+    /// <c>SubChecked</c>; ISO §2023:14.7.5 case 5).</summary>
+    public static string NumAddOrSubChecked(string op, string left, string right, string taken) =>
+        $"{nameof(CobolNum)}.{(op == "+" ? nameof(CobolNum.AddChecked) : nameof(CobolNum.SubChecked))}({left}, {right}, {taken})";
+
+    /// <summary>The unsigned DISPLAY image of an unsigned 128-bit value (<c>CobolNum.FormatUnsignedDisplayU</c>), the
+    /// <see cref="NumFormatUnsignedDisplay"/> of an unsigned-wide carrier.</summary>
+    public static string NumFormatUnsignedDisplayU(string value, int digits) =>
+        $"{nameof(CobolNum)}.{nameof(CobolNum.FormatUnsignedDisplayU)}({value}, {digits})";
+
+    /// <summary>⚠ COMPILE TIME: the digits-only characters a numeric literal sends to a group (<c>CobolNum.GroupDigits</c>;
+    /// <see cref="NumGroupDigits"/> is the run-time spelling).</summary>
+    public static string NumGroupDigitsOf(string literalText) => CobolNum.GroupDigits(literalText);
+
+    /// <summary>The LINAGE-COUNTER of a file connector (<c>CobolFile.LinageCounter</c>; ISO §2023:8.4.3.14.4 GR1).</summary>
+    public static string FileLinageCounter(string fileKey) => $"{nameof(CobolFile)}.{nameof(CobolFile.LinageCounter)}({fileKey})";
+
+    /// <summary>The de-editing of a numeric-edited sender to its value at the mask's scale (<c>CobolEdit.DeEdit</c>; ISO
+    /// §2023:14.9.25.4 GR5), or of a floating-point edited one to its exact decimal value (<c>CobolEdit.DeEditFloat</c>).
+    /// <paramref name="editConfig"/> is the trailing edit-configuration arguments, possibly empty.</summary>
+    public static string EditDeEdit(bool floatEdited, string read, string maskLiteral, string editConfig, bool blankWhenZero) =>
+        $"{nameof(CobolEdit)}.{(floatEdited ? nameof(CobolEdit.DeEditFloat) : nameof(CobolEdit.DeEdit))}({read}, {maskLiteral}{editConfig}"
+        + $"{(blankWhenZero ? ", blankWhenZero: true" : "")})";
+
+    /// <summary>A simple boolean condition's truth (<c>CobolBool.IsTrue</c>; ISO §2023:8.8.4.3.4 GR1).</summary>
+    public static string BoolIsTrue(string value) => $"{nameof(CobolBool)}.{nameof(CobolBool.IsTrue)}({value})";
+
+    /// <summary>The equality of two boolean values (<c>CobolBool.Equal</c>; ISO §2023:8.8.4.2.8).</summary>
+    public static string BoolEqual(string left, string right) => $"{nameof(CobolBool)}.{nameof(CobolBool.Equal)}({left}, {right})";
+
+    /// <summary>A user-defined class condition (<c>CobolClass.IsInClass</c>; ISO §2023:8.8.4.4).</summary>
+    public static string ClassIsInClass(string operand, string membersLiteral) =>
+        $"{nameof(CobolClass)}.{nameof(CobolClass.IsInClass)}({operand}, {membersLiteral})";
+
+    /// <summary>The NUMERIC class test of a non-numeric operand (<c>CobolClass.IsNumeric</c>; ISO §2023:8.8.4.4.4 GR3 n 2).</summary>
+    public static string ClassIsNumeric(string operand) => $"{nameof(CobolClass)}.{nameof(CobolClass.IsNumeric)}({operand})";
+
+    /// <summary>The ALPHABETIC, ALPHABETIC-UPPER or ALPHABETIC-LOWER class test (<paramref name="kind"/> 'A', 'U' or 'L';
+    /// <c>CobolClass.IsAlphabetic</c>, <c>IsAlphabeticUpper</c>, <c>IsAlphabeticLower</c>; ISO §2023:8.8.4.4.4 GR3 b, c, d).
+    /// <paramref name="classification"/> is the trailing classification argument, possibly empty.</summary>
+    public static string ClassIsAlphabetic(char kind, string operand, string classification) => kind switch
+    {
+        'A' => $"{nameof(CobolClass)}.{nameof(CobolClass.IsAlphabetic)}({operand}{classification})",
+        'U' => $"{nameof(CobolClass)}.{nameof(CobolClass.IsAlphabeticUpper)}({operand}{classification})",
+        'L' => $"{nameof(CobolClass)}.{nameof(CobolClass.IsAlphabeticLower)}({operand}{classification})",
+        _ => throw new ArgumentException($"'{kind}' is not an ALPHABETIC class test", nameof(kind)),
+    };
 }

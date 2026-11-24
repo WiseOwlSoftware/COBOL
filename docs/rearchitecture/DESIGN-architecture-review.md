@@ -1722,9 +1722,9 @@ stay, §8.1's bound-tree computations), PB2392 (the rule tables),
 PB2393 (the six small families) and PB2394 (`BoundStatement`'s leaves). PB2393 claims the file's §8.2 rule 2–3
 findings, so when the census computes those rules (PB2351) the generator does not file a second claim on it.
 
-**(9) `WiseOwl.Cobol.CodeGen.RuntimeApi`** — R0-0007 (`CodeGen/Roslyn/` under `WiseOwl.Cobol.CodeGen`, R0-0218); the ratchet
-`RuntimeApiGuardTests` still tolerates bare runtime names outside it, in `NumericRenderer`, `ConditionRenderer` and
-`OperandText` (PB2302 carries the measure).
+**(9) `WiseOwl.Cobol.CodeGen.RuntimeApi`** — R0-0007 (`CodeGen/Roslyn/` under `WiseOwl.Cobol.CodeGen`, R0-0218);
+`RuntimeApiGuardTests` forbids every bare runtime name outside it (step 1, PB2302, routed the last three files,
+`NumericRenderer`, `ConditionRenderer` and `OperandText`, and emptied the ratchet's table).
 *Responsibilities.* Three member kinds under one name: `nameof` anchors for runtime types; fragment composers
 (`BoolNot(operand)`); and compile-time rule calls into the runtime (`CallEcIsProgramOrExternal`) — by subject the
 runtime's own subsystems (`Adapt`, `Store`, `Format`, `Register`, `Group`, `Arg`, `Read`).
