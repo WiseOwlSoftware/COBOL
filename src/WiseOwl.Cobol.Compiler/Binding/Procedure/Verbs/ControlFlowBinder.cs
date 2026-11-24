@@ -501,6 +501,9 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
                 "EXIT FUNCTION may be specified only in a function definition (the pre-2023 §2023:14.9.14 "
                 + "function form of the EXIT statement; this is not a function procedure division)");
         }
+        // §2002:14.8.13.2 SR2 — a flat prohibition over every EXIT format (as EXIT PROGRAM and GOBACK, kb/Work PB5618).
+        if (PlacementRules.RefusedInGlobalDeclarative(ctx, EcRaiseSite.Exit("EXIT FUNCTION")))
+            return BoundRejected.Reported(ctx.Edition);
         if (e.raisingPhrase() is { } raising)
             return host.Ec.EcBindRaising(raising, e.Start.Line, EcRaiseSite.Exit("EXIT FUNCTION")) is { } r
                 ? new BoundGoback(null, r)
