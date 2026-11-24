@@ -19,3 +19,13 @@ R2's remaining batches run on a new pin, main at 9e65164eb (kb/Work PB2911, the 
 **After the fixes:** `r2_inputs.py` wrote 146 shard inputs with 0 pending (semgrep 8 files, analyzers 1,769, drift
 1,280). `r2_inputs.py --self-test` passes.
 
+
+**The census found two layering regressions that landed since the last record** (ad187e16d6, about 1,700 commits
+earlier). Both are enum uses: an enum constant compiles to an integer, so `ArchitectureEdgesDriftTests`' IL walk never
+saw them, and only the source-reading census could.
+- `AcceptDisplayEmitter` -> `Binding.NumericDisplayForm`: CodeGen->Binding grew from 68 to 70 uses. Filed as PB6172.
+- `FlagConformancePass` -> `Symbols.NameClass`: Validation->Symbols, a layer pair that is not allowed. Filed as PB6173.
+
+Each is admitted by hand in `architecture-edges.json` as a row naming its removal note, the path
+`ArchCensusDriftTests` prescribes. The ratchet re-keyed the file to the new census and lowered four rows that shrank
+(48->45, 27->20, 20->16, 26->25).
