@@ -1,4 +1,4 @@
-## PB5705: ADDRESS OF a group under a strong record, with no TYPE clause of its own, is refused below 2023
+## Entry 4032 — 2026-11-24 04:30 PST — PB5705: ADDRESS OF a group under a strong record, with no TYPE clause of its own, is refused below 2023
 
 At --std 2002 (and 2014, SR5) a data-address-identifier that references a strongly-typed group item shall be defined with
 its own TYPE clause referencing a STRONG declaration (§2002:8.4.2.11.2 SR4). 2023 drops the rule and types such a group by
@@ -18,3 +18,4 @@ Two older cases had relied on the 2023 reading at 2002: `pb1408_universal_addres
 2023 only, and the `pb1408-set-address-of-based-from-subordinate-strong-group` refusal lists 2023 alone (2002 and 2014
 refuse the same program earlier, with COBOL2785). The first gate's other two reds were harness timeouts
 (`call_by_reference_formal_passed_on` at 2002, `pb3350_open_reversed_varying_span_85`: NO VERDICT, the program did not finish).
+
