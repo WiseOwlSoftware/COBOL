@@ -424,7 +424,7 @@ groupUsageClause
     : GROUP_USAGE IS? (BIT | NATIONAL)
     ;
 
-// EXTERNAL clause (§2023:13.18.22) — shared storage across run unit
+// PROPERTY clause (§2023:13.18.42): the data item is a property of the object, with generated GET and/or SET methods
 propertyClause
     : PROPERTY (WITH? NO (GET | SET))? (IS? FINAL)?   // §2023:13.18.42.2 :21146-21148 (WITH optional per the IS?-style tolerance)
     ;
