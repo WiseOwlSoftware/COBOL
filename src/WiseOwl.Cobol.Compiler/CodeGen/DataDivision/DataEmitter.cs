@@ -8,15 +8,15 @@ using WiseOwl.Cobol.CodeGen.Emit;
 namespace WiseOwl.Cobol.CodeGen;
 
 /// <summary>The DATA DIVISION emission facade (P7 Step 9l — was <c>Emit/FieldEmitter.cs</c>, split per
-/// DESIGN-codegen-backend §2.5 into <see cref="RecordStructEmitter"/> · <see cref="GroupImageCodec"/> ·
-/// <see cref="GroupValueSlicer"/> · <see cref="ValueInitializer"/> over the shared memoized
-/// <see cref="PhysicalModel"/>): constructs and WIRES the five (they are mutually recursive by design —
+/// DESIGN-codegen-backend §2.5 into <see cref="RecordStructEmitter"/> · <see cref="GroupImageCodec"/> (with its
+/// <see cref="BitImageCodec"/>) · <see cref="ImageInitializer"/> · <see cref="GroupValueSlicer"/> · <see cref="ValueInitializer"/>
+/// over the shared memoized <see cref="PhysicalModel"/>): constructs and WIRES them (they are mutually recursive by design —
 /// a field's Init is a VALUE initializer, a Tier-B backing's seed is an image init, and both walk the
 /// physical model), and forwards the public surface the per-unit emitters consume.</summary>
 internal sealed class DataEmitter
 {
     private readonly RecordStructEmitter _structs;
-    private readonly GroupImageCodec _codec;
+    private readonly ImageInitializer _images;
     private readonly ValueInitializer _values;
     private readonly EmitContext _ctx;
 
@@ -27,11 +27,11 @@ internal sealed class DataEmitter
         PhysicalModel.Observer.Value?.Invoke(phys);
         _values = new ValueInitializer(ctx);
         var slicer = new GroupValueSlicer(ctx, phys);
-        _codec = new GroupImageCodec(ctx, phys, _values);
+        _images = new ImageInitializer(ctx, _values);
         phys.Values = _values;
-        phys.Codec = _codec;
+        phys.Images = _images;
         _values.Slicer = slicer;
-        _structs = new RecordStructEmitter(ctx, phys, _codec, _values);
+        _structs = new RecordStructEmitter(ctx, phys, new GroupImageCodec(phys), _images, _values);
     }
 
     /// <summary>Emit every WORKING-STORAGE / FILE-SECTION type, profile, index field, and root field.</summary>
@@ -43,12 +43,12 @@ internal sealed class DataEmitter
     /// <summary>See <see cref="RecordStructEmitter.MethodRedefinesBackingDecl"/>.</summary>
     public (string Name, string Init)? MethodRedefinesBackingDecl(DataItem root) => _structs.MethodRedefinesBackingDecl(root);
 
-    /// <summary>See <see cref="GroupImageCodec.ImageInitOf"/>.</summary>
-    public string ImageInitOf(DataItem item, bool useValues = true) => _codec.ImageInitOf(item, useValues);
+    /// <summary>See <see cref="ImageInitializer.ImageInitOf"/>.</summary>
+    public string ImageInitOf(DataItem item, bool useValues = true) => _images.ImageInitOf(item, useValues);
 
-    /// <summary>See <see cref="GroupImageCodec.CellDynSeeds"/>.</summary>
+    /// <summary>See <see cref="ImageInitializer.CellDynSeeds"/>.</summary>
     public string CellDynSeeds(DataItem item, bool useValues = true, int? firstOrdinal = null) =>
-        _codec.CellDynSeeds(item, useValues, firstOrdinal);
+        _images.CellDynSeeds(item, useValues, firstOrdinal);
 
     /// <summary>⛔ THE ONE STATEMENT OF WHAT AN AREA FORMAL BRINGS TO ITS AREA DECISION (kb/Work PB2094, PB2671), for the
     /// program ABI and the method ABI alike: its §2023:8.5.1.12 atoms when it is a VARIABLE-LENGTH group

@@ -380,7 +380,7 @@ call is re-entrant), and `NumStatic/NumStaticExpr/StaticAdditive/StaticMul` are 
 |---|---|
 | `RoslynBackend` | `ICodeGenBackend` impl: drives `ProgramEmitter` per unit, packaging, `.g.cs` write |
 | `ProgramEmitter` | one program/class/interface unit → its C# type + `__Dispatch` + entry wrapper |
-| `DataEmitter` | DATA DIVISION facade in `CodeGen/DataDivision/`: record structs, `NumProfile` decls, fields, initializers, group image codec — over `RecordStructEmitter`/`GroupImageCodec`/`GroupValueSlicer`/`PhysicalModel`/`ValueInitializer` |
+| `DataEmitter` | DATA DIVISION facade in `CodeGen/DataDivision/`: record structs, `NumProfile` decls, fields, initializers, group image codec — over `RecordStructEmitter`/`GroupImageCodec` (with `BitImageCodec`)/`ImageInitializer`/`GroupValueSlicer`/`PhysicalModel`/`ValueInitializer` |
 | `DispatchEmitter` | the PC dispatcher (`__Dispatch`, pc cases, ALTER fields) |
 | `StatementEmitter` | the `IBoundStatementVisitor<bool>` core + shared helpers |
 | per-verb emitters | `KeyedIoEmitter`, `SortEmitter`, `StringEmitter`, `InspectEmitter`, `ReportWriterEmitter`, `CallEmitter`, `OoEmitter`, … — real classes over `EmitContext`, invoked by `StatementEmitter` |

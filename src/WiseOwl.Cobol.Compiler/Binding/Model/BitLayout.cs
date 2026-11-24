@@ -350,7 +350,7 @@ internal static class BitLayout
 
     /// <summary>Whether <paramref name="table"/> has stored padding BETWEEN its occurrences (§2023:13.18.1.4 GR2): more than one
     /// occurrence, each padded to a stride wider than its width. THE one predicate of the TablePad list entry, so the list
-    /// (<see cref="FillersOf"/>) and every composer that asks whether a table is strided (<c>GroupImageCodec.BitCarrierOf</c>)
+    /// (<see cref="FillersOf"/>) and every composer that asks whether a table is strided (<c>BitImageCodec.BitCarrierOf</c>)
     /// agree: a one-occurrence table has no gap to store, whatever its stride (kb/Work PB3564 review R1-1).</summary>
     public static bool HasTablePad(DataItem table) =>
         table.Occurs is > 1 && StrideBits(table) > WidthBits(table);
