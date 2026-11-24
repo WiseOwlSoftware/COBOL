@@ -42,8 +42,9 @@ the page's words. Two reading-order cases are never a witness for the layer: a m
 layer lacks that the second reading has elsewhere on the page (a table read by column); they stay UNEXPLAINED. The planted
 cases for every outcome are case_10. `--require-zero` counts UNEXPLAINED and LIKELY-ERROR.
 
-**Measured after arbitration (all 976 pages, the tool as of 2026-11-23's second review):** OCR-NOISE 5261, OCR-ARBITRATED 1344,
-CORRECTION 823, AMENDMENT-APPLIED 57, FIGURE 1186, PUNCT 2322, CASE 423, UNCOVERED 787, LIKELY-ERROR 126, UNEXPLAINED 602
+**Measured after arbitration (all 976 pages, the tool as of PB6144's anchored insertions and governed blocks, 2026-11-24):**
+OCR-NOISE 5266, OCR-ARBITRATED 1344, CORRECTION 823, AMENDMENT-APPLIED 33, FIGURE 1186, PUNCT 2322, CASE 423, UNCOVERED 807,
+LIKELY-ERROR 128, UNEXPLAINED 603
 (from 2092; the residual is on 251 pages). The LIKELY-ERROR rows are differences between the Markdown and the print that two
 readings agree on: some are errors, some are Amendment text applied in place that no cited Amendment page confirms word for
 word, some the transcription's own footnote renumbering, and the repeated table header that the Markdown holds once. Each is a
