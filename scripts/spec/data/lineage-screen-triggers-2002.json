@@ -391,6 +391,12 @@
    ],
    "why": "compile-time arithmetic: the directives of §2002:7.2 and the constant entry §2002:13.9"
   },
+  "currency-picture-symbol-literal-alphanumeric-and-unique": {
+   "sections": [
+    "12.2.6"
+   ],
+   "why": "the CURRENCY SIGN clause of the SPECIAL-NAMES paragraph, §2002:12.2.6, whose literal-8 is an alphanumeric literal that no two occurrences may repeat at 2002 (§2002:12.2.6.2 SR22; kb/Work PB5707, VCR row 7.127)"
+  },
   "currency-hexadecimal-literal-rules": {
    "sections": [
     "12.2.6"
