@@ -69,7 +69,7 @@ public sealed record BoundInitialize(IReadOnlyList<InitializeAction> Actions) : 
 public sealed record InitializeReplacingItem(InitializeCategorySet Categories, BoundOperand Sender);
 
 /// <summary>One step of an expanded INITIALIZE.</summary>
-public abstract record InitializeAction;
+public closed record InitializeAction;
 
 /// <summary>One implicit elementary MOVE (ISO §2023:14.9.20.4 GR4 — "Otherwise, the implicit statement is: MOVE
 /// sending-operand TO receiving-operand"): the <see cref="BoundMove"/> itself, stored under the MOVE rules (§2023:14.9.25

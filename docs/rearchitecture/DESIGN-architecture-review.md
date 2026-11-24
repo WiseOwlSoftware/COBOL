@@ -454,15 +454,12 @@ without a noun that says what); a partial type splits only along named concerns.
   - `required` members; pattern matching over type tests.
   Each is one R4 wave, and each is kept only if the §4 contract and the performance baseline hold.
 
-**Alternative: a future .NET 11 / C# 15 update** (owner, 2026-09-29). If R4 runs after .NET 11 is GA, or the owner
-chooses its preview (PB1754), two .NET 11 items are candidates for R1 to evaluate. Neither is adopted until then.
-1. **C# 15 union types** (`union`: a value is exactly one of a fixed set of types, with compiler-enforced exhaustive
-   pattern matching).
-   - The bound tree and many dispatchers are closed hierarchies whose exhaustiveness is enforced today only by a
-     `default: throw` arm and review. A union makes the compiler prove every arm is handled, which targets the
-     forgotten-arm defect class (the "two-arm dispatch" pattern) at the type level.
-   - R1 decides which hierarchies become unions and in what order. Each conversion is one R4 wave under the §4
-     contract.
+**.NET 11 and C# 15** (owner, 2026-09-29; the repository moved to .NET 11 on 2026-11-20, PB5971):
+1. **C# 15 `closed` hierarchies: adopted** (owner 2026-11-24, kb/Work PB6168; §8.5). The C# 15 features were evaluated
+   against this codebase that day. `closed` gives the bound tree and the binding model's hierarchies compile-time
+   exhaustive switches with no change to the generator. Union types are a candidate only for a sum whose cases share no
+   base type. Collection-expression arguments, extension indexers, labeled `break`/`continue` and non-virtual static
+   interface members were measured as giving this code nothing, and memory safety is preview only.
 2. **.NET 11 JIT improvements**, for the compiler's own throughput and for the generated programs.
    - They are adopted only on a MEASURED gain: re-run the R0 performance baseline (the whole-population gate time
      and the compile-throughput benchmark) on net11.0 against net10.0, with conditions recorded
@@ -960,10 +957,9 @@ The rules (each a drift assertion, listed with the measure that shows today's di
    Move/rename waves. A folder whose name is not a namespace segment (`CLDR` versus `Cldr`) renames to the segment.
 2. **One public type per file.** Measured (*text scan, provisional*): 178 of 553 authored files declare more than one
    top-level type and 129 declare more than one public one. The exception, stated once: **a closed node family is one
-   file named for its root** — a `[BoundNode]` root (or a §8.5 union) and its sealed leaves (`BoundCall.cs` holds
+   file named for its root** — a `[BoundNode]` root (`closed`, §8.5) and its sealed leaves (`BoundCall.cs` holds
    `BoundCallProgram`, `BoundCancel`, `BoundGoback`…), and a small enum or record that exists only as a member of the
-   type beside it (`PassPhase` with `IBindPass`); the family is the unit a §8.5 union declares, so the file and the type
-   coincide again when the union lands.
+   type beside it (`PassPhase` with `IBindPass`); the family is the unit a §8.5 `closed` root declares.
 3. **File name equals its type** (for a family file, its root). Measured: 22 files are named for no type they declare
    (`CallAbi.cs` holds `CobolPassMode`, `CobolArg`, `BoundaryItem`…; `EmitCore.cs` holds `EmitContext`, `NumX`,
    `NumXCarrier`; `ReportWriter.cs` holds `CobolReport`; `ExceptionState.cs` holds `ExceptionEngine`).
@@ -1787,7 +1783,7 @@ carries its order and blockers):
 | `Frontend.Generated.CobolParserCoreBase` (R0-0038) | the ANTLR superclass: the lookahead predicates (`…Ahead`, `Locale`) | `LookaheadPredicates`; `LocalePredicates`; EditionWordPredicates (every member that reads the compile edition, §8.4's pin, as one set); the type's namespace becomes its folder's (R0-0222) | static predicate types the grammar's predicate actions call directly (no forwarding member on the superclass); a grammar wave, so after the §4 item 3 token and parse-tree differential (PB2350) exists, and after PB2291 decides which edition reads stay |
 | `CodeGen.EcEmitter` (R0-0039) | per-statement checking state, declarative dispatch (`Dispatch`) | `EcCheckingEmitter`; `DeclarativeDispatchEmitter` | EcCheckingEmitter.Emit(EcStatementInfo, EmitContext); DeclarativeDispatchEmitter.Emit(the unit's declaratives) |
 | `Runtime.IO.FileConnector` (R0-0040) | the base of the three organizations: open modes (`Open`), the record area | OpenModeMachine (the §2023:9.1.13 transitions); `RecordArea` | OpenModeMachine.Transition(open mode, operation) → I-O status |
-| `CodeGen.PlaceRenderer` (R0-0041) | rendering per `Place` kind (`Group`, `Image`); its `_ => throw` arms | one renderer per Place kind family | one visitor over the Place union (§8.5 step 3); each family renderer Render(a Place kind, EmitContext) |
+| `CodeGen.PlaceRenderer` (R0-0041) | rendering per `Place` kind (`Group`, `Image`); its `_ => throw` arms | one renderer per Place kind family | one exhaustive switch over the `closed` Place hierarchy (§8.5 wave 2); each family renderer Render(a Place kind, EmitContext) |
 | `CodeGen.GroupImageCodec` (R0-0042) | AsImage/FromImage (`Image`), bit images, image initialization; the variable-length carrier (AsVarImage/FromVarImage, the record layout) | `GroupImageCodec`; `BitImageCodec`; `ImageInitializer`. The carrier's rules are runtime operations both lanes call (kb/Work PB2746, landed): the component stores `CobolVarGroup.ReceivedDyn` / `StoreTableComponent` / `StoreGroupTableComponent` and the layout builder `CobolContiguousLayout.Of`, which the emitted `FromVarImage` and layout field and the cell-backed `StorageCell.StoreVarGroupAt` and layout share | the AsImage / FromImage entries (existing) |
 | `Binding.Procedure.EvaluateBinder` (R0-0043) | subjects and objects (`Subject`), WHEN phrases | `EvaluateSubjectBinder`; `WhenPhraseBinder` | EvaluateOperandCombinations (existing) pairs subjects and objects |
 | `CodeGen.SortEmitter` (R0-0044) | keys, INPUT/OUTPUT PROCEDURE ranges, MERGE | `SortKeyEmitter`; `SortProcedureEmitter`; `MergeEmitter` | Emit(BoundSort or BoundMerge, EmitContext); SortKeyEmitter.Render(keys) |
@@ -1929,7 +1925,7 @@ PB2147 (a removed spelling never swept against the corpus) becomes a step of the
 population is the differential's; PB2151 (D10's second half) is a binding wave, the prerequisite of §8.3 (4), not a
 grammar change; PB2292 (the duplicate `className`, landed) precedes the regroup.
 
-### 8.5 Closed hierarchies → C# 15 unions
+### 8.5 Closed hierarchies → C# 15 `closed`
 
 **Measured.** Seven `[BoundNode]` roots with generated exhaustive visitors (`BoundVisitorGenerator`,
 `WiseOwl.Cobol.Compiler.SourceGen`): `BoundExpr` 13 leaves, `BoundOperand` 11, `BoundBoolExpr` 8, `BoundCondition` 14,
@@ -1950,9 +1946,9 @@ three mutually exclusive bools on the record struct `NumX(string Expr, int Scale
 Approximate, int Digits)` (`EmitCore.cs:178-183`), and the enum's totality is already pinned by
 `IntrinsicCarrierAgreementDriftTests`.
 
-**The generator's two outputs, and which one a union replaces.** `BoundVisitorGenerator` emits two things from each
+**The generator's two outputs.** `BoundVisitorGenerator` emits two things from each
 `[BoundNode]` root. (a) The **dispatch**: the `I{Root}Visitor<T>` interface and the `Accept<T>` switch
-(`BoundVisitorGenerator.cs:96-120`). A union's checked switch replaces exactly this. (b) The **structural walk**,
+(`BoundVisitorGenerator.cs:96-120`). (b) The **structural walk**,
 `BoundStatementTree`: `StatementChildren` (the statements nested in a statement) and `OwnValueParts` (every
 `BoundExpr`, `BoundCondition`, `BoundOperand` and `BoundBoolExpr` a statement holds directly, read from EVERY property
 of every case through the semantic model, `:126-244`), which walks THROUGH the two container roots
@@ -1961,33 +1957,43 @@ EC-ARGUMENT-FUNCTION gate on it (`EcBinder.cs:1000,1034`; §2023:15.3 AR14), and
 a landed wrong-answer, silent defect: the gate was a hand-maintained switch over statement kinds, so the same FUNCTION
 reference raised in COMPUTE and was silent in STRING. A switch is total over CASES, not over a case's FIELDS: the day a
 statement record gains an operand property, a hand switch misses it and `FUNCTION LOG10(0)` there raises nothing —
-PB26 again. So (b) is never hand-written: it stays generated from the type structure for every root, union or not,
+PB26 again. So (b) is never hand-written: it stays generated from the type structure for every root,
 and `[BoundNode]` stays as the marker of the walk's roots (the partition `EcArgumentFunctionGateDriftTests:96-115`
 pins, `BoundNodeRootPartition_IsExplicit`), whatever mechanism dispatches over that root.
 
-**Which, in what order — each one R4 wave under §4** (the dispatch results do not change, so diagnostics and emitted
-C# are identical by construction; the SDK that provides the feature is R64's trailing decision, §5.5, and nothing
-below starts before it):
-1. The small roots with no visitor IMPLEMENTATION: `BoundPerformControl` and `BoundSetTarget`, whose generated
-   dispatch (a) has no implementer and is retired in the same wave, and `BoundEoOperand`, which is no `[BoundNode]`
-   root — the mechanics proven on the smallest families. The two are the walk's CONTAINER roots, so they keep
-   `[BoundNode]` and the generator keeps emitting their `Parts_BoundPerformControl` and `Parts_BoundSetTarget` walkers
-   (b): the wave changes the generator to read a root's cases from its union declaration instead of its derived
-   classes (its property classification uses `IsDerivedFrom`, `EcArgumentFunctionGateDriftTests.cs:218-272`, which the
-   wave converts with it), and `BoundNodeRootPartition_IsExplicit` keeps its seven names: its root predicate is
-   `t.IsAbstract && …` (`:100`), which a union root that is not an abstract class fails, so the wave changes the
-   predicate to read the `[BoundNode]` attribute, never the set.
-2. `Place` (18): `PlaceRenderer`'s four throw arms and every `is …Place` chain become checked switches.
-3. `RefResolution`, `AccessSegment`, `WindowCoding`, `AllCount`, `MoveKind`, `SetFormat`.
-4. The visitor-covered roots, smallest first: `BoundBoolExpr` (8), `BoundOperand` (11), `BoundExpr` (13),
-   `BoundCondition` (14); each wave retires that root's generated `I…Visitor<T>` and turns its visitor classes into
-   switches.
-5. `BoundStatement` last; when it converts, the generator emits no dispatch (a) at all, and it keeps emitting the
-   structural walk (b), `StatementChildren`, `OwnValueParts` and the `Parts_` walkers, from the seven `[BoundNode]`
-   roots' union cases, so `WiseOwl.Cobol.Compiler.SourceGen` stays (a source generator targets `netstandard2.0` by the
-   Roslyn host's rule) with one job, the walk. Draft 3's hand-written total switch is withdrawn: it was PB26's
-   mechanism. At every point between, each root's DISPATCH is EITHER a union OR a visitor, never both (one mechanism
-   per root), and its WALK is always the generator's.
+**The mechanism: C# 15 `closed`, not unions (owner 2026-11-24, kb/Work PB6168).** C# 15 shipped two features for this:
+the `closed` class modifier and union types. `closed` fits these hierarchies, and the owner approved it after a
+measured check (PB6168):
+- A `closed` class is implicitly abstract, and its direct subclasses must be in its own assembly. A `switch` that names
+  every direct subclass is exhaustive with no default arm, and one that misses a subclass draws CS8509, which this
+  repository's `TreatWarningsAsErrors` makes an error.
+- The emitted type stays abstract and gains `System.Runtime.CompilerServices.IsClosedTypeAttribute`. Roslyn's symbol
+  API (5.12) reports it `IsAbstract` and `IsClosed`. So `BoundVisitorGenerator`'s root and case predicates, the walk
+  (b), `BoundNodeRootPartition_IsExplicit` and the `IsDerivedFrom` classification all read a `closed` root exactly as
+  they read an abstract one. Measured: closing the 20 abstract records below left all 95 generated files
+  byte-identical, and the unit suite passed (43,099 tests).
+- A union is a wrapper struct that boxes its case and whose `default` holds null, and adopting one for a `[BoundNode]`
+  root would have changed the generator and the partition test. Unions stay a candidate only for a sum whose cases share
+  no base type.
+- `closed` covers DIRECT subclasses only, so an abstract intermediate level (`PlaceDecorator`, `CellWindowCoding`,
+  `RootSegment`) is `closed` itself for a switch to be exhaustive through it.
+- A `closed` type cannot be declared in a `netstandard2.0` project (the compiler-required attributes are missing there).
+  `WiseOwl.Cobol.Compiler.SourceGen` only READS these symbols, and every hierarchy here is in `WiseOwl.Cobol.Compiler`
+  (`net11.0`).
+
+**The waves, each behavior-neutral under §4:**
+1. **Done (PB6168):** `closed` on the 20 abstract records of `Binding/Bound/` and `Binding/Model/Place.cs` and
+   `AccessPath.cs`: the eight bound roots (`BoundExpr`, `BoundOperand`, `BoundBoolExpr`, `BoundCondition`,
+   `BoundStatement`, `BoundPerformControl`, `BoundSetTarget`, `BoundEoOperand`), `Place`, `PlaceDecorator`,
+   `WindowCoding`, `CellWindowCoding`, `AllCount`, `AccessSegment`, `RootSegment`, `ContainerAnchor`,
+   `InitializeAction`, `TableSortStorage`, `ValidateStep` and `ReceiverBracketKey`. The repository's C# modifier
+   vocabularies learned the keyword in the same change.
+2. **PB6169:** remove each `_ => throw` and `default: throw` arm over a `closed` root whose switch then names every
+   case, so a forgotten case becomes a compile error. Arms that group cases on purpose become explicit `or` patterns.
+   Then close the remaining abstract hierarchies of the compiler and front end, each one judged and measured. A runtime
+   type is closed only where no emitted program or user code is meant to derive from it.
+3. The `[BoundNode]` visitors stay. Their dispatch (a) is already exhaustive by generation, and converting the visitors
+   to switches is a separate change that a measured need must justify.
 
 **The numeric carrier is a re-model, not a conversion, and it is not an R4 step.** The defect class (one rule
 corrected in one arm: PB2, PB13, PB14, PB28, PB32, PB33) lives in the flag record, so the target is `NumX` itself: a
@@ -1998,12 +2004,11 @@ change re-types every numeric path that builds or reads a `NumX` (`EmitCore.cs:1
 `IntrinsicRenderer`, `ConditionRenderer`, `OperandText`, `RuntimeApi`, `StatementEmitter` and thirteen verb emitters).
 It is its own note, PB2411, after the `NumericCarrierRules` extract of R0-0026 (PB2321, which keeps the visitor and
 only gathers the arm choice into one place): a code-generation wave between trains under the partition, done before the SDK with a
-sealed record family and a total switch, and converted to a union by the step-1 mechanics once the SDK lands.
+sealed record family under a `closed` base and a total switch.
 
-**Before the SDK (R3, no C# 15 needed):** a ratchet drift test over the hand arms per file (the `RuntimeApiGuardTests`
+**The ratchet:** a drift test over the hand arms per file (the `RuntimeApiGuardTests`
 shape), failing on any increase, so a new consumer of a visitor-covered root is a visitor; it drives the hand arms
-toward zero as consumers convert and leaves the R4 waves a smaller surface. Nothing about the feature's syntax is
-assumed here; the wave that lands step 1 pins it against the SDK the owner chose.
+toward zero as consumers convert.
 
 ### 8.6 What is given
 
@@ -2300,4 +2305,4 @@ can still share a computed caller, because the partition checks in-flight work a
 (kb/Work PB2424).
 
 What the estimate does not contain, by design: R2's findings (17 subsystems in shards × 5 dimensions, §3), which set R3's real
-size; the R4 waves (§8.5: 5 union steps plus §5.5's analyzer rules); and any wave list.
+size; the R4 waves (§8.5's `closed` waves plus §5.5's analyzer rules); and any wave list.

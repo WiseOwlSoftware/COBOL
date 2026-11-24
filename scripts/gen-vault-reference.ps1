@@ -42,7 +42,7 @@ $outRoot = if ($Check) { Join-Path ([System.IO.Path]::GetTempPath()) ("wiseowl-c
 
 # Modifiers are OPTIONAL (a top-level type may be modifier-less = internal; nested types are real too). The
 # PascalCase name + start-of-line anchor keep this from matching `where T : class` or a `record`-named local.
-$declRx     = [regex]'^\s*(?:(?:public|internal|private|protected|abstract|sealed|partial|static|file|readonly|ref|unsafe|new)\s+)*(record\s+struct|record\s+class|record|class|struct|interface|enum)\s+([A-Z][A-Za-z0-9_]*)'
+$declRx     = [regex]'^\s*(?:(?:public|internal|private|protected|abstract|sealed|closed|partial|static|file|readonly|ref|unsafe|new)\s+)*(record\s+struct|record\s+class|record|class|struct|interface|enum)\s+([A-Z][A-Za-z0-9_]*)'
 $baseCtorRx = [regex]'\)\s*:\s*([A-Za-z_][A-Za-z0-9_.]*)'
 $basePlainRx= [regex]'(?:record\s+struct|record\s+class|record|class|struct|interface|enum)\s+[A-Za-z0-9_]+(?:<[^>]*>)?\s*:\s*([A-Za-z_][A-Za-z0-9_.]*)'
 $summaryRx  = [regex]'(?s)<summary>(.*?)</summary>'
