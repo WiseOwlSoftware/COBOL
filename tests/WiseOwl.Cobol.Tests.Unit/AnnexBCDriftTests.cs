@@ -257,7 +257,7 @@ public sealed class AnnexBCDriftTests
     [Fact]
     public void EveryAnnexCMapping_KeepsTheCharacterWidth()
     {
-        foreach (var (upper, lower) in CobolNames.C2Mappings.Concat(CobolNames.E2Item14Deleted).Concat(CobolNames.NotApplied))
+        foreach (var (upper, lower) in CobolNames.C2Mappings.Concat(CobolNames.E2Item14Deleted).Concat(CobolNames.D2002Mappings).Concat(CobolNames.NotApplied))
             Assert.True(upper > 0xFFFF == lower > 0xFFFF, $"({upper:X4},{lower:X4}) changes width");
     }
 
@@ -270,5 +270,65 @@ public sealed class AnnexBCDriftTests
             Assert.True(CobolCharacterRepertoire.PositionOf(upper, 2014) == WordCharacterPosition.NotPermitted
                         || CobolCharacterRepertoire.PositionOf(lower, 2014) == WordCharacterPosition.NotPermitted,
                 $"({upper:X4},{lower:X4}) joins two COBOL-2014 characters");
+    }
+
+    private static readonly Regex Pair2002 = new(@"\(&lt;U([0-9A-F]{4,5})&gt;,&lt;U([0-9A-F]{4,5})&gt;\)", RegexOptions.Compiled);
+
+    /// <summary>⛔ COBOL 2002'S CASE MAPPING IS ITS OWN ANNEX D (§2002:8.1.2.1 GR4c, kb/Work PB5702): the 600 pairs of D.2.1 and
+    /// D.2.2 as printed, less the two that cross between a basic and an extended letter, (0130,0069) and (0131,0069), which
+    /// <see cref="CobolNames.NotApplied"/> already holds from the 2023 lists.</summary>
+    [Fact]
+    public void D2002Mappings_EqualAnnexD_LessTheCrossingPairs()
+    {
+        int from = Array.FindIndex(Spec2002, l => l.StartsWith("##### D.2.1 General case mappings", StringComparison.Ordinal));
+        int to = Array.FindIndex(Spec2002, from, l => l.StartsWith("### Annex E (informative) Concepts", StringComparison.Ordinal));
+        Assert.True(from > 0 && to > from, "the 2002 Annex D markers were not found");
+        var printed = Spec2002[from..to].SelectMany(l => Pair2002.Matches(l))
+            .Select(m => (Convert.ToInt32(m.Groups[1].Value, 16), Convert.ToInt32(m.Groups[2].Value, 16))).ToList();
+        Assert.Equal(600, printed.Count);
+        Assert.Equal(printed.Where(p => !Crosses(p)).ToList(), CobolNames.D2002Mappings.Select(p => (p.First, p.Second)).ToList());
+        foreach (var crossing in printed.Where(Crosses))
+            Assert.Contains(crossing, CobolNames.NotApplied.Select(p => (p.First, p.Second)));
+    }
+
+    /// <summary>⛔ AT 2002 A CHARACTER THAT ANNEX D DOES NOT FOLD IS NOT THE SAME LETTER AS ITS LOWERCASE (§2002:8.1.2.1 GR4c):
+    /// the Roman numeral U+2160 and U+2170 are two names, U+0189 and U+0256 are two (Annex D prints (0256,0189) beside
+    /// (0189,0256)), and the sigma pair of D.2.2 still joins; the 2014 and 2023 tables fold the numerals. The ONE comparer
+    /// answers for 2002 through <see cref="CobolNames.EditionSpelling"/>.</summary>
+    [Theory]
+    [InlineData("XⅠY", "XⅰY", 2002, false)]
+    [InlineData("XⅠY", "XⅰY", 2014, true)]
+    [InlineData("XⅠY", "XⅰY", 2023, true)]
+    [InlineData("AƉB", "AɖB", 2002, false)]
+    [InlineData("AƉB", "AɖB", 2014, true)]
+    [InlineData("AΣB", "AσB", 2002, true)]
+    [InlineData("AςB", "AσB", 2002, true)]
+    [InlineData("AςB", "AσB", 2023, false)]
+    [InlineData("AÉB", "AéB", 2002, true)]
+    public void EditionSpelling_GivesTheEditionsOwnNames(string a, string b, int edition, bool same) =>
+        Assert.Equal(same, CobolNames.Same(CobolNames.EditionSpelling(a, edition), CobolNames.EditionSpelling(b, edition)));
+
+    /// <summary>The stand-in characters of <see cref="CobolNames.EditionSpelling"/> are one per key, unfolded by the 2023 table
+    /// and in no edition's repertoire, so no word a user wrote can be mistaken for one.</summary>
+    [Fact]
+    public void ReservedSpelling_IsInjective_UnfoldedAndOutsideEveryRepertoire()
+    {
+        var keyOf = new Dictionary<int, int>();
+        foreach (int edition in new[] { 2002, 2014 })
+            for (int cp = 0x80; cp <= 0x10FFFF; cp++)
+            {
+                if (cp is >= 0xD800 and <= 0xDFFF) continue;
+                string written = char.ConvertFromUtf32(cp);
+                string spelled = CobolNames.EditionSpelling(written, edition);
+                if (CobolNames.HasReservedSpelling(written) || !CobolNames.HasReservedSpelling(spelled)) continue;
+                int stand = char.ConvertToUtf32(spelled, 0);
+                Assert.Equal(stand, CobolNames.Fold(stand));
+                foreach (int year in new[] { 2002, 2014, 2023 })
+                    Assert.Equal(WordCharacterPosition.NotPermitted, CobolCharacterRepertoire.PositionOf(stand, year));
+                int key = CobolNames.Fold(cp, edition);
+                Assert.True(!keyOf.TryGetValue(stand, out int other) || other == key, $"U+{cp:X4} shares a stand-in with another key");
+                keyOf[stand] = key;
+            }
+        Assert.NotEmpty(keyOf);
     }
 }

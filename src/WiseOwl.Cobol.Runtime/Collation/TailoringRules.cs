@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Collections.Immutable;
 using System.Globalization;
+using WiseOwl.Cobol.Runtime.Collation.Cldr;
 using WiseOwl.Cobol.Runtime.Globalization;
 
 namespace WiseOwl.Cobol.Runtime.Collation;
@@ -35,7 +36,7 @@ namespace WiseOwl.Cobol.Runtime.Collation;
 /// <para><b>Locale lookup</b> (<see cref="ForLocale"/>): <c>&lt;tag&gt;.tailor</c> is searched in the directory named by
 /// the <c>COBOL_COLLATION_DIR</c> environment variable, then in <c>Collation/</c> and <c>Collation/Locales/</c> beside
 /// the running application (<see cref="SearchDirectories"/>), then among the tailorings embedded in this assembly
-/// (<c>Collation/Tailoring/*.tailor</c>: en-US, fr-FR, es-ES, es); an exact tag first, then the language alone. A
+/// (<c>Collation/Tailoring/*.tailor</c>: en-US, fr-FR, es-ES, es); then each parent in the CLDR inheritance chain (<see cref="Candidates"/>). A
 /// locale with no file collates by the root order — which is the CLDR order for English, French, German and most
 /// European languages.</para>
 /// </summary>
@@ -151,15 +152,17 @@ public sealed class TailoringRules
             .Select(n => n[ResourcePrefix.Length..^FileExtension.Length])
             .OrderBy(n => n, StringComparer.Ordinal);
 
-    /// <summary>The lookup chain for a tag: its canonical base tag (<see cref="LocaleTag.Base"/>, no <c>-u-</c>
-    /// extension), then its language subtag ("es-MX" → "es"); none for the root, whose order no tailoring changes.</summary>
-    internal static IEnumerable<string> Candidates(string localeTag)
-    {
-        var tag = LocaleTag.Parse(localeTag);
-        if (tag.IsRoot) yield break;
-        yield return tag.Base;
-        if (tag.Language.Length < tag.Base.Length) yield return tag.Language;
-    }
+    /// <summary>The lookup chain for a tag: the CLDR inheritance chain of <see cref="CldrLocaleLoader.Chain"/> (the tag
+    /// without its <c>-u-</c> extension, then its explicit parents and script / region truncations: "nb" → "nb", "no";
+    /// "es-MX" → "es-MX", "es-419", "es"), spelled as BCP 47 tags, root excluded because no tailoring changes the root
+    /// order. A site <c>no.tailor</c> therefore applies to <c>nb</c> and an <c>es-419.tailor</c> to <c>es-MX</c>, exactly as
+    /// the CLDR data does (kb/Work PB6137; one chain, so the two lookups cannot disagree).</summary>
+    internal static IEnumerable<string> Candidates(string localeTag) =>
+        LocaleTag.Parse(localeTag).IsRoot
+            ? []
+            : CldrLocaleLoader.Chain(localeTag)
+                .Where(c => !c.Equals("root", StringComparison.OrdinalIgnoreCase))
+                .Select(c => c.Replace('_', '-'));
 
     private static TailoringRules? FromDirectory(string? directory, string tag)
     {
