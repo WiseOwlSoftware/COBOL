@@ -262,6 +262,12 @@ internal sealed class ReportWriterEmitter(
             // VARYING counters (§2023:13.18.64.4 GR3/GR4): each placement runs in its OWN block that declares every counter in
             // scope at the value its declaring entry's occurrence gives it, so a SOURCE, a subscript or a FROM/BY
             // expression names a counter by its one compose-local variable whichever placement of whichever field reads it.
+            // A present operand's anchor is the column GR8 gives it NOW: an absent earlier operand never advanced the horizontal
+            // counter (§2023:13.18.41.4 GR2b), so the hoisted seed — which assumes every earlier operand present — would put
+            // this operand at a column no GR8 computation reaches (kb/Work PB6146). Operand 0 reads the same counter the hoisted
+            // seed does, so only a later operand needs the rewrite.
+            if (rep > 0 && f.Columns[rep].Kind == ReportColumnKindModel.AnchorSeed)
+                w.Line($"__ra{f.Columns[rep].AnchorId} = __hc + {f.Columns[rep].Value};   // §2023:13.18.14.4 GR8 — the live counter, an absent earlier operand left it in place");
             using IDisposable? occurrence = f.Varyings.Count > 0
                 ? w.Block($"// VARYING counters at placement {rep + 1} (§2023:13.18.64.4 GR3)") : null;
             EmitVaryingCounters(r, f.Varyings, rep, w);
@@ -307,8 +313,9 @@ internal sealed class ReportWriterEmitter(
     /// <summary>Write the step anchor of every operand of <paramref name="f"/>'s multiple COLUMN clause that is the seed of one
     /// (<see cref="ReportColumnKindModel.AnchorSeed"/>), before any presence test (§2023:13.18.38.4 GR12: "the column repetition 0
     /// would occupy"). Each seed is the column its operand takes when every operand before it is present (§2023:13.18.14.4
-    /// GR8/GR9), tracked as a base expression plus a constant, so an absent earlier operand leaves the later anchors where
-    /// they would be — the placement then reads the anchor, never writes it.</summary>
+    /// GR8/GR9), tracked as a base expression plus a constant: the column the operand would occupy for a later repetition when its whole
+    /// field is absent. A field that IS present rewrites each later operand's anchor from the live counter just before the placement
+    /// (<see cref="EmitFieldPlacements"/>), because an absent earlier operand never advanced it (§2023:13.18.41.4 GR2b; kb/Work PB6146).</summary>
     private static void EmitAnchorSeeds(ReportFieldModel f, CodeWriter w)
     {
         if (!f.Columns.Any(c => c.Kind == ReportColumnKindModel.AnchorSeed)) return;
