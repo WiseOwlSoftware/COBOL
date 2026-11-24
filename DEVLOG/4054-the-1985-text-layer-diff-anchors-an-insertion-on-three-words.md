@@ -1,4 +1,4 @@
-## The 1985 text-layer diff anchors an insertion on three words a side and names two classes of header and marker difference (PB6204, PB6135)
+## Entry 4054 — 2026-11-24 13:22 PST — The 1985 text-layer diff anchors an insertion on three words a side and names two classes of header and marker difference (PB6204, PB6135)
 
 **PB6204.** Inside the block an Amendment note governs, an inserted run was still located by one neighbour word on each side, so a
 short insertion at a wrong place in a wide block passed as AMENDMENT-APPLIED. Probe (a one-paragraph block where `is` and `a` stand
@@ -19,3 +19,4 @@ pages. LIKELY-ERROR 128 to 88, UNEXPLAINED 603 to 554, OCR-NOISE 5266 to 5260, T
 class unchanged. PB6135 stays open; evidence in `kb/Work/PB6135/2026-11-24-two-classes-measured.md`.
 
 **Self-test.** Cases 17 to 19 (the wide-block probe; header read in another order, its negatives; marker offsets, its negatives).
+
