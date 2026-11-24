@@ -79,19 +79,17 @@ performWhenPhrase
 
 // EXCEPTION { INPUT | OUTPUT | I-O | EXTEND | {file-name-1}… }. The figure's "IO" denotes I-O (§2023:8.9; a standard
 // typesetting defect — every sibling format prints I-O), so the existing I_O token is reused. A single WHEN
-// EXCEPTION selects exactly ONE mode OR a file-name list — never a mix; bind-enforced (COBOL1598).
+// EXCEPTION selects exactly ONE mode OR a file-name list — never a mix; bind-enforced (COBOL1598). The mode arm is the
+// shared `openMode` (CobolIO.g4); the file-name list stays this rule's own because its CONTINUATION is gated (a
+// statement, not a period, follows it), where USE Format 1's `useOnTarget` list is not.
 performWhenModeList
-    : INPUT | OUTPUT | I_O | EXTEND
+    : openMode
     | refFileName1=fileName ({whenOperandAhead()}? refFileName2=fileName)*             // gated CONTINUATION only (first operand unconditional)
     ;
 
-// { exception-name-1 }… | { exception-name-2 FILE file-name-2 }… — the EC set is open (EC-USER-*) ⇒ cobolWord.
+// { exception-name-1 }… | { exception-name-2 FILE file-name-2 }… — each operand the shared `exceptionSelectionOperand`.
 performWhenEcList
-    : nnPerformWhenEcItem1=performWhenEcItem ({whenOperandAhead()}? nnPerformWhenEcItem2=performWhenEcItem)*   // gated CONTINUATION only
-    ;
-
-performWhenEcItem
-    : nnCobolWord1=cobolWord (FILE refFileName1=fileName)*             // inner FILE-loop is self-bounding (FILE ∉ cobolWord, leads no statement)
+    : nnExceptionSelectionOperand1=exceptionSelectionOperand ({whenOperandAhead()}? nnExceptionSelectionOperand2=exceptionSelectionOperand)*   // gated CONTINUATION only
     ;
 // KNOWN LIMITATION (documented; masked while the F3 runtime is staged): a WHEN body that is a BARE 2023
 // inline-method-invocation (`WHEN EC-X  obj(args)`) whose object is a cobolWord can be annexed here as a
@@ -498,7 +496,7 @@ useStatement
     // CONDITION). Exception-names are cobolWords — an OPEN set (EC-USER-*, §2023:14.6.13.1.1 / §2023:7.3.25.3 SR2), so
     // name validation (and SR13/SR14) is the binder's, never a token enumeration. (§2023:7.3.25.3 is the TURN
     // compiler directive's syntax rules, which is where the EC-USER-* name shape is fixed.)
-    | USE AFTER? (EXCEPTION CONDITION | EC) nnUseEcEntry1=useEcEntry+
+    | USE AFTER? (EXCEPTION CONDITION | EC) nnExceptionSelectionOperand1=exceptionSelectionOperand+
     // Format 4 (ISO §2023:14.9.49.2 — USE [AFTER] {EXCEPTION OBJECT | EO} {class-name | interface-name}, ONE
     // operand; SR15: EO ≡ EXCEPTION OBJECT): the exception-OBJECT declarative selector (GR14 — class-or-
     // subclass / IMPLEMENTS match; GR3: F4 REPLACES the F1/F3 tiers for object raises). EC-OO wave.
@@ -534,18 +532,30 @@ useDebugTarget
     | refDataReference2=dataReference
     ;
 
-// One Format-3 scope entry: an exception-name, optionally file-scoped ({FILE file-name-2}… — each file carries
-// its own FILE word per the §2023:14.9.49.2 format figure; SR13 requires an EC-I-O name when FILE is given).
-useEcEntry
-    : nnCobolWord1=cobolWord (FILE refFileName1=fileName)*
+// USE Format 1's operand: { file-name-1 }… | INPUT | OUTPUT | I-O | EXTEND. The mode arm is the shared `openMode`
+// (CobolIO.g4); the file-name list is ungated, because a period, never a statement, follows it.
+useOnTarget
+    : openMode                               // all files opened (or being opened) in that mode
+    | refFileName1=fileName+                 // specific file name(s)
     ;
 
-useOnTarget
-    : INPUT                     // all files opened for INPUT
-    | OUTPUT                    // all files opened for OUTPUT
-    | I_O                       // all files opened for I-O
-    | EXTEND                    // all files opened for EXTEND
-    | refFileName1=fileName+                 // specific file name(s)
+// ==========================================
+// THE EXCEPTION-SELECTION OPERANDS (USE Formats 1 and 3, PERFORM Format 3 WHEN)
+// ==========================================
+// §2023:14.9.28.4 GR17: "The rules for determining a match are specified in General rules 3a to 3g of the USE
+// statement." A PERFORM Format-3 WHEN operand IS a USE operand, so each operand shape is written ONCE and both
+// statements reference it (kb/Work PB6139; ExceptionSelectionOperandDriftTests holds it so): the exception-name operand
+// below, and the open mode INPUT | OUTPUT | I-O | EXTEND, which is the OPEN statement's own `openMode` (CobolIO.g4),
+// because the GR3b tier selects the files open in the mode an OPEN statement writes. Only the LISTS stay per statement:
+// a WHEN list's continuation is gated by whenOperandAhead() because imperative-statement-2 follows it.
+
+// exception-name-1 | exception-name-2 { FILE file-name-2 }… (§2023:14.9.49.2 Format 3; §2023:14.9.28.2 Format 3).
+// The exception-name set is open (EC-USER-*, §2023:14.6.13.1.1), so the name is a cobolWord and its validation the
+// binder's (ExceptionSelectionOperands.Resolve). Each file carries its own FILE word; the inner FILE loop is
+// self-bounding (FILE is no cobolWord and leads no statement). §2023:14.9.49.3 SR13 / §2023:14.9.28.3 SR16 require an
+// EC-I-O name when FILE is given.
+exceptionSelectionOperand
+    : nnCobolWord1=cobolWord (FILE refFileName1=fileName)*
     ;
 
 // ==========================================

@@ -456,6 +456,9 @@ openFileSpec
     : refDataReference1=dataReference (REVERSED | WITH? NO REWIND)?
     ;
 
+// INPUT | OUTPUT | I-O | EXTEND, the open mode, written once: the OPEN statement's mode (§2023:14.9.27.2) and the open-mode
+// operand of USE Format 1 and of a PERFORM Format-3 WHEN EXCEPTION (the §2023:14.9.49.4 GR3b tier, which selects by the mode
+// a file is open in; kb/Work PB6139). Its keywords are read once, by OpenModeOperand.Of.
 openMode
     : INPUT
     | OUTPUT
