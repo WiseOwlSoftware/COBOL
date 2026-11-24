@@ -40,11 +40,32 @@ public sealed class ExceptionSelectionTierDriftTests
             + string.Join(Environment.NewLine, offenders));
     }
 
-    /// <summary>The retired per-emitter classifiers stay gone (CLAUDE.md rule 4: no second copy).</summary>
+    /// <summary>The GR3 b) open-mode tier selects on ONE mode expression for both selectors, the USE Format-1 switch and the
+    /// WHEN EXCEPTION INPUT | OUTPUT | I-O | EXTEND arms (§2023:14.9.28.4 GR17). The WHEN arms once tested "the attempted OR
+    /// the opened mode" by their own expression and so ran the first-written phrase, where the USE switch runs the procedure
+    /// of the mode the file is open in (kb/Work PB2723 review R1-1, D-USE-OPEN-MODE-BOTH). Only <c>RuntimeApi</c> (the
+    /// renderer of the runtime call) and <c>ExceptionSelectionEmitter</c> name the mode selector.</summary>
+    [Fact]
+    public void OpenModeSelection_IsRenderedOnlyByExceptionSelectionEmitter()
+    {
+        var modeSelector = new Regex(@"\bFileUseModeOf\(");
+        var offenders = Directory.EnumerateFiles(CodeGenDir, "*.cs", SearchOption.AllDirectories)
+            .Where(f => Path.GetFileName(f) is not ("ExceptionSelectionEmitter.cs" or "RuntimeApi.cs"))
+            .SelectMany(f => File.ReadLines(f).Select((t, i) => (File: Path.GetFileName(f), Line: i + 1, Text: t)))
+            .Where(l => !l.Text.TrimStart().StartsWith("//") && modeSelector.IsMatch(l.Text))
+            .Select(l => $"{l.File}:{l.Line}  {l.Text.Trim()}")
+            .ToList();
+        Assert.True(offenders.Count == 0,
+            "the GR3 b) open-mode selection is rendered outside ExceptionSelectionEmitter (kb/Work PB2723):" + Environment.NewLine
+            + string.Join(Environment.NewLine, offenders));
+    }
+
+    /// <summary>The retired per-emitter classifiers and the two-view open-mode renderers stay gone (CLAUDE.md rule 4: no
+    /// second copy).</summary>
     [Fact]
     public void TheRetiredClassifiers_AreGone()
     {
-        var stale = new Regex(@"\bClassifyOperand\(|\bModeOrdinal\(|\bBoundWhenOperand\b");
+        var stale = new Regex(@"\bClassifyOperand\(|\bModeOrdinal\(|\bBoundWhenOperand\b|\bFileOpenModeOf\(|\bFileOpenedModeOf\(");
         var offenders = Directory.EnumerateFiles(TestRepo.Src("WiseOwl.Cobol.Compiler"), "*.cs", SearchOption.AllDirectories)
             .Where(f => stale.IsMatch(File.ReadAllText(f)))
             .Select(Path.GetFileName)
