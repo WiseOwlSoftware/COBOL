@@ -91,7 +91,19 @@ internal sealed class ReportWriterEmitter(
     /// group's page advance legitimately re-arms (kb/Work PB1244).</summary>
     private sealed class PresencePlan
     {
-        public List<string> Tests { get; } = [];
+        /// <summary>One slot: the C# boolean, and the VARYING counters its PRESENT WHEN chain names, declared at occurrence
+        /// <paramref name="Rep"/> of the placements before the boolean is read (§2023:13.18.64.3 SR2; kb/Work PB5624).</summary>
+        public readonly record struct Test(string Expr, IReadOnlyList<ReportVaryingUse> Counters, int Rep);
+
+        public List<Test> Tests { get; } = [];
+
+        /// <summary>Append a slot, returning its number.</summary>
+        public int Add(string expr, IReadOnlyList<ReportVaryingUse> counters, int rep = 0)
+        {
+            Tests.Add(new Test(expr, counters, rep));
+            return Tests.Count - 1;
+        }
+
         public Dictionary<ReportLineModel, int> Lines { get; } = new(ReferenceEqualityComparer.Instance);
         public Dictionary<ReportFieldModel, int> Fields { get; } = new(ReferenceEqualityComparer.Instance);
         public Dictionary<ReportSumModel, int> Sums { get; } = new(ReferenceEqualityComparer.Instance);
@@ -116,13 +128,19 @@ internal sealed class ReportWriterEmitter(
         plan = new PresencePlan();
         foreach (var l in group.Lines)
         {
-            if (LinePresent(l) is { } lp) { plan.Lines[l] = plan.Tests.Count; plan.Tests.Add(lp); }
+            if (LinePresent(l) is { } lp) plan.Lines[l] = plan.Add(lp, l.PresentCounters);
             foreach (var f in l.Fields)
                 if (f.PresentWhen.Count > 0 || f.RepetitionGuards.Count > 0)
                 {
-                    plan.Fields[f] = plan.Tests.Count;
-                    plan.Tests.Add(string.Join(" && ", [.. f.PresentWhen.Count > 0 ? [PresentExpr(f.PresentWhen)] : (string[])[],
-                                                         .. f.RepetitionGuards.Select(RepetitionTest)]));
+                    // A chain naming a counter of the field's OWN entry reads a different occurrence at each placement of
+                    // a multiple COLUMN clause (GR3), so each placement has its own slot, consecutive from Fields[f].
+                    string test = string.Join(" && ", [.. f.PresentWhen.Count > 0 ? [PresentExpr(f.PresentWhen)] : (string[])[],
+                                                        .. f.RepetitionGuards.Select(RepetitionTest)]);
+                    for (int rep = 0; rep < PresenceSlotCount(f); rep++)
+                    {
+                        int slot = plan.Add(test, f.PresentCounters, rep);
+                        if (rep == 0) plan.Fields[f] = slot;
+                    }
                 }
         }
         // A SUM counter's presence is BOTH halves of §2023:13.18.54.4 GR10 — its PRESENT WHEN chain and its occurrence's
@@ -130,10 +148,9 @@ internal sealed class ReportWriterEmitter(
         foreach (var s in r.Sums)
             if (ReferenceEquals(s.PrintedIn, group) && (s.PresentWhen.Count > 0 || s.RepetitionGuards.Count > 0))
             {
-                plan.Sums[s] = plan.Tests.Count;
                 List<string> terms = [.. s.PresentWhen.Count > 0 ? [PresentExpr(s.PresentWhen)] : (string[])[],
                                       .. s.RepetitionGuards.Select(RepetitionTest)];
-                plan.Tests.Add(string.Join(" && ", terms));
+                plan.Sums[s] = plan.Add(string.Join(" && ", terms), s.PresentCounters);
             }
         // A SOURCE / VALUE entry's occurrence is absent exactly when its full chain or its OCCURS … DEPENDING count says
         // so (§2023:13.18.54.4 GR11) — the SUM entry's twin above, and read in the same snapshot, by the rolled addition.
@@ -141,10 +158,10 @@ internal sealed class ReportWriterEmitter(
             if (o.Sum is null && ReferenceEquals(o.Family.Group, group)
                 && (o.PresentWhen.Count > 0 || o.RepetitionGuards.Count > 0))
             {
-                plan.Items[o] = plan.Tests.Count;
                 List<string> terms = [.. o.PresentWhen.Count > 0 ? [PresentExpr(o.PresentWhen)] : (string[])[],
                                       .. o.RepetitionGuards.Select(RepetitionTest)];
-                plan.Tests.Add(string.Join(" && ", terms));
+                plan.Items[o] = plan.Add(string.Join(" && ", terms), o.PresentCounters,
+                    o.Family.Columns > 1 ? o.Coordinates[^1] : 0);
             }
         _plans[group] = plan;
         return plan;
@@ -158,8 +175,23 @@ internal sealed class ReportWriterEmitter(
         if (plan.Tests.Count == 0) return;
         using (w.Block($"private void __RPT_P_{r.CsIndex}_{gi}(bool[] __p)   // {r.Name} {group.Kind} presence (ISO §2023:13.18.41.4 GR2 / §2023:13.18.38.4 GR13)"))
             for (int k = 0; k < plan.Tests.Count; k++)
-                w.Line($"__p[{k}] = {plan.Tests[k]};");
+            {
+                var (expr, counters, rep) = plan.Tests[k];
+                if (counters.Count == 0) { w.Line($"__p[{k}] = {expr};"); continue; }
+                // The chain names a VARYING counter: evaluate it at the occurrence the slot stands for, with the same
+                // compose-locals a placement declares (EmitVaryingCounters), in a block of its own.
+                using (w.Block($"// presence slot {k}: VARYING counters at occurrence {rep + 1} (§2023:13.18.64.3 SR2)"))
+                {
+                    EmitVaryingCounters(r, counters, rep, w);
+                    w.Line($"__p[{k}] = {expr};");
+                }
+            }
     }
+
+    /// <summary>How many presence slots a printable item takes: one per placement when its PRESENT WHEN chain names a counter
+    /// its own entry repeats through a multiple COLUMN clause (<see cref="ReportVaryingUse.PerPlacement"/>), else one.</summary>
+    private static int PresenceSlotCount(ReportFieldModel f) =>
+        f.PresentCounters.Any(u => u.PerPlacement) ? f.Columns.Count : 1;
 
     /// <summary>Emit one report line's compose method: a space-filled buffer of the report's line width, each
     /// printable item placed at its COLUMN (§2023:13.18.14) with the value the §2023:13.18.53.4 GR1/GR3 implicit MOVE
@@ -213,8 +245,16 @@ internal sealed class ReportWriterEmitter(
         // PRESENT WHEN clause" whose condition the engine owns (GroupIndicatePresent, per detail group — kb/Work
         // PB1244). An absent item places nothing and never advances the horizontal counter, so an indicated item
         // with a relative COLUMN operand needs nothing of its own.
-        string[] tests = [.. presentSlot >= 0 ? [RuntimeApi.ReportIsPresent(r.CsIndex, gi, presentSlot)] : (string[])[],
+        // A chain naming the counter of the entry's own multiple COLUMN clause has one slot per placement (PresenceSlotCount),
+        // read inside the placement loop; every other chain has the one slot, read once for all placements.
+        bool slotPerPlacement = presentSlot >= 0 && PresenceSlotCount(f) > 1;
+        string[] tests = [.. presentSlot >= 0 && !slotPerPlacement ? [RuntimeApi.ReportIsPresent(r.CsIndex, gi, presentSlot)] : (string[])[],
                           .. f.GroupIndicate ? [$"__RPT_{r.CsIndex}.GroupIndicatePresent"] : (string[])[]];
+        // An absent repetition 0 of a STEPped entry still fixes the step anchor: §2023:13.18.38.4 GR12 measures every later
+        // repetition from the column repetition 0 would occupy, so the seed is written OUTSIDE every presence test.
+        bool anchorHoisted = f.Columns[0].Kind == ReportColumnKindModel.AnchorSeed;
+        if (anchorHoisted)
+            w.Line($"__ra{f.Columns[0].AnchorId} = __hc + {f.Columns[0].Value};   // §2023:13.18.14.4 GR8 + §2023:13.18.38.4 GR12");
         using IDisposable? guard = tests.Length > 0
             ? w.Block($"if ({string.Join(" && ", tests)})   // presence (§2023:13.18.41.4 GR2b / §2023:13.18.28.4 GR1 / §2023:13.18.38.4 GR13)")
             : null;
@@ -226,6 +266,9 @@ internal sealed class ReportWriterEmitter(
             using IDisposable? occurrence = f.Varyings.Count > 0
                 ? w.Block($"// VARYING counters at placement {rep + 1} (§2023:13.18.64.4 GR3)") : null;
             EmitVaryingCounters(r, f.Varyings, rep, w);
+            using IDisposable? placementPresent = slotPerPlacement
+                ? w.Block($"if ({RuntimeApi.ReportIsPresent(r.CsIndex, gi, presentSlot + rep)})   // presence at placement {rep + 1} (§2023:13.18.41.4 GR2b)")
+                : null;
             var spec = f.Columns[rep];
             // The operand this repetition takes (§2023:13.18.63.4 GR23 / §2023:13.18.53.4 GR4 — the ONE cycling reader is
             // ReportFieldModel.SourceAt). The index is the repetition ORDINAL, so a PRESENT WHEN that suppresses
@@ -248,7 +291,8 @@ internal sealed class ReportWriterEmitter(
                     // Repetition 0 of a STEP'd repeating entry whose COLUMN operand is relative: place as GR8
                     // says AND remember the column, because §2023:13.18.38.4 GR12 measures the later repetitions from
                     // the column this one occupies, not from the horizontal counter (which holds its RIGHTMOST).
-                    w.Line($"__ra{spec.AnchorId} = __hc + {spec.Value};   // §2023:13.18.14.4 GR8 + §2023:13.18.38.4 GR12");
+                    if (rep > 0 || !anchorHoisted)
+                        w.Line($"__ra{spec.AnchorId} = __hc + {spec.Value};   // §2023:13.18.14.4 GR8 + §2023:13.18.38.4 GR12");
                     w.Line($"{RuntimeApi.ReportPlace(r.CsIndex, "__ln", $"__ra{spec.AnchorId}", image)};");
                     w.Line($"__hc = __ra{spec.AnchorId} + {f.PrintItem.DisplayTextWidth - 1};   // §2023:13.18.14.4 GR9");
                     break;
