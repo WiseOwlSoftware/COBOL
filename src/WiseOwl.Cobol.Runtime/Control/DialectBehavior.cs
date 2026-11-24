@@ -635,6 +635,12 @@ public enum DialectBehavior
     /// <see cref="IndexedReadPreviousAfterOpenAtEnd"/>; VCR row 7.123). Both editions are QUOTED. The consumer is
     /// <c>RelativeConnector.SelectSequentialSlot</c>.</summary>
     RelativeReadPreviousAfterOpenComparesFpi = 67,
+    /// <summary>§2014:13.10.2 SR3 — "All subscripts of data-name-1 and data-name-2 shall be literals" (§2023:13.10.3 SR3 the same), the
+    /// operand of a constant entry's LENGTH OF / BYTE-LENGTH OF phrase. COBOL-2002's constant entry has no such rule: its SR3 says
+    /// only "Data-name-1 and data-name-2 may be qualified" (§2002:13.9.2 SR3), so at <c>--std 2002</c> the subscripts are ordinary ones
+    /// (§2002:8.4.1.2.2) and a data-name or an arithmetic expression may be written (kb/Work PB5709; VCR row 7.124). Both editions are
+    /// QUOTED. The consumer is <c>ConstantEntryBinder.BindConstantLength</c>.</summary>
+    ConstantLengthSubscriptsAreLiterals = 68,
 }
 
 /// <summary>
@@ -966,6 +972,10 @@ public static class DialectBehaviors
             "READ ... PREVIOUS on a relative file immediately after OPEN returns the lowest existing record, the direction-blind rule b), "
             + "only from COBOL-2023; COBOL-2002 and COBOL-2014 compare 'less than or equal to' the indicator OPEN set to 1, so a file "
             + "whose lowest record is above RRN 1 is at end"),
+        new(DialectBehavior.ConstantLengthSubscriptsAreLiterals, "constant-length-subscripts-are-literals", 2014,
+            "7.124", "§2014:13.10.2 SR3", "§2002:13.9.2 SR3",
+            "every subscript of a constant entry's LENGTH OF / BYTE-LENGTH OF operand shall be a literal only from COBOL-2014; "
+            + "at COBOL-2002 the operand's subscripts are ordinary ones and may be data-names"),
     ];
 
     static DialectBehaviors()
