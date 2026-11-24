@@ -146,7 +146,7 @@ def _world(programs):
     directory = scratch_dir("crosswalk-")
     catalog = _catalog()
     for name, obj in T.build_all(catalog, programs).items():
-        (directory / f"{name}.json").write_bytes(T.dump(obj).encode("utf-8"))
+        T.write_file(directory / f"{name}.json", obj)
     return catalog, directory
 
 
@@ -154,7 +154,7 @@ def _edit(directory, name, change):
     path = directory / f"{name}.json"
     obj = json.loads(path.read_text(encoding="utf-8"))
     change(obj)
-    path.write_bytes(T.dump(obj).encode("utf-8"))
+    T.write_file(path, obj)
 
 
 def case_11_the_audit_is_silent_on_the_files_the_tool_writes(expect):
@@ -176,7 +176,7 @@ def case_12_the_audit_names_each_way_a_file_disagrees_with_its_program_or_the_ca
     expect("a row the catalog lacks", "row 1985-GR-NOPE-1 is no row of the 1985 catalog" in got, got)
     expect("a mechanical entry that no longer equals the map", "a mechanical entry differs" in got, got)
     (directory / "Z.json").unlink()
-    _edit(directory, "A", lambda o: o["units"][0].update(rows=["1985-GR-VI.5.12.4-1"], basis="adjudicated"))
+    _edit(directory, "A", lambda o: o["units"][0].update(rows=["1985-GR-VI.5.12.4-1"], basis="adjudicated: planted (selftest)"))
     expect.equal("an adjudicated entry may differ from the map while its rows exist",
                  [p for p in T.audit(catalog, programs, directory) if p.startswith("A:")], [])
     _edit(directory, "A", lambda o: o["units"][0].update(disposition="excluded", reason="nope"))
@@ -335,6 +335,23 @@ def case_21_the_audit_refuses_a_file_a_rebuild_would_change_an_adjudicated_entry
                      ["A:SIGN-TEST-1: a rebuild would change this adjudicated entry"])
     finally:
         T.merge = real
+
+
+def case_22_a_basis_neither_mechanical_nor_adjudicated_with_a_reason_is_refused_by_the_build_and_the_audit(expect):
+    programs = {"A": _program(*_SIGN)}
+    for basis in (None, "mechanical ", "Mechanical", "adjudicated", "adjudicated:   ", "Adjudicated: x", 7):
+        catalog, directory = _world(programs)
+        _edit(directory, "A", lambda o, b=basis: o["units"][0].update(rows=["1985-GR-VI.6.19.4-1"], basis=b)
+              if b is not None else (o["units"][0].update(rows=["1985-GR-VI.6.19.4-1"]), o["units"][0].pop("basis")))
+        stored = json.loads((directory / "A.json").read_text(encoding="utf-8"))["units"][0]
+        _, kept, conflicts = T.build(catalog, programs, directory)
+        want = f"A:SIGN-TEST-1: basis {basis!r} is neither 'mechanical' nor 'adjudicated: ' and a reason"
+        expect.equal(f"basis {basis!r}: the build reports it and counts no adjudication", (kept, conflicts),
+                     (0, [want + " (entry kept: correct its basis)"]))
+        expect.equal(f"basis {basis!r}: the entry is kept, never silently replaced",
+                     json.loads((directory / "A.json").read_text(encoding="utf-8"))["units"][0], stored)
+        expect(f"basis {basis!r}: the audit refuses it", want in T.audit(catalog, programs, directory))
+    expect.equal("the legal forms", [T.basis_problems("w", {"basis": b}) for b in ("mechanical", "adjudicated: why")], [[], []])
 
 
 if __name__ == "__main__":
