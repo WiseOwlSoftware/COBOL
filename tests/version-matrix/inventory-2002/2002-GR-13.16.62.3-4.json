@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.62.3-4",
+ "rule-digest": "8dca6710186a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindPresentWhen; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitPresenceProbe",
+ "test-ref": "conformance:cases/13.18.64-VARYING/pb5624-present-when-varying-counter",
+ "notes": "kb/Work PB5624 landed. The 2023 twin GR-13.18.64.4-4 is CONFORMS; at 2002 the value a counter holds persists through the occurrence's processing and is readable from a PRESENT WHEN condition of the entry or a subordinate entry (cite.py OK §2002:13.16.62.3 GR4, SR2 of 13.16.62.2): the condition is evaluated per occurrence in the group's presence probe with the counter declared at that occurrence (pb5624-present-when-varying-counter: R=2 absent; the LINE entry's own PRESENT WHEN; a SUM counter's; STEP 2 placements), and a condition written above the counter's entry is refused COBOL1639 (pb5624-present-when-ancestor-names-subordinate-counter)."
+}

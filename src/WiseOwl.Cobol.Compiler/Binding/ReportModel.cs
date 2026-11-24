@@ -469,6 +469,13 @@ public sealed class ReportLineModel(ReportLineKindModel kind, int value)
     /// <summary>The bound chain (AND-composed by the emitter); parallel to <see cref="PresentWhenCtxs"/>.</summary>
     public List<BoundCondition> PresentWhen { get; } = [];
 
+    /// <summary>The VARYING counters a PRESENT WHEN condition of this entry's chain names, as the uses to declare when the
+    /// chain is evaluated (§2023:13.18.64.3 SR2 — a counter is referenced "within the current entry or a subordinate entry";
+    /// §2023:13.18.38.4 GR11 — with a VARYING clause "the action of these clauses may vary from one repetition to
+    /// another"). Empty when no condition names a counter: the chain then reads the same at every repetition and the
+    /// presence probe declares nothing (kb/Work PB5624).</summary>
+    public IReadOnlyList<ReportVaryingUse> PresentCounters { get; set; } = [];
+
     /// <summary>The OCCURS … DEPENDING presence tests this LINE inherits (ISO §2023:13.18.38.4 GR13), outermost
     /// repeating entry first — empty unless the line lies inside a VERTICALLY repeating entry with the
     /// DEPENDING phrase. GR13 makes such an OCCURS "have the same effect as an OCCURS clause with no TO or
@@ -699,6 +706,13 @@ public sealed class ReportFieldModel
     /// <summary>PRESENT WHEN conditions strictly below the line entry, down to this entry (§2023:13.18.41.4 GR2b).</summary>
     public List<CobolParserCore.ConditionContext> PresentWhenCtxs { get; } = [];
     public List<BoundCondition> PresentWhen { get; } = [];
+
+    /// <summary>The VARYING counters a PRESENT WHEN condition of this entry's chain names, as the uses to declare when the
+    /// chain is evaluated (§2023:13.18.64.3 SR2 — a counter is referenced "within the current entry or a subordinate entry";
+    /// §2023:13.18.38.4 GR11 — with a VARYING clause "the action of these clauses may vary from one repetition to
+    /// another"). Empty when no condition names a counter: the chain then reads the same at every repetition and the
+    /// presence probe declares nothing (kb/Work PB5624).</summary>
+    public IReadOnlyList<ReportVaryingUse> PresentCounters { get; set; } = [];
 
     /// <summary>The VARYING counters in scope at this field (§2023:13.18.64.3 SR2) — those of its own entry and of every
     /// entry above it, outermost first, each with the occurrence of its declaring entry the field lies in. Empty
@@ -1016,6 +1030,18 @@ public sealed class ReportItemOccurrence
     /// <summary>The VARYING counters in scope at the entry (§2023:13.18.64.3 SR2) — what its SOURCE operand may name.</summary>
     public List<ReportVaryingUse> Varyings { get; } = [];
 
+    /// <summary>The VARYING counters a PRESENT WHEN condition of this entry's chain (a SUM entry's occurrence reads its counter's) names, as the uses to declare when the
+    /// chain is evaluated (§2023:13.18.64.3 SR2 — a counter is referenced "within the current entry or a subordinate entry";
+    /// §2023:13.18.38.4 GR11 — with a VARYING clause "the action of these clauses may vary from one repetition to
+    /// another"). Empty when no condition names a counter: the chain then reads the same at every repetition and the
+    /// presence probe declares nothing (kb/Work PB5624).</summary>
+    public IReadOnlyList<ReportVaryingUse> PresentCounters
+    {
+        get => Sum?.PresentCounters ?? _presentCounters;
+        set { if (Sum is { } counter) counter.PresentCounters = value; else _presentCounters = value; }
+    }
+    private IReadOnlyList<ReportVaryingUse> _presentCounters = [];
+
     /// <summary>The SOURCE operand names one of those counters — whose value is the entry's own occurrence's
     /// (§2023:13.18.64.4 GR3: FROM for the first, BY added for each later one), a compose-local when the entry prints. The
     /// emitter gives a rolled addition of such an operand the same locals for the occurrence it adds.</summary>
@@ -1151,6 +1177,13 @@ public sealed class ReportSumModel
     /// §2023:13.18.54.4 GR10) — the engine consults the AND of these per presentation.</summary>
     public List<CobolParserCore.ConditionContext> PresentWhenCtxs { get; } = [];
     public List<BoundCondition> PresentWhen { get; } = [];
+
+    /// <summary>The VARYING counters a PRESENT WHEN condition of this entry's chain names, as the uses to declare when the
+    /// chain is evaluated (§2023:13.18.64.3 SR2 — a counter is referenced "within the current entry or a subordinate entry";
+    /// §2023:13.18.38.4 GR11 — with a VARYING clause "the action of these clauses may vary from one repetition to
+    /// another"). Empty when no condition names a counter: the chain then reads the same at every repetition and the
+    /// presence probe declares nothing (kb/Work PB5624).</summary>
+    public IReadOnlyList<ReportVaryingUse> PresentCounters { get; set; } = [];
 
     /// <summary>⛔ GR10's OTHER HALF — the OCCURS … DEPENDING presence tests of THIS OCCURRENCE (ISO §2023:13.18.38.4
     /// GR13), outermost repeating entry first. §2023:13.18.54.4 GR10: "If the entry is associated with an absent data item

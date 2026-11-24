@@ -2607,6 +2607,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 // The line's PRESENT WHEN chain: every ancestor condition + this entry's own (§2023:13.18.41.4 GR2b).
                 foreach (var (_, c, _, _) in chain) if (c is not null) opened.PresentWhenCtxs.Add(c);
                 if (ownCond is not null) opened.PresentWhenCtxs.Add(ownCond);
+                opened.PresentCounters = PresentCountersOf(opened.PresentWhenCtxs, VaryingUsesOf(ge, 0, st));
                 // §2023:13.18.38.4 GR13 on the VERTICAL axis: a repetition the DEPENDING count excludes has no line.
                 opened.RepetitionGuards.AddRange(st.GuardsHere());
                 st.LineChainDepth = chain.Count + 1;   // this entry's frame is pushed below
@@ -2634,6 +2635,10 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                         columns.Count > 0);
                     foreach (var (_, cond, _, _) in chain) if (cond is not null) sum.PresentWhenCtxs.Add(cond);
                     if (ownCond is not null) sum.PresentWhenCtxs.Add(ownCond);
+                    // This counter's occurrence of a multiple COLUMN entry: its own entry's VARYING counter stands at
+                    // occurrence c (§2023:13.18.64.4 GR3), fixed here rather than per placement.
+                    sum.PresentCounters = PresentCountersOf(sum.PresentWhenCtxs,
+                        [.. VaryingUsesOf(ge, columns.Count, st).Select(u => u.PerPlacement ? u with { Ordinal = u.Ordinal + c, PerPlacement = false } : u)]);
                     sum.RepetitionGuards.AddRange(st.GuardsHere());
                     sums.Add(sum);
                     // §2023:13.18.54.4 GR6 — the counter occurrence is what a SUM clause's data-name-1 adds when it names
@@ -2835,6 +2840,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 // replay's ordinal; this entry's own, when it repeats through a multiple COLUMN clause as well, is
                 // counted per placement (the emitter adds the placement index), after the replay ordinal's columns.
                 field.Varyings.AddRange(VaryingUsesOf(ge, columns.Count, st));
+                field.PresentCounters = PresentCountersOf(field.PresentWhenCtxs, field.Varyings);
                 field.RepetitionGuards.AddRange(st.GuardsHere());
                 line.Fields.Add(field);
                 // The entry's occurrences as a rolled total's addends (§2023:13.18.54.4 GR6 — the operand of its SOURCE or
@@ -3052,7 +3058,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
 
     /// <summary>True when <paramref name="tree"/> contains a word terminal spelled <paramref name="word"/>
     /// (case-insensitive) — the VARYING-counter / report-section-name reference scans.</summary>
-    private static bool HasWord(Antlr4.Runtime.Tree.IParseTree tree, string word)
+    internal static bool HasWord(Antlr4.Runtime.Tree.IParseTree tree, string word)
     {
         if (tree is Antlr4.Runtime.Tree.ITerminalNode t)
             return CobolNames.Same(t.GetText(), word);
@@ -3466,6 +3472,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             if (ownCond is not null) occurrence.PresentWhenCtxs.Add(ownCond);
             occurrence.RepetitionGuards.AddRange(st.GuardsHere());
             occurrence.Varyings.AddRange(varyings);
+            occurrence.PresentCounters = PresentCountersOf(occurrence.PresentWhenCtxs, varyings);
             occurrence.VaryingDependent = occurrence.Source switch
             {
                 FieldReferenceSource rs => varyings.Any(u => HasWord(rs.Ref, u.Counter.Name)),
@@ -3476,6 +3483,13 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             model.ItemOccurrences.Add(occurrence);
         }
     }
+
+    /// <summary>The uses a PRESENT WHEN chain needs declared when it is evaluated (<see cref="ReportLineModel.PresentCounters"/>):
+    /// all of <paramref name="inScope"/> when some condition of <paramref name="chain"/> names one of their counters, else none —
+    /// a chain that names no counter is the same at every repetition (§2023:13.18.38.4 GR11), so its probe declares nothing.</summary>
+    private static IReadOnlyList<ReportVaryingUse> PresentCountersOf(IEnumerable<Core.ConditionContext> chain,
+        IReadOnlyList<ReportVaryingUse> inScope) =>
+        inScope.Count > 0 && chain.Any(c => inScope.Any(u => HasWord(c, u.Counter.Name))) ? [.. inScope] : [];
 
     /// <summary>The VARYING counters in scope at entry <paramref name="ge"/> (§2023:13.18.64.3 SR2): its own and every
     /// enclosing entry's, outermost first, each with the occurrence of its declaring entry the placement lies in

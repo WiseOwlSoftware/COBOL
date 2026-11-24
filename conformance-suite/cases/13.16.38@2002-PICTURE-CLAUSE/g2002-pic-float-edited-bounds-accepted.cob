@@ -9,7 +9,7 @@
       *>   exponent 2002 allows (+999) and C the shortest (+9).
       *> §2002:13.16.38.2 SR6 - the digit positions of a numeric-edited
       *>   item "shall range from 1 through 31", counted over both parts of a
-      *>   floating-point item (GR12 b; ER8): A carries 27 + 1 digits in
+      *>   floating-point item (GR12 b; §2002:13.16.38.4 GR8): A carries 27 + 1 digits in
       *>   its significand and 3 in its exponent = 31, the most allowed.
       *> Each symbol is counted in the size of the item (§2002:13.16.38.3
       *>   GR13, the symbols 'E' and the signs among them), so
