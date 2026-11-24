@@ -81,7 +81,7 @@ internal static class BindPipeline
         {
             // MoveBinder's figurative-fill and ref-mod-store receivers; the resolver's NumericImagePlace wrap reads the
             // set as it stands; IntrinsicBinder and the resolver mark the function and property call sites; an EVALUATE WHEN
-            // range's IN alphabet-name-1 makes its carrier (EvaluateBinder.RangeAlphabet, kb/Work PB3214).
+            // range's IN alphabet-name-1 makes its carrier (WhenPhraseBinder.RangeAlphabet, kb/Work PB3214).
             Views = PassViews.Of(appends: [FactSetKind.ImageForcedItems, FactSetKind.ActivationSites, FactSetKind.RangeCollations],
                 readsEarly: [FactSetKind.ImageForcedItems], readsWhole: []),
         },

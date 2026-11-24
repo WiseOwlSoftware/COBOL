@@ -32,7 +32,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// before <c>valueOperand</c> in <c>evaluateWhenItem</c> would also retarget <c>EVALUATE X / WHEN Y</c> where Y is
 /// a level-88 condition-name — a value comparison (§2023:14.9.13.4 GR4a.6) silently becoming a truth-value test —
 /// because <b>Table 15</b> makes the object's legality depend on the SUBJECT, which no context-free ordering can
-/// express. The subject-dependent half lives in <c>EvaluateBinder.BindWhenItem</c> via
+/// express. The subject-dependent half lives in <c>WhenPhraseBinder.BindWhenItem</c> via
 /// <c>ConditionBinder.BareOperandAsCondition</c>. Both facts are pinned below.</para>
 ///
 /// <para>⛔ <b>THE BRACKETED NOT BELONGS TO THE FIVE ALTERNATIVES THAT PRINT IT, NEVER TO THE WHOLE OBJECT (kb/Work
