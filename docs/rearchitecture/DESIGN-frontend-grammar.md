@@ -1010,7 +1010,7 @@ literal-1 AB" (legal, SR2) and "a concatenation whose first operand is the figur
 SR1) — ANTLR resolves a true ambiguity toward the lower alternative, so the legal reading wins, while `"X" & ALL
 "A"` still parses as a concatenation and is rejected COBOL1541 by `ConcatFolder`. (2) Every binder consumer
 reads literal-1 through ONE reader, `ConcatFolder.FoldAllLiteral` — the procedure-division figurative binder
-(`BoundAllLiteral.Of(Folded)`), the boolean channel and its routing predicate, the VALUE reader
+(`ConcatFolder.AllLiteral(Folded)`), the boolean channel and its routing predicate, the VALUE reader
 (`RawValueOperandText`) and the SPECIAL-NAMES ALPHABET/CLASS literal phrase — so literal-1 is folded, classed and
 screened identically everywhere. It resolves all three written shapes: a quoted literal; a concatenation expression,
 through the same pairwise `Walk` as every other concatenation (so `ALL "A" & SPACE`, `ALL "A" & K` and `ALL "A" &

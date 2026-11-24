@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Compiler.Binding.Bound;
 using WiseOwl.Cobol.Frontend.Common;
 using WiseOwl.Cobol.Compiler.Binding.Model;
 using WiseOwl.Cobol.Editions.Diagnostics;
@@ -84,6 +85,25 @@ internal static class ConcatFolder
         LiteralClass.Boolean => PicCategory.Boolean,
         _ => PicCategory.Alphanumeric,
     };
+
+    /// <summary>The figurative <c>ALL literal-1</c> (§2023:8.3.3.6 Format 6) from the literal's RAW source text (kb/Work
+    /// PB71): the value through <see cref="CobolLiteral.Decode"/>, the category through the ONE literal-class classifier
+    /// (<see cref="CobolLiteral.ClassOf"/>) and <see cref="CategoryOf"/>. Every producer of an ALL literal from raw
+    /// text (INITIALIZE REPLACING) builds through this, so a national or boolean literal-1 keeps its category
+    /// everywhere; the raw text is already ONE literal (the VALUE reader folds a concatenated or constant-name literal-1
+    /// first, <c>DataBinder.RawValueOperandText</c>). The figurative-constant binder builds from the parse tree through
+    /// the <see cref="Folded"/> overload. Both live here, beside the fold, so the bound node names no binding type
+    /// (kb/Work PB2419).</summary>
+    public static BoundAllLiteral AllLiteral(string rawLiteral) =>
+        new(CobolLiteral.Decode(rawLiteral))
+        {
+            Category = CobolLiteral.ClassOf(rawLiteral) is { } cls ? CategoryOf(cls) : PicCategory.Alphanumeric,
+        };
+
+    /// <summary>The ALL figurative over a literal-1 already folded by <see cref="FoldAllLiteral"/>: the fold's class and
+    /// decoded value as they are (a concatenated literal-1's class is the pairwise §2023:8.8.3.3 GR1 fold, never its first
+    /// operand's prefix).</summary>
+    public static BoundAllLiteral AllLiteral(Folded literal1) => new(literal1.Value) { Category = literal1.Category };
 
     /// <summary>The class of the concatenation expression (§2023:8.8.3.3 GR1, folded pairwise) — DIAGNOSTIC-FREE, for
     /// routing predicates that must classify without double-reporting (e.g. the boolean-channel discriminator

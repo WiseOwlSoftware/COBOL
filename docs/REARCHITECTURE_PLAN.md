@@ -435,7 +435,7 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   Characterization 33/33 · NIST-legacy 353/0 audit-clean · differential 1323 cases, **0 flips**. ALL GREEN.
   **✅ PB71 CLOSED (DEVLOG 1305, 2026-08-18)** — the ALL figurative over every literal kind: ONE grammar arm
   (`ALL allLiteral` — plain / hex / national / boolean, and a concatenated literal-1 per §2023:8.3.3.6.3 SR2), ONE
-  literal-class classifier (`CobolLiteral.ClassOf`), ONE constructor (`BoundAllLiteral.Of`); the VALUE validator
+  literal-class classifier (`CobolLiteral.ClassOf`), ONE constructor (`ConcatFolder.AllLiteral`); the VALUE validator
   and the version pass ask the same; COBOL1648 (zero-length literal-1). SR-8.3.3.6.3-2 + FMT-8.3.3.6.2 →
   CONFORMS, GAP 4040.
   **✅ PB65 CLOSED (DEVLOG 1306, 2026-08-18)** — the last five members: a MIXED selection list (MAX/MIN/ORD-MAX/

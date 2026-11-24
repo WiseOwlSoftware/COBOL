@@ -842,7 +842,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         // classifier's business, not this site's.
         var form = WiseOwl.Cobol.Compiler.CodeGen.Roslyn.FigurativeConstants.Classify(raw);
         if (form.Kind is { } kind) return new BoundFigurative(kind);
-        if (form.AllLiteral is { } literal1) return BoundAllLiteral.Of(literal1);
+        if (form.AllLiteral is { } literal1) return ConcatFolder.AllLiteral(literal1);
         string t = raw.Trim();
         // N"…"/B"…" (and the apostrophe forms) VALUE clauses re-produce their category-tagged literal (declaration-time
         // validation — 0898/0900 — already ran in DataBinder; no re-gating here). Test the prefix letter, then the codec.
