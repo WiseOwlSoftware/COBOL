@@ -770,7 +770,7 @@ internal sealed class VersionConformancePass
     private void GateDataItem(DataItem item, string where)
     {
         using var _ = _sink.At(item);   // the entry's own position, captured when it was bound (kb/Work PB82, PB1925)
-        string? id = item.Pic?.ConstructId ?? UsageConstructId(item);
+        string? id = item.Pic?.ConstructId() ?? UsageConstructId(item);
         if (id is { } gate) Check(gate, where);
     }
 

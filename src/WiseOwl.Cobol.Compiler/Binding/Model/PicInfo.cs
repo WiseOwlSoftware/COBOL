@@ -511,8 +511,10 @@ public sealed record PicInfo(
     /// <see cref="IsFloatEdited"/>; NATIONAL-EDITED (§2023:8.5.2.11, §2023:13.18.40.4 GR10, kb/Work PB492) on the
     /// category-national picture's edit mask, which is what the category IS in this model (the same
     /// <c>{ Category, EditMask: not null }</c> pair alphanumeric-edited uses). A fact of the analysed picture, so it
-    /// lives on the picture, and the binder asks it without reading the validation layer (kb/Work PB2421).</summary>
-    public string? ConstructId =>
+    /// lives on the picture, and the binder asks it without reading the validation layer (kb/Work PB2421). A METHOD, never a
+    /// property: a property joins the record's synthesized text, which <c>StrongTypeModel</c>'s type-identity key compiles
+    /// into the program, so a derived property would change every strong type's emitted key.</summary>
+    public string? ConstructId() =>
         IsFloatEdited ? Constructs.PicExternalFloat2002
         : this is { Category: PicCategory.National, EditMask: not null } ? Constructs.NationalEdited2002
         : null;

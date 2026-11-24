@@ -173,7 +173,7 @@ public sealed class EditionGateArmDriftTests
             else if (src[j] == '}' && --depth == 0) break;
         }
         int end = j + 1;
-        Assert.Contains("item.Pic?.ConstructId", src[..start] + src[end..], StringComparison.Ordinal);
+        Assert.Contains("item.Pic?.ConstructId()", src[..start] + src[end..], StringComparison.Ordinal);
         return (src[..start] + src[end..] + PictureShapeGate(), src[start..end]);
     }
 
@@ -182,7 +182,7 @@ public sealed class EditionGateArmDriftTests
     {
         string pic = File.ReadAllText(TestRepo.Src(Path.Combine(
             "WiseOwl.Cobol.Compiler", "Binding", "Model", "PicInfo.cs")));
-        int at = pic.IndexOf("public string? ConstructId =>", StringComparison.Ordinal);
+        int at = pic.IndexOf("public string? ConstructId() =>", StringComparison.Ordinal);
         Assert.True(at >= 0, "PicInfo no longer declares ConstructId, the picture shape's edition gate the bound arm "
             + "asks — re-derive where the PICTURE-shape gates live before trusting either assertion.");
         return pic[at..(pic.IndexOf(';', at) + 1)];
