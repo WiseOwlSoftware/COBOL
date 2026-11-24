@@ -326,8 +326,7 @@ internal sealed class LinkageBinder(DataBinder data)
     /// <summary>The item whose emitted member a reference to <paramref name="item"/> renders: itself, except a Tier-A
     /// (Alias) REDEFINES view, which owns no member and reads its canonical's (ISO §2023:13.18.44.4 GR1 — one storage
     /// area; the one rule <c>PlaceBuilder.PlaceForItem</c> applies to every reference).</summary>
-    private static DataItem AnchorOf(DataItem item) =>
-        item.Class is { Tier: RedefinesTier.Alias } cls && !item.IsCanonical ? cls.Canonical : item;
+    private static DataItem AnchorOf(DataItem item) => item.AliasCanonical ?? item;
 
 
     /// <summary>⛔ EVERY C# MEMBER NAME THIS UNIT'S GLOBAL ROOT <paramref name="g"/> OCCUPIES IN A CONTAINED UNIT'S

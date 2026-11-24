@@ -11,6 +11,11 @@
       *> description of the parameters of the source unit, if any, and the manner of receiving parameters"), so the
       *> CALL is refused COBOL2936. The same-signature spelling is the positive golden
       *> 2002/pb609_call_restricted_program_pointer.
+      *> Refused from 2014, where the rule is §2014:14.9.4.2 SR14 (kb/Work PB5714): COBOL-2002 states no such rule, only
+      *> that "program-prototype-name-1, or the program prototype specified in the definition of identifier-1 if it is
+      *> defined as a restricted program-pointer, is used to determine the characteristics of the called program"
+      *> (§2002:14.8.4.3 GR7), so the same CALL compiles there (2002 witness:
+      *> 14.8.4@2002-CALL-STATEMENT/g2002-call-restricted-pointer-as-other-prototype).
       *> kb/Work PB989 - ISO 12.3.8.4 GR10 a): the details come from a program definition specified PREVIOUSLY in the
       *> compilation group; a definition that follows the REPOSITORY entry is not one. The callee below is therefore
       *> given a program prototype definition (11.10.2 Format 2) ahead of every other unit (10.6.2 SR1), which

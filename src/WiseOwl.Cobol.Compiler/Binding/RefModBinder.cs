@@ -35,7 +35,7 @@ internal sealed class RefModBinder(ReferenceResolver refs, DataBinder data)
     internal bool ScreenRefModCount(Core.DataReferenceContext dref, WrittenReference written, string name)
     {
         if (written.RefModCount <= 1) return true;
-        if (!refs.Probing && refs.Diagnosed.Add(dref))   // R30 purity: a probe never diagnoses (kb/Work PB157)
+        if (refs.ReportOnce(dref))   // R30 purity: a probe never diagnoses (kb/Work PB157)
             data.Edition.Error(DiagnosticCatalog.RefModOfRefMod,
                 $"'{name}' carries {written.RefModCount} reference modifications; a reference-modified item cannot itself "
                 + $"be reference-modified ({data.Edition.Edition.CiteRule("§1985:IV.4.3.8.4.2", "§2023:8.4.3.3.3 SR3")}). Compose the positions into one modifier instead.");
@@ -58,7 +58,7 @@ internal sealed class RefModBinder(ReferenceResolver refs, DataBinder data)
         refusal = null;
         if (RefModExclusion(described, data.Edition.Edition) is { } why)
         {
-            if (!refs.Probing && refs.Diagnosed.Add(dref))   // R30 purity: a probe never diagnoses (kb/Work PB157)
+            if (refs.ReportOnce(dref))   // R30 purity: a probe never diagnoses (kb/Work PB157)
                 data.Edition.Error(DiagnosticCatalog.RefModIdentifierNotPermitted,
                     $"'{WrittenSource.Of(dref)}': reference modification of {why} is not permitted ({EditionInfo.Designated(RefModIdentifierRule(data.Edition.Edition))})");
             refusal = RefResolution.Refused(WrittenSource.Of(dref));
@@ -70,7 +70,7 @@ internal sealed class RefModBinder(ReferenceResolver refs, DataBinder data)
             // A REFUSED segment was reported by whoever refused it (the materializer, or ReadRefMod's omitted
             // leftmost-position), so the reference counts as diagnosed: a caller that asks (ADDRESS OF's binder) then
             // adds no second, misleading "mis-subscripted" error of its own.
-            if (refusal.Outcome == RefOutcome.Reported && !refs.Probing) refs.Diagnosed.Add(dref);
+            if (refusal.Outcome == RefOutcome.Reported) _ = refs.ReportOnce(dref);   // the report was made; only the ledger entry is taken
             return null;
         }
         if (!ScreenRefModLiterals(dref, described, spec, dref.Start.Line))
@@ -284,23 +284,20 @@ internal sealed class RefModBinder(ReferenceResolver refs, DataBinder data)
         _ => null,
     };
 
-    /// <summary>The hook that answers "is checking for EC-BOUND-REF-MOD enabled at this source line?" — installed by
-    /// <c>StatementBinder</c> (which owns the statement-level TURN fold, overlays included) exactly as
-    /// <see cref="MaterializeSegment"/> is, and null on the DATA-division resolution paths, where no statement
-    /// exists for a checking directive to govern (so the screen reads null as "not enabled").</summary>
-    internal Func<int, bool>? RefModCheckingAt { get; set; }
-
     /// <summary>Screen the literal positions of a reference modification of <paramref name="described"/> written at
     /// <paramref name="line"/> and report a violation once per written reference: the error
     /// (<see cref="DiagnosticCatalog.RefModLiteralOutOfRange"/>, the reference is refused — the caller returns
-    /// false) where EC-BOUND-REF-MOD checking is not enabled, the warning twin where it is (the reference binds).</summary>
+    /// false) where EC-BOUND-REF-MOD checking is not enabled, the warning twin where it is (the reference binds).
+    /// Whether checking is enabled at the line is the statement site's answer (<see cref="IStatementSite.RefModCheckingAt"/>,
+    /// which owns the statement-level TURN fold, overlays included); a data-division resolver has no site, and no
+    /// statement exists there for a checking directive to govern, so it reads as not enabled.</summary>
     private bool ScreenRefModLiterals(Core.DataReferenceContext dref, DataItem described, RefModSpec spec, int line)
     {
         if (refs.Probing) return true;   // R30 purity: a probe never diagnoses (kb/Work PB157)
         if (LiteralRefModRangeViolation(described, LiteralPosition(spec.Start), LiteralPosition(spec.Length),
                 spec.Length is null, spec.AllowZeroLength, data.Edition.Edition) is not { } why) return true;
-        bool checking = RefModCheckingAt?.Invoke(line) ?? false;
-        if (refs.Diagnosed.Add(dref))
+        bool checking = refs.Site?.RefModCheckingAt(line) ?? false;
+        if (refs.ReportOnce(dref))
         {
             string at = $"'{WrittenSource.Of(dref)}': {why}";
             if (checking) data.Edition.Warning(DiagnosticCatalog.RefModLiteralOutOfRangeChecked, at);
@@ -329,8 +326,8 @@ internal sealed class RefModBinder(ReferenceResolver refs, DataBinder data)
         var spec = rmp.refModSpec();
         if (spec.leftmost is null)
         {
-            // R30 purity: a probe never diagnoses (kb/Work PB157); one report per written modifier (Diagnosed).
-            if (!refs.Probing && refs.Diagnosed.Add(rmp))
+            // R30 purity: a probe never diagnoses (kb/Work PB157); one report per written modifier (ReportOnce).
+            if (refs.ReportOnce(rmp))
                 data.Edition.Error(DiagnosticCatalog.RefModLeftmostPositionOmitted,
                     $"'{WrittenSource.Of(rmp).Trim()}': a reference modifier is written ( leftmost-position : "
                     + "[ length ] ) and only the length may be omitted, so the colon cannot lead ("

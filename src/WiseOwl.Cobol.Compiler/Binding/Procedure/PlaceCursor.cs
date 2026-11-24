@@ -93,13 +93,10 @@ internal sealed record MemberCursor(AccessPath Path, DataItem Item) : PlaceCurso
     /// <inheritdoc/>
     public override PlaceCursor? Child(DataItem child)
     {
-        if (child.Class is { } cls)
-        {
-            if (cls.Tier == RedefinesTier.StringCanonical && child.IsCanonical)
-                return new ViewCursor(Path.Add(new MemberSegment(cls.BackingClrName)),
-                    new PositionConstant(child.ClassOffset), child.ClassOffset, child, PlaceBuilder.BuildCellPath(cls));
-            if (cls.Tier != RedefinesTier.Alias || !child.IsCanonical) return null;
-        }
+        if (child.Class is { Tier: RedefinesTier.StringCanonical } cls && child.IsCanonical)
+            return new ViewCursor(Path.Add(new MemberSegment(cls.BackingClrName)),
+                new PositionConstant(child.ClassOffset), child.ClassOffset, child, PlaceBuilder.BuildCellPath(cls));
+        if (!child.IsPlainMember) return null;
         return new MemberCursor(Path.Add(new MemberSegment(child.ClrName)), child);
     }
 

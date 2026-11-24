@@ -118,8 +118,8 @@ internal static class StorageFormPass
         //     a string image into it (CS0029 for STRING, the INSPECT EmitStore invariant, a group MOVE read back as
         //     zeros). The closure runs LAST, over every arm above, so a later arm cannot reopen the gap.
         foreach (var item in promoted.ToArray())
-            if (item is { IsCanonical: false, Class: { Tier: RedefinesTier.Alias } cls } && IsImagePromotable(cls.Canonical))
-                promoted.Add(cls.Canonical);
+            if (item.AliasCanonical is { } canonical && IsImagePromotable(canonical))
+                promoted.Add(canonical);
         return promoted;
 
         static void AddBackgroundFilled(DataItem item, HashSet<DataItem> promoted)
@@ -159,8 +159,8 @@ internal static class StorageFormPass
                 if (!receiver.StoreAsImage && IsImagePromotable(receiver) && SendersSignStore.MayHandNegativeZero(sender, receiver))
                 {
                     promoted.Add(receiver);
-                    if (receiver is { IsCanonical: false, Class: { Tier: RedefinesTier.Alias } cls } && IsImagePromotable(cls.Canonical))
-                        promoted.Add(cls.Canonical);
+                    if (receiver.AliasCanonical is { } canonical && IsImagePromotable(canonical))
+                        promoted.Add(canonical);
                 }
             if (promoted.Count == before) return;
             foreach (var d in ctx.AllBindersAndInterfaces())
@@ -342,22 +342,19 @@ internal static class StorageFormPass
         if (item.IsDynamicLength)
             return new StorageForm.DynamicString(item.Pic?.Category ?? PicCategory.Alphanumeric, item.DynMaxSize);
 
-        // (2) A REDEFINES view member (non-canonical member of a class).
-        if (item.Class is { } cls && !item.IsCanonical)
-        {
-            if (cls.Tier == RedefinesTier.StringCanonical)
-                // A Tier-B numeric-DISPLAY / BINARY / PACKED leaf is image-stored (the ClassifyRedefinesClasses
-                // fact record) → CharImage(Numeric); a Tier-B group backing or non-numeric-display view → the
-                // typed (offset, width) window. A Ptr-FORCED StringCanonical class records no facts — its
-                // display leaves stay windows, exactly like the legacy flag.
-                return promoted.Contains(item)
-                    ? new StorageForm.CharImage(item.ImageWidth, PicCategory.Numeric)
-                    : new StorageForm.TierBWindow(cls, item.ClassOffset, item.ImageWidth);
-            if (cls.Tier == RedefinesTier.Alias)
-                return Classify(cls.Canonical, promoted);   // Tier-A: forward to the canonical's form
-            // Rejected (Tier-D backstop / NATIONAL residue): fall through to base classify — the reference
-            // resolver already refuses non-canonical members of a Rejected class (the runtime loud).
-        }
+        // (2) A REDEFINES view member (non-canonical member of a class). A Tier-A view forwards to its canonical's form.
+        if (item.AliasCanonical is { } canonical)
+            return Classify(canonical, promoted);
+        if (item.Class is { Tier: RedefinesTier.StringCanonical } cls && !item.IsCanonical)
+            // A Tier-B numeric-DISPLAY / BINARY / PACKED leaf is image-stored (the ClassifyRedefinesClasses
+            // fact record) → CharImage(Numeric); a Tier-B group backing or non-numeric-display view → the
+            // typed (offset, width) window. A Ptr-FORCED StringCanonical class records no facts — its
+            // display leaves stay windows, exactly like the legacy flag.
+            return promoted.Contains(item)
+                ? new StorageForm.CharImage(item.ImageWidth, PicCategory.Numeric)
+                : new StorageForm.TierBWindow(cls, item.ClassOffset, item.ImageWidth);
+        // A non-canonical member of a Rejected class (Tier-D backstop / NATIONAL residue) falls through to base classify —
+        // the reference resolver already refuses it (the runtime loud).
 
         // (3) Base classification, then the numeric-image promotion for a whole-group / figurative / ref-mod /
         //     file-record / print-item leaf (the OO harmonize applies its flips AFTER classification, at the

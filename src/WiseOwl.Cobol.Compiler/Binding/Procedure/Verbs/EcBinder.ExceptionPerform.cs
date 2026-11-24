@@ -5,7 +5,6 @@ using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
-using WiseOwl.Cobol.Runtime.Exceptions;
 using WiseOwl.Cobol.Frontend.Parsing;
 using WiseOwl.Cobol.Editions;
 
@@ -164,7 +163,7 @@ internal sealed partial class EcBinder
         // Alt 1: WHEN EXCEPTION { INPUT | OUTPUT | I-O | EXTEND | file-name-1… }
         if (w.performWhenModeList() is { } ml)
         {
-            int? mode = ExceptionOpenMode.IndexOf(ml.INPUT(), ml.OUTPUT(), ml.I_O(), ml.EXTEND());
+            int? mode = OpenModeOperand.ExceptionModeIndex(ml.openMode());
             if (mode is not null)
             {
                 // The open-mode operand form is IMPLEMENTED, and this comment used to say otherwise (kb/Work
@@ -190,36 +189,24 @@ internal sealed partial class EcBinder
             return (null, ops);
         }
 
-        // Alt 2: WHEN { exception-name-1 | exception-name-2 FILE file-name-2… }…
-        foreach (var item in w.performWhenEcList()!.performWhenEcItem())
-        {
-            string raw = item.cobolWord().GetText();
-            // Resolution + the 0711/0878/1636 diagnostics live in the ONE funnel (kb/Work R05).
-            if (!EcNameResolution.TryResolve(ctx.Edition, raw, $"WHEN '{raw}'", out var info)) continue;
-            var files = item.fileName();
-            if (files.Length > 0 && !ExceptionCatalog.IsIoName(info.Name))
-            {
-                // PF3-SR16 (COBOL1601): if file-name-2 is specified, exception-name-2 shall begin 'EC-I-O'.
-                using var at = ctx.Edition.At(item);
-                ctx.Edition.Error(DiagnosticCatalog.ExceptionPerformFilePairingNotIo, $"WHEN exception-name '{info.Name}' is paired with FILE but does "
-                    + "not begin with the COBOL characters 'EC-I-O' (ISO §2023:14.9.28.3 SR16)");
-                continue;
-            }
-            if (files.Length == 0)
-            {
-                ops.Add(BoundExceptionSelector.ForName(info, null));
-                overlay.Add((info.Name, null));
-                census.Add(new(info.Name, null, item.Start));
-                continue;
-            }
-            foreach (var fn in files)
-                if (ResolveWhenFile(fn) is { } f)
+        // Alt 2: WHEN { exception-name-1 | exception-name-2 FILE file-name-2… }…, each operand resolved by the one resolver the
+        // USE statement's Format 3 shares (§2023:14.9.28.4 GR17; kb/Work PB6139).
+        foreach (var item in w.performWhenEcList()!.exceptionSelectionOperand())
+            ExceptionSelectionOperands.Resolve(ctx, item, $"WHEN '{item.cobolWord().GetText()}'",
+                refuseFilePairing: (operand, info) =>
                 {
-                    ops.Add(BoundExceptionSelector.ForName(info, f));
-                    overlay.Add((info.Name, f));
-                    census.Add(new(info.Name, f, fn.Start));
-                }
-        }
+                    // PF3-SR16 (COBOL1601): if file-name-2 is specified, exception-name-2 shall begin 'EC-I-O'.
+                    using var at = ctx.Edition.At(operand);
+                    ctx.Edition.Error(DiagnosticCatalog.ExceptionPerformFilePairingNotIo, $"WHEN exception-name '{info.Name}' is paired with FILE but does "
+                        + "not begin with the COBOL characters 'EC-I-O' (ISO §2023:14.9.28.3 SR16)");
+                },
+                resolveFile: ResolveWhenFile,
+                select: (selector, at) =>
+                {
+                    ops.Add(selector);
+                    overlay.Add((selector.Ec!, selector.File));
+                    census.Add(new(selector.Ec, selector.File, at));
+                });
         return (null, ops);
     }
 

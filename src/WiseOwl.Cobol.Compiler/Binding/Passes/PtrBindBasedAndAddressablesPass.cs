@@ -201,7 +201,7 @@ internal sealed class PtrBindBasedAndAddressablesPass(Core.ProgramUnitContext pr
         else
         {
             using (binder.Procedure.ActiveMethodScope.Enter(method?.DataScope))
-                hit = new ReferenceResolver(binder).Names.DataItemNamed(written);
+                hit = new ReferenceResolver(binder, site: null).Names.DataItemNamed(written);
         }
         return hit is not null && binder.State.Forest.DeclaringDepth(hit) == 0 ? hit : null;
     }

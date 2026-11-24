@@ -5,12 +5,13 @@ namespace WiseOwl.Cobol.Runtime;
 /// <summary>
 /// The method-return signal (ISO §2023:14.9.18.4 GR4 — GOBACK within a method terminates the executing METHOD and
 /// returns control to the INVOKE site; OO deep-dive D8): a method-context GOBACK (and, in pre-2023 editions,
-/// EXIT METHOD — removed by 2023, Annex E.2) raises it; the emitted method's public entry catches it and
+/// EXIT METHOD — removed by 2023, Annex E.2) raises it, unless every frame above it tests for the direct form
+/// <see cref="ElementReturn.Returned"/> (kb/Work PB6140); the emitted method's public entry catches it and
 /// returns normally, delivering the method's RETURNING item (if any) as the invocation result. The exception
 /// form (rather than a plain <c>return</c> out of the PC loop) is required for the same reason as
 /// <see cref="ProgramReturn"/>: a GOBACK inside an out-of-line PERFORM executes in a NESTED bounded
-/// <c>__Dispatch</c> frame, which a <c>return</c> would exit one frame at a time — the signal unwinds all of
-/// them to the method boundary at once. Distinct from <see cref="ProgramReturn"/> (a CALLed program's return —
+/// <c>__Dispatch</c> frame, which a <c>return</c> exits one frame at a time — the direct form does that only where each
+/// frame tests for it, and the signal unwinds the rest to the method boundary at once. Distinct from <see cref="ProgramReturn"/> (a CALLed program's return —
 /// caught at <c>__Activate</c>, never at a method entry) and from <see cref="StopRun"/> (STOP RUN inside a
 /// method still terminates the whole run unit, §2023:14.9.42.4 GR1 — it must NOT be caught at the method boundary).
 /// </summary>

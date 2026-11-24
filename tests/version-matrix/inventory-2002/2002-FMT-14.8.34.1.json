@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-14.8.34.1",
+ "rule-digest": "d701aebfa24e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#nextSentenceStatement; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitNextSentenceStatement; tests/version-matrix/constructs/next-sentence-archaic-2002.json",
+ "test-ref": "conformance:cases/14.8.34@2002-SEARCH-STATEMENT/pb5723_search_next_sentence_archaic",
+ "notes": "§2002:14.8.34.1 lets NEXT SENTENCE stand as the body of a SEARCH WHEN or AT END phrase; §2002:G.1 item 3 lists the phrase in the SEARCH statement as archaic and §2002:3.1.10 requires an optional compile-time archaic-element warning. The construct edge next-sentence-archaic-2002 (obsoleteIn 2002, was 2023: kb/Work PB5723) gives COBOL0903 at the phrase at --std 2002, 2014 and 2023, silent at 85. Run at --std 2002 the SEARCH case compiles, warns once and prints its output."
+}

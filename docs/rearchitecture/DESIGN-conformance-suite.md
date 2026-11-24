@@ -958,8 +958,14 @@ otherwise (2,448, 2,385 of them units whose program sets no reference at all: Se
 file-I/O programs). A flag unit maps through Appendix C.1: the catalog marks each obsolete row `obsolete: C.1(n)` and the
 flagged statement names the element n; an element with one row maps to it, one with several is `ambiguous`; the 177 FIPS
 flags are `excluded` (`fips-pub-21-1`). An entry's `basis: "mechanical"` marks what the tool reproduces and `--check`
-enforces; Stage 4's adjudicated entries carry another basis and the audit holds them only to the program's facts and the
-catalog's rows. `unmet(edition)`, the status line's NIST term, counts the units still owed at row level: every `open` unit,
+enforces; Stage 4's adjudicated entries carry `basis: "adjudicated: <reason>"` (any other basis is a broken record that
+`--build` keeps and reports and `--check` refuses), and the audit holds them only to the program's facts and the
+catalog's rows. **A rebuild keeps an adjudication** (kb/Work PB6131): `--build` merges each program's file by unit name, writes
+every adjudicated entry back verbatim, and reports (verdict `BUILD RED`) each kept one whose recorded facts (lines, FEATURE,
+ANSI-REFERENCE, flag) the program now contradicts or whose unit the program no longer has, so a decision is never silently
+overwritten nor silently kept stale; a unit adjudicated twice stops the build before any file is written. `--check` runs the
+same merge and refuses a file in which a rebuild would change an adjudicated entry. The files are written as UTF-8 bytes
+with LF line ends. `unmet(edition)`, the status line's NIST term, counts the units still owed at row level: every `open` unit,
 every `unenumerated` site and every `rows` unit with a row that no cleared test, determination or derivation witnesses (6,931
 of 6,931 at landing). The coverage points are PB6050's: a `rows` unit is subsumed at row level only until `coverage.py`
 exists.

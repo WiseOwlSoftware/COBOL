@@ -148,12 +148,15 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
     private void EmitMatcherArms(BoundExceptionPerform p, CodeWriter w)
     {
         var arms = new List<(ExceptionSelectionTier Tier, int W, int O, string Test, int Imp2Pc)>();
+        // The open-mode phrases select on ONE mode, chosen from the set this PERFORM's WHEN phrases name, as the USE switch
+        // chooses from its declaratives' set (§2023:14.9.28.4 GR17; kb/Work PB2723 review R1-1).
+        int declaredModes = ExceptionSelectionEmitter.DeclaredModes(p.Whens.Select(m => m.ModeIndex).OfType<int>());
         for (int wi = 0; wi < p.Whens.Count; wi++)
         {
             var m = p.Whens[wi];
             if (m.ModeIndex is { } mode)
             {
-                arms.Add((ExceptionSelectionTier.OpenMode, wi, 0, ExceptionSelectionEmitter.OpenModeTest(mode), m.Imp2Pc));
+                arms.Add((ExceptionSelectionTier.OpenMode, wi, 0, ExceptionSelectionEmitter.OpenModeTest(mode, declaredModes), m.Imp2Pc));
                 continue;
             }
             for (int oi = 0; oi < m.Operands.Count; oi++)

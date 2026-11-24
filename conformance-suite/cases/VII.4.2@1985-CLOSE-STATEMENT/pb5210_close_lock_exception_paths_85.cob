@@ -14,14 +14,17 @@
       *> closes nothing and locks nothing, so the physical file opens
       *> through the second file-name N2 (OUTPUT, 00) and through N1
       *> itself (INPUT, 00) and the record N2 wrote reads back.
-      *> PART 2: S1 and S2 name the same physical file and are both open
-      *> INPUT. CLOSE S1 WITH LOCK locks the physical file (§1985:II.2,
+      *> PART 2: S1 and S2 name the same physical file (§1985:II.2,
       *> "mean the physical file regardless of the file-name used in the
-      *> COBOL program"), and §1985:VII.4.2.4 GR3's lock is that the
-      *> file "cannot be opened again during this execution of this run
-      *> unit": S2, already open, still reads (00) and closes (00); its
-      *> next OPEN, and S1's, is 38 (§1985:VII.1.3.5 item e, "an OPEN
-      *> statement is attempted on a file previously closed with lock").
+      *> COBOL program"). S1 opens INPUT; S2's OPEN of the file S1 holds
+      *> open is 41 (§1985:VII.1.3.5, "An OPEN statement is attempted for
+      *> a file in the open mode"; kb/Work PB6161), so S2 never opens
+      *> and its CLOSE is 42. CLOSE S1 WITH LOCK locks the physical
+      *> file, and §1985:VII.4.2.4 GR3's lock is that the file "cannot be
+      *> opened again during this execution of this run unit": the next
+      *> OPEN through S2, and through S1, is 38 (§1985:VII.1.3.5 item e,
+      *> "an OPEN statement is attempted on a file previously closed
+      *> with lock").
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB5210X.
        ENVIRONMENT DIVISION.
@@ -66,8 +69,6 @@
            DISPLAY "OPEN INPUT S2 " ST.
            CLOSE S1 WITH LOCK.
            DISPLAY "CLOSE S1 WITH LOCK " ST.
-           READ S2 AT END DISPLAY "S2 AT END".
-           DISPLAY "READ S2 " ST " " S2-REC.
            CLOSE S2.
            DISPLAY "CLOSE S2 " ST.
            OPEN INPUT S2.

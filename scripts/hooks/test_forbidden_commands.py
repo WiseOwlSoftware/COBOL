@@ -54,6 +54,30 @@ REWRITE = same_origin("fc-rewrite-", (f"url.{ELSEWHERE}.pushInsteadOf", THIS_ORI
 # names no repository is resolved from ITS branch and configuration, so no verdict depends on which branch the
 # developer's or the gate's checkout is on (kb/Work PB5227: the hook asked the real checkout `git symbolic-ref HEAD`).
 SESSION = same_origin("fc-session-", branch="unit-work")
+# kb/Work PB6136, rule 2c: scratch repositories whose origin is this repository, each with a commit a push would publish.
+# The planted stamp is built at run time, so this file holds no stamp of its own.
+PLANTED = "Licensed to " + "Jane" + " Doe"
+
+
+def with_commits(prefix: str, *commits: tuple[str, dict[str, str]], published: int = 0) -> str:
+    """A `same_origin` repository with `commits` (message, files) on main; its first `published` commits are already
+    on origin (its `refs/remotes/origin/main` stands at the last of them)."""
+    d = same_origin(prefix)
+    r = ScratchRepo(d)
+    for k, (message, files) in enumerate(commits, 1):
+        r.commit(message, files)
+        if k == published:
+            r.git("update-ref", "refs/remotes/origin/main", "HEAD")
+    return d
+
+
+STAMPED = with_commits("fc-stamped-", ("base", {"a.txt": "one\n"}), ("ocr", {"ocr.json": '{"line": "' + PLANTED + '"}\n'}))
+STAMPED_MESSAGE = with_commits("fc-stamped-msg-", ("quotes " + PLANTED, {"a.txt": "one\n"}))
+CLEAN = with_commits("fc-clean-", ("base", {"a.txt": "one\n"}), ("more", {"b.txt": "two\n"}))
+ON_ORIGIN = with_commits("fc-on-origin-", ("ocr", {"ocr.json": PLANTED + "\n"}), ("more", {"b.txt": "two\n"}), published=1)
+SPLIT = with_commits("fc-split-", ("split", {"g.txt": "x\norder " + "#\n" + "1234" + "56\n"}))   # review R1-2
+TAGGED = with_commits("fc-tagged-", ("base", {"a.txt": "one\n"}))                               # review R1-3
+ScratchRepo(TAGGED).git("tag", "-a", "v-stamped", "-m", "release " + PLANTED)
 BS = chr(92)  # a backslash, spelled without one
 NL = chr(10)
 # kb/Work PB3198: every rule reads the ONE model of the command line (shell_location.steps), so each rule is checked
@@ -395,15 +419,24 @@ HANG_GUARD = 300
 
 
 def blocked(cmd: str, unit: bool = False, tool: str = "Bash") -> bool:
+    return hook(cmd, unit, tool).returncode == 2
+
+
+def reason(cmd: str) -> str:
+    """The hook's refusal of `cmd` (its stderr), attended, in the Bash tool."""
+    return hook(cmd).stderr
+
+
+def hook(cmd: str, unit: bool = False, tool: str = "Bash") -> subprocess.CompletedProcess:
     # The environment is part of the case: an orchestrator unit has COBOL_COORD_DIR, an attended session never does. Set or
     # removed EXPLICITLY, so the result never depends on who runs this test.
     env = {k: v for k, v in os.environ.items() if k != "COBOL_COORD_DIR"}
     if unit:
         env["COBOL_COORD_DIR"] = "E:/COBOL-coord"
-    r = subprocess.run([sys.executable, str(HOOK)], input=json.dumps({"tool_name": tool, "tool_input": {"command": cmd},
-                                                                   "cwd": SESSION}),
-                       capture_output=True, text=True, timeout=HANG_GUARD, env=env)
-    return r.returncode == 2
+    return subprocess.run([sys.executable, str(HOOK)], input=json.dumps({"tool_name": tool, "tool_input": {"command": cmd},
+                                                                        "cwd": SESSION}),
+                          capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=HANG_GUARD,
+                          env=env)
 
 
 # Inside an orchestrator unit a `git push` to ANOTHER repository is refused, whatever the flags (PB2044: a unit pushed
@@ -444,7 +477,9 @@ UNIT_CASES = [
     (QS + "git -C " + OTHER + " push", True),
     (QS + "git push", False),
     ("git commit -q -m 'x' && xargs -n1 git -C " + OTHER + " push origin < refs.txt", True),   # git wherever it stands in the step
-    ("git commit -q -m 'x' && xargs -n1 git push origin < refs.txt", False),
+    # this repository, but its refspecs come from xargs, unreadable to the scan, after a commit: rule 2c (kb/Work PB6136)
+    ("git commit -q -m 'x' && xargs -n1 git push origin < refs.txt", True),
+    ("git status && git push origin HEAD", False),
     # the branch review of PB3198, R1-1: a push inside a command substitution is a push
     ("out=$(git -C /e/claude-skills push origin main 2>&1)", True),
     ("out=$(git push -q origin HEAD:main 2>&1)", True),
@@ -476,7 +511,9 @@ UNIT_CASES = [
     ("cd " + REWRITE + " && git push " + THIS_ORIGIN + " HEAD", True),     # a configured rewrite applies to a literal URL
     ("cd " + REWRITE + " && git push origin HEAD", True),                  # and to a remote's URL
     ("git push " + THIS_ORIGIN + " HEAD", False),
-    ("git -C " + str(REPO.as_posix()) + " push origin HEAD", False),
+    # `-C` to a repository whose origin is this one (a scratch one: rule 2c scans what a push of THIS repository's own
+    # checkout would publish, which no self-test may read, kb/Work PB6136)
+    ("git -C " + SAME + " push origin HEAD", False),
     ("git commit -q -m 'GIT_DIR=x is why'", False),                        # the name in a message is text
     ("git push --repo=" + OTHER + " HEAD", True),                              # a path to another repository
     ("git push -o ci.skip https://github.com/WiseOwlSoftware/claude-skills.git x", True),   # `-o`'s value is no repository
@@ -503,6 +540,51 @@ fails += [(f"[PowerShell] {c}", e) for c, e in PS_CASES if blocked(c, tool="Powe
 ATTENDED = [("git push -u origin claude/batch-7", False), ("git -C E:/claude-skills push origin v1.18.0", False),
             ("git push -q origin HEAD:main", True)]
 fails += [(f"[attended] {c}", e) for c, e in ATTENDED if blocked(c) != e]
+# kb/Work PB6136, rule 2c: a push to this repository that would publish a licence stamp, attended or in a unit
+STAMP_CASES = [
+    ("cd " + STAMPED + " && git push origin HEAD:refs/heads/pb-topic", True),
+    ("git -C " + STAMPED + " push -u origin pb-topic", False),               # names no commit: git refuses it
+    ("git -C " + STAMPED + " push -u origin main:pb-topic", True),
+    ("cd " + STAMPED + " && git push", True),                                # no refspec: HEAD
+    ("cd " + STAMPED + " && git push --all origin", True),
+    ("cd " + STAMPED + " && git push " + THIS_ORIGIN + " HEAD:pb-topic", True),   # this repository spelled as its URL
+    ("cd " + STAMPED + " && git push other HEAD:pb-topic", False),           # another repository: not judged here
+    ("cd " + STAMPED + " && git push origin :pb-old", False),                # a deletion publishes nothing
+    ("cd " + STAMPED + " && git push --delete origin pb-old", False),
+    ("cd " + STAMPED + " && git push --stdin origin", True),                 # refspecs it cannot read: fails closed
+    ("cd " + STAMPED_MESSAGE + " && git push origin HEAD:pb-topic", True),   # the stamp in a commit message
+    ("cd " + CLEAN + " && git push origin HEAD:pb-topic", False),            # the clean neighbour
+    ("cd " + ON_ORIGIN + " && git push origin HEAD:pb-topic", False),        # the stamp is already on origin
+    ("cd /e/COBOL/no-such-directory && git push origin HEAD:pb-topic", True),   # this repository, unreadable: fails closed
+]
+fails += [(f"[stamp] {c}", e) for c, e in STAMP_CASES if blocked(c) != e]
+fails += [(f"[unit stamp] {c}", e) for c, e in STAMP_CASES[:1] + STAMP_CASES[-3:-1] if blocked(c, unit=True) != e]
+fails += [(f"[PowerShell stamp] {c}", True) for c in ["git -C " + STAMPED + " push origin HEAD:pb-topic"]
+          if not blocked(c, tool="PowerShell")]
+_said = reason("cd " + STAMPED + " && git push origin HEAD:pb-topic")
+if not ("ocr.json:1" in _said and "per-copy licence stamp naming a purchaser" in _said and "Jane" not in _said):
+    fails.append(("[stamp] the refusal names the file, line and shape and never the matched text: " + _said, True))
+# kb/Work PB6136 branch review: R1-1, a push after a step that creates or moves commits on the same line is refused (the
+# scan runs before the line does; the reviewer's probe is the first case), while reads and staging before it are not;
+# R1-2, a shape broken across a line break; R1-3, an annotated tag's message, by name and through `--follow-tags`
+LATER_CASES = [
+    ("cd " + CLEAN + " && echo x > f.txt && git add f.txt && git commit -q -m x && git push -u origin HEAD", True),
+    ("cd " + CLEAN + " && git add f.txt && git status && git push origin HEAD:pb-topic", False),
+    ("cd " + CLEAN + " && git fetch -q origin && git push origin HEAD:pb-topic", False),
+    ("cd " + CLEAN + " && git checkout -q main && git push origin HEAD:pb-topic", True),
+    ("cd " + CLEAN + " && git ci -m x && git push origin HEAD:pb-topic", True),              # an alias: fails closed
+    ("git -C " + CLEAN + " merge x; git -C " + CLEAN + " push origin HEAD:pb-topic", True),
+    ("cd " + CLEAN + " && git commit -q -m x && git push other HEAD:pb-topic", False),       # another repository
+    ("cd " + SPLIT + " && git push origin HEAD:pb-topic", True),
+    ("cd " + TAGGED + " && git push origin v-stamped", True),
+    ("cd " + TAGGED + " && git push --follow-tags origin HEAD:pb-topic", True),
+    ("cd " + TAGGED + " && git push origin HEAD:pb-topic", False),
+]
+fails += [(f"[stamp, review] {c}", e) for c, e in LATER_CASES if blocked(c) != e]
+_said = reason(LATER_CASES[0][0])
+if "follows `git commit`" not in _said or "as its own command" not in _said:
+    fails.append(("[stamp, review] the refusal names the step and says to push in its own command: " + _said, True))
+STAMP_TOTAL = len(STAMP_CASES) + 3 + 1 + 1 + len(LATER_CASES) + 1
 # the PowerShell tool inside a unit: its environment assignments redirect git the same way (kb/Work PB5269)
 UNIT_PS = [("$env:GIT_DIR = '" + OTHER + "/.git'; git push origin HEAD", True),
            ("$env:GIT_DIR='" + OTHER + "/.git'; git push", True),
@@ -512,6 +594,6 @@ UNIT_PS = [("$env:GIT_DIR = '" + OTHER + "/.git'; git push origin HEAD", True),
 fails += [(f"[unit PowerShell] {c}", e) for c, e in UNIT_PS if blocked(c, unit=True, tool="PowerShell") != e]
 for c, e in fails:
     print(f"FAIL: expected {'BLOCK' if e else 'PASS'}: {c!r}")
-total = len(CASES) + len(UNIT_CASES) + len(PS_CASES) + len(ATTENDED) + len(UNIT_PS)
+total = len(CASES) + len(UNIT_CASES) + len(PS_CASES) + len(ATTENDED) + len(UNIT_PS) + STAMP_TOTAL
 print(f"forbidden_commands self-test: {total - len(fails)}/{total} " + ("GREEN" if not fails else "RED"))
 sys.exit(1 if fails else 0)

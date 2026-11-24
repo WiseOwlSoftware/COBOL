@@ -631,7 +631,7 @@ internal sealed class ProgramEmitter
                 foreach (var root in unit.Data.Forest.LocalStorageRoots)
                 {
                     if (unit.Data.Linkage.SuppressedRootFields.Contains(root.ClrName)) continue;
-                    if (root.Class is { Tier: RedefinesTier.Alias } && !root.IsCanonical) continue;   // Tier-A view — no field
+                    if (root.IsAliasView) continue;   // Tier-A view — no field
                     if (fields.MethodRedefinesBackingDecl(root) is { } bkl)   // Tier-B canonical → the ONE string backing
                         w.Line($"{bkl.Name} = {bkl.Init};   // LOCAL-STORAGE {root.CobolName} (Tier-B backing) — initial state each activation (§2023:13.6.4 GR1 / §2023:14.6.2.3.2)");
                     else if (root.Class is { Tier: RedefinesTier.StringCanonical })

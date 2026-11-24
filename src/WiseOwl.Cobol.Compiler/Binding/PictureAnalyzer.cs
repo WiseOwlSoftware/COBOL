@@ -945,8 +945,8 @@ public static class PictureAnalyzer
     /// character-string. All other lowercase letters are not equivalent to their corresponding uppercase representations."
     /// (§1985:VI.5.9.3 SR3) — so under CURRENCY SIGN IS "W" the letter w is no symbol, and the SR2 whitelist refuses it.
     /// SR3 is about the letters of the COBOL character set; a character outside it (a currency symbol such as é) folds by
-    /// <see cref="CurrencySymbolEquivalence.Fold"/>: the invariant uppercase mapping from 2014, itself below (a character such as
-    /// U+017F is no basic letter, §2002:8.1.2.1 GR3; docs/CONFORMANCE.md DOC-A.1-43; kb/Work PB5647).</summary>
+    /// <see cref="CurrencySymbolEquivalence.Fold"/>: the invariant uppercase mapping from 2014, itself below (no equivalence of a
+    /// character outside the repertoire is granted there; docs/CONFORMANCE.md DOC-A.1-43; kb/Work PB5647, PB6162).</summary>
     internal static string FoldPictureCase(string picture, int dialectLevel)
     {
         return string.Create(picture.Length, (picture, dialectLevel), static (span, state) =>
@@ -1448,14 +1448,20 @@ public static class PictureAnalyzer
             return PicInfo.Recovery(expanded.Length);
         }
         // §2002:13.16.38.2 SR6 counts "the number of digit positions described by character-string-1", and a floating-point
-        // edited character-string-1 is both parts (§2002:13.16.38.3 GR12b; the exponent's 9s are digit positions, §2002:13.16.38.4 ER8),
+        // edited character-string-1 is both parts (§2002:13.16.38.3 GR12b; the exponent's 9s are digit positions, §2002:13.16.38.4 GR8),
         // so at COBOL-2002 significand + exponent digits shall total 1..31. COBOL-2014 split the rule: its SR12 bounds the significand alone.
         int exponentDigits = exp.Length - 1;
         int maxSignificand = wideBounds ? 36 : 31;
         int countedDigits = wideBounds ? digits : digits + exponentDigits;
         if (digits < 1 || countedDigits > maxSignificand)
         {
-            Bad($"the PICTURE counts {countedDigits} digit position(s) (significand {digits}, exponent {exponentDigits}) — the limit is 1 to {maxSignificand} ("
+            // 2002 counts both parts, so the message names the sum of its parts; from 2014 only the significand counts.
+            string counted = edition.Edition.Cite(
+                $"the PICTURE counts {countedDigits} digit position(s) (significand {digits} + exponent {exponentDigits})",
+                $"the PICTURE's significand has {digits} digit position(s)",
+                y2002: $"the PICTURE counts {countedDigits} digit position(s) (significand {digits} + exponent {exponentDigits})",
+                y2014: $"the PICTURE's significand has {digits} digit position(s)");
+            Bad($"{counted} — the limit is 1 to {maxSignificand} ("
                 + edition.Edition.CiteRule("§2002:13.16.38.2 SR6", "§2023:13.18.40.3 SR15", y2002: "§2002:13.16.38.2 SR6", y2014: "§2014:13.18.40.2 SR12") + ")");
             return PicInfo.Recovery(expanded.Length);
         }

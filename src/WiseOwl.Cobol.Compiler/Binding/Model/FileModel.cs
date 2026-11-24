@@ -1042,7 +1042,8 @@ public sealed class FileModel
     /// clause names a structure, else the bare unit code of its data (<see cref="DataItem.ImageUnit"/>: two for a
     /// national item); for a dynamic-capacity table the bare unit of its elements (two for a national one: what its
     /// space-filled element is made of, ISO §2023:14.6.9.4), its layout unit being its element width. The cell's layout reads
-    /// each component's unit off it (<c>StorageCell.LayoutOf</c>), as a declared group's layout states it directly.</summary>
+    /// each component's unit off it (<c>CobolContiguousLayout.Of</c>, the one layout builder, kb/Work PB2746); a declared group's
+    /// layout passes this code for a dynamic-length item and 0 for a table (<c>GroupImageCodec.ContiguousLayout</c>).</summary>
     internal static int LayoutCodeOf(DataItem component) =>
         component.IsDynamicTable ? WiseOwl.Cobol.Runtime.CobolDynStructure.PlainCode(component.ImageUnit)
         : StructureOf(component)?.Code ?? WiseOwl.Cobol.Runtime.CobolDynStructure.PlainCode(component.ImageUnit);

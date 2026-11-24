@@ -146,7 +146,7 @@ def _world(programs):
     directory = scratch_dir("crosswalk-")
     catalog = _catalog()
     for name, obj in T.build_all(catalog, programs).items():
-        (directory / f"{name}.json").write_bytes(T.dump(obj).encode("utf-8"))
+        T.write_file(directory / f"{name}.json", obj)
     return catalog, directory
 
 
@@ -154,7 +154,7 @@ def _edit(directory, name, change):
     path = directory / f"{name}.json"
     obj = json.loads(path.read_text(encoding="utf-8"))
     change(obj)
-    path.write_bytes(T.dump(obj).encode("utf-8"))
+    T.write_file(path, obj)
 
 
 def case_11_the_audit_is_silent_on_the_files_the_tool_writes(expect):
@@ -176,7 +176,7 @@ def case_12_the_audit_names_each_way_a_file_disagrees_with_its_program_or_the_ca
     expect("a row the catalog lacks", "row 1985-GR-NOPE-1 is no row of the 1985 catalog" in got, got)
     expect("a mechanical entry that no longer equals the map", "a mechanical entry differs" in got, got)
     (directory / "Z.json").unlink()
-    _edit(directory, "A", lambda o: o["units"][0].update(rows=["1985-GR-VI.5.12.4-1"], basis="adjudicated"))
+    _edit(directory, "A", lambda o: o["units"][0].update(rows=["1985-GR-VI.5.12.4-1"], basis="adjudicated: planted (selftest)"))
     expect.equal("an adjudicated entry may differ from the map while its rows exist",
                  [p for p in T.audit(catalog, programs, directory) if p.startswith("A:")], [])
     _edit(directory, "A", lambda o: o["units"][0].update(disposition="excluded", reason="nope"))
@@ -266,6 +266,92 @@ def case_17_a_unit_binds_its_feature_and_reference_once_and_a_later_move_is_the_
     expect.equal("the first unit keeps its own", chained.units["ACC-TEST-F1-3"], ([2], "ACCEPT TIME", "VI-72 6.5.4 GR1"))
     expect.equal("the next unit takes the moves made before its name", chained.units["ACC-TEST-F1-4"],
                  ([7], "SIGN", "VI-42 5.12.4"))
+
+
+_SIGN = ('MOVE "SIGN" TO FEATURE.', 'MOVE "VI-42 5.12.4 GR1" TO ANSI-REFERENCE.', 'MOVE "SIGN-TEST-1" TO PAR-NAME.',
+         'MOVE "MPY-TEST-F1-1" TO PAR-NAME.')
+_DECIDED = {"disposition": "rows", "rows": ["1985-GR-VI.5.12.4-2"], "basis": "adjudicated: planted (selftest)"}
+
+
+def case_18_a_rebuild_keeps_an_adjudicated_entry_verbatim_and_rebuilds_the_mechanical_ones(expect):
+    programs = {"A": _program(*_SIGN)}
+    catalog, directory = _world(programs)
+    _edit(directory, "A", lambda o: (o["units"][0].update(_DECIDED), o["units"][1].update(feature="STALE")))
+    before = json.loads((directory / "A.json").read_text(encoding="utf-8"))
+    files, kept, conflicts = T.build(catalog, programs, directory)
+    after = json.loads((directory / "A.json").read_text(encoding="utf-8"))
+    expect.equal("one file, one adjudication kept, no conflict", (files, kept, conflicts), (1, 1, []))
+    expect.equal("the adjudicated entry is written back verbatim, in its place", after["units"][0], before["units"][0])
+    expect.equal("the mechanical entry is rebuilt", after["units"][1], T.build_program(catalog, "A", programs["A"])["units"][1])
+    expect.equal("the audit of the rebuilt file is silent", T.audit(catalog, programs, directory), [])
+    raw = (directory / "A.json").read_bytes()
+    expect("the file is LF, never CRLF", b"\n" in raw and b"\r" not in raw, repr(raw[:80]))
+
+
+def case_19_a_rebuild_reports_an_adjudication_the_program_no_longer_supports_and_still_keeps_it(expect):
+    catalog, directory = _world({"A": _program(*_SIGN)})
+    _edit(directory, "A", lambda o: (o["units"][0].update(_DECIDED), o["units"][1].update(_DECIDED)))
+    kept = json.loads((directory / "A.json").read_text(encoding="utf-8"))["units"]
+    # the program moved: SIGN-TEST-1 has another FEATURE, MPY-TEST-F1-1 is gone
+    moved = {"A": _program('MOVE "SIGNS" TO FEATURE.', 'MOVE "VI-42 5.12.4 GR1" TO ANSI-REFERENCE.',
+                           'MOVE "SIGN-TEST-1" TO PAR-NAME.')}
+    files, count, conflicts = T.build(catalog, moved, directory)
+    got = "\n".join(conflicts)
+    expect.equal("two adjudications kept, two conflicts", (count, len(conflicts)), (2, 2))
+    expect("a changed fact is named", "A:SIGN-TEST-1: feature is 'SIGN', the program says 'SIGNS' (adjudicated entry kept" in got, got)
+    expect("a vanished unit is named", "A:MPY-TEST-F1-1: an adjudicated entry of no unit of the program (kept" in got, got)
+    expect.equal("both entries are kept verbatim", json.loads((directory / "A.json").read_text(encoding="utf-8"))["units"], kept)
+    audit = "\n".join(T.audit(catalog, moved, directory))
+    expect("the audit names the stale fact and the vanished unit",
+           "feature is 'SIGN', the program says 'SIGNS'" in audit and "entry MPY-TEST-F1-1 is no unit" in audit, audit)
+    expect("and no rebuild would change either entry", "a rebuild would change" not in audit, audit)
+
+
+def case_20_a_unit_adjudicated_twice_fails_loudly_and_writes_nothing(expect):
+    programs = {"A": _program(*_SIGN)}
+    catalog, directory = _world(programs)
+    _edit(directory, "A", lambda o: o.update(units=[o["units"][0] | _DECIDED, o["units"][0] | _DECIDED | {"rows": []}]))
+    before = (directory / "A.json").read_bytes()
+    try:
+        T.build(catalog, programs, directory)
+        expect("a unit adjudicated twice fails loudly", False, "no error")
+    except T.CrosswalkError as e:
+        expect("a unit adjudicated twice fails loudly", "adjudicated twice" in str(e), str(e))
+    expect.equal("the file is untouched", (directory / "A.json").read_bytes(), before)
+    expect("the audit names it", "adjudicated twice" in "\n".join(T.audit(catalog, programs, directory)))
+
+
+def case_21_the_audit_refuses_a_file_a_rebuild_would_change_an_adjudicated_entry_of(expect):
+    programs = {"A": _program(*_SIGN)}
+    catalog, directory = _world(programs)
+    _edit(directory, "A", lambda o: o["units"][0].update(_DECIDED))
+    stored = json.loads((directory / "A.json").read_text(encoding="utf-8"))
+    fresh = T.build_program(catalog, "A", programs["A"])
+    expect.equal("a sound file", T.rebuild_problems(fresh, stored), [])
+    real = T.merge
+    try:   # a merge that drops adjudications, as the builder before PB6131 did
+        T.merge = lambda f, s: (f, 0, [])
+        expect.equal("is named when the rebuild would replace its adjudicated entry", T.rebuild_problems(fresh, stored),
+                     ["A:SIGN-TEST-1: a rebuild would change this adjudicated entry"])
+    finally:
+        T.merge = real
+
+
+def case_22_a_basis_neither_mechanical_nor_adjudicated_with_a_reason_is_refused_by_the_build_and_the_audit(expect):
+    programs = {"A": _program(*_SIGN)}
+    for basis in (None, "mechanical ", "Mechanical", "adjudicated", "adjudicated:   ", "Adjudicated: x", 7):
+        catalog, directory = _world(programs)
+        _edit(directory, "A", lambda o, b=basis: o["units"][0].update(rows=["1985-GR-VI.6.19.4-1"], basis=b)
+              if b is not None else (o["units"][0].update(rows=["1985-GR-VI.6.19.4-1"]), o["units"][0].pop("basis")))
+        stored = json.loads((directory / "A.json").read_text(encoding="utf-8"))["units"][0]
+        _, kept, conflicts = T.build(catalog, programs, directory)
+        want = f"A:SIGN-TEST-1: basis {basis!r} is neither 'mechanical' nor 'adjudicated: ' and a reason"
+        expect.equal(f"basis {basis!r}: the build reports it and counts no adjudication", (kept, conflicts),
+                     (0, [want + " (entry kept: correct its basis)"]))
+        expect.equal(f"basis {basis!r}: the entry is kept, never silently replaced",
+                     json.loads((directory / "A.json").read_text(encoding="utf-8"))["units"][0], stored)
+        expect(f"basis {basis!r}: the audit refuses it", want in T.audit(catalog, programs, directory))
+    expect.equal("the legal forms", [T.basis_problems("w", {"basis": b}) for b in ("mechanical", "adjudicated: why")], [[], []])
 
 
 if __name__ == "__main__":

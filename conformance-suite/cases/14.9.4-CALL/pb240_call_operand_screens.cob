@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: pb240_call_operand_screens
 *> rules: [SR-14.9.4.3-6, SR-14.9.4.3-11]
-*> accept: [2002]
+*> accept: [2014]
 *> source-format: free
 *> portable: unverified
 *>---
@@ -26,6 +26,11 @@
       *>    forwards L BY REFERENCE AS NESTED to PB240LF's ANY LENGTH M:
       *>    M=ABCDEF; whose MOVE ALL "Z" fills the six positions of X's
       *>    storage: X=ZZZZZZ.
+      *> Accepted from 2014 (kb/Work PB5611): COBOL-2002 refuses leg 2 under
+      *> its one ANY LENGTH rule for every format of CALL, "Identifier-2,
+      *> identifier-3, and identifier-4 shall not be described with the ANY
+      *> LENGTH clause" (§2002:14.8.4.2 SR10); 2014 split it into SR11 and
+      *> SR18 (§2014:14.9.4.2 SR11), the 2023 rules above.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB240MN.
        DATA DIVISION.

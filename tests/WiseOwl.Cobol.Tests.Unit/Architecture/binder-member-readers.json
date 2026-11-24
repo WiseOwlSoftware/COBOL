@@ -1031,6 +1031,9 @@
     "WiseOwl.Cobol.Binding.ReportSectionBinder::ControlDataRuleWords": [
       "WiseOwl.Cobol.Binding.Procedure.ReportWriterBinder"
     ],
+    "WiseOwl.Cobol.Binding.ReportSectionBinder::HasWord": [
+      "WiseOwl.Cobol.Binding.Procedure.ReportWriterBinder"
+    ],
     "WiseOwl.Cobol.Binding.ReportSectionBinder::InheritContainerReports": [
       "WiseOwl.Cobol.Binding.DataBinder"
     ],

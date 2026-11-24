@@ -2,7 +2,7 @@
 *> id: pb1167_any_length_returning
 *> rules: [SR-13.18.2.3-3, GR-13.18.2.4-1, GR-14.8.3.3-L3.4,
 *>    GR-14.8.3.3-L3.5]
-*> accept: [2002]
+*> accept: [2014]
 *> source-format: free
 *> portable: unverified
 *>---
@@ -24,6 +24,9 @@
       *>                         n=6  "AB" -> [AB    ]
       *>   program path: NRET RETURNING the ANY LENGTH formal AL of its caller NFIX (n is AL's own length, 5,
       *>   which NFIX got from R5 -- an ANY LENGTH RECEIVER); NNAT into N(3).
+      *> Accepted from 2014 (kb/Work PB5611): the program path's CALL "NRET" AS NESTED RETURNING AL is refused at
+      *> COBOL-2002, whose CALL forbids an ANY LENGTH operand in every format: "Identifier-2, identifier-3, and
+      *> identifier-4 shall not be described with the ANY LENGTH clause" (§2002:14.8.4.2 SR10).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1167AL.
        ENVIRONMENT DIVISION.

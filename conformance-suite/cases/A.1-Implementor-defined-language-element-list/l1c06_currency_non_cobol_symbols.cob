@@ -1,10 +1,14 @@
       *>--- conformance-case
       *> id: l1c06_currency_non_cobol_symbols
       *> rules: [DOC-A.1-43, DOC-A.1-44, SR-12.3.7.3-20, SR-13.18.40.3-3]
-      *> accept: [2002]
+      *> accept: [2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---
+      *> Accepted at 2014 and 2023, the editions whose text leaves the
+      *> equivalence to the implementor (2014 12.3.6.2 SR20; kb/Work
+      *> PB6130). Its 2002 twin, l1c06_currency_non_cobol_symbols_2002,
+      *> writes every symbol as the CURRENCY clause gives it.
       *> ISO §2023:12.3.7.3 SR20/SR21 + §2023:8.1.2 (A.1 items 43, 44) — non-COBOL
       *>   currency symbols
       *> Item 43 rule: "If the character specified as the currency
