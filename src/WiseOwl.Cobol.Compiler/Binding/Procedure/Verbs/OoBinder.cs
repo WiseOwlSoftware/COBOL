@@ -1800,7 +1800,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                     yield return
                         $"the {(host.OoInFactory ? "factory" : "instance")} "
                         + $"definition of class '{cur.Name}' does not IMPLEMENT interface '{tiface.Name}' "
-                        + $"(ISO {OoConformance.SetRules(ctx.Edition.Edition)} SR10d{(host.OoInFactory ? 1 : 2)})";
+                        + $"({EditionInfo.Designated(OoConformance.SetRules(ctx.Edition.Edition))} SR10d{(host.OoInFactory ? 1 : 2)})";
                 yield break;
 
             case ObjectRefKind.ObjectClass:
@@ -1809,13 +1809,13 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                 if (rd.Only)
                     yield return
                         $"the receiving item is described with the ONLY phrase, so SELF is not "
-                        + $"a permitted sending operand (ISO {OoConformance.SetRules(ctx.Edition.Edition)} SR12c.1)";
+                        + $"a permitted sending operand ({EditionInfo.Designated(OoConformance.SetRules(ctx.Edition.Edition))} SR12c.1)";
                 // c)2. — the class containing the SET statement shall be the receiver's class or a
                 // subclass of it.
                 else if (!relationTurnsOnFormal && host.OoClasses?.Names.ClassOf(rd) is { } tcls && !cur.ConformsTo(tcls))
                     yield return
                         $"class '{cur.Name}' is not '{tcls.Name}' or a "
-                        + $"subclass of it (ISO {OoConformance.SetRules(ctx.Edition.Edition)} SR12c.2)";
+                        + $"subclass of it ({EditionInfo.Designated(OoConformance.SetRules(ctx.Edition.Edition))} SR12c.2)";
                 // c)3./c)4. — the FACTORY axis of the receiver picks WHICH definition the method shall
                 // be defined in, and SELF is the object of that definition.
                 if (rd.Factory != host.OoInFactory)
@@ -1823,7 +1823,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                         $"the receiving item is described {(rd.Factory ? "with" : "without")} "
                         + "the FACTORY phrase, so the method containing the SET statement shall be "
                         + $"defined in the {(rd.Factory ? "factory" : "instance")} definition of its "
-                        + $"containing class (ISO {OoConformance.SetRules(ctx.Edition.Edition)} SR12c{(rd.Factory ? 4 : 3)})";
+                        + $"containing class ({EditionInfo.Designated(OoConformance.SetRules(ctx.Edition.Edition))} SR12c{(rd.Factory ? 4 : 3)})";
                 yield break;
 
             default:   // ObjectRefKind.ActiveClass — SR14 b)
@@ -1833,7 +1833,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                         + $"{(rd.Factory ? "with" : "without")} the FACTORY phrase, so the method "
                         + $"containing the SET statement shall be defined in the "
                         + $"{(rd.Factory ? "factory" : "instance")} definition of its containing class "
-                        + $"(ISO {OoConformance.SetRules(ctx.Edition.Edition)} SR14b{(rd.Factory ? 2 : 1)})";
+                        + $"({EditionInfo.Designated(OoConformance.SetRules(ctx.Edition.Edition))} SR14b{(rd.Factory ? 2 : 1)})";
                 yield break;
         }
     }
@@ -1876,7 +1876,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             // opened `SET … TO SUPER` — which the diagnostic renderer transliterates to `SET . TO SUPER`.
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ObjectReferenceAssignmentNotConforming,
                 $"SET {SetFormatSelection.Written(targetRefs)} TO SUPER: SUPER shall not be the sending operand "
-                + $"of an object-reference SET (ISO {OoConformance.SetRules(ctx.Edition.Edition)} SR9)");
+                + $"of an object-reference SET ({EditionInfo.Designated(OoConformance.SetRules(ctx.Edition.Edition))} SR9)");
         }
         var targets = new List<Place>(targetRefs.Count);
         foreach (var t in targetRefs)
@@ -1904,7 +1904,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             {
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ObjectReferenceAssignmentNotConforming,
                     $"SET '{WrittenSource.Of(t)}': the receiving operand of an object-reference SET shall be a "
-                    + $"USAGE OBJECT REFERENCE data item (ISO {OoConformance.SetRules(ctx.Edition.Edition)} SR8)");
+                    + $"USAGE OBJECT REFERENCE data item ({EditionInfo.Designated(OoConformance.SetRules(ctx.Edition.Edition))} SR8)");
             }
             if (host.Expr.ResolveReceiving(t) is not { } tp) return new BoundUnsupported("SET object-reference receiving operand");   // reported by the resolver
             targets.Add(tp);
@@ -2060,7 +2060,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                     $"SET {SetFormatSelection.Written(targetRefs)} TO "
                     + $"'{sender.Text}': the sending operand shall be an object-reference "
                     + "data item, a function-identifier or inline method invocation of class object, NULL, SELF, "
-                    + $"or a class-name (ISO {OoConformance.SetRules(ctx.Edition.Edition)} SR9/SR12/SR13)");
+                    + $"or a class-name ({EditionInfo.Designated(OoConformance.SetRules(ctx.Edition.Edition))} SR9/SR12/SR13)");
             }
         }
         return new BoundSetObjectRef(targets, src, senderNull, senderSelf) { SourceFactoryCs = srcFactoryClassCs };

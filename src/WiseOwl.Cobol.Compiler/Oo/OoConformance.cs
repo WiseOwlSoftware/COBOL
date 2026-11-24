@@ -598,10 +598,10 @@ public static class OoConformance
     /// </summary>
     public static string ClassNameSenderRule(ObjectRefKind receiverKind, EditionInfo edition) => receiverKind switch
     {
-        ObjectRefKind.Interface => $"ISO {SetRules(edition)} SR11",
-        ObjectRefKind.ObjectClass => $"ISO {SetRules(edition)} SR13",
-        ObjectRefKind.ActiveClass => $"ISO {SetRules(edition)} SR14",
-        _ => $"ISO {SetRules(edition)} SR8",
+        ObjectRefKind.Interface => EditionInfo.Designated($"{SetRules(edition)} SR11"),
+        ObjectRefKind.ObjectClass => EditionInfo.Designated($"{SetRules(edition)} SR13"),
+        ObjectRefKind.ActiveClass => EditionInfo.Designated($"{SetRules(edition)} SR14"),
+        _ => EditionInfo.Designated($"{SetRules(edition)} SR8"),
     };
 
     /// <summary>The SET statement's syntax-rules clause as the edition in force numbers it (kb/Work PB5659): §2023:14.9.39.3,

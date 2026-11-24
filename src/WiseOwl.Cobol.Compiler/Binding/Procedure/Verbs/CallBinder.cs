@@ -1491,18 +1491,18 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         ctx.Edition.Error(DiagnosticCatalog.CallByValueLiteralKind,
             $"CALL USING {spelling} with {subject}: literal-2 shall be a NUMERIC literal ({CallSyntaxRules.Rule(ctx.Edition.Edition, 23)})");
 
-    /// <summary>The <see cref="Sr23LiteralIsNumeric"/> twin for a literal-alias argument (kb/Work PB1544). A
-    /// constant-name is literal-2 by substitution (§2023:13.10.4 GR1) with the SUBSTITUTED literal's class and category
-    /// (GR2), so SR23 is a question about that literal and never about the name (§2023:13.10.3 SR2 is the admission — a
-    /// constant-name "may be used anywhere that a format specifies a literal of [its] class and category"); a
-    /// symbolic-character is a figurative constant other than ZERO, the only one §2023:8.3.3.6.3 SR1a admits where a
-    /// literal is restricted to numeric, so it never satisfies SR23.</summary>
     /// <summary>The general rule of the returning-item conformance clause, "A returning item shall be specified in the activating
     /// statement if and only if a returning item is specified in the procedure division header of the activated element", as the
     /// edition in force numbers it: §2023:14.8.3.1, §2014:14.8.2, §2002:14.7.2.</summary>
     private string ReturningGeneral =>
         EditionInfo.Designated(ctx.Edition.Edition.Cite("§2002:14.7.2", "§2023:14.8.3.1", y2014: "§2014:14.8.2"));
 
+    /// <summary>The <see cref="Sr23LiteralIsNumeric"/> twin for a literal-alias argument (kb/Work PB1544). A
+    /// constant-name is literal-2 by substitution (§2023:13.10.4 GR1) with the SUBSTITUTED literal's class and category
+    /// (GR2), so SR23 is a question about that literal and never about the name (§2023:13.10.3 SR2 is the admission — a
+    /// constant-name "may be used anywhere that a format specifies a literal of [its] class and category"); a
+    /// symbolic-character is a figurative constant other than ZERO, the only one §2023:8.3.3.6.3 SR1a admits where a
+    /// literal is restricted to numeric, so it never satisfies SR23.</summary>
     private void Sr23AliasIsNumeric(ExpressionBinder.LiteralAlias alias, string subject)
     {
         if (alias.IsNumeric) return;
