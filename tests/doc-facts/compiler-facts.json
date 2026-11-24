@@ -245,6 +245,11 @@
       "changedIn": 2002
     },
     {
+      "id": "prototype-special-names-admit-alphabet-and-symbolic",
+      "vcrRow": "7.125",
+      "changedIn": 2023
+    },
+    {
       "id": "record-contains-range-binds-record-size",
       "vcrRow": "7.63",
       "changedIn": 2002

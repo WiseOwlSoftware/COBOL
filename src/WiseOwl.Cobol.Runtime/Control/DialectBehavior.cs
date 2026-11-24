@@ -642,6 +642,13 @@ public enum DialectBehavior
     /// (§2002:8.4.1.2.2) and a data-name or an arithmetic expression may be written (kb/Work PB5709; VCR row 7.124). Both editions are
     /// QUOTED. The consumer is <c>ConstantEntryBinder.BindConstantLength</c>.</summary>
     ConstantLengthSubscriptsAreLiterals = 68,
+    /// <summary>§2023:10.6.2 SR4c — "The only clauses that may be specified in the SPECIAL-NAMES paragraph are the ALPHABET clause, the
+    /// CURRENCY clause, the DECIMAL-POINT clause, the LOCALE clause, and the SYMBOLIC-CHARACTERS clause" of a program, function or
+    /// method prototype. §2014:10.6.2 SR4c and §2002:10.5.2 SR5c list only "the LOCALE clause, the CURRENCY clause, and the
+    /// DECIMAL-POINT clause", so at <c>--std 2002</c> and <c>--std 2014</c> an ALPHABET or SYMBOLIC CHARACTERS clause in a prototype is
+    /// refused COBOL2272 (kb/Work PB5706; VCR row 7.125). Both editions are QUOTED. The consumer is
+    /// <c>PrototypeUnitRules.AdmittedInPrototype</c>.</summary>
+    PrototypeSpecialNamesAdmitAlphabetAndSymbolic = 69,
 }
 
 /// <summary>
@@ -977,6 +984,10 @@ public static class DialectBehaviors
             "7.124", "§2014:13.10.2 SR3", "§2002:13.9.2 SR3",
             "every subscript of a constant entry's LENGTH OF / BYTE-LENGTH OF operand shall be a literal only from COBOL-2014; "
             + "at COBOL-2002 the operand's subscripts are ordinary ones and may be data-names"),
+        new(DialectBehavior.PrototypeSpecialNamesAdmitAlphabetAndSymbolic, "prototype-special-names-admit-alphabet-and-symbolic", 2023,
+            "7.125", "§2023:10.6.2 SR4c", "§2014:10.6.2 SR4c",
+            "a prototype's SPECIAL-NAMES paragraph may specify the ALPHABET and SYMBOLIC-CHARACTERS clauses only from COBOL-2023; "
+            + "at COBOL-2002 and COBOL-2014 it is limited to the LOCALE, CURRENCY and DECIMAL-POINT clauses"),
     ];
 
     static DialectBehaviors()
