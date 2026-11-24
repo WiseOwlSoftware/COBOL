@@ -416,6 +416,12 @@
    ],
    "why": "the PICTURE clause, §2002:13.16.38, whose floating-point exponent (GR12) is three digits and whose digit positions (SR6) are 1 through 31 at 2002 (kb/Work PB5712, VCR row 7.119)"
   },
+  "prototype-special-names-admit-alphabet-and-symbolic": {
+   "sections": [
+    "10.5"
+   ],
+   "why": "the compilation group, §2002:10.5, whose SR5c limits a prototype's SPECIAL-NAMES paragraph to the LOCALE, CURRENCY and DECIMAL-POINT clauses at 2002 (kb/Work PB5706, VCR row 7.125)"
+  },
   "constant-length-subscripts-are-literals": {
    "sections": [
     "13.9"
