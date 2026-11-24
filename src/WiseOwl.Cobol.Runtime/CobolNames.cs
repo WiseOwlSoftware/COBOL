@@ -27,13 +27,16 @@ namespace WiseOwl.Cobol.Runtime;
 /// system-name or implementor-name is written in basic letters only, so no spelling with an extended letter equals one
 /// through this fold (<c>AnnexBCDriftTests</c>). The UPPER-CASE and LOWER-CASE intrinsic functions are a separate,
 /// implementor-defined mapping (§2023:15.97.4 RV4) and are not this fold.</para>
-/// <para><b>The edition.</b> The tables are the COBOL 2023 Annex C; the earlier editions differ by Annex E's two
-/// recorded changes: E.2 item 14 DELETED (0131,0069) and (03C2,03C3) at 2023, and E.3.3 item 6 ADDED 597 mappings.
-/// Every added mapping pairs at least one character that the earlier editions' Annex B does not hold (measured by
-/// <c>AnnexBCDriftTests</c>), so a word that could tell the two tables apart is refused by the Annex B screen before
-/// any fold; of the deleted pairs only (03C2,03C3) is applied (the dotless-i pair is not applied at any edition), so
-/// final sigma is the ONLY observable difference, and <see cref="EditionSpelling"/> gives a word lexed under an
-/// earlier edition the spelling that makes this one comparer answer for that edition.</para>
+/// <para><b>The edition.</b> The tables are the COBOL 2023 Annex C. COBOL 2014's differ by Annex E's two recorded
+/// changes: E.2 item 14 DELETED (0131,0069) and (03C2,03C3) at 2023, and E.3.3 item 6 ADDED 597 mappings; every added
+/// mapping pairs at least one character that 2014's Annex B does not hold (measured by <c>AnnexBCDriftTests</c>), so a word
+/// that could tell the two tables apart is refused by the Annex B screen before any fold, and of the deleted pairs only
+/// (03C2,03C3) is applied (the dotless-i pair is not applied at any edition). COBOL 2002 has its OWN Annex D, 600 pairs
+/// (§2002:8.1.2.1 GR4c, <c>D2002Mappings</c>), which has no mapping for 130 pairs of 2023's that touch a character 2002's
+/// Annex C permits (the Roman numerals U+2160.., the Ohm and Angstrom signs U+2126 and U+212B, Georgian U+10A0.. and others) and prints
+/// (0256,0189) beside (0189,0256), so U+0189 and U+0256 are two letters there. <see cref="EditionSpelling"/> gives a word
+/// lexed under an earlier edition the spelling that makes this one comparer answer for that edition, a
+/// <see cref="Reserved"/> character where the edition does not fold a character 2023 folds.</para>
 /// </summary>
 public static partial class CobolNames
 {
@@ -46,6 +49,18 @@ public static partial class CobolNames
         internal static readonly FrozenDictionary<int, int> FoldedOnlyBefore2023 =
             E2Item14Deleted.ToFrozenDictionary(p => p.First, p => p.Second);
         internal static readonly FrozenSet<int> AddedIn2023 = E33Item6Added.Select(p => p.First).ToFrozenSet();
+
+        /// <summary>The editions whose Annex C/D case mapping is their own list, not the 2023 table reversed.</summary>
+        internal static readonly FrozenDictionary<int, FrozenDictionary<int, int>> Own =
+            new Dictionary<int, FrozenDictionary<int, int>>
+            {
+                [2002] = D2002Mappings.ToFrozenDictionary(p => p.First, p => p.Second),
+            }.ToFrozenDictionary();
+
+        /// <summary>The place of each BMP character the 2023 fold maps, among them in order: <see cref="Reserved"/>'s index.</summary>
+        internal static readonly FrozenDictionary<int, int> FoldedBmpRank =
+            C2Mappings.Select(p => p.First).Where(c => c <= 0xFFFF).Order().Select((c, i) => (c, i))
+                .ToFrozenDictionary(t => t.c, t => t.i);
     }
 
     /// <summary>THE fold of one character: its Annex C.2 lowercase, or itself when C.2 lists no mapping for it.</summary>
@@ -53,12 +68,14 @@ public static partial class CobolNames
         codePoint < 0x80 ? (codePoint is >= 'A' and <= 'Z' ? codePoint | 0x20 : codePoint)
         : Tables.Fold2023.TryGetValue(codePoint, out int lower) ? lower : codePoint;
 
-    /// <summary>The fold of one character under the Annex C of the edition <paramref name="dialectLevel"/> — the 2023
-    /// table with Annex E's changes reversed below 2023 (a mapping E.3.3 item 6 added is absent, one E.2 item 14
-    /// deleted is present).</summary>
+    /// <summary>The fold of one character under the case mapping of the edition <paramref name="dialectLevel"/>: the
+    /// edition's OWN list where it has one (<see cref="Tables.Own"/>: COBOL 2002's Annex D, §2002:8.1.2.1 GR4c), else the
+    /// 2023 table with Annex E's changes reversed below 2023 (a mapping E.3.3 item 6 added is absent, one E.2 item 14 deleted
+    /// is present).</summary>
     public static int Fold(int codePoint, int dialectLevel)
     {
         if (dialectLevel >= 2023 || codePoint < 0x80) return Fold(codePoint);
+        if (Tables.Own.TryGetValue(dialectLevel, out var own)) return own.TryGetValue(codePoint, out int mapped) ? mapped : codePoint;
         if (Tables.FoldedOnlyBefore2023.TryGetValue(codePoint, out int lower)) return lower;
         return Tables.AddedIn2023.Contains(codePoint) ? codePoint : Fold(codePoint);
     }
@@ -168,9 +185,13 @@ public static partial class CobolNames
     public static bool HasEditionSpelling(int dialectLevel) => dialectLevel < 2023;
 
     /// <summary>The spelling under which the ONE (2023) comparer answers as the edition <paramref name="dialectLevel"/>'s
-    /// Annex C would: each character whose fold differs between the two tables, and is not left as itself by the
-    /// edition's, is written as the edition's fold (below 2023: final sigma U+03C2 as sigma U+03C3 — Annex E.2 item 14). The lexer applies it to every word it emits, so the word IS that edition's
-    /// word from then on. At 2023 and for a word of basic characters it returns <paramref name="word"/> itself.</summary>
+    /// case mapping would: each character whose fold differs between the edition's table and 2023's is written as the key
+    /// the edition gives it (<see cref="Fold(int, int)"/>) — final sigma U+03C2 as sigma U+03C3 (Annex E.2 item 14) — or,
+    /// when 2023's fold would still move that key (the edition does not fold the character, as 2002's Annex D does not fold
+    /// the Roman numeral U+2160 that 2023 folds to U+2170), as the one <see cref="Reserved"/> character no table folds and
+    /// no word may be written with, so the two spellings stay two names. The lexer applies it to every word it emits, so the
+    /// word IS that edition's word from then on (the character screen reads the written text, not this spelling,
+    /// <c>WordCharacterScreen</c>). At 2023 and for a word of basic characters it returns <paramref name="word"/> itself.</summary>
     public static string EditionSpelling(string word, int dialectLevel)
     {
         if (!HasEditionSpelling(dialectLevel)) return word;
@@ -182,16 +203,35 @@ public static partial class CobolNames
         {
             int width = char.IsHighSurrogate(word[at]) && at + 1 < word.Length && char.IsLowSurrogate(word[at + 1]) ? 2 : 1;
             int cp = width == 2 ? char.ConvertToUtf32(word[at], word[at + 1]) : word[at];
-            int edition = Fold(cp, dialectLevel);
-            if (edition != cp && edition != Fold(cp))
+            int key = Fold(cp, dialectLevel);
+            if (key != Fold(cp))
             {
                 sb ??= new StringBuilder(word.Length).Append(word, 0, at);
-                AppendCodePoint(sb, edition);
+                AppendCodePoint(sb, Fold(key) == key ? key : Reserved(key));
             }
             else sb?.Append(word, at, width);
             at += width;
         }
         return sb?.ToString() ?? word;
+    }
+
+    /// <summary>The character that stands for <paramref name="key"/>, a character the 2023 fold maps, in a word that must keep
+    /// it apart from the lowercase letter 2023 would join it to: a private-use character no Annex B or Annex C permits in a
+    /// word and no table folds, one per key (a BMP key by its place among the BMP characters the fold maps, in the BMP
+    /// private-use area U+E000..U+F8FF, which keeps the character's UTF-16 width; a supplementary key at U+F0000 plus its
+    /// offset in the supplementary planes).</summary>
+    private static int Reserved(int key) =>
+        key <= 0xFFFF ? 0xE000 + Tables.FoldedBmpRank[key] : 0xF0000 + (key - 0x10000);
+
+    /// <summary>True when <paramref name="word"/> holds a <see cref="Reserved"/> character (U+E000..U+F8FF, or a high
+    /// surrogate of plane 15), so it is an <see cref="EditionSpelling"/> of a source word and not the text the user wrote:
+    /// the character screen must read the written text of such a word (<c>CobolWordRule.WrittenText</c>). The same test
+    /// finds a word a user wrote with a private-use character, which the screen refuses either way.</summary>
+    public static bool HasReservedSpelling(string word)
+    {
+        foreach (char c in word)
+            if (c is >= '' and <= '' or >= '\uDB80' and <= '\uDBBF') return true;
+        return false;
     }
 
     /// <summary>The fold comparison, by code point, with a fast path for two basic characters.</summary>

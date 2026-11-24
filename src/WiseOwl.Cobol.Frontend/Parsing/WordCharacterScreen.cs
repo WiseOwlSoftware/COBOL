@@ -191,7 +191,7 @@ public static class WordCharacterScreen
             if (end - start >= 2 && hasMinus && !hasOperator)
             {
                 var text = new System.Text.StringBuilder();
-                for (int i = start; i < end; i++) text.Append(_chain[i].Token.Text);
+                for (int i = start; i < end; i++) text.Append(CobolWordRule.WrittenText(_chain[i].Token));
                 string word = text.ToString();
                 if (!IsSignedInteger(word))
                 {
@@ -265,7 +265,7 @@ public static class WordCharacterScreen
     {
         text = null;
         if (token.Type != CobolLexer.IDENTIFIER) return false;
-        text = token.Text;
+        text = CobolWordRule.WrittenText(token);
         return text.Contains('_') || CobolCharacterRepertoire.HasExtendedCharacter(text);
     }
 

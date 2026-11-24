@@ -1043,7 +1043,7 @@ public sealed class FileModel
     /// national item); for a dynamic-capacity table the bare unit of its elements (two for a national one: what its
     /// space-filled element is made of, ISO §2023:14.6.9.4), its layout unit being its element width. The cell's layout reads
     /// each component's unit off it (<c>CobolContiguousLayout.Of</c>, the one layout builder, kb/Work PB2746); a declared group's
-    /// layout passes this code for a dynamic-length item and 0 for a table (<c>GroupImageCodec.ContiguousLayout</c>).</summary>
+    /// layout passes this same code for every variable-length component, a table included (<c>GroupImageCodec.ContiguousLayout</c>, kb/Work PB6138).</summary>
     internal static int LayoutCodeOf(DataItem component) =>
         component.IsDynamicTable ? WiseOwl.Cobol.Runtime.CobolDynStructure.PlainCode(component.ImageUnit)
         : StructureOf(component)?.Code ?? WiseOwl.Cobol.Runtime.CobolDynStructure.PlainCode(component.ImageUnit);

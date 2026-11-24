@@ -1311,6 +1311,7 @@ static WiseOwl.Cobol.Runtime.CobolIntrinsics.VarianceDec(WiseOwl.Cobol.Runtime.D
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.VarianceExact(WiseOwl.Cobol.Runtime.CobolRounding mode, params System.ReadOnlySpan<WiseOwl.Cobol.Runtime.CobolExact> xs) -> WiseOwl.Cobol.Runtime.CobolExact
 static WiseOwl.Cobol.Runtime.CobolModule.Name(WiseOwl.Cobol.Runtime.ModuleNameKeyword keyword) -> string!
 static WiseOwl.Cobol.Runtime.CobolNames.HasEditionSpelling(int dialectLevel) -> bool
+static WiseOwl.Cobol.Runtime.CobolNames.HasReservedSpelling(string! word) -> bool
 static WiseOwl.Cobol.Runtime.CobolNum.AddChecked(System.Int128 a, System.Int128 b, WiseOwl.Cobol.Runtime.SizeChecks taken) -> System.Int128
 static WiseOwl.Cobol.Runtime.CobolNum.DeSignImage(string! image, in WiseOwl.Cobol.Runtime.NumProfile item, int digits) -> string!
 static WiseOwl.Cobol.Runtime.CobolNum.DeSignImageSending(string! image, in WiseOwl.Cobol.Runtime.NumProfile item, int digits) -> string!
