@@ -1,4 +1,4 @@
-## A separator period where an operand is due names the statement for every verb, and a float-edited bound no longer displaces the 1985 construct gate
+## Entry 4053 — 2026-11-24 13:08 PST — A separator period where an operand is due names the statement for every verb, and a float-edited bound no longer displaces the 1985 construct gate
 
 PB6119. Hint 0i's operand arm (PB6113) still left the bare COBOL0001 on `SET I TO.`, `COMPUTE N =.`, `IF N = .`, `EVALUATE.`, `PERFORM VARYING I FROM 1 BY.` and on twelve bare verbs
 (`ACCEPT.`, `SEARCH.`, `DELETE.`, `RECEIVE.`, `SEND.`, `RESUME.`, `UNLOCK.`, `FREE.`, `VALIDATE.`, `RAISE.`, `INVOKE.`, `ALLOCATE.`). A sweep of all 59 statement verbs bare and of the operand shapes found two
@@ -15,3 +15,4 @@ PB6147. `PictureAnalyzer.AnalyzeFloatEdited` forced `wideBounds` true when the c
 edition (the 2002 sum): at `--std 85` `+9(40)E+99` drew COBOL1658 "counts 40 digit position(s) (significand 40 + exponent 2) — the limit is 1 to 36", and the bound error displaced the COBOL0900 construct gate (the gate reads
 `PicInfo.IsFloatEdited`, which the error's recovery result lacks). `wideBounds` is now the register row alone and a separate flag skips the two bound checks where the form is gated; the shape checks stay. The golden
 `g1985-pic-float-edited-bound-yields-to-construct-gate` is refused at 85 with the gate text.
+
