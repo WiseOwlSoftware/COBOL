@@ -1916,7 +1916,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
             && AdmittedKinds.Refusal(token, admitted.Tokens, admitted.Words, admitted.WordChangesNothing, StatementBlockStart(recognizer),
                    at.APeriodLetsTheSentenceFollow, theEditionPrints, constantNamesPrinted || !admitted.WordsStandForLiterals,
                    at.ClosedConstructCouldTake, EditionOf(recognizer),
-                   token.Type == CobolLexer.DOT ? OpenStatementName(recognizer.Context) : null, out bool anOperandIsDue) is { } kindMsg)
+                   token.Type == CobolLexer.DOT ? StatementOpenAtAPeriod(recognizer) : null, out bool anOperandIsDue) is { } kindMsg)
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL5506, 0, [kindMsg], LeavesNoTail: anOperandIsDue));
         // ⛔ A LITERAL WHERE THE NEXT SENTENCE WOULD BEGIN (kb/Work PB4425): the parser's own position has left the
         // procedure division (OffendingPosition.SentenceMayBeginAt), so the position the refusal names is the sentence
@@ -2049,6 +2049,22 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     private static string StatementOwning(ParserRuleContext context)
         => OpenStatementName(context)
            ?? SplitCamelCase(CobolParserCore.ruleNames[context.RuleIndex]).ToUpperInvariant();
+
+    /// <summary>⛔ THE STATEMENT A SEPARATOR PERIOD ENDS (kb/Work PB6119): the innermost statement rule open around the parser, or, where the
+    /// prediction that chooses among a verb's formats, or between a paragraph-name and a verb, failed before any statement rule was
+    /// entered (<c>ACCEPT.</c>, <c>SEARCH.</c>, <c>DELETE.</c>: the dispatcher <c>statement</c>; <c>UNLOCK.</c>: the
+    /// <c>paragraphDefinition</c> that would own it), the verb the parser stands at, when that verb is a reserved word of the compile
+    /// edition (§2023:8.9) and so cannot be the paragraph-name this period would end (§2023:8.3.2.1 1: "Reserved words shall not be
+    /// used as user-defined words"). A verb the edition does not reserve (<c>FREE.</c> at COBOL-85) is a legal paragraph-name, so that
+    /// period ends a header and names no statement. Null where none is open.</summary>
+    private static string? StatementOpenAtAPeriod(Parser recognizer)
+    {
+        if (recognizer.Context.RuleIndex is CobolParserCore.RULE_statement or CobolParserCore.RULE_paragraphDefinition
+            && recognizer.CurrentToken is { Type: not CobolLexer.DOT } verb && BeginsAStatement(recognizer, verb.Type)
+            && ReservedWords.Find(verb.Text)?.IsReservedAt(EditionOf(recognizer).Year) == true)
+            return verb.Text.ToUpperInvariant();
+        return OpenStatementName(recognizer.Context);
+    }
 
     /// <summary>The name of the innermost statement open around <paramref name="context"/>, or null where none is
     /// (a period ending a data entry or a header names no statement).</summary>

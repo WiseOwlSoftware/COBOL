@@ -545,10 +545,10 @@ public sealed class ReservedWordPositionConformanceTests
             $"expected the refusal at '{word}' on line 11 and the statement's own ({secondFault}), no COBOL0901, got:\n{string.Join("\n", diags)}");
     }
 
-    /// <summary>A bare verb's refusal at its period: COBOL5506 naming the statement where the position takes an operand and
-    /// nothing else (kb/Work PB6113), and the bare COBOL0001 where the verb's own period is also a paragraph header's, so a
-    /// period is legal there and no operand arm claims it (a verb the edition gates, FREE, VALIDATE, RAISE, INVOKE,
-    /// ALLOCATE; PERFORM, whose inline form takes a statement).</summary>
+    /// <summary>A bare verb's refusal at its period: COBOL5506 naming the statement where the position takes an operand
+    /// (kb/Work PB6113, PB6119: every verb the edition reserves, so that the word cannot be a paragraph-name), and the bare
+    /// COBOL0001 for PERFORM alone, whose inline form takes a statement and not an operand. The stricter assertion is
+    /// <see cref="ABareVerbOrAnOperandStartingWithAParen_AtThePeriod_NamesTheStatement"/>.</summary>
     private static bool IsTheStatementsOwnRefusalAtThePeriod(string diagnostic)
         => diagnostic.Contains("COBOL5506", StringComparison.Ordinal) || diagnostic.Contains("COBOL0001", StringComparison.Ordinal);
 
@@ -857,6 +857,55 @@ public sealed class ReservedWordPositionConformanceTests
         Assert.True(diags.Count == 1 && IsTheStatementsOwnRefusalAtThePeriod(diags[0])
                                      && diags[0].Contains("'.'", StringComparison.Ordinal),
             $"expected exactly one diagnostic, the statement's own refusal at the period, got:\n{all}");
+    }
+
+    /// <summary>⛔ THE SEPARATOR PERIOD WHERE A STATEMENT'S OPERAND IS DUE NAMES THE STATEMENT, WHICHEVER VERB AND WHATEVER OPENS THE
+    /// OPERAND (kb/Work PB6119; PB6113 covered the verbs whose walk admits no '('). A '(' the position admits opens a parenthesized
+    /// arithmetic expression (<c>SET I TO.</c>, <c>COMPUTE N =.</c>, <c>IF N = .</c>), and a bare verb that is a reserved word at the
+    /// edition cannot be the paragraph-name its period would end (§2023:8.3.2.1 1), including the verbs whose formats the parser
+    /// chooses among before it enters a statement (<c>ACCEPT.</c>, <c>SEARCH.</c>, <c>DELETE.</c>) or against a paragraph header
+    /// (<c>UNLOCK.</c>, <c>FREE.</c>). Each row is exactly one COBOL5506 naming the statement; the last two are COBOL-85 paragraph-names
+    /// (§2023:8.9 reserves them from COBOL-2002), which no statement refusal may call a statement.</summary>
+    [Theory]
+    [InlineData(85, "SET I TO.", "SET")]
+    [InlineData(2023, "SET I TO.", "SET")]
+    [InlineData(2002, "SET I UP BY.", "SET")]
+    [InlineData(85, "COMPUTE N =.", "COMPUTE")]
+    [InlineData(2014, "COMPUTE N = 1 +.", "COMPUTE")]
+    [InlineData(85, "IF N = .", "IF")]
+    [InlineData(2023, "EVALUATE.", "EVALUATE")]
+    [InlineData(85, "ACCEPT.", "ACCEPT")]
+    [InlineData(85, "SEARCH.", "SEARCH")]
+    [InlineData(2023, "DELETE.", "DELETE")]
+    [InlineData(2002, "UNLOCK.", "UNLOCK")]
+    [InlineData(2023, "FREE.", "FREE")]
+    [InlineData(2014, "STOP RUN.\n       RESUME.", "RESUME")]
+    [InlineData(85, "UNLOCK.", null)]
+    [InlineData(85, "FREE.", null)]
+    public void ABareVerbOrAnOperandStartingWithAParen_AtThePeriod_NamesTheStatement(int edition, string statement, string? name)
+    {
+        var (_, diags) = EditionHarness.Compile($"""
+                   IDENTIFICATION DIVISION.
+                   PROGRAM-ID. PB6119V.
+                   DATA DIVISION.
+                   WORKING-STORAGE SECTION.
+                   01 N PIC 9.
+                   01 I PIC 9.
+                   PROCEDURE DIVISION.
+                   MAIN-P.
+                       {statement}
+                       STOP RUN.
+
+               """, edition);
+        string all = string.Join("\n", diags);
+        if (name is null)
+        {
+            Assert.DoesNotContain("ends the", all);   // a paragraph-name at COBOL-85: no statement is open
+            return;
+        }
+        Assert.True(diags.Count == 1 && diags[0].Contains("COBOL5506", StringComparison.Ordinal)
+                                     && diags[0].Contains($"ends the {name} statement where an operand is still due", StringComparison.Ordinal),
+            $"expected exactly one COBOL5506 naming the {name} statement, got:\n{all}");
     }
 
     /// <summary>⛔ A VERB ALONE IN ITS SENTENCE IS FAULTED AT ITS PERIOD, WHICHEVER VERB, AND EVERY SUCH SENTENCE IS (kb/Work
