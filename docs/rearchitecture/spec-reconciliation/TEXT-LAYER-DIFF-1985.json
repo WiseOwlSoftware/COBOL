@@ -4,7 +4,7 @@
  "inputs": {
   "markdown_sha256": "b45874f3bac6713ea3404b36cdae4c3a2854957e02b91a9d1b727ca3384148b4",
   "ledger_sha256": "7dddebbbe1fb87c2a8802fc686ffa6c161127a8664e7bcd61587b0cf09b2914b",
-  "script_sha256": "a3904d91b7529fd1af88c812a80e97bef224cee263a1cdeb4ae7fb681adbe37d",
+  "script_sha256": "c576417ccdc1cf7c2bdfa2ca5163157b04929e74f97b6765925b6070bf9cee2b",
   "tesseract": "tesseract v5.4.0.20240606"
  },
  "classes": [
@@ -12,6 +12,8 @@
   "OCR-ARBITRATED",
   "CORRECTION",
   "AMENDMENT-APPLIED",
+  "TABLE-HEADER",
+  "FOOTNOTE-RENUMBERED",
   "FIGURE",
   "PUNCT",
   "CASE",
@@ -49449,9 +49451,8 @@
    "counts": {
     "OCR-NOISE": 7,
     "CASE": 2,
+    "TABLE-HEADER": 1,
     "OCR-ARBITRATED": 10,
-    "UNEXPLAINED": 3,
-    "LIKELY-ERROR": 1,
     "UNCOVERED": 1
    },
    "differences": [
@@ -49544,6 +49545,17 @@
      ]
     },
     {
+     "class": "TABLE-HEADER",
+     "reason": "the header's words, read by the layer in another order than the Markdown's cells",
+     "pdf": "SYMBOL FIRST Literal",
+     "md": "FIRST SYMBOL Literal",
+     "line": 11958,
+     "words": [
+      3,
+      3
+     ]
+    },
+    {
      "class": "OCR-NOISE",
      "reason": "a run the layer reads in another order",
      "pdf": "P P",
@@ -49577,54 +49589,6 @@
       1
      ],
      "tesseract": "parentheses may be combined in"
-    },
-    {
-     "class": "UNEXPLAINED",
-     "reason": "a single word moved: gone at one place, present at another",
-     "pdf": "",
-     "md": "FIRST SYMBOL",
-     "line": 11958,
-     "words": [
-      0,
-      2
-     ],
-     "tesseract": "permissible pair of symbols. b. The"
-    },
-    {
-     "class": "UNEXPLAINED",
-     "reason": "text layer has words the Markdown lacks",
-     "pdf": "SYMBOL FIRST",
-     "md": "",
-     "line": 11959,
-     "words": [
-      2,
-      0
-     ],
-     "tesseract": "pair. SECOND SYMBOL FIRST SYMBOL Identifier"
-    },
-    {
-     "class": "UNEXPLAINED",
-     "reason": "a single word moved: gone at one place, present at another",
-     "pdf": "",
-     "md": "Literal",
-     "line": 11962,
-     "words": [
-      0,
-      1
-     ],
-     "tesseract": "Identifier or| Unary or Literal"
-    },
-    {
-     "class": "LIKELY-ERROR",
-     "reason": "a second OCR (tesseract) reads the text layer's words at this place, not the Markdown's",
-     "pdf": "Literal",
-     "md": "",
-     "line": 11970,
-     "words": [
-      1,
-      0
-     ],
-     "tesseract": "Identifier or| Unary or Literal"
     },
     {
      "class": "OCR-ARBITRATED",
@@ -55867,10 +55831,10 @@
     "PUNCT": 2,
     "CORRECTION": 7,
     "CASE": 2,
+    "FOOTNOTE-RENUMBERED": 3,
     "OCR-ARBITRATED": 2,
     "UNCOVERED": 2,
-    "LIKELY-ERROR": 4,
-    "UNEXPLAINED": 1
+    "LIKELY-ERROR": 2
    },
    "differences": [
     {
@@ -56006,6 +55970,17 @@
      ]
     },
     {
+     "class": "FOOTNOTE-RENUMBERED",
+     "reason": "the Markdown numbers the marker 1 higher than the print, the words beside it equal",
+     "pdf": "(3)",
+     "md": "(4)",
+     "line": 13562,
+     "words": [
+      1,
+      1
+     ]
+    },
+    {
      "class": "CASE",
      "reason": "same letters, different case",
      "pdf": "In",
@@ -56072,6 +56047,17 @@
      ]
     },
     {
+     "class": "FOOTNOTE-RENUMBERED",
+     "reason": "the Markdown numbers the marker 1 higher than the print, the words beside it equal",
+     "pdf": "(5)",
+     "md": "(6)",
+     "line": 13572,
+     "words": [
+      1,
+      1
+     ]
+    },
+    {
      "class": "OCR-NOISE",
      "reason": "the layer's damaged reading of a well-formed word",
      "pdf": "identifier-l,",
@@ -56088,6 +56074,17 @@
      "pdf": "literal-l",
      "md": "literal-1",
      "line": 13572,
+     "words": [
+      1,
+      1
+     ]
+    },
+    {
+     "class": "FOOTNOTE-RENUMBERED",
+     "reason": "the Markdown numbers the marker 1 higher than the print, the words beside it equal",
+     "pdf": "(6)",
+     "md": "(7)",
+     "line": 13574,
      "words": [
       1,
       1
@@ -56165,18 +56162,6 @@
     {
      "class": "LIKELY-ERROR",
      "reason": "a second OCR (tesseract) reads the text layer's words at this place, not the Markdown's",
-     "pdf": "(3)",
-     "md": "(4)",
-     "line": 13562,
-     "words": [
-      1,
-      1
-     ],
-     "tesseract": "INSPECT statement, the content of"
-    },
-    {
-     "class": "LIKELY-ERROR",
-     "reason": "a second OCR (tesseract) reads the text layer's words at this place, not the Markdown's",
      "pdf": "(4) Subscripting associated with",
      "md": "(5) If",
      "line": 13566,
@@ -56185,30 +56170,6 @@
       2
      ],
      "tesseract": "identifier-7 respectively. (4) Subscripting associated with any identifier"
-    },
-    {
-     "class": "UNEXPLAINED",
-     "reason": "a different word",
-     "pdf": "(5)",
-     "md": "(6)",
-     "line": 13572,
-     "words": [
-      1,
-      1
-     ],
-     "tesseract": "7. (2) For use in"
-    },
-    {
-     "class": "LIKELY-ERROR",
-     "reason": "a second OCR (tesseract) reads the text layer's words at this place, not the Markdown's",
-     "pdf": "(6)",
-     "md": "(7)",
-     "line": 13574,
-     "words": [
-      1,
-      1
-     ],
-     "tesseract": "7. (2) For use in"
     }
    ]
   },
@@ -56614,8 +56575,9 @@
     "CORRECTION": 4,
     "CASE": 2,
     "PUNCT": 1,
+    "FOOTNOTE-RENUMBERED": 2,
     "OCR-ARBITRATED": 1,
-    "LIKELY-ERROR": 3
+    "LIKELY-ERROR": 1
    },
    "differences": [
     {
@@ -56850,6 +56812,28 @@
      ]
     },
     {
+     "class": "FOOTNOTE-RENUMBERED",
+     "reason": "the Markdown numbers the marker 2 higher than the print, the words beside it equal",
+     "pdf": "(9)",
+     "md": "(11)",
+     "line": 13644,
+     "words": [
+      1,
+      1
+     ]
+    },
+    {
+     "class": "FOOTNOTE-RENUMBERED",
+     "reason": "the Markdown numbers the marker 2 higher than the print, the words beside it equal",
+     "pdf": "(10)",
+     "md": "(12)",
+     "line": 13646,
+     "words": [
+      1,
+      1
+     ]
+    },
+    {
      "class": "OCR-NOISE",
      "reason": "the layer's damaged reading of a well-formed word",
      "pdf": "literal-l",
@@ -56960,40 +56944,16 @@
       8
      ],
      "tesseract": "FORMAT 1: (8) The required words ALL and LEADING are adjectives that"
-    },
-    {
-     "class": "LIKELY-ERROR",
-     "reason": "a second OCR (tesseract) reads the text layer's words at this place, not the Markdown's",
-     "pdf": "(9)",
-     "md": "(11)",
-     "line": 13644,
-     "words": [
-      1,
-      1
-     ],
-     "tesseract": "adjective appears. (9) The content"
-    },
-    {
-     "class": "LIKELY-ERROR",
-     "reason": "a second OCR (tesseract) reads the text layer's words at this place, not the Markdown's",
-     "pdf": "(10)",
-     "md": "(12)",
-     "line": 13646,
-     "words": [
-      1,
-      1
-     ],
-     "tesseract": "INSPECT statement. (10) The rules"
     }
    ]
   },
   "331": {
    "counts": {
-    "OCR-NOISE": 15,
+    "OCR-NOISE": 14,
+    "FOOTNOTE-RENUMBERED": 6,
     "PUNCT": 4,
     "CORRECTION": 1,
-    "OCR-ARBITRATED": 1,
-    "LIKELY-ERROR": 6
+    "OCR-ARBITRATED": 1
    },
    "differences": [
     {
@@ -57005,6 +56965,17 @@
      "words": [
       1,
       0
+     ]
+    },
+    {
+     "class": "FOOTNOTE-RENUMBERED",
+     "reason": "the Markdown numbers the marker 2 higher than the print, the words beside it equal",
+     "pdf": "(11)",
+     "md": "(13)",
+     "line": 13664,
+     "words": [
+      1,
+      1
      ]
     },
     {
@@ -57024,6 +56995,28 @@
      "pdf": "2:",
      "md": "2",
      "line": 13666,
+     "words": [
+      1,
+      1
+     ]
+    },
+    {
+     "class": "FOOTNOTE-RENUMBERED",
+     "reason": "the Markdown numbers the marker 2 higher than the print, the words beside it equal",
+     "pdf": "(12)",
+     "md": "(14)",
+     "line": 13668,
+     "words": [
+      1,
+      1
+     ]
+    },
+    {
+     "class": "FOOTNOTE-RENUMBERED",
+     "reason": "the Markdown numbers the marker 2 higher than the print, the words beside it equal",
+     "pdf": "(13)",
+     "md": "(15)",
+     "line": 13670,
      "words": [
       1,
       1
@@ -57129,14 +57122,14 @@
      ]
     },
     {
-     "class": "OCR-NOISE",
-     "reason": "the layer's damaged reading of a well-formed word",
-     "pdf": "literal-l.",
-     "md": "literal-1.",
+     "class": "FOOTNOTE-RENUMBERED",
+     "reason": "the Markdown numbers the marker 2 higher than the print, the words beside it equal",
+     "pdf": "literal-l. (14)",
+     "md": "literal-1. (16)",
      "line": 13680,
      "words": [
-      1,
-      1
+      2,
+      2
      ]
     },
     {
@@ -57173,6 +57166,17 @@
      ]
     },
     {
+     "class": "FOOTNOTE-RENUMBERED",
+     "reason": "the Markdown numbers the marker 2 higher than the print, the words beside it equal",
+     "pdf": "(15)",
+     "md": "(17)",
+     "line": 13686,
+     "words": [
+      1,
+      1
+     ]
+    },
+    {
      "class": "OCR-NOISE",
      "reason": "the layer's damaged reading of a well-formed word",
      "pdf": "identifier-l",
@@ -57189,6 +57193,17 @@
      "pdf": "4:",
      "md": "4",
      "line": 13688,
+     "words": [
+      1,
+      1
+     ]
+    },
+    {
+     "class": "FOOTNOTE-RENUMBERED",
+     "reason": "the Markdown numbers the marker 2 higher than the print, the words beside it equal",
+     "pdf": "(16)",
+     "md": "(18)",
+     "line": 13690,
      "words": [
       1,
       1
@@ -57227,78 +57242,6 @@
       1
      ],
      "tesseract": "Nucleus INSPECT (11) If identifier-1, identifier-3,"
-    },
-    {
-     "class": "LIKELY-ERROR",
-     "reason": "a second OCR (tesseract) reads the text layer's words at this place, not the Markdown's",
-     "pdf": "(11)",
-     "md": "(13)",
-     "line": 13664,
-     "words": [
-      1,
-      1
-     ],
-     "tesseract": "Nucleus INSPECT (11) If identifier-1,"
-    },
-    {
-     "class": "LIKELY-ERROR",
-     "reason": "a second OCR (tesseract) reads the text layer's words at this place, not the Markdown's",
-     "pdf": "(12)",
-     "md": "(14)",
-     "line": 13668,
-     "words": [
-      1,
-      1
-     ],
-     "tesseract": "FORMAT 2: (12) The required"
-    },
-    {
-     "class": "LIKELY-ERROR",
-     "reason": "a second OCR (tesseract) reads the text layer's words at this place, not the Markdown's",
-     "pdf": "(13)",
-     "md": "(15)",
-     "line": 13670,
-     "words": [
-      1,
-      1
-     ],
-     "tesseract": "adjective appears. (13) The rules"
-    },
-    {
-     "class": "LIKELY-ERROR",
-     "reason": "a second OCR (tesseract) reads the text layer's words at this place, not the Markdown's",
-     "pdf": "literal-l. (14)",
-     "md": "literal-1. (16)",
-     "line": 13680,
-     "words": [
-      1,
-      1
-     ],
-     "tesseract": "result of the execution of this"
-    },
-    {
-     "class": "LIKELY-ERROR",
-     "reason": "a second OCR (tesseract) reads the text layer's words at this place, not the Markdown's",
-     "pdf": "(15)",
-     "md": "(17)",
-     "line": 13686,
-     "words": [
-      1,
-      1
-     ],
-     "tesseract": "FORMAT 3: (15) A format"
-    },
-    {
-     "class": "LIKELY-ERROR",
-     "reason": "a second OCR (tesseract) reads the text layer's words at this place, not the Markdown's",
-     "pdf": "(16)",
-     "md": "(18)",
-     "line": 13690,
-     "words": [
-      1,
-      1
-     ],
-     "tesseract": "FORMAT 4: (16) A format"
     }
    ]
   },
@@ -58079,46 +58022,22 @@
   },
   "338": {
    "counts": {
-    "OCR-NOISE": 1,
-    "UNEXPLAINED": 2,
-    "LIKELY-ERROR": 2,
-    "OCR-ARBITRATED": 5
+    "TABLE-HEADER": 1,
+    "OCR-ARBITRATED": 5,
+    "UNEXPLAINED": 1,
+    "LIKELY-ERROR": 1
    },
    "differences": [
     {
-     "class": "OCR-NOISE",
-     "reason": "a run the layer reads in another order",
-     "pdf": "NUMERIC INTEGER",
-     "md": "NUMERIC INTEGER",
-     "line": 13957,
-     "words": [
-      2,
-      2
-     ]
-    },
-    {
-     "class": "UNEXPLAINED",
-     "reason": "a single word moved: gone at one place, present at another",
-     "pdf": "",
+     "class": "TABLE-HEADER",
+     "reason": "the header's words, read by the layer in another order than the Markdown's cells",
+     "pdf": "NUMERIC INTEGER ALPHANUMERIC",
      "md": "ALPHANUMERIC NUMERIC INTEGER",
-     "line": 13957,
+     "line": 13956,
      "words": [
-      0,
-      1
-     ],
-     "tesseract": "ALPHANUMERIC EDITED NUMERIC NONINTEGER ALPHANUMERIC NUMERIC EDITED"
-    },
-    {
-     "class": "LIKELY-ERROR",
-     "reason": "a second OCR (tesseract) reads the text layer's words at this place, not the Markdown's",
-     "pdf": "ALPHANUMERIC",
-     "md": "",
-     "line": 13957,
-     "words": [
-      1,
-      0
-     ],
-     "tesseract": "NUMERIC NONINTEGER ALPHANUMERIC NUMERIC EDITED"
+      3,
+      3
+     ]
     },
     {
      "class": "OCR-ARBITRATED",
@@ -68667,10 +68586,10 @@
   "410": {
    "counts": {
     "PUNCT": 3,
-    "OCR-NOISE": 1,
-    "UNEXPLAINED": 4,
-    "LIKELY-ERROR": 3,
-    "OCR-ARBITRATED": 4
+    "TABLE-HEADER": 1,
+    "LIKELY-ERROR": 1,
+    "OCR-ARBITRATED": 4,
+    "UNEXPLAINED": 1
    },
    "differences": [
     {
@@ -68707,75 +68626,15 @@
      ]
     },
     {
-     "class": "OCR-NOISE",
-     "reason": "a run the layer reads in another order",
-     "pdf": "CLOSE Statement",
-     "md": "CLOSE Statement",
+     "class": "TABLE-HEADER",
+     "reason": "the header's words, read by the layer in another order than the Markdown's cells",
+     "pdf": "CLOSE Statement Format Single- Non-Reel/Unit Reel/Unit",
+     "md": "CLOSE Statement Format Non-Reel/Unit Single- Reel/Unit",
      "line": 16382,
      "words": [
-      2,
-      2
+      6,
+      6
      ]
-    },
-    {
-     "class": "UNEXPLAINED",
-     "reason": "a single word moved: gone at one place, present at another",
-     "pdf": "",
-     "md": "CLOSE Statement Format",
-     "line": 16382,
-     "words": [
-      0,
-      1
-     ],
-     "tesseract": "I-O CLOSE File Category CLOSE Statement Sequential"
-    },
-    {
-     "class": "UNEXPLAINED",
-     "reason": "a single word moved: gone at one place, present at another",
-     "pdf": "CLOSE Statement",
-     "md": "Non-Reel/Unit",
-     "line": 16386,
-     "words": [
-      0,
-      1
-     ],
-     "tesseract": "File Category CLOSE Statement Sequential Sequential"
-    },
-    {
-     "class": "UNEXPLAINED",
-     "reason": "a single word moved: gone at one place, present at another",
-     "pdf": "",
-     "md": "Single- Reel/Unit",
-     "line": 16387,
-     "words": [
-      0,
-      2
-     ],
-     "tesseract": "Sequential I-O CLOSE File Category"
-    },
-    {
-     "class": "LIKELY-ERROR",
-     "reason": "a second OCR (tesseract) reads the text layer's words at this place, not the Markdown's",
-     "pdf": "Format Single-",
-     "md": "",
-     "line": 16388,
-     "words": [
-      2,
-      0
-     ],
-     "tesseract": "Sequential I-O CLOSE File Category"
-    },
-    {
-     "class": "LIKELY-ERROR",
-     "reason": "a second OCR (tesseract) reads the text layer's words at this place, not the Markdown's",
-     "pdf": "Non-Reel/Unit Reel/Unit",
-     "md": "",
-     "line": 16388,
-     "words": [
-      2,
-      0
-     ],
-     "tesseract": "Single- Multi- Non-Reel/Unit Reel/Unit Reel/Unit CLOSE"
     },
     {
      "class": "LIKELY-ERROR",
@@ -71344,9 +71203,10 @@
     "OCR-NOISE": 3,
     "PUNCT": 2,
     "CASE": 3,
-    "LIKELY-ERROR": 6,
+    "FOOTNOTE-RENUMBERED": 4,
+    "LIKELY-ERROR": 3,
     "UNCOVERED": 1,
-    "UNEXPLAINED": 3,
+    "UNEXPLAINED": 2,
     "OCR-ARBITRATED": 4
    },
    "differences": [
@@ -71450,6 +71310,39 @@
      ]
     },
     {
+     "class": "FOOTNOTE-RENUMBERED",
+     "reason": "the Markdown numbers the marker 1 higher than the print, the words beside it equal",
+     "pdf": "(11)",
+     "md": "(12)",
+     "line": 17062,
+     "words": [
+      1,
+      1
+     ]
+    },
+    {
+     "class": "FOOTNOTE-RENUMBERED",
+     "reason": "the Markdown numbers the marker 1 higher than the print, the words beside it equal",
+     "pdf": "(12)",
+     "md": "(13)",
+     "line": 17064,
+     "words": [
+      1,
+      1
+     ]
+    },
+    {
+     "class": "FOOTNOTE-RENUMBERED",
+     "reason": "the Markdown numbers the marker 1 higher than the print, the words beside it equal",
+     "pdf": "(13)",
+     "md": "(14)",
+     "line": 17066,
+     "words": [
+      1,
+      1
+     ]
+    },
+    {
      "class": "CORRECTION",
      "reason": "a ledger pair or correction note of this page accounts for this hunk",
      "pdf": "record-name-l",
@@ -71488,6 +71381,17 @@
      "pdf": "record-name-l,",
      "md": "record-name-1,",
      "line": 17072,
+     "words": [
+      1,
+      1
+     ]
+    },
+    {
+     "class": "FOOTNOTE-RENUMBERED",
+     "reason": "the Markdown numbers the marker 1 higher than the print, the words beside it equal",
+     "pdf": "(14)",
+     "md": "(15)",
+     "line": 17074,
      "words": [
       1,
       1
@@ -71575,30 +71479,6 @@
      "tesseract": "associated with record-name-l, and after executing the procedure, if any, specified by"
     },
     {
-     "class": "LIKELY-ERROR",
-     "reason": "a second OCR (tesseract) reads the text layer's words at this place, not the Markdown's",
-     "pdf": "(11)",
-     "md": "(12)",
-     "line": 17062,
-     "words": [
-      1,
-      1
-     ],
-     "tesseract": "of Statements.) (11) The successor"
-    },
-    {
-     "class": "UNEXPLAINED",
-     "reason": "a different word",
-     "pdf": "(12)",
-     "md": "(13)",
-     "line": 17064,
-     "words": [
-      1,
-      1
-     ],
-     "tesseract": "sequential file is established by"
-    },
-    {
      "class": "OCR-ARBITRATED",
      "reason": "a second OCR (tesseract) reads the Markdown's words at this place, not the text layer's",
      "pdf": "written",
@@ -71621,30 +71501,6 @@
       2
      ],
      "tesseract": "the first record written after the"
-    },
-    {
-     "class": "LIKELY-ERROR",
-     "reason": "a second OCR (tesseract) reads the text layer's words at this place, not the Markdown's",
-     "pdf": "(13)",
-     "md": "(14)",
-     "line": 17066,
-     "words": [
-      1,
-      1
-     ],
-     "tesseract": "sequential file is established by"
-    },
-    {
-     "class": "LIKELY-ERROR",
-     "reason": "a second OCR (tesseract) reads the text layer's words at this place, not the Markdown's",
-     "pdf": "(14)",
-     "md": "(15)",
-     "line": 17074,
-     "words": [
-      1,
-      1
-     ],
-     "tesseract": "is undefined. (14) If the"
     },
     {
      "class": "UNEXPLAINED",
@@ -71686,12 +71542,12 @@
   },
   "429": {
    "counts": {
-    "OCR-NOISE": 11,
+    "OCR-NOISE": 10,
     "CASE": 1,
+    "FOOTNOTE-RENUMBERED": 2,
     "UNCOVERED": 7,
     "UNEXPLAINED": 1,
-    "OCR-ARBITRATED": 1,
-    "LIKELY-ERROR": 2
+    "OCR-ARBITRATED": 1
    },
    "differences": [
     {
@@ -71772,6 +71628,17 @@
      ]
     },
     {
+     "class": "FOOTNOTE-RENUMBERED",
+     "reason": "the Markdown numbers the marker 1 higher than the print, the words beside it equal",
+     "pdf": "(16)",
+     "md": "(17)",
+     "line": 17108,
+     "words": [
+      1,
+      1
+     ]
+    },
+    {
      "class": "OCR-NOISE",
      "reason": "the layer's damaged reading of a well-formed word",
      "pdf": "imperative-statement-l",
@@ -71783,14 +71650,14 @@
      ]
     },
     {
-     "class": "OCR-NOISE",
-     "reason": "the layer's damaged reading of a well-formed word",
-     "pdf": "record-name-l.",
-     "md": "record-name-1.",
+     "class": "FOOTNOTE-RENUMBERED",
+     "reason": "the Markdown numbers the marker 1 higher than the print, the words beside it equal",
+     "pdf": "record-name-l. (17)",
+     "md": "record-name-1. (18)",
      "line": 17108,
      "words": [
-      1,
-      1
+      2,
+      2
      ]
     },
     {
@@ -71926,30 +71793,6 @@
       2
      ],
      "tesseract": "file description entry, the record is"
-    },
-    {
-     "class": "LIKELY-ERROR",
-     "reason": "a second OCR (tesseract) reads the text layer's words at this place, not the Markdown's",
-     "pdf": "(16)",
-     "md": "(17)",
-     "line": 17108,
-     "words": [
-      1,
-      1
-     ],
-     "tesseract": "the line is presented before_"
-    },
-    {
-     "class": "LIKELY-ERROR",
-     "reason": "a second OCR (tesseract) reads the text layer's words at this place, not the Markdown's",
-     "pdf": "record-name-l. (17)",
-     "md": "record-name-1. (18)",
-     "line": 17108,
-     "words": [
-      1,
-      1
-     ],
-     "tesseract": "accordance with an implementor-defined technique. If"
     }
    ]
   },
@@ -78556,8 +78399,9 @@
   },
   "489": {
    "counts": {
-    "OCR-NOISE": 3,
+    "OCR-NOISE": 2,
     "PUNCT": 1,
+    "TABLE-HEADER": 1,
     "UNEXPLAINED": 1,
     "OCR-ARBITRATED": 2,
     "FIGURE": 1
@@ -78597,8 +78441,8 @@
      ]
     },
     {
-     "class": "OCR-NOISE",
-     "reason": "a run the layer reads in another order",
+     "class": "TABLE-HEADER",
+     "reason": "the header's words, read by the layer in another order than the Markdown's cells",
      "pdf": "Statement Format",
      "md": "Statement Format",
      "line": 19019,
@@ -106050,10 +105894,10 @@
     "CORRECTION": 8,
     "PUNCT": 2,
     "OCR-NOISE": 17,
-    "UNEXPLAINED": 6,
-    "LIKELY-ERROR": 1,
+    "TABLE-HEADER": 1,
     "OCR-ARBITRATED": 4,
-    "UNCOVERED": 8
+    "UNCOVERED": 8,
+    "UNEXPLAINED": 4
    },
    "differences": [
     {
@@ -106321,6 +106165,17 @@
      ]
     },
     {
+     "class": "TABLE-HEADER",
+     "reason": "the header's words, read by the layer in another order than the Markdown's cells",
+     "pdf": "ELEMENT STD",
+     "md": "ELEMENT STD",
+     "line": 26947,
+     "words": [
+      2,
+      2
+     ]
+    },
+    {
      "class": "OCR-NOISE",
      "reason": "a run the layer reads in another order",
      "pdf": "1 NUC 1 NUC",
@@ -106352,42 +106207,6 @@
       3,
       3
      ]
-    },
-    {
-     "class": "UNEXPLAINED",
-     "reason": "a single word moved: gone at one place, present at another",
-     "pdf": "",
-     "md": "ELEMENT",
-     "line": 26947,
-     "words": [
-      0,
-      1
-     ],
-     "tesseract": "Language Concepts Difference Summary SUMMARY"
-    },
-    {
-     "class": "UNEXPLAINED",
-     "reason": "a single word moved: gone at one place, present at another",
-     "pdf": "",
-     "md": "STD",
-     "line": 26947,
-     "words": [
-      0,
-      1
-     ],
-     "tesseract": "CONCEPTS 2ND 3RD ELEMENT STD"
-    },
-    {
-     "class": "LIKELY-ERROR",
-     "reason": "a second OCR (tesseract) reads the text layer's words at this place, not the Markdown's",
-     "pdf": "ELEMENT STD",
-     "md": "",
-     "line": 26947,
-     "words": [
-      2,
-      0
-     ],
-     "tesseract": "2ND 3RD ELEMENT STD STD LANGUAGE"
     },
     {
      "class": "OCR-ARBITRATED",
@@ -106579,8 +106398,8 @@
    "counts": {
     "CORRECTION": 31,
     "OCR-NOISE": 9,
-    "UNEXPLAINED": 5,
-    "LIKELY-ERROR": 1,
+    "TABLE-HEADER": 1,
+    "UNEXPLAINED": 3,
     "OCR-ARBITRATED": 1,
     "UNCOVERED": 1
    },
@@ -106949,6 +106768,17 @@
      ]
     },
     {
+     "class": "TABLE-HEADER",
+     "reason": "the header's words, read by the layer in another order than the Markdown's cells",
+     "pdf": "ELEMENT STD",
+     "md": "ELEMENT STD",
+     "line": 27006,
+     "words": [
+      2,
+      2
+     ]
+    },
+    {
      "class": "OCR-NOISE",
      "reason": "a run the layer reads in another order",
      "pdf": "1 SEQ 1 REL 1",
@@ -107029,42 +106859,6 @@
      "class": "UNEXPLAINED",
      "reason": "a single word moved: gone at one place, present at another",
      "pdf": "",
-     "md": "ELEMENT",
-     "line": 27006,
-     "words": [
-      0,
-      1
-     ],
-     "tesseract": "Language Concepts Difference Summary SUMMARY"
-    },
-    {
-     "class": "UNEXPLAINED",
-     "reason": "a single word moved: gone at one place, present at another",
-     "pdf": "",
-     "md": "STD",
-     "line": 27006,
-     "words": [
-      0,
-      1
-     ],
-     "tesseract": "CONCEPTS 2ND 3RD ELEMENT STD"
-    },
-    {
-     "class": "LIKELY-ERROR",
-     "reason": "a second OCR (tesseract) reads the text layer's words at this place, not the Markdown's",
-     "pdf": "ELEMENT STD",
-     "md": "",
-     "line": 27006,
-     "words": [
-      2,
-      0
-     ],
-     "tesseract": "2ND 3RD ELEMENT STD STD User-defined"
-    },
-    {
-     "class": "UNEXPLAINED",
-     "reason": "a single word moved: gone at one place, present at another",
-     "pdf": "",
      "md": "1 SEQ 1 SEQ 1 REL 1 REL 1 INX 1 INX 1 SRT 1 SRT",
      "line": 27009,
      "words": [
@@ -107127,8 +106921,7 @@
     "OCR-NOISE": 13,
     "CORRECTION": 1,
     "PUNCT": 1,
-    "UNEXPLAINED": 2,
-    "LIKELY-ERROR": 1,
+    "TABLE-HEADER": 1,
     "UNCOVERED": 5,
     "OCR-ARBITRATED": 3
    },
@@ -107299,40 +107092,15 @@
      ]
     },
     {
-     "class": "UNEXPLAINED",
-     "reason": "a single word moved: gone at one place, present at another",
-     "pdf": "",
-     "md": "ELEMENT",
-     "line": 27067,
-     "words": [
-      0,
-      1
-     ],
-     "tesseract": "Language Concepts Difference Summary SUMMARY"
-    },
-    {
-     "class": "UNEXPLAINED",
-     "reason": "a single word moved: gone at one place, present at another",
-     "pdf": "",
-     "md": "STD",
-     "line": 27067,
-     "words": [
-      0,
-      1
-     ],
-     "tesseract": "CONCEPTS 2ND 3RD ELEMENT STD"
-    },
-    {
-     "class": "LIKELY-ERROR",
-     "reason": "a second OCR (tesseract) reads the text layer's words at this place, not the Markdown's",
+     "class": "TABLE-HEADER",
+     "reason": "the header's words, read by the layer in another order than the Markdown's cells",
      "pdf": "ELEMENT STD",
-     "md": "",
+     "md": "ELEMENT STD",
      "line": 27067,
      "words": [
       2,
-      0
-     ],
-     "tesseract": "2ND 3RD ELEMENT STD STD Uniqueness"
+      2
+     ]
     },
     {
      "class": "UNCOVERED",
@@ -107430,8 +107198,7 @@
   "728": {
    "counts": {
     "OCR-NOISE": 2,
-    "UNEXPLAINED": 2,
-    "LIKELY-ERROR": 1,
+    "TABLE-HEADER": 1,
     "UNCOVERED": 1
    },
    "differences": [
@@ -107458,40 +107225,15 @@
      ]
     },
     {
-     "class": "UNEXPLAINED",
-     "reason": "a single word moved: gone at one place, present at another",
-     "pdf": "",
-     "md": "ELEMENT",
-     "line": 27126,
-     "words": [
-      0,
-      1
-     ],
-     "tesseract": "Identification Division Difference Summary SUMMARY"
-    },
-    {
-     "class": "UNEXPLAINED",
-     "reason": "a single word moved: gone at one place, present at another",
-     "pdf": "",
-     "md": "STD",
-     "line": 27126,
-     "words": [
-      0,
-      1
-     ],
-     "tesseract": "DIVISION 2ND 3RD ELEMENT STD"
-    },
-    {
-     "class": "LIKELY-ERROR",
-     "reason": "a second OCR (tesseract) reads the text layer's words at this place, not the Markdown's",
+     "class": "TABLE-HEADER",
+     "reason": "the header's words, read by the layer in another order than the Markdown's cells",
      "pdf": "ELEMENT STD",
-     "md": "",
+     "md": "ELEMENT STD",
      "line": 27126,
      "words": [
       2,
-      0
-     ],
-     "tesseract": "2ND 3RD ELEMENT STD STD IDENTIFICATION"
+      2
+     ]
     },
     {
      "class": "UNCOVERED",
@@ -107510,9 +107252,9 @@
    "counts": {
     "CORRECTION": 24,
     "OCR-NOISE": 21,
-    "UNEXPLAINED": 5,
-    "LIKELY-ERROR": 1,
+    "TABLE-HEADER": 1,
     "OCR-ARBITRATED": 7,
+    "UNEXPLAINED": 3,
     "UNCOVERED": 1
    },
    "differences": [
@@ -107858,6 +107600,17 @@
      ]
     },
     {
+     "class": "TABLE-HEADER",
+     "reason": "the header's words, read by the layer in another order than the Markdown's cells",
+     "pdf": "ELEMENT STD",
+     "md": "ELEMENT STD",
+     "line": 27149,
+     "words": [
+      2,
+      2
+     ]
+    },
+    {
      "class": "OCR-NOISE",
      "reason": "a run the layer reads in another order",
      "pdf": "NUC 1 NUC Z",
@@ -108010,42 +107763,6 @@
       2,
       2
      ]
-    },
-    {
-     "class": "UNEXPLAINED",
-     "reason": "a single word moved: gone at one place, present at another",
-     "pdf": "",
-     "md": "ELEMENT",
-     "line": 27149,
-     "words": [
-      0,
-      1
-     ],
-     "tesseract": "Environment Division Difference Summary SUMMARY"
-    },
-    {
-     "class": "UNEXPLAINED",
-     "reason": "a single word moved: gone at one place, present at another",
-     "pdf": "",
-     "md": "STD",
-     "line": 27149,
-     "words": [
-      0,
-      1
-     ],
-     "tesseract": "DIVISION 2ND 3RD ELEMENT STD"
-    },
-    {
-     "class": "LIKELY-ERROR",
-     "reason": "a second OCR (tesseract) reads the text layer's words at this place, not the Markdown's",
-     "pdf": "ELEMENT STD",
-     "md": "",
-     "line": 27149,
-     "words": [
-      2,
-      0
-     ],
-     "tesseract": "2ND 3RD ELEMENT STD STD ENVIRONMENT"
     },
     {
      "class": "OCR-ARBITRATED",
@@ -108602,8 +108319,8 @@
     "OCR-NOISE": 29,
     "CORRECTION": 1,
     "CASE": 1,
-    "UNEXPLAINED": 3,
-    "LIKELY-ERROR": 1,
+    "TABLE-HEADER": 1,
+    "UNEXPLAINED": 1,
     "UNCOVERED": 1
    },
    "differences": [
@@ -108638,6 +108355,17 @@
      "words": [
       1,
       1
+     ]
+    },
+    {
+     "class": "TABLE-HEADER",
+     "reason": "the header's words, read by the layer in another order than the Markdown's cells",
+     "pdf": "ELEMENT STD",
+     "md": "ELEMENT STD",
+     "line": 27257,
+     "words": [
+      2,
+      2
      ]
     },
     {
@@ -108950,42 +108678,6 @@
     },
     {
      "class": "UNEXPLAINED",
-     "reason": "a single word moved: gone at one place, present at another",
-     "pdf": "",
-     "md": "ELEMENT",
-     "line": 27257,
-     "words": [
-      0,
-      1
-     ],
-     "tesseract": "Environment Division Difference Summary SUMMARY"
-    },
-    {
-     "class": "UNEXPLAINED",
-     "reason": "a single word moved: gone at one place, present at another",
-     "pdf": "",
-     "md": "STD",
-     "line": 27257,
-     "words": [
-      0,
-      1
-     ],
-     "tesseract": "DIVISION 2ND 3RD ELEMENT STD"
-    },
-    {
-     "class": "LIKELY-ERROR",
-     "reason": "a second OCR (tesseract) reads the text layer's words at this place, not the Markdown's",
-     "pdf": "ELEMENT STD",
-     "md": "",
-     "line": 27257,
-     "words": [
-      2,
-      0
-     ],
-     "tesseract": "2ND 3RD ELEMENT STD STD File"
-    },
-    {
-     "class": "UNEXPLAINED",
      "reason": "text layer has words the Markdown lacks",
      "pdf": "Implementor-name Literal FILE STATUS clause ORGANIZATION clause SEQUENTIAL RELATIVE INDEXED PADDING CHARACTER clause REC ...",
      "md": "",
@@ -109011,12 +108703,23 @@
   },
   "732": {
    "counts": {
+    "TABLE-HEADER": 1,
     "OCR-NOISE": 4,
-    "UNEXPLAINED": 4,
-    "LIKELY-ERROR": 1,
+    "UNEXPLAINED": 2,
     "OCR-ARBITRATED": 1
    },
    "differences": [
+    {
+     "class": "TABLE-HEADER",
+     "reason": "the header's words, read by the layer in another order than the Markdown's cells",
+     "pdf": "ELEMENT STD",
+     "md": "ELEMENT STD",
+     "line": 27285,
+     "words": [
+      2,
+      2
+     ]
+    },
     {
      "class": "OCR-NOISE",
      "reason": "a run the layer reads in another order",
@@ -109065,42 +108768,6 @@
      "class": "UNEXPLAINED",
      "reason": "a single word moved: gone at one place, present at another",
      "pdf": "",
-     "md": "ELEMENT",
-     "line": 27285,
-     "words": [
-      0,
-      1
-     ],
-     "tesseract": "Environment Division Difference Summary SUMMARY"
-    },
-    {
-     "class": "UNEXPLAINED",
-     "reason": "a single word moved: gone at one place, present at another",
-     "pdf": "",
-     "md": "STD",
-     "line": 27285,
-     "words": [
-      0,
-      1
-     ],
-     "tesseract": "DIVISION 2ND 3RD ELEMENT STD"
-    },
-    {
-     "class": "LIKELY-ERROR",
-     "reason": "a second OCR (tesseract) reads the text layer's words at this place, not the Markdown's",
-     "pdf": "ELEMENT STD",
-     "md": "",
-     "line": 27285,
-     "words": [
-      2,
-      0
-     ],
-     "tesseract": "2ND 3RD ELEMENT STD STD I-O-CONTROL"
-    },
-    {
-     "class": "UNEXPLAINED",
-     "reason": "a single word moved: gone at one place, present at another",
-     "pdf": "",
      "md": "1 INX 1 RPW",
      "line": 27290,
      "words": [
@@ -109139,8 +108806,8 @@
    "counts": {
     "CORRECTION": 2,
     "OCR-NOISE": 48,
-    "UNEXPLAINED": 5,
-    "LIKELY-ERROR": 1,
+    "TABLE-HEADER": 1,
+    "UNEXPLAINED": 3,
     "OCR-ARBITRATED": 4,
     "UNCOVERED": 1
    },
@@ -109176,6 +108843,17 @@
      "words": [
       1,
       0
+     ]
+    },
+    {
+     "class": "TABLE-HEADER",
+     "reason": "the header's words, read by the layer in another order than the Markdown's cells",
+     "pdf": "ELEMENT STD",
+     "md": "ELEMENT STD",
+     "line": 27306,
+     "words": [
+      2,
+      2
      ]
     },
     {
@@ -109697,42 +109375,6 @@
     },
     {
      "class": "UNEXPLAINED",
-     "reason": "a single word moved: gone at one place, present at another",
-     "pdf": "",
-     "md": "ELEMENT",
-     "line": 27306,
-     "words": [
-      0,
-      1
-     ],
-     "tesseract": "Data Division Difference Summary SUMMARY"
-    },
-    {
-     "class": "UNEXPLAINED",
-     "reason": "a single word moved: gone at one place, present at another",
-     "pdf": "",
-     "md": "STD",
-     "line": 27306,
-     "words": [
-      0,
-      1
-     ],
-     "tesseract": "DIVISION 2ND 3RD ELEMENT STD"
-    },
-    {
-     "class": "LIKELY-ERROR",
-     "reason": "a second OCR (tesseract) reads the text layer's words at this place, not the Markdown's",
-     "pdf": "ELEMENT STD",
-     "md": "",
-     "line": 27306,
-     "words": [
-      2,
-      0
-     ],
-     "tesseract": "2ND 3RD ELEMENT STD STD DATA"
-    },
-    {
-     "class": "UNEXPLAINED",
      "reason": "text layer has words the Markdown lacks",
      "pdf": "File description entry FD level indicator BLOCK CONTAINS clause Integer RECORDS/CHARACTERS Integer-l TO integer-2 RECORD ...",
      "md": "",
@@ -109831,10 +109473,11 @@
   "734": {
    "counts": {
     "OCR-NOISE": 32,
-    "UNEXPLAINED": 13,
-    "LIKELY-ERROR": 3,
+    "TABLE-HEADER": 1,
+    "UNEXPLAINED": 12,
     "UNCOVERED": 8,
-    "OCR-ARBITRATED": 7
+    "OCR-ARBITRATED": 7,
+    "LIKELY-ERROR": 2
    },
    "differences": [
     {
@@ -109978,6 +109621,17 @@
      "words": [
       3,
       1
+     ]
+    },
+    {
+     "class": "TABLE-HEADER",
+     "reason": "the header's words, read by the layer in another order than the Markdown's cells",
+     "pdf": "ELEMENT STD",
+     "md": "ELEMENT STD",
+     "line": 27365,
+     "words": [
+      2,
+      2
      ]
     },
     {
@@ -110209,33 +109863,9 @@
      "line": 27363,
      "words": [
       2,
-      2
-     ],
-     "tesseract": "ciel Data Division Difference Summary SUMMARY OF DIFFERENCES"
-    },
-    {
-     "class": "UNEXPLAINED",
-     "reason": "a single word moved: gone at one place, present at another",
-     "pdf": "",
-     "md": "STD",
-     "line": 27365,
-     "words": [
-      0,
       1
      ],
-     "tesseract": "DIVISION 2ND 3RD ELEMENT STD"
-    },
-    {
-     "class": "LIKELY-ERROR",
-     "reason": "a second OCR (tesseract) reads the text layer's words at this place, not the Markdown's",
-     "pdf": "ELEMENT STD",
-     "md": "",
-     "line": 27365,
-     "words": [
-      2,
-      0
-     ],
-     "tesseract": "2ND 3RD ELEMENT STD STD RECORD"
+     "tesseract": "ciel Data Division Difference Summary SUMMARY OF DIFFERENCES"
     },
     {
      "class": "UNEXPLAINED",
@@ -110558,8 +110188,7 @@
   "735": {
    "counts": {
     "OCR-NOISE": 9,
-    "UNEXPLAINED": 1,
-    "LIKELY-ERROR": 1
+    "TABLE-HEADER": 1
    },
    "differences": [
     {
@@ -110579,6 +110208,17 @@
      "pdf": "SUB-QUEUE-Z",
      "md": "SUB-QUEUE-2",
      "line": 27430,
+     "words": [
+      1,
+      1
+     ]
+    },
+    {
+     "class": "TABLE-HEADER",
+     "reason": "the header's words, read by the layer in another order than the Markdown's cells",
+     "pdf": "STD",
+     "md": "STD",
+     "line": 27416,
      "words": [
       1,
       1
@@ -110660,30 +110300,6 @@
       3,
       3
      ]
-    },
-    {
-     "class": "UNEXPLAINED",
-     "reason": "a single word moved: gone at one place, present at another",
-     "pdf": "",
-     "md": "STD",
-     "line": 27416,
-     "words": [
-      0,
-      1
-     ],
-     "tesseract": "DIVISION 2ND 3RD ELEMENT STD"
-    },
-    {
-     "class": "LIKELY-ERROR",
-     "reason": "a second OCR (tesseract) reads the text layer's words at this place, not the Markdown's",
-     "pdf": "STD",
-     "md": "",
-     "line": 27416,
-     "words": [
-      1,
-      0
-     ],
-     "tesseract": "2ND 3RD ELEMENT STD STD"
     }
    ]
   },
@@ -110691,9 +110307,9 @@
    "counts": {
     "OCR-NOISE": 35,
     "PUNCT": 1,
-    "UNEXPLAINED": 6,
-    "LIKELY-ERROR": 1,
+    "TABLE-HEADER": 1,
     "OCR-ARBITRATED": 8,
+    "UNEXPLAINED": 4,
     "UNCOVERED": 1
    },
    "differences": [
@@ -110750,6 +110366,17 @@
      "words": [
       7,
       0
+     ]
+    },
+    {
+     "class": "TABLE-HEADER",
+     "reason": "the header's words, read by the layer in another order than the Markdown's cells",
+     "pdf": "ELEMENT STD",
+     "md": "ELEMENT STD",
+     "line": 27473,
+     "words": [
+      2,
+      2
      ]
     },
     {
@@ -111092,42 +110719,6 @@
       2,
       2
      ]
-    },
-    {
-     "class": "UNEXPLAINED",
-     "reason": "a single word moved: gone at one place, present at another",
-     "pdf": "",
-     "md": "ELEMENT",
-     "line": 27473,
-     "words": [
-      0,
-      1
-     ],
-     "tesseract": "Data Division Difference Summary SUMMARY"
-    },
-    {
-     "class": "UNEXPLAINED",
-     "reason": "a single word moved: gone at one place, present at another",
-     "pdf": "",
-     "md": "STD",
-     "line": 27473,
-     "words": [
-      0,
-      1
-     ],
-     "tesseract": "DIVISION 2ND 3RD ELEMENT STD"
-    },
-    {
-     "class": "LIKELY-ERROR",
-     "reason": "a second OCR (tesseract) reads the text layer's words at this place, not the Markdown's",
-     "pdf": "ELEMENT STD",
-     "md": "",
-     "line": 27473,
-     "words": [
-      2,
-      0
-     ],
-     "tesseract": "2ND 3RD ELEMENT STD STD The"
     },
     {
      "class": "OCR-ARBITRATED",
@@ -112442,9 +112033,9 @@
    "counts": {
     "OCR-NOISE": 30,
     "CASE": 2,
-    "UNEXPLAINED": 4,
-    "LIKELY-ERROR": 1,
+    "TABLE-HEADER": 1,
     "UNCOVERED": 25,
+    "UNEXPLAINED": 2,
     "OCR-ARBITRATED": 3
    },
    "differences": [
@@ -112501,6 +112092,17 @@
      "words": [
       1,
       1
+     ]
+    },
+    {
+     "class": "TABLE-HEADER",
+     "reason": "the header's words, read by the layer in another order than the Markdown's cells",
+     "pdf": "ELEMENT STD",
+     "md": "ELEMENT STD",
+     "line": 27626,
+     "words": [
+      2,
+      2
      ]
     },
     {
@@ -112799,42 +112401,6 @@
       2,
       2
      ]
-    },
-    {
-     "class": "UNEXPLAINED",
-     "reason": "a single word moved: gone at one place, present at another",
-     "pdf": "",
-     "md": "ELEMENT",
-     "line": 27626,
-     "words": [
-      0,
-      1
-     ],
-     "tesseract": "Procedure Division Difference Summary SUMMARY"
-    },
-    {
-     "class": "UNEXPLAINED",
-     "reason": "a single word moved: gone at one place, present at another",
-     "pdf": "",
-     "md": "STD",
-     "line": 27626,
-     "words": [
-      0,
-      1
-     ],
-     "tesseract": "DIVISION 2ND 3RD ELEMENT STD"
-    },
-    {
-     "class": "LIKELY-ERROR",
-     "reason": "a second OCR (tesseract) reads the text layer's words at this place, not the Markdown's",
-     "pdf": "ELEMENT STD",
-     "md": "",
-     "line": 27626,
-     "words": [
-      2,
-      0
-     ],
-     "tesseract": "2ND 3RD ELEMENT STD sTD Conditional"
     },
     {
      "class": "UNCOVERED",
@@ -113176,9 +112742,9 @@
   "740": {
    "counts": {
     "OCR-NOISE": 32,
-    "UNEXPLAINED": 5,
-    "LIKELY-ERROR": 1,
+    "TABLE-HEADER": 1,
     "OCR-ARBITRATED": 4,
+    "UNEXPLAINED": 3,
     "UNCOVERED": 3
    },
    "differences": [
@@ -113213,6 +112779,17 @@
      "words": [
       1,
       0
+     ]
+    },
+    {
+     "class": "TABLE-HEADER",
+     "reason": "the header's words, read by the layer in another order than the Markdown's cells",
+     "pdf": "ELEMENT STD",
+     "md": "ELEMENT STD",
+     "line": 27728,
+     "words": [
+      2,
+      2
      ]
     },
     {
@@ -113535,42 +113112,6 @@
      ]
     },
     {
-     "class": "UNEXPLAINED",
-     "reason": "a single word moved: gone at one place, present at another",
-     "pdf": "",
-     "md": "ELEMENT",
-     "line": 27728,
-     "words": [
-      0,
-      1
-     ],
-     "tesseract": "Procedure Division Difference Summary SUMMARY"
-    },
-    {
-     "class": "UNEXPLAINED",
-     "reason": "a single word moved: gone at one place, present at another",
-     "pdf": "",
-     "md": "STD",
-     "line": 27728,
-     "words": [
-      0,
-      1
-     ],
-     "tesseract": "DIVISION 2ND 3RD ELEMENT STD"
-    },
-    {
-     "class": "LIKELY-ERROR",
-     "reason": "a second OCR (tesseract) reads the text layer's words at this place, not the Markdown's",
-     "pdf": "ELEMENT STD",
-     "md": "",
-     "line": 27728,
-     "words": [
-      2,
-      0
-     ],
-     "tesseract": "2ND 3RD ELEMENT STD STD CALL"
-    },
-    {
      "class": "OCR-ARBITRATED",
      "reason": "a second OCR (tesseract) reads the Markdown's words at this place, not the text layer's",
      "pdf": "",
@@ -113693,8 +113234,8 @@
    "counts": {
     "CORRECTION": 30,
     "OCR-NOISE": 18,
-    "UNEXPLAINED": 8,
-    "LIKELY-ERROR": 1,
+    "TABLE-HEADER": 1,
+    "UNEXPLAINED": 6,
     "OCR-ARBITRATED": 7,
     "UNCOVERED": 3
    },
@@ -114085,6 +113626,17 @@
      ]
     },
     {
+     "class": "TABLE-HEADER",
+     "reason": "the header's words, read by the layer in another order than the Markdown's cells",
+     "pdf": "ELEMENT STD",
+     "md": "ELEMENT STD",
+     "line": 27786,
+     "words": [
+      2,
+      2
+     ]
+    },
+    {
      "class": "OCR-NOISE",
      "reason": "a run the layer reads in another order",
      "pdf": "1 REL 1 INX 1",
@@ -114226,42 +113778,6 @@
       2,
       2
      ]
-    },
-    {
-     "class": "UNEXPLAINED",
-     "reason": "a single word moved: gone at one place, present at another",
-     "pdf": "",
-     "md": "ELEMENT",
-     "line": 27786,
-     "words": [
-      0,
-      1
-     ],
-     "tesseract": "Procedure Division Difference Summary SUMMARY"
-    },
-    {
-     "class": "UNEXPLAINED",
-     "reason": "a single word moved: gone at one place, present at another",
-     "pdf": "",
-     "md": "STD",
-     "line": 27786,
-     "words": [
-      0,
-      1
-     ],
-     "tesseract": "DIVISION 2ND 3RD ELEMENT STD"
-    },
-    {
-     "class": "LIKELY-ERROR",
-     "reason": "a second OCR (tesseract) reads the text layer's words at this place, not the Markdown's",
-     "pdf": "ELEMENT STD",
-     "md": "",
-     "line": 27786,
-     "words": [
-      2,
-      0
-     ],
-     "tesseract": "2ND 3RD ELEMENT STD STD DELETE"
     },
     {
      "class": "UNEXPLAINED",
@@ -114458,9 +113974,9 @@
    "counts": {
     "PUNCT": 1,
     "OCR-NOISE": 43,
-    "UNEXPLAINED": 3,
-    "LIKELY-ERROR": 1,
-    "UNCOVERED": 20
+    "TABLE-HEADER": 1,
+    "UNCOVERED": 20,
+    "UNEXPLAINED": 1
    },
    "differences": [
     {
@@ -114483,6 +113999,17 @@
      "words": [
       21,
       0
+     ]
+    },
+    {
+     "class": "TABLE-HEADER",
+     "reason": "the header's words, read by the layer in another order than the Markdown's cells",
+     "pdf": "ELEMENT STD",
+     "md": "ELEMENT STD",
+     "line": 27846,
+     "words": [
+      2,
+      2
      ]
     },
     {
@@ -114948,42 +114475,6 @@
      ]
     },
     {
-     "class": "UNEXPLAINED",
-     "reason": "a single word moved: gone at one place, present at another",
-     "pdf": "",
-     "md": "ELEMENT",
-     "line": 27846,
-     "words": [
-      0,
-      1
-     ],
-     "tesseract": "Procedure Division Difference Summary SUMMARY"
-    },
-    {
-     "class": "UNEXPLAINED",
-     "reason": "a single word moved: gone at one place, present at another",
-     "pdf": "",
-     "md": "STD",
-     "line": 27846,
-     "words": [
-      0,
-      1
-     ],
-     "tesseract": "DIVISION 2ND 3RD ELEMENT STD"
-    },
-    {
-     "class": "LIKELY-ERROR",
-     "reason": "a second OCR (tesseract) reads the text layer's words at this place, not the Markdown's",
-     "pdf": "ELEMENT STD",
-     "md": "",
-     "line": 27846,
-     "words": [
-      2,
-      0
-     ],
-     "tesseract": "2ND 3RD ELEMENT STD STD EXIT"
-    },
-    {
      "class": "UNCOVERED",
      "reason": "Markdown words the text layer lacks",
      "pdf": "",
@@ -115221,8 +114712,8 @@
    "counts": {
     "CORRECTION": 14,
     "OCR-NOISE": 31,
-    "UNEXPLAINED": 9,
-    "LIKELY-ERROR": 1,
+    "TABLE-HEADER": 1,
+    "UNEXPLAINED": 7,
     "OCR-ARBITRATED": 8
    },
    "differences": [
@@ -115422,6 +114913,17 @@
      "words": [
       0,
       6
+     ]
+    },
+    {
+     "class": "TABLE-HEADER",
+     "reason": "the header's words, read by the layer in another order than the Markdown's cells",
+     "pdf": "ELEMENT STD",
+     "md": "ELEMENT STD",
+     "line": 27905,
+     "words": [
+      2,
+      2
      ]
     },
     {
@@ -115723,42 +115225,6 @@
     },
     {
      "class": "UNEXPLAINED",
-     "reason": "a single word moved: gone at one place, present at another",
-     "pdf": "",
-     "md": "ELEMENT",
-     "line": 27905,
-     "words": [
-      0,
-      1
-     ],
-     "tesseract": "Procedure Division Difference Summary SUMMARY"
-    },
-    {
-     "class": "UNEXPLAINED",
-     "reason": "a single word moved: gone at one place, present at another",
-     "pdf": "",
-     "md": "STD",
-     "line": 27905,
-     "words": [
-      0,
-      1
-     ],
-     "tesseract": "DIVISION 2ND 3RD ELEMENT STD"
-    },
-    {
-     "class": "LIKELY-ERROR",
-     "reason": "a second OCR (tesseract) reads the text layer's words at this place, not the Markdown's",
-     "pdf": "ELEMENT STD",
-     "md": "",
-     "line": 27905,
-     "words": [
-      2,
-      0
-     ],
-     "tesseract": "2ND 3RD ELEMENT STD STD MOVE"
-    },
-    {
-     "class": "UNEXPLAINED",
      "reason": "text layer has words the Markdown lacks",
      "pdf": "END-MULTIPLY phrase OPEN statement File-name File-name series INPUT phrase WITH NO REWIND phrase REVERSED phrase OUTPUT  ...",
      "md": "",
@@ -115943,8 +115409,8 @@
    "counts": {
     "CORRECTION": 16,
     "OCR-NOISE": 31,
-    "UNEXPLAINED": 3,
-    "LIKELY-ERROR": 1,
+    "TABLE-HEADER": 1,
+    "UNEXPLAINED": 1,
     "OCR-ARBITRATED": 1,
     "UNCOVERED": 1
    },
@@ -116134,6 +115600,17 @@
      "words": [
       12,
       0
+     ]
+    },
+    {
+     "class": "TABLE-HEADER",
+     "reason": "the header's words, read by the layer in another order than the Markdown's cells",
+     "pdf": "ELEMENT STD",
+     "md": "ELEMENT STD",
+     "line": 27966,
+     "words": [
+      2,
+      2
      ]
     },
     {
@@ -116468,42 +115945,6 @@
     },
     {
      "class": "UNEXPLAINED",
-     "reason": "a single word moved: gone at one place, present at another",
-     "pdf": "",
-     "md": "ELEMENT",
-     "line": 27966,
-     "words": [
-      0,
-      1
-     ],
-     "tesseract": "Procedure Division Difference Summary SUMMARY"
-    },
-    {
-     "class": "UNEXPLAINED",
-     "reason": "a single word moved: gone at one place, present at another",
-     "pdf": "",
-     "md": "STD",
-     "line": 27966,
-     "words": [
-      0,
-      1
-     ],
-     "tesseract": "DIVISION 2ND 3RD ELEMENT STD"
-    },
-    {
-     "class": "LIKELY-ERROR",
-     "reason": "a second OCR (tesseract) reads the text layer's words at this place, not the Markdown's",
-     "pdf": "ELEMENT STD",
-     "md": "",
-     "line": 27966,
-     "words": [
-      2,
-      0
-     ],
-     "tesseract": "2ND 3RD ELEMENT STD STD PERFORM"
-    },
-    {
-     "class": "UNEXPLAINED",
      "reason": "text layer has words the Markdown lacks",
      "pdf": "READ statement NEXT phrase INTO phrase AT END phrase NOT AT END phrase KEY phrase INVALID KEY phrase NOT INVALID KEY phr ...",
      "md": "",
@@ -116544,8 +115985,8 @@
     "CORRECTION": 31,
     "OCR-NOISE": 19,
     "PUNCT": 1,
-    "UNEXPLAINED": 5,
-    "LIKELY-ERROR": 1,
+    "TABLE-HEADER": 1,
+    "UNEXPLAINED": 3,
     "OCR-ARBITRATED": 3
    },
    "differences": [
@@ -116924,6 +116365,17 @@
      ]
     },
     {
+     "class": "TABLE-HEADER",
+     "reason": "the header's words, read by the layer in another order than the Markdown's cells",
+     "pdf": "ELEMENT STD",
+     "md": "ELEMENT STD",
+     "line": 28012,
+     "words": [
+      2,
+      2
+     ]
+    },
+    {
      "class": "OCR-NOISE",
      "reason": "a run the layer reads in another order",
      "pdf": "1 SEQ 1 REL 1",
@@ -117112,42 +116564,6 @@
     },
     {
      "class": "UNEXPLAINED",
-     "reason": "a single word moved: gone at one place, present at another",
-     "pdf": "",
-     "md": "ELEMENT",
-     "line": 28012,
-     "words": [
-      0,
-      1
-     ],
-     "tesseract": "Procedure Division Difference Summary SUMMARY"
-    },
-    {
-     "class": "UNEXPLAINED",
-     "reason": "a single word moved: gone at one place, present at another",
-     "pdf": "",
-     "md": "STD",
-     "line": 28012,
-     "words": [
-      0,
-      1
-     ],
-     "tesseract": "DIVISION 2ND 3RD ELEMENT STD"
-    },
-    {
-     "class": "LIKELY-ERROR",
-     "reason": "a second OCR (tesseract) reads the text layer's words at this place, not the Markdown's",
-     "pdf": "ELEMENT STD",
-     "md": "",
-     "line": 28012,
-     "words": [
-      2,
-      0
-     ],
-     "tesseract": "2ND 3RD ELEMENT STD STD INVALID"
-    },
-    {
-     "class": "UNEXPLAINED",
      "reason": "text layer has words the Markdown lacks",
      "pdf": "phrase AT END phrase NOT AT END phrase END-RETURN phrase REWRITE statement FROM phrase INVALID KEY phrase NOT INVALID KE ...",
      "md": "",
@@ -117226,10 +116642,10 @@
     "PUNCT": 1,
     "OCR-NOISE": 12,
     "CASE": 1,
-    "UNEXPLAINED": 3,
-    "LIKELY-ERROR": 1,
+    "TABLE-HEADER": 1,
     "OCR-ARBITRATED": 3,
-    "UNCOVERED": 1
+    "UNCOVERED": 1,
+    "UNEXPLAINED": 1
    },
    "differences": [
     {
@@ -117497,6 +116913,17 @@
      ]
     },
     {
+     "class": "TABLE-HEADER",
+     "reason": "the header's words, read by the layer in another order than the Markdown's cells",
+     "pdf": "ELEMENT STD",
+     "md": "ELEMENT STD",
+     "line": 28069,
+     "words": [
+      2,
+      2
+     ]
+    },
+    {
      "class": "OCR-NOISE",
      "reason": "a run the layer reads in another order",
      "pdf": "2 REL 2 INX 2: REL 2 INX",
@@ -117607,42 +117034,6 @@
      ]
     },
     {
-     "class": "UNEXPLAINED",
-     "reason": "a single word moved: gone at one place, present at another",
-     "pdf": "",
-     "md": "ELEMENT",
-     "line": 28069,
-     "words": [
-      0,
-      1
-     ],
-     "tesseract": "Procedure Division Difference Summary SUMMARY"
-    },
-    {
-     "class": "UNEXPLAINED",
-     "reason": "a single word moved: gone at one place, present at another",
-     "pdf": "",
-     "md": "STD",
-     "line": 28069,
-     "words": [
-      0,
-      1
-     ],
-     "tesseract": "DIVISION 2ND 3RD ELEMENT STD"
-    },
-    {
-     "class": "LIKELY-ERROR",
-     "reason": "a second OCR (tesseract) reads the text layer's words at this place, not the Markdown's",
-     "pdf": "ELEMENT STD",
-     "md": "",
-     "line": 28069,
-     "words": [
-      2,
-      0
-     ],
-     "tesseract": "2ND 3RD ELEMENT STD STD SORT"
-    },
-    {
      "class": "OCR-ARBITRATED",
      "reason": "a second OCR (tesseract) reads the Markdown's words at this place, not the text layer's",
      "pdf": "START statement KEY phrase EQUAL TO GREATER THAN NOT LESS THAN NOT GREATER THAN OR EQUAL TO INVALID KEY phrase NOT INVAL ...",
@@ -117707,8 +117098,8 @@
    "counts": {
     "CORRECTION": 31,
     "OCR-NOISE": 4,
-    "UNEXPLAINED": 3,
-    "LIKELY-ERROR": 1,
+    "TABLE-HEADER": 1,
+    "UNEXPLAINED": 1,
     "UNCOVERED": 1
    },
    "differences": [
@@ -118076,6 +117467,17 @@
      ]
     },
     {
+     "class": "TABLE-HEADER",
+     "reason": "the header's words, read by the layer in another order than the Markdown's cells",
+     "pdf": "ELEMENT STD",
+     "md": "ELEMENT STD",
+     "line": 28112,
+     "words": [
+      2,
+      2
+     ]
+    },
+    {
      "class": "OCR-NOISE",
      "reason": "a run the layer reads in another order",
      "pdf": "1 RPW 1 RPW",
@@ -118096,42 +117498,6 @@
       4,
       4
      ]
-    },
-    {
-     "class": "UNEXPLAINED",
-     "reason": "a single word moved: gone at one place, present at another",
-     "pdf": "",
-     "md": "ELEMENT",
-     "line": 28112,
-     "words": [
-      0,
-      1
-     ],
-     "tesseract": "Procedure Division Difference Summary SUMMARY"
-    },
-    {
-     "class": "UNEXPLAINED",
-     "reason": "a single word moved: gone at one place, present at another",
-     "pdf": "",
-     "md": "STD",
-     "line": 28112,
-     "words": [
-      0,
-      1
-     ],
-     "tesseract": "DIVISION 2ND 3RD ELEMENT STD"
-    },
-    {
-     "class": "LIKELY-ERROR",
-     "reason": "a second OCR (tesseract) reads the text layer's words at this place, not the Markdown's",
-     "pdf": "ELEMENT STD",
-     "md": "",
-     "line": 28112,
-     "words": [
-      2,
-      0
-     ],
-     "tesseract": "2ND 3RD ELEMENT STD STD STRING"
     },
     {
      "class": "UNEXPLAINED",
@@ -118160,8 +117526,9 @@
   },
   "748": {
    "counts": {
-    "OCR-NOISE": 32,
+    "OCR-NOISE": 31,
     "CORRECTION": 5,
+    "TABLE-HEADER": 1,
     "UNEXPLAINED": 7,
     "OCR-ARBITRATED": 4,
     "LIKELY-ERROR": 1
@@ -118242,6 +117609,17 @@
      "words": [
       0,
       1
+     ]
+    },
+    {
+     "class": "TABLE-HEADER",
+     "reason": "the header's words, read by the layer in another order than the Markdown's cells",
+     "pdf": "ELEMENT STD",
+     "md": "ELEMENT STD",
+     "line": 28170,
+     "words": [
+      2,
+      2
      ]
     },
     {
@@ -118407,17 +117785,6 @@
      "words": [
       3,
       3
-     ]
-    },
-    {
-     "class": "OCR-NOISE",
-     "reason": "a run the layer reads in another order",
-     "pdf": "ELEMENT STD",
-     "md": "ELEMENT STD",
-     "line": 28170,
-     "words": [
-      2,
-      2
      ]
     },
     {
@@ -118723,8 +118090,8 @@
   "749": {
    "counts": {
     "CORRECTION": 12,
-    "UNEXPLAINED": 4,
-    "LIKELY-ERROR": 1,
+    "TABLE-HEADER": 1,
+    "UNEXPLAINED": 2,
     "OCR-ARBITRATED": 1
    },
    "differences": [
@@ -118861,40 +118228,15 @@
      ]
     },
     {
-     "class": "UNEXPLAINED",
-     "reason": "a single word moved: gone at one place, present at another",
-     "pdf": "",
-     "md": "ELEMENT",
-     "line": 28207,
-     "words": [
-      0,
-      1
-     ],
-     "tesseract": "OF DIFFERENCES 2ND 3RD ELEMENT"
-    },
-    {
-     "class": "UNEXPLAINED",
-     "reason": "a single word moved: gone at one place, present at another",
-     "pdf": "",
-     "md": "STD",
-     "line": 28207,
-     "words": [
-      0,
-      1
-     ],
-     "tesseract": "DIFFERENCES 2ND 3RD ELEMENT STD"
-    },
-    {
-     "class": "LIKELY-ERROR",
-     "reason": "a second OCR (tesseract) reads the text layer's words at this place, not the Markdown's",
+     "class": "TABLE-HEADER",
+     "reason": "the header's words, read by the layer in another order than the Markdown's cells",
      "pdf": "ELEMENT STD",
-     "md": "",
+     "md": "ELEMENT STD",
      "line": 28207,
      "words": [
       2,
-      0
-     ],
-     "tesseract": "2ND 3RD ELEMENT STD STD SEGMENTATION"
+      2
+     ]
     },
     {
      "class": "UNEXPLAINED",

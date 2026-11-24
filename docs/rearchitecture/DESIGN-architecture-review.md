@@ -1924,8 +1924,8 @@ EVERY grammar wave, so no grammar wave runs before it exists (one owner exemptio
 sending set, blocked by 83 differing error trees) is the differential's first customer and lands only with it (its `blocked_by` names PB2350, as PB2145's
 and PB2146's do); PB2144
 (the arithmetic Format-2 shape error diagnosed two ways) is a Unify inside the shared arithmetic rules, the ONE grammar
-lead exempt from the differential (owner 2026-11-03: PB2350 waits on the PB2911 hold, which waits on zero known
-defects, so the wait was circular; its oracle is the whole gate and the four verbs' error-form goldens); PB2145 (`invokeArgument` copies the `callBy*` bodies) makes `CobolOO` reference `CobolProcedure`'s
+lead exempt from the differential (owner 2026-11-03, when PB2350 still waited on the PB2911 hold the owner released on
+2026-11-24; its oracle is the whole gate and the four verbs' error-form goldens); PB2145 (`invokeArgument` copies the `callBy*` bodies) makes `CobolOO` reference `CobolProcedure`'s
 one argument rule; PB2146 (the identifier-only sending shape written three times) is one rule in `CobolExpressions`;
 PB2147 (a removed spelling never swept against the corpus) becomes a step of the grammar-wave template, whose input
 population is the differential's; PB2151 (D10's second half) is a binding wave, the prerequisite of §8.3 (4), not a

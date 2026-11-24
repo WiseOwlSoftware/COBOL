@@ -265,7 +265,7 @@ defined and made available on a processor*" (`--check` OK). WiseOwl COBOL's spec
    script title-case, a region upper-case, the `-u-` extension lower-case. `LocaleIdentification.Normalize` owns the
    POSIX half (`C` / `POSIX` / `INVARIANT`, `.codeset`, `@modifier`) and hands the rest to `LocaleTag`; the CLDR
    loader's tag (`CldrLocaleTag`, which reads the extension's collation keys), the `.tailor` lookup, the CLDR file
-   names, `LocaleFacts`' culture lookup and the engine's cache all read `LocaleTag`, so no second spelling rule exists.
+   names, `LocaleFacts`' culture lookup and the engine's cache all read `LocaleTag`, so no second spelling rule exists. The `.tailor` lookup walks the same CLDR inheritance chain as the data (`CldrLocaleLoader.Chain`, via `TailoringRules.Candidates`: `nb` → `no`, `es-MX` → `es-419` → `es`, script truncation), so a site `no.tailor` applies to `nb` and no second chain exists (kb/Work PB6137).
    The engine resolves each canonical tag once (`CollationEngine.ResolveLocale` → `ResolvedLocaleCollation`, which also
    carries the availability verdict and the collator), and the host's `LocaleManager` normalizes a name by this same
    L1 rule and returns that resolution: a host and a program select the same locale by the same spellings.
