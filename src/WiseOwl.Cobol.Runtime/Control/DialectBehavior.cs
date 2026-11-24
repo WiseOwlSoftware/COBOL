@@ -625,6 +625,12 @@ public enum DialectBehavior
     /// USING operand and the RETURNING item of every format is refused (kb/Work PB5611; VCR row 7.122). Both editions are
     /// QUOTED. The consumer is <c>CallBinder.ScreenCallOperand</c>.</summary>
     CallAnyLengthOperandRuleByFormat = 66,
+    /// <summary>§2014:13.10.2 SR3 — "All subscripts of data-name-1 and data-name-2 shall be literals" (§2023:13.10.3 SR3 the same), the
+    /// operand of a constant entry's LENGTH OF / BYTE-LENGTH OF phrase. COBOL-2002's constant entry has no such rule: its SR3 says
+    /// only "Data-name-1 and data-name-2 may be qualified" (§2002:13.9.2 SR3), so at <c>--std 2002</c> the subscripts are ordinary ones
+    /// (§2002:8.4.1.2.2) and a data-name or an arithmetic expression may be written (kb/Work PB5709; VCR row 7.123). Both editions are
+    /// QUOTED. The consumer is <c>ConstantEntryBinder.BindConstantLength</c>.</summary>
+    ConstantLengthSubscriptsAreLiterals = 67,
 }
 
 /// <summary>
@@ -951,6 +957,10 @@ public static class DialectBehaviors
             "7.122", "§2014:14.9.4.2 SR11", "§2002:14.8.4.2 SR10",
             "a program-prototype CALL's BY REFERENCE argument and RETURNING item may be described with ANY LENGTH only from "
             + "COBOL-2014; COBOL-2002 refuses an ANY LENGTH USING operand or RETURNING item in every format of CALL"),
+        new(DialectBehavior.ConstantLengthSubscriptsAreLiterals, "constant-length-subscripts-are-literals", 2014,
+            "7.123", "§2014:13.10.2 SR3", "§2002:13.9.2 SR3",
+            "every subscript of a constant entry's LENGTH OF / BYTE-LENGTH OF operand shall be a literal only from COBOL-2014; "
+            + "at COBOL-2002 the operand's subscripts are ordinary ones and may be data-names"),
     ];
 
     static DialectBehaviors()

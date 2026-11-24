@@ -560,11 +560,15 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
             // specifies a literal of the class and category of constant-name-1" — GR1/GR3 make it that integer
             // literal — so `LENGTH OF E (KI)` with `01 KI CONSTANT AS 2` is a literal subscript (kb/Work PB1232; the
             // procedure-division twin is SubscriptBinder.ResolveSubscriptName's constant arm).
+            // §2002:13.9.2 has no such rule (SR3 says only "Data-name-1 and data-name-2 may be qualified"): at 2002 the subscripts
+            // are ordinary ones (§2002:8.4.1.2.2), read below by the one subscript reading, and the FORM screen does not apply
+            // (kb/Work PB5709; DialectBehavior.ConstantLengthSubscriptsAreLiterals).
             var toks = new List<Antlr4.Runtime.IToken>();
             SubscriptBinder.CollectLeafTokens(sub, toks);
             // GROUPING-PAREN-ONLY beside the list's own REF_ parens: a nested paren inside the list is a group (no
             // FNARG_ paren can occur without a FUNCTION, which is no literal).
-            if (toks.Any(t => t.Type is not (Core.INTEGERLIT or Core.REF_LPAREN or Core.REF_RPAREN
+            if (LiteralSubscriptsRequired
+                && toks.Any(t => t.Type is not (Core.INTEGERLIT or Core.REF_LPAREN or Core.REF_RPAREN
                     or Core.LPAREN or Core.RPAREN or Core.FNARG_SEPARATOR or Core.COMMA)
                 && !(SubscriptBinder.IsNameToken(t) && IsIntegerConstant(t))))
             {
@@ -582,7 +586,40 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
         // subscript ("All subscripts of data-name-1 and data-name-2 shall be literals"); whether one may be
         // written at all, and how many, is §2023:8.4.2.3.3's, and a constant entry is not among SR5's seven
         // exemptions. `CONSTANT AS LENGTH OF PLAIN (1)` over a non-table item compiled and yielded 7.
-        if (resolver.Subscripts.ScreenSubscriptArity(dref, item, subscripts)) return null;
+        // From 2014 the subscripts are literals (SR3), so they are only counted; at 2002 they are ordinary subscripts and the one
+        // reading (names, index-names, association, arity) takes them (kb/Work PB5709).
+        if (LiteralSubscriptsRequired || w.SubscriptGroup is null)
+        {
+            if (resolver.Subscripts.ScreenSubscriptArity(dref, item, subscripts)) return null;
+        }
+        else if (resolver.Subscripts.ReadSubscripts(dref, item, w.SubscriptGroup, out _) is { } unread)
+        {
+            // A Reported answer has its diagnostic. A Deferred one is a position this data-division resolver has no statement to
+            // evaluate (a function-identifier, a decimal literal, a non-integer constant-name): §2002:8.4.1.2.2 writes the
+            // subscript as an arithmetic expression with no literal rule, GR1b makes a non-integer value a RUN-TIME condition,
+            // and the length never depends on the value (§2002:13.9.3 GR5/GR6), so it is accepted and only its count was read
+            // (kb/Work PB5709, review R1-1).
+            if (unread.Outcome is not RefOutcome.Deferred) return null;
+            // A written name no data item, index-name or constant-name answers is still an undefined name (reported by the
+            // symbol table); a list with a function-identifier is left to the procedure division's own binding of the use.
+            var written2 = new List<Antlr4.Runtime.IToken>();
+            SubscriptBinder.CollectLeafTokens(w.SubscriptGroup, written2);
+            if (!written2.Any(t => t.Type is Core.FUNCTION))
+                foreach (var t in written2.Where(SubscriptBinder.IsNameToken))
+                {
+                    var word = WrittenWord.Of(t);
+                    var head = new WrittenQualifiedName(t, []);
+                    if (owner.Symbols.IdentifyDataName(head, report: false).Count == 0
+                        && resolver.Names.ResolveIndexName(head, t).Outcome is IndexRefOutcome.NotAnIndexName
+                        && owner.Symbols.Identify(word, NameClass.Constant, report: false) is null)
+                    {
+                        owner.Edition.Error(DiagnosticCatalog.ConstantEntryRule, $"{where}: {phrase} '{written}': the subscript "
+                            + $"'{t.Text}' names no data item, index-name or constant-name (subscripting, ISO §2002:8.4.1.2.2)");
+                        return null;
+                    }
+                }
+            if (resolver.Subscripts.ScreenSubscriptArity(dref, item, subscripts)) return null;
+        }
         // §2023:13.10.4 GR5/GR6 measure the item AS DESCRIBED — its implied PICTURE, TYPE / SAME AS composition, group USAGE
         // and group SIGN applied — and the pipeline that applies them has not run yet (kb/Work PB2465): the operand's
         // description is completed now, by the same passes, before anything below reads it.
@@ -872,6 +909,11 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
                   "(ISO §2023:5.5 1)), and COBOL-85 has no constant-name to stand for one"));
         return null;
     }
+
+    /// <summary>Whether every subscript of a LENGTH OF / BYTE-LENGTH OF operand shall be a literal: §2014:13.10.2 SR3 and
+    /// §2023:13.10.3 SR3 say so, §2002:13.9.2 SR3 does not (kb/Work PB5709; <see cref="DialectBehavior.ConstantLengthSubscriptsAreLiterals"/>).</summary>
+    private bool LiteralSubscriptsRequired =>
+        DialectBehaviors.IsActive(DialectBehavior.ConstantLengthSubscriptsAreLiterals, owner.Edition.DialectLevel);
 
     /// <summary>⛔ WHETHER THE COMPILE EDITION HAS A CONSTANT-NAME TO STAND WHERE A FORMAT SPECIFIES A LITERAL (kb/Work
     /// PB4435): ISO §2023:13.10.3 SR2 puts one "anywhere that a format specifies a literal", and the constant entry that
