@@ -39,7 +39,32 @@ public sealed class CollationTailoringTests
         Assert.Null(TailoringRules.ForLocale("de"));                            // no file → the root order
         Assert.Null(TailoringRules.ForLocale("xx-YY"));
         Assert.Null(TailoringRules.ForLocale(null));
-        Assert.Equal(["es-MX", "es"], TailoringRules.Candidates("es_MX"));
+        Assert.Equal(["es-MX", "es-419", "es"], TailoringRules.Candidates("es_MX"));   // the CLDR chain (PB6137)
+        Assert.Equal(["nb", "no"], TailoringRules.Candidates("nb"));
+        Assert.Equal(["sr-Latn-RS", "sr-Latn", "sr"], TailoringRules.Candidates("sr_latn_rs"));
+        Assert.Empty(TailoringRules.Candidates("und-u-co-search"));
+    }
+
+    [Fact]
+    public void ForLocale_SiteFileOfACldrParentApplies()   // kb/Work PB6137: nb -> no, es-MX -> es-419
+    {
+        string dir = ScratchDirectory.Create("tailor-chain-");
+        string? saved = Environment.GetEnvironmentVariable(TailoringRules.EnvDirectory);
+        try
+        {
+            File.WriteAllText(Path.Combine(dir, "no.tailor"), "@locale no\n");
+            File.WriteAllText(Path.Combine(dir, "es-419.tailor"), "@locale es-419\n");
+            Environment.SetEnvironmentVariable(TailoringRules.EnvDirectory, dir);
+            Assert.Equal("no", TailoringRules.ForLocale("nb")!.Locale);
+            Assert.Equal("es-419", TailoringRules.ForLocale("es-MX")!.Locale);   // before the shipped es.tailor
+            Assert.Equal("es-419", TailoringRules.ForLocale("es-419")!.Locale);
+            Assert.Equal("es-ES", TailoringRules.ForLocale("es-ES")!.Locale);    // es-ES has no es-419 parent
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable(TailoringRules.EnvDirectory, saved);
+            ScratchDirectory.Remove(dir);
+        }
     }
 
     [Fact]
