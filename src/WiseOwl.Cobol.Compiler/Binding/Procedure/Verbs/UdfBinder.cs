@@ -188,7 +188,8 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
         // PIC 9(4) BY REFERENCE formal and an OBJECT REFERENCE C1 ONLY argument reached an OBJECT REFERENCE C1
         // formal with no diagnostic. §2023:14.8.3 needs no screen here: the result temporary IS a clone of the
         // RETURNING item (GR1), so the returning pair conforms by construction.
-        var site = new ActivationSite($"FUNCTION {name.ToUpperInvariant()}", "§2023:8.4.3.2.3 SR13",
+        var site = new ActivationSite($"FUNCTION {name.ToUpperInvariant()}",
+            ctx.Edition.Edition.Cite("§2002:8.4.2.2.2 SR11", "§2023:8.4.3.2.3 SR13", y2014: "§2014:8.4.2.2.2 SR13"),
             DiagnosticCatalog.FunctionArgumentConformance);
         var callArgs = new List<BoundCallArg>(operands.Count);
         for (int i = 0; i < operands.Count; i++)

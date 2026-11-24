@@ -1094,6 +1094,7 @@ const WiseOwl.Cobol.Runtime.IO.FileStatusCode.RecordIdentificationFailure = "45"
 const WiseOwl.Cobol.Runtime.IO.RecordFormat.BySelectWhen = -1 -> int
 const WiseOwl.Cobol.Runtime.IO.RecordFormat.NoSelection = -1 -> int
 const WiseOwl.Cobol.Runtime.NationalImage.BytesPerNational = 2 -> int
+const WiseOwl.Cobol.Runtime.ObjectReferenceSet.Rules2023 = "§2023:14.9.39.3" -> string!
 const WiseOwl.Cobol.Runtime.Repository.CobolPrototypeDescriptionAttribute.ReturningItem = -1 -> int
 const WiseOwl.Cobol.Runtime.Repository.CobolRepositoryAttribute.CurrentSchemaVersion = 2 -> int
 const WiseOwl.Cobol.Runtime.Repository.RepositoryIndex.MaxUnits = 65536 -> int
@@ -1521,7 +1522,7 @@ static WiseOwl.Cobol.Runtime.NationalImage.ReadWindow(string! image, int startBy
 static WiseOwl.Cobol.Runtime.NationalImage.WriteWindow(string! image, int startByte, int positions, string! value) -> string!
 static WiseOwl.Cobol.Runtime.ObjectReferenceOperand.operator !=(WiseOwl.Cobol.Runtime.ObjectReferenceOperand left, WiseOwl.Cobol.Runtime.ObjectReferenceOperand right) -> bool
 static WiseOwl.Cobol.Runtime.ObjectReferenceOperand.operator ==(WiseOwl.Cobol.Runtime.ObjectReferenceOperand left, WiseOwl.Cobol.Runtime.ObjectReferenceOperand right) -> bool
-static WiseOwl.Cobol.Runtime.ObjectReferenceSet.Refusal(WiseOwl.Cobol.Runtime.ObjectReferenceOperand send, WiseOwl.Cobol.Runtime.ObjectReferenceOperand recv, bool activeClassSenderAdmitted = true) -> string?
+static WiseOwl.Cobol.Runtime.ObjectReferenceSet.Refusal(WiseOwl.Cobol.Runtime.ObjectReferenceOperand send, WiseOwl.Cobol.Runtime.ObjectReferenceOperand recv, string! setRules, bool activeClassSenderAdmitted = true) -> string?
 static WiseOwl.Cobol.Runtime.Occurrence.OfLiteral(string! integer) -> WiseOwl.Cobol.Runtime.Occurrence
 static WiseOwl.Cobol.Runtime.Occurrence.implicit operator System.Int128(WiseOwl.Cobol.Runtime.Occurrence occurrence) -> System.Int128
 static WiseOwl.Cobol.Runtime.Occurrence.implicit operator WiseOwl.Cobol.Runtime.Occurrence(long value) -> WiseOwl.Cobol.Runtime.Occurrence

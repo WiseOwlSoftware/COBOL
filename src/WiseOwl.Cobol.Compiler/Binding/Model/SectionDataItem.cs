@@ -37,11 +37,15 @@ public static class SectionDataItem
         DebugRegisterPlace => "the DEBUG-ITEM special register, which no DATA DIVISION entry describes",
         ExceptionObjectPlace => "the predefined object reference EXCEPTION-OBJECT, which no DATA DIVISION entry "
             + "describes (ISO §2023:8.4.3.6.3 SR2)",
-        _ => RootOf(place.Item).IsCompilerTemp
-            ? "a temporary data item the compiler synthesizes (an object property, an inline method invocation or "
-              + "a function's returned value), which no DATA DIVISION entry describes"
-            : null,
+        _ => IsCompilerTemporary(place.Item) ? TemporaryPhrase + ", which no DATA DIVISION entry describes" : null,
     };
+
+    /// <summary>How a diagnostic names a compiler temporary, whose own name no source spells (kb/Work PB5660).</summary>
+    public const string TemporaryPhrase =
+        "a temporary data item the compiler synthesizes (an object property, an inline method invocation or a function's returned value)";
+
+    /// <summary>Whether <paramref name="item"/> is, or is subordinate to, a temporary the compiler synthesizes.</summary>
+    public static bool IsCompilerTemporary(DataItem item) => RootOf(item).IsCompilerTemp;
 
     private static DataItem RootOf(DataItem item)
     {

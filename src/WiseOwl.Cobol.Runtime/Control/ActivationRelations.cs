@@ -614,7 +614,7 @@ public static class ActivationRelations
                                                  || SamePointerRestriction(receiving.ContentRestriction, sending.ContentRestriction),
             ActivationCategory.DataPointer or ActivationCategory.FunctionPointer =>
                 SamePointerRestriction(receiving.ContentRestriction, sending.ContentRestriction),
-            ActivationCategory.Object => ObjectReferenceSet.Refusal(ObjectOperand(sending), ObjectOperand(receiving)) is null,
+            ActivationCategory.Object => ObjectReferenceSet.Refusal(ObjectOperand(sending), ObjectOperand(receiving), ObjectReferenceSet.Rules2023) is null,
             _ => true,   // index — SR2 asks only the class, which SetClass compared
         };
     }
@@ -740,7 +740,7 @@ public static class ActivationRelations
     {
         if (sending is not { Shape: ActivationShape.ObjectReference, ObjectKind: ObjectReferenceKind.ActiveClass }
             || receiving.Shape is not ActivationShape.ObjectReference) return null;
-        return ObjectReferenceSet.Refusal(UniversalInvokedSender, ObjectOperand(receiving)) is { } why
+        return ObjectReferenceSet.Refusal(UniversalInvokedSender, ObjectOperand(receiving), ObjectReferenceSet.Rules2023) is { } why
             ? $"the returning item ({sending}) is described ACTIVE-CLASS and the method is invoked through a UNIVERSAL "
               + "object reference, so the sending operand is a universal object reference (ISO §2023:14.8.3.3 rule 2 b) 4.), "
               + $"which is not a valid sending operand of a SET into the receiving item ({receiving}): {why}"
@@ -794,7 +794,7 @@ public static class ActivationRelations
                 return $"the returning item ({sending}) and the receiving item ({receiving}) are not both object references "
                     + "(ISO §2023:14.8.3.3)";
             if (sending.ObjectKind is ObjectReferenceKind.ActiveClass) return null;
-            return ObjectReferenceSet.Refusal(ObjectOperand(sending), ObjectOperand(receiving)) is { } why
+            return ObjectReferenceSet.Refusal(ObjectOperand(sending), ObjectOperand(receiving), ObjectReferenceSet.Rules2023) is { } why
                 ? $"the returning item ({sending}) is not a valid sending operand of a SET into the receiving item "
                   + $"({receiving}): {why} (ISO §2023:14.8.3.3 rule 1)"
                 : null;

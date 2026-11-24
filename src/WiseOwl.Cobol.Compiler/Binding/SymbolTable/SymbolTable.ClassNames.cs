@@ -3,6 +3,7 @@
 using Antlr4.Runtime;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Compiler.Oo;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Symbols;
@@ -172,6 +173,23 @@ public sealed partial class SymbolTable
 
         // ---- a written name ------------------------------------------------------------------------------------------------
 
+        /// <summary>⛔ THE ONE STATEMENT OF WHY A PARAMETERIZED NAME IS REFUSED OUTSIDE THE REPOSITORY PARAGRAPH (kb/Work PB759, PB5676),
+        /// or null when <paramref name="name"/> names no parameterized definition. A parameterized definition is a skeleton, never a
+        /// class or interface, so a reference to it can never resolve, and the message says which rule rather than "not defined":
+        /// §2023:12.3.8.4 GR1 (class) and GR7 (interface), §2014:12.3.7.3 GR1 and GR7, confine the name to the REPOSITORY paragraph;
+        /// at COBOL-2002, whose text gives an unexpanded name no meaning (§2002:9.3.12, §2002:9.3.13), the refusal is the
+        /// determination D-PARAMETERIZED-UNEXPANDED (<c>docs/conformance/3/</c>). Every reference site asks it: the funnel
+        /// (<see cref="Resolve"/>) and the INVOKE receiver's class-name-1 reading.</summary>
+        /// <param name="ruleCitation">The referencing construct's own rule, or null when the ground alone is cited.</param>
+        internal string? ParameterizedGround(EditionInfo edition, string name, string nameWritten, string? ruleCitation) =>
+            !_table.IsParameterized(name) ? null
+            : $"'{nameWritten}' is a parameterized class or interface (its CLASS-ID / INTERFACE-ID paragraph has a USING clause), "
+              + "which may be specified only in the REPOSITORY paragraph — reference an expansion of it, declared with the EXPANDS "
+              + $"phrase ({(ruleCitation is null ? "" : ruleCitation + "; ")}"
+              + EditionInfo.Designated(edition.Cite("§2002:9.3.12; §2002:9.3.13", "§2023:12.3.8.4 GR1/GR7",
+                  y2002: "§2002:9.3.12; §2002:9.3.13; determination D-PARAMETERIZED-UNEXPANDED", y2014: "§2014:12.3.7.3 GR1/GR7"))
+              + ")";
+
         /// <summary>
         /// ⛔ THE ONE FUNNEL FOR RESOLVING A WRITTEN object-class-name OR interface-name (kb/Work PB365): <paramref name="written"/>,
         /// one word, in the scope of the source element <paramref name="site"/> lies in, reporting through
@@ -200,12 +218,9 @@ public sealed partial class SymbolTable
             // it can never resolve (kb/Work PB759). Say which rule, rather than "not defined": the definition IS in the source.
             // ISO §2023:12.3.8.4 GR1 (class) and GR7 (interface) confine the name to the REPOSITORY paragraph, where its only use is
             // as an EXPANDS operand.
-            if (_table.IsParameterized(name))
+            if (ParameterizedGround(edition.Edition, name, nameWritten, ruleCitation) is { } ground)
             {
-                edition.Error(code, $"{where} '{nameWritten}': '{nameWritten}' is a parameterized class or interface (its "
-                    + "CLASS-ID / INTERFACE-ID paragraph has a USING clause), which may be specified only in the "
-                    + "REPOSITORY paragraph — reference an expansion of it, declared with the EXPANDS phrase "
-                    + $"({ruleCitation}; ISO §2023:12.3.8.4 GR1/GR7)");
+                edition.Error(code, $"{where} '{nameWritten}': {ground}");
                 return default;
             }
 

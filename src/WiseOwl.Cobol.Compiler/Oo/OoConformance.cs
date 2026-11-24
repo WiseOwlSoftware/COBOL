@@ -3,6 +3,7 @@
 using Antlr4.Runtime;
 using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Runtime;
 
@@ -218,7 +219,7 @@ public static class OoConformance
             if (r.Pic is { Category: PicCategory.ObjectReference } rp
                 && pr.Pic is { Category: PicCategory.ObjectReference } prp)
             {
-                if (ObjectRefAssignmentMismatch(table, rp, prp, activeClassSenderAdmitted: false) is { } werr)
+                if (ObjectRefAssignmentMismatch(table, rp, prp, ObjectReferenceSet.Rules2023, activeClassSenderAdmitted: false) is { } werr)
                     // Rule 5 d) governs interface-2's ACTIVE-CLASS returning item; 5 a)–c) every other description.
                     yield return $"RETURNING: {werr} (ISO §2023:9.3.8.2.3 "
                         + $"{(prp.ObjectRef is { Kind: ObjectRefKind.ActiveClass } ? "rule 5 d)" : "rules 5a/5c2")})";
@@ -474,7 +475,7 @@ public static class OoConformance
     /// <paramref name="table"/> null means no class table in the group, where no SET rule is checked (the
     /// <see cref="ObjectRefAssignmentMismatch(OoClassTable?, PicInfo, PicInfo, bool)"/> convention).</summary>
     public static string? ActiveClassFormalMismatch(OoClassTable? table, ObjectRefDescriptor formal,
-        ObjectRefDescriptor arg, ObjectRefDescriptor invokedWith, bool byReference)
+        ObjectRefDescriptor arg, ObjectRefDescriptor invokedWith, bool byReference, string setRules)
     {
         string factory = formal.Factory ? "with" : "without";
         if (byReference)
@@ -497,13 +498,13 @@ public static class OoConformance
         string? why1 = !InvokedThroughActiveClass(invokedWith)
             ? "the method is not invoked with SELF, SUPER or an ACTIVE-CLASS reference"
             : table is null ? null
-            : ObjectRefAssignmentMismatch(table, arg, ObjectRefDescriptor.ActiveClass(formal.Name, formal.Factory));
+            : ObjectRefAssignmentMismatch(table, arg, ObjectRefDescriptor.ActiveClass(formal.Name, formal.Factory), setRules);
         if (why1 is null) return null;
         string? why2 = !InvokedThroughOnlyClass(invokedWith)
             ? "the method is not invoked with an object-class-name or a reference described with one and ONLY"
             : table is null ? null
             : ObjectRefAssignmentMismatch(table, arg,
-                ObjectRefDescriptor.ObjectClass(invokedWith.Name!, formal.Factory, only: true));
+                ObjectRefDescriptor.ObjectClass(invokedWith.Name!, formal.Factory, only: true), setRules);
         if (why2 is null) return null;
         return $"the formal parameter is described ACTIVE-CLASS ({factory} FACTORY) and the argument is "
             + $"{arg.Spelled}, invoked with {invokedWith.Spelled} — neither alternative holds: 1) {why1}; "
@@ -534,11 +535,11 @@ public static class OoConformance
     /// (<see cref="ActiveClassFormalMismatch"/>; <paramref name="invokedWith"/> is null for a CALL, whose formals are never
     /// ACTIVE-CLASS). Null when conformant.</summary>
     public static string? ObjectReferenceContentMismatch(OoClassTable? classes, PicInfo formal, PicInfo argument,
-        ObjectRefDescriptor? invokedWith) =>
+        ObjectRefDescriptor? invokedWith, string setRules) =>
         formal.ObjectRef is { Kind: ObjectRefKind.ActiveClass } activeClass && invokedWith is { } invocation
             ? ActiveClassFormalMismatch(classes, activeClass, argument.ObjectRef ?? ObjectRefDescriptor.Universal, invocation,
-                byReference: false)
-            : ObjectRefAssignmentMismatch(classes, argument, formal);
+                byReference: false, setRules)
+            : ObjectRefAssignmentMismatch(classes, argument, formal, setRules);
 
 
     /// <summary>
@@ -556,20 +557,20 @@ public static class OoConformance
     /// <para>kb/Work PB389 renamed this from <c>ObjectRefWideningMismatch</c>: "widening" described only SR12 a)2.,
     /// which was the single rule the scalar descriptor could express.</para>
     /// </summary>
-    public static string? ObjectRefAssignmentMismatch(OoClassTable? table, PicInfo sender, PicInfo receiver,
+    public static string? ObjectRefAssignmentMismatch(OoClassTable? table, PicInfo sender, PicInfo receiver, string setRules,
         bool activeClassSenderAdmitted = true)
         => table is null ? null
             : ObjectRefAssignmentMismatch(table, sender.ObjectRef ?? ObjectRefDescriptor.Universal,
-                receiver.ObjectRef ?? ObjectRefDescriptor.Universal, activeClassSenderAdmitted);
+                receiver.ObjectRef ?? ObjectRefDescriptor.Universal, setRules, activeClassSenderAdmitted);
 
     /// <summary>The descriptor-level form of <see cref="ObjectRefAssignmentMismatch(OoClassTable?, PicInfo,
     /// PicInfo, bool)"/>.</summary>
     public static string? ObjectRefAssignmentMismatch(OoClassTable table, ObjectRefDescriptor send,
-        ObjectRefDescriptor recv, bool activeClassSenderAdmitted = true)
+        ObjectRefDescriptor recv, string setRules, bool activeClassSenderAdmitted = true)
     {
         // A formal side stands for the actual most favourable to the pair (OoClassTable.SetOperands; kb/Work PB2937).
         var (s, r) = table.SetOperands(send, recv);
-        return ObjectReferenceSet.Refusal(s, r, activeClassSenderAdmitted);
+        return ObjectReferenceSet.Refusal(s, r, setRules, activeClassSenderAdmitted);
     }
 
     /// <summary>
@@ -595,11 +596,17 @@ public static class OoConformance
     /// refused under SR11 or SR14 was told it had broken a rule whose own precondition was false for it — and
     /// the sender's identity, which is §2023:14.9.39.4 GR10, was attributed to SR13 as well.</para>
     /// </summary>
-    public static string ClassNameSenderRule(ObjectRefKind receiverKind) => receiverKind switch
+    public static string ClassNameSenderRule(ObjectRefKind receiverKind, EditionInfo edition) => receiverKind switch
     {
-        ObjectRefKind.Interface => "ISO §2023:14.9.39.3 SR11",
-        ObjectRefKind.ObjectClass => "ISO §2023:14.9.39.3 SR13",
-        ObjectRefKind.ActiveClass => "ISO §2023:14.9.39.3 SR14",
-        _ => "ISO §2023:14.9.39.3 SR8",
+        ObjectRefKind.Interface => $"ISO {SetRules(edition)} SR11",
+        ObjectRefKind.ObjectClass => $"ISO {SetRules(edition)} SR13",
+        ObjectRefKind.ActiveClass => $"ISO {SetRules(edition)} SR14",
+        _ => $"ISO {SetRules(edition)} SR8",
     };
+
+    /// <summary>The SET statement's syntax-rules clause as the edition in force numbers it (kb/Work PB5659): §2023:14.9.39.3,
+    /// §2014:14.9.35.2, §2002:14.8.35.2, whose rules SR8 to SR14 and their items are numbered alike. COBOL-85 has no object
+    /// reference; its 2002 number stands there.</summary>
+    public static string SetRules(EditionInfo edition) =>
+        edition.Cite("§2002:14.8.35.2", ObjectReferenceSet.Rules2023, "§2002:14.8.35.2", "§2014:14.9.35.2");
 }
