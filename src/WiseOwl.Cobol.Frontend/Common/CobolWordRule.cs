@@ -72,7 +72,7 @@ public static class CobolWordRule
         return length > MaxLength(dialectLevel)
             ? $"the COBOL word '{word}' is {length} characters, exceeding the "
               + $"{MaxLength(dialectLevel)}-character maximum for COBOL-{dialectLevel} "
-              + new EditionInfo(dialectLevel).Cite(
+              + EditionInfo.Of(dialectLevel).Cite(
                   "(§1985:IV.4.2.2.1 — \"a character-string of not more than 30 characters\")",
                   "(ISO §2023:8.3.2.1 — COBOL-2023 raised the limit to 63)")
             : null;

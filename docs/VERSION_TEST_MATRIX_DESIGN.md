@@ -346,6 +346,20 @@ the edition in force has no such rule, the message cites the edition where the r
   (RepoDrift) refuses any literal `ISO §1985` in `src/` and any `ISO {` or `ISO " +` before a computed citation outside
   `EditionInfo.cs` (the runtime, which has no edition, is outside the computed half); the 439 lines it counted on 2026-11-21 are
   all moved.
+- **A construct COBOL-85 lacks.** A message about a construct COBOL-2002 introduced (a RAISING phrase, the >>TURN directive, the
+  BASED clause) that also speaks at 85, beside the construct gate's refusal, cites the 2002 rule through
+  `EditionInfo.CiteRuleFrom2002(y2002, later, y2014)` (`CiteFrom2002` for message text), never an empty `y1985` (kb/Work PB6175):
+  an empty argument printed an empty citation, `()`, at `--std 85`. Where a stage's doctrine is that the construct gate alone speaks
+  below 2002 (the >>TURN stage's repetition and name-window rules), the message is not reported there at all.
+  A rule COBOL-2014 introduced (a repeated parameter-name in a USING clause, §2014:11.3.2 SR9) is cited through
+  `EditionInfo.CiteRuleFrom2014(y2014, later)`; its dialect behavior decides whether the message is reported below 2014.
+  `CiteRuleArgumentDriftTests` (RepoDrift) refuses a `CiteRule` call with an empty edition text. A rule family whose clause moved
+  between editions carries each edition's clause (`EcRaiseSite`: RAISE, GOBACK and EXIT, whose 2002 and 2014 clauses number the
+  rules as 2023's does, re-derived by `EcRaiseSiteDriftTests` from those editions' texts; GOBACK at 2002 answers to EXIT PROGRAM's
+  rules through §2002:14.8.17.3 GR1).
+- **The edition value.** `EditionInfo` names a real edition or none (kb/Work PB6082): its one constructor is private behind
+  `EditionInfo.Of`, which refuses a year outside `EditionInfo.All`; `Year` has no setter; a `default(EditionInfo)` is refused at
+  the first read of `Year`, and `CompilerDriver.Options.Edition` refuses one where the options are made.
 - **The catalog's 1985 half.** A diagnostic descriptor whose `IsoSection` cites only a later edition carries `Rule1985` (the 1985
   rule its site cites at 85, in the edition form) or `No1985Rule` (why the 1985 text has none), and
   `EditionCitationCatalogDriftTests` (Unit) asks it of the whole catalog, not only of the refusals the suite runs at 85; its

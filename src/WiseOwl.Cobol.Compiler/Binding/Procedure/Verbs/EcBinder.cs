@@ -255,9 +255,9 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
                 ctx.Edition.Error(DiagnosticCatalog.RaisingObjectOperandRule, isNull
                     ? $"{site.Context} NULL: the predefined NULL references no object, and the object referenced by "
                       + $"identifier-1 is what becomes the exception object in the activating runtime element "
-                      + $"({site.Cite(site.ObjectRule)}; GR1 b) 2.)"
+                      + $"({site.Cite(ctx.Edition.Edition, EcRaiseRule.Object)}; GR1 b) 2.)"
                     : $"{site.Context} '{WrittenSource.Of(oref)}': identifier-1 shall be a USAGE OBJECT REFERENCE "
-                      + $"data item ({site.Cite(site.ObjectRule)})");
+                      + $"data item ({site.Cite(ctx.Edition.Edition, EcRaiseRule.Object)})");
                 return null;
             }
             // ⛔ SR5d (EXIT) / SR4d (GOBACK) ask ONE thing — is this reference UNIVERSAL — and before kb/Work PB389 it was
@@ -269,14 +269,14 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
             {
                 ctx.Edition.Error(DiagnosticCatalog.RaisingObjectOperandRule,
                     $"{site.Context} '{op.Item.CobolName}': identifier-1 shall not be a UNIVERSAL object "
-                    + $"reference ({site.Cite(site.ObjectRule, "d")})");
+                    + $"reference ({site.Cite(ctx.Edition.Edition, EcRaiseRule.Object, "d")})");
                 return null;
             }
             // a) / b) / c) — each asks the identifier's description (the ObjectRefDescriptor tuple) against the
             // PD-header RAISING phrase (the RaisingTarget tuples), FACTORY flag to FACTORY flag.
             if (RaisingObjectMismatch(host.OoClasses, od, ctx.EcState.PdRaisingObjects) is { } bad)
                 ctx.Edition.Error(DiagnosticCatalog.RaisingObjectOperandRule, $"{site.Context} '{op.Item.CobolName}': {bad.Message} "
-                    + $"({site.Cite(site.ObjectRule, bad.Sub)})");
+                    + $"({site.Cite(ctx.Edition.Edition, EcRaiseRule.Object, bad.Sub)})");
             return new BoundRaising(null, IsLast: false, Fatal: false, ObjectSource: op);
         }
 
@@ -289,7 +289,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
         if (info.Level2Parent is "EC-USER" && !ctx.EcState.PdRaising.Contains(info.Name))
             ctx.Edition.Error(DiagnosticCatalog.EcUserNotSpecifiedInRaising, $"{site.Context} {info.Name}: an EC-USER exception-name shall be "
                 + "specified in the RAISING phrase of the procedure division header "
-                + $"({site.Cite(site.Level3Rule)} — otherwise EC-RAISING-NOT-SPECIFIED, Table 13)");
+                + $"({site.Cite(ctx.Edition.Edition, EcRaiseRule.Level3)} — otherwise EC-RAISING-NOT-SPECIFIED, Table 13)");
         // kb/Work R07: the location operands travel like BoundRaise's — WITH LOCATION per THIS name at THIS
         // line (§2023:7.3.25.4 GR7); the statement name is the Table 12 row (verb's first word: GOBACK, or EXIT —
         // EXIT PROGRAM / FUNCTION / METHOD are formats of the EXIT statement).
@@ -314,7 +314,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
     {
         if (host.Oo.OoBindComputedObjectReference(oref) is { } computed)
             return host.Oo.OoObjectReferenceTemporary(computed, oref, DiagnosticCatalog.RaisingObjectOperandRule.Code,
-                $"identifier-1 shall be an object reference ({site.Cite(site.ObjectRule)})");
+                $"identifier-1 shall be an object reference ({site.Cite(ctx.Edition.Edition, EcRaiseRule.Object)})");
         var term = oref.objectReferenceAtom()!.objectReferenceTerm()!;
         if (term.selfAndSuper() is { } selfOrSuper)
             return host.Oo.OoBindOoIdentifier(selfOrSuper) is BoundNumRef self ? self.Place : null;

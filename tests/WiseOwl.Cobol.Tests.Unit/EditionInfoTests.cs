@@ -45,11 +45,52 @@ public sealed class EditionInfoTests
         Assert.Throws<ArgumentOutOfRangeException>(() => EditionInfo.Of(0));
     }
 
+    /// <summary>kb/Work PB6082: a <c>default(EditionInfo)</c> (Year 0, which no constructor validated) is refused at the first
+    /// read of its year and by every question asked through it, rather than answering for an edition that does not exist; its
+    /// text still prints, so an assertion message or a debugger can show it.</summary>
+    [Fact]
+    public void Default_IsRefusedAtTheFirstRead()
+    {
+        EditionInfo none = default;
+        Assert.Throws<InvalidOperationException>(() => none.Year);
+        Assert.Throws<InvalidOperationException>(() => none.Has(2002));
+        Assert.Throws<InvalidOperationException>(() => none.MaxDigits);
+        Assert.Throws<InvalidOperationException>(() => none.Cite("§1985:X.5.4.3 SR2", "§2023:14.9.14.3 SR2"));
+        Assert.Equal("EditionInfo { Year = 0, Permissive = False }", none.ToString());
+    }
+
+    /// <summary>kb/Work PB6082: the one constructor is private, so the only way to an edition value is <see cref="EditionInfo.Of"/>
+    /// (or <see cref="EditionInfo.Latest"/>), and a <c>with</c> expression can flip the permissive axis but not the year.</summary>
+    [Fact]
+    public void TheYearIsSetOnlyThroughOf()
+    {
+        var type = typeof(EditionInfo);
+        Assert.Empty(type.GetConstructors());   // no public constructor: new EditionInfo(1999) does not compile
+        Assert.Null(type.GetProperty(nameof(EditionInfo.Year))!.SetMethod);   // nor does `with { Year = 1999 }`
+        var permissive = EditionInfo.Of(2014) with { Permissive = true };
+        Assert.Equal(2014, permissive.Year);
+        Assert.True(permissive.Permissive);
+    }
+
     [Fact]
     public void Of_CarriesThePermissiveAxis()
     {
         Assert.True(EditionInfo.Of(2023, permissive: true).Permissive);
         Assert.False(EditionInfo.Of(2023).Permissive);
+    }
+
+    /// <summary>kb/Work PB6175: a rule an edition introduced stands for every earlier edition, and each later edition cites its
+    /// own, so no edition prints an empty citation.</summary>
+    [Theory]
+    [InlineData(85, "ISO §2002:11.2.2 SR9", "ISO §2014:11.3.2 SR9")]
+    [InlineData(2002, "ISO §2002:11.2.2 SR9", "ISO §2014:11.3.2 SR9")]
+    [InlineData(2014, "ISO §2014:11.3.2 SR8", "ISO §2014:11.3.2 SR9")]
+    [InlineData(2023, "ISO §2023:11.3.3 SR8", "ISO §2023:11.3.3 SR9")]
+    public void CiteRuleFrom_TheIntroducingEditionStandsForTheEarlierOnes(int year, string from2002, string from2014)
+    {
+        var e = EditionInfo.Of(year);
+        Assert.Equal(from2002, e.CiteRuleFrom2002("§2002:11.2.2 SR9", "§2023:11.3.3 SR8", y2014: "§2014:11.3.2 SR8"));
+        Assert.Equal(from2014, e.CiteRuleFrom2014("§2014:11.3.2 SR9", "§2023:11.3.3 SR9"));
     }
 
     [Fact]

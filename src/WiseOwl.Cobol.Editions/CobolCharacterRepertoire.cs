@@ -165,10 +165,16 @@ public static partial class CobolCharacterRepertoire
     /// <summary>The first Annex B violation in <paramref name="word"/> at <paramref name="dialectLevel"/> — a
     /// character outside the repertoire, a B.3 item 2 character first, or a B.3 item 3 character first or last — as
     /// the diagnostic's message; null when every character is where Annex B permits it. The basic hyphen and
-    /// underscore are not judged here: their position rule is edition-free (<see cref="SeparatorPositionViolation"/>).</summary>
+    /// underscore are not judged here: their position rule is edition-free (<see cref="SeparatorPositionViolation"/>).
+    /// <para>⛔ Each arm cites the rule of the edition whose repertoire judges the word (<see cref="RepertoireOf"/>; kb/Work PB4950,
+    /// PB6175): COBOL-2023's §2023:8.3.2.1 and Annex B.3, COBOL-2014's §2014:8.3.1.1 and §2014:8.1.2.1 GR4 over its Annex B, and
+    /// COBOL-2002's §2002:8.3.1.1 and §2002:8.1.2.1 GR4 over its Annex C. Neither earlier edition sorts its characters into B.3's
+    /// three items: what bars a character from the first or the last place there is GR4b, "special characters" and "combining
+    /// characters" "shall not be written as the first or last character of a user-defined word".</para></summary>
     public static string? Violation(string word, int dialectLevel)
     {
         int edition = RepertoireOf(dialectLevel);
+        var judging = EditionInfo.Of(edition);   // never COBOL-85, which has no extended letters to judge (see the type)
         for (int i = 0; i < word.Length;)
         {
             int start = i;
@@ -180,16 +186,23 @@ public static partial class CobolCharacterRepertoire
             {
                 case WordCharacterPosition.NotPermitted:
                     return $"{what}, which is not a character of a COBOL word at COBOL-{edition}: a word is made of "
-                        + "basic letters, basic digits, hyphen, underscore and the extended letters of Annex B "
-                        + "(ISO §2023:8.3.2.1; §2023:8.1.3.2 GR4)";
+                        + "basic letters, basic digits, hyphen, underscore and the extended letters of "
+                        + judging.CiteFrom2002("Annex C (ISO §2002:8.3.1.1; §2002:8.1.2.1 GR4)",
+                            "Annex B (ISO §2023:8.3.2.1; §2023:8.1.3.2 GR4)", "Annex B (ISO §2014:8.3.1.1; §2014:8.1.2.1 GR4)");
                 case WordCharacterPosition.NotFirst when first:
-                    return $"{what} as its first character, which Annex B.3 item 2 permits in a word only after the "
-                        + $"start character (COBOL-{edition}; ISO §2023:8.3.2.1)";
+                    return $"{what} as its first character, " + judging.CiteFrom2002(
+                        "a special or combining character of Annex C, which may not be the first character of a word "
+                            + "(COBOL-2002; ISO §2002:8.1.2.1 GR4b)",
+                        "which Annex B.3 item 2 permits in a word only after the start character (COBOL-2023; ISO §2023:8.3.2.1)",
+                        "a special or combining character of Annex B, which may not be the first character of a word "
+                            + "(COBOL-2014; ISO §2014:8.1.2.1 GR4b)");
                 case WordCharacterPosition.Medial when first || last:
-                    string medial = $"which Annex B.3 item 3 permits only inside a word (COBOL-{edition}; ISO §2023:8.3.2.1)";
-                    return $"{what} as its {(first ? "first" : "last")} character, " + EditionInfo.Of(dialectLevel).Cite("",
-                        medial, "a special or combining character of Annex C, which may be neither the first nor the last character of a word "
-                        + "(COBOL-2002; ISO §2002:8.1.2.1 GR4b)", medial);
+                    return $"{what} as its {(first ? "first" : "last")} character, " + judging.CiteFrom2002(
+                        "a special or combining character of Annex C, which may be neither the first nor the last character of a word "
+                            + "(COBOL-2002; ISO §2002:8.1.2.1 GR4b)",
+                        "which Annex B.3 item 3 permits only inside a word (COBOL-2023; ISO §2023:8.3.2.1)",
+                        "a special or combining character of Annex B, which may be neither the first nor the last character of a word "
+                            + "(COBOL-2014; ISO §2014:8.1.2.1 GR4b)");
             }
         }
         return null;

@@ -12,19 +12,50 @@ namespace WiseOwl.Cobol.Editions;
 /// <remarks>
 /// Threaded by value (never a global): constructed once from the compiler options, read by the parser's base
 /// class (the <c>{isXXXX()}?</c> gates ask <see cref="Has(int)"/>), by the frontend preprocessor gates, and by
-/// the binder/validator. A <c>default(EditionInfo)</c> is <c>Year == 0</c>, which is invalid — always default
-/// fields to <see cref="Latest"/> explicitly, and <see cref="Of(int, bool)"/> rejects any year outside
-/// {85, 2002, 2014, 2023} (risk R5).
+/// the binder/validator.
+/// <para>⛔ A YEAR OUTSIDE <see cref="All"/> IS UNREPRESENTABLE (kb/Work PB6082, PB2619; unresolvable fails loudly). The one
+/// constructor is private, behind <see cref="Of(int, bool)"/>, which refuses any other year, and <see cref="Year"/> has no
+/// setter, so neither <c>new EditionInfo(1999)</c> nor <c>edition with { Year = 1999 }</c> compiles. A value type still has
+/// its <c>default</c> (Year 0), for which no constructor runs: <see cref="Year"/> refuses it at the first read, so every
+/// question asked of it (<see cref="Has(int)"/>, <see cref="Cite"/>, each edition predicate) throws instead of answering for
+/// a year no edition has.</para>
 /// </remarks>
-public readonly record struct EditionInfo(int Year, bool Permissive = false)
+public readonly record struct EditionInfo
 {
+    /// <summary>The year as <see cref="All"/> spells it, or 0 in a <c>default(EditionInfo)</c>, which <see cref="Year"/> refuses.</summary>
+    private readonly int year;
+
+    private EditionInfo(int year, bool permissive)
+    {
+        this.year = Validate(year);
+        Permissive = permissive;
+    }
+
+    /// <summary>The targeted edition's year: 85, 2002, 2014 or 2023 (<see cref="All"/>). ⛔ Throws on a <c>default(EditionInfo)</c>,
+    /// which no constructor validated (kb/Work PB6082).</summary>
+    public int Year => year != 0 ? year
+        : throw new InvalidOperationException("default(EditionInfo) holds no edition: name one with EditionInfo.Of, or take "
+            + "EditionInfo.Latest (kb/Work PB6082)");
+
+    /// <summary>The strict/permissive severity axis (the CLI's <c>--permissive</c>): permissive accepts a construct the targeted
+    /// edition REMOVED, with a warning; strict refuses it.</summary>
+    public bool Permissive { get; init; }
+
     /// <summary>The newest supported edition (the default target — VERSION_TEST_MATRIX_DESIGN: <c>--std</c>
     /// defaults to COBOL-2023).</summary>
-    public static readonly EditionInfo Latest = new(2023);
+    public static readonly EditionInfo Latest = new(2023, permissive: false);
 
-    /// <summary>Construct a validated edition value. Throws when <paramref name="year"/> is not a known ISO
-    /// edition — guards against a silently-defaulted <c>Year == 0</c>.</summary>
-    public static EditionInfo Of(int year, bool permissive = false) => new(Validate(year), permissive);
+    /// <summary>The one way to name an edition: a validated value. Throws when <paramref name="year"/> is not a known ISO
+    /// edition (<see cref="All"/>).</summary>
+    public static EditionInfo Of(int year, bool permissive = false) => new(year, permissive);
+
+    /// <summary>The value as text, which never throws: a <c>default(EditionInfo)</c> prints its year 0 for a debugger or an
+    /// assertion message to show (the record's generated printer would read <see cref="Year"/>, which refuses it).</summary>
+    private bool PrintMembers(System.Text.StringBuilder builder)
+    {
+        builder.Append("Year = ").Append(year).Append(", Permissive = ").Append(Permissive);
+        return true;
+    }
 
     /// <summary>The fixed-point digit capacity of the targeted edition: 18 at COBOL-85, 31 at 2002+ (ISO
     /// §2023:8.3.3.3.2 fixed-point literals 1–31 digits; the §2023:14.7 composite-of-operands rules; PICTURE digit
@@ -171,6 +202,23 @@ public readonly record struct EditionInfo(int Year, bool Permissive = false)
     /// from COBOL-2002 on and the bare <c>§1985:VI.6.22.3 SR1</c> at COBOL-85 (kb/Work PB6013).</summary>
     public string CiteRule(string y1985, string later, string? y2002 = null, string? y2014 = null) =>
         Designated(Cite(y1985, later, y2002, y2014));
+
+    /// <summary>⛔ THE RULE OF A CONSTRUCT COBOL-85 LACKS (kb/Work PB6175): the rule as <see cref="CiteRule"/> prints it, where the
+    /// construct came with COBOL-2002, so COBOL-85 has no rule of its own to cite. At COBOL-85 its construct gate refuses the
+    /// construct (COBOL0876/0879/0880, COBOL0900), and a message that also speaks there sends the reader to the rule of the
+    /// edition that introduced it, <paramref name="y2002"/>, never to an empty citation or to COBOL-2023's text. A caller
+    /// writes no empty edition argument to <see cref="CiteRule"/> (<c>CiteRuleArgumentDriftTests</c>).</summary>
+    public string CiteRuleFrom2002(string y2002, string later, string? y2014 = null) => Designated(CiteFrom2002(y2002, later, y2014));
+
+    /// <summary>The text <see cref="Cite"/> chooses for a construct COBOL-2002 introduced: <paramref name="y2002"/> stands for
+    /// COBOL-85 too, the edition that lacks the construct (<see cref="CiteRuleFrom2002"/>).</summary>
+    public string CiteFrom2002(string y2002, string later, string? y2014 = null) => Cite(y2002, later, y2002, y2014);
+
+    /// <summary>⛔ THE RULE COBOL-2014 INTRODUCED (kb/Work PB6175): the rule as <see cref="CiteRule"/> prints it, where COBOL-85 and
+    /// COBOL-2002 have no such rule (a repeated parameter-name in a USING clause, §2014:11.3.2 SR9, kb/Work PB5753), so the
+    /// introducing edition's rule, <paramref name="y2014"/>, stands for both, never an empty citation. The rule's own dialect
+    /// behavior decides whether the message is reported below COBOL-2014; this decides only what it cites.</summary>
+    public string CiteRuleFrom2014(string y2014, string later) => Designated(Cite(y2014, later, y2014, y2014));
 
     /// <summary>⛔ A CITATION AS A MESSAGE PRINTS IT, THE STANDARD NAMED BY THE CITATION'S OWN EDITION (kb/Work PB6013): a rule of
     /// ISO/IEC 1989 (its 2002, 2014 and 2023 editions) is preceded by <c>ISO </c>; a rule of American National Standard

@@ -213,7 +213,7 @@ internal static partial class PlacementRules
         if (!ctx.Enclosing.InGlobalDeclarative) return false;
         ctx.Edition.Error(DiagnosticCatalog.ReturnInGlobalDeclarative,
             $"{site.Verb} shall not be specified in a declarative procedure whose USE statement carries the "
-            + $"GLOBAL phrase ({site.GlobalDeclarativeCite(ctx.Edition.Edition)})");
+            + $"GLOBAL phrase ({site.Cite(ctx.Edition.Edition, EcRaiseRule.GlobalDeclarative)})");
         return true;
     }
 
@@ -228,8 +228,9 @@ internal static partial class PlacementRules
     {
         if (ctx.Enclosing.InDeclarativeOrPerformWhen) return false;
         ctx.Edition.Error(DiagnosticCatalog.RaisingLastOutOfPlace,
-            $"{site.Context} LAST EXCEPTION: the LAST phrase may be specified only in a declarative procedure "
-            + $"or a WHEN phrase of a PERFORM statement ({site.Cite(site.LastRule)})");
+            $"{site.Context} LAST EXCEPTION: the LAST phrase may be specified only in a declarative procedure"
+            + ctx.Edition.Edition.Cite("", " or a WHEN phrase of a PERFORM statement", y2002: "")   // 2002 and 2014 SR6: a declarative only
+            + $" ({site.Cite(ctx.Edition.Edition, EcRaiseRule.Last)})");
         return true;
     }
 }

@@ -115,4 +115,28 @@ public sealed class TurnDirectiveExceptionNameTests
         Assert.DoesNotContain("COBOL0878", Compiled("EC-EXTERNAL-FORMAT-CONFLICT CHECKING ON", 85, out _));
         Assert.DoesNotContain("COBOL0878", Omitted("EC-SIZE CHECKING ON", 85));
     }
+
+    /// <summary>kb/Work PB6175: below COBOL-2002 the repetition rules add no second diagnostic either (they printed an empty
+    /// citation, "()", at --std 85), and from 2002 each cites its own edition's rule: SR3 of 2002 and 2014 refuses a repeated
+    /// exception-name, 2023's SR3 a repeated exception-name/file-name combination.</summary>
+    [Theory]
+    [InlineData("EC-SIZE EC-SIZE CHECKING ON", 85, null)]
+    [InlineData("EC-I-O F1 EC-I-O F1 CHECKING ON", 85, null)]
+    [InlineData("EC-SIZE EC-SIZE CHECKING ON", 2002, "(ISO §2002:7.2.19.2 SR3)")]
+    [InlineData("EC-SIZE EC-SIZE CHECKING ON", 2014, "(ISO §2014:7.3.20.2 SR3)")]
+    [InlineData("EC-SIZE EC-SIZE CHECKING ON", 2023, "(ISO §2023:7.3.25.3 SR3)")]
+    [InlineData("EC-I-O F1 F1 CHECKING ON", 2002, "(ISO §2002:7.2.19.2 SR4)")]
+    [InlineData("EC-I-O F1 F1 CHECKING ON", 2014, "(ISO §2014:7.3.20.2 SR4)")]
+    public void TheRepetitionRules_CiteTheEditionsOwnRule_AndAreSilentBelow2002(string operand, int dialectLevel, string? citation)
+    {
+        foreach (bool omitted in new[] { false, true })
+        {
+            var bag = new DiagnosticBag();
+            if (omitted) TurnDirectiveProcessor.CheckOperand(operand, dialectLevel, bag, Loc);
+            else TurnDirectiveProcessor.Process(">>TURN " + operand + "\n", dialectLevel, bag, "t.cob");
+            var repeated = bag.Diagnostics.Where(d => d.Message.Contains("more than once", StringComparison.Ordinal)).ToList();
+            if (citation is null) Assert.Empty(repeated);
+            else Assert.EndsWith(citation, Assert.Single(repeated).Message, StringComparison.Ordinal);
+        }
+    }
 }

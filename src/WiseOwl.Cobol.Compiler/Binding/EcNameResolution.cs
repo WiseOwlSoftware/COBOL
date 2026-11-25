@@ -58,7 +58,7 @@ internal static class EcNameResolution
         if (level3 is { } site && info.Level != 3)
         {
             edition.Error(DiagnosticCatalog.RaisedExceptionNameNotLevel3, $"{where}: exception-name '{info.Name}' is a level-{info.Level} "
-                + $"name; only a LEVEL-3 exception-name may be raised ({site.Cite(site.Level3Rule)})");
+                + $"name; only a LEVEL-3 exception-name may be raised ({site.Cite(edition.Edition, EcRaiseRule.Level3)})");
             return false;
         }
         if (ExceptionNameRule.Window(info, edition.DialectLevel, where) is { } later)
