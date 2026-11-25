@@ -345,12 +345,19 @@ public sealed class CliParserTests
 
         int status = Program.RunGuarded(["check-batch", "m.tsv"], () =>
         {
-            Parallel.For(0, 2, _ => throw new InvalidOperationException("entry fault"));
+            ThrowWrapped();
             return 0;
         }, error);
 
         Assert.Equal(70, status);
         Assert.Contains("WiseOwl.Cobol.Tests.Unit.CliParserTests", error.ToString());
+    }
+
+    /// <summary>What a parallel loop does with an entry's throw: it surfaces as the one inner exception of an <see cref="AggregateException"/>.</summary>
+    private static void ThrowWrapped()
+    {
+        try { throw new InvalidOperationException("entry fault"); }
+        catch (InvalidOperationException e) { throw new AggregateException(e); }
     }
 
     /// <summary>kb/Work PB6060: a command that finishes passes its own status through the guard unchanged.</summary>
