@@ -29,6 +29,16 @@ never noise: they are UNEXPLAINED.
               OF THAT PAGE, accounts for THIS hunk: the Markdown words lie in the entry's `now` text and the PDF words in
               its `was` text (or the note quotes both), as one contiguous run with its neighbouring word (a hunk of three
               words or more, or the whole entry, needs no neighbour). No page-wide bag of words;
+  TABLE-HEADER  a header row's words the layer reads in another order than the Markdown's cells (a header cell that wraps is
+              read line by line across the columns, `2ND 3RD ELEMENT STD STD` for `ELEMENT | 2ND STD | 3RD STD`): the
+              words left over beside the header row's place are the same words, as a bag, as the header row's words left
+              over in the Markdown (`table_header_groups`, kb/Work PB6135). A header the Markdown holds once and the
+              print repeats on each page of the table shows as the same reading. No bag on one side only, no page-wide bag;
+  FOOTNOTE-RENUMBERED  a marker (`(3)`, `8.`) the transcription numbers differently from the print by one constant
+              offset, with the words either side of it equal on the print and the Markdown (an Amendment inserted
+              a footnote or a rule before it, so every later one moves); the offsets of the page's markers never fall
+              (kb/Work PB6135). A marker whose offset changes direction, a marker with other words in the hunk, or one with
+              words that differ beside it, is none of it;
   FIGURE      the difference lies inside a `<pre>` figure: the box and bracket glyphs have no text-layer words, so the
               confidence is lower and it is reported apart;
   PUNCT, CASE the words are the same letters and digits and differ in punctuation or in letter case: neither is folded
@@ -81,7 +91,7 @@ PDF = spec_pdf.path(1985)  # None when the private submodule is not checked out
 LEDGER = REPO / "docs" / "rearchitecture" / "spec-reconciliation" / "LEDGER-1985.json"
 RESULT = REPO / "docs" / "rearchitecture" / "spec-reconciliation" / "TEXT-LAYER-DIFF-1985.json"
 RESERVED = REPO / "tests" / "version-matrix" / "reserved-words.json"
-CLASSES = ("OCR-NOISE", "OCR-ARBITRATED", "CORRECTION", "AMENDMENT-APPLIED", "FIGURE", "PUNCT", "CASE", "UNCOVERED", "LIKELY-ERROR", "UNEXPLAINED")
+CLASSES = ("OCR-NOISE", "OCR-ARBITRATED", "CORRECTION", "AMENDMENT-APPLIED", "TABLE-HEADER", "FOOTNOTE-RENUMBERED", "FIGURE", "PUNCT", "CASE", "UNCOVERED", "LIKELY-ERROR", "UNEXPLAINED")
 RERUN = "python scripts/spec/text_layer_diff.py"
 
 PAGE_HEADING = re.compile(r"^## Page (\d+)\s*$")
@@ -443,13 +453,19 @@ def with_cited_text(notes: dict[int, list[Amendment]], layer: dict[int, list[str
     return out, missing
 
 
-def _stands_between(hunk: list[str], texts: list[list[str]], before: str | None, after: str | None) -> bool:
-    """The page's words on each side of the hunk stand consecutively around it in one text: `before`, the hunk's words,
-    `after`. With an empty hunk this is a drop (the two words around the gap are consecutive); with a Markdown-only hunk it
-    is an insertion anchored at its place. A hunk at the page's edge has no word on one side and is never anchored."""
-    if before is None or after is None:
+ANCHOR = 3  # words on each side of a gap that must stand around it in the amended text (kb/Work PB6204)
+
+
+def _stands_between(hunk: list[str], texts: list[list[str]], before: list[str], after: list[str]) -> bool:
+    """The page's ANCHOR words on each side of the hunk stand consecutively around it in one text: `before`, the hunk's
+    words, `after`. With an empty hunk this is a drop (the words around the gap are consecutive); with a Markdown-only hunk
+    it is an insertion anchored at its place. One neighbour a side is no place inside a block of tens of lines (kb/Work
+    PB6204: `is` and `a` stand around `not` wherever the block says `is a`), so the anchor is the Amendment entry's own
+    printed run, ANCHOR words a side. A side with fewer words on the page (its edge) or in the text (the hunk flush with
+    the entry's edge) is never anchored: the row stays open for the page review."""
+    if len(before) < ANCHOR or len(after) < ANCHOR:
         return False
-    window = [before, *hunk, after]
+    window = [*before[-ANCHOR:], *hunk, *after[:ANCHOR]]
     return any(t[i:i + len(window)] == window for t in texts for i in range(len(t) - len(window) + 1))
 
 
@@ -467,28 +483,30 @@ def _inside(governed: Block | None, md_at: tuple[list[int], int | None, int | No
 
 def amendment_accounts_for(notes: list[Amendment], pdf_hunk: list[str], md_hunk: list[str],
                            pdf_ctx: tuple[str | None, str | None], md_ctx: tuple[str | None, str | None],
-                           md_at: tuple[list[int], int | None, int | None]) -> bool:
+                           md_at: tuple[list[int], int | None, int | None],
+                           md_around: tuple[list[str], list[str]]) -> bool:
     """An amendment note of this page governs the hunk on BOTH sides: the layer's words are a run of what the note says the
     standard printed, and the Markdown's words are a run of the amended text the note says it was corrected to. A run needs
     a neighbouring word or three words (`_run_in`): no page-wide bag of words, and a Markdown word the note does not give
     (`13` for `12`) is no amendment. A side with no words is checked at its place (`_stands_between`): words the Markdown
-    dropped need the two words around the gap consecutive in the amended text, and words the Markdown alone has (the
-    printed side empty, so nothing else locates them) need the Markdown's words on each side to stand around them there
-    (kb/Work PB6144): an inserted run found elsewhere in the entry, or beside its edge, is no amendment. Before all of it,
+    dropped need the Markdown's words around the gap consecutive in the amended text, and words the Markdown alone has
+    (the printed side empty, so nothing else locates them) need the Markdown's words on each side to stand around them
+    there (kb/Work PB6144): an inserted run found elsewhere in the entry, or beside its edge, is no amendment. Each side
+    of a gap is ANCHOR words (`md_around`), not one neighbour (kb/Work PB6204). Before all of it,
     the difference must lie in the block of the Markdown the note governs (`_inside`; `md_at` is the Markdown lines of the
     hunk's words and of the words beside it): a note excuses nothing outside the text it is attached to."""
     for printed, amended, _, governed in notes:
         if not _inside(governed, md_at):
             continue
         if not pdf_hunk:
-            if md_hunk and _stands_between(md_hunk, amended, *md_ctx):
+            if md_hunk and _stands_between(md_hunk, amended, *md_around):
                 return True
             continue
         if not _run_in(pdf_hunk, printed, *pdf_ctx):
             continue
         if md_hunk and _run_in(md_hunk, amended, *md_ctx):
             return True
-        if not md_hunk and _stands_between([], amended, *md_ctx):
+        if not md_hunk and _stands_between([], amended, *md_around):
             return True
     return False
 
@@ -517,6 +535,127 @@ def entry_accounts_for(entry: Entry, pdf_hunk: list[str], md_hunk: list[str],
         return False
     was, now = entry
     return (not pdf_hunk or _run_in(pdf_hunk, was, *pdf_ctx)) and (not md_hunk or _run_in(md_hunk, now, *md_ctx))
+
+
+# ---------------------------------------------------------------- table headers and numbered markers (kb/Work PB6135)
+
+HEADER_CELL = re.compile(r"<th[\s>]")
+TAG_ONLY = re.compile(r"^</?(?:tr|thead)>$")
+SEPARATOR = re.compile(r"^\s*\|\s*:?-")
+CORROBORATED = 2  # markers of one page at one offset that make a renumbering
+MARKER = re.compile(r"^(?:\((\d{1,3})\)|(\d{1,3})\.)$")
+
+
+def table_header_groups(text: str) -> dict[int, list[tuple[int, int]]]:
+    """page -> the Markdown lines of each table header: the first and last line of a run of header lines (a pipe row that
+    the separator row follows, or a line with a `<th>` cell), the lines between them only `<tr>`, `</tr>`, `<thead>` tags.
+    A header that wraps over several rows is one group: the layer reads a wrapped cell line by line across the columns."""
+    out: dict[int, list[tuple[int, int]]] = {}
+    lines = text.splitlines()
+    page = None
+    open_group: list[int] | None = None
+    for no, line in enumerate(lines, 1):
+        m = PAGE_HEADING.match(line)
+        if m:
+            page, open_group = int(m.group(1)), None
+            continue
+        s = line.strip()
+        header = bool(HEADER_CELL.search(s)) or (s.startswith("|") and no < len(lines) and bool(SEPARATOR.match(lines[no])))
+        if header and page:
+            if open_group is None:
+                open_group = [no, no]
+                out.setdefault(page, []).append((no, no))
+            else:
+                open_group[1] = no
+                out[page][-1] = (open_group[0], no)
+        elif s and not TAG_ONLY.match(s):
+            open_group = None
+    return out
+
+
+def _header_reading(blocks: list[list], b: list[tuple[str, str]], line: list[int],
+                    groups: list[tuple[int, int]]) -> list[tuple[list, list, int]]:
+    """The leftover words that are one table header read in another order. For each header group of the page, the Markdown
+    words of the group's lines still unexplained and the text-layer words still unexplained at the group's place (a block
+    whose Markdown position lies in the group, or just after it) must be the same words as a bag, and both non-empty: then
+    they are one reading of the header (a wrapped cell read line by line across the columns). Words are taken from the
+    blocks; the groups found are returned as (layer words, Markdown words, Markdown position). A bag that differs, or one side
+    with nothing, is no reading: the words stay where they were."""
+    where = {id(item): n for n, item in enumerate(b)}
+    found: list[tuple[list, list, int]] = []
+    for lo, hi in groups:
+        place = [n for n in range(len(b)) if lo <= line[n] <= hi]
+        if not place:
+            continue
+        first, last = place[0], place[-1]
+        md_words = [x for bl in blocks for x in bl[1] if lo <= line[where[id(x)]] <= hi]
+        pdf_words = [x for bl in blocks if first <= bl[3] <= last + 1 for x in bl[0]]
+        if not md_words or not pdf_words or collections.Counter(k for _, k in md_words) != collections.Counter(k for _, k in pdf_words):
+            continue
+        gone_md, gone_pdf = {id(x) for x in md_words}, {id(x) for x in pdf_words}
+        for bl in blocks:
+            bl[0] = [x for x in bl[0] if id(x) not in gone_pdf]
+            bl[1] = [x for x in bl[1] if id(x) not in gone_md]
+        found.append((pdf_words, md_words, first))
+    return found
+
+
+def _renumbered_hunks(opcodes: list, a: list[tuple[str, str]], b: list[tuple[str, str]], lex: Lexicon) -> dict[int, int]:
+    """opcode index -> the offset, for each hunk of the page that is a renumbered marker (`_renumbering`) with the words
+    on each side of it (the aligned word before and after) equal on the print and the Markdown, so the text it numbers
+    matches. Per shape of marker (`(n)` footnotes, `n.` rules) the page's offsets, in order, never fall: an Amendment's
+    insertion moves every later marker up, and an offset that goes down or around is a different difference, so the
+    hunks that carry it are not excused. An offset seen once on the page is a lone difference, not a renumbering
+    (CORROBORATED): a typed `15` for `13` looks the same, so it needs a second marker of the page at the same offset."""
+    found: dict[int, dict[str, int]] = {}
+    for n, (tag, i1, i2, j1, j2) in enumerate(opcodes):
+        if tag != "replace":
+            continue
+        shapes = _renumbering(a[i1:i2], b[j1:j2], lex)
+        sides = (a[i1 - 1][1] if i1 > 0 else None, a[i2][1] if i2 < len(a) else None)
+        around = (b[j1 - 1][1] if j1 > 0 else None, b[j2][1] if j2 < len(b) else None)
+        if shapes and None not in sides and sides == around:
+            found[n] = shapes
+    last: dict[str, int] = {}
+    broken: set[int] = set()
+    for n, shapes in found.items():
+        for shape, d in shapes.items():
+            if d < last.get(shape, d):
+                broken.add(n)
+            last[shape] = max(d, last.get(shape, d))
+    held = {n: shapes for n, shapes in found.items() if n not in broken}
+    seen = collections.Counter(pair for shapes in held.values() for pair in shapes.items())
+    return {n: max(shapes.values()) for n, shapes in held.items() if all(seen[pair] >= CORROBORATED for pair in shapes.items())}
+
+
+def _marker(word: str) -> tuple[str, int] | None:
+    """A numbered marker as printed: (its shape, its number); `(3)` is ("()", 3) and `8.` is (".", 8)."""
+    m = MARKER.match(word)
+    if m is None:
+        return None
+    return ("()", int(m.group(1))) if m.group(1) is not None else (".", int(m.group(2)))
+
+
+def _renumbering(pa: list[tuple[str, str]], mb: list[tuple[str, str]], lex: Lexicon) -> dict[str, int] | None:
+    """shape -> the one positive offset by which the Markdown's markers exceed the print's, when the hunk is markers and
+    nothing else but the layer's damage of a well-formed word: the same count of words on both sides, in order, each pair a
+    marker of the same shape (the Markdown's number higher, by the same amount for the shape) or an OCR-NOISE pair
+    (`literal-l.` for `literal-1.`). None otherwise: a word that is another word is a different difference."""
+    if not pa or len(pa) != len(mb):
+        return None
+    offsets: dict[str, set[int]] = {}
+    for (pw, _), (mw, _) in zip(pa, mb):
+        p, m = _marker(pw), _marker(mw)
+        if p is None and m is None:
+            if is_noise_pair(pw, mw, lex):
+                continue
+            return None
+        if p is None or m is None or p[0] != m[0]:
+            return None
+        offsets.setdefault(p[0], set()).add(m[1] - p[1])
+    if not offsets or any(len(d) != 1 or min(d) <= 0 for d in offsets.values()):
+        return None
+    return {shape: next(iter(d)) for shape, d in offsets.items()}
 
 
 # ---------------------------------------------------------------- the diff
@@ -580,10 +719,12 @@ def _longest_run(x: list[str], y: list[str]) -> tuple[int, int, int]:
 
 
 def classify_page(pdf: list[str], md: list[tuple[str, bool, int]], entries: list[Entry], lex: Lexicon,
-                  removed: bool = False, amendments: list[Amendment] | None = None) -> list[dict]:
+                  removed: bool = False, amendments: list[Amendment] | None = None,
+                  headers: list[tuple[int, int]] | None = None) -> list[dict]:
     """The residual differences of one page, each a record {class, reason, pdf, md, line, words}.
 
     `amendments` is the page's `amendment_notes`: a hunk one of them governs is AMENDMENT-APPLIED.
+    `headers` is the page's `table_header_groups`: header words the layer reads in another order are TABLE-HEADER.
     `removed` is a page whose printed content the transcription deliberately holds elsewhere (the base index, PDF pages
     807 to 819, replaced by Amendment 2's: Errata C337): its text-layer words are CORRECTION."""
     import difflib  # noqa: PLC0415
@@ -607,7 +748,9 @@ def classify_page(pdf: list[str], md: list[tuple[str, bool, int]], entries: list
         rows.append(row)
 
     blocks: list[list] = []  # [left_p, left_m, figure, j]: what a differing block still owes after the tolerated readings
-    for tag, i1, i2, j1, j2 in sm.get_opcodes():
+    opcodes = sm.get_opcodes()
+    renumbered = _renumbered_hunks(opcodes, a, b, lex)
+    for op, (tag, i1, i2, j1, j2) in enumerate(opcodes):
         if tag == "equal":
             rows.extend(exact_differences([w for w, _ in a[i1:i2]], [w for w, _ in b[j1:j2]], line[j1:j2]))
             continue
@@ -625,8 +768,12 @@ def classify_page(pdf: list[str], md: list[tuple[str, bool, int]], entries: list
             emit("CORRECTION", "a ledger pair or correction note of this page accounts for this hunk", pa, mb, j1)
             continue
         md_at = (line[j1:j2], line[j1 - 1] if j1 > 0 else None, line[j2] if j2 < len(line) else None)
-        if amendments and amendment_accounts_for(amendments, pdf_hunk, md_hunk, pdf_ctx, md_ctx, md_at):
+        md_around = ([fold(w) for w, _ in b[max(0, j1 - ANCHOR):j1]], [fold(w) for w, _ in b[j2:j2 + ANCHOR]])
+        if amendments and amendment_accounts_for(amendments, pdf_hunk, md_hunk, pdf_ctx, md_ctx, md_at, md_around):
             emit("AMENDMENT-APPLIED", "an Amendment's text applied in place (the page's CORRECTED note quotes the printed words)", pa, mb, j1)
+            continue
+        if op in renumbered:
+            emit("FOOTNOTE-RENUMBERED", f"the Markdown numbers the marker {renumbered[op]} higher than the print, the words beside it equal", pa, mb, j1)
             continue
         left_p, left_m, paired = list(pa), list(mb), []
         for item in list(pa):  # the asymmetric pairing: the PDF word damaged, the Markdown word well-formed
@@ -647,6 +794,10 @@ def classify_page(pdf: list[str], md: list[tuple[str, bool, int]], entries: list
             continue
         if left_p or left_m:
             blocks.append([left_p, left_m, fig, j1, src, (pa, mb)])
+
+    # a table header read in another order is that reading, whole, before the generic moved-run pairing sees part of it
+    for pw, mw, at in _header_reading(blocks, b, line, headers or []):
+        emit("TABLE-HEADER", "the header's words, read by the layer in another order than the Markdown's cells", pw, mw, at)
 
     # words that moved as a matched block: a run of two or more words left over on both sides, in another place (two
     # columns, a table read by column). A single word that is gone in one place and appears in another is not a move:
@@ -858,13 +1009,14 @@ def main() -> int:
     pages = parse_pages(args.pages, total) if args.pages else list(range(1, total + 1))
     pdf = pdf_pages(pages)
     ledger, notes, amended = ledger_entries(), note_entries(text), amendment_notes(text)
+    headers = table_header_groups(text)
     cited = sorted({ch[0] for ns in amended.values() for _, _, ch, _ in ns if ch} - set(pdf))
     amended, not_located = with_cited_text(amended, {**pdf, **pdf_pages(cited)}, amendment_rows(text))
     lex = Lexicon.of([w for words in md.values() for w, _, _ in words], reserved_words())
     result = {"edition": 1985, "pdf_pages": total, "inputs": inputs(), "classes": list(CLASSES),
               "amendment_entries_not_located": not_located, "pages": {}}
     measured = {n: classify_page(pdf[n], md[n], ledger.get(n, []) + notes.get(n, []), lex, 807 <= n <= 819,
-                                  amended.get(n)) for n in pages}
+                                  amended.get(n), headers.get(n)) for n in pages}
     if args.arbitrate:
         exe = tesseract_exe()
         result["inputs"]["tesseract"] = tesseract_version(exe)

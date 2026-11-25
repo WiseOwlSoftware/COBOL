@@ -662,6 +662,15 @@ public enum DialectBehavior
     /// refused COBOL2272 (kb/Work PB5706; VCR row 7.127). Both editions are QUOTED. The consumer is
     /// <c>PrototypeUnitRules.AdmittedInPrototype</c>.</summary>
     PrototypeSpecialNamesAdmitAlphabetAndSymbolic = 71,
+    /// <summary>§2014:12.3.6.2 SR26 — "Literal-8 shall be an alphanumeric or national literal consisting of a single character"
+    /// (§2023:12.3.7.3 SR26 the same), and neither edition has a rule against repeating a literal-8: two clauses may give the same
+    /// symbol the same string (§2014:12.3.6.2 SR21; §2023:12.3.7.3 SR21 "unless they specify identical currency strings").
+    /// COBOL-2002 asks more of the PICTURE SYMBOL literal: "Literal-8 shall be an alphanumeric literal consisting of a single
+    /// character. It shall not be a figurative constant. No two occurrences of literal-8 may be the same value" (§2002:12.2.6.2
+    /// SR22), so at <c>--std 2002</c> a national literal-8 and a repeated literal-8 are refused (kb/Work PB5707; VCR row 7.128).
+    /// Both editions are QUOTED. The consumers are <c>SpecialNamesBinder.CurrencyOperandOf</c> and
+    /// <c>SpecialNamesBinder.SwitchBindCurrency</c>.</summary>
+    CurrencyPictureSymbolLiteralAlphanumericAndUnique = 72,
 }
 
 /// <summary>
@@ -1010,6 +1019,10 @@ public static class DialectBehaviors
             "7.127", "§2023:10.6.2 SR4c", "§2014:10.6.2 SR4c",
             "a prototype's SPECIAL-NAMES paragraph may specify the ALPHABET and SYMBOLIC-CHARACTERS clauses only from COBOL-2023; "
             + "at COBOL-2002 and COBOL-2014 it is limited to the LOCALE, CURRENCY and DECIMAL-POINT clauses"),
+        new(DialectBehavior.CurrencyPictureSymbolLiteralAlphanumericAndUnique, "currency-picture-symbol-literal-alphanumeric-and-unique", 2014,
+            "7.128", "§2014:12.3.6.2 SR26", "§2002:12.2.6.2 SR22",
+            "a CURRENCY SIGN PICTURE SYMBOL literal-8 may be a national literal and may repeat another clause's literal-8 only from "
+            + "COBOL-2014; COBOL-2002 asks an alphanumeric literal-8 and no two occurrences of the same value"),
     ];
 
     static DialectBehaviors()

@@ -1400,11 +1400,13 @@ public static class PictureAnalyzer
             return PicInfo.Recovery(expanded.Length);
         }
         // ⛔ The bounds are one register row (kb/Work PB5712): four exponent digits and 36 significand digits from COBOL-2014, three and 31 at 2002.
-        // Below COBOL-2002 the form itself is the construct gate's refusal (COBOL0900, pic-external-float-2002), which a bound's error here would hide.
-        bool wideBounds = DialectBehaviors.IsActive(DialectBehavior.FloatEditedPictureWideBounds, edition.DialectLevel)
-            || !ConstructRegistry.IsAvailable(edition.Edition, Constructs.PicExternalFloat2002);
+        // Below COBOL-2002 the form itself is the construct gate's refusal (COBOL0900, pic-external-float-2002, raised by VersionConformancePass from
+        // PicInfo.IsFloatEdited), which a bound's error here would hide: no bound is measured there (kb/Work PB6147), so the message's text and its
+        // count come from the one register row below, never from the gate's availability.
+        bool wideBounds = DialectBehaviors.IsActive(DialectBehavior.FloatEditedPictureWideBounds, edition.DialectLevel);
+        bool constructGated = !ConstructRegistry.IsAvailable(edition.Edition, Constructs.PicExternalFloat2002);
         int maxExponent = wideBounds ? 4 : 3;
-        if (exp.Length < 2 || exp[0] != '+' || exp[1..].Any(c => c != '9') || exp.Length - 1 > maxExponent)
+        if (exp.Length < 2 || exp[0] != '+' || exp[1..].Any(c => c != '9') || (!constructGated && exp.Length - 1 > maxExponent))
         {
             Bad($"the exponent shall be '+' and 1 to {maxExponent} nines (+9, +99, +999 or +9(n)) ("
                 + edition.Edition.CiteRule("§2002:13.16.38.3 GR12", "§2023:13.18.40.4 GR13 b", y2002: "§2002:13.16.38.3 GR12", y2014: "§2014:13.18.40.3 GR12") + ")");
@@ -1453,7 +1455,7 @@ public static class PictureAnalyzer
         int exponentDigits = exp.Length - 1;
         int maxSignificand = wideBounds ? 36 : 31;
         int countedDigits = wideBounds ? digits : digits + exponentDigits;
-        if (digits < 1 || countedDigits > maxSignificand)
+        if (digits < 1 || (!constructGated && countedDigits > maxSignificand))
         {
             // 2002 counts both parts, so the message names the sum of its parts; from 2014 only the significand counts.
             string counted = edition.Edition.Cite(
