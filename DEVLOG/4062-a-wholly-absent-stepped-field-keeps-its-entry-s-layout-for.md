@@ -1,4 +1,4 @@
-## A wholly absent STEPped field keeps its entry's layout for later occurrences (PB6178)
+## Entry 4062 — 2026-11-25 02:47 PST — A wholly absent STEPped field keeps its entry's layout for later occurrences (PB6178)
 
 PB6178 asked what column a later operand's step anchor is measured from when a whole report field is absent (hoisted constant sum in
 `EmitAnchorSeeds`), and carried two comments PB6146 left stale in `ReportWriterEmitter.EmitFieldPlacements`.
@@ -12,3 +12,4 @@ Fix shape: the two stale comments (the hoist comment in `EmitFieldPlacements` an
 wholly absent field and an absent operand 0, and a later operand of a present field is rewritten from the live counter inside the field
 guard. No emitted text changed. Golden `pb6178-absent-field-anchor-layout` (2002) and refusal `pb6178-absent-field-anchor-layout-85`
 (COBOL0900). No inventory rows closed. Gate: see the landing.
+
