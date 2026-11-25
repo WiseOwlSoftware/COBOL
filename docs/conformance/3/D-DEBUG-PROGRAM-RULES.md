@@ -4,5 +4,5 @@
   references a procedure-name of one, PERFORM included (SR3, COBOL6946, `StatementValidation.CheckDeclarativesBoundary`, asking
   `SectionInfo.IsDebugging`); a USE FOR DEBUGGING operand naming a procedure of a debugging section (SR5, COBOL6946); a procedure-name
   named twice (SR6, COBOL6335, the data-, cd- and file-name operands' code); ALL PROCEDURES written twice in the program (SR7) and a
-  procedure-name operand in a program with ALL PROCEDURES (SR8), both COBOL6947 (`ProcedureTableBuilder.AddNamedDebugSubject` and
+  procedure-name operand in a program with ALL PROCEDURES (SR8), both COBOL6947 (`DebugDeclarativeResolver.AddNamedDebugSubject` and
   `FinalizeDebug`). Witnesses: `conformance:cases/XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/1985-SR-XV_3_2_3-1`, `-3`, `-5`, `-6`, `-7`, `-8`.

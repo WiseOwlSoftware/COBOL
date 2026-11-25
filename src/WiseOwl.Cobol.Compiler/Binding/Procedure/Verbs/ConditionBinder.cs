@@ -905,7 +905,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // §2023:8.8.4.2.1's list of the simple conditions has no member that is a bare truth word — and they are
         // written only as an EVALUATE selection subject or selection object (§2023:14.9.13.3 SR7b; GR3 f), GR4 a) 4.).
         // EVALUATE decides its own TRUE/FALSE pairs by Table 15 and never binds one as a condition
-        // (EvaluateBinder.BindWhenItem), so a word that reaches here is in an IF, a PERFORM UNTIL, a SEARCH WHEN or
+        // (WhenPhraseBinder.BindWhenItem), so a word that reaches here is in an IF, a PERFORM UNTIL, a SEARCH WHEN or
         // an operand of NOT / AND / OR / XOR, where the standard has no meaning for it (kb/Work PB1668).
         return Refused($"condition '{ReportTruthWordAsCondition(p.booleanLiteral())}'");
     }
@@ -1740,7 +1740,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     }
 
     /// <summary>The operand each implementor's intermediate result item stands for (§2023:14.9.13.4 GR3's EVALUATE subject
-    /// value — <c>EvaluateBinder.BindSubjectValue</c>), keyed by the intermediate operand INSTANCE the statement's
+    /// value — <c>EvaluateSubjectBinder.BindSubjectValue</c>), keyed by the intermediate operand INSTANCE the statement's
     /// pairs all share. ⛔ THE §2023:8.8.4.2 OPERAND RULES ARE ABOUT THE OPERAND THE PROGRAMMER WROTE, the principle
     /// <c>SendingValueTemp.Materialize</c> states for its own store: re-running them against the intermediate judges a
     /// description the implementor chose. An index-name subject's intermediate is a numeric item, so without this
@@ -1848,7 +1848,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     }
 
     /// <summary>Bind a <c>valueOperand</c> as a comparison operand: the ONE body of <see cref="ComparisonOperand"/>,
-    /// the boolean-alt unwrap path, and EVALUATE's subject and object operands (<c>EvaluateBinder.BindValueOperand</c>,
+    /// the boolean-alt unwrap path, and EVALUATE's subject and object operands (<c>EvaluateOperands.BindValueOperand</c>,
     /// whose pair §2023:14.9.13.4 GR4a.6 "is considered to be a conditional expression" of the form
     /// <c>selection-subject = selection-object</c>). The EVALUATE binder used to keep an
     /// arm-for-arm copy of this dispatch (kb/Work PB224 aligned its order by hand); kb/Work PB1935 found both copies

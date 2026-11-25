@@ -4,15 +4,12 @@ using Antlr4.Runtime;
 using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Editions.Diagnostics;
-using WiseOwl.Cobol.Frontend.Cst;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Symbols;
-using WiseOwl.Cobol.Editions;
 
 namespace WiseOwl.Cobol.Binding.Procedure;
 
 using Core = CobolParserCore;
-using WiseOwl.Cobol.Runtime;
 
 /// <summary>
 /// The ONE procedure table + its builders (P7 Step 10t — the plan's `ProcedureTableBuilder`, per-unit on
@@ -25,6 +22,9 @@ using WiseOwl.Cobol.Runtime;
 /// declarative section joins the same pc space; the USE sentence binds into a <see cref="BoundDeclarative"/>
 /// scope, never a bound statement; the use procedure's range IS that section's own
 /// <see cref="SectionInfo.Range"/>, §2023:14.9.49.3 SR1 + §2023:14.4.2).
+/// <para>A USE statement's trigger scope is <see cref="UseStatementBinder"/>'s and the USE FOR DEBUGGING subjects and targets
+/// <see cref="DebugDeclarativeResolver"/>'s; the table holds the pc space, the sections, the declarative scopes and the
+/// procedure-name resolution over them (kb/Work PB2345; docs/rearchitecture/DESIGN-architecture-review.md §8.3).</para>
 /// </summary>
 internal sealed class ProcedureTableBuilder(BinderContext ctx)
 {
@@ -247,7 +247,8 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         // nondeclarative procedure is in the pc space — the ALL PROCEDURES / procedure-name legs bind to real
         // trigger points; the data-name, ALL REFERENCES OF, file-name and cd-name targets are collected for the statement
         // binder's funnel to plan against (CONTROL_FLOW_DESIGN D20). No-op unless WITH DEBUGGING MODE collected a debug declarative.
-        FinalizeDebug();
+        _debugContentsWidth = new DebugDeclarativeResolver(ctx, this, _debugSubjects, _debugTargets, _debugContentsWidth)
+            .FinalizeDebug(_pendingDebug);
     }
 
     /// <summary>⛔ THE ONE <c>procedure-name</c> OPERAND RESOLUTION for a STATEMENT (kb/Work PB390): resolve, or
@@ -325,7 +326,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     /// Passed in rather than read from the ambient cursor, because the debug subject is resolved after collection, when the cursor
     /// no longer stands where the reference was written.</param>
     /// <param name="report">The reference itself (true), or a prescan or probe that classifies it first (false).</param>
-    private ProcedureResolution Identified(ParserRuleContext written, SectionInfo? referencingSection, bool report) =>
+    internal ProcedureResolution Identified(ParserRuleContext written, SectionInfo? referencingSection, bool report) =>
         ctx.Symbols.Identify(written, NameClass.Procedure, report, site: new ProcedureSite(ctx.CurrentMethodScope, referencingSection))?.Symbol switch
         {
             ParagraphDefinition paragraph => Found(PcRange.At(paragraph.Pc), SectionOfPc(paragraph.Pc)),
@@ -377,6 +378,10 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     public IReadOnlyList<(string Cobol, string Method, Core.SentenceContext[] Sentences)> Paragraphs => _paras;
     public IReadOnlyList<SectionInfo?> ParaSections => _paraSection;
 
+    /// <summary>The source line of each pc's first sentence (the section header's for an empty section's pc): the
+    /// X3.23-1985 DEBUG-LINE of a debug-subject procedure (VCR 7.17), read by <see cref="DebugDeclarativeResolver"/>.</summary>
+    internal IReadOnlyList<int> ParaLines => _paraLine;
+
     /// <summary>The COBOL-85 segment-number of each of <paramref name="count"/> pcs (kb/Work PB5084; a paragraph outside every
     /// section, and an appended handler paragraph, is segment 0), or null when no section is an independent segment: the run
     /// time needs the map only to return an independent segment to its initial state (§1985:XVI.1.4.3), so a program without
@@ -392,27 +397,14 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
 
     private int _entryPc;
     private readonly List<BoundDeclarative> _declaratives = [];
+    /// <summary>The USE statements of the procedure division being collected (§2023:14.9.49.3 SR7-SR14 are per procedure
+    /// division, so a method's declaratives take a fresh one).</summary>
+    private UseStatementBinder _use = new(ctx);
 
     /// <summary>The narrow declarative surface EcBinder's RESUME SR1–SR3 checks read (10r; hoists to
     /// ProcedureTableBuilder at 10t and these host edges delete).</summary>
     public int EntryPc => _entryPc;
     public IReadOnlyList<BoundDeclarative> Declaratives => _declaratives;
-    // ── The USE duplicate-operand screens (ISO §2023:14.9.49.3 SR7, SR8, SR9, SR14) ──────────────────────────────
-    // Four instances of ONE sentence — "the same X shall not be specified in more than one USE statement within
-    // the same procedure division" — so ONE mechanism enforces all four (ConstructOperandRegister{TKey} holds
-    // the construct-vs-operand boundary those rules draw; the USE STATEMENT is the construct here, the Format-2
-    // COLLATING SEQUENCE CLAUSE is the construct for its second consumer). ⛔ PER PROCEDURE DIVISION: a
-    // ProcedureTableBuilder is built per bound unit, and a CLASS unit's one builder collects EVERY method's
-    // procedure division (kb/Work PB1010 — a method definition takes Format 1, §2023:14.2.2 SR10), so
-    // CollectMethodDeclaratives re-makes these four for each method's declaratives: a file named in one
-    // method's USE is not "more than one USE statement within the same procedure division" as another's.
-    // SR8 and SR14 key the FILE a file-name identified (a FileModel is equal only to itself), never its spelling, and SR14's
-    // exception-name is the catalog's own spelling (EcNameResolution answers it), so neither compares written names: that
-    // comparison is the symbol table's (docs/rearchitecture/DESIGN-listing.md section 6.7.1).
-    private ConstructOperandRegister<int> _useModes = new();                                      // SR7
-    private ConstructOperandRegister<FileModel> _useFiles = new();                                // SR8
-    private ConstructOperandRegister<ReportGroupModel> _useReportGroups = new();                   // SR9
-    private ConstructOperandRegister<(string Ec, FileModel File)> _useEcPairs = new();             // SR14
 
     /// <summary>Collect a METHOD's declaratives portion (kb/Work PB1010; ISO §2023:14.2.2 SR10 — "Formats 1 and 2 may be
     /// specified in a source element if and only if that source element is a function definition, a function
@@ -424,10 +416,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     /// that contains its statements (GR4 a)), so the emitter selects over exactly this list for them.</summary>
     public IReadOnlyList<BoundDeclarative> CollectMethodDeclaratives(Core.ProcedureDivisionContext pd, HashSet<string> used)
     {
-        _useModes = new();
-        _useFiles = new();
-        _useReportGroups = new();
-        _useEcPairs = new();
+        _use = new UseStatementBinder(ctx);
         int first = _declaratives.Count;
         foreach (var dp in pd.declarativePart())
             foreach (var sec in dp.declarativeSection())
@@ -438,16 +427,6 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         return _declaratives.Count == first ? [] : [.. _declaratives.Skip(first)];
     }
 
-    /// <summary>Close the USE statement just bound: its operands become the procedure division's, so a repeat
-    /// in a LATER USE statement is the violation SR7/SR8/SR9/SR14 name and a repeat inside the statement itself
-    /// never was. Called from the ONE place a USE statement is bound (<see cref="DeclCollectSection"/>).</summary>
-    private void DeclEndUseStatement()
-    {
-        _useModes.EndConstruct();
-        _useFiles.EndConstruct();
-        _useReportGroups.EndConstruct();
-        _useEcPairs.EndConstruct();
-    }
 
     /// <summary>Collect one declarative section into the pc space: the USE sentence (SR1 — the section's first
     /// sentence), an anonymous paragraph for any further leading sentences (the CCVS handler-before-the-first-
@@ -463,7 +442,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
 
         // SR1: the first sentence consists of exactly one USE statement.
         var leading = sec.sentence();
-        DeclScope? scope = null;
+        UseStatementBinder.DeclScope? scope = null;
         if (leading.Length == 0
             || leading[0].statement() is not { Length: 1 } first
             || first[0].useStatement() is not { } use)
@@ -497,11 +476,11 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         else
         {
             _nonDebuggingDeclarativeSeen = true;
-            scope = DeclBindUse(use, name);
+            scope = _use.DeclBindUse(use, name);
             // The USE statement is COMPLETE — fold its operands into the procedure division's registers. Until
             // this point a repeated operand belongs to the statement being bound, and §2023:14.9.49.3 SR7/SR8/SR9/
             // SR14 each forbid the repeat only across "more than one USE statement".
-            DeclEndUseStatement();
+            _use.DeclEndUseStatement();
         }
 
         // Leading sentences past the USE form an anonymous paragraph at the section start (handler bodies that
@@ -540,7 +519,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
 
     // ── X3.23-1985 USE FOR DEBUGGING (VCR Table 7 row 7.17) ────────────────────────────────────────────────
     // The debug declaratives collected under WITH DEBUGGING MODE (section info + the USE statement), pending
-    // subject resolution once every nondeclarative procedure is in the pc space (FinalizeDebug).
+    // subject resolution once every nondeclarative procedure is in the pc space (DebugDeclarativeResolver.FinalizeDebug).
     private readonly List<(SectionInfo Section, Core.UseStatementContext Use)> _pendingDebug = [];
 
     /// <summary>Whether a declarative section that is not a debugging section has been collected — the fact §1985:XV.3.2.3
@@ -561,259 +540,12 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     /// (§1985:XV.3.2.4 GR21), so each statement carries the DEBUG-LINE that cause reports (<see cref="BoundStatement.DebugLine"/>).</summary>
     public bool DebugsUseProcedure => _debugSubjects.Any(s => s.SubjectPc < _entryPc);
 
-    /// <summary>Resolve the collected debug declaratives to trigger SUBJECTS now that the whole pc space exists
-    /// (X3.23-1985 debug module, VCR Table 7 row 7.17). <c>ALL PROCEDURES</c> and a bare procedure-name bind to
-    /// real trigger points at procedures outside every debugging section (a debugging declarative is never debugged
-    /// — the '85 ALL PROCEDURES exclusion, DB101A "USE PROCEDURE NOT EXECUTED"): a paragraph-name is its pc, a
-    /// section-name its first pc (<see cref="AddDebugSectionSubject"/>). The data-name (incl. ALL REFERENCES OF), file-name and
-    /// cd-name operands become <see cref="DebugTargets"/> (<see cref="AddDebugDataTarget"/>, <see cref="AddDebugCdTarget"/>;
-    /// the triggers are planned per statement, CONTROL_FLOW_DESIGN D20); a file-name operand is a target too
-    /// (<see cref="AddDebugFileTarget"/>, general rule 2, kb/Work PB4811). A SORT/MERGE INPUT/OUTPUT
-    /// procedure subject needs nothing here: the SORT or MERGE statement sets the cause where it transfers control
-    /// (§1985:XV.3.2.4 GR19, <c>SortEmitter</c>).</summary>
-    private void FinalizeDebug()
-    {
-        if (_pendingDebug.Count == 0) return;
-        // §1985:XV.3.2.3 SR7 and SR8 relate the operands of EVERY USE FOR DEBUGGING statement of the program, so the first
-        // ALL PROCEDURES operand is found before any operand is recorded (kb/Work PB5081).
-        var allProcedures = _pendingDebug.SelectMany(p => p.Use.useDebugTarget()).FirstOrDefault(t => t.PROCEDURES() is not null);
-        foreach (var (section, use) in _pendingDebug)
-        {
-            foreach (var t in use.useDebugTarget())
-            {
-                // FinalizeDebug runs after every walker, so the operand positions its own diagnostics (kb/Work
-                // PB2034: a refusal names the file and line the user edits).
-                using var _ = ctx.Edition.At(t);
-                if (t.PROCEDURES() is not null)          // ALL PROCEDURES → every procedure-name outside a debugging section
-                {
-                    if (ReferenceEquals(t, allProcedures)) AddAllProceduresSubjects(section);
-                    else ctx.Edition.Error(DiagnosticCatalog.DebugAllProceduresConflict, $"declarative section '{section.Name}': "
-                        + "USE FOR DEBUGGING ON ALL PROCEDURES is written a second time in the program; §1985:XV.3.2.3 SR7: \"The "
-                        + "ALL PROCEDURES phrase can appear only once in a program.\"");
-                }
-                else if (t.ALL() is not null)            // ALL [REFERENCES] [OF] identifier-1 → an all-references data-name target
-                {
-                    // ALL, not REFERENCES, marks the arm: REFERENCES and OF are the '85 format's optional words,
-                    // so `ALL W-A` is this operand too and never a procedure-name subject (kb/Work PB4237). The
-                    // message names the operand, so two ALL operands of one USE are two diagnostics (DB201A).
-                    // ⛔ THE OPERAND IS RESOLVED BEFORE IT IS CALLED A DATA ITEM (kb/Work PB4363): identifier-1 is a
-                    // data item, and a word that names a procedure or names nothing is not the legal-but-unmodeled
-                    // subject COBOL1571 tells the user about.
-                    var adr = t.dataReference();
-                    string anm = DebugOperandAsWritten(adr);
-                    if (!NamesDataItem(adr))
-                    {
-                        if (ResolveDebugProcedure(adr, section, report: false) is { Procedure: not null } or { Ambiguity: not null })
-                        {
-                            ctx.Edition.Error(DiagnosticCatalog.DebugAllOperandIsProcedure, $"declarative section "
-                                + $"'{section.Name}': USE FOR DEBUGGING ON ALL REFERENCES OF '{anm}' names a paragraph or "
-                                + "section, and identifier-1 of ALL [REFERENCES OF] identifier-1 is a data item ("
-                                + ctx.Edition.Edition.CiteRule("§1985:XV.3.2.2", "§2023:14.4.1") + ": a "
-                                + $"procedure-name refers to a paragraph or section); write ON {anm} for a procedure-name subject");
-                            continue;
-                        }
-                        if (ReportUnresolvedDebugOperand(adr, section)) continue;
-                    }
-                    AddDebugDataTarget(adr, section, DebugTargetKind.AllReferences);
-                }
-                else if (t.dataReference() is { } dr)    // bare name: procedure-name, else file/data/cd (staged)
-                {
-                    string nm = DebugOperandAsWritten(dr);
-                    // ⛔ THE SAME §2023:8.4.2.2 RESOLUTION AS EVERY OTHER PROCEDURE-NAME REFERENCE, through the same
-                    // method (kb/Work PB466) — USE FOR DEBUGGING ON procedure-name is an explicit reference, so
-                    // an ambiguous spelling owes the same diagnostic here as it does at GO TO. The referencing
-                    // section is THIS declarative section, which is what §2023:8.4.2.2.1 SR6 is measured against.
-                    // ⛔ ONE PROCEDURE-NAME IS ONE TRIGGER POINT (§1985:XV.3.2.4 GR3 a: "Immediately before each execution
-                    // of the named procedure"): a paragraph is its own pc, and a SECTION is executed when control
-                    // reaches its FIRST paragraph, so it is one trigger there, named by the section. Treating the section
-                    // as every one of its paragraphs ran the debugging section once per paragraph under the paragraph's
-                    // name (kb/Work PB5083, GR9 and GR16).
-                    var subject = ResolveDebugProcedure(dr, section, report: true);
-                    if (subject.Ambiguity is { } dambiguity)
-                        ctx.Validation.RejectAmbiguousProcedureName(dambiguity, "USE FOR DEBUGGING ON");
-                    else if (subject.Procedure is { } named)
-                        AddNamedDebugSubject(named, nm, section, allProcedures);
-                    else if (NamesDataItem(dr))
-                        AddDebugDataTarget(dr, section, DebugTargetKind.DataName);
-                    else if (NamesCommunicationDescription(dr))
-                        AddDebugCdTarget(dr, section);
-                    else if (NamesFile(dr))
-                        AddDebugFileTarget(dr, section);
-                    else if (!ReportUnresolvedDebugOperand(dr, section))
-                        ctx.Edition.Error(DiagnosticCatalog.DebugSubFacilityStaged, $"declarative section '{section.Name}': USE FOR DEBUGGING "
-                            + $"ON '{nm}' names an operand no rule classifies as a procedure-name, data-name, file-name or cd-name "
-                            + "(X3.23-1985 USE FOR DEBUGGING general format; VCR Table 7 row 7.17)");
-                }
-            }
-        }
-
-        // General rule 15: DEBUG-CONTENTS is "large enough to contain the data required" — the widest data-name or cd-name target,
-        // and, when a paragraph is a subject, the widest procedure-name-2 of an ALTER (GR17 c: the name is the contents).
-        if (_debugSubjects.Any(s => !s.IsSection))
-            foreach (var para in _paras)
-                foreach (var alter in para.Sentences.SelectMany(sentence => ParseTreeWalk.SelfAndDescendants(sentence)).OfType<Core.AlterStatementContext>())
-                    foreach (var entry in alter.alterEntry())
-                        if (entry.procedureName() is { Length: >= 2 } names)
-                            _debugContentsWidth = Math.Max(_debugContentsWidth, ProcedureNameShape.AsWritten(names[1]).Length);
-        ctx.Data.Symbols.ActivateDebugRegisters(_debugContentsWidth);
-    }
-
-    /// <summary>The operand of a USE FOR DEBUGGING target as a message quotes it: the word and its OF/IN qualifiers
-    /// as written, <c>P1 OF S1</c>. <c>GetText()</c> of the node would glue the words (<c>P1OFS1</c>, the class
-    /// kb/Work PB4252 and PB4277 record), and a subscript or reference modifier is left off as it always was.</summary>
-    private static string DebugOperandAsWritten(Core.DataReferenceContext operand)
-    {
-        // A counter register (LINAGE-COUNTER, LINE-COUNTER, PAGE-COUNTER) is a keyword token, and its cobolWord() is the QUALIFIER:
-        // X3.23-1985 USE FOR DEBUGGING GR13 (§1985:XV.3.2.4) names the word and all its qualifiers separated by IN or OF.
-        if (operand.GetChild(0) is Antlr4.Runtime.Tree.ITerminalNode keyword)
-            return operand.cobolWord() is { } file ? $"{keyword.GetText()} {operand.GetChild(1).GetText()} {file.GetText()}" : keyword.GetText();
-        string written = operand.cobolWord()?.GetText() ?? operand.GetText();
-        foreach (var suffix in operand.dataReferenceSuffix())
-            if (suffix.qualification() is { } q)
-                written += " " + q.GetChild(0).GetText() + " " + q.cobolWord().GetText();
-        return written;
-    }
-
-    /// <summary>A USE FOR DEBUGGING operand read as a <c>procedure-name</c> (kb/Work PB4363). The grammar spells the operand as a
-    /// dataReference because the phrase also admits file-, cd- and data-names; the table reads its procedure-name shapes,
-    /// <c>word</c> and <c>word OF section</c> (ISO §2023:14.4.1: "a paragraph-name (that may be qualified) or a section-name"), and
-    /// any other suffix (a subscript, a reference modifier, a property) is no procedure-name and identifies nothing
-    /// (<c>SymbolTable.ProcedureWords</c>). Both operand arms of <see cref="FinalizeDebug"/> ask it, so a qualified procedure-name is a
-    /// procedure-name in either: the ALL REFERENCES OF arm as a probe, the subject arm as the reference.</summary>
-    private ProcedureResolution ResolveDebugProcedure(Core.DataReferenceContext operand, SectionInfo section, bool report) =>
-        Identified(operand, section, report);
-
-    /// <summary>Whether the operand names a data item the program declares, or a special register — the §2023:8.4.2.2
-    /// lookup alone, asked silently (<see cref="ReferenceResolver.ProbeDeclaration"/>), so the answer is about the
-    /// DECLARATION. The reference SHAPE screens that <see cref="ReferenceResolver.Probe"/> applies are left out on
-    /// purpose: the debug identifier of a table element is written without its subscripts (the DEBUG-SUB-n items
-    /// report them, X3.23-1985), so that operand is the data item the trigger watches, not one the
-    /// COBOL2270 "shall be subscripted" rule (ISO §2023:8.4.2.3.3 SR5) judges (kb/Work PB4363, review round 1).</summary>
-    private bool NamesDataItem(Core.DataReferenceContext operand) =>
-        operand.Register() != SpecialRegister.None || ctx.Refs.ProbeDeclaration(operand) is not null
-        || SumCounterOf(operand) is not null;
-
-    /// <summary>The register of the REPORT SECTION sum counter the operand names, or null: the item every reference to the counter carries
-    /// (<see cref="ReportSumCounterPlace.RegisterItem"/>), which is what the trigger watches. X3.23-1985 USE FOR DEBUGGING syntax rule 9
-    /// admits it by name: "Identifier-1 must not reference any data item defined in the Report Section except sum counters" (kb/Work PB4858).
-    /// A silent probe, like <see cref="NamesDataItem"/>.</summary>
-    private DataItem? SumCounterOf(Core.DataReferenceContext operand) =>
-        operand.Register() == SpecialRegister.None && operand.cobolWord() is not null
-        && ctx.Refs.Counters.SumCounterFamilyFor(operand, report: false) is (_, { } family)
-            ? family.Register : null;
-
-    /// <summary>Whether the operand is a bare file-name of this program (the file subject of USE FOR DEBUGGING).</summary>
-    private bool NamesFile(Core.DataReferenceContext operand) =>
-        operand.dataReferenceSuffix().Length == 0 && operand.cobolWord() is { } word
-        && ctx.Symbols.Identify(word, NameClass.File, report: false) is not null;
-
-    /// <summary>Whether the operand is a bare cd-name of this program (the cd-name subject of USE FOR DEBUGGING: X3.23-1985's debug
-    /// module triggers on the ENABLE, DISABLE, PURGE, RECEIVE and SEND of a cd-name, kb/Work PB4713). A cd-name is this source
-    /// element's alone (ISO/IEC 1989:2002 8.4.5), so the element's own slice is the whole scope.</summary>
-    private bool NamesCommunicationDescription(Core.DataReferenceContext operand) =>
-        operand.dataReferenceSuffix().Length == 0 && operand.cobolWord() is { } word
-        && ctx.Symbols.Identify(word, NameClass.CommunicationDescription, report: false) is not null;
-
-    /// <summary>An operand that is no procedure, data item, file or cd-name is told why. A qualified word whose HEAD is a
-    /// paragraph or section the program declares (<c>P1 OF NOSEC</c>) is a procedure-name that identifies nothing,
-    /// and is reported as every other procedure-name operand is (<c>RejectProcedureName</c>, COBOL1639): the data
-    /// resolver's "no declaration gives the name P1" would send the user hunting for a declaration that is there.
-    /// Any other operand is asked of the ONE reference resolver, which says why — "'X' is not defined" for a name
-    /// nothing declares (COBOL1639, ISO §2023:8.4.2.1: "a statement shall contain a reference that uniquely identifies
-    /// that resource"), the ambiguity for a name several declarations share (§2023:8.4.2.2.3 SR1). True when it
-    /// reported; false when it found nothing to say, and the caller falls back to the staged COBOL1571 rather than
-    /// let an operand through in silence.</summary>
-    private bool ReportUnresolvedDebugOperand(Core.DataReferenceContext operand, SectionInfo section)
-    {
-        if (operand.dataReferenceSuffix().Length > 0 && operand.cobolWord() is { } head
-            && Identified(head, section, report: false) is { Procedure: not null } or { Ambiguity: not null })
-        {
-            ctx.Validation.RejectProcedureName(DebugOperandAsWritten(operand), head.GetText(), "USE FOR DEBUGGING ON", "",
-                ctx.CurrentMethodScope is not null);
-            return true;
-        }
-        int recorded = ctx.Edition.ErrorsRecorded;
-        ctx.Refs.Resolve(operand);
-        return ctx.Edition.ErrorsRecorded != recorded;
-    }
-
-    /// <summary>Record the paragraph subject at <paramref name="pc"/> (its name, its source line and the debugging
-    /// section's invokable pc range). A paragraph-name omitted (§2023:14.4.3) is no procedure-name for a subject
-    /// to name. A procedure is named once: <see cref="AddNamedDebugSubject"/> refuses a repeat (syntax rule 6).</summary>
-    private void AddDebugSubject(int pc, SectionInfo debugging, string? written = null)
-    {
-        if (pc < 0 || pc >= _paras.Count || _paras[pc].Cobol.Length == 0) return;
-        AddDebugSubject(new BoundDebugSubject(
-            pc, written ?? _paras[pc].Cobol, _paraLine[pc], debugging.StartPc, debugging.EndPc));
-    }
-
-    /// <summary>Record a SECTION subject: one trigger point at the section's first pc, named by the section
-    /// (§1985:XV.3.2.4 GR13: DEBUG-NAME is "the name that caused the debugging section to be executed"), so control
-    /// entering the section anywhere else does not run the debugging section (GR9).</summary>
-    private void AddDebugSectionSubject(SectionInfo subject, SectionInfo debugging)
-    {
-        int pc = subject.StartPc;
-        AddDebugSubject(new BoundDebugSubject(
-            pc, subject.Name, _paraLine[pc], debugging.StartPc, debugging.EndPc, IsSection: true, SubjectEndPc: subject.EndPc));
-    }
-
-    private void AddDebugSubject(BoundDebugSubject subject) => _debugSubjects.Add(subject);
-
-    /// <summary>Record the procedure-name subject <paramref name="named"/> (procedure-name-1 of the USE FOR DEBUGGING format), held to
-    /// the three syntax rules that speak of one (kb/Work PB5081): §1985:XV.3.2.3 SR5, "Procedure-names defined within debugging
-    /// sections must not appear within USE FOR DEBUGGING statements."; SR8, no procedure-name-1 in a program with ALL PROCEDURES
-    /// (<paramref name="allProcedures"/>); and SR6, a procedure-name "may appear in only one USE FOR DEBUGGING statement and may
-    /// appear only once in that statement" — the repeat the subject list used to swallow silently. A paragraph is one trigger
-    /// point and a section another, at its first paragraph (§1985:XV.3.2.4 GR3 a, kb/Work PB5083), so P and the section that
-    /// begins with P are two procedure-names.</summary>
-    private void AddNamedDebugSubject(ResolvedProcedure named, string written, SectionInfo debugging, Core.UseDebugTargetContext? allProcedures)
-    {
-        if (named.Section is { IsDebugging: true } home)
-        {
-            ctx.Edition.Error(DiagnosticCatalog.DebuggingProcedureReferenced, $"declarative section '{debugging.Name}': USE FOR "
-                + $"DEBUGGING ON '{written}' names a procedure of the debugging section '{home.Name}'; §1985:XV.3.2.3 SR5: "
-                + "\"Procedure-names defined within debugging sections must not appear within USE FOR DEBUGGING statements.\"");
-            return;
-        }
-        if (allProcedures is not null)
-        {
-            ctx.Edition.Error(DiagnosticCatalog.DebugAllProceduresConflict, $"declarative section '{debugging.Name}': USE FOR "
-                + $"DEBUGGING ON '{written}' names a procedure-name in a program whose USE FOR DEBUGGING ON ALL PROCEDURES already "
-                + "makes it a subject; §1985:XV.3.2.3 SR8: \"When the ALL PROCEDURES phrase is specified, procedure-name-1 must "
-                + "not be specified in any USE FOR DEBUGGING statement.\"");
-            return;
-        }
-        int pc = named.Range.Start;
-        if (_debugSubjects.Any(s => s.SubjectPc == pc && s.IsSection == named.IsSection))
-        {
-            ctx.Edition.Error(DiagnosticCatalog.DebugTargetRepeated, $"declarative section '{debugging.Name}': USE FOR DEBUGGING "
-                + $"ON '{written}' names a procedure that another USE FOR DEBUGGING operand names; X3.23-1985 USE FOR DEBUGGING "
-                + "syntax rule 6 allows a procedure-name in one USE FOR DEBUGGING statement, once");
-            return;
-        }
-        // GR13: DEBUG-NAME holds the name that caused the section to run, "All qualifiers of the name ... separated
-        // by the word 'IN' or 'OF'": a paragraph subject written P OF S is named so, as the USE statement wrote it.
-        if (!named.IsSection) AddDebugSubject(pc, debugging, written);
-        else if (named.Section is { } namedSection) AddDebugSectionSubject(namedSection, debugging);
-    }
-
-    /// <summary>ALL PROCEDURES (§1985:XV.3.2.4 GR4): "the effects described in general rule 3 ... for every
-    /// procedure-name in the program, except those appearing within a debugging section" - each paragraph and each
-    /// section, the declarative sections that are not debugging sections included (a USE procedure is executed, GR21).</summary>
-    private void AddAllProceduresSubjects(SectionInfo debugging)
-    {
-        for (int pc = 0; pc < _paras.Count; pc++)
-        {
-            var owner = _paraSection[pc];
-            if (owner is { IsDebugging: true }) continue;
-            AddDebugSubject(pc, debugging);
-            if (owner is { } sec && sec.StartPc == pc) AddDebugSectionSubject(sec, debugging);
-        }
-    }
-
     private readonly List<BoundDebugTarget> _debugTargets = [];
 
-    /// <summary>The data-name, ALL REFERENCES OF and cd-name USE FOR DEBUGGING targets, resolved by <see cref="FinalizeDebug"/> before any
+    /// <summary>The widest DEBUG-CONTENTS the debug targets need, as <see cref="DebugDeclarativeResolver.FinalizeDebug"/> returns it.</summary>
+    private int _debugContentsWidth = WiseOwl.Cobol.Runtime.DebugItem.MinContentsWidth;
+
+    /// <summary>The data-name, ALL REFERENCES OF and cd-name USE FOR DEBUGGING targets, resolved by <see cref="DebugDeclarativeResolver.FinalizeDebug"/> before any
     /// statement binds (X3.23-1985 USE FOR DEBUGGING general rules 5, 6 and 8; docs/CONTROL_FLOW_DESIGN.md D20). The statement
     /// binder's one funnel plans each statement's debug fires against them (<c>DebugTriggerPlanner</c>); empty unless WITH DEBUGGING MODE
     /// collected such a declarative.</summary>
@@ -831,311 +563,4 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
 
     /// <summary>The three DEBUG-SUB-n items (general rule 10), each its own `DataItem` with its own profile; empty when no debugging section activated the register.</summary>
     public IReadOnlyList<DataItem> DebugSubRegisters => ctx.Data.State.Implicit.DebugSubRegisters;
-
-
-    /// <summary>Record one data-name or ALL REFERENCES OF target. The operand is resolved to its DATA ITEM (a qualified name is the one
-    /// item its qualifiers pick, §2023:8.4.2.2), written without subscripts or a reference modifier (syntax rules 10 and 12: the trigger watches
-    /// the item, and DEBUG-SUB-n report which occurrence a statement referenced) and named once (syntax rule 6). A report sum counter is its
-    /// register item (syntax rule 9). LINAGE-COUNTER, LINE-COUNTER and PAGE-COUNTER are special-register data items nothing in the format
-    /// excludes (kb/Work PB4858), runtime-sourced and no place: the target names the register (<see cref="CounterRegisterOf"/>).</summary>
-    private void AddDebugDataTarget(Core.DataReferenceContext operand, SectionInfo section, DebugTargetKind kind)
-    {
-        string written = DebugOperandAsWritten(operand);
-        string phrase = kind is DebugTargetKind.AllReferences ? $"ON ALL REFERENCES OF '{written}'" : $"ON '{written}'";
-        DataItem? item;
-        BoundExpr? register = null;
-        if (operand.Register() is var special and not SpecialRegister.None)
-        {
-            (item, register) = CounterRegisterOf(operand, special);
-            if (register is null) return;   // the resolver reported why
-        }
-        else
-            item = ctx.Refs.ProbeDeclaration(operand) ?? SumCounterOf(operand)
-                ?? throw new InvalidOperationException($"USE FOR DEBUGGING {phrase}: NamesDataItem said the operand names a data item, and none resolves");
-        if (operand.dataReferenceSuffix().Any(s => s.subscriptPart() is not null || s.refModPart() is not null
-                || s.qualification() is { } q && (q.subscriptPart().Length > 0 || q.refModPart().Length > 0)))
-        {
-            ctx.Edition.Error(DiagnosticCatalog.DebugTargetSubscripted, $"declarative section '{section.Name}': USE FOR DEBUGGING {phrase} is "
-                + "subscripted, indexed or reference modified; X3.23-1985 USE FOR DEBUGGING syntax rules 10 and 12 write identifier-1 without "
-                + "subscripts or indexes and without a reference modifier");
-            return;
-        }
-        if (_debugTargets.Any(t => item is not null && ReferenceEquals(t.Item, item) || register is not null && t.NamesRegister(register)))
-        {
-            ctx.Edition.Error(DiagnosticCatalog.DebugTargetRepeated, $"declarative section '{section.Name}': USE FOR DEBUGGING {phrase} names a "
-                + "data item that another USE FOR DEBUGGING operand names; X3.23-1985 USE FOR DEBUGGING syntax rule 6 allows an identifier in "
-                + "one USE FOR DEBUGGING statement, once");
-            return;
-        }
-        _debugTargets.Add(new BoundDebugTarget(kind, written, item, null, section.StartPc, section.EndPc, Register: register));
-        // A data item's widest reference is every occurrence of it, a whole table (rule 24 c; kb/Work PB4855); a counter register's image is at
-        // most 10 digits, inside the minimum.
-        if (register is null) _debugContentsWidth = RecordLayout.SaturatedBound(Math.Max(_debugContentsWidth, RecordLayout.AllOccurrencesImageWidth(item!)));
-    }
-
-    /// <summary>The counter register a USE FOR DEBUGGING operand names, and the data item a store to it names: the file whose LINAGE clause
-    /// LINAGE-COUNTER belongs to (§2023:8.4.3.14), or the report whose LINE-COUNTER or PAGE-COUNTER it is (§2023:8.4.3.15), by the ONE resolution
-    /// every counter reference takes (<see cref="CounterResolver"/>; the qualification rules of §2023:8.4.2.2.3 SR8 to SR10). Only PAGE-COUNTER can
-    /// be stored into (its receiving <see cref="ReportPageCounterPlace"/> names the report's counter item); LINAGE-COUNTER and LINE-COUNTER are
-    /// changed by the I-O and report engines alone, which no statement "explicitly references". A null register: the resolver has reported.</summary>
-    private (DataItem? Item, BoundExpr? Register) CounterRegisterOf(Core.DataReferenceContext operand, SpecialRegister special)
-    {
-        if (special is SpecialRegister.LinageCounter)
-            return (null, ctx.Refs.Counters.LinageFileOf(operand) is { } file ? new BoundLinageCounterRef(file) : null);
-        bool isPage = special is SpecialRegister.PageCounter;
-        return ctx.Refs.Counters.ReportOf(operand) is { } report
-            ? (isPage ? report.PageCounterRegister : null, new BoundReportCounterRef(report, isPage, ctx.Data.State.Reports.Depth(report)))
-            : (null, null);
-    }
-
-    /// <summary>Record one cd-name target (X3.23-1985 USE FOR DEBUGGING general rule 8): the communication description the operand names, whose
-    /// area DEBUG-CONTENTS holds (general rule 23 e).</summary>
-    private void AddDebugCdTarget(Core.DataReferenceContext operand, SectionInfo section)
-    {
-        string written = DebugOperandAsWritten(operand);
-        var cd = (CommunicationDescription)ctx.Symbols.Identify(operand.cobolWord()!, NameClass.CommunicationDescription, report: true)!.Symbol;
-        if (_debugTargets.Any(t => t.CdKey == cd.Key))
-        {
-            ctx.Edition.Error(DiagnosticCatalog.DebugTargetRepeated, $"declarative section '{section.Name}': USE FOR DEBUGGING ON '{written}' names a "
-                + "cd-name that another USE FOR DEBUGGING operand names; X3.23-1985 USE FOR DEBUGGING syntax rule 6 allows a cd-name in one "
-                + "USE FOR DEBUGGING statement, once");
-            return;
-        }
-        _debugTargets.Add(new BoundDebugTarget(DebugTargetKind.CdName, written, null, cd.Key, section.StartPc, section.EndPc));
-        _debugContentsWidth = Math.Max(_debugContentsWidth, cd.Area.ImageWidth);
-    }
-
-    /// <summary>Record one file-name target (X3.23-1985 USE FOR DEBUGGING general rule 2): the file the operand names, whose largest record
-    /// widens DEBUG-CONTENTS (general rules 15 and 23 c). Named once (syntax rule 6).</summary>
-    private void AddDebugFileTarget(Core.DataReferenceContext operand, SectionInfo section)
-    {
-        string written = DebugOperandAsWritten(operand);
-        if (ctx.Symbols.Identify(operand.cobolWord()!, NameClass.File, report: true) is not { Symbol: FileModel file }) return;   // NamesFile said it is one
-        if (_debugTargets.Any(t => ReferenceEquals(t.File, file)))
-        {
-            ctx.Edition.Error(DiagnosticCatalog.DebugTargetRepeated, $"declarative section '{section.Name}': USE FOR DEBUGGING ON '{written}' names a "
-                + "file-name that another USE FOR DEBUGGING operand names; X3.23-1985 USE FOR DEBUGGING syntax rule 6 allows a file-name in "
-                + "one USE FOR DEBUGGING statement, once");
-            return;
-        }
-        _debugTargets.Add(new BoundDebugTarget(DebugTargetKind.FileName, written, null, null, section.StartPc, section.EndPc, file));
-        _debugContentsWidth = Math.Max(_debugContentsWidth, file.AreaRecord?.ImageWidth ?? 0);
-    }
-
-    /// <summary>The widest DEBUG-CONTENTS any target needs, as <see cref="FinalizeDebug"/> collects them.</summary>
-    private int _debugContentsWidth = WiseOwl.Cobol.Runtime.DebugItem.MinContentsWidth;
-
-    /// <summary>One USE statement's bound trigger scope: Format 1's files/mode (+GLOBAL), Format 2's report
-    /// group, Format 3's (exception-name, file) entries, or Format 4's single operand (ISO §2023:14.9.49).</summary>
-    private readonly record struct DeclScope(
-        IReadOnlyList<FileModel> Files, int? ModeIndex, bool Global, ReportGroupModel? Report,
-        IReadOnlyList<BoundExceptionSelector>? EcEntries = null, BoundEoOperand? Eo = null);
-
-    /// <summary>Bind the USE statement's trigger scope (ISO §2023:14.9.49): Format 1's file list or open mode; the
-    /// GLOBAL phrase drives the cross-program GR4b dispatch (the emitter's <c>__RunGlobalUse</c> containment
-    /// walk). <c>ON file-name</c> resolves against <c>SymbolTable.VisibleFiles</c>, which includes containers' GLOBAL FDs
-    /// (§2023:13.18.27.4 GR1; IC234A's contained USE names the outer's GLOBAL file).
-    /// Format 2 (BEFORE REPORTING, SR9) names a report group — the section becomes the group's
-    /// before-reporting hook, invoked by the report engine just before the group is produced (GR8; wired in
-    /// <c>CSharpEmitter.ReportWriter.cs</c>). The same group shall not appear in two such statements (SR9).</summary>
-    private DeclScope? DeclBindUse(Core.UseStatementContext use, string sectionName)
-    {
-        bool global = use.GLOBAL() is not null;
-        if (use.exceptionSelectionOperand() is { Length: > 0 } ecEntries)
-            return DeclBindUseF3(ecEntries, sectionName);
-        if (use.OBJECT() is not null || use.EO() is not null)
-        {
-            // Format 4 (§2023:14.9.49.2 — a brace group requiring exactly one of TWO alternatives,
-            // {object-class-name-1 | interface-name-1}; SR15 EO ≡ EXCEPTION OBJECT). GR3: for an OBJECT raise,
-            // F4 selection REPLACES the F1/F3 tiers (the generated __EcObjDispatch, D-EO7).
-            // use-after-exception-object-2002: the pass owns the edition gate (Exec Step E).
-            ctx.EcState.F3 = true;   // the ONE "EC declaratives present" feature bit — F4 rides the same group gate
-            string cname = use.cobolWord().GetText();
-            // SR16 and SR17 are ONE rule with two operand kinds, and both scope the name to the REPOSITORY
-            // paragraph — never to the compilation group, which is what OoClassTable holds. Both halves go
-            // through the §2023:8.4.6.4 funnel; before kb/Work PB365 this site called `OoClasses.Find` directly, so a
-            // program with NO REPOSITORY compiled clean (SR16 unenforced) and the interface alternative had no
-            // resolution path at all and died on SR16's diagnostic (SR17 unimplemented).
-            var r = ctx.Data.OoClasses!.Names.Resolve(ctx.Edition, use, use.cobolWord(),
-                Compiler.Oo.OoNameWant.Either,
-                $"declarative section '{sectionName}': USE AFTER EXCEPTION OBJECT",
-                DiagnosticCatalog.UseExceptionObjectName.Code, "ISO §2023:14.9.49.3 SR16/SR17");
-            if (!r.Ok) return null;
-            // The bound operand carries the RESOLVED SYMBOL, never a C# type name: how many emitted types one
-            // COBOL name selects is GR14's question and the emitter's answer (kb/Work PB366 — a class is TWO).
-            return new DeclScope([], null, global, null, Eo: r.Interface is { } ifc
-                ? new BoundEoInterface(ifc)          // SR17 / GR14 b) — the IMPLEMENTS test
-                : new BoundEoClass(r.Class!));       // SR16 / GR14 a) — class-or-subclass, factory or instance
-        }
-        if (use.REPORTING() is not null)
-        {
-            // Format 2: USE [GLOBAL] BEFORE REPORTING identifier-1 — identifier-1 references a report group
-            // (SR9), optionally qualified by its report-name (§2023:8.4.2.2.2 Format 1's file-report-qualifier).
-            // Resolution is the ONE funnel's: it collects EVERY candidate and diagnoses an ambiguous reference
-            // (§2023:8.4.2.2.1 / §2023:8.4.2.2.3 SR1) where this arm used to `return` inside the loop on the first match
-            // and therefore could never observe a second (kb/Work PB365).
-            var (head, _) = ReportGroupResolution.Parts(use.reportGroupReference());
-            var match = ReportGroupResolution.Resolve(ctx.Data, use.reportGroupReference(),
-                $"declarative section '{sectionName}': USE BEFORE REPORTING", out _, out var group, NameReach.Visible);
-            if (match == ReportGroupResolution.Match.Ambiguous) return null;   // COBOL1920 is reported; no group to record (kb/Work PB5542)
-            if (match == ReportGroupResolution.Match.None || group is null)
-            {
-                ctx.Edition.Error(DiagnosticCatalog.DeclarativeUseRule, $"declarative section '{sectionName}': USE BEFORE REPORTING "
-                    + $"'{head}' does not name a report group (ISO §2023:14.9.49.3 SR9)");
-                return null;
-            }
-            // SR9: the same identifier-1 shall not appear in more than one USE BEFORE REPORTING
-            // statement within the same procedure division. Format 2 names exactly one group per
-            // statement, so only the Duplicate verdict is reachable here.
-            if (_useReportGroups.Register(group) == ConstructOperand.Duplicate)
-            {
-                using var duplicateAt = ctx.Edition.At(use.reportGroupReference());   // the repeating operand (kb/Work PB5090)
-                ctx.Edition.Error(DiagnosticCatalog.DeclarativeUseRule, $"declarative section '{sectionName}': report group "
-                    + $"'{head}' already has a USE BEFORE REPORTING procedure in this procedure "
-                    + "division (ISO §2023:14.9.49.3 SR9)");
-            }
-            return new DeclScope([], null, global, group);
-        }
-        var target = use.useOnTarget();
-        if (target is null) return null;
-
-        // Mode scope (GR3b/GR6b–e) — the index IS the runtime FileOpenMode ordinal, mapped by the one mapping the
-        // PERFORM Format-3 WHEN EXCEPTION mode operand shares.
-        int? mode = OpenModeOperand.ExceptionModeIndex(target.openMode());
-        if (mode is { } m)
-        {
-            // SR7: the INPUT, OUTPUT, I-O and EXTEND phrases may each be specified only once in the
-            // declaratives portion of a given procedure division. Format 1's brace group takes exactly one
-            // alternative per statement, so only the Duplicate verdict is reachable here.
-            if (_useModes.Register(m) == ConstructOperand.Duplicate)
-            {
-                using var duplicateAt = ctx.Edition.At(target);   // the repeating USE statement's operand (kb/Work PB5090)
-                ctx.Edition.Error(DiagnosticCatalog.DeclarativeUseRule, $"declarative section '{sectionName}': this open mode already "
-                    + $"has a USE procedure in this procedure division ({EditionInfo.Designated(new EditionCite("§2023:14.9.49.3 SR7", "§1985:VII.4.6.3 SR6").At(ctx.Edition.Edition.Year, FileOrganization.Sequential))})");
-            }
-            return new DeclScope([], m, global, null);
-        }
-
-        var files = new List<FileModel>();
-        foreach (var fn in target.fileName())
-        {
-            if (ResolveUseFile(fn, sectionName) is not { } file) continue;
-            string fname = fn.GetText();
-            // SR8: "The same file-name shall not appear in more than one USE AFTER EXCEPTION statement within
-            // the same procedure division." ONE statement writing the name twice is not more than one — the
-            // Format-1 figure's `{ file-name-1 } …` permits the repetition and GR6 a) associates the one
-            // procedure with the file however many times it is written — so the repeat binds ONCE and is
-            // silent. It must not bind twice: the emitted `switch (__f)` would carry two identical case
-            // labels (DispatchEmitter / EcEmitter EmitUseTiers).
-            switch (_useFiles.Register(file))
-            {
-                case ConstructOperand.Repeated:
-                    continue;
-                case ConstructOperand.Duplicate:
-                    using (ctx.Edition.At(fn))   // the file-name that repeats (kb/Work PB5090)
-                        ctx.Edition.Error(DiagnosticCatalog.DeclarativeUseRule, $"declarative section '{sectionName}': file '{fname}' "
-                            + $"already has a USE procedure in this procedure division ({EditionInfo.Designated(new EditionCite("§2023:14.9.49.3 SR8", "§1985:VII.4.6.3 SR3", "§1985:VIII.4.8.3 SR3", "§1985:IX.4.8.3 SR3").At(ctx.Edition.Edition.Year, file.Organization))})");
-                    continue;   // §2023:14.9.49.4 GR3 recovery — the FIRST declarative keeps the file
-            }
-            files.Add(file);
-        }
-        return new DeclScope(files, null, global, null);
-    }
-
-    /// <summary>Bind a Format-3 USE statement's scope (ISO §2023:14.9.49.2 — <c>USE AFTER {EXCEPTION CONDITION | EC}
-    /// {exception-name-1 | exception-name-2 {FILE file-name-2}…}…</c>): validate every exception-name against
-    /// the §2023:14.6.13.1 catalog (level 1/2/3 all legal — the §2023:14.9.49.4 GR3c–g tiers select by level), SR13 (a file-scoped
-    /// name shall begin EC-I-O), SR14 (the same (exception-name-2, file-name-2) PAIR in more than one USE
-    /// statement of this procedure division — a bare exception-name-1 is outside that rule and is bound as
-    /// written), and the per-name edition window. The whole format is 2002+ (the EC model's introduction).</summary>
-    private DeclScope? DeclBindUseF3(Core.ExceptionSelectionOperandContext[] entries, string sectionName)
-    {
-        // use-after-exception-condition-2002: the pass owns the edition gate (Exec Step E).
-        ctx.EcState.F3 = true;
-        var pairs = new List<BoundExceptionSelector>();
-        // Each entry resolves through the one resolver a PERFORM Format-3 WHEN operand shares (§2023:14.9.28.4 GR17; kb/Work
-        // PB6139). ⚠ Its name funnel gates the introduction edition at EVERY level where this site's former copy guarded
-        // Level == 3 — a LEVEL-2 name of a 2023-only family (EC-MCS) in a USE entry slipped the old gate at 2002/2014.
-        foreach (var entry in entries)
-            ExceptionSelectionOperands.Resolve(ctx, entry, $"declarative section '{sectionName}'",
-                refuseFilePairing: (_, info) =>
-                    ctx.Edition.Error(DiagnosticCatalog.UseFileExceptionNameNotIo, $"declarative section '{sectionName}': FILE may be specified "
-                        + $"only with an exception-name beginning 'EC-I-O' — '{info.Name}' does not (ISO §2023:14.9.49.3 SR13)"),
-                resolveFile: fn => ResolveUseFile(fn, sectionName),
-                select: (selector, _) =>
-                {
-                    // A BARE name is exception-name-1, not exception-name-2 (§2023:14.9.49.2's Format-3 figure puts
-                    // exception-name-2 only in the `exception-name-2 { FILE file-name-2 } …` alternative, and
-                    // §2023:14.9.49.4 GR3 c)–d) against e)–g) split on the same axis). SR14 governs PAIRS, so nothing
-                    // screens a repeated exception-name-1 — GR3 gives it its OUTCOME instead: "The first
-                    // declarative that satisfies the selection criteria is executed and no other declaratives are
-                    // executed." It therefore never enters the SR14 register.
-                    if (selector.File is null) pairs.Add(selector);
-                    else AddPair(selector);
-                });
-        return new DeclScope([], null, Global: false, null, pairs);
-
-        void AddPair(BoundExceptionSelector pair)
-        {
-            string ecName = pair.Ec!;
-            FileModel file = pair.File!;
-            // SR14: "The same pair of exception-name-2 and file-name-2 shall not be specified in more than one
-            // USE statement within the same procedure division." The pair is the key (a bare exception-name-1
-            // never gets here) and the STATEMENT is the boundary: the figure's inner `{ FILE file-name-2 } …`
-            // and outer `…` both let ONE statement write a pair twice, which is not more than one statement.
-            // The pair is the exception-name (the catalog's own spelling) and the FILE the file-name identified: two
-            // file-names are one when they identify one file, so the comparison of written names stays the symbol table's.
-            switch (_useEcPairs.Register((ecName, file)))
-            {
-                case ConstructOperand.Repeated:
-                    return;   // written twice in this one statement — legal, and bound once
-                case ConstructOperand.Duplicate:
-                    ctx.Edition.Error(DiagnosticCatalog.UseExceptionFilePairRepeated, $"declarative section '{sectionName}': the exception-name/"
-                        + $"file pair '{ecName} FILE {file.CobolName}' is already specified in another USE statement "
-                        + "of this procedure division (ISO §2023:14.9.49.3 SR14)");
-                    return;   // §2023:14.9.49.4 GR3 recovery — the FIRST declarative keeps the pair
-            }
-            pairs.Add(pair);
-        }
-    }
-
-    // ⛔ NO HANDLER-END HEURISTIC LIVES HERE (kb/Work PB367 — the shape-derived `DeclHandlerEndPc` /
-    // `DeclIsTrivialExit` / `DeclTerminatesRunUnit` trio is DELETED, not disabled). It walked the section's
-    // paragraphs backwards and, whenever ANY later paragraph terminated the run unit, ended the bounded USE
-    // dispatch at the last trivial EXIT/CONTINUE paragraph before it — so a user declarative written in that
-    // ordinary shape (a common exit point, then a paragraph that STOPs the run) executed only in part, on every
-    // invocation path (§2023:14.9.49.4 GR7/GR12/GR13 and the Format-2 BEFORE REPORTING hook alike). The standard
-    // leaves no room for it: §2023:14.9.49.3 SR1 makes the use procedure the WHOLE remainder of the section, §2023:14.4.2
-    // ends the section only at the next section header or END DECLARATIVES, §2023:14.6.3 GR1 puts the implied
-    // transfer back to the controlling USE at "the last statement" of "the last procedure in the range", and
-    // §2023:14.9.14.4 GR7's NOTE names USE among the return mechanisms that sit AFTER the section's last paragraph.
-
-    /// <summary>The file a USE statement's written file-name identifies (Format 1's file-name-1 and Format 3's file-name-2 alike), or
-    /// null after reporting a name that identifies no file (§2023:14.9.49) or a sort or merge file (§2023:14.9.49.3 SR2).</summary>
-    private FileModel? ResolveUseFile(Core.FileNameContext fn, string sectionName)
-    {
-        string fname = fn.GetText();
-        if (ctx.Symbols.Identify(fn, NameClass.File, report: true) is not { Symbol: FileModel file })
-        {
-            ctx.Edition.Error(DiagnosticCatalog.DeclarativeUseRule, $"declarative section '{sectionName}': USE names unknown "
-                + $"file '{fname}' (ISO §2023:14.9.49)");
-            return null;
-        }
-        if (file.IsSortMerge)
-        {
-            ReportUseNamesSortMergeFile(sectionName, fname);
-            return null;
-        }
-        return file;
-    }
-
-    /// <summary>⛔ THE ONE REFUSAL OF A USE STATEMENT THAT NAMES A SORT OR MERGE FILE (both USE formats that name files), citing the rule of
-    /// the edition in force (kb/Work PB4950): §2023:14.9.49.3 SR2 from 2002; COBOL-85's USE statements state no such syntax rule, and
-    /// its ground is the sort-merge concept, "The sort file itself is referred to and accessed only by the SORT statement"
-    /// (§1985:II.2.2.2.1.1; the merge file by the MERGE statement, §1985:II.2.2.2.1.2).</summary>
-    private void ReportUseNamesSortMergeFile(string sectionName, string fname) =>
-        ctx.Edition.Error(DiagnosticCatalog.DeclarativeUseRule, $"declarative section '{sectionName}': USE may not name the "
-            + $"sort/merge file '{fname}' (" + ctx.Edition.Edition.CiteRule(
-                "§1985:II.2.2.2.1.1 and §1985:II.2.2.2.1.2: a sort or merge file is referred to and accessed only by the SORT or MERGE statement",
-                "§2023:14.9.49.3 SR2") + ")");
 }

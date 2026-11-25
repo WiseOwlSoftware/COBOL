@@ -2,64 +2,42 @@
  "rule-id": "1985-SR-VI.6.13.3-5",
  "rule-digest": "fbbed6b3b0c0",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-056",
+  "pin": "8c46aa7c8f6382f8332db1227687bf386056688f",
+  "slice": "1985-fin-pb2338",
   "sources": {
-   "reader": "f2dd6fd8e2e40a47ca74a6f7d089ea8c9258f8b656f86bf05a13ce26348ba623",
-   "refuter": "6bd2a26383e715570a1b5dcd4381651eee54858e79ebb475849f6c924646def3"
+   "reader": "b2c39fa705c170441fdc1cdc1b6c21a67fd75d5e38ad7a879446af685731dd5f",
+   "refuter": "28fa6114e1ee2cde79509228600dd4c1c2a9f2d8e8a21247d6f4d3e2d88bc52b"
   },
   "imported": {
-   "reader": "a058daebf34b0c8f31bacef616f86474c66ccbcd7c3852dbe857bf508b9ac38b",
-   "refuter": "fed94f7a1fde90ddc6af282e1988f73540a7459407b09ef8f319c471c965b996"
+   "reader": "5aabf31efb2b29b59ecb351b1e2d2d212562402d6b8022e2c21fc479e0dfe607",
+   "refuter": "ae8cbe869118be050ca3caf03969253d51ac9cf14359052c654054d0a5dc173a"
   }
  },
  "reader": {
   "rule-id": "1985-SR-VI.6.13.3-5",
   "verdict": "CONFORMS",
-  "requirement": "At --std 85 every WHEN phrase (each set of selection objects, so each of several consecutive WHEN phrases sharing one imperative statement separately) must carry exactly as many selection objects (ANY, TRUE, FALSE, condition, identifier/literal/arithmetic expression, THRU range each counting one) as the EVALUATE has selection subjects; a phrase with more or fewer is a compile-time refusal. WHEN OTHER carries no set and is not counted. The witness covers only the legal half.",
-  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#ScreenObjectCount; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#BindSurplusObject",
+  "requirement": "At --std 85 every WHEN phrase must write exactly as many selection objects as the statement has subjects: fewer or more is refused, per WHEN phrase, and a surplus object's own reference faults are still reported.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/WhenPhraseBinder.cs#Bind; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/WhenPhraseBinder.cs#ScreenObjectCount; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/WhenPhraseBinder.cs#BindSurplusObject",
   "edition-consulted": [],
-  "edition-search": "Read the bind loop (EvaluateBinder lines 65-100) and ScreenObjectCount; grepped EvaluateBinder.cs for Edition|CobolVersion|DialectBehavior. The only edition reads on the statement path are DialectBehavior.EvaluateObjectsInWhenPhraseOrder (line 62: when objects are evaluated, GR-level, not the count), EvaluateOperandCombinations.IsPermitted(year) (Table 15 pairing) and ConstructRegistry for partial expressions; none touches the count screen, which is per WHEN phrase with no edition input. EditionContext.Error only records the diagnostic.",
+  "edition-search": "grep Edition|Year|DialectBehavior in WhenPhraseBinder.cs#ScreenObjectCount and #BindSurplusObject: only the citation",
   "behaviour-differs-by-edition": "no",
-  "witnesses-cover": "part: the witness pb399_evaluate_selection_set_shapes exercises only legal counts (2x2, ANY counted, two phrases one body); the refusal half (more objects, fewer objects, a bad second phrase of a shared body) is exercised only by these probes",
+  "witnesses-cover": "part: pb399's shapes and its negatives cover both directions; a short phrase sharing an imperative is a probe",
   "probes": [
    {
-    "class": "d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-056/src/ev_ok.cob",
-    "printed": "THREE-OK / EXPR-OK (exit 0)",
-    "expected": "three subjects (identifier, identifier, TRUE) with three objects incl. ANY, condition, FALSE; arithmetic-expression subject with a THRU range object counted as one: compile and run"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-056/src/ev_few.cob",
-    "printed": "error COBOL2106: the WHEN phrase 'WHEN 1' writes 1 selection object but the EVALUATE statement has 2 selection subjects",
-    "expected": "refused (SR5, fewer objects)"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-056/src/ev_more.cob",
-    "printed": "error COBOL2106: the WHEN phrase 'WHEN 1 ALSO 2' writes 2 selection objects but the EVALUATE statement has 1 selection subject",
-    "expected": "refused (SR5, more objects)"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-056/src/ev_second.cob",
-    "printed": "COBOL2106 at 9,12 for 'WHEN ANY' (second phrase of a shared body, 1 of 2) and at 14,12 for 'WHEN TRUE ALSO FALSE ALSO ANY' (3 of 2)",
-    "expected": "each set counted separately (SR2 'for all those specified in a single WHEN phrase'); both refused"
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/finish-worktree-wf_05bb8d55-c0a-8/runs/evneg-001/evneg.cob",
+    "printed": "COBOL2106 at 21 (WHEN 1 against two subjects), 22 (WHEN 1 ALSO 2 against one), 23 (three objects against two) with COBOL1639 for the surplus UNDEFX, 25 (the second WHEN phrase of a statement)",
+    "expected": "each phrase whose count differs refused; the surplus object's undefined name reported"
    }
   ],
   "citations": [
    {
     "cite": "§1985:VI.6.13.3 SR5",
     "check": "OK  §1985:VI.6.13.3 SR5  (║6.13.3 Syntax Rules║)  the text is in SR5"
-   },
-   {
-    "cite": "§1985:VI.6.13.3 SR2",
-    "check": "OK  §1985:VI.6.13.3 SR2  (║6.13.3 Syntax Rules║)  the text is in SR2"
    }
   ],
-  "notes": "ScreenObjectCount compares each WHEN phrase's object count with the subject count, both directions, before pairing; surplus objects are still bound standalone for their own faults. The diagnostic text cites the 2023 clause number, which is cosmetic. No 1985-specific arm is needed: the 1985 rule and its definition of a set (SR2) match the code.",
-  "seeded": true,
+  "notes": "Re-read after kb/Work PB2338: WhenPhraseBinder.Bind runs ScreenObjectCount once per WHEN phrase, before pairing, and binds every surplus object standalone through BindSurplusObject.",
+  "seeded": false,
   "harm": "",
   "cause": "",
   "at-2023": "",
@@ -71,8 +49,8 @@
  "refuter": {
   "rule-id": "1985-SR-VI.6.13.3-5",
   "refutation": "UPHELD",
-  "classes": "b,c,d",
-  "evidence": "ev_r1.cob (--std 85 --run, exit 0, INNER-OK / THRU-ONE): NOT 1 THRU 1 counted one object, a parenthesized arithmetic expression object, a nested 3-subject EVALUATE inside a WHEN body with an AND/OR compound condition as one object and NOT condition, 1 THRU 3 against one subject. ev_r2.cob (--compile-only, exit 65): COBOL2106 for a nested inner EVALUATE whose WHEN has 2 objects for 1 subject (outer correct), 'WHEN 1 THRU 3 ALSO 4' (2 of 1), 'WHEN NOT 1 THRU 3' (1 of 2), 'WHEN WS-A = 1 OR WS-B = 2' (1 of 2: a compound condition is one object). Read EvaluateBinder.Bind: ScreenObjectCount per evaluateWhenPhrase against ev.evaluateSubject().Length, no edition input on the count. cite.py: OK §1985:VI.6.13.3 SR5 'The number of selection objects within each set of selection objects must be equal'; OK §1985:VI.6.13.3 SR4 'constitute a single selection object'. Text silent on any 85-only count form; diagnostic cites §2023 clause (cosmetic).",
+  "classes": "c",
+  "evidence": "rfevneg-001 line 23: in a statement of two subjects, the second WHEN phrase of a shared-imperative group writes one object and draws COBOL2106 while the first, which writes two, draws nothing; the reader's evneg covers both directions and the surplus object's own COBOL1639. 'OK  §1985:VI.6.13.3 SR5  (║6.13.3 Syntax Rules║)  the text is in SR5'",
   "edition-sites-missed": [],
   "corrected": ""
  }
