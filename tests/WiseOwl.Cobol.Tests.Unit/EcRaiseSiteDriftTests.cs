@@ -26,6 +26,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <para>The catalog is the generated enumeration of the standard's numbered rules; <c>CatalogCoverageDriftTests</c>
 /// holds it honest against <c>specs/ISO_COBOL_2023.md</c>, so deriving from it is deriving from the spec.</para>
 /// </summary>
+[Trait("Sweep", "tree")]
 public sealed class EcRaiseSiteDriftTests
 {
     /// <summary>Every site the shared RAISE/RAISING path is entered from, and the statement each one is.</summary>
