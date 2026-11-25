@@ -34,9 +34,8 @@ public sealed class LiveProcessTests
         Assert.DoesNotContain(lines[0], read.Report());                               // every line was taken by a step, none is left to report
 
         Assert.Equal(0, unread.WaitForExit());
-        var deadline = Stopwatch.StartNew();
-        while (!unread.Report().Contains(lines[0], StringComparison.Ordinal))         // the pump drains stdout on its own thread: wait for it, bounded by the harness unit
-            Assert.True(deadline.ElapsedMilliseconds < ObservationBudget.UnitMs, "the pump never held the program's first line");
+        Assert.True(SpinWait.SpinUntil(() => unread.Report().Contains(lines[0], StringComparison.Ordinal), ObservationBudget.UnitMs),   // the pump drains stdout on its own thread
+            "the pump never held the program's first line");
         Assert.Equal(lines[0], unread.ExpectLine());                                  // and the line is still there for the step that asks
     }
 }
