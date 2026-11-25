@@ -180,13 +180,17 @@ public sealed class EcRaiseSiteDriftTests
         Assert.Throws<ArgumentOutOfRangeException>(() => EcRaiseSite.Raise.Cite(e2023, EcRaiseRule.Last));
     }
 
-    /// <summary>The numbered syntax rules of <paramref name="clause"/> in an edition with no rule catalog (2002, 2014), read from
-    /// that edition's own text: the numbered paragraphs under the clause's heading, up to the next heading.</summary>
+    /// <summary>The edition's own text, the oracle (a READ entry of <c>scripts/lane_classification.py</c>, named whole there).</summary>
+    private static string SpecOf(int edition) => edition == 2002 ? "ISO_COBOL_2002.md" : "ISO_COBOL_2014.md";
+
+    /// <summary>The numbered syntax rules of <paramref name="clause"/> in COBOL-2002 or COBOL-2014, read from that edition's own
+    /// text: the numbered paragraphs under the clause's heading, up to the next heading.</summary>
     private static Dictionary<int, string> EditionSyntaxRules(int edition, string clause)
     {
-        var lines = File.ReadAllLines(TestRepo.Specs($"ISO_COBOL_{edition}.md"));
+        string spec = SpecOf(edition);
+        var lines = File.ReadAllLines(TestRepo.Specs(spec));
         int at = Array.FindIndex(lines, l => l.StartsWith('#') && l.Contains($" {clause} Syntax", StringComparison.OrdinalIgnoreCase));
-        Assert.True(at >= 0, $"§{edition}:{clause}: no syntax-rules heading in specs/ISO_COBOL_{edition}.md");
+        Assert.True(at >= 0, $"§{edition}:{clause}: no syntax-rules heading in {spec}");
         var rules = new Dictionary<int, string>();
         for (int i = at + 1; i < lines.Length && !lines[i].StartsWith("####", StringComparison.Ordinal); i++)   // a page marker (## Page) is no heading
             if (NumberedRule.Match(lines[i]) is { Success: true } m)
