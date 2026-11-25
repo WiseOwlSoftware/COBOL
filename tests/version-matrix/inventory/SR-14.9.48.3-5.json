@@ -2,7 +2,7 @@
  "rule-id": "SR-14.9.48.3-5",
  "rule-digest": "bc0a8c64f191",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#StrUnstrIsInteger",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#StrUnstrIsInteger; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#Reject",
  "test-ref": "conformance:cases/14.9.48-UNSTRING/pb88-unstring-count-without-delimited; conformance:cases/14.9.48-UNSTRING/pb5734-unstring-count-refmod; conformance:cases/14.9.48-UNSTRING/pb5734-unstring-tallying-refmod",
  "editions": "85,2002,2014,2023",
  "notes": "kb/Work PB5734 landed: identifier-6 (COUNT IN) and identifier-8 (TALLYING IN) are asked as operands as bound (StrUnstrIsInteger asks IntrinsicResultType.IsIntegerOperand, which refuses a reference-modified item: class and category alphanumeric, §2023:8.4.3.3.4 GR6); COBOL1651 at 85, 2002, 2014 and 2023 where the generated C# failed to compile (CS1503). Prior record (CONFORMS), kb/Work PB88: Reject at each site for a non-integer or P-scaled item."

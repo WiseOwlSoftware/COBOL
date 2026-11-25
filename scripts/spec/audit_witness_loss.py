@@ -49,8 +49,9 @@ from collections import Counter
 from typing import Any, Callable, NamedTuple
 
 from inventory_schema import (HELD, NEWEST, REPO, RETIRED_WITNESS_MARK, Schema, StatementLoss,
-                              Tree, WitnessLoss, load_schema, raw_schema, statement_losses, statement_text,
-                              witness_losses, witness_shape_error)
+                              Tree, WitnessLoss, dropped_sites_named_in_prose, load_schema, raw_schema,
+                              retired_witnesses, statement_losses, statement_text, witness_losses,
+                              witness_shape_error)
 from inventory_store import history_pathspecs
 from inventory_view import inventory, inventory_at
 from lineage import chain_of
@@ -167,6 +168,23 @@ def compare_revisions(before: list[dict[str, Any]], after: list[dict[str, Any]],
     return losses, vanished
 
 
+def prose_sites_dropped(before: list[dict[str, Any]], after: list[dict[str, Any]], schema) -> list[tuple[str, str]]:
+    """(rule-id, code-location) for every site a row carried in `before` and lacks in `after` while `after`'s PROSE still
+    names its symbol (`dropped_sites_named_in_prose`, kb/Work PB6066): the writer refuses such a record, and this is the
+    gate over a change that did not go through the writer. A site retired by name (`retired_witnesses`) is exempt."""
+    by_after = {r["rule-id"]: r for r in after}
+    sep = schema.code_location_sep
+    out: list[tuple[str, str]] = []
+    for row in before:
+        now = by_after.get(row["rule-id"])
+        if now is None:
+            continue
+        out += [(row["rule-id"], ref) for ref in dropped_sites_named_in_prose(
+            schema.split(row.get("code-location", "") or "", sep), schema.split(now.get("code-location", "") or "", sep),
+            now.get("notes", "") or "", retired_witnesses(now.get("notes", "")))]
+    return out
+
+
 def compare_statements(before: list[dict[str, Any]], after: list[dict[str, Any]], schema,
                        chain: Callable[[dict[str, Any]], bool | None] | None = None) -> list[StatementLoss]:
     """Every statement (`notes` prose, `derivation`, `verdict`, `editions`) a row present on both sides said
@@ -218,6 +236,7 @@ def check(base: str, schema, at: Any = inventory_at, now: Any = inventory, revis
     losses: list[WitnessLoss] = []
     vanished: list[str] = []
     erased: list[StatementLoss] = []
+    named: list[tuple[str, str]] = []
     heads: dict[int, list[dict[str, Any]]] = {}
     reopened: set[str] = set()
 
@@ -247,6 +266,7 @@ def check(base: str, schema, at: Any = inventory_at, now: Any = inventory, revis
         reopened |= opened
         losses += [l._replace(withdrawn=True) if l.rule_id in opened else l for l in got]
         vanished += gone
+        named += prose_sites_dropped(before, after, schema)
         ed = schema.edition(year)
         # an older edition's chained row is judged under its chain, at the head (kb/Work PB5822)
         targets = {} if ed.newest else {r["rule-id"]: r for r in head(ed.next_held)}
@@ -269,6 +289,8 @@ def check(base: str, schema, at: Any = inventory_at, now: Any = inventory, revis
         print(f"  ⓘ RE-SITED {l.rule_id} {l.field}: {l.ref}  (the verdict changed — the record restates it)")
     for l in unexcused:
         print(f"  ⛔ LOST     {l.rule_id} {l.field}: {l.ref}")
+    for rid, ref in named:
+        print(f"  ⛔ DROPPED  {rid} code-location: {ref}  (the row's notes still name it: list it again, or reword the notes)")
     for s in erased:
         print(f"  ⛔ ERASED   {s.rule_id} {s.field}: {s.chars} characters of statement now empty")
     if respelled:
@@ -278,9 +300,10 @@ def check(base: str, schema, at: Any = inventory_at, now: Any = inventory, revis
         print(f"  ⓘ {len(vanished)} witnessed row(s) no longer in the inventory (catalog-owned, not gated): "
               + ", ".join(vanished[:10]) + (" …" if len(vanished) > 10 else ""))
     print(f"=== WITNESS LOSS vs {base[:12]}: {len(unexcused)} unexcused, {len(retired)} retired, {len(withdrawn)} withdrawn, "
-          f"{len(resited)} re-sited, {len(respelled)} re-spelled, {len(erased)} statements erased — "
-          f"{'RED' if unexcused or erased else 'GREEN'} ===")
-    return 1 if unexcused or erased else 0
+          f"{len(resited)} re-sited, {len(respelled)} re-spelled, {len(erased)} statements erased, "
+          f"{len(named)} sites dropped but named in the notes — "
+          f"{'RED' if unexcused or erased or named else 'GREEN'} ===")
+    return 1 if unexcused or erased or named else 0
 
 
 def history(since: str | None, schema) -> tuple[list[tuple[str, str, WitnessLoss]], Counter[str], list[Erasure]]:
@@ -330,6 +353,13 @@ def owed_back(found: list[tuple[str, str, WitnessLoss]], current: dict[str, dict
     owed: dict[str, dict[str, set[str]]] = {}
     for _, verdict_then, l in found:
         row = current.get(l.rule_id)
+        if (row is not None and l.field == "code-location" and l.resited and not l.retired
+                and not witness_shape_error(l.field, l.ref, schema)
+                and dropped_sites_named_in_prose([l.ref], schema.split(row.get("code-location", "") or "", _sep(l.field, schema)),
+                                                 row.get("notes", ""), retired_witnesses(row.get("notes", "")))):
+            # a RE-SITE excuses the dropped site only while the row's prose stops naming it (kb/Work PB6066)
+            owed.setdefault(l.rule_id, {}).setdefault(l.field, set()).add(l.ref)
+            continue
         if row is None or l.excused or witness_shape_error(l.field, l.ref, schema):
             continue   # a witness removed because it broke a SHAPE rule was a correction, not a loss
         if l.field == "code-location" and row.get("verdict", "") != verdict_then:
@@ -458,7 +488,7 @@ def self_test(schema) -> int:
     retiring = {**row, "test-ref": schema.test_ref_sep.join(refs[1:]),
                 "notes": (row.get("notes", "") + f" retired-witness: {refs[0]} (self-test)").strip()}
     expect("explicit retirement is excused", witness_losses(row, retiring, schema), 0, 1)
-    resite = {**narrowed, "verdict": "PARTIAL" if row["verdict"] != "PARTIAL" else "CONFORMS"}
+    resite = {**narrowed, "notes": "", "verdict": "PARTIAL" if row["verdict"] != "PARTIAL" else "CONFORMS"}
     expect("a re-adjudication re-sites code-location, never test-ref", witness_losses(row, resite, schema),
            len(refs) - 1, len(locs) - 1)
     widened = {**row, "test-ref": row["test-ref"] + schema.test_ref_sep + "conformance:cases/0-SELF-TEST/self_test_extra"}
@@ -578,6 +608,15 @@ def self_test(schema) -> int:
                      {rid: resite}, schema).get(rid, {})
     verify("history replay leaves a re-site re-sited", owed.get("test-ref") == set(refs[:-1])
            and "code-location" not in owed)
+    # PLANTED, never borrowed: a live row's sites may share a symbol or carry none
+    sites = ["src/Planted.cs#PlantedSymbol", "src/Other.cs#OtherSymbol"]
+    was = {**row, "code-location": schema.code_location_sep.join(sites)}
+    named = {**was, "verdict": resite["verdict"], "code-location": "src/Helper.cs#HelperSymbol",
+             "notes": "The rule is decided by OtherSymbol."}
+    owed = owed_back([("t", named["verdict"], l) for l in witness_losses(was, named, schema)],
+                     {rid: named}, schema).get(rid, {})
+    verify("history replay owes back a re-sited site the row's notes still name, and only that one (kb/Work PB6066)",
+           owed.get("code-location") == {sites[1]})
     later = {**narrowed, "verdict": resite["verdict"]}
     owed = owed_back([("t", row["verdict"], l) for l in witness_losses(row, narrowed, schema)],
                      {rid: later}, schema).get(rid, {})
@@ -663,6 +702,26 @@ def self_test(schema) -> int:
            not dropped({**resite_stmt, "notes": "HelperSymbol decides the rule.", "code-location": "src/Helper.cs#HelperSymbol"}))
     verify("writer: a re-site naming no site keeps the row's, so drops nothing",
            not dropped(resite_stmt))
+    verify("writer: a site that MOVED (another cited location names the same symbol) is not dropped",
+           not dropped({**resite_stmt, "code-location": schema.code_location_sep.join(
+               ["src/Helper.cs#HelperSymbol", "src/Moved.cs#PlantedSymbol", "src/Moved.cs#OtherSymbol"])}))
+    verify("writer: a site retired by name is not 'dropped' (the retirement checks answer for it)",
+           not dropped({**resite_stmt, "code-location": "src/Helper.cs#HelperSymbol",
+                        "retire-witnesses": schema.code_location_sep.join(planted_locs), "retire-reason": "self-test"}))
+    # THE AUDIT (`--check`) asks the same predicate of a change that did not go through the writer (kb/Work PB6066).
+    gate_before = {"rule-id": rid, "code-location": schema.code_location_sep.join(planted_locs), "notes": ""}
+
+    def audited(after_locs: list[str], notes: str) -> list[tuple[str, str]]:
+        return prose_sites_dropped([gate_before], [{"rule-id": rid, "code-location": schema.code_location_sep.join(after_locs),
+                                                    "notes": notes}], schema)
+    named_prose = "Both PlantedSymbol and OtherSymbol decide the rule."
+    verify("audit: a change that drops two sites the notes still name is RED",
+           audited(["src/Helper.cs#HelperSymbol"], named_prose) == [(rid, planted_locs[0]), (rid, planted_locs[1])])
+    verify("audit: the union, a reworded note, and a named retirement are GREEN",
+           not audited([*planted_locs, "src/Helper.cs#HelperSymbol"], named_prose)
+           and not audited(["src/Helper.cs#HelperSymbol"], "HelperSymbol decides the rule.")
+           and not audited(["src/Helper.cs#HelperSymbol"], f"{named_prose} {RETIRED_WITNESS_MARK} {planted_locs[0]} (x) "
+                           f"{RETIRED_WITNESS_MARK} {planted_locs[1]} (x)"))
 
     # A STATEMENT IS NEVER ERASED (kb/Work PB3795, PB3375): `inventory_schema.statement_losses`, asked of planted rows,
     # of the writer's output and of a history restore. The row is PLANTED: a live row may carry no prose at all.
