@@ -2,22 +2,22 @@
  "rule-id": "1985-GR-VI.5.15.6-6",
  "rule-digest": "917bf712e875",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-013",
+  "pin": "f579f54a3aafcec123cce6c1947785a2507ae98d",
+  "slice": "1985-c09-pb2337",
   "sources": {
-   "reader": "f64052ae96c9020ad01804108d1457da1b7b236869a749cad184389bdce06bdf",
-   "refuter": "015806368cfa0f4373336b31370a6209a59cd8786ba576665394502d5e03c616"
+   "reader": "0cbc5367e6a2d70a950b37ccacfa3627149bb6840e1b13c2319321e38dc806da",
+   "refuter": "f6fe4c41a61b97caa23413f188a4609dd75752ae025cd120413cf58651514b0b"
   },
   "imported": {
-   "reader": "7203f2f56d7dfb393cf15475e3406dd5818e2ef33b39e076b55b17d885ef57bb",
-   "refuter": "af8b3263ece801e343ae74468516413d2261b2149c9639be40d524ab3eee011a"
+   "reader": "6d61ee88f31cb1da3f8addf502513fc2c7fe07a862fd60150b81eb63cd9c54b5",
+   "refuter": "47db58849373a24e720e25de3087172887e49463c7269d26b93e442a8572536a"
   }
  },
  "reader": {
   "rule-id": "1985-GR-VI.5.15.6-6",
   "verdict": "CONFORMS",
   "requirement": "At 85 a format 1 VALUE in an entry that contains an OCCURS clause, or is subordinate to one at any depth, assigns the value to every occurrence of the item.",
-  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/ValueInitializer.cs#FieldInit; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/ValueInitializer.cs#ElementInit; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/ValueInitializer.cs#InitializerFrom; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/GroupImageCodec.cs#ImageInitOf; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/GroupImageCodec.cs#OccurrenceRunsOf",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/ValueInitializer.cs#FieldInit; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/ValueInitializer.cs#ElementInit; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/ValueInitializer.cs#InitializerFrom; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/ImageInitializer.cs#ImageInitOf; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/ImageInitializer.cs#OccurrenceRunsOf",
   "edition-consulted": [
    {
     "site": "src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/ValueInitializer.cs#InitializerFrom",
@@ -25,21 +25,15 @@
     "same-arm-as-latest": false
    }
   ],
-  "edition-search": "grep DialectLevel/Edition/ConstructRegistry in GroupImageCodec.cs and ValueInitializer.cs: only InitializerFrom/EditedImageOfNumericValue (numeric-edited ZERO). No edition test on the occurrence replication.",
-  "behaviour-differs-by-edition": "no for replication (2023 adds the format 2 table VALUE, not writable at 85)",
-  "witnesses-cover": "part: pb577 G91/G92 cover an elementary OCCURS and one level of subordination; a group VALUE on an OCCURS group, two-dimensional nesting, COMP, signed and BWZ elements are added by the probes",
+  "edition-search": "grep of ImageInitializer.cs, GroupImageCodec.cs, BitImageCodec.cs, GroupValueSlicer.cs and OccurrenceRunEmit.cs for Edition|CobolVersion|DialectLevel|ConstructRegistry|IsAtLeast|DialectBehavior: none. The image composer reads VALUE clauses through ValueInitializer (its InitializerFrom DialectLevel arm is numeric-edited ZERO only, not on these paths).",
+  "behaviour-differs-by-edition": "no for replication",
+  "witnesses-cover": "part: pb577 G91/G92 cover the record-struct lane; i6 adds the image lane (each table under a REDEFINES alias): subordinate VALUEs, a group VALUE on an OCCURS group, three nested OCCURS, signed separate, numeric-edited and ALL literal elements",
   "probes": [
    {
     "class": "d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-013/g6a.cob",
-    "printed": "R1=[ABCDABCDABCD] | E=-04 -04 F=F (E(1 1), E(2 3)) | Z=000000 Q=KKK BW=[0707]",
-    "expected": "group VALUE per occurrence; every cell of a 2x3 table; COMP ZERO; ALL literal; BWZ item VALUE \"07\" in each occurrence"
-   },
-   {
-    "class": "a",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-013/w577.cob",
-    "printed": "G91 1=[ABC] 3=[ABC] | G92 1=[XY7] 3=[XY7]",
-    "expected": "both arms"
+    "file": "E:/COBOL-coord/scratch/finish-worktree-wf_05bb8d55-c0a-7/probes/i6.cob",
+    "printed": "R1 [Q7Q7Q7]; R2 [PQPQPQ] R6B(3)=Q; R3 [WWWWWWWWWWWW] L3(2 3 2)=W; R4 [-012-012-012  1.50  1.50****]; C5(3)=0042",
+    "expected": "every occurrence carries the VALUE (GR6), through ImageInitOf's occurrence runs for the aliased groups"
    }
   ],
   "citations": [
@@ -48,11 +42,11 @@
     "check": "OK  §1985:VI.5.15.6 GR6  (5.15.6 Data Description Entries Other Than Condition-Names)  the text is in GR6"
    }
   ],
-  "notes": "Each occurrence's initializer comes from the same VALUE recipe (ElementInit per subscript, the group image per occurrence run), so every occurrence carries it; no edition-specific arm on this path.",
+  "notes": "PB2337 split GroupImageCodec into GroupImageCodec (the run-time AsImage/FromImage codec), BitImageCodec and ImageInitializer (the compile-time initial-image composer); AreaImageOf, ImageInitOf and OccurrenceRunsOf moved with their bodies unchanged to ImageInitializer, wired by DataEmitter (PhysicalModel.Images) and reached from the Tier-B backing seed and GroupValueSlicer.MemberFromSlice (BackingSeedOver). Re-read at the branch head against the 1985 text. ImageInitOf composes an OCCURS entry once per occurrence run (OccurrenceRunsOf: TableValueRuns.Of where VALUEs apply, which for a format 1 VALUE is one run over every occurrence), and the recursion through InitImageOfMember repeats nested tables. No edition arm on the path.",
   "seeded": true,
   "harm": "",
   "cause": "",
-  "at-2023": "g6a: same output",
+  "at-2023": "i6: same output",
   "repro": "",
   "expected": "",
   "observed": "",
@@ -62,7 +56,7 @@
   "rule-id": "1985-GR-VI.5.15.6-6",
   "refutation": "UPHELD",
   "classes": "a,d",
-  "evidence": "r6a at 85: three-dimensional table (2x3x4) with VALUE \"Q\" on the innermost OCCURS -> all 24 cells Q, L3(2 3 4)=Q; numeric edited ZZ9.99 VALUE \"  1.50\" with OCCURS, ASCENDING KEY and INDEXED BY -> every occurrence [  1.50]; S9(3) SIGN LEADING SEPARATE VALUE -12 OCCURS 3 -> [-012-012-012]; COMP VALUE 42 and ALL \"*\" in a subordinate of an OCCURS group -> occurrence 2 carries them; JUSTIFIED RIGHT VALUE \"A\" OCCURS 2 -> [A  A  ] (initialization ignores JUSTIFIED, §1985:VI.5.15.4 GR1c). cite.py: OK  §1985:VI.5.15.6 GR6  ... the text is in GR6.",
+  "evidence": "Code read independently at the branch head: ImageInitializer.cs carries AreaImageOf, ImageInitOf and OccurrenceRunsOf with no edition read (grep Edition|CobolVersion|DialectLevel|ConstructRegistry|IsAtLeast|DialectBehavior over ImageInitializer, GroupImageCodec, BitImageCodec, GroupValueSlicer, OccurrenceRunEmit: none); GroupImageCodec.cs keeps only the run-time AsImage/FromImage codec, which seeds nothing. OccurrenceRunsOf answers TableValueRuns.Of, which with no table VALUE in the subtree is one run (1..n, period 1): every occurrence takes the format 1 VALUE. Attack on the combinations the reader left out, each through an alias so the image lane seeds it: r1.cob at --std 85, 05 E2 OCCURS 3 with a subordinate GROUP VALUE \"MN\" beside 10 K2 PIC 9 VALUE 5 printed R2 [MN5MN5MN5], F2B(3)=N, K2(3)=5; 05 E3 OCCURS 2 holding A3 VALUE \"AB\" redefined in place by B3 printed G3 [ABAB] A3(2)=AB. The same at --std 2023. Cite: OK  §1985:VI.5.15.6 GR6  (5.15.6 Data Description Entries Other Than Condition-Names)  the text is in GR6",
   "edition-sites-missed": [],
   "corrected": ""
  }

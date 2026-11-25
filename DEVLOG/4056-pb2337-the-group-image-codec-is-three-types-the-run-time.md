@@ -33,8 +33,8 @@ recipe chooser moved.
 
 **Evidence and docs.** Eleven inventory rows had code-locations that named a moved member, or the bare file where the
 witnessed code was the VALUE seed. They were re-sited by `record_verdicts` batches (2023: 9, 1985: 1, 2002: 1). Each
-batch was accepted whole (11 rows changed), and the GAP count did not change in any edition: 1, 0 and 1130. The four
-1985 code reads that name the old sites are pinned evidence, owed a re-read and not a red. Comments and design docs
+batch was accepted whole (11 rows changed), and the GAP count did not change in any edition: 1, 0 and 1130. The 1985 code
+reads that named the old sites are the finisher's paragraph below. Comments and design docs
 (DESIGN.md, DATA_MODEL_DESIGN.md, DESIGN-data-model.md, DESIGN-codegen-backend.md, DESIGN-module-topology.md,
 PROJECT_ORG_DESIGN.md, D-USAGE-BIT.md, the §8.3 row) now name the new homes.
 
@@ -46,3 +46,12 @@ PROJECT_ORG_DESIGN.md, D-USAGE-BIT.md, the §8.3 row) now name the new homes.
 `=== BUILD-LOCAL GATE: GREEN — Conformance 29,412/29,412 ran · Unit 42,990/42,990 ran · RepoDrift 245/245 ran ·
 Characterization 37/37 ran (skipped 0) …`. All three `GroupImageCodecBoundaryDriftTests` facts passed (Unit.trx).
 
+**The 1985 code reads the move owed (finisher).** The landing refused the branch (`code_read_landing.py`, kb/Work PB6056,
+exit 6): three stored 1985 reads named `GroupImageCodec.cs#AreaImageOf`, `#ImageInitOf` and `#OccurrenceRunsOf`
+(1985-GR-VI.5.15.6-3, -5 and -6), members this change moved unchanged to `ImageInitializer`. They were re-read at
+f579f54a3a against the 1985 text (§1985:VI.5.15.6 GR3, GR5, GR6) as slice `1985-c09-pb2337`, re-sited at
+`ImageInitializer.cs`, with probes at `--std 85` through a REDEFINES alias so the image lane seeds the area: group VALUEs of
+ALL, HIGH-VALUES, QUOTE and SPACES over numeric members, nested and group-VALUE OCCURS, and the ODO maximum on the
+record-struct lane (an ODO table cannot reach the image lane at 85: §1985:VI.5.10.3 SR5 refuses it under a REDEFINES).
+A separate adversarial pass probed a group VALUE whose member is a REDEFINES canonical (`BackingSeedOver`) and upheld all
+three. `code_reads.py import --replace`: 3 confirmed; `code_reads.py --check 1985`: GREEN.
