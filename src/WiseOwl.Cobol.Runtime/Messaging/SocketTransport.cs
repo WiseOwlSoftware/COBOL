@@ -314,7 +314,7 @@ internal sealed class SocketTransport : IPeerTransport
     /// <summary>The one accept loop. It ends only when its listener is closed (<see cref="Listener.Stop"/> cancelled: Unpublish, Dispose or Abort, whatever exception the
     /// close surfaces as). Any other accept failure (resource exhaustion, a handshake the OS aborted) leaves a listener that is still published, so the loop waits
     /// <see cref="AcceptRetryDelay"/> and accepts again, rather than leave a requestor connecting to a socket nothing accepts from (kb/Work PB4920). A socket
-    /// accepted once the listener is closed is closed at once.</summary>
+    /// accepted once the listener is closed is closed at once, and one the loop cannot adopt is closed and the loop goes on (kb/Work PB6134).</summary>
     private async Task AcceptLoopAsync(Listener listener, Action<Socket> onAccepted)
     {
         var stop = listener.Stop.Token;
@@ -337,7 +337,16 @@ internal sealed class SocketTransport : IPeerTransport
                 accepted.Dispose();
                 return;
             }
-            onAccepted(accepted);
+            try
+            {
+                onAccepted(accepted);
+            }
+            catch (Exception e) when (e is IOException or SocketException or ObjectDisposedException)
+            {
+                // A connection that cannot be adopted (a stream over a socket that is no longer connected is an IOException) is dropped alone. Leaving the loop here would leave
+                // a published listener nothing accepts from: the OS still queues each later connect in the backlog, so its requestor would wait for a Hello for good (kb/Work PB6134).
+                accepted.Dispose();
+            }
         }
     }
 
