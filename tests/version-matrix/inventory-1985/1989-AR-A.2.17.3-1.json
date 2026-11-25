@@ -2,7 +2,7 @@
  "rule-id": "1989-AR-A.2.17.3-1",
  "rule-digest": "24d6c797ce87",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#IntegerOfDay; src/WiseOwl.Cobol.Runtime/Control/DialectBehavior.cs#IntegerDateFormBounded",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#IntegerOfDay; src/WiseOwl.Cobol.Runtime/Control/DialectBehavior.cs#IntegerDateFormBounded; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#IntegerViolation; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
  "test-ref": "conformance:cases/A.2.17@1985-INTEGER-OF-DAY-FUNCTION/1989-AR-A_2_17_3-1; conformance:cases/A.2.16@1985-INTEGER-OF-DATE-FUNCTION/pb5130_integer_date_year_10000_85",
  "notes": "kb/Work PB5130 (landed). §1989:A.2.17.3 AR1 bounds the year below only (\"It must be an integer greater than 1600.\") and DDD by the year's length. At --std 85 CobolDate.IntegerOfDay takes the unbounded year (DialectBehavior.IntegerDateFormBounded inactive): INTEGER-OF-DAY (10000001) is 3067672 and (10000366) 3068037; the integer screen (CheckArgumentClasses, IntegerViolation) refuses a non-integer argument and 1604366 gives 1461. Witnesses 1989-AR-A_2_17_3-1 and pb5130_integer_date_year_10000_85.",
  "next": {

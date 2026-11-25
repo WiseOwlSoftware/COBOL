@@ -2,7 +2,7 @@
  "rule-id": "1989-AR-A.2.31.3-1",
  "rule-digest": "8c0d512a39fb",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#AppliesAt",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#AppliesAt; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Violation; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
  "test-ref": "conformance:cases/A.2.31@1985-ORD-FUNCTION/1989-AR-A_2_31_3-1; conformance:cases/A.2.31@1985-ORD-FUNCTION/pb5162_ord_numeric_edited_85",
  "notes": "kb/Work PB5162 (landed). §1989:A.2.31.3 AR1: \"Argument-1 must be one character in length and must be class alphabetic or alphanumeric.\" and the 1985 alphanumeric class holds the edited categories (§1985:IV.4.3.3). The Verified ORD row's CharacterCategory predicate now starts at 2002 (ArgPredicate.Since, asked through AppliesAt by CheckArgumentClasses), so at --std 85 a one-character numeric edited item is admitted: ORD of PIC Z holding 7 is 56, of PIC * holding the check-protect of 0 is 43 (pb5162_ord_numeric_edited_85). The ExactWidth(1) predicate refuses a two-character literal, item, group and reference modification (witness 1989-AR-A_2_31_3-1); Violation refuses a numeric item and literal.",
  "next": {
