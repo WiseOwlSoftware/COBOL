@@ -367,7 +367,7 @@ The grammar gives `dataReference : cobolWord dataReferenceSuffix*`, and subscrip
   tests rank ranges (`TableValuePlan.RankForm`, `CobolTable.InSpan`). So the emitted C# is proportional to the
   DESCRIPTION: a `10000 x 10000` table used to compile to an array literal of a hundred million initializers.
   **`DataItem.ValueAt(subs)` is THE reader and EVERY storage lane takes it**: `ValueInitializer.InitializerFor` builds
-  the record-struct elements and `GroupImageCodec.ImageInitOf` composes the per-occurrence character images (kb/Work PB208 — the image lane read
+  the record-struct elements and `ImageInitializer.ImageInitOf` composes the per-occurrence character images (kb/Work PB208 — the image lane read
   only `item.RawValue`, which is null for a table VALUE, and repeated ONE occurrence image, so a format-2 VALUE was
   silently discarded for every image-stored leaf). Both lanes thread the OCCURRENCE CONTEXT — the subscripts of
   the OCCURS levels already entered — so the VALUE may sit on an entry SUBORDINATE to the OCCURS (§2023:13.18.63.3 SR18)
@@ -394,7 +394,7 @@ The grammar gives `dataReference : cobolWord dataReferenceSuffix*`, and subscrip
   not this one. §2023:13.18.63.4 GR5 makes the group area the receiving field, so the length is always specified here.
   The fill CHARACTER is GR1's, with the per-format GR4–GR8 identities.)
   TWO lanes consume it and neither may re-derive it: `GroupValueSlicer.ComposedInit` distributes the area into
-  the typed-native record-struct fields, and **`GroupImageCodec.ImageInitOf`** — THE seeder for every
+  the typed-native record-struct fields, and **`ImageInitializer.ImageInitOf`** — THE seeder for every
   character-image backing (Tier-B REDEFINES, EXTERNAL run-unit cells, BASED/ADDRESS-OF cells, OO backings) —
   emits it as the backing's initial image.
 - **The area has TWO UNITS, and the rule reports which one** (`GroupArea(Text, Bits)`; kb/Work PB207). A
@@ -413,7 +413,7 @@ The grammar gives `dataReference : cobolWord dataReferenceSuffix*`, and subscrip
   VALUE — COBOL1702; §2023:13.18.29.3 SR3 requires usage national under a national group), and both lanes stay
   total over that residue.
 - **A bit group's IMAGE is its packed area, never its members' images concatenated**
-  (`GroupImageCodec.BitAreaOf` — ONE composition, ridden by the generated `AsBits()`/`FromBits`, by the
+  (`BitImageCodec.BitAreaOf` — ONE composition, ridden by the generated `AsBits()`/`FromBits`, by the
   compile-time image seed, and by the GR5 arm above). Each member sits where `BitLayout.StartBitWithin` puts it,
   with §2023:8.5.1.6.3's implicit-filler zeros between and after; the width is `BitLayout.ExtentBits`, never a sum of
   the members' widths — a member whose LEVEL NUMBER differs from its predecessor's is not "of the same level" and

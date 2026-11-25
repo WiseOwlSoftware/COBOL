@@ -282,7 +282,7 @@ public sealed class DataItem
     /// <see cref="RawValue"/>, which is the same for every occurrence (§2023:13.18.63.4 GR9), or the Format-2 literal
     /// keyed to <paramref name="subs"/> (GR12–GR15). It lives HERE because the two emit lanes ask it and may not
     /// answer differently: <see cref="WiseOwl.Cobol.CodeGen.ValueInitializer.InitializerFor"/> (the record-struct
-    /// fields) and <see cref="WiseOwl.Cobol.CodeGen.GroupImageCodec.ImageInitOf"/> (the character-image backings).
+    /// fields) and <see cref="WiseOwl.Cobol.CodeGen.ImageInitializer.ImageInitOf"/> (the character-image backings).
     /// A GROUP subject's answer is its group-level VALUE either way — §2023:13.18.63.3 SR16 carries SR13 onto format 2,
     /// and §2023:13.18.63.4 GR5 initializes the AREA — so <c>GroupValueSlicer.AreaOf</c> reads this too.</summary>
     public string? ValueAt(Subscripts subs) => TableValuePlan is { } plan ? plan.LiteralAt(subs) : RawValue;

@@ -73,8 +73,8 @@ src/WiseOwl.Cobol.Compiler/
     Validation/    StatementValidation.cs (the pure statement-shape + relational checks)
   CodeGen/Emit/    EmitCore.cs (the `EmitContext`), NumericRenderer.cs (the NumX machinery), ConditionRenderer.cs,
                    BooleanRenderer.cs, IntrinsicRenderer.cs, OperandText.cs — the shared expression/condition renderers
-  CodeGen/DataDivision/  DataEmitter.cs, RecordStructEmitter.cs, GroupImageCodec.cs, GroupValueSlicer.cs,
-                   PhysicalModel.cs, ValueInitializer.cs — DATA DIVISION → C# fields / record structs
+  CodeGen/DataDivision/  DataEmitter.cs, RecordStructEmitter.cs, GroupImageCodec.cs, BitImageCodec.cs,
+                   ImageInitializer.cs, GroupValueSlicer.cs, PhysicalModel.cs, ValueInitializer.cs — DATA DIVISION → C# fields / record structs
   CodeGen/Verbs/   one *Emitter.cs per statement family (MoveEmitter, ArithmeticEmitter, EvaluateEmitter, CallEmitter, …)
   CodeGen/         The `ICodeGenBackend` seam: RoslynBackend.cs (primary — C# source), AssemblyPackager.cs,
                    CodeWriter.cs. The emitter god class is dissolved — ProgramEmitter.cs (run-unit orchestration) →
