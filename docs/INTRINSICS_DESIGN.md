@@ -938,7 +938,7 @@ operand (`ExpressionBinder.LiteralAliasOf`, constant-name then data item before 
 operand (`DataBinder.RawValueOperandText`, constant-name before the symbolic-character), `SET LOCALE … TO`,
 `WRITE … ADVANCING`, a bare class-word operand (`ConditionBinder.BareClassWord`), FUNCTION STANDARD-COMPARE's
 argument-4 positions (`IntrinsicBinder.BindStandardCompare`), and the trailing `IN alphabet-name-1` of a THROUGH range
-(`EvaluateBinder.BindRangeHigh` probes the qualified reference; `DataBinder.RangeAlphabetPhraseOf`'s IN-omitted peel
+(`WhenPhraseBinder.BindRangeHigh` probes the qualified reference; `DataBinder.RangeAlphabetPhraseOf`'s IN-omitted peel
 yields to a constant-name). A position that admits the configuration-section type ONLY (a class condition, `DISPLAY …
 UPON`, an ORDER TABLE position 3 of four) resolves the inherited name and lets the census refuse a same-spelled own
 item, which refuses exactly the programs §2023:8.4.6.1's reading does. Two configuration-section names of different types

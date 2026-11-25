@@ -2,8 +2,8 @@
  "rule-id": "SR-14.9.49.3-2",
  "rule-digest": "15ee19507191",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUse; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUseF3",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/UseStatementBinder.cs#DeclBindUse; src/WiseOwl.Cobol.Compiler/Binding/Procedure/UseStatementBinder.cs#DeclBindUseF3",
  "test-ref": "conformance:cases/14.9.49-USE/l1-use-format1-names-sort-file; conformance:cases/14.9.49-USE/l1-use-format3-names-sort-file",
  "editions": "85,2002,2014,2023",
- "notes": "One rejecting witness per named operand: Format 1's file-name-1 (all four editions) and Format 3's FILE file-name-2 (2002+), each naming an SD file and each pinning the SR2 message text."
+ "notes": "One rejecting witness per named operand: Format 1's file-name-1 (all four editions) and Format 3's FILE file-name-2 (2002+), each naming an SD file and each pinning the SR2 message text. retired-witness: src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUse (kb/Work PB2345 extracted the member out of src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs into src/WiseOwl.Cobol.Compiler/Binding/Procedure/UseStatementBinder.cs; the same rule, moved with its body unchanged) retired-witness: src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUseF3 (kb/Work PB2345 extracted the member out of src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs into src/WiseOwl.Cobol.Compiler/Binding/Procedure/UseStatementBinder.cs; the same rule, moved with its body unchanged)"
 }

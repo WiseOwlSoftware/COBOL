@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ WHICH SD RECORDS THE SORT STORE CARRIES WITH THEIR MANAGED SLOTS (kb/Work PB4772, review round 1). The slot-carrying
-/// path (<c>SortBinder.SortRecordCarriesSlots</c>) admits a fixed-size, single-description SD record. Everything else a
+/// path (<c>SortMergePhraseBinder.SortRecordCarriesSlots</c>) admits a fixed-size, single-description SD record. Everything else a
 /// pointer-leafed SD record can meet stays the COBOL1756 deferral, never a silent compile: a variable-length file releases
 /// a size (ISO §2023:13.18.43.4 GR13a) the leaf-vector path ignores. USING, GIVING and MERGE are admitted since kb/Work
 /// PB4838 (a file record carries each slot leaf as its token). Each deferral case names its own reason text.

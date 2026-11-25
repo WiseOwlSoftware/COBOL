@@ -2,7 +2,7 @@
  "rule-id": "2002-SR-14.8.12.2-8",
  "rule-digest": "b268f2ead407",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindPartialExpression; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindPartialComparison; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#AbbrevCarry; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#BindWhenItem",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindPartialExpression; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindPartialComparison; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#AbbrevCarry; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/WhenPhraseBinder.cs#BindWhenItem",
  "test-ref": "conformance:cases/14.8.12@2002-EVALUATE-STATEMENT/g2eva01_communication_section_operands; conformance:cases/14.9.13-EVALUATE/pb398_evaluate_partial_expression",
- "notes": "§2002:14.8.12.2 SR8: partial expressions are spliced onto communication-section subjects (TL > 5 false, TL IS POSITIVE true, SD1 IS NOT NUMERIC true): T2 NOT1-2, T3 POS-AB, T4 NOT-NUMERIC. --std 2002 run matched."
+ "notes": "§2002:14.8.12.2 SR8: partial expressions are spliced onto communication-section subjects (TL > 5 false, TL IS POSITIVE true, SD1 IS NOT NUMERIC true): T2 NOT1-2, T3 POS-AB, T4 NOT-NUMERIC. --std 2002 run matched. retired-witness: src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#BindWhenItem (kb/Work PB2338 extracted the member out of src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs into src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/WhenPhraseBinder.cs; the same rule, moved with its body unchanged)"
 }
