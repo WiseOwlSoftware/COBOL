@@ -906,7 +906,14 @@ part in `ResolvePointerRestrictions`, and the edition pass walks their bound tre
 skeleton's WRITTEN superclass is its `Base` as an ordinary class's is, so SUPER binds against it.
 
 **Diagnostics.** COBOL2239 — the definition's own rules (§2023:11.3.3 SR8/SR9, §2023:11.6.3 SR4/SR7, §2023:11.3.4 GR6 /
-§2023:11.6.4 GR4, §2023:12.3.8.3 SR3), reported on the skeleton whether or not anything expands it. COBOL2240 — the
+§2023:11.6.4 GR4, §2023:12.3.8.3 SR3), reported on the skeleton whether or not anything expands it, each cited in the edition
+compiled under (`OoExpansion.HeaderRules`; kb/Work PB4950, PB5753). The repeated parameter-name rule (§2023:11.3.3 SR9 /
+§2023:11.6.3 SR7) arrives in COBOL-2014 (§2014:11.3.2 SR9 / §2014:11.6.2 SR7; `DialectBehavior.ParameterNameAppearsOnceInUsingClause`,
+VCR row 7.129). At 2002 `USING P P` names two formal parameters P (§2002:11.2.3 GR5 / §2002:11.5.3 GR3), so the clause is
+accepted and every occurrence of P an expansion would replace, other than the formal's own REPOSITORY specifier, is
+refused COBOL2239 as a reference that identifies neither formal (§2002:8.4.1). The predicate that chooses those occurrences is
+the substitution's own (`OoExpansion.IsUserWordOccurrence`), so the refused set and the replaced set cannot drift; with
+every reference refused, which actual replaces the specifier in an expansion changes nothing. COBOL2240 — the
 EXPANDS phrase (§2023:12.3.8.3 SR4/SR7, §2023:12.3.8.4 GR5/GR8, kind, identity). A reference to the skeleton anywhere but
 a REPOSITORY paragraph is refused by `SymbolTable.ClassNames.Resolve` through the REFERRING construct's own code with
 the §2023:12.3.8.4 GR1/GR7 reason (`OoClassTable.IsParameterized`). The whole surface rides the CLASS-ID /

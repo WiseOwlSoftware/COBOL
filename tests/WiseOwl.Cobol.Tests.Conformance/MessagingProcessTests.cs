@@ -103,6 +103,7 @@ public sealed class MessagingProcessTests : IDisposable
         if (serves is not null) psi.Environment["WISEOWL_COBOL_MCS_SERVER"] = serves;
         if (log is not null) psi.Environment[ServerActivation.LogVariable] = log;
         var live = LiveProcess.Start(psi);
+        live.Companions = _live;                       // a non-observation reports every process of the exchange (kb/Work PB6134)
         _live.Add(live);
         return live;
     }
