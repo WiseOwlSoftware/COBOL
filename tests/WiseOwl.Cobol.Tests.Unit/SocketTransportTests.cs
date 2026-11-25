@@ -285,6 +285,41 @@ public sealed class SocketTransportTests : IDisposable
         Assert.Equal("RINGS", Assert.IsType<BellRung>(Next(bell, bellWake)).Spelling);
     }
 
+    /// <summary>An accept that delivers a socket nothing can adopt (it is not connected, so a stream over it is an <see cref="IOException"/>) once and then accepts for real.</summary>
+    private static Func<Socket, CancellationToken, ValueTask<Socket>> DeliversAnUnadoptableSocketOnce(Action delivered)
+    {
+        int calls = 0;
+        return (socket, token) =>
+        {
+            if (Interlocked.Increment(ref calls) != 1) return socket.AcceptAsync(token);
+            delivered();
+            return ValueTask.FromResult(new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified));
+        };
+    }
+
+    [Fact]
+    public void AnAcceptedSocketThatCannotBeAdoptedIsClosedAndLeavesTheServerAcceptingAndTheBellRinging()
+    {
+        // kb/Work PB6134: an exception from the step after the accept ended the accept loop silently, so a requestor's connect still queued in the
+        // backlog (the OS accepts it for a listening socket) was never answered and its SEND waited for the server's Hello for good.
+        var (server, serverWake, serverRun) = Run();
+        var (requestor, _, _) = Run();
+        using var serverDelivered = new ManualResetEventSlim(false);
+        server.AcceptSocketAsync = DeliversAnUnadoptableSocketOnce(serverDelivered.Set);
+        server.Publish(Server("ADOPT", serverRun));
+        Assert.True(serverDelivered.Wait(Guard), "the accept never delivered");
+        Assert.Equal(ConnectOutcome.Connected, requestor.Connect(Server("ADOPT", serverRun)).Outcome);
+        Assert.IsType<LinkAccepted>(Next(server, serverWake));
+
+        var (bell, bellWake, bellRun) = Run();
+        using var bellDelivered = new ManualResetEventSlim(false);
+        bell.AcceptSocketAsync = DeliversAnUnadoptableSocketOnce(bellDelivered.Set);
+        bell.Publish(Bell("ADOPTS", bellRun));
+        Assert.True(bellDelivered.Wait(Guard), "the accept never delivered");
+        requestor.RingBells("ADOPTS");
+        Assert.Equal("ADOPTS", Assert.IsType<BellRung>(Next(bell, bellWake)).Spelling);
+    }
+
     [Fact]
     public async Task AnAcceptThatArrivesAfterTheTransportEndedIsClosedAtOnceAndMakesNoLink()
     {

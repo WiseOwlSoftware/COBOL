@@ -38,10 +38,10 @@ internal sealed class PhysicalModel(EmitContext ctx)
     }
 
     /// <summary>The composed-initializer back-edges (set once by <see cref="DataEmitter"/> — the physical
-    /// model, the VALUE initializers, and the image codec are mutually recursive by design: a field's Init is
+    /// model, the VALUE initializers, and the image initializer are mutually recursive by design: a field's Init is
     /// a VALUE initializer, a Tier-B backing's seed is an image init, and both walk the physical model).</summary>
     public ValueInitializer Values { get; set; } = null!;
-    public GroupImageCodec Codec { get; set; } = null!;
+    public ImageInitializer Images { get; set; } = null!;
 
     /// <summary>A field that physically appears in the emitted C# — an item's own field, OR a REDEFINES class's single
     /// string backing (which replaces ALL the class's members). A REDEFINES <i>view</i> yields no physical field
@@ -160,12 +160,12 @@ internal sealed class PhysicalModel(EmitContext ctx)
                 // is a window over it. A non-canonical Tier-B member yields no field.
                 if (c.IsCanonical)
                 {
-                    string backingInit = RuntimeApi.StrStore(Codec.ImageInitOf(c, subs: subs, recipe: recipe), $"{cls.Width}");
+                    string backingInit = RuntimeApi.StrStore(Images.ImageInitOf(c, subs: subs, recipe: recipe), $"{cls.Width}");
                     // ⛔ A BIT ITEM THAT SHARES ITS BYTE (§2023:8.5.1.6.3) STAYS IN ITS RUN, whoever stores it. The class is
                     // one string backing of the canonical's own bits (§2023:13.18.44.4 GR1 — the subject's storage starts
                     // "at the first bit of the data item referenced by data-name-2"), so the backing is the run
                     // MEMBER's field: it leads the run's slice when it leads the run, and contributes none when it
-                    // continues one (GroupImageCodec.BitCarrierOf / EmitRunMemberFromBits read the bits out of and
+                    // continues one (BitImageCodec.BitCarrierOf / EmitRunMemberFromBits read the bits out of and
                     // back into it). Yielding it as a byte field of its own while the run still counted the item
                     // made the group's image one byte wider than its storage and named a field the run packer
                     // did not have (kb/Work PB3166).

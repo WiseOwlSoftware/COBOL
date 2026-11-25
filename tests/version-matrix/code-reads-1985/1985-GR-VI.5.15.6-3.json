@@ -2,56 +2,44 @@
  "rule-id": "1985-GR-VI.5.15.6-3",
  "rule-digest": "885aeaa7b740",
  "read": {
-  "pin": "1712645b4772cda5433a5a24f9b7d597298915e6",
-  "slice": "1985-229",
+  "pin": "f579f54a3aafcec123cce6c1947785a2507ae98d",
+  "slice": "1985-c09-pb2337",
   "sources": {
-   "reader": "f5081c2e6e45c84bcdd5c0f7a240f2fb217fe751699cc6f6751d3f1db55eeeaf",
-   "refuter": "d4cc1110df77fe77780a50cdb915af235d4469c622c06c4ebe041d9c013c1ef3"
+   "reader": "0cbc5367e6a2d70a950b37ccacfa3627149bb6840e1b13c2319321e38dc806da",
+   "refuter": "f6fe4c41a61b97caa23413f188a4609dd75752ae025cd120413cf58651514b0b"
   },
   "imported": {
-   "reader": "a2b58c41131516cb2adf11b295bb0b33cb9d8a8ad6d8d1a34dda29565eb08bdc",
-   "refuter": "df9cccbd8e33c5f6d952a131278c443562542d4e74c677871b784ea76d0d92a2"
+   "reader": "a313fe973761a922a34c1307afdc643882f6be6b1c57d044f7b14fb38e4b34e6",
+   "refuter": "a761f319ab7d55e655cd0fc8a927dd87f587c664ab88330b9fc6f6dad6453959"
   }
  },
  "reader": {
   "rule-id": "1985-GR-VI.5.15.6-3",
   "verdict": "CONFORMS",
-  "requirement": "At --std 85 a VALUE clause on a group item must take only a figurative constant (including ALL literal and a symbolic-character) or a nonnumeric literal no longer than the group, must initialize the group's whole area as characters regardless of the subordinate items' descriptions (with the alphanumeric space fill, at the maximum ODO occurrences, and in every occurrence under an OCCURS), and a VALUE clause on any data item subordinate to that group must be refused (condition-name entries excepted).",
-  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ValidateValueCategory; src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckGroupValueDeclarationsPass.cs#Run; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/GroupImageCodec.cs#AreaImageOf; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/GroupImageCodec.cs#ImageInitOf; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/GroupValueSlicer.cs#SliceInit; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/GroupValueSlicer.cs#MemberFromSlice",
+  "requirement": "At --std 85 a group-level VALUE takes only a figurative constant or a nonnumeric literal no longer than the group, initializes the group's whole area as characters without regard to the subordinate items' descriptions (on every storage lane: the typed record-struct fields and the character-image backing of a redefined group), and a VALUE on any data item subordinate to that group is refused (condition-names excepted).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ValidateValueCategory; src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckGroupValueDeclarationsPass.cs#Run; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/ImageInitializer.cs#AreaImageOf; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/ImageInitializer.cs#ImageInitOf; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/GroupValueSlicer.cs#SliceInit; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/GroupValueSlicer.cs#MemberFromSlice",
   "edition-consulted": [],
-  "edition-search": "grep for Edition.Edition/CobolVersion/ConstructRegistry/Constructs./IsAtLeast/DialectBehavior in CheckGroupValueDeclarationsPass.cs, ValueSubject.cs, GroupImageCodec.cs, GroupValueSlicer.cs: none (binder.Edition used only for At/Error). In DataBinder.ValidateValueCategory the only edition consult (FigurativeAssociation.GateAllZeroAsNumeric) is on the NUMERIC elementary subject arm, not the group arm (the group arm is `case PicCategory.Alphanumeric when isNumeric && IsNumericLiteralForm(raw) && subject.IsGroup`).",
-  "behaviour-differs-by-edition": "no: the same probes at --std 2023 print the same values (gv1) and the same refusals (gv2: 3 COBOL1657, 3 COBOL1702, 1 COBOL1740)",
-  "witnesses-cover": "part: 1985-GR-VI_5_15_6-3 and pb207_group_value_area_85 cover the area initialization (incl. REDEFINES under the group, ZEROS, space fill); pb206/pb4610/pb5215 cover size and condition-name neighbours. Not exercised: the refusal of a numeric literal at group level, the refusal of VALUE at a subordinate level, ALL literal / symbolic-character / QUOTE at group level, a group with an ODO table, a group under OCCURS",
+  "edition-search": "grep of ImageInitializer.cs, GroupImageCodec.cs, BitImageCodec.cs, GroupValueSlicer.cs and OccurrenceRunEmit.cs for Edition|CobolVersion|DialectLevel|ConstructRegistry|IsAtLeast|DialectBehavior: none. The image composer reads VALUE clauses through ValueInitializer (its InitializerFrom DialectLevel arm is numeric-edited ZERO only, not on these paths). DataBinder.ValidateValueCategory's only edition consult is on the numeric elementary arm.",
+  "behaviour-differs-by-edition": "no: i3 prints the same at --std 2023",
+  "witnesses-cover": "part: 1985-GR-VI_5_15_6-3 and pb207_group_value_area_85 cover the area; the image lane under a REDEFINES alias with ALL literal, HIGH-VALUES, QUOTE, SPACES over numeric members and an intermediate-level group VALUE is added by i3",
   "probes": [
    {
     "class": "d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-229/src/gv1.cob",
-    "printed": "V1 [XYXYX] [XYX][YX] (VALUE ALL \"XY\" over X(3)+99); V2 [***] (symbolic-character); V3 [\"\"] (QUOTE); V7 [A1] (over PIC A and PIC 9); V8 [      ] (SPACES over PIC 9(3) and 9.9)",
-    "expected": "figurative constants fill the area; characters land without regard to the subordinate categories (GR3)"
+    "file": "E:/COBOL-coord/scratch/finish-worktree-wf_05bb8d55-c0a-7/probes/i3.cob",
+    "printed": "R1 [AB12] A1 [AB] B1 12; R2 [XYXYX] (ALL \"XY\" over X(3)+9(2)); R3 HV (HIGH-VALUES over 99+X); R5 [1     ] (\"1\" over 9(3)+ZZ9); R6 [\"\"] (QUOTE); R7 [     ] (SPACES over 9(3)+9V9)",
+    "expected": "each read through REDEFINES R* PIC X(n), i.e. ImageInitializer.ImageInitOf -> CarrierInitOfOne -> AreaImageOf: the literal's characters laid over the area with space fill, no member category consulted (GR3)"
    },
    {
     "class": "d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-229/src/gv1.cob",
-    "printed": "V4 [12ABZZ] 12; V4C TRUE (05 H4 VALUE \"12AB\" with an 88 under its subordinate N4, sibling T4 VALUE \"ZZ\")",
-    "expected": "a group VALUE at an intermediate level; a condition-name subordinate to it is not a VALUE of a data item (5.15.6 heading); a sibling's own VALUE is outside the group"
-   },
-   {
-    "class": "a",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-229/src/gv1.cob",
-    "printed": "V5 [ABCDEFGHI] 3; after MOVE 2 TO C5: V5B [ABCDEF] (group VALUE over OCCURS 1 TO 3 DEPENDING ON C5)",
-    "expected": "initialized as if the DEPENDING ON item held the maximum (§1985:VI.5.15.6 GR5)"
-   },
-   {
-    "class": "a",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-229/src/gv1.cob",
-    "printed": "V6 [PQPQPQ] (05 R6 OCCURS 3 TIMES VALUE \"PQ\" over a group)",
-    "expected": "every occurrence assigned the value (§1985:VI.5.15.6 GR6)"
+    "file": "E:/COBOL-coord/scratch/finish-worktree-wf_05bb8d55-c0a-7/probes/i3.cob",
+    "printed": "R4 [12ABZZ] X4 [AB] N4-12 TRUE (05 H4 VALUE \"12AB\" with an 88 under N4, sibling T4 VALUE \"ZZ\")",
+    "expected": "group VALUE at an intermediate level; the 88 is a condition-name entry; the sibling outside the group keeps its own"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-229/src/gv2.cob",
-    "printed": "COBOL1657 on 01 G1 VALUE 12, 01 G2 VALUE -1, 01 G7 VALUE 1.5; COBOL1702 on A3 (elementary under G3), B4 (two levels down under G4), H5 (subordinate group under G5); COBOL1740 on VALUE \"ABCDEF\" over a 2-character group",
-    "expected": "the literal must be a figurative constant or a nonnumeric literal; no VALUE at subordinate levels; size bound (§1985:VI.5.15.3 SR3)"
+    "file": "E:/COBOL-coord/scratch/finish-worktree-wf_05bb8d55-c0a-7/probes/i3b.cob",
+    "printed": "COBOL1657 on G1 VALUE 12; COBOL1702 on A2 and C3 (VALUE under a group VALUE, one and two levels down); COBOL1740 on a 6-character literal over a 2-character group; COBOL1702 (GR4) on a COMP member",
+    "expected": "refused: GR3 (figurative or nonnumeric literal; no subordinate VALUE), the size bound, GR4 usage"
    }
   ],
   "citations": [
@@ -60,23 +48,15 @@
     "check": "OK  §1985:VI.5.15.6 GR3  (5.15.6 Data Description Entries Other Than Condition-Names)  the text is in GR3"
    },
    {
-    "cite": "§1985:VI.5.15.6 GR5",
-    "check": "OK  §1985:VI.5.15.6 GR5  (5.15.6 Data Description Entries Other Than Condition-Names)  the text is in GR5"
-   },
-   {
-    "cite": "§1985:VI.5.15.6 GR6",
-    "check": "OK  §1985:VI.5.15.6 GR6  (5.15.6 Data Description Entries Other Than Condition-Names)  the text is in GR6"
-   },
-   {
-    "cite": "§1985:VI.5.15.3 SR3",
-    "check": "OK  §1985:VI.5.15.3 SR3  (5.15.3 Syntax Rules)  the text is in SR3"
+    "cite": "§1985:VI.5.15.6 GR4",
+    "check": "OK  §1985:VI.5.15.6 GR4  (5.15.6 Data Description Entries Other Than Condition-Names)  the text is in GR4"
    }
   ],
-  "notes": "ValidateValueCategory refuses a numeric literal on a group subject, CheckGroupValueDeclarationsPass refuses a VALUE anywhere under a group-VALUE subject, and the GroupImageCodec/GroupValueSlicer path lays the literal's characters over the area and derives each member from its slice. Every probed form agrees with the 1985 text, with no edition branch on the path. The refusal messages cite §2023:13.18.63.3 SR13 at --std 85 (diagnostic citation only).",
+  "notes": "PB2337 split GroupImageCodec into GroupImageCodec (the run-time AsImage/FromImage codec), BitImageCodec and ImageInitializer (the compile-time initial-image composer); AreaImageOf, ImageInitOf and OccurrenceRunsOf moved with their bodies unchanged to ImageInitializer, wired by DataEmitter (PhysicalModel.Images) and reached from the Tier-B backing seed and GroupValueSlicer.MemberFromSlice (BackingSeedOver). Re-read at the branch head against the 1985 text. CarrierInitOfOne's group arm asks GroupValueSlicer.AreaOf (the one GR3 area rule both lanes share) and returns AreaImageOf(item, area), which for a character group is the area expression itself; the member-wise composition is not reached. BackingSeedOver hands an enclosing group's slice to AreaImageOf for a group member that is a Tier-B canonical. Every probed form agrees with the 1985 text, with no edition branch on the path.",
   "seeded": true,
   "harm": "",
   "cause": "",
-  "at-2023": "",
+  "at-2023": "i3: same output",
   "repro": "",
   "expected": "",
   "observed": "",
@@ -85,8 +65,8 @@
  "refuter": {
   "rule-id": "1985-GR-VI.5.15.6-3",
   "refutation": "UPHELD",
-  "classes": "b,c,d",
-  "evidence": "gv3.cob at --std 85: a group VALUE HIGH-VALUES over PIC 99 + PIC X equals the same group after MOVE HIGH-VALUES (W1 SAME), and the numeric member keeps the raw characters (MOVE N1 TO X2 gives HIGH-VALUES, W2 HV). A group VALUE \"1\" over PIC 9(3) + PIC ZZ9 equals MOVE \"1\" TO the group (W4 SAME) and shows [1     ][1  ][   ]. So the area is set as characters without regard to the members' categories or editing. VALUE \"-12\" over PIC S99 SIGN LEADING SEPARATE gives -12, which tests negative. A nested group under VALUE LOW-VALUE equals LOW-VALUES. Refusals: gv4 group VALUE X\"4142\" (a hexadecimal literal is not a 1985 nonnumeric literal) -> COBOL0900; gv5 a subordinate COMP item -> COBOL1702, a subordinate JUSTIFIED item -> COBOL1702 (both GR4 neighbours), and a subordinate data-item VALUE beside an allowed 88 -> COBOL1702 citing SR13, with the 88 not refused. A grep of CheckGroupValueDeclarationsPass/GroupImageCodec/GroupValueSlicer for CobolVersion|ConstructRegistry|IsAtLeast|DialectBehavior|Constructs. found nothing, which agrees with the reader. cite.py: OK §1985:VI.5.15.6 GR3; OK §1985:VI.5.15.6 GR4.",
+  "classes": "b,d",
+  "evidence": "Code read independently at the branch head: ImageInitializer.cs carries AreaImageOf, ImageInitOf and OccurrenceRunsOf with no edition read (grep Edition|CobolVersion|DialectLevel|ConstructRegistry|IsAtLeast|DialectBehavior over ImageInitializer, GroupImageCodec, BitImageCodec, GroupValueSlicer, OccurrenceRunEmit: none); GroupImageCodec.cs keeps only the run-time AsImage/FromImage codec, which seeds nothing. Attack on the path the reader did not probe, a group VALUE whose MEMBER is the canonical of a REDEFINES (BackingSeedOver -> CarrierInitOfOne's governing arm -> AreaImageOf over the enclosing slice): r1.cob at --std 85 01 G1 VALUE \"ABCDEF\" with 05 H1 (A1, B1) redefined by 05 H1R (C1 PIC X(4)) and 05 D1 printed G1 [ABCDEF] C1 [ABCD] B1 [CD] D1 [EF]; 01 G4 VALUE ALL \"Q\" over X OCCURS 4 + PIC 9 under an alias printed R4 [QQQQQ] U4 [Q]; 01 G5 VALUE ZEROS over X OCCURS 3 + 99 printed R5 [00000] U5=00. The area is set as characters without regard to the members, as GR3 says; the same at --std 2023. Cite: OK  §1985:VI.5.15.6 GR3  (5.15.6 Data Description Entries Other Than Condition-Names)  the text is in GR3",
   "edition-sites-missed": [],
   "corrected": ""
  }

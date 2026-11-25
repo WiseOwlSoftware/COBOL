@@ -454,7 +454,7 @@ internal sealed class VersionConformancePass
     /// permit wherever that paragraph is also reached from outside the procedure. Each diagnostic is positioned at its
     /// statement through the cursor the binder captured on the node. The other two regions of the same rules are the
     /// exception-checking PERFORM's (<c>EcBinder.CheckCrossStatementBans</c>) and the declarative procedure's
-    /// (<c>SortBinder.ScreenDeclarativePlacement</c>).</summary>
+    /// (<c>SortMergePhraseBinder.ScreenDeclarativePlacement</c>).</summary>
     private void GateSortMergeProcedures(BoundProgram prog)
     {
         // Pass A — the prohibited paragraph-pc ranges.

@@ -32,6 +32,9 @@ public sealed class InitializeLaneDriftTests
     private static readonly string BinderPath =
         TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "Procedure", "Verbs", "InitializeBinder.cs");
 
+    private static readonly string ReplacingBinderPath =
+        TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "Procedure", "Verbs", "ReplacingPhraseBinder.cs");
+
     private static readonly string BoundPath =
         TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "Bound", "BoundInitialize.cs");
 
@@ -318,14 +321,15 @@ public sealed class InitializeLaneDriftTests
     /// which is exactly what happened while INITIALIZE was not among <c>MoveTable16.Refusal</c>'s call sites and
     /// <c>InitializeEmitter</c> synthesised its <c>BoundMove</c> past <c>MoveBinder</c> entirely.</summary>
     [Fact]
-    public void InitializeBinder_AsksTheOneMoveValidityScreen()
+    public void TheReplacingPhraseBinder_AsksTheOneMoveValidityScreen()
     {
-        string code = CodeOf(BinderPath);
+        // The REPLACING phrase is ReplacingPhraseBinder's since kb/Work PB2344; SR4 is a rule of that phrase.
+        string code = CodeOf(ReplacingBinderPath);
         // kb/Work PB878: the WHOLE chain (SR2, SR6-SR8, SR9, SR10) through the one composite entry — never a
         // hand composition of the per-rule readers, which is how SR9 went unasked here.
         foreach (string member in new[] { "MoveTable16.Validity", "MoveTable16.SenderClassRefusal" })
             Assert.True(code.Contains(member, StringComparison.Ordinal),
-                $"InitializeBinder no longer calls {member}. ISO §2023:14.9.20.3 SR4 makes the validity of the "
+                $"ReplacingPhraseBinder no longer calls {member}. ISO §2023:14.9.20.3 SR4 makes the validity of the "
                 + "implicit MOVE a condition on the REPLACING phrase, and MoveTable16 is the ONE place that "
                 + "answers it — for MOVE, for the INVOKE argument crossing (§2023:14.8.2.3.3 rule 2d) and for this.");
     }

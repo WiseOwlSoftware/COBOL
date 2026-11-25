@@ -5,7 +5,7 @@
   violations of such rules"); the severity is implementor latitude, and the owner's precedence (ISO, then GnuCOBOL,
   then IBM or Micro Focus) decides it. GnuCOBOL 3.2, measured under WSL, compiles `IF 1 = 1`, `IF "A" = "A"` and
   `PERFORM UNTIL 1 = 1` and warns under `-Wall` (`-Wconstant-numlit-expression`, `-Wconstant-expression`). So each such
-  relation is **WARNING COBOL3146** at every edition and strictness, and is evaluated as written. A figurative
+  relation is **WARNING COBOL3146** from COBOL-2002 on, at every strictness (at `--std 85` the sentence is §1985:VI.6.3.1.1's and the code COBOL7609, below), and is evaluated as written. A figurative
   constant is a literal (§2023:8.3.3.6 is a clause of §2023:8.3.3 Literals), a symbolic-character is "a user-defined figurative
   constant" (§2023:8.3.2.2.29), and a constant-name's effect "is as if literal-1 … were written where constant-name-1 is
   written" (§2023:13.10.4 GR1), so `IF "A" = SPACE`, `IF ZERO = ZERO`, `IF SB = "B"` and `IF KT = "A"` draw it too; a data

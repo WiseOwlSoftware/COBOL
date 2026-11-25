@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Text;
 
@@ -22,6 +23,7 @@ internal sealed class LiveProcess : IDisposable
     private readonly Process _process;
     private readonly StringBuilder _stderr = new();
     private readonly string _command;
+    private readonly BlockingCollection<string> _stdout = [];
 
     private LiveProcess(Process process, string command)
     {
@@ -47,18 +49,45 @@ internal sealed class LiveProcess : IDisposable
         var live = new LiveProcess(process, $"{psi.FileName} {psi.Arguments}");
         process.ErrorDataReceived += (_, e) => { if (e.Data is not null) lock (live._stderr) live._stderr.AppendLine(e.Data); };
         process.BeginErrorReadLine();
+        _ = Task.Run(live.PumpStdout);
         return live;
     }
+
+    /// <summary>Reads the program's stdout into a queue for as long as it runs, so a line the test never asked for is still there to report when another step
+    /// of the test finds nothing to observe (kb/Work PB6134: the diagnosis of a hang between two processes needs both processes' output).</summary>
+    private void PumpStdout()
+    {
+        try
+        {
+            while (_process.StandardOutput.ReadLine() is { } line) _stdout.Add(line);
+        }
+        catch (Exception e) when (e is IOException or ObjectDisposedException or InvalidOperationException)
+        {
+            // the process was killed or disposed under the read: stdout is over
+        }
+        finally
+        {
+            _stdout.CompleteAdding();
+        }
+    }
+
+    /// <summary>The processes whose state a non-observation reports besides this one: the test's other live processes, whose last words say which step of the
+    /// exchange each had reached. Null reports this process alone.</summary>
+    public IEnumerable<LiveProcess>? Companions { get; set; }
+
+    /// <summary>This process's state for a failure message: its command, whether it exited, the stdout lines no step took and its stderr.</summary>
+    public string Report() =>
+        $"'{_command}' ({(_process.HasExited ? "exited with " + _process.ExitCode : "still running")}); stdout not yet read: [{string.Join(" | ", _stdout.ToArray())}]; stderr:{Environment.NewLine}{Stderr}";
 
     /// <summary>The program's next stdout line, or null when it closed stdout (it exited) first.</summary>
     public string? ReadLine()
     {
-        var read = Task.Run(_process.StandardOutput.ReadLine);
-        if (!read.Wait(ObservationBudget.UnitMs))
-            throw new HarnessNonObservationException(
-                $"⛔ HARNESS NON-OBSERVATION — no stdout line from '{_command}' within {ObservationBudget.UnitMs} ms "
-                + "(WISEOWL_COBOL_RUN_TIMEOUT_MS); this is NOT a value mismatch and NOT a compiler verdict.");
-        return read.Result;
+        if (_stdout.TryTake(out var line, ObservationBudget.UnitMs)) return line;
+        if (_stdout.IsCompleted) return null;
+        string everyone = string.Join(Environment.NewLine, (Companions ?? [this]).Select(p => p.Report()));
+        throw new HarnessNonObservationException(
+            $"⛔ HARNESS NON-OBSERVATION — no stdout line from '{_command}' within {ObservationBudget.UnitMs} ms "
+            + $"(WISEOWL_COBOL_RUN_TIMEOUT_MS); this is NOT a value mismatch and NOT a compiler verdict.{Environment.NewLine}{everyone}");
     }
 
     /// <summary>The program's next stdout line; a program that exited without printing it fails the test with its stderr.</summary>

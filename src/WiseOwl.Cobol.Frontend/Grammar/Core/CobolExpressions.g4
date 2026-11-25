@@ -158,7 +158,7 @@ valueClauseOperand
 // settle (§2023:8.3.2.2: "a given user-defined word may be used as only one type of user-defined word", so an
 // alphabet-name is never a data-name, record-name or file-name qualifier), and it is NOT settled here: flipping the
 // grammar's preference would make the opposite legal reading — a genuinely qualified identifier-4 — unreachable
-// instead. EvaluateBinder.BindRangeHigh settles it by symbol (kb/Work PB843): a LAST `IN word` suffix that names a
+// instead. WhenPhraseBinder.BindRangeHigh settles it by symbol (kb/Work PB843): a LAST `IN word` suffix that names a
 // declared alphabet is the phrase, and the reference is bound without it (ReferenceResolver.WithoutTrailingSuffix).
 // The LITERAL-operand spelling the printed figure shows never meets the ambiguity, since a literal takes no
 // qualifier.
@@ -166,7 +166,7 @@ valueClauseOperand
 // bracket (PDF p649 / folio 619 — "[ IN alphabet-name-1 ]" is plain type), so §2023:5.2.3 makes `WHEN "M" THRU "A" AL`
 // conforming. With IN omitted the word is unambiguous HERE: after a complete right-hand operand only ALSO, WHEN or
 // the imperative statement's verb (all reserved) may follow a selection object, so a bare user-defined word can be
-// nothing but alphabet-name-1 — whose TYPE the binder still checks (EvaluateBinder.RangeAlphabet). The VALUE
+// nothing but alphabet-name-1 — whose TYPE the binder still checks (WhenPhraseBinder.RangeAlphabet). The VALUE
 // clause's identical phrase cannot be decided by position (see CobolData.g4 valueClause); its binder peels it by
 // symbol instead, and TrailingInPhraseDriftTests pins both formats together.
 valueRange

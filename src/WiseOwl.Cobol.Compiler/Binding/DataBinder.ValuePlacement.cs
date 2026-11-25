@@ -26,7 +26,7 @@ namespace WiseOwl.Cobol.Binding;
 /// §2023:13.18.15) and stay legal — §2023:13.18.63.3 SR25 names formats 3, 4 and 5 only.</para>
 ///
 /// <para>⛔ <b>SR12 bars the redefinING entry, never the redefined one.</b> The anchor a REDEFINES clause names keeps
-/// its VALUE (GroupImageCodec's SR12 note records the silent wrong answer that trap once produced), so the
+/// its VALUE (ImageInitializer's SR12 note records the silent wrong answer that trap once produced), so the
 /// predicate is the WRITTEN clause on the subject or an ancestor — <see cref="DataItem.RedefinesTargetName"/> —
 /// never the storage fact <see cref="DataItem.RedefinesTarget"/>: the file section's implicit redefinitions
 /// (§2023:13.18.33.4 GR3) and a SAME RECORD AREA record (§2023:12.4.6.4.4 GR2) write no clause and are not SR12's subject,

@@ -46,7 +46,7 @@ internal static class SortKeyAdmission
 {
     /// <summary>The syntax rule that prints the key rules of <paramref name="rules"/>, as a diagnostic cites it
     /// ("ISO §2023:14.9.40.3 SR6"; the lettered sub-rule follows) — the ONE place the statement-to-clause map is written,
-    /// read by this predicate and by <c>SortBinder.SortAddFileKeys</c>'s own key screens (record membership, OCCURS
+    /// read by this predicate and by <c>SortMergePhraseBinder.SortAddFileKeys</c>'s own key screens (record membership, OCCURS
     /// position), so a MERGE key refusal never quotes SORT's clause (kb/Work PB2512).</summary>
     public static string Clause(SortKeyRules rules, EditionInfo edition) => rules switch
     {

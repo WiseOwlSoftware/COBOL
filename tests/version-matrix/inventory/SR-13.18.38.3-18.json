@@ -2,7 +2,7 @@
  "rule-id": "SR-13.18.38.3-18",
  "rule-digest": "f0c10260932e",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Odo.cs#IsDescribedInContainer; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ResolveReportOccursDepending",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Odo.cs#IsDescribedInContainer; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ResolveReportOccursDepending; src/WiseOwl.Cobol.Compiler/Binding/Passes/OdoResolvePass.cs#DependingAttributeFault",
  "test-ref": "conformance:cases/13.18.38-OCCURS/pb1261-depending-not-global; conformance:cases/13.18.38-OCCURS/pb1261-report-depending-not-global; conformance:cases/13.18.38-OCCURS/pb1261_depending_attributes_and_area; conformance:cases/13.18.38-OCCURS/pb5797-depending-container-counter-global; conformance:cases/13.18.38-OCCURS/pb5797-report-depending-container-counter",
  "editions": "85,2002,2014,2023",
  "notes": "CONFORMS (kb/Work PB5797): OdoResolve asks DependingAttributeFault; a table in a global record (its own GLOBAL clause or a GLOBAL FD's, 8.4.6.2.2) whose data-name-1 is not in a global record, OR is described in a CONTAINING program's data division (DataBinder.IsDescribedInContainer: a contained program inherits its containers' GLOBAL names before this pass runs, so 'the same data division' does NOT hold by construction), draws COBOL2788. Format 3: ResolveReportOccursDepending applies the same two answers under a GLOBAL RD (13.18.27.3 SR1 e)). Earlier account (kb/Work PB1261, wave 1015 Y): the GLOBAL attribute half, witnesses pb1261-depending-not-global and pb1261-report-depending-not-global."

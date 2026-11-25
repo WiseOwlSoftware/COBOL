@@ -1434,6 +1434,23 @@ internal static partial class IntrinsicArgumentRules
         _ => null,
     };
 
+    /// <summary>The clause that bars a constant-name of <paramref name="category"/> from argument <paramref name="position"/>
+    /// (0-based) of <paramref name="function"/>, or <see langword="null"/> when the position admits it or has no general class
+    /// screen (fail open, like every screen here). The data division has no bound operand for a constant-name written in a
+    /// constant entry's subscript, so the class is read from the constant's category through the same
+    /// <see cref="Verified"/> schema and <see cref="Admissible"/> set the procedure division's <see cref="Violation"/> uses
+    /// (kb/Work PB6174).</summary>
+    public static string? ConstantArgumentClause(string function, int position, PicCategory category, EditionInfo edition)
+    {
+        if (!Verified.TryGetValue(new StandardWord(function), out var schema)
+            || schema.At(position) is not { } rule
+            || Admissible(rule.Kind) is not { } classes
+            || ClassOfCategory(category) is not { } cls
+            || classes.Contains(cls))
+            return null;
+        return EditionInfo.Designated(IntrinsicCitations.Clause(edition, function, rule.Clause));
+    }
+
     /// <summary>The classes §2023:15.59.3 / §2023:15.63.3 / §2023:15.71.3 AR1 / §2023:15.72.3 AR1 EXCLUDE from a polymorphic
     /// (MAX/MIN/ORD-MAX/ORD-MIN) argument: "shall not be of class boolean, message-tag, object, or pointer".</summary>
     public static readonly CobolClass[] PolymorphicExcluded =

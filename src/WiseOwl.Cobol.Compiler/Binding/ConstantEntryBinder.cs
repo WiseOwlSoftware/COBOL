@@ -606,9 +606,41 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
             // refuses the same subscript COBOL0844). The word after FUNCTION is the function's own name, not an operand.
             var written2 = new List<Antlr4.Runtime.IToken>();
             SubscriptBinder.CollectLeafTokens(w.SubscriptGroup, written2);
+            // The category test holds the operands outside a function argument list; a name inside one is tested by the called
+            // function's OWN argument rule (§2002:15.39.2 AR1 admits an alphanumeric argument for LENGTH, §2002:15.34.2 AR1
+            // requires class numeric for INTEGER), and a function whose result is not numeric is no subscript operand
+            // (§2002:8.8.1). `frames` is the paren nesting: a function's argument list (with the argument ordinal), a
+            // reference-subscript list, or a grouping paren, which takes its enclosing frame's meaning (kb/Work PB6174).
+            var frames = new Stack<SubscriptFrame>();
             for (int i = 0; i < written2.Count; i++)
             {
                 var t = written2[i];
+                switch (t.Type)
+                {
+                    case Core.FNARG_LPAREN:
+                        var enclosing = frames.Count != 0 ? frames.Peek().Function : null;
+                        string? called = i >= 2 && written2[i - 2].Type is Core.FUNCTION ? written2[i - 1].Text.ToUpperInvariant() : null;
+                        frames.Push(new SubscriptFrame(called, Own: true, TopLevel: enclosing is null));
+                        if (called is not null && enclosing is null && FunctionResultIsNotNumeric(called))
+                        {
+                            owner.Edition.Error(DiagnosticCatalog.ConstantEntryRule, $"{where}: {phrase} '{written}': FUNCTION "
+                                + $"{called} returns a non-numeric value, and a subscript is an arithmetic expression whose operands "
+                                + "are numeric (ISO §2002:8.4.1.2.2, §2002:8.8.1)");
+                            return null;
+                        }
+                        continue;
+                    case Core.REF_LPAREN: frames.Push(new SubscriptFrame(null, Own: true)); continue;
+                    case Core.LPAREN:
+                        frames.Push(frames.Count != 0 ? frames.Peek() with { Own = false } : new SubscriptFrame(null, Own: false));
+                        continue;
+                    case Core.FNARG_RPAREN or Core.REF_RPAREN or Core.RPAREN: if (frames.Count != 0) frames.Pop(); continue;
+                    case Core.FNARG_SEPARATOR or Core.COMMA:
+                        if (frames.Count != 0 && frames.Peek() is { Own: true, Function: not null }) frames.Push(frames.Pop().NextArgument());
+                        continue;
+                }
+                string? function = frames.Count != 0 ? frames.Peek().Function : null;
+                int argument = frames.Count != 0 ? frames.Peek().Argument : 0;
+                bool topLevel = frames.Count != 0 && frames.Peek().TopLevel;
                 if (!SubscriptBinder.IsNameToken(t) || (i > 0 && written2[i - 1].Type is Core.FUNCTION)) continue;
                 var head = new WrittenQualifiedName(t, []);
                 if (owner.Symbols.IdentifyDataName(head, report: false).Count != 0
@@ -618,6 +650,19 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
                 if (constant is null)
                     owner.Edition.Error(DiagnosticCatalog.ConstantEntryRule, $"{where}: {phrase} '{written}': the subscript "
                         + $"'{t.Text}' names no data item, index-name or constant-name (subscripting, ISO §2002:8.4.1.2.2)");
+                else if (function is not null)
+                {
+                    if (IntrinsicArgumentRules.ConstantArgumentClause(function, argument, constant.Category, owner.Edition.Edition)
+                        is { } clause)
+                        owner.Edition.Error(DiagnosticCatalog.ConstantEntryRule, $"{where}: {phrase} '{written}': the argument "
+                            + $"constant-name '{t.Text}' is not of a class FUNCTION {function} admits ({clause})");
+                    else if (topLevel && constant.Category != PicCategory.Numeric && IntrinsicCatalog.TryGet(function, out var decided)
+                        && decided.Result is IntrinsicResultRule.FollowsUniformArguments)
+                        owner.Edition.Error(DiagnosticCatalog.ConstantEntryRule, $"{where}: {phrase} '{written}': FUNCTION "
+                            + $"{function} of the non-numeric constant-name '{t.Text}' returns a non-numeric value, and a subscript is "
+                            + "an arithmetic expression whose operands are numeric (ISO §2002:8.4.1.2.2, §2002:8.8.1)");
+                    else continue;
+                }
                 else if (constant.Category != PicCategory.Numeric)
                     owner.Edition.Error(DiagnosticCatalog.ConstantEntryRule, $"{where}: {phrase} '{written}': the subscript "
                         + $"constant-name '{t.Text}' is not numeric, and a subscript is an arithmetic expression whose operands are "
@@ -667,6 +712,24 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
         string text = width.ToString(CultureInfo.InvariantCulture);
         return new ConstantDef(name, PicCategory.Numeric, text, text, isGlobal, text, spec, WrittenLiteral: null);
     }
+
+    /// <summary>One paren of a constant entry's subscript list as <c>BindConstantLength</c> reads it: the function whose
+    /// argument list it opens (null for a reference-subscript list), whether the paren is the frame's own (a grouping paren
+    /// takes its enclosing frame's meaning and counts no separators), and the ordinal of the argument being read
+    /// (kb/Work PB6174).</summary>
+    private readonly record struct SubscriptFrame(string? Function, bool Own, int Argument = 0, bool TopLevel = false)
+    {
+        public SubscriptFrame NextArgument() => this with { Argument = Argument + 1 };
+    }
+
+    /// <summary>Does <paramref name="function"/>, written as a subscript operand, return a non-numeric value (§2002:8.8.1: an
+    /// arithmetic expression's operands are numeric)? The catalog's §15.x.1 result type decides: a string or boolean row is
+    /// not numeric. A function whose type follows its arguments (MAX, MIN) is judged at its constant-name argument.</summary>
+    private static bool FunctionResultIsNotNumeric(string function) =>
+        IntrinsicCatalog.TryGet(function, out var sig)
+        && sig.Result is IntrinsicResultRule.Fixed or IntrinsicResultRule.FollowsArgument1 or IntrinsicResultRule.FollowsConcatArguments
+            or IntrinsicResultRule.FollowsDestinationFormat
+        && sig.Type is IntrinsicType.Alphanumeric or IntrinsicType.National or IntrinsicType.Boolean;
 
     /// <summary>The data item a length phrase's operand names (kb/Work PB1231). No clause of §2023:13.10 orders a constant
     /// entry after the item it measures, and §2023:13.10.3 SR4 — "The length of data-name-1 or data-name-2 shall not be

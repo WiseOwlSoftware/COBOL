@@ -35,7 +35,48 @@ internal static class Program
         // rule, one place: WiseOwl.Cobol.Runtime.IO.StandardStreams, which the other process entry, a compiled program's
         // Main (ProgramTable.RunModule), calls too; a host entry never does (kb/Work PB3193).
         WiseOwl.Cobol.Runtime.IO.StandardStreams.EnsureUtf8();
-        return Parse(args).Invoke();
+        return RunGuarded(args, () => Parse(args).Invoke(InvocationWithoutDefaultHandler), Console.Error);
+    }
+
+    /// <summary>System.CommandLine's own handler catches an exception an action throws, prints its text and answers 1, the status of a
+    /// generic failure: switched off, the exception reaches <see cref="RunGuarded"/>, the one handler (kb/Work PB6060).</summary>
+    internal static readonly InvocationConfiguration InvocationWithoutDefaultHandler = new() { EnableDefaultExceptionHandler = false };
+
+    /// <summary>The exit status of a compiler fault: POSIX sysexits EX_SOFTWARE, the code <see cref="ExitCode"/> gives the backend's
+    /// refusal of the C# this compiler generated. Both say the compiler is wrong, never the program: a refusal of the source is 65.</summary>
+    internal const int InternalErrorExitCode = 70;
+
+    /// <summary>⛔ THE ONE LAST LINE OF DEFENCE of every verb (kb/Work PB6060): the compile, <c>--run</c>, the listing and both batch verbs
+    /// all start from <see cref="Main"/>, and an exception a compiler pass throws used to leave it as the runtime's raw unhandled-exception
+    /// text, which a user cannot tell from a refusal of the program. This names the fault (the command line, and the pass: the innermost
+    /// compiler type on the stack) and prints the whole exception, stack included, so nothing is hidden or swallowed; the status is
+    /// <see cref="InternalErrorExitCode"/>. It is not a licence to throw: the fault is a defect of its pass. A run's own exit status passes
+    /// through unchanged, and an exception of the compiled program is its own process's, never this one's.</summary>
+    internal static int RunGuarded(IReadOnlyList<string> args, Func<int> invoke, TextWriter error)
+    {
+        try
+        {
+            return invoke();
+        }
+        catch (Exception e)
+        {
+            error.WriteLine($"internal compiler error: {FaultingPass(e)} threw {e.GetType().Name} while running `cobol {string.Join(' ', args)}`."
+                + " This is a defect in the compiler, not in the COBOL source; please report it with the source and this text.");
+            error.WriteLine(e.ToString());
+            return InternalErrorExitCode;
+        }
+    }
+
+    /// <summary>The compiler type that threw: the innermost stack frame in a <c>WiseOwl.Cobol</c> namespace (past the parallel-loop wrapper's
+    /// <see cref="AggregateException"/>), else the exception's own declaring site, else <c>the compiler</c>.</summary>
+    private static string FaultingPass(Exception e)
+    {
+        Exception innermost = e;
+        while (innermost is AggregateException { InnerExceptions: [var only] }) innermost = only;
+        string? type = new StackTrace(innermost, fNeedFileInfo: false).GetFrames()
+            .Select(f => f.GetMethod()?.DeclaringType)
+            .FirstOrDefault(t => t?.Namespace is { } ns && ns.StartsWith("WiseOwl.Cobol", StringComparison.Ordinal))?.FullName;
+        return type ?? "the compiler";
     }
 
     /// <summary>The name of the batch-check command, a verb whose first word is not a source file.</summary>

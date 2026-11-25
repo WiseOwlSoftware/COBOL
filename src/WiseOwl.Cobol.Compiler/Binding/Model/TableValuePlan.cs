@@ -117,7 +117,7 @@ public readonly record struct OccurrenceRun(int First, int Last, int Period)
 ///
 /// <para><b>Why the binder and not the emitter.</b> The plan is a pure function of the declared clause and the
 /// entry's OCCURS chain — no emit context enters it — and the lanes that consume it
-/// (<c>ValueInitializer.FieldInit</c> for the record-struct fields, <c>GroupImageCodec.ImageInitOf</c> for the
+/// (<c>ValueInitializer.FieldInit</c> for the record-struct fields, <c>ImageInitializer.ImageInitOf</c> for the
 /// character-image backings, <c>InitializeBinder.ExpandTableValue</c> for INITIALIZE … TO VALUE) must never
 /// disagree about a table element's value (kb/Work PB505).</para></summary>
 public sealed class TableValuePlan

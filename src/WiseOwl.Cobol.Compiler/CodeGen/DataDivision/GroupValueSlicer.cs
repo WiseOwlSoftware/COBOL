@@ -13,8 +13,8 @@ namespace WiseOwl.Cobol.CodeGen;
 ///
 /// <para>The unit travels WITH the area rather than being re-derived by each consumer, because the two consumers
 /// — the record-struct lane (<see cref="GroupValueSlicer.ComposedInit"/>) and the character-image lane
-/// (<see cref="GroupImageCodec.ImageInitOf"/>) — must never disagree about it. Restating "is this a bit group?"
-/// at a call site is how <c>GroupImageCodec.ImageInitOfOne</c> came to carry a NARROWER copy of the previous
+/// (<see cref="ImageInitializer.ImageInitOf"/>) — must never disagree about it. Restating "is this a bit group?"
+/// at a call site is how <c>ImageInitializer.ImageInitOfOne</c> came to carry a NARROWER copy of the previous
 /// exclusion (kb/Work PB207); one producer, one answer.</para>
 /// <para>⛔ <b>The area is never materialized at its full width</b> (kb/Work PB1722): it is
 /// <paramref name="Head"/> (the literal's own positions) followed by <paramref name="Unit"/> repeated to
@@ -130,7 +130,7 @@ internal sealed class GroupValueSlicer(EmitContext ctx, PhysicalModel phys)
         // Tier-B backing "applies the SAME AreaOf rule to the same group" — true only when the class is rooted AT
         // the group carrying the VALUE; a class rooted at a MEMBER asked AreaOf of the member, which has none.
         // Now the walk below gives every physical field its slice: a typed member decodes it, a Tier-B backing
-        // rooted at a member is seeded from it (GroupImageCodec.BackingSeedOver), and a member it cannot place is
+        // rooted at a member is seeded from it (ImageInitializer.BackingSeedOver), and a member it cannot place is
         // an internal error naming the item — never the member-wise default.
         if (recipe is SeedRecipe.InitialState && AreaOf(group, ctx, subs) is { } area)
             return area.Bits ? SliceBitInit(group, area, subs.Count) : SliceInit(group, area, subs.Count);
@@ -140,7 +140,7 @@ internal sealed class GroupValueSlicer(EmitContext ctx, PhysicalModel phys)
 
     /// <summary>⛔ THE §2023:13.18.63.4 GR5 GROUP-VALUE AREA RULE — the one place that says what a group-level VALUE
     /// puts in the group's storage, ridden by BOTH initializer lanes: this slicer (the typed-native record-struct
-    /// fields) and <see cref="GroupImageCodec.ImageInitOf"/> (the character-image backings — Tier-B REDEFINES,
+    /// fields) and <see cref="ImageInitializer.ImageInitOf"/> (the character-image backings — Tier-B REDEFINES,
     /// EXTERNAL cells, BASED records, OO cells). Returns the area's contents PLUS its unit
     /// (<see cref="GroupArea"/>), padded / right-truncated to the group's own width per GR7, or null when the
     /// entry carries no VALUE or an operand form that is not an area fill.
@@ -233,7 +233,7 @@ internal sealed class GroupValueSlicer(EmitContext ctx, PhysicalModel phys)
     /// <list type="bullet">
     ///   <item>A member that is the canonical of a Tier-B REDEFINES class is stored as the class's ONE string
     ///     backing (<see cref="PhysicalModel"/>): the backing is seeded from the slice by the image lane
-    ///     (<see cref="GroupImageCodec.BackingSeedOver"/>), padded to the class width. Its redefiners are views
+    ///     (<see cref="ImageInitializer.BackingSeedOver"/>), padded to the class width. Its redefiners are views
     ///     over that backing and take no slice of their own (the walks skip them).</item>
     ///   <item>A native CHARACTER-FORM numeric leaf decodes its zoned slice to the unscaled value through the one
     ///     <c>ParseDisplay</c> every image read uses — both usages §2023:13.18.60.4 GR7/GR8 name, through
@@ -256,7 +256,7 @@ internal sealed class GroupValueSlicer(EmitContext ctx, PhysicalModel phys)
     private (string Field, string Init) MemberFromSlice(DataItem c, GroupArea slice, Func<DataItem, GroupArea, string> sliceGroup)
     {
         if (c.Class is { Tier: RedefinesTier.StringCanonical } cls)
-            return (cls.BackingClrName, RuntimeApi.StrStore(phys.Codec.BackingSeedOver(c, slice), $"{cls.Width}"));
+            return (cls.BackingClrName, RuntimeApi.StrStore(phys.Images.BackingSeedOver(c, slice), $"{cls.Width}"));
         if (c.IsGroup) return (c.ClrName, sliceGroup(c, slice));
         if (!c.StoreAsImage && c.Pic is { IsCharacterFormNumeric: true })
             return (c.ClrName, $"({c.ElementType}){RuntimeApi.NumParseDisplay(EmitText.CsLiteral(slice.Text), c.ProfileName)}");

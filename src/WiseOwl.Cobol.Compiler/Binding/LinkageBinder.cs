@@ -59,7 +59,7 @@ public sealed record LinkageFormal(DataItem Item, int Position, string CarrierFi
 /// renders <c>private ref string {BackingClrName} =&gt; ref ExternalStore.Cell({ExternalName}, «seed»).Ref;</c>
 /// and every reference windows it through the Tier-B view machinery. <see cref="Record"/> carries the record's own
 /// DataItem, which is ALL the emitter needs: the seed is composed by the ONE Tier-B seeder
-/// (<c>GroupImageCodec.ImageInitOf</c>), with VALUEs suppressed for a plain external item — whose VALUE takes
+/// (<c>ImageInitializer.ImageInitOf</c>), with VALUEs suppressed for a plain external item — whose VALUE takes
 /// effect only during INITIALIZE, not at initial state (§2023:13.18.63.4 GR4a) — and honoured for a CONSTANT RECORD,
 /// which §2023:11.9.10.4 GR7 DOES initialize at initial state (the one external exception: external WS items are not
 /// initialized at initial state "except for those with the CONSTANT RECORD clause"). ⛔ There is no precomputed

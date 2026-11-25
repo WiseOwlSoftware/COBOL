@@ -2,7 +2,7 @@
  "rule-id": "1989-AR-A.2.30.3-4",
  "rule-digest": "140330aa3fb9",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#CurrencyStringViolatesContentRules; src/WiseOwl.Cobol.Runtime/Control/DialectBehavior.cs#NumvalCCurrencyContentRules",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#CurrencyStringViolatesContentRules; src/WiseOwl.Cobol.Runtime/Control/DialectBehavior.cs#NumvalCCurrencyContentRules; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Violation; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
  "test-ref": "conformance:cases/A.2.30@1985-NUMVAL-C-FUNCTION/1989-AR-A_2_30_3-4; conformance:cases/A.2.30@1985-NUMVAL-C-FUNCTION/pb5161_numval_c_currency_content_85",
  "notes": "kb/Work PB5161 (landed). §1989:A.2.30.3 AR4: \"Argument-2, if specified, must be a nonnumeric literal or alphanumeric data item.\" The class half: CheckArgumentClasses screens the Verified NUMVAL-C row and Violation refuses a numeric literal (witness 1989-AR-A_2_30_3-4), a numeric item and an arithmetic expression with COBOL1627, and refuses an alphabetic (PIC A) item, which is not an alphanumeric data item. The rule asks nothing of the content, and at --std 85 no content screen runs (DialectBehavior.NumvalCCurrencyContentRules is a 2002 behaviour): NUMVAL-C (\"Fr.12.50\" \"Fr.\") is 12.50 (pb5161_numval_c_currency_content_85). retired-witness: src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#InvalidCurrency (kb/Work PB5161: the content screen's one copy is CobolIntrinsics.CurrencyStringViolatesContentRules, asked only from 2002)",
  "next": {

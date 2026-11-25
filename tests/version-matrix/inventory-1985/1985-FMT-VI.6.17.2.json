@@ -2,7 +2,7 @@
  "rule-id": "1985-FMT-VI.6.17.2",
  "rule-digest": "cf16252db8ec",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitInitializeReplacingItem",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitInitializeReplacingItem; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#initializeCategory",
  "test-ref": "conformance:cases/VI.6.17@1985-INITIALIZE-STATEMENT/1985-FMT-VI_6_17_2; conformance:cases/VI.6.17@1985-INITIALIZE-STATEMENT/pb5180-initialize-replacing-two-categories-85; conformance:cases/14.9.20-INITIALIZE/pb415_initialize_multi_category_85",
  "notes": "§1985:VI.6.17.2 prints INITIALIZE, one or more identifier-1, and an optional REPLACING phrase of one or more items, each item ONE of the five category words (ALPHABETIC, ALPHANUMERIC, NUMERIC, ALPHANUMERIC-EDITED, NUMERIC-EDITED) inside plain braces (§1985:IV.2.1.4: one option), then DATA (optional) BY (required) and identifier-2 or literal-1. The PARTIAL arm (initializeCategory is the 2002 choice-indicator set, so REPLACING NUMERIC ALPHANUMERIC DATA BY ZERO compiled at 85) is fixed by kb/Work PB5180: the construct row initialize-replacing-category-set-2002 refuses the second category word of an item at 85 (COBOL0900, VersionConformancePass.VisitInitializeReplacingItem), and pb415_initialize_multi_category_85 now pins the refusal. The rest was probed right at --std 85 by the 1985 code read: several identifiers, all five categories, DATA omitted; the 2002 phrases refused COBOL0830 to COBOL0833, the later category words COBOL0900, a repeated category COBOL0834.",
  "next": {

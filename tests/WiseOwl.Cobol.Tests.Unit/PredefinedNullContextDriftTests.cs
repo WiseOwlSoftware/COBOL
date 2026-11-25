@@ -38,7 +38,7 @@ public sealed class PredefinedNullContextDriftTests
         // operand dispatch since kb/Work PB1935 deleted EvaluateBinder's copy of it.
         ["ConditionBinder.cs"] = "a pointer-or-object-reference relation condition, including an EVALUATE selection "
             + "subject/object pair (§2023:14.9.13.3 SR7 a))",
-        ["InitializeBinder.cs"] = "a sending operand in an INITIALIZE statement",
+        ["ReplacingPhraseBinder.cs"] = "a sending operand in an INITIALIZE statement (its REPLACING phrase)",
         ["IntrinsicBinder.cs"] = "an argument in a function-prototype format function activation (BindArgOperand's "
             + "activationArgument leg, which only UdfBinder sets)",
     };

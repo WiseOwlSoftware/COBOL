@@ -2174,12 +2174,14 @@ public sealed class SpecTraceabilityInventoryDriftTests
     /// Every <c>path#Symbol</c> spelling in a row's PROSE still resolves (kb/Work PB762). The prose is the field a
     /// reader opens to learn why a row has its verdict, and it was the one adjudicated field no gate ever read, so a
     /// landing that renamed a method re-pointed <c>code-location</c> (a gate makes it) and left the prose narrating
-    /// the dead name. A symbol retired on purpose sits behind a retired-witness mark and is exempt.
+    /// the dead name. A symbol retired on purpose sits behind a retired-witness mark and is exempt. EVERY held edition's
+    /// store is read, as <see cref="EveryCodeLocation_ResolvesInTheTree"/> reads them (kb/Work PB6066): the older editions'
+    /// notes name the same tree, and a rename breaks their spellings exactly as it breaks the 2023 store's.
     /// </summary>
     [Fact]
     public void EveryNotesLocation_ResolvesInTheTree()
     {
-        var rows = LoadInventory();
+        var rows = TraceabilityInventory.Editions.SelectMany(TraceabilityInventory.RowsOf).ToList();
         var bad = UnresolvedNotesLocations(rows, LoadSchema(), TestRepo.Root);
         Assert.True(bad.Count == 0, Report("unresolved path#Symbol spelling(s) in notes", bad, rows.Count));
     }

@@ -508,6 +508,14 @@
     {
       "member": "WiseOwl.Cobol.Compiler.Oo.IOoImporter.Skeleton(string, bool)",
       "reason": "its string is an externalized name or a class identity read from compiled repository metadata (another compilation's record), not a symbol of this program"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Procedure.SortMergePhraseBinder.SortRange(WiseOwl.Cobol.Frontend.Generated.CobolParserCore.ProcedureNameContext[], string, string)",
+      "reason": "its strings word a diagnostic (a feature, a message, a verb, a rule citation, a site): the operand, if any, is the parser context"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Procedure.UseStatementBinder.DeclBindUse(WiseOwl.Cobol.Frontend.Generated.CobolParserCore.UseStatementContext, string)",
+      "reason": "its strings word a diagnostic (a feature, a message, a verb, a rule citation, a site): the operand, if any, is the parser context"
     }
   ]
 }

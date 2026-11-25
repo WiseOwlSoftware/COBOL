@@ -434,6 +434,13 @@
    ],
    "why": "the compilation group, §2002:10.5, whose SR5c limits a prototype's SPECIAL-NAMES paragraph to the LOCALE, CURRENCY and DECIMAL-POINT clauses at 2002 (kb/Work PB5706, VCR row 7.127)"
   },
+  "parameter-name-appears-once-in-using-clause": {
+   "sections": [
+    "11.2",
+    "11.5"
+   ],
+   "why": "the CLASS-ID paragraph, §2002:11.2, and the INTERFACE-ID paragraph, §2002:11.5, whose syntax rules carry no rule against a repeated parameter-name in the USING clause at 2002 (GR5 / GR3: the name given to the formal parameter), where §2014:11.3.2 SR9 and §2014:11.6.2 SR7 refuse one (kb/Work PB5753, VCR row 7.129)"
+  },
   "turn-directive-repeats-only-name-file-combination": {
    "sections": [
     "7.2.19.2"

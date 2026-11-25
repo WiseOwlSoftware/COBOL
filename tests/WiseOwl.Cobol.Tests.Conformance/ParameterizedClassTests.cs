@@ -90,11 +90,7 @@ public sealed class ParameterizedClassTests
             END CLASS PCSR8.
             """), "COBOL2239");
 
-    /// <summary>§2023:11.3.3 SR9 / §2023:11.6.3 SR7: "A given parameter-name shall not appear more than once in a USING
-    /// clause."</summary>
-    [Fact]
-    public void RepeatedParameterName_2239()
-        => EditionHarness.AssertHasDiagnostic(ErrorsOf("""
+    private const string RepeatedInterfaceParameter = """
             IDENTIFICATION DIVISION.
             INTERFACE-ID. PCSR7 USING T T.
             ENVIRONMENT DIVISION.
@@ -102,11 +98,61 @@ public sealed class ParameterizedClassTests
             REPOSITORY.
                 CLASS T.
             END INTERFACE PCSR7.
-            """), "more than once");
+            """;
+
+    private const string RepeatedClassParameterReferenced = """
+            IDENTIFICATION DIVISION.
+            CLASS-ID. PCSR9 USING T T.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS T.
+            OBJECT.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 ITEM USAGE OBJECT REFERENCE T.
+            END OBJECT.
+            END CLASS PCSR9.
+            """;
+
+    /// <summary>§2014:11.6.2 SR7 / §2023:11.6.3 SR7 (and §2014:11.3.2 SR9 / §2023:11.3.3 SR9 for CLASS-ID): "A given
+    /// parameter-name shall not appear more than once in a USING clause", cited in the edition compiled under (kb/Work
+    /// PB5753).</summary>
+    [Theory]
+    [InlineData(2014, "ISO §2014:11.6.2 SR7")]
+    [InlineData(2023, "ISO §2023:11.6.3 SR7")]
+    public void RepeatedParameterName_2239(int edition, string rule)
+    {
+        var errors = ErrorsOf(RepeatedInterfaceParameter, edition);
+        EditionHarness.AssertHasDiagnostic(errors, "more than once in a USING clause");
+        EditionHarness.AssertHasDiagnostic(errors, rule);
+    }
+
+    /// <summary>kb/Work PB5753: COBOL-2002 has no repeated-parameter-name rule (§2002:11.5.2 has five syntax rules, and
+    /// §2002:11.5.3 GR3 "Parameter-name-1 is the name given to the formal parameter"), so `USING T T` with no reference
+    /// to T beyond its own class-specifier compiles.</summary>
+    [Fact]
+    public void RepeatedParameterNameUnreferenced_AcceptedAt2002()
+        => Compiles(RepeatedInterfaceParameter, 2002);
+
+    /// <summary>kb/Work PB5753: at COBOL-2002 `USING T T` names two formal parameters T, so a reference to T identifies
+    /// neither (§2002:8.4.1) — refused at the reference, never on the 2014 rule; from 2014 the USING clause is refused.</summary>
+    [Theory]
+    [InlineData(2002, "identifies none of them uniquely", "ISO §2002:8.4.1")]
+    [InlineData(2014, "more than once in a USING clause", "ISO §2014:11.3.2 SR9")]
+    [InlineData(2023, "more than once in a USING clause", "ISO §2023:11.3.3 SR9")]
+    public void RepeatedParameterNameReferenced_2239(int edition, string words, string rule)
+    {
+        var errors = ErrorsOf(RepeatedClassParameterReferenced, edition);
+        EditionHarness.AssertHasDiagnostic(errors, words);
+        EditionHarness.AssertHasDiagnostic(errors, rule);
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL2239");
+    }
 
     /// <summary>§2023:11.3.4 GR6: "Parameter-name-1 may be specified within this class definition only where an
     /// object-class-name or an interface-name is permitted." A data-name is not such a position — and since every
-    /// occurrence is substituted, accepting it would silently rename the item in each expansion.</summary>
+    /// occurrence is substituted, accepting it would silently rename the item in each expansion. At 2002 the rule is
+    /// §2002:11.2.3 GR6, worded with "class-name".</summary>
     [Fact]
     public void ParameterNameAsADataName_2239()
         => EditionHarness.AssertHasDiagnostic(ErrorsOf("""
@@ -122,10 +168,11 @@ public sealed class ParameterizedClassTests
             01 ELEM PIC X.
             END OBJECT.
             END CLASS PCGR6.
-            """), "ISO §2023:11.3.4 GR6");
+            """), "only where a class-name or an interface-name is permitted (ISO §2002:11.2.3 GR6)");
 
     /// <summary>§2023:12.3.8.3 SR3: "The EXPANDS phrase shall not be specified in the REPOSITORY paragraph of a class
-    /// definition that contains a USING clause in its CLASS-ID paragraph".</summary>
+    /// definition that contains a USING clause in its CLASS-ID paragraph" (§2002:12.2.7.2 SR3 at 2002, where this
+    /// runs).</summary>
     [Fact]
     public void ExpandsInsideParameterizedDefinition_2239()
         => EditionHarness.AssertHasDiagnostic(ErrorsOf(Box + """
@@ -139,7 +186,7 @@ public sealed class ParameterizedClassTests
                 CLASS PCSR3
                 CLASS PCSR3B EXPANDS PCSR3 USING PCBOX.
             END CLASS PCSR3.
-            """), "ISO §2023:12.3.8.3 SR3");
+            """), "ISO §2002:12.2.7.2 SR3");
 
     /// <summary>§2023:12.3.8.4 GR5: "The number of parameters in the USING phrase of the EXPANDS phrase of the
     /// class-specifier shall be the same as the number of parameters in the USING clause of the CLASS-ID

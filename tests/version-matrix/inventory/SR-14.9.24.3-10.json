@@ -2,8 +2,8 @@
  "rule-id": "SR-14.9.24.3-10",
  "rule-digest": "6cbcb9489667",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#ScreenIndexedGivingKey; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortMapIoFiles",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortMergePhraseBinder.cs#ScreenIndexedGivingKey; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortMergePhraseBinder.cs#SortMapIoFiles",
  "test-ref": "conformance:cases/14.9.24-MERGE/pb994-merge-giving-indexed-first-key-descending",
  "editions": "85,2002,2014,2023",
- "notes": "kb/Work PB994 landed: MERGE's twin of SR9 is the same screen (ScreenIndexedGivingKey, merge: true), citing 14.9.24.3 SR10; the key-byte arm shares code with the SORT arm witnessed by negative/pb994-sort-giving-indexed-key-not-prime-bytes."
+ "notes": "kb/Work PB994 landed: MERGE's twin of SR9 is the same screen (ScreenIndexedGivingKey, merge: true), citing 14.9.24.3 SR10; the key-byte arm shares code with the SORT arm witnessed by negative/pb994-sort-giving-indexed-key-not-prime-bytes. retired-witness: src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#ScreenIndexedGivingKey (kb/Work PB2341 extracted the member out of src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs into src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortMergePhraseBinder.cs; the same rule, moved with its body unchanged) retired-witness: src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortMapIoFiles (kb/Work PB2341 extracted the member out of src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs into src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortMergePhraseBinder.cs; the same rule, moved with its body unchanged)"
 }

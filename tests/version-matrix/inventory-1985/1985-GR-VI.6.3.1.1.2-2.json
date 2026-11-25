@@ -2,7 +2,7 @@
  "rule-id": "1985-GR-VI.6.3.1.1.2-2",
  "rule-digest": "7d537f80a00a",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/OperandText.cs#AsItemCharacters",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/OperandText.cs#AsItemCharacters; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#ComparisonText",
  "test-ref": "conformance:cases/VI.6.3.1.1@1985-Relation-Condition/1985-GR-VI_6_3_1_1_2-2; conformance:cases/VI.6.3.1.1@1985-Relation-Condition/pb5419-signed-literal-opposite-group",
  "notes": "CONFORMS since kb/Work PB5419. Opposite a group the numeric operand is treated as moved to a group item of its own size in standard data format characters; a numeric literal has no stored image and its size is its digit count (IV.4.2.2.2.2 GR4), so ConditionRenderer.ComparisonText compares a literal as its digits whatever sign it was written with, the group image a MOVE of the literal to a group stores: G2 = -5 is true for '5 ' and false for '-5', with the literal on either side, in the statement and nested in an ELSE. A numeric ITEM keeps its own stored characters, sign included (kb/Work PB5106). retired-witness: src/WiseOwl.Cobol.Compiler/CodeGen/Emit/OperandText.cs#AsItemSizeTemporary (AsItemSizeTemporary became OperandText.AsItemCharacters, which INSPECT reads as well (kb/Work PB5375))",
  "next": {

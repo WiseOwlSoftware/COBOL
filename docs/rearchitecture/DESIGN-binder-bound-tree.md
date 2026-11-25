@@ -772,7 +772,7 @@ per-occurrence stride on the same PHYSICAL basis as the group total it is subtra
 national table send half its maximum image.
 
 **Who calls it, and when.** `MoveBinder.BindMoveOf` materializes the sender when there is more than one
-receiving operand; `EvaluateBinder`'s per-subject `SubjectSlot` materializes a value subject when more than one
+receiving operand; `EvaluateSubjectBinder`'s per-subject `SubjectSlot` materializes a value subject when more than one
 selection pair reads it (a THRU object reads it twice — GR4 a) 5.). At ONE use the single render already IS one
 evaluation and the intermediate is unobservable, so it is not created — MOVE and EVALUATE are hot verbs.
 

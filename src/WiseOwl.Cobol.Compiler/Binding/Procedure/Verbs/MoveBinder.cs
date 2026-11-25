@@ -235,7 +235,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
     {
         // ⛔ THE SYNTAX SCREENS RUN UNLESS THE STATEMENT HAS ALREADY ASKED THE SAME QUESTION ITS OWN WAY
         // (kb/Work PB880). INITIALIZE is the one such statement: §2023:14.9.20.3 SR4 asks the MOVE validity question
-        // once per REPLACING CATEGORY (InitializeBinder.CheckReplacingMoveValidity, through the same chain), and
+        // once per REPLACING CATEGORY (ReplacingPhraseBinder.CheckReplacingMoveValidity, through the same chain), and
         // the §2023:14.9.20.4 GR6a/GR6c senders are valid by construction — so asking it again per receiver would
         // report one error twice. Everything below the screens (the freeze, the storage facts) runs for every
         // move, because that is what an implicit move built anywhere else used to miss.

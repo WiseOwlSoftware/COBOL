@@ -2,89 +2,49 @@
  "rule-id": "1985-SR-VI.6.13.3-2",
  "rule-digest": "c311cebe7d6d",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-055",
+  "pin": "8c46aa7c8f6382f8332db1227687bf386056688f",
+  "slice": "1985-fin-pb2338",
   "sources": {
-   "reader": "e17011329c83db2a64c309c533ec6164d114805fedbceecf89eb286f7b81ab8f",
-   "refuter": "03a7276e8e8d8c28b115d796f66fd6a7e6d6087cac7da7ec860eb12498b71df9"
+   "reader": "b2c39fa705c170441fdc1cdc1b6c21a67fd75d5e38ad7a879446af685731dd5f",
+   "refuter": "28fa6114e1ee2cde79509228600dd4c1c2a9f2d8e8a21247d6f4d3e2d88bc52b"
   },
   "imported": {
-   "reader": "bef2d027afc9d9a55f32ce401dafb5a976f1a921b373195d523fd007ec4dd808",
-   "refuter": "594b6334857dd9ec2e4dfa3212de717b4257ed6584b28f77a334f445b4e8d89c"
+   "reader": "924f8b36cb9dd65d4770498662ea6d263f98be372847987f687df6b008806d30",
+   "refuter": "96deea046d43db94d2d320e90078fe187e4224c80aae69584cf70afe716f941a"
   }
  },
  "reader": {
   "rule-id": "1985-SR-VI.6.13.3-2",
   "verdict": "CONFORMS",
-  "requirement": "At --std 85 the compiler must take each operand or word in a WHEN phrase (ANY, condition, TRUE, FALSE, [NOT] identifier/literal/arithmetic expression [THRU ...]) as one selection object, take those joined by ALSO in a single WHEN as one set, and refuse an object form 1985 does not print (partial expression, boolean expression, NOT ANY, NOT TRUE/FALSE).",
-  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#evaluateWhenClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#evaluateWhenPhrase; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#evaluateWhenItem; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#Bind; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#BindSelectionObject; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#ScreenObjectNegation; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#ObjectKind; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#BindWhenItem",
+  "requirement": "At --std 85 every operand, TRUE, FALSE or ANY written in a WHEN phrase must be taken as a selection object, the objects of one WHEN phrase forming one set paired by position with the subjects, and a NOT the format does not print (before ANY, TRUE or FALSE) refused.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#evaluateWhenClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#evaluateWhenPhrase; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#evaluateWhenItem; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#Bind; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/WhenPhraseBinder.cs#Bind; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/WhenPhraseBinder.cs#BindSelectionObject; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/WhenPhraseBinder.cs#ScreenObjectNegation; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/WhenPhraseBinder.cs#ObjectKind; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/WhenPhraseBinder.cs#BindWhenItem",
   "edition-consulted": [
    {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#BindWhenItem",
-    "switches": "ConstructRegistry Constructs.EvaluatePartialExpression2002: a partial-expression object (WHEN > 5, WHEN ALPHABETIC) is refused below 2002",
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/WhenPhraseBinder.cs#BindWhenItem",
+    "switches": "Constructs.EvaluatePartialExpression2002: a partial-expression object is refused below 2002",
     "same-arm-as-latest": false
    },
    {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#Bind",
-    "switches": "DialectBehavior.EvaluateObjectsInWhenPhraseOrder (from 2002): at 85 a function-referencing object is materialized at the statement start",
-    "same-arm-as-latest": false
-   },
-   {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/EvaluateOperandCombinations.cs#IsPermitted",
-    "switches": "DialectBehavior.EvaluateRefusesLiteralSubjectLiteralObject (from 2002)",
-    "same-arm-as-latest": false
-   },
-   {
-    "site": "src/WiseOwl.Cobol.Frontend/Parsing/LiteralScreen.cs#GateFormat",
-    "switches": "Constructs.BooleanLiteral2002",
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/WhenPhraseBinder.cs#ScreenPairing",
+    "switches": "EvaluateOperandCombinations.IsPermitted(.., Year): the pair screen reads the edition's year",
     "same-arm-as-latest": false
    }
   ],
-  "edition-search": "grep Edition|DialectLevel|DialectBehavior|ConstructRegistry in EvaluateBinder.cs; the grammar evaluateWhenItem has no edition predicate (later-edition forms are refused in the binder)",
-  "behaviour-differs-by-edition": "yes: partial-expression and boolean objects are refused at 85, a literal object may face a literal subject, and a function-referencing object is evaluated before the comparisons",
-  "witnesses-cover": "part: the witnesses cover NOT placement, signed literal operands and condition-subject forms; ANY across an ALSO set, FALSE subjects with condition objects, NOT ranges and figurative-constant objects are not exercised",
+  "edition-search": "grep Edition|Year|DialectBehavior|ConstructRegistry in WhenPhraseBinder.cs and EvaluateBinder.cs",
+  "behaviour-differs-by-edition": "yes: partial expressions and boolean objects are later forms; the 85 objects bind as at 2023",
+  "witnesses-cover": "part: the witnesses cover identifier and literal objects, NOT ownership and condition-name subjects; ANY, NOT arithmetic expression and shared-imperative WHEN phrases are covered by the probes",
   "probes": [
    {
     "class": "d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-055/src/e1forms.cob",
-    "printed": "A1..A8 OK, EXPECT: MATCH (objects: THRU range, arithmetic M + 4, NOT literal, literal THRU, condition, level-88, TRUE/FALSE, ANY, NOT range, ZERO, SPACES, LOW-VALUE THRU HIGH-VALUE, consecutive WHENs)",
-    "expected": "each object compared per GR1/GR2"
-   },
-   {
-    "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-055/src/e2partial.cob",
-    "printed": "error COBOL0900: a partial expression as an EVALUATE selection object requires COBOL-2002",
-    "expected": "refused at 85"
-   },
-   {
-    "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-055/src/e2classobj.cob",
-    "printed": "error COBOL0900: ... partial expression 'ALPHABETIC' ...",
-    "expected": "refused at 85"
+    "file": "E:/COBOL-coord/scratch/finish-worktree-wf_05bb8d55-c0a-8/runs/evpos-002/evpos.cob",
+    "printed": "S7 OK, S8 OK (ANY ALSO NOT 3 ALSO TRUE rejected, NOT M ALSO NOT N - 1 ALSO NOT C-ON selected), S9 OK (WHEN 1 WHEN 7 sharing one imperative), C1 OK (ANY object)",
+    "expected": "each set of objects paired by position and evaluated per GR1/GR2"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-055/src/e2notany.cob",
-    "printed": "error COBOL3710: ... NOT before the word ANY",
-    "expected": "refused: NOT is printed only on the operand alternatives"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-055/src/e2nottrue.cob",
-    "printed": "error COBOL3710: ... NOT before the word TRUE",
-    "expected": "refused"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-055/src/e2tfvalue.cob",
-    "printed": "error COBOL1634: subject TRUE and object literal invalid",
-    "expected": "refused (§1985:VI.6.13.3 SR6b)"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-055/src/e4count.cob",
-    "printed": "error COBOL2106: WHEN writes 2 selection objects but 1 subject",
-    "expected": "refused: a set of objects must match the subjects"
+    "file": "E:/COBOL-coord/scratch/finish-worktree-wf_05bb8d55-c0a-8/runs/evneg-001/evneg.cob",
+    "printed": "COBOL3710 at 12,28 'NOT ANY', 13,32 'NOT TRUE', 14,32 'NOT FALSE'",
+    "expected": "refused: the bracketed NOT stands only before identifier-3, literal-3, arithmetic-expression-1"
    }
   ],
   "citations": [
@@ -93,12 +53,12 @@
     "check": "OK  §1985:VI.6.13.3 SR2  (║6.13.3 Syntax Rules║)  the text is in SR2"
    },
    {
-    "cite": "§1985:VI.6.13.3 SR6c",
-    "check": "OK  §1985:VI.6.13.3 SR6c  (║6.13.3 Syntax Rules║)  the text is in SR6c"
+    "cite": "§1985:VI.6.13.4 GR1",
+    "check": "OK  §1985:VI.6.13.4 GR1  (║6.13.4 General Rules║)  the text is in GR1"
    }
   ],
-  "notes": "SR2 defines a term. The grammar parses one object per ALSO position, and the binder pairs each set with the subjects. The 1985 object list compiled and selected correctly, and every later-edition object form tried was refused at 85 by its construct gate.",
-  "seeded": true,
+  "notes": "Re-read after kb/Work PB2338 moved the object half into WhenPhraseBinder: Bind pairs objects[i] with slots[i] after the SR5 count screen, BindSelectionObject screens a misplaced NOT and negates the term for a bracketed NOT, ObjectKind names the object's form, and BindWhenItem lowers the pair. The subject is read only through its slot.",
+  "seeded": false,
   "harm": "",
   "cause": "",
   "at-2023": "",
@@ -110,8 +70,8 @@
  "refuter": {
   "rule-id": "1985-SR-VI.6.13.3-2",
   "refutation": "UPHELD",
-  "classes": "b,c,d",
-  "evidence": "v1subj.cob S14-S18 (MATCH): NOT condition-name objects against a condition subject, condition objects under a FALSE subject, NOT arithmetic THRU arithmetic, an intrinsic-function object. Refusals at --std 85: TRUE WHEN N -> COBOL1634; N WHEN C1 -> COBOL1634; N WHEN TRUE -> COBOL1634; TRUE WHEN 1 THRU 5 -> COBOL1634; WHEN OTHER before WHEN -> COBOL2073; admitted: N ALSO X WHEN ANY ALSO ANY (OK), X WHEN NOT \"AAA\" THRU \"ABB\" (IN), TRUE WHEN NOT N > M (no branch, correct). The sets of objects bind per ALSO position as SR2 defines. cite.py: OK §1985:VI.6.13.3 SR2.",
+  "classes": "c,d",
+  "evidence": "rfev-001 G7: two WHEN phrases sharing one imperative, each a two-object set (WHEN 1 ALSO \"A\" / WHEN -5 ALSO \"HELLO\"), selected by the second set; F7: ANY and ZERO objects in a five-object set. rfthru-001 T1: NOT 0 THROUGH 41 ALSO LOW-VALUE THROUGH \"KEY\" selected. rfevneg-001 line 23: the short second set of a shared-imperative group drew COBOL2106, so each WHEN phrase is its own set. 'OK  §1985:VI.6.13.3 SR2  (║6.13.3 Syntax Rules║)  the text is in SR2'",
   "edition-sites-missed": [],
   "corrected": ""
  }

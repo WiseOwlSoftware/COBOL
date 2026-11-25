@@ -99,7 +99,7 @@
  ],
  "counts": {
   "pairs": 1770,
-  "marked": 1258,
+  "marked": 1260,
   "ambiguous": 2,
   "normalized": 38,
   "absent-from-2014": 29,
@@ -107,7 +107,7 @@
   "definition-dropped": 359,
   "cross-reference": 28,
   "pending-clause": 621,
-  "behaviour-switch": 335,
+  "behaviour-switch": 348,
   "held": 6,
   "band-formats": 84,
   "clause-identity": 1767,
@@ -3888,6 +3888,7 @@
    "2002-GR-14.8.35.3-24",
    "2002-GR-8.3.1.2.1.3-2",
    "2002-SR-11.2.2-9",
+   "2002-SR-11.5.2-3",
    "2002-SR-11.5.2-4",
    "2002-SR-12.2.6.2-12",
    "2002-SR-12.2.6.2-15",
@@ -3953,7 +3954,7 @@
    "behaviour-switch": {
     "DIFFERENT": 3,
     "DOUBTFUL": 0,
-    "SAME": 18
+    "SAME": 22
    },
    "held": {
     "DIFFERENT": 0,
@@ -4461,11 +4462,13 @@
    "definition-changed": "source unit"
   },
   "2002-GR-11.2.3-3": {
-   "definition-changed": "class | of a data item"
+   "definition-changed": "class | of a data item",
+   "behaviour-switch": "parameter-name-appears-once-in-using-clause"
   },
   "2002-GR-11.2.3-5": {
    "definition-changed": "class | of a data item",
-   "cross-reference": "9.3.12"
+   "cross-reference": "9.3.12",
+   "behaviour-switch": "parameter-name-appears-once-in-using-clause"
   },
   "2002-GR-11.3.3-1": {
    "definition-changed": "class | of a data item; interface | of an object",
@@ -4475,14 +4478,17 @@
    "definition-changed": "class | of a data item; interface | of an object"
   },
   "2002-GR-11.5.3-1": {
-   "definition-changed": "interface | of an object"
+   "definition-changed": "interface | of an object",
+   "behaviour-switch": "parameter-name-appears-once-in-using-clause"
   },
   "2002-GR-11.5.3-2": {
    "definition-changed": "interface | of an object",
-   "cross-reference": "9.3.10"
+   "cross-reference": "9.3.10",
+   "behaviour-switch": "parameter-name-appears-once-in-using-clause"
   },
   "2002-GR-11.5.3-3": {
-   "definition-changed": "interface | of an object"
+   "definition-changed": "interface | of an object",
+   "behaviour-switch": "parameter-name-appears-once-in-using-clause"
   },
   "2002-GR-11.6.3-1": {
    "absent-from-2014": "its whole text is not in the 2014 transcription",
@@ -6843,16 +6849,22 @@
   "2002-SR-10.6.2-9": {
    "pending-clause": "§2002:14.6.4 (changed), §2002:14.6.6 (changed)"
   },
+  "2002-SR-11.2.2-1": {
+   "behaviour-switch": "parameter-name-appears-once-in-using-clause"
+  },
   "2002-SR-11.2.2-6": {
    "definition-dropped": "method (newer: 9.3.4)",
-   "pending-clause": "§2002:9.3.5 (changed)"
+   "pending-clause": "§2002:9.3.5 (changed)",
+   "behaviour-switch": "parameter-name-appears-once-in-using-clause"
   },
   "2002-SR-11.2.2-8": {
-   "definition-changed": "class | of a data item"
+   "definition-changed": "class | of a data item",
+   "behaviour-switch": "parameter-name-appears-once-in-using-clause"
   },
   "2002-SR-11.2.2-9": {
    "definition-changed": "class | of a data item",
-   "definition-dropped": "class definition | in object orientation (newer: undefined)"
+   "definition-dropped": "class definition | in object orientation (newer: undefined)",
+   "behaviour-switch": "parameter-name-appears-once-in-using-clause"
   },
   "2002-SR-11.3.2-1": {
    "definition-changed": "class | of a data item; interface | of an object",
@@ -6864,15 +6876,21 @@
    "pending-clause": "§2002:9.3.5 (changed)"
   },
   "2002-SR-11.5.2-2": {
-   "definition-changed": "interface | of an object"
+   "definition-changed": "interface | of an object",
+   "behaviour-switch": "parameter-name-appears-once-in-using-clause"
+  },
+  "2002-SR-11.5.2-3": {
+   "behaviour-switch": "parameter-name-appears-once-in-using-clause"
   },
   "2002-SR-11.5.2-4": {
-   "definition-changed": "interface | of an object"
+   "definition-changed": "interface | of an object",
+   "behaviour-switch": "parameter-name-appears-once-in-using-clause"
   },
   "2002-SR-11.5.2-5": {
    "definition-changed": "interface | of an object",
    "definition-dropped": "method (newer: 9.3.4)",
-   "pending-clause": "§2002:9.3.5 (changed)"
+   "pending-clause": "§2002:9.3.5 (changed)",
+   "behaviour-switch": "parameter-name-appears-once-in-using-clause"
   },
   "2002-SR-11.6.2-2": {
    "definition-dropped": "method (newer: 9.3.4)",

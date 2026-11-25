@@ -9153,7 +9153,7 @@ public static class DiagnosticCatalog
         "VCR Table 7 row 7.6 (X3.23-1985 MULTIPLE FILE TAPE clause)");
 
     // kb/Work PB5086: the MULTIPLE FILE TAPE clause's membership was parsed and dropped, so the three rules that read it had
-    // nothing to ask. Emitted by StatementValidation.CheckOpenModeForFile (EXTEND, GR20 d) and SortBinder.ScreenMultipleFileReels
+    // nothing to ask. Emitted by StatementValidation.CheckOpenModeForFile (EXTEND, GR20 d) and SortMergePhraseBinder.ScreenMultipleFileReels
     // (MERGE), wherever the clause compiles (from 2002 it is also COBOL0902, removed).
     public static readonly DiagnosticDescriptor OpenExtendMultipleFileReel = new(
         "COBOL6814", "open-extend-multiple-file-reel", EditionSeverity.Error,

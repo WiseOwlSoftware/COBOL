@@ -35,8 +35,17 @@ public sealed class EvaluateBooleanExpressionOperandDriftTests
     private static string Grammar() => Regex.Replace(File.ReadAllText(Path.Combine(TestRepo.Root,
         "src", "WiseOwl.Cobol.Frontend", "Grammar", "Core", "CobolControlFlow.g4")), @"//[^\r\n]*", "");
 
-    private static string Binder() => File.ReadAllText(Path.Combine(TestRepo.Root,
-        "src", "WiseOwl.Cobol.Compiler", "Binding", "Procedure", "Verbs", "EvaluateBinder.cs"));
+    /// <summary>The binder that classifies and binds the rule's operand (kb/Work PB2338): a selection subject is
+    /// <c>EvaluateSubjectBinder</c>'s, a selection object <c>WhenPhraseBinder</c>'s.</summary>
+    private static string Binder(string rule) => File.ReadAllText(Path.Combine(TestRepo.Root,
+        "src", "WiseOwl.Cobol.Compiler", "Binding", "Procedure", "Verbs", BinderFile(rule)));
+
+    private static string BinderFile(string rule) => rule switch
+    {
+        "evaluateSubject" => "EvaluateSubjectBinder.cs",
+        "evaluateWhenItem" => "WhenPhraseBinder.cs",
+        _ => throw new ArgumentOutOfRangeException(nameof(rule), rule, "no EVALUATE binder owns this rule"),
+    };
 
     /// <summary>The rule's alternatives, comments stripped, as written — less the bracketed <c>NOT?</c> §2023:14.9.13.2
     /// prints on five selection-object alternatives (which ones may carry it is
@@ -69,20 +78,20 @@ public sealed class EvaluateBooleanExpressionOperandDriftTests
             + $"Boolean-expression kind, not a condition). Order was [{string.Join(" | ", alts)}]");
     }
 
-    /// <summary>Every alternative of both rules is READ by EvaluateBinder's accessor — a rule alternative the binder
+    /// <summary>Every alternative of both rules is READ by its EVALUATE binder (BinderFile) — a rule alternative the binder
     /// never asks about is a parse shape that reaches the nearest neighbour's arm.</summary>
     [Theory]
     [InlineData("evaluateSubject")]
     [InlineData("evaluateWhenItem")]
     public void EveryAlternative_IsReadByTheBinder(string rule)
     {
-        string binder = Binder();
+        string binder = Binder(rule);
         foreach (string alt in Alternatives(rule))
         {
             string name = Regex.Replace(alt, @"\{[^}]*\}\?", "").Trim();
             Assert.Matches(@"^\w+$", name);
             Assert.True(binder.Contains("." + name + "()", StringComparison.Ordinal),
-                $"{rule}'s alternative `{name}` is never read as `.{name}()` in EvaluateBinder.cs — add its Table 15 "
+                $"{rule}'s alternative `{name}` is never read as `.{name}()` in {BinderFile(rule)} — add its Table 15 "
                 + "classification (SubjectKind / ObjectKind) and its bind arm, or the shape binds as a neighbour.");
         }
     }
