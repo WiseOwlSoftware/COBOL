@@ -201,6 +201,17 @@ public readonly record struct EditionInfo
     public string CiteRule(string y1985, string later, string? y2002 = null, string? y2014 = null) =>
         Designated(Cite(y1985, later, y2002, y2014));
 
+    /// <summary>⛔ THE RULE OF A CONSTRUCT COBOL-85 LACKS (kb/Work PB6175): the rule as <see cref="CiteRule"/> prints it, where the
+    /// construct came with COBOL-2002, so COBOL-85 has no rule of its own to cite. At COBOL-85 its construct gate refuses the
+    /// construct (COBOL0876/0879/0880, COBOL0900), and a message that also speaks there sends the reader to the rule of the
+    /// edition that introduced it, <paramref name="y2002"/>, never to an empty citation or to COBOL-2023's text. A caller
+    /// writes no empty edition argument to <see cref="CiteRule"/> (<c>CiteRuleArgumentDriftTests</c>).</summary>
+    public string CiteRuleFrom2002(string y2002, string later, string? y2014 = null) => Designated(CiteFrom2002(y2002, later, y2014));
+
+    /// <summary>The text <see cref="Cite"/> chooses for a construct COBOL-2002 introduced: <paramref name="y2002"/> stands for
+    /// COBOL-85 too, the edition that lacks the construct (<see cref="CiteRuleFrom2002"/>).</summary>
+    public string CiteFrom2002(string y2002, string later, string? y2014 = null) => Cite(y2002, later, y2002, y2014);
+
     /// <summary>⛔ A CITATION AS A MESSAGE PRINTS IT, THE STANDARD NAMED BY THE CITATION'S OWN EDITION (kb/Work PB6013): a rule of
     /// ISO/IEC 1989 (its 2002, 2014 and 2023 editions) is preceded by <c>ISO </c>; a rule of American National Standard
     /// X3.23-1985 (<see cref="StandardName"/> at 85) or of its 1989 intrinsic-function amendment, ANSI X3.23a-1989, is printed bare in

@@ -1,0 +1,1 @@
+{"refuse-at": ["2014"], "expect": "COBOL2102: GOBACK shall not be specified in a declarative procedure whose USE statement carries the GLOBAL phrase (ISO §2014:14.9.17.2 SR1)"}

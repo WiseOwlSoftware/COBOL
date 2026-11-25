@@ -1,0 +1,1 @@
+{"refuse-at": ["2002"], "expect": "COBOL2773: the COBOL word 'A𞤀B' contains U+1E900, which is not a character of a COBOL word at COBOL-2002: a word is made of basic letters, basic digits, hyphen, underscore and the extended letters of Annex C (ISO §2002:8.3.1.1; §2002:8.1.2.1 GR4)"}

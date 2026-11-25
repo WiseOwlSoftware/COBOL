@@ -86,4 +86,17 @@ public sealed class WordCharacterEveryEditionTests
     [InlineData("A\U0001E900")]
     public void AnAnnexBLetter_IsNoCharacterViolationBelow2002(string word) =>
         Assert.Null(CobolWordRule.CharacterViolation(word, 85));
+
+    /// <summary>kb/Work PB6175: each arm of the repertoire's judgment cites the rule of the edition judging the word, never
+    /// COBOL-2023's at an earlier edition. U+1E900 (ADLAM, added at 2023) is in neither the 2002 Annex C nor the 2014 Annex B;
+    /// U+00B5 (MICRO SIGN) is a special character of both, which may not begin a word there (GR4b) and may at 2023; U+30FB
+    /// (KATAKANA MIDDLE DOT) is a B.3 item 3 character at 2023.</summary>
+    [Theory]
+    [InlineData("A\U0001E900B", 2002, "extended letters of Annex C (ISO §2002:8.3.1.1; §2002:8.1.2.1 GR4)")]
+    [InlineData("A\U0001E900B", 2014, "extended letters of Annex B (ISO §2014:8.3.1.1; §2014:8.1.2.1 GR4)")]
+    [InlineData("µA", 2002, "neither the first nor the last character of a word (COBOL-2002; ISO §2002:8.1.2.1 GR4b)")]
+    [InlineData("µA", 2014, "may not be the first character of a word (COBOL-2014; ISO §2014:8.1.2.1 GR4b)")]
+    [InlineData("・A", 2023, "which Annex B.3 item 3 permits only inside a word (COBOL-2023; ISO §2023:8.3.2.1)")]
+    public void EachArm_CitesTheJudgingEditionsRule(string word, int level, string ending) =>
+        Assert.EndsWith(ending, CobolCharacterRepertoire.Violation(word, level), StringComparison.Ordinal);
 }

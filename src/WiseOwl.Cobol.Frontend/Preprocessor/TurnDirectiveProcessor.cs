@@ -83,6 +83,9 @@ public static class TurnDirectiveProcessor
         // once in a directive, whatever file-names follow it (SR4 then refuses a file-name repeated for one exception
         // condition, which the pair set above keeps); 2023 SR3 refuses only a repeated exception-name/file-name COMBINATION.
         var edition = EditionInfo.Of(dialectLevel);
+        // Below COBOL-2002 the directive itself is the refusal (COBOL0900): what its rules say of a name it carries adds no
+        // second diagnostic there (the repetition rules and the per-name edition window alike; kb/Work PB6175).
+        bool directiveExists = ConstructRegistry.IsAvailable(edition, Constructs.TurnDirective2002);
         bool nameAloneIsUnique = !DialectBehaviors.IsActive(DialectBehavior.TurnDirectiveRepeatsOnlyNameFileCombination, dialectLevel);
         var seenNames = new HashSet<string>(CobolNames.Comparer);
         bool? on = null;
@@ -118,10 +121,10 @@ public static class TurnDirectiveProcessor
         {
             if (!seen.Add(ec + "|" + (file ?? "")))
             {
-                if (!currentEcRepeated)
+                if (!currentEcRepeated && directiveExists)
                     diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.TurnDirectiveMalformed.Code,
                         $">>TURN: the exception-name/file-name combination '{ec}{(file is null ? "" : " " + file)}' is "
-                        + $"specified more than once in this directive ({edition.CiteRule("", "§2023:7.3.25.3 SR3", "§2002:7.2.19.2 SR4", "§2014:7.3.20.2 SR4")})",
+                        + $"specified more than once in this directive ({edition.CiteRuleFrom2002("§2002:7.2.19.2 SR4", "§2023:7.3.25.3 SR3", "§2014:7.3.20.2 SR4")})",
                         loc, default);
             }
             else if (currentEcResolved)   // the catalog's canonical spelling: the binder's fold matches on it
@@ -141,8 +144,7 @@ public static class TurnDirectiveProcessor
                 diagnostics.ReportError(unknown.Descriptor.Code, unknown.Message, loc, default);
                 return false;
             }
-            if (ConstructRegistry.IsAvailable(EditionInfo.Of(dialectLevel), Constructs.TurnDirective2002)
-                && ExceptionNameRule.Window(currentInfo, dialectLevel, ">>TURN") is { } later)
+            if (directiveExists && ExceptionNameRule.Window(currentInfo, dialectLevel, ">>TURN") is { } later)
             {
                 diagnostics.ReportError(later.Descriptor.Code, later.Message, loc, default);
                 return false;
@@ -189,9 +191,10 @@ public static class TurnDirectiveProcessor
                 if (nameAloneIsUnique && !seenNames.Add(w))
                 {
                     currentEcRepeated = true;
-                    diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.TurnDirectiveMalformed.Code,
-                        $">>TURN: the exception-name '{w}' is specified more than once in this directive "
-                        + $"({edition.CiteRule("", "§2023:7.3.25.3 SR3", "§2002:7.2.19.2 SR3", "§2014:7.3.20.2 SR3")})", loc, default);
+                    if (directiveExists)
+                        diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.TurnDirectiveMalformed.Code,
+                            $">>TURN: the exception-name '{w}' is specified more than once in this directive "
+                            + $"({edition.CiteRuleFrom2002("§2002:7.2.19.2 SR3", "§2023:7.3.25.3 SR3", "§2014:7.3.20.2 SR3")})", loc, default);
                 }
                 currentEcResolved = ResolveName(w);
                 anyUnresolved |= !currentEcResolved;
