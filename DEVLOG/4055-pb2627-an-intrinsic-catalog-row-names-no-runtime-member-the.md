@@ -119,3 +119,13 @@ re-measure found PB2622 at 1467 descriptor-plus-message emit sites over 678 desc
 counted 862. PB3231's forgers moved to `ObjectPropertyResolver.cs`, and the change to its input reaches 278 uses of
 `DataReferenceContext`. Each note has a 2026-11-24 addendum with the measured surface and the re-sited code sites.
 
+
+**The 1985 code reads the move owed (finisher).** The landing refused the branch (`code_read_landing.py`, kb/Work PB6056,
+exit 6): seven stored 1985 reads named the deleted `fileGlobalExternalClause` and `reportGlobalClause` (1985-GR-X.4.2.4-2,
+1985-GR-X.4.4.4-2, 1985-FMT-X.4.6.2) and `CobolIntrinsics.OrdMax` / `OrdMin` (1989-FMT-A.2.32.2, 1989-RV-A.2.32.4-3,
+1989-RV-A.2.33.4-1, 1989-RV-A.2.33.4-3). Re-read at pin 9a7e82ffe9 as slice `1985-c10-pb2724` against the 1985 text, each
+row re-sited at the members that now carry it (`externalClause`, `globalClause`, `ExternalizedName.AsLiteralOf`,
+`ExternalClauseName.Of`; `OrdMaxAt`, `OrdMinAt` and the other `ExtremeIndex` carriers), with new probes at `--std 85` and a
+separate adversarial pass (relative, indexed and LINAGE FDs, SAME RECORD AREA over a GLOBAL FD, an RD with CODE, a local
+RD, a reversed PROGRAM COLLATING SEQUENCE, numeric-edited operands, an ODO table under ALL); `code_reads.py import
+--replace`, 7 CONFORMS, 7 UPHELD.
