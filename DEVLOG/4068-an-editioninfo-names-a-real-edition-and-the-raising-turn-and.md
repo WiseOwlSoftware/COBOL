@@ -22,7 +22,9 @@ whose clause states only SR1 and whose RAISING phrase answers to EXIT PROGRAM's 
 lacks cites the 2002 rule through the new `EditionInfo.CiteRuleFrom2002` / `CiteFrom2002`. The >>TURN stage reports neither
 repetition rule below 2002 (the construct gate alone speaks there, as the name window already did). `CobolCharacterRepertoire.Violation`
 cites the judging edition's own rule in every arm. `CiteRuleArgumentDriftTests` (RepoDrift) refuses a `CiteRule` call with an empty
-edition text. Goldens: `pb6175-goback-global-declarative-cites-2014` (refused at 2014 with §2014:14.9.17.2 SR1) and
+edition text. The merge of main brought PB5753's parameterized-definition header rules (`OoExpansion.HeaderRules`), whose empty
+`y1985` and `y2002` texts that test refused in the merge queue (#2094, twice): they now cite through `CiteRuleFrom2002`, and the
+repeated-parameter-name rule, which COBOL-2014 introduced, through the new `EditionInfo.CiteRuleFrom2014`. Goldens: `pb6175-goback-global-declarative-cites-2014` (refused at 2014 with §2014:14.9.17.2 SR1) and
 `pb6175-word-outside-annex-c-cites-2002` (refused at 2002 with §2002:8.3.1.1 and Annex C); the two COBOL0710 refusals
 `l1-exit-raising-level2-name` and `pb388-goback-raising-level2-name` now expect the message up to the edition's citation, which
 differs by edition. No inventory row changes verdict (`closes_rows: []` on both notes).

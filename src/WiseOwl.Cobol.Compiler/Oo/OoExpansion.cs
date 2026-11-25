@@ -458,21 +458,22 @@ internal static class OoExpansion
 
     /// <summary>The rules of a parameterized definition's header that <c>AddSkeleton</c> asks, each cited in the edition the program
     /// is compiled under (kb/Work PB4950, PB5753): the formal's REPOSITORY specifier (<see cref="Declared"/>), the repeated
-    /// parameter-name (<see cref="Repeated"/>, a rule from COBOL-2014 only, so empty at 2002), where a formal may stand
-    /// (<see cref="Placement"/>, worded with <see cref="ClassNameKind"/>: COBOL-2002 and COBOL-2014 say "class-name", COBOL-2023
-    /// "object-class-name") and no EXPANDS phrase in the definition's own REPOSITORY paragraph (<see cref="NoExpands"/>). COBOL-85
-    /// has no object orientation (refused COBOL0900), so its texts are empty.</summary>
+    /// parameter-name (<see cref="Repeated"/>, a rule from COBOL-2014 only, cited through <c>CiteRuleFrom2014</c> and reported
+    /// only where <c>ParameterNameAppearsOnceInUsingClause</c> is active), where a formal may stand (<see cref="Placement"/>,
+    /// worded with <see cref="ClassNameKind"/>: COBOL-2002 and COBOL-2014 say "class-name", COBOL-2023 "object-class-name") and
+    /// no EXPANDS phrase in the definition's own REPOSITORY paragraph (<see cref="NoExpands"/>). COBOL-85 has no object
+    /// orientation (refused COBOL0900), so a rule of COBOL-2002 stands for it (<c>CiteRuleFrom2002</c>, kb/Work PB6175).</summary>
     private readonly record struct HeaderRules(string Declared, string Repeated, string Placement, string NoExpands, string ClassNameKind)
     {
         public static HeaderRules Of(EditionInfo e, bool isInterface) => new(
-            isInterface ? e.CiteRule("", "§2023:11.6.3 SR4", y2002: "§2002:11.5.2 SR4", y2014: "§2014:11.6.2 SR4")
-                        : e.CiteRule("", "§2023:11.3.3 SR8", y2002: "§2002:11.2.2 SR9", y2014: "§2014:11.3.2 SR8"),
-            isInterface ? e.CiteRule("", "§2023:11.6.3 SR7", y2002: "", y2014: "§2014:11.6.2 SR7")
-                        : e.CiteRule("", "§2023:11.3.3 SR9", y2002: "", y2014: "§2014:11.3.2 SR9"),
-            isInterface ? e.CiteRule("", "§2023:11.6.4 GR4", y2002: "§2002:11.5.3 GR4", y2014: "§2014:11.6.3 GR4")
-                        : e.CiteRule("", "§2023:11.3.4 GR6", y2002: "§2002:11.2.3 GR6", y2014: "§2014:11.3.3 GR6"),
-            e.CiteRule("", "§2023:12.3.8.3 SR3", y2002: "§2002:12.2.7.2 SR3", y2014: "§2014:12.3.7.2 SR3"),
-            e.Cite("", "an object-class-name", y2002: "a class-name"));
+            isInterface ? e.CiteRuleFrom2002("§2002:11.5.2 SR4", "§2023:11.6.3 SR4", y2014: "§2014:11.6.2 SR4")
+                        : e.CiteRuleFrom2002("§2002:11.2.2 SR9", "§2023:11.3.3 SR8", y2014: "§2014:11.3.2 SR8"),
+            isInterface ? e.CiteRuleFrom2014("§2014:11.6.2 SR7", "§2023:11.6.3 SR7")
+                        : e.CiteRuleFrom2014("§2014:11.3.2 SR9", "§2023:11.3.3 SR9"),
+            isInterface ? e.CiteRuleFrom2002("§2002:11.5.3 GR4", "§2023:11.6.4 GR4", y2014: "§2014:11.6.3 GR4")
+                        : e.CiteRuleFrom2002("§2002:11.2.3 GR6", "§2023:11.3.4 GR6", y2014: "§2014:11.3.3 GR6"),
+            e.CiteRuleFrom2002("§2002:12.2.7.2 SR3", "§2023:12.3.8.3 SR3", y2014: "§2014:12.3.7.2 SR3"),
+            e.CiteFrom2002("a class-name", "an object-class-name"));
     }
 
     /// <summary>Whether the terminal <paramref name="t"/> is a user-defined-word occurrence, the one kind of occurrence of a formal

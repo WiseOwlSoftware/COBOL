@@ -348,6 +348,8 @@ the edition in force has no such rule, the message cites the edition where the r
   `EditionInfo.CiteRuleFrom2002(y2002, later, y2014)` (`CiteFrom2002` for message text), never an empty `y1985` (kb/Work PB6175):
   an empty argument printed an empty citation, `()`, at `--std 85`. Where a stage's doctrine is that the construct gate alone speaks
   below 2002 (the >>TURN stage's repetition and name-window rules), the message is not reported there at all.
+  A rule COBOL-2014 introduced (a repeated parameter-name in a USING clause, §2014:11.3.2 SR9) is cited through
+  `EditionInfo.CiteRuleFrom2014(y2014, later)`; its dialect behavior decides whether the message is reported below 2014.
   `CiteRuleArgumentDriftTests` (RepoDrift) refuses a `CiteRule` call with an empty edition text. A rule family whose clause moved
   between editions carries each edition's clause (`EcRaiseSite`: RAISE, GOBACK and EXIT, whose 2002 and 2014 clauses number the
   rules as 2023's does, re-derived by `EcRaiseSiteDriftTests` from those editions' texts; GOBACK at 2002 answers to EXIT PROGRAM's

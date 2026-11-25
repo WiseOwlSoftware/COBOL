@@ -212,6 +212,12 @@ public readonly record struct EditionInfo
     /// COBOL-85 too, the edition that lacks the construct (<see cref="CiteRuleFrom2002"/>).</summary>
     public string CiteFrom2002(string y2002, string later, string? y2014 = null) => Cite(y2002, later, y2002, y2014);
 
+    /// <summary>⛔ THE RULE COBOL-2014 INTRODUCED (kb/Work PB6175): the rule as <see cref="CiteRule"/> prints it, where COBOL-85 and
+    /// COBOL-2002 have no such rule (a repeated parameter-name in a USING clause, §2014:11.3.2 SR9, kb/Work PB5753), so the
+    /// introducing edition's rule, <paramref name="y2014"/>, stands for both, never an empty citation. The rule's own dialect
+    /// behavior decides whether the message is reported below COBOL-2014; this decides only what it cites.</summary>
+    public string CiteRuleFrom2014(string y2014, string later) => Designated(Cite(y2014, later, y2014, y2014));
+
     /// <summary>⛔ A CITATION AS A MESSAGE PRINTS IT, THE STANDARD NAMED BY THE CITATION'S OWN EDITION (kb/Work PB6013): a rule of
     /// ISO/IEC 1989 (its 2002, 2014 and 2023 editions) is preceded by <c>ISO </c>; a rule of American National Standard
     /// X3.23-1985 (<see cref="StandardName"/> at 85) or of its 1989 intrinsic-function amendment, ANSI X3.23a-1989, is printed bare in

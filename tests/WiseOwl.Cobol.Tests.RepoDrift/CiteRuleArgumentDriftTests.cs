@@ -20,7 +20,7 @@ public sealed class CiteRuleArgumentDriftTests
 {
     private static readonly TreeScope Sources = new(Under: ["src/"], Kinds: [".cs"]);
 
-    private static readonly Regex Call = new(@"\bCiteRule(?:From2002)?\(", RegexOptions.Compiled | RegexOptions.CultureInvariant);
+    private static readonly Regex Call = new(@"\bCiteRule(?:From\d{4})?\(", RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
     /// <summary>The arguments of the call whose opening parenthesis ends at <paramref name="open"/>, as written (a named
     /// argument keeps its name): split at the commas of its own depth, past string literals and nested brackets.</summary>
@@ -93,6 +93,7 @@ public sealed class CiteRuleArgumentDriftTests
     [InlineData("edition.CiteRule(\"\", \"§2023:7.3.25.3 SR3\", \"§2002:7.2.19.2 SR4\")", 1)]
     [InlineData("edition.CiteRule(\"§1985:X.5.1 GR4\", \"§2023:13.7.3 SR4\", y2002: \"\")", 1)]
     [InlineData("e.CiteRuleFrom2002(\"§2002:7.2.19.2 SR3\", $\"§2023:{c} SR{n}\", y2014: string.Empty)", 1)]
+    [InlineData("e.CiteRuleFrom2014(\"\", \"§2023:11.3.3 SR9\")", 1)]
     [InlineData("edition.CiteRule(F(\"\", 1), \"§2023:13.7.3 SR4\")", 0)]   // an empty text inside a nested call is not an argument
     [InlineData("edition.CiteRule(\"§1985:X.5.1 GR4\", \"a, b (\\\"\\\")\")", 0)]   // a comma and quotes inside a literal
     [InlineData("edition.Cite(\"\", \", which is a qualified-data-name\")", 0)]   // Cite chooses text and may choose none
