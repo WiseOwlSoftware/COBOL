@@ -2,67 +2,81 @@
  "rule-id": "1985-FMT-X.4.6.2",
  "rule-digest": "f880176f0948",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-085",
+  "pin": "9a7e82ffe95aecb891f91a0aa5cad4ce62359636",
+  "slice": "1985-c10-pb2724",
   "sources": {
-   "reader": "d6faec901a0e42d0285c5733f6c3325d07dc9b56ab624d969490ddf57ba4b60c",
-   "refuter": "46be159cb679c9933a706b4e4f544fa242dac6073e36e359341e5cc8ab2e1d4a"
+   "reader": "13a900a12f22eeac3be606ce660bec6a45997cd4b313208c88d771ede67953ed",
+   "refuter": "b5455dcfc9ed63946206cf2d28f5d3d59c2bf124b4d496a298418b193b864306"
   },
   "imported": {
-   "reader": "5a12cd0a6300d68ec5cdb9116cb0dc7ebdcbd4d94975d20578e7a4bbd3e7ee20",
-   "refuter": "a884421655f6b75b9caf8ebf2511ace027ef6c5b298e696f905f99be9d09adc3"
+   "reader": "f00438d1e558ba991f0caf29cda474ae1c7cc307c47e4ec255b6234eee79083e",
+   "refuter": "e82bc44d62f3d6504d20646e1062726c26d69893d4866a77f6fa5e8ccf0903d0"
   }
  },
  "reader": {
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "at-2023": "",
   "rule-id": "1985-FMT-X.4.6.2",
   "verdict": "CONFORMS",
-  "requirement": "At --std 85 the compiler must accept [IS] GLOBAL in a level-01 data description entry of the File or Working-Storage Section, a file description entry and a report description entry (X.4.6.3 SR1), refuse it elsewhere (another level, a 77 entry, the Linkage Section, which is a 2002 addition), and make the name, its subordinates and condition-names visible to contained programs (GR1, GR2), with only the subject of a REDEFINES entry global (GR3).",
-  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#globalClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#fileGlobalExternalClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportGlobalClause; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#ClausePlacementRules; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitGlobalClause",
+  "requirement": "At --std 85 the compiler must accept [IS] GLOBAL in a level-01 data description entry of the File or Working-Storage Section, a file description entry and a report description entry (X.4.6.3 SR1), refuse it elsewhere (another level, a 77 entry, the Linkage Section, an SD), and make the name, its subordinates and its condition-names visible to contained programs (GR1, GR2), with only the subject of a REDEFINES entry global (GR3).",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#globalClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#dataDescriptionClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#fileDescriptionClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportDescriptionClause; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#ClausePlacementRules; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitGlobalClause; src/WiseOwl.Cobol.Frontend/Cst/ClauseCardinality.cs#ElementOf",
   "edition-consulted": [
    {
     "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitGlobalClause",
-    "switches": "GLOBAL in the Linkage Section is the 2002 construct LinkageGlobal2002; refused (COBOL0900) below 2002, admitted at 2002+",
+    "switches": "at 85 refuses with COBOL0900 GLOBAL on a Linkage Section data description entry (construct LinkageGlobal2002); since PB2724 it asks the clause's host (a dataDescriptionClause parent), so the FD, RD and constant-entry hosts of the one globalClause never reach the check",
     "same-arm-as-latest": false
    },
    {
-    "site": "src/WiseOwl.Cobol.Editions/ReservedWords.Table.cs (GLOBAL row)",
-    "switches": "GLOBAL reserved at all four editions",
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#ClausePlacementRules",
+    "switches": "only the rule a diagnostic cites (Rule1985/Sentence1985, the §1985:X.4.6.3 SR1 sentence in COBOL2404); the decision is the same",
     "same-arm-as-latest": true
    }
   ],
-  "edition-search": "",
-  "behaviour-differs-by-edition": "yes: GLOBAL on a level-01 Linkage Section entry is refused at 85 and admitted at 2023 (gl2bad at --std 2023 drops the COBOL0900 line)",
-  "witnesses-cover": "part: g85_bf32_03 covers a Working-Storage global item; the FD, RD and File Section record forms, GLOBAL without IS, REDEFINES with GLOBAL and the level/section refusals are not exercised",
+  "edition-search": "grep of CobolData.g4, CobolReportWriter.g4, DataBinder.ClausePlacement.cs, ClauseCardinality.cs and VersionConformancePass.cs for the GLOBAL clause's edition reads: VisitGlobalClause (Linkage, 2002) and the 2002 constant entry and screen section, which COBOL-85 source cannot write; the placement rows' 1985 sentences are wording.",
+  "behaviour-differs-by-edition": "yes: GLOBAL on a level-01 Linkage Section entry is refused at 85 (COBOL0900) and admitted from 2002; the other forms do not differ.",
+  "witnesses-cover": "part: g85_bf32_03 covers a Working-Storage global item; the probes add the File Section record, the FD and RD forms, GLOBAL without IS, REDEFINES with GLOBAL and the level, section, SD and repetition refusals.",
   "probes": [
    {
     "class": "d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-085/gl1.cob",
-    "printed": "INNER W1 HELLO / INNER COND SEVEN / INNER W3 007 / OUTER READ ABCD / OUTER W1 WORLD W2A 008; report file holds WORLD (exit 0)",
-    "expected": "FD IS GLOBAL, 01 IS GLOBAL, 01 GLOBAL group with an 88 under it, REDEFINES ... GLOBAL and RD IS GLOBAL all visible and shared by the contained program"
-   },
-   {
-    "class": "d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-085/gl4.cob",
-    "printed": "OUTER READ QRST (exit 0)",
-    "expected": "a level-01 File Section record with GLOBAL is visible to the contained program"
-   },
-   {
-    "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-085/gl2bad.cob",
-    "printed": "COBOL2404 'G1' level-number is 05; COBOL2404 'S77' level-number is 77; COBOL0900 the GLOBAL clause in the linkage section requires COBOL-2002",
-    "expected": "all three refused at 85 (X.4.6.3 SR1); at 2023 the Linkage entry is legal"
+    "file": "E:/COBOL-coord/scratch/finish-worktree-wf_38508f28-551-1/probes/r5_global_dd.cob",
+    "printed": "G1-A ABC G1-B 12 / COND GLOBAL / FF-REC FFDATA / G5 BASE1 (a contained program reads a global group's subordinates, its condition-name, a File Section 01 'IS GLOBAL' record and 'G5 REDEFINES G4 GLOBAL')",
+    "expected": "GR1 subordinates and condition-names global; the File Section 01 admitted; the REDEFINES subject global"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-085/gl3bad.cob",
-    "printed": "COBOL5506 The separator period is not expected here: expected EXTERNAL or GLOBAL",
-    "expected": "refused: IS alone is not the clause"
+    "file": "E:/COBOL-coord/scratch/finish-worktree-wf_38508f28-551-1/refute/x4_dd_bad.cob",
+    "printed": "COBOL2423 'GLOBAL' written 2 times on a 01; COBOL0900 EXTERNAL AS on a 01",
+    "expected": "refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/finish-worktree-wf_38508f28-551-1/probes/r6_global_bad.cob",
+    "printed": "COBOL2404 on an 05 and on a 77 (§1985:X.4.6.3 SR1); COBOL6862 two GLOBAL B3 (SR2); COBOL0900 GLOBAL in the Linkage Section requires COBOL-2002",
+    "expected": "refused: SR1 level 01 of the File or Working-Storage Section only; SR2"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/finish-worktree-wf_38508f28-551-1/probes/r7_global_redef.cob",
+    "printed": "COBOL1639 'G4' is not defined and 'G6' is not defined in the contained program",
+    "expected": "GR3: the redefined G4 is not global (only G5, the subject, is); G6 has no GLOBAL"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/finish-worktree-wf_38508f28-551-1/probes/r3_rd_global.cob",
+    "printed": "the RD and FD forms: see 1985-GR-X.4.4.4-2 and 1985-GR-X.4.2.4-2 (r3_rd_global, r1_fd_ext_glob)",
+    "expected": "admitted and global"
    }
   ],
   "citations": [
    {
     "cite": "§1985:X.4.6.1",
-    "check": "OK  §1985:X.4.6.1  (║4.6.1 Function║)  the text is in the clause"
+    "check": "OK  §1985:X.4.6.1  (║4.6.1 Function║)  the text is in the clause; it lies in p1"
    },
    {
     "cite": "§1985:X.4.6.3 SR1",
@@ -77,21 +91,13 @@
     "check": "OK  §1985:X.4.6.4 GR3  (║4.6.4 General Rules║)  the text is in GR3"
    }
   ],
-  "notes": "The three grammar rules print IS? GLOBAL; residence is the one ClausePlacementRules row (level 01, file/working-storage/local-storage/linkage) and the linkage half is gated to 2002 by VersionConformancePass, which is the 1985 SR1's section list. Local-storage is unreachable at 85 because the section itself is a later edition's.",
-  "seeded": true,
-  "harm": "",
-  "cause": "",
-  "at-2023": "gl2bad at --std 2023 refuses only G1 and S77; gl1 is refused at 2023 by the 2002+ contained-report-file rule (COBOL2392), which is not this rule",
-  "repro": "",
-  "expected": "",
-  "observed": "",
-  "known_note": ""
+  "notes": "Re-read on this branch (kb/Work PB2724): '[IS] GLOBAL' is now ONE grammar rule, globalClause, referenced by the data description, file description and report description entries (and the 2002 constant and screen entries); the deleted fileGlobalExternalClause and reportGlobalClause were its FD and RD copies. VisitGlobalClause gates the Linkage form only when its parent is a dataDescriptionClause, so the edition decision is unchanged for 85 source."
  },
  "refuter": {
   "rule-id": "1985-FMT-X.4.6.2",
   "refutation": "UPHELD",
-  "classes": "b,c,d",
-  "evidence": "gx1bad.cob (b,c): SD IS GLOBAL refused COBOL1970 (the 1985 SD format prints no GLOBAL), 66 RENAMES ... GLOBAL and an 01 report group with GLOBAL refused COBOL0001. gx2bad.cob (b): GLOBAL on an 88 refused COBOL1747; a same-named non-global item and a second same-named GLOBAL item refused COBOL6862; IS GLOBAL GLOBAL refused COBOL2423. gx3bad.cob: two 01 C IS GLOBAL refused COBOL6862 (SR2). gx4bad.cob: SAME RECORD AREA with a GLOBAL FD and a GLOBAL record refused COBOL2738 x2 (SR3). gx5.cob (d): GLOBAL items reach an indirectly contained program (LEAF sees OUTER's W1, the EXTERNAL GLOBAL W3, and the index-name TX of a GLOBAL table: TE(2)=B); MID's non-global local W2 hides the global one in MID but not in LEAF (LEAF prints GLOB2), and LEAF's MOVE is seen by the outer program (DEEP!). cite.py: OK §1985:X.4.6.3 SR2; OK §1985:X.4.6.3 SR3; OK §1985:X.4.6.4 GR2; OK §1985:IV.4.3.8.1 (lies in SR4).",
+  "classes": "b,c,e",
+  "evidence": "Code read independently at the pin, starting from the grammar: `git grep -i globalexternalclause\\|reportglobalclause -- src` finds only a historical comment in DiagnosticCatalog.cs, so no reader of the deleted rules survives; fileDescriptionClause, reportDescriptionClause, dataDescriptionClause and constantEntryBody reference the one globalClause, and fileDescriptionClause and dataDescriptionClause the one externalClause. Every consumer of the FD's attributes reads FileModel.IsExternal/IsGlobal (set only in BindFileSection's two arms) or ReportModel.IsGlobal (set only in BindReportDescriptionClauses); OoDefinitionRules.GlobalClauseSites lists the five hosts. The only edition reads on the path are VisitExternalizedNamePhrase (AS, 2002) and VisitGlobalClause, now restricted to a dataDescriptionClause parent in the Linkage Section, which no FD or RD can be. Attacks past the reader's probes at --std 85: x4_dd_bad.cob refuses 'GLOBAL IS GLOBAL' on a 01 (COBOL2423) and 'EXTERNAL AS' on a 01 (COBOL0900); x5_same_area.cob refuses SAME RECORD AREA over a GLOBAL FD (COBOL2738, SR3); x1_fd_formats.cob and x2_rd_code.cob admit the FD and RD forms with and without IS. The narrowed VisitGlobalClause test (parent is dataDescriptionClause) cannot let an 85 Linkage GLOBAL through: in 85 source the only host of globalClause under the Linkage Section is a data description entry (no constant entry or screen section exists at 85), and r6_global_bad still prints COBOL0900 for it. Cite: OK  §1985:X.4.6.3 SR1  (║4.6.3 Syntax Rules║)  the text is in SR1",
   "edition-sites-missed": [],
   "corrected": ""
  }

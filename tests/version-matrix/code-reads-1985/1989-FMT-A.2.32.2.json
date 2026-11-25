@@ -2,124 +2,109 @@
  "rule-id": "1989-FMT-A.2.32.2",
  "rule-digest": "7b2eeebaca33",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-176",
+  "pin": "9a7e82ffe95aecb891f91a0aa5cad4ce62359636",
+  "slice": "1985-c10-pb2724",
   "sources": {
-   "reader": "377bfea5e3dd203c998ea1f5e3775107e906ef22b119ae402fd1d0f84eaa9959",
-   "refuter": "8368475a6dfbd0442bbe4dd41b9bfd035fabfba6ff3b6453aafa5fe4906be155"
+   "reader": "13a900a12f22eeac3be606ce660bec6a45997cd4b313208c88d771ede67953ed",
+   "refuter": "b5455dcfc9ed63946206cf2d28f5d3d59c2bf124b4d496a298418b193b864306"
   },
   "imported": {
-   "reader": "ff98b5b91df3b9661a76593939749eed7496ba2cda44ca024f8dc4a0c7f077b1",
-   "refuter": "99aa90626f57d3922b5f6e163958da23b21b179bd3c2a7c9a31747b326849d9a"
+   "reader": "cf085378bd185ee2955abfed87b30eb4e21876e0c34dd3809cd5b28d4fdbffb3",
+   "refuter": "aa0cc35d06c0c45ce15a1025bef7111ee551be9c5e66e86613d024c50db92d22"
   }
  },
  "reader": {
-  "rule-id": "1989-FMT-A.2.32.2",
-  "verdict": "CONFORMS",
-  "requirement": "At 85 the compiler must accept FUNCTION ORD-MAX with a parenthesized list of one or more arguments (numeric, alphabetic or alphanumeric; table ALL subscripts allowed) in an arithmetic expression, returning the 1-based position of the leftmost greatest, and refuse a missing or empty list.",
-  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionArgList; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsic; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#TryBindAllArgument; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#OrdMax",
-  "edition-consulted": [
-   {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore",
-    "switches": "catalog IntroducedIn 85 against ctx.Edition.DialectLevel (COBOL1502/COBOL1503 window); the function is defined at 85",
-    "same-arm-as-latest": true
-   },
-   {
-    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitFunctionCall",
-    "switches": "construct function-empty-argument-list-2002: an empty '( )' is COBOL0900 at 85 (braces of §1985:IV.4.3.8.3.2 require an argument); at 2023 it parses and the arity check refuses it (COBOL1504)",
-    "same-arm-as-latest": false
-   },
-   {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement",
-    "switches": "construct numeric-function-identifier-operand-2002: a numeric/integer function written where an identifier stands (DISPLAY, MOVE, ADD operand) is COBOL0900 at 85 per §1985:IV.4.3.8.3.3 SR4; legal at 2023",
-    "same-arm-as-latest": false
-   },
-   {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#KeywordOmittedFunction",
-    "switches": "construct repository-function-2002: at 85 the keyword-omitted form never routes to the intrinsic, so NAME (args) is an ordinary (undefined) data reference, COBOL1639; at 2023 it is COBOL1543 unless the REPOSITORY declares it",
-    "same-arm-as-latest": false
-   }
-  ],
-  "edition-search": "grep of IntrinsicBinder.cs, IntrinsicCatalog.cs, VersionConformancePass.cs for Edition|DialectLevel|ConstructRegistry|DialectBehavior; TryBindAllArgument, BindIntrinsicArgs and the arity check read no edition; the CobolIntrinsics runtime bodies take no edition",
-  "behaviour-differs-by-edition": "yes: at 85 an empty '( )' is refused as an edition construct (COBOL0900) and a numeric/integer result written where an identifier stands is refused (SR4); at 2023 the empty list reaches the arity check and the identifier placement is legal; the format's own argument count and ALL handling is the same code at both",
-  "witnesses-cover": "part: g85_bf42_01 exercises the format; not exercised are a single argument, alphanumeric ALL, an ODO table with ALL, ties, alphabetic/alphanumeric mixing and the refusal half",
-  "probes": [
-   {
-    "class": "a,b,d,f",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-176/src/accept1.cob",
-    "printed": "OMX1= 00004 / OMX2= 00003 / OMX3= 00002 / OMX4= 00003 / OMX5= 00001 / OMX6= 00002",
-    "expected": "T max 9.75 at 4; ZZA at 3; (3 7 7 1) leftmost 7 at 2; ODO N=3 30 at 3; one argument -> 1; ABC vs ABD -> 2"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-176/src/refuse1.cob",
-    "printed": "ORD-MAX () -> COBOL1504 + COBOL0900 empty list; ORD-MAX (no list) -> COBOL1504 at least 1 argument(s); 0 given",
-    "expected": "refused"
-   },
-   {
-    "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-176/src/edition1.cob",
-    "printed": "COBOL0900 'a numeric or integer function-identifier where an identifier is written ... requires COBOL-2002' on DISPLAY FUNCTION MIDRANGE, MOVE FUNCTION MIN (4 2), MOVE FUNCTION ORD, ADD FUNCTION MOD, MOVE FUNCTION NUMVAL, DISPLAY FUNCTION ORD-MAX; COMPUTE I = MIN (4 2) -> COBOL1639 'MIN (4 2)' is not defined",
-    "expected": "§1985:IV.4.3.8.3.3 SR4: a numeric or integer function may be used only in an arithmetic expression; the FUNCTION word is the only form at 85"
-   },
-   {
-    "class": "c,d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-176/src/edition3.cob",
-    "printed": "OMX-REL=OK",
-    "expected": "ORD-MAX (1 9) = 2 in a relation condition (an arithmetic expression)"
-   },
-   {
-    "class": "d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-176/src/classd.cob",
-    "printed": "MIN-ED=[  7] / OMX-ED= 00001 / MR-SC=  149.9980 / OMX-SC= 00002 / MOD-SC= 00006",
-    "expected": "numeric-edited items are compared as alphanumeric (' 42' > '  7'); P-scaled items carry their scaled values: MIDRANGE(300 -0.004)=149.998; MOD(300 7)=6"
-   }
-  ],
-  "citations": [
-   {
-    "cite": "§1989:A.2.32.2",
-    "check": "OK §1989:A.2.32.2 (2.32.2 General Format) the text is in the clause"
-   },
-   {
-    "cite": "§1989:A.2.32.3 AR1",
-    "check": "OK §1989:A.2.32.3 AR1 (2.32.3 Arguments) the text is in AR1"
-   },
-   {
-    "cite": "§1989:A.2.32.4 RV3",
-    "check": "OK §1989:A.2.32.4 RV3 (2.32.4 Returned Values) the text is in RV3"
-   },
-   {
-    "cite": "§1985:IV.4.3.8.3.3 SR1",
-    "check": "OK §1985:IV.4.3.8.3.3 SR1 (4.3.8.3.3 Syntax Rules) the text is in SR1"
-   },
-   {
-    "cite": "§1985:IV.4.3.8.3.3 SR4",
-    "check": "OK §1985:IV.4.3.8.3.3 SR4 (4.3.8.3.3 Syntax Rules) the text is in SR4"
-   },
-   {
-    "cite": "§1989:A.2.2",
-    "check": "OK §1989:A.2.2 (2.2 ARGUMENTS) the text is in the clause; it lies in AR4"
-   }
-  ],
-  "notes": "Catalog row Variadic 1..inf 'p'; arity and ALL expansion are edition-blind and correct at 85; the leftmost tie rule (RV3) holds. Integer result outside an arithmetic expression is refused at 85 by the SR4 edition gate.",
   "seeded": true,
   "harm": "",
   "cause": "",
-  "at-2023": "",
   "repro": "",
   "expected": "",
   "observed": "",
-  "known_note": ""
+  "known_note": "",
+  "at-2023": "",
+  "verdict": "CONFORMS",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#IsDefinedAt",
+    "switches": "the function name exists at the edition (ORD-MAX and ORD-MIN IntroducedIn 85, the 1989 amendment)",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement",
+    "switches": "at 85 an integer function written where an identifier stands is refused (COBOL0900, §1985:IV.4.3.8.3.3 SR4; a 2002 introduction); inside an arithmetic expression the same arm as 2023",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep of IntrinsicRenderer.cs, IntrinsicCarrierRules.cs, IntrinsicBinder.cs, IntrinsicArgumentRules.cs, IntrinsicCatalog.cs and Runtime/Intrinsics (Select, Selection, ExactValue, Exact, RealArgs, Wide) for Edition|CobolVersion|DialectLevel: the lane choice (the sig.Name selection set and IntrinsicCarrierRules.SelectionNeedsExactLane), Binary64Bodies and every ExtremeIndex carrier read no edition; the renderer's DialectLevel sites are a diagnostic's cited rule and the standard-intermediate rounding, which needs an ARITHMETIC clause COBOL-85 lacks",
+  "probes": [
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/finish-worktree-wf_38508f28-551-1/probes/o1_ord.cob",
+    "printed": "Q1 0002 (ORD-MAX(-1.50 7 7.0000)), Q2 0003, Q3 0001 (ORD-MIN(7 7.0000)), Q4 0001, Q5 0002 (18-digit +/-), Q6 0002, Q13 +0018 (ORD-MAX(1 5 5 2)*10 - ORD-MIN(4 0.5 0.50 9)), Q16 0001 (ORD-MAX(-0.001 -0.0010 -5)); bodies OrdMaxAt/OrdMinAt",
+    "expected": "the leftmost greatest or least by numeric comparison (equal values whatever their scale): 2, 3, 1, 1, 2, 2, 18, 1"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/finish-worktree-wf_38508f28-551-1/probes/o1_ord.cob",
+    "printed": "Q14 0002 (ORD-MAX(0.1 SQRT(4) 2.0)), Q15 0001 (ORD-MIN(NUMVAL('-0') 0 -0.0)); bodies OrdMaxExact/OrdMinExact",
+    "expected": "2 (SQRT(4) equals 2.0 and the leftmost wins) and 1 (-0, 0 and -0.0 compare equal)"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/finish-worktree-wf_38508f28-551-1/probes/o3_lanes.cob",
+    "printed": "L1 0002 L2 0002 (all-SQRT lists: OrdMaxReal/OrdMinReal), L3 0001 L4 0002 (10 ** P beside literals: OrdMaxExact/OrdMinExact)",
+    "expected": "2, 2, 1, 2: the leftmost of equal greatest or least values"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/finish-worktree-wf_38508f28-551-1/probes/o1_ord.cob",
+    "printed": "Q7 0002 Q8 0003 (TE(ALL) = 3 9 1 9 1), Q9 0003, Q10 0002 (ORD-MIN('B' 'AB ' 'AB'): a space-extended tie), Q11 0002 (alphabetic mixed with alphanumeric), Q12 0001 (one argument); bodies OrdMaxString/OrdMinString",
+    "expected": "2, 3, 3, 2, 2, 1"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/finish-worktree-wf_38508f28-551-1/probes/o2_ordbad.cob",
+    "printed": "COBOL1627 ORD-MAX argument-2 class alphanumeric (§1989:A.2.32.3); COBOL1627 ORD-MIN argument-2 class numeric (§1989:A.2.33.3); COBOL1504 and COBOL0900 for ORD-MAX(); COBOL0900 for each MOVE source (IV.4.3.8.3.3 SR4)",
+    "expected": "refused: AR1 one class; one or more argument-1; an integer function only in an arithmetic expression at 85"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/finish-worktree-wf_38508f28-551-1/probes/o1_ord.cob",
+    "printed": "o1_ord and o3_lanes at --std 2023 print the same Q1..Q16 and L1..L4",
+    "expected": "no edition difference in the returned value"
+   }
+  ],
+  "notes": "Re-read on this branch (kb/Work PB2627) at the pin: the aligned CobolIntrinsics.OrdMax/OrdMin(params Int128[]) are deleted, and no program reached them (on main the renderer's ORD-MAX/ORD-MIN arms already named OrdMaxAt/OrdMinAt, the string pair and the exact, wide and decimal bodies, and RealMethod named OrdMaxReal). The catalog row no longer names a runtime member; the renderer keys the selection set on sig.Name (MAX, MIN, ORD-MAX, ORD-MIN, MEDIAN) and names each body through a nameof-anchored RuntimeApi.IntrinsicBody constant, the binary64 body through Binary64Bodies. Every carrier selects through the one kernel Selection.cs#ExtremeIndex: start at index 0, replace only on a strictly greater (or strictly smaller) comparison, so the leftmost of equal values stands (RV3), and return index + 1 (RV1). Each carrier supplies its simple-condition comparison (RV2): ScaledOrder through CobolNum.Compare (by value, not scale), ExactOrder through CobolExact.Compare, ValueOrder for binary64, StringOrder through the program collating sequence with space extension, WideOrder through CobolWide.Compare. The wide lane was not reached by an 85 probe here; its body is the same one-line call of the kernel.",
+  "rule-id": "1989-FMT-A.2.32.2",
+  "requirement": "At 85 the compiler must accept FUNCTION ORD-MAX with a parenthesized list of one or more argument-1 (numeric, or alphabetic and alphanumeric; table ALL subscripts allowed) in an arithmetic expression, returning the 1-based position of the leftmost greatest, and refuse a missing or empty list.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionArgList; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsic; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#TryBindAllArgument; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Select.cs#OrdMaxAt; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#OrdMaxString",
+  "behaviour-differs-by-edition": "yes: at 85 an empty '( )' is refused as an edition construct (COBOL0900) and an integer function written where an identifier stands (a MOVE source) is refused (§1985:IV.4.3.8.3.3 SR4); inside an arithmetic expression the value is the same as at 2023.",
+  "witnesses-cover": "part: g85_bf42_01 exercises the format; the probes add a single argument, ALL over a table, ties, alphabetic mixed with alphanumeric, the exact and binary64 lanes and the refusals.",
+  "citations": [
+   {
+    "cite": "§1989:A.2.32.2",
+    "check": "OK  §1989:A.2.32.2  (2.32.2 General Format)  the text is in the clause"
+   },
+   {
+    "cite": "§1989:A.2.32.3 AR1",
+    "check": "OK  §1989:A.2.32.3 AR1  (2.32.3 Arguments)  the text is in AR1"
+   },
+   {
+    "cite": "§1989:A.2.32.4 RV3",
+    "check": "OK  §1989:A.2.32.4 RV3  (2.32.4 Returned Values)  the text is in RV3"
+   },
+   {
+    "cite": "§1985:IV.4.3.8.3.3 SR4",
+    "check": "OK  §1985:IV.4.3.8.3.3 SR4  (4.3.8.3.3 Syntax Rules)  the text is in SR4"
+   }
+  ]
  },
  "refuter": {
   "rule-id": "1989-FMT-A.2.32.2",
   "refutation": "UPHELD",
-  "classes": "a,b,c,d,f",
-  "evidence": "2-D ALL ordering per §1989:A.2.2: C OF G1 (ALL ALL) over 1 2 9 / 4 9 3 = 3 (leftmost 9, row-major); (ALL 2)=2; (2 ALL)=2; C IN G2 (ALL, ALL) with 50 at (2 2)=5; ODO D (ALL) N=3 result stored into N itself = 2; PCS reversed ORD-MAX (\"A\" \"Z\")=1; DPC ORD-MAX (1,5 1,25)=1; ORD-MAX split across three lines=2; data named ORD-MAX/LOCALE/ANYCASE as arguments accepted; ORD-MAX (X3 N3) refused COBOL1627; ORD-MAX with no list refused COBOL1504; ORD-MAX (1 2) (1:1) refused COBOL1629. probes under E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-176/runs (acc2-001, dpc-001, ref2-001, ref3-001, ref4-001, pcs-001, big-002, kw-002, lc-001), all --std 85 via run_probe.py. cite.py: OK §1985:IV.4.2.1 SR2 (comma and semicolon followed by a space are separators anywhere a space is); OK §1985:IV.4.3.8.3.3 SR1 (argument is identifier, literal or arithmetic expression); OK §1985:IV.4.3.8.3.3 SR2 (ref-mod only for alphanumeric functions); OK §1989:A.2.2 (ALL subscripts, rightmost ALL varies fastest). Class e does not apply (no file I/O in the format). No program the format refuses compiled, none it admits was refused, every value matched the 1985 returned-value rules. Side note, not this rule: diagnostics at --std 85 cite §2023 clauses (cosmetic).",
-  "edition-sites-missed": [
-   "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses: ArgPredicate.AppliesAt(edition year) gates each per-position argument predicate by edition; at 85 the class/width screens for these functions still fire (ref4-001)",
-   "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#KeywordWordOf: ReservedWords.AdmitsAsKeyword(word, year) lets a 2002-reserved word (ANYCASE, LOCALE) declared as data at 85 be an argument; probed kw-002, same answer as intended"
-  ],
+  "classes": "a,b,d,f",
+  "evidence": "Code read independently at the pin: before this branch, on origin/main, the renderer keyed the selection set on sig.RuntimeMethod ('OrdMax'/'OrdMin') and emitted OrdMaxAt/OrdMinAt, OrdMaxString/OrdMinString, the exact, wide and decimal bodies, and OrdMaxReal through RealMethod; the deleted OrdMax/OrdMin(params Int128[]) had no emitter. On the branch the same set is keyed on sig.Name with '&& !ic.ComparesStrings' added, which a string list never needed (SelectionNeedsExactLane is false for it), and the binary64 body is Binary64Bodies['ORD-MAX'] = OrdMaxReal, the same name RealMethod derived. Each body is a one-line call of ExtremeIndex with its ISelectionOrder; the kernel replaces only on a strict comparison and returns index + 1. A grep of the selection path for Edition|DialectLevel|CobolVersion finds none. Attacks past the reader's probes at --std 85: y1_ord_attack.cob under PROGRAM COLLATING SEQUENCE IS REV (Z Y X C B A) printed Y1 0001 for ORD-MAX('A' 'Z' 'B') and Y2 0002 for ORD-MIN (the collating sequence, not the native one, decides RV2); Y3 0003 and Y4 0001 for a numeric-edited item against alphanumeric items (class alphanumeric, compared as nonnumeric operands, an equal pair resolved leftmost); Y5 0002 and Y6 0001 for OE(ALL) of an ODO table with OC = 3 holding -1.5, 2.0, 2 (the series bounded by the ODO object, the scale-differing tie leftmost); Y7 0001 for ORD-MAX(D1 OE(ALL) 2) + 0 (a table expanded inside a longer list); Y8 COND for ORD-MIN(3 2 1) = 3 in a condition. The refusal half re-read in IntrinsicBinder: BindIntrinsicCore (through BindFunctionResult) counts the arguments against the catalog's minimum of 1 (COBOL1504) and ScreenIdentifierPlacement refuses an integer function outside an arithmetic expression at 85 (§1985:IV.4.3.8.3.3 SR4). Cite: OK  §1989:A.2.32.2  (2.32.2 General Format)  the text is in the clause",
+  "edition-sites-missed": [],
   "corrected": ""
  }
 }
