@@ -6,7 +6,8 @@
       *>---
       *> §1985:XIV.3.6.2 (THE SEND STATEMENT). A refusal: the rule
       *> forbids line 14 of the program below, and WiseOwl refuses it at
-      *> 85 with COBOL0001 there; a compiler that accepts it fails.
+      *> 85 with COBOL5506 there (the SEND statement ends at its period where
+      *> its next operand is due); a compiler that accepts it fails.
       *> Placed from the audit's draft, confirmed by
       *> scripts/spec/place_witnesses.py (kb/Work PB4995).
        IDENTIFICATION DIVISION.

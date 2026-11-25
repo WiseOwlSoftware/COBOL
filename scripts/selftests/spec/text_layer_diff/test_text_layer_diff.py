@@ -149,14 +149,16 @@ def case_11_an_amendment_note_governs_the_words_it_quotes(expect):
     expect.equal("the Markdown's number is not the amended one", _classes(pdf, "the standard defines 13 modules of cobol", amendments=am), ["UNEXPLAINED"])
     expect.equal("a damaged amended word is not the amended text", _classes(pdf, "the standard defines 12 moduls of cobol", amendments=am), ["UNEXPLAINED"])
     expect.equal("words the Markdown dropped, the note does not drop", _classes(pdf, "the standard defines of cobol", amendments=am), ["UNEXPLAINED"])
-    drop = _amendments("> ⚠ **CORRECTED — see the Errata (C9).** The standard prints `a big file is open` (page 5). Amendment 1, "
-                       "applied in place. Corrected to `a file is open`.")
-    expect.equal("words the amended text drops, the Markdown drops", _classes("a big file is open", "a file is open", amendments=drop), ["AMENDMENT-APPLIED"])
-    expect.equal("words the amended text keeps, the Markdown drops", "AMENDMENT-APPLIED" in _classes("a big file is open", "big is open", amendments=drop), False)
-    added = _amendments("> ⚠ **CORRECTED — see the Errata (C8).** The standard prints `a file is open` (page 5). Amendment 1, "
-                        "applied in place. Corrected to `a big file is open`.")
-    expect.equal("words the amended text adds, the Markdown adds", _classes("a file is open", "a big file is open", amendments=added), ["AMENDMENT-APPLIED"])
-    expect.equal("words the amended text does not add", "AMENDMENT-APPLIED" in _classes("a file is open", "a huge file is open", amendments=added), False)
+    drop = _amendments("> ⚠ **CORRECTED — see the Errata (C9).** The standard prints `one two three a big file is open now here` (page 5). "
+                       "Amendment 1, applied in place. Corrected to `one two three a file is open now here`.")
+    p_drop = "one two three a big file is open now here"
+    expect.equal("words the amended text drops, the Markdown drops", _classes(p_drop, "one two three a file is open now here", amendments=drop), ["AMENDMENT-APPLIED"])
+    expect.equal("words the amended text keeps, the Markdown drops", "AMENDMENT-APPLIED" in _classes(p_drop, "one two three a big is open now here", amendments=drop), False)
+    added = _amendments("> ⚠ **CORRECTED — see the Errata (C8).** The standard prints `one two three a file is open now here` (page 5). "
+                        "Amendment 1, applied in place. Corrected to `one two three a big file is open now here`.")
+    p_add = "one two three a file is open now here"
+    expect.equal("words the amended text adds, the Markdown adds", _classes(p_add, "one two three a big file is open now here", amendments=added), ["AMENDMENT-APPLIED"])
+    expect.equal("words the amended text does not add", "AMENDMENT-APPLIED" in _classes(p_add, "one two three a huge file is open now here", amendments=added), False)
 
 
 def case_12_zero_read_as_o_in_a_number(expect):
@@ -180,44 +182,44 @@ def case_13_the_excerpt_is_the_aligned_block(expect):
 
 
 AMEND_MD = ("## Page 831\n\n| Page No. | Change |\n|---|---|\n"
-            "| I-1 | Replace the sentence the file is open when read. |\n"
+            "| I-1 | Replace the sentence the file is open when read it then closed. |\n"
             "| I-7 | Replace the sentence the record is closed after the write |\n"
             "| I-9 | Replace the sentence the key is not valid |\n")
-AMEND_LAYER = ("Page No. Change I-1 Replace the sentence the file is open when read. I-7 Replace the sentence the record is "
+AMEND_LAYER = ("Page No. Change I-1 Replace the sentence the file is open when read it then closed. I-7 Replace the sentence the record is "
                "closed after the write I-9 Replace the sentence the key is not valid").split()
 
 
-def _note(printed: str, page: str = "I-1", instr: str = "Replace the sentence the file is open when read.") -> str:
+def _note(printed: str, page: str = "I-1", instr: str = "Replace the sentence the file is open when read it then closed.") -> str:
     quote = f': "{instr}"' if instr else ""
     return (f"> ⚠ **CORRECTED — see the Errata (C7).** The standard prints `{printed}` (page 5, folio {page}). Amendment 1, its "
             f"change for page {page} (page 831, folio A-1), applied in place{quote}. Corrected to the text above.")
 
 
 def _entry_classes(pdf: str, md: str, **note):
-    notes = _amendments(_note("the file is shut when read", **note))
+    notes = _amendments(_note("the file is shut when read it", **note))
     am, missing = D.with_cited_text({5: notes}, {831: AMEND_LAYER}, D.amendment_rows(AMEND_MD))
     return _classes(pdf, md, amendments=am[5]), missing
 
 
 def case_14_the_amended_text_is_the_notes_own_entry_of_the_amendment_page(expect):
-    notes = _amendments(_note("the file is shut when read"))
+    notes = _amendments(_note("the file is shut when read it"))
     expect.equal("the Amendment page and page cell are read from the note", (notes[0][2][0], notes[0][2][1]), (831, D.fold("I-1")))
     expect.equal("a note that quotes no amended text has none of its own", notes[0][1], [])
     expect.equal("the control: the entry holds the amended word",
-                 _entry_classes("a b the file is shut when read x", "a b the file is open when read x"), (["AMENDMENT-APPLIED"], 0))
-    cls, _ = _entry_classes("a b the file is shut when read x", "a b the file is closed when read x")
+                 _entry_classes("a b the file is shut when read it x", "a b the file is open when read it x"), (["AMENDMENT-APPLIED"], 0))
+    cls, _ = _entry_classes("a b the file is shut when read it x", "a b the file is closed when read it x")
     expect.equal("a word of ANOTHER change on the same page is no evidence (round-3 probe)", "AMENDMENT-APPLIED" in cls, False)
-    cls, _ = _entry_classes("a b the file is shut when read x", "a b the file is not valid when read x")
+    cls, _ = _entry_classes("a b the file is shut when read it x", "a b the file is not valid when read it x")
     expect.equal("words of another change on the page", "AMENDMENT-APPLIED" in cls, False)
-    cls, _ = _entry_classes("a b the file is shut when read x", "a b the file is read x")
+    cls, _ = _entry_classes("a b the file is shut when read it x", "a b the file is read x")
     expect.equal("dropped words the entry does not drop", "AMENDMENT-APPLIED" in cls, False)
-    cls, n = _entry_classes("a b the file is shut when read x", "a b the file is open when read x", instr="Replace the unknown sentence of nothing here")
+    cls, n = _entry_classes("a b the file is shut when read it x", "a b the file is open when read it x", instr="Replace the unknown sentence of nothing here")
     expect.equal("an instruction no row opens: not located, not applied", ("AMENDMENT-APPLIED" in cls, n), (False, 1))
-    cls, n = _entry_classes("a b the file is shut when read x", "a b the file is open when read x", instr="")
+    cls, n = _entry_classes("a b the file is shut when read it x", "a b the file is open when read it x", instr="")
     expect.equal("a note with no instruction: not located", ("AMENDMENT-APPLIED" in cls, n), (False, 1))
-    cls, n = _entry_classes("a b the file is shut when read x", "a b the file is open when read x", page="I-2")
+    cls, n = _entry_classes("a b the file is shut when read it x", "a b the file is open when read it x", page="I-2")
     expect.equal("a page cell no row has: not located", ("AMENDMENT-APPLIED" in cls, n), (False, 1))
-    twin = AMEND_MD + "| I-1 | Replace the sentence the file is open when read. |\n"
+    twin = AMEND_MD + "| I-1 | Replace the sentence the file is open when read it then closed. |\n"
     expect.equal("two rows open alike: ambiguous, not located", D.with_cited_text({5: notes}, {831: AMEND_LAYER}, D.amendment_rows(twin))[1], 1)
     short = "Page No. Change I-1 Replace the sentence".split()
     expect.equal("an entry whose successor the layer does not show: not located",
@@ -234,45 +236,45 @@ def case_14_the_amended_text_is_the_notes_own_entry_of_the_amendment_page(expect
 def case_15_an_insertion_is_anchored_at_its_place_in_the_entry(expect):
     """kb/Work PB6144: a Markdown-only run has no printed side to locate it, so its neighbours must stand around it in the
     note's entry; and the entry ends before the next row's page cell (the round-4 review probes)."""
-    notes = _amendments(_note("the file is shut when read"))
+    notes = _amendments(_note("the file is shut when read it"))
     am, _ = D.with_cited_text({5: notes}, {831: AMEND_LAYER}, D.amendment_rows(AMEND_MD))
 
     def applied(pdf: str, md: str, run: str | None = None, amendments=am[5]) -> bool:
         """The row of the inserted `run` (every row when None) is AMENDMENT-APPLIED."""
         return "AMENDMENT-APPLIED" in [r["class"] for r in _rows(pdf, md, amendments=amendments) if run is None or r["md"] == run]
 
-    expect.equal("a correct one-word insertion still passes", _entry_classes("a b the file is when read x", "a b the file is open when read x"),
+    expect.equal("a correct one-word insertion still passes", _entry_classes("a b the file is when read it x", "a b the file is open when read it x"),
                  (["AMENDMENT-APPLIED"], 0))
-    expect.equal("a correct run of four words still passes", _entry_classes("a b the read x", "a b the file is open when read x"),
+    expect.equal("a correct run of four words still passes", _entry_classes("a the sentence the read it then x", "a the sentence the file is open when read it then x"),
                  (["AMENDMENT-APPLIED"], 0))
     expect.equal("a run of the entry inserted at another place (probe: a misplaced duplicate)",
-                 applied("a b c d e f g h the file is shut when read x", "a b c the file is d e f g h the file is open when read x", "the file is"), False)
-    expect.equal("a run of the entry inserted again after itself", applied("a b the file is shut when read x", "a b the file is open when read the file is x", "the file is"), False)
-    expect.equal("an insertion whose one neighbour only matches", applied("a b the file is when read x", "a b the file is open x read x"), False)
-    expect.equal("an insertion at the page's edge has no anchor", applied("open when read x", "the file is open when read x"), False)
-    expect.equal("a stray next-row page cell", applied("a b the file is shut when read x", "a b the file is open when read 17 x", "17"), False)
-    paged = ("Page No. Change page I-1 Replace the sentence the file is open when read. page I-7 Replace the sentence the record is "
+                 applied("a b c d e f g h the file is shut when read it x", "a b c the file is d e f g h the file is open when read it x", "the file is"), False)
+    expect.equal("a run of the entry inserted again after itself", applied("a b the file is shut when read it x", "a b the file is open when read it the file is x", "the file is"), False)
+    expect.equal("an insertion whose one neighbour only matches", applied("a b the file is when read it x", "a b the file is open x read x"), False)
+    expect.equal("an insertion at the page's edge has no anchor", applied("open when read it x", "the file is open when read it x"), False)
+    expect.equal("a stray next-row page cell", applied("a b the file is shut when read it x", "a b the file is open when read it 17 x", "17"), False)
+    paged = ("Page No. Change page I-1 Replace the sentence the file is open when read it then closed. page I-7 Replace the sentence the record is "
              "closed after the write page I-9 Replace the sentence the key is not valid").split()
     for label, layer in (("a page cell", AMEND_LAYER), ("a page cell printed with `page`", paged)):
         keys = [k for k in (D.fold(w) for w in layer) if k]
         entry = D.entry_text(D.amendment_rows(AMEND_MD)[831], keys, notes[0][2])
-        expect.equal(f"the entry ends before the next row's {label}", entry[-2:], [D.fold("when"), D.fold("read")])
+        expect.equal(f"the entry ends before the next row's {label}", entry[-2:], [D.fold("then"), D.fold("closed")])
     paged_am, _ = D.with_cited_text({5: notes}, {831: paged}, D.amendment_rows(AMEND_MD))
     expect.equal("a stray `page` beside the amended text (probe)",
-                 applied("a b the file is shut when read x", "a b the file is open when read page x", "page", paged_am[5]), False)
+                 applied("a b the file is shut when read it x", "a b the file is open when read it page x", "page", paged_am[5]), False)
     expect.equal("the probes' replacement itself is still applied",
-                 applied("a b the file is shut when read x", "a b the file is open when read page x", "open", paged_am[5]), True)
+                 applied("a b the file is shut when read it x", "a b the file is open when read it page x", "open", paged_am[5]), True)
 
 
 KEY_MD = ("## Page 831\n\n| Page No. | Change |\n|---|---|\n"
-          "| I-1 | Replace the sentence the key is not a name. |\n| I-7 | Replace the sentence the record is closed |\n")
-KEY_LAYER = "Page No. Change I-1 Replace the sentence the key is not a name. I-7 Replace the sentence the record is closed".split()
+          "| I-1 | Replace the sentence the key is not a name at all. |\n| I-7 | Replace the sentence the record is closed |\n")
+KEY_LAYER = "Page No. Change I-1 Replace the sentence the key is not a name at all. I-7 Replace the sentence the record is closed".split()
 
 
 def case_16_a_note_excuses_only_the_block_it_governs(expect):
     """kb/Work PB6144 round 1: a note governs the Markdown block it is attached to (the nearest block above it), and a
     difference outside that block is never AMENDMENT-APPLIED, whatever words the entry holds."""
-    note = _note("the key is a name", instr="Replace the sentence the key is not a name.")
+    note = _note("the key is a name at all", instr="Replace the sentence the key is not a name at all.")
 
     def classes(pdf: str, md: str, page_md: str | None = None, run: str | None = None) -> list[str]:
         """The classes of the rows of `run` (every row when None); the note sits after the first block of `md`."""
@@ -284,24 +286,114 @@ def case_16_a_note_excuses_only_the_block_it_governs(expect):
         rows = D.classify_page(pdf.split(), words, [], D.Lexicon.of(CORPUS), amendments=am[5])
         return [r["class"] for r in rows if run is None or r["md"] == run]
 
-    printed = "a b the key is a name x c d this item is a name y"
+    printed = "a b the key is a name at all x c d this item is a name y"
     expect.equal("the control: the amended sentence in the governed block",
-                 classes(printed, "a b the key is not a name x\n\nc d this item is a name y"), ["AMENDMENT-APPLIED"])
+                 classes(printed, "a b the key is not a name at all x\n\nc d this item is a name y"), ["AMENDMENT-APPLIED"])
     expect.equal("the reviewer's probe: `not` gained by the look-alike in another block",
-                 "AMENDMENT-APPLIED" in classes(printed, "a b the key is a name x\n\nc d this item is not a name y", run="not"), False)
+                 "AMENDMENT-APPLIED" in classes(printed, "a b the key is a name at all x\n\nc d this item is not a name y", run="not"), False)
     expect.equal("the look-alike changed as well as the amended sentence: only the governed one is applied",
-                 classes(printed, "a b the key is not a name x\n\nc d this item is not a name y"), ["AMENDMENT-APPLIED", "UNCOVERED"])
+                 classes(printed, "a b the key is not a name at all x\n\nc d this item is not a name y"), ["AMENDMENT-APPLIED", "UNCOVERED"])
     expect.equal("the amended sentence in a block the note does not follow",
-                 "AMENDMENT-APPLIED" in classes("c d this item is a name y a b the key is a name x",
-                                                "c d this item is a name y\n\na b the key is not a name x"), False)
+                 "AMENDMENT-APPLIED" in classes("c d this item is a name y a b the key is a name at all x",
+                                                "c d this item is a name y\n\na b the key is not a name at all x"), False)
     expect.equal("a note at the top of its page governs nothing",
-                 _amendments(page=PAGE + note + "\n\na b the key is not a name x\n")[0][3], None)
+                 _amendments(page=PAGE + note + "\n\na b the key is not a name at all x\n")[0][3], None)
     expect.equal("a note past another note governs the block above both",
                  _amendments(page=PAGE + "one\ntwo\n\n" + _note("other") + "\n\n" + note + "\n")[1][3], (3, 4))
     expect.equal("a figure is one block, blank lines and all",
                  _amendments(page=PAGE + "<pre>\nA\n\nB\n</pre>\n\n" + note + "\n")[0][3], (3, 7))
     expect.equal("a fenced figure is one block too",
                  _amendments(page=PAGE + "```\nA\n\nB\n```\n" + note + "\n")[0][3], (3, 7))
+
+
+def case_17_an_insertion_is_anchored_on_the_entrys_own_run_inside_a_wide_block(expect):
+    """kb/Work PB6204: inside one governed block a neighbour word a side is no place; the insertion needs ANCHOR (three)
+    words of the entry's own run on each side. The probe is one wide paragraph where `is` and `a` stand around `not` in
+    the amended sentence and again in a sentence the Amendment does not touch."""
+    note = _note("the key is a name at all", instr="Replace the sentence the key is not a name at all.")
+    printed = "a b the key is a name at all x c d this item is a name y"
+
+    def applied(md: str, run: str = "not") -> bool:
+        page = PAGE + md + "\n\n" + note + "\n"
+        am, _ = D.with_cited_text({5: _amendments(page=page)}, {831: KEY_LAYER}, D.amendment_rows(KEY_MD))
+        words = [(w, False, n) for w, _, n in D.markdown_pages(page)[5]]
+        rows = D.classify_page(printed.split(), words, [], D.Lexicon.of(CORPUS), amendments=am[5])
+        return "AMENDMENT-APPLIED" in [r["class"] for r in rows if r["md"] == run]
+
+    expect.equal("the control: the amended sentence's own insertion", applied("a b the key is not a name at all x c d this item is a name y"), True)
+    expect.equal("the probe: `not` in a sentence the Amendment does not touch, in the same block",
+                 applied("a b the key is a name at all x c d this item is not a name y"), False)
+    expect.equal("the entry's words on the left only", applied("a b the key is not a thing at all x c d this item is a name y"), False)
+    expect.equal("the entry's words on the right only", applied("a b my key is not a name at all x c d this item is a name y"), False)
+    expect.equal("fewer than three words of the page on a side", applied("key is not a name at all x c d this item is a name y"), False)
+    expect.equal("the anchor is three words", D.ANCHOR, 3)
+
+
+def _table_classes(pdf: str, md: str):
+    """The classes of a planted page whose table headers are read from its Markdown (`table_header_groups`)."""
+    page = PAGE + md + "\n"
+    words = [(w, False, n) for w, _, n in D.markdown_pages(page)[5]]
+    lex = D.Lexicon.of(CORPUS + "ELEMENT STD 2ND 3RD ELEMENT STD 2ND 3RD".split())  # the document spells its header words many times
+    return sorted(r["class"] for r in D.classify_page(pdf.split(), words, [], lex, headers=D.table_header_groups(page).get(5)))
+
+
+def case_18_a_table_header_the_layer_reads_in_another_order_is_one_reading(expect):
+    """kb/Work PB6135: a header cell that wraps is read line by line across the columns by the layer. The leftover words
+    beside the header row must be the same words, as a bag, as the header row's leftover words in the Markdown."""
+    pipe = "| ELEMENT | 2ND STD | 3RD STD |\n|---|---|---|\n| name | file | open |"
+    expect.equal("the header groups are the header row's line", D.table_header_groups(PAGE + pipe + "\n"), {5: [(3, 3)]})
+    expect.equal("a header cell wrapped to rows: the layer's order is one reading",
+                 _table_classes("2ND 3RD ELEMENT STD STD name file open", pipe), ["TABLE-HEADER"])
+    expect.equal("the same words, in the Markdown's own order, are no difference", _table_classes("ELEMENT 2ND STD 3RD STD name file open", pipe), [])
+    expect.equal("a header word the layer reads as another word is not a reading",
+                 "TABLE-HEADER" in _table_classes("2ND 3RD ELEMENT STD FOR name file open", pipe), False)
+    expect.equal("a header word the layer lacks is not a reading", "TABLE-HEADER" in _table_classes("2ND ELEMENT STD STD name file open", pipe), False)
+    expect.equal("a header word the layer has twice is not a reading", "TABLE-HEADER" in _table_classes("2ND 3RD ELEMENT STD STD STD name file open", pipe), False)
+    expect.equal("a body row is no header: the same words are unexplained",
+                 "TABLE-HEADER" in _table_classes("name file open note 2ND STD", "| name | file | open |\n|---|---|---|\n| 2ND STD | note |"), False)
+    expect.equal("no table, no header", "TABLE-HEADER" in _table_classes("2ND 3RD ELEMENT STD STD", "ELEMENT 2ND STD 3RD STD"), False)
+    expect.equal("a stray header word far from the header is no part of it",
+                 "TABLE-HEADER" in _table_classes("2ND ELEMENT STD name file open " + "x " * 8 + "3RD STD",
+                                                  pipe + "\n" + " ".join("x" for _ in range(8))), False)
+    html = "<table>\n<tr>\n<th>ELEMENT</th>\n<th>2ND<br>STD</th>\n</tr>\n<tr>\n<th>3RD STD</th>\n</tr>\n<tr><td>name</td><td>file</td></tr>\n</table>"
+    expect.equal("`<th>` rows with only tags between them are one header group", D.table_header_groups(PAGE + html + "\n"), {5: [(5, 9)]})
+    expect.equal("a wrapped HTML header read in another order", _table_classes("2ND 3RD ELEMENT STD STD name file", html), ["TABLE-HEADER"])
+    expect.equal("a body row between header rows ends the group",
+                 D.table_header_groups(PAGE + "<tr><th>a</th></tr>\n<tr><td>b</td></tr>\n<tr><th>c</th></tr>\n"), {5: [(3, 3), (5, 5)]})
+
+
+def case_19_a_marker_renumbered_by_one_offset_with_the_text_equal(expect):
+    """kb/Work PB6135: the transcription numbers footnotes (and rules) higher than the print, after an Amendment's insertion;
+    each marker needs the words beside it equal, one positive offset per shape that never falls, and a second marker of the
+    page at that offset."""
+    base = "alpha beta {0} the file is open {1} the name is open {2} corner of the file"
+    print_ = base.format("(1)", "(2)", "(3)")
+
+    def classes(md: str, pdf: str = print_) -> list[str]:
+        return _classes(pdf, md)
+
+    expect.equal("three markers one higher: one reading each",
+                 classes(base.format("(2)", "(3)", "(4)")), ["FOOTNOTE-RENUMBERED"] * 3)
+    expect.equal("the markers unchanged are no difference", classes(print_), [])
+    expect.equal("a lone renumbered marker is not a renumbering", classes(base.format("(1)", "(2)", "(4)")), ["UNEXPLAINED"])
+    expect.equal("a marker numbered lower than the print is no renumbering", classes(base.format("(0)", "(1)", "(2)")), ["UNEXPLAINED"] * 3)
+    expect.equal("an offset that falls on the page", classes(base.format("(2)", "(4)", "(4)")).count("FOOTNOTE-RENUMBERED"), 0)
+    expect.equal("the offset that rises is still a renumbering", classes(base.format("(2)", "(3)", "(5)")).count("FOOTNOTE-RENUMBERED"), 2)
+    expect.equal("words beside the marker that differ",
+                 classes(base.format("(2)", "(3)", "(4)").replace("the name is open", "my name is open")).count("FOOTNOTE-RENUMBERED"), 2)
+    expect.equal("a marker of another shape is not the same marker", classes(base.format("2.", "(3)", "(4)")).count("FOOTNOTE-RENUMBERED"), 2)
+    expect.equal("a word that is another word in the hunk",
+                 classes(base.format("(2) file", "(3)", "(4)")).count("FOOTNOTE-RENUMBERED"), 2)
+    d = "alpha beta (1) file-name-l. the file is open (2) the name is open (3) corner"
+    expect.equal("the layer's damaged word beside the marker is the same reading",
+                 classes("alpha beta (2) file-name-1. the file is open (3) the name is open (4) corner", d), ["FOOTNOTE-RENUMBERED"] * 3)
+    expect.equal("a hunk at the page's edge has no word beside it", classes("(2) the file", "(1) the file"), ["UNEXPLAINED"])
+    expect.equal("rules numbered `n.` are a shape of their own",
+                 classes("alpha 5. the file is open 6. the name is open 7. corner", "alpha 3. the file is open 4. the name is open 5. corner"),
+                 ["FOOTNOTE-RENUMBERED"] * 3)
+    expect.equal("two shapes, each with its own offset, in one hunk",
+                 classes("alpha 8. (3) the file is open 9. (4) corner", "alpha 7. (1) the file is open 8. (2) corner"),
+                 ["FOOTNOTE-RENUMBERED"] * 2)
 
 
 if __name__ == "__main__":

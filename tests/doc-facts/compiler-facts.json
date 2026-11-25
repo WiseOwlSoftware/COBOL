@@ -96,7 +96,7 @@
     },
     {
       "id": "currency-picture-symbol-literal-alphanumeric-and-unique",
-      "vcrRow": "7.127",
+      "vcrRow": "7.128",
       "changedIn": 2014
     },
     {
@@ -256,7 +256,7 @@
     },
     {
       "id": "prototype-special-names-admit-alphabet-and-symbolic",
-      "vcrRow": "7.128",
+      "vcrRow": "7.127",
       "changedIn": 2023
     },
     {

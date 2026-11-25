@@ -1,1 +1,1 @@
-{"refuse-at": ["85"], "expect": "COBOL0001"}
+{"refuse-at": ["85"], "expect": "ends the SEND statement where an operand is still due"}
