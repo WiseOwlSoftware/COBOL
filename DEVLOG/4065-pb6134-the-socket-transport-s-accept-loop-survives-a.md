@@ -1,4 +1,4 @@
-## PB6134: the socket transport's accept loop survives a connection it cannot adopt, and a non-observation reports both processes
+## Entry 4065 — 2026-11-25 03:27 PST — PB6134: the socket transport's accept loop survives a connection it cannot adopt, and a non-observation reports both processes
 
 PB6134 filed a messaging requestor whose SEND never returned in a full gate (MessagingProcessTests, EC-MCS-MESSAGE-LENGTH case, 120 s, no SENT line). Not reproduced: 8 concurrent
 runs of the class on the wave's build, 8 x 25/25 green.
@@ -13,3 +13,4 @@ The note's other ask: `LiveProcess` pumps stdout into a queue, and a `HarnessNon
 companion (`MessagingProcessTests.Start`). `LiveProcessTests` witnesses the queue. The gate's failure is not proven to be the accept-loop mechanism; a recurrence now says what both processes printed.
 
 No inventory row closes (`closes_rows: []`). No diagnostic codes used.
+
