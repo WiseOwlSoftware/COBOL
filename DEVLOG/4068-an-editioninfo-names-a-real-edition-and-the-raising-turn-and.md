@@ -1,4 +1,4 @@
-## An EditionInfo names a real edition, and the RAISING, TURN and word-character messages cite the edition compiled at (PB6082, PB6175)
+## Entry 4068 — 2026-11-25 04:32 PST — An EditionInfo names a real edition, and the RAISING, TURN and word-character messages cite the edition compiled at (PB6082, PB6175)
 
 Wave 20262171 group I, one root: the edition value and the citations it chooses.
 
@@ -33,3 +33,4 @@ only when a diagnostic is reported). Left as leads: the 2014 word-character tabl
 where 2014's GR4b makes its special and combining characters medial; the identifier-1 message's trailing "GR1 b) 2." and COBOL0717's
 "Table 13" are 2023 numbering; GOBACK RAISING at 2002 rests on reading GR1 as importing EXIT PROGRAM's syntax rules; some
 `CiteRule` calls (about a dozen, listed in the report) pass another edition's rule as an edition argument.
+
