@@ -1366,7 +1366,7 @@ result does not feed it — decision 20.
   implicit **SET** rather than the MOVE path: `InitializeSetNull` for GR6a1/GR6a2 and GR6c's NULL rows,
   `InitializeSetFrom` for GR6b's `SET receiver TO identifier-2`, each rendered exactly as the explicit SET statement
   renders that operand pair. A GR6b `InitializeSetFrom` is held to the SET rules of its RECEIVING OPERAND, asked at
-  the receiver (kb/Work PB3817): `SetBinder.ScreenImplicitSet` applies §2023:14.9.39.3 SR19 (restricted data-pointer),
+  the receiver (kb/Work PB3817): `SetPointerBinder.ScreenImplicitSet` applies §2023:14.9.39.3 SR19 (restricted data-pointer),
   SR20 (function-pointer signature), SR22 (restricted program-pointer, §2023:13.18.60.4 GR25) and SR12 (an object
   reference's class) per elementary receiver, because `INITIALIZE g REPLACING PROGRAM-POINTER DATA BY x` reaches
   every program-pointer of `g`, each restricted on its own; the phrase-level check (SR4) only sees the category.

@@ -13,7 +13,7 @@ namespace WiseOwl.Cobol.Binding.Model;
 /// resolved <see cref="DataItem"/>s, and (until PHASE 15's D10) transitional index/offset strings — never C# render
 /// text. The C# read/write text is produced by <c>CodeGen.PlaceRenderer</c> (P7 Step 11); the binder never renders.
 /// </summary>
-public abstract record Place
+public closed record Place
 {
     /// <summary>The analyzed PICTURE of the location (<see langword="null"/> for a group item).</summary>
     public abstract PicInfo? Pic { get; }
@@ -203,7 +203,7 @@ public abstract record Place
 /// forward (the DESIGN §2.2 item-1 derive list was over-inclusive on that member). The backend
 /// <c>CodeGen.PlaceRenderer</c> renders each decorator's transformed access (a plain decorator renders as its inner).
 /// </summary>
-public abstract record PlaceDecorator(Place Inner) : Place
+public closed record PlaceDecorator(Place Inner) : Place
 {
     /// <inheritdoc/>
     public override PicInfo? Pic => Inner.Pic;
@@ -446,7 +446,7 @@ public sealed record RedefViewPlace(AccessPath Backing, Position Offset, int Wid
 /// carrier IS its bytes. Every coding keeps the window's byte geometry (<see cref="RedefViewPlace.Offset"/>
 /// and <see cref="RedefViewPlace.Width"/>, in bytes); a coding that also re-expresses the geometry in a finer
 /// unit carries it itself, as <see cref="BitWindow"/> does.</summary>
-public abstract record WindowCoding;
+public closed record WindowCoding;
 
 /// <summary>A <see cref="RedefViewPlace"/>'s BIT window: the 0-based ABSOLUTE bit offset within the class's one
 /// byte backing (a typed position) and the member's boolean-position count
@@ -507,7 +507,7 @@ public sealed record NationalWindow(int Positions) : WindowCoding
 /// <see cref="RedefViewPlace.Backing"/>. ⛔ ONE BASE, so every consumer that rewrites the cell path of a place (the
 /// statement-local hoist, <c>PlaceIdentification.FreezeView</c>) rewrites EVERY cell-carrying coding with one expression
 /// — a coding added later cannot be forgotten there (kb/Work PB1026 added two).</summary>
-public abstract record CellWindowCoding(AccessPath Cell) : WindowCoding;
+public closed record CellWindowCoding(AccessPath Cell) : WindowCoding;
 
 /// <summary>A <see cref="RedefViewPlace"/>'s MANAGED-SLOT window (kb/Work PB231 — the pointer third): the member
 /// is of a pointer class, whose value is a managed reference and therefore has no byte image at all. Its bytes in
@@ -883,7 +883,7 @@ public sealed record TableAllPlace(Place Element, LocalVector Indices, IReadOnly
 /// <summary>The RANGE of one ALL subscript level of a <see cref="TableAllPlace"/> (ISO §2023:15.3) — structural, so the
 /// backend renders it: a fixed OCCURS count, an OCCURS DEPENDING table's current count, or a dynamic-capacity table's
 /// current capacity.</summary>
-public abstract record AllCount
+public closed record AllCount
 {
     /// <summary>The places the count READS to give its range: the OCCURS DEPENDING ON item, the capacity register — none for a fixed count. A
     /// statement that holds a count holds these for its meaning, never because the program wrote them (X3.23-1985 USE FOR DEBUGGING

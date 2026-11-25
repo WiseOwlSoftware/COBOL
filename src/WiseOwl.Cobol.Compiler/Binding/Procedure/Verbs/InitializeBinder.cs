@@ -652,9 +652,9 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
                     // first place the restricted program-/function-/data-pointer receiver is in hand. §2023:13.18.60.4
                     // GR23/GR25/GR26 forbid it to hold anything but NULL or an address of its type; the implicit SET
                     // is the store GR4 describes, so §2023:14.9.39.3 SR19/SR20/SR22 hold it, and SR10/SR12 an object
-                    // reference's class (SetBinder.ScreenImplicitSet).
+                    // reference's class (SetPointerBinder.ScreenImplicitSet).
                     BoundFieldOperand { Place: var sp } =>
-                        host.Set.ScreenImplicitSet(cur.ToPlace(), sp,
+                        host.Set.Pointer.ScreenImplicitSet(cur.ToPlace(), sp,
                             $"INITIALIZE REPLACING {InitializeCategories.Spelling(cat)} DATA BY '{sp.Item.CobolName}'")
                             ? new InitializeSetFrom(cur.ToPlace(), sp) : null,
                     // `REPLACING … BY NULL` (kb/Work PB1427): GR4's SET receiving-operand TO NULL — the same

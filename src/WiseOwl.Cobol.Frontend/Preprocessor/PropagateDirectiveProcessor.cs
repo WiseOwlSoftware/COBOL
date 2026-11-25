@@ -1,7 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Editions;
-using WiseOwl.Cobol.Frontend.Common;
 
 namespace WiseOwl.Cobol.Frontend.Preprocessor;
 
@@ -44,28 +43,8 @@ public static class PropagateDirectiveProcessor
     /// <paramref name="stackOps"/> are the PUSH/POP directives of the same text, replayed over the toggles
     /// (§2023:7.3.20 / §2023:7.3.22; kb/Work PB941). Line-count preserving.</summary>
     public static (string Text, DirectiveTimeline<PropagateEvent> Events) Process(
-        string text, IReadOnlyList<DirectiveStackOp>? stackOps = null)
-    {
-        if (!text.Contains(">>", StringComparison.Ordinal)) return (text, DirectiveTimeline<PropagateEvent>.Empty);
-        var lines = text.Split('\n');
-        var events = new DirectiveEventLog<PropagateEvent>();
-        for (int i = 0; i < lines.Length; i++)
-        {
-            // The ONE compiler-directive line parse (kb/Work PB794) — which also removes the §2023:7.3.3 SR3/SR4
-            // inline comment, so `>>PROPAGATE ON *> on` is legal source.
-            if (!CompilerDirectiveLine.TryParse(lines[i], Keyword, out string operand)) continue;
-
-            // Neither the EDITION nor the OPERAND is decided here: the introduction gate fired at the ONE
-            // directive-recognition point (CompilerDirectiveCatalog, from the propagate-directive-2002 row — kb/Work
-            // PB725) and §2023:7.3.21.2's { ON | OFF } is that row's directiveOperand column (COBOL1911, kb/Work PB794).
-            // A malformed operand was reported there and changes no state here.
-            if (CompilerDirectiveCatalog.TryOperandWord(Keyword, operand, out string word)
-                && word is "" or "ON" or "OFF")
-                events.Add(Constructs.PropagateDirective2002, i + 1, new PropagateEvent(i + 1, word != "OFF"));
-            lines[i] = "";   // blank, never delete — line-count preserving (the >>TURN H3 discipline)
-        }
-        return (string.Join('\n', lines), events.ToTimeline(stackOps ?? []));
-    }
+        string text, IReadOnlyList<DirectiveStackOp>? stackOps = null) =>
+        OnOffDirectiveStage.Collect(text, Keyword, Constructs.PropagateDirective2002, (line, on) => new PropagateEvent(line, on), stackOps);
 
     /// <summary>The compiler-directive word this stage owns (ISO §2023:7.3.21; the <c>propagate-directive-2002</c>
     /// row's single <c>directiveWords</c> entry).</summary>

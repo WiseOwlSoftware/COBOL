@@ -510,7 +510,7 @@
       "WiseOwl.Cobol.Binding.Procedure.ReportWriterBinder",
       "WiseOwl.Cobol.Binding.Procedure.SearchBinder",
       "WiseOwl.Cobol.Binding.Procedure.SendingValueTemp",
-      "WiseOwl.Cobol.Binding.Procedure.SetBinder",
+      "WiseOwl.Cobol.Binding.Procedure.SetIndexBinder",
       "WiseOwl.Cobol.Binding.Procedure.StringUnstringBinder",
       "WiseOwl.Cobol.Binding.Procedure.UdfBinder",
       "WiseOwl.Cobol.Binding.ReferenceResolver",
@@ -639,7 +639,7 @@
       "WiseOwl.Cobol.Binding.Procedure.ExpressionBinder",
       "WiseOwl.Cobol.Binding.Procedure.InspectBinder",
       "WiseOwl.Cobol.Binding.Procedure.IntrinsicBinder",
-      "WiseOwl.Cobol.Binding.Procedure.SetBinder",
+      "WiseOwl.Cobol.Binding.Procedure.SetLocaleBinder",
       "WiseOwl.Cobol.Binding.Procedure.SortMergePhraseBinder",
       "WiseOwl.Cobol.Binding.Procedure.WhenPhraseBinder",
       "WiseOwl.Cobol.Binding.ReportSectionBinder",
@@ -1120,7 +1120,7 @@
     "WiseOwl.Cobol.Binding.SpecialNamesBinder::ResolveLocaleName": [
       "WiseOwl.Cobol.Binding.DataBinder",
       "WiseOwl.Cobol.Binding.Procedure.IntrinsicBinder",
-      "WiseOwl.Cobol.Binding.Procedure.SetBinder"
+      "WiseOwl.Cobol.Binding.Procedure.SetLocaleBinder"
     ],
     "WiseOwl.Cobol.Binding.SpecialNamesBinder::SymbolicOf": [
       "WiseOwl.Cobol.Binding.DataBinder",

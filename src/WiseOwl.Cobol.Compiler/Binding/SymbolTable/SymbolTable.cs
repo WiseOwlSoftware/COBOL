@@ -59,21 +59,38 @@ public sealed partial class SymbolTable
     private bool TryResolve(string name, Scope scope, out List<DataItem> items)
     {
         var key = Key(name);
+        bool declared = TryNearestTable(key, name, scope, static own => own.DataNames, _dataNames, out var found, out var tier);
+        items = declared ? WithLapsedTypeMembers(key, found, tier) : found;   // the tier's own type declarations (kb/Work PB3192)
+        return declared;
+    }
+
+    /// <summary>⛔ THE ONE METHOD-OVERLAY PRECEDENCE of a name class the method and its element both declare (kb/Work PB2157, census
+    /// R0-0055): in a method (<paramref name="scope"/>), the method's own <paramref name="methodTable"/> entry of
+    /// <paramref name="key"/> answers first (§2023:11.7.4 GR5 "the use of that word in this method refers to the declaration in this
+    /// method"), and a method declaration of the spelling in ANOTHER name class (<see cref="MethodDeclaresWord"/>) leaves nothing;
+    /// otherwise the element's <paramref name="elementTable"/> entry answers. <paramref name="tier"/> is the method whose table
+    /// answered, or null for the element's, so the caller adds that tier's lapsed type members. False, with an empty
+    /// <paramref name="found"/>, when neither tier holds the name.</summary>
+    private bool TryNearestTable<T>(CobolName key, string name, Scope scope,
+        Func<MethodNames, Dictionary<CobolName, List<T>>> methodTable, Dictionary<CobolName, List<T>> elementTable,
+        out List<T> found, out OoMethodDataScope? tier)
+    {
         if (scope.Method is { } m)
         {
-            if (_methodNames.TryGetValue(m, out var own) && own.DataNames.TryGetValue(key, out var mlist) && mlist.Count > 0)
+            if (_methodNames.TryGetValue(m, out var own) && methodTable(own).TryGetValue(key, out var mlist) && mlist.Count > 0)
             {
-                items = WithLapsedTypeMembers(key, mlist, m);   // the method's own type declarations (kb/Work PB3192)
+                (found, tier) = (mlist, m);
                 return true;
             }
-            if (MethodDeclaresWord(m, name)) { items = []; return false; }
+            if (MethodDeclaresWord(m, name)) { (found, tier) = ([], null); return false; }
         }
-        if (_dataNames.TryGetValue(key, out var list) && list.Count > 0)
+        tier = null;
+        if (elementTable.TryGetValue(key, out var list) && list.Count > 0)
         {
-            items = WithLapsedTypeMembers(key, list, null);
+            found = list;
             return true;
         }
-        items = [];
+        found = [];
         return false;
     }
 
@@ -176,25 +193,10 @@ public sealed partial class SymbolTable
     private bool TryResolveCondition(string name, Scope scope, out List<Condition88> conds)
     {
         var key = Key(name);
-        if (scope.Method is { } m)
-        {
-            if (_methodNames.TryGetValue(m, out var own) && own.ConditionNames.TryGetValue(key, out var mlist) && mlist.Count > 0)
-            {
-                conds = WithLapsedTypeConditions(key, mlist, m);   // the method's own type declarations (kb/Work PB3192)
-                return true;
-            }
-            if (MethodDeclaresWord(m, name)) { conds = []; return false; }
-        }
-        if (_conditionNames.TryGetValue(key, out var list) && list.Count > 0)
-        {
-            conds = WithLapsedTypeConditions(key, list, null);
-            return true;
-        }
-        conds = [];
-        return false;
+        bool declared = TryNearestTable(key, name, scope, static own => own.ConditionNames, _conditionNames, out var found, out var tier);
+        conds = declared ? WithLapsedTypeConditions(key, found, tier) : found;   // the tier's own type declarations (kb/Work PB3192)
+        return declared;
     }
-
-
 
     /// <summary>⛔ ISO §2023:8.4.6.2.1 GR3 FOR A NAME CLASS THAT THE ORDINARY LOOKUPS DO NOT RANK — an index-name
     /// (<c>IndexCandidates</c>) or a named CAPACITY register (<c>ReferenceResolver.CapacityRegisterFor</c>), resolved before the

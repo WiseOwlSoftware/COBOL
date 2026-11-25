@@ -112,7 +112,7 @@ STRING_LITERAL = re.compile(r'"((?:[^"\\]|\\.)*)"')
 #: prose declares no type. Every test source uses a file-scoped namespace, so a TOP-LEVEL type (the helper classes a
 #: drift test may read the tree through, `Sources`, kb/Work PB3247) has no indent; a removed one, nested or not, is what
 #: a register's dotted citation can name (`declared_types`, kb/Work PB3131 review R1-1).
-TYPE_DECL = re.compile(r"^([ \t]*)((?:(?:public|private|protected|internal|static|sealed|abstract|partial|readonly|"
+TYPE_DECL = re.compile(r"^([ \t]*)((?:(?:public|private|protected|internal|static|sealed|abstract|closed|partial|readonly|"
                        r"file|ref|unsafe|new)[ \t]+)*)(?:class|struct|interface|enum|record(?:[ \t]+(?:struct|class))?)"
                        r"[ \t]+([A-Za-z_]\w*)", re.M)
 #: A use of a type by name: a member access `T.M`, a construction `new T`, `typeof(T)`, a base type `class C : T`,
@@ -129,7 +129,7 @@ SUMMARY = re.compile(r"///\s*<summary>(.*?)</summary>", re.S)
 #: abstract base such as `FamilyDriftTestsBase` is no test, so neither matches.
 # A DECLARATION, which starts its line (attributes and modifiers before it): a `class XDriftTests {` a drift test PLANTS
 # inside a string literal, mid-line, declares no class of the assembly (kb/Work PB4325 review R1-4).
-CLASS = re.compile(r"^[ \t]*(?:\[[^\]\n]*\][ \t]*)*(?:(?:public|internal|private|protected|sealed|static|partial|abstract|file)\s+)*"
+CLASS = re.compile(r"^[ \t]*(?:\[[^\]\n]*\][ \t]*)*(?:(?:public|internal|private|protected|sealed|static|partial|abstract|closed|file)\s+)*"
                    r"class\s+(\w*DriftTests)(?:_P\d+)?\b", re.MULTILINE)
 CREF = re.compile(r'<(?:see|seealso)\s+(?:cref|langword|href)="(?:[A-Z]:)?([^"]+)"\s*/>')
 PARAMREF = re.compile(r'<(?:paramref|typeparamref)\s+name="([^"]+)"\s*/>')
@@ -644,7 +644,7 @@ CONCURRENT_WORKER = re.compile(r"\bnew Thread\(|\bnew Barrier\(|\bTask\.Run\(|\b
 #: A type declaration and its name. ⛔ `record struct` and `record class` are ONE keyword pair: read as `record` alone
 #: they named a type `struct`, and every concurrent test that says "struct" became a race witness (kb/Work PB3533's
 #: `PhysicalFileIdentity`, the first `record struct` in the sharing layer this pattern reached).
-_TYPE = (r"(?:(?:public|internal|sealed|static|partial|abstract|readonly|ref|file)\s+)*"
+_TYPE = (r"(?:(?:public|internal|sealed|static|partial|abstract|closed|readonly|ref|file)\s+)*"
          r"(?:record\s+(?:class|struct)|class|struct|interface|enum|record)\s+(?P<name>\w+)")
 TYPE_DECLARATION = re.compile(r"^\s*" + _TYPE, re.MULTILINE)
 #: A TOP-LEVEL type: every test source uses a file-scoped namespace, so its top-level types start in column 0 and a

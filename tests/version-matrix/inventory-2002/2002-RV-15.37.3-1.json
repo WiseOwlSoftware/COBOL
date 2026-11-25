@@ -2,7 +2,7 @@
  "rule-id": "2002-RV-15.37.3-1",
  "rule-digest": "1f8585b8ee25",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#AnyRealArgument; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RealMethod; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderFloat; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.RealArgs.cs#CobolIntrinsics; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#IntegerOfDay",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#AnyRealArgument; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderFloat; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.RealArgs.cs#CobolIntrinsics; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#IntegerOfDay; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#Binary64Bodies",
  "test-ref": "conformance:cases/15.46.4-Returned-value-rule/l1_integer_date_form_returned",
- "notes": "Own verdict from the read lineage-reads-2002/u-31.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer RV-15.47.4-1, witnessed at 2002 by the cases test-ref names. The read: As INTEGER-OF-DATE. Cited: §2002:15.37.3 RV1."
+ "notes": "Own verdict from the read lineage-reads-2002/u-31.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer RV-15.47.4-1, witnessed at 2002 by the cases test-ref names. The read: As INTEGER-OF-DATE. Cited: §2002:15.37.3 RV1. retired-witness: src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RealMethod (kb/Work PB2627 replaced the exact-to-binary64 name convention IntrinsicRenderer.RealMethod with the one function-keyed table IntrinsicRenderer.Binary64Bodies, whose bodies are nameof-anchored RuntimeApi constants; the same routing under its new name)"
 }

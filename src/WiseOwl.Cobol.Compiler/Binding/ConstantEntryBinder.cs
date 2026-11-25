@@ -293,7 +293,7 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
         Core.ConstantEntryBodyContext body, string name, int entryLine, string where, bool demanded, out bool waits)
     {
         waits = false;
-        bool isGlobal = body.GLOBAL() is not null;
+        bool isGlobal = body.globalClause() is not null;
         if (body.cobolWord() is { } variable)   // FROM compilation-variable-name-1 (§2023:13.10.2)
             return BindConstantFrom(name, isGlobal, variable, entryLine, where);
         var cv = body.constantValue();

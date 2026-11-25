@@ -177,7 +177,7 @@ internal sealed partial class ControlFlowBinder
             _ = host.Expr.ResolveReceiving(varied);
             return null;
         }
-        if (host.Set.SetTargetOf(dref) is not { } var) return null;
+        if (host.Set.Index.SetTargetOf(dref) is not { } var) return null;
         // §2023:14.9.28.4 GR12: "Item identification for identifier-2, identifier-5, index-name-1, or index-name-3 is done each
         // time the content of the data item referenced by the identifier ... is set or augmented", so ControlFlowEmitter
         // places an object-property induction variable's accessors around each setting and augmenting store, where the

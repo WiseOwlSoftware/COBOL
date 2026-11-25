@@ -128,7 +128,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                     };
                     return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.CallAsNestedContext,
                         $"CALL AS NESTED inside a {noun}: the NESTED phrase may be specified only in a program "
-                        + "definition (ISO §2023:14.9.4.3 SR13)");
+                        + $"definition ({CallSyntaxRules.Rule(ctx.Edition.Edition, 13)})");
                 }
                 // §2023:14.9.4.3 SR15: literal-1 shall be specified, and shall name a COMMON program or a program
                 // directly contained in the calling program.
@@ -136,7 +136,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 {
                     return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.CallAsNestedScope,
                         "CALL AS NESTED: literal-1 shall be specified — the NESTED phrase names a contained or "
-                        + "COMMON program by its PROGRAM-ID literal, not through an identifier (ISO §2023:14.9.4.3 SR15)");
+                        + $"COMMON program by its PROGRAM-ID literal, not through an identifier ({CallSyntaxRules.Rule(ctx.Edition.Edition, 15)})");
                 }
             }
         }
@@ -166,7 +166,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             {
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.CallAsNestedScope,
                     $"CALL AS NESTED \"{nestedName}\": the name shall be a program contained directly within "
-                    + "the calling program, or a visible common program (ISO §2023:14.9.4.3 SR15)");
+                    + $"the calling program, or a visible common program ({CallSyntaxRules.Rule(ctx.Edition.Edition, 15)})");
             }
         }
 
@@ -263,7 +263,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             : $"CALL of program-prototype '{prototype?.Name}'";
         // §2023:14.9.4.3 SR25 is the rule that imports §2023:14.8.2 into a Format-2 CALL (the function-identifier's twin is
         // §2023:8.4.3.2.3 SR13 — UdfBinder).
-        var conformanceSite = new ActivationSite(calleeWhere, "§2023:14.9.4.3 SR25", DiagnosticCatalog.CallArgumentConformance);
+        var conformanceSite = new ActivationSite(calleeWhere, CallSyntaxRules.Clause(ctx.Edition.Edition, 25), DiagnosticCatalog.CallArgumentConformance);
 
         // ── USING arguments — the §2023:14.9.4.4 GR5 TRANSITIVE pass mode: BY REFERENCE is assumed before the
         //    first phrase; each explicit BY REFERENCE / BY CONTENT / BY VALUE phrase applies to every following
@@ -330,9 +330,9 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 // PB1427); BY CONTENT / BY VALUE NULL are the §2023:8.4.3.10.3 SR1a argument the arms below admit.
                 if (byRef.predefinedNull() is not null)
                     return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.CallOperandSection,
-                        "CALL USING BY REFERENCE NULL: ISO §2023:14.9.4.3 SR3 — identifier-2 \"shall reference an "
-                        + "address-identifier or a data item defined in the file, working-storage, local-storage, or "
-                        + "linkage section\", and the predefined address NULL (§2023:8.4.3.10) is neither; pass it BY CONTENT "
+                        $"CALL USING BY REFERENCE NULL: {CallSyntaxRules.Rule(ctx.Edition.Edition, 3)} — identifier-2 \"shall reference an "
+                        + $"address-identifier or {StorageSectionRule.CallUsing(ctx.Edition.Edition).Sections}\", and the predefined address "
+                        + "NULL is neither; pass it BY CONTENT "
                         + "or BY VALUE");
                 if (byRef.receivingIdentifier() is not { } byRefId)
                     return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementFormatShape, "CALL USING BY REFERENCE with neither an identifier nor OMITTED "
@@ -731,8 +731,8 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         {
             if (!formatTwo && mode is not CobolPassMode.Content)
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.CallOperandSection,
-                    $"CALL USING {text}: a function-identifier or inline method invocation references a temporary, not a "
-                    + "data item defined in the file, working-storage, local-storage, or linkage section (ISO §2023:14.9.4.3 SR3), "
+                    $"CALL USING {text}: a function-identifier or inline method invocation references a temporary, not "
+                    + $"{StorageSectionRule.CallUsing(ctx.Edition.Edition).Sections} ({CallSyntaxRules.Rule(ctx.Edition.Edition, 3)}), "
                     + "so it can cross only BY CONTENT");
             var temporaryMode = formatTwo ? NonIdentifierMode() : CobolPassMode.Content;
             if (temporaryMode is CobolPassMode.Value) ValueClassScreen(operand, text);
@@ -762,7 +762,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             if (!ParameterConformance.ArgumentCountConforms(calleeFormals, args.Count, f => f.Optional))
                 ctx.Edition.Error(DiagnosticCatalog.CallArgumentCount,
                     $"{calleeWhere} supplies {args.Count} argument(s) where the program declares "
-                    + $"{calleeFormals.Count} formal parameter(s); ISO §2023:14.8.2.1 requires the counts to be "
+                    + $"{calleeFormals.Count} formal parameter(s); {EditionInfo.Designated(ctx.Edition.Edition.Cite("§2002:14.7.1", "§2023:14.8.2.1", y2002: "§2002:14.7.1", y2014: "§2014:14.8.1"))} requires the counts to be "
                     + "equal, except for trailing formal parameters declared OPTIONAL and omitted");
             for (int i = 0; i < args.Count && i < calleeFormals.Count; i++)
             {
@@ -780,7 +780,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                     if (!f.Optional)
                         ctx.Edition.Error(DiagnosticCatalog.CallOmittedNeedsOptional,
                             $"CALL USING OMITTED at argument {i + 1}: the corresponding formal parameter "
-                            + $"'{f.Item.CobolName}' is not declared OPTIONAL (ISO §2023:14.9.4.3 SR24)");
+                            + $"'{f.Item.CobolName}' is not declared OPTIONAL ({CallSyntaxRules.Rule(ctx.Edition.Edition, 24)})");
                     continue;
                 }
                 // §2023:14.9.4.3 SR19/SR21 (kb/Work PB133 wave C2): the EXPLICIT phrase's mode must match the
@@ -790,11 +790,11 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                     ctx.Edition.Error(DiagnosticCatalog.CallArgumentMode,
                         $"CALL argument {i + 1} passes {(arg.Mode == CobolPassMode.Content ? "BY CONTENT" : "BY REFERENCE")} "
                         + $"where the corresponding formal parameter '{f.Item.CobolName}' is BY VALUE "
-                        + "(ISO §2023:14.9.4.3 SR19)");
+                        + $"({CallSyntaxRules.Rule(ctx.Edition.Edition, 19)})");
                 else if (arg.Mode is CobolPassMode.Value && !f.ByValue)
                     ctx.Edition.Error(DiagnosticCatalog.CallArgumentMode,
                         $"CALL argument {i + 1} passes BY VALUE where the corresponding formal parameter "
-                        + $"'{f.Item.CobolName}' is not BY VALUE (ISO §2023:14.9.4.3 SR21)");
+                        + $"'{f.Item.CobolName}' is not BY VALUE ({CallSyntaxRules.Rule(ctx.Edition.Edition, 21)})");
                 // §2023:14.8.2.3.2 / §2023:14.8.2.2 (BY REFERENCE) and §2023:14.8.2.3.3 (BY CONTENT / BY VALUE), the address-
                 // identifier's class-pointer paragraph and the restricted-pointer sentence — THE ONE ARGUMENT HALF
                 // OF §2023:14.8.2 (kb/Work PB1418), shared with the function-identifier's §2023:8.4.3.2.3 SR13 lane so the two
@@ -841,16 +841,16 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                     returning is null
                         ? $"{calleeWhere}: the activated program's procedure division header declares "
                           + $"RETURNING '{calleeSig.Returning!.CobolName}' but the CALL statement specifies no "
-                          + "RETURNING item (ISO §2023:14.8.3.1 — one shall be specified if and only if the "
+                          + $"RETURNING item ({ReturningGeneral} — one shall be specified if and only if the "
                           + "activated element specifies one)"
                         : $"{calleeWhere} specifies a RETURNING item but the activated program's procedure "
-                          + "division header declares none (ISO §2023:14.8.3.1)");
+                          + $"division header declares none ({ReturningGeneral})");
             else if (returning is { } rr && calleeSig.Returning is { } cr
                      && (host.Params.ReturningConformanceReason(cr, rr.Item)
                          ?? ParameterConformance.ReturningCarrierResidue(cr, rr)) is { } rwhy)   // kb/Work PB1116, PB1940
                 ctx.Edition.Error(DiagnosticCatalog.CallReturningConformance,
                     $"{calleeWhere} RETURNING '{rr.Item.CobolName}' does not conform to the activated "
-                    + $"program's returning item '{cr.CobolName}': {rwhy} (ISO §2023:14.8.3 via §2023:14.9.4.3 SR25)");
+                    + $"program's returning item '{cr.CobolName}': {rwhy} ({EditionInfo.Designated(CallSyntaxRules.Conformance(ctx.Edition.Edition, returning: true))} via {CallSyntaxRules.Clause(ctx.Edition.Edition, 25)})");
         }
 
         // ── Exception phrases — edition-gated spellings (deep-dive "Edition gating"; VERSION_CHANGE_REFERENCE
@@ -903,7 +903,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>Bind ONE address-identifier argument (ISO §2023:8.4.3.1.2 identifier Format 9; §2023:14.9.4.3 SR3/SR4 —
     /// kb/Work PB239) through the ONE operand binder of each arm — <c>PtrBinder.BindDataAddress</c> for
-    /// §2023:8.4.3.11, <c>SetBinder.BindProgramAddressOperand</c> for §2023:8.4.3.13 — the same binders the SET senders use,
+    /// §2023:8.4.3.11, <c>SetAddressBinder.BindProgramAddressOperand</c> for §2023:8.4.3.13 — the same binders the SET senders use,
     /// so the operand rules (the cell-backing check, §2023:8.4.3.13.3 SR1–SR3) are stated once. Null having reported.
     /// <para>⚠ DETERMINATION — §2023:14.9.4.3 SR10 does not reach it. SR10 bars a Format-1 BY REFERENCE identifier-2
     /// "of class object or pointer", and §2023:8.4.3.11.4 GR1 makes an address-identifier "a unique data item of class
@@ -1113,8 +1113,8 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         return OperandTargetRefusal(name) is { } face
             ? BoundRejected.Report(ctx.Edition, DiagnosticCatalog.CallTargetCategory,
                 $"CALL target '{written}' is {face}; "
-                + ctx.Edition.Edition.CiteRule("§1985:X.5.2.3 SR2 admits an alphanumeric data item whose value can be a program-name",
-                    "§2023:14.9.4.3 SR1 admits an alphanumeric, national, or program-pointer data item"))
+                + ctx.Edition.Edition.Cite("§1985:X.5.2.3 SR2 admits an alphanumeric data item whose value can be a program-name",
+                    $"{CallSyntaxRules.Rule(ctx.Edition.Edition, 1)} admits an alphanumeric, national, or program-pointer data item"))
             : null;
     }
 
@@ -1489,7 +1489,13 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
 
     private void Sr23Refusal(string spelling, string subject) =>
         ctx.Edition.Error(DiagnosticCatalog.CallByValueLiteralKind,
-            $"CALL USING {spelling} with {subject}: literal-2 shall be a NUMERIC literal (ISO §2023:14.9.4.3 SR23)");
+            $"CALL USING {spelling} with {subject}: literal-2 shall be a NUMERIC literal ({CallSyntaxRules.Rule(ctx.Edition.Edition, 23)})");
+
+    /// <summary>The general rule of the returning-item conformance clause, "A returning item shall be specified in the activating
+    /// statement if and only if a returning item is specified in the procedure division header of the activated element", as the
+    /// edition in force numbers it: §2023:14.8.3.1, §2014:14.8.2, §2002:14.7.2.</summary>
+    private string ReturningGeneral =>
+        EditionInfo.Designated(ctx.Edition.Edition.Cite("§2002:14.7.2", "§2023:14.8.3.1", y2002: "§2002:14.7.2", y2014: "§2014:14.8.2"));
 
     /// <summary>The <see cref="Sr23LiteralIsNumeric"/> twin for a literal-alias argument (kb/Work PB1544). A
     /// constant-name is literal-2 by substitution (§2023:13.10.4 GR1) with the SUBSTITUTED literal's class and category
@@ -1501,7 +1507,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
     {
         if (alias.IsNumeric) return;
         ctx.Edition.Error(DiagnosticCatalog.CallByValueLiteralKind,
-            $"CALL USING {alias.Word} with {subject}: the argument is the {alias.Described}, and §2023:14.9.4.3 SR23 "
+            $"CALL USING {alias.Word} with {subject}: the argument is the {alias.Described}, and {CallSyntaxRules.Rule(ctx.Edition.Edition, 23)} "
             + "requires literal-2 to be a numeric literal when it or its corresponding formal parameter is specified "
             + "with the BY VALUE phrase");
     }
@@ -1535,7 +1541,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         if (ParameterConformance.ValueArgumentClass(operand) is not { } actual
             || actual is CobolClass.Numeric or CobolClass.Object or CobolClass.Pointer) return;
         string rule = $"CALL USING BY VALUE operand '{what}' is of class {IntrinsicArgumentRules.ClassNameOf(operand, actual)}; "
-            + "ISO §2023:14.9.4.3 SR22 admits only class numeric, object or pointer by value";
+            + $"{CallSyntaxRules.Rule(ctx.Edition.Edition, 22)} admits only class numeric, object or pointer by value";
         if (ctx.Edition.Permissive)
             ctx.Edition.Warning(DiagnosticCatalog.CallByValueOperandClass, $"{rule}; accepted under --permissive");
         else
@@ -1585,10 +1591,10 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         // (kb/Work PB4901).
         if (ctx.Edition.Edition.Year < 2002)
             host.Params.ScreenSection(p, written, DiagnosticCatalog.CallOperandSection, $"CALL {role}",
-                StorageSectionRule.Cobol85, addressAdmitted: false);
+                StorageSectionRule.CallUsing(ctx.Edition.Edition), addressAdmitted: false);
         else if (isReturning || !formatTwo || mode is CobolPassMode.Reference)
             host.Params.ScreenSection(p, written, DiagnosticCatalog.CallOperandSection, $"CALL {role}",
-                StorageSectionRule.Of2023(isReturning ? "§2023:14.9.4.3 SR7" : "§2023:14.9.4.3 SR3"),
+                isReturning ? StorageSectionRule.CallReturning(ctx.Edition.Edition) : StorageSectionRule.CallUsing(ctx.Edition.Edition),
                 addressAdmitted: !isReturning);
 
         // ⛔ THE ANY LENGTH SCREEN IS EXACTLY AS WIDE AS THE TWO RULES THAT STATE IT (kb/Work PB240):
@@ -1621,7 +1627,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         if (!isReturning && mode is CobolPassMode.Reference && ctx.Data.Oo.IsObjectData(item))
             ctx.Edition.Error(DiagnosticCatalog.CallByReferenceObjectData,
                 $"CALL USING BY REFERENCE '{name}': identifier-2 shall not be defined in the working-storage "
-                + "or file section of a factory or an instance object (ISO §2023:14.9.4.3 SR3)");
+                + $"or file section of a factory or an instance object ({CallSyntaxRules.Rule(ctx.Edition.Edition, 3)})");
 
         // SR10 (Format 1, BY REFERENCE specified or implied).
         if (!isReturning && !formatTwo && mode is CobolPassMode.Reference)
@@ -1634,8 +1640,8 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 : null;
             if (kind is not null)
                 ctx.Edition.Error(DiagnosticCatalog.CallByReferenceOperandKind,
-                    $"CALL USING BY REFERENCE '{name}' is {kind} (ISO §2023:14.9.4.3 SR10 — Format 1 shall pass "
-                    + "neither by reference; the program-prototype CALL admits them under §2023:14.8.2)");
+                    $"CALL USING BY REFERENCE '{name}' is {kind} ({CallSyntaxRules.Rule(ctx.Edition.Edition, 10)} — Format 1 shall pass "
+                    + $"neither by reference; the program-prototype CALL admits them under {CallSyntaxRules.Conformance(ctx.Edition.Edition)})");
         }
 
         // SR12 (Format 1, any mode): no variable-length group (§2023:8.5.1.12.1) — the ONE predicate.
@@ -1655,7 +1661,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         if (!isReturning && !formatTwo && item.IsGroup && DataItem.HasVariableLengthSubordinate(item))
             ctx.Edition.Error(DiagnosticCatalog.CallVariableLengthGroup,
                 $"CALL USING argument '{name}' references a variable-length group (a DYNAMIC LENGTH item or "
-                + "dynamic-capacity table is subordinate to it) — ISO §2023:14.9.4.3 SR12");
+                + $"dynamic-capacity table is subordinate to it) — {CallSyntaxRules.Rule(ctx.Edition.Edition, 12)}");
 
         // SR6 (BY REFERENCE argument) / SR8 (RETURNING): a bit item must sit statically on a byte boundary — the
         // proof the function-identifier's §2023:8.4.3.2.3 SR14 asks too, so it lives in ParameterConformance.

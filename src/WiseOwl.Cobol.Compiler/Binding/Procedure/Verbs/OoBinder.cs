@@ -467,9 +467,16 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         // actual's, so the method is selected in each expansion (§2023:9.3.8.2.4; kb/Work PB2937).
         if (named.IsFormal)
             return OoBindDeferredInvoke(site, $"INVOKE {WrittenSource.Of(dref)} \"{methodName}\"");
+        // A parameterized class the REPOSITORY lists without EXPANDS is a class name this element may not reference outside
+        // the REPOSITORY paragraph: say THAT ground, as the USAGE (COBOL0813) and USE (COBOL0859) arms do (kb/Work PB5676).
+        if (dref.cobolWord() is { } classWord && host.OoClasses?.Names.ParameterizedGround(ctx.Edition.Edition, classWord.GetText(),
+                WrittenSource.Of(dref), ruleCitation: null) is { } ground)
+            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.InvokeMethodNameInvalid, $"INVOKE: {ground}");
         return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.InvokeMethodNameInvalid,
             $"INVOKE: '{WrittenSource.Of(dref)}' is neither a resolvable data item nor a class this source element "
-            + "may reference (ISO §2023:14.9.23.2 — identifier-1 or class-name-1; §2023:8.4.6.4)");
+            + "may reference (" + EditionInfo.Designated(ctx.Edition.Edition.Cite("§2002:14.8.22.1", "§2023:14.9.23.2",
+                y2002: "§2002:14.8.22.1", y2014: "§2014:14.9.22.1")) + " — identifier-1 or class-name-1; "
+            + ctx.Edition.Edition.Cite("§2002:8.4.5.3", "§2023:8.4.6.4", y2002: "§2002:8.4.5.3", y2014: "§2014:8.4.5.3") + ")");
     }
 
     /// <summary>⛔ INVOKE NULL (kb/Work PB1136) — LEGAL source with one run-time meaning. §2023:14.9.23.3 SR1 asks only that
@@ -559,7 +566,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             if (byReference)
             {
                 if (!host.Params.ScreenSection(place, dref, DiagnosticCatalog.InvokeOperandSection, subject,
-                        StorageSectionRule.Of2023("§2023:14.9.23.3 SR9"), addressAdmitted: true))
+                        StorageSectionRule.InvokeUsing(ctx.Edition.Edition), addressAdmitted: true))
                     return false;
                 if (BitLayout.IsBitItem(place.Item))
                     host.Params.ScreenBitAlignment(place, DiagnosticCatalog.InvokeBitAlignment, subject, BitAlignmentStatement.Invoke);
@@ -818,7 +825,8 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                     $"{verb} RETURNING '{WrittenSource.Of(retRef)}': the receiving item shall be a USAGE OBJECT REFERENCE data "
                     + "item (ISO §2023:14.9.23.4 GR8 / §2023:14.8.3.3)");
             ret = rp;
-            if (OoConformance.ObjectRefAssignmentMismatch(host.OoClasses, PicInfo.ObjectReferenceItem(result), rp.Item.Pic)
+            if (OoConformance.ObjectRefAssignmentMismatch(host.OoClasses, PicInfo.ObjectReferenceItem(result), rp.Item.Pic,
+                    OoConformance.SetRules(ctx.Edition.Edition))
                 is { } err)
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.InvokeBaseClassMethodRule,
                     $"{verb} RETURNING '{WrittenSource.Of(retRef)}': {err} (ISO §2023:14.8.3.3 rule 1)");
@@ -1083,7 +1091,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
     {
         string subject = methodName is null ? "INVOKE RETURNING item" : $"INVOKE \"{methodName}\" RETURNING item";
         if (!host.Params.ScreenSection(rp, retRef, DiagnosticCatalog.InvokeOperandSection, subject,
-                StorageSectionRule.Of2023("§2023:14.9.23.3 SR11"), addressAdmitted: false))
+                StorageSectionRule.InvokeReturning(ctx.Edition.Edition), addressAdmitted: false))
             return false;
         if (BitLayout.IsBitItem(rp.Item))
             host.Params.ScreenBitAlignment(rp, DiagnosticCatalog.InvokeBitAlignment, subject, BitAlignmentStatement.Invoke);
@@ -1238,7 +1246,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                 Err($"SELF for ACTIVE-CLASS formal '{formal.CobolName}': the method is invoked with "
                     + $"{invokedWith.Spelled}, not with SELF, SUPER or an ACTIVE-CLASS reference, and the other "
                     + "alternative's receiver is described ONLY, which admits no SELF sender (ISO §2023:14.8.2.3.3; "
-                    + "§2023:14.9.39.3 SR12c.1)");
+                    + $"{OoConformance.SetRules(ctx.Edition.Edition)} SR12c.1)");
                 selfConforms = false;
             }
             foreach (string why in SelfSenderRefusals(formal.Pic.ObjectRef ?? ObjectRefDescriptor.Universal, selfClass))
@@ -1434,7 +1442,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             if (byReference)
             {
                 if (!host.Params.ScreenSection(place, dref!, DiagnosticCatalog.InvokeOperandSection,
-                        $"{verb} \"{methodName}\" USING argument", StorageSectionRule.Of2023("§2023:14.9.23.3 SR9"), addressAdmitted: true))
+                        $"{verb} \"{methodName}\" USING argument", StorageSectionRule.InvokeUsing(ctx.Edition.Edition), addressAdmitted: true))
                     return null;
                 if (BitLayout.IsBitItem(place.Item))
                     host.Params.ScreenBitAlignment(place, DiagnosticCatalog.InvokeBitAlignment,
@@ -1452,7 +1460,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             // item it windows, and there is no second comparator for it here.
             if (byReference)
             {
-                if (ByReferenceArgumentReason(place, oof, host.OoClasses, invokedWith) is { } why)
+                if (ByReferenceArgumentReason(place, oof, host.OoClasses, invokedWith, OoConformance.SetRules(ctx.Edition.Edition)) is { } why)
                 {
                     Err($"USING argument '{argText}' does not match or conform to formal parameter "
                         + $"'{formal.CobolName}' BY REFERENCE: {why}"
@@ -1718,7 +1726,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             // compiler temporary is refused rather than passed BY CONTENT.
             if (!host.Params.ScreenSection(p, dref, DiagnosticCatalog.InvokeOperandSection,
                     "INVOKE USING argument (through a universal object reference, BY REFERENCE by SR6)",
-                    StorageSectionRule.Of2023("§2023:14.9.23.3 SR9"), addressAdmitted: true))
+                    StorageSectionRule.InvokeUsing(ctx.Edition.Edition), addressAdmitted: true))
                 return BoundRejected.Reported(ctx.Edition);
             if (BitLayout.IsBitItem(p.Item))
                 host.Params.ScreenBitAlignment(p, DiagnosticCatalog.InvokeBitAlignment, "INVOKE USING argument",
@@ -1792,7 +1800,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                     yield return
                         $"the {(host.OoInFactory ? "factory" : "instance")} "
                         + $"definition of class '{cur.Name}' does not IMPLEMENT interface '{tiface.Name}' "
-                        + $"(ISO §2023:14.9.39.3 SR10d{(host.OoInFactory ? 1 : 2)})";
+                        + $"({EditionInfo.Designated(OoConformance.SetRules(ctx.Edition.Edition))} SR10d{(host.OoInFactory ? 1 : 2)})";
                 yield break;
 
             case ObjectRefKind.ObjectClass:
@@ -1801,13 +1809,13 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                 if (rd.Only)
                     yield return
                         $"the receiving item is described with the ONLY phrase, so SELF is not "
-                        + "a permitted sending operand (ISO §2023:14.9.39.3 SR12c.1)";
+                        + $"a permitted sending operand ({EditionInfo.Designated(OoConformance.SetRules(ctx.Edition.Edition))} SR12c.1)";
                 // c)2. — the class containing the SET statement shall be the receiver's class or a
                 // subclass of it.
                 else if (!relationTurnsOnFormal && host.OoClasses?.Names.ClassOf(rd) is { } tcls && !cur.ConformsTo(tcls))
                     yield return
                         $"class '{cur.Name}' is not '{tcls.Name}' or a "
-                        + "subclass of it (ISO §2023:14.9.39.3 SR12c.2)";
+                        + $"subclass of it ({EditionInfo.Designated(OoConformance.SetRules(ctx.Edition.Edition))} SR12c.2)";
                 // c)3./c)4. — the FACTORY axis of the receiver picks WHICH definition the method shall
                 // be defined in, and SELF is the object of that definition.
                 if (rd.Factory != host.OoInFactory)
@@ -1815,7 +1823,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                         $"the receiving item is described {(rd.Factory ? "with" : "without")} "
                         + "the FACTORY phrase, so the method containing the SET statement shall be "
                         + $"defined in the {(rd.Factory ? "factory" : "instance")} definition of its "
-                        + $"containing class (ISO §2023:14.9.39.3 SR12c{(rd.Factory ? 4 : 3)})";
+                        + $"containing class ({EditionInfo.Designated(OoConformance.SetRules(ctx.Edition.Edition))} SR12c{(rd.Factory ? 4 : 3)})";
                 yield break;
 
             default:   // ObjectRefKind.ActiveClass — SR14 b)
@@ -1825,19 +1833,19 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                         + $"{(rd.Factory ? "with" : "without")} the FACTORY phrase, so the method "
                         + $"containing the SET statement shall be defined in the "
                         + $"{(rd.Factory ? "factory" : "instance")} definition of its containing class "
-                        + $"(ISO §2023:14.9.39.3 SR14b{(rd.Factory ? 2 : 1)})";
+                        + $"({EditionInfo.Designated(OoConformance.SetRules(ctx.Edition.Edition))} SR14b{(rd.Factory ? 2 : 1)})";
                 yield break;
         }
     }
 
     /// <summary>⛔ THE ONE REPORT OF §2023:14.9.39.3 SR10/SR12's OBJECT-REFERENCE STORE — a sender object reference into a
     /// receiver one, as a written SET Format 5 (<see cref="OoBindSetObjectRef"/>) and as the implicit SET of
-    /// INITIALIZE … REPLACING OBJECT-REFERENCE (<c>SetBinder.ScreenImplicitSet</c>, §2023:14.9.20.4 GR4; kb/Work PB3817) both
+    /// INITIALIZE … REPLACING OBJECT-REFERENCE (<c>SetPointerBinder.ScreenImplicitSet</c>, §2023:14.9.20.4 GR4; kb/Work PB3817) both
     /// ask it, so the two statements cannot answer differently. <paramref name="statement"/> is the text the message
     /// opens with. True when the pair conforms; otherwise COBOL0867 is reported and false returned.</summary>
     internal bool ScreenObjectRefAssignment(PicInfo sender, PicInfo receiver, string statement)
     {
-        if (OoConformance.ObjectRefAssignmentMismatch(host.OoClasses, sender, receiver) is not { } werr) return true;
+        if (OoConformance.ObjectRefAssignmentMismatch(host.OoClasses, sender, receiver, OoConformance.SetRules(ctx.Edition.Edition)) is not { } werr) return true;
         ctx.Edition.Error(DiagnosticCatalog.ObjectReferenceAssignmentNotConforming, $"{statement}: {werr}");
         return false;
     }
@@ -1868,7 +1876,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             // opened `SET … TO SUPER` — which the diagnostic renderer transliterates to `SET . TO SUPER`.
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ObjectReferenceAssignmentNotConforming,
                 $"SET {SetFormatSelection.Written(targetRefs)} TO SUPER: SUPER shall not be the sending operand "
-                + "of an object-reference SET (ISO §2023:14.9.39.3 SR9)");
+                + $"of an object-reference SET ({EditionInfo.Designated(OoConformance.SetRules(ctx.Edition.Edition))} SR9)");
         }
         var targets = new List<Place>(targetRefs.Count);
         foreach (var t in targetRefs)
@@ -1896,7 +1904,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             {
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ObjectReferenceAssignmentNotConforming,
                     $"SET '{WrittenSource.Of(t)}': the receiving operand of an object-reference SET shall be a "
-                    + "USAGE OBJECT REFERENCE data item (ISO §2023:14.9.39.3 SR8)");
+                    + $"USAGE OBJECT REFERENCE data item ({EditionInfo.Designated(OoConformance.SetRules(ctx.Edition.Edition))} SR8)");
             }
             if (host.Expr.ResolveReceiving(t) is not { } tp) return new BoundUnsupported("SET object-reference receiving operand");   // reported by the resolver
             targets.Add(tp);
@@ -1948,7 +1956,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                     + "identifier-4 shall be an object reference — the sending operand of an object-reference "
                     + "SET is an object-reference data item, a function-identifier or inline method invocation of "
                     + "class object, object-class-name-1, NULL or SELF, never a literal "
-                    + "or an arithmetic expression (ISO §2023:14.9.39.2 Format 5, §2023:14.9.39.3 SR9)");
+                    + $"or an arithmetic expression (ISO §2023:14.9.39.2 Format 5, {OoConformance.SetRules(ctx.Edition.Edition)} SR9)");
             }
             // ⛔ A FUNCTION-IDENTIFIER OR INLINE INVOCATION IS identifier-4 TOO (kb/Work PB1929): §2023:8.4.3.2.1 and
             // §2023:8.4.3.4.4 GR1 make each a reference to a data item whose class and category are the result's, so a
@@ -1986,8 +1994,10 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                 // pre-guard is gone: the table returns null for a universal receiver itself (SR8), so the
                 // guard was a second, weaker copy of that rule.
                 string senderName = senderRef is null ? sender.Text : senderItem.CobolName ?? sender.Text;
-                foreach (var tp in targets)
-                    ScreenObjectRefAssignment(spic, tp.Item.Pic!, $"SET '{tp.Item.CobolName}' TO '{senderName}'");
+                // The receiver is named as WRITTEN (kb/Work PB5659): an object property receiver (§2002:8.4.2.9.2 SR6,
+                // §2023:8.4.3.9.3 SR6) is screened through its compiler temporary, whose name no source spells.
+                for (int i = 0; i < targets.Count; i++)
+                    ScreenObjectRefAssignment(spic, targets[i].Item.Pic!, $"SET '{WrittenSource.Of(targetRefs[i])}' TO '{senderName}'");
                 src = sp;
             }
             // SR13's class-name-1 sender is a source reference and takes the §2023:8.4.6.4 scope (PB365).
@@ -2023,12 +2033,12 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                 foreach (var tp in targets)
                 {
                     var rdesc = tp.Item.Pic!.ObjectRef ?? ObjectRefDescriptor.Universal;
-                    if (OoConformance.ObjectRefAssignmentMismatch(host.OoClasses!, senderDesc, rdesc) is { } ferr)
+                    if (OoConformance.ObjectRefAssignmentMismatch(host.OoClasses!, senderDesc, rdesc, OoConformance.SetRules(ctx.Edition.Edition)) is { } ferr)
                     {
                         return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ObjectReferenceAssignmentNotConforming,
                             $"SET '{tp.Item.CobolName}' TO {sname}: object-class-name-1 sends the FACTORY "
                             + $"OBJECT of class '{scls?.Name ?? sname}' (ISO §2023:14.9.39.4 GR10) and the receiver's "
-                            + $"description puts the statement under {OoConformance.ClassNameSenderRule(rdesc.Kind)} "
+                            + $"description puts the statement under {OoConformance.ClassNameSenderRule(rdesc.Kind, ctx.Edition.Edition)} "
                             + $"— {ferr}");
                     }
                 }
@@ -2050,7 +2060,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                     $"SET {SetFormatSelection.Written(targetRefs)} TO "
                     + $"'{sender.Text}': the sending operand shall be an object-reference "
                     + "data item, a function-identifier or inline method invocation of class object, NULL, SELF, "
-                    + "or a class-name (ISO §2023:14.9.39.3 SR9/SR12/SR13)");
+                    + $"or a class-name ({EditionInfo.Designated(OoConformance.SetRules(ctx.Edition.Edition))} SR9/SR12/SR13)");
             }
         }
         return new BoundSetObjectRef(targets, src, senderNull, senderSelf) { SourceFactoryCs = srcFactoryClassCs };
@@ -2154,7 +2164,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
     /// An operand with no crossing form (a group with no character image, carrier or leaf vector) is refused with the
     /// Tier-C reason, as the universal lane refuses it.</summary>
     internal static string? ByReferenceArgumentReason(Place argument, OoFormal formal, OoClassTable? classes,
-        ObjectRefDescriptor invokedWith)
+        ObjectRefDescriptor invokedWith, string setRules)
     {
         if (ActivationDescriptions.OfPlace(argument, classes) is not { } a)
             return ActivationDescriptions.NoDescriptionReason(argument.Item, "argument");
@@ -2163,7 +2173,8 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         if (WiseOwl.Cobol.Runtime.ActivationRelations.MatchViolation(a, f) is { } noMatch) return noMatch;
         if (formal.Item.Pic?.ObjectRef is { Kind: ObjectRefKind.ActiveClass } activeClass)
             return OoConformance.ActiveClassFormalMismatch(null, activeClass,
-                argument.Item.Pic?.ObjectRef ?? ObjectRefDescriptor.Universal, invokedWith, byReference: true);
+                argument.Item.Pic?.ObjectRef ?? ObjectRefDescriptor.Universal, invokedWith, byReference: true,
+                setRules);
         return WiseOwl.Cobol.Runtime.ActivationRelations.ParameterViolation(a, f);
     }
 

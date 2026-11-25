@@ -363,13 +363,13 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         WiseOwl.Cobol.Common.NumericLiteral.IsFloatingPointForm(text)
             && WiseOwl.Cobol.Common.NumericLiteral.TryParseExact(text, out var sig, out int exp10)
         ? new NumX(RuntimeApi.DecFromParsedLiteral(sig, exp10, IntermediateMode), 0, Dec: true,
-            Precision: CobolDec.FractionDigits(new CobolDec(sig, exp10)))
+            Precision: RuntimeApi.DecFractionDigitsOf(sig, exp10))
         : EmitText.UnscaledLit(text);
     public NumX Visit(BoundNumRef n) => FieldNum(n.Place);
     public NumX Visit(BoundIndexRef n) => new(n.IndexField, 0);   // an index IS its 1-based occurrence number (§2023:3.5)
     // The LINAGE-COUNTER register (ISO §2023:8.4.3.14.4 GR1): an unsigned INTEGER read from the file connector —
     // runtime-sourced (only the I-O control system modifies it, §2023:13.18.34.4 GR7b), scale 0.
-    public NumX Visit(BoundLinageCounterRef n) => new($"CobolFile.LinageCounter({EmitText.FileKeyExpr(n.File)})", 0);
+    public NumX Visit(BoundLinageCounterRef n) => new(RuntimeApi.FileLinageCounter(EmitText.FileKeyExpr(n.File)), 0);
     // LINE-COUNTER / PAGE-COUNTER (ISO §2023:8.4.3.15.4 GR1): unsigned integers read from the report's engine instance,
     // scale 0. This ONE case serves both the relation-condition and MOVE-source paths (both route through the
     // renderer). The member name comes from RuntimeApi, which the RECEIVING side (ReportPageCounterPlace, §2023:8.4.3.15.3
@@ -566,7 +566,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
             // A FLOATING-POINT numeric-edited sender de-edits to its EXACT value — a CobolDec on the Dec lane (D21/PB66:
             // a significand with its own power of ten; never a double); EC-DATA-INCOMPATIBLE for impossible content.
             && p.Item.Pic is { Category: PicCategory.NumericEdited, IsFloatEdited: true, EditMask: { } fem }
-        ? new NumX($"CobolEdit.DeEditFloat({PlaceRenderer.Read(p)}, {EmitText.CsLiteral(fem)}{ctx.EditCfg(p.Item.Pic)}{(p.Item.BlankWhenZero ? ", blankWhenZero: true" : "")})", 0, Dec: true)
+        ? new NumX(RuntimeApi.EditDeEdit(floatEdited: true, PlaceRenderer.Read(p), EmitText.CsLiteral(fem), ctx.EditCfg(p.Item.Pic), p.Item.BlankWhenZero), 0, Dec: true)
         : p.DescribedItem is { StoreAsImage: false }
             // A format-2 (LOCALE) sender DE-EDITS through CobolLocaleEdit under the locale current NOW
             // (§2023:13.18.40.5 GR11; §2023:14.6.13.2 GR4 — impossible content is EC-DATA-INCOMPATIBLE); the scale is the
@@ -577,7 +577,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
             // A numeric-edited sender DE-EDITS to its numeric value at the mask's scale (ISO §2023:14.9.25.4 GR5 — the
             // COBOL-85 de-editing move; the runtime walks the image against the mask's digit positions).
             && p.Item.Pic is { Category: PicCategory.NumericEdited, EditMask: { } dem }
-        ? new NumX($"CobolEdit.DeEdit({PlaceRenderer.Read(p)}, {EmitText.CsLiteral(dem)}{ctx.EditCfg(p.Item.Pic)}{(p.Item.BlankWhenZero ? ", blankWhenZero: true" : "")})",
+        ? new NumX(RuntimeApi.EditDeEdit(floatEdited: false, PlaceRenderer.Read(p), EmitText.CsLiteral(dem), ctx.EditCfg(p.Item.Pic), p.Item.BlankWhenZero),
             p.Item.Pic.ReceiverScale())
         : FieldNumCore(p, _sending);
 
@@ -936,8 +936,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// it at run time (review finding R3-1: an operand of run-time precision is never given 0).</summary>
     private NumX DecBinary(string op, NumX a, NumX b)
     {
-        string? kernel = op switch { "+" => "Add", "-" => "Sub", "*" => "Mul", "/" => "Div", _ => null };
-        if (kernel is null) return a;
+        if (op is not ("+" or "-" or "*" or "/")) return a;
         string left = DecOperand(a), right = DecOperand(b);
         // ⛔ A NATIVE FINAL-TRANSFER QUOTIENT IS ROUNDED ONCE, AT THE RECEIVER (kb/Work PB4641; DOC-A.1-123): round-to-odd at 34 digits.
         // Only the STANDARD-DECIMAL lane rounds the quotient itself, its quotient being an SDIDI value (§2023:8.8.1.5); a nested
@@ -947,7 +946,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         // one rounding sees the exact quotient's, as a narrower receiver's does.
         string value = op == "/" && !StandardDecimal
             ? RuntimeApi.DecDivFinal(left, right, IntermediateMode, FinalTransferSignificandDigits)
-            : $"CobolDec.{kernel}({left}, {right}, {IntermediateMode})";
+            : RuntimeApi.DecDyadic(op, left, right, IntermediateMode);
         // Under STANDARD-DECIMAL no nested quotient reads a precision; a quotient here is a final transfer's (Divide owns
         // every nested one), so nothing above it reads its precision either.
         // §2002:8.8.1.3.2/.4/.5 — each result is the exact result truncated to 32 digits, in the SIDI's range (StandardIntermediate).
@@ -1015,20 +1014,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     private NumX CombineReal(NumX a, string op, NumX b)
     {
         string x = Real(a), y = Real(b);
-        string? taken = RangeChecks;
-        string? fn = (op, taken is not null) switch
-        {
-            ("/", false) => nameof(CobolFloat.Div),
-            ("+" or "-" or "*", false) => null,
-            ("+", true) => nameof(CobolFloat.AddChecked),
-            ("-", true) => nameof(CobolFloat.SubChecked),
-            ("*", true) => nameof(CobolFloat.MulChecked),
-            ("/", true) => nameof(CobolFloat.DivChecked),
-            _ => throw new InvalidOperationException($"no binary64 operator '{op}'"),
-        };
-        return fn is null
-            ? new NumX($"({x} {op} {y})", 0, Real: true)
-            : new NumX($"{nameof(CobolFloat)}.{fn}({x}, {y}{(taken is null ? "" : ", " + taken)})", 0, Real: true);
+        return new NumX(RuntimeApi.FloatBinary(op, x, y, RangeChecks), 0, Real: true);
     }
 
     // Plain STANDARD arithmetic (2002; obsolete 2014, removed 2023 — Annex E.2 item 21) uses the standard
@@ -1114,7 +1100,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// digits. An operand already a decimal intermediate (an operation's result), a float (native arithmetic's, §2014:8.8.1.3) and
     /// one of at most 32 digits pass as they are.</summary>
     private string SidiOperand(NumX x, string dec) =>
-        StandardIntermediate && !x.Dec && !x.Real && !(x.Digits >= 1 && x.Digits <= CobolDec.SidiDigits)
+        StandardIntermediate && !x.Dec && !x.Real && !(x.Digits >= 1 && x.Digits <= RuntimeApi.DecSidiDigits)
             ? RuntimeApi.DecToSidi(dec, IntermediateMode) : dec;
 
     /// <summary>Does lifting <paramref name="x"/> into the SDIDI ROUND it (§2023:8.8.1.5.2 GR1)? The ONE answer to that
@@ -1148,7 +1134,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         { Real: true } r => RuntimeApi.DecFromBinary64(r.Expr, IntermediateMode),   // a float ITEM: its exact value, rounded once (PB1606)
         { Wide: true } w => RuntimeApi.WideToDec(w.Expr, w.Scale),   // the lowering: round-to-odd, 34 digits (kb/Work PB1900)
         { Exact: true } e => RuntimeApi.ExactImage(e.Expr),          // the same lowering of a run-time-scaled one (kb/Work PB4575)
-        var v => $"CobolDec.From({v.Expr}, {v.Scale})",
+        var v => RuntimeApi.DecFrom(v.Expr, $"{v.Scale}"),
     };
 
     /// <summary>The SDIDI's precision (decimal128, ISO §2023:8.8.1.5.2 NOTE 2): an exact operand whose
@@ -1332,7 +1318,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
                 return new NumX(RuntimeApi.DecWithPrecisionValue(pair), 0, Dec: true, WithPrecision: pair);
             }
             int precision = Math.Max(a.FractionPrecision, b.FractionPrecision);
-            int w = CobolNum.NestedQuotientScale(_rcv.Scale, precision);
+            int w = RuntimeApi.NumNestedQuotientScale(_rcv.Scale, precision);
             if (exact)
             {
                 int digits = QuotientDigitBound(a, b, w);
@@ -1470,7 +1456,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         // (kb/Work R10), where an unchecked `+ 1` wraps to the container's far end and stores with no error.
         // Without the phrase it stays the bare unchecked operator, like every other engine op.
         if (RangeChecksOf(SizeChecks.Overflow) is { } taken)
-            return new NumX($"CobolNum.{(op == "+" ? "AddChecked" : "SubChecked")}({Align(a, s)}, {Align(b, s)}, {taken})", s, Digits: digits,
+            return new NumX(RuntimeApi.NumAddOrSubChecked(op, Align(a, s), Align(b, s), taken), s, Digits: digits,
                 Precision: precision);
         return new NumX($"((Int128)({Align(a, s)}) {op} ({Align(b, s)}))", s, Digits: digits, Precision: precision);
     }

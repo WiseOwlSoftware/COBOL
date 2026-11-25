@@ -119,7 +119,7 @@ public sealed class TypedAndUniversalInvokeVerdictsAgreeDriftTests
                 var df = ActivationDescriptions.OfFormal(oof, classes: null)!;
                 bool relation = ActivationRelations.Matches(da, null, df, null!)
                     && ActivationRelations.ParameterViolation(da, df) is null;
-                bool binder = OoBinder.ByReferenceArgumentReason(argument, oof, null, ObjectRefDescriptor.Universal) is null;
+                bool binder = OoBinder.ByReferenceArgumentReason(argument, oof, null, ObjectRefDescriptor.Universal, ObjectReferenceSet.Rules2023) is null;
                 pairs++;
                 if (binder) matched++;
                 Assert.True(binder == relation,

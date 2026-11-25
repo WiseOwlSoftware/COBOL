@@ -2,61 +2,78 @@
  "rule-id": "1985-SR-VI.6.23.3-1",
  "rule-digest": "b5131adf7c78",
  "read": {
-  "pin": "d6154060822ed60ab891c9200bb97d2d2915558c",
-  "slice": "1985-06",
+  "pin": "3d9eb1f45bd4df5ca847504ec65053582e606a26",
+  "slice": "1985-c0a1-pb2314",
   "sources": {
-   "reader": "e55e548b5e6aaa24b9a4a5773803694bc83db1502affa278584bb6f57c7c1c5e",
-   "refuter": "e676cfa069cef4f3ef933361d6ff3df214542537a99dec66381b31dc5d3347f8"
+   "reader": "aed646bf7d1918f61ecda8ff4629526e5c4abfa0d3bf2fc82008c1d4ef1c40d0",
+   "refuter": "1e95317ba231c57c4542583474f77feeb75d6683bae84f89795938f3fb25134a"
   },
   "imported": {
-   "reader": "d8f64626300a41f939b1c7a571798a00c502b00834cc738008461f7324ca3ac1",
-   "refuter": "0df02dbf332f88022c4e9e64e71327440e03938a1497531c7e8bdf295ef92a0b"
+   "reader": "0deb875e6275777b8eaea92ae11fb78f88d35fc51940666a120d635ac9683a3d",
+   "refuter": "ae3b0abbdc4dddc2c9c533da651767f801bb90d4d76c4de4b6d345d312635a7c"
   }
  },
  "reader": {
-  "rule-id": "1985-SR-VI.6.23.3-1",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "at-2023": "",
   "verdict": "CONFORMS",
-  "requirement": "At --std 85 every rule written for index-name-1, identifier-1 (SET format 1) and index-name-3 (format 2) must hold for each receiver of a SET receiver list, not just the first: each identifier-1 is screened by SR2 and by the format-1 operand table (GR3b/GR3c, GR5), each index-name-3 must be an index-name and is augmented (GR4), the sender value is the one at the start of the statement and each receiver's subscripts are evaluated just before its store (GR3d).",
-  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindSetTo; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#ScreenIndexAssignmentReceiver; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindSetUpDown; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetFormatSelection.cs#Select; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SetEmitter.cs#EmitSetTo; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SetEmitter.cs#StoreSetTarget",
+  "edition-search": "grep -n -i -E 'DialectLevel|ConstructRegistry|DialectBehavior|Edition.Year|Edition.Edition|IsAvailable|Cite[(]|CiteRule|Permissive|Removed' over the split SET family at the pin: SetBinder.cs (dispatch, BindSetTo, BindSetToNull: none), SetIndexBinder.cs (GateCobol85IndexAmount the one decision; IndexAssignmentSenderOf Cite and ScreenIndexAssignmentReceiver CiteRule wording; Removed/Permissive the strict-versus-permissive severity axis, not the edition), SetFormatSelection.cs (FormatsClause, InEdition, BraceOf, RuleOf: wording and row listing), SetSender.cs and SetLiteralAmount.cs (none), CodeGen/Verbs/SetEmitter.cs (none); Frontend/Parsing/Cobol85OperandForms.cs (IsInteger, called by Cobol85AmountRefusal) reads no edition. The per-receiver loops in BindIndexAssignment and BindSetUpDown and the emitter's foreach over s.Targets have no edition term",
+  "rule-id": "1985-SR-VI.6.23.3-1",
+  "requirement": "At --std 85 every rule written for index-name-1, identifier-1 (SET Format 1) and index-name-3 (Format 2) holds for each receiver of the receiving list, not only the first: each identifier-1 meets SR2 (index data item or integer) and the GR3b/GR3c pairing with the one sender (GR5's table), each index-name-3 must be an index-name and is augmented (GR4), the sender is the value at the start of the statement and each identifier-1's subscripts are evaluated just before its own store (GR3d).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindSetTo; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetIndexBinder.cs#BindIndexAssignment; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetIndexBinder.cs#ScreenIndexAssignmentReceiver; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetIndexBinder.cs#BindSetUpDown; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetIndexBinder.cs#SetTargetOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetFormatSelection.cs#Select; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SetEmitter.cs#EmitSetTo; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SetEmitter.cs#EmitSetUpDown; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SetEmitter.cs#StoreSetTarget",
   "edition-consulted": [
    {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#GateCobol85IndexAmount",
-    "switches": "ConstructRegistry set-arithmetic-expression-2002: at 85 the format 1/2 sender must be a 1985 operand (positive integer-1, signed integer-2, integer item, index-name, index data item); asked once per statement for the shared sender, not per receiver",
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetIndexBinder.cs#GateCobol85IndexAmount",
+    "switches": "ConstructRegistry rows set-arithmetic-expression-2002 and set-up-down-index-amount-2002 (the operand is classified by SetIndexBinder.Cobol85AmountRefusal): at 85 the Format 1 sender must be index-name-2, an integer or index data item identifier-2 or a positive integer-1, and the Format 2 amount an elementary numeric integer or a signed integer-2; anything else (zero or negative integer-1, a non-integer, an expression, an index-name or index data item as the UP/DOWN amount) is refused COBOL0900. Asked once per statement for the shared sender, from BindIndexAssignment and BindSetUpDown, not per receiver",
     "same-arm-as-latest": false
    },
    {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetFormatSelection.cs#Is1985",
-    "switches": "diagnostic wording only (cites §1985:VI.6.23.2 and the 1985 brace/rule); format selection reads operand kinds, not the edition",
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetIndexBinder.cs#ScreenIndexAssignmentReceiver",
+    "switches": "diagnostic wording only: Edition.CiteRule names §1985:VI.6.23.4 GR3b / GR3c at 85 and §2023:14.9.39.3 SR3 / SR4 at 2023; the receiver-class x sender-alternative decision is the same at both",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetFormatSelection.cs#RuleOf",
+    "switches": "wording only (FormatsClause, BraceOf and RuleOf cite §1985:VI.6.23.2 and the row's 1985 brace/rule; InEdition only labels or omits rows the edition lacks, and Formats 1 and 2 are both printed in 1985); format selection (Select, SelectForTo) reads operand kinds, not the edition",
     "same-arm-as-latest": true
    }
   ],
-  "edition-search": "grep -n -i 'DialectLevel|ConstructRegistry|DialectBehavior|Edition.Year|Edition.Edition' over SetBinder.cs, SetFormatSelection.cs, SetEmitter.cs, ReceiverBracketEmitter.cs and CobolIndex.cs (SetEmitter, ReceiverBracketEmitter and CobolIndex: none); the per-receiver loop in BindSetTo / BindSetUpDown has no edition term",
-  "behaviour-differs-by-edition": "no for the recursion rule itself (every receiver screened the same way at 85 and 2023); the shared sender differs: SET IX JX TO 0 is refused at 85 (1985 integer-1 positive) and accepted at 2023",
-  "witnesses-cover": "part: the witnesses cover receiver identification at store and index overflow on one receiver; refusal of a second/later receiver by SR2/GR3, format-2 recursion over two index-names, and the sender-as-at-beginning rule with a sender subscripted by an earlier receiver are not exercised by them",
+  "behaviour-differs-by-edition": "no for the recursion itself (every receiver screened and stored the same way at 85 and 2023); the shared sender differs: SET IX JX TO 0, TO -1, TO NF, TO N1 + 1 and UP BY ID1 / JX / NF are refused at 85 (SR3, SR4) and admitted at 2023",
+  "witnesses-cover": "part: the witnesses cover receiver identification at store and one-receiver index arithmetic; a refusal of a second or later receiver by SR2/GR3, Format 2 over three index-names with a signed amount, and the sender-as-at-beginning rule with a sender subscripted by an earlier receiver are covered by the probes, not by them",
   "probes": [
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-06/c4a.cob",
-    "printed": "COBOL2326 on the SECOND receiver of: SET IX N1 TO 2 (SR4/GR3c), SET IX NX TO JX (PIC XX, SR1/SR2), SET IX ID1 TO 2 (SR3/GR3b), SET JX NF TO IX (9V9 not integer); SET N1 ID1 TO ID1; COBOL2112 on SET IX N1 UP BY 1 (N1 not an index-name); COBOL0900 on SET IX JX TO 0 at 85 only",
-    "expected": "each refused for the offending recursion"
+    "file": "E:/COBOL-coord/scratch/finish-c0a-1/probes/r2_ref.cob",
+    "printed": "--std 85 (runs/r2_ref-001, exit 65): line 16 SET IX N1 TO 2 COBOL2326 GR3c; 17 SET IX ID1 TO 2 COBOL2326 GR3b; 18 SET IX ID1 TO N1 COBOL2326 GR3b; 19 SET IX N1 TO ID2 COBOL2326 GR3c; 20 SET IX NX TO JX (PIC XX) COBOL2326 §1985:VI.6.23.3 SR2; 21 SET IX NF TO JX (9V9) COBOL2326 SR2; 22 SET IX N1 UP BY 1 COBOL2112 (index-name-3, GR4); 23-26 SET IX JX TO 0 / -1 / NF / N1 + 1 COBOL0900; 27 UP BY NF COBOL0900; 28-29 UP BY ID1 / JX COBOL0900 (§1985:VI.6.23.3 SR3); 30 SET N1 IX TO 2 COBOL2326 GR3c (first receiver)",
+    "expected": "each statement refused at the receiver or sender that breaks the rule, the second receiver as surely as the first (SR1 recursion); the shared sender refused by SR4 / SR3 once per statement"
    },
    {
     "class": "d",
-    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-06/c4b.cob",
-    "printed": "A 03 03 / B 05 05 / C 04 04 / D 05 / E 6 000006000 / F 07 07 / G 04 06 (same at 2023)",
-    "expected": "SET IX JX TO 3 sets both (different tables); UP BY 2 and DOWN BY 1 augment each index-name-3; SET N1 N2 TO JX sets both; SET K NN (K) TO JX stores K=6 then NN(6)=6 (GR3d subscripting just before store); SET KX JX TO IDT (KX) gives JX the value IDT(2)=7 as at the beginning, not IDT(7)=3"
+    "file": "E:/COBOL-coord/scratch/finish-c0a-1/probes/r1_run.cob",
+    "printed": "--std 85 (runs/r1_run-001): A 04 +0004 DDD / B GGG 07 +0007 000000000000000007 / C EEE EEE / D HHH HHH / E 03 +0003 / F 6 000006000 / G 07 +0007 / H 05 +0005 / I 04 +0004 / J 02 +0006 2",
+    "expected": "SET IX JX TO 4 sets both tables' index to occurrence 4 (A); SET IX N1 N2 N3 TO JX (JX at 7) gives E1(IX)=GGG and 7 in a PIC 99, an S9(4) COMP and a 9(18) (B, GR3a/GR3c); SET ID1 ID2 TO IX then SET IY IX TO ID2 carries occurrence 5 unconverted (C, GR3b/GR3a); SET ID1 IY TO ID2 with ID2 from occurrence 8 (D, GR3b); SET IX JX TO K with K=3 (E); SET K NN (K) TO JX stores K=6 then NN(6)=6 (F, GR3d subscript evaluated just before the store); SET KX KY TO DI (KX) with KX=2, DI(2)=occ 7, DI(7)=occ 3 gives KY 7, the sender as at the beginning (G, GR3d); UP BY AMT(2) on IX JX from 3 gives 5 5 (H, GR4), DOWN BY +1 gives 4 4 (I), and UP BY -2 (a signed integer-2, SR4) over IX IY JX gives 2, 6, 2 (J)"
    },
    {
     "class": "c",
-    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-06/c4a.cob",
-    "printed": "line 21 SET IX JX TO 0: COBOL0900 at 85; no diagnostic at 2023",
-    "expected": "85 refuses a zero integer-1 (§1985:VI.6.23.3 SR4)"
+    "file": "E:/COBOL-coord/scratch/finish-c0a-1/probes/r2_ref.cob",
+    "printed": "--std 2023 (runs/r2_ref-002, exit 65): lines 16-22 and 30 refused with the §2023:14.9.39.3 SR1/SR3/SR4 and Format 2 wording; lines 23-29 (zero, negative, non-integer and expression senders, NF / ID1 / JX UP BY amounts) draw no diagnostic",
+    "expected": "2002+ admits arithmetic-expression-1 and arithmetic-expression-2 in those positions; the receiver screens are the same rules in 2023's words"
    }
   ],
   "citations": [
    {
     "cite": "§1985:VI.6.23.3 SR1",
     "check": "OK  §1985:VI.6.23.3 SR1  (6.23.3 Syntax Rules)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:VI.6.23.3 SR2",
+    "check": "OK  §1985:VI.6.23.3 SR2  (6.23.3 Syntax Rules)  the text is in SR2"
    },
    {
     "cite": "§1985:VI.6.23.4 GR3c",
@@ -71,21 +88,13 @@
     "check": "OK  §1985:VI.6.23.4 GR4  (6.23.4 General Rules)  the text is in GR4"
    }
   ],
-  "notes": "BindSetTo classifies the sender once and runs ScreenIndexAssignmentReceiver over every receiver in the list, and BindSetUpDown selects format 2 from the whole receiving list, so no receiver position escapes a rule. At run time the sender is evaluated once before the stores and each receiver is identified at its own store.",
-  "seeded": true,
-  "harm": "",
-  "cause": "",
-  "at-2023": "identical per-receiver refusals and run output; only the 1985 zero integer-1 refusal is absent",
-  "repro": "",
-  "expected": "",
-  "observed": "",
-  "known_note": ""
+  "notes": "Re-read after PB2314 moved Format 1 and 2 out of SetBinder: SetBinder.BindSetTo selects the format from the WHOLE receiving list (SetFormatSelection.SelectForTo) and hands Format 1 to SetIndexBinder.BindIndexAssignment, which classifies the sender once (IndexAssignmentSenderOf) and runs ScreenIndexAssignmentReceiver over every receiver before any store; SetIndexBinder.BindSetUpDown selects Format 2 from the whole list (a non-index-name among them is ReportNotAdmitted / COBOL2112). At run time SetEmitter.EmitSetTo / EmitSetUpDown land the amount once into a temp before the foreach over the targets, and each SetPlaceTarget is identified at its own store. Doc nit, no behaviour: SetIndexBinder.SetTargetOf's summary still says the SR1 screen is asked by <see cref=\"BindSetTo\"/>, a member of SetBinder; since the split it is asked in BindIndexAssignment."
  },
  "refuter": {
   "rule-id": "1985-SR-VI.6.23.3-1",
   "refutation": "UPHELD",
   "classes": "b,c,d",
-  "evidence": "Probe E:/COBOL-coord/scratch/sample-shared/out/refute-1985-06/r4a.cob at --std 85 (receiver-list orders the reader did not try): SET ID1 N1 TO ID2 refused on the second receiver N1 (GR5 table No/3c); SET N1 ID1 TO IA and SET IA IB N1 TO IC admitted (Valid/3c,3a,3b); SET IA IB ID1 TO 4 refused on third receiver ID1 (No/3b); SET IA IB ID1 UP BY 1 COBOL2112 (index data item is no index-name-3); SET IA IB NG TO IC COBOL2326 (group); SET IA IB TO -2 COBOL0900 (SR4). Run E:/COBOL-coord/scratch/sample-shared/out/refute-1985-06/r4b.cob: SET IA IB ID1 TO IC over tables of element size 1/7/3 gives occurrence 05 for each; SET N2 N1 TO IB gives +005 05; SET IA IB IC UP BY N1 gives 07 07 07; DOWN BY 3 gives 04 04; SET N1 NN (N1) TO IA stores N1=3 then NN(3)=03 (GR3d). cite.py: OK  §1985:VI.6.23.3 SR1 ; OK  §1985:VI.6.23.4 GR3d.",
+  "evidence": "Code read independently at the pin from SetBinder.BindSet: setToSender dispatches a non-NULL sender to BindSetTo, which selects Format 1 from the whole receiving list (SetFormatSelection.SelectForTo) and calls SetIndexBinder.BindIndexAssignment; setIndexStatement goes to SetIndexBinder.BindSetUpDown, which selects Format 2 from the whole list (ReportNotAdmitted when an operand is not index-name-3). BindIndexAssignment classifies the sender once (IndexAssignmentSenderOf), gates the 85 operand once (GateCobol85IndexAmount over Cobol85AmountRefusal, which uses Cobol85OperandForms.IsInteger: zero refused at every sign, integer-1 Positive, integer-2 Any; a data reference refused only for a numeric item of Scale > 0, an index-name or index data item as the UP/DOWN amount refused by its own row), then screens every receiver (OperandClassScreen SR1/SR2 and the GR3b/GR3c pairing) before any target is stored. A grep of SetBinder.cs, SetFormatSelection.cs, SetSender.cs and CodeGen/Verbs/SetEmitter.cs for Edition|DialectLevel|IsAvailable|Permissive finds only diagnostic wording (Cite/CiteRule, FormatsClause, BraceOf, RuleOf, InEdition) and the NULL keyword check of Formats 5/7/8/9, which is not on the Format 1/2 path; the reader's three edition sites are the complete set. Refusal attacks past the reader's probes at --std 85 (E:/COBOL-coord/scratch/finish-c0a-1/refute-probes/x1_bad.cob, runs/x1_bad-002, exit 65): UP BY NX (PIC XX), UP BY G (group) and TO N1 (1:1) (reference-modified) COBOL0844; TO FUNCTION LENGTH (NX), TO 3.0, UP BY 0, TO P9 (PIC P9), TO ZERO, UP BY P9, UP BY 1.5, UP BY FUNCTION LENGTH (NX) COBOL0900; SET ED TO IX (PIC Z9 receiver) COBOL2326 SR2; SET IX TO ED and SET IX JX TO G COBOL2326 SR2; SET NN (1) TO DI (1) COBOL2326 GR3c; SET IX ID1 UP BY 1 COBOL2112; SET IX C1-ON TO TRUE COBOL1639 and SET IX SW1 TO ON COBOL1757 (no format admits the mixed list). Admitted (E:/COBOL-coord/scratch/finish-c0a-1/refute-probes/x2_ok.cob, runs/x2_ok-001, exit 0): TO +3, TO NN (2), SET ID1 TO DI (2), SET DI (1) TO ID1, TO NS (S9 SIGN LEADING SEPARATE), SET IX JX TO N9PP (PIC 9PP, an integer), UP BY N9PP, UP BY -1, UP BY +1, SET N9PP TO IX. Receiver order (E:/COBOL-coord/scratch/finish-c0a-1/refute-probes/x4_order.cob, runs/x4_order-001): SET N1 ID1 IX TO JX admitted; SET ID1 IX TO 2 refused at ID1 (GR3b), SET ID1 N1 TO ID2 and SET N1 IX ID1 TO ID2 refused at N1 (GR3c) whichever position it holds; SET JX ID1 N1 UP BY 1 refused COBOL2112. Run-time attacks (E:/COBOL-coord/scratch/finish-c0a-1/refute-probes/x3_run.cob, runs/x3_run-003 at 85 and x3_run-004 at 2023, identical): A 05 07 for SET QX QY UP BY QQ (QX) with QX=2, QY=4, QQ(2)=3, QQ(5)=1 (the amount as at the start, not re-read after QX changed); B 03 05 for SET QY QX DOWN BY QQ (QY) with QY=8, QX=6, QQ(8)=3, QQ(5)=1; C 00 04 for SET QX QQ (QX) TO JX (QX 1 to 4, then QQ(4) stored); D 06 00 06 for SET QQ (QX) QX TO JX (QQ(2) stored before QX changes); E 07 07 for SET KX DI (KX) TO DI (KX) with KX=2, DI(2)=occ 7, DI(7)=occ 3 (sender read once as 7, receiver DI(KX) identified after KX became 7); F 03 / G 02 for UP BY and DOWN BY a PIC S9 amount of -2 and 3; H +00007 +0007 into PACKED-DECIMAL and COMP integer receivers; I 03 for the duplicate receiver SET IX IX TO 3; J 06 06 for SET JX KX TO DI (3) holding IY's occurrence 6 (no conversion). Nit, not a nonconformance: SetFormatSelection.ReportNotAdmitted names only the first operand Format 2 does not admit (N1 in SET JX ID1 N1 is not named), the statement is refused either way. Cite: OK  §1985:VI.6.23.3 SR1  (6.23.3 Syntax Rules)  the text is in SR1; OK  §1985:VI.6.23.4 GR4  (6.23.4 General Rules)  the text is in GR4",
   "edition-sites-missed": [],
   "corrected": ""
  }

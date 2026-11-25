@@ -17,9 +17,9 @@ namespace WiseOwl.Cobol.Binding.Bound;
 /// <para>⛔ <b>KEYED ON THE FUNCTION, NEVER ON A BACKEND'S SPELLING OF IT</b> (kb/Work PB4370;
 /// DESIGN-backend-abstraction.md §1.2 bullet 2). Every key is an intrinsic-function-name as its catalog row spells it
 /// (<c>IntrinsicSig.Name</c>, the key <c>IntrinsicCatalog.TryGet</c> looks up): <c>"MOD"</c>, <c>"NUMVAL-C"</c>. The
-/// runtime body a backend calls for the function is that backend's spelling of the identity (the Roslyn renderer's is
-/// the row's <c>RuntimeMethod</c>: <c>ModScaled</c>, <c>NumvalC</c>), so a second backend asks these rules of the same
-/// name and spells its own call. <c>IntrinsicCarrierRuleKeyDriftTests</c> holds every key to a catalog row, so a misspelt
+/// runtime body a backend calls for the function is that backend's spelling of the identity (the Roslyn renderer names
+/// each through a <c>nameof</c>-anchored <c>RuntimeApi</c> constant in its arms: <c>ModScaled</c>, <c>NumvalCDec</c>; the catalog row names none, kb/Work PB2627),
+/// so a second backend asks these rules of the same name and spells its own call. <c>IntrinsicCarrierRuleKeyDriftTests</c> holds every key to a catalog row, so a misspelt
 /// key cannot answer false in silence.</para>
 /// </summary>
 internal static class IntrinsicCarrierRules

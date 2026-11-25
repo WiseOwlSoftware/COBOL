@@ -7102,7 +7102,7 @@ public static class DiagnosticCatalog
             + "usage rule for the operand of those tests is a code of its own (COBOL-85's DISPLAY rule), so the 2002 phrases "
             + "that reach this code at COBOL-85 are edition gates and cite the edition where they begin, kb/Work PB4950.");
     // COBOL2205 ("mcs-message-tag-set-unsupported") is RETIRED, NEVER REALLOCATE IT: SET Format 17 (message-tag)
-    // binds since kb/Work PB4740 (SetBinder.BindMessageTagSet).
+    // binds since kb/Work PB4740 (SetPointerBinder.BindMessageTagSet).
 
     /// <summary>Two definitions in one compilation group externalize the SAME name to the operating
     /// environment (kb/Work PB660). ISO §2023:8.3.2.2 states the rule as two sentences over one list, so this is one
@@ -7871,9 +7871,12 @@ public static class DiagnosticCatalog
         Rule1985: "§1985:IV.2.1.4 / §1985:IV.2.1.5 / §1985:IV.2.1");
 
     /// <summary>COBOL2987 — an element of a general format whose printed sequence binds is written after one the
-    /// figure prints later (§2023:5.2.1; kb/Work PB1508). The OPTIONS paragraph (§2023:11.9.2) and the CONFIGURATION SECTION
-    /// (§2023:12.3.2) print a fixed sequence of separate brackets and no rule of either frees the order; the grammar parses
-    /// them order-free and <c>ClosedFormatPass</c> reads the sequence from <c>ClauseCardinalities</c>.</summary>
+    /// figure prints later (§2023:5.2.1; kb/Work PB1508). Two emitters (kb/Work PB5671): the OPTIONS paragraph (§2023:11.9.2) and
+    /// the CONFIGURATION SECTION (§2023:12.3.2) print a fixed sequence of separate brackets and no rule of either frees the order,
+    /// so the grammar parses them order-free and <c>ClosedFormatPass</c> reads the sequence from <c>ClauseCardinalities</c>; and a
+    /// WRITE whose retry phrase or WITH LOCK phrase follows its INVALID KEY phrases, which every edition's Format 2 prints after
+    /// them (§2002:14.8.47.1, §2014:14.9.47.1, §2023:14.9.51.2), is refused by
+    /// <c>VersionConformancePass.ParseArm.GateRetryLockPlace</c>.</summary>
     public static readonly DiagnosticDescriptor FormatElementOutOfOrder = new(
         "COBOL2987", "format-element-out-of-order", EditionSeverity.Error,
         "A clause or paragraph is written ahead of one its general format prints before it. ISO §2023:5.2.1: \"The words, "
@@ -7881,8 +7884,9 @@ public static class DiagnosticCatalog
         + "group in the sequence given in the general format, unless otherwise specified by the rules of that "
         + "format.\" Where no rule of the format licenses any order — the OPTIONS paragraph (§2023:11.9.2: ARITHMETIC, "
         + "DEFAULT ROUNDED, ENTRY-CONVENTION, FLOAT-BINARY, FLOAT-DECIMAL, INITIALIZE, INTERMEDIATE ROUNDING) and the "
-        + "CONFIGURATION SECTION (§2023:12.3.2: SOURCE-COMPUTER, OBJECT-COMPUTER, SPECIAL-NAMES, REPOSITORY) — write the "
-        + "elements in the printed sequence.",
+        + "CONFIGURATION SECTION (§2023:12.3.2: SOURCE-COMPUTER, OBJECT-COMPUTER, SPECIAL-NAMES, REPOSITORY), and the WRITE "
+        + "statement's retry and WITH LOCK phrases, which its Format 2 prints before the INVALID KEY phrases (§2023:14.9.51.2) — "
+        + "write the elements in the printed sequence.",
         "ISO §2023:5.2.1",
         Rule1985: "§1985:IV.2.1");
 

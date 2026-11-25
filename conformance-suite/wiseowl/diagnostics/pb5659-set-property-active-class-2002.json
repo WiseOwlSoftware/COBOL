@@ -1,0 +1,1 @@
+{"refuse-at": ["2002"], "expect": "(27,12): error COBOL0867: SET 'SELFREF OF A' TO 'A': an object reference described 'PB5659C' does not conform to a receiver described with the ACTIVE-CLASS phrase (ISO §2002:14.8.35.2 SR14"}

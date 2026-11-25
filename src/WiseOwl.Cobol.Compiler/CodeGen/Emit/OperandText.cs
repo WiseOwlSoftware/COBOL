@@ -387,7 +387,7 @@ internal static class OperandText
         // §2023:15.4.1 leaves a returned value's "characteristics and representation" to the implementor under native arithmetic:
         // like a literal it states no representation for GR4 to preserve, so MOVE FUNCTION MIN(N 3) TO G (N = -15) stores 15,
         // not the -15 the operand text carries. The digits rule is CobolNum.GroupDigits, the ONE reader both arms call.
-        BoundNumericLiteral lit => EmitText.CsLiteral(CobolNum.GroupDigits(lit.Text)),
+        BoundNumericLiteral lit => EmitText.CsLiteral(RuntimeApi.NumGroupDigitsOf(lit.Text)),
         BoundComputedOperand { IsNumericFunctionValue: true }
             => RuntimeApi.NumGroupDigits(AsString(op, num, deSign: false)),
         // ⛔ A LITERAL OR FUNCTION VALUE OF USAGE NATIONAL OR BIT IS THE OTHER SENDER WITH A REPRESENTATION OF ITS OWN (kb/Work
@@ -649,7 +649,7 @@ internal static class OperandText
         {
             string uv = RuntimeApi.NumParseImageU128(PlaceRenderer.Read(p), p.Item.ProfileName, sending.FixedPointChecked());
             return deSign
-                ? PExpand($"CobolNum.FormatUnsignedDisplayU({uv}, {pic.Digits})", pic)
+                ? PExpand(RuntimeApi.NumFormatUnsignedDisplayU(uv, pic.Digits), pic)
                 : NumericText(uv, p.Item.ProfileName, deviceComma, u: true);
         }
         string value = RuntimeApi.NumParseImage(PlaceRenderer.Read(p), p.Item.ProfileName, sending.FixedPointChecked());
@@ -809,10 +809,10 @@ internal static class OperandText
             // A UInt128-carrier item (kb/Work R10) renders through the U-named lane — picked by name, never by
             // overload (an int constant converts implicitly to both Int128 and UInt128; see CobolNum.FormatDisplayU).
             { IsUnsignedWideBinary: true } pic => deSign
-                ? PExpand($"CobolNum.FormatUnsignedDisplayU({PlaceRenderer.Read(p)}, {pic.Digits})", pic)
+                ? PExpand(RuntimeApi.NumFormatUnsignedDisplayU(PlaceRenderer.Read(p), pic.Digits), pic)
                 : NumericText(PlaceRenderer.Read(p), p.Item.ProfileName, deviceComma, u: true),
             { Category: PicCategory.Numeric, IsFloat: false } pic => deSign
-                ? PExpand($"CobolNum.FormatUnsignedDisplay({PlaceRenderer.Read(p)}, {pic.Digits})", pic)
+                ? PExpand(RuntimeApi.NumFormatUnsignedDisplay(PlaceRenderer.Read(p), pic.Digits), pic)
                 : NumericText(PlaceRenderer.Read(p), p.Item.ProfileName, deviceComma),
             // A float item (COMP-1/2/FLOAT-*, D16): DISPLAY renders the algebraic value via CobolFloat.Display
             // (invariant-culture shortest round-trip, §2023:14.9.11.4 GR1 implementor-defined) — never a bare .ToString().

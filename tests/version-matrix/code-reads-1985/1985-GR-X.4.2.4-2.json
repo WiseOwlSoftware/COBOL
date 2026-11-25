@@ -2,62 +2,69 @@
  "rule-id": "1985-GR-X.4.2.4-2",
  "rule-digest": "c3b28707f079",
  "read": {
-  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
-  "slice": "1985-199",
+  "pin": "9a7e82ffe95aecb891f91a0aa5cad4ce62359636",
+  "slice": "1985-c10-pb2724",
   "sources": {
-   "reader": "f2e7d2c327033860b1b3ff81a6c5e472804dc40391f672cc6a9ce331d9f25e49",
-   "refuter": "ec70c5001a4b0986d42377a2a7fc5caa65fc0f05f6e0af63a8f5ec8eb884fc16"
+   "reader": "13a900a12f22eeac3be606ce660bec6a45997cd4b313208c88d771ede67953ed",
+   "refuter": "b5455dcfc9ed63946206cf2d28f5d3d59c2bf124b4d496a298418b193b864306"
   },
   "imported": {
-   "reader": "9ac368587135cea2dc6151084d6816c1bd67d7bb3ef2419b52db81d92040fece",
-   "refuter": "3838cdf6df3c022e81d3ae05b0d6f997b8eab6758b6eee41ceff90532541e78b"
+   "reader": "c9d3e97b39bb5fe34431eac8f2f7f10c0b0f9f23981576333eb45c7803183050",
+   "refuter": "c96c618427f0275562bbaaf73088911a063ec53e57fa5d02918d810b1ec54d3d"
   }
  },
  "reader": {
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "at-2023": "",
   "rule-id": "1985-GR-X.4.2.4-2",
   "verdict": "CONFORMS",
-  "requirement": "At --std 85 a file description entry admits IS EXTERNAL and IS GLOBAL with the meanings of §1985:X.4.5 and X.4.6: an EXTERNAL FD shares one file connector and record area across the run unit, and a GLOBAL FD makes the file-name and its records visible to contained programs. Every other FD clause keeps its own module's rules.",
-  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#fileGlobalExternalClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#fileDescriptionClause; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindFileSection; src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#CallBindExternalAndGlobal; src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#CallMakeExternal; src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#GlobalBridgesOf; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitExternalizedNamePhrase",
+  "requirement": "At --std 85 a file description entry admits IS EXTERNAL and IS GLOBAL (each in any position among the FD clauses, each at most once) with the meanings of §1985:X.4.5 and X.4.6: an EXTERNAL FD's file connector and record area are shared by every program of the run unit that describes the file, and a GLOBAL FD's file-name and records are visible to contained programs. Every other FD clause keeps its own module's rules.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#fileDescriptionClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#externalClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#globalClause; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindFileSection; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#FileDescriptionClauseAdmitted; src/WiseOwl.Cobol.Compiler/Binding/FileDescriptionFormats.cs#Rows; src/WiseOwl.Cobol.Compiler/Binding/ExternalizedName.cs#AsLiteralOf; src/WiseOwl.Cobol.Compiler/Binding/Model/ExternalClauseName.cs#Of; src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#CallBindExternalAndGlobal; src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#GlobalBridgesOf; src/WiseOwl.Cobol.Frontend/Cst/ClauseCardinality.cs#ElementOf; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitExternalizedNamePhrase",
   "edition-consulted": [
    {
     "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitExternalizedNamePhrase",
-    "switches": "at 85, refuses with COBOL0900 the 2002 'AS literal' externalized-name phrase after EXTERNAL (construct ExternalizedNameAs2002)",
+    "switches": "at 85 refuses with COBOL0900 the 2002 'AS literal-1' externalized-name phrase, which the one externalClause rule now carries for the FD and the 01 entry alike (construct ExternalizedNameAs2002)",
     "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Cst/ClauseCardinality.cs#ClauseCardinalities",
+    "switches": "only the rule a diagnostic cites (Format1985 'ANSI X3.23-1985' in the COBOL2423 repetition message); the decision is the same",
+    "same-arm-as-latest": true
    }
   ],
-  "edition-search": "Apart from the AS gate, a grep for Edition, Year and Constructs in LinkageBinder.cs#CallBindExternalAndGlobal and DataBinder.ClausePlacement.cs found nothing; the EXTERNAL/GLOBAL FD binding is one arm at every edition.",
-  "behaviour-differs-by-edition": "yes: 2002+ admits EXTERNAL AS literal-1 on the FD, and 85 refuses it. Sharing and visibility do not differ.",
-  "witnesses-cover": "part: g85_f06_07 covers one shape. The probes add an EXTERNAL FD shared by two separately compiled programs, a GLOBAL FD used by contained programs, a failed OPEN on an EXTERNAL GLOBAL file, and the SAME RECORD AREA refusal.",
+  "edition-search": "grep of FileControlBinder.FileSection.cs, FileDescriptionFormats.cs, ExternalizedName.cs, ExternalClauseName.cs, LinkageBinder.cs and ClauseCardinality.cs for Edition|DialectLevel|IntroducedIn: the FD clause walk reads Edition only for diagnostic positions and cited rules; FileDescriptionFormats.Rows' IntroducedIn gates only the 2002 FORMAT clause; the externalClause and globalClause arms set IsExternal/ExternalName and IsGlobal at every edition.",
+  "behaviour-differs-by-edition": "yes: 2002+ admits EXTERNAL AS literal-1 on the FD and 85 refuses it (COBOL0900); the sharing and the visibility do not differ.",
+  "witnesses-cover": "part: g85_f06_07 covers one shape; the probes add an EXTERNAL sequential FD shared by a sibling program, GLOBAL after LABEL RECORDS, GLOBAL with EXTERNAL on sequential, relative, indexed and LINAGE files used from a contained program, and the repetition, AS and SD refusals.",
   "probes": [
    {
     "class": "e",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-199/src/c2a_fd_external_shared.cob",
-    "printed": "PCLOSE closes the file PWRITE opened (STAT=00); PWRITE re-opens it INPUT and reads ROW-ONE STAT=00",
-    "expected": "one external file connector shared across separately compiled programs (§1985:X.4.5.4 GR4)"
+    "file": "E:/COBOL-coord/scratch/finish-worktree-wf_38508f28-551-1/probes/r1_fd_ext_glob.cob",
+    "printed": "XF MAIN-1 / XF SIB-1 / XF EOF (the sibling RSIB's WRITE through its own EXTERNAL description lands in the one open connector); GF NEST-GF / GF EOF (an FD 'LABEL RECORDS ARE STANDARD IS GLOBAL' written by the contained RNEST without describing it); BF NEST-BF / BF EOF ('GLOBAL EXTERNAL')",
+    "expected": "one external file connector (X.4.5.4 GR4) and a global file-name usable without redescription (X.4.6.4 GR2)"
    },
    {
     "class": "e",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-199/src/c2b_fd_global_nested.cob",
-    "printed": "INNER WROTE STAT=00 / OUTER READ BYINNER / INNER2 READ BYINNER STAT=00",
-    "expected": "the GLOBAL file-name and record are usable in contained programs (§1985:X.4.6.4 GR1-2)"
-   },
-   {
-    "class": "e",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-199/src/c2d_fd_ext_failed_open.cob",
-    "printed": "OPEN STAT=35, then the contained program's READ gives STAT=47 and no AT END",
-    "expected": "a failed OPEN gives status 35; a READ on the unopened file gives 47"
-   },
-   {
-    "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-199/src/c2c_fd_ext_as.cob",
-    "printed": "COBOL0900: the AS externalized-name phrase requires COBOL-2002",
-    "expected": "refused at 85"
+    "file": "E:/COBOL-coord/scratch/finish-worktree-wf_38508f28-551-1/refute/x1_fd_formats.cob",
+    "printed": "RL RREC / IX IDAT (relative and indexed FDs written 'BLOCK CONTAINS 1 RECORDS EXTERNAL GLOBAL' and 'GLOBAL RECORD CONTAINS 6 CHARACTERS IS EXTERNAL', written by the contained program); LINAGE-COUNTER 02 for the 'IS GLOBAL LINAGE IS 10 LINES IS EXTERNAL' file; the contained program's own FD GF writes its own file",
+    "expected": "Format 2 and Format 1 with LINAGE admit both clauses in any position; a local FD of the same name in the contained program is its own file"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-199/src/c2e_fd_global_same_record.cob",
-    "printed": "COBOL2738: SAME RECORD AREA with a GLOBAL FD refused",
-    "expected": "refused (§1985:X.4.6.3 SR3)"
+    "file": "E:/COBOL-coord/scratch/finish-worktree-wf_38508f28-551-1/probes/r2_fd_bad.cob",
+    "printed": "COBOL2423 'IS EXTERNAL' written 2 times; COBOL2423 'GLOBAL' written 2 times; COBOL0900 the AS externalized-name phrase requires COBOL-2002",
+    "expected": "refused: each bracket once (§1985:IV.2.1.4); AS is no 1985 syntax"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/finish-worktree-wf_38508f28-551-1/probes/r2b_sd_global.cob",
+    "printed": "COBOL1970 'GLOBAL' is not a clause of the sort-merge file description entry (§1985:XI.3.2.2)",
+    "expected": "refused: X.4.6.3 SR1 admits GLOBAL on an FD, not an SD"
    }
   ],
   "citations": [
@@ -72,23 +79,19 @@
    {
     "cite": "§1985:X.4.6.4 GR1",
     "check": "OK  §1985:X.4.6.4 GR1  (║4.6.4 General Rules║)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:X.4.6.4 GR2",
+    "check": "OK  §1985:X.4.6.4 GR2  (║4.6.4 General Rules║)  the text is in GR2"
    }
   ],
-  "notes": "This is a pointer rule. It is judged by whether the FD admits the two IPC clauses at 85 and gives them their X-23/X-24 meaning, and both hold. The diagnostics cite §2023 clause numbers at --std 85.",
-  "seeded": true,
-  "harm": "",
-  "cause": "",
-  "at-2023": "",
-  "repro": "",
-  "expected": "",
-  "observed": "",
-  "known_note": ""
+  "notes": "Re-read on this branch (kb/Work PB2724): the fused FD rule fileGlobalExternalClause is deleted; fileDescriptionClause now lists the ONE externalClause and globalClause rules the data description entry uses. BindFileSection's externalClause arm sets IsExternal and ExternalName = ExternalClauseName.Of(ExternalizedName.AsLiteralOf(...), name), the GR5 reading the record's ExternalizedRecordName asks too; its globalClause arm sets IsGlobal. FileDescriptionFormats.Rows lists the two clauses as two rows admitted in all three formats, and ClauseCardinality.ElementOf sees two figure elements without the deleted KindOf refinement, so a repeated EXTERNAL or GLOBAL is still COBOL2423 and EXTERNAL with GLOBAL is no repetition. Downstream, LinkageBinder.CallBindExternalAndGlobal and GlobalBridgesOf read FileModel.IsExternal/IsGlobal unchanged."
  },
  "refuter": {
   "rule-id": "1985-GR-X.4.2.4-2",
   "refutation": "UPHELD",
   "classes": "b,c,e",
-  "evidence": "§1985:VII.3.2.3 SR2 says 'The clauses which follow file-name-1 may appear in any order' (cite.py OK). Probe r2a_fd_order.cob puts IS GLOBAL and IS EXTERNAL AFTER BLOCK CONTAINS and LABEL RECORDS, in the reverse order: EXIT 0, 'INNER WROTE ST=00 / OUTER READ BYINNR ST=00'. Probe r2c_fd_indexed_global.cob (Format 2) has an indexed FD with IS EXTERNAL IS GLOBAL and a relative FD with IS GLOBAL, both written by a contained program: EXIT 0, 'OUTER READ K02BRAVO ST=00 / OUTER REL REL2 ST2=00'. Probe r2f_fd_report_global.cob (Format 3) has a report-file FD with IS GLOBAL IS EXTERNAL REPORT IS R1 and RD R1 GLOBAL, and the contained program runs GENERATE: EXIT 0, and the file holds HELLO. Probes r2d and r2e (a FILLER record under a GLOBAL or EXTERNAL FD): both COBOL2404, refused per §1985:X.4.3.3 SR5 (cite.py OK). cite.py: OK  §1985:X.4.2.4 GR2  (4.2.4 General Rules)  the text is in GR2.",
+  "evidence": "Code read independently at the pin, starting from the grammar: `git grep -i globalexternalclause\\|reportglobalclause -- src` finds only a historical comment in DiagnosticCatalog.cs, so no reader of the deleted rules survives; fileDescriptionClause, reportDescriptionClause, dataDescriptionClause and constantEntryBody reference the one globalClause, and fileDescriptionClause and dataDescriptionClause the one externalClause. Every consumer of the FD's attributes reads FileModel.IsExternal/IsGlobal (set only in BindFileSection's two arms) or ReportModel.IsGlobal (set only in BindReportDescriptionClauses); OoDefinitionRules.GlobalClauseSites lists the five hosts. The only edition reads on the path are VisitExternalizedNamePhrase (AS, 2002) and VisitGlobalClause, now restricted to a dataDescriptionClause parent in the Linkage Section, which no FD or RD can be. Attacks past the reader's probes at --std 85: x1_fd_formats.cob, a relative FD 'BLOCK CONTAINS 1 RECORDS EXTERNAL GLOBAL', an indexed FD 'GLOBAL RECORD CONTAINS 6 CHARACTERS IS EXTERNAL' with an EXTERNAL GLOBAL RELATIVE KEY, and a LINAGE file 'IS GLOBAL LINAGE IS 10 LINES IS EXTERNAL', all written from a contained program, printed RL RREC, IX IDAT and LINAGE-COUNTER 02, and the contained program's own same-named FD wrote its own file; x5_same_area.cob (SAME RECORD AREA over a GLOBAL FD) is refused COBOL2738 citing §1985:X.4.6.3 SR3, so the GLOBAL attribute the new globalClause arm sets still reaches the I-O-CONTROL screen. Cite: OK  §1985:X.4.2.4 GR2  (4.2.4 General Rules)  the text is in GR2",
   "edition-sites-missed": [],
   "corrected": ""
  }

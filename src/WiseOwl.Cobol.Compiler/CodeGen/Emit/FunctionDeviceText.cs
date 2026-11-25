@@ -78,7 +78,7 @@ internal sealed class FunctionDeviceText(NumericRenderer num)
     private static bool Describes(BoundIntrinsicCall ic) => ic.Sig.DeviceForm switch
     {
         FunctionDeviceForm.FixedDigits => true,
-        FunctionDeviceForm.Argument => ic.Sig.RuntimeMethod != "MeanScaled" || SingleArgument(ic),
+        FunctionDeviceForm.Argument => ic.Sig.Name != "MEAN" || SingleArgument(ic),
         _ => false,
     };
 
@@ -106,18 +106,19 @@ internal sealed class FunctionDeviceText(NumericRenderer num)
     {
         if (Describes(ic))
         {
-            switch (ic.Sig.DeviceForm, ic.Sig.RuntimeMethod)
+            // A MAX or MIN whose arguments are compared as strings has a string result and no numeric temporary (kb/Work PB2627).
+            switch (ic.Sig.DeviceForm, ic.ComparesStrings ? null : ic.Sig.Name)
             {
                 case (FunctionDeviceForm.FixedDigits, _):
                     return RuntimeApi.FunctionFieldOfDigits(num.DecOperand(num.Render(ic, ReceiverContext.None)), ic.Sig.DeviceDigits);
-                case (_, "AbsScaled"): return RuntimeApi.FunctionFieldAbs(Field(ic.Args[0]));
-                case (_, "MaxScaled"): return RuntimeApi.FunctionFieldMax(ArgumentList(ic));
-                case (_, "MinScaled"): return RuntimeApi.FunctionFieldMin(ArgumentList(ic));
-                case (_, "MedianScaled"):
+                case (_, "ABS"): return RuntimeApi.FunctionFieldAbs(Field(ic.Args[0]));
+                case (_, "MAX"): return RuntimeApi.FunctionFieldMax(ArgumentList(ic));
+                case (_, "MIN"): return RuntimeApi.FunctionFieldMin(ArgumentList(ic));
+                case (_, "MEDIAN"):
                     return num.StandardDecimal
                         ? RuntimeApi.FunctionFieldMedianStandard(num.IntermediateMode, ArgumentList(ic))
                         : RuntimeApi.FunctionFieldMedian(num.IntermediateMode, ArgumentList(ic));
-                case (_, "MeanScaled"): return Field(ic.Args[0]);
+                case (_, "MEAN"): return Field(ic.Args[0]);
             }
         }
         return ValueField(num.Render(ic, ReceiverContext.None, keepWide: true));

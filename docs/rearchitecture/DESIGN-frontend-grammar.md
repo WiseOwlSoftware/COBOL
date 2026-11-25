@@ -1153,7 +1153,9 @@ PhysicalLines.Read (line entry: terminators, tabs, --nist archive markers — kb
   → PropagateDirectiveProcessor → RefModZeroLengthDirectiveProcessor → FlagDirectiveProcessor → COBOL-WORDS / LEAP-SECOND
 ```
 
-Every stage after the COPY/conditional-compilation merge is line-count preserving (asserted). Status of the target
+Every stage after the COPY/conditional-compilation merge is line-count preserving (asserted). The three `{ ON | OFF }`
+toggle stages (PROPAGATE, REF-MOD-ZERO-LENGTH, LEAP-SECOND) share ONE collection loop, `OnOffDirectiveStage.Collect`;
+each stage keeps its keyword, its registry row and its event type (kb/Work PB2156). Status of the target
 changes:
 1. **Namespace** `WiseOwl.Cobol.Frontend.Preprocessor` (D8) — done.
 2. **One severity policy** (D4) — done: `ReferenceFormatProcessor.ReferenceFormatDiagnostics` asks

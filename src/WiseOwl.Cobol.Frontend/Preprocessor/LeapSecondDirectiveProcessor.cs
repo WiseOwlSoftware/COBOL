@@ -1,7 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Editions;
-using WiseOwl.Cobol.Frontend.Common;
 
 namespace WiseOwl.Cobol.Frontend.Preprocessor;
 
@@ -49,22 +48,6 @@ public static class LeapSecondDirectiveProcessor
     /// <paramref name="stackOps"/> are the PUSH/POP directives of the same text, replayed over the toggles
     /// (§2023:7.3.20 / §2023:7.3.22; kb/Work PB941). Line-count preserving.</summary>
     public static (string Text, DirectiveTimeline<LeapSecondEvent> Events) Process(
-        string text, IReadOnlyList<DirectiveStackOp>? stackOps = null)
-    {
-        if (!text.Contains(">>", StringComparison.Ordinal)) return (text, DirectiveTimeline<LeapSecondEvent>.Empty);
-        var lines = text.Split('\n');
-        var events = new DirectiveEventLog<LeapSecondEvent>();
-        for (int i = 0; i < lines.Length; i++)
-        {
-            // The ONE compiler-directive line parse (kb/Work PB794) — it removes the §2023:7.3.3 SR3/SR4 inline
-            // comment this stage's own slicing did not know about, so `>>LEAP-SECOND ON *> on` folds ON instead
-            // of drawing a malformed-operand error.
-            if (!CompilerDirectiveLine.TryParse(lines[i], Keyword, out string operand)) continue;
-            if (CompilerDirectiveCatalog.TryOperandWord(Keyword, operand, out string word)
-                && word is "" or "ON" or "OFF")
-                events.Add(Constructs.LeapSecondDirective2002, i + 1, new LeapSecondEvent(i + 1, word != "OFF"));   // §2023:7.3.17.2: ON is un-underlined, so a bare >>LEAP-SECOND selects it
-            lines[i] = "";   // blank, never delete — line-count preserving (the >>TURN H3 discipline)
-        }
-        return (string.Join('\n', lines), events.ToTimeline(stackOps ?? []));
-    }
+        string text, IReadOnlyList<DirectiveStackOp>? stackOps = null) =>
+        OnOffDirectiveStage.Collect(text, Keyword, Constructs.LeapSecondDirective2002, (line, on) => new LeapSecondEvent(line, on), stackOps);
 }

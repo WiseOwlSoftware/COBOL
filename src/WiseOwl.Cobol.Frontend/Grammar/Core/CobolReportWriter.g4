@@ -49,15 +49,10 @@ reportGroupReference
     ;
 
 reportDescriptionClause
-    : reportGlobalClause
+    : globalClause   // §2023:13.18.27 — the ONE GLOBAL clause rule (CobolData.g4; kb/Work PB2724)
     | reportCodeClause
     | reportControlClause
     | reportPageClause
-    ;
-
-// IS GLOBAL (§2023:13.18.27)
-reportGlobalClause
-    : IS? GLOBAL
     ;
 
 // CODE literal (§2023:13.18.12) — a 2-char prefix written on every line of the report.

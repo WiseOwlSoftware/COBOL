@@ -54,7 +54,7 @@ explicit extern false finally fixed for foreach goto if implicit in interface in
 out override params private protected public readonly ref return sealed sizeof stackalloc static struct switch this throw
 true try typeof unchecked unsafe using virtual volatile while""".split())
 #: The modifiers a member declaration may open with (and `ref`/`readonly`/`scoped`, which also open a `ref` type).
-MODIFIERS = frozenset("""public private protected internal static readonly const volatile virtual override abstract sealed
+MODIFIERS = frozenset("""public private protected internal static readonly const volatile virtual override abstract sealed closed
 extern unsafe new partial async required file fixed ref scoped""".split())
 LOCAL_MODIFIERS = frozenset(("static", "async", "unsafe", "extern"))
 #: The contextual words of a pattern: `(1, true) or (3, true) => ...` in a switch expression is an arm, never a local function.

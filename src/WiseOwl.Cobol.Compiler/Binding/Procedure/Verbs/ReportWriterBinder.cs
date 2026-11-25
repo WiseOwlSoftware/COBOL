@@ -431,20 +431,41 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
     /// statement IS a separate INITIATE statement per report-name in written order (§2023:14.9.21.4 GR5) — one
     /// <see cref="BoundInitiate"/> per name inside a <see cref="BoundImplicitSeries"/>, so GR5's second sentence
     /// ("processing resumes at the next implicit INITIATE statement, if any") has a boundary to land on.</summary>
-    public BoundStatement BindInitiate(Core.InitiateStatementContext stmt)
+    public BoundStatement BindInitiate(Core.InitiateStatementContext stmt) =>
+        BindReportNameSeries(ReportNameVerb.Initiate, stmt.reportName(), static (_, r) => new BoundInitiate([r]));
+
+    /// <summary>⛔ THE ONE BINDING OF A <c>report-name-1 …</c> STATEMENT (INITIATE §2023:14.9.21, TERMINATE §2023:14.9.46; kb/Work
+    /// PB2158, census R0-0056): the USE BEFORE REPORTING placement guard (<see cref="RejectInBeforeReporting"/>), then per written
+    /// report-name in order its SR1 ("shall be defined by a report description entry"), the contained program's file rule
+    /// (<see cref="RejectContainedReportFile"/>) and <paramref name="bindOne"/>'s statement, all members of one
+    /// <see cref="BoundImplicitSeries"/> (§2023:14.9.21.4 GR5, §2023:14.9.46.4 GR4: a separate statement per report-name, each a
+    /// resumption point). <paramref name="verb"/> carries the verb's word and its rules in each edition.</summary>
+    private BoundStatement BindReportNameSeries(ReportNameVerb verb, IReadOnlyList<Core.ReportNameContext> names,
+        Func<ReportWriterBinder, ReportModel, BoundStatement> bindOne)
     {
-        if (RejectInBeforeReporting("INITIATE") is { } refused) return refused;
+        if (RejectInBeforeReporting(verb.Word) is { } refused) return refused;
         var members = new List<BoundStatement>();
-        foreach (var rn in stmt.reportName())
+        foreach (var rn in names)
         {
             if (ctx.Data.Symbols.Identify(rn, NameClass.Report, report: true)?.Symbol is not ReportModel r)
-                return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementOperandRule, $"INITIATE '{rn.GetText()}': report-name-1 shall be defined by a report "
-                    + $"description entry in the report section ({ctx.Edition.Edition.CiteRule("§1985:XIII.4.4.3 SR1", "§2023:14.9.21.3 SR1")})"
+                return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementOperandRule, $"{verb.Word} '{rn.GetText()}': report-name-1 shall be defined by a report "
+                    + $"description entry in the report section ({verb.DefinedIn(ctx.Edition.Edition)})"
                     + HidingOfReportName(rn.GetText()));
-            if (RejectContainedReportFile(r, $"INITIATE {r.Name}", ContainedReportRule.Initiate) is { } notGlobal) return notGlobal;
-            members.Add(new BoundInitiate([r]));
+            if (RejectContainedReportFile(r, $"{verb.Word} {r.Name}", verb.Contained) is { } notGlobal) return notGlobal;
+            members.Add(bindOne(this, r));
         }
         return BoundImplicitSeries.Of(members);
+    }
+
+    /// <summary>A <c>report-name-1 …</c> verb's word and its rules (<see cref="BindReportNameSeries"/>): SR1 in COBOL-85 and from
+    /// COBOL-2002 on (the 2002 and 2014 statements carry the 2023 wording), and the contained program's file rule.</summary>
+    private sealed record ReportNameVerb(string Word, string DefinedY1985, string DefinedLater, ContainedReportRule Contained)
+    {
+        public static readonly ReportNameVerb Initiate = new("INITIATE", "§1985:XIII.4.4.3 SR1", "§2023:14.9.21.3 SR1", ContainedReportRule.Initiate);
+        public static readonly ReportNameVerb Terminate = new("TERMINATE", "§1985:XIII.4.7.3 SR1", "§2023:14.9.46.3 SR1", ContainedReportRule.Terminate);
+
+        /// <summary>SR1's citation in <paramref name="edition"/>, as a message prints it.</summary>
+        public string DefinedIn(WiseOwl.Cobol.Editions.EditionInfo edition) => edition.CiteRule(DefinedY1985, DefinedLater);
     }
 
     /// <summary><c>GENERATE {data-name | report-name}</c> (ISO §2023:14.9.16): a detail report group (SR1 — detail
@@ -512,21 +533,8 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
     /// <summary><c>TERMINATE report-name…</c> (ISO §2023:14.9.46.3 SR1; §2023:14.9.46.4 GR4) — one <see cref="BoundTerminate"/> per
     /// report-name inside a <see cref="BoundImplicitSeries"/>, GR4's "as though a separate TERMINATE statement had
     /// been executed for each report-name-1" and its per-implicit-statement resumption point.</summary>
-    public BoundStatement BindTerminate(Core.TerminateStatementContext stmt)
-    {
-        if (RejectInBeforeReporting("TERMINATE") is { } refused) return refused;
-        var members = new List<BoundStatement>();
-        foreach (var rn in stmt.reportName())
-        {
-            if (ctx.Data.Symbols.Identify(rn, NameClass.Report, report: true)?.Symbol is not ReportModel r)
-                return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementOperandRule, $"TERMINATE '{rn.GetText()}': report-name-1 shall be defined by a report "
-                    + $"description entry in the report section ({ctx.Edition.Edition.CiteRule("§1985:XIII.4.7.3 SR1", "§2023:14.9.46.3 SR1")})"
-                    + HidingOfReportName(rn.GetText()));
-            if (RejectContainedReportFile(r, $"TERMINATE {r.Name}", ContainedReportRule.Terminate) is { } notGlobal) return notGlobal;
-            members.Add(Presenting(new BoundTerminate([r])));
-        }
-        return BoundImplicitSeries.Of(members);
-    }
+    public BoundStatement BindTerminate(Core.TerminateStatementContext stmt) =>
+        BindReportNameSeries(ReportNameVerb.Terminate, stmt.reportName(), static (binder, r) => binder.Presenting(new BoundTerminate([r])));
 
     /// <summary>A GENERATE or TERMINATE — the two statements that present report groups — is the statement a report
     /// clause's operand-evaluation steps run inside (kb/Work PB4517; see <see cref="BindReportGroupClauses"/>), so it

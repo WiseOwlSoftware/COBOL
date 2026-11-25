@@ -123,7 +123,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         ? $"(!{CallEmitter.OmittedTest(n.Probe)})"
         : $"({CallEmitter.OmittedTest(n.Probe)})";
     // A simple boolean condition (ISO §2023:8.8.4.3.4 GR1): true iff the boolean value is 1.
-    public string Visit(BoundBooleanCondition n) => $"CobolBool.IsTrue({BooleanRenderer.Render(n.Expr, num)})";
+    public string Visit(BoundBooleanCondition n) => RuntimeApi.BoolIsTrue(BooleanRenderer.Render(n.Expr, num));
     public string Visit(BoundClassCondition n) => RenderClass(n);
     // An EVALUATE WHEN alphanumeric/national THRU range (§2023:14.7.8): ThruMember sets EC-RANGE-INVALID (nonfatal) for an
     // inverted range (Lo collating after Hi) and returns false (empty range), else the inclusive-bound membership.
@@ -204,8 +204,8 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
 
     // A user-defined class (§2023:8.8.4.4 / §2023:12.3.7): operand consists entirely of the class's member characters.
     public string Visit(BoundUserClassCondition n) => n.Negated
-        ? $"!CobolClass.IsInClass({OperandText.AsString(n.Operand, num, sending: SendingRef.ClassCondition)}, {EmitText.CsLiteral(n.Members)})"
-        : $"CobolClass.IsInClass({OperandText.AsString(n.Operand, num, sending: SendingRef.ClassCondition)}, {EmitText.CsLiteral(n.Members)})";
+        ? "!" + RuntimeApi.ClassIsInClass(OperandText.AsString(n.Operand, num, sending: SendingRef.ClassCondition), EmitText.CsLiteral(n.Members))
+        : RuntimeApi.ClassIsInClass(OperandText.AsString(n.Operand, num, sending: SendingRef.ClassCondition), EmitText.CsLiteral(n.Members));
     // An alphabet-name class (§2023:8.8.4.4.4 GR3 a; kb/Work PB109): membership of the alphabet's coded character set
     // (routed through the RuntimeApi façade — the P7 Step 4b ratchet forbids NEW bare runtime accesses here).
     public string Visit(BoundCodedSetClassCondition n) => n.Negated
@@ -328,7 +328,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         // below, which is the identical zero-extension under D-B1.)
         if (r.Left is BoundBoolOperand || r.Right is BoundBoolOperand)
         {
-            string core = $"CobolBool.Equal({BoolRead(r.Left)}, {BoolRead(r.Right)})";
+            string core = RuntimeApi.BoolEqual(BoolRead(r.Left), BoolRead(r.Right));
             return r.Op == "==" ? core : $"!({core})";
         }
         // ⛔ A VARIABLE-LENGTH GROUP HAS NO IMAGE TO COMPARE (kb/Work PB1467). The pair's comparison is asked of the
@@ -432,7 +432,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         // shorter operand right-extended with boolean ZEROS — never the alphanumeric program collating
         // sequence (equality-only + class purity are bind-enforced, 0844).
         if (cmp is CollatingClass.Boolean)
-            return $"CobolString.Compare({OperandText.AsString(r.Left, num)}, {OperandText.AsString(r.Right, num)}, pad: '0') {r.Op} 0";
+            return $"{RuntimeApi.StrCompare(OperandText.AsString(r.Left, num), OperandText.AsString(r.Right, num), ", pad: '0'")} {r.Op} 0";
         // NATIONAL relations (§2023:8.8.4.2.9/.10): full ordering under the NATIONAL collating sequence — the
         // default is the UTF-16 code-unit ordinal (D-N3; NATIVE/UCS-4 are that same identity), and a
         // NON-native ALPHABET … FOR NATIONAL sequence rides ctx.NatCollateArg (§2023:12.3.6.4 GR11). The
@@ -440,7 +440,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         // table would alias national chars through `& 0xFF` — is deliberately absent). A mixed alphanumeric
         // operand converts to national by the D-N4 Latin-1 identity (§2023:8.8.4.2.6).
         if (cmp is CollatingClass.National)
-            return $"CobolString.Compare({OperandText.AsString(r.Left, num, deSign: true)}, {OperandText.AsString(r.Right, num, deSign: true)}{ctx.NatCollateArg}) {r.Op} 0";
+            return $"{RuntimeApi.StrCompare(OperandText.AsString(r.Left, num, deSign: true), OperandText.AsString(r.Right, num, deSign: true), ctx.NatCollateArg)} {r.Op} 0";
         if (OperandText.IsString(r.Left) || OperandText.IsString(r.Right))
         {
             // An ALPHANUMERIC comparison (§2023:8.8.4.2.7) under the alphanumeric program collating sequence. `cmp` is
@@ -449,7 +449,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
             // A signed numeric compared against an alphanumeric operand drops its sign (ISO §2023:8.8.4.2.5 → §2023:14.9.25.4 GR6a),
             // except where DropsOperationalSign says the pair is a 1985 numeric-with-group one (kb/Work PB5106).
             bool deSign = DropsOperationalSign(r.Left, r.Right);
-            return $"CobolString.Compare({ComparisonText(r.Left, deSign)}, {ComparisonText(r.Right, deSign)}{ctx.CollateArgFor(leftCat, rightCat)}) {r.Op} 0";
+            return $"{RuntimeApi.StrCompare(ComparisonText(r.Left, deSign), ComparisonText(r.Right, deSign), ctx.CollateArgFor(leftCat, rightCat))} {r.Op} 0";
         }
         return RenderNumericRelational(r);
     }
@@ -522,7 +522,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         // PB1606) and a fixed operand lifts EXACTLY (CobolDec.From), preserving decimal precision that a
         // native (double)-rounded compare would lose. A native STANDARD-DECIMAL intermediate (.Dec) also lands here.
         if (l.Dec || rr.Dec || l.Real || rr.Real)
-            return $"CobolDec.Compare({num.SidiRounded(l, num.DecOperand(l))}, {num.SidiRounded(rr, num.DecOperand(rr))}) {r.Op} 0";   // §2002:8.8.1.3.1.3 situation 1
+            return $"{RuntimeApi.DecCompare(num.SidiRounded(l, num.DecOperand(l)), num.SidiRounded(rr, num.DecOperand(rr)))} {r.Op} 0";   // §2002:8.8.1.3.1.3 situation 1
         // An UNSIGNED-WIDE operand (a 16-byte unsigned COMP-5 read or the HIGHEST-ALGEBRAIC fold literal —
         // kb/Work R10) compares by algebraic VALUE over the full [0, 2^128) range: CobolNum.CompareU's overload
         // set covers U-vs-U and either mixed order, so the comparison never narrows through the Int128 funnel
@@ -814,7 +814,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
             // §2023:8.8.4.4.4 GR3n.2) — a NON-numeric-category operand (alphanumeric / edited / national, a ref-mod
             // slice included) is numeric iff its content "consists entirely of the characters 0, 1, 2, 3, …, 9",
             // with no operational sign admitted.
-            : $"CobolClass.IsNumeric({arg})";
+            : RuntimeApi.ClassIsNumeric(arg);
         // ALPHABETIC / -UPPER / -LOWER under a CHARACTER CLASSIFICATION (ISO §2023:8.8.4.4.4 GR3 b1/c1/d1 — the classification
         // locale's LC_CTYPE, resolved at the module's activation into __CLASSIFY; kb/Work PB64 T5); without one the
         // coded-character-set rule (b2/c2/d2 — the closed Latin set) stands, exactly as before.
@@ -824,9 +824,9 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         string test = c.ClassKind switch
         {
             'N' => numericTest,
-            'A' => $"CobolClass.IsAlphabetic({arg}{classify})",
-            'U' => $"CobolClass.IsAlphabeticUpper({arg}{classify})",
-            'L' => $"CobolClass.IsAlphabeticLower({arg}{classify})",
+            'A' => RuntimeApi.ClassIsAlphabetic(arg, classify),
+            'U' => RuntimeApi.ClassIsAlphabeticUpper(arg, classify),
+            'L' => RuntimeApi.ClassIsAlphabeticLower(arg, classify),
             // §2023:8.8.4.4.4 GR3e — "If BOOLEAN is specified, the condition is true if the content of the data
             // item referenced by identifier-1 consists entirely of the boolean values '0' and '1'." No
             // classification argument: LC_CTYPE governs the three ALPHABETIC forms (GR3 b1/c1/d1) and names no
@@ -913,7 +913,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     /// intermediate holds zero exactly, so "closer to zero than is permitted" cannot be zero itself), the operand's
     /// own NUMERIC test for a fixed-point one. That containment holds for every description this compiler can
     /// declare under every mode it accepts — binary64 is the widest carrier and its extremes ARE the native
-    /// intermediate's — which is the same measurement SetBinder.ClampToArithmeticRange records. A description
+    /// intermediate's — which is the same measurement SetContentBinder.ClampToArithmeticRange records. A description
     /// that ever escapes it is rendered LOUD here rather than guessed at, so the day a wider carrier lands this arm
     /// says so instead of answering.</para></summary>
     private string RenderInArithmeticRange(BoundFieldOperand f, string numericTest)

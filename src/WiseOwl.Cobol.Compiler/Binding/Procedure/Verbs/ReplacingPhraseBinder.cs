@@ -69,7 +69,7 @@ internal sealed class ReplacingPhraseBinder(BinderContext ctx, StatementBinder h
     /// receiving operand shall be valid". §2023:14.9.39's pointer and object-reference formats admit only a sending
     /// operand of the receiver's own category, so category agreement is the NECESSARY condition, checked here
     /// (the receiver-specific rules — a restricted pointer's type or signature, an object reference's class — are
-    /// asked per RECEIVING OPERAND by <c>SetBinder.ScreenImplicitSet</c>, at the store; kb/Work PB3817).
+    /// asked per RECEIVING OPERAND by <c>SetPointerBinder.ScreenImplicitSet</c>, at the store; kb/Work PB3817).
     /// <para>It is checked at BIND time rather than left to the backend because <see cref="InitializeSetFrom"/>
     /// renders the SET statement's own straight copy: a mismatched sender would otherwise reach Roslyn as a
     /// CS-level type error on emitted code, which names no COBOL rule.</para></summary>

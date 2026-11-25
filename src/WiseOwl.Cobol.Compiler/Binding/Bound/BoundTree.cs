@@ -259,7 +259,7 @@ public sealed record BoundDeclarative(
 /// interface-name-1 — so the discriminator is load-bearing at EMIT, not decoration.
 /// <para>Both alternatives render as a C# type test over the alternative's own census of emitted types (see the
 /// two cases); the pass structure and the per-pass census are the emitter's, in <c>EcEmitter</c>.</para></summary>
-public abstract record BoundEoOperand;
+public closed record BoundEoOperand;
 
 /// <summary>The object-class-name-1 alternative — ISO §2023:14.9.49.3 SR16, selected by §2023:14.9.49.4 GR14a: the
 /// exception object "is a factory object or instance object of object-class-name-1 or of a subclass of
@@ -302,7 +302,7 @@ public sealed record BoundParagraph(string CobolName, IReadOnlyList<IReadOnlyLis
 
 /// <summary>A bound numeric expression — a tree of resolved operands and operators (no parse context).</summary>
 [BoundNode]
-public abstract record BoundExpr;
+public closed record BoundExpr;
 
 /// <summary>A numeric literal, kept as raw source text (e.g. <c>"3.5"</c>, <c>"-12"</c>); the backend scales it.
 /// <paramref name="Carrier"/> is set only where the value is a BINARY floating-point carrier value that the text
@@ -545,6 +545,14 @@ public sealed record BoundIntrinsicCall(
     /// Never true together with <see cref="Collate"/> — each call reads exactly one class's sequence.</summary>
     public bool CollateNat { get; init; }
 
+    /// <summary>MAX, MIN, ORD-MAX or ORD-MIN whose arguments are compared as STRINGS (kb/Work PB2627): every argument is alphanumeric,
+    /// national or class-neutral and at least one is not neutral, so the class all arguments share (§2023:15.59.3 AR2: "All arguments
+    /// shall be of the same class") is a string class, and the comparisons "are made according to the rules for simple conditions"
+    /// (§2023:15.59.4 RV1) between strings, by the program collating sequence (<see cref="Collate"/> / <see cref="CollateNat"/>). ORD-MAX
+    /// and ORD-MIN still return an ordinal ("The type of this function is integer", §2023:15.71.1), so this is a fact about the
+    /// comparison and not the type. The binder decides it once (<c>IntrinsicBinder</c>); false for every other call.</summary>
+    public bool ComparesStrings { get; init; }
+
     /// <summary>DATE-OF-INTEGER, DAY-OF-INTEGER, INTEGER-OF-DATE or INTEGER-OF-DAY bound for an edition whose integer date form has
     /// no upper bound: the 1989 intrinsic function module, where the year is bounded below only (§1989:A.2.16.3 AR1;
     /// <c>DialectBehavior.IntegerDateFormBounded</c> inactive; kb/Work PB5130). False for every other call.</summary>
@@ -673,7 +681,7 @@ public sealed record BoundIntrinsicCall(
 
 /// <summary>A bound operand usable where either a string image or a numeric value may be required.</summary>
 [BoundNode]
-public abstract record BoundOperand
+public closed record BoundOperand
 {
     /// <summary>True when the operand is an EXPRESSION AS WRITTEN - an arithmetic expression with an operator, a unary sign or
     /// enclosing parentheses (§2023:8.8.1.1, "an arithmetic expression enclosed in parentheses"), or a boolean expression enclosed in
@@ -947,7 +955,7 @@ public sealed record BoundOperandError : BoundOperand
 
 /// <summary>A bound boolean expression (DESIGN §11 / ISO §2023:8.8.2).</summary>
 [BoundNode]
-public abstract record BoundBoolExpr;
+public closed record BoundBoolExpr;
 
 /// <summary>A boolean literal <c>B"1010"</c>, decoded to its '0'/'1' bit string.</summary>
 public sealed record BoundBoolLiteral(string Bits) : BoundBoolExpr;
@@ -1033,7 +1041,7 @@ public sealed record BoundBoolOperand(BoundBoolExpr Expr, bool AtItemWidth = fal
 
 /// <summary>A bound condition — a side-effect-free predicate tree (DESIGN §11).</summary>
 [BoundNode]
-public abstract record BoundCondition;
+public closed record BoundCondition;
 
 /// <summary>A relational comparison <c>left op right</c> (<paramref name="Op"/> is the mapped C# operator).</summary>
 public sealed record BoundRelational(BoundOperand Left, string Op, BoundOperand Right) : BoundCondition;
@@ -1136,7 +1144,7 @@ public sealed record BoundUdfEvaluated(IReadOnlyList<BoundStatement> Activations
 
 /// <summary>A bound statement.</summary>
 [BoundNode]
-public abstract record BoundStatement
+public closed record BoundStatement
 {
     /// <summary>True when this node is not a statement the programmer wrote but a step of EVALUATING AN OPERAND of
     /// one — every pre-op drained from <c>ProcedureBindState.PendingPreOps</c> (a user-function activation, an inline method
@@ -1671,7 +1679,7 @@ public sealed record BoundIf(
 
 /// <summary>How a PERFORM repeats its body.</summary>
 [BoundNode]
-public abstract record BoundPerformControl;
+public closed record BoundPerformControl;
 /// <summary>Run the body once.</summary>
 public sealed record PerformOnce : BoundPerformControl;
 /// <summary>Run the body <paramref name="Count"/> times.</summary>
@@ -1953,7 +1961,7 @@ public sealed record AddressRefMod(RefModSpec Spec, int? Positions, int UnitBits
 /// EXTERNALIZED name — §2023:8.4.3.13.4 GR2) or by the run-time content of <paramref name="NamePlace"/>
 /// (identifier-1, GR1a). <paramref name="Prototype"/> is set exactly for the program-prototype-name-1 arm, which
 /// GR3 makes a program-pointer RESTRICTED to that prototype. Produced by the ONE operand binder
-/// (<c>SetBinder.BindProgramAddressOperand</c>) for both surfaces that take it — the SET Format-9 sender and the
+/// (<c>SetAddressBinder.BindProgramAddressOperand</c>) for both surfaces that take it — the SET Format-9 sender and the
 /// CALL argument (kb/Work PB239).</summary>
 public sealed record BoundProgramAddress(string? NameLiteral, Place? NamePlace, string? Prototype);
 
@@ -2043,7 +2051,7 @@ public sealed record BoundFree(IReadOnlyList<Place> Operands) : BoundStatement;
 
 /// <summary>A SET receiving operand, dispatched by kind (the design's §12.3 rule).</summary>
 [BoundNode]
-public abstract record BoundSetTarget;
+public closed record BoundSetTarget;
 /// <summary>An INDEXED BY index-name receiver — its C# <c>long</c> occurrence-number field.</summary>
 public sealed record SetIndexTarget(string IndexField) : BoundSetTarget;
 /// <summary>A data-item receiver: an index data item (USAGE INDEX — receives the value unchanged, §2023:14.9.39.4 GR2b)
@@ -2507,7 +2515,7 @@ public sealed record ReceiverBracket(ReceiverBracketKey Receiver, IReadOnlyList<
 
 /// <summary>Which receiving operand a <see cref="ReceiverBracket"/> belongs to — the question the emitter asks of each store
 /// (<see cref="Names"/>).</summary>
-public abstract record ReceiverBracketKey
+public closed record ReceiverBracketKey
 {
     /// <summary>Is <paramref name="receiver"/>, the place a store is about to write, the operand this key names?</summary>
     public abstract bool Names(Place receiver);

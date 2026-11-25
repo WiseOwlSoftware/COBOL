@@ -131,6 +131,16 @@ internal enum SetDirections
 /// <see cref="SelectForTo"/> is that arm; <see cref="Select"/> stays the receiving-list-only answer.</para></summary>
 internal sealed class SetFormatSelection(BinderContext ctx, StatementBinder host)
 {
+    /// <summary>The receiving data references of a SET format, in source order — every one a data reference once
+    /// <c>SetBinder.RefuseNonReceivable</c> has passed the statement.</summary>
+    internal static Core.DataReferenceContext[] Receivers(Core.SetReceivingIdentifierContext[] receivers) =>
+        Array.ConvertAll(receivers, r => r.dataReference());
+
+    /// <summary>The receiving data references of a <c>setToStatement</c> that spells no ADDRESS phrase (the Format-7
+    /// statements that do go to <c>PtrBinder.BindSetAddress</c> with their receivers whole).</summary>
+    internal static Core.DataReferenceContext[] Receivers(Core.SetToReceiverContext[] receivers) =>
+        Array.ConvertAll(receivers, r => r.dataReference());
+
     /// <summary>One table row: the receiving brace as printed, plus the syntax rule that governs the operands it
     /// admits. <see cref="Mask"/> is <see cref="Admits"/> as a bit per
     /// <see cref="SetOperandKind"/>, computed once at class initialization: selection runs at every SET

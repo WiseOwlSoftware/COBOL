@@ -374,7 +374,7 @@
       "reason": "its string is a C# identifier the compiler mints or emits (a temporary's tag or prefix, a CLR or member name), never a COBOL word"
     },
     {
-      "member": "WiseOwl.Cobol.Binding.Procedure.SetBinder.BindProgramAddressOperand(WiseOwl.Cobol.Frontend.Generated.CobolParserCore.ProgramAddressIdentifierContext, string)",
+      "member": "WiseOwl.Cobol.Binding.Procedure.SetAddressBinder.BindProgramAddressOperand(WiseOwl.Cobol.Frontend.Generated.CobolParserCore.ProgramAddressIdentifierContext, string)",
       "reason": "its strings word a diagnostic (a feature, a message, a verb, a rule citation, a site): the operand, if any, is the parser context"
     },
     {
@@ -382,8 +382,8 @@
       "reason": "its string is the text of a literal, a PICTURE character-string or a format string, which names nothing"
     },
     {
-      "member": "WiseOwl.Cobol.Binding.Procedure.StorageSectionRule.Of2023(string)",
-      "reason": "its string is a word of the standard or of the implementor (an intrinsic function name, an implementor-name, a clause or verb keyword), never a user-defined word of the program"
+      "member": "WiseOwl.Cobol.Binding.Procedure.StorageSectionRule.For(WiseOwl.Cobol.Editions.EditionInfo, string, string, string, string)",
+      "reason": "its strings are citations of one rule in each edition (§1985:X.5.2.3 SR3, §2023:14.9.4.3 SR3), never a user-defined word of the program"
     },
     {
       "member": "WiseOwl.Cobol.Binding.Procedure.StrongGroupComparison.Lower(WiseOwl.Cobol.Binding.Model.Place, WiseOwl.Cobol.Binding.Model.Place, string, out string?)",

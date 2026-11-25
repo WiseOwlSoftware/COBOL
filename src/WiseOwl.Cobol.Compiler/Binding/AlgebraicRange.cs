@@ -36,7 +36,7 @@ internal readonly record struct AlgebraicRange(string Farthest, string? Farthest
 /// <item>the §2023:15.43 / §2023:15.58 / §2023:15.83 HIGHEST-ALGEBRAIC / LOWEST-ALGEBRAIC / SMALLEST-ALGEBRAIC intrinsics
 /// (<c>IntrinsicBinder.BindAlgebraicFold</c>), and</item>
 /// <item>the §2023:14.9.39.2 Format 15 <c>SET CONTENT OF … TO FARTHEST-FROM-ZERO / NEAREST-TO-ZERO</c> statement
-/// (<c>SetBinder.BindSetContent</c>).</item>
+/// (<c>SetContentBinder.BindSetContent</c>).</item>
 /// </list>
 /// Annex D.32 states the equivalence in normative-adjacent words — "<c>SET CONTENT OF numeric-item TO
 /// FARTHEST-FROM-ZERO</c> … That result is the same as that which might be obtained with the statement <c>MOVE

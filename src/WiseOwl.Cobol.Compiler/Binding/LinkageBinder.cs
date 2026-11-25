@@ -634,10 +634,11 @@ internal sealed class LinkageBinder(DataBinder data)
                 + $"{item.Class?.RejectReason ?? "unsupported leaf"} — recognized but not yet implemented");
             return;
         }
-        // ISO §2023:13.18.22.4 GR5, THE ONE PLACE ITS TWO SENTENCES ARE APPLIED (kb/Work PB511): the cell key is
-        // literal-1 when the entry's EXTERNAL clause writes `AS literal-1`, and the record's own data-name
-        // otherwise. `externalName` overrides both — it is the FD-record case, whose key is the FILE
-        // connector's externalized name (GR4b/GR5's first alternative), already resolved at the FD entry.
+        // ISO §2023:13.18.22.4 GR5 (kb/Work PB511): the cell key is literal-1 when the entry's EXTERNAL clause writes
+        // `AS literal-1`, and the record's own data-name otherwise — DataItem.ExternalizedRecordName, which asks the ONE
+        // reading of GR5 (ExternalClauseName.Of; kb/Work PB2724). `externalName` overrides both — it is the
+        // FD-record case, whose key is the FILE connector's externalized name (GR4b/GR5's first alternative), already
+        // resolved at the FD entry by the same reading.
         _externalBackings.Add(new CallExternalBacking(
             cls.BackingClrName, cls.BackingCellClrName,
             externalName ?? item.ExternalizedRecordName(),

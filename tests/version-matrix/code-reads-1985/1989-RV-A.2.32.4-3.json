@@ -2,74 +2,84 @@
  "rule-id": "1989-RV-A.2.32.4-3",
  "rule-digest": "71fe7ccbab2e",
  "read": {
-  "pin": "dcde4b909111a7a1ab75f80a8034a2e510426840",
-  "slice": "1985-c05-pb6055",
+  "pin": "9a7e82ffe95aecb891f91a0aa5cad4ce62359636",
+  "slice": "1985-c10-pb2724",
   "sources": {
-   "reader": "8af69ea3c28229d1ca5a043bd8ea0770ae8f4e39c97b7226c6ca02418f07a4d1",
-   "refuter": "c6108fba7cdb5e6d7a97dc1a3ab7beb2c28ab517b08f406e02476e107db60956"
+   "reader": "13a900a12f22eeac3be606ce660bec6a45997cd4b313208c88d771ede67953ed",
+   "refuter": "b5455dcfc9ed63946206cf2d28f5d3d59c2bf124b4d496a298418b193b864306"
   },
   "imported": {
-   "reader": "71e9add3a46fd86894184043b5fdf67de27e5a9020a5f90c5d3fb0a6b71dfe77",
-   "refuter": "101e093fbb5a3c6e0a2e6c89d535751c0fab3d18707362c8dadb5a9a71140245"
+   "reader": "e66c045702b0c649fb7f07a6934b74222a5a46f777b593f650aec974e531aa89",
+   "refuter": "c0cf73875b527021778795351f36b38e6d979305dde7ce0759696c2c31e67267"
   }
  },
  "reader": {
-  "rule-id": "1989-RV-A.2.32.4-3",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "at-2023": "",
   "verdict": "CONFORMS",
-  "requirement": "On a tie for the greatest value FUNCTION ORD-MAX returns the position of the leftmost argument-1 having that value, for numeric (any scale/sign) and alphanumeric/alphabetic arguments.",
-  "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Selection.cs#ExtremeIndex; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#OrdMax; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Select.cs#OrdMaxAt; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#OrdMaxString; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.ExactValue.cs#OrdMaxExact; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderDec; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Selection.cs#ExactOrder; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Wide.cs#OrdMaxWide; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Selection.cs#WideOrder",
   "edition-consulted": [
    {
     "site": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#IsDefinedAt",
-    "switches": "the function name exists at the edition (IntroducedIn 85 for MAX/MIN/ORD-MAX/ORD-MIN)",
+    "switches": "the function name exists at the edition (ORD-MAX and ORD-MIN IntroducedIn 85, the 1989 amendment)",
     "same-arm-as-latest": true
    },
    {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#CrossViolation",
-    "switches": "only the cited rule in the class-agreement diagnostic (EditionInfo; §1989:A.2.x.3 at 85); the check itself is the same",
-    "same-arm-as-latest": true
-   },
-   {
-    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderDec",
-    "switches": "native vs standard-decimal arithmetic arm (num.StandardDecimal); COBOL-85 has no ARITHMETIC clause so it always takes the native arm, the same arm a 2023 program without ARITHMETIC takes",
-    "same-arm-as-latest": true
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement",
+    "switches": "at 85 an integer function written where an identifier stands is refused (COBOL0900, §1985:IV.4.3.8.3.3 SR4; a 2002 introduction); inside an arithmetic expression the same arm as 2023",
+    "same-arm-as-latest": false
    }
   ],
-  "edition-search": "grep of IntrinsicRenderer.cs, IntrinsicCarrierRules.cs, IntrinsicBinder.cs, IntrinsicArgumentRules.cs, IntrinsicCatalog.cs, Runtime/Intrinsics (Selection, ExactValue, Wide) and CobolExact.cs for Edition|CobolVersion|DialectLevel|ConstructRegistry: the renderer's DialectLevel sites are the domain diagnostic's cited rule (CiteRule), RoundsStandardArgument (standard intermediate only, unreachable at 85: no ARITHMETIC clause) and EcFunctions.StatementLength; the lane choice (SelectionNeedsExactLane) and the runtime selection kernel and its ISelectionOrder carriers consult no edition",
-  "behaviour-differs-by-edition": "no",
-  "witnesses-cover": "part: g85_f38_06 is numeric; scale-differing ties, -0/+0, alphabetic/alphanumeric ties of unequal length and PCS are not exercised",
+  "edition-search": "grep of IntrinsicRenderer.cs, IntrinsicCarrierRules.cs, IntrinsicBinder.cs, IntrinsicArgumentRules.cs, IntrinsicCatalog.cs and Runtime/Intrinsics (Select, Selection, ExactValue, Exact, RealArgs, Wide) for Edition|CobolVersion|DialectLevel: the lane choice (the sig.Name selection set and IntrinsicCarrierRules.SelectionNeedsExactLane), Binary64Bodies and every ExtremeIndex carrier read no edition; the renderer's DialectLevel sites are a diagnostic's cited rule and the standard-intermediate rounding, which needs an ARITHMETIC clause COBOL-85 lacks",
   "probes": [
    {
     "class": "f",
-    "file": "E:/COBOL-coord/scratch/finish-worktree-wf_780ee655-772-3/probes/x1.cob",
-    "printed": "X6 01 (ORD-MAX(NUMVAL('1.5'), 1.50, 1.5), OrdMaxExact); X9 02 (ORD-MAX(BIG-1, BIG**1, BIG)); X1 01 and X2 01 (ORD-MAX(P**2 4 3) and (4 P**2 3), OrdMaxWide)",
-    "expected": "1; 2; 1; 1"
+    "file": "E:/COBOL-coord/scratch/finish-worktree-wf_38508f28-551-1/probes/o1_ord.cob",
+    "printed": "Q1 0002 (ORD-MAX(-1.50 7 7.0000)), Q2 0003, Q3 0001 (ORD-MIN(7 7.0000)), Q4 0001, Q5 0002 (18-digit +/-), Q6 0002, Q13 +0018 (ORD-MAX(1 5 5 2)*10 - ORD-MIN(4 0.5 0.50 9)), Q16 0001 (ORD-MAX(-0.001 -0.0010 -5)); bodies OrdMaxAt/OrdMinAt",
+    "expected": "the leftmost greatest or least by numeric comparison (equal values whatever their scale): 2, 3, 1, 1, 2, 2, 18, 1"
    },
    {
     "class": "f",
-    "file": "E:/COBOL-coord/scratch/finish-worktree-wf_780ee655-772-3/probes/x3.cob",
-    "printed": "Z1 01 (ORD-MAX(BIG**1, BIG, NBIG, NUMVAL('5')), 18 digits); Z5 01 (ORD-MAX(NUMVAL('-1'), NUMVAL('-1.0'), -2)); Z7 01 (ORD-MAX(SQRT(4), 2, NUMVAL('2')))",
-    "expected": "1; 1; 1"
+    "file": "E:/COBOL-coord/scratch/finish-worktree-wf_38508f28-551-1/probes/o1_ord.cob",
+    "printed": "Q14 0002 (ORD-MAX(0.1 SQRT(4) 2.0)), Q15 0001 (ORD-MIN(NUMVAL('-0') 0 -0.0)); bodies OrdMaxExact/OrdMinExact",
+    "expected": "2 (SQRT(4) equals 2.0 and the leftmost wins) and 1 (-0, 0 and -0.0 compare equal)"
    },
    {
-    "class": "a",
-    "file": "E:/COBOL-coord/scratch/finish-worktree-wf_780ee655-772-3/probes/x2.cob",
-    "printed": "Y2 01 (ORD-MAX(E(ALL)), ODO 3 of 9 4 4, E(4)=9 beyond the bound); Y3 01 (ORD-MAX(P**2 9 E(1) 8), OrdMaxWide)",
-    "expected": "1; 1"
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/finish-worktree-wf_38508f28-551-1/probes/o3_lanes.cob",
+    "printed": "L1 0002 L2 0002 (all-SQRT lists: OrdMaxReal/OrdMinReal), L3 0001 L4 0002 (10 ** P beside literals: OrdMaxExact/OrdMinExact)",
+    "expected": "2, 2, 1, 2: the leftmost of equal greatest or least values"
    },
    {
-    "class": "c",
-    "file": "E:/COBOL-coord/scratch/finish-worktree-wf_780ee655-772-3/probes/x2.cob",
-    "printed": "Y9 02 (ORD-MAX('Z' 'A' 'B' 'A') under the PCS Z..A)",
-    "expected": "2: A is greatest, the leftmost A"
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/finish-worktree-wf_38508f28-551-1/probes/o1_ord.cob",
+    "printed": "Q7 0002 Q8 0003 (TE(ALL) = 3 9 1 9 1), Q9 0003, Q10 0002 (ORD-MIN('B' 'AB ' 'AB'): a space-extended tie), Q11 0002 (alphabetic mixed with alphanumeric), Q12 0001 (one argument); bodies OrdMaxString/OrdMinString",
+    "expected": "2, 3, 3, 2, 2, 1"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/finish-worktree-wf_780ee655-772-3/probes/x4.cob",
-    "printed": "COBOL1627 ORD-MIN argument-2 class numeric cannot agree (§1989:A.2.33.3); COBOL1627 ORD-MAX argument-2 class alphanumeric (§1989:A.2.32.3); COBOL1504 and COBOL0900 for an empty list at 85",
-    "expected": "refused: AR1 same class; the format needs one or more argument-1"
+    "file": "E:/COBOL-coord/scratch/finish-worktree-wf_38508f28-551-1/probes/o2_ordbad.cob",
+    "printed": "COBOL1627 ORD-MAX argument-2 class alphanumeric (§1989:A.2.32.3); COBOL1627 ORD-MIN argument-2 class numeric (§1989:A.2.33.3); COBOL1504 and COBOL0900 for ORD-MAX(); COBOL0900 for each MOVE source (IV.4.3.8.3.3 SR4)",
+    "expected": "refused: AR1 one class; one or more argument-1; an integer function only in an arithmetic expression at 85"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/finish-worktree-wf_38508f28-551-1/probes/o1_ord.cob",
+    "printed": "o1_ord and o3_lanes at --std 2023 print the same Q1..Q16 and L1..L4",
+    "expected": "no edition difference in the returned value"
    }
   ],
+  "notes": "Re-read on this branch (kb/Work PB2627) at the pin: the aligned CobolIntrinsics.OrdMax/OrdMin(params Int128[]) are deleted, and no program reached them (on main the renderer's ORD-MAX/ORD-MIN arms already named OrdMaxAt/OrdMinAt, the string pair and the exact, wide and decimal bodies, and RealMethod named OrdMaxReal). The catalog row no longer names a runtime member; the renderer keys the selection set on sig.Name (MAX, MIN, ORD-MAX, ORD-MIN, MEDIAN) and names each body through a nameof-anchored RuntimeApi.IntrinsicBody constant, the binary64 body through Binary64Bodies. Every carrier selects through the one kernel Selection.cs#ExtremeIndex: start at index 0, replace only on a strictly greater (or strictly smaller) comparison, so the leftmost of equal values stands (RV3), and return index + 1 (RV1). Each carrier supplies its simple-condition comparison (RV2): ScaledOrder through CobolNum.Compare (by value, not scale), ExactOrder through CobolExact.Compare, ValueOrder for binary64, StringOrder through the program collating sequence with space extension, WideOrder through CobolWide.Compare. The wide lane was not reached by an 85 probe here; its body is the same one-line call of the kernel.",
+  "rule-id": "1989-RV-A.2.32.4-3",
+  "requirement": "On a tie for the greatest value FUNCTION ORD-MAX returns the position of the leftmost argument-1 having that value, for numeric arguments of any scale and sign and for alphabetic and alphanumeric arguments.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Selection.cs#ExtremeIndex; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Select.cs#OrdMaxAt; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#OrdMaxString; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.ExactValue.cs#OrdMaxExact; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.RealArgs.cs#OrdMaxReal; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Wide.cs#OrdMaxWide; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Selection.cs#ExactOrder; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Selection.cs#WideOrder; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#Binary64Bodies",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f38_06 is numeric; the probes add scale-differing ties, -0 against 0, 18-digit operands, ALL over a table with a tie, alphanumeric ties and the exact and binary64 lanes.",
   "citations": [
    {
     "cite": "§1989:A.2.32.4 RV3",
@@ -79,22 +89,13 @@
     "cite": "§1989:A.2.32.4 RV2",
     "check": "OK  §1989:A.2.32.4 RV2  (2.32.4 Returned Values)  the text is in RV2"
    }
-  ],
-  "notes": "Every carrier of these functions now selects through the one kernel CobolIntrinsics.Selection.cs#ExtremeIndex (start at index 0, replace only on a strictly greater or strictly smaller comparison, so the leftmost of equal values is kept; ORD-* add 1): the exact-value lane through ExactOrder (CobolExact.Compare, algebraic value) since kb/Work PB6055 deleted SelectExact, and the aligned 256-bit lane through WideOrder since the same branch deleted SelectWide. Probes x1, x2 and x3 at --std 85 on the branch build print the same output at --std 2023; the generated C# shows OrdMaxExact, OrdMinExact, MaxExact and MinExact (NUMVAL, SQRT, power and mixed-scale arguments) and OrdMaxWide and OrdMinWide (power arguments) reached. A re-read of the kb/Work PB6053 record after PB6055 moved the code.",
-  "seeded": true,
-  "harm": "",
-  "cause": "",
-  "at-2023": "",
-  "repro": "",
-  "expected": "",
-  "observed": "",
-  "known_note": ""
+  ]
  },
  "refuter": {
   "rule-id": "1989-RV-A.2.32.4-3",
   "refutation": "UPHELD",
-  "classes": "a,b,c,f",
-  "evidence": "Code read independently at the pin: ExtremeIndex (Selection.cs) is the only selection loop left in Runtime/Intrinsics (a grep for a second leftmost-strict loop finds none once SelectExact and SelectWide are deleted); ExactOrder.Compare is CobolExact.Compare (big, SDIDI and wide forms compared by value, a mixed pair widened, never ordered by sign), WideOrder.Compare is CompareAligned (one scale: the emitter aligned the list). Edition: no Edition, DialectLevel or CobolVersion read on the selection path (the renderer's sites are the domain rule's citation and the standard-intermediate rounding, neither reachable for these functions at 85). Attacks past the reader's probes: x3.cob at --std 85 (exact lane with NUMVAL, SQRT, 18-digit and power arguments) printed Z1 01, Z2 01, Z3 03, Z4 01 (-0 vs -0.0 vs 0), Z5 01, Z6 .2500, Z7 01, Z8 03, Z9 2.9990, as RV1 to RV3 and the simple-condition rules require; x4.cob --compile-only refused mixed numeric and alphanumeric (COBOL1627 citing §1989:A.2.33.3 and §1989:A.2.32.3) and the 2002 empty list (COBOL0900; class c, a later edition's form refused at 85); x1, x2 and x3 identical at --std 2023. Cite: OK  §1989:A.2.32.4 RV3  (2.32.4 Returned Values)  the text is in RV3",
+  "classes": "a,c,d,f",
+  "evidence": "Code read independently at the pin: before this branch, on origin/main, the renderer keyed the selection set on sig.RuntimeMethod ('OrdMax'/'OrdMin') and emitted OrdMaxAt/OrdMinAt, OrdMaxString/OrdMinString, the exact, wide and decimal bodies, and OrdMaxReal through RealMethod; the deleted OrdMax/OrdMin(params Int128[]) had no emitter. On the branch the same set is keyed on sig.Name with '&& !ic.ComparesStrings' added, which a string list never needed (SelectionNeedsExactLane is false for it), and the binary64 body is Binary64Bodies['ORD-MAX'] = OrdMaxReal, the same name RealMethod derived. Each body is a one-line call of ExtremeIndex with its ISelectionOrder; the kernel replaces only on a strict comparison and returns index + 1. A grep of the selection path for Edition|DialectLevel|CobolVersion finds none. Attacks past the reader's probes at --std 85: y1_ord_attack.cob under PROGRAM COLLATING SEQUENCE IS REV (Z Y X C B A) printed Y1 0001 for ORD-MAX('A' 'Z' 'B') and Y2 0002 for ORD-MIN (the collating sequence, not the native one, decides RV2); Y3 0003 and Y4 0001 for a numeric-edited item against alphanumeric items (class alphanumeric, compared as nonnumeric operands, an equal pair resolved leftmost); Y5 0002 and Y6 0001 for OE(ALL) of an ODO table with OC = 3 holding -1.5, 2.0, 2 (the series bounded by the ODO object, the scale-differing tie leftmost); Y7 0001 for ORD-MAX(D1 OE(ALL) 2) + 0 (a table expanded inside a longer list); Y8 COND for ORD-MIN(3 2 1) = 3 in a condition. Cite: OK  §1989:A.2.32.4 RV3  (2.32.4 Returned Values)  the text is in RV3",
   "edition-sites-missed": [],
   "corrected": ""
  }

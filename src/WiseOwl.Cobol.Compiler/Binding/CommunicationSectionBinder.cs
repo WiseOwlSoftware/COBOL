@@ -116,10 +116,12 @@ internal static class CommunicationFormats
 /// <summary>
 /// ⛔ THE COMMUNICATION SECTION (ISO/IEC 1989:2002 Annex A.1; docs/rearchitecture/DESIGN-communication-facility.md §3; kb/Work PB4677). Each CD
 /// becomes a <see cref="CommunicationDescription"/> whose <see cref="CommunicationDescription.Area"/> is the record A.1.2.3 prints as the entry's
-/// "IMPLICIT DESCRIPTION", built here from <see cref="CommunicationFormats"/>; every record the program writes after the CD joins one redefinition
-/// class with it (the FD's implicit record area, <see cref="RedefinitionKind.ImplicitCommunicationRecord"/>). The class's anchor is the FIRST written
-/// record when there is one, because "only the first redefinition may contain VALUE clauses" (A.1.2.2 SR5, SR9, SR14) and a class's seed is its
-/// anchor's; CCVS-85 CM201M writes `02 FILLER PIC 9999 VALUE 1` there. The items are static like working-storage's (ISO/IEC 1989:2002 8.6.3).
+/// "IMPLICIT DESCRIPTION", built here from <see cref="CommunicationFormats"/>; every record the program writes after the CD that has a character
+/// window joins one redefinition class with it (the FD's implicit record area, <see cref="RedefinitionKind.ImplicitCommunicationRecord"/>), and an
+/// out-of-line record (a pointer-class, dynamic-length or variable-length one, which has no window to share) joins no class (kb/Work PB5604). The
+/// class's anchor is the FIRST written record WITH a character window when there is one, because "only the first redefinition may contain VALUE
+/// clauses" (A.1.2.2 SR5, SR9, SR14) and a class's seed is its anchor's; CCVS-85 CM201M writes `02 FILLER PIC 9999 VALUE 1` there. The items are
+/// static like working-storage's (ISO/IEC 1989:2002 8.6.3).
 /// </summary>
 internal sealed class CommunicationSectionBinder(DataBinder host)
 {

@@ -2,87 +2,87 @@
  "rule-id": "1985-GR-X.4.4.4-2",
  "rule-digest": "58b1e4d9e756",
  "read": {
-  "pin": "832bc39c61395c388d20b4b9f1abfd5a4586e5ae",
-  "slice": "1985-m03",
+  "pin": "9a7e82ffe95aecb891f91a0aa5cad4ce62359636",
+  "slice": "1985-c10-pb2724",
   "sources": {
-   "reader": "50301e8c2c28f44e33bbedb50d51e6fb23077f024502d63116148dae1b74f56e",
-   "refuter": "85756383dc96cad17f5ef5a81cd1be1d0e43ad5574f8ba91649d778bd3bb79c3"
+   "reader": "13a900a12f22eeac3be606ce660bec6a45997cd4b313208c88d771ede67953ed",
+   "refuter": "b5455dcfc9ed63946206cf2d28f5d3d59c2bf124b4d496a298418b193b864306"
   },
   "imported": {
-   "reader": "aba083ab8ab160634ad0555d558a63c26ed10dc90856fb32b71f779d9ab5178d",
-   "refuter": "4a05c3c4f521d70e449e6e19a031921a953cc161ee926547c75814d7fb5efbad"
+   "reader": "260d033128dc74202fde5df9b251cefe8d6aaca23138d151e94b7eea495f7d31",
+   "refuter": "3e9fbec7e232a70e21e77dd9ab2e720c6e6d123e7a73d8d9add8f46e1be73bbb"
   }
  },
  "reader": {
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "at-2023": "",
   "rule-id": "1985-GR-X.4.4.4-2",
   "verdict": "CONFORMS",
-  "requirement": "In the Inter-Program Communication module the RD admits the GLOBAL clause with the X.4.6 semantics, and every other RD clause keeps its Report Writer module definition, in any order.",
-  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportDescriptionEntry; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportDescriptionClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportGlobalClause; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindReportDescriptionClauses; src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.Reports.cs#InheritReport",
+  "requirement": "In the Inter-Program Communication module the report description entry admits the GLOBAL clause with the X.4.6 semantics (the report-name is a global name, usable from a contained program), and every other RD clause keeps its Report Writer module definition, in any order.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportDescriptionEntry; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportDescriptionClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#globalClause; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindReportDescriptionClauses; src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.Reports.cs#InheritReport",
   "edition-consulted": [
    {
     "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindReportDescriptionClauses",
-    "switches": "the general-format clause the repeated-clause diagnostic cites (§1985:XIII.3.5.2 vs §2023:13.14.2); the check is the same",
+    "switches": "only the rule a diagnostic cites (CiteRule §1985:XIII.3.5.2 / §2023:13.14.2 in the COBOL2423 at-most-once message); the decision is the same",
     "same-arm-as-latest": true
    }
   ],
-  "edition-search": "grep Edition in ReportSectionBinder.BindReportDescriptionClauses: only Edition.Edition.Cite in diagnostics",
-  "behaviour-differs-by-edition": "no",
-  "witnesses-cover": "part: the witnesses write GLOBAL first; the probes add GLOBAL after CODE and after CONTROL, an RD in a contained program, and the repeated-GLOBAL refusal",
+  "edition-search": "grep of ReportSectionBinder.cs and SymbolTable.Reports.cs for Edition|DialectLevel: the RD clause walk reads Edition only for cited rules (the 2002 PAGE and CODE IS forms are VersionConformancePass constructs, not the GLOBAL clause); InheritReport consults no edition.",
+  "behaviour-differs-by-edition": "no for the RD's GLOBAL clause. (r3_rd_global at --std 2023 is refused COBOL2392 by §2023:14.9.16.3 SR3, a later rule that a contained GENERATE's report file be GLOBAL; COBOL-85's GENERATE (§1985:XIII.4.3) has no such rule, and it is not this rule.)",
+  "witnesses-cover": "part: the witnesses write GLOBAL first; the probes add GLOBAL after PAGE, GLOBAL between CODE and PAGE, GENERATE, INITIATE and TERMINATE from a contained program, the non-global refusal and the repeated-GLOBAL refusal.",
   "probes": [
    {
-    "class": "c",
-    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m03/src/rdglob.cob",
-    "printed": "I LC=03 / I PC=01; rdglob.rpt lines 'AB5' and 'AB6'",
-    "expected": "RD in a contained program with GLOBAL written between CODE and PAGE (§1985:XIII.3.5.3 SR2: order immaterial) accepted; the CODE clause's Report Writer semantics applied; its counters global to the program it contains"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m03/src/rdglobref.cob",
-    "printed": "COBOL2423: RD 'R1': the GLOBAL clause is written 2 times; ISO §1985:XIII.3.5.2's general format admits it at most once",
-    "expected": "refused: §1985:X.4.4.2 prints [ IS GLOBAL ] once"
-   },
-   {
-    "class": "a",
-    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m03/src/rpt1.cob",
-    "printed": "O T1=03 / O T2=01 / O LC1=03 / O LC2=01 / I LC=04 / I PC=01 / I T1=07 / I T2=03 / O LC1B=04 / O PC1B=09 / O T1B=50",
-    "expected": "contained program reads unqualified LINE-COUNTER and PAGE-COUNTER OF R1 of the container's GLOBAL report (its only visible report), alters PAGE-COUNTER and sum counter T OF LN1, and the container sees the same registers"
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/finish-worktree-wf_38508f28-551-1/probes/r3_rd_global.cob",
+    "printed": "report lines 'AMT= 007' (line 3) and 'AMT= 042' (line 4, generated by the contained RPNEST); NEST LINE-COUNTER 0000000004 (RD written 'PAGE LIMIT IS 20 LINES HEADING 1 FIRST DETAIL 3 IS GLOBAL')",
+    "expected": "the global report-name and its group usable in the contained program (X.4.6.4 GR1, GR2); GLOBAL after PAGE"
    },
    {
     "class": "e",
-    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m03/src/use3.cob",
-    "printed": "O-GLOBAL DET N=1 / O-GLOBAL DET2 N=1 / O-LOCAL DET3 N=1 / M-GLOBAL DET N=2 / M-LOCAL DET2 N=2 / M-GLOBAL DET N=3 / O-GLOBAL DET2 N=3 / I DONE / J-OWN DET N=4 / O-GLOBAL DET2 N=4 / O DONE",
-    "expected": "a: own declarative (USEM's non-GLOBAL DET2, USEJ's DET); b: directly containing program's GLOBAL one (USEM's for USEI's DET); c: skip a non-GLOBAL one and go outward (USEO's for USEI's DET2); none for USEI's DET3 (the outer's is not GLOBAL)"
+    "file": "E:/COBOL-coord/scratch/finish-worktree-wf_38508f28-551-1/refute/x2_rd_code.cob",
+    "printed": "ABOK (RD 'CODE \"AB\" IS GLOBAL PAGE 10 LINES'; INITIATE, GENERATE and TERMINATE in the contained program)",
+    "expected": "the CODE clause keeps its Report Writer meaning with GLOBAL between CODE and PAGE"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/finish-worktree-wf_38508f28-551-1/refute/x3_rd_local.cob",
+    "printed": "COBOL1757 INITIATE 'RLOC': report-name-1 shall be defined by a report description entry (§1985:XIII.4.4.3 SR1)",
+    "expected": "refused: a report without GLOBAL is local to its program"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/finish-worktree-wf_38508f28-551-1/probes/r4_rd_bad.cob",
+    "printed": "COBOL2423 RD 'RPT': the GLOBAL clause is written 2 times (§1985:XIII.3.5.2)",
+    "expected": "refused: one GLOBAL bracket"
    }
   ],
   "citations": [
    {
     "cite": "§1985:X.4.4.4 GR2",
-    "check": "OK  §1985:X.4.4.4 GR2  (python scripts/spec/cite.py --check \"§1985:X.4.4.4 GR2\" \"The GLOBAL clause is presented on page X-24\")"
+    "check": "OK  §1985:X.4.4.4 GR2  (4.4.4 General Rules)  the text is in GR2"
    },
    {
     "cite": "§1985:X.4.6.3 SR1",
-    "check": "OK  §1985:X.4.6.3 SR1  (python scripts/spec/cite.py --check \"§1985:X.4.6.3 SR1\" \"file description entries, or report description entries\")"
+    "check": "OK  §1985:X.4.6.3 SR1  (║4.6.3 Syntax Rules║)  the text is in SR1"
    },
    {
-    "cite": "§1985:XIII.3.5.3 SR2",
-    "check": "OK  §1985:XIII.3.5.3 SR2  (python scripts/spec/cite.py --check \"§1985:XIII.3.5.3 SR2\" \"The order of appearance of the clauses following report-name-1 is immaterial\")"
+    "cite": "§1985:X.4.6.4 GR1",
+    "check": "OK  §1985:X.4.6.4 GR1  (║4.6.4 General Rules║)  the text is in GR1"
    }
   ],
-  "notes": "Behaviour conforms. Diagnostic lead (misleads-diagnosis, minor): `RD R1 GLOBAL IS GLOBAL` is refused citing §1985:XIII.3.5.2, the Report Writer RD format, which has no GLOBAL clause; at 1985 the GLOBAL clause's format is §1985:X.4.4.2 (this rule's point). Site ReportSectionBinder.cs#BindReportDescriptionClauses, the UnrepeatedElements.AtMostOnce call for 'the GLOBAL clause'; repro E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m03/src/rdglobref.cob.",
-  "seeded": true,
-  "harm": "",
-  "cause": "",
-  "at-2023": "",
-  "repro": "",
-  "expected": "",
-  "observed": "",
-  "known_note": ""
+  "notes": "Re-read on this branch (kb/Work PB2724): the RD rule reportGlobalClause is deleted and reportDescriptionClause's first alternative is the ONE globalClause rule; BindReportDescriptionClauses counts globalClause for the at-most-once screen and sets ReportModel.IsGlobal from it; InheritReport (unchanged) makes a global report visible to contained programs. VersionConformancePass.VisitGlobalClause, which every globalClause host now reaches, gates only a dataDescriptionClause parent in the Linkage Section, so an RD's GLOBAL is never refused by it."
  },
  "refuter": {
   "rule-id": "1985-GR-X.4.4.4-2",
   "refutation": "UPHELD",
-  "classes": "b,c",
-  "evidence": "The 1985 RD format (§1985:X.4.4.2) prints [ IS GLOBAL ] as its own clause beside CODE, CONTROL and PAGE, and §1985:XIII.3.5.3 SR2 makes their order immaterial. rdg2.cob (single program, RD R1 CONTROL IS FINAL PAGE LIMIT IS 20 LINES FIRST DETAIL 3 GLOBAL): --std 85 EXIT 0, 'LC=03': GLOBAL written last, after the whole PAGE clause, is accepted and the PAGE clause's FIRST DETAIL 3 governs the first detail line (Report Writer semantics kept); GLOBAL in a program that contains no other program is harmless. rdg1.cob (GLOBAL written INSIDE the PAGE clause, between LINES and FIRST DETAIL): EXIT 65, 'rdg1.cob(14,12): error COBOL0001: unexpected 'FIRST'': correctly refused, since GLOBAL is a clause of the entry and not a phrase of PAGE. The reader's rdglob (GLOBAL between CODE and PAGE in a contained program) and rdglobref (GLOBAL twice refused) stand. The reader's diagnostic lead (the repeated-GLOBAL message cites §1985:XIII.3.5.2, whose format has no GLOBAL clause) remains a misleads-diagnosis nit, not a behaviour failure. Citations: OK §1985:X.4.4.4 GR2 ('All other clauses in the report description entry are presented in the Report Writer module'); OK §1985:XIII.3.5.3 SR2 ('The order of appearance of the clauses following report-name-1 is immaterial').",
+  "classes": "b,e",
+  "evidence": "Code read independently at the pin, starting from the grammar: `git grep -i globalexternalclause\\|reportglobalclause -- src` finds only a historical comment in DiagnosticCatalog.cs, so no reader of the deleted rules survives; fileDescriptionClause, reportDescriptionClause, dataDescriptionClause and constantEntryBody reference the one globalClause, and fileDescriptionClause and dataDescriptionClause the one externalClause. Every consumer of the FD's attributes reads FileModel.IsExternal/IsGlobal (set only in BindFileSection's two arms) or ReportModel.IsGlobal (set only in BindReportDescriptionClauses); OoDefinitionRules.GlobalClauseSites lists the five hosts. The only edition reads on the path are VisitExternalizedNamePhrase (AS, 2002) and VisitGlobalClause, now restricted to a dataDescriptionClause parent in the Linkage Section, which no FD or RD can be. Attacks past the reader's probes at --std 85: x2_rd_code.cob, an RD written 'CODE \"AB\" IS GLOBAL PAGE 10 LINES' whose report is INITIATEd, GENERATEd and TERMINATEd only in a contained program, wrote 'ABOK' (the CODE prefix kept, GLOBAL accepted between two Report Writer clauses); x3_rd_local.cob, the same INITIATE of an RD without GLOBAL, is refused COBOL1757, so the global attribute comes from the clause and not from the report section. Cite: OK  §1985:X.4.4.4 GR2  (4.4.4 General Rules)  the text is in GR2",
   "edition-sites-missed": [],
   "corrected": ""
  }

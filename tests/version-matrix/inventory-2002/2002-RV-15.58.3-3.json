@@ -2,7 +2,7 @@
  "rule-id": "2002-RV-15.58.3-3",
  "rule-digest": "ffbdcc81bd4f",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#OrdMax; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#ExtremeIndex",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#ExtremeIndex; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Select.cs#OrdMaxAt",
  "test-ref": "conformance:cases/15.58@2002-ORD-MAX-FUNCTION/g2-ord-max-class-and-position",
- "notes": "§2002:15.58.3 RV3: when several arguments equal the greatest value, the leftmost one's position. TIE and TIEALL (numeric), PADTIE (\"AB\" equals \"AB  \" because the shorter operand is extended with spaces, §2002:8.8.4.1.1.6.1) and NATTIE (national literal equal to a PIC N item) give TIE=002 TIEALL=001 PADTIE=001 NATTIE=001. Run at --std 2002 with the pinned build of dc1f2dcce8: output equals the derived golden."
+ "notes": "§2002:15.58.3 RV3: when several arguments equal the greatest value, the leftmost one's position. TIE and TIEALL (numeric), PADTIE (\"AB\" equals \"AB  \" because the shorter operand is extended with spaces, §2002:8.8.4.1.1.6.1) and NATTIE (national literal equal to a PIC N item) give TIE=002 TIEALL=001 PADTIE=001 NATTIE=001. Run at --std 2002 with the pinned build of dc1f2dcce8: output equals the derived golden. retired-witness: src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#OrdMax (kb/Work PB2627 deleted the aligned CobolIntrinsics.OrdMax(params Int128[]), which no program reached (the renderer emits OrdMaxAt); the ordinal FUNCTION ORD-MAX runs is OrdMaxAt over the same ExtremeIndex kernel)"
 }

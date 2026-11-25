@@ -1634,7 +1634,7 @@ setStatement
 // SET LOCALE {LC_ALL | LC_COLLATE | LC_CTYPE | LC_MESSAGES | LC_MONETARY | LC_NUMERIC | LC_TIME | USER-DEFAULT} TO
 // {identifier-10 | locale-name-1 | USER-DEFAULT | SYSTEM-DEFAULT} (ISO §2023:14.9.39 Format 11, set-locale) and
 // SET identifier-11 TO LOCALE {LC_ALL | USER-DEFAULT} (Format 12, save-locale).
-// IMPLEMENTED since kb/Work PB64 T1 (the binder's SetBinder.BindSetLocale / BindSaveLocale; it used to be parsed only to
+// IMPLEMENTED since kb/Work PB64 T1 (the binder's SetLocaleBinder.BindSetLocale / BindSaveLocale; it used to be parsed only to
 // draw COBOL1518 — kb/Work PB92: F11 used to bind as a generic SET of a data item named LOCALE, "'LOCALE' is not
 // defined" plus false 0901s about the format's own keywords; F12 was `unexpected '.'`). ⚠ THE CATEGORY OPERAND IS A
 // SET: the printed format's inner LC_ brace carries CHOICE INDICATORS (§2023:5.2.6.4 — one or more, each at most once, any
@@ -1698,7 +1698,7 @@ setLastExceptionStatement
 // `SET CONTENT X TO …` stays unambiguous against setToStatement with or without the word.
 // ⚠ The five value words are NOT reserved below 2014, so each is also a cobolWord alternative under the derived
 // reservation gate; that costs this rule nothing, because the words appear here in KEYWORD position where the
-// alternative is chosen by token type. The FORMAT ITSELF is introduction-gated at BIND (SetBinder.BindSetContent →
+// alternative is chosen by token type. The FORMAT ITSELF is introduction-gated at BIND (SetContentBinder.BindSetContent →
 // ConstructRegistry.Check(SetNumericContent2014)) — a parse-level gate would answer a 2002 program with a raw
 // ANTLR cascade instead of naming the edition.
 setContentStatement

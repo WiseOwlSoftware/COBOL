@@ -254,13 +254,17 @@ public sealed class ParameterizedClassTests
 
     /// <summary>§2023:12.3.8.4 GR1: "If object-class-name-1 is a class described with the USING phrase,
     /// object-class-name-1 may be specified only in the REPOSITORY paragraph" — a typed reference to the
-    /// skeleton itself is refused through the referring construct's own code, naming GR1.</summary>
+    /// skeleton itself is refused through the referring construct's own code, naming GR1 at 2023, §2014:12.3.7.3 GR1 at 2014, and at
+    /// 2002, whose text has no such rule, the determination D-PARAMETERIZED-UNEXPANDED (kb/Work PB5676, PB5922).</summary>
     [Fact]
     public void SkeletonNameOutsideRepository_NamesGr1()
     {
-        var errors = ErrorsOf(Box + Holder + Driver("CLASS PCHOLD", "01 R USAGE OBJECT REFERENCE PCHOLD."));
+        string source = Box + Holder + Driver("CLASS PCHOLD", "01 R USAGE OBJECT REFERENCE PCHOLD.");
+        var errors = ErrorsOf(source);
         EditionHarness.AssertHasDiagnostic(errors, "COBOL0813");
-        EditionHarness.AssertHasDiagnostic(errors, "ISO §2023:12.3.8.4 GR1");
+        EditionHarness.AssertHasDiagnostic(errors, "determination D-PARAMETERIZED-UNEXPANDED");
+        EditionHarness.AssertHasDiagnostic(ErrorsOf(source, 2014), "ISO §2014:12.3.7.3 GR1");
+        EditionHarness.AssertHasDiagnostic(ErrorsOf(source, 2023), "ISO §2023:12.3.8.4 GR1");
     }
 
     /// <summary>The expansion RE-BINDS the definition's own lines, so a defect in a line no formal touches is

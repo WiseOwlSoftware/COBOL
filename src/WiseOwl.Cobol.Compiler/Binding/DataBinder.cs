@@ -3795,7 +3795,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         Antlr4.Runtime.ParserRuleContext? dynLengthStructureAt = null;   // where it is written: its §2023:8.3.2.2 use (PB3153)
         DynamicLengthStructure? dynStructure = null;   // … and the SPECIAL-NAMES declaration it resolves to (SR2)
         bool hasExternal = false;      // observed for the BASED×EXTERNAL SR (the clause itself binds later)
-        Core.ExternalizedNamePhraseContext? externalAs = null;   // the EXTERNAL clause's `AS literal-1` (§2023:13.18.22.2; kb/Work PB511)
+        Core.ExternalClauseContext? externalClause = null;   // the EXTERNAL clause, whose `AS literal-1` is screened below (§2023:13.18.22.2; kb/Work PB511)
         bool isTypedef = false, typedefStrong = false;   // TYPEDEF [STRONG] — a type declaration (ISO §2023:13.18.58; D17)
         bool isConstantRecord = false; // CONSTANT RECORD (ISO §2023:13.18.15 — a structured constant; P10 Step 15)
         string? typeRefName = null;    // TYPE IS type-name — the type this entry clones, expanded post-build (D17)
@@ -3897,7 +3897,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                     hasExternal = true;   // consumed by CallBindExternalAndGlobal; flagged here for the 0881 check
                     // §2023:13.18.22.2's `[ AS literal-1 ]` (kb/Work PB511). CAPTURED here, SCREENED below with
                     // the entry's other placement screens, once the whole clause list has been decoded.
-                    externalAs = extc.externalizedNamePhrase();
+                    externalClause = extc;
                 }
                 else if (clause.globalClause() is not null)
                     { /* §2023:13.18.27 — binds post-build in CallBindExternalAndGlobal; the §2023:13.16.3 co-clause rules
@@ -4063,7 +4063,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // reaches HasExternalClause / HasGlobalClause — the only inputs of CallBindExternalAndGlobal's re-basing
         // and global-name registration.
         DataClauseKind placementRefused = ScreenClausePlacement(written, level, isFiller, section, entryWhere);
-        if ((placementRefused & DataClauseKind.External) != 0) { hasExternal = false; externalAs = null; }
+        if ((placementRefused & DataClauseKind.External) != 0) { hasExternal = false; externalClause = null; }
         if ((placementRefused & DataClauseKind.Property) != 0) property = null;   // §2023:13.16.3 SR21 — no accessor from a refused clause
         if ((placementRefused & DataClauseKind.Based) != 0) isBased = false;      // §2023:13.16.3 SR16 — ordinary storage, never a half-based state
         // §2023:13.18.42.3 SR1 — "The PROPERTY clause may be specified only in the working-storage section of a factory
@@ -4421,15 +4421,13 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                     + "clause shall not be specified in a data item described with the CONSTANT RECORD clause "
                     + "(ISO §2023:13.18.40.3 SR32)");
         }
-        // The EXTERNAL clause's `AS literal-1` (ISO §2023:13.18.22.2; kb/Work PB511) — the SEVENTH restatement of the
-        // one externalized-name syntax rule, screened through the ONE shared screen (§2023:13.18.22.3 SR3 reads
-        // word-for-word like §2023:11.10.3 SR1 and its four siblings). A violation clears the name rather than
-        // failing the entry: §2023:13.18.22.4 GR5's second sentence then externalizes the record under its own
-        // data-name, so the program binds under an already-failed compile instead of cascading.
-        string? externalizedAs = externalAs is null ? null
-            : ExternalizedName.Screen(externalAs, ReadConstant, Edition, DiagnosticCatalog.ExternalClauseAsLiteral,
-                $"{entryWhere} IS EXTERNAL AS {ExternalizedName.Written(externalAs)}", "literal-1",
-                "ISO §2023:13.18.22.3 SR3", LiteralEnv, rejectZeroLength: true);
+        // The EXTERNAL clause's `AS literal-1` (ISO §2023:13.18.22.2; kb/Work PB511) — read by the ONE reading the file
+        // description entry shares (ExternalizedName.AsLiteralOf; kb/Work PB2724), screened by §2023:13.18.22.3 SR3. A
+        // violation clears the name rather than failing the entry: §2023:13.18.22.4 GR5's second sentence then
+        // externalizes the record under its own data-name, so the program binds under an already-failed compile
+        // instead of cascading.
+        string? externalizedAs = externalClause is null ? null
+            : ExternalizedName.AsLiteralOf(externalClause, entryWhere, ReadConstant, Edition, LiteralEnv);
         var item = new DataItem
         {
             Level = level,
