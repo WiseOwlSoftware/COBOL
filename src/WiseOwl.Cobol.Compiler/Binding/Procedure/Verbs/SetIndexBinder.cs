@@ -226,7 +226,7 @@ internal sealed class SetIndexBinder(BinderContext ctx, StatementBinder host, Se
     /// resolvable data item (an index data item or an integer item — the emitter dispatches on its usage).
     /// <para>It applies NO class screen, and that is deliberate: it is shared with PERFORM VARYING's induction
     /// variable, whose class rule is a different one (§2023:14.9.28.3 SR2). Each caller asks the ONE operand-class
-    /// screen for its OWN position — <see cref="BindSetTo"/> for §2023:14.9.39.3 SR1 (kb/Work PB212), the varying
+    /// screen for its OWN position — <see cref="BindIndexAssignment"/> for §2023:14.9.39.3 SR1 (kb/Work PB212), the varying
     /// phrase for §2023:14.9.28.3 SR2 / SR5 a). The FORMAT question is not carried here either —
     /// <see cref="SetFormatSelection"/> has already established that every receiver belongs to Format 1's or
     /// Format 2's brace.</para></summary>
