@@ -671,6 +671,13 @@ public enum DialectBehavior
     /// Both editions are QUOTED. The consumers are <c>SpecialNamesBinder.CurrencyOperandOf</c> and
     /// <c>SpecialNamesBinder.SwitchBindCurrency</c>.</summary>
     CurrencyPictureSymbolLiteralAlphanumericAndUnique = 72,
+    /// <summary>§2014:11.3.2 SR9 (CLASS-ID) and §2014:11.6.2 SR7 (INTERFACE-ID) — "A given parameter-name shall not appear more than
+    /// once in a USING clause" (§2023:11.3.3 SR9, §2023:11.6.3 SR7 the same). COBOL-2002 has no such rule: §2002:11.2.2 ends at SR9 and
+    /// §2002:11.5.2 at SR5, and "Parameter-name-1 is the name given to the formal parameter" (§2002:11.2.3 GR5, §2002:11.5.3 GR3), so
+    /// at <c>--std 2002</c> <c>USING P P</c> names two formal parameters P and is accepted; what 2002 refuses is a REFERENCE to P,
+    /// which identifies neither formal uniquely (§2002:8.4.1), and every occurrence an expansion replaces is such a reference
+    /// (kb/Work PB5753; VCR row 7.129). Both editions are QUOTED. The consumer is <c>OoExpansion.Expand</c>.</summary>
+    ParameterNameAppearsOnceInUsingClause = 73,
 }
 
 /// <summary>
@@ -1023,6 +1030,10 @@ public static class DialectBehaviors
             "7.128", "§2014:12.3.6.2 SR26", "§2002:12.2.6.2 SR22",
             "a CURRENCY SIGN PICTURE SYMBOL literal-8 may be a national literal and may repeat another clause's literal-8 only from "
             + "COBOL-2014; COBOL-2002 asks an alphanumeric literal-8 and no two occurrences of the same value"),
+        new(DialectBehavior.ParameterNameAppearsOnceInUsingClause, "parameter-name-appears-once-in-using-clause", 2014,
+            "7.129", "§2014:11.3.2 SR9", "§2002:11.2.3 GR5",
+            "a given parameter-name shall not appear more than once in the USING clause of a CLASS-ID or INTERFACE-ID paragraph only "
+            + "from COBOL-2014; at COBOL-2002 a repeated parameter-name names two formal parameters, and a reference to it is not unique"),
     ];
 
     static DialectBehaviors()

@@ -250,6 +250,11 @@
       "changedIn": 2002
     },
     {
+      "id": "parameter-name-appears-once-in-using-clause",
+      "vcrRow": "7.129",
+      "changedIn": 2014
+    },
+    {
       "id": "perform-varying-after-init-inner-first",
       "vcrRow": "7.53",
       "changedIn": 2002
