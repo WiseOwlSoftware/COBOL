@@ -2,67 +2,44 @@
  "rule-id": "1985-GR-VI.6.17.4-1",
  "rule-digest": "5a54e4ef1a1a",
  "read": {
-  "pin": "7a32e1dfd2227042dea69db82f70d1e0085a50cc",
-  "slice": "1985-231",
+  "pin": "8c46aa7c8f6382f8332db1227687bf386056688f",
+  "slice": "1985-fin-pb2338",
   "sources": {
-   "reader": "43c580eb16d629a336024563d073f2700bfc4ffb6812f3ef39b97d8486aac256",
-   "refuter": "74ffba6c4e5da9fb0ab8d159b0adbcca4ae86cfa089f48501e4fd7e33d78f9db"
+   "reader": "b2c39fa705c170441fdc1cdc1b6c21a67fd75d5e38ad7a879446af685731dd5f",
+   "refuter": "28fa6114e1ee2cde79509228600dd4c1c2a9f2d8e8a21247d6f4d3e2d88bc52b"
   },
   "imported": {
-   "reader": "04eea416bcb41b71894a684cb372d816e9741b424d4dc25b309109aebb5b01ac",
-   "refuter": "51ec0bd467e5d24d159b39d5004e4187261f43e00cd2fec700d8f596de17f3a1"
+   "reader": "09ea103057315114323ee6753bdbbecd9032a49b7f054f23645d12d23b766527",
+   "refuter": "d76cadac850c26f99cb080fa0d1f3ea131e8d1d734ba760ba9140a0bfa4bc48d"
   }
  },
  "reader": {
   "rule-id": "1985-GR-VI.6.17.4-1",
   "verdict": "CONFORMS",
-  "requirement": "At --std 85 each REPLACING key word (ALPHABETIC, ALPHANUMERIC, NUMERIC, ALPHANUMERIC-EDITED, NUMERIC-EDITED) selects exactly the elementary items of that 1985 PICTURE category (VI.5.9.4 GR2-GR6, IV.4.3.3), including mixed A/X/9 alphanumeric pictures, A-with-B pictures (alphanumeric edited in 1985), 9-with-B or / pictures and BLANK WHEN ZERO items (numeric edited), any numeric usage; the post-1985 category words are not 1985 key words. The witnesses cover the plain five pictures and reference-modified PIC A/X slices.",
-  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#initializeCategoryName; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#InitializeCategoryOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#InitializeItemCategory; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#RefModInitializeCategory; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitInitializeCategoryName; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitInitializeReplacingItem",
+  "requirement": "At --std 85 each REPLACING key word must select exactly the items of its 1985 category (alphabetic, alphanumeric, numeric, alphanumeric edited, numeric edited): an item of another category is untouched, a reference-modified identifier-1 takes the category the 1985 reference-modification rule gives it, and a key word 1985 does not print is refused.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#initializeCategoryName; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReplacingPhraseBinder.cs#InitializeCategoryOf; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundInitialize.cs#InitializeItemCategory; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundInitialize.cs#RefModInitializeCategory; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitInitializeCategoryName; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitInitializeReplacingItem",
   "edition-consulted": [
    {
     "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitInitializeCategoryName",
-    "switches": "BOOLEAN/DATA-POINTER/NATIONAL/NATIONAL-EDITED/OBJECT-REFERENCE/PROGRAM-POINTER (2002), FUNCTION-POINTER (2014), MESSAGE-TAG (2023) refused COBOL0900 at 85; the 1985 five ungated",
-    "same-arm-as-latest": false
-   },
-   {
-    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitInitializeReplacingItem",
-    "switches": "more than one category word in one REPLACING item is the 2002 form, refused at 85",
+    "switches": "the 2002 category-names (NATIONAL, BOOLEAN, the pointer and object words) are refused below 2002",
     "same-arm-as-latest": false
    }
   ],
-  "edition-search": "InitializeBinder.cs category mapping (InitializeItemCategory, InitializeCategoryOf) grepped for Edition/DialectLevel/DialectBehavior/IsActive: none; the item-to-category mapping is the same code at every edition",
-  "behaviour-differs-by-edition": "yes: only the set of admitted key words (later category words refused at 85, one category per REPLACING item at 85); the category of a 1985-describable item is the same at 85 and 2023",
-  "witnesses-cover": "part: plain A/X/9/Z9/X-slash-X pictures and refmod slices; not mixed XA9 or 9A alphanumeric, AAB or 9/X or 0X alphanumeric edited, 99B9, 9/9, 99CR or BLANK WHEN ZERO numeric edited, COMP/PACKED-DECIMAL/BINARY/P-scaled numeric, JUSTIFIED alphabetic, elementary identifier-1 of a non-matching category",
+  "edition-search": "grep Edition|Year|ConstructRegistry in ReplacingPhraseBinder.cs, BoundInitialize.cs and VersionConformancePass.cs",
+  "behaviour-differs-by-edition": "yes: 85 has five category words; the rest are 2002 words",
+  "witnesses-cover": "part: g85_bf13_05 and pb5813 cover the categories and an alphabetic reference-modified item; the numeric reference-modified item and the alphanumeric-edited A-B picture are probes",
   "probes": [
    {
     "class": "d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-231/src/ini1.cob",
-    "printed": "ALPHABETIC BY Q: [Q  ][ Q] only; ALPHANUMERIC BY Z: XA9/9A only [Z  ][Z ]; NUMERIC BY 7: [07][ 007][7.0][0000] incl COMP, PACKED-DECIMAL, BINARY 9PP; ALPHANUMERIC-EDITED BY MN: [M N][MN ][M/N][0M] (XBX, AAB, 9/X, 0X); NUMERIC-EDITED BY 9: [  9][00 9][0/9][09  ][09] (ZZ9, 99B9, 9/9, 99CR, BWZ); five elementary mismatches unchanged; five matches [K  ][K  ][1/2][K ][01]",
-    "expected": "VI.6.17.4 GR1/GR2 with VI.5.9.4 GR2-GR6 categories"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-231/src/inrep.cob",
-    "printed": "COBOL0834 INITIALIZE REPLACING repeats the category-name NUMERIC",
-    "expected": "VI.6.17.3 SR3 refusal"
+    "file": "E:/COBOL-coord/scratch/finish-worktree-wf_05bb8d55-c0a-8/runs/inipos-001/inipos.cob",
+    "printed": "G1 [aaa][Z  ][999][p q][888]: ALPHANUMERIC touches only the PIC X item; G3..G5 change only the alphabetic, alphanumeric-edited and numeric-edited item; G9 [005] (NUMERIC item under ALPHANUMERIC unchanged)",
+    "expected": "each key word selects its own category"
    },
    {
     "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-231/src/innat.cob",
-    "printed": "COBOL0900 category-name NATIONAL requires COBOL-2002 (also BOOLEAN inbool.cob, DATA-POINTER inptr.cob)",
-    "expected": "not a 1985 key word: refused"
-   },
-   {
-    "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-231/src/intwo.cob",
-    "printed": "COBOL0900 an INITIALIZE REPLACING item naming more than one category requires COBOL-2002",
-    "expected": "1985 braces select one key word per item"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-231/src/inedw.cob",
-    "printed": "COBOL5506 unexpected 'EDITED' (two-word ALPHANUMERIC EDITED)",
-    "expected": "only the hyphenated key word is in the format"
+    "file": "E:/COBOL-coord/scratch/finish-worktree-wf_05bb8d55-c0a-8/runs/inicat-001/inicat.cob",
+    "printed": "COBOL0900 at 9 (NATIONAL) and 10 (BOOLEAN): 'INITIALIZE category-name (2002 words) requires COBOL-2002'; COBOL0834 at 11 (ALPHANUMERIC repeated)",
+    "expected": "refused at 85"
    }
   ],
   "citations": [
@@ -72,19 +49,11 @@
    },
    {
     "cite": "§1985:IV.4.3.3",
-    "check": "OK  §1985:IV.4.3.3  (4.3.3 Concept of Classes of Data)  the text is in the clause"
-   },
-   {
-    "cite": "§1985:VI.5.9.4 GR5",
-    "check": "OK  §1985:VI.5.9.4 GR5  (5.9.4 General Rules)  the text is in GR5"
-   },
-   {
-    "cite": "§1985:VI.6.17.3 SR3",
-    "check": "OK  §1985:VI.6.17.3 SR3  (║6.17.3 Syntax Rules║)  the text is in SR3"
+    "check": "OK  §1985:IV.4.3.3  (4.3.3 Concept of Classes of Data)  the text is in the clause; it lies in p1"
    }
   ],
-  "notes": "Every 1985 category, including the edge pictures the witnesses omit, matched its key word. A side observation outside this rule: the SR3 refusal COBOL0834 cites §2023:14.9.20.3 SR6 at --std 85 rather than §1985:VI.6.17.3 SR3.",
-  "seeded": true,
+  "notes": "Re-read after kb/Work PB2344: the key word is decoded by ReplacingPhraseBinder.InitializeCategoryOf (a total token switch), an item's category by InitializeCategories.InitializeItemCategory and a reference-modified slice's by RefModInitializeCategory (both moved to BoundInitialize.cs); the 2002 words are gated in VersionConformancePass.",
+  "seeded": false,
   "harm": "",
   "cause": "",
   "at-2023": "",
@@ -97,7 +66,7 @@
   "rule-id": "1985-GR-VI.6.17.4-1",
   "refutation": "UPHELD",
   "classes": "c,d",
-  "evidence": "Attack: §1985:IV.4.3.8.4.4 GR5 makes a reference-modified numeric, numeric-edited or alphanumeric-edited item category alphanumeric and an alphabetic one alphabetic; the reader's probes covered only A/X slices. rini1-001 (--std 85): N4 PIC 9(4) (2:2) REPLACING ALPHANUMERIC -> [1QQ4], REPLACING NUMERIC -> unchanged; ZZ99 (P:2) ALPHANUMERIC -> [ QQ2], NUMERIC-EDITED -> unchanged; XBX (1:2) ALPHANUMERIC -> [QQB], ALPHANUMERIC-EDITED -> unchanged; A(4) (2:2) ALPHABETIC -> [AQQD], ALPHANUMERIC -> unchanged; group (2:2) ALPHANUMERIC -> [1QQB], NUMERIC -> unchanged. Same output at --std 2023 (rini1-002). cite.py: OK §1985:IV.4.3.8.4.4 GR5 (\"the categories numeric, numeric edited, and alphanumeric edited are considered class and category alphanumeric\"). Category table §1985:IV.4.3.3 and BLANK WHEN ZERO numeric edited (§1985:VI.5.4.4 GR2 text read) agree with the reader's probes.",
+  "evidence": "rfini-001: a PIC A(2)BA item is alphanumeric edited at 85 (the 1985 alphabetic PICTURE holds only 'A'), and REPLACING ALPHABETIC skips it (H3 [ab c]) while ALPHANUMERIC-EDITED takes it (H5 [Q   ]); a reference-modified PIC X item takes ALPHANUMERIC (H7), a reference-modified PIC A item ALPHABETIC (H8), and a reference-modified numeric item is alphanumeric, so NUMERIC leaves it (H9 [000]) and ALPHANUMERIC fills it (H10 [770]): 'OK  §1985:IV.4.3.8.4.4 GR5  (4.3.8.4.4 General Rules)  the text is in GR5'. The REDEFINES item is excluded (H6), 'OK  §1985:VI.6.17.4 GR4  (║6.17.4 General Rules║)  the text is in GR4'.",
   "edition-sites-missed": [],
   "corrected": ""
  }

@@ -245,7 +245,7 @@ evaluateStatement
 // §2023:8.8.4.4 alternative list, kb/Work PB590), bound by the ONE condition binder.
 // ALTERNATIVE ORDER IS LOAD-BEARING: a BARE word (`EVALUATE X`, `EVALUATE COND-88`) is both a valueOperand and a
 // condition, and ANTLR resolves that ambiguity to the FIRST alternative — the value subject, whose bare-operand
-// resolution (EvaluateBinder.ClassifyPair) is what tells a level-88 / switch-status condition-name from a data
+// resolution (WhenPhraseBinder.ClassifyPair) is what tells a level-88 / switch-status condition-name from a data
 // item, exactly as for a bare selection object. `condition` is reached only when the subject has a shape no
 // value operand spells (a relational operator, a class/sign test, NOT, AND/OR, a parenthesised condition), so
 // no subject that parsed before changes its parse.
@@ -329,14 +329,14 @@ evaluateWhenPhrase
 // with §2023:8.8.4.11.3's precedence. EvaluateSelectionObjectArityDriftTests pins which alternatives may carry it.
 // ⛔ `NOT? booleanLiteral` AND `NOT? ANY` ARE THE PARSE-WIDE HALF OF A BIND-NARROW SCREEN (DESIGN-frontend-grammar.md
 // invariant 8). §2023:14.9.13.2 prints TRUE, FALSE and ANY with no NOT, so `WHEN NOT ANY` and `WHEN NOT TRUE` are source no
-// format admits and §2023:4.2.2 owes them an indication: they PARSE so EvaluateBinder.ScreenObjectNegation refuses them by
+// format admits and §2023:4.2.2 owes them an indication: they PARSE so WhenPhraseBinder.ScreenObjectNegation refuses them by
 // name (COBOL3710) rather than ANTLR reporting a stray token. `WHEN NOT ANY` used to compile clean and bind to the
 // negation of GR4 a) 1.'s constant true — an arm that can never run. TRUE/FALSE is its own alternative (it used to
 // reach the binder as a one-word `condition`), so the object word is read off the parse tree as ANY is; it precedes
 // `condition`, which a TRUE or FALSE inside a longer condition still parses as.
 // ⛔ ALTERNATIVE ORDER IS LOAD-BEARING AND IS NOT THE PLACE TABLE 15 IS DECIDED (see the block above). `valueRange`
 // leads because its THRU is what distinguishes it; `valueOperand` precedes `condition` because a BARE word is both
-// and only the resolved SYMBOL can say which (EvaluateBinder.ClassifyPair asks, once) — so `NOT X` too reads as
+// and only the resolved SYMBOL can say which (WhenPhraseBinder.ClassifyPair asks, once) — so `NOT X` too reads as
 // `NOT identifier-2` ahead of the negated condition `NOT X`, the same truth value for a condition-name; and
 // `partialExpression` is last of the shapes because `className`'s user-word alternative would otherwise claim a bare
 // identifier-2.

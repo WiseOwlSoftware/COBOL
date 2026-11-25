@@ -79,7 +79,7 @@ public sealed class ReportGroupResolutionDriftTests
     {
         foreach (string rel in new[]
                  {
-                     Path.Combine("Binding", "Procedure", "ProcedureTableBuilder.cs"),
+                     Path.Combine("Binding", "Procedure", "UseStatementBinder.cs"),
                      Path.Combine("Binding", "Procedure", "Verbs", "ReportWriterBinder.cs"),
                      // The DATA-division site: the SUM clause's UPON data-name-2 (ISO §2023:13.18.54.3 SR7),
                      // resolved in ResolveReports once every report group is described (kb/Work PB482).

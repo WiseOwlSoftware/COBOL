@@ -60,8 +60,11 @@ public sealed class NameTableOwnershipDriftTests
     /// PICTURE character-string, its expansion and the diagnostic's site, as <c>PictureAnalyzer.Analyze</c>'s are. kb/Work PB2725:
     /// 130 -> 128, <c>ExpressionBinder.NationalLiteralOperand</c> and <c>BooleanLiteralOperand</c> became <c>QuotedLiteralOperand</c>,
     /// which takes the one <c>QuotedLiteral</c> reader's value, not a string. kb/Work PB3230: 128 -> 127,
-    /// <c>OoBinder.OoApplyObjectView</c> takes identifier-1's written reference, not its text.)</summary>
-    private const int StringMembersCeiling = 127;
+    /// <c>OoBinder.OoApplyObjectView</c> takes identifier-1's written reference, not its text. kb/Work PB2341 and PB2345: 127 -> 129,
+    /// <c>SortMergePhraseBinder.SortRange</c> and <c>UseStatementBinder.DeclBindUse</c>, private members of <c>SortBinder</c> and
+    /// <c>ProcedureTableBuilder</c> that the extracts made internal so their old owner can call them; their strings word the
+    /// diagnostic (the phrase, the format clause, the declarative section), as <c>ResolveProcedureOperand</c>'s do.)</summary>
+    private const int StringMembersCeiling = 129;
     private const int ComparisonsCeiling = 92;
 
     /// <summary>Where every run writes its findings, one per line.</summary>
