@@ -71,11 +71,17 @@ internal static class AssignTargetRule
                 + "implementation allows ONE operand naming the file, or a device class ("
                 + string.Join(" or ", DeviceClasses.Order(StringComparer.Ordinal)) + ") followed by ONE operand "
                 + "naming the file (docs/CONFORMANCE.md §7 DOC-A.1-71)"
-                + (targets.Length == 2 ? (first.cobolWord() is null
+                + (targets.Length == 2 ? (IsLiteral(first)
                     ? " — here the first operand is a literal, not a device class"
                     : $" — here '{WrittenSource.Of(first)}' is not a device class this implementation provides") : "")));
         return Text(edition, env, targets[^1], file);
     }
+
+    /// <summary>Whether an operand is a LITERAL for the two-operand message. The grammar parses the token NULL as the predefined NULL at every edition
+    /// (<see cref="Text"/>), so a nonnumeric-literal context holding it is no literal: it is the reserved identifier from COBOL-2002 and the word
+    /// implementor-name-1 at COBOL-85, where §1985:IV.4.2.2.1 leaves it free (§1985:VII.2.3.3 SR3; kb/Work PB5802, PB6074).</summary>
+    private static bool IsLiteral(Core.AssignTargetContext t) =>
+        t.numericLiteral() is not null || t.nonNumericLiteral() is { } nn && nn.predefinedNull() is null;
 
     /// <summary>The physical name one operand gives. literal-1 is screened against §2023:12.4.5.2 SR4 — "an alphanumeric
     /// literal ... neither a figurative constant nor a zero-length literal" — and decoded (a §2023:8.8.3 concatenation
