@@ -1,4 +1,4 @@
-## The inventory code-location check reads every edition, and a re-site keeps the sites its prose names
+## Entry 4060 — 2026-11-24 17:32 PST — The inventory code-location check reads every edition, and a re-site keeps the sites its prose names
 
 kb/Work PB6066. Re-probe on this build: the code-location drift test (`EveryCodeLocation_ResolvesInTheTree`) already read every held edition's store (PB5932), and `2002-FMT-15.38.1` no longer cites `ArgsOf` as a live site, so that half was discharged. Its sibling `EveryNotesLocation_ResolvesInTheTree` read the 2023 store alone; it now reads every edition (22 SpecTraceabilityInventory tests, 0 unresolved). Code reads stay out of it by design: they are evidence at their pin and `code_reads.py` validates them at import (PB5863).
 
@@ -7,3 +7,4 @@ The root of item B: `record_verdicts.merged` replaces the code-location of a re-
 Item C: `1985-SR-VI.6.16.3-3` was KEPT to the IF format, which does not hold the rule; it is now CONFORMS with a REMOVED change record (no 2023 clause prints the END-IF/NEXT SENTENCE restriction, `cite.py --check` OK for §1985:VI.6.16.3 SR3, §2023:14.9.19.3 SR3, §2023:F.1 item 2). The catalog row the PB5835 report called owed exists (`1985-GR-VI.6.3.1.1.1-p1`/`-p2`).
 
 Review round 2 found the same shape on older re-sites: 101 dropped code-locations (92 on 34 rows of the 1985 store, 9 on 5 rows of the 2023 store) whose method still exists and whose prose still names it; all restored by `record_verdicts`. `audit_witness_loss.py --check` now fails a change that drops a site its row's notes still name, `--history` owes such a site back, and the self-test pins the moved-symbol and retired-site exemptions (each mutant turns it red).
+
