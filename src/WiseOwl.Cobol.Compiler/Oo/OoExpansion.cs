@@ -127,14 +127,12 @@ internal static class OoExpansion
         {
             var id = c.classIdParagraph();
             if (id.ooParameterName().Length == 0) { plainClasses.Add(c); continue; }
-            AddSkeleton(c, id.className(0).GetText(), false, id.ooParameterName(), c.environmentDivision(), id.externalizedNamePhrase(),
-                "CLASS-ID", "ISO §2023:11.3.3 SR8", "ISO §2023:11.3.3 SR9");
+            AddSkeleton(c, id.className(0).GetText(), false, id.ooParameterName(), c.environmentDivision(), id.externalizedNamePhrase());
         }
         foreach (var i in interfaces)
         {
             if (i.ooParameterName().Length == 0) { plainInterfaces.Add(i); continue; }
-            AddSkeleton(i, i.interfaceName(0).GetText(), true, i.ooParameterName(), i.environmentDivision(), i.externalizedNamePhrase(),
-                "INTERFACE-ID", "ISO §2023:11.6.3 SR4", "ISO §2023:11.6.3 SR7");
+            AddSkeleton(i, i.interfaceName(0).GetText(), true, i.ooParameterName(), i.environmentDivision(), i.externalizedNamePhrase());
         }
         var entries = new List<Core.RepositoryEntryContext>();
         CollectExpandsEntries(tree, entries);
@@ -220,32 +218,54 @@ internal static class OoExpansion
             [.. interfaces.Where(i => i.ooParameterName().Length > 0)], published, origins);
 
         void AddSkeleton(ParserRuleContext ctx, string name, bool isInterface, Core.OoParameterNameContext[] formals,
-            Core.EnvironmentDivisionContext? env, Core.ExternalizedNamePhraseContext? asPhrase, string header, string sr8, string sr9)
+            Core.EnvironmentDivisionContext? env, Core.ExternalizedNamePhraseContext? asPhrase)
         {
             using var _ = edition.At(ctx);
+            string header = isInterface ? "INTERFACE-ID" : "CLASS-ID";
+            var rules = HeaderRules.Of(edition.Edition, isInterface);
             // The definition's OWN REPOSITORY paragraph (§2023:11.3.3 SR8 / §2023:11.6.3 SR4 say "of this class
             // definition" / "of this interface definition" — never a factory's or object's, which §2023:12.3.3 SR3
             // forbids to carry one anyway).
             var repo = SymbolTable.RepositoryScope.SpecifierEntries(env).ToList();
             var kinds = new List<bool?>();
-            var repeated = SymbolTable.ExpansionNames.RepeatedFormals(formals).ToHashSet();
+            var repeated = SymbolTable.ExpansionNames.RepeatedFormals(formals).ToList();
+            // A repeated parameter-name is refused in the USING clause itself from COBOL-2014 (§2014:11.3.2 SR9 / §2014:11.6.2 SR7,
+            // §2023:11.3.3 SR9 / §2023:11.6.3 SR7); COBOL-2002 has no such rule, and its references are asked below (kb/Work PB5753).
+            bool usingOnce = DialectBehaviors.IsActive(DialectBehavior.ParameterNameAppearsOnceInUsingClause, edition.DialectLevel);
             foreach (var f in formals)
             {
                 string fn = f.GetText();
                 using var __ = edition.At(f);
-                if (repeated.Contains(f))
+                if (usingOnce && repeated.Contains(f))
                     edition.Error(DiagnosticCatalog.ParameterizedDefinitionUsing,
                         $"{header} '{name}' USING: the parameter-name '{fn}' is written more than once — a given "
-                        + $"parameter-name shall not appear more than once in a USING clause ({sr9})");
+                        + $"parameter-name shall not appear more than once in a USING clause ({rules.Repeated})");
                 bool? kind = SymbolTable.ExpansionNames.SpecifierDeclaring(repo, fn) is { } decl
                     ? decl.INTERFACE() is not null : null;
                 if (kind is null)
                     edition.Error(DiagnosticCatalog.ParameterizedDefinitionUsing,
                         $"{header} '{name}' USING: the parameter-name '{fn}' is not declared by a class-specifier or "
                         + $"interface-specifier in the REPOSITORY paragraph of this {(isInterface ? "interface" : "class")} "
-                        + $"definition ({sr8})");
+                        + $"definition ({rules.Declared})");
                 kinds.Add(kind);
             }
+            // §2002:11.2.3 GR5 / §2002:11.5.3 GR3: "Parameter-name-1 is the name given to the formal parameter", so at COBOL-2002
+            // `USING P P` names two formal parameters P. Every other occurrence of P in the definition is a reference to a formal,
+            // and it identifies neither one (§2002:8.4.1; a parameter-name cannot be qualified): exactly the occurrences an
+            // expansion replaces (IsUserWordOccurrence), whose "corresponding actual parameter" (§2002:12.2.7.3 GR5 / GR8) would be
+            // two. The formal's own class-specifier or interface-specifier, which §2002:11.2.2 SR9 / §2002:11.5.2 SR4 require,
+            // declares its kind and is no reference; with every reference refused, which actual replaces it changes nothing.
+            if (!usingOnce && repeated.Count > 0)
+                foreach (var t in UserWordOccurrences(ctx, formals).Where(t => FormalSpecifierName(t) is null
+                             && SymbolTable.ExpansionNames.IsFormal(repeated, t.GetText())))
+                {
+                    using var __ = edition.At(t.Symbol);
+                    int count = formals.Count(f => SymbolTable.ExpansionNames.IsFormal([f], t.GetText()));
+                    edition.Error(DiagnosticCatalog.ParameterizedDefinitionUsing,
+                        $"{header} '{name}': the parameter-name '{t.GetText()}' is written {count} times in the USING clause, so it "
+                        + $"names {count} formal parameters and this reference identifies none of them uniquely — "
+                        + $"\"{edition.Edition.Quote(inOrderTo: true)}\" (ISO §2002:8.4.1)");
+                }
             // §2023:12.3.8.3 SR12 / SR13 (kb/Work PB1744): a parameter-name is a user-defined word (§2023:8.3.2.2) in the scope
             // of this definition's REPOSITORY paragraph, so one its FUNCTION … INTRINSIC specifier identifies is
             // refused — through the one declaration funnel, in a scope of its own: the binder that binds the definition
@@ -263,15 +283,15 @@ internal static class OoExpansion
                 using var __ = edition.At(w);
                 edition.Error(DiagnosticCatalog.ParameterizedDefinitionUsing,
                     $"{header} '{name}': the parameter-name '{w.GetText()}' is written as a {SlotKind(w)} — a "
-                    + "parameter-name may be specified within the definition only where an object-class-name or an "
-                    + $"interface-name is permitted ({(isInterface ? "ISO §2023:11.6.4 GR4" : "ISO §2023:11.3.4 GR6")})");
+                    + $"parameter-name may be specified within the definition only where {rules.ClassNameKind} or an "
+                    + $"interface-name is permitted ({rules.Placement})");
             }
             foreach (var r in repo.Where(r => r.expandsPhrase() is not null))
             {
                 using var __ = edition.At(r);
                 edition.Error(DiagnosticCatalog.ParameterizedDefinitionUsing,
                     $"{header} '{name}' is parameterized (it has a USING clause), so its REPOSITORY paragraph shall "
-                    + $"not specify the EXPANDS phrase of '{DeclaredName(r)}' (ISO §2023:12.3.8.3 SR3)");
+                    + $"not specify the EXPANDS phrase of '{DeclaredName(r)}' ({rules.NoExpands})");
             }
             // The skeleton's own END CLASS / END INTERFACE name (§2023:10.7.3 SR4 / SR6) is asked with every other end
             // marker by Validation.EndMarkerPass, over the written tree, before any expansion renames it.
@@ -436,6 +456,48 @@ internal static class OoExpansion
 
     private static string Kind(Skeleton s) => s.IsInterface ? "interface" : "class";
 
+    /// <summary>The rules of a parameterized definition's header that <c>AddSkeleton</c> asks, each cited in the edition the program
+    /// is compiled under (kb/Work PB4950, PB5753): the formal's REPOSITORY specifier (<see cref="Declared"/>), the repeated
+    /// parameter-name (<see cref="Repeated"/>, a rule from COBOL-2014 only, so empty at 2002), where a formal may stand
+    /// (<see cref="Placement"/>, worded with <see cref="ClassNameKind"/>: COBOL-2002 and COBOL-2014 say "class-name", COBOL-2023
+    /// "object-class-name") and no EXPANDS phrase in the definition's own REPOSITORY paragraph (<see cref="NoExpands"/>). COBOL-85
+    /// has no object orientation (refused COBOL0900), so its texts are empty.</summary>
+    private readonly record struct HeaderRules(string Declared, string Repeated, string Placement, string NoExpands, string ClassNameKind)
+    {
+        public static HeaderRules Of(EditionInfo e, bool isInterface) => new(
+            isInterface ? e.CiteRule("", "§2023:11.6.3 SR4", y2002: "§2002:11.5.2 SR4", y2014: "§2014:11.6.2 SR4")
+                        : e.CiteRule("", "§2023:11.3.3 SR8", y2002: "§2002:11.2.2 SR9", y2014: "§2014:11.3.2 SR8"),
+            isInterface ? e.CiteRule("", "§2023:11.6.3 SR7", y2002: "", y2014: "§2014:11.6.2 SR7")
+                        : e.CiteRule("", "§2023:11.3.3 SR9", y2002: "", y2014: "§2014:11.3.2 SR9"),
+            isInterface ? e.CiteRule("", "§2023:11.6.4 GR4", y2002: "§2002:11.5.3 GR4", y2014: "§2014:11.6.3 GR4")
+                        : e.CiteRule("", "§2023:11.3.4 GR6", y2002: "§2002:11.2.3 GR6", y2014: "§2014:11.3.3 GR6"),
+            e.CiteRule("", "§2023:12.3.8.3 SR3", y2002: "§2002:12.2.7.2 SR3", y2014: "§2014:12.3.7.2 SR3"),
+            e.Cite("", "an object-class-name", y2002: "a class-name"));
+    }
+
+    /// <summary>Whether the terminal <paramref name="t"/> is a user-defined-word occurrence, the one kind of occurrence of a formal
+    /// parameter-name an expansion replaces (§2023:12.3.8.4 GR5 / GR8 "each specification of the formal parameter";
+    /// <c>SubstitutedTokens</c>) and so the one kind that is a reference to a formal (<c>AddSkeleton</c>, kb/Work PB5753).</summary>
+    private static bool IsUserWordOccurrence(ITerminalNode t) => t.Parent is Core.CobolWordContext || t.Symbol.Type == CobolLexer.IDENTIFIER;
+
+    /// <summary>The user-defined-word occurrences (<see cref="IsUserWordOccurrence"/>) in <paramref name="definition"/>, in order,
+    /// outside its USING clause's own <paramref name="formals"/>.</summary>
+    private static IEnumerable<ITerminalNode> UserWordOccurrences(ParserRuleContext definition, Core.OoParameterNameContext[] formals)
+    {
+        var stack = new Stack<IParseTree>([definition]);
+        while (stack.Count > 0)
+        {
+            var n = stack.Pop();
+            if (n is ITerminalNode t)
+            {
+                if (IsUserWordOccurrence(t)) yield return t;
+                continue;
+            }
+            if (n is Core.OoParameterNameContext f && Array.IndexOf(formals, f) >= 0) continue;
+            for (int i = n.ChildCount - 1; i >= 0; i--) stack.Push(n.GetChild(i));
+        }
+    }
+
     /// <summary>The REPOSITORY entry whose declared class-name or interface-name is the terminal <paramref name="t"/>, or null.</summary>
     private static Core.RepositoryEntryContext? FormalSpecifierName(ITerminalNode t) =>
         t.Parent?.Parent is Core.ClassNameContext or Core.InterfaceNameContext && t.Parent.Parent.Parent is Core.RepositoryEntryContext entry
@@ -592,8 +654,7 @@ internal static class OoExpansion
                 if (ReferenceEquals(tok, headerName)
                     || (ReferenceEquals(tok, endName) && endRepeatsHeader))
                     text = x.Name;
-                else if ((t.Parent is Core.CobolWordContext || tok.Type == CobolLexer.IDENTIFIER)
-                         && substitution.ActualFor(tok.Text) is { } actual)
+                else if (IsUserWordOccurrence(t) && substitution.ActualFor(tok.Text) is { } actual)
                     text = actual;
                 var copy = new ExpansionToken(tok, region) { ClientWritten = text is not null };   // the client wrote the substituted word (kb/Work PB4721)
                 if (text is not null)
