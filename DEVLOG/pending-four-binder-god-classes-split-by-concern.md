@@ -30,6 +30,12 @@ SR7/SR8/SR9/SR14 registers; `DebugDeclarativeResolver` (371) resolves the 1985 U
 lists the table owns, so `StatementBinder`'s reads are unchanged. The table (574) keeps the pc space, sections, declarative
 scopes and procedure-name resolution. `ProcedureTableBoundaryDriftTests`. Witnesses: 2023 12, 1985 27, 2002 5.
 
-**Neutrality.** The §4 oracle (`scripts/arch/compare_oracle.py`) and the gate are recorded in the wave report
-(`E:\COBOL-coord\scratch\reports\w20262168h-PB2338-report.md`). The architecture edges walk measures no new pair: every new
-type is reached from its old owner, never from `StatementBinder`.
+**Neutrality.** `python scripts/arch/compare_oracle.py`: `=== ARCH-ORACLE: IDENTICAL — 23650 cases (baseline f6ad06877c76, new
+56cb0006391b-dirty) ===`; the commits after it touch comments, usings, test files and baselines only. The architecture edges walk
+measures no new pair: every new type is reached from its old owner, never from `StatementBinder`. On the way the gate was red
+twice, both the checks doing their job on a move: the drift-rule index refused a Sweep trait on a test that scans one directory,
+and the binder-member-readers and string-member classifications needed the moved readers listed (two members made internal for
+their old owner's call are classified, ceiling 127 -> 129). Six citation-baseline entries keyed by file:line followed their
+text: four comment citations were repaired to canonical form, and the two inside a SORT/MERGE diagnostic message (user-visible
+text) were re-keyed, not changed. Gate run 000003: `=== BUILD-LOCAL GATE: GREEN — Conformance 29,412/29,412 ran · Unit
+43,022/43,022 ran · RepoDrift 245/245 ran · Characterization 37/37 ran (skipped 0) ===`.
