@@ -43,7 +43,7 @@ public enum EvaluateObjectOperand
 /// silently diverging.</para>
 ///
 /// <para>⚠ <b>What this table does NOT decide is which KIND an operand is.</b> That classification is
-/// <c>EvaluateBinder.ClassifyPair</c>'s, and it is a JOINT question, not two independent ones: §2023:14.9.13.3 SR6
+/// <c>WhenPhraseBinder.ClassifyPair</c>'s, and it is a JOINT question, not two independent ones: §2023:14.9.13.3 SR6
 /// changes a boolean operand's kind "for a particular WHEN phrase" according to the OTHER side of the pair. The
 /// classifier still declines rather than guess where it cannot name a shape — a null on either side means no
 /// diagnostic — but that is now the Partial-expression row alone, which no operand can reach while the partial

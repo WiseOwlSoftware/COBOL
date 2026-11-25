@@ -20,7 +20,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// §2023:14.9.13.2's range-expression <c>WHEN WS-LO THRU WS-HI IN AL</c> was COBOL1639 on 'WS-HI IN AL' for as long
 /// as the phrase existed. ISO §2023:8.3.2.2 makes the word's TYPE decide it ("a given user-defined word may be used as
 /// only one type of user-defined word"), so the binder that owns the rule must re-read the last qualifier by
-/// symbol — <c>EvaluateBinder.BindRangeHigh</c> + <c>ReferenceResolver.WithoutTrailingSuffix</c>.</para>
+/// symbol — <c>WhenPhraseBinder.BindRangeHigh</c> + <c>ReferenceResolver.WithoutTrailingSuffix</c>.</para>
 /// <para>This test scans EVERY grammar rule for an operand that can end in a data reference followed by an
 /// <c>IN cobolWord</c> phrase, and requires each to be a rule whose symbol-aware consumer is named here. A new
 /// rule of that shape fails until its binder re-reads the qualifier — the silent parse this note spent its life
@@ -32,7 +32,7 @@ public sealed class TrailingInPhraseDriftTests
     /// <summary>Rule → the binder file and member that re-read its trailing qualifier by symbol.</summary>
     private static readonly Dictionary<string, (string File, string Member)> Consumers = new(StringComparer.Ordinal)
     {
-        ["valueRange"] = (Path.Combine("WiseOwl.Cobol.Compiler", "Binding", "Procedure", "Verbs", "EvaluateBinder.cs"),
+        ["valueRange"] = (Path.Combine("WiseOwl.Cobol.Compiler", "Binding", "Procedure", "Verbs", "WhenPhraseBinder.cs"),
             "BindRangeHigh"),
         // §2023:13.18.63.2 formats 3 and 5 print the SAME `[ IN alphabet-name-1 ]` phrase after the literal list, and a
         // constant-name (§2023:13.10.3 SR2) is an identifier-ending operand there too (kb/Work PB983).
@@ -74,7 +74,7 @@ public sealed class TrailingInPhraseDriftTests
         Assert.True(unowned.Count == 0,
             $"grammar rule(s) {string.Join(", ", unowned)} follow an identifier-ending operand with `IN cobolWord`. "
             + "The greedy qualification loop takes that word as a QUALIFIER, so the phrase is never parsed over an "
-            + "identifier. Re-read the last qualifier by symbol in the rule's binder (the EvaluateBinder."
+            + "identifier. Re-read the last qualifier by symbol in the rule's binder (the WhenPhraseBinder."
             + "BindRangeHigh shape, over ReferenceResolver.WithoutTrailingSuffix) and name it in Consumers "
             + "(kb/Work PB843; ISO §2023:8.3.2.2).");
         foreach (var (rule, (file, member)) in Consumers)

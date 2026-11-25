@@ -40,7 +40,7 @@ public sealed partial class FileControlBinder
     /// other arm that is not a no-op here: <see cref="BindApplyCommitClause"/> (kb/Work PB3338).
     /// EVERY SAME format also records its MEMBERSHIP on its files
     /// (<see cref="FileModel.SameClauses"/>, kb/Work PB1139), which the SORT and MERGE statements read for
-    /// §2023:14.9.40.3 SR10 / §2023:14.9.24.3 SR11 (<c>SortBinder.ScreenSameClauses</c>). The clause's OWN syntax rules —
+    /// §2023:14.9.40.3 SR10 / §2023:14.9.24.3 SR11 (<c>SortMergePhraseBinder.ScreenSameClauses</c>). The clause's OWN syntax rules —
     /// the arity its format prints and §2023:12.4.6.4.3 SR2, SR3 and SR5-SR10 — are <see cref="ScreenSameOperands"/> and
     /// <see cref="ScreenSameClauses"/> (kb/Work PB1087).</summary>
     internal void BindIoControl(Core.ProgramUnitContext program)
