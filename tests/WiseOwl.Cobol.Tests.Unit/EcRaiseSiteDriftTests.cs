@@ -158,7 +158,7 @@ public sealed class EcRaiseSiteDriftTests
 
     /// <summary>A citation renders as the repository writes one, sub-item included, in the edition compiled at (kb/Work PB6175).</summary>
     [Fact]
-    public void Cite_RendersTheClauseAndOrdinalOfThisSite_AtEachEdition()
+    public void Cite_RendersTheClauseAndOrdinalOfThisSite()
     {
         var exit = EcRaiseSite.Exit("EXIT PROGRAM");
         var e2023 = EditionInfo.Of(2023);
