@@ -2,7 +2,7 @@
  "rule-id": "1985-FMT-VIII.2.3.2",
  "rule-digest": "af92739c3c7f",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#EntryClauses; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#BindFileControl",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#EntryClauses; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#BindFileControl; src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#Rules",
  "test-ref": "conformance:cases/VIII.2.3@1985-FILE-CONTROL-ENTRY/1985-FMT-VIII_2_3_2; conformance:cases/VIII.2.3@1985-FILE-CONTROL-ENTRY/pb5565-padding-on-relative-85",
  "notes": "§1985:VIII.2.3.2 prints the relative entry as SELECT [OPTIONAL], ASSIGN, RESERVE, [ORGANIZATION IS] RELATIVE, ACCESS MODE with RELATIVE KEY nested in it (required after RANDOM or DYNAMIC), and FILE STATUS, nothing else. Every other clause is screened at 85: RANDOM or DYNAMIC without RELATIVE KEY and a signed, P or alphanumeric key are COBOL0863 (FileControlKeyRules#Rules), RELATIVE KEY outside or before ACCESS MODE is COBOL0900, LOCK MODE, SHARING, ASSIGN USING are COBOL0900, RECORD DELIMITER and (since kb/Work PB5565) PADDING CHARACTER COBOL2912 by the one EntryClauses table, RECORD KEY COBOL0863, a second FILE STATUS operand COBOL1970, a doubled clause COBOL2423, ASSIGN SPACE COBOL2645, no ASSIGN COBOL5701; the legal forms run (OPEN/WRITE 00). History: this row read PARTIAL naming kb/Work PB5565, which fixed it.",
  "next": {
