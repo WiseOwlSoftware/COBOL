@@ -82,7 +82,7 @@ public sealed class EditionInfoTests
     /// <summary>kb/Work PB6175: a rule an edition introduced stands for every earlier edition, and each later edition cites its
     /// own, so no edition prints an empty citation.</summary>
     [Theory]
-    [InlineData(1985, "ISO §2002:11.2.2 SR9", "ISO §2014:11.3.2 SR9")]
+    [InlineData(85, "ISO §2002:11.2.2 SR9", "ISO §2014:11.3.2 SR9")]
     [InlineData(2002, "ISO §2002:11.2.2 SR9", "ISO §2014:11.3.2 SR9")]
     [InlineData(2014, "ISO §2014:11.3.2 SR8", "ISO §2014:11.3.2 SR9")]
     [InlineData(2023, "ISO §2023:11.3.3 SR8", "ISO §2023:11.3.3 SR9")]
