@@ -40,3 +40,12 @@ text: four comment citations were repaired to canonical form, and the two inside
 text) were re-keyed, not changed. Gate run 000003: `=== BUILD-LOCAL GATE: GREEN — Conformance 29,412/29,412 ran · Unit
 43,022/43,022 ran · RepoDrift 245/245 ran · Characterization 37/37 ran (skipped 0) ===`.
 
+
+**The 1985 code reads the move owed (finisher).** The landing refused the branch (`code_read_landing`, exit 6): the split moved
+members that nine stored 1985 code reads name (1985-SR-IV.4.3.8.1-L2.9, 1985-SR-VI.6.13.3-1 to -5, 1985-SR-VI.6.17.3-2 and -5,
+1985-GR-VI.6.17.4-1). Each was read again at the moved members against the 1985 text, on fresh probes at `--std 85`, with the
+refuter's pass a separate adversarial set of probes, and imported with `code_reads.py import --replace`. Seven were confirmed;
+the LINE-COUNTER count (per program or per source program) and the class of SPACE in a THROUGH range drew DOUBTFUL again on the
+same open readings, and were adjudicated CONFORMS from the recorded determinations D-85-COUNTER-QUAL and D-85-SPACE-CLASS.
+`code_read_landing.py --base origin/main --rev HEAD`: `no stored code read names code this change moves or rule text this
+change changes`.
