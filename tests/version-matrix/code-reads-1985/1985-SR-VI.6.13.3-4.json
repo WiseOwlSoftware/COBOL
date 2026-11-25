@@ -2,56 +2,38 @@
  "rule-id": "1985-SR-VI.6.13.3-4",
  "rule-digest": "e61acf97cccb",
  "read": {
-  "pin": "7a32e1dfd2227042dea69db82f70d1e0085a50cc",
-  "slice": "1985-236",
+  "pin": "8c46aa7c8f6382f8332db1227687bf386056688f",
+  "slice": "1985-fin-pb2338",
   "sources": {
-   "reader": "512c02f56c3a47c611830738fee062815aa4c177a4ec0c46758af157f304ad13",
-   "refuter": "59706be367945bed95443e558b94e18db15415727de8a491eb7471c0e48eb036"
+   "reader": "b2c39fa705c170441fdc1cdc1b6c21a67fd75d5e38ad7a879446af685731dd5f",
+   "refuter": "28fa6114e1ee2cde79509228600dd4c1c2a9f2d8e8a21247d6f4d3e2d88bc52b"
   },
   "imported": {
-   "reader": "75cfd4b1e41899cbf8361164d8eec070a02610e5b9e8580183d55ae5cd562776",
-   "refuter": "34f7f599c77c8183106c0097b8c777990eb8af67771ab3565e71d98588ca5a50"
+   "reader": "8a95a7a9f65782216151655e713729210c08687b39b043b2539d790b7b5d90b5",
+   "refuter": "2df8d0e4b8ce89eeaff34b13d48f20b3e645e9da5bc97ed2939219e06c7d695a"
   }
  },
  "reader": {
   "rule-id": "1985-SR-VI.6.13.3-4",
   "verdict": "CONFORMS",
-  "requirement": "At --std 85, the two operands of an EVALUATE WHEN ... THROUGH selection object (identifier, literal or arithmetic expression on each side) must be of the same 1985 class (alphabetic, numeric, alphanumeric; edited categories and groups are class alphanumeric, nonnumeric literals alphanumeric, arithmetic expressions numeric), so a pair of different classes is refused and a same-class pair is evaluated as one range.",
-  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#ScreenRangeOperands; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#BindRangeObject; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#ClassOf; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#TableTwoClass; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#SameClass; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#CanShareClass; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Alphabets.cs#GateRangeAlphabetPhrase",
-  "edition-consulted": [
-   {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Alphabets.cs#GateRangeAlphabetPhrase",
-    "switches": "ConstructRegistry range-in-alphabet-2002: the THROUGH range's IN alphabet-name phrase is refused below 2002 (COBOL0900)",
-    "same-arm-as-latest": false
-   }
-  ],
-  "edition-search": "grep of EvaluateBinder.cs for Edition./DialectBehavior/ConstructRegistry: line 62 (EvaluateObjectsInWhenPhraseOrder, object evaluation order) and line 311 (EvaluateOperandCombinations.IsPermitted, the SR6 pairing) are other rules; ScreenRangeOperands and the IntrinsicArgumentRules class lattice (ClassOf/ClassOf1/ClassOfItem/TableTwoClass/SameClass/CanShareClass) consult no edition.",
-  "behaviour-differs-by-edition": "yes: 1985 has no IN alphabet-name phrase on a THROUGH range (refused at 85, admitted from 2002); the same-class screen is one code for every edition",
-  "witnesses-cover": "part: the witnesses cover numeric and alphanumeric ranges with figurative constants (pb5796 accepted/refused/high_value) and selection shapes; class alphabetic against alphanumeric, numeric-edited/group/reference-modified ends, arithmetic-expression ends and ALL literal ends are exercised only by the probes here",
+  "requirement": "At --std 85 the two operands of a THROUGH selection object must be of the same 1985 class (alphabetic, numeric, alphanumeric; edited categories and groups are class alphanumeric, nonnumeric literals alphanumeric, arithmetic expressions numeric): a pair of two classes is refused and a same-class pair is evaluated as one range.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/WhenPhraseBinder.cs#ScreenRangeOperands; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/WhenPhraseBinder.cs#BindRangeObject; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/WhenPhraseBinder.cs#TableTwoClassOf; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#ClassOf; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#TableTwoClass; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#SameClass; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#CanShareClass",
+  "edition-consulted": [],
+  "edition-search": "grep Edition|Year|DialectBehavior in WhenPhraseBinder.cs#ScreenRangeOperands and IntrinsicArgumentRules.cs: only the citation text is chosen by edition; the classes national, boolean and pointer cannot be declared at 85",
+  "behaviour-differs-by-edition": "no: the same refusals at --std 2023",
+  "witnesses-cover": "part: pb399 and pb5796 cover numeric and figurative pairs; class-mixing pairs of items, groups and arithmetic expressions are covered by the probes",
   "probes": [
    {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-236/c2_neg.cob",
-    "printed": "COBOL2107 on each of: 1 THRU X; \"1\" THRU 9; SPACE THRU 9; 1 THRU HIGH-VALUE; 1 THRU N(1:1); N + 1 THRU E (E PIC ZZ9); ALL \"1\" THRU 9; 1 THRU QUOTE; A THRU X (A PIC A); \"A\" THRU A",
-    "expected": "each refused: the two ends are of different classes (numeric vs alphanumeric, or alphabetic vs alphanumeric; a reference-modified numeric item and a numeric-edited item are class alphanumeric)"
-   },
-   {
-    "class": "d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-236/c2_pos.cob",
-    "printed": "N1 OK / N2 OK / X1 OK / X2 BAD / A1 OK / X3 OK",
-    "expected": "-5 in -9 THRU L - 4 (arith expr end); N+0 subject, ZERO THRU 9 miss and NOT -6 THRU -4 miss -> OTHER; \"BBB\" in \"AAA\" THRU G (group end); X2: E=\"  7\" THRU \"Z\" contains \"BBB\" so the first WHEN (labelled BAD in the probe) is the correct selection; alphabetic A THRU A2; \"A\" THRU HIGH-VALUE"
-   },
-   {
-    "class": "d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-236/c2_space.cob",
-    "printed": "COBOL2107: 'SPACE THRU A2' are of class alphanumeric or national and class alphabetic (same at --std 2023)",
-    "expected": "refused under the reading that SPACE, a figurative constant, is a literal (§1985:IV.4.2.2.2), not numeric, so a nonnumeric literal of category (hence class) alphanumeric (§1985:IV.4.2.2.2.1.3 GR3)"
-   },
-   {
     "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-236/c2_inalpha.cob",
-    "printed": "error COBOL0900: the THROUGH range's IN alphabet-name phrase requires COBOL-2002 (targeting COBOL-85)",
-    "expected": "refused: §1985:VI.6.13.2 prints no IN alphabet-name phrase"
+    "file": "E:/COBOL-coord/scratch/finish-worktree-wf_05bb8d55-c0a-8/runs/evneg-001/evneg.cob",
+    "printed": "COBOL2107 at 15 '\"A\" THRU 9', 16 'X THRU N', 17 '\"AAA\" THRU A3' (alphanumeric and alphabetic), 18 '1 THRU HIGH-VALUE', 19 'N + 1 THRU \"Z\"', 20 'SPACE THRU A3'",
+    "expected": "each refused: two classes"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/finish-worktree-wf_05bb8d55-c0a-8/runs/evpos-002/evpos.cob",
+    "printed": "R2..R9 OK: \"AAA\" THRU \"CCC\", A2 THRU A3 (both alphabetic), NE THRU \"ZZZ\" (numeric-edited is class alphanumeric), M THRU N + 1, ZERO THRU 9, LOW-VALUE THRU HIGH-VALUE, SPACE THRU \"Z\"",
+    "expected": "same-class pairs accepted and evaluated as ranges"
    }
   ],
   "citations": [
@@ -61,23 +43,11 @@
    },
    {
     "cite": "§1985:IV.4.3.3",
-    "check": "OK  §1985:IV.4.3.3  (4.3.3 Concept of Classes of Data)  the text is in the clause"
-   },
-   {
-    "cite": "§1985:IV.4.2.2.2.1.3 GR3",
-    "check": "OK  §1985:IV.4.2.2.2.1.3 GR3  (4.2.2.2.1.3 General Rules)  the text is in GR3"
-   },
-   {
-    "cite": "§1985:IV.4.2.2.2",
-    "check": "OK  §1985:IV.4.2.2.2  (4.2.2.2 Literals)  the text is in the clause"
-   },
-   {
-    "cite": "§1985:VI.6.13.4 GR1b",
-    "check": "OK  §1985:VI.6.13.4 GR1b  (║6.13.4 General Rules║)  the text is in GR1b"
+    "check": "OK  §1985:IV.4.3.3  (4.3.3 Concept of Classes of Data)  the text is in the clause; it lies in p1"
    }
   ],
-  "notes": "One reading is open: §1985:VI.6.19.4 GR3 (MOVE, elementary move; cite.py OK) says 'The figurative constant SPACE (SPACES) belongs to the category alphabetic', so SPACE THRU <PIC A item> could be argued legal; that sentence is scoped to moves, and the general literal rules make SPACE a nonnumeric literal of category alphanumeric, which is what the compiler applies (the 1985 witness pb5796 also accepts SPACE THRU \"Z\", consistent only with the alphanumeric reading). Diagnostics name 2023 clauses and the class 'national', which does not exist at 1985 (cosmetic). Same refusals at --std 2023.",
-  "seeded": true,
+  "notes": "Re-read after kb/Work PB2338 moved ScreenRangeOperands into WhenPhraseBinder. The class of each end comes from the one Table-2 lattice (IntrinsicArgumentRules.ClassOf projected by TableTwoClass); a figurative end abstains from the lattice and is screened by CanShareClass, ZERO pairing with any class. SPACE outside MOVE is class alphanumeric by the recorded determination D-85-SPACE-CLASS. The message names 'alphanumeric or national' at 85 (cosmetic).",
+  "seeded": false,
   "harm": "",
   "cause": "",
   "at-2023": "",
@@ -90,13 +60,13 @@
   "rule-id": "1985-SR-VI.6.13.3-4",
   "refutation": "DOUBTFUL",
   "classes": "b,c,d,f",
-  "evidence": "Probes at --std 85 under refute-1985-236/runs: r2_neg refuses (COBOL2107) G(group) THRU 9, FUNCTION CHAR (66) THRU 9, 1 THRU SYMB (symbolic-character), LOW-VALUE THRU 9, 1 THRU FUNCTION UPPER-CASE (\"A\"), A(PIC A) THRU FUNCTION UPPER-CASE (A), FUNCTION ORD (\"A\") THRU \"Z\" -- all correct (functions take the class of their category, §1985:IV.4.3.3). r2_pos runs F1..F5 OK and F6 (alphabetic subject, ZERO THRU X, MMM outside 000..BBB) correctly selects OTHER: numeric-function ranges, CHAR THRU symbolic-character, ALL lit THRU ALL lit, ZERO THRU numeric-edited, SYMB THRU QUOTE. The open point is SPACE: the reader rests on 'SPACE is a nonnumeric literal of category alphanumeric', but §1985:IV.4.2.2.2.1 defines a nonnumeric literal as one delimited by quotation marks, so its GR3 does not reach SPACE; the ONLY 1985 sentence giving SPACE a category is §1985:VI.6.19.4 GR3 ('The figurative constant SPACE (SPACES) belongs to the category alphabetic'). Under that reading SPACE THRU <PIC A item> (refused, reader's c2_space) is legal and SPACE THRU \"Z\" (accepted, witness pb5796) is two classes. cite.py: 'OK  §1985:VI.6.13.3 SR4  (║6.13.3 Syntax Rules║)  the text is in SR4'; 'OK  §1985:VI.6.19.4 GR3  (6.19.4 General Rules)  the text is in GR3'; 'OK  §1985:IV.4.3.3  (4.3.3 Concept of Classes of Data)  the text is in the clause'; 'OK  §1985:IV.4.2.2.2.1  (4.2.2.2.1 Nonnumeric Literals)  the text is in the clause'.",
+  "evidence": "rfevneg-001 refuses (COBOL2107) GRP THRU 9 (a group is class alphanumeric), FUNCTION CHAR (66) THRU 9, 1 THRU FUNCTION UPPER-CASE (\"A\"), NE THRU 9 (numeric-edited is class alphanumeric), LOW-VALUE THRU 9, A THRU FUNCTION UPPER-CASE (A) (alphabetic against an alphanumeric function) and QUOTE THRU A; rfev-001 accepts and evaluates GRP ranges against nonnumeric literals (G1), FUNCTION ORD and FUNCTION MIN numeric ranges (G2), QUOTE THRU \"Z\" (G3), ALL \"A\" THRU ALL \"Z\" (G4), a numeric-edited item THRU an alphanumeric item (G5) and FUNCTION CHAR (66) THRU HIGH-VALUE (G6). 'OK  §1985:IV.4.3.3  (4.3.3 Concept of Classes of Data)  the text is in the clause; it lies in p2'. The open point is SPACE: the reader's evneg refuses SPACE THRU A3 (a PIC A item) as two classes, but the only 1985 sentence that classes SPACE is in MOVE: 'OK  §1985:VI.6.19.4 GR3  (6.19.4 General Rules)  the text is in GR3'. Read that way SPACE THRU A3 is one class and the refusal rejects legal source; the compiler takes SPACE as alphanumeric, the recorded determination D-85-SPACE-CLASS (docs/conformance/3/D-85-SPACE-CLASS.md).",
   "edition-sites-missed": [],
-  "corrected": "CONFORMS for every operand class the 1985 text classes (items, groups, functions, numeric/nonnumeric literals, ZERO, HIGH/LOW-VALUE, QUOTE, symbolic characters, arithmetic expressions); the class of SPACE in a THROUGH range is not stated by 1985 outside MOVE (VI.6.19.4 GR3: alphabetic), so the SPACE arm rests on a reading -- needs an adjudication (and a docs/conformance entry) rather than a CONFORMS on the reader's 'nonnumeric literal' argument."
+  "corrected": "CONFORMS for every operand the 1985 text classes; the SPACE arm rests on D-85-SPACE-CLASS, not on the 1985 text."
  },
  "adjudication": {
   "verdict": "CONFORMS",
-  "reason": "The doubt is rejected: outside MOVE the 1985 text gives SPACE no class; GnuCOBOL has no rule; IBM Enterprise COBOL treats SPACE as an alphanumeric literal, which is what the compiler does. Recorded as the determination D-85-SPACE-CLASS.",
+  "reason": "The doubt is rejected: outside MOVE the 1985 text gives SPACE no class; GnuCOBOL has no rule; IBM Enterprise COBOL treats SPACE as an alphanumeric literal, which is what the compiler does. Recorded as the determination D-85-SPACE-CLASS. The re-read after kb/Work PB2338 raised the same doubt and nothing new.",
   "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-16.md"
  }
 }

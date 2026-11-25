@@ -2,69 +2,42 @@
  "rule-id": "1985-SR-VI.6.13.3-3",
  "rule-digest": "d8079715d1cc",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-158",
+  "pin": "8c46aa7c8f6382f8332db1227687bf386056688f",
+  "slice": "1985-fin-pb2338",
   "sources": {
-   "reader": "e524ade77929a094b6df368b7c91463a453eb8a7e9b869f3c7a6a5f7f2a04e17",
-   "refuter": "b4e5b5f6a92461ee143f3d37b758a7c315051cd071178f5173ad872aec149ed4"
+   "reader": "b2c39fa705c170441fdc1cdc1b6c21a67fd75d5e38ad7a879446af685731dd5f",
+   "refuter": "28fa6114e1ee2cde79509228600dd4c1c2a9f2d8e8a21247d6f4d3e2d88bc52b"
   },
   "imported": {
-   "reader": "ec419b5648287aef6e8b15d22d8b9c566a17837c8c3967b73f33dd179709006f",
-   "refuter": "862323059043ee4b96b7ee63004785d518e8d3e24aa87d1e2ceed6fd88c33a86"
+   "reader": "f1cdc111d9f73932cf8b93e617fc3f9346d891692bb651239e60e23ab7ce570e",
+   "refuter": "ac6e770e5c4a0449bd2073a36630b3131fd7952175d91ab85dcb9ab990d1f489"
   }
  },
  "reader": {
   "rule-id": "1985-SR-VI.6.13.3-3",
   "verdict": "CONFORMS",
-  "requirement": "At --std 85 the compiler must accept both THROUGH and THRU in every EVALUATE selection-object range (identifier, literal, arithmetic-expression, figurative ZERO endpoints, with or without NOT, under any ALSO position) and give the two spellings identical meaning and identical diagnostics.",
-  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#valueRange; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#evaluateWhenItem; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#BindRangeObject; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#ScreenRangeOperands; src/WiseOwl.Cobol.Editions/ReservedWords.Table.cs#Entries",
-  "edition-consulted": [
-   {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Alphabets.cs#GateRangeAlphabetPhrase",
-    "switches": "refuses the 2002 IN alphabet-name phrase of a THROUGH range below 2002 (COBOL0900); independent of the THRU/THROUGH spelling",
-    "same-arm-as-latest": false
-   },
-   {
-    "site": "src/WiseOwl.Cobol.Editions/ReservedWords.Table.cs#Entries",
-    "switches": "THROUGH and THRU are reserved at every edition (all four flags true)",
-    "same-arm-as-latest": true
-   }
-  ],
-  "edition-search": "grep of THRU()/THROUGH() in src/WiseOwl.Cobol.Compiler: the binder never reads which token was written (valueRange is one rule with (THRU | THROUGH)); VersionConformancePass VisitEvaluateSubject/VisitEvaluateWhenItem gate only boolean operators.",
+  "requirement": "At --std 85 THROUGH and THRU must be the same word in an EVALUATE selection object: either spelling builds the same inclusive range object.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#valueRange; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#evaluateWhenItem; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/WhenPhraseBinder.cs#BindRangeObject; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/WhenPhraseBinder.cs#ScreenRangeOperands; src/WiseOwl.Cobol.Editions/ReservedWords.Table.cs#Entries",
+  "edition-consulted": [],
+  "edition-search": "grep THRU|THROUGH in the grammar and the reserved-word table: one token pair, no edition arm; WhenPhraseBinder.cs#BindRangeObject reads the parse node, not the word",
   "behaviour-differs-by-edition": "no",
-  "witnesses-cover": "part: the witness covers numeric literal and alphanumeric literal ranges and NOT; it does not exercise identifier or arithmetic-expression endpoints, ZERO, scaled items, ALSO positions, or the SR4 refusal under each spelling",
+  "witnesses-cover": "full: l1_evaluate_thru_through_equivalent writes both spellings",
   "probes": [
    {
-    "class": "d,f",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-158/evthru1.cob",
-    "printed": "N=-001..+006: THRU and THROUGH columns agree (HIT for 1..4, MIS otherwise, range W-L - 1 THRU W-H + 0); ZERO THRU=HIT THROUGH=HIT; SCALED THRU=HIT THROUGH=HIT; ALPHA-E THRU=NOT THROUGH=NOT",
-    "expected": "§1985:VI.6.13.3 SR3: both spellings identical; GR1d range semantics give HIT for 1..4"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-158/evthru2.cob",
-    "printed": "COBOL2107 at both 1 THROUGH \"A\" and 1 THRU \"A\" (class mismatch), exit 65",
-    "expected": "§1985:VI.6.13.3 SR4 refusal, identically for both spellings"
-   },
-   {
-    "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-158/evthru3.cob",
-    "printed": "COBOL0900: the THROUGH range's IN alphabet-name phrase requires COBOL-2002 (targeting COBOL-85)",
-    "expected": "1985 general format prints no IN alphabet-name phrase; refused at 85"
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/finish-worktree-wf_05bb8d55-c0a-8/runs/evpos-002/evpos.cob",
+    "printed": "R1 OK (WHEN 1 THRU 5 rejected, WHEN 6 THROUGH 9 selected), R10 OK (7 THRU 7 ALSO \"A\" THRU \"C\")",
+    "expected": "both spellings form the same inclusive range"
    }
   ],
   "citations": [
    {
     "cite": "§1985:VI.6.13.3 SR3",
     "check": "OK  §1985:VI.6.13.3 SR3  (║6.13.3 Syntax Rules║)  the text is in SR3"
-   },
-   {
-    "cite": "§1985:VI.6.13.3 SR4",
-    "check": "OK  §1985:VI.6.13.3 SR4  (║6.13.3 Syntax Rules║)  the text is in SR4"
    }
   ],
-  "notes": "The grammar spells the range as one rule valueOperand (THRU | THROUGH) valueOperand and no binder or emitter reads which token appeared, so equivalence is structural. Probes at --std 85 show identical results and identical diagnostics for both spellings across numeric, arithmetic-expression, ZERO, scaled, alphanumeric and ALSO forms.",
-  "seeded": true,
+  "notes": "Re-read after kb/Work PB2338: the range binder moved from EvaluateBinder to WhenPhraseBinder unchanged; the grammar's valueRange takes either token, and nothing downstream sees which was written.",
+  "seeded": false,
   "harm": "",
   "cause": "",
   "at-2023": "",
@@ -76,8 +49,8 @@
  "refuter": {
   "rule-id": "1985-SR-VI.6.13.3-3",
   "refutation": "UPHELD",
-  "classes": "b,c,d",
-  "evidence": "Read §1985:VI.6.13.2 format and SR1-SR6. Probes at --std 85 under E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-158/src: ev1.cob (identifier endpoints L THRU H / L THROUGH H with and without NOT, in the first and second ALSO position, alphanumeric identifier ranges CL THROUGH CHI, figurative SPACE THRU HIGH-VALUE and LOW-VALUE THROUGH \"Z\", arithmetic-expression endpoints L + 0 THROUGH H * 1 vs THRU, three subjects) printed 1 OT/V1, 2 W2/V3, 3 W3/V3, 4 W2/V3, 5 OT/V1, each line what GR1 gives, the THRU and THROUGH WHEN pairs behaving alike. ev4.cob: EVALUATE TRUE WHEN 1 THRU 5 and WHEN 1 THROUGH 5 both refused COBOL1634 (same diagnostic, the echo quotes the spelling written). ev3.cob/ev2.cob: a range missing an endpoint (WHEN THRU 5, WHEN 1 THRU, WHEN N > 1 THRU 5) refused COBOL0001. Side note: CH is reserved at 85 (COBOL0901), correct for 1985 Report Writer. cite.py: OK §1985:VI.6.13.3 SR3 (the text is in SR3); OK §1985:VI.6.13.3 SR6b.",
+  "classes": "d",
+  "evidence": "rfthru-001 (exit 0): THROUGH in an ALSO set, after NOT, over a figurative LOW-VALUE and between arithmetic expressions (N - 1 THROUGH N + 1) behaves exactly as THRU in the same statement (T1, T2, T3 OK). 'OK  §1985:VI.6.13.3 SR3  (║6.13.3 Syntax Rules║)  the text is in SR3'",
   "edition-sites-missed": [],
   "corrected": ""
  }
