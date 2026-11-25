@@ -23,8 +23,8 @@ public static class CompilerDriver
     /// (<see cref="Editions.EditionInfo"/>; kb/Work PB2619). REQUIRED: the driver has no default edition of its own. The
     /// command line builds it with <see cref="Editions.EditionInfo.Of(int, bool)"/> from <c>--std</c> (defaulting to
     /// <see cref="Editions.EditionInfo.Latest"/>, owner decision DEVLOG 519; docs/VERSION_TEST_MATRIX_DESIGN.md §10 #2) and
-    /// <c>--permissive</c>, so a year outside <see cref="Editions.EditionInfo.All"/> is refused at the composition root and is
-    /// unrepresentable here. Permissive accepts constructs the targeted edition REMOVED, emitting a warning and the
+    /// <c>--permissive</c>. A year outside <see cref="Editions.EditionInfo.All"/> is unrepresentable (the type's one constructor
+    /// is behind <c>Of</c>), and a <c>default(EditionInfo)</c> is refused when the options are made (kb/Work PB6082). Permissive accepts constructs the targeted edition REMOVED, emitting a warning and the
     /// pre-removal semantics (the documented migration mode, VERSION_TEST_MATRIX_DESIGN §10 #1); strict (the default for every
     /// named <c>--std</c>) rejects them. Introduction gating is unaffected.</param>
     /// <param name="CopyPaths">Directories searched for COPY copybooks, in order.</param>
@@ -93,6 +93,13 @@ public static class CompilerDriver
         WiseOwl.Cobol.Listing.ListingRequest? Listing = null,
         IReadOnlyList<string>? Suppress = null)
     {
+        /// <summary>The edition, refused at the composition root when it names none (kb/Work PB6082): a
+        /// <c>default(EditionInfo)</c> handed to the constructor or to a <c>with</c> expression throws here, before any
+        /// compilation reads it, since <see cref="Editions.EditionInfo.Of(int, bool)"/> re-reads its year.</summary>
+        public Editions.EditionInfo Edition { get; init => field = Named(value); } = Named(Edition);
+
+        private static Editions.EditionInfo Named(Editions.EditionInfo edition) => Editions.EditionInfo.Of(edition.Year, edition.Permissive);
+
         /// <summary>The identity this compilation's one class or interface PUBLISHES as an expansion of a parameterized definition: set by
         /// the compilation of an expansion's own assembly (<see cref="ExpansionAssemblies"/>, DESIGN-external-repository §10.5), whose source
         /// is the expansion's text and so cannot state the specifier that asked for it. Null for every compilation a user asks for.</summary>

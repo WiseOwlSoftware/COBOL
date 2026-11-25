@@ -291,7 +291,7 @@ public sealed class CompiledProgramCacheDriftTests : IDisposable
                 nameof(CompilerDriver.Options.SourcePath) => [twin],
                 nameof(CompilerDriver.Options.OutputPath) => [Path.Combine(_dir, "run", "other.dll")],
                 _ when current is EditionInfo edition =>
-                    [edition with { Year = edition.Year == 2002 ? 2014 : 2002 }, edition with { Permissive = !edition.Permissive }],
+                    [EditionInfo.Of(edition.Year == 2002 ? 2014 : 2002, edition.Permissive), edition with { Permissive = !edition.Permissive }],
                 _ => [Flip(property.PropertyType, current)],
             };
             foreach (object? flipped in flips)

@@ -12,19 +12,50 @@ namespace WiseOwl.Cobol.Editions;
 /// <remarks>
 /// Threaded by value (never a global): constructed once from the compiler options, read by the parser's base
 /// class (the <c>{isXXXX()}?</c> gates ask <see cref="Has(int)"/>), by the frontend preprocessor gates, and by
-/// the binder/validator. A <c>default(EditionInfo)</c> is <c>Year == 0</c>, which is invalid — always default
-/// fields to <see cref="Latest"/> explicitly, and <see cref="Of(int, bool)"/> rejects any year outside
-/// {85, 2002, 2014, 2023} (risk R5).
+/// the binder/validator.
+/// <para>⛔ A YEAR OUTSIDE <see cref="All"/> IS UNREPRESENTABLE (kb/Work PB6082, PB2619; unresolvable fails loudly). The one
+/// constructor is private, behind <see cref="Of(int, bool)"/>, which refuses any other year, and <see cref="Year"/> has no
+/// setter, so neither <c>new EditionInfo(1999)</c> nor <c>edition with { Year = 1999 }</c> compiles. A value type still has
+/// its <c>default</c> (Year 0), for which no constructor runs: <see cref="Year"/> refuses it at the first read, so every
+/// question asked of it (<see cref="Has(int)"/>, <see cref="Cite"/>, each edition predicate) throws instead of answering for
+/// a year no edition has.</para>
 /// </remarks>
-public readonly record struct EditionInfo(int Year, bool Permissive = false)
+public readonly record struct EditionInfo
 {
+    /// <summary>The year as <see cref="All"/> spells it, or 0 in a <c>default(EditionInfo)</c>, which <see cref="Year"/> refuses.</summary>
+    private readonly int year;
+
+    private EditionInfo(int year, bool permissive)
+    {
+        this.year = Validate(year);
+        Permissive = permissive;
+    }
+
+    /// <summary>The targeted edition's year: 85, 2002, 2014 or 2023 (<see cref="All"/>). ⛔ Throws on a <c>default(EditionInfo)</c>,
+    /// which no constructor validated (kb/Work PB6082).</summary>
+    public int Year => year != 0 ? year
+        : throw new InvalidOperationException("default(EditionInfo) holds no edition: name one with EditionInfo.Of, or take "
+            + "EditionInfo.Latest (kb/Work PB6082)");
+
+    /// <summary>The strict/permissive severity axis (the CLI's <c>--permissive</c>): permissive accepts a construct the targeted
+    /// edition REMOVED, with a warning; strict refuses it.</summary>
+    public bool Permissive { get; init; }
+
     /// <summary>The newest supported edition (the default target — VERSION_TEST_MATRIX_DESIGN: <c>--std</c>
     /// defaults to COBOL-2023).</summary>
-    public static readonly EditionInfo Latest = new(2023);
+    public static readonly EditionInfo Latest = new(2023, permissive: false);
 
-    /// <summary>Construct a validated edition value. Throws when <paramref name="year"/> is not a known ISO
-    /// edition — guards against a silently-defaulted <c>Year == 0</c>.</summary>
-    public static EditionInfo Of(int year, bool permissive = false) => new(Validate(year), permissive);
+    /// <summary>The one way to name an edition: a validated value. Throws when <paramref name="year"/> is not a known ISO
+    /// edition (<see cref="All"/>).</summary>
+    public static EditionInfo Of(int year, bool permissive = false) => new(year, permissive);
+
+    /// <summary>The value as text, which never throws: a <c>default(EditionInfo)</c> prints its year 0 for a debugger or an
+    /// assertion message to show (the record's generated printer would read <see cref="Year"/>, which refuses it).</summary>
+    private bool PrintMembers(System.Text.StringBuilder builder)
+    {
+        builder.Append("Year = ").Append(year).Append(", Permissive = ").Append(Permissive);
+        return true;
+    }
 
     /// <summary>The fixed-point digit capacity of the targeted edition: 18 at COBOL-85, 31 at 2002+ (ISO
     /// §2023:8.3.3.3.2 fixed-point literals 1–31 digits; the §2023:14.7 composite-of-operands rules; PICTURE digit

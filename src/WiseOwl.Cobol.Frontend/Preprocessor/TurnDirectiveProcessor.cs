@@ -82,7 +82,7 @@ public static class TurnDirectiveProcessor
         // ⛔ What "twice" means is the edition's (VCR 7.126): 2002 SR3 and 2014 SR3 refuse an exception-NAME written more than
         // once in a directive, whatever file-names follow it (SR4 then refuses a file-name repeated for one exception
         // condition, which the pair set above keeps); 2023 SR3 refuses only a repeated exception-name/file-name COMBINATION.
-        var edition = new EditionInfo(dialectLevel, false);
+        var edition = EditionInfo.Of(dialectLevel);
         bool nameAloneIsUnique = !DialectBehaviors.IsActive(DialectBehavior.TurnDirectiveRepeatsOnlyNameFileCombination, dialectLevel);
         var seenNames = new HashSet<string>(CobolNames.Comparer);
         bool? on = null;
@@ -141,7 +141,7 @@ public static class TurnDirectiveProcessor
                 diagnostics.ReportError(unknown.Descriptor.Code, unknown.Message, loc, default);
                 return false;
             }
-            if (ConstructRegistry.IsAvailable(new EditionInfo(dialectLevel, false), Constructs.TurnDirective2002)
+            if (ConstructRegistry.IsAvailable(EditionInfo.Of(dialectLevel), Constructs.TurnDirective2002)
                 && ExceptionNameRule.Window(currentInfo, dialectLevel, ">>TURN") is { } later)
             {
                 diagnostics.ReportError(later.Descriptor.Code, later.Message, loc, default);
