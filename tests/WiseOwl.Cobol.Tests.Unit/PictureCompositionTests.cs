@@ -276,6 +276,34 @@ public sealed class PictureCompositionTests
         Assert.Equal(legal, shape is not null);
     }
 
+    /// <summary>
+    /// kb/Work PB6177: a FLOATING extended string stands for "the leading numeric character positions" (§2023:13.18.40.5
+    /// GR6), so a digit position before it is the blank Table-10 cell the floating '+', '-' and currency symbol hit
+    /// (<c>PIC 99++</c>); a string after insertion symbols, a leading sign or a fixed extended symbol stays legal, and
+    /// nothing is asked of what FOLLOWS it (SR12 b's Z, Annex D.24's fixed trailing character-1).
+    /// </summary>
+    [Theory]
+    [InlineData("99LL", false)]
+    [InlineData("99LL9", false)]
+    [InlineData("ZZLL9", false)]
+    [InlineData("XXLL", false)]
+    [InlineData("9LL9.99", false)]
+    [InlineData("LL99", true)]
+    [InlineData("$LL99", true)]
+    [InlineData("-LL99", true)]
+    [InlineData("LLLZZ9", true)]
+    [InlineData("LLLL9.99F", true)]
+    public void AFloatingExtendedString_FollowingADigitPositionIsRefusedByTable10(string picture, bool legal)
+    {
+        var ed = new EditionContext(2023);
+        var extended = new HashSet<char> { 'L', 'F' };
+        var shape = PictureComposition.Validate(picture, picture, '$', extended, extended, blankWhenZero: false,
+            decimalPointIsComma: false, ed, "data item 'T'");
+        if (legal) Assert.Empty(ed.Diagnostics);
+        else Assert.Contains(ed.Diagnostics, d => d.Contains("COBOL1935"));
+        Assert.Equal(legal, shape is not null);
+    }
+
     private static string[] DiagnoseEditing(string picture, char[] phraseOrder)
     {
         var ed = new EditionContext(2023);
