@@ -312,4 +312,57 @@ public sealed class CliParserTests
         foreach (var outcome in Enum.GetValues<CompilerDriver.Outcome>())
             Assert.InRange(Program.ExitCode(outcome), 0, 73);
     }
+
+    /// <summary>kb/Work PB6060: an exception a compiler pass throws reaches the user as a named internal error with the whole exception
+    /// text and status 70, never the runtime's raw unhandled-exception output, and never the 65 of a refused program. The throw
+    /// is made inside a command's action, the route <c>Parse(args).Invoke()</c> takes, so the test also holds that
+    /// <c>System.CommandLine</c> does not swallow it first.</summary>
+    [Fact]
+    public void AnExceptionInsideACommand_IsReportedAsAnInternalCompilerError_WithStatus70()
+    {
+        var root = new RootCommand("probe");
+        root.SetAction(new Func<ParseResult, int>(_ => throw new InvalidOperationException("the pass fell over")));
+        var error = new StringWriter();
+
+        int status = Program.RunGuarded(["x.cob", "--std", "2023"], () => root.Parse([]).Invoke(Program.InvocationWithoutDefaultHandler), error);
+
+        Assert.Equal(70, status);
+        Assert.Equal(Program.InternalErrorExitCode, status);
+        string text = error.ToString();
+        Assert.Contains("internal compiler error", text);
+        Assert.Contains("cobol x.cob --std 2023", text);
+        Assert.Contains("WiseOwl.Cobol.Tests.Unit.CliParserTests", text);   // the pass: the innermost compiler type that threw
+        Assert.Contains("InvalidOperationException: the pass fell over", text);
+        Assert.Contains(" at ", text);   // the stack is printed, not hidden
+    }
+
+    /// <summary>kb/Work PB6060: the batch verbs run their entries in a parallel loop, which wraps a throw in an
+    /// <see cref="AggregateException"/>; the pass named is the one that threw, not the loop's wrapper.</summary>
+    [Fact]
+    public void AnExceptionInAParallelEntry_NamesThePassThatThrew()
+    {
+        var error = new StringWriter();
+
+        int status = Program.RunGuarded(["check-batch", "m.tsv"], () =>
+        {
+            Parallel.For(0, 2, _ => throw new InvalidOperationException("entry fault"));
+            return 0;
+        }, error);
+
+        Assert.Equal(70, status);
+        Assert.Contains("WiseOwl.Cobol.Tests.Unit.CliParserTests", error.ToString());
+    }
+
+    /// <summary>kb/Work PB6060: a command that finishes passes its own status through the guard unchanged.</summary>
+    [Theory]
+    [InlineData(0)]
+    [InlineData(65)]
+    [InlineData(73)]
+    public void ACommandThatReturns_KeepsItsStatus(int status)
+    {
+        var error = new StringWriter();
+
+        Assert.Equal(status, Program.RunGuarded(["x.cob"], () => status, error));
+        Assert.Equal("", error.ToString());
+    }
 }
