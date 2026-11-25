@@ -396,6 +396,18 @@ def case_19_a_marker_renumbered_by_one_offset_with_the_text_equal(expect):
                  ["FOOTNOTE-RENUMBERED"] * 2)
 
 
+def case_20_an_uncovered_run_is_weighed_by_the_second_reading_too(expect):
+    """kb/Work PB6135: Markdown words the layer lacks (UNCOVERED) take the same positional second reading as an UNEXPLAINED
+    row: the second reading holding them at that place confirms the Markdown, its neighbours touching without them is two
+    readings against the transcription, and their presence elsewhere on the page only is no witness either way."""
+    pdf, md = "the file is the name", "the file is open or the name"
+    expect.equal("the layer alone lacks them", _classes(pdf, md), ["UNCOVERED"])
+    expect.equal("tesseract reads them at that place", _arbitrated(pdf, md, "the file is open or the name"), ["OCR-ARBITRATED"])
+    expect.equal("tesseract, too, reads the print without them", _arbitrated(pdf, md, "the file is the name"), ["LIKELY-ERROR"])
+    expect.equal("tesseract reads them elsewhere only", _arbitrated(pdf, md, "the file is the name corner open or"), ["UNCOVERED"])
+    expect.equal("tesseract reads neither", _arbitrated(pdf, md, "corner of for"), ["UNCOVERED"])
+
+
 if __name__ == "__main__":
     ensure_utf8()
     sys.exit(selftest_cases.run(sys.modules[__name__]))
