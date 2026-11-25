@@ -1,4 +1,4 @@
-## PB5753: a repeated parameter-name in a USING clause is two formals at 2002, refused only from 2014
+## Entry 4066 — 2026-11-25 03:37 PST — PB5753: a repeated parameter-name in a USING clause is two formals at 2002, refused only from 2014
 
 **The defect.** `INTERFACE-ID. G2DUPI USING P P.` (and its CLASS-ID twin) was refused COBOL2239 at `--std 2002`, citing
 §2023:11.6.3 SR7 / §2023:11.3.3 SR9. Re-probed on this branch's base: both repros (`dupparm.cob`, `dupclass.cob`) refused at
@@ -29,3 +29,4 @@ edition split.
 **Found on the way, registered.** The EXPANDS-phrase and identity messages of `OoExpansion.Validate` still cite 2023 at 2002 and
 2014, and §2023:12.3.8.4 GR1 (a parameterized class may be named only in a REPOSITORY paragraph) has no 2002 text; and
 `UniqueReferenceRule.Citation` cites §2023:8.4.2.1 at 2002 and 2014.
+
