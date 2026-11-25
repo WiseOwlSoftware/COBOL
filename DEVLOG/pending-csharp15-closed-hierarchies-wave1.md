@@ -1,4 +1,4 @@
-## Entry 4046 — 2026-11-24 10:48 PST — C# 15 `closed` hierarchies, wave 1: the bound tree and the binding model's Place and AccessPath families are closed
+## C# 15 `closed` hierarchies, wave 1: the bound tree and the binding model's Place and AccessPath families are closed
 
 **Owner, 2026-11-24:** "I approve closed". The C# 15 evaluation and the check the owner asked for are in kb/Work PB6168.
 
@@ -25,4 +25,3 @@
 - PB6169, wave 2: remove the now-provable `throw` arms, then close the remaining hierarchies with judgment for the
   runtime ABI.
 - PB6170: the C# modifier vocabulary is written seven times across five tools.
-
