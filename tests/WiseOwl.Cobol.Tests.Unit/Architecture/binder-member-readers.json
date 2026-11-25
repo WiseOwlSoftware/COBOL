@@ -473,7 +473,7 @@
       "WiseOwl.Cobol.Binding.BindSession",
       "WiseOwl.Cobol.Binding.ObjectPropertyResolver",
       "WiseOwl.Cobol.Binding.OoDataBinder",
-      "WiseOwl.Cobol.Binding.Procedure.ProcedureTableBuilder",
+      "WiseOwl.Cobol.Binding.Procedure.UseStatementBinder",
       "WiseOwl.Cobol.Binding.Repository.RepositoryCodec",
       "WiseOwl.Cobol.Binding.SymbolTable"
     ],
@@ -482,7 +482,7 @@
     ],
     "WiseOwl.Cobol.Binding.DataBinder::OperandSubscriptRule": [
       "WiseOwl.Cobol.Binding.FileControlBinder",
-      "WiseOwl.Cobol.Binding.Procedure.SortBinder",
+      "WiseOwl.Cobol.Binding.Procedure.SortMergePhraseBinder",
       "WiseOwl.Cobol.Binding.ReportSectionBinder"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::OwnWords": [
@@ -597,7 +597,8 @@
     "WiseOwl.Cobol.Binding.DataBinder::ScreenDataNameShape": [
       "WiseOwl.Cobol.Binding.Procedure.KeyedIoBinder",
       "WiseOwl.Cobol.Binding.Procedure.MessagingBinder",
-      "WiseOwl.Cobol.Binding.Procedure.SortBinder"
+      "WiseOwl.Cobol.Binding.Procedure.SortBinder",
+      "WiseOwl.Cobol.Binding.Procedure.SortMergePhraseBinder"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::ScreenGlobalNameUniqueness": [
       "WiseOwl.Cobol.Binding.Passes.CheckGlobalNameUniquenessPass"
@@ -635,12 +636,12 @@
       "WiseOwl.Cobol.Binding.FileControlBinder",
       "WiseOwl.Cobol.Binding.LiteralEnvironment",
       "WiseOwl.Cobol.Binding.Procedure.ConditionBinder",
-      "WiseOwl.Cobol.Binding.Procedure.EvaluateBinder",
       "WiseOwl.Cobol.Binding.Procedure.ExpressionBinder",
       "WiseOwl.Cobol.Binding.Procedure.InspectBinder",
       "WiseOwl.Cobol.Binding.Procedure.IntrinsicBinder",
       "WiseOwl.Cobol.Binding.Procedure.SetBinder",
-      "WiseOwl.Cobol.Binding.Procedure.SortBinder",
+      "WiseOwl.Cobol.Binding.Procedure.SortMergePhraseBinder",
+      "WiseOwl.Cobol.Binding.Procedure.WhenPhraseBinder",
       "WiseOwl.Cobol.Binding.ReportSectionBinder",
       "WiseOwl.Cobol.Binding.SymbolTable"
     ],
@@ -690,6 +691,7 @@
       "WiseOwl.Cobol.Binding.Passes.UsageInheritancePass",
       "WiseOwl.Cobol.Binding.Procedure.BinderContext",
       "WiseOwl.Cobol.Binding.Procedure.ConditionBinder",
+      "WiseOwl.Cobol.Binding.Procedure.DebugDeclarativeResolver",
       "WiseOwl.Cobol.Binding.Procedure.EcBinder",
       "WiseOwl.Cobol.Binding.Procedure.ExpressionBinder",
       "WiseOwl.Cobol.Binding.Procedure.IntrinsicBinder",
@@ -697,7 +699,7 @@
       "WiseOwl.Cobol.Binding.Procedure.ProcedureTableBuilder",
       "WiseOwl.Cobol.Binding.Procedure.ReportWriterBinder",
       "WiseOwl.Cobol.Binding.Procedure.SendingValueTemp",
-      "WiseOwl.Cobol.Binding.Procedure.SortBinder",
+      "WiseOwl.Cobol.Binding.Procedure.SortMergePhraseBinder",
       "WiseOwl.Cobol.Binding.ReferenceResolver",
       "WiseOwl.Cobol.Binding.ReportSectionBinder",
       "WiseOwl.Cobol.Binding.Repository.RepositoryCodec",
@@ -745,6 +747,7 @@
       "WiseOwl.Cobol.Binding.Procedure.BinderContext",
       "WiseOwl.Cobol.Binding.Procedure.CallBinder",
       "WiseOwl.Cobol.Binding.Procedure.ConditionBinder",
+      "WiseOwl.Cobol.Binding.Procedure.DebugDeclarativeResolver",
       "WiseOwl.Cobol.Binding.Procedure.KeyedIoBinder",
       "WiseOwl.Cobol.Binding.Procedure.MnemonicRegistry",
       "WiseOwl.Cobol.Binding.Procedure.ProcedureTableBuilder",
@@ -1070,10 +1073,10 @@
     ],
     "WiseOwl.Cobol.Binding.SpecialNamesBinder::CollatingAlphabetFault": [
       "WiseOwl.Cobol.Binding.FileControlBinder",
-      "WiseOwl.Cobol.Binding.Procedure.SortBinder"
+      "WiseOwl.Cobol.Binding.Procedure.SortMergePhraseBinder"
     ],
     "WiseOwl.Cobol.Binding.SpecialNamesBinder::CollatingAlphabetViolation": [
-      "WiseOwl.Cobol.Binding.Procedure.SortBinder"
+      "WiseOwl.Cobol.Binding.Procedure.SortMergePhraseBinder"
     ],
     "WiseOwl.Cobol.Binding.SpecialNamesBinder::GateRangeAlphabetPhrase": [
       "WiseOwl.Cobol.Binding.DataBinder"
@@ -1081,8 +1084,8 @@
     "WiseOwl.Cobol.Binding.SpecialNamesBinder::IsAlphabetName": [
       "WiseOwl.Cobol.Binding.DataBinder",
       "WiseOwl.Cobol.Binding.Procedure.ConditionBinder",
-      "WiseOwl.Cobol.Binding.Procedure.EvaluateBinder",
       "WiseOwl.Cobol.Binding.Procedure.InspectBinder",
+      "WiseOwl.Cobol.Binding.Procedure.WhenPhraseBinder",
       "WiseOwl.Cobol.Binding.SymbolTable"
     ],
     "WiseOwl.Cobol.Binding.SpecialNamesBinder::IsClassConditionWord": [
@@ -1126,15 +1129,15 @@
     ],
     "WiseOwl.Cobol.Binding.SpecialNamesBinder::TryResolveRangeAlphabet": [
       "WiseOwl.Cobol.Binding.DataBinder",
-      "WiseOwl.Cobol.Binding.Procedure.EvaluateBinder"
+      "WiseOwl.Cobol.Binding.Procedure.WhenPhraseBinder"
     ],
     "WiseOwl.Cobol.Binding.SpecialNamesBinder::UseAlphabetName": [
       "WiseOwl.Cobol.Binding.FileControlBinder",
-      "WiseOwl.Cobol.Binding.Procedure.SortBinder"
+      "WiseOwl.Cobol.Binding.Procedure.SortMergePhraseBinder"
     ],
     "WiseOwl.Cobol.Binding.SpecialNamesBinder::WrittenAlphabet": [
       "WiseOwl.Cobol.Binding.FileControlBinder",
-      "WiseOwl.Cobol.Binding.Procedure.SortBinder"
+      "WiseOwl.Cobol.Binding.Procedure.SortMergePhraseBinder"
     ]
   }
 }

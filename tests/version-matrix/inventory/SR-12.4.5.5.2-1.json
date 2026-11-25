@@ -2,8 +2,8 @@
  "rule-id": "SR-12.4.5.5.2-1",
  "rule-digest": "43849fce9c1e",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortMapIoFiles; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindFileControl",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindFileControl; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortMergePhraseBinder.cs#SortMapIoFiles",
  "test-ref": "conformance:cases/12.4.5-File-control/pb994-sort-using-random-access; conformance:cases/12.4.5-File-control/pb994-sort-giving-random-access; conformance:cases/12.4.5-File-control/pb994-merge-using-random-access",
  "editions": "85,2002,2014,2023",
- "notes": "kb/Work PB994 landed: 12.4.5.5.2 SR1 has its own enforcement site, SortMapIoFiles (the one USING/GIVING mapper of SORT and MERGE): a file with ACCESS MODE IS RANDOM in either phrase is refused by name for both verbs (the sequential-organization RANDOM file is refused earlier by SR2, COBOL1858)."
+ "notes": "kb/Work PB994 landed: 12.4.5.5.2 SR1 has its own enforcement site, SortMapIoFiles (the one USING/GIVING mapper of SORT and MERGE): a file with ACCESS MODE IS RANDOM in either phrase is refused by name for both verbs (the sequential-organization RANDOM file is refused earlier by SR2, COBOL1858). retired-witness: src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortMapIoFiles (kb/Work PB2341 extracted the member out of src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs into src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortMergePhraseBinder.cs; the same rule, moved with its body unchanged)"
 }

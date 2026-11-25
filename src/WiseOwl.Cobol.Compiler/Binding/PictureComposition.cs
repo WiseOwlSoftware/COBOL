@@ -430,9 +430,9 @@ internal static class PictureComposition
         // specified in character-string-1: a string of two or more symbols '+' / '-' / currency symbol, ..."; NOTE 5:
         // `+++$$$` is invalid), and the extended editing sign control symbols are floating insertion symbols beside
         // them (§2023:13.18.40.5 GR6). The Table-10 walk asks that of '+', '-' and the currency symbol, which it gives
-        // floating roles; a floating extended string has none and must stay outside the matrix (`PIC LLLL9.99F`,
-        // Annex D.24, ends in a fixed extended symbol that the cs-trailing cell refuses after a floating cs), so the
-        // count is made here: a second run of the same extended symbol that something other than a transparent
+        // floating roles; a floating extended string is asked only what may PRECEDE it (kb/Work PB6177) and joins no
+        // `seen` set (`PIC LLLL9.99F`, Annex D.24, ends in a fixed extended symbol that the cs-trailing cell refuses
+        // after a floating cs), so the count of strings is made here: a second run of the same extended symbol that something other than a transparent
         // symbol separates (`PIC LL9LL`), or a run of another extended character-1 (`PIC LL99FF`), is a second
         // string (kb/Work PB6116).
         int extendedFloatingStrings = 0;
@@ -655,6 +655,7 @@ internal static class PictureComposition
         var roleA = new PicRole[n];      // the first candidate role
         var roleB = new PicRole[n];      // the second, where the occurrence is position-ambiguous
         var live = new bool[n];
+        var floatingExtended = new bool[n];   // a floating extended string: asked what precedes it, never what follows it
         var ambiguous = new List<int>(4);
         for (int i = 0; i < n; i++)
         {
@@ -674,7 +675,13 @@ internal static class PictureComposition
             //    precedence, so it constrains no neighbour (`PIC LL EDITING L IS ":"` is the shape SR12 a) names as
             //    sufficient; kb/Work PB528);
             //  - a FLOATING extended string is floating insertion (rule 6), and §2023:13.18.40.6 states the 'cs'
-            //    mapping for the NON-floating column and row alone;
+            //    mapping for the NON-floating column and row alone. Rule 6 makes the string stand for "the leading
+            //    numeric character positions" (and ends it at "the first character position for which no floating
+            //    insertion editing is specified"), so what may PRECEDE it is the floating rows' question — a digit
+            //    position before it (`PIC 99LL`) is the blank cell `PIC 99++` and `PIC 99$$` hit — and the string
+            //    is asked of the matrix as a floating symbol, left or right of the point, but never ENTERS the
+            //    walk's set of seen roles: what may FOLLOW it is not Table 10's to say (Annex D.24's fixed trailing
+            //    `F` in `LLLL9.99F`, the adjudicated `PIC LLLZZ9` of SR12 b; kb/Work PB6177);
             //  - the ORDER OF ONE CURRENCY-LIKE SYMBOL AGAINST ANOTHER is not the matrix's: the blank
             //    leading-currency-before-trailing-currency cell would refuse the very pairs SR25 ("the first
             //    occurrence of the EDITING phrase shall be for the leftmost symbol … the second … for the rightmost
@@ -687,6 +694,11 @@ internal static class PictureComposition
                 {
                     live[i] = true;
                     roleA[i] = PicRole.CurrencyLeading; roleB[i] = PicRole.CurrencyTrailing; ambiguous.Add(i);
+                }
+                else if (char1Extended.Contains(c))
+                {
+                    live[i] = true; floatingExtended[i] = true;
+                    roleA[i] = left ? PicRole.FloatCurrencyLeft : PicRole.FloatCurrencyRight;
                 }
                 else live[i] = false;
                 continue;
@@ -760,7 +772,13 @@ internal static class PictureComposition
                 for (int occurrence = 0; occurrence < Math.Min(2, syms[j].Count); occurrence++)
                 {
                     tests++;
-                    int refused = seen & ~MayPrecede[(int)role[j]];
+                    int mayPrecede = MayPrecede[(int)role[j]];
+                    // A floating extended string is a floating insertion string of the currency kind or the sign kind:
+                    // whatever may precede either may precede it (the currency symbol's row admits a leading sign,
+                    // the sign's a fixed currency symbol).
+                    if (floatingExtended[j])
+                        mayPrecede |= MayPrecede[(int)(role[j] == PicRole.FloatCurrencyLeft ? PicRole.FloatSignLeft : PicRole.FloatSignRight)];
+                    int refused = seen & ~mayPrecede;
                     // The pair-of-currency-likes exemption (see the role map above): a fixed currency symbol is bounded to
                     // ONE by SR24, so before extended symbols took these roles a currency role was never in `seen` when
                     // a currency role was asked and the exemption removed nothing.
@@ -774,11 +792,11 @@ internal static class PictureComposition
                         for (int i = 0; i <= j; i++)
                         {
                             tests++;
-                            if (live[i] && role[i] == culprit) { bad = (syms[i].At, syms[j].At + occurrence); break; }
+                            if (live[i] && !floatingExtended[i] && role[i] == culprit) { bad = (syms[i].At, syms[j].At + occurrence); break; }
                         }
                         break;
                     }
-                    seen |= 1 << (int)role[j];
+                    if (!floatingExtended[j]) seen |= 1 << (int)role[j];
                 }
             }
             if (bad.First < 0) { WalkObserver.Value?.Invoke(tests); return true; }

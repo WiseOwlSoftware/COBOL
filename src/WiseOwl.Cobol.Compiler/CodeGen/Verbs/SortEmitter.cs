@@ -310,7 +310,7 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
             // ⛔ A SD RECORD THAT HOLDS POINTER OR MESSAGE-TAG LEAVES (kb/Work PB4838): the file record carried each leaf as its
             // 8-position token, so the transfer decodes the record into the SD record area (undefined during a USING transfer,
             // the SD record being the sort's own) and releases the managed slots beside the image, as RELEASE does (kb/Work
-            // PB4772). A fixed record only: SortBinder.SortRecordCarriesSlots refuses a variable-length SD.
+            // PB4772). A fixed record only: SortMergePhraseBinder.SortRecordCarriesSlots refuses a variable-length SD.
             string? slots = null;
             if (places.RecordArea(sdFile) is { } sdArea && HoldsSlots(sdArea.Item))
             {

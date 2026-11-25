@@ -684,7 +684,7 @@ public abstract record BoundOperand
     /// register written sole, and <c>(B1)</c> the same field operand as <c>B1</c>; a screen that must tell identifier-1 from an
     /// expression (a class condition's subject, §2023:8.8.4.4.2) asks THIS, never the tree's shape. Set only by
     /// <c>ConditionBinder.CompoundOperand</c>, <c>ConditionBinder.EnclosedBooleanOperand</c> and EVALUATE's boolean-expression
-    /// subject (<c>EvaluateBinder.BindSubjectValue</c>), the wrappers of an expression operand.</summary>
+    /// subject (<c>EvaluateSubjectBinder.BindSubjectValue</c>), the wrappers of an expression operand.</summary>
     public bool ExpressionAsWritten { get; init; }
 }
 

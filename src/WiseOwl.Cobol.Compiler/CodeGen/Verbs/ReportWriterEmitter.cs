@@ -250,9 +250,12 @@ internal sealed class ReportWriterEmitter(
         bool slotPerPlacement = presentSlot >= 0 && PresenceSlotCount(f) > 1;
         string[] tests = [.. presentSlot >= 0 && !slotPerPlacement ? [RuntimeApi.ReportIsPresent(r.CsIndex, gi, presentSlot)] : (string[])[],
                           .. f.GroupIndicate ? [$"__RPT_{r.CsIndex}.GroupIndicatePresent"] : (string[])[]];
-        // An absent repetition 0 of a STEPped entry still fixes the step anchors: §2023:13.18.38.4 GR12 measures every later
-        // repetition from the column repetition 0 would occupy, so EVERY operand's seed is written OUTSIDE every presence test
-        // — the field's and each placement's — at the column the operands before it would leave the horizontal counter on.
+        // An absent repetition 0 of a STEPped entry still fixes the step anchors: §2023:13.18.38.4 GR12b measures every later
+        // repetition from the column the items occupy in the preceding repetition, and a WHOLLY absent field occupies none, so its
+        // layout is the one its entry takes when present (kb/Work PB6178): EVERY operand's hoisted seed is written OUTSIDE every
+        // presence test — the field's and each placement's — at the column the operands before it would leave the horizontal
+        // counter on. The hoist serves a wholly absent field and an absent operand 0; a LATER operand (repetition > 0) of a
+        // PRESENT field has its anchor rewritten from the live counter INSIDE the field guard (below, kb/Work PB6146).
         EmitAnchorSeeds(f, w);
         using IDisposable? guard = tests.Length > 0
             ? w.Block($"if ({string.Join(" && ", tests)})   // presence (§2023:13.18.41.4 GR2b / §2023:13.18.28.4 GR1 / §2023:13.18.38.4 GR13)")
@@ -295,8 +298,9 @@ internal sealed class ReportWriterEmitter(
                 case ReportColumnKindModel.AnchorSeed:
                     // Repetition 0 of a STEP'd repeating entry whose COLUMN operand is relative: place as GR8
                     // says AND remember the column, because §2023:13.18.38.4 GR12 measures the later repetitions from
-                    // the column this one occupies, not from the horizontal counter (which holds its RIGHTMOST); the seed
-                    // itself was written before the presence tests (EmitAnchorSeeds).
+                    // the column this one occupies, not from the horizontal counter (which holds its RIGHTMOST); the
+                    // anchor is the one written for this operand — repetition 0's hoisted seed (EmitAnchorSeeds), or, for a later
+                    // operand, the live-counter rewrite at the top of this iteration.
                     w.Line($"{RuntimeApi.ReportPlace(r.CsIndex, "__ln", $"__ra{spec.AnchorId}", image)};");
                     w.Line($"__hc = __ra{spec.AnchorId} + {f.PrintItem.DisplayTextWidth - 1};   // §2023:13.18.14.4 GR9");
                     break;

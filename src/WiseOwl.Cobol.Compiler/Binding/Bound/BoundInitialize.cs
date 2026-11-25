@@ -252,6 +252,46 @@ public static class InitializeCategories
             or InitializeCategory.MessageTag or InitializeCategory.ObjectReference
             or InitializeCategory.ProgramPointer;
 
+    /// <summary>The INITIALIZE category of the unique data item a reference-modified identifier-1 denotes (ISO
+    /// §2023:8.4.3.3.4 GR5-GR6), read from <see cref="Table16Operand.Of(Place)"/> so that a slice's category has one
+    /// reader. A reference-modified group is an elementary alphanumeric item (§2023:8.4.3.3.3 SR1).</summary>
+    public static InitializeCategory RefModInitializeCategory(Place slice) => Table16Operand.Of(slice) switch
+    {
+        { Category: PicCategory.Alphanumeric, IsAlphabetic: true } => InitializeCategory.Alphabetic,
+        { Category: PicCategory.National } => InitializeCategory.National,
+        { Category: PicCategory.Boolean } => InitializeCategory.Boolean,
+        _ => InitializeCategory.Alphanumeric,
+    };
+
+    /// <summary>The INITIALIZE category of an elementary item (ISO §2023:8.5.2 via §2023:14.9.20.2 category-name), or null
+    /// when the item is excluded (GR5a1 — an index data item is not a valid MOVE receiver; only SET stores it,
+    /// §2023:14.9.39.4 GR2b). Alphanumeric-edited = an X/A picture with insertion symbols; alphabetic = an all-A picture
+    /// (the COBOL-85 alphabetic-edited category folds into alphanumeric-edited per the 2023 categorization).</summary>
+    public static InitializeCategory? InitializeItemCategory(DataItem item) => item.Pic switch
+    {
+        { Usage: Usage.Index } => null,
+        { Category: PicCategory.Numeric } => InitializeCategory.Numeric,
+        { Category: PicCategory.NumericEdited } => InitializeCategory.NumericEdited,
+        { Category: PicCategory.Alphanumeric, EditMask: not null } => InitializeCategory.AlphanumericEdited,
+        { Category: PicCategory.Alphanumeric, IsAlphabetic: true } => InitializeCategory.Alphabetic,
+        { Category: PicCategory.Alphanumeric } => InitializeCategory.Alphanumeric,
+        { Category: PicCategory.Boolean } => InitializeCategory.Boolean,     // GR6c: boolean → ZEROES
+        // §2023:8.5.2.11 national-edited is its OWN category, and the `EditMask: not null` pair is what the model
+        // carries it as (the same shape alphanumeric-edited uses, one arm above). GR6c fills it with "Figurative
+        // constant national SPACES" — the same fill as national — but GR5c's category-name MATCH must tell the
+        // two apart, which a folded arm could not (kb/Work PB492).
+        { Category: PicCategory.National, EditMask: not null } => InitializeCategory.NationalEdited,
+        { Category: PicCategory.National } => InitializeCategory.National,   // GR6c: national → SPACES
+        // GR4/GR6c: pointer & object-reference receivers are initialized by an implicit SET … TO the predefined
+        // NULL (data-pointer/program-pointer → NULL address, object-reference → NULL reference), NOT a MOVE.
+        { Category: PicCategory.Pointer } => InitializeCategory.DataPointer,
+        { Category: PicCategory.ProgramPointer } => InitializeCategory.ProgramPointer,
+        { Category: PicCategory.FunctionPointer } => InitializeCategory.FunctionPointer,
+        { Category: PicCategory.ObjectReference } => InitializeCategory.ObjectReference,
+        { Category: PicCategory.MessageTag } => InitializeCategory.MessageTag,   // GR4/GR6c: message-tag → NULL (kb/Work PB4740)
+        _ => null,
+    };
+
     /// <summary>⛔ THE CATEGORY-NAME'S POSITION IN ISO §2023:14.9.25.3 TABLE 16, AS A RECEIVING OPERAND — what
     /// §2023:14.9.20.3 SR4's second paragraph asks about: "For each of the other categories specified in the REPLACING
     /// phrase, a MOVE statement with identifier-2 or literal-1 as the sending item and <b>an item of the specified
