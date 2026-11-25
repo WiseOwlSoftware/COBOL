@@ -280,8 +280,8 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
             + (data.Edition.Edition.Cite(
                 "reference (§1985:X.5.1 GR4): the record is not an operand of the USING phrase of the Procedure "
                     + "Division header, nor a redefinition or renaming of one. Name it in the header.",
-                "reference (" + data.Edition.Edition.CiteRule("", "§2023:13.7.3 SR4", y2002: "§2002:13.6.2 SR4",
-                        y2014: "§2014:13.7.2 SR4")
+                "reference (" + data.Edition.Edition.CiteRuleFrom2002("§2002:13.6.2 SR4", "§2023:13.7.3 SR4",
+                        "§2014:13.7.2 SR4")
                     + "): the record is not an operand of the USING or RETURNING phrase of the procedure division header, "
                     + "not a redefinition or renaming of one, and not BASED. Name it in the header, or describe it BASED ("
                     + data.Edition.Edition.Cite("", "§2023:13.18.5", y2002: "§2002:13.16.5", y2014: "§2014:13.18.5") + ").")));

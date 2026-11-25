@@ -344,7 +344,7 @@ public static class CobolLiteral
     /// never name different editions. A relaxation, not an introduction: a longer literal is a length error at the older
     /// edition, so it draws the length rule's own code, also under <c>--permissive</c> (the word-length ceiling's posture).</summary>
     public static int MaxPositions(int dialectLevel) =>
-        ConstructRegistry.IsAvailable(new EditionInfo(dialectLevel), Constructs.LiteralLength81912014)
+        ConstructRegistry.IsAvailable(EditionInfo.Of(dialectLevel), Constructs.LiteralLength81912014)
             ? MaxLiteralPositions : MaxLiteralPositionsBeforeRelaxation;
 
     /// <summary>The bound as the standard prints it ("8,191"), culture-invariant so a diagnostic reads the same on every
@@ -393,7 +393,7 @@ public static class CobolLiteral
             LiteralClass.National => ("national", "§2023:8.3.3.5.3 SR1"),
             LiteralClass.Boolean => ("boolean", "§2023:8.3.3.4.3 SR1"),
             // 1985 has the alphanumeric (nonnumeric) literal only; the boolean and national classes begin later (kb/Work PB4950).
-            _ => ("alphanumeric", new EditionInfo(dialectLevel).Cite("§1985:IV.4.2.2.2.1", "§2023:8.3.3.2.3 SR1")),
+            _ => ("alphanumeric", EditionInfo.Of(dialectLevel).Cite("§1985:IV.4.2.2.2.1", "§2023:8.3.3.2.3 SR1")),
         };
         return $"is {positions} {name} character positions long — {clause} limits {(cls == LiteralClass.Alphanumeric ? "an" : "a")} {name} literal to "
             + $"{MaxPositionsText(dialectLevel)}{BoundProvenance(dialectLevel)}";

@@ -40,10 +40,9 @@ namespace WiseOwl.Cobol.Binding;
 public sealed class EditionContext(int dialectLevel, bool permissive = false) : IDiagnosticSink
 {
     /// <summary>The immutable edition value — the SINGLE source of the dialect year + the permissive axis (P5).
-    /// Constructed with the non-validating record ctor to preserve the historical tolerance of any
-    /// <paramref name="dialectLevel"/>; NEW code that needs the {85,2002,2014,2023} guard uses
-    /// <see cref="Editions.EditionInfo.Of(int, bool)"/>.</summary>
-    public EditionInfo Edition { get; } = new(dialectLevel, permissive);
+    /// Built by <see cref="Editions.EditionInfo.Of(int, bool)"/>, so a <paramref name="dialectLevel"/> outside
+    /// <see cref="Editions.EditionInfo.All"/> is refused here, where the context is made (kb/Work PB6082).</summary>
+    public EditionInfo Edition { get; } = EditionInfo.Of(dialectLevel, permissive);
 
     /// <summary>This context AS the structured report channel handed to
     /// <see cref="Editions.ConstructRegistry.Check"/> (it bridges to the legacy string channels via

@@ -836,7 +836,7 @@ public static class PictureAnalyzer
     /// <c>--permissive</c> (the word-length ceiling's posture). Above 63 is refused at every edition.</summary>
     public static int MaxStringLength(int dialectLevel)
     {
-        var edition = new EditionInfo(dialectLevel);
+        var edition = EditionInfo.Of(dialectLevel);
         return ConstructRegistry.IsAvailable(edition, Constructs.PictureString632014) ? MaxPictureStringLength
             : ConstructRegistry.IsAvailable(edition, Constructs.PictureString502002) ? MaxPictureStringLength2002
             : MaxPictureStringLength85;

@@ -115,14 +115,15 @@ public sealed class RaisingPhraseTupleTests
         => Compiles(ExitProgramRaising("RPT4", "FACTORY CRPT4", "FACTORY OF CRPT4"));
 
     /// <summary>§2023:14.9.14.3 SR5a: "the presence or absence of the FACTORY phrase shall be the same" — the header
-    /// lists the class WITH FACTORY, identifier-1 is an INSTANCE reference of it.</summary>
+    /// lists the class WITH FACTORY, identifier-1 is an INSTANCE reference of it. Compiled at COBOL-2002, so the message cites that
+    /// edition's own rule, §2002:14.8.13.2 SR5a, which states the same FACTORY requirement (kb/Work PB6175).</summary>
     [Fact]
     public void ExitProgramRaising_FactoryPresenceDiffers_4211()
     {
         var errors = ErrorsOf(ExitProgramRaising("RPT5", "FACTORY OF CRPT5", "CRPT5")
             .Replace("SET F TO CRPT5.", "INVOKE CRPT5 \"NEW\" RETURNING F."));
         EditionHarness.AssertHasDiagnostic(errors, "COBOL4211");
-        Assert.Contains(errors, e => e.Contains("§2023:14.9.14.3 SR5a", StringComparison.Ordinal));
+        Assert.Contains(errors, e => e.Contains("§2002:14.8.13.2 SR5a", StringComparison.Ordinal));
     }
 
     /// <summary>A method IS a source element: each method's GOBACK is checked against ITS OWN header. The

@@ -50,6 +50,18 @@ public sealed class CompilerDriverTests : WiseOwlCobolTestBase
         Assert.Equal("NAME=BOB   \r\nN=0005", stdout);
     }
 
+    /// <summary>kb/Work PB6082: the driver's options refuse a <c>default(EditionInfo)</c> where they are made, in the constructor and
+    /// in a <c>with</c> expression alike, so no compilation runs for an edition that does not exist.</summary>
+    [Fact]
+    public void CompilerDriver_Options_RefuseADefaultEdition()
+    {
+        string source = Path.Combine(TempDir, "does-not-exist.cob");
+        Assert.Throws<InvalidOperationException>(() => new CompilerDriver.Options(source, default));
+        var options = new CompilerDriver.Options(source, EditionInfo.Of(2014, permissive: true));
+        Assert.Throws<InvalidOperationException>(() => options with { Edition = default });
+        Assert.Equal(EditionInfo.Of(2014, permissive: true), options.Edition);
+    }
+
     [Fact]
     public void CompilerDriver_ReportsSourceNotFound()
     {
