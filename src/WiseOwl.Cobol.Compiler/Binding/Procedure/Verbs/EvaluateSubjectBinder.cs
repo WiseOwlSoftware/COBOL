@@ -221,7 +221,7 @@ internal sealed class EvaluateSubjectBinder(BinderContext ctx, StatementBinder h
         : default;
 
     /// <summary>Bind (and, when more than one pair reads it, MATERIALIZE) one selection subject's assigned value
-    /// — ISO §2023:14.9.13.4 GR3 a)–d). Null when the subject has no value form.
+    /// — ISO §2023:14.9.13.4 GR3a–GR3d. Null when the subject has no value form.
     /// <para>⛔ A written CONDITION-1 subject's operands are NOT materialized, and that is a rule, not an
     /// omission: GR3 e) assigns the subject <b>condition-1</b> a TRUTH value, not its operand a data value, and a
     /// class test reads the operand's CHARACTER CONTENT — copying a numeric-DISPLAY item through an intermediate

@@ -214,7 +214,7 @@ internal sealed class WhenPhraseBinder(BinderContext ctx, StatementBinder host)
         return new EvaluatePairing(s, o, subjectBare, objectBare);
     }
 
-    /// <summary>SR6's "results in one boolean character", over the §2023:8.8.2 rules 9/10 result length. A
+    /// <summary>SR6's "results in one boolean character", over the §2023:8.8.2 GR9/GR10 result length. A
     /// POSITIONLESS operand (figurative ZERO / <c>ALL B"…"</c>, whose length is its sibling's — §2023:8.3.3.6.4 GR4)
     /// and a boolean function whose length argument is a run-time value both report null, and both answer YES:
     /// against a TRUE-or-FALSE counterpart one boolean position is the only length that gives the pair a

@@ -188,7 +188,7 @@ internal sealed class UseStatementBinder(BinderContext ctx)
                 {
                     // A BARE name is exception-name-1, not exception-name-2 (§2023:14.9.49.2's Format-3 figure puts
                     // exception-name-2 only in the `exception-name-2 { FILE file-name-2 } …` alternative, and
-                    // §2023:14.9.49.4 GR3 c)–d) against e)–g) split on the same axis). SR14 governs PAIRS, so nothing
+                    // §2023:14.9.49.4 GR3c–GR3d against GR3e–GR3g split on the same axis). SR14 governs PAIRS, so nothing
                     // screens a repeated exception-name-1 — GR3 gives it its OUTCOME instead: "The first
                     // declarative that satisfies the selection criteria is executed and no other declaratives are
                     // executed." It therefore never enters the SR14 register.

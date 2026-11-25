@@ -15,7 +15,6 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// statement binder, so this test says it: each shared member is declared only in <c>SortMergePhraseBinder.cs</c>, and the
 /// statement binder reaches the phrases only through that one collaborator.
 /// </summary>
-[Trait("Sweep", "tree")]
 public sealed class SortBinderBoundaryDriftTests
 {
     /// <summary>The members both verbs share — the phrases, the SD record and the screens over the statement's files.</summary>

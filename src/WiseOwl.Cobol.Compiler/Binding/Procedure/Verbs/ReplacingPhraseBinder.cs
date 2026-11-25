@@ -32,7 +32,7 @@ internal sealed class ReplacingPhraseBinder(BinderContext ctx, StatementBinder h
             if (cats.IsEmpty) continue;   // every word was a repeat — reported by the pure check
             // §2023:14.9.20.3 SR4 makes identifier-2 "the SENDING item" of a MOVE, so it binds as MOVE's sending
             // operand does, function-identifier included (§2023:8.4.3.1.2 Format 1; §2023:8.4.3.2.3 SR1 bars one only from
-            // a RECEIVING operand; fix-queue PB10) — with ONE difference on the literal slot: §2023:8.4.3.10.3 SR1 a)/b)
+            // a RECEIVING operand; fix-queue PB10) — with ONE difference on the literal slot: §2023:8.4.3.10.3 SR1a/SR1b
             // lets NULL "be used only as a sending operand in an INITIALIZE … statement", and NULL is identifier-2
             // (§2023:8.4.3.1.2 Format 8) carried on that slot.
             var send = item.sendingOperand();
