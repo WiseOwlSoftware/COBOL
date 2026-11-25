@@ -1,4 +1,4 @@
-## PB6177: a floating string of an extended editing sign symbol after a digit position is refused (Table 10)
+## Entry 4064 — 2026-11-25 02:52 PST — PB6177: a floating string of an extended editing sign symbol after a digit position is refused (Table 10)
 
 `PIC 99LL EDITING L FOR NEGATIVE IS "-"` bound clean and the sign was lost, while `PIC 99++` and `PIC 99$$` were refused COBOL1935.
 §2023:13.18.40.5 GR6 lists the extended editing sign control symbols among the floating insertion symbols, and a floating string stands
@@ -17,3 +17,4 @@ a character-string holds one.
 
 Goldens: `pb6177_picture_floating_extended_after_insertion_2023` (`$LL99`, -5 gives `$ -05`) and `pb6177-picture-floating-extended-after-digit`
 (COBOL1935 at 2023); unit theory `PictureCompositionTests.AFloatingExtendedString_FollowingADigitPositionIsRefusedByTable10`. No inventory row closed.
+
