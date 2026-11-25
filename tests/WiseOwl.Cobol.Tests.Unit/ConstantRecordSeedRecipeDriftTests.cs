@@ -12,7 +12,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// phrase; the VALUE phrase with the category-name of ALL; and the DEFAULT phrase"). The defect was that both seed
 /// lanes composed the ordinary initial state (the OPTIONS INITIALIZE background, a blank numeric-edited item, a
 /// group-level VALUE) for a structured constant. Every seed enters through one of two roots — the record-struct
-/// lane (<c>ValueInitializer.FieldInit</c>) and the image lane (<c>GroupImageCodec.ImageInitOf</c>) — so this pins
+/// lane (<c>ValueInitializer.FieldInit</c>) and the image lane (<c>ImageInitializer.ImageInitOf</c>) — so this pins
 /// that BOTH ask the one chooser first, and that nothing else decides the recipe from <c>IsConstantRecord</c>:
 /// a third entry that spells the test itself is a third copy of the rule.
 /// </summary>
@@ -39,7 +39,7 @@ public sealed class ConstantRecordSeedRecipeDriftTests
     [Fact]
     public void ImageInitOf_AsksTheChooserFirst()
     {
-        string head = Body("GroupImageCodec.cs", "public string ImageInitOf(");
+        string head = Body("ImageInitializer.cs", "public string ImageInitOf(");
         Assert.Contains("recipe = ValueInitializer.RecipeFor(item, recipe);", head);
     }
 

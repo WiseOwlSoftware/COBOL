@@ -40,13 +40,13 @@ internal sealed class ValueInitializer(EmitContext ctx)
     /// <summary>The group-VALUE positional distributor (set once by <see cref="DataEmitter"/>).</summary>
     public GroupValueSlicer Slicer { get; set; } = null!;
 
-    /// <summary>THE §2023:14.6.2.3.2 action-1 background (kb/Work PB152) — shared with <see cref="GroupImageCodec"/>
+    /// <summary>THE §2023:14.6.2.3.2 action-1 background (kb/Work PB152) — shared with <see cref="ImageInitializer"/>
     /// so the native-field arm and the Tier-B image arm cannot answer "what fills a VALUE-less item" differently.
     /// One instance per emitter so its section-root sets are built once.</summary>
     public InitialStateBackground Background { get; } = new(ctx);
 
     /// <summary>⛔ THE ONE CHOICE OF SEED RECIPE FOR A ROOT (kb/Work PB1233) — asked at the two roots every seed
-    /// enters through, <see cref="FieldInit"/> (the record-struct lane) and <see cref="GroupImageCodec.ImageInitOf"/>
+    /// enters through, <see cref="FieldInit"/> (the record-struct lane) and <see cref="ImageInitializer.ImageInitOf"/>
     /// (the image lane), so the lanes cannot answer it differently. A record described with CONSTANT RECORD has
     /// the content "as though the clause had been omitted and the record had been the subject of an INITIALIZE
     /// statement that is specified with" the FILLER phrase, the VALUE phrase with ALL and the DEFAULT phrase
@@ -108,7 +108,7 @@ internal sealed class ValueInitializer(EmitContext ctx)
     /// <summary>⛔ THE ONE CONSTRUCTION OF A DYNAMIC-CAPACITY TABLE, from the table's OWN OCCURS clause (kb/Work PB1118's
     /// invariant, <c>DynamicCapacityAgreementDriftTests</c>) — for both storage lanes: a record struct's typed
     /// <c>CobolDynTable&lt;T&gt;</c> (<see cref="FieldInit"/>) and a cell-backed area's table of element cells
-    /// (<c>GroupImageCodec.CellDynSeeds</c>; kb/Work PB1042). <paramref name="elementAt"/> composes occurrence
+    /// (<c>ImageInitializer.CellDynSeeds</c>; kb/Work PB1042). <paramref name="elementAt"/> composes occurrence
     /// <c>o</c>'s element under a recipe. It opens at FROM (min), raised to the §2023:13.18.63.4 GR16 initial capacity when
     /// a table VALUE seeds the initial state (<paramref name="valuesSeedInitialState"/> false only for a PLAIN external
     /// record, §2023:13.18.63.4 GR4a — "If more than one VALUE clause applies, the maximum value thus calculated becomes
@@ -144,7 +144,7 @@ internal sealed class ValueInitializer(EmitContext ctx)
 
     /// <summary>⛔ THE ONE per-occurrence seed switch (kb/Work PB1042 made it shared): <paramref name="elementAt"/>
     /// composes the element of occurrence <c>o</c> — the record-struct lane's typed element, or a cell-backed area's
-    /// element cell (<c>GroupImageCodec.CellDynSeeds</c>) — once per run period over the table's opening capacity
+    /// element cell (<c>ImageInitializer.CellDynSeeds</c>) — once per run period over the table's opening capacity
     /// (<paramref name="runs"/>, kb/Work PB1722), and <see cref="OccurrenceRunEmit.Switch"/> writes one arm per run.
     /// Occurrence 0 identifies no table element (§2023:13.18.63.3 SR20 admits none below 1), so it is the tuple that
     /// deliberately matches no FROM..TO range: the element as it stands with no table VALUE keyed to it, which every
@@ -232,7 +232,7 @@ internal sealed class ValueInitializer(EmitContext ctx)
         // digits and 2 bytes, `PIC 9(18) COMP-5` is 18 and 8, `PIC S9(3) COMP-3` is 3 and 2 — and even a zoned
         // `PIC S999 SIGN SEPARATE` is 3 and 4. The window a CharImage leaf occupies is item.ImageWidth
         // (StorageFormPass), so a pic.Length-wide seed displaced every following member of the group image.
-        // Routing through NumFormatImage — the SAME encoder the numeric arm below and GroupImageCodec use —
+        // Routing through NumFormatImage — the SAME encoder the numeric arm below and ImageInitializer use —
         // takes the width from the item's own pinned byte form BY CONSTRUCTION, and makes the leniency MEAN the
         // same thing on both axes: the number, encoded as this item stores numbers.
         if (effRaw is { } q && q.StartsWith('"') && pic.Category is PicCategory.Numeric && !pic.IsFloat)
@@ -290,7 +290,7 @@ internal sealed class ValueInitializer(EmitContext ctx)
 
         // ⛔ A BOOLEAN ITEM'S VALUE IS ONE QUESTION WITH ONE ANSWER (kb/Work PB584): its declared boolean
         // POSITIONS. Three lanes used to answer it — this one, the bit-run carrier
-        // (<c>GroupImageCodec.OneBitCarrierOf</c>) and the character-image seed — and they disagreed, each in
+        // (<c>ImageInitializer.OneBitCarrierOf</c>) and the character-image seed — and they disagreed, each in
         // its own direction. It is asked here so the arms below cannot be extended for one lane only.
         if (pic.Category is PicCategory.Boolean) return BooleanCarrierOf(raw, pic);
 
@@ -435,7 +435,7 @@ internal sealed class ValueInitializer(EmitContext ctx)
     /// <item>A plain boolean literal zero-pads on the right (§2023:13.18.63.3 SR10; §2023:14.6.8.6).</item>
     /// </list>
     /// The USAGE is NOT this method's business: whether those positions are then PACKED is
-    /// <c>GroupImageCodec.BooleanImageOf</c>'s single decision.</summary>
+    /// <c>ImageInitializer.BooleanImageOf</c>'s single decision.</summary>
     public string BooleanCarrierOf(string raw, PicInfo pic) =>
         FigurativeInitializer(raw, pic)
         ?? AllLiteralInitializer(raw, pic)
@@ -447,7 +447,7 @@ internal sealed class ValueInitializer(EmitContext ctx)
     /// item's <see cref="PicInfo.Length"/> positions, or null when <paramref name="raw"/> is not an ALL-literal or
     /// the item is numeric (§2023:8.3.3.6.3 SR3 forbids a multi-character literal-1 there; a digit-only ALL on a numeric
     /// item is the numeric recipe's). It is asked by this initializer, by the boolean carrier AND by
-    /// <c>GroupImageCodec</c>'s character-image seed — the third asker was missing, so a record that was the base of a
+    /// <c>ImageInitializer</c>'s character-image seed — the third asker was missing, so a record that was the base of a
     /// REDEFINES (a Tier-B image-backed record) seeded `PIC X(6) VALUE ALL "."` with the parse text `ALL"."`
     /// instead of six periods (kb/Work PB1910 sibling sweep; the image seed is a second copy of this recipe).</summary>
     public string? AllLiteralInitializer(string raw, PicInfo pic) =>

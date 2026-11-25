@@ -567,7 +567,7 @@ public sealed record SlotWindow(AccessPath Cell) : CellWindowCoding(Cell)
     /// DOC-A.1-216, DOC-A.1-212): the three pointer categories and the message tag do — <c>PointerImage</c> and
     /// <c>MessageTagImage</c> define the image, NULL as eight zero positions, and both DECODE it back to the reference — and
     /// the object reference, the one other slot-carried category, has no image and keeps its reserved placeholder (no file
-    /// record holds one: §2023:13.18.57.3 SR8). The cell seed (<c>GroupImageCodec.SlotSeedOf</c>), the group image
+    /// record holds one: §2023:13.18.57.3 SR8). The cell seed (<c>ImageInitializer.SlotSeedOf</c>), the group image
     /// (<c>SlotImageOf</c>), the file record codec's decode (<c>GroupImageCodec.SlotFromImage</c>) and the ALLOCATE seed
     /// (<see cref="TokenImageOffsetsOf"/>) all ask it.</summary>
     public static bool CarriesTokenImage(DataItem item) =>
@@ -624,7 +624,7 @@ public sealed record DynSlotWindow(AccessPath Cell, Position Ordinal) : CellWind
 /// members are windows over its element cell, numbered from zero within it, so a table or a dynamic-length item inside
 /// a table element is this same model one level down. The ordinal walk (<c>DataBinder.ForceStringCanonical</c>), the
 /// reference geometry (<c>ReferenceResolver</c>), the group composer (<see cref="VarGroupWindow"/>) and the cell seeder
-/// (<c>GroupImageCodec.CellDynSeeds</c>) all read THIS enumeration, so they cannot disagree about where a component
+/// (<c>ImageInitializer.CellDynSeeds</c>) all read THIS enumeration, so they cannot disagree about where a component
 /// is.</summary>
 public static class CellComponents
 {
@@ -990,7 +990,7 @@ public sealed record GroupImagePlace(Place Inner) : PlaceDecorator(Inner);
 /// the generated carrier face (<c>AsBits()</c> / <c>AsNat()</c>), and <see cref="GroupImagePlace"/> keeps the
 /// bytes.</para>
 /// <para>Rendered by <c>CodeGen.PlaceRenderer</c> through the generated <c>AsBits()</c> / <c>FromBits(string)</c>
-/// pair, which <c>GroupImageCodec.EmitBitMethods</c> already emits for every bit group — no new runtime code.
+/// pair, which <c>BitImageCodec.EmitBitMethods</c> already emits for every bit group — no new runtime code.
 /// Because <see cref="RefModPlace"/> sits OVER this place, its start/length then index the boolean string
 /// directly and GR5a is satisfied structurally.</para>
 /// </summary>
