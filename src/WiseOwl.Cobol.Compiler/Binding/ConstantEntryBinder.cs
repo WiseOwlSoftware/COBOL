@@ -606,9 +606,22 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
             // refuses the same subscript COBOL0844). The word after FUNCTION is the function's own name, not an operand.
             var written2 = new List<Antlr4.Runtime.IToken>();
             SubscriptBinder.CollectLeafTokens(w.SubscriptGroup, written2);
+            // §2002:15.39.2 AR1 admits an alphanumeric argument for an integer function, and the function's value is numeric whatever
+            // the category of its arguments (§2002:8.8.1), so the category test holds only the operands outside a function argument
+            // list; a subscript nested inside an argument is an arithmetic expression again. `inArguments` is the kind of the
+            // nearest enclosing non-grouping paren (kb/Work PB6174).
+            var parens = new Stack<bool>();
             for (int i = 0; i < written2.Count; i++)
             {
                 var t = written2[i];
+                switch (t.Type)
+                {
+                    case Core.FNARG_LPAREN: parens.Push(true); continue;
+                    case Core.REF_LPAREN: parens.Push(false); continue;
+                    case Core.LPAREN: parens.Push(parens.Count != 0 && parens.Peek()); continue;
+                    case Core.FNARG_RPAREN or Core.REF_RPAREN or Core.RPAREN: if (parens.Count != 0) parens.Pop(); continue;
+                }
+                bool inArguments = parens.Count != 0 && parens.Peek();
                 if (!SubscriptBinder.IsNameToken(t) || (i > 0 && written2[i - 1].Type is Core.FUNCTION)) continue;
                 var head = new WrittenQualifiedName(t, []);
                 if (owner.Symbols.IdentifyDataName(head, report: false).Count != 0
@@ -618,7 +631,7 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
                 if (constant is null)
                     owner.Edition.Error(DiagnosticCatalog.ConstantEntryRule, $"{where}: {phrase} '{written}': the subscript "
                         + $"'{t.Text}' names no data item, index-name or constant-name (subscripting, ISO §2002:8.4.1.2.2)");
-                else if (constant.Category != PicCategory.Numeric)
+                else if (!inArguments && constant.Category != PicCategory.Numeric)
                     owner.Edition.Error(DiagnosticCatalog.ConstantEntryRule, $"{where}: {phrase} '{written}': the subscript "
                         + $"constant-name '{t.Text}' is not numeric, and a subscript is an arithmetic expression whose operands are "
                         + "numeric (ISO §2002:8.4.1.2.2, §2002:8.8.1)");

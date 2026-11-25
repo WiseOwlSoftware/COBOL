@@ -1,0 +1,5 @@
+## PB6174: a constant entry's 2002 LENGTH OF subscript no longer holds a function argument to the numeric rule
+
+At --std 2002 `01 K CONSTANT AS LENGTH OF E (FUNCTION LENGTH (KC))` with `KC` an alphanumeric constant-name was refused COBOL1547. The PB5709 R2-2 loop in `ConstantEntryBinder.BindConstantLength` tested every written name of the subscript for category numeric (§2002:8.8.1), but §2002:15.39.2 AR1 admits an alphanumeric argument for FUNCTION LENGTH, an integer function, so the expression is numeric whatever the argument's category. The loop now tracks the nearest enclosing non-grouping paren (FNARG, REF or grouping) and skips the category test inside a function argument list; the defined-name test still applies everywhere.
+
+Re-probe on the build before the fix reproduced the refusal; after it, the program compiles and prints `K=3`; `pb5709-constant-length-alphanumeric-constant-subscript` (bare operand) and `pb5709-constant-length-function-undefined-name` stay refused. New golden `pb6174-constant-length-alphanumeric-function-argument` (accept 2002). No inventory row closed.
