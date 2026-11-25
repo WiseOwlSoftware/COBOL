@@ -44,12 +44,16 @@ never noise: they are UNEXPLAINED.
   PUNCT, CASE the words are the same letters and digits and differ in punctuation or in letter case: neither is folded
               away, both are counted and named in the verdict line, and neither is explained, only unchecked here;
   UNCOVERED   Markdown words with no text-layer counterpart (the layer omits a table, a figure's labels, a block of prose,
-              or the Markdown adds them): unchecked by this tool, counted and named in the verdict line;
+              or the Markdown adds them) that the second reading does not confirm either: counted and named in the
+              verdict line, for a reader of the page;
   OCR-ARBITRATED, LIKELY-ERROR  the second reading (`--arbitrate`, tesseract 5 on the 300 dpi render, `--psm 4`) of each
               UNEXPLAINED row. It must hold the hunk's words in order beside the neighbouring word (positional, never a page
               bag): the Markdown's words and not the layer's make OCR-ARBITRATED; the layer's and not the Markdown's make
               LIKELY-ERROR (two independent readings against the transcription: the strongest signal, counted with the
-              unexplained by `--require-zero`); both or neither stay UNEXPLAINED;
+              unexplained by `--require-zero`); both or neither stay UNEXPLAINED. Each UNCOVERED row is weighed the same way:
+              the second reading holding the Markdown's words at that place makes it OCR-ARBITRATED (the layer dropped
+              printed text a second reader sees), the second reading's neighbouring words touching without them make it
+              LIKELY-ERROR (two readings without words the Markdown adds), and otherwise it stays UNCOVERED;
   UNEXPLAINED anything else, including a word the PDF has and the Markdown dropped, a moved single word, and a different
               word. The verdict line counts these, and `--require-zero` exits non-zero on them.
 
@@ -826,7 +830,7 @@ def classify_page(pdf: list[str], md: list[tuple[str, bool, int]], entries: list
         elif not left_p and all(pdf_only[k] for _, k in left_m):
             emit("UNEXPLAINED", "a single word moved: gone at one place, present at another", left_p, left_m, j, src, shown=shown)
         elif not left_p:
-            emit("UNCOVERED", "Markdown words the text layer lacks", left_p, left_m, j, shown=shown)
+            emit("UNCOVERED", "Markdown words the text layer lacks", left_p, left_m, j, src, shown=shown)
         elif not left_m:
             emit("UNEXPLAINED", "text layer has words the Markdown lacks", left_p, left_m, j, src, shown=shown)
         else:
@@ -903,18 +907,21 @@ def zero_read_as_o(pdf_hunk: list[str], md_hunk: list[str]) -> bool:
 
 
 def arbitrate_rows(rows: list[dict], tess_text: str) -> None:
-    """Reclassify the page's UNEXPLAINED rows by a second, independent reading (tesseract) of the same page:
+    """Reclassify the page's UNEXPLAINED and UNCOVERED rows (Markdown words the layer lacks) by a second, independent
+    reading (tesseract) of the same page:
       the second reading holds the Markdown's words at that place and not the layer's  -> OCR-ARBITRATED;
-      it holds the layer's words and not the Markdown's                                  -> LIKELY-ERROR (the strongest signal);
-      both or neither                                                                    -> stays UNEXPLAINED.
+      it holds the layer's words and not the Markdown's                                  -> LIKELY-ERROR (the strongest signal;
+                                                                for an UNCOVERED row: the second reading, too, has the
+                                                                neighbouring words touching, without the Markdown's);
+      both or neither                                                                    -> the row keeps its class.
     A reading-order difference is no witness for the layer (a moved single word; Markdown words the layer lacks that the
-    second reading has elsewhere on the page): it stays UNEXPLAINED.
+    second reading has elsewhere on the page): the row keeps its class.
     The row carries the second reading's words around the place as `tesseract`."""
     raw = [w for w in drop_licence_stamp(tess_text.split()) if lite(w)]
     t = [lite(w) for w in raw]
     for r in rows:
         src = r.pop("_src", None)
-        if r["class"] != "UNEXPLAINED" or src is None:
+        if r["class"] not in ("UNEXPLAINED", "UNCOVERED") or src is None:
             continue
         pdf_hunk, md_hunk, pdf_before, pdf_after, md_before, md_after = src
         md_ok = _supports(md_hunk, md_before, md_after, t)
@@ -925,7 +932,7 @@ def arbitrate_rows(rows: list[dict], tess_text: str) -> None:
         if pdf_ok and not md_ok and (r["reason"].startswith("a single word moved") or
                                      (not pdf_hunk and _occurs(md_hunk, t))):
             pdf_ok = md_ok  # a reading-order difference, not a second witness: the layer's words are absent and the Markdown's
-            # are on the page elsewhere (a table read by column); it stays UNEXPLAINED
+            # are on the page elsewhere (a table read by column); the row keeps its class
         if pdf_ok and not md_ok and zero_read_as_o(pdf_hunk, md_hunk):
             r["class"] = "OCR-NOISE"  # both readers give the letter O for a digit zero of a digit context: the typeface's confusion
             r["reason"] = "both readings give the letter O where the Markdown has the digit zero in a digit context"
@@ -981,7 +988,7 @@ def main() -> int:
     ap.add_argument("--check", action="store_true", help="the gate: the committed result is current for its inputs (no PDF needed)")
     ap.add_argument("--require-zero", action="store_true", help="also exit non-zero when anything is UNEXPLAINED (PB6051's close)")
     ap.add_argument("--arbitrate", action="store_true",
-                    help="second reading of every UNEXPLAINED row by tesseract (needs the PDF and tesseract); the committed result is arbitrated")
+                    help="second reading of every UNEXPLAINED and UNCOVERED row by tesseract (needs the PDF and tesseract); the committed result is arbitrated")
     ap.add_argument("--ocr-cache", type=pathlib.Path, default=OCR_CACHE, help="where tesseract's per-page text is cached (never committed)")
     ap.add_argument("--likely", action="store_true", help="with --check: print each LIKELY-ERROR row (page: pdf / md / tesseract)")
     ap.add_argument("--verbose", action="store_true", help="print each UNEXPLAINED record")
@@ -1020,7 +1027,7 @@ def main() -> int:
     if args.arbitrate:
         exe = tesseract_exe()
         result["inputs"]["tesseract"] = tesseract_version(exe)
-        todo = [n for n, rows in measured.items() if any(r["class"] == "UNEXPLAINED" for r in rows)]
+        todo = [n for n, rows in measured.items() if any(r["class"] in ("UNEXPLAINED", "UNCOVERED") for r in rows)]
         with ThreadPoolExecutor(max_workers=6) as pool:
             texts = dict(zip(todo, pool.map(lambda n: tesseract_text(n, args.ocr_cache, exe), todo)))
         for n in todo:

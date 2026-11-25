@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.CodeGen;
 /// <c>record struct</c> per group, a static <c>NumProfile</c> per numeric leaf, the INDEXED BY cells, and one
 /// field per top-level item — a COBOL record IS a .NET record; no byte substrate, no flattening. Wired by
 /// <see cref="DataEmitter"/>.</summary>
-internal sealed class RecordStructEmitter(EmitContext ctx, PhysicalModel phys, GroupImageCodec codec, ValueInitializer vals)
+internal sealed class RecordStructEmitter(EmitContext ctx, PhysicalModel phys, GroupImageCodec codec, ImageInitializer images, ValueInitializer vals)
 {
     /// <summary>Emit every WORKING-STORAGE / FILE-SECTION type, profile, index field, and root field.</summary>
     public void Emit()
@@ -84,14 +84,14 @@ internal sealed class RecordStructEmitter(EmitContext ctx, PhysicalModel phys, G
             {
                 // The class's ONE string backing is the storage; members are windows. Reset once, at the canonical.
                 if (ReferenceEquals(cls.Canonical, root) && ctx.Data.StorageTier.StaticRootFields.Contains(cls.BackingClrName))
-                    stmts.Add($"{cls.BackingClrName} = {RuntimeApi.StrStore(codec.ImageInitOf(root), $"{cls.Width}")};   // {root.CobolName ?? "FILLER"} (Tier-B backing)");
+                    stmts.Add($"{cls.BackingClrName} = {RuntimeApi.StrStore(images.ImageInitOf(root), $"{cls.Width}")};   // {root.CobolName ?? "FILLER"} (Tier-B backing)");
                 // An ADDRESS-OF-taken record's static StorageCell (kb/Work PB234): re-seeded IN PLACE with the SAME
                 // image its declaration carries (ProgramEmitter's cell initializer — one composer, ImageInitOf), so
                 // a pointer taken before the CANCEL still names the unit's one copy (§2023:13.5.4 GR1).
                 else if (ReferenceEquals(cls.Canonical, root)
                          && ctx.Data.StorageTier.AddressableCellOf.TryGetValue(cls, out var cell)
                          && ctx.Data.StorageTier.StaticAddressableCells.Contains(cell))
-                    stmts.Add($"{cell}.Reinitialize({RuntimeApi.StrStore(codec.ImageInitOf(root), $"{cls.Width}")}){codec.CellDynSeeds(root)};   // {root.CobolName ?? "FILLER"} (ADDRESS-OF cell, §2023:14.6.2.3.2 #2)");
+                    stmts.Add($"{cell}.Reinitialize({RuntimeApi.StrStore(images.ImageInitOf(root), $"{cls.Width}")}){images.CellDynSeeds(root)};   // {root.CobolName ?? "FILLER"} (ADDRESS-OF cell, §2023:14.6.2.3.2 #2)");
             }
             else if (!root.IsAliasView   // a Tier-A view has no field
                 && ctx.Data.StorageTier.StaticRootFields.Contains(root.ClrName))
@@ -125,7 +125,7 @@ internal sealed class RecordStructEmitter(EmitContext ctx, PhysicalModel phys, G
         // class-level `ref` bridge over the cell, and a local of the same name would SHADOW it, splitting the
         // one storage area in two.
         root.Class is { Tier: RedefinesTier.StringCanonical, IsCellBacked: false } cls && ReferenceEquals(cls.Canonical, root)
-            ? (cls.BackingClrName, RuntimeApi.StrStore(codec.ImageInitOf(root), $"{cls.Width}"))
+            ? (cls.BackingClrName, RuntimeApi.StrStore(images.ImageInitOf(root), $"{cls.Width}"))
             : null;
 
     private void EmitStructTypeDecls(DataItem item, CodeWriter w)
@@ -135,7 +135,7 @@ internal sealed class RecordStructEmitter(EmitContext ctx, PhysicalModel phys, G
         // class is ONE string backing and every member — the canonical included — is a window over it
         // (DESIGN §4.2; PhysicalModel.BuildPhysicals). Emitting a type anyway was the CRASH half of
         // kb/Work PB203: the type's members come from the PHYSICAL model (empty for a collapsed group) while
-        // GroupImageCodec.EmitBitMethods composes AsBits()/FromBits() from group.Children, so a GROUP-USAGE BIT
+        // BitImageCodec.EmitBitMethods composes AsBits()/FromBits() from group.Children, so a GROUP-USAGE BIT
         // member of a redefines class emitted `AsBits() => BV1 + BV2` over fields that do not exist — four
         // CS0103 on legal source. The two arms are reconciled by not emitting the dead type at all: its
         // AsImage()/AsBits() could only ever have been "", which is a FALSE contract for a group that occupies

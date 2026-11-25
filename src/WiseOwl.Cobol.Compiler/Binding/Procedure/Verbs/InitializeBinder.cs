@@ -714,7 +714,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
     /// coalesced) plus the fall-through for every occurrence the clause does not key, which GR5c re-qualifies from
     /// scratch (REPLACING, DEFAULT, or nothing).
     /// <para>The per-occurrence literal comes from <see cref="DataItem.ValueAt"/> through
-    /// <see cref="TableValuePlan.LiteralAt"/> — the SAME reader <c>ValueInitializer</c> and <c>GroupImageCodec</c>
+    /// <see cref="TableValuePlan.LiteralAt"/> — the SAME reader <c>ValueInitializer</c> and <c>ImageInitializer</c>
     /// use for the declaration lane, so a table element's INITIALIZE-restored value and its initial value cannot
     /// disagree. Before this arm existed the lane read only <see cref="DataItem.RawValue"/>, the Format-1 carrier,
     /// and a Format-2 element therefore failed GR5c1 entirely: <c>ALL TO VALUE</c> emitted no store at all, and

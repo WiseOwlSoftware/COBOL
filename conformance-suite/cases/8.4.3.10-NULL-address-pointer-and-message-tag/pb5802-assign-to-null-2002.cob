@@ -4,15 +4,12 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> kb/Work PB5802 - §1985:VII.2.3.3 SR3: "The meaning and rules for
-      *> the allowable content of implementor-name-1 and the value of
-      *> literal-1 are defined by the implementor". NULL is no 1985
-      *> reserved word (§1985:IV.4.2.2.1: reserved words and system-names
-      *> form disjoint sets), so in ASSIGN TO it is implementor-name-1,
-      *> as NULLS is; the program compiles and runs. At 2002 and later
-      *> NULL is the reserved predefined address and ASSIGN TO NULL is
-      *> refused (COBOL2576, §2023:8.4.3.10.3 SR1).
-      *> The leg fails if ASSIGN TO NULL is refused at 85 (COBOL1639).
+      *> kb/Work PB5802, PB6074 - the 2002-and-later LEG of ASSIGN TO NULL (the 85 leg is pb5802-assign-to-null-85). From COBOL-2002
+      *> NULL is the reserved predefined address of class pointer (§2002:8.4.2.10), which "may be used only as a sending operand in
+      *> an INITIALIZE or a SET statement" and in the other places that rule lists (§2002:8.4.2.10.2 SR1, cite.py: OK); the
+      *> ASSIGN clause is none of them, and literal-1 there shall be an alphanumeric literal (§2023:12.4.5.2 SR4). The program is
+      *> refused with COBOL2576 at 2002, 2014 and 2023. The leg fails if a compiler takes NULL for the file's implementor-name,
+      *> as COBOL-85 does (§1985:VII.2.3.3 SR3), once the word is reserved.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB5802B.
        ENVIRONMENT DIVISION.

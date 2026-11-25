@@ -6,7 +6,7 @@ namespace WiseOwl.Cobol.CodeGen;
 
 /// <summary>⛔ THE ONE EMIT OF A TABLE'S INITIAL CONTENT FROM ITS OCCURRENCE RUNS (kb/Work PB1722). Every lane that
 /// writes the initial state of a table — the record-struct arrays (<see cref="ValueInitializer.FieldInit"/>), the
-/// character-image and bit-carrier seeds (<see cref="GroupImageCodec"/>), the dynamic-capacity seed switch
+/// character-image and bit-carrier seeds (<see cref="ImageInitializer"/>), the dynamic-capacity seed switch
 /// (<see cref="ValueInitializer.DynTableNew"/>) and the group-VALUE slicer (<see cref="GroupValueSlicer"/>) — composes
 /// ONE element per run period and emits the run, never one element per occurrence. The runs come from
 /// <see cref="TableValueRuns.Of"/> (or, for the slicer, <see cref="RunsOfRepeats"/>), so the emitted text is

@@ -199,6 +199,7 @@ WiseOwl.Cobol.Compiler/
 │    │    └─ LoudGuards.cs                        (split from EmitText grab-bag)
 │    └─ DataDivision/                            (NEW — FieldEmitter re-homed here, split; §2.13)
 │         ├─ RecordStructEmitter.cs   GroupImageCodec.cs
+│         ├─ BitImageCodec.cs         ImageInitializer.cs   (the codec's bit faces and seed; kb/Work PB2337)
 │         ├─ GroupValueSlicer.cs      ValueInitializer.cs
 │
 ├─ Backend/                                  WiseOwl.Cobol.Compiler.Backend  (NEW — split from RoslynBackend)

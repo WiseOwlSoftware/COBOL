@@ -68,7 +68,7 @@ internal static class PlaceRenderer
         GroupImagePlace g => GroupImageAs(g.Inner, AccessDir.Sending, "reference modification of group"),
         // A BIT GROUP reference-modified in BIT POSITIONS (ISO §2023:8.4.3.3.4 GR5a; §2023:8.4.3.3.3 SR1's last sentence;
         // §2023:13.18.29.4 GR1b's as-if PICTURE 1(m)) — kb/Work PB173. AsBits() is the generated unpacked boolean
-        // string (GroupImageCodec.EmitBitMethods, already emitted for every bit group); the RefModPlace above
+        // string (BitImageCodec.EmitBitMethods, already emitted for every bit group); the RefModPlace above
         // then slices IT, so GR5a's units are structural rather than a per-site adjustment. ⛔ THROUGH THE ONE
         // BIT READER, which carries §2023:13.18.38.4 GR8a's current-extent arm exactly as the GroupImagePlace arm
         // above does — the capability guard the image twin also carries is UNREACHABLE here and deliberately

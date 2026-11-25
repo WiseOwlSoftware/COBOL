@@ -16,7 +16,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// bit group item of the same level" at the next BIT position, so consecutive same-level bit members SHARE a
 /// byte. A group's layout is therefore a run walk, and WiseOwl COBOL composes that group's character image TWICE:
 /// the record-struct lane emits <c>AsImage()</c> over <c>PhysicalModel</c>'s physical fields, and the
-/// compile-time SEED (<c>GroupImageCodec.ImageInitOf</c>) composes the string a Tier-B REDEFINES backing, an
+/// compile-time SEED (<c>ImageInitializer.ImageInitOf</c>) composes the string a Tier-B REDEFINES backing, an
 /// EXTERNAL cell, a BASED cell or an OO backing starts from. Only the first knew about runs, so declaring a
 /// REDEFINES alias over a MIXED bit/character group silently changed what its members held.</para>
 ///
@@ -204,7 +204,7 @@ public sealed class BitRunImageDriftTests
     public void BothImageComposers_AskTheOneRunLaw()
     {
         foreach (string rel in new[] { Path.Combine("CodeGen", "DataDivision", "PhysicalModel.cs"),
-                                       Path.Combine("CodeGen", "DataDivision", "GroupImageCodec.cs") })
+                                       Path.Combine("CodeGen", "DataDivision", "ImageInitializer.cs") })
         {
             string text = File.ReadAllText(TestRepo.Src(Path.Combine("WiseOwl.Cobol.Compiler", rel)));
             Assert.True(Regex.IsMatch(text, @"BitLayout\.RunsOf\s*\("),

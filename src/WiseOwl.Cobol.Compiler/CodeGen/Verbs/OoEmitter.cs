@@ -134,7 +134,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             // §2023:13.18.63.4 GR4a: a PLAIN external item's VALUE takes effect only during INITIALIZE, so its cell seeds
             // with the category-DEFAULT initial image. §2023:11.9.10.4 GR7: a CONSTANT RECORD is the ONE external item
             // initialized at initial state — its cell seeds with the VALUE-composed image. ⛔ ONE SEEDER, ONE FLAG
-            // (GroupImageCodec.ImageInitOf — what RecordStructEmitter/ProgramEmitter use for every other string
+            // (ImageInitializer.ImageInitOf — what RecordStructEmitter/ProgramEmitter use for every other string
             // backing): the plain arm used to take a SECOND, bind-time seeder whose char-fill model predated the
             // pinned byte forms, so a COMP-5/float/INDEX leaf's cell seeded with ASCII '0' characters where its
             // own codec writes the zero ENCODING. ISO mandates no initial value for a plain EXTERNAL at all

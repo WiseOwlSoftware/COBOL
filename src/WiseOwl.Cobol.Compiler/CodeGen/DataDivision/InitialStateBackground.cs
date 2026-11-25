@@ -20,7 +20,7 @@ namespace WiseOwl.Cobol.CodeGen;
 ///
 /// <para><b>Why it exists as its own type.</b> "What fills a VALUE-less item" was composed in THREE places and
 /// only one of them had ever been fixed. PB151 wired the ALLOCATE arm (§2023:14.9.3.4 GR8/GR9) and left the other
-/// two: <c>PicInfo.DefaultInitializer</c> (the native-field arm) and <c>GroupImageCodec</c>'s fall-through (the
+/// two: <c>PicInfo.DefaultInitializer</c> (the native-field arm) and <c>ImageInitializer</c>'s fall-through (the
 /// Tier-B image arm) each hardcoded <c>' '</c> / <c>'0'</c> / <c>0L</c> and never consulted the OPTIONS model at
 /// all. Worse, the landed arm's fill decoder was PRIVATE to <c>PtrEmitter</c>, so the two dead arms could not
 /// have reused it even if someone had tried. Measured on 41bf3492: with

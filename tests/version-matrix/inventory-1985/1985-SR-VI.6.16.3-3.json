@@ -1,17 +1,17 @@
 {
  "rule-id": "1985-SR-VI.6.16.3-3",
  "rule-digest": "828f7a3f2da1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitIfStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#ifStatement; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#NextSentenceWithEndIf",
  "test-ref": "conformance:cases/14.9.19-IF/pb396-if-empty-consequent; conformance:cases/VI.6.16@1985-IF-STATEMENT/pb5798-if-next-sentence-with-end-if-85",
+ "notes": "§1985:VI.6.16.3 SR3: \"If the END-IF phrase is specified, the NEXT SENTENCE phrase must not be specified.\" At --std 85 VersionConformancePass.VisitIfStatement refuses an IF that specifies END-IF and whose THEN or ELSE arm is the NEXT SENTENCE statement with COBOL7486 (DiagnosticCatalog.NextSentenceWithEndIf), asked of each IF on its own phrases, so a nested IF without an END-IF of its own keeps its NEXT SENTENCE legal. Witness: the refused-below program pb5798-if-next-sentence-with-end-if-85 (kb/Work PB5798). No later edition prints the rule: §2023:14.9.19.3 SR3 states only that ELSE NEXT SENTENCE may be omitted before the terminal separator period, and §2023:F.1 item 2 lists the NEXT SENTENCE phrase of IF and SEARCH as archaic, so at 2002 and later the same source compiles (at 2023 with the archaic warning COBOL0903). The stored KEPT record to FMT-14.9.19.2 named the IF format, which does not hold this rule; the change record is REMOVED (kb/Work PB6066 item C).",
  "next": {
-  "kind": "KEPT",
+  "kind": "REMOVED",
   "edition": 2023,
-  "to": [
-   "FMT-14.9.19.2"
-  ],
+  "to": [],
   "bridge": true,
-  "source": "audit-1985/state-route",
-  "digests": {
-   "FMT-14.9.19.2": "e92d8bc7c09b"
-  }
+  "reason": "1985: \"If the END-IF phrase is specified, the NEXT SENTENCE phrase must not be specified.\"; 2023: no clause prints the restriction on the IF statement; §2023:14.9.19.3 SR3 states only that the ELSE NEXT SENTENCE phrase may be omitted before the terminal separator period, and §2023:F.1 item 2 lists the NEXT SENTENCE phrase of IF as archaic. The same source is accepted from 2002.",
+  "source": "kb/Work PB6066",
+  "digests": {}
  }
 }

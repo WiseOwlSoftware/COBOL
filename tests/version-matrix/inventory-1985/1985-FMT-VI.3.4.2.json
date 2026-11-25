@@ -2,7 +2,7 @@
  "rule-id": "1985-FMT-VI.3.4.2",
  "rule-digest": "8bf151c76ec3",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalConversion.cs#CommentEntryHeader",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalConversion.cs#CommentEntryHeader; src/WiseOwl.Cobol.Compiler/Validation/ClosedFormatPass.cs#ScreenClauseRepetition; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitDateCompiledParagraph; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#dateCompiledParagraph",
  "test-ref": "conformance:cases/VI.3.4@1985-DATE-COMPILED-PARAGRAPH/1985-FMT-VI_3_4_2; conformance:cases/VI.3.4@1985-DATE-COMPILED-PARAGRAPH/pb5168-date-compiled-header-without-period; unit:LogicalLineBuilderTests.FixedFormCommentEntryHeader_NeedsItsSeparatorPeriod",
  "notes": "§1985:VI.3.4.2 prints the paragraph as the header DATE-COMPILED with its period, then any number of comment-entries. At 85 the paragraph is accepted (VersionConformancePass.VisitDateCompiledParagraph refuses it only from 2002, COBOL0902); the fixed-form logical conversion takes an Area-A DATE-COMPILED word in an Identification Division as the paragraph header and discards the entry, the grammar rule dateCompiledParagraph parses what is left, and ClosedFormatPass.ScreenClauseRepetition refuses a second DATE-COMPILED paragraph (COBOL2423) and one written after SECURITY (COBOL2987). The header's period is asked of the source by the one converter every comment-entry paragraph passes (kb/Work PB5168): a DATE-COMPILED with no separator period after it is COBOL7166.",
  "next": {
