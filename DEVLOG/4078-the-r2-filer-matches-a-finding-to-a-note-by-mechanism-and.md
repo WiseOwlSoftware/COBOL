@@ -1,4 +1,4 @@
-## The R2 filer matches a finding to a note by mechanism, and writes sites in the form work.py reads (PB3259, PB4080)
+## Entry 4078 — 2026-11-27 18:45 PST — The R2 filer matches a finding to a note by mechanism, and writes sites in the form work.py reads (PB3259, PB4080)
 
 Tooling only; no compiler change, so no golden or COBOL probe. Both notes were re-probed on the real data of the 2026-11-27 R2 batches 1a and 1b (pin 9e65164eb, `collected.json`) instead.
 
@@ -11,3 +11,4 @@ Tooling only; no compiler change, so no golden or COBOL probe. Both notes were r
 **Sibling sweep.** The census renderers in the same file wrote three more bare code-file sites (dead-artifact code files, a god class's files, an extract step's files and its "The files this step edits" line); they now claim the file whole with a reason, and the census self-test reads every rendered note back through `note_sites`.
 
 **Self-review.** Architecture: one definition of a member name (work.py) and of the match (r2_collect), the filer calls both. Code: the thresholds are named constants with the measured range beside them. Silent failure: a closed-note match is named, a finding with no member is never merged (it files alone). Duplication: `whole_site` / `whole_span` replace three literal forms.
+
