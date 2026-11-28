@@ -66,6 +66,7 @@ public sealed class Intrinsic1989ModuleDriftTests
         string later = IntrinsicCitations.Clause(at85, "ABS", "§2023:15.7.3 r1");
         Assert.Contains("(targeting COBOL-85)", later);
         Assert.StartsWith("§2023:15.7.3 r1", later);
-        Assert.Equal("§2023:15.84.3 r1", IntrinsicCitations.Clause(EditionInfo.Of(2002), "SQRT", "§2023:15.84.3 r1"));
+        Assert.Equal("§2002:15.68.2 AR1", IntrinsicCitations.Clause(EditionInfo.Of(2002), "SQRT", "§2023:15.84.3 r1"));   // kb/Work PB5922: the edition's own clause
+        Assert.Equal("§2023:15.84.3 r1", IntrinsicCitations.Clause(EditionInfo.Of(2023), "SQRT", "§2023:15.84.3 r1"));
     }
 }

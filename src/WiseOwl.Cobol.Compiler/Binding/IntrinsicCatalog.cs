@@ -219,12 +219,37 @@ public static class IntrinsicCatalog
     /// against it. Null for a function the 1989 module does not define (every one a later edition introduced).</summary>
     public static int? Paragraph1989(string name) => Module1989.TryGetValue(name, out int n) ? n : null;
 
+    /// <summary>⛔ THE CLAUSE OF ISO/IEC 1989:2002, 1989:2014 OR 1989:2023 THAT DEFINES A FUNCTION, <c>15.n</c> (kb/Work PB5922, PB4950's "cite the
+    /// rule of the edition the program was compiled under"): each edition's §15 prints one clause per function in ALPHABETICAL order after its
+    /// introduction (2002: 15.1 to 15.5, so ABS is 15.6; 2014 and 2023: 15.1 to 15.6, so ABS is 15.7), so the number is the function's place by
+    /// ordinal name among the functions the edition has, never listed: <c>IntrinsicEditionClausesDriftTests</c> reads every heading of the three
+    /// editions against it. Null for a function the edition lacks (introduced later, or removed before it) and for any other edition.</summary>
+    public static int? Paragraph(int editionYear, string name) =>
+        ClausesByEdition.TryGetValue(editionYear, out var clauses) && clauses.ByName.TryGetValue(name, out int n) ? n : null;
+
+    /// <summary>The function <paramref name="editionYear"/>'s clause <c>15.</c><paramref name="clause"/> defines (<see cref="Paragraph"/> read the
+    /// other way), or null when that clause defines none.</summary>
+    public static string? FunctionAt(int editionYear, int clause) =>
+        ClausesByEdition.TryGetValue(editionYear, out var clauses) && clauses.ByClause.TryGetValue(clause, out string? name) ? name : null;
+
     /// <summary>The catalog, by the function's name: a word the standard defines (<see cref="StandardWord"/>).</summary>
     private static readonly Dictionary<StandardWord, IntrinsicSig> Table = Build();
 
     private static readonly FrozenDictionary<string, int> Module1989 = Table.Values
         .Where(s => s.IntroducedIn == 85).Select(s => s.Name).Order(StringComparer.Ordinal)
         .Select((name, i) => (name, paragraph: 5 + i)).ToFrozenDictionary(p => p.name, p => p.paragraph, CobolKeywords.Comparer);
+
+    /// <summary>The first function clause of each edition whose numbers <see cref="Paragraph"/> derives: the clauses before the first
+    /// function (15.1 General format of functions and the like) differ by edition.</summary>
+    private static readonly FrozenDictionary<int, int> FirstFunctionClause = new Dictionary<int, int> { [2002] = 6, [2014] = 7, [2023] = 7 }.ToFrozenDictionary();
+
+    private static readonly FrozenDictionary<int, (FrozenDictionary<string, int> ByName, FrozenDictionary<int, string> ByClause)> ClausesByEdition =
+        FirstFunctionClause.ToFrozenDictionary(e => e.Key, e =>
+        {
+            var inOrder = Table.Values.Where(s => s.Window.IsInForceAt(e.Key)).Select(s => s.Name).Order(StringComparer.Ordinal).ToArray();
+            return (inOrder.Select((name, i) => (name, clause: e.Value + i)).ToFrozenDictionary(p => p.name, p => p.clause, CobolKeywords.Comparer),
+                inOrder.Select((name, i) => (name, clause: e.Value + i)).ToFrozenDictionary(p => p.clause, p => p.name));
+        });
 
     private static Dictionary<StandardWord, IntrinsicSig> Build()
     {
