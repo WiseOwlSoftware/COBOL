@@ -9,3 +9,6 @@ A later resume unit found a duplicate notes branch, `notes-resume-20261128`, rec
 recorded it ABANDONED beside them. It also found why two enqueue units in a row ended with an invalid handoff: each
 wrote `"landed": []` where the schema has an object (kb/Work PB6348). The enqueue prompt now states the shape, and the
 common unit rules give every unit the supervisor's own `Test-Json` check to run before it ends.
+
+The resume unit of 2026-11-28 01:46 found this branch never queued and landed it. It recorded one more branch ABANDONED:
+`worktree-wf_05bb8d55-c0a-6`, whose nine PB2328 commits the wave 20262182 finisher branch carries (PB2328 addendum).
