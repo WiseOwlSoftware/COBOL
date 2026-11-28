@@ -231,6 +231,22 @@
           "agents": 114,
           "measured": "2026-11-27",
           "source": "r2_cost.py --measure batch-1a over its two Workflow runs (E:/COBOL-coord/scratch/r2-9e65164eb/batch-1a/cost-record.json, 2026-11-27)"
+        },
+        {
+          "batch": "1b",
+          "pin": "9e65164eb3a9",
+          "line_dimensions": 91905,
+          "findings": 117,
+          "verdicts": 351,
+          "nulls": 0,
+          "finder_tokens": 7947512,
+          "skeptic_tokens": 6560021,
+          "null_tokens": 0,
+          "duplication_pass_tokens": null,
+          "workflow_runs": 1,
+          "agents": 146,
+          "measured": "2026-11-27",
+          "source": "r2_cost.py --measure batch-1b over its one Workflow run wf_cfc84209-bac (E:/COBOL-coord/scratch/r2-9e65164eb/batch-1b/cost-record.json, 2026-11-27)"
         }
       ]
     },
