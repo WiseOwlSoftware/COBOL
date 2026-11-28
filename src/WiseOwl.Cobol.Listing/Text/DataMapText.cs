@@ -115,7 +115,12 @@ public static class DataMapText
     public static IReadOnlyList<DataMapPart> DetailParts(ListingDataItem item)
     {
         var facts = new Facts();
-        if (item.OccursMax is { } max)
+        if (item.DynamicCapacity is { } dynamic)
+            facts.Begin("OCCURS DYNAMIC"
+                + (dynamic.From is { } minimum ? string.Create(CultureInfo.InvariantCulture, $" FROM {minimum}") : "")
+                + (dynamic.To is { } expected ? string.Create(CultureInfo.InvariantCulture, $" TO {expected}") : "")
+                + (dynamic.Initialized ? " INITIALIZED" : ""));
+        else if (item.OccursMax is { } max)
             facts.Begin(item.OccursMin is { } min && min != max
                 ? string.Create(CultureInfo.InvariantCulture, $"OCCURS {min} TO {max}")
                 : string.Create(CultureInfo.InvariantCulture, $"OCCURS {max}"));
