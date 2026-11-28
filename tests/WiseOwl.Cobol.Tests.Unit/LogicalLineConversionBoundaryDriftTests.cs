@@ -14,6 +14,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// literal state, and is the only place the program text is scanned. The types cannot say that a second entry, a second
 /// state owner or a second scan does not grow back beside them, so this test says it.
 /// </summary>
+[Trait("Sweep", "tree")]
 public sealed class LogicalLineConversionBoundaryDriftTests
 {
     private static readonly string Preprocessor = TestRepo.Src("WiseOwl.Cobol.Frontend", "Preprocessor");
