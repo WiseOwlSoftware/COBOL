@@ -1084,6 +1084,15 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             // Frame = (method name, declaring class as the compilation unit's outermost element, not nested), so
             // r7 CURRENT yields the class, r5 ACTIVATING the invoker, and r9 STACK the full chain.
             w.Line($"var __ms = {RuntimeApi.ModuleStack()}; __ms.Push({__mLit}, {__cLit}, false, true);   // §2023:15.65.4 RV5 — INVOKE is an activation; §2023:8.6.6: a method is always recursive");
+            // ⛔ THE METHOD'S OWN OPTIONS AND LOCAL-STORAGE ROOTS GOVERN ITS LOCAL-STORAGE INITIAL STATE (kb/Work PB1215):
+            // §2023:13.6.4 GR2 sends LOCAL-STORAGE to §2023:11.9.10, whose GR2 applies the OPTIONS INITIALIZE clause of the source
+            // element — this method's own OPTIONS paragraph, else the class's (§2023:11.9.4 GR1) — to "the storage allocated
+            // for" the sections it names. The class half's data model carries the class-level clause only and no method
+            // roots, so both are swapped in for EVERY initializer of the activation — the cell seeds below (kb/Work PB6336: an ADDRESS-OF-taken record's cell has no other
+            // initializer), the LOCAL-STORAGE locals and the method body (the options scope is closed after the body, the activation roots after the locals).
+            var methodOptions = m.MethodOptions is { } own ? Ctx.Options.Push(own) : (Scoped<OptionsModel>.RestoreScope?)null;
+            var savedActivationRoots = Ctx.ActivationLocalRoots;
+            Ctx.ActivationLocalRoots = m.Binding!.LocalRoots;
             // The per-ACTIVATION data-pointer members (kb/Work PB956): save the activator's, start this activation
             // fresh, and restore in the activation's finally — so a recursive INVOKE on the same object neither
             // inherits nor clobbers its caller's based address or LOCAL-STORAGE cell (§2023:8.6.4; §2023:8.6.5).
@@ -1222,14 +1231,6 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                         + $"{(OoIsActiveClassFormal(root) ? $"({type})" : "")}{formal.ParamName}.Value;   "
                         + $"// LINKAGE formal {root.CobolName} (BY REFERENCE copy-in; omitted → initial state)");
             }
-            // ⛔ THE METHOD'S OWN OPTIONS AND LOCAL-STORAGE ROOTS GOVERN ITS LOCAL-STORAGE INITIAL STATE (kb/Work PB1215):
-            // §2023:13.6.4 GR2 sends LOCAL-STORAGE to §2023:11.9.10, whose GR2 applies the OPTIONS INITIALIZE clause of the source
-            // element — this method's own OPTIONS paragraph, else the class's (§2023:11.9.4 GR1) — to "the storage allocated
-            // for" the sections it names. The class half's data model carries the class-level clause only and no method
-            // roots, so both are swapped in for these initializers, and stay in for the method body, and are restored after it.
-            var methodOptions = m.MethodOptions is { } own ? Ctx.Options.Push(own) : (Scoped<OptionsModel>.RestoreScope?)null;
-            var savedActivationRoots = Ctx.ActivationLocalRoots;
-            Ctx.ActivationLocalRoots = m.Binding!.LocalRoots;
             foreach (var root in m.Binding!.LocalRoots)
             {
                 if (root.IsAliasView) continue;   // Tier-A view → no local (review C)
