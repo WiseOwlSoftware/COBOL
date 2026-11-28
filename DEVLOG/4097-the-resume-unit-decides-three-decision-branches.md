@@ -1,4 +1,4 @@
-## The resume unit decides three DECISION branches
+## Entry 4097 — 2026-11-28 01:50 PST — The resume unit decides three DECISION branches
 
 The resume unit of 2026-11-27 read the three branches the survey called superseded. `worktree-agent-a79c92744280df84a` is
 a second implementation of the PB6232 rule that main landed as e1b2f3c4cf, and `worktree-agent-a2787d9fe53a79a18`'s one
@@ -12,3 +12,4 @@ common unit rules give every unit the supervisor's own `Test-Json` check to run 
 
 The resume unit of 2026-11-28 01:46 found this branch never queued and landed it. It recorded one more branch ABANDONED:
 `worktree-wf_05bb8d55-c0a-6`, whose nine PB2328 commits the wave 20262182 finisher branch carries (PB2328 addendum).
+
