@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-namespace WiseOwl.Cobol.Binding.Model;
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// <summary>The statements that can be written with an INVALID KEY phrase.</summary>
 internal enum InvalidKeyVerb { Read, Write, Rewrite, Delete, Start }

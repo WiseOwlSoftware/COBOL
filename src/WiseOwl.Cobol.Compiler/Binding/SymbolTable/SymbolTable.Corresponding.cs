@@ -1,8 +1,8 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 /// <summary>The pairing of a CORRESPONDING statement (§2023:14.7.6): the subordinates of two resolved groups are paired by their
 /// declared data-names, at one qualification level at a time, so the names are compared by the table's key

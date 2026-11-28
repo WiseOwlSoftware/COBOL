@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 using WiseOwl.Cobol.Runtime;
 using WiseOwl.Cobol.Tests.Shared;
 using Microsoft.CodeAnalysis;

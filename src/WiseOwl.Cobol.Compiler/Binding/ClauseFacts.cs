@@ -1,9 +1,9 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 using WiseOwl.Cobol.Editions;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 /// <summary>One WRITTEN level-88 entry and the entry it immediately follows (ISO §2023:13.16.3 SR24's own subject), captured at
 /// bind time because SOURCE ORDER is a fact only <c>BindEntries</c> has. <paramref name="Variable"/> null = the 88 follows no

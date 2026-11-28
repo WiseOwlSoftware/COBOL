@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 /// <summary>What a WORD written at a literal position stands for, under ISO §2023:13.10.3 SR2 — "Except in a compiler
 /// directive, constant-name-1 may be used anywhere that a format specifies a literal of the class and category of

@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-namespace WiseOwl.Cobol.Binding.Model;
+
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// <summary>
 /// The files ONE bound unit declares (ISO §2023:12.4.5 SELECT, §2023:13.4.5 FD, §2023:13.4.6 SD;

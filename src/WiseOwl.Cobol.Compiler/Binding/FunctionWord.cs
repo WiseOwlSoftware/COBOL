@@ -4,7 +4,7 @@ using Antlr4.Runtime;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Parsing;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 /// <summary>
 /// ⛔ A FUNCTION-NAME WORD AS THE <c>&gt;&gt;COBOL-WORDS</c> DIRECTIVE LEFT IT, RESOLVED EXACTLY ONCE (ISO §2023:7.3.10.4

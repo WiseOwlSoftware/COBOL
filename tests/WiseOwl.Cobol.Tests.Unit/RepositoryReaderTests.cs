@@ -3,10 +3,11 @@
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using WiseOwl.Cobol.Binding;
-using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.Binding.Repository;
-using WiseOwl.Cobol.CodeGen;
+using WiseOwl.Cobol.Compiler;
+using WiseOwl.Cobol.Compiler.Binding;
+using WiseOwl.Cobol.Compiler.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Repository;
+using WiseOwl.Cobol.Compiler.CodeGen;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Runtime;

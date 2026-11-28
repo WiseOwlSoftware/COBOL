@@ -1,17 +1,16 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Frontend.Generated;
-
-using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.Editions;
-using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Parsing;
 
-namespace WiseOwl.Cobol.Binding;
+using WiseOwl.Cobol.Compiler.Binding.Model;
+using WiseOwl.Cobol.Editions;
+using WiseOwl.Cobol.Editions.Diagnostics;
+
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 using Core = CobolParserCore;
 using WiseOwl.Cobol.Runtime;
-using WiseOwl.Cobol.Symbols;
+using WiseOwl.Cobol.Compiler.Symbols;
 
 /// <summary>
 /// Builds the <see cref="OptionsModel"/> from a source unit's OPTIONS paragraph (ISO/IEC 1989:2023 §2023:11.9). The
@@ -288,7 +287,7 @@ internal static class OptionsBinder
         if (raw[1] is not ('"' or '\'') || raw[4] != raw[1]) return null;
         // The ONE hexadecimal-alphanumeric decoder maps the byte to its character by the storage-byte law
         // (X"FF" is U+FFFF, kb/Work PB2919); a private (char)b here was a second copy of that mapping.
-        return WiseOwl.Cobol.Common.CobolLiteral.DecodeHex(raw) is { Length: 1 } one ? one[0] : null;
+        return WiseOwl.Cobol.Frontend.Common.CobolLiteral.DecodeHex(raw) is { Length: 1 } one ? one[0] : null;
     }
 
     /// <summary>The storage-section targets of the INITIALIZE clause. ISO §2023:11.9.10.2 encloses

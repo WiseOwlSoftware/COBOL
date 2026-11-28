@@ -1,8 +1,8 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 
-namespace WiseOwl.Cobol.Binding.Bound;
+namespace WiseOwl.Cobol.Compiler.Binding.Bound;
 
 // The keyed (RELATIVE/INDEXED) I/O bound nodes (P7 Step 10h: the binder half moved to
 // Binding/Procedure/Verbs/KeyedIoBinder.cs; these types STAY here — the VersionConformancePass edition

@@ -1,8 +1,8 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 
-namespace WiseOwl.Cobol.Binding.Bound;
+namespace WiseOwl.Cobol.Compiler.Binding.Bound;
 
 /// <summary>The per-TARGET dispatch class of one MOVE store (P7 Step 7; ISO §2023:14.9.25.4 GR4 decides
 /// elementary-vs-group FIRST, sender side included). Computed ONCE by <see cref="MoveClassifier"/> when the

@@ -24,7 +24,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// <c>01 V REDEFINES G PIC X(n).</c> must read back identically, because §2023:13.18.44.4 GR1's storage association
 /// adds a description of the same area and no data. Each case below is one member shape; adding a shape to the
 /// table measures both lanes on it automatically, which is the property the run law's single computation
-/// (<see cref="WiseOwl.Cobol.Binding.Model.BitLayout"/>'s run map) exists to keep true.</para>
+/// (<see cref="WiseOwl.Cobol.Compiler.Binding.Model.BitLayout"/>'s run map) exists to keep true.</para>
 /// </summary>
 [Trait("Sweep", "tree")]
 public sealed class BitRunImageDriftTests

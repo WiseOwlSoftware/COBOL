@@ -6,9 +6,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using WiseOwl.Cobol.CodeGen;
+using WiseOwl.Cobol.Compiler.CodeGen;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
+using WiseOwl.Cobol.Compiler.CodeGen.Roslyn;
 
 namespace WiseOwl.Cobol.Tests.Unit;
 

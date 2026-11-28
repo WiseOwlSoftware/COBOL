@@ -1,11 +1,11 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.Common;
+using WiseOwl.Cobol.Compiler.Binding.Model;
+using WiseOwl.Cobol.Frontend.Common;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 /// <summary>The role a key operand plays in a file control entry — the axis the ORGANIZATION formats of
 /// ISO/IEC 1989:2023 §2023:12.4.5.1 are cut on: a prime RECORD KEY and an ALTERNATE RECORD KEY belong to Format 1

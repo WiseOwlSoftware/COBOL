@@ -170,7 +170,7 @@ public sealed class CompilerDirectiveCatalogDriftTests
     {
         const string text = "       >>SOURCE FORMAT IS FREE\n       IDENTIFICATION DIVISION.\n";   // fixed form: in the program-text area
         var kept = new DiagnosticBag();
-        string normalized = ReferenceFormatProcessor.NormalizeToFreeForm(text, new ReferenceFormatDiagnostics(85, false, kept), "t.cob");
+        string normalized = LogicalLineConverter.NormalizeToFreeForm(text, new ReferenceFormatDiagnostics(85, false, kept), "t.cob");
         Assert.Contains(">>SOURCE", normalized);
         Assert.DoesNotContain(kept.Diagnostics, d => d.Code == "COBOL0900");
 
@@ -179,7 +179,7 @@ public sealed class CompilerDirectiveCatalogDriftTests
         Assert.Contains(gated.Diagnostics, d => d.Code == "COBOL0900");
 
         var ok = new DiagnosticBag();
-        string consumed = ReferenceFormatProcessor.NormalizeToFreeForm(text, new ReferenceFormatDiagnostics(2002, false, ok), "t.cob");
+        string consumed = LogicalLineConverter.NormalizeToFreeForm(text, new ReferenceFormatDiagnostics(2002, false, ok), "t.cob");
         Assert.DoesNotContain(">>SOURCE", consumed);
         Assert.DoesNotContain(ok.Diagnostics, d => d.Code == "COBOL0900");
     }
@@ -434,7 +434,7 @@ public sealed class CompilerDirectiveCatalogDriftTests
         // The reference-format stage is the one that consumes its own line, so it is checked through its own
         // stage: the directive is RECOGNIZED with a comment on it, and the following segment switches.
         var bag = new DiagnosticBag();
-        string free = ReferenceFormatProcessor.NormalizeToFreeForm(
+        string free = LogicalLineConverter.NormalizeToFreeForm(
             ">>SOURCE FORMAT IS FREE *> switch\nIDENTIFICATION DIVISION.\n", new ReferenceFormatDiagnostics(2023, false, bag), "t.cob");
         Assert.DoesNotContain(bag.Diagnostics, d => d.Code == "COBOL1911");
         Assert.DoesNotContain(">>SOURCE", free);   // consumed, so the parser never sees it
@@ -458,7 +458,7 @@ public sealed class CompilerDirectiveCatalogDriftTests
         foreach (string operand in (string[])["UNKNOWN", "\"literal\"", "", "FORMAT"])
         {
             var bag = new DiagnosticBag();
-            string outp = ReferenceFormatProcessor.NormalizeToFreeForm(
+            string outp = LogicalLineConverter.NormalizeToFreeForm(
                 $">>SOURCE FORMAT {operand}\nIDENTIFICATION DIVISION.\n", new ReferenceFormatDiagnostics(2023, false, bag), "t.cob");
             Assert.Contains(bag.Diagnostics, d => d.Code == "COBOL1911");
             Assert.DoesNotContain(">>SOURCE", outp);
@@ -478,7 +478,7 @@ public sealed class CompilerDirectiveCatalogDriftTests
         if (omittedBranch)
             line = (word == "SOURCE" ? ">>SOURCE FORMAT IS FREE\n" : "") + $">>IF 1 = 2\n{line}\n>>END-IF";
         if (word == "SOURCE")
-            ReferenceFormatProcessor.NormalizeToFreeForm(
+            LogicalLineConverter.NormalizeToFreeForm(
                 line + "\nIDENTIFICATION DIVISION.\n", new ReferenceFormatDiagnostics(edition, false, bag), "t.cob");
         else
             ConditionalCompilationProcessor.Process(

@@ -6,7 +6,7 @@ using Antlr4.Runtime.Atn;
 using Antlr4.Runtime.Misc;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Cst;
-using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Parsing;
 using Xunit;
 
 namespace WiseOwl.Cobol.Tests.Unit;

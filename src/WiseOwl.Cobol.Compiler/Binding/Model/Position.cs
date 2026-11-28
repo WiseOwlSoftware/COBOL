@@ -1,13 +1,13 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-namespace WiseOwl.Cobol.Binding.Model;
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// <summary>
 /// ⛔ THE TYPED POSITION CARRIER (D10's second half, kb/Work PB2151; docs/rearchitecture/DESIGN-binder-bound-tree.md
 /// §2023:3.9): an integer-valued run-time address term — a subscript (ISO §2023:8.4.2.3.2 <c>arithmetic-expression-1</c>), a
 /// reference-modifier leftmost position or length (§2023:8.4.3.3.3 SR4), and the offsets and ordinals the place model
 /// computes from them. The binder builds STRUCTURE and the code generator renders it
-/// (<c>CodeGen.PositionRenderer</c>); no position travels between the two as C# text.
+/// (<c>CodeGen.Roslyn.PositionRenderer</c>); no position travels between the two as C# text.
 /// <para>The node set is the set of shapes that render DIRECTLY as an ordinal. Every other arithmetic expression (a
 /// function-identifier, <c>/</c>, <c>**</c>, a decimal literal, a scaled operand inside a compound) is bound by the
 /// ONE expression binder into the §2023:15.4 position temporary and is then a
@@ -41,7 +41,7 @@ public abstract record Position
 
     /// <summary>True when this position evaluates to itself at any time — a non-negative integer constant, or an offset
     /// with no subscript term over one. The structural test the §2023:14.6.4 GR7 evaluate-once identification asks before it
-    /// hoists a position into a statement local (<c>CodeGen.PlaceIdentification</c>); a term over a constant index
+    /// hoists a position into a statement local (<c>CodeGen.Roslyn.PlaceIdentification</c>); a term over a constant index
     /// is still a term, so the identification keeps the address it would have computed.</summary>
     public bool IsSelfEvaluating => this switch
     {
@@ -51,7 +51,7 @@ public abstract record Position
     };
 
     /// <summary>⛔ TRUE WHEN THIS DIRECTLY RENDERED POSITION CANNOT BE EVALUATED IN THE HOST'S <c>long</c> (kb/Work
-    /// PB2616). <c>CodeGen.PositionRenderer</c> renders <c>+ - *</c> as C# <c>long</c> arithmetic, but §2023:8.4.2.3.4
+    /// PB2616). <c>CodeGen.Roslyn.PositionRenderer</c> renders <c>+ - *</c> as C# <c>long</c> arithmetic, but §2023:8.4.2.3.4
     /// 1) b) makes the subscript "the result of the evaluation of arithmetic-expression-1" — the expression's value,
     /// not a 64-bit machine product that wraps — so an expression whose worst case does not fit the host's
     /// <c>long</c> is not a shape this carrier may render. The worst case is a COMPILE-TIME digit bound: a

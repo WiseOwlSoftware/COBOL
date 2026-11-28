@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Runtime.InteropServices;
 
-namespace WiseOwl.Cobol.CodeGen;
+namespace WiseOwl.Cobol.Compiler.CodeGen;
 
 /// <summary>
 /// Packages a successfully-emitted assembly into a runnable deployment (P7 Step 2 — the side-effecting

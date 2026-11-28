@@ -126,7 +126,7 @@ public sealed class CharacterPositionsTests
     private static (string[] Lines, DiagnosticBag Bag) Normalize(string source, InitialReferenceFormat format, int std = 2023)
     {
         var bag = new DiagnosticBag();
-        var m = ReferenceFormatProcessor.NormalizeToFreeFormMapped(source, new ReferenceFormatDiagnostics(std, false, bag), "t.cob",
+        var m = LogicalLineConverter.NormalizeToFreeFormMapped(source, new ReferenceFormatDiagnostics(std, false, bag), "t.cob",
             format.InitialFixed(), out _);
         return (m.Text.Split('\n'), bag);
     }
@@ -233,6 +233,6 @@ public sealed class CharacterPositionsTests
     {
         string digits = string.Concat(Enumerable.Range(0, 6).Select(i => char.ConvertFromUtf32(0x1D7CE + i)));
         PhysicalLine[] lines = PhysicalLines.Read(digits + " DISPLAY \"A\".\n" + digits + "*  comment\n").Lines.ToArray();
-        Assert.True(ReferenceFormatProcessor.IsFixedForm(lines));
+        Assert.True(LogicalLineConverter.IsFixedForm(lines));
     }
 }

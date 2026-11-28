@@ -1,8 +1,9 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Model;
+using WiseOwl.Cobol.Compiler.CodeGen.Roslyn;
 
-namespace WiseOwl.Cobol.CodeGen;
+namespace WiseOwl.Cobol.Compiler.CodeGen.DataDivision;
 
 /// <summary>⛔ THE ONE EMIT OF A TABLE'S INITIAL CONTENT FROM ITS OCCURRENCE RUNS (kb/Work PB1722). Every lane that
 /// writes the initial state of a table — the record-struct arrays (<see cref="ValueInitializer.FieldInit"/>), the

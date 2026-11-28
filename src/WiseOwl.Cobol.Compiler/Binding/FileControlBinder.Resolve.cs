@@ -1,13 +1,12 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.Common;
+using WiseOwl.Cobol.Compiler.Binding.Model;
+using WiseOwl.Cobol.Frontend.Common;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
-using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Frontend.Parsing;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 using Core = CobolParserCore;
 using WiseOwl.Cobol.Runtime;
@@ -301,7 +300,7 @@ public sealed partial class FileControlBinder
     /// (§2023:13.10.3 SR2; §2023:8.3.3.6.3 SR1 with §2023:8.3.3.6.2 Format 7) — did not parse at all. <see cref="DataBinder.RawValueOperandText"/>
     /// is the VALUE clause's and the EDITING phrase's own reader: it screens the literal position, substitutes a
     /// constant-name's and a symbolic-character's literal, and folds a concatenation expression (§2023:8.8.3.3 GR3), so
-    /// what reaches <see cref="WiseOwl.Cobol.CodeGen.FigurativeConstants.Classify"/> here is always ONE literal's raw text.</para>
+    /// what reaches <see cref="WiseOwl.Cobol.Compiler.CodeGen.Roslyn.FigurativeConstants.Classify"/> here is always ONE literal's raw text.</para>
     /// <para>What is recorded is the operand's SHAPE, which is what §2023:12.4.5.6.3 SR7 screens
     /// (<c>FileControlKeyRules</c>); the key-sized value is <see cref="KeySuppressionOf"/>'s.</para></summary>
     private SuppressWhenOperand? ReadSuppressWhen(AlternateKeyClause clause)
@@ -311,7 +310,7 @@ public sealed partial class FileControlBinder
         if (_host.RawValueOperandText(op, $"ALTERNATE RECORD KEY '{clause.Operand.Name}'", DataBinder.LiteralPosition.SuppressWhen) is not { } raw)
             return null;
         string written = WrittenSource.Of(op);
-        var form = WiseOwl.Cobol.CodeGen.FigurativeConstants.Classify(raw, includeNull: false);
+        var form = WiseOwl.Cobol.Compiler.CodeGen.Roslyn.FigurativeConstants.Classify(raw, includeNull: false);
         if (form.Kind is { } kind)
             return new(written, SuppressWhenForm.Figurative, null, "", kind);
         if (form.AllLiteral is { } literal1)   // ALL literal-1, and a symbolic-character's ALL "c" substitution
@@ -329,7 +328,7 @@ public sealed partial class FileControlBinder
     /// <list type="bullet">
     /// <item>A keyword figurative is repeated to the key's size (§2023:8.3.3.6.4 GR2 — a figurative "compared with" a
     /// fixed-length data item is associated with it, NOTE 1), its character taken in the key's category through
-    /// <see cref="WiseOwl.Cobol.CodeGen.FigurativeConstants.FillChar"/> — the fill a <c>MOVE</c> of the same figurative into the key
+    /// <see cref="WiseOwl.Cobol.Compiler.CodeGen.Roslyn.FigurativeConstants.FillChar"/> — the fill a <c>MOVE</c> of the same figurative into the key
     /// stores, so a program that moves SPACES into the key is exactly the program that suppressed it.</item>
     /// <item>ALL literal-1 is repeated the same way (GR2 again).</item>
     /// <item>A literal SHORTER than the key is extended with spaces (§2023:8.8.4.2.7 GR2) — national spaces for a national
@@ -348,7 +347,7 @@ public sealed partial class FileControlBinder
         var category = national ? PicCategory.National : PicCategory.Alphanumeric;
         string value = operand.Form switch
         {
-            SuppressWhenForm.Figurative => new string(WiseOwl.Cobol.CodeGen.FigurativeConstants.FillChar(
+            SuppressWhenForm.Figurative => new string(WiseOwl.Cobol.Compiler.CodeGen.Roslyn.FigurativeConstants.FillChar(
                 operand.FigurativeKind!.Value, _host.State.Configuration.Collating, category, _host.State.Configuration.NationalCollating), positions),
             SuppressWhenForm.AllLiteral when operand.Characters.Length > 0 =>
                 string.Concat(Enumerable.Repeat(operand.Characters, positions / operand.Characters.Length + 1))[..positions],

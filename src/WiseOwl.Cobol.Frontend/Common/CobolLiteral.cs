@@ -3,7 +3,7 @@
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Runtime;
 
-namespace WiseOwl.Cobol.Common;
+namespace WiseOwl.Cobol.Frontend.Common;
 
 /// <summary>The class of a quoted literal (ISO §2023:8.3.3.2 / §2023:8.3.3.4 / §2023:8.3.3.5) — what <see cref="CobolLiteral.ClassOf"/>
 /// answers from the prefix. Front-end-side (no PICTURE model here); the binder maps it onto its data category.</summary>

@@ -1,26 +1,25 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Common;
+using WiseOwl.Cobol.Frontend.Common;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Cst;
-using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Parsing;
 using WiseOwl.Cobol.Frontend.Expressions;
 
-using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.Frontend.Parsing;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 using Core = CobolParserCore;
-using ReportEntryLocation = WiseOwl.Cobol.Binding.DataBinder.ReportEntryLocation;
+using ReportEntryLocation = WiseOwl.Cobol.Compiler.Binding.DataBinder.ReportEntryLocation;
 using ReportNextGroup = WiseOwl.Cobol.Runtime.IO.ReportNextGroup;
 using ReportNextGroupKind = WiseOwl.Cobol.Runtime.IO.ReportNextGroupKind;
 using ReportLineKind = WiseOwl.Cobol.Runtime.IO.ReportLineKind;
 using ReportLinePlacement = WiseOwl.Cobol.Runtime.IO.ReportLinePlacement;
 using ReportPageRegions = WiseOwl.Cobol.Runtime.IO.ReportPageRegions;
 using WiseOwl.Cobol.Runtime;
-using WiseOwl.Cobol.Symbols;
+using WiseOwl.Cobol.Compiler.Symbols;
 
 /// <summary>
 /// The REPORT SECTION's binder (ISO/IEC 1989:2023 §2023:13.8 report section / §2023:13.14 report description / §2023:13.15 report group
@@ -3405,7 +3404,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             },
             // Preserve a floating-point-edited / national-edited PICTURE gate for the post-bind GateData report-Sums
             // walk (this PicInfo is otherwise discarded — only Scale is used — so the 0900 would drop; DEVLOG 740).
-            SkeletonGate = pic is null ? null : WiseOwl.Cobol.Validation.VersionConformancePass.PictureConstructId(pic),
+            SkeletonGate = pic?.ConstructId(),
             SkeletonWhere = sumWhere,
         };
         st.SumFamilies[ge] = family;
@@ -4956,7 +4955,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             // range, and the slice is laid out as the prior control's own description — the limit a written
             // integer-n that sizes or positions something meets (COBOL2427), never a saturated bound allocated.
             Edition.Error(DiagnosticCatalog.IntegerOperandBeyondLimit,
-                WiseOwl.Cobol.Validation.IntegerOperandRules.BeyondLimitMessage(where,
+                WiseOwl.Cobol.Compiler.Validation.IntegerOperandRules.BeyondLimitMessage(where,
                     $"the reference-modification of '{WrittenSource.Of(dref)}', a leftmost-position or length that", Edition.DialectLevel));
         return new ReportControlRef(operand, subscripts, sfx.Start, sfx.Length, subscriptRefused);
     }

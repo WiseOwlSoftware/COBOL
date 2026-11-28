@@ -1,11 +1,14 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.Binding.Procedure;
-using WiseOwl.Cobol.CodeGen.Emit;
+using WiseOwl.Cobol.Compiler.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs;
+using WiseOwl.Cobol.Compiler.Binding.Procedure;
+using WiseOwl.Cobol.Compiler.CodeGen.DataDivision;
+using WiseOwl.Cobol.Compiler.CodeGen.Emit;
+using WiseOwl.Cobol.Compiler.CodeGen.Verbs;
 using WiseOwl.Cobol.Runtime;
 
-namespace WiseOwl.Cobol.CodeGen;
+namespace WiseOwl.Cobol.Compiler.CodeGen.Roslyn;
 
 /// <summary>
 /// The Roslyn backend's sole renderer of a <see cref="Place"/> lvalue to C# read/write text
@@ -376,7 +379,7 @@ internal static class PlaceRenderer
     // Unreachable: every concrete Place subtype has an explicit arm above (there is no Place.Read()/Write() to fall
     // back to since the structural-Place migration completed). A new subtype without an arm trips this at run time.
     private static System.InvalidOperationException Unhandled(Place p) =>
-        new($"CodeGen.PlaceRenderer has no arm for Place subtype '{p.GetType().Name}'");
+        new($"CodeGen.Roslyn.PlaceRenderer has no arm for Place subtype '{p.GetType().Name}'");
 
     /// <summary>The counter a sum counter place addresses, for the read and the write alike (kb/Work PB1271): its id,
     /// or — for an occurrence of a REPEATING entry's counter — the family's first id, the extent of each OCCURS level

@@ -2,9 +2,9 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Reflection;
 using Antlr4.Runtime;
-using WiseOwl.Cobol.Binding.Procedure;
+using WiseOwl.Cobol.Compiler.Binding.Procedure;
 using WiseOwl.Cobol.Editions;
-using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Parsing;
 using Xunit;
 
 namespace WiseOwl.Cobol.Tests.Unit;

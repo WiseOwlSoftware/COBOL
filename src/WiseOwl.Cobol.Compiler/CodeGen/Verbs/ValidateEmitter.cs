@@ -1,9 +1,10 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Bound;
-using WiseOwl.Cobol.CodeGen.Emit;
+using WiseOwl.Cobol.Compiler.Binding.Bound;
+using WiseOwl.Cobol.Compiler.CodeGen.Emit;
+using WiseOwl.Cobol.Compiler.CodeGen.Roslyn;
 
-namespace WiseOwl.Cobol.CodeGen;
+namespace WiseOwl.Cobol.Compiler.CodeGen.Verbs;
 
 /// <summary>The VALIDATE statement emitter (ISO/IEC 1989:2002 §14.8.46; §2023:14.9.50; docs/rearchitecture/DESIGN-validate-facility.md). It lays out
 /// the five stages of §2023:14.9.50.4 GR4 as passes over the ONE element list the binder expanded (<see cref="BoundValidate.Steps"/>): "Each stage is

@@ -1,11 +1,13 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding;
-using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.Binding.Bound;
+using WiseOwl.Cobol.Compiler.Binding;
+using WiseOwl.Cobol.Compiler.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Bound;
 using WiseOwl.Cobol.Runtime;
+using WiseOwl.Cobol.Compiler.CodeGen.Roslyn;
+using WiseOwl.Cobol.Compiler.CodeGen.Verbs;
 
-namespace WiseOwl.Cobol.CodeGen.Emit;
+namespace WiseOwl.Cobol.Compiler.CodeGen.Emit;
 
 /// <summary>
 /// Renders a bound numeric expression / operand to a scale-tracked native-integer C# expression (<see cref="NumX"/>).
@@ -360,8 +362,8 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// them (`IF 1.0E-15 / 2 > 0` was NOT GREATER at a working scale of 14; `2.50E0 / 3 * 1000000000000000` was truncated
     /// one place sooner than `2.50 / 3 * 1000000000000000` while the trailing zero was dropped).</para></summary>
     private NumX LiteralNum(string text) =>
-        WiseOwl.Cobol.Common.NumericLiteral.IsFloatingPointForm(text)
-            && WiseOwl.Cobol.Common.NumericLiteral.TryParseExact(text, out var sig, out int exp10)
+        WiseOwl.Cobol.Frontend.Common.NumericLiteral.IsFloatingPointForm(text)
+            && WiseOwl.Cobol.Frontend.Common.NumericLiteral.TryParseExact(text, out var sig, out int exp10)
         ? new NumX(RuntimeApi.DecFromParsedLiteral(sig, exp10, IntermediateMode), 0, Dec: true,
             Precision: RuntimeApi.DecFractionDigitsOf(sig, exp10))
         : EmitText.UnscaledLit(text);
@@ -482,7 +484,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         // `BoundNumericLiteral` never reaches a `BoundPower`.
         // (The value test is NumericLiteral.TryGetIntegerValue — the bind-time lane prediction FunctionValueLane asks the
         // same question of the same literal, kb/Work PB3268.)
-        return x is BoundNumLiteral l && WiseOwl.Cobol.Common.NumericLiteral.TryGetIntegerValue(l.Text, out Int128 value)
+        return x is BoundNumLiteral l && WiseOwl.Cobol.Frontend.Common.NumericLiteral.TryGetIntegerValue(l.Text, out Int128 value)
             ? value
             : null;
     }

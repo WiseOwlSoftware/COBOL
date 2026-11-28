@@ -1,9 +1,9 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Globalization;
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 
-namespace WiseOwl.Cobol.CodeGen;
+namespace WiseOwl.Cobol.Compiler.CodeGen.Roslyn;
 
 /// <summary>A method local the Roslyn backend declares ITSELF — a hoisted identification, a leaf or sort loop counter, a
 /// recreation's element cell — named where the backend writes its declaration. A model node built over it (a position

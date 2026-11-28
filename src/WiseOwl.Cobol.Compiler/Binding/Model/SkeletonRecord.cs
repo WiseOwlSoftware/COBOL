@@ -3,7 +3,7 @@
 using WiseOwl.Cobol.Runtime;
 using WiseOwl.Cobol.Runtime.Repository;
 
-namespace WiseOwl.Cobol.Binding.Model;
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// <summary>
 /// ⛔ EVERY COMPILE-TIME INPUT THAT CHANGES WHAT A SKELETON'S SOURCE MEANS (ISO §2023:9.3.12: an expansion "is treated in all

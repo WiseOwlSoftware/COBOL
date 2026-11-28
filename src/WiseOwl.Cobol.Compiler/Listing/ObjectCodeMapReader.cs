@@ -4,8 +4,9 @@ using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using WiseOwl.Cobol.Frontend.Common;
+using WiseOwl.Cobol.Listing;
 
-namespace WiseOwl.Cobol.Listing.Building;
+namespace WiseOwl.Cobol.Compiler.Listing;
 
 /// <summary>A method of the assembly that holds a statement's sequence point.</summary>
 /// <param name="Token">Its metadata token.</param>

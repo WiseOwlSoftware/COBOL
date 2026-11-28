@@ -1,9 +1,9 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.Binding.Passes;
+using WiseOwl.Cobol.Compiler.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Passes;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 /// <summary>The data binder and reference resolver of one bound source element: the binder-side working state the bound
 /// model does not carry (kb/Work PB2361).</summary>

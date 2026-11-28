@@ -1,9 +1,9 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 using WiseOwl.Cobol.Runtime;
 
-namespace WiseOwl.Cobol.Binding.Bound;
+namespace WiseOwl.Cobol.Compiler.Binding.Bound;
 
 /// <summary>
 /// D18 — a FUNCTION-IDENTIFIER in a SUBSCRIPT or REFERENCE-MODIFIER position (fix-queue PB17).
@@ -84,7 +84,7 @@ public sealed partial class StatementBinder
     /// numeric renderer and the ONE arithmetic store path, but the integrality question is asked of the value on
     /// its own carrier BEFORE the store, which a <c>BoundCompute</c> into a fixed-scale temp could not do (kb/Work
     /// PB1890). The temp is the saturated integer position, so a size error at the store is unreachable.</para></summary>
-    private SegmentValue BindPositionTemporary(Frontend.Generated.CobolParserCore.ArithmeticExpressionContext expr,
+    private SegmentValue BindPositionTemporary(Frontend.Parsing.CobolParserCore.ArithmeticExpressionContext expr,
         SegmentPosition position, int line)
     {
         // ⛔ THE POSITION DECIDES THE CONTEXT (kb/Work PB170/PB172). ISO §2023:13.18.38.3 SR7 lists five contexts in

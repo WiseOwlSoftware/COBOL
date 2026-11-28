@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-namespace WiseOwl.Cobol.Binding.Model;
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// <summary>⛔ THE CENSUS OF REFERENCE SHAPES THE RESOLVER DEFERS (kb/Work PB1030). Every
 /// deferred answer of the reference resolver (<c>RefOutcome.Deferred</c>) names one member, so the list of legal reference shapes WiseOwl COBOL has

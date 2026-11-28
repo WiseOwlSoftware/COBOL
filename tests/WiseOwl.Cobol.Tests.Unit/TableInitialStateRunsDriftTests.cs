@@ -2,13 +2,14 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Collections;
 using System.Text.RegularExpressions;
-using WiseOwl.Cobol.Binding;
-using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.CodeGen;
+using WiseOwl.Cobol.Compiler.Binding;
+using WiseOwl.Cobol.Compiler.Binding.Model;
+using WiseOwl.Cobol.Compiler.CodeGen;
 using WiseOwl.Cobol.Frontend.Diagnostics;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
+using WiseOwl.Cobol.Compiler.CodeGen.DataDivision;
 using CnFrontend = WiseOwl.Cobol.Frontend.Frontend;
 
 namespace WiseOwl.Cobol.Tests.Unit;

@@ -157,7 +157,7 @@ The design names the structures each part reads. Every claim is from the tree at
 | The physical text of every file read, tabs expanded | `ReferenceFormatMap.PhysicalText` (src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatMap.cs), one map per file in `CopyProcessor.ReferenceFormats`, each pass's maps returned by `Frontend.RunTextStages` |
 | Fixed or free form of each physical line | `ReferenceFormatMap.AreaAt`, `ReferenceFormatMap.Create` (format changes by line) |
 | The indicator area of a fixed-form line | `FixedFormLine.Indicator` (src/WiseOwl.Cobol.Frontend/Preprocessor/FixedFormLine.cs): `internal`, THE one reader of fixed-form columns (kb/Work PB1966), and the front end grants `InternalsVisibleTo` to `WiseOwl.Cobol.Tests.Unit` only, so the Compiler cannot read it |
-| The kind of each fixed-form line | `ReferenceFormatProcessor.FixedFormConverter.KindOf` classifies each line it converts into a PRIVATE enum `FixedFormConverter.LineKind` (`Source`, `Comment` for both '*' and '/', `Continuation`, `Debugging`, `CcvsExcluded`, `NotAnIndicator`) and keeps no record of the answer; `FixedFormConverter._inCommentEntry` knows a comment-entry line; `FreeFormConverter.Convert` classifies free-form lines the same way, unrecorded |
+| The kind of each fixed-form line | `FixedFormConverter.KindOf` classifies each line it converts into a PRIVATE enum `FixedFormConverter.LineKind` (`Source`, `Comment` for both '*' and '/', `Continuation`, `Debugging`, `CcvsExcluded`, `NotAnIndicator`) and keeps no record of the answer; `FixedFormConverter._inCommentEntry` knows a comment-entry line; `FreeFormConverter.Convert` classifies free-form lines the same way, unrecorded |
 | Resultant line to physical file, line and column | `SourceLineMap.Origin`, `SourceLineMap.Locate`, `LineOrigin.Spans`, `OriginSpan.Layout` (src/WiseOwl.Cobol.Frontend/Common/SourceLineMap.cs); `Frontend.LineMap` |
 | Lines a false `>>IF`/`>>WHEN` branch omitted | `LineOrigin.Omitted`, `SourceLineMap.IsOmitted`, marked in `ConditionalCompilationProcessor.Run.Render` |
 | COPY expansion, its depth, the copybook found | `CopyProcessor.ExpandCopiesOneLevel` (the `expandCopybook` callback gets the depth and the resultant line piece where the copybook begins), `CopyProcessor.ResolveOneCopy` (`OneCopyResult`: outcome, path, mapped text), `CopyProcessor.ParseCopyStatement` (reads SUPPRESS) |
@@ -251,7 +251,7 @@ the solution. A renderer therefore cannot reach a binder, parser or emitter type
 enforced by the compiler, and `docs/rearchitecture/architecture-edges.json` gives the project its own lowest layer so
 `ArchitectureEdgesDriftTests` keeps it so. (Step 1:) the layers are by NAMESPACE, so the builder in the Compiler cannot share
 the model's namespace: the model and renderers are `WiseOwl.Cobol.Listing` and `WiseOwl.Cobol.Listing.Text` (layer
-`listing`), the builder is `WiseOwl.Cobol.Listing.Building` (layer `compiler.listing`, which may use `listing`, the front
+`listing`), the builder is `WiseOwl.Cobol.Compiler.Listing` (layer `compiler.listing`, which may use `listing`, the front
 end's `frontend.pipeline`, `frontend.preprocessor` and `frontend.common`, and `editions`). The builder names no type of the
 composition root: the driver hands `ListingFacts` plain values (the source path, the output path, the `EditionInfo`, the
 compile-clock delegate) and maps its own `Outcome` to `ListingOutcome`, so no edge runs from `compiler.listing` up to
@@ -519,7 +519,7 @@ away; the design keeps it:
 - Recorded where the decision is made, with no new reading of any column: `FixedFormConverter.ConvertLine` (the
   indicator kind, `CommentEntry` while `_inCommentEntry`, `CommentEntryCandidate` for a carried candidate,
   `Directive` for a `>>` line, `Blank`), `FreeFormConverter.Convert` (free form: `Source`, `Comment` for a `*>` line,
-  `DebuggingLine` for `>>D`, `Directive`, `CommentEntry`, `Blank`) and `ReferenceFormatProcessor.NormalizeToFreeFormMapped`
+  `DebuggingLine` for `>>D`, `Directive`, `CommentEntry`, `Blank`) and `LogicalLineConverter.NormalizeToFreeFormMapped`
   (a discarded `>>SOURCE` line is `Directive`). Each writes into a `PhysicalLineKind[]` allocated beside the text's
   `ReferenceFormatMap` (one byte per physical line). (Step 1:) the classifiers record the INDICATOR's answer, and the
   shared `LogicalLineBuilder` refines a line where IT decides it, through its one `Classify`: `Blank` (no program text),
@@ -858,7 +858,7 @@ names every connector (`BinderDriver`, after `QualifyClassFiles`).
 
 - **The snapshot is plain values in a layer of its own.** `SymbolTableSnapshot`, `SymbolEntry`, `NameClass`, `SymbolPosition`
   and one attributes record per class (`ProgramAttributes`, `DataAttributes`, `ConditionAttributes`, `IndexAttributes`,
-  `ConstantAttributes`, `FileNameAttributes`) live in `WiseOwl.Cobol.Symbols` (src/WiseOwl.Cobol.Compiler/Symbols/), the layer
+  `ConstantAttributes`, `FileNameAttributes`) live in `WiseOwl.Cobol.Compiler.Symbols` (src/WiseOwl.Cobol.Compiler/Symbols/), the layer
   `compiler.symbols` of architecture-edges.json, which depends on nothing; the binder, the listing builder and the driver may use
   it. So the builder reads the table and cannot reach a binder type, by the layering test.
 - **Attributes are read off the symbol once the bind is finished, not written beside it (correction).** "Each attribute is
@@ -1140,7 +1140,7 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
   one store of names, decides where the grown `SymbolTable` lives (kb/Work PB5932).
 - **(Step 6b, as built so far, with the corrections the code proved.)**
   - *Where the table lives.* In the BINDER layer, not the model: `src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/`, namespace
-    `WiseOwl.Cobol.Binding` (`compiler.binding`). The one store owns tables of binder types (`FileModel`, `ReportModel`,
+    `WiseOwl.Cobol.Compiler.Binding` (`compiler.binding`). The one store owns tables of binder types (`FileModel`, `ReportModel`,
     `ConstantDef`, the OO symbols) and resolves through the binder, so it cannot be backend input; the move ended the three
     tolerated `compiler.model` -> `compiler.binding` pairs it held. `Scope` stays in the model (`Binding/Model/Scope.cs`).
     `SymbolTable` is ONE type written as a partial class, one file per name class (`SymbolTable.Communication.cs`,
@@ -2256,11 +2256,11 @@ read from what every backend produces, the ASSEMBLY and its PORTABLE PDB:
   backends, and like IBM's LIST it is long, so it is on request only. Recommendation recorded: keep it off in
   `standard` and on in `all`.
 - **Backend neutrality is a test.** `ListingBackendNeutralityDriftTests` (RepoDrift): the built `WiseOwl.Cobol.Listing`
-  assembly references no `Microsoft.CodeAnalysis*` assembly, and the documents of the `WiseOwl.Cobol.Listing.Building`
-  namespace in the Compiler (the builder) reference no type from `Microsoft.CodeAnalysis*` or `WiseOwl.Cobol.CodeGen*` (a Roslyn
+  assembly references no `Microsoft.CodeAnalysis*` assembly, and the documents of the `WiseOwl.Cobol.Compiler.Listing`
+  namespace in the Compiler (the builder) reference no type from `Microsoft.CodeAnalysis*` or `WiseOwl.Cobol.Compiler.CodeGen*` (a Roslyn
   semantic check of every referenced symbol) and contain no `.g.cs` path. It holds because backend diagnostics reach the
   builder as the front end's `Diagnostic`, which (step 3) is the seam's own diagnostic type (section 6.3). The Roslyn backend's `#line` writing lives in
-  `WiseOwl.Cobol.CodeGen`, behind the seam; the listing never sees it.
+  `WiseOwl.Cobol.Compiler.CodeGen`, behind the seam; the listing never sees it.
 
 **As built (step 8), with the corrections the code proved:**
 
@@ -3117,9 +3117,9 @@ the 1985 minimum, so PB5923 closes first.
   green (`ArchReviewFleetDriftTests`); and whatever public API baseline `python scripts/public_api_baselines.py --check`
   asks of a new product assembly.
 - Front end, line kinds (section 4.4.1): `src/WiseOwl.Cobol.Frontend/Preprocessor/PhysicalLineKind.cs` (new, replacing
-  `FixedFormConverter.LineKind`), recorded in `ReferenceFormatProcessor.FixedFormConverter.KindOf`,
-  `ReferenceFormatProcessor.FixedFormConverter.ConvertLine`, `ReferenceFormatProcessor.FreeFormConverter.Convert` and
-  `ReferenceFormatProcessor.NormalizeToFreeFormMapped`; stored by `ReferenceFormatMap.Create` and answered by
+  `FixedFormConverter.LineKind`), recorded in `FixedFormConverter.KindOf`,
+  `FixedFormConverter.ConvertLine`, `FreeFormConverter.Convert` and
+  `LogicalLineConverter.NormalizeToFreeFormMapped`; stored by `ReferenceFormatMap.Create` and answered by
   `ReferenceFormatMap.KindAt`.
 - Front end, provenance: `src/WiseOwl.Cobol.Frontend/Preprocessor/TextStageTrace.cs` (inclusion events only in this step)
   recorded in `CopyProcessor.ExpandCopiesOneLevel` (from `ResolveOneCopy`'s result) and
@@ -3186,7 +3186,7 @@ table when it exists.
 
 **Step 6 - the symbol table's entries and attributes, and the data map. BUILT (branch `listing-step-6`; the corrections above
 marked "step 6").** The finished table (`SymbolTableFinish.Of`, `SymbolTableWriter`, `SymbolTableSnapshot` in
-`WiseOwl.Cobol.Symbols`), deposited by the driver when `EditionContext.RecordsSymbols`; `DataMapBuilder`, `LineAnnotationBuilder`
+`WiseOwl.Cobol.Compiler.Symbols`), deposited by the driver when `EditionContext.RecordsSymbols`; `DataMapBuilder`, `LineAnnotationBuilder`
 with `ListingLine.Margin` for definition lines, `DataMapText`, the program attributes, `--listing-sections data-map`; the
 benchmark's `All` row. (Step 6, kb/Work PB5932:) the ONE store, below, is split out as step 6b: it is a restructuring of the
 whole binder's name resolution (65 tables, 194 members, 124 + 130 + 40 comparison sites, section 6.7.2), which the data map does

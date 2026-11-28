@@ -1,10 +1,10 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Editions;
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 using WiseOwl.Cobol.Runtime;
 
-namespace WiseOwl.Cobol.Binding.Procedure;
+namespace WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs;
 
 /// <summary>
 /// ⛔ THE *-ARG-OMITTED RULE, BIND HALF (kb/Work PB971). ISO §2023:14.9.4.4 GR12, §2023:8.4.3.2.4 GR8 and §2023:14.9.23.4 GR10 are

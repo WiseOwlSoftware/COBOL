@@ -3,7 +3,8 @@
 using System.Globalization;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using WiseOwl.Cobol.CodeGen;
+using WiseOwl.Cobol.Compiler;
+using WiseOwl.Cobol.Compiler.CodeGen;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
@@ -503,7 +504,7 @@ public sealed class CompiledProgramCacheDriftTests : IDisposable
         {
             // The ANTLR tool's generated recognizers expose display-name tables (channelNames, modeNames) as
             // public static arrays; they are build output the compiler never assigns, not a settable input.
-            foreach (var type in asm.GetExportedTypes().Where(t => t.Namespace != "WiseOwl.Cobol.Frontend.Generated"))
+            foreach (var type in asm.GetExportedTypes().Where(t => t.Namespace != "WiseOwl.Cobol.Frontend.Parsing"))
             {
                 const BindingFlags flags = BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly;
                 offenders.AddRange(type.GetFields(flags).Where(f => !f.IsInitOnly && !f.IsLiteral)

@@ -5,8 +5,8 @@ using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using WiseOwl.Cobol.Binding;
-using WiseOwl.Cobol.CodeGen;
+using WiseOwl.Cobol.Compiler.Binding;
+using WiseOwl.Cobol.Compiler.CodeGen;
 using WiseOwl.Cobol.Tests.Shared;
 
 namespace WiseOwl.Cobol.Tests.Unit.Listing;
@@ -31,14 +31,14 @@ internal sealed record NameTableShape(
     public IReadOnlyList<string> MadeOnlyByTable { get; init; } = [CobolName];
 
     public static NameTableShape Product { get; } = new(
-        ["WiseOwl.Cobol.Binding", "WiseOwl.Cobol.Compiler.Oo"],
-        "WiseOwl.Cobol.Binding.SymbolTable",
-        "WiseOwl.Cobol.Binding.CobolName",
-        "WiseOwl.Cobol.Binding.DeclarationFact",
+        ["WiseOwl.Cobol.Compiler.Binding", "WiseOwl.Cobol.Compiler.Oo"],
+        "WiseOwl.Cobol.Compiler.Binding.SymbolTable",
+        "WiseOwl.Cobol.Compiler.Binding.CobolName",
+        "WiseOwl.Cobol.Compiler.Binding.DeclarationFact",
         "WiseOwl.Cobol.Runtime.CobolNames",
-        ["WiseOwl.Cobol.Binding.SymbolId", "WiseOwl.Cobol.Binding.Model.WrittenDataName", "WiseOwl.Cobol.Binding.DataEntryPlace"])
+        ["WiseOwl.Cobol.Compiler.Binding.SymbolId", "WiseOwl.Cobol.Compiler.Binding.Model.WrittenDataName", "WiseOwl.Cobol.Compiler.Binding.DataEntryPlace"])
     {
-        MadeOnlyByTable = ["WiseOwl.Cobol.Binding.CobolName", "WiseOwl.Cobol.Binding.IdentifiedName", "WiseOwl.Cobol.Compiler.Oo.OoNameResult"],
+        MadeOnlyByTable = ["WiseOwl.Cobol.Compiler.Binding.CobolName", "WiseOwl.Cobol.Compiler.Binding.IdentifiedName", "WiseOwl.Cobol.Compiler.Oo.OoNameResult"],
     };
 }
 

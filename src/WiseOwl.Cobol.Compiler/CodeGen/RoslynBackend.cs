@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
 using WiseOwl.Cobol.Frontend.Common;
 
-namespace WiseOwl.Cobol.CodeGen;
+namespace WiseOwl.Cobol.Compiler.CodeGen;
 
 /// <summary>
 /// The C#-via-Roslyn backend (the primary <see cref="ICodeGenBackend"/>; P7 Step 1): renders the bound tree to

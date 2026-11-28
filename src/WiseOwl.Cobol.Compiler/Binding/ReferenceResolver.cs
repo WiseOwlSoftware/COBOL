@@ -4,18 +4,17 @@ using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Cst;
-using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Frontend.Parsing;
 
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 using WiseOwl.Cobol.Editions;
 
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 using Core = CobolParserCore;
 using WiseOwl.Cobol.Runtime;
-using WiseOwl.Cobol.Symbols;
+using WiseOwl.Cobol.Compiler.Symbols;
 
 /// <summary>
 /// Resolves a <c>dataReference</c> parse node to a <see cref="Place"/> — the single entry point every verb uses to
@@ -902,7 +901,7 @@ public sealed class ReferenceResolver
     internal bool IsExceptionObjectRegister(Core.DataReferenceContext dref) =>
         _data.Edition.Edition.Has(2002)
         && dref.dataReferenceSuffix().Length == 0
-        && Procedure.OoBinder.OoIsExceptionObject(dref.GetText(), _data.CobolWords);
+        && Procedure.Verbs.OoBinder.OoIsExceptionObject(dref.GetText(), _data.CobolWords);
 
     /// <summary>The place of one entry of the X3.23-1985 DEBUG-ITEM group (kb/Work PB4903), reached by the entry the group lists
     /// (MOVE CORRESPONDING's pair walk), or <see langword="null"/> for an item that is no register entry.</summary>

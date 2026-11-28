@@ -1,7 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 
-namespace WiseOwl.Cobol.Symbols;
+namespace WiseOwl.Cobol.Compiler.Symbols;
 
 /// <summary>
 /// ⛔ THE FINISHED SYMBOL TABLE (docs/rearchitecture/DESIGN-listing.md sections 4.1 and 6.7.1): every name the compilation

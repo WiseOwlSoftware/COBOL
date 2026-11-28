@@ -5,7 +5,7 @@
     kb/Work PB5923, PB5925). It references NO project of the solution, so a renderer cannot reach a binder, parser or
     emitter type: "renderers read only the model" is enforced by the compiler, and docs/rearchitecture/architecture-edges.json
     gives its namespaces their own lowest layer (ArchitectureEdgesDriftTests). The compiler references it and fills the model
-    (WiseOwl.Cobol.Compiler/Listing, namespace WiseOwl.Cobol.Listing.Building); a .NET tool may reference it to read a listing.
+    (WiseOwl.Cobol.Compiler/Listing, namespace WiseOwl.Cobol.Compiler.Listing); a .NET tool may reference it to read a listing.
     TargetFramework / LangVersion / Nullable / ImplicitUsings / TreatWarningsAsErrors come from Directory.Build.props.
   -->
   <PropertyGroup>

@@ -1,8 +1,10 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Frontend.Common;
 using WiseOwl.Cobol.Frontend.Preprocessor;
+using WiseOwl.Cobol.Listing;
 
-namespace WiseOwl.Cobol.Listing.Building;
+namespace WiseOwl.Cobol.Compiler.Listing;
 
 /// <summary>What the text stages' directive hooks mean for the listing's lines (DESIGN-listing.md sections 4.4 and 4.5), each
 /// in LISTING LINE numbers: the facts <see cref="ListingVisibility"/> decides visibility and page breaks from.</summary>
@@ -112,10 +114,10 @@ internal static class DirectiveEffectsBuilder
     }
 
     /// <summary>A resultant line as the listing prints it: the debugging-line carrier the text stages write ahead of a debugging
-    /// line's text (<see cref="ReferenceFormatProcessor.DebugLineCarrier"/>) is the compiler's own mark, not text, and trailing
+    /// line's text (<see cref="DebugLineCarrier.Text"/>) is the compiler's own mark, not text, and trailing
     /// spaces print as nothing.</summary>
     private static string Compiled(string resultantLine) =>
-        resultantLine.Replace(ReferenceFormatProcessor.DebugLineCarrier, "", StringComparison.Ordinal).TrimEnd(' ');
+        resultantLine.Replace(DebugLineCarrier.Text, "", StringComparison.Ordinal).TrimEnd(' ');
 
     private static int At(ListingLineIndex index, int? inclusion, int fileLine, string what) =>
         index.Of(inclusion, fileLine) ?? throw Unplaced($"{what} on line {fileLine} of inclusion {inclusion?.ToString() ?? "(source)"}");

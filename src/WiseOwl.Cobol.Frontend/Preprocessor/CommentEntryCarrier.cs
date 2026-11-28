@@ -19,7 +19,7 @@ namespace WiseOwl.Cobol.Frontend.Preprocessor;
 /// as a COMMENT (the <c>*&gt;</c> floating comment indicator and a Unicode noncharacter, so no comment a programmer writes
 /// is one), holding the physical line itself. A comment-entry is arbitrary text (an apostrophe in a name, an unclosed
 /// quotation mark), so it must stay out of every scanner until the decision is made.</para>
-/// <para>The carrier is the same device as <see cref="ReferenceFormatProcessor.DebugLineCarrier"/> (a fixed-form
+/// <para>The carrier is the same device as <see cref="DebugLineCarrier.Text"/> (a fixed-form
 /// debugging line, whose reading the unit's WITH DEBUGGING MODE decides further down the text): a line the conversion
 /// cannot yet classify, kept as an inert slot of the logical text. Layout after <see cref="Prefix"/>:
 /// <c>H|B</c> (the header line of the paragraph, or a line of its entry), <c>F|R</c> (fixed or free reference format),
@@ -31,7 +31,7 @@ namespace WiseOwl.Cobol.Frontend.Preprocessor;
 internal static class CommentEntryCarrier
 {
     /// <summary>The start of every carrier line. U+FDD1 is a Unicode NONCHARACTER, reserved for process-internal use and
-    /// never in interchanged text (as <see cref="ReferenceFormatProcessor.DebugLineCarrier"/>'s U+FDD0 is).</summary>
+    /// never in interchanged text (as <see cref="DebugLineCarrier.Text"/>'s U+FDD0 is).</summary>
     public static readonly string Prefix = CobolSourceText.CommentIndicator + (char)0xFDD1 + "ENTRY ";
 
     /// <summary>One carried physical line, read back.</summary>

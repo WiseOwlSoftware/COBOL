@@ -2,8 +2,9 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Frontend;
 using WiseOwl.Cobol.Frontend.Preprocessor;
+using WiseOwl.Cobol.Listing;
 
-namespace WiseOwl.Cobol.Listing.Building;
+namespace WiseOwl.Cobol.Compiler.Listing;
 
 /// <summary>One source line while the listing is being built: what <see cref="SourceSectionBuilder"/> reads off the files,
 /// then what the later builders decide of it (its program, its replacement, its visibility).</summary>

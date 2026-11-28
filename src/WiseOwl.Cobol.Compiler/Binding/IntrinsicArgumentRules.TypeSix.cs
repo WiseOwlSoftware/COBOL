@@ -1,11 +1,11 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Numerics;
-using WiseOwl.Cobol.Binding.Bound;
-using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.Binding.Procedure;
+using WiseOwl.Cobol.Compiler.Binding.Bound;
+using WiseOwl.Cobol.Compiler.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Procedure;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 /// <summary>⛔ THE TYPE 6 CLASSIFIER: "is this arithmetic expression always an integer", answered PROVEN, REFUTED or UNDECIDED by a
 /// polynomial normal form (kb/Work PB5886, PB5891, PB5889; docs/INTRINSICS_DESIGN.md, the type-6 intake, which states the design this

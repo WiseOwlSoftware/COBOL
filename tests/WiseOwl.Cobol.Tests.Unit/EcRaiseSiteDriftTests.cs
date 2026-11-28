@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
-using WiseOwl.Cobol.Binding;
+using WiseOwl.Cobol.Compiler.Binding;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;

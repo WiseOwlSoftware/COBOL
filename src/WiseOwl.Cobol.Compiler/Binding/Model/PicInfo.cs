@@ -1,11 +1,11 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Common;
+using WiseOwl.Cobol.Frontend.Common;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Runtime;
 
-namespace WiseOwl.Cobol.Binding.Model;
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// <summary>The data category a PICTURE describes (ISO/IEC 1989:2023 §2023:8.4.2).</summary>
 public enum PicCategory
@@ -504,6 +504,21 @@ public sealed record PicInfo(
     /// parser (the analyzer validated the form; consumers read it through the runtime type).</summary>
     public bool IsFloatEdited { get; init; }
 
+    /// <summary>The 2002-introduction gate this PICTURE's SHAPE carries, or null when the shape is version-invariant: the
+    /// ONE answer every Analyze site asks (the forest and report printable items, <c>VersionConformancePass.GateDataItem</c>,
+    /// and the report SUM counter's scale picture, <c>ReportSumModel.SkeletonGate</c>, whose PicInfo is otherwise
+    /// discarded). The floating-point numeric-edited form (symbol E, data-model design D21, kb/Work PB66) keys on
+    /// <see cref="IsFloatEdited"/>; NATIONAL-EDITED (§2023:8.5.2.11, §2023:13.18.40.4 GR10, kb/Work PB492) on the
+    /// category-national picture's edit mask, which is what the category IS in this model (the same
+    /// <c>{ Category, EditMask: not null }</c> pair alphanumeric-edited uses). A fact of the analysed picture, so it
+    /// lives on the picture, and the binder asks it without reading the validation layer (kb/Work PB2421). A METHOD, never a
+    /// property: a property joins the record's synthesized text, which <c>StrongTypeModel</c>'s type-identity key compiles
+    /// into the program, so a derived property would change every strong type's emitted key.</summary>
+    public string? ConstructId() =>
+        IsFloatEdited ? Constructs.PicExternalFloat2002
+        : this is { Category: PicCategory.National, EditMask: not null } ? Constructs.NationalEdited2002
+        : null;
+
     /// <summary>The digit positions of a FLOATING-POINT numeric-edited item's significand (<c>CobolEdit.FloatMask.SigDigits</c>,
     /// §2023:13.18.40.3 SR15); 0 for every other item. The compile-time reader of the ONE mask parser, so a final-transfer
     /// quotient can ask whether the receiver is coarse enough for a 34-digit round-to-odd quotient (kb/Work PB4641).</summary>
@@ -793,7 +808,7 @@ public sealed record PicInfo(
     /// <see cref="Scale"/> is 0); everything else <see cref="Scale"/>. ⛔ A FLOATING-POINT edited receiver rides the
     /// mask arm too, and what it answers is a WORKING-SCALE HINT, not a decimal point location: the item has no fixed
     /// scale (its <see cref="Scale"/> is 0), its value is a significand at its own exponent, and the hint only sizes an
-    /// intermediate's landing (<see cref="WiseOwl.Cobol.CodeGen.ReceiverContext.FloatEdited"/>). A rule that needs the item's
+    /// intermediate's landing (<see cref="WiseOwl.Cobol.Compiler.CodeGen.Roslyn.ReceiverContext.FloatEdited"/>). A rule that needs the item's
     /// SHAPE - DIVIDE ... REMAINDER's subsidiary quotient, §2023:14.9.12.4 GR6c - asks the form first
     /// (<c>ArithmeticEmitter.SubsidiaryShapeOf</c>), never this scale (kb/Work PB2923).</summary>
     public int ReceiverScale() =>

@@ -2,332 +2,332 @@
   "note": "NameTableOwnershipDriftTests rule (5), docs/rearchitecture/DESIGN-listing.md section 6.7.1: each comparison of COBOL names outside SymbolTable that is not a resolution or a declaration question, with its class (KEYWORD, SAMESYMBOL, EXTERNAL, MESSAGE) and reason. A site is its kind, file, enclosing member and text, so it survives a line moving. The file only shrinks (its ceiling is in the test).",
   "sites": [
     {
-      "site": "NAMEEQ Binding/DataBinder.Ptr.cs WiseOwl.Cobol.Binding.DataBinder.AlreadyInACell b.BackingClrName == ext.BackingClrName",
+      "site": "NAMEEQ Binding/DataBinder.Ptr.cs WiseOwl.Cobol.Compiler.Binding.DataBinder.AlreadyInACell b.BackingClrName == ext.BackingClrName",
       "class": "SAMESYMBOL",
       "reason": "compares two symbols already resolved (type equivalence, conformance, control identity): no written name is resolved"
     },
     {
-      "site": "NAMEEQ Binding/MetadataRepositoryProvider.cs WiseOwl.Cobol.Binding.MetadataRepositoryProvider.NamespaceCollision CsNames.ModuleNamespaceOf(output).ClrName == module.ClrName",
+      "site": "NAMEEQ Binding/MetadataRepositoryProvider.cs WiseOwl.Cobol.Compiler.Binding.MetadataRepositoryProvider.NamespaceCollision CsNames.ModuleNamespaceOf(output).ClrName == module.ClrName",
       "class": "EXTERNAL",
       "reason": "compares externalized names or repository-record names from compiled metadata: identity across compilations, not a reference written in this program"
     },
     {
-      "site": "NAMEEQ Binding/MetadataRepositoryProvider.cs WiseOwl.Cobol.Binding.MetadataRepositoryProvider.NamespaceCollision from.ClrNamespace == module.ClrName",
+      "site": "NAMEEQ Binding/MetadataRepositoryProvider.cs WiseOwl.Cobol.Compiler.Binding.MetadataRepositoryProvider.NamespaceCollision from.ClrNamespace == module.ClrName",
       "class": "EXTERNAL",
       "reason": "compares externalized names or repository-record names from compiled metadata: identity across compilations, not a reference written in this program"
     },
     {
-      "site": "NAMEEQ Binding/Model/ExpansionPlacements.cs WiseOwl.Cobol.Binding.Model.ExpansionPlacements.LivesElsewhere p.LocalFactoryName == clrName",
+      "site": "NAMEEQ Binding/Model/ExpansionPlacements.cs WiseOwl.Cobol.Compiler.Binding.Model.ExpansionPlacements.LivesElsewhere p.LocalFactoryName == clrName",
       "class": "EXTERNAL",
       "reason": "compares externalized names or repository-record names from compiled metadata: identity across compilations, not a reference written in this program"
     },
     {
-      "site": "NAMEEQ Binding/Model/ExpansionPlacements.cs WiseOwl.Cobol.Binding.Model.ExpansionPlacements.LivesElsewhere p.LocalName == clrName",
+      "site": "NAMEEQ Binding/Model/ExpansionPlacements.cs WiseOwl.Cobol.Compiler.Binding.Model.ExpansionPlacements.LivesElsewhere p.LocalName == clrName",
       "class": "EXTERNAL",
       "reason": "compares externalized names or repository-record names from compiled metadata: identity across compilations, not a reference written in this program"
     },
     {
-      "site": "NAMEEQ Binding/Model/ImportedTypes.cs WiseOwl.Cobol.Binding.Model.ImportedTypes.Declares c.ClrName == clrName",
+      "site": "NAMEEQ Binding/Model/ImportedTypes.cs WiseOwl.Cobol.Compiler.Binding.Model.ImportedTypes.Declares c.ClrName == clrName",
       "class": "SAMESYMBOL",
       "reason": "compares two symbols already resolved (type equivalence, conformance, control identity): no written name is resolved"
     },
     {
-      "site": "NAMEEQ Binding/Model/ImportedTypes.cs WiseOwl.Cobol.Binding.Model.ImportedTypes.Declares c.FactoryClrName == clrName",
+      "site": "NAMEEQ Binding/Model/ImportedTypes.cs WiseOwl.Cobol.Compiler.Binding.Model.ImportedTypes.Declares c.FactoryClrName == clrName",
       "class": "SAMESYMBOL",
       "reason": "compares two symbols already resolved (type equivalence, conformance, control identity): no written name is resolved"
     },
     {
-      "site": "NAMEEQ Binding/Model/ImportedTypes.cs WiseOwl.Cobol.Binding.Model.ImportedTypes.Declares i.ClrName == clrName",
+      "site": "NAMEEQ Binding/Model/ImportedTypes.cs WiseOwl.Cobol.Compiler.Binding.Model.ImportedTypes.Declares i.ClrName == clrName",
       "class": "SAMESYMBOL",
       "reason": "compares two symbols already resolved (type equivalence, conformance, control identity): no written name is resolved"
     },
     {
-      "site": "NAMEEQ Binding/Model/IntrinsicCarrierFacts.cs WiseOwl.Cobol.Binding.Model.IntrinsicCarrierFacts.Equals Name == other.Name",
+      "site": "NAMEEQ Binding/Model/IntrinsicCarrierFacts.cs WiseOwl.Cobol.Compiler.Binding.Model.IntrinsicCarrierFacts.Equals Name == other.Name",
       "class": "KEYWORD",
       "reason": "compares a written word with a fixed word of the standard or the implementor (FILLER, ZERO, NEW, an intrinsic function, exception or implementor-name, a register keyword): no user-defined name is resolved"
     },
     {
-      "site": "NAMEEQ Binding/Model/ObjectRefDescriptor.cs WiseOwl.Cobol.Binding.Model.ObjectRefDescriptor.Equals Name == other.Name",
+      "site": "NAMEEQ Binding/Model/ObjectRefDescriptor.cs WiseOwl.Cobol.Compiler.Binding.Model.ObjectRefDescriptor.Equals Name == other.Name",
       "class": "SAMESYMBOL",
       "reason": "compares two symbols already resolved (type equivalence, conformance, control identity): no written name is resolved"
     },
     {
-      "site": "NAMEEQ Binding/Model/OoMethodBinding.cs WiseOwl.Cobol.Binding.Model.OoMethodBinding.FormalName f.ParamName == name",
+      "site": "NAMEEQ Binding/Model/OoMethodBinding.cs WiseOwl.Cobol.Compiler.Binding.Model.OoMethodBinding.FormalName f.ParamName == name",
       "class": "SAMESYMBOL",
       "reason": "compares two symbols already resolved (type equivalence, conformance, control identity): no written name is resolved"
     },
     {
-      "site": "NAMEEQ Binding/Passes/RouteStaticUnitStoragePass.cs WiseOwl.Cobol.Binding.Passes.RouteStaticUnitStoragePass.RouteStaticRoot b.BackingClrName == cls.BackingClrName",
+      "site": "NAMEEQ Binding/Passes/RouteStaticUnitStoragePass.cs WiseOwl.Cobol.Compiler.Binding.Passes.RouteStaticUnitStoragePass.RouteStaticRoot b.BackingClrName == cls.BackingClrName",
       "class": "SAMESYMBOL",
       "reason": "compares two symbols already resolved (type equivalence, conformance, control identity): no written name is resolved"
     },
     {
-      "site": "NAMEEQ Binding/Procedure/Verbs/ConditionBinder.cs WiseOwl.Cobol.Binding.Procedure.ConditionBinder.StaticBoolCallWidth c.Call.Sig.Name == \"BOOLEAN-OF-INTEGER\"",
+      "site": "NAMEEQ Binding/Procedure/Verbs/ConditionBinder.cs WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.ConditionBinder.StaticBoolCallWidth c.Call.Sig.Name == \"BOOLEAN-OF-INTEGER\"",
       "class": "KEYWORD",
       "reason": "compares a written word with a fixed word of the standard or the implementor (FILLER, ZERO, NEW, an intrinsic function, exception or implementor-name, a register keyword): no user-defined name is resolved"
     },
     {
-      "site": "NAMEEQ Binding/Procedure/Verbs/IntrinsicBinder.cs WiseOwl.Cobol.Binding.Procedure.IntrinsicBinder.AlgebraicArgError sig.Name == \"SMALLEST-ALGEBRAIC\"",
+      "site": "NAMEEQ Binding/Procedure/Verbs/IntrinsicBinder.cs WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.IntrinsicBinder.AlgebraicArgError sig.Name == \"SMALLEST-ALGEBRAIC\"",
       "class": "KEYWORD",
       "reason": "compares a written word with a fixed word of the standard or the implementor (FILLER, ZERO, NEW, an intrinsic function, exception or implementor-name, a register keyword): no user-defined name is resolved"
     },
     {
-      "site": "NAMEEQ Binding/Procedure/Verbs/IntrinsicBinder.cs WiseOwl.Cobol.Binding.Procedure.IntrinsicBinder.BindAlgebraicFold sig.Name != \"SMALLEST-ALGEBRAIC\"",
+      "site": "NAMEEQ Binding/Procedure/Verbs/IntrinsicBinder.cs WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.IntrinsicBinder.BindAlgebraicFold sig.Name != \"SMALLEST-ALGEBRAIC\"",
       "class": "KEYWORD",
       "reason": "compares a written word with a fixed word of the standard or the implementor (FILLER, ZERO, NEW, an intrinsic function, exception or implementor-name, a register keyword): no user-defined name is resolved"
     },
     {
-      "site": "NAMEEQ Binding/Procedure/Verbs/IntrinsicBinder.cs WiseOwl.Cobol.Binding.Procedure.IntrinsicBinder.BindCaseFunctionWithLocale sig.Name == \"UPPER-CASE\"",
+      "site": "NAMEEQ Binding/Procedure/Verbs/IntrinsicBinder.cs WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.IntrinsicBinder.BindCaseFunctionWithLocale sig.Name == \"UPPER-CASE\"",
       "class": "KEYWORD",
       "reason": "compares a written word with a fixed word of the standard or the implementor (FILLER, ZERO, NEW, an intrinsic function, exception or implementor-name, a register keyword): no user-defined name is resolved"
     },
     {
-      "site": "NAMEEQ Binding/Procedure/Verbs/IntrinsicBinder.cs WiseOwl.Cobol.Binding.Procedure.IntrinsicBinder.BindExceptionFileArg sig.Name == \"EXCEPTION-FILE\"",
+      "site": "NAMEEQ Binding/Procedure/Verbs/IntrinsicBinder.cs WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.IntrinsicBinder.BindExceptionFileArg sig.Name == \"EXCEPTION-FILE\"",
       "class": "KEYWORD",
       "reason": "compares a written word with a fixed word of the standard or the implementor (FILLER, ZERO, NEW, an intrinsic function, exception or implementor-name, a register keyword): no user-defined name is resolved"
     },
     {
-      "site": "NAMEEQ Binding/Procedure/Verbs/IntrinsicBinder.cs WiseOwl.Cobol.Binding.Procedure.IntrinsicBinder.BindExceptionFileArg sig.Name == \"EXCEPTION-FILE\" #2",
+      "site": "NAMEEQ Binding/Procedure/Verbs/IntrinsicBinder.cs WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.IntrinsicBinder.BindExceptionFileArg sig.Name == \"EXCEPTION-FILE\" #2",
       "class": "KEYWORD",
       "reason": "compares a written word with a fixed word of the standard or the implementor (FILLER, ZERO, NEW, an intrinsic function, exception or implementor-name, a register keyword): no user-defined name is resolved"
     },
     {
-      "site": "NAMEEQ Binding/Procedure/Verbs/IntrinsicBinder.cs WiseOwl.Cobol.Binding.Procedure.IntrinsicBinder.BindFunctionResult sig.Name == \"CONCAT\"",
+      "site": "NAMEEQ Binding/Procedure/Verbs/IntrinsicBinder.cs WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.IntrinsicBinder.BindFunctionResult sig.Name == \"CONCAT\"",
       "class": "KEYWORD",
       "reason": "compares a written word with a fixed word of the standard or the implementor (FILLER, ZERO, NEW, an intrinsic function, exception or implementor-name, a register keyword): no user-defined name is resolved"
     },
     {
-      "site": "NAMEEQ Binding/Procedure/Verbs/IntrinsicBinder.cs WiseOwl.Cobol.Binding.Procedure.IntrinsicBinder.BindFunctionResult sig.Name == \"CONVERT\"",
+      "site": "NAMEEQ Binding/Procedure/Verbs/IntrinsicBinder.cs WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.IntrinsicBinder.BindFunctionResult sig.Name == \"CONVERT\"",
       "class": "KEYWORD",
       "reason": "compares a written word with a fixed word of the standard or the implementor (FILLER, ZERO, NEW, an intrinsic function, exception or implementor-name, a register keyword): no user-defined name is resolved"
     },
     {
-      "site": "NAMEEQ Binding/Procedure/Verbs/IntrinsicBinder.cs WiseOwl.Cobol.Binding.Procedure.IntrinsicBinder.BindFunctionResult sig.Name == \"FIND-STRING\"",
+      "site": "NAMEEQ Binding/Procedure/Verbs/IntrinsicBinder.cs WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.IntrinsicBinder.BindFunctionResult sig.Name == \"FIND-STRING\"",
       "class": "KEYWORD",
       "reason": "compares a written word with a fixed word of the standard or the implementor (FILLER, ZERO, NEW, an intrinsic function, exception or implementor-name, a register keyword): no user-defined name is resolved"
     },
     {
-      "site": "NAMEEQ Binding/Procedure/Verbs/IntrinsicBinder.cs WiseOwl.Cobol.Binding.Procedure.IntrinsicBinder.BindFunctionResult sig.Name == \"FORMATTED-DATETIME\"",
+      "site": "NAMEEQ Binding/Procedure/Verbs/IntrinsicBinder.cs WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.IntrinsicBinder.BindFunctionResult sig.Name == \"FORMATTED-DATETIME\"",
       "class": "KEYWORD",
       "reason": "compares a written word with a fixed word of the standard or the implementor (FILLER, ZERO, NEW, an intrinsic function, exception or implementor-name, a register keyword): no user-defined name is resolved"
     },
     {
-      "site": "NAMEEQ Binding/Procedure/Verbs/IntrinsicBinder.cs WiseOwl.Cobol.Binding.Procedure.IntrinsicBinder.BindFunctionResult sig.Name == \"MODULE-NAME\"",
+      "site": "NAMEEQ Binding/Procedure/Verbs/IntrinsicBinder.cs WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.IntrinsicBinder.BindFunctionResult sig.Name == \"MODULE-NAME\"",
       "class": "KEYWORD",
       "reason": "compares a written word with a fixed word of the standard or the implementor (FILLER, ZERO, NEW, an intrinsic function, exception or implementor-name, a register keyword): no user-defined name is resolved"
     },
     {
-      "site": "NAMEEQ Binding/Procedure/Verbs/IntrinsicBinder.cs WiseOwl.Cobol.Binding.Procedure.IntrinsicBinder.BindFunctionResult sig.Name == \"STANDARD-COMPARE\"",
+      "site": "NAMEEQ Binding/Procedure/Verbs/IntrinsicBinder.cs WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.IntrinsicBinder.BindFunctionResult sig.Name == \"STANDARD-COMPARE\"",
       "class": "KEYWORD",
       "reason": "compares a written word with a fixed word of the standard or the implementor (FILLER, ZERO, NEW, an intrinsic function, exception or implementor-name, a register keyword): no user-defined name is resolved"
     },
     {
-      "site": "NAMEEQ Binding/Procedure/Verbs/IntrinsicBinder.cs WiseOwl.Cobol.Binding.Procedure.IntrinsicBinder.BindFunctionResult sig.Name == \"SUBSTITUTE\"",
+      "site": "NAMEEQ Binding/Procedure/Verbs/IntrinsicBinder.cs WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.IntrinsicBinder.BindFunctionResult sig.Name == \"SUBSTITUTE\"",
       "class": "KEYWORD",
       "reason": "compares a written word with a fixed word of the standard or the implementor (FILLER, ZERO, NEW, an intrinsic function, exception or implementor-name, a register keyword): no user-defined name is resolved"
     },
     {
-      "site": "NAMEEQ Binding/Procedure/Verbs/IntrinsicBinder.cs WiseOwl.Cobol.Binding.Procedure.IntrinsicBinder.BindFunctionResult sig.Name == \"TRIM\"",
+      "site": "NAMEEQ Binding/Procedure/Verbs/IntrinsicBinder.cs WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.IntrinsicBinder.BindFunctionResult sig.Name == \"TRIM\"",
       "class": "KEYWORD",
       "reason": "compares a written word with a fixed word of the standard or the implementor (FILLER, ZERO, NEW, an intrinsic function, exception or implementor-name, a register keyword): no user-defined name is resolved"
     },
     {
-      "site": "NAMEEQ Binding/Procedure/Verbs/IntrinsicBinder.cs WiseOwl.Cobol.Binding.Procedure.IntrinsicBinder.BindLengthFamily sig.Name == \"BYTE-LENGTH\"",
+      "site": "NAMEEQ Binding/Procedure/Verbs/IntrinsicBinder.cs WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.IntrinsicBinder.BindLengthFamily sig.Name == \"BYTE-LENGTH\"",
       "class": "KEYWORD",
       "reason": "compares a written word with a fixed word of the standard or the implementor (FILLER, ZERO, NEW, an intrinsic function, exception or implementor-name, a register keyword): no user-defined name is resolved"
     },
     {
-      "site": "NAMEEQ Binding/Procedure/Verbs/IntrinsicBinder.cs WiseOwl.Cobol.Binding.Procedure.IntrinsicBinder.BindNumvalCFamily sig.Name == \"NUMVAL-C\"",
+      "site": "NAMEEQ Binding/Procedure/Verbs/IntrinsicBinder.cs WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.IntrinsicBinder.BindNumvalCFamily sig.Name == \"NUMVAL-C\"",
       "class": "KEYWORD",
       "reason": "compares a written word with a fixed word of the standard or the implementor (FILLER, ZERO, NEW, an intrinsic function, exception or implementor-name, a register keyword): no user-defined name is resolved"
     },
     {
-      "site": "NAMEEQ Binding/Procedure/Verbs/IntrinsicBinder.cs WiseOwl.Cobol.Binding.Procedure.IntrinsicBinder.CheckArgumentClasses sig.Name == \"CONCAT\"",
+      "site": "NAMEEQ Binding/Procedure/Verbs/IntrinsicBinder.cs WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.IntrinsicBinder.CheckArgumentClasses sig.Name == \"CONCAT\"",
       "class": "KEYWORD",
       "reason": "compares a written word with a fixed word of the standard or the implementor (FILLER, ZERO, NEW, an intrinsic function, exception or implementor-name, a register keyword): no user-defined name is resolved"
     },
     {
-      "site": "NAMEEQ Binding/Procedure/Verbs/IntrinsicBinder.cs WiseOwl.Cobol.Binding.Procedure.IntrinsicBinder.CheckRepertoireArgs sig.Name == \"NATIONAL-OF\"",
+      "site": "NAMEEQ Binding/Procedure/Verbs/IntrinsicBinder.cs WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.IntrinsicBinder.CheckRepertoireArgs sig.Name == \"NATIONAL-OF\"",
       "class": "KEYWORD",
       "reason": "compares a written word with a fixed word of the standard or the implementor (FILLER, ZERO, NEW, an intrinsic function, exception or implementor-name, a register keyword): no user-defined name is resolved"
     },
     {
-      "site": "NAMEEQ Binding/Repository/RepositoryReader.cs WiseOwl.Cobol.Binding.Repository.RepositoryReader.Read r.Name == row.Word",
+      "site": "NAMEEQ Binding/Repository/RepositoryReader.cs WiseOwl.Cobol.Compiler.Binding.Repository.RepositoryReader.Read r.Name == row.Word",
       "class": "EXTERNAL",
       "reason": "compares externalized names or repository-record names from compiled metadata: identity across compilations, not a reference written in this program"
     },
     {
-      "site": "NAMEEQ CodeGen/Emit/FunctionDeviceText.cs WiseOwl.Cobol.CodeGen.Emit.FunctionDeviceText.Describes ic.Sig.Name != \"MEAN\"",
+      "site": "NAMEEQ CodeGen/Emit/FunctionDeviceText.cs WiseOwl.Cobol.Compiler.CodeGen.Emit.FunctionDeviceText.Describes ic.Sig.Name != \"MEAN\"",
       "class": "KEYWORD",
       "reason": "compares a written word with a fixed word of the standard or the implementor (FILLER, ZERO, NEW, an intrinsic function, exception or implementor-name, a register keyword): no user-defined name is resolved"
     },
     {
-      "site": "NAMEEQ CodeGen/Emit/IntrinsicRenderer.cs WiseOwl.Cobol.CodeGen.Emit.IntrinsicRenderer.RenderNum sig.Name == \"E\"",
+      "site": "NAMEEQ CodeGen/Emit/IntrinsicRenderer.cs WiseOwl.Cobol.Compiler.CodeGen.Emit.IntrinsicRenderer.RenderNum sig.Name == \"E\"",
       "class": "KEYWORD",
       "reason": "compares a written word with a fixed word of the standard or the implementor (FILLER, ZERO, NEW, an intrinsic function, exception or implementor-name, a register keyword): no user-defined name is resolved"
     },
     {
-      "site": "NAMEEQ CodeGen/Emit/IntrinsicRenderer.cs WiseOwl.Cobol.CodeGen.Emit.IntrinsicRenderer.RenderNum sig.Name == \"PI\"",
+      "site": "NAMEEQ CodeGen/Emit/IntrinsicRenderer.cs WiseOwl.Cobol.Compiler.CodeGen.Emit.IntrinsicRenderer.RenderNum sig.Name == \"PI\"",
       "class": "KEYWORD",
       "reason": "compares a written word with a fixed word of the standard or the implementor (FILLER, ZERO, NEW, an intrinsic function, exception or implementor-name, a register keyword): no user-defined name is resolved"
     },
     {
-      "site": "NAMEEQ CodeGen/Emit/IntrinsicRenderer.cs WiseOwl.Cobol.CodeGen.Emit.IntrinsicRenderer.RenderNum sig.Name == \"EXP\"",
+      "site": "NAMEEQ CodeGen/Emit/IntrinsicRenderer.cs WiseOwl.Cobol.Compiler.CodeGen.Emit.IntrinsicRenderer.RenderNum sig.Name == \"EXP\"",
       "class": "KEYWORD",
       "reason": "compares a written word with a fixed word of the standard or the implementor (FILLER, ZERO, NEW, an intrinsic function, exception or implementor-name, a register keyword): no user-defined name is resolved"
     },
     {
-      "site": "NAMEEQ CodeGen/Emit/IntrinsicRenderer.cs WiseOwl.Cobol.CodeGen.Emit.IntrinsicRenderer.RenderNum sig.Name == \"EXP10\"",
+      "site": "NAMEEQ CodeGen/Emit/IntrinsicRenderer.cs WiseOwl.Cobol.Compiler.CodeGen.Emit.IntrinsicRenderer.RenderNum sig.Name == \"EXP10\"",
       "class": "KEYWORD",
       "reason": "compares a written word with a fixed word of the standard or the implementor (FILLER, ZERO, NEW, an intrinsic function, exception or implementor-name, a register keyword): no user-defined name is resolved"
     },
     {
-      "site": "NAMEEQ CodeGen/ProgramEmitter.cs WiseOwl.Cobol.CodeGen.ProgramEmitter.EmitModuleRegistrar string.Equals(u.ExternalizedName, u.Name, StringComparison.Ordinal)",
+      "site": "NAMEEQ CodeGen/ProgramEmitter.cs WiseOwl.Cobol.Compiler.CodeGen.ProgramEmitter.EmitModuleRegistrar string.Equals(u.ExternalizedName, u.Name, StringComparison.Ordinal)",
       "class": "EXTERNAL",
       "reason": "compares externalized names or repository-record names from compiled metadata: identity across compilations, not a reference written in this program"
     },
     {
-      "site": "NAMEEQ CodeGen/Roslyn/PlaceIdentification.cs WiseOwl.Cobol.CodeGen.PlaceIdentification.FreezeView cr.MemberClrName == root.MemberClrName",
+      "site": "NAMEEQ CodeGen/Roslyn/PlaceIdentification.cs WiseOwl.Cobol.Compiler.CodeGen.Roslyn.PlaceIdentification.FreezeView cr.MemberClrName == root.MemberClrName",
       "class": "SAMESYMBOL",
       "reason": "compares two symbols already resolved (type equivalence, conformance, control identity): no written name is resolved"
     },
     {
-      "site": "NAMEEQ CodeGen/Verbs/OoEmitter.cs WiseOwl.Cobol.CodeGen.OoEmitter.OoReturnClrType baseClr.TrimEnd('?') == ObjectRefDescriptor.UniversalClrName",
+      "site": "NAMEEQ CodeGen/Verbs/OoEmitter.cs WiseOwl.Cobol.Compiler.CodeGen.Verbs.OoEmitter.OoReturnClrType baseClr.TrimEnd('?') == ObjectRefDescriptor.UniversalClrName",
       "class": "SAMESYMBOL",
       "reason": "compares two symbols already resolved (type equivalence, conformance, control identity): no written name is resolved"
     },
     {
-      "site": "SAME Binding/ConstantEntryBinder.cs WiseOwl.Cobol.Binding.ConstantEntryBinder.BindDeclaredConstant CobolNames.Same(name, \"FILLER\")",
+      "site": "SAME Binding/ConstantEntryBinder.cs WiseOwl.Cobol.Compiler.Binding.ConstantEntryBinder.BindDeclaredConstant CobolNames.Same(name, \"FILLER\")",
       "class": "KEYWORD",
       "reason": "compares a written word with a fixed word of the standard or the implementor (FILLER, ZERO, NEW, an intrinsic function, exception or implementor-name, a register keyword): no user-defined name is resolved"
     },
     {
-      "site": "SAME Binding/ConstantEntryBinder.cs WiseOwl.Cobol.Binding.ConstantEntryBinder.DeclareConstant CobolNames.Same(name, \"FILLER\")",
+      "site": "SAME Binding/ConstantEntryBinder.cs WiseOwl.Cobol.Compiler.Binding.ConstantEntryBinder.DeclareConstant CobolNames.Same(name, \"FILLER\")",
       "class": "KEYWORD",
       "reason": "compares a written word with a fixed word of the standard or the implementor (FILLER, ZERO, NEW, an intrinsic function, exception or implementor-name, a register keyword): no user-defined name is resolved"
     },
     {
-      "site": "SAME Binding/DataBinder.EntryOrder.cs WiseOwl.Cobol.Binding.DataBinder.DeclareRun CobolNames.Same(name, \"FILLER\")",
+      "site": "SAME Binding/DataBinder.EntryOrder.cs WiseOwl.Cobol.Compiler.Binding.DataBinder.DeclareRun CobolNames.Same(name, \"FILLER\")",
       "class": "KEYWORD",
       "reason": "compares a written word with a fixed word of the standard or the implementor (FILLER, ZERO, NEW, an intrinsic function, exception or implementor-name, a register keyword): no user-defined name is resolved"
     },
     {
-      "site": "SAME Binding/DataBinder.cs WiseOwl.Cobol.Binding.DataBinder.BindEntry CobolNames.Same(cobolName, \"FILLER\")",
+      "site": "SAME Binding/DataBinder.cs WiseOwl.Cobol.Compiler.Binding.DataBinder.BindEntry CobolNames.Same(cobolName, \"FILLER\")",
       "class": "KEYWORD",
       "reason": "compares a written word with a fixed word of the standard or the implementor (FILLER, ZERO, NEW, an intrinsic function, exception or implementor-name, a register keyword): no user-defined name is resolved"
     },
     {
-      "site": "SAME Binding/ImplementorCodeNames.cs WiseOwl.Cobol.Binding.ImplementorCodeNames.Find CobolNames.Same(row.Name, word)",
+      "site": "SAME Binding/ImplementorCodeNames.cs WiseOwl.Cobol.Compiler.Binding.ImplementorCodeNames.Find CobolNames.Same(row.Name, word)",
       "class": "KEYWORD",
       "reason": "compares a written word with a fixed word of the standard or the implementor (FILLER, ZERO, NEW, an intrinsic function, exception or implementor-name, a register keyword): no user-defined name is resolved"
     },
     {
-      "site": "SAME Binding/IntrinsicArgumentRules.cs WiseOwl.Cobol.Binding.IntrinsicArgumentRules.UnsignedIntegerViolation CobolNames.Same(name, \"ABS\")",
+      "site": "SAME Binding/IntrinsicArgumentRules.cs WiseOwl.Cobol.Compiler.Binding.IntrinsicArgumentRules.UnsignedIntegerViolation CobolNames.Same(name, \"ABS\")",
       "class": "KEYWORD",
       "reason": "compares a written word with a fixed word of the standard or the implementor (FILLER, ZERO, NEW, an intrinsic function, exception or implementor-name, a register keyword): no user-defined name is resolved"
     },
     {
-      "site": "CMP Binding/Model/ExternalizedMethodName.cs WiseOwl.Cobol.Binding.Model.ExternalizedMethodName.Rule Comparer",
+      "site": "CMP Binding/Model/ExternalizedMethodName.cs WiseOwl.Cobol.Compiler.Binding.Model.ExternalizedMethodName.Rule Comparer",
       "class": "EXTERNAL",
       "reason": "the one equality of a method's externalized name, the roster key an INVOKE's literal-1 names (ISO 14.9.23.4 GR2 a), 11.7.4 GR1 b)): the operating environment's name, not a word the program declares"
     },
     {
-      "site": "SAME Binding/Model/StrongTypeModel.cs WiseOwl.Cobol.Binding.Model.StrongTypeModel.EquivalentDeclarations CobolNames.Same(DeclaredTypeName(a), DeclaredTypeName(b))",
+      "site": "SAME Binding/Model/StrongTypeModel.cs WiseOwl.Cobol.Compiler.Binding.Model.StrongTypeModel.EquivalentDeclarations CobolNames.Same(DeclaredTypeName(a), DeclaredTypeName(b))",
       "class": "SAMESYMBOL",
       "reason": "compares two symbols already resolved (type equivalence, conformance, control identity): no written name is resolved"
     },
     {
-      "site": "SAME Binding/Model/StrongTypeModel.cs WiseOwl.Cobol.Binding.Model.StrongTypeModel.IsOpenDeclaration CobolNames.Same(open.TypeName, decl.CobolName)",
+      "site": "SAME Binding/Model/StrongTypeModel.cs WiseOwl.Cobol.Compiler.Binding.Model.StrongTypeModel.IsOpenDeclaration CobolNames.Same(open.TypeName, decl.CobolName)",
       "class": "SAMESYMBOL",
       "reason": "compares two symbols already resolved (type equivalence, conformance, control identity): no written name is resolved"
     },
     {
-      "site": "SAME Binding/Model/StrongTypeModel.cs WiseOwl.Cobol.Binding.Model.StrongTypeModel.SameRestriction CobolNames.Same(a.Name, b.Name)",
+      "site": "SAME Binding/Model/StrongTypeModel.cs WiseOwl.Cobol.Compiler.Binding.Model.StrongTypeModel.SameRestriction CobolNames.Same(a.Name, b.Name)",
       "class": "SAMESYMBOL",
       "reason": "compares two symbols already resolved (type equivalence, conformance, control identity): no written name is resolved"
     },
     {
-      "site": "SAME Binding/OptionsBinder.cs WiseOwl.Cobol.Binding.OptionsBinder.ScreenEntryConvention CobolNames.Same(name, \"COBOL\")",
+      "site": "SAME Binding/OptionsBinder.cs WiseOwl.Cobol.Compiler.Binding.OptionsBinder.ScreenEntryConvention CobolNames.Same(name, \"COBOL\")",
       "class": "KEYWORD",
       "reason": "compares a written word with a fixed word of the standard or the implementor (FILLER, ZERO, NEW, an intrinsic function, exception or implementor-name, a register keyword): no user-defined name is resolved"
     },
     {
-      "site": "SAME Binding/Procedure/Verbs/EcBinder.ExceptionPerform.cs WiseOwl.Cobol.Binding.Procedure.EcBinder.CheckDirectiveBans CobolNames.Same(b.Word, site.Word)",
+      "site": "SAME Binding/Procedure/Verbs/EcBinder.ExceptionPerform.cs WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.EcBinder.CheckDirectiveBans CobolNames.Same(b.Word, site.Word)",
       "class": "KEYWORD",
       "reason": "compares a written word with a fixed word of the standard or the implementor (FILLER, ZERO, NEW, an intrinsic function, exception or implementor-name, a register keyword): no user-defined name is resolved"
     },
     {
-      "site": "SAME Binding/Procedure/Verbs/EcBinder.cs WiseOwl.Cobol.Binding.Procedure.EcBinder.RaisingObjectMismatch CobolNames.Same(t.Name, c.Name)",
+      "site": "SAME Binding/Procedure/Verbs/EcBinder.cs WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.EcBinder.RaisingObjectMismatch CobolNames.Same(t.Name, c.Name)",
       "class": "SAMESYMBOL",
       "reason": "compares two symbols already resolved (type equivalence, conformance, control identity): no written name is resolved"
     },
     {
-      "site": "SAME Binding/Procedure/Verbs/OoBinder.cs WiseOwl.Cobol.Binding.Procedure.OoBinder.IsStandardNew CobolNames.Same(method, OoStandardClasses.NewMethodName)",
+      "site": "SAME Binding/Procedure/Verbs/OoBinder.cs WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.OoBinder.IsStandardNew CobolNames.Same(method, OoStandardClasses.NewMethodName)",
       "class": "KEYWORD",
       "reason": "compares a written word with a fixed word of the standard or the implementor (FILLER, ZERO, NEW, an intrinsic function, exception or implementor-name, a register keyword): no user-defined name is resolved"
     },
     {
-      "site": "SAME Binding/Procedure/Verbs/ReportWriterBinder.cs WiseOwl.Cobol.Binding.Procedure.ReportWriterBinder.RawNumber CobolNames.Same(text, \"ZERO\")",
+      "site": "SAME Binding/Procedure/Verbs/ReportWriterBinder.cs WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.ReportWriterBinder.RawNumber CobolNames.Same(text, \"ZERO\")",
       "class": "KEYWORD",
       "reason": "compares a written word with a fixed word of the standard or the implementor (FILLER, ZERO, NEW, an intrinsic function, exception or implementor-name, a register keyword): no user-defined name is resolved"
     },
     {
-      "site": "SAME Binding/Procedure/Verbs/ReportWriterBinder.cs WiseOwl.Cobol.Binding.Procedure.ReportWriterBinder.RawNumber CobolNames.Same(text, \"ZEROES\")",
+      "site": "SAME Binding/Procedure/Verbs/ReportWriterBinder.cs WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.ReportWriterBinder.RawNumber CobolNames.Same(text, \"ZEROES\")",
       "class": "KEYWORD",
       "reason": "compares a written word with a fixed word of the standard or the implementor (FILLER, ZERO, NEW, an intrinsic function, exception or implementor-name, a register keyword): no user-defined name is resolved"
     },
     {
-      "site": "SAME Binding/Procedure/Verbs/ReportWriterBinder.cs WiseOwl.Cobol.Binding.Procedure.ReportWriterBinder.RawNumber CobolNames.Same(text, \"ZEROS\")",
+      "site": "SAME Binding/Procedure/Verbs/ReportWriterBinder.cs WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.ReportWriterBinder.RawNumber CobolNames.Same(text, \"ZEROS\")",
       "class": "KEYWORD",
       "reason": "compares a written word with a fixed word of the standard or the implementor (FILLER, ZERO, NEW, an intrinsic function, exception or implementor-name, a register keyword): no user-defined name is resolved"
     },
     {
-      "site": "SAME Binding/ReportModel.cs WiseOwl.Cobol.Binding.ReportControlRef.SameOperandAs CobolNames.Same(Operand.Name, other.Operand.Name)",
+      "site": "SAME Binding/ReportModel.cs WiseOwl.Cobol.Compiler.Binding.ReportControlRef.SameOperandAs CobolNames.Same(Operand.Name, other.Operand.Name)",
       "class": "SAMESYMBOL",
       "reason": "compares two symbols already resolved (type equivalence, conformance, control identity): no written name is resolved"
     },
     {
-      "site": "SAME Binding/ReportModel.cs WiseOwl.Cobol.Binding.ReportControlRef.SameOperandAs CobolNames.Same(Operand.Qualifiers[i], other.Operand.Qualifiers[i])",
+      "site": "SAME Binding/ReportModel.cs WiseOwl.Cobol.Compiler.Binding.ReportControlRef.SameOperandAs CobolNames.Same(Operand.Qualifiers[i], other.Operand.Qualifiers[i])",
       "class": "SAMESYMBOL",
       "reason": "compares two symbols already resolved (type equivalence, conformance, control identity): no written name is resolved"
     },
     {
-      "site": "SAME Binding/ReportSectionBinder.cs WiseOwl.Cobol.Binding.ReportSectionBinder.BindReportEntry CobolNames.Same(usageText, inheritedUsage)",
+      "site": "SAME Binding/ReportSectionBinder.cs WiseOwl.Cobol.Compiler.Binding.ReportSectionBinder.BindReportEntry CobolNames.Same(usageText, inheritedUsage)",
       "class": "KEYWORD",
       "reason": "compares a written word with a fixed word of the standard or the implementor (FILLER, ZERO, NEW, an intrinsic function, exception or implementor-name, a register keyword): no user-defined name is resolved"
     },
     {
-      "site": "SAME Binding/ReportSectionBinder.cs WiseOwl.Cobol.Binding.ReportSectionBinder.HasWord CobolNames.Same(t.GetText(), word)",
+      "site": "SAME Binding/ReportSectionBinder.cs WiseOwl.Cobol.Compiler.Binding.ReportSectionBinder.HasWord CobolNames.Same(t.GetText(), word)",
       "class": "KEYWORD",
       "reason": "compares a written word with a fixed word of the standard or the implementor (FILLER, ZERO, NEW, an intrinsic function, exception or implementor-name, a register keyword): no user-defined name is resolved"
     },
     {
-      "site": "SAME Binding/Repository/RepositoryCodec.cs WiseOwl.Cobol.Binding.Repository.RepositoryCodec.Decoder.Item CobolNames.Same(w, target)",
+      "site": "SAME Binding/Repository/RepositoryCodec.cs WiseOwl.Cobol.Compiler.Binding.Repository.RepositoryCodec.Decoder.Item CobolNames.Same(w, target)",
       "class": "EXTERNAL",
       "reason": "compares externalized names or repository-record names from compiled metadata: identity across compilations, not a reference written in this program"
     },
     {
-      "site": "SAME Binding/Repository/RepositoryCodec.cs WiseOwl.Cobol.Binding.Repository.RepositoryCodec.Decoder.Root CobolNames.Same(word, spec.DependingOperand!.Value.Name)",
+      "site": "SAME Binding/Repository/RepositoryCodec.cs WiseOwl.Cobol.Compiler.Binding.Repository.RepositoryCodec.Decoder.Root CobolNames.Same(word, spec.DependingOperand!.Value.Name)",
       "class": "EXTERNAL",
       "reason": "compares externalized names or repository-record names from compiled metadata: identity across compilations, not a reference written in this program"
     },
     {
-      "site": "SAME Binding/SubscriptBinder.cs WiseOwl.Cobol.Binding.SubscriptBinder.IllegalPositionMessage CobolNames.Same(segment, \"ALL\")",
+      "site": "SAME Binding/SubscriptBinder.cs WiseOwl.Cobol.Compiler.Binding.SubscriptBinder.IllegalPositionMessage CobolNames.Same(segment, \"ALL\")",
       "class": "KEYWORD",
       "reason": "compares a written word with a fixed word of the standard or the implementor (FILLER, ZERO, NEW, an intrinsic function, exception or implementor-name, a register keyword): no user-defined name is resolved"
     },
     {
-      "site": "SAME Binding/SymbolTable/DeclarationFact.cs WiseOwl.Cobol.Binding.DeclarationFact.DeclaredAs CobolNames.Same(written, name)",
+      "site": "SAME Binding/SymbolTable/DeclarationFact.cs WiseOwl.Cobol.Compiler.Binding.DeclarationFact.DeclaredAs CobolNames.Same(written, name)",
       "class": "MESSAGE",
       "reason": "chooses the wording of a diagnostic: nothing is resolved"
     },
     {
-      "site": "SAME Binding/SymbolTable/DeclarationFact.cs WiseOwl.Cobol.Binding.DeclarationFact.DeclaredAs CobolNames.Same(written, name) #2",
+      "site": "SAME Binding/SymbolTable/DeclarationFact.cs WiseOwl.Cobol.Compiler.Binding.DeclarationFact.DeclaredAs CobolNames.Same(written, name) #2",
       "class": "MESSAGE",
       "reason": "chooses the wording of a diagnostic: nothing is resolved"
     },
     {
-      "site": "SAME Binding/TurnState.cs WiseOwl.Cobol.Binding.TurnState.ProfileAt CobolNames.Same(x.Ec, e.Ec)",
+      "site": "SAME Binding/TurnState.cs WiseOwl.Cobol.Compiler.Binding.TurnState.ProfileAt CobolNames.Same(x.Ec, e.Ec)",
       "class": "KEYWORD",
       "reason": "compares a written word with a fixed word of the standard or the implementor (FILLER, ZERO, NEW, an intrinsic function, exception or implementor-name, a register keyword): no user-defined name is resolved"
     },
@@ -377,57 +377,57 @@
       "reason": "compares two symbols already resolved (type equivalence, conformance, control identity): no written name is resolved"
     },
     {
-      "site": "CMP Binding/LinkageBinder.cs WiseOwl.Cobol.Binding.LinkageBinder.CheckExternalizedNameUniqueness Comparer",
+      "site": "CMP Binding/LinkageBinder.cs WiseOwl.Cobol.Compiler.Binding.LinkageBinder.CheckExternalizedNameUniqueness Comparer",
       "class": "EXTERNAL",
       "reason": "compares the externalized names of EXTERNAL subjects (§2023:13.18.22.3 SR2), keyed as the run-unit store ExternalTable keys its cells: identity across the run unit, not a reference written in this program"
     },
     {
-      "site": "CMP Binding/AssignTargetRule.cs WiseOwl.Cobol.Binding.AssignTargetRule.DeviceClasses Comparer",
+      "site": "CMP Binding/AssignTargetRule.cs WiseOwl.Cobol.Compiler.Binding.AssignTargetRule.DeviceClasses Comparer",
       "class": "KEYWORD",
       "reason": "the device classes DISK and PRINTER are implementor-names (ImplementorNameRegistry's source), a written word against a fixed word of the implementor"
     },
     {
-      "site": "CMP Validation/DeclinedFacilityPass.cs WiseOwl.Cobol.Validation.DeclinedFacilityPass.Connectives Comparer",
+      "site": "CMP Validation/DeclinedFacilityPass.cs WiseOwl.Cobol.Compiler.Validation.DeclinedFacilityPass.Connectives Comparer",
       "class": "KEYWORD",
       "reason": "the optional words IS and ARE (§2023:5.2.3), fixed words of the standard dropped from a clause's name"
     },
     {
-      "site": "CMP Validation/FlagConformancePass.cs WiseOwl.Cobol.Validation.FlagConformancePass.EcProgramFamily Comparer",
+      "site": "CMP Validation/FlagConformancePass.cs WiseOwl.Cobol.Compiler.Validation.FlagConformancePass.EcProgramFamily Comparer",
       "class": "KEYWORD",
       "reason": "the EC-PROGRAM family exception-names of §2023:7.3.14.4 GR4 b), fixed words of the standard"
     },
     {
-      "site": "CMP Binding/Procedure/EcBindState.cs WiseOwl.Cobol.Binding.Procedure.EcBindState.<PdRaising>k__BackingField Comparer",
+      "site": "CMP Binding/Procedure/EcBindState.cs WiseOwl.Cobol.Compiler.Binding.Procedure.EcBindState.<PdRaising>k__BackingField Comparer",
       "class": "KEYWORD",
       "reason": "the procedure division header's RAISING exception-names (§2023:14.2.1), words of the standard's exception table, no name the data division declares"
     },
     {
-      "site": "CMP Binding/Procedure/Verbs/EcBinder.cs WiseOwl.Cobol.Binding.Procedure.EcBinder.EcBindRaising Comparer",
+      "site": "CMP Binding/Procedure/Verbs/EcBinder.cs WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.EcBinder.EcBindRaising Comparer",
       "class": "KEYWORD",
       "reason": "orders the header's RAISING exception-names (§2023:14.2.1) for the bound statement: words of the standard's exception table"
     },
     {
-      "site": "CMP Binding/ExternalFileConnectorRules.cs WiseOwl.Cobol.Binding.ExternalFileConnectorRules.Check Comparer",
+      "site": "CMP Binding/ExternalFileConnectorRules.cs WiseOwl.Cobol.Compiler.Binding.ExternalFileConnectorRules.Check Comparer",
       "class": "EXTERNAL",
       "reason": "groups EXTERNAL file connectors by externalized name across the compilation group (§2023:8.3.2.2: the same externalized name is the same instance), identity across source elements, not a reference written in one"
     },
     {
-      "site": "CMP Binding/ExternalFileConnectorRules.cs WiseOwl.Cobol.Binding.ExternalFileConnectorRules.ShareAdvancing Comparer",
+      "site": "CMP Binding/ExternalFileConnectorRules.cs WiseOwl.Cobol.Compiler.Binding.ExternalFileConnectorRules.ShareAdvancing Comparer",
       "class": "EXTERNAL",
       "reason": "groups EXTERNAL file connectors by externalized name across the compilation group (§2023:8.3.2.2), identity across source elements, not a reference written in one"
     },
     {
-      "site": "CMP Binding/ExternalRecordNameRules.cs WiseOwl.Cobol.Binding.ExternalRecordNameRules.Check Comparer",
+      "site": "CMP Binding/ExternalRecordNameRules.cs WiseOwl.Cobol.Compiler.Binding.ExternalRecordNameRules.Check Comparer",
       "class": "EXTERNAL",
       "reason": "groups EXTERNAL records by externalized name across the compilation group's elements (§2023:8.3.2.2), identity across source elements, not a reference written in one"
     },
     {
-      "site": "SAME Validation/VersionConformancePass.cs WiseOwl.Cobol.Validation.VersionConformancePass.CalledFromRange CobolNames.Same(u.ExternalizedName, name)",
+      "site": "SAME Validation/VersionConformancePass.cs WiseOwl.Cobol.Compiler.Validation.VersionConformancePass.CalledFromRange CobolNames.Same(u.ExternalizedName, name)",
       "class": "EXTERNAL",
       "reason": "a CALL literal against the programs' externalized names (§2023:8.3.2.2), identity across compilations, not a name the program declares"
     },
     {
-      "site": "CMP Binding/Repository/CompileInputs.cs WiseOwl.Cobol.Binding.Repository.CompileInputs.VariablesAt Comparer",
+      "site": "CMP Binding/Repository/CompileInputs.cs WiseOwl.Cobol.Compiler.Binding.Repository.CompileInputs.VariablesAt Comparer",
       "class": "EXTERNAL",
       "reason": "compilation-variable names of the text stage's >>DEFINE table (§2023:7.3.11), replayed into the repository record; no binder table holds them and no data division declares them"
     }

@@ -2,12 +2,12 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Collections.Frozen;
 
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 using WiseOwl.Cobol.Editions;
 
-using Core = WiseOwl.Cobol.Frontend.Generated.CobolParserCore;
+using Core = WiseOwl.Cobol.Frontend.Parsing.CobolParserCore;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 /// <summary>The three general formats of the file description entry (ISO/IEC 1989:2023 §2023:13.4.5.2, rendered from
 /// the printed pages, folios 342-343) as a SET, so one table row can name every format that contains a clause.

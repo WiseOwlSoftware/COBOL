@@ -3,7 +3,7 @@
 using WiseOwl.Cobol.Frontend.Diagnostics;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Listing;
-using WiseOwl.Cobol.Listing.Building;
+using WiseOwl.Cobol.Compiler.Listing;
 using Xunit;
 
 namespace WiseOwl.Cobol.Tests.Unit.Listing;
@@ -55,7 +55,7 @@ public sealed class PhysicalLineKindDriftTests
     public void EveryFixedFormLine_RecordsTheKindItsIndicatorGives()
     {
         var gates = new ReferenceFormatDiagnostics(85, false, new DiagnosticBag());
-        ReferenceFormatProcessor.NormalizeToFreeFormMapped(string.Join('\n', FixedCorpus), gates, "kinds.cob", initialFixed: true,
+        LogicalLineConverter.NormalizeToFreeFormMapped(string.Join('\n', FixedCorpus), gates, "kinds.cob", initialFixed: true,
             out var map);
         for (int n = 1; n <= FixedCorpus.Length; n++)
             Assert.True(Expected(FixedCorpus[n - 1], n) == map.KindAt(n),
@@ -78,7 +78,7 @@ public sealed class PhysicalLineKindDriftTests
             "PROGRAM-ID. FREE1.",
         ];
         var gates = new ReferenceFormatDiagnostics(2023, false, new DiagnosticBag());
-        ReferenceFormatProcessor.NormalizeToFreeFormMapped(string.Join('\n', lines), gates, "free.cob", initialFixed: false, out var map);
+        LogicalLineConverter.NormalizeToFreeFormMapped(string.Join('\n', lines), gates, "free.cob", initialFixed: false, out var map);
         PhysicalLineKind[] expected =
         [
             PhysicalLineKind.Directive, PhysicalLineKind.Source, PhysicalLineKind.Comment, PhysicalLineKind.Blank,
@@ -92,7 +92,7 @@ public sealed class PhysicalLineKindDriftTests
     [Fact]
     public void KindAt_OutsideTheText_Throws()
     {
-        ReferenceFormatProcessor.NormalizeToFreeFormMapped("000100 X.", null, "one.cob", initialFixed: true, out var map);
+        LogicalLineConverter.NormalizeToFreeFormMapped("000100 X.", null, "one.cob", initialFixed: true, out var map);
         Assert.Throws<ArgumentOutOfRangeException>(() => map.KindAt(2));
         Assert.Throws<ArgumentOutOfRangeException>(() => map.KindAt(0));
     }

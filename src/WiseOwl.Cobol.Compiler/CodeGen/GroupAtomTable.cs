@@ -1,8 +1,9 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Compiler.CodeGen.Roslyn;
 using WiseOwl.Cobol.Runtime;
 
-namespace WiseOwl.Cobol.CodeGen;
+namespace WiseOwl.Cobol.Compiler.CodeGen;
 
 /// <summary>
 /// ⛔ THE ONE PLACE A §2023:8.5.1.12 ATOM ARRAY IS WRITTEN INTO EMITTED C# (kb/Work PB2690). Every shape a statement or an

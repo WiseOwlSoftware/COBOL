@@ -1,8 +1,9 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Procedure;
+using WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs;
+using WiseOwl.Cobol.Compiler.Binding.Procedure;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 /// <summary>⛔ ONE ROW PER §2023:8.4.2.2.2 QUALIFIED-NAME FORMAT — the resolution each routes through, so the uniqueness
 /// obligation ISO §2023:8.4.2.2.3 SR1 places on EVERY user-defined name ("For each non unique user-defined name that is

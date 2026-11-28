@@ -1,11 +1,12 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Common;
-using WiseOwl.Cobol.Binding;
-using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.CodeGen.Emit;
+using WiseOwl.Cobol.Frontend.Common;
+using WiseOwl.Cobol.Compiler.Binding;
+using WiseOwl.Cobol.Compiler.Binding.Model;
+using WiseOwl.Cobol.Compiler.CodeGen.Emit;
+using WiseOwl.Cobol.Compiler.CodeGen.Roslyn;
 
-namespace WiseOwl.Cobol.CodeGen;
+namespace WiseOwl.Cobol.Compiler.CodeGen.DataDivision;
 
 /// <summary>⛔ THE §2023:13.18.63.4 GR5 GROUP-VALUE AREA, <b>IN THE UNIT THE GROUP'S OWN STORAGE IS MEASURED IN</b> —
 /// <paramref name="Text"/> is the area's contents and <paramref name="Bits"/> says whether those are BOOLEAN

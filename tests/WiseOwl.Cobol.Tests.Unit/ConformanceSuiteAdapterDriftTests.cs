@@ -3,7 +3,7 @@
 using System.Reflection;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using WiseOwl.Cobol.Binding;
+using WiseOwl.Cobol.Compiler.Binding;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Common;

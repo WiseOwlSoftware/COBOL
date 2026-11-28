@@ -7,17 +7,17 @@
     "id": "bound-tree-1--duplication--f1#3",
     "wave_kind": "unify",
     "members": [
-     "WiseOwl.Cobol.CodeGen.PlaceIdentification.Freeze",
-     "WiseOwl.Cobol.CodeGen.PlaceIdentification.IdentifyInto",
-     "WiseOwl.Cobol.CodeGen.PlaceIdentification.IdentifyAgain",
-     "WiseOwl.Cobol.CodeGen.PlaceIdentification.SenderFirst",
-     "WiseOwl.Cobol.CodeGen.PlaceIdentification.IdentifiesAtRunTime",
-     "WiseOwl.Cobol.CodeGen.StringEmitter.IdentifyOperands",
-     "WiseOwl.Cobol.CodeGen.DebugTriggerEmitter.IdentifiedAtStore",
-     "WiseOwl.Cobol.CodeGen.DebugTriggerEmitter.IdentifyAgain",
-     "WiseOwl.Cobol.Binding.Bound.CorrespondingHoist",
-     "WiseOwl.Cobol.Binding.Bound.BoundCorresponding.PairIdentification",
-     "WiseOwl.Cobol.Binding.Bound.BoundUnstringReceiver"
+     "WiseOwl.Cobol.Compiler.CodeGen.PlaceIdentification.Freeze",
+     "WiseOwl.Cobol.Compiler.CodeGen.PlaceIdentification.IdentifyInto",
+     "WiseOwl.Cobol.Compiler.CodeGen.PlaceIdentification.IdentifyAgain",
+     "WiseOwl.Cobol.Compiler.CodeGen.PlaceIdentification.SenderFirst",
+     "WiseOwl.Cobol.Compiler.CodeGen.PlaceIdentification.IdentifiesAtRunTime",
+     "WiseOwl.Cobol.Compiler.CodeGen.StringEmitter.IdentifyOperands",
+     "WiseOwl.Cobol.Compiler.CodeGen.DebugTriggerEmitter.IdentifiedAtStore",
+     "WiseOwl.Cobol.Compiler.CodeGen.DebugTriggerEmitter.IdentifyAgain",
+     "WiseOwl.Cobol.Compiler.Binding.Bound.CorrespondingHoist",
+     "WiseOwl.Cobol.Compiler.Binding.Bound.BoundCorresponding.PairIdentification",
+     "WiseOwl.Cobol.Compiler.Binding.Bound.BoundUnstringReceiver"
     ],
     "sites": [
      "src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundCorresponding.cs:17-24 (CorrespondingHoist)",
@@ -38,14 +38,14 @@
     "id": "PB3238",
     "wave_kind": "unify",
     "members": [
-     "WiseOwl.Cobol.CodeGen.StringEmitter.EmitOverflow",
-     "WiseOwl.Cobol.CodeGen.ArithmeticEmitter.EmitArith",
-     "WiseOwl.Cobol.CodeGen.SequentialIoEmitter.EmitInvalid",
-     "WiseOwl.Cobol.CodeGen.SequentialIoEmitter.EmitNotPhrase",
-     "WiseOwl.Cobol.CodeGen.KeyedIoEmitter.EmitDeleteFile",
-     "WiseOwl.Cobol.CodeGen.CallEmitter.EmitCall",
-     "WiseOwl.Cobol.CodeGen.CallEmitter.EmitNotOnException",
-     "WiseOwl.Cobol.CodeGen.SortEmitter.EmitReturn"
+     "WiseOwl.Cobol.Compiler.CodeGen.StringEmitter.EmitOverflow",
+     "WiseOwl.Cobol.Compiler.CodeGen.ArithmeticEmitter.EmitArith",
+     "WiseOwl.Cobol.Compiler.CodeGen.SequentialIoEmitter.EmitInvalid",
+     "WiseOwl.Cobol.Compiler.CodeGen.SequentialIoEmitter.EmitNotPhrase",
+     "WiseOwl.Cobol.Compiler.CodeGen.KeyedIoEmitter.EmitDeleteFile",
+     "WiseOwl.Cobol.Compiler.CodeGen.CallEmitter.EmitCall",
+     "WiseOwl.Cobol.Compiler.CodeGen.CallEmitter.EmitNotOnException",
+     "WiseOwl.Cobol.Compiler.CodeGen.SortEmitter.EmitReturn"
     ],
     "sites": [
      "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs:320-333",
@@ -73,10 +73,10 @@
     "id": "bound-tree-3--duplication--f1#2",
     "wave_kind": "unify",
     "members": [
-     "WiseOwl.Cobol.Binding.Bound.StatementBinder.BindEnter",
-     "WiseOwl.Cobol.Binding.Bound.StatementBinder.BindIntroducedAt",
-     "WiseOwl.Cobol.Binding.Bound.StatementBinder.NamesGatedMessageTag",
-     "WiseOwl.Cobol.Validation.VersionConformancePass.ParseArm"
+     "WiseOwl.Cobol.Compiler.Binding.Bound.StatementBinder.BindEnter",
+     "WiseOwl.Cobol.Compiler.Binding.Bound.StatementBinder.BindIntroducedAt",
+     "WiseOwl.Cobol.Compiler.Binding.Bound.StatementBinder.NamesGatedMessageTag",
+     "WiseOwl.Cobol.Compiler.Validation.VersionConformancePass.ParseArm"
     ],
     "sites": [
      "src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs:688-698 (StatementBinder.BindEnter)",
@@ -93,14 +93,14 @@
     "id": "PB2725",
     "wave_kind": "unify",
     "members": [
-     "WiseOwl.Cobol.Common.CobolLiteral.ClassOf",
-     "WiseOwl.Cobol.Binding.ConcatFolder.Classify",
-     "WiseOwl.Cobol.Binding.Procedure.ExpressionBinder.NonNumericLiteralOperand",
+     "WiseOwl.Cobol.Frontend.Common.CobolLiteral.ClassOf",
+     "WiseOwl.Cobol.Compiler.Binding.ConcatFolder.Classify",
+     "WiseOwl.Cobol.Compiler.Binding.Procedure.ExpressionBinder.NonNumericLiteralOperand",
      "WiseOwl.Cobol.Frontend.Expressions.CompileTimeExpressionEvaluator.NonNumericOperand",
-     "WiseOwl.Cobol.Binding.DataBinder.BindConstantStringLiteral",
-     "WiseOwl.Cobol.Binding.ExternalizedName.Screen",
-     "WiseOwl.Cobol.Validation.VersionConformancePass.ParseArm.VisitNonNumericLiteral",
-     "WiseOwl.Cobol.Validation.VersionConformancePass.ParseArm.VisitFigurativeConstant"
+     "WiseOwl.Cobol.Compiler.Binding.DataBinder.BindConstantStringLiteral",
+     "WiseOwl.Cobol.Compiler.Binding.ExternalizedName.Screen",
+     "WiseOwl.Cobol.Compiler.Validation.VersionConformancePass.ParseArm.VisitNonNumericLiteral",
+     "WiseOwl.Cobol.Compiler.Validation.VersionConformancePass.ParseArm.VisitFigurativeConstant"
     ],
     "sites": [
      "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4:777-785",
@@ -140,8 +140,8 @@
     "id": "procedure-binding-4--code--f1#1",
     "wave_kind": "defect-for-fix-lane",
     "members": [
-     "WiseOwl.Cobol.Binding.Procedure.EvaluateBinder.SubjectUsageOf",
-     "WiseOwl.Cobol.Binding.Procedure.EvaluateBinder.SubjectUsage"
+     "WiseOwl.Cobol.Compiler.Binding.Procedure.EvaluateBinder.SubjectUsageOf",
+     "WiseOwl.Cobol.Compiler.Binding.Procedure.EvaluateBinder.SubjectUsage"
     ],
     "sites": [
      "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs:1059-1081 (EvaluateBinder.SubjectUsageOf, SubjectUsage.NeedsIntermediate)",
@@ -154,7 +154,7 @@
     "id": "PB2722",
     "wave_kind": "defect-for-fix-lane",
     "members": [
-     "WiseOwl.Cobol.Binding.Procedure.EvaluateBinder.BindWhenGroup"
+     "WiseOwl.Cobol.Compiler.Binding.Procedure.EvaluateBinder.BindWhenGroup"
     ],
     "sites": [
      "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4:311-313",
@@ -179,12 +179,12 @@
     "members": [
      "WiseOwl.Cobol.Compiler.SourceGen.BoundVisitorGenerator.IsStatementBearing",
      "WiseOwl.Cobol.Compiler.SourceGen.BoundVisitorGenerator.IsValueBearing",
-     "WiseOwl.Cobol.Binding.Bound.BoundInitialize.ReceivingPlaces",
-     "WiseOwl.Cobol.Binding.Bound.BoundStores.StoreKindVisitor.InitStores",
-     "WiseOwl.Cobol.Binding.Bound.InitializeAction",
-     "WiseOwl.Cobol.Binding.Bound.ValidateStep",
-     "WiseOwl.Cobol.Binding.Passes.UsageCollectionPass.Visitor.InitAct",
-     "WiseOwl.Cobol.CodeGen.InitializeEmitter.EmitAction"
+     "WiseOwl.Cobol.Compiler.Binding.Bound.BoundInitialize.ReceivingPlaces",
+     "WiseOwl.Cobol.Compiler.Binding.Bound.BoundStores.StoreKindVisitor.InitStores",
+     "WiseOwl.Cobol.Compiler.Binding.Bound.InitializeAction",
+     "WiseOwl.Cobol.Compiler.Binding.Bound.ValidateStep",
+     "WiseOwl.Cobol.Compiler.Binding.Passes.UsageCollectionPass.Visitor.InitAct",
+     "WiseOwl.Cobol.Compiler.CodeGen.InitializeEmitter.EmitAction"
     ],
     "sites": [
      "src/WiseOwl.Cobol.Compiler.SourceGen/BoundVisitorGenerator.cs:267-284 (BoundVisitorGenerator.IsValueBearing)",
@@ -206,10 +206,10 @@
      "WiseOwl.Cobol.Compiler.SourceGen.BoundVisitorGenerator.CollectValueSources",
      "WiseOwl.Cobol.Compiler.SourceGen.BoundVisitorGenerator.IsValueBearing",
      "WiseOwl.Cobol.Compiler.SourceGen.BoundVisitorGenerator.TryListElement",
-     "WiseOwl.Cobol.Binding.Bound.BoundReferences.Visit",
-     "WiseOwl.Cobol.Binding.Bound.BoundReferences.VisitFields",
-     "WiseOwl.Cobol.Binding.Bound.BoundReferences.FieldsOf",
-     "WiseOwl.Cobol.Binding.Bound.BoundReferences.Enters"
+     "WiseOwl.Cobol.Compiler.Binding.Bound.BoundReferences.Visit",
+     "WiseOwl.Cobol.Compiler.Binding.Bound.BoundReferences.VisitFields",
+     "WiseOwl.Cobol.Compiler.Binding.Bound.BoundReferences.FieldsOf",
+     "WiseOwl.Cobol.Compiler.Binding.Bound.BoundReferences.Enters"
     ],
     "sites": [
      "src/WiseOwl.Cobol.Compiler.SourceGen/BoundVisitorGenerator.cs:220-284 (BoundVisitorGenerator.CollectValueSources, IsValueBearing)",
@@ -230,7 +230,7 @@
     "wave_kind": "extract",
     "members": [
      "WiseOwl.Cobol.Compiler.Oo.OoConformance.ValidateInterfaceInheritance",
-     "WiseOwl.Cobol.Binding.SymbolTable.ClassNames.ChooseInheritedPrototype",
+     "WiseOwl.Cobol.Compiler.Binding.SymbolTable.ClassNames.ChooseInheritedPrototype",
      "WiseOwl.Cobol.Compiler.Oo.OoClassTable.ResolveOverrides"
     ],
     "sites": [
@@ -280,7 +280,7 @@
     "wave_kind": "extract",
     "members": [
      "WiseOwl.Cobol.Compiler.Oo.OoConformance.ValidateInterfaceInheritance",
-     "WiseOwl.Cobol.Binding.SymbolTable.ClassNames.ChooseInheritedPrototype",
+     "WiseOwl.Cobol.Compiler.Binding.SymbolTable.ClassNames.ChooseInheritedPrototype",
      "WiseOwl.Cobol.Compiler.Oo.OoClassTable.ResolveOverrides"
     ],
     "sites": [
@@ -318,7 +318,7 @@
      "src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.cs:45 (SymbolTable ctor)"
     ],
     "rule": "Single responsibility per type (DESIGN-architecture-review section 5.1; census god-class rule, R0-0050 at this pin) and section 8.3 method: every god-class candidate gets its responsibilities, target types and seam; OoClassTable has no section 8.3 entry and no Extract note (PB2296-PB2347 cover other types), so section 8.3 misses it. Names say the responsibility (section 8.2 rule 5): a type named for the OO class table is the group-wide symbol tier for non-OO units.",
-    "target": "Add OoClassTable to section 8.3 with an Extract note and these targets: (a) the group symbol tier leaves Compiler.Oo: SymbolTable.GroupTier (Binding/SymbolTable/, namespace WiseOwl.Cobol.Binding) owns Entries, the per-element and per-method censuses (CensusOf, RecordReferenceUse), SourceElementOf, MethodAt and RepositoryScopeFor, owned by BindSession and reached by DataBinder without the class table; OoClassTable then answers OO questions only; (b) OoClassTableBuilder holds Build and its pass-1 rules (INHERITS, IMPLEMENTS, prototypes, cycle checks); (c) RepositorySpecifierCheck holds the §2023:12.3.8.3 SR6/SR9/SR16 answers; (d) OoClassFacts holds SetOperand, DescribedOperand, SetOperands, ImplementsClosure and the lineages; (e) OverrideResolution holds ResolveOverrides, MarkRoster, ScreenInheritedPropertyNames and NameMethodSlots. Seam: OoClassTable keeps the rosters and lookups (Classes, Interfaces, Names, imported and parameterized lists) as data the five read. Behavior-neutral; DESIGN-listing section 6.7.1 updated in the same change."
+    "target": "Add OoClassTable to section 8.3 with an Extract note and these targets: (a) the group symbol tier leaves Compiler.Oo: SymbolTable.GroupTier (Binding/SymbolTable/, namespace WiseOwl.Cobol.Compiler.Binding) owns Entries, the per-element and per-method censuses (CensusOf, RecordReferenceUse), SourceElementOf, MethodAt and RepositoryScopeFor, owned by BindSession and reached by DataBinder without the class table; OoClassTable then answers OO questions only; (b) OoClassTableBuilder holds Build and its pass-1 rules (INHERITS, IMPLEMENTS, prototypes, cycle checks); (c) RepositorySpecifierCheck holds the §2023:12.3.8.3 SR6/SR9/SR16 answers; (d) OoClassFacts holds SetOperand, DescribedOperand, SetOperands, ImplementsClosure and the lineages; (e) OverrideResolution holds ResolveOverrides, MarkRoster, ScreenInheritedPropertyNames and NameMethodSlots. Seam: OoClassTable keeps the rosters and lookups (Classes, Interfaces, Names, imported and parameterized lists) as data the five read. Behavior-neutral; DESIGN-listing section 6.7.1 updated in the same change."
    },
    "same": false,
    "why": "one shared member merged them (same_mechanism, old rule)"
@@ -329,11 +329,11 @@
     "id": "oo--duplication--f1#2",
     "wave_kind": "unify",
     "members": [
-     "WiseOwl.Cobol.Binding.OoDataBinder.BindMethodData",
-     "WiseOwl.Cobol.Binding.OoDefinitionRules.Screen",
-     "WiseOwl.Cobol.Binding.OoDefinitionRules.RefusedBy",
-     "WiseOwl.Cobol.Binding.OoEnvironmentRules.Screen",
-     "WiseOwl.Cobol.Binding.PrototypeUnitRules.ScreenBody",
+     "WiseOwl.Cobol.Compiler.Binding.OoDataBinder.BindMethodData",
+     "WiseOwl.Cobol.Compiler.Binding.OoDefinitionRules.Screen",
+     "WiseOwl.Cobol.Compiler.Binding.OoDefinitionRules.RefusedBy",
+     "WiseOwl.Cobol.Compiler.Binding.OoEnvironmentRules.Screen",
+     "WiseOwl.Cobol.Compiler.Binding.PrototypeUnitRules.ScreenBody",
      "WiseOwl.Cobol.Compiler.Oo.OoClassTable.Build"
     ],
     "sites": [
@@ -393,7 +393,7 @@
      "src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.cs:45 (SymbolTable ctor)"
     ],
     "rule": "Single responsibility per type (DESIGN-architecture-review section 5.1; census god-class rule, R0-0050 at this pin) and section 8.3 method: every god-class candidate gets its responsibilities, target types and seam; OoClassTable has no section 8.3 entry and no Extract note (PB2296-PB2347 cover other types), so section 8.3 misses it. Names say the responsibility (section 8.2 rule 5): a type named for the OO class table is the group-wide symbol tier for non-OO units.",
-    "target": "Add OoClassTable to section 8.3 with an Extract note and these targets: (a) the group symbol tier leaves Compiler.Oo: SymbolTable.GroupTier (Binding/SymbolTable/, namespace WiseOwl.Cobol.Binding) owns Entries, the per-element and per-method censuses (CensusOf, RecordReferenceUse), SourceElementOf, MethodAt and RepositoryScopeFor, owned by BindSession and reached by DataBinder without the class table; OoClassTable then answers OO questions only; (b) OoClassTableBuilder holds Build and its pass-1 rules (INHERITS, IMPLEMENTS, prototypes, cycle checks); (c) RepositorySpecifierCheck holds the §2023:12.3.8.3 SR6/SR9/SR16 answers; (d) OoClassFacts holds SetOperand, DescribedOperand, SetOperands, ImplementsClosure and the lineages; (e) OverrideResolution holds ResolveOverrides, MarkRoster, ScreenInheritedPropertyNames and NameMethodSlots. Seam: OoClassTable keeps the rosters and lookups (Classes, Interfaces, Names, imported and parameterized lists) as data the five read. Behavior-neutral; DESIGN-listing section 6.7.1 updated in the same change."
+    "target": "Add OoClassTable to section 8.3 with an Extract note and these targets: (a) the group symbol tier leaves Compiler.Oo: SymbolTable.GroupTier (Binding/SymbolTable/, namespace WiseOwl.Cobol.Compiler.Binding) owns Entries, the per-element and per-method censuses (CensusOf, RecordReferenceUse), SourceElementOf, MethodAt and RepositoryScopeFor, owned by BindSession and reached by DataBinder without the class table; OoClassTable then answers OO questions only; (b) OoClassTableBuilder holds Build and its pass-1 rules (INHERITS, IMPLEMENTS, prototypes, cycle checks); (c) RepositorySpecifierCheck holds the §2023:12.3.8.3 SR6/SR9/SR16 answers; (d) OoClassFacts holds SetOperand, DescribedOperand, SetOperands, ImplementsClosure and the lineages; (e) OverrideResolution holds ResolveOverrides, MarkRoster, ScreenInheritedPropertyNames and NameMethodSlots. Seam: OoClassTable keeps the rosters and lookups (Classes, Interfaces, Names, imported and parameterized lists) as data the five read. Behavior-neutral; DESIGN-listing section 6.7.1 updated in the same change."
    },
    "b": {
     "id": "oo--architecture--f2#2",
@@ -479,7 +479,7 @@
      "WiseOwl.Cobol.Listing.Text.TextListingRenderer.Positions",
      "WiseOwl.Cobol.Listing.Text.TextListingRenderer.Wrap",
      "WiseOwl.Cobol.Listing.Html.HtmlListingRenderer.SourceWriter.Marked",
-     "WiseOwl.Cobol.Listing.Building.SyntaxSpanBuilder.Finish",
+     "WiseOwl.Cobol.Compiler.Listing.SyntaxSpanBuilder.Finish",
      "WiseOwl.Cobol.Frontend.Preprocessor.ReferenceFormatMap.CharacterPositionAt",
      "WiseOwl.Cobol.Frontend.Common.CharacterPositions"
     ],
@@ -503,7 +503,7 @@
      "WiseOwl.Cobol.Listing.Text.TextListingRenderer.Wrap",
      "WiseOwl.Cobol.Listing.Text.TextListingRenderer.CaretRow",
      "WiseOwl.Cobol.Listing.Html.HtmlListingRenderer.SourceWriter.Marked",
-     "WiseOwl.Cobol.Listing.Building.SyntaxSpanBuilder.Finish",
+     "WiseOwl.Cobol.Compiler.Listing.SyntaxSpanBuilder.Finish",
      "WiseOwl.Cobol.Frontend.Common.CharacterPositions"
     ],
     "sites": [
@@ -526,8 +526,8 @@
     "id": "data-binding-8--architecture--f1#1",
     "wave_kind": "unify",
     "members": [
-     "WiseOwl.Cobol.CodeGen.Emit.ConditionRenderer",
-     "WiseOwl.Cobol.CodeGen.Emit.TierCIsland.Admits"
+     "WiseOwl.Cobol.Compiler.CodeGen.Emit.ConditionRenderer",
+     "WiseOwl.Cobol.Compiler.CodeGen.Emit.TierCIsland.Admits"
     ],
     "sites": [
      "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs:100-400 (ConditionRenderer)"
@@ -539,8 +539,8 @@
     "id": "PB3214",
     "wave_kind": "unify",
     "members": [
-     "WiseOwl.Cobol.CodeGen.Emit.ConditionRenderer.RangeCollateArg",
-     "WiseOwl.Cobol.Binding.DataBinder.RangeCollations"
+     "WiseOwl.Cobol.Compiler.CodeGen.Emit.ConditionRenderer.RangeCollateArg",
+     "WiseOwl.Cobol.Compiler.Binding.DataBinder.RangeCollations"
     ],
     "sites": [
      "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs:520-560"
@@ -557,8 +557,8 @@
     "id": "procedure-binding-3--code--f1#1",
     "wave_kind": "defect-for-fix-lane",
     "members": [
-     "WiseOwl.Cobol.Binding.ReferenceResolver.SumCounterFamilyFor",
-     "WiseOwl.Cobol.Binding.ReferenceResolver.ResolveImplCore"
+     "WiseOwl.Cobol.Compiler.Binding.ReferenceResolver.SumCounterFamilyFor",
+     "WiseOwl.Cobol.Compiler.Binding.ReferenceResolver.ResolveImplCore"
     ],
     "sites": [
      "src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs:900-940 (ReferenceResolver.SumCounterFamilyFor)"
@@ -570,8 +570,8 @@
     "id": "procedure-binding-3--code--f1#2",
     "wave_kind": "defect-for-fix-lane",
     "members": [
-     "WiseOwl.Cobol.Binding.ReferenceResolver.ResolveForAddressOf",
-     "WiseOwl.Cobol.Binding.ReferenceResolver.ResolveImplCore"
+     "WiseOwl.Cobol.Compiler.Binding.ReferenceResolver.ResolveForAddressOf",
+     "WiseOwl.Cobol.Compiler.Binding.ReferenceResolver.ResolveImplCore"
     ],
     "sites": [
      "src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs:930-960 (ReferenceResolver.ResolveForAddressOf)"

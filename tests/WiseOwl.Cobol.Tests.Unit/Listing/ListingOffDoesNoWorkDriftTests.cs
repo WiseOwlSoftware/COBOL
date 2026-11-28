@@ -1,12 +1,12 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol;
+using WiseOwl.Cobol.Compiler;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend;
 using WiseOwl.Cobol.Frontend.Diagnostics;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Listing;
-using WiseOwl.Cobol.Listing.Building;
+using WiseOwl.Cobol.Compiler.Listing;
 using Xunit;
 
 namespace WiseOwl.Cobol.Tests.Unit.Listing;
@@ -142,14 +142,14 @@ public sealed class ListingOffDoesNoWorkDriftTests : WiseOwlCobolTestBase
 
     /// <summary>The bind of <see cref="Source"/> under an edition context that does (<paramref name="recordsSymbols"/>) or does not
     /// ask for the symbol table, through the front end and the binder the driver uses.</summary>
-    private WiseOwl.Cobol.Binding.BinderDriver Bind(bool recordsSymbols, bool recordsNames = true, bool recordsReferences = false)
+    private WiseOwl.Cobol.Compiler.Binding.BinderDriver Bind(bool recordsSymbols, bool recordsNames = true, bool recordsReferences = false)
     {
         var (options, src) = Write(listing: null);
         var frontend = CompilerDriver.NewFrontend(options, new CompilationInputs(), recordsListing: false);
         var tree = frontend.Parse(src, new DiagnosticBag());
         Assert.NotNull(tree);
-        var binder = new WiseOwl.Cobol.Binding.BinderDriver();
-        var edition = new WiseOwl.Cobol.Binding.EditionContext(85, false) { LineMap = frontend.LineMap, RecordsSymbols = recordsSymbols, RecordsNames = recordsNames,
+        var binder = new WiseOwl.Cobol.Compiler.Binding.BinderDriver();
+        var edition = new WiseOwl.Cobol.Compiler.Binding.EditionContext(85, false) { LineMap = frontend.LineMap, RecordsSymbols = recordsSymbols, RecordsNames = recordsNames,
             RecordsReferences = recordsReferences };
         binder.Bind(tree, edition, frontend.Directives);
         Assert.False(edition.HasErrors, string.Join("\n", edition.Diagnostics));
@@ -172,8 +172,8 @@ public sealed class ListingOffDoesNoWorkDriftTests : WiseOwlCobolTestBase
     {
         var symbols = Bind(recordsSymbols: true).Symbols;
         Assert.NotNull(symbols);
-        Assert.Equal([(WiseOwl.Cobol.Symbols.NameClass.Program, "NOWORK"), (WiseOwl.Cobol.Symbols.NameClass.Data, "X"),
-                (WiseOwl.Cobol.Symbols.NameClass.Procedure, "MAIN-PARA")],
+        Assert.Equal([(WiseOwl.Cobol.Compiler.Symbols.NameClass.Program, "NOWORK"), (WiseOwl.Cobol.Compiler.Symbols.NameClass.Data, "X"),
+                (WiseOwl.Cobol.Compiler.Symbols.NameClass.Procedure, "MAIN-PARA")],
             symbols.Entries.Select(e => (e.Class, e.Name)));
         Assert.True(ListingFacts.ReadsSymbols(new ListingRequest { Sections = ListingSectionSet.Of(ListingSection.DataMap) }));
         Assert.True(ListingFacts.ReadsSymbols(new ListingRequest()));   // the standard sections hold the program map
@@ -192,7 +192,7 @@ public sealed class ListingOffDoesNoWorkDriftTests : WiseOwlCobolTestBase
         Assert.False(ListingFacts.ReadsReferences(new ListingRequest()));
 
         var recorded = Bind(recordsSymbols: true, recordsReferences: true).Session.OoClasses.Entries;
-        Assert.Equal(WiseOwl.Cobol.Symbols.SymbolUse.Read, Assert.Single(recorded.Occurrences()).Occurrence.Use);
+        Assert.Equal(WiseOwl.Cobol.Compiler.Symbols.SymbolUse.Read, Assert.Single(recorded.Occurrences()).Occurrence.Use);
         Assert.True(ListingFacts.ReadsReferences(new ListingRequest { Sections = ListingSectionSet.Of(ListingSection.CrossReference) }));
     }
 
@@ -201,7 +201,7 @@ public sealed class ListingOffDoesNoWorkDriftTests : WiseOwlCobolTestBase
     public void ThePrograms_WithoutTheDataMap_FinishOnlyTheProgramEntries()
     {
         var symbols = Bind(recordsSymbols: true, recordsNames: false).Symbols;
-        Assert.Equal([(WiseOwl.Cobol.Symbols.NameClass.Program, "NOWORK")], symbols!.Entries.Select(e => (e.Class, e.Name)));
+        Assert.Equal([(WiseOwl.Cobol.Compiler.Symbols.NameClass.Program, "NOWORK")], symbols!.Entries.Select(e => (e.Class, e.Name)));
         Assert.False(ListingFacts.ReadsNames(new ListingRequest()));
         Assert.True(ListingFacts.ReadsNames(new ListingRequest { Sections = ListingSectionSet.All }));
     }

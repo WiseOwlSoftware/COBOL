@@ -1,9 +1,9 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 using CodeSetConversion = WiseOwl.Cobol.Runtime.IO.CodeSetConversion;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 /// <summary>
 /// ⛔ THE ONE literal-phrase collating-sequence / coded-character-set model (ISO §2023:12.3.6 PROGRAM COLLATING

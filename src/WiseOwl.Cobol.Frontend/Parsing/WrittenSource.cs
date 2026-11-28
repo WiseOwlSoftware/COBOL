@@ -15,7 +15,7 @@ public static class WrittenSource
     /// to its token text rather than throwing inside a diagnostic.
     /// <para>A COMMENT-ENTRY PARAGRAPH (<see cref="CommentEntryParagraph.Is"/>) is quoted by its header alone, <c>AUTHOR.</c>:
     /// the logical text holds the header and an implied terminating period the reference-format conversion writes for the
-    /// discarded entry (<c>AUTHOR. .</c>, ReferenceFormatProcessor.ConvertCommentEntryCandidate), so the extent after the
+    /// discarded entry (<c>AUTHOR. .</c>, LogicalLineConverter.ConvertCommentEntryCandidate), so the extent after the
     /// header's own period is not what the programmer wrote (kb/Work PB6009).</para></summary>
     public static string Of(Antlr4.Runtime.ParserRuleContext ctx)
     {

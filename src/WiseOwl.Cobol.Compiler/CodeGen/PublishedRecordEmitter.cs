@@ -1,9 +1,11 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Model;
-using static WiseOwl.Cobol.CodeGen.Emit.EmitText;
+using WiseOwl.Cobol.Compiler.Binding.Model;
+using WiseOwl.Cobol.Compiler.CodeGen.DataDivision;
+using WiseOwl.Cobol.Compiler.CodeGen.Roslyn;
+using static WiseOwl.Cobol.Compiler.CodeGen.Emit.EmitText;
 
-namespace WiseOwl.Cobol.CodeGen;
+namespace WiseOwl.Cobol.Compiler.CodeGen;
 
 /// <summary>
 /// ⛔ THE PUBLISHED RECORD STRUCT (DESIGN-external-repository §4.3, the host-type table's group rows; kb/Work PB2099): the

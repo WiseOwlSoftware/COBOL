@@ -217,7 +217,7 @@ public sealed class CobolDecPowDevelopmentTests
 
     private static CobolDec Parse(string text)
     {
-        Assert.True(WiseOwl.Cobol.Common.NumericLiteral.TryParseExact(text, out Int128 sig, out int exp));
+        Assert.True(WiseOwl.Cobol.Frontend.Common.NumericLiteral.TryParseExact(text, out Int128 sig, out int exp));
         return CobolDec.FromParsed(sig, exp, CobolRounding.NearestEven);
     }
 

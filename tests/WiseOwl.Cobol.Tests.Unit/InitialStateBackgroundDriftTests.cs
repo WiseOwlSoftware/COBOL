@@ -1,9 +1,9 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Reflection;
-using WiseOwl.Cobol.Binding;
+using WiseOwl.Cobol.Compiler.Binding;
 using Xunit;
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 
 namespace WiseOwl.Cobol.Tests.Unit;
 
@@ -25,8 +25,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 public sealed class InitialStateBackgroundDriftTests : WiseOwlCobolTestBase
 {
     private static readonly Type Background =
-        typeof(WiseOwl.Cobol.CodeGen.ValueInitializer).Assembly
-            .GetType("WiseOwl.Cobol.CodeGen.InitialStateBackground")
+        typeof(WiseOwl.Cobol.Compiler.CodeGen.DataDivision.ValueInitializer).Assembly
+            .GetType("WiseOwl.Cobol.Compiler.CodeGen.DataDivision.InitialStateBackground")
         ?? throw new InvalidOperationException("InitialStateBackground is gone — the §2023:14.6.2.3.2 action-1 choke "
             + "point was removed or renamed. Re-derive the rule before re-shaping this test.");
 

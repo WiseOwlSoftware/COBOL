@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-namespace WiseOwl.Cobol.CodeGen;
+namespace WiseOwl.Cobol.Compiler.CodeGen;
 
 /// <summary>
 /// ⛔ THE ONE WAY THE COMPILER REPLACES A FILE IT PRODUCES (DESIGN-external-repository §7.5; kb/Work PB2103). An output

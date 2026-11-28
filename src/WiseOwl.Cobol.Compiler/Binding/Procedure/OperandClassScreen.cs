@@ -1,11 +1,12 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Bound;
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Bound;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 using WiseOwl.Cobol.Editions.Diagnostics;
 
 using WiseOwl.Cobol.Editions;
-namespace WiseOwl.Cobol.Binding.Procedure;
+using WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs;
+namespace WiseOwl.Cobol.Compiler.Binding.Procedure;
 
 /// <summary>The operand CLASSES a statement's identifier-position syntax rule can enumerate. Each member is one
 /// phrase the standard writes, read through the ONE §2023:8.5.2.1 Table-2 classifier

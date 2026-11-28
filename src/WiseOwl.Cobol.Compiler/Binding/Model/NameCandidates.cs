@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-namespace WiseOwl.Cobol.Binding.Model;
+
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// <summary>⛔ THE ISO §2023:8.4.2.2 CANDIDATE SET OF A QUALIFIABLE NAME REFERENCE — AND IT HAS NO INDEXER (kb/Work PB978;
 /// generalized over the name class by kb/Work PB919). §2023:8.4.2.2.1 makes the number of survivors the whole answer

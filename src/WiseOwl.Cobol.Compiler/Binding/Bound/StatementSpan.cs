@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Frontend.Common;
 
-namespace WiseOwl.Cobol.Binding.Bound;
+namespace WiseOwl.Cobol.Compiler.Binding.Bound;
 
 /// <summary>
 /// ⛔ WHERE A STATEMENT IS WRITTEN IN THE FILE THE USER EDITS (DESIGN-listing.md section 6.9): the physical file, and the 1-based line

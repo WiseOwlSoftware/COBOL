@@ -1,12 +1,12 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 using System.Collections.Immutable;
 using System.Reflection.Metadata;
 using WiseOwl.Cobol.Runtime;
 using WiseOwl.Cobol.Runtime.Repository;
 
-namespace WiseOwl.Cobol.Binding.Repository;
+namespace WiseOwl.Cobol.Compiler.Binding.Repository;
 
 /// <summary>The result of <see cref="RepositoryReader.Read"/>: the records of every unit the entry publishes, in the order of
 /// its <c>Units</c> index, or the typed reason there are none (DESIGN-external-repository §7.4, §15.3).</summary>

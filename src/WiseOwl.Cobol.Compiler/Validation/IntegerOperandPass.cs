@@ -2,13 +2,12 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
-using WiseOwl.Cobol.Binding;                // EditionContext
+using WiseOwl.Cobol.Compiler.Binding;                // EditionContext
 using WiseOwl.Cobol.Editions;               // IDiagnosticSink / EditionDiagnostic / EditionSeverity
 using WiseOwl.Cobol.Editions.Diagnostics;   // DiagnosticCatalog
-using WiseOwl.Cobol.Frontend.Generated;     // CobolParserCore
-using WiseOwl.Cobol.Frontend.Parsing;       // WrittenSource — the operand as written, for a message
+using WiseOwl.Cobol.Frontend.Parsing;     // CobolParserCore; WrittenSource — the operand as written, for a message
 
-namespace WiseOwl.Cobol.Validation;
+namespace WiseOwl.Cobol.Compiler.Validation;
 
 using Core = CobolParserCore;
 

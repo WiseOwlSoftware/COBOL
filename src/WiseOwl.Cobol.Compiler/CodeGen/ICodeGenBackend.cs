@@ -1,11 +1,11 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Common;
 using WiseOwl.Cobol.Frontend.Diagnostics;
 
-namespace WiseOwl.Cobol.CodeGen;
+namespace WiseOwl.Cobol.Compiler.CodeGen;
 
 /// <summary>The selectable code-generation backends (DESIGN-backend-abstraction / DESIGN-codegen-backend §2.2;
 /// the dual-backend mandate, REARCHITECTURE_PLAN §3): <see cref="Roslyn"/> renders typed-native C# and

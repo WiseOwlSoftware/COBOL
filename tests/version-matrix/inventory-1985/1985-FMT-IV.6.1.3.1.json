@@ -2,9 +2,9 @@
  "rule-id": "1985-FMT-IV.6.1.3.1",
  "rule-digest": "558b98d1e0e7",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalConversion.cs#CommentEntryHeader",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/LogicalLineConverter.cs#CommentEntryHeader",
  "test-ref": "conformance:cases/IV.6.1.3@1985-Structure/1985-FMT-IV_6_1_3_1; conformance:cases/VI.3.2.1@1985-Structure/pb5168-comment-entry-header-without-period; unit:LogicalLineBuilderTests.FixedFormCommentEntryHeader_NeedsItsSeparatorPeriod",
- "notes": "§1985:IV.6.1.3.1 prints each optional Identification Division paragraph header with its period, '[ AUTHOR. [ comment-entry ] ... ]', and §1985:IV.2.1.6 gives the separator period 'the status of a required word'. Paragraph order, repetition, the AS phrase, the ID DIVISION abbreviation, an unknown paragraph and a missing period after PROGRAM-ID or the division header were already refused; the period of a comment-entry paragraph header was written by the logical conversion whatever the source held, and is now asked of the source in fixed form (kb/Work PB5168, COBOL7166); free form keeps D-CE1's optional period.",
+ "notes": "§1985:IV.6.1.3.1 prints each optional Identification Division paragraph header with its period, '[ AUTHOR. [ comment-entry ] ... ]', and §1985:IV.2.1.6 gives the separator period 'the status of a required word'. Paragraph order, repetition, the AS phrase, the ID DIVISION abbreviation, an unknown paragraph and a missing period after PROGRAM-ID or the division header were already refused; the period of a comment-entry paragraph header was written by the logical conversion whatever the source held, and is now asked of the source in fixed form (kb/Work PB5168, COBOL7166); free form keeps D-CE1's optional period. retired-witness: src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalConversion.cs#CommentEntryHeader (the extract of ReferenceFormatProcessor (kb/Work PB2328): the member moved verbatim to the file of the type that holds it now (LogicalLineConverter, FixedFormConverter, FreeFormConverter, LogicalLineBuilder); the same code)",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

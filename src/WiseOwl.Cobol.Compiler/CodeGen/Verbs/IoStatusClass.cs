@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-namespace WiseOwl.Cobol.CodeGen;
+namespace WiseOwl.Cobol.Compiler.CodeGen.Verbs;
 
 /// <summary>⛔ THE ONE TABLE FROM AN I-O STATUS VALUE TO THE CONDITION IT EXPRESSES, as the C# test the emitted
 /// branch reads (kb/Work PB810). Every I-O verb's phrase dispatch — AT END, INVALID KEY, the NOT phrases, the

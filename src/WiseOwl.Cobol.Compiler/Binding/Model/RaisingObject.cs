@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-namespace WiseOwl.Cobol.Binding.Model;
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// <summary>
 /// ONE CLASS OR INTERFACE ENTRY OF A PROCEDURE-DIVISION-HEADER RAISING PHRASE, RESOLVED to its symbol (ISO §2023:14.2.1;

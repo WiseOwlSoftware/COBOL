@@ -1,17 +1,16 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Bound;
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Bound;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 using WiseOwl.Cobol.Editions.Diagnostics;
-using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Frontend.Parsing;
 using WiseOwl.Cobol.Editions;
 
-namespace WiseOwl.Cobol.Binding.Procedure;
+namespace WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs;
 
 using Core = CobolParserCore;
 using WiseOwl.Cobol.Runtime;
-using WiseOwl.Cobol.Symbols;
+using WiseOwl.Cobol.Compiler.Symbols;
 
 /// <summary>
 /// The Report Writer half of the statement binder (ISO/IEC 1989:2023 §2023:14.9.21 INITIATE / §2023:14.9.16 GENERATE /

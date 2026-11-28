@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using BenchmarkDotNet.Attributes;
 using WiseOwl.Cobol.Benchmarks.Collation;
+using WiseOwl.Cobol.Compiler;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Tests.Shared;
 

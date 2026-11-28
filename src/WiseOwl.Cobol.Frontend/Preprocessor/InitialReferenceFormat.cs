@@ -24,7 +24,7 @@ public enum InitialReferenceFormat
     Free,
 
     /// <summary>The documented extension: the initial format is DETECTED from the text's structure
-    /// (<see cref="ReferenceFormatProcessor.IsFixedForm"/>) — a heuristic that can misjudge conforming fixed-form source,
+    /// (<see cref="LogicalLineConverter.IsFixedForm"/>) — a heuristic that can misjudge conforming fixed-form source,
     /// so it is never the default.</summary>
     Auto,
 }

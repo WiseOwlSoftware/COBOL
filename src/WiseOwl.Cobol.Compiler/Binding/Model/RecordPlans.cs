@@ -3,7 +3,7 @@
 using WiseOwl.Cobol.Runtime;
 using WiseOwl.Cobol.Runtime.IO;
 
-namespace WiseOwl.Cobol.Binding.Model;
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// <summary>One step of a record description entry's <see cref="RecordPlanModel"/>: a window of its byte image and what the item
 /// there is — the compile-time twin of the runtime's <c>RecordStep</c>, from which the emitter renders it.</summary>

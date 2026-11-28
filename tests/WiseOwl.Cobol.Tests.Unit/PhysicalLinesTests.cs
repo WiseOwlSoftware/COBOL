@@ -122,7 +122,7 @@ public sealed class PhysicalLinesTests
         int std = 2023, bool ccvs = false)
     {
         var bag = new DiagnosticBag();
-        var m = ReferenceFormatProcessor.NormalizeToFreeFormMapped(source, new ReferenceFormatDiagnostics(std, false, bag), "t.cob",
+        var m = LogicalLineConverter.NormalizeToFreeFormMapped(source, new ReferenceFormatDiagnostics(std, false, bag), "t.cob",
             initial.InitialFixed(), out _, ccvs);
         return (m.Text, bag);
     }
@@ -169,7 +169,7 @@ public sealed class PhysicalLinesTests
     public void AutoDetector_ReadsTheExpandedLines()
     {
         string src = "000100\t  IDENTIFICATION DIVISION.\n000200\t  PROGRAM-ID. X.\n000300\t  PROCEDURE DIVISION.\n";
-        Assert.True(ReferenceFormatProcessor.IsFixedForm(PhysicalLines.Read(src).Lines));
+        Assert.True(LogicalLineConverter.IsFixedForm(PhysicalLines.Read(src).Lines));
     }
 
     [Theory] // §2023:6.1 SR3a: "ranging from a minimum of 0 to a maximum of 255" — a free-form line of more than 255
@@ -238,7 +238,7 @@ public sealed class PhysicalLinesTests
     public void SegmentsKeepFileLineNumbers()
     {
         var bag = new DiagnosticBag();
-        var m = ReferenceFormatProcessor.NormalizeToFreeFormMapped(
+        var m = LogicalLineConverter.NormalizeToFreeFormMapped(
             ">>SOURCE FORMAT FIXED\n      *\n" + "000100" + "X" + "DISPLAY \"A\".\n", new ReferenceFormatDiagnostics(2023, false, bag), "t.cob",
             InitialReferenceFormat.Free);
         Assert.Contains(bag.Diagnostics, d => d.Code == "COBOL2616" && d.Location!.Value.Line == 2);   // line 3 (0-based 2)

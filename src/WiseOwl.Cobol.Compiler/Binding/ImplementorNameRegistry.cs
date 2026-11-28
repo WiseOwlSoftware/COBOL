@@ -3,7 +3,7 @@
 using System.Collections.Frozen;
 using WiseOwl.Cobol.Editions;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 /// <summary>The position of the source program at which this implementation specifies an implementor-name: each is
 /// one clause's fixed set of names, and each set is documented by its Annex A.1 item.</summary>

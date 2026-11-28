@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Editions;
 
-namespace WiseOwl.Cobol.Binding.Model;
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// <summary>
 /// ⛔ A RULE A DIAGNOSTIC CITES, AS THE EDITION BEING COMPILED NUMBERS IT (kb/Work PB5352). A message names the rule in force for

@@ -4,7 +4,7 @@ using System.Collections.Immutable;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 
-namespace WiseOwl.Cobol.Listing.Building;
+namespace WiseOwl.Cobol.Compiler.Listing;
 
 /// <summary>
 /// The names the object-code map gives the metadata an assembly holds (DESIGN-listing.md section 6.9): a type by its full name (a nested

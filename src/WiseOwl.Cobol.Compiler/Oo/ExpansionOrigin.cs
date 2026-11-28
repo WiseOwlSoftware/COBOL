@@ -2,8 +2,8 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
 using WiseOwl.Cobol.Editions;
-using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Compiler.Binding.Model;
+using WiseOwl.Cobol.Frontend.Parsing;
 
 namespace WiseOwl.Cobol.Compiler.Oo;
 

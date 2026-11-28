@@ -1,12 +1,13 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Globalization;
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 using WiseOwl.Cobol.Runtime;
 using WiseOwl.Cobol.Runtime.Repository;
-using static WiseOwl.Cobol.CodeGen.Emit.EmitText;
+using WiseOwl.Cobol.Compiler.CodeGen.Roslyn;
+using static WiseOwl.Cobol.Compiler.CodeGen.Emit.EmitText;
 
-namespace WiseOwl.Cobol.CodeGen;
+namespace WiseOwl.Cobol.Compiler.CodeGen;
 
 /// <summary>
 /// ⛔ THE ONE PLACE REPOSITORY ATTRIBUTE SYNTAX IS WRITTEN (DESIGN-external-repository §3.9, §6.2, §12; kb/Work PB2100): the

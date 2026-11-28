@@ -4,18 +4,17 @@ using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Cst;
-using WiseOwl.Cobol.Frontend.Generated;
-
-using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Frontend.Parsing;
 
+using WiseOwl.Cobol.Compiler.Binding.Model;
 
-namespace WiseOwl.Cobol.Binding;
+
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 using Core = CobolParserCore;
 using WiseOwl.Cobol.Runtime;
 using WiseOwl.Cobol.Editions;
-using WiseOwl.Cobol.Symbols;
+using WiseOwl.Cobol.Compiler.Symbols;
 
 /// <summary>
 /// ⛔ <b>THE REPORT SECTION'S COUNTERS AS REFERENCE OPERANDS</b> (DESIGN-architecture-review §8.3 (4), kb/Work PB2299): the

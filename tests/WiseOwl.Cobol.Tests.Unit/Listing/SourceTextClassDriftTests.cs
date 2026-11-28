@@ -2,10 +2,9 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text.RegularExpressions;
 using WiseOwl.Cobol.Frontend.Common;
-using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Frontend.Parsing;
 using WiseOwl.Cobol.Listing;
-using WiseOwl.Cobol.Listing.Building;
+using WiseOwl.Cobol.Compiler.Listing;
 using WiseOwl.Cobol.Listing.Html;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;

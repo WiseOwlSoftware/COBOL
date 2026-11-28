@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-namespace WiseOwl.Cobol.Binding.Model;
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// <summary>
 /// ⛔ THE ONE ISO §2023:15.50.4 RV1/r2/r3 LENGTH OF A FIXED ITEM — the value <c>FUNCTION LENGTH</c> folds to and the value

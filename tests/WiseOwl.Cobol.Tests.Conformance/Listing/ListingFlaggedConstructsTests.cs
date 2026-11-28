@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text.Json.Nodes;
 using System.Xml.Linq;
-using WiseOwl.Cobol;
+using WiseOwl.Cobol.Compiler;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Listing;
 using WiseOwl.Cobol.Listing.Html;

@@ -3,12 +3,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using WiseOwl.Cobol.Binding.Bound;
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Bound;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 
 using WiseOwl.Cobol.Compiler.Oo;
 
-namespace WiseOwl.Cobol.Binding.Passes;
+namespace WiseOwl.Cobol.Compiler.Binding.Passes;
 
 /// <summary>
 /// The LAST data-model pass (rearchitecture PHASE 05 §2.5 step 10 / PHASE-06 Step 3): the manifest-ordered OWNER of

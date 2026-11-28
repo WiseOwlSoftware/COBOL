@@ -3,10 +3,10 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using WiseOwl.Cobol.Common;
+using WiseOwl.Cobol.Frontend.Common;
 using WiseOwl.Cobol.Runtime;
 
-namespace WiseOwl.Cobol.Binding.Model;
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// <summary>
 /// The strong-typing model over the <see cref="DataItem"/> tree (ISO/IEC 1989:2023 §2023:8.5.3 / §2023:13.18.58 STRONG

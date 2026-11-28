@@ -23,7 +23,7 @@ public sealed class CommentEntryResolverTests
     private static CommentEntryResolver.Resolution Resolved(string source, CobolWordsMap? words = null, DiagnosticBag? bag = null)
     {
         var gates = new ReferenceFormatDiagnostics(2023, true, bag ?? new DiagnosticBag());
-        var converted = ReferenceFormatProcessor.NormalizeToFreeFormMapped(source, gates, "t.cob",
+        var converted = LogicalLineConverter.NormalizeToFreeFormMapped(source, gates, "t.cob",
             initialFixed: false, out _);
         string compiled = ConditionalCompilationProcessor.Process(converted.Text, LeftDirectives, dialectLevel: 2023, permissive: true);
         return CommentEntryResolver.Resolve(new MappedText(compiled, converted.Lines), words ?? CobolWordsMap.Empty, EditionInfo.Of(2023), gates);
@@ -36,7 +36,7 @@ public sealed class CommentEntryResolverTests
     private static readonly IReadOnlySet<string> LeftDirectives = WiseOwl.Cobol.Frontend.Frontend.LeftDirectives;
 
     private static string[] Converted(string source, bool fixedForm = false)
-        => ReferenceFormatProcessor.NormalizeToFreeFormMapped(source, null, "t.cob", initialFixed: fixedForm, out _).Text.Split('\n');
+        => LogicalLineConverter.NormalizeToFreeFormMapped(source, null, "t.cob", initialFixed: fixedForm, out _).Text.Split('\n');
 
     [Fact] // the case the conversion is sure of is decided there, as before: agreeing branches leave no carrier
     public void AgreeingBranches_AreDecidedByTheConversion_NoCarrier()
@@ -101,7 +101,7 @@ public sealed class CommentEntryResolverTests
     private static (string[] Converted, string[] Lines, int ConvertedCount) FinishedFixed(string source)
     {
         var gates = new ReferenceFormatDiagnostics(85, true, new DiagnosticBag());
-        var converted = ReferenceFormatProcessor.NormalizeToFreeFormMapped(source, gates, "t.cob", initialFixed: true, out _);
+        var converted = LogicalLineConverter.NormalizeToFreeFormMapped(source, gates, "t.cob", initialFixed: true, out _);
         string compiled = ConditionalCompilationProcessor.Process(converted.Text, LeftDirectives, dialectLevel: 85, permissive: true);
         var resolved = CommentEntryResolver.Resolve(new MappedText(compiled, converted.Lines), CobolWordsMap.Empty, EditionInfo.Of(2023), gates);
         Assert.Equal(converted.Lines.Length, resolved.Text.Lines.Length);
@@ -206,15 +206,15 @@ public sealed class CommentEntryResolverTests
         var pins = CommentEntryPins.None.With(pin);
         Assert.NotSame(CommentEntryPins.None, pins);
         Assert.Throws<InvalidOperationException>(() => pins.With(pin));   // a pinned candidate is never named again: no silent loop
-        string[] lines = ReferenceFormatProcessor.NormalizeToFreeFormMapped(ProgramTextCandidateSource, null, "t.cob",
+        string[] lines = LogicalLineConverter.NormalizeToFreeFormMapped(ProgramTextCandidateSource, null, "t.cob",
             initialFixed: false, out _, pins: pins).Text.Split('\n');
         Assert.Equal("REMARKS. DISPLAY \"A\".", lines[7]);
         Assert.DoesNotContain(lines, CommentEntryCarrier.Is);
         // a pin names a file as well as a line, and applies only where the division is not known
-        string[] other = ReferenceFormatProcessor.NormalizeToFreeFormMapped(ProgramTextCandidateSource, null, "other.cob",
+        string[] other = LogicalLineConverter.NormalizeToFreeFormMapped(ProgramTextCandidateSource, null, "other.cob",
             initialFixed: false, out _, pins: pins).Text.Split('\n');
         Assert.True(CommentEntryCarrier.Is(other[7]));
-        string[] known = ReferenceFormatProcessor.NormalizeToFreeFormMapped("IDENTIFICATION DIVISION.\nPROGRAM-ID. P.\nREMARKS. Pat O'Brien.\n", null, "t.cob",
+        string[] known = LogicalLineConverter.NormalizeToFreeFormMapped("IDENTIFICATION DIVISION.\nPROGRAM-ID. P.\nREMARKS. Pat O'Brien.\n", null, "t.cob",
             initialFixed: false, out _, pins: CommentEntryPins.None.With(pin with { Line = 3 })).Text.Split('\n');
         Assert.Equal("REMARKS. .", known[2]);   // a division it knows is not asked of a pin
     }
@@ -223,10 +223,10 @@ public sealed class CommentEntryResolverTests
     public void APin_AppliesToItsInclusionOnly()
     {
         var pins = CommentEntryPins.None.With(new CommentEntryPin("b.cpy", 2, 8));
-        string[] pinned = ReferenceFormatProcessor.NormalizeToFreeFormMapped(ProgramTextCandidateSource, null, "b.cpy",
+        string[] pinned = LogicalLineConverter.NormalizeToFreeFormMapped(ProgramTextCandidateSource, null, "b.cpy",
             initialFixed: false, out _, pins: pins, inclusion: 2).Text.Split('\n');
         Assert.Equal("REMARKS. DISPLAY \"A\".", pinned[7]);
-        string[] another = ReferenceFormatProcessor.NormalizeToFreeFormMapped(ProgramTextCandidateSource, null, "b.cpy",
+        string[] another = LogicalLineConverter.NormalizeToFreeFormMapped(ProgramTextCandidateSource, null, "b.cpy",
             initialFixed: false, out _, pins: pins, inclusion: 1).Text.Split('\n');
         Assert.True(CommentEntryCarrier.Is(another[7]));
         Assert.Equal(1, CommentEntryCarrier.Decode(another[7]).Inclusion);   // the carrier names the inclusion it was read in
@@ -266,7 +266,7 @@ public sealed class CommentEntryResolverTests
         // (a) the converter carries the candidate and reports it; the resolver, deciding program text, converts it and adds nothing
         var bag = new DiagnosticBag();
         var gates = new ReferenceFormatDiagnostics(2023, true, bag);
-        var converted = ReferenceFormatProcessor.NormalizeToFreeFormMapped(source, gates, "t.cob", initialFixed: false, out _);
+        var converted = LogicalLineConverter.NormalizeToFreeFormMapped(source, gates, "t.cob", initialFixed: false, out _);
         Assert.Single(bag.Diagnostics, d => d.Code == "COBOL2653");
         string compiled = ConditionalCompilationProcessor.Process(converted.Text, LeftDirectives, dialectLevel: 2023, permissive: true);
         CommentEntryResolver.Resolve(new MappedText(compiled, converted.Lines), CobolWordsMap.Empty, EditionInfo.Of(2023), gates);
@@ -274,7 +274,7 @@ public sealed class CommentEntryResolverTests
         // (b) the run that reads the candidate as program text reports it once, in the converter
         bag = new DiagnosticBag();
         gates = new ReferenceFormatDiagnostics(2023, true, bag);
-        ReferenceFormatProcessor.NormalizeToFreeFormMapped(source, gates, "t.cob", initialFixed: false, out _,
+        LogicalLineConverter.NormalizeToFreeFormMapped(source, gates, "t.cob", initialFixed: false, out _,
             pins: CommentEntryPins.None.With(new CommentEntryPin("t.cob", CommentEntryPins.SourceText, 8)));
         Assert.Single(bag.Diagnostics, d => d.Code == "COBOL2653");
         // (c) a candidate that is a comment-entry (the selected branch enters the division) is reported once, by the converter

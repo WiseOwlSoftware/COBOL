@@ -4,7 +4,7 @@ using Antlr4.Runtime;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Common;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 /// <summary>The parse-context forms of the diagnostic-cursor positioning (kb/Work PB82) — the walkers write
 /// <c>using var _ = edition.At(ctx);</c> and every diagnostic reported inside carries that construct's source

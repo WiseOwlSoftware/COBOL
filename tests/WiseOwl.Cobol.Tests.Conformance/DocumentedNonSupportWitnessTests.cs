@@ -29,7 +29,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// optional element only when support for that language element is claimed by the implementor" — is a
 /// prohibition on ACCEPTING, so an unclaimed A.4 module is REFUSED, not warned. The whole module is now an
 /// ERROR by name (COBOL1560 data/environment surface, COBOL1707 procedure surface) through the one funnel
-/// <see cref="WiseOwl.Cobol.Binding.ScreenFacility"/>, which puts its witnesses where a refusal belongs: the NEGATIVE
+/// <see cref="WiseOwl.Cobol.Compiler.Binding.ScreenFacility"/>, which puts its witnesses where a refusal belongs: the NEGATIVE
 /// refusals, 41 programs <c>a42-*</c> under <c>conformance-suite/wiseowl/cases/</c>, each refusal's expected text
 /// naming the construct as well as the code. <c>ScreenFacilityConstructDriftTests</c> holds that coverage complete against
 /// <c>CobolScreen.g4</c>. Adding a screen test back here would need it to COMPILE, which is exactly what the
@@ -69,7 +69,7 @@ public sealed class DocumentedNonSupportWitnessTests
     /// other arm, feature-name-1, is PROVIDED (kb/Work PB5844): BINARY-SEQUENTIAL and LINE-SEQUENTIAL select their
     /// methods and draw nothing (<see cref="RecordDelimiterImplementorName_DrawsNoWarning"/>).
     /// <para>⛔ THE ASSERTION IS ON THE ARM, NOT ON THE CODE: each fact demands the diagnostic that quotes ITS OWN
-    /// clause spelling back, which is exactly the `seen` half <see cref="WiseOwl.Cobol.Binding.EditionContext.Declined"/>
+    /// clause spelling back, which is exactly the `seen` half <see cref="WiseOwl.Cobol.Compiler.Binding.EditionContext.Declined"/>
     /// composes at the site, so a warning on another file cannot pass for it.</para>
     /// <para>⚠ The golden's <c>.out</c> pins INERTNESS only and cannot pin the decline: §2023:12.4.5.11.4 GR1 —
     /// "Any method used shall not be reflected in the record area or the record size used within the function,

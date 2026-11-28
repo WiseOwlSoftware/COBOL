@@ -4,7 +4,6 @@ using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Common;
 using WiseOwl.Cobol.Frontend.Diagnostics;
 using WiseOwl.Cobol.Frontend.Expressions;
-using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Frontend.Parsing;
 using WiseOwl.Cobol.Runtime;
 
@@ -36,7 +35,7 @@ namespace WiseOwl.Cobol.Frontend.Preprocessor;
 /// and the conditional-compilation directives alike. kb/Work PB725: the roster used to be a flat name set with no
 /// edition column, so eleven directives compiled clean at <c>--std 85</c>, an edition with no compiler directives
 /// at all, while the five with their own per-stage gate were correctly rejected. <c>&gt;&gt;SOURCE FORMAT</c> is
-/// gated here too: at an edition without compiler directives <see cref="ReferenceFormatProcessor"/> recognizes no
+/// gated here too: at an edition without compiler directives <see cref="LogicalLineConverter"/> recognizes no
 /// directive line (kb/Work PB5803), so the line reaches this driver; from 2002 that stage consumes it and checks the operand.
 ///
 /// A FOURTH job, the one thing a directive does here that is not a change to the text or to a table: (4) THE DISPLAY
@@ -347,7 +346,7 @@ public static partial class ConditionalCompilationProcessor
                 {
                     // §2023:7.3.13.2: `>> EVALUATE` is followed directly by its first `>> WHEN` — text-1 belongs to a WHEN phrase,
                     // so program text between the two belongs to no phrase of the format (a blank line is no text, a blank debugging line included: kb/Work PB4412).
-                    if (!ReferenceFormatProcessor.HoldsNoProgramText(trimmed) && _stack.Count > 0 && _stack.Peek() is { Phase: FramePhase.EvaluateBeforeWhen } before
+                    if (!LogicalLineConverter.HoldsNoProgramText(trimmed) && _stack.Count > 0 && _stack.Peek() is { Phase: FramePhase.EvaluateBeforeWhen } before
                         && !before.TextBeforeWhenReported)
                     {
                         before.TextBeforeWhenReported = true;

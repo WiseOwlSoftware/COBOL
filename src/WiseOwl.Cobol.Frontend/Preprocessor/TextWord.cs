@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Editions;
+using WiseOwl.Cobol.Frontend.Common;
 using WiseOwl.Cobol.Runtime;
 namespace WiseOwl.Cobol.Frontend.Preprocessor;
 
@@ -131,7 +132,7 @@ internal readonly record struct LiteralParts(string Prefix, char Quote, string C
 /// <c>&gt;&gt;IF</c> lines are processed) is ONE <see cref="TextWordKind.DirectiveLine"/> element, never scanned
 /// for text-words (§2023:7.3.4 GR1; §2023:7.2.3.4 GR9c.5).</item>
 /// </list>
-/// A fixed-form debugging line reaches this stage as <see cref="ReferenceFormatProcessor.DebugLineCarrier"/> + its
+/// A fixed-form debugging line reaches this stage as <see cref="DebugLineCarrier.Text"/> + its
 /// text: the carrier is skipped and the text scanned, so its text-words take part in matching as if the <c>D</c>
 /// were absent (the COBOL-85 rule the carrier exists for). A comment-entry carrier is a space. An ordinary
 /// <c>*&gt;</c> is NOT: the comment indicator is the §2023:6.5 logical conversion's to read, which removes every comment
@@ -177,9 +178,9 @@ internal static class TextWordScanner
             char c = text[pos];
             if (CobolSpace.IsSeparator(c)) { pos++; continue; }
 
-            if (IsDebugLineCarrierAt(text, pos))
+            if (DebugLineCarrier.StartsAt(text, pos))
             {
-                pos += ReferenceFormatProcessor.DebugLineCarrier.Length;       // the debugging line's text is scanned
+                pos += DebugLineCarrier.Text.Length;       // the debugging line's text is scanned
                 continue;
             }
             if (IsCommentEntryCarrierAt(text, pos) || IsCopyNoteAt(text, pos))
@@ -242,10 +243,6 @@ internal static class TextWordScanner
     /// begins at <paramref name="pos"/>.</summary>
     private static bool IsCopyNoteAt(string text, int pos)
         => string.CompareOrdinal(text, pos, CopyProcessor.NotePrefix, 0, CopyProcessor.NotePrefix.Length) == 0;
-
-    private static bool IsDebugLineCarrierAt(string text, int pos)
-        => string.CompareOrdinal(text, pos, ReferenceFormatProcessor.DebugLineCarrier, 0,
-            ReferenceFormatProcessor.DebugLineCarrier.Length) == 0;
 
     /// <summary>Whether <paramref name="text"/> holds the comment indicator (§2023:6.2.3.1) between its literals — never inside
     /// one, which is a text-word of its own. Comments were removed from source and library text by the §2023:6.5 logical

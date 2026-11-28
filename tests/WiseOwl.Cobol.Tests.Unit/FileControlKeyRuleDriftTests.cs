@@ -2,8 +2,8 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using WiseOwl.Cobol.Binding;
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
@@ -357,7 +357,7 @@ public sealed class FileControlKeyRuleDriftTests
             // render the operand they actually describe (kb/Work PB1072).
             var op = new FileKeyOperand(rule.Role, "KEY", "K", item, default, EditionInfo.Of(2023),
                 SuppressWhen: new SuppressWhenOperand("ALL 'AB'", SuppressWhenForm.AllLiteral,
-                    WiseOwl.Cobol.Common.LiteralClass.Alphanumeric, "AB", null));
+                    WiseOwl.Cobol.Frontend.Common.LiteralClass.Alphanumeric, "AB", null));
             string message = rule.Message(file, op);
             Assert.Contains(rule.Citation, message);
             // …and as the second data-name-2 of a SOURCE phrase (kb/Work PB1099), the operand shape every rule stated

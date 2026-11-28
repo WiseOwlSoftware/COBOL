@@ -3,18 +3,18 @@
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 
-using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.Binding.Procedure;
-using WiseOwl.Cobol.Common;
+using WiseOwl.Cobol.Compiler.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Procedure;
+using WiseOwl.Cobol.Frontend.Common;
 using WiseOwl.Cobol.Editions.Diagnostics;
-using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Frontend.Parsing;
 using WiseOwl.Cobol.Editions;
 
-namespace WiseOwl.Cobol.Binding.Validation;
+namespace WiseOwl.Cobol.Compiler.Binding.Validation;
 
 using Core = CobolParserCore;
 using WiseOwl.Cobol.Runtime;
+using WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs;
 
 /// <summary>
 /// ⛔ THE FORMAT-2 <c>SEARCH ALL</c> OPERAND MODEL and the seven syntax rules written over it (ISO §2023:14.9.37.3

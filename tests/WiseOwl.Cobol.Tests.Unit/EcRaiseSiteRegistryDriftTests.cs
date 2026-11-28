@@ -2,15 +2,16 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using WiseOwl.Cobol.Binding.Bound;
-using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.Binding.Procedure;
+using WiseOwl.Cobol.Compiler.Binding.Bound;
+using WiseOwl.Cobol.Compiler.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Procedure;
 using WiseOwl.Cobol.Runtime.Exceptions;
 using WiseOwl.Cobol.Tests.Shared;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Xunit;
+using WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs;
 
 namespace WiseOwl.Cobol.Tests.Unit;
 

@@ -1,8 +1,9 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Bound;
+using WiseOwl.Cobol.Compiler.Binding.Bound;
+using WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs;
 
-namespace WiseOwl.Cobol.Binding.Procedure;
+namespace WiseOwl.Cobol.Compiler.Binding.Procedure;
 
 /// <summary>What a BARE operand — one <c>valueOperand</c> with no operator around it — turned out to BE once the
 /// symbol was resolved. A bare COBOL word is equally a data reference, a level-88 condition-name and a
@@ -52,11 +53,11 @@ public readonly record struct BareOperandAnalysis(
     BoundCondition? Condition,
     BoundBoolExpr? Boolean,
     int? BooleanLength,
-    WiseOwl.Cobol.Frontend.Generated.CobolParserCore.CobolWordContext? ClassWord = null)
+    WiseOwl.Cobol.Frontend.Parsing.CobolParserCore.CobolWordContext? ClassWord = null)
 {
     /// <summary>An operand that is a class-name / alphabet-name (<see cref="BareOperandForm.ClassName"/>), carrying
     /// the word as written.</summary>
-    public static BareOperandAnalysis OfClassName(WiseOwl.Cobol.Frontend.Generated.CobolParserCore.CobolWordContext word) =>
+    public static BareOperandAnalysis OfClassName(WiseOwl.Cobol.Frontend.Parsing.CobolParserCore.CobolWordContext word) =>
         new(BareOperandForm.ClassName, null, null, null, word);
 
     /// <summary>An operand that IS a condition outright (a level-88 or switch-status condition-name).</summary>

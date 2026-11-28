@@ -4,8 +4,8 @@
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
-using WiseOwl.Cobol.Binding;
-using WiseOwl.Cobol.CodeGen;
+using WiseOwl.Cobol.Compiler.Binding;
+using WiseOwl.Cobol.Compiler.CodeGen;
 using WiseOwl.Cobol.Frontend.Diagnostics;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Runtime;

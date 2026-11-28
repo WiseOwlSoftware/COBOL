@@ -1,11 +1,12 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Bound;
-using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.CodeGen.Emit;
+using WiseOwl.Cobol.Compiler.Binding.Bound;
+using WiseOwl.Cobol.Compiler.Binding.Model;
+using WiseOwl.Cobol.Compiler.CodeGen.Emit;
+using WiseOwl.Cobol.Compiler.CodeGen.Roslyn;
 using WiseOwl.Cobol.Runtime;
 
-namespace WiseOwl.Cobol.CodeGen;
+namespace WiseOwl.Cobol.Compiler.CodeGen.Verbs;
 
 /// <summary>The emitter of <see cref="BoundHoldTableAll"/> (ISO §2023:8.4.3.2.4 GR2, §2023:15.3; kb/Work PB4162): the held form of a
 /// table(ALL) function argument.

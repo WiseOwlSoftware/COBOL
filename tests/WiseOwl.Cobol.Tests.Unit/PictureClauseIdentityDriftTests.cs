@@ -2,8 +2,8 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 
 using System.Collections.Generic;
-using WiseOwl.Cobol.Binding;
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 using WiseOwl.Cobol.Compiler.Oo;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Runtime;
@@ -31,7 +31,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </summary>
 public sealed class PictureClauseIdentityDriftTests
 {
-    private static CurrencyDefinition Alnum(string text) => new(text, WiseOwl.Cobol.Common.LiteralClass.Alphanumeric);
+    private static CurrencyDefinition Alnum(string text) => new(text, WiseOwl.Cobol.Frontend.Common.LiteralClass.Alphanumeric);
 
     private static readonly IReadOnlyDictionary<char, CurrencyDefinition> Dollar = new Dictionary<char, CurrencyDefinition> { ['$'] = Alnum("$") };
 

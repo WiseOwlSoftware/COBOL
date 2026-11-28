@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 /// <summary>What a source element's <see cref="DataBinder"/> knows of the element itself, beside the session's facts
 /// <see cref="BindSession.NewDataBinder"/> seeds (kb/Work PB2626): a program unit's kind (the ANY LENGTH placement facts of

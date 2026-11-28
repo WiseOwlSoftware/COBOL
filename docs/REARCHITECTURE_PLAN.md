@@ -435,7 +435,7 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   Characterization 33/33 · NIST-legacy 353/0 audit-clean · differential 1323 cases, **0 flips**. ALL GREEN.
   **✅ PB71 CLOSED (DEVLOG 1305, 2026-08-18)** — the ALL figurative over every literal kind: ONE grammar arm
   (`ALL allLiteral` — plain / hex / national / boolean, and a concatenated literal-1 per §2023:8.3.3.6.3 SR2), ONE
-  literal-class classifier (`CobolLiteral.ClassOf`), ONE constructor (`BoundAllLiteral.Of`); the VALUE validator
+  literal-class classifier (`CobolLiteral.ClassOf`), ONE constructor (`ConcatFolder.AllLiteral`); the VALUE validator
   and the version pass ask the same; COBOL1648 (zero-length literal-1). SR-8.3.3.6.3-2 + FMT-8.3.3.6.2 →
   CONFORMS, GAP 4040.
   **✅ PB65 CLOSED (DEVLOG 1306, 2026-08-18)** — the last five members: a MIXED selection list (MAX/MIN/ORD-MAX/
@@ -575,7 +575,7 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   EC-DATA-OVERFLOW (unchecked → the pinned saturated image, CONFORMANCE.md §3) / EC-DATA-INCOMPATIBLE (new flag,
   fatal — and the fixed-point `DeEdit` now raises it too, by the exact `Format(DeEdit(x)) == x` round trip),
   HIGHEST/LOWEST-ALGEBRAIC + COBOL1660, VALUE (COBOL1659 both directions of §2023:13.18.63.3 SR6's form rule,
-  COBOL1625 no-truncation), the 2002 gate through the ONE `VersionConformancePass.PictureConstructId`.
+  COBOL1625 no-truncation), the 2002 gate through the ONE `PicInfo.ConstructId`.
   **Two defects found on the way landed with it:** **PB97** (a floating-point literal in a VALUE clause on a
   fixed-point numeric item CRASHED the backend, CS0595 — the literal now expands to its exact value in
   `ValidateValueCategory`, the item-VALUE + level-88 funnel; a numeric-edited conditional variable's numeric
@@ -4162,7 +4162,7 @@ runtime major. What remains of the cut is kb/Work PB2349's item 4a, the static r
 
 - [ ] **Step 10 — Regenerate `Generated/` from clean and confirm.**
   - `Generated/` is a build output (gitignored); a from-clean build must regenerate it without error and the emitted
-    parser must be consistent with the flipped namespaces (the frontend's generated namespace is `WiseOwl.Cobol.Frontend.Generated`
+    parser must be consistent with the flipped namespaces (the frontend's generated namespace is `WiseOwl.Cobol.Frontend.Parsing`, kb/Work PB2245,
     per P1/P4 — unaffected by the runtime flip, but re-verify a cold build).
   - Verify:
     ```bash

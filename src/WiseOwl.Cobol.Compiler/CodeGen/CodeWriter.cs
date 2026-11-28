@@ -4,10 +4,10 @@ using System.Globalization;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using WiseOwl.Cobol.Binding.Bound;
+using WiseOwl.Cobol.Compiler.Binding.Bound;
 using WiseOwl.Cobol.Frontend.Common;
 
-namespace WiseOwl.Cobol.CodeGen;
+namespace WiseOwl.Cobol.Compiler.CodeGen;
 
 /// <summary>
 /// A minimal indentation-aware writer for emitting readable C# source text. WiseOwl COBOL emits C# as text and

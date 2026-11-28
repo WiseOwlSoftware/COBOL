@@ -171,7 +171,7 @@ diagnostic for an edition-gated construct as a direct consequence.
 `DialectLevel` is stored independently on `CobolParserCoreBase` (`:17`), on `Frontend`
 (`Frontend.cs:45`), and on the compiler's `EditionContext`. The canonical `ConstructRegistry` lives in
 `WiseOwl.Cobol.Compiler`, which the frontend cannot see (Compiler references Frontend, not vice-versa) — so the
-frontend `EditionGateHints` + the preprocessor's `ReferenceFormatProcessor.EditionGates` /
+frontend `EditionGateHints` + the preprocessor's reference-format edition gates /
 `CopyProcessor` each carry their **own** copy of the edition metadata and the strict/permissive severity
 policy. Three independent renders of "removed = error strict / warning permissive."
 
@@ -183,7 +183,7 @@ parse-tree shape is thus a wide, un-narrowed, stringly-typed cross-assembly cont
 grammar rule rename ripples into dozens of `GetText()` sites invisibly.
 
 ### 1.7 Namespace/assembly coherence (resolved)
-Generated code emits into namespace `WiseOwl.Cobol.Frontend.Generated`, the same root as the assembly `WiseOwl.Cobol.Frontend`
+Generated code emits into namespace `WiseOwl.Cobol.Frontend.Parsing`, the same root as the assembly `WiseOwl.Cobol.Frontend`
 (RootNamespace `WiseOwl.Cobol.Frontend`); the package name is the csproj's `AntlrNamespace` property. The preprocessor, parsing
 and diagnostics files declare `WiseOwl.Cobol.Frontend.*` (PHASE 01 renamed the stale legacy-assembly namespaces), and `Frontend.cs`
 is self-contained: the preprocessor and parse machinery, `DiagnosticBag` and `TurnEvent` all live in this assembly.
@@ -280,7 +280,7 @@ Key decisions, each expanded below:
   too many.
 - **D7. One `Diagnostic` type end-to-end**, one `ParseSession` orchestrator, narrowed exception handling,
   fail-hard portable regen unchanged in behavior but with the package name in an MSBuild property.
-- **D8. Bring the generated-namespace rename forward** to `WiseOwl.Cobol.Frontend.Generated` (it is free and
+- **D8. Bring the generated-namespace rename forward** to `WiseOwl.Cobol.Frontend.Parsing` (it is free and
   removes the `using Core =` alias everywhere), and fix the stale `Frontend.cs` banner + preprocessor
   namespaces in the same wave.
 
@@ -1010,7 +1010,7 @@ literal-1 AB" (legal, SR2) and "a concatenation whose first operand is the figur
 SR1) — ANTLR resolves a true ambiguity toward the lower alternative, so the legal reading wins, while `"X" & ALL
 "A"` still parses as a concatenation and is rejected COBOL1541 by `ConcatFolder`. (2) Every binder consumer
 reads literal-1 through ONE reader, `ConcatFolder.FoldAllLiteral` — the procedure-division figurative binder
-(`BoundAllLiteral.Of(Folded)`), the boolean channel and its routing predicate, the VALUE reader
+(`ConcatFolder.AllLiteral(Folded)`), the boolean channel and its routing predicate, the VALUE reader
 (`RawValueOperandText`) and the SPECIAL-NAMES ALPHABET/CLASS literal phrase — so literal-1 is folded, classed and
 screened identically everywhere. It resolves all three written shapes: a quoted literal; a concatenation expression,
 through the same pairwise `Walk` as every other concatenation (so `ALL "A" & SPACE`, `ALL "A" & K` and `ALL "A" &
@@ -1108,7 +1108,7 @@ Behavior is already correct (portable flat-output regen, fail-hard, `.gitignored
 java+pwsh prerequisites — `Invoke-Antlr4CSharp.ps1`, run by the csproj's `EnsureGeneratedFiles` target). Target
 changes are hygiene:
 
-1. **Package name → MSBuild property (DONE).** The generated namespace `WiseOwl.Cobol.Frontend.Generated` is a csproj property
+1. **Package name → MSBuild property (DONE).** The generated namespace `WiseOwl.Cobol.Frontend.Parsing` is a csproj property
    (`AntlrNamespace`) passed to `Invoke-Antlr4CSharp.ps1` as `-PackageName`; this performed the D8 namespace rename with
    one property (the `using Core = CobolParserCore` aliases in consumers are a separate cleanup).
 1a. **One up-to-date decision over every input (DONE, kb/Work PB2719, PB2730).** `EnsureGeneratedFiles` is the only
@@ -1158,7 +1158,7 @@ toggle stages (PROPAGATE, REF-MOD-ZERO-LENGTH, LEAP-SECOND) share ONE collection
 each stage keeps its keyword, its registry row and its event type (kb/Work PB2156). Status of the target
 changes:
 1. **Namespace** `WiseOwl.Cobol.Frontend.Preprocessor` (D8) — done.
-2. **One severity policy** (D4) — done: `ReferenceFormatProcessor.ReferenceFormatDiagnostics` asks
+2. **One severity policy** (D4) — done: `ReferenceFormatDiagnostics` asks
    `EditionSeverityPolicy.For` and reads its rows from `ConstructRegistry`; no stage keeps a local `if (permissive)`.
    ⚠ Library text still gets NO `ReferenceFormatDiagnostics` (`CopyProcessor.NormalizeCopybookMapped` passes
    `diagnostics: null` — kb/Work PB1640), and the object is built per normalization call, so its once-per-compilation
@@ -1170,7 +1170,7 @@ changes:
 
 #### 3.6.0 Reference format — the ISO §2023:6.5 logical conversion is ONE pass (kb/Work PB1491, PB1493)
 
-`ReferenceFormatProcessor` (`ReferenceFormatProcessor.LogicalConversion.cs`) IS the §2023:6.5 logical conversion, for both
+`LogicalLineConverter` (with its classifiers `FixedFormConverter` and `FreeFormConverter` and the one `LogicalLineBuilder` they feed; kb/Work PB2328) IS the §2023:6.5 logical conversion, for both
 reference formats, and the only place source comments are recognized. Its model:
 
 - **The initial format is a SELECTION, fixed by default** (kb/Work PB1362). §2023:7.3.24.3 GR2 "The default reference format
@@ -1323,7 +1323,7 @@ reference formats, and the only place source comments are recognized. Its model:
   classifiers call `LogicalLineBuilder.TryEmitFloatingDebugging`, its own row `floating-debugging-indicator-2002` gates
   it (introduced 2002, obsolete 2002, removed 2014), and SR8 (it on a fixed `D` or `-` line) is COBOL5770. A `D`
   line is NOT decided here (kb/Work PB1705, owner decision R56): the clause that makes it source is further down the text
-  than the line, so the converter CARRIES it — `ReferenceFormatProcessor.DebugLineCarrier` + its program text — and the
+  than the line, so the converter CARRIES it — `DebugLineCarrier.Text` + its program text — and the
   lexer reads the carrier as the hidden `DEBUG_LINE` marker and the text as ordinary tokens. The builder reads the line
   like any source line (`LogicalLineBuilder.EmitDebugging`: the literal state it ends in is tracked, a blank one is a
   blank line, kb/Work PB1914) and, so that both readings agree on every other line, a `D` line written while the latest
@@ -1601,7 +1601,7 @@ code:
     PHYSICAL line (each file — the compilation group and every library text — is converted by its own walker with its
     own format state, §2023:7.3.24.3 3 and 5), keeps only a bracket that encloses a written format directive of that file
     (`ReferenceFormatMap.DirectiveLines`; a pair across two files is kept by neither), and the walker
-    (`ReferenceFormatProcessor.FormatSegments`, through the same `DirectiveStateStack` the written `>>PUSH`/`>>POP` use)
+    (`LogicalLineConverter.FormatSegments`, through the same `DirectiveStateStack` the written `>>PUSH`/`>>POP` use)
     applies each op as a BOUNDARY between physical lines (`ImplicitBoundaries`): the PUSH after the line that ends
     imperative-statement-1, the POP BEFORE the line that holds END-PERFORM — so the restored format governs the
     END-PERFORM line itself ("immediately preceding the END PERFORM phrase"; §2023:7.3.24.3 1: a format governs the text

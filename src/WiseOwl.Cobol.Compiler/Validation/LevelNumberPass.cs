@@ -1,12 +1,12 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
-using WiseOwl.Cobol.Binding;               // EditionContext
+using WiseOwl.Cobol.Compiler.Binding;               // EditionContext
 using WiseOwl.Cobol.Editions;               // IDiagnosticSink / EditionDiagnostic / EditionSeverity
 using WiseOwl.Cobol.Editions.Diagnostics;   // DiagnosticCatalog
-using WiseOwl.Cobol.Frontend.Generated;     // CobolParserCore
+using WiseOwl.Cobol.Frontend.Parsing;     // CobolParserCore
 
-namespace WiseOwl.Cobol.Validation;
+namespace WiseOwl.Cobol.Compiler.Validation;
 
 /// <summary>
 /// The arms of the level-number syntax rules — ISO §2023:13.18.33.3's four, plus the 2002 communication-record arm
@@ -302,7 +302,7 @@ internal sealed class LevelNumberPass(IDiagnosticSink sink, EditionInfo edition)
     private const int MaxLevelNumberDigits = 2;
 
     /// <summary>Screen every level-number in the group's raw parse tree.</summary>
-    internal static void Run(CobolParserCore.CompilationUnitContext tree, WiseOwl.Cobol.Binding.EditionContext edition) =>
+    internal static void Run(CobolParserCore.CompilationUnitContext tree, WiseOwl.Cobol.Compiler.Binding.EditionContext edition) =>
         new LevelNumberPass(edition, edition.Edition).VisitPositioned(tree);
 
     /// <summary>ISO §2023:13.18.33.3 SR2 / SR4 / SR5 / SR6 (the section axis) and, for a data description entry,

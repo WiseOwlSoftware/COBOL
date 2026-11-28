@@ -1,7 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 
-namespace WiseOwl.Cobol.Binding.Model;
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// <summary>⛔ THE ONE bind-time reading of a table's CURRENT number of occurrences as an <see cref="AllCount"/> — ISO
 /// §2023:14.6.9.1's three-way equivalence: "If another operand of the operation is a fixed capacity table, that table shall

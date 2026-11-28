@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Editions;
 
-namespace WiseOwl.Cobol.Binding.Procedure;
+namespace WiseOwl.Cobol.Compiler.Binding.Procedure;
 
 using WiseOwl.Cobol.Runtime;
 

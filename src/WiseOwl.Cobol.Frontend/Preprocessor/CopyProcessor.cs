@@ -427,14 +427,10 @@ public sealed class CopyProcessor(
         "§2023:7.2.4.3 SR2: \"A REPLACE statement shall be preceded by a space except when it is the first statement in a compilation group\"";
 
     /// <summary>Whether position <paramref name="pos"/> of <paramref name="text"/> lies on a debugging line: its line
-    /// begins with <see cref="ReferenceFormatProcessor.DebugLineCarrier"/>, the form the §2023:6.5 conversion writes a
+    /// begins with <see cref="DebugLineCarrier.Text"/>, the form the §2023:6.5 conversion writes a
     /// debugging line in (kb/Work PB1705).</summary>
     private static bool IsDebuggingLineAt(string text, int pos)
-        => StartsWithCarrier(text, pos == 0 ? 0 : text.LastIndexOf('\n', pos - 1) + 1);
-
-    private static bool StartsWithCarrier(string text, int at)
-        => string.CompareOrdinal(text, at, ReferenceFormatProcessor.DebugLineCarrier, 0,
-            ReferenceFormatProcessor.DebugLineCarrier.Length) == 0;
+        => DebugLineCarrier.StartsAt(text, pos == 0 ? 0 : text.LastIndexOf('\n', pos - 1) + 1);
 
     /// <summary>The text a whole replacement writes in place of the matched text (kb/Work PB5382), its lines carrying the
     /// debugging-line indicator the standard gives them. The first line of <paramref name="to"/> lands on the line the
@@ -459,14 +455,14 @@ public sealed class CopyProcessor(
     {
         bool decided = onDebuggingLine || takesReplacedIndicator;   // every line's indicator is the replaced line's
         string text = to.Text;
-        if (!decided || (text.IndexOf('\n') < 0 && !StartsWithCarrier(text, 0))) return to;
-        string carrier = ReferenceFormatProcessor.DebugLineCarrier;
+        if (!decided || (text.IndexOf('\n') < 0 && !DebugLineCarrier.StartsAt(text, 0))) return to;
+        string carrier = DebugLineCarrier.Text;
         var w = new OriginWriter();
         int start = 0;
         for (bool first = true; ; first = false)
         {
             int end = text.IndexOf('\n', start);
-            int bodyStart = StartsWithCarrier(text, start) ? start + carrier.Length : start;
+            int bodyStart = DebugLineCarrier.StartsAt(text, start) ? start + carrier.Length : start;
             if (!first && onDebuggingLine) w.Append(carrier.AsSpan(), to.PointAt(start));
             w.AppendSlice(to, bodyStart, (end < 0 ? text.Length : end) - bodyStart);
             if (end < 0) return w.Finish();
@@ -601,7 +597,7 @@ public sealed class CopyProcessor(
                     onMatch?.Invoke(matchStart);
                     sb.AppendSlice(mapped, copiedUpTo, matchStart - copiedUpTo);
                     int lineStart = matchStart == 0 ? 0 : text.LastIndexOf('\n', matchStart - 1) + 1;
-                    bool onDebuggingLine = lineStart == 0 ? firstLineIsDebugging : StartsWithCarrier(text, lineStart);
+                    bool onDebuggingLine = lineStart == 0 ? firstLineIsDebugging : DebugLineCarrier.StartsAt(text, lineStart);
                     // Only pseudo-text-2 keeps the debugging lines written inside it (§1985:XII.2.4 GR9, §2002:7.1.2.3 GR13:
                     // "only those text-words that are specified on debugging lines where the debugging line is within
                     // pseudo-text-2 appear on debugging lines"): an identifier-2 the COPY statement writes over a
@@ -614,7 +610,7 @@ public sealed class CopyProcessor(
                     // and REPLACE keep) starts a line: the carrier makes every text word after it on the resultant line debugging text, so
                     // library text ahead of the match on the same line would be hidden with it and the program with the debugging lines
                     // "considered as comment lines" (§1985:VI.7.3) would lose words that are not on one (kb/Work PB5472).
-                    if (StartsWithCarrier(introduced, 0) && !CobolSpace.IsBlank(text.AsSpan(lineStart, matchStart - lineStart)))
+                    if (DebugLineCarrier.StartsAt(introduced, 0) && !CobolSpace.IsBlank(text.AsSpan(lineStart, matchStart - lineStart)))
                         sb.NewLine(mapped.PointAt(matchStart));
                     // The replacement is written here, so it stands at the position of the text it replaced (kb/Work PB1801).
                     // A word of pseudo-text-2 "begins in the same area of the resultant program as it appears in
@@ -638,15 +634,15 @@ public sealed class CopyProcessor(
                     // the introduced lines only): when the replacement ends on a line of the other kind, or a kept
                     // directive line intervenes, the rest starts a line of its own, with its own line's indicator.
                     int lastLine = introduced.LastIndexOf('\n') + 1;
-                    bool resultEndsDebugging = lastLine > 0 || StartsWithCarrier(introduced, 0)
-                        ? StartsWithCarrier(introduced, lastLine) : onDebuggingLine;
+                    bool resultEndsDebugging = lastLine > 0 || DebugLineCarrier.StartsAt(introduced, 0)
+                        ? DebugLineCarrier.StartsAt(introduced, lastLine) : onDebuggingLine;
                     int endLineStart = text.LastIndexOf('\n', matchEnd - 1) + 1;
-                    bool endLineDebugging = endLineStart == 0 ? firstLineIsDebugging : StartsWithCarrier(text, endLineStart);
+                    bool endLineDebugging = endLineStart == 0 ? firstLineIsDebugging : DebugLineCarrier.StartsAt(text, endLineStart);
                     if (keptDirective || resultEndsDebugging != endLineDebugging)
                     {
                         sb.NewLine(mapped.PointAt(matchEnd));
                         if (endLineDebugging && matchEnd < text.Length && text[matchEnd] != '\n')
-                            sb.Append(ReferenceFormatProcessor.DebugLineCarrier.AsSpan(), mapped.PointAt(matchEnd));
+                            sb.Append(DebugLineCarrier.Text.AsSpan(), mapped.PointAt(matchEnd));
                     }
                     copiedUpTo = matchEnd;
                     w += from.Count;
@@ -689,7 +685,7 @@ public sealed class CopyProcessor(
     /// <summary>The start of the one-line comment the compiler writes in place of a COPY statement that brought in no library
     /// text (not found, circular, unreadable, unparsable). It is the compiler's own note, not source text: U+FDD2 is a Unicode
     /// NONCHARACTER, reserved for process-internal use and never in interchanged text (as
-    /// <see cref="ReferenceFormatProcessor.DebugLineCarrier"/>'s U+FDD0 is), so no comment a programmer writes is mistaken for
+    /// <see cref="DebugLineCarrier.Text"/>'s U+FDD0 is), so no comment a programmer writes is mistaken for
     /// it and <see cref="TextWordScanner"/> reads the line as the single space it is: a note spelled with the plain
     /// <c>*&gt;</c> was a floating comment the COBOL-85 gate refused as the 2002 indicator (kb/Work PB5588).</summary>
     internal static readonly string NotePrefix = CobolSourceText.CommentIndicator + (char)0xFDD2 + "COPY ";
@@ -835,7 +831,7 @@ public sealed class CopyProcessor(
     }
 
     /// <summary>The spelling the REPLACING phrase of a COPY statement gives a word of its library text, for the reader of that text to
-    /// ask whether the word, once replaced, heads a comment-entry paragraph (<see cref="ReferenceFormatProcessor.NormalizeToFreeFormMapped(string, ReferenceFormatDiagnostics?, string, bool?, out ReferenceFormatMap, bool, IReadOnlyList{DirectiveStackOp}?, bool?, CommentEntryPins?, int, Func{string, string}?)"/>;
+    /// ask whether the word, once replaced, heads a comment-entry paragraph (<see cref="LogicalLineConverter.NormalizeToFreeFormMapped(string, ReferenceFormatDiagnostics?, string, bool?, out ReferenceFormatMap, bool, IReadOnlyList{DirectiveStackOp}?, bool?, CommentEntryPins?, int, Func{string, string}?)"/>;
     /// kb/Work PB5732): the one replacing action of <see cref="ApplyReplacements"/> run on that word alone, reporting nothing —
     /// the statement's own replacing action reports. Null for a COPY statement with no REPLACING phrase.</summary>
     private static Func<string, string>? ParagraphWordAsReplaced(IReadOnlyList<Replacement> replacements, EditionInfo edition)
@@ -1026,7 +1022,7 @@ public sealed class CopyProcessor(
             var literal = TextWordScanner.DecomposeLiteral(w.Value);
             name = !literal.Terminated || !literal.IsAlphanumeric ? null
                 : literal.Prefix.Length == 0 ? literal.Content
-                : WiseOwl.Cobol.Common.CobolLiteral.DecodeHexDigits(literal.Content);
+                : WiseOwl.Cobol.Frontend.Common.CobolLiteral.DecodeHexDigits(literal.Content);
             // An open literal was named as it was consumed (COBOL5563, StatementCursor.Advance): it is no literal of any
             // category, so SR5's category is not its fault.
             if (name is null && literal.Terminated)
@@ -1164,7 +1160,7 @@ public sealed class CopyProcessor(
                 // The text after the statement's period stays on the kind of line the statement ends on: the remainder of a
                 // debugging line is still a debugging line.
                 if (afterCopy < text.Length && LineIsDebugging(mapped, afterCopy) && !RestOfLineBlank(text, afterCopy))
-                    w.Append(ReferenceFormatProcessor.DebugLineCarrier.AsSpan(), copyLine);
+                    w.Append(DebugLineCarrier.Text.AsSpan(), copyLine);
                 alreadyIncluded.Remove(one.CopybookPath!);
             }
             else
@@ -1180,10 +1176,9 @@ public sealed class CopyProcessor(
     }
 
     /// <summary>Whether the logical line holding position <paramref name="pos"/> of <paramref name="mapped"/> is a debugging
-    /// line: the reference-format stage carries one as <see cref="ReferenceFormatProcessor.DebugLineCarrier"/> at its start.</summary>
+    /// line: the reference-format stage carries one as <see cref="DebugLineCarrier.Text"/> at its start.</summary>
     private static bool LineIsDebugging(MappedText mapped, int pos)
-        => string.CompareOrdinal(mapped.Text, mapped.LineStart(mapped.LineIndexAt(pos)),
-            ReferenceFormatProcessor.DebugLineCarrier, 0, ReferenceFormatProcessor.DebugLineCarrier.Length) == 0;
+        => DebugLineCarrier.StartsAt(mapped.Text, mapped.LineStart(mapped.LineIndexAt(pos)));
 
     private static bool RestOfLineBlank(string text, int from)
     {
@@ -1197,7 +1192,7 @@ public sealed class CopyProcessor(
     /// text is kept as it is, and a blank line has no text word to introduce).</summary>
     private static void AppendAsDebuggingLines(OriginWriter w, MappedText library, LineOrigin at)
     {
-        string carrier = ReferenceFormatProcessor.DebugLineCarrier;
+        string carrier = DebugLineCarrier.Text;
         for (int piece = 0; piece < library.Lines.Length; piece++)
         {
             int start = library.LineStart(piece);
@@ -1212,7 +1207,7 @@ public sealed class CopyProcessor(
     }
 
     /// <summary>Normalize library text to logical free form (kb/Work PB82 / PB1067) through the ONE §2023:6.5 walker the
-    /// source text uses — <see cref="ReferenceFormatProcessor.NormalizeToFreeFormMapped(string, ReferenceFormatDiagnostics?, string, bool?, out ReferenceFormatMap, bool, IReadOnlyList{DirectiveStackOp}?, bool?, CommentEntryPins?, int)"/>
+    /// source text uses — <see cref="LogicalLineConverter.NormalizeToFreeFormMapped(string, ReferenceFormatDiagnostics?, string, bool?, out ReferenceFormatMap, bool, IReadOnlyList{DirectiveStackOp}?, bool?, CommentEntryPins?, int)"/>
     /// — starting in <paramref name="copyFixed"/>, the format in effect for the COPY statement (§2023:7.3.24.3 GR3); null
     /// when that is unknown, and then detected as the compilation group's is). The text's own &gt;&gt;SOURCE FORMAT
     /// directives switch it (1), 5)); the resulting map is registered so a COPY inside this library text starts its
@@ -1223,7 +1218,7 @@ public sealed class CopyProcessor(
         // Library text is read by the same §2023:6.5 walker WITH the compilation's reference-format diagnostics (§2023:6.5: the rules
         // of logical conversion apply to lines "of source text and library text"), sited at the copybook's own file and
         // line, so a rule broken in a copybook is reported as it is in the main source (kb/Work PB1640).
-        var mapped = ReferenceFormatProcessor.NormalizeToFreeFormMapped(text, referenceFormatGates,
+        var mapped = LogicalLineConverter.NormalizeToFreeFormMapped(text, referenceFormatGates,
             copybookPath, copyFixed, out var formats, ccvsIndicators,
             implicitOps: implicitFormatOps?.For(copybookPath),   // GR14's implicit ops written IN this library text
             startsInIdentificationDivision: inIdentificationDivision,

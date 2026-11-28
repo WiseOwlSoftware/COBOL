@@ -1,12 +1,11 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.CodeGen;
-using WiseOwl.Cobol.Common;
+using WiseOwl.Cobol.Compiler.CodeGen;
 using WiseOwl.Cobol.Frontend.Common;
 using WiseOwl.Cobol.Frontend.Diagnostics;
 using WiseOwl.Cobol.Runtime;
 
-namespace WiseOwl.Cobol;
+namespace WiseOwl.Cobol.Compiler;
 
 /// <summary>
 /// Drives the WiseOwl COBOL compile pipeline end-to-end: COBOL source → typed-native C# → a runnable .NET assembly.
@@ -199,13 +198,13 @@ public static class CompilerDriver
         // each file it lists by its digest, so only a compilation that writes one hashes what it reads.
         if (options.Listing is not { } request) return CompileCore(options, new Frontend.CompilationInputs(), listing: null);
         var inputs = new Frontend.CompilationInputs { DigestsFiles = true };
-        var facts = new WiseOwl.Cobol.Listing.Building.ListingFacts(request, inputs, options.SourcePath, options.OutputDll(),
-            options.Edition, Binding.Procedure.IntrinsicBinder.CompileClock,
+        var facts = new WiseOwl.Cobol.Compiler.Listing.ListingFacts(request, inputs, options.SourcePath, options.OutputDll(),
+            options.Edition, Binding.Procedure.Verbs.IntrinsicBinder.CompileClock,
             request.Sections.Contains(WiseOwl.Cobol.Listing.ListingSection.Options) ? OptionsSectionBuilder.Build(options) : []);
         var result = CompileCore(options, inputs, facts);
         if (facts.Frontend is null) return result;   // no source text was read: nothing to list (DESIGN-listing.md section 4.6)
         facts.DepositDiagnostics(result.Diagnostics);   // every return carries them (DESIGN-listing.md section 6.3)
-        if (WiseOwl.Cobol.Listing.Building.ListingWriter.Write(facts, ListingOutcomeOf(result.Status)) is not { } written) return result;
+        if (WiseOwl.Cobol.Compiler.Listing.ListingWriter.Write(facts, ListingOutcomeOf(result.Status)) is not { } written) return result;
         return result with
         {
             Listing = written.Document,
@@ -257,7 +256,7 @@ public static class CompilerDriver
     /// <summary>The compilation itself, every return point of it; <paramref name="listing"/> collects the listing's facts, or is
     /// null when none is asked for.</summary>
     private static Result CompileCore(Options options, Frontend.CompilationInputs inputs,
-        WiseOwl.Cobol.Listing.Building.ListingFacts? listing)
+        WiseOwl.Cobol.Compiler.Listing.ListingFacts? listing)
     {
         if (!inputs.FileExists(options.SourcePath))
             return new Result(Outcome.SourceNotFound, "", null, [$"source file not found: {options.SourcePath}"], [])
@@ -320,9 +319,9 @@ public static class CompilerDriver
             // kb/Work PB4721: the screens of the bind skip a word or literal the client wrote into this expansion's text.
             ClientWritten = options.ClientWritten,
             // DESIGN-listing.md section 9: the bind finishes the symbol table only for a listing that reads it.
-            RecordsSymbols = listing is not null && WiseOwl.Cobol.Listing.Building.ListingFacts.ReadsSymbols(listing.Request),
-            RecordsNames = listing is not null && WiseOwl.Cobol.Listing.Building.ListingFacts.ReadsNames(listing.Request),
-            RecordsReferences = listing is not null && WiseOwl.Cobol.Listing.Building.ListingFacts.ReadsReferences(listing.Request),
+            RecordsSymbols = listing is not null && WiseOwl.Cobol.Compiler.Listing.ListingFacts.ReadsSymbols(listing.Request),
+            RecordsNames = listing is not null && WiseOwl.Cobol.Compiler.Listing.ListingFacts.ReadsNames(listing.Request),
+            RecordsReferences = listing is not null && WiseOwl.Cobol.Compiler.Listing.ListingFacts.ReadsReferences(listing.Request),
         };
         // ⛔ The >>COBOL-WORDS directive's SR3/SR4 verdict (COBOL1623, ISO §2023:7.3.10.3) is judged HERE, on the directive stage's map
         // and before the frontend gate: it needs no parse tree, so a program that also fails to parse reports it beside the parse

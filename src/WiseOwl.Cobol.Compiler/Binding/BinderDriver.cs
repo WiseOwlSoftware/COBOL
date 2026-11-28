@@ -2,23 +2,24 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
-using WiseOwl.Cobol.Binding.Bound;
-using WiseOwl.Cobol.Binding.Repository;
+using WiseOwl.Cobol.Compiler.Binding.Bound;
+using WiseOwl.Cobol.Compiler.Binding.Repository;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
-using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.Binding.Passes;
-using WiseOwl.Cobol.Binding.Procedure;
+using WiseOwl.Cobol.Compiler.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Passes;
+using WiseOwl.Cobol.Compiler.Binding.Procedure;
 using WiseOwl.Cobol.Frontend.Common;
-using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Parsing;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 
 using WiseOwl.Cobol.Compiler.Oo;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 using Core = CobolParserCore;
 using WiseOwl.Cobol.Runtime;
+using WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs;
 
 /// <summary>
 /// THE Binder phase (rearch PHASE-06 Step 2): binds a whole compilation group to an immutable
@@ -45,7 +46,7 @@ internal sealed class BinderDriver
     /// <summary>The finished symbol table of the bind (docs/rearchitecture/DESIGN-listing.md section 6.7.1), made once the data
     /// binding is frozen when <see cref="EditionContext.RecordsSymbols"/> asks for it; null otherwise. The listing's collector
     /// takes it; nothing else reads it.</summary>
-    internal global::WiseOwl.Cobol.Symbols.SymbolTableSnapshot? Symbols { get; private set; }
+    internal global::WiseOwl.Cobol.Compiler.Symbols.SymbolTableSnapshot? Symbols { get; private set; }
 
     /// <summary>Bind the WHOLE compilation group in <paramref name="tree"/> under the targeted EDITION
     /// (<paramref name="edition"/> — bind-time rejection diagnostics accumulate there; the driver fails the
@@ -76,30 +77,30 @@ internal sealed class BinderDriver
         // first means the user sees the level-number error instead of that cascade, and no bind-time failure on the
         // malformed structure can preempt it. The three sibling passes further down run POST-bind only because they
         // consume the bound model; this one has no such reason to wait. kb/Work PB485.
-        global::WiseOwl.Cobol.Validation.LevelNumberPass.Run(tree, edition);
+        global::WiseOwl.Cobol.Compiler.Validation.LevelNumberPass.Run(tree, edition);
         // COBOL-85's areas A and B (kb/Work PB3147): where each token begins its fixed-form line, against the item it
         // heads. Pre-bind for the level-number screen's reason — a pure syntax rule over the raw tree — and silent from
         // COBOL-2002 on, which has no areas (ISO §2023:6.3.1).
-        global::WiseOwl.Cobol.Validation.AreaPlacementPass.Run(tree, edition);
+        global::WiseOwl.Cobol.Compiler.Validation.AreaPlacementPass.Run(tree, edition);
         // ISO §2023:5.5 SR1 — every integer-n is NONZERO unless an associated rule says otherwise (kb/Work PB859). Pre-bind
         // for the level-number screen's reason: a pure syntax rule over the raw tree, and a zero OCCURS bound left to
         // the binder used to reach Roslyn as CS0029 in generated C#.
-        global::WiseOwl.Cobol.Validation.IntegerOperandPass.Run(tree, edition);
+        global::WiseOwl.Cobol.Compiler.Validation.IntegerOperandPass.Run(tree, edition);
         // The procedure division's general-format screens the superset grammar leaves to a named refusal (kb/Work
         // PB351, PB1146): a conditional statement as an imperative-statement operand (§2023:14.5.1) and a body mixing
         // §2023:14.2.1 Format 1 and Format 2 (§2023:14.4.1). Pre-bind for the same reason: pure syntax over the raw tree.
-        global::WiseOwl.Cobol.Validation.ProcedureFormatPass.Run(tree, edition, edition.Edition);
+        global::WiseOwl.Cobol.Compiler.Validation.ProcedureFormatPass.Run(tree, edition, edition.Edition);
         // ISO §2023:10.7.3 — every end marker against the definition it ends, and SR1's presence rule (kb/Work PB988).
         // Pre-bind for the same reason: a pure syntax rule over the raw tree, asked once of EVERY definition the
         // source states (parameterized skeletons included) before the OO table renames anything.
-        global::WiseOwl.Cobol.Validation.EndMarkerPass.Run(tree, edition);
+        global::WiseOwl.Cobol.Compiler.Validation.EndMarkerPass.Run(tree, edition);
         // WHERE a directive may be written, for the placement rules that need the parse tree (kb/Work PB1005, PB1065,
         // PB1377, PB1378): PUSH ALL / POP ALL (§2023:7.3.22.3 SR3, §2023:7.3.20.3 SR3), FLAG-02 / FLAG-14 (§2023:7.3.14.3 SR1,
         // §2023:7.3.15.3 SR1) between clauses and statements; LEAP-SECOND / PROPAGATE outside every compilation unit
         // (§2023:7.3.17.3 SR1, §2023:7.3.21.3 SR1); a PUSH/POP naming one inherits its rule (§2023:7.3.20.3 SR2, §2023:7.3.22.3 SR2). Each
         // rule is data on the directive's the construct catalogue row; a pure position rule over the tree and the directive
         // sites, with no tree walk unless the source has a site the pass judges.
-        global::WiseOwl.Cobol.Validation.DirectivePlacementPass.Run(tree, directives.DirectiveSites, edition);
+        global::WiseOwl.Cobol.Compiler.Validation.DirectivePlacementPass.Run(tree, directives.DirectiveSites, edition);
 
         // The group's compile-time TurnState (ISO §2023:7.3.25; deep-dive D10) — built BEFORE binding so every unit's
         // statement binder folds the same source-ordered directive events (GR6: checking spans the compilation
@@ -232,7 +233,7 @@ internal sealed class BinderDriver
         // VersionConformancePass, run right after it: it is an orthogonal axis (directive-state-driven, always a
         // Warning, fires regardless of --std), so it is NOT a GroupTail manifest pass. A no-op (no parse-tree walk)
         // when the source carries no >>FLAG directive — the zero-overhead invariant.
-        global::WiseOwl.Cobol.Validation.FlagConformancePass.Run(ctx, FlagState.Build(flagEvents), edition);
+        global::WiseOwl.Cobol.Compiler.Validation.FlagConformancePass.Run(ctx, FlagState.Build(flagEvents), edition);
 
         // The expression-formation pass (ISO §2023:8.8.1.2 Table 3 / §2023:8.8.2 Table 4) — a THIRD sibling on the same
         // "orthogonal axis ⇒ separate pass" precedent. It is not edition gating (the tables have no introducedIn:
@@ -240,7 +241,7 @@ internal sealed class BinderDriver
         // so neither existing pass's charter covers it. It walks the RAW parse tree once, never once per binding
         // site; the rule itself is the shared frontend ArithmeticFormationRules, which the compile-time
         // expression evaluator invokes on its own trees. kb/Work PB158.
-        global::WiseOwl.Cobol.Validation.ExpressionFormationPass.Run(ctx, edition, edition.Edition);
+        global::WiseOwl.Cobol.Compiler.Validation.ExpressionFormationPass.Run(ctx, edition, edition.Edition);
 
         // The literal-syntax pass (ISO §2023:8.3.3.2.3 SR1/SR6, §2023:8.3.3.4.3 SR1, §2023:8.3.3.5.3 SR1/SR5) — a sibling on the
         // same footing: the length and hexadecimal-grouping rules are properties of the literal TOKEN, whatever
@@ -267,7 +268,7 @@ internal sealed class BinderDriver
         // DATA DIVISION clauses of the A.4.14 VALIDATE facility that no stage builds yet, by name (COBOL1708; kb/Work PB5577); the
         // statement itself binds (ValidateBinder), and a declined module's EXCEPTION-NAMES are refused in the one written-name
         // funnel (EcNameResolution; EC-SCREEN). A no-op below COBOL-2002.
-        global::WiseOwl.Cobol.Validation.DeclinedFacilityPass.Run(ctx, edition);
+        global::WiseOwl.Cobol.Compiler.Validation.DeclinedFacilityPass.Run(ctx, edition);
 
         // The closed-general-format pass (ISO §2023:4.2.2) — a FOURTH sibling on the same footing, and the one that
         // ends the grammar's last total sink. `genericClause : IDENTIFIER (IDENTIFIER|literal)*` was reached from
@@ -277,7 +278,7 @@ internal sealed class BinderDriver
         // refuses each instance by name, naming the format and its § from ClosedFormats.ByContext (COBOL1941
         // for §2023:13.16.2, 1970 for the clause-list formats, 1971 for the paragraph-list ones). Runs at EVERY
         // edition — unlike the declined pass there is no edition below which the sink cannot fire. kb/Work PB829.
-        global::WiseOwl.Cobol.Validation.ClosedFormatPass.Run(ctx, edition);
+        global::WiseOwl.Cobol.Compiler.Validation.ClosedFormatPass.Run(ctx, edition);
 
         // The data binding is done (DESIGN-architecture-review §8.3 (1), step 11; kb/Work PB2361): the group tail has run, so the
         // procedure binders' two late doors (a compiler temporary's root, a function result temporary's cell) are shut and every

@@ -135,7 +135,7 @@ A pass is a unit of forest computation that declares what forest facts it consum
 an enum of named facts, NOT free strings, so the DAG is compile-time enumerable and greppable.
 
 ```csharp
-namespace WiseOwl.Cobol.Binding.Pipeline;
+namespace WiseOwl.Cobol.Compiler.Binding.Pipeline;
 
 /// One computed forest fact. A pass may only READ a capability listed in Requires and may only
 /// WRITE (mark produced) a capability listed in Produces. The manifest validates the DAG at startup.
@@ -1120,7 +1120,7 @@ the bit-alignment proof and the string hoist deleted, and `PositionCarrierDriftT
 | rename | `BoundStores` | `BoundStoreAnalysis` | It is an analysis, not storage |
 | create | — | `Common/CobolLiteral.cs` (Decode), `Binding/RecordLayout.cs`, `Binding/PhraseBlocks.cs`, `DataItem.Root` | One canonical helper per job (dedup) |
 | move | `ReferenceResolver` subscript readers (`SegmentsOf`/`BindPosition`/`WindowScopeOf` — the hand-rolled token splitter is gone, kb/Work PB2113, and positions are the typed `Position` carrier, §3.9, kb/Work PB2151) | `NameResolver` collaborator | Thin the resolver; it becomes an orchestrator over SymbolTable |
-| retire (G8) | `using Core = CobolParserCore; using legacy-root.Generated;` (`StatementBinder.cs:6,11`) | `WiseOwl.Cobol.Frontend.Generated` | Decouple from the legacy generated namespace at cut-over (driver/frontend sibling) |
+| retire (G8) | `using Core = CobolParserCore; using legacy-root.Generated;` (`StatementBinder.cs:6,11`) | `WiseOwl.Cobol.Frontend.Parsing` | Decouple from the legacy generated namespace at cut-over (driver/frontend sibling) |
 
 ---
 

@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-namespace WiseOwl.Cobol.Binding.Model;
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// <summary>⛔ THE COMPILE-TIME STORAGE EXTENT OF AN OPERAND — which storage area it lies in, where it starts and how
 /// many bytes it spans — and the ONE answer to "do these two operands STATICALLY overlap?" (kb/Work PB1907;

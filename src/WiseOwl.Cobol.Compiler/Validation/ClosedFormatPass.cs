@@ -2,15 +2,14 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;           // ITerminalNode — a paragraph's separator period
-using WiseOwl.Cobol.Binding;             // EditionContext
-using WiseOwl.Cobol.Binding.Passes;       // GroupBindContext
+using WiseOwl.Cobol.Compiler.Binding;             // EditionContext
+using WiseOwl.Cobol.Compiler.Binding.Passes;       // GroupBindContext
 using WiseOwl.Cobol.Editions.Diagnostics; // DiagnosticCatalog
 using WiseOwl.Cobol.Frontend.Cst;         // ClosedFormats — the ONE table of closed general formats
-using WiseOwl.Cobol.Frontend.Generated;   // CobolParserCore
-using WiseOwl.Cobol.Frontend.Parsing;     // WrittenSource — the opening item quoted as written
+using WiseOwl.Cobol.Frontend.Parsing;   // CobolParserCore; WrittenSource — the opening item quoted as written
 using WiseOwl.Cobol.Editions;
 
-namespace WiseOwl.Cobol.Validation;
+namespace WiseOwl.Cobol.Compiler.Validation;
 
 /// <summary>
 /// THE ONE PLACE A CLOSED GENERAL FORMAT'S RESIDUE IS REFUSED BY NAME (kb/Work PB829) — a sibling to

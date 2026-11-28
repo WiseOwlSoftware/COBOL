@@ -1,9 +1,10 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Listing;
 using WiseOwl.Cobol.Listing.Text;
-using WiseOwl.Cobol.Symbols;
+using WiseOwl.Cobol.Compiler.Symbols;
 
-namespace WiseOwl.Cobol.Listing.Building;
+namespace WiseOwl.Cobol.Compiler.Listing;
 
 /// <summary>
 /// ⛔ THE CROSS-REFERENCE (docs/rearchitecture/DESIGN-listing.md sections 6.7 and 6.7.1): a VIEW of the finished symbol table's entries

@@ -1,7 +1,8 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 
-namespace WiseOwl.Cobol.Binding.Model;
+
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// <summary>⛔ THE ONE PLACE A METHOD NAME IS LOOKED UP ON A RECEIVER'S ROSTER (kb/Work PB4893). A receiver of a known
 /// description selects ONE roster (§2023:14.9.23.3 SR4): a class's FACTORY interface or its INSTANCE interface, both searched

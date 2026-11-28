@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using WiseOwl.Cobol;
+using WiseOwl.Cobol.Compiler;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Runtime;
 using WiseOwl.Cobol.Runtime.Collation;

@@ -3,9 +3,9 @@
 using Antlr4.Runtime;
 using WiseOwl.Cobol.Runtime;
 using WiseOwl.Cobol.Editions.Diagnostics;
-using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Parsing;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 using Core = CobolParserCore;
 

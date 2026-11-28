@@ -3,7 +3,7 @@
 using System.Diagnostics;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Preprocessor;
-using WiseOwl.Cobol;                                          // CompilerDriver (the greenfield compiler)
+using WiseOwl.Cobol.Compiler;                                          // CompilerDriver (the greenfield compiler)
 using WiseOwl.Cobol.Tests.Shared;                             // ProcessObserver — the ONE child-process observer
 
 namespace WiseOwl.Cobol.Tests.Conformance;

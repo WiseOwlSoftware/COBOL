@@ -1,10 +1,10 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding;
-using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.CodeGen.Emit;
+using WiseOwl.Cobol.Compiler.Binding;
+using WiseOwl.Cobol.Compiler.Binding.Model;
+using WiseOwl.Cobol.Compiler.CodeGen.Emit;
 
-namespace WiseOwl.Cobol.CodeGen;
+namespace WiseOwl.Cobol.Compiler.CodeGen.Roslyn;
 
 /// <summary>
 /// THE renderer of the OBJECT-COMPUTER-derived members of a runtime-module TYPE (ISO/IEC 1989:2023 §2023:12.3.6 — the
@@ -105,13 +105,13 @@ internal static class ObjectComputerEmit
     /// national function result carries its own category. The two private two-case copies this replaced read
     /// <c>Place.Item.Pic</c>, null for every group, so <c>FUNCTION UPPER-CASE(NG)</c> over a GROUP-USAGE NATIONAL
     /// group mapped case through the ALPHANUMERIC locale where its elementary twin used the national one.</summary>
-    public static string ClassificationArg(WiseOwl.Cobol.Binding.Bound.BoundOperand op)
+    public static string ClassificationArg(WiseOwl.Cobol.Compiler.Binding.Bound.BoundOperand op)
         => $", {ClassificationExpr(op)}";
 
     /// <summary>The selector as an expression - <c>__CLASSIFY.For(national)</c> - for a consumer that names the argument
     /// (the ANYCASE matchers, whose "LOWER-CASE function without the LOCALE argument" fold takes the classification by
     /// §2023:15.57.4 RV3; kb/Work PB2631) rather than appending it positionally.</summary>
-    public static string ClassificationExpr(WiseOwl.Cobol.Binding.Bound.BoundOperand op)
+    public static string ClassificationExpr(WiseOwl.Cobol.Compiler.Binding.Bound.BoundOperand op)
         => $"__CLASSIFY.For({(IntrinsicResultType.OperandCategory(op) is PicCategory.National ? "true" : "false")})";
 
     private static string Kind(LocalePhrase? p) => p is null ? "LocalePhraseKind.None" : $"LocalePhraseKind.{p.Kind}";

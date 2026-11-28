@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 
 namespace WiseOwl.Cobol.Compiler.Oo;
 
@@ -49,4 +49,4 @@ public sealed record ImportedClass(OoClassSymbol Symbol, Action Complete);
 public sealed record ImportedInterface(OoInterfaceSymbol Symbol, Action Complete);
 
 /// <summary>A skeleton another group published: its <paramref name="Record"/> and where it came from.</summary>
-internal sealed record ImportedSkeleton(WiseOwl.Cobol.Binding.Model.SkeletonRecord Record, ImportedFrom From);
+internal sealed record ImportedSkeleton(WiseOwl.Cobol.Compiler.Binding.Model.SkeletonRecord Record, ImportedFrom From);

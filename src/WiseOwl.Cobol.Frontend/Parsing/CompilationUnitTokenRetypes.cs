@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Frontend.Parsing;
 
-namespace WiseOwl.Cobol.Frontend.Generated;
+namespace WiseOwl.Cobol.Frontend.Parsing;
 
 public partial class CobolParserCore
 {

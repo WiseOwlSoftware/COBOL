@@ -104,7 +104,7 @@ public sealed class DirectiveWithinStatementTests : IDisposable
         if (copybook is not null) File.WriteAllText(Path.Combine(_dir, "cb2.cpy"), copybook);
         var bag = new DiagnosticBag();
         var copy = new CopyProcessor([_dir], bag, dialectLevel: 2023, permissive: false);
-        var converted = ReferenceFormatProcessor.NormalizeToFreeFormMapped(fixedFormText, null, "t.cob", true, out var formats);
+        var converted = LogicalLineConverter.NormalizeToFreeFormMapped(fixedFormText, null, "t.cob", true, out var formats);
         copy.RegisterReferenceFormat("t.cob", formats);
         var text = ConditionalCompilationProcessor.ProcessWithCopyMapped(converted, copy,
             WiseOwl.Cobol.Frontend.Frontend.LeftDirectives, bag, "t.cob", 2023).Text;

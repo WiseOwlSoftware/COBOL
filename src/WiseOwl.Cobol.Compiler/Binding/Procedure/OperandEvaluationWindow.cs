@@ -1,10 +1,11 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Bound;
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Bound;
+using WiseOwl.Cobol.Compiler.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs;
 using WiseOwl.Cobol.Runtime.Exceptions;
 
-namespace WiseOwl.Cobol.Binding.Procedure;
+namespace WiseOwl.Cobol.Compiler.Binding.Procedure;
 
 /// <summary>
 /// ⛔ THE OPERAND-EVALUATION WINDOW (kb/Work PB3223): the one protocol by which an operand that must run code before

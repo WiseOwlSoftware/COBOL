@@ -4,8 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using WiseOwl.Cobol.Binding;
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 using WiseOwl.Cobol.Compiler.Oo;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Runtime;
@@ -38,7 +38,7 @@ public sealed class ActivationKeyCultureTests
 
     private static DataItem Item(string picture)
     {
-        var dollar = new Dictionary<char, CurrencyDefinition> { ['$'] = new("$", WiseOwl.Cobol.Common.LiteralClass.Alphanumeric) };
+        var dollar = new Dictionary<char, CurrencyDefinition> { ['$'] = new("$", WiseOwl.Cobol.Frontend.Common.LiteralClass.Alphanumeric) };
         var pic = PictureAnalyzer.Analyze(picture, Usage.Display, new EditionContext(2023), "data item 'P'",
             currencies: dollar, decimalPointIsComma: false);
         Assert.False(pic.IsRecovery, $"PIC {picture} did not analyze");

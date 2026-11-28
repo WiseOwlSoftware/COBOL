@@ -1,10 +1,10 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Bound;
-using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.Binding.Validation;
+using WiseOwl.Cobol.Compiler.Binding.Bound;
+using WiseOwl.Cobol.Compiler.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Validation;
 
-namespace WiseOwl.Cobol.Binding.Procedure;
+namespace WiseOwl.Cobol.Compiler.Binding.Procedure;
 
 /// <summary>
 /// The binder collaborators' shared spine (P7 Step 10c — the phase doc's §Step 10 AS-BUILT PLAN; the
@@ -206,7 +206,7 @@ internal sealed class BinderContext(DataBinder data, ReferenceResolver refs)
     /// one naming an open mode cites each module; USE BEFORE REPORTING is the report writer's §1985:XIII.4.9.3 SR1, and USE FOR
     /// DEBUGGING the debug module's §1985:XV.3.2.3 SR1 ("Debugging section(s), if specified, must appear together immediately
     /// after the DECLARATIVES header").</summary>
-    public string UsePlacementRule(Frontend.Generated.CobolParserCore.UseStatementContext use)
+    public string UsePlacementRule(Frontend.Parsing.CobolParserCore.UseStatementContext use)
     {
         var edition = Edition.Edition;
         if (use.BEFORE() is not null) return edition.Cite("§1985:XIII.4.9.3 SR1", "ISO §2023:14.9.49.3 SR1");

@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Runtime;
 
-namespace WiseOwl.Cobol.Binding.Model;
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// <summary>⛔ ISO §2023:13.18.22.4 GR5, THE ONE PLACE ITS TWO SENTENCES ARE APPLIED (kb/Work PB511, PB2724): "Literal-1, if
 /// specified, is the name of the file connector or record that is externalized to the operating environment. If literal-1 is

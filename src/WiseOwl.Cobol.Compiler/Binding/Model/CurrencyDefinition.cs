@@ -1,8 +1,8 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Common;
+using WiseOwl.Cobol.Frontend.Common;
 
-namespace WiseOwl.Cobol.Binding.Model;
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// <summary>
 /// What one currency PICTURE SYMBOL of a source unit stands for (ISO §2023:12.3.7.3, the CURRENCY SIGN clause): the

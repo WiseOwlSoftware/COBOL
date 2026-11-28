@@ -1,8 +1,8 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 
-namespace WiseOwl.Cobol.Binding.Bound;
+namespace WiseOwl.Cobol.Compiler.Binding.Bound;
 
 /// <summary>
 /// ⛔ THE HELD FORM OF A table(ALL) FUNCTION ARGUMENT (ISO §2023:8.4.3.2.4 GR2, §2023:15.3; kb/Work PB4162): the pre-op that copies the

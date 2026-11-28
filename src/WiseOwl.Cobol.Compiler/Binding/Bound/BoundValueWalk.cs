@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-namespace WiseOwl.Cobol.Binding.Bound;
+namespace WiseOwl.Cobol.Compiler.Binding.Bound;
 
 /// <summary>⛔ THE ONE WALK OVER EVERY OPERAND POSITION OF A VALUE TREE (kb/Work PB6223, PB6328). A consumer that asks
 /// "does any operand under this part carry X" (EC-ARGUMENT-FUNCTION's intrinsic call, EC-PROGRAM-NOT-FOUND's program

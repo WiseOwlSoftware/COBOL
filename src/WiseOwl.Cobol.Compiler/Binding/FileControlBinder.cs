@@ -1,14 +1,13 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.Common;
+using WiseOwl.Cobol.Compiler.Binding.Model;
+using WiseOwl.Cobol.Frontend.Common;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
-using WiseOwl.Cobol.Frontend.Generated;
-using WiseOwl.Cobol.Runtime.Collation;
 using WiseOwl.Cobol.Frontend.Parsing;
+using WiseOwl.Cobol.Runtime.Collation;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 using WiseOwl.Cobol.Runtime;
 using Core = CobolParserCore;

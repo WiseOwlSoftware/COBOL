@@ -2,9 +2,9 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Collections.Frozen;
 using Antlr4.Runtime;
-using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Parsing;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 using Core = CobolParserCore;
 

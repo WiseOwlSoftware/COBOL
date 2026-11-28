@@ -1,22 +1,21 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Passes;
-using WiseOwl.Cobol.Common;
+using WiseOwl.Cobol.Compiler.Binding.Passes;
+using WiseOwl.Cobol.Frontend.Common;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Cst;
-using WiseOwl.Cobol.Frontend.Generated;
-
-using WiseOwl.Cobol.Binding.Model;
-
-using WiseOwl.Cobol.Compiler.Oo;
 using WiseOwl.Cobol.Frontend.Parsing;
 
-namespace WiseOwl.Cobol.Binding;
+using WiseOwl.Cobol.Compiler.Binding.Model;
+
+using WiseOwl.Cobol.Compiler.Oo;
+
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 using Core = CobolParserCore;
 using WiseOwl.Cobol.Runtime;
-using WiseOwl.Cobol.Symbols;
+using WiseOwl.Cobol.Compiler.Symbols;
 
 /// <summary>
 /// Builds the bound DATA DIVISION model (a forest of <see cref="DataItem"/> trees, one per 01/77 item) from the
@@ -1589,14 +1588,14 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // validator, the VALUE initializer, the SET store and the condition test all part the same text the same
         // way. NULL/NULLS stays out (includeNull: false) — it is not a character figurative and this rule's
         // national/alphanumeric allowance never covered it.
-        var figOp = WiseOwl.Cobol.CodeGen.FigurativeConstants.Classify(raw, includeNull: false);
+        var figOp = WiseOwl.Cobol.Compiler.CodeGen.Roslyn.FigurativeConstants.Classify(raw, includeNull: false);
         string? allRaw = figOp.AllLiteral;
         LiteralClass? allLit = allRaw is null ? null : CobolLiteral.ClassOf(allRaw);
         bool isNatLit = lit is LiteralClass.National || allLit is LiteralClass.National;
         bool isBoolLit = lit is LiteralClass.Boolean || allLit is LiteralClass.Boolean;
         bool isPlainString = lit is LiteralClass.Alphanumeric;
         bool isNumeric = raw.Length >= 1 && (char.IsAsciiDigit(raw[0]) || raw[0] is '+' or '-' or '.');
-        bool isFloatLit = isNumeric && WiseOwl.Cobol.Common.NumericLiteral.IsFloatingPointForm(raw);
+        bool isFloatLit = isNumeric && WiseOwl.Cobol.Frontend.Common.NumericLiteral.IsFloatingPointForm(raw);
         bool isAllQuoted = allLit is LiteralClass.Alphanumeric;
         // Formats 1-5 — the KEYWORD figuratives, each of which admits the optional word ALL, both in the spelling
         // the parse tree glues ("ALLSPACES") and in the one it preserves. The word table is FigurativeConstants'
@@ -1623,11 +1622,11 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             //    scale (before this the emitter wrote `15EL` and Roslyn failed with CS0595). A FLOAT-usage subject
             //    keeps the floating form (its initializer is a binary64 literal).
             case PicCategory.Numeric when isFloatLit && !pic.IsFloat:
-                return WiseOwl.Cobol.Common.NumericLiteral.ExpandFloatingPoint(raw);
+                return WiseOwl.Cobol.Frontend.Common.NumericLiteral.ExpandFloatingPoint(raw);
             //    A numeric literal (either form) seeding a FLOAT-SHORT / FLOAT-LONG / FLOAT-BINARY-32/64 subject shall be
             //    "a permissible value within the range indicated by ... the USAGE clause" (§2023:13.18.63.3 SR2) — the
             //    receiver's binary form (kb/Work PB99: a value beyond it became an overflowing C# double literal, CS0594).
-            case PicCategory.Numeric when isNumeric && pic.IsFloat && !WiseOwl.Cobol.Common.NumericLiteral.FitsBinaryFloat(raw, pic.IsSingle):
+            case PicCategory.Numeric when isNumeric && pic.IsFloat && !WiseOwl.Cobol.Frontend.Common.NumericLiteral.FitsBinaryFloat(raw, pic.IsSingle):
                 Edition.Error(DiagnosticCatalog.FloatingLiteral, $"{where}: the VALUE literal {raw} lies outside the range of the "
                     + $"item's {(pic.IsSingle ? "binary32 (FLOAT-SHORT / FLOAT-BINARY-32)" : "binary64 (FLOAT-LONG / FLOAT-BINARY-64)")} "
                     + "usage — a numeric VALUE shall be a permissible value within the range the USAGE indicates (ISO §2023:13.18.63.3 SR2; "
@@ -1642,7 +1641,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                 Edition.Error(DiagnosticCatalog.ValueEditedLiteralForm, $"{where}: the VALUE literal {raw} is a floating-point "
                     + "numeric literal but the item is a fixed-point numeric-edited item — literals for fixed-point formats "
                     + "shall be specified as fixed-point (ISO §2023:13.18.63.3 SR6)");
-                return WiseOwl.Cobol.Common.NumericLiteral.ExpandFloatingPoint(raw);
+                return WiseOwl.Cobol.Frontend.Common.NumericLiteral.ExpandFloatingPoint(raw);
             case PicCategory.NumericEdited when pic.IsFloatEdited && isNumeric && !isFloatLit && MagnitudeOfNumericLiteral(raw) is NumericLiteralMagnitude.NonZero:
                 Edition.Error(DiagnosticCatalog.ValueEditedLiteralForm, $"{where}: the VALUE literal {raw} is a fixed-point "
                     + "numeric literal but the item is a floating-point numeric-edited item — its VALUE shall be a "
@@ -1711,7 +1710,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                     // fold (EmitText.RepeatToWidth → the runtime's CobolString.FigToWidth), which is where
                     // MoveEmitter.AllDigitFill takes the same rule from. It was open-coded here (kb/Work PB461):
                     // a second copy of GR2 that could drift from the runtime the emitted code measures against.
-                    content = WiseOwl.Cobol.CodeGen.Emit.EmitText.RepeatToWidth(content, Math.Max(pic.Digits, 1));
+                    content = WiseOwl.Cobol.Compiler.CodeGen.Emit.EmitText.RepeatToWidth(content, Math.Max(pic.Digits, 1));
                 if (IsNumericLiteralForm(content))
                 {
                     Edition.Removed(DiagnosticCatalog.ValueLiteralClass.Code, $"{where}: the VALUE literal "
@@ -1949,7 +1948,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         return (edited ? pic.DigitPositions - mask.Count(c => c == 'P') : pic.Digits, pic.ReceiverScale());
     }
 
-    // (The former private DecodeString twin is retired — all callers use WiseOwl.Cobol.Common.CobolLiteral.Decode,
+    // (The former private DecodeString twin is retired — all callers use WiseOwl.Cobol.Frontend.Common.CobolLiteral.Decode,
     // the one ISO §2023:8.3.3.1/§2023:8.3.3.2 literal codec, PHASE-05 Step 1.)
 
     /// <summary>The most-recently-opened 01/77 record, so a following level-66 RENAMES attaches to its owner.</summary>
@@ -3554,7 +3553,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     private (decimal? Num, string? Str) ConditionValueOf(DataItem parent, string raw, int width)
     {
         if (parent.OperandPic is { Category: PicCategory.NumericEdited } npic
-            && WiseOwl.Cobol.CodeGen.ValueInitializer.EditedImageOfNumericValue(
+            && WiseOwl.Cobol.Compiler.CodeGen.DataDivision.ValueInitializer.EditedImageOfNumericValue(
                    Edition.DialectLevel, parent, npic, raw) is { } edited)
             return (null, edited);
         // A FIGURATIVE CONSTANT OR ALL LITERAL ON A NON-NUMERIC SUBJECT IS A CHARACTER VALUE (kb/Work PB5181): the fill
@@ -3564,11 +3563,11 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // figurative names no value (SR2 refuses it there).
         if (parent.OperandPic is not { Category: PicCategory.Numeric })
         {
-            var fig = WiseOwl.Cobol.CodeGen.FigurativeConstants.Classify(raw);
+            var fig = WiseOwl.Cobol.Compiler.CodeGen.Roslyn.FigurativeConstants.Classify(raw);
             if (fig.Kind is { } kind)
             {
                 var cat = parent.OperandPic?.Category;
-                char fill = WiseOwl.Cobol.CodeGen.FigurativeConstants.FillChar(kind, State.Configuration.Collating,
+                char fill = WiseOwl.Cobol.Compiler.CodeGen.Roslyn.FigurativeConstants.FillChar(kind, State.Configuration.Collating,
                     cat is PicCategory.National or PicCategory.Boolean ? cat : null, State.Configuration.NationalCollating);
                 return (null, WiseOwl.Cobol.Runtime.CobolString.FigToWidth(fill.ToString(), width));
             }
@@ -3594,7 +3593,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     private static bool IsNumericLiteralOperand(string raw)
     {
         if (StringValue(raw) is not null) return false;
-        var fig = WiseOwl.Cobol.CodeGen.FigurativeConstants.Classify(raw.Trim());
+        var fig = WiseOwl.Cobol.Compiler.CodeGen.Roslyn.FigurativeConstants.Classify(raw.Trim());
         return fig.Kind is null && fig.AllLiteral is null;
     }
 
@@ -3713,7 +3712,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // THE one §2023:8.3.3.6.2 operand classifier (kb/Work PB461) — the private strip here fired only before a
         // SPACE, and the parse tree glues the words, so `VALUE ALL ZEROS` arrived as "ALLZEROS" and this reader
         // answered "no value the compiler can weigh" for a constant whose value §2023:8.3.3.6.4 GR4 states exactly.
-        if (WiseOwl.Cobol.CodeGen.FigurativeConstants.Classify(w).Kind is { } k) return k == 'Z' ? 0m : null;
+        if (WiseOwl.Cobol.Compiler.CodeGen.Roslyn.FigurativeConstants.Classify(w).Kind is { } k) return k == 'Z' ? 0m : null;
         return decimal.TryParse(w, System.Globalization.NumberStyles.AllowDecimalPoint
                 | System.Globalization.NumberStyles.AllowLeadingSign,
             System.Globalization.CultureInfo.InvariantCulture, out decimal v) ? v : null;
@@ -5148,7 +5147,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                 // now a bindable value that §2023:8.4.2.3.4 GR2 ("The value of a subscript shall be a positive
                 // integer") rejects downstream. A long.TryParse here saturated a 20-to-31-digit NEGATIVE subscript
                 // to int.MaxValue, and the screen then quoted a positive number back.
-                int v = WiseOwl.Cobol.Validation.IntegerOperandRules.TryHostValue(read.Value, out int n) ? n : int.MaxValue;
+                int v = WiseOwl.Cobol.Compiler.Validation.IntegerOperandRules.TryHostValue(read.Value, out int n) ? n : int.MaxValue;
                 if (sub.Start.TokenIndex < toIdx) { from.Add(v); fromWritten.Add(read.Written); }
                 else { to!.Add(v); toWritten!.Add(read.Written); }
             }

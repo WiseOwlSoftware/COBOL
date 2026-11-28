@@ -1,8 +1,8 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 /// <summary>
 /// ⛔ COBOL-85'S FOURTH DISJOINT SET: CONDITION-NAMES, DATA-NAMES AND RECORD-NAMES ARE ONE SET OF NAMES (kb/Work PB5972).

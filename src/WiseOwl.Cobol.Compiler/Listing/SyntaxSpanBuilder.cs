@@ -3,8 +3,9 @@
 using WiseOwl.Cobol.Frontend;
 using WiseOwl.Cobol.Frontend.Common;
 using WiseOwl.Cobol.Frontend.Preprocessor;
+using WiseOwl.Cobol.Listing;
 
-namespace WiseOwl.Cobol.Listing.Building;
+namespace WiseOwl.Cobol.Compiler.Listing;
 
 /// <summary>
 /// ⛔ THE ONE BUILDER OF A LINE'S SPANS (DESIGN-listing.md section 7.2; kb/Work PB5949): what the compiler read each stretch of a

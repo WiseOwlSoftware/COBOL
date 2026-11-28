@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Editions;
 
-namespace WiseOwl.Cobol.Binding.Procedure;
+namespace WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs;
 
 /// <summary>
 /// ⛔ THE CALL STATEMENT'S SYNTAX RULES AS EACH EDITION NUMBERS THEM (kb/Work PB6149, PB4950: "a diagnostic cite the rule of the

@@ -3,12 +3,13 @@
 using System.Reflection;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
-using WiseOwl.Cobol.Binding;
+using WiseOwl.Cobol.Compiler;
+using WiseOwl.Cobol.Compiler.Binding;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend;
 using WiseOwl.Cobol.Frontend.Diagnostics;
-using WiseOwl.Cobol.Frontend.Generated;
-using WiseOwl.Cobol.Symbols;
+using WiseOwl.Cobol.Frontend.Parsing;
+using WiseOwl.Cobol.Compiler.Symbols;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 

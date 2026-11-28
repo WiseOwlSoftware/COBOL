@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-namespace WiseOwl.Cobol.Binding.Model;
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// <summary>
 /// One source element's I-O-CONTROL APPLY COMMIT clause (ISO §2023:12.4.6.3; kb/Work PB3338): what §2023:12.4.6.3.4 GR1 makes

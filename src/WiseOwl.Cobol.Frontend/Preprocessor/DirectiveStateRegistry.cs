@@ -34,7 +34,7 @@ public static class DirectiveStateRegistry
     /// <summary>Every pushable directive, carried or not.</summary>
     public static IReadOnlyList<Entry> Entries { get; } =
     [
-        new(Constructs.SourceFormatDirective2002, [nameof(ReferenceFormatProcessor)], [],
+        new(Constructs.SourceFormatDirective2002, [nameof(LogicalLineConverter)], [],
             "The reference format of the following text (§2023:7.3.24.3 GR1) — the normalizer's running segment format, which "
             + "§2023:14.9.28.4 GR14's implicit PUSH ALL / POP ALL reach through ImplicitFormatOps (kb/Work PB1066)."),
         new(Constructs.DefineDirective2002, [nameof(ConditionalCompilationProcessor)],

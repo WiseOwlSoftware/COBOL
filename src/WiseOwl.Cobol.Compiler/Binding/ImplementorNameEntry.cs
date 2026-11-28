@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Editions;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 /// <summary>ONE switch-name / feature-name / device-name entry of a SPECIAL-NAMES paragraph, read off its parse node
 /// and classified against <see cref="ImplementorNames"/> — the ONE reading both walkers of the entry share (the
@@ -18,7 +18,7 @@ public readonly record struct ImplementorNameEntry(string Written, ImplementorNa
     string? OnCondition, string? OffCondition)
 {
     /// <summary>Read and classify <paramref name="e"/>. The grammar guarantees a mnemonic, a status phrase, or both.</summary>
-    public static ImplementorNameEntry Read(WiseOwl.Cobol.Frontend.Generated.CobolParserCore.ImplementorSwitchEntryContext e)
+    public static ImplementorNameEntry Read(WiseOwl.Cobol.Frontend.Parsing.CobolParserCore.ImplementorSwitchEntryContext e)
     {
         var words = e.cobolWord();
         string written = words[0].GetText();

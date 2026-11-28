@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 /// <summary>The three things a §2023:15.3.1–§2023:15.3.3 format string can be.</summary>
 internal enum DateTimeFormatKind { Date, Time, Combined }

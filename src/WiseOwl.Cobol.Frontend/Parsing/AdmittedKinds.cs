@@ -4,7 +4,7 @@ using Antlr4.Runtime;
 using Antlr4.Runtime.Atn;
 using Antlr4.Runtime.Misc;
 using WiseOwl.Cobol.Editions;
-using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Parsing;
 using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.Frontend.Parsing;

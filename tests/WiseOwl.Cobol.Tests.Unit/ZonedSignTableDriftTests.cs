@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Runtime;
 using Xunit;
@@ -127,7 +127,7 @@ public sealed class ZonedSignTableDriftTests
             Digits = 3, FractionDigits = 0, Signed = true,
             Truncation = NumericTruncation.DigitCount, ByteForm = NumericByteForm.Zoned,
         }.SignEncoding);
-        Assert.Equal(SignEncoding.Ibm, new WiseOwl.Cobol.CompilerDriver.Options("x.cob", EditionInfo.Latest, SourceFormat: TestSourceFormat.Inline).SignEncoding);
+        Assert.Equal(SignEncoding.Ibm, new WiseOwl.Cobol.Compiler.CompilerDriver.Options("x.cob", EditionInfo.Latest, SourceFormat: TestSourceFormat.Inline).SignEncoding);
 
         var pic = new PicInfo(PicCategory.Numeric, Usage.Display, Length: 3, Digits: 3, Scale: 0, Signed: true);
         Assert.DoesNotContain("SignEncoding", pic.ProfileInitializer(SignEncoding.Ibm));

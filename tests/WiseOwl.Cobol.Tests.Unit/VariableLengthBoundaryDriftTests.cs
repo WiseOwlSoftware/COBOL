@@ -12,7 +12,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// INVOKE boundary "subject to compatibility as described in 8.5.1.12". What made that admission a rejection
 /// for years was not a missing rule text but a PREDICATE: every boundary screen and emit guard asked
 /// <c>IsImageCapable</c>, which is false for such a group BY DEFINITION, so conforming source was refused.
-/// The structural fix is that a boundary asks <see cref="WiseOwl.Cobol.Binding.Model.DataItem.BoundaryImageCapable"/>
+/// The structural fix is that a boundary asks <see cref="WiseOwl.Cobol.Compiler.Binding.Model.DataItem.BoundaryImageCapable"/>
 /// — "fixed record window OR current-extent carrier" — and this test is what keeps that true.</para>
 /// <para>Two facts are pinned, and each is a way the mechanism can silently regress:</para>
 /// <list type="number">

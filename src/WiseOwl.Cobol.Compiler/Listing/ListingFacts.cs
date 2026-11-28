@@ -3,8 +3,9 @@
 using WiseOwl.Cobol.Frontend;
 using WiseOwl.Cobol.Frontend.Common;
 using WiseOwl.Cobol.Frontend.Preprocessor;
+using WiseOwl.Cobol.Listing;
 
-namespace WiseOwl.Cobol.Listing.Building;
+namespace WiseOwl.Cobol.Compiler.Listing;
 
 /// <summary>What the front end's LISTED pass leaves for the listing (DESIGN-listing.md section 4.4): every file's
 /// reference-format map, the text stages' trace, the parse's unit facts, the resultant line map, the resultant text it maps and

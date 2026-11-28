@@ -2,9 +2,9 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Reflection;
 using System.Text.RegularExpressions;
-using WiseOwl.Cobol.Binding;
-using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.Binding.Passes;
+using WiseOwl.Cobol.Compiler.Binding;
+using WiseOwl.Cobol.Compiler.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Passes;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 

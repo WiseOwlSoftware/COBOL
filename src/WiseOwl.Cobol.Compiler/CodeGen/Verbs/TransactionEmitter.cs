@@ -1,14 +1,15 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding;
-using WiseOwl.Cobol.Binding.Bound;
-using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.CodeGen.Emit;
+using WiseOwl.Cobol.Compiler.Binding;
+using WiseOwl.Cobol.Compiler.Binding.Bound;
+using WiseOwl.Cobol.Compiler.Binding.Model;
+using WiseOwl.Cobol.Compiler.CodeGen.Emit;
 using WiseOwl.Cobol.Editions;
+using WiseOwl.Cobol.Compiler.CodeGen.Roslyn;
 
-namespace WiseOwl.Cobol.CodeGen;
+namespace WiseOwl.Cobol.Compiler.CodeGen.Verbs;
 
-using static WiseOwl.Cobol.CodeGen.Emit.EmitText;
+using static WiseOwl.Cobol.Compiler.CodeGen.Emit.EmitText;
 
 /// <summary>
 /// ⛔ THE COMPILER HALF OF COMMIT AND ROLLBACK (ISO §2023:9.1.18; DESIGN-runtime-library.md 2.2.1.10, "The compiler half";

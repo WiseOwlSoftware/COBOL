@@ -68,7 +68,7 @@ public sealed class FileControlKeyRuleSpecTests
             string src = Path.Combine(dir, "prog.cob");
             src = CompiledProgramCache.StageSource(src, source);
             var r = CompiledProgramCache.Compile(
-                new WiseOwl.Cobol.CompilerDriver.Options(src, EditionInfo.Of(edition), Path.Combine(dir, "prog.dll"), SourceFormat: TestSourceFormat.Inline));
+                new WiseOwl.Cobol.Compiler.CompilerDriver.Options(src, EditionInfo.Of(edition), Path.Combine(dir, "prog.dll"), SourceFormat: TestSourceFormat.Inline));
             return [.. r.Errors];
         }
         finally { ScratchDirectory.Remove(dir); }

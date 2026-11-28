@@ -3,7 +3,7 @@
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 /// <summary>
 /// The Table-10 ROLE a picture symbol OCCURRENCE plays (ISO/IEC 1989:2023 §2023:13.18.40.6, Table 10 — Format 1

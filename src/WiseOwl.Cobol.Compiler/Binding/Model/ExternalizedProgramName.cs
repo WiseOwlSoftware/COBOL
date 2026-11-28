@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Runtime;
 
-namespace WiseOwl.Cobol.Binding.Model;
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// <summary>A program's EXTERNALIZED name (ISO §2023:8.3.2.2 2)), formed from a literal by the implementor's rules
 /// (<see cref="ExternalizedNames"/>, DOC-A.1-68): the key of the AS NESTED callee table (<c>StatementBinder.NestedCallables</c>,

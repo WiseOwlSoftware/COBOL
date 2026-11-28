@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Globalization;
 
-namespace WiseOwl.Cobol.Common;
+namespace WiseOwl.Cobol.Frontend.Common;
 
 /// <summary>
 /// ⛔ TEXT THE COMPILER GENERATES IS FORMATTED UNDER THE INVARIANT CULTURE (kb/Work PB3239). An interpolated number in emitted

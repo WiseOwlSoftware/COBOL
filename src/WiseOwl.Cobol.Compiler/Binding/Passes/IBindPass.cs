@@ -1,7 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 
-namespace WiseOwl.Cobol.Binding.Passes;
+namespace WiseOwl.Cobol.Compiler.Binding.Passes;
 
 /// <summary>
 /// The ordered MILESTONE phases of the bind pipeline (rearchitecture PHASE 05; DESIGN-data-model §2.5). A pass

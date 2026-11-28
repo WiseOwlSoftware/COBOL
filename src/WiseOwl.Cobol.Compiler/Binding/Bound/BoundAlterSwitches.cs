@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Editions;
 
-namespace WiseOwl.Cobol.Binding.Bound;
+namespace WiseOwl.Cobol.Compiler.Binding.Bound;
 
 // The ALTER / external-switch bound nodes (P7 Step 10n: the binder half moved to
 // Binding/Procedure/Verbs/SetAlterBinder.cs; these types STAY here — BoundAlter/BoundGoToAlterable are

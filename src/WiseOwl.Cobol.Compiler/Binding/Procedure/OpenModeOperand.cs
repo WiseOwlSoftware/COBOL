@@ -1,10 +1,10 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Bound;
-using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Compiler.Binding.Bound;
+using WiseOwl.Cobol.Frontend.Parsing;
 using WiseOwl.Cobol.Runtime.IO;
 
-namespace WiseOwl.Cobol.Binding.Procedure;
+namespace WiseOwl.Cobol.Compiler.Binding.Procedure;
 
 /// <summary>The open mode INPUT | OUTPUT | I-O | EXTEND, the one grammar rule <c>openMode</c> that three operands reference
 /// (kb/Work PB6139): the OPEN statement's mode (§2023:14.9.27.2), USE AFTER EXCEPTION ON INPUT|OUTPUT|I-O|EXTEND (Format 1,

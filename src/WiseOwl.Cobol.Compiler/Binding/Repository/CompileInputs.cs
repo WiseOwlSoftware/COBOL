@@ -1,13 +1,13 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text;
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Expressions;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Runtime;
 
-namespace WiseOwl.Cobol.Binding.Repository;
+namespace WiseOwl.Cobol.Compiler.Binding.Repository;
 
 /// <summary>
 /// ⛔ THE ONE PLACE A <see cref="CompileState"/> IS PRODUCED (DESIGN-external-repository §6.1; kb/Work PB2104): the compile-time

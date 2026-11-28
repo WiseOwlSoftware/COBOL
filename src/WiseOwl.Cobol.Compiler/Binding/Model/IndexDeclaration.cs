@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-namespace WiseOwl.Cobol.Binding.Model;
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// <summary>⛔ ONE INDEX-NAME DECLARATION — the identity an index-name reference resolves to (kb/Work PB919).
 /// §2023:14.9.39.4 GR1 associates an index-name with the table whose OCCURS clause's INDEXED BY phrase specifies it, and

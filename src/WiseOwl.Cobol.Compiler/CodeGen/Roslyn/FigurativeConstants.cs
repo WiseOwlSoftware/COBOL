@@ -1,12 +1,12 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding;
-using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.Common;
+using WiseOwl.Cobol.Compiler.Binding;
+using WiseOwl.Cobol.Compiler.Binding.Model;
+using WiseOwl.Cobol.Frontend.Common;
 using Microsoft.CodeAnalysis.CSharp;
 using WiseOwl.Cobol.Runtime;
 
-namespace WiseOwl.Cobol.CodeGen;
+namespace WiseOwl.Cobol.Compiler.CodeGen.Roslyn;
 
 /// <summary>
 /// THE figurative-constant service (P7 Step 4; DESIGN-codegen-backend §2.5 rationale #6): the ONE

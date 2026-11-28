@@ -1,12 +1,13 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Bound;
-using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.CodeGen.Emit;
+using WiseOwl.Cobol.Compiler.Binding.Bound;
+using WiseOwl.Cobol.Compiler.Binding.Model;
+using WiseOwl.Cobol.Compiler.CodeGen.Emit;
+using WiseOwl.Cobol.Compiler.CodeGen.Roslyn;
 
-namespace WiseOwl.Cobol.CodeGen;
+namespace WiseOwl.Cobol.Compiler.CodeGen.Verbs;
 
-using static WiseOwl.Cobol.CodeGen.Emit.EmitText;
+using static WiseOwl.Cobol.Compiler.CodeGen.Emit.EmitText;
 
 /// <summary>
 /// ⛔ THE BACKEND HALF OF THE X3.23-1985 DATA-NAME, ALL REFERENCES OF, FILE-NAME AND CD-NAME USE FOR DEBUGGING TRIGGERS (general rules 2, 5-8, 11, 14,

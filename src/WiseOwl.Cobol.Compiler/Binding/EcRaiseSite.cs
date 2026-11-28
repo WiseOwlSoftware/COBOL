@@ -2,12 +2,12 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Editions;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 /// <summary>
 /// ⛔ THE STATEMENT AND THE CLAUSE THAT GOVERNS IT TRAVEL AS ONE VALUE (kb/Work PB388; CLAUDE.md rule 1).
 /// RAISE (§2023:14.9.29), the GOBACK RAISING phrase (§2023:14.9.18) and the EXIT PROGRAM / FUNCTION / METHOD RAISING
-/// phrase (§2023:14.9.14) are bound by ONE code path — <see cref="Procedure.EcBinder.EcBindRaising"/> over
+/// phrase (§2023:14.9.14) are bound by ONE code path — <see cref="Procedure.Verbs.EcBinder.EcBindRaising"/> over
 /// <see cref="EcNameResolution.TryResolve"/> — and every rule that path enforces is written down THREE TIMES in
 /// the standard, once per statement, under a DIFFERENT ordinal each time:
 /// <list type="table">

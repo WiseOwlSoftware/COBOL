@@ -1,12 +1,12 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Bound;
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Bound;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
-using WiseOwl.Cobol.Symbols;
+using WiseOwl.Cobol.Compiler.Symbols;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 /// <summary>
 /// The PROGRAM-PROTOTYPE-NAMES (docs/rearchitecture/DESIGN-listing.md section 6.7.1, "Step 6b, slice 6"; kb/Work PB5932): the
@@ -96,7 +96,7 @@ public sealed partial class SymbolTable
     internal void DeclareProgramSpecifier(ProgramSpecifier specifier)
     {
         Enter(NameClass.ProgramPrototype, specifier.Name,
-            PositionOf(((Frontend.Generated.CobolParserCore.RepositoryEntryContext)specifier.At).programPrototypeName().Start), specifier);
+            PositionOf(((Frontend.Parsing.CobolParserCore.RepositoryEntryContext)specifier.At).programPrototypeName().Start), specifier);
         _programSpecifiers.TryAdd(Key(specifier.Name), specifier);
     }
 
@@ -255,7 +255,7 @@ public sealed partial class SymbolTable
     internal static bool NamesContainedProgramHolding(Antlr4.Runtime.Tree.IParseTree node, string word)
     {
         for (var up = node.Parent; up is not null; up = up.Parent)
-            if (up is WiseOwl.Cobol.Frontend.Generated.CobolParserCore.NestedProgramContext nested
+            if (up is WiseOwl.Cobol.Frontend.Parsing.CobolParserCore.NestedProgramContext nested
                 && nested.identificationDivision()?.identificationBody()?.programIdParagraph()?.programName()?.GetText() is { } name
                 && Key(name) == Key(word))
                 return true;

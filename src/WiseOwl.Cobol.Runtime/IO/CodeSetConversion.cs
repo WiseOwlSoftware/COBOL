@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.Runtime.IO;
 /// is assumed for data on the external media</i>", which is the identity and costs nothing.
 /// <para><b>The correspondence is the compiler's</b>, not the runtime's: the ALPHABET clause's coded character
 /// set decides it (§2023:12.3.7.4 GR7 c for STANDARD-1 / STANDARD-2, GR7 i for a code-name —
-/// <c>WiseOwl.Cobol.Binding.CodedCharacterSet.MediumCorrespondence</c>) and the emitter hands the finished table down as
+/// <c>WiseOwl.Cobol.Compiler.Binding.CodedCharacterSet.MediumCorrespondence</c>) and the emitter hands the finished table down as
 /// a literal, exactly as it hands down a collating sequence's weights. The table has one entry per character of
 /// the coded character set: 256 for a complete single-byte code (EBCDIC), 128 for ISO/IEC 646 (STANDARD-1,
 /// STANDARD-2, ASCII). This type holds no code page and knows no alphabet name.</para>

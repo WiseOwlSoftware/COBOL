@@ -3,12 +3,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using WiseOwl.Cobol.Binding.Bound;
+using WiseOwl.Cobol.Compiler.Binding.Bound;
 
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 
 
-namespace WiseOwl.Cobol.Binding.Passes;
+namespace WiseOwl.Cobol.Compiler.Binding.Passes;
 
 /// <summary>
 /// PHASE-05 Step 5 (DESIGN-data-model §2.5 step 9): the single owner of the "which groups are referenced as a WHOLE

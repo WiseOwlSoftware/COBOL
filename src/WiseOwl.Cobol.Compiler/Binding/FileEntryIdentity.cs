@@ -1,10 +1,10 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 using WiseOwl.Cobol.Compiler.Oo;
 using WiseOwl.Cobol.Runtime;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 /// <summary>The §2023:12.4.5.3 GR1 identity of an EXTERNAL file connector's file control entry, built at the end of the bind
 /// (<c>BackendAnswers</c>) into <see cref="FileModel.SelectFingerprint"/>: it describes each record key with the binder's one

@@ -219,6 +219,8 @@ internal static class BackendContract
             // the --numeric-display option's spellings: the CLI's help and option error, and the listing's OPTIONS section
             // value; never emitted as code (kb/Work PB6172 moved the option type to compiler.model)
             "Model.NumericDisplayFormOption.OptionSpellings",
+            // the construct-registry id a PICTURE shape's edition gate reports (COBOL0900), never emitted (kb/Work PB2421)
+            "Model.PicInfo.ConstructId()",
         ]),
         new(NeutralKind.IdentityKey,
         [

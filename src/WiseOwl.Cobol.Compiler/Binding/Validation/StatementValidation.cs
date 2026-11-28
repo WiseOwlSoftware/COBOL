@@ -3,16 +3,16 @@
 using System.Diagnostics.CodeAnalysis;
 using Antlr4.Runtime.Tree;
 
-using WiseOwl.Cobol.Binding.Bound;
-using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.Binding.Procedure;
+using WiseOwl.Cobol.Compiler.Binding.Bound;
+using WiseOwl.Cobol.Compiler.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Procedure;
+using WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
-using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Frontend.Parsing;
-using WiseOwl.Cobol.Symbols;
+using WiseOwl.Cobol.Compiler.Symbols;
 
-namespace WiseOwl.Cobol.Binding.Validation;
+namespace WiseOwl.Cobol.Compiler.Binding.Validation;
 
 using Core = CobolParserCore;
 using DialectBehavior = WiseOwl.Cobol.Runtime.DialectBehavior;
@@ -1479,7 +1479,7 @@ internal sealed class StatementValidation(DataBinder data)
                 // functions and the binary and floating-point usages, so at COBOL-2002 a floating-point literal counts,
                 // by the digits of its significand (kb/Work PB5642).
                 case BoundNumLiteral lit when data.Edition.DialectLevel < 2014
-                                              || !WiseOwl.Cobol.Common.NumericLiteral.IsFloatingPointForm(lit.Text):
+                                              || !WiseOwl.Cobol.Frontend.Common.NumericLiteral.IsFloatingPointForm(lit.Text):
                     string t = lit.Text.TrimStart('+', '-');
                     if (t.IndexOfAny(['E', 'e']) is >= 0 and var exponentAt) t = t[..exponentAt];
                     int dot = t.IndexOf('.');

@@ -1,13 +1,13 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Bound;
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Bound;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Runtime;
 using WiseOwl.Cobol.Frontend.Parsing;
 
-namespace WiseOwl.Cobol.Binding.Procedure;
+namespace WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs;
 
 /// <summary>How one activation names itself in the argument-conformance diagnostics, and which descriptors and
 /// importing rules it reports under. The RULES are shared (<see cref="ParameterConformance"/>); only the syntax
@@ -416,7 +416,7 @@ internal sealed class ParameterConformance(BinderContext ctx, StatementBinder ho
     /// probe, because the ordinary resolver does not build their places; an object property by its reference,
     /// because its temporary exists only once a statement binds it (<see cref="SectionDataItem"/> answers the
     /// rest from the probed place).</para></summary>
-    internal bool MeetsByReferenceRules(WiseOwl.Cobol.Frontend.Generated.CobolParserCore.DataReferenceContext dref)
+    internal bool MeetsByReferenceRules(WiseOwl.Cobol.Frontend.Parsing.CobolParserCore.DataReferenceContext dref)
     {
         if (dref.PAGE_COUNTER() is not null || dref.LINE_COUNTER() is not null || dref.LINAGE_COUNTER() is not null)
             return false;
@@ -438,7 +438,7 @@ internal sealed class ParameterConformance(BinderContext ctx, StatementBinder ho
     /// <param name="rule">The rule the message cites and the section list it states, as one value.</param>
     /// <param name="addressAdmitted">The rule also admits an address-identifier (a USING argument; never the
     /// RETURNING item).</param>
-    internal bool ScreenSection(Place p, WiseOwl.Cobol.Frontend.Generated.CobolParserCore.DataReferenceContext written,
+    internal bool ScreenSection(Place p, WiseOwl.Cobol.Frontend.Parsing.CobolParserCore.DataReferenceContext written,
         DiagnosticDescriptor code, string subject, StorageSectionRule rule, bool addressAdmitted)
     {
         if (SectionDataItem.NonSectionKind(p) is not { } kind || ctx.Refs.ObjectProperties.IsObjectPropertyReference(written))

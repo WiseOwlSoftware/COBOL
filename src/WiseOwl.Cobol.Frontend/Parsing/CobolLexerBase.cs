@@ -3,7 +3,7 @@
 using Antlr4.Runtime;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Runtime;
-using static WiseOwl.Cobol.Frontend.Generated.CobolLexer;
+using static WiseOwl.Cobol.Frontend.Parsing.CobolLexer;
 
 namespace WiseOwl.Cobol.Frontend.Parsing;
 

@@ -6,14 +6,14 @@
     is a .NET record, a COBOL elementary item is a native .NET field. See docs/DESIGN.md.
 
     Split out of the old exe at G0 (§17): the CLI shell is now WiseOwl.Cobol.Cli (producing cobol.exe); this library
-    is what the CLI and the tests reference. RootNamespace is the single token WiseOwl.Cobol; the shared front-end's
-    namespaces were renamed to WiseOwl.Cobol.Frontend.* at rearchitecture PHASE 01 (no longer a G8 big-bang).
+    is what the CLI and the tests reference. RootNamespace is the project name, WiseOwl.Cobol.Compiler, and every
+    namespace is it plus the folder path (owner, kb/Work PB2118 question 1; PB2415; DESIGN-architecture-review 8.2).
 
     Front-end reuse (no byte-array substrate): the proven preprocessor + ANTLR lexer/parser live
     in WiseOwl.Cobol.Frontend; we consume ONLY its public front-end (preprocessing + parse tree).
   -->
   <PropertyGroup>
-    <RootNamespace>WiseOwl.Cobol</RootNamespace>
+    <RootNamespace>WiseOwl.Cobol.Compiler</RootNamespace>
     <AssemblyName>WiseOwl.Cobol.Compiler</AssemblyName>
   </PropertyGroup>
 
@@ -31,7 +31,7 @@
          Compiler so edition metadata + the severity policy are single-sourced below the frontend. -->
     <ProjectReference Include="..\WiseOwl.Cobol.Editions\WiseOwl.Cobol.Editions.csproj" />
     <!-- The source listing's model and renderers (DESIGN-listing.md section 4.2): this library fills the model
-         (Listing/, namespace WiseOwl.Cobol.Listing.Building); the model references nothing. -->
+         (Listing/, namespace WiseOwl.Cobol.Compiler.Listing); the model references nothing. -->
     <ProjectReference Include="..\WiseOwl.Cobol.Listing\WiseOwl.Cobol.Listing.csproj" />
     <!-- The runtime the GENERATED programs call: referenced so it is built + lands next to the compiler, where
          RoslynBackend deploys a copy beside each compiled program. -->

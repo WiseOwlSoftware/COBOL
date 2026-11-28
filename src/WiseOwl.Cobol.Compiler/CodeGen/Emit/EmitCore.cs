@@ -1,11 +1,13 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding;
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 using WiseOwl.Cobol.Runtime;
 using Microsoft.CodeAnalysis.CSharp;
+using WiseOwl.Cobol.Compiler.CodeGen.Roslyn;
+using WiseOwl.Cobol.Compiler.CodeGen.Verbs;
 
-namespace WiseOwl.Cobol.CodeGen.Emit;
+namespace WiseOwl.Cobol.Compiler.CodeGen.Emit;
 
 /// <summary>
 /// The shared spine the decomposed backend emitters/renderers cooperate over (DESIGN §17 §2.1): the
@@ -330,10 +332,10 @@ internal static class EmitText
     /// form.</para></summary>
     public static NumX UnscaledLit(string text)
     {
-        if (!WiseOwl.Cobol.Common.NumericLiteral.TryUnscaledParts(text, out string digits, out int scale))
+        if (!WiseOwl.Cobol.Frontend.Common.NumericLiteral.TryUnscaledParts(text, out string digits, out int scale))
             return new NumX(text.Trim().TrimStart('+'), 0, Real: true);
         var (lit, u) = IntLiteralX(digits);
-        return new NumX(lit, scale, U: u, Digits: WiseOwl.Cobol.Common.NumericLiteral.UnscaledDigitBound(digits));
+        return new NumX(lit, scale, U: u, Digits: WiseOwl.Cobol.Frontend.Common.NumericLiteral.UnscaledDigitBound(digits));
     }
 
     /// <summary>The C# literal for an unscaled integer digit string: <c>…L</c> while it fits <see cref="long"/>

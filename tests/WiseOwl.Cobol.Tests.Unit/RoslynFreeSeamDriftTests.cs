@@ -6,8 +6,8 @@ using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.CodeGen;
+using WiseOwl.Cobol.Compiler.Binding.Model;
+using WiseOwl.Cobol.Compiler.CodeGen;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 

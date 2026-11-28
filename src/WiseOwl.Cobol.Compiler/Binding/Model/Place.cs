@@ -3,7 +3,7 @@
 using CellGroupShape = WiseOwl.Cobol.Runtime.CellGroupShape;
 using OdoTail = WiseOwl.Cobol.Runtime.OdoTail;
 
-namespace WiseOwl.Cobol.Binding.Model;
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// <summary>
 /// The ONE typed-lvalue model (DESIGN §3.3 / §14.1): a resolved reference to a storage location, built once
@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.Binding.Model;
 /// INSPECT/STRING/UNSTRING, file READ INTO / WRITE FROM, and CALL-by-reference all go through this contract. A
 /// <c>Place</c> is a BACKEND-NEUTRAL structural value (the G4 invariant): it carries an <see cref="AccessPath"/>,
 /// resolved <see cref="DataItem"/>s, and (until PHASE 15's D10) transitional index/offset strings — never C# render
-/// text. The C# read/write text is produced by <c>CodeGen.PlaceRenderer</c> (P7 Step 11); the binder never renders.
+/// text. The C# read/write text is produced by <c>CodeGen.Roslyn.PlaceRenderer</c> (P7 Step 11); the binder never renders.
 /// </summary>
 public closed record Place
 {
@@ -201,7 +201,7 @@ public closed record Place
 /// <see cref="CapacityRegisterPlace"/>) derive from <see cref="Place"/> directly. <see cref="RenamesPlace"/> stays
 /// direct too — it composes N spanned leaves (no single inner) and its Pic/Item are the level-66 ALIAS's own, never a
 /// forward (the DESIGN §2.2 item-1 derive list was over-inclusive on that member). The backend
-/// <c>CodeGen.PlaceRenderer</c> renders each decorator's transformed access (a plain decorator renders as its inner).
+/// <c>CodeGen.Roslyn.PlaceRenderer</c> renders each decorator's transformed access (a plain decorator renders as its inner).
 /// </summary>
 public closed record PlaceDecorator(Place Inner) : Place
 {
@@ -228,7 +228,7 @@ public closed record PlaceDecorator(Place Inner) : Place
 /// A direct member-access place: a static field or a (possibly nested, possibly subscripted) member of a
 /// <c>record struct</c> — e.g. <c>WS_N</c>, <c>WS_REC.WS_NAME</c>, <c>CobolTable.At(TBL.ROWS, i).VAL</c>. The access
 /// <paramref name="Path"/> is a structural <see cref="AccessPath"/> (a field chain + fixed-table accessors + the D10
-/// transitional subscript strings), rendered by <c>CodeGen.PlaceRenderer</c>. A fixed-table member is a plain lvalue,
+/// transitional subscript strings), rendered by <c>CodeGen.Roslyn.PlaceRenderer</c>. A fixed-table member is a plain lvalue,
 /// so its read and write render the same path (a subscripted OCCURS DYNAMIC element is the sibling
 /// <see cref="DynTablePlace"/>, whose accessor is direction-specific).
 /// </summary>
@@ -247,7 +247,7 @@ public sealed record MemberPlace(AccessPath Path, DataItem MemberItem) : Place
 /// <c>RefSending(occ)</c> on a read (an out-of-range occurrence is benign scratch) and <c>RefReceiving(occ)</c> on a
 /// write (an occurrence past the current capacity GROWS the table). The <see cref="Path"/>'s trailing
 /// <see cref="DynTableSegment"/> renders that polarity at emit time (SENDING for a read, RECEIVING for a write) — one
-/// structural path replaces the former two precomputed strings. Rendered by <c>CodeGen.PlaceRenderer</c>. (Kept a
+/// structural path replaces the former two precomputed strings. Rendered by <c>CodeGen.Roslyn.PlaceRenderer</c>. (Kept a
 /// distinct subtype rather than folded into <see cref="MemberPlace"/> to bound the Step 11 blast radius —
 /// <c>UsageCollectionPass</c>/<c>MoveEmitter</c> discriminate it by type.)
 /// </summary>
@@ -284,7 +284,7 @@ public sealed record DynTablePlace(AccessPath Path, DataItem ElementItem) : Plac
 /// whole-group numeric leaf. <paramref name="Backing"/> is the structural path to the class's stored backing field;
 /// <paramref name="Offset"/> is the 0-based window offset — a typed position (a constant, or the
 /// <see cref="PositionOffset"/> <c>classOffset + Σ (idx − 1) × stride</c> for a view inside an OCCURS, ISO §2023:13.18.44).
-/// Rendered by <c>CodeGen.PlaceRenderer</c>.
+/// Rendered by <c>CodeGen.Roslyn.PlaceRenderer</c>.
 /// </summary>
 public sealed record RedefViewPlace(AccessPath Backing, Position Offset, int Width, DataItem ViewItem) : Place
 {
@@ -788,7 +788,7 @@ public sealed record VarGroupWindow(AccessPath Cell, Position DynBase, IReadOnly
 /// Reading concatenates the leaves' character images (each leaf field invariantly holds exactly its image
 /// width); writing stores the value at the span's width and distributes the slices back into the leaves left to
 /// right — so a write through the alias is visible through every renamed item and vice versa (no second storage,
-/// SR/GR — RENAMES adds no data item). Rendered by <c>CodeGen.PlaceRenderer</c>.
+/// SR/GR — RENAMES adds no data item). Rendered by <c>CodeGen.Roslyn.PlaceRenderer</c>.
 /// </summary>
 public sealed record RenamesPlace(IReadOnlyList<Place> Leaves, DataItem AliasItem, IReadOnlyList<int> Widths) : Place
 {
@@ -803,7 +803,7 @@ public sealed record RenamesPlace(IReadOnlyList<Place> Leaves, DataItem AliasIte
 /// The <see cref="Place"/> of a GROUP operand whose subtree contains an occurs-depending table (ISO/IEC 1989:2023
 /// §2023:13.18.38 Format 2). It decorates the plain member place — read/write render as the struct lvalue unchanged (the
 /// inherited inner access), so every consumer that does not know about ODO behaves exactly as before — and the GR8
-/// operand seams (rendered by <c>CodeGen.PlaceRenderer</c> over this record's structure) consult the decoration:
+/// operand seams (rendered by <c>CodeGen.Roslyn.PlaceRenderer</c> over this record's structure) consult the decoration:
 /// <list type="bullet">
 ///   <item><b>Sending</b> (the sending side of BOTH GR8 quadrants): "only that part of the table area that is
 ///     specified by the value of [data-name-1] at the start of the operation will be used" — the group image
@@ -931,7 +931,7 @@ public closed record AllCount
 /// A NUMERIC-DISPLAY item viewed as its CHARACTER IMAGE for reference modification (ISO §2023:8.4.3.3.4 GR6 — the unique
 /// result is an elementary alphanumeric item over the operand's standard data format): reading formats the stored
 /// value's display image; writing decodes the spliced image back into the typed field (sign-aware both ways via
-/// the FormatDisplay/StoreDisplay pair). Rendered by <c>CodeGen.PlaceRenderer</c>.
+/// the FormatDisplay/StoreDisplay pair). Rendered by <c>CodeGen.Roslyn.PlaceRenderer</c>.
 /// </summary>
 public sealed record NumericImagePlace(Place Inner) : PlaceDecorator(Inner);
 
@@ -945,7 +945,7 @@ public sealed record NumericImagePlace(Place Inner) : PlaceDecorator(Inner);
 /// how a window boundary, or an interior byte, on the odd byte of a national character is addressed: the bytes the
 /// alias renames, never a fraction of a character position. The national twin of <see cref="NumericImagePlace"/>'s
 /// role in the alias (both turn a leaf's value carrier into the bytes it occupies). Rendered by
-/// <c>CodeGen.PlaceRenderer</c>.
+/// <c>CodeGen.Roslyn.PlaceRenderer</c>.
 /// </summary>
 public sealed record NationalBytesPlace(Place Inner) : PlaceDecorator(Inner);
 
@@ -959,7 +959,7 @@ public sealed record NationalBytesPlace(Place Inner) : PlaceDecorator(Inner);
 /// (<see cref="DataItem.IsImageCapable"/>) and stays the loud Tier-C island. The <see cref="NumericImagePlace"/>
 /// shape for groups — kb/Work PB70: before it, the resolver's category gate returned null for every group, which
 /// was a run-time NotImplemented for a sending ref-mod and a SILENT no-op for a receiving one. Rendered by
-/// <c>CodeGen.PlaceRenderer</c>.
+/// <c>CodeGen.Roslyn.PlaceRenderer</c>.
 /// </summary>
 public sealed record GroupImagePlace(Place Inner) : PlaceDecorator(Inner);
 
@@ -989,7 +989,7 @@ public sealed record GroupImagePlace(Place Inner) : PlaceDecorator(Inner);
 /// national case are now one shape read twice: the as-if elementary item's own alphabet gets its own place over
 /// the generated carrier face (<c>AsBits()</c> / <c>AsNat()</c>), and <see cref="GroupImagePlace"/> keeps the
 /// bytes.</para>
-/// <para>Rendered by <c>CodeGen.PlaceRenderer</c> through the generated <c>AsBits()</c> / <c>FromBits(string)</c>
+/// <para>Rendered by <c>CodeGen.Roslyn.PlaceRenderer</c> through the generated <c>AsBits()</c> / <c>FromBits(string)</c>
 /// pair, which <c>BitImageCodec.EmitBitMethods</c> already emits for every bit group — no new runtime code.
 /// Because <see cref="RefModPlace"/> sits OVER this place, its start/length then index the boolean string
 /// directly and GR5a is satisfied structurally.</para>
@@ -1012,7 +1012,7 @@ public sealed record BitImagePlace(Place Inner) : PlaceDecorator(Inner);
 /// two-alphabet split <see cref="BitImagePlace"/> carries — <c>AsImage()</c> speaks bytes, <c>AsNat()</c> speaks
 /// national positions — so a consumer reaching for the image reader on a national group compares UTF-16BE bytes
 /// against national literals.</para>
-/// <para>Rendered by <c>CodeGen.PlaceRenderer</c> through the generated <c>AsNat()</c> / <c>FromNat(string)</c>
+/// <para>Rendered by <c>CodeGen.Roslyn.PlaceRenderer</c> through the generated <c>AsNat()</c> / <c>FromNat(string)</c>
 /// pair (<c>GroupImageCodec.EmitNatMethods</c>, emitted for every national group). Because
 /// <see cref="RefModPlace"/> sits OVER this place, its start/length index the national string directly and
 /// GR5a is satisfied structurally.</para>
@@ -1083,7 +1083,7 @@ public sealed record ReportSumCounterPlace(
 /// confirming that a program assigning page numbers is the intended use.</para>
 /// <para>A VIEW over the RWCS engine's counter, never program storage — the <see cref="CapacityRegisterPlace"/>
 /// and <see cref="ReportSumCounterPlace"/> pattern: reading renders <c>__RPT_{n}.PageCounter</c> and writing
-/// <c>__RPT_{n}.SetPageCounter(…)</c>, produced by <c>CodeGen.PlaceRenderer</c> so no C# text lives here.
+/// <c>__RPT_{n}.SetPageCounter(…)</c>, produced by <c>CodeGen.Roslyn.PlaceRenderer</c> so no C# text lives here.
 /// <paramref name="RegisterItem"/> carries GR1's profile (<see cref="PicInfo.ReportCounterItem"/> — unsigned,
 /// scale 0), which is what makes an out-of-range or negative sender behave as it would for any other unsigned
 /// integer receiver.</para>
@@ -1102,7 +1102,7 @@ public sealed record ReportPageCounterPlace(int ReportIndex, DataItem RegisterIt
 
 /// <summary>The member of the X3.23-1985 <c>DEBUG-ITEM</c> register a <see cref="DebugRegisterPlace"/> refers to
 /// (the whole group, or one elementary member). A STRUCTURAL selector — the backend
-/// (<c>CodeGen.PlaceRenderer</c>) maps it to the C# read expression, so no C# text lives in the bound tree
+/// (<c>CodeGen.Roslyn.PlaceRenderer</c>) maps it to the C# read expression, so no C# text lives in the bound tree
 /// (the G4 backend-neutrality invariant; the <see cref="CapacityRegisterPlace"/> precedent).</summary>
 public enum DebugRegisterMember { Item, Line, Name, Sub1, Sub2, Sub3, Contents }
 
@@ -1112,7 +1112,7 @@ public enum DebugRegisterMember { Item, Line, Name, Sub1, Sub2, Sub3, Contents }
 /// (VCR Table 7 row 7.17). It is IMPLICITLY described (no DATA DIVISION entry) and referenced only inside debugging
 /// declaratives, so it is a VIEW, never its own storage: reading is the read-only program-instance
 /// <c>__dbgItem</c> member selected by <paramref name="Member"/> (<see cref="WiseOwl.Cobol.Runtime.DebugItem"/>), which
-/// the injected debug trigger populates — the C# text is produced by <c>CodeGen.PlaceRenderer</c>, NOT stored here
+/// the injected debug trigger populates — the C# text is produced by <c>CodeGen.Roslyn.PlaceRenderer</c>, NOT stored here
 /// (backend-neutral, like <see cref="CapacityRegisterPlace"/>). A COBOL program never assigns to a DEBUG-* register
 /// (the runtime sets it), so <c>PlaceRenderer.Write</c> of this place is an internal-error backstop.
 /// <see cref="RegisterItem"/> carries the member's <see cref="PicInfo"/> (its fixed width) so
@@ -1143,7 +1143,7 @@ public sealed record DebugRegisterPlace(DataItem RegisterItem, DebugRegisterMemb
 /// <see cref="CapacityRegisterPlace"/> and <see cref="DebugRegisterPlace"/> rather than in a verb.</para>
 /// <para>A VIEW, never storage: §2023:8.4.3.6.4 GR2 gives the run unit ONE instance of it, and GR1 makes its value
 /// "the current exception object … set to null" when none is associated — which is the runtime's
-/// <c>ExceptionState.ExceptionObject</c>. The C# text is produced by <c>CodeGen.PlaceRenderer</c>, never stored
+/// <c>ExceptionState.ExceptionObject</c>. The C# text is produced by <c>CodeGen.Roslyn.PlaceRenderer</c>, never stored
 /// here (backend-neutral, the <see cref="CapacityRegisterPlace"/> precedent).</para>
 /// <para>⛔ READ-ONLY BY RULE. §2023:8.4.3.6.3 SR1 — "EXCEPTION-OBJECT shall not be specified as a receiving operand"
 /// — is screened at the ONE receiving chokepoint (<c>ExpressionBinder.ResolveReceiving</c>) and at SET's own
@@ -1191,7 +1191,7 @@ public readonly record struct RefModSpec(Position Start, Position? Length, bool 
 /// (<c>CobolString.RefMod</c>); writing splices the new slice back into the inner field (<c>CobolString.SpliceInto</c>),
 /// preserving the inner's width. <paramref name="Length"/> is <see langword="null"/> for the "to the end" form.
 /// <paramref name="Start"/>/<paramref name="Length"/> are typed <see cref="Position"/>s (kb/Work PB2151), rendered by
-/// <c>CodeGen.PlaceRenderer</c> through <c>CodeGen.PositionRenderer</c>.
+/// <c>CodeGen.Roslyn.PlaceRenderer</c> through <c>CodeGen.Roslyn.PositionRenderer</c>.
 /// </summary>
 public sealed record RefModPlace(Place Inner, Position Start, Position? Length) : PlaceDecorator(Inner)
 {

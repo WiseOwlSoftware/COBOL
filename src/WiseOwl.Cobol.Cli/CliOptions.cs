@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 namespace WiseOwl.Cobol.Cli;
 
-/// <summary>The resolved <c>cobol</c> options a parse produces (the DTO handed to <see cref="WiseOwl.Cobol.CompilerDriver"/>).
+/// <summary>The resolved <c>cobol</c> options a parse produces (the DTO handed to <see cref="WiseOwl.Cobol.Compiler.CompilerDriver"/>).
 /// Argument PARSING is owned by <see cref="Program.BuildRootCommand"/> via <c>System.CommandLine</c> — the
 /// first-party parser handles the <c>--opt value</c> / <c>--opt=value</c> forms, arity, and help uniformly, so no
 /// option can ever consume a following flag as its value (the class of bug a hand-rolled switch invited).</summary>
@@ -26,7 +26,7 @@ namespace WiseOwl.Cobol.Cli;
 /// use of a nonstandard extension in the compilation group with a COBOL2894 warning.</param>
 /// <param name="NumericDisplay">The form DISPLAY gives a numeric operand (<c>--numeric-display</c>; kb/Work PB3505,
 /// owner decision PB3467; ISO §2023:14.9.11.4 GR1, Annex A.1 item 56). Defaults to
-/// <see cref="WiseOwl.Cobol.Binding.Model.NumericDisplayForm.Decimal"/> — the decimal point and a leading sign.</param>
+/// <see cref="WiseOwl.Cobol.Compiler.Binding.Model.NumericDisplayForm.Decimal"/> — the decimal point and a leading sign.</param>
 /// <param name="RepositoryUpdate">Whether the compilation updates the external repository (<c>--repository-update on|off</c>;
 /// ISO §2023:8.13, DESIGN-external-repository §9.1). Defaults to on.</param>
 /// <param name="RepositoryPaths">The external repository directories (<c>--repository</c>, in order); null for the output
@@ -50,7 +50,7 @@ internal sealed record CliOptions(
     WiseOwl.Cobol.Frontend.Preprocessor.InitialReferenceFormat SourceFormat =
         WiseOwl.Cobol.Frontend.Preprocessor.InitialReferenceFormat.Fixed,
     bool FlagExtensions = false,
-    WiseOwl.Cobol.Binding.Model.NumericDisplayForm NumericDisplay = WiseOwl.Cobol.Binding.Model.NumericDisplayForm.Decimal,
+    WiseOwl.Cobol.Compiler.Binding.Model.NumericDisplayForm NumericDisplay = WiseOwl.Cobol.Compiler.Binding.Model.NumericDisplayForm.Decimal,
     bool RepositoryUpdate = true,
     IReadOnlyList<string>? RepositoryPaths = null,
     IReadOnlyList<string>? ReferencePaths = null,

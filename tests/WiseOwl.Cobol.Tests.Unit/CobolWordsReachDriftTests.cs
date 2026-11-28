@@ -3,7 +3,6 @@
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using WiseOwl.Cobol.Editions;
-using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Frontend.Parsing;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
@@ -237,7 +236,7 @@ public sealed class CobolWordsReachDriftTests
     }
 
     /// <summary>The map's answer for the three words PB4572 found spelled: a synonym is the word (GR2), a de-reserved word is
-    /// not (GR3, GR4), and the binder's own question, <see cref="WiseOwl.Cobol.Binding.Procedure.OoBinder.OoIsExceptionObject"/>,
+    /// not (GR3, GR4), and the binder's own question, <see cref="WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.OoBinder.OoIsExceptionObject"/>,
     /// follows the map — it is the one spelling test of the predefined register.</summary>
     [Fact]
     public void TheRegisterAndTheClauseWords_AreTheirSynonymsAndNotTheirWithdrawnSpelling()
@@ -248,9 +247,9 @@ public sealed class CobolWordsReachDriftTests
             new CobolWordsOp(CobolWordsAction.Equate, "COMMA", "CMA", default),
             new CobolWordsOp(CobolWordsAction.Equate, "SYMBOL", "SYM", default),
         ]);
-        Assert.True(WiseOwl.Cobol.Binding.Procedure.OoBinder.OoIsExceptionObject("exo", map));
-        Assert.True(WiseOwl.Cobol.Binding.Procedure.OoBinder.OoIsExceptionObject("EXCEPTION-OBJECT", map));
-        Assert.False(WiseOwl.Cobol.Binding.Procedure.OoBinder.OoIsExceptionObject("EXCEPTION-OBJECTS", map));
+        Assert.True(WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.OoBinder.OoIsExceptionObject("exo", map));
+        Assert.True(WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.OoBinder.OoIsExceptionObject("EXCEPTION-OBJECT", map));
+        Assert.False(WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.OoBinder.OoIsExceptionObject("EXCEPTION-OBJECTS", map));
         Assert.True(map.Is("Cma", "COMMA"));
         Assert.True(map.Is("SYM", "SYMBOL"));
 
@@ -259,12 +258,12 @@ public sealed class CobolWordsReachDriftTests
             new CobolWordsOp(CobolWordsAction.Substitute, "EXCEPTION-OBJECT", "EXO", default),
             new CobolWordsOp(CobolWordsAction.Undefine, "COMMA", null, default),
         ]);
-        Assert.False(WiseOwl.Cobol.Binding.Procedure.OoBinder.OoIsExceptionObject("EXCEPTION-OBJECT", withdrawn));
-        Assert.True(WiseOwl.Cobol.Binding.Procedure.OoBinder.OoIsExceptionObject("EXO", withdrawn));
+        Assert.False(WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.OoBinder.OoIsExceptionObject("EXCEPTION-OBJECT", withdrawn));
+        Assert.True(WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.OoBinder.OoIsExceptionObject("EXO", withdrawn));
         Assert.False(withdrawn.Is("COMMA", "COMMA"));
         Assert.NotNull(withdrawn.RemovedBy("COMMA"));
 
-        Assert.True(WiseOwl.Cobol.Binding.Procedure.OoBinder.OoIsExceptionObject("Exception-Object", CobolWordsMap.Empty));
+        Assert.True(WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.OoBinder.OoIsExceptionObject("Exception-Object", CobolWordsMap.Empty));
     }
 
     /// <summary>⛔ THE DIRECTIVE IS APPLIED TO A WORD EXACTLY ONCE. The token retype already resolved every word it

@@ -1,15 +1,14 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Common;
+using WiseOwl.Cobol.Frontend.Common;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
-using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Parsing;
 using WiseOwl.Cobol.Runtime.Collation;
 
-using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.Frontend.Parsing;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 using Core = CobolParserCore;
 using WiseOwl.Cobol.Runtime;
@@ -285,7 +284,7 @@ public sealed partial class SpecialNamesBinder
                     + $"({r.CiteRule(Edition.Edition, r.OrdinalItem)})");
                 return null;
             }
-            int ordinal = WiseOwl.Cobol.Validation.IntegerOperandRules.HostValue(digits);
+            int ordinal = WiseOwl.Cobol.Compiler.Validation.IntegerOperandRules.HostValue(digits);
             if (r.InSet is { } inSet)
             {
                 // GR12 a — the ordinal names every character at that position of the IN set (an ALSO group's

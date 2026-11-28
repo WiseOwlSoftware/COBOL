@@ -1,9 +1,9 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 using WiseOwl.Cobol.Runtime.Exceptions;
 
-namespace WiseOwl.Cobol.Binding.Bound;
+namespace WiseOwl.Cobol.Compiler.Binding.Bound;
 
 /// <summary>The selection tiers of ISO §2023:14.9.49.4 GR3a to GR3g, in GR3's order: a declarative is selected by the
 /// FIRST tier that has a match, and source order decides only within a tier. A USE statement and a Format-3 PERFORM's WHEN

@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Runtime.InteropServices;
 
-namespace WiseOwl.Cobol.Binding.Model;
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 // The three restoring shapes of docs/rearchitecture/DESIGN-architecture-review.md §8.3 (1) (kb/Work PB2296). They hold
 // no binder type, so they live in compiler.model, below both the binder (ProcedureBindState) and code generation

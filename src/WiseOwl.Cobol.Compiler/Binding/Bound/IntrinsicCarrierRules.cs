@@ -2,10 +2,10 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Collections.Frozen;
 using System.Diagnostics;
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 using WiseOwl.Cobol.Runtime;
 
-namespace WiseOwl.Cobol.Binding.Bound;
+namespace WiseOwl.Cobol.Compiler.Binding.Bound;
 
 /// <summary>
 /// ⛔ <b>THE INTRINSIC CARRIER RULES TWO LAYERS ASK</b> (kb/Work PB3268, review R1-2): which carrier a numeric function's

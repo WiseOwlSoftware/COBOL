@@ -3,10 +3,10 @@
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 using WiseOwl.Cobol.Frontend.Diagnostics;
-using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Parsing;
 using WiseOwl.Cobol.Runtime;
 
-namespace WiseOwl.Cobol;
+namespace WiseOwl.Cobol.Compiler;
 
 /// <summary>
 /// ⛔ WHAT WISEOWL'S PARSE OF A PROGRAM CONTAINS, AS TOKEN STREAMS (DESIGN-conformance-suite.md section 3.4, kb/Work PB6050).

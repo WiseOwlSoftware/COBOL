@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-namespace WiseOwl.Cobol.Binding.Model;
+
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// <summary>
 /// A level-88 condition-name (ISO §2023:13.18.4 / §2023:8.8.4.2.7 GR2): a named boolean predicate over a conditional variable

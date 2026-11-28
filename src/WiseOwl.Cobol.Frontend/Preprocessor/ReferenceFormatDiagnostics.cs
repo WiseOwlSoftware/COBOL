@@ -54,7 +54,7 @@ public sealed class ReferenceFormatDiagnostics(int dialectLevel, bool permissive
     /// <c>*&gt;</c> there is "Any other sequence of contiguous COBOL characters except comment lines and the word 'COPY'"
     /// (§1985:III, "Text-word"), an ordinary text-word of the text COPY and REPLACE read (kb/Work PB5470). Free form is
     /// itself a 2002 introduction, reached below 2002 only by the documented <c>--source-format free</c> extension, whose
-    /// one comment is the floating one, so it always reads it (<see cref="ReferenceFormatProcessor.LogicalLineBuilder"/>).
+    /// one comment is the floating one, so it always reads it (<see cref="LogicalLineBuilder"/>).
     /// The ONE answer to the question, asked by the §2023:6.5 conversion that removes comments.</summary>
     public bool FixedFormReadsFloatingComments => ConstructRegistry.IsAvailable(Edition, Constructs.FloatingCommentIndicator2002);
 
@@ -285,8 +285,8 @@ public sealed class ReferenceFormatDiagnostics(int dialectLevel, bool permissive
     public void OnFreeFormLineTooLong(string file, int line, int positions)
         => diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.FreeFormLineTooLong.Code,
             $"this free-form line has {positions} character positions; ISO §2023:6.1 SR3a allows at most "
-            + $"{ReferenceFormatProcessor.FreeFormMaxPositions} (a tab counts the positions it advances over, DOC-A.1-157)",
-            At(file, line, ReferenceFormatProcessor.FreeFormMaxPositions), default);
+            + $"{LogicalLineConverter.FreeFormMaxPositions} (a tab counts the positions it advances over, DOC-A.1-157)",
+            At(file, line, LogicalLineConverter.FreeFormMaxPositions), default);
 
     /// <summary>§2023:6.3.3 / §2023:6.2.2 — COBOL2616: the indicator area holds a character that is not a fixed indicator
     /// (kb/Work PB1494). Every such line is reported; it is then read as a source line.</summary>
@@ -336,7 +336,7 @@ public sealed class ReferenceFormatDiagnostics(int dialectLevel, bool permissive
     {
         var sink = new BagSink(diagnostics, At(file, line, column));
         CompilerDirectiveCatalog.CheckRow(Constructs.SourceFormatDirective2002, Edition, sink);
-        CompilerDirectiveCatalog.CheckOperand(ReferenceFormatProcessor.SourceFormatWord, operand, Edition, sink);
+        CompilerDirectiveCatalog.CheckOperand(LogicalLineConverter.SourceFormatWord, operand, Edition, sink);
     }
 
     private static string QuoteName(char quote) => quote == '"' ? "a quotation mark (\")" : "an apostrophe (')";

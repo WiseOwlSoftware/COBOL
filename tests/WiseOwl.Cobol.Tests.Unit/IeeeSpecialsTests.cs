@@ -1,7 +1,8 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding;
-using WiseOwl.Cobol.CodeGen;
+using WiseOwl.Cobol.Compiler.Binding;
+using WiseOwl.Cobol.Compiler.CodeGen.Roslyn;
+using WiseOwl.Cobol.Compiler.CodeGen;
 using WiseOwl.Cobol.Runtime;
 using Xunit;
 

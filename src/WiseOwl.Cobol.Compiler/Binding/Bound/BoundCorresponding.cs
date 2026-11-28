@@ -2,9 +2,9 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Runtime;
 
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 
-namespace WiseOwl.Cobol.Binding.Bound;
+namespace WiseOwl.Cobol.Compiler.Binding.Bound;
 
 // The CORRESPONDING bound nodes (P7 Step 10e: the binder half moved to
 // Binding/Procedure/Verbs/CorrespondingBinder.cs; these types STAY here — consumed by the emitter,

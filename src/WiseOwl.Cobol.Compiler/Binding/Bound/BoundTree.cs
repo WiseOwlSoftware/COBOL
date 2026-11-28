@@ -2,9 +2,9 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Runtime;
 
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 
-namespace WiseOwl.Cobol.Binding.Bound;
+namespace WiseOwl.Cobol.Compiler.Binding.Bound;
 
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════
 //  The WiseOwl COBOL bound semantic tree (DESIGN §2). The binder resolves every reference to a Place, every
@@ -875,7 +875,8 @@ public sealed record BoundAllLiteral(string Literal) : BoundOperand
     /// <summary>The literal's data category — literal-1's own (§2023:8.3.3.6.3 SR2 admits an alphanumeric, boolean or
     /// national literal-1; §2023:14.9.25.4 GR7 / Table 17 give the ALL figurative that category): Alphanumeric for
     /// <c>ALL "…"</c> / <c>ALL X"…"</c>, National for <c>ALL N"…"</c> / <c>ALL NX"…"</c>, Boolean for
-    /// <c>ALL B"…"</c> / <c>ALL BX"…"</c>. Set through <see cref="Of"/> — the ONE constructor from source text.</summary>
+    /// <c>ALL B"…"</c> / <c>ALL BX"…"</c>. Set by <c>ConcatFolder.AllLiteral</c>, the ONE constructor from source text, in the binder
+    /// that owns the literal's fold (kb/Work PB2419: the bound tree names no binding type).</summary>
     public PicCategory Category { get; init; } = PicCategory.Alphanumeric;
 
     /// <summary>False for a BARE symbolic-character figurative (§2023:8.3.3.6.2 Format 7 without ALL — kb/Work PB110):
@@ -883,26 +884,6 @@ public sealed record BoundAllLiteral(string Literal) : BoundOperand
     /// screens that bar "a figurative constant that begins with the word ALL" (STRING/UNSTRING §2023:14.9.43.3 SR2 /
     /// §2023:14.9.48.3 SR5; INSPECT §2023:14.9.22.3 SR3) key on THIS — the word, not the semantics.</summary>
     public bool BeginsWithAll { get; init; } = true;
-
-    /// <summary>THE constructor from the literal's RAW source text (kb/Work PB71): the value through
-    /// <see cref="WiseOwl.Cobol.Common.CobolLiteral.Decode"/>, the category through the ONE literal-class classifier
-    /// (<see cref="WiseOwl.Cobol.Common.CobolLiteral.ClassOf"/>). Every producer of an ALL literal from raw VALUE text —
-    /// INITIALIZE REPLACING, a Report Writer VALUE — builds through this, so a national or boolean literal-1 keeps
-    /// its category everywhere; the raw text is already ONE literal (the VALUE reader folds a concatenated or
-    /// constant-name literal-1 first, <c>DataBinder.RawValueOperandText</c>). The figurative-constant binder builds
-    /// from the parse tree through the <see cref="ConcatFolder.Folded"/> overload.</summary>
-    public static BoundAllLiteral Of(string rawLiteral) =>
-        new(WiseOwl.Cobol.Common.CobolLiteral.Decode(rawLiteral))
-        {
-            Category = WiseOwl.Cobol.Common.CobolLiteral.ClassOf(rawLiteral) is { } cls
-                ? WiseOwl.Cobol.Binding.ConcatFolder.CategoryOf(cls) : PicCategory.Alphanumeric,
-        };
-
-    /// <summary>The ALL figurative over a literal-1 already folded by <see cref="WiseOwl.Cobol.Binding.ConcatFolder.FoldAllLiteral"/>
-    /// — the figurative-constant binder's constructor, which carries the fold's class and decoded value as they are
-    /// (a concatenated literal-1's class is the pairwise §2023:8.8.3.3 GR1 fold, never its first operand's prefix).</summary>
-    internal static BoundAllLiteral Of(WiseOwl.Cobol.Binding.ConcatFolder.Folded literal1) =>
-        new(literal1.Value) { Category = literal1.Category };
 }
 
 /// <summary>An operand the binder could not give a meaning to — the backend emits a loud runtime guard (§1.4).
@@ -1032,7 +1013,7 @@ public sealed record BoundBoolError : BoundBoolExpr
 /// <para><paramref name="AtItemWidth"/> is the SENDING form of a BY CONTENT boolean-expression-1 / boolean literal-2
 /// argument of a CALL or INVOKE (kb/Work PB1014): §2023:14.8.2.3.3 2) d) makes the crossing "the same as for a MOVE statement
 /// with the argument as the sending operand", and the value that MOVE sends is taken at §2023:8.8.2 GR10's width — the largest
-/// boolean ITEM referenced (<see cref="WiseOwl.Cobol.CodeGen.Emit.BooleanRenderer.RenderAtItemWidth"/>), not the relation
+/// boolean ITEM referenced (<see cref="WiseOwl.Cobol.Compiler.CodeGen.Emit.BooleanRenderer.RenderAtItemWidth"/>), not the relation
 /// operand's unsized image. It lets the argument ride the one MOVE receiving store (<c>MoveEmitter.ConvertSource</c>)
 /// like every other sender, instead of a second store written beside it.</para></summary>
 public sealed record BoundBoolOperand(BoundBoolExpr Expr, bool AtItemWidth = false) : BoundOperand;
@@ -1096,7 +1077,7 @@ public sealed record BoundOmittedCondition(OmittedProbe Probe, bool Negated) : B
 
 /// <summary>A class condition: <paramref name="Operand"/> IS [NOT] {NUMERIC | ALPHABETIC | ALPHABETIC-UPPER |
 /// ALPHABETIC-LOWER, BOOLEAN} (ISO §2023:8.8.4.4). <paramref name="ClassKind"/> is one of
-/// <see cref="WiseOwl.Cobol.Binding.ClassConditionModel"/>'s kind constants — N, A, U, L, B — which is also the tag
+/// <see cref="WiseOwl.Cobol.Compiler.Binding.ClassConditionModel"/>'s kind constants — N, A, U, L, B — which is also the tag
 /// its §2023:8.8.4.4.3 operand rules are keyed on. The class-name and alphabet-name alternatives have their own
 /// bound nodes (<see cref="BoundUserClassCondition"/>, <see cref="BoundCodedSetClassCondition"/>).</summary>
 public sealed record BoundClassCondition(BoundOperand Operand, char ClassKind, bool Negated) : BoundCondition;

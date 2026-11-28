@@ -3,9 +3,9 @@
 
 using System;
 using System.Linq;
-using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Parsing;
 using WiseOwl.Cobol.Tests.Shared;
-using WiseOwl.Cobol.Validation;
+using WiseOwl.Cobol.Compiler.Validation;
 using Xunit;
 
 namespace WiseOwl.Cobol.Tests.Unit;

@@ -3,7 +3,7 @@
 using System.Text;
 using WiseOwl.Cobol.Runtime;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 /// <summary>
 /// ONE ROW of the implementor code-name table — one name this implementation supports in the

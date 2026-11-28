@@ -1,8 +1,8 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 
-namespace WiseOwl.Cobol.Binding.Bound;
+namespace WiseOwl.Cobol.Compiler.Binding.Bound;
 
 // The ACCEPT bound nodes (P7 Step 10h: the binder half became the real Verbs/AcceptDisplayBinder;
 // these types STAY here — the VersionConformancePass EndAccept2002 gate reads HasEndTerminator, and

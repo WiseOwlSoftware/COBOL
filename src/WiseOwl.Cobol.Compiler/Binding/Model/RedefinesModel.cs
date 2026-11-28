@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-namespace WiseOwl.Cobol.Binding.Model;
+
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// <summary>One storage part of a RENAMES THRU span (kb/Work PB96): a leaf of the record (a REDEFINES view is as
 /// good a reader of the storage it overlays as the entry it redefines — NC252A's RDF8-5 THRU RDF8-6 lives inside a

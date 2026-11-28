@@ -208,7 +208,7 @@ public sealed class EditionCiteAnalyzer : DiagnosticAnalyzer
 
         /// <summary>A parameter that carries an edition: of type EditionInfo or EditionContext, or a number named for one.</summary>
         private bool IsEditionParameter(ParameterSyntax p) =>
-            p.Type?.ToString() is "EditionInfo" or "EditionContext" or "WiseOwl.Cobol.Binding.EditionContext"
+            p.Type?.ToString() is "EditionInfo" or "EditionContext" or "WiseOwl.Cobol.Compiler.Binding.EditionContext"
             || (p.Type?.ToString() == "int" && NamesEdition(SyntaxFactory.IdentifierName(p.Identifier.ValueText)));
 
         /// <summary>A hole that is the compile edition's number itself (<c>Year</c>, <c>DialectLevel</c>, an edition-named int): it names

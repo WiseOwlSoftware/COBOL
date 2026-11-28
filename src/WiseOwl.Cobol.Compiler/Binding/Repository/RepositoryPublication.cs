@@ -1,10 +1,10 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 using WiseOwl.Cobol.Compiler.Oo;
 using WiseOwl.Cobol.Runtime;
 
-namespace WiseOwl.Cobol.Binding.Repository;
+namespace WiseOwl.Cobol.Compiler.Binding.Repository;
 
 /// <summary>
 /// ⛔ WHAT A COMPILATION PUBLISHES TO THE EXTERNAL REPOSITORY, DECIDED AT BIND TIME (ISO §2023:8.13; DESIGN-external-repository §7.2,

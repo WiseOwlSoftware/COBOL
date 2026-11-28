@@ -119,7 +119,7 @@ public sealed class EditionGateArmDriftTests
             + "picture-string (Step 14g.5)",
         ["NationalEdited2002"] =
             "PicInfo's { Category: National, EditMask: not null } — the twin of PicExternalFloat2002 above, "
-            + "and out of the same PictureConstructId function: national-edited is a shape of the ANALYSED "
+            + "and out of the same PicInfo.ConstructId member: national-edited is a shape of the ANALYSED "
             + "picture string (ISO §2023:13.18.40.4 GR10 — at least one symbol 'N' AND at least one instance of "
             + "character-1 or of B / 0 / '/'), which no token of the parse tree distinguishes from a plain "
             + "PIC N; and USAGE NATIONAL reaches the same category through TYPE / SAME AS / TYPEDEF as "
@@ -155,7 +155,9 @@ public sealed class EditionGateArmDriftTests
     // ── The static half ───────────────────────────────────────────────────────────────────────────────────────
 
     /// <summary>The pass source split into (bound arm, parse arm) — the ParseArm nested class is the parse arm,
-    /// everything else is the bound arm. Brace-matched rather than line-numbered so the split cannot rot.</summary>
+    /// everything else is the bound arm, joined by the one gate the bound arm asks of the model,
+    /// <c>PicInfo.ConstructId</c> (the picture shape's construct id, which the binder's report SUM screen asks too;
+    /// kb/Work PB2421). Brace-matched rather than line-numbered so the split cannot rot.</summary>
     private static (string Bound, string Parse) Arms()
     {
         string src = File.ReadAllText(TestRepo.Src(Path.Combine(
@@ -171,7 +173,19 @@ public sealed class EditionGateArmDriftTests
             else if (src[j] == '}' && --depth == 0) break;
         }
         int end = j + 1;
-        return (src[..start] + src[end..], src[start..end]);
+        Assert.Contains("item.Pic?.ConstructId()", src[..start] + src[end..], StringComparison.Ordinal);
+        return (src[..start] + src[end..] + PictureShapeGate(), src[start..end]);
+    }
+
+    /// <summary>The body of <c>PicInfo.ConstructId</c>, from its declaration to the expression's end.</summary>
+    private static string PictureShapeGate()
+    {
+        string pic = File.ReadAllText(TestRepo.Src(Path.Combine(
+            "WiseOwl.Cobol.Compiler", "Binding", "Model", "PicInfo.cs")));
+        int at = pic.IndexOf("public string? ConstructId() =>", StringComparison.Ordinal);
+        Assert.True(at >= 0, "PicInfo no longer declares ConstructId, the picture shape's edition gate the bound arm "
+            + "asks — re-derive where the PICTURE-shape gates live before trusting either assertion.");
+        return pic[at..(pic.IndexOf(';', at) + 1)];
     }
 
     private static HashSet<string> ConstructIds(string region) =>

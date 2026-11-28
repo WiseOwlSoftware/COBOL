@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Editions;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 /// <summary>⛔ ONE NUMBERED SYNTAX RULE OF THE COBOL-85 TEXT, and THE ONE PLACE a clause-rule citation chooses between the
 /// 1985 designation and the 2023 one (kb/Work PB5361). A syntax rule of a file or record clause is usually the same obligation in

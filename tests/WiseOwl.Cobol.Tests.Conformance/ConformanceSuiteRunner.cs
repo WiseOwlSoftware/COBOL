@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Globalization;
+using WiseOwl.Cobol.Compiler;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Tests.Shared;
@@ -297,10 +298,10 @@ internal static class ConformanceSuiteRunner
                     ? options with { SignEncoding = encoding }
                     : throw new SuiteHarnessException($"sign-encoding '{value}' is not one of "
                         + string.Join(", ", WiseOwl.Cobol.Runtime.ZonedSign.OptionSpellings)),
-                "numeric-display" => WiseOwl.Cobol.Binding.Model.NumericDisplayFormOption.TryParse(value, out var form)
+                "numeric-display" => WiseOwl.Cobol.Compiler.Binding.Model.NumericDisplayFormOption.TryParse(value, out var form)
                     ? options with { NumericDisplay = form }
                     : throw new SuiteHarnessException($"numeric-display '{value}' is not one of "
-                        + string.Join(", ", WiseOwl.Cobol.Binding.Model.NumericDisplayFormOption.OptionSpellings)),
+                        + string.Join(", ", WiseOwl.Cobol.Compiler.Binding.Model.NumericDisplayFormOption.OptionSpellings)),
                 "flag-extensions" => options with { FlagExtensions = options.FlagExtensions || value == "on" },
                 "repository-update" => options with { RepositoryUpdate = value == "on" },
                 // the text listing at its default destination, the assembly's path without its extension: <id>.lst in the run

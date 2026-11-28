@@ -4,7 +4,7 @@ using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 using WiseOwl.Cobol.Frontend.Cst;
 using WiseOwl.Cobol.Frontend.Diagnostics;
-using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Parsing;
 using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.Frontend.Parsing;

@@ -1,7 +1,8 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text.RegularExpressions;
-using WiseOwl.Cobol.Binding;
+using WiseOwl.Cobol.Compiler;
+using WiseOwl.Cobol.Compiler.Binding;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Tests.Shared;
@@ -156,7 +157,7 @@ public sealed class ImplementorNamesDriftTests
     [Fact]
     public void DataBinder_KeepsNoSecondMnemonicMap()
     {
-        var members = typeof(WiseOwl.Cobol.Binding.DataBinder)
+        var members = typeof(WiseOwl.Cobol.Compiler.Binding.DataBinder)
             .GetMembers(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Static
                         | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic
                         | System.Reflection.BindingFlags.DeclaredOnly)

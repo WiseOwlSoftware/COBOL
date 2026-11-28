@@ -1,10 +1,8 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text;
-using System.Text.RegularExpressions;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Common;
-using WiseOwl.Cobol.Frontend.Diagnostics;
 
 namespace WiseOwl.Cobol.Frontend.Preprocessor;
 
@@ -14,27 +12,15 @@ namespace WiseOwl.Cobol.Frontend.Preprocessor;
 /// outside margin R. Free-form: no column restrictions. A compilation group starts in fixed form unless the
 /// <see cref="InitialReferenceFormat"/> selection says otherwise (§2023:7.3.24.3 GR2; kb/Work PB1362).
 /// </summary>
-public static partial class ReferenceFormatProcessor
+public static class LogicalLineConverter
 {
-    /// <summary>How a fixed-form debugging line (indicator <c>D</c>) travels from the §2023:6.5 logical conversion to the
-    /// lexer: the carrier, then the line's program text. COPY REPLACING and REPLACE match over that text as if the
-    /// <c>D</c> were absent (the COPY rule of COBOL-85; <see cref="TextWordScanner"/> skips only this carrier), and the
-    /// lexer reads the carrier as the hidden <c>DEBUG_LINE</c> marker (<c>CobolLexer.g4</c>, whose spelling this must
-    /// equal — <c>DebuggingLineDriftTests</c>) and the line's text as ordinary tokens, which
-    /// <c>DebuggingLineRewriter</c> then keeps (the unit's SOURCE-COMPUTER says WITH DEBUGGING MODE) or hides as a
-    /// comment (kb/Work PB1705). The carrier holds U+FDD0, a Unicode NONCHARACTER —
-    /// reserved for process-internal use and never in interchanged text — so no comment a programmer writes can be
-    /// mistaken for a debugging line (kb/Work PB1350: the printable <c>*&gt; DEBUG:</c> carrier made a genuine
-    /// <c>*&gt; DEBUG: …</c> comment take part in matching).</summary>
-    public static readonly string DebugLineCarrier = CobolSourceText.CommentIndicator + (char)0xFDD0 + "DEBUG ";
-
-    /// <summary>Whether a logical line (as <see cref="DebugLineCarrier"/> and the §2023:6.5 conversion leave it) holds no
+    /// <summary>Whether a logical line (as <see cref="DebugLineCarrier.Text"/> and the §2023:6.5 conversion leave it) holds no
     /// program text: it is empty, spaces, or the BARE carrier of a blank debugging line (which keeps its slot so
     /// <c>DebuggingLineRewriter</c> can decide it; kb/Work PB4412). §2023:6.5 GR2: a blank line is one with nothing but spaces
     /// in its program-text area, whichever indicator it carries, so a stage that asks "is there text on this line" asks it
     /// here.</summary>
     public static bool HoldsNoProgramText(string line)
-        => CobolSpace.IsBlank(line.StartsWith(DebugLineCarrier, StringComparison.Ordinal) ? line[DebugLineCarrier.Length..] : line);
+        => CobolSpace.IsBlank(line.StartsWith(DebugLineCarrier.Text, StringComparison.Ordinal) ? line[DebugLineCarrier.Text.Length..] : line);
 
     /// <summary>Minimum percentage of lines that must match fixed-form pattern for detection.</summary>
     private const int FixedFormThresholdPercent = 60;
@@ -63,7 +49,7 @@ public static partial class ReferenceFormatProcessor
     /// text is library text (null for none) — COBOL-85 reads a comment-entry in the text a COPY statement PRODUCES, so a word the
     /// phrase turns into <c>AUTHOR</c> heads one and an <c>AUTHOR</c> it turns into something else does not (§1985:XII.2.3 SR10;
     /// kb/Work PB5732).</summary>
-    private static bool IsCommentEntryParagraph(string word, Func<string, string>? asReplaced)
+    internal static bool IsCommentEntryParagraph(string word, Func<string, string>? asReplaced)
         => CommentEntryParagraphs.Contains(asReplaced is null ? word : asReplaced(word));
 
     /// <summary>The compiler-directive word this stage owns (ISO §2023:7.3.24; the <c>source-format-directive-2002</c>
@@ -458,5 +444,159 @@ public static partial class ReferenceFormatProcessor
         bool fixedShape = hasNumericSequence || (hasFixedIndicatorGlyph && !hasContentPastSourceArea);
         return totalLines > 0 && fixedShape &&
                fixedIndicators * 100 / totalLines > FixedFormThresholdPercent;
+    }
+
+    /// <summary>Convert one text, or one SOURCE FORMAT segment of it, in its reference format: the fixed-form or the
+    /// free-form classifier, each feeding the one <see cref="LogicalLineBuilder"/>. <paramref name="inIdentificationDivision"/>
+    /// is the division the segment starts in (null: not known), and on return the one it ends in: the next segment starts
+    /// there, whatever its format. <paramref name="gatesLineLength"/> is false only for the lines of a carried comment-entry
+    /// candidate (<see cref="ConvertCommentEntryCandidate"/>), which the conversion that carried them has gated already.</summary>
+    private static (List<string> Lines, List<LineOrigin> Origins) ConvertSegment(ReadOnlySpan<PhysicalLine> lines, bool isFixed,
+        ReferenceFormatDiagnostics? gates, string file, bool ccvsIndicators, CommentEntryPins? pins, int inclusion, bool gatesLineLength,
+        Func<string, string>? asReplaced, PhysicalLineRecord? kinds, ref bool? inIdentificationDivision)
+    {
+        if (isFixed)
+        {
+            var fixedForm = new FixedFormConverter(gates, file, ccvsIndicators, inIdentificationDivision, pins, inclusion, asReplaced, kinds);
+            var converted = fixedForm.Convert(lines);
+            inIdentificationDivision = fixedForm.InIdentificationDivision;
+            return converted;
+        }
+        var freeForm = new FreeFormConverter(gates, file, inIdentificationDivision, pins, inclusion, gatesLineLength, asReplaced, kinds);
+        var result = freeForm.Convert(lines);
+        inIdentificationDivision = freeForm.InIdentificationDivision;
+        return result;
+    }
+
+    /// <summary>The free-form line-length gate (a free-form line holds at most <see cref="FreeFormMaxPositions"/> character
+    /// positions) for one physical line, reported through the compilation's reference-format diagnostics.</summary>
+    internal static void ReportLineLength(ReferenceFormatDiagnostics? gates, string file, in PhysicalLine line)
+    {
+        int positions = CharacterPositions.Count(line.Text);
+        if (positions > FreeFormMaxPositions) gates?.OnFreeFormLineTooLong(file, line.Number, positions);
+    }
+
+    /// <summary>The most character positions a free-form line may have (§2023:6.1 SR3a): "ranging from a minimum of 0 to a
+    /// maximum of 255") — positions as DOC-A.1-157 counts them, so on the expanded line. Asked in the free-form arm
+    /// because a fixed-form line may run past margin R and only its program-text area counts.</summary>
+    internal const int FreeFormMaxPositions = 255;
+
+    /// <summary>
+    /// If the line's program text begins in area A (<see cref="FixedFormLine.BeginsInAreaA"/>, the ONE definition of
+    /// the area), return the word it begins with (the run of non-space, non-period characters), else null. Used for the
+    /// COBOL-85 comment-entry paragraph, which begins and ends at an Area-A word (<c>CommentEntryOf</c>); which DIVISION
+    /// the text is in is never decided by the area a word begins in (<see cref="DivisionCursor"/>, kb/Work PB2739).
+    /// </summary>
+    internal static string? FirstAreaAWord(FixedFormLine line, string programText)
+    {
+        if (!line.BeginsInAreaA) return null;   // blank line, or text begins in area B (not a header)
+        int start = line.ProgramTextStart;
+        return programText[start..WordEnd(programText, start)];
+    }
+
+    /// <summary>The logical-conversion text of a comment-entry paragraph's header line, in either reference format: the
+    /// paragraph word at its own position, its period, and the explicit terminating period that stands for the discarded
+    /// comment-entry. <paramref name="programText"/> begins with the word, after any spaces.
+    /// <para>A paragraph header is "A reserved word, followed by the separator period" (§1985:III), and the Identification
+    /// Division's format prints the period of each comment-entry paragraph, which "has the status of a required word"
+    /// (§1985:IV.2.1.6): when <paramref name="periodRequired"/> (fixed form, COBOL-85's own reference format) and no separator
+    /// period follows the word, COBOL7166 is reported at the word (kb/Work PB5168) and the header is written as if it had
+    /// one, so the parse recovers without a cascade. Free form is the extension of docs/CONFORMANCE.md D-CE1, whose period
+    /// is optional.</para></summary>
+    internal static string CommentEntryHeader(string programText, TextSite site, string file, ReferenceFormatDiagnostics? gates,
+        bool periodRequired)
+    {
+        int wordStart = LogicalLineBuilder.FirstNonSpace(programText);
+        int wordEnd = WordEnd(programText, wordStart);
+        if (periodRequired && !SeparatorPeriodFollows(programText, wordEnd))
+            gates?.OnCommentEntryHeaderWithoutPeriod(file, site.Line, site.Col(wordStart), programText[wordStart..wordEnd]);
+        return programText[..wordEnd] + ". .";
+    }
+
+    /// <summary>The index in <paramref name="programText"/> (a comment-entry paragraph's header line, as
+    /// <see cref="CommentEntryHeader"/> reads it) at which the comment-entry the conversion discards begins: the first character
+    /// after the header word's separator period. The source listing's reading of the line (DESIGN-listing.md section 7.2), recorded
+    /// for a header the conversion decides and for a candidate it carries alike, so the two never disagree.</summary>
+    internal static int CommentEntryStart(string programText)
+    {
+        int entry = WordEnd(programText, LogicalLineBuilder.FirstNonSpace(programText));
+        while (entry < programText.Length && programText[entry] == ' ') entry++;
+        if (entry < programText.Length && programText[entry] == '.') entry++;
+        while (entry < programText.Length && programText[entry] == ' ') entry++;
+        return entry;
+    }
+
+    /// <summary>Whether the first non-space character at or after <paramref name="from"/> is a separator period: a period
+    /// followed by a space or the end of the line (§1985:IV.2.1.6).</summary>
+    private static bool SeparatorPeriodFollows(string text, int from)
+    {
+        int at = from;
+        while (at < text.Length && text[at] == ' ') at++;
+        return at < text.Length && text[at] == '.' && (at + 1 == text.Length || text[at + 1] == ' ');
+    }
+
+    /// <summary>The end (exclusive) of the word that begins at <paramref name="start"/>: the run of characters up to a
+    /// space or a period. How a comment-entry paragraph's header word is read, in both reference formats.</summary>
+    internal static int WordEnd(string text, int start)
+    {
+        int end = start;
+        while (end < text.Length && text[end] is not (' ' or '.')) end++;
+        return end;
+    }
+
+    /// <summary>The logical conversion of ONE CARRIED comment-entry candidate (<see cref="CommentEntryCarrier"/>: the header
+    /// line and the lines of its entry, in order) once <see cref="CommentEntryResolver"/> knows the division the compiled
+    /// text stands in (docs/CONFORMANCE.md D-CE2; kb/Work PB4281). The carried lines are physical lines of one text in one
+    /// reference format, so the two outcomes are the ones the conversion would have produced had it known:
+    /// <list type="bullet">
+    /// <item><paramref name="inIdentificationDivision"/>: a comment-entry (docs/CONFORMANCE.md D-CE1). The paragraph HEADER
+    /// stays program text — the parser and the one removal gate (<c>VersionConformancePass</c>, COBOL0902 from 2002) must
+    /// see the paragraph in fixed form as they do in free form (kb/Work PB1494, PB1758) — and only the entry is
+    /// discarded. The entry's end is implied by the next Area-A word (COBOL-85), so the paragraph's terminating period is
+    /// written explicitly: <c>AUTHOR. .</c> is the paragraph <c>AUTHOR DOT DOT</c> with no content. No reference-format
+    /// diagnostic is asked of text that is commentary.</item>
+    /// <item>otherwise: a paragraph of the program, converted as the ordinary lines they are, through the same walker and
+    /// the compilation's reference-format diagnostics.</item>
+    /// </list>
+    /// The free-form line-length gate is not asked here: the conversion that carried the candidate asked it of every physical
+    /// line, an omitted conditional-compilation branch's too (kb/Work PB4281, review finding R2-1). The result has at most
+    /// one line per carried line; the caller keeps the slots the carriers held.</summary>
+    internal static (List<string> Lines, List<LineOrigin> Origins) ConvertCommentEntryCandidate(
+        IReadOnlyList<CommentEntryCarrier.Carried> candidate, string file, bool inIdentificationDivision,
+        ReferenceFormatDiagnostics? gates)
+    {
+        bool isFixed = candidate[0].IsFixed;
+        if (!inIdentificationDivision)
+        {
+            bool? noComments = false;   // the converter reads no comment-entry where the division is none
+            return ConvertSegment([.. candidate.Select(c => c.Line)], isFixed, gates, file, candidate[0].CcvsIndicators, pins: null, candidate[0].Inclusion, gatesLineLength: false, asReplaced: null, kinds: null, ref noComments);
+        }
+        var builder = new LogicalLineBuilder(file, gates, isFixed, kinds: null);   // the kinds were recorded when the candidate was carried
+        foreach (var carried in candidate)
+        {
+            var line = carried.Line;
+            // The program text and where it begins in the line: a fixed-form line's program-text area, a free-form line whole.
+            var (area, index) = isFixed ? FixedProgramText(line.Text) : (line.Text, 0);
+            var site = new TextSite(line.Number, index, line.Columns);
+            if (carried.IsHeader)
+            {
+                // Where its comment-entry begins was recorded when the candidate was carried (PhysicalLineRecord.Discarded).
+                builder.Emit(CommentEntryHeader(area, site, file, gates, periodRequired: isFixed), site);
+            }
+            else
+            {
+                // §1985:VI.3.2.1.2 SR1: a body line with the continuation indicator, as the converter reports a certain entry's.
+                if (isFixed && new FixedFormLine(line.Text).Indicator.Value == FixedFormLine.ContinuationIndicator)
+                    gates?.OnCommentEntryContinued(file, line.Number);
+                builder.Discard(site);
+            }
+        }
+        return builder.Result;
+    }
+
+    private static (string Area, int Index) FixedProgramText(string text)
+    {
+        var line = new FixedFormLine(text);
+        return (line.ProgramText, line.ProgramTextIndex);
     }
 }

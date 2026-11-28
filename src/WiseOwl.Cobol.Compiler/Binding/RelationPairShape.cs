@@ -1,9 +1,9 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Bound;
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Bound;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 /// <summary>⛔ WHICH §2023:8.8.4.2 COMPARISON A RELATION'S OPERAND PAIR SELECTS, decided ONCE, from BOTH operands, for
 /// every relation surface (IF, EVALUATE pairings and ranges, PERFORM UNTIL, SEARCH WHEN, abbreviated relations) —

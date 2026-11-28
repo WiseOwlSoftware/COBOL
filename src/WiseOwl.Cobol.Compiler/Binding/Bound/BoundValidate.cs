@@ -1,8 +1,8 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 
-namespace WiseOwl.Cobol.Binding.Bound;
+namespace WiseOwl.Cobol.Compiler.Binding.Bound;
 
 // The VALIDATE statement's bound node (ISO/IEC 1989:2023 §2023:14.9.50; ISO/IEC 1989:2002 §14.8.46; docs/rearchitecture/DESIGN-validate-facility.md).
 // Expanded at BIND time as INITIALIZE is (BoundInitialize): the binder walks the operand's elements and binds each stage's test as a

@@ -4,9 +4,9 @@ using System.Collections;
 using System.Collections.Concurrent;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 
-namespace WiseOwl.Cobol.Binding.Bound;
+namespace WiseOwl.Cobol.Compiler.Binding.Bound;
 
 /// <summary>
 /// ⛔ THE DATA REFERENCES A BOUND STATEMENT MAKES ITSELF, read off the tree with no per-node list (X3.23-1985 USE FOR DEBUGGING

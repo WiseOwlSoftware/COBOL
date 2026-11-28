@@ -3,7 +3,6 @@
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
-using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Frontend.Parsing;
 using WiseOwl.Cobol.Tests.Shared;
 using Microsoft.CodeAnalysis;
@@ -367,7 +366,7 @@ public sealed class EditionReadDriftTests
         var root = CSharpSyntaxTree.ParseText(
             "class StrictParser(ITokenStream s) : CobolParserCore(s) { public bool Strict() => Edition.Has(2014); bool Word() => reservedHere(\"LOCALE\"); }"
             + " sealed class Stricter(ITokenStream s) : StrictParser(s) { internal bool Both() => this.Strict(); int Plain() => 1; }"
-            + " sealed class MyLexer(ICharStream c) : WiseOwl.Cobol.Frontend.Generated.CobolLexer(c) { public bool Spelled() => ApplyEditionSpelling(); }"
+            + " sealed class MyLexer(ICharStream c) : WiseOwl.Cobol.Frontend.Parsing.CobolLexer(c) { public bool Spelled() => ApplyEditionSpelling(); }"
             + " class Listener { bool T(StrictParser p) => p.Strict(); }").GetRoot();
         var stages = EditionReadModel.StagesOf([root]);
         Assert.Equal(("parser", "parser", "lexer"), (stages["StrictParser"], stages["Stricter"], stages["MyLexer"]));

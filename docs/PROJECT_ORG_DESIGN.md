@@ -29,10 +29,11 @@
 
 > **2026-10-07 (owner, kb/Work PB2118 question 1):** the namespace roots become the project names. The product rename
 > (kb/Work PB3837, 2026-10-26) made the front end's, the editions leaf's, the CLI's and the runtime's roots their project
-> names; the compiler's, `WiseOwl.Cobol` → `WiseOwl.Cobol.Compiler`, is the architecture review's wave PB2415
-> (`DESIGN-architecture-review.md` §8.2), and until it lands the compiler keeps the root below.
+> names; the compiler's, `WiseOwl.Cobol` → `WiseOwl.Cobol.Compiler`, was the architecture review's wave PB2415
+> (`DESIGN-architecture-review.md` §8.2). Every root is now its project's name, and every namespace is its project's
+> root plus its folder path (`DESIGN-architecture-review.md` §8.2 rule 1).
 
-**Decision — name form (owner, kb/Work PB3837, 2026-10-26).** The code takes the product's name: assemblies, projects, folders, the solution and the namespace roots are **`WiseOwl.Cobol.*`**; the compiler's root namespace is `WiseOwl.Cobol` (e.g. `WiseOwl.Cobol.CodeGen`) until PB2415 makes it its project name. The NuGet id stays `WiseOwl.COBOL` and the executable `cobol`. The product's earlier names are retired outside history (`scripts/rename_retired_names.py`, the rename and the RETIRED NAMES audit). The design SSOT, `docs/DESIGN.md` §17, carries the full decision.
+**Decision — name form (owner, kb/Work PB3837, 2026-10-26).** The code takes the product's name: assemblies, projects, folders, the solution and the namespace roots are **`WiseOwl.Cobol.*`**; each project's root namespace is its project name (e.g. `WiseOwl.Cobol.Compiler.CodeGen`; kb/Work PB2415). The NuGet id stays `WiseOwl.COBOL` and the executable `cobol`. The product's earlier names are retired outside history (`scripts/rename_retired_names.py`, the rename and the RETIRED NAMES audit). The design SSOT, `docs/DESIGN.md` §17, carries the full decision.
 
 **Decision — CLI split (P2/P3).** Today `Program.cs` lives *inside* the exe project, so tests cannot reference the compiler without referencing an exe. Split it: `WiseOwl.Cobol.Compiler` (library, everything except the CLI shell) + `WiseOwl.Cobol.Cli` (exe, `<AssemblyName>cobol</AssemblyName>`, ~120-line driver). This lets the test projects reference a library.
 
@@ -47,7 +48,8 @@ src/WiseOwl.Cobol.Frontend/
     Core/          CobolLexer.g4, CobolData/ControlFlow/Expressions/IO/OO/ReportWriter/Screen/SpecialNames.g4
   Generated/       CobolLexer.cs, CobolParserCore.cs, *Visitor.cs  (build output; git-ignored or tracked per current policy)
   Parsing/         CobolParserCoreBase.cs, CobolErrorListener.cs, CobolErrorStrategy.cs, ZeroTokenRewriter.cs
-  Preprocessor/    ReferenceFormatProcessor.cs, ConditionalCompilationProcessor.cs, CopyProcessor.cs, NistPreprocessor.cs
+  Preprocessor/    LogicalLineConverter.cs, FixedFormConverter.cs, FreeFormConverter.cs, LogicalLineBuilder.cs,
+                   ConditionalCompilationProcessor.cs, CopyProcessor.cs, NistPreprocessor.cs
   Diagnostics/     Diagnostic.cs, DiagnosticBag.cs, DiagnosticDescriptors.cs, DiagnosticSeverity.cs, CompileOutputLine.cs
   Common/          SourceLocation.cs, SourceLineMap.cs, TextSpan.cs, CobolLiteral.cs, NumericLiteral.cs, CobolWordRule.cs,
                    CompilerDirectiveWords.cs

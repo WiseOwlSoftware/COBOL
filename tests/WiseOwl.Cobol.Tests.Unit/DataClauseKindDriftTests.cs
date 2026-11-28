@@ -3,7 +3,7 @@
 using System.Reflection;
 using Antlr4.Runtime;
 using WiseOwl.Cobol.Frontend.Cst;
-using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Parsing;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 

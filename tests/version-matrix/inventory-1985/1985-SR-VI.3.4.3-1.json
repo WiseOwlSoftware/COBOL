@@ -2,9 +2,9 @@
  "rule-id": "1985-SR-VI.3.4.3-1",
  "rule-digest": "b5781f79839a",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalConversion.cs#CommentEntryOf",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/FixedFormConverter.cs#CommentEntryOf",
  "test-ref": "conformance:cases/VI.3.4@1985-DATE-COMPILED-PARAGRAPH/1985-SR-VI_3_4_3-1; conformance:cases/VI.3.4@1985-DATE-COMPILED-PARAGRAPH/pb5169-date-compiled-hyphen-continuation; unit:LogicalLineBuilderTests.CommentEntryContinuedByAHyphen_IsRefused",
- "notes": "§1985:VI.3.4.3 SR1 states for the DATE-COMPILED paragraph the rule §1985:VI.3.2.1.2 SR1 states for all five comment-entry paragraphs: any characters, one or more lines, and no continuation by a hyphen in the indicator area. The one converter every comment-entry paragraph passes keeps the entry open over every following line with no Area-A word and refuses a hyphen in the indicator area of one (kb/Work PB5169, COBOL7165), DATE-COMPILED included.",
+ "notes": "§1985:VI.3.4.3 SR1 states for the DATE-COMPILED paragraph the rule §1985:VI.3.2.1.2 SR1 states for all five comment-entry paragraphs: any characters, one or more lines, and no continuation by a hyphen in the indicator area. The one converter every comment-entry paragraph passes keeps the entry open over every following line with no Area-A word and refuses a hyphen in the indicator area of one (kb/Work PB5169, COBOL7165), DATE-COMPILED included. retired-witness: src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalConversion.cs#CommentEntryOf (the extract of ReferenceFormatProcessor (kb/Work PB2328): the member moved verbatim to the file of the type that holds it now (LogicalLineConverter, FixedFormConverter, FreeFormConverter, LogicalLineBuilder); the same code)",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

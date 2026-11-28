@@ -105,7 +105,7 @@ New file `Binding/Model/StorageForm.cs`. A sealed abstract record with one case 
 **value classification** (no C# strings, no emit logic) — the emitter interprets it.
 
 ```csharp
-namespace WiseOwl.Cobol.Binding.Model;
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// The canonical storage representation of an elementary item or table element (DESIGN §3/§4/§14.4).
 /// Computed ONCE by StorageFormPass; init-only on DataItem. Closed set — a new representation is a new case,

@@ -7,7 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using WiseOwl.Cobol.Frontend.Expressions;
-using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Parsing;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 

@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Runtime;
 
-namespace WiseOwl.Cobol.Binding.Model;
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// <summary>Which row of the host-type table (<see cref="HostSurface.TypeOf"/>) a description takes — the row decides the
 /// C# type a .NET host sees and which <c>HostLanding</c> landing and decode the generated host entry calls for it.</summary>

@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Runtime;
 
-namespace WiseOwl.Cobol.Binding.Model;
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// <summary>A method's EXTERNALIZED name (ISO §2023:11.7.4 GR1b): "the name is method-name-1. However, literal-1, if specified,
 /// is the name of method that is externalized to the operating environment"): the ROSTER KEY of a class's instance and factory

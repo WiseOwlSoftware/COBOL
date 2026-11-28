@@ -3,7 +3,7 @@
 using System.Collections.Frozen;
 using Antlr4.Runtime;
 
-using Core = WiseOwl.Cobol.Frontend.Generated.CobolParserCore;
+using Core = WiseOwl.Cobol.Frontend.Parsing.CobolParserCore;
 
 namespace WiseOwl.Cobol.Frontend.Cst;
 

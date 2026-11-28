@@ -1,10 +1,10 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Collections.Frozen;
-using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.Common;
+using WiseOwl.Cobol.Compiler.Binding.Model;
+using WiseOwl.Cobol.Frontend.Common;
 
-namespace WiseOwl.Cobol.Binding.Bound;
+namespace WiseOwl.Cobol.Compiler.Binding.Bound;
 
 /// <summary>
 /// ⛔ <b>WHICH CARRIER A NUMERIC FUNCTION'S RETURNED VALUE ARRIVES ON, ASKED AT BIND TIME</b> (kb/Work PB3268) — the

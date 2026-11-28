@@ -1,8 +1,8 @@
 using System.Collections;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using WiseOwl.Cobol.Binding;
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 

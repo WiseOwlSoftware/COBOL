@@ -1,7 +1,8 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 
-namespace WiseOwl.Cobol.Binding.Model;
+
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// <summary>
 /// ⛔ THE STANDARD CLASSES OF ISO/IEC 1989:2023 CLAUSE 16 — the one place the compiler knows what they are.

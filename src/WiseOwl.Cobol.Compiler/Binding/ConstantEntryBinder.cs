@@ -2,20 +2,19 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Globalization;
 using Antlr4.Runtime.Tree;
-using WiseOwl.Cobol.Common;
+using WiseOwl.Cobol.Frontend.Common;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Expressions;
-using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Parsing;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 
-using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.Frontend.Parsing;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 using Core = CobolParserCore;
 using WiseOwl.Cobol.Runtime;
-using WiseOwl.Cobol.Symbols;
+using WiseOwl.Cobol.Compiler.Symbols;
 
 /// <summary>
 /// THE CONSTANT-ENTRY BINDER of one unit (kb/Work PB2358; ISO/IEC 1989:2023 §2023:13.10 constant entry + §2023:13.18.15 CONSTANT
@@ -880,17 +879,17 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
     /// that a format specifies a literal of the class and category of constant-name-1"; §2023:13.10.4 GR1/GR3 — "as if
     /// literal-1 … were written where constant-name-1 is written"). Because the constant stands for the literal, the
     /// substituted value meets what the WRITTEN literal meets: §2023:5.5 SR1's "unsigned and nonzero unless otherwise
-    /// specified in the associated rules" (the clause's own exception, <see cref="WiseOwl.Cobol.Validation.IntegerOperandRules.Classify"/>)
+    /// specified in the associated rules" (the clause's own exception, <see cref="WiseOwl.Cobol.Compiler.Validation.IntegerOperandRules.Classify"/>)
     /// and the host limit (COBOL2427, which <c>IntegerOperandPass</c> raises for a literal pre-bind and which a
     /// constant can only meet here, where its value is known). Null (reported) for a non-integer, a negative or zero-
     /// where-nonzero, an over-limit or an unknown constant-name.</summary>
     /// <param name="operand">The operand node of the clause that prints the <c>integer-n</c>.</param>
     /// <param name="where">The construct as the calling site names it, for a diagnostic.</param>
     internal int? IntegerOperandValue(Core.IntegerOperandContext operand, string where) =>
-        IntegerOperandText(operand, where) is { } text ? WiseOwl.Cobol.Validation.IntegerOperandRules.HostValue(text) : null;
+        IntegerOperandText(operand, where) is { } text ? WiseOwl.Cobol.Compiler.Validation.IntegerOperandRules.HostValue(text) : null;
 
     /// <summary>The same reader for a clause whose <c>integer-n</c> is read at FULL width, not as an
-    /// <see cref="int"/> (<see cref="WiseOwl.Cobol.Validation.IntegerOperandRules.FullValueSlots"/>: the DYNAMIC LENGTH LIMIT):
+    /// <see cref="int"/> (<see cref="WiseOwl.Cobol.Compiler.Validation.IntegerOperandRules.FullValueSlots"/>: the DYNAMIC LENGTH LIMIT):
     /// the operand's integer as digits, the literal as written or the constant's canonical integer, with every refusal
     /// of <see cref="IntegerOperandValue"/> except the host limit, which a full-width slot does not have.</summary>
     internal string? IntegerOperandText(Core.IntegerOperandContext operand, string where) =>
@@ -903,7 +902,7 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
     /// <c>integerOperand</c>. Null when refused (and reported).</summary>
     internal int? ConstantOperandValue(Core.DataReferenceContext dref, string where) =>
         ConstantIntegerText(dref, dref.cobolWord(), where) is { } text
-            ? WiseOwl.Cobol.Validation.IntegerOperandRules.HostValue(text) : null;
+            ? WiseOwl.Cobol.Compiler.Validation.IntegerOperandRules.HostValue(text) : null;
 
     /// <summary>⛔ A CONSTANT-NAME THAT STANDS FOR AN <c>integer-n</c> (ISO §2023:13.10.3 SR2), asked once per operand node
     /// — the <c>integerOperand</c> grammar rule's cobolWord arm, and the bare <c>dataReference</c> a clause that prints
@@ -919,11 +918,11 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
     {
         string word = written.GetText();
         string what = "the OCCURS bound";
-        if (WiseOwl.Cobol.Validation.IntegerOperandRules.OwnerOf(operand) is not Core.OccursClauseContext)
+        if (WiseOwl.Cobol.Compiler.Validation.IntegerOperandRules.OwnerOf(operand) is not Core.OccursClauseContext)
         {
             // The clause is named once, in the construct position of the sentence, so the operand reads as itself.
             what = "the integer operand";
-            where = $"{where} ({WiseOwl.Cobol.Validation.IntegerOperandRules.ConstructName(operand)})";
+            where = $"{where} ({WiseOwl.Cobol.Compiler.Validation.IntegerOperandRules.ConstructName(operand)})";
         }
         if (ConstantNamed(written, report: true) is { } k)
         {
@@ -933,14 +932,14 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
             // LITERAL pre-bind (COBOL2427), and a constant is known only here, so the same verdict is raised here
             // — never a saturated bound handed to the layout, which then tried to allocate it.
             if (k is { Category: PicCategory.Numeric, IntegerText: { } it }
-                && WiseOwl.Cobol.Validation.IntegerOperandRules.TryHostValue(it, out int kv, out bool beyondLimit))
+                && WiseOwl.Cobol.Compiler.Validation.IntegerOperandRules.TryHostValue(it, out int kv, out bool beyondLimit))
             {
                 // A FULL-WIDTH slot (DYNAMIC LENGTH LIMIT, PERFORM … TIMES) has no host limit to pass — the same
                 // exemption IntegerOperandRules.BeyondHostLimit gives the written literal.
-                if (beyondLimit && !WiseOwl.Cobol.Validation.IntegerOperandRules.IsFullValueSlot(operand))
+                if (beyondLimit && !WiseOwl.Cobol.Compiler.Validation.IntegerOperandRules.IsFullValueSlot(operand))
                 {
                     owner.Edition.Error(DiagnosticCatalog.IntegerOperandBeyondLimit,
-                        WiseOwl.Cobol.Validation.IntegerOperandRules.BeyondLimitMessage(where, $"{what} '{word}', the integer {it},", owner.Edition.DialectLevel));
+                        WiseOwl.Cobol.Compiler.Validation.IntegerOperandRules.BeyondLimitMessage(where, $"{what} '{word}', the integer {it},", owner.Edition.DialectLevel));
                     return null;
                 }
                 // §2023:5.5 SR1 — "unsigned": a negative literal is not an integer-n, so a constant that is one is not the
@@ -953,8 +952,8 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
                         + "literal were written)");
                     return null;
                 }
-                if (kv == 0 && WiseOwl.Cobol.Validation.IntegerOperandRules.Classify(operand, owner.Edition.DialectLevel).Kind
-                        == WiseOwl.Cobol.Validation.IntegerSlotKind.NonZero)
+                if (kv == 0 && WiseOwl.Cobol.Compiler.Validation.IntegerOperandRules.Classify(operand, owner.Edition.DialectLevel).Kind
+                        == WiseOwl.Cobol.Compiler.Validation.IntegerSlotKind.NonZero)
                 {
                     owner.Edition.Error(DiagnosticCatalog.IntegerOperandZero, $"{where}: {what} '{word}' is the integer 0, and "
                         + "the integer operand shall be nonzero — ISO §2023:5.5 1): an integer-n \"shall be unsigned and "

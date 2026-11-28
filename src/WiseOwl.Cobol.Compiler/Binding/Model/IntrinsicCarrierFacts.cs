@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-namespace WiseOwl.Cobol.Binding.Model;
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// <summary>⛔ THE CATALOG FACTS OF ONE FUNCTION CALL THAT DECIDE WHICH CARRIER ITS VALUE ARRIVES ON (kb/Work PB5891 review R5-2), as data the
 /// bound layer reads: the bind-time carrier prediction (<c>Binding.Bound.FunctionValueLane</c>) and the lane of a numeric node

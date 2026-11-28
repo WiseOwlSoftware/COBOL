@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Runtime;
 
-namespace WiseOwl.Cobol.Binding.Model;
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// <summary>
 /// ⛔ <b>THE REFERENCE-TIME *-ARG-OMITTED FACT OF A FORMAL PARAMETER</b> (kb/Work PB971) — carried by the formal's

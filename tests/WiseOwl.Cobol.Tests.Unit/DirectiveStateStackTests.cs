@@ -1,7 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Reflection;
-using WiseOwl.Cobol.Binding;
+using WiseOwl.Cobol.Compiler.Binding;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Diagnostics;
 using WiseOwl.Cobol.Frontend.Preprocessor;
@@ -224,7 +224,7 @@ public sealed class DirectiveStateStackTests
     {
         // FIXED, PUSH SOURCE, FREE, POP SOURCE: the last line carries a sequence number in columns 1-6, which the
         // fixed-form reading strips and a free-form reading keeps.
-        string text = ReferenceFormatProcessor.NormalizeToFreeForm(
+        string text = LogicalLineConverter.NormalizeToFreeForm(
             "       >>SOURCE FIXED\n"
             + "       >>PUSH SOURCE\n"
             + "       >>SOURCE FREE\n"

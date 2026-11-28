@@ -2,14 +2,14 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using WiseOwl.Cobol;
-using WiseOwl.Cobol.CodeGen;
+using WiseOwl.Cobol.Compiler;
+using WiseOwl.Cobol.Compiler.CodeGen;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend;
 using WiseOwl.Cobol.Frontend.Common;
 using WiseOwl.Cobol.Frontend.Diagnostics;
 using WiseOwl.Cobol.Listing;
-using WiseOwl.Cobol.Listing.Building;
+using WiseOwl.Cobol.Compiler.Listing;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 

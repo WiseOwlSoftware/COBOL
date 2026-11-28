@@ -1,13 +1,12 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Common;
-using WiseOwl.Cobol.Binding.Bound;
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Frontend.Common;
+using WiseOwl.Cobol.Compiler.Binding.Bound;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 using WiseOwl.Cobol.Editions.Diagnostics;
-using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Frontend.Parsing;
 
-namespace WiseOwl.Cobol.Binding.Procedure;
+namespace WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs;
 
 using Core = CobolParserCore;
 
@@ -841,9 +840,9 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         // §2023:8.3.3.6.4 GR2 — "the string of characters is repeated character by character"); the category rides on
         // literal-1 (PB71). Both the glued (`ALL"*"`) and spaced spellings the parse tree can produce are the
         // classifier's business, not this site's.
-        var form = WiseOwl.Cobol.CodeGen.FigurativeConstants.Classify(raw);
+        var form = WiseOwl.Cobol.Compiler.CodeGen.Roslyn.FigurativeConstants.Classify(raw);
         if (form.Kind is { } kind) return new BoundFigurative(kind);
-        if (form.AllLiteral is { } literal1) return BoundAllLiteral.Of(literal1);
+        if (form.AllLiteral is { } literal1) return ConcatFolder.AllLiteral(literal1);
         string t = raw.Trim();
         // N"…"/B"…" (and the apostrophe forms) VALUE clauses re-produce their category-tagged literal (declaration-time
         // validation — 0898/0900 — already ran in DataBinder; no re-gating here). Test the prefix letter, then the codec.

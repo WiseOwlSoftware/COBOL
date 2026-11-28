@@ -1,13 +1,12 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Bound;
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Bound;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 using WiseOwl.Cobol.Editions.Diagnostics;
-using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Frontend.Parsing;
 using WiseOwl.Cobol.Editions;
 
-namespace WiseOwl.Cobol.Binding.Procedure;
+namespace WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs;
 
 using Core = CobolParserCore;
 
@@ -547,7 +546,7 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
             // COBOL7737, kb/Work PB6021), which binds the literal by its digits; a sign this arm still sees is a literal
             // that is not that one character-string ('+ 2', '-1.5').
             case BoundNumericLiteral n when IntrinsicResultType.IsIntegerOperand(n)
-                                            && WiseOwl.Cobol.Common.NumericLiteral.IsUnsignedForm(n.Text):
+                                            && WiseOwl.Cobol.Frontend.Common.NumericLiteral.IsUnsignedForm(n.Text):
             case BoundFigurative { Kind: 'Z' }:   // ZERO read numerically is the integer 0 (§2023:8.3.3.6.4 GR4)
                 return;
             default:

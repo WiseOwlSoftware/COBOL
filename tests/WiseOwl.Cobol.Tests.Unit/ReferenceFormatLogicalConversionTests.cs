@@ -22,7 +22,7 @@ public sealed class ReferenceFormatLogicalConversionTests
         InitialReferenceFormat initial = InitialReferenceFormat.Fixed)
     {
         var bag = new DiagnosticBag();
-        return (ReferenceFormatProcessor.NormalizeToFreeFormMapped(source, new ReferenceFormatDiagnostics(std, false, bag), "t.cob", initial), bag);
+        return (LogicalLineConverter.NormalizeToFreeFormMapped(source, new ReferenceFormatDiagnostics(std, false, bag), "t.cob", initial), bag);
     }
 
     private static string[] Codes(DiagnosticBag bag) => bag.Diagnostics.Select(d => d.Code).ToArray();
@@ -77,10 +77,10 @@ public sealed class ReferenceFormatLogicalConversionTests
     public void IndicatorArea_OnlyFixedIndicators_OutsideNist(char indicator, bool ccvs, bool diagnosed, string line)
     {
         var bag = new DiagnosticBag();
-        var m = ReferenceFormatProcessor.NormalizeToFreeFormMapped("000100" + indicator + "DISPLAY \"L\".\n",
+        var m = LogicalLineConverter.NormalizeToFreeFormMapped("000100" + indicator + "DISPLAY \"L\".\n",
             new ReferenceFormatDiagnostics(2023, false, bag), "t.cob", initialFixed: true, out _, ccvsIndicators: ccvs);
         Assert.Equal(diagnosed, Codes(bag).Contains("COBOL2616"));
-        Assert.Equal(line.Replace("<debug>", ReferenceFormatProcessor.DebugLineCarrier), m.Text.Split('\n')[0]);
+        Assert.Equal(line.Replace("<debug>", DebugLineCarrier.Text), m.Text.Split('\n')[0]);
     }
 
     [Fact] // kb/Work PB1494 — §2023:6.5 GR5: a source line's program-text area is copied. The comment-entry reading of
@@ -275,7 +275,7 @@ public sealed class ReferenceFormatLogicalConversionTests
     {
         var bag = new DiagnosticBag();
         var gates = new ReferenceFormatDiagnostics(std, false, bag);
-        var m = ReferenceFormatProcessor.NormalizeToFreeFormMapped(src, gates, "t.cob", InitialReferenceFormat.Fixed);
+        var m = LogicalLineConverter.NormalizeToFreeFormMapped(src, gates, "t.cob", InitialReferenceFormat.Fixed);
         SurvivingFloatingComments.Note(m, gates);
         gates.ReportSurvivingFloatingComments(new HashSet<int>(), 0);
         Assert.Equal(expected, Codes(bag).Count(c => c == "COBOL0900"));
@@ -292,7 +292,7 @@ public sealed class ReferenceFormatLogicalConversionTests
     {
         var bag = new DiagnosticBag();
         var gates = new ReferenceFormatDiagnostics(85, false, bag);
-        var m = ReferenceFormatProcessor.NormalizeToFreeFormMapped(src, gates, "t.cob", InitialReferenceFormat.Fixed);
+        var m = LogicalLineConverter.NormalizeToFreeFormMapped(src, gates, "t.cob", InitialReferenceFormat.Fixed);
         SurvivingFloatingComments.Note(m, gates);
         gates.ReportSurvivingFloatingComments(new HashSet<int> { commentLine }, 0);
         Assert.Equal(introductions, Codes(bag).Count(c => c == "COBOL0900"));

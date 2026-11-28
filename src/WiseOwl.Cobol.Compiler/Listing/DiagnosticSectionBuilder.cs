@@ -3,8 +3,9 @@
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Common;
 using WiseOwl.Cobol.Frontend.Diagnostics;
+using WiseOwl.Cobol.Listing;
 
-namespace WiseOwl.Cobol.Listing.Building;
+namespace WiseOwl.Cobol.Compiler.Listing;
 
 /// <summary>
 /// The diagnostics section (DESIGN-listing.md section 6.3): every diagnostic the compilation reported of its source, each placed

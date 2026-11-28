@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-namespace WiseOwl.Cobol.Binding.Model;
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// <summary>
 /// ⛔ THE ONE CONSERVATIVE "MAY THESE TWO REFERENCES OCCUPY THE SAME STORAGE?" QUESTION (ISO §2023:14.6.10 — overlapping

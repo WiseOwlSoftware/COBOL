@@ -1,8 +1,8 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 /// <summary>One RESOLVED object-property reference awaiting its statement-level desugar (deep-dive
 /// D-P2; ISO §2023:8.4.3.9.4): the synthesized temp the statement bound over, the accessors' invocation

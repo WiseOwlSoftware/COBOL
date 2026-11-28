@@ -3,7 +3,7 @@
 
 using WiseOwl.Cobol.Runtime;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 /// <summary>The Selection-SUBJECT operand kinds — Table 15's COLUMNS, in the printed left-to-right order.</summary>
 public enum EvaluateSubjectOperand

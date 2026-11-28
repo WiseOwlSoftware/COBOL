@@ -1,11 +1,13 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Common;
-using WiseOwl.Cobol.Binding;
-using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.CodeGen.Emit;
+using WiseOwl.Cobol.Frontend.Common;
+using WiseOwl.Cobol.Compiler.Binding;
+using WiseOwl.Cobol.Compiler.Binding.Model;
+using WiseOwl.Cobol.Compiler.CodeGen.Emit;
+using WiseOwl.Cobol.Compiler.CodeGen.Roslyn;
+using WiseOwl.Cobol.Compiler.CodeGen.Verbs;
 
-namespace WiseOwl.Cobol.CodeGen;
+namespace WiseOwl.Cobol.Compiler.CodeGen.DataDivision;
 
 /// <summary>The DATA DIVISION emission facade (P7 Step 9l — was <c>Emit/FieldEmitter.cs</c>, split per
 /// DESIGN-codegen-backend §2.5 into <see cref="RecordStructEmitter"/> · <see cref="GroupImageCodec"/> (with its

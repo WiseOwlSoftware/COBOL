@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 /// <summary>The COBOL-85 designations of the LINAGE clause's syntax rules that <c>FileControlBinder.ResolveLinage</c> screens inline
 /// (kb/Work PB5361): §1985:VII.3.7.3 SR1 is §2023:13.18.34.3 SR2 and §1985:VII.3.7.3 SR3 is §2023:13.18.34.3 SR3, so a refusal at

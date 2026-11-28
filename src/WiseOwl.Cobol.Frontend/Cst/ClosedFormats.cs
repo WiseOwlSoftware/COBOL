@@ -8,7 +8,7 @@ using Antlr4.Runtime.Misc;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;     // DiagnosticCatalog — the band's three codes
 
-using Core = WiseOwl.Cobol.Frontend.Generated.CobolParserCore;
+using Core = WiseOwl.Cobol.Frontend.Parsing.CobolParserCore;
 
 namespace WiseOwl.Cobol.Frontend.Cst;
 

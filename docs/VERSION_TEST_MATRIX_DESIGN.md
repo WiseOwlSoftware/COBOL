@@ -269,7 +269,7 @@ untouched); `Program.cs` prints warnings to stderr always.
   fires the syntactic introduction/removal/phrase gates + the §2023:8.9 reserved-word funnel on RECOGNITION) and a
   **bound-tree arm** (the genuinely-semantic statement-level gates).
 - **Walk (parse-tree arm):** NO listener is generated (ANTLR runs `-no-listener -visitor`) — the arm derives from the
-  generated `CobolParserCoreBaseVisitor<object?>` (namespace `WiseOwl.Cobol.Frontend.Generated`); overrides return
+  generated `CobolParserCoreBaseVisitor<object?>` (namespace `WiseOwl.Cobol.Frontend.Parsing`); overrides return
   `base.VisitChildren(ctx)` to keep descending. Root = the compilation unit produced by `Frontend.Parse`.
 - **Hook:** the pass is the NAMED TERMINAL pass of the binder manifest (run by `BinderDriver.Bind`), so the returned
   `BoundCompilation` already carries EVERY edition diagnostic on the sink — for both a full compile and a CheckOnly
@@ -533,7 +533,7 @@ hole (unconditional lexer tokens wrongly commented "COBOL-2002" — they are 202
 85-acceptance set (RERUN, ENTER, USE FOR DEBUGGING, section segment-numbers — generic parse errors today, a G1
 co-equal-diagnostic violation at 85); the preprocessor rows (COPY REPLACING non-pseudo-text ≥2023 = VCR 4,
 fixed-form word continuation ≥2023 = VCR 2, col-7 hyphen obsolete flag = VCR 94 — `DialectLevel` is not
-threaded into `CopyProcessor`/`ReferenceFormatProcessor` today). The COMMUNICATION module is implemented at 85 and 2002
+threaded into `CopyProcessor`/`LogicalLineConverter` today). The COMMUNICATION module is implemented at 85 and 2002
 (`docs/rearchitecture/DESIGN-communication-facility.md`, kb/Work PB4677).
 
 > **W2 — as built.**

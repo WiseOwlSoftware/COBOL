@@ -30,7 +30,7 @@ public enum FloatClassTest
 /// signaling NaN, so GR3 j)/k) cannot be answered after one; and the extremes of g)/m) are exact bit patterns of
 /// the carrier's own format, which a comparison against a decimal literal widened to binary64 would miss for
 /// binary32 (3.4028235E+38 is not <c>(double)float.MaxValue</c>). The encodings are the ones
-/// <c>WiseOwl.Cobol.Binding.IeeeSpecials</c> writes (SET Format 15), read back: exponent all ones with a zero
+/// <c>WiseOwl.Cobol.Compiler.Binding.IeeeSpecials</c> writes (SET Format 15), read back: exponent all ones with a zero
 /// significand is an infinity, with a nonzero one a NaN, and the LEADING significand bit tells quiet (set) from
 /// signaling (clear) — ISO/IEC 60559:2020 §2023:6.2.1.
 /// </summary>

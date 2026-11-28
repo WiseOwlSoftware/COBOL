@@ -1,22 +1,21 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;                // ParserRuleContext — the source-element walk
-using WiseOwl.Cobol.Binding;              // FlagState / PictureAnalyzer / EditionContext
-using WiseOwl.Cobol.Binding.Bound;        // BoundDeclarative (a unit's or method's USE declaratives)
-using WiseOwl.Cobol.Binding.Model;        // Usage / PicCategory / PicInfo
-using WiseOwl.Cobol.Binding.Passes;       // GroupBindContext
+using WiseOwl.Cobol.Compiler.Binding;              // FlagState / PictureAnalyzer / EditionContext
+using WiseOwl.Cobol.Compiler.Binding.Bound;        // BoundDeclarative (a unit's or method's USE declaratives)
+using WiseOwl.Cobol.Compiler.Binding.Model;        // Usage / PicCategory / PicInfo
+using WiseOwl.Cobol.Compiler.Binding.Passes;       // GroupBindContext
 using WiseOwl.Cobol.Compiler.Oo;          // OoSymbolOrigin (a method symbol's origin)
-using WiseOwl.Cobol.Common;               // CobolLiteral (the one literal decoder)
+using WiseOwl.Cobol.Frontend.Common;               // CobolLiteral (the one literal decoder)
 using WiseOwl.Cobol.Editions;             // IDiagnosticSink / EditionDiagnostic / EditionSeverity
 using WiseOwl.Cobol.Editions.Diagnostics; // DiagnosticCatalog
 using WiseOwl.Cobol.Frontend.Cst;         // DataReferenceCst.Register / SpecialRegister
-using WiseOwl.Cobol.Frontend.Generated;   // CobolParserCore / CobolParserCoreBaseVisitor
-using WiseOwl.Cobol.Frontend.Parsing;
+using WiseOwl.Cobol.Frontend.Parsing;   // CobolParserCore / CobolParserCoreBaseVisitor
 using WiseOwl.Cobol.Frontend.Preprocessor;// FlagDirective / FlagOption / FlagOptions / FlagDirectiveLine
 using WiseOwl.Cobol.Runtime.IO;           // FileOpenMode (the USE-declarative open-mode ordinal, I-O-DECLARATIVE)
 using WiseOwl.Cobol.Runtime;
 
-namespace WiseOwl.Cobol.Validation;
+namespace WiseOwl.Cobol.Compiler.Validation;
 
 /// <summary>
 /// The migration-flagging pass (ISO §2023:7.3.14 FLAG-02 / §2023:7.3.15 FLAG-14) — a sibling to

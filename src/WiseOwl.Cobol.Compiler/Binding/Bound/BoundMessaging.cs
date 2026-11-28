@@ -1,9 +1,9 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 using WiseOwl.Cobol.Runtime.Exceptions;
 
-namespace WiseOwl.Cobol.Binding.Bound;
+namespace WiseOwl.Cobol.Compiler.Binding.Bound;
 
 // The statements of the asynchronous messaging facility (ISO/IEC 1989:2023 §2023:14.9.38 SEND and §2023:14.9.31 RECEIVE; DESIGN-message-control.md §4.3;
 // kb/Work PB4743). SEND's two general formats are two nodes because they are two operations: Format 1 starts an exchange with a server and

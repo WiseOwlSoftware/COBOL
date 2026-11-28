@@ -4,7 +4,7 @@ using System.Collections.Frozen;
 using System.Globalization;
 using WiseOwl.Cobol.Runtime;
 
-namespace WiseOwl.Cobol.Binding.Model;
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// <summary>
 /// THE ONE ALLOCATOR OF THE CLR NAMES a module emits for a COBOL word (docs/rearchitecture/DESIGN-external-repository.md

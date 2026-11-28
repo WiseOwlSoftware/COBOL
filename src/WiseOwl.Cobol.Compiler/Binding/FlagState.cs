@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Frontend.Preprocessor;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 /// <summary>
 /// The compile-time <c>&gt;&gt;FLAG-02</c> / <c>&gt;&gt;FLAG-14</c> resolution (ISO §2023:7.3.14 / §2023:7.3.15): the

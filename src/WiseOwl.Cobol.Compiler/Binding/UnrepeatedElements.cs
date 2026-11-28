@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Editions.Diagnostics;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 /// <summary>
 /// ⛔ THE ONE READER OF "WRITTEN ONCE" FOR A GENERAL-FORMAT ELEMENT THAT CARRIES NO ELLIPSIS — ISO §2023:5.2.6.2 /

@@ -1,9 +1,9 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Bound;
+using WiseOwl.Cobol.Compiler.Binding.Bound;
 using WiseOwl.Cobol.Runtime.Repository;
 
-namespace WiseOwl.Cobol.Binding.Model;
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// <summary>One program unit of the compilation group: its identity, containment, PROGRAM-ID attributes
 /// (ISO §2023:11.10 / §2023:8.6.6), bound model, and the GLOBAL bridges its class must emit (§2023:13.18.27.4 GR2).

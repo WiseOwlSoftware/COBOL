@@ -1,13 +1,13 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding;                // DiagnosticCursorAt (the ParserRuleContext At overload)
+using WiseOwl.Cobol.Compiler.Binding;                // DiagnosticCursorAt (the ParserRuleContext At overload)
 using WiseOwl.Cobol.Editions;               // IDiagnosticSink / EditionDiagnostic / EditionSeverity
 using WiseOwl.Cobol.Editions.Diagnostics;   // DiagnosticCatalog
 using WiseOwl.Cobol.Frontend.Expressions;   // ArithmeticFormationRules — the SHARED rule
-using WiseOwl.Cobol.Frontend.Generated;     // CobolParserCore
-using WiseOwl.Cobol.Binding.Passes;          // GroupBindContext — the texts the pass screens (kb/Work PB4483)
+using WiseOwl.Cobol.Frontend.Parsing;     // CobolParserCore
+using WiseOwl.Cobol.Compiler.Binding.Passes;          // GroupBindContext — the texts the pass screens (kb/Work PB4483)
 
-namespace WiseOwl.Cobol.Validation;
+namespace WiseOwl.Cobol.Compiler.Validation;
 
 /// <summary>
 /// The EXPRESSION FORMATION pass — ISO §2023:8.8.1.2 Table 3 and §2023:8.8.2 Table 4, the two tables that state which

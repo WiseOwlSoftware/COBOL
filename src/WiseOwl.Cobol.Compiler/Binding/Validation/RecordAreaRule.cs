@@ -1,10 +1,10 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 
 using WiseOwl.Cobol.Editions;
 
-namespace WiseOwl.Cobol.Binding.Validation;
+namespace WiseOwl.Cobol.Compiler.Binding.Validation;
 
 /// <summary>
 /// ⛔ <b>THE ONE WORDING AND SCOPE OF "THE OPERAND SHALL NOT BE THE FILE'S RECORD AREA"</b> (kb/Work PB5077). X3.23-1985 and

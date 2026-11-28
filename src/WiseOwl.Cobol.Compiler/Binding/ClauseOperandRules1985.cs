@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 /// <summary>⛔ THE COBOL-85 DESIGNATIONS OF THE SYNTAX RULES A DATA-NAME CLAUSE OPERAND BREAKS WHERE THE 2023 TEXT HAS ANOTHER RULE
 /// (kb/Work PB5627), each one a <see cref="Rule1985"/> beside the 2023 citation of the arm that asks it, so a refusal at

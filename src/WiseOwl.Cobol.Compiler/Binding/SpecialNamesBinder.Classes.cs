@@ -1,18 +1,18 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Common;
+using WiseOwl.Cobol.Frontend.Common;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
-using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Parsing;
 using WiseOwl.Cobol.Runtime.Collation;
 
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 using Core = CobolParserCore;
 using WiseOwl.Cobol.Runtime;
-using WiseOwl.Cobol.Symbols;
+using WiseOwl.Cobol.Compiler.Symbols;
 
 /// <summary>The CLASS and SYMBOLIC CHARACTERS clauses (ISO §2023:12.3.7.2; §2023:12.3.7.3 SR16, SR17; §2023:12.3.7.4 GR11, GR12).
 /// A partial of <see cref="SpecialNamesBinder"/>.</summary>
@@ -291,10 +291,10 @@ public sealed partial class SpecialNamesBinder
                 ordinals.Add(child switch
                 {
                     Core.IntegerLiteralContext il => (il.GetText(),
-                        (int?)WiseOwl.Cobol.Validation.IntegerOperandRules.HostValue(il)),
+                        (int?)WiseOwl.Cobol.Compiler.Validation.IntegerOperandRules.HostValue(il)),
                     Core.IntegerOperandContext io => (io.GetText(), _host.Constants.IntegerOperandValue(io, where)),
                     _ => (word!.GetText(), _host.Constants.ConstantIntegerText(word, word, where) is { } digits
-                        ? WiseOwl.Cobol.Validation.IntegerOperandRules.HostValue(digits) : null),
+                        ? WiseOwl.Cobol.Compiler.Validation.IntegerOperandRules.HostValue(digits) : null),
                 });
             }
         }

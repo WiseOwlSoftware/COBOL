@@ -4,10 +4,10 @@ using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Runtime.Exceptions;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 using WiseOwl.Cobol.Runtime;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 /// <summary>
 /// The compile-time <c>&gt;&gt;TURN</c> resolution (ISO/IEC 1989:2023 §2023:7.3.25; deep-dive D10): the source-ordered

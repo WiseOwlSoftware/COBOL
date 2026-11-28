@@ -3,7 +3,7 @@
 using WiseOwl.Cobol.Runtime;
 using WiseOwl.Cobol.Runtime.Repository;
 
-namespace WiseOwl.Cobol.Binding.Model;
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// <summary>
 /// ⛔ THE REPOSITORY RECORD OF ONE PUBLISHED UNIT (ISO §2023:8.13; docs/rearchitecture/DESIGN-external-repository.md §6.1; kb/Work

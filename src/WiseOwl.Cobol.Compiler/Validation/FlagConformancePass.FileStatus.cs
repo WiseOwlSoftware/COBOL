@@ -2,14 +2,15 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
-using WiseOwl.Cobol.Binding;              // DiagnosticCursorAt.At(sink, ctx)
-using WiseOwl.Cobol.Binding.Model;        // DataItem / Condition88
-using WiseOwl.Cobol.Binding.Procedure;    // ConditionBinder.SoleDataRef (the canonical bare-operand unwrap)
-using WiseOwl.Cobol.Common;               // CobolLiteral / LiteralClass
-using WiseOwl.Cobol.Frontend.Generated;   // CobolParserCore
+using WiseOwl.Cobol.Compiler.Binding;              // DiagnosticCursorAt.At(sink, ctx)
+using WiseOwl.Cobol.Compiler.Binding.Model;        // DataItem / Condition88
+using WiseOwl.Cobol.Compiler.Binding.Procedure;    // ConditionBinder.SoleDataRef (the canonical bare-operand unwrap)
+using WiseOwl.Cobol.Frontend.Common;               // CobolLiteral / LiteralClass
+using WiseOwl.Cobol.Frontend.Parsing;   // CobolParserCore
 using WiseOwl.Cobol.Frontend.Preprocessor;// FlagOption
+using WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs;
 
-namespace WiseOwl.Cobol.Validation;
+namespace WiseOwl.Cobol.Compiler.Validation;
 
 /// <summary>
 /// FLAG-14 e I-O-STATUS-04 / f I-O-STATUS-07 (ISO §2023:7.3.15.4 GR4 e/f): "A reference to a data item specified in a FILE

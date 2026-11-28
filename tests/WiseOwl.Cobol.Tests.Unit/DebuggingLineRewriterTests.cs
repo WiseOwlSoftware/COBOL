@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
 using WiseOwl.Cobol.Editions;
-using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Common;
 using WiseOwl.Cobol.Frontend.Parsing;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using Xunit;
@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// kb/Work PB1705 (owner decision R56): a fixed-form debugging line reaches the lexer as
-/// <see cref="ReferenceFormatProcessor.DebugLineCarrier"/> plus its program text, and <see cref="DebuggingLineRewriter"/>
+/// <see cref="DebugLineCarrier.Text"/> plus its program text, and <see cref="DebuggingLineRewriter"/>
 /// keeps its tokens (the line is SOURCE) or moves them to the <see cref="CobolLexer.ABSENT_DEBUG_LINE"/> channel (the line
 /// is a COMMENT) according to the program's SOURCE-COMPUTER … WITH DEBUGGING MODE clause. The scope of the clause is
 /// ISO §2023:12.3.5.4 GR1: "All clauses of the SOURCE-COMPUTER paragraph apply to the source unit in which they are
@@ -20,7 +20,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </summary>
 public sealed class DebuggingLineRewriterTests
 {
-    private static readonly string Carrier = ReferenceFormatProcessor.DebugLineCarrier;
+    private static readonly string Carrier = DebugLineCarrier.Text;
 
     /// <summary>A debugging line as the logical conversion writes it.</summary>
     private static string D(string text) => Carrier + text;

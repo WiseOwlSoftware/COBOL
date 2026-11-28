@@ -12,7 +12,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <c>{ Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display }</c> is the shape a predicate takes
 /// when it was written before the byte forms existed. Sometimes it is exactly right — the question really IS
 /// "is this a zoned USAGE DISPLAY item?" — and sometimes it is DRIFT: the question is "does this leaf have a
-/// character image?", which <see cref="WiseOwl.Cobol.Binding.Model.DataItem.ElementImageCapable"/> and
+/// character image?", which <see cref="WiseOwl.Cobol.Compiler.Binding.Model.DataItem.ElementImageCapable"/> and
 /// <c>PicInfo.HasImageByteForm</c> answer for every consumer, and which every numeric usage now satisfies
 /// (V59 pinned BINARY/PACKED, PB164 wave 1 COMP-5/BINARY-*, wave 2 the IEEE float family, R40 USAGE INDEX).
 /// </para>

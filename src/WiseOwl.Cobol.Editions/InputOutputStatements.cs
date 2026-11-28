@@ -5,7 +5,7 @@ namespace WiseOwl.Cobol.Editions;
 /// <summary>The statement forms an edition's text can name as INPUT-OUTPUT STATEMENTS (kb/Work PB6032): one member per form a
 /// definition lists, so each edition's set is a value of this type (<see cref="InputOutputStatementSet"/>). A form is the verb, or
 /// the verb with the phrase the 1985 definition qualifies it by; the compiler sorts a statement into its form in one place
-/// (<c>WiseOwl.Cobol.Binding.InputOutputStatementForms</c>).</summary>
+/// (<c>WiseOwl.Cobol.Compiler.Binding.InputOutputStatementForms</c>).</summary>
 [Flags]
 public enum IoStatementForms
 {

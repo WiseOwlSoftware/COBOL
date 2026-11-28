@@ -3,10 +3,10 @@
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using Antlr4.Runtime;
-using WiseOwl.Cobol.Frontend.Generated;
-using WiseOwl.Cobol.Symbols;
+using WiseOwl.Cobol.Frontend.Parsing;
+using WiseOwl.Cobol.Compiler.Symbols;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 using Core = CobolParserCore;
 

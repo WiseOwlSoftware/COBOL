@@ -1,14 +1,15 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding;
-using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.Binding.Bound;
-using WiseOwl.Cobol.CodeGen.Emit;
+using WiseOwl.Cobol.Compiler.Binding;
+using WiseOwl.Cobol.Compiler.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Bound;
+using WiseOwl.Cobol.Compiler.CodeGen.Emit;
 using WiseOwl.Cobol.Runtime;
+using WiseOwl.Cobol.Compiler.CodeGen.Roslyn;
 
-namespace WiseOwl.Cobol.CodeGen;
+namespace WiseOwl.Cobol.Compiler.CodeGen.Verbs;
 
-using static WiseOwl.Cobol.CodeGen.Emit.EmitText;
+using static WiseOwl.Cobol.Compiler.CodeGen.Emit.EmitText;
 
 /// <summary>
 /// RELATIVE + INDEXED file-I/O emission (ISO/IEC 1989:2023 §2023:14.9.10/.30/.35/.41/.51; DESIGN §8.3; P7

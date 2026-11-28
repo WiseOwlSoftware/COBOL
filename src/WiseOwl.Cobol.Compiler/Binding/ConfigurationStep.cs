@@ -1,8 +1,9 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using Core = WiseOwl.Cobol.Frontend.Generated.CobolParserCore;
+using Core = WiseOwl.Cobol.Frontend.Parsing.CobolParserCore;
 
-namespace WiseOwl.Cobol.Binding;
+
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 /// <summary>
 /// The configuration and OPTIONS a CLASS DEFINITION establishes, which its OBJECT and FACTORY halves inherit (ISO §2023:12.3.4

@@ -1,7 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 
-namespace WiseOwl.Cobol.Binding.Model;
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// <summary>Why <see cref="PlaceForItem(DataItem, IReadOnlyList{string}, out PlaceGap)"/> built no place:
 /// the <see cref="DeferredShape"/> it has not built, or — when <paramref name="Deferred"/> is null — the

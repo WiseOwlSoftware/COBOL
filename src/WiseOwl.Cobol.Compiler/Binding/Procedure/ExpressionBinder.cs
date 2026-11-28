@@ -1,19 +1,19 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime.Tree;
-using WiseOwl.Cobol.Common;
-using WiseOwl.Cobol.Binding.Bound;
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Frontend.Common;
+using WiseOwl.Cobol.Compiler.Binding.Bound;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
-using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Frontend.Parsing;
 using WiseOwl.Cobol.Runtime;
 
-namespace WiseOwl.Cobol.Binding.Procedure;
+namespace WiseOwl.Cobol.Compiler.Binding.Procedure;
 
 using Core = CobolParserCore;
-using WiseOwl.Cobol.Symbols;
+using WiseOwl.Cobol.Compiler.Symbols;
+using WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs;
 
 /// <summary>
 /// WHY an expression is being bound, which decides whether an ALPHANUMERIC operand is admissible in it (DA6).
@@ -382,13 +382,13 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     {
         // ⛔ ONE ARM FOR EVERY LITERAL-1 KIND (kb/Work PB71): §2023:8.3.3.6.3 SR2 admits an alphanumeric (plain or
         // hexadecimal), boolean or national literal-1, and the category rides on the literal's class through
-        // BoundAllLiteral.Of. Two arms of four were written here: `ALL B"1"` (the grammar HAD the token) parsed and
+        // ConcatFolder.AllLiteral. Two arms of four were written here: `ALL B"1"` (the grammar HAD the token) parsed and
         // died at RUN time exactly as `ALL X"41"` once did — the PB4 shape, one arm later, under the remark that
         // records it — and `ALL N"…"` had no grammar arm at all. Literal-1 in every written shape — a quoted literal,
         // a §2023:8.8.3 concatenation expression, a constant-name (kb/Work PB1627) — folds through the ONE reader, which
         // reports §2023:8.3.3.6.3 SR2 and the concatenation's §2023:8.8.3.2 rules.
         if (ConcatFolder.FoldAllLiteral(fig, ctx.Data.LiteralEnv, ctx.Edition) is { } literal1)
-            return BoundAllLiteral.Of(literal1);
+            return ConcatFolder.AllLiteral(literal1);
         // Format 7 — ALL symbolic-character-1 (§2023:8.3.3.6.2; §2023:12.3.7.4 GR11 — kb/Work PB110): the one-character
         // figurative the SYMBOLIC CHARACTERS clause defined, as the ALL literal of that character (§2023:8.3.3.6.4
         // GR10's "one or more of the character" IS the fill semantics BoundAllLiteral carries in every context).

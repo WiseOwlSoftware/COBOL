@@ -7,9 +7,10 @@ using System.Reflection.Emit;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
+using WiseOwl.Cobol.Listing;
 using WiseOwl.Cobol.Listing.Text;
 
-namespace WiseOwl.Cobol.Listing.Building;
+namespace WiseOwl.Cobol.Compiler.Listing;
 
 /// <summary>
 /// ⛔ THE ONE DECODER OF IL (DESIGN-listing.md section 6.9): the instructions of a stretch of a method body, each with its offset, its name

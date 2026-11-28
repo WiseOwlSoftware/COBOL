@@ -1,10 +1,10 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 
-namespace WiseOwl.Cobol.Binding.Bound;
+namespace WiseOwl.Cobol.Compiler.Binding.Bound;
 
 // The exception-checking PERFORM bound nodes (ISO §2023:14.9.28 Format 3, COBOL-2023). These records STAY in the
-// WiseOwl.Cobol.Binding.Bound namespace so the source-generated exhaustive visitor + StatementChildren key on them:
+// WiseOwl.Cobol.Compiler.Binding.Bound namespace so the source-generated exhaustive visitor + StatementChildren key on them:
 // BoundExceptionPerform is a BoundStatement LEAF (forces a Visit arm on every IBoundStatementVisitor). The handler
 // bodies imp-2/3/4 (WHEN / WHEN OTHER / WHEN COMMON) are NOT held here — they are appended synthetic pc-range
 // paragraphs (referenced by pc), run via the reused __RunUse (the pc-RANGE interceptor, design §9); so this node's

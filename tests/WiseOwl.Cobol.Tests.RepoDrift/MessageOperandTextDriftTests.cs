@@ -55,7 +55,7 @@ public sealed class MessageOperandTextDriftTests
                 string Local(Antlr4.Runtime.ParserRuleContext c) { string t = c.GetText(); return $"'{t}' is not defined"; }
                 string LocalPlus(Antlr4.Runtime.ParserRuleContext c) { var t = c.GetText().ToUpperInvariant(); return "'" + t + "'"; }
                 bool Key(Antlr4.Runtime.ParserRuleContext c) { string t = c.GetText(); return t.Length == 3 && c.GetText() == "X"; }
-                string Word(WiseOwl.Cobol.Frontend.Generated.CobolParserCore.CobolWordContext w) => $"'{w.GetText()}'";
+                string Word(WiseOwl.Cobol.Frontend.Parsing.CobolParserCore.CobolWordContext w) => $"'{w.GetText()}'";
                 string Terminal(Antlr4.Runtime.Tree.ITerminalNode w) => $"'{w.GetText()}'";
             }
             """;
