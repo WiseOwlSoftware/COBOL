@@ -482,10 +482,8 @@ internal sealed class WhenPhraseBinder(BinderContext ctx, StatementBinder host)
             // short-circuit is between PAIRS, never inside one).
             if (pair.Object is EvaluateObjectOperand.Condition)
             {
-                var objMark2 = host.Window.Mark;
-                if (ObjectAsCondition(item, pair) is { } objCond2)
-                    return new BoundNot(new BoundLogical("^",
-                        [subjCond, host.Window.AttachPerEvaluation(objCond2, objMark2)]));
+                if (ObjectAsCondition(item, pair, classifyMark) is { } objCond2)
+                    return new BoundNot(new BoundLogical("^", [subjCond, objCond2]));
             }
             return host.Cond.Refused($"EVALUATE condition-subject paired with non-boolean WHEN '{WrittenSource.Of(item)}'");
         }
@@ -521,12 +519,8 @@ internal sealed class WhenPhraseBinder(BinderContext ctx, StatementBinder host)
         // grammar reads the same name as an equality operand) in the opposite direction. The question is asked by
         // the CLASSIFIER above, once, and this arm reads its answer — SR6 a) is what routes a one-boolean-
         // character boolean object here as well.
-        if (pair.Object is EvaluateObjectOperand.Condition && ObjectAsCondition(item, pair) is { } objCond)
-        {
-            var objMark = host.Window.Mark;
-            var bound = host.Window.AttachPerEvaluation(objCond, objMark);
-            return subjFalse ? new BoundNot(bound) : bound;
-        }
+        if (pair.Object is EvaluateObjectOperand.Condition && ObjectAsCondition(item, pair, classifyMark) is { } objectCondition)
+            return subjFalse ? new BoundNot(objectCondition) : objectCondition;
 
         // §2023:14.9.13.3 SR8 + §2023:14.9.13.4 GR4a.2 — partial-expression-1. The object is "treated as though it were
         // specified as condition-2, where condition-2 is the conditional expression that results from preceding
@@ -726,9 +720,16 @@ internal sealed class WhenPhraseBinder(BinderContext ctx, StatementBinder host)
     /// ROW: an explicit <c>condition</c> object, or the bare form (a level-88, a switch-status condition-name,
     /// or — through §2023:14.9.13.3 SR6a — a one-boolean-character boolean object) that the SHARED analysis
     /// already resolved. One helper, so the two arms that need condition-2 cannot recognise different
-    /// shapes.</summary>
-    private BoundCondition? ObjectAsCondition(Core.EvaluateWhenItemContext item, in EvaluatePairing pair) =>
-        item.condition() is { } cond ? host.Cond.BindCondition(cond) : host.Cond.AsCondition(pair.ObjectBare);
+    /// shapes.
+    /// <para>⛔ THE CONDITION COMES BACK WITH ITS PER-EVALUATION WINDOW ALREADY APPLIED (kb/Work PB6228, §2023:14.9.13.4
+    /// GR4 c/d: an object is evaluated only when its WHEN phrase is analyzed). A bare object is bound BY
+    /// <see cref="ClassifyPair"/>, so its activations (a function-bearing subscript of a level-88's item) were taken
+    /// after <paramref name="classifyMark"/>, never after a mark taken here; attaching from the caller's mark means no
+    /// arm can take its mark after the bind and leave them to hoist to the head of the EVALUATE.</para></summary>
+    private BoundCondition? ObjectAsCondition(Core.EvaluateWhenItemContext item, in EvaluatePairing pair, OperandEvaluationWindow.PendingMark classifyMark) =>
+        (item.condition() is { } cond ? host.Cond.BindCondition(cond) : host.Cond.AsCondition(pair.ObjectBare)) is { } c
+            ? host.Window.AttachPerEvaluation(c, classifyMark)
+            : null;
 
     /// <summary>A pair whose truth value is known at bind time: the empty conjunction is true (it renders as the
     /// constant true), its negation false.</summary>
