@@ -166,7 +166,7 @@ internal sealed class DebugDeclarativeResolver(BinderContext ctx, ProcedureTable
     /// <summary>Whether the operand is a bare file-name of this program (the file subject of USE FOR DEBUGGING).</summary>
     private bool NamesFile(Core.DataReferenceContext operand) =>
         operand.dataReferenceSuffix().Length == 0 && operand.cobolWord() is { } word
-        && ctx.Symbols.Identify(word, NameClass.File, report: false) is not null;
+        && ctx.Symbols.IdentifyFile(word, report: false) is not null;
 
     /// <summary>Whether the operand is a bare cd-name of this program (the cd-name subject of USE FOR DEBUGGING: X3.23-1985's debug
     /// module triggers on the ENABLE, DISABLE, PURGE, RECEIVE and SEND of a cd-name, kb/Work PB4713). A cd-name is this source
@@ -349,7 +349,7 @@ internal sealed class DebugDeclarativeResolver(BinderContext ctx, ProcedureTable
     private void AddDebugFileTarget(Core.DataReferenceContext operand, SectionInfo section)
     {
         string written = DebugOperandAsWritten(operand);
-        if (ctx.Symbols.Identify(operand.cobolWord()!, NameClass.File, report: true) is not { Symbol: FileModel file }) return;   // NamesFile said it is one
+        if (ctx.Symbols.IdentifyFile(operand.cobolWord()!, report: true) is not { } file) return;   // NamesFile said it is one
         if (targets.Any(t => ReferenceEquals(t.File, file)))
         {
             ctx.Edition.Error(DiagnosticCatalog.DebugTargetRepeated, $"declarative section '{section.Name}': USE FOR DEBUGGING ON '{written}' names a "

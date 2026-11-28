@@ -203,7 +203,7 @@ internal sealed class CounterResolver(ReferenceResolver refs, DataBinder data)
             // Two causes, two messages (kb/Work PB5906): a qualifier this program cannot see is a question of the name's
             // scope, never of a LINAGE clause the file may well have.
             // The file-name is a QUALIFIER here: a nearer declaration of its spelling does not hide it (§1985:X.1.3.8.2 GR1, NameReach.Qualifier).
-            if (data.Symbols.Identify(q, NameClass.File, report: true, NameReach.Qualifier) is not { Symbol: FileModel named })
+            if (data.Symbols.IdentifyFile(q, report: true, NameReach.Qualifier) is not { } named)
                 data.Edition.Error(DiagnosticCatalog.FileKeyClauseRule, $"LINAGE-COUNTER OF '{q.GetText()}': '{q.GetText()}' "
                     + "names no file this program can reference — a file-name declared in another program is referenced here "
                     + "only when it is global, its file description entry specifying the GLOBAL clause ("
@@ -269,7 +269,7 @@ internal sealed class CounterResolver(ReferenceResolver refs, DataBinder data)
         if (dref.cobolWord() is { } q)   // qualified: COUNTER OF/IN report-name
         {
             // The report-name is a QUALIFIER here: a nearer declaration of its spelling does not hide it (§1985:X.1.3.8.2 GR1, NameReach.Qualifier).
-            if (data.Symbols.Identify(q, NameClass.Report, report: true, NameReach.Qualifier)?.Symbol is ReportModel named) return named;
+            if (data.Symbols.IdentifyReport(q, report: true, NameReach.Qualifier) is { } named) return named;
             data.Edition.Error(DiagnosticCatalog.ReportCounterQualification, $"{reg} OF '{q.GetText()}': the qualifier shall name a report "
                 + $"description entry — a counter of a DIFFERENT report is referenced \"qualified explicitly by the report-name "
                 + $"associated with the different report\" ({EditionInfo.Designated(CounterQualificationRule(reg))}"

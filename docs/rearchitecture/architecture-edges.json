@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "rule": "DESIGN-architecture-review.md §8.1: a cross-layer dependency is allowed iff its (from, to) layer pair is listed; intra-layer edges are free; every product namespace is placed; a tolerated row lists every type pair it holds, each with the kb/Work notes that remove it (removedBy, the row's is their union); uses (the census record named by census) and walkUses (the drift test's metadata walk) only ever fall; plan is R1's account of the removal",
-  "census": "9e65164eb3a9f1a8b8dcd3e0a4e4e78c9f4b650a",
+  "census": "d0c58f441211f2feedbcf7a96666fd75e03e2b3f",
   "layers": [
     {
       "id": "listing",
@@ -386,7 +386,7 @@
     ],
     [
       "cli",
-      "compiler.binding"
+      "compiler.model"
     ],
     [
       "cli",
@@ -1399,8 +1399,8 @@
     {
       "from": "WiseOwl.Cobol.Binding.Model",
       "to": "WiseOwl.Cobol.Binding",
-      "uses": 16,
-      "walkUses": 17,
+      "uses": 15,
+      "walkUses": 16,
       "removedBy": [
         "PB2399",
         "PB2420"
@@ -1445,13 +1445,6 @@
         {
           "from": "WiseOwl.Cobol.Binding.Model.DataBindResult",
           "to": "WiseOwl.Cobol.Binding.CellLifetime",
-          "removedBy": [
-            "PB2420"
-          ]
-        },
-        {
-          "from": "WiseOwl.Cobol.Binding.Model.DataBindResult",
-          "to": "WiseOwl.Cobol.Binding.NumericDisplayForm",
           "removedBy": [
             "PB2420"
           ]
@@ -1628,7 +1621,7 @@
     {
       "from": "WiseOwl.Cobol.CodeGen",
       "to": "WiseOwl.Cobol.Binding",
-      "uses": 70,
+      "uses": 69,
       "walkUses": 70,
       "removedBy": [
         "PB2399",
@@ -1636,7 +1629,7 @@
         "PB2418",
         "PB2420"
       ],
-      "plan": "PB2361 (landed: DataBindResult replaced the binder on EmitContext.Data, BoundUnit.Data and the class units, so no pair here names DataBinder or ReferenceResolver), PB2290 and PB2320 (the BinderDriver calls of CSharpEmitter, ProgramEmitter and OoEmitter leave code generation), PB2402 (landed: the OPTIONS types moved to compiler.model) and PB2399 (the alphabet and linkage types move to compiler.model) and PB2405 (the report-model, intrinsic-rule, class-rule and MOVE-rule families move to compiler.bound); PB2418 (landed in part: ExternalItemIdentity is a DataItem member, so OoEmitter no longer calls BinderDriver) and PB2420 (the value types: EditionContext, CallExternalBacking, ProgramSpecifier, RangeCollationCarrier, CellLifetime, IeeeSpecials, the report field sources) end the pairs onto types other than DataBinder and ReferenceResolver (Draft 6, G1). PB2375 (landed) removed UnitEmitters.Refs and the emit-time ResolveItem calls: the emitters read the PlaceTable the binder builds (BoundUnit.Places, OoClassUnit.Places); the census at ac83984ddba9 (recorded by kb/Work PB5923's listing step 1, the first since 2a581b75c6) measured 68 against 66: growth that landed on main between the two records, admitted by hand in the change that recorded the census (no listing type is in it); the removers are unchanged (kb/Work PB5923 lead 2026-11-18-census-growth); the census at 9e65164eb3a9 (recorded for R2's new pin, kb/Work PB2911 2026-11-24) measured 70 against 68: AcceptDisplayEmitter reads the --numeric-display option's enum NumericDisplayForm, declared in binding; an enum constant compiles to an integer, so the IL walk does not see the pair. Admitted by hand in the change that recorded the census; PB6172 moves NumericDisplayForm to compiler.model beside the other OPTIONS types (PB2402)",
+      "plan": "PB2361 (landed: DataBindResult replaced the binder on EmitContext.Data, BoundUnit.Data and the class units, so no pair here names DataBinder or ReferenceResolver), PB2290 and PB2320 (the BinderDriver calls of CSharpEmitter, ProgramEmitter and OoEmitter leave code generation), PB2402 (landed: the OPTIONS types moved to compiler.model) and PB2399 (the alphabet and linkage types move to compiler.model) and PB2405 (the report-model, intrinsic-rule, class-rule and MOVE-rule families move to compiler.bound); PB2418 (landed in part: ExternalItemIdentity is a DataItem member, so OoEmitter no longer calls BinderDriver) and PB2420 (the value types: EditionContext, CallExternalBacking, ProgramSpecifier, RangeCollationCarrier, CellLifetime, IeeeSpecials, the report field sources) end the pairs onto types other than DataBinder and ReferenceResolver (Draft 6, G1). PB2375 (landed) removed UnitEmitters.Refs and the emit-time ResolveItem calls: the emitters read the PlaceTable the binder builds (BoundUnit.Places, OoClassUnit.Places); the census at ac83984ddba9 (recorded by kb/Work PB5923's listing step 1, the first since 2a581b75c6) measured 68 against 66: growth that landed on main between the two records, admitted by hand in the change that recorded the census (no listing type is in it); the removers are unchanged (kb/Work PB5923 lead 2026-11-18-census-growth); the census at 9e65164eb3a9 (recorded for R2's new pin, kb/Work PB2911 2026-11-24) measured 70 against 68: AcceptDisplayEmitter reads the --numeric-display option's enum NumericDisplayForm, declared in binding; an enum constant compiles to an integer, so the IL walk does not see the pair. Admitted by hand in the change that recorded the census; PB6172 (landed) moved NumericDisplayForm to compiler.model beside the other OPTIONS types (PB2402), and the census at d0c58f441211 (recorded by PB6172's landing) measured 69",
       "pairs": [
         {
           "from": "WiseOwl.Cobol.CodeGen.CallEmitter",
@@ -2255,8 +2248,8 @@
     {
       "from": "WiseOwl.Cobol.CodeGen.Emit",
       "to": "WiseOwl.Cobol.Binding",
-      "uses": 25,
-      "walkUses": 21,
+      "uses": 23,
+      "walkUses": 19,
       "removedBy": [
         "PB2399",
         "PB2405",
@@ -2326,13 +2319,6 @@
             "PB2399",
             "PB2405",
             "PB2420"
-          ]
-        },
-        {
-          "from": "WiseOwl.Cobol.CodeGen.Emit.EmitContext",
-          "to": "WiseOwl.Cobol.Binding.NumericDisplayForm",
-          "removedBy": [
-            "PB2405"
           ]
         },
         {
@@ -2429,15 +2415,6 @@
             "PB2405",
             "PB2420"
           ]
-        },
-        {
-          "from": "WiseOwl.Cobol.CodeGen.Emit.OperandText",
-          "to": "WiseOwl.Cobol.Binding.NumericDisplayForm",
-          "removedBy": [
-            "PB2399",
-            "PB2405",
-            "PB2420"
-          ]
         }
       ]
     },
@@ -2485,17 +2462,6 @@
           ]
         }
       ]
-    },
-    {
-      "from": "WiseOwl.Cobol.Validation",
-      "to": "WiseOwl.Cobol.Symbols",
-      "uses": 1,
-      "walkUses": 0,
-      "removedBy": [
-        "PB6173"
-      ],
-      "plan": "PB6173: FlagConformancePass names the symbol table's lookup enum NameClass (NameClass.File, NameClass.Report) to call SymbolTable.Identify; compiler.validation -> compiler.symbols is no allowed layer pair. First measured by the census at 9e65164eb3a9 (an enum constant compiles to an integer, so the IL walk does not see it); admitted by hand in the change that recorded that census",
-      "pairs": []
     }
   ]
 }

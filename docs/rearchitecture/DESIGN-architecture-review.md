@@ -929,8 +929,9 @@ product assemblies, not a source scan and not an MSBuild workspace, so it costs 
 - **The file as measured (kb/Work PB2417, census `c83f88901`).** The walk and its checks take about half a second of
   the gate; the file places two namespaces R1 did not know — `WiseOwl.Cobol.Binding.Repository` (the external
   repository's reader, codec and records, `Binding/Repository/`, which reads the binder: compiler.binding) by its folder,
-  and allows `cli → compiler.binding` by the composition-root rule (the CLI parses `--numeric-display` into the
-  option type `NumericDisplayForm`, `Binding/NumericDisplayForm.cs`). It tolerates 28 rows holding 359 type pairs (and
+  and allows `cli → compiler.model` by the composition-root rule (the CLI parses `--numeric-display` into the
+  option type `NumericDisplayForm`, `Binding/Model/NumericDisplayForm.cs`, beside the other OPTIONS types; kb/Work PB6172
+  moved it out of compiler.binding, and with it the CLI's `cli → compiler.binding` allowance ended). It tolerates 28 rows holding 359 type pairs (and
   one census-only row, `Binding.Bound → Frontend.Parsing`, which names PB2347); 330 name their removers from R1's notes, and the 29 pairs of the new row `WiseOwl.Cobol.CodeGen →
   WiseOwl.Cobol.Binding.Repository` (`HostEntryEmitter`, `OoEmitter` and `RepositoryAttributeRenderer` read the
   repository records and called its codec) were removed by kb/Work PB4319: the record family is in compiler.model

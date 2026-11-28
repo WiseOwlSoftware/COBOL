@@ -15,7 +15,6 @@ using WiseOwl.Cobol.Frontend.Parsing;
 using WiseOwl.Cobol.Frontend.Preprocessor;// FlagDirective / FlagOption / FlagOptions / FlagDirectiveLine
 using WiseOwl.Cobol.Runtime.IO;           // FileOpenMode (the USE-declarative open-mode ordinal, I-O-DECLARATIVE)
 using WiseOwl.Cobol.Runtime;
-using WiseOwl.Cobol.Symbols;                // NameClass (the symbol table's lookup)
 
 namespace WiseOwl.Cobol.Validation;
 
@@ -534,7 +533,7 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
     /// files, then its containers' GLOBAL ones, nearest first: the table's file-name rule), or null. A probe: the binder
     /// identified and reported the same reference where it bound its statement.</summary>
     private FileModel? FileByName(CobolParserCore.FileNameContext? name)
-        => name is null ? null : _currentData?.Symbols.Identify(name, NameClass.File, report: false)?.Symbol as FileModel;
+        => name is null ? null : _currentData?.Symbols.IdentifyFile(name, report: false);
 
     /// <summary>The <see cref="FileModel"/> a WRITE/REWRITE targets: the explicit <c>FILE file-name</c> when written,
     /// else the file whose record descriptions include the record the <paramref name="record"/> reference RESOLVES to
@@ -554,7 +553,7 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
     public override object? VisitTerminateStatement(CobolParserCore.TerminateStatementContext ctx)
     {
         foreach (var report in ctx.reportName())
-            if (_currentData?.Symbols.Identify(report, NameClass.Report, report: false)?.Symbol is ReportModel { HasVarying: true })
+            if (_currentData?.Symbols.IdentifyReport(report, report: false) is { HasVarying: true })
             {
                 Flag(FlagOption.Flag02TerminateWithVarying, ctx.Start.Line,
                     "the TERMINATE of a report whose description contains a VARYING clause");

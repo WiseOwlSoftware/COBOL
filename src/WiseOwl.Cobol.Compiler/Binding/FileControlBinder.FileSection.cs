@@ -10,7 +10,6 @@ namespace WiseOwl.Cobol.Binding;
 
 using Core = CobolParserCore;
 using WiseOwl.Cobol.Runtime;
-using WiseOwl.Cobol.Symbols;
 
 /// <summary>
 /// The FILE SECTION half of the file binder (ISO §2023:13.4.5 FD, §2023:13.4.6 SD; DESIGN-architecture-review §8.3 (1); kb/Work PB2296 M7):
@@ -60,7 +59,7 @@ public sealed partial class FileControlBinder
             if (fd.fileName() is not { } fdName) continue;
             string name = fdName.GetText();
             var records = _host.BindEntries(fd.dataDescriptionEntry(), rootNames, EntrySection.File);
-            if (_host.Symbols.Identify(fdName, NameClass.File, report: true, NameReach.Own) is not { Symbol: FileModel file })
+            if (_host.Symbols.IdentifyFile(fdName, report: true, NameReach.Own) is not { } file)
             {
                 // ISO §2023:13.4.5.3 SR1 — "File-name-1 shall be specified in a file control entry." The model is still
                 // built, so the entry's records resolve and the compile reports this one error rather than a
@@ -160,7 +159,7 @@ public sealed partial class FileControlBinder
             if (sd.fileName() is not { } sdNameCtx) continue;
             string sdName = sdNameCtx.GetText();
             var sdRecords = _host.BindEntries(sd.dataDescriptionEntry(), rootNames, EntrySection.File);
-            if (_host.Symbols.Identify(sdNameCtx, NameClass.File, report: true, NameReach.Own) is not { Symbol: FileModel sdFile })
+            if (_host.Symbols.IdentifyFile(sdNameCtx, report: true, NameReach.Own) is not { } sdFile)
             {
                 // ISO §2023:13.4.6.3 SR1 — the SD twin of the FD arm above (kb/Work PB1290).
                 Edition.Error(DiagnosticCatalog.FileDescriptionWithoutSelect, $"sort-merge file description entry "

@@ -22,7 +22,7 @@ public sealed class AcceptDifferentialTests
     /// program's standard input and, when given, <paramref name="clock"/> pinned via <c>WISEOWL_COBOL_CLOCK</c>.</summary>
     private static (bool ok, string stdout, string detail) AcceptRun(
         string source, string stdin = "", string? clock = null, int dialect = 85,
-        WiseOwl.Cobol.Binding.NumericDisplayForm numericDisplay = WiseOwl.Cobol.Binding.NumericDisplayForm.Decimal)
+        WiseOwl.Cobol.Binding.Model.NumericDisplayForm numericDisplay = WiseOwl.Cobol.Binding.Model.NumericDisplayForm.Decimal)
     {
         string dir = ScratchDirectory.Create("acc");
         try
@@ -46,7 +46,7 @@ public sealed class AcceptDifferentialTests
     }
 
     private static void AssertOutputs(string source, string expected, string stdin = "", string? clock = null, int dialect = 85,
-        WiseOwl.Cobol.Binding.NumericDisplayForm numericDisplay = WiseOwl.Cobol.Binding.NumericDisplayForm.Decimal)
+        WiseOwl.Cobol.Binding.Model.NumericDisplayForm numericDisplay = WiseOwl.Cobol.Binding.Model.NumericDisplayForm.Decimal)
     {
         var (ok, stdout, detail) = AcceptRun(source, stdin, clock, dialect, numericDisplay);
         Assert.True(ok, detail);
@@ -216,7 +216,7 @@ public sealed class AcceptDifferentialTests
             """),
             expected: "0000125|000001B|00{|",
             stdin: "00012.50\n-00012.50\n+005\n",
-            numericDisplay: WiseOwl.Cobol.Binding.NumericDisplayForm.Digits);
+            numericDisplay: WiseOwl.Cobol.Binding.Model.NumericDisplayForm.Digits);
 
     // The decimal form, receiver by receiver (DOC-A.1-1): every item reads its own size in leftmost characters whatever its usage
     // (GR4b, kb/Work PB5856); the sign is a leading + or -; the fraction keeps its scale's digits (truncated); a surplus of HIGH-order
