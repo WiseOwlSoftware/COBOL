@@ -125,7 +125,10 @@ internal sealed class InitialStateBackground(EmitContext ctx)
         if (pic.Category is not PicCategory.Numeric) return null;
         // A USAGE INDEX data item holds EIGHT bytes — its value is the signed big-endian integer of those bytes (the INDEX
         // byte form, PicInfo.StorageWidth) — so every one of them takes the fill character's BYTE (kb/Work PB1134).
-        if (pic.Usage is Usage.Index)
+        // ⛔ BY STORAGE AXIS (kb/Work PB6259): the NATIVE field (an IndexCell) takes the long; a Tier-B class MEMBER's
+        // seed is spliced into the group's STRING image, so it takes the eight fill bytes as characters — the image arm
+        // below answers it (an INDEX has an image byte form), exactly as for every other byte-form numeric.
+        if (pic.Usage is Usage.Index && item.Class is null)
         {
             ulong bytes = WiseOwl.Cobol.Runtime.StorageByte.ToByte(fill) * 0x0101010101010101UL;
             return $"unchecked((long)0x{bytes:X16}UL)";

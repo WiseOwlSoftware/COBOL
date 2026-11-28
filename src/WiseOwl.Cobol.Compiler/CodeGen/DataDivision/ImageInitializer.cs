@@ -275,6 +275,10 @@ internal sealed class ImageInitializer(EmitContext ctx, ValueInitializer vals)
             // ValueInitializer.BooleanCarrierOf's answer for every lane, and the USAGE decides only whether
             // those positions are packed.
             if (pic.Category is PicCategory.Boolean) return BooleanImageOf(vals.BooleanCarrierOf(raw, pic), pic);
+            // A NUMERIC VALUE on a numeric-edited member (a numeric literal, or the figurative ZERO at 2023) contributes its
+            // EDITED image (§2023:13.18.63.3 SR6) — asked of the ONE seed the record-struct lane asks (kb/Work PB6261),
+            // and BEFORE the figurative arm, which would otherwise zero-fill a ZERO the edition treats as the literal zero.
+            if (vals.NumericEditedValueSeed(item, pic, raw) is { } editedSeed) return editedSeed;
             if (vals.FigurativeInitializer(raw, pic) is { } fig && pic.Category is not PicCategory.Numeric) return fig;
             // A NUMERIC member contributes the BYTES of its VALUE through its own pinned byte form — zoned
             // digits for DISPLAY, radix-2 / BCD for BINARY / PACKED (V59). ⛔ ONE ENCODER, so the width is the
@@ -288,16 +292,6 @@ internal sealed class ImageInitializer(EmitContext ctx, ValueInitializer vals)
                 return RuntimeApi.NumFormatImage(
                     EmitText.UnscaledAtScale(raw.StartsWith('"') ? CobolLiteral.Decode(raw) : raw, pic.Scale),
                     item.ProfileName);
-            // A NUMERIC literal VALUE on a numeric-edited member contributes its EDITED image (§2023:13.18.63.3 SR6) —
-            // for a format-2 (LOCALE) member a RUNTIME image (no compile-time image exists, §2023:13.18.40.5 GR11;
-            // the ONE producer, RuntimeApi.LocaleEditCompose — PB64 T6; the EditCompose arm's mask deref would NRE).
-            if (pic.LocaleEdit is not null && !raw.StartsWith('"')
-                && ValueInitializer.TryParseNumeric(raw, out var luv, out int lsc))
-                return RuntimeApi.LocaleEditCompose(pic, luv, lsc, item.BlankWhenZero);
-            if (pic.Category is PicCategory.NumericEdited && !raw.StartsWith('"')
-                && ValueInitializer.TryParseNumeric(raw, out var uv, out int sc))
-                return EmitText.CsLiteral(RuntimeApi.EditCompose(uv, sc, pic.EditMask!,
-                    item.BlankWhenZero, pic.CurrencyString, pic.DecimalPointIsComma, pic.EditingRules));
             // A Format-6 `ALL literal-1` is the literal repeated to the item's size (§2023:8.3.3.6.4 GR2) — the SAME reader
             // the record-struct lane asks (ValueInitializer.AllLiteralInitializer), or the image seeds the parse text.
             if (vals.AllLiteralInitializer(raw, pic) is { } allFill) return allFill;
@@ -324,7 +318,10 @@ internal sealed class ImageInitializer(EmitContext ctx, ValueInitializer vals)
         // OPTIONS model. It now asks the SAME choke point the native-field arm asks (InitialStateBackground),
         // one call apart, and a drift test asserts the two agree for every category × usage. The baselines below
         // are unchanged and remain what a no-clause program gets.
-        if (vals.NoValueSeed(item, pic, recipe) is { } bg) return bg;
+        // ⛔ ONLY AN ITEM WITH NO VALUE TAKES THE BACKGROUND (kb/Work PB6261's sweep): `useValues && effRaw is not null` reaches
+        // here for a NUMERIC member whose VALUE is a figurative (`PIC 9(4) VALUE ZERO`), which the numeric arm above
+        // leaves to its baseline zero — and which InitializerFrom's image arm seeds as zero, never as the fill.
+        if (!(useValues && effRaw is not null) && vals.NoValueSeed(item, pic, recipe) is { } bg) return bg;
         return pic.Category is PicCategory.Numeric && !pic.IsFloat
             ? RuntimeApi.NumFormatImage("0L", item.ProfileName)
             // Boolean initial state — zeros (§2023:13.18.63). A USAGE BIT item's zeros are PACKED, so the seed is
