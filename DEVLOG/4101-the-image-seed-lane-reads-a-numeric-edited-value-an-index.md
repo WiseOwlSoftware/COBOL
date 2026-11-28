@@ -1,4 +1,4 @@
-## The image-seed lane reads a numeric-edited VALUE, an INDEX member and a figurative numeric VALUE as its record-struct twin does
+## Entry 4101 — 2026-11-28 02:39 PST — The image-seed lane reads a numeric-edited VALUE, an INDEX member and a figurative numeric VALUE as its record-struct twin does
 
 Three wrong initial values under a REDEFINES (Tier-B group, EXTERNAL, BASED, OO cell), one root: the character-image seed
 lane (`ImageInitializer.CarrierInitOfOne`, `InitialStateBackground.Seed`) wrote its own answer where the record-struct lane
@@ -30,3 +30,4 @@ but a Tier-A (alias) canonical keeps its NATIVE field while carrying a class, so
 fault (`double F1 = new string(...)`, pre-existing). The INDEX, byte-form image and float arms now all ask `DataItem.IsPlainMember`
 (unclassed or alias canonical), the one storage-axis predicate. Golden `pb6259_options_initialize_alias_index_float` (2023) compiles and
 runs both aliases (`I-OK`, `F-ZERO`); the two earlier goldens still print their images.
+
