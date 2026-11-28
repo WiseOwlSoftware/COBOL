@@ -1,4 +1,4 @@
-## An unsigned 16-byte COMP-5 operand reaches no Int128 site raw: level-88 tests, COMBINED-DATETIME and the binary64 conversion
+## Entry 4092 — 2026-11-27 22:50 PST — An unsigned 16-byte COMP-5 operand reaches no Int128 site raw: level-88 tests, COMBINED-DATETIME and the binary64 conversion
 
 PB6265, PB6266. One root: a `NumX.U` operand (a 16-byte unsigned COMP-5 read, a `UInt128`) was handed to an `Int128` site without entering the funnel the arithmetic lane uses (`NumericRenderer.DeU`, or the `CompareU` overload set for a comparison). C# has no `==`, `<=`, `>=` or implicit conversion between `UInt128` and `Int128`, so each site was a Roslyn error (CS0019, CS1503) on legal source with no COBOL diagnostic.
 
@@ -15,3 +15,4 @@ Guard: `IntrinsicCarrierAgreementDriftTests.EveryRawArgBinding_EntersTheUnsigned
 Goldens: `pb6265_level88_unsigned_wide_comp5` (2002, 2014, 2023; a 25-digit and a scaled 22-digit COMP-5 variable, singleton, THRU, list, ZERO, NOT and SET ... TO TRUE, expected values derived from §2023:8.8.4.5.3 GR1/GR2) and its 85 negative (COBOL0802); `pb6266_combined_datetime_unsigned_wide_comp5` (2014, 2023, expected values from §2023:15.17.4 RV1) and its 2002 negative (COBOL1502); `pb6266_unsigned_wide_scaled_float_arguments` (2014, 2023; SQRT(2.25), ATAN(0), ANNUITY(0, 4), each exact).
 
 Rows: none re-verdicted. The rows the notes touch (GR-8.8.4.5.3-1/-2, AR-15.17.3-2, RV-15.17.4-1) were CONFORMS and stay so; both notes write `closes_rows: []` with the reason.
+
