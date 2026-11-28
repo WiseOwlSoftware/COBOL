@@ -1,3 +1,4 @@
-## Leads from seven landed fix-lane branches, filed 2026-11-28
+## Entry 4099 — 2026-11-28 02:04 PST — Leads from seven landed fix-lane branches, filed 2026-11-28
 
 Filed PB6358 (`render_designed` copies authored sites without the site rule), PB6359 (three stale comments in EvaluateSubjectBinder after PB6232) and PB6360 (the server half of the unadoptable-socket test does not witness `AcceptLoopAsync`'s dispose). Beside-files: PB6219 (the SET binders' rule tables print 2023 clauses at 2002 and 2014), PB6341 (the retirement reason cites COBOL2198 wrongly), PB4080 and PB3259 (Sites omit `scripts/spec/work.py`; the Landed sections name the wrong branch). Four leads were already filed and add nothing: report operands at GENERATE (PB6349), `UsageCollectionPass.Cond` (PB6350), `NearestInNameSet` without a method tier (PB6352) and the dynamic-capacity listing gap (PB6354). PB6361 to PB6365 are unused.
+
