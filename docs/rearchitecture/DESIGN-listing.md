@@ -839,7 +839,7 @@ or any binder type. Each attribute is written into the entry by the binder at th
 | level, name, definition position | the data division binder when it declares the item (`DataBinder.BindEntry`, from `DataItem.Level`, `CobolName`, `DeclaredAt`) |
 | section | the same (`DataItem.Section`, `EntrySection`) |
 | usage, picture, category | the same, once the picture is settled (`PicInfo`, `DataItem.PictureText`) |
-| OCCURS / DEPENDING ON / INDEXED BY | the same (`DataItem.Occurs`, `OccursSpec`, `Indexes`); the DEPENDING ON object and each index are entries of their own, linked by entry id |
+| OCCURS / DEPENDING ON / INDEXED BY | the same (`DataItem.Occurs`, `OccursSpec`, `Indexes`); the DEPENDING ON object and each index are entries of their own, linked by entry id. A table of dynamic capacity (Format 4) carries no minimum or maximum: `DataAttributes.DynamicCapacity` (`FROM`, `TO`, `INITIALIZED` as written, from `OccursSpec.InitialCap`, `ExpectedMax`, `Initialized`) is the fact, and the row prints `OCCURS DYNAMIC [FROM n] [TO m] [INITIALIZED]` (§2023:13.18.38.4 GR16, GR17) |
 | REDEFINES / RENAMES | the redefinition and renames passes (`DataItem.RedefinesTarget`, `Renames`), as entry ids |
 | GLOBAL / EXTERNAL / BASED | the declaring binder (`HasGlobalClause`, `HasExternalClause`, `IsBased`) |
 | offset in its record (first occurrence), length in character positions and bytes | the layout step that computes them (`RecordLayout.OffsetInRootWithEveryIndexOne`, `ItemLength.Positions`, `RecordLayout.OccupiedBytes`), once the sizes are final |

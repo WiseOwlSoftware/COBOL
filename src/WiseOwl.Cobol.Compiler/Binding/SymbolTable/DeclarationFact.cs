@@ -100,18 +100,20 @@ internal readonly record struct DeclarationFact(
     /// constant entry at all (ISO/IEC 1989:2002 introduced it).</summary>
     public string ClassPhrase(EditionInfo edition) => Kind switch
     {
+        DeclarationKind.ScreenEntry => "a SCREEN SECTION entry",
+        DeclarationKind.AlphabetName => "an alphabet-name (an ALPHABET clause of the SPECIAL-NAMES paragraph)",
         DeclarationKind.ConstantName => edition.Cite("a constant-name (a CONSTANT entry, which COBOL-85 does not define)",
             "a constant-name (a CONSTANT entry, ISO §2023:13.10)"),
-        DeclarationKind.IndexName => "an index-name (an INDEXED BY phrase, " + edition.CiteRule("§1985:VI.5.8", "§2023:13.18.38") + ")",
+        DeclarationKind.IndexName => "an index-name (an INDEXED BY phrase, " + edition.CiteRule("§1985:VI.5.8", "§2023:13.18.38", "§2002:13.16.36", "§2014:13.18.38") + ")",
         DeclarationKind.ConditionName => "a condition-name (a level-88 entry)",
-        DeclarationKind.FileName => "a file-name (a file control entry, " + edition.CiteRule("§1985:VII.2.3", "§2023:12.4.5") + ")",
+        DeclarationKind.FileName => "a file-name (a file control entry, " + edition.CiteRule("§1985:VII.2.3", "§2023:12.4.5", "§2002:12.3.4", "§2014:12.4.4") + ")",
         DeclarationKind.CdName => "a cd-name (a communication description entry, "
             + edition.Cite("§1985:XIV.2.2", "ISO/IEC 1989:2002 A.1.2") + ")",
-        DeclarationKind.ReportName => "a report-name (a report description entry, " + edition.CiteRule("§1985:XIII.3.5", "§2023:13.14") + ")",
+        DeclarationKind.ReportName => "a report-name (a report description entry, " + edition.CiteRule("§1985:XIII.3.5", "§2023:13.14", "§2002:13.12", "§2014:13.14") + ")",
         DeclarationKind.ReportEntry => "the data-name of a report group description entry ("
-            + edition.CiteRule("§1985:XIII.3.9", "§2023:13.15") + ")",
+            + edition.CiteRule("§1985:XIII.3.9", "§2023:13.15", "§2002:13.13", "§2014:13.15") + ")",
         DeclarationKind.ReportSumCounter => "a sum counter (the data-name of a SUM entry, "
-            + edition.CiteRule("§1985:XIII.3.19", "§2023:13.18.54.4 GR5") + ")",
+            + edition.CiteRule("§1985:XIII.3.19", "§2023:13.18.54.4 GR5", "§2002:13.16.52.3 GR5", "§2014:13.18.54.3 GR5") + ")",
         DeclarationKind.DataItem => "a data item",
         DeclarationKind.CapacityRegister =>
             "the CAPACITY register of an OCCURS DYNAMIC table (a CAPACITY IN phrase, ISO §2023:13.18.38.3 SR30)",

@@ -56,7 +56,8 @@ public enum ListingDataItemKind
 /// <param name="Category">A data item's category (ISO §2023:8.5.2): <c>GROUP</c>, <c>ALPHANUMERIC</c>, <c>NUMERIC</c>,
 /// <c>NUMERIC-EDITED</c>, <c>NATIONAL</c>, <c>BOOLEAN</c>, ...; null for the other kinds.</param>
 /// <param name="OccursMin">The OCCURS clause's minimum number of occurrences, or null when the item is no table.</param>
-/// <param name="OccursMax">The OCCURS clause's maximum (0 for a table of dynamic capacity), or null.</param>
+/// <param name="OccursMax">The OCCURS clause's maximum, or null when the item is no table or a table of dynamic capacity (which
+/// has no maximum: <paramref name="DynamicCapacity"/>).</param>
 /// <param name="DependingOn">The <see cref="Id"/> of the OCCURS DEPENDING ON object, or null.</param>
 /// <param name="Indexes">The <see cref="Id"/> of each index-name the item's INDEXED BY phrase declares.</param>
 /// <param name="Redefines">The <see cref="Id"/> of the item a REDEFINES clause redefines, or null.</param>
@@ -85,11 +86,21 @@ public enum ListingDataItemKind
 /// <param name="Implicit">The standard defines the item implicitly where the entry that names it is written (a CAPACITY IN
 /// register, ISO §2023:13.18.38.3 SR30; an entry of a CD's record area, ISO §1985:XIV.2.2), so no data description entry of its
 /// own describes it. A compiler temporary is no declared name and is not in the data map.</param>
+/// <param name="DynamicCapacity">For a table of dynamic capacity (an OCCURS DYNAMIC CAPACITY clause, ISO §2023:13.18.38 Format 4)
+/// the phrases the clause writes, else null; <paramref name="OccursMin"/> and <paramref name="OccursMax"/> are null with it.</param>
 public sealed record ListingDataItem(int Id, ListingDataItemKind Kind, string Name, int? Program, int? Line, int? Column, int? Level,
     int? Owner, string? Section, string? Usage, string? Picture, string? Category, int? OccursMin, int? OccursMax, int? DependingOn,
     IReadOnlyList<int> Indexes, int? Redefines, int? RenamesFrom, int? RenamesThru, bool Global, bool External, bool Based,
     int? Offset, int? Length, int? Bytes, string? NativeField, string? NativeType, IReadOnlyList<string> Values, bool TypeDeclaration,
-    bool Implicit);
+    bool Implicit, ListingDynamicCapacity? DynamicCapacity);
+
+/// <summary>The phrases of an OCCURS DYNAMIC CAPACITY clause (ISO §2023:13.18.38 Format 4), each as the entry writes it.</summary>
+/// <param name="From">integer-4, the minimum capacity of the table (ISO §2023:13.18.38.4 GR16: "If integer-4 is absent, a value of
+/// zero is assumed for it"), or null when the FROM phrase is not written.</param>
+/// <param name="To">integer-5, the expected capacity of the table (ISO §2023:13.18.38.4 GR17), or null when the TO phrase is not
+/// written.</param>
+/// <param name="Initialized">The INITIALIZED phrase is written.</param>
+public sealed record ListingDynamicCapacity(int? From, int? To, bool Initialized);
 
 /// <summary>One file-name of the file map (DESIGN-listing.md section 6.6).</summary>
 /// <param name="Id">1-based, in the order written.</param>

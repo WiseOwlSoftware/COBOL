@@ -10,6 +10,7 @@ using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Frontend.Parsing;
+using WiseOwl.Cobol.Symbols;
 
 namespace WiseOwl.Cobol.Binding.Validation;
 
@@ -577,9 +578,11 @@ internal sealed class StatementValidation(DataBinder data)
     /// <param name="name">The operand's word, for the one query of what it is declared as (kb/Work PB1906); null for a
     /// special register (<see cref="ReferenceResolver.WrittenWordOf"/>), which names no word to look up.</param>
     /// <param name="qualifiers">The operand's qualifiers as written.</param>
+    /// <param name="isProcedureName">Whether the operand's word names a paragraph or section (the binder holds the procedure table;
+    /// kb/Work PB6355).</param>
     /// <returns>Always false: the operand is refused, HAVING REPORTED.</returns>
     public bool RejectSetConditionName(string refText, bool toTrue, string? switchName, string? name,
-        IReadOnlyList<string> qualifiers)
+        IReadOnlyList<string> qualifiers, bool isProcedureName)
     {
         string set = $"SET '{refText}' TO {(toTrue ? "TRUE" : "FALSE")}";
         // A level-88 entry of a type declaration DOES declare the word (kb/Work PB1906), so "no level-88 entry declares
@@ -598,12 +601,25 @@ internal sealed class StatementValidation(DataBinder data)
                 + $"names the status of external switch {switchName} ("
                 + data.Edition.Edition.Cite("§1985:VI.4.5.4 GR2). ",
                     "ISO §2023:12.3.7), and §2023:8.4.4.1 distinguishes that kind from the level-88 kind, which is the one associated "
+                    + "with a conditional variable. ",
+                    "ISO §2002:12.2.6), and §2002:8.4.3 distinguishes that kind from the level-88 kind, which is the one associated "
+                    + "with a conditional variable. ",
+                    "ISO §2014:12.3.6), and §2014:8.4.3 distinguishes that kind from the level-88 kind, which is the one associated "
                     + "with a conditional variable. ")
-                + data.Edition.Edition.Cite(
-                    "\"Condition-name-1 must be associated with a conditional variable\" (§1985:VI.6.23.3 SR6), ",
-                    "\"Condition-name-1 shall be associated with a conditional variable\" (ISO §2023:14.9.39.3 SR6), ")
+                + "\"" + data.Edition.Edition.Cite("Condition-name-1 must be associated with a conditional variable",
+                    "Condition-name-1 shall be associated with a conditional variable") + "\" (" + SetConditionRule(data.Edition.Edition) + "), "
                 + "so this operand is not admitted in Format 4. Set the switch through Format 3 — "
                 + "SET <mnemonic-name> TO ON or OFF (SR5).");
+        else if (name is not null && WrongCategoryOf(name, qualifiers, declared, isProcedureName) is { } category)
+            // ⛔ THE NAME IDENTIFIES A RESOURCE, AND IT IS NOT ONE THIS FORMAT TAKES (kb/Work PB6355). §1985:IV.4.3.8 asks that a reference
+            // identify a resource (COBOL1639's rule); this one does, so "identifies no resource" would be false and would send the user to
+            // the spelling. What is broken is SR6's category: the operand is the thing named here, and the format wants a condition-name.
+            data.Edition.Error(DiagnosticCatalog.StatementOperandRule,
+                $"{set} — '{refText}' is {category}, not a condition-name associated with a conditional variable, which "
+                + $"{SetConditionRule(data.Edition.Edition)} requires of the operand of Format 4; the name identifies a resource, but one of "
+                + "the wrong category."
+                + (category.StartsWith("a mnemonic-name", StringComparison.Ordinal)
+                    ? " A mnemonic-name of an external switch is set through Format 3, SET mnemonic-name TO ON or OFF." : ""));
         else
             data.Edition.Error(DiagnosticCatalog.UndefinedReference,
                 $"{set} — '{refText}' is not a condition-name: no level-88 entry and no "
@@ -616,7 +632,33 @@ internal sealed class StatementValidation(DataBinder data)
     /// <summary>SET Format 4's rule that condition-name-1 is associated with a conditional variable, in the edition's own
     /// text (kb/Work PB4950).</summary>
     private static string SetConditionRule(EditionInfo edition) =>
-        edition.Cite("§1985:VI.6.23.3 SR6", "§2023:14.9.39.3 SR6");
+        edition.CiteRule("§1985:VI.6.23.3 SR6", "§2023:14.9.39.3 SR6", "§2002:14.8.35.2 SR6", "§2014:14.9.35.2 SR6");
+
+    /// <summary>The configuration-section name classes a Format-4 operand may be written as, each as the noun phrase a refusal says it IS
+    /// (the SPECIAL-NAMES entry that declares it).</summary>
+    private static readonly (NameClass Class, string Phrase)[] ConfigurationCategories =
+    [
+        (NameClass.Mnemonic, "a mnemonic-name (a SPECIAL-NAMES implementor-name entry)"),
+        (NameClass.ClassName, "a class-name (a CLASS clause of the SPECIAL-NAMES paragraph)"),
+        (NameClass.SymbolicCharacter, "a symbolic-character (a SYMBOLIC CHARACTERS clause of the SPECIAL-NAMES paragraph)"),
+        (NameClass.Locale, "a locale-name (a LOCALE clause of the SPECIAL-NAMES paragraph)"),
+        (NameClass.OrderingName, "an ordering-name (an ORDER TABLE clause of the SPECIAL-NAMES paragraph)"),
+    ];
+
+    /// <summary>The category a Format-4 operand IS when its word names a resource that is no condition-name (kb/Work PB6355), as a noun
+    /// phrase: a procedure-name, what <paramref name="declared"/> or <see cref="SymbolTable.Declarations.NearestDeclaration"/> says it is
+    /// declared as (a data item, an index-name, an alphabet-name, a file-name ...), or a SPECIAL-NAMES name of another class. Null when
+    /// the word names nothing, so the caller's COBOL1639 stands. A type declaration's member is no resource until a group is defined
+    /// using the type (§2023:13.18.58.4 GR1), so it is the caller's earlier arm, never a category here.</summary>
+    private string? WrongCategoryOf(string name, IReadOnlyList<string> qualifiers, DeclarationFact? declared, bool isProcedureName)
+    {
+        if (isProcedureName) return "a procedure-name (a paragraph-name or section-name)";
+        if ((declared ?? data.Symbols.Declared.NearestDeclaration(name, qualifiers)) is { } fact)
+            return fact.ClassPhrase(data.Edition.Edition);
+        foreach (var (@class, phrase) in ConfigurationCategories)
+            if (data.Symbols.DeclaresConfigurationName(@class, name)) return phrase;
+        return null;
+    }
 
     /// <summary>The CORRESPONDING group-operand rule, ONE screen for its three spellings (kb/Work PB236), each
     /// asked as ITS OWN <see cref="CorrespondingOperandRule"/> row rather than as a shared approximation:

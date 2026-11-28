@@ -32,7 +32,15 @@
           "minute": 0,
           "tz": "UTC"
         },
-        "_source": "the default config dir; its week resets Sunday 03:00 America/Los_Angeles in daylight saving time (the owner's meter since 2026-09), a fixed instant, Sunday 10:00 UTC: after daylight saving time ended its /usage read 'Resets Nov 8, 2am (America/Los_Angeles)' (owner 2026-11-05, kb/Work PB4746)"
+        "_source": "the default config dir; its week resets Sunday 03:00 America/Los_Angeles in daylight saving time (the owner's meter since 2026-09), a fixed instant, Sunday 10:00 UTC: after daylight saving time ended its /usage read 'Resets Nov 8, 2am (America/Los_Angeles)' (owner 2026-11-05, kb/Work PB4746)",
+        "quota_overrides": [
+          {
+            "from": "2026-11-28T09:00:00-08:00",
+            "until": "2026-11-29T02:00:00-08:00",
+            "weekly_cap_pct": 14.3,
+            "_source": "owner 2026-11-28 ~00:50 PST: 'When we reach the limit, suspend and wait for the 09:00 AM reset, then resume'. Account 1 is offline and ~/.claude (this row) is signed into ACCOUNT 2, whose week resets Saturday 17:00 UTC (kb/Work PB6320). Without this, budget.py would read Saturday as day 7 of this row's week (allowance 97) and spend account 2's new week in a day, against the no-borrowed-days plan (kb/Work PB5357). 14.3 is account 2's day-1 line; from this row's own reset (Sunday 10:00 UTC) its day lines trail account 2's by 17 h, so the estimate can only under-spend. Lapses by itself."
+          }
+        ]
       },
       {
         "name": "account2",

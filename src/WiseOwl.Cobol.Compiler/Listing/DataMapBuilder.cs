@@ -76,33 +76,34 @@ internal static class DataMapBuilder
                         SectionWord(d.Section), d.Usage, d.Picture, d.Category, d.OccursMin, d.OccursMax,
                         Item(d.DependingOn), [.. d.Indexes.Select(i => Item(i)).OfType<int>()], Item(d.Redefines), Item(d.RenamesFrom),
                         Item(d.RenamesThru), d.Global, d.External, d.Based, d.Offset, d.Length, d.Bytes, d.NativeField, d.NativeType, [],
-                        d.TypeDeclaration, d.Implicit));
+                        d.TypeDeclaration, d.Implicit,
+                        d.DynamicCapacity is { } dynamic ? new ListingDynamicCapacity(dynamic.From, dynamic.To, dynamic.Initialized) : null));
                     break;
                 case ConditionAttributes c:
                     items.Add(new ListingDataItem(items.Count + 1, ListingDataItemKind.Condition, entry.Name, at.Program, at.Line, at.Column,
                         88, Item(c.ConditionalVariable), null, null, null, null, null, null, null, [], null, null, null, false, false,
-                        false, null, null, null, null, null, c.Values, c.TypeDeclaration, false));
+                        false, null, null, null, null, null, c.Values, c.TypeDeclaration, false, null));
                     break;
                 case IndexAttributes x:
                     items.Add(new ListingDataItem(items.Count + 1, ListingDataItemKind.Index, entry.Name, at.Program, at.Line, at.Column,
                         null, Item(x.Table), null, null, null, null, null, null, null, [], null, null, null, false, false, false,
-                        null, null, null, x.NativeField, x.NativeType, [], x.TypeDeclaration, false));
+                        null, null, null, x.NativeField, x.NativeType, [], x.TypeDeclaration, false, null));
                     break;
                 case ConstantAttributes k:
                     items.Add(new ListingDataItem(items.Count + 1, ListingDataItemKind.Constant, entry.Name, at.Program, at.Line, at.Column,
                         null, null, null, null, null, null, null, null, null, [], null, null, null, k.Global, false, false,
-                        null, null, null, null, null, k.Value is { } value ? [value] : [], false, false));
+                        null, null, null, null, null, k.Value is { } value ? [value] : [], false, false, null));
                     break;
                 case ReportAttributes r:
                     items.Add(new ListingDataItem(items.Count + 1, ListingDataItemKind.Report, entry.Name, at.Program, at.Line, at.Column,
                         null, null, SectionWord(DataSection.Report), null, null, null, null, null, null, [], null, null, null, r.Global,
-                        false, false, null, null, null, null, null, [], false, false));
+                        false, false, null, null, null, null, null, [], false, false, null));
                     break;
                 case CommunicationAttributes m:
                     items.Add(new ListingDataItem(items.Count + 1, ListingDataItemKind.CommunicationDescription, entry.Name, at.Program,
                         at.Line, at.Column, null, null, SectionWord(DataSection.Communication), null, null, null, null, null, null, [], null,
                         null, null, false, false, false, null, null, null, null, null, [m.Initial ? "INITIAL " + m.Mode : m.Mode], false,
-                        false));
+                        false, null));
                     break;
                 case FileNameAttributes f:
                     files.Add(new ListingFileEntry(files.Count + 1, entry.Name, at.Program, at.Line, at.Column, f.SortMerge,

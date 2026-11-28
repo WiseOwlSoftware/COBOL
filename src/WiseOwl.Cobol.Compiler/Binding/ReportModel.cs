@@ -124,6 +124,13 @@ public sealed class ReportModel
     /// <summary>The report groups in declaration order.</summary>
     public List<ReportGroupModel> Groups { get; } = [];
 
+    /// <summary>The SUM terms of OTHER reports that name a detail group of this report in their UPON phrase (§2023:13.18.54.3 SR7;
+    /// from 2002, where the detail's report-name qualifier may name any report): a GENERATE of that detail adds each such term's
+    /// addends into the other report's counter (§2023:13.18.54.4 GR7c.2), so this report's presentation evaluates their operands.
+    /// Recorded when the other report's UPON operands resolve (<c>ReportSectionBinder.RecordUponTriggers</c>); read by
+    /// <see cref="ReportValueWalk"/> (kb/Work PB6349).</summary>
+    public List<ReportSumTerm> UponTriggeredTerms { get; } = [];
+
     /// <summary>The SUM counters of this report (ISO §2023:13.18.54), one per OCCURRENCE, in counter-id order (the
     /// index of a counter in this list IS its <see cref="ReportSumModel.Id"/> once the description is bound —
     /// <c>ReportSectionBinder.SealSumCounters</c>).</summary>

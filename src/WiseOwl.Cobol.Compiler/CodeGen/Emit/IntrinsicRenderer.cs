@@ -481,7 +481,10 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
                 // value EQUAL the §2023:15.17.4 RV1 expression. A Dec/float argument-2 never reaches here at all: it
                 // is claimed by RenderDec's own arm under either arithmetic mode, which is what lets this arm
                 // consume the operand at its OWN scale.
-                NumX t = RawArg(ic, 1);
+                // ⛔ THE UNSIGNED-WIDE LANE ENTERS THE Int128 RUNTIME PARAMETER THROUGH THE ONE FUNNEL (kb/Work PB6266): a 16-byte unsigned
+                // COMP-5 argument-2 is a `NumX.U` (UInt128), which converts to no Int128 parameter, so the call was a CS1503 on a program
+                // §2023:15.17.3 AR2 admits (it constrains the VALUE, never the USAGE). SecondsArg takes FORMATTED-TIME's seconds the same way.
+                NumX t = NumericRenderer.DeU(RawArg(ic, 1));
                 // A trailing-P argument (negative scale) is whole seconds first (the runtime's WholeSecondsAtScale), so
                 // the exact result is read at max(scale, 0) + 5 (kb/Work PB2633).
                 return new NumX(RuntimeApi.DateFn(RuntimeApi.DateBody.CombinedDatetime, $"{IntArg(ic, 0)}, {t.Expr}, {t.Scale}{LeapSecondFlag}"), Math.Max(0, t.Scale) + 5);

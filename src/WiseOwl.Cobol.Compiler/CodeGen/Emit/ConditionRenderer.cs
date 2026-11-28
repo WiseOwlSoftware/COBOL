@@ -180,7 +180,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
 
     /// <summary>⛔ THE ONE RENDERING OF AN ALPHANUMERIC / NATIONAL / BOOLEAN THROUGH-RANGE TEST — the EVALUATE
     /// WHEN range (<see cref="Visit(BoundRangeMembership)"/>) and the level-88 VALUE … THRU range
-    /// (<see cref="RenderMembershipTest"/>) are the same §2023:14.7.8 test, and §2023:8.8.4.5.3 GR2 compares a
+    /// (<see cref="RenderStringMembershipTest"/>) are the same §2023:14.7.8 test, and §2023:8.8.4.5.3 GR2 compares a
     /// condition-name value by the relation-condition rules, so the two may not size a figurative end, or raise
     /// §2023:14.7.8 GR2's EC-RANGE-INVALID, by two different spellings (kb/Work PB1477: the 88 folded a figurative end to
     /// the variable's DECLARED width while the EVALUATE range sized it at run time).
@@ -1037,13 +1037,15 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         // ISO §2023:8.8.4.5.3 GR2: a condition-name test compares the conditional variable by the RELATION-CONDITION rules, so
         // the variable is rendered as a comparison operand exactly as a relation condition renders it — an alphanumeric
         // GROUP is treated as an elementary alphanumeric data item (§2023:8.8.4.1), i.e. its character IMAGE, not the raw
-        // struct. (The numeric branch reads the scaled value directly; a numeric view stored as its image is a later
-        // slice.)
-        // A NUMERIC conditional variable goes through the ONE numeric read path (NumericRenderer.FieldNum) — a
-        // whole-group-aliased / Tier-B-view leaf is string-STORED (StoreAsImage) and must decode via ParseDisplay,
-        // never compare its raw image to an unscaled long (diagnosis B3).
-        string read = isString ? OperandText.AsString(subject, num) : num.FieldNum(c.Parent).Expr;
-        var tests = c.Condition.Values.Select(v => RenderMembershipTest(read, c.Parent.Item, cat, isString, v.Low, v.High,
+        // struct.
+        // ⛔ A NUMERIC VALUE SET IS A SET OF RELATIONS, rendered by the ONE numeric comparison (kb/Work PB6265): the variable is a
+        // BoundFieldOperand, so it takes the ONE numeric read path (NumericRenderer.FieldNum — a whole-group-aliased / Tier-B-view
+        // leaf is string-STORED (StoreAsImage) and must decode via ParseDisplay, never compare its raw image to an unscaled long,
+        // diagnosis B3) and the test never reads the field raw. An unsigned 16-byte COMP-5 variable (UInt128) beside a wide VALUE
+        // (Int128) takes the same CompareU arm `IF U = literal` takes, and the float, SDIDI and scaled arms apply with no second
+        // copy of them here.
+        string? read = isString ? OperandText.AsString(subject, num) : null;
+        var tests = c.Condition.Values.Select(v => RenderMembershipTest(subject, read, c.Parent.Item, cat, isString, v.Low, v.High,
             c.CheckRangeInvalid, c.Condition.Collation)).ToList();
         // ⛔ TOTAL OVER AN EMPTY VALUE SET (kb/Work PB501). §2023:13.16.2 formats 3 and 4 both print the value-clause
         // UNBRACKETED, so an entry with no values is nonconforming source and `LevelNumberPass` refuses it by
@@ -1069,94 +1071,93 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         ? ctx.RangeCollations.FieldOf(id) is { } f ? ", " + f : ""
         : ctx.CollateArgFor(left, right);
 
-    /// <summary>One VALUE-set membership test: equality for a singleton, an inclusive bound test for a THRU range.
+    /// <summary>One VALUE-set membership test, by the conditional variable's class: a string variable's compares by the
+    /// character-comparison rules (<see cref="RenderStringMembershipTest"/>), a numeric one's by the numeric relation
+    /// (<see cref="RenderNumericMembershipTest"/>) — ISO §2023:8.8.4.5.3 GR2.</summary>
+    private string RenderMembershipTest(BoundFieldOperand subject, string? read, DataItem parent, PicCategory? cat, bool isString,
+        string low, string? high, bool checkRangeInvalid, RangeCollationId? collation) =>
+        isString
+            ? RenderStringMembershipTest(read ?? throw new InvalidOperationException("a string VALUE test was given no operand image (RenderCondition88 reads one)"),
+                parent, cat, low, high, checkRangeInvalid, collation)
+            : RenderNumericMembershipTest(subject, low, high);
+
+    /// <summary>One STRING (alphanumeric, national, boolean) VALUE-set membership test: equality for a singleton, an inclusive bound test for a THRU range.
     /// When <paramref name="checkRangeInvalid"/> and the range is alphanumeric/national (§2023:14.7.8 GR2), the range
     /// test routes through <c>CobolString.ThruMember</c> which sets the nonfatal EC-RANGE-INVALID for an inverted
     /// range (lo collating after hi) and treats it as empty.</summary>
-    private string RenderMembershipTest(string read, DataItem parent, PicCategory? cat, bool isString, string low,
+    private string RenderStringMembershipTest(string read, DataItem parent, PicCategory? cat, string low,
         string? high, bool checkRangeInvalid = false, RangeCollationId? collation = null)
     {
-        if (isString)
-        {
-            // A level-88 VALUE compares against the conditional variable, so a figurative ALL "literal" is repeated to
-            // the variable's width (ISO §2023:8.3.3.6.4 GR2); a plain literal is decoded as-is. A BOOLEAN conditional
-            // variable compares by value with boolean-zero extension and never the alphanumeric PCS (§2023:8.8.4.2.8);
-            // a NATIONAL one orders under the NATIONAL sequence (§2023:8.8.4.2.9 — the D-N3 ordinal identity, or
-            // __COLLATE_NAT under a non-native ALPHABET … FOR NATIONAL; never the alphanumeric PCS weights).
-            // §2023:8.8.4.5.3 GR2 — "The rules for comparing a conditional variable with a condition-name value are
-            // the same as those specified for relation conditions" — so the collating sequence comes from the ONE
-            // comparison-class rule. A level-88 VALUE literal is always of the conditional variable's OWN
-            // category (§2023:13.18.63.3 SR2 numeric ⇒ numeric literals, SR4 alphabetic/alphanumeric/alphanumeric-
-            // edited ⇒ alphanumeric, SR5 national/national-edited ⇒ national, SR10 boolean ⇒ boolean), so the
-            // pair is the variable's category twice — this is a case where one category legitimately answers
-            // for both, and it is stated rather than assumed.
-            // ⛔ `cat` ARRIVES from RenderCondition88's ONE classification — it is NOT re-derived here, and in
-            // particular never from the parent's raw PICTURE, which is null for every group: that read handed a
-            // GROUP-USAGE NATIONAL 88 the ALPHANUMERIC weight table while its operand text was already
-            // `.AsNat()`, and lost a bit group's boolean-zero pad (kb/Work PB728 / PB741).
-            string collate = ctx.CollateArgFor(cat, cat);
-            // ⛔ THE `IN alphabet-name-1` PHRASE GOVERNS THE RANGES ONLY, and the split is the clause boundary,
-            // not a convenience: §2023:14.7.8 is the THROUGH phrase's specification and its GR2 names "the collating
-            // sequence used for RANGE evaluation", while a SINGLETON value is compared by §2023:8.8.4.5.3 GR2's plain
-            // relation-condition rules, whose sequence is §2023:8.8.4.2.7's PROGRAM COLLATING SEQUENCE. Handing the
-            // alphabet to the equality tests as well would have made `88 X VALUE "A", "M" THRU "Z" IN AL` weigh
-            // its singleton on a sequence no rule puts there.
-            string rangeCollate = RangeCollateArg(collation, cat, cat);
-            string pad = cat is PicCategory.Boolean ? ", pad: '0'" : "";
-            // ⛔ A FIGURATIVE VALUE IS A SEED, SIZED BY THE RUNTIME AGAINST THE OPERAND AS READ — exactly as the
-            // relation condition sizes it (kb/Work PB1477). §2023:8.8.4.5.3 GR2 makes this comparison the relation
-            // condition's, and §2023:8.3.3.6.4 GR2 repeats a figurative to "the number of character positions in the
-            // associated data item": the conditional variable AS IT IS COMPARED, i.e. at its CURRENT extent
-            // (§2023:13.18.38.4 GR8a) — an occurs-depending group item referenced as an operand uses "only that part
-            // of the table area that is specified by the value of the data item referenced by data-name-1"). A
-            // compile-time fold to the variable's declared width sized `88 GV-ALLX VALUE ALL "X"` on a group
-            // holding an OCCURS DEPENDING ON table to the MAXIMUM extent while `read` is the current one, so the
-            // 88 answered FALSE where `IF GV = ALL "X"` answered TRUE. The seed and the sizing are now the ones
-            // the relation (RenderFigurativeRelational) and the EVALUATE range (Visit(BoundRangeMembership)) use.
-            var lo = StringMembershipOperand(low, parent, cat);
-            if (high is null)
-                return lo.IsFigSeed
-                    ? $"{RuntimeApi.StrCompareFig(read, lo.Text, figIsLeft: false, pad + collate)} == 0"
-                    : $"{RuntimeApi.StrCompare(read, lo.Text, pad + collate)} == 0";
-            var hi = StringMembershipOperand(high, parent, cat);
-            // §2023:14.7.8 GR2: an alphanumeric/national THRU range under checking routes through ThruMember (sets the
-            // nonfatal EC-RANGE-INVALID for an inverted range, then treats it as empty — the empty behaviour is
-            // otherwise emergent from the inclusive test). Boolean/other categories keep the inline form.
-            // The class that governs the COMPARISON, not the raw category — the same pair rule the collate
-            // argument above asks (§2023:8.8.4.5.3 GR2; the pair is the variable's category twice, as stated there).
-            // ForComparison(null, null) is the ALPHANUMERIC branch (an ordinary group item, ISO §2023:8.8.4.2.1), so
-            // an alphanumeric GROUP's 88 range now reaches §2023:14.7.8 GR2's exception exactly as its elementary
-            // twin does. Boolean and numeric ranges keep the inline form (§2023:14.7.8 GR1 sets no
-            // exception; a boolean subject may not carry THROUGH at all, §2023:13.18.63.3 SR29).
-            // ⛔ THE ONE §2023:14.7.8 GR1/GR2 predicate, the same call the EVALUATE range's EC gate and
-            // TryResolveRangeAlphabet's SR3 screen make (kb/Work PB401) — never a locally spelled-out class test.
-            bool checkedRange = checkRangeInvalid
-                && CollatingSelection.IsCollatedThroughRange(CollatingSelection.ForComparison(cat, cat));
-            return RenderStringRange(read, lo, hi, checkedRange, pad + rangeCollate);
-        }
-        // A float (COMP-1/2/FLOAT-*) conditional variable: `read` is the native double `(double)(X)`, so the VALUE
-        // literal must render as a native double too — NOT scaled-integer at the float item's Scale 0, which would
-        // DROP the fraction (88 IS-HALF VALUE 0.5 became `== 0L`, the exact-inverse membership bug). (D16 review.)
-        if (parent.OperandPic is { IsFloat: true })
-        {
-            string loF = FloatMembershipValue(low);
-            if (high is null) return $"{read} == {loF}";
-            return $"({read} >= {loF} && {read} <= {FloatMembershipValue(high)})";
-        }
-        int scale = parent.OperandPic?.Scale ?? 0;
-        string loN = NumericMembershipValue(low, scale);
-        if (high is null) return $"{read} == {loN}";
-        return $"({read} >= {loN} && {read} <= {NumericMembershipValue(high, scale)})";
+        // A level-88 VALUE compares against the conditional variable, so a figurative ALL "literal" is repeated to
+        // the variable's width (ISO §2023:8.3.3.6.4 GR2); a plain literal is decoded as-is. A BOOLEAN conditional
+        // variable compares by value with boolean-zero extension and never the alphanumeric PCS (§2023:8.8.4.2.8);
+        // a NATIONAL one orders under the NATIONAL sequence (§2023:8.8.4.2.9 — the D-N3 ordinal identity, or
+        // __COLLATE_NAT under a non-native ALPHABET … FOR NATIONAL; never the alphanumeric PCS weights).
+        // §2023:8.8.4.5.3 GR2 — "The rules for comparing a conditional variable with a condition-name value are
+        // the same as those specified for relation conditions" — so the collating sequence comes from the ONE
+        // comparison-class rule. A level-88 VALUE literal is always of the conditional variable's OWN
+        // category (§2023:13.18.63.3 SR2 numeric ⇒ numeric literals, SR4 alphabetic/alphanumeric/alphanumeric-
+        // edited ⇒ alphanumeric, SR5 national/national-edited ⇒ national, SR10 boolean ⇒ boolean), so the
+        // pair is the variable's category twice — this is a case where one category legitimately answers
+        // for both, and it is stated rather than assumed.
+        // ⛔ `cat` ARRIVES from RenderCondition88's ONE classification — it is NOT re-derived here, and in
+        // particular never from the parent's raw PICTURE, which is null for every group: that read handed a
+        // GROUP-USAGE NATIONAL 88 the ALPHANUMERIC weight table while its operand text was already
+        // `.AsNat()`, and lost a bit group's boolean-zero pad (kb/Work PB728 / PB741).
+        string collate = ctx.CollateArgFor(cat, cat);
+        // ⛔ THE `IN alphabet-name-1` PHRASE GOVERNS THE RANGES ONLY, and the split is the clause boundary,
+        // not a convenience: §2023:14.7.8 is the THROUGH phrase's specification and its GR2 names "the collating
+        // sequence used for RANGE evaluation", while a SINGLETON value is compared by §2023:8.8.4.5.3 GR2's plain
+        // relation-condition rules, whose sequence is §2023:8.8.4.2.7's PROGRAM COLLATING SEQUENCE. Handing the
+        // alphabet to the equality tests as well would have made `88 X VALUE "A", "M" THRU "Z" IN AL` weigh
+        // its singleton on a sequence no rule puts there.
+        string rangeCollate = RangeCollateArg(collation, cat, cat);
+        string pad = cat is PicCategory.Boolean ? ", pad: '0'" : "";
+        // ⛔ A FIGURATIVE VALUE IS A SEED, SIZED BY THE RUNTIME AGAINST THE OPERAND AS READ — exactly as the
+        // relation condition sizes it (kb/Work PB1477). §2023:8.8.4.5.3 GR2 makes this comparison the relation
+        // condition's, and §2023:8.3.3.6.4 GR2 repeats a figurative to "the number of character positions in the
+        // associated data item": the conditional variable AS IT IS COMPARED, i.e. at its CURRENT extent
+        // (§2023:13.18.38.4 GR8a) — an occurs-depending group item referenced as an operand uses "only that part
+        // of the table area that is specified by the value of the data item referenced by data-name-1"). A
+        // compile-time fold to the variable's declared width sized `88 GV-ALLX VALUE ALL "X"` on a group
+        // holding an OCCURS DEPENDING ON table to the MAXIMUM extent while `read` is the current one, so the
+        // 88 answered FALSE where `IF GV = ALL "X"` answered TRUE. The seed and the sizing are now the ones
+        // the relation (RenderFigurativeRelational) and the EVALUATE range (Visit(BoundRangeMembership)) use.
+        var lo = StringMembershipOperand(low, parent, cat);
+        if (high is null)
+            return lo.IsFigSeed
+                ? $"{RuntimeApi.StrCompareFig(read, lo.Text, figIsLeft: false, pad + collate)} == 0"
+                : $"{RuntimeApi.StrCompare(read, lo.Text, pad + collate)} == 0";
+        var hi = StringMembershipOperand(high, parent, cat);
+        // §2023:14.7.8 GR2: an alphanumeric/national THRU range under checking routes through ThruMember (sets the
+        // nonfatal EC-RANGE-INVALID for an inverted range, then treats it as empty — the empty behaviour is
+        // otherwise emergent from the inclusive test). Boolean/other categories keep the inline form.
+        // The class that governs the COMPARISON, not the raw category — the same pair rule the collate
+        // argument above asks (§2023:8.8.4.5.3 GR2; the pair is the variable's category twice, as stated there).
+        // ForComparison(null, null) is the ALPHANUMERIC branch (an ordinary group item, ISO §2023:8.8.4.2.1), so
+        // an alphanumeric GROUP's 88 range now reaches §2023:14.7.8 GR2's exception exactly as its elementary
+        // twin does. A boolean range keeps the inline form (§2023:14.7.8 GR1 sets no
+        // exception; a boolean subject may not carry THROUGH at all, §2023:13.18.63.3 SR29), and a numeric range is the relation pair
+        // RenderNumericMembershipTest builds, never reaching this method.
+        // ⛔ THE ONE §2023:14.7.8 GR1/GR2 predicate, the same call the EVALUATE range's EC gate and
+        // TryResolveRangeAlphabet's SR3 screen make (kb/Work PB401) — never a locally spelled-out class test.
+        bool checkedRange = checkRangeInvalid
+            && CollatingSelection.IsCollatedThroughRange(CollatingSelection.ForComparison(cat, cat));
+        return RenderStringRange(read, lo, hi, checkedRange, pad + rangeCollate);
     }
 
-    /// <summary>A numeric level-88 VALUE operand on a FLOAT conditional variable → a native C# <c>double</c> literal
-    /// (D16). A figurative ZERO → <c>0.0</c>; a floating-point literal (1.5E3) is already valid C# double syntax;
-    /// otherwise the fixed-point literal takes the <c>d</c> suffix. Keeps both sides of the membership test IEEE
-    /// doubles (§2023:8.8.4.2.4 algebraic compare), matching the direct relation-condition path.</summary>
-    private static string FloatMembershipValue(string raw) =>
-        FigurativeConstants.Classify(raw).Kind is 'Z' ? "0.0"
-        : raw.IndexOf('E') >= 0 || raw.IndexOf('e') >= 0 ? raw.Trim().TrimStart('+')
-        : $"{raw.Trim().TrimStart('+')}d";
+    /// <summary>One NUMERIC VALUE-set entry as the relation pair it is (ISO §2023:8.8.4.5.3 GR2 — "The rules for comparing a
+    /// conditional variable with a condition-name value are the same as those specified for relation conditions"): equality
+    /// for a singleton, <c>subject &gt;= low AND subject &lt;= high</c> for a THRU range, each relation rendered by
+    /// <see cref="RenderNumericRelational"/>. A figurative ZERO value is the numeric value 0 (§2023:8.3.3.6.4 GR4), the same
+    /// operand <c>IF X = ZERO</c> binds (kb/Work PB6265).</summary>
+    private string RenderNumericMembershipTest(BoundFieldOperand subject, string low, string? high)
+    {
+        static BoundOperand Value(string raw) =>
+            FigurativeConstants.Classify(raw).Kind is 'Z' ? new BoundFigurative('Z') : new BoundNumericLiteral(raw.Trim().TrimStart('+'));
+        if (high is null) return RenderNumericRelational(new BoundRelational(subject, "==", Value(low)));
+        return $"({RenderNumericRelational(new BoundRelational(subject, ">=", Value(low)))} && {RenderNumericRelational(new BoundRelational(subject, "<=", Value(high)))})";
+    }
 
     /// <summary>A string level-88 VALUE operand as a C# EXPRESSION, in the order the VALUE recipe reads it:
     /// <list type="bullet">
@@ -1198,16 +1199,6 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
             : op.Kind is { } k ? new(FigurativeConstants.FillText(k, ctx.Data.Configuration.Collating, cat, ctx.Data.Configuration.NationalCollating), IsFigSeed: true)
             : new(EmitText.CsLiteral(CobolLiteral.Decode(raw)), IsFigSeed: false);
     }
-
-    /// <summary>A numeric level-88 VALUE operand → its unscaled-<c>long</c> text. A figurative ZERO maps to <c>0</c>
-    /// (ISO §2023:8.3.3.6.4 GR4 — "the zero format represents the numeric value '0' … depending on context"); otherwise
-    /// the literal is scaled. Without this a figurative VALUE word (e.g. <c>88 IS-ZERO VALUE ZERO</c>) would reach
-    /// <c>UnscaledAtScale("ZERO", …)</c> and emit a bare identifier — which is exactly what the ALL-prefixed
-    /// spelling did until this read the operand through THE one classifier (kb/Work PB461: the private word list
-    /// here spelled out three of the forms §2023:8.3.3.6.2 Format 1 admits, and `ALL ZEROS` — the same constant, ALL
-    /// being an optional word there — emitted `ALLZEROSL`, a C# CS0103 on legal COBOL).</summary>
-    private static string NumericMembershipValue(string raw, int scale) =>
-        FigurativeConstants.Classify(raw).Kind is 'Z' ? "0L" : EmitText.UnscaledAtScale(raw, scale);
 
     /// <summary>The statically known fraction-digit count of a relation operand — a numeric literal's digits
     /// right of the decimal point, a field's declared scale (a numeric-edited comparand cannot appear in a
