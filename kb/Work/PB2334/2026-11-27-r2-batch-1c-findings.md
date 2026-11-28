@@ -1,0 +1,15 @@
+## R2 batch 1c (pin 9e65164eb3a9): 1 finding on this note
+
+### `codegen-1--architecture--f2#2` (finding, extract, votes upheld/upheld/upheld)
+
+**Finding:** The USE-declarative selection machinery is written by two types: DispatchEmitter emits __useActive, __RunUse, __IoCheck and the GR17 exit filter and calls EcEmitter for __EcDispatch, __EcObjDispatch, __IoCheckEc, __EcPerform and __RunF3; DESIGN-architecture-review §8.3 R0-0039 (PB2334) plans DeclarativeDispatchEmitter over EcEmitter.cs alone
+
+**Rule:** one mechanism per job, one rule in one place (DESIGN-architecture-review §5.1); DESIGN-architecture-review §8.3 row CodeGen.EcEmitter (R0-0039) names the target DeclarativeDispatchEmitter with seam Emit(the unit declaratives)
+
+**Scenario:** DispatchEmitter.EmitUseMachinery (DispatchEmitter.cs:344-407) is the real entry of the declarative machinery: it emits the re-entrancy array and __RunUse (through EmitRunUseBody, 430-531, the one GR2 raise site and the ISO/IEC 1989:2023 14.9.40.4 GR17 SORT question), the plain __IoCheck selector, and then calls ec.EmitDispatchSelector, EmitObjDispatchSelector, EmitIoCheckEc and EmitPerformInterceptor (365-368), borrowing EcEmitter.MemberMod (347). OoEmitter reaches the same machinery through both types (OoEmitter.cs:497 calls EcEmitter.EmitIoCheckEc, 1319 calls DispatchEmitter.EmitUseMachinery). PB2334 sites only EcEmitter.cs, so executed as filed it moves the EC selectors into DeclarativeDispatchEmitter while __RunUse, __IoCheck and the orchestration stay in the pc dispatcher: the new type would not own the Emit(the unit declaratives) seam DESIGN-architecture-review §8.3 gives it, and the protocol both halves share (DispatchResult.Normal/NoHandler/NotNormal, the __useActive ids at and above DeclCount) would still be stated in two types.
+
+**Target:** Amend PB2334 (DESIGN-architecture-review §8.3 row R0-0039): DeclarativeDispatchEmitter takes EmitUseMachinery, EmitRunUseBody and UseProcedureExitFilter from DispatchEmitter with the EC selectors and MemberMod from EcEmitter, and is the one entry DispatchEmitter.EmitDispatcher and OoEmitter call; DispatchEmitter keeps the pc dispatch (EmitDispatcher, EmitDispatchMethod, EmitParagraphBody).
+
+**Finding sites (the pin's):** src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs:344-407 (DispatchEmitter.EmitUseMachinery); src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs:430-540 (DispatchEmitter.EmitRunUseBody, UseProcedureExitFilter); src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs:831-1070 (EcEmitter.EmitDispatchSelector, EmitObjDispatchSelector, EmitIoCheckEc, EmitPerformInterceptor, MemberMod); src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs:497 (OoEmitter); src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs:1319 (OoEmitter)
+
+The finding amends this note (the EcEmitter extract of the census row R0-0039) and says so in its target: DeclarativeDispatchEmitter takes the use-machinery from DispatchEmitter and the EC selectors from EcEmitter. It is the same extraction wave, so it is recorded here and not filed as a note of its own. The sites are the pin's.

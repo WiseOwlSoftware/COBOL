@@ -7,11 +7,13 @@
     python scripts/arch/file_census_notes.py --self-test
 
 R2 (kb/Work PB2560; DESIGN-architecture-review §3 R2): `--r2` files each upheld MECHANISM of a COMPLETE review batch
-(decided by scripts/arch/r2_collect.py from the fleet's JSON lines; findings of one wave kind on overlapping members or
-sites are one mechanism, whichever finder found them, and a mechanism an earlier batch filed takes the new ids on its
-existing note — the w1034 refuter's C3) as one note of cluster PB1754 — `kind: analysis` for a
+(decided by scripts/arch/r2_collect.py `mechanisms` from the upheld findings; findings of one wave kind on mostly the
+same members that say the same thing are one mechanism, whichever finder found them (a shared site or type is not one:
+kb/Work PB3259), and a mechanism an earlier batch filed takes the new ids on its existing note by the same test — the
+w1034 refuter's C3) as one note of cluster PB1754 — `kind: analysis` for a
 restructuring finding, `kind: defect` for a defect the fleet hands the fix lane — with its sites as backticked paths
-(so `work.py note_sites`, `fix_clusters.py` and the planner resolve them), its members as the `**Moves or changes:**`
+each followed by its members in code spans (`site_line`: the form `work.py note_sites` reads, so it, `fix_clusters.py`
+and the planner resolve them: kb/Work PB4080), its members as the `**Moves or changes:**`
 line (the member index computes the wave's callers from it), its census findings as `census_refs:` (never
 `census_ids:`, which is the census filer's own key), and its finding id on `r2_ids:` (the idempotence key). Ids come
 from `scripts/orchestrator/alloc.py` unless --ids is given. A note naming a path the committed tree lacks is refused.
@@ -297,7 +299,9 @@ def render(group, nid, record_path, short_sha, design=None):
         d = key[2] or "(repository root)"
         what = "%d dead %s artifact(s) in %s" % (len(fs), key[1], d)
         for f in fs:
-            sites.append("- `%s` (%s)" % (f["site"], fix_text(f["scenario"])))
+            path = f["site"].split(":")[0]
+            sites.append(whole_site(f["site"], path, fix_text(f["scenario"])) if work.CODE_FILE.search(path)
+                         else "- `%s` (%s)" % (f["site"], fix_text(f["scenario"])))
     elif key[0] == "unreachable":
         n = sum(f["measure"]["members"] for f in fs)
         types = []
@@ -337,7 +341,8 @@ def render(group, nid, record_path, short_sha, design=None):
         if t.get("steps"):
             what += "; step 1 of %d: %s" % (len(t["steps"]), t["steps"][0]["target"])
         sites.append("- type `%s`" % f["site"]["type"])
-        sites.extend("- `%s`" % x for x in f["site"]["files"])
+        sites.extend(whole_site(x, x, "the god class is split across its target types, so each file of it is rewritten")
+                     for x in f["site"]["files"])
     elif k == "folder-namespace":
         f = fs[0]
         dis = f["measure"]["disagreements"]
@@ -433,7 +438,8 @@ def render_step(rid, k, nid, finding, design, record_path, short_sha):
             "**Wave kind:** extract (step %d of %d of `%s`, census %s). **Model:** %s." % (k, len(steps), ty, rid,
                                                                                           EXTRACT_MODEL), "",
             "**Sites:**", "- type `%s`" % ty]
-    body += ["- `%s`" % x for x in files]
+    body += [whole_site(x, x, "the step extracts members out of this file; they are the Moves or changes line below")
+             for x in files]
     body += ["", "**Measured how:** the R0 census record `%s` (finding %s; its measures are on step 1, %s)."
              % (record_path, rid, design.resolve(rid)), "", contract("extract"), "",
              "**This step's target (DESIGN-architecture-review §8.3):** " + s["target"] + ".", ""]
@@ -452,7 +458,7 @@ def step_files_line(files):
     """The structured line naming the files ONE STEP edits (work.STEP_FILES_LABEL, which work.note_sites reads as a site
     block, so a step file outside the census finding's Sites is in the note's declared set: kb/Work PB3242 R1-1)."""
     return ("**%s** (the Sites above are the census finding's, the whole class): " % work.STEP_FILES_LABEL
-            + ", ".join("`%s`" % x for x in files) + ".")
+            + ", ".join(whole_span(x, x, "the step extracts members out of this file") for x in files) + ".")
 
 
 def file_set_lines(moves):
@@ -639,9 +645,14 @@ def scan_r2(notes_dir):
             text = fh.read()
         if "\nr2_ids:" not in text.replace("\r\n", "\n"):
             continue
-        note = {"ids": [], "members": [], "sites": [], "wave_kind": None, "status": note_status(text)}
+        note = {"ids": [], "members": [], "sites": [], "wave_kind": None, "rule": "", "target": "",
+                "status": note_status(text)}
         for line in text.splitlines():
-            if line.startswith("r2_ids:"):
+            if line.startswith("**Rule it breaks:** "):   # the statements that say WHICH mechanism (PB3259)
+                note["rule"] = line[len("**Rule it breaks:** "):]
+            elif line.startswith("**Target:** "):
+                note["target"] = line[len("**Target:** "):]
+            elif line.startswith("r2_ids:"):
                 note["ids"] = [x.strip() for x in line[len("r2_ids:"):].split(",") if x.strip()]
             elif line.startswith("r2_members:"):
                 note["members"] = [x.strip() for x in line[len("r2_members:"):].split(",") if x.strip()]
@@ -673,7 +684,44 @@ def r2_merge(group):
     return m
 
 
-def render_r2(rec, nid, pin, areas):
+WHOLE_FILE_REASON = "the R2 finder named the file without a member"
+
+
+def whole_site(span: str, path: str, why: str) -> str:
+    """One site bullet that claims the file whole: a code file says why (`(whole: why)`, the one form `work.py check`
+    accepts for a code file named without members: work.SITES_RULE, kb/Work PB3797); any other file is named bare."""
+    return "- " + whole_span(span, path, why)
+
+
+def whole_span(span: str, path: str, why: str) -> str:
+    return "`%s`%s" % (span, " (whole: %s)" % why if work.CODE_FILE.search(path) else "")
+
+
+def site_line(span: str, path: str, sym: str | None, repo: pathlib.Path | None = None) -> str:
+    """One bullet of an R2 note's `**Sites:**` block in the form `work.note_sites` reads (kb/Work PB4080): the path (with
+    its `:lines`) in a code span, then a parenthesis that OPENS with the member names each in a code span of its own
+    (`work.member_name` is the one definition of a name; the finder's remaining words follow them as prose). A finder's
+    symbol that names no member, and a code file named with no symbol, claim the file whole with the reason the register
+    requires (`(whole: why)`, work.SITES_RULE) instead of a prose parenthesis the reader would take for the same. With
+    `repo` (the tree the note is filed on) a name the file does not declare there (a finder's misspelt or misplaced
+    member, which `work.py check` refuses as a claim of no unit) is kept as prose, so the file is claimed whole."""
+    pieces = [p.strip().strip("`") for p in (sym or "").split(",") if p.strip()]
+    names = [n for n in map(work.member_name, pieces) if n]
+    prose = [p for p in pieces if not work.member_name(p)]
+    if repo is not None and names:
+        gone = set(work.undeclared_names(repo / path, tuple(names)))
+        prose += ["%s is declared by no unit of the file" % n for n in names if n in gone]
+        names = [n for n in names if n not in gone]
+    if names:
+        tail = " (%s%s)" % (", ".join("`%s`" % n for n in names), "; " + ", ".join(prose) if prose else "")
+    elif prose:
+        tail = " (whole: %s)" % ", ".join(prose)
+    else:
+        return whole_site(span, path, WHOLE_FILE_REASON)
+    return "- `%s`%s" % (span, tail)
+
+
+def render_r2(rec, nid, pin, areas, repo=None):
     wave = rec["wave_kind"]
     defect = wave == work.FIX_LANE_WAVE or rec["kind"] == "defect"
     harm = {v: "true" if k in (rec.get("harm") or []) else "false" for k, v in R2_HARM.items()}
@@ -699,8 +747,8 @@ def render_r2(rec, nid, pin, areas):
         m = re.match(r"^(\S+?)(:[\d,-]+)?(?:\s+\((.+)\))?$", s.strip())
         path, lines, sym = (m.group(1), m.group(2) or "", m.group(3)) if m else (s, "", None)
         named.add(path)
-        body.append("- `%s%s`%s" % (path, lines, " (%s)" % sym if sym else ""))
-    body += ["- `%s`" % f for f in rec["files"] if f not in named]
+        body.append(site_line(path + lines, path, sym, repo))
+    body += [site_line(f, f, None) for f in rec["files"] if f not in named]
     body.append("")
     if not defect:
         body += file_set_lines(rec.get("members"))
@@ -795,18 +843,26 @@ def file_r2(collected_path, id_pool, notes_dir, dry_run, path_root=REPO, areas=N
     tracked = work.tracked_paths(pathlib.Path(path_root))
     upheld = {r["id"]: r for r in rep.get("upheld", [])}
     todo = []
-    for mech in rep["mechanisms"]:
+    for mech in r2_collect.mechanisms(rep.get("upheld", [])):   # decided here, never read back from a collected.json an older rule wrote
         rec = r2_merge([upheld[mech["primary"]]] + [upheld[i] for i in mech["ids"] if i != mech["primary"]])
         new_ids = [i for i in mech["ids"] if i not in filed]
-        into = next((filed[i] for i in mech["ids"] if i in filed), None) or next(
+        by_id = next((filed[i] for i in mech["ids"] if i in filed), None)
+        by_mechanism = None if by_id else next(
             (nid for nid, n in notes.items() if n["wave_kind"] and r2_collect.same_mechanism(rec, n)), None)
+        into = by_id or by_mechanism
         named = set(rec["files"]) | {x.strip().split(" ")[0].split(":")[0] for x in rec["sites"]}
         missing = sorted(p for p in named if p not in tracked and not work.is_build_output(p))
         if not new_ids:
             skipped.setdefault("already-filed", []).extend(mech["ids"])
         elif into:
             if notes[into]["status"] in work.TERMINAL_STATUSES:
-                skipped.setdefault("already-filed (its note is %s)" % notes[into]["status"], []).extend(new_ids)
+                # a finding of the same mechanism as a closed note is named with that note, never dropped unseen (PB3259):
+                # the landing may predate the pin (a residual the note did not fix) or follow it (stale)
+                if by_id:
+                    skipped.setdefault("already-filed (its note is %s)" % notes[into]["status"], []).extend(new_ids)
+                else:
+                    skipped.setdefault("same mechanism as a %s note (confirm its landing fixed this finding, else file it)"
+                                       % notes[into]["status"], []).extend("%s -> %s" % (i, into) for i in new_ids)
             else:
                 merge_into_note(os.path.join(notes_dir, into + ".md"), rec, new_ids, rep["pin"], dry_run)
                 skipped.setdefault("merged into an existing note", []).extend("%s -> %s" % (i, into) for i in new_ids)
@@ -820,7 +876,7 @@ def file_r2(collected_path, id_pool, notes_dir, dry_run, path_root=REPO, areas=N
         raise SystemExit("need %d ids, only %d allocated" % (len(todo), len(id_pool)))
     written = []
     for r, nid in zip(todo, id_pool):
-        text, title = render_r2(r, nid, rep["pin"], areas)
+        text, title = render_r2(r, nid, rep["pin"], areas, pathlib.Path(path_root))
         text = work_editions.seeded(text)
         path = os.path.join(notes_dir, nid + ".md")
         if os.path.exists(path):
@@ -849,7 +905,9 @@ def self_test_r2():
     with tempfile.TemporaryDirectory() as tmp:
         os.makedirs(os.path.join(tmp, "src"))
         for f in ("T.cs", "D.cs", "U.cs"):
-            open(os.path.join(tmp, "src", f), "w", newline="\n").close()
+            with open(os.path.join(tmp, "src", f), "w", newline="\n") as fh:
+                if f == "T.cs":   # the member the findings name, so the writer keeps it as a member (not a whole-file claim)
+                    fh.write("namespace N\n{\n    public class T\n    {\n        public void F() { }\n    }\n}\n")
         stage(tmp)
         nd = os.path.join(tmp, "Work")
         os.mkdir(nd)
@@ -878,11 +936,11 @@ def self_test_r2():
         with open(os.path.join(nd, "PB9101.md"), encoding="utf-8") as fh:
             a = fh.read()
         # C3: two finders' findings of one mechanism are ONE note carrying both ids, every file and the higher severity
-        assert "r2_ids: s1--architecture--f1#1, s1--architecture--f2#1" in a and "- `src/U.cs:1-9`" in a, a
+        assert "r2_ids: s1--architecture--f1#1, s1--architecture--f2#1" in a and "- `src/U.cs:1-9` (whole: " in a, a
         assert "**Also found as**" in a and "the same split, seen from the far end" in a and "severity: MAJOR" in a, a
         assert "kind: analysis" in a and 'cluster: ["PB1754"]' in a and "r2_members: N.T.F" in a, a
         assert "census_refs: R0-0001" in a and "census_ids:" not in a, a   # never claims a census finding's filing key
-        assert "- `src/T.cs:10-90` (N.T.F)" in a and "**Moves or changes:** `N.T.F`." in a and "Extract:" in a, a
+        assert "- `src/T.cs:10-90` (`N.T.F`)" in a and "**Moves or changes:** `N.T.F`." in a and "Extract:" in a, a
         assert "area: architecture" in a and "skeptics rule upheld, scenario upheld, site refuted" in a and "spec_refs: []" in a
         with open(os.path.join(nd, "PB9102.md"), encoding="utf-8") as fh:
             dn = fh.read()
@@ -913,7 +971,35 @@ def self_test_r2():
         with open(cp, "w", encoding="utf-8", newline="\n") as fh:
             json.dump(dict(batch, upheld=[last], mechanisms=[mech(last["id"])], refuted=[], leads=[]), fh)
         w4, s4, _ = file_r2(cp, ["PB9107"], nd, False, tmp, areas)
-        assert not w4 and s4.get("already-filed (its note is landed)") == [last["id"]], s4
+        assert not w4 and list(s4) == ["same mechanism as a landed note (confirm its landing fixed this finding, else file it)"] \
+            and list(s4.values()) == [["%s -> PB9101" % last["id"]]], s4
+        # PB3259: a landed note of ANOTHER mechanism (it shares one member and a site, its rule and target differ) never
+        # absorbs a finding: the finding is filed as a note of its own
+        other = rec(5, id="s7--code--f1#5", pair="s7--code", sites=["src/T.cs:55-58 (N.T.F)"],
+                    members=["N.T.F", "N.T.Cache.Dispose", "N.T.Cache.Evict"], rule="a cache is disposed on every path",
+                    target="Dispose the cache in a finally block")
+        with open(cp, "w", encoding="utf-8", newline="\n") as fh:
+            json.dump(dict(batch, upheld=[other], mechanisms=[mech(other["id"])], refuted=[], leads=[]), fh)
+        w5, s5, _ = file_r2(cp, ["PB9108"], nd, False, tmp, areas)
+        assert [x[0] for x in w5] == ["PB9108"] and list(s5) == [], (w5, s5)
+        # PB4080: the note the writer emits reads back through work.py's site reader with its members, and a symbol that
+        # names no member (or a code file with none) claims the file whole WITH its reason, the one form the register accepts
+        with open(os.path.join(nd, "PB9108.md"), encoding="utf-8") as fh:
+            read_back = work.note_sites(fh.read(), roots=("src",))
+        assert read_back.members == {"src/T.cs": ("N.T.F",)} and not read_back.unnamed, read_back
+        lines = [site_line("src/A.cs:5-9", "src/A.cs", "A.B, C, ENTER arm"), site_line("src/A.cs:3", "src/A.cs", "no member here"),
+                 site_line("src/A.cs", "src/A.cs", None), site_line("docs/D.md", "docs/D.md", None)]
+        assert lines == ["- `src/A.cs:5-9` (`A.B`, `C`; ENTER arm)", "- `src/A.cs:3` (whole: no member here)",
+                         "- `src/A.cs` (whole: " + WHOLE_FILE_REASON + ")", "- `docs/D.md`"], lines
+        whole = work.note_sites("**Sites:**\n" + "\n".join(lines[1:3]) + "\n", roots=("src",))
+        assert whole.members == {} and whole.unnamed == () and whole.paths == ("src/A.cs",), whole
+        named = work.note_sites("**Sites:**\n" + lines[0] + "\n", roots=("src",))
+        assert named.members == {"src/A.cs": ("A.B", "C")}, named
+        # a member the file does not declare is prose, never a code span `work.py check` would refuse as no unit
+        gone = site_line("src/T.cs:5", "src/T.cs", "N.T.Gone, N.T.F", pathlib.Path(tmp))
+        assert gone == "- `src/T.cs:5` (`N.T.F`; N.T.Gone is declared by no unit of the file)", gone
+        assert site_line("src/T.cs:5", "src/T.cs", "N.T.Gone", pathlib.Path(tmp)).startswith("- `src/T.cs:5` (whole: N.T.Gone"), gone
+        assert not work.note_sites("**Sites:**\n" + gone + "\n", roots=("src",), repo=pathlib.Path(tmp)).undeclared
     print("self-test R2 OK")
 
 
@@ -1043,6 +1129,13 @@ def self_test():
             raise AssertionError("an unresolved reference rendered")
         except SystemExit as e:
             assert "T-missing" in str(e), e
+        # PB4080's sweep: no census note the writer renders names a code file bare (work.py check refuses it as a
+        # whole-file claim); a designed note's sites are the targets file's own spans, authored, not rendered
+        for name in sorted(os.listdir(nd)):
+            if "\ndesign_keys: T-" in read(name[:-3]):
+                continue
+            bare =work.note_sites(read(name[:-3]), roots=("src",)).unnamed
+            assert not bare, (name, bare)
     print("self-test OK")
     self_test_r2()
 
