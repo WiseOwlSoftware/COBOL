@@ -4,3 +4,8 @@ The resume unit of 2026-11-27 read the three branches the survey called supersed
 a second implementation of the PB6232 rule that main landed as e1b2f3c4cf, and `worktree-agent-a2787d9fe53a79a18`'s one
 commit reached main as 2bdc5525c0; both are recorded ABANDONED in addenda of PB6232 and PB3259. `closed-hierarchies-wave1`
 still carries the PB6168 review fixes main lacks, so it stays a land decision for a conflict finisher (PB6168 addendum).
+
+A later resume unit found a duplicate notes branch, `notes-resume-20261128`, recording the same two abandonments, and
+recorded it ABANDONED beside them. It also found why two enqueue units in a row ended with an invalid handoff: each
+wrote `"landed": []` where the schema has an object (kb/Work PB6348). The enqueue prompt now states the shape, and the
+common unit rules give every unit the supervisor's own `Test-Json` check to run before it ends.
