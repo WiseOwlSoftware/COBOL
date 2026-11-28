@@ -128,7 +128,7 @@ internal sealed class InitialStateBackground(EmitContext ctx)
         // ⛔ BY STORAGE AXIS (kb/Work PB6259): the NATIVE field (an IndexCell) takes the long; a Tier-B class MEMBER's
         // seed is spliced into the group's STRING image, so it takes the eight fill bytes as characters — the image arm
         // below answers it (an INDEX has an image byte form), exactly as for every other byte-form numeric.
-        if (pic.Usage is Usage.Index && item.Class is null)
+        if (pic.Usage is Usage.Index && item.IsPlainMember)
         {
             ulong bytes = WiseOwl.Cobol.Runtime.StorageByte.ToByte(fill) * 0x0101010101010101UL;
             return $"unchecked((long)0x{bytes:X16}UL)";
@@ -137,13 +137,13 @@ internal sealed class InitialStateBackground(EmitContext ctx)
         // CHARACTER, a byte form holds the fill character's BYTE (the storage-byte law — HIGH-VALUES is 0xFF).
         char unit = pic.Usage is Usage.Display ? fill : WiseOwl.Cobol.Runtime.StorageByte.ToChar(WiseOwl.Cobol.Runtime.StorageByte.ToByte(fill));
         // Image storage — promoted by StorageFormPass for exactly these items, or a Tier-B REDEFINES window.
-        if (item.StoreAsImage || (item.Class is not null && !pic.IsFloat && pic.HasImageByteForm))
+        if (item.StoreAsImage || (!item.IsPlainMember && !pic.IsFloat && pic.HasImageByteForm))
             return FillRun(unit, item.ImageWidth);
         // A floating-point item's native carrier holds every IEEE bit pattern: the value its fill bytes encode.
         if (pic.IsFloat)
         {
             string image = FillRun(unit, item.ImageWidth);
-            return item.Class is not null ? image : RuntimeApi.NumParseImageFloat(image, item.ProfileName, pic.IsSingle);
+            return !item.IsPlainMember ? image : RuntimeApi.NumParseImageFloat(image, item.ProfileName, pic.IsSingle);
         }
         return null;   // a Numeric shape with no image form and no native seed here
     }

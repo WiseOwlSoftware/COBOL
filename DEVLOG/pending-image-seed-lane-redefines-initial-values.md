@@ -23,3 +23,10 @@ Goldens: `pb6261_redefines_numeric_edited_value_seed` (2023; six edited items in
 floating-point edited item), refusal `pb6261-redefines-numeric-edited-value-below-2023` (COBOL0900 at 85/2002/2014),
 `pb6259_options_initialize_index_in_redefined_group`, `pb6261_options_initialize_redefined_figurative_value`. Expected images
 computed from 13.18.40.5 editing rule 7 a and 14.6.2.3.2 actions 1 and 2.
+
+Branch review R1-1 / R1-2 (storage axis): `InitialStateBackground.Seed` keyed the native-vs-image decision on `item.Class is null`,
+but a Tier-A (alias) canonical keeps its NATIVE field while carrying a class, so `OPTIONS INITIALIZE ... X"5A"` over
+`01 I1 USAGE INDEX. 01 I2 REDEFINES I1 USAGE INDEX.` emitted `private long I1 = new string(...)` (CS0029); the float arm had the same
+fault (`double F1 = new string(...)`, pre-existing). The INDEX, byte-form image and float arms now all ask `DataItem.IsPlainMember`
+(unclassed or alias canonical), the one storage-axis predicate. Golden `pb6259_options_initialize_alias_index_float` (2023) compiles and
+runs both aliases (`I-OK`, `F-ZERO`); the two earlier goldens still print their images.
