@@ -13,7 +13,7 @@
 *> The first group is a conforming TRUE group, so a message that took its phrase from the first group, or from
 *> the statement, would still misquote U.
 *> cite.py: OK  14.9.39.3 6)
-*> Refused COBOL1639 at every edition; at 85 the FALSE phrase draws its introduction gate as well.
+*> Refused COBOL1757 at every edition (U is a data item, a resource of the wrong category, kb/Work PB6355); at 85 the FALSE phrase draws its introduction gate as well.
 IDENTIFICATION DIVISION.
 PROGRAM-ID. PB1314NF.
 DATA DIVISION.

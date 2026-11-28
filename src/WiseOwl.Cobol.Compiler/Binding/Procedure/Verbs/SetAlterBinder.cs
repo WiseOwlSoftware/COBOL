@@ -237,7 +237,9 @@ internal sealed class SetAlterBinder(BinderContext ctx)
                     ctx.Validation.RejectStatementOperand($"SET '{name}' TO {(on ? "ON" : "OFF")} — "
                         + ctx.Edition.Edition.Cite(
                             "\"Mnemonic-name-1 must be associated with an external switch, the status of which can be altered\" (§1985:VI.6.23.3 SR5), and ",
-                            "\"mnemonic-name-1 shall be associated with an external switch, the status of which may be altered\" (ISO §2023:14.9.39.3 SR5), and ")
+                            "\"mnemonic-name-1 shall be associated with an external switch, the status of which may be altered\" (ISO §2023:14.9.39.3 SR5), and ",
+                            "\"mnemonic-name-1 shall be associated with an external switch, the status of which may be altered\" (ISO §2002:14.8.35.2 SR5), and ",
+                            "\"mnemonic-name-1 shall be associated with an external switch, the status of which may be altered\" (ISO §2014:14.9.35.2 SR5), and ")
                         + (row is not null
                             ? $"'{name}' is the mnemonic-name of the {ImplementorNames.KindWord(row.Kind)} '{row.Name}'"
                             : ImplementorNames.Lookup(name) is { } named

@@ -81,6 +81,13 @@ public sealed partial class SymbolTable
             return null;
         }
 
+        /// <summary>What <paramref name="name"/> IS declared as, whatever the class: the nearest declaration of the spelling that the written
+        /// <paramref name="qualifiers"/> reach, among every class of §1985:X.1.3.8.2 GR1's set (<see cref="SymbolTable.NearestInNameSet"/>), a
+        /// data item included, which <see cref="OtherThanData"/> never answers. For a refusal of an operand of the wrong CATEGORY, which
+        /// must say what the operand is (kb/Work PB6355); null when no class declares it.</summary>
+        public DeclarationFact? NearestDeclaration(string name, IReadOnlyList<string> qualifiers) =>
+            _table.NearestInNameSet(name, qualifiers, NameSetClass.All);
+
         /// <summary>THE NAME CLASSES BESIDE A CONDITION-NAME THAT <see cref="OtherThanData"/> WORDS, each with the depth of the element
         /// that declares it (kb/Work PB4432): the constant-name, the index-name, the file-name (this element's own SELECT or a
         /// containing element's GLOBAL file, §2023:13.18.27.4 GR1), the report-name and this element's cd-name (never inherited, so
