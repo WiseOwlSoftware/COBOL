@@ -497,6 +497,52 @@ public sealed class ListingDataMapTests : IDisposable
         Assert.All(map.Items.Where(i => i.Name != "T-CAP"), i => Assert.False(i.Implicit));
     }
 
+    /// <summary>A table of dynamic capacity is no table of a fixed or a varying number of occurrences: its row says DYNAMIC and
+    /// prints the phrases the entry writes, FROM integer-4 (the minimum capacity, "If integer-4 is absent, a value of zero is assumed
+    /// for it", §2023:13.18.38.4 GR16), TO integer-5 (the expected capacity, §2023:13.18.38.4 GR17) and INITIALIZED, and the model
+    /// holds no minimum or maximum for it; the other forms of the clause keep their rows (§2023:13.18.38.4 GR4, GR7: a fixed table's
+    /// number of occurrences, and a DEPENDING ON table's range).</summary>
+    [Fact]
+    public void ATableOfDynamicCapacity_IsDataMapped_AsDynamic_WithThePhrasesItWrites()
+    {
+        string[] dynamic =
+        [
+            "       IDENTIFICATION DIVISION.",                                          // 1
+            "       PROGRAM-ID. DYNP.",                                                 // 2
+            "       DATA DIVISION.",                                                    // 3
+            "       WORKING-STORAGE SECTION.",                                          // 4
+            "       01 N PIC 9.",                                                       // 5
+            "       01 G.",                                                             // 6
+            "          05 T-BARE OCCURS DYNAMIC PIC X.",                                // 7
+            "          05 T-FROM OCCURS DYNAMIC CAPACITY IN C-FROM FROM 5 PIC X.",      // 8
+            "          05 T-TO OCCURS DYNAMIC TO 100 PIC X.",                           // 9
+            "          05 T-ALL OCCURS DYNAMIC FROM 5 TO 100 INITIALIZED PIC X.",       // 10
+            "          05 T-FIXED OCCURS 4 PIC X.",                                     // 11
+            "          05 T-ODO OCCURS 2 TO 6 DEPENDING ON N PIC X.",                   // 12
+            "       PROCEDURE DIVISION.",                                               // 13
+            "           STOP RUN.",                                                     // 14
+        ];
+        var map = Assert.IsType<ListingDataMap>(Compile(DataMapSections, dynamic).Listing!.DataMap);
+        Assert.All(new[] { "T-BARE", "T-FROM", "T-TO", "T-ALL" }, name =>
+            Assert.Equal((null, null), (Item(map, name).OccursMin, Item(map, name).OccursMax)));
+        Assert.Equal(new ListingDynamicCapacity(null, null, false), Item(map, "T-BARE").DynamicCapacity);
+        Assert.Equal(new ListingDynamicCapacity(5, null, false), Item(map, "T-FROM").DynamicCapacity);
+        Assert.Equal(new ListingDynamicCapacity(null, 100, false), Item(map, "T-TO").DynamicCapacity);
+        Assert.Equal(new ListingDynamicCapacity(5, 100, true), Item(map, "T-ALL").DynamicCapacity);
+        Assert.Equal("OCCURS DYNAMIC", OccursFact(Item(map, "T-BARE")));
+        Assert.Equal("OCCURS DYNAMIC FROM 5", OccursFact(Item(map, "T-FROM")));
+        Assert.Equal("OCCURS DYNAMIC TO 100", OccursFact(Item(map, "T-TO")));
+        Assert.Equal("OCCURS DYNAMIC FROM 5 TO 100 INITIALIZED", OccursFact(Item(map, "T-ALL")));
+        Assert.Null(Item(map, "T-FIXED").DynamicCapacity);
+        Assert.Equal("OCCURS 4", OccursFact(Item(map, "T-FIXED")));
+        Assert.Null(Item(map, "T-ODO").DynamicCapacity);
+        Assert.Equal("OCCURS 2 TO 6", OccursFact(Item(map, "T-ODO")));
+        Assert.StartsWith("OCCURS 2 TO 6  DEPENDING ON ", DataMapText.Details(Item(map, "T-ODO")));
+    }
+    /// <summary>The first fact of a data map entry's second row: its OCCURS clause (the row's facts are separated by two spaces).</summary>
+    private static string OccursFact(ListingDataItem item) => DataMapText.Details(item).Split("  ")[0];
+
+
     /// <summary>A communication description entry declares its cd-name, and its record area is the implicit description the
     /// standard prints: "For each input CD entry, a record area of 87 contiguous character positions is allocated"
     /// (§1985:XIV.2.2.4 GR2), MESSAGE COUNT "an elementary data item whose implicit description is that of an integer of 6 digits"
