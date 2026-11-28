@@ -1,0 +1,21 @@
+{
+ "assembly": "Characterization",
+ "counts": {
+  "carried": 0,
+  "discovered": 37,
+  "ran": 37,
+  "skipped": 0
+ },
+ "facets": {
+  "configuration": "Debug",
+  "platform": "windows",
+  "toolchain": "dotnet-sdk 11.0.100, python 3.15.2, jdk 27.0.1, pwsh 7.7.0, git-windows 2.56.1, gh 2.105.0, jq 1.8.2"
+ },
+ "head": "13bdcf3fa0092a56c8cfcb82802d0bcf5a099962",
+ "key": "9117664867d42d45fae47e99835e56732aedba2ff621584f1331e03cf80f2025",
+ "result": "pass",
+ "run": "000009-20261122T075833Z",
+ "target": "characterization",
+ "tree": "e57e320dbaa24ed5b879cf79ae9f2e6f66f1c021",
+ "when": "2026-11-22T08:12:52Z"
+}

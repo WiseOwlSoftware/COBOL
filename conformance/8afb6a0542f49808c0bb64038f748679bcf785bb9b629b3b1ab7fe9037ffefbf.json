@@ -1,0 +1,21 @@
+{
+ "assembly": "Conformance",
+ "counts": {
+  "carried": 17387,
+  "discovered": 27748,
+  "ran": 27748,
+  "skipped": 0
+ },
+ "facets": {
+  "configuration": "Debug",
+  "platform": "windows",
+  "toolchain": "dotnet-sdk 10.0.404, python 3.15.2, jdk 27.0.1, pwsh 7.7.0, git-windows 2.56.0, gh 2.104.0, jq 1.8.2"
+ },
+ "head": "f17b8057b0a608df49e42d69388480589fd4d9cf",
+ "key": "8afb6a0542f49808c0bb64038f748679bcf785bb9b629b3b1ab7fe9037ffefbf",
+ "result": "pass",
+ "run": "000001-20261116T213014Z",
+ "target": "conformance",
+ "tree": "3951acea6f89bd8ca6586c783d074b7250692c0c",
+ "when": "2026-11-16T21:41:19Z"
+}
