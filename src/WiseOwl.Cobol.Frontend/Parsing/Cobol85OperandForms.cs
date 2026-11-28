@@ -115,6 +115,6 @@ public static class Cobol85OperandForms
             ? SolePrimary(first)?.dataReference() : null;
 
     /// <summary>The primary a multiplicative term is when it is nothing more: no operator, no unary sign.</summary>
-    private static Core.PrimaryExpressionContext? SolePrimary(Core.MultiplicativeExpressionContext term) =>
+    public static Core.PrimaryExpressionContext? SolePrimary(Core.MultiplicativeExpressionContext term) =>
         term.powerExpression() is [var power] && power.unaryExpression() is [var unary] ? unary.primaryExpression() : null;
 }

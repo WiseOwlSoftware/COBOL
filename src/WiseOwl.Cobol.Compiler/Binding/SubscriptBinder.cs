@@ -770,14 +770,9 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
     private static bool IsIndexNameSubscriptForm(Core.ArithmeticExpressionContext expr)
     {
         var terms = expr.additiveExpression().multiplicativeExpression();
-        if (terms.Length > 2 || !IsBareReference(terms[0])) return false;
+        if (terms.Length > 2 || Cobol85OperandForms.SolePrimary(terms[0])?.dataReference() is null) return false;
         return terms.Length == 1 || LeafTokens(terms[1]) is [{ Type: Core.INTEGERLIT }];
     }
-
-    private static bool IsBareReference(Core.MultiplicativeExpressionContext term) =>
-        term.powerExpression() is [{ } power] && power.POWER().Length == 0
-        && power.unaryExpression(0) is { } unary && unary.addOp() is null
-        && unary.primaryExpression() is { } primary && primary.LPAREN() is null && primary.dataReference() is not null;
 
     /// <summary>The first <c>dataReference</c> operand of <paramref name="node"/> whose spelling is an index-name, found without
     /// descending into a function call, a subscript list or a reference modifier (their positions are their own), or null.
