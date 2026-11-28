@@ -1,4 +1,4 @@
-## The EC-ARGUMENT-FUNCTION operand gate reads every operand position through one generated walk
+## Entry 4089 — 2026-11-27 21:45 PST — The EC-ARGUMENT-FUNCTION operand gate reads every operand position through one generated walk
 
 **Notes:** PB6223 (a function-identifier CANCEL target carried no guard), PB6328 (a class condition, a range membership and a
 per-evaluation condition carried none), and PB6333 (the same two hand walks seen as duplication). One mechanism: the walk that
@@ -39,3 +39,4 @@ once per `OperandRaises` row, as the switches were. Duplication: five walkers an
 `PHASE4_RECONCILIATION` text that names the deleted walkers is a dated reconciliation record and was left as it was.
 
 **Gate.** `build-local` at this branch's head; its verdict line is in the wave report.
+
