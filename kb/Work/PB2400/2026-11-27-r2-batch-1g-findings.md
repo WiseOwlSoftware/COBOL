@@ -1,0 +1,15 @@
+## R2 batch 1g (pin 9e65164eb3a9): 1 finding on this note
+
+### `data-binding-6--architecture--f1#4` (finding, extract, votes upheld/upheld/upheld)
+
+**Finding:** The backend input BoundCompilation is documented immutable, but its BoundUnit and OoClassUnit are classes of public mutable fields that six binder steps fill in place after construction
+
+**Rule:** Phase boundaries (dimensions.md 1; DESIGN-architecture-review §8.1: the binder hands the backend an immutable record, the reason PB2361 built DataBindResult) and the BoundCompilation contract itself (BoundCompilation.cs:6-11: the immutable result of the Binder phase, consumed read-only)
+
+**Scenario:** BoundUnit (BoundUnit.cs:73-172) exposes public fields, not init-only properties: Data = null!, Places = null!, Bound = null!, List<BoundUnit> Children, List<CallBridge> Bridges, Record, FormalDescriptions, ReturningDescription, FormalsOfOneDescription, RaisingObjects, Initial/Common/Recursive; OoClassUnit (OoClassUnit.cs:16-34) has the same shape. They are written after the unit exists by separate binder steps, each at its own phase: BinderDriver.cs:797 (Bound), ElementBinders.cs:94 (Data, at Freeze), PlaceTablePass.cs:26 (Places), InheritStep.cs:84 (Bridges.Add), RepositoryPublication.cs:38 (Record), BackendAnswers.cs:32-41 (RaisingObjects, FormalDescriptions, ReturningDescription, FormalsOfOneDescription). The order is held by nothing the type states: a binder pass moved ahead of PlaceTablePass that reads unit.Places, or of Freeze that reads unit.Data, gets the null the null! initializer hides and fails with a NullReferenceException far from the cause, and any code holding the record (a backend included) can still add a bridge or swap a field, so the read-only consumption the BoundCompilation summary promises is a convention, while DataBindResult beside it was made immutable for exactly this reason (PB2361)
+
+**Target:** The binder builds each unit through a binder-private builder (or collects the per-phase facts in the bind session) and constructs BoundUnit and OoClassUnit once, at the end of the bind, as sealed records with required init-only members and IReadOnlyList/IReadOnlySet collections; Children and Parent are wired by the one constructor of the group; BoundCompilation then holds only immutable values. Sequence it with PB2400 (the move of these types to compiler.bound), whose precondition list it completes
+
+**Finding sites (the pin's):** src/WiseOwl.Cobol.Compiler/Binding/Model/BoundUnit.cs:73-172 (BoundUnit); src/WiseOwl.Cobol.Compiler/Binding/Model/OoClassUnit.cs:14-34 (OoClassUnit); src/WiseOwl.Cobol.Compiler/Binding/Model/BoundCompilation.cs:6-61 (BoundCompilation)
+
+The finding completes this note's precondition list: BoundUnit and OoClassUnit, which PB2400 moves to compiler.bound, are classes of public mutable fields filled in place by six binder steps although BoundCompilation is documented immutable. It is recorded here and not filed apart. The types are still declared in the files the sites name on the tree after the pin. The sites are the pin's.
