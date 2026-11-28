@@ -28,39 +28,33 @@ public sealed class BoundValueWalkDriftTests
 {
     private static readonly Assembly Bound = typeof(BoundStatement).Assembly;
 
-    private static readonly Type[] ValueRoots = [typeof(BoundExpr), typeof(BoundCondition), typeof(BoundOperand), typeof(BoundBoolExpr)];
+    internal static readonly Type[] ValueRoots = [typeof(BoundExpr), typeof(BoundCondition), typeof(BoundOperand), typeof(BoundBoolExpr)];
 
     private const int MaxDepth = 3;
 
-    private static bool IsValueNode(Type t) => ValueRoots.Any(r => r.IsAssignableFrom(t));
+    internal static bool IsValueNode(Type t) => ValueRoots.Any(r => r.IsAssignableFrom(t));
 
-    private static bool IsStatement(Type t) => typeof(BoundStatement).IsAssignableFrom(t);
+    internal static bool IsStatement(Type t) => typeof(BoundStatement).IsAssignableFrom(t);
 
-    private static IEnumerable<Type> LeavesOf(Type root) =>
+    internal static IEnumerable<Type> LeavesOf(Type root) =>
         Bound.GetTypes().Where(t => !t.IsAbstract && t != root && root.IsAssignableFrom(t)).OrderBy(t => t.Name, StringComparer.Ordinal);
 
     private static IEnumerable<PropertyInfo> Properties(Type t) =>
         t.GetProperties(BindingFlags.Instance | BindingFlags.Public).Where(p => p.GetIndexParameters().Length == 0);
 
-    private static FieldInfo? Backing(PropertyInfo p) =>
+    internal static FieldInfo? Backing(PropertyInfo p) =>
         p.DeclaringType!.GetField($"<{p.Name}>k__BackingField", BindingFlags.Instance | BindingFlags.NonPublic);
 
-    private static object Uninit(Type t) => RuntimeHelpers.GetUninitializedObject(t);
+    internal static object Uninit(Type t) => RuntimeHelpers.GetUninitializedObject(t);
 
     private static bool IsValueTuple(Type t) =>
         t.IsGenericType && t.FullName!.StartsWith("System.ValueTuple`", StringComparison.Ordinal);
 
-    /// <summary>⛔ THE ONE NAMED EXCEPTION: the report description models. A <c>ReportModel</c> / <c>ReportGroupModel</c> holds the
-    /// report's PRESENT WHEN, SOURCE, SUM and VALUE operands in mutable <c>List&lt;T&gt;</c> properties and in a graph that
-    /// cycles back to the nodes that name it (<c>BoundReportCounterRef.Report</c>), so the statement walk holds the model by
-    /// reference and does not enter it: a function reference in a report group's SOURCE is not seen by GENERATE's guard.
-    /// That is a different mechanism from the operand positions this file pins (the model is not part of the statement's value
-    /// tree, and entering it needs a cycle-safe walk over the model), reported for its own fix. The list is closed: a NEW
-    /// model type that holds a value node fails the test instead of being skipped.</summary>
-    private static readonly HashSet<string> ModelsHeldByReference = ["ReportModel", "ReportGroupModel"];
-
     /// <summary>Does <paramref name="t"/> mention a value node through a shape the generator is meant to read: the node
-    /// itself, a collection of one, a tuple holding one, or a record of the compiler assembly holding one?</summary>
+    /// itself, a collection of one, a tuple holding one, or a record of the compiler assembly holding one? The types of the report
+    /// description (<see cref="ReportValueWalkDriftTests.ReportModelTypes"/>) are not among them: a statement holds the model by
+    /// reference, it is a cycle-safe graph the generator does not enter, and <see cref="ReportValueWalk"/> reads it under
+    /// <see cref="ReportValueWalkDriftTests"/> (kb/Work PB6349).</summary>
     private static bool Mentions(Type t, int depth, HashSet<Type> seen)
     {
         if (depth > MaxDepth + 1 || !seen.Add(t)) return false;
@@ -68,7 +62,7 @@ public sealed class BoundValueWalkDriftTests
         if (t.IsArray) return Mentions(t.GetElementType()!, depth + 1, seen);
         if (t.IsGenericType)
             return !typeof(Delegate).IsAssignableFrom(t) && t.GetGenericArguments().Any(a => Mentions(a, depth + 1, seen));
-        return t.IsClass && t.Assembly == Bound && !IsStatement(t) && !ModelsHeldByReference.Contains(t.Name) && Properties(t).Any(p => Mentions(p.PropertyType, depth + 1, seen));
+        return t.IsClass && t.Assembly == Bound && !IsStatement(t) && !ReportValueWalkDriftTests.ReportModelTypes.Contains(t) && Properties(t).Any(p => Mentions(p.PropertyType, depth + 1, seen));
     }
 
     /// <summary>Build a value of <paramref name="t"/> that holds a sentinel value node where the generator is meant to
@@ -166,21 +160,23 @@ public sealed class BoundValueWalkDriftTests
         Assert.Same(name, Assert.Single(cancel.OwnValueParts()));
     }
 
-    private static BoundOperand FunctionOperand()
+    internal static BoundOperand FunctionOperand()
     {
         var operand = (BoundComputedOperand)Uninit(typeof(BoundComputedOperand));
         SetBacking(operand, "Expr", Uninit(typeof(BoundIntrinsicCall)));
         return operand;
     }
 
-    private static void SetBacking(object target, string property, object? value)
+    internal static void SetBacking(object target, string property, object? value)
     {
-        var f = target.GetType().GetField($"<{property}>k__BackingField", BindingFlags.Instance | BindingFlags.NonPublic);
+        FieldInfo? f = null;
+        for (var t = target.GetType(); f is null && t is not null; t = t.BaseType)
+            f = t.GetField($"<{property}>k__BackingField", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.DeclaredOnly);
         Assert.True(f is not null, $"{target.GetType().Name} has no backing field for {property} — the record's shape changed and this guard must follow it");
         f!.SetValue(target, value);
     }
 
-    private static BoundStatement IfOf(BoundCondition condition)
+    internal static BoundStatement IfOf(BoundCondition condition)
     {
         var stmt = (BoundIf)Uninit(typeof(BoundIf));
         SetBacking(stmt, "Condition", condition);
