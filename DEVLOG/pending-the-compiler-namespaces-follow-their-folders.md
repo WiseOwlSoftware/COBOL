@@ -71,3 +71,9 @@ abb42aa2ddc8-dirty) ===`. `python scripts/semgrep/verify.py`: PASS, no rule's co
 **Self-review.** Architecture: each move goes down a layer the edges file allows; no new cross-layer pair (the ratchet
 admits none). Code: the moved members keep their bodies verbatim. Duplication: the carrier test now has one body.
 Performance: none of it is on a hot path.
+The extract's self-review also checked that no forwarder or alias of `ReferenceFormatProcessor` remains (the new drift
+test asserts it) and that the moved scan and literal state have one home (the builder).
+
+**Gate.** Run 000002 was RED before any test ran: the new drift test is a tree-wide sweep and lacked its
+`[Trait("Sweep", "tree")]`. After the fix, run 000003-20261128T092631Z at 8d2ec452a3: `=== BUILD-LOCAL GATE: GREEN —
+Conformance 29,548/29,548 ran · Unit 43,114/43,114 ran · RepoDrift 260/260 ran · Characterization 37/37 ran (skipped 0) ===`.
