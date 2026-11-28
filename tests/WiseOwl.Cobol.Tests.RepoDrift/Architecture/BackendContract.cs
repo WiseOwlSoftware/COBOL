@@ -216,6 +216,9 @@ internal static class BackendContract
             "Model.FdClauseValue.Written",
             // how a diagnostic names an arithmetic mode's intermediate data item and its bounds (kb/Work PB194, PB2402)
             "Model.ArithmeticModes.IntermediateName()", "Model.ArithmeticModes.IntermediateExtremes()",
+            // the --numeric-display option's spellings: the CLI's help and option error, and the listing's OPTIONS section
+            // value; never emitted as code (kb/Work PB6172 moved the option type to compiler.model)
+            "Model.NumericDisplayFormOption.OptionSpellings",
         ]),
         new(NeutralKind.IdentityKey,
         [
