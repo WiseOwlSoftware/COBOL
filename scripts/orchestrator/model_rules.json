@@ -263,6 +263,38 @@
           "agents": 134,
           "measured": "2026-11-27",
           "source": "r2_cost.py --measure batch-1c over its one Workflow run wf_0916cfa4-b26 (E:/COBOL-coord/scratch/r2-9e65164eb/batch-1c/cost-record.json, 2026-11-27)"
+        },
+        {
+          "batch": "1d",
+          "pin": "9e65164eb3a9",
+          "line_dimensions": 78930,
+          "findings": 81,
+          "verdicts": 243,
+          "nulls": 0,
+          "finder_tokens": 6444316,
+          "skeptic_tokens": 4792679,
+          "null_tokens": 0,
+          "duplication_pass_tokens": null,
+          "workflow_runs": 1,
+          "agents": 111,
+          "measured": "2026-11-27",
+          "source": "r2_cost.py --measure batch-1d over its one Workflow run wf_4078f608-840 (E:/COBOL-coord/scratch/r2-9e65164eb/batch-1d/cost-record.json, 2026-11-27)"
+        },
+        {
+          "batch": "1e",
+          "pin": "9e65164eb3a9",
+          "line_dimensions": 73215,
+          "findings": 75,
+          "verdicts": 225,
+          "nulls": 0,
+          "finder_tokens": 6625485,
+          "skeptic_tokens": 4465298,
+          "null_tokens": 0,
+          "duplication_pass_tokens": null,
+          "workflow_runs": 1,
+          "agents": 102,
+          "measured": "2026-11-27",
+          "source": "r2_cost.py --measure batch-1e over its one Workflow run wf_8db7f723-a23 (E:/COBOL-coord/scratch/r2-9e65164eb/batch-1e/cost-record.json, 2026-11-27)"
         }
       ]
     },
