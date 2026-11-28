@@ -1,3 +1,4 @@
-## Out-of-group leads from the 2026-11-27 night fix lane filed as kb/Work notes
+## Entry 4090 — 2026-11-27 22:41 PST — Out-of-group leads from the 2026-11-27 night fix lane filed as kb/Work notes
 
 Tonight's implementers registered leads in their reports without filing them. Filed: PB6349 (defect: a function reference in a report group's SOURCE, SUM or PRESENT WHEN raises no EC-ARGUMENT-FUNCTION at GENERATE), PB6350 (analysis: `UsageCollectionPass.Cond` hand switch), PB6351 (defect: no literal range screen on an intrinsic result's reference modification), PB6352 (analysis: `NearestInNameSet` has no method tier), PB6353 (defect: EC-OO-NULL and EC-OO-METHOD throw unconditionally with checking off), PB6354 (defect: the data map prints a backend type name for a dynamic table). The two edition-citation sites (COBOL1637 helpers, `PtrBinder.AddressConformanceReason`) went to PB5922 as a dated addendum. No code changed.
+
