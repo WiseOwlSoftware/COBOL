@@ -40,7 +40,7 @@ public sealed class TextManipulationTextWordTests : IDisposable
     /// "before the application of replacing and conditional compilation actions" (here in free form, where the floating comment
     /// indicator is the one comment). The text-word scanner reads no comment of its own (kb/Work PB5470).</summary>
     private static string LogicallyConverted(string freeFormText)
-        => ReferenceFormatProcessor.NormalizeToFreeFormMapped(freeFormText, null, "t.cob", InitialReferenceFormat.Free).Text;
+        => LogicalLineConverter.NormalizeToFreeFormMapped(freeFormText, null, "t.cob", InitialReferenceFormat.Free).Text;
 
     private static string Codes(DiagnosticBag bag) => string.Join(",", bag.Diagnostics.Select(d => d.Code));
 
@@ -96,7 +96,7 @@ public sealed class TextManipulationTextWordTests : IDisposable
     [Fact] // The fixed-form debugging line keeps its COBOL-85 matching rule through the noncharacter carrier.
     public void FixedFormDebuggingLine_TextWordsTakePartInMatching()
     {
-        var free = ReferenceFormatProcessor.NormalizeToFreeFormMapped(
+        var free = LogicalLineConverter.NormalizeToFreeFormMapped(
             "000100     DISPLAY\n000200D    KK.\n", null, "t.cob", InitialReferenceFormat.Fixed).Text;
         Assert.Contains(DebugLineCarrier.Text + "    KK.", free);
         var (text, bag) = Run("REPLACE ==DISPLAY KK== BY ==DISPLAY W1==.\n" + free);

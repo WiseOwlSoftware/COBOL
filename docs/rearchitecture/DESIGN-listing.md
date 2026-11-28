@@ -157,7 +157,7 @@ The design names the structures each part reads. Every claim is from the tree at
 | The physical text of every file read, tabs expanded | `ReferenceFormatMap.PhysicalText` (src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatMap.cs), one map per file in `CopyProcessor.ReferenceFormats`, each pass's maps returned by `Frontend.RunTextStages` |
 | Fixed or free form of each physical line | `ReferenceFormatMap.AreaAt`, `ReferenceFormatMap.Create` (format changes by line) |
 | The indicator area of a fixed-form line | `FixedFormLine.Indicator` (src/WiseOwl.Cobol.Frontend/Preprocessor/FixedFormLine.cs): `internal`, THE one reader of fixed-form columns (kb/Work PB1966), and the front end grants `InternalsVisibleTo` to `WiseOwl.Cobol.Tests.Unit` only, so the Compiler cannot read it |
-| The kind of each fixed-form line | `ReferenceFormatProcessor.FixedFormConverter.KindOf` classifies each line it converts into a PRIVATE enum `FixedFormConverter.LineKind` (`Source`, `Comment` for both '*' and '/', `Continuation`, `Debugging`, `CcvsExcluded`, `NotAnIndicator`) and keeps no record of the answer; `FixedFormConverter._inCommentEntry` knows a comment-entry line; `FreeFormConverter.Convert` classifies free-form lines the same way, unrecorded |
+| The kind of each fixed-form line | `FixedFormConverter.KindOf` classifies each line it converts into a PRIVATE enum `FixedFormConverter.LineKind` (`Source`, `Comment` for both '*' and '/', `Continuation`, `Debugging`, `CcvsExcluded`, `NotAnIndicator`) and keeps no record of the answer; `FixedFormConverter._inCommentEntry` knows a comment-entry line; `FreeFormConverter.Convert` classifies free-form lines the same way, unrecorded |
 | Resultant line to physical file, line and column | `SourceLineMap.Origin`, `SourceLineMap.Locate`, `LineOrigin.Spans`, `OriginSpan.Layout` (src/WiseOwl.Cobol.Frontend/Common/SourceLineMap.cs); `Frontend.LineMap` |
 | Lines a false `>>IF`/`>>WHEN` branch omitted | `LineOrigin.Omitted`, `SourceLineMap.IsOmitted`, marked in `ConditionalCompilationProcessor.Run.Render` |
 | COPY expansion, its depth, the copybook found | `CopyProcessor.ExpandCopiesOneLevel` (the `expandCopybook` callback gets the depth and the resultant line piece where the copybook begins), `CopyProcessor.ResolveOneCopy` (`OneCopyResult`: outcome, path, mapped text), `CopyProcessor.ParseCopyStatement` (reads SUPPRESS) |
@@ -519,7 +519,7 @@ away; the design keeps it:
 - Recorded where the decision is made, with no new reading of any column: `FixedFormConverter.ConvertLine` (the
   indicator kind, `CommentEntry` while `_inCommentEntry`, `CommentEntryCandidate` for a carried candidate,
   `Directive` for a `>>` line, `Blank`), `FreeFormConverter.Convert` (free form: `Source`, `Comment` for a `*>` line,
-  `DebuggingLine` for `>>D`, `Directive`, `CommentEntry`, `Blank`) and `ReferenceFormatProcessor.NormalizeToFreeFormMapped`
+  `DebuggingLine` for `>>D`, `Directive`, `CommentEntry`, `Blank`) and `LogicalLineConverter.NormalizeToFreeFormMapped`
   (a discarded `>>SOURCE` line is `Directive`). Each writes into a `PhysicalLineKind[]` allocated beside the text's
   `ReferenceFormatMap` (one byte per physical line). (Step 1:) the classifiers record the INDICATOR's answer, and the
   shared `LogicalLineBuilder` refines a line where IT decides it, through its one `Classify`: `Blank` (no program text),
@@ -3117,9 +3117,9 @@ the 1985 minimum, so PB5923 closes first.
   green (`ArchReviewFleetDriftTests`); and whatever public API baseline `python scripts/public_api_baselines.py --check`
   asks of a new product assembly.
 - Front end, line kinds (section 4.4.1): `src/WiseOwl.Cobol.Frontend/Preprocessor/PhysicalLineKind.cs` (new, replacing
-  `FixedFormConverter.LineKind`), recorded in `ReferenceFormatProcessor.FixedFormConverter.KindOf`,
-  `ReferenceFormatProcessor.FixedFormConverter.ConvertLine`, `ReferenceFormatProcessor.FreeFormConverter.Convert` and
-  `ReferenceFormatProcessor.NormalizeToFreeFormMapped`; stored by `ReferenceFormatMap.Create` and answered by
+  `FixedFormConverter.LineKind`), recorded in `FixedFormConverter.KindOf`,
+  `FixedFormConverter.ConvertLine`, `FreeFormConverter.Convert` and
+  `LogicalLineConverter.NormalizeToFreeFormMapped`; stored by `ReferenceFormatMap.Create` and answered by
   `ReferenceFormatMap.KindAt`.
 - Front end, provenance: `src/WiseOwl.Cobol.Frontend/Preprocessor/TextStageTrace.cs` (inclusion events only in this step)
   recorded in `CopyProcessor.ExpandCopiesOneLevel` (from `ResolveOneCopy`'s result) and

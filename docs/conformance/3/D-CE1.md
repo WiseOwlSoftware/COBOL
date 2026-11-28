@@ -7,7 +7,7 @@
   paragraph, its period optional, and the entry is the rest of that line; the next line is program text again. GnuCOBOL
   3.2 measured: `AUTHOR. Pat O'Brien.`, `AUTHOR Pat O'Brien.` and `SECURITY. J. Smith.` are accepted, the paragraph
   word part-way along a line is not a header, and a second line of entry text is refused. **Mechanism:** the §2023:6.5 logical
-  conversion's free-form classifier (`ReferenceFormatProcessor.FreeFormConverter`) writes the header line as `AUTHOR. .`
+  conversion's free-form classifier (`FreeFormConverter`) writes the header line as `AUTHOR. .`
   and discards the entry, exactly as the fixed-form classifier does with a COBOL-85 entry that runs to the next Area-A
   word, so no comment-entry character reaches the lexer in either format: an apostrophe in a name is no unclosed literal
   (COBOL5563), and a comma with no space after it is no misplaced separator (COBOL2631). Which division a line stands in

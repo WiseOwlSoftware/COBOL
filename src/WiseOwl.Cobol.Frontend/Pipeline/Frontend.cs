@@ -333,7 +333,7 @@ public sealed class Frontend
         // The edition-aware overload carries the fixed-form continuation gates (VCR rows 2/94, W3): only the
         // column-aware pass can see the col-7 indicator, so the per-edition obligations emit HERE. Mapped (kb/Work
         // PB82): a fixed-form continuation JOINS physical lines, and the map records which line each output came from.
-        var text = ReferenceFormatProcessor.NormalizeToFreeFormMapped(raw, referenceFormatGates, sourcePath,
+        var text = LogicalLineConverter.NormalizeToFreeFormMapped(raw, referenceFormatGates, sourcePath,
             InitialFormat.InitialFixed(), out var formats, ccvsIndicators: NistTestName is not null,   // kb/Work PB1494
             implicitOps: implicitOps.For(sourcePath),   // §2023:14.9.28.4 GR14's implicit PUSH/POP ALL written in the source (kb/Work PB1066)
             pins: pins,   // the comment-entry candidates a previous run proved to be program text (kb/Work PB4281)

@@ -30,7 +30,7 @@
   source element (§2002:8.8.1.3). **Every one of these is edition-GATED**, which is the half that was missing until
   kb/Work PB725: the roster is the `directiveWords` column of `tests/version-matrix/constructs/`, inverted by
   `CompilerDirectiveCatalog` and checked once, where `ConditionalCompilationProcessor` recognizes a `>>` word
-  (`>>SOURCE FORMAT` too: below 2002 `ReferenceFormatProcessor` recognizes no directive line, so the driver gates it; from 2002 that stage consumes the line and checks its operand). Recognizing
+  (`>>SOURCE FORMAT` too: below 2002 `LogicalLineConverter` recognizes no directive line, so the driver gates it; from 2002 that stage consumes the line and checks its operand). Recognizing
   a directive the targeted edition does not have is not a leniency, it is an under-rejection — the `>>` facility
   itself is a COBOL-2002 introduction (VCR Table 7 row 7.21) and `>>FLAG-85` / `>>FLAG-NATIVE-ARITHMETIC` were
   REMOVED in 2023 (Annex E.2 item 21), so all three edges are enforced: COBOL0900 below the introducing

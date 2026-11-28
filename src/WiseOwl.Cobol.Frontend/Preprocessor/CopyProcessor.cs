@@ -831,7 +831,7 @@ public sealed class CopyProcessor(
     }
 
     /// <summary>The spelling the REPLACING phrase of a COPY statement gives a word of its library text, for the reader of that text to
-    /// ask whether the word, once replaced, heads a comment-entry paragraph (<see cref="ReferenceFormatProcessor.NormalizeToFreeFormMapped(string, ReferenceFormatDiagnostics?, string, bool?, out ReferenceFormatMap, bool, IReadOnlyList{DirectiveStackOp}?, bool?, CommentEntryPins?, int, Func{string, string}?)"/>;
+    /// ask whether the word, once replaced, heads a comment-entry paragraph (<see cref="LogicalLineConverter.NormalizeToFreeFormMapped(string, ReferenceFormatDiagnostics?, string, bool?, out ReferenceFormatMap, bool, IReadOnlyList{DirectiveStackOp}?, bool?, CommentEntryPins?, int, Func{string, string}?)"/>;
     /// kb/Work PB5732): the one replacing action of <see cref="ApplyReplacements"/> run on that word alone, reporting nothing —
     /// the statement's own replacing action reports. Null for a COPY statement with no REPLACING phrase.</summary>
     private static Func<string, string>? ParagraphWordAsReplaced(IReadOnlyList<Replacement> replacements, EditionInfo edition)
@@ -1207,7 +1207,7 @@ public sealed class CopyProcessor(
     }
 
     /// <summary>Normalize library text to logical free form (kb/Work PB82 / PB1067) through the ONE §2023:6.5 walker the
-    /// source text uses — <see cref="ReferenceFormatProcessor.NormalizeToFreeFormMapped(string, ReferenceFormatDiagnostics?, string, bool?, out ReferenceFormatMap, bool, IReadOnlyList{DirectiveStackOp}?, bool?, CommentEntryPins?, int)"/>
+    /// source text uses — <see cref="LogicalLineConverter.NormalizeToFreeFormMapped(string, ReferenceFormatDiagnostics?, string, bool?, out ReferenceFormatMap, bool, IReadOnlyList{DirectiveStackOp}?, bool?, CommentEntryPins?, int)"/>
     /// — starting in <paramref name="copyFixed"/>, the format in effect for the COPY statement (§2023:7.3.24.3 GR3); null
     /// when that is unknown, and then detected as the compilation group's is). The text's own &gt;&gt;SOURCE FORMAT
     /// directives switch it (1), 5)); the resulting map is registered so a COPY inside this library text starts its
@@ -1218,7 +1218,7 @@ public sealed class CopyProcessor(
         // Library text is read by the same §2023:6.5 walker WITH the compilation's reference-format diagnostics (§2023:6.5: the rules
         // of logical conversion apply to lines "of source text and library text"), sited at the copybook's own file and
         // line, so a rule broken in a copybook is reported as it is in the main source (kb/Work PB1640).
-        var mapped = ReferenceFormatProcessor.NormalizeToFreeFormMapped(text, referenceFormatGates,
+        var mapped = LogicalLineConverter.NormalizeToFreeFormMapped(text, referenceFormatGates,
             copybookPath, copyFixed, out var formats, ccvsIndicators,
             implicitOps: implicitFormatOps?.For(copybookPath),   // GR14's implicit ops written IN this library text
             startsInIdentificationDivision: inIdentificationDivision,

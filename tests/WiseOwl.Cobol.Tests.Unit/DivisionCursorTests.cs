@@ -15,7 +15,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 public sealed class DivisionCursorTests
 {
     private static string[] Convert(string fixedFormText, bool startsInIdentification = true)
-        => ReferenceFormatProcessor.NormalizeToFreeFormMapped(fixedFormText, null, "t.cob", initialFixed: true, out _,
+        => LogicalLineConverter.NormalizeToFreeFormMapped(fixedFormText, null, "t.cob", initialFixed: true, out _,
             startsInIdentificationDivision: startsInIdentification).Text.Split('\n');
 
     [Theory] // a division header is a division header in Area B too (column 12), and so is one split across two lines

@@ -320,7 +320,7 @@ question. PB794 then removed the diagnostic channel itself from the PROPAGATE an
 which no longer report anything at all.
 
 **`>>SOURCE FORMAT` is the documented exception, and there is exactly one — and it is gated by the driver like its
-siblings.** `ReferenceFormatProcessor` consumes the line wherever the edition has compiler directives
+siblings.** `LogicalLineConverter` consumes the line wherever the edition has compiler directives
 (`EditionInfo.HasCompilerDirectives`, 2002 on) — it must, because the following segment's reference format depends on
 it — and there it carries the OPERAND check (COBOL1911, `OnSourceFormatDirective`), keyed on
 `Constructs.SourceFormatDirective2002`; it recognizes the directive by its WORD, so a malformed operand is diagnosed

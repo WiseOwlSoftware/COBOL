@@ -21,7 +21,7 @@ public sealed class LogicalLineBuilderTests
     {
         var bag = new DiagnosticBag();
         var gates = new ReferenceFormatDiagnostics(std, permissive, bag);
-        return (ReferenceFormatProcessor.NormalizeToFreeFormMapped(source, gates, file, format.InitialFixed(), out _, ccvs), bag);
+        return (LogicalLineConverter.NormalizeToFreeFormMapped(source, gates, file, format.InitialFixed(), out _, ccvs), bag);
     }
 
     /// <summary>The same program-text lines as a fixed-form source (sequence area, a space indicator, the text at
@@ -334,7 +334,7 @@ public sealed class LogicalLineBuilderTests
     {
         var bag = new DiagnosticBag();
         var gates = new ReferenceFormatDiagnostics(2002, permissive: false, bag);
-        var m = ReferenceFormatProcessor.NormalizeToFreeFormMapped("MOVE \"AB\"-\n>>D DISPLAY \"X\".\n    \"CD\" TO V.\n", gates, "t.cob", false, out _, false);
+        var m = LogicalLineConverter.NormalizeToFreeFormMapped("MOVE \"AB\"-\n>>D DISPLAY \"X\".\n    \"CD\" TO V.\n", gates, "t.cob", false, out _, false);
         Assert.Equal("MOVE \"ABCD\" TO V.", m.Text.Split('\n')[0]);                 // the debugging line was passed over: the literal is joined
         gates.OnSourceDebuggingLines([m.Lines[1].Origin]);
         var d = Assert.Single(bag.Diagnostics, x => x.Code == "COBOL3473");
@@ -418,7 +418,7 @@ public sealed class LogicalLineBuilderTests
     [InlineData(false, "REMARKS.", "DISPLAY \"X\".")]
     public void LibraryText_IsConvertedInTheDivisionItsCopyStatementStandsIn(bool inIdentification, string header, string body)
     {
-        var m = ReferenceFormatProcessor.NormalizeToFreeFormMapped("000100 REMARKS.\n000200     DISPLAY \"X\".\n", null, "b.cpy",
+        var m = LogicalLineConverter.NormalizeToFreeFormMapped("000100 REMARKS.\n000200     DISPLAY \"X\".\n", null, "b.cpy",
             initialFixed: true, out _, startsInIdentificationDivision: inIdentification);
         string[] lines = m.Text.Split('\n');
         Assert.Equal(header, lines[0]);
@@ -468,7 +468,7 @@ public sealed class LogicalLineBuilderTests
     {
         string src = "000100 PROCEDURE DIVISION.\n       >>SOURCE FORMAT FREE\nDISPLAY \"A\".\n>>SOURCE FORMAT FIXED\n000200 REMARKS.\n"
                    + "000300     DISPLAY \"B\".\n";
-        var m = ReferenceFormatProcessor.NormalizeToFreeFormMapped(src, null, "t.cob", InitialReferenceFormat.Fixed);
+        var m = LogicalLineConverter.NormalizeToFreeFormMapped(src, null, "t.cob", InitialReferenceFormat.Fixed);
         string[] lines = m.Text.Split('\n');
         Assert.Equal("REMARKS.", lines[4]);              // a procedure paragraph: kept as written, with its body
         Assert.Equal("DISPLAY \"B\".", lines[5].Trim());
@@ -481,8 +481,8 @@ public sealed class LogicalLineBuilderTests
         var bag = new DiagnosticBag();
         var gates = new ReferenceFormatDiagnostics(2023, false, bag);
         string hyphen = "000100     MOVE 1 TO X\n000200-    .\n";
-        ReferenceFormatProcessor.NormalizeToFreeFormMapped(hyphen, gates, "main.cob", InitialReferenceFormat.Fixed);
-        ReferenceFormatProcessor.NormalizeToFreeFormMapped(hyphen + "000300     MOVE A TO X*> c\n", gates, "book.cpy",
+        LogicalLineConverter.NormalizeToFreeFormMapped(hyphen, gates, "main.cob", InitialReferenceFormat.Fixed);
+        LogicalLineConverter.NormalizeToFreeFormMapped(hyphen + "000300     MOVE A TO X*> c\n", gates, "book.cpy",
             InitialReferenceFormat.Fixed);
         Assert.Single(bag.Diagnostics, d => d.Code == "COBOL0903");           // the first use, in the main source
         var unseparated = Assert.Single(bag.Diagnostics, d => d.Code == "COBOL2495");
@@ -553,7 +553,7 @@ public sealed class LogicalLineBuilderTests
         string src = ToMarginR("000100", " ", prefix, 'A') + "\n000200D    DISPLAY \"X\".\n000300-    \"TAIL\" TO V.\n";
         var bag = new DiagnosticBag();
         var gates = new ReferenceFormatDiagnostics(85, permissive: false, bag);
-        var m = ReferenceFormatProcessor.NormalizeToFreeFormMapped(src, gates, "t.cob", true, out _, false);
+        var m = LogicalLineConverter.NormalizeToFreeFormMapped(src, gates, "t.cob", true, out _, false);
         Assert.DoesNotContain(bag.Diagnostics, d => d.IsError);            // the walk itself reports nothing
         var debuggingLine = m.Lines[1].Origin;                              // the logical line the debugging line kept (physical line 2)
         Assert.Equal(2, debuggingLine.Line);
@@ -568,7 +568,7 @@ public sealed class LogicalLineBuilderTests
     {
         var bag = new DiagnosticBag();
         var gates = new ReferenceFormatDiagnostics(85, permissive: false, bag);
-        var m = ReferenceFormatProcessor.NormalizeToFreeFormMapped("000100     STOP RUN.\n000200D    DISPLAY \"X\".\n", gates, "t.cob", true, out _, false);
+        var m = LogicalLineConverter.NormalizeToFreeFormMapped("000100     STOP RUN.\n000200D    DISPLAY \"X\".\n", gates, "t.cob", true, out _, false);
         gates.OnSourceDebuggingLines([m.Lines[1].Origin]);
         Assert.DoesNotContain(bag.Diagnostics, d => d.Code == "COBOL3473");
     }

@@ -2,8 +2,8 @@
  "rule-id": "GR-7.3.4-5",
  "rule-digest": "c8fd46e31bb1",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/TurnDirectiveProcessor.cs; src/WiseOwl.Cobol.Compiler/Binding/TurnState.cs; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.cs; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#NormalizeCopybookMapped",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/TurnDirectiveProcessor.cs; src/WiseOwl.Cobol.Compiler/Binding/TurnState.cs; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#NormalizeCopybookMapped; src/WiseOwl.Cobol.Frontend/Preprocessor/LogicalLineConverter.cs",
  "test-ref": "conformance:cases/6.5-Logical-conversion/pb1067_library_text_source_format",
  "editions": "2002,2014,2023",
- "notes": "kb/Work PB1067 (w67m): the PARTIAL half was the SOURCE FORMAT directive in library text, which a sequence-numbered copybook skipped; library text now runs through the directive-aware walker, so a SOURCE FORMAT directive applies to all the library text that follows it (and its text-manipulation siblings already applied to source and library text alike)."
+ "notes": "kb/Work PB1067 (w67m): the PARTIAL half was the SOURCE FORMAT directive in library text, which a sequence-numbered copybook skipped; library text now runs through the directive-aware walker, so a SOURCE FORMAT directive applies to all the library text that follows it (and its text-manipulation siblings already applied to source and library text alike). retired-witness: src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.cs (the extract of ReferenceFormatProcessor (kb/Work PB2328): the member moved verbatim to the file of the type that holds it now (LogicalLineConverter, FixedFormConverter, FreeFormConverter, LogicalLineBuilder); the same code)"
 }

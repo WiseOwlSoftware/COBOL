@@ -67,7 +67,11 @@ public sealed class PhysicalLinesDriftTests
     [Fact] // The raw text is split in ONE place; the reference-format walkers read PhysicalLine values.
     public void TheReferenceFormatWalkers_NeverSplitRawText()
     {
-        var offenders = Directory.EnumerateFiles(TestRepo.Src("WiseOwl.Cobol.Frontend", "Preprocessor"), "ReferenceFormatProcessor*.cs")
+        // The §2023:6.5 conversion's files (kb/Work PB2328): the converter, the two classifiers and the builder they feed.
+        string[] walkers = [.. new[] { "LogicalLineConverter.cs", "FixedFormConverter.cs", "FreeFormConverter.cs", "LogicalLineBuilder.cs" }
+            .Select(f => Path.Combine(TestRepo.Src("WiseOwl.Cobol.Frontend", "Preprocessor"), f))];
+        Assert.All(walkers, f => Assert.True(File.Exists(f), $"the walker file {f} is gone: name its successor here"));
+        var offenders = walkers
             .SelectMany(CodeLines).Where(l => l.Text.Contains(".Split(", StringComparison.Ordinal)
                                               || l.Text.Contains(".Lines(", StringComparison.Ordinal)
                                               || l.Text.Contains("ReadAllLines", StringComparison.Ordinal))
@@ -88,7 +92,7 @@ public sealed class PhysicalLinesDriftTests
             callers.AddRange(CodeLines(file).Where(l => l.Text.Contains("PhysicalLines.Read(", StringComparison.Ordinal))
                 .Select(l => $"{l.File}:{l.Line}"));
         }
-        Assert.True(callers.Count == 1 && callers[0].Contains("ReferenceFormatProcessor.cs", StringComparison.Ordinal),
+        Assert.True(callers.Count == 1 && callers[0].Contains("LogicalLineConverter.cs", StringComparison.Ordinal),
             "PhysicalLines.Read has one production caller, the reference-format walker's entry "
             + "(NormalizeToFreeFormMapped). Callers found:\n  " + string.Join("\n  ", callers));
     }

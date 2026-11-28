@@ -224,7 +224,7 @@ public sealed class DirectiveStateStackTests
     {
         // FIXED, PUSH SOURCE, FREE, POP SOURCE: the last line carries a sequence number in columns 1-6, which the
         // fixed-form reading strips and a free-form reading keeps.
-        string text = ReferenceFormatProcessor.NormalizeToFreeForm(
+        string text = LogicalLineConverter.NormalizeToFreeForm(
             "       >>SOURCE FIXED\n"
             + "       >>PUSH SOURCE\n"
             + "       >>SOURCE FREE\n"

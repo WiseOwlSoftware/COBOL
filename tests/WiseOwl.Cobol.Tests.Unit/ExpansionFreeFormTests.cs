@@ -67,7 +67,7 @@ public sealed class ExpansionFreeFormTests
             // The reference-format stage joins a continued literal; it reports a continued or continuation line with no content
             // (COBOL2690, §2023:6.4.2) and a continuation line that does not open with the matching quotation symbol (COBOL2684).
             var bag = new DiagnosticBag();
-            string joined = ReferenceFormatProcessor.NormalizeToFreeForm(lines + "\n", new ReferenceFormatDiagnostics(2023, false, bag),
+            string joined = LogicalLineConverter.NormalizeToFreeForm(lines + "\n", new ReferenceFormatDiagnostics(2023, false, bag),
                 "expansion.cob", InitialReferenceFormat.Free);
             Assert.True(bag.Diagnostics.Count == 0, $"{where}: {string.Join("; ", bag.Diagnostics)}");
 

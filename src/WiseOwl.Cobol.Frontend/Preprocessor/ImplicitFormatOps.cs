@@ -12,7 +12,7 @@ namespace WiseOwl.Cobol.Frontend.Preprocessor;
 /// exactly as a <c>&gt;&gt;DEFINE</c> there is.
 /// <para>THE DIRECTIVE STATE LIVES WHERE THE DIRECTIVE IS PROCESSED, and the reference format is the one state that is
 /// settled BEFORE any parse: the §2023:6.5 logical conversion reads the physical lines in order with the format in effect as
-/// state (<see cref="ReferenceFormatProcessor"/>), so the ops that restore it cannot be keyed to the conditional-
+/// state (<see cref="LogicalLineConverter"/>), so the ops that restore it cannot be keyed to the conditional-
 /// compilation driver's state encounters (<see cref="ConditionalCompilationResult.KeyImplicitOps"/> — the driver
 /// runs on the already-normalized text) nor to the post-COPY resultant lines the line-scoped timelines use. They are
 /// keyed to PHYSICAL lines of the text they were written in: the parse places them in the resultant-line frame, and
@@ -20,7 +20,7 @@ namespace WiseOwl.Cobol.Frontend.Preprocessor;
 /// per physical line and each file — the compilation group and every library text — is converted by its own walker
 /// with its own format state (§2023:7.3.24.3 5: a library text's format reverts when it ends).</para>
 /// <para><b>Where each op falls, in the line frame</b> (a reference format is a per-line property, so each op is a
-/// BOUNDARY between physical lines; <see cref="ReferenceFormatProcessor"/> applies them): the PUSH takes effect after the
+/// BOUNDARY between physical lines; <see cref="LogicalLineConverter"/> applies them): the PUSH takes effect after the
 /// physical line that ends imperative-statement-1 ("at the end of"); the POP takes effect BEFORE the physical line that
 /// holds END-PERFORM ("immediately preceding the END PERFORM phrase") — so the END-PERFORM line itself is read in the
 /// RESTORED format, because the phrase is text that follows the POP (§2023:7.3.24.3 1: a format governs "the source text …

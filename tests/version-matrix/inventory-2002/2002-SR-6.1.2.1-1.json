@@ -2,7 +2,7 @@
  "rule-id": "2002-SR-6.1.2.1-1",
  "rule-digest": "64cae027c749",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalLineBuilder.cs#ScanProgramText; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalConversion.cs#FreeFormConverter",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/LogicalLineBuilder.cs#ScanProgramText; src/WiseOwl.Cobol.Frontend/Preprocessor/FreeFormConverter.cs#FreeFormConverter",
  "test-ref": "conformance:cases/6.1.2@2002-FLOATING-INDICATORS/g2002_fi_debug_lines_on",
- "notes": "Same text as the 2023 twin; in 2002 it also reaches fixed D and >>D debugging lines (§2002:6.2.3, §2002:6.4 step 5). §2002:6.1.2.1 SR1 makes '*>X. DISPLAY \"BAD\"' an inline comment (§2002:6.2.6.2) on both kinds: at --std 2002 with DEBUGGING MODE g2002_fi_debug_lines_on printed D1 D2 F3 F4 ABCD N-OK B-OK MAIN, as derived."
+ "notes": "Same text as the 2023 twin; in 2002 it also reaches fixed D and >>D debugging lines (§2002:6.2.3, §2002:6.4 step 5). §2002:6.1.2.1 SR1 makes '*>X. DISPLAY \"BAD\"' an inline comment (§2002:6.2.6.2) on both kinds: at --std 2002 with DEBUGGING MODE g2002_fi_debug_lines_on printed D1 D2 F3 F4 ABCD N-OK B-OK MAIN, as derived. retired-witness: src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalConversion.cs#FreeFormConverter (the extract of ReferenceFormatProcessor (kb/Work PB2328): the member moved verbatim to the file of the type that holds it now (LogicalLineConverter, FixedFormConverter, FreeFormConverter, LogicalLineBuilder); the same code) retired-witness: src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalLineBuilder.cs#ScanProgramText (the extract of ReferenceFormatProcessor (kb/Work PB2328): the member moved verbatim to the file of the type that holds it now (LogicalLineConverter, FixedFormConverter, FreeFormConverter, LogicalLineBuilder); the same code)"
 }

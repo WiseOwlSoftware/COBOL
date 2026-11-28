@@ -165,7 +165,7 @@ unchanged on the final text.
 ### §3.4 Copybook reference format (§2023:7.3.24.3 GR3 / GR5 — kb/Work PB1067)
 
 `NormalizeCopybookMapped` runs library text through the ONE §2023:6.5 walker the main source uses
-(`ReferenceFormatProcessor.NormalizeToFreeFormMapped`), starting in the format in effect for the COPY statement (GR3).
+(`LogicalLineConverter.NormalizeToFreeFormMapped`), starting in the format in effect for the COPY statement (GR3).
 Every normalization reports a `ReferenceFormatMap` (the format of each physical line); `Frontend.Preprocess` registers
 the compilation group's map with `CopyProcessor.RegisterReferenceFormat`, each library text's map is registered as it
 is normalized, and `ResolveOneCopy` asks the map of the text holding the COPY at the COPY's origin line
@@ -187,7 +187,7 @@ origin of the first content written into it), and `LineOrigin.Locate(column)` is
 becomes a physical one. `OriginWriter` assembles the outputs: a slice of a mapped input keeps the input's spans,
 rebased to the column it lands on; text a stage writes itself takes one stretch at the position it stands for, a character position per character (a supplementary-plane character ends the span, kb/Work PB3031)
 (`MappedText.PointAt`). The stages and their splice rules —
-- the reference-format conversion (`ReferenceFormatProcessor.LogicalLineBuilder`, fed a `TextSite` per physical line:
+- the reference-format conversion (`LogicalLineBuilder`, fed a `TextSite` per physical line:
   the program text's start index in the expanded line and the line's `ColumnMap`) BEARS the spans: a fixed-form line's
   program text maps from position 8, a free-form line from position 1, a line that held a tab or a supplementary-plane
   character gets a span wherever the physical columns (character positions) stop running one for one, and a continuation join appends the continuation's own span (its line,

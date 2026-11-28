@@ -76,7 +76,7 @@ public sealed class CommentEntryResolutionOrderDriftTests
             if (code.Contains("pins?.Contains(", StringComparison.Ordinal)) read.Add(name);
         }
         Assert.Equal(["Frontend.cs"], made);
-        Assert.Equal(["ReferenceFormatProcessor.LogicalConversion.cs"], read);
+        Assert.Equal(["FixedFormConverter.cs", "FreeFormConverter.cs"], read.Order(StringComparer.Ordinal));
     }
 
     [Fact] // the carrier is made in the two converters only and read in the resolver only; the resolver is the only reader given a word map
@@ -95,7 +95,7 @@ public sealed class CommentEntryResolutionOrderDriftTests
             if (name != "DivisionCursor.cs" && System.Text.RegularExpressions.Regex.IsMatch(code, @"new DivisionCursor\([^;]*,\s*(?:words|map|CobolWordsMap\.\w+)\)"))
                 mapped.Add(name);
         }
-        Assert.Equal(["ReferenceFormatProcessor.LogicalConversion.cs"], made);
+        Assert.Equal(["FixedFormConverter.cs", "FreeFormConverter.cs"], made.Order(StringComparer.Ordinal));
         Assert.Equal(["CommentEntryResolver.cs"], read);
         Assert.Equal(["CommentEntryResolver.cs"], mapped);   // only the resolver reads the words through a map
     }
@@ -106,7 +106,7 @@ public sealed class CommentEntryResolutionOrderDriftTests
         var physical = new PhysicalLine(7, "       COPY BOOK. >>IF X IS DEFINED ==", null);
         string carrier = CommentEntryCarrier.Encode(isHeader: false, isFixed: true, ccvsIndicators: false, inclusion: 3, physical);
         Assert.Empty(TextWordScanner.Scan(carrier, directiveLines: true));
-        Assert.False(ReferenceFormatProcessor.HoldsNoProgramText(carrier));   // it is a line of text, to be decided, not a blank one
+        Assert.False(LogicalLineConverter.HoldsNoProgramText(carrier));   // it is a line of text, to be decided, not a blank one
         Assert.False(carrier.TrimStart().StartsWith(">>", StringComparison.Ordinal));
     }
 }

@@ -1899,7 +1899,8 @@ src/WiseOwl.Cobol.Frontend/
     Core/          CobolLexer.g4, CobolData/ControlFlow/Expressions/IO/OO/ReportWriter/Screen/SpecialNames.g4
   Generated/       CobolLexer.cs, CobolParserCore.cs, *Visitor.cs  (build output; git-ignored or tracked per current policy)
   Parsing/         CobolParserCoreBase.cs, CobolErrorListener.cs, CobolErrorStrategy.cs, ZeroTokenRewriter.cs
-  Preprocessor/    ReferenceFormatProcessor.cs, ConditionalCompilationProcessor.cs, CopyProcessor.cs, NistPreprocessor.cs
+  Preprocessor/    LogicalLineConverter.cs, FixedFormConverter.cs, FreeFormConverter.cs, LogicalLineBuilder.cs,
+                   ConditionalCompilationProcessor.cs, CopyProcessor.cs, NistPreprocessor.cs
   Diagnostics/     Diagnostic.cs, DiagnosticBag.cs, DiagnosticDescriptors.cs, DiagnosticSeverity.cs, CompileOutputLine.cs
   Common/          SourceLocation.cs, SourceLineMap.cs, TextSpan.cs, CobolLiteral.cs, NumericLiteral.cs, CobolWordRule.cs,
                    CompilerDirectiveWords.cs

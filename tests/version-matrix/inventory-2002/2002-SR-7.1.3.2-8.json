@@ -2,7 +2,7 @@
  "rule-id": "2002-SR-7.1.3.2-8",
  "rule-digest": "a53b5f30d57f",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalLineBuilder.cs#ContinueFloating",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/LogicalLineBuilder.cs#ContinueFloating",
  "test-ref": "conformance:cases/7.1.3@2002-REPLACE-STATEMENT/g2-replace-pseudo-text-continuation",
- "notes": "§2002:7.1.3.2 SR8 with §2002:6.2.4: a COBOL word broken by a fixed continuation indicator inside pseudo-text-1 rejoins (REPLACED) and a literal continued inside pseudo-text-2 keeps the 18 trailing spaces to margin R (length 26); matched at --std 2002."
+ "notes": "§2002:7.1.3.2 SR8 with §2002:6.2.4: a COBOL word broken by a fixed continuation indicator inside pseudo-text-1 rejoins (REPLACED) and a literal continued inside pseudo-text-2 keeps the 18 trailing spaces to margin R (length 26); matched at --std 2002. retired-witness: src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalLineBuilder.cs#ContinueFloating (the extract of ReferenceFormatProcessor (kb/Work PB2328): the member moved verbatim to the file of the type that holds it now (LogicalLineConverter, FixedFormConverter, FreeFormConverter, LogicalLineBuilder); the same code)"
 }
