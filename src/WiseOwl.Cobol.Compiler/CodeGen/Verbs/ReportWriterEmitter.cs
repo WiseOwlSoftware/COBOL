@@ -1,16 +1,18 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Globalization;
-using WiseOwl.Cobol.Common;
-using WiseOwl.Cobol.Binding;
-using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.Binding.Bound;
-using WiseOwl.Cobol.CodeGen.Emit;
+using WiseOwl.Cobol.Frontend.Common;
+using WiseOwl.Cobol.Compiler.Binding;
+using WiseOwl.Cobol.Compiler.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Bound;
+using WiseOwl.Cobol.Compiler.CodeGen.Emit;
 using WiseOwl.Cobol.Runtime;
+using WiseOwl.Cobol.Compiler.CodeGen.DataDivision;
+using WiseOwl.Cobol.Compiler.CodeGen.Roslyn;
 
-namespace WiseOwl.Cobol.CodeGen;
+namespace WiseOwl.Cobol.Compiler.CodeGen.Verbs;
 
-using static WiseOwl.Cobol.CodeGen.Emit.EmitText;
+using static WiseOwl.Cobol.Compiler.CodeGen.Emit.EmitText;
 
 /// <summary>
 /// The Report Writer half of the Roslyn backend (ISO/IEC 1989:2023 §2023:13.14–§2023:13.18 / §2023:14.9.16/.21/.46;

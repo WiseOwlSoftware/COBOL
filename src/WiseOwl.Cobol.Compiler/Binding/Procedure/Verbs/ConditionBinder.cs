@@ -1,19 +1,18 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Symbols;
+using WiseOwl.Cobol.Compiler.Symbols;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
-using WiseOwl.Cobol.Common;
-using WiseOwl.Cobol.Binding.Bound;
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Frontend.Common;
+using WiseOwl.Cobol.Compiler.Binding.Bound;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Cst;
 using WiseOwl.Cobol.Frontend.Expressions;
-using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Frontend.Parsing;
 using WiseOwl.Cobol.Editions;
 
-namespace WiseOwl.Cobol.Binding.Procedure;
+namespace WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs;
 
 using Core = CobolParserCore;
 using WiseOwl.Cobol.Runtime;
@@ -300,7 +299,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         && c.Call.Args[1] is BoundNumericLiteral { Text: { } t }
         // THE ONE integer-literal reader (kb/Work PB1579): an int.TryParse read an 11-digit length as "runtime" and
         // the length-1 tests failed open; saturated, it is a static width that is not 1.
-        && WiseOwl.Cobol.Validation.IntegerOperandRules.TryHostValue(t, out int w) ? w : null;
+        && WiseOwl.Cobol.Compiler.Validation.IntegerOperandRules.TryHostValue(t, out int w) ? w : null;
 
     /// <summary>The COMPILE-TIME length of a boolean item operand, or null when it is a run-time quantity. A
     /// reference-modified operand is the §2023:8.4.3.3.4 GR5 unique data item of the SLICE's positions

@@ -1,14 +1,13 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Bound;
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Bound;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 using WiseOwl.Cobol.Compiler.Oo;
 using WiseOwl.Cobol.Editions.Diagnostics;
-using WiseOwl.Cobol.Frontend.Generated;
-using WiseOwl.Cobol.Runtime;
 using WiseOwl.Cobol.Frontend.Parsing;
+using WiseOwl.Cobol.Runtime;
 
-namespace WiseOwl.Cobol.Binding.Procedure;
+namespace WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs;
 
 using Core = CobolParserCore;
 
@@ -297,7 +296,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
         bool receiverEvaluationOvertakesSender = senderPreOpsEnd is { } end
             && (ctx.Data.Procedure.PendingPreOps.AnyAfter(end)
                 || targets.Any(t => ReceiverOpensAtRunTime(ctx.Data.Procedure, t, BoundStores.WholeReceiverStore(t))))
-            && WiseOwl.Cobol.CodeGen.PlaceIdentification.IdentifiesAtRunTime(source);
+            && WiseOwl.Cobol.Compiler.CodeGen.Roslyn.PlaceIdentification.IdentifiesAtRunTime(source);
         if ((targets.Count > 1 || MoveClassifier.NeedsLengthFreeze(source, targets) || receiverEvaluationOvertakesSender)
             && host.SendingValue.Materialize(source, "move", senderPreOpsEnd, SendingValueTemp.ValueUse.MovedTo(targets)) is { } frozen)
             source = new BoundFieldOperand(frozen);
@@ -405,7 +404,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
             if (ReferenceEquals(op.Temp, receiver.Item))
                 return op.Interleaved
                     && (op.Prelude.Count > 0
-                        || op.IdentifiedReceiver is { } identified && WiseOwl.Cobol.CodeGen.PlaceIdentification.IdentifiesAtRunTime(identified)
+                        || op.IdentifiedReceiver is { } identified && WiseOwl.Cobol.Compiler.CodeGen.Roslyn.PlaceIdentification.IdentifiesAtRunTime(identified)
                         || op.GetsBefore(kind));
         return false;
     }

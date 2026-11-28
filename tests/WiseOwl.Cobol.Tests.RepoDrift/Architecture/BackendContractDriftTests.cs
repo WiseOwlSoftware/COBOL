@@ -4,8 +4,8 @@ using System.CodeDom.Compiler;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
-using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.CodeGen;
+using WiseOwl.Cobol.Compiler.Binding.Model;
+using WiseOwl.Cobol.Compiler.CodeGen;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 

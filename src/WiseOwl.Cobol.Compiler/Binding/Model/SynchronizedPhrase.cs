@@ -1,7 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 
-namespace WiseOwl.Cobol.Binding.Model;
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// <summary>Which of the three forms of the SYNCHRONIZED clause (ISO §2023:13.18.55.2:
 /// <c>{SYNCHRONIZED | SYNC} [LEFT | RIGHT]</c>) describes an item — <see cref="DataItem.Synchronized"/>, null when

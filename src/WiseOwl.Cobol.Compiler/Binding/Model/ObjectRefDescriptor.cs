@@ -3,7 +3,7 @@
 using WiseOwl.Cobol.Compiler.Oo;
 using WiseOwl.Cobol.Runtime;
 
-namespace WiseOwl.Cobol.Binding.Model;
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// <summary>Which of the three alternatives of the <c>USAGE OBJECT REFERENCE</c> general format
 /// (ISO §2023:13.18.60.2) a description took — plus the "no optional phrase at all" case §2023:13.18.60.4 GR22b names

@@ -3,12 +3,13 @@
 using System.Text.RegularExpressions;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
-using WiseOwl.Cobol.Binding.Procedure;
+using WiseOwl.Cobol.Compiler.Binding.Procedure;
 using WiseOwl.Cobol.Frontend.Diagnostics;
-using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Parsing;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 using WiseOwl.Cobol.Frontend.Preprocessor;
+using WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs;
 using CnFrontend = WiseOwl.Cobol.Frontend.Frontend;
 
 namespace WiseOwl.Cobol.Tests.Unit;

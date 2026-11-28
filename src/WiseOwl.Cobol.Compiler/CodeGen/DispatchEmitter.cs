@@ -1,11 +1,13 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Bound;
-using WiseOwl.Cobol.CodeGen.Emit;
+using WiseOwl.Cobol.Compiler.Binding.Bound;
+using WiseOwl.Cobol.Compiler.CodeGen.Emit;
+using WiseOwl.Cobol.Compiler.CodeGen.Roslyn;
+using WiseOwl.Cobol.Compiler.CodeGen.Verbs;
 
-namespace WiseOwl.Cobol.CodeGen;
+namespace WiseOwl.Cobol.Compiler.CodeGen;
 
-using static WiseOwl.Cobol.CodeGen.Emit.EmitText;
+using static WiseOwl.Cobol.Compiler.CodeGen.Emit.EmitText;
 
 /// <summary>
 /// The PC dispatcher (DESIGN §5; a real collaborator since P7 Step 9n): each paragraph is a

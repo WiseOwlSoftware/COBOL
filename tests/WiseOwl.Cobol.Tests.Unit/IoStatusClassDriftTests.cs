@@ -63,8 +63,8 @@ public sealed class IoStatusClassDriftTests
             _ when cond == $"st[0] == '2'" => st[0] == '2',
             _ => throw new InvalidOperationException("unexpected rendering: " + cond),
         };
-        Assert.Equal(ok, Eval(WiseOwl.Cobol.CodeGen.IoStatusClass.Successful("st"), status));
-        Assert.Equal(atEnd, Eval(WiseOwl.Cobol.CodeGen.IoStatusClass.AtEnd("st"), status));
-        Assert.Equal(invalid, Eval(WiseOwl.Cobol.CodeGen.IoStatusClass.InvalidKey("st"), status));
+        Assert.Equal(ok, Eval(WiseOwl.Cobol.Compiler.CodeGen.Verbs.IoStatusClass.Successful("st"), status));
+        Assert.Equal(atEnd, Eval(WiseOwl.Cobol.Compiler.CodeGen.Verbs.IoStatusClass.AtEnd("st"), status));
+        Assert.Equal(invalid, Eval(WiseOwl.Cobol.Compiler.CodeGen.Verbs.IoStatusClass.InvalidKey("st"), status));
     }
 }

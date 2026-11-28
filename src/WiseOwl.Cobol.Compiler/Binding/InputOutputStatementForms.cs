@@ -4,9 +4,9 @@ using Antlr4.Runtime;
 
 using WiseOwl.Cobol.Editions;
 
-using Core = WiseOwl.Cobol.Frontend.Generated.CobolParserCore;
+using Core = WiseOwl.Cobol.Frontend.Parsing.CobolParserCore;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 /// <summary>⛔ THE ONE CLASSIFICATION OF A STATEMENT AS AN INPUT-OUTPUT STATEMENT (kb/Work PB6032): the parse tree's statement sorted
 /// into its <see cref="IoStatementForms"/> member here, and asked of the edition's own set (<see cref="InputOutputStatementSet"/>), so

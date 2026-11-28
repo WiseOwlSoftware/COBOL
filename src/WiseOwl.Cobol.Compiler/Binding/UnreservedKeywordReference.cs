@@ -3,7 +3,7 @@
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Runtime;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 /// <summary>
 /// ⛔ A WORD §2023:8.9 LEAVES FREE IS AN UNDECLARED USER WORD, NOT THE PREDEFINED IDENTIFIER IT SPELLS (kb/Work PB655's

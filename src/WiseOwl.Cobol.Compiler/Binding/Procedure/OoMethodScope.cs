@@ -1,8 +1,8 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 
-namespace WiseOwl.Cobol.Binding.Procedure;
+namespace WiseOwl.Cobol.Compiler.Binding.Procedure;
 
 /// <summary>The scope of ONE method body (ISO §2023:11.7 — the legacy per-method scope algorithm, ported). Its paragraph-names and
 /// section-names declare METHOD-LOCALLY in the one store of names, keyed by this scope (<c>SymbolTable.DeclareParagraph</c>,

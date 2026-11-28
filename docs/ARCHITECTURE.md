@@ -48,8 +48,8 @@ source.cob
   → Bind: typed semantic model — every data item gets a .NET type (no byte offsets)        [task G2]
   → Render: the selected ICodeGenBackend (--backend roslyn|cil) renders the backend-NEUTRAL bound tree —
         NO shared lowered IR                                                                  [tasks G3–G4]
-  → Emit C# (WiseOwl.Cobol.CodeGen.CSharpEmitter → CodeWriter)                                    [all tasks]
-  → Compile C# (WiseOwl.Cobol.CodeGen.RoslynBackend → Roslyn CSharpCompilation) → assembly + .g.cs
+  → Emit C# (WiseOwl.Cobol.Compiler.CodeGen.CSharpEmitter → CodeWriter)                                    [all tasks]
+  → Compile C# (WiseOwl.Cobol.Compiler.CodeGen.RoslynBackend → Roslyn CSharpCompilation) → assembly + .g.cs
 Runtime: WiseOwl.Cobol.Runtime — CobolNum (numeric), CobolString (character), ManagedPointer, format/file helpers
          (reused from the clean, oracle-verified typed substrates; NO byte substrate)
 ```

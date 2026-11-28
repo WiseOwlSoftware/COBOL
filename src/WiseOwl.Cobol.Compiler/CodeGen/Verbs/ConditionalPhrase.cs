@@ -1,8 +1,8 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Bound;
+using WiseOwl.Cobol.Compiler.Binding.Bound;
 
-namespace WiseOwl.Cobol.CodeGen;
+namespace WiseOwl.Cobol.Compiler.CodeGen.Verbs;
 
 /// <summary>When a statement's NOT phrase runs, as the C# the emitted branch tests (<see cref="ConditionalPhrase"/>).
 /// <paramref name="Success"/> is the statement's successful-completion test, null when reaching the NOT phrase IS the success

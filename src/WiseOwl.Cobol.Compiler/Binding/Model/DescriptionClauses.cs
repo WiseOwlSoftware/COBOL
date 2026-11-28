@@ -3,7 +3,7 @@
 
 using WiseOwl.Cobol.Runtime;
 
-namespace WiseOwl.Cobol.Binding.Model;
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// <summary>The clauses of the standard's identical-description lists that are properties of the ENTRY rather than
 /// of <see cref="PicInfo"/> — written once for every asker: ISO §2023:8.5.3.1 (type equivalence), §2023:9.3.6 3) (method

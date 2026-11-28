@@ -1,16 +1,15 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Symbols;
-using WiseOwl.Cobol.Common;
+using WiseOwl.Cobol.Compiler.Symbols;
+using WiseOwl.Cobol.Frontend.Common;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
-using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Parsing;
 using WiseOwl.Cobol.Runtime.Collation;
 
-using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.Frontend.Parsing;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 using Core = CobolParserCore;
 using WiseOwl.Cobol.Runtime;
@@ -79,18 +78,18 @@ public sealed partial class SpecialNamesBinder
     /// call this directly.</summary>
     public string NormalizeNumericLiteral(string text)
     {
-        // The normalization ALGORITHM is the ONE shared WiseOwl.Cobol.Common.NumericLiteral.Normalize (Frontend), so the
+        // The normalization ALGORITHM is the ONE shared WiseOwl.Cobol.Frontend.Common.NumericLiteral.Normalize (Frontend), so the
         // compile-time expression evaluator applies the identical §2023:12.3.7.4 GR14a rule; the binder retains ownership
         // of the COBOL0895 diagnostic (its own channel/descriptor), routing the returned issue to it verbatim.
-        string norm = Common.NumericLiteral.Normalize(text, Cfg.DecimalPointIsComma, out var issue);
+        string norm = Frontend.Common.NumericLiteral.Normalize(text, Cfg.DecimalPointIsComma, out var issue);
         switch (issue)
         {
-            case Common.NumericSeparatorIssue.DecimalPointUnderCommaMode:
+            case Frontend.Common.NumericSeparatorIssue.DecimalPointUnderCommaMode:
                 Edition.Error(DiagnosticCatalog.NumericLiteralDecimalSeparator,
                     $"numeric literal '{text}': under DECIMAL-POINT IS COMMA the "
                     + $"decimal separator is the comma ({Edition.Edition.CiteRule("§1985:VI.4.5.4 GR12", "§2023:12.3.7.4 GR14a", "§2002:12.2.6.3 GR14a", "§2014:12.3.6.3 GR14a")}); '.' is not valid in a numeric literal");
                 break;
-            case Common.NumericSeparatorIssue.CommaWithoutCommaMode:
+            case Frontend.Common.NumericSeparatorIssue.CommaWithoutCommaMode:
                 Edition.Error(DiagnosticCatalog.NumericLiteralDecimalSeparator,
                     $"numeric literal '{text}': a comma decimal separator requires "
                     + $"DECIMAL-POINT IS COMMA ({Edition.Edition.CiteRule("§1985:VI.4.5.4 GR12", "§2023:12.3.7.4 GR14a; §2023:8.3.3.3.2 admits only '.' as the decimal point", "§2002:12.2.6.3 GR14a; §2002:8.3.1.2.2.1 admits only '.' as the decimal point", "§2014:12.3.6.3 GR14a; §2014:8.3.1.2.2.1 admits only '.' as the decimal point")})");
@@ -98,12 +97,12 @@ public sealed partial class SpecialNamesBinder
         }
         // §2023:8.3.3.3.3 SR2/SR3/SR4 (kb/Work PB99) — the floating-point literal's FORM, checked HERE because both the
         // expression funnel (ExpressionBinder.CheckLiteral) and the VALUE / level-88 funnel normalize through this method.
-        if (Common.NumericLiteral.IsFloatingPointForm(norm)
-            && Common.NumericLiteral.CheckFloatingPointForm(norm) is var fissue && fissue != Common.NumericLiteral.FloatingLiteralIssue.None)
+        if (Frontend.Common.NumericLiteral.IsFloatingPointForm(norm)
+            && Frontend.Common.NumericLiteral.CheckFloatingPointForm(norm) is var fissue && fissue != Frontend.Common.NumericLiteral.FloatingLiteralIssue.None)
             Edition.Error(DiagnosticCatalog.FloatingLiteral, $"floating-point numeric literal '{text}': " + fissue switch
             {
-                Common.NumericLiteral.FloatingLiteralIssue.SignificandDigits => "the significand shall be from 1 to 36 digits in length (ISO §2023:8.3.3.3.3 SR2)",
-                Common.NumericLiteral.FloatingLiteralIssue.ExponentDigits => "the exponent shall have a maximum of four digits (ISO §2023:8.3.3.3.3 SR3)",
+                Frontend.Common.NumericLiteral.FloatingLiteralIssue.SignificandDigits => "the significand shall be from 1 to 36 digits in length (ISO §2023:8.3.3.3.3 SR2)",
+                Frontend.Common.NumericLiteral.FloatingLiteralIssue.ExponentDigits => "the exponent shall have a maximum of four digits (ISO §2023:8.3.3.3.3 SR3)",
                 _ => "when all the digits of the significand are zero, all the digits of the exponent shall be zero and neither part shall have a negative sign (ISO §2023:8.3.3.3.3 SR4)",
             });
         return norm;   // canonical dot-decimal; a diagnosed literal is normalized too so downstream decode stays well-formed

@@ -1,11 +1,13 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.CodeGen.Emit;
+using WiseOwl.Cobol.Compiler.Binding.Model;
+using WiseOwl.Cobol.Compiler.CodeGen.Emit;
 using WiseOwl.Cobol.Runtime;
 using WiseOwl.Cobol.Runtime.IO;
+using WiseOwl.Cobol.Compiler.CodeGen.DataDivision;
+using WiseOwl.Cobol.Compiler.CodeGen.Verbs;
 
-namespace WiseOwl.Cobol.CodeGen;
+namespace WiseOwl.Cobol.Compiler.CodeGen.Roslyn;
 
 /// <summary>
 /// The typed, <c>nameof</c>-anchored façade over the emitted runtime surface (P7 Step 4b;
@@ -68,11 +70,11 @@ internal static class RuntimeApi
     };
 
     /// <summary>A boolean shift/rotate (ISO §2023:8.8.2 GR8, 2023) — <c>CobolBool.Shift{Left|Right}[Circular](v, k)</c>.</summary>
-    public static string BoolShift(WiseOwl.Cobol.Binding.Bound.BoolShiftKind kind, string operand, string count) => kind switch
+    public static string BoolShift(WiseOwl.Cobol.Compiler.Binding.Bound.BoolShiftKind kind, string operand, string count) => kind switch
     {
-        WiseOwl.Cobol.Binding.Bound.BoolShiftKind.Left => $"{nameof(CobolBool)}.{nameof(CobolBool.ShiftLeft)}({operand}, {count})",
-        WiseOwl.Cobol.Binding.Bound.BoolShiftKind.Right => $"{nameof(CobolBool)}.{nameof(CobolBool.ShiftRight)}({operand}, {count})",
-        WiseOwl.Cobol.Binding.Bound.BoolShiftKind.LeftCircular => $"{nameof(CobolBool)}.{nameof(CobolBool.ShiftLeftCircular)}({operand}, {count})",
+        WiseOwl.Cobol.Compiler.Binding.Bound.BoolShiftKind.Left => $"{nameof(CobolBool)}.{nameof(CobolBool.ShiftLeft)}({operand}, {count})",
+        WiseOwl.Cobol.Compiler.Binding.Bound.BoolShiftKind.Right => $"{nameof(CobolBool)}.{nameof(CobolBool.ShiftRight)}({operand}, {count})",
+        WiseOwl.Cobol.Compiler.Binding.Bound.BoolShiftKind.LeftCircular => $"{nameof(CobolBool)}.{nameof(CobolBool.ShiftLeftCircular)}({operand}, {count})",
         _ => $"{nameof(CobolBool)}.{nameof(CobolBool.ShiftRightCircular)}({operand}, {count})",
     };
 
@@ -764,7 +766,7 @@ internal static class RuntimeApi
     /// alike — CS0121): the exact scaled integer at its scale, the SDIDI, or a binary64 that is already the value.
     /// A UInt128 operand (a 16-byte unsigned COMP-5, scale 0) is its own double's integer, which no correctly-rounded
     /// conversion moves across −1, 0 or +1, so it takes the binary64 arm.</summary>
-    public static string DomainArg(Emit.NumX x, WiseOwl.Cobol.Binding.IntrinsicDomain domain, string function, string rule)
+    public static string DomainArg(Emit.NumX x, WiseOwl.Cobol.Compiler.Binding.IntrinsicDomain domain, string function, string rule)
     {
         string tail = DomainTail(domain, function, rule);
         return x.Dec ? $"{nameof(CobolIntrinsics)}.{nameof(CobolIntrinsics.DomainDec)}({x.Expr}, {tail})"
@@ -776,7 +778,7 @@ internal static class RuntimeApi
     /// (<c>IntrinsicRenderer.WholeRangeBodies</c>; kb/Work PB999) — <c>CobolIntrinsics.DomainDecAdmitted</c>, which
     /// shares <c>DomainDec</c>'s predicate and returns the admitted <c>CobolDec?</c> (null = rejected) instead of
     /// its binary64.</summary>
-    public static string DomainArgAdmitted(Emit.NumX x, WiseOwl.Cobol.Binding.IntrinsicDomain domain, string function, string rule) =>
+    public static string DomainArgAdmitted(Emit.NumX x, WiseOwl.Cobol.Compiler.Binding.IntrinsicDomain domain, string function, string rule) =>
         x.Dec
             ? $"{nameof(CobolIntrinsics)}.{nameof(CobolIntrinsics.DomainDecAdmitted)}({x.Expr}, {DomainTail(domain, function, rule)})"
             : throw new InvalidOperationException("DomainArgAdmitted screens an SDIDI operand only");
@@ -784,10 +786,10 @@ internal static class RuntimeApi
     /// <summary>The SAME screen over an EXACT WIDE operand (<c>NumX.Wide</c>) whose body takes it unnarrowed (kb/Work PB4075) —
     /// <c>CobolIntrinsics.DomainWideAdmitted</c>, sharing the predicate of <see cref="DomainArgAdmitted"/>'s and returning the
     /// admitted <c>CobolWide?</c> (null = rejected).</summary>
-    public static string DomainWideAdmitted(string wide, int scale, WiseOwl.Cobol.Binding.IntrinsicDomain domain, string function, string rule) =>
+    public static string DomainWideAdmitted(string wide, int scale, WiseOwl.Cobol.Compiler.Binding.IntrinsicDomain domain, string function, string rule) =>
         $"{nameof(CobolIntrinsics)}.{nameof(CobolIntrinsics.DomainWideAdmitted)}({wide}, {scale}, {DomainTail(domain, function, rule)})";
 
-    private static string DomainTail(WiseOwl.Cobol.Binding.IntrinsicDomain domain, string function, string rule) =>
+    private static string DomainTail(WiseOwl.Cobol.Compiler.Binding.IntrinsicDomain domain, string function, string rule) =>
         $"{nameof(CobolIntrinsics)}.{nameof(CobolIntrinsics.ArgumentDomain)}.{domain}, "
         + $"{Emit.EmitText.CsLiteral(function)}, {Emit.EmitText.CsLiteral(rule)}";
 

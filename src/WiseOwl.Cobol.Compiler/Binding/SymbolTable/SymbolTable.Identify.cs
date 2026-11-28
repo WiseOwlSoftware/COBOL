@@ -1,10 +1,10 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
-using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.Symbols;
+using WiseOwl.Cobol.Compiler.Binding.Model;
+using WiseOwl.Cobol.Compiler.Symbols;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 /// <summary>What <see cref="SymbolTable.Identify"/> found: the symbol a written name denotes, of the class the position
 /// admitted. Only the table makes one (<c>NameTableOwnershipDriftTests</c> refuses one made anywhere else), so a symbol
@@ -96,7 +96,7 @@ internal readonly record struct WrittenQualifiedName
     /// read), or null when the reference writes no name: a LINAGE-COUNTER, LINE-COUNTER or PAGE-COUNTER register, whose
     /// <c>cobolWord</c> is its file-name or report-name QUALIFIER (§2023:8.4.2.2.2 Formats 7 and 8), and a recovery node with no word.
     /// The name is never the reference's glued text (kb/Work PB2040).</summary>
-    public static WrittenQualifiedName? Of(Frontend.Generated.CobolParserCore.DataReferenceContext dref)
+    public static WrittenQualifiedName? Of(Frontend.Parsing.CobolParserCore.DataReferenceContext dref)
     {
         if (dref.LINAGE_COUNTER() is not null || dref.LINE_COUNTER() is not null || dref.PAGE_COUNTER() is not null
             || dref.cobolWord() is not { } word)
@@ -112,7 +112,7 @@ internal readonly record struct WrittenQualifiedName
     /// never again here (section 9's budget: every data reference is identified so), and only a qualified reference walks its
     /// qualifications again, for their tokens. <paramref name="dref"/> writes a name (the caller has screened the counter
     /// registers).</summary>
-    internal static WrittenQualifiedName OfRead(Frontend.Generated.CobolParserCore.DataReferenceContext dref,
+    internal static WrittenQualifiedName OfRead(Frontend.Parsing.CobolParserCore.DataReferenceContext dref,
         IReadOnlyList<string> qualifierWords)
     {
         var head = dref.cobolWord().Start;
@@ -130,7 +130,7 @@ internal readonly record struct WrittenQualifiedName
     {
         List<IToken>? qualifiers = null;
         last = at;
-        while (last + 2 < tokens.Count && tokens[last + 1].Type is Frontend.Generated.CobolParserCore.OF or Frontend.Generated.CobolParserCore.IN
+        while (last + 2 < tokens.Count && tokens[last + 1].Type is Frontend.Parsing.CobolParserCore.OF or Frontend.Parsing.CobolParserCore.IN
                && isWord(tokens[last + 2]))
         {
             (qualifiers ??= []).Add(tokens[last + 2]);

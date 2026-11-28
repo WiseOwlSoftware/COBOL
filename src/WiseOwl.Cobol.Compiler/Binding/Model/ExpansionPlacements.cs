@@ -4,7 +4,7 @@ using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Common;
 using WiseOwl.Cobol.Runtime.Repository;
 
-namespace WiseOwl.Cobol.Binding.Model;
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// <summary>Where an expansion lives (DESIGN-external-repository §10.5).</summary>
 internal enum ExpansionWhere

@@ -3,7 +3,7 @@
 using Antlr4.Runtime;
 using WiseOwl.Cobol.Editions.Diagnostics;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 /// <summary>
 /// ⛔ THE ONE READER OF A GENERAL FORMAT'S CHOICE INDICATORS — ISO §2023:5.2.6.4 — for the half a grammar cannot

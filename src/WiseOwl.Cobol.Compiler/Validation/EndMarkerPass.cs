@@ -1,11 +1,11 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
-using WiseOwl.Cobol.Binding;                // EditionContext, the At(ParserRuleContext) cursor
+using WiseOwl.Cobol.Compiler.Binding;                // EditionContext, the At(ParserRuleContext) cursor
 using WiseOwl.Cobol.Editions.Diagnostics;   // DiagnosticCatalog
-using WiseOwl.Cobol.Frontend.Generated;     // CobolParserCore
+using WiseOwl.Cobol.Frontend.Parsing;     // CobolParserCore
 
-namespace WiseOwl.Cobol.Validation;
+namespace WiseOwl.Cobol.Compiler.Validation;
 
 using Core = CobolParserCore;
 

@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 /// <summary>The §2023:8.6.4 storage duration of a cell-backed (<c>ADDRESS OF</c>-taken) record, which decides the event that
 /// ENDS its <c>StorageCell</c>'s life (kb/Work PB1216) — classified once, by <c>DataBinder.LifetimeOfCell</c>.</summary>

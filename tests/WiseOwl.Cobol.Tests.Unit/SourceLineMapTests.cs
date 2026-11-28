@@ -3,7 +3,7 @@
 using System;
 using System.IO;
 using System.Linq;
-using WiseOwl.Cobol.Binding;
+using WiseOwl.Cobol.Compiler.Binding;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Common;
 using WiseOwl.Cobol.Frontend.Diagnostics;

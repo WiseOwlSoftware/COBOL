@@ -1,8 +1,8 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Parsing;
 
-namespace WiseOwl.Cobol.Binding.Passes;
+namespace WiseOwl.Cobol.Compiler.Binding.Passes;
 
 using Core = CobolParserCore;
 
@@ -106,9 +106,9 @@ internal static class BindPipeline
         // genuinely-semantic gates. Reports through the session's edition sink, so the Bind result carries every
         // edition diagnostic for BOTH a full compile and a CheckOnly verdict.
         new("VersionConformancePass", PassPhase.StorageComputed, PassPhase.EditionConformanceChecked,
-            // Fully qualified: WiseOwl.Cobol.Binding.Validation (StatementValidation, P7 Step 10c) shadows the
-            // relative `Validation.` lookup from inside WiseOwl.Cobol.Binding.*.
-            ctx => WiseOwl.Cobol.Validation.VersionConformancePass.Run(ctx, ctx.Session.Edition.Edition, ctx.Session.Edition)),
+            // Fully qualified: WiseOwl.Cobol.Compiler.Binding.Validation (StatementValidation, P7 Step 10c) shadows the
+            // relative `Validation.` lookup from inside WiseOwl.Cobol.Compiler.Binding.*.
+            ctx => WiseOwl.Cobol.Compiler.Validation.VersionConformancePass.Run(ctx, ctx.Session.Edition.Edition, ctx.Session.Edition)),
     };
 
     /// <summary>Assert the FULL declared chain (the per-unit resolve prefix + the group tail) is a monotone phase

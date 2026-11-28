@@ -1,7 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.Binding;
+using WiseOwl.Cobol.Compiler.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding;
 using Xunit;
 
 namespace WiseOwl.Cobol.Tests.Unit;
@@ -47,7 +47,7 @@ public sealed class ExternalFileEntryIdentityTests
         { "k) DUPLICATES phrase", f => f.AlternateKeyNames[0] = new AlternateKeyClause { Operand = new WrittenDataName("XA"), Duplicates = false } },
         { "k) number of alternate record keys", f => f.AlternateKeyNames.Clear() },
         { "k) SUPPRESS WHEN phrase", f => f.AlternateKeyNames[0].SuppressWhen =
-            new SuppressWhenOperand("\"XX\"", SuppressWhenForm.Literal, WiseOwl.Cobol.Common.LiteralClass.Alphanumeric, "XX", null) },
+            new SuppressWhenOperand("\"XX\"", SuppressWhenForm.Literal, WiseOwl.Cobol.Frontend.Common.LiteralClass.Alphanumeric, "XX", null) },
         // j)/k) "each data-name-6" / "each data-name-3": the SOURCE phrase's operands, in order, are the key (kb/Work
         // PB1099; review R1-3 found no witness that the identity carries them).
         { "j) RECORD KEY SOURCE phrase", f => f.RecordKeySource = Source("XK", "XB", "XC") },

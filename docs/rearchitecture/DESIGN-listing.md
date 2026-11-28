@@ -251,7 +251,7 @@ the solution. A renderer therefore cannot reach a binder, parser or emitter type
 enforced by the compiler, and `docs/rearchitecture/architecture-edges.json` gives the project its own lowest layer so
 `ArchitectureEdgesDriftTests` keeps it so. (Step 1:) the layers are by NAMESPACE, so the builder in the Compiler cannot share
 the model's namespace: the model and renderers are `WiseOwl.Cobol.Listing` and `WiseOwl.Cobol.Listing.Text` (layer
-`listing`), the builder is `WiseOwl.Cobol.Listing.Building` (layer `compiler.listing`, which may use `listing`, the front
+`listing`), the builder is `WiseOwl.Cobol.Compiler.Listing` (layer `compiler.listing`, which may use `listing`, the front
 end's `frontend.pipeline`, `frontend.preprocessor` and `frontend.common`, and `editions`). The builder names no type of the
 composition root: the driver hands `ListingFacts` plain values (the source path, the output path, the `EditionInfo`, the
 compile-clock delegate) and maps its own `Outcome` to `ListingOutcome`, so no edge runs from `compiler.listing` up to
@@ -858,7 +858,7 @@ names every connector (`BinderDriver`, after `QualifyClassFiles`).
 
 - **The snapshot is plain values in a layer of its own.** `SymbolTableSnapshot`, `SymbolEntry`, `NameClass`, `SymbolPosition`
   and one attributes record per class (`ProgramAttributes`, `DataAttributes`, `ConditionAttributes`, `IndexAttributes`,
-  `ConstantAttributes`, `FileNameAttributes`) live in `WiseOwl.Cobol.Symbols` (src/WiseOwl.Cobol.Compiler/Symbols/), the layer
+  `ConstantAttributes`, `FileNameAttributes`) live in `WiseOwl.Cobol.Compiler.Symbols` (src/WiseOwl.Cobol.Compiler/Symbols/), the layer
   `compiler.symbols` of architecture-edges.json, which depends on nothing; the binder, the listing builder and the driver may use
   it. So the builder reads the table and cannot reach a binder type, by the layering test.
 - **Attributes are read off the symbol once the bind is finished, not written beside it (correction).** "Each attribute is
@@ -1140,7 +1140,7 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
   one store of names, decides where the grown `SymbolTable` lives (kb/Work PB5932).
 - **(Step 6b, as built so far, with the corrections the code proved.)**
   - *Where the table lives.* In the BINDER layer, not the model: `src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/`, namespace
-    `WiseOwl.Cobol.Binding` (`compiler.binding`). The one store owns tables of binder types (`FileModel`, `ReportModel`,
+    `WiseOwl.Cobol.Compiler.Binding` (`compiler.binding`). The one store owns tables of binder types (`FileModel`, `ReportModel`,
     `ConstantDef`, the OO symbols) and resolves through the binder, so it cannot be backend input; the move ended the three
     tolerated `compiler.model` -> `compiler.binding` pairs it held. `Scope` stays in the model (`Binding/Model/Scope.cs`).
     `SymbolTable` is ONE type written as a partial class, one file per name class (`SymbolTable.Communication.cs`,
@@ -2256,11 +2256,11 @@ read from what every backend produces, the ASSEMBLY and its PORTABLE PDB:
   backends, and like IBM's LIST it is long, so it is on request only. Recommendation recorded: keep it off in
   `standard` and on in `all`.
 - **Backend neutrality is a test.** `ListingBackendNeutralityDriftTests` (RepoDrift): the built `WiseOwl.Cobol.Listing`
-  assembly references no `Microsoft.CodeAnalysis*` assembly, and the documents of the `WiseOwl.Cobol.Listing.Building`
-  namespace in the Compiler (the builder) reference no type from `Microsoft.CodeAnalysis*` or `WiseOwl.Cobol.CodeGen*` (a Roslyn
+  assembly references no `Microsoft.CodeAnalysis*` assembly, and the documents of the `WiseOwl.Cobol.Compiler.Listing`
+  namespace in the Compiler (the builder) reference no type from `Microsoft.CodeAnalysis*` or `WiseOwl.Cobol.Compiler.CodeGen*` (a Roslyn
   semantic check of every referenced symbol) and contain no `.g.cs` path. It holds because backend diagnostics reach the
   builder as the front end's `Diagnostic`, which (step 3) is the seam's own diagnostic type (section 6.3). The Roslyn backend's `#line` writing lives in
-  `WiseOwl.Cobol.CodeGen`, behind the seam; the listing never sees it.
+  `WiseOwl.Cobol.Compiler.CodeGen`, behind the seam; the listing never sees it.
 
 **As built (step 8), with the corrections the code proved:**
 
@@ -3186,7 +3186,7 @@ table when it exists.
 
 **Step 6 - the symbol table's entries and attributes, and the data map. BUILT (branch `listing-step-6`; the corrections above
 marked "step 6").** The finished table (`SymbolTableFinish.Of`, `SymbolTableWriter`, `SymbolTableSnapshot` in
-`WiseOwl.Cobol.Symbols`), deposited by the driver when `EditionContext.RecordsSymbols`; `DataMapBuilder`, `LineAnnotationBuilder`
+`WiseOwl.Cobol.Compiler.Symbols`), deposited by the driver when `EditionContext.RecordsSymbols`; `DataMapBuilder`, `LineAnnotationBuilder`
 with `ListingLine.Margin` for definition lines, `DataMapText`, the program attributes, `--listing-sections data-map`; the
 benchmark's `All` row. (Step 6, kb/Work PB5932:) the ONE store, below, is split out as step 6b: it is a restructuring of the
 whole binder's name resolution (65 tables, 194 members, 124 + 130 + 40 comparison sites, section 6.7.2), which the data map does

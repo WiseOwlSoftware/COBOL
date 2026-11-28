@@ -4,9 +4,9 @@ using System.Collections;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 
-namespace WiseOwl.Cobol.Binding.Repository;
+namespace WiseOwl.Cobol.Compiler.Binding.Repository;
 
 /// <summary>
 /// ⛔ WHAT AN EXPANSION MEANS, AS A NUMBER (ISO §2023:9.3.12: two classes "created by expanding the same parameterized class with the same

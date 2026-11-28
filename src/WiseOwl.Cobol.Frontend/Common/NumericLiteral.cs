@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-namespace WiseOwl.Cobol.Common;
+namespace WiseOwl.Cobol.Frontend.Common;
 
 /// <summary>Which decimal-separator rule a numeric literal violated, if any (ISO/IEC 1989:2023 §2023:12.3.7.4 GR14a /
 /// §2023:8.3.3.3.2). Returned by <see cref="NumericLiteral.Normalize"/> so each caller can route the diagnostic to its

@@ -1,7 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 
-namespace WiseOwl.Cobol.Binding.Model;
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// <summary>One method of a class roster (ISO §2023:11.7): the COBOL name, the emitted C# method name, the header
 /// USING/RETURNING presence recorded at pass-1, and — filled by <c>OoDataBinder.BindMethodData</c> at class

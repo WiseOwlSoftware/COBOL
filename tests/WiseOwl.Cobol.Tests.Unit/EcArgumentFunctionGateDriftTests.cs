@@ -1,7 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Runtime.CompilerServices;
-using WiseOwl.Cobol.Binding.Bound;
+using WiseOwl.Cobol.Compiler.Binding.Bound;
 using Xunit;
 
 namespace WiseOwl.Cobol.Tests.Unit;
@@ -36,7 +36,7 @@ public sealed class EcArgumentFunctionGateDriftTests
     public void OwnValueParts_ReachesAnOperandThroughAListOfHelperRecords()
     {
         var operand = (BoundOperand)RuntimeHelpers.GetUninitializedObject(
-            typeof(BoundStatement).Assembly.GetType("WiseOwl.Cobol.Binding.Bound.BoundComputedOperand")!);
+            typeof(BoundStatement).Assembly.GetType("WiseOwl.Cobol.Compiler.Binding.Bound.BoundComputedOperand")!);
 
         var sending = (object)RuntimeHelpers.GetUninitializedObject(typeof(BoundStringSending));
         Set(sending, "Value", operand);
@@ -59,7 +59,7 @@ public sealed class EcArgumentFunctionGateDriftTests
     {
         var inner = (BoundStatement)RuntimeHelpers.GetUninitializedObject(typeof(BoundStringStmt));
         var innerOperand = (BoundOperand)RuntimeHelpers.GetUninitializedObject(
-            typeof(BoundStatement).Assembly.GetType("WiseOwl.Cobol.Binding.Bound.BoundComputedOperand")!);
+            typeof(BoundStatement).Assembly.GetType("WiseOwl.Cobol.Compiler.Binding.Bound.BoundComputedOperand")!);
         var innerSending = (object)RuntimeHelpers.GetUninitializedObject(typeof(BoundStringSending));
         Set(innerSending, "Value", innerOperand);
         var innerList = Array.CreateInstance(typeof(BoundStringSending), 1);
@@ -97,7 +97,7 @@ public sealed class EcArgumentFunctionGateDriftTests
     {
         var asm = typeof(BoundStatement).Assembly;
         var roots = asm.GetTypes()
-            .Where(t => t.IsAbstract && t.Namespace == "WiseOwl.Cobol.Binding.Bound"
+            .Where(t => t.IsAbstract && t.Namespace == "WiseOwl.Cobol.Compiler.Binding.Bound"
                         && t.GetCustomAttributes(false).Any(a => a.GetType().Name == "BoundNodeAttribute"))
             .Select(t => t.Name)
             .OrderBy(n => n, StringComparer.Ordinal)

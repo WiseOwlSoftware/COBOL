@@ -3,7 +3,7 @@
 using System.Xml.Linq;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Listing;
-using WiseOwl.Cobol.Listing.Building;
+using WiseOwl.Cobol.Compiler.Listing;
 using WiseOwl.Cobol.Listing.Html;
 using WiseOwl.Cobol.Listing.Text;
 using Xunit;

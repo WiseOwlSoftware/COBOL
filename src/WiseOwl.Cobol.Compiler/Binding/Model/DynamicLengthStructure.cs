@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Runtime;
 
-namespace WiseOwl.Cobol.Binding.Model;
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// <summary>The length field a PREFIXED dynamic-length structure puts in front of the data (ISO §2023:12.3.7.4 GR18):
 /// "If SIGNED is specified, the length field is a signed binary field; otherwise the length field is an unsigned

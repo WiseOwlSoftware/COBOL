@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Collections.Immutable;
 
-namespace WiseOwl.Cobol.Binding.Passes;
+namespace WiseOwl.Cobol.Compiler.Binding.Passes;
 
 /// <summary>
 /// The views of <see cref="DataBindState"/> one pass declares (docs/rearchitecture/DESIGN-architecture-review.md §8.3 (1),

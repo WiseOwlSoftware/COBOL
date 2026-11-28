@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-namespace WiseOwl.Cobol.Binding.Model;
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// <summary>The PROPERTY clause of one data description entry, as written (ISO §2023:13.18.42.2:
 /// <c>PROPERTY [ WITH NO { GET | SET } ] [ IS FINAL ]</c>).</summary>

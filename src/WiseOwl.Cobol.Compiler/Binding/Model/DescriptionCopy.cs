@@ -1,7 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 
-namespace WiseOwl.Cobol.Binding.Model;
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// <summary>What ONE <see cref="DataItem"/> field is to the data-description COPY that the TYPE clause
 /// (ISO §2023:13.18.57.4 GR1), the SAME AS clause (§2023:13.18.49.4 GR1/GR2a) and a TYPEDEF template's subordinate

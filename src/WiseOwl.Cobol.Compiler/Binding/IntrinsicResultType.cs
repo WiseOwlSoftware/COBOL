@@ -1,9 +1,9 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Bound;
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Bound;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 /// <summary>
 /// HOW A FUNCTION'S §2023:15.2 TYPE IS DECIDED — the shape of the rule, as a catalog COLUMN.
@@ -419,7 +419,7 @@ internal static class IntrinsicResultType
         // refuses a numeric function where an integer is required "even though a particular reference … might
         // yield an integer value" (HIGHEST-ALGEBRAIC of a numeric-edited item folds to 999; kb/Work PB1421).
         BoundNumericLiteral { FunctionType: { } ft } => ft is IntrinsicType.Integer,
-        BoundNumericLiteral n => WiseOwl.Cobol.Common.NumericLiteral.IsIntegerLiteralForm(n.Text),
+        BoundNumericLiteral n => WiseOwl.Cobol.Frontend.Common.NumericLiteral.IsIntegerLiteralForm(n.Text),
         // ⛔ THE ONE §2023:5.5 2)b)2. PRIMITIVE (kb/Work PB248). This arm read the SCALE alone —
         // `{ Category: Numeric, Scale: <= 0, Usage: not Index }` — and a floating-point item is PICTURE-less, so
         // PicInfo.FloatItem gives it Scale 0 and it answered TRUE: `PERFORM … F TIMES` over a COMP-2 holding 3.7

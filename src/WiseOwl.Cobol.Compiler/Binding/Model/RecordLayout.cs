@@ -2,10 +2,10 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Collections.Generic;
 using System.Linq;
-using WiseOwl.Cobol.Binding;
+using WiseOwl.Cobol.Compiler.Binding;
 using WiseOwl.Cobol.Runtime;
 
-namespace WiseOwl.Cobol.Binding.Model;
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// <summary>The three measures the limit on one data item is decided over (<see cref="RecordLayout.ExceedsSizeLimit"/>): its image in
 /// character positions, its storage extent in bytes with every overlay, and the elementary items it holds.</summary>

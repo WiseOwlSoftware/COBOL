@@ -2,15 +2,14 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
-using WiseOwl.Cobol.Binding;              // IntrinsicCatalog
-using WiseOwl.Cobol.Binding.Model;        // DataItem / PicInfo / Usage / OdoModel
-using WiseOwl.Cobol.Common;               // LiteralClass
+using WiseOwl.Cobol.Compiler.Binding;              // IntrinsicCatalog
+using WiseOwl.Cobol.Compiler.Binding.Model;        // DataItem / PicInfo / Usage / OdoModel
+using WiseOwl.Cobol.Frontend.Common;               // LiteralClass
 using WiseOwl.Cobol.Editions;             // CobolKeywords
-using WiseOwl.Cobol.Frontend.Generated;   // CobolParserCore
-using WiseOwl.Cobol.Frontend.Parsing;     // QuotedLiteral
+using WiseOwl.Cobol.Frontend.Parsing;   // CobolParserCore; QuotedLiteral
 using WiseOwl.Cobol.Frontend.Preprocessor;// FlagOption
 
-namespace WiseOwl.Cobol.Validation;
+namespace WiseOwl.Cobol.Compiler.Validation;
 
 /// <summary>
 /// The <c>&gt;&gt;FLAG-85</c> (§2002:7.2.11) and <c>&gt;&gt;FLAG-NATIVE-ARITHMETIC</c> (§2002:7.2.12) detectors — the

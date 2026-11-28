@@ -5,8 +5,8 @@ using System;
 using Antlr4.Runtime.Atn;
 using System.IO;
 using System.Linq;
-using WiseOwl.Cobol.Binding;
-using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Compiler.Binding;
+using WiseOwl.Cobol.Frontend.Parsing;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 

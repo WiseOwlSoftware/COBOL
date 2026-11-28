@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using WiseOwl.Cobol.Binding;
+using WiseOwl.Cobol.Compiler.Binding;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 
@@ -162,7 +162,7 @@ public sealed class Table12StatementNameDriftTests
             int? token = ConditionalStatements.TerminatorFor(name);
             Assert.True(token is not null, $"no END_ lexer token for Table 12's {terminator}");
             Assert.Equal("END_" + name.Replace(' ', '_'),
-                WiseOwl.Cobol.Frontend.Generated.CobolParserCore.DefaultVocabulary.GetSymbolicName(token!.Value));
+                WiseOwl.Cobol.Frontend.Parsing.CobolParserCore.DefaultVocabulary.GetSymbolicName(token!.Value));
         }
         var phraseWithoutTerminator = rows.Where(r => r.Phrase.Length > 0 && r.Terminator.Length == 0).ToList();
         Assert.True(phraseWithoutTerminator.Count == 0, "Table 12 row(s) with a conditional phrase but no explicit "

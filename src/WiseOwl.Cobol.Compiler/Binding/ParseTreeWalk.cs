@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime.Tree;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 /// <summary>⛔ THE ONE DEPTH-FIRST WALK OF A PARSE SUBTREE THE BINDER ASKS FOR BY NODE (kb/Work PB4302). A recursive
 /// <c>yield</c> iterator (<c>foreach (var d in Walk(child)) yield return d;</c>) hands every node up through one

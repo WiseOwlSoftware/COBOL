@@ -2,13 +2,13 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
-using WiseOwl.Cobol.Binding;                 // EditionContext, the At(IToken) cursor
+using WiseOwl.Cobol.Compiler.Binding;                 // EditionContext, the At(IToken) cursor
 using WiseOwl.Cobol.Editions;                // ConstructRegistry, Constructs
 using WiseOwl.Cobol.Frontend.Common;         // SourcePoint
-using WiseOwl.Cobol.Frontend.Generated;      // CobolParserCore
+using WiseOwl.Cobol.Frontend.Parsing;      // CobolParserCore
 using WiseOwl.Cobol.Frontend.Preprocessor;   // AreaPlacement, FixedFormAreas
 
-namespace WiseOwl.Cobol.Validation;
+namespace WiseOwl.Cobol.Compiler.Validation;
 
 using Core = CobolParserCore;
 

@@ -1,13 +1,16 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Common;
-using WiseOwl.Cobol.Binding;
-using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.Binding.Bound;
+using WiseOwl.Cobol.Frontend.Common;
+using WiseOwl.Cobol.Compiler.Binding;
+using WiseOwl.Cobol.Compiler.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Bound;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Runtime;
+using WiseOwl.Cobol.Compiler.CodeGen.DataDivision;
+using WiseOwl.Cobol.Compiler.CodeGen.Roslyn;
+using WiseOwl.Cobol.Compiler.CodeGen.Verbs;
 
-namespace WiseOwl.Cobol.CodeGen.Emit;
+namespace WiseOwl.Cobol.Compiler.CodeGen.Emit;
 
 /// <summary>
 /// Renders a bound condition to a side-effect-free C# boolean expression (DESIGN §11): relational

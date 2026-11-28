@@ -9,7 +9,8 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using WiseOwl.Cobol.CodeGen;
+using WiseOwl.Cobol.Compiler;
+using WiseOwl.Cobol.Compiler.CodeGen;
 using WiseOwl.Cobol.Frontend;
 using WiseOwl.Cobol.Tests.Shared;
 

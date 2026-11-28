@@ -1026,7 +1026,7 @@ public sealed class CopyProcessor(
             var literal = TextWordScanner.DecomposeLiteral(w.Value);
             name = !literal.Terminated || !literal.IsAlphanumeric ? null
                 : literal.Prefix.Length == 0 ? literal.Content
-                : WiseOwl.Cobol.Common.CobolLiteral.DecodeHexDigits(literal.Content);
+                : WiseOwl.Cobol.Frontend.Common.CobolLiteral.DecodeHexDigits(literal.Content);
             // An open literal was named as it was consumed (COBOL5563, StatementCursor.Advance): it is no literal of any
             // category, so SR5's category is not its fault.
             if (name is null && literal.Terminated)

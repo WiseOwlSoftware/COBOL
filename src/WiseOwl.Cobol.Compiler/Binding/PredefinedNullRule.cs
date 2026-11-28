@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Editions.Diagnostics;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 /// <summary>
 /// ⛔ THE ONE STATEMENT OF THE §2023:8.4.3.10.3 SR1 REFUSAL (kb/Work PB1427) — COBOL2576, for the predefined NULL written

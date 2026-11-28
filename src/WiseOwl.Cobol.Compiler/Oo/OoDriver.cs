@@ -1,9 +1,9 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding;
-using WiseOwl.Cobol.Binding.Bound;
-using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Compiler.Binding;
+using WiseOwl.Cobol.Compiler.Binding.Bound;
+using WiseOwl.Cobol.Compiler.Binding.Model;
+using WiseOwl.Cobol.Frontend.Parsing;
 
 namespace WiseOwl.Cobol.Compiler.Oo;
 
@@ -193,8 +193,8 @@ internal sealed class OoDriver(BindSession session)
         data.Symbols.ResolveProgramPrototypes(unit: null, repository, position, session.Binders);
         binder.ConfigureEc(session.Turn, session.DirectiveSites, cls.Name);   // methods fold the same source-ordered >>TURN state (§2023:7.3.25.4 GR6)
         // kb/Work PB971 — the method formals' EC-OO-ARG-OMITTED guards (§2023:14.9.23.4 GR10), before any body binds.
-        Binding.Procedure.EcBinder.MarkFormals(cls.Symbol.Methods, session.Turn, session.Edition.DialectLevel);
-        Binding.Procedure.EcBinder.MarkFormals(cls.Symbol.FactoryMethods, session.Turn, session.Edition.DialectLevel);
+        Binding.Procedure.Verbs.EcBinder.MarkFormals(cls.Symbol.Methods, session.Turn, session.Edition.DialectLevel);
+        Binding.Procedure.Verbs.EcBinder.MarkFormals(cls.Symbol.FactoryMethods, session.Turn, session.Edition.DialectLevel);
         cls.Bound = binder.BindMethodRoster(cls.Symbol, cls.Symbol.Methods);
 
         // The FACTORY roster binds through a SEPARATE binder over the factory forest, with the factory

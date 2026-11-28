@@ -3,6 +3,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
+using WiseOwl.Cobol.Compiler;
 using WiseOwl.Cobol.Tests.Shared;
 
 namespace WiseOwl.Cobol.Tests.Conformance;

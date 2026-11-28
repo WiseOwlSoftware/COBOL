@@ -1,6 +1,8 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-namespace WiseOwl.Cobol.Listing.Building;
+using WiseOwl.Cobol.Listing;
+
+namespace WiseOwl.Cobol.Compiler.Listing;
 
 /// <summary>What the listing's exit produced: the document, the files written (none when the request writes none or the host
 /// refused each) and the errors the host's refusals are reported as, one per file refused.</summary>

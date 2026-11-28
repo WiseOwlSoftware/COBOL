@@ -1,10 +1,10 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 
 using WiseOwl.Cobol.Compiler.Oo;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 /// <summary>The shared state of ONE group bind (rearch PHASE-06 Step 2): built by <see cref="BinderDriver.Bind"/>
 /// and handed to the <see cref="Compiler.Oo.OoDriver"/> + the per-unit binds so both sides of the driver's per-unit binds draw

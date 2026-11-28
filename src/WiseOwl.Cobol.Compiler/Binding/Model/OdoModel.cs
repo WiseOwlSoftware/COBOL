@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using OdoTail = WiseOwl.Cobol.Runtime.OdoTail;
 
-namespace WiseOwl.Cobol.Binding.Model;
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// <summary>ONE data-name-2 of an OCCURS KEY phrase (ISO §2023:13.18.38) together with the direction word that governs
 /// it: the key's name and its IN/OF qualifiers AS WRITTEN (innermost first, a <see cref="WrittenDataName"/> only the symbol table

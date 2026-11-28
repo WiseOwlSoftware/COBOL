@@ -1,7 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text.RegularExpressions;
-using WiseOwl.Cobol.Binding.Bound;
+using WiseOwl.Cobol.Compiler.Binding.Bound;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 
@@ -71,7 +71,7 @@ public sealed class FunctionValueLaneDriftTests
     /// <summary>⛔ THE PREDICTION AND THE RENDERER SHARE THEIR RULES THROUGH compiler.bound, NEVER THROUGH EACH OTHER
     /// (kb/Work PB3268, review R1-2; DESIGN-architecture-review.md §8.1: compiler.codegen reaches compiler.bound and
     /// compiler.model, compiler.binding never reaches compiler.codegen, and no tolerated row covers either direction
-    /// between <c>WiseOwl.Cobol.Binding.Procedure</c> and <c>WiseOwl.Cobol.CodeGen.Emit</c>). The lane once imported
+    /// between <c>WiseOwl.Cobol.Compiler.Binding.Procedure</c> and <c>WiseOwl.Cobol.Compiler.CodeGen.Emit</c>). The lane once imported
     /// <c>IntrinsicRenderer.CrossAlignedNativeArms</c> and <c>EmitText.UnscaledLit</c> while the renderer imported the
     /// lane's <c>ReturnsExactParse</c> and <c>AlignmentMayLeaveCarrier</c>: a namespace cycle between the binder and
     /// the code generator. The shared rules now live in <see cref="IntrinsicCarrierRules"/> and
@@ -87,8 +87,8 @@ public sealed class FunctionValueLaneDriftTests
             if (file.Contains(obj, StringComparison.Ordinal)) continue;
             string text = File.ReadAllText(file);
             string? forbidden =
-                text.Contains("namespace WiseOwl.Cobol.Binding.Procedure;", StringComparison.Ordinal) ? "WiseOwl.Cobol.CodeGen.Emit"
-                : text.Contains("namespace WiseOwl.Cobol.CodeGen.Emit;", StringComparison.Ordinal) ? "WiseOwl.Cobol.Binding.Procedure"
+                text.Contains("namespace WiseOwl.Cobol.Compiler.Binding.Procedure;", StringComparison.Ordinal) ? "WiseOwl.Cobol.Compiler.CodeGen.Emit"
+                : text.Contains("namespace WiseOwl.Cobol.Compiler.CodeGen.Emit;", StringComparison.Ordinal) ? "WiseOwl.Cobol.Compiler.Binding.Procedure"
                 : null;
             if (forbidden is null) continue;
             // A comment may name the other layer's member (the cref-free prose that says which rule it restates).
@@ -99,9 +99,9 @@ public sealed class FunctionValueLaneDriftTests
         Assert.True(offenders.Count == 0, "a cross-layer edge DESIGN-architecture-review §8.1 does not allow: " + string.Join("; ", offenders));
         // The shared rules depend on nothing above compiler.bound.
         string rules = File.ReadAllText(Path.Combine(compiler, "Binding", "Bound", "IntrinsicCarrierRules.cs"));
-        Assert.DoesNotContain("using WiseOwl.Cobol.CodeGen", rules, StringComparison.Ordinal);
-        Assert.DoesNotContain("using WiseOwl.Cobol.Binding.Procedure", rules, StringComparison.Ordinal);
-        Assert.DoesNotContain("using WiseOwl.Cobol.Binding;", rules, StringComparison.Ordinal);
+        Assert.DoesNotContain("using WiseOwl.Cobol.Compiler.CodeGen", rules, StringComparison.Ordinal);
+        Assert.DoesNotContain("using WiseOwl.Cobol.Compiler.Binding.Procedure", rules, StringComparison.Ordinal);
+        Assert.DoesNotContain("using WiseOwl.Cobol.Compiler.Binding;", rules, StringComparison.Ordinal);
     }
 
     /// <summary>The other function sets the prediction shares with the renderer

@@ -1,8 +1,8 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 
-namespace WiseOwl.Cobol.Binding.Bound;
+namespace WiseOwl.Cobol.Compiler.Binding.Bound;
 
 // The SORT/MERGE/RELEASE/RETURN bound nodes (P7 Step 10i: the binder half moved to
 // Binding/Procedure/Verbs/SortBinder.cs; these types STAY here — the emitter, BoundStores,

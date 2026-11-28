@@ -45,7 +45,7 @@ public sealed class ActivationDescriptionFieldDriftTests
             Only = true, ObjectNameIsParameter = true, Optional = true, ByValue = true, ObjectClasses = ["c", "base"],
             ObjectInterfaces = ["i"],
         };
-        string text = WiseOwl.Cobol.CodeGen.RuntimeApi.ActivationDescriptionNew(d);
+        string text = WiseOwl.Cobol.Compiler.CodeGen.Roslyn.RuntimeApi.ActivationDescriptionNew(d);
         foreach (var p in typeof(ActivationDescription).GetProperties(BindingFlags.Public | BindingFlags.Instance))
             Assert.Contains(p.Name + " = ", text);
     }

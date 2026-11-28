@@ -3,7 +3,7 @@
 using System.Collections.Frozen;
 using WiseOwl.Cobol.Editions.Diagnostics;
 
-namespace WiseOwl.Cobol.Binding.Model;
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// <summary>The optional phrases the USAGE clause's general format (ISO §2023:13.18.60.2) prints AFTER a usage word, on
 /// some of its lines and not others. The clause's other operands — <c>POINTER [ TO type-name-1 ]</c>, the two

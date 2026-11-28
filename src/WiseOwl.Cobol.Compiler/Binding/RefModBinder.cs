@@ -5,13 +5,12 @@ using Antlr4.Runtime.Tree;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Cst;
-using WiseOwl.Cobol.Frontend.Generated;
-
-using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Frontend.Parsing;
 
+using WiseOwl.Cobol.Compiler.Binding.Model;
 
-namespace WiseOwl.Cobol.Binding;
+
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 using Core = CobolParserCore;
 using WiseOwl.Cobol.Runtime;
@@ -376,7 +375,7 @@ internal sealed class RefModBinder(ReferenceResolver refs, DataBinder data)
             foreach (var item in list.subscriptItem())
             {
                 if (item.functionArgument() is { } arg && !WritesFigurativeZero(arg)
-                    && WiseOwl.Cobol.Validation.IntegerOperandRules.TryHostValue(arg.GetText(), out int v, out _))
+                    && WiseOwl.Cobol.Compiler.Validation.IntegerOperandRules.TryHostValue(arg.GetText(), out int v, out _))
                     values.Add(v);   // a literal beyond the host range saturates, and no OCCURS count reaches it: the range screen refuses it
                 else subscriptNonLiteral = true;
             }
@@ -405,18 +404,18 @@ internal sealed class RefModBinder(ReferenceResolver refs, DataBinder data)
     /// <summary>A <c>refModPart</c> as integer literals: each position shall be ONE integer literal (§2023:13.18.16.3 SR4
     /// and its twins), so its whole text is the value or the read fails; an omitted length — §2023:8.4.3.3.2's bracketed
     /// form — is the only omission permitted.
-    /// ⛔ Read through THE ONE integer-literal reader, <see cref="WiseOwl.Cobol.Validation.IntegerOperandRules.TryHostValue(string, out int, out bool)"/>
+    /// ⛔ Read through THE ONE integer-literal reader, <see cref="WiseOwl.Cobol.Compiler.Validation.IntegerOperandRules.TryHostValue(string, out int, out bool)"/>
     /// (kb/Work PB1579): an int.TryParse sent an 11-digit literal to the "not an integer literal" branch, a false
     /// sentence; the reader answers "integer literal, beyond the host range" (<c>Beyond</c>) instead.</summary>
     private static (int Start, int? Length, bool Ok, bool Beyond) ReadLiteralPositions(Core.RefModPartContext rmp)
     {
         var spec = rmp.refModSpec();
         if (spec.leftmost is null || WritesFigurativeZero(spec.leftmost)
-            || !WiseOwl.Cobol.Validation.IntegerOperandRules.TryHostValue(spec.leftmost.GetText(), out int start, out bool b0))
+            || !WiseOwl.Cobol.Compiler.Validation.IntegerOperandRules.TryHostValue(spec.leftmost.GetText(), out int start, out bool b0))
             return (0, null, false, false);
         if (spec.length is null) return (start, null, true, b0);
         return !WritesFigurativeZero(spec.length)
-            && WiseOwl.Cobol.Validation.IntegerOperandRules.TryHostValue(spec.length.GetText(), out int len, out bool b1)
+            && WiseOwl.Cobol.Compiler.Validation.IntegerOperandRules.TryHostValue(spec.length.GetText(), out int len, out bool b1)
             ? (start, len, true, b0 || b1) : (0, null, false, false);
     }
 
@@ -441,7 +440,7 @@ internal sealed class RefModBinder(ReferenceResolver refs, DataBinder data)
 /// <param name="BeyondHostLimit">Exactly one ref-mod is written, both segments ARE integer literals, and one of them
 /// lies beyond the host range (kb/Work PB1579). <see cref="Start"/> and <see cref="Length"/> are then null: a
 /// clause that lays the slice out (the CONTROL prior-value copy, §2023:13.18.16.4 GR3) reports COBOL2427 through
-/// <see cref="WiseOwl.Cobol.Validation.IntegerOperandRules.BeyondLimitMessage"/> rather than allocate a saturated
+/// <see cref="WiseOwl.Cobol.Compiler.Validation.IntegerOperandRules.BeyondLimitMessage"/> rather than allocate a saturated
 /// bound.</param>
 /// <param name="Subscript">The written subscripts' values, read lexically (kb/Work PB5602).</param>
 internal readonly record struct RefModSuffixes(

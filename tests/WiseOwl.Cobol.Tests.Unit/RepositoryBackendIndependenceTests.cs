@@ -4,9 +4,9 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
-using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.Binding.Repository;
-using WiseOwl.Cobol.CodeGen;
+using WiseOwl.Cobol.Compiler.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Repository;
+using WiseOwl.Cobol.Compiler.CodeGen;
 using WiseOwl.Cobol.Runtime.Repository;
 using Xunit;
 

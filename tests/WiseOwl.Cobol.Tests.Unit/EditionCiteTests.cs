@@ -1,7 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Bound;
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Bound;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 using Xunit;
 
 namespace WiseOwl.Cobol.Tests.Unit;
@@ -39,7 +39,7 @@ public sealed class EditionCiteTests
     [InlineData(FileOrganization.Relative, "§1985:VIII.4.9.4 GR3")]
     [InlineData(FileOrganization.Indexed, "§1985:IX.4.9.4 GR3")]
     public void WriteFrom_At85_CitesTheModulesMoveRule(FileOrganization organization, string cite) =>
-        Assert.Equal(cite, WiseOwl.Cobol.Binding.Procedure.FromPhraseRules.Write.PhraseAt(85, organization).Cite);
+        Assert.Equal(cite, WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.FromPhraseRules.Write.PhraseAt(85, organization).Cite);
 
     /// <summary>kb/Work PB5486: the FROM function-class rule is a 1985 rule too (ANSI X3.23a-1989 added it to each FROM syntax rule),
     /// so its message cites the module of the file's organization at 85 and the 2023 rule from 2002.</summary>
@@ -85,10 +85,10 @@ public sealed class EditionCiteTests
     public void FromMoveRule_From2002_IsTheEditionsOwnRule(string verb, int dialectLevel, string expected) =>
         Assert.Equal(expected, FromRules(verb).MoveRule.At(dialectLevel, FileOrganization.Sequential));
 
-    private static WiseOwl.Cobol.Binding.Procedure.FromPhraseRules FromRules(string verb) => verb switch
+    private static WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.FromPhraseRules FromRules(string verb) => verb switch
     {
-        "WRITE" => WiseOwl.Cobol.Binding.Procedure.FromPhraseRules.Write,
-        "REWRITE" => WiseOwl.Cobol.Binding.Procedure.FromPhraseRules.Rewrite,
-        _ => WiseOwl.Cobol.Binding.Procedure.FromPhraseRules.Release,
+        "WRITE" => WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.FromPhraseRules.Write,
+        "REWRITE" => WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.FromPhraseRules.Rewrite,
+        _ => WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.FromPhraseRules.Release,
     };
 }

@@ -1,10 +1,10 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 using WiseOwl.Cobol.Editions;
-using WiseOwl.Cobol.Symbols;
+using WiseOwl.Cobol.Compiler.Symbols;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 /// <summary>A SPECIAL-NAMES switch-status condition-name's symbol (ISO §2023:12.3.7.2 <c>ON STATUS IS condition-name-1</c> |
 /// <c>OFF STATUS IS condition-name-2</c>): the implementor switch-name it tests and whether it names the ON status.</summary>

@@ -1,11 +1,11 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Common;
+using WiseOwl.Cobol.Frontend.Common;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Runtime;
 
-namespace WiseOwl.Cobol.Binding.Model;
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// <summary>The data category a PICTURE describes (ISO/IEC 1989:2023 §2023:8.4.2).</summary>
 public enum PicCategory
@@ -793,7 +793,7 @@ public sealed record PicInfo(
     /// <see cref="Scale"/> is 0); everything else <see cref="Scale"/>. ⛔ A FLOATING-POINT edited receiver rides the
     /// mask arm too, and what it answers is a WORKING-SCALE HINT, not a decimal point location: the item has no fixed
     /// scale (its <see cref="Scale"/> is 0), its value is a significand at its own exponent, and the hint only sizes an
-    /// intermediate's landing (<see cref="WiseOwl.Cobol.CodeGen.ReceiverContext.FloatEdited"/>). A rule that needs the item's
+    /// intermediate's landing (<see cref="WiseOwl.Cobol.Compiler.CodeGen.Roslyn.ReceiverContext.FloatEdited"/>). A rule that needs the item's
     /// SHAPE - DIVIDE ... REMAINDER's subsidiary quotient, §2023:14.9.12.4 GR6c - asks the form first
     /// (<c>ArithmeticEmitter.SubsidiaryShapeOf</c>), never this scale (kb/Work PB2923).</summary>
     public int ReceiverScale() =>

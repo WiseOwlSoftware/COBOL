@@ -1,7 +1,8 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 
-namespace WiseOwl.Cobol.Binding.Model;
+
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// <summary>The method-local NAME SCOPE of one METHOD's data (ISO §2023:11.7.4 GR5 — a method-local name SHADOWS the
 /// same name in object data; and it is INVISIBLE to sibling methods, the legacy trap-#6 cross-wiring guard made

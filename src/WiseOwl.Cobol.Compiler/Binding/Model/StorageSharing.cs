@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-namespace WiseOwl.Cobol.Binding.Model;
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// <summary>
 /// ⛔ <b>THE ONE "MAY THESE TWO OPERANDS OCCUPY THE SAME STORAGE?" QUESTION</b> (kb/Work PB1907). ISO §2023:14.9.48.4 GR18

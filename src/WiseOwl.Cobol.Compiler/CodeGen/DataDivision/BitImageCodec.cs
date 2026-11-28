@@ -1,9 +1,10 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.CodeGen.Emit;
+using WiseOwl.Cobol.Compiler.Binding.Model;
+using WiseOwl.Cobol.Compiler.CodeGen.Emit;
+using WiseOwl.Cobol.Compiler.CodeGen.Roslyn;
 
-namespace WiseOwl.Cobol.CodeGen;
+namespace WiseOwl.Cobol.Compiler.CodeGen.DataDivision;
 
 /// <summary>THE BIT IMAGE CODEC (D19/PB43, D20/PB79; DESIGN-architecture-review §8.3, kb/Work PB2337): the run-time faces of
 /// USAGE BIT storage in a record struct — a bit group's elementary <c>AsBits()</c>/<c>FromBits</c> face and the byte face

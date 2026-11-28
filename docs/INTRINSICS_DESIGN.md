@@ -117,7 +117,7 @@ RETURN-TYPE DISCIPLINE (§2023:15.2) — the spine, with examples:
   C#:    F = CobolNum.Store((long)CobolIntrinsics.FactorialI128(20), 0, _P_F);
          // integer functions → long; FACTORIAL/large products compute in Int128, size-error past Int128 range.
 
-THE CATALOG (declarative, in WiseOwl.Cobol.Binding):
+THE CATALOG (declarative, in WiseOwl.Cobol.Compiler.Binding):
 
   enum IntrinsicType { Alphanumeric, Boolean, National, Numeric, Integer, Index }  // ISO §2023:15.2
   enum ArgArity     { Fixed, OptionalTrailing, Variadic }                          // §2023:15.3
@@ -171,7 +171,7 @@ SPECIAL REGISTERS — synthesized DataItems (in DataBinder bootstrap), reusing t
   long _len_of_X = 18;   // PIC byte-size computed from PIC+USAGE metadata (NOT stored anywhere at runtime)
   // ADDRESS OF X → ManagedPointer; LINAGE-COUNTER/LINE-COUNTER/PAGE-COUNTER → owned by file/RW subsystem.
 
-FIGURATIVE CONSTANTS — context-materialized at the use site (WiseOwl.Cobol.Binding.Figurative):
+FIGURATIVE CONSTANTS — context-materialized at the use site (WiseOwl.Cobol.Compiler.Binding.Figurative):
 
   enum Fig { None, Zero, Space, HighValue, LowValue, Quote, Null, AllLiteral }
   // MOVE ZERO TO X → CobolString.Store(new string('0', width), width)  [alphanumeric receiver]
@@ -181,11 +181,11 @@ FIGURATIVE CONSTANTS — context-materialized at the use site (WiseOwl.Cobol.Bin
   // MOVE LOW-VALUES  TO X → CobolString.Store(new string('\0', width), width)
   // MOVE ALL "AB" TO X(5) → CobolString.Store("ABABA", 5)              [§2023:8.3.3.6 repeat-to-width-then-trim]
 
-INITIALIZE — compile-time walk → typed stores (WiseOwl.Cobol.CodeGen):
+INITIALIZE — compile-time walk → typed stores (WiseOwl.Cobol.Compiler.CodeGen):
   // INITIALIZE REC → for each elementary leaf: numeric→Store(0L,...); alphanumeric→Store(spaces,...)
   // INITIALIZE REC REPLACING NUMERIC BY 1 / TO VALUE → per-leaf override; OCCURS → emitted as a for-loop over the array.
 
-SET — dispatch by target kind (WiseOwl.Cobol.CodeGen.EmitSet):
+SET — dispatch by target kind (WiseOwl.Cobol.Compiler.CodeGen.EmitSet):
   // SET IDX TO 3            → IDX = 3;                       (index = long)
   // SET P TO ADDRESS OF X   → P = ManagedPointer.Of(ref X);
   // SET SW TO ON/OFF        → SW = true/false;              (mnemonic switch = bool)

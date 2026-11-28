@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Runtime;
 
-namespace WiseOwl.Cobol.Binding.Model;
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// <summary>The DATA DIVISION section a data-description entry is written in — the argument of
 /// <c>DataBinder.BindEntries</c> (the section-scoped placement rules, e.g. CONSTANT RECORD is WS/LS-only, ISO
@@ -281,8 +281,8 @@ public sealed class DataItem
     /// <summary>⛔ THE ONE READER FOR "what literal initializes this item at this occurrence" — the Format-1
     /// <see cref="RawValue"/>, which is the same for every occurrence (§2023:13.18.63.4 GR9), or the Format-2 literal
     /// keyed to <paramref name="subs"/> (GR12–GR15). It lives HERE because the two emit lanes ask it and may not
-    /// answer differently: <see cref="WiseOwl.Cobol.CodeGen.ValueInitializer.InitializerFor"/> (the record-struct
-    /// fields) and <see cref="WiseOwl.Cobol.CodeGen.ImageInitializer.ImageInitOf"/> (the character-image backings).
+    /// answer differently: <see cref="WiseOwl.Cobol.Compiler.CodeGen.DataDivision.ValueInitializer.InitializerFor"/> (the record-struct
+    /// fields) and <see cref="WiseOwl.Cobol.Compiler.CodeGen.DataDivision.ImageInitializer.ImageInitOf"/> (the character-image backings).
     /// A GROUP subject's answer is its group-level VALUE either way — §2023:13.18.63.3 SR16 carries SR13 onto format 2,
     /// and §2023:13.18.63.4 GR5 initializes the AREA — so <c>GroupValueSlicer.AreaOf</c> reads this too.</summary>
     public string? ValueAt(Subscripts subs) => TableValuePlan is { } plan ? plan.LiteralAt(subs) : RawValue;

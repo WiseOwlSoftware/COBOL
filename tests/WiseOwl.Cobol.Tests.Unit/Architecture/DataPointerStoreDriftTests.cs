@@ -1,10 +1,10 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
-using Fault = WiseOwl.Cobol.Binding.Model.StrongTypeModel.DataPointerStoreFault;
-using Restriction = WiseOwl.Cobol.Binding.Model.StrongTypeModel.TypeRestriction;
+using Fault = WiseOwl.Cobol.Compiler.Binding.Model.StrongTypeModel.DataPointerStoreFault;
+using Restriction = WiseOwl.Cobol.Compiler.Binding.Model.StrongTypeModel.TypeRestriction;
 
 namespace WiseOwl.Cobol.Tests.Unit.Architecture;
 

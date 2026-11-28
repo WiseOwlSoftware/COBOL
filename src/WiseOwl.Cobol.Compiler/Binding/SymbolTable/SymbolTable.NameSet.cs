@@ -1,8 +1,8 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 /// <summary>The name classes of §1985:X.1.3.8.2 GR1's set as the one resolver <c>SymbolTable.NearestInNameSet</c> reads them, a set of
 /// them being a question's classes. Each member is named after the <see cref="DeclarationKind"/> its declarations are answered as

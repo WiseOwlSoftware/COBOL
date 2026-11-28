@@ -17,9 +17,9 @@ namespace WiseOwl.Cobol.Tests.RepoDrift;
 /// <list type="number">
 /// <item>the built <c>WiseOwl.Cobol.Listing</c> assembly (the model and its renderers) references no <c>Microsoft.CodeAnalysis</c>
 /// assembly;</item>
-/// <item>every symbol the documents of the builder's namespace (<c>WiseOwl.Cobol.Listing.Building</c>, in the Compiler) name is bound by
+/// <item>every symbol the documents of the builder's namespace (<c>WiseOwl.Cobol.Compiler.Listing</c>, in the Compiler) name is bound by
 /// Roslyn's semantic model, and none is declared in a <c>Microsoft.CodeAnalysis</c> assembly or in the backend's namespace
-/// (<c>WiseOwl.Cobol.CodeGen</c>);</item>
+/// (<c>WiseOwl.Cobol.Compiler.CodeGen</c>);</item>
 /// <item>no document of either names a <c>.g.cs</c> file.</item>
 /// </list>
 /// Each rule is red on its planted counterexample (<see cref="TheChecks_SeeACounterexample"/>).
@@ -27,7 +27,7 @@ namespace WiseOwl.Cobol.Tests.RepoDrift;
 [Trait("Sweep", "tree")]
 public sealed class ListingBackendNeutralityDriftTests
 {
-    private const string BuilderNamespace = "WiseOwl.Cobol.Listing.Building";
+    private const string BuilderNamespace = "WiseOwl.Cobol.Compiler.Listing";
     private static readonly Regex GeneratedSourceName = new(@"\.g\.cs\b", RegexOptions.CultureInvariant);
 
     [Fact]
@@ -64,11 +64,11 @@ public sealed class ListingBackendNeutralityDriftTests
         {
             string roslyn = Path.Combine(dir, "Roslyn.cs"), backend = Path.Combine(dir, "Backend.cs"), generated = Path.Combine(dir, "Generated.cs");
             File.WriteAllText(roslyn, $"namespace {BuilderNamespace};\ninternal static class PlantedA {{ public static object Of(string s) => Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParseStatement(s); }}\n");
-            File.WriteAllText(backend, $"namespace {BuilderNamespace};\ninternal static class PlantedB {{ public static object Of() => new WiseOwl.Cobol.CodeGen.CodeWriter(); }}\n");
+            File.WriteAllText(backend, $"namespace {BuilderNamespace};\ninternal static class PlantedB {{ public static object Of() => new WiseOwl.Cobol.Compiler.CodeGen.CodeWriter(); }}\n");
             File.WriteAllText(generated, $"namespace {BuilderNamespace};\ninternal static class PlantedC {{ public const string Path = \"out/prog.g.cs\"; }}\n");
             var offences = Offences([roslyn, backend, generated]);
             Assert.Contains(offences, o => o.Contains("Roslyn.cs", StringComparison.Ordinal) && o.Contains("Microsoft.CodeAnalysis", StringComparison.Ordinal));
-            Assert.Contains(offences, o => o.Contains("Backend.cs", StringComparison.Ordinal) && o.Contains("WiseOwl.Cobol.CodeGen", StringComparison.Ordinal));
+            Assert.Contains(offences, o => o.Contains("Backend.cs", StringComparison.Ordinal) && o.Contains("WiseOwl.Cobol.Compiler.CodeGen", StringComparison.Ordinal));
             Assert.Contains(offences, o => o.Contains("Generated.cs", StringComparison.Ordinal) && o.Contains(".g.cs", StringComparison.Ordinal));
         }
         finally { ScratchDirectory.Remove(dir); }
@@ -107,7 +107,7 @@ public sealed class ListingBackendNeutralityDriftTests
                 string? assembly = symbol.ContainingAssembly?.Name;
                 string ns = (symbol as INamespaceSymbol ?? symbol.ContainingNamespace)?.ToDisplayString() ?? "";
                 if (assembly?.StartsWith("Microsoft.CodeAnalysis", StringComparison.Ordinal) == true
-                    || ns == "WiseOwl.Cobol.CodeGen" || ns.StartsWith("WiseOwl.Cobol.CodeGen.", StringComparison.Ordinal))
+                    || ns == "WiseOwl.Cobol.Compiler.CodeGen" || ns.StartsWith("WiseOwl.Cobol.Compiler.CodeGen.", StringComparison.Ordinal))
                     offences.Add($"{tree.FilePath}({node.GetLocation().GetLineSpan().StartLinePosition}): names {symbol.ToDisplayString()} of {assembly} ({ns})");
             }
             foreach (Match name in GeneratedSourceName.Matches(tree.GetText().ToString()))

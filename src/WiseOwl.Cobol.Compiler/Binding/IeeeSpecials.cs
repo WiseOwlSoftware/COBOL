@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 /// <summary>The three non-finite values ISO §2023:14.9.39.4 GR33 / GR34 / GR35 name — "a canonical representation of
 /// infinity" / "of a quiet NaN" / "of a signaling NaN … as described in ISO/IEC 60559:2020, Clause 3, for the

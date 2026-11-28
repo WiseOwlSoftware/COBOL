@@ -1,9 +1,9 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text.RegularExpressions;
-using WiseOwl.Cobol.Binding;
-using WiseOwl.Cobol.Binding.Bound;
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding;
+using WiseOwl.Cobol.Compiler.Binding.Bound;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
@@ -247,39 +247,39 @@ public sealed class IntrinsicArgumentClassDriftTests
     {
         // "category" = the item's PicCategory row answers through ClassOfCategory (the storage category IS the
         // Table-2 class for these usages); anything else names the usage-keyed CobolClass arm in ClassOfPlace.
-        var dispositioned = new Dictionary<WiseOwl.Cobol.Binding.Model.Usage, string>
+        var dispositioned = new Dictionary<WiseOwl.Cobol.Compiler.Binding.Model.Usage, string>
         {
-            [WiseOwl.Cobol.Binding.Model.Usage.Display] = "category",
-            [WiseOwl.Cobol.Binding.Model.Usage.Binary] = "category",
-            [WiseOwl.Cobol.Binding.Model.Usage.Packed] = "category",
-            [WiseOwl.Cobol.Binding.Model.Usage.Comp5] = "category",
-            [WiseOwl.Cobol.Binding.Model.Usage.Float] = "category",
-            [WiseOwl.Cobol.Binding.Model.Usage.Double] = "category",
-            [WiseOwl.Cobol.Binding.Model.Usage.Index] = "usage-keyed: CobolClass.Index",
-            [WiseOwl.Cobol.Binding.Model.Usage.ObjectReference] = "category",
-            [WiseOwl.Cobol.Binding.Model.Usage.National] = "category",
-            [WiseOwl.Cobol.Binding.Model.Usage.Bit] = "category",
-            [WiseOwl.Cobol.Binding.Model.Usage.Pointer] = "category",
-            [WiseOwl.Cobol.Binding.Model.Usage.ProgramPointer] = "category",
-            [WiseOwl.Cobol.Binding.Model.Usage.FunctionPointer] = "category",
+            [WiseOwl.Cobol.Compiler.Binding.Model.Usage.Display] = "category",
+            [WiseOwl.Cobol.Compiler.Binding.Model.Usage.Binary] = "category",
+            [WiseOwl.Cobol.Compiler.Binding.Model.Usage.Packed] = "category",
+            [WiseOwl.Cobol.Compiler.Binding.Model.Usage.Comp5] = "category",
+            [WiseOwl.Cobol.Compiler.Binding.Model.Usage.Float] = "category",
+            [WiseOwl.Cobol.Compiler.Binding.Model.Usage.Double] = "category",
+            [WiseOwl.Cobol.Compiler.Binding.Model.Usage.Index] = "usage-keyed: CobolClass.Index",
+            [WiseOwl.Cobol.Compiler.Binding.Model.Usage.ObjectReference] = "category",
+            [WiseOwl.Cobol.Compiler.Binding.Model.Usage.National] = "category",
+            [WiseOwl.Cobol.Compiler.Binding.Model.Usage.Bit] = "category",
+            [WiseOwl.Cobol.Compiler.Binding.Model.Usage.Pointer] = "category",
+            [WiseOwl.Cobol.Compiler.Binding.Model.Usage.ProgramPointer] = "category",
+            [WiseOwl.Cobol.Compiler.Binding.Model.Usage.FunctionPointer] = "category",
             // USAGE MESSAGE-TAG (kb/Work PB487, PB4740) — §2023:13.18.60.4 GR9 makes the class AND category of a message-tag
             // data item message-tag: PicCategory.MessageTag, whose ClassOfCategory row answers CobolClass.MessageTag, so
             // every screen over the lattice decides a message tag instead of failing open.
-            [WiseOwl.Cobol.Binding.Model.Usage.MessageTag] = "category",
-            [WiseOwl.Cobol.Binding.Model.Usage.FloatShort] = "category",
-            [WiseOwl.Cobol.Binding.Model.Usage.FloatLong] = "category",
-            [WiseOwl.Cobol.Binding.Model.Usage.FloatExtended] = "category",
-            [WiseOwl.Cobol.Binding.Model.Usage.FloatBinary32] = "category",
-            [WiseOwl.Cobol.Binding.Model.Usage.FloatBinary64] = "category",
-            [WiseOwl.Cobol.Binding.Model.Usage.FloatBinary128] = "category",
-            [WiseOwl.Cobol.Binding.Model.Usage.FloatDecimal16] = "category",
-            [WiseOwl.Cobol.Binding.Model.Usage.FloatDecimal34] = "category",
-            [WiseOwl.Cobol.Binding.Model.Usage.BinaryChar] = "category",
-            [WiseOwl.Cobol.Binding.Model.Usage.BinaryShort] = "category",
-            [WiseOwl.Cobol.Binding.Model.Usage.BinaryLong] = "category",
-            [WiseOwl.Cobol.Binding.Model.Usage.BinaryDouble] = "category",
+            [WiseOwl.Cobol.Compiler.Binding.Model.Usage.MessageTag] = "category",
+            [WiseOwl.Cobol.Compiler.Binding.Model.Usage.FloatShort] = "category",
+            [WiseOwl.Cobol.Compiler.Binding.Model.Usage.FloatLong] = "category",
+            [WiseOwl.Cobol.Compiler.Binding.Model.Usage.FloatExtended] = "category",
+            [WiseOwl.Cobol.Compiler.Binding.Model.Usage.FloatBinary32] = "category",
+            [WiseOwl.Cobol.Compiler.Binding.Model.Usage.FloatBinary64] = "category",
+            [WiseOwl.Cobol.Compiler.Binding.Model.Usage.FloatBinary128] = "category",
+            [WiseOwl.Cobol.Compiler.Binding.Model.Usage.FloatDecimal16] = "category",
+            [WiseOwl.Cobol.Compiler.Binding.Model.Usage.FloatDecimal34] = "category",
+            [WiseOwl.Cobol.Compiler.Binding.Model.Usage.BinaryChar] = "category",
+            [WiseOwl.Cobol.Compiler.Binding.Model.Usage.BinaryShort] = "category",
+            [WiseOwl.Cobol.Compiler.Binding.Model.Usage.BinaryLong] = "category",
+            [WiseOwl.Cobol.Compiler.Binding.Model.Usage.BinaryDouble] = "category",
         };
-        foreach (var u in Enum.GetValues<WiseOwl.Cobol.Binding.Model.Usage>())
+        foreach (var u in Enum.GetValues<WiseOwl.Cobol.Compiler.Binding.Model.Usage>())
             Assert.True(dispositioned.ContainsKey(u),
                 $"Usage.{u} has no §2023:8.5.2.1 Table-2 class disposition (kb/Work R27) — decide its Table-2 "
                 + "class, wire the usage-keyed arm in ClassOfPlace if the storage category must not answer, "

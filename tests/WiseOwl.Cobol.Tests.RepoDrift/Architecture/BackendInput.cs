@@ -147,11 +147,11 @@ internal sealed record BackendInput(
     }
 
     /// <summary>The key a contract row names a member by: the declaring type's full name without the
-    /// <c>WiseOwl.Cobol.Binding.</c> prefix both neutral layers share (<c>Model.DataItem.CobolName</c>,
+    /// <c>WiseOwl.Cobol.Compiler.Binding.</c> prefix both neutral layers share (<c>Model.DataItem.CobolName</c>,
     /// <c>Bound.BoundRelational.Op</c>, a nested type joined with <c>+</c>), then the member.</summary>
     public static string KeyOf(Type type, string member)
     {
-        const string Prefix = "WiseOwl.Cobol.Binding.";
+        const string Prefix = "WiseOwl.Cobol.Compiler.Binding.";
         string name = type.FullName ?? type.Name;
         return (name.StartsWith(Prefix, StringComparison.Ordinal) ? name[Prefix.Length..] : name) + "." + member;
     }

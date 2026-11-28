@@ -1,17 +1,16 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
-using WiseOwl.Cobol.Common;
-using WiseOwl.Cobol.Binding.Bound;
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Frontend.Common;
+using WiseOwl.Cobol.Compiler.Binding.Bound;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
-using WiseOwl.Cobol.Frontend.Generated;
-using WiseOwl.Cobol.Runtime;
-using WiseOwl.Cobol.Symbols;
 using WiseOwl.Cobol.Frontend.Parsing;
+using WiseOwl.Cobol.Runtime;
+using WiseOwl.Cobol.Compiler.Symbols;
 
-namespace WiseOwl.Cobol.Binding.Procedure;
+namespace WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs;
 
 using Core = CobolParserCore;
 
@@ -1173,7 +1172,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             // POSITIVE level as "not a positive nonzero integer" — a false sentence; the level beyond the table's
             // highest is §2023:15.85.4 RV2's run-time outcome.
             if (level is BoundNumericLiteral { Text: { } text }
-                && (!WiseOwl.Cobol.Validation.IntegerOperandRules.TryHostValue(text, out int n) || n <= 0))
+                && (!WiseOwl.Cobol.Compiler.Validation.IntegerOperandRules.TryHostValue(text, out int n) || n <= 0))
                 return Malformed($"argument-4 is {text}, which is not a positive nonzero integer "
                     + "(" + IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.85.3 AR6") + ") — the ordering level is 1 (primary) through the highest level the "
                     + "ordering table defines");
@@ -1891,7 +1890,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// value (saturated when <c>Beyond</c>); a diagnostic quotes <c>Text</c>, the literal as written.</summary>
     private static (int Value, bool Beyond, string Text)? StaticIntLiteral(IReadOnlyList<BoundOperand> args, int i) =>
         i < args.Count && args[i] is BoundNumericLiteral nl
-        && WiseOwl.Cobol.Validation.IntegerOperandRules.TryHostValue(nl.Text, out int v, out bool beyond)
+        && WiseOwl.Cobol.Compiler.Validation.IntegerOperandRules.TryHostValue(nl.Text, out int v, out bool beyond)
             ? (v, beyond, nl.Text) : null;
 
     /// <summary>The §2023:15.19.2 CONVERT format words (reserved within the argument list, like TRIM's LEADING/TRAILING).</summary>

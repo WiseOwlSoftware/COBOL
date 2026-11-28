@@ -98,11 +98,11 @@ public sealed class ArgumentOrderDriftTests
     [Fact]
     public void EveryFunctionDeviceForm_SaysWhetherItsTemporaryReadsItsArgumentsDescriptions()
     {
-        var reads = System.Enum.GetValues<WiseOwl.Cobol.Binding.FunctionDeviceForm>()
-            .Where(WiseOwl.Cobol.Binding.Procedure.ArgumentOrder.ReadsArgumentDescriptions)
+        var reads = System.Enum.GetValues<WiseOwl.Cobol.Compiler.Binding.FunctionDeviceForm>()
+            .Where(WiseOwl.Cobol.Compiler.Binding.Procedure.ArgumentOrder.ReadsArgumentDescriptions)
             .ToList();
         Assert.Equal(
-            [WiseOwl.Cobol.Binding.FunctionDeviceForm.Argument],
+            [WiseOwl.Cobol.Compiler.Binding.FunctionDeviceForm.Argument],
             reads);
     }
 

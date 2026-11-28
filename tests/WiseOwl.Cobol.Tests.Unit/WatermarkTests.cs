@@ -1,8 +1,8 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding;
-using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.Binding.Passes;
+using WiseOwl.Cobol.Compiler.Binding;
+using WiseOwl.Cobol.Compiler.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Passes;
 using WiseOwl.Cobol.Frontend.Diagnostics;
 using Xunit;
 using WiseOwl.Cobol.Frontend.Preprocessor;
@@ -46,7 +46,7 @@ public sealed class WatermarkTests
     {
         var db = new DataBinder();
         Assert.Throws<InvalidOperationException>(() =>
-            db.Symbols.Identify(WrittenWord.Of(new Antlr4.Runtime.CommonToken(1, "CAP")), WiseOwl.Cobol.Symbols.NameClass.CapacityRegister,
+            db.Symbols.Identify(WrittenWord.Of(new Antlr4.Runtime.CommonToken(1, "CAP")), WiseOwl.Cobol.Compiler.Symbols.NameClass.CapacityRegister,
                 report: false));
     }
 

@@ -2,12 +2,11 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
-using WiseOwl.Cobol.Common;              // CobolLiteral — the ONE literal codec and its shape rules
+using WiseOwl.Cobol.Frontend.Common;              // CobolLiteral — the ONE literal codec and its shape rules; ExpansionToken — the one token-to-cursor rule, the expansion region included
 using WiseOwl.Cobol.Editions;             // Constructs, ConstructRegistry — the literal-format edition gates
 using WiseOwl.Cobol.Editions.Diagnostics; // DiagnosticCatalog
-using WiseOwl.Cobol.Frontend.Common;      // ExpansionToken — the one token-to-cursor rule, the expansion region included
 using WiseOwl.Cobol.Frontend.Expressions; // ArithmeticFormationRules — the ONE §2023:8.3.3.3.2 rule-2 contiguity test
-using WiseOwl.Cobol.Frontend.Generated;   // CobolParserCore contexts of the signed literal slots
+using WiseOwl.Cobol.Frontend.Parsing;   // CobolParserCore contexts of the signed literal slots
 
 namespace WiseOwl.Cobol.Frontend.Parsing;
 

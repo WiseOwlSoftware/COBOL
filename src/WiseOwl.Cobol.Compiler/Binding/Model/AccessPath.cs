@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-namespace WiseOwl.Cobol.Binding.Model;
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// <summary>The access direction of a subscripted OCCURS DYNAMIC element (data-model D9): a SENDING read (benign
 /// scratch on out-of-range) vs a RECEIVING write (grows-and-seeds the table past its current capacity). A fixed
@@ -13,7 +13,7 @@ public enum AccessDir { Sending, Receiving }
 /// <see cref="AccessSegment"/>s the BACKEND renders to a C# lvalue expression (a field chain, table accessors), so a
 /// <see cref="MemberPlace"/>/<see cref="RedefViewPlace"/>/<see cref="CapacityRegisterPlace"/> carries STRUCTURE, not
 /// C# text. A table segment's subscript INDEX is a typed <see cref="Position"/> (kb/Work PB2151;
-/// DESIGN-binder-bound-tree.md §3.9). The rendering lives in <c>CodeGen.PlaceRenderer.RenderPath</c>.
+/// DESIGN-binder-bound-tree.md §3.9). The rendering lives in <c>CodeGen.Roslyn.PlaceRenderer.RenderPath</c>.
 /// </summary>
 public sealed record AccessPath(IReadOnlyList<AccessSegment> Segments)
 {

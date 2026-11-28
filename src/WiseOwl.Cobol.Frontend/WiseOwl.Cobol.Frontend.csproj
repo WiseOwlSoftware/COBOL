@@ -10,7 +10,7 @@
     <AssemblyName>WiseOwl.Cobol.Frontend</AssemblyName>
     <!-- Single source of the generated ANTLR parser namespace (rearch P1) — threaded into the generation Exec
          below and matched by the hand-written superClass base Parsing/CobolParserCoreBase.cs. -->
-    <AntlrNamespace>WiseOwl.Cobol.Frontend.Generated</AntlrNamespace>
+    <AntlrNamespace>WiseOwl.Cobol.Frontend.Parsing</AntlrNamespace>
     <!-- The ANTLR generation's other single-sourced inputs (kb/Work PB2719): the vendored tool jar, the one
          generator script, and the stamp that carries the values above into the up-to-date check. -->
     <AntlrJar>ANTLR4/antlr-4.13.2-complete.jar</AntlrJar>

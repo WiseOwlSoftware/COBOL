@@ -1,23 +1,22 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding;        // Place subtypes (RefModPlace, …), PicCategory, Usage
-using WiseOwl.Cobol.Common;         // CobolLiteral — the ONE literal decoder / §2023:8.3.3 hex-grouping rule (R03)
-using WiseOwl.Cobol.Binding.Bound;
-using WiseOwl.Cobol.Binding.Model;  // BoundUnit / OoClassUnit — the bound model (P6)
-using WiseOwl.Cobol.Binding.Passes; // GroupBindContext — this pass is the manifest's NAMED terminal pass (P6 Step 4)
-using WiseOwl.Cobol.Binding.Procedure;   // ConditionBinder.MapOperator — the ONE relational-operator fold (the START KEY gate)
+using WiseOwl.Cobol.Compiler.Binding;        // Place subtypes (RefModPlace, …), PicCategory, Usage
+using WiseOwl.Cobol.Frontend.Common;         // CobolLiteral — the ONE literal decoder / §2023:8.3.3 hex-grouping rule (R03); CobolWordRule — the ONE §2023:8.3.2.1 word-length ceiling (shared with the directive stages)
+using WiseOwl.Cobol.Compiler.Binding.Bound;
+using WiseOwl.Cobol.Compiler.Binding.Model;  // BoundUnit / OoClassUnit — the bound model (P6)
+using WiseOwl.Cobol.Compiler.Binding.Passes; // GroupBindContext — this pass is the manifest's NAMED terminal pass (P6 Step 4)
+using WiseOwl.Cobol.Compiler.Binding.Procedure;   // ConditionBinder.MapOperator — the ONE relational-operator fold (the START KEY gate)
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;   // DiagnosticCatalog / EditionDiagnostic / EditionCodes / EditionSeverity(Policy) — the §2023:8.9 funnel
-using WiseOwl.Cobol.Frontend.Common;        // CobolWordRule — the ONE §2023:8.3.2.1 word-length ceiling (shared with the directive stages)
 using WiseOwl.Cobol.Frontend.Cst;            // SetToStatementCst — the one reading of SET Format 7's spelling (kb/Work PB4231)
 using WiseOwl.Cobol.Frontend.Expressions;    // BooleanOperatorGate — the ONE boolean-operator introduction gate (both lanes)
-using WiseOwl.Cobol.Frontend.Generated;     // CobolParserCore / CobolLexer / CobolParserCoreBaseVisitor — the parse-tree arm
-using WiseOwl.Cobol.Frontend.Parsing;       // CobolKeywordTokens — the reverse vocab map (>>COBOL-WORDS SR3/SR4 category); WrittenSource
+using WiseOwl.Cobol.Frontend.Parsing;     // CobolParserCore / CobolLexer / CobolParserCoreBaseVisitor — the parse-tree arm; CobolKeywordTokens — the reverse vocab map (>>COBOL-WORDS SR3/SR4 category); WrittenSource
 using WiseOwl.Cobol.Runtime;                // CobolNames — the ONE Annex C word fold (kb/Work PB1402)
 
 using WiseOwl.Cobol.Compiler.Oo;
+using WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs;
 
-namespace WiseOwl.Cobol.Validation;
+namespace WiseOwl.Cobol.Compiler.Validation;
 
 /// <summary>
 /// THE single post-bind edition-conformance pass (rearch PHASE-03 Step 14;
@@ -3818,7 +3817,7 @@ internal sealed class VersionConformancePass
             // every statement position is bound by rule and the funnel has nothing to add (kb/Work PB922).
             // A DECLARATION still keeps the funnel: the walk stops at the enclosing statement, and a data
             // description entry has none — which is what must reject `01 EXCEPTION-OBJECT PIC X.`
-            if (Binding.Procedure.OoBinder.OoIsExceptionObject(ctx.Start.Text, _cobolWords))
+            if (Binding.Procedure.Verbs.OoBinder.OoIsExceptionObject(ctx.Start.Text, _cobolWords))
                 for (Antlr4.Runtime.RuleContext? a = ctx.Parent; a is not null; a = a.Parent)
                     if (a is CobolParserCore.StatementContext)
                         return base.VisitChildren(ctx);

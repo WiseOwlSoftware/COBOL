@@ -1,8 +1,8 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Passes;
+using WiseOwl.Cobol.Compiler.Binding.Passes;
 
-namespace WiseOwl.Cobol.Binding.Model;
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// <summary>
 /// The type forest of ONE bound unit (ISO §2023:8.4.6.2.1 GR3): the roots of its WORKING-STORAGE, LOCAL-STORAGE and the rest of the

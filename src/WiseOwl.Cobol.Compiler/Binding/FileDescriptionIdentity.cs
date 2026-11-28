@@ -1,8 +1,8 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 /// <summary>
 /// ⛔ THE X3.23-1985 AGREEMENT RULES OF AN EXTERNAL FILE CONNECTOR'S FILE DESCRIPTION ENTRIES (kb/Work PB5300), one ROW per clause, read by the one loop

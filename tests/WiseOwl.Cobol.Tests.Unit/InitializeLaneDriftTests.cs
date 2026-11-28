@@ -23,7 +23,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <c>ALL TO VALUE THEN TO DEFAULT</c> wrote SPACES over the values the statement exists to restore. A THIRD
 /// carrier would repeat that exactly, and nothing would fail.</para>
 /// <para><b>2. The action vocabulary.</b> <c>InitializeEmitter.EmitAction</c> switches over
-/// <see cref="T:WiseOwl.Cobol.Binding.Bound.InitializeAction"/> with NO default arm — an action the binder composes
+/// <see cref="T:WiseOwl.Cobol.Compiler.Binding.Bound.InitializeAction"/> with NO default arm — an action the binder composes
 /// and the emitter does not know is dropped WITHOUT a diagnostic, and the store the standard requires simply
 /// never happens. The vocabulary grew (PB393's loop, PB418's per-occurrence select) and will grow again.</para>
 /// </summary>
@@ -186,11 +186,11 @@ public sealed class InitializeLaneDriftTests
 
         Assert.Equal(printed.OrderBy(x => x, StringComparer.Ordinal).ToList(), GrammarCategoryWords());
 
-        var members = Enum.GetValues<WiseOwl.Cobol.Binding.Bound.InitializeCategory>();
+        var members = Enum.GetValues<WiseOwl.Cobol.Compiler.Binding.Bound.InitializeCategory>();
         Assert.Equal(printed.Length, members.Length);
         Assert.Equal(
             printed.OrderBy(x => x, StringComparer.Ordinal).ToList(),
-            members.Select(WiseOwl.Cobol.Binding.Bound.InitializeCategories.Spelling)
+            members.Select(WiseOwl.Cobol.Compiler.Binding.Bound.InitializeCategories.Spelling)
                 .OrderBy(x => x, StringComparer.Ordinal).ToList());
 
         // InitializeCategorySet is a bitmask over the ordinals; more than 31 members would silently drop one.
@@ -344,12 +344,12 @@ public sealed class InitializeLaneDriftTests
     [Fact]
     public void EveryCategoryName_IsScreenedByExactlyOneHalfOfSyntaxRule4()
     {
-        foreach (var cat in WiseOwl.Cobol.Binding.Bound.InitializeCategories.All)
+        foreach (var cat in WiseOwl.Cobol.Compiler.Binding.Bound.InitializeCategories.All)
         {
-            bool set = WiseOwl.Cobol.Binding.Bound.InitializeCategories.IsSetForm(cat);
-            bool move = WiseOwl.Cobol.Binding.Bound.InitializeCategories.Table16Receiver(cat) is not null;
+            bool set = WiseOwl.Cobol.Compiler.Binding.Bound.InitializeCategories.IsSetForm(cat);
+            bool move = WiseOwl.Cobol.Compiler.Binding.Bound.InitializeCategories.Table16Receiver(cat) is not null;
             Assert.True(set ^ move,
-                $"category-name {WiseOwl.Cobol.Binding.Bound.InitializeCategories.Spelling(cat)} is "
+                $"category-name {WiseOwl.Cobol.Compiler.Binding.Bound.InitializeCategories.Spelling(cat)} is "
                 + (set ? "BOTH a SET-form category and carries a Table-16 receiving position — two halves of "
                        + "ISO §2023:14.9.20.3 SR4 would screen the same REPLACING pair"
                        : "screened by NEITHER half of ISO §2023:14.9.20.3 SR4: it is not one of GR4's five SET-form "

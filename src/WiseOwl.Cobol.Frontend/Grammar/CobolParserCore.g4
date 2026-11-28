@@ -236,7 +236,7 @@ identificationParagraph
     ;
 
 // OPTIONS paragraph (COBOL-2002, ISO §2023:11.9) — fully parsed into a structured clause tree (the model is consumed
-// program-wide; see WiseOwl.Cobol.Binding.OptionsModel / OptionsBinder). §2023:11.9.2 (RENDERED, PDF p302 / folio 272) prints
+// program-wide; see WiseOwl.Cobol.Compiler.Binding.OptionsModel / OptionsBinder). §2023:11.9.2 (RENDERED, PDF p302 / folio 272) prints
 // `OPTIONS.`, seven SEPARATE brackets in a fixed sequence, and an independent `[.]` (kb/Work PB1508):
 // - ORDER AND REPETITION. Each clause begins with a distinct keyword token, so `optionsClause+` is LL(1)-clean, but it
 //   is a SUPERSET: §2023:5.2.1 binds the printed sequence (no §2023:11.9.3 rule frees it) and a bracket admits its clause once.

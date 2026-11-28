@@ -5,7 +5,7 @@ using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Runtime.Exceptions;
 using WiseOwl.Cobol.Runtime;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 /// <summary>
 /// ⛔ THE ONE FUNNEL FOR RESOLVING A WRITTEN EXCEPTION-NAME (kb/Work R05). Before it, the unknown-name

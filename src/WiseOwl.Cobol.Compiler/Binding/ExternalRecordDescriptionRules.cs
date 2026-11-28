@@ -4,7 +4,7 @@ using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Runtime;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 /// <summary>
 /// ⛔ THE RUN UNIT'S AGREEMENT RULE FOR THE DESCRIPTIONS OF ONE EXTERNAL RECORD, ASKED OF THE COMPILATION GROUP (kb/Work

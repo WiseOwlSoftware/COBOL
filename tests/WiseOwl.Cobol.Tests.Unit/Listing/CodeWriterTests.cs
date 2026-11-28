@@ -1,7 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol;
-using WiseOwl.Cobol.CodeGen;
+using WiseOwl.Cobol.Compiler;
+using WiseOwl.Cobol.Compiler.CodeGen;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
@@ -118,8 +118,8 @@ public sealed class CodeWriterTests : WiseOwlCobolTestBase
     public void TheBraceEndingABlock_IsTheEnclosingStatementsCode_WhenRoslynGivesItAPoint(string header, string trailer, bool resumed)
     {
         string file = Path.Combine(TempDir, "brace.cob");
-        var outer = new WiseOwl.Cobol.Binding.Bound.StatementSpan(file, 1, 8, 1, 20, 12);
-        var inner = new WiseOwl.Cobol.Binding.Bound.StatementSpan(file, 2, 12, 2, 24, 16);
+        var outer = new WiseOwl.Cobol.Compiler.Binding.Bound.StatementSpan(file, 1, 8, 1, 20, 12);
+        var inner = new WiseOwl.Cobol.Compiler.Binding.Bound.StatementSpan(file, 2, 12, 2, 24, 16);
         var w = new CodeWriter();
         w.HideUnmappedLines(TempDir);
         using (w.Block("class C"))
@@ -165,9 +165,9 @@ public sealed class CodeWriterTests : WiseOwlCobolTestBase
     public void AStatementBeginningWithAConstantStore_OwnsItsFirstCode(string lines, int stops, bool resumed)
     {
         string file = Path.Combine(TempDir, "flag.cob");
-        var before = new WiseOwl.Cobol.Binding.Bound.StatementSpan(file, 1, 8, 1, 20, 12);
-        var statement = new WiseOwl.Cobol.Binding.Bound.StatementSpan(file, 2, 8, 2, 30, 11);
-        var nested = new WiseOwl.Cobol.Binding.Bound.StatementSpan(file, 3, 12, 3, 24, 16);
+        var before = new WiseOwl.Cobol.Compiler.Binding.Bound.StatementSpan(file, 1, 8, 1, 20, 12);
+        var statement = new WiseOwl.Cobol.Compiler.Binding.Bound.StatementSpan(file, 2, 8, 2, 30, 11);
+        var nested = new WiseOwl.Cobol.Compiler.Binding.Bound.StatementSpan(file, 3, 12, 3, 24, 16);
         var w = new CodeWriter();
         w.HideUnmappedLines(TempDir);
         using (w.Block("class C"))
@@ -225,7 +225,7 @@ public sealed class CodeWriterTests : WiseOwlCobolTestBase
     public void ACopybooksPoints_GoToTheirCopies(string points, int lines, string expected)
     {
         var ends = points.Split(' ').Select(p => p == "S" ? (1, 30) : (1, 15)).ToList();
-        Assert.Equal(expected, string.Join(" ", WiseOwl.Cobol.Listing.Building.ObjectCodeMapBuilder.Copies(ends, lines)));
+        Assert.Equal(expected, string.Join(" ", WiseOwl.Cobol.Compiler.Listing.ObjectCodeMapBuilder.Copies(ends, lines)));
     }
 
     [Fact]

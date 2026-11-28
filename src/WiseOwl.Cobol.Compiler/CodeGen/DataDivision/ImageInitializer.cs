@@ -1,11 +1,12 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Common;
-using WiseOwl.Cobol.Binding;
-using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.CodeGen.Emit;
+using WiseOwl.Cobol.Compiler.CodeGen.Roslyn;
+using WiseOwl.Cobol.Frontend.Common;
+using WiseOwl.Cobol.Compiler.Binding;
+using WiseOwl.Cobol.Compiler.Binding.Model;
+using WiseOwl.Cobol.Compiler.CodeGen.Emit;
 
-namespace WiseOwl.Cobol.CodeGen;
+namespace WiseOwl.Cobol.Compiler.CodeGen.DataDivision;
 
 /// <summary>THE COMPILE-TIME INITIAL-IMAGE COMPOSER (DESIGN §14.4; DESIGN-architecture-review §8.3, kb/Work PB2337): the C#
 /// string expression a BYTE-ADDRESSED shared area starts at (a Tier-B REDEFINES backing, an EXTERNAL run-unit cell, a

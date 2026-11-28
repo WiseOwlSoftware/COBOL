@@ -5,7 +5,7 @@ using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
-using WiseOwl.Cobol.CodeGen;
+using WiseOwl.Cobol.Compiler.CodeGen;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 

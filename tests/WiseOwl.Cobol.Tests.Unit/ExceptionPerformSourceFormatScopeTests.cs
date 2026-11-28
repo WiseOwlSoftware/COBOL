@@ -321,14 +321,14 @@ public sealed class ExceptionPerformSourceFormatScopeTests
 
     // ── fixture ───────────────────────────────────────────────────────────────────────────────────────────────
 
-    private static WiseOwl.Cobol.Frontend.Generated.CobolParserCore.CompilationUnitContext Parse(InitialReferenceFormat initial, string source, string? copyDir = null)
+    private static WiseOwl.Cobol.Frontend.Parsing.CobolParserCore.CompilationUnitContext Parse(InitialReferenceFormat initial, string source, string? copyDir = null)
     {
         var (tree, errors) = TryParse(initial, source, copyDir);
         Assert.True(tree is not null, string.Join("\n", errors));
         return tree;
     }
 
-    private static (WiseOwl.Cobol.Frontend.Generated.CobolParserCore.CompilationUnitContext? Tree, IReadOnlyList<string> Errors) TryParse(
+    private static (WiseOwl.Cobol.Frontend.Parsing.CobolParserCore.CompilationUnitContext? Tree, IReadOnlyList<string> Errors) TryParse(
         InitialReferenceFormat initial, string source, string? copyDir = null)
     {
         string dir = ScratchDirectory.Create("pb1066s_");

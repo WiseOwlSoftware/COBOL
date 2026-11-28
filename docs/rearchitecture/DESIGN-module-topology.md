@@ -42,7 +42,7 @@ drifted** in five concrete, survey-confirmed ways:
    the metadata is duplicated in the frontend — a topology defect, not a logic one.
 
 4. **Namespace/assembly split — resolved (PHASE 01).** The tree once emitted into the legacy root namespace while the assemblies
-   were already renamed `WiseOwl.Cobol.*`; it now declares `WiseOwl.Cobol.*`, the ANTLR package is `WiseOwl.Cobol.Frontend.Generated` (an MSBuild
+   were already renamed `WiseOwl.Cobol.*`; it now declares `WiseOwl.Cobol.*`, the ANTLR package is `WiseOwl.Cobol.Frontend.Parsing` (an MSBuild
    property) and `Frontend.cs` is self-contained. Every consumer still aliases `using Core = CobolParserCore`.
 
 5. **Dead / mislabeled files in the tree.** Five top-level grammars (`CobolParserJsonXml.g4`, `CobolParserGenerics.g4`,
@@ -99,13 +99,13 @@ alias noise from every file. Namespace roots:
 | Assembly | Namespace root |
 |---|---|
 | `WiseOwl.Cobol.Editions` | `WiseOwl.Cobol.Editions` |
-| `WiseOwl.Cobol.Frontend` | `WiseOwl.Cobol.Frontend` (generated parser: `WiseOwl.Cobol.Frontend.Generated`) |
+| `WiseOwl.Cobol.Frontend` | `WiseOwl.Cobol.Frontend` (generated parser: `WiseOwl.Cobol.Frontend.Parsing`) |
 | `WiseOwl.Cobol.Runtime` | `WiseOwl.Cobol.Runtime` (already partially so) |
 | `WiseOwl.Cobol.Compiler` | `WiseOwl.Cobol.Compiler` with sub-namespaces per folder (below) |
 | `WiseOwl.Cobol.Cli` | `WiseOwl.Cobol.Cli` |
 
 The ANTLR package name is single-sourced in the MSBuild property
-`<AntlrNamespace>WiseOwl.Cobol.Frontend.Generated</AntlrNamespace>` of the Frontend csproj, which passes it to the generator
+`<AntlrNamespace>WiseOwl.Cobol.Frontend.Parsing</AntlrNamespace>` of the Frontend csproj, which passes it to the generator
 (`Invoke-Antlr4CSharp.ps1 -PackageName`, a mandatory parameter with no default) and into the generation's up-to-date
 stamp (kb/Work PB2719, PB2730).
 
@@ -348,7 +348,7 @@ Delete the five dead top-level grammars. Quarantine JSON/XML: strip `jsonStateme
 `Core/CobolExtensionsJsonXml.g4` and their `{is2014()}?` wiring; move `inlineMethodInvocationStatement` into
 `Core/CobolOO.g4`; delete the now-empty fragment. Remove committed `.antlr` / `obj/antlr-lib` caches from source control
 (gitignore). Fix the stale `Frontend.cs` "reuses the legacy compiler assembly" banner. Rename the generated
-package to `WiseOwl.Cobol.Frontend.Generated` via the MSBuild property.
+package to `WiseOwl.Cobol.Frontend.Parsing` via the MSBuild property.
 
 ### 2.15 Naming & partial-file convention (the rule going forward)
 
@@ -373,7 +373,7 @@ Legend: **S**=split, **M**=move, **R**=rename, **X**=delete, **C**=create, **F**
 |---|---|---|---|---|
 | 1 | C | — | `src/WiseOwl.Cobol.Editions/` | Leaf assembly Frontend+Compiler both reference; kills edition metadata dup |
 | 2 | R (ns) | `namespace legacy-root.*` | `namespace WiseOwl.Cobol.Compiler.*` (per §2.3 sub-ns) | Complete the deferred rename up front |
-| 3 | R (ns) | `legacy-root.Generated` | `WiseOwl.Cobol.Frontend.Generated` | Remove `using Core=` alias; MSBuild property |
+| 3 | R (ns) | `legacy-root.Generated` | `WiseOwl.Cobol.Frontend.Parsing` | Remove `using Core=` alias; MSBuild property |
 
 ### Frontend
 | # | Action | From | To | Why |

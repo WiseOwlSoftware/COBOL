@@ -1,11 +1,11 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Frontend.Cst;
-using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Parsing;
 
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 using WiseOwl.Cobol.Runtime;
 using Core = CobolParserCore;
@@ -290,7 +290,7 @@ public sealed partial class DataBinder
     /// <summary>Where one report group description entry stands: its RD's entry list, its index there and the
     /// report-name. A report entry is no <see cref="DataItem"/> that <see cref="NameResolution.DataItemNamed"/> sees, so
     /// a constant's length phrase finds it through the symbol table (<see cref="SymbolTable.DeclareReportEntries"/>,
-    /// <see cref="WiseOwl.Cobol.Symbols.NameClass.ReportEntry"/>), and its description is read from here
+    /// <see cref="WiseOwl.Cobol.Compiler.Symbols.NameClass.ReportEntry"/>), and its description is read from here
     /// (<see cref="DescribeReportItem"/>) by the report walk and the length phrase alike.</summary>
     internal sealed record ReportEntryLocation(Core.ReportGroupEntryContext[] Entries, int Index, string ReportName)
     {

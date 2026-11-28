@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-namespace WiseOwl.Cobol.Binding.Model;
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// <summary>A data item an input-output statement stores into through its file connector without naming it (kb/Work PB5885):
 /// the statement names the file, and the rule of the verb or of the file's clause makes the store. Placed by

@@ -1,12 +1,11 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
-using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Frontend.Parsing;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 using Core = CobolParserCore;
 using WiseOwl.Cobol.Runtime;
@@ -479,7 +478,7 @@ public sealed partial class FileControlBinder
             {
                 // A literal operand keeps its cursor too: §2023:13.18.34.3 SR3 reports AT integer-2 (ResolveLinage).
                 using var lit = Edition.At(i);
-                return new LinageOperand(WiseOwl.Cobol.Validation.IntegerOperandRules.HostValue(i), null) { At = Edition.Cursor };
+                return new LinageOperand(WiseOwl.Cobol.Compiler.Validation.IntegerOperandRules.HostValue(i), null) { At = Edition.Cursor };
             }
             // "data-name-1 or integer-1": a bare word that names a CONSTANT is the integer-1 arm — the parse cannot tell
             // it from a data-name (§2023:13.10.3 SR2; kb/Work PB1948) — and the constant's integer is a literal operand

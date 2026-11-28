@@ -1,8 +1,8 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 
-namespace WiseOwl.Cobol.Binding.Procedure;
+namespace WiseOwl.Cobol.Compiler.Binding.Procedure;
 
 /// <summary>A PROCEDURE DIVISION section (ISO §2023:14.4.3): its contiguous paragraph pc range — paragraphs flatten
 /// into the one pc sequence in source order, so a section IS the <see cref="PcRange"/> [StartPc, EndPc] — and its

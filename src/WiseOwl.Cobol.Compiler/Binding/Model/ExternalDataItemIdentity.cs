@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Globalization;
 
-namespace WiseOwl.Cobol.Binding.Model;
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// <summary>⛔ THE IDENTITY OF ONE EXTERNAL DATA ITEM AS A VALUE WHOSE PARTS STAY APART (kb/Work PB5888 review R1-1): the
 /// external record it lies in (<see cref="Record"/>, the record's externalized name, which an <c>AS literal-1</c> makes ANY

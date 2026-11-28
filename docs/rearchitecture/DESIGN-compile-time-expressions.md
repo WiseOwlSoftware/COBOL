@@ -135,7 +135,7 @@ The evaluator must live in **Frontend** so both callers reach it (`Editions ← 
 cannot reference Compiler). Its lexical dependencies were relocated down accordingly — the singular lexical
 utilities, now reachable by both layers:
 
-* **`CobolLiteral`** (the ONE literal codec) relocated Compiler → `Frontend/Common` (namespace `WiseOwl.Cobol.Common`
+* **`CobolLiteral`** (the ONE literal codec) relocated Compiler → `Frontend/Common` (namespace `WiseOwl.Cobol.Frontend.Common`
   unchanged; all Compiler `using`s still resolve). **Done, build-verified.**
 * **`NumericLiteral.Normalize`** — the §2023:12.3.7.4 GR14a numeric-literal normalizer extracted to `Frontend/Common`;
   `SpecialNamesBinder.NormalizeNumericLiteral` delegates to it and keeps emitting COBOL0895 byte-identically. **Done,
@@ -293,7 +293,7 @@ text may differ by that one clause from today (CONSTANT goldens updated same com
 
 ### 5.3 Numeric-literal normalization
 
-The one chokepoint is `WiseOwl.Cobol.Common.NumericLiteral.Normalize` (Frontend, §3) — §2023:12.3.7.4 GR14a. The binder
+The one chokepoint is `WiseOwl.Cobol.Frontend.Common.NumericLiteral.Normalize` (Frontend, §3) — §2023:12.3.7.4 GR14a. The binder
 passes its real `DecimalPointIsComma` and routes the issue to COBOL0895; the **frontend passes `false`** —
 directives are processed before SPECIAL-NAMES is bound (§2023:7.2), so a directive numeric literal is always
 dot-decimal (a stated, spec-grounded limitation).

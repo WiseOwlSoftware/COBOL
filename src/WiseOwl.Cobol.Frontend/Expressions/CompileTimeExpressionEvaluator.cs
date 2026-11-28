@@ -1,9 +1,8 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime.Tree;
-using WiseOwl.Cobol.Common;
+using WiseOwl.Cobol.Frontend.Common;
 using WiseOwl.Cobol.Editions;
-using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Frontend.Parsing;
 using WiseOwl.Cobol.Runtime;
 
@@ -112,12 +111,12 @@ public sealed class CompileTimeExpressionEvaluator
         // null — the boundary's "null means already reported" contract).
         if (SoleNumericLiteral(expr) is { } lit)
         {
-            string text = WiseOwl.Cobol.Common.NumericLiteral.Normalize(lit, _decimalPointIsComma, out var issue);
+            string text = WiseOwl.Cobol.Frontend.Common.NumericLiteral.Normalize(lit, _decimalPointIsComma, out var issue);
             ReportSeparator(issue, lit);
-            bool floating = WiseOwl.Cobol.Common.NumericLiteral.IsFloatingPointForm(text);
+            bool floating = WiseOwl.Cobol.Frontend.Common.NumericLiteral.IsFloatingPointForm(text);
             if (!floating && !WithinLiteralCapacity(text, lit, where)) return null;
             if (CtNumeric.TryParseLiteral(text, out var v))
-                return new CtNumber(true, v, lit, IsInteger: WiseOwl.Cobol.Common.NumericLiteral.IsIntegerLiteralForm(text));
+                return new CtNumber(true, v, lit, IsInteger: WiseOwl.Cobol.Frontend.Common.NumericLiteral.IsIntegerLiteralForm(text));
             _diag.Report(CtDiagCode.ArithmeticRule, $"{where}: the numeric literal '{lit}' lies outside the "
                 + "decimal128 range this compiler gives a numeric literal, about 1E-6176 to 9.99E+6144 (ISO "
                 + "§2023:8.3.3.3.3 r3; §2023:8.8.1.5.2 r2; CONFORMANCE.md §7)");
@@ -261,9 +260,9 @@ public sealed class CompileTimeExpressionEvaluator
     /// whose range is the §2023:7.3.6.2 SR2 limit — a separate rule from SR1b, reported as such.</summary>
     private CobolDec? ParseLiteral(string text, string where)
     {
-        string norm = WiseOwl.Cobol.Common.NumericLiteral.Normalize(text, _decimalPointIsComma, out var issue);
+        string norm = WiseOwl.Cobol.Frontend.Common.NumericLiteral.Normalize(text, _decimalPointIsComma, out var issue);
         ReportSeparator(issue, text);
-        bool fixedPoint = !WiseOwl.Cobol.Common.NumericLiteral.IsFloatingPointForm(norm);
+        bool fixedPoint = !WiseOwl.Cobol.Frontend.Common.NumericLiteral.IsFloatingPointForm(norm);
         if (fixedPoint && !WithinLiteralCapacity(norm, text, where)) return null;
         if (!fixedPoint || !CtNumeric.TryParseLiteral(norm, out var v))
         {
@@ -433,7 +432,7 @@ public sealed class CompileTimeExpressionEvaluator
     /// is one literal or one compilation-variable name here (kb/Work PB1370). Either way the operand the rule sees
     /// is a LITERAL (a name is used "where a literal of the category associated with the name is permitted",
     /// §2023:7.3.11.4 GR1, and stands for its value), and §2023:5.5 SR2a requires an INTEGER literal —
-    /// a FORM test (<see cref="WiseOwl.Cobol.Common.NumericLiteral.IsIntegerLiteralForm"/>), so <c>1.0</c> is refused
+    /// a FORM test (<see cref="WiseOwl.Cobol.Frontend.Common.NumericLiteral.IsIntegerLiteralForm"/>), so <c>1.0</c> is refused
     /// though its value is integral, and a name holding 1.5 is refused rather than truncated. A negative count is
     /// rejected (the spec defines only counts ≥ 1). Result length = the first operand's length.</summary>
     private BitString? BooleanShift(BitString? operand, Core.BooleanShiftSuffixContext suf, string where)
@@ -477,7 +476,7 @@ public sealed class CompileTimeExpressionEvaluator
         {
             if (_resolveName(w) is { Category: CtCategory.Numeric } cv)
                 return new CtNumber(true, cv.Number, cv.Text,
-                    IsInteger: WiseOwl.Cobol.Common.NumericLiteral.IsIntegerLiteralForm(cv.Text));
+                    IsInteger: WiseOwl.Cobol.Frontend.Common.NumericLiteral.IsIntegerLiteralForm(cv.Text));
             if (IsRefusedName(w)) return null;   // its DEFINE was reported (PB3119)
         }
         ReportDirective(where, $"'{WrittenSource.Of(dref)}' — the second operand of a boolean shift shall be an integer "

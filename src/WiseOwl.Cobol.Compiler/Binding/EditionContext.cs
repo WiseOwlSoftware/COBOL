@@ -8,9 +8,9 @@ using DiagnosticSeverity = WiseOwl.Cobol.Frontend.Diagnostics.DiagnosticSeverity
 using WarningSuppression = WiseOwl.Cobol.Frontend.Diagnostics.WarningSuppression;
 using WiseOwl.Cobol.Runtime;
 
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 /// <summary>
 /// The per-compilation EDITION context — the bind-side half of the four-compilers-in-one mission. As of

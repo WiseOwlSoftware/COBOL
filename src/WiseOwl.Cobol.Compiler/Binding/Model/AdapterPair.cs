@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-namespace WiseOwl.Cobol.Binding.Model;
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// <summary>One covariant-return adapter pair (§2023:9.3.8.2.3 rules 5a/5c2 — conforming COBOL that C# interface
 /// implementation cannot express directly, because interface implementations demand the EXACT return type):

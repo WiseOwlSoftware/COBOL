@@ -1,15 +1,18 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Common;
-using WiseOwl.Cobol.Binding;
-using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.Binding.Bound;
-using WiseOwl.Cobol.CodeGen.Emit;
+using WiseOwl.Cobol.Frontend.Common;
+using WiseOwl.Cobol.Compiler.Binding;
+using WiseOwl.Cobol.Compiler.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Bound;
+using WiseOwl.Cobol.Compiler.CodeGen.Emit;
 using WiseOwl.Cobol.Runtime;
+using WiseOwl.Cobol.Compiler.CodeGen.DataDivision;
+using WiseOwl.Cobol.Compiler.CodeGen.Roslyn;
+using WiseOwl.Cobol.Compiler.CodeGen.Verbs;
 
-namespace WiseOwl.Cobol.CodeGen;
+namespace WiseOwl.Cobol.Compiler.CodeGen;
 
-using static WiseOwl.Cobol.CodeGen.Emit.EmitText;
+using static WiseOwl.Cobol.Compiler.CodeGen.Emit.EmitText;
 
 /// <summary>
 /// The RUN-UNIT emission orchestrator (P7 Step 9n — the inter-program half formerly on the
@@ -38,7 +41,7 @@ internal sealed class ProgramEmitter
 
     /// <summary>The WHEN-COMPILED stamp for THIS compilation (§2023:15.99.3 RV2 — "the date and time of compilation
     /// of the compilation unit that contains this function"), captured once per <c>EmitBound</c> through the
-    /// injectable <see cref="Binding.Procedure.IntrinsicBinder.CompileClock"/> seam (deep-dive D6) and shared
+    /// injectable <see cref="Binding.Procedure.Verbs.IntrinsicBinder.CompileClock"/> seam (deep-dive D6) and shared
     /// by every unit of the run unit — contained source units bake the CONTAINING compilation's stamp (r2's
     /// second sentence). Per-compilation, NOT per-process (kb/Work PB120): a long-lived compiler process gives
     /// each successive compilation its OWN capture.</summary>
@@ -51,7 +54,7 @@ internal sealed class ProgramEmitter
     {
         var recorder = inputs ?? new WiseOwl.Cobol.Frontend.CompilationInputs();
         _whenCompiledStamp = new Lazy<string>(
-            () => RuntimeApi.DateFormat21(recorder.ReadCompilationTime(Binding.Procedure.IntrinsicBinder.CompileClock)),
+            () => RuntimeApi.DateFormat21(recorder.ReadCompilationTime(Binding.Procedure.Verbs.IntrinsicBinder.CompileClock)),
             LazyThreadSafetyMode.None);
     }
 

@@ -2,14 +2,13 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
-using WiseOwl.Cobol.Binding;                // ConditionalStatements, Table12StatementNames
-using WiseOwl.Cobol.Binding.Procedure;      // ProcedureNameShape — the one reader of a procedure-name node
+using WiseOwl.Cobol.Compiler.Binding;                // ConditionalStatements, Table12StatementNames
+using WiseOwl.Cobol.Compiler.Binding.Procedure;      // ProcedureNameShape — the one reader of a procedure-name node
 using WiseOwl.Cobol.Editions;               // IDiagnosticSink / EditionDiagnostic / EditionSeverity
 using WiseOwl.Cobol.Editions.Diagnostics;   // DiagnosticCatalog
-using WiseOwl.Cobol.Frontend.Generated;     // CobolParserCore
-using WiseOwl.Cobol.Frontend.Parsing;       // ConditionalPhrases, ConditionalPhraseAssociation
+using WiseOwl.Cobol.Frontend.Parsing;     // CobolParserCore; ConditionalPhrases, ConditionalPhraseAssociation
 
-namespace WiseOwl.Cobol.Validation;
+namespace WiseOwl.Cobol.Compiler.Validation;
 
 using Core = CobolParserCore;
 

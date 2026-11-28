@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Editions;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 /// <summary>
 /// ⛔ THE RULES OF THE FORMAT AND SELECT WHEN CLAUSES, AS THE EDITION BEING COMPILED NUMBERS THEM. The clauses entered the standard in

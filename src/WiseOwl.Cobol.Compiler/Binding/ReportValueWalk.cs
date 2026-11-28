@@ -1,8 +1,8 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Bound;
+using WiseOwl.Cobol.Compiler.Binding.Bound;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 /// <summary>⛔ THE ONE WALK OVER THE VALUE NODES A REPORT DESCRIPTION HOLDS (kb/Work PB6349): the PRESENT WHEN conditions, the
 /// SOURCE operands, the SUM addends and the VARYING FROM / BY expressions that a GENERATE or TERMINATE evaluates (ISO

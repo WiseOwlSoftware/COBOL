@@ -1,8 +1,8 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Reflection;
-using WiseOwl.Cobol.Binding;
-using WiseOwl.Cobol.Binding.Bound;
+using WiseOwl.Cobol.Compiler.Binding;
+using WiseOwl.Cobol.Compiler.Binding.Bound;
 using Xunit;
 
 namespace WiseOwl.Cobol.Tests.Unit;
@@ -67,7 +67,7 @@ public sealed class ResolutionModeDriftTests
     [Fact]
     public void ReportSets_LiveInTheOneLedger()
     {
-        var offenders = ResolverTypes.Append(typeof(WiseOwl.Cobol.Binding.Procedure.ConditionBinder))
+        var offenders = ResolverTypes.Append(typeof(WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs.ConditionBinder))
             .SelectMany(t => t.GetFields(Members)
                 .Where(f => f.FieldType.IsGenericType && f.FieldType.GetGenericTypeDefinition() == typeof(HashSet<>))
                 .Select(f => $"{t.Name}.{f.Name}"))

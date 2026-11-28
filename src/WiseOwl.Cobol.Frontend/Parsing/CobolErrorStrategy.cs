@@ -8,7 +8,7 @@ using Antlr4.Runtime.Dfa;
 using Antlr4.Runtime.Tree;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Cst;          // ClosedFormats — the ONE table of closed general formats (0g)
-using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Parsing;
 using WiseOwl.Cobol.Runtime;
 using WiseOwl.Cobol.Frontend.Common;
 

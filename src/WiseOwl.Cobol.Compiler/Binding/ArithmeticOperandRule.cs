@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Editions;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 /// <summary>
 /// ⛔ WHAT AN ARITHMETIC EXPRESSION MAY BE, IN THE EDITION IN FORCE (kb/Work PB4950): every COBOL0844 message cites

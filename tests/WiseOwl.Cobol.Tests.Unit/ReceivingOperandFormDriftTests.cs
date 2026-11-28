@@ -3,7 +3,7 @@
 
 using System.Text.RegularExpressions;
 using WiseOwl.Cobol.Editions;
-using WiseOwl.Cobol.Binding.Procedure;
+using WiseOwl.Cobol.Compiler.Binding.Procedure;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 

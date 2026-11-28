@@ -1,9 +1,9 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Compiler.Binding.Model;
+using WiseOwl.Cobol.Frontend.Parsing;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 using Core = CobolParserCore;
 
@@ -75,7 +75,7 @@ internal static class CheckingFold
 
     /// <summary>Any EC-EXTERNAL enabling event anywhere in the group (the zero-scaffolding gate of <see
     /// cref="UnitChecking.ExternalDescribe"/>).</summary>
-    private static bool ExternalDescribe(TurnState turn) => Procedure.EcBinder.ExternalNames.Any(turn.AnyEnabledFor);
+    private static bool ExternalDescribe(TurnState turn) => Procedure.Verbs.EcBinder.ExternalNames.Any(turn.AnyEnabledFor);
 
     /// <summary>Any EC-BOUND-ODO enabling event anywhere in the group (§2023:13.18.38.4 GR7; kb/Work PB1268).</summary>
     private static bool OdoReferenceChecking(TurnState turn) => turn.AnyEnabledFor("EC-BOUND-ODO");

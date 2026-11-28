@@ -5,17 +5,16 @@ using Antlr4.Runtime.Tree;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Cst;
-using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Frontend.Parsing;
 
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 using Core = CobolParserCore;
 using WiseOwl.Cobol.Runtime;
-using WiseOwl.Cobol.Symbols;
+using WiseOwl.Cobol.Compiler.Symbols;
 
 /// <summary>The enclosing occurrence a SEARCH's WHEN phrase names: the subscripts of the tables enclosing the
 /// searched table, outermost first, and the pre-ops that must run before those positions can be read (see
@@ -764,7 +763,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
     /// (kb/Work PB2938), saturated by sign at <see cref="Int128.MaxValue"/> past 38 digits (the standard's numeric literal
     /// maximum, and the 38-digit position temporary's capacity). Null when <paramref name="text"/> is not an integer.</summary>
     private static Position? HostPosition(string text) =>
-        !WiseOwl.Cobol.Validation.IntegerOperandRules.TryHostPosition(text, out long value, out bool saturated) ? null
+        !WiseOwl.Cobol.Compiler.Validation.IntegerOperandRules.TryHostPosition(text, out long value, out bool saturated) ? null
         : saturated ? new PositionWideConstant(Int128.TryParse(text, System.Globalization.NumberStyles.AllowLeadingSign,
                 System.Globalization.CultureInfo.InvariantCulture, out Int128 wide)
             ? wide : text[0] == '-' ? -Int128.MaxValue : Int128.MaxValue)
@@ -1114,7 +1113,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
     /// unreachable and a signed image's sign was dropped. Only a NON-numeric operand — the two <c>--permissive</c>
     /// carriers COBOL0844 admits — keeps the bare <c>CobolPosition.Digits(path)</c> digit decode.</para>
     /// <para>The read is a typed <see cref="PositionItemRead"/> (kb/Work PB2151): the item, its structural path
-    /// and the overload form; <c>CodeGen.PositionRenderer</c> renders it through <c>RuntimeApi</c>.</para></summary>
+    /// and the overload form; <c>CodeGen.Roslyn.PositionRenderer</c> renders it through <c>RuntimeApi</c>.</para></summary>
     private PositionItemRead? PositionRead(DataItem item, SegmentPosition position)
     {
         // A level-66 entry owns no field to name (a THROUGH span, or an alias the caller did not resolve): its place is composed

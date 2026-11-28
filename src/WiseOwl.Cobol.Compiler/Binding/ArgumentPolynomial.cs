@@ -1,9 +1,9 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Numerics;
-using WiseOwl.Cobol.Binding.Bound;
+using WiseOwl.Cobol.Compiler.Binding.Bound;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 /// <summary>An exact rational in lowest terms with a positive denominator: the carrier of the type 6 classifier's literal fold
 /// (<c>IntrinsicArgumentRules.ExactValue</c>) and of its polynomial coefficients (<see cref="Polynomial"/>). A decimal literal is

@@ -27,7 +27,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// group kind §2023:14.9.44.3 SR6 admits BY NAME), and of <c>FUNCTION LENGTH</c>'s variable-length sum, which peeled
 /// exactly one known decorator kind and staged everything else loud.</para>
 /// <para>So the rule is enforced here rather than remembered: a storage-form switch either asks
-/// <see cref="WiseOwl.Cobol.Binding.Model.Place.Undecorated"/>, or handles decorators itself (an arm naming
+/// <see cref="WiseOwl.Cobol.Compiler.Binding.Model.Place.Undecorated"/>, or handles decorators itself (an arm naming
 /// <c>PlaceDecorator</c> or any concrete decorator type), or carries an adjudicated exemption below with its
 /// reason. A NEW decorator kind — or a new switch — then cannot silently rejoin the hole.</para>
 /// </summary>
@@ -133,8 +133,8 @@ public sealed class PlaceStorageFormSwitchDriftTests
     [Fact]
     public void StorageFormListIsComplete()
     {
-        var placeType = typeof(WiseOwl.Cobol.Binding.Model.Place);
-        var decorator = typeof(WiseOwl.Cobol.Binding.Model.PlaceDecorator);
+        var placeType = typeof(WiseOwl.Cobol.Compiler.Binding.Model.Place);
+        var decorator = typeof(WiseOwl.Cobol.Compiler.Binding.Model.PlaceDecorator);
         string[] missing =
         [
             .. placeType.Assembly.GetTypes()

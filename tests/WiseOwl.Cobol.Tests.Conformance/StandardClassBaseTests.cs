@@ -32,7 +32,7 @@ public sealed class StandardClassBaseTests
         {
             string src = CompiledProgramCache.StageSource(Path.Combine(dir, "prog.cob"), source);
             string dll = Path.Combine(dir, "prog.dll");
-            var r = CompiledProgramCache.Compile(new WiseOwl.Cobol.CompilerDriver.Options(src, EditionInfo.Of(edition), dll, SourceFormat: TestSourceFormat.Inline));
+            var r = CompiledProgramCache.Compile(new WiseOwl.Cobol.Compiler.CompilerDriver.Options(src, EditionInfo.Of(edition), dll, SourceFormat: TestSourceFormat.Inline));
             Assert.True(r.Success, "must compile strict: " + string.Join("\n", r.Errors));
             return CutRunner.Run(dll, dir);
         }

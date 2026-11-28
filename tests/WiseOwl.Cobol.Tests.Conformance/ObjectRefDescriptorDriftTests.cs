@@ -92,7 +92,7 @@ public sealed class ObjectRefDescriptorDriftTests
     [Fact]
     public void EveryObjectRefKind_HasItsOwnClassNameSenderRule()
     {
-        var kinds = Enum.GetValues<WiseOwl.Cobol.Binding.Model.ObjectRefKind>();
+        var kinds = Enum.GetValues<WiseOwl.Cobol.Compiler.Binding.Model.ObjectRefKind>();
         var at2023 = WiseOwl.Cobol.Editions.EditionInfo.Of(2023);
         var byRule = kinds.ToLookup(k => WiseOwl.Cobol.Compiler.Oo.OoConformance.ClassNameSenderRule(k, at2023));
         var collided = byRule.Where(g => g.Count() > 1)
@@ -101,16 +101,16 @@ public sealed class ObjectRefDescriptorDriftTests
             "two ObjectRefKind values share one §2023:14.9.39.3 rule label — a kind added without an arm in "
             + "OoConformance.ClassNameSenderRule fell through to the discard: " + string.Join(" | ", collided));
         Assert.Equal("ISO §2023:14.9.39.3 SR11",
-            WiseOwl.Cobol.Compiler.Oo.OoConformance.ClassNameSenderRule(WiseOwl.Cobol.Binding.Model.ObjectRefKind.Interface, at2023));
+            WiseOwl.Cobol.Compiler.Oo.OoConformance.ClassNameSenderRule(WiseOwl.Cobol.Compiler.Binding.Model.ObjectRefKind.Interface, at2023));
         Assert.Equal("ISO §2023:14.9.39.3 SR13",
-            WiseOwl.Cobol.Compiler.Oo.OoConformance.ClassNameSenderRule(WiseOwl.Cobol.Binding.Model.ObjectRefKind.ObjectClass, at2023));
+            WiseOwl.Cobol.Compiler.Oo.OoConformance.ClassNameSenderRule(WiseOwl.Cobol.Compiler.Binding.Model.ObjectRefKind.ObjectClass, at2023));
         Assert.Equal("ISO §2023:14.9.39.3 SR14",
-            WiseOwl.Cobol.Compiler.Oo.OoConformance.ClassNameSenderRule(WiseOwl.Cobol.Binding.Model.ObjectRefKind.ActiveClass, at2023));
+            WiseOwl.Cobol.Compiler.Oo.OoConformance.ClassNameSenderRule(WiseOwl.Cobol.Compiler.Binding.Model.ObjectRefKind.ActiveClass, at2023));
         // The edition in force numbers the rule (kb/Work PB5659): §2002:14.8.35.2 and §2014:14.9.35.2 number SR8 to SR14 alike.
         Assert.Equal("ISO §2002:14.8.35.2 SR14", WiseOwl.Cobol.Compiler.Oo.OoConformance.ClassNameSenderRule(
-            WiseOwl.Cobol.Binding.Model.ObjectRefKind.ActiveClass, WiseOwl.Cobol.Editions.EditionInfo.Of(2002)));
+            WiseOwl.Cobol.Compiler.Binding.Model.ObjectRefKind.ActiveClass, WiseOwl.Cobol.Editions.EditionInfo.Of(2002)));
         Assert.Equal("ISO §2014:14.9.35.2 SR14", WiseOwl.Cobol.Compiler.Oo.OoConformance.ClassNameSenderRule(
-            WiseOwl.Cobol.Binding.Model.ObjectRefKind.ActiveClass, WiseOwl.Cobol.Editions.EditionInfo.Of(2014)));
+            WiseOwl.Cobol.Compiler.Binding.Model.ObjectRefKind.ActiveClass, WiseOwl.Cobol.Editions.EditionInfo.Of(2014)));
     }
 
     /// <summary>Two items of the given shape (X the receiver, Y the sender), a universal U, and the statement
@@ -176,7 +176,7 @@ public sealed class ObjectRefDescriptorDriftTests
         {
             string src = Path.Combine(dir, "prog.cob");
             src = CompiledProgramCache.StageSource(src, source);
-            var r = CompiledProgramCache.Compile(new WiseOwl.Cobol.CompilerDriver.Options(
+            var r = CompiledProgramCache.Compile(new WiseOwl.Cobol.Compiler.CompilerDriver.Options(
                 src, EditionInfo.Of(2002), Path.Combine(dir, "prog.dll"), SourceFormat: TestSourceFormat.Inline));
             return (r.Success, string.Join("\n", r.Errors));
         }

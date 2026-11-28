@@ -1,13 +1,12 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.Common;
+using WiseOwl.Cobol.Compiler.Binding.Model;
+using WiseOwl.Cobol.Frontend.Common;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
-using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Frontend.Parsing;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 using Core = CobolParserCore;
 using WiseOwl.Cobol.Runtime;
@@ -81,7 +80,7 @@ public sealed partial class FileControlBinder
         var nn = lit.nonNumericLiteral();
         if (nn.figurativeConstant() is { } fig)
         {
-            var form = WiseOwl.Cobol.CodeGen.FigurativeConstants.Classify(fig.GetText(), includeNull: false);
+            var form = WiseOwl.Cobol.Compiler.CodeGen.Roslyn.FigurativeConstants.Classify(fig.GetText(), includeNull: false);
             return form.Kind is { } kind ? $"F:{kind}"
                 : form.AllLiteral is { } all ? "ALL:" + Classed(CobolLiteral.ClassOf(all), CobolLiteral.Decode(all))
                 : "F:" + CobolNames.UpperFold(WrittenSource.Of(fig));   // ALL symbolic-character / constant-name: named, compared by name

@@ -3,8 +3,9 @@
 using System.Reflection;
 using WiseOwl.Cobol.Frontend.Common;
 using WiseOwl.Cobol.Frontend.Preprocessor;
+using WiseOwl.Cobol.Listing;
 
-namespace WiseOwl.Cobol.Listing.Building;
+namespace WiseOwl.Cobol.Compiler.Listing;
 
 /// <summary>
 /// ⛔ THE ONE CONSTRUCTOR OF A <see cref="ListingDocument"/> (DESIGN-listing.md section 4.6). It reads only the collector

@@ -3,7 +3,7 @@
 using WiseOwl.Cobol.Runtime;
 
 
-namespace WiseOwl.Cobol.Binding.Model;
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// <summary>
 /// The fully-parsed content of a source unit's OPTIONS paragraph (ISO/IEC 1989:2023 §2023:11.9), captured once at bind

@@ -269,7 +269,7 @@ untouched); `Program.cs` prints warnings to stderr always.
   fires the syntactic introduction/removal/phrase gates + the §2023:8.9 reserved-word funnel on RECOGNITION) and a
   **bound-tree arm** (the genuinely-semantic statement-level gates).
 - **Walk (parse-tree arm):** NO listener is generated (ANTLR runs `-no-listener -visitor`) — the arm derives from the
-  generated `CobolParserCoreBaseVisitor<object?>` (namespace `WiseOwl.Cobol.Frontend.Generated`); overrides return
+  generated `CobolParserCoreBaseVisitor<object?>` (namespace `WiseOwl.Cobol.Frontend.Parsing`); overrides return
   `base.VisitChildren(ctx)` to keep descending. Root = the compilation unit produced by `Frontend.Parse`.
 - **Hook:** the pass is the NAMED TERMINAL pass of the binder manifest (run by `BinderDriver.Bind`), so the returned
   `BoundCompilation` already carries EVERY edition diagnostic on the sink — for both a full compile and a CheckOnly

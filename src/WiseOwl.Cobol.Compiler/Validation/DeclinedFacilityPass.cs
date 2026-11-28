@@ -1,13 +1,13 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding;              // EditionContext
-using WiseOwl.Cobol.Binding.Passes;       // GroupBindContext
+using WiseOwl.Cobol.Compiler.Binding;              // EditionContext
+using WiseOwl.Cobol.Compiler.Binding.Passes;       // GroupBindContext
 using WiseOwl.Cobol.Editions;             // ConstructRegistry, Constructs — the facility's introducing edition
 using WiseOwl.Cobol.Editions.Diagnostics; // DiagnosticCatalog
-using WiseOwl.Cobol.Frontend.Generated;   // CobolParserCore
+using WiseOwl.Cobol.Frontend.Parsing;   // CobolParserCore
 using WiseOwl.Cobol.Runtime;
 
-namespace WiseOwl.Cobol.Validation;
+namespace WiseOwl.Cobol.Compiler.Validation;
 
 /// <summary>
 /// THE ONE PLACE A DECLINED ANNEX-A.4 OPTIONAL ELEMENT IS REFUSED BY NAME (COBOL1708) — a

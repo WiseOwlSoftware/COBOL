@@ -1,8 +1,8 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Passes;
+using WiseOwl.Cobol.Compiler.Binding.Passes;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 /// <summary>The identity of each append-only fact set of <see cref="DataBindState"/>
 /// (docs/rearchitecture/DESIGN-architecture-review.md §8.3 (1), kb/Work PB2352): the name a pass uses to DECLARE that it appends to, reads early or reads whole one of them

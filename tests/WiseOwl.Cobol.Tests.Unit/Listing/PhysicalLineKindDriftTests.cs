@@ -3,7 +3,7 @@
 using WiseOwl.Cobol.Frontend.Diagnostics;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Listing;
-using WiseOwl.Cobol.Listing.Building;
+using WiseOwl.Cobol.Compiler.Listing;
 using Xunit;
 
 namespace WiseOwl.Cobol.Tests.Unit.Listing;

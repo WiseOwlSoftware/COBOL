@@ -1,6 +1,8 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-namespace WiseOwl.Cobol.CodeGen;
+using WiseOwl.Cobol.Compiler.CodeGen.Roslyn;
+
+namespace WiseOwl.Cobol.Compiler.CodeGen;
 
 /// <summary>
 /// The ONE unique-name allocator for emitted C# temporaries and labels (P7 Step 9a; DESIGN-codegen-backend §2.5

@@ -81,7 +81,7 @@ public sealed class DeclinedFacilityDriftTests
     }
 
     /// <summary>⛔ THE OBLIGATION. Every entry-point rule of the declined-facility grammar has a
-    /// <c>VisitXxx</c> override in <see cref="WiseOwl.Cobol.Validation.DeclinedFacilityPass"/>. Adding a declined
+    /// <c>VisitXxx</c> override in <see cref="WiseOwl.Cobol.Compiler.Validation.DeclinedFacilityPass"/>. Adding a declined
     /// construct's SYNTAX without adding its REFUSAL would make the compiler PARSE the construct and then
     /// silently ignore it — strictly worse than the generic parse error it replaced, because the program would
     /// compile and run with the declined semantics simply absent (the new-construct skill's "parsing something
@@ -107,7 +107,7 @@ public sealed class DeclinedFacilityDriftTests
     {
         var fromGrammar = EntryPointRules().Select(r => $"{char.ToUpperInvariant(r[0])}{r[1..]}Context")
             .OrderBy(n => n, StringComparer.Ordinal).ToList();
-        var fromPass = WiseOwl.Cobol.Validation.DeclinedFacilityPass.DeclinedConstructRoots.Select(t => t.Name)
+        var fromPass = WiseOwl.Cobol.Compiler.Validation.DeclinedFacilityPass.DeclinedConstructRoots.Select(t => t.Name)
             .OrderBy(n => n, StringComparer.Ordinal).ToList();
         Assert.True(fromGrammar.Count >= 2, "the entry-point scan found too few rules to compare");
         Assert.Equal(fromGrammar, fromPass);
@@ -241,7 +241,7 @@ public sealed class DeclinedFacilityDriftTests
             foreach (string word in PrintedWords(cite.Clause, cite.Format).Order(StringComparer.Ordinal))
             {
                 if (!WiseOwl.Cobol.Frontend.Parsing.CobolKeywordTokens.TryTokenType(word, out int type)) continue;   // lexes as IDENTIFIER
-                string token = WiseOwl.Cobol.Frontend.Generated.CobolLexer.DefaultVocabulary.GetSymbolicName(type);
+                string token = WiseOwl.Cobol.Frontend.Parsing.CobolLexer.DefaultVocabulary.GetSymbolicName(type);
                 if (!reached.Contains(token))
                     missing.Add($"{rule.Name}: §2023:{cite.Clause}{(cite.Format is null ? "" : $" Format {cite.Format}")} prints {word} (token {token})");
             }

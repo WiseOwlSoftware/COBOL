@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Runtime.Communication;
 
-namespace WiseOwl.Cobol.Binding.Model;
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// <summary>The positions of a CD's record area, by what the MCS keeps in them (ISO/IEC 1989:2002 A.1.2.3 GR2, GR16, GR24).</summary>
 public enum CommunicationField

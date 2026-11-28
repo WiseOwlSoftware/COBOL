@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Text.RegularExpressions;
 using WiseOwl.Cobol.Editions;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 /// <summary>
 /// ⛔ HOW A DIAGNOSTIC ABOUT AN INTRINSIC FUNCTION'S ARGUMENT CITES THE RULE OF THE EDITION IN FORCE (kb/Work PB4950: "a diagnostic

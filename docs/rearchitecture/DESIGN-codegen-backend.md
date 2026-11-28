@@ -175,7 +175,7 @@ SyntaxFactory **nowhere**. Close the untyped-runtime-coupling smell with `Runtim
 ### 2.2 Decision B — `ICodeGenBackend`
 
 ```csharp
-namespace WiseOwl.Cobol.CodeGen;
+namespace WiseOwl.Cobol.Compiler.CodeGen;
 
 /// The one seam between the backend-neutral BoundCompilation and a target.
 public interface ICodeGenBackend
@@ -261,7 +261,7 @@ See also DESIGN-data-model §2.3's Tier-B section: the window's "Read IS the ima
 `Place` loses `Read()/Write()`. It becomes a pure structural value the backend renders.
 
 ```csharp
-namespace WiseOwl.Cobol.Binding.Model;
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 public abstract record Place { public abstract DataItem Item { get; } public abstract PicInfo? Pic { get; } }
 

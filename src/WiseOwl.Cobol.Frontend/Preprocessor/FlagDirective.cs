@@ -194,7 +194,7 @@ public static class FlagOptions
         for (int k = 0; k < expression.ChildCount; k++)
         {
             var child = expression.GetChild(k);
-            if (child is Generated.CobolParserCore.AddOpContext or Generated.CobolParserCore.MulOpContext
+            if (child is Parsing.CobolParserCore.AddOpContext or Parsing.CobolParserCore.MulOpContext
                 || IsFlaggableCompileTimeArithmetic(child)) return true;
         }
         return false;

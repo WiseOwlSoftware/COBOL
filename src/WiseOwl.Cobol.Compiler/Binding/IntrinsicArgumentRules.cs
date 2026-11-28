@@ -1,11 +1,11 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Bound;
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Bound;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Runtime;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 /// <summary>The ISO §2023:8.5.2.1 Table-2 CLASSES.</summary>
 /// <remarks>
@@ -1907,7 +1907,7 @@ internal static partial class IntrinsicArgumentRules
     /// r2). The leaves beneath an item or a call are not the spine's.</summary>
     private static bool WrittenWithFraction(BoundExpr e) => e switch
     {
-        BoundNumLiteral l => l.Carrier is not null || !WiseOwl.Cobol.Common.NumericLiteral.IsIntegerLiteralForm(l.Text),
+        BoundNumLiteral l => l.Carrier is not null || !WiseOwl.Cobol.Frontend.Common.NumericLiteral.IsIntegerLiteralForm(l.Text),
         BoundBinary b => b.Op == '/' || WrittenWithFraction(b.Left) || WrittenWithFraction(b.Right),
         BoundNegate n => WrittenWithFraction(n.Operand),
         BoundPower pw => WrittenWithFraction(pw.Base) || WrittenWithFraction(pw.Exp),
@@ -1991,7 +1991,7 @@ internal static partial class IntrinsicArgumentRules
     private const int MaxFoldedExponent = 64;
 
     /// <summary>
-    /// ⛔ THE ONE EXACT DECODE both literal screens read — <see cref="WiseOwl.Cobol.Common.NumericLiteral.TryParseExact"/>,
+    /// ⛔ THE ONE EXACT DECODE both literal screens read — <see cref="WiseOwl.Cobol.Frontend.Common.NumericLiteral.TryParseExact"/>,
     /// "the ONE exact parser the binder's range checks, the standard-decimal literal operand and the VALUE
     /// initializer share", which handles the FIXED-POINT form (§2023:8.3.3.3.2) and the FLOATING-POINT form
     /// (§2023:8.3.3.3.3, whose GR5 value is "the algebraic product of the value of its significand and the quantity
@@ -2006,7 +2006,7 @@ internal static partial class IntrinsicArgumentRules
     private static bool TryLiteralValue(string text, out System.Numerics.BigInteger unscaled, out int exp10)
     {
         unscaled = 0;
-        bool ok = WiseOwl.Cobol.Common.NumericLiteral.TryParseExact(text.Replace(',', '.'), out var sig, out exp10);
+        bool ok = WiseOwl.Cobol.Frontend.Common.NumericLiteral.TryParseExact(text.Replace(',', '.'), out var sig, out exp10);
         if (ok) unscaled = sig;
         return ok;
     }

@@ -26,12 +26,12 @@ namespace WiseOwl.Cobol.Tests.Unit;
 public sealed class OperandContextRulesTests
 {
     private static Type EnumType() =>
-        typeof(WiseOwl.Cobol.Binding.Bound.StatementBinder).Assembly
-            .GetType("WiseOwl.Cobol.Binding.Procedure.OperandContext", throwOnError: true)!;
+        typeof(WiseOwl.Cobol.Compiler.Binding.Bound.StatementBinder).Assembly
+            .GetType("WiseOwl.Cobol.Compiler.Binding.Procedure.OperandContext", throwOnError: true)!;
 
     private static MethodInfo RulesMethod() =>
-        typeof(WiseOwl.Cobol.Binding.Bound.StatementBinder).Assembly
-            .GetType("WiseOwl.Cobol.Binding.Procedure.OperandContextRules", throwOnError: true)!
+        typeof(WiseOwl.Cobol.Compiler.Binding.Bound.StatementBinder).Assembly
+            .GetType("WiseOwl.Cobol.Compiler.Binding.Procedure.OperandContextRules", throwOnError: true)!
             .GetMethod("Rules", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public)!;
 
     /// <summary>Every member has a row. A member without one throws

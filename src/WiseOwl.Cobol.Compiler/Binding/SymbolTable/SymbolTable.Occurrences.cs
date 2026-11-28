@@ -1,11 +1,11 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
-using WiseOwl.Cobol.Binding.Bound;
-using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.Symbols;
+using WiseOwl.Cobol.Compiler.Binding.Bound;
+using WiseOwl.Cobol.Compiler.Binding.Model;
+using WiseOwl.Cobol.Compiler.Symbols;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 /// <summary>An OCCURRENCE of the symbol table (docs/rearchitecture/DESIGN-listing.md section 6.7.1): an opaque number, 1-based in the
 /// compilation group, made when an identification funnel records a reference the program wrote; <c>default</c> is none.</summary>
@@ -246,10 +246,10 @@ public sealed partial class SymbolTable
 
     // Each written REDEFINES clause's data-name-2, by its redefiner, while the forest is built: the clause is resolved by its placement
     // after the forest is composed (LinkRedefinitionsPass, §2023:13.18.44.3 SR4), and only then is its occurrence's entry known.
-    private Dictionary<DataItem, Frontend.Generated.CobolParserCore.DataReferenceContext>? _redefinesWritten;
+    private Dictionary<DataItem, Frontend.Parsing.CobolParserCore.DataReferenceContext>? _redefinesWritten;
 
     /// <summary>Note where <paramref name="redefiner"/>'s REDEFINES clause writes data-name-2, for its occurrence once it is linked.</summary>
-    internal void NoteRedefinesWritten(DataItem redefiner, Frontend.Generated.CobolParserCore.DataReferenceContext written)
+    internal void NoteRedefinesWritten(DataItem redefiner, Frontend.Parsing.CobolParserCore.DataReferenceContext written)
     {
         if (_entries.RecordsReferences) (_redefinesWritten ??= new(ReferenceEqualityComparer.Instance))[redefiner] = written;
     }

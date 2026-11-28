@@ -584,31 +584,31 @@ public sealed class IntrinsicCarrierAgreementDriftTests
     /// ⛔ THE INTEGER INTAKE IS TOTAL OVER EVERY CARRIER A NumX CAN BE (kb/Work PB638 + PB1526). The bounded and the
     /// total landing were two hand-copied dispatches; the narrow one had no unsigned-wide arm, so a COMP-5 item over
     /// a 19+-digit unsigned PICTURE at INTEGER-OF-DATE / CHAR / BASE-CONVERT reached Roslyn as a CS1503. The carrier
-    /// list is NOT kept here: <see cref="WiseOwl.Cobol.CodeGen.Emit.NumXCarrier"/> is the compiler's own enumeration, so a
+    /// list is NOT kept here: <see cref="WiseOwl.Cobol.Compiler.CodeGen.Emit.NumXCarrier"/> is the compiler's own enumeration, so a
     /// fifth carrier fails THIS test (the intake throws on a carrier it does not map) before it can reach a user.
     /// Every (carrier × width) pair must render a call onto the runtime's integrality-checked intake family.
     /// </summary>
     [Fact]
     public void EveryIntegerIntake_IsTotalOverTheNumXCarriers()
     {
-        foreach (var carrier in Enum.GetValues<WiseOwl.Cobol.CodeGen.Emit.NumXCarrier>())
+        foreach (var carrier in Enum.GetValues<WiseOwl.Cobol.Compiler.CodeGen.Emit.NumXCarrier>())
         foreach (bool wide in new[] { false, true })
         {
             var x = carrier switch
             {
-                WiseOwl.Cobol.CodeGen.Emit.NumXCarrier.Scaled => new WiseOwl.Cobol.CodeGen.Emit.NumX("e", 2),
-                WiseOwl.Cobol.CodeGen.Emit.NumXCarrier.UnsignedWide => new WiseOwl.Cobol.CodeGen.Emit.NumX("u", 2, U: true),
-                WiseOwl.Cobol.CodeGen.Emit.NumXCarrier.Sdidi => new WiseOwl.Cobol.CodeGen.Emit.NumX("d", 0, Dec: true),
-                WiseOwl.Cobol.CodeGen.Emit.NumXCarrier.Binary64 => new WiseOwl.Cobol.CodeGen.Emit.NumX("r", 0, Real: true),
+                WiseOwl.Cobol.Compiler.CodeGen.Emit.NumXCarrier.Scaled => new WiseOwl.Cobol.Compiler.CodeGen.Emit.NumX("e", 2),
+                WiseOwl.Cobol.Compiler.CodeGen.Emit.NumXCarrier.UnsignedWide => new WiseOwl.Cobol.Compiler.CodeGen.Emit.NumX("u", 2, U: true),
+                WiseOwl.Cobol.Compiler.CodeGen.Emit.NumXCarrier.Sdidi => new WiseOwl.Cobol.Compiler.CodeGen.Emit.NumX("d", 0, Dec: true),
+                WiseOwl.Cobol.Compiler.CodeGen.Emit.NumXCarrier.Binary64 => new WiseOwl.Cobol.Compiler.CodeGen.Emit.NumX("r", 0, Real: true),
                 _ => throw new InvalidOperationException($"the test builds no operand for the new carrier {carrier}"),
             };
             Assert.Equal(carrier, x.Carrier);
-            string call = WiseOwl.Cobol.CodeGen.Emit.IntrinsicRenderer.IntegerIntake(x, wide);
+            string call = WiseOwl.Cobol.Compiler.CodeGen.Emit.IntrinsicRenderer.IntegerIntake(x, wide);
             Assert.StartsWith("CobolIntrinsics.IntegerArg", call);
             // A scaled operand (scale != 0) and every non-scaled carrier go through the integrality-checked family; a
             // scale-0 operand is integral by construction and is the only shape that is not routed through it.
-            Assert.Contains(carrier == WiseOwl.Cobol.CodeGen.Emit.NumXCarrier.Scaled || carrier == WiseOwl.Cobol.CodeGen.Emit.NumXCarrier.UnsignedWide
-                ? "Scaled" : carrier == WiseOwl.Cobol.CodeGen.Emit.NumXCarrier.Sdidi ? "Dec" : "Real", call);
+            Assert.Contains(carrier == WiseOwl.Cobol.Compiler.CodeGen.Emit.NumXCarrier.Scaled || carrier == WiseOwl.Cobol.Compiler.CodeGen.Emit.NumXCarrier.UnsignedWide
+                ? "Scaled" : carrier == WiseOwl.Cobol.Compiler.CodeGen.Emit.NumXCarrier.Sdidi ? "Dec" : "Real", call);
         }
     }
 

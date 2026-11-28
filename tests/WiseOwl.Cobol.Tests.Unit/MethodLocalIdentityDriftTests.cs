@@ -2,8 +2,9 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Reflection;
 using System.Text.RegularExpressions;
-using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.CodeGen;
+using WiseOwl.Cobol.Compiler.Binding.Model;
+using WiseOwl.Cobol.Compiler.CodeGen.Roslyn;
+using WiseOwl.Cobol.Compiler.CodeGen;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 
@@ -20,7 +21,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <c>CorrespondingHoist.Local</c>, a CORRESPONDING anchor's <c>RootFieldSegment</c> and <c>BoundReportVaryingRef.CsName</c>.
 /// These facts keep it from coming back:
 /// <list type="bullet">
-/// <item>no type of the neutral tree (the <c>WiseOwl.Cobol.Binding</c> namespaces) has a <c>string</c> property named for a
+/// <item>no type of the neutral tree (the <c>WiseOwl.Cobol.Compiler.Binding</c> namespaces) has a <c>string</c> property named for a
 /// local (<c>CsName</c>, <c>Var</c>, <c>Local</c>, <c>…Local</c>, <c>…Var</c>);</item>
 /// <item>no binder source spells a stem <see cref="LocalNames"/> gives a role — the spelling has one home;</item>
 /// <item>every role has a spelling, and no two roles' locals of one ordinal share it.</item>
@@ -34,7 +35,7 @@ public sealed class MethodLocalIdentityDriftTests
     public void NoNeutralTreeType_HoldsALocalsName()
     {
         var offenders = typeof(StatementLocal).Assembly.GetTypes()
-            .Where(t => t.Namespace is { } ns && (ns == "WiseOwl.Cobol.Binding" || ns.StartsWith("WiseOwl.Cobol.Binding.", StringComparison.Ordinal)))
+            .Where(t => t.Namespace is { } ns && (ns == "WiseOwl.Cobol.Compiler.Binding" || ns.StartsWith("WiseOwl.Cobol.Compiler.Binding.", StringComparison.Ordinal)))
             .SelectMany(t => t.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly)
                 .Where(p => p.PropertyType == typeof(string) && LocalShapedName.IsMatch(p.Name))
                 .Select(p => $"{t.FullName}.{p.Name}"))

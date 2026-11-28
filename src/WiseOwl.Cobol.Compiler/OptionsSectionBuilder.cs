@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Runtime.InteropServices;
 using WiseOwl.Cobol.Listing;
 
-namespace WiseOwl.Cobol;
+namespace WiseOwl.Cobol.Compiler;
 
 /// <summary>
 /// ⛔ THE OPTIONS SECTION'S ONE TABLE (DESIGN-listing.md section 6.4): one row per public property of
@@ -102,8 +102,8 @@ internal static class OptionsSectionBuilder
                 rows.Add(new ListingOption(row.Name, value,
                     value == row.Value(RequestDefaults) ? ListingOptionOrigin.Default : ListingOptionOrigin.Specified));
             }
-        rows.Add(new ListingOption("compiler", Listing.Building.ListingBuilder.CompilerVersion, ListingOptionOrigin.Host));
-        rows.Add(new ListingOption("runtime", Listing.Building.ListingBuilder.VersionOf(typeof(Runtime.SignEncoding).Assembly), ListingOptionOrigin.Host));
+        rows.Add(new ListingOption("compiler", Listing.ListingBuilder.CompilerVersion, ListingOptionOrigin.Host));
+        rows.Add(new ListingOption("runtime", Listing.ListingBuilder.VersionOf(typeof(Runtime.SignEncoding).Assembly), ListingOptionOrigin.Host));
         rows.Add(new ListingOption(".NET", RuntimeInformation.FrameworkDescription, ListingOptionOrigin.Host));
         rows.Add(new ListingOption("operating system",
             $"{RuntimeInformation.OSDescription} ({RuntimeInformation.OSArchitecture})", ListingOptionOrigin.Host));

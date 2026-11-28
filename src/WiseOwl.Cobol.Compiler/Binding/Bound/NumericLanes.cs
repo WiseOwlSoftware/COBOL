@@ -1,10 +1,10 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.Common;
+using WiseOwl.Cobol.Compiler.Binding.Model;
+using WiseOwl.Cobol.Frontend.Common;
 using WiseOwl.Cobol.Runtime;
 
-namespace WiseOwl.Cobol.Binding.Bound;
+namespace WiseOwl.Cobol.Compiler.Binding.Bound;
 
 /// <summary>⛔ THE CARRIER AN ARITHMETIC VALUE IS HELD ON WHILE AN EXPRESSION IS EVALUATED (kb/Work PB5891 review R1-3), as the
 /// code generator's <c>NumericRenderer</c> holds it (<c>NumX</c>'s flags) and the type 6 classifier predicts it. The lane decides

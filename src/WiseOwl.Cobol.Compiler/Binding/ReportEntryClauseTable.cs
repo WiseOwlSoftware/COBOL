@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 /// <summary>The clauses of a report group description entry that §1985:XIII.3.9.3 SR11 Table 1 tabulates (kb/Work PB5243).</summary>
 [Flags]

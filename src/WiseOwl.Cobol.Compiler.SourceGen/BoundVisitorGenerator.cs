@@ -25,7 +25,7 @@ namespace WiseOwl.Cobol.Compiler.SourceGen;
 [Generator(LanguageNames.CSharp)]
 public sealed class BoundVisitorGenerator : IIncrementalGenerator
 {
-    private const string AttrNamespace = "WiseOwl.Cobol.Binding.Bound";
+    private const string AttrNamespace = "WiseOwl.Cobol.Compiler.Binding.Bound";
     private const string AttrSimpleName = "BoundNodeAttribute";
     private const string AttrFullName = AttrNamespace + "." + AttrSimpleName;
 

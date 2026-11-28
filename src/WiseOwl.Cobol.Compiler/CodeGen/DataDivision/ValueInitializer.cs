@@ -1,12 +1,13 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Globalization;
-using WiseOwl.Cobol.Common;
-using WiseOwl.Cobol.Binding;
-using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.CodeGen.Emit;
+using WiseOwl.Cobol.Frontend.Common;
+using WiseOwl.Cobol.Compiler.Binding;
+using WiseOwl.Cobol.Compiler.Binding.Model;
+using WiseOwl.Cobol.Compiler.CodeGen.Emit;
+using WiseOwl.Cobol.Compiler.CodeGen.Roslyn;
 
-namespace WiseOwl.Cobol.CodeGen;
+namespace WiseOwl.Cobol.Compiler.CodeGen.DataDivision;
 
 /// <summary>WHICH RULE a data-division seed is composed by (kb/Work PB1267). The same composition — one element,
 /// its members in order, the VALUE recipe at each leaf — serves two occasions the standard words differently:
@@ -384,7 +385,7 @@ internal sealed class ValueInitializer(EmitContext ctx)
         // than Classify because §2023:8.3.3.6.3 SR1a restricts this context to "ZERO (ZEROS, ZEROES) without the ALL
         // phrase", which is exactly the strip Classify performs and this site must not.
         if (FigurativeConstants.KindOf(t) is 'Z') return true;
-        return WiseOwl.Cobol.Common.NumericLiteral.TryParseExact(t, out sig, out exp10);   // the ONE exact parser (PB99)
+        return WiseOwl.Cobol.Frontend.Common.NumericLiteral.TryParseExact(t, out sig, out exp10);   // the ONE exact parser (PB99)
     }
 
     /// <summary>Parse a canonical (dot-decimal) numeric VALUE text to its unscaled value + scale, for

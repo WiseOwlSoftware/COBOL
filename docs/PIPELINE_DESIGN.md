@@ -93,11 +93,11 @@ Plus: a decomposed emitter (mirror the legacy CilArithmetic/Comparison/ControlFl
 
 PIPELINE TYPES (namespaces `WiseOwl.Cobol.*`, in the projects `src/WiseOwl.Cobol.{Frontend,Compiler,Runtime,Cli}` — see `PROJECT_ORG_DESIGN.md`):
 - WiseOwl.Cobol.Frontend.Frontend (exists) → parse tree.
-- WiseOwl.Cobol.Binding: DataBinder/DataItem/PicInfo (exist, data half) + NEW ProcedureBinder → a BoundProgram tree.
-- WiseOwl.Cobol.Binding.Bound (NEW): BoundProgram, BoundProcedure, BoundParagraph (carries int PcIndex), BoundStatement subtypes (BoundMove, BoundArith, BoundIf, BoundEvaluate, BoundPerform{Single|Thru|Times|Until|Varying}, BoundGoTo (resolved target PcIndex), BoundAlter, BoundStopRun, BoundGoback, BoundCall, BoundInvoke, ...), BoundExpression subtypes (BoundFieldRef (resolved DataItem + subscripts + refmod), BoundLiteral, BoundBinary, BoundCondition...). Mine legacy Semantics/Bound/ for WHICH nodes; build WiseOwl.Cobol's own.
+- WiseOwl.Cobol.Compiler.Binding: DataBinder/DataItem/PicInfo (exist, data half) + NEW ProcedureBinder → a BoundProgram tree.
+- WiseOwl.Cobol.Compiler.Binding.Bound (NEW): BoundProgram, BoundProcedure, BoundParagraph (carries int PcIndex), BoundStatement subtypes (BoundMove, BoundArith, BoundIf, BoundEvaluate, BoundPerform{Single|Thru|Times|Until|Varying}, BoundGoTo (resolved target PcIndex), BoundAlter, BoundStopRun, BoundGoback, BoundCall, BoundInvoke, ...), BoundExpression subtypes (BoundFieldRef (resolved DataItem + subscripts + refmod), BoundLiteral, BoundBinary, BoundCondition...). Mine legacy Semantics/Bound/ for WHICH nodes; build WiseOwl.Cobol's own.
 - VersionConformancePass (over the bound tree, between Bind and Desugar): the ONE edition-gating funnel — bound nodes carry a `.Syntax` back-reference it reads; the driver order is bind → pass → HALT on errors → emit.
-- WiseOwl.Cobol.Binding.Desugar (NEW): bound→bound passes (MoveCorrLowering, PerformVaryingAfterLowering, ConditionNameLowering). NOT a second tree type.
-- WiseOwl.Cobol.CodeGen: CSharpEmitter (orchestrator), + DataEmitter/DispatchEmitter/StatementEmitter/ExpressionEmitter/ConditionEmitter/ProgramEmitter, all sharing EmitContext; CodeWriter (exists), RoslynBackend (exists), NameTable/NameAllocator (NEW).
+- WiseOwl.Cobol.Compiler.Binding.Desugar (NEW): bound→bound passes (MoveCorrLowering, PerformVaryingAfterLowering, ConditionNameLowering). NOT a second tree type.
+- WiseOwl.Cobol.Compiler.CodeGen: CSharpEmitter (orchestrator), + DataEmitter/DispatchEmitter/StatementEmitter/ExpressionEmitter/ConditionEmitter/ProgramEmitter, all sharing EmitContext; CodeWriter (exists), RoslynBackend (exists), NameTable/NameAllocator (NEW).
 
 CONTROL-FLOW MAPPING (the centerpiece):
 COBOL:

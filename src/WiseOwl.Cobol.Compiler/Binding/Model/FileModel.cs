@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Editions;
 
-namespace WiseOwl.Cobol.Binding.Model;
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// <summary>The file organization (ISO/IEC 1989:2023 §2023:12.4.5.10). This slice implements the two sequential shapes;
 /// relative/indexed are later G5 slices (registered loud).</summary>
@@ -245,7 +245,7 @@ public enum SuppressWhenForm
 /// keyword figurative.</param>
 /// <param name="FigurativeKind">The keyword figurative's kind (<c>FigurativeConstants.KindOf</c>'s letters);
 /// null otherwise.</param>
-public sealed record SuppressWhenOperand(string Written, SuppressWhenForm Form, WiseOwl.Cobol.Common.LiteralClass? Class,
+public sealed record SuppressWhenOperand(string Written, SuppressWhenForm Form, WiseOwl.Cobol.Frontend.Common.LiteralClass? Class,
     string Characters, char? FigurativeKind);
 
 /// <summary>The §2023:12.4.5.6.4 GR6 key suppression value of one resolved alternate key, as the relation condition
@@ -589,7 +589,7 @@ public sealed class FileModel
     /// <c>true</c> = alphabet-name-2 / national (b), <c>false</c> = alphabet-name-1 / alphanumeric (a),
     /// <c>null</c> = no clause, or a clause whose alphabet failed SR1/SR2 and is not screened against.
     /// <para>⛔ The screen itself is <c>CheckCodeSetRecordItemsPass</c>, a DECLARED pass at
-    /// <see cref="WiseOwl.Cobol.Binding.Passes.PassPhase.SignResolved"/>, not the FD walk: SR3's "described with the SIGN IS SEPARATE
+    /// <see cref="WiseOwl.Cobol.Compiler.Binding.Passes.PassPhase.SignResolved"/>, not the FD walk: SR3's "described with the SIGN IS SEPARATE
     /// clause" and "described as usage display" are both facts a LATER pass settles (§2023:13.18.52.4 GR1 group-SIGN
     /// inheritance; §2023:13.18.60.4 GR1 group-USAGE inheritance), and reading them at the FD refused legal source
     /// (kb/Work PB536). This property is the only thing that travels between the two.</para></summary>

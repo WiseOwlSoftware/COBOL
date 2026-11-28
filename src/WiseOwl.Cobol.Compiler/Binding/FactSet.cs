@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Collections;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 /// <summary>The APPEND view of a <see cref="FactSet{T}"/>: a pass that records facts of this set holds only this, so it can
 /// add a fact and do nothing else (docs/rearchitecture/DESIGN-architecture-review.md §8.3 (1), kb/Work PB2296).</summary>

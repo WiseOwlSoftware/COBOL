@@ -13,7 +13,7 @@
     in WiseOwl.Cobol.Frontend; we consume ONLY its public front-end (preprocessing + parse tree).
   -->
   <PropertyGroup>
-    <RootNamespace>WiseOwl.Cobol</RootNamespace>
+    <RootNamespace>WiseOwl.Cobol.Compiler</RootNamespace>
     <AssemblyName>WiseOwl.Cobol.Compiler</AssemblyName>
   </PropertyGroup>
 
@@ -31,7 +31,7 @@
          Compiler so edition metadata + the severity policy are single-sourced below the frontend. -->
     <ProjectReference Include="..\WiseOwl.Cobol.Editions\WiseOwl.Cobol.Editions.csproj" />
     <!-- The source listing's model and renderers (DESIGN-listing.md section 4.2): this library fills the model
-         (Listing/, namespace WiseOwl.Cobol.Listing.Building); the model references nothing. -->
+         (Listing/, namespace WiseOwl.Cobol.Compiler.Listing); the model references nothing. -->
     <ProjectReference Include="..\WiseOwl.Cobol.Listing\WiseOwl.Cobol.Listing.csproj" />
     <!-- The runtime the GENERATED programs call: referenced so it is built + lands next to the compiler, where
          RoslynBackend deploys a copy beside each compiled program. -->

@@ -1,7 +1,9 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 
-namespace WiseOwl.Cobol.Listing.Building;
+using WiseOwl.Cobol.Listing;
+
+namespace WiseOwl.Cobol.Compiler.Listing;
 
 /// <summary>
 /// ⛔ THE ONE LAYOUT OF A METHOD'S EXCEPTION-HANDLING STRUCTURE (DESIGN-listing.md section 6.9, kb/Work PB5951): the clauses the reader

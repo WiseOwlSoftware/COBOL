@@ -1,9 +1,9 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.Symbols;
+using WiseOwl.Cobol.Compiler.Binding.Model;
+using WiseOwl.Cobol.Compiler.Symbols;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 /// <summary>What <see cref="SymbolTable.Identify(Antlr4.Runtime.ParserRuleContext, Symbols.NameClass, bool, NameReach, ProcedureSite?, ReportSite)"/>
 /// answers for a named OCCURS DYNAMIC CAPACITY register (§2023:13.18.38.3 SR30): the dynamic tables whose register carries the

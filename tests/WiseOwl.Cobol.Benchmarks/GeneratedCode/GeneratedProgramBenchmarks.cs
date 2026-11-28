@@ -3,6 +3,7 @@
 using System.Reflection;
 using BenchmarkDotNet.Attributes;
 using WiseOwl.Cobol.Benchmarks.Collation;
+using WiseOwl.Cobol.Compiler;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Runtime.IO;
 using WiseOwl.Cobol.Tests.Shared;

@@ -1,11 +1,12 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Reflection;
-using WiseOwl.Cobol.Binding.Procedure;
-using WiseOwl.Cobol.CodeGen;
+using WiseOwl.Cobol.Compiler.Binding.Procedure;
+using WiseOwl.Cobol.Compiler.CodeGen;
 using WiseOwl.Cobol.Runtime;
 using WiseOwl.Cobol.Runtime.Exceptions;
 using Xunit;
+using WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs;
 
 namespace WiseOwl.Cobol.Tests.Unit;
 

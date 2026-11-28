@@ -1,9 +1,9 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Bound;
-using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.CodeGen.Emit;
-namespace WiseOwl.Cobol.CodeGen;
+using WiseOwl.Cobol.Compiler.Binding.Bound;
+using WiseOwl.Cobol.Compiler.Binding.Model;
+using WiseOwl.Cobol.Compiler.CodeGen.Emit;
+namespace WiseOwl.Cobol.Compiler.CodeGen.Verbs;
 
 /// <summary>
 /// ⛔ <b>THE ONE PLACE A RECEIVER'S OBJECT-PROPERTY ACCESSORS ARE PLACED</b> (kb/Work PB2078). A statement whose binder

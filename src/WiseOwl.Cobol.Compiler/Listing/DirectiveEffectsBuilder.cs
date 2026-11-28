@@ -1,8 +1,9 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Frontend.Preprocessor;
+using WiseOwl.Cobol.Listing;
 
-namespace WiseOwl.Cobol.Listing.Building;
+namespace WiseOwl.Cobol.Compiler.Listing;
 
 /// <summary>What the text stages' directive hooks mean for the listing's lines (DESIGN-listing.md sections 4.4 and 4.5), each
 /// in LISTING LINE numbers: the facts <see cref="ListingVisibility"/> decides visibility and page breaks from.</summary>

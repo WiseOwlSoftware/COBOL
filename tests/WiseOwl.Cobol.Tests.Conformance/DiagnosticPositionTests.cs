@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol;
+using WiseOwl.Cobol.Compiler;
+using WiseOwl.Cobol.Compiler.Binding;
 using WiseOwl.Cobol.Editions;
 using Xunit;
 using WiseOwl.Cobol.Frontend.Preprocessor;
@@ -570,7 +571,7 @@ public sealed class DiagnosticPositionTests : IDisposable
     [Fact] // a diagnostic with no positioned construct stays bare — never a fabricated "line 0"
     public void UnpositionedDiagnostic_HasNoPrefix()
     {
-        var ed = new Binding.EditionContext(2023) { SourceFile = "x.cob" };
+        var ed = new EditionContext(2023) { SourceFile = "x.cob" };
         ed.Error("COBOL0000", "about the unit as a whole");
         Assert.Equal("error COBOL0000: about the unit as a whole", ed.Diagnostics.Single());
     }

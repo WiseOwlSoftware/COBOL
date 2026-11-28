@@ -8,7 +8,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using Antlr4.Runtime;
-using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Parsing;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 
@@ -94,7 +94,7 @@ public sealed class GobackPhraseDecodeDriftTests
     [Fact]
     public void EveryDecodedPhrase_IsConsumedByAnArmOfTheFork()
     {
-        Type phrases = typeof(WiseOwl.Cobol.Binding.Bound.BoundGoback).Assembly
+        Type phrases = typeof(WiseOwl.Cobol.Compiler.Binding.Bound.BoundGoback).Assembly
             .GetTypes().Single(t => t.Name == "GobackPhrases");
         string program = MethodBody(CallBinderSource(), "public BoundStatement BindGoback");
         string method = MethodBody(OoBinderSource(), "public BoundStatement OoBindMethodGoback");

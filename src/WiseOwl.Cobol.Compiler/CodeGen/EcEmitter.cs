@@ -1,15 +1,17 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding;
-using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.Binding.Bound;
-using WiseOwl.Cobol.CodeGen.Emit;
+using WiseOwl.Cobol.Compiler.Binding;
+using WiseOwl.Cobol.Compiler.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Bound;
+using WiseOwl.Cobol.Compiler.CodeGen.Emit;
 using WiseOwl.Cobol.Runtime.Exceptions;
 
-namespace WiseOwl.Cobol.CodeGen;
+namespace WiseOwl.Cobol.Compiler.CodeGen;
 
-using static WiseOwl.Cobol.CodeGen.Emit.EmitText;
+using static WiseOwl.Cobol.Compiler.CodeGen.Emit.EmitText;
 using WiseOwl.Cobol.Runtime;
+using WiseOwl.Cobol.Compiler.CodeGen.Roslyn;
+using WiseOwl.Cobol.Compiler.CodeGen.Verbs;
 
 /// <summary>
 /// The EC exception-condition slice of the Roslyn backend (ISO/IEC 1989:2023 §2023:14.6.13;
@@ -592,11 +594,11 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
     /// activating and activated" (§2023:14.8.4.1 for the EC-EXTERNAL trio, §2023:14.9.23.4 GR7c for EC-OO-UNIVERSAL), so the
     /// flag is read by an ACTIVATION BOUNDARY — <c>ExceptionEngine.ExternalActivatingMask</c> at the CALL boundary and
     /// a method prologue, a generated <c>__CobolInvoke</c> — and never by an <c>ExceptionEngine …Error</c> helper.
-    /// Derived from <see cref="Binding.Procedure.EcBinder.ExternalNames"/> so a fourth checkable EC-EXTERNAL name
+    /// Derived from <see cref="Binding.Procedure.Verbs.EcBinder.ExternalNames"/> so a fourth checkable EC-EXTERNAL name
     /// joins by construction; <c>ExceptionRaiseHelperDriftTests</c> exempts exactly these from the helper census and
     /// asserts the EC-EXTERNAL flags' boundary reader instead (kb/Work PB1138).</summary>
     internal static readonly IReadOnlySet<string> ActivatingHalfGates =
-        new HashSet<string>([.. Binding.Procedure.EcBinder.ExternalNames, "EC-OO-UNIVERSAL"], StringComparer.Ordinal);
+        new HashSet<string>([.. Binding.Procedure.Verbs.EcBinder.ExternalNames, "EC-OO-UNIVERSAL"], StringComparer.Ordinal);
 
     /// <summary>The inner EC dispatch of a checked statement: the fatal ambient gates enabled at it (with USE F3
     /// dispatch on the raise) or, when none is enabled, a plain statement emission. Wrapped by

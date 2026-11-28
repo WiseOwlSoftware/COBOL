@@ -4,7 +4,7 @@
 // Committed (NOT under Generated/, so `dotnet clean` keeps it): data, read by the lexer's hand-written superclass
 // (Parsing/CobolLexerBase.cs: a '(' after one of DataNameTokens opens a reference's parenthesized tail, kb/Work
 // PB2113) and by the parser and its error strategy. Token-type constants resolve through the using static below.
-using static WiseOwl.Cobol.Frontend.Generated.CobolLexer;
+using static WiseOwl.Cobol.Frontend.Parsing.CobolLexer;
 
 namespace WiseOwl.Cobol.Frontend.Parsing;
 

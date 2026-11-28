@@ -1,12 +1,13 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text;
-using WiseOwl.Cobol.Binding;
-using WiseOwl.Cobol.CodeGen;
+using WiseOwl.Cobol.Compiler.Binding;
+using WiseOwl.Cobol.Compiler.CodeGen;
 using WiseOwl.Cobol.Frontend.Diagnostics;
 using Xunit;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Tests.Shared;
+using WiseOwl.Cobol.Compiler.CodeGen.Verbs;
 using CnFrontend = WiseOwl.Cobol.Frontend.Frontend;
 
 namespace WiseOwl.Cobol.Tests.Unit;

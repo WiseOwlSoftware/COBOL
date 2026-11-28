@@ -58,5 +58,5 @@ public sealed class SingleInstancePictureDriftTests
     [InlineData("", "NX1", false)]
     [InlineData(null, "NX1", false)]
     public void IsSingleInstance_AnswersSr6CountRule(string? picture, string symbols, bool expected)
-        => Assert.Equal(expected, WiseOwl.Cobol.Binding.PictureAnalyzer.IsSingleInstance(picture, symbols));
+        => Assert.Equal(expected, WiseOwl.Cobol.Compiler.Binding.PictureAnalyzer.IsSingleInstance(picture, symbols));
 }

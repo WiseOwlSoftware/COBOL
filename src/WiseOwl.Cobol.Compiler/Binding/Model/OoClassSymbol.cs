@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Runtime;
 
-namespace WiseOwl.Cobol.Binding.Model;
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// <summary>Where a class, interface or method symbol came from (DESIGN-external-repository §10.1) — the ONE question every consumer used
 /// to ask as "has it a source definition?" (<c>IsStandard</c> was <c>ctx is null</c>; kb/Work PB4459 did the same for

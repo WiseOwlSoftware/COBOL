@@ -1,8 +1,9 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Bound;
+using WiseOwl.Cobol.Compiler.Binding.Bound;
+using WiseOwl.Cobol.Compiler.CodeGen.Roslyn;
 
-namespace WiseOwl.Cobol.CodeGen.Emit;
+namespace WiseOwl.Cobol.Compiler.CodeGen.Emit;
 
 /// <summary>
 /// Renders a bound boolean expression (<see cref="BoundBoolExpr"/>, ISO §2023:8.8.2) to a side-effect-free C#

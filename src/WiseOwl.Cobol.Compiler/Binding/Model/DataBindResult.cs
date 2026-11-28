@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Runtime;
 
-namespace WiseOwl.Cobol.Binding.Model;
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// <summary>
 /// ⛔ WHAT THE DATA BINDING OF ONE SOURCE ELEMENT HANDS A BACKEND (docs/rearchitecture/DESIGN-architecture-review.md §8.3 (1),

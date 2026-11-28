@@ -1,10 +1,10 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.Common;
+using WiseOwl.Cobol.Compiler.Binding.Model;
+using WiseOwl.Cobol.Frontend.Common;
 using WiseOwl.Cobol.Editions;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Compiler.Binding;
 
 /// <summary>The PICTURE character-string <b>ISO §2023:13.16.3 SR9</b> implies for a picture-less elementary item whose
 /// VALUE clause supplies a literal — its CATEGORY (which of SR9's three arms) and its LENGTH (SR9's "the length of
@@ -137,7 +137,7 @@ public sealed partial class DataBinder
         // gave it the one-character recovery item and stored "A" — a silent wrong answer on legal source.
         // THE one §2023:8.3.3.6.2 operand classifier (kb/Work PB461). NULL/NULLS is not admitted: it names no
         // character class and so implies no picture (§2023:8.3.3.6.4 GR1 speaks of character values).
-        var figOp = WiseOwl.Cobol.CodeGen.FigurativeConstants.Classify(raw, includeNull: false);
+        var figOp = WiseOwl.Cobol.Compiler.CodeGen.Roslyn.FigurativeConstants.Classify(raw, includeNull: false);
         if (figOp.AllLiteral is { } literal1) return LiteralImplied(literal1);
         // ── A literal written in any of the six quoted spellings (§2023:8.3.3.2 / §2023:8.3.3.4 / §2023:8.3.3.5, plain and
         // hexadecimal). SR9's own arms, read straight off the literal.

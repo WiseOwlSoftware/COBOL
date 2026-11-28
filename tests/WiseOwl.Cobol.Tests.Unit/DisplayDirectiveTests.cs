@@ -198,7 +198,7 @@ public sealed class DisplayDirectiveTests
             string path = Path.Combine(dir, "d.cob");
             File.WriteAllText(path, "       >>DISPLAY \"to-stdout\" 1\n       >>DISPLAY \"to-stderr\" UPON SYSERR\n"
                 + "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. PB1538D.\n       PROCEDURE DIVISION.\n           STOP RUN.\n");
-            var result = WiseOwl.Cobol.CompilerDriver.Compile(new WiseOwl.Cobol.CompilerDriver.Options(path, EditionInfo.Latest, CheckOnly: true));
+            var result = WiseOwl.Cobol.Compiler.CompilerDriver.Compile(new WiseOwl.Cobol.Compiler.CompilerDriver.Options(path, EditionInfo.Latest, CheckOnly: true));
             Assert.True(result.Success, string.Join("\n", result.Errors));
             Assert.Equal(
                 [new CompileOutputLine(CompileOutputStream.Listing, "to-stdout 1"), new CompileOutputLine(CompileOutputStream.Error, "to-stderr")],

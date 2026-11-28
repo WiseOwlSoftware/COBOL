@@ -13,7 +13,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ⛔ THE GUARD THAT KEEPS "ONE MODEL, SEVEN PREDICATES" TRUE (kb/Work PB445). ISO §2023:14.9.37.3 carries SEVEN
 /// consecutive FORMAT-2 syntax rules — SR7 through SR13 — and every one of them was unenforced, TOGETHER, for one
 /// structural reason: they all read either the OCCURS KEY phrase of identifier-1 or the WHEN phrase decomposed
-/// into its Format-2 operands, and neither existed as a model. <see cref="WiseOwl.Cobol.Binding.Validation"/>'s
+/// into its Format-2 operands, and neither existed as a model. <see cref="WiseOwl.Cobol.Compiler.Binding.Validation"/>'s
 /// <c>SearchAllFormat2Rules</c> builds both and writes each rule as a predicate over them.
 /// <para>The value of that shape is that the NEXT Format-2 rule is a predicate rather than another tree walk —
 /// and this test is what keeps the claim honest. It SCRAPES the Format-2 syntax rules out of

@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Diagnostics.CodeAnalysis;
 
-namespace WiseOwl.Cobol.Binding.Model;
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// <summary>A Format-2 (table) VALUE SUBSCRIPT TUPLE — one occurrence number per dimension, in the order
 /// ISO §2023:13.18.63.3 SR20 fixes ("one subscript-1 specified for each OCCURS clause for the subject of the entry or

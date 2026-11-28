@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-namespace WiseOwl.Cobol.Binding.Bound;
+namespace WiseOwl.Cobol.Compiler.Binding.Bound;
 
 /// <summary>
 /// ⛔ A BOUND NODE THAT HOLDS OPERANDS ITS SOURCE STATEMENT NEVER WROTE (X3.23-1985 USE FOR DEBUGGING general rule 5: a debugging section

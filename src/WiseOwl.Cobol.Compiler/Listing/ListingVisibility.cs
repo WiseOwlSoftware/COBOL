@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Frontend.Preprocessor;
 
-namespace WiseOwl.Cobol.Listing.Building;
+namespace WiseOwl.Cobol.Compiler.Listing;
 
 /// <summary>
 /// ⛔ ONE PASS DECIDES WHAT IS PRINTED AND WHERE A PAGE STARTS (DESIGN-listing.md section 4.5): renderers never re-decide it.

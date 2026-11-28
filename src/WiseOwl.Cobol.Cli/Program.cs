@@ -2,8 +2,8 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.CommandLine;
 using System.Diagnostics;
-using WiseOwl.Cobol;
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Runtime;

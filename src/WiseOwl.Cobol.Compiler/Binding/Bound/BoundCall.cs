@@ -1,9 +1,9 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Binding.Model;
 using WiseOwl.Cobol.Runtime;
 
-namespace WiseOwl.Cobol.Binding.Bound;
+namespace WiseOwl.Cobol.Compiler.Binding.Bound;
 
 // The CALL / CANCEL / EXIT PROGRAM / GOBACK bound nodes (P7 Step 10j: the binder half moved to
 // Binding/Procedure/Verbs/CallBinder.cs; these types STAY here — Udf cross-constructs

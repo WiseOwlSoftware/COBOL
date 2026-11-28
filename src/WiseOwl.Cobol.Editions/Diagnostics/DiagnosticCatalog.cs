@@ -3061,7 +3061,7 @@ public static class DiagnosticCatalog
     // kb/Work PB1427 — the ONE §2023:8.4.3.10.3 SR1 context screen for the predefined NULL. It replaced the per-statement
     // NULL arms (STOP/GOBACK status 1704, DISPLAY 1694, MOVE 0809 …) that each re-stated the rule for one verb while
     // every verb nobody had written an arm for ran NULL as LOW-VALUE (STRING, INSPECT, UNSTRING, FUNCTION LENGTH).
-    // Reported only through WiseOwl.Cobol.Binding.PredefinedNullRule (PredefinedNullContextDriftTests).
+    // Reported only through WiseOwl.Cobol.Compiler.Binding.PredefinedNullRule (PredefinedNullContextDriftTests).
     public static readonly DiagnosticDescriptor PredefinedNullContext = new(
         "COBOL2576", "predefined-null-context", EditionSeverity.Error,
         "NULL is written where ISO §2023:8.4.3.10.3 syntax rule 1 does not admit it. NULL is an identifier — the "
@@ -4976,7 +4976,7 @@ public static class DiagnosticCatalog
         "An ALPHABET clause names a code-name-1 (alphanumeric) or code-name-2 (national) this implementation does "
         + "not support. ISO §2023:12.3.7.3 SR15 leaves the supported names to the implementor — 'if any' — and this one "
         + "supports ASCII and EBCDIC as code-name-1 and NO code-name-2 (owner decision, kb/Work PB793; the set is "
-        + "the table WiseOwl.Cobol.Binding.ImplementorCodeNames, which is also what the message's own list is generated "
+        + "the table WiseOwl.Cobol.Compiler.Binding.ImplementorCodeNames, which is also what the message's own list is generated "
         + "from, and CONFORMANCE.md §7 items 183/184/185 publish it with what each name means). The OTHER words "
         + "that may stand alone in an alphabet definition are the general format's own keywords (NATIVE, "
         + "STANDARD-1, STANDARD-2 for the alphanumeric branch; NATIVE, UCS-4, UTF-8, UTF-16 for the national one; "

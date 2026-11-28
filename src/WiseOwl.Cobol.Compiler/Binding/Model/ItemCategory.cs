@@ -3,7 +3,7 @@
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Runtime;
 
-namespace WiseOwl.Cobol.Binding.Model;
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// <summary>
 /// ⛔ THE ONE READER of a described data item's ISO/IEC 1989:2023 §2023:8.5.2 CLASS and CATEGORY for a syntax rule

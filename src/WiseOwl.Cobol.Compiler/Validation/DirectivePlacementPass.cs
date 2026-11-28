@@ -4,10 +4,10 @@ using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
-using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Parsing;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 
-namespace WiseOwl.Cobol.Validation;
+namespace WiseOwl.Cobol.Compiler.Validation;
 
 /// <summary>
 /// THE POSITION PASS for the placement rules of the §2023:7.3 directives that need the PARSE TREE (kb/Work PB1005,
@@ -51,7 +51,7 @@ namespace WiseOwl.Cobol.Validation;
 internal static class DirectivePlacementPass
 {
     public static void Run(CobolParserCore.CompilationUnitContext tree, IReadOnlyList<DirectiveSite> sites,
-        WiseOwl.Cobol.Binding.EditionContext sink)
+        WiseOwl.Cobol.Compiler.Binding.EditionContext sink)
     {
         List<(DirectiveSite Site, ConstructDialectStatus? Named, bool BetweenClauses, DirectivePlacement? Placement)>? judged = null;
         foreach (var s in sites)

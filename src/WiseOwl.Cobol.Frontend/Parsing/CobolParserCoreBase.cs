@@ -7,7 +7,7 @@ using WiseOwl.Cobol.Frontend.Expressions;
 using WiseOwl.Cobol.Frontend.Parsing;
 using WiseOwl.Cobol.Runtime;
 
-namespace WiseOwl.Cobol.Frontend.Generated;
+namespace WiseOwl.Cobol.Frontend.Parsing;
 
 /// <summary>
 /// Base class for the ANTLR-generated CobolParserCore.

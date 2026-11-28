@@ -261,12 +261,12 @@ public sealed class CobolNameFoldDriftTests
     public void TheLexer_MatchesAKeywordOnTheBasicLettersAlone(string word, int codePoint, int edition, bool directive, string token)
     {
         string text = word.Replace("#", char.ConvertFromUtf32(codePoint), StringComparison.Ordinal);
-        var lexer = new WiseOwl.Cobol.Frontend.Generated.CobolLexer(new Antlr4.Runtime.AntlrInputStream(text));
+        var lexer = new WiseOwl.Cobol.Frontend.Parsing.CobolLexer(new Antlr4.Runtime.AntlrInputStream(text));
         lexer.RemoveErrorListeners();
         lexer.SetCaseMappingEdition(edition);
         if (directive) lexer.PrimeDirectiveExpr();
         var t = lexer.NextToken();
-        Assert.Equal(token, WiseOwl.Cobol.Frontend.Generated.CobolLexer.DefaultVocabulary.GetSymbolicName(t.Type));
+        Assert.Equal(token, WiseOwl.Cobol.Frontend.Parsing.CobolLexer.DefaultVocabulary.GetSymbolicName(t.Type));
         Assert.Equal(CobolNames.EditionSpelling(text, edition), t.Text);   // the source's spelling, in its edition
     }
 

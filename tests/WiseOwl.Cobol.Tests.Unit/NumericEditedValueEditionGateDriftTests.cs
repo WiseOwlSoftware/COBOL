@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using WiseOwl.Cobol.Binding;
+using WiseOwl.Cobol.Compiler.Binding;
 using WiseOwl.Cobol.Frontend.Diagnostics;
 using Xunit;
 using WiseOwl.Cobol.Frontend.Preprocessor;

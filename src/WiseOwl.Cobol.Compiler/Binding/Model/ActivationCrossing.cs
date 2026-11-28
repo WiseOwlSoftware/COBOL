@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Runtime;
 
-namespace WiseOwl.Cobol.Binding.Model;
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// <summary>The form in which a data item CROSSES an activation boundary (an INVOKE, a CALL, a host entry) — a pure
 /// function of its description, read by the binder and the backend alike (kb/Work PB2403: it left the OO class table,

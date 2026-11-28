@@ -3,7 +3,7 @@
 using System.Collections;
 using System.Collections.Immutable;
 
-namespace WiseOwl.Cobol.Binding.Model;
+namespace WiseOwl.Cobol.Compiler.Binding.Model;
 
 /// <summary>
 /// An immutable list that compares by its ELEMENTS, so a record holding one is a value (DESIGN-external-repository §17.4, §17.7). An

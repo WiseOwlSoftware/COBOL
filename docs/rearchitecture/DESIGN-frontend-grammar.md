@@ -183,7 +183,7 @@ parse-tree shape is thus a wide, un-narrowed, stringly-typed cross-assembly cont
 grammar rule rename ripples into dozens of `GetText()` sites invisibly.
 
 ### 1.7 Namespace/assembly coherence (resolved)
-Generated code emits into namespace `WiseOwl.Cobol.Frontend.Generated`, the same root as the assembly `WiseOwl.Cobol.Frontend`
+Generated code emits into namespace `WiseOwl.Cobol.Frontend.Parsing`, the same root as the assembly `WiseOwl.Cobol.Frontend`
 (RootNamespace `WiseOwl.Cobol.Frontend`); the package name is the csproj's `AntlrNamespace` property. The preprocessor, parsing
 and diagnostics files declare `WiseOwl.Cobol.Frontend.*` (PHASE 01 renamed the stale legacy-assembly namespaces), and `Frontend.cs`
 is self-contained: the preprocessor and parse machinery, `DiagnosticBag` and `TurnEvent` all live in this assembly.
@@ -280,7 +280,7 @@ Key decisions, each expanded below:
   too many.
 - **D7. One `Diagnostic` type end-to-end**, one `ParseSession` orchestrator, narrowed exception handling,
   fail-hard portable regen unchanged in behavior but with the package name in an MSBuild property.
-- **D8. Bring the generated-namespace rename forward** to `WiseOwl.Cobol.Frontend.Generated` (it is free and
+- **D8. Bring the generated-namespace rename forward** to `WiseOwl.Cobol.Frontend.Parsing` (it is free and
   removes the `using Core =` alias everywhere), and fix the stale `Frontend.cs` banner + preprocessor
   namespaces in the same wave.
 
@@ -1108,7 +1108,7 @@ Behavior is already correct (portable flat-output regen, fail-hard, `.gitignored
 java+pwsh prerequisites — `Invoke-Antlr4CSharp.ps1`, run by the csproj's `EnsureGeneratedFiles` target). Target
 changes are hygiene:
 
-1. **Package name → MSBuild property (DONE).** The generated namespace `WiseOwl.Cobol.Frontend.Generated` is a csproj property
+1. **Package name → MSBuild property (DONE).** The generated namespace `WiseOwl.Cobol.Frontend.Parsing` is a csproj property
    (`AntlrNamespace`) passed to `Invoke-Antlr4CSharp.ps1` as `-PackageName`; this performed the D8 namespace rename with
    one property (the `using Core = CobolParserCore` aliases in consumers are a separate cleanup).
 1a. **One up-to-date decision over every input (DONE, kb/Work PB2719, PB2730).** `EnsureGeneratedFiles` is the only

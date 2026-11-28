@@ -3,7 +3,7 @@
 using WiseOwl.Cobol.Frontend.Common;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 
-namespace WiseOwl.Cobol.Listing.Building;
+namespace WiseOwl.Cobol.Compiler.Listing;
 
 /// <summary>
 /// ⛔ ONE INDEX PLACES EVERY POSITION (DESIGN-listing.md section 4.1): a RESULTANT line (a token's line, a statement's cursor)

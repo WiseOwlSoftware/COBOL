@@ -4,7 +4,7 @@ using System.Text;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Atn;
 using WiseOwl.Cobol.Editions;
-using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Parsing;
 using Xunit;
 
 namespace WiseOwl.Cobol.Tests.Unit;
