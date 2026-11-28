@@ -286,7 +286,7 @@ internal sealed class EvaluateSubjectBinder(BinderContext ctx, StatementBinder h
     /// no render of it — the comment this replaced claimed counting ANY as a use "only over-materializes, never
     /// under-", and the opposite was true: an EVALUATE whose every object is ANY counted one use, skipped the
     /// intermediate, and then evaluated the subject NOWHERE.</para>
-    /// <para><c>ReadByFirstPhrase</c> is the other half, and it is what makes a single use safe to leave
+    /// <para><c>ReadByFirstPhrase</c> (the use is in the first phrase AND every earlier pair of it is ANY, kb/Work PB6232) is the other half, and it is what makes a single use safe to leave
     /// un-hoisted: the one render then sits in the FIRST arm's condition, which the emitted if/else-if chain
     /// always executes, so it happens "at the beginning of the execution of the EVALUATE statement". A single
     /// use in a LATER arm does not — an earlier arm can select and the render is skipped — so that shape takes
@@ -301,10 +301,18 @@ internal sealed class EvaluateSubjectBinder(BinderContext ctx, StatementBinder h
                 var objects = phrase.evaluateWhenItem();
                 var item = index < objects.Length ? objects[index] : null;
                 bool reads = item is not null && item.ANY() is null;
-                if (!seenFirst) { readByFirst = reads; seenFirst = true; }
+                // The pairs of a phrase are AND-ed and stop at the first false one (GR4 c; kb/Work PB6232), so the render of subject
+                // `index` runs unconditionally only when every pair before it is ANY, which is true without a render.
+                if (!seenFirst) { readByFirst = reads && AllAnyBefore(objects, index); seenFirst = true; }
                 if (reads) uses += item!.valueRange() is not null ? 2 : 1;
             }
         return new SubjectUsage(uses, readByFirst);
+    }
+
+    private static bool AllAnyBefore(Core.EvaluateWhenItemContext[] objects, int index)
+    {
+        for (int j = 0; j < index && j < objects.Length; j++) if (objects[j].ANY() is null) return false;
+        return true;
     }
 
     /// <summary>The §2023:14.9.13.4 GR3 usage profile of one selection subject — see <see cref="SubjectUsageOf"/>.</summary>
