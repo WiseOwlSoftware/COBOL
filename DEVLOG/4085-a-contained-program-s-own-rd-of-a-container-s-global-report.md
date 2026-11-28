@@ -1,4 +1,4 @@
-## A contained program's own RD of a container's GLOBAL report-name keeps the container report's groups and sum counters
+## Entry 4085 — 2026-11-27 21:11 PST — A contained program's own RD of a container's GLOBAL report-name keeps the container report's groups and sum counters
 
 kb/Work PB6277. A contained program that declared its own `RD R1` while its container declared `RD R1 GLOBAL` lost every
 sum counter and report group of the container's report: `SymbolTable.InheritReport` returned at the failed
@@ -20,3 +20,4 @@ Golden: `conformance-suite/cases/8.4.6.2-Local-and-global-names/pb6277-own-repor
 program: the rule begins at COBOL-85 (§1985:X.1.3.8.2). The sibling arms (own FD, own data/condition/index names against
 a GLOBAL report) already keep the report visible through `_hiddenReportNames`. Registry: closes_rows [] with reason, no row
 changed verdict.
+
