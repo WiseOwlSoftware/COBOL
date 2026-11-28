@@ -1,4 +1,4 @@
-## A function reference in a report group's SOURCE, SUM or PRESENT WHEN raises EC-ARGUMENT-FUNCTION at GENERATE and TERMINATE
+## Entry 4093 — 2026-11-27 23:51 PST — A function reference in a report group's SOURCE, SUM or PRESENT WHEN raises EC-ARGUMENT-FUNCTION at GENERATE and TERMINATE
 
 **Note:** PB6349 (wrong answer, silent). §2023:15.3 AR14 attaches EC-ARGUMENT-FUNCTION to the function reference with no statement or
 position qualification. A GENERATE evaluates a report's SOURCE operands, SUM addends and PRESENT WHEN conditions
@@ -29,3 +29,4 @@ arm fails four tests), each bound node holding the description carries a decisio
 a counter reference do not), and twelve end-to-end positions assert `EcBinder.OperandRaisableNames` declares EC-ARGUMENT-FUNCTION.
 Conformance `15.3-Arguments/pb6349_ec_argument_function_report_operands` (accepted 2002, 2014, 2023; eight positions) and its 1985 refusal
 `..._below_2002` (COBOL0900, the `>>TURN` directive is a 2002 introduction). No inventory row was re-verdicted; PB6349 carried none.
+
