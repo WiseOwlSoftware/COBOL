@@ -20,14 +20,18 @@ namespace WiseOwl.Cobol.Tests.Unit;
 [Trait("Sweep", "tree")]
 public sealed class IntrinsicEditionClausesDriftTests
 {
-    private static readonly string[] SpecFile = ["ISO_COBOL_2002.md", "ISO_COBOL_2014.md", "ISO_COBOL_2023.md"];
-    private static readonly int[] Years = [2002, 2014, 2023];
 
     private static readonly Regex FunctionHeading = new(@"^#{3,4} 15\.(?<n>\d+) (?<name>[A-Z0-9-]+) function\s*$", RegexOptions.Compiled);
     private static readonly Regex SubHeading = new(@"^#{4,6} 15\.(?<n>\d+)\.(?<sub>\d+) (?<title>.+?)\s*$", RegexOptions.Compiled);
     private static readonly Regex NumberedRule = new(@"^(?<n>\d+)\\\) ", RegexOptions.Compiled);
 
-    private static string[] Lines(int year) => File.ReadAllLines(TestRepo.Specs(SpecFile[Array.IndexOf(Years, year)]));
+    private static string[] Lines(int year) => File.ReadAllLines(year switch
+    {
+        2002 => TestRepo.Specs("ISO_COBOL_2002.md"),
+        2014 => TestRepo.Specs("ISO_COBOL_2014.md"),
+        2023 => TestRepo.Specs("ISO_COBOL_2023.md"),
+        _ => throw new ArgumentOutOfRangeException(nameof(year), year, "the clause numbers are read from the 2002, 2014 and 2023 transcriptions"),
+    });
 
     /// <summary>The function clauses an edition prints: clause number → function.</summary>
     private static Dictionary<int, string> Headings(int year)
