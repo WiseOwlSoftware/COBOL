@@ -912,7 +912,14 @@ homes, each read mechanically, never from a hand list:
   `EcBinder.OperandRaises` declares each over the GENERATED value parts (`BoundStatementTree.OwnValueParts`), so a
   statement kind added tomorrow is covered without an edit; `OperandRaisableNames` is the one walker, and the
   intrinsic families are its declarations (`PartHasIntrinsic`) — the former `ContainsIntrinsic` and its nested-statement
-  recursion are gone, because a nested statement is its own EC region (kb/Work PB441) and wraps itself.
+  recursion are gone, because a nested statement is its own EC region (kb/Work PB441) and wraps itself. What a part holds
+  is read by ONE walk, `BoundValueWalk.SelfAndDescendants` over the generated `BoundStatementTree.ValueChildren` (every
+  operand position of every condition, expression, operand and boolean node, through lists, helper records and value
+  tuples — a class condition, a range's bounds, a per-evaluation window and a CANCEL target's dynamic name included;
+  kb/Work PB6223, PB6328), so neither `PartHasIntrinsic` nor the program-address row keeps a switch with a default arm.
+  `BoundValueWalkDriftTests` populates each value-holding property with a sentinel and fails when the generated walks
+  skip it. The report description models (`ReportModel`, `ReportGroupModel`) are held by reference and not entered:
+  a function reference in a report group's SOURCE, SUM or PRESENT WHEN raises nothing at GENERATE.
 - **An AMBIENT site** no bound node identifies — a named collating sequence at use, a dynamic table's growth, a
   locale-edited store, the *-ARG-OMITTED condition of the activated element's kind — rides every statement of a
   checking-on region (a guard that never fires is harmless): `EcBinder.AmbientRaises`, one row per name, with the element

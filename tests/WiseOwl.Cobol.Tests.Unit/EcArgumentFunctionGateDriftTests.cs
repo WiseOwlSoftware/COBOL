@@ -89,7 +89,7 @@ public sealed class EcArgumentFunctionGateDriftTests
     /// <c>BoundPerformControl</c> as a VALUE, yielded the container and stopped, and left
     /// <c>PERFORM UNTIL FUNCTION LOG10(0)</c> silent — the very defect PB26 set out to remove, one level in.
     /// <para>This pins the PARTITION so a NEW root forces a decision instead of silently defaulting. If it fails,
-    /// do not edit the expected set until you have answered: does <c>EcBinder.PartHasIntrinsic</c> interpret the
+    /// do not edit the expected set until you have answered: does <c>EcBinder.PartHasIntrinsic</c> (through <c>BoundValueWalk</c>) interpret the
     /// new root (then it is TERMINAL and needs an arm there), or does it merely hold values (then it is a
     /// CONTAINER and the generator's <c>terminalNames</c> must keep excluding it)?</para></summary>
     [Fact]
@@ -105,7 +105,7 @@ public sealed class EcArgumentFunctionGateDriftTests
 
         string[] expected =
         [
-            "BoundBoolExpr",        // TERMINAL — EcBinder.PartHasIntrinsic walks it
+            "BoundBoolExpr",        // TERMINAL — BoundValueWalk descends it
             "BoundCondition",       // TERMINAL
             "BoundExpr",            // TERMINAL
             "BoundOperand",         // TERMINAL
