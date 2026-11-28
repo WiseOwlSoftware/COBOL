@@ -128,7 +128,8 @@ leads, the records and the ledger.
    stays clean). You cannot PUBLISH it (a headless
    session has no Artifact tool): the supervisor announces the owed publish after you end, and the attended session
    publishes `{COORD}\ledger.html` to the owner's artifact. Do not look for a way around that.
-8. Write the handoff (`landed`; the branches still pending, an ENQUEUED one with its PR number; `next_unit` null unless
+8. Write the handoff (`landed` is an object, `commits`, `gap_before`, `gap_after` and `devlog_entry`, and is omitted when
+   nothing landed; the branches still pending, an ENQUEUED one with its PR number; `next_unit` null unless
    you know better). ⛔ NEVER name `enqueue` as `next_unit` to wait for a pull request to merge, for the lane to land a
    branch, or for a review to finish (kb/Work PB4180): the landing lane and the review lane own all of that beside every
    unit, so an enqueue unit spent waiting is a whole Opus session that produces nothing while the waves and campaigns
