@@ -1,4 +1,4 @@
-## PB6118: the intrinsic binder and the SPECIAL-NAMES binder cite 2002's and 2014's own rules
+## Entry 4088 — 2026-11-27 21:26 PST — PB6118: the intrinsic binder and the SPECIAL-NAMES binder cite 2002's and 2014's own rules
 
 **Mechanism.** A diagnostic at `--std 2002` or `--std 2014` named the 2023 clause when the call site passed only a 1985 text and a "later"
 text, or spelled a §2023:15.n rule in its message. Group C of wave 20262174 took `IntrinsicBinder.cs`, `SpecialNamesBinder.cs` and
@@ -36,3 +36,4 @@ COBOL1504 3 to 0). Seven refusal files stopped pinning a 2023 citation at other 
 
 **What it did not close.** `kb/Work/PB6118` stays open: the other binders' sites, `SpecialNamesBinder`'s partial files, and the
 sites listed in its 2026-11-27 addendum.
+
