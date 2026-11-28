@@ -330,7 +330,7 @@ public sealed partial class SpecialNamesBinder
         {
             if (CollatingAlphabetFault(WrittenAlphabet(natWord), national: true) is { } fault)
                 Edition.Error(DiagnosticCatalog.CollatingSequenceAlphabetKind, CollatingAlphabetViolation("PROGRAM COLLATING SEQUENCE FOR NATIONAL",
-                    natWord.GetText(), national: true, fault, "ISO §2023:12.3.6.3 SR2"));
+                    natWord.GetText(), national: true, fault, Edition.Edition.CiteRuleFrom2002("§2002:12.2.5.2 SR2", "§2023:12.3.6.3 SR2", "§2014:12.3.5.2 SR2")));
             else if (_host.Symbols.Identify(natWord, NameClass.NationalAlphabet, report: true)?.Symbol is NationalAlphabetDef def)
                 Cfg.NationalCollating = def.IsIdentity ? null : def;   // null for NATIVE/UCS-4 — the identity fast path (D-N3)
         }
@@ -427,7 +427,7 @@ public sealed partial class SpecialNamesBinder
         {
             Edition.Error(DiagnosticCatalog.OrderTableRepeated, $"ORDER TABLE {name}: the ORDER TABLE clause may be specified only once "
                 + "in a SPECIAL-NAMES paragraph — its general format brackets it without an ellipsis, unlike the "
-                + $"repeatable clauses (ISO §2023:12.3.7.2); '{declaredOrderings.Names.First()}' is already declared");
+                + $"repeatable clauses ({Edition.Edition.CiteRuleFrom2002("§2002:12.2.6.1", "§2023:12.3.7.2", "§2014:12.3.6.1")}); '{declaredOrderings.Names.First()}' is already declared");
             return;
         }
         _host.Symbols.DeclareOrderingName(name1.Start, text);
@@ -438,15 +438,15 @@ public sealed partial class SpecialNamesBinder
         string? failure = CollationEngine.ResolveLocale(text).Failure?.Message;
         Edition.Warning(DiagnosticCatalog.OrderTableUnresolved, $"ORDER TABLE {name} IS {raw}: "
             + (failure is null
-                ? $"'{text}' does not name a cultural ordering table this implementation provides (ISO §2023:12.3.7.4 "
-                  + "GR17 leaves literal-9's allowable content to the implementor: the default table "
+                ? $"'{text}' does not name a cultural ordering table this implementation provides (" + $"{Edition.Edition.CiteRuleFrom2002("§2002:12.2.6.3 GR17", "§2023:12.3.7.4 GR17", "§2014:12.3.6.3 GR17")}"
+                  + " leaves literal-9's allowable content to the implementor: the default table "
                   + $"'{CollationEngine.DefaultOrderingTableName}' — case-insensitive, space and underscore "
                   + "interchangeable — or a CLDR locale tag naming a tailored collation)"
                 : $"the site collation data for '{text}' cannot be used ({failure}), so it names no cultural "
-                  + "ordering table this implementation provides (ISO §2023:12.3.7.4 GR17 leaves literal-9's allowable "
+                  + "ordering table this implementation provides (" + $"{Edition.Edition.CiteRuleFrom2002("§2002:12.2.6.3 GR17", "§2023:12.3.7.4 GR17", "§2014:12.3.6.3 GR17")}" + " leaves literal-9's allowable "
                   + "content to the implementor)")
             + $". Every FUNCTION STANDARD-COMPARE reference to {name} will set EC-ORDER-NOT-SUPPORTED at run time "
-            + "(§2023:15.85.4 r2)");
+            + $"({IntrinsicCitations.BareRule(Edition.Edition, "§2023:15.85.4 RV2")})");
     }
 }
 
