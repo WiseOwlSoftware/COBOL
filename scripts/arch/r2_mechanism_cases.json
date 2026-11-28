@@ -1,0 +1,586 @@
+{
+ "about": "Regression cases for r2_collect.same_mechanism (kb/Work PB3259): each pair is two findings, or a finding and the filed note of another batch, with the verdict a reader gave them. The pairs of batches 1a and 1b (pin 9e65164eb) are the real records of E:/COBOL-coord/scratch/r2-9e65164eb/batch-1[ab]/collected.json and the landed notes PB2722, PB2725, PB3238; the last two are shaped from PB3259's own measurement.",
+ "cases": [
+  {
+   "name": "batch 1a: item identification (bound-tree-1 dup #3) is not the ON / NOT ON phrase pair of PB3238",
+   "a": {
+    "id": "bound-tree-1--duplication--f1#3",
+    "wave_kind": "unify",
+    "members": [
+     "WiseOwl.Cobol.CodeGen.PlaceIdentification.Freeze",
+     "WiseOwl.Cobol.CodeGen.PlaceIdentification.IdentifyInto",
+     "WiseOwl.Cobol.CodeGen.PlaceIdentification.IdentifyAgain",
+     "WiseOwl.Cobol.CodeGen.PlaceIdentification.SenderFirst",
+     "WiseOwl.Cobol.CodeGen.PlaceIdentification.IdentifiesAtRunTime",
+     "WiseOwl.Cobol.CodeGen.StringEmitter.IdentifyOperands",
+     "WiseOwl.Cobol.CodeGen.DebugTriggerEmitter.IdentifiedAtStore",
+     "WiseOwl.Cobol.CodeGen.DebugTriggerEmitter.IdentifyAgain",
+     "WiseOwl.Cobol.Binding.Bound.CorrespondingHoist",
+     "WiseOwl.Cobol.Binding.Bound.BoundCorresponding.PairIdentification",
+     "WiseOwl.Cobol.Binding.Bound.BoundUnstringReceiver"
+    ],
+    "sites": [
+     "src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundCorresponding.cs:17-24 (CorrespondingHoist)",
+     "src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundCorresponding.cs:59-63 (BoundCorresponding.PairIdentification)",
+     "src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundStringUnstring.cs:57-58 (BoundUnstringReceiver)",
+     "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs:331-351 (StringEmitter.IdentifyOperands)",
+     "src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/PlaceIdentification.cs:148-178 (PlaceIdentification.IdentifyInto, IdentifyAgain)",
+     "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/DebugTriggerEmitter.cs:196-208 (DebugTriggerEmitter.IdentifiedAtStore, IdentifyAgain)",
+     "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs:293 (MoveEmitter, PlaceIdentification.SenderFirst)",
+     "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SetEmitter.cs:133 (SetEmitter, PlaceIdentification.SenderFirst)",
+     "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs:679 (ArithmeticEmitter, PlaceIdentification.IdentifiesAtRunTime)",
+     "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs:300-408 (MoveBinder, PlaceIdentification.IdentifiesAtRunTime)"
+    ],
+    "rule": "One mechanism per job and no semantics in a renderer (DESIGN-architecture-review section 5.1); section 8.1 point (1): lowering-shaped computations are bound-tree and model types, and the bound tree is the model every backend reads",
+    "target": "One identification mechanism in the bound tree: the binder (or the bound-tree computation section 8.1 names) records each statement s identification points as bound structure, the CorrespondingHoist and PairIdentification shape generalized (identified places anchored on MethodLocal positions, re-identification as bound steps), and the backends only render them; PlaceIdentification keeps rendering, and the emitter-side Freeze/IdentifyInto/IdentifyAgain decisions and StringEmitter s Retargeted rebuild are deleted."
+   },
+   "b": {
+    "id": "PB3238",
+    "wave_kind": "unify",
+    "members": [
+     "WiseOwl.Cobol.CodeGen.StringEmitter.EmitOverflow",
+     "WiseOwl.Cobol.CodeGen.ArithmeticEmitter.EmitArith",
+     "WiseOwl.Cobol.CodeGen.SequentialIoEmitter.EmitInvalid",
+     "WiseOwl.Cobol.CodeGen.SequentialIoEmitter.EmitNotPhrase",
+     "WiseOwl.Cobol.CodeGen.KeyedIoEmitter.EmitDeleteFile",
+     "WiseOwl.Cobol.CodeGen.CallEmitter.EmitCall",
+     "WiseOwl.Cobol.CodeGen.CallEmitter.EmitNotOnException",
+     "WiseOwl.Cobol.CodeGen.SortEmitter.EmitReturn"
+    ],
+    "sites": [
+     "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs:320-333",
+     "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs:376-383",
+     "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs:560-572",
+     "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs:152-156",
+     "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs:391-399",
+     "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs:102-103,135-153",
+     "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs:685",
+     "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ConditionalPhrase.cs",
+     "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs",
+     "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MessagingEmitter.cs",
+     "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs",
+     "tests/WiseOwl.Cobol.Tests.Unit/Architecture/ConditionalPhraseDriftTests.cs"
+    ],
+    "rule": "one rule in one place; two mechanisms for one job (DESIGN-architecture-review section 5.2; dimensions.md 4). The rule each copy implements is the same: the exception imperative runs when the statement's condition holds, the NOT imperative when it does not AND no handled nonfatal condition interrupted the statement (§2023:14.6.13.1.4 GR2/GR3; kb/Work PB1120, PB606)",
+    "target": "one PhraseEmitter.EmitPair(string exceptionCond, IReadOnlyList<BoundStatement>? on, string successCond, IReadOnlyList<BoundStatement>? notOn, string? notGate) (the else-vs-else-if choice derived from whether successCond is the complement) that StringEmitter, ArithmeticEmitter, SequentialIoEmitter.EmitInvalid/EmitNotPhrase, KeyedIoEmitter.EmitDeleteFile and CallEmitter all call, with the hook's NotPhraseGate a required argument for every I-O caller, so a verb cannot render a NOT phrase without saying what gates it; a drift test forbids `Statements.EmitStatementList(not` outside it. Belongs with the DESIGN-architecture-review section 8.3 SequentialIoEmitter split, whose ReadEmitter/WriteEmitter/OpenCloseEmitter would otherwise each inherit a copy"
+   },
+   "same": false,
+   "why": "addendum 2026-11-27: the filer dropped it as already-filed (landed)"
+  },
+  {
+   "name": "batch 1a: the statement edition gate (bound-tree-3 dup #2) is not the quoted literal class of PB2725",
+   "a": {
+    "id": "bound-tree-3--duplication--f1#2",
+    "wave_kind": "unify",
+    "members": [
+     "WiseOwl.Cobol.Binding.Bound.StatementBinder.BindEnter",
+     "WiseOwl.Cobol.Binding.Bound.StatementBinder.BindIntroducedAt",
+     "WiseOwl.Cobol.Binding.Bound.StatementBinder.NamesGatedMessageTag",
+     "WiseOwl.Cobol.Validation.VersionConformancePass.ParseArm"
+    ],
+    "sites": [
+     "src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs:688-698 (StatementBinder.BindEnter)",
+     "src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs:779-781 (StatementBinder.BindStatementCore, ENTER arm)",
+     "src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs:863-864 (StatementBinder.BindIntroducedAt)",
+     "src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs:628-630 (StatementBinder.NamesGatedMessageTag)",
+     "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs:3346-3357 (ParseArm statement gates)",
+     "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4:1572-1575 (enterStatement comment)"
+    ],
+    "rule": "D7: VersionConformancePass is THE ONE edition gate (DESIGN-architecture-review section 8.3 item (6), DESIGN-version-conformance-pipeline.md); one rule in one place, no recomputation of what an earlier stage resolved (section 5.2)",
+    "target": "every statement-construct gate in the one parse-arm walk (the ENTER check moves to VersionConformancePass, later ProcedureConstructGate per section 8.3 (6)); the binder reads one verdict of that gate for the not-at-this-edition no-op (one helper beside BindIntroducedAt that BindEnter and NamesGatedMessageTag also use) instead of calling Check or IsAvailable itself; the stale comment at 779-780 corrected in the same change."
+   },
+   "b": {
+    "id": "PB2725",
+    "wave_kind": "unify",
+    "members": [
+     "WiseOwl.Cobol.Common.CobolLiteral.ClassOf",
+     "WiseOwl.Cobol.Binding.ConcatFolder.Classify",
+     "WiseOwl.Cobol.Binding.Procedure.ExpressionBinder.NonNumericLiteralOperand",
+     "WiseOwl.Cobol.Frontend.Expressions.CompileTimeExpressionEvaluator.NonNumericOperand",
+     "WiseOwl.Cobol.Binding.DataBinder.BindConstantStringLiteral",
+     "WiseOwl.Cobol.Binding.ExternalizedName.Screen",
+     "WiseOwl.Cobol.Validation.VersionConformancePass.ParseArm.VisitNonNumericLiteral",
+     "WiseOwl.Cobol.Validation.VersionConformancePass.ParseArm.VisitFigurativeConstant"
+    ],
+    "sites": [
+     "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4:777-785",
+     "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4:816-824",
+     "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4:897-903",
+     "src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs:98-103",
+     "src/WiseOwl.Cobol.Compiler/Binding/ConcatFolder.cs:276-282",
+     "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs:208-230",
+     "src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs:344-354",
+     "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Constants.cs:522-551",
+     "src/WiseOwl.Cobol.Compiler/Binding/ExternalizedName.cs:61-101",
+     "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs:2403-2429",
+     "src/WiseOwl.Cobol.Frontend/Parsing/QuotedLiteral.cs",
+     "src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs",
+     "src/WiseOwl.Cobol.Compiler/Binding/ConcatFolder.cs",
+     "src/WiseOwl.Cobol.Compiler/Binding/ConstantEntryBinder.cs",
+     "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs",
+     "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs",
+     "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs",
+     "src/WiseOwl.Cobol.Compiler/Binding/AssignTargetRule.cs",
+     "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Padding.cs",
+     "src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs",
+     "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs",
+     "src/WiseOwl.Cobol.Compiler/Validation/FlagConformancePass.cs",
+     "src/WiseOwl.Cobol.Compiler/Validation/FlagConformancePass.Flag85.cs",
+     "tests/WiseOwl.Cobol.Tests.Unit/QuotedLiteralDriftTests.cs"
+    ],
+    "rule": "Two mechanisms for one job / one rule in one place (design section 5.2; dimensions.md 4). §2023:8.3.3.2, §2023:8.3.3.4 and §2023:8.3.3.5 fix a quoted literal class by its prefix, and CobolLiteral.ClassOf (CobolLiteral.cs:98-103, enum LiteralClass) is the front end one answer to it, already read by DataBinder, PictureAnalyzer, FileControlKeyRules, LiteralScreenPass and others.",
+    "target": "One quotedLiteral rule (STRINGLIT | HEXLIT | NATLIT | BOOLLIT) referenced by nonNumericLiteral, concatOperand and allLiteral; every consumer reads its class through CobolLiteral.ClassOf and its value through CobolLiteral.Decode on that one node (a small QuotedLiteral reader beside CobolLiteral in Frontend/Common that returns (LiteralClass, value)), and the five per-token ladders plus the VersionConformancePass token tests are replaced by it."
+   },
+   "same": false,
+   "why": "addendum 2026-11-27: the filer dropped it as already-filed (landed)"
+  },
+  {
+   "name": "batch 1a: the EVALUATE subject intermediate (procedure-binding-4 #1) is not NOT before ANY of PB2722",
+   "a": {
+    "id": "procedure-binding-4--code--f1#1",
+    "wave_kind": "defect-for-fix-lane",
+    "members": [
+     "WiseOwl.Cobol.Binding.Procedure.EvaluateBinder.SubjectUsageOf",
+     "WiseOwl.Cobol.Binding.Procedure.EvaluateBinder.SubjectUsage"
+    ],
+    "sites": [
+     "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs:1059-1081 (EvaluateBinder.SubjectUsageOf, SubjectUsage.NeedsIntermediate)",
+     "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs:98 (EvaluateBinder.Bind)"
+    ],
+    "rule": "§2023:14.9.13.4 GR3 (each selection subject is evaluated at the beginning of the EVALUATE statement); the PB396 doctrine written at EvaluateBinder.cs:38-49 and SubjectUsage summary (:1054-1058): a single use skips the intermediate only when the render sits in the FIRST arm condition, which the emitted if/else-if chain always executes",
+    "target": "ReadByFirstPhrase holds only when every object before position index in the first phrase is ANY (a constant-true pair that always reaches the next one); otherwise the subject takes the PRE-op intermediate. Add a test of a two-subject EVALUATE whose second subject faults and whose first pair is false."
+   },
+   "b": {
+    "id": "PB2722",
+    "wave_kind": "defect-for-fix-lane",
+    "members": [
+     "WiseOwl.Cobol.Binding.Procedure.EvaluateBinder.BindWhenGroup"
+    ],
+    "sites": [
+     "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4:311-313",
+     "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs:95-107",
+     "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
+     "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#evaluateWhenItem",
+     "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#BindSelectionObject",
+     "src/WiseOwl.Cobol.Compiler/Validation/FlagConformancePass.FileStatus.cs#VisitEvaluateStatement",
+     "tests/WiseOwl.Cobol.Tests.Unit/EvaluateSelectionObjectArityDriftTests.cs"
+    ],
+    "rule": "ISO 14.9.13.2 selection-object: [NOT] brackets only identifier-2, literal-2, arithmetic-expression-2, boolean-expression-2 and range-expression; condition-2, partial-expression-1, TRUE, FALSE and ANY carry no NOT. 4.2.2 obliges an indication for source no format admits.",
+    "target": "Keep the superset parse (the doctrine the file states) and screen once in EvaluateBinder: a NOT on an object whose ObjectKind is Any, TrueOrFalse, Condition or PartialExpression is refused by name citing 14.9.13.2 (one new COBOL#### diagnostic), before BoundNot is built; a conformance negative test per refused kind and a positive one per admitted kind (NOT identifier, NOT literal, NOT range, NOT boolean-expression)."
+   },
+   "same": false,
+   "why": "addendum 2026-11-27: the filer dropped it as already-filed (landed)"
+  },
+  {
+   "name": "batch 1a: the generated walk's helper hierarchies (bound-tree-1 arch #2) are not BoundReferences (dup #1)",
+   "a": {
+    "id": "bound-tree-1--architecture--f1#2",
+    "wave_kind": "unify",
+    "members": [
+     "WiseOwl.Cobol.Compiler.SourceGen.BoundVisitorGenerator.IsStatementBearing",
+     "WiseOwl.Cobol.Compiler.SourceGen.BoundVisitorGenerator.IsValueBearing",
+     "WiseOwl.Cobol.Binding.Bound.BoundInitialize.ReceivingPlaces",
+     "WiseOwl.Cobol.Binding.Bound.BoundStores.StoreKindVisitor.InitStores",
+     "WiseOwl.Cobol.Binding.Bound.InitializeAction",
+     "WiseOwl.Cobol.Binding.Bound.ValidateStep",
+     "WiseOwl.Cobol.Binding.Passes.UsageCollectionPass.Visitor.InitAct",
+     "WiseOwl.Cobol.CodeGen.InitializeEmitter.EmitAction"
+    ],
+    "sites": [
+     "src/WiseOwl.Cobol.Compiler.SourceGen/BoundVisitorGenerator.cs:267-284 (BoundVisitorGenerator.IsValueBearing)",
+     "src/WiseOwl.Cobol.Compiler.SourceGen/BoundVisitorGenerator.cs:352-371 (BoundVisitorGenerator.IsStatementBearing)",
+     "src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundInitialize.cs:41-56 (BoundInitialize.ReceivingPlaces)",
+     "src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundInitialize.cs:72 (InitializeAction)",
+     "src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundStores.cs:286-304 (BoundStores.StoreKindVisitor.InitStores)",
+     "src/WiseOwl.Cobol.Compiler/Binding/Passes/UsageCollectionPass.cs:371-391 (UsageCollectionPass InitAct)",
+     "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InitializeEmitter.cs:35-110 (InitializeEmitter.EmitAction)",
+     "src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundValidate.cs:43-55 (ValidateStep, ValidateElement)"
+    ],
+    "rule": "DESIGN-architecture-review section 8.5: the structural walk (b) is generated from the type structure because a hand switch \"is total over CASES, not over a case FIELDS\" (kb/Work PB26); BoundVisitorGenerator.cs:157-163 names the same bug one level in (a container yielded and not walked through). One mechanism per job (dimensions.md 1); InitializeAction is a closed hierarchy that section 8.5 does not list.",
+    "target": "One structural answer per helper hierarchy: the generator walks THROUGH a non-root abstract record held by a statement by pattern-matching its derived leaves, as it already does for the container roots (Parts_<root>, BoundVisitorGenerator.cs:186-201), or InitializeAction and ValidateStep carry [BoundNode] as container roots (BoundNodeRootPartition_IsExplicit records the decision); the receivers and nested actions of an action are then one generated or abstract member (Receivers, Nested) that ReceivingPlaces, InitStores and InitAct read, so a new leaf is a compile error or is covered by existing; InitializeAction and ValidateStep join the section 8.5 closed-hierarchy list (step 3) for the union conversion."
+   },
+   "b": {
+    "id": "bound-tree-1--duplication--f1#1",
+    "wave_kind": "unify",
+    "members": [
+     "WiseOwl.Cobol.Compiler.SourceGen.BoundVisitorGenerator.CollectValueSources",
+     "WiseOwl.Cobol.Compiler.SourceGen.BoundVisitorGenerator.IsValueBearing",
+     "WiseOwl.Cobol.Compiler.SourceGen.BoundVisitorGenerator.TryListElement",
+     "WiseOwl.Cobol.Binding.Bound.BoundReferences.Visit",
+     "WiseOwl.Cobol.Binding.Bound.BoundReferences.VisitFields",
+     "WiseOwl.Cobol.Binding.Bound.BoundReferences.FieldsOf",
+     "WiseOwl.Cobol.Binding.Bound.BoundReferences.Enters"
+    ],
+    "sites": [
+     "src/WiseOwl.Cobol.Compiler.SourceGen/BoundVisitorGenerator.cs:220-284 (BoundVisitorGenerator.CollectValueSources, IsValueBearing)",
+     "src/WiseOwl.Cobol.Compiler.SourceGen/BoundVisitorGenerator.cs:382-393 (BoundVisitorGenerator.TryListElement)",
+     "src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundReferences.cs:54-148 (BoundReferences.IsTransparent, Enters, Visit, VisitFields, FieldsOf)",
+     "src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundCall.cs:159-160 (BoundCancel.Targets)"
+    ],
+    "rule": "One mechanism per job and explicit registries over reflection discovery (DESIGN-architecture-review section 5.1); section 8.5: the structural walk of the bound tree is never hand-written and is always the generator one (its WALK is always the generator s)",
+    "target": "One generated structural walk: the generator emits, besides StatementChildren and OwnValueParts, the per-leaf enumeration of operand-model fields (places, positions, access paths, counts) that BoundReferences needs, with one rule for collections, tuples and helper records written once in the generator; BoundReferences keeps only its reference policy (implicit operands, nested-statement rule, what a place yields) over that enumeration, and its reflection (FieldsOf, Enters) is deleted. A drift test pins that the walk reaches every non-primitive field of every leaf."
+   },
+   "same": false,
+   "why": "addendum 2026-11-27: one shared member merged two mechanisms"
+  },
+  {
+   "name": "batch 1b: a validation entry writing a resolution fact (oo arch f2 #1) is not the OoClassTable god class (f2 #2)",
+   "a": {
+    "id": "oo--architecture--f2#1",
+    "wave_kind": "extract",
+    "members": [
+     "WiseOwl.Cobol.Compiler.Oo.OoConformance.ValidateInterfaceInheritance",
+     "WiseOwl.Cobol.Binding.SymbolTable.ClassNames.ChooseInheritedPrototype",
+     "WiseOwl.Cobol.Compiler.Oo.OoClassTable.ResolveOverrides"
+    ],
+    "sites": [
+     "src/WiseOwl.Cobol.Compiler/Oo/OoConformance.cs:378-412 (OoConformance.ValidateInterfaceInheritance)",
+     "src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.ClassNames.cs:375-404 (SymbolTable.ClassNames.ChooseInheritedPrototype, AllPrototypes)",
+     "src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs:207-211 (BinderDriver.Bind)"
+    ],
+    "rule": "Phase boundaries and single responsibility (dimensions.md 1; DESIGN-architecture-review section 5.1, section 8.1): a validation reports, it does not produce model state. OoConformance states this contract itself (OoConformance.cs:98-99, P9 R3: a validation pass reports its findings; it does not mutate the symbol table), and the section 8.3 row for OoConformance plans pure Conforms(left, right) -> ConformanceResult families, where this side effect has no place.",
+    "target": "The §2023:11.6.3 SR5 presented-prototype choice becomes a resolution step of the class table beside ResolveOverrides (OoClassTable.cs:1032): one resolver (OoClassTable.ResolveInheritedPrototypes or an InterfaceSurface type) that runs once the prototype formals are bound, is the one writer of _conformingChoice / Present, and asks the pure MethodConformanceMismatches for the choice. ValidateInterfaceInheritance becomes a pure reporter of the interfaces for which no prototype conforms to all. The order becomes a declared dependency (the INVOKE binding, the IMPLEMENTS check and StorageFormPass require the resolved fact), and the section 8.3 OoConformance row states that its rule families are side-effect free."
+   },
+   "b": {
+    "id": "oo--architecture--f2#2",
+    "wave_kind": "extract",
+    "members": [
+     "WiseOwl.Cobol.Compiler.Oo.OoClassTable.Build",
+     "WiseOwl.Cobol.Compiler.Oo.OoClassTable.ResolveOverrides",
+     "WiseOwl.Cobol.Compiler.Oo.OoClassTable.NameMethodSlots",
+     "WiseOwl.Cobol.Compiler.Oo.OoClassTable.RepositoryScopeFor",
+     "WiseOwl.Cobol.Compiler.Oo.OoClassTable.CensusOf",
+     "WiseOwl.Cobol.Compiler.Oo.OoClassTable.RecordReferenceUse",
+     "WiseOwl.Cobol.Compiler.Oo.OoClassTable.Entries",
+     "WiseOwl.Cobol.Compiler.Oo.OoClassTable.UnansweredClassSpecifier",
+     "WiseOwl.Cobol.Compiler.Oo.OoClassTable.UnansweredInterfaceSpecifier",
+     "WiseOwl.Cobol.Compiler.Oo.OoClassTable.CheckPropertySpecifiers",
+     "WiseOwl.Cobol.Compiler.Oo.OoClassTable.SetOperand",
+     "WiseOwl.Cobol.Compiler.Oo.OoClassTable.DescribedOperand",
+     "WiseOwl.Cobol.Compiler.Oo.OoClassTable.SetOperands",
+     "WiseOwl.Cobol.Compiler.Oo.OoClassTable.ImplementsClosure"
+    ],
+    "sites": [
+     "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs:24-1172 (OoClassTable)",
+     "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs:199-320 (OoClassTable.RepositoryScopeFor, RecordReferenceUse, CensusOf, MethodAt, SourceElementOf)",
+     "src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.cs:40-47 (SymbolTable..ctor)",
+     "src/WiseOwl.Cobol.Compiler/Binding/BindSession.cs:103-108 (BindSession.NewDataBinder)",
+     "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs:2121 (DataBinder, RecordReferenceUse caller)"
+    ],
+    "rule": "Single responsibility per type (DESIGN-architecture-review section 5.1; dimensions.md 1); a type over ~800 lines is a god-class candidate (section 3 R0), and section 8.3 designs the decomposition of each one. The census of this pin flags it (R0-0050: 1149 lines, 59 members, 18 fields, fan-in 23, fan-out 55), and section 8.3 (lines 1077-1800 of the design) names OoClassTable only as the host of RepositoryScopeFor, with no decomposition row and no step note.",
+    "target": "A section 8.3 row for OoClassTable: OoClassTable keeps the group lists (Classes, Interfaces, the parameterized, imported and skeleton lists, StandardBase, Names); OoClassTableBuilder owns Build and its screens; OverrideResolver owns ResolveOverrides, MarkRoster, ScreenInheritedPropertyNames and NameMethodSlots (the home of the §2023:11.6.3 SR5 presented-prototype choice of finding oo--architecture--f2#1 too); the per-source-element scopes, censuses and the EntryStore move to the symbol table group tier (SymbolTable.SourceElementScopes in Binding/SymbolTable/, beside ClassNames and RepositoryScope), so a program reaches them without the OO table; RepositorySpecifierAnswers owns the SR6 / SR9 / SR16 questions; ObjectReferenceFacts owns the operand derivations OoConformance and ActivationDescriptions read. Seam: each extracted type is constructed over the built table; no member forwards (rule 4 of CLAUDE.md)."
+   },
+   "same": false,
+   "why": "one shared member merged them (same_mechanism, old rule)"
+  },
+  {
+   "name": "batch 1b: a validation entry writing a resolution fact (oo arch f2 #1) is not the OoClassTable god class (f1 #2)",
+   "a": {
+    "id": "oo--architecture--f2#1",
+    "wave_kind": "extract",
+    "members": [
+     "WiseOwl.Cobol.Compiler.Oo.OoConformance.ValidateInterfaceInheritance",
+     "WiseOwl.Cobol.Binding.SymbolTable.ClassNames.ChooseInheritedPrototype",
+     "WiseOwl.Cobol.Compiler.Oo.OoClassTable.ResolveOverrides"
+    ],
+    "sites": [
+     "src/WiseOwl.Cobol.Compiler/Oo/OoConformance.cs:378-412 (OoConformance.ValidateInterfaceInheritance)",
+     "src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.ClassNames.cs:375-404 (SymbolTable.ClassNames.ChooseInheritedPrototype, AllPrototypes)",
+     "src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs:207-211 (BinderDriver.Bind)"
+    ],
+    "rule": "Phase boundaries and single responsibility (dimensions.md 1; DESIGN-architecture-review section 5.1, section 8.1): a validation reports, it does not produce model state. OoConformance states this contract itself (OoConformance.cs:98-99, P9 R3: a validation pass reports its findings; it does not mutate the symbol table), and the section 8.3 row for OoConformance plans pure Conforms(left, right) -> ConformanceResult families, where this side effect has no place.",
+    "target": "The §2023:11.6.3 SR5 presented-prototype choice becomes a resolution step of the class table beside ResolveOverrides (OoClassTable.cs:1032): one resolver (OoClassTable.ResolveInheritedPrototypes or an InterfaceSurface type) that runs once the prototype formals are bound, is the one writer of _conformingChoice / Present, and asks the pure MethodConformanceMismatches for the choice. ValidateInterfaceInheritance becomes a pure reporter of the interfaces for which no prototype conforms to all. The order becomes a declared dependency (the INVOKE binding, the IMPLEMENTS check and StorageFormPass require the resolved fact), and the section 8.3 OoConformance row states that its rule families are side-effect free."
+   },
+   "b": {
+    "id": "oo--architecture--f1#2",
+    "wave_kind": "extract",
+    "members": [
+     "WiseOwl.Cobol.Compiler.Oo.OoClassTable.Entries",
+     "WiseOwl.Cobol.Compiler.Oo.OoClassTable.CensusOf",
+     "WiseOwl.Cobol.Compiler.Oo.OoClassTable.RecordReferenceUse",
+     "WiseOwl.Cobol.Compiler.Oo.OoClassTable.RepositoryScopeFor",
+     "WiseOwl.Cobol.Compiler.Oo.OoClassTable.Build",
+     "WiseOwl.Cobol.Compiler.Oo.OoClassTable.UnansweredClassSpecifier",
+     "WiseOwl.Cobol.Compiler.Oo.OoClassTable.CheckPropertySpecifiers",
+     "WiseOwl.Cobol.Compiler.Oo.OoClassTable.SetOperand",
+     "WiseOwl.Cobol.Compiler.Oo.OoClassTable.DescribedOperand",
+     "WiseOwl.Cobol.Compiler.Oo.OoClassTable.ResolveOverrides"
+    ],
+    "sites": [
+     "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs:24-1172 (OoClassTable)",
+     "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs:31 (OoClassTable.Entries)",
+     "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs:203-320 (OoClassTable.RepositoryScopeFor, RecordReferenceUse, CensusOf, MethodAt, SourceElementOf)",
+     "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs:96-183 (OoClassTable.UnansweredClassSpecifier, CheckPropertySpecifiers, UnansweredInterfaceSpecifier)",
+     "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs:342-451 (OoClassTable.SetOperand, DescribedOperand, SetOperands)",
+     "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs:473-970 (OoClassTable.Build)",
+     "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs:1028-1171 (OoClassTable.ResolveOverrides, NameMethodSlots)",
+     "src/WiseOwl.Cobol.Compiler/Binding/BindSession.cs:106 (BindSession.NewDataBinder)",
+     "src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.cs:45 (SymbolTable ctor)"
+    ],
+    "rule": "Single responsibility per type (DESIGN-architecture-review section 5.1; census god-class rule, R0-0050 at this pin) and section 8.3 method: every god-class candidate gets its responsibilities, target types and seam; OoClassTable has no section 8.3 entry and no Extract note (PB2296-PB2347 cover other types), so section 8.3 misses it. Names say the responsibility (section 8.2 rule 5): a type named for the OO class table is the group-wide symbol tier for non-OO units.",
+    "target": "Add OoClassTable to section 8.3 with an Extract note and these targets: (a) the group symbol tier leaves Compiler.Oo: SymbolTable.GroupTier (Binding/SymbolTable/, namespace WiseOwl.Cobol.Binding) owns Entries, the per-element and per-method censuses (CensusOf, RecordReferenceUse), SourceElementOf, MethodAt and RepositoryScopeFor, owned by BindSession and reached by DataBinder without the class table; OoClassTable then answers OO questions only; (b) OoClassTableBuilder holds Build and its pass-1 rules (INHERITS, IMPLEMENTS, prototypes, cycle checks); (c) RepositorySpecifierCheck holds the §2023:12.3.8.3 SR6/SR9/SR16 answers; (d) OoClassFacts holds SetOperand, DescribedOperand, SetOperands, ImplementsClosure and the lineages; (e) OverrideResolution holds ResolveOverrides, MarkRoster, ScreenInheritedPropertyNames and NameMethodSlots. Seam: OoClassTable keeps the rosters and lookups (Classes, Interfaces, Names, imported and parameterized lists) as data the five read. Behavior-neutral; DESIGN-listing section 6.7.1 updated in the same change."
+   },
+   "same": false,
+   "why": "one shared member merged them (same_mechanism, old rule)"
+  },
+  {
+   "name": "batch 1b: two placement tables (oo dup f1 #2) is not three hand-written method builders (oo dup f2 #1)",
+   "a": {
+    "id": "oo--duplication--f1#2",
+    "wave_kind": "unify",
+    "members": [
+     "WiseOwl.Cobol.Binding.OoDataBinder.BindMethodData",
+     "WiseOwl.Cobol.Binding.OoDefinitionRules.Screen",
+     "WiseOwl.Cobol.Binding.OoDefinitionRules.RefusedBy",
+     "WiseOwl.Cobol.Binding.OoEnvironmentRules.Screen",
+     "WiseOwl.Cobol.Binding.PrototypeUnitRules.ScreenBody",
+     "WiseOwl.Cobol.Compiler.Oo.OoClassTable.Build"
+    ],
+    "sites": [
+     "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs:579-583 (OoClassTable.Build.AddPrototypes)",
+     "src/WiseOwl.Cobol.Compiler/Binding/OoDataBinder.cs:311-314 (OoDataBinder.BindMethodData, environment screen)",
+     "src/WiseOwl.Cobol.Compiler/Binding/OoDataBinder.cs:339-344 (OoDataBinder.BindMethodData, data screen)",
+     "src/WiseOwl.Cobol.Compiler/Binding/OoDefinitionRules.cs:61-66 (OoDefinitionRules.RefusedBy, Method rows)",
+     "src/WiseOwl.Cobol.Compiler/Binding/OoEnvironmentRules.cs:47-58 (OoEnvironmentRules.Screen, Method arms)",
+     "src/WiseOwl.Cobol.Compiler/Binding/PrototypeUnitRules.cs:52-80 (PrototypeUnitRules.ScreenBody b, d, e)"
+    ],
+    "rule": "one rule in one place, one fact one diagnostic (DESIGN-architecture-review section 5.2; dimensions.md 4); OoDefinitionRules states it is THE ONE HOME of the OO data-division placement rules and defers the prototype restriction (section 2023:10.6.2 SR4e) to PrototypeUnitRules, yet both run over the same prototype",
+    "target": "One screen per (definition kind, part): the method-prototype kind becomes a row of its own, either a PrototypeMethod column of OoDefinitionRules / OoEnvironmentRules whose cells defer to PrototypeUnitRules (and BindMethodData skips the METHOD screens for a prototype), or PrototypeUnitRules.ScreenBody alone for prototypes; a conformance test asserts exactly one diagnostic for each misplaced part of a method prototype."
+   },
+   "b": {
+    "id": "oo--duplication--f2#1",
+    "wave_kind": "unify",
+    "members": [
+     "WiseOwl.Cobol.Compiler.Oo.OoClassTable.Build"
+    ],
+    "sites": [
+     "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs:561-610 (OoClassTable.Build.AddPrototypes)",
+     "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs:749-784 (OoClassTable.Build.AddMethods, OBJECT arm)",
+     "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs:786-819 (OoClassTable.Build.AddMethods, FACTORY arm)"
+    ],
+    "rule": "one rule in one place / one mechanism per job (DESIGN-architecture-review section 5.2; dimensions.md 4)",
+    "target": "one method-header builder (MethodSymbolOf(MethodDefinitionContext, owner, isFactory)) in the roster-building concern extracted from OoClassTable, called by the prototype arm and by ONE loop over the OBJECT and FACTORY paragraphs (TryAddMethod / TryAddFactoryMethod chosen by the half)"
+   },
+   "same": false,
+   "why": "one shared member merged them (same_mechanism, old rule)"
+  },
+  {
+   "name": "batch 1b: the OoClassTable god class found twice (oo arch f1 #2, f2 #2) is ONE mechanism",
+   "a": {
+    "id": "oo--architecture--f1#2",
+    "wave_kind": "extract",
+    "members": [
+     "WiseOwl.Cobol.Compiler.Oo.OoClassTable.Entries",
+     "WiseOwl.Cobol.Compiler.Oo.OoClassTable.CensusOf",
+     "WiseOwl.Cobol.Compiler.Oo.OoClassTable.RecordReferenceUse",
+     "WiseOwl.Cobol.Compiler.Oo.OoClassTable.RepositoryScopeFor",
+     "WiseOwl.Cobol.Compiler.Oo.OoClassTable.Build",
+     "WiseOwl.Cobol.Compiler.Oo.OoClassTable.UnansweredClassSpecifier",
+     "WiseOwl.Cobol.Compiler.Oo.OoClassTable.CheckPropertySpecifiers",
+     "WiseOwl.Cobol.Compiler.Oo.OoClassTable.SetOperand",
+     "WiseOwl.Cobol.Compiler.Oo.OoClassTable.DescribedOperand",
+     "WiseOwl.Cobol.Compiler.Oo.OoClassTable.ResolveOverrides"
+    ],
+    "sites": [
+     "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs:24-1172 (OoClassTable)",
+     "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs:31 (OoClassTable.Entries)",
+     "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs:203-320 (OoClassTable.RepositoryScopeFor, RecordReferenceUse, CensusOf, MethodAt, SourceElementOf)",
+     "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs:96-183 (OoClassTable.UnansweredClassSpecifier, CheckPropertySpecifiers, UnansweredInterfaceSpecifier)",
+     "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs:342-451 (OoClassTable.SetOperand, DescribedOperand, SetOperands)",
+     "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs:473-970 (OoClassTable.Build)",
+     "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs:1028-1171 (OoClassTable.ResolveOverrides, NameMethodSlots)",
+     "src/WiseOwl.Cobol.Compiler/Binding/BindSession.cs:106 (BindSession.NewDataBinder)",
+     "src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.cs:45 (SymbolTable ctor)"
+    ],
+    "rule": "Single responsibility per type (DESIGN-architecture-review section 5.1; census god-class rule, R0-0050 at this pin) and section 8.3 method: every god-class candidate gets its responsibilities, target types and seam; OoClassTable has no section 8.3 entry and no Extract note (PB2296-PB2347 cover other types), so section 8.3 misses it. Names say the responsibility (section 8.2 rule 5): a type named for the OO class table is the group-wide symbol tier for non-OO units.",
+    "target": "Add OoClassTable to section 8.3 with an Extract note and these targets: (a) the group symbol tier leaves Compiler.Oo: SymbolTable.GroupTier (Binding/SymbolTable/, namespace WiseOwl.Cobol.Binding) owns Entries, the per-element and per-method censuses (CensusOf, RecordReferenceUse), SourceElementOf, MethodAt and RepositoryScopeFor, owned by BindSession and reached by DataBinder without the class table; OoClassTable then answers OO questions only; (b) OoClassTableBuilder holds Build and its pass-1 rules (INHERITS, IMPLEMENTS, prototypes, cycle checks); (c) RepositorySpecifierCheck holds the §2023:12.3.8.3 SR6/SR9/SR16 answers; (d) OoClassFacts holds SetOperand, DescribedOperand, SetOperands, ImplementsClosure and the lineages; (e) OverrideResolution holds ResolveOverrides, MarkRoster, ScreenInheritedPropertyNames and NameMethodSlots. Seam: OoClassTable keeps the rosters and lookups (Classes, Interfaces, Names, imported and parameterized lists) as data the five read. Behavior-neutral; DESIGN-listing section 6.7.1 updated in the same change."
+   },
+   "b": {
+    "id": "oo--architecture--f2#2",
+    "wave_kind": "extract",
+    "members": [
+     "WiseOwl.Cobol.Compiler.Oo.OoClassTable.Build",
+     "WiseOwl.Cobol.Compiler.Oo.OoClassTable.ResolveOverrides",
+     "WiseOwl.Cobol.Compiler.Oo.OoClassTable.NameMethodSlots",
+     "WiseOwl.Cobol.Compiler.Oo.OoClassTable.RepositoryScopeFor",
+     "WiseOwl.Cobol.Compiler.Oo.OoClassTable.CensusOf",
+     "WiseOwl.Cobol.Compiler.Oo.OoClassTable.RecordReferenceUse",
+     "WiseOwl.Cobol.Compiler.Oo.OoClassTable.Entries",
+     "WiseOwl.Cobol.Compiler.Oo.OoClassTable.UnansweredClassSpecifier",
+     "WiseOwl.Cobol.Compiler.Oo.OoClassTable.UnansweredInterfaceSpecifier",
+     "WiseOwl.Cobol.Compiler.Oo.OoClassTable.CheckPropertySpecifiers",
+     "WiseOwl.Cobol.Compiler.Oo.OoClassTable.SetOperand",
+     "WiseOwl.Cobol.Compiler.Oo.OoClassTable.DescribedOperand",
+     "WiseOwl.Cobol.Compiler.Oo.OoClassTable.SetOperands",
+     "WiseOwl.Cobol.Compiler.Oo.OoClassTable.ImplementsClosure"
+    ],
+    "sites": [
+     "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs:24-1172 (OoClassTable)",
+     "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs:199-320 (OoClassTable.RepositoryScopeFor, RecordReferenceUse, CensusOf, MethodAt, SourceElementOf)",
+     "src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.cs:40-47 (SymbolTable..ctor)",
+     "src/WiseOwl.Cobol.Compiler/Binding/BindSession.cs:103-108 (BindSession.NewDataBinder)",
+     "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs:2121 (DataBinder, RecordReferenceUse caller)"
+    ],
+    "rule": "Single responsibility per type (DESIGN-architecture-review section 5.1; dimensions.md 1); a type over ~800 lines is a god-class candidate (section 3 R0), and section 8.3 designs the decomposition of each one. The census of this pin flags it (R0-0050: 1149 lines, 59 members, 18 fields, fan-in 23, fan-out 55), and section 8.3 (lines 1077-1800 of the design) names OoClassTable only as the host of RepositoryScopeFor, with no decomposition row and no step note.",
+    "target": "A section 8.3 row for OoClassTable: OoClassTable keeps the group lists (Classes, Interfaces, the parameterized, imported and skeleton lists, StandardBase, Names); OoClassTableBuilder owns Build and its screens; OverrideResolver owns ResolveOverrides, MarkRoster, ScreenInheritedPropertyNames and NameMethodSlots (the home of the §2023:11.6.3 SR5 presented-prototype choice of finding oo--architecture--f2#1 too); the per-source-element scopes, censuses and the EntryStore move to the symbol table group tier (SymbolTable.SourceElementScopes in Binding/SymbolTable/, beside ClassNames and RepositoryScope), so a program reaches them without the OO table; RepositorySpecifierAnswers owns the SR6 / SR9 / SR16 questions; ObjectReferenceFacts owns the operand derivations OoConformance and ActivationDescriptions read. Seam: each extracted type is constructed over the built table; no member forwards (rule 4 of CLAUDE.md)."
+   },
+   "same": true,
+   "why": "ten shared members and one claim"
+  },
+  {
+   "name": "batch 1b: OverlappingMove's own over-punch tables, found by two dimensions, are ONE mechanism",
+   "a": {
+    "id": "runtime-values-4--architecture--f1#1",
+    "wave_kind": "unify",
+    "members": [
+     "WiseOwl.Cobol.Runtime.OverlappingMove.SignOf",
+     "WiseOwl.Cobol.Runtime.OverlappingMove.PutSign",
+     "WiseOwl.Cobol.Runtime.OverlappingMove.UnpunchAscii",
+     "WiseOwl.Cobol.Runtime.OverlappingMove.UnpunchIbm",
+     "WiseOwl.Cobol.Runtime.OverlappingMove.PunchIbm",
+     "WiseOwl.Cobol.Runtime.OverlappingMove.IbmPositive",
+     "WiseOwl.Cobol.Runtime.OverlappingMove.IbmNegative"
+    ],
+    "sites": [
+     "src/WiseOwl.Cobol.Runtime/Values/Numeric/OverlappingMove.cs:245-316 (OverlappingMove.SignOf, PutSign, UnpunchAscii, UnpunchIbm, PunchIbm, IbmPositive, IbmNegative)",
+     "src/WiseOwl.Cobol.Runtime/Values/Numeric/ZonedSign.cs:43-110 (ZonedSign.Tables, Punch, TryUnpunch)"
+    ],
+    "rule": "One rule in one place, one mechanism per job (dimensions.md 1; engineering-standards), and ZonedSign own stated contract: src/WiseOwl.Cobol.Runtime/Values/Numeric/ZonedSign.cs:43-53 - THE ONE PLACE EITHER OVER-PUNCH TABLE IS WRITTEN; adding a third convention is a ROW plus an enum member (kb/Work PB803)",
+    "target": "OverlappingMove reads every punch character through ZonedSign (Table(encoding), Punch, TryUnpunch); its libcob-specific dispositions (a plain digit read as unsigned, a foreign byte read by its low nibble, the punched-zero fallback) stay in OverlappingMove as rules over ZonedSign tables, with no character literal of either table and no == SignEncoding.Ibm branch; ZonedSignTableDriftTests gains the source assertion that no runtime file outside ZonedSign.cs spells a punch table."
+   },
+   "b": {
+    "id": "runtime-values-4--duplication--f1#1",
+    "wave_kind": "unify",
+    "members": [
+     "WiseOwl.Cobol.Runtime.OverlappingMove.SignOf",
+     "WiseOwl.Cobol.Runtime.OverlappingMove.PutSign",
+     "WiseOwl.Cobol.Runtime.OverlappingMove.UnpunchAscii",
+     "WiseOwl.Cobol.Runtime.OverlappingMove.UnpunchIbm",
+     "WiseOwl.Cobol.Runtime.OverlappingMove.PunchIbm",
+     "WiseOwl.Cobol.Runtime.ZonedSign.Table"
+    ],
+    "sites": [
+     "src/WiseOwl.Cobol.Runtime/Values/Numeric/OverlappingMove.cs:245-316 (OverlappingMove.SignOf, PutSign, UnpunchAscii, IbmPositive, IbmNegative, UnpunchIbm, PunchIbm)",
+     "src/WiseOwl.Cobol.Runtime/Values/Numeric/ZonedSign.cs:59-67 (ZonedSign.Tables)"
+    ],
+    "rule": "one rule in one place (DESIGN-architecture-review section 5.2; dimensions.md 4, one rule written in two places); ZonedSign own contract (src/WiseOwl.Cobol.Runtime/Values/Numeric/ZonedSign.cs:43-53, kb/Work PB803): encode, decode and valid-sign set are all derived from ZonedSign.Table, and adding a third convention is a ROW plus an enum member, nothing else names a convention",
+    "target": "OverlappingMove reads the punched characters from ZonedSign.Table(f.Encoding) (Positive/Negative IndexOf to unpunch, ZonedSign.Punch to write) and keeps only the libcob-specific dispositions (a non-table byte low-nibble fallback, the adjust unpunch-in-place) as its own logic; no convention is named outside ZonedSign. A drift test asserts no other runtime file spells an over-punch table."
+   },
+   "same": true,
+   "why": "five shared members and one claim"
+  },
+  {
+   "name": "batch 1a: the character-position rule re-derived, found by two dimensions, is ONE mechanism",
+   "a": {
+    "id": "listing-2--architecture--f1#1",
+    "wave_kind": "unify",
+    "members": [
+     "WiseOwl.Cobol.Listing.Text.TextListingRenderer.IndexAfterPositions",
+     "WiseOwl.Cobol.Listing.Text.TextListingRenderer.Positions",
+     "WiseOwl.Cobol.Listing.Text.TextListingRenderer.Wrap",
+     "WiseOwl.Cobol.Listing.Html.HtmlListingRenderer.SourceWriter.Marked",
+     "WiseOwl.Cobol.Listing.Building.SyntaxSpanBuilder.Finish",
+     "WiseOwl.Cobol.Frontend.Preprocessor.ReferenceFormatMap.CharacterPositionAt",
+     "WiseOwl.Cobol.Frontend.Common.CharacterPositions"
+    ],
+    "sites": [
+     "src/WiseOwl.Cobol.Listing/Text/TextListingRenderer.cs:342-357 (TextListingRenderer.IndexAfterPositions, TextListingRenderer.Positions)",
+     "src/WiseOwl.Cobol.Listing/Text/TextListingRenderer.cs:443-464 (TextListingRenderer.Wrap)",
+     "src/WiseOwl.Cobol.Listing/Html/HtmlListingRenderer.cs:832 (HtmlListingRenderer.SourceWriter.Marked)",
+     "src/WiseOwl.Cobol.Compiler/Listing/SyntaxSpanBuilder.cs:177-184 (SyntaxSpanBuilder.Finish)",
+     "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatMap.cs:141-151 (ReferenceFormatMap.CharacterPositionAt)",
+     "src/WiseOwl.Cobol.Frontend/Common/CharacterPositions.cs:5-49 (CharacterPositions)"
+    ],
+    "rule": "One rule in one place (DESIGN-architecture-review section 5; engineering-standards: one mechanism per job); the contract of CharacterPositions (src/WiseOwl.Cobol.Frontend/Common/CharacterPositions.cs:5-15, kb/Work PB1966, DOC-A.1-157): every site that turns a column into an index of a line, an index into a column, or counts positions asks THIS type",
+    "target": "One definition per assembly boundary, held equal: ReferenceFormatMap.CharacterPositionAt and SyntaxSpanBuilder.Finish call CharacterPositions (same assembly; the compiler through a public CharacterPositions or internals access); the Listing assembly, which by DESIGN-listing.md section 4.2 references no project, gets ONE model-side type (e.g. WiseOwl.Cobol.Listing.ListingColumns: Count, IndexAfter, UnitsAt) that TextListingRenderer and HtmlListingRenderer both call; a drift test in the pattern of DiagnosticRecordsTests.TheSeverityWords_AreTheCompilersWords holds ListingColumns equal to CharacterPositions over vectors with lone surrogates and pairs, and PhysicalLinesDriftTests refuses the surrogate stepping loop anywhere in src/ outside those two types."
+   },
+   "b": {
+    "id": "listing-2--duplication--f1#1",
+    "wave_kind": "unify",
+    "members": [
+     "WiseOwl.Cobol.Listing.Text.TextListingRenderer.IndexAfterPositions",
+     "WiseOwl.Cobol.Listing.Text.TextListingRenderer.Positions",
+     "WiseOwl.Cobol.Listing.Text.TextListingRenderer.Wrap",
+     "WiseOwl.Cobol.Listing.Text.TextListingRenderer.CaretRow",
+     "WiseOwl.Cobol.Listing.Html.HtmlListingRenderer.SourceWriter.Marked",
+     "WiseOwl.Cobol.Listing.Building.SyntaxSpanBuilder.Finish",
+     "WiseOwl.Cobol.Frontend.Common.CharacterPositions"
+    ],
+    "sites": [
+     "src/WiseOwl.Cobol.Listing/Text/TextListingRenderer.cs:342-348 (TextListingRenderer.IndexAfterPositions)",
+     "src/WiseOwl.Cobol.Listing/Text/TextListingRenderer.cs:351-357 (TextListingRenderer.Positions)",
+     "src/WiseOwl.Cobol.Listing/Text/TextListingRenderer.cs:443-464 (TextListingRenderer.Wrap)",
+     "src/WiseOwl.Cobol.Listing/Html/HtmlListingRenderer.cs:832 (HtmlListingRenderer.SourceWriter.Marked)",
+     "src/WiseOwl.Cobol.Compiler/Listing/SyntaxSpanBuilder.cs:176-183 (SyntaxSpanBuilder.Finish, Position local)",
+     "src/WiseOwl.Cobol.Frontend/Common/CharacterPositions.cs:17-49 (CharacterPositions)"
+    ],
+    "rule": "one rule in one place (DESIGN-architecture-review section 5.2); src/WiseOwl.Cobol.Frontend/Common/CharacterPositions.cs declares itself THE ONE DEFINITION OF A CHARACTER POSITION (kb/Work PB1966, §2023:6.1 GR1c) and says every site that turns a column into an index or counts positions asks it, but PhysicalLinesDriftTests scans only Frontend/Preprocessor, SeparatorRule.cs and Editions",
+    "target": "One character-position helper the listing assembly owns (an internal ListingPositions with Count/IndexAt/UnitsAt matching CharacterPositions) used by every renderer site; since the Listing csproj references no project, either CharacterPositions moves to a layer both may reference under section 8.1 edges, or the listing copy is pinned to it by extending PhysicalLinesDriftTests to scan src/WiseOwl.Cobol.Listing and src/WiseOwl.Cobol.Compiler/Listing, with SyntaxSpanBuilder.Position calling CharacterPositions.PositionAt"
+   },
+   "same": true,
+   "why": "six shared members and one claim"
+  },
+  {
+   "name": "PB3259 type-prefix shape: the TierCIsland guards (a type-level ConditionRenderer member) are not RangeCollateArg",
+   "a": {
+    "id": "data-binding-8--architecture--f1#1",
+    "wave_kind": "unify",
+    "members": [
+     "WiseOwl.Cobol.CodeGen.Emit.ConditionRenderer",
+     "WiseOwl.Cobol.CodeGen.Emit.TierCIsland.Admits"
+    ],
+    "sites": [
+     "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs:100-400 (ConditionRenderer)"
+    ],
+    "rule": "The TierCIsland boundary is decided once, at bind time, never by fourteen emit-time guards (DESIGN-architecture-review section 5.2)",
+    "target": "One bound TierCIsland fact that every emitter reads; the fourteen guards in the condition renderer are deleted"
+   },
+   "b": {
+    "id": "PB3214",
+    "wave_kind": "unify",
+    "members": [
+     "WiseOwl.Cobol.CodeGen.Emit.ConditionRenderer.RangeCollateArg",
+     "WiseOwl.Cobol.Binding.DataBinder.RangeCollations"
+    ],
+    "sites": [
+     "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs:520-560"
+    ],
+    "rule": "A range test with an alphabet collation is rewritten per renderer: the collating sequence lookup lives in the DataBinder and again in RangeCollateArg",
+    "target": "RangeCollateArg reads the collation the DataBinder bound"
+   },
+   "same": false,
+   "why": "PB3259: a type-level member prefix-matched a member of that type"
+  },
+  {
+   "name": "PB3259 SUM-counter shape: two defects of one wave kind whose sites overlap and whose members share one name",
+   "a": {
+    "id": "procedure-binding-3--code--f1#1",
+    "wave_kind": "defect-for-fix-lane",
+    "members": [
+     "WiseOwl.Cobol.Binding.ReferenceResolver.SumCounterFamilyFor",
+     "WiseOwl.Cobol.Binding.ReferenceResolver.ResolveImplCore"
+    ],
+    "sites": [
+     "src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs:900-940 (ReferenceResolver.SumCounterFamilyFor)"
+    ],
+    "rule": "A SUM counter named by a name two reports declare is ambiguous and refused (ISO report writer SUM clause)",
+    "target": "SumCounterFamilyFor refuses a name that two report groups both declare"
+   },
+   "b": {
+    "id": "procedure-binding-3--code--f1#2",
+    "wave_kind": "defect-for-fix-lane",
+    "members": [
+     "WiseOwl.Cobol.Binding.ReferenceResolver.ResolveForAddressOf",
+     "WiseOwl.Cobol.Binding.ReferenceResolver.ResolveImplCore"
+    ],
+    "sites": [
+     "src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs:930-960 (ReferenceResolver.ResolveForAddressOf)"
+    ],
+    "rule": "ADDRESS OF resolves through its own entry that drops the screens ResolveImplCore applies (screen identifier SR4)",
+    "target": "ResolveForAddressOf calls ResolveImplCore's front half so one screen sequence serves every reference"
+   },
+   "same": false,
+   "why": "PB3259: PB3232 filed three defects as one on a shared member and overlapping sites"
+  }
+ ]
+}

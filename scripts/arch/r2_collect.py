@@ -61,10 +61,15 @@ DECISIONS.
     fewer than two votes agree: never filed. An upheld finding takes the CORRECTIONS of the skeptics that upheld it,
     each lens only for the fields it judged (site: files, sites, members, existing_note; rule: design_ref, wave_kind,
     severity; scenario: measurement, harm, spec_refs), and is validated again afterwards.
-  * ONE MECHANISM, ONE NOTE (C3). Upheld findings of the same wave kind whose members overlap (equal, or one a member
-    of the other's type) or whose sites overlap (same file, intersecting line ranges) are one mechanism, whichever
-    finder, pair or dimension found them; `mechanisms` lists each with every id, and the most specific record (the
-    fewest files, then sites) is its primary. `file_census_notes.py --r2` files one note per mechanism.
+  * ONE MECHANISM, ONE NOTE (C3; PB3259). Upheld findings are one mechanism, whichever finder, pair or dimension found
+    them, only when they are of the same wave kind, name mostly the same members (at least MEMBER_SHARE of the EXACT
+    member names of either; a type is not its member, and a finding with no member merges with nothing) and say the
+    same thing (at least STATEMENT_SHARE of the words of their rule and target). A code SITE two findings share, or a
+    type one names and the other has a member of, is not a mechanism. A finding joins a group only when it matches
+    EVERY finding in it, so a chain of pairwise matches never joins its ends. `mechanisms` lists each with every id,
+    and the most specific record (the fewest files, then sites) is its primary; `file_census_notes.py --r2` decides it
+    again from the upheld findings and files one note per mechanism, matching an earlier batch's note by the same test
+    (`scripts/arch/r2_mechanism_cases.json` pins it with the real mis-matches of batches 1a and 1b).
   * A pair is COMPLETE when the union of its finders' `read` lines equals the shard's files. A pair's null result is
     ACCEPTED only when it is complete and examined (`null-check`).
   * The batch is COMPLETE when every pair is complete, every null is examined and no finding is unverified; until
@@ -125,7 +130,6 @@ LENS_FIELDS = {"site": ("files", "sites", "members", "existing_note"),
 # review-<pair>--f<k>.jsonl · null-<pair>.jsonl · refute-<pair>--c<j>--<lens>.jsonl
 CHECKPOINT = re.compile(r"^(?P<kind>review|null|refute)-(?P<pair>.+?--[a-z][a-z-]*?)"
                         r"(?:--f(?P<k>\d+)|--c(?P<j>\d+)--(?P<lens>site|rule|scenario))?\.jsonl$")
-SITE = re.compile(r"^(?P<path>[^\s:]+)(?::(?P<a>\d+)(?:-(?P<b>\d+))?)?")
 GLOBAL_PAIR = "global--duplication"   # the ONE whole-codebase clone pass (design §3 R2, B4)
 LINE_TYPES = {"review": ("read", "finding", "done"), "null": ("null-check", "finding", "read"), "refute": ("verdict",)}
 
@@ -275,61 +279,58 @@ def pin_tracked(commit: str) -> set[str]:
     return set(ls.splitlines())
 
 
-# ── one mechanism, one note (the w1034 refuter's C3) ─────────────────────────────────────────────────────────────
-def site_ranges(rec):
-    out = []
-    for s in rec.get("sites") or []:
-        m = SITE.match(s.strip())
-        if m and m["a"]:
-            out.append((m["path"], int(m["a"]), int(m["b"] or m["a"])))
-    return out
+# ── one mechanism, one note (the w1034 refuter's C3; kb/Work PB3259) ────────────────────────────────────────────────
+# A mechanism is the finder's RULE and TARGET statements carried by one set of members. Two findings are one mechanism
+# only when they say the same thing (their statements share words) of mostly the same members (the exact member
+# names, never a type and its member: a code SITE or a type that two defects both touch is not a shared mechanism).
+MEMBER_SHARE = 0.5      # |exact members in both| / |exact members in either|, at least this
+STATEMENT_SHARE = 0.2   # the same measure over the words (4+ letters) of rule + target; the real same-mechanism pairs
+#                         of batches 1a and 1b score 0.29-0.39, the distinct pairs that shared a member 0.10-0.16
+WORD = re.compile(r"[A-Za-z][A-Za-z0-9_]{3,}")
 
 
-def members_overlap(a, b) -> bool:
-    for x in a:
-        for y in b:
-            if x == y or x.startswith(y + ".") or y.startswith(x + "."):
-                return True
-    return False
+def _share(x: set, y: set) -> float:
+    return len(x & y) / len(x | y) if x | y else 1.0
+
+
+def statement_words(rec) -> set[str]:
+    return {w.lower() for w in WORD.findall("%s %s" % (rec.get("rule") or "", rec.get("target") or ""))}
 
 
 def same_mechanism(a: dict, b: dict) -> str | None:
-    """-> why two upheld findings are ONE mechanism (one wave, one note), or None."""
+    """-> why two findings (or a finding and a filed note: the note's `r2_members`, rule and target) are ONE mechanism
+    (one wave, one note), or None. The same wave kind, a member set that is at least MEMBER_SHARE the same and
+    statements that are at least STATEMENT_SHARE the same. A finding with no member names no mechanism: never merged."""
     if a["wave_kind"] != b["wave_kind"]:
         return None
-    if members_overlap(a.get("members") or [], b.get("members") or []):
-        return "the same wave kind on overlapping members"
-    for p, x1, x2 in site_ranges(a):
-        for q, y1, y2 in site_ranges(b):
-            if p == q and x1 <= y2 and y1 <= x2:
-                return "the same wave kind on overlapping sites (%s)" % p
-    return None
+    ma, mb = set(a.get("members") or []), set(b.get("members") or [])
+    if not ma or not mb or _share(ma, mb) < MEMBER_SHARE:
+        return None
+    if _share(statement_words(a), statement_words(b)) < STATEMENT_SHARE:
+        return None
+    return "the same wave kind, members and statement of the mechanism"
 
 
 def mechanisms(upheld: list[dict]) -> list[dict]:
-    parent = list(range(len(upheld)))
-
-    def root(i):
-        while parent[i] != i:
-            parent[i] = parent[parent[i]]
-            i = parent[i]
-        return i
-    links = []
-    for i in range(len(upheld)):
-        for j in range(i + 1, len(upheld)):
-            w = same_mechanism(upheld[i], upheld[j])
-            if w:
-                links.append((i, w))
-                parent[root(j)] = root(i)
-    groups = defaultdict(list)
-    for i in range(len(upheld)):
-        groups[root(i)].append(i)
+    """Complete linkage: a finding joins a group only when it is the same mechanism as EVERY finding already in it, so a
+    chain A~B, B~C never makes A and C one note (single linkage did)."""
+    groups: list[list[int]] = []
+    why: dict[int, str] = {}
+    for i, rec in enumerate(upheld):
+        for g in groups:
+            ws = [same_mechanism(upheld[j], rec) for j in g]
+            if all(ws):
+                g.append(i)
+                why[i] = ws[0]
+                break
+        else:
+            groups.append([i])
     out = []
-    for members in groups.values():
-        g = [upheld[i] for i in members]
-        prim = min(g, key=lambda r: (len(r["files"]), len(r["sites"]), r["id"]))
-        out.append({"primary": prim["id"], "ids": sorted(r["id"] for r in g),
-                    "why": sorted({w for i, w in links if i in members})})
+    for g in groups:
+        recs = [upheld[i] for i in g]
+        prim = min(recs, key=lambda r: (len(r["files"]), len(r["sites"]), r["id"]))
+        out.append({"primary": prim["id"], "ids": sorted(r["id"] for r in recs),
+                    "why": sorted({why[i] for i in g if i in why})})
     return sorted(out, key=lambda m: m["primary"])
 
 
@@ -682,10 +683,24 @@ def self_test():
         arm("an upholding skeptic's correction is applied to the fields of ITS lens only",
             up[f % 8]["files"] == ["src/A.cs", "src/B.cs"] and up[f % 8]["severity"] == "Warning" and
             [a["field"] for a in up[f % 8]["corrections_applied"]] == ["files"])
-        arm("findings of two finders on the same site and member are ONE mechanism, both ids kept",
-            {"primary": f % 1, "ids": sorted([f % 1, f2]), "why": ["the same wave kind on overlapping members"]} in rep["mechanisms"])
+        arm("findings of two finders on the same members and statements are ONE mechanism, both ids kept",
+            {"primary": f % 1, "ids": sorted([f % 1, f2]),
+             "why": ["the same wave kind, members and statement of the mechanism"]} in rep["mechanisms"])
         arm("a different member at a different site stays its own mechanism",
             {"primary": f % 8, "ids": [f % 8], "why": []} in rep["mechanisms"])
+        cases = json.loads((Path(__file__).parent / "r2_mechanism_cases.json").read_text(encoding="utf-8"))["cases"]
+        wrong = [c["name"] for c in cases if bool(same_mechanism(c["a"], c["b"])) != c["same"]]
+        arm("PB3259: the real mis-matches of batches 1a and 1b stay apart, the real duplicates stay one (%d cases)" % len(cases)
+            + (": " + "; ".join(wrong) if wrong else ""), cases and not wrong)
+        mem = lambda *ns: ["N.T.M%d" % n for n in ns]  # noqa: E731
+        stmt = {"rule": "one rule in one place for the punch tables", "target": "read the punch tables through ZonedSign"}
+        chain = [dict(rec(i), id="c%d" % i, members=mem(*ms), **stmt) for i, ms in
+                 ((1, (1, 2, 3, 4)), (2, (2, 3, 4, 5)), (3, (3, 4, 5, 6)))]
+        arm("PB3259: A~B and B~C never make A and C one mechanism (complete linkage)",
+            [m["ids"] for m in mechanisms(chain)] == [["c1", "c2"], ["c3"]])
+        arm("PB3259: a type and a member of it are two members, and a finding with no member merges with nothing",
+            not same_mechanism(dict(rec(1), members=["N.T"], **stmt), dict(rec(2), members=["N.T.M1"], **stmt))
+            and not same_mechanism(dict(rec(1), members=[], **stmt), dict(rec(2), members=[], **stmt)))
         p = rep["pairs"]
         arm("the union of two finders' reads makes a pair COMPLETE", p["s1--architecture"]["complete"])
         arm("a pair missing a file lists it", p["s1--performance"]["missing"] == ["src/B.cs"])

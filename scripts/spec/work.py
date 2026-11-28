@@ -1470,7 +1470,7 @@ def note_sites(text: str, roots: tuple[str, ...] | None = None, repo: pathlib.Pa
     bare = {p for p, each in mentions.items() if CODE_FILE.search(p) and any(not ms and not why for ms, why in each)}
     undeclared: dict[str, tuple[str, ...]] = {}
     if repo is not None:
-        undeclared = {p: gone for p, ms in members.items() if (gone := _undeclared_names(repo / p, ms))}
+        undeclared = {p: gone for p, ms in members.items() if (gone := undeclared_names(repo / p, ms))}
         members = {p: ms for p, ms in members.items() if p not in undeclared and _members_located(repo / p, ms)}
         swept = expand_globs(tuple(sorted(globs)), repo)
         paths |= set(swept)
@@ -1517,6 +1517,14 @@ CODE_FILE = re.compile(r"\.(?:cs|py|ps1|psm1|js|g4|sh)$", re.I)
 _SECTION_REF = re.compile(r"§(\d+(?:\.\d+)*)")
 
 
+def member_name(text: str) -> str | None:
+    """The member a site's code span names (`Type.Member`, a trailing `()` dropped), or None when the text is no member
+    name (a file name, a phrase with a space). THE ONE definition of a member name: `_mention_members` reads it, and the
+    writers of site blocks (file_census_notes.render_r2, kb/Work PB4080) render a site in the form it is read."""
+    t = text.strip()
+    return t.removesuffix("()") if _MEMBER_NAME.fullmatch(t) and not _FILE_NAME.search(t) else None
+
+
 def _mention_members(raw: str, block: str, end: int) -> tuple[tuple[str, ...], bool]:
     """`(the members ONE mention of a site path names, whether it says why the whole file changes)` (kb/Work PB3670,
     PB3797). The members are () for the whole file: the `#Member` suffix,
@@ -1546,7 +1554,7 @@ def _mention_members(raw: str, block: str, end: int) -> tuple[tuple[str, ...], b
     if not inner.lstrip().startswith(("`", "§")):
         return (), False
     names = [s.strip() for s in _CODE_SPAN.findall(inner)]
-    out = [n.removesuffix("()") for n in names if _MEMBER_NAME.fullmatch(n) and not _FILE_NAME.search(n)]
+    out = [n for n in map(member_name, names) if n]
     out += [f"§{s}" for s in _SECTION_REF.findall(_CODE_SPAN.sub("", inner))]
     return tuple(dict.fromkeys(out)), False
 
@@ -1574,7 +1582,7 @@ SITES_RULE = ("an open note that names a cluster declares its sites: a `**Sites:
               "`(§8.7)`; or `**Sites:** none (why)` when it changes no code file")  # citation-audit: example
 
 
-def _undeclared_names(path: pathlib.Path, names: tuple[str, ...]) -> tuple[str, ...]:
+def undeclared_names(path: pathlib.Path, names: tuple[str, ...]) -> tuple[str, ...]:
     """The `names` no unit of the file `path` matches (source_units.match), or () when there is nothing to check them
     against: a file not on the tree (one the change creates), a folder, or a file with no unit reader or that the reader
     cannot balance (kb/Work PB3797)."""
@@ -1605,7 +1613,7 @@ def _members_located(path: pathlib.Path, names: tuple[str, ...]) -> bool:
         declared = _unit_names(str(path), stat.st_mtime_ns, stat.st_size)
     except OSError:
         return False
-    return declared is not None and not _undeclared_names(path, names)
+    return declared is not None and not undeclared_names(path, names)
 
 
 @functools.lru_cache(maxsize=1)
