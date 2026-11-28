@@ -297,10 +297,10 @@ internal static class ConformanceSuiteRunner
                     ? options with { SignEncoding = encoding }
                     : throw new SuiteHarnessException($"sign-encoding '{value}' is not one of "
                         + string.Join(", ", WiseOwl.Cobol.Runtime.ZonedSign.OptionSpellings)),
-                "numeric-display" => WiseOwl.Cobol.Binding.NumericDisplayFormOption.TryParse(value, out var form)
+                "numeric-display" => WiseOwl.Cobol.Binding.Model.NumericDisplayFormOption.TryParse(value, out var form)
                     ? options with { NumericDisplay = form }
                     : throw new SuiteHarnessException($"numeric-display '{value}' is not one of "
-                        + string.Join(", ", WiseOwl.Cobol.Binding.NumericDisplayFormOption.OptionSpellings)),
+                        + string.Join(", ", WiseOwl.Cobol.Binding.Model.NumericDisplayFormOption.OptionSpellings)),
                 "flag-extensions" => options with { FlagExtensions = options.FlagExtensions || value == "on" },
                 "repository-update" => options with { RepositoryUpdate = value == "on" },
                 // the text listing at its default destination, the assembly's path without its extension: <id>.lst in the run

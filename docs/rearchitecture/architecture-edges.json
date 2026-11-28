@@ -386,7 +386,7 @@
     ],
     [
       "cli",
-      "compiler.binding"
+      "compiler.model"
     ],
     [
       "cli",
@@ -1400,7 +1400,7 @@
       "from": "WiseOwl.Cobol.Binding.Model",
       "to": "WiseOwl.Cobol.Binding",
       "uses": 16,
-      "walkUses": 17,
+      "walkUses": 16,
       "removedBy": [
         "PB2399",
         "PB2420"
@@ -1445,13 +1445,6 @@
         {
           "from": "WiseOwl.Cobol.Binding.Model.DataBindResult",
           "to": "WiseOwl.Cobol.Binding.CellLifetime",
-          "removedBy": [
-            "PB2420"
-          ]
-        },
-        {
-          "from": "WiseOwl.Cobol.Binding.Model.DataBindResult",
-          "to": "WiseOwl.Cobol.Binding.NumericDisplayForm",
           "removedBy": [
             "PB2420"
           ]
@@ -2256,7 +2249,7 @@
       "from": "WiseOwl.Cobol.CodeGen.Emit",
       "to": "WiseOwl.Cobol.Binding",
       "uses": 25,
-      "walkUses": 21,
+      "walkUses": 19,
       "removedBy": [
         "PB2399",
         "PB2405",
@@ -2326,13 +2319,6 @@
             "PB2399",
             "PB2405",
             "PB2420"
-          ]
-        },
-        {
-          "from": "WiseOwl.Cobol.CodeGen.Emit.EmitContext",
-          "to": "WiseOwl.Cobol.Binding.NumericDisplayForm",
-          "removedBy": [
-            "PB2405"
           ]
         },
         {
@@ -2424,15 +2410,6 @@
         {
           "from": "WiseOwl.Cobol.CodeGen.Emit.OperandText",
           "to": "WiseOwl.Cobol.Binding.IntrinsicArgumentRules",
-          "removedBy": [
-            "PB2399",
-            "PB2405",
-            "PB2420"
-          ]
-        },
-        {
-          "from": "WiseOwl.Cobol.CodeGen.Emit.OperandText",
-          "to": "WiseOwl.Cobol.Binding.NumericDisplayForm",
           "removedBy": [
             "PB2399",
             "PB2405",
