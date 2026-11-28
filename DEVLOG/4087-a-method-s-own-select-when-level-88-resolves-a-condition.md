@@ -1,4 +1,4 @@
-## A method's own SELECT WHEN level-88 resolves, a condition-name's ODO object is screened, and a note's premise fails
+## Entry 4087 — 2026-11-27 21:21 PST — A method's own SELECT WHEN level-88 resolves, a condition-name's ODO object is screened, and a note's premise fails
 
 Three binder sites answered from too narrow a view (wave 20262177, group J: kb/Work PB6276, PB6341, PB6303).
 
@@ -30,3 +30,4 @@ returns `SpecialNames.NormalizeIfNumericLiteral(op.GetText())` (the one normaliz
 (COBOL2198). No code changed. Golden `13.18.54-SUM/pb6341_report_rolled_value_decimal_point_comma` pins the behaviour.
 
 Inventory rows re-verdicted: none (the three notes carry none). Registry: PB6276 and PB6303 landed, PB6341 retired.
+
