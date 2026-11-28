@@ -60,7 +60,7 @@ internal sealed class CounterResolver(ReferenceResolver refs, DataBinder data)
         var written = ReferenceResolver.ReadWritten(dref);
         string name = dref.cobolWord().GetText();
         // §2023:8.4.3.3.3 SR3 — the count screen every identifier entry runs (ScreenRefModCount), asked of the counter too.
-        if (!refs.RefMods.ScreenRefModCount(dref, written, name)) return RefResolution.Refused(WrittenSource.Of(dref));
+        if (!refs.RefMods.ScreenRefModCount(written.RefModCount, dref, name)) return RefResolution.Refused(WrittenSource.Of(dref));
         if (refs.Subscripts.ReadSubscripts(dref, family.Register, written.SubscriptGroup, out var indexExprs) is { } refusal)
             return refusal;
         var counter = SumCounterPlace(rep, family, indexExprs);
