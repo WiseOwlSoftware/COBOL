@@ -1,4 +1,4 @@
-## A published record of a USAGE BIT group keeps its FILLER bits (PB6270)
+## Entry 4100 — 2026-11-28 02:35 PST — A published record of a USAGE BIT group keeps its FILLER bits (PB6270)
 
 **Defect.** The host entry's published record struct (`PublishedRecordEmitter`) keeps the positions no member covers
 (FILLER, a REDEFINES view's tail) in a private `__image`, so `FromImage` to `AsImage` and a call's write-back round-trip
@@ -30,3 +30,4 @@ The first fix kept the image only for the root and a dynamic-capacity element. E
 `FromImage` and `AsImage`, so a nested DISPLAY group with FILLER lost it. The guard now keeps the image for every struct;
 a nested BIT group keeps it only at a byte-aligned `__at` (a mid-byte start has no byte-granular Substring). Test:
 `AHost_KeepsTheFillerOfANestedGroup_AcrossFromImageAndAsImage`.
+
