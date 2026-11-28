@@ -1,4 +1,4 @@
-## SET Format 4 names the category of a wrong operand, and SET TO FALSE draws one refusal below COBOL-2002 (PB6355, PB6356)
+## Entry 4095 — 2026-11-28 00:19 PST — SET Format 4 names the category of a wrong operand, and SET TO FALSE draws one refusal below COBOL-2002 (PB6355, PB6356)
 
 Two misleading SET diagnostics, one root: the Format 4 refusals named a mistake or an edition the program did not make.
 
@@ -27,3 +27,4 @@ and COBOL1639 for a name that resolves to nothing.
 
 No inventory row changes verdict: both notes close with `closes_rows: []`. The 2023 nothing-resolves arm still cites §2023:8.4.2.1 at
 2002 and 2014 (`UniqueReferenceRule.Citation`, PB6219 item 2), which that note owns.
+
