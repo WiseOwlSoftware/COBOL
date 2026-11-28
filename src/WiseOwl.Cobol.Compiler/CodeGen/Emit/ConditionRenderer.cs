@@ -528,7 +528,12 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         // set covers U-vs-U and either mixed order, so the comparison never narrows through the Int128 funnel
         // (which would be loud for exactly the values this relation exists to test).
         if (l.U || rr.U)
-            return $"{RuntimeApi.NumCompareU(l.Expr, $"{l.Scale}", rr.Expr, $"{rr.Scale}")} {r.Op} 0";
+        {
+            // ⛔ THE SIGNED SIDE IS TYPED Int128 (kb/Work PB6256): a bare int literal (`IF U = 0`, `IF U = ZERO`) converts implicitly to
+            // BOTH Int128 and UInt128, so CompareU's (UInt128, Int128) and (UInt128, UInt128) overloads are CS0121-ambiguous.
+            static string Typed(NumX x) => x.U ? x.Expr : $"(Int128)({x.Expr})";
+            return $"{RuntimeApi.NumCompareU(Typed(l), $"{l.Scale}", Typed(rr), $"{rr.Scale}")} {r.Op} 0";
+        }
         int s = Math.Max(l.Scale, rr.Scale);
         // ⛔ DIFFERING SCALES COMPARE WITHOUT WIDENING (fix-queue PB65): aligning to the common scale first
         // wrapped silently past 38 aligned digits, and IF BIGV > SMLV over legal in-range items answered FALSE.
@@ -614,11 +619,12 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
                    other = ComparisonText(anchor, deSign: true);
             return $"{RuntimeApi.StrCompareFig(figLeft ? fig : other, figLeft ? other : fig, figLeft, pad + collate)} {r.Op} 0";
         }
-        NumX l = FigOrNum(r.Left), rr = FigOrNum(r.Right);
-        if (l.Real || rr.Real)   // a float vs ZERO figurative — native IEEE compare (D16, §2023:8.8.4.2.4)
-            return $"{NumericRenderer.Real(l)} {r.Op} {NumericRenderer.Real(rr)}";
-        int s = Math.Max(l.Scale, rr.Scale);
-        return $"{NumericRenderer.Align(l, s)} {r.Op} {NumericRenderer.Align(rr, s)}";
+        // ⛔ ZERO OPPOSITE A NUMERIC ANCHOR IS THE NUMERIC LITERAL 0 — §2023:8.3.3.6.4 GR4 makes ZERO "the numeric value" 0 in a numeric
+        // context, and §2023:8.8.4.2.4 compares algebraic values, so `IF X = ZERO` and `IF X = 0` are ONE comparison and take the ONE
+        // numeric renderer: its exact-wide, SDIDI, unsigned-wide and native-arithmetic arms (kb/Work PB6256; this tail was a second,
+        // partial copy that raised EC-SIZE-OVERFLOW past the Int128 carrier and truncated an SDIDI operand to scale 0).
+        // The numeric renderer reads a ZERO operand as the unscaled integer 0 (NumericRenderer.Visit(BoundFigurative)).
+        return RenderNumericRelational(r);
     }
 
     /// <summary>An operand's STRING data category for the relation dispatch. ⛔ THE BODY MOVED to
@@ -695,13 +701,6 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         // rather than a silent fall-through to the operand's own text, which would look like a working
         // comparison while sizing nothing (the failure shape this whole change exists to remove).
         _ => EmitText.LoudValue("string", $"figurative seed for '{op.GetType().Name}'"),
-    };
-
-    private NumX FigOrNum(BoundOperand op) => op switch
-    {
-        BoundFigurative { Kind: 'Z' } => EmitText.UnscaledLit("0"),
-        BoundFigurative f => new NumX(EmitText.LoudValue("long", $"figurative '{f.Kind}' in a numeric comparison"), 0),
-        _ => num.AsNum(op, ReceiverContext.None),
     };
 
     private string RenderSign(BoundSignCondition s)
