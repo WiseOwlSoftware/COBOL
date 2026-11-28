@@ -1136,8 +1136,9 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         // argument above asks (§2023:8.8.4.5.3 GR2; the pair is the variable's category twice, as stated there).
         // ForComparison(null, null) is the ALPHANUMERIC branch (an ordinary group item, ISO §2023:8.8.4.2.1), so
         // an alphanumeric GROUP's 88 range now reaches §2023:14.7.8 GR2's exception exactly as its elementary
-        // twin does. Boolean and numeric ranges keep the inline form (§2023:14.7.8 GR1 sets no
-        // exception; a boolean subject may not carry THROUGH at all, §2023:13.18.63.3 SR29).
+        // twin does. A boolean range keeps the inline form (§2023:14.7.8 GR1 sets no
+        // exception; a boolean subject may not carry THROUGH at all, §2023:13.18.63.3 SR29), and a numeric range is the relation pair
+        // RenderNumericMembershipTest builds, never reaching this method.
         // ⛔ THE ONE §2023:14.7.8 GR1/GR2 predicate, the same call the EVALUATE range's EC gate and
         // TryResolveRangeAlphabet's SR3 screen make (kb/Work PB401) — never a locally spelled-out class test.
         bool checkedRange = checkRangeInvalid
