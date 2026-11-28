@@ -91,21 +91,22 @@ public sealed partial class SymbolTable
     /// <summary>Make a container's GLOBAL report visible here (ISO §2023:13.18.27.4 GR1/GR2): its report-name, its report groups
     /// (reached through the report) and its sum counters (GR1 — "All data-names subordinate to a global name are global names").
     /// Called nearest container first, so a report this element declares — or a nearer container already supplied — hides the
-    /// farther one (§2023:8.4.6.2). False when the report-name is hidden that way; a nearer declaration of ANOTHER class hides it
-    /// once every tier is in place (<see cref="HideShadowedReports"/>).
+    /// farther one's report-NAME (§2023:8.4.6.2: <see cref="_visibleReports"/> keeps the nearer, which a reference to the report-name
+    /// itself names, GR3a), and the report joins the scope all the same: its groups and sum counters are global names of their own
+    /// that GR1 puts in the set (kb/Work PB6277). A nearer declaration of
+    /// ANOTHER class hides the report-name once every tier is in place (<see cref="HideShadowedReports"/>).
     /// <para>⛔ EVERY SUM COUNTER JOINS, whatever this element declares (kb/Work PB5973). The set a reference is resolved over is
     /// "all names which are defined in program B and all global names" of its containers, and "the normal rules for qualification
     /// ... are applied until one or more objects is identified" (§1985:X.1.3.8.2 GR1) BEFORE the nearer one is chosen (GR3a). A
     /// counter used to be left out when this element declared a data-name of its spelling, so `TOT OF CFG`, which only the
     /// container's counter answers (GR2), was refused; the nearer data-name now wins at the reference, where the qualifiers are
     /// known (<c>CounterResolver.SumCounterFamilyFor</c>).</para></summary>
-    internal bool InheritReport(ReportModel report, int depth)
+    internal void InheritReport(ReportModel report, int depth)
     {
-        if (!_visibleReports.TryAdd(Key(report.Name), report)) return false;
+        _visibleReports.TryAdd(Key(report.Name), report);
         _data.State.Reports.Inherit(report, depth);
         foreach (var family in report.SumFamilies)
             if (family.Name is { } sn) DeclareSumCounter(sn, report, family);
-        return true;
     }
 
     /// <summary>Hides each inherited report-name that a declaration of its spelling in a NEARER source element hides, whatever that

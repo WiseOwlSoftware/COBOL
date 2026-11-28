@@ -83,6 +83,29 @@ public sealed class ReferenceIdentificationDriftTests
         Assert.Equal(4,Regex.Matches(Code(ReferenceResolver), @"\bScreenLinkageReference\(").Count);
     }
 
+    /// <summary>⛔ EVERY ENTRY THAT COMMITS A PLACE FOR A WRITTEN REFERENCE ENDS IN THE ONE PLACE TAIL (kb/Work PB6303). §2023:8.4.5 makes
+    /// an OCCURS DEPENDING ON object an implicit reference of every statement that evaluates the table's extent, and §2023:13.7.3 SR4
+    /// refuses one in a LINKAGE record the procedure division may not reference (kb/Work PB5876). <c>ResolveForItem</c>, the entry of a
+    /// condition-name's conditional variable, built its place by hand and never asked the screen, so <c>IF W-BLANK</c> and <c>SET W-BLANK TO
+    /// TRUE</c> over an ODO group compiled where <c>MOVE W-REC TO X</c> was refused. Both entries build through
+    /// <c>ReferenceResolver.WrittenPlace</c>, which links the place and runs <c>ScreenImplicitLinkageReferences</c>; the screen is asked from
+    /// that one method alone, so a third entry cannot drop it again.</summary>
+    [Fact]
+    public void EveryCommittedPlaceEntry_EndsInTheOneImplicitLinkageScreen()
+    {
+        foreach (var (entry, signature) in new[]
+                 { ("ResolveImplCore", "private RefResolution ResolveImplCore("), ("ResolveForItem", "public RefResolution ResolveForItem(") })
+        {
+            string body = Code(BodyOf(signature));
+            Assert.True(body.Contains("WrittenPlace(", StringComparison.Ordinal),
+                $"ReferenceResolver.{entry} no longer builds its place through WrittenPlace — the implicit LINKAGE screen (§2023:8.4.5, §2023:13.7.3 SR4) is skipped.");
+            Assert.False(body.Contains("ScreenImplicitLinkageReferences(", StringComparison.Ordinal) || body.Contains("Linked(Places.PlaceForItem(", StringComparison.Ordinal),
+                $"ReferenceResolver.{entry} builds or screens its place itself — that belongs to ReferenceResolver.WrittenPlace, the ONE place tail (kb/Work PB6303).");
+        }
+        Assert.True(Code(BodyOf("private Place? WrittenPlace(")).Contains("ScreenImplicitLinkageReferences(", StringComparison.Ordinal),
+            "ReferenceResolver.WrittenPlace no longer runs the implicit LINKAGE screen.");
+    }
+
     /// <summary>⛔ A NAME LOOKUP THAT REACHES A DATA ITEM FROM THE PROCEDURE DIVISION ASKS THE LINKAGE SCREEN, AND THE SET OF
     /// FILES THAT LOOK A NAME UP IS CLOSED (kb/Work PB5846). <c>SubscriptBinder.ResolveSubscriptName</c> resolved a subscript
     /// or reference-modification data-name through the unqualified lookup and never reached

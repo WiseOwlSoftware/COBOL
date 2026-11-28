@@ -1555,7 +1555,8 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
     - *A name the record carries is resolved from the record.* A SELECT WHEN clause's condition-name (§2023:13.18.51.1: it "specifies a
       condition-name condition under which a record description entry is associated" with a record) is text the
       record holds; `ResolveRecordFormatPass` read the condition table by it. `SelectWhenConditionsOf(DataItem record)` reads it in the
-      table, as slice 6 resolved a restricted pointer's prototype from its item.
+      table, as slice 6 resolved a restricted pointer's prototype from its item, in the scope that owns the record (a method's own
+      LOCAL-STORAGE or LINKAGE record resolves through the method tier first, §2023:11.7.4 GR5; kb/Work PB6276).
     - *An end marker's name is the table's question at every kind of unit (correction).* The OO lane made `ClassNames.EndMarkerAgrees`
       for END CLASS, END INTERFACE and END METHOD, while END PROGRAM and END FUNCTION still compared text in `EndMarkerPass`.
       `SymbolTable.EndMarkerAgrees` and `EndMarkerNamesAny` (the test that the markers of nested programs are out of order) answer all five, before any
