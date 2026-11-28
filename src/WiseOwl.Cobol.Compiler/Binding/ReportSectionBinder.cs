@@ -3708,8 +3708,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 using var _ = Edition.At(at);   // each rule is about the report-name as written (kb/Work PB2034)
                 // The REPORT clause's report-name-1 is a reference to a report description entry of the same source element
                 // (§2023:13.18.46.3 SR1), so it identifies an RD of this element's own (NameReach.Own).
-                if (_d.Symbols.Identify(_d.FileControl.WrittenReportName(clauseName), NameClass.Report, report: true, NameReach.Own)?.Symbol
-                    is not ReportModel named)
+                if (_d.Symbols.IdentifyReport(_d.FileControl.WrittenReportName(clauseName), report: true, NameReach.Own)
+                    is not { } named)
                     Edition.Error(DiagnosticCatalog.ReportClauseNameRule, $"file '{file.CobolName}': the REPORT clause names "
                         + $"'{name}', which is not the subject of a report description entry in the report section: each "
                         + $"report-name-1 shall be ({Edition.Edition.CiteRule("§1985:XIII.3.3.3 SR1", "§2023:13.18.46.3 SR1")})");

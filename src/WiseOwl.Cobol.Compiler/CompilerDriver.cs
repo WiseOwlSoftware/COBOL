@@ -49,8 +49,8 @@ public static class CompilerDriver
     /// COBOL2894 warning. Orthogonal to <paramref name="Edition"/>.</param>
     /// <param name="NumericDisplay">The form DISPLAY gives a numeric operand (CLI <c>--numeric-display</c>; kb/Work
     /// PB3505, owner decision PB3467). ISO §2023:14.9.11.4 GR1 leaves the device conversion to the implementor (Annex A.1
-    /// item 56): the default is <see cref="Binding.NumericDisplayForm.Decimal"/> (the decimal point and a leading
-    /// sign, GnuCOBOL 3.2.0's default form) and <see cref="Binding.NumericDisplayForm.Digits"/> keeps the digit image.
+    /// item 56): the default is <see cref="Binding.Model.NumericDisplayForm.Decimal"/> (the decimal point and a leading
+    /// sign, GnuCOBOL 3.2.0's default form) and <see cref="Binding.Model.NumericDisplayForm.Digits"/> keeps the digit image.
     /// Orthogonal to <paramref name="Edition"/>: every edition grants the same latitude.</param>
     /// <param name="RepositoryUpdate">Whether the compilation updates the external repository (CLI
     /// <c>--repository-update on|off</c>, default on; ISO §2023:8.13: "The implementor shall provide a mechanism that allows the
@@ -85,7 +85,7 @@ public static class CompilerDriver
         SignEncoding SignEncoding = SignEncoding.Ibm,
         Frontend.Preprocessor.InitialReferenceFormat SourceFormat = Frontend.Preprocessor.InitialReferenceFormat.Fixed,
         bool FlagExtensions = false,
-        Binding.NumericDisplayForm NumericDisplay = Binding.NumericDisplayForm.Decimal,
+        Binding.Model.NumericDisplayForm NumericDisplay = Binding.Model.NumericDisplayForm.Decimal,
         bool RepositoryUpdate = true,
         IReadOnlyList<string>? RepositoryPaths = null,
         IReadOnlyList<string>? ReferencePaths = null,
