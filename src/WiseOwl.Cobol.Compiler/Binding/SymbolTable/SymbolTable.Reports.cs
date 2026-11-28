@@ -171,6 +171,12 @@ public sealed partial class SymbolTable
     private static bool IsReportClass(NameClass @class) => @class is NameClass.Report or NameClass.ReportGroup
         or NameClass.SumCounter or NameClass.ReportVarying or NameClass.ReportEntry or NameClass.ReportSumOperand;
 
+    /// <summary>The report the written report-name identifies at <paramref name="reach"/>, or null: <see cref="Identify(ParserRuleContext,
+    /// NameClass, bool, NameReach, ProcedureSite?, ReportSite)"/> asked for the report-name class, its occurrence recorded when
+    /// <paramref name="report"/> is true. The typed report-name question, the twin of <see cref="IdentifyFile"/> (kb/Work PB6173).</summary>
+    internal ReportModel? IdentifyReport(ParserRuleContext written, bool report, NameReach reach = NameReach.Visible)
+        => Identify(written, NameClass.Report, report, reach)?.Symbol as ReportModel;
+
     /// <summary>The symbol of a report-section class the written context names here, or null.</summary>
     private (object? Symbol, SymbolId Id) ReportSymbolNamed(ParserRuleContext written, NameClass wanted, NameReach reach, ReportSite site) => wanted switch
     {

@@ -3,7 +3,6 @@
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
-using WiseOwl.Cobol.Symbols;
 
 namespace WiseOwl.Cobol.Binding.Passes;
 
@@ -112,8 +111,8 @@ internal sealed class CheckCodeSetRecordItemsPass : IBindPass
         {
             // The clause's report-name was referenced where the REPORT clauses are screened (ReportSectionBinder.ScreenReportClauseNames),
             // so this reading is a probe; an unresolved REPORT name is that screen's to refuse.
-            if (binder.Symbols.Identify(binder.FileControl.WrittenReportName(name), NameClass.Report, report: false)?.Symbol
-                is not ReportModel report) continue;
+            if (binder.Symbols.IdentifyReport(binder.FileControl.WrittenReportName(name), report: false)
+                is not { } report) continue;
             foreach (var group in report.Groups)
                 foreach (var line in group.Lines)
                     foreach (var field in line.Fields)

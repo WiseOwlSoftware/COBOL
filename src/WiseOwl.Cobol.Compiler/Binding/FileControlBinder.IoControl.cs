@@ -136,7 +136,7 @@ public sealed partial class FileControlBinder
     private FileModel? ResolveIoControlFile(Core.FileNameContext name, string clause)
     {
         string word = name.GetText();
-        if (_host.Symbols.Identify(name, NameClass.File, report: true) is { Symbol: FileModel file }) return file;
+        if (_host.Symbols.IdentifyFile(name, report: true) is { } file) return file;
         using var _ = Edition.At(name);
         var hider = _host.Symbols.Declared.FileNameHiddenBy(word);   // §1985:X.1.3.8.2 GR3a (kb/Work PB5980)
         Edition.Error(DiagnosticCatalog.UndefinedReference,
@@ -198,7 +198,7 @@ public sealed partial class FileControlBinder
             using var _ = Edition.At(rerun);
             var on = rerun.cobolWord();
             FileModel? onFile = null;
-            if (on is not null && _host.Symbols.Identify(on, NameClass.File, report: true) is { Symbol: FileModel named })
+            if (on is not null && _host.Symbols.IdentifyFile(on, report: true) is { } named)
             {
                 onFile = named;
                 if (!IsSequentiallyOrganized(named))
@@ -317,7 +317,7 @@ public sealed partial class FileControlBinder
         {
             using var at = Edition.At(operand);
             if (operand.cobolWord() is { } word && operand.dataReferenceSuffix().Length == 0
-                && _host.Symbols.Identify(word, NameClass.File, report: true, NameReach.Own) is { Symbol: FileModel file })
+                && _host.Symbols.IdentifyFile(word, report: true, NameReach.Own) is { } file)
             {
                 if (file.IsSortMerge || file.IsReportFile)
                 {
@@ -612,7 +612,7 @@ public sealed partial class FileControlBinder
         {
             string name = fn.GetText();
             using var _ = Edition.At(fn);
-            if (_host.Symbols.Identify(fn, NameClass.File, report: true, NameReach.Own) is not { Symbol: FileModel file })
+            if (_host.Symbols.IdentifyFile(fn, report: true, NameReach.Own) is not { } file)
             {
                 complete = false;
                 Edition.Error(DiagnosticCatalog.SameClauseRule,

@@ -209,10 +209,10 @@ public sealed class CliParserTests
     [Fact]
     public void NumericDisplay_DefaultsToDecimal_SelectsDigits_AndRejectsAnythingElse()
     {
-        Assert.Equal(WiseOwl.Cobol.Binding.NumericDisplayForm.Decimal, Resolve("a.cob").NumericDisplay);
-        Assert.Equal(WiseOwl.Cobol.Binding.NumericDisplayForm.Decimal, Resolve("a.cob", "--numeric-display", "decimal").NumericDisplay);
-        Assert.Equal(WiseOwl.Cobol.Binding.NumericDisplayForm.Digits, Resolve("a.cob", "--numeric-display=digits").NumericDisplay);
-        Assert.Equal(WiseOwl.Cobol.Binding.NumericDisplayForm.Digits, Resolve("a.cob", "--numeric-display", "DIGITS").NumericDisplay);
+        Assert.Equal(WiseOwl.Cobol.Binding.Model.NumericDisplayForm.Decimal, Resolve("a.cob").NumericDisplay);
+        Assert.Equal(WiseOwl.Cobol.Binding.Model.NumericDisplayForm.Decimal, Resolve("a.cob", "--numeric-display", "decimal").NumericDisplay);
+        Assert.Equal(WiseOwl.Cobol.Binding.Model.NumericDisplayForm.Digits, Resolve("a.cob", "--numeric-display=digits").NumericDisplay);
+        Assert.Equal(WiseOwl.Cobol.Binding.Model.NumericDisplayForm.Digits, Resolve("a.cob", "--numeric-display", "DIGITS").NumericDisplay);
         Assert.Contains(Errors("a.cob", "--numeric-display", "1"), m => m.Contains("--numeric-display must be one of"));
         Assert.Contains(Errors("a.cob", "--numeric-display", "ebcdic"), m => m.Contains("--numeric-display must be one of"));
         Assert.NotEmpty(Errors("a.cob", "--numeric-display", "--run"));

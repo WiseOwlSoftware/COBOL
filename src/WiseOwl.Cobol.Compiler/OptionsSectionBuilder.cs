@@ -58,7 +58,7 @@ internal static class OptionsSectionBuilder
         new(nameof(CompilerDriver.Options.CopyPaths), "--copy", o => List(o.CopyPaths)),
         new(nameof(CompilerDriver.Options.SignEncoding), "--sign-encoding", o => o.SignEncoding.ToString().ToLowerInvariant()),
         new(nameof(CompilerDriver.Options.NumericDisplay), "--numeric-display",
-            o => Binding.NumericDisplayFormOption.OptionSpellings[(int)o.NumericDisplay]),
+            o => Binding.Model.NumericDisplayFormOption.OptionSpellings[(int)o.NumericDisplay]),
         new(nameof(CompilerDriver.Options.SourceFormat), "--source-format",
             o => Frontend.Preprocessor.InitialReferenceFormatOption.OptionSpellings[(int)o.SourceFormat]),
         new(nameof(CompilerDriver.Options.FlagExtensions), "--flag-extensions", o => OnOff(o.FlagExtensions)),

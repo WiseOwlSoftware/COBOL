@@ -3,7 +3,7 @@
 using System.CommandLine;
 using System.Diagnostics;
 using WiseOwl.Cobol;
-using WiseOwl.Cobol.Binding;
+using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Runtime;
