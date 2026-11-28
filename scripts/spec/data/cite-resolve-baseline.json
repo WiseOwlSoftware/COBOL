@@ -8,7 +8,7 @@
   "longer fails. Repair a citation, then rewrite this file with",
   "`python scripts/spec/audit_code_citations.py --write-baseline` (it refuses to add an entry)."
  ],
- "count": 1873,
+ "count": 1872,
  "entries": [
   {
    "file": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4",
@@ -4135,28 +4135,28 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/ReportModel.cs",
-   "line": 508,
+   "line": 515,
    "citation": "§2023:13.18.14.4 GR6",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/ReportModel.cs",
-   "line": 517,
+   "line": 524,
    "citation": "§2023:13.18.14.4 GR6",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/ReportModel.cs",
-   "line": 527,
+   "line": 534,
    "citation": "§2023:13.18.14.4 GR6",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/ReportModel.cs",
-   "line": 938,
+   "line": 945,
    "citation": "§2023:13.18.54.3 SR4",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
@@ -4226,59 +4226,52 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs",
-   "line": 3954,
+   "line": 3955,
    "citation": "§2023:13.18.14.4 GR6",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs",
-   "line": 4052,
+   "line": 4053,
    "citation": "§2023:13.18.35.3 SR6",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs",
-   "line": 4130,
+   "line": 4131,
    "citation": "§2023:13.18.14.3 SR8",
    "kind": "designator-not-canonical",
    "reason": "the designator ends its string literal and the string is concatenated, so its text may continue"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs",
-   "line": 4182,
+   "line": 4183,
    "citation": "§2023:13.18.14.3 SR8",
    "kind": "designator-not-canonical",
    "reason": "the designator ends its string literal and the string is concatenated, so its text may continue"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs",
-   "line": 4394,
+   "line": 4395,
    "citation": "§2023:13.18.54.3 SR4",
    "kind": "designator-not-canonical",
    "reason": "the same designator text stands in a message string this run does not rewrite"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs",
-   "line": 4425,
+   "line": 4426,
    "citation": "§2023:13.18.54.3 SR4",
    "kind": "designator-not-canonical",
    "reason": "the same designator text stands in a message string this run does not rewrite"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs",
-   "line": 4458,
+   "line": 4459,
    "citation": "§2023:13.18.54.3 SR4",
    "kind": "designator-not-canonical",
    "reason": "the same designator text is rewritten two ways, so an expectation of it is ambiguous"
-  },
-  {
-   "file": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs",
-   "line": 4556,
-   "citation": "§2023:13.18.54.4 GR7",
-   "kind": "designator-not-canonical",
-   "reason": "the parentheses around the designator do not balance in its string"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Repository/RepositoryCodec.cs",
@@ -4492,42 +4485,42 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs",
-   "line": 750,
+   "line": 749,
    "citation": "§2023:8.8.4.4.4 GR3",
    "kind": "designator-not-canonical",
    "reason": "the rewritten designator would still not be canonical in its line"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs",
-   "line": 821,
+   "line": 820,
    "citation": "§2023:12.3.6.4 GR5",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs",
-   "line": 838,
+   "line": 837,
    "citation": "§2023:8.8.4.4.4 GR3",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs",
-   "line": 845,
+   "line": 844,
    "citation": "§2023:8.8.4.4.4 GR3",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs",
-   "line": 934,
+   "line": 933,
    "citation": "§2023:8.5.2.12",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs",
-   "line": 988,
+   "line": 987,
    "citation": "§2023:8.8.4.4.4 GR3",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
@@ -5101,70 +5094,70 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs",
-   "line": 1190,
+   "line": 1199,
    "citation": "§2023:13.18.2.4 GR1",
    "kind": "designator-not-canonical",
    "reason": "a test or suite file no expectation reader rewrites quotes the designator text"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs",
-   "line": 1273,
+   "line": 1274,
    "citation": "§2023:14.6.13.1.5",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs",
-   "line": 1342,
+   "line": 1343,
    "citation": "§2023:14.9.49.4 GR4",
    "kind": "designator-not-canonical",
    "reason": "the parentheses around the designator lie partly in a non-literal operand of the string"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs",
-   "line": 1761,
+   "line": 1762,
    "citation": "§2023:14.8.2.3.3",
    "kind": "designator-not-canonical",
    "reason": "the catalog gives that ordinal no one rule of the clause"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs",
-   "line": 1877,
+   "line": 1878,
    "citation": "§2023:14.8.2.3.3",
    "kind": "designator-not-canonical",
    "reason": "the catalog gives that ordinal no one rule of the clause"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs",
-   "line": 1989,
+   "line": 1990,
    "citation": "§2023:14.8.3.3",
    "kind": "designator-not-canonical",
    "reason": "the catalog gives that ordinal no one rule of the clause"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs",
-   "line": 1995,
+   "line": 1996,
    "citation": "§2023:14.8.3.3",
    "kind": "designator-not-canonical",
    "reason": "a list of designators: no one designator says it"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs",
-   "line": 2071,
+   "line": 2072,
    "citation": "§2023:14.8.2.3.2",
    "kind": "designator-not-canonical",
    "reason": "the catalog gives that ordinal no one rule of the clause"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs",
-   "line": 2139,
+   "line": 2140,
    "citation": "§2023:14.8.2.3.3",
    "kind": "designator-not-canonical",
    "reason": "the catalog gives that ordinal no one rule of the clause"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs",
-   "line": 2145,
+   "line": 2146,
    "citation": "§2023:14.7.5",
    "kind": "designator-not-canonical",
    "reason": "the catalog gives that ordinal no one rule of the clause"
@@ -11079,7 +11072,7 @@
   },
   {
    "file": "tests/WiseOwl.Cobol.Tests.Unit/ReferenceIdentificationDriftTests.cs",
-   "line": 118,
+   "line": 141,
    "citation": "§2023:14.9.40.3 SR14",
    "kind": "designator-not-canonical",
    "reason": "a test's string literal: an expectation changes only with the message it quotes"

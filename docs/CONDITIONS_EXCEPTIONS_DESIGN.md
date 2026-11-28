@@ -918,8 +918,16 @@ homes, each read mechanically, never from a hand list:
   tuples — a class condition, a range's bounds, a per-evaluation window and a CANCEL target's dynamic name included;
   kb/Work PB6223, PB6328), so neither `PartHasIntrinsic` nor the program-address row keeps a switch with a default arm.
   `BoundValueWalkDriftTests` populates each value-holding property with a sentinel and fails when the generated walks
-  skip it. The report description models (`ReportModel`, `ReportGroupModel`) are held by reference and not entered:
-  a function reference in a report group's SOURCE, SUM or PRESENT WHEN raises nothing at GENERATE.
+  skip it. The report description (`ReportModel` and the types under it) is held by a GENERATE or TERMINATE by
+  reference, a graph that cycles back to itself, so the generated walk does not enter it and `ReportValueWalk` does
+  (kb/Work PB6349): `OperandRaisableNames` asks `ReportValueWalk.EvaluatedBy(statement)` beside `OwnValueParts`, which
+  yields every PRESENT WHEN condition, SOURCE operand, SUM addend and VARYING expression of the report (and the steps that
+  compute a SOURCE or CODE operand, and the SUM terms of another report that name one of its details in UPON), each model
+  node entered once, so a function reference in any of them raises EC-ARGUMENT-FUNCTION when the GENERATE or TERMINATE that
+  evaluates it runs (§2023:15.3 AR14; §2023:14.9.16.4, §2023:14.9.46.4 GR3, §2023:13.18.54.4 GR3). `ReportValueWalkDriftTests`
+  populates every property of every report-description type with a sentinel and fails when the walk does not read it, unless
+  it is a named back or cross reference; it also decides, for each bound node that holds the description, whether its
+  operands are evaluated when it runs (GENERATE and TERMINATE yes; INITIATE, SUPPRESS and a counter reference no).
 - **An AMBIENT site** no bound node identifies — a named collating sequence at use, a dynamic table's growth, a
   locale-edited store, the *-ARG-OMITTED condition of the activated element's kind — rides every statement of a
   checking-on region (a guard that never fires is harmless): `EcBinder.AmbientRaises`, one row per name, with the element
