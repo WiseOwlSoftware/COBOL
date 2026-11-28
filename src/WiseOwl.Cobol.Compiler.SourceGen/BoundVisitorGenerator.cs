@@ -158,8 +158,8 @@ public sealed class BoundVisitorGenerator : IIncrementalGenerator
         // the bug this walk shipped with. `BoundPerformControl` holds a PERFORM's UNTIL condition and
         // `BoundSetTarget` a SET's target; yielding the container and stopping meant `PERFORM UNTIL FUNCTION
         // LOG10(0)` still never reached the EC gate — the same silence PB26 set out to remove, one level in.
-        // TERMINAL roots are the hierarchies a consumer INTERPRETS directly (EcBinder.PartHasIntrinsic has a
-        // walker for each); every other root is walked THROUGH. This is the one place the distinction is written
+        // TERMINAL roots are the hierarchies a consumer INTERPRETS directly (BoundValueWalk descends each through
+        // ValueChildren); every other root is walked THROUGH. This is the one place the distinction is written
         // down, and BoundNodeRootPartitionDriftTests fails if a new root appears without a decision here.
         var terminalNames = new HashSet<string> { "BoundExpr", "BoundCondition", "BoundOperand", "BoundBoolExpr" };
         var valueRoots = roots.Where(r => terminalNames.Contains(r.Name)).ToList();
@@ -209,6 +209,31 @@ public sealed class BoundVisitorGenerator : IIncrementalGenerator
             if (sources.Count == 0) continue;
             sb.Append("        ").Append(leaf.Name).Append(" x => ").Append(Combine(sources)).Append(",\n");
         }
+        sb.Append("        _ => Array.Empty<object>(),\n    };\n");
+
+        // ⛔ THE VALUE TREE'S OWN CHILD ENUMERATION (kb/Work PB6328): the value nodes each value node holds DIRECTLY, read
+        // from every property by the very walk that reads a statement's, so the consumer that asks "does an operand
+        // anywhere under this part carry X" recurses over THIS and keeps no hand-written switch with a `_ => false`
+        // default. A leaf added tomorrow, or a new operand slot on an existing one, joins by existing.
+        var valueLeaves = allTypes
+            .Where(t => !t.IsAbstract && valueRoots.Any(r => DerivesFrom(t, r)))
+            .OrderBy(t => t.Name, System.StringComparer.Ordinal)
+            .ToList();
+        sb.Append("\n    /// <summary>The value nodes (");
+        sb.Append(string.Join(" / ", valueRoots.Select(r => r.Name)));
+        sb.Append(") a value node holds DIRECTLY — a condition's operands, an expression's operands, a function call's\n");
+        sb.Append("    /// arguments — read from every property through the semantic model, so no operand position can be skipped.\n");
+        sb.Append("    /// Nested statements (a user-function activation list) are not value nodes and are not entered: each is\n");
+        sb.Append("    /// its own EC region. A node that is no value node holds none.</summary>\n");
+        sb.Append("    public static IEnumerable<object> ValueChildren(object? n) => n switch\n    {\n");
+        foreach (var leaf in valueLeaves)
+        {
+            var sources = new List<string>();
+            foreach (var p in InstanceProps(leaf))
+                CollectValueSources("x." + p.Name, p.Type, boundStatement, valueRoots, containerRoots, roots, sources, 0);
+            if (sources.Count == 0) continue;
+            sb.Append("        ").Append(leaf.Name).Append(" x => ").Append(Combine(sources)).Append(",\n");
+        }
         sb.Append("        _ => Array.Empty<object>(),\n    };\n}\n");
     }
 
@@ -250,7 +275,7 @@ public sealed class BoundVisitorGenerator : IIncrementalGenerator
             {
                 var inner = new List<string>();
                 string v = "__v" + depth;
-                foreach (var q in InstanceProps((INamedTypeSymbol)elem))
+                foreach (var q in Members((INamedTypeSymbol)elem))
                     CollectValueSources(v + "." + q.Name, q.Type, boundStatement, valueRoots, containerRoots, roots, inner, depth + 1);
                 if (inner.Count > 0)
                     sources.Add($"({access} ?? Array.Empty<{elem.ToDisplayString()}>()).SelectMany({v} => {Combine(inner)})");
@@ -258,8 +283,13 @@ public sealed class BoundVisitorGenerator : IIncrementalGenerator
             return;
         }
         if (IsStatementBearing(type, boundStatement, roots) || IsValueBearing(type, valueRoots, roots))
-            foreach (var q in InstanceProps((INamedTypeSymbol)type))
-                CollectValueSources($"{access}?.{q.Name}", q.Type, boundStatement, valueRoots, containerRoots, roots, sources, depth + 1);
+        {
+            // A tuple is a struct: `.` reaches its element, `?.` is the null-conditional of a reference record or of a
+            // Nullable<tuple>. A tuple that is not nullable takes `.` (`x?.T.Item1` is already conditional upstream).
+            string dot = type.IsTupleType ? "." : "?.";
+            foreach (var q in Members((INamedTypeSymbol)Unwrap(type)))
+                CollectValueSources($"{access}{dot}{q.Name}", q.Type, boundStatement, valueRoots, containerRoots, roots, sources, depth + 1);
+        }
     }
 
     /// <summary>A non-Bound helper record in our assembly that transitively holds a value node — the value-side twin
@@ -270,10 +300,10 @@ public sealed class BoundVisitorGenerator : IIncrementalGenerator
     private static bool IsValueBearing(ITypeSymbol type, List<INamedTypeSymbol> valueRoots,
         List<INamedTypeSymbol> roots, HashSet<INamedTypeSymbol> visited)
     {
-        if (type is not INamedTypeSymbol nt || !visited.Add(nt)) return false;
+        if (Unwrap(type) is not INamedTypeSymbol nt || !visited.Add(nt)) return false;
         if (roots.Any(r => IsDerivedFrom(nt, r) || SymbolEqualityComparer.Default.Equals(nt, r))) return false;
-        if (nt.ContainingAssembly is null || !nt.ContainingAssembly.Name.StartsWith("WiseOwl.Cobol.Compiler")) return false;
-        foreach (var p in InstanceProps(nt))
+        if (!nt.IsTupleType && (nt.ContainingAssembly is null || !nt.ContainingAssembly.Name.StartsWith("WiseOwl.Cobol.Compiler"))) return false;
+        foreach (var p in Members(nt))
         {
             var t = p.Type;
             if (TryListElement(t, out var e)) t = e;
@@ -331,7 +361,7 @@ public sealed class BoundVisitorGenerator : IIncrementalGenerator
             {
                 var inner = new List<string>();
                 string v = "__e" + depth;
-                foreach (var q in InstanceProps((INamedTypeSymbol)elem))
+                foreach (var q in Members((INamedTypeSymbol)elem))
                     CollectSources(v + "." + q.Name, q.Type, boundStatement, roots, inner, depth + 1);
                 if (inner.Count > 0)
                     sources.Add($"({access} ?? Array.Empty<{elem.ToDisplayString()}>()).SelectMany({v} => {Combine(inner)})");
@@ -339,8 +369,11 @@ public sealed class BoundVisitorGenerator : IIncrementalGenerator
             return;
         }
         if (IsStatementBearing(type, boundStatement, roots))
-            foreach (var q in InstanceProps((INamedTypeSymbol)type))
-                CollectSources($"{access}?.{q.Name}", q.Type, boundStatement, roots, sources, depth + 1);
+        {
+            string dot = type.IsTupleType ? "." : "?.";
+            foreach (var q in Members((INamedTypeSymbol)Unwrap(type)))
+                CollectSources($"{access}{dot}{q.Name}", q.Type, boundStatement, roots, sources, depth + 1);
+        }
     }
 
     private static string Combine(List<string> sources) =>
@@ -355,10 +388,10 @@ public sealed class BoundVisitorGenerator : IIncrementalGenerator
     private static bool IsStatementBearing(ITypeSymbol type, INamedTypeSymbol boundStatement,
         List<INamedTypeSymbol> roots, HashSet<INamedTypeSymbol> visited)
     {
-        if (type is not INamedTypeSymbol nt || !visited.Add(nt)) return false;
+        if (Unwrap(type) is not INamedTypeSymbol nt || !visited.Add(nt)) return false;
         if (roots.Any(r => IsDerivedFrom(nt, r) || SymbolEqualityComparer.Default.Equals(nt, r))) return false;
-        if (!SymbolEqualityComparer.Default.Equals(nt.ContainingAssembly, boundStatement.ContainingAssembly)) return false;
-        foreach (var p in InstanceProps(nt))
+        if (!nt.IsTupleType && !SymbolEqualityComparer.Default.Equals(nt.ContainingAssembly, boundStatement.ContainingAssembly)) return false;
+        foreach (var p in Members(nt))
         {
             if (IsStatementLike(p.Type, boundStatement)) return true;
             if (TryListElement(p.Type, out var e))
@@ -374,6 +407,21 @@ public sealed class BoundVisitorGenerator : IIncrementalGenerator
     /// element/child prop) or a leaf deriving from it.</summary>
     private static bool IsStatementLike(ITypeSymbol t, INamedTypeSymbol boundStatement) =>
         SymbolEqualityComparer.Default.Equals(t, boundStatement) || IsDerivedFrom(t, boundStatement);
+
+    /// <summary>⛔ THE MEMBERS A WALK READS (kb/Work PB6223): a tuple's ELEMENTS (a <c>ValueTuple</c> declares fields, no
+    /// properties, so <see cref="InstanceProps"/> saw none and a value node held in a tuple, as
+    /// <c>BoundCancel.Targets</c> holds its dynamic name, was invisible to every walk), otherwise the public instance
+    /// properties. One enumeration for the statement walk and the value walk, so neither can skip a shape the other reads.</summary>
+    private static IEnumerable<(string Name, ITypeSymbol Type)> Members(INamedTypeSymbol t) =>
+        t.IsTupleType
+            ? t.TupleElements.Select(f => (f.Name, f.Type))
+            : InstanceProps(t).Select(p => (p.Name, p.Type));
+
+    /// <summary>A <c>Nullable&lt;T&gt;</c> of a tuple is read through its tuple; every other type is itself.</summary>
+    private static ITypeSymbol Unwrap(ITypeSymbol t) =>
+        t is INamedTypeSymbol { OriginalDefinition.SpecialType: SpecialType.System_Nullable_T } n
+            && n.TypeArguments[0].IsTupleType
+            ? n.TypeArguments[0] : t;
 
     private static IEnumerable<IPropertySymbol> InstanceProps(INamedTypeSymbol t) =>
         t.GetMembers().OfType<IPropertySymbol>()
