@@ -632,6 +632,10 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
         // A cut list's position is written in its OWN parentheses, the reference's: it is never a direct term.
         if (seg.FromCutList || seg.Operand?.arithmeticExpression() is not { } expr)
             return MaterializePosition(seg, position);
+        // ⛔ THE SUBSCRIPT'S SHAPE IS SCREENED ONCE, BEFORE EITHER ROUTE (kb/Work PB6292): the direct walk and the D18 route
+        // both admit an index-name as any operand of the expression, so the one question "is the index-name the whole
+        // subscript, or the left operand of one + or - and an integer" is asked here, of the written position.
+        if (position == SegmentPosition.Subscript) ScreenIndexNameSubscriptShape(expr);
         // kb/Work PB136: a QUOTIENT-bearing position routes to D18 UNCONDITIONALLY — the direct form would be C#
         // integer division over long reads, truncating where §2023:8.4.2.3.4 GR1b evaluates the exact result of the whole
         // expression and requires EC-BOUND-SUBSCRIPT on a non-integer (`E((W-A + W-B) / 2)` with the sum 7 silently
@@ -741,6 +745,60 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
             // A scaled operand inside a compound position — evaluate the whole expression instead (above).
             return scaled && compound ? null : read;
         }
+    }
+
+    /// <summary>⛔ §2023:8.4.2.3.2 WRITES A SUBSCRIPT AS EXACTLY <c>ALL | arithmetic-expression-1 | index-name-1 [{+|-} integer-1]</c>
+    /// (kb/Work PB6292; the same three alternatives in §2002 and §2014, whose rules are §2002:8.4.1.2.3 and §2014:8.4.1.2.3's). An
+    /// index-name is admitted as the WHOLE subscript or as the left operand of ONE <c>+</c> or <c>-</c> and an unsigned integer
+    /// literal; it is no operand of arithmetic-expression-1 (§2023:8.8.1.1 names identifiers of numeric data items, numeric
+    /// literals and ZERO), so <c>T (IX * 2)</c>, <c>T (J + IX)</c>, <c>T (IX + J)</c>, <c>T (IX + 1 + 1)</c>, <c>T (- IX)</c>
+    /// and <c>T ((IX))</c> are the R29 shape (<see cref="IndexNameInArithmeticSubscriptError"/>). The 1985 edition's shape gate
+    /// (<c>VisitSubscriptPart</c>, kb/Work PB5074) already refuses every one of them, so this asks only where the 2002 subscript is.
+    /// The screen runs on the WRITTEN position, ahead of the direct walk and the D18 route, so both reach one verdict.
+    /// Names inside a function argument or a nested subscript belong to that reference's own position.</summary>
+    private void ScreenIndexNameSubscriptShape(Core.ArithmeticExpressionContext expr)
+    {
+        if (refs.Probing || !ConstructRegistry.IsAvailable(data.Edition.Edition, Constructs.SubscriptArithmeticExpression2002)) return;
+        if (IsIndexNameSubscriptForm(expr)) return;
+        if (FirstIndexNameOperand(expr) is not { } dref || !refs.ReportOnce(dref)) return;
+        using var _ = data.Edition.At(dref);
+        IndexNameInArithmeticSubscriptError(WrittenSource.Of(dref), WrittenSource.Of(expr));
+    }
+
+    /// <summary>True for <c>name</c> and <c>name {+|-} integer-literal</c> — the two shapes whose name may be an index-name
+    /// (§2023:8.4.2.3.2's third alternative); whether it IS one is not asked.</summary>
+    private static bool IsIndexNameSubscriptForm(Core.ArithmeticExpressionContext expr)
+    {
+        var terms = expr.additiveExpression().multiplicativeExpression();
+        if (terms.Length > 2 || !IsBareReference(terms[0])) return false;
+        return terms.Length == 1 || LeafTokens(terms[1]) is [{ Type: Core.INTEGERLIT }];
+    }
+
+    private static bool IsBareReference(Core.MultiplicativeExpressionContext term) =>
+        term.powerExpression() is [{ } power] && power.POWER().Length == 0
+        && power.unaryExpression(0) is { } unary && unary.addOp() is null
+        && unary.primaryExpression() is { } primary && primary.LPAREN() is null && primary.dataReference() is not null;
+
+    /// <summary>The first <c>dataReference</c> operand of <paramref name="node"/> whose spelling is an index-name, found without
+    /// descending into a function call, a subscript list or a reference modifier (their positions are their own), or null.
+    /// The question is the symbol table's, diagnostic-free: which table an index-name belongs to is
+    /// <see cref="ScreenIndexNameAssociation"/>'s, and the reference is resolved, and reported, by the walk or the D18 route.</summary>
+    private Core.DataReferenceContext? FirstIndexNameOperand(IParseTree node)
+    {
+        switch (node)
+        {
+            case Core.DataReferenceContext dref:
+                if (!IsNameToken(dref.Start)) return null;
+                var written = ReferenceResolver.ReadWritten(dref);
+                return written.SubscriptGroup is null && !written.IsReferenceModified && written.PropertyObject is null
+                    && data.Symbols.IdentifyIndexName(WrittenQualifiedName.OfRead(dref, written.Qualifiers), report: false) is not null
+                    ? dref : null;
+            case Core.FunctionCallContext or ITerminalNode:
+                return null;
+        }
+        for (int i = 0; i < node.ChildCount; i++)
+            if (FirstIndexNameOperand(node.GetChild(i)) is { } found) return found;
+        return null;
     }
 
     /// <summary>An integer literal (a sign before it is a unary operator of the expression, ISO §2023:8.3.3.3.2) as a
@@ -1023,6 +1081,23 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
         else
             data.Edition.Error(DiagnosticCatalog.IndexNameContext,
                 $"{what}. SET a data item to the index first (SET data-item TO {name})");
+    }
+
+    /// <summary>§2023:8.4.2.3.2 / §2023:8.8.1.1 AT AN INDEX-NAME INSIDE A COMPOUND SUBSCRIPT (kb/Work PB6292) — the R29
+    /// disposition <c>ExpressionBinder.IndexNameExpr</c> gives the same operand in a COMPUTE: strict refuses with
+    /// COBOL1637; <c>--permissive</c> warns and computes the occurrence number (the GnuCOBOL coercion).</summary>
+    private void IndexNameInArithmeticSubscriptError(string name, string subscript)
+    {
+        var ed = data.Edition.Edition;
+        string what = $"the index-name '{name}' is an operand of the subscript '{subscript}', but a subscript is ALL, an arithmetic "
+            + $"expression, or an index-name optionally followed by + or - and an integer ({ed.CiteRule("§1985:IV.4.3.8.2.2", "§2023:8.4.2.3.2")}), "
+            + $"and an index-name is no operand of an arithmetic expression ({EditionInfo.Designated(ed.NotArithmetic())}; "
+            + $"{ed.AdmitsIndexNameOnly()} as a subscript, in PERFORM/SEARCH VARYING, in SET, or in a relation condition)";
+        if (data.Edition.Permissive)
+            data.Edition.Warning(DiagnosticCatalog.IndexNameContext, $"{what}; accepted under --permissive, computing the occurrence number");
+        else
+            data.Edition.Error(DiagnosticCatalog.IndexNameContext,
+                $"{what}. Write the index-name alone, or {name} + or - an integer literal, or SET a data item to the index first (SET data-item TO {name})");
     }
 
     /// <summary>⛔ THE §2023:8.8.1.1 CLASS SCREEN FOR THE TOKEN RENDERER'S FAST PATH (kb/Work PB170) — the funnel entry

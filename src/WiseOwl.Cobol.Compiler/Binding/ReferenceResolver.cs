@@ -459,7 +459,7 @@ public sealed class ReferenceResolver
         if (_data.State.Implicit.DebugRegisters.Count > 0 && dref.dataReferenceSuffix().All(suffix => suffix.refModPart() is not null)
             && _data.Symbols.Identify(dref.cobolWord(), NameClass.DebugRegister, report) is { Symbol: DebugRegisterPlace dbg })
         {
-            if (!RefMods.ScreenRefModCount(dref, written, name)) return Ends(Refused());
+            if (!RefMods.ScreenRefModCount(written.RefModCount, dref, name)) return Ends(Refused());
             return new Identified(null, dbg.RegisterItem, written, [], dbg);
         }
 
@@ -479,7 +479,7 @@ public sealed class ReferenceResolver
         // `??=` kept the FIRST of each of the two carriers a ref-mod then had and one outranked the other, so
         // `MOVE A (3:4)(2:2)` COMPILED CLEAN and returned A(2:2) — a silent wrong value, not a composition and not
         // a rejection.
-        if (!RefMods.ScreenRefModCount(dref, written, name)) return Ends(Refused());
+        if (!RefMods.ScreenRefModCount(written.RefModCount, dref, name)) return Ends(Refused());
 
         // A reference whose chain ends in a non-word object (SELF, SUPER, a view, a function, NULL) is never a data name.
         DataItem? item = written.PropertyObject is not null ? null

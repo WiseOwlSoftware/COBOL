@@ -192,19 +192,13 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     {
         var refMods = fc.refModPart();
         if (refMods.Length == 0) return call;
-        // §2023:8.4.3.3.3 SR3, enforced HERE rather than by the grammar's arity so that a function result and a data
-        // reference report the SAME diagnostic (the data side must count anyway — dataReferenceSuffix* cannot
-        // express the limit either).
-        if (refMods.Length > 1)
-        {
-            ctx.Edition.Error(DiagnosticCatalog.RefModOfRefMod,
-                $"'{display}' carries {refMods.Length} reference modifications; the result of a function cannot "
-                + $"be reference-modified twice ({ctx.Edition.Edition.CiteRule("§1985:IV.4.3.8.4.2", "§2023:8.4.3.3.3 SR3")}). Compose the positions into one modifier.");
+        // §2023:8.4.3.3.3 SR3, enforced by the ONE count screen rather than by the grammar's arity, so that a function
+        // result, an inline invocation and a data reference report the SAME diagnostic (kb/Work PB6304).
+        if (!ctx.Refs.RefMods.ScreenRefModCount(refMods.Length, fc, display))
             return BoundExprError.Refused(ctx.Edition, $"reference modification of {display}");
-        }
         // §2023:8.4.3.2.3 SR6 was already decided by the caller, from the definition, before the call bound — the
         // only ref-mod that reaches here is one that FOLLOWS the argument list (or a zero-argument function).
-        return ResultRefMod(call, ctx.Refs.RefMods.ReadRefMod(refMods[0]), display);
+        return ResultRefMod(call, refMods[0], display);
     }
 
     /// <summary>
@@ -225,8 +219,9 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// temp cloned from the RETURNING item), so it reference-modifies through the SAME
     /// <see cref="RefModPlace"/> a data item does — no second slicer, and the temp's own category answers SR2.</para>
     /// </summary>
-    private BoundExpr ResultRefMod(BoundExpr call, RefModSpec? spec, string display)
+    private BoundExpr ResultRefMod(BoundExpr call, Core.RefModPartContext modifier, string display)
     {
+        var spec = ctx.Refs.RefMods.ReadRefMod(modifier);
         if (call is BoundExprError) return call;                    // already loud — do not stack a second report
         PicCategory? category = call switch
         {
@@ -244,6 +239,12 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             return BoundExprError.Refused(ctx.Edition, $"reference modification of {display}");
         }
         if (spec is not { } rm) return BoundExprError.Refused(ctx.Edition, $"reference modification of {display}");
+        // §2023:8.4.3.3.4 5) b), c): a user-defined function's result is a temporary whose description is the RETURNING item's, so
+        // the literal range screen the data reference meets applies to it (kb/Work PB6304; the intrinsic result's size is
+        // the catalog's, not an item's, and is screened where it is known).
+        if (call is BoundNumRef { Place.Item: { } resultItem }
+            && !ctx.Refs.RefMods.ScreenRefModLiterals(modifier, resultItem, rm, modifier.Start.Line, display))
+            return BoundExprError.Refused(ctx.Edition, $"reference modification of {display}");
         return call switch
         {
             BoundIntrinsicCall c => c with { RefMod = rm },
@@ -439,7 +440,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             var viaPointer = ArgumentsOf(sp) is { } fpArgs
                 ? host.Udf.UdfBindPointerCall(fp, fpArgs)
                 : BoundExprError.Refused(ctx.Edition, $"FUNCTION {name} arguments");
-            return Activated(tailRefMod is null ? viaPointer : ResultRefMod(viaPointer, ctx.Refs.RefMods.ReadRefMod(tailRefMod), name));
+            return Activated(tailRefMod is null ? viaPointer : ResultRefMod(viaPointer, tailRefMod, name));
         }
         // The word as an intrinsic-function-name OF THIS COMPILATION (>>COBOL-WORDS and the edition window —
         // DataBinder.TryIntrinsicOfThisCompilation), and the REPOSITORY half through DataBinder.IsRepositoryIntrinsic,
@@ -504,7 +505,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 var udfBare = host.Udf.UdfBindCall(declared, []);
                 return Activated(capturedRefMod is null
                     ? udfBare
-                    : ResultRefMod(udfBare, ctx.Refs.RefMods.ReadRefMod(capturedRefMod), name));
+                    : ResultRefMod(udfBare, capturedRefMod, name));
             }
             // A bare CATALOGUED name only becomes a function reference when the function genuinely admits
             // ZERO arguments (MinArgs 0 — CURRENT-DATE, PI, E, WHEN-COMPILED, and RANDOM's no-argument form,
@@ -519,14 +520,14 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             // form applies it, and the two reference forms cannot drift apart.
             return Activated(capturedRefMod is null
                 ? bare
-                : ResultRefMod(bare, ctx.Refs.RefMods.ReadRefMod(capturedRefMod), name));
+                : ResultRefMod(bare, capturedRefMod, name));
         }
         var call = ArgumentsOf(sp) is { } args
             ? BindIntrinsicCore(functionWord, cw.Start, args)
             : BoundExprError.Refused(ctx.Edition, $"FUNCTION {name} arguments");
         return Activated(tailRefMod is null
             ? call
-            : ResultRefMod(call, ctx.Refs.RefMods.ReadRefMod(tailRefMod), name));
+            : ResultRefMod(call, tailRefMod, name));
 
         // Every non-null return of this method IS a function activation (§2023:8.4.3.2.3 SR2); record the decision where it
         // is made so the migration-flag pass (§2023:7.3.14.4 GR4b) need not re-derive it from syntax.
@@ -3565,7 +3566,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         var written = ReferenceResolver.ReadWritten(dref);
         if (written.IsReferenceModified)
         {
-            if (!ctx.Refs.RefMods.ScreenRefModCount(dref, written, name)
+            if (!ctx.Refs.RefMods.ScreenRefModCount(written.RefModCount, dref, name)
                 || ctx.Refs.RefMods.ReadScreenedRefMod(dref, written, element.Item, out _) is not { } spec)
             {
                 args.Add(BoundOperandError.Refused(ctx.Edition, $"reference modification of table(ALL) argument '{name}'"));

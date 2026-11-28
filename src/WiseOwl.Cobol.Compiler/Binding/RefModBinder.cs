@@ -29,15 +29,17 @@ using WiseOwl.Cobol.Runtime;
 internal sealed class RefModBinder(ReferenceResolver refs, DataBinder data)
 {
     /// <summary>⛔ §2023:8.4.3.3.3 SR3 — "Identifier-1 shall not be a reference-modification format identifier." The
-    /// grammar cannot express it, so the written reference is COUNTED (<see cref="WrittenReference.RefModCount"/>);
-    /// ONE screen for every entry that reads a reference-modified identifier — <see cref="Resolve"/> and
-    /// <see cref="ResolveForAddressOf"/> (kb/Work PB1407). False having reported.</summary>
-    internal bool ScreenRefModCount(Core.DataReferenceContext dref, WrittenReference written, string name)
+    /// grammar cannot express it, so the written reference is COUNTED (<see cref="WrittenReference.RefModCount"/>, or the
+    /// modifiers an inline invocation or a function result carries);
+    /// ONE screen for every entry that reads a reference-modified identifier — <see cref="Resolve"/>,
+    /// <see cref="ResolveForAddressOf"/> (kb/Work PB1407), a function result and an inline method invocation
+    /// (<see cref="RefModOf"/>; kb/Work PB6304). <paramref name="writtenAt"/> is the node the report is keyed by. False having reported.</summary>
+    internal bool ScreenRefModCount(int count, object writtenAt, string name)
     {
-        if (written.RefModCount <= 1) return true;
-        if (refs.ReportOnce(dref))   // R30 purity: a probe never diagnoses (kb/Work PB157)
+        if (count <= 1) return true;
+        if (refs.ReportOnce(writtenAt))   // R30 purity: a probe never diagnoses (kb/Work PB157)
             data.Edition.Error(DiagnosticCatalog.RefModOfRefMod,
-                $"'{name}' carries {written.RefModCount} reference modifications; a reference-modified item cannot itself "
+                $"'{name}' carries {count} reference modifications; a reference-modified item cannot itself "
                 + $"be reference-modified ({data.Edition.Edition.CiteRule("§1985:IV.4.3.8.4.2", "§2023:8.4.3.3.3 SR3")}). Compose the positions into one modifier instead.");
         return false;
     }
@@ -84,18 +86,23 @@ internal sealed class RefModBinder(ReferenceResolver refs, DataBinder data)
     /// <summary>Reference-modify an ALREADY-RESOLVED place — §2023:8.4.3.1.4 GR1g)'s tail ("a reference modifier
     /// applies to the identifier on the left") over an identifier that is not a data-NAME reference. Its one
     /// caller today is the §2023:8.4.3.4 inline method invocation, whose §2023:8.4.3.4.4 GR1c temporary has no
-    /// <c>dataReference</c> context of its own (kb/Work PB428). It is a thin ENTRY, not a second reading: the
-    /// §2023:8.4.3.3.3 SR1 screen is <see cref="RefModExclusion"/> and the view is <see cref="RefModView"/> — the
-    /// same two the syntactic path runs, in the same order, with the same COBOL1647.</summary>
-    internal Place? RefModOf(Place inner, Core.RefModPartContext rmp, string what)
+    /// <c>dataReference</c> context of its own (kb/Work PB428). It is a thin ENTRY, not a second reading: it runs the
+    /// screens the syntactic path runs, in the same order — the §2023:8.4.3.3.3 SR3 count
+    /// (<see cref="ScreenRefModCount"/>, over every modifier WRITTEN, so <c>obj :: "m" (1:5) (2:2)</c> is refused as
+    /// <c>W (1:5) (2:2)</c> is), the SR1 exclusion (<see cref="RefModExclusion"/>), the SR4 literal range screen
+    /// (<see cref="ScreenRefModLiterals"/>, over the temporary's own description) and the view
+    /// (<see cref="RefModView"/>) — with the same COBOL1647 (kb/Work PB6304).</summary>
+    internal Place? RefModOf(Place inner, IReadOnlyList<Core.RefModPartContext> written, Antlr4.Runtime.ParserRuleContext writtenAt, string what)
     {
+        if (!ScreenRefModCount(written.Count, writtenAt, what)) return null;
         if (RefModExclusion(inner.Item, data.Edition.Edition) is { } why)
         {
             data.Edition.Error(DiagnosticCatalog.RefModIdentifierNotPermitted,
                 $"'{what}': reference modification of {why} is not permitted ({EditionInfo.Designated(RefModIdentifierRule(data.Edition.Edition))})");
             return null;
         }
-        return ReadRefMod(rmp) is { } spec ? RefModView(inner.Item, inner, spec) : null;
+        return ReadRefMod(written[0]) is { } spec && ScreenRefModLiterals(writtenAt, inner.Item, spec, written[0].Start.Line, what)
+            ? RefModView(inner.Item, inner, spec) : null;
     }
 
     /// <summary>⛔ THE ONE REFERENCE-MODIFICATION VIEW BUILDER (kb/Work PB205): the SUBSTRATE wrap that turns an
@@ -290,16 +297,20 @@ internal sealed class RefModBinder(ReferenceResolver refs, DataBinder data)
     /// false) where EC-BOUND-REF-MOD checking is not enabled, the warning twin where it is (the reference binds).
     /// Whether checking is enabled at the line is the statement site's answer (<see cref="IStatementSite.RefModCheckingAt"/>,
     /// which owns the statement-level TURN fold, overlays included); a data-division resolver has no site, and no
-    /// statement exists there for a checking directive to govern, so it reads as not enabled.</summary>
-    private bool ScreenRefModLiterals(Core.DataReferenceContext dref, DataItem described, RefModSpec spec, int line)
+    /// statement exists there for a checking directive to govern, so it reads as not enabled. <paramref name="writtenAt"/> is
+    /// the node the report is keyed by and, unless <paramref name="written"/> names it better (a function result's
+    /// display), the text the message quotes. Every entry that reference-modifies a described item asks it — the
+    /// syntactic path, an inline method invocation and a user-defined function result (kb/Work PB6304).</summary>
+    internal bool ScreenRefModLiterals(Antlr4.Runtime.ParserRuleContext writtenAt, DataItem described, RefModSpec spec, int line,
+        string? written = null)
     {
         if (refs.Probing) return true;   // R30 purity: a probe never diagnoses (kb/Work PB157)
         if (LiteralRefModRangeViolation(described, LiteralPosition(spec.Start), LiteralPosition(spec.Length),
                 spec.Length is null, spec.AllowZeroLength, data.Edition.Edition) is not { } why) return true;
         bool checking = refs.Site?.RefModCheckingAt(line) ?? false;
-        if (refs.ReportOnce(dref))
+        if (refs.ReportOnce(writtenAt))
         {
-            string at = $"'{WrittenSource.Of(dref)}': {why}";
+            string at = $"'{written ?? WrittenSource.Of(writtenAt)}': {why}";
             if (checking) data.Edition.Warning(DiagnosticCatalog.RefModLiteralOutOfRangeChecked, at);
             else data.Edition.Error(DiagnosticCatalog.RefModLiteralOutOfRange, at);
         }
