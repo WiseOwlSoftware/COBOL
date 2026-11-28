@@ -27,7 +27,9 @@ import sys
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO / "scripts" / "spec"))
+sys.path.append(str(REPO / "scripts"))  # for standard_streams
 import cite  # noqa: E402
+from standard_streams import ensure_utf8  # noqa: E402
 
 OUT = REPO / "src" / "WiseOwl.Cobol.Compiler" / "Binding" / "IntrinsicCitationConcordance.cs"
 SOURCES = [
@@ -193,4 +195,5 @@ FOOTER = '''    };
 '''
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

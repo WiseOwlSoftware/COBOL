@@ -82,6 +82,30 @@ public sealed class IntrinsicCitationConcordanceDriftTests
 
     private static readonly Regex Cite = new(@"§2023:15\.\d+", RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
+    /// <summary>Every citation literal the generator read, as the C# reader reads it: the one pattern spelled twice (in Python and
+    /// here) cannot disagree, because each literal of the three sources translates at both editions without a missing row.</summary>
+    [Theory]
+    [InlineData("Binding/Procedure/Verbs/IntrinsicBinder.cs")]
+    [InlineData("Binding/IntrinsicArgumentRules.cs")]
+    [InlineData("Binding/SpecialNamesBinder.cs")]
+    public void EveryCitationLiteralOfTheSources_HasARow(string relative)
+    {
+        string path = TestRepo.Src(["WiseOwl.Cobol.Compiler", .. relative.Split('/')]);
+        int read = 0;
+        foreach (string line in File.ReadLines(path))
+        {
+            if (line.TrimStart().StartsWith("//", StringComparison.Ordinal)) continue;
+            foreach (Match literal in CitationLiteral.Matches(line))
+            {
+                string cite = literal.Value.Trim('"');
+                foreach (int year in new[] { 2002, 2014 })
+                    Assert.False(string.IsNullOrEmpty(IntrinsicCitations.Clause(EditionInfo.Of(year), "ABS", cite)), cite);
+                read++;
+            }
+        }
+        Assert.True(read > 0, $"{relative}: no citation literal was read");
+    }
+
     /// <summary>The binder writes a §2023:15 rule in one way: a literal that is the citation alone, handed to
     /// <c>IntrinsicCitations</c> (or a <c>Cite</c> of its own that names every edition). A message that spells one in its text prints
     /// COBOL-2023's number at COBOL-2002 and COBOL-2014. The one exception is the TRIM gate, a message of COBOL-2023's own rule that
