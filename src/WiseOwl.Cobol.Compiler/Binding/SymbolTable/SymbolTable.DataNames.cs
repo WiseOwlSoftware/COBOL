@@ -125,9 +125,11 @@ public sealed partial class SymbolTable
     /// <summary>The level-88 entries a SELECT WHEN clause of <paramref name="record"/> may name (§2023:13.18.51.1: the clause
     /// "specifies a condition-name condition under which a record description entry is associated" with a record): every condition-name of the spelling the clause carries, resolved from the record that carries it as slice 6 resolved a
     /// restricted pointer's prototype from its item (section 6.7.1, "A name a SYMBOL carries is resolved by the table from the
-    /// symbol"). Empty when the record has no SELECT WHEN condition-name.</summary>
+    /// symbol"), in the scope that owns the record (<c>DataBinder.ScopeOf</c> of its root) through the one condition lookup
+    /// <see cref="TryResolveCondition"/>: a method's own LOCAL-STORAGE or LINKAGE record names the method's own level-88, which
+    /// hides the object's of the spelling (§2023:11.7.4 GR5; kb/Work PB6276). Empty when the record has no SELECT WHEN condition-name.</summary>
     internal IReadOnlyList<Condition88> SelectWhenConditionsOf(DataItem record) =>
-        record.SelectWhen is { ConditionName: { } name } && _conditionNames.TryGetValue(Key(name), out var list) ? list : [];
+        record.SelectWhen is { ConditionName: { } name } && TryResolveCondition(name, _data.ScopeOf(record.Root), out var list) ? list : [];
 
     /// <summary>
     /// ⭐ THE LOOKUP OF A WRITTEN DATA-NAME (§2023:8.4.2.2.2 Format 1; docs/rearchitecture/DESIGN-listing.md section 6.7.1, "Step 6b,
