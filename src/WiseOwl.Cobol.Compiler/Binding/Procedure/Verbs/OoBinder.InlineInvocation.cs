@@ -285,9 +285,9 @@ internal sealed partial class OoBinder
         // on the left of the tail IS the invocation, whose value is the temporary. The ONE ref-mod reading
         // (ReferenceResolver) is asked for it, so §2023:8.4.3.3.3's rules screen the temp exactly as they screen
         // any other data item.
-        foreach (var rm in imi.refModPart())
+        if (imi.refModPart() is { Length: > 0 } refMods)
         {
-            if (ctx.Refs.RefMods.RefModOf(place, rm, imi.GetText()) is not { } modified)
+            if (ctx.Refs.RefMods.RefModOf(place, refMods, imi, imi.GetText()) is not { } modified)
                 return BoundExprError.Refused(ctx.Edition, "reference-modified inline method invocation");
             place = modified;
         }
