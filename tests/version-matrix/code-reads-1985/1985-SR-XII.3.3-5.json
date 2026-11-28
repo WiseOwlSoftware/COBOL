@@ -2,60 +2,65 @@
  "rule-id": "1985-SR-XII.3.3-5",
  "rule-digest": "649cd1f136e8",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-164",
+  "pin": "970f41963949f6db64aa4304f1adb01e21084550",
+  "slice": "1985-wf63d4-pb2328",
   "sources": {
-   "reader": "6d8a53cec0accaefe2bb291e691ac63c7183c9fe3c9773a098fc5de8702ddabb",
-   "refuter": "416d110d13e37c263a308110960fcca2febb2009618d9486ee0ec1fba4bb829e"
+   "reader": "a4d9c117bed384e2cbcdfd881c84db921cb5ce00eec14663b0c96c4a749abfd3",
+   "refuter": "e1fc05b306a4d0a9e02cf1ee46662f879def9f1b8b6686077546ee35fd564979"
   },
   "imported": {
-   "reader": "a87c6f50ef6f48a9dbb83e2dd57b54a61bb9646165b6fbc79df4df674fffb8cf",
-   "refuter": "e139387f3b1977b9e64f8877007bc7b819449d2faef084c9aa0bd96c0f950c47"
+   "reader": "28bc3676c40ca8527dd43e09eb5c8059547f25a6d753f25731a001da6e82cb96",
+   "refuter": "73f068d6f909c14ffbcd40956209cc17e0f742dda82d492a216f955896ad8f01"
   }
  },
  "reader": {
   "rule-id": "1985-SR-XII.3.3-5",
   "verdict": "CONFORMS",
-  "requirement": "At --std 85 a word, numeric literal or nonnumeric literal inside pseudo-text-1 or pseudo-text-2 of REPLACE may be split across lines by a hyphen in the indicator area and is joined by the normal continuation rules (§1985:IV.7.2.2: intervening comment and blank lines skipped, a continued nonnumeric literal keeps its trailing spaces to margin R and resumes after the quotation mark), with area A of each continuation line blank and both characters of '==' on one line.",
-  "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalLineBuilder.cs#Add; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalLineBuilder.cs#ContinueFixed; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatDiagnostics.cs#OnContinuationTextInAreaA; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatDiagnostics.cs#OnWordContinuation; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatDiagnostics.cs#OnContinuation",
+  "requirement": "At --std 85 a word, numeric literal or nonnumeric literal inside pseudo-text-1 or pseudo-text-2 of REPLACE may be split across lines by a hyphen in the indicator area and is joined by the normal continuation rules (§1985:IV.7.2.5, §1985:IV.7.2.2: intervening comment and blank lines skipped, a continued nonnumeric literal keeps its trailing spaces to margin R and resumes after the continuation line's quotation mark), area A of each continuation line blank and both characters of '==' on one line.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/LogicalLineBuilder.cs#Add; src/WiseOwl.Cobol.Frontend/Preprocessor/LogicalLineBuilder.cs#ContinueFixed; src/WiseOwl.Cobol.Frontend/Preprocessor/LogicalLineBuilder.cs#Join; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatDiagnostics.cs#OnContinuationTextInAreaA; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatDiagnostics.cs#OnSplitSeparator; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatDiagnostics.cs#OnWordContinuation; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatDiagnostics.cs#OnContinuation",
   "edition-consulted": [
    {
     "site": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatDiagnostics.cs#OnContinuationTextInAreaA",
-    "switches": "ConstructRegistry fixed-form-text-in-area-a-2002: continuation text in area A refused (COBOL3735) at 85, allowed from 2002",
+    "switches": "ConstructRegistry fixed-form-text-in-area-a-2002: text of a continuation line beginning in area A refused (COBOL3735) at 85, allowed from 2002; asked by LogicalLineBuilder.Add for every fixed continuation line that does not continue a directive",
     "same-arm-as-latest": false
    },
    {
     "site": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatDiagnostics.cs#OnWordContinuation",
-    "switches": "dialectLevel < 2023 returns: word continuation accepted at 85, COBOL0902 (removed) at 2023",
+    "switches": "ConstructRegistry fixed-form-word-continuation-removed-2023: no verdict at 85 (word continuation legal), COBOL0902 at 2023; asked by ContinueFixed only for a splice joining two COBOL word characters",
     "same-arm-as-latest": false
    },
    {
     "site": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatDiagnostics.cs#OnContinuation",
-    "switches": "dialectLevel < 2023 returns: no obsolete flag for the column-7 hyphen at 85, COBOL0903 warning at 2023",
+    "switches": "ConstructRegistry col7-continuation-obsolete-2023: no verdict at 85, COBOL0903 warning at 2023",
     "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatDiagnostics.cs#OnSplitSeparator",
+    "switches": "diagnostic wording only: Edition.Cite names §1985:IV.7.2.2 at 85 and §2023:6.3.5 at 2023 for '==' split by a join (COBOL2688); the refusal is the same at both",
+    "same-arm-as-latest": true
    }
   ],
   "edition-search": "",
-  "behaviour-differs-by-edition": "yes: at 85 word continuation in pseudo-text is legal and continuation text in area A is refused; at 2023 word continuation is removed (COBOL0902) and the hyphen is obsolete (COBOL0903)",
-  "witnesses-cover": "part: g85_f28_02 covers a word, a numeric literal and a nonnumeric literal ending at margin R; not intervening comment or blank lines, trailing-space literal content, nor the area-A and split-delimiter refusals",
+  "behaviour-differs-by-edition": "yes: at 85 word continuation in pseudo-text is legal and continuation text in area A is refused (COBOL3735); at 2023 word continuation is removed (COBOL0902) and the column-7 hyphen is obsolete (COBOL0903)",
+  "witnesses-cover": "part: g85_f28_02 covers a word, a numeric literal and a nonnumeric literal ending at margin R; not intervening comment or blank lines, trailing-space literal content, nor the area-A refusal",
   "probes": [
    {
     "class": "a",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-164/src/ptrepl.cob",
-    "printed": "[P         ]   -25 (exit 0)",
-    "expected": "DO-/IT joined across a comment line; the continued literal keeps trailing spaces then Q (truncated to X(10)); -1/2.5 joined to -12.5 * 2 = -25; WS-/N joined"
+    "file": "E:/COBOL-coord/scratch/finish-worktree-wf_63d45de5-530-1/src/reader/r5.cob",
+    "printed": "[PQ                                                ]+025.0 (exit 0)",
+    "expected": "1 / 2.5 joined to 12.5 (12.5 * 2 = +025.0); SHOW- / IT joined across a blank line; the pseudo-text-2 literal \"PQ continued at margin R: PQ + 54 spaces + RS, 58 characters (r5.g.cs stores the 58-character literal into X(50)), truncated to X(50)"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-164/src/ptrareaa.cob",
-    "printed": "COBOL3735: text of a continuation line that begins in area A (targeting COBOL-85)",
-    "expected": "area A of the continuation line must be blank"
+    "file": "E:/COBOL-coord/scratch/finish-worktree-wf_63d45de5-530-1/src/reader/r6.cob",
+    "printed": "r6.cob(9,8): error COBOL3735: text of a continuation line (a hyphen in column 7) that begins in area A",
+    "expected": "§1985:IV.7.2.5: area A of a continuation line in pseudo-text must be blank"
    },
    {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-164/src/ptdelim.cob",
-    "printed": "COBOL2688: == is split across a continued line and its continuation line",
-    "expected": "§1985:IV.7.2.2: both characters of '==' must be on the same line"
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/finish-worktree-wf_63d45de5-530-1/src/reader/r5.cob",
+    "printed": "--std 2023: r5.cob(6,7) warning COBOL0903, error COBOL0902 (exit 65)",
+    "expected": "the edition arm: legal at 85, word continuation removed at 2023"
    }
   ],
   "citations": [
@@ -64,16 +69,16 @@
     "check": "OK  §1985:XII.3.3 SR5  the text is in SR5"
    },
    {
-    "cite": "§1985:IV.7.2.5",
-    "check": "OK  §1985:IV.7.2.5  (7.2.5 Pseudo-Text)  the text is in the clause"
-   },
-   {
     "cite": "§1985:IV.7.2.2",
     "check": "OK  §1985:IV.7.2.2  (7.2.2 Continuation of Lines)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:IV.7.2.5",
+    "check": "OK  §1985:IV.7.2.5  (7.2.5 Pseudo-Text)  the text is in the clause"
    }
   ],
-  "notes": "Continuation is resolved in the reference-format logical-line builder before COPY/REPLACE see the text, so pseudo-text continuation is the ordinary fixed-form ContinueFixed join. The seed ContinueFloating is the 2002+ floating-indicator path, not taken at 85. Diagnostics at 85 cite §2023 clauses; cosmetic.",
-  "seeded": true,
+  "notes": "Re-read after kb/Work PB2328 moved LogicalLineBuilder out of ReferenceFormatProcessor into its own file (LogicalLineBuilder.cs); Add, ContinueFixed and Join are unchanged but for indentation and two comment citations (diff -w against the merge base). Continuation is resolved in the reference-format logical-line builder before COPY and REPLACE see the text, so a continued character-string of pseudo-text is the ordinary fixed-form ContinueFixed join: a word or numeric literal from the first nonblank character of area B, a nonnumeric literal from after the continuation line's quotation mark, the continued line kept to margin R. ContinueFloating is the 2002+ floating-indicator path, not taken at 85.",
+  "seeded": false,
   "harm": "",
   "cause": "",
   "at-2023": "",
@@ -86,7 +91,7 @@
   "rule-id": "1985-SR-XII.3.3-5",
   "refutation": "UPHELD",
   "classes": "a,b,c",
-  "evidence": "Probe at --std 85: rrp1.cob REPLACE in the Data Division with ==SET-N== BY ==COMPUTE WS-N = 12. / -75 + 1== (numeric literal split right after its decimal point) and ==SET-A== BY ==MOVE \"AB (open literal, B at col 42) followed by two comment lines and a blank line, then -\"CD\" TO WS-A==: exit 0, [AB          ]    13.75 (literal = AB + 30 spaces to margin R + CD truncated to X(12); 12.75+1). The same logical-line join (ReferenceFormatProcessor.LogicalLineBuilder#ContinueFixed) serves COPY and REPLACE, and rcp2/rcp4 above exercise PICTURE strings, three-line words and literals at margin R through it. cite.py: OK  §1985:XII.3.3 SR5 (\"Character-strings within pseudo-text-1 and pseudo-text-2 may be continued\"); OK §1985:IV.7.2.2.",
+  "evidence": "Probes at --std 85 on this branch's build. f2.cob: REPLACE ==PUT-IT== BY ==MOVE \"ABC with its closing quotation mark at margin R (column 72), continued by -\"DEF\" TO WS- / -TH / (a slant comment line) / -ING==: exit 0, [ABC + 52 spaces + \"DEF ]: the quotation mark at column 72 closed the literal and the continuation's quotation mark is its successor, one doubled quotation mark (f2.g.cs stores ABC, 52 spaces, a quotation mark and DEF), and WS-THING was formed over three lines. f3.cob, no over-reject: REPLACE ==SHOW / IT== with IT in area A on a line with NO hyphen is accepted and SHOW IT. displays 4 (§1985:IV.7.2.5: \"The text words and the separator space comprising pseudo-text may start in either area A or area B\"). At --std 2023 f2 is refused COBOL0902. ContinueFixed serves COPY and REPLACE alike (f1 of 1985-SR-XII.2.3-5). cite.py: OK §1985:XII.3.3 SR5; OK §1985:IV.7.2.2; OK §1985:IV.7.2.5.",
   "edition-sites-missed": [],
   "corrected": ""
  }
