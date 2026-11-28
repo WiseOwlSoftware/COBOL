@@ -213,7 +213,7 @@ internal sealed class BinderContext(DataBinder data, ReferenceResolver refs)
         if (use.DEBUGGING() is not null) return edition.Cite("§1985:XV.3.2.3 SR1", "ISO §2023:14.9.49.3 SR1");
         var rule = new EditionCite("ISO §2023:14.9.49.3 SR1", "§1985:VII.4.6.3 SR1", "§1985:VIII.4.8.3 SR1", "§1985:IX.4.8.3 SR1");
         return use.useOnTarget()?.fileName() is [var first, ..]
-            && Symbols.Identify(first, WiseOwl.Cobol.Symbols.NameClass.File, report: false) is { Symbol: FileModel file }
+            && Symbols.IdentifyFile(first, report: false) is { } file
             ? rule.At(edition.Year, file.Organization)
             : rule.AtEveryOrganization(edition.Year);
     }

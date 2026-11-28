@@ -4,7 +4,6 @@ using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
-using WiseOwl.Cobol.Symbols;
 using WiseOwl.Cobol.Editions;
 
 namespace WiseOwl.Cobol.Binding.Procedure;
@@ -239,7 +238,7 @@ internal sealed class UseStatementBinder(BinderContext ctx)
     private FileModel? ResolveUseFile(Core.FileNameContext fn, string sectionName)
     {
         string fname = fn.GetText();
-        if (ctx.Symbols.Identify(fn, NameClass.File, report: true) is not { Symbol: FileModel file })
+        if (ctx.Symbols.IdentifyFile(fn, report: true) is not { } file)
         {
             ctx.Edition.Error(DiagnosticCatalog.DeclarativeUseRule, $"declarative section '{sectionName}': USE names unknown "
                 + $"file '{fname}' (ISO §2023:14.9.49)");

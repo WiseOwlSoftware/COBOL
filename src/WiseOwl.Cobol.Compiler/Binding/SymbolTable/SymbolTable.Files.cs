@@ -97,6 +97,13 @@ public sealed partial class SymbolTable
         return null;
     }
 
+    /// <summary>The file the written file-name identifies at <paramref name="reach"/>, or null: <see cref="Identify(Antlr4.Runtime.ParserRuleContext,
+    /// NameClass, bool, NameReach, ProcedureSite?, ReportSite)"/> asked for the file-name class, its occurrence recorded when
+    /// <paramref name="report"/> is true. The typed file-name question, so a caller outside the binding layer (the flag pass of
+    /// compiler.validation) names no compiler.symbols type (kb/Work PB6173; docs/rearchitecture/architecture-edges.json).</summary>
+    internal FileModel? IdentifyFile(Antlr4.Runtime.ParserRuleContext written, bool report, NameReach reach = NameReach.Visible)
+        => Identify(written, NameClass.File, report, reach)?.Symbol as FileModel;
+
     /// <summary>Every file of this element and of each containing program, GLOBAL or not, shadowed or not: this element's own
     /// files, then each container's, nearest first. A container's file need not be GLOBAL for an item it names
     /// (its FILE STATUS item, made visible by the item's own GLOBAL clause) to be referenced here, so a question about such

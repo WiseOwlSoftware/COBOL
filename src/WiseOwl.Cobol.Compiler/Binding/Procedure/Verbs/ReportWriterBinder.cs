@@ -447,7 +447,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         var members = new List<BoundStatement>();
         foreach (var rn in names)
         {
-            if (ctx.Data.Symbols.Identify(rn, NameClass.Report, report: true)?.Symbol is not ReportModel r)
+            if (ctx.Data.Symbols.IdentifyReport(rn, report: true) is not { } r)
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementOperandRule, $"{verb.Word} '{rn.GetText()}': report-name-1 shall be defined by a report "
                     + $"description entry in the report section ({verb.DefinedIn(ctx.Edition.Edition)})"
                     + HidingOfReportName(rn.GetText()));
@@ -478,7 +478,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         // The report-name form (SR2, summary reporting) has NO qualifier — §2023:8.4.2.2 gives a report-name no
         // qualifier at all — so a qualified operand can only be the data-name form and skips this arm. Its one word is the
         // head's, and when it names a report the report-name form IS the reference (the group form below is not asked).
-        if (qualifier is null && ctx.Data.Symbols.Identify(operand.cobolWord(), NameClass.Report, report: true)?.Symbol is ReportModel summary)
+        if (qualifier is null && ctx.Data.Symbols.IdentifyReport(operand.cobolWord(), report: true) is { } summary)
         {
             if (summary.Controls.Count == 0)
                 ctx.Edition.Error(DiagnosticCatalog.ReportGenerateNeedsControl, $"GENERATE {name}: the report-name form requires a CONTROL "

@@ -12,7 +12,6 @@ namespace WiseOwl.Cobol.Binding.Procedure;
 
 using Core = CobolParserCore;
 using WiseOwl.Cobol.Runtime;
-using WiseOwl.Cobol.Symbols;
 
 /// <summary>
 /// The exception-checking (Format-3) PERFORM binder (ISO §2023:14.9.28 Format 3, COBOL-2023). Produces a
@@ -212,7 +211,7 @@ internal sealed partial class EcBinder
 
     private FileModel? ResolveWhenFile(Antlr4.Runtime.ParserRuleContext written)
     {
-        if (ctx.Symbols.Identify(written, NameClass.File, report: true) is { Symbol: FileModel file }) return file;
+        if (ctx.Symbols.IdentifyFile(written, report: true) is { } file) return file;
         string name = WrittenSource.Of(written);
         ctx.Edition.Error(DiagnosticCatalog.PerformWhenFileUnknown, $"WHEN names unknown file '{name}' (ISO §2023:14.9.28.2 Format 3)");
         return null;

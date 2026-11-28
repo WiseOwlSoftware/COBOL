@@ -5,7 +5,6 @@ using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Frontend.Parsing;
-using WiseOwl.Cobol.Symbols;
 using WiseOwl.Cobol.Editions;
 
 namespace WiseOwl.Cobol.Binding.Procedure;
@@ -49,7 +48,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
     {
         var operand = s.sortFileName().dataReference();
         string name = SubjectName(s);
-        if (ctx.Symbols.Identify(SubjectWord(s), NameClass.File, report: true) is not { Symbol: FileModel file })
+        if (ctx.Symbols.IdentifyFile(SubjectWord(s), report: true) is not { } file)
             return SortBindTable(s, operand, name);
         // The FILE reading of the operand is file-name-1, which is written alone — `SORT S OF X …` named the SD `S`
         // with its qualifier dropped in silence until kb/Work PB2040. The table reading's data-name-2 MAY be
@@ -74,7 +73,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
     /// statement" under the FORMAT 1 heading (§2023:14.9.40.3 SR3-SR12) asks THIS, never the node type: §2023:14.9.40.3 SR3's
     /// exception-checking-PERFORM ban bound a legal Format-2 table SORT until kb/Work PB1139.</summary>
     internal static bool IsFileFormat(BinderContext ctx, Core.SortStatementContext s) =>
-        ctx.Symbols.Identify(SubjectWord(s), NameClass.File, report: false) is not null;
+        ctx.Symbols.IdentifyFile(SubjectWord(s), report: false) is not null;
 
     /// <summary>Bind the Format-1 file sort: SD operand (SR4), keys (SR6 + GR1/GR2), DUPLICATES (GR3),
     /// COLLATING (GR5), and the release/return phase sources (USING/INPUT PROCEDURE, GIVING/OUTPUT PROCEDURE —

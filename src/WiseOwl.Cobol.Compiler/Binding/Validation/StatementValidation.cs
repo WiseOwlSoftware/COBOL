@@ -9,7 +9,6 @@ using WiseOwl.Cobol.Binding.Procedure;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
-using WiseOwl.Cobol.Symbols;
 using WiseOwl.Cobol.Frontend.Parsing;
 
 namespace WiseOwl.Cobol.Binding.Validation;
@@ -249,7 +248,7 @@ internal sealed class StatementValidation(DataBinder data)
     {
         string name = written.GetText();
         string nameWritten = WrittenSource.Of(written);
-        file = data.Symbols.Identify(written, NameClass.File, report: true)?.Symbol as FileModel;
+        file = data.Symbols.IdentifyFile(written, report: true);
         if (file is not null)
             return admitsReportFile || ScreenReportFileReference(file, verb, statementRule);
         // §1985:X.1.3.8.2 GR3a: a nearer declaration of the spelling (this program's own data item) hides a container's GLOBAL file, and
