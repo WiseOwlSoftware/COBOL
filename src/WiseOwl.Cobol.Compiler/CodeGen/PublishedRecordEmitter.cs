@@ -222,8 +222,14 @@ internal sealed class PublishedRecordEmitter(Func<DataItem, string> profileOf)
             using (w.Block($"internal static bool __TryGet(string __s, StorageCell? __c, int __at, string __name, ref global::System.FormatException? __bad, out {name} __r)"))
             {
                 w.Line($"__r = new {name}();");
-                if (!BitLayout.IsBitItem(group))
-                    w.Line($"__r.__image = __s.Substring(__at / 8, {width});");
+                // The image is kept by every record that publishes AsImage or FromImage, nested ones included (each struct
+                // emits both, and __Land reads it): the positions no member covers (FILLER) keep the content read, whatever the
+                // usage (a USAGE BIT root keeps its FILLER bits, kb/Work PB6270). A nested BIT group may start mid-byte, where
+                // the byte-granular Substring has no meaning, so it keeps the image only at a byte-aligned position (always
+                // for FromImage, which reads at 0).
+                w.Line(BitLayout.IsBitItem(group)
+                    ? $"if (__at % 8 == 0) __r.__image = __s.Substring(__at / 8, {width});"
+                    : $"__r.__image = __s.Substring(__at / 8, {width});");
                 w.Line("bool __ok = true;");
                 foreach (var m in members) EmitGet(root, group, m, w);
                 w.Line("return __ok;");
