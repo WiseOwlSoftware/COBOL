@@ -239,7 +239,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             return BoundExprError.Refused(ctx.Edition, $"reference modification of {display}");
         }
         if (spec is not { } rm) return BoundExprError.Refused(ctx.Edition, $"reference modification of {display}");
-        // §2023:8.4.3.3.4 5) b), c): a user-defined function's result is a temporary whose description is the RETURNING item's, so
+        // §2023:8.4.3.3.4 GR5b and GR5c: a user-defined function's result is a temporary whose description is the RETURNING item's, so
         // the literal range screen the data reference meets applies to it (kb/Work PB6304; the intrinsic result's size is
         // the catalog's, not an item's, and is screened where it is known).
         if (call is BoundNumRef { Place.Item: { } resultItem }
