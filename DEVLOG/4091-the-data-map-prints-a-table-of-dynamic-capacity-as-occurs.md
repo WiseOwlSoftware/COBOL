@@ -1,4 +1,4 @@
-## The data map prints a table of dynamic capacity as OCCURS DYNAMIC, with the phrases it writes
+## Entry 4091 — 2026-11-27 22:42 PST — The data map prints a table of dynamic capacity as OCCURS DYNAMIC, with the phrases it writes
 
 PB6226. The listing's data map printed `05 T OCCURS DYNAMIC CAPACITY IN C FROM 5 TO 100` as `OCCURS 5 TO 0` and a bare `OCCURS DYNAMIC` as
 `OCCURS 0`: `OccursSpec` carries `Max = 0` for a Format 4 table (it has no allocated maximum), `SymbolTableFinish.DataAttributesOf` copied
@@ -18,3 +18,4 @@ DESIGN-listing.md section 6.6 names the new fact.
 Goldens: `ListingDataMapTests.ATableOfDynamicCapacity_IsDataMapped_AsDynamic_WithThePhrasesItWrites` (bare, FROM, TO, all three phrases, plus a fixed
 and an ODO table whose rows keep their forms) and a dynamic item in `JsonListingWriterTests`' round trip. Sweep: the only readers of
 `OccursMin`/`OccursMax` are `DetailParts` and the JSON model. No inventory row closes.
+
