@@ -1255,4 +1255,99 @@ public sealed class HostEntryTests
         }
         finally { ScratchDirectory.Remove(dir); }
     }
+
+    /// <summary>kb/Work PB6270: a published record of a GROUP-USAGE BIT group keeps the positions no member covers (FILLER)
+    /// between <c>FromImage</c> (or the entry's write-back) and <c>AsImage</c>, as the same description under USAGE DISPLAY
+    /// does (DESIGN-external-repository §4.3). ISO §2023:14.2.3 GR8 (cite.py OK) makes a BY REFERENCE formal occupy the
+    /// argument's storage, so the activated program's store of one member leaves the FILLER bits it never stored as they
+    /// were; <c>LK-A</c> is bits 1-3 and the FILLER bits 4-8 of the one storage character.</summary>
+    private const string BitGroupPrograms = """
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. H9BITG.
+        DATA DIVISION.
+        LINKAGE SECTION.
+        01 LK-G GROUP-USAGE BIT.
+           05 LK-A PIC 1(3).
+           05 FILLER PIC 1(5).
+        PROCEDURE DIVISION USING LK-G.
+        P1.
+            DISPLAY "A " LK-A
+            MOVE B"101" TO LK-A
+            GOBACK.
+        END PROGRAM H9BITG.
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. H9BITT.
+        DATA DIVISION.
+        WORKING-STORAGE SECTION.
+        01 WS-ONES PIC 1(8) USAGE BIT VALUE B"11111111".
+        LINKAGE SECTION.
+        01 LK-T.
+           05 LK-N PIC 9.
+           05 LK-ROWS GROUP-USAGE BIT OCCURS DYNAMIC CAPACITY IN LK-RC FROM 1.
+              10 LK-A PIC 1(3).
+              10 FILLER PIC 1(5).
+        PROCEDURE DIVISION USING LK-T.
+        P1.
+            DISPLAY "T " LK-N " " LK-A(1)
+            IF LK-N = 0
+                MOVE WS-ONES TO LK-ROWS(1)
+            END-IF
+            MOVE 1 TO LK-N
+            MOVE B"010" TO LK-A(1)
+            GOBACK.
+        END PROGRAM H9BITT.
+        """;
+
+    private const string BitGroupHost = """
+        using System;
+        using Cobol.H9PROGS;
+
+        public static class H9HostProgram
+        {
+            public static int Main()
+            {
+                string filled = ((char)0x1F).ToString();   // LK-A 000, the FILLER bits 11111
+                var g = H9BITG.LK_G_Record.FromImage(filled);
+                Console.WriteLine($"RT {(int)g.AsImage()[0]:X2} [{g.LK_A}]");
+                H9BITG.Call(ref g);
+                Console.WriteLine($"CALL {(int)g.AsImage()[0]:X2} [{g.LK_A}]");
+                H9BITG.Call(ref g);
+                Console.WriteLine($"AGAIN {(int)g.AsImage()[0]:X2} [{g.LK_A}]");
+                var fresh = new H9BITG.LK_G_Record { LK_A = "110" };
+                Console.WriteLine($"NEW {(int)fresh.AsImage()[0]:X2}");
+                var t = new H9BITT.LK_T_Record { LK_N = 0, LK_ROWS = [new() { LK_A = "000" }] };
+                H9BITT.Call(ref t);
+                Console.WriteLine($"T1 {t.LK_N} [{t.LK_ROWS[0].LK_A}] {(int)t.LK_ROWS[0].AsImage()[0]:X2}");
+                H9BITT.Call(ref t);
+                Console.WriteLine($"T2 {t.LK_N} [{t.LK_ROWS[0].LK_A}] {(int)t.LK_ROWS[0].AsImage()[0]:X2}");
+                return 0;
+            }
+        }
+        """;
+
+    [Fact]
+    public void AHost_PassesAUsageBitGroup_KeepingItsFillerBitsAcrossFromImageTheCallAndAsImage()
+    {
+        string dir = ScratchDirectory.Create("h9host");
+        try
+        {
+            NonCobolElement.CompileCobol(dir, "H9PROGS", BitGroupPrograms);
+            NonCobolElement.CompileCSharp(dir, "H9HOST", BitGroupHost, "H9PROGS", "H9PROGS");
+            var (exit, stdout, stderr) = CutRunner.RunExit(Path.Combine(dir, "H9HOST.dll"), dir);
+            Assert.Equal(
+                "RT 1F [000]\n" +
+                "A 000\n" +
+                "CALL BF [101]\n" +
+                "A 101\n" +
+                "AGAIN BF [101]\n" +
+                "NEW C0\n" +
+                "T 0 000\n" +
+                "T1 1 [010] 5F\n" +
+                "T 1 010\n" +
+                "T2 1 [010] 5F", stdout);
+            Assert.Equal(0, exit);
+            Assert.Equal("", stderr);
+        }
+        finally { ScratchDirectory.Remove(dir); }
+    }
 }
