@@ -1,4 +1,4 @@
-## NumericDisplayForm moves to compiler.model; validation asks typed file-name and report-name questions (PB6172, PB6173)
+## Entry 4073 — 2026-11-27 17:18 PST — NumericDisplayForm moves to compiler.model; validation asks typed file-name and report-name questions (PB6172, PB6173)
 
 Wave 20262172, group A (fix lane, cluster PB1754). The group's five notes are five mechanisms. This branch finishes the two
 layering moves the 9e65164eb census found, PB6172 and PB6173, and leaves PB6169, PB3231 and PB2622 for dispatches of their own.
@@ -27,3 +27,4 @@ The remaining use above the 68 PB6172 expected does not come from this enum.
 
 No inventory row is involved (behaviour-neutral layering), so nothing is added to the conformance suite. The full gate is
 this change's proof.
+
