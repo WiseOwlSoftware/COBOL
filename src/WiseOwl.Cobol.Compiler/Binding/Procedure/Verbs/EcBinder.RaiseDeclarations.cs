@@ -352,27 +352,11 @@ internal sealed partial class EcBinder
         return OperandRaises.Where(r => parts.Any(r.Carries)).Select(r => r.Name);
     }
 
-    /// <summary>The operands one generated value part holds: itself when it is one, or those a condition compares,
-    /// classifies or tests (the condition hierarchy is walked to its leaves). Expressions hold no address operand
-    /// (§2023:8.5.2.1 Table 2 — a pointer is not an arithmetic operand), so they contribute none.</summary>
-    private static IEnumerable<BoundOperand> OperandsIn(object part) => part switch
-    {
-        BoundOperand o => [o],
-        BoundCondition c => ConditionOperands(c),
-        _ => [],
-    };
-
-    private static IEnumerable<BoundOperand> ConditionOperands(BoundCondition c) => c switch
-    {
-        BoundRelational r => [r.Left, r.Right],
-        BoundLogical l => l.Operands.SelectMany(ConditionOperands),
-        BoundNot n => ConditionOperands(n.Operand),
-        BoundClassCondition cc => [cc.Operand],
-        BoundUserClassCondition uc => [uc.Operand],
-        BoundCodedSetClassCondition cs => [cs.Operand],
-        BoundUdfEvaluated u => ConditionOperands(u.Inner),
-        _ => [],
-    };
+    /// <summary>Every operand under one generated value part: the part itself when it is one, and each operand a condition
+    /// compares, classifies, tests or bounds, an expression computes with, or a function call takes as an argument —
+    /// all of them, by <see cref="BoundValueWalk"/>, the one walk of the value tree (kb/Work PB6328).</summary>
+    private static IEnumerable<BoundOperand> OperandsIn(object part) =>
+        BoundValueWalk.SelfAndDescendants(part).OfType<BoundOperand>();
 
     // ── Source 3: the AMBIENT sites ──────────────────────────────────────────────────────────────────────────
 
@@ -517,57 +501,14 @@ internal sealed partial class EcBinder
 
     // ── The intrinsic walk (an OperandRaises predicate) ──────────────────────────────────────────────────────
 
-    /// <summary>One generated value part → does it carry an intrinsic call? The four value hierarchies each have
-    /// their own walker below; a part of any other shape (a <c>Place</c>, a receiver) carries no expression and
-    /// answers false. ⛔ ISO §2023:15.3 AR14 attaches the condition to the FUNCTION REFERENCE with no statement-kind
-    /// qualification, so the list of parts is the GENERATED <see cref="BoundStatementTree.OwnValueParts"/> — a hand-written
-    /// switch over statement kinds with a `_ => false` default was a silent wrong answer (FUNCTION LOG10(0) raised in
-    /// COMPUTE, MOVE, DISPLAY and IF and was silent in STRING; kb/Work PB26). <c>EcArgumentFunctionGateDriftTests</c> pins
-    /// the walk's shape.</summary>
-    private static bool PartHasIntrinsic(object part) => part switch
-    {
-        BoundExpr e => ExprHasIntrinsic(e),
-        BoundCondition c => CondHasIntrinsic(c),
-        BoundOperand o => OpHasIntrinsic(o),
-        BoundBoolExpr b => BoolExprHasIntrinsic(b),
-        _ => false,
-    };
-
-    private static bool OpHasIntrinsic(BoundOperand op) => op switch
-    {
-        BoundComputedOperand c => ExprHasIntrinsic(c.Expr),
-        BoundBoolOperand b => BoolExprHasIntrinsic(b.Expr),
-        _ => false,
-    };
-
-    /// <summary>The intrinsic walk over the boolean channel (ISO §2023:8.8.2). Boolean-op operands are boolean items/
-    /// literals today — intrinsic operands inside a boolean expression are named residue — but the walk is TOTAL
-    /// from day one (the DEVLOG-607 rule: a new node must register in every exhaustive walk).</summary>
-    private static bool BoolExprHasIntrinsic(BoundBoolExpr e) => e switch
-    {
-        BoundBoolBinary b => BoolExprHasIntrinsic(b.Left) || BoolExprHasIntrinsic(b.Right),
-        BoundBoolNot n => BoolExprHasIntrinsic(n.Operand),
-        BoundBoolShift s => BoolExprHasIntrinsic(s.Operand) || ExprHasIntrinsic(s.Count),   // the count is a numeric expr
-        BoundBoolCall => true,   // a boolean-result function reference (kb/Work PB68)
-        _ => false,
-    };
-
-    private static bool ExprHasIntrinsic(BoundExpr e) => e switch
-    {
-        BoundIntrinsicCall => true,
-        BoundBinary b => ExprHasIntrinsic(b.Left) || ExprHasIntrinsic(b.Right),
-        BoundNegate n => ExprHasIntrinsic(n.Operand),
-        BoundPower p => ExprHasIntrinsic(p.Base) || ExprHasIntrinsic(p.Exp),
-        _ => false,
-    };
-
-    private static bool CondHasIntrinsic(BoundCondition c) => c switch
-    {
-        BoundRelational r => OpHasIntrinsic(r.Left) || OpHasIntrinsic(r.Right),
-        BoundLogical l => l.Operands.Any(CondHasIntrinsic),
-        BoundNot n => CondHasIntrinsic(n.Operand),
-        BoundSignCondition s => ExprHasIntrinsic(s.Expr),
-        BoundBooleanCondition bc => BoolExprHasIntrinsic(bc.Expr),
-        _ => false,
-    };
+    /// <summary>One generated value part → does any value node under it call an intrinsic function? ⛔ ISO §2023:15.3 AR14
+    /// attaches the condition to the FUNCTION REFERENCE with no statement-kind and no condition-kind qualification, so the
+    /// parts are the GENERATED <see cref="BoundStatementTree.OwnValueParts"/> and the nodes under each are
+    /// <see cref="BoundValueWalk"/>'s, which reads every operand position of every value node. A hand-written switch with
+    /// a `_ => false` default was a silent wrong answer twice: over statement kinds (FUNCTION LOG10(0) raised in COMPUTE,
+    /// MOVE, DISPLAY and IF and was silent in STRING; kb/Work PB26) and over condition kinds (a class condition, a user or
+    /// alphabet class condition and a range membership held an intrinsic and answered false; kb/Work PB6328).
+    /// <c>EcArgumentFunctionGateDriftTests</c> and <c>BoundValueWalkDriftTests</c> pin the walk's shape.</summary>
+    private static bool PartHasIntrinsic(object part) =>
+        BoundValueWalk.SelfAndDescendants(part).Any(n => n is BoundIntrinsicCall);
 }
