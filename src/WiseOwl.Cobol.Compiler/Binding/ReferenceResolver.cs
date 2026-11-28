@@ -359,10 +359,8 @@ public sealed class ReferenceResolver
         // no-THROUGH form's forward to data-name-2's place.
         // An implicitly-defined name that is no storage item (DEBUG-CONTENTS) brings its own place; every other item's is built.
         PlaceGap gap = default;
-        var inner = Linked(id.ImplicitPlace ?? Places.PlaceForItem(item, id.IndexExprs!, out gap), dref.Start);
+        var inner = WrittenPlace(dref, id.ImplicitPlace ?? Places.PlaceForItem(item, id.IndexExprs!, out gap), report);
         if (inner is null) return ItemFailure(dref, gap);
-        // The implicit half of the LINKAGE screen (kb/Work PB5876): an OCCURS DEPENDING ON object the operand's extent reads.
-        if (report) Names.ScreenImplicitLinkageReferences(dref, inner);
 
         if (cleanRef is null) return RefResolution.Resolved(inner, "");
         // identifier-1's DESCRIPTION is the item its place stands for, not the name as written: for a no-THROUGH
@@ -533,6 +531,7 @@ public sealed class ReferenceResolver
     /// <see cref="Resolve"/> (kb/Work PB1030), with a deferral put on the unbuilt ledger the same way.</summary>
     public RefResolution ResolveForItem(Core.DataReferenceContext dref, DataItem item)
     {
+        using var _ = _data.Edition.At(dref);   // positioned at the reference, as ResolveHere is (kb/Work PB4383)
         bool savedSegment = SegmentDeferred;
         SegmentDeferred = false;
         try
@@ -540,12 +539,27 @@ public sealed class ReferenceResolver
             // SR2 names the CONDITIONAL VARIABLE for a condition-name reference (§2023:8.4.2.3 Format 2), which is
             // exactly the item this entry is handed — so the ONE subscript reading applies unchanged (kb/Work PB877).
             var answer = Subscripts.ReadSubscripts(dref, item, SubscriptBinder.SubscriptGroupOf(dref), out var indexExprs)
-                ?? (Linked(Places.PlaceForItem(item, indexExprs, out var gap), dref.Start) is { } place
+                ?? (WrittenPlace(dref, Places.PlaceForItem(item, indexExprs, out var gap), !Probing) is { } place
                     ? RefResolution.Resolved(place, "") : ItemFailure(dref, gap));
             if (answer.Outcome == RefOutcome.Deferred) _data.Edition.NoteUnbuilt(answer.Feature);
             return answer;
         }
         finally { SegmentDeferred = savedSegment; }
+    }
+
+    /// <summary>⛔ THE PLACE HALF'S ONE TAIL FOR A WRITTEN REFERENCE (kb/Work PB6303): the item's <paramref name="built"/> place linked to
+    /// the occurrence the symbol table recorded at the reference (<see cref="Linked{T}(T, Antlr4.Runtime.IToken)"/>), then — when this
+    /// resolver commits (<paramref name="report"/>) — the implicit half of the LINKAGE screen: an OCCURS DEPENDING ON object the
+    /// operand's extent reads is a reference to that object (§2023:8.4.5, "contributes to, or is affected by, the execution of the
+    /// statement"), and a LINKAGE item the procedure division may not reference draws COBOL2746 (§2023:13.7.3 SR4; kb/Work PB5876).
+    /// Every entry that builds a committed place for a written reference ends here — <see cref="ResolveImplCore"/> for an
+    /// identifier and <see cref="ResolveForItem"/> for a condition-name's conditional variable — so a third entry cannot drop the
+    /// screen again. Null when the place could not be built.</summary>
+    private Place? WrittenPlace(Core.DataReferenceContext dref, Place? built, bool report)
+    {
+        var place = Linked(built, dref.Start);
+        if (place is not null && report) Names.ScreenImplicitLinkageReferences(dref, place);
+        return place;
     }
 
     /// <summary>⛔ THE ONE DECOMPOSITION OF A <c>dataReference</c> AS WRITTEN (kb/Work PB443). Three resolutions
