@@ -163,7 +163,7 @@ def entry(key: str, function: str | None, y1985: str | None, y2002: str | None, 
     def lit(v: str | None) -> str:
         return "null" if v is None else f'"{v}"'
     fn = "null" if function is None else f'"{function}"'
-    return f'        ["{key}"] = new({fn}, {lit(y1985)}, {lit(y2002)}, {lit(y2014)}),\n'
+    return f'        new("{key}", {fn}, {lit(y1985)}, {lit(y2002)}, {lit(y2014)}),\n'
 
 
 HEADER = '''// Copyright (c) 2026 Brent Rector. All rights reserved.
@@ -181,16 +181,25 @@ namespace WiseOwl.Cobol.Binding;
 /// <c>scripts/spec/audit_code_citations.py</c>.</summary>
 internal static class IntrinsicCitationConcordance
 {
-    /// <summary>One §2023 citation's counterparts: the function (null for a clause of §2023:15 that is no function's own), the
-    /// citation in the 1989 module (only for those clauses; a function's own is <c>IntrinsicCatalog.Paragraph1989</c>'s) and the
-    /// citation in COBOL-2002 and COBOL-2014 (null where the edition lacks the clause).</summary>
-    internal readonly record struct Row(string? Function, string? In1985, string? In2002, string? In2014);
+    /// <summary>One §2023 citation's counterparts: its canonical form, the function (null for a clause of §2023:15 that is no
+    /// function's own), the citation in the 1989 module (only for those clauses; a function's own is
+    /// <c>IntrinsicCatalog.Paragraph1989</c>'s) and the citation in COBOL-2002 and COBOL-2014 (null where the edition lacks the clause).</summary>
+    internal readonly record struct Row(string Key, string? Function, string? In1985, string? In2002, string? In2014);
 
-    /// <summary>The counterparts, by canonical 2023 citation.</summary>
-    internal static readonly IReadOnlyDictionary<string, Row> Rows = new Dictionary<string, Row>(StringComparer.Ordinal)
+    /// <summary>The position in <see cref="Rows"/> of a canonical 2023 citation, or -1: a message is a cold path, and the rows are a
+    /// list the generator wrote in order.</summary>
+    internal static int IndexOf(string key)
     {
+        for (int i = 0; i < Rows.Count; i++)
+            if (string.Equals(Rows[i].Key, key, StringComparison.Ordinal)) return i;
+        return -1;
+    }
+
+    /// <summary>The counterparts, in canonical-citation order.</summary>
+    internal static readonly IReadOnlyList<Row> Rows =
+    [
 '''
-FOOTER = '''    };
+FOOTER = '''    ];
 }
 '''
 

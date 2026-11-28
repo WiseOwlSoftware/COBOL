@@ -8,7 +8,7 @@
   "longer fails. Repair a citation, then rewrite this file with",
   "`python scripts/spec/audit_code_citations.py --write-baseline` (it refuses to add an entry)."
  ],
- "count": 1875,
+ "count": 1873,
  "entries": [
   {
    "file": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4",
@@ -10528,20 +10528,6 @@
    "file": "tests/WiseOwl.Cobol.Tests.Unit/Intrinsic1989ModuleDriftTests.cs",
    "line": 68,
    "citation": "§2023:15.7.3",
-   "kind": "designator-not-canonical",
-   "reason": "a test's string literal: an expectation changes only with the message it quotes"
-  },
-  {
-   "file": "tests/WiseOwl.Cobol.Tests.Unit/Intrinsic1989ModuleDriftTests.cs",
-   "line": 69,
-   "citation": "§2023:15.84.3",
-   "kind": "designator-not-canonical",
-   "reason": "a test's string literal: an expectation changes only with the message it quotes"
-  },
-  {
-   "file": "tests/WiseOwl.Cobol.Tests.Unit/Intrinsic1989ModuleDriftTests.cs",
-   "line": 69,
-   "citation": "§2023:15.84.3",
    "kind": "designator-not-canonical",
    "reason": "a test's string literal: an expectation changes only with the message it quotes"
   },

@@ -66,8 +66,8 @@ internal static class IntrinsicCitations
     /// <summary>The row of a matched citation, or a loud failure naming the generator that writes the table: an unresolvable
     /// citation never prints a guess.</summary>
     private static IntrinsicCitationConcordance.Row RowOf(Match m) =>
-        IntrinsicCitationConcordance.Rows.TryGetValue(CanonicalKey(m), out var row)
-            ? row
+        IntrinsicCitationConcordance.IndexOf(CanonicalKey(m)) is >= 0 and var at
+            ? IntrinsicCitationConcordance.Rows[at]
             : throw new InvalidOperationException(
                 $"IntrinsicCitationConcordance has no row for '{m.Value}': run scripts/spec/gen_intrinsic_citation_concordance.py");
 

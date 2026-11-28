@@ -33,8 +33,10 @@ public sealed class IntrinsicCitationConcordanceDriftTests
     public void EveryRow_AgreesWithTheCatalogsIntroductionEdition_AndNamesItsOwnEdition()
     {
         Assert.True(IntrinsicCitationConcordance.Rows.Count > 100, "the concordance is nearly empty");
-        foreach (var (key, row) in IntrinsicCitationConcordance.Rows)
+        Assert.Equal(IntrinsicCitationConcordance.Rows.Count, IntrinsicCitationConcordance.Rows.Select(r => r.Key).Distinct(StringComparer.Ordinal).Count());
+        foreach (var row in IntrinsicCitationConcordance.Rows)
         {
+            string key = row.Key;
             var m = IntrinsicCitations.Cite2023.Match("§2023:" + key);
             Assert.True(m.Success && m.Length == key.Length + "§2023:".Length && IntrinsicCitations.CanonicalKey(m) == key,
                 $"'{key}' is not a canonical §2023:15 citation");
