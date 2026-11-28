@@ -378,7 +378,11 @@ the edition in force has no such rule, the message cites the edition where the r
   holds, per edition, the codes whose message still cites only a later rule somewhere (525 codes and 3395 lines at 2002, 536 codes
   and 3146 lines at 2014, measured 2026-11-24), and the sweep of kb/Work PB6118 empties it a code at a time; no code joins. A run
   with `WISEOWL_COBOL_RECORD_CITATION_SWEEP=<directory>` writes every remaining offence to `<directory>/<edition>.txt` and asserts
-  nothing: the sweep's measure.
+  nothing: the sweep's measure. An intrinsic function's argument rules are the first family it emptied: `IntrinsicCitations.Clause`
+  turns each §2023:15.n.3 rule into the function's own `15.m.2` clause of the edition (`IntrinsicCatalog.Paragraph` numbers m, the
+  catalog's functions in ordinal name order from 15.6 at 2002 and 15.7 at 2014 and 2023; `IntrinsicCitations.Edition2002` and
+  `Edition2014` name the rules an edition numbers differently or lacks), and `IntrinsicEditionClausesDriftTests` reads every number back
+  from the three transcriptions (COBOL1627 and COBOL1645 left the ratchet: 508 codes at 2002, 517 at 2014).
 - **Where a family of sites shares one rule, the 1985 arm lives with the rule, not at the sites** (kb/Work PB4950 slice 1):
   `UniqueReferenceRule` (Compiler/Binding) writes the §1985:IV.4.3.8 / §2023:8.4.2.1 "a reference identifies one resource"
   citation and quotation once, through `Cite`, for every undefined-name, wrong-kind-of-name and unidentified-procedure message;

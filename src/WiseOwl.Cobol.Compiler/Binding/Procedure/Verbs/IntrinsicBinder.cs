@@ -864,7 +864,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         {
             ctx.Edition.Error(DiagnosticCatalog.IntrinsicFunctionFormInvalid, $"FUNCTION {sig.Name} takes "
                 + (sig.MinArgs == sig.MaxArgs ? $"{sig.MinArgs}" : sig.MaxArgs == int.MaxValue ? $"at least {sig.MinArgs}" : $"{sig.MinArgs}..{sig.MaxArgs}")
-                + $" argument(s); {given} given ({ctx.Edition.Edition.CiteRule("§1985:IV.4.3.8.3.3 SR1", "§2023:15.3")})");
+                + $" argument(s); {given} given ({ctx.Edition.Edition.CiteRule("§1985:IV.4.3.8.3.3 SR1", "§2023:15.3", "§2002:15.2", "§2014:15.3")})");
             return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name} arity");
         }
 
@@ -1213,10 +1213,10 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             var a = argCtxs[operandCount];
             string rule = sig.Name switch
             {
-                "LOCALE-COMPARE" => "ISO §2023:15.51.3 r4 — locale-name-1 shall be associated with a locale in the SPECIAL-NAMES paragraph",
-                "LOCALE-DATE" => "ISO §2023:15.52.3 r3 — locale-name-1 shall be associated with a locale in the SPECIAL-NAMES paragraph",
-                "LOCALE-TIME" => "ISO §2023:15.53.3 r4 — locale-name-1 shall be associated with a locale in the SPECIAL-NAMES paragraph",
-                _ => "ISO §2023:15.54.3 r2 — locale-name-1 shall be associated with a locale in the SPECIAL-NAMES paragraph",
+                "LOCALE-COMPARE" => $"{EditionInfo.Designated(IntrinsicCitations.ClauseSince2002(ctx.Edition.Edition, sig.Name, "§2023:15.51.3 AR4"))} — locale-name-1 shall be associated with a locale in the SPECIAL-NAMES paragraph",
+                "LOCALE-DATE" => $"{EditionInfo.Designated(IntrinsicCitations.ClauseSince2002(ctx.Edition.Edition, sig.Name, "§2023:15.52.3 AR3"))} — locale-name-1 shall be associated with a locale in the SPECIAL-NAMES paragraph",
+                "LOCALE-TIME" => $"{EditionInfo.Designated(IntrinsicCitations.ClauseSince2002(ctx.Edition.Edition, sig.Name, "§2023:15.53.3 AR4"))} — locale-name-1 shall be associated with a locale in the SPECIAL-NAMES paragraph",
+                _ => $"{EditionInfo.Designated(IntrinsicCitations.ClauseSince2002(ctx.Edition.Edition, sig.Name, "§2023:15.54.3 AR2"))} — locale-name-1 shall be associated with a locale in the SPECIAL-NAMES paragraph",
             };
             string site = $"FUNCTION {sig.Name}'s locale-name-1 '{WrittenSource.Of(a).Trim()}'";
             if (KeywordWordOf(a) is { } word)
@@ -1783,10 +1783,10 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             CobolClass c1 = IntrinsicArgumentRules.TableTwoClass(k1);
             if (!toNat && c1 is not CobolClass.National)
                 ctx.Edition.Error(DiagnosticCatalog.NationalConversionArgumentRule, "FUNCTION DISPLAY-OF: argument-1 shall be of class national "
-                    + "(ISO §2023:15.26.3 rule 1) — FUNCTION NATIONAL-OF is the alphanumeric→national conversion");
+                    + $"({ConversionRule("DISPLAY-OF", "§2023:15.26.3 AR1")}) — FUNCTION NATIONAL-OF is the alphanumeric→national conversion");
             else if (toNat && c1 is not (CobolClass.Alphabetic or CobolClass.Alphanumeric))
                 ctx.Edition.Error(DiagnosticCatalog.NationalConversionArgumentRule, "FUNCTION NATIONAL-OF: argument-1 shall be of class alphabetic "
-                    + "or alphanumeric (ISO §2023:15.66.3 rule 1) — FUNCTION DISPLAY-OF is the national→alphanumeric "
+                    + $"or alphanumeric ({ConversionRule("NATIONAL-OF", "§2023:15.66.3 AR1")}) — FUNCTION DISPLAY-OF is the national→alphanumeric "
                     + "conversion");
         }
 
@@ -1795,18 +1795,18 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         {
             if (IntrinsicArgumentRules.TableTwoClass(k2) is not (CobolClass.Alphabetic or CobolClass.Alphanumeric))
                 ctx.Edition.Error(DiagnosticCatalog.NationalConversionArgumentRule, "FUNCTION DISPLAY-OF: argument-2 (the substitution character) "
-                    + "shall be of class alphabetic or alphanumeric (ISO §2023:15.26.3 rule 2)");
+                    + $"shall be of class alphabetic or alphanumeric ({ConversionRule("DISPLAY-OF", "§2023:15.26.3 AR2")})");
         }
         else if (toNat && OperandCategory(args[1]) is { } c2)
         {
             if (c2 is not PicCategory.National)
                 ctx.Edition.Error(DiagnosticCatalog.NationalConversionArgumentRule, "FUNCTION NATIONAL-OF: argument-2 (the substitution character) "
-                    + "shall be of category national (ISO §2023:15.66.3 rule 2)");
+                    + $"shall be of category national ({ConversionRule("NATIONAL-OF", "§2023:15.66.3 AR2")})");
         }
         if (KnownWidth(args[1]) is { } w && w != 1)
             ctx.Edition.Error(DiagnosticCatalog.NationalConversionArgumentRule, $"FUNCTION {sig.Name}: argument-2 (the substitution character) "
                 + $"shall be one character position in length, not {w} "
-                + $"({EditionInfo.Designated((toNat ? "§2023:15.66.3" : "§2023:15.26.3"))} rule 2)");
+                + $"({(toNat ? ConversionRule("NATIONAL-OF", "§2023:15.66.3 AR2") : ConversionRule("DISPLAY-OF", "§2023:15.26.3 AR2"))})");
     }
 
     /// <summary>BASECONVERT argument rules (§2023:15.12.3 AR1 — fix-queue PB59 / AR-15.12.3-1 legs (b)–(f)), the
@@ -2077,7 +2077,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             && CobolIntrinsics.CurrencyStringViolatesContentRules(curLit.Value))
             ctx.Edition.Error(DiagnosticCatalog.IntrinsicArgumentClass, $"FUNCTION {sig.Name} argument-2 shall contain at least one "
                 + "non-space character and none of the digits 0-9, the characters '*' '+' '-' ',' '.', or "
-                + "the letter pair CR/DB in any case (ISO §2023:15.68.3 rule 2)");
+                + $"the letter pair CR/DB in any case ({EditionInfo.Designated(IntrinsicCitations.ClauseSince2002(ctx.Edition.Edition, sig.Name, "§2023:15.68.3 AR2"))})");
         if (operands.Count == 1 && !localeWritten)
         {
             // §2023:15.68.3 AR3: "If NEITHER argument-2 NOR THE LOCALE KEYWORD is specified, there shall be only one
@@ -2159,7 +2159,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             // positions — the clauses each say "zero-length LITERAL" — so screening on width would reject legal
             // source, which is how PB1 turned 12 conforming corpus programs away.
             if (rule.NoZeroLengthClause is { } zlClause && args[i] is BoundStringLiteral { Value.Length: 0 })
-                Report($"FUNCTION {sig.Name} argument-{i + 1} is a zero-length literal, which {zlClause} "
+                Report($"FUNCTION {sig.Name} argument-{i + 1} is a zero-length literal, which {EditionInfo.Designated(IntrinsicCitations.ClauseSince2002(ctx.Edition.Edition, sig.Name, zlClause))} "
                     + "does not admit");
             // The position's OTHER predicates (kb/Work PB58) — width, operand shape, the strong-type exclusion —
             // each its own rule with its own clause; the class kind below is the last of them, not the only one.
@@ -2846,6 +2846,10 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// COBOL-85 the "Arguments" subclause of the function's paragraph of the 1989 module (<see cref="IntrinsicCitations.Clause"/>).</summary>
     private string ArgumentClause(IntrinsicSig sig, string clause2023) => IntrinsicCitations.Clause(ctx.Edition.Edition, sig.Name, clause2023);
 
+    /// <summary>The rule of DISPLAY-OF or NATIONAL-OF's argument, as a message prints it, in the edition in force (kb/Work PB5922).</summary>
+    private string ConversionRule(string function, string clause2023) =>
+        EditionInfo.Designated(IntrinsicCitations.ClauseSince2002(ctx.Edition.Edition, function, clause2023));
+
     /// <summary>An argument the §15 rules make INADMISSIBLE, reported where it is decidable — at BIND (fix-queue
     /// PB52 cause 3). Returns a <see cref="BoundExprError"/> so the caller's expression shape is unchanged.</summary>
     /// <remarks>
@@ -3476,7 +3480,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             ctx.Edition.Error(DiagnosticCatalog.AllSubscriptNotRepeatable,
                 $"FUNCTION {sig.Name} argument '{name}(… ALL …)': the ALL subscript is permitted only when the "
                 + "function's definition permits an argument to be repeated a variable number of times ("
-                + ctx.Edition.Edition.CiteRule("§1989:A.2.2", "§2023:15.3") + "), and "
+                + ctx.Edition.Edition.CiteRule("§1989:A.2.2", "§2023:15.3", "§2002:15.2", "§2014:15.3") + "), and "
                 + $"FUNCTION {sig.Name}'s general format repeats none — write the occurrence you mean, or use a function "
                 + "whose format is `{ argument } …` (MAX, MIN, SUM, MEAN, …).");
             args.Add(BoundOperandError.Refused(ctx.Edition, $"FUNCTION {sig.Name} table(ALL) argument"));
