@@ -340,14 +340,15 @@ internal sealed partial class EcBinder
 
     /// <summary>⛔ THE OPERAND-DECLARED RAISE NAMES OF A STATEMENT (kb/Work PB1453, PB3102): the exception-names that a value
     /// part in THIS statement's own value parts (<see cref="BoundStatementTree.OwnValueParts"/>, generated from the semantic
-    /// model — a statement kind or operand slot added tomorrow is covered without an edit) can raise, per
-    /// <see cref="OperandRaises"/>. Nested statements are NOT walked: each is bound and wrapped through its own
+    /// model — a statement kind or operand slot added tomorrow is covered without an edit) and in the operands of the report
+    /// description a GENERATE or TERMINATE evaluates (<see cref="ReportValueWalk.EvaluatedBy"/>: the model the statement holds by
+    /// reference, which the generated walk does not enter; kb/Work PB6349) can raise, per <see cref="OperandRaises"/>. Nested statements are NOT walked: each is bound and wrapped through its own
     /// <see cref="EcWrap"/> and is an EC region boundary of its own (kb/Work PB441), so a part is asked where it is
     /// written, under that statement's own TURN state — the former nested-statement recursion of the intrinsic test
     /// wrapped twice, and let an enclosing statement's line switch on a flag its nested statement's line had off.</summary>
     internal static IEnumerable<string> OperandRaisableNames(BoundStatement s)
     {
-        var parts = s.OwnValueParts().ToList();
+        var parts = s.OwnValueParts().Concat(ReportValueWalk.EvaluatedBy(s)).ToList();
         if (parts.Count == 0) return [];
         return OperandRaises.Where(r => parts.Any(r.Carries)).Select(r => r.Name);
     }

@@ -3896,6 +3896,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 {
                     foreach (var addend in term.Addends) ResolveSumAddend(addend, term, sum, model);
                     foreach (var det in term.Upon) ResolveUponDetail(det, model);
+                    RecordUponTriggers(term, model);
                 }
                 // A SUM entry with no printable item still carries its occurrence's DEPENDING tests (§2023:13.18.54.4
                 // GR10 — the reset of an absent occurrence is suppressed), so its specs resolve here too; the
@@ -4553,7 +4554,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 + Edition.Edition.CiteRule("§1985:XIII.3.19.3 SR2) — only a detail is the operand of a GENERATE statement (§1985:XIII.4.3.3 SR1), "
                     + "which is the event the UPON phrase selects subtotalling on (§1985:XIII.3.19.4 GR8).",
                     "§2023:13.18.54.3 SR7) — only a detail is the operand of a GENERATE statement (§2023:14.9.16.3 SR1), "
-                    + "which is the event §2023:13.18.54.4 GR7 c) 2) accumulates on."));
+                    + "which is the event §2023:13.18.54.4 GR7c.2 accumulates on."));
             return;
         }
         if (!DialectBehaviors.IsActive(DialectBehavior.SumUponSameReport, Edition.DialectLevel) && !ReferenceEquals(owner, model))
@@ -4569,6 +4570,16 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         // the owner travels with the operand (kb/Work PB1294).
         det.Detail = group;
         det.Owner = owner;
+    }
+
+    /// <summary>A SUM term whose UPON phrase names a detail of ANOTHER report is evaluated by a GENERATE of that detail
+    /// (§2023:13.18.54.4 GR7c.2), so the report that owns the detail records the term: its presentation evaluates the term's
+    /// operands (<see cref="ReportModel.UponTriggeredTerms"/>, kb/Work PB6349). Asked once every UPON operand of the term has resolved.</summary>
+    private static void RecordUponTriggers(ReportSumTerm term, ReportModel model)
+    {
+        foreach (var det in term.Upon)
+            if (det.Owner is { } owner && !ReferenceEquals(owner, model) && !owner.UponTriggeredTerms.Contains(term))
+                owner.UponTriggeredTerms.Add(term);
     }
 
     /// <summary>A report group's TYPE in the standard's own words, for a diagnostic (ISO §2023:13.18.57.2).</summary>
