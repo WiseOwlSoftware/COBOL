@@ -271,22 +271,9 @@ internal sealed class ValueInitializer(EmitContext ctx)
         // ONE choke point, shared with the Tier-B image arm — see InitialStateBackground.
         if (effRaw is not { } raw) return NoValueSeed(item, pic, recipe) ?? pic.DefaultInitializer;
 
-        // A FORMAT-2 (LOCALE) item's numeric VALUE has NO compile-time image — §2023:13.18.40.5 GR11 + §2023:14.6.6 GR6 make
-        // the locale the one current AT THE TIME of editing — so the initializer is a RUNTIME CobolLocaleEdit
-        // call (the ONE producer, RuntimeApi.LocaleEditCompose; PB64 T6). A quoted literal falls through to the
-        // verbatim store below (§2023:13.18.63.3 SR7 — the programmer supplies the edited form).
-        if (pic.LocaleEdit is not null && !raw.StartsWith('"') && !raw.StartsWith('\'')
-            && TryParseNumeric(FigurativeKind(raw) == 'Z' ? "0" : raw, out var luv, out int lsc)
-            && (FigurativeKind(raw) != 'Z' || ctx.Data.DialectLevel >= 2023))
-            return RuntimeApi.LocaleEditCompose(pic, luv, lsc, item.BlankWhenZero);
-
-        // A NUMERIC-EDITED item's numeric VALUE (a numeric literal, or the figurative ZERO at >= 2023) is its EDITED
-        // image — the ONE compose (EditedImageOfNumericValue) the level-88 membership test shares. Below 2023 a
-        // figurative ZERO falls through to the FigurativeInitializer zero-fill (the pre-2023 behavior, VCR 35).
-        if (pic.Category is PicCategory.NumericEdited
-            && EditedImageOfNumericValue(ctx.Data.DialectLevel,
-                    item, pic, raw) is { } editedImage)
-            return EmitText.CsLiteral(editedImage);
+        // ⛔ A NUMERIC-EDITED ITEM'S NUMERIC VALUE IS ONE QUESTION WITH ONE ANSWER (kb/Work PB6261): the record-struct
+        // lane (here) and the Tier-B image lane (ImageInitializer.CarrierInitOfOne) both ask NumericEditedValueSeed.
+        if (NumericEditedValueSeed(item, pic, raw) is { } editedSeed) return editedSeed;
 
         // ⛔ A BOOLEAN ITEM'S VALUE IS ONE QUESTION WITH ONE ANSWER (kb/Work PB584): its declared boolean
         // POSITIONS. Three lanes used to answer it — this one, the bit-run carrier
@@ -325,6 +312,34 @@ internal sealed class ValueInitializer(EmitContext ctx)
         pic.IsUnsignedWideBinary ? $"(UInt128)({literal})"
         : pic.IsUnsignedLongBinary ? $"(ulong)({literal})"
         : literal;
+
+    /// <summary>The initial image of a numeric-edited item whose VALUE is NUMERIC — the ONE seed both storage lanes
+    /// ask (the record-struct lane, <see cref="InitializerFrom"/>, and the Tier-B / EXTERNAL / BASED / OO-cell image
+    /// lane, <c>ImageInitializer.CarrierInitOfOne</c>; kb/Work PB6261). Null when the VALUE is not a numeric one
+    /// for this item, so the caller falls to its own alphanumeric / figurative arms.
+    /// <para>A FORMAT-2 (LOCALE) item's numeric VALUE has NO compile-time image — §2023:13.18.40.5 GR11 and
+    /// §2023:14.6.6 GR6 make the locale the one current AT THE TIME of editing — so its seed is a RUNTIME
+    /// <c>CobolLocaleEdit</c> call (the ONE producer, <see cref="RuntimeApi.LocaleEditCompose"/>; PB64 T6); the
+    /// figurative ZERO counts as the literal zero from 2023 on. A quoted literal falls through to the verbatim store
+    /// (§2023:13.18.63.3 SR7: the programmer supplies the edited form). Every other numeric-edited item takes the
+    /// compile-time image of <see cref="EditedImageOfNumericValue"/> (§2023:13.18.63.3 SR6; below 2023 a figurative
+    /// ZERO is the zero-fill the caller keeps).</para></summary>
+    internal string? NumericEditedValueSeed(DataItem item, PicInfo pic, string raw)
+    {
+        if (pic.LocaleEdit is not null)
+        {
+            bool zero = FigurativeKind(raw) == 'Z';
+            return !raw.StartsWith('"') && !raw.StartsWith('\'')
+                && TryParseNumeric(zero ? "0" : raw, out var luv, out int lsc)
+                && (!zero || ctx.Data.DialectLevel >= 2023)
+                ? RuntimeApi.LocaleEditCompose(pic, luv, lsc, item.BlankWhenZero)
+                : null;
+        }
+        return pic.Category is PicCategory.NumericEdited
+            && EditedImageOfNumericValue(ctx.Data.DialectLevel, item, pic, raw) is { } editedImage
+            ? EmitText.CsLiteral(editedImage)
+            : null;
+    }
 
     /// <summary>The compile-time EDITED IMAGE of a numeric-edited item's numeric VALUE — a numeric literal converted
     /// "according to the rules for the MOVE statement" (ISO §2023:13.18.63.3 SR6; formats 1, 2 and 4, so the item VALUE
