@@ -22,7 +22,7 @@ internal static class IntrinsicCitations
 {
     /// <summary>The clause that states <paramref name="function"/>'s argument rule, as the edition in force numbers it: the 2023 clause
     /// <paramref name="clause2023"/> (<c>§2023:15.84.3 AR1</c>) at COBOL-2023, the same rule under the function's own clause of ISO/IEC 1989:2002
-    /// or 1989:2014 at those editions (<c>§2002:15.80.2 AR1</c>; <see cref="Edition2002"/> and <see cref="Edition2014"/>), and at COBOL-85
+    /// or 1989:2014 at those editions (<c>§2002:15.68.2 AR1</c>; <see cref="Edition2002"/> and <see cref="Edition2014"/>), and at COBOL-85
     /// the "Arguments" subclause of the function's own paragraph in the 1989 module (<c>§1989:A.2.40.3</c>).</summary>
     public static string Clause(EditionInfo edition, string function, string clause2023) =>
         edition.Cite(Clause1985(edition, function, clause2023), clause2023,
