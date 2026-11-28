@@ -11,10 +11,9 @@
 *> the standard states no default — 13.18.63.4 GR20's NOTE 3 says so in terms ("The WHEN SET TO FALSE
 *> phrase specifies just one of possibly many false values"), so the processor cannot choose one.
 *> COBOL2049.
-*> Rejected at 85 as well: SET ... TO FALSE is itself a COBOL-2002 introduction (row
-*> set-condition-false-2002), so below 2002 COBOL0900 joins it — and the .err pins the SR7 TEXT so
-*> the case fails if the introduction gate ever short-circuits the syntax-rule screen. MEASURED at all
-*> four editions.
+*> Refused from 2002 on (2002, 2014, 2023), each citing its own SR7. At 85 SET ... TO FALSE is itself a COBOL-2002
+*> introduction (row set-condition-false-2002), so the edition gate COBOL0900 is the one refusal and the SR7 screen
+*> stands down (kb/Work PB6356; pb6356-set-condition-false-without-phrase-gate-only pins the 85 leg).
 IDENTIFICATION DIVISION.
 PROGRAM-ID. NEGPB555C.
 DATA DIVISION.

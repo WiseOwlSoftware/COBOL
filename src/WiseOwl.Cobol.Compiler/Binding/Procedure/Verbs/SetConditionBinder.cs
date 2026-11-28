@@ -5,6 +5,7 @@ using WiseOwl.Cobol.Frontend.Cst;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Frontend.Parsing;
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 
 namespace WiseOwl.Cobol.Binding.Procedure;
@@ -48,7 +49,7 @@ internal sealed class SetConditionBinder(BinderContext ctx, StatementBinder host
                     // (kb/Work PB567 — §2023:13.16.3 SR23's negative side, one wording for every site).
                     if (!host.Cond.ReportMisqualifiedCondition(dref))
                         ctx.Validation.RejectSetConditionName(WrittenSource.Of(dref), toTrue, host.Alter.SwitchNameOf(dref),
-                            ReferenceResolver.WrittenWordOf(dref), ReferenceResolver.ReadWritten(dref).Qualifiers);
+                            ReferenceResolver.WrittenWordOf(dref), ReferenceResolver.ReadWritten(dref).Qualifiers, NamesProcedure(dref));
                     return BoundRejected.Reported(ctx.Edition);
                 }
                 // The reference's subscripts identify the CONDITIONAL VARIABLE's occurrence (§2023:8.4.2.3 Format 2).
@@ -60,13 +61,28 @@ internal sealed class SetConditionBinder(BinderContext ctx, StatementBinder host
                 // `cond.Values` is never empty where a condition-name exists.
                 if (!toTrue && cond.FalseValue is null)
                 {
-                    return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.SetFalseWithoutFalsePhrase, $"SET '{cond.Name}' TO FALSE: "
-                        + $"the VALUE clause of condition-name '{cond.Name}' writes no WHEN SET TO FALSE phrase, "
-                        + "so there is no literal-4 to place in the conditional variable (ISO §2023:14.9.39.3 SR7)");
+                    // ⛔ BELOW COBOL-2002 THE EDITION GATE IS THE ONE REFUSAL (kb/Work PB6356). SET condition-name TO FALSE, and the WHEN SET
+                    // TO FALSE phrase SR7 asks for, are 2002 constructs (the `set-condition-false-2002` row, which VersionConformancePass
+                    // checks on every FALSE phrase). Where that gate refuses the statement as an error, SR7's screen stands down: a second
+                    // refusal for the same construct, from a rule that edition does not have, is noise beside it, and the gate's error already
+                    // fails the compile, so the statement is bound as written (the screen of the ENTER statement, PB5538). The gate
+                    // is an error on both axes (strict and --permissive: NotYetIntroduced), so no COBOL-85 compile reaches the SR7 text below,
+                    // which is asked for the editions that have the phrase.
+                    if (ConstructRegistry.GateErrorCodeAt(ctx.Edition.Edition, Constructs.SetConditionFalse2002) is null)
+                        return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.SetFalseWithoutFalsePhrase, $"SET '{cond.Name}' TO FALSE: "
+                            + $"the VALUE clause of condition-name '{cond.Name}' writes no WHEN SET TO FALSE phrase, "
+                            + "so there is no literal-4 to place in the conditional variable ("
+                            + ctx.Edition.Edition.CiteRuleFrom2002("§2002:14.8.35.2 SR7", "§2023:14.9.39.3 SR7", "§2014:14.9.35.2 SR7") + ")");
                 }
                 sets.Add((parent, cond, toTrue));
             }
         }
         return new BoundSetConditions(sets);
     }
+
+    /// <summary>Does the operand's word name a paragraph or a section? Asked of the procedure table without recording a use, for the
+    /// refusal of an operand that is no condition-name: a procedure-name is a resource of the wrong category, not a name that identifies
+    /// none (kb/Work PB6355).</summary>
+    private bool NamesProcedure(Core.DataReferenceContext dref) =>
+        ctx.Table.Identified(dref, ctx.CurrentSection, report: false) is { Procedure: not null } or { Ambiguity: not null };
 }
