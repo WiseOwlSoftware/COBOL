@@ -215,6 +215,22 @@
           "agents": 71,
           "measured": "2026-10-16",
           "source": "r2_cost.py --measure batch-5b over its one Workflow run wf_eb2731ff-e57 (Mythos lane, 2026-10-16)"
+        },
+        {
+          "batch": "1a",
+          "pin": "9e65164eb3a9",
+          "line_dimensions": 65485,
+          "findings": 71,
+          "verdicts": 213,
+          "nulls": 3,
+          "finder_tokens": 5161076,
+          "skeptic_tokens": 4614449,
+          "null_tokens": 176951,
+          "duplication_pass_tokens": null,
+          "workflow_runs": 2,
+          "agents": 114,
+          "measured": "2026-11-27",
+          "source": "r2_cost.py --measure batch-1a over its two Workflow runs (E:/COBOL-coord/scratch/r2-9e65164eb/batch-1a/cost-record.json, 2026-11-27)"
         }
       ]
     },
