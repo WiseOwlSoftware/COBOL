@@ -16,6 +16,7 @@ namespace WiseOwl.Cobol.Tests.RepoDrift;
 /// message of <c>IntrinsicBinder.cs</c> spells a §2023:15 rule outside the one call, and a row's editions agree with the function
 /// catalog's own introduction edition.
 /// </summary>
+[Trait("Sweep", "tree")]
 public sealed class IntrinsicCitationConcordanceDriftTests
 {
     [Fact]
