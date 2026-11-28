@@ -23,3 +23,10 @@ entry, so it is a host test beside `HostEntryShapeDriftTests`, not a COBOL-only 
 goldens (`pb79_group_usage_bit` and the 2002 `g2-gu-*` cases) already cover the language.
 
 **Register.** `kb/Work/PB6270.md` flipped to landed; it closes no inventory row (GR-14.2.3-8 and GR-14.2.3-13 stay CONFORMS).
+
+### Review finding R1-1 (follow-up)
+
+The first fix kept the image only for the root and a dynamic-capacity element. Each nested record struct also publishes
+`FromImage` and `AsImage`, so a nested DISPLAY group with FILLER lost it. The guard now keeps the image for every struct;
+a nested BIT group keeps it only at a byte-aligned `__at` (a mid-byte start has no byte-granular Substring). Test:
+`AHost_KeepsTheFillerOfANestedGroup_AcrossFromImageAndAsImage`.

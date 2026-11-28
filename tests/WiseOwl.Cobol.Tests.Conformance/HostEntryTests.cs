@@ -1350,4 +1350,54 @@ public sealed class HostEntryTests
         }
         finally { ScratchDirectory.Remove(dir); }
     }
+
+    /// <summary>kb/Work PB6270 review finding R1-1: every record struct, a nested group included, publishes <c>FromImage</c>
+    /// and <c>AsImage</c>, so a nested DISPLAY group keeps its FILLER between them (DESIGN-external-repository §4.3).</summary>
+    private const string NestedFillerPrograms = """
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. H10NEST.
+        DATA DIVISION.
+        LINKAGE SECTION.
+        01 LK-G.
+           05 LK-S.
+              10 LK-X PIC X.
+              10 FILLER PIC X.
+           05 LK-Y PIC X.
+        PROCEDURE DIVISION USING LK-G.
+        P1.
+            GOBACK.
+        END PROGRAM H10NEST.
+        """;
+
+    private const string NestedFillerHost = """
+        using System;
+        using Cobol.H10PROGS;
+
+        public static class H10HostProgram
+        {
+            public static int Main()
+            {
+                Console.WriteLine($"[{H10NEST.LK_G_Record.FromImage("ABC").AsImage()}]");
+                Console.WriteLine($"[{H10NEST.LK_G_Record.LK_S_Record.FromImage("AB").AsImage()}]");
+                Console.WriteLine($"[{H10NEST.LK_G_Record.FromImage("ABC").LK_S.AsImage()}]");
+                return 0;
+            }
+        }
+        """;
+
+    [Fact]
+    public void AHost_KeepsTheFillerOfANestedGroup_AcrossFromImageAndAsImage()
+    {
+        string dir = ScratchDirectory.Create("h10host");
+        try
+        {
+            NonCobolElement.CompileCobol(dir, "H10PROGS", NestedFillerPrograms);
+            NonCobolElement.CompileCSharp(dir, "H10HOST", NestedFillerHost, "H10PROGS", "H10PROGS");
+            var (exit, stdout, stderr) = CutRunner.RunExit(Path.Combine(dir, "H10HOST.dll"), dir);
+            Assert.Equal("[ABC]\n[AB]\n[AB]", stdout);
+            Assert.Equal(0, exit);
+            Assert.Equal("", stderr);
+        }
+        finally { ScratchDirectory.Remove(dir); }
+    }
 }
