@@ -1,4 +1,4 @@
-## A method's ADDRESS-OF LOCAL-STORAGE cell is seeded inside the method's OPTIONS INITIALIZE scope
+## Entry 4086 — 2026-11-27 21:21 PST — A method's ADDRESS-OF LOCAL-STORAGE cell is seeded inside the method's OPTIONS INITIALIZE scope
 
 PB6336 (wrong answer, silent). In a method whose LOCAL-STORAGE record has its ADDRESS OF taken, the record lives in a
 per-activation `StorageCell` with no other initializer. `OoEmitter.EmitMethod` computed that cell's initial image
@@ -19,3 +19,4 @@ the class-member declarations of a per-activation cell are overwritten at entry.
 Goldens: `11.9.10-INITIALIZE/pb6336_method_ls_address_of_options_initialize` (method's own clause, class-inherited clause, no clause;
 the first method mutates R between two activations) and the refusal `pb6336-method-options-initialize-below-2023`.
 No inventory row re-verdicted (the note carried none).
+
