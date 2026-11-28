@@ -1,0 +1,15 @@
+## R2 batch 1c (pin 9e65164eb3a9): 1 finding on this note
+
+### `reference-resolution-2--architecture--f1#2` (finding, move-and-rename, votes upheld/upheld/upheld)
+
+**Finding:** SymbolTable (compiler.binding) calls BinderDriver.ContainingDefinitions, a pure BoundUnit walk on the type DESIGN-architecture-review §8.3 moves to compiler.pipeline, and re-walks it three times beside the set it already stores
+
+**Rule:** allowed layer edges (DESIGN-architecture-review §8.1: compiler.binding, layer 9, may not depend on compiler.pipeline, layer 12, where DESIGN-architecture-review §8.1 and PB2320 place BinderDriver); one mechanism per job (the containing-definition set is declared once, SymbolTable._containingDefinitions)
+
+**Scenario:** Listing step 6b moved the prototype tables into SymbolTable after PB2418 and PB2320 were filed; the moved code took four calls of the static BinderDriver.ContainingDefinitions (Repository.cs:57, 161, 186; Functions.cs:88), which are now its only callers outside BinderDriver. When PB2320 moves BinderDriver to compiler.pipeline, each call becomes a binding-to-pipeline back edge that architecture-edges.json refuses, so that wave must also redesign the store; neither PB2320 nor PB2418 (whose dated file 2026-11-19-signature-tables-moved-into-symboltable discharges the tables) names this member. Meanwhile ResolveProgramPrototypes and ResolveFunctionPrototypes recompute the containing set from the unit at every call although DeclareContainingDefinitions already stored it in _containingDefinitions before the data bind: two sources for the one 8.4.6.6 / 8.4.6.8 set, so a change to what counts as containing (kb/Work PB3121 made it ONE set) has to be made at two places to keep DeclaresPrototypeName and the resolved prototypes agreeing.
+
+**Target:** ContainingDefinitions becomes a compiler.model member of BoundUnit (BoundUnit.SelfAndContainers, Binding/Model/BoundUnit.cs), BinderDriver calls it there, and SymbolTable reads only its own _containingDefinitions (with the units it keeps) in ResolveProgramPrototypes and ResolveFunctionPrototypes; PB2320 then moves BinderDriver with no edge left from the store.
+
+**Finding sites (the pin's):** src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs:1087-1090 (BinderDriver.ContainingDefinitions); src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.Repository.cs:54-58 (SymbolTable.DeclareContainingDefinitions); src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.Repository.cs:158-191 (SymbolTable.ResolveProgramPrototypes); src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.Functions.cs:82-122 (SymbolTable.ResolveFunctionPrototypes)
+
+The finding is about this note's extraction: SymbolTable calls BinderDriver.ContainingDefinitions, a pure BoundUnit walk on the type this note moves to compiler.pipeline, and re-walks it three times, so the move must give that walk a home in compiler.model. It is recorded here and not filed as a note of its own. `reference-resolution-2--architecture--f2#4` names the same member against PB2418 and is recorded there. The sites are the pin's.

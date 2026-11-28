@@ -1,0 +1,15 @@
+## R2 batch 1e (pin 9e65164eb3a9): 1 finding on this note
+
+### `bound-tree-2--architecture--f2#1` (finding, extract, votes upheld/upheld/upheld)
+
+**Finding:** PB2347 plans that the SubscriptSegments partial dies with PB2151, but PB2151 landed and the partial survives with two IStatementSite concerns no target type receives
+
+**Rule:** DESIGN-architecture-review §8.2 rule 4 (a partial splits only along a named concern and is a transitional seam: a concern that deserves a partial deserves a type) and DESIGN-architecture-review §8.3 table row R0-0052 (the SubscriptSegments partial dies with PB2151); kb/Work PB2347 Extraction order
+
+**Scenario:** PB2151 is status landed (it renamed MaterializeSubscriptSegment to BindPositionTemporary and deleted the text re-parse), yet StatementBinder.SubscriptSegments.cs still holds the ISO/IEC 1989:2023 15.4 position temporary (SegmentTempPic, BindPositionTemporary) and the ODO-extent pin (FreezeOdoExtentBeforeRefMod, FreezeOdoExtentForStatement), reached through IStatementSite.MaterializeSegment/FreezeOdoExtent (StatementBinder.cs:196-201) from SubscriptBinder.cs:900, ReferenceResolver.cs:381 and InspectBinder.cs:147. The PB2347 implementer reads that the partial dies with PB2151, finds the blocker landed and the partial alive, and has no designed home: StatementBindContext is only the fields, so the two concerns either ride into Binding/Procedure as a partial of the moved StatementBinder (the rule-4 seam kept, census god class R0-0062 still 971 lines with SubscriptSegments as its one named concern) or are improvised in the wave. The partial name no longer says what it holds: no segment splitter remains; it is the position-temporary and ODO-pin service.
+
+**Target:** Amend the DESIGN-architecture-review §8.3 R0-0062 row and PB2347: the two IStatementSite operations become their own type in Binding/Procedure (one class owning the ISO/IEC 1989:2023 15.4 position temporary and the ISO/IEC 1989:2023 14.6.4 step-6 ODO pin, built over StatementBindContext Temps, Procedure and Places), StatementBinder stops implementing IStatementSite through forwarding members, and the partial file is deleted in the PB2347 move.
+
+**Finding sites (the pin's):** src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.SubscriptSegments.cs:66-117 (StatementBinder.SegmentTempPic, StatementBinder.BindPositionTemporary); src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.SubscriptSegments.cs:130-149 (StatementBinder.FreezeOdoExtentBeforeRefMod, StatementBinder.FreezeOdoExtentForStatement); src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs:196-201 (IStatementSite.MaterializeSegment, IStatementSite.FreezeOdoExtent)
+
+The finding is about this note's own plan: it plans that the SubscriptSegments partial dies with PB2151, but PB2151 landed and the partial survives with two IStatementSite concerns (the position temporary and the ODO freeze), which the plan does not place. It is recorded here and not filed apart. The sites are the pin's.

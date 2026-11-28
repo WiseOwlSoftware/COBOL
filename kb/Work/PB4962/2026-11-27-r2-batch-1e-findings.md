@@ -1,0 +1,15 @@
+## R2 batch 1e (pin 9e65164eb3a9): 1 finding on this note
+
+### `procedure-binding-2--duplication--f2#1` (finding, extract, votes upheld/upheld/upheld)
+
+**Finding:** Which program a CALL or CANCEL activates is derived in three hand-kept copies: BindCall, CalleeSignatureOf and BindCancel prototype alternative
+
+**Rule:** one rule in one place, one mechanism per job (DESIGN-architecture-review §5.2; dimensions.md 4); the DESIGN-architecture-review §8.3 CallBinder row names one CallTargetResolver.Resolve as the single answer for the target
+
+**Scenario:** BindCall (lines 96-253) decides the callee from three producers: AS NESTED literal-1 through Literal1Of/ProgramName and host.NestedCallables, AS program-prototype-name-1 through ResolvePrototype, and the bracket-omitted spelling (b) through ProgramPrototypeNamesExist && Probe(dref) is null && BarePrototypeWord && Identify. CalleeSignatureOf (lines 1225-1245) re-derives the same three from the parse tree with its own literal-1 read (PeekNonNumericLiteralOperand, or an alias filtered by Constant.Category not Numeric, never Literal1Of) and its own spelling-(b) guard order (LiteralAliasOf, then Probe); its doc only asserts the two cannot name different callees, and no test compares them (MessageTagIntroductionGateTests checks one outcome). BindCancel (lines 1288-1303) writes the spelling-(b) discrimination a third time. StatementBinder.NamesGatedMessageTag (StatementBinder.cs:656-657) reads CalleeSignatureOf to decide whether a below-2023 statement becomes a no-op: a producer or scope rule added to BindCall alone (as PB4708/PB4936 added the DeclaresProgramSpecifier arm at 205-213 and nowhere else) makes the funnel and the bind disagree about the callee, so a Format-2 CALL whose callee carries a message-tag item draws the second diagnosis DESIGN-message-control §7.1 forbids, or becomes a no-op the bind would have refused.
+
+**Target:** the DESIGN-architecture-review §8.3 CallTargetResolver: one pure, diagnostic-free Resolve(call) returning the closed target (nested literal-1, prototype by AS phrase, prototype by bare word, identifier-1, literal-1, none) with the reason it failed; BindCall reports from that result, CalleeSignatureOf becomes Resolve(call).Signature, BindCancel asks the same bare-word arm, and a drift test pins that BindCall and CalleeSignatureOf read the one resolver
+
+**Finding sites (the pin's):** src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs:96-253 (CallBinder.BindCall); src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs:1225-1245 (CallBinder.CalleeSignatureOf); src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs:1288-1303 (CallBinder.BindCancel); src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs:656-657 (StatementBinder.NamesGatedMessageTag)
+
+This note holds the second copy of the callee producers (CallBinder.CalleeSignatureOf beside BindCall and Literal1Of); the finding adds the third copy, the BindCancel prototype alternative, and the three producers' shared rule. It is recorded here and not filed apart. The sites are the pin's.
