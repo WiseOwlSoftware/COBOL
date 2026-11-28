@@ -222,7 +222,11 @@ internal sealed class PublishedRecordEmitter(Func<DataItem, string> profileOf)
             using (w.Block($"internal static bool __TryGet(string __s, StorageCell? __c, int __at, string __name, ref global::System.FormatException? __bad, out {name} __r)"))
             {
                 w.Line($"__r = new {name}();");
-                if (!BitLayout.IsBitItem(group))
+                // The image is kept by every record whose __Land reads it: the published root and an element of a dynamic-capacity
+                // table (a scope of its own), each decoded at __at = 0, byte-aligned, whatever the group's usage (a USAGE BIT
+                // root keeps its FILLER bits, kb/Work PB6270). A nested group's __Land is never called (the root's __Put lands it
+                // in the root's buffer), and a nested BIT group may start mid-byte, where the byte-granular Substring has no meaning.
+                if (ReferenceEquals(group, root) || group.IsDynamicTable)
                     w.Line($"__r.__image = __s.Substring(__at / 8, {width});");
                 w.Line("bool __ok = true;");
                 foreach (var m in members) EmitGet(root, group, m, w);
