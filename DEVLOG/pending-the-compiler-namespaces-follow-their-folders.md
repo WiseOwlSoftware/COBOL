@@ -31,7 +31,7 @@ compiler.model, so the report SUM-counter screen in `ReportSectionBinder` no lon
 joined `PicInfo`'s synthesized record text, which `StrongTypeModel`'s type-identity key compiles into the program, and
 the arch oracle caught it (33 of 23,644 cases emitted a different strong-type key) before the gate did.
 
-**The edges file and the census.** A census recorded on the code head (`a27353bac97b`) measures the new names; the edges
+**The edges file and the census.** A census recorded on the code head (`bf3660ef65bc`) measures the new names; the edges
 file is re-keyed (each pair to the namespace that declares its types now, a split row starting at its parent's counts)
 and ratcheted to it: the row `Frontend.Parsing → Frontend.Preprocessor` is deleted, the pairs `BoundAllLiteral →
 ConcatFolder` and `ReportSectionBinder → VersionConformancePass` are gone, the CodeGen rows split by folder, and the
