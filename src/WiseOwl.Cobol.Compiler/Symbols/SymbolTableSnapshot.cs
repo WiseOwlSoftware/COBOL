@@ -183,7 +183,8 @@ internal enum DataSection { File, WorkingStorage, LocalStorage, Linkage, Communi
 /// <param name="Picture">The PICTURE character-string as written, or null.</param>
 /// <param name="Category">The category (ISO §2023:8.5.2), as the standard names it.</param>
 /// <param name="OccursMin">The OCCURS clause's minimum, or null when the item is no table.</param>
-/// <param name="OccursMax">The OCCURS clause's maximum (0 for a dynamic-capacity table), or null.</param>
+/// <param name="OccursMax">The OCCURS clause's maximum, or null when the item is no table or a table of dynamic capacity (which
+/// has no maximum: <paramref name="DynamicCapacity"/>).</param>
 /// <param name="DependingOn">The entry of the OCCURS DEPENDING ON object, or null.</param>
 /// <param name="Indexes">The entries of the index-names its INDEXED BY phrase declares.</param>
 /// <param name="Redefines">The entry the item redefines, or null.</param>
@@ -206,10 +207,20 @@ internal enum DataSection { File, WorkingStorage, LocalStorage, Linkage, Communi
 /// storage (ISO §2023:13.18.58.4 GR2).</param>
 /// <param name="Implicit">The standard defines the item implicitly where the entry that names it is written: a CAPACITY IN
 /// register (ISO §2023:13.18.38.3 SR30).</param>
+/// <param name="DynamicCapacity">The OCCURS DYNAMIC CAPACITY clause (a Format 4 table, ISO §2023:13.18.38) the item is the table of, or
+/// null for every other item.</param>
 internal sealed record DataAttributes(int Level, int? Parent, DataSection Section, string? Usage, string? Picture, string Category,
     int? OccursMin, int? OccursMax, int? DependingOn, IReadOnlyList<int> Indexes, int? Redefines, int? RenamesFrom, int? RenamesThru,
     bool Global, bool External, bool Based, int? Offset, int? Length, int? Bytes, string? NativeField, string? NativeType,
-    bool TypeDeclaration, bool Implicit) : SymbolAttributes;
+    bool TypeDeclaration, bool Implicit, DynamicCapacityAttributes? DynamicCapacity) : SymbolAttributes;
+
+/// <summary>The phrases of a Format 4 OCCURS clause (ISO §2023:13.18.38), each as the entry writes it.</summary>
+/// <param name="From">integer-4, the minimum capacity of the table (§2023:13.18.38.4 GR16: "If integer-4 is absent, a value of zero is
+/// assumed for it"), or null when the FROM phrase is not written.</param>
+/// <param name="To">integer-5, the expected capacity of the table (§2023:13.18.38.4 GR17), or null when the TO phrase is not
+/// written.</param>
+/// <param name="Initialized">The INITIALIZED phrase is written.</param>
+internal sealed record DynamicCapacityAttributes(int? From, int? To, bool Initialized);
 
 /// <summary>A condition-name's attributes.</summary>
 /// <param name="ConditionalVariable">The entry of its conditional variable.</param>

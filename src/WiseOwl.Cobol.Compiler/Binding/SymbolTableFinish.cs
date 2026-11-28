@@ -229,8 +229,8 @@ internal static class SymbolTableFinish
             Usage: usage is { } u ? UsageFamilies.UsageWord(u) : null,
             Picture: item.PictureText,
             Category: CategoryWord(item.IsGroup || pic is null ? PicCategory.Group : pic.Category),
-            OccursMin: item.OccursSpec?.Min ?? item.Occurs,
-            OccursMax: item.OccursSpec?.Max ?? item.Occurs,
+            OccursMin: item.OccursSpec is { IsDynamic: true } ? null : item.OccursSpec?.Min ?? item.Occurs,
+            OccursMax: item.OccursSpec is { IsDynamic: true } ? null : item.OccursSpec?.Max ?? item.Occurs,
             DependingOn: item.OccursSpec?.Depending is { } depending ? ids(depending) : null,
             Indexes: [.. item.Indexes.Select(ix => ids(ix) ?? 0)],
             Redefines: item.RedefinesTarget is { } target ? ids(target) : null,
@@ -245,7 +245,10 @@ internal static class SymbolTableFinish
             NativeField: ownsField ? item.ClrName : null,
             NativeType: ownsField ? item.FieldType : null,
             TypeDeclaration: type,
-            Implicit: implicitly);
+            Implicit: implicitly,
+            DynamicCapacity: item.OccursSpec is { IsDynamic: true } dynamic
+                ? new DynamicCapacityAttributes(dynamic.InitialCap, dynamic.ExpectedMax, dynamic.Initialized)
+                : null);
     }
 
     /// <summary>Declare the communication description entry <paramref name="cd"/>: its cd-name (§1985:XIV.2.2), then the implicit
@@ -280,7 +283,8 @@ internal static class SymbolTableFinish
         Length: ItemLength.Positions(register),
         Bytes: null, NativeField: null, NativeType: null,
         TypeDeclaration: false,
-        Implicit: true);
+        Implicit: true,
+        DynamicCapacity: null);
 
     /// <summary>The section of the data division an entry is described in.</summary>
     private static DataSection SectionOf(EntrySection? section) => section switch
@@ -350,7 +354,8 @@ internal static class SymbolTableFinish
         Length: item is null ? null : ItemLength.Positions(item),
         Bytes: null, NativeField: null, NativeType: null,
         TypeDeclaration: false,
-        Implicit: false);
+        Implicit: false,
+        DynamicCapacity: null);
 
     private static FileNameAttributes FileAttributesOf(FileModel file, Func<object, int?> ids) =>
         new(file.IsSortMerge,

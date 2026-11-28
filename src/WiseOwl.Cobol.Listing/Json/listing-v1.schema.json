@@ -1057,7 +1057,7 @@
                 ]
               },
               "occursMax": {
-                "description": "The OCCURS clause's maximum (0 for a table of dynamic capacity), or null.",
+                "description": "The OCCURS clause's maximum, or null when the item is no table or a table of dynamic capacity (which has no maximum: DynamicCapacity).",
                 "type": [
                   "integer",
                   "null"
@@ -1159,6 +1159,36 @@
               "implicit": {
                 "description": "The standard defines the item implicitly where the entry that names it is written (a CAPACITY IN register, ISO §2023:13.18.38.3 SR30; an entry of a CD's record area, ISO §1985:XIV.2.2), so no data description entry of its own describes it. A compiler temporary is no declared name and is not in the data map.",
                 "type": "boolean"
+              },
+              "dynamicCapacity": {
+                "description": "For a table of dynamic capacity (an OCCURS DYNAMIC CAPACITY clause, ISO §2023:13.18.38 Format 4) the phrases the clause writes, else null; OccursMin and OccursMax are null with it.",
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "from": {
+                    "description": "integer-4, the minimum capacity of the table (ISO §2023:13.18.38.4 GR16: \"If integer-4 is absent, a value of zero is assumed for it\"), or null when the FROM phrase is not written.",
+                    "type": [
+                      "integer",
+                      "null"
+                    ]
+                  },
+                  "to": {
+                    "description": "integer-5, the expected capacity of the table (ISO §2023:13.18.38.4 GR17), or null when the TO phrase is not written.",
+                    "type": [
+                      "integer",
+                      "null"
+                    ]
+                  },
+                  "initialized": {
+                    "description": "The INITIALIZED phrase is written.",
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "initialized"
+                ]
               }
             },
             "required": [
