@@ -1,4 +1,4 @@
-## Entry 4077 — 2026-11-27 18:45 PST — R2 batches 1c, 1d and 1e filed: 63 PB1754 notes (codegen, reference resolution, runtime control, bound tree, procedure binding), 22 finding files, one tooling defect, cost records
+## Entry 4077 — 2026-11-27 18:45 PST — R2 batches 1c, 1d and 1e filed: 63 PB1754 notes (codegen, reference resolution, runtime control, bound tree, procedure binding), 16 finding files, one tooling defect, cost records
 
 One landing carries the filings of three R2 batches at pin 9e65164eb (one DEVLOG entry per landing, so the entry of batch 1c's branch is merged here), plus PB6320. Each batch was read COMPLETE by one Workflow run; the evidence is the hand check of every filer and collector match.
 
