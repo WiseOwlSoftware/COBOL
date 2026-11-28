@@ -21,7 +21,11 @@ supervisor starts the next unit after you end.
   `{"at":"<ISO time>","what":"<one sentence>"}` plus `"shas"` or `"branches"` when there are some. If you die at minute 100, the
   supervisor builds your handoff from these lines and the checkpoint; whatever you did not write down is lost.
 - End by writing {HANDOFF}: JSON valid against scripts/orchestrator/handoff.schema.json, `summary` at most 900
-  characters; the detail lives in the files it names. Then end your turn. A `next_unit` of `wave` (or `campaign`)
+  characters; the detail lives in the files it names. Check it before you end, with the supervisor's own test:
+  `pwsh -NoProfile -Command "Get-Content '{HANDOFF}' -Raw | Test-Json -SchemaFile scripts/orchestrator/handoff.schema.json"`
+  prints `True`; on `False` (the error names the path), fix the file and run it again (kb/Work PB6348: four enqueue units
+  wrote `"landed": []`, an array where the schema has an object, and the supervisor set each handoff aside as invalid).
+  Then end your turn. A `next_unit` of `wave` (or `campaign`)
   names a wave, not its lane: when campaign lanes run, the supervisor alternates campaign and fix-lane waves itself
   (kb/Work PB2522), so name `wave` and put any lane preference in `next_unit_reason`, where it is logged.
 - A decision only the owner can make: never guess. End with `outcome: owner-question` and `owner_question`
