@@ -412,8 +412,8 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
             // ALIASED numeric variable (StoreAsImage) handed a `long` to a `string` field — `SET PK-SEVEN TO
             // TRUE` over `05 PK PIC 9(4) COMP-3` under a REDEFINES failed the whole compilation with CS1503.
             // Every one of the five is a branch InitializerFrom already had, because the VALUE clause needs it.
-            // WHICH ARM DID I FIX? The STORE. The TEST arm (ConditionRenderer.StringMembershipExpr /
-            // FloatMembershipValue) already called this recipe's shared pieces, which is why a SET-then-IF
+            // WHICH ARM DID I FIX? The STORE. The TEST arm (ConditionRenderer.StringMembershipOperand and the numeric
+            // membership relation) already called this recipe's shared pieces, which is why a SET-then-IF
             // round-trip returned FALSE; both arms now read §2023:13.18.63's rules from the same code.</para>
             string rhs = Data.ValueImageOf(parent.Item, low);
             // An ORDINARY (alphanumeric) group has neither a PICTURE nor an as-if one (DataItem.OperandPic, the

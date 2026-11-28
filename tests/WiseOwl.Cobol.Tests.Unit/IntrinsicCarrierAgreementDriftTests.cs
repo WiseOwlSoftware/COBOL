@@ -429,6 +429,56 @@ public sealed class IntrinsicCarrierAgreementDriftTests
             + "the §2023:15.3 landing. Offenders: " + string.Join("; ", offenders));
     }
 
+    /// <summary>⛔ THE ONE LIST OF BINDINGS THAT READ A RAW ARGUMENT'S <c>.Expr</c> (kb/Work PB6266). <c>RawArg</c> and
+    /// <c>RawWideArg</c> return the argument on ITS OWN carrier, and the unsigned-wide carrier (<c>NumX.U</c>, a 16-byte unsigned
+    /// COMP-5 read, <c>UInt128</c>) converts to no <c>Int128</c> runtime parameter, so an arm that binds the raw operand and
+    /// writes its <c>Expr</c> into a call is a Roslyn CS1503 on a conforming program unless the operand first enters the one
+    /// funnel, <c>NumericRenderer.DeU</c> (kb/Work PB2698 fixed five arms one at a time; COMBINED-DATETIME was the sixth).
+    /// A binding in this list hands the operand to a helper that takes every carrier itself: the exact family's
+    /// <c>ExactArg</c> / <c>DomainArg</c> and the exact wide lane. Anything else binds through <c>DeU</c>.</summary>
+    private static readonly string[] RawArgBindingsThatTakeEveryCarrier =
+        ["NumX x = RawArg(ic, 0);", "NumX x = RawWideArg(ic, 0);"];
+
+    /// <summary>The detector, shared by the guard and its self-test: every <c>NumX v = RawArg(…)</c> / <c>RawWideArg(…)</c>
+    /// binding in the renderer (comments stripped, as <see cref="Arms"/> strips them) that neither funnels through
+    /// <c>NumericRenderer.DeU</c> nor sits in <see cref="RawArgBindingsThatTakeEveryCarrier"/>.</summary>
+    private static List<string> UnfunnelledRawArgBindings(string rendererSource)
+    {
+        string src = Regex.Replace(Regex.Replace(rendererSource, @"/\*.*?\*/", "", RegexOptions.Singleline), @"//[^\n]*", "");
+        return Regex.Matches(src, @"NumX\s+\w+\s*=\s*(?!NumericRenderer\.DeU\()Raw(?:Wide)?Arg\([^;]*;")
+            .Select(m => m.Value)
+            .Where(b => !RawArgBindingsThatTakeEveryCarrier.Contains(b, StringComparer.Ordinal))
+            .ToList();
+    }
+
+    /// <summary>The detector fails on the shape that was the defect (the COMBINED-DATETIME arm as it was written), passes the
+    /// funnelled form, and reads no comment that names the shape.</summary>
+    [Fact]
+    public void TheRawArgBindingDetector_CatchesTheUnfunnelledBindingAndNothingElse()
+    {
+        Assert.Single(UnfunnelledRawArgBindings("NumX t = RawArg(ic, 1);\nreturn Date(t.Expr);"));
+        Assert.Single(UnfunnelledRawArgBindings("NumX t = RawWideArg(ic, 2);"));
+        Assert.Empty(UnfunnelledRawArgBindings("NumX t = NumericRenderer.DeU(RawArg(ic, 1));"));
+        Assert.Empty(UnfunnelledRawArgBindings("NumX x = RawArg(ic, 0);"));
+        Assert.Empty(UnfunnelledRawArgBindings("// NumX t = RawArg(ic, 1);\n/* NumX u = RawArg(ic, 1); */"));
+    }
+
+    /// <summary>The guard proper, over the shipped renderer: no intrinsic arm reads an unfunnelled raw argument's
+    /// <c>Expr</c>, so the next function that takes a numeric argument is covered without a seventh one-arm fix. The generated-C#
+    /// half is the unsigned-wide carrier's own compile, in <c>conformance:cases/15.17.3-Argument-rules/pb6266_combined_datetime_unsigned_wide_comp5</c>
+    /// and <c>conformance:cases/15.84.4-Returned-value-rules/pb6266_unsigned_wide_scaled_float_arguments</c>.</summary>
+    [Fact]
+    public void EveryRawArgBinding_EntersTheUnsignedWideFunnel_OrTakesEveryCarrier()
+    {
+        string source = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "CodeGen", "Emit", "IntrinsicRenderer.cs"));
+        Assert.Contains("NumericRenderer.DeU(RawArg(ic, 1))", source);   // the arm this guard exists for is in the file it reads
+        var offenders = UnfunnelledRawArgBindings(source);
+        Assert.True(offenders.Count == 0,
+            "An intrinsic arm binds a raw argument without the unsigned-wide funnel (kb/Work PB6266): an unsigned 16-byte COMP-5 "
+            + "item is a UInt128 and converts to no Int128 parameter (CS1503). Wrap the binding in NumericRenderer.DeU, or take the "
+            + "operand through a helper that handles every NumX carrier. Offenders: " + string.Join("; ", offenders));
+    }
+
     /// <summary>A TOTAL integer argument whose value rides the SDIDI — kb/Work PB637. An SDIDI integer holds 34 significant
     /// digits at ANY exponent, so it reaches past <c>Int128</c> as well as past <c>long</c>: ANNUITY's argument-2
     /// (§2023:15.9.3 AR3 "a positive integer", no magnitude) is an SDIDI integer the equivalent expression evaluates, and a

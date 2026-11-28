@@ -1932,7 +1932,8 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// <c>CobolFloat.ScaledToSingle</c>, never <see cref="Real"/>'s binary64 narrowed by a cast. A scaled or
     /// standard-decimal operand only — a float intermediate is already a binary64 the caller narrows once.</summary>
     internal static string ScaledSingle(NumX x) =>
-        x.Dec ? $"({x.Expr}).ToSingle()"
+        x.U ? ScaledSingle(DeU(x))                       // the unsigned-wide funnel: ScaledToSingle takes an Int128 (kb/Work PB6266 sweep)
+        : x.Dec ? $"({x.Expr}).ToSingle()"
         : x.Wide ? $"({RuntimeApi.WideToDec(x.Expr, x.Scale)}).ToSingle()"
         : x.Exact ? $"({RuntimeApi.ExactImage(x.Expr)}).ToSingle()"
         : RuntimeApi.ScaledToSingle(x.Expr, x.Scale);
@@ -1943,5 +1944,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         : x.Wide ? RuntimeApi.WideToDouble(x.Expr, x.Scale)
         : x.Exact ? RuntimeApi.ExactToDouble(x.Expr)
         : x.Scale == 0 ? $"(double)({x.Expr})"
-        : RuntimeApi.ScaledToDouble(x.Expr, x.Scale);
+        // ScaledToDouble takes an Int128, so a SCALED unsigned-wide operand enters it through the one funnel (kb/Work PB6266 sweep:
+        // SQRT, ATAN and ANNUITY over a PIC 9(18)V99 COMP-5 argument were a CS1503). At scale 0 the cast above reads the UInt128 as it is.
+        : RuntimeApi.ScaledToDouble(x.U ? DeU(x).Expr : x.Expr, x.Scale);
 }
