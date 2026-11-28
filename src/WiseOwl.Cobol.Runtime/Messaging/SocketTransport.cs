@@ -352,16 +352,22 @@ internal sealed class SocketTransport : IPeerTransport
 
     private async Task ReadRingAsync(Socket accepted, string spelling, CancellationToken stopped)
     {
-        using var stream = new NetworkStream(accepted, ownsSocket: true);
-        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(stopped);
-        timeout.CancelAfter(RingTimeout);
+        // The stream is adopted inside the try, so a socket nothing can adopt (a stream over a socket that is not connected is an IOException) is a dropped
+        // connection, not an unobserved task fault that leaves the socket open (kb/Work PB6218); the socket is closed on every path.
         try
         {
+            using var stream = new NetworkStream(accepted, ownsSocket: true);
+            using var timeout = CancellationTokenSource.CreateLinkedTokenSource(stopped);
+            timeout.CancelAfter(RingTimeout);
             if (await McsFrame.ReadAsync(stream, timeout.Token).ConfigureAwait(false) is { Kind: McsFrameKind.Ring }) Post(new BellRung(spelling));
         }
         catch (Exception e) when (e is IOException or SocketException or ObjectDisposedException or InvalidDataException or OperationCanceledException)
         {
             // a connection that does not ring is dropped
+        }
+        finally
+        {
+            accepted.Dispose();
         }
     }
 

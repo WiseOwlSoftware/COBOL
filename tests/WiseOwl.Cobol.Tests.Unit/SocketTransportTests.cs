@@ -286,14 +286,16 @@ public sealed class SocketTransportTests : IDisposable
     }
 
     /// <summary>An accept that delivers a socket nothing can adopt (it is not connected, so a stream over it is an <see cref="IOException"/>) once and then accepts for real.</summary>
-    private static Func<Socket, CancellationToken, ValueTask<Socket>> DeliversAnUnadoptableSocketOnce(Action delivered)
+    private static Func<Socket, CancellationToken, ValueTask<Socket>> DeliversAnUnadoptableSocketOnce(Action delivered, Action<Socket>? deliveredSocket = null)
     {
         int calls = 0;
         return (socket, token) =>
         {
             if (Interlocked.Increment(ref calls) != 1) return socket.AcceptAsync(token);
+            var unadoptable = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified);
+            deliveredSocket?.Invoke(unadoptable);
             delivered();
-            return ValueTask.FromResult(new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified));
+            return ValueTask.FromResult(unadoptable);
         };
     }
 
@@ -313,11 +315,14 @@ public sealed class SocketTransportTests : IDisposable
 
         var (bell, bellWake, bellRun) = Run();
         using var bellDelivered = new ManualResetEventSlim(false);
-        bell.AcceptSocketAsync = DeliversAnUnadoptableSocketOnce(bellDelivered.Set);
+        Socket? bellSocket = null;
+        bell.AcceptSocketAsync = DeliversAnUnadoptableSocketOnce(bellDelivered.Set, socket => bellSocket = socket);
         bell.Publish(Bell("ADOPTS", bellRun));
         Assert.True(bellDelivered.Wait(Guard), "the accept never delivered");
         requestor.RingBells("ADOPTS");
         Assert.Equal("ADOPTS", Assert.IsType<BellRung>(Next(bell, bellWake)).Spelling);
+        // kb/Work PB6218: on the bell arm the unadoptable socket faults ReadRingAsync, not the accept loop; it must be closed there (its handle released), not left to a finalizer.
+        Assert.True(SpinWait.SpinUntil(() => bellSocket!.SafeHandle.IsClosed, Guard), "the unadoptable bell socket was never closed");
     }
 
     [Fact]
