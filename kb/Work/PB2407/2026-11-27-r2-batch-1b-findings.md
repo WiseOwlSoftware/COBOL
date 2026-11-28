@@ -2,7 +2,7 @@
 
 ### `parser-tree-4--architecture--f1#5` (finding, move-and-rename, votes upheld/upheld/upheld)
 
-**Finding:** R0-0105 judged by §8.7: CompilationInputs.FilesRead, Probes and EnvironmentReads are an observation seam (rule b), not dead code; keep them, and correct the summary that names a build tool as their reader
+**Finding:** R0-0105 judged by DESIGN-architecture-review §8.7: CompilationInputs.FilesRead, Probes and EnvironmentReads are an observation seam (rule b), not dead code; keep them, and correct the summary that names a build tool as their reader
 
 **Rule:** the test-only judgment of DESIGN-architecture-review §8.7 (a table enumeration keeps; (b) a seam that exists for observation moves to the test project where the product allows it, else is named as a seam; (c) the rest is deleted); docs describe the current compiler (CLAUDE.md rule 6)
 
