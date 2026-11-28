@@ -1,4 +1,4 @@
-## The compiler's namespaces follow their folders; the carrier, the ALL-literal factory and the picture gate move down a layer; the reference-format conversion is four types
+## Entry 4096 — 2026-11-28 01:46 PST — The compiler's namespaces follow their folders; the carrier, the ALL-literal factory and the picture gate move down a layer; the reference-format conversion is four types
 
 Wave 20262168 group F, finished by wave 20262182 group A (cluster PB2119, the architecture review's R3 move/rename and
 extract waves). Twelve notes land: the renames and the three moves, then PB2328, the ReferenceFormatProcessor extract.
@@ -77,3 +77,4 @@ test asserts it) and that the moved scan and literal state have one home (the bu
 **Gate.** Run 000002 was RED before any test ran: the new drift test is a tree-wide sweep and lacked its
 `[Trait("Sweep", "tree")]`. After the fix, run 000003-20261128T092631Z at 8d2ec452a3: `=== BUILD-LOCAL GATE: GREEN —
 Conformance 29,548/29,548 ran · Unit 43,114/43,114 ran · RepoDrift 260/260 ran · Characterization 37/37 ran (skipped 0) ===`.
+
