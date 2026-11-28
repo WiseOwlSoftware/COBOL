@@ -91,7 +91,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                       + $"so write 'FUNCTION {fn}'.";
                 ctx.Edition.Error(DiagnosticCatalog.FunctionKeywordOrArgumentListForm,
                     $"'{fn}' is written without the word FUNCTION, but the REPOSITORY paragraph does not declare "
-                    + $"it. {ctx.Edition.Edition.CiteRule("§1985:IV.4.3.8.3.2 prints the word FUNCTION in every function-identifier and has no omission of it", "§2023:8.4.3.2.3 SR2 allows the omission only for an intrinsic named in REPOSITORY")} — {remedy}");
+                    + $"it. {ctx.Edition.Edition.CiteRule("§1985:IV.4.3.8.3.2 prints the word FUNCTION in every function-identifier and has no omission of it", "§2023:8.4.3.2.3 SR2 allows the omission only for an intrinsic named in REPOSITORY", "§2002:8.4.2.2.2 SR2 allows the omission only for an intrinsic named in REPOSITORY", "§2014:8.4.2.2.2 SR2 allows the omission only for an intrinsic named in REPOSITORY")} — {remedy}");
                 return BoundExprError.Refused(ctx.Edition, $"FUNCTION {fn}");
             }
             // The parenthesis after the name is the ARGUMENT LIST (subscriptPart) unless it holds a colon, in which
@@ -179,8 +179,8 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     private BoundExprError Sr6ArgumentListError(string display)
     {
         ctx.Edition.Error(DiagnosticCatalog.FunctionKeywordOrArgumentListForm, $"'{display} (…)' — the '(' after the name of a function that "
-            + $"takes arguments is ALWAYS its argument list ({ctx.Edition.Edition.CiteRule("§1985:IV.4.3.8.3.2, whose general format writes the argument list before the reference-modifier", "§2023:8.4.3.2.3 SR6")}), so this is an argument list "
-            + $"and 'start:length' is not a valid argument ({ctx.Edition.Edition.Cite("§1985:IV.4.3.8.3.3 SR1", "SR8")}). Reference-modify the RESULT by writing the "
+            + $"takes arguments is ALWAYS its argument list ({ctx.Edition.Edition.CiteRule("§1985:IV.4.3.8.3.2, whose general format writes the argument list before the reference-modifier", "§2023:8.4.3.2.3 SR6", "§2002:8.4.2.2.2 SR4", "§2014:8.4.2.2.2 SR6")}), so this is an argument list "
+            + $"and 'start:length' is not a valid argument ({ctx.Edition.Edition.Cite("§1985:IV.4.3.8.3.3 SR1", "SR8", "SR6", "SR8")}). Reference-modify the RESULT by writing the "
             + $"argument list first: {display}(<arguments>) (start:length).");
         return BoundExprError.Refused(ctx.Edition, $"{display} arguments");
     }
@@ -199,7 +199,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         {
             ctx.Edition.Error(DiagnosticCatalog.RefModOfRefMod,
                 $"'{display}' carries {refMods.Length} reference modifications; the result of a function cannot "
-                + $"be reference-modified twice ({ctx.Edition.Edition.CiteRule("§1985:IV.4.3.8.4.2", "§2023:8.4.3.3.3 SR3")}). Compose the positions into one modifier.");
+                + $"be reference-modified twice ({ctx.Edition.Edition.CiteRule("§1985:IV.4.3.8.4.2", "§2023:8.4.3.3.3 SR3", "§2002:8.4.2.3.2 SR3", "§2014:8.4.2.3.2 SR3")}). Compose the positions into one modifier.");
             return BoundExprError.Refused(ctx.Edition, $"reference modification of {display}");
         }
         // §2023:8.4.3.2.3 SR6 was already decided by the caller, from the definition, before the call bound — the
@@ -240,7 +240,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         {
             ctx.Edition.Error(DiagnosticCatalog.RefModFunctionResultClass,
                 $"'{display}' is not an alphanumeric, boolean, or national function, so its result cannot be "
-                + $"reference-modified ({ctx.Edition.Edition.CiteRule("§1985:IV.4.3.8.3.3 SR2", "§2023:8.4.3.3.3 SR2")}).");
+                + $"reference-modified ({ctx.Edition.Edition.CiteRule("§1985:IV.4.3.8.3.3 SR2", "§2023:8.4.3.3.3 SR2", "§2002:8.4.2.3.2 SR2", "§2014:8.4.2.3.2 SR2")}).");
             return BoundExprError.Refused(ctx.Edition, $"reference modification of {display}");
         }
         if (spec is not { } rm) return BoundExprError.Refused(ctx.Edition, $"reference modification of {display}");
@@ -477,7 +477,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             if (sp is null && sig.MinArgs != 0) return null;
             ctx.Edition.Error(DiagnosticCatalog.FunctionKeywordOrArgumentListForm,
                 $"'{name}' is written without the word FUNCTION, but the REPOSITORY paragraph does not declare "
-                + $"it. {ctx.Edition.Edition.CiteRule("§1985:IV.4.3.8.3.2 prints the word FUNCTION in every function-identifier and has no omission of it", "§2023:8.4.3.2.3 SR2 allows the omission only for an intrinsic named in REPOSITORY")} — "
+                + $"it. {ctx.Edition.Edition.CiteRule("§1985:IV.4.3.8.3.2 prints the word FUNCTION in every function-identifier and has no omission of it", "§2023:8.4.3.2.3 SR2 allows the omission only for an intrinsic named in REPOSITORY", "§2002:8.4.2.2.2 SR2 allows the omission only for an intrinsic named in REPOSITORY", "§2014:8.4.2.2.2 SR2 allows the omission only for an intrinsic named in REPOSITORY")} — "
                 + $"write 'FUNCTION {name}', or add 'REPOSITORY. FUNCTION {name} INTRINSIC.' (or FUNCTION ALL "
                 + "INTRINSIC).");
             return BoundExprError.Refused(ctx.Edition, $"FUNCTION {name}");
@@ -587,16 +587,16 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     };
 
     /// <summary>The clause each function's format-content rule lives in, for the diagnostic text.</summary>
-    private static string FormatRuleCitation(string name) => name switch
+    private string FormatRuleCitation(string name) => name switch
     {
-        "FORMATTED-CURRENT-DATE" => "ISO §2023:15.38.3 r2",
-        "FORMATTED-DATE" => "ISO §2023:15.39.3 r2",
-        "FORMATTED-DATETIME" => "ISO §2023:15.40.3 r2",
-        "FORMATTED-TIME" => "ISO §2023:15.41.3 r2",
-        "INTEGER-OF-FORMATTED-DATE" => "ISO §2023:15.48.3 r2",
-        "SECONDS-FROM-FORMATTED-TIME" => "ISO §2023:15.79.3 r2",
-        "TEST-FORMATTED-DATETIME" => "ISO §2023:15.92.3 r2",
-        _ => "ISO §2023:15.3",
+        "FORMATTED-CURRENT-DATE" => IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.38.3 AR2"),
+        "FORMATTED-DATE" => IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.39.3 AR2"),
+        "FORMATTED-DATETIME" => IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.40.3 AR2"),
+        "FORMATTED-TIME" => IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.41.3 AR2"),
+        "INTEGER-OF-FORMATTED-DATE" => IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.48.3 AR2"),
+        "SECONDS-FROM-FORMATTED-TIME" => IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.79.3 AR2"),
+        "TEST-FORMATTED-DATETIME" => IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.92.3 AR2"),
+        _ => IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.3"),
     };
 
     /// <summary>The D2 keyword-omitted form's ARGUMENTS (§2023:8.4.3.2.3 SR2): the reference's parenthesized list, which
@@ -614,7 +614,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             if (item.functionArgument() is { } a) { args.Add(a); continue; }
             ctx.Edition.Error(DiagnosticCatalog.FunctionKeywordOrArgumentListForm, $"malformed function-argument list '{WrittenSource.Of(sp)}' — an "
                 + "argument is an identifier, a literal, a boolean expression, or an arithmetic expression, and ALL is "
-                + $"none of them ({ctx.Edition.Edition.CiteRule("§1985:IV.4.3.8.3.3 SR1", "§2023:8.4.3.2.3 SR8")})");
+                + $"none of them ({ctx.Edition.Edition.CiteRule("§1985:IV.4.3.8.3.3 SR1", "§2023:8.4.3.2.3 SR8", "§2002:8.4.2.2.2 SR6", "§2014:8.4.2.2.2 SR8")})");
             return null;
         }
         return ArgumentsOf(args);
@@ -649,8 +649,8 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 using var _ = ctx.Edition.At(given!);
                 ctx.Edition.Error(DiagnosticCatalog.FunctionKeywordOrArgumentListForm,
                     $"'{WrittenSource.Of(given!)}' follows '{WrittenBefore(arg, given!)}', "
-                    + $"on which no subscript may be written ({ctx.Edition.Edition.CiteRule("§1985:IV.4.3.8.2.3 SR1", "§2023:8.4.2.3.3 SR2")}), so it begins the next argument — and an "
-                    + $"argument written in parentheses is an arithmetic or a boolean expression, which this is not ({ctx.Edition.Edition.CiteRule("§1985:IV.4.3.8.3.3 SR1", "§2023:8.4.3.2.3 SR8")})");
+                    + $"on which no subscript may be written ({ctx.Edition.Edition.CiteRule("§1985:IV.4.3.8.2.3 SR1", "§2023:8.4.2.3.3 SR2", "§2002:8.4.1.2.2 SR2", "§2014:8.4.1.2.2 SR2")}), so it begins the next argument — and an "
+                    + $"argument written in parentheses is an arithmetic or a boolean expression, which this is not ({ctx.Edition.Edition.CiteRule("§1985:IV.4.3.8.3.3 SR1", "§2023:8.4.3.2.3 SR8", "§2002:8.4.2.2.2 SR6", "§2014:8.4.2.2.2 SR8")})");
                 return null;
             }
             read.Add(next);
@@ -743,7 +743,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                     + declareHint);
             else
                 ctx.Edition.Error(DiagnosticCatalog.IntrinsicFunctionUnknown, $"FUNCTION {upper} is not an intrinsic function of ISO/IEC 1989 "
-                    + $"({ctx.Edition.Edition.Cite("§1989:A.2.4 summary of functions", "§2023:15.6 summary of functions")})" + declareHint);
+                    + $"({ctx.Edition.Edition.Cite("§1989:A.2.4 summary of functions", "§2023:15.6 summary of functions", "§2002:15.5 summary of functions", "§2014:15.6 summary of functions")})" + declareHint);
             return BoundExprError.Refused(ctx.Edition, $"FUNCTION {name}");
         }
 
@@ -911,8 +911,8 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             ctx.Edition.Error(DiagnosticCatalog.DateTimeOffsetArgumentNotPermitted,
                 $"FUNCTION {sig.Name} is given an offset-from-UTC argument (argument-{offIx + 1}), but its format "
                 + $"'{zoneFmt.Value}' has a LOCAL time portion — neither a UTC format (a trailing 'Z') nor an "
-                + "offset format (an explicit '+hhmm' / '+hh:mm' subformat), ISO §2023:15.3.3.4–§2023:15.3.3.6. "
-                + (sig.Name == "FORMATTED-DATETIME" ? "§2023:15.40.3 AR6" : "§2023:15.41.3 AR5")
+                + "offset format (an explicit '+hhmm' / '+hh:mm' subformat), " + IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.3.3.4") + "–" + IntrinsicCitations.BareRule(ctx.Edition.Edition, "§2023:15.3.3.6") + ". "
+                + (sig.Name == "FORMATTED-DATETIME" ? IntrinsicCitations.BareRule(ctx.Edition.Edition, "§2023:15.40.3 AR6") : IntrinsicCitations.BareRule(ctx.Edition.Edition, "§2023:15.41.3 AR5"))
                 + " bars the argument there. Use a UTC or offset format, or drop the argument");
 
         if (args.Count > 0 && args[0] is BoundStringLiteral fmt
@@ -923,8 +923,8 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 ctx.Edition.Error(DiagnosticCatalog.DateTimeFormatKindMismatch,
                     $"FUNCTION {sig.Name} argument-1 is '{fmt.Value}', which is "
                     + (actual is null
-                        ? "not a date, time or combined date-and-time format at all (ISO §2023:15.3.1.1 / §2023:15.3.2 / "
-                          + "§2023:15.3.3.7 — note that basic and extended forms never mix)"
+                        ? "not a date, time or combined date-and-time format at all (" + IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.3.1.1") + " / " + IntrinsicCitations.BareRule(ctx.Edition.Edition, "§2023:15.3.2") + " / "
+                          + IntrinsicCitations.BareRule(ctx.Edition.Edition, "§2023:15.3.3.7") + " — note that basic and extended forms never mix)"
                         : $"a {Name(actual.Value)} format; this function admits "
                           + string.Join(" or ", admitted.Select(Name)))
                     + $" ({FormatRuleCitation(sig.Name)}).");
@@ -997,8 +997,8 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // national ordinal→character direction is FUNCTION CHAR-NATIONAL (§2023:15.16, implemented — the P10
         // Step-11 EC-N wave). Rejected BY NAME at bind — never a wrong ordinal through the numeric channel.
         if (sig.Name is "CHAR" && nationalArg)
-            ctx.Edition.Error(DiagnosticCatalog.CharFunctionArgumentNotInteger, "FUNCTION CHAR takes an integer operand (§2023:15.15.3 rule 1) — "
-                + "FUNCTION CHAR-NATIONAL (§2023:15.16) is the national program-collating-sequence form");
+            ctx.Edition.Error(DiagnosticCatalog.CharFunctionArgumentNotInteger, "FUNCTION CHAR takes an integer operand (" + IntrinsicCitations.BareRule(ctx.Edition.Edition, "§2023:15.15.3 AR1") + ") — "
+                + "FUNCTION CHAR-NATIONAL (" + IntrinsicCitations.BareRule(ctx.Edition.Edition, "§2023:15.16") + ") is the national program-collating-sequence form");
 
         // DISPLAY-OF / NATIONAL-OF (§2023:15.26.3 / §2023:15.66.3) — the argument class/category rules of the sanctioned
         // national↔alphanumeric repertoire pair.
@@ -1067,7 +1067,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // file-name, and that file must be FD-described — an SD (a sort-merge file description) or a SELECT with no
         // description entry at all fails the second half; the resolver used to match on the bare name only, so
         // both compiled clean and answered r2a's two spaces. The clause cited is the function's OWN.
-        string clause = sig.Name == "EXCEPTION-FILE" ? "§2023:15.28.3 rule 1" : "§2023:15.29.3 rule 1";
+        string clause = sig.Name == "EXCEPTION-FILE" ? IntrinsicCitations.BareRule(ctx.Edition.Edition, "§2023:15.28.3 AR1") : IntrinsicCitations.BareRule(ctx.Edition.Edition, "§2023:15.29.3 AR1");
         // Resolve through SymbolTable.Identify — the ONE file-name resolution every other site uses (kb/Work PB123:
         // this arm scanned ctx.Data.Files, the program's OWN FD list, so a contained program naming its
         // container's GLOBAL FD — visible per §2023:13.18.27.4 GR1–2 — drew "not the name of a file connector" on legal source).
@@ -1130,7 +1130,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         if (argCtxs.Count is < 2 or > 4)
         {
             ctx.Edition.Error(DiagnosticCatalog.IntrinsicFunctionFormInvalid, $"FUNCTION STANDARD-COMPARE takes 2..4 argument(s); "
-                + $"{argCtxs.Count} given (ISO §2023:15.85.2)");
+                + $"{argCtxs.Count} given (" + IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.85.2") + ")");
             return BoundExprError.Refused(ctx.Edition, "FUNCTION STANDARD-COMPARE arity");
         }
 
@@ -1154,7 +1154,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             if (mustBeName)
                 return Malformed($"argument-3 '{WrittenSource.Of(argCtxs[2]).Trim()}' is not an ordering-name declared in an "
                     + "ORDER TABLE clause of the SPECIAL-NAMES paragraph — with four arguments written, the "
-                    + "§2023:15.85.2 general format's third position IS ordering-name-1 (ISO §2023:15.85.3 AR5; §2023:15.3 "
+                    + IntrinsicCitations.BareRule(ctx.Edition.Edition, "§2023:15.85.2") + " general format's third position IS ordering-name-1 (" + IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.85.3 AR5") + "; " + IntrinsicCitations.BareRule(ctx.Edition.Edition, "§2023:15.3") + " "
                     + "argument type 12)"
                     + (ctx.Symbols.OrderingNames is not { Count: > 0 } declared
                         ? "; this compilation unit declares no ORDER TABLE clause"
@@ -1163,8 +1163,8 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             // path would otherwise report it as an unresolved data-name, which is true and useless.
             if (!ownItem && KeywordWordOf(a) is { } second && ctx.Symbols.DeclaresConfigurationName(NameClass.OrderingName, second))
                 return Malformed($"is given the ordering-name '{second}' in the argument-4 position — the "
-                    + "§2023:15.85.2 general format admits ONE [ ordering-name-1 ], and the fourth position is "
-                    + "argument-4, the ordering level (ISO §2023:15.85.3 AR6)");
+                    + IntrinsicCitations.BareRule(ctx.Edition.Edition, "§2023:15.85.2") + " general format admits ONE [ ordering-name-1 ], and the fourth position is "
+                    + "argument-4, the ordering level (" + IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.85.3 AR6") + ")");
             var level = BindArgOperand(a);
             // §2023:15.85.3 AR6 — "Argument-4, if specified, shall be a positive nonzero integer." Decidable here only
             // for a LITERAL; a data item's value is a run-time fact, and §2023:15.85.4 RV2 owns the outcome of a level
@@ -1175,7 +1175,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             if (level is BoundNumericLiteral { Text: { } text }
                 && (!WiseOwl.Cobol.Validation.IntegerOperandRules.TryHostValue(text, out int n) || n <= 0))
                 return Malformed($"argument-4 is {text}, which is not a positive nonzero integer "
-                    + "(ISO §2023:15.85.3 AR6) — the ordering level is 1 (primary) through the highest level the "
+                    + "(" + IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.85.3 AR6") + ") — the ordering level is 1 (primary) through the highest level the "
                     + "ordering table defines");
             operands.Add(level);
         }
@@ -1202,7 +1202,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         if (argCtxs.Count < operandCount || argCtxs.Count > operandCount + 1)
         {
             ctx.Edition.Error(DiagnosticCatalog.IntrinsicFunctionFormInvalid, $"FUNCTION {sig.Name} takes {operandCount}..{operandCount + 1} argument(s); "
-                + $"{argCtxs.Count} given (ISO §2023:{LocaleFunctionClause(sig.Name)}.2)");
+                + $"{argCtxs.Count} given ({IntrinsicCitations.Rule(ctx.Edition.Edition, LocaleFunctionClause(sig.Name))})");
             return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name} arity");
         }
         var operands = new List<BoundOperand>(operandCount);
@@ -1213,10 +1213,10 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             var a = argCtxs[operandCount];
             string rule = sig.Name switch
             {
-                "LOCALE-COMPARE" => $"{EditionInfo.Designated(IntrinsicCitations.ClauseSince2002(ctx.Edition.Edition, sig.Name, "§2023:15.51.3 AR4"))} — locale-name-1 shall be associated with a locale in the SPECIAL-NAMES paragraph",
-                "LOCALE-DATE" => $"{EditionInfo.Designated(IntrinsicCitations.ClauseSince2002(ctx.Edition.Edition, sig.Name, "§2023:15.52.3 AR3"))} — locale-name-1 shall be associated with a locale in the SPECIAL-NAMES paragraph",
-                "LOCALE-TIME" => $"{EditionInfo.Designated(IntrinsicCitations.ClauseSince2002(ctx.Edition.Edition, sig.Name, "§2023:15.53.3 AR4"))} — locale-name-1 shall be associated with a locale in the SPECIAL-NAMES paragraph",
-                _ => $"{EditionInfo.Designated(IntrinsicCitations.ClauseSince2002(ctx.Edition.Edition, sig.Name, "§2023:15.54.3 AR2"))} — locale-name-1 shall be associated with a locale in the SPECIAL-NAMES paragraph",
+                "LOCALE-COMPARE" => IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.51.3 AR4") + " — locale-name-1 shall be associated with a locale in the SPECIAL-NAMES paragraph",
+                "LOCALE-DATE" => IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.52.3 AR3") + " — locale-name-1 shall be associated with a locale in the SPECIAL-NAMES paragraph",
+                "LOCALE-TIME" => IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.53.3 AR4") + " — locale-name-1 shall be associated with a locale in the SPECIAL-NAMES paragraph",
+                _ => IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.54.3 AR2") + " — locale-name-1 shall be associated with a locale in the SPECIAL-NAMES paragraph",
             };
             string site = $"FUNCTION {sig.Name}'s locale-name-1 '{WrittenSource.Of(a).Trim()}'";
             if (KeywordWordOf(a) is { } word)
@@ -1228,7 +1228,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             else
             {
                 ctx.Edition.Error(DiagnosticCatalog.LocaleNameUndeclared, $"{site}: the position after the operand(s) admits only a locale-name declared by a "
-                    + $"SPECIAL-NAMES LOCALE clause ({rule}; the general format is §2023:{LocaleFunctionClause(sig.Name)}.2)");
+                    + $"SPECIAL-NAMES LOCALE clause ({rule}; the general format is {IntrinsicCitations.BareRule(ctx.Edition.Edition, LocaleFunctionClause(sig.Name))})");
                 return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name}");
             }
         }
@@ -1249,8 +1249,8 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// the bound node's <see cref="BoundIntrinsicCall.Locale"/>.</summary>
     private BoundExpr BindCaseFunctionWithLocale(IntrinsicSig sig, IReadOnlyList<Core.FunctionArgumentContext> argCtxs)
     {
-        string rule = sig.Name == "UPPER-CASE" ? "ISO §2023:15.97.2 / §2023:15.97.4 r2 — LOCALE locale-name-1, a locale-name of the SPECIAL-NAMES LOCALE clause"
-            : "ISO §2023:15.57.2 / §2023:15.57.4 r2 — LOCALE locale-name-1, a locale-name of the SPECIAL-NAMES LOCALE clause";
+        string rule = sig.Name == "UPPER-CASE" ? IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.97.2") + " / " + IntrinsicCitations.BareRule(ctx.Edition.Edition, "§2023:15.97.4 RV2") + " — LOCALE locale-name-1, a locale-name of the SPECIAL-NAMES LOCALE clause"
+            : IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.57.2") + " / " + IntrinsicCitations.BareRule(ctx.Edition.Edition, "§2023:15.57.4 RV2") + " — LOCALE locale-name-1, a locale-name of the SPECIAL-NAMES LOCALE clause";
         // The phrase is a 2014 introduction (kb/Work PB4311; the function is 1985; the printed 2002 formats are
         // `( argument-1 )`): the construct gate, like EXCEPTION-FILE's argument. It speaks FIRST, and an edition without the
         // phrase hears nothing after it: the form below is the 2014 phrase's, so a malformed phrase at COBOL-85 is not a second
@@ -1286,10 +1286,10 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
 
     private static string LocaleFunctionClause(string name) => name switch
     {
-        "LOCALE-COMPARE" => "15.51",
-        "LOCALE-DATE" => "15.52",
-        "LOCALE-TIME" => "15.53",
-        _ => "15.54",
+        "LOCALE-COMPARE" => "§2023:15.51.2",
+        "LOCALE-DATE" => "§2023:15.52.2",
+        "LOCALE-TIME" => "§2023:15.53.2",
+        _ => "§2023:15.54.2",
     };
 
     /// <summary>TRIM (§2023:15.96) — a phrase keyword in the argument list (<c>[LEADING|TRAILING]</c>, §2023:15.96.2),
@@ -1306,7 +1306,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         BoundExpr Malformed(string why)
         {
             ctx.Edition.Error(DiagnosticCatalog.IntrinsicFunctionFormInvalid, "FUNCTION TRIM takes argument-1 [LEADING|TRAILING] "
-                + $"[argument-2]…, in that order (ISO §2023:15.96.2) — {why}");
+                + "[argument-2]…, in that order (" + IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.96.2") + $") — {why}");
             return BoundExprError.Refused(ctx.Edition, "FUNCTION TRIM");
         }
         foreach (var a in argCtxs)
@@ -1332,7 +1332,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         }
         if (operands.Count == 0)
         {
-            ctx.Edition.Error(DiagnosticCatalog.IntrinsicFunctionFormInvalid, "FUNCTION TRIM takes at least a string argument-1 (ISO §2023:15.96.2/.3)");
+            ctx.Edition.Error(DiagnosticCatalog.IntrinsicFunctionFormInvalid, "FUNCTION TRIM takes at least a string argument-1 (" + IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.96.2") + "; " + IntrinsicCitations.BareRule(ctx.Edition.Edition, "§2023:15.96.3") + ")");
             return BoundExprError.Refused(ctx.Edition, "FUNCTION TRIM");
         }
         // The argument-2 form (delete characters OTHER than space) is a 2023 enhancement — TRIM removed only
@@ -1372,7 +1372,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         BoundExpr Malformed(string why)
         {
             ctx.Edition.Error(DiagnosticCatalog.IntrinsicFunctionFormInvalid, "FUNCTION FIND-STRING takes argument-1 argument-2 [LAST] "
-                + $"[[START AFTER] argument-3] [ANYCASE], in that order (ISO §2023:15.37.2) — {why}");
+                + "[[START AFTER] argument-3] [ANYCASE], in that order (" + IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.37.2") + $") — {why}");
             return BoundExprError.Refused(ctx.Edition, "FUNCTION FIND-STRING");
         }
         // ⛔ A POSITIONAL WALK OVER THE §2023:15.37.2 FORMAT, not an order-free switch (kb/Work R20 — ledger F28).
@@ -1416,7 +1416,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         if (operands.Count is < 2 or > 3)
         {
             ctx.Edition.Error(DiagnosticCatalog.IntrinsicFunctionFormInvalid, "FUNCTION FIND-STRING takes argument-1 argument-2 "
-                + $"[[START AFTER] argument-3] (ISO §2023:15.37.2); {operands.Count} operand argument(s) given");
+                + "[[START AFTER] argument-3] (" + IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.37.2") + $"); {operands.Count} operand argument(s) given");
             return BoundExprError.Refused(ctx.Edition, "FUNCTION FIND-STRING");
         }
         // ⛔ THE §2023:15.3 SCREEN IS CALLED HERE BECAUSE THIS BINDER RETURNS BEFORE THE GENERIC ONE REACHES IT
@@ -1454,12 +1454,12 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         bool flat = false;
         var partFlags = new List<int>();
         BoundExpr Malformed() { ctx.Edition.Error(DiagnosticCatalog.IntrinsicFunctionFormInvalid, "FUNCTION SUBSTITUTE takes argument-1 and one "
-            + "or more [ANYCASE][FIRST|LAST] argument-2 argument-3 pairs (ISO §2023:15.87.2)"); return BoundExprError.Refused(ctx.Edition, "FUNCTION SUBSTITUTE"); }
+            + "or more [ANYCASE][FIRST|LAST] argument-2 argument-3 pairs (" + IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.87.2") + ")"); return BoundExprError.Refused(ctx.Edition, "FUNCTION SUBSTITUTE"); }
 
         BoundExpr MalformedOrder(string why)
         {
             ctx.Edition.Error(DiagnosticCatalog.IntrinsicFunctionFormInvalid, "FUNCTION SUBSTITUTE's phrase keywords precede their pair in the "
-                + $"format's order — [ANYCASE] [FIRST|LAST] argument-2 argument-3 (ISO §2023:15.87.2) — {why}");
+                + "format's order — [ANYCASE] [FIRST|LAST] argument-2 argument-3 (" + IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.87.2") + $") — {why}");
             return BoundExprError.Refused(ctx.Edition, "FUNCTION SUBSTITUTE");
         }
         foreach (var a in argCtxs)
@@ -1567,7 +1567,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             slot += c;
             if (firstArg2Slot != 0 && KnownWidth(operands[i]) is 0)
                 ctx.Edition.Error(DiagnosticCatalog.IntrinsicArgumentClass, $"FUNCTION SUBSTITUTE argument-2 of pair "
-                    + $"{(firstArg2Slot + 1) / 2} is of zero length, which ISO §2023:15.87.3 r3 does not admit");
+                    + $"{(firstArg2Slot + 1) / 2} is of zero length, which " + IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.87.3 AR3") + " does not admit");
         }
     }
 
@@ -1601,7 +1601,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 if (TypeNameArgument(a) is { } td)
                 {
                     ctx.Edition.Error(DiagnosticCatalog.ConvertFunctionRule, $"FUNCTION CONVERT: argument-1 names the type "
-                        + $"declaration '{td.CobolName}' — Table 21 lists a type-name here, but §2023:15.19 "
+                        + $"declaration '{td.CobolName}' — Table 21 lists a type-name here, but " + IntrinsicCitations.BareRule(ctx.Edition.Edition, "§2023:15.19") + " "
                         + "defines no semantics for one (recorded as a standard-text inconsistency, "
                         + "CONFORMANCE.md); write a data item described with the type instead");
                     return BoundExprError.Refused(ctx.Edition, "FUNCTION CONVERT type argument");
@@ -1611,13 +1611,13 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             }
             if (KeywordWordOf(a) is { } w && IsConvertFormatWord(w)) { kws.Add(w); continue; }
             ctx.Edition.Error(DiagnosticCatalog.ConvertFunctionRule, "FUNCTION CONVERT: the arguments after argument-1 shall be the "
-                + "source-format and destination-format keywords, in that order (ISO §2023:15.19.2)");
+                + "source-format and destination-format keywords, in that order (" + IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.19.2") + ")");
             return BoundExprError.Refused(ctx.Edition, "FUNCTION CONVERT format");
         }
         if (operands.Count != 1 || kws.Count is < 2 or > 3)
         {
             ctx.Edition.Error(DiagnosticCatalog.IntrinsicFunctionFormInvalid, "FUNCTION CONVERT takes ( argument-1 source-format "
-                + $"destination-format ) (ISO §2023:15.19.2); {operands.Count} operand + {kws.Count} format keyword(s) given");
+                + "destination-format ) (" + IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.19.2") + $"); {operands.Count} operand + {kws.Count} format keyword(s) given");
             return BoundExprError.Refused(ctx.Edition, "FUNCTION CONVERT arity");
         }
 
@@ -1630,7 +1630,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         if (src < 0 || dst < 0 || i != kws.Count)
         {
             ctx.Edition.Error(DiagnosticCatalog.ConvertFunctionRule, $"FUNCTION CONVERT: '{string.Join(' ', kws)}' is not a valid "
-                + "source-format destination-format pair (ISO §2023:15.19.2 — ANY|ANUM|HEX|NAT then ANUM|NAT [HEX] | BYTE)");
+                + "source-format destination-format pair (" + IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.19.2") + " — ANY|ANUM|HEX|NAT then ANUM|NAT [HEX] | BYTE)");
             return BoundExprError.Refused(ctx.Edition, "FUNCTION CONVERT");
         }
         // The §2023:15.3 screen — see the PB12 note on the FIND-STRING arm: this binder returns before the
@@ -1639,21 +1639,21 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // SR3 — source shall differ from destination (only ANUM→ANUM / NAT→NAT with no HEX collide, §2023:15.19.3).
         if ((src == 1 && dst == 1 && !hex) || (src == 3 && dst == 3 && !hex))
             ctx.Edition.Error(DiagnosticCatalog.ConvertFunctionRule, "FUNCTION CONVERT: the source-format and destination-format are the "
-                + "same (ISO §2023:15.19.3 AR3)");
+                + "same (" + IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.19.3 AR3") + ")");
         // SR8 — an ANY source requires an ANUM HEX or NAT HEX destination.
         if (src == 0 && !(hex && dst is 1 or 3))
             ctx.Edition.Error(DiagnosticCatalog.ConvertFunctionRule, "FUNCTION CONVERT: a source-format of ANY requires a destination of "
-                + "ANUM HEX or NAT HEX (ISO §2023:15.19.3 AR8)");
+                + "ANUM HEX or NAT HEX (" + IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.19.3 AR8") + ")");
         // SR9 — a BYTE destination requires a HEX source.
         if (dst == 4 && src != 2)
             ctx.Edition.Error(DiagnosticCatalog.ConvertFunctionRule, "FUNCTION CONVERT: a destination-format of BYTE requires a "
-                + "source-format of HEX (ISO §2023:15.19.3 AR9)");
+                + "source-format of HEX (" + IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.19.3 AR9") + ")");
         // SR1 — argument-1 shall not be zero length. This arm is the COMPILE-TIME catch for the one shape
         // knowable here (an empty literal — ISO 8.5.4's shape 8); the RUNTIME twin at the top of
         // CobolIntrinsics.Convert screens the other 8.5.4 zero-length shapes (a DYNAMIC LENGTH item at
         // length 0, a zero-occurrence ODO group, …) with EC-ARGUMENT-FUNCTION (fix-queue PB59 / AR-15.19.3-1).
         if (operands[0] is BoundStringLiteral { Value.Length: 0 })
-            ctx.Edition.Error(DiagnosticCatalog.ConvertFunctionRule, "FUNCTION CONVERT: argument-1 is of zero length (ISO §2023:15.19.3 AR1)");
+            ctx.Edition.Error(DiagnosticCatalog.ConvertFunctionRule, "FUNCTION CONVERT: argument-1 is of zero length (" + IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.19.3 AR1") + ")");
 
         // §2023:15.19.3 AR4/r5/r6/r7 — the source-format keys what argument-1's STORAGE must hold, and the static
         // half of each rule is its REPRESENTATION (IntrinsicArgumentRules.StaticUsageOf — the keyword-dependent
@@ -1670,13 +1670,13 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             if (src == 1 && u is not Usage.Display)
                 ctx.Edition.Error(DiagnosticCatalog.ConvertFunctionRule, "FUNCTION CONVERT: an ANUM source-format reads argument-1 as "
                     + $"a string of characters from the alphanumeric coded character set, which usage {u} does "
-                    + "not hold (ISO §2023:15.19.3 AR5)");
+                    + "not hold (" + IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.19.3 AR5") + ")");
             if (src == 3 && u is not Usage.National)
                 ctx.Edition.Error(DiagnosticCatalog.ConvertFunctionRule, "FUNCTION CONVERT: a NAT source-format reads argument-1 as a "
-                    + $"string of national characters, which usage {u} does not hold (ISO §2023:15.19.3 AR6)");
+                    + $"string of national characters, which usage {u} does not hold (" + IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.19.3 AR6") + ")");
             if (src == 2 && u is not (Usage.Display or Usage.National))
                 ctx.Edition.Error(DiagnosticCatalog.ConvertFunctionRule, "FUNCTION CONVERT: a HEX source-format takes argument-1 of "
-                    + $"display or national usage, not {u} (ISO §2023:15.19.3 rule 4)");
+                    + $"display or national usage, not {u} (" + IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.19.3 AR4") + ")");
             // r7 — ANY takes any usage EXCEPT the address-holding ones; "it is not necessary for the contents
             // to be valid according to the usage", so this exclusion is the ONLY screen on an ANY source.
             // ClassOfCategory cannot express it (the pointer/program-pointer collapse), which is why the
@@ -1686,7 +1686,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                     or Usage.FunctionPointer or Usage.MessageTag)
                 ctx.Edition.Error(DiagnosticCatalog.ConvertFunctionRule, "FUNCTION CONVERT: an ANY source-format argument-1 shall not "
                     + "be of usage index, message-tag, object reference, pointer, function-pointer or "
-                    + "program-pointer (ISO §2023:15.19.3 AR7)");
+                    + "program-pointer (" + IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.19.3 AR7") + ")");
         }
 
         // §2023:15.19.3 AR7 — a source-format of ANY takes the operand's RAW storage bits regardless of usage. The
@@ -1771,7 +1771,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
 
         if (toNat && args[0] is BoundStringLiteral { Value.Length: 0 })
             ctx.Edition.Error(DiagnosticCatalog.NationalConversionArgumentRule, "FUNCTION NATIONAL-OF: argument-1 shall not be a zero-length "
-                + "literal (ISO §2023:15.66.3 rule 3)");
+                + "literal (" + IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.66.3 AR3") + ")");
 
         // ⛔ CLASS, NOT CATEGORY (kb/Work PB876): every rule below but NATIONAL-OF's argument-2 is worded "class", and
         // §2023:8.5.2.1 Table 2 splits numeric-edited between alphanumeric (usage display) and national (usage national)
@@ -1783,10 +1783,10 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             CobolClass c1 = IntrinsicArgumentRules.TableTwoClass(k1);
             if (!toNat && c1 is not CobolClass.National)
                 ctx.Edition.Error(DiagnosticCatalog.NationalConversionArgumentRule, "FUNCTION DISPLAY-OF: argument-1 shall be of class national "
-                    + $"({ConversionRule("DISPLAY-OF", "§2023:15.26.3 AR1")}) — FUNCTION NATIONAL-OF is the alphanumeric→national conversion");
+                    + "(" + IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.26.3 AR1") + ") — FUNCTION NATIONAL-OF is the alphanumeric→national conversion");
             else if (toNat && c1 is not (CobolClass.Alphabetic or CobolClass.Alphanumeric))
                 ctx.Edition.Error(DiagnosticCatalog.NationalConversionArgumentRule, "FUNCTION NATIONAL-OF: argument-1 shall be of class alphabetic "
-                    + $"or alphanumeric ({ConversionRule("NATIONAL-OF", "§2023:15.66.3 AR1")}) — FUNCTION DISPLAY-OF is the national→alphanumeric "
+                    + "or alphanumeric (" + IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.66.3 AR1") + ") — FUNCTION DISPLAY-OF is the national→alphanumeric "
                     + "conversion");
         }
 
@@ -1795,18 +1795,18 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         {
             if (IntrinsicArgumentRules.TableTwoClass(k2) is not (CobolClass.Alphabetic or CobolClass.Alphanumeric))
                 ctx.Edition.Error(DiagnosticCatalog.NationalConversionArgumentRule, "FUNCTION DISPLAY-OF: argument-2 (the substitution character) "
-                    + $"shall be of class alphabetic or alphanumeric ({ConversionRule("DISPLAY-OF", "§2023:15.26.3 AR2")})");
+                    + "shall be of class alphabetic or alphanumeric (" + IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.26.3 AR2") + ")");
         }
         else if (toNat && OperandCategory(args[1]) is { } c2)
         {
             if (c2 is not PicCategory.National)
                 ctx.Edition.Error(DiagnosticCatalog.NationalConversionArgumentRule, "FUNCTION NATIONAL-OF: argument-2 (the substitution character) "
-                    + $"shall be of category national ({ConversionRule("NATIONAL-OF", "§2023:15.66.3 AR2")})");
+                    + "shall be of category national (" + IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.66.3 AR2") + ")");
         }
         if (KnownWidth(args[1]) is { } w && w != 1)
             ctx.Edition.Error(DiagnosticCatalog.NationalConversionArgumentRule, $"FUNCTION {sig.Name}: argument-2 (the substitution character) "
                 + $"shall be one character position in length, not {w} "
-                + $"({(toNat ? ConversionRule("NATIONAL-OF", "§2023:15.66.3 AR2") : ConversionRule("DISPLAY-OF", "§2023:15.26.3 AR2"))})");
+                + $"({IntrinsicCitations.Rule(ctx.Edition.Edition, toNat ? "§2023:15.66.3 AR2" : "§2023:15.26.3 AR2")})");
     }
 
     /// <summary>BASECONVERT argument rules (§2023:15.12.3 AR1 — fix-queue PB59 / AR-15.12.3-1 legs (b)–(f)), the
@@ -1832,28 +1832,28 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         if (args.Count > 0 && IntrinsicArgumentRules.StaticUsageOf(args[0]) is { } u
             && u is not (Usage.Display or Usage.National))
             ctx.Edition.Error(DiagnosticCatalog.BaseConvertArgumentRule, "FUNCTION BASECONVERT: argument-1 shall be a usage display or "
-                + $"national data item or literal, not usage {u} (ISO §2023:15.12.3 rule 1)");
+                + $"national data item or literal, not usage {u} (" + IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.12.3 AR1") + ")");
 
         var s2 = StaticIntLiteral(args, 1);
         var s3 = StaticIntLiteral(args, 2);
         int? b2 = s2?.Value;
         if (s2 is { } r2 && r2.Value is < 2 or > 16)
             ctx.Edition.Error(DiagnosticCatalog.BaseConvertArgumentRule, "FUNCTION BASECONVERT: argument-2 shall be in the range 2 to 16, "
-                + $"not {r2.Text} (ISO §2023:15.12.3 rule 1; §2023:4.2.2 — a literal violation is flagged at compile time)");
+                + $"not {r2.Text} (" + IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.12.3 AR1") + "; §2023:4.2.2 — a literal violation is flagged at compile time)");
         if (s3 is { } r3 && r3.Value is < 2 or > 16)
             ctx.Edition.Error(DiagnosticCatalog.BaseConvertArgumentRule, "FUNCTION BASECONVERT: argument-3 shall be in the range 2 to 16, "
-                + $"not {r3.Text} (ISO §2023:15.12.3 rule 1; §2023:4.2.2 — a literal violation is flagged at compile time)");
+                + $"not {r3.Text} (" + IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.12.3 AR1") + "; §2023:4.2.2 — a literal violation is flagged at compile time)");
         // Equal VALUES, not equal saturated bounds: two different over-range literals both read as HostLimit.
         if (s2 is { Beyond: false } e2 && s3 is { Beyond: false } e3 && e2.Value == e3.Value)
             ctx.Edition.Error(DiagnosticCatalog.BaseConvertArgumentRule, "FUNCTION BASECONVERT: argument-2 and argument-3 shall have "
-                + $"unequal values — both are {e2.Value} (ISO §2023:15.12.3 rule 1)");
+                + $"unequal values — both are {e2.Value} (" + IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.12.3 AR1") + ")");
         // An INTEGER literal has no decimal point (§2023:8.3.3.3.2), so '2.0' is not one although its VALUE is integral
         // — the one half of "integer literal" the schema's value test (IntegerViolation, COBOL1627) cannot see.
         for (int i = 1; i <= 2 && i < args.Count; i++)
             if (args[i] is BoundNumericLiteral bl && !IntrinsicResultType.IsIntegerOperand(bl)
                 && IntrinsicArgumentRules.IntegerViolation(bl, ctx.Options.Arithmetic, ctx.Edition.Edition) is null)
                 ctx.Edition.Error(DiagnosticCatalog.BaseConvertArgumentRule, $"FUNCTION BASECONVERT: argument-{i + 1} shall be a positive "
-                    + $"nonzero numeric INTEGER literal or data item, not '{bl.Text}' (ISO §2023:15.12.3 rule 1)");
+                    + $"nonzero numeric INTEGER literal or data item, not '{bl.Text}' (" + IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.12.3 AR1") + ")");
 
         // r1's sub-11 half. OperandCategory is the totalized §2023:8.5.2.1 reader, so a ref-mod view (class
         // alphanumeric, GR6c) correctly skips this arm and reads as a string.
@@ -1878,7 +1878,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             };
             if (bad)
                 ctx.Edition.Error(DiagnosticCatalog.BaseConvertArgumentRule, "FUNCTION BASECONVERT: when the base in argument-2 is below "
-                    + "11, argument-1 shall be an unsigned integer data item or literal (ISO §2023:15.12.3 rule 1"
+                    + "11, argument-1 shall be an unsigned integer data item or literal (" + IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.12.3 AR1")
                     + (IntrinsicArgumentRules.UnsignedIntegerViolation(args[0]) is { } fnWhy
                         ? $"; argument-1 {fnWhy}" : "") + ")");
         }
@@ -1921,7 +1921,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             if (k is null || kind is not null)
             {
                 ctx.Edition.Error(DiagnosticCatalog.IntrinsicFunctionFormInvalid, "FUNCTION MODULE-NAME takes exactly one keyword argument "
-                    + $"(ACTIVATING/CURRENT/NESTED/STACK/TOP-LEVEL) (ISO §2023:15.65.2), not '{WrittenSource.Of(a)}'");
+                    + "(ACTIVATING/CURRENT/NESTED/STACK/TOP-LEVEL) (" + IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.65.2") + $"), not '{WrittenSource.Of(a)}'");
                 return BoundExprError.Refused(ctx.Edition, "FUNCTION MODULE-NAME");
             }
             kind = k;
@@ -1929,13 +1929,13 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         if (kind is not { } keyword)
         {
             ctx.Edition.Error(DiagnosticCatalog.IntrinsicFunctionFormInvalid, "FUNCTION MODULE-NAME requires one keyword argument "
-                + "(ACTIVATING/CURRENT/NESTED/STACK/TOP-LEVEL) (ISO §2023:15.65.2)");
+                + "(ACTIVATING/CURRENT/NESTED/STACK/TOP-LEVEL) (" + IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.65.2") + ")");
             return BoundExprError.Refused(ctx.Edition, "FUNCTION MODULE-NAME");
         }
         // §2023:15.65.3 argument rule 1 — NESTED only within a nested (contained) program.
         if (keyword == ModuleNameKeyword.Nested && !host.InNestedProgram)
             ctx.Edition.Error(DiagnosticCatalog.ModuleNameNestedOutsideNestedProgram, "FUNCTION MODULE-NAME NESTED shall be specified only within a "
-                + "nested program (ISO §2023:15.65.3 argument rule 1) — this compilation unit is not contained");
+                + "nested program (" + IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.65.3 AR1") + ") — this compilation unit is not contained");
         return new BoundIntrinsicCall(sig, [], PicCategory.Alphanumeric) { Arithmetic = ctx.Options.Arithmetic, ModuleNameKeyword = keyword };
     }
 
@@ -1978,7 +1978,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// the renderer must tell a bare LOCALE from no phrase at all.</summary>
     private BoundExpr BindNumvalCFamily(IntrinsicSig sig, IReadOnlyList<Core.FunctionArgumentContext> argCtxs)
     {
-        string fmt = sig.Name == "NUMVAL-C" ? "15.68.2" : "15.94.2";
+        string fmt = sig.Name == "NUMVAL-C" ? "§2023:15.68.2" : "§2023:15.94.2";
         // §2023:15.68.2/§2023:15.94.2: ( argument-1 [argument-2 | LOCALE [locale-name-1]] [ANYCASE] ) — a POSITIONAL walk,
         // not an order-free keyword sweep (fix-queue PB60 / FMT-15.68.2). Slot 0 is ALWAYS argument-1 and binds
         // as an operand — POSITIONALLY, because the format puts argument-1 there, not because a data item may be
@@ -2001,7 +2001,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 if (anycase)
                 {
                     ctx.Edition.Error(DiagnosticCatalog.IntrinsicFunctionFormInvalid, $"FUNCTION {sig.Name}: the ANYCASE keyword is repeated "
-                        + $"(ISO §2023:{fmt} — argument-1 [argument-2 | LOCALE [locale-name-1]] [ANYCASE])");
+                        + $"({IntrinsicCitations.Rule(ctx.Edition.Edition, fmt)} — argument-1 [argument-2 | LOCALE [locale-name-1]] [ANYCASE])");
                     return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name} format");
                 }
                 anycase = true;
@@ -2015,7 +2015,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             if (anycase)
             {
                 ctx.Edition.Error(DiagnosticCatalog.IntrinsicFunctionFormInvalid, $"FUNCTION {sig.Name}: an argument follows ANYCASE, which "
-                    + $"the format places last (ISO §2023:{fmt})");
+                    + $"the format places last ({IntrinsicCitations.Rule(ctx.Edition.Edition, fmt)})");
                 return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name} format");
             }
             // The LOCALE keyword (§2023:15.68.3 AR5a; kb/Work PB64 T6): optionally followed by a locale-name declared
@@ -2029,7 +2029,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 if (at + 1 < argCtxs.Count && KeywordWordOf(argCtxs[at + 1]) is { } lname && lname != "ANYCASE")
                 {
                     var sym = ctx.Data.SpecialNames.ResolveLocaleName(KeywordWordContext(argCtxs[at + 1])!, lname, $"FUNCTION {sig.Name}'s LOCALE {lname}",
-                        "ISO §2023:15.68.3 AR5a — locale-name-1 shall be associated with a locale in the SPECIAL-NAMES paragraph");
+                        IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.68.3 AR5a") + " — locale-name-1 shall be associated with a locale in the SPECIAL-NAMES paragraph");
                     if (sym is null) return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name}");
                     locale = new LocaleRef(sym);
                     at++;
@@ -2043,14 +2043,14 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             // §2023:15.68.2's bracketed stack: argument-2 and the LOCALE keyword are ALTERNATIVES (§2023:5.2.6.2 — at
             // most one of a bracketed stack may be written).
             ctx.Edition.Error(DiagnosticCatalog.IntrinsicFunctionFormInvalid, $"FUNCTION {sig.Name}: argument-2 and the LOCALE keyword are "
-                + $"alternatives — at most one may be written (ISO §2023:{fmt}; §2023:5.2.6.2)");
+                + $"alternatives — at most one may be written ({IntrinsicCitations.Rule(ctx.Edition.Edition, fmt)}; §2023:5.2.6.2)");
             return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name} format");
         }
         if (operands.Count is < 1 or > 2)
         {
             ctx.Edition.Error(DiagnosticCatalog.IntrinsicFunctionFormInvalid, $"FUNCTION {sig.Name} takes "
                 + ctx.Edition.Edition.Cite("argument-1 [argument-2] (§1989:A.2.30.2)",
-                    $"argument-1 [argument-2 | LOCALE [locale-name-1]] [ANYCASE] (ISO §2023:{fmt})")
+                    $"argument-1 [argument-2 | LOCALE [locale-name-1]] [ANYCASE] ({IntrinsicCitations.Rule(ctx.Edition.Edition, fmt)})")
                 + $"; {operands.Count} operand argument(s) given");
             return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name} arity");
         }
@@ -2077,7 +2077,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             && CobolIntrinsics.CurrencyStringViolatesContentRules(curLit.Value))
             ctx.Edition.Error(DiagnosticCatalog.IntrinsicArgumentClass, $"FUNCTION {sig.Name} argument-2 shall contain at least one "
                 + "non-space character and none of the digits 0-9, the characters '*' '+' '-' ',' '.', or "
-                + $"the letter pair CR/DB in any case ({EditionInfo.Designated(IntrinsicCitations.ClauseSince2002(ctx.Edition.Edition, sig.Name, "§2023:15.68.3 AR2"))})");
+                + "the letter pair CR/DB in any case (" + IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.68.3 AR2") + ")");
         if (operands.Count == 1 && !localeWritten)
         {
             // §2023:15.68.3 AR3: "If NEITHER argument-2 NOR THE LOCALE KEYWORD is specified, there shall be only one
@@ -2096,8 +2096,8 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 ctx.Edition.Error(DiagnosticCatalog.NumvalCAmbiguousCurrency, $"FUNCTION {sig.Name} without "
                     + $"argument-2: the compilation unit specifies {ctx.Data.State.Configuration.ExplicitCurrencyStringCount} distinct "
                     + "currency strings in its SPECIAL-NAMES paragraph; when neither argument-2 nor LOCALE is "
-                    + "specified there shall be only one currency string for the compilation unit (ISO §2023:15.68.3 "
-                    + "rule 3) — name the currency string as argument-2");
+                    + "specified there shall be only one currency string for the compilation unit (" + IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.68.3 AR3")
+                    + ") — name the currency string as argument-2");
         }
         return new BoundIntrinsicCall(sig, operands, PicCategory.Numeric)
         { Arithmetic = ctx.Options.Arithmetic, Anycase = anycase, Locale = locale, LocaleWritten = localeWritten, CurrencyContentUnrestricted = !contentRules };
@@ -2135,8 +2135,8 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 if (args[i] is BoundFieldOperand { Place.DescribedItem: { IsGroup: true } g }
                     && IsVariableLengthGroup(g))
                     Report($"FUNCTION {sig.Name} argument-{i + 1} ('{g.CobolName}') is a variable-length "
-                        + "group, which ISO §2023:15.3 admits only where the function definition explicitly "
-                        + "permits it — only LENGTH (§2023:15.50.4 r7) and BYTE-LENGTH (§2023:15.14.4 RV6) do");
+                        + "group, which " + IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.3") + " admits only where the function definition explicitly "
+                        + "permits it — only LENGTH (" + IntrinsicCitations.BareRule(ctx.Edition.Edition, "§2023:15.50.4 RV7") + ") and BYTE-LENGTH (" + IntrinsicCitations.BareRule(ctx.Edition.Edition, "§2023:15.14.4 RV6") + ") do");
 
         // ⛔ Driven by the SPEC-VERIFIED table, not by sig.ArgKinds. The catalog's hint column is unaudited —
         // BYTE-LENGTH is declared "s" while §2023:15.14.3 admits any class, and an empty ArgKinds defaults to 'n',
@@ -2229,7 +2229,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             if (IntrinsicArgumentRules.NumericFunctionResult(a) is not null)
             {
                 if (IntrinsicArgumentRules.UnsignedIntegerViolation(a) is { } fnWhy)
-                    report($"FUNCTION CONCAT argument-{i + 1} {fnWhy}; ISO §2023:15.18.3 r3 requires a numeric argument "
+                    report($"FUNCTION CONCAT argument-{i + 1} {fnWhy}; " + IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.18.3 AR3") + " requires a numeric argument "
                         + "to be an unsigned integer", a);
                 continue;
             }
@@ -2248,7 +2248,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             {
                 if (nUsage is not (Usage.Display or Usage.National))
                 {
-                    report($"FUNCTION CONCAT argument-{i + 1} is a numeric item of usage {nUsage}; ISO §2023:15.18.3 r3 "
+                    report($"FUNCTION CONCAT argument-{i + 1} is a numeric item of usage {nUsage}; " + IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.18.3 AR3") + " "
                         + "requires a numeric argument to be usage display or national", a);
                     continue;
                 }
@@ -2257,7 +2257,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 if (nSigned || !NumericLanes.IsIntegerByValue(NumericLane.Scaled, nScale))
                 {
                     report($"FUNCTION CONCAT argument-{i + 1} is a {(nSigned ? "signed" : "non-integer")} numeric item; "
-                        + "ISO §2023:15.18.3 r3 requires a numeric argument to be an unsigned integer", a);
+                        + IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.18.3 AR3") + " requires a numeric argument to be an unsigned integer", a);
                     continue;
                 }
                 // A numeric DISPLAY or NATIONAL item satisfies r3 and goes on to r2's usage family below, like any other argument
@@ -2267,7 +2267,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             {
                 if (!NumericLiteral.IsUnsignedForm(nl.Text) || !NumericLiteral.IsIntegerLiteralForm(nl.Text))
                 {
-                    report($"FUNCTION CONCAT argument-{i + 1} is the numeric literal {nl.Text}; ISO §2023:15.18.3 r3 "
+                    report($"FUNCTION CONCAT argument-{i + 1} is the numeric literal {nl.Text}; " + IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.18.3 AR3") + " "
                         + "requires a numeric argument to be an unsigned integer", a);
                     continue;
                 }
@@ -2278,11 +2278,11 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             // r2: the usage family.
             if ((a is BoundNumericLiteral ? Usage.Display : IntrinsicArgumentRules.StaticUsageOf(a)) is not { } u) continue;   // fail open
             if (u is not (Usage.Display or Usage.National))
-                report($"FUNCTION CONCAT argument-{i + 1} is of usage {u}; ISO §2023:15.18.3 r2 requires every argument "
+                report($"FUNCTION CONCAT argument-{i + 1} is of usage {u}; " + IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.18.3 AR2") + " requires every argument "
                     + "to be usage national or every argument to be usage display", a);
             else if (anyNational && u is Usage.Display)
                 report($"FUNCTION CONCAT argument-{i + 1} is usage display while another argument is usage national; "
-                    + "ISO §2023:15.18.3 r2 — if any argument is usage national, all arguments shall be usage national", a);
+                    + IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.18.3 AR2") + " — if any argument is usage national, all arguments shall be usage national", a);
         }
     }
 
@@ -2445,14 +2445,14 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // §2023:15.50.3 AR1 admits an item, a literal, a based entry or a type-name; name what was written, never
         // "a numeric literal" (the misattributed default that once covered a group ref-mod too, kb/Work PB70).
         BoundBoolOperand => InadmissibleArgument(sig,
-            $"is a boolean expression, which {ArgumentClause(sig, "§2023:15.50.3 r1")} does not admit — it takes an alphanumeric, national or "
+            $"is a boolean expression, which {ArgumentClause(sig, "§2023:15.50.3 AR1")} does not admit — it takes an alphanumeric, national or "
             + "boolean LITERAL, a based entry, a type-name, or a DATA ITEM of any class (write the expression's "
-            + "result to a boolean item and take its LENGTH)", ArgumentClause(sig, "§2023:15.50.3 r1")),
+            + "result to a boolean item and take its LENGTH)", ArgumentClause(sig, "§2023:15.50.3 AR1")),
         _ => InadmissibleArgument(sig,
-            $"is {WrittenForm(args[0])}, which {ArgumentClause(sig, "§2023:15.50.3 r1")} does not admit — it takes "
+            $"is {WrittenForm(args[0])}, which {ArgumentClause(sig, "§2023:15.50.3 AR1")} does not admit — it takes "
             + ctx.Edition.Edition.Cite("a nonnumeric literal or a data item of any class or category (a numeric ITEM is fine)",
                 "an alphanumeric, national or boolean literal, a based entry, a type-name, or a DATA ITEM of any class (a numeric ITEM is fine)"),
-            ArgumentClause(sig, "§2023:15.50.3 r1")),
+            ArgumentClause(sig, "§2023:15.50.3 AR1")),
     };
 
     /// <summary>What a LENGTH / BYTE-LENGTH argument that reached the catch-all WAS, in the words the diagnostic
@@ -2577,7 +2577,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             ctx.Edition.Error(DiagnosticCatalog.IntrinsicFunctionFormInvalid,
                 $"FUNCTION {sig.Name} takes "
                 + ctx.Edition.Edition.Cite("argument-1 (§1985:IV.4.3.8.3.3 SR1; §1989:A.2.19.1)",
-                    $"argument-1 [PHYSICAL] ({EditionInfo.Designated((isByte ? "§2023:15.14.2" : "§2023:15.50.2"))})")
+                    $"argument-1 [PHYSICAL] ({IntrinsicCitations.Rule(ctx.Edition.Edition, isByte ? "§2023:15.14.2" : "§2023:15.50.2")})")
                 + $"; {operands.Count} operand argument(s) given");
             return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name} arity");
         }
@@ -2588,7 +2588,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             if (IsVariableLengthGroup(typeArg))
             {
                 ctx.Edition.Error(DiagnosticCatalog.IntrinsicArgumentClass, $"FUNCTION {sig.Name}: the type "
-                    + $"declaration '{typeArg.CobolName}' describes a variable-length group, which ISO §2023:15.3 "
+                    + $"declaration '{typeArg.CobolName}' describes a variable-length group, which " + IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.3") + " "
                     + "does not admit as a type-declaration argument");
                 return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name} type argument");
             }
@@ -2676,7 +2676,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// </remarks>
     private BoundExpr VariableLengthGroupSum(IntrinsicSig sig, BoundFieldOperand op, bool bytes)
     {
-        string rules = bytes ? "§2023:15.14.4 r2b/r6" : "§2023:15.50.4 r4b/r7";
+        string rules = bytes ? IntrinsicCitations.BareRule(ctx.Edition.Edition, "§2023:15.14.4 RV2") + "; " + IntrinsicCitations.BareRule(ctx.Edition.Edition, "§2023:15.14.4 RV6") : IntrinsicCitations.BareRule(ctx.Edition.Edition, "§2023:15.50.4 RV4") + "; " + IntrinsicCitations.BareRule(ctx.Edition.Edition, "§2023:15.50.4 RV7");
         OdoGroupPlace? odo = op.Place as OdoGroupPlace;
         // The STORAGE place, every decoration peeled (kb/Work PB393) — the switch two lines down is over
         // storage FORMS, and `odo?.Inner` peeled exactly one known layer, so any other (or nested) decoration
@@ -2846,10 +2846,6 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// COBOL-85 the "Arguments" subclause of the function's paragraph of the 1989 module (<see cref="IntrinsicCitations.Clause"/>).</summary>
     private string ArgumentClause(IntrinsicSig sig, string clause2023) => IntrinsicCitations.Clause(ctx.Edition.Edition, sig.Name, clause2023);
 
-    /// <summary>The rule of DISPLAY-OF or NATIONAL-OF's argument, as a message prints it, in the edition in force (kb/Work PB5922).</summary>
-    private string ConversionRule(string function, string clause2023) =>
-        EditionInfo.Designated(IntrinsicCitations.ClauseSince2002(ctx.Edition.Edition, function, clause2023));
-
     /// <summary>An argument the §15 rules make INADMISSIBLE, reported where it is decidable — at BIND (fix-queue
     /// PB52 cause 3). Returns a <see cref="BoundExprError"/> so the caller's expression shape is unchanged.</summary>
     /// <remarks>
@@ -2892,8 +2888,8 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // ⚠ THE SIBLING CLAUSE DIFFERS AND THE TWO MUST NOT BE UNIFIED: §2023:15.50.3 AR1 admits "an alphanumeric,
         // national, or BOOLEAN literal", so `FUNCTION LENGTH(B"101")` is legal where BYTE-LENGTH's is not.
         BoundStringLiteral => InadmissibleArgument(sig,
-            $"is a literal of a class {ArgumentClause(sig, "§2023:15.14.3 r1")} does not admit — it takes an alphanumeric or national literal "
-            + "(a boolean literal is admissible to FUNCTION LENGTH, §2023:15.50.3 r1, but not here)", ArgumentClause(sig, "§2023:15.14.3 r1")),
+            $"is a literal of a class {ArgumentClause(sig, "§2023:15.14.3 AR1")} does not admit — it takes an alphanumeric or national literal "
+            + "(a boolean literal is admissible to FUNCTION LENGTH, " + IntrinsicCitations.BareRule(ctx.Edition.Edition, "§2023:15.50.3 AR1") + ", but not here)", ArgumentClause(sig, "§2023:15.14.3 AR1")),
         // ⛔ THE RUNTIME SHAPES ROUTE TO THE RUNTIME BODY, EXACTLY AS LENGTH's DO (kb/Work PB61 — every one of
         // these was a BoundExprError that COMPILED CLEAN and threw NotImplementedCobolFeatureException at run time,
         // the wrong-stage family, while the LENGTH twin one method up had been given its runtime channel). The
@@ -2940,12 +2936,12 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // A NUMERIC literal remains invalid — §2023:15.14.3 AR1 admits only "an alphanumeric or national literal"
         // (a numeric DATA ITEM is "a data item of any class or category" and folds on the arm above).
         BoundBoolOperand => InadmissibleArgument(sig,
-            $"is a boolean expression, which {ArgumentClause(sig, "§2023:15.14.3 r1")} does not admit — it takes an alphanumeric or national "
-            + "LITERAL, a based entry, a type-name, or a DATA ITEM of any class", ArgumentClause(sig, "§2023:15.14.3 r1")),   // kb/Work PB65
+            $"is a boolean expression, which {ArgumentClause(sig, "§2023:15.14.3 AR1")} does not admit — it takes an alphanumeric or national "
+            + "LITERAL, a based entry, a type-name, or a DATA ITEM of any class", ArgumentClause(sig, "§2023:15.14.3 AR1")),   // kb/Work PB65
         _ => InadmissibleArgument(sig,
-            $"is {WrittenForm(args[0])}, which {ArgumentClause(sig, "§2023:15.14.3 r1")} does not admit — it takes an alphanumeric or national "
+            $"is {WrittenForm(args[0])}, which {ArgumentClause(sig, "§2023:15.14.3 AR1")} does not admit — it takes an alphanumeric or national "
             + "literal, a based entry, a type-name, or a DATA ITEM of any class (a numeric ITEM is fine)",
-            ArgumentClause(sig, "§2023:15.14.3 r1")),
+            ArgumentClause(sig, "§2023:15.14.3 AR1")),
     };
 
     /// <summary>A compile-time fold keeps its function's §2023:15.2 type (§15.x.1 through the ONE resolver), because the
@@ -2983,7 +2979,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         if (f.Place.Item.IsCompilerTemp)
         {
             ctx.Edition.Error(DiagnosticCatalog.IntrinsicArgumentDataItemRule, $"FUNCTION {sig.Name}: argument-1 is a FUNCTION RESULT, and "
-                + $"ISO §2023:{AlgebraicArgumentRules(sig)} rule 1 admits a data item and \"shall not be an integer function or numeric "
+                + $"{AlgebraicRule(sig, 1)} admits a data item and \"shall not be an integer function or numeric "
                 + "function\" — name the data item whose description defines the range instead");
             return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name} function argument");
         }
@@ -3006,7 +3002,6 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // A.1 item 180's documented restriction is now "none beyond rules 2 and 3", CONFORMANCE.md).
         if (pic.IsFloat)
         {
-            string fsec3 = AlgebraicArgumentRules(sig);
             // The two families through the ONE place they are written down (UsageFamilies, PicInfo.cs) — §2023:3.166
             // and §2023:3.167 name them as terms and several rules key on those exact sets, so a second spelling here
             // is a set that can silently disagree when a member is added (kb/Work PB174).
@@ -3016,14 +3011,14 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             {
                 ctx.Edition.Error(DiagnosticCatalog.IntrinsicArgumentDataItemRule, $"FUNCTION {sig.Name}: under STANDARD-DECIMAL arithmetic "
                     + "argument-1 shall not specify a standard binary floating-point usage "
-                    + $"(ISO §2023:{fsec3} rule 2)");
+                    + $"({AlgebraicRule(sig, 2)})");
                 return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name} float argument");
             }
             if (ctx.Options.Arithmetic == ArithmeticMode.StandardBinary && stdDecimalUsage)
             {
                 ctx.Edition.Error(DiagnosticCatalog.IntrinsicArgumentDataItemRule, $"FUNCTION {sig.Name}: under STANDARD-BINARY arithmetic "
                     + "argument-1 shall not specify a standard decimal floating-point usage "
-                    + $"(ISO §2023:{fsec3} rule 3)");
+                    + $"({AlgebraicRule(sig, 3)})");
                 return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name} float argument");
             }
             // §2023:15.83.4 RV1 (kb/Work PB122; the float-ITEM twin of the float-EDITED screen below): the entry
@@ -3051,7 +3046,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                         + $"argument-1's usage describes values as far from zero as 1E+{farthestExp} and as near "
                         + $"as 1E{closestExp}, outside the {ArithmeticModes.IntermediateName(ctx.Options.Arithmetic)} "
                         + "intermediate's range — the entry shall be such that its values pass an "
-                        + $"IN-ARITHMETIC-RANGE test (ISO §2023:{fsec3[..^2]}.4 rule 1; §2023:8.8.4.4.4 GR3l)");
+                        + $"IN-ARITHMETIC-RANGE test ({AlgebraicRangeRule(sig)}; §2023:8.8.4.4.4 GR3l)");
                     return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name} float argument");
                 }
             }
@@ -3088,7 +3083,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 ctx.Edition.Error(DiagnosticCatalog.AlgebraicFloatEditedRange, $"FUNCTION {sig.Name}: argument-1's picture "
                     + $"{pic.EditMask} describes values as far from zero as 1E+{farthestExp} and as near as 1E{closestExp}, "
                     + $"outside the {ArithmeticModes.IntermediateName(ctx.Options.Arithmetic)} intermediate's range — the entry "
-                    + "shall be such that its extreme passes an IN-ARITHMETIC-RANGE test (ISO §2023:15.43.4 r1 / §2023:15.58.4 r1; §2023:8.8.4.4.4 GR3l)");
+                    + "shall be such that its extreme passes an IN-ARITHMETIC-RANGE test (" + IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.43.4 RV1") + " / " + IntrinsicCitations.BareRule(ctx.Edition.Edition, "§2023:15.58.4 RV1") + "; §2023:8.8.4.4.4 GR3l)");
                 return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name} floating-point edited argument");
             }
         }
@@ -3139,18 +3134,33 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         string cat = sig.Name == "SMALLEST-ALGEBRAIC" ? "category numeric" : "category numeric or numeric-edited";
         ctx.Edition.Error(DiagnosticCatalog.IntrinsicArgumentDataItemRule, $"FUNCTION {sig.Name} argument-1 shall be a {cat} DATA ITEM — not a "
             + "literal, an arithmetic expression, a group item, a reference-modified item, an index, or another "
-            + $"function (ISO §2023:{AlgebraicArgumentRules(sig)} rule 1)");
+            + $"function ({AlgebraicRule(sig, 1)})");
         return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name} argument");
     }
 
-    /// <summary>The argument-rules subclause of HIGHEST-ALGEBRAIC (§2023:15.43.3), LOWEST-ALGEBRAIC (§2023:15.58.3) or
-    /// SMALLEST-ALGEBRAIC (§2023:15.83.3): the one spelling of the three (COBOL1516's sites wrote it three times).</summary>
-    private static string AlgebraicArgumentRules(IntrinsicSig sig) => sig.Name switch
+    /// <summary>Argument rule <paramref name="rule"/> (1 to 3) of HIGHEST-ALGEBRAIC (§2023:15.43.3), LOWEST-ALGEBRAIC (§2023:15.58.3) or
+    /// SMALLEST-ALGEBRAIC (§2023:15.83.3), as the edition in force numbers it: the one spelling of the three (COBOL1516's sites wrote it
+    /// three times).</summary>
+    private string AlgebraicRule(IntrinsicSig sig, int rule) => IntrinsicCitations.Rule(ctx.Edition.Edition, (sig.Name, rule) switch
     {
-        "SMALLEST-ALGEBRAIC" => "15.83.3",
-        "HIGHEST-ALGEBRAIC" => "15.43.3",
-        _ => "15.58.3",
-    };
+        ("SMALLEST-ALGEBRAIC", 1) => "§2023:15.83.3 AR1",
+        ("SMALLEST-ALGEBRAIC", 2) => "§2023:15.83.3 AR2",
+        ("SMALLEST-ALGEBRAIC", 3) => "§2023:15.83.3 AR3",
+        ("HIGHEST-ALGEBRAIC", 1) => "§2023:15.43.3 AR1",
+        ("HIGHEST-ALGEBRAIC", 2) => "§2023:15.43.3 AR2",
+        ("HIGHEST-ALGEBRAIC", 3) => "§2023:15.43.3 AR3",
+        (_, 1) => "§2023:15.58.3 AR1",
+        (_, 2) => "§2023:15.58.3 AR2",
+        _ => "§2023:15.58.3 AR3",
+    });
+
+    /// <summary>The returned-value rule 1 of the same three functions (the IN-ARITHMETIC-RANGE test, §2023:15.43.4, §2023:15.58.4, §2023:15.83.4).</summary>
+    private string AlgebraicRangeRule(IntrinsicSig sig) => IntrinsicCitations.Rule(ctx.Edition.Edition, sig.Name switch
+    {
+        "SMALLEST-ALGEBRAIC" => "§2023:15.83.4 RV1",
+        "HIGHEST-ALGEBRAIC" => "§2023:15.43.4 RV1",
+        _ => "§2023:15.58.4 RV1",
+    });
 
     // ── Argument-list binding: split → ALL expansion → per-segment parse ───────────────────────────────────
 
@@ -3218,7 +3228,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                     "an argument \"must be an identifier, a literal, or an arithmetic expression\" (§1985:IV.4.3.8.3.3 SR1), "
                     + "and a phrase word is none of them",
                     "this function's §15.x.2 general format takes no phrase — a phrase word is not an identifier, "
-                    + "literal, or expression (ISO §2023:15.3)"));
+                    + "literal, or expression (" + IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.3") + ")"));
             return BoundOperandError.Refused(ctx.Edition, $"intrinsic argument '{kw.GetText()}'");
         }
         if (a.nonNumericLiteral() is { } nn)
@@ -3345,7 +3355,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         if (host.Expr.NonNumericLiteralOperand(nn) is { } op) return op;
         // The F18 sibling one shape over (kb/Work R19): the null fallback was a silent runtime stage too.
         ctx.Edition.Error(DiagnosticCatalog.IntrinsicArgumentNotAValue,
-            $"the literal '{WrittenSource.Of(nn)}' is not a form this intrinsic-argument position admits (ISO §2023:15.3)");
+            $"the literal '{WrittenSource.Of(nn)}' is not a form this intrinsic-argument position admits (" + IntrinsicCitations.Rule(ctx.Edition.Edition, "§2023:15.3") + ")");
         return BoundOperandError.Refused(ctx.Edition, $"literal argument '{WrittenSource.Of(nn)}'");
     }
 

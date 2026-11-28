@@ -88,12 +88,12 @@ public sealed partial class SpecialNamesBinder
             case Common.NumericSeparatorIssue.DecimalPointUnderCommaMode:
                 Edition.Error(DiagnosticCatalog.NumericLiteralDecimalSeparator,
                     $"numeric literal '{text}': under DECIMAL-POINT IS COMMA the "
-                    + $"decimal separator is the comma ({Edition.Edition.CiteRule("§1985:VI.4.5.4 GR12", "§2023:12.3.7.4 GR14a")}); '.' is not valid in a numeric literal");
+                    + $"decimal separator is the comma ({Edition.Edition.CiteRule("§1985:VI.4.5.4 GR12", "§2023:12.3.7.4 GR14a", "§2002:12.2.6.3 GR14a", "§2014:12.3.6.3 GR14a")}); '.' is not valid in a numeric literal");
                 break;
             case Common.NumericSeparatorIssue.CommaWithoutCommaMode:
                 Edition.Error(DiagnosticCatalog.NumericLiteralDecimalSeparator,
                     $"numeric literal '{text}': a comma decimal separator requires "
-                    + $"DECIMAL-POINT IS COMMA ({Edition.Edition.CiteRule("§1985:VI.4.5.4 GR12", "§2023:12.3.7.4 GR14a; §2023:8.3.3.3.2 admits only '.' as the decimal point")})");
+                    + $"DECIMAL-POINT IS COMMA ({Edition.Edition.CiteRule("§1985:VI.4.5.4 GR12", "§2023:12.3.7.4 GR14a; §2023:8.3.3.3.2 admits only '.' as the decimal point", "§2002:12.2.6.3 GR14a; §2002:8.3.1.2.2.1 admits only '.' as the decimal point", "§2014:12.3.6.3 GR14a; §2014:8.3.1.2.2.1 admits only '.' as the decimal point")})");
                 break;
         }
         // §2023:8.3.3.3.3 SR2/SR3/SR4 (kb/Work PB99) — the floating-point literal's FORM, checked HERE because both the
@@ -148,7 +148,7 @@ public sealed partial class SpecialNamesBinder
                 + withdrawn.WithdrawnSyntax("the DECIMAL-POINT IS COMMA clause", "COMMA"));
         else
             Edition.Error(DiagnosticCatalog.DecimalPointFormInvalid, $"DECIMAL-POINT IS {written}: the only form is "
-                + $"DECIMAL-POINT IS COMMA ({Edition.Edition.CiteRule("§1985:VI.4.5.2", "§2023:12.3.7")})");
+                + $"DECIMAL-POINT IS COMMA ({Edition.Edition.CiteRule("§1985:VI.4.5.2", "§2023:12.3.7.2", "§2002:12.2.6.1", "§2014:12.3.6.1")})");
     }
 
     /// <summary>Populate the switch registry from the SPECIAL-NAMES paragraph's switch-name clauses (ISO §2023:12.3.7
@@ -322,7 +322,7 @@ public sealed partial class SpecialNamesBinder
         {
             if (CollatingAlphabetFault(WrittenAlphabet(alnumWord), national: false) is { } fault)
                 Edition.Error(DiagnosticCatalog.CollatingSequenceAlphabetKind, CollatingAlphabetViolation("PROGRAM COLLATING SEQUENCE", alnumWord.GetText(),
-                    national: false, fault, Edition.Edition.Cite("§1985:VI.4.5.4 GR4", "ISO §2023:12.3.6.3 SR1")));
+                    national: false, fault, Edition.Edition.CiteRule("§1985:VI.4.5.4 GR4", "§2023:12.3.6.3 SR1", "§2002:12.2.5.2 SR1", "§2014:12.3.5.2 SR1")));
             else if (_host.Symbols.Identify(alnumWord, NameClass.Alphabet, report: true)?.Symbol is AlphabetDef def)
                 Cfg.Collating = def.IsIdentity ? null : def;
         }
@@ -330,7 +330,7 @@ public sealed partial class SpecialNamesBinder
         {
             if (CollatingAlphabetFault(WrittenAlphabet(natWord), national: true) is { } fault)
                 Edition.Error(DiagnosticCatalog.CollatingSequenceAlphabetKind, CollatingAlphabetViolation("PROGRAM COLLATING SEQUENCE FOR NATIONAL",
-                    natWord.GetText(), national: true, fault, "ISO §2023:12.3.6.3 SR2"));
+                    natWord.GetText(), national: true, fault, Edition.Edition.CiteRuleFrom2002("§2002:12.2.5.2 SR2", "§2023:12.3.6.3 SR2", "§2014:12.3.5.2 SR2")));
             else if (_host.Symbols.Identify(natWord, NameClass.NationalAlphabet, report: true)?.Symbol is NationalAlphabetDef def)
                 Cfg.NationalCollating = def.IsIdentity ? null : def;   // null for NATIVE/UCS-4 — the identity fast path (D-N3)
         }
@@ -427,7 +427,7 @@ public sealed partial class SpecialNamesBinder
         {
             Edition.Error(DiagnosticCatalog.OrderTableRepeated, $"ORDER TABLE {name}: the ORDER TABLE clause may be specified only once "
                 + "in a SPECIAL-NAMES paragraph — its general format brackets it without an ellipsis, unlike the "
-                + $"repeatable clauses (ISO §2023:12.3.7.2); '{declaredOrderings.Names.First()}' is already declared");
+                + $"repeatable clauses ({Edition.Edition.CiteRuleFrom2002("§2002:12.2.6.1", "§2023:12.3.7.2", "§2014:12.3.6.1")}); '{declaredOrderings.Names.First()}' is already declared");
             return;
         }
         _host.Symbols.DeclareOrderingName(name1.Start, text);
@@ -438,15 +438,15 @@ public sealed partial class SpecialNamesBinder
         string? failure = CollationEngine.ResolveLocale(text).Failure?.Message;
         Edition.Warning(DiagnosticCatalog.OrderTableUnresolved, $"ORDER TABLE {name} IS {raw}: "
             + (failure is null
-                ? $"'{text}' does not name a cultural ordering table this implementation provides (ISO §2023:12.3.7.4 "
-                  + "GR17 leaves literal-9's allowable content to the implementor: the default table "
+                ? $"'{text}' does not name a cultural ordering table this implementation provides (" + $"{Edition.Edition.CiteRuleFrom2002("§2002:12.2.6.3 GR17", "§2023:12.3.7.4 GR17", "§2014:12.3.6.3 GR17")}"
+                  + " leaves literal-9's allowable content to the implementor: the default table "
                   + $"'{CollationEngine.DefaultOrderingTableName}' — case-insensitive, space and underscore "
                   + "interchangeable — or a CLDR locale tag naming a tailored collation)"
                 : $"the site collation data for '{text}' cannot be used ({failure}), so it names no cultural "
-                  + "ordering table this implementation provides (ISO §2023:12.3.7.4 GR17 leaves literal-9's allowable "
+                  + "ordering table this implementation provides (" + $"{Edition.Edition.CiteRuleFrom2002("§2002:12.2.6.3 GR17", "§2023:12.3.7.4 GR17", "§2014:12.3.6.3 GR17")}" + " leaves literal-9's allowable "
                   + "content to the implementor)")
             + $". Every FUNCTION STANDARD-COMPARE reference to {name} will set EC-ORDER-NOT-SUPPORTED at run time "
-            + "(§2023:15.85.4 r2)");
+            + $"({IntrinsicCitations.BareRule(Edition.Edition, "§2023:15.85.4 RV2")})");
     }
 }
 
