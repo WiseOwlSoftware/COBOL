@@ -1,4 +1,4 @@
-## A numeric relation against figurative ZERO takes the one numeric comparison renderer
+## Entry 4084 — 2026-11-27 20:25 PST — A numeric relation against figurative ZERO takes the one numeric comparison renderer
 
 PB6256. `IF X = ZERO` was rendered by a second, partial numeric comparison at the tail of `ConditionRenderer.RenderFigurativeRelational` (through `FigOrNum`), which lacked the exact-wide, SDIDI, unsigned-wide and native-arithmetic arms of `RenderNumericRelational`. Re-probe on this tree before the fix: `IF A * B = ZERO` over two `PIC 9(30)` items holding 1E29 ended the run with EC-SIZE-OVERFLOW (fatal), where `IF A * B = 0` answered FALSE.
 
@@ -9,3 +9,4 @@ The re-probe of the unsigned-wide arm found a sibling defect in `RenderNumericRe
 Sweep: level-88 VALUE ZERO / ZERO THRU 5 over unsigned-wide, float, SDIDI and wide-signed items, EVALUATE ... WHEN ZERO over a wide product and an unsigned-wide item, and the sign condition all answer correctly (probes z2, z3 in the wave scratch).
 
 Goldens: `cases/8.3.3.6-Figurative-constant-values/pb6256_figurative_zero_numeric_relation` (2002, 2014, 2023; identical output at all three; values computed from the rule), and its negative `pb6256_figurative_zero_wide_item_1985` (COBOL0802 at --std 85). Rows re-verdicted: none (the note carried no inventory row).
+
