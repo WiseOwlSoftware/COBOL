@@ -1,4 +1,4 @@
-## PB5922: an intrinsic function's argument diagnostic at --std 2002 and 2014 cites that edition's clause
+## Entry 4081 — 2026-11-27 19:35 PST — PB5922: an intrinsic function's argument diagnostic at --std 2002 and 2014 cites that edition's clause
 
 **Mechanism.** The argument rules of the intrinsic functions are written once, as §2023:15.n.3 clauses on the schema rows of `IntrinsicArgumentRules`;
 `IntrinsicCitations.Clause` chose the clause by edition only for COBOL-85, so a program compiled at `--std 2002` or `--std 2014` was told a 2023 rule
@@ -26,3 +26,4 @@ all editions (`pb305-numval-c-edited-category`, `pb59-*-substitution`, `stat-*-z
 
 **Rows.** None re-verdicted: PB5922 stays open on COBOL1560/1707, COBOL1688's run-time reasons, EC-REPORT-INACTIVE and the intrinsic messages that
 still spell a 2023 literal (PB6118's sweep calls `IntrinsicCitations.ClauseSince2002`).
+
