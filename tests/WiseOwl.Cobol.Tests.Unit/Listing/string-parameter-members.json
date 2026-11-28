@@ -30,7 +30,7 @@
       "reason": "its strings word a diagnostic (a feature, a message, a verb, a rule citation, a site): the operand, if any, is the parser context"
     },
     {
-      "member": "WiseOwl.Cobol.Compiler.Binding.Bound.BoundAllLiteral.Of(string)",
+      "member": "WiseOwl.Cobol.Compiler.Binding.ConcatFolder.AllLiteral(string)",
       "reason": "its string is the text of a literal, a PICTURE character-string or a format string, which names nothing"
     },
     {

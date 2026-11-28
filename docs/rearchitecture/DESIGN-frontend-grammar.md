@@ -1323,7 +1323,7 @@ reference formats, and the only place source comments are recognized. Its model:
   classifiers call `LogicalLineBuilder.TryEmitFloatingDebugging`, its own row `floating-debugging-indicator-2002` gates
   it (introduced 2002, obsolete 2002, removed 2014), and SR8 (it on a fixed `D` or `-` line) is COBOL5770. A `D`
   line is NOT decided here (kb/Work PB1705, owner decision R56): the clause that makes it source is further down the text
-  than the line, so the converter CARRIES it — `ReferenceFormatProcessor.DebugLineCarrier` + its program text — and the
+  than the line, so the converter CARRIES it — `DebugLineCarrier.Text` + its program text — and the
   lexer reads the carrier as the hidden `DEBUG_LINE` marker and the text as ordinary tokens. The builder reads the line
   like any source line (`LogicalLineBuilder.EmitDebugging`: the literal state it ends in is tracked, a blank one is a
   blank line, kb/Work PB1914) and, so that both readings agree on every other line, a `D` line written while the latest

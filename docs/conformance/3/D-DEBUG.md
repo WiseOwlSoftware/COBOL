@@ -10,7 +10,7 @@
   85; OBSOLETE at 2002 (COBOL0903 on the clause and on the first line); removed from 2014 (COBOL0902, an error
   under strict, a warning under `--permissive`, where the pre-removal behavior above is kept). **Mechanism (R56, the
   pre-parse token rewriter):** the §2023:6.5 logical conversion cannot decide, because the clause is further down the text
-  than the line, so it writes the line as `ReferenceFormatProcessor.DebugLineCarrier` plus its program text; COPY
+  than the line, so it writes the line as `DebugLineCarrier.Text` plus its program text; COPY
   REPLACING and REPLACE match over that text as if the `D` were absent; the lexer reads the carrier as the hidden
   `DEBUG_LINE` marker and the text as ordinary tokens; and `DebuggingLineRewriter` keeps the line's tokens or moves
   them to the `ABSENT_DEBUG_LINE` channel, per source unit, before any other token pass runs. A continuation line of a

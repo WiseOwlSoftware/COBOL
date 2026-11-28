@@ -149,7 +149,7 @@ the edition has compiler directives (`EditionInfo.HasCompilerDirectives`, from 2
   every parenthesized group (kb/Work PB5469) — and every line an operand that is not pseudo-text introduces takes the
   replaced line's indicator (kb/Work PB5471).
 
-A fixed-form debugging line reaches the stage as `ReferenceFormatProcessor.DebugLineCarrier` (`*>` plus the Unicode
+A fixed-form debugging line reaches the stage as `DebugLineCarrier.Text` (`*>` plus the Unicode
 noncharacter U+FDD0) + its text; the scanner skips only the carrier, so the line's text-words take part in matching (the
 COBOL-85 rule) while no comment a programmer writes can be mistaken for one. The lexer later reads the carrier as the
 hidden `DEBUG_LINE` marker and `DebuggingLineRewriter` keeps or hides the line's tokens (kb/Work PB1705).
@@ -253,7 +253,7 @@ the 2014 set applies (`OperandScreen.CopyWord`).
 
 ### §3.7 The lines a replacement introduces (kb/Work PB5382)
 
-A debugging line reaches this stage as `ReferenceFormatProcessor.DebugLineCarrier` plus its text, and `DebuggingLineRewriter` later keeps or
+A debugging line reaches this stage as `DebugLineCarrier.Text` plus its text, and `DebuggingLineRewriter` later keeps or
 hides each carrier's line by the unit's WITH DEBUGGING MODE. A whole replacement whose pseudo-text-2 spans lines therefore has to write the
 carrier on every line it introduces that is a debugging line, or the rewriter sees source. `ApplyReplacements` asks `IntroducedText` for
 the text it writes, decided by the line the match begins on (`firstLineIsDebugging` covers a slice that begins inside a line):

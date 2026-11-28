@@ -1039,7 +1039,7 @@ PIC_IS      : 'IS' { OnPictureIs(); } ;  // the IS keyword, once: a second IS is
 PIC_WS      : ( [ \n] | [,;] [ \n] )+ -> skip ;
 // A comment line between PIC and its character-string (kb/Work PB1493). Source comments are removed by the
 // reference-format stage (ISO §2023:6.5 2) / 3)) before the lexer runs, but the fixed-form DEBUGGING-line carrier
-// (ReferenceFormatProcessor.DebugLineCarrier) still reaches it as a *> line — and *> never begins a picture
+// (DebugLineCarrier.Text) still reaches it as a *> line — and *> never begins a picture
 // character-string (> is no PICTURE symbol). Longest match: it always reaches at least as far as PIC_STRING would.
 // A fixed-form DEBUGGING line inside the open region (kb/Work PB1913): skipped whole, like a comment, but as a marker
 // DebuggingLineRewriter can find. It precedes PIC_COMMENT because the two match the same text and the first rule wins.
