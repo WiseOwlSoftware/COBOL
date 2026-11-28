@@ -246,14 +246,20 @@ Under review: `src/**/*.{cs,g4,ps1,csproj}`, `tests/**/*.{cs,csproj,props,py,ps1
   two records under one id are invalid, never last-wins), each pair's completeness and each null, and says COMPLETE
   or LAUNCH NEEDED. **One mechanism, one note** (the w1034 claim refuter's C3: on 15 of batch 1's 35 pairs two
   finders read the whole shard, and five dimensions read each shard, so one mechanism can be found several times):
-  upheld findings of the same wave kind whose members overlap or whose sites overlap are one mechanism, whichever
-  finder, pair or dimension found them, and the most specific record is its primary.
+  upheld findings are one mechanism, whichever finder, pair or dimension found them, only when they are of the same
+  wave kind, name mostly the same members (the exact member names, at least half of either's; a shared code site, or a
+  type and one of its members, is not a shared mechanism: kb/Work PB3259) and say the same thing (their rule and
+  target share words); a finding joins a group only when it matches every finding in it, and the most specific record
+  is its primary. A note an earlier batch filed absorbs a new finding by the same test, never by a site or a type, and a
+  finding the test matches to a closed note is named with that note in the filer's report, not dropped unseen.
   `python scripts/arch/file_census_notes.py --r2 <batch dir>/collected.json` refuses a batch that is not COMPLETE
   (an unverified duplicate upheld later would become a second note) and files every upheld MECHANISM as one note in
   the **`PB1754` cluster** (N6; the planner's `--cluster PB1754` reads it), carrying every id and an "Also found as"
   line per merged provenance; a mechanism an earlier batch filed takes the new ids on that note instead:
   `kind: analysis` for a restructuring finding, `kind: defect` for a defect the fleet hands the fix lane, its sites as
-  backticked paths and its members as the `**Moves or changes:**` line, so `fix_clusters.py`, the member index and
+  backticked paths each followed by a parenthesis of its members, each in a code span (the form `work.py`'s site
+  reader takes a member from; a symbol the file does not declare, or a file with no symbol, claims the file whole with
+  `(whole: why)`: kb/Work PB4080) and its members as the `**Moves or changes:**` line, so `fix_clusters.py`, the member index and
   `plan_wave.py` compute the wave's file set (§8.7) rather than anyone listing it. Ids come from `alloc.py`; the
   finding ids on the note's `r2_ids:` line (and its `r2_members:`) make a re-run file only what is new; a path the
   committed tree no longer has is refused as stale.
